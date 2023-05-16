@@ -20,9 +20,10 @@ class Widget
         $skript,
         $styl;
 
-    protected function __construct($nazev) {
-        $this->nazev = $nazev;
-        $prefix = WWW . '/widgety/' . $nazev;
+    protected function __construct($nazev)
+    {
+        $this->nazev  = $nazev;
+        $prefix       = WWW . '/widgety/' . $nazev;
         $this->skript = $prefix . '.php';
         if (!is_file($this->skript)) throw new WidgetException;
         $sablona = $prefix . '.xtpl';
@@ -34,7 +35,8 @@ class Widget
     /**
      * @return string html kód widgetu
      */
-    function html() {
+    function html()
+    {
         $t = $this->sablona;
         ob_start();
         if ($this->styl) { // TODO lépe mít metodu na získání a přesunout do hlavičky
@@ -53,7 +55,8 @@ class Widget
     /**
      * @return self|null
      */
-    static function zNazvu($nazev) {
+    static function zNazvu($nazev)
+    {
         try {
             return new self($nazev);
         } catch (WidgetException $e) {

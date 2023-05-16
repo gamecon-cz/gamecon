@@ -10,10 +10,11 @@ class FioPlatba
      * Vrátí platby za posledních X dní
      * @return FioPlatba[]
      */
-    public static function zPoslednichDni(int $pocetDniZpet) {
+    public static function zPoslednichDni(int $pocetDniZpet)
+    {
         return self::zRozmezi(
             new DateTimeImmutable("-{$pocetDniZpet} days"),
-            new DateTimeImmutable()
+            new DateTimeImmutable(),
         );
     }
 
@@ -22,11 +23,12 @@ class FioPlatba
      * @param DateTimeInterface $do
      * @return FioPlatba[]
      */
-    public static function zRozmezi(DateTimeInterface $od, DateTimeInterface $do): array {
+    public static function zRozmezi(DateTimeInterface $od, DateTimeInterface $do): array
+    {
         $odString = $od->format('Y-m-d');
         $doString = $do->format('Y-m-d');
-        $token = FIO_TOKEN;
-        $url = "https://www.fio.cz/ib_api/rest/periods/$token/$odString/$doString/transactions.json";
+        $token    = FIO_TOKEN;
+        $url      = "https://www.fio.cz/ib_api/rest/periods/$token/$odString/$doString/transactions.json";
         return self::zUrl($url);
     }
 
@@ -34,7 +36,8 @@ class FioPlatba
      * Vrátí platby načtené z jsonu na dané url
      * @return FioPlatba[]
      */
-    private static function zUrl(string $url): array {
+    private static function zUrl(string $url): array
+    {
         $raw = self::cached($url);
         if (!$raw) {
             return [];
@@ -43,7 +46,7 @@ class FioPlatba
         if (!$decoded) {
             return [];
         }
-        $platby = $decoded->accountStatement->transactionList->transaction ?? [];
+        $platby    = $decoded->accountStatement->transactionList->transaction ?? [];
         $fioPlatby = [];
         foreach ($platby as $platba) {
             $fioPlatby[] = self::zPlatby($platba);
@@ -52,9 +55,10 @@ class FioPlatba
     }
 
     /** Cacheuje a zpracovává surovou rest odpověď (kvůli limitu 30s na straně FIO) */
-    private static function cached($url) {
+    private static function cached($url)
+    {
         $adresar = SPEC . '/fio';
-        $soubor = $adresar . '/' . md5($url) . '.json';
+        $soubor  = $adresar . '/' . md5($url) . '.json';
         if (!is_dir($adresar) && (!mkdir($adresar, 0777, true) || !is_dir($adresar))) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $adresar));
         }
@@ -65,7 +69,8 @@ class FioPlatba
         return preg_replace('@"value":([\d.]+),@', '"value":"$1",', file_get_contents($soubor));
     }
 
-    private static function fetch(string $url, string $soubor) {
+    private static function fetch(string $url, string $soubor)
+    {
         for ($odpoved = false, $pokus = 1; $odpoved === false && $pokus < 5; $pokus++, usleep(100)) {
             $odpoved = @file_get_contents($url); // v prvních pokusech chyby maskovat
         }
@@ -76,7 +81,8 @@ class FioPlatba
     }
 
     /** Vrátí platbu načtenou z předaného elementu z jsonového pole ...->transaction */
-    private static function zPlatby(StdClass $platba): FioPlatba {
+    private static function zPlatby(StdClass $platba): FioPlatba
+    {
         $pole = [];
         foreach ($platba as $sloupec) {
             if ($sloupec) {
@@ -86,11 +92,12 @@ class FioPlatba
         return new static($pole);
     }
 
-    public static function existujePodleFioId($idFioPlatby): bool {
+    public static function existujePodleFioId($idFioPlatby): bool
+    {
         return (bool)dbOneCol(<<<SQL
 SELECT 1 FROM platby WHERE fio_id = $1
 SQL,
-            [$idFioPlatby]
+            [$idFioPlatby],
         );
     }
 
@@ -100,34 +107,40 @@ SQL,
      * Platba se vytváří z asociativního pole s klíči odpovídajícími názvům atributů v fio api
      * viz https://www.fio.cz/docs/cz/API_Bankovnictvi.pdf
      */
-    private function __construct(array $data) {
+    private function __construct(array $data)
+    {
         $this->data = $data;
     }
 
     /** Objem platby (kladný pro příchozí, záporný pro odchozí) */
-    public function castka(): float {
+    public function castka(): float
+    {
         return (float)$this->data['Objem'];
     }
 
     /** Vrací ID jako string (64bitů int) */
-    public function id(): string {
+    public function id(): string
+    {
         return $this->data['ID pohybu'];
     }
 
     /** Vrací ID jako string (64bitů int) */
-    public function datum(): \DateTimeImmutable {
+    public function datum(): \DateTimeImmutable
+    {
         // '2021-06-10+0200' for example (despite documentation where timezone format mentioned is with colon as +02:00)
         return \DateTimeImmutable::createFromFormat('Y-m-dO', $this->data['Datum'])
             ->setTime(0, 0, 0);
     }
 
     /** Variabilní symbol */
-    public function vs(): string {
+    public function vs(): string
+    {
         $vs = $this->data['VS'] ?? '';
         return $vs ?: $this->nactiVsZTextu($this->zpravaProPrijemce());
     }
 
-    private function nactiVsZTextu(string $text): string {
+    private function nactiVsZTextu(string $text): string
+    {
         if (!preg_match('~(^|/)vs/(?<vs>\d+)~i', $text, $matches)) {
             return '';
         }
@@ -135,7 +148,8 @@ SQL,
     }
 
     /** Variabilní symbol */
-    public function idUcastnika(): ?int {
+    public function idUcastnika(): ?int
+    {
         if ($this->castka() > 0) {
             return trim($this->vs()) === ''
                 ? null
@@ -147,7 +161,8 @@ SQL,
         return $this->nactiIdUcastnikaZeZpravyProPrijemce();
     }
 
-    private function nactiIdUcastnikaZeZpravyProPrijemce(): ?int {
+    private function nactiIdUcastnikaZeZpravyProPrijemce(): ?int
+    {
         $parovaciText = defined('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY')
             ? trim(TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY)
             : '';
@@ -158,7 +173,7 @@ SQL,
         if ($poznamkaProMe === '') {
             return null;
         }
-        $parovaciTextBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($parovaciText);
+        $parovaciTextBezDiakritiky  = $this->lowercaseBezMezerABezDiakritiky($parovaciText);
         $poznamkaProMeBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($poznamkaProMe);
         if (!preg_match(
             '~' . preg_quote($parovaciTextBezDiakritiky, '~') . '[^[:alnum:]]*(?<idUcastnika>\d+)~',
@@ -170,18 +185,21 @@ SQL,
         return (int)$matches['idUcastnika'];
     }
 
-    private function lowercaseBezMezerABezDiakritiky(string $text): string {
-        $bezMezer = preg_replace('~\s~', '', $text);
+    private function lowercaseBezMezerABezDiakritiky(string $text): string
+    {
+        $bezMezer      = preg_replace('~\s~', '', $text);
         $bezDiakritiky = removeDiacritics($bezMezer);
         return strtolower($bezDiakritiky);
     }
 
     /** Zpráva pro příjemce */
-    public function zpravaProPrijemce(): string {
+    public function zpravaProPrijemce(): string
+    {
         return $this->data['Zpráva pro příjemce'] ?? '';
     }
 
-    public function poznamkaProMne(): string {
+    public function poznamkaProMne(): string
+    {
         return $this->data['Komentář'] ?? '';
     }
 }

@@ -3,7 +3,8 @@
 /** Searches an array for all specified keys
  * @return bool true if all exist false otherwise
  */
-function array_keys_exist($keys, $search) {
+function array_keys_exist($keys, $search)
+{
     foreach ($keys as $key) {
         if (!array_key_exists($key, $search)) {
             return false;
@@ -13,7 +14,8 @@ function array_keys_exist($keys, $search) {
 }
 
 /** Flattens array in manner $pre.$element.$post for all elements, separated by $sep */
-function array_flat($pre, $array, $post = '', $sep = '') {
+function array_flat($pre, $array, $post = '', $sep = '')
+{
     $out = '';
     foreach ($array as $e) {
         $out .= $pre . $e . $post;
@@ -25,7 +27,8 @@ function array_flat($pre, $array, $post = '', $sep = '') {
  * Iterates trough array and prints combined output returned by function in
  * each iteration
  */
-function array_uprint($array, callable $func, $sep = '') {
+function array_uprint($array, callable $func, $sep = '')
+{
     $out = '';
     foreach ($array as $e) {
         $out .= $func($e) . $sep;
@@ -36,19 +39,21 @@ function array_uprint($array, callable $func, $sep = '') {
     return $out;
 }
 
-function reload() {
+function reload()
+{
     header('Refresh: 0', true, 303);
     exit;
 }
 
-function parseRoute(): array {
+function parseRoute(): array
+{
     $rawReq = get('req');
     if (!$rawReq) {
         $requestUri = $_SERVER['REQUEST_URI'] ?? '';
 
         if (str_starts_with($requestUri, '/admin')) {
             $rawReq = substr($requestUri, strlen('/admin'));
-        } elseif (str_starts_with($requestUri, '/web')) {
+        } else if (str_starts_with($requestUri, '/web')) {
             $rawReq = substr($requestUri, strlen('/web'));
         } else {
             $rawReq = $requestUri;
@@ -67,18 +72,19 @@ function parseRoute(): array {
  * Ends current script execution and reloads page to http referrer.
  * @param string $to alternative location to go to instead of referrer
  */
-function back(string $to = null) {
+function back(string $to = null)
+{
     if ($to) {
         header('Location: ' . $to, true, 303);
-    } elseif (isset($_SERVER['HTTP_REFERER'])
+    } else if (isset($_SERVER['HTTP_REFERER'])
         && (str_contains($_SERVER['HTTP_REFERER'], URL_WEBU) || str_contains($_SERVER['HTTP_REFERER'], URL_ADMIN))
     ) {
         header('Location: ' . $_SERVER['HTTP_REFERER'], true, 303);
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_SERVER['REDIRECT_URL'])
+    } else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_SERVER['REDIRECT_URL'])
         && $_SERVER['REDIRECT_URL'] !== ($_SERVER['REQUEST_URI'] ?? '')
     ) {
         header('Location: ' . $_SERVER['REDIRECT_URL'], true, 303);
-    } elseif ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    } else if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         header('Location: ' . $_SERVER['REQUEST_URI'], true, 303);
     } else {
         header('Location: ' . URL_WEBU, true, 303);
@@ -87,16 +93,19 @@ function back(string $to = null) {
     exit;
 }
 
-function getBackUrl(string $defaultBackUrl = null): string {
+function getBackUrl(string $defaultBackUrl = null): string
+{
     $refererParts = parse_url($_SERVER['HTTP_REFERER'] ?? $defaultBackUrl ?? $_SERVER['REQUEST_URI']);
     return rtrim(implode('?', [$refererParts['path'], $refererParts['query'] ?? '']), '?');
 }
 
-function getCurrentUrlPath(): string {
+function getCurrentUrlPath(): string
+{
     return (string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 }
 
-function getCurrentUrlWithQuery(array $queryPartsToAddOrReplace = []): string {
+function getCurrentUrlWithQuery(array $queryPartsToAddOrReplace = []): string
+{
     $path        = getCurrentUrlPath();
     $queryString = (string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
     parse_str($queryString, $query);
@@ -110,7 +119,8 @@ function getCurrentUrlWithQuery(array $queryPartsToAddOrReplace = []): string {
         : $path;
 }
 
-function get($name) {
+function get($name)
+{
     return $_GET[$name] ?? null;
 }
 
@@ -120,7 +130,8 @@ function get($name) {
  * if in $default is just value, it is assumed mandatory argument
  * and exception is thrown, if not set in $actual
  */
-function opt($actual, $default) {
+function opt($actual, $default)
+{
     $opt = [];
     foreach ($default as $key => $val) {
         if (is_numeric($key)) {
@@ -139,28 +150,32 @@ function opt($actual, $default) {
     return $opt;
 }
 
-function post($name, $field = null) {
+function post($name, $field = null)
+{
     if ($field === null) {
         return $_POST[$name] ?? null;
     }
     return $_POST[$name][$field] ?? null;
 }
 
-function postBody() {
+function postBody()
+{
     $rawdata = file_get_contents("php://input");
     $decoded = json_decode($rawdata, true);
     return $decoded;
 }
 
 /** Returns temporary filename for uploaded file or '' if none */
-function postFile($name) {
+function postFile($name)
+{
     return $_FILES[$name]['tmp_name'] ?? '';
 }
 
 /**
  * Converts '"~"' to '"([^"])+"'
  */
-function preg_quote_wildcard($re) {
+function preg_quote_wildcard($re)
+{
     $re = preg_quote($re);
     $re = preg_replace('@~(\\\\?.)@', '([^$1]*)$1', $re);
     return $re;
@@ -170,7 +185,8 @@ function preg_quote_wildcard($re) {
  * Returns random hexadecimal number in with $chars number of characters (ie.
  * half $chars bytes)
  */
-function randHex($chars) {
+function randHex($chars)
+{
     if (!($chars <= 32 && $chars >= 0)) {
         throw new Exception('maximum characters is 32 so far.');
     }
@@ -180,7 +196,8 @@ function randHex($chars) {
 /**
  * Convert localized string to [a-z0-9\-] suitable for files and urls.
  */
-function slugify($text) {
+function slugify($text)
+{
     $text = removeDiacritics($text);
     $text = strtolower($text);
     $text = preg_replace('/[^0-9a-z]+/', '-', $text);
@@ -192,7 +209,8 @@ function slugify($text) {
 /**
  * Convert snake_case to camelCase
  */
-function snakeToCamel($str) {
+function snakeToCamel($str)
+{
     $str = ucwords($str, '-');
     $str = str_replace('-', '', $str);
     $str = lcfirst($str);
@@ -202,7 +220,8 @@ function snakeToCamel($str) {
 /**
  * Returns part of string after rightmost occurence of delimiter
  */
-function strrafter($string, $delimiter) {
+function strrafter($string, $delimiter)
+{
     $pos = strrpos($string, $delimiter);
     return substr($string, $pos + 1);
 }
@@ -210,7 +229,8 @@ function strrafter($string, $delimiter) {
 /**
  * Returns part of string after rightmost occurence of delimiter
  */
-function strrbefore($string, $delimiter) {
+function strrbefore($string, $delimiter)
+{
     $pos = strrpos($string, $delimiter);
     return substr($string, 0, $pos);
 }
@@ -218,7 +238,8 @@ function strrbefore($string, $delimiter) {
 /**
  * Switches rows and columns
  */
-function tabArrayR(array $ai): array {
+function tabArrayR(array $ai): array
+{
     $ao = [];
     $ih = count($ai);
     $iw = count($ai[0]);
@@ -233,7 +254,8 @@ function tabArrayR(array $ai): array {
 /**
  * Returns HTML formatted table from array
  */
-function tabHtml(array $tab, string $title = ''): string {
+function tabHtml(array $tab, string $title = ''): string
+{
     $tabOut = "<table>\n";
     if ($title !== '') {
         $tabOut .= "<caption>$title</caption>";
@@ -252,7 +274,8 @@ function tabHtml(array $tab, string $title = ''): string {
  * @return string
  * Returns HTML formatted table from db answer
  */
-function tabMysql($a, string $title = ''): string {
+function tabMysql($a, string $title = ''): string
+{
     $tabOut = "<table>\n";
     if ($title !== '') {
         $tabOut .= "<caption>$title</caption>";
@@ -273,7 +296,8 @@ function tabMysql($a, string $title = ''): string {
  * @param mysqli_result $result
  * Returns table array from mysql answer
  */
-function tabMysqlArray(mysqli_result $result): array {
+function tabMysqlArray(mysqli_result $result): array
+{
     $header = mysqli_fetch_assoc($result) ?? [];
     $oa[]   = array_keys($header);
     $oa[]   = array_values($header);
@@ -286,7 +310,8 @@ function tabMysqlArray(mysqli_result $result): array {
 /**
  * Returns HTML formatted table from db answer, mirrored
  */
-function tabMysqlR(mysqli_result $result, string $title = ''): string {
+function tabMysqlR(mysqli_result $result, string $title = ''): string
+{
     return tabHtml(tabArrayR(tabMysqlArray($result)), $title);
 }
 
@@ -294,7 +319,8 @@ function tabMysqlR(mysqli_result $result, string $title = ''): string {
  * @param Iterator|array $multiDimensionalArray
  * @return array
  */
-function flatten(Iterator|array $multiDimensionalArray): array {
+function flatten(Iterator|array $multiDimensionalArray): array
+{
     $flattened             = [];
     $multiDimensionalArray = (array)$multiDimensionalArray;
     array_walk_recursive($multiDimensionalArray, function ($array) use (&$flattened) {
@@ -303,7 +329,8 @@ function flatten(Iterator|array $multiDimensionalArray): array {
     return $flattened;
 }
 
-function nahradNazvyKonstantZaHodnoty(string $text): string {
+function nahradNazvyKonstantZaHodnoty(string $text): string
+{
     if (preg_match_all('~%(?<konstanta>[A-Z_]+)%~', $text, $matches)) {
         foreach ($matches['konstanta'] as $nazevKonstanty) {
             if (defined($nazevKonstanty)) {
@@ -314,13 +341,15 @@ function nahradNazvyKonstantZaHodnoty(string $text): string {
     return $text;
 }
 
-function try_define(string $constantName, $value) {
+function try_define(string $constantName, $value)
+{
     if (!defined($constantName)) {
         define($constantName, $value);
     }
 }
 
-function try_constant(string $constantName) {
+function try_constant(string $constantName)
+{
     if (defined($constantName)) {
         return constant($constantName);
     }

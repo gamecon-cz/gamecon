@@ -23,33 +23,33 @@ class Finance
 
     public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
 
-    private $stav = 0;  // celkový výsledný stav uživatele na účtu
+    private $stav       = 0;  // celkový výsledný stav uživatele na účtu
     private $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
     private $soucinitelCenyAKtivit;              // součinitel ceny aktivit
-    private $logovat = true;    // ukládat seznam předmětů?
+    private $logovat    = true;    // ukládat seznam předmětů?
     private $cenik;             // instance ceníku
     // tabulky s přehledy
-    private $prehled = [];   // tabulka s detaily o platbách
-    private $strukturovanyPrehled = [];
-    private $slevyNaAktivity = [];    // pole s textovými popisy slev uživatele na aktivity
-    private $slevyO = [];    // pole s textovými popisy obecných slev
+    private $prehled                        = [];   // tabulka s detaily o platbách
+    private $strukturovanyPrehled           = [];
+    private $slevyNaAktivity                = [];    // pole s textovými popisy slev uživatele na aktivity
+    private $slevyO                         = [];    // pole s textovými popisy obecných slev
     private $proplacenyBonusZaVedeniAktivit = 0; // "sleva" za aktivity; nebo-li bonus vypravěče; nebo-li odměna za vedení hry; převedená na peníze
-    private $brigadnickaOdmena = 0.0;  // výplata zaměstnance (který nechce bonus/kredit na útratu; ale tvrdou měnu za tvrdou práci)
+    private $brigadnickaOdmena              = 0.0;  // výplata zaměstnance (který nechce bonus/kredit na útratu; ale tvrdou měnu za tvrdou práci)
     // součásti výsledné ceny
-    private $cenaAktivit = 0.0;  // cena aktivit
-    private $sumaStorna = 0.0;  // suma storna za aktivity (je součástí ceny za aktivity)
-    private $cenaUbytovani = 0.0;  // cena objednaného ubytování
-    private $cenaPredmetu = 0.0;  // cena předmětů objednaných z shopu
-    private $cenaStravy = 0.0;  // cena jídel objednaných z shopu
-    private $cenaVstupne = 0.0;
-    private $cenaVstupnePozde = 0.0;
-    private $bonusZaVedeniAktivit = 0.0;  // sleva za tech. aktivity a odvedené aktivity
-    private $slevaObecna = 0.0;  // sleva získaná z tabulky slev
+    private $cenaAktivit                   = 0.0;  // cena aktivit
+    private $sumaStorna                    = 0.0;  // suma storna za aktivity (je součástí ceny za aktivity)
+    private $cenaUbytovani                 = 0.0;  // cena objednaného ubytování
+    private $cenaPredmetu                  = 0.0;  // cena předmětů objednaných z shopu
+    private $cenaStravy                    = 0.0;  // cena jídel objednaných z shopu
+    private $cenaVstupne                   = 0.0;
+    private $cenaVstupnePozde              = 0.0;
+    private $bonusZaVedeniAktivit          = 0.0;  // sleva za tech. aktivity a odvedené aktivity
+    private $slevaObecna                   = 0.0;  // sleva získaná z tabulky slev
     private $nevyuzityBonusZaVedeniAktivit = 0.0;  // zbývající sleva za odvedené aktivity (nevyužitá část)
-    private $vyuzityBonusZaVedeniAktivit = 0.0;  // sleva za odvedené aktivity (využitá část)
-    private $zbyvajiciObecnaSleva = 0.0;
-    private $vyuzitaSlevaObecna = 0.0;
-    private $sumyPlatebVRocich = [];  // platby připsané na účet v jednotlivých letech (zatím jen letos; protože máme obskurnost jménem "Uzavření ročníku")
+    private $vyuzityBonusZaVedeniAktivit   = 0.0;  // sleva za odvedené aktivity (využitá část)
+    private $zbyvajiciObecnaSleva          = 0.0;
+    private $vyuzitaSlevaObecna            = 0.0;
+    private $sumyPlatebVRocich             = [];  // platby připsané na účet v jednotlivých letech (zatím jen letos; protože máme obskurnost jménem "Uzavření ročníku")
     /** @var string|null */
     private $datumPosledniPlatby;        // datum poslední připsané platby
 
@@ -80,12 +80,14 @@ class Finance
     public function __construct(
         private readonly \Uzivatel          $u,
         private readonly float              $zustatekZPredchozichRocniku,
-        private readonly SystemoveNastaveni $systemoveNastaveni
-    ) {
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    )
+    {
         $this->prepocti();
     }
 
-    private function prepocti() {
+    private function prepocti()
+    {
         $this->zapoctiVedeniAktivit();
         $this->zapoctiSlevy();
 
@@ -127,7 +129,8 @@ class Finance
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
 
-    public function obnovUdaje() {
+    public function obnovUdaje()
+    {
         $this->obnovVychoziHodnotyObjektu();
         $this->prepocti();
 
@@ -135,27 +138,33 @@ class Finance
     }
 
     /** Cena za uživatelovy aktivity */
-    public function cenaAktivit() {
+    public function cenaAktivit()
+    {
         return $this->cenaAktivit;
     }
 
-    public function cenaPredmetyAStrava() {
+    public function cenaPredmetyAStrava()
+    {
         return $this->cenaPredmetu() + $this->cenaStravy();
     }
 
-    public function cenaPredmetu() {
+    public function cenaPredmetu()
+    {
         return $this->cenaPredmetu;
     }
 
-    public function cenaStravy() {
+    public function cenaStravy()
+    {
         return $this->cenaStravy;
     }
 
-    public function cenaUbytovani() {
+    public function cenaUbytovani()
+    {
         return $this->cenaUbytovani;
     }
 
-    private static function cpm_kategorie_razeni($kategorie) {
+    private static function cpm_kategorie_razeni($kategorie)
+    {
         switch ($kategorie) {
             case 2:
                 return 4;
@@ -169,7 +178,8 @@ class Finance
     }
 
     /** Porovnávání k řazení php 4 style :/ */
-    private function cmp($a, $b) {
+    private function cmp($a, $b)
+    {
         // podle typu
         $m = Finance::cpm_kategorie_razeni($a['kategorie']) - Finance::cpm_kategorie_razeni($b['kategorie']);
         if ($m) {
@@ -184,7 +194,8 @@ class Finance
         return $a['castka'] - $b['castka'];
     }
 
-    private function logStrukturovane(string $nazev, int $pocet, ?float $castka, $typ) {
+    private function logStrukturovane(string $nazev, int $pocet, ?float $castka, $typ)
+    {
         if (!$this->logovat) {
             return;
         }
@@ -199,7 +210,8 @@ class Finance
     /**
      * Zaloguje do seznamu nákupů položku (pokud je logování zapnuto)
      */
-    private function log($nazev, $castka, $kategorie = null, $idPolozky = null) {
+    private function log($nazev, $castka, $kategorie = null, $idPolozky = null)
+    {
         if (!$this->logovat) {
             return;
         }
@@ -207,7 +219,8 @@ class Finance
         $this->prehled[] = $this->formatujProLog($nazev, $castka, $kategorie, $idPolozky);
     }
 
-    private function formatujProLog($nazev, $castka, $kategorie = null, $idPolozky = null): array {
+    private function formatujProLog($nazev, $castka, $kategorie = null, $idPolozky = null): array
+    {
         if (is_numeric($castka)) {
             $castka = round($castka);
         }
@@ -222,7 +235,8 @@ class Finance
     /**
      * Zaloguje zvýrazněný záznam
      */
-    private function logb($nazev, $castka, $kategorie = null, $idPolozky = null) {
+    private function logb($nazev, $castka, $kategorie = null, $idPolozky = null)
+    {
         $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie, $idPolozky);
     }
 
@@ -231,13 +245,14 @@ class Finance
      *
      * @return string|null datum poslední platby
      */
-    public function datumPosledniPlatby() {
+    public function datumPosledniPlatby()
+    {
         if (!isset($this->datumPosledniPlatby)) {
             $uid                       = $this->u->id();
             $this->datumPosledniPlatby = dbOneCol("
         SELECT max(provedeno) as datum
         FROM platby
-        WHERE castka > 0 AND id_uzivatele = $1", [$uid]
+        WHERE castka > 0 AND id_uzivatele = $1", [$uid],
             );
         }
         return $this->datumPosledniPlatby;
@@ -249,7 +264,8 @@ class Finance
      * @param boolean $vcetneCeny
      * @param boolean $vcetneMazani
      */
-    public function prehledHtml(array $jenKategorieIds = null, bool $vcetneCeny = true, bool $vcetneMazani = false) {
+    public function prehledHtml(array $jenKategorieIds = null, bool $vcetneCeny = true, bool $vcetneMazani = false)
+    {
         $out     = '<table class="objednavky">';
         $prehled = $this->serazenyPrehled();
         if ($jenKategorieIds) {
@@ -301,7 +317,8 @@ class Finance
         return $out;
     }
 
-    public function prehledPopis(): string {
+    public function prehledPopis(): string
+    {
         $out = [];
         foreach ($this->serazenyPrehled() as $r) {
             $out[] = $r['nazev'] . ' ' . $r['castka'];
@@ -309,13 +326,15 @@ class Finance
         return implode(', ', $out);
     }
 
-    private function serazenyPrehled(): array {
+    private function serazenyPrehled(): array
+    {
         $prehled = $this->prehled;
         usort($prehled, [static::class, 'cmp']);
         return $prehled;
     }
 
-    public function dejStrukturovanyPrehled(): array {
+    public function dejStrukturovanyPrehled(): array
+    {
         return $this->strukturovanyPrehled;
     }
 
@@ -327,7 +346,8 @@ class Finance
      * @param string|int|null $idFioPlatby
      * @throws \DbDuplicateEntryException
      */
-    public function pripis($castka, \Uzivatel $provedl, $poznamka = null, $idFioPlatby = null) {
+    public function pripis($castka, \Uzivatel $provedl, $poznamka = null, $idFioPlatby = null)
+    {
         dbInsert(
             PlatbySqlStruktura::PLATBY_TABULKA,
             [
@@ -337,7 +357,7 @@ class Finance
                 PlatbySqlStruktura::ROK          => $this->systemoveNastaveni->rocnik(),
                 PlatbySqlStruktura::PROVEDL      => $provedl->id(),
                 PlatbySqlStruktura::POZNAMKA     => $poznamka ?: null,
-            ]
+            ],
         );
     }
 
@@ -347,26 +367,30 @@ class Finance
      * @param string|null $poznamka
      * @param \Uzivatel $provedl
      */
-    public function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl) {
+    public function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl)
+    {
         $sleva = prevedNaFloat($sleva);
         dbQuery(
             'INSERT INTO slevy(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
-            [$this->u->id(), $sleva, ROCNIK, $provedl->id(), $poznamka ?: null]
+            [$this->u->id(), $sleva, ROCNIK, $provedl->id(), $poznamka ?: null],
         );
     }
 
     /** Vrátí aktuální stav na účtu uživatele pro tento rok */
-    public function stav() {
+    public function stav()
+    {
         return $this->stav;
     }
 
     /** Vrátí výši obecné slevy připsané uživateli pro tento rok. */
-    public function slevaObecna() {
+    public function slevaObecna()
+    {
         return $this->slevaObecna;
     }
 
     /** Vrátí člověkem čitelný stav účtu */
-    public function stavHr(bool $vHtmlFormatu = true) {
+    public function stavHr(bool $vHtmlFormatu = true)
+    {
         $mezera = $vHtmlFormatu
             ? '&thinsp;' // thin space
             : ' ';
@@ -377,11 +401,13 @@ class Finance
      * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
      * zdarma a 1.0 pro aktivity za plnou cenu.
      */
-    public function slevaAktivity() {
+    public function slevaAktivity()
+    {
         return $this->soucinitelAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
     }
 
-    public function slevaZaAktivityVProcentech() {
+    public function slevaZaAktivityVProcentech()
+    {
         return 100 - ($this->soucinitelAktivit() * 100);
     }
 
@@ -390,7 +416,8 @@ class Finance
      * @param Aktivita @a
      * @return int
      */
-    public static function bonusZaAktivitu(Aktivita $a, SystemoveNastaveni $systemoveNastaveni): int {
+    public static function bonusZaAktivitu(Aktivita $a, SystemoveNastaveni $systemoveNastaveni): int
+    {
         if ($a->nedavaBonus()) {
             return 0;
         }
@@ -410,7 +437,8 @@ class Finance
      * @param array|\Uzivatel[] $organizatori
      * @return array|\Uzivatel[]
      */
-    public static function nechOrganizatorySBonusemZaVedeniAktivit(array $organizatori): array {
+    public static function nechOrganizatorySBonusemZaVedeniAktivit(array $organizatori): array
+    {
         return array_filter($organizatori, static function (\Uzivatel $organizator) {
             return $organizator->maPravoNaPoradaniAktivit()
                 && $organizator->maPravoNaBonusZaVedeniAktivit();
@@ -420,39 +448,45 @@ class Finance
     /**
      * Výše vypravěčské slevy (celková)
      */
-    public function bonusZaVedeniAktivit(): float {
+    public function bonusZaVedeniAktivit(): float
+    {
         return $this->bonusZaVedeniAktivit;
     }
 
     /**
      * Výše zbývající vypravěčské slevy
      */
-    public function nevyuzityBonusZaAktivity(): float {
+    public function nevyuzityBonusZaAktivity(): float
+    {
         return $this->nevyuzityBonusZaVedeniAktivit;
     }
 
     /**
      * Výše použitého bonusu za vypravěčství (vyčerpané vypravěčské slevy)
      */
-    public function vyuzityBonusZaAktivity(): float {
+    public function vyuzityBonusZaAktivity(): float
+    {
         return $this->vyuzityBonusZaVedeniAktivit;
     }
 
     /**
      * @todo přesunout do ceníku (viz nutnost počítání součinitele aktivit)
      */
-    public function slevyAktivity() {
+    public function slevyAktivity()
+    {
         //return $this->cenik->slevyObecne();
         return $this->slevyNaAktivity;
     }
 
-    public function maximalniPocetPlacekZdarma(): int {
+    public function maximalniPocetPlacekZdarma(): int
+    {
         return $this->u->maPravo(Pravo::PLACKA_ZDARMA)
             ? 1
             : 0;
     }
 
-    public function maximalniPocetKostekZdarma(): int {
+    public function maximalniPocetKostekZdarma(): int
+    {
         return $this->u->maPravo(Pravo::KOSTKA_ZDARMA)
             ? 1
             : 0;
@@ -463,30 +497,35 @@ class Finance
      * @see maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma
      * + @see maximalniPocetModrychTricekZdarma
      */
-    public function maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma(): int {
+    public function maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma(): int
+    {
         return $this->u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)
             ? 2
             : 0;
     }
 
-    public function maximalniPocetModrychTricekZdarma(): int {
+    public function maximalniPocetModrychTricekZdarma(): int
+    {
         return $this->u->maPravo(Pravo::MODRE_TRICKO_ZDARMA) && $this->bonusZaVedeniAktivit() >= MODRE_TRICKO_ZDARMA_OD
             ? 1
             : 0;
     }
 
-    public function muzeObjednavatModreTrickoSeSlevou(): bool {
+    public function muzeObjednavatModreTrickoSeSlevou(): bool
+    {
         return $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
     }
 
-    public function muzeObjednavatCerveneTrickoSeSlevou(): bool {
+    public function muzeObjednavatCerveneTrickoSeSlevou(): bool
+    {
         return $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
     }
 
     /**
      * Viz ceník
      */
-    public function slevyVse() {
+    public function slevyVse()
+    {
         return $this->cenik->slevySpecialni();
     }
 
@@ -494,7 +533,8 @@ class Finance
      * Vrátí součinitel ceny aktivit, tedy slevy uživatele vztahující se k
      * aktivitám. Vrátí hodnotu.
      */
-    private function soucinitelAktivit() {
+    private function soucinitelAktivit()
+    {
         if (!isset($this->soucinitelCenyAKtivit)) {
             // pomocné proměnné
             $sleva = 0; // v procentech
@@ -503,7 +543,7 @@ class Finance
                 // sleva 100%
                 $sleva                   += 100;
                 $this->slevyNaAktivity[] = 'sleva 100%';
-            } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY)) {
+            } else if ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY)) {
                 // sleva 40%
                 $sleva                   += 40;
                 $this->slevyNaAktivity[] = 'sleva 40%';
@@ -519,26 +559,31 @@ class Finance
         return $this->soucinitelCenyAKtivit;
     }
 
-    public function vstupne() {
+    public function vstupne()
+    {
         return $this->cenaVstupne;
     }
 
-    public function vstupnePozde() {
+    public function vstupnePozde()
+    {
         return $this->cenaVstupnePozde;
     }
 
-    public function proplacenyBonusZaAktivity(): float {
+    public function proplacenyBonusZaAktivity(): float
+    {
         return $this->proplacenyBonusZaVedeniAktivit;
     }
 
-    public function brigadnickaOdmena(): float {
+    public function brigadnickaOdmena(): float
+    {
         return $this->brigadnickaOdmena;
     }
 
     /**
      * Započítá do mezisoučtů aktivity uživatele
      */
-    private function zapoctiAktivity() {
+    private function zapoctiAktivity()
+    {
         $soucinitelAktivit     = $this->soucinitelAktivit();
         $rok                   = ROCNIK;
         $idUcastnika           = $this->u->id();
@@ -568,7 +613,7 @@ JOIN akce_seznam AS aktivita
 JOIN akce_prihlaseni_stavy AS stav_prihlaseni
     ON prihlaseni.id_stavu_prihlaseni = stav_prihlaseni.id_stavu_prihlaseni
 WHERE rok = $rok
-SQL
+SQL,
         );
 
         $a = $this->u->koncovkaDlePohlavi();
@@ -603,12 +648,13 @@ SQL
                 in_array($r['typ'], TypAktivity::interniTypy())
                     ? 0
                     : $r['cena'],
-                self::AKTIVITY
+                self::AKTIVITY,
             );
         }
     }
 
-    public function sumaPlateb(int $rok = ROCNIK): float {
+    public function sumaPlateb(int $rok = ROCNIK): float
+    {
         if (!isset($this->sumyPlatebVRocich[$rok])) {
             $uzivatelSystemId = \Uzivatel::SYSTEM;
             $result           = dbQuery(<<<SQL
@@ -620,7 +666,7 @@ SQL
                     castka as cena
                 FROM platby
                 WHERE id_uzivatele = {$this->u->id()} AND rok = $rok
-                SQL
+                SQL,
             );
             $sumaPlateb       = 0.0;
             while ($row = mysqli_fetch_assoc($result)) {
@@ -635,7 +681,8 @@ SQL
     /**
      * Započítá do mezisoučtů nákupy v eshopu
      */
-    private function zapoctiShop() {
+    private function zapoctiShop()
+    {
         $o = dbQuery('
       SELECT p.id_predmetu, p.nazev, n.cena_nakupni, p.typ, p.ubytovani_den, p.model_rok
       FROM shop_nakupy n
@@ -650,21 +697,21 @@ SQL
             // započtení ceny
             if ($r['typ'] == Shop::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
-            } elseif ($r['typ'] == Shop::VSTUPNE) {
+            } else if ($r['typ'] == Shop::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
                     $this->cenaVstupne = $cena;
                 } else {
                     $this->cenaVstupnePozde = $cena;
                 }
                 $this->dobrovolneVstupnePrehled = $this->formatujProLog("{$r['nazev']} $cena.-", $cena, $r['typ'], $r['id_predmetu']);
-            } elseif ($r['typ'] == Shop::PROPLACENI_BONUSU) {
+            } else if ($r['typ'] == Shop::PROPLACENI_BONUSU) {
                 $this->proplacenyBonusZaVedeniAktivit += $cena;
             } else {
                 if ($r['typ'] == Shop::JIDLO) {
                     $this->cenaStravy += $cena;
-                } elseif (in_array($r['typ'], [Shop::PREDMET, Shop::TRICKO])) {
+                } else if (in_array($r['typ'], [Shop::PREDMET, Shop::TRICKO])) {
                     $this->cenaPredmetu += $cena;
-                } elseif ($r['typ'] != Shop::PARCON) {
+                } else if ($r['typ'] != Shop::PARCON) {
                     throw new NeznamyTypPredmetu(
                         "Neznámý typ předmětu " . var_export($r['typ'], true) . ': ' . var_export($r, true)
                     );
@@ -680,10 +727,10 @@ SQL
                 $soucty[$r['id_predmetu']]['typ']   = $r['typ'];
                 $soucty[$r['id_predmetu']]['pocet'] = ($soucty[$r['id_predmetu']]['pocet'] ?? 0) + 1;
                 $soucty[$r['id_predmetu']]['suma']  = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
-            } elseif ($r['typ'] == Shop::VSTUPNE) {
+            } else if ($r['typ'] == Shop::VSTUPNE) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::VSTUPNE);
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
-            } elseif ($r['typ'] != Shop::PROPLACENI_BONUSU) {
+            } else if ($r['typ'] != Shop::PROPLACENI_BONUSU) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r['typ']);
                 $this->log($r['nazev'], $cena, $r['typ']);
             }
@@ -699,7 +746,8 @@ SQL
     /**
      * Započítá ručně zadané slevy z tabulky slev.
      */
-    private function zapoctiSlevy() {
+    private function zapoctiSlevy()
+    {
         $q = dbQuery('
       SELECT castka, poznamka
       FROM slevy
@@ -722,7 +770,8 @@ SQL
     /**
      * Započítá do mezisoučtů slevy za organizované aktivity
      */
-    private function zapoctiVedeniAktivit() {
+    private function zapoctiVedeniAktivit()
+    {
         if (!$this->u->maPravoNaPoradaniAktivit()) {
             return;
         }
@@ -730,18 +779,20 @@ SQL
             return;
         }
         foreach (Aktivita::zOrganizatora($this->u) as $a) {
-            $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a);
+            $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a, $this->systemoveNastaveni);
         }
     }
 
     /**
      * Započítá do mezisoučtů zůstatek z minulých let
      */
-    private function zapoctiZustatekZPredchozichRocniku() {
+    private function zapoctiZustatekZPredchozichRocniku()
+    {
         $this->log('Zůstatek z minulých let', $this->zustatekZPredchozichRocniku, self::ZUSTATEK_Z_PREDCHOZICH_LET);
     }
 
-    private function aplikujBonusZaVedeniAktivit(float $cena): float {
+    private function aplikujBonusZaVedeniAktivit(float $cena): float
+    {
         $bonusZaVedeniAktivit = $this->bonusZaVedeniAktivit;
         ['cena' => $cena, 'sleva' => $this->nevyuzityBonusZaVedeniAktivit] = \Cenik::aplikujSlevu($cena, $bonusZaVedeniAktivit);
         $this->vyuzityBonusZaVedeniAktivit = $this->bonusZaVedeniAktivit - $this->nevyuzityBonusZaVedeniAktivit;
@@ -749,35 +800,37 @@ SQL
             $this->logb(
                 'Bonus za aktivity - využitý',
                 $this->vyuzityBonusZaVedeniAktivit,
-                self::ORGSLEVA
+                self::ORGSLEVA,
             );
             $this->log(
                 '<i>(z toho proplacený bonus ' . $this->proplacenyBonusZaVedeniAktivit . ')</i>',
                 '&nbsp;',
-                self::ORGSLEVA
+                self::ORGSLEVA,
             );
             $this->log(
                 '<i>Bonus za aktivity - celkový ' . $this->bonusZaVedeniAktivit . '</i>',
                 '&nbsp;',
-                self::ORGSLEVA
+                self::ORGSLEVA,
             );
         }
 
         return $cena;
     }
 
-    private function aplikujBrigadnickouOdmenu(float $cena) {
+    private function aplikujBrigadnickouOdmenu(float $cena)
+    {
         if ($this->brigadnickaOdmena) {
             $this->logb(
                 'Brigádnická odměna',
                 $this->brigadnickaOdmena,
-                self::BRIGADNICKA_ODMENA
+                self::BRIGADNICKA_ODMENA,
             );
         }
         return $cena - $this->brigadnickaOdmena;
     }
 
-    private function aplikujObecnouSlevu(float $cena) {
+    private function aplikujObecnouSlevu(float $cena)
+    {
         $slevaObecna = $this->slevaObecna;
         ['cena' => $cena, 'sleva' => $this->zbyvajiciObecnaSleva] = \Cenik::aplikujSlevu($cena, $slevaObecna);
         $this->vyuzitaSlevaObecna = $this->slevaObecna - $this->zbyvajiciObecnaSleva;
@@ -785,12 +838,12 @@ SQL
             $this->log(
                 '<b>Sleva</b>',
                 '<b>' . $this->slevaObecna . '</b>',
-                self::PRIPSANE_SLEVY
+                self::PRIPSANE_SLEVY,
             );
             $this->log(
                 '<i>Využitá sleva ' . $this->vyuzitaSlevaObecna . '</i>',
                 '&nbsp;',
-                self::PRIPSANE_SLEVY
+                self::PRIPSANE_SLEVY,
             );
         }
 
@@ -800,18 +853,21 @@ SQL
     /**
      * @return int zůstatek na účtu z minulých GC
      */
-    public function zustatekZPredchozichRocniku(): float {
+    public function zustatekZPredchozichRocniku(): float
+    {
         return $this->zustatekZPredchozichRocniku;
     }
 
-    public function kategorieNeplatice(): KategorieNeplatice {
+    public function kategorieNeplatice(): KategorieNeplatice
+    {
         if (!$this->kategorieNeplatice) {
             $this->kategorieNeplatice = KategorieNeplatice::vytvorProNadchazejiciVlnuZGlobals($this->u);
         }
         return $this->kategorieNeplatice;
     }
 
-    public function dejQrKodProPlatbu(): ResultInterface {
+    public function dejQrKodProPlatbu(): ResultInterface
+    {
         $castkaCzk = $this->stav() >= 0
             ? 0.1 // nulová, respektive dobrovolná platba
             : -$this->stav();
@@ -819,21 +875,23 @@ SQL
         $qrPlatba = $this->u->stat() === \Gamecon\Stat::CZ
             ? \Gamecon\Finance\QrPlatba::dejQrProTuzemskouPlatbu(
                 $castkaCzk,
-                $this->u->id()
+                $this->u->id(),
             )
             : \Gamecon\Finance\QrPlatba::dejQrProSepaPlatbu(
                 $castkaCzk, // SEPA platba je vždy v Eur se splatností do druhého dne
-                $this->u->id()
+                $this->u->id(),
             );
 
         return $qrPlatba->dejQrObrazek();
     }
 
-    public function sumaStorna(): float {
+    public function sumaStorna(): float
+    {
         return $this->sumaStorna;
     }
 
-    public function pocetObjednavek(): int {
+    public function pocetObjednavek(): int
+    {
         return count(
             array_filter(
                 $this->dejStrukturovanyPrehled(),
@@ -845,9 +903,9 @@ SQL
                         TypPredmetu::TRICKO,
                         TypPredmetu::VSTUPNE,
                         TypPredmetu::JIDLO,
-                    ]
-                )
-            )
+                    ],
+                ),
+            ),
         );
     }
 }

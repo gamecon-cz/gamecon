@@ -15,8 +15,9 @@ class ZmenaStavuAktivity
         int                $idAktivity,
         int                $idLogu,
         \DateTimeImmutable $casZmeny,
-        int                $stavAktivity/** @see StavAktivity */
-    ): self {
+        int                $stavAktivity,/** @see StavAktivity */
+    ): self
+    {
         return new static($idAktivity, $idLogu, $casZmeny, $stavAktivity);
     }
 
@@ -29,7 +30,8 @@ class ZmenaStavuAktivity
     /** @var int */
     private $stavAktivity;
 
-    public function __construct(int $idAktivity, int $idLogu, \DateTimeImmutable $casZmeny, int $stavAktivity) {
+    public function __construct(int $idAktivity, int $idLogu, \DateTimeImmutable $casZmeny, int $stavAktivity)
+    {
         if ($stavAktivity && !StavAktivity::jeZnamy($stavAktivity)) {
             throw new \LogicException('Neznamy stav prihlaseni ' . var_export($stavAktivity, true));
         }
@@ -39,23 +41,28 @@ class ZmenaStavuAktivity
         $this->stavAktivity = $stavAktivity;
     }
 
-    public function idAktivity(): int {
+    public function idAktivity(): int
+    {
         return $this->idAktivity;
     }
 
-    public function idLogu(): int {
+    public function idLogu(): int
+    {
         return $this->idLogu;
     }
 
-    public function casZmeny(): \DateTimeImmutable {
+    public function casZmeny(): \DateTimeImmutable
+    {
         return $this->casZmeny;
     }
 
-    public function stavAktivity(): int {
+    public function stavAktivity(): int
+    {
         return $this->stavAktivity;
     }
 
-    public function casZmenyProJs(): string {
+    public function casZmenyProJs(): string
+    {
         return $this->casZmeny()->format(DATE_ATOM);
     }
 
@@ -64,7 +71,8 @@ class ZmenaStavuAktivity
      * Změna hodnoty konstanty v PHP tak neohrozí funkčnost JavaScriptové logiky.
      * @return null|string
      */
-    public function stavAktivityProJs(): ?string {
+    public function stavAktivityProJs(): ?string
+    {
         switch ($this->stavAktivity()) {
             case StavAktivity::AKTIVOVANA :
                 return self::AKTIVOVANA_JS;

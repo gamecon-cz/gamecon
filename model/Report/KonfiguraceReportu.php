@@ -9,46 +9,54 @@ class KonfiguraceReportu
     public const NO_ROW_TO_FREEZE = 0;
 
     private $headerFontSize = 10;
-    private $bodyFontSize = 10;
-    private $rowToFreeze = 1;
+    private $bodyFontSize   = 10;
+    private $rowToFreeze    = 1;
     /** @var null|int */
     private $maxGenericColumnWidth = null;
     /** @var int[] */
-    private $columnsWidths = [];
+    private         $columnsWidths   = [];
     private ?string $destinationFile = null;
 
-    public function getHeaderFontSize(): int {
+    public function getHeaderFontSize(): int
+    {
         return $this->headerFontSize;
     }
 
-    public function setHeaderFontSize(int $headerFontSize): self {
+    public function setHeaderFontSize(int $headerFontSize): self
+    {
         $this->headerFontSize = $headerFontSize;
         return $this;
     }
 
-    public function getBodyFontSize(): int {
+    public function getBodyFontSize(): int
+    {
         return $this->bodyFontSize;
     }
 
-    public function setBodyFontSize(int $bodyFontSize): self {
+    public function setBodyFontSize(int $bodyFontSize): self
+    {
         $this->bodyFontSize = $bodyFontSize;
         return $this;
     }
 
-    public function getRowToFreeze(): int {
+    public function getRowToFreeze(): int
+    {
         return $this->rowToFreeze;
     }
 
-    public function setRowToFreeze(int $rowToFreeze): self {
+    public function setRowToFreeze(int $rowToFreeze): self
+    {
         $this->rowToFreeze = $rowToFreeze;
         return $this;
     }
 
-    public function getMaxGenericColumnWidth(): ?int {
+    public function getMaxGenericColumnWidth(): ?int
+    {
         return $this->maxGenericColumnWidth;
     }
 
-    public function setMaxGenericColumnWidth(?int $maxGenericColumnWidth): self {
+    public function setMaxGenericColumnWidth(?int $maxGenericColumnWidth): self
+    {
         $this->maxGenericColumnWidth = $maxGenericColumnWidth;
         return $this;
     }
@@ -56,23 +64,27 @@ class KonfiguraceReportu
     /**
      * @return int[]
      */
-    public function getColumnsWidths(): array {
+    public function getColumnsWidths(): array
+    {
         return $this->columnsWidths;
     }
 
     /**
      * @param int[] $columnsWidths
      */
-    public function setColumnsWidths(array $columnsWidths): self {
+    public function setColumnsWidths(array $columnsWidths): self
+    {
         $this->columnsWidths = $columnsWidths;
         return $this;
     }
 
-    public function setDestinationFile(string $destinationFile) {
+    public function setDestinationFile(string $destinationFile)
+    {
         $this->destinationFile = $destinationFile;
     }
 
-    public function getDestinationFile(): ?string {
+    public function getDestinationFile(): ?string
+    {
         return $this->destinationFile;
     }
 

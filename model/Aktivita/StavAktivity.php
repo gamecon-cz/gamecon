@@ -8,7 +8,7 @@ namespace Gamecon\Aktivita;
  */
 class StavAktivity extends \DbObject
 {
-    public const NOVA        = 1; // v přípravě
+    public const NOVA = 1; // v přípravě
     // 0 dělá potíže při kopírování do klonu tabulky - INSERT 0 do AUTOINCREMENT sloupce se chová jako NULL
     public const AKTIVOVANA  = 2;
     public const UZAVRENA    = 3;
@@ -17,14 +17,16 @@ class StavAktivity extends \DbObject
     public const ZAMCENA     = 7;
     public const SYSTEMOVA   = 4;
 
-    public static function jeZnamy(int $stav): bool {
+    public static function jeZnamy(int $stav): bool
+    {
         return in_array($stav, self::vsechnyStavy(), true);
     }
 
     /**
      * @return int[]
      */
-    public static function vsechnyStavy(): array {
+    public static function vsechnyStavy(): array
+    {
         return [
             self::NOVA,
             self::AKTIVOVANA,
@@ -39,7 +41,8 @@ class StavAktivity extends \DbObject
     /**
      * @return int[]
      */
-    public static function bezneViditelneStavy(): array {
+    public static function bezneViditelneStavy(): array
+    {
         return [
             self::AKTIVOVANA,
             self::PUBLIKOVANA,
@@ -52,11 +55,13 @@ class StavAktivity extends \DbObject
     /**
      * @return int[]
      */
-    public static function probehnuteStavy(): array {
+    public static function probehnuteStavy(): array
+    {
         return [self::ZAMCENA, self::UZAVRENA];
     }
 
-    public static function dejNazev(int $stav): string {
+    public static function dejNazev(int $stav): string
+    {
         switch ($stav) {
             case self::NOVA :
                 return 'nová';
@@ -78,53 +83,65 @@ class StavAktivity extends \DbObject
     }
 
     protected static $tabulka = 'akce_stav';
-    protected static $pk = 'id_stav';
+    protected static $pk      = 'id_stav';
 
-    public static function dejPrazdny(): self {
+    public static function dejPrazdny(): self
+    {
         return new static([]);
     }
 
-    function __toString() {
+    function __toString()
+    {
         return $this->nazev();
     }
 
-    public function id(): int {
+    public function id(): int
+    {
         return (int)parent::id();
     }
 
-    function nazev(): string {
+    function nazev(): string
+    {
         return (string)$this->r['nazev'];
     }
 
-    public function jeNanejvysPripravenaKAktivaci(): bool {
+    public function jeNanejvysPripravenaKAktivaci(): bool
+    {
         return in_array($this->id(), [self::NOVA, self::PUBLIKOVANA, self::PRIPRAVENA], true);
     }
 
-    public function jeNova(): bool {
+    public function jeNova(): bool
+    {
         return $this->id() === self::NOVA;
     }
 
-    public function jeAktivovana(): bool {
+    public function jeAktivovana(): bool
+    {
         return $this->id() === self::AKTIVOVANA;
     }
 
-    public function jeUzavrena(): bool {
+    public function jeUzavrena(): bool
+    {
         return $this->id() === self::UZAVRENA;
     }
 
-    public function jeSystemova(): bool {
+    public function jeSystemova(): bool
+    {
         return $this->id() === self::SYSTEMOVA;
     }
 
-    public function jePublikovana(): bool {
+    public function jePublikovana(): bool
+    {
         return $this->id() === self::PUBLIKOVANA;
     }
 
-    public function jePripravenaKAktivaci(): bool {
+    public function jePripravenaKAktivaci(): bool
+    {
         return $this->id() === self::PRIPRAVENA;
     }
 
-    public function jeZamcena(): bool {
+    public function jeZamcena(): bool
+    {
         return $this->id() === self::ZAMCENA;
     }
 }

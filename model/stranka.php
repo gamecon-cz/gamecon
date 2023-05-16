@@ -6,10 +6,11 @@ class Stranka extends DbObject
 {
 
     protected static $tabulka = 'stranky';
-    protected static $pk = 'id_stranky';
-    private ?string $html;
+    protected static $pk      = 'id_stranky';
+    private ?string  $html;
 
-    public function html() {
+    public function html()
+    {
         if (!isset($this->html)) {
             $html       = markdownNoCache($this->r['obsah']);
             $html       = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function ($m) {
@@ -24,7 +25,8 @@ class Stranka extends DbObject
         return $this->html;
     }
 
-    public function nadpis(): string {
+    public function nadpis(): string
+    {
         $html = preg_quote_wildcard('<h1>~</h1>');
         $md   = '^#\s*([^#].+)$';
         if (!preg_match("@$html|$md@m", $this->r['obsah'], $matches)) {
@@ -33,7 +35,8 @@ class Stranka extends DbObject
         return $matches[1] ?: $matches[2];
     }
 
-    public function obrazek(): string {
+    public function obrazek(): string
+    {
         $html = preg_quote_wildcard('<img src="~"~>');
         $md   = preg_quote_wildcard('![~](~)');
         if (!preg_match("@$html|$md@", $this->r['obsah'], $m)) {
@@ -42,12 +45,14 @@ class Stranka extends DbObject
         return $m[1] ?: $m[4];
     }
 
-    public function poradi() {
+    public function poradi()
+    {
         return $this->r['poradi'];
     }
 
     /** Vrátí typ aktivit (linii) pokud stránka patří pod nějakou linii */
-    public function typ() {
+    public function typ()
+    {
         if (preg_match('@^([^/]+)/@', $this->r['url_stranky'], $m)) {
             return TypAktivity::zUrl($m[1]);
         }
@@ -55,22 +60,26 @@ class Stranka extends DbObject
         return null;
     }
 
-    public function url() {
+    public function url()
+    {
         return $this->r['url_stranky'];
     }
 
-    static function zUrl($url = null): ?Stranka {
+    static function zUrl($url = null): ?Stranka
+    {
         if (!$url) {
             $url = Url::zAktualni()->cela();
         }
         return self::zWhereRadek('url_stranky = $1', [$url]);
     }
 
-    public static function zUrlPrefixu(string $url): array {
+    public static function zUrlPrefixu(string $url): array
+    {
         return self::zWhere('url_stranky LIKE $1', [$url . '/%']);
     }
 
-    static function zVsech(): array {
+    static function zVsech(): array
+    {
         return self::zWhere('1 ORDER BY url_stranky');
     }
 

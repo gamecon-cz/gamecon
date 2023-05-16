@@ -38,7 +38,7 @@ class SqlMigrace
                 dbPass: $dbmPass,
                 dbPort: $dbPort,
                 dbName: $dbName,
-                persistent: false
+                persistent: false,
             ),
             'doBackups'           => $zalohuj,
             'migrationsDirectory' => SQL_MIGRACE_DIR,

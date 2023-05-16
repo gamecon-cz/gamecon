@@ -11,6 +11,7 @@ class Tym
 
     private $a; // (primární) aktivita ke které tým patří
     private $r; // db řádek s aktivitou
+    private ?array $clenove = null;
 
     private static $aktivityId;
 
@@ -21,56 +22,66 @@ class Tym
      * používali na více místech, je potřeba vymyslet jak správně ukládat věci
      * v db a jak je spolu s aktivitou ne/tahat (viz také orm)
      */
-    function __construct(Aktivita $a, array $r) {
+    function __construct(Aktivita $a, array $r)
+    {
         $this->a = $a;
         $this->r = $r;
     }
 
     /** Vrací číslo družiny (zvyk z DrD) a to generuje z ID aktivity */
-    function cislo() {
+    function cislo()
+    {
         $typ = $this->a->typId();
         if (!isset(self::$aktivityId[$typ])) {
             self::$aktivityId[$typ] = explode(',', dbOneCol(
-                'SELECT GROUP_CONCAT(id_akce) FROM akce_seznam WHERE typ = $1 AND rok = $2', [$typ, ROCNIK]
+                'SELECT GROUP_CONCAT(id_akce) FROM akce_seznam WHERE typ = $1 AND rok = $2', [$typ, ROCNIK],
             ));
         }
         return array_search($this->a->id(), self::$aktivityId[$typ]) + 1;
     }
 
-    function clenove() {
-        if (!isset($this->clenove))
+    function clenove(): array
+    {
+        if (!isset($this->clenove)) {
             $this->clenove = $this->a->prihlaseni();
+        }
         return $this->clenove;
     }
 
-    function kapacita() {
+    function kapacita()
+    {
         return $this->r['kapacita']; // u týmovek nepodporujeme rozdělení ž/m
     }
 
-    private function maxKapacita() {
+    private function maxKapacita()
+    {
         return $this->r['team_max'];
     }
 
-    private function minKapacita() {
+    private function minKapacita()
+    {
         return $this->r['team_min'];
     }
 
-    function nazev() {
+    function nazev()
+    {
         return $this->r['team_nazev'];
     }
 
-    private function volnych() {
+    private function volnych()
+    {
         return $this->kapacita() - count($this->clenove());
     }
 
     /** Výpis členů týmu s ovládáním (html) */
-    function vypis($post = self::POST) {
+    function vypis($post = self::POST)
+    {
         $t = new XTemplate(__DIR__ . '/tym-vypis.xtpl');
         $t->parseEach($this->clenove(), 'u', 'vypis.prihlaseny');
         $t->assign([
             'post' => $post,
             'mist' => cislo($this->volnych(), ' volné místo', ' volná místa', ' volných míst'),
-            'id' => $this->a->id(),
+            'id'   => $this->a->id(),
         ]);
         if ($this->kapacita() > $this->minKapacita() && $this->volnych() > 0)
             $t->parse('vypis.odebrat');
@@ -80,7 +91,8 @@ class Tym
         return $t->text('vypis');
     }
 
-    static function vypisZpracuj(Uzivatel $u = null, $post = self::POST) {
+    static function vypisZpracuj(Uzivatel $u = null, $post = self::POST)
+    {
         if (!$u) {
             return;
         }

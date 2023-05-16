@@ -4,22 +4,23 @@ namespace Gamecon\Aktivita;
 
 class ZmenaPrihlaseni
 {
-    private const UCASTNIK_SE_PRIHLASIL_JS = 'ucastnik_se_prihlasil';
-    private const UCASTNIK_SE_ODHLASIL_JS = 'ucastnik_se_odhlasil';
-    private const UCASTNIK_DORAZIL_JS = 'ucastnik_dorazil';
-    private const UCASTNIK_NEDORAZIL_JS = 'ucastnik_nedorazil';
+    private const UCASTNIK_SE_PRIHLASIL_JS  = 'ucastnik_se_prihlasil';
+    private const UCASTNIK_SE_ODHLASIL_JS   = 'ucastnik_se_odhlasil';
+    private const UCASTNIK_DORAZIL_JS       = 'ucastnik_dorazil';
+    private const UCASTNIK_NEDORAZIL_JS     = 'ucastnik_nedorazil';
     private const SLEDUJICI_SE_PRIHLASIL_JS = 'sledujici_se_prihlasil';
-    private const SLEDUJICI_SE_ODHLASIL_JS = 'sledujici_se_odhlasil';
-    private const NAHRADNIK_DORAZIL_JS = 'nahradnik_dorazil';
-    private const NAHRADNIK_NEDORAZIL_JS = 'nahradnik_nedorazil';
+    private const SLEDUJICI_SE_ODHLASIL_JS  = 'sledujici_se_odhlasil';
+    private const NAHRADNIK_DORAZIL_JS      = 'nahradnik_dorazil';
+    private const NAHRADNIK_NEDORAZIL_JS    = 'nahradnik_nedorazil';
 
     public static function vytvorZDatDatabaze(
         int                $idUzivatele,
         int                $idAktivity,
         int                $idLogu,
         \DateTimeImmutable $casZmeny,
-        string             $typPrezence/** @see AktivitaPrezenceTyp */
-    ): self {
+        string             $typPrezence,/** @see AktivitaPrezenceTyp */
+    ): self
+    {
         return new static($idUzivatele, $idAktivity, $idLogu, $casZmeny, $typPrezence);
     }
 
@@ -34,38 +35,45 @@ class ZmenaPrihlaseni
     /** @var string */
     private $typPrezence;
 
-    public function __construct(int $idUzivatele, int $idAktivity, int $idLogu, \DateTimeImmutable $casZmeny, string $typPrezence) {
+    public function __construct(int $idUzivatele, int $idAktivity, int $idLogu, \DateTimeImmutable $casZmeny, string $typPrezence)
+    {
         if ($typPrezence && !AktivitaPrezenceTyp::jeZnamy($typPrezence)) {
             throw new \LogicException('Neznamy stav prihlaseni ' . var_export($typPrezence, true));
         }
         $this->idUzivatele = $idUzivatele;
-        $this->idAktivity = $idAktivity;
-        $this->idLogu = $idLogu;
-        $this->casZmeny = $casZmeny;
+        $this->idAktivity  = $idAktivity;
+        $this->idLogu      = $idLogu;
+        $this->casZmeny    = $casZmeny;
         $this->typPrezence = $typPrezence;
     }
 
-    public function idUzivatele(): int {
+    public function idUzivatele(): int
+    {
         return $this->idUzivatele;
     }
 
-    public function idAktivity(): int {
+    public function idAktivity(): int
+    {
         return $this->idAktivity;
     }
 
-    public function idLogu(): int {
+    public function idLogu(): int
+    {
         return $this->idLogu;
     }
 
-    public function casZmeny(): \DateTimeImmutable {
+    public function casZmeny(): \DateTimeImmutable
+    {
         return $this->casZmeny;
     }
 
-    public function typPrezence(): string {
+    public function typPrezence(): string
+    {
         return $this->typPrezence;
     }
 
-    public function stavPrihlaseni(): int {
+    public function stavPrihlaseni(): int
+    {
         switch ($this->typPrezence()) {
             case AktivitaPrezenceTyp::PRIHLASENI :
                 return StavPrihlaseni::PRIHLASEN;
@@ -87,7 +95,8 @@ class ZmenaPrihlaseni
         }
     }
 
-    public function casZmenyProJs(): string {
+    public function casZmenyProJs(): string
+    {
         return $this->casZmeny()->format(DATE_ATOM);
     }
 
@@ -96,7 +105,8 @@ class ZmenaPrihlaseni
      * Změna hodnoty konstanty v PHP tak neohrozí funkčnost JavaScriptové logiky.
      * @return null|string
      */
-    public function typPrezenceProJs(): ?string {
+    public function typPrezenceProJs(): ?string
+    {
         switch ($this->typPrezence()) {
             // ÚČASTNÍK
             case AktivitaPrezenceTyp::PRIHLASENI :

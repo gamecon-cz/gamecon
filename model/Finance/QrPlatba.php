@@ -30,8 +30,9 @@ class QrPlatba
         float  $kurzCzkNaEur = KURZ_EURO,
         string $iban = IBAN,
         string $bic = BIC_SWIFT,
-        string $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON
-    ): self {
+        string $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON,
+    ): self
+    {
         return new static(
             new IBAN($iban),
             $bic,
@@ -53,8 +54,9 @@ class QrPlatba
         int                $variabilniSymbol,
         string             $cisloUctu = UCET_CZ,
         string             $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON,
-        \DateTimeInterface $datumSplatnosti = null
-    ): self {
+        \DateTimeInterface $datumSplatnosti = null,
+    ): self
+    {
         [$cisloUctuBezBanky, $kodBanky] = array_map('trim', explode('/', $cisloUctu));
 
         return new static(
@@ -115,41 +117,45 @@ class QrPlatba
         float              $castka,
         string             $kodMeny,
         string             $jmenoPrijemcePlatby,
-        \DateTimeInterface $datumSplatnosti = null
-    ) {
-        $this->iban = $iban;
-        $this->bic = $bic;
-        $this->variabilniSymbol = $variabilniSymbol;
-        $this->castka = round($castka, 2);
-        $this->kodMeny = $kodMeny;
+        \DateTimeInterface $datumSplatnosti = null,
+    )
+    {
+        $this->iban                = $iban;
+        $this->bic                 = $bic;
+        $this->variabilniSymbol    = $variabilniSymbol;
+        $this->castka              = round($castka, 2);
+        $this->kodMeny             = $kodMeny;
         $this->jmenoPrijemcePlatby = $jmenoPrijemcePlatby;
-        $this->datumSplatnosti = $datumSplatnosti ?? new \DateTimeImmutable(); // dnes
+        $this->datumSplatnosti     = $datumSplatnosti ?? new \DateTimeImmutable(); // dnes
     }
 
     /**
      * @return ResultInterface A ted uz na tom jenom zavolej getDataUri() a mas base64 obrazek
      */
-    public function dejQrObrazek(): ResultInterface {
+    public function dejQrObrazek(): ResultInterface
+    {
         if (!$this->qrImage) {
             $this->qrImage = $this->getQrPayment();
         }
         return $this->qrImage;
     }
 
-    private function getQrPayment(): ResultInterface {
+    private function getQrPayment(): ResultInterface
+    {
         return $this->kodMeny === 'CZK'
             ? $this->createCzechQrPayment()
             : $this->createSepaPayment();
     }
 
-    private function createCzechQrPayment(): ResultInterface {
+    private function createCzechQrPayment(): ResultInterface
+    {
         $qrPayment = new CzQrPayment($this->iban);
         $qrPayment->setOptions([
             CzQrPaymentOptions::VARIABLE_SYMBOL => $this->variabilniSymbol,
-            CzQrPaymentOptions::AMOUNT => $this->castka,
-            CzQrPaymentOptions::CURRENCY => $this->kodMeny,
-            CzQrPaymentOptions::DUE_DATE => $this->datumSplatnosti,
-            CzQrPaymentOptions::PAYEE_NAME => $this->jmenoPrijemcePlatby,
+            CzQrPaymentOptions::AMOUNT          => $this->castka,
+            CzQrPaymentOptions::CURRENCY        => $this->kodMeny,
+            CzQrPaymentOptions::DUE_DATE        => $this->datumSplatnosti,
+            CzQrPaymentOptions::PAYEE_NAME      => $this->jmenoPrijemcePlatby,
         ]);
         /** @var ResultInterface $qrImage */
         $qrImage = $qrPayment->getQrCode()->getRawObject();
@@ -160,14 +166,15 @@ class QrPlatba
      * Formát je hezky popsán na
      * https://en.wikipedia.org/wiki/EPC_QR_code
      */
-    private function createSepaPayment(): ResultInterface {
+    private function createSepaPayment(): ResultInterface
+    {
         $sepaQrData = Data::create()
             ->setName($this->jmenoPrijemcePlatby)
             ->setIban($this->iban->asString())
             ->setBic($this->bic)
             ->setAmount($this->castka > 0
                 ? $this->castka
-                : 0.1/** nejmenší povolená částka, @see \SepaQr\Data::setAmount */
+                : 0.1,/** nejmenší povolená částka, @see \SepaQr\Data::setAmount */
             )
             ->setCurrency($this->kodMeny)
             ->setRemittanceText('/VS/' . $this->variabilniSymbol);

@@ -9,18 +9,21 @@ class PosledniZmenyStavuAktivit
      */
     private $zmenyStavuAktivit = [];
 
-    public function addPosledniZmenaStavuAktivity(ZmenaStavuAktivity $zmenaStavuAktivity) {
+    public function addPosledniZmenaStavuAktivity(ZmenaStavuAktivity $zmenaStavuAktivity)
+    {
         $this->zmenyStavuAktivit[] = $zmenaStavuAktivity;
     }
 
     /**
      * @return ZmenaStavuAktivity[]
      */
-    public function zmenyStavuAktivit(): array {
+    public function zmenyStavuAktivit(): array
+    {
         return $this->zmenyStavuAktivit;
     }
 
-    public function posledniZmenaStavuAktivity(): ?ZmenaStavuAktivity {
+    public function posledniZmenaStavuAktivity(): ?ZmenaStavuAktivity
+    {
         $zmeny = $this->zmenyStavuAktivit();
         if (!$zmeny) {
             return null;

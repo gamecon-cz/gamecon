@@ -31,7 +31,8 @@ trait PrednacitaniTrait
     /**
      *
      */
-    protected function prednacti1N($argumenty) {
+    protected function prednacti1N($argumenty)
+    {
         // TODO uvést, že je to nepřímá varianta
         throw new \LogicException('not implemented');
     }
@@ -48,14 +49,15 @@ trait PrednacitaniTrait
      * @param zdrojSloupec Název sloupce, kde jsou id objektů zdrojové kolekce.
      * @param cilSloupec Název sloupce, kde jsou id objektů cílové třídy.
      */
-    protected function prednactiMN($argumenty) {
+    protected function prednactiMN($argumenty)
+    {
         // načtení pojmenovaných argumentů
-        $atribut = $argumenty['atribut'];
-        $cil = $argumenty['cil'];
-        $tabulka = $argumenty['tabulka'];
+        $atribut      = $argumenty['atribut'];
+        $cil          = $argumenty['cil'];
+        $tabulka      = $argumenty['tabulka'];
         $zdrojSloupec = $argumenty['zdrojSloupec'];
-        $cilSloupec = $argumenty['cilSloupec'];
-        $kolekce = $this->kolekce();
+        $cilSloupec   = $argumenty['cilSloupec'];
+        $kolekce      = $this->kolekce();
 
         // dotaz vracející dvojice: id zdroje => ids cílů oddělené čárkou
         $q = dbQuery('
@@ -72,13 +74,13 @@ trait PrednacitaniTrait
         // načtení ids cílů plus jejich vložení do zdrojových objektů
         $cilIds = '0';
         while ($r = mysqli_fetch_row($q)) {
-            $zdrojObjekt = $kolekce[$r[0]];
+            $zdrojObjekt           = $kolekce[$r[0]];
             $zdrojObjekt->$atribut = explode(',', $r[1]);
-            $cilIds .= ',' . $r[1];
+            $cilIds                .= ',' . $r[1];
         }
 
         // vytvoření indexu cílů k vyhledávání podle id
-        $cile = $cil::zIds(array_unique(explode(',', $cilIds)));
+        $cile      = $cil::zIds(array_unique(explode(',', $cilIds)));
         $cileIndex = [];
         foreach ($cile as $c) {
             $cileIndex[$c->id()] = $c;
@@ -108,10 +110,11 @@ trait PrednacitaniTrait
      * @param cil Název třídy, jejíž instance se mají vytvořit jako cíle. Vhodné
      * použít zápis Trida::class místo 'Trida'.
      */
-    protected function prednactiN1($argumenty) {
+    protected function prednactiN1($argumenty)
+    {
         // načtení pojmenovaných argumentů
         $atribut = $argumenty['atribut'];
-        $cil = $argumenty['cil'];
+        $cil     = $argumenty['cil'];
         $kolekce = $this->kolekce();
 
         // načtení ids cílů
@@ -121,7 +124,7 @@ trait PrednacitaniTrait
         $cileIds = array_unique($cileIds);
 
         // vytvoření indexu cílů k vyhledávání podle id
-        $cile = $cil::zIds($cileIds);
+        $cile      = $cil::zIds($cileIds);
         $cileIndex = [];
         foreach ($cile as $c) {
             $cileIndex[$c->id()] = $c;

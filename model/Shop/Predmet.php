@@ -10,16 +10,18 @@ use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as SQL;
 class Predmet extends \DbObject
 {
     protected static $tabulka = 'shop_predmety';
-    protected static $pk = 'id_predmetu';
+    protected static $pk      = 'id_predmetu';
 
-    public function kusuVyrobeno(int $kusuVyrobeno = null): int {
+    public function kusuVyrobeno(int $kusuVyrobeno = null): int
+    {
         if ($kusuVyrobeno !== null) {
             $this->r['kusu_vyrobeno'] = $kusuVyrobeno;
         }
         return (int)$this->r['kusu_vyrobeno'];
     }
 
-    public function nazev(): ?string {
+    public function nazev(): ?string
+    {
         return $this->r[SQL::NAZEV];
     }
 }

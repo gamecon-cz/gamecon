@@ -4,7 +4,8 @@ namespace Gamecon\Logger;
 
 class LogUdalosti
 {
-    public function zalogovatUdalost(\Uzivatel $logujici, string $zprava, array $metadata, int $rok = ROCNIK) {
+    public function zalogovatUdalost(\Uzivatel $logujici, string $zprava, array $metadata, int $rok = ROCNIK)
+    {
         dbQuery(<<<SQL
 INSERT INTO log_udalosti
 SET id_logujiciho = {$logujici->id()},
@@ -15,11 +16,13 @@ SQL,
             [$zprava, $this->zakodujMetadata($metadata)]);
     }
 
-    private function zakodujMetadata(array $metadata): string {
+    private function zakodujMetadata(array $metadata): string
+    {
         return json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     }
 
-    public function existujeLog(string $zprava, array $metadata, int $rok): bool {
+    public function existujeLog(string $zprava, array $metadata, int $rok): bool
+    {
         return (bool)dbOneCol(<<<SQL
 SELECT EXISTS(
     SELECT * FROM log_udalosti

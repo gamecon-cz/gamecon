@@ -13,7 +13,8 @@ foreach ([
 class DbFormGc extends DbForm
 {
 
-    protected function fieldFromDescription($d): DbFormField {
+    protected function fieldFromDescription($d): DbFormField
+    {
         if ($d['Type'] === 'tinyint(1)' && DbffSelect::commentSplit($d['Comment'])) {
             return new DbffSelect($d);
         }

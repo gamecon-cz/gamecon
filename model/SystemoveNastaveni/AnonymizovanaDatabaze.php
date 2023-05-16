@@ -11,7 +11,8 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class AnonymizovanaDatabaze
 {
-    public static function vytvorZGlobals(): self {
+    public static function vytvorZGlobals(): self
+    {
         global $systemoveNastaveni;
         return new static(
             DB_NAME,
@@ -28,14 +29,16 @@ class AnonymizovanaDatabaze
         private string           $anonymniDatabaze,
         SystemoveNastaveni       $systemoveNastaveni,
         private NastrojeDatabaze $nastrojeDatabaze,
-    ) {
+    )
+    {
         $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
         if ($anonymniDatabaze === $zdrojovaDatabaze) {
             throw new \LogicException("Anonymní a současná databáze nemůžou být stejné: '$zdrojovaDatabaze'");
         }
     }
 
-    public function obnov() {
+    public function obnov()
+    {
         $dbConnectionAnonymDb = dbConnectionAnonymDb();
 
         $this->obnovAnonymniDatabazi($dbConnectionAnonymDb);
@@ -48,12 +51,13 @@ class AnonymizovanaDatabaze
         $this->pridejAdminUzivatele($dbConnectionAnonymDb);
     }
 
-    private function anonymizujData(\mysqli $dbConnectionAnonymDb) {
+    private function anonymizujData(\mysqli $dbConnectionAnonymDb)
+    {
         $result = mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
                 SELECT COALESCE(MAX(id_uzivatele), 0) FROM `{$this->anonymniDatabaze}`.uzivatele_hodnoty
-            SQL
+            SQL,
         );
         $maxId  = mysqli_fetch_column($result);
 
@@ -70,7 +74,7 @@ class AnonymizovanaDatabaze
                             SET id_uzivatele = (SELECT $maxId + CAST(FLOOR(RAND() * 10000000) AS UNSIGNED))
                             WHERE id_uzivatele <= $maxId
                             LIMIT 100 -- nutno dávkovat, jinak to způsobí Duplicate entry 'X' for key 'PRIMARY'
-                        SQL
+                        SQL,
                     );
                 } while ($updateIdUzivateleResult && mysqli_affected_rows($dbConnectionAnonymDb) > 0);
             } catch (\mysqli_sql_exception $dbException) {
@@ -92,7 +96,7 @@ class AnonymizovanaDatabaze
                 SET
                     obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
                 WHERE TRUE
-            SQL
+            SQL,
         );
 
         mysqli_query(
@@ -102,7 +106,7 @@ class AnonymizovanaDatabaze
                 SET
                     `text` = REGEXP_REPLACE(`text`, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
                 WHERE TRUE
-            SQL
+            SQL,
         );
 
         mysqli_query(
@@ -140,25 +144,26 @@ class AnonymizovanaDatabaze
                     potvrzeni_proti_covid19_overeno_kdy = null,
                     infopult_poznamka = ''
                 WHERE TRUE
-            SQL
+            SQL,
         );
 
         mysqli_query(
             $dbConnectionAnonymDb,
-            "UPDATE `{$this->anonymniDatabaze}`.medailonky SET o_sobe = '', drd = '' WHERE TRUE"
+            "UPDATE `{$this->anonymniDatabaze}`.medailonky SET o_sobe = '', drd = '' WHERE TRUE",
         );
 
         mysqli_query(
             $dbConnectionAnonymDb,
-            "ALTER TABLE `{$this->anonymniDatabaze}`.uzivatele_role MODIFY COLUMN `posazen` TIMESTAMP NULL"
+            "ALTER TABLE `{$this->anonymniDatabaze}`.uzivatele_role MODIFY COLUMN `posazen` TIMESTAMP NULL",
         );
         mysqli_query(
             $dbConnectionAnonymDb,
-            "ALTER TABLE `{$this->anonymniDatabaze}`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL"
+            "ALTER TABLE `{$this->anonymniDatabaze}`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL",
         );
     }
 
-    private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb) {
+    private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb)
+    {
         $passwordHash = '$2y$10$IudcF5OOSXxvO9I4SK.GBe5AgLhK8IsH7CPBkCknYMhKvJ4HQskzS';
         mysqli_query(
             $dbConnectionAnonymDb,
@@ -196,7 +201,7 @@ INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
         potvrzeni_proti_covid19_pridano_kdy = NULL,
         potvrzeni_proti_covid19_overeno_kdy=NULL,
         infopult_poznamka= ''
-SQL
+SQL,
         );
 
         $id = mysqli_insert_id($dbConnectionAnonymDb);
@@ -205,11 +210,12 @@ SQL
         $idRoleSpravceFinanci = Role::CFO;
         mysqli_query(
             $dbConnectionAnonymDb,
-            "INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_role (id_uzivatele, id_role, posazen, posadil) VALUES ($id, $idRoleOrganizator, NOW(), null), ($id, $idRoleSpravceFinanci, NOW(), null)"
+            "INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_role (id_uzivatele, id_role, posazen, posadil) VALUES ($id, $idRoleOrganizator, NOW(), null), ($id, $idRoleSpravceFinanci, NOW(), null)",
         );
     }
 
-    private function obnovAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
+    private function obnovAnonymniDatabazi(\mysqli $dbConnectionAnonymDb)
+    {
         if ($this->jsmeNaLocale) {
             $this->smazVytvorAnonymniDatabazi($dbConnectionAnonymDb);
         } else {
@@ -217,34 +223,37 @@ SQL
         }
     }
 
-    private function smazVytvorAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
+    private function smazVytvorAnonymniDatabazi(\mysqli $dbConnectionAnonymDb)
+    {
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
                 DROP DATABASE IF EXISTS `{$this->anonymniDatabaze}`
-            SQL
+            SQL,
         );
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
                 CREATE DATABASE `{$this->anonymniDatabaze}` DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci
-            SQL
+            SQL,
         );
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
                 USE `{$this->anonymniDatabaze}`
-            SQL
+            SQL,
         );
     }
 
-    private function vycistiAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
+    private function vycistiAnonymniDatabazi(\mysqli $dbConnectionAnonymDb)
+    {
         $this->nastrojeDatabaze->vymazVseZDatabaze($this->anonymniDatabaze, $dbConnectionAnonymDb);
     }
 
     private function zkopirujData(
-        \mysqli $dbConnectionAnonymDb
-    ) {
+        \mysqli $dbConnectionAnonymDb,
+    )
+    {
         $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
         /*
         * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
@@ -262,12 +271,13 @@ SQL
                 $dbConnectionAnonymDb,
                 <<<SQL
                     DELETE FROM $prilisCitlivaTabulka WHERE TRUE
-                SQL
+                SQL,
             );
         }
     }
 
-    public function exportuj() {
+    public function exportuj()
+    {
         $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
         /*
         * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
@@ -285,7 +295,7 @@ SQL
         $response->deleteFileAfterSend()
             ->setContentDisposition(
                 ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-                'gc_anonymizovana_databaze_' . date('Y-m-d_h-i-s') . '.sql'
+                'gc_anonymizovana_databaze_' . date('Y-m-d_h-i-s') . '.sql',
             )
             ->prepare($request)
             ->send();

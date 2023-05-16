@@ -11,11 +11,11 @@ class Cenik
 {
 
     private $u;
-    private $slevaKostky = 0;
-    private $slevaPlacky = 0;
+    private $slevaKostky            = 0;
+    private $slevaPlacky            = 0;
     private $jakychkoliTricekZdarma = 0;
-    private $modrychTricekZdarma = 0;
-    private $textySlevExtra = [];
+    private $modrychTricekZdarma    = 0;
+    private $textySlevExtra         = [];
 
     /**
      * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
@@ -36,7 +36,8 @@ class Cenik
      * @param Uzivatel $u pro kterého uživatele se cena počítá
      * @param int|float $sleva celková sleva získaná za pořádané aktivity
      */
-    public function __construct(Uzivatel $u, $sleva, SystemoveNastaveni $systemoveNastaveni) {
+    public function __construct(Uzivatel $u, $sleva, SystemoveNastaveni $systemoveNastaveni)
+    {
         $this->u = $u;
 
         if ($u->maPravo(Pravo::KOSTKA_ZDARMA)) {
@@ -57,7 +58,8 @@ class Cenik
     /**
      * Sníží $cena o částku $sleva až do nuly. Změnu odečte i z $sleva.
      */
-    public static function aplikujSlevu(&$cena, &$sleva): array {
+    public static function aplikujSlevu(&$cena, &$sleva): array
+    {
         if ($sleva <= 0) { // nedělat nic
             return ['cena' => $cena, 'sleva' => $sleva];
         }
@@ -76,7 +78,8 @@ class Cenik
      * aktivity)
      * @todo možnost (zvážit) použití objektu Sleva, který by se uměl aplikovat
      */
-    public function slevyObecne() {
+    public function slevyObecne()
+    {
         return ['nic'];
     }
 
@@ -85,7 +88,8 @@ class Cenik
      * vypravěčských, věci se slevami nebo zdarma apod.)
      * @todo vypravěčská sleva s číslem apod. (migrovat z financí)
      */
-    public function slevySpecialni() {
+    public function slevySpecialni()
+    {
         $u     = $this->u;
         $slevy = [];
 
@@ -116,7 +120,8 @@ class Cenik
      * @param array $r
      * @return float cena věci v e-shopu pro daného uživatele
      */
-    public function shop(array $r): float {
+    public function shop(array $r): float
+    {
         if (isset($r['cena_aktualni'])) {
             $cena = $r['cena_aktualni'];
         }
@@ -135,16 +140,16 @@ class Cenik
             // hack podle názvu
             if (mb_stripos($r['nazev'], 'Kostka') !== false && $this->slevaKostky) {
                 ['cena' => $cena, 'sleva' => $this->slevaKostky] = self::aplikujSlevu($cena, $this->slevaKostky);
-            } elseif (mb_stripos($r['nazev'], 'Placka') !== false && $this->slevaPlacky) {
+            } else if (mb_stripos($r['nazev'], 'Placka') !== false && $this->slevaPlacky) {
                 ['cena' => $cena, 'sleva' => $this->slevaPlacky] = self::aplikujSlevu($cena, $this->slevaPlacky);
             }
-        } elseif ($typ == Shop::TRICKO && mb_stripos($r['nazev'], 'modré') !== false && $this->modrychTricekZdarma > 0) {
+        } else if ($typ == Shop::TRICKO && mb_stripos($r['nazev'], 'modré') !== false && $this->modrychTricekZdarma > 0) {
             $cena = 0;
             $this->modrychTricekZdarma--;
-        } elseif ($typ == Shop::TRICKO && $this->jakychkoliTricekZdarma > 0) {
+        } else if ($typ == Shop::TRICKO && $this->jakychkoliTricekZdarma > 0) {
             $cena = 0;
             $this->jakychkoliTricekZdarma--;
-        } elseif ($typ == Shop::UBYTOVANI) {
+        } else if ($typ == Shop::UBYTOVANI) {
             if ($this->u->maPravo(Pravo::UBYTOVANI_ZDARMA)
                 || ($r['ubytovani_den'] == 0 && $this->u->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA))
                 || ($r['ubytovani_den'] == 1 && $this->u->maPravo(Pravo::UBYTOVANI_CTVRTECNI_NOC_ZDARMA))
@@ -154,10 +159,10 @@ class Cenik
             ) {
                 $cena = 0;
             }
-        } elseif ($typ == Shop::JIDLO) {
+        } else if ($typ == Shop::JIDLO) {
             if ($this->u->maPravo(Pravo::JIDLO_ZDARMA)) {
                 $cena = 0;
-            } elseif ($this->u->maPravo(Pravo::JIDLO_SE_SLEVOU) && strpos($r['nazev'], 'Snídaně') === false) {
+            } else if ($this->u->maPravo(Pravo::JIDLO_SE_SLEVOU) && strpos($r['nazev'], 'Snídaně') === false) {
                 $cena -= 20;
             }
         }

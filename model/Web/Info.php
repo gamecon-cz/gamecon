@@ -12,7 +12,8 @@ class Info
     private bool $jsmeNaBete;
     private bool $jsmeNaLocale;
 
-    public function __construct(SystemoveNastaveni $systemoveNastaveni) {
+    public function __construct(SystemoveNastaveni $systemoveNastaveni)
+    {
         $this->jsmeNaBete   = $systemoveNastaveni->jsmeNaBete();
         $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
     }
@@ -24,7 +25,8 @@ class Info
     private $titulek;
     private $url;
 
-    public function html(): string {
+    public function html(): string
+    {
         $o = [];
         if ($e = $this->titulek()) {
             $o[] = '<title>' . $e . '</title>';
@@ -53,7 +55,8 @@ class Info
     /**
      * @return Info|string|null
      */
-    public function nazev(string ...$nazev) {
+    public function nazev(string ...$nazev)
+    {
         if ($nazev === []) {
             return $this->nazev;
         }
@@ -68,10 +71,11 @@ class Info
         return $this;
     }
 
-    public function obrazek() {
+    public function obrazek()
+    {
         if (func_num_args() == 0) {
             return $this->obrazek;
-        } elseif (func_num_args() == 1) {
+        } else if (func_num_args() == 1) {
             $this->obrazek = func_get_arg(0);
             return $this;
         } else {
@@ -79,10 +83,11 @@ class Info
         }
     }
 
-    public function popis() {
+    public function popis()
+    {
         if (func_num_args() == 0) {
             return $this->popis;
-        } elseif (func_num_args() == 1) {
+        } else if (func_num_args() == 1) {
             $this->popis = func_get_arg(0);
             return $this;
         } else {
@@ -91,10 +96,11 @@ class Info
     }
 
     /** The name of your website (such as IMDb, not imdb.com) */
-    public function site() {
+    public function site()
+    {
         if (func_num_args() == 0) {
             return $this->site;
-        } elseif (func_num_args() == 1) {
+        } else if (func_num_args() == 1) {
             $this->site = func_get_arg(0);
             return $this;
         } else {
@@ -102,18 +108,21 @@ class Info
         }
     }
 
-    public function titulek() {
+    public function titulek()
+    {
         return $this->vytvorTitulek();
     }
 
-    private function vytvorTitulek() {
+    private function vytvorTitulek()
+    {
         if (!$this->nazev()) {
             $this->nazev('Gamecon');
         }
         return $this->nazev();
     }
 
-    public function dejPrefixPodleVyvoje(): string {
+    public function dejPrefixPodleVyvoje(): string
+    {
         if ($this->jsmeNaLocale) {
             return 'άλφα';
         }
@@ -123,10 +132,11 @@ class Info
         return '';
     }
 
-    public function url() {
+    public function url()
+    {
         if (func_num_args() == 0) {
             return $this->url;
-        } elseif (func_num_args() == 1) {
+        } else if (func_num_args() == 1) {
             $this->url = func_get_arg(0);
             return $this;
         } else {

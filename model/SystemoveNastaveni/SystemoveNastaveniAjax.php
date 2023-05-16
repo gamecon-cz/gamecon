@@ -27,14 +27,16 @@ class SystemoveNastaveniAjax
     public function __construct(
         SystemoveNastaveni     $systemoveNastaveni,
         SystemoveNastaveniHtml $systemoveNastaveniHtml,
-        \Uzivatel              $editujici
-    ) {
+        \Uzivatel              $editujici,
+    )
+    {
         $this->systemoveNastaveni     = $systemoveNastaveni;
         $this->systemoveNastaveniHtml = $systemoveNastaveniHtml;
         $this->editujici              = $editujici;
     }
 
-    public function zpracujPost(): bool {
+    public function zpracujPost(): bool
+    {
         if (!get(self::AJAX_KLIC)) {
             return false;
         }
@@ -53,7 +55,7 @@ class SystemoveNastaveniAjax
                     // filter_var z "true" udělá true a z "false" udělá false
                         filter_var(trim($zmena[self::VLASTNI_KLIC]), FILTER_VALIDATE_BOOLEAN),
                         $klic,
-                        $this->editujici
+                        $this->editujici,
                     );
                 }
             }
@@ -70,7 +72,8 @@ class SystemoveNastaveniAjax
         return true;
     }
 
-    private function echoJson(array $data) {
+    private function echoJson(array $data)
+    {
         header('Content-type: application/json');
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }

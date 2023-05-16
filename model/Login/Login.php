@@ -11,13 +11,15 @@ class Login
     public const PASSWORD_INPUT_NAME = 'hesloNAdm';
 
     public function __construct(
-        private Info $info
-    ) {
+        private Info $info,
+    )
+    {
         $this->info = clone $info;
         $this->info->nazev('Login', 'Administrace');
     }
 
-    public function dejHtmlLogin(): string {
+    public function dejHtmlLogin(): string
+    {
 
         $loginTemplate = $this->dejLoginTemplate();
         $loginTemplate->assign('headerPageInfo', $this->info->html());
@@ -32,7 +34,8 @@ class Login
         return $loginTemplate->text('login');
     }
 
-    private function dejLoginTemplate(): XTemplate {
+    private function dejLoginTemplate(): XTemplate
+    {
         $loginTemplate = new XTemplate(__DIR__ . '/templates/login.xtpl');
 
         $loginTemplate->assign([
@@ -46,7 +49,8 @@ class Login
         return $loginTemplate;
     }
 
-    private function pridejLokalniAssety(XTemplate $template) {
+    private function pridejLokalniAssety(XTemplate $template)
+    {
         static $localAssets = [
             'stylesheets' => [
                 __DIR__ . '/../../admin/files/login/login.css',

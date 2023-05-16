@@ -1,7 +1,8 @@
 <?php
 
 return [
-    ['dobrovolnik', 'dobrovoln{ík}', 'Za to, že je GameCon takový jaký je, vděčíme nejen vypravěčům a organizátorům, ale i dobrovolníkům, kteří pomáhají
+    [
+        'dobrovolnik', 'dobrovoln{ík}', 'Za to, že je GameCon takový jaký je, vděčíme nejen vypravěčům a organizátorům, ale i dobrovolníkům, kteří pomáhají
       vybudovat jeho zázemí. Pomoc potřebujeme především s přípravou prostor (nošení stolů, lepení plakátů apod) a
       Infopultem.',
     ],

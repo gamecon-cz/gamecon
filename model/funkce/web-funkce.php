@@ -10,12 +10,13 @@
  * @return string hláška s případnými substitucemi
  * @todo fixnout málo zadaných argumentů
  */
-function hlaska($nazev, $u = null) {
+function hlaska($nazev, $u = null)
+{
     global $HLASKY, $HLASKY_SUBST;
 
     if (func_num_args() == 1)
         return $HLASKY[$nazev];
-    elseif ($u instanceof Uzivatel) {
+    else if ($u instanceof Uzivatel) {
         $koncA = $u->pohlavi() == 'f' ? 'a' : '';
         return strtr($HLASKY_SUBST[$nazev], [
             "\n"  => '<br />',
@@ -25,7 +26,7 @@ function hlaska($nazev, $u = null) {
             '%3'  => func_num_args() > 4 ? func_get_arg(4) : '',
             '%4'  => func_num_args() > 5 ? func_get_arg(5) : '',
         ]);
-    } elseif (func_num_args() > 1) {
+    } else if (func_num_args() > 1) {
         return strtr($HLASKY_SUBST[$nazev], [
             "\n" => '<br />',
             '%1' => func_num_args() > 1 ? func_get_arg(1) : '',
@@ -39,7 +40,8 @@ function hlaska($nazev, $u = null) {
     }
 }
 
-function hlaskaMail($nazev, $u = null) {
+function hlaskaMail($nazev, $u = null)
+{
     $out = hlaska($nazev,
         func_num_args() > 1 ? func_get_arg(1) : '',
         func_num_args() > 2 ? func_get_arg(2) : '',
@@ -53,7 +55,8 @@ function hlaskaMail($nazev, $u = null) {
  * Přesměruje na adresu s https, pokud jde požadavek z adresy s http,
  * a následně ukončí skript.
  */
-function httpsOnly() {
+function httpsOnly()
+{
     if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') {
         $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         //header('HTTP/1.1 301 Moved Permanently');
@@ -65,7 +68,8 @@ function httpsOnly() {
 /**
  * Předá chybu volajícímu skriptu, vyvolá reload
  */
-function chyba($zprava, $back = true) {
+function chyba($zprava, $back = true)
+{
     Chyba::nastav((string)$zprava, Chyba::CHYBA);
     if ($back) {
         back();
@@ -75,7 +79,8 @@ function chyba($zprava, $back = true) {
 /**
  * Předá chybu volajícímu skriptu, vyvolá reload
  */
-function varovani(string $zprava, bool $back = true) {
+function varovani(string $zprava, bool $back = true)
+{
     Chyba::nastav($zprava, Chyba::VAROVANI);
     if ($back) {
         back();
@@ -87,7 +92,8 @@ function varovani(string $zprava, bool $back = true) {
  * @param string $zprava
  * @param bool $back má se reloadovat?
  */
-function oznameni($zprava, $back = true) {
+function oznameni($zprava, $back = true)
+{
     Chyba::nastav((string)$zprava, Chyba::OZNAMENI);
     if ($back) {
         back();
@@ -97,13 +103,15 @@ function oznameni($zprava, $back = true) {
 /**
  * Předá oznámení volajícímu skritpu a přesměruje na $cil
  */
-function oznameniPresmeruj($zprava, $cil) {
+function oznameniPresmeruj($zprava, $cil)
+{
     Chyba::nastav((string)$zprava, Chyba::OZNAMENI);
     back($cil);
 }
 
 /** Tisk informace profileru. */
-function profilInfo() {
+function profilInfo()
+{
     if (!PROFILOVACI_LISTA) {
         return; // v ostré verzi se neprofiluje
     }
@@ -141,7 +149,8 @@ function profilInfo() {
 }
 
 /** if current call is AJAX */
-function is_ajax(): bool {
+function is_ajax(): bool
+{
     return (!empty($_REQUEST['ajax'])
         || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
         || str_contains($_SERVER['REQUEST_URI'] ?? '', '/api/')
