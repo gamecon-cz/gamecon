@@ -60,10 +60,10 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     require __DIR__ . '/login.php';
     profilInfo();
     return;
-} elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '.php')) {
+} else if (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/');
     require($stranka . '.php');
-} elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
+} else if (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/' . $stranka);
     require($podstranka . '.php');
 } else {
@@ -119,7 +119,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         if ($BEZ_DEKORACE) {
             return;
         }
-    } elseif ($strankaExistuje && !$uzivatelMaPristup) {
+    } else if ($strankaExistuje && !$uzivatelMaPristup) {
         http_response_code(403);
         if ($u) {
             $xtpl->assign('a', $u->koncovkaDlePohlavi());
@@ -236,4 +236,8 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     $xtpl->parse('all');
     $xtpl->out('all');
     profilInfo();
+}
+
+if ($systemoveNastaveni->jsmeNaBete()) {
+    $xtpl->parse('all.jsmeNaBete');
 }

@@ -1,98 +1,114 @@
 body {
-    margin: 0;
-    background-color: #fff;
-    color: #10111A;
-    overflow-y: scroll;
+  margin: 0;
+  background-color: #fff;
+  color: #10111A;
+  overflow-y: scroll;
+  position: relative;
 }
 
 a {
-    color: #E22630;
+  color: #E22630;
 }
 
 input, textarea, select {
-    font-family: inherit;
+  font-family: inherit;
 }
 
 hr {
-    border: solid 1px rgba(0, 0, 0, 0.06);
+  border: solid 1px rgba(0, 0, 0, 0.06);
 }
 
 .chybaBlok {
-    position: fixed;
-    background: #FFF700 url('../blackarrow/_spolecne/chyba-err.svg') no-repeat 28px 50%;
-    font-weight: bold;
-    color: #E22630;
-    font-size: 14px;
-    letter-spacing: 0.05em;
-    padding: 20px 60px 16px;
-    width: 323px;
-    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.16);
-    left: 50%;
-    margin-left: -220px;
-    bottom: 24px;
-    z-index: 100;
+  position: fixed;
+  background: #FFF700 url('../blackarrow/_spolecne/chyba-err.svg') no-repeat 28px 50%;
+  font-weight: bold;
+  color: #E22630;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  padding: 20px 60px 16px;
+  width: 323px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.16);
+  left: 50%;
+  margin-left: -220px;
+  bottom: 24px;
+  z-index: 100;
 }
 
 .chybaBlok_zavrit {
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    line-height: 1.0;
-    font-size: 16px;
-    cursor: pointer;
-    color: #515151;
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  line-height: 1.0;
+  font-size: 16px;
+  cursor: pointer;
+  color: #515151;
 }
 
 .chybaBlok-oznameni {
-    color: #10111A;
-    background-color: #B7E4B6;
-    background-image: url('../blackarrow/_spolecne/chyba-ok.svg');
+  color: #10111A;
+  background-color: #B7E4B6;
+  background-image: url('../blackarrow/_spolecne/chyba-ok.svg');
 }
 
 .tooltip {
-    cursor: help;
+  cursor: help;
 }
 
 .tooltip_obsah {
-    display: block;
-    color: #10111A;
-    background-color: #fff;
-    text-align: left;
-    position: absolute;
-    z-index: 20;
-    width: 250px;
-    padding: 22px 32px 20px 28px;
-    font-weight: normal;
-    font-size: 14px;
-    line-height: 1.5;
-    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.16);
+  display: block;
+  color: #10111A;
+  background-color: #fff;
+  text-align: left;
+  position: absolute;
+  z-index: 20;
+  width: 250px;
+  padding: 22px 32px 20px 28px;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: 0 3px 20px rgba(0, 0, 0, 0.16);
 
-    visibility: hidden;
-    opacity: 0;
-    margin-top: 5px;
-    transition: opacity 0.3s, margin-top 0.3s, visibility 1s;
+  visibility: hidden;
+  opacity: 0;
+  margin-top: 5px;
+  transition: opacity 0.3s, margin-top 0.3s, visibility 1s;
 
-    right: 0;
+  right: 0;
 
-    @media (max-width: 600px) { display: none; } // prevence přetékání na mobilu
+  @media (max-width: 600px) {
+    display: none;
+  }
+  // prevence přetékání na mobilu
 }
 
 .tooltip_obsah::before {
-    content: '';
-    position: absolute;
-    background-color: #fff;
-    width: 10px;
-    height: 10px;
-    top: -6px;
-    left: 50px;
-    transform: rotate(45deg);
-    border-top:  solid 1px #e8e8e8;
-    border-left: solid 1px #e8e8e8;
+  content: '';
+  position: absolute;
+  background-color: #fff;
+  width: 10px;
+  height: 10px;
+  top: -6px;
+  left: 50px;
+  transform: rotate(45deg);
+  border-top: solid 1px #e8e8e8;
+  border-left: solid 1px #e8e8e8;
 }
 
 .tooltip:hover > .tooltip_obsah {
-    visibility: visible;
-    opacity: 1;
-    margin-top: 0;
-    @media (max-width: 600px) { display: block; }
+  visibility: visible;
+  opacity: 1;
+  margin-top: 0;
+  @media (max-width: 600px) {
+    display: block;
+  }
+}
+
+.corner-ribbon {
+  bottom: 1.5625rem;
+  left: -2rem;
+  transform: rotate(45deg);
+  position: fixed;
+  background: #e82;
+  width: 9rem;
+  text-align: center;
 }

@@ -1366,3 +1366,13 @@ Radio musí být ve tvaru:
   max-width: 350px;
   text-align: right;
 }
+
+.corner-ribbon {
+  bottom: 1.5625rem;
+  left: -2rem;
+  transform: rotate(45deg);
+  position: fixed;
+  background: #e82;
+  width: 9rem;
+  text-align: center;
+}

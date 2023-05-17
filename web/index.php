@@ -114,6 +114,9 @@ $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
 if (!$m->bezPaticky()) {
     $t->parse('index.paticka');
 }
+if ($systemoveNastaveni->jsmeNaBete()) {
+    $t->parse('index.jsmeNaBete');
+}
 $t->parse('index');
 $t->out('index');
 profilInfo();
