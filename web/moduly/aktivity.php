@@ -8,6 +8,8 @@ use Gamecon\Aktivita\TypAktivity;
 /** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 /** @var Uzivatel|null|void $org */
+/** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+/** @var null|\Gamecon\Aktivita\TypAktivity $typ */
 
 $this->blackarrowStyl(true);
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
@@ -23,11 +25,11 @@ Tym::vypisZpracuj($u);
 // aktivity
 
 $aktivity = Aktivita::zFiltru([
-    'rok' => ROCNIK,
-    'jenViditelne' => true,
+    'rok'           => ROCNIK,
+    'jenViditelne'  => true,
     'bezDalsichKol' => true,
-    'typ' => $typ ? $typ->id() : null,
-    'organizator' => !empty($org) ? $org->id() : null,
+    'typ'           => $typ ? $typ->id() : null,
+    'organizator'   => !empty($org) ? $org->id() : null,
 ]);
 
 $skupiny = seskupenePodle($aktivity, function ($aktivita) {
@@ -68,9 +70,9 @@ foreach ($skupiny as $skupina) {
         }
 
         $t->assign([
-            'aktivita' => $aktivita,
+            'aktivita'   => $aktivita,
             'obsazenost' => $aktivita->obsazenost() ? '(' . trim($aktivita->obsazenost()) . ')' : '',
-            'prihlasit' => $aktivita->prihlasovatko($u),
+            'prihlasit'  => $aktivita->prihlasovatko($u),
         ]);
 
         $t->parse('aktivity.nahled.termin');
@@ -87,14 +89,14 @@ foreach ($skupiny as $skupina) {
     $obrazek = $aktivita->obrazek();
 
     $t->assign([
-        'aktivita' => $aktivita,
-        'htmlId' => $aktivita->urlId(),
+        'aktivita'           => $aktivita,
+        'htmlId'             => $aktivita->urlId(),
         // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
-        'kotva' => URL_WEBU . '/' . $url->cela() . '#' . $aktivita->urlId(),
-        'obrazek' => $obrazek ? $obrazek->pasuj(512) : null, // TODO kvalita?
-        'organizatori' => $organizatori,
+        'kotva'              => URL_WEBU . '/' . $url->cela() . '#' . $aktivita->urlId(),
+        'obrazek'            => $obrazek ? $obrazek->pasuj(512) : null, // TODO kvalita?
+        'organizatori'       => $organizatori,
         'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
-        'kapacita' => $aktivita->kapacita() ?: 'neomezeně',
+        'kapacita'           => $aktivita->kapacita() ?: 'neomezeně',
     ]);
 
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.aktivita.stitek');
@@ -116,15 +118,21 @@ if (!empty($org)) {
         'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
     ]);
     $t->parse('aktivity.hlavickaVypravec');
-} elseif ($typ) {
+} else if ($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
     $t->assign([
         'popisLinie' => $typ->oTypu(),
         'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
-        'specTridy' => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
+        'specTridy'  => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
     ]);
 
     // podstránky linie
     $stranky = serazenePodle($typ->stranky(), 'poradi');
     $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
+
+    if (!$systemoveNastaveni->jsmeNaOstre() && $u->jeOrganizator()) {
+        $t->assign('urlEditaceStranek', URL_ADMIN . '/web/editace-stranek');
+        $t->assign('prikladUrlStranky', $typ->url() . '/nemas-zdani-co-je-k-mani');
+        $t->parse('aktivity.strankaNavod');
+    }
 }

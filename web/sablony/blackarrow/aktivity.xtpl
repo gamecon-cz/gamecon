@@ -19,6 +19,19 @@
         </div>
     </div>
     <!-- end: hlavickaVypravec -->
+    <!-- begin: strankaNavod -->
+    <div class="chybaBlok-oznameni" style="padding: 1em">
+        <span class="hinted">
+            🙋
+            <span class="hint">
+                <em>(toto se ukazuje pouze na testu a pouze přhlášeným organizátorům)</em><br>
+            </span>
+        </span>
+        Stránky u aktivit můžeš editovat na <a href="{urlEditaceStranek}">{urlEditaceStranek}</a><br>
+        Novou stránku přidej s <i>Url stranky</i> <span style="font-family: monospace">URL-aktivit/URL-nové-stránky</span>,
+        například <span style="font-family: monospace">{prikladUrlStranky}</span>
+    </div>
+    <!-- end: strankaNavod -->
 </div>
 </div>
 
