@@ -106,9 +106,9 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
      */
     public function odemciTeamoveHromadne(\Uzivatel $odemykajici): int
     {
-        $query                   = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . Aktivita::HAJENI_TEAMU_HODIN . ' HOUR');
+        $zamcene                 = dbFetchAll('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . Aktivita::HAJENI_TEAMU_HODIN . ' HOUR');
         $odemcenoTymovychAktivit = 0;
-        while (list($aid, $uid) = mysqli_fetch_row($query)) {
+        foreach ($zamcene as [$aid, $uid]) {
             // uvolnění zámku je součástí odhlášení, pokud je sám -> done
             Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici, 'hromadne-odemceni-teamovych');
             $odemcenoTymovychAktivit++;
