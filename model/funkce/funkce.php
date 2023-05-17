@@ -2,6 +2,7 @@
 
 use \Gamecon\Cas\DateTimeCz;
 use \Gamecon\Cas\DateTimeGamecon;
+use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 
 $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
 
@@ -636,20 +637,64 @@ function removeDiacritics(string $value)
     return $withoutDiacritics;
 }
 
-function nahradPlaceholderZaKonstantu(?string $value): ?string
+function nahradPlaceholderyZaNastaveni(?string $value): ?string
 {
     if (!$value) {
         return $value;
     }
-    if (!preg_match_all('~%(?<constant>[^%]+)%~', $value, $matches)) {
+    if (!preg_match_all('~%(?<nastaveni>[^%]+)%~', $value, $matches)) {
         return $value;
     }
-    foreach ($matches['constant'] as $potentialConstant) {
-        if (defined($potentialConstant)) {
-            $value = str_replace("%$potentialConstant%", constant($potentialConstant), $value);
+    global $systemoveNastaveni;
+    foreach ($matches['nastaveni'] as $puvodniKodNastaveni) {
+        try {
+            ['hodnota' => $kodNastaveni, 'modifikatory' => $modifikatory] = parsujModifikatory($puvodniKodNastaveni);
+            $hodnotaNastaveni = $systemoveNastaveni->dejVerejnouHodnotu($kodNastaveni);
+            if ($hodnotaNastaveni instanceof DateTimeInterface) {
+                if ($modifikatory) {
+                    $hodnotaNastaveni = aplikujModifikatory($hodnotaNastaveni, $modifikatory);
+                }
+                if ($hodnotaNastaveni instanceof DateTimeInterface) {
+                    $hodnotaNastaveni = $hodnotaNastaveni->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD);
+                }
+            }
+        } catch (NeznamyKlicSystemovehoNastaveni) {
+            $hodnotaNastaveni = null;
+        }
+        if ($hodnotaNastaveni !== null) {
+            $value = str_replace("%$puvodniKodNastaveni%", $hodnotaNastaveni, $value);
         }
     }
     return $value;
+}
+
+function aplikujModifikatory($hodnota, array $modifikatory)
+{
+    foreach ($modifikatory as ['modifikator' => $modifikator, 'parametry' => $parametry]) {
+        $hodnota = match ($modifikator) {
+            'datum' => DateTimeCz::formatujProSablonu($hodnota, $parametry),
+            default => $hodnota
+        };
+    }
+    return $hodnota;
+}
+
+function parsujModifikatory(string $hodnota): array
+{
+    $casti        = explode('|', $hodnota);
+    $cistaHodnota = $casti[0];
+    unset($casti[0]);
+    $modifikatory = [];
+    foreach ($casti as $cast) {
+        $rozdelenaCast = explode(':', $cast);
+        $modifikator   = $rozdelenaCast[0];
+        unset($rozdelenaCast[0]);
+        $modifikatory[] = [
+            'modifikator' => strtolower(trim($modifikator)),
+            'parametry'   => $rozdelenaCast,
+        ];
+    }
+    return ['hodnota' => $cistaHodnota, 'modifikatory' => $modifikatory];
 }
 
 function omnibox(
@@ -775,9 +820,9 @@ function prevedNaFloat($castka): float
         return (float)$castka;
     }
     $original = $castka;
-    $castka   = preg_replace('~[^\d,.]~', '', $castka);
+    $castka   = preg_replace('~[^-\d,.]~', '', $castka);
     $castka   = str_replace(',', '.', $castka);
-    if (!preg_match('~^\d+[.]?(\d+)?$~', $castka)) { // 1. je OK, stane se z toho 1.0
+    if (!preg_match('~^-?\d+[.]?(\d+)?$~', $castka)) { // 1. je OK, stane se z toho 1.0
         throw new \InvalidArgumentException("Chybné číslo '$original'");
     }
     return (float)$castka;

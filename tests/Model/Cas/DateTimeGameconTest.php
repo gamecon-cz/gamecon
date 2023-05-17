@@ -124,8 +124,7 @@ class DateTimeGameconTest extends TestCase
         );
     }
 
-    public static function provideZacatkyRegistraciUcastniku(): array
-    {
+    public static function provideZacatkyRegistraciUcastniku(): array {
         return [
             [2023, '2023-05-11 20:23:00'],
             [2022, '2022-05-12 20:22:00'],

@@ -22,7 +22,7 @@ if (post(Login::LOGIN_INPUT_NAME) && post(Login::PASSWORD_INPUT_NAME)) {
 $u = Uzivatel::zSession();
 if (post('odhlasNAdm')) {
     if ($u) {
-        $u->odhlas();
+        $u->odhlas(false);
     }
     back();
 }

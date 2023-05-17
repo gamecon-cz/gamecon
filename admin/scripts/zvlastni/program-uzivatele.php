@@ -1,9 +1,11 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\Program;
 
 /** @var Uzivatel $u */
 /** @var Uzivatel|null $uPracovni */
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 if (!$uPracovni) {
     echo 'Není vybrán uživatel.';
@@ -12,21 +14,28 @@ if (!$uPracovni) {
 
 $osobniProgram = !empty($osobniProgram);
 
-$program = new Program($uPracovni, [
-    Program::DRD_PJ      => true,
-    Program::DRD_PRIHLAS => true,
-    Program::PLUS_MINUS  => true,
-    Program::OSOBNI      => $osobniProgram,
-    Program::TEAM_VYBER  => true,
-    Program::INTERNI     => true,
-    Program::ZPETNE      => $u->maPravoNaZmenuHistorieAktivit(),
-]);
+$program = new Program(
+    systemoveNastaveni: $systemoveNastaveni,
+    uzivatel: $uPracovni,
+    nastaveni: [
+        Program::DRD_PJ       => true,
+        Program::DRD_PRIHLAS  => true,
+        Program::PLUS_MINUS   => true,
+        Program::OSOBNI       => $osobniProgram,
+        Program::TEAM_VYBER   => true,
+        Program::INTERNI      => true,
+        Program::ZPETNE       => $u->maPravoNaZmenuHistorieAktivit(),
+        Program::NEOTEVRENE   => $u->maPravoNaPrihlasovaniNaDosudNeotevrene(),
+    ]
+);
 
 if ($uPracovni) {
     Aktivita::prihlasovatkoZpracuj(
         $uPracovni,
         $u,
-        Aktivita::PLUSMINUS_KAZDY | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0) | Aktivita::INTERNI
+        Aktivita::PLUSMINUS_KAZDY
+        | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0)
+        | Aktivita::INTERNI,
     );
     Aktivita::vyberTeamuZpracuj($uPracovni, $u);
 }

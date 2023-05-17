@@ -11,7 +11,7 @@ if (!$u) { //jen přihlášení
     echo hlaska('jenPrihlaseni');
     return;
 }
-if (!$u->gcPrihlasen() || !FINANCE_VIDITELNE) {
+if (!FINANCE_VIDITELNE) {
     $urlWebu = URL_WEBU;
     echo <<<HTML
 <div class="stranka">
@@ -25,7 +25,6 @@ HTML;
     return; // přehled vidí jen přihlášení na GC (a jen po začátku letošních registrací)
 }
 
-$fin       = $u->finance();
 $veci      = $u->finance()->prehledHtml();
 $slevyA    = array_flat('<li>', $u->finance()->slevyAktivity(), '</li>');
 $slevyV    = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
@@ -36,9 +35,10 @@ $a   = $u->koncovkaDlePohlavi();
 $uid = $u->id();
 
 if (!$zaplaceno) {
-    $castka = -$fin->stav();
-    $limit  = datum3($systemoveNastaveni->prvniHromadneOdhlasovani());
-    $limit2 = datum3($systemoveNastaveni->druheHromadneOdhlasovani());
+    $castka                          = -$u->finance()->stav();
+    $nejblizsiHromadneOdhlasovaniKdy = $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
+    $nejpozdejiZaplatitDo            = $systemoveNastaveni->nejpozdejiZaplatitDo();
+    $limit                           = datum3($nejpozdejiZaplatitDo);
     if ($u->stat() == 'CZ') {
         $castka .= '&thinsp;Kč';
     } else {
@@ -75,17 +75,19 @@ if (!$zaplaceno) {
         <?= $veci ?>
     </div>
 
-    <div style="float:left; width:250px">
-        <h2>Slevy</h2>
-        <?php if ($slevyA) { ?>
-            <strong>Použité slevy na aktivity</strong>
-            <ul><?= $slevyA ?></ul>
-        <?php } ?>
-        <?php if ($slevyV) { ?>
-            <strong>Další bonusy</strong> (pokud si je objednáš)
-            <ul><?= $slevyV ?></ul>
-        <?php } ?>
-    </div>
+    <?php if ($u && $u->jeOrganizator()) { ?>
+        <div style="float:left">
+            <h2>Slevy</h2>
+            <?php if ($slevyA) { ?>
+                <strong>Použité slevy na aktivity</strong>
+                <ul><?= $slevyA ?></ul>
+            <?php } ?>
+            <?php if ($slevyV) { ?>
+                <strong>Další bonusy</strong> (pokud si je objednáš)
+                <ul><?= $slevyV ?></ul>
+            <?php } ?>
+        </div>
+    <?php } ?>
 
     <div style="clear:both"></div>
 
@@ -107,7 +109,7 @@ if (!$zaplaceno) {
             </div>
         <?php } ?>
 
-        <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani())) { ?>
+        <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)) { ?>
             <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
                     <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
@@ -115,34 +117,30 @@ if (!$zaplaceno) {
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
                     <strong><?= $castka ?></strong>, přesné údaje o platbě nalezneš výše.</p>
             <?php } ?>
-            <ul class="seznam-bez-okraje">
-                <li class="poznamka">Při pozdější platbě tě systém dne
-                    <strong><?php echo datum3($systemoveNastaveni->prvniHromadneOdhlasovani()) ?></strong>
-                    (příp. <?php echo datum3($systemoveNastaveni->druheHromadneOdhlasovani()) ?> při pozdější přihlášce)<strong> automaticky
-                        odhlásí</strong>.
-                </li>
-                <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na
-                    infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
-                </li>
-            </ul>
-        <?php } elseif (pred($systemoveNastaveni->druheHromadneOdhlasovani())) { ?>
-            <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
-                <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit2 ?></strong>. Platíš celkem
-                    <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
+            <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani())) { ?>
+                <?php if (!$u->maPravoNerusitObjednavky()) { ?>
+                    <ul class="seznam-bez-okraje">
+                        <li class="poznamka">Při pozdější platbě tě systém dne
+                            <strong><?php echo datum3($systemoveNastaveni->prvniHromadneOdhlasovani()) ?> automaticky
+                                odhlásí</strong>.
+                        </li>
+                        <li class="poznamka">
+                            Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
+                        </li>
+                    </ul>
+                <?php } ?>
             <?php } else { ?>
-                <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit2 ?></strong>. Platíš celkem
-                    <strong><?= $castka ?></strong>, přesné údaje o platbě nalezneš výše.</p>
+                <ul class="seznam-bez-okraje">
+                    <li class="poznamka">Při pozdější platbě tě systém dne
+                        <strong><?php echo datum3($nejblizsiHromadneOdhlasovaniKdy) ?> automaticky
+                            odhlásí</strong>.
+                    </li>
+                    <li class="poznamka">
+                        Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
+                    </li>
+                </ul>
             <?php } ?>
-            <ul class="seznam-bez-okraje">
-                <li class="poznamka">Při pozdější platbě tě systém dne
-                    <strong><?php echo datum3($systemoveNastaveni->druheHromadneOdhlasovani()) ?> automaticky odhlásí</strong>.
-                </li>
-                <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na
-                    infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
-                </li>
-            </ul>
         <?php } else { ?>
-            <!--TODO hláška po druhém odhlašování-->
             <?php if ($u->stat() == \Gamecon\Stat::CZ) { ?>
                 <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castka ?></strong>, variabilní
                     symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
@@ -151,8 +149,8 @@ if (!$zaplaceno) {
                     platbě nalezneš výše.</p>
             <?php } ?>
             <ul class="seznam-bez-okraje">
-                <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na
-                    infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
+                <li class="poznamka">
+                    Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
                 </li>
             </ul>
         <?php } ?>
@@ -162,7 +160,7 @@ if (!$zaplaceno) {
             <h2 id="placeni">Platba</h2>
             <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
                 platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
-                můžeš si samozřejmě kdykoli převést peníze do zásoby na:</p>
+                můžeš si samozřejmě kdykoli převést peníze do zásoby:</p>
             <div>
                 <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
                 <strong>Variabilní symbol:</strong> <?= $uid ?><br>
@@ -171,7 +169,7 @@ if (!$zaplaceno) {
             <h2 id="placeni">Platba (SEPA)</h2>
             <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
                 platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
-                můžeš si samozřejmě kdykoli převést peníze do zásoby na:</p>
+                můžeš si samozřejmě kdykoli převést peníze do zásoby:</p>
             <div>
                 <strong>IBAN:</strong> <?= IBAN ?><br>
                 <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>

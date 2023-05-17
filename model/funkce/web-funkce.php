@@ -14,9 +14,9 @@ function hlaska($nazev, $u = null)
 {
     global $HLASKY, $HLASKY_SUBST;
 
-    if (func_num_args() == 1)
+    if (func_num_args() == 1) {
         return $HLASKY[$nazev];
-    else if ($u instanceof Uzivatel) {
+    } else if ($u instanceof Uzivatel) {
         $koncA = $u->pohlavi() == 'f' ? 'a' : '';
         return strtr($HLASKY_SUBST[$nazev], [
             "\n"  => '<br />',

@@ -14,6 +14,8 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Uzivatel\Finance;
+use Gamecon\Uzivatel\Pohlavi;
+use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -33,8 +35,43 @@ class Uzivatel extends DbObject
     public const SYSTEM       = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
     public const SYSTEM_LOGIN = 'SYSTEM';
 
+    public const TYPY_DOKLADU     = [
+        self::TYP_DOKLADU_OP,
+        self::TYP_DOKLADU_PAS,
+        self::TYP_DOKLADU_JINY,
+    ];
+    public const TYP_DOKLADU_OP   = 'op';
+    public const TYP_DOKLADU_PAS  = 'pas';
+    public const TYP_DOKLADU_JINY = 'jiny';
+
     private ?array $organizovaneAktivityIds = null;
-    private ?array $historiePrihlaseni = null;
+    private ?array $historiePrihlaseni      = null;
+
+    public static function povinneUdajeProRegistraci(bool $vcetneProUbytovani = false): array
+    {
+        $povinneUdaje = [
+            Sql::JMENO_UZIVATELE    => 'Jméno',
+            Sql::PRIJMENI_UZIVATELE => 'Příjmení',
+            Sql::TELEFON_UZIVATELE  => 'Telefon',
+            Sql::EMAIL1_UZIVATELE   => 'E-mail',
+            Sql::LOGIN_UZIVATELE    => 'Přezdívka',
+        ];
+        if ($vcetneProUbytovani) {
+            $povinneUdaje = [
+                ...$povinneUdaje,
+                ...[
+                    Sql::DATUM_NAROZENI         => 'Datum narození',
+                    Sql::ULICE_A_CP_UZIVATELE   => 'Ulice a číslo popisné',
+                    Sql::MESTO_UZIVATELE        => 'Město',
+                    Sql::PSC_UZIVATELE          => 'PSČ',
+                    Sql::TYP_DOKLADU_TOTOZNOSTI => 'Typ dokladu totožnosti',
+                    Sql::OP                     => 'Číslo dokladu totožnosti',
+                    Sql::STATNI_OBCANSTVI       => 'Státní občanství',
+                ],
+            ];
+        }
+        return $povinneUdaje;
+    }
 
     /**
      * @return Uzivatel[]
@@ -159,7 +196,7 @@ SQL
     /**
      * Vrátí / nastaví číslo občanského průkazu.
      */
-    public function cisloOp($op = null)
+    public function cisloOp(string $op = null)
     {
         if ($op) {
             dbQuery('
@@ -171,7 +208,7 @@ SQL
             return $op;
         }
 
-        if ($this->r['op']) {
+        if (!empty($this->r['op'])) {
             return Sifrovatko::desifruj($this->r['op']);
         } else {
             return '';
@@ -265,7 +302,7 @@ SQL
         if ($f) {
             return $f;
         }
-        if ($this->pohlavi() === 'f') {
+        if ($this->pohlavi() === Pohlavi::ZENA_KOD) {
             return Nahled::zSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
         }
         return Nahled::zSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
@@ -343,7 +380,9 @@ SQL
             if ($zaznamnik) {
                 $zaznamnik->uchovejZEmailu($mailMelUbytovani);
             } else {
-                $mailMelUbytovani->odeslat();
+                if ($this->systemoveNastaveni->poslatMailZeBylOdhlasenAMelUbytovani()) {
+                    $mailMelUbytovani->odeslat();
+                }
             }
         }
         if ($odeslatMailPokudSeNeodhlasilSam && $this->id() !== $odhlasujici->id()) {
@@ -609,7 +648,7 @@ SQL,
      */
     public function koncA(): string
     {
-        return ($this->pohlavi() === 'f')
+        return ($this->pohlavi() === Pohlavi::ZENA_KOD)
             ? 'a'
             : '';
     }
@@ -617,9 +656,7 @@ SQL,
     /** Vrátí koncovku "a" pro holky (resp. "" pro kluky) */
     public function koncovkaDlePohlavi(string $koncovkaProZeny = 'a'): string
     {
-        return ($this->pohlavi() === 'f')
-            ? $koncovkaProZeny
-            : '';
+        return Pohlavi::koncovkaDlePohlavi($this->pohlavi(), $koncovkaProZeny);
     }
 
     /** Vrátí primární mailovou adresu uživatele */
@@ -631,11 +668,9 @@ SQL,
     /**
      * @return string[] povinné údaje které chybí
      */
-    public function chybejiciUdaje(array $povinneUdaje)
+    public function chybejiciUdaje(array $povinneUdaje): array
     {
-        $validator = function (string $sloupec) {
-            return empty($this->r[$sloupec]);
-        };
+        $validator = fn(string $sloupec) => (trim((string)$this->r[$sloupec] ?? '')) === '';
         return array_filter($povinneUdaje, $validator, ARRAY_FILTER_USE_KEY);
     }
 
@@ -674,6 +709,21 @@ SQL,
         return $this->maPravo(Pravo::ADMINISTRACE_PREZENCE);
     }
 
+    public function maPravoNaKostkuZdarma(): bool
+    {
+        return $this->maPravo(Pravo::KOSTKA_ZDARMA);
+    }
+
+    public function maPravoNaUbytovaniZdarma(): bool
+    {
+        return $this->maPravo(Pravo::UBYTOVANI_ZDARMA);
+    }
+
+    public function maPravoNaJidloZdarma(): bool
+    {
+        return $this->maPravo(Pravo::JIDLO_ZDARMA);
+    }
+
     /**
      * Což taky znamená "Právo na placení až na místě"
      * @return bool
@@ -706,6 +756,11 @@ SQL,
     public function maPravoNaZmenuHistorieAktivit(): bool
     {
         return $this->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);
+    }
+
+    public function maPravoNaPrihlasovaniNaDosudNeotevrene(): bool
+    {
+        return $this->maPravo(Pravo::PRIHLASOVANI_NA_DOSUD_NEOTEVRENE);
     }
 
     public function jeBrigadnik(): bool
@@ -921,16 +976,18 @@ SQL,
     }
 
     /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
-     * @param bool $back rovnou otočit na referrer?
+     * @param bool $naUvodniStranku
      */
-    public function odhlas($back = false)
+    public function odhlas($naUvodniStranku = true)
     {
+        $a = $this->koncovkaDlePohlavi();
         $this->odhlasProTed();
         if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
             setcookie('gcTrvalePrihlaseni', '', 0, '/');
         }
-        if ($back) {
-            back();
+        oznameni("Byl$a jsi odhlášen$a");
+        if ($naUvodniStranku) {
+            back(URL_WEBU);
         }
     }
 
@@ -1051,7 +1108,7 @@ SQL,
         $objednalNejakeJidlo = $shop->objednalNejakeJidlo();
         if (!$shop->koupilNejakouVec()) {
             return $objednalNejakeJidlo
-                ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->objednneJidloPrehledHtml()}</span></span>"
+                ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->objednaneJidloPrehledHtml()}</span></span>"
                 : '';
         }
         $velikostBalicku = $this->r['infopult_poznamka'] === 'velký balíček ' . $this->systemoveNastaveni->rocnik()
@@ -1060,7 +1117,7 @@ SQL,
         $nakupy          = [];
         $nakupy[]        = $shop->koupeneVeciPrehledHtml();
         if ($objednalNejakeJidlo) {
-            $nakupy[] = $shop->objednneJidloPrehledHtml();
+            $nakupy[] = $shop->objednaneJidloPrehledHtml();
         }
         $nakupyHtml = implode('<hr>', $nakupy);
         return '<span class="hinted">' . htmlentities($velikostBalicku) . ' ' . $this->id() . '<span class="hint">' . $nakupyHtml . '</span></span>';
@@ -1219,27 +1276,27 @@ SQL,
      *
      * @return int id nově vytvořeného uživatele
      */
-    public static function registruj($tab)
+    public static function registruj(array $tab)
     {
-        return self::registrujUprav($tab);
+        return self::registrujUprav($tab, null);
     }
 
     /**
      * Zregistruje nového uživatele nebo upraví stávajícího $u, pokud je zadán.
      */
-    private static function registrujUprav($tab, Uzivatel $u = null)
+    private static function registrujUprav(array $tab, ?Uzivatel $u): string
     {
         $dbTab                  = $tab;
         $chyby                  = [];
         $preskocitChybejiciPole = (bool)$u;
 
         // opravy
-        $dbTab = array_map(function ($e) {
-            return preg_replace('/\s+/', ' ', trim($e));
+        $dbTab = array_map(static function ($hodnota) {
+            return preg_replace('/\s+/', ' ', trim((string)$hodnota));
         }, $dbTab);
 
-        if (isset($dbTab['email1_uzivatele'])) {
-            $dbTab['email1_uzivatele'] = mb_strtolower($dbTab['email1_uzivatele']);
+        if (isset($dbTab[Sql::EMAIL1_UZIVATELE])) {
+            $dbTab[Sql::EMAIL1_UZIVATELE] = mb_strtolower($dbTab[Sql::EMAIL1_UZIVATELE]);
         }
 
         // TODO fallback prázdná přezdívka -> mail?
@@ -1252,10 +1309,10 @@ SQL,
 
             $u2 = Uzivatel::zNicku($login) ?? Uzivatel::zMailu($login);
             if ($u2 && !$u) {
-                return 'přezdívka už je zabraná. Pokud je tvoje, přihlaš se nebo si resetuj heslo';
+                return 'přezdívka už je zabraná; pokud je tvoje, přihlaš se nebo si resetuj heslo';
             }
             if ($u2 && $u && $u2->id() != $u->id()) {
-                return 'přezdívka už je zabraná. Vyber si prosím jinou';
+                return 'přezdívka už je zabraná, vyber si prosím jinou';
             }
             return '';
         };
@@ -1284,7 +1341,9 @@ SQL,
         };
 
         $validaceHesla = function ($heslo) use ($dbTab) {
-            if (empty($heslo)) return 'vyplň prosím heslo';
+            if (empty($heslo)) {
+                return 'vyplň prosím heslo';
+            }
 
             if (
                 $heslo != ($dbTab['heslo'] ?? null) ||
@@ -1295,27 +1354,40 @@ SQL,
             return '';
         };
 
+        $dbTab = self::spojPredvolbuSTelefonem($dbTab);
+
         $validace = [
-            'jmeno_uzivatele'      => ['.+', 'jméno nesmí být prázdné'],
-            'prijmeni_uzivatele'   => ['.+', 'příjmení nesmí být prázdné'],
-            'login_uzivatele'      => $validaceLoginu,
-            'email1_uzivatele'     => $validaceMailu,
-            'pohlavi'              => ['^(m|f)$', 'vyber prosím pohlaví'],
-            'ulice_a_cp_uzivatele' => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
-            'mesto_uzivatele'      => ['.+', 'vyplň prosím město'],
-            'psc_uzivatele'        => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
-            'stat_uzivatele'       => ['^(1|2|-1)$', 'vyber prosím stát'],
-            'telefon_uzivatele'    => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
-            'datum_narozeni'       => $validaceDataNarozeni,
-            'heslo'                => $validaceHesla,
-            'heslo_kontrola'       => $validaceHesla,
+            // Osobní
+            Sql::EMAIL1_UZIVATELE       => $validaceMailu,
+            Sql::TELEFON_UZIVATELE      => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
+            Sql::JMENO_UZIVATELE        => ['.+', 'jméno nesmí být prázdné'],
+            Sql::PRIJMENI_UZIVATELE     => ['.+', 'příjmení nesmí být prázdné'],
+            Sql::DATUM_NAROZENI         => $validaceDataNarozeni,
+            Sql::STATNI_OBCANSTVI       => ['[[:alpha:]]{2,}', 'vyplň prosím státní občanství'],
+            // Adresa trvalého pobytu
+            Sql::ULICE_A_CP_UZIVATELE   => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
+            Sql::MESTO_UZIVATELE        => ['.+', 'vyplň prosím město'],
+            Sql::PSC_UZIVATELE          => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
+            Sql::STAT_UZIVATELE         => ['^(1|2|-1)$', 'vyber prosím stát'],
+            // Platný doklad totožnosti
+            Sql::TYP_DOKLADU_TOTOZNOSTI => [implode('|', self::TYPY_DOKLADU), 'vyber prosím typ dokladu totožnosti'],
+            Sql::OP                     => ['[a-zA-Z0-9]{5,}', 'vyplň prosím celé číslo dokladu'],
+            // Ostatní
+            Sql::LOGIN_UZIVATELE        => $validaceLoginu,
+            Sql::POHLAVI                => ['^(m|f)$', 'vyber prosím pohlaví'],
+            'heslo'                     => $validaceHesla,
+            'heslo_kontrola'            => $validaceHesla,
         ];
 
         // provedení validací
         $navic = array_diff(array_keys($dbTab), array_keys($validace));
         if ($navic) {
-            throw new Exception('Data obsahují nepovolené hodnoty');
+            throw new Exception('Data obsahují nepovolené hodnoty: ' . implode(',', $navic));
         }
+
+        $povinneUdaje = self::povinneUdajeProRegistraci(
+            $u?->shop()->ubytovani()->maObjednaneUbytovani() ?? false,
+        );
 
         foreach ($validace as $klic => $validator) {
             $hodnota = $dbTab[$klic] ?? null;
@@ -1323,11 +1395,19 @@ SQL,
             if ($hodnota === null && $preskocitChybejiciPole) {
                 continue;
             }
+            $hodnota = trim((string)$hodnota);
+            if ($hodnota === '') {
+                $povinne = in_array($klic, ['heslo', 'heslo_kontrola'])
+                    || array_key_exists($klic, $povinneUdaje);
+                if (!$povinne) {
+                    continue;
+                }
+            }
 
             if (is_array($validator)) {
                 $regex      = $validator[0];
                 $popisChyby = $validator[1];
-                if (!preg_match("/$regex/", $hodnota)) {
+                if (!preg_match("/$regex/u", $hodnota)) {
                     $chyby[$klic] = $popisChyby;
                 }
             } else {
@@ -1340,11 +1420,10 @@ SQL,
 
         if ($chyby) {
             $ch = Chyby::zPole($chyby);
-            $ch->globalniChyba($u
-                ?
-                'Úprava se nepodařila, oprav prosím zvýrazněné položky.'
-                :
-                'Registrace se nepodařila. Oprav prosím zvýrazněné položky.',
+            $ch->globalniChyba(
+                $u
+                    ? 'Úprava se nepodařila, oprav prosím zvýrazněné položky.'
+                    : 'Registrace se nepodařila. Oprav prosím zvýrazněné položky.',
             );
             throw $ch;
         }
@@ -1363,6 +1442,10 @@ SQL,
         unset($dbTab['heslo']);
         unset($dbTab['heslo_kontrola']);
 
+        if (isset($dbTab[Sql::OP])) {
+            $dbTab[Sql::OP] = Sifrovatko::zasifruj($dbTab[Sql::OP]);
+        }
+
         // uložení
         if ($u) {
             dbUpdate('uzivatele_hodnoty', $dbTab, ['id_uzivatele' => $u->id()]);
@@ -1380,6 +1463,21 @@ SQL,
         }
 
         return $idUzivatele;
+    }
+
+    protected static function spojPredvolbuSTelefonem(array $data): array
+    {
+        $telefon   = $data[Sql::TELEFON_UZIVATELE] ?? null;
+        $predvolba = $data['predvolba'] ?? null;
+        unset($data['predvolba']); // v dalším zpracování dat by předvolba byla považována za neznámý klíč a chybu
+
+        if (empty($telefon) || empty($predvolba)) {
+            return $data;
+        }
+
+        $data[Sql::TELEFON_UZIVATELE] = $predvolba . ' ' . $telefon;
+
+        return $data;
     }
 
     /**
@@ -1523,7 +1621,7 @@ SQL,
      *
      * Extra položky: heslo a heslo_kontrola (metoda si je sama převede na hash).
      */
-    public function uprav($tab)
+    public function uprav(array $tab)
     {
         $tab = array_filter($tab);
         return self::registrujUprav($tab, $this);
@@ -1570,7 +1668,7 @@ SQL,
      * @param DateTimeCz $datum
      * @return ?int
      */
-    public function vekKDatu(DateTimeCz $datum): ?int
+    public function vekKDatu(DateTimeInterface $datum): ?int
     {
         if ($this->r['datum_narozeni'] == '0000-00-00') {
             return null;
@@ -1874,9 +1972,9 @@ SQL,
      * @todo asi lazy loading práv
      * @todo zrefaktorovat nactiUzivatele na toto
      */
-    protected static function zWhere($where, $param = null, $extra = ''): array
+    protected static function zWhere($where, $params = null, $extra = ''): array
     {
-        return parent::zWhere($where, $param, $extra);
+        return parent::zWhere($where, $params, $extra);
     }
 
     protected static function dotaz($where): string
@@ -1937,6 +2035,7 @@ SQL;
     {
         if ($this->shop === null) {
             $this->shop = new Shop(
+                $this,
                 $this,
                 null,
                 $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals()

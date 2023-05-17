@@ -68,7 +68,9 @@ class Modul
      * TODO po zmigrování všech modulů je možné toto postupně odstranit.
      */
     public function blackarrowStyl($val = null) {
-        if (isset($val)) $this->blackarrowStyl = $val;
+        if (isset($val)) {
+            $this->blackarrowStyl = $val;
+        }
         return $this->blackarrowStyl;
     }
 

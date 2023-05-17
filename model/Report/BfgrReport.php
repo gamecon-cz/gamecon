@@ -385,7 +385,7 @@ SQL,
     private function dejNazvyAPoctyJidel(Uzivatel $navstevnik, array $moznaJidla): array
     {
         $objednanaJidla = $this->dejNazvyAPoctyPredmetu($navstevnik, implode('|', Jidlo::dejJidlaBehemDne()));
-        uksort($objednanaJidla, static function (string $nejakeJidloADen, string $jineJidloADen) {
+        uksort($objednanaJidla, function (string $nejakeJidloADen, string $jineJidloADen) {
             $nejakeJidloBehemDne = $this->najdiJidloBehemDne($nejakeJidloADen);
             $jineJidloBehemDne   = $this->najdiJidloBehemDne($jineJidloADen);
             $rozdilPoradiJidel   = Jidlo::dejPoradiJidlaBehemDne($nejakeJidloBehemDne) <=> Jidlo::dejPoradiJidlaBehemDne($jineJidloBehemDne);

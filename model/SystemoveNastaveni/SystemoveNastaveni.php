@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Gamecon\SystemoveNastaveni;
 
@@ -11,37 +13,43 @@ use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\SystemoveNastaveni\Exceptions\ChybnaHodnotaSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Sql;
+use Gamecon\Uzivatel\Finance;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice as Klic;
 
 class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
 {
 
-    public const ROCNIK = ROCNIK;
+    public const JAKYKOLI_ROCNIK = -1;
 
-    private ?array $vsechnyZaznamyNastaveni = null;
-    private ?array $odvozeneHodnoty         = null;
-
-    public static function vytvorZGlobals(): static
+    public static function vytvorZGlobals(
+        int                     $rocnik = ROCNIK,
+        DateTimeImmutableStrict $ted = new DateTimeImmutableStrict(),
+        ?bool                   $jsmeNaBete = null,
+        ?bool                   $jsmeNaLocale = null,
+        ?bool                   $databazoveNastaveni = null,
+        ?string                 $projectRootDir = null,
+    ): self
     {
-        static $systemoveNastaveni;
-        if (!$systemoveNastaveni) {
-            $systemoveNastaveni = new static(
-                ROCNIK,
-                new DateTimeImmutableStrict(),
-                parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
-                parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost',
-                DatabazoveNastaveni::vytvorZGlobals(),
-                defined('PROJECT_ROOT_DIR')
-                    ? constant('')
-                    : dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
-            );
-        }
-        return $systemoveNastaveni;
+        $jsmeNaBete ??= in_array(
+            parse_url(URL_WEBU, PHP_URL_HOST),
+            ['beta.gamecon.cz', 'jakublounek.gamecon.cz'],
+        );
+        return new static(
+            $rocnik,
+            $ted,
+            $jsmeNaBete ?? parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
+            $jsmeNaLocale ?? parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost',
+            $databazoveNastaveni ?? DatabazoveNastaveni::vytvorZGlobals(),
+            $projectRootDir
+            ?? try_constant('PROJECT_ROOT_DIR')
+            ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..'
+        );
     }
 
     /**
      * @return array<int, int>
      */
-    public static function bonusyZaVedeniAktivity(): array
+    public function bonusyZaVedeniAktivity(): array
     {
         static $bonusyZaVedeniAktivity = null;
         if ($bonusyZaVedeniAktivity === null) {
@@ -56,7 +64,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             ];
             foreach ($casAKlic as $hodin => $klic) {
                 // ve formátu max. délka => sleva
-                $bonusyZaVedeniAktivity[$hodin] = self::spocitejBonusZaVedeniAktivity($klic);
+                $bonusyZaVedeniAktivity[$hodin] = $this->spocitejBonusZaVedeniAktivity($klic);
             }
         }
         return $bonusyZaVedeniAktivity;
@@ -64,17 +72,19 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
 
     /**
      * @param string $klic
-     * @param int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
+     * @param ?int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
      * @return int
      */
-    public static function spocitejBonusZaVedeniAktivity(
+    public function spocitejBonusZaVedeniAktivity(
         string $klic,
-        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU,
+        ?int   $bonusZaStandardni3hAz5hAktivitu = null,
     ): int
     {
+        $bonusZaStandardni3hAz5hAktivitu ??= $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
         return match ($klic) {
             'BONUS_ZA_1H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4),
             'BONUS_ZA_2H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2),
+            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => $bonusZaStandardni3hAz5hAktivitu,
             'BONUS_ZA_6H_AZ_7H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5),
             'BONUS_ZA_8H_AZ_9H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2),
             'BONUS_ZA_10H_AZ_11H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5),
@@ -87,6 +97,10 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     {
         return (int)round($cislo, 0);
     }
+
+    private ?array $vsechnyZaznamyNastaveni = null;
+    private ?array $odvozeneHodnoty         = null;
+    private ?array $vychoziHodnoty          = null;
 
     public function __construct(
         private readonly int                     $rocnik,
@@ -105,12 +119,12 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     public function zaznamyDoKonstant()
     {
         try {
-            $zaznamy = dbFetchAll(<<<SQL
-SELECT systemove_nastaveni.klic,
-       systemove_nastaveni.hodnota,
-       systemove_nastaveni.datovy_typ,
-       systemove_nastaveni.vlastni
+            $jakykoliRocnik = self::JAKYKOLI_ROCNIK;
+            $soucasnyRocnik = $this->rocnik();
+            $zaznamy        = dbFetchAll(<<<SQL
+SELECT klic, hodnota, datovy_typ, vlastni
 FROM systemove_nastaveni
+WHERE rocnik_nastaveni IN ($jakykoliRocnik, $soucasnyRocnik)
 SQL,
             );
         } catch (\mysqli_sql_exception $exception) {
@@ -123,7 +137,10 @@ SQL,
             return;
         } catch (\DbException $dbException) {
             if (in_array($dbException->getCode(), [1146 /* table does not exist */, 1054 /* new column does not exist */])) {
-                return; // tabulka či sloupec musí vzniknout SQL migrací
+                if ((new SqlMigrace())->nejakeMigraceKeSpusteni()) {
+                    return; // tabulka či sloupec musí vzniknout SQL migrací
+                }
+                // else například jsme si na lokál stáhli příliš novou databázi
             }
             throw $dbException;
         }
@@ -166,22 +183,25 @@ SQL,
                     : 3 * $this->dejHodnotu('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU', false /* radši, abychom neskončili v nekonečné smyčce */),
                 'BONUS_ZA_1H_AKTIVITU'         => defined('BONUS_ZA_1H_AKTIVITU')
                     ? BONUS_ZA_1H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU'),
                 'BONUS_ZA_2H_AKTIVITU'         => defined('BONUS_ZA_2H_AKTIVITU')
                     ? BONUS_ZA_2H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU'),
                 'BONUS_ZA_6H_AZ_7H_AKTIVITU'   => defined('BONUS_ZA_6H_AZ_7H_AKTIVITU')
                     ? BONUS_ZA_6H_AZ_7H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU'),
                 'BONUS_ZA_8H_AZ_9H_AKTIVITU'   => defined('BONUS_ZA_8H_AZ_9H_AKTIVITU')
                     ? BONUS_ZA_8H_AZ_9H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU'),
                 'BONUS_ZA_10H_AZ_11H_AKTIVITU' => defined('BONUS_ZA_10H_AZ_11H_AKTIVITU')
                     ? BONUS_ZA_10H_AZ_11H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU'),
                 'BONUS_ZA_12H_AZ_13H_AKTIVITU' => defined('BONUS_ZA_12H_AZ_13H_AKTIVITU')
                     ? BONUS_ZA_12H_AZ_13H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
+                'PRISTI_VLNA_AKTIVIT_KDY'      => defined('PRISTI_VLNA_AKTIVIT_KDY')
+                    ? PRISTI_VLNA_AKTIVIT_KDY
+                    : self::pristiVlnaKdy(),
             ];
         }
         return $this->odvozeneHodnoty;
@@ -194,11 +214,16 @@ SQL,
             'integer', 'int' => (int)$hodnota,
             'number', 'float' => (float)$hodnota,
             // když to změníš, rozbiješ JS systemove-nastaveni.js
-            'date' => (new DateTimeCz($hodnota))->formatDatumDb(),
+            'date' => $this->vytvorDateTime($hodnota)->formatDatumDb(),
             // když to změníš, rozbiješ JS systemove-nastaveni.js
-            'datetime' => (new DateTimeCz($hodnota))->formatDb(),
+            'datetime' => $this->vytvorDateTime($hodnota)->formatDb(),
             default => (string)$hodnota,
         };
+    }
+
+    private function vytvorDateTime(string $hodnota): DateTimeCz
+    {
+        return new DateTimeCz(preg_replace('~\s~', '', $hodnota));
     }
 
     public function ulozZmenuHodnoty($hodnota, string $klic, \Uzivatel $editujici): int
@@ -244,6 +269,16 @@ SQL,
         $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
     }
 
+    private function aktualizujPriznakVlastniVLokalniCache(bool $vlastni, string $klic, int $idEditujicihoUzivatele)
+    {
+        if ($this->vsechnyZaznamyNastaveni === null) {
+            return;
+        }
+
+        $this->vsechnyZaznamyNastaveni[$klic][Sql::VLASTNI]   = (string)(int)$vlastni;
+        $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
+    }
+
     private function hlidejZakazaneZmeny(string $klic)
     {
         if ($klic === 'ROCNIK') {
@@ -251,7 +286,7 @@ SQL,
         }
     }
 
-    public function ulozZmenuPlatnosti(bool $vlastni, string $klic, \Uzivatel $editujici): int
+    public function ulozZmenuPriznakuVlastni(bool $vlastni, string $klic, \Uzivatel $editujici): int
     {
         $this->hlidejZakazaneZmeny($klic);
         $updateQuery = dbQuery(<<<SQL
@@ -269,7 +304,11 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        return dbAffectedOrNumRows($updateQuery);
+        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
+        if ($zmenenoZaznamu > 0) {
+            $this->aktualizujPriznakVlastniVLokalniCache($vlastni, $klic, $editujici->id());
+        }
+        return $zmenenoZaznamu;
     }
 
     private function formatujHodnotuProDb($hodnota, string $klic)
@@ -282,6 +321,7 @@ SQL,
                 'datetime' => $hodnota
                     ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
                     : $hodnota,
+                'bool', 'boolean' => (int)filter_var($hodnota, FILTER_VALIDATE_BOOLEAN),
                 default => $hodnota,
             };
         } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
@@ -326,20 +366,22 @@ SQL,
             $bonusZaStandardni3hAz5hAktivitu = (int)$zaznam['hodnota'];
             $popis                           = &$zaznam['popis'];
             $popis                           .= '<hr><i>vypočtené bonusy</i>:<br>'
-                . 'BONUS_ZA_1H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_2H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_1H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_2H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . '•••<br>'
-                . 'BONUS_ZA_6H_AZ_7H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_8H_AZ_9H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_10H_AZ_11H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_12H_AZ_13H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>';
+                . 'BONUS_ZA_6H_AZ_7H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_8H_AZ_9H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_10H_AZ_11H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_12H_AZ_13H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>';
         }
         return $zaznamy;
     }
 
     private function dejSqlNaZaznamyNastaveni(array $whereArray = ['1']): string
     {
-        $where = implode(' AND ', $whereArray);
+        $where          = implode(' AND ', $whereArray);
+        $jakykoliRocnik = self::JAKYKOLI_ROCNIK;
+
         return <<<SQL
 SELECT systemove_nastaveni.klic,
        systemove_nastaveni.hodnota,
@@ -351,7 +393,8 @@ SELECT systemove_nastaveni.klic,
        posledni_s_uzivatelem.id_uzivatele,
        systemove_nastaveni.skupina,
        systemove_nastaveni.poradi,
-       systemove_nastaveni.pouze_pro_cteni
+       systemove_nastaveni.pouze_pro_cteni,
+       systemove_nastaveni.rocnik_nastaveni
 FROM systemove_nastaveni
 LEFT JOIN (
     SELECT posledni_log.naposledy, systemove_nastaveni_log.id_nastaveni, systemove_nastaveni_log.id_uzivatele
@@ -364,6 +407,7 @@ LEFT JOIN (
     GROUP BY systemove_nastaveni_log.id_nastaveni, systemove_nastaveni_log.id_uzivatele
 ) AS posledni_s_uzivatelem ON systemove_nastaveni.id_nastaveni = posledni_s_uzivatelem.id_nastaveni
 WHERE {$where}
+    AND rocnik_nastaveni IN ({$jakykoliRocnik}, {$this->rocnik()})
 ORDER BY systemove_nastaveni.poradi
 SQL;
     }
@@ -417,15 +461,20 @@ SQL;
     public function dejHodnotu(string $klic, bool $hledatTakeVOdvozenych = true)
     {
         if (defined($klic)) {
+            /**
+             * POZOR tohle může prozradit i heslo do databáze a další. Pro veřejné honoty použij @see dejVerejnouHodnotu
+             */
             return constant($klic);
         }
 
-        $vsechnyZaznamy = $this->dejVsechnyZaznamyNastaveni();
-        if (array_key_exists($klic, $vsechnyZaznamy)) {
-            return $this->zkonvertujHodnotuNaTyp(
-                $vsechnyZaznamy[$klic][Sql::HODNOTA],
-                $vsechnyZaznamy[$klic][Sql::DATOVY_TYP],
-            );
+        return $this->dejVerejnouHodnotu($klic, $hledatTakeVOdvozenych);
+    }
+
+    public function dejVerejnouHodnotu(string $klic, bool $hledatTakeVOdvozenych = true)
+    {
+        $hodnota = $this->dejHodnotuZeZaznamuNastaveni($klic);
+        if ($hodnota !== null) {
+            return $hodnota;
         }
 
         if ($hledatTakeVOdvozenych) {
@@ -438,41 +487,71 @@ SQL;
         throw new NeznamyKlicSystemovehoNastaveni("Klíč '$klic' nemáme v záznamech nastavení");
     }
 
+    private function dejHodnotuZeZaznamuNastaveni(string $klic)
+    {
+        $vsechnyZaznamy = $this->dejVsechnyZaznamyNastaveni();
+        if (!array_key_exists($klic, $vsechnyZaznamy)) {
+            return null;
+        }
+        return $this->zkonvertujHodnotuNaTyp(
+            $vsechnyZaznamy[$klic][Sql::HODNOTA],
+            $vsechnyZaznamy[$klic][Sql::DATOVY_TYP],
+        );
+    }
+
     public function dejVychoziHodnotu(string $klic): string
     {
+        return $this->dejVychoziHodnoty()[$klic] ?? '';
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function dejVychoziHodnoty(): array
+    {
+        if ($this->vychoziHodnoty === null) {
+            $tretiHromadneOdhlasovaniKdy = DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
+                ->modify('-1 day') // například 17. 7. 2023 00:00 -> 16. 7. 2023 myšleno včetně
+                ->formatDatumDb();
+            $konecGameconuKdy            = DateTimeGamecon::spocitejKonecGameconu($this->rocnik())->formatDb();
+
+            $this->vychoziHodnoty = [
+                Klic::GC_BEZI_OD                                      => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())->formatDb(),
+                Klic::GC_BEZI_DO                                      => $konecGameconuKdy,
+                Klic::REG_GC_OD                                       => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())->formatDb(),
+                Klic::REG_GC_DO                                       => $konecGameconuKdy,
+                Klic::PRVNI_VLNA_KDY                                  => DateTimeGamecon::spoctejKdyJePrvniVlna($this->rocnik())
+                    ->formatDb(),
+                Klic::DRUHA_VLNA_KDY                                  => DateTimeGamecon::spocitejKdyJeDruhaVlna($this->rocnik())
+                    ->formatDb(),
+                Klic::TRETI_VLNA_KDY                                  => DateTimeGamecon::spocitejKdyJeTretiVlna($this->rocnik())
+                    ->formatDb(),
+                Klic::UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE           => $tretiHromadneOdhlasovaniKdy,
+                Klic::JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE               => $tretiHromadneOdhlasovaniKdy,
+                Klic::PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+                    ->modify('-1 day') // například 10. 7. 2023 00:00 -> 9. 7. 2023 myšleno včetně
+                    ->formatDatumDb(),
+                Klic::TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE              => $this->rocnik() === 2023
+                    ? '2023-06-23'
+                    : DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
+                        ->formatDatumDb(),
+                Klic::TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY               => 'vraceni zustatku GC ID:',
+                Klic::HROMADNE_ODHLASOVANI_1                          => DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
+                    ->formatDb(),
+                Klic::HROMADNE_ODHLASOVANI_2                          => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+                    ->formatDb(),
+                Klic::HROMADNE_ODHLASOVANI_3                          => DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
+                    ->formatDb(),
+            ];
+        }
+        return $this->vychoziHodnoty;
+    }
+
+    public function spocitejHodnotu(string $klic): string
+    {
         return match ($klic) {
-            'GC_BEZI_OD' => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())
-                ->formatDb(),
-            'GC_BEZI_DO',
-            'REG_GC_DO' => DateTimeGamecon::spocitejKonecGameconu($this->rocnik())
-                ->formatDb(),
-            'REG_GC_OD' => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())
-                ->formatDb(),
-            'PRVNI_VLNA_KDY' => DateTimeGamecon::spoctejKdyJePrvniVlna($this->rocnik())
-                ->formatDb(),
-            'DRUHA_VLNA_KDY' => DateTimeGamecon::spocitejKdyJeDruhaVlna($this->rocnik())
-                ->formatDb(),
-            'TRETI_VLNA_KDY' => DateTimeGamecon::spocitejKdyJeTretiVlna($this->rocnik())
-                ->formatDb(),
-            'UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE',
-            'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
-                ->modify('-1 day') // 17. 7. 2023 00:00 -> 16. 7. 2023 myšleno včetně
-                ->formatDatumDb(),
-            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
-                ->modify('-1 day') // 10. 7. 2023 00:00 -> 9. 7. 2023 myšleno včetně
-                ->formatDatumDb(),
-            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE' => $this->rocnik() < 2023
-                ? DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
-                    ->formatDatumDb()
-                : '2023-06-23',
-            'TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY' => 'vraceni zustatku GC ID:',
-            'HROMADNE_ODHLASOVANI_1' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
-                ->formatDb(),
-            'HROMADNE_ODHLASOVANI_2' => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
-                ->formatDb(),
-            'HROMADNE_ODHLASOVANI_3' => DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
-                ->formatDb(),
-            default => '',
+            Klic::PRUMERNE_LONSKE_VSTUPNE => (string)Finance::prumerneVstupneRoku($this->rocnik() - 1),
+            default => $this->dejVychoziHodnotu($klic),
         };
     }
 
@@ -609,9 +688,27 @@ SQL;
         return DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($this, $platnostZpetneKDatu);
     }
 
+    public function nejpozdejiZaplatitDo(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeImmutableStrict
+    {
+        return $this->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu)->modify('-1 day');
+    }
+
+    public function pristiVlnaKdy(): ?DateTimeGamecon
+    {
+        $nejblizsiVlnaKdy = $this->nejblizsiVlnaKdy($this->ted());
+        return $nejblizsiVlnaKdy >= $this->ted()
+            ? $nejblizsiVlnaKdy
+            : null;
+    }
+
     public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon
     {
         return DateTimeGamecon::nejblizsiVlnaKdy($this, $platnostZpetneKDatu);
+    }
+
+    public function databazoveNastaveni(): DatabazoveNastaveni
+    {
+        return $this->databazoveNastaveni;
     }
 
     public function prvniVlnaKdy(): DateTimeGamecon
@@ -629,12 +726,7 @@ SQL;
         return DateTimeGamecon::tretiVlnaKdy($this->rocnik());
     }
 
-    public function databazoveNastaveni(): DatabazoveNastaveni
-    {
-        return $this->databazoveNastaveni;
-    }
-
-    public function registraceAktivitOd(): DateTimeGamecon
+    public function gcBeziOd(): DateTimeGamecon
     {
         return DateTimeGamecon::createFromMysql(defined('GC_BEZI_OD')
             ? GC_BEZI_OD
@@ -642,7 +734,7 @@ SQL;
         );
     }
 
-    public function registraceAktivitDo(): DateTimeGamecon
+    public function gcBeziDo(): DateTimeGamecon
     {
         return DateTimeGamecon::createFromMysql(defined('GC_BEZI_DO')
             ? GC_BEZI_DO
@@ -713,7 +805,12 @@ SQL;
 
     public function modreTrickoZdarmaOd(): float
     {
-        return (float)$this->dejHodnotu('MODRE_TRICKO_ZDARMA_OD');
+        return (float)$this->dejHodnotu(Klic::MODRE_TRICKO_ZDARMA_OD);
+    }
+
+    public function prumerneLonskeVstupne(): float
+    {
+        return (float)$this->dejHodnotu(Klic::PRUMERNE_LONSKE_VSTUPNE);
     }
 
     public function prihlasovaciUdajeOstreDatabaze(): array
@@ -739,6 +836,13 @@ SQL;
             $nastaveniOstre[$klic] = $matches['hodnota'] ?? null;
         }
         return $nastaveniOstre;
+    }
+
+    public function poslatMailZeBylOdhlasenAMelUbytovani(): bool
+    {
+        return (bool)(defined('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI')
+            ? POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI
+            : $this->dejHodnotu('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI'));
     }
 
     public function prihlasovaciUdajeSoucasneDatabaze(): array

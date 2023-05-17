@@ -10,18 +10,16 @@
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
-$sqlNaPrepocetZustatku = [];
+$sqlParts = [];
 foreach (Uzivatel::vsichni() as $uzivatel) {
-    $finance = $uzivatel->finance();
-    if ($finance->zustatekZPredchozichRocniku() != $uzivatel->finance()->stav()) {
-        $sqlNaPrepocetZustatku[] = <<<SQL
+    $finance    = $uzivatel->finance();
+    $sqlParts[] = <<<SQL
 UPDATE uzivatele_hodnoty
 SET zustatek={$uzivatel->finance()->stav()} /* původní zůstatek z předchozích ročníků {$finance->zustatekZPredchozichRocniku()} */,
     poznamka='',
     ubytovan_s=''
 WHERE id_uzivatele={$uzivatel->id()};
 SQL;
-    }
 }
 
 ?>
@@ -35,5 +33,5 @@ SQL;
     (tj. hlavně konstanty ROCNIK) na další ročník.</p>
 
 <textarea style="width:650px;height:400px">
-<?= implode("\n", $sqlNaPrepocetZustatku) ?>
+<?= implode("\n", $sqlParts) ?>
 </textarea>

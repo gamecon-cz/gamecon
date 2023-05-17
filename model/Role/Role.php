@@ -27,6 +27,7 @@ class Role extends \DbObject
     public const VYPRAVECSKA_SKUPINA  = 9; // Organizátorská skupina pořádající na GC (dodavatelé, …)
     public const CLEN_RADY            = 23;
     public const SEF_INFOPULTU        = 24;
+    public const SEF_PROGRAMU         = 25;
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC             = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -122,6 +123,7 @@ class Role extends \DbObject
             Role::VYPRAVECSKA_SKUPINA,
             Role::CLEN_RADY,
             Role::SEF_INFOPULTU,
+            Role::SEF_PROGRAMU,
         ];
     }
 

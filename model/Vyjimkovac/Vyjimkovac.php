@@ -12,9 +12,9 @@ use Tracy\Helpers;
 class Vyjimkovac implements Logovac
 {
 
-    private ?\EPDO $db                         = null;
-    private bool   $ukoncitPriNotice           = true; // TODO nastavení zvenčí
-    private int    $zobrazeni                  = self::PLAIN;
+    private ?\EPDO $db               = null;
+    private bool   $ukoncitPriNotice = true; // TODO nastavení zvenčí
+    private int    $zobrazeni        = self::PLAIN;
     private bool   $priZalogovaniOdeslatMailem = true;
 
     public const NIC    = 1;
@@ -242,7 +242,7 @@ class Vyjimkovac implements Logovac
         $vyjimkovacChyba = VyjimkovacChyba::zVyjimky($throwable)
             ->uloz($this->db());
         if ($this->priZalogovaniOdeslatMailem) {
-            $vyjimkovacChyba->odesli($this->emails);
+//            $vyjimkovacChyba->odesli($this->emails);
         }
     }
 

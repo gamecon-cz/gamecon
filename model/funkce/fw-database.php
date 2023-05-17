@@ -504,6 +504,18 @@ function dbNumQ()
 }
 
 /**
+ * @param $query
+ * @return int
+ * @throws Exception
+ * @deprecated
+ * use @see dbAffectedOrNumRows instead
+ */
+function dbNumRows($query): int
+{
+    return dbAffectedOrNumRows($query);
+}
+
+/**
  * @return int of rows affected / returned by query
  * @throws Exception
  */

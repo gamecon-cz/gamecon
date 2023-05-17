@@ -4,6 +4,8 @@ use Gamecon\XTemplate\XTemplate;
 
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Web\Info;
+use Gamecon\Vyjimkovac\Vyjimkovac;
+use Gamecon\Pravo;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';
@@ -72,10 +74,10 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
     // položky uživatelského menu
     if ($u) {
         $t->assign(['u' => $u]);
-        if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
+        if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
             $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
             $t->parse('menu.prihlasen.admin');
-        } elseif ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
+        } else if ($u->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             $t->assign(['mojeAktivityAdminUrl' => $u->mojeAktivityAdminUrl()]);
             $t->parse('menu.prihlasen.mujPrehled');
         }
@@ -93,76 +95,25 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
 // výstup (s ohledem na to co modul nastavil)
 if ($m->bezStranky()) {
     echo $m->vystup();
-} elseif ($m->blackarrowStyl()) {
-    $t = new XTemplate('sablony/blackarrow/index.xtpl');
-    $t->assign([
-        'css'          => perfectcache('soubory/blackarrow/*/*.less'),
-        'jsVyjimkovac' => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU),
-        'chyba'        => Chyba::vyzvedniHtml(),
-        'menu'         => $menu,
-        'obsah'        => $m->vystup(),
-        'base'         => URL_WEBU . '/',
-        'info'         => $m->info() ? $m->info()->html() : '',
-        'letosniRok'   => date('Y'),
-    ]);
-    $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
-    $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
-    if (!$m->bezPaticky()) {
-        $t->parse('index.paticka');
-    }
-    $t->parse('index');
-    $t->out('index');
-    profilInfo();
-} else {
-    // TODO tohle podle mě nemůže fungovat, to je nějaký mrtvý kód
-    $t = new XTemplate('sablony/blackarrow/index.xtpl');
-    // templata a nastavení proměnných do glob templaty
-    $t->assign([
-        'u'            => $u,
-        'base'         => URL_WEBU . '/',
-        'admin'        => URL_ADMIN,
-        'obsah'        => $m->vystup(),  // TODO nastavování titulku stránky
-        'sponzori'     => Modul::zNazvu('sponzori', null, $systemoveNastaveni)->spust()->vystup(),
-        'css'          => perfectcache(
-            'soubory/styl/flaticon.ttf',
-            'soubory/styl/easybox.min.css',
-            'soubory/styl/styl.less',
-            'soubory/styl/fonty.less',
-            'soubory/styl/jquery-ui.min.css',
-            'soubory/blackarrow/menu/menu.less'
-        ),
-        'js'           => perfectcache(
-            'soubory/jquery-2.1.1.min.js',
-            'soubory/aplikace.js',
-            'soubory/jquery-ui.min.js',
-            'soubory/easybox.distrib.min.js' // nějaká debiláž, musí být poslední
-        ),
-        'jsVyjimkovac' => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU),
-        'chyba'        => Chyba::vyzvedniHtml(),
-        'info'         => $m->info() ? $m->info()->html() : '',
-        'a'            => $u ? $u->koncovkaDlePohlavi() : '',
-        'datum'        => date('j.', strtotime(GC_BEZI_OD)) . '–' . date('j. n. Y', strtotime(GC_BEZI_DO)),
-        'menu'         => $menu,
-    ]);
-    // tisk věcí a zdar
-    if ($u && $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
-        $t->parse('index.prihlasen.admin');
-    } elseif ($u && $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
-        $t->parse('index.prihlasen.mujPrehled');
-    }
-    if ($u && $u->gcPrihlasen() && FINANCE_VIDITELNE) {
-        $t->assign('finance', $u->finance()->stavHr());
-    }
-    if ($u && $u->gcPrihlasen()) {
-        $t->parse('index.prihlasen.gcPrihlasen');
-    } elseif ($u && REG_GC) {
-        $t->parse('index.prihlasen.gcNeprihlasen');
-    }
-    if (ANALYTICS) {
-        $t->parse('index.analytics');
-    }
-    $t->parse($u ? 'index.prihlasen' : 'index.neprihlasen');
-    $t->parse('index');
-    $t->out('index');
-    profilInfo();
+    return;
 }
+
+$t = new XTemplate('sablony/blackarrow/index.xtpl');
+$t->assign([
+    'css'          => perfectcache('soubory/blackarrow/*/*.less'),
+    'jsVyjimkovac' => Vyjimkovac::js(URL_WEBU),
+    'chyba'        => Chyba::vyzvedniHtml(),
+    'menu'         => $menu,
+    'obsah'        => $m->vystup(),
+    'base'         => URL_WEBU . '/',
+    'info'         => $m->info() ? $m->info()->html() : '',
+    'letosniRok'   => date('Y'),
+]);
+$t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
+$t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
+if (!$m->bezPaticky()) {
+    $t->parse('index.paticka');
+}
+$t->parse('index');
+$t->out('index');
+profilInfo();

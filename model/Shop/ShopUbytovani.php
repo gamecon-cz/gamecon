@@ -2,18 +2,17 @@
 
 namespace Gamecon\Shop;
 
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
+use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 
 class ShopUbytovani
 {
-    /**
-     * @var SystemoveNastaveni
-     */
-    private $systemoveNastaveni;
-
     /**
      * @param string[] $nazvyUbytovani
      * @param int $rok
@@ -206,7 +205,7 @@ FROM `$tmpTable`
 LEFT JOIN shop_nakupy
     ON `$tmpTable`.id_uzivatele = shop_nakupy.id_uzivatele
     AND `$tmpTable`.id_predmetu = shop_nakupy.id_predmetu
-    AND `$tmpTable`.rok = shop_nakupy.rok)
+    AND `$tmpTable`.rok = shop_nakupy.rok
 WHERE shop_nakupy.id_uzivatele IS NOT NULL -- tuhle kombinaci "typ ubytování, uživatel a rok" už máme (kombinace LEFT JOIN a IS NOT NULL)
     AND shop_nakupy.id_uzivatele = {$ucastnik->id()}
     AND shop_nakupy.rok = $rok
@@ -230,24 +229,34 @@ SQL,
         return $pocetZmen;
     }
 
-    private $mozneDny             = [];     // asoc. 2D pole [den][typ] => předmět
-    private $mozneTypy            = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
-    private $pnDny                = 'shopUbytovaniDny';
-    private $pnPokoj              = 'shopUbytovaniPokoj';
-    private $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
-    private $uzivatel;
+    private Registrace $registrace;                     // instance ceníku
+    private            $mozneDny             = [];     // asoc. 2D pole [den][typ] => předmět
+    private            $mozneTypy            = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
+    private            $pnDny                = 'shopUbytovaniDny';
+    private            $pnPokoj              = 'shopUbytovaniPokoj';
+    private            $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
 
-    public function __construct(array $predmety, Uzivatel $uzivatel, SystemoveNastaveni $systemoveNastaveni)
+    public function __construct(
+        array                               $predmety,
+        private readonly Uzivatel           $ubytovany,
+        private readonly Uzivatel           $objednatel,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    )
     {
-        $this->uzivatel = $uzivatel;
         foreach ($predmety as $p) {
-            $nazev = Shop::bezDne($p['nazev']);
+            if ((int)$p[Sql::UBYTOVANI_DEN] === DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
+                && !$this->ubytovany->jeOrganizator() // organizátor objednává pro sebe
+                && !$this->objednatel->jeOrganizator() // organizátor objednává pro nkoho jiného (což může jenom z adminu)
+            ) {
+                continue; // z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
+            }
+            $nazev = Shop::bezDne($p[Sql::NAZEV]);
             if (!isset($this->mozneTypy[$nazev])) {
                 $this->mozneTypy[$nazev] = $p;
             }
-            $this->mozneDny[$p['ubytovani_den']][$nazev] = $p;
+            $this->mozneDny[$p[Sql::UBYTOVANI_DEN]][$nazev] = $p;
         }
-        $this->systemoveNastaveni = $systemoveNastaveni;
+        $this->registrace = new Registrace($ubytovany);
     }
 
     /**
@@ -270,24 +279,30 @@ SQL,
 
     public function uzivatel(): Uzivatel
     {
-        return $this->uzivatel;
+        return $this->ubytovany;
     }
 
-    public function html(bool $muzeEditovatUkoncenyProdej = false)
+    public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
     {
         $t = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
         $t->assign([
-            'spolubydlici'         => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->uzivatel->id()),
+            'shopUbytovaniJs'      => URL_WEBU . '/soubory/blackarrow/shop/shop-ubytovani.js?version='
+                . md5_file(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
+            'spolubydlici'         => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
+            'povinneUdaje'         => $this->registrace->povinneUdajeProUbytovaniHtml(
+                'Povinné údaje pro ubytování',
+                'Vzhledem k zákonným povinnostem bohužel musíme odevzdávat seznam ubytovaných s následujícími osobními údaji. Chybné vyplnění následujících polí může u infopultu vést k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních! (Případné stížnosti prosíme rovnou vašim politickým zástupcům.)',
+            ),
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
         foreach ($this->mozneTypy as $typ => $predmet) {
             $t->assign([
                 'typ'  => $typ,
-                'hint' => $predmet['popis'],
-                'cena' => round($predmet['cena_aktualni']),
+                'hint' => $predmet[Sql::POPIS],
+                'cena' => round($predmet[Sql::CENA_AKTUALNI]),
             ]);
             $t->parse($predmet['popis'] ? 'ubytovani.typ.hinted' : 'ubytovani.typ.normal');
             $t->parse('ubytovani.typ');
@@ -295,7 +310,8 @@ SQL,
 
         // specifická info podle uživatele a stavu nabídky
         if ((!$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen())
-            || reset($this->mozneTypy)['stav'] == Shop::STAV_POZASTAVENY
+            || !$this->mozneTypy
+            || reset($this->mozneTypy)[Sql::STAV] == StavPredmetu::POZASTAVENY
         ) {
             $t->parse('ubytovani.konec');
         }
@@ -331,11 +347,12 @@ SQL,
                         : '',
                     'obsazeno'   => $this->obsazenoMist($den, $typ),
                     'kapacita'   => $this->kapacita($den, $typ),
+                    'typ'        => $typ,
                 ])->parse('ubytovani.den.typ');
             }
             // data pro názvy dnů a pro "Žádné" ubytování
             $t->assign([
-                'den'      => mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1)),
+                'den'      => $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]),
                 'checked'  => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
                 'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
                     ? 'disabled'
@@ -345,19 +362,27 @@ SQL,
         }
     }
 
-    public function zpracuj(bool $vcetneSpolubydliciho = true): bool
+    private function dejNazevJakoRozsahDnu(int $indexDneKZacatkuGc): string
+    {
+        $poradiDneVTydnu = DateTimeGamecon::poradiDneVTydnuPodleIndexuOdZacatkuGameconu($indexDneKZacatkuGc);
+        return DateTimeCz::poradiDneVTydnuNaPrelomDnuVeZkratkach($poradiDneVTydnu, true);
+    }
+
+    public function zpracuj(bool $vcetneSpolubydliciho = true, bool $hlidatKapacituUbytovani = true): bool
     {
         if (!isset($_POST[$this->pnDny])) {
             return false;
         }
 
         // vložit jeho zaklikané věci - note: není zabezpečeno
-        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->uzivatel);
+        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->ubytovany, $hlidatKapacituUbytovani);
 
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji
-            self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->uzivatel);
+            self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->ubytovany);
         }
+
+        $this->registrace->ulozZmeny(); // povinné údaje pro ubytování
 
         return true;
     }
@@ -441,6 +466,11 @@ SQL,
         return $dnyUbytovani;
     }
 
+    public function maObjednaneUbytovani(): bool
+    {
+        return count($this->veKterychDnechJeUbytovan()) > 0;
+    }
+
     /** Vrátí počet volných míst */
     public function zbyvaMist($den, $typ): int
     {
@@ -463,7 +493,7 @@ SQL,
       SELECT CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele,' (',login_uzivatele,')')
       FROM uzivatele_hodnoty
       WHERE jmeno_uzivatele != '' AND prijmeni_uzivatele != '' AND id_uzivatele != $1
-    ", [$this->uzivatel->id()]);
+    ", [$this->ubytovany->id()]);
         while ($u = mysqli_fetch_row($o)) {
             $a[] = $u[0];
         }

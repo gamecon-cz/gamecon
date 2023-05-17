@@ -23,6 +23,11 @@ class SqlMigrace
             (new Filesystem())->mkdir(ZALOHA_DB_SLOZKA);
         }
 
+        $this->dbMigrations($zalohuj)->run(true);
+    }
+
+    private function dbMigrations(bool $zalohuj): DbMigrations
+    {
         [
             'DB_SERV'  => $dbServ,
             'DBM_USER' => $dbmUser,
@@ -31,7 +36,7 @@ class SqlMigrace
             'DB_PORT'  => $dbPort,
         ] = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
 
-        (new DbMigrations(new DbMigrationsConfig([
+        return new DbMigrations(new DbMigrationsConfig([
             'connection'          => _dbConnect(
                 dbServer: $dbServ,
                 dbUser: $dbmUser,
@@ -43,6 +48,11 @@ class SqlMigrace
             'doBackups'           => $zalohuj,
             'migrationsDirectory' => SQL_MIGRACE_DIR,
             'backupsDirectory'    => ZALOHA_DB_SLOZKA,
-        ])))->run(true);
+        ]));
+    }
+
+    public function nejakeMigraceKeSpusteni(): bool
+    {
+        return $this->dbMigrations(false)->hasUnappliedMigrations();
     }
 }

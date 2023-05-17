@@ -11,21 +11,29 @@ class FunkceTest extends TestCase
     /**
      * @test
      */
-    public function Muzu_nahradit_placeholder_za_konstantu() {
+    public function Muzu_nahradit_placeholder_za_konstantu()
+    {
         $bezPlaceholderu = 'Jsem bez placeholderu';
-        self::assertSame($bezPlaceholderu, nahradPlaceholderZaKonstantu($bezPlaceholderu));
+        self::assertSame($bezPlaceholderu, nahradPlaceholderyZaNastaveni($bezPlaceholderu));
 
         $sNeznamouKnstantou = 'Jsem s neznámou %konstantou z jiného světa%';
-        self::assertSame($sNeznamouKnstantou, nahradPlaceholderZaKonstantu($sNeznamouKnstantou));
+        self::assertSame($sNeznamouKnstantou, nahradPlaceholderyZaNastaveni($sNeznamouKnstantou));
 
         $nahodnaKonstanta = uniqid(__FUNCTION__, true);
         $sKonstantou      = "Jsem s konstantou %$nahodnaKonstanta%";
 
         self::assertFalse(defined($nahodnaKonstanta));
-        self::assertSame($sKonstantou, nahradPlaceholderZaKonstantu($sKonstantou));
+        self::assertSame($sKonstantou, nahradPlaceholderyZaNastaveni($sKonstantou));
+    }
 
-        define($nahodnaKonstanta, 'To je ale náhodička!');
-        self::assertSame('Jsem s konstantou To je ale náhodička!', nahradPlaceholderZaKonstantu($sKonstantou));
+    /**
+     * @test
+     */
+    public function Nemuzu_vylakat_citlivou_konstantu()
+    {
+        self::assertTrue(defined('DB_PASS'), 'Konstanta DB_PASS není definována');
+        $sCitlovuKonstantou = 'Jsem s konstantou %DB_PASS%';
+        self::assertSame($sCitlovuKonstantou, nahradPlaceholderyZaNastaveni($sCitlovuKonstantou));
     }
 
     /**
@@ -34,11 +42,13 @@ class FunkceTest extends TestCase
      * @param $data
      * @param array $ocekavanyVysledek
      */
-    public function Muzu_ziskat_jednorozmerne_pole_z_vicerozmerneho($data, array $ocekavanyVysledek) {
+    public function Muzu_ziskat_jednorozmerne_pole_z_vicerozmerneho($data, array $ocekavanyVysledek)
+    {
         self::assertSame($ocekavanyVysledek, flatten($data));
     }
 
-    public static function provideVicerozmernePole(): array {
+    public static function provideVicerozmernePole(): array
+    {
         $jenorozmernePole = ['něco', 1, null];
         return [
             'prázdné pole'                       => [[], []],
@@ -55,7 +65,8 @@ class FunkceTest extends TestCase
     /**
      * @test
      */
-    public function Ve_vychozim_nastaveni_dostanu_existujici_sql_pripojeni() {
+    public function Ve_vychozim_nastaveni_dostanu_existujici_sql_pripojeni()
+    {
         $nejakeSpojeni = dbConnect();
         self::assertInstanceOf(\mysqli::class, $nejakeSpojeni);
         $dalsiSpojeni = dbConnect();
@@ -65,11 +76,35 @@ class FunkceTest extends TestCase
     /**
      * @test
      */
-    public function Muzu_vyzadat_nove_sql_pripojeni() {
+    public function Muzu_vyzadat_nove_sql_pripojeni()
+    {
         $nejakeSpojeni = dbConnect();
         self::assertInstanceOf(\mysqli::class, $nejakeSpojeni);
         $dalsiSpojeni = dbConnect(true, true);
         self::assertInstanceOf(\mysqli::class, $dalsiSpojeni);
         self::assertNotSame($nejakeSpojeni, $dalsiSpojeni);
+    }
+
+    /**
+     * @test
+     * @dataProvider provideHodnotaNaFloat
+     */
+    public function Muzu_prevest_hodnotu_na_float($hodnota, $ocekavane)
+    {
+        self::assertSame($ocekavane, prevedNaFloat($hodnota));
+    }
+
+    public static function provideHodnotaNaFloat(): array
+    {
+        return [
+            [1, 1.0],
+            [1.2, 1.2],
+            ['1', 1.0],
+            ['1.3', 1.3],
+            ['1.4', 1.4],
+            ['  1  , 5 ', 1.5],
+            ['  1 .  6  ', 1.6],
+            [' -  123 .  456  ', -123.456],
+        ];
     }
 }

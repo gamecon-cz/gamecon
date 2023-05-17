@@ -3,46 +3,46 @@
 
 <!-- styl formuláře je kvůli viditelnosti v programu v adminu -->
 <form method="post" style="position: relative; z-index: 1; background-color: inherit;">
-  <!-- begin: nazevVolitelny -->
-  <b>Název týmu</b> (nepovinný):<br>
-  <input type="text" name="{postname}Nazev" maxlength="255"><br>
-  <!-- end: nazevVolitelny -->
-  <!-- begin: nazevPovinny -->
-  <b>Název týmu</b>:<br>
-  <input type="text" name="{postname}Nazev" maxlength="255" required><br>
-  <!-- end: nazevPovinny -->
+    <!-- begin: nazevVolitelny -->
+    <b>Název týmu</b> (nepovinný):<br>
+    <input type="text" name="{postname}Nazev" maxlength="255"><br>
+    <!-- end: nazevVolitelny -->
+    <!-- begin: nazevPovinny -->
+    <b>Název týmu</b>:<br>
+    <input type="text" name="{postname}Nazev" maxlength="255" required><br>
+    <!-- end: nazevPovinny -->
 
-  <!-- begin: kola -->
-  <b>Výběr dalších kol:</b><br>
-  <!-- begin: uroven -->
-  <select name="{postnameKolo}">
-    <!-- begin: varianta -->
-    <option value="{koloId}">{nazev}</option>
-    <!-- end: varianta -->
-  </select><br>
-  <!-- end: uroven -->
-  <!-- end: kola -->
+    <!-- begin: kola -->
+    <b>Výběr dalších kol:</b><br>
+    <!-- begin: uroven -->
+    <select name="{postnameKolo}">
+        <!-- begin: varianta -->
+        <option value="{koloId}">{nazev}</option>
+        <!-- end: varianta -->
+    </select><br>
+    <!-- end: uroven -->
+    <!-- end: kola -->
 
-  <b>Výběr spoluhráčů:</b><br>
-  <input type="text" value="{prihlasenyUzivatelId}" disabled="disabled"><br>
+    <b>Výběr spoluhráčů:</b><br>
+    <input type="text" value="{prihlasenyUzivatelId}" disabled="disabled"><br>
 
-  <!-- begin: misto -->
-  <div>
-    <input name="{postnameMisto}" type="text" class="tymFormular_hrac">
-    <!-- begin: odebrat -->
-    <a href="#" onclick="return tymFormularOdeber(this)">odebrat</a>
-    <!-- end: odebrat -->
-  </div>
-  <!-- end: misto -->
+    <!-- begin: misto -->
+    <div>
+        <input name="{postnameMisto}" type="text" class="tymFormular_hrac">
+        <!-- begin: odebrat -->
+        <a href="#" onclick="return tymFormularOdeber(this)">odebrat</a>
+        <!-- end: odebrat -->
+    </div>
+    <!-- end: misto -->
 
-  <input type="hidden" name="{postname}Aktivita" value="{aktivitaId}">
-  <input type="button" value="potvrdit" onclick="tymFormularZpracuj(this)">
+    <input type="hidden" name="{postname}Aktivita" value="{aktivitaId}">
+    <input type="button" value="potvrdit" onclick="tymFormularZpracuj(this)">
 </form>
 
 <link href="{cssUrlAutocomplete}" type="text/css" rel="stylesheet">
 <script src="{jsUrlAutocomplete}"></script>
 <script src="{jsUrl}"></script>
 <script>
-  tymFormularAutocomplete(document.querySelectorAll('.tymFormular_hrac'))
+    tymFormularAutocomplete(document.querySelectorAll('.tymFormular_hrac'))
 </script>
 <!-- end: formular -->

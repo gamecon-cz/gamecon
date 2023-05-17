@@ -15,10 +15,11 @@ class Pravo extends \DbObject
     /**
      * Konstanty jsou kopie SQL tabulky `r_prava_soupis`
      */
-    public const PORADANI_AKTIVIT       = 4; // Uživatel může pořádat aktivity (je v nabídce pořadatelů aktivit a má v administraci nabídku „moje aktivity“)
-    public const PREKRYVANI_AKTIVIT     = 5; // Smí mít zaregistrovaných víc aktivit v jeden čas
-    public const PLNY_SERVIS            = 7; // Uživatele kompletně platí a zajišťuje GC
-    public const ZMENA_HISTORIE_AKTIVIT = 8; // Může přihlašovat a odhlašovat lidi z aktivit, které už proběhly
+    public const PORADANI_AKTIVIT                 = 4; // Uživatel může pořádat aktivity (je v nabídce pořadatelů aktivit a má v administraci nabídku „moje aktivity“)
+    public const PREKRYVANI_AKTIVIT               = 5; // Smí mít zaregistrovaných víc aktivit v jeden čas
+    public const PLNY_SERVIS                      = 7; // Uživatele kompletně platí a zajišťuje GC
+    public const ZMENA_HISTORIE_AKTIVIT           = 8; // Může přihlašovat a odhlašovat lidi z aktivit, které už proběhly
+    public const PRIHLASOVANI_NA_DOSUD_NEOTEVRENE = 9; // Může přihlašovat a odhlašovat lidi z aktivit, které ještě nejsou Aktivované
 
     // Práva pro panely v adminu
     public const ADMINISTRACE_INFOPULT      = 100;

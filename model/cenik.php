@@ -3,6 +3,10 @@
 use Gamecon\Shop\Shop;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetySql;
+use Gamecon\Shop\SqlStruktura\NakupySqlStruktura as NakupySql;
+use Gamecon\Jidlo;
+use Gamecon\Shop\Predmet;
 
 /**
  * Třída zodpovědná za stanovení / prezentaci cen a slev věcí
@@ -10,12 +14,11 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 class Cenik
 {
 
-    private $u;
-    private $slevaKostky            = 0;
-    private $slevaPlacky            = 0;
-    private $jakychkoliTricekZdarma = 0;
-    private $modrychTricekZdarma    = 0;
-    private $textySlevExtra         = [];
+    private int   $zbyvajicichMoznychKostekZdarma = 1;
+    private int   $slevaPlacky                    = 0;
+    private int   $jakychkoliTricekZdarma         = 0;
+    private int   $modrychTricekZdarma            = 0;
+    private array $textySlevExtra                 = [];
 
     /**
      * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
@@ -29,31 +32,8 @@ class Cenik
         Pravo::JIDLO_ZDARMA                   => 'jídlo zdarma',
         Pravo::JIDLO_SE_SLEVOU                => ['jídlo se slevou', Pravo::JIDLO_ZDARMA],
         Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA     => 'dvě jakákoli trička zdarma',
+        Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA   => 'modré tričko se slevou',
     ];
-
-    /**
-     * Konstruktor
-     * @param Uzivatel $u pro kterého uživatele se cena počítá
-     * @param int|float $sleva celková sleva získaná za pořádané aktivity
-     */
-    public function __construct(Uzivatel $u, $sleva, SystemoveNastaveni $systemoveNastaveni)
-    {
-        $this->u = $u;
-
-        if ($u->maPravo(Pravo::KOSTKA_ZDARMA)) {
-            $this->slevaKostky = 25;
-        }
-        if ($u->maPravo(Pravo::PLACKA_ZDARMA)) {
-            $this->slevaPlacky = 25;
-        }
-        if ($u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)) {
-            $this->jakychkoliTricekZdarma = 2;
-        }
-        if ($sleva >= $systemoveNastaveni->modreTrickoZdarmaOd() && $u->maPravo(Pravo::MODRE_TRICKO_ZDARMA)) {
-            $this->modrychTricekZdarma = 1;
-            $this->textySlevExtra[]    = 'modré tričko zdarma';
-        }
-    }
 
     /**
      * Sníží $cena o částku $sleva až do nuly. Změnu odečte i z $sleva.
@@ -71,6 +51,64 @@ class Cenik
             $cena  = 0;
         }
         return ['cena' => $cena, 'sleva' => $sleva];
+    }
+
+    /**
+     * Konstruktor
+     * @param Uzivatel $u pro kterého uživatele se cena počítá
+     * @param int|float $sleva celková sleva získaná za pořádané aktivity
+     */
+    public function __construct(
+        private readonly Uzivatel           $u,
+                                            $sleva,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    )
+    {
+        if ($u->maPravo(Pravo::PLACKA_ZDARMA)) {
+            $this->slevaPlacky = 25;
+        }
+        if ($u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)) {
+            $this->jakychkoliTricekZdarma = 2;
+        }
+        if ((float)$sleva >= $systemoveNastaveni->modreTrickoZdarmaOd() && $u->maPravo(Pravo::MODRE_TRICKO_ZDARMA)) {
+            $this->modrychTricekZdarma = 1;
+        }
+    }
+
+    public function cenaKostky(array $r): int
+    {
+        $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
+        $slevaNaKostku = $this->slevaNaKostku($r, $cena, false);
+        return $cena - $slevaNaKostku;
+    }
+
+    private function slevaNaKostku(array $r, $cena, bool $omezPocet = true): int
+    {
+        if ($omezPocet && $this->zbyvajicichMoznychKostekZdarma <= 0) {
+            return 0;
+        }
+        if (!$this->u->maPravoNaKostkuZdarma()) {
+            return 0;
+        }
+        if (!$this->maObjednanouLetosniKostku($r)) {
+            return 0;
+        }
+        if ($omezPocet) {
+            $this->zbyvajicichMoznychKostekZdarma--;
+        }
+        return (int)$cena;
+    }
+
+    private function maObjednanouLetosniKostku(array $r): bool
+    {
+        if (!Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
+            return false;
+        }
+        $letosniKostka = Predmet::letosniKostka($this->systemoveNastaveni->rocnik());
+        if (!$letosniKostka) {
+            return false;
+        }
+        return (int)$letosniKostka->id() === (int)$r[PredmetySql::ID_PREDMETU];
     }
 
     /**
@@ -122,47 +160,46 @@ class Cenik
      */
     public function shop(array $r): float
     {
-        if (isset($r['cena_aktualni'])) {
-            $cena = $r['cena_aktualni'];
-        }
-        if (isset($r['cena_nakupni'])) {
-            $cena = $r['cena_nakupni'];
-        }
-        if (!isset($cena)) {
+        if (isset($r[NakupySql::CENA_NAKUPNI])) {
+            $cena = $r[NakupySql::CENA_NAKUPNI];
+        } else if (isset($r[PredmetySql::CENA_AKTUALNI])) {
+            $cena = $r[PredmetySql::CENA_AKTUALNI];
+        } else {
             throw new Exception('Nelze načíst cenu předmětu');
         }
-        if (!($typ = $r['typ'])) {
+        if (!($typ = $r[PredmetySql::TYP])) {
             throw new Exception('Nenačten typ předmetu');
         }
 
         // aplikace možných slev
         if ($typ == Shop::PREDMET) {
             // hack podle názvu
-            if (mb_stripos($r['nazev'], 'Kostka') !== false && $this->slevaKostky) {
-                ['cena' => $cena, 'sleva' => $this->slevaKostky] = self::aplikujSlevu($cena, $this->slevaKostky);
-            } else if (mb_stripos($r['nazev'], 'Placka') !== false && $this->slevaPlacky) {
+            if (Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
+                $slevaKostky = $this->slevaNaKostku($r, $cena);
+                ['cena' => $cena] = self::aplikujSlevu($cena, $slevaKostky);
+            } else if (Predmet::jeToPlacka($r[PredmetySql::NAZEV]) && $this->slevaPlacky) {
                 ['cena' => $cena, 'sleva' => $this->slevaPlacky] = self::aplikujSlevu($cena, $this->slevaPlacky);
             }
-        } else if ($typ == Shop::TRICKO && mb_stripos($r['nazev'], 'modré') !== false && $this->modrychTricekZdarma > 0) {
+        } else if ($typ == Shop::TRICKO && Predmet::jeToModre($r[PredmetySql::NAZEV]) && $this->modrychTricekZdarma > 0) {
             $cena = 0;
             $this->modrychTricekZdarma--;
         } else if ($typ == Shop::TRICKO && $this->jakychkoliTricekZdarma > 0) {
             $cena = 0;
             $this->jakychkoliTricekZdarma--;
         } else if ($typ == Shop::UBYTOVANI) {
-            if ($this->u->maPravo(Pravo::UBYTOVANI_ZDARMA)
-                || ($r['ubytovani_den'] == 0 && $this->u->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA))
-                || ($r['ubytovani_den'] == 1 && $this->u->maPravo(Pravo::UBYTOVANI_CTVRTECNI_NOC_ZDARMA))
-                || ($r['ubytovani_den'] == 2 && $this->u->maPravo(Pravo::UBYTOVANI_PATECNI_NOC_ZDARMA))
-                || ($r['ubytovani_den'] == 3 && $this->u->maPravo(Pravo::UBYTOVANI_SOBOTNI_NOC_ZDARMA))
-                || ($r['ubytovani_den'] == 4 && $this->u->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA))
+            if ($this->u->maPravoNaUbytovaniZdarma()
+                || ($r[PredmetySql::UBYTOVANI_DEN] == 0 && $this->u->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA))
+                || ($r[PredmetySql::UBYTOVANI_DEN] == 1 && $this->u->maPravo(Pravo::UBYTOVANI_CTVRTECNI_NOC_ZDARMA))
+                || ($r[PredmetySql::UBYTOVANI_DEN] == 2 && $this->u->maPravo(Pravo::UBYTOVANI_PATECNI_NOC_ZDARMA))
+                || ($r[PredmetySql::UBYTOVANI_DEN] == 3 && $this->u->maPravo(Pravo::UBYTOVANI_SOBOTNI_NOC_ZDARMA))
+                || ($r[PredmetySql::UBYTOVANI_DEN] == 4 && $this->u->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA))
             ) {
                 $cena = 0;
             }
         } else if ($typ == Shop::JIDLO) {
-            if ($this->u->maPravo(Pravo::JIDLO_ZDARMA)) {
+            if ($this->u->maPravoNaJidloZdarma()) {
                 $cena = 0;
-            } else if ($this->u->maPravo(Pravo::JIDLO_SE_SLEVOU) && strpos($r['nazev'], 'Snídaně') === false) {
+            } else if ($this->u->maPravo(Pravo::JIDLO_SE_SLEVOU) && !Jidlo::jeToSnidane($r[PredmetySql::NAZEV])) {
                 $cena -= 20;
             }
         }

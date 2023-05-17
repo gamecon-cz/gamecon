@@ -43,357 +43,358 @@
 
 <!-- begin:tabulka -->
 <table style="float:left;margin-right:20px" id="editorAktivity">
-  <tr>
-    <th><label for="nazevAkce" class="display-block">Název</label></th>
-    <td><input id="nazevAkce" class="full" type="text" name="{fields}[nazev_akce]" value="{nazev_akce}"></td>
-  </tr>
-  <tr>
-    <th class="hinted">
-      <div class="hint">Ideální je použít jen malá písmena a pomlčky např. draci-doupe-ii</div>
-      <label for="urlAkce" class="display-block">
-        <span class="hinted">URL</span>
-      </label>
-    </th>
-    <td>
-      <input id="urlAkce" class="full" type="text" name="{fields}[url_akce]" value="{url_akce}">
-    </td>
-  </tr>
-  <tr>
-    <th>
-      <label for="lokaceAkce" class="display-block">Místnost¹</label>
-    </th>
-    <td>
-      <select id="lokaceAkce" name="{fields}[lokace]">
-        <!-- begin:lokace -->
-        <option {selected} value="{id_lokace}">{nazev}</option><!-- end:lokace -->
-      </select>
-    </td>
-  </tr>
-  <tr>
-    <th><label for="denAkce" class="display-block">Den¹</label></th>
-    <td>
-      <select id="denAkce" name="{fields}[den]">
-        <!-- begin:den -->
-        <option {selected} value="{den}">{denSlovy}</option><!-- end:den -->
-      </select>
-    </td>
-  </tr>
-  <tr>
-    <th><label for="zacatekAkce">Čas¹</label></th>
-    <td>
-      <select id="zacatekAkce" name="{fields}[zacatek]">
-        <!-- begin:zacatek -->
-        <option {selected} value="{zacatek}">{zacatekSlovy}</option><!-- end:zacatek -->
-      </select>–<select name="{fields}[konec]" id="konecAkce">
-      <!-- begin:konec -->
-      <option {selected} value="{konec}">{konecSlovy}</option><!-- end:konec -->
-    </select>
-    </td>
-  </tr>
-  <tr>
-    <th class="hinted">
-      <div class="hint" style="margin-top: 1em">
-        Více vypravěčů se zvolí postupným vybíráním a ukládáním – vždy se objeví nové volné políčko.<br> Zrušit více
-        vypravěčů se dá vybráním "nikdo" u více políček.
-      </div>
-      <label for="vyberVypravecu" class="hinted">Vypravěč¹</label>
-    </th>
-    <td>
-      <!-- begin:vypraveci -->
-      <select name="{fields}[organizatori][]" multiple="multiple" id="vyberVypravecu">
-        <!-- begin:vypravec -->
-        <option {vypravecSelected} value="{vypravecId}">{vypravecJmeno}</option><!-- end:vypravec -->
-      </select>
-      <script type="text/javascript">
-          const $vypraveciMultiselect = $('#vyberVypravecu')
-          document.addEventListener('DOMContentLoaded', function () {
-              const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
-              let vypraveciMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110)
-              if (vypraveciMultiselectColumns < 1) {
-                  vypraveciMultiselectColumns = 1
-              }
-              $vypraveciMultiselect.multiselect('settings', {columns: vypraveciMultiselectColumns})
-          })
+    <tr>
+        <th><label for="nazevAkce" class="display-block">Název</label></th>
+        <td><input id="nazevAkce" class="full" type="text" name="{fields}[nazev_akce]" value="{nazev_akce}"></td>
+    </tr>
+    <tr>
+        <th class="hinted">
+            <div class="hint">Ideální je použít jen malá písmena a pomlčky např. draci-doupe-ii</div>
+            <label for="urlAkce" class="display-block">
+                <span class="hinted">URL</span>
+            </label>
+        </th>
+        <td>
+            <input id="urlAkce" class="full" type="text" name="{fields}[url_akce]" value="{url_akce}">
+        </td>
+    </tr>
+    <tr>
+        <th>
+            <label for="lokaceAkce" class="display-block">Místnost¹</label>
+        </th>
+        <td>
+            <select id="lokaceAkce" name="{fields}[lokace]">
+                <!-- begin:lokace -->
+                <option {selected} value="{id_lokace}">{nazev}</option><!-- end:lokace -->
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th><label for="denAkce" class="display-block">Den¹</label></th>
+        <td>
+            <select id="denAkce" name="{fields}[den]">
+                <!-- begin:den -->
+                <option {selected} value="{den}">{denSlovy}</option><!-- end:den -->
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th><label for="zacatekAkce">Čas¹</label></th>
+        <td>
+            <select id="zacatekAkce" name="{fields}[zacatek]">
+                <!-- begin:zacatek -->
+                <option {selected} value="{zacatek}">{zacatekSlovy}</option><!-- end:zacatek -->
+            </select>–<select name="{fields}[konec]" id="konecAkce">
+            <!-- begin:konec -->
+            <option {selected} value="{konec}">{konecSlovy}</option><!-- end:konec -->
+        </select>
+        </td>
+    </tr>
+    <tr>
+        <th class="hinted">
+            <div class="hint" style="margin-top: 1em">
+                Více vypravěčů se zvolí postupným vybíráním a ukládáním – vždy se objeví nové volné políčko.<br> Zrušit
+                více
+                vypravěčů se dá vybráním "nikdo" u více políček.
+            </div>
+            <label for="vyberVypravecu" class="hinted">Vypravěč¹</label>
+        </th>
+        <td>
+            <!-- begin:vypraveci -->
+            <select name="{fields}[organizatori][]" multiple="multiple" id="vyberVypravecu">
+                <!-- begin:vypravec -->
+                <option {vypravecSelected} value="{vypravecId}">{vypravecJmeno}</option><!-- end:vypravec -->
+            </select>
+            <script type="text/javascript">
+                const $vypraveciMultiselect = $('#vyberVypravecu')
+                document.addEventListener('DOMContentLoaded', function () {
+                    const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
+                    let vypraveciMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110)
+                    if (vypraveciMultiselectColumns < 1) {
+                        vypraveciMultiselectColumns = 1
+                    }
+                    $vypraveciMultiselect.multiselect('settings', {columns: vypraveciMultiselectColumns})
+                })
 
-          $vypraveciMultiselect.multiselect({
-              columns: 3,
-              search: true,
-              texts: {
-                  'placeholder': 'Zadej jméno vypravěče',
-                  'search': 'Hledej jméno vypravěče',
-                  'selectedOptions': ' vybraných vypravěčů',
-                  'selectAll': 'Vyber vše (klikni znovu pro "Zruš vše")',
-                  'unselectAll': 'Zruš vše (klikni znovu pro "Vyber vše")',
-              },
-              maxPlaceholderOpts: 8,
-              selectAll: true,
-          })
-      </script>
-      <!-- end:vypraveci -->
-    </td>
-  </tr>
-  <tr>
-    <th class="hinted">
+                $vypraveciMultiselect.multiselect({
+                    columns: 3,
+                    search: true,
+                    texts: {
+                        'placeholder': 'Zadej jméno vypravěče',
+                        'search': 'Hledej jméno vypravěče',
+                        'selectedOptions': ' vybraných vypravěčů',
+                        'selectAll': 'Vyber vše (klikni znovu pro "Zruš vše")',
+                        'unselectAll': 'Zruš vše (klikni znovu pro "Vyber vše")',
+                    },
+                    maxPlaceholderOpts: 8,
+                    selectAll: true,
+                })
+            </script>
+            <!-- end:vypraveci -->
+        </td>
+    </tr>
+    <tr>
+        <th class="hinted">
       <span class="hint">Univerzálně použitelná místa / místa vyhrazená pro holky / místa vyhrazená pro kluky<br/>
           <br/>
           Kapacita 0/0/0 znamená bez omezení
         </span>
-      <label for="kapacitaStd" class="hinted">Kapacita</label>
-    </th>
-    <td>
-      <div id="kapacitaStd">
-        <input type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
-        <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}"> /
-        <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}">
-      </div>
-      <div id="teamVelikost">
-        <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">–<input
-              type="text" style="width:25px" name="{fields}[team_max]" value="{team_max}">
-        <span class="hinted">(velikost teamu)<div class="hint"> Kolik je minimální až maximální velikost teamu (družiny). Místa jsou jen univerzální.</div></span>
-      </div>
-    </td>
-  </tr>
-  <tr>
-    <th>
-      <label for="cenaAktivityCelkem" class="display-block">Cena</label>
-      <label for="odmenaZaHodinu" class="display-none">Odměna za hodinu</label>
-    </th>
-    <td>
-      <input id="cenaAktivityCelkem" type="text" style="width:4em" name="{fields}[cena]" value="{cena}">
-      <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
-             value="{odmenaZaHodinu}">
-      <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span class="hint">Musíš správně vyplnit čas od - do</span></span>
-      <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
-      <script>if ('{bez_slevy}') {
-          $('[name="{fields}[bez_slevy]"]').attr('checked', '{bez_slevy}' === '1')
-      }</script>
-      <div class="hinted" style="float:right;margin-top:2px"><label for="bezSlev">bez slev</label>
-        <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
-      </div>
-    </td>
-  </tr>
-  <tr>
-    <th><label class="display-block" for="typAktivity">Typ</label></th>
-    <td>
-      <select name="{fields}[typ]" id="typAktivity">
-        <!-- begin:typ -->
-        <option {selected} value="{id_typu}">{typ_1p}</option>
-        <!-- end:typ -->
-      </select>
-      <input style="float:right" type="checkbox" name="{fields}[teamova]" value="1" id="teamova">
-      <div class="hinted" style="float:right;margin:2px 0 0 1em"><label for="teamova">teamová</label>
-        <div class="hint">Jestli je aktivita teamová, tj. první přihlášený si sestavuje team</div>
-      </div>
-      <script>
-          var box = $('[name="{fields}[teamova]"]')
-          if ('{teamova}' == true) {
-              box.attr('checked', true)
-          }
-          box.change(function () {
-              $('#teamVelikost').toggle(this.checked)
-              $('#kapacitaStd').toggle(!this.checked)
-          })
-          box.change()
-      </script>
-    </td>
-    <script type="text/javascript">
-        {
-            function pripravCenu() {
-                const cenaAktivityCelkemInput = document.getElementById('cenaAktivityCelkem')
-                const cenaAktivityCelkemLabel = document.querySelector('label[for=cenaAktivityCelkem]')
-                const odmenaZaHodinuInput = document.getElementById('odmenaZaHodinu')
-                const odmenaZaHodinuLabel = document.querySelector('label[for=odmenaZaHodinu]')
-                const odmenaZaHodinuChybiHodiny = document.getElementById('odmenaZaHodinuChybiHodiny')
-
-                const typAktivityInput = document.getElementById('typAktivity')
-                const jeBrigadnicka = typAktivityInput.value === '{typBrigadnicka}'
-
-                const delkaAkceVHodinach = dejDelkuAkceVHodinach()
-
-                if (!delkaAkceVHodinach) {
-                    odmenaZaHodinuInput.disabled = true
-                    odmenaZaHodinuChybiHodiny.style.display = 'initial'
-                } else {
-                    odmenaZaHodinuInput.disabled = false
-                    odmenaZaHodinuChybiHodiny.style.display = 'none'
+            <label for="kapacitaStd" class="hinted">Kapacita</label>
+        </th>
+        <td>
+            <div id="kapacitaStd">
+                <input type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
+                <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}"> /
+                <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}">
+            </div>
+            <div id="teamVelikost">
+                <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">–<input
+                    type="text" style="width:25px" name="{fields}[team_max]" value="{team_max}">
+                <span class="hinted">(velikost teamu)<div class="hint"> Kolik je minimální až maximální velikost teamu (družiny). Místa jsou jen univerzální.</div></span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            <label for="cenaAktivityCelkem" class="display-block">Cena</label>
+            <label for="odmenaZaHodinu" class="display-none">Odměna za hodinu</label>
+        </th>
+        <td>
+            <input id="cenaAktivityCelkem" type="text" style="width:4em" name="{fields}[cena]" value="{cena}">
+            <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
+                   value="{odmenaZaHodinu}">
+            <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span
+                    class="hint">Musíš správně vyplnit čas od - do</span></span>
+            <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
+            <script>if ('{bez_slevy}') {
+                $('[name="{fields}[bez_slevy]"]').attr('checked', '{bez_slevy}' === '1')
+            }</script>
+            <div class="hinted" style="float:right;margin-top:2px"><label for="bezSlev">bez slev</label>
+                <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <th><label class="display-block" for="typAktivity">Typ</label></th>
+        <td>
+            <select name="{fields}[typ]" id="typAktivity">
+                <!-- begin:typ -->
+                <option {selected} value="{id_typu}">{typ_1p}</option><!-- end:typ -->
+            </select>
+            <input style="float:right" type="checkbox" name="{fields}[teamova]" value="1" id="teamova">
+            <div class="hinted" style="float:right;margin:2px 0 0 1em"><label for="teamova">teamová</label>
+                <div class="hint">Jestli je aktivita teamová, tj. první přihlášený si sestavuje team</div>
+            </div>
+            <script>
+                var box = $('[name="{fields}[teamova]"]')
+                if ('{teamova}' == true) {
+                    box.attr('checked', true)
                 }
+                box.change(function () {
+                    $('#teamVelikost').toggle(this.checked)
+                    $('#kapacitaStd').toggle(!this.checked)
+                })
+                box.change()
+            </script>
+        </td>
+        <script type="text/javascript">
+            {
+                function pripravCenu() {
+                    const cenaAktivityCelkemInput = document.getElementById('cenaAktivityCelkem')
+                    const cenaAktivityCelkemLabel = document.querySelector('label[for=cenaAktivityCelkem]')
+                    const odmenaZaHodinuInput = document.getElementById('odmenaZaHodinu')
+                    const odmenaZaHodinuLabel = document.querySelector('label[for=odmenaZaHodinu]')
+                    const odmenaZaHodinuChybiHodiny = document.getElementById('odmenaZaHodinuChybiHodiny')
 
-                if (jeBrigadnicka) {
-                    if (delkaAkceVHodinach > 0) {
-                        if (cenaAktivityCelkemInput.value.trim() !== '' && odmenaZaHodinuInput.value.trim() === '') {
-                            const cenaCelkem = Number.parseInt(cenaAktivityCelkemInput.value.trim())
-                            if (cenaCelkem > 0) {
-                                odmenaZaHodinuInput.value = Math.round(cenaCelkem / delkaAkceVHodinach)
+                    const typAktivityInput = document.getElementById('typAktivity')
+                    const jeBrigadnicka = typAktivityInput.value === '{typBrigadnicka}'
+
+                    const delkaAkceVHodinach = dejDelkuAkceVHodinach()
+
+                    if (!delkaAkceVHodinach) {
+                        odmenaZaHodinuInput.disabled = true
+                        odmenaZaHodinuChybiHodiny.style.display = 'initial'
+                    } else {
+                        odmenaZaHodinuInput.disabled = false
+                        odmenaZaHodinuChybiHodiny.style.display = 'none'
+                    }
+
+                    if (jeBrigadnicka) {
+                        if (delkaAkceVHodinach > 0) {
+                            if (cenaAktivityCelkemInput.value.trim() !== '' && odmenaZaHodinuInput.value.trim() === '') {
+                                const cenaCelkem = Number.parseInt(cenaAktivityCelkemInput.value.trim())
+                                if (cenaCelkem > 0) {
+                                    odmenaZaHodinuInput.value = Math.round(cenaCelkem / delkaAkceVHodinach)
+                                }
                             }
                         }
+                        cenaAktivityCelkemInput.style.display = 'none'
+                        cenaAktivityCelkemLabel.style.display = 'none'
+                        odmenaZaHodinuInput.style.display = 'inherit'
+                        odmenaZaHodinuLabel.style.display = 'inherit'
+                    } else {
+                        cenaAktivityCelkemInput.style.display = 'inherit'
+                        cenaAktivityCelkemLabel.style.display = 'inherit'
+                        odmenaZaHodinuChybiHodiny.style.display = 'none'
+                        odmenaZaHodinuInput.style.display = 'none'
+                        odmenaZaHodinuLabel.style.display = 'none'
                     }
-                    cenaAktivityCelkemInput.style.display = 'none'
-                    cenaAktivityCelkemLabel.style.display = 'none'
-                    odmenaZaHodinuInput.style.display = 'inherit'
-                    odmenaZaHodinuLabel.style.display = 'inherit'
-                } else {
-                    cenaAktivityCelkemInput.style.display = 'inherit'
-                    cenaAktivityCelkemLabel.style.display = 'inherit'
-                    odmenaZaHodinuChybiHodiny.style.display = 'none'
-                    odmenaZaHodinuInput.style.display = 'none'
-                    odmenaZaHodinuLabel.style.display = 'none'
+
+                    function dejDelkuAkceVHodinach() {
+                        const zacatekAkce = Number.parseInt(document.getElementById('zacatekAkce').value.trim())
+                        const konecAkce = Number.parseInt(document.getElementById('konecAkce').value.trim())
+                        if (zacatekAkce < konecAkce) {
+                            return konecAkce - zacatekAkce
+                        }
+                        return 0
+                    }
                 }
 
-                function dejDelkuAkceVHodinach() {
-                    const zacatekAkce = Number.parseInt(document.getElementById('zacatekAkce').value.trim())
-                    const konecAkce = Number.parseInt(document.getElementById('konecAkce').value.trim())
-                    if (zacatekAkce < konecAkce) {
-                        return konecAkce - zacatekAkce
-                    }
-                    return 0
-                }
+                pripravCenu()
+
+                document.getElementById('typAktivity').addEventListener('change', pripravCenu)
+                document.getElementById('zacatekAkce').addEventListener('change', pripravCenu)
+                document.getElementById('konecAkce').addEventListener('change', pripravCenu)
             }
+        </script>
+    </tr>
+    <tr>
+        <th><label for="vyberTagu" class="display-block">Tagy</label></th>
+        <td>
+            <select name="{aEditTag}[]" multiple="multiple" id="vyberTagu">
+                <!-- begin:tag -->
+                {previous_optgroup_tag_end}
+                {optgroup_tag_start}
+                <option {tag_selected} value="{id_tagu}">{nazev_tagu}</option>
+                {last_optgroup_tag_end}
+                <!-- end:tag -->
+            </select>
+            <script type="text/javascript">
+                const $tagsMultiselect = $('#vyberTagu')
+                document.addEventListener('DOMContentLoaded', function () {
+                    const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
+                    let tagsMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110)
+                    if (tagsMultiselectColumns < 1) {
+                        tagsMultiselectColumns = 1
+                    }
+                    $tagsMultiselect.multiselect('settings', {columns: tagsMultiselectColumns})
+                })
 
-            pripravCenu()
-
-            document.getElementById('typAktivity').addEventListener('change', pripravCenu)
-            document.getElementById('zacatekAkce').addEventListener('change', pripravCenu)
-            document.getElementById('konecAkce').addEventListener('change', pripravCenu)
-        }
-    </script>
-  </tr>
-  <tr>
-    <th><label for="vyberTagu" class="display-block">Tagy</label></th>
-    <td>
-      <select name="{aEditTag}[]" multiple="multiple" id="vyberTagu">
-        <!-- begin:tag -->
-        {previous_optgroup_tag_end}
-        {optgroup_tag_start}
-        <option {tag_selected} value="{id_tagu}">{nazev_tagu}</option>
-        {last_optgroup_tag_end}
-        <!-- end:tag -->
-      </select>
-      <script type="text/javascript">
-          const $tagsMultiselect = $('#vyberTagu')
-          document.addEventListener('DOMContentLoaded', function () {
-              const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
-              let tagsMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110)
-              if (tagsMultiselectColumns < 1) {
-                  tagsMultiselectColumns = 1
-              }
-              $tagsMultiselect.multiselect('settings', {columns: tagsMultiselectColumns})
-          })
-
-          $tagsMultiselect.multiselect({
-              columns: 3,
-              search: true,
-              texts: {
-                  'placeholder': 'Zadej tag',
-                  'search': 'Hledej tag',
-                  'selectedOptions': ' vybraných tagů',
-              },
-              maxPlaceholderOpts: 8,
-              selectAll: false,
-          })
-      </script>
-    </td>
-  </tr>
-  <tr>
-    <th><label for="pripravaMistnostiAktivity">Příprava místnosti</label></th>
-    <td>
+                $tagsMultiselect.multiselect({
+                    columns: 3,
+                    search: true,
+                    texts: {
+                        'placeholder': 'Zadej tag',
+                        'search': 'Hledej tag',
+                        'selectedOptions': ' vybraných tagů',
+                    },
+                    maxPlaceholderOpts: 8,
+                    selectAll: false,
+                })
+            </script>
+        </td>
+    </tr>
+    <tr>
+        <th><label for="pripravaMistnostiAktivity">Příprava místnosti</label></th>
+        <td>
       <textarea rows="1" class="full" type="text" name="{fields}[vybaveni]"
                 id="pripravaMistnostiAktivity">{vybaveni}</textarea>
-    </td>
-  </tr>
-  <tr>
-    <th class="hinted">
-      <span class="hint" style="margin-top: 1em">Vyber předchozí aktivity, které budou pokračovat touto aktivitou, tímto (semi)finále.</span>
-      <label for="rodice">
-        <span class="hinted">Rodiče (předcházející)</span>
-      </label>
-    </th>
-    <td>
-      <select id="rodice" name="{fields}[rodic][]" multiple>
-        <!-- begin:rodic -->
-        <option {selected} value="{id_rodice}">{nazev_rodice}</option><!-- end:rodic -->
-      </select>
-      <script type="text/javascript">
-          const $rodiceMultiselect = $('#rodice')
-          document.addEventListener('DOMContentLoaded', function () {
-              const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
-              let rodiceMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200)
-              if (rodiceMultiselectColumns < 1) {
-                  rodiceMultiselectColumns = 1
-              }
-              $rodiceMultiselect.multiselect('settings', {columns: rodiceMultiselectColumns})
-          })
+        </td>
+    </tr>
+    <tr>
+        <th class="hinted">
+            <span class="hint" style="margin-top: 1em">Vyber předchozí aktivity, které budou pokračovat touto aktivitou, tímto (semi)finále.</span>
+            <label for="rodice">
+                <span class="hinted">Rodiče (předcházející)</span>
+            </label>
+        </th>
+        <td>
+            <select id="rodice" name="{fields}[rodic][]" multiple>
+                <!-- begin:rodic -->
+                <option {selected} value="{id_rodice}">{nazev_rodice}</option><!-- end:rodic -->
+            </select>
+            <script type="text/javascript">
+                const $rodiceMultiselect = $('#rodice')
+                document.addEventListener('DOMContentLoaded', function () {
+                    const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
+                    let rodiceMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200)
+                    if (rodiceMultiselectColumns < 1) {
+                        rodiceMultiselectColumns = 1
+                    }
+                    $rodiceMultiselect.multiselect('settings', {columns: rodiceMultiselectColumns})
+                })
 
-          $rodiceMultiselect.multiselect({
-              columns: 2,
-              search: true,
-              texts: {
-                  'placeholder': 'Zadej rodiče',
-                  'search': 'Hledej rodiče',
-                  'selectedOptions': ' vybraných rodičů',
-              },
-              maxPlaceholderOpts: 3,
-              selectAll: false,
-          })
-      </script>
-    </td>
-  </tr>
-  <tr>
-    <th>
-      <label for="deti">
-        <span class="hinted">Děti (navazující)<span class="hint">Vyber následující (semi)finále, která rozhodnou o vítězi této aktivity, tohoto čtvrt/semi-finále</span></span>
-      </label>
-    </th>
-    <td>
-      <select id="deti" name="{fields}[dite][]" multiple>
-        <!-- begin:dite -->
-        <option {selected} value="{id_ditete}">{nazev_ditete}</option><!-- end:dite -->
-      </select>
-      <script type="text/javascript">
-          const $detiMultiselect = $('#deti')
-          document.addEventListener('DOMContentLoaded', function () {
-              const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
-              let detiMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200)
-              if (detiMultiselectColumns < 1) {
-                  detiMultiselectColumns = 1
-              }
-              $detiMultiselect.multiselect('settings', {columns: detiMultiselectColumns})
-          })
+                $rodiceMultiselect.multiselect({
+                    columns: 2,
+                    search: true,
+                    texts: {
+                        'placeholder': 'Zadej rodiče',
+                        'search': 'Hledej rodiče',
+                        'selectedOptions': ' vybraných rodičů',
+                    },
+                    maxPlaceholderOpts: 3,
+                    selectAll: false,
+                })
+            </script>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            <label for="deti">
+                <span class="hinted">Děti (navazující)<span class="hint">Vyber následující (semi)finále, která rozhodnou o vítězi této aktivity, tohoto čtvrt/semi-finále</span></span>
+            </label>
+        </th>
+        <td>
+            <select id="deti" name="{fields}[dite][]" multiple>
+                <!-- begin:dite -->
+                <option {selected} value="{id_ditete}">{nazev_ditete}</option><!-- end:dite -->
+            </select>
+            <script type="text/javascript">
+                const $detiMultiselect = $('#deti')
+                document.addEventListener('DOMContentLoaded', function () {
+                    const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
+                    let detiMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200)
+                    if (detiMultiselectColumns < 1) {
+                        detiMultiselectColumns = 1
+                    }
+                    $detiMultiselect.multiselect('settings', {columns: detiMultiselectColumns})
+                })
 
-          $detiMultiselect.multiselect({
-              columns: 2,
-              search: true,
-              texts: {
-                  'placeholder': 'Zadej dítě',
-                  'search': 'Hledej dítě',
-                  'selectedOptions': ' vybraných dětí',
-              },
-              maxPlaceholderOpts: 3,
-              selectAll: false,
-          })
-      </script>
-    </td>
-  </tr>
+                $detiMultiselect.multiselect({
+                    columns: 2,
+                    search: true,
+                    texts: {
+                        'placeholder': 'Zadej dítě',
+                        'search': 'Hledej dítě',
+                        'selectedOptions': ' vybraných dětí',
+                    },
+                    maxPlaceholderOpts: 3,
+                    selectAll: false,
+                })
+            </script>
+        </td>
+    </tr>
 </table>
 <!-- end:tabulka -->
 
 <div class="hinted" style="float:left; border-bottom: none">
-  <span class="hint" style="top: unset; bottom: -40px">Šířka minimálně 320 px, poměr 16:9</span>
-  <table>
-    <tr>
-      <th><span class="hinted">Obrázek</span></th>
-      <td class="obrazek_nahled"><img alt="Náhled obrázku" src="{urlObrazku}"></td>
-    </tr>
-    <tr>
-      <th>
-        <label for="soubor" class="hinted display-block">Nahrát soubor</label>
-      </th>
-      <td><input id="soubor" type="file" name="{obrKlic}"></td>
-    </tr>
-    <tr>
-      <th><label class="hinted" for="nahratObrazekZUrl">Nahrát z URL</label></th>
-      <td><input id="nahratObrazekZUrl" class="full" type="text" name="{obrKlicUrl}"></td>
-    </tr>
-  </table>
+    <span class="hint" style="top: unset; bottom: -40px">Šířka minimálně 320 px, poměr 16:9</span>
+    <table>
+        <tr>
+            <th><span class="hinted">Obrázek</span></th>
+            <td class="obrazek_nahled"><img alt="Náhled obrázku" src="{urlObrazku}"></td>
+        </tr>
+        <tr>
+            <th>
+                <label for="soubor" class="hinted display-block">Nahrát soubor</label>
+            </th>
+            <td><input id="soubor" type="file" name="{obrKlic}"></td>
+        </tr>
+        <tr>
+            <th><label class="hinted" for="nahratObrazekZUrl">Nahrát z URL</label></th>
+            <td><input id="nahratObrazekZUrl" class="full" type="text" name="{obrKlicUrl}"></td>
+        </tr>
+    </table>
 </div>
 
 <div style="clear:both"></div><input type="submit" name="{fields}Odesilatko" value="Uložit">
@@ -401,100 +402,100 @@
 <br style="clear:both">
 
 <div id="napoveda{fields}{id_akce}" style="display:none;margin-left:50px">
-  <table>
-    <tr>
-      <td><em>kurzíva</em></td>
-      <td>_kurzíva_</td>
-    </tr>
-    <tr>
-      <td><strong>tučně</strong></td>
-      <td>__tučně__</td>
-    </tr>
-    <tr>
-      <td><a href="http://google.com">http://google.com</a></td>
-      <td>http://google.com se převede na odkaz</td>
-    </tr>
-    <tr>
-      <td><a href="http://google.com">Google</a></td>
-      <td>[Google](http://google.com) udělá odkaz s popiskem</td>
-    </tr>
-    <tr>
-      <td>odstavce</td>
-      <td>1. odstavec<br><br>další odstavec pokračuje po vynechaném řádku</td>
-    </tr>
-    <tr>
-      <td>seznam</td>
-      <td>- první položka<br>- druhá položka<br>- třetí položka (před a za seznamem je taky vynechaný řádek)</td>
-    </tr>
-    <tr>
-      <td>nový řádek</td>
-      <td>(přidat na konci stávajícího řádku mezeru)</td>
-    </tr>
-    <tr>
-      <td>vodorovná čára</td>
-      <td>---</td>
-    </tr>
-    <tr>
-      <td><strong>Nadpis</strong></td>
-      <td>##Nadpis (více křížků=menší nadpis)</td>
-    </tr>
-  </table>
+    <table>
+        <tr>
+            <td><em>kurzíva</em></td>
+            <td>_kurzíva_</td>
+        </tr>
+        <tr>
+            <td><strong>tučně</strong></td>
+            <td>__tučně__</td>
+        </tr>
+        <tr>
+            <td><a href="http://google.com">http://google.com</a></td>
+            <td>http://google.com se převede na odkaz</td>
+        </tr>
+        <tr>
+            <td><a href="http://google.com">Google</a></td>
+            <td>[Google](http://google.com) udělá odkaz s popiskem</td>
+        </tr>
+        <tr>
+            <td>odstavce</td>
+            <td>1. odstavec<br><br>další odstavec pokračuje po vynechaném řádku</td>
+        </tr>
+        <tr>
+            <td>seznam</td>
+            <td>- první položka<br>- druhá položka<br>- třetí položka (před a za seznamem je taky vynechaný řádek)</td>
+        </tr>
+        <tr>
+            <td>nový řádek</td>
+            <td>(přidat na konci stávajícího řádku mezeru)</td>
+        </tr>
+        <tr>
+            <td>vodorovná čára</td>
+            <td>---</td>
+        </tr>
+        <tr>
+            <td><strong>Nadpis</strong></td>
+            <td>##Nadpis (více křížků=menší nadpis)</td>
+        </tr>
+    </table>
 </div>
 
 <table style="margin-top:6px">
-  <tr>
-    <th style="width: 50px">Krátký popis</th>
-    <td style="position: relative">
-      <div style="position: absolute; right: 8px; bottom: 5px; color: #888; font-size: 10px"
-           id="pocitadlo{fields}{id_akce}"></div>
-      <textarea style="width: 440px; font-size: 12px; resize: none" maxlength="{limitPopisKratky}"
-                id="kratkypopis{fields}{id_akce}" name="{fields}[popis_kratky]">{popis_kratky}</textarea>
-    </td>
-    <script>
-        var textarea = document.getElementById('kratkypopis{fields}{id_akce}')
-        var pocitadlo = document.getElementById('pocitadlo{fields}{id_akce}')
-        textarea.onkeyup = function () {
-            pocitadlo.innerHTML = textarea.value.length + '/{limitPopisKratky}'
-        }
-        textarea.onkeyup()
-    </script>
-  </tr>
-  <tr>
-    <th>
-      Popis<br>
-      <a href="#" style="font-size:80%" onclick="$('#napoveda{fields}{id_akce}').slideToggle();return false">(help)</a>
-    </th>
-    <td>
+    <tr>
+        <th style="width: 50px">Krátký popis</th>
+        <td style="position: relative">
+            <div style="position: absolute; right: 8px; bottom: 5px; color: #888; font-size: 10px"
+                 id="pocitadlo{fields}{id_akce}"></div>
+            <textarea style="width: 440px; font-size: 12px; resize: none" maxlength="{limitPopisKratky}"
+                      id="kratkypopis{fields}{id_akce}" name="{fields}[popis_kratky]">{popis_kratky}</textarea>
+        </td>
+        <script>
+            var textarea = document.getElementById('kratkypopis{fields}{id_akce}')
+            var pocitadlo = document.getElementById('pocitadlo{fields}{id_akce}')
+            textarea.onkeyup = function () {
+                pocitadlo.innerHTML = textarea.value.length + '/{limitPopisKratky}'
+            }
+            textarea.onkeyup()
+        </script>
+    </tr>
+    <tr>
+        <th>
+            Popis<br>
+            <a href="#" style="font-size:80%" onclick="$('#napoveda{fields}{id_akce}').slideToggle();return false">(help)</a>
+        </th>
+        <td>
       <textarea style="width:440px;font-size:12px" name="{fields}[popis]"
                 id="popisek{fields}{id_akce}">{popis}</textarea>
-    </td>
-    <td>
-      <style>
-        #nahled em {
-          font-weight: bold;
-          font-style: normal;
-        }
-      </style>
-      <div style="font-size:12px" id="nahled{fields}{id_akce}"></div>
-      <script src="files/showdown.js"></script>
-      <script src="files/jquery.autosize-1.18.13.js"></script>
-      <script>
-          function ukazObsah() {
-              var md = new Showdown.converter()
-              var html = md.makeHtml($('#popisek{fields}{id_akce}').val())
-              html = html.replace(/src=\"\/files/g, 'src="http://gamecon.dev/files')
-              $('#nahled{fields}{id_akce}').html(html)
-          }
+        </td>
+        <td>
+            <style>
+                #nahled em {
+                    font-weight: bold;
+                    font-style: normal;
+                }
+            </style>
+            <div style="font-size:12px" id="nahled{fields}{id_akce}"></div>
+            <script src="files/showdown.js"></script>
+            <script src="files/jquery.autosize-1.18.13.js"></script>
+            <script>
+                function ukazObsah() {
+                    var md = new Showdown.converter()
+                    var html = md.makeHtml($('#popisek{fields}{id_akce}').val())
+                    html = html.replace(/src=\"\/files/g, 'src="http://gamecon.dev/files')
+                    $('#nahled{fields}{id_akce}').html(html)
+                }
 
-          ukazObsah()
-          $('#popisek{fields}{id_akce}').autosize()
-          $('#popisek{fields}{id_akce}').keyup(function () {
-              ukazObsah()
-          })
-          $('[name="{fields}[vybaveni]"]').autosize()
-      </script>
-    </td>
-  </tr>
+                ukazObsah()
+                $('#popisek{fields}{id_akce}').autosize()
+                $('#popisek{fields}{id_akce}').keyup(function () {
+                    ukazObsah()
+                })
+                $('[name="{fields}[vybaveni]"]').autosize()
+            </script>
+        </td>
+    </tr>
 </table>
 
 ¹ Položky specifické pro instanci, pokud má aktivita víc instancí

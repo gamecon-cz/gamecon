@@ -41,10 +41,10 @@
     <!-- begin: tricko -->
     <div class="shopPredmety_tricko">
         <div class="shop_popis">
-            Tričko GameCon {rok}
+            <label for="vyberTricek">Tričko GameCon {rok}</label>
             <div class="shop_popisCena">{cena}</div>
         </div>
-        <select name="{postName}" class="formular_select shopPredmety_trickoSelect">
+        <select id="vyberTricek" name="{postName}" class="formular_select shopPredmety_trickoSelect">
             <!-- begin: moznost -->
             <option value="{id_predmetu}" {selected}>{nazev}</option>
             <!-- end: moznost -->
@@ -53,41 +53,43 @@
     <!-- end: tricko -->
 </div>
 
+<script type="text/javascript" src="{shopTrickaJs}"></script>
+
 <script>
-shopPlusminus(
-    document.querySelectorAll('.shopPredmety_minus-povoleno'),
-    document.querySelectorAll('.shopPredmety_plus-povoleno')
-)
+    shopPlusminus(
+        document.querySelectorAll('.shopPredmety_minus-povoleno'),
+        document.querySelectorAll('.shopPredmety_plus-povoleno')
+    )
 
-function shopPlusminus(minusy, plusy) {
-    minusy.forEach((e) => clickZmena(e, -1))
+    function shopPlusminus(minusy, plusy) {
+        minusy.forEach((e) => clickZmena(e, -1))
 
-    plusy.forEach((e) => clickZmena(e, +1))
+        plusy.forEach((e) => clickZmena(e, +1))
 
-    minusy.forEach((e) => prekresli(e.parentNode))
+        minusy.forEach((e) => prekresli(e.parentNode))
 
-    function clickZmena(e, delta) {
-        let p = e.parentNode
-        e.onclick = () => {
+        function clickZmena(e, delta) {
+            let p = e.parentNode
+            e.onclick = () => {
+                let pocet = Number(p.querySelector('input').value)
+                p.querySelector('input').value = Math.max(pocet + delta, 0)
+                prekresli(p)
+                return false
+            }
+        }
+
+        function prekresli(p) {
             let pocet = Number(p.querySelector('input').value)
-            p.querySelector('input').value = Math.max(pocet + delta, 0)
-            prekresli(p)
-            return false
+            let minus = p.querySelector('.shopPredmety_minus')
+
+            p.querySelector('.shopPredmety_kusu').innerHTML = pocet
+
+            if (pocet <= 0) {
+                minus.classList.add('shopPredmety_minus-neaktivni')
+            } else {
+                minus.classList.remove('shopPredmety_minus-neaktivni')
+            }
         }
     }
-
-    function prekresli(p) {
-        let pocet = Number(p.querySelector('input').value)
-        let minus = p.querySelector('.shopPredmety_minus')
-
-        p.querySelector('.shopPredmety_kusu').innerHTML = pocet
-
-        if (pocet <= 0) {
-            minus.classList.add('shopPredmety_minus-neaktivni')
-        } else {
-            minus.classList.remove('shopPredmety_minus-neaktivni')
-        }
-    }
-}
 </script>
 <!-- end: predmety -->

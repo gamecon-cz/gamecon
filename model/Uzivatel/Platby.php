@@ -2,14 +2,14 @@
 
 namespace Gamecon\Uzivatel;
 
-use FioPlatba;
+use DateTimeImmutable;
 use DateTimeInterface;
+use FioPlatba;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura as Sql;
 use Uzivatel;
-use DateTimeImmutable;
-use Gamecon\Uzivatel\PlatbySqlStruktura as Sql;
 
 class Platby
 {
@@ -104,7 +104,7 @@ class Platby
 
     public function nejakeNesparovanePlatby(?int $rok = ROCNIK): bool
     {
-        return dbOneCol(<<<SQL
+        return (bool)dbOneCol(<<<SQL
             SELECT EXISTS(SELECT * FROM platby WHERE id_uzivatele IS NULL AND IF ($0, rok = $0, TRUE)) AS existuji_nesparovane_platby
             SQL,
             [0 => $rok],

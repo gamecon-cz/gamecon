@@ -13,6 +13,7 @@ use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -23,11 +24,11 @@ class Finance
 
     public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
 
-    private $stav       = 0;  // celkový výsledný stav uživatele na účtu
-    private $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
-    private $soucinitelCenyAKtivit;              // součinitel ceny aktivit
-    private $logovat    = true;    // ukládat seznam předmětů?
-    private $cenik;             // instance ceníku
+    private         $stav       = 0;  // celkový výsledný stav uživatele na účtu
+    private         $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
+    private         $soucinitelCenyAKtivit;              // součinitel ceny aktivit
+    private         $logovat    = true;    // ukládat seznam předmětů?
+    private ?\Cenik $cenik      = null;             // instance ceníku
     // tabulky s přehledy
     private $prehled                        = [];   // tabulka s detaily o platbách
     private $strukturovanyPrehled           = [];
@@ -72,6 +73,57 @@ class Finance
     public const ZUSTATEK_Z_PREDCHOZICH_LET = 16;
     public const PLATBA                     = 17;
     public const VYSLEDNY                   = 18;
+
+    /**
+     * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity
+     * @param Aktivita @a
+     * @return int
+     */
+    public static function bonusZaAktivitu(Aktivita $a, SystemoveNastaveni $systemoveNastaveni): int
+    {
+        if ($a->nedavaBonus()) {
+            return 0;
+        }
+        $delka = $a->delka();
+        if ($delka == 0) {
+            return 0;
+        }
+        foreach ($systemoveNastaveni->bonusyZaVedeniAktivity() as $tabDelka => $tabSleva) {
+            if ($delka <= $tabDelka) {
+                return $tabSleva;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * @param array|\Uzivatel[] $organizatori
+     * @return array|\Uzivatel[]
+     */
+    public static function nechOrganizatorySBonusemZaVedeniAktivit(array $organizatori): array
+    {
+        return array_filter($organizatori, static function (\Uzivatel $organizator) {
+            return $organizator->maPravoNaPoradaniAktivit()
+                && $organizator->maPravoNaBonusZaVedeniAktivit();
+        });
+    }
+
+    public static function prumerneVstupneRoku(int $rocnik): float
+    {
+        $typVstupne = TypPredmetu::VSTUPNE;
+        return round(
+            (float)dbOneCol(<<<SQL
+SELECT SUM(cena_nakupni) / COUNT(*)
+FROM shop_nakupy
+JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+WHERE shop_predmety.typ = {$typVstupne}
+    AND shop_nakupy.rok = {$rocnik}
+    AND shop_nakupy.cena_nakupni > 0
+SQL,
+            ),
+            2,
+        );
+    }
 
     /**
      * @param \Uzivatel $u uživatel, pro kterého se finance sestavují
@@ -367,13 +419,14 @@ class Finance
      * @param string|null $poznamka
      * @param \Uzivatel $provedl
      */
-    public function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl)
+    public function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl): float
     {
         $sleva = prevedNaFloat($sleva);
         dbQuery(
             'INSERT INTO slevy(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
             [$this->u->id(), $sleva, ROCNIK, $provedl->id(), $poznamka ?: null],
         );
+        return $sleva;
     }
 
     /** Vrátí aktuální stav na účtu uživatele pro tento rok */
@@ -409,40 +462,6 @@ class Finance
     public function slevaZaAktivityVProcentech()
     {
         return 100 - ($this->soucinitelAktivit() * 100);
-    }
-
-    /**
-     * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity
-     * @param Aktivita @a
-     * @return int
-     */
-    public static function bonusZaAktivitu(Aktivita $a, SystemoveNastaveni $systemoveNastaveni): int
-    {
-        if ($a->nedavaBonus()) {
-            return 0;
-        }
-        $delka = $a->delka();
-        if ($delka == 0) {
-            return 0;
-        }
-        foreach ($systemoveNastaveni->bonusyZaVedeniAktivity() as $tabDelka => $tabSleva) {
-            if ($delka <= $tabDelka) {
-                return $tabSleva;
-            }
-        }
-        return 0;
-    }
-
-    /**
-     * @param array|\Uzivatel[] $organizatori
-     * @return array|\Uzivatel[]
-     */
-    public static function nechOrganizatorySBonusemZaVedeniAktivit(array $organizatori): array
-    {
-        return array_filter($organizatori, static function (\Uzivatel $organizator) {
-            return $organizator->maPravoNaPoradaniAktivit()
-                && $organizator->maPravoNaBonusZaVedeniAktivit();
-        });
     }
 
     /**

@@ -270,7 +270,8 @@ SQL,
             mysqli_query(
                 $dbConnectionAnonymDb,
                 <<<SQL
-                    DELETE FROM $prilisCitlivaTabulka WHERE TRUE
+                    DELETE FROM $prilisCitlivaTabulka
+                    WHERE TRUE
                 SQL,
             );
         }

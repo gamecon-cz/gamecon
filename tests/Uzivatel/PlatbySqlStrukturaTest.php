@@ -3,7 +3,7 @@
 namespace Gamecon\Tests\Uzivatel;
 
 use Gamecon\Tests\Model\AbstractTestSqlStruktura;
-use Gamecon\Uzivatel\PlatbySqlStruktura;
+use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
 
 class PlatbySqlStrukturaTest extends AbstractTestSqlStruktura
 {

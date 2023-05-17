@@ -3,6 +3,7 @@
 namespace Gamecon\Cas;
 
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Granam\RemoveDiacritics\RemoveDiacritics;
 
 /**
  * Datum a čas s českými názvy dnů a měsíců + další vychytávky
@@ -21,9 +22,11 @@ trait DateTimeCzTrait
 
     public const FORMAT_DB                     = 'Y-m-d H:i:s';
     public const FORMAT_DATUM_DB               = 'Y-m-d';
+    public const FORMAT_DATUM_LETOS            = 'j. n.';
     public const FORMAT_DATUM_STANDARD         = 'j. n. Y';
     public const FORMAT_DATUM_A_CAS_STANDARD   = 'j. n. Y H:i:s';
     public const FORMAT_CAS_NA_MINUTY_STANDARD = 'j. n. Y H:i';
+    public const FORMAT_ZACATEK_UDALOSTI       = 'j. n. Y \v H:i';
     public const FORMAT_CAS_SOUBOR             = 'Y-m-d_H-i-s';
 
     protected static $dny = [
@@ -34,6 +37,16 @@ trait DateTimeCzTrait
         'Friday'    => 'pátek',
         'Saturday'  => 'sobota',
         'Sunday'    => 'neděle',
+    ];
+
+    protected static $dnyIndexovanePoradim = [
+        1 => 'pondělí',
+        2 => 'úterý',
+        3 => 'středa',
+        4 => 'čtvrtek',
+        5 => 'pátek',
+        6 => 'sobota',
+        7 => 'neděle',
     ];
 
     protected static $mesice = [
@@ -61,6 +74,66 @@ trait DateTimeCzTrait
         7 => 'nedele',
     ];
 
+    protected static $zkratkyDnu = [
+        1 => 'Po',
+        2 => 'Út',
+        3 => 'St',
+        4 => 'Čt',
+        5 => 'Pá',
+        6 => 'So',
+        7 => 'Ne',
+    ];
+
+    /**
+     * Z 'Neděle' udělá 'Ne - Po'
+     */
+    public static function denNaPrelomDnuVeZkratkach(string $den, string $oddelovac = ' - '): string
+    {
+        $den              = trim($den);
+        $denBezDiakritiky = RemoveDiacritics::toConstantLikeValue($den);
+        $poradiDne        = array_search($denBezDiakritiky, self::$dnyVTydnuBezDiakritiky);
+        if ($poradiDne === false) {
+            return $den;
+        }
+        return static::poradiDneVTydnuNaPrelomDnuVeZkratkach(
+            $poradiDne,
+            // první písmeno bylo velké,tak to zachováme
+            preg_match('~^[[:upper:]]~u', $den) !== 0,
+            $oddelovac,
+        );
+    }
+
+    /**
+     * Z 'Neděle' udělá 'Ne - Po'
+     */
+    public static function poradiDneVTydnuNaPrelomDnuVeZkratkach(
+        int    $poradiDneVTydnu,
+        bool   $zacatekVelkymiPismeny,
+        string $oddelovac = ' - ',
+    ): string
+    {
+        $poradiNasledujicihoDne = self::poradiNasledujicihoDne($poradiDneVTydnu);
+        $denZkratka             = self::$zkratkyDnu[$poradiDneVTydnu];
+        $nasledujiciDenZkratka  = self::$zkratkyDnu[$poradiNasledujicihoDne];
+        if ($zacatekVelkymiPismeny) {
+            $denZkratka            = mb_ucfirst($denZkratka);
+            $nasledujiciDenZkratka = mb_ucfirst($nasledujiciDenZkratka);
+        } else {
+            $denZkratka            = mb_strtolower($denZkratka);
+            $nasledujiciDenZkratka = mb_strtolower($nasledujiciDenZkratka);
+        }
+        return $denZkratka . $oddelovac . $nasledujiciDenZkratka;
+    }
+
+    private static function poradiNasledujicihoDne(int $poradiDne): int
+    {
+        $poradiDnu = array_keys(self::$dnyVTydnuBezDiakritiky);
+        if ($poradiDne < max($poradiDnu)) {
+            return $poradiDne + 1;
+        }
+        return min($poradiDnu); // po neděli je pondělí, takže číslo 1
+    }
+
     /**
      * @param string $dateTime
      * @param \DateTimeZone|null $timeZone
@@ -71,16 +144,10 @@ trait DateTimeCzTrait
         return static::createFromFormat('Y-m-d H:i:s', $dateTime, $timeZone);
     }
 
-    /**
-     * @param $format
-     * @param $time
-     * @param $timezone
-     * @return static|false
-     */
-    public static function createFromFormat($format, $time, $timezone = null): static|false
+    public static function createFromFormat(string $format, string $datetime, ?\DateTimeZone $timezone = null): static|false
     {
         try {
-            $dateTime = parent::createFromFormat($format, $time, $timezone);
+            $dateTime = parent::createFromFormat($format, $datetime, $timezone);
             if ($dateTime === false) {
                 throw new \RuntimeException();
             }
@@ -90,7 +157,7 @@ trait DateTimeCzTrait
                 sprintf(
                     "Can not create %s from value %s using format '%s': %s",
                     static::class,
-                    var_export($time, true),
+                    var_export($datetime, true),
                     var_export($format, true),
                     $throwable->getMessage(),
                 )
@@ -100,8 +167,7 @@ trait DateTimeCzTrait
 
     public static function poradiDne(string $den): int
     {
-        $hledanyDenMalymiPismeny     = mb_strtolower($den);
-        $hledadnyDenBezDiakritiky    = odstranDiakritiku($hledanyDenMalymiPismeny);
+        $hledadnyDenBezDiakritiky    = RemoveDiacritics::toConstantLikeValue($den);
         $poradiDnuZacinajicichStejne = [];
         foreach (self::$dnyVTydnuBezDiakritiky as $poradiDneVTydnu => $denVTydnuBezDiakritiky) {
             if (strpos($denVTydnuBezDiakritiky, $hledadnyDenBezDiakritiky) === 0) {
@@ -117,6 +183,33 @@ trait DateTimeCzTrait
     public static function dejDnyVTydnu(): array
     {
         return self::$dny;
+    }
+
+    public static function formatujProSablonu($hodnota, array $parametry): string
+    {
+        $datum = $hodnota instanceof \DateTimeInterface
+            ? $hodnota
+            : static::createFromMysql((string)$hodnota);
+        if (!$datum) {
+            return (string)$hodnota;
+        }
+        foreach ($parametry as $parametr) {
+            if (!is_string($parametr)) {
+                continue;
+            }
+            $parametr = strtoupper(trim($parametr));
+            if (!str_starts_with($parametr, 'FORMAT_')) {
+                continue;
+            }
+            /** například @see \Gamecon\Cas\DateTimeCzTrait::FORMAT_ZACATEK_UDALOSTI */
+            $classConstant = static::class . '::' . $parametr;
+            if (!defined(static::class . '::' . $parametr)) {
+                continue;
+            }
+            $format = constant($classConstant);
+            return $datum->format($format);
+        }
+        return (string)$hodnota;
     }
 
     /** Formát data s upravenými dny česky */

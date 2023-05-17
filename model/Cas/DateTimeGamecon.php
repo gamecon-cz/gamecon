@@ -9,19 +9,29 @@ use Gamecon\SystemoveNastaveni\ZdrojVlnAktivit;
 
 /**
  * @method static DateTimeGamecon|false createFromMysql(string $dateTime, \DateTimeZone $timeZone = null)
- * @method static DateTimeGamecon|false createFromFormat($format, $time, $timezone = null)
+ * @method static DateTimeGamecon|false createFromFormat($format, $datetime, $timezone = null)
  * @method static DateTimeGamecon|false createFromInterface(\DateTimeInterface $dateTime)
  */
 class DateTimeGamecon extends DateTimeCz
 {
+    public const PORADI_HERNIHO_DNE_STREDA  = 0;
+    public const PORADI_HERNIHO_DNE_CTVRTEK = 1;
+    public const PORADI_HERNIHO_DNE_PATEK   = 2;
+    public const PORADI_HERNIHO_DNE_SOBOTA  = 3;
+    public const PORADI_HERNIHO_DNE_NEDELE  = 4;
 
     public const VYCHOZI_PLATNOST_HROMADNYCH_AKCI_ZPETNE = '-1 day';
 
+    public static function poradiDneVTydnuPodleIndexuOdZacatkuGameconu(int $indexDneKZacatkuGc, int $rocnik = ROCNIK): int
+    {
+        $indexDneVuciStrede = $indexDneKZacatkuGc - 1;
+        return (int)self::zacatekGameconu($rocnik)->modify("$indexDneVuciStrede days")->format('N');
+    }
+
     public static function denPodleIndexuOdZacatkuGameconu(int $indexDneKZacatkuGc, int $rocnik = ROCNIK): string
     {
-        $indexDneVuciStrede    = $indexDneKZacatkuGc - 1;
-        $englishOrCzechDayName = self::spocitejZacatekGameconu($rocnik)->modify("$indexDneVuciStrede days")->format('l');
-        return strtr($englishOrCzechDayName, static::$dny);
+        $poradiDneVTydnu = self::poradiDneVTydnuPodleIndexuOdZacatkuGameconu($indexDneKZacatkuGc, $rocnik);
+        return self::$dnyIndexovanePoradim[$poradiDneVTydnu];
     }
 
     /**
@@ -77,7 +87,7 @@ class DateTimeGamecon extends DateTimeCz
         return $prvniNedelePoZacatkuGameconu->setTime(21, 0, 0);
     }
 
-    protected static function zDbFormatu(string $datum): DateTimeGamecon
+    public static function zDbFormatu(string $datum): DateTimeGamecon
     {
         $zacatekGameconu = static::createFromFormat(self::FORMAT_DB, $datum);
         if ($zacatekGameconu) {
@@ -141,6 +151,13 @@ class DateTimeGamecon extends DateTimeCz
         // Gamecon začíná sice ve čtvrtek, ale technické aktivity již ve středu
         $zacatekTechnickychAktivit = $zacatekGameconu->modify('-1 day');
         return $zacatekTechnickychAktivit->setTime(0, 0, 0);
+    }
+
+    public static function konecProgramu(SystemoveNastaveni $systemoveNastaveni): DateTimeGamecon
+    {
+        return defined('GC_BEZI_DO')
+            ? static::zDbFormatu(GC_BEZI_DO)
+            : self::zDbFormatu($systemoveNastaveni->dejVychoziHodnotu('GC_BEZI_DO'));
     }
 
     public static function zacatekRegistraciUcastniku(int $rocnik = ROCNIK): DateTimeGamecon

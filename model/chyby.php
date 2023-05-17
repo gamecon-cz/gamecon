@@ -12,36 +12,47 @@
  */
 class Chyby extends Chyba
 {
-    private $chyby;
-    private $globalniChyba;
+    private array $chyby = [];
+    private       $globalniChyba;
 
-    function globalniChyba($val = null)
+    public function globalniChyba($val = null)
     {
-        if (isset($val)) $this->globalniChyba = $val;
+        if (isset($val)) {
+            $this->globalniChyba = $val;
+        }
         return $this->globalniChyba;
     }
 
-    function klic($klic)
+    public function klic($klic)
     {
         return $this->chyby[$klic] ?? null;
     }
 
     /**
+     * @return string[]
+     */
+    public function vsechny(): array
+    {
+        return $this->chyby;
+    }
+
+    /**
      * Vytvoří chyby obsahující jednu globální chybu.
      */
-    static function jedna($chybaZprava)
+    public static function jedna($chybaZprava): static
     {
-        $ch                = new self();
+        $ch                = new static();
         $ch->globalniChyba = $chybaZprava;
         return $ch;
     }
 
     /**
+     * @param string[] $pole
      * Vytvoří chyby z pole řetězců.
      */
-    static function zPole($pole)
+    public static function zPole(array $pole): static
     {
-        $ch          = new self();
+        $ch          = new static();
         $ch->chyby   = $pole;
         $ch->message = implode(', ', $pole); // kvůli čitelnosti testů
         return $ch;

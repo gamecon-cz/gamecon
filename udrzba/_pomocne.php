@@ -49,6 +49,7 @@ function nasad(array $nastaveni) {
       !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
       !/nastaveni/nastaveni-vychozi.php
+      !/nastaveni/nastaveni-izolovane.php
       !/nastaveni/nastaveni-prava.php
       !/nastaveni/nastaveni-role.php
       !/nastaveni/zavadec*.php
@@ -67,6 +68,7 @@ function nasad(array $nastaveni) {
       !/web/soubory/styl
       !/web/soubory/*.js
       !/web/soubory/*.html
+      !/web/soubory/systemove/*/.htaccess
       !/web/soubory/systemove/*/.gitkeep
 
       /vendor/phpunit
@@ -85,6 +87,10 @@ function nasad(array $nastaveni) {
     '
     preprocess = no
     allowDelete = yes
+
+    purge[] = cache/private/xtpl
+    purge[] = cache/public/css
+    purge[] = cache/public/js
   ";
 
     if (!empty($nastaveni['vetev'])) {

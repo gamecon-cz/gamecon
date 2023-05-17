@@ -20,6 +20,7 @@ class Stranka extends DbObject
                 }
                 return 'widget neexistuje';
             }, $html);
+            $html       = nahradPlaceholderyZaNastaveni($html);
             $this->html = $html;
         }
         return $this->html;

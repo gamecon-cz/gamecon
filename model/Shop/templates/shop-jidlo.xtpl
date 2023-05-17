@@ -1,41 +1,41 @@
 <!-- begin:jidlo -->
 <!-- begin:potize -->
 <p>Objednávky jídla jsou dočasně pozastavené z důvodu vyjednávání o ceně s dodavatelem. O obnovení prodeje budeme
-  informovat na sociálních sítích, za komplikace se omlouváme.</p>
+    informovat na sociálních sítích, za komplikace se omlouváme.</p>
 <!-- end:potize -->
 <!-- begin:objednavkyZmrazeny -->
 <p>Objednat nebo změnit objednávky jídla již není možné.</p>
 <!-- end:objednavkyZmrazeny -->
 <table class="shopJidlo_tabulka">
-  <tr>
-    <td></td>
-    <!-- begin:den -->
-    <td>
-      <div class="shop_den">{den}</div>
-    </td>
-    <!-- end:den -->
-  </tr>
-  <!-- begin:druh -->
-  <tr>
-    <td>
-      <div class="shop_popis shopJidlo_popis">
-        {druh}
-        <div class="shop_popisCena">{cena}</div>
-      </div>
-    </td>
-    <!-- begin:den -->
-    <td>
-      <!-- begin:checkbox -->
-      <input type="checkbox" class="shopJidlo_checkbox" name="{pnName}" {selected}>
-      <!-- end:checkbox -->
-      <!-- begin:locked -->
-      <input type="hidden" name="{pnName}" value="{selected}">
-      <input type="checkbox" class="shopJidlo_checkbox" {selected} disabled>
-      <!-- end:locked -->
-    </td>
-    <!-- end:den -->
-  </tr>
-  <!-- end:druh -->
+    <tr>
+        <td></td>
+        <!-- begin:den -->
+        <td>
+            <div class="shop_den">{den}</div>
+        </td>
+        <!-- end:den -->
+    </tr>
+    <!-- begin:druh -->
+    <tr>
+        <td>
+            <div class="shop_popis shopJidlo_popis">
+                {druh}
+                <div class="shop_popisCena">{cena}</div>
+            </div>
+        </td>
+        <!-- begin:den -->
+        <td>
+            <!-- begin:checkbox -->
+            <input type="checkbox" class="shopJidlo_checkbox" name="{pnName}" {selected}>
+            <!-- end:checkbox -->
+            <!-- begin:locked -->
+            <input type="hidden" name="{pnName}" value="{selected}">
+            <input type="checkbox" class="shopJidlo_checkbox" {selected} disabled>
+            <!-- end:locked -->
+        </td>
+        <!-- end:den -->
+    </tr>
+    <!-- end:druh -->
 </table>
 <input type="hidden" name="{pnJidloZmen}" value="1">
 <!-- end:jidlo -->

@@ -35,9 +35,20 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   })
 
+  if (window.location.hash) {
+    const urlHash = window.location.hash
+    const idFromHash = urlHash.trim().replace('#', '').toUpperCase()
+    const elementProZvyrazneni = document.getElementById(idFromHash)
+    if (elementProZvyrazneni) {
+      elementProZvyrazneni.classList.add('zvyrazni')
+    }
+  }
+
+  // class pro zvýraznění může také přijít z PHP, viz \Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml::vypisSkupinu
   Array.from(nastaveniElement.getElementsByClassName('zvyrazni')).forEach(function (zvyrazniElement) {
     zablikej(zvyrazniElement)
   })
+
 })
 
 class SystemoveNastaveni {

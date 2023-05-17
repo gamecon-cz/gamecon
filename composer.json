@@ -1,93 +1,94 @@
 {
-    "name": "gamecon-cz/gamecon",
-    "type": "project",
-    "description": "Počítačem řízené zázemí pro Největší festival nepočítačových her",
-    "autoload": {
-        "psr-4": {
-            "Gamecon\\": "model",
-            "Gamecon\\Admin\\Modules\\Aktivity\\GoogleSheets\\": "admin/scripts/modules/aktivity/_GoogleSheets",
-            "Gamecon\\Admin\\Modules\\Aktivity\\Export\\": "admin/scripts/modules/aktivity/_Export",
-            "Gamecon\\Admin\\Modules\\Aktivity\\Import\\": "admin/scripts/modules/aktivity/_Import"
-        }
-    },
-    "require": {
-        "php": ">=8.2",
-        "ext-bcmath": "*",
-        "ext-curl": "*",
-        "ext-exif": "*",
-        "ext-fileinfo": "*",
-        "ext-gd": "*",
-        "ext-iconv": "*",
-        "ext-imagick": "*",
-        "ext-intl": "*",
-        "ext-json": "*",
-        "ext-mbstring": "*",
-        "ext-mysqli": "*",
-        "ext-pdo": "*",
-        "ext-sqlite3": "*",
-        "ext-xmlreader": "*",
-        "ext-zip": "*",
-        "defuse/php-encryption": "^2.1",
-        "dg/mysql-dump": "^1.5",
-        "endroid/qr-code": "^4.2",
-        "google/apiclient": "^2.4",
-        "granam/remove-diacritics": "^1.0",
-        "granam/string": "^4.2",
-        "ifsnop/mysqldump-php": "^2.10",
-        "michelf/php-markdown": "~1.4",
-        "openspout/openspout": "^4.0",
-        "rikudou/czqrpayment": "^5.0",
-        "roderik/pwgen-php": "^0.1.8",
-        "setasign/tfpdf": "^1.25",
-        "smhg/sepa-qr-data": "^1.2",
-        "symfony/filesystem": "^5.4",
-        "symfony/http-foundation": "^6.2",
-        "symfony/mailer": "^6.2",
-        "symfony/mime": "^6.2",
-        "symfony/polyfill-php80": "^1.22",
-        "tracy/tracy": "~2.4",
-        "wikimedia/less.php": "^3.0"
-    },
-    "require-dev": {
-        "dg/ftp-deployment": "~3.3",
-        "phpunit/phpunit": "^10.0",
-        "roave/security-advisories": "dev-latest",
-        "symfony/process": "^6.1",
-        "symplify/vendor-patches": "^11.1"
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Gamecon\\Tests\\": "tests",
-            "Godric\\DbMigrations\\": "migrace/pomocne/db-migrations/src"
-        }
-    },
-    "extra": {
-        "patches": {
-            "dg/mysql-dump": [
-                "patches/dg-mysql-dump-src-mysqlimport-php.patch"
-            ],
-            "tracy/tracy": [
-                "patches/tracy-tracy-src-tracy-helpers-php.patch"
-            ]
-        },
-        "google/apiclient-services": [
-            "Drive",
-            "Sheets"
-        ]
-    },
-    "scripts": {
-        "pre-autoload-dump": "Google\\Task\\Composer::cleanup",
-        "post-update-cmd": "@after-change",
-        "post-install-cmd": "@after-change",
-        "after-change": [
-            "@clear-templates-cache"
-        ],
-        "clear-templates-cache": "php -r 'array_map(\"unlink\", @glob(\"cache/private/xtpl/*.php\") ?: []);'"
-    },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "cweagans/composer-patches": true
-        }
+  "name": "gamecon-cz/gamecon",
+  "type": "project",
+  "description": "Počítačem řízené zázemí pro Největší festival nepočítačových her",
+  "autoload": {
+    "psr-4": {
+      "Gamecon\\": "model",
+      "Gamecon\\Admin\\Modules\\Aktivity\\GoogleSheets\\": "admin/scripts/modules/aktivity/_GoogleSheets",
+      "Gamecon\\Admin\\Modules\\Aktivity\\Export\\": "admin/scripts/modules/aktivity/_Export",
+      "Gamecon\\Admin\\Modules\\Aktivity\\Import\\": "admin/scripts/modules/aktivity/_Import"
     }
+  },
+  "require": {
+    "php": ">=8.2",
+    "ext-bcmath": "*",
+    "ext-curl": "*",
+    "ext-exif": "*",
+    "ext-fileinfo": "*",
+    "ext-gd": "*",
+    "ext-iconv": "*",
+    "ext-imagick": "*",
+    "ext-intl": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-mysqli": "*",
+    "ext-pdo": "*",
+    "ext-sqlite3": "*",
+    "ext-xmlreader": "*",
+    "ext-zip": "*",
+    "defuse/php-encryption": "^2.1",
+    "dg/mysql-dump": "^1.5",
+    "egulias/email-validator": "^4.0",
+    "endroid/qr-code": "^4.2",
+    "google/apiclient": "^2.4",
+    "granam/remove-diacritics": "^1.0",
+    "granam/string": "^4.2",
+    "ifsnop/mysqldump-php": "^2.10",
+    "michelf/php-markdown": "~1.4",
+    "openspout/openspout": "^4.0",
+    "rikudou/czqrpayment": "^5.0",
+    "roderik/pwgen-php": "^0.1.8",
+    "setasign/tfpdf": "^1.25",
+    "smhg/sepa-qr-data": "^1.2",
+    "symfony/filesystem": "^5.4",
+    "symfony/http-foundation": "^6.2",
+    "symfony/mailer": "^6.2",
+    "symfony/mime": "^6.2",
+    "symfony/polyfill-php80": "^1.22",
+    "tracy/tracy": "~2.4",
+    "wikimedia/less.php": "^3.0"
+  },
+  "require-dev": {
+    "dg/ftp-deployment": "~3.3",
+    "phpunit/phpunit": "^10.0",
+    "roave/security-advisories": "dev-latest",
+    "symfony/process": "^6.1",
+    "symplify/vendor-patches": "^11.1"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Gamecon\\Tests\\": "tests",
+      "Godric\\DbMigrations\\": "migrace/pomocne/db-migrations/src"
+    }
+  },
+  "extra": {
+    "patches": {
+      "dg/mysql-dump": [
+        "patches/dg-mysql-dump-src-mysqlimport-php.patch"
+      ],
+      "tracy/tracy": [
+        "patches/tracy-tracy-src-tracy-helpers-php.patch"
+      ]
+    },
+    "google/apiclient-services": [
+      "Drive",
+      "Sheets"
+    ]
+  },
+  "scripts": {
+    "pre-autoload-dump": "Google\\Task\\Composer::cleanup",
+    "post-update-cmd": "@after-change",
+    "post-install-cmd": "@after-change",
+    "after-change": [
+      "@clear-templates-cache"
+    ],
+    "clear-templates-cache": "php -r 'array_map(\"unlink\", @glob(\"cache/private/xtpl/*.php\") ?: []);'"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "cweagans/composer-patches": true
+    }
+  }
 }

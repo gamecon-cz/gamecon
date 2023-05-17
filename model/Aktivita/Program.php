@@ -1,8 +1,15 @@
 <?php
 
+namespace Gamecon\Aktivita;
+
 use Gamecon\Cas\DateTimeCz;
-use Gamecon\Aktivita\Aktivita;
-use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use tFPDF;
+use Uzivatel;
+use ArrayIterator;
+use Lokace;
+use ArrayObject;
 
 /**
  * Zrychlený výpis programu
@@ -10,42 +17,44 @@ use Gamecon\Aktivita\TypAktivity;
 class Program
 {
 
-    public const DRD_PJ      = 'drd_pj';
-    public const DRD_PRIHLAS = 'drd_prihlas';
-    public const PLUS_MINUS  = 'plus_minus';
-    public const OSOBNI      = 'osobni';
-    public const TABLE_CLASS = 'table_class';
-    public const TEAM_VYBER  = 'team_vyber';
-    public const INTERNI     = 'interni';
-    public const SKUPINY     = 'skupiny';
-    public const PRAZDNE     = 'prazdne';
-    public const ZPETNE      = 'zpetne';
-    public const DEN         = 'den';
+    public const DRD_PJ          = 'drd_pj';
+    public const DRD_PRIHLAS     = 'drd_prihlas';
+    public const PLUS_MINUS      = 'plus_minus';
+    public const OSOBNI          = 'osobni';
+    public const TABLE_CSS_CLASS = 'table_class';
+    public const TEAM_VYBER      = 'team_vyber';
+    public const INTERNI         = 'interni';
+    public const SKUPINY         = 'skupiny';
+    public const PRAZDNE         = 'prazdne';
+    public const ZPETNE          = 'zpetne';
+    public const NEOTEVRENE      = 'neotevrene';
+    public const DEN             = 'den';
 
     public const SKUPINY_LINIE     = 'linie';
     public const SKUPINY_MISTNOSTI = 'mistnosti';
 
     /** @var Uzivatel|null */
-    private $u              = null; // aktuální uživatel v objektu
-    private $posledniVydana = null;
-    private $dbPosledni     = null;
-    private $aktFronta      = [];
-    private $program; // iterátor aktivit seřazených pro použití v programu
-    private $nastaveni      = [
-        self::DRD_PJ      => false, // u DrD explicitně zobrazit jména PJů
-        self::DRD_PRIHLAS => false, // jestli se zobrazují přihlašovátka pro DrD
-        self::PLUS_MINUS  => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
-        self::OSOBNI      => false, // jestli se zobrazuje osobní program (jinak se zobrazuje full)
-        self::TABLE_CLASS => 'program', //todo edit
-        self::TEAM_VYBER  => true, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
-        self::INTERNI     => false, // jestli jdou vidět i skryté technické a brigádnické aktivity
-        self::SKUPINY     => self::SKUPINY_LINIE, // seskupování programu - po místnostech nebo po liniích
-        self::PRAZDNE     => false, // zobrazovat prázdné skupiny?
-        self::ZPETNE      => false, // jestli smí měnit přihlášení zpětně
-        self::DEN         => null,  // zobrazit jen konkrétní den
+    private            $u              = null; // aktuální uživatel v objektu
+    private            $posledniVydana = null;
+    private            $dbPosledni     = null;
+    private            $aktFronta      = [];
+    private ?\Iterator $program        = null; // iterátor aktivit seřazených pro použití v programu
+    private            $nastaveni      = [
+        self::DRD_PJ          => false, // u DrD explicitně zobrazit jména PJů
+        self::DRD_PRIHLAS     => false, // jestli se zobrazují přihlašovátka pro DrD
+        self::PLUS_MINUS      => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
+        self::OSOBNI          => false, // jestli se zobrazuje osobní program (jinak se zobrazuje full)
+        self::TABLE_CSS_CLASS => 'program', //todo edit
+        self::TEAM_VYBER      => true, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
+        self::INTERNI         => false, // jestli jdou vidět i skryté technické a brigádnické aktivity
+        self::SKUPINY         => self::SKUPINY_LINIE, // seskupování programu - po místnostech nebo po liniích
+        self::PRAZDNE         => false, // zobrazovat prázdné skupiny?
+        self::ZPETNE          => false, // jestli smí měnit přihlášení zpětně
+        self::NEOTEVRENE      => false, // jestli smí přihlašovat na aktivity které ještě jsou teprve aktivované
+        self::DEN             => null,  // zobrazit jen konkrétní den
     ];
-    private $grpf; // název metody na objektu aktivita, podle které se shlukuje
-    private $skupiny; // pole skupin, do kterých se shlukuje program, ve stylu id => název
+    private            $grpf; // název metody na objektu aktivita, podle které se shlukuje
+    private array      $skupiny        = []; // pole skupin, do kterých se shlukuje program, ve stylu id => název
 
     private $aktivityUzivatele = []; // aktivity uživatele
     private $maxPocetAktivit   = []; // maximální počet souběžných aktivit v daném dni
@@ -58,10 +67,14 @@ class Program
     /**
      * Konstruktor bere uživatele a specifikaci, jestli je to osobní program
      */
-    public function __construct(Uzivatel $u = null, $nastaveni = null)
+    public function __construct(
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+        Uzivatel                            $uzivatel = null,
+        array                               $nastaveni = null,
+    )
     {
-        if ($u instanceof Uzivatel) {
-            $this->u = $u;
+        if ($uzivatel instanceof Uzivatel) {
+            $this->u = $uzivatel;
         }
         if (is_array($nastaveni)) {
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
@@ -78,13 +91,13 @@ class Program
     public function cssUrls(): array
     {
         $soubory = [
-            __DIR__ . '/../web/soubory/blackarrow/_spolecne/hint.css',
-            __DIR__ . '/../web/soubory/blackarrow/program/program-trida.css',
+            __DIR__ . '/../../web/soubory/blackarrow/_spolecne/hint.css',
+            __DIR__ . '/../../web/soubory/blackarrow/program/program-trida.css',
         ];
         $cssUrls = [];
         foreach ($soubory as $soubor) {
             $verze     = md5_file($soubor);
-            $url       = str_replace(__DIR__ . '/../web/', '', $soubor);
+            $url       = str_replace(__DIR__ . '/../../web/', '', $soubor);
             $cssUrls[] = URL_WEBU . '/' . $url . '?version=' . $verze;
         }
         return $cssUrls;
@@ -97,7 +110,7 @@ class Program
     {
         $this->init();
 
-        require_once __DIR__ . '/../vendor/setasign/tfpdf/tfpdf.php';
+        require_once __DIR__ . '/../../vendor/setasign/tfpdf/tfpdf.php';
         $pdf = new tFPDF();
         $pdf->AddPage();
         $pdf->AddFont('DejaVu', '', 'DejaVuSansCondensed.ttf', true);
@@ -190,10 +203,15 @@ class Program
     // pomocné funkce //
     ////////////////////
 
-    private function dny()
+    /**
+     * @return DateTimeGamecon[]
+     */
+    private function dny(): array
     {
         $dny = [];
-        for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
+        $zacatekProgramu = DateTimeGamecon::zacatekProgramu($this->systemoveNastaveni->rocnik());
+        $konecProgamu = DateTimeGamecon::konecProgramu($this->systemoveNastaveni);
+        for ($den = $zacatekProgramu; $den->pred($konecProgamu); $den->plusDen()) {
             $dny[] = clone $den;
         }
         return $dny;
@@ -353,12 +371,16 @@ class Program
             if ($this->nastaveni[self::ZPETNE]) {
                 $parametry |= Aktivita::ZPETNE;
             }
+            if ($this->nastaveni[self::NEOTEVRENE]) {
+                $parametry |= Aktivita::DOPREDNE;
+                $parametry |= Aktivita::NEOTEVRENE;
+            }
             if ($this->nastaveni[self::INTERNI]) {
                 $parametry |= Aktivita::INTERNI;
             }
             echo ' ' . $aktivitaObjekt->prihlasovatko($this->u, $parametry);
         } else if (defined('TESTING') && TESTING) {
-            echo $aktivitaObjekt::formatujDuvodProTesting('DrD nemá povolené přihlašování');
+            echo $aktivitaObjekt->formatujDuvodProTesting('DrD nemá povolené přihlašování');
         }
 
         if ($this->nastaveni[self::OSOBNI]) {
@@ -386,7 +408,7 @@ class Program
      */
     private function tiskTabulky(?array &$aktivitaRaw, $denId = null)
     {
-        echo '<table class="' . $this->nastaveni[self::TABLE_CLASS] . '">';
+        echo '<table class="' . $this->nastaveni[self::TABLE_CSS_CLASS] . '">';
 
         // tisk hlavičkového řádku s čísly
         echo '<tr><th></th>';
@@ -452,7 +474,7 @@ class Program
      * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
      * (s cacheovanými hodnotami) pro program.
      */
-    private function nactiDalsiAktivitu($iterator)
+    private function nactiDalsiAktivitu(\Iterator $iterator)
     {
         if (!$iterator->valid()) {
             return null;
@@ -476,7 +498,7 @@ class Program
                 $grp = $aktivita->zacatek()->format('z');
                 break;
             default :
-                throw new Exception('nepodporovaný typ shlukování aktivit ' . $this->grpf);
+                throw new \LogicException('nepodporovaný typ shlukování aktivit ' . $this->grpf);
         }
 
         $a = [

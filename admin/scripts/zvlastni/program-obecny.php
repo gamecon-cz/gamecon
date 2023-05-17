@@ -1,6 +1,10 @@
 <?php
 
-$program = new Program();
+use Gamecon\Aktivita\Program;
+
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
+$program = new Program(systemoveNastaveni: $systemoveNastaveni);
 
 ?>
 <!DOCTYPE html>

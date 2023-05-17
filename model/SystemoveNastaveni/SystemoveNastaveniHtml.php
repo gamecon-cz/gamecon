@@ -170,11 +170,11 @@ class SystemoveNastaveniHtml
         array_walk(
             $hodnotyNastaveni,
             function (array &$zaznam) {
-                $zaznam['posledniZmena'] = (new \Gamecon\Cas\DateTimeCz($zaznam[Sql::ZMENA_KDY]))->relativni();
+                $zaznam['posledniZmena'] = (new DateTimeCz($zaznam[Sql::ZMENA_KDY]))->relativni();
                 $zaznam['zmenil']        = '<strong>' . ($zaznam[Sql::ZMENA_KDY]
                         ? (\Uzivatel::zId($zaznam[Sql::ID_UZIVATELE]) ?? \Uzivatel::zId(\Uzivatel::SYSTEM))->jmenoNick()
                         : '<i>SQL migrace</i>'
-                    ) . '</strong><br>' . (new \Gamecon\Cas\DateTimeCz($zaznam[Sql::ZMENA_KDY]))->formatCasStandard();;
+                    ) . '</strong><br>' . (new DateTimeCz($zaznam[Sql::ZMENA_KDY]))->formatCasStandard();;
                 $zaznam['inputType']                  = $this->dejHtmlInputType($zaznam[Sql::DATOVY_TYP]);
                 $zaznam['tagInputType']               = $this->dejHtmlTagInputType($zaznam[Sql::DATOVY_TYP]);
                 $zaznam['inputValue']                 = $this->dejHtmlInputValue($zaznam[Sql::HODNOTA], $zaznam[Sql::DATOVY_TYP]);

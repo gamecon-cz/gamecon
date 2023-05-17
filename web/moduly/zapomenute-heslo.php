@@ -4,7 +4,8 @@ use Gamecon\Kanaly\GcMail;
 
 $this->blackarrowStyl(true);
 
-function obnovHesloUzivateli($uzivatel) {
+function obnovHesloUzivateli($uzivatel)
+{
     if (!$uzivatel) chyba('Chyba: Zadané uživatelské jméno nebo email neexistují.');
 
     // vygenerování nového hesla
@@ -48,16 +49,31 @@ if (post('mail')) {
 
     <h2>Vygenerovat nové heslo a zaslat na email</h2>
 
-    <strong>Znám svůj login:</strong>
-    <form method="post">
-        <input type="text" name="login">
-        <input type="submit" value="odeslat">
-    </form>
+    <?php
+    if (date('Y-m-d') === '2023-05-11') {
+        ?>
+        <div>
+            <strong>
+                Omlouváme se, do dnešní půlnoci Gamecon.cz neodesílá maily, takže Ti ani nepřijde email pro obnovu
+                hesla.
+                Zkus to prosím zítra.
+            </strong>
+        </div>
+        <?php
+    } else {
+        ?>
+        <strong>Znám svůj login:</strong>
+        <form method="post">
+            <input type="text" name="login">
+            <input type="submit" value="odeslat">
+        </form>
 
-    <strong>Znám svůj e-mail:</strong>
-    <form method="post">
-        <input type="text" name="mail">
-        <input type="submit" value="odeslat">
-    </form>
-
+        <strong>Znám svůj e-mail:</strong>
+        <form method="post">
+            <input type="text" name="mail">
+            <input type="submit" value="odeslat">
+        </form>
+        <?php
+    }
+    ?>
 </div>

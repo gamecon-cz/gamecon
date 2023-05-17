@@ -28,7 +28,7 @@ $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-botto
 $err  = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
-$shop      = $uPracovni ? new Shop($uPracovni, $nastaveni, $systemoveNastaveni) : null;
+$shop      = $uPracovni ? new Shop($uPracovni, $u, $nastaveni, $systemoveNastaveni) : null;
 
 include __DIR__ . '/_infopult_ovladac.php';
 
@@ -102,20 +102,17 @@ if ($uPracovni) {
         'prehledPredmetu' => $uPracovni->finance()->prehledHtml(
             $typyProPrehled,
             false,
-            $u->jeSpravceFinanci()
+            $u->jeSpravceFinanci(),
         ),
     ]);
 
-    $chybejiciUdaje = $uPracovni->chybejiciUdaje([
-        'jmeno_uzivatele'    => 'Jméno',
-        'prijmeni_uzivatele' => 'Příjmení',
-        'telefon_uzivatele'  => 'Telefon',
-        'email1_uzivatele'   => 'Email',
-    ]);
+    $chybejiciUdaje = $uPracovni->chybejiciUdaje(
+        Uzivatel::povinneUdajeProRegistraci($uPracovni->shop()->ubytovani()->maObjednaneUbytovani()),
+    );
     $x->assign(
         'udajeChybiText',
         count($chybejiciUdaje) > 0
-            ? $err . ' chybí osobní údaje ' . implode(', ', $chybejiciUdaje)
+            ? $err . ' chybí osobní údaje: <ul style="font-size: smaller">' . implode('', array_map(static fn(string $nazevUdaje) => '<li><i>' . mb_strtolower($nazevUdaje) . '</i></li>', $chybejiciUdaje)) . '</ul>'
             : $ok . ' osobní údaje v pořádku',
     );
 
@@ -125,14 +122,14 @@ if ($uPracovni) {
     if ($uPracovni->gcPrihlasen()) {
         if (!$uPracovni->gcPritomen()) {
             $x->assign('datMaterialyDisabled', '');
-        } elseif (!$uPracovni->gcOdjel()) {
+        } else if (!$uPracovni->gcOdjel()) {
             $x->assign('gcOdjedDisabled', '');
         }
     }
     if ($uPracovni) {
         if (!$uPracovni->gcPrihlasen() || $uPracovni->gcPritomen()) {
             $x->parse('infopult.odhlasitZGc.prihlasenyNepritomny');
-        } elseif ($uPracovni->gcPrihlasen() && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
+        } else if ($uPracovni->gcPrihlasen() && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
             $x->assign('odhlasDisabled', '');
         }
         $x->parse('infopult.odhlasitZGc');
@@ -159,7 +156,7 @@ if ($uPracovni) {
         if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok) {
             /* muze byt overeno rucne bez nahraneho dokladu */
             $x->assign("covidPotvrzeniText", $err . " požádej o doplnění");
-        } elseif (!$mameNahranyLetosniDokladProtiCovidu) {
+        } else if (!$mameNahranyLetosniDokladProtiCovidu) {
             /* potvrzeno rucne na infopultu, bez nahraneho dokladu */
             $x->assign("covidPotvrzeniAttr", 'checked value=""');
             $x->assign("covidPotvrzeniText", $ok . " ověřeno bez dokladu");
@@ -184,8 +181,8 @@ if ($uPracovni) {
             UbytovaniTabulka::ubytovaniTabulkaZ(
                 $shop->ubytovani(),
                 $systemoveNastaveni,
-                true
-            )
+                true,
+            ),
         );
     }
 
@@ -236,7 +233,7 @@ $o        = dbQuery(<<<SQL
   WHERE p.stav > 0
   GROUP BY p.id_predmetu, model_rok
   ORDER BY model_rok DESC, nazev
-SQL
+SQL,
 );
 $moznosti = '<option value="">(vyber)</option>';
 while ($r = mysqli_fetch_assoc($o)) {

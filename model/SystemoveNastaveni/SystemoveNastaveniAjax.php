@@ -3,6 +3,7 @@
 namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\SystemoveNastaveni\Exceptions\ChybnaHodnotaSystemovehoNastaveni;
+use \Uzivatel;
 
 class SystemoveNastaveniAjax
 {
@@ -11,28 +12,12 @@ class SystemoveNastaveniAjax
     public const VLASTNI_KLIC = 'vlastni';
     public const HODNOTA_KLIC = 'hodnota';
 
-    /**
-     * @var \Uzivatel
-     */
-    private $editujici;
-    /**
-     * @var SystemoveNastaveni
-     */
-    private $systemoveNastaveni;
-    /**
-     * @var SystemoveNastaveniHtml
-     */
-    private $systemoveNastaveniHtml;
-
     public function __construct(
-        SystemoveNastaveni     $systemoveNastaveni,
-        SystemoveNastaveniHtml $systemoveNastaveniHtml,
-        \Uzivatel              $editujici,
+        private readonly SystemoveNastaveni     $systemoveNastaveni,
+        private readonly SystemoveNastaveniHtml $systemoveNastaveniHtml,
+        private readonly Uzivatel               $editujici,
     )
     {
-        $this->systemoveNastaveni     = $systemoveNastaveni;
-        $this->systemoveNastaveniHtml = $systemoveNastaveniHtml;
-        $this->editujici              = $editujici;
     }
 
     public function zpracujPost(): bool
@@ -51,7 +36,7 @@ class SystemoveNastaveniAjax
                     $this->systemoveNastaveni->ulozZmenuHodnoty(trim($zmena[self::HODNOTA_KLIC]), $klic, $this->editujici);
                 }
                 if (array_key_exists(self::VLASTNI_KLIC, $zmena)) {
-                    $this->systemoveNastaveni->ulozZmenuPlatnosti(
+                    $this->systemoveNastaveni->ulozZmenuPriznakuVlastni(
                     // filter_var z "true" udělá true a z "false" udělá false
                         filter_var(trim($zmena[self::VLASTNI_KLIC]), FILTER_VALIDATE_BOOLEAN),
                         $klic,
