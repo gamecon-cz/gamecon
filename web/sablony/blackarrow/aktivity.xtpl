@@ -20,7 +20,7 @@
     </div>
     <!-- end: hlavickaVypravec -->
     <!-- begin: strankaNavod -->
-    <div class="chybaBlok-oznameni" style="padding: 1em">
+    <div style="padding: 1em; background-color: #B7E4B6">
         <span class="hinted">
             🙋
             <span class="hint">
