@@ -14,7 +14,7 @@ $ted = $systemoveNastaveni->ted();
 
 $sleep = $cas->getTimestamp() - $ted->getTimestamp();
 
-if ($sleep >= 300) {
+if ($sleep >= 80) {
     logs("Čas spuštění bude až za $sleep sekund. Necháme to až na příští běh CRONu.");
     return false;
 }
