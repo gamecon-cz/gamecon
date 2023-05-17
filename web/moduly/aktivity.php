@@ -6,7 +6,7 @@ use Gamecon\Aktivita\TypAktivity;
 /** @var Modul $this */
 /** @var Url $url */
 /** @var \Gamecon\XTemplate\XTemplate $t */
-/** @var Uzivatel $u */
+/** @var Uzivatel|null $u */
 /** @var Uzivatel|null|void $org */
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 /** @var null|\Gamecon\Aktivita\TypAktivity $typ */
@@ -130,7 +130,7 @@ if (!empty($org)) {
     $stranky = serazenePodle($typ->stranky(), 'poradi');
     $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
 
-    if (!$systemoveNastaveni->jsmeNaOstre() && $u->jeOrganizator()) {
+    if (!$systemoveNastaveni->jsmeNaOstre() && $u && $u->jeOrganizator()) {
         $t->assign('urlEditaceStranek', URL_ADMIN . '/web/editace-stranek');
         $t->assign('prikladUrlStranky', $typ->url() . '/nemas-zdani-co-je-k-mani');
         $t->parse('aktivity.strankaNavod');
