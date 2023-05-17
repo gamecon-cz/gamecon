@@ -319,7 +319,7 @@ trait DateTimeCzTrait
     }
 
     /** Vrací relativní formát času vůči současnému okamžiku */
-    public function relativni(\DateTimeImmutable $ted = null): string
+    public function relativni(\DateTimeInterface $ted = null): string
     {
         $rozdil = ($ted?->getTimestamp() ?? time()) - $this->getTimestamp();
         if ($rozdil < 0) {
