@@ -55,7 +55,7 @@ class GcMail
         $mail = (new Email())
             ->from('GameCon <info@gamecon.cz>')
             ->subject($this->predmet)
-            ->text($this->text);
+            ->html($this->text);
 
         $odeslano = false;
 
