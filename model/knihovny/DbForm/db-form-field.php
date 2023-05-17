@@ -42,6 +42,11 @@ abstract class DbFormField
         return $this->d['Field'];
     }
 
+    public function default()
+    {
+        return $this->d['Default'];
+    }
+
     /**
      * For given identifier $n returns name of post variable dedicated to this
      * class.

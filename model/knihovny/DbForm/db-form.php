@@ -34,6 +34,9 @@ class DbForm
         if (in_array($d['Type'], ['text', 'shorttext', 'mediumtext', 'longtext'])) {
             return new DbffText($d);
         }
+        if ($d['Type'] === 'tinyint(1)') {
+            return new DbffCheckbox($d);
+        }
         // fallback to string
         return new DbffString($d);
     }
@@ -85,12 +88,26 @@ class DbForm
         //TODO add one field to $this->postName to check in processPost
     }
 
+    public function loadDefaults()
+    {
+        foreach ($this->fields() as $f) {
+            $f->value($f->default());
+        }
+    }
+
     /**
      * Fills form with given database row $r (as associative array)
      */
-    public function loadRow($r)
+    public function loadRow($r, bool $strictlyAllColumns = true)
     {
         foreach ($this->fields() as $f) {
+            if (!array_key_exists($f->name(), $r)) {
+                if ($strictlyAllColumns) {
+                    throw new LogicException("Chybí hodnota pro sloupec '{$f->name()}'");
+                } else {
+                    continue;
+                }
+            }
             $f->value($r[$f->name()]);
         }
     }

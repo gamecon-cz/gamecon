@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Report\SqlStruktura\ReportyQuickSqlStruktura as QuickSql;
 
 /**
  * Stránka s linky na reporty
@@ -43,7 +44,7 @@ FROM (
 ) AS reporty
 LEFT JOIN reporty_log_pouziti ON reporty_log_pouziti.id = id_posledniho_logu
 ORDER BY reporty.nazev
-SQL
+SQL,
 );
 
 foreach ($univerzalniReporty as $r) {
@@ -71,6 +72,7 @@ SELECT reporty_quick.*,
        reporty_log_pouziti.casova_zona AS casova_zona_posledniho_pouziti
 FROM (
   SELECT reporty_quick.id, reporty_quick.nazev,
+         reporty_quick.format_xlsx, reporty_quick.format_html,
   COUNT(reporty_log_pouziti.id) AS pocet_pouziti,
   MAX(reporty_log_pouziti.id) AS id_posledniho_logu
   FROM reporty_quick
@@ -81,18 +83,24 @@ FROM (
 ) AS reporty_quick
 LEFT JOIN reporty_log_pouziti ON reporty_log_pouziti.id = id_posledniho_logu
 ORDER BY nazev
-SQL
+SQL,
 );
 foreach ($quickReporty as $r) {
     $pouziti = $pouzitiReportu($r);
     $kontext = [
-        'id'                         => $r['id'],
-        'nazev'                      => $r['nazev'],
+        'id'                         => $r[QuickSql::ID],
+        'nazev'                      => $r[QuickSql::NAZEV],
         'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
         'cas_posledniho_pouziti'     => $pouziti['cas_posledniho_pouziti'],
         'pocet_pouziti'              => $pouziti['pocet_pouziti'],
     ];
     $t->assign($kontext);
+    if ($r[QuickSql::FORMAT_HTML]) {
+        $t->parse('reporty.quick.html');
+    }
+    if ($r[QuickSql::FORMAT_XLSX]) {
+        $t->parse('reporty.quick.xlsx');
+    }
     $t->parse('reporty.quick');
 }
 

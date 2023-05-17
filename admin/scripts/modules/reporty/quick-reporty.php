@@ -37,6 +37,8 @@ $f = new DbFormGc('reporty_quick');
 if ($quickReportId) {
     $r = dbOneLine('SELECT * FROM reporty_quick WHERE id = $1', [$quickReportId]);
     $f->loadRow($r);
+} else {
+    $f->loadDefaults();
 }
 $saveResult = $f->processPost('quickReportValidation', false);
 if ($saveResult) {
