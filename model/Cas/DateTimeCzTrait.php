@@ -364,9 +364,18 @@ trait DateTimeCzTrait
         }
         $rozdilDni = $this->rozdilDni($ted ?? new static('now', $this->getTimezone()));
         if ($rozdilDni === '') { // do 24 hodin
-            return 'v ' . $this->format('G:i');
+            return $this->vPodleHodin() . ' ' . $this->format('G:i');
         }
         return $rozdilDni;
+    }
+
+    private function vPodleHodin(): string
+    {
+        $hodiny = $this->format('G');
+        return match (substr($hodiny, 0, 1)) {
+            '2', '3', '4', '5' => 've',
+            default => 'v',
+        };
     }
 
     /**

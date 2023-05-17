@@ -3,6 +3,7 @@
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\HromadneAkceAktivit;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Skript který je hostingem automaticky spouštěn jednou za hodinu. Standardní
@@ -14,6 +15,7 @@ require_once __DIR__ . '/cron/_cron_zavadec.php';
 /////////////////////////////////// příprava ///////////////////////////////////
 
 $logdir = SPEC . '/logs';
+(new Filesystem())->mkdir($logdir);
 
 // otestovat, že je skript volán s heslem a sprvánou url
 if (HTTPS_ONLY) {

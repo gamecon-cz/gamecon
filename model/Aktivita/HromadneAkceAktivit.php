@@ -30,8 +30,9 @@ class HromadneAkceAktivit
         if ($nejblizsiVlnaKdy > $ted) {
             throw new NevhodnyCasProAutomatickouHromadnouAktivaci(
                 sprintf(
-                    "Hromadná aktivace může být spuštěna nejdříve v '%s' podle nejbližší vlny.",
+                    "Hromadná aktivace může být spuštěna nejdříve v '%s' (%s) podle nejbližší vlny.",
                     $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
+                    $nejblizsiVlnaKdy->relativniVBudoucnu(),
                 )
             );
         }
