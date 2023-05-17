@@ -985,7 +985,7 @@ SQL,
         if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
             setcookie('gcTrvalePrihlaseni', '', 0, '/');
         }
-        oznameni("Byl$a jsi odhlášen$a");
+        oznameni("Byl$a jsi odhlášen$a", false);
         if ($naUvodniStranku) {
             back(URL_WEBU);
         }
