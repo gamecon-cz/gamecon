@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\SystemoveNastaveni;
 
+use Composer\Autoload\ClassLoader;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -26,6 +27,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         ?bool                   $jsmeNaBete = null,
         ?bool                   $jsmeNaLocale = null,
         ?bool                   $databazoveNastaveni = null,
+        ?string                 $projectRootDir = null,
     ): self
     {
         $jsmeNaBete ??= in_array(
@@ -37,7 +39,10 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             $ted,
             $jsmeNaBete ?? parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
             $jsmeNaLocale ?? parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost',
-            $databazoveNastaveni ?? DatabazoveNastaveni::vytvorZGlobals()
+            $databazoveNastaveni ?? DatabazoveNastaveni::vytvorZGlobals(),
+            $projectRootDir
+            ?? try_constant('PROJECT_ROOT_DIR')
+            ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..'
         );
     }
 
@@ -103,6 +108,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         private readonly bool                    $jsmeNaBete,
         private readonly bool                    $jsmeNaLocale,
         private readonly DatabazoveNastaveni     $databazoveNastaveni,
+        private readonly string                  $rootAdresarProjektu,
     )
     {
         if ($jsmeNaLocale && $jsmeNaBete) {
@@ -288,7 +294,7 @@ UPDATE systemove_nastaveni
 SET vlastni = $1
 WHERE klic = $2
 SQL,
-            [$vlastni ? 1 : 0 /* Aby nás nepotkalo "Incorrect integer value: '' for column aktivni" */, $klic],
+            [$vlastni ? 1 : 0 /* Aby nás nepotkalo "Incorrect integer value: '' for column vlastni" */, $klic],
         );
         dbQuery(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, vlastni)
@@ -530,6 +536,12 @@ SQL;
                     : DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
                         ->formatDatumDb(),
                 Klic::TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY               => 'vraceni zustatku GC ID:',
+                Klic::HROMADNE_ODHLASOVANI_1                          => DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
+                    ->formatDb(),
+                Klic::HROMADNE_ODHLASOVANI_2                          => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+                    ->formatDb(),
+                Klic::HROMADNE_ODHLASOVANI_3                          => DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
+                    ->formatDb(),
             ];
         }
         return $this->vychoziHodnoty;
@@ -803,7 +815,7 @@ SQL;
 
     public function prihlasovaciUdajeOstreDatabaze(): array
     {
-        $souborNastaveniOstra = PROJECT_ROOT_DIR . '/../ostra/nastaveni/nastaveni-produkce.php';
+        $souborNastaveniOstra = $this->rootAdresarProjektu . '/../ostra/nastaveni/nastaveni-produkce.php';
         if (!is_readable($souborNastaveniOstra)) {
             throw new \RuntimeException('Nelze přečíst soubor s nastavením ostré ' . $souborNastaveniOstra);
         }
@@ -831,5 +843,18 @@ SQL;
         return (bool)(defined('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI')
             ? POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI
             : $this->dejHodnotu('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI'));
+    }
+
+    public function prihlasovaciUdajeSoucasneDatabaze(): array
+    {
+        return [
+            'DBM_USER' => try_constant('DBM_USER'),
+            'DBM_PASS' => try_constant('DBM_PASS'),
+            'DB_USER'  => try_constant('DB_USER'),
+            'DB_PASS'  => try_constant('DB_PASS'),
+            'DB_NAME'  => try_constant('DB_NAME'),
+            'DB_SERV'  => try_constant('DB_SERV'),
+            'DB_PORT'  => try_constant('DB_PORT'),
+        ];
     }
 }

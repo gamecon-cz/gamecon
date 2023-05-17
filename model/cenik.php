@@ -35,6 +35,46 @@ class Cenik
         Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA   => 'modré tričko se slevou',
     ];
 
+    /**
+     * Sníží $cena o částku $sleva až do nuly. Změnu odečte i z $sleva.
+     */
+    public static function aplikujSlevu(&$cena, &$sleva): array
+    {
+        if ($sleva <= 0) { // nedělat nic
+            return ['cena' => $cena, 'sleva' => $sleva];
+        }
+        if ($sleva <= $cena) {
+            $cena  -= $sleva;
+            $sleva = 0;
+        } else { // $sleva > $cena
+            $sleva -= $cena;
+            $cena  = 0;
+        }
+        return ['cena' => $cena, 'sleva' => $sleva];
+    }
+
+    /**
+     * Konstruktor
+     * @param Uzivatel $u pro kterého uživatele se cena počítá
+     * @param int|float $sleva celková sleva získaná za pořádané aktivity
+     */
+    public function __construct(
+        private readonly Uzivatel           $u,
+                                            $sleva,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    )
+    {
+        if ($u->maPravo(Pravo::PLACKA_ZDARMA)) {
+            $this->slevaPlacky = 25;
+        }
+        if ($u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)) {
+            $this->jakychkoliTricekZdarma = 2;
+        }
+        if ((float)$sleva >= $systemoveNastaveni->modreTrickoZdarmaOd() && $u->maPravo(Pravo::MODRE_TRICKO_ZDARMA)) {
+            $this->modrychTricekZdarma = 1;
+        }
+    }
+
     public function cenaKostky(array $r): int
     {
         $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
@@ -69,46 +109,6 @@ class Cenik
             return false;
         }
         return (int)$letosniKostka->id() === (int)$r[PredmetySql::ID_PREDMETU];
-    }
-
-    /**
-     * Konstruktor
-     * @param Uzivatel $u pro kterého uživatele se cena počítá
-     * @param int|float $sleva celková sleva získaná za pořádané aktivity
-     */
-    public function __construct(
-        private readonly Uzivatel           $u,
-                                            $sleva,
-        private readonly SystemoveNastaveni $systemoveNastaveni,
-    )
-    {
-        if ($u->maPravo(Pravo::PLACKA_ZDARMA)) {
-            $this->slevaPlacky = 25;
-        }
-        if ($u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)) {
-            $this->jakychkoliTricekZdarma = 2;
-        }
-        if ((float)$sleva >= $systemoveNastaveni->modreTrickoZdarmaOd() && $u->maPravo(Pravo::MODRE_TRICKO_ZDARMA)) {
-            $this->modrychTricekZdarma = 1;
-        }
-    }
-
-    /**
-     * Sníží $cena o částku $sleva až do nuly. Změnu odečte i z $sleva.
-     */
-    public static function aplikujSlevu(&$cena, &$sleva): array
-    {
-        if ($sleva <= 0) { // nedělat nic
-            return ['cena' => $cena, 'sleva' => $sleva];
-        }
-        if ($sleva <= $cena) {
-            $cena  -= $sleva;
-            $sleva = 0;
-        } else { // $sleva > $cena
-            $sleva -= $cena;
-            $cena  = 0;
-        }
-        return ['cena' => $cena, 'sleva' => $sleva];
     }
 
     /**

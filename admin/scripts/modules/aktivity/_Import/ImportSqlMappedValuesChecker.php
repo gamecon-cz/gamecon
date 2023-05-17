@@ -512,7 +512,7 @@ SQL,
                 0 => $idLokace,
                 1 => $konec->formatDb(),
                 2 => $zacatek->formatDb(),
-                3 => $soucasnyTypAktivity::typyKterymNevadiSdileniMistnostiSJinymiTypy(),
+                3 => $soucasnyTypAktivity::typyKterymNevadiSdileniMistnostiSZadnymiTypy(),
                 4 => $soucasnyTypAktivity->nevadiMuSdileniMistnostiSeStejnymTypem()
                     ? $soucasnyTypAktivity->id()
                     : null,

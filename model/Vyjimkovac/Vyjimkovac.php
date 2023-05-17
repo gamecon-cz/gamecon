@@ -3,6 +3,8 @@
 namespace Gamecon\Vyjimkovac;
 
 use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
+use Tracy\BlueScreen;
+use Tracy\Helpers;
 
 /**
  * Třída starající se o zpracování, zobrazení a zaznamenávání výjimek a chyb
@@ -10,26 +12,35 @@ use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
 class Vyjimkovac implements Logovac
 {
 
-    private string $dbFile;
     private ?\EPDO $db               = null;
     private bool   $ukoncitPriNotice = true; // TODO nastavení zvenčí
     private int    $zobrazeni        = self::PLAIN;
+    private bool   $priZalogovaniOdeslatMailem = true;
 
     public const NIC    = 1;
     public const PLAIN  = 2;
     public const TRACY  = 3;
     public const PICARD = 4;
-    private array $emails;
 
-    public static function vytvorZGlobals(): self
+    public static function vytvorZGlobals(bool $novouInstanci = false): static
     {
-        return new self(SPEC . '/chyby.sqlite', PRIJEMCI_CHYB);
+        static $vyjimkovac;
+
+        if (!$novouInstanci && $vyjimkovac) {
+            return $vyjimkovac;
+        }
+
+        $novaInstance = new static(SPEC . '/chyby.sqlite', PRIJEMCI_CHYB);
+        if ($novouInstanci) {
+            return $novaInstance;
+        }
+        $vyjimkovac = $novaInstance;
+
+        return $vyjimkovac;
     }
 
-    public function __construct(string $dbFile, array $emails)
+    public function __construct(private readonly string $dbFile, private array $emails)
     {
-        $this->dbFile = $dbFile;
-        $this->emails = $emails;
     }
 
     /**
@@ -37,7 +48,6 @@ class Vyjimkovac implements Logovac
      */
     public function aktivuj()
     {
-
         register_shutdown_function(function () {
             // fatal errory
             $error = error_get_last();
@@ -46,7 +56,7 @@ class Vyjimkovac implements Logovac
             }
 
             $eException = new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
-            $eFixed     = \Tracy\Helpers::fixStack($eException);
+            $eFixed     = Helpers::fixStack($eException);
             $this->zpracuj($eFixed);
         });
         $this->markShutdownFunctionRegistered();
@@ -61,7 +71,7 @@ class Vyjimkovac implements Logovac
             }
 
             $eException = new \ErrorException($msg, 0, $typ, $file, $line);
-            $eFixed     = \Tracy\Helpers::fixStack($eException);
+            $eFixed     = Helpers::fixStack($eException);
             if ($this->zobrazeni == self::PICARD) {
                 $this->zaloguj($eFixed); // pouze log - necheme ukazovat Pickarda na warning
             } else {
@@ -160,6 +170,14 @@ class Vyjimkovac implements Logovac
         return $this->zobrazeni;
     }
 
+    public function priZalogovaniOdeslatMailem(bool $priZalogovaniOdeslatMailem = null): bool
+    {
+        if ($priZalogovaniOdeslatMailem !== null) {
+            $this->priZalogovaniOdeslatMailem = $priZalogovaniOdeslatMailem;
+        }
+        return $this->priZalogovaniOdeslatMailem;
+    }
+
     /**
      * Zobrazí public omluvnou stránku uživateli
      */
@@ -200,7 +218,7 @@ class Vyjimkovac implements Logovac
                 echo $e . "\n";
                 break;
             case self::TRACY :
-                (new \Tracy\BlueScreen)->render($e);
+                (new BlueScreen)->render($e);
                 if ($e instanceof \DbException) {
                     echo '<pre>', dbLastQ();
                 }
@@ -219,11 +237,13 @@ class Vyjimkovac implements Logovac
         }
     }
 
-    public function zaloguj(\Throwable $e)
+    public function zaloguj(\Throwable $throwable)
     {
-        VyjimkovacChyba::zVyjimky($e)
+        $vyjimkovacChyba = VyjimkovacChyba::zVyjimky($throwable)
             ->uloz($this->db());
-//            ->odesli($this->emails);
+        if ($this->priZalogovaniOdeslatMailem) {
+//            $vyjimkovacChyba->odesli($this->emails);
+        }
     }
 
 }

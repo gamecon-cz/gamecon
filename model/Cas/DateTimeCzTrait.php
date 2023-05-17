@@ -319,9 +319,9 @@ trait DateTimeCzTrait
     }
 
     /** Vrací relativní formát času vůči současnému okamžiku */
-    public function relativni(): string
+    public function relativni(\DateTimeInterface $ted = null): string
     {
-        $rozdil = time() - $this->getTimestamp();
+        $rozdil = ($ted?->getTimestamp() ?? time()) - $this->getTimestamp();
         if ($rozdil < 0) {
             return 'v budoucnosti';
         }
@@ -337,17 +337,51 @@ trait DateTimeCzTrait
         if ($rozdil < 60 * 60) {
             return 'před ' . round($rozdil / 60) . ' minutami';
         }
-        $dny = $this->rozdilDne(new static('now', $this->getTimezone()));
-        if (!$dny) { // dnes
+        $rozdilDni = $this->rozdilDni($ted ?? new static('now', $this->getTimezone()));
+        if (!$rozdilDni) { // do 24 hodin
             return $this->format('G:i');
         }
-        return $dny;
+        return $rozdilDni;
+    }
+
+    public function relativniVBudoucnu(\DateTimeInterface $ted = null): string
+    {
+        $rozdil = $this->getTimestamp() - ($ted?->getTimestamp() ?? time());
+        if ($rozdil < 0) {
+            return 'v minulosti';
+        }
+        if ($rozdil < 2) {
+            return "za okamžik";
+        }
+        if ($rozdil < 60) {
+            return "za $rozdil sekund";
+        }
+        if (round($rozdil / 60) === 1.0) {
+            return 'za minutu';
+        }
+        if ($rozdil < 60 * 60) {
+            return 'za ' . round($rozdil / 60) . ' minut';
+        }
+        $rozdilDni = $this->rozdilDni($ted ?? new static('now', $this->getTimezone()));
+        if ($rozdilDni === '') { // do 24 hodin
+            return $this->vPodleHodin() . ' ' . $this->format('G:i');
+        }
+        return $rozdilDni;
+    }
+
+    private function vPodleHodin(): string
+    {
+        $hodiny = $this->format('G');
+        return match (substr($hodiny, 0, 1)) {
+            '2', '3', '4', '5' => 've',
+            default => 'v',
+        };
     }
 
     /**
      * Vrátí „včera“, „předevčírem“, „pozítří“ apod. (místo dnes vrací emptystring)
      */
-    public function rozdilDne(\DateTimeInterface $od)
+    public function rozdilDni(\DateTimeInterface $od): string
     {
         $od   = clone $od;
         $od   = $od->setTime(0, 0); // nutné znulování času pro funkční porovnání počtu dní
@@ -371,6 +405,9 @@ trait DateTimeCzTrait
                 }
                 if ($diff < 5) {
                     return "za $diff dny";
+                }
+                if ($diff === 7) {
+                    return "za týden";
                 }
                 return "za $diff dní";
         }

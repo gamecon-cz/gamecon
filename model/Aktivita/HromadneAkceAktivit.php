@@ -30,8 +30,9 @@ class HromadneAkceAktivit
         if ($nejblizsiVlnaKdy > $ted) {
             throw new NevhodnyCasProAutomatickouHromadnouAktivaci(
                 sprintf(
-                    "Hromadná aktivace může být spuštěna nejdříve v '%s' podle nejbližší vlny.",
+                    "Hromadná aktivace může být spuštěna nejdříve v '%s' (%s) podle nejbližší vlny.",
                     $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
+                    $nejblizsiVlnaKdy->relativniVBudoucnu(),
                 )
             );
         }
@@ -43,11 +44,12 @@ class HromadneAkceAktivit
             throw new NaHromadnouAutomatickouAktivaciJePozde(
                 sprintf(
                     "Hromadná aktivace může být spuštěna nanejvýš den po platnosti.
-Platnost hromadné aktivace byla '%s', teď je '%s' a aktivaci současné vlny šlo pustit naposledy %s (v '%s')",
+Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktivaci současné vlny šlo pustit naposledy '%s' (%s)",
                     $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
+                    $nejblizsiVlnaKdy->relativni(),
                     $ted->format(DateTimeCz::FORMAT_DB),
-                    $naposledySloPustitKdy->relativni(),
                     $naposledySloPustitKdy->format(DateTimeCz::FORMAT_DB),
+                    $naposledySloPustitKdy->relativni(),
                 )
             );
         }
@@ -78,7 +80,7 @@ Platnost hromadné aktivace byla '%s', teď je '%s' a aktivaci současné vlny �
     public function hromadneAktivovatRucne(\Uzivatel $aktivujici, int $rocnik = null): int
     {
         $result                    = dbQuery(
-            'UPDATE akce_seznam SET stav=$0 WHERE stav=$1 AND rok=$2',
+            'UPDATE akce_seznam SET stav = $0 WHERE stav = $1 AND rok = $2',
             [0 => StavAktivity::AKTIVOVANA, 1 => StavAktivity::PRIPRAVENA, 2 => $rocnik],
         );
         $hromadneAktivovanoAktivit = (int)dbAffectedOrNumRows($result);
@@ -104,9 +106,9 @@ Platnost hromadné aktivace byla '%s', teď je '%s' a aktivaci současné vlny �
      */
     public function odemciTeamoveHromadne(\Uzivatel $odemykajici): int
     {
-        $o                       = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . Aktivita::HAJENI_TEAMU_HODIN . ' HOUR');
+        $zamcene                 = dbFetchAll('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . Aktivita::HAJENI_TEAMU_HODIN . ' HOUR');
         $odemcenoTymovychAktivit = 0;
-        while (list($aid, $uid) = mysqli_fetch_row($o)) {
+        foreach ($zamcene as [$aid, $uid]) {
             // uvolnění zámku je součástí odhlášení, pokud je sám -> done
             Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici, 'hromadne-odemceni-teamovych');
             $odemcenoTymovychAktivit++;

@@ -19,8 +19,8 @@ define('DB_SERV', 'sql.gamecon'); // Docker image s PHP a Apache "vidi" na druhy
 
 define('DBM_USER', 'root');
 define('DBM_PASS', 'root');
-define('DBM_NAME', 'gamecon');
-define('DBM_SERV', 'sql.gamecon');
+define('DB_NAME', 'gamecon');
+define('DB_SERV', 'sql.gamecon');
 ```
 - otevři si příkazový řádek
 - přejdi do složky s Gameconem
@@ -30,7 +30,7 @@ define('DBM_SERV', 'sql.gamecon');
 	- první puštění bude trvat dlouho, musí se stáhnout hodně souborů
 - otevři si ve svém prohlížeči adresu http://localhost/gamecon/web/
 	- hotovo!
-	
+
 Kdykoli později budeš chtít pustit Gamecon u sebe, spusť `docker-compose up` v adresáři s Gameconem.
 
 ### Připojení k databázi
@@ -85,11 +85,11 @@ Pokud už na svém počítači máš obsazený port 80, nebo port 13306, tak je 
 - v části `ports` je něco jako `80:80`, to levé číslo je port na tvém počítači a to tě zajímá (to pravé pak port, na kterém běží Apache v Dockeru)
 	- změň ho na co chceš, třeba `8080` pokud máš takový port volný (zjištíš spuštěním)
 	- vypni a zapni docker s Gameconem
-		- `Ctrl+C` v příkazové řádce, kde máš docker s Gameconem puštěný 
+		- `Ctrl+C` v příkazové řádce, kde máš docker s Gameconem puštěný
 		- `docker-compose up` v příkazové řádce v adresáři, kde máš Gamecon
 	- otevři si prohlížeč s adresou, do které nově přidáš změněný port, http://localhost:8080/gamecon/web/ (dej tam port, který jsi nastavil)
 
-Port `13306:3306` je pro připojení k SQL databázi z tvého počítače. Pokud ti tohle způsobuje konflikt v portech, tak zase změň levý port. Nebo jestli se k databázi připojovat nechceš, tak řádky s portem prostě smaž: 
+Port `13306:3306` je pro připojení k SQL databázi z tvého počítače. Pokud ti tohle způsobuje konflikt v portech, tak zase změň levý port. Nebo jestli se k databázi připojovat nechceš, tak řádky s portem prostě smaž:
 ```
 ports:
    - 13306:3306

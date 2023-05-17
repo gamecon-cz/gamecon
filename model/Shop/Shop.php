@@ -153,14 +153,12 @@ SQL,
 SELECT id_predmetu
 FROM shop_predmety
 WHERE model_rok = {$systemoveNastaveni->rocnik()}
-    AND (kategorie_predmetu NOT NULL OR typ IN ($typJidlo, $typPredmet, $typTricko))
+    AND (kategorie_predmetu IS NOT NULL OR typ IN ($typJidlo, $typPredmet, $typTricko))
     AND CASE typ
-            WHEN {$typJidlo} THEN nabizet_do != $2
-            WHEN {$typTricko} THEN nabizet_do != $3
-            WHEN {$typPredmet} THEN nabizet_do != $4
-            ELSE false
-        END
-        ELSE false
+        WHEN {$typJidlo} THEN nabizet_do != $2
+        WHEN {$typTricko} THEN nabizet_do != $3
+        WHEN {$typPredmet} THEN nabizet_do != $4
+        ELSE FALSE
     END
 SQL,
             [

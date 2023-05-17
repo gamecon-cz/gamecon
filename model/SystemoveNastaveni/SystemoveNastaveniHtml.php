@@ -19,11 +19,13 @@ class SystemoveNastaveniHtml
      */
     private $systemoveNastaveni;
 
-    public function __construct(SystemoveNastaveni $systemoveNastaveni) {
+    public function __construct(SystemoveNastaveni $systemoveNastaveni)
+    {
         $this->systemoveNastaveni = $systemoveNastaveni;
     }
 
-    public function zobrazHtml() {
+    public function zobrazHtml()
+    {
         $template = new XTemplate(__DIR__ . '/templates/systemove-nastaveni.xtpl');
 
         $template->assign('ajaxKlic', SystemoveNastaveniAjax::AJAX_KLIC);
@@ -33,7 +35,7 @@ class SystemoveNastaveniHtml
 
         $template->assign(
             'systemoveNastavenJsVerze',
-            md5_file(__DIR__ . '/../../admin/files/systemove-nastaveni.js')
+            md5_file(__DIR__ . '/../../admin/files/systemove-nastaveni.js'),
         );
 
         $zaznamyNastaveniProHtml = $this->dejZaznamyNastaveniProHtml();
@@ -64,7 +66,8 @@ class SystemoveNastaveniHtml
         $template->out('nastaveni');
     }
 
-    private function seskupPodleSkupin(array $zaznamy): array {
+    private function seskupPodleSkupin(array $zaznamy): array
+    {
         $zaznamyPodleSkupin = [];
         foreach ($zaznamy as $zaznam) {
             $zaznamyPodleSkupin[$zaznam['skupina']][] = $zaznam;
@@ -74,17 +77,19 @@ class SystemoveNastaveniHtml
                 $zaznamyJedneSkupiny,
                 static function (array $nejakyZaznam, array $jinyZaznam) {
                     return $nejakyZaznam['poradi'] <=> $jinyZaznam['poradi'];
-                }
+                },
             );
         }
         return $zaznamyPodleSkupin;
     }
 
-    private function klicKeZvyrazneni(): string {
+    private function klicKeZvyrazneni(): string
+    {
         return RemoveDiacritics::toConstantLikeName((string)get(self::ZVYRAZNI));
     }
 
-    private function vypisSkupinu(string $skupina, array $zaznamy, XTemplate $template, string $klicKeZvyrazneni) {
+    private function vypisSkupinu(string $skupina, array $zaznamy, XTemplate $template, string $klicKeZvyrazneni)
+    {
         $template->assign('nazevSkupiny', mb_ucfirst($skupina));
         $template->parse('nastaveni.skupina.nazev');
 
@@ -94,14 +99,15 @@ class SystemoveNastaveniHtml
             }
             $template->assign('zaznamClass', $zaznam[Sql::KLIC] === $klicKeZvyrazneni
                 ? 'zvyrazni'
-                : ''
+                : '',
             );
             $template->parse('nastaveni.skupina.zaznam');
         }
         $template->parse('nastaveni.skupina');
     }
 
-    private function dejHtmlInputType(string $datovyTyp) {
+    private function dejHtmlInputType(string $datovyTyp)
+    {
         switch (strtolower(trim($datovyTyp))) {
             case 'boolean' :
             case 'bool' :
@@ -122,7 +128,8 @@ class SystemoveNastaveniHtml
         }
     }
 
-    private function dejHtmlTagInputType(string $datovyTyp) {
+    private function dejHtmlTagInputType(string $datovyTyp)
+    {
         switch (strtolower(trim($datovyTyp))) {
             case 'date' :
                 return 'date';
@@ -139,7 +146,8 @@ class SystemoveNastaveniHtml
         }
     }
 
-    public function dejHtmlInputValue($hodnota, string $datovyTyp) {
+    public function dejHtmlInputValue($hodnota, string $datovyTyp)
+    {
         switch (strtolower(trim($datovyTyp))) {
             case 'date' :
                 return $hodnota
@@ -154,7 +162,8 @@ class SystemoveNastaveniHtml
         }
     }
 
-    public function dejZaznamyNastaveniProHtml(array $pouzeSTemitoKlici = null): array {
+    public function dejZaznamyNastaveniProHtml(array $pouzeSTemitoKlici = null): array
+    {
         $hodnotyNastaveni = $pouzeSTemitoKlici
             ? $this->systemoveNastaveni->dejZaznamyNastaveniPodleKlicu($pouzeSTemitoKlici)
             : $this->systemoveNastaveni->dejVsechnyZaznamyNastaveni();
@@ -185,12 +194,13 @@ class SystemoveNastaveniHtml
                 $zaznam['hodnotaDisplayClass']        = !$zaznam[Sql::VLASTNI]
                     ? 'display-none'
                     : '';
-            }
+            },
         );
         return $hodnotyNastaveni;
     }
 
-    public function zpracujPost(): bool {
+    public function zpracujPost(): bool
+    {
         $pozadavky = post(self::SYNCHRONNI_POST_KLIC);
         if (!$pozadavky) {
             return false;
@@ -208,12 +218,14 @@ class SystemoveNastaveniHtml
         return false;
     }
 
-    private function zkopirujOstrouDatabazi() {
+    private function zkopirujOstrouDatabazi()
+    {
         $kopieOstreDatabaze = KopieOstreDatabaze::createFromGlobals();
         $kopieOstreDatabaze->zkopirujOstrouDatabazi();
     }
 
-    private function exportujAnonymizovanouDatabazi() {
+    private function exportujAnonymizovanouDatabazi()
+    {
         $anonymizovanaDatabaze = AnonymizovanaDatabaze::vytvorZGlobals();
         $anonymizovanaDatabaze->obnov();
         $anonymizovanaDatabaze->exportuj();

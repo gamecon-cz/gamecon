@@ -11,6 +11,7 @@ class Tym
 
     private $a; // (primární) aktivita ke které tým patří
     private $r; // db řádek s aktivitou
+    private ?array $clenove = null;
 
     private static $aktivityId;
 
@@ -39,10 +40,11 @@ class Tym
         return array_search($this->a->id(), self::$aktivityId[$typ]) + 1;
     }
 
-    function clenove()
+    function clenove(): array
     {
-        if (!isset($this->clenove))
+        if (!isset($this->clenove)) {
             $this->clenove = $this->a->prihlaseni();
+        }
         return $this->clenove;
     }
 

@@ -20,6 +20,8 @@ class DateTimeGamecon extends DateTimeCz
     public const PORADI_HERNIHO_DNE_SOBOTA  = 3;
     public const PORADI_HERNIHO_DNE_NEDELE  = 4;
 
+    public const VYCHOZI_PLATNOST_HROMADNYCH_AKCI_ZPETNE = '-1 day';
+
     public static function poradiDneVTydnuPodleIndexuOdZacatkuGameconu(int $indexDneKZacatkuGc, int $rocnik = ROCNIK): int
     {
         $indexDneVuciStrede = $indexDneKZacatkuGc - 1;
@@ -269,6 +271,9 @@ class DateTimeGamecon extends DateTimeCz
         if ($rocnik < 2023) {
             return static::zDbFormatu("$rocnik-06-30 23:59:00");
         }
+        if ($rocnik === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_1')) {
+            return static::zDbFormatu(HROMADNE_ODHLASOVANI_1);
+        }
         return static::spocitejPrvniHromadneOdhlasovani($rocnik);
     }
 
@@ -282,6 +287,9 @@ class DateTimeGamecon extends DateTimeCz
         if ($rocnik < 2023) {
             return static::zDbFormatu("$rocnik-07-17 23:59:00");
         }
+        if ($rocnik === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_2')) {
+            return static::zDbFormatu(HROMADNE_ODHLASOVANI_2);
+        }
         return static::spocitejDruheHromadneOdhlasovani($rocnik);
     }
 
@@ -292,6 +300,9 @@ class DateTimeGamecon extends DateTimeCz
 
     public static function tretiHromadneOdhlasovani(int $rocnik = ROCNIK): DateTimeGamecon
     {
+        if ($rocnik === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_3')) {
+            return static::zDbFormatu(HROMADNE_ODHLASOVANI_3);
+        }
         return static::spocitejTretiHromadneOdhlasovani($rocnik);
     }
 
@@ -308,7 +319,7 @@ class DateTimeGamecon extends DateTimeCz
         \DateTimeInterface $platnostZpetne = null,
     ): DateTimeImmutableStrict
     {
-        $platnostZpetne = static::overenaPlatnostZpetne($systemoveNastaveni, $platnostZpetne);
+        $platnostZpetne = $platnostZpetne ?? static::overenaPlatnostZpetne($systemoveNastaveni);
 
         $prvniHromadneOdhlasovani = $systemoveNastaveni->prvniHromadneOdhlasovani();
         if ($prvniHromadneOdhlasovani >= $platnostZpetne) { // právě je nebo teprve bude
@@ -334,11 +345,30 @@ class DateTimeGamecon extends DateTimeCz
         if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
             return 2;
         }
-        if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
+        if ($systemoveNastaveni->tretiHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
             return 3;
         }
         throw new \LogicException(
             "Neznámé pořadí data hromadného odhlašování '{$casOdhlasovani->format(self::FORMAT_DB)}'"
+        );
+    }
+
+    public static function poradiVlny(
+        \DateTimeInterface $casVlny,
+        SystemoveNastaveni $systemoveNastaveni,
+    ): int
+    {
+        if ($systemoveNastaveni->prvniVlnaKdy()->getTimestamp() === $casVlny->getTimestamp()) {
+            return 1;
+        }
+        if ($systemoveNastaveni->druhaVlnaKdy()->getTimestamp() === $casVlny->getTimestamp()) {
+            return 2;
+        }
+        if ($systemoveNastaveni->tretiVlnaKdy()->getTimestamp() === $casVlny->getTimestamp()) {
+            return 3;
+        }
+        throw new \LogicException(
+            "Neznámé pořadí data vlny (hromadné aktivace aktivit) '{$casVlny->format(self::FORMAT_DB)}'"
         );
     }
 
@@ -352,12 +382,13 @@ class DateTimeGamecon extends DateTimeCz
     {
         $ted = $zdrojTed->ted();
         // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
-        $platnostZpetne = $platnostZpetne ?? $ted->modifyStrict('-1 day');
+        $platnostZpetne = $platnostZpetne ?? $ted->modifyStrict(self::VYCHOZI_PLATNOST_HROMADNYCH_AKCI_ZPETNE);
         if ($platnostZpetne > $ted) {
             throw new ChybnaZpetnaPlatnost(
                 sprintf(
-                    "Nelze použít platnost zpětně k datu '%s' když je teprve '%s'. Vyžadován čas v minulosti.",
+                    "Nelze použít platnost zpětně k datu '%s' (%s) když teď je teprve '%s'. Vyžadován čas v minulosti.",
                     $platnostZpetne->format(DateTimeCz::FORMAT_DB),
+                    $platnostZpetne->relativniVBudoucnu($ted),
                     $ted->format(DateTimeCz::FORMAT_DB),
                 )
             );

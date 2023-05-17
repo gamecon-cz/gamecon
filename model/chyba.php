@@ -13,12 +13,12 @@ class Chyba extends Exception
     public const OZNAMENI = 3;
     public const VALIDACE = 4;
 
-    private const COOKIE_ZIVOTNOST_SEKUND = 3;
+    protected const COOKIE_ZIVOTNOST_SEKUND = 3;
 
-    private const KLIC_CHYBY    = 'CHYBY_CLASS';
-    private const KLIC_VAROVANI = 'CHYBY_CLASS_VAROVANI';
-    private const KLIC_OZNAMENI = 'CHYBY_CLASS_OZNAMENI';
-    private const KLIC_VALIDACE = 'CHYBY_CLASS_VALIDACE';
+    protected const KLIC_CHYBY    = 'CHYBY_CLASS';
+    protected const KLIC_VAROVANI = 'CHYBY_CLASS_VAROVANI';
+    protected const KLIC_OZNAMENI = 'CHYBY_CLASS_OZNAMENI';
+    protected const KLIC_VALIDACE = 'CHYBY_CLASS_VALIDACE';
 
     /**
      * Vyvolá reload na volající stránku, která si chybu může vyzvednout pomocí
@@ -54,7 +54,7 @@ class Chyba extends Exception
         static::setCookie($cookieName, $zpravy, time() + static::COOKIE_ZIVOTNOST_SEKUND);
     }
 
-    private static function setCookie(string $cookieName, $value, int $ttl)
+    protected static function setCookie(string $cookieName, $value, int $ttl)
     {
         if ($value === '') {
             setcookie($cookieName, '', $ttl);
@@ -75,12 +75,12 @@ class Chyba extends Exception
         return (string)reset($chyby);
     }
 
-    private static function vyzvedniVsechnyChyby(): array
+    protected static function vyzvedniVsechnyChyby(): array
     {
         return static::vyzvedni(static::KLIC_CHYBY);
     }
 
-    private static function vyzvedni(string $cookieName): array
+    protected static function vyzvedni(string $cookieName): array
     {
         $hodnotaJson = $_COOKIE[$cookieName] ?? '';
         if ($hodnotaJson === '') {
@@ -95,12 +95,12 @@ class Chyba extends Exception
         return (array)$hodnota;
     }
 
-    private static function vyzvedniVsechnaOznameni(): array
+    protected static function vyzvedniVsechnaOznameni(): array
     {
         return static::vyzvedni(static::KLIC_OZNAMENI);
     }
 
-    private static function vyzvedniVsechnaVarovani(): array
+    protected static function vyzvedniVsechnaVarovani(): array
     {
         return static::vyzvedni(static::KLIC_VAROVANI);
     }
@@ -129,7 +129,7 @@ class Chyba extends Exception
         return static::vytvorHtmlZpravu($zpravyPodleTypu);
     }
 
-    private static function vytvorHtmlZpravu(array $zpravyPodleTypu): string
+    protected static function vytvorHtmlZpravu(array $zpravyPodleTypu): string
     {
         $zpravy                 = '';
         $chybaBlokId            = uniqid('chybaBlokId', true);

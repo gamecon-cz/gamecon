@@ -10,13 +10,15 @@ $cas = null;
         throw new RuntimeException("Chybí čas přes GET parametr 'cas'");
     }
 
+    global $systemoveNastaveni;
     try {
-        $cas = new DateTimeImmutable($casString);
+        $cas = $casString === 'now'
+            ? $systemoveNastaveni->ted()
+            : new DateTimeImmutable($casString);
     } catch (Exception $exception) {
         throw new RuntimeException("Chybný čas CRONu '$casString'");
     }
 
-    global $systemoveNastaveni;
     $ted = $systemoveNastaveni->ted();
     if (!empty($casovaTolerance) && $casovaTolerance instanceof DateInterval) {
         $ted = $ted->sub($casovaTolerance);

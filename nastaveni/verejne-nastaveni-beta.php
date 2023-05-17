@@ -19,6 +19,7 @@ define('BABEL_BINARKA', null);
  */
 @define('TESTING', true);
 @define('TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN', true);
+@define('TEST_HROMADNE_AKCE_AKTIVIT_CRONEM_PORAD', true);
 
 @define('PRODEJ_JIDLA_POZASTAVEN', false);
 

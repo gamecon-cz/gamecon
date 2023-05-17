@@ -8,33 +8,38 @@ class DbffMarkdown extends DbFormField
     private $oldVal;
     private $text;
 
-    function display() {
+    function display()
+    {
         return self::CUSTOM;
     }
 
-    function html() {
+    function html()
+    {
         $t = new XTemplate(__DIR__ . '/dbff-markdown.xtpl');
         $t->assign([
             'pnOldId' => $this->postName('oldVal'),
-            'oldId' => $this->value(),
-            'pnText' => $this->postName('text'),
-            'text' => htmlspecialchars(dbText($this->value())),
-            'mdText' => dbMarkdown($this->value()),
+            'oldId'   => $this->value(),
+            'pnText'  => $this->postName('text'),
+            'text'    => htmlspecialchars(dbText($this->value())),
+            'mdText'  => dbMarkdown($this->value()),
         ]);
         $t->parse('md');
         return $t->text('md');
     }
 
-    function loadPost() {
+    function loadPost()
+    {
         $this->oldVal = $this->postValue('oldVal');
-        $this->text = $this->postValue('text');
+        $this->text   = $this->postValue('text');
     }
 
-    function preInsert() {
+    function preInsert()
+    {
         $this->value(dbTextHash($this->text));
     }
 
-    function postInsert() {
+    function postInsert()
+    {
         $this->value(dbTextClean($this->oldVal));
     }
 

@@ -9,7 +9,7 @@ require_once __DIR__ . '/_cron_zavadec.php';
 
 $dnesniZalohaPattern = ZALOHA_DB_SLOZKA . '/export_' . date('Y-m-d_') . '[0-9][0-9][0-9][0-9][0-9][0-9].sql.gz';
 if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuDatabaze)) { // dnešní záloha databáze ještě neexistuje
-    logs(sprintf("Zálohuji databázi '%s'...", DBM_NAME));
+    logs(sprintf("Zálohuji databázi '%s'...", DB_NAME));
     $chybaZalohovaniDb = null;
     if (!defined('ZALOHA_DB_SLOZKA') || !ZALOHA_DB_SLOZKA) {
         $chybaZalohovaniDb = 'Není definována konstanta s adresářem pro zálohování ZALOHA_DB_SLOZKA.';
@@ -24,7 +24,7 @@ if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuD
             $dbBackupFile = ZALOHA_DB_SLOZKA . "/export_$time.sql.gz";
             $mysqldump    = NastrojeDatabaze::vytvorZGlobals()->vytvorMysqldumpHlavniDatabaze(['compress' => Mysqldump::GZIP]);
             $mysqldump->start($dbBackupFile);
-            logs("...záloha databáze dokončena do souboru $dbBackupFile");
+            logs("...záloha databáze dokončena do souboru $dbBackupFile", false);
             copy($dbBackupFile, ZALOHA_DB_SLOZKA . "/export_latest.sql.gz");
         } catch (\Throwable $throwable) {
             $chybaZalohovaniDb = 'Uložení zálohy na disk selhalo';

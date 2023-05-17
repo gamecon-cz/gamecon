@@ -12,6 +12,9 @@ class SystemoveNastaveniKlice
     public const PRVNI_VLNA_KDY                                               = 'PRVNI_VLNA_KDY';
     public const DRUHA_VLNA_KDY                                               = 'DRUHA_VLNA_KDY';
     public const TRETI_VLNA_KDY                                               = 'TRETI_VLNA_KDY';
+    public const HROMADNE_ODHLASOVANI_1                                       = 'HROMADNE_ODHLASOVANI_1';
+    public const HROMADNE_ODHLASOVANI_2                                       = 'HROMADNE_ODHLASOVANI_2';
+    public const HROMADNE_ODHLASOVANI_3                                       = 'HROMADNE_ODHLASOVANI_3';
     public const GC_BEZI_OD                                                   = 'GC_BEZI_OD';
     public const GC_BEZI_DO                                                   = 'GC_BEZI_DO';
     public const REG_GC_DO                                                    = 'REG_GC_DO';

@@ -8,8 +8,8 @@ use Gamecon\Kanaly\GcMail;
 
 class Zaznamnik
 {
-    private array $zpravy;
-    private array $entity;
+    private array $zpravy = [];
+    private array $entity = [];
 
     public function uchovejZEmailu(GcMail $mail)
     {

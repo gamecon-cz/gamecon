@@ -9,10 +9,11 @@ declare(strict_types=1);
 class ObchodMrizka extends \DbObject
 {
     protected static $tabulka = 'obchod_mrizky';
-    protected static $pk = 'id';
+    protected static $pk      = 'id';
 
     // TODO: mohlo by být součástí DbObject
-    public static function novy($array = null) {
+    public static function novy($array = null)
+    {
         dbInsertUpdate(static::$tabulka, array_replace(["id" => null, "text" => null], $array ?? []));
         $id = empty($array['id'])
             ? dbInsertId()
@@ -20,11 +21,13 @@ class ObchodMrizka extends \DbObject
         return static::zId($id);
     }
 
-    public function id($val = null): int {
+    public function id($val = null): int
+    {
         return (int)($this->getSetR('id', $val));
     }
 
-    public function text($val = null): string {
+    public function text($val = null): string
+    {
         return $this->getSetR('text', $val) ?: "";
     }
 }

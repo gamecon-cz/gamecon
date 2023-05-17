@@ -264,7 +264,7 @@ SQL,
     COALESCE(SUM(IF(uzivatele.pohlavi='m',1,0)), 0) as Muži,
     COALESCE(SUM(IF(uzivatele.pohlavi='f',1,0)), 0) as Ženy,
     COALESCE(ROUND(SUM(IF(uzivatele.pohlavi='f',1,0))/COUNT(1),2), 0) as Poměr
-    FROM uzivatele_role AS uzivatele_role
+    FROM uzivatele_role
     JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_role.id_uzivatele=uzivatele.id_uzivatele
     WHERE uzivatele_role.id_role = $0
 SQL,

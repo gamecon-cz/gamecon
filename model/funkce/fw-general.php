@@ -347,3 +347,11 @@ function try_define(string $constantName, $value)
         define($constantName, $value);
     }
 }
+
+function try_constant(string $constantName)
+{
+    if (defined($constantName)) {
+        return constant($constantName);
+    }
+    return null;
+}

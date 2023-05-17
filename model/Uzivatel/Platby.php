@@ -18,6 +18,8 @@ class Platby
 
     private const SKUPINA = 'patby';
 
+    private ?DateTimeInterface $posledniAktulizacePlatebBehemSessionKdy = null;
+
     public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
     {
     }
@@ -102,9 +104,8 @@ class Platby
 
     public function nejakeNesparovanePlatby(?int $rok = ROCNIK): bool
     {
-        return dbOneCol(<<<SQL
-            SELECT 1
-            WHERE EXISTS(SELECT * FROM platby WHERE id_uzivatele IS NULL AND IF ($0, rok = $0, TRUE))
+        return (bool)dbOneCol(<<<SQL
+            SELECT EXISTS(SELECT * FROM platby WHERE id_uzivatele IS NULL AND IF ($0, rok = $0, TRUE)) AS existuji_nesparovane_platby
             SQL,
             [0 => $rok],
         );
@@ -137,4 +138,18 @@ class Platby
             $provedl,
         );
     }
+
+    public function platbyBylyAktualizovanyPredChvili(): bool
+    {
+        return $this->posledniAktulizacePlatebBehemSessionKdy !== null
+            && ($this->posledniAktulizacePlatebBehemSessionKdy->getTimestamp() + 30) > time();
+    }
+
+    public function nastavPosledniAktulizaciPlatebBehemSessionKdy(
+        DateTimeInterface $posledniAktulizacePlatebBehemSessionKdy,
+    )
+    {
+        $this->posledniAktulizacePlatebBehemSessionKdy = $posledniAktulizacePlatebBehemSessionKdy;
+    }
+
 }
