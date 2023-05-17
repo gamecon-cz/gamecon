@@ -13,4 +13,4 @@ jobs:
       - name: Call production Gamecon CRON script
         run: curl --fail-with-body https://admin.gamecon.cz/cron.php?job=aktivity_hromadne&cas=now&key=${{ secrets.OSTRA_CRON_KEY }}
       - name: Call beta Gamecon CRON script
-        run: curl --fail-with-body https://admin.beta.gamecon.cz/cron.php?job=aktivity_hromadne&cas=now&key=${{ secrets.BETA_CRON_KEY }}
+        run: echo disabled curl --fail-with-body https://admin.beta.gamecon.cz/cron.php?job=aktivity_hromadne&cas=now&key=${{ secrets.BETA_CRON_KEY }}
