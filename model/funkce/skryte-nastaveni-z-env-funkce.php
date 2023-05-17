@@ -16,7 +16,7 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni)
         $DB_ANONYM_NAME         = getenv('DB_ANONYM_NAME');
         $MIGRACE_HESLO          = getenv('MIGRACE_HESLO');
         $SECRET_CRYPTO_KEY      = getenv('SECRET_CRYPTO_KEY');
-        $CRON_KEY               = getenv('CRON_KEY');
+        $CRON_KEY               = getenv('CRON_KEY'); // pozor změnu je nutné provést i v https://console.cron-job.org
         $GOOGLE_API_CREDENTIALS = getenv('GOOGLE_API_CREDENTIALS') ?: '{}';
         $FIO_TOKEN              = getenv('FIO_TOKEN');
         $MAILER_DSN             = getenv('MAILER_DSN');
@@ -46,7 +46,8 @@ define('DB_ANONYM_NAME', '$DB_ANONYM_NAME');
 define('MIGRACE_HESLO', '$MIGRACE_HESLO');
 define('SECRET_CRYPTO_KEY', '$SECRET_CRYPTO_KEY');
 
-define('CRON_KEY', '$CRON_KEY');
+define('CRON_KEY', '$CRON_KEY'); // pozor změnu CRON_KEY je nutné provést i v https://console.cron-job.org
+
 define('GOOGLE_API_CREDENTIALS', json_decode('$GOOGLE_API_CREDENTIALS', true));
 
 define('FIO_TOKEN', '$FIO_TOKEN'); // platnost do 11.9.2030

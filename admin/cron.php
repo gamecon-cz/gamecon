@@ -18,6 +18,7 @@ if (HTTPS_ONLY) {
     httpsOnly();
 }
 
+// pozor změnu CRON_KEY je nutné provést i v https://console.cron-job.org
 if (!defined('CRON_KEY') || get('key') !== CRON_KEY) {
     die('špatný klíč');
 }

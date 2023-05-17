@@ -52,6 +52,7 @@ jobs:
           DBM_PASS: ${{ secrets.BETA_DBM_PASS }}
           MIGRACE_HESLO: ${{ secrets.BETA_MIGRACE_HESLO }}
           SECRET_CRYPTO_KEY: ${{ secrets.BETA_SECRET_CRYPTO_KEY }}
+#         pozor změnu CRON_KEY je nutné provést i v https://console.cron-job.org
           CRON_KEY: ${{ secrets.BETA_CRON_KEY }}
           GOOGLE_API_CREDENTIALS: ${{ secrets.BETA_GOOGLE_API_CREDENTIALS }}
           FIO_TOKEN: ${{ secrets.BETA_FIO_TOKEN }}
