@@ -7,60 +7,69 @@
     margin: 1em 0;
     display: inline-block;
   }
+
   #bfgr .hint::after {
     content: " 🧙";
   }
 </style>
 
 <table class="zvyraznovana">
-  <tr>
-    <th colspan="2">Report</th>
-    <th colspan="2">Formáty</th>
-  </tr>
-  <!-- begin: report -->
-  <tr>
-    <td>{nazev}</td>
-    <td>
+    <tr>
+        <th colspan="2">Report</th>
+        <th colspan="2">Formáty</th>
+    </tr>
+    <!-- begin: report -->
+    <tr>
+        <td>{nazev}</td>
+        <td>
       <span class="hinted">i
         <span class="hint">
             poslední použití {jmeno_posledniho_uzivatele} {cas_posledniho_pouziti}<br>
             celkem použito {pocet_pouziti}✕
         </span>
       </span>
-    </td>
-    <td>{xlsx}</td>
-    <td>{html}</td>
-  </tr>
-  <!-- end: report -->
+        </td>
+        <td>{xlsx}</td>
+        <td>{html}</td>
+    </tr>
+    <!-- end: report -->
 </table>
 
 <h2>
-  Quick reporty
-  <span class="hinted">ℹ<span class="hint">tyto reporty samy náhodně mizí a nelze tomu zabránit. Proto není možné na ně spoléhat</span></span>
+    Quick reporty
+    <span class="hinted">ℹ<span class="hint">tyto reporty samy náhodně mizí a nelze tomu zabránit. Proto není možné na ně spoléhat</span></span>
 </h2>
 
 <table class="zvyraznovana">
-  <tr>
-    <th colspan="2">Report</th>
-    <th colspan="2">Formáty</th>
-    <th></th>
-  </tr>
-  <!-- begin: quick -->
-  <tr>
-    <td>{nazev}</td>
-    <td>
+    <tr>
+        <th colspan="2">Report</th>
+        <th colspan="2">Formáty</th>
+        <th></th>
+    </tr>
+    <!-- begin: quick -->
+    <tr>
+        <td>{nazev}</td>
+        <td>
       <span class="hinted">i
         <span class="hint">
             poslední použití {jmeno_posledniho_uzivatele} {cas_posledniho_pouziti}<br>
             celkem použito {pocet_pouziti}✕
         </span>
       </span>
-    </td>
-    <td><a href="reporty/quick?id={id}&format=xlsx" target="_blank">xlsx</a></td>
-    <td><a href="reporty/quick?id={id}&format=html" target="_blank">html</a></td>
-    <td><a href="reporty/quick-reporty?id={id}" class="tlacitko">upravit</a></td>
-  </tr>
-  <!-- end: quick -->
+        </td>
+        <td>
+            <!-- begin: xlsx -->
+            <a href="reporty/quick?id={id}&format=xlsx" target="_blank">xlsx</a>
+            <!-- end: xlsx -->
+        </td>
+        <td>
+            <!-- begin: html -->
+            <a href="reporty/quick?id={id}&format=html" target="_blank">html</a>
+            <!-- end: html -->
+        </td>
+        <td><a href="reporty/quick-reporty?id={id}" class="tlacitko">upravit</a></td>
+    </tr>
+    <!-- end: quick -->
 </table>
 
 <!-- end: reporty -->

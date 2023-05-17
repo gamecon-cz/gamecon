@@ -1,13 +1,10 @@
 <?php
 
-foreach ([
-             'db-form',
-             'db-form-field',
-             'dbff-pkey',
-             'dbff-string',
-             'dbff-text',
-         ] as $f) {
-    require __DIR__ . '/knihovny/DbForm/' . $f . '.php';
+foreach (scandir(__DIR__ . '/knihovny/DbForm') ?: [] as $folder) {
+    $folderFullPath = __DIR__ . '/knihovny/DbForm/' . $folder;
+    if (is_file($folderFullPath) && str_ends_with($folderFullPath, '.php')) {
+        require_once $folderFullPath;
+    }
 }
 
 class DbFormGc extends DbForm
