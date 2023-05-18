@@ -202,13 +202,13 @@ class SystemoveNastaveni {
    * @param {HTMLInputElement} inputNode
    */
   zobrazZmeny(novaData, inputNode) {
-    const posledniZmenaElement = document.getElementById(`posledni-zmena-${novaData.klic}`)
+    const posledniZmenaElement = this.getElementById(`posledni-zmena-${novaData.klic}`)
     posledniZmenaElement.innerHTML = novaData.posledniZmena
 
-    const zmenilElement = document.getElementById(`zmenil-${novaData.klic}`)
+    const zmenilElement = this.getElementById(`zmenil-${novaData.klic}`)
     zmenilElement.innerHTML = novaData.zmenil
 
-    const popisElement = document.getElementById(`popis-${novaData.klic}`)
+    const popisElement = this.getElementById(`popis-${novaData.klic}`)
     popisElement.innerHTML = novaData.popis
 
     if (inputNode.type === 'checkbox') {
@@ -217,19 +217,31 @@ class SystemoveNastaveni {
   }
 
   /**
+   * @param {string} id
+   * @return {HTMLElement}
+   */
+  getElementById(id) {
+    var element = document.getElementById(id)
+    if (element === null) {
+      throw new Error(`No element by ID '${id}'`)
+    }
+    return element
+  }
+
+  /**
    * @param {boolean} vlastni
    * @param {string} klic
    */
   zobrazHodnotuPodleAktivity(vlastni, klic) {
     if (vlastni) {
-      const vychoziHodnotaNode = document.getElementById(`vychozi-hodnota-${klic}`)
+      const vychoziHodnotaNode = this.getElementById(`vychozi-hodnota-${klic}`)
       vychoziHodnotaNode.style.display = 'none'
-      const hodnotaNode = document.getElementById(`hodnota-${klic}`)
+      const hodnotaNode = this.getElementById(`hodnota-${klic}`)
       hodnotaNode.style.display = 'inherit'
     } else {
-      const vychoziHodnotaNode = document.getElementById(`vychozi-hodnota-${klic}`)
+      const vychoziHodnotaNode = this.getElementById(`vychozi-hodnota-${klic}`)
       vychoziHodnotaNode.style.display = 'inherit'
-      const hodnotaNode = document.getElementById(`hodnota-${klic}`)
+      const hodnotaNode = this.getElementById(`hodnota-${klic}`)
       hodnotaNode.style.display = 'none'
     }
   }
