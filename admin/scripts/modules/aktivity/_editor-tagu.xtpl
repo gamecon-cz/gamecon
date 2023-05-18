@@ -153,6 +153,7 @@
         complete: validateErrorsAndRemoveLoader
       });
     });
+    document.addEventListener('otevrenEditorTagu', resetTagEditorValues)
   })(jQuery)
 </script>
 <!-- end:editorTagu -->
