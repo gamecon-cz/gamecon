@@ -122,12 +122,14 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
             Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici, 'hromadne-odemceni-teamovych');
             $odemcenoTymovychAktivit++;
         }
-        $this->zalogujHromadnouAkci(
-            self::SKUPINA_AKTIVITY,
-            $this->nazevAkceHromadnehoOdemceniTeamovych(),
-            $odemcenoTymovychAktivit,
-            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
-        );
+        if ($odemcenoTymovychAktivit > 0) {
+            $this->zalogujHromadnouAkci(
+                self::SKUPINA_AKTIVITY,
+                $this->nazevAkceHromadnehoOdemceniTeamovych(),
+                $odemcenoTymovychAktivit,
+                \Uzivatel::zId(\Uzivatel::SYSTEM, true),
+            );
+        }
 
         return $odemcenoTymovychAktivit;
     }
