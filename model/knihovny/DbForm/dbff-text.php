@@ -10,7 +10,7 @@ class DbffText extends DbFormField
     {
         return
             '<textarea name="' . $this->postName() . '">' .
-            htmlspecialchars($this->value() ?? '') .
+            htmlspecialchars((string)$this->value()) .
             '</textarea>';
     }
 
