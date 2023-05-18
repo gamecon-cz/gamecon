@@ -18,7 +18,7 @@ use Gamecon\Aktivita\HromadneAkceAktivit;
  * submenu_nazev: Přehled Aktivit
  *
  * @var Uzivatel $u
- * @var SystemoveNastaveni $ystemoveNastaveni
+ * @var SystemoveNastaveni $systemoveNastaveni
  */
 
 if (post('smazat')) {
@@ -62,7 +62,8 @@ if (post('aktivovat')) {
 }
 
 if (post('aktivovatVse') && $u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT)) {
-    (new HromadneAkceAktivit($ystemoveNastaveni))->hromadneAktivovatRucne($u);
+    $hromadneAktivovano = (new HromadneAkceAktivit($systemoveNastaveni))->hromadneAktivovatRucne($u);
+    oznameni("Hromadně aktivováno $hromadneAktivovano aktivit");
     back();
 }
 
