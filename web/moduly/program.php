@@ -51,7 +51,9 @@ $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-po
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
 $zacatekPristiVlnyOd       = $systemoveNastaveni->pristiVlnaKdy();
-$zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd->getTimestamp() - $systemoveNastaveni->ted()->getTimestamp();
+$zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
+    ? $zacatekPristiVlnyOd->getTimestamp() - $systemoveNastaveni->ted()->getTimestamp()
+    : null;
 
 $legendaText   = Stranka::zUrl('program-legenda-text')->html();
 $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
@@ -143,7 +145,7 @@ $zobrazitMujProgramOdkaz = isset($u);
 
     programPosuv(document.querySelector('.programPosuv_obal2'))
 
-    <?php if ($zacatekPristiVlnyZaSekund > 3) { // nebudeme auto-refreshovat lidem co mačkají F5
+    <?php if ($zacatekPristiVlnyZaSekund !== null && $zacatekPristiVlnyZaSekund > 3) { // nebudeme auto-refreshovat lidem co mačkají F5
     $zacatekPristiVlnyZaMilisekund = $zacatekPristiVlnyZaSekund * 1000;
     /* protože by to mohlo přetéct 2^32 -1 */
     if ($zacatekPristiVlnyZaMilisekund <= 2147483647) { ?>

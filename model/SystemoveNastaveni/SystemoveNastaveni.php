@@ -201,7 +201,7 @@ SQL,
                     : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
                 'PRISTI_VLNA_AKTIVIT_KDY'      => defined('PRISTI_VLNA_AKTIVIT_KDY')
                     ? PRISTI_VLNA_AKTIVIT_KDY
-                    : self::pristiVlnaKdy(),
+                    : self::pristiVlnaKdy()?->formatDb(),
             ];
         }
         return $this->odvozeneHodnoty;
