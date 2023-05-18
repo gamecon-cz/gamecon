@@ -190,8 +190,11 @@ class Obrazek
             if ($url === $soubor) {
                 $errorMessage .= sprintf(", velikost zdrojového souboru je %d bajtů", filesize($url));
             }
-            $errorMessage .= sprintf(", detail '%s'", (error_get_last()['message'] ?? ''));
-            throw new ObrazekException($errorMessage);
+            $detailErroru = error_get_last()['message'] ?? '';
+            if ($detailErroru !== '') {
+                $errorMessage .= sprintf(", detail '%s'", $detailErroru);
+            }
+            throw new ObrazekException($errorMessage, $soubor === null);
         }
         if ($typ === IMAGETYPE_JPEG) $o = @imagecreatefromjpeg($url);
         if ($typ === IMAGETYPE_PNG) $o = @imagecreatefrompng($url);
@@ -205,7 +208,8 @@ class Obrazek
                     IMAGETYPE_JPEG,
                     IMAGETYPE_PNG,
                     IMAGETYPE_GIF,
-                )
+                ),
+                $soubor === null,
             );
         }
         return new self($o, $soubor ?: $url);
@@ -215,4 +219,14 @@ class Obrazek
 
 class ObrazekException extends \RuntimeException
 {
+    public function __construct(string $message, protected readonly bool $zUrl, int $code = 0, ?Throwable $previous = null)
+    {
+        parent::__construct($message, $code, $previous);
+    }
+
+    public function zUrl(): bool
+    {
+        return $this->zUrl;
+    }
+
 }

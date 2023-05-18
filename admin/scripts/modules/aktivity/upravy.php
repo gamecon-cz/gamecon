@@ -27,10 +27,12 @@ try {
             back();
         }
     }
-} catch (ObrazekException $e) {
-    $vyjimkovac->zaloguj($e);
+} catch (ObrazekException $obrazekException) {
+    if (!$obrazekException->zUrl()) {
+        $vyjimkovac->zaloguj($obrazekException);
+    }
     if (get('aktivitaId')) {
-        chyba('Obrázek nelze přečíst.');
+        chyba('Obrázek nelze přečíst: ' . $obrazekException->getMessage());
     } else {
         oznameni('Aktivita vytvořena.', false); // hack - obrázek selhal, ale zbytek nejspíš prošel, vypíšeme úspěch
         back('aktivity');
