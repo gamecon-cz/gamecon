@@ -53,9 +53,9 @@ class GcMail
     public function odeslat()
     {
         $mail = (new Email())
-            ->from("GameCon <{$this->systemoveNastaveni->kontaktniEmailGc()}>")
-            ->subject($this->predmetPodleProstredi())
-            ->html($this->textPodleProstredi());
+            ->from($this->pridejPrefixPodleProstredi("GameCon <{$this->systemoveNastaveni->kontaktniEmailGc()}>"))
+            ->subject($this->pridejPrefixPodleProstredi($this->dejPredmet()))
+            ->html($this->pridejPrefixPodleProstredi($this->dejText()));
 
         $odeslano = false;
 
@@ -78,23 +78,17 @@ class GcMail
         return $odeslano;
     }
 
-    private function predmetPodleProstredi(): string
-    {
-        return $this->pridejPrefixPodleProstredi($this->dejPredmet());
-    }
-
-    private function pridejPrefixPodleProstredi(string $text)
+    private function pridejPrefixPodleProstredi(string $text): string
     {
         $prefix = $this->systemoveNastaveni->prefixPodleProstredi();
 
-        return $prefix === ''
-            ? $text
-            : ($prefix . ' ' . $text);
-    }
-
-    private function textPodleProstredi(): string
-    {
-        return $this->pridejPrefixPodleProstredi($this->dejText());
+        if ($prefix === '') {
+            return $text;
+        }
+        if (preg_match('~^\s*<html>\s*<body>~i', $text)) {
+            return preg_replace('~^\s*<html>\s*<body>~i', '$0' . $prefix . ' ', $text);
+        }
+        return $prefix . ' ' . $text;
     }
 
     private function mailerTransport(): Transport\TransportInterface
