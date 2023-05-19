@@ -137,7 +137,7 @@ SQL,
             return;
         } catch (\DbException $dbException) {
             if (in_array($dbException->getCode(), [1146 /* table does not exist */, 1054 /* new column does not exist */])) {
-                if ((new SqlMigrace())->nejakeMigraceKeSpusteni()) {
+                if ((new SqlMigrace($this))->nejakeMigraceKeSpusteni()) {
                     return; // tabulka či sloupec musí vzniknout SQL migrací
                 }
                 // else například jsme si na lokál stáhli příliš novou databázi
