@@ -125,6 +125,11 @@ SQL,
         );
     }
 
+    public static function zaokouhli($cena): float
+    {
+        return round((float)$cena, 2);
+    }
+
     /**
      * @param \Uzivatel $u uživatel, pro kterého se finance sestavují
      * @param float $zustatek zůstatek na účtu z minulých GC
@@ -169,10 +174,11 @@ SQL,
 
         $this->logb('Celková cena', $cena, self::CELKOVA);
 
-        $this->stav = round(
+        $this->stav = self::zaokouhli(
             -$cena
             + $this->sumaPlateb()
-            + $this->zustatekZPredchozichRocniku, 2);
+            + $this->zustatekZPredchozichRocniku,
+        );
 
         $this->logb('Aktivity', $this->cenaAktivit, self::AKTIVITY);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
@@ -274,7 +280,7 @@ SQL,
     private function formatujProLog($nazev, $castka, $kategorie = null, $idPolozky = null): array
     {
         if (is_numeric($castka)) {
-            $castka = round($castka);
+            $castka = self::zaokouhli($castka);
         }
         return [
             'nazev'      => $nazev,
@@ -289,6 +295,7 @@ SQL,
      */
     private function logb($nazev, $castka, $kategorie = null, $idPolozky = null)
     {
+        $castka = self::zaokouhli($castka);
         $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie, $idPolozky);
     }
 
@@ -692,7 +699,7 @@ SQL,
                 $sumaPlateb += (float)$row['cena'];
                 $this->log($row['nazev'], $row['cena'], self::PLATBA);
             }
-            $this->sumyPlatebVRocich[$rok] = round($sumaPlateb, 2);
+            $this->sumyPlatebVRocich[$rok] = self::zaokouhli($sumaPlateb);
         }
         return $this->sumyPlatebVRocich[$rok];
     }

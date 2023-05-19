@@ -11,6 +11,7 @@ use Rikudou\Iban\Iban\CzechIbanAdapter;
 use Rikudou\Iban\Iban\IBAN;
 use Rikudou\Iban\Iban\IbanInterface;
 use SepaQr\Data;
+use Gamecon\Uzivatel\Finance;
 
 class QrPlatba
 {
@@ -123,7 +124,7 @@ class QrPlatba
         $this->iban                = $iban;
         $this->bic                 = $bic;
         $this->variabilniSymbol    = $variabilniSymbol;
-        $this->castka              = round($castka, 2);
+        $this->castka              = Finance::zaokouhli($castka);
         $this->kodMeny             = $kodMeny;
         $this->jmenoPrijemcePlatby = $jmenoPrijemcePlatby;
         $this->datumSplatnosti     = $datumSplatnosti ?? new \DateTimeImmutable(); // dnes
