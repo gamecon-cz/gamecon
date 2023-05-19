@@ -145,24 +145,6 @@ class Cenik
     }
 
     /**
-     * Sníží $cena o částku $sleva až do nuly. Změnu odečte i z $sleva.
-     */
-    public static function aplikujSlevu(&$cena, &$sleva): array
-    {
-        if ($sleva <= 0) { // nedělat nic
-            return ['cena' => $cena, 'sleva' => $sleva];
-        }
-        if ($sleva <= $cena) {
-            $cena  -= $sleva;
-            $sleva = 0;
-        } else { // $sleva > $cena
-            $sleva -= $cena;
-            $cena  = 0;
-        }
-        return ['cena' => $cena, 'sleva' => $sleva];
-    }
-
-    /**
      * Vrátí pole s popisy obecných slev uživatele (typicky procentuálních na
      * aktivity)
      * @todo možnost (zvážit) použití objektu Sleva, který by se uměl aplikovat
