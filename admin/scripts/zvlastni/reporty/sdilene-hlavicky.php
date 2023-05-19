@@ -6,6 +6,7 @@ use Gamecon\Cas\DateTimeCz;
 /**
  * @var Uzivatel $u
  * @var string $podstranka
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 if (!$u->maPravo(Pravo::ADMINISTRACE_REPORTY)) {
     die('Nemáš právo ' . Pravo::ADMINISTRACE_REPORTY . ' nutné k zobrazení reportů.');
@@ -33,7 +34,7 @@ SQL,
             2 => $format,
             3 => $nyni->formatDb(),
             4 => $nyni->getTimezone()->getName(),
-        ]
+        ],
     );
 } catch (DbException $exception) {
     trigger_error($exception->getMessage() . PHP_EOL . $GLOBALS['dbLastQ'] . PHP_EOL . $exception->getTraceAsString(), E_USER_WARNING);

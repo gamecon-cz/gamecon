@@ -401,7 +401,7 @@ SQL
             ? ' se odhlásil'
             : 'byl odhlášen';
 
-        return (new GcMail())
+        return (new GcMail($this->systemoveNastaveni))
             ->adresat('info@gamecon.cz')
             ->predmet("Uživatel '{$this->jmenoNick()}' ({$this->id()}) $odhlasen ale platil")
             ->text(
@@ -422,7 +422,7 @@ SQL
             ? ' se odhlásil'
             : 'byl odhlášen';
 
-        return (new GcMail())
+        return (new GcMail($this->systemoveNastaveni))
             ->adresat('info@gamecon.cz')
             ->predmet("Uživatel $odhlasen a měl ubytování")
             ->text(
@@ -449,7 +449,7 @@ SQL
         set_time_limit(30); // pro jistotu
         $a = $this->koncovkaDlePohlavi('a');
 
-        return (new GcMail())
+        return (new GcMail($this->systemoveNastaveni))
             ->adresat($this->mail())
             ->predmet("Byl{$a} jsi odhlášen{$a} z Gameconu {$rok}")
             ->text(<<<TEXT
@@ -1487,7 +1487,11 @@ SQL,
      * @todo možno evidovat, že uživatel byl regnut na místě
      * @todo poslat mail s něčím jiným jak std hláškou
      */
-    public static function rychloreg($tab, $opt = [])
+    public static function rychloreg(
+        SystemoveNastaveni $systemoveNastaveni,
+        array              $tab,
+        array              $opt = [],
+    )
     {
         if (!isset($tab['login_uzivatele']) || !isset($tab['email1_uzivatele'])) {
             throw new Exception('špatný formát $tab (je to pole?)');
@@ -1514,7 +1518,10 @@ SQL,
         if ($opt['informovat']) {
             $tab['id_uzivatele'] = $uid;
             $u                   = new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
-            $mail                = new GcMail(hlaskaMail('rychloregMail', $u, $tab['email1_uzivatele'], $rand));
+            $mail                = new GcMail(
+                $systemoveNastaveni,
+                hlaskaMail('rychloregMail', $u, $tab['email1_uzivatele'], $rand)
+            );
             $mail->adresat($tab['email1_uzivatele']);
             $mail->predmet('Registrace na GameCon.cz');
             if (!$mail->odeslat()) {

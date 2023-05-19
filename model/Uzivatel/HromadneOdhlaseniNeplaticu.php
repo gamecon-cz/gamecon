@@ -394,7 +394,7 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
 
         $text = implode(' a ', $castiTextu);
 
-        (new GcMail())
+        (new GcMail($this->systemoveNastaveni))
             ->adresat($uzivatel->mail())
             ->predmet('Odhlášené ' . implode(' a ', $castiPredmetu))
             ->text(<<<TEXT

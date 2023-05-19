@@ -172,7 +172,7 @@ class VyjimkovacChyba
             $zkracenaZprava = strlen($zprava) > 63
                 ? (mb_substr($zprava, 0, 60) . '...')
                 : $zprava;
-            (new GcMail())
+            GcMail::vytvorZGlobals()
                 ->adresati($emails)
                 ->predmet("Gamecon chyba: {$kodJazyka}, typ {$this->radek['typ']}, '$zkracenaZprava'")
                 ->text($zprava . "\r\n\r\n<a href='" . URL_ADMIN . "/web/chyby/?" . self::VYJIMKA . "={$this->idPosledniUlozeneChyby}'>Detail</a>")

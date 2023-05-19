@@ -116,7 +116,7 @@ $zpravyPolozkyString
 TEXT;
 }
 
-(new GcMail())
+(new GcMail($systemoveNastaveni))
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
     ->predmet("$brzy bude hromadně odhlášeno $budeOdhlaseno neplatičů z GC")
     ->text(<<<TEXT

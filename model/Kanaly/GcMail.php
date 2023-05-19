@@ -2,8 +2,8 @@
 
 namespace Gamecon\Kanaly;
 
-use \Gamecon\Cas\DateTimeCz;
 use Gamecon\Kanaly\Exceptions\ChybiEmailoveNastaveni;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\Email;
@@ -14,15 +14,24 @@ use Symfony\Component\Mime\Email;
 class GcMail
 {
 
-    private string $text;
+    public static function vytvorZGlobals(string $text = ''): static
+    {
+        return new static(
+            SystemoveNastaveni::vytvorZGlobals(),
+            $text
+        );
+    }
+
     private array  $adresati      = [];
     private string $predmet       = '';
     private string $prilohaSoubor = '';
     private string $prilohaNazev  = '';
 
-    public function __construct(string $text = '')
+    public function __construct(
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+        private string                      $text = '',
+    )
     {
-        $this->text = $text;
     }
 
     public function adresat(string $adresat): self
@@ -38,24 +47,15 @@ class GcMail
     }
 
     /**
-     * @param string $text utf-8 řetězec
-     * @return string enkódovaný řetězec pro použití v hlavičce
-     */
-    private static function encode($text)
-    {
-        return '=?UTF-8?B?' . base64_encode($text) . '?=';
-    }
-
-    /**
      * Odešle sestavenou zprávu.
      * @return bool jestli se zprávu podařilo odeslat
      */
     public function odeslat()
     {
         $mail = (new Email())
-            ->from('GameCon <info@gamecon.cz>')
-            ->subject($this->predmet)
-            ->html($this->text);
+            ->from("GameCon <{$this->systemoveNastaveni->kontaktniEmailGc()}>")
+            ->subject($this->predmetPodleProstredi())
+            ->html($this->textPodleProstredi());
 
         $odeslano = false;
 
@@ -76,6 +76,25 @@ class GcMail
             $odeslano = true;
         }
         return $odeslano;
+    }
+
+    private function predmetPodleProstredi(): string
+    {
+        return $this->pridejPrefixPodleProstredi($this->dejPredmet());
+    }
+
+    private function pridejPrefixPodleProstredi(string $text)
+    {
+        $prefix = $this->systemoveNastaveni->prefixPodleProstredi();
+
+        return $prefix === ''
+            ? $text
+            : ($prefix . ' ' . $text);
+    }
+
+    private function textPodleProstredi(): string
+    {
+        return $this->pridejPrefixPodleProstredi($this->dejText());
     }
 
     private function mailerTransport(): Transport\TransportInterface

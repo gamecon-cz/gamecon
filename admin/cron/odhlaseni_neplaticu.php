@@ -70,7 +70,7 @@ $odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
     $uvodProCfo      = "Právě jsme odhlásili $odhlasenoCelkem účastníků z letošního Gameconu.";
     $oddelovacProCfo = str_repeat('═', mb_strlen($uvodProCfo));
     $cfosEmaily      = Uzivatel::cfosEmaily();
-    (new GcMail())
+    (new GcMail($systemoveNastaveni))
         ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
         ->predmet($zprava)
         ->text(<<<TEXT

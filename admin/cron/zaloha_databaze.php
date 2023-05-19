@@ -7,13 +7,15 @@ use Gamecon\SystemoveNastaveni\NastrojeDatabaze;
 
 require_once __DIR__ . '/_cron_zavadec.php';
 
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
 $dnesniZalohaPattern = ZALOHA_DB_SLOZKA . '/export_' . date('Y-m-d_') . '[0-9][0-9][0-9][0-9][0-9][0-9].sql.gz';
 if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuDatabaze)) { // dnešní záloha databáze ještě neexistuje
     logs(sprintf("Zálohuji databázi '%s'...", DB_NAME));
     $chybaZalohovaniDb = null;
     if (!defined('ZALOHA_DB_SLOZKA') || !ZALOHA_DB_SLOZKA) {
         $chybaZalohovaniDb = 'Není definována konstanta s adresářem pro zálohování ZALOHA_DB_SLOZKA.';
-    } elseif (!is_dir(ZALOHA_DB_SLOZKA)
+    } else if (!is_dir(ZALOHA_DB_SLOZKA)
         && !@mkdir(ZALOHA_DB_SLOZKA, 0750, true)
         && !is_dir(ZALOHA_DB_SLOZKA)
     ) {
@@ -33,7 +35,7 @@ if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuD
     }
     if ($chybaZalohovaniDb) {
         logs($chybaZalohovaniDb);
-        (new GcMail)
+        (new GcMail($systemoveNastaveni))
             ->adresat('info@gamecon.cz')
             ->predmet('Neproběhla záloha databáze ' . date(DateTimeCz::FORMAT_DB))
             ->text($chybaZalohovaniDb)

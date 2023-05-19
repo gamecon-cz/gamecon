@@ -206,7 +206,7 @@ class AktivitaPrezence
             return;
         }
 
-        (new GcMail)
+        GcMail::vytvorZGlobals()
             ->adresat($u->mail())
             ->predmet('Nedostavení se na aktivitu')
             ->text(hlaskaMail('nedostaveniSeNaAktivituMail', $u))

@@ -16,6 +16,7 @@ use Gamecon\Kanaly\GcMail;
  * submenu_order: 2
  *
  * @var Uzivatel $u
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 function textMailuOPostupu(Tym $tym, Aktivita $aktivita, bool $html = false) {
@@ -48,7 +49,7 @@ if (post('postoupiliDoSemifinale') || post('postoupiliDoFinale')) {
     $a          = Aktivita::zId(post('zakladni'));
     $pristiKolo = Aktivita::zId(post('postoupiliDoSemifinale') ? post('semifinale') : post('finale'));
 
-    $mail = new GcMail();
+    $mail = new GcMail($systemoveNastaveni);
     $mail->predmet($predmetMailuOPostupu);
     $druzina = $a->tym()->nazev();
 
@@ -81,7 +82,7 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
         $aVypadli->odhlas($uc, $u, 'hromadne-vypadli-drd', Aktivita::BEZ_POKUT);
     }
 
-    $mail = new GcMail();
+    $mail = new GcMail($systemoveNastaveni);
     $mail->predmet('Gamecon: umístění družiny v MDrD');
     $druzina = $a->tym()->nazev();
 

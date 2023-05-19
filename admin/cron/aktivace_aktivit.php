@@ -41,7 +41,7 @@ try {
 $automatickyAktivovanoCelkem = $hromadneAkceAktivit->automatickyAktivovanoCelkem();
 
 $zprava = "Hromadně aktivováno $automatickyAktivovanoCelkem aktivit";
-(new GcMail())
+(new GcMail($systemoveNastaveni))
     ->adresat('info@gamecon.cz')
     ->predmet($zprava)
     ->text("Právě jsme aktivovali $automatickyAktivovanoCelkem aktivit."

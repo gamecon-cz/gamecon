@@ -95,7 +95,7 @@ $brzy               = $finalniPosunObjekt->relativni($systemoveNastaveni->ted())
 
 $uvod      = "$brzy Gamecon systém hromadně odhlásí neplatiče. Přitom ale máme $pocetNesparovanychPlateb nespárovaných plateb a hrozí komplikace.";
 $oddelovac = str_repeat('═', mb_strlen($uvod));
-(new GcMail())
+(new GcMail($systemoveNastaveni))
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
     ->predmet("$brzy bude hromadné odhlášení a stále máme $pocetNesparovanychPlateb nespárovaných plateb")
     ->text(<<<TEXT

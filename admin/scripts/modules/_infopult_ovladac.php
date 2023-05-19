@@ -49,7 +49,7 @@ if (post('platba') && $uPracovni) {
         } else {
             chyba(
                 sprintf("Platbu se nepodařilo uložit. Duplicitní záznam: '%s'", $dbDuplicateEntryException->getMessage()),
-                false
+                false,
             );
         }
     }
@@ -69,9 +69,13 @@ if (!empty($_POST['rychloreg'])) {
     }
     $tab['nechce_maily'] = isset($tab['nechce_maily']) ? dbNow() : null;
     try {
-        $nid = Uzivatel::rychloreg($tab, [
-            'informovat' => post('informovat'),
-        ]);
+        $nid = Uzivatel::rychloreg(
+            $systemoveNastaveni,
+            $tab,
+            [
+                'informovat' => post('informovat'),
+            ],
+        );
     } catch (DuplicitniEmail $e) {
         throw new Chyba('Uživatel s zadaným e-mailem už v databázi existuje');
     } catch (DuplicitniLogin $e) {
@@ -110,12 +114,12 @@ if (!empty($_POST['prodej'])) {
         <<<SQL
       SELECT nazev FROM shop_predmety
       WHERE id_predmetu = $idPredmetu
-      SQL
+      SQL,
     );
     $yu            = '';
     if ($kusu >= 5) {
         $yu = 'ů';
-    } elseif ($kusu > 1) {
+    } else if ($kusu > 1) {
         $yu = 'y';
     }
     oznameni("Prodáno $kusu kus$yu $nazevPredmetu");
@@ -123,7 +127,8 @@ if (!empty($_POST['prodej'])) {
 }
 
 // TODO: mělo by být obsaženo v modelové třídě
-function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac): int {
+function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac): int
+{
     try {
         $result = dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
         return dbAffectedOrNumRows($result);

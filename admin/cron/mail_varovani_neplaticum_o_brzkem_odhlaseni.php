@@ -61,7 +61,7 @@ try {
              as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
         $a = $uzivatel->koncovkaDlePohlavi();
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
-        (new GcMail())
+        (new GcMail($systemoveNastaveni))
             ->adresat($uzivatel->mail())
             ->predmet("Nezaplacené objednávky Gamecon $rocnik")
             ->text(<<<TEXT

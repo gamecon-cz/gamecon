@@ -3,6 +3,7 @@
 use Gamecon\Kanaly\GcMail;
 
 require __DIR__ . '/sdilene-hlavicky.php';
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $delay = 500;
 $predmet = 'Jaký byl Gamecon 2015?';
@@ -66,7 +67,7 @@ preview:<br>
       $uid = dbOneCol('SELECT id_uzivatele FROM uzivatele_hodnoty WHERE email1_uzivatele = $1', [$adresa]);
       $hash = $uid ? sprintf('%06x', bcmul($uid, 971)) : '000000';
       $link = 'https://docs.google.com/forms/d/1EMNE-WWHNL6TDfE1SsypMZwYVl5sd-ugUYLj2Bvm_uo/viewform?entry.4269671='.$hash;
-      $mail = new GcMail();
+      $mail = new GcMail($systemoveNastaveni);
       $mail->text( strtr($zprava, ['{link}' => "<a href=\"$link\">$link</a>"]) );
       $mail->adresat($adresa);
       $mail->predmet('Jaký byl GameCon '.ROCNIK.'?');

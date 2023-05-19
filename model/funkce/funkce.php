@@ -827,3 +827,12 @@ function prevedNaFloat($castka): float
     }
     return (float)$castka;
 }
+
+/**
+ * @param string $text utf-8 řetězec
+ * @return string enkódovaný řetězec pro použití v emailové hlavičce
+ */
+function encodeToUtf8(string $text)
+{
+    return '=?UTF-8?B?' . base64_encode($text) . '?=';
+}

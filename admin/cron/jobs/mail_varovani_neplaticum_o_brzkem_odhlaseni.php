@@ -76,7 +76,7 @@ try {
         set_time_limit(10);
         $a = $uzivatel->koncovkaDlePohlavi();
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
-        (new GcMail())
+        (new GcMail($systemoveNastaveni))
             ->adresat($uzivatel->mail())
             ->predmet("Nezaplacené objednávky Gamecon $rocnik")
             ->text(<<<TEXT

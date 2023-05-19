@@ -857,4 +857,23 @@ SQL;
             'DB_PORT'  => try_constant('DB_PORT'),
         ];
     }
+
+    public function kontaktniEmailGc(): string
+    {
+        return 'info@gamecon.cz';
+    }
+
+    public function prefixPodleProstredi(): string
+    {
+        if ($this->jsmeNaOstre()) {
+            return '';
+        }
+        if ($this->jsmeNaBete()) {
+            return 'β';
+        }
+        if ($this->jsmeNaLocale()) {
+            return 'άλφα';
+        }
+        return 'δ'; // gamu přeskočíme, je nevýrazná
+    }
 }
