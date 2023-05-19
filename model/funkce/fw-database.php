@@ -311,9 +311,12 @@ function dbGetExceptionType($spojeni = null)
 
 function dbCreateExceptionFromMysqliException(mysqli_sql_exception $mysqliException): DbException|DbDuplicateEntryException
 {
-    $exceptionClass = $mysqliException->getCode() === 1062
-        ? DbDuplicateEntryException::class
-        : DbException::class;
+    $exceptionClass = match ($mysqliException->getCode()) {
+        1062 => DbDuplicateEntryException::class,
+        1927 => DbConnectionKilledException::class,
+        2006 => MysqlServerHasGoneAwayException::class,
+        default => DbException::class,
+    };
     return new $exceptionClass($mysqliException->getMessage(), $mysqliException->getCode(), $mysqliException);
 }
 
@@ -816,6 +819,14 @@ class DbDuplicateEntryException extends DbException
         return $this->key;
     }
 
+}
+
+class DbConnectionKilledException extends DbException
+{
+}
+
+class MysqlServerHasGoneAwayException extends DbException
+{
 }
 
 class DbNoChange
