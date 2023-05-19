@@ -48,7 +48,8 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
 
     protected static bool $disableStrictTransTables = true;
 
-    protected static function getInitQueries(): array {
+    protected static function getInitQueries(): array
+    {
         $systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals();
 
         $queries[] = self::nejakyPredmetQuery($systemoveNastaveni);
@@ -108,22 +109,24 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
         return $queries;
     }
 
-    private static function predmetUbytovaniQuery(SystemoveNastaveni $systemoveNastaveni): string {
+    private static function predmetUbytovaniQuery(SystemoveNastaveni $systemoveNastaveni): string
+    {
         return self::predmetQuery(
             self::ID_PREDMETU_UBYTOVANI,
             TypPredmetu::UBYTOVANI,
             'luxusní 0+KK',
-            $systemoveNastaveni
+            $systemoveNastaveni,
         );
     }
 
-    private static function nejakyPredmetQuery(SystemoveNastaveni $systemoveNastaveni): string {
+    private static function nejakyPredmetQuery(SystemoveNastaveni $systemoveNastaveni): string
+    {
         return self::predmetQuery(
             self::ID_NAHODNEHO_PREDMETU,
             // pozor dvoje vstupné logika ignoruje, jako "koupený předmět" se použije jen jedno
             TypPredmetu::VSTUPNE,
             'cosi kdesi',
-            $systemoveNastaveni
+            $systemoveNastaveni,
         );
     }
 
@@ -131,8 +134,9 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
         int                $idPredmetu,
         int                $typPredmetu,
         string             $nazev,
-        SystemoveNastaveni $systemoveNastaveni
-    ): string {
+        SystemoveNastaveni $systemoveNastaveni,
+    ): string
+    {
         $rok = $systemoveNastaveni->rocnik();
 
         return <<<SQL
@@ -145,33 +149,36 @@ SET id_predmetu = $idPredmetu,
 SQL;
     }
 
-    private static function aktivitaLarpQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string {
+    private static function aktivitaLarpQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string
+    {
         return self::aktivitaQuery(
             self::ID_LARP_AKTIVITY,
             TypAktivity::LARP,
             'Na dudlíky',
             $cena,
-            $systemoveNastaveni
+            $systemoveNastaveni,
         );
     }
 
-    private static function aktivitaRpgQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string {
+    private static function aktivitaRpgQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string
+    {
         return self::aktivitaQuery(
             self::ID_RPG_AKTIVITY,
             TypAktivity::RPG,
             'Dračí poupě',
             $cena,
-            $systemoveNastaveni
+            $systemoveNastaveni,
         );
     }
 
-    private static function aktivitaJinaAktvitaQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string {
+    private static function aktivitaJinaAktvitaQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string
+    {
         return self::aktivitaQuery(
             self::ID_JINE_AKTIVITY,
             TypAktivity::EPIC,
             'Organizace Gameconu',
             $cena,
-            $systemoveNastaveni
+            $systemoveNastaveni,
         );
     }
 
@@ -180,8 +187,9 @@ SQL;
         int                $typAktivity,
         string             $nazev,
         float              $cena,
-        SystemoveNastaveni $systemoveNastaveni
-    ): string {
+        SystemoveNastaveni $systemoveNastaveni,
+    ): string
+    {
         $rok = $systemoveNastaveni->rocnik();
 
         return <<<SQL
@@ -194,7 +202,8 @@ SET id_akce = $idAktivity,
 SQL;
     }
 
-    private static function uzivatelQuery(int $idUzivatele, string $jmeno, string $prijmeni): string {
+    private static function uzivatelQuery(int $idUzivatele, string $jmeno, string $prijmeni): string
+    {
         $login = RemoveDiacritics::toSnakeCaseId("$jmeno $prijmeni");
         $email = str_replace('_', '.', $login) . '@dot.com';
         return <<<SQL
@@ -202,7 +211,8 @@ INSERT INTO uzivatele_hodnoty SET id_uzivatele = $idUzivatele, login_uzivatele =
 SQL;
     }
 
-    private static function prihlasenNaLetosniGcVcasQuery(int $idUzivatele): string {
+    private static function prihlasenNaLetosniGcVcasQuery(int $idUzivatele): string
+    {
         $rolePrihlasenNaLetosniGc = Role::PRIHLASEN_NA_LETOSNI_GC;
         $uzivatelSystem           = \Uzivatel::SYSTEM;
         $posazen                  = (new \DateTimeImmutable('-2 weeks'))->format(DateTimeCz::FORMAT_DB);
@@ -216,8 +226,9 @@ SQL;
     private static function nakupProVelkyDluhQuery(
         int                $idUzivatele,
         SystemoveNastaveni $systemoveNastaveni,
-        float              $upravaCeny = 0.0
-    ): string {
+        float              $upravaCeny = 0.0,
+    ): string
+    {
         $rok                          = $systemoveNastaveni->rocnik();
         $velkyDluh                    = $systemoveNastaveni->neplaticCastkaVelkyDluh();
         $poslalMalo                   = self::poslalMalo($systemoveNastaveni);
@@ -230,8 +241,9 @@ SQL;
     private static function nakupUbytovaniQuery(
         int                $idUzivatele,
         SystemoveNastaveni $systemoveNastaveni,
-        float              $cena
-    ): string {
+        float              $cena,
+    ): string
+    {
         $rok                 = $systemoveNastaveni->rocnik();
         $idPredmetuUbytovani = self::ID_PREDMETU_UBYTOVANI;
 
@@ -242,27 +254,32 @@ SQL;
         int   $idUzivatele,
         int   $idPredmetuUbytovani,
         int   $rok,
-        float $cena
-    ): string {
+        float $cena,
+    ): string
+    {
         return <<<SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
 VALUES ($idUzivatele, $idPredmetuUbytovani, $rok, $cena)
 SQL;
     }
 
-    private static function prihlaseniNaLarpQuery(int $idUzivatele): string {
+    private static function prihlaseniNaLarpQuery(int $idUzivatele): string
+    {
         return self::prihlaseniNaAktivitu(self::ID_LARP_AKTIVITY, $idUzivatele);
     }
 
-    private static function prihlaseniNaRpgQuery(int $idUzivatele): string {
+    private static function prihlaseniNaRpgQuery(int $idUzivatele): string
+    {
         return self::prihlaseniNaAktivitu(self::ID_RPG_AKTIVITY, $idUzivatele);
     }
 
-    private static function prihlaseniNaJinouAktivituQuery(int $idUzivatele): string {
+    private static function prihlaseniNaJinouAktivituQuery(int $idUzivatele): string
+    {
         return self::prihlaseniNaAktivitu(self::ID_JINE_AKTIVITY, $idUzivatele);
     }
 
-    private static function prihlaseniNaAktivitu(int $idAktivity, int $idUzivatele): string {
+    private static function prihlaseniNaAktivitu(int $idAktivity, int $idUzivatele): string
+    {
         $stavPrihlaseni = StavPrihlaseni::PRIHLASEN;
         return <<<SQL
 INSERT INTO akce_prihlaseni
@@ -271,7 +288,8 @@ SQL;
 
     }
 
-    private static function poslalMaloQuery(int $idUzivatele, SystemoveNastaveni $systemoveNastaveni): string {
+    private static function poslalMaloQuery(int $idUzivatele, SystemoveNastaveni $systemoveNastaveni): string
+    {
         $rok            = $systemoveNastaveni->rocnik();
         $poslalMalo     = self::poslalMalo($systemoveNastaveni);
         $uzivatelSystem = \Uzivatel::SYSTEM;
@@ -281,11 +299,13 @@ INSERT INTO platby SET id_uzivatele = $idUzivatele, rok = {$rok}, castka = {$pos
 SQL;
     }
 
-    private static function poslalMalo(SystemoveNastaveni $systemoveNastaveni): float {
+    private static function poslalMalo(SystemoveNastaveni $systemoveNastaveni): float
+    {
         return (float)$systemoveNastaveni->neplaticCastkaPoslalDost() - 0.01;
     }
 
-    private static function neodhlasovatQuery(int $idUzivatele): string {
+    private static function neodhlasovatQuery(int $idUzivatele): string
+    {
         $roleNeodhlasovat = Role::LETOSNI_NEODHLASOVAT;
         $uzivatelSystem   = \Uzivatel::SYSTEM;
 
@@ -298,7 +318,8 @@ SQL;
     /**
      * @test
      */
-    public function Muzu_zalogovat_notifikovani_neplaticu_o_brzkem_hromadnem_odhlaseni_a_zpetne_precist_kdy() {
+    public function Muzu_zalogovat_notifikovani_neplaticu_o_brzkem_hromadnem_odhlaseni_a_zpetne_precist_kdy()
+    {
         $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::vytvorZGlobals());
 
         $hromadneOdhlasovaniKdy = new \DateTimeImmutable('2023-05-01 01:01:01');
@@ -309,11 +330,11 @@ SQL;
             $hromadneOdhlasovaniKdy,
             $poradiOznameni,
             \Uzivatel::zIdUrcite(1),
-            $staloSeKdy
+            $staloSeKdy,
         );
         $kdyZLogu = $hromadneOdhlaseniNeplaticu->neplaticiNotifikovaniOBrzkemHromadnemOdhlaseniKdy(
             $hromadneOdhlasovaniKdy,
-            $poradiOznameni
+            $poradiOznameni,
         );
         self::assertEquals($staloSeKdy, $kdyZLogu);
     }
@@ -321,7 +342,8 @@ SQL;
     /**
      * @test
      */
-    public function Muzu_zalogovat_notifikovani_cfo_o_brzkem_hromadnem_odhlaseni_a_zpetne_precist_kdy() {
+    public function Muzu_zalogovat_notifikovani_cfo_o_brzkem_hromadnem_odhlaseni_a_zpetne_precist_kdy()
+    {
         $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::vytvorZGlobals());
 
         $hromadneOdhlasovaniKdy = new \DateTimeImmutable('2023-06-02 02:02:02');
@@ -332,11 +354,11 @@ SQL;
             $hromadneOdhlasovaniKdy,
             $poradiOznameni,
             \Uzivatel::zIdUrcite(1),
-            $staloSeKdy
+            $staloSeKdy,
         );
         $kdyZLogu = $hromadneOdhlaseniNeplaticu->cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
             $hromadneOdhlasovaniKdy,
-            $poradiOznameni
+            $poradiOznameni,
         );
         self::assertEquals($staloSeKdy, $kdyZLogu);
     }
@@ -344,7 +366,8 @@ SQL;
     /**
      * @test
      */
-    public function Nemuzu_ziskat_neplatice_kdyz_nejblizsi_odhlasovani_teprve_bude() {
+    public function Nemuzu_ziskat_neplatice_kdyz_nejblizsi_odhlasovani_teprve_bude()
+    {
         $systemoveNastaveni                    = SystemoveNastaveni::vytvorZGlobals();
         $hromadneOdhlaseniNeplaticu            = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::vytvorZGlobals());
         $nejblizsiHromadneOdhlasovaniVBudoucnu = $systemoveNastaveni->ted()->modify('+1 second');
@@ -357,7 +380,8 @@ SQL;
     /**
      * @test
      */
-    public function Nemuzu_ziskat_neplatice_kdyz_okno_pro_nejblizsi_odhlasovani_uz_bylo() {
+    public function Nemuzu_ziskat_neplatice_kdyz_okno_pro_nejblizsi_odhlasovani_uz_bylo()
+    {
         $systemoveNastaveni                = SystemoveNastaveni::vytvorZGlobals();
         $hromadneOdhlaseniNeplaticu        = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::vytvorZGlobals());
         $nejblizsiHromadneOdhlasovaniVcera = $systemoveNastaveni->ted()->modify('-1 day -1 second');
@@ -371,7 +395,8 @@ SQL;
      * Toto by se nemělo nidky stát. Ale známe ta "nikdy"...
      * @test
      */
-    public function Nemuzu_ziskat_neplatice_kdyz_cas_pro_odhlasovani_je_zaroven_s_vlnou_aktivit() {
+    public function Nemuzu_ziskat_neplatice_kdyz_cas_pro_odhlasovani_je_zaroven_s_vlnou_aktivit()
+    {
         $nejblizsiHromadneOdhlasovaniKdy = new \DateTimeImmutable();
         $nejblizsiVlnaOdhlaseni          = DateTimeGamecon::createFromInterface($nejblizsiHromadneOdhlasovaniKdy);
         $systemoveNastaveni              = $this->dejSystemoveNastaveniSNejblizsiVlnou($nejblizsiVlnaOdhlaseni);
@@ -379,7 +404,7 @@ SQL;
         self::assertEquals(
             $nejblizsiHromadneOdhlasovaniKdy,
             $systemoveNastaveni->nejblizsiVlnaKdy(),
-            'Pro tento negativní test potřebujeme datum odhlašování stejné jako nejbližší vlnu aktivit'
+            'Pro tento negativní test potřebujeme datum odhlašování stejné jako nejbližší vlnu aktivit',
         );
 
         $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
@@ -392,29 +417,45 @@ SQL;
 
     private function dejSystemoveNastaveniSNejblizsiVlnou(
         DateTimeGamecon         $nejblizsiVlnaKdy,
-        DateTimeImmutableStrict $prvniHromadneOdhlasovani = null
-    ): SystemoveNastaveni {
+        DateTimeImmutableStrict $prvniHromadneOdhlasovani = null,
+    ): SystemoveNastaveni
+    {
         return new class($nejblizsiVlnaKdy, $prvniHromadneOdhlasovani) extends SystemoveNastaveni {
             public function __construct(
                 private readonly DateTimeGamecon          $nejblizsiVlnaKdy,
-                private readonly ?DateTimeImmutableStrict $nejblizsiHromadneOdhlasovaniKdy
-            ) {
+                private readonly ?DateTimeImmutableStrict $nejblizsiHromadneOdhlasovaniKdy,
+            )
+            {
             }
 
-            public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon {
+            public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon
+            {
                 return $this->nejblizsiVlnaKdy;
             }
 
-            public function ted(): DateTimeImmutableStrict {
+            public function ted(): DateTimeImmutableStrict
+            {
                 return new DateTimeImmutableStrict();
             }
 
-            public function rocnik(): int {
+            public function rocnik(): int
+            {
                 return ROCNIK;
             }
 
-            public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict {
+            public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict
+            {
                 return $this->nejblizsiHromadneOdhlasovaniKdy ?? parent::prvniHromadneOdhlasovani();
+            }
+
+            public function jsmeNaBete(): bool
+            {
+                return false;
+            }
+
+            public function jsmeNaLocale(): bool
+            {
+                return false;
             }
 
         };
@@ -424,7 +465,8 @@ SQL;
      * Toto by se nemělo nidky stát. Ale známe ta "nikdy"...
      * @test
      */
-    public function Nemuzu_ziskat_neplatice_kdyz_cas_pro_odhlasovani_je_az_po_vlne_aktivit() {
+    public function Nemuzu_ziskat_neplatice_kdyz_cas_pro_odhlasovani_je_az_po_vlne_aktivit()
+    {
         $nejblizsiHromadneOdhlasovaniKdy = new \DateTimeImmutable();
         $nejblizsiVlnaOdhlasovani        = DateTimeGamecon::createFromInterface($nejblizsiHromadneOdhlasovaniKdy)
             ->modify('-1 second');
@@ -435,7 +477,7 @@ SQL;
         self::assertGreaterThan(
             $systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu),
             $nejblizsiHromadneOdhlasovaniKdy,
-            'Pro tento negativní test potřebujeme datum odhlašování až po nejbližší vlně aktivit'
+            'Pro tento negativní test potřebujeme datum odhlašování až po nejbližší vlně aktivit',
         );
 
         $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
@@ -452,21 +494,22 @@ SQL;
     /**
      * @test
      */
-    public function Hromadne_odhlaseni_odhlasi_spravne_uzivatele_nebo_objednavky() {
+    public function Hromadne_odhlaseni_odhlasi_spravne_uzivatele_nebo_objednavky()
+    {
         $nejblizsiHromadneOdhlasovaniKdy = new DateTimeImmutableStrict();
         $nejblizsiVlnaOdhlasovani        = DateTimeGamecon::createFromInterface($nejblizsiHromadneOdhlasovaniKdy)
             ->modify('+1 day');
         $ted                             = new DateTimeImmutableStrict();
         $systemoveNastaveni              = $this->dejSystemoveNastaveniSNejblizsiVlnou(
             $nejblizsiVlnaOdhlasovani,
-            $nejblizsiHromadneOdhlasovaniKdy
+            $nejblizsiHromadneOdhlasovaniKdy,
         );
         $platnostZpetneKDatu             ??= $ted->modify('-1 day');
 
         self::assertLessThan(
             $systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu),
             $nejblizsiHromadneOdhlasovaniKdy,
-            'Pro tento test potřebujeme datum odhlašování před nejbližší vlnou aktivit'
+            'Pro tento test potřebujeme datum odhlašování před nejbližší vlnou aktivit',
         );
 
         $hromadneOdhlaseniNeplaticu        = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
@@ -474,7 +517,7 @@ SQL;
             $nejblizsiHromadneOdhlasovaniKdy,
             $ted,
             $platnostZpetneKDatu,
-            $hromadneOdhlaseniNeplaticu
+            $hromadneOdhlaseniNeplaticu,
         );
 
         $ocekavaniNeplaticiPredOdhlasenim = [
@@ -501,7 +544,7 @@ SQL;
             $testovaciUzivatelPoOdhlaseni = \Uzivatel::zIdUrcite($idUzivatele);
             self::assertTrue(
                 $testovaciUzivatelPoOdhlaseni->gcPrihlasen(),
-                "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl být přihlášen"
+                "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl být přihlášen",
             );
         }
         $velkyDluhDamMaloOdhlasteUbytovani = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI);
@@ -509,7 +552,7 @@ SQL;
         self::assertCount(
             2,
             $strukturovanyPrehled,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->jmeno()}' by měl mít dvě objednávky"
+            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->jmeno()}' by měl mít dvě objednávky",
         );
 
         $velkyDluhDamMaloOdhlasteAktivity = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
@@ -517,13 +560,13 @@ SQL;
         self::assertCount(
             1,
             $strukturovanyPrehled,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít před odhlášením objednaný jeden předmět"
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít před odhlášením objednaný jeden předmět",
         );
         $idPrihlasenychAktivit = $this->idckaPrihlasenychAktivit($velkyDluhDamMaloOdhlasteAktivity);
         self::assertSame(
             [self::ID_LARP_AKTIVITY, self::ID_RPG_AKTIVITY, self::ID_JINE_AKTIVITY],
             $idPrihlasenychAktivit,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít před odhlášením přihlášené jiné aktivity"
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít před odhlášením přihlášené jiné aktivity",
         );
 
         $zdrojOdhlaseniZaklad = basename(__CLASS__, '.php');
@@ -532,7 +575,7 @@ SQL;
         $zruseneAktivityUzivatele = Aktivita::dejZruseneAktivityUzivatele(
             $velkyDluhDamMaloOdhlasteAktivity,
             $zdrojOdhlaseni,
-            $systemoveNastaveni->rocnik()
+            $systemoveNastaveni->rocnik(),
         );
         assertCount(0, $zruseneAktivityUzivatele, 'Před odhlášením nečekáme žádné už odhlášené aktivity');
 
@@ -552,7 +595,7 @@ SQL;
             $nejblizsiHromadneOdhlasovaniKdy,
             $ted,
             $platnostZpetneKDatu,
-            $hromadneOdhlaseniNeplaticu
+            $hromadneOdhlaseniNeplaticu,
         );
         self::assertSame([], $neplaticiAKategoriePoOdhlaseni, 'Po odhlášení by neměl zůstat žádný neplatič');
 
@@ -561,7 +604,7 @@ SQL;
         self::assertCount(
             1,
             $strukturovanyPrehled,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->jmeno()}' by měl mít po odhlášení jednu objednávku"
+            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->jmeno()}' by měl mít po odhlášení jednu objednávku",
         );
 
         $velkyDluhDamMaloOdhlasteAktivity = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
@@ -569,13 +612,13 @@ SQL;
         self::assertCount(
             1,
             $strukturovanyPrehled,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít po odhlášení jiný počet objednaných předmětů"
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít po odhlášení jiný počet objednaných předmětů",
         );
         $idPrihlasenychAktivit = $this->idckaPrihlasenychAktivit($velkyDluhDamMaloOdhlasteAktivity);
         self::assertSame(
             [self::ID_JINE_AKTIVITY],
             $idPrihlasenychAktivit,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít po odhlášení přihlášené jiné aktivity"
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít po odhlášení přihlášené jiné aktivity",
         );
 
         foreach (self::LETOS_PRIHLASENI_UZIVATELE as $idUzivatele) {
@@ -583,12 +626,12 @@ SQL;
             if (in_array($idUzivatele, [self::VELKY_DLUH_NIC_NEDAM, self::VELKY_DLUH_DAM_MALO], true)) {
                 self::assertFalse(
                     $testovaciUzivatelPoOdhlaseni->gcPrihlasen(),
-                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl být odhlášen"
+                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl být odhlášen",
                 );
             } else {
                 self::assertTrue(
                     $testovaciUzivatelPoOdhlaseni->gcPrihlasen(),
-                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl zůstat přihlášen"
+                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl zůstat přihlášen",
                 );
             }
         }
@@ -598,22 +641,22 @@ SQL;
         self::assertSame(
             [self::VELKY_DLUH_NIC_NEDAM, self::VELKY_DLUH_DAM_MALO],
             $idckaZaznamenanychOdhlasenych,
-            'Očekáván jiný seznam zaznamenaných odhlášených uživatelů'
+            'Očekáván jiný seznam zaznamenaných odhlášených uživatelů',
         );
 
         $zruseneAktivityUzivatele = Aktivita::dejZruseneAktivityUzivatele(
             $velkyDluhDamMaloOdhlasteAktivity,
             $zdrojOdhlaseni,
-            $systemoveNastaveni->rocnik()
+            $systemoveNastaveni->rocnik(),
         );
         assertCount(
             2,
             $zruseneAktivityUzivatele,
-            "Po odhlášení Uživatele '{$testovaciUzivatelPoOdhlaseni->jmeno()}' čekáme jiný počet odhlášených aktivit"
+            "Po odhlášení Uživatele '{$testovaciUzivatelPoOdhlaseni->jmeno()}' čekáme jiný počet odhlášených aktivit",
         );
         $idckaZrusenychAktivitUzivatele = array_map(
             static fn(Aktivita $aktivita) => $aktivita->id(),
-            $zruseneAktivityUzivatele
+            $zruseneAktivityUzivatele,
         );
         sort($idckaZrusenychAktivitUzivatele);
         self::assertSame(
@@ -622,7 +665,7 @@ SQL;
                 self::ID_RPG_AKTIVITY,
             ],
             $idckaZrusenychAktivitUzivatele,
-            "Očeáváme jiné odhlášené aktivity u uživatele '{$testovaciUzivatelPoOdhlaseni->jmeno()}'"
+            "Očeáváme jiné odhlášené aktivity u uživatele '{$testovaciUzivatelPoOdhlaseni->jmeno()}'",
         );
     }
 
@@ -631,7 +674,8 @@ SQL;
         \DateTimeInterface         $ted,
         \DateTimeInterface         $platnostZpetneKDatu,
         HromadneOdhlaseniNeplaticu $hromadneOdhlaseniNeplaticu,
-    ): array {
+    ): array
+    {
         $generator                 = $hromadneOdhlaseniNeplaticu->neplaticiAKategorie(
             $nejblizsiHromadneOdhlasovaniKdy,
             $platnostZpetneKDatu,
@@ -652,7 +696,7 @@ SQL;
         }
         usort(
             $neplaticiAKategorieScalar,
-            static fn(array $nejakyZaznam, array $jinyZanam) => $nejakyZaznam['neplatic'] <=> $jinyZanam['neplatic']
+            static fn(array $nejakyZaznam, array $jinyZanam) => $nejakyZaznam['neplatic'] <=> $jinyZanam['neplatic'],
         );
 
         return $neplaticiAKategorieScalar;
@@ -662,10 +706,11 @@ SQL;
      * @param \Uzivatel $uzivatel
      * @return int[]
      */
-    private function idckaPrihlasenychAktivit(\Uzivatel $uzivatel): array {
+    private function idckaPrihlasenychAktivit(\Uzivatel $uzivatel): array
+    {
         $idckaPrihlasenychAktivit = array_map(
             static fn(Aktivita $aktivita) => $aktivita->id(),
-            $uzivatel->aktivityRyzePrihlasene()
+            $uzivatel->aktivityRyzePrihlasene(),
         );
         sort($idckaPrihlasenychAktivit);
 
