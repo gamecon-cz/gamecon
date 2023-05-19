@@ -1,6 +1,6 @@
 <?php
 
-namespace Gamecon\Tests\Uzivatel;
+namespace Gamecon\Tests\Uzivatel\SqlStruktura;
 
 use Gamecon\Tests\Model\AbstractTestSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
