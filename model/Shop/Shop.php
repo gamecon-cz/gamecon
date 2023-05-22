@@ -125,12 +125,17 @@ FROM (
         ON predmety.id_predmetu = nakupy.id_predmetu
             AND nakupy.rok = $0
     WHERE model_rok = $0
-        AND IF($2 IS NULL, TRUE, predmety.id_predmetu IN ($2))
+        AND IF($2, TRUE, predmety.id_predmetu IN ($3))
     GROUP BY predmety.id_predmetu, predmety.typ, predmety.ubytovani_den, predmety.nazev
 ) AS seskupeno
 ORDER BY typ, IF(typ = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den
 SQL,
-            [0 => $rok, 1 => TypPredmetu::UBYTOVANI, 2 => $idckaPolozek],
+            [
+                0 => $rok,
+                1 => TypPredmetu::UBYTOVANI,
+                2 => !empty($idckaPolozek),
+                3 => array_map('intval', $idckaPolozek ?? []),
+            ],
         );
         $polozky     = [];
         foreach ($polozkyData as $polozkaData) {
