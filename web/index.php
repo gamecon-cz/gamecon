@@ -66,7 +66,7 @@ try {
 // sestavení menu
 $menu = '';
 if (!$m->bezStranky() && !$m->bezMenu()) {
-    $t = new XTemplate('sablony/blackarrow/menu.xtpl');
+    $t = new XTemplate(__DIR__ . '/sablony/blackarrow/menu.xtpl');
 
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
@@ -98,7 +98,7 @@ if ($m->bezStranky()) {
     return;
 }
 
-$t = new XTemplate('sablony/blackarrow/index.xtpl');
+$t = new XTemplate(__DIR__ . '/sablony/blackarrow/index.xtpl');
 $t->assign([
     'css'          => perfectcache('soubory/blackarrow/*/*.less'),
     'jsVyjimkovac' => Vyjimkovac::js(URL_WEBU),

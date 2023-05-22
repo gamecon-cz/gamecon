@@ -15,7 +15,7 @@ if (get('id') || get('akce') === 'nova') {
     return;
 }
 
-$t = new XTemplate('editace-stranek.xtpl');
+$t = new XTemplate(__DIR__ . '/editace-stranek.xtpl');
 $t->parseEach(Stranka::zVsech(), 'stranka', 'editaceStranek.radek');
 $t->parse('editaceStranek');
 $t->out('editaceStranek');

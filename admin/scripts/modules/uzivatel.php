@@ -28,7 +28,7 @@ $shop      = $uPracovni ? new Shop($uPracovni, $u, $nastaveni, $systemoveNastave
 
 include __DIR__ . '/_uzivatel_ovladac.php';
 
-$x = new XTemplate('uzivatel.xtpl');
+$x = new XTemplate(__DIR__ . '/uzivatel.xtpl');
 
 $x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
 if ($uPracovni) {

@@ -1,6 +1,10 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Web\Info;
+use Gamecon\Web\VerzeSouboru;
+use Gamecon\Role\Role;
+use Gamecon\Pravo;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 
@@ -26,7 +30,7 @@ if (!$stranka) {
         if ($u->jeOrganizator()) {
             back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/uzivatel.php', '.php'));
         }
-        if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
+        if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/infopult.php', '.php'));
         }
         back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/moje-aktivity'));
@@ -40,7 +44,7 @@ if ($stranka == "api") {
 }
 
 global $systemoveNastaveni;
-$info = new \Gamecon\Web\Info($systemoveNastaveni);
+$info = new Info($systemoveNastaveni);
 $info->nazev('Administrace');
 
 // xtemplate inicializace
@@ -48,8 +52,8 @@ $xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
 $xtpl->assign([
     'headerPageInfo' => $info->html(),
     'base'           => URL_ADMIN . '/',
-    'cssVersions'    => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files/design', 'css'),
-    'jsVersions'     => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files', 'js'),
+    'cssVersions'    => new VerzeSouboru(__DIR__ . '/files/design', 'css'),
+    'jsVersions'     => new VerzeSouboru(__DIR__ . '/files', 'js'),
 ]);
 if ($systemoveNastaveni->jeApril()) {
     $xtpl->parse('all.april');
@@ -68,14 +72,14 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     require($podstranka . '.php');
 } else {
     // načtení menu
-    $menuObject = new AdminMenu('./scripts/modules/');
+    $menuObject = new AdminMenu(__DIR__ . '/scripts/modules/');
     $menu       = $menuObject->pole();
 
     // načtení submenu
     $submenu       = [];
     $submenuObject = null;
     if (!empty($menu[$stranka]['submenu'])) {
-        $submenuObject = new AdminMenu('./scripts/modules/' . $stranka . '/', true);
+        $submenuObject = new AdminMenu(__DIR__ . '/scripts/modules/' . $stranka . '/', true);
         $submenu       = $submenuObject->pole();
     }
 
@@ -90,22 +94,19 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         $_SESSION['id_admin']     = $u->id(); // součást interface starých modulů
         $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null; // součást interface starých modulů
         $BEZ_DEKORACE             = false;
-        $cwd                      = getcwd(); // uložíme si aktuální working directory pro pozdější návrat
         if ($submenu) {
-            chdir('./scripts/modules/' . $stranka . '/');
             $soubor = $podstranka && $podstrankaExistuje
-                ? $cwd . '/' . $submenu[$podstranka]['soubor']
-                : $cwd . '/' . $submenu[$stranka]['soubor'];
+                ? $submenu[$podstranka]['soubor']
+                : $submenu[$stranka]['soubor'];
         } else {
-            chdir('./scripts/modules/');
-            $soubor = $cwd . '/' . $menu[$stranka]['soubor'];
+            $soubor = $menu[$stranka]['soubor'];
             $info->nazev($menu[$stranka]['nazev']);
         }
         ob_start(); // výstup uložíme do bufferu
         require $soubor;
 
-        if ($submenuObject && $submenuObject->getPatickaSoubor()) {
-            require $submenuObject->getPatickaSoubor();
+        if ($submenuObject && $submenuObject->patickaSoubor()) {
+            require $submenuObject->patickaSoubor();
         }
 
         $vystup = ob_get_clean();
@@ -114,7 +115,6 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         } else {
             $xtpl->assign('obsahRetezec', $vystup);
         }
-        chdir($cwd);
         unset($_SESSION['id_uzivatele'], $_SESSION['id_admin']);
         if ($BEZ_DEKORACE) {
             return;
@@ -142,14 +142,14 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     if ($u && ($u->jeSuperAdmin() || $u->jeInfopultak())) {
         $dataOmnibox = [];
         if ($u->jeInfopultak()) {
-            $dataOmnibox['jenSRolemi'] = [\Gamecon\Role\Role::LETOSNI_VYPRAVEC, \Gamecon\Role\Role::LETOSNI_PARTNER];
+            $dataOmnibox['jenSRolemi'] = [Role::LETOSNI_VYPRAVEC, Role::LETOSNI_PARTNER];
         }
         $xtpl->assign('dataOmniboxJson', htmlspecialchars(json_encode($dataOmnibox, JSON_FORCE_OBJECT)));
         $xtpl->parse('all.operator.prepnutiUzivatele');
     }
     $xtpl->parse('all.operator');
     // výběr uživatele
-    if ($u && $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
+    if ($u && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
         if ($uPracovni) {
             $xtpl->assign('uPracovni', $uPracovni);
             $xtpl->parse('all.uzivatel.vybrany');

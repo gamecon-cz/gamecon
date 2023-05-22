@@ -1,4 +1,5 @@
 <?php
+
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -8,11 +9,11 @@ use Gamecon\XTemplate\XTemplate;
  * pravo: 105
  */
 
-$t = new XTemplate('web.xtpl');
+$t = new XTemplate(__DIR__ . '/web.xtpl');
 
-foreach(Novinka::zVsech() as $novinka) {
-  $t->assign('novinka', $novinka);
-  $t->parse('web.novinka');
+foreach (Novinka::zVsech() as $novinka) {
+    $t->assign('novinka', $novinka);
+    $t->parse('web.novinka');
 }
 
 $t->parse('web');

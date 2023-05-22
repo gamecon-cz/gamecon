@@ -5,11 +5,11 @@ use Gamecon\XTemplate\XTemplate;
 
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
-$naStranku = 15;
+$naStranku      = 15;
 $prazdnychRadku = 4;
 $minSledujicich = 5;
 
-$t = new XTemplate('prezence-tisk.xtpl');
+$t = new XTemplate(__DIR__ . '/prezence-tisk.xtpl');
 
 $aktivity = Aktivita::zIds(get('ids'));
 
@@ -40,7 +40,7 @@ foreach ($aktivity as $aktivita) {
 
     // pomocná funkce pro zalamování stránek
     $radkuNaStrance = 0;
-    $pridejRadek = static function () use (&$radkuNaStrance, $naStranku, $t) {
+    $pridejRadek    = static function () use (&$radkuNaStrance, $naStranku, $t) {
         $radkuNaStrance++;
         if ($radkuNaStrance >= $naStranku) {
             $t->parse('aktivity.aktivita');
@@ -50,7 +50,7 @@ foreach ($aktivity as $aktivita) {
 
     foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
         $vekCislo = $prihlasenyUzivatel->vekKDatu($datum);
-        $vek = $dejVekVeZkratce($vekCislo);
+        $vek      = $dejVekVeZkratce($vekCislo);
         $t->assign('vek', $vek);
         $t->assign('u', $prihlasenyUzivatel);
         $t->parse('aktivity.aktivita.ucastnik');
@@ -64,7 +64,7 @@ foreach ($aktivity as $aktivita) {
 
     $seznamSledujicich = $aktivita->seznamSledujicich();
     if ($seznamSledujicich) {
-        $zbyvaRadku = $naStranku - $radkuNaStrance;
+        $zbyvaRadku   = $naStranku - $radkuNaStrance;
         $potrebaRadku = 2 + min(count($seznamSledujicich), $minSledujicich);
         if ($zbyvaRadku < $potrebaRadku) {
             for ($i = 0; $i < $zbyvaRadku; $i++) {
@@ -81,7 +81,7 @@ foreach ($aktivity as $aktivita) {
             $vek = $sledujici->vekKDatu($datum);
             if ($vek === null) {
                 $vek = "?";
-            } elseif ($vek >= 18) {
+            } else if ($vek >= 18) {
                 $vek = "18+";
             }
             $t->assign('vek', $vek);

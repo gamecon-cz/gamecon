@@ -20,16 +20,22 @@ class Widget
         $skript,
         $styl;
 
-    protected function __construct($nazev)
+    protected function __construct(string $nazev)
     {
         $this->nazev  = $nazev;
         $prefix       = WWW . '/widgety/' . $nazev;
         $this->skript = $prefix . '.php';
-        if (!is_file($this->skript)) throw new WidgetException;
+        if (!is_file($this->skript)) {
+            throw new WidgetException;
+        }
         $sablona = $prefix . '.xtpl';
-        if (is_file($sablona)) $this->sablona = new XTemplate($sablona);
+        if (is_file($sablona)) {
+            $this->sablona = new XTemplate($sablona);
+        }
         $styl = $prefix . '.css';
-        if (is_file($styl)) $this->styl = $styl;
+        if (is_file($styl)) {
+            $this->styl = $styl;
+        }
     }
 
     /**
@@ -55,7 +61,7 @@ class Widget
     /**
      * @return self|null
      */
-    static function zNazvu($nazev)
+    static function zNazvu(string $nazev): ?self
     {
         try {
             return new self($nazev);

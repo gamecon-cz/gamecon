@@ -75,7 +75,7 @@ $o                   = $db->query("
   ORDER BY posledni DESC
 ");
 
-$t = new XTemplate('chyby.xtpl');
+$t = new XTemplate(__DIR__ . '/chyby.xtpl');
 
 $o = $o->fetchAll(PDO::FETCH_ASSOC); // aby se spojení uzavřelo a necyklily se nové výjimky
 
@@ -83,7 +83,7 @@ foreach ($o as $r) {
     // počet uživatelů česky
     if ($r['uzivatelu'] == 1) {
         $r['uzivatelu'] .= ' uživatel';
-    } elseif ($r['uzivatelu'] && $r['uzivatelu'] < 5) {
+    } else if ($r['uzivatelu'] && $r['uzivatelu'] < 5) {
         $r['uzivatelu'] .= ' uživatelé';
     } else {
         $r['uzivatelu'] .= ' uživatelů';

@@ -60,7 +60,7 @@ class Info
         if ($nazev === []) {
             return $this->nazev;
         }
-        $nazev  = array_filter($nazev, fn(string $castNazvu) => $castNazvu !== '');
+        $nazev  = array_filter($nazev, static fn(string $castNazvu) => $castNazvu !== '');
         $nazev  = array_unique($nazev);
         $nazev  = implode(' – ', $nazev);
         $prefix = $this->dejPrefixPodleVyvoje();

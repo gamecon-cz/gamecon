@@ -1,4 +1,5 @@
 <?php
+
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -7,7 +8,7 @@ use Gamecon\XTemplate\XTemplate;
  * submenu_group: 5
  */
 
-$t = new XTemplate('slucovani.xtpl');
+$t = new XTemplate(__DIR__ . '/slucovani.xtpl');
 
 // provede sloučení uživatelů
 if (post('sloucit')) {
@@ -70,10 +71,10 @@ if (post('pripravit')) {
     }
 
     $t->assign([
-        'uaid' => $uzivatel1->id(),
-        'ubid' => $uzivatel2->id(),
-        'ua' => $uzivatel1,
-        'ub' => $uzivatel2,
+        'uaid'   => $uzivatel1->id(),
+        'ubid'   => $uzivatel2->id(),
+        'ua'     => $uzivatel1,
+        'ub'     => $uzivatel2,
         'amrtvy' => $uzivatel1->mrtvyMail() ? '(mrtvý)' : '',
         'bmrtvy' => $uzivatel2->mrtvyMail() ? '(mrtvý)' : '',
     ]);
@@ -83,12 +84,12 @@ if (post('pripravit')) {
         $t->parse(
             in_array($rok, $uzivatel1->historiePrihlaseni()) ?
                 'slucovani.detaily.historiePrihlaseni.aPrihlasen' :
-                'slucovani.detaily.historiePrihlaseni.aNeprihlasen'
+                'slucovani.detaily.historiePrihlaseni.aNeprihlasen',
         );
         $t->parse(
             in_array($rok, $uzivatel2->historiePrihlaseni()) ?
                 'slucovani.detaily.historiePrihlaseni.bPrihlasen' :
-                'slucovani.detaily.historiePrihlaseni.bNeprihlasen'
+                'slucovani.detaily.historiePrihlaseni.bNeprihlasen',
         );
         $t->parse('slucovani.detaily.historiePrihlaseni');
     }

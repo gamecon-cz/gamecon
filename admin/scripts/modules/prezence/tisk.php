@@ -10,17 +10,17 @@ use Gamecon\XTemplate\XTemplate;
  * pravo: 103
  */
 
-$t = new XTemplate('tisk.xtpl');
+$t = new XTemplate(__DIR__ . '/tisk.xtpl');
 
 $zacatek = null;
 require __DIR__ . '/_casy.php'; // vhackování vybírátka času
 $t->assign('casy', _casy($zacatek));
 
 $aktivity = $zacatek ? Aktivita::zRozmezi($zacatek, $zacatek) : [];
-$ids = [];
+$ids      = [];
 
 foreach ($aktivity as $a) {
-    $ids[] = $a->id();
+    $ids[]   = $a->id();
     $problem = false;
     $t->assign('a', $a);
     foreach ($a->prihlaseni() as $uc) {

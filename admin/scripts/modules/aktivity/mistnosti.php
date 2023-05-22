@@ -35,7 +35,7 @@ if (post('novaMistnost')) {
     back();
 }
 
-$tpl = new XTemplate('mistnosti.xtpl');
+$tpl = new XTemplate(__DIR__ . '/mistnosti.xtpl');
 
 $o = dbQuery('SELECT * FROM akce_lokace ORDER BY poradi');
 $l = mysqli_num_rows($o);

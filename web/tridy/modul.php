@@ -13,52 +13,58 @@ class Modul
     private const VYCHOZI = 'titulka';
 
     protected $src;
-    protected $params = [];
+    protected $params         = [];
     protected $vystup;
-    protected $bezDekorace = false;
-    protected $bezMenu = false;
-    protected $bezStranky = false;
-    protected $bezOkraju = false;
-    protected $bezPaticky = false;
+    protected $bezDekorace    = false;
+    protected $bezMenu        = false;
+    protected $bezStranky     = false;
+    protected $bezOkraju      = false;
+    protected $bezPaticky     = false;
     protected $blackarrowStyl = false;
     protected $info;
-    protected $cssUrls = [];
-    protected $jsUrls = [];
+    protected $cssUrls        = [];
+    protected $jsUrls         = [];
 
     /** @var SystemoveNastaveni */
     private $systemoveNastaveni;
 
     /** Načte modul ze zadané cesty k souboru */
-    protected function __construct(string $soubor, SystemoveNastaveni $systemoveNastaveni) {
+    protected function __construct(string $soubor, SystemoveNastaveni $systemoveNastaveni)
+    {
         $this->src                = $soubor;
         $this->systemoveNastaveni = $systemoveNastaveni;
     }
 
     /** Jestli se má modul renderovat bez obalovacího divu (tj. ne jak stránka) */
-    protected function bezDekorace($val = null) {
+    protected function bezDekorace($val = null)
+    {
         if (isset($val)) $this->bezDekorace = (bool)$val;
         return $this->bezDekorace;
     }
 
     /** Jestli se modul má renderovat bez zobrazeného menu */
-    public function bezMenu($val = null) {
+    public function bezMenu($val = null)
+    {
         if (isset($val)) $this->bezMenu = (bool)$val;
         return $this->bezMenu;
     }
 
     /** Jestli se má modul renderovat přes celou šířku monitoru */
-    public function bezOkraju($val = null) {
+    public function bezOkraju($val = null)
+    {
         if (isset($val)) $this->bezOkraju = (bool)$val;
         return $this->bezOkraju;
     }
 
     /** Jestli se má modul renderovat čistě jako plaintext */
-    public function bezStranky($val = null) {
+    public function bezStranky($val = null)
+    {
         if (isset($val)) $this->bezStranky = $val;
         return $this->bezStranky;
     }
 
-    public function bezPaticky($val = null) {
+    public function bezPaticky($val = null)
+    {
         if (isset($val)) $this->bezPaticky = $val;
         return $this->bezPaticky;
     }
@@ -67,44 +73,52 @@ class Modul
      * Jestli je modul v novém vizuálním stylu (codename blackarrow).
      * TODO po zmigrování všech modulů je možné toto postupně odstranit.
      */
-    public function blackarrowStyl($val = null) {
+    public function blackarrowStyl($val = null)
+    {
         if (isset($val)) {
             $this->blackarrowStyl = $val;
         }
         return $this->blackarrowStyl;
     }
 
-    public function cssUrls() {
+    public function cssUrls()
+    {
         return $this->cssUrls;
     }
 
-    public function info(Info $val = null): ?Info {
+    public function info(Info $val = null): ?Info
+    {
         if (isset($val)) $this->info = $val;
         return $this->info;
     }
 
-    public function jsUrls() {
+    public function jsUrls()
+    {
         return $this->jsUrls;
     }
 
     /** Název modulu (odpovídá části názvu souboru) */
-    protected function nazev() {
+    protected function nazev()
+    {
         return basename($this->src, '.php');
     }
 
     /** Setter/getter pro parametr (proměnnou) předanou dovnitř modulu */
-    public function param($nazev) {
+    public function param($nazev)
+    {
         if (func_num_args() == 2) {
             $this->params[$nazev] = func_get_arg(1);
         }
         return $this->params[$nazev] ?? null;
     }
 
-    public function pridejCssUrl($url) {
+    public function pridejCssUrl($url)
+    {
         $this->cssUrls[] = $url;
     }
 
-    public function pridejJsSoubor($cesta) {
+    public function pridejJsSoubor($cesta)
+    {
         $cestaKSouboru  = strpos(realpath($cesta), realpath(WWW)) === 0
             ? $cesta
             : WWW . '/' . $cesta;
@@ -115,8 +129,9 @@ class Modul
     }
 
     /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */
-    protected function sablona() {
-        $blackarrowSoubor = 'sablony/blackarrow/' . $this->nazev() . '.xtpl';
+    protected function sablona()
+    {
+        $blackarrowSoubor = __DIR__ . '/../sablony/blackarrow/' . $this->nazev() . '.xtpl';
 
         if (is_file($blackarrowSoubor)) {
             return new XTemplate($blackarrowSoubor);
@@ -130,7 +145,8 @@ class Modul
      * Viz, že modul dostává některé parametry pomocí proměnných resp. šablona se
      * načítá automaticky.
      */
-    public function spust() {
+    public function spust()
+    {
         extract($this->params); // TODO možná omezit explicitně parametry, které se smí extractnout, ať to není black magic
         $t = $this->sablona();
 
@@ -148,19 +164,21 @@ class Modul
     }
 
     /** Vrátí výstup, který modul vygeneroval */
-    public function vystup() {
+    public function vystup()
+    {
         if ($this->bezDekorace || $this->bezStranky)
             return $this->vystup;
-        elseif ($this->bezOkraju)
+        else if ($this->bezOkraju)
             return $this->vystup . '<style>.hlavni { max-width: 100%; }</style>';
-        elseif ($this->blackarrowStyl)
+        else if ($this->blackarrowStyl)
             return '<div>' . $this->vystup . '</div>';
         else
             return '<div class="blok stranka"><div class="obal">' . $this->vystup . '</div></div>';
     }
 
     /** Načte modul odpovídající dané Url (pokud není zadaná, použije aktuální) */
-    public static function zUrl(Url $urlObjekt = null, SystemoveNastaveni $systemoveNastaveni) {
+    public static function zUrl(Url $urlObjekt = null, SystemoveNastaveni $systemoveNastaveni)
+    {
         $url        = null;
         $podstranka = null;
         if (!$urlObjekt) {
@@ -178,8 +196,9 @@ class Modul
     public static function zNazvu(
         ?string            $nazev,
         string             $podstranka = null,
-        SystemoveNastaveni $systemoveNastaveni
-    ): ?self {
+        SystemoveNastaveni $systemoveNastaveni,
+    ): ?self
+    {
         if ($nazev) {
             if ($podstranka) {
                 $pripona = str_ends_with($podstranka, '.php')
