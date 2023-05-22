@@ -6,6 +6,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Web\Info;
 use Symfony\Component\Filesystem\Filesystem;
 use Gamecon\XTemplate\XTemplate;
 
@@ -138,6 +139,10 @@ class OnlinePrezenceHtml
     {
         if ($this->onlinePrezenceTemplate === null) {
             $this->onlinePrezenceTemplate = new XTemplate(__DIR__ . '/templates/online-prezence.xtpl');
+            $this->onlinePrezenceTemplate->assign(
+                'title',
+                (new Info($this->systemoveNastaveni))->pridejPrefixPodleVyvoje('Online prezence')
+            );
         }
         return $this->onlinePrezenceTemplate;
     }

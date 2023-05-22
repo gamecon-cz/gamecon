@@ -60,13 +60,10 @@ class Info
         if ($nazev === []) {
             return $this->nazev;
         }
-        $nazev  = array_filter($nazev, static fn(string $castNazvu) => $castNazvu !== '');
-        $nazev  = array_unique($nazev);
-        $nazev  = implode(' – ', $nazev);
-        $prefix = $this->dejPrefixPodleVyvoje();
-        if ($prefix !== '' && !str_starts_with($nazev, $prefix)) {
-            $nazev = $prefix . ' ' . $nazev;
-        }
+        $nazev       = array_filter($nazev, static fn(string $castNazvu) => $castNazvu !== '');
+        $nazev       = array_unique($nazev);
+        $nazev       = implode(' – ', $nazev);
+        $nazev       = $this->pridejPrefixPodleVyvoje($nazev);
         $this->nazev = $nazev;
         return $this;
     }
@@ -121,7 +118,16 @@ class Info
         return $this->nazev();
     }
 
-    public function dejPrefixPodleVyvoje(): string
+    public function pridejPrefixPodleVyvoje(string $nazev): string
+    {
+        $prefix = $this->prefixPodleVyvoje();
+        if ($prefix !== '' && !str_starts_with($nazev, $prefix)) {
+            $nazev = $prefix . ' ' . $nazev;
+        }
+        return $nazev;
+    }
+
+    private function prefixPodleVyvoje(): string
     {
         if ($this->jsmeNaLocale) {
             return 'άλφα';
