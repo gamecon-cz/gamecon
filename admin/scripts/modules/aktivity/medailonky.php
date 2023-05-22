@@ -22,7 +22,7 @@ if (post('noveId')) {
     back(getCurrentUrlWithQuery(['id' => post('noveId')]));
 }
 
-$t = new XTemplate('medailonky.xtpl');
+$t = new XTemplate(__DIR__ . '/medailonky.xtpl');
 $t->parseEach(Medailonek::zVsech(), 'medailonek', 'medailonky.radek');
 $t->parse('medailonky');
 $t->out('medailonky');

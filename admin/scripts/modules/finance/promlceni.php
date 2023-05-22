@@ -12,7 +12,7 @@ use Gamecon\Role\Role;
 
 /** @var Uzivatel $u */
 
-$p = new XTemplate('promlceni.xtpl');
+$p = new XTemplate(__DIR__ . '/promlceni.xtpl');
 
 $p->assign([
     'castka'   => 0,
@@ -108,7 +108,7 @@ if (post('pripravit')) {
   WHERE
     zustatek > $0 AND
     pohyb.datum < DATE_ADD(CURRENT_DATE, INTERVAL $1 YEAR)",
-        [0 => $castka, 1 => $pocetLet]
+        [0 => $castka, 1 => $pocetLet],
     );
 
     $ids = [];

@@ -89,7 +89,7 @@ if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechn
     back();
 }
 
-$tpl = new XTemplate('aktivity.xtpl');
+$tpl = new XTemplate(__DIR__ . '/aktivity.xtpl');
 
 $currentRequestUrl = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $exportImportUrl   = $currentRequestUrl . '/export-import';

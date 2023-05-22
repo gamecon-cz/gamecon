@@ -29,10 +29,10 @@ if (post('uzivatelProPripsaniSlevy')) {
     if (!$uzivatel->gcPrihlasen()) {
         chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
     }
-    $pripsanaSleva = $uzivatel->finance()->pripisSlevu(
+    $pripsanaSleva   = $uzivatel->finance()->pripisSlevu(
         post('sleva'),
         post('poznamkaKUzivateliProPripsaniSlevy'),
-        $u
+        $u,
     );
     $numberFormatter = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
     oznameni(
@@ -40,10 +40,10 @@ if (post('uzivatelProPripsaniSlevy')) {
             'Sleva %s připsána k uživateli %s.',
             $numberFormatter->formatCurrency(
                 $pripsanaSleva,
-                'CZK'
+                'CZK',
             ),
-            $uzivatel->jmenoNick()
-        )
+            $uzivatel->jmenoNick(),
+        ),
     );
 }
 
@@ -63,7 +63,7 @@ if (post('uzivatelKVyplaceniAktivity')) {
     $uzivatel->finance()->pripis(
         $prevedenaCastka,
         $u,
-        post('poznamkaKVyplaceniBonusu')
+        post('poznamkaKVyplaceniBonusu'),
     );
     $numberFormatter = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
     oznameni(sprintf('Bonus %s vyplacen uživateli %s.', $numberFormatter->formatCurrency($prevedenaCastka, 'CZK'), $uzivatel->jmenoNick()));
@@ -77,7 +77,7 @@ JOIN platne_role_uzivatelu
     ON platne_role_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND platne_role_uzivatelu.id_role IN($0, $1)
 GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
-        , [0 => Role::LETOSNI_VYPRAVEC, 1 => Role::PRIHLASEN_NA_LETOSNI_GC] // při změně změň hint v šabloně finance.xtpl
+        , [0 => Role::LETOSNI_VYPRAVEC, 1 => Role::PRIHLASEN_NA_LETOSNI_GC], // při změně změň hint v šabloně finance.xtpl
     );
     $numberFormatter       = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
     $organizatorAkciData   = [];
@@ -130,7 +130,7 @@ if (post('pokojeImport')) {
     oznameni('Import dokončen');
 }
 
-$x = new XTemplate('finance.xtpl');
+$x = new XTemplate(__DIR__ . '/finance.xtpl');
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
     $o   = dbQuery(<<<SQL
@@ -139,7 +139,7 @@ FROM uzivatele_hodnoty
 JOIN platne_role_uzivatelu
     ON(platne_role_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND platne_role_uzivatelu.id_role=$0)
 SQL,
-        [Role::PRIHLASEN_NA_LETOSNI_GC]
+        [Role::PRIHLASEN_NA_LETOSNI_GC],
     );
     $ids = '';
     while ($r = mysqli_fetch_assoc($o)) {

@@ -3,7 +3,7 @@
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml;
 
-$x = new XTemplate('_paticka.xtpl');
+$x = new XTemplate(__DIR__ . '/_paticka.xtpl');
 $x->assign(['kurzEura' => KURZ_EURO]);
 
 $nastaveniBaseName = basename(__DIR__ . '/../../../scripts/modules/nastaveni/nastaveni.php', '.php');

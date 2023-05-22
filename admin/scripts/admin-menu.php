@@ -9,43 +9,41 @@ class AdminMenu
 {
 
     /** @var string */
-    private $src;
-    /** @var bool */
-    private $isSubmenu;
-    private $menu;
-    private $patickaSoubor;
+    private readonly string $src;
+    private ?array          $menu          = null;
+    private ?string         $patickaSoubor = null;
 
-    function __construct(string $src, bool $isSubmenu = false) {
-        $this->src = $src;
-        $this->isSubmenu = $isSubmenu;
+    function __construct(string $src, private readonly bool $isSubmenu = false)
+    {
+        $this->src = rtrim(trim($src), '/') . '/';
     }
 
-    private function sestavMenu() {
+    private function sestavMenu()
+    {
         $this->menu = [];
-        if (substr($this->src, 0, 2) == './') $this->src = substr($this->src, 2);
-        $d = opendir(__DIR__ . '/../' . $this->src);
-        while (($file = readdir($d)) !== FALSE) {
+        $d          = opendir($this->src);
+        while (($file = readdir($d)) !== false) {
             //echo($file.' '.is_dir($this->src.$file).'<br />');
             if (strpos($file, '.php') && substr($file, 0, 1) != '_') { //načtení souboru, vyhledání proměnných v hlavičkách
                 $url = substr($file, 0, -4);
-                $fc = (string)file_get_contents(__DIR__ . '/../' . $this->src . $file, false, null, 0, 2048);
+                $fc  = (string)file_get_contents($this->src . $file, false, null, 0, 2048);
                 preg_match('@\* nazev: (.*)@', $fc, $m);
                 $this->menu[$url]['nazev'] = $m[1];
                 preg_match('@\* pravo: (\d*)@', $fc, $m);
-                $this->menu[$url]['pravo'] = (int)$m[1];
+                $this->menu[$url]['pravo']  = (int)$m[1];
                 $this->menu[$url]['soubor'] = $this->src . $file;
                 if ($this->isSubmenu) {
                     $this->parseSubMenu($fc, $url);
                 }
-            } elseif (strpos($file, '.') === false && strpos($file, '_') === false
+            } else if (strpos($file, '.') === false && strpos($file, '_') === false
                 && is_dir($this->src . $file)) {
                 $url = $file;
-                $fc = (string)file_get_contents($this->src . $file . '/' . $file . '.php', false, null, 0, 2048);
+                $fc  = (string)file_get_contents($this->src . $file . '/' . $file . '.php', false, null, 0, 2048);
                 preg_match('@\* nazev: (.*)@', $fc, $m);
                 $this->menu[$url]['nazev'] = $m[1];
                 preg_match('@\* pravo: (.*)@', $fc, $m);
-                $this->menu[$url]['pravo'] = (int)$m[1];
-                $this->menu[$url]['soubor'] = $this->src . $file . '/' . $file . '.php';
+                $this->menu[$url]['pravo']   = (int)$m[1];
+                $this->menu[$url]['soubor']  = $this->src . $file . '/' . $file . '.php';
                 $this->menu[$url]['submenu'] = 1;
                 if ($this->isSubmenu) {
                     $this->parseSubMenu($fc, $url);
@@ -76,7 +74,8 @@ class AdminMenu
         });
     }
 
-    private function parseSubMenu(string $fc, string $url) {
+    private function parseSubMenu(string $fc, string $url)
+    {
         preg_match('@\* submenu_group: (.*)@', $fc, $m);
         $this->menu[$url]['group'] = (int)($m[1] ?? 0);
         preg_match('@\* submenu_order: (.*)@', $fc, $m);
@@ -88,15 +87,18 @@ class AdminMenu
     }
 
     /** Export menu do pole. Iterátory a věci (?) */
-    public function pole() {
+    public function pole()
+    {
         if (!isset($this->menu)) {
             $this->sestavMenu();
         }
         return $this->menu;
     }
 
-    public function getPatickaSoubor(): ?string {
+    public function patickaSoubor(): ?string
+    {
         if (!isset($this->patickaSoubor)) {
+            $this->patickaSoubor = '';
             $this->sestavMenu();
         }
         return $this->patickaSoubor;

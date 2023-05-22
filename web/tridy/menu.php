@@ -37,7 +37,7 @@ class Menu
     /** Celý kód menu (html) */
     public function cele() {
         $a = $this->url ? $this->url->cast(0) : null;
-        $t = new XTemplate('sablony/menu.xtpl');
+        $t = new XTemplate(__DIR__ . '/../sablony/blackarrow/menu.xtpl');
         $t->assign('menu', $this);
         if (isset(self::$linie[$a])) {
             $t->assign('aaktiv', 'aktivni');
