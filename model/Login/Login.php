@@ -2,6 +2,7 @@
 
 namespace Gamecon\Login;
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Info;
 use Gamecon\XTemplate\XTemplate;
 
@@ -11,7 +12,8 @@ class Login
     public const PASSWORD_INPUT_NAME = 'hesloNAdm';
 
     public function __construct(
-        private Info $info,
+        private Info                        $info,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
         $this->info = clone $info;
@@ -42,6 +44,7 @@ class Login
             'base'              => URL_ADMIN . '/',
             'loginInputName'    => self::LOGIN_INPUT_NAME,
             'passwordInputName' => self::PASSWORD_INPUT_NAME,
+            'jsmeNaBete'        => $this->systemoveNastaveni->jsmeNaBete(),
         ]);
 
         $this->pridejLokalniAssety($loginTemplate);
@@ -54,6 +57,7 @@ class Login
         static $localAssets = [
             'stylesheets' => [
                 __DIR__ . '/../../admin/files/login/login.css',
+                __DIR__ . '/../../admin/files/design/ribbon.css',
             ],
             'javascripts' => [
                 __DIR__ . '/../../admin/files/login/login.js',

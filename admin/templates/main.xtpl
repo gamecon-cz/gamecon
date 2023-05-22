@@ -7,6 +7,7 @@
   {headerPageInfo}
   <link rel="shortcut icon" href="files/favicon.ico"/>
   <link rel="stylesheet" href="files/design/styl.css?version={cssVersions.styl}"/>
+  <link rel="stylesheet" href="files/design/ribbon.css?version={cssVersions.ribbon}"/>
   <link rel="stylesheet" href="files/design/uzky.css?version={cssVersions.uzky}" media="(max-width: 550px)">
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css" />
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-timepicker-addon-1.6.3.min.css" />
