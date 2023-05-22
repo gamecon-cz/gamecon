@@ -6,7 +6,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Online prezence - {nadpis}</title>
+    <title>{title}</title>
+
+    <meta property="og:title" content="{title}">
+    <meta property="og:type" content="website">
 
     <base href="{base}">
 
@@ -37,9 +40,9 @@
 <body>
 
 <script type="text/javascript">
-    if (window.navigator.userAgent.indexOf("MSIE ") > -1) {
-        alert('Internet Explorer není podporován. Budeš mít potíže. Raději si stáhni novější prohlížeč.')
-    }
+  if (window.navigator.userAgent.indexOf("MSIE ") > -1) {
+    alert('Internet Explorer není podporován. Budeš mít potíže. Raději si stáhni novější prohlížeč.')
+  }
 </script>
 
 <main class="main">
@@ -74,7 +77,7 @@
         <!-- begin:aktivity -->
 
         <script>
-            let posledneKliknutaAktivitaId
+          let posledneKliknutaAktivitaId
         </script>
 
         <div class="online-prezence"
@@ -349,20 +352,20 @@
 
             </div>
             <script type="text/javascript">
-                { // local scope abychom nemuseli řešit že const už je definována
-                    const aktivitaVyrenderovana = new CustomEvent(
-                        'aktivitaVyrenderovana',
-                        {
-                            detail: document.getElementById(`aktivita-{idAktivity}`),
-                        },
-                    )
-                    document.dispatchEvent(aktivitaVyrenderovana)
-                }
+              { // local scope abychom nemuseli řešit že const už je definována
+                const aktivitaVyrenderovana = new CustomEvent(
+                  'aktivitaVyrenderovana',
+                  {
+                    detail: document.getElementById(`aktivita-{idAktivity}`),
+                  },
+                )
+                document.dispatchEvent(aktivitaVyrenderovana)
+              }
             </script>
             <!-- end:aktivita -->
 
             <script type="text/javascript">
-                zobrazElementyPodlePosledniVolby()
+              zobrazElementyPodlePosledniVolby()
             </script>
 
         </div>
