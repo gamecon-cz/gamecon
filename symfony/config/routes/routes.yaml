@@ -4,3 +4,7 @@
 app_lucky_number:
     path: /symfony
     controller: Gamecon\Symfony\Controller\LuckyController::number
+
+back_to_old:
+    path: /symfony/back-to-old
+    controller: Gamecon\Symfony\Controller\BackToOldController::backToOld
