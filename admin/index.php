@@ -50,10 +50,13 @@ $info->nazev('Administrace');
 // xtemplate inicializace
 $xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
 $xtpl->assign([
-    'headerPageInfo' => $info->html(),
-    'base'           => URL_ADMIN . '/',
-    'cssVersions'    => new VerzeSouboru(__DIR__ . '/files/design', 'css'),
-    'jsVersions'     => new VerzeSouboru(__DIR__ . '/files', 'js'),
+    'headerPageInfo'          => $info->html(),
+    'base'                    => URL_ADMIN . '/',
+    'cssVersions'             => new VerzeSouboru(__DIR__ . '/files/design', 'css'),
+    'jsVersions'              => new VerzeSouboru(__DIR__ . '/files', 'js'),
+    'urlSPracovnimUzivatelem' => $uPracovni
+        ? getCurrentUrlWithQuery(['pracovni_uzivatel' => $uPracovni->id()])
+        : '',
 ]);
 if ($systemoveNastaveni->jeApril()) {
     $xtpl->parse('all.april');
