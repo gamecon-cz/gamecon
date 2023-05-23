@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width"/>
   <base href="{base}">
   {headerPageInfo}
-  <link rel="shortcut icon" href="files/favicon.ico"/>
+  <link rel="shortcut icon" href="files/favicon.png"/>
   <link rel="stylesheet" href="files/design/styl.css?version={cssVersions.styl}"/>
   <link rel="stylesheet" href="files/design/ribbon.css?version={cssVersions.ribbon}"/>
   <link rel="stylesheet" href="files/design/uzky.css?version={cssVersions.uzky}" media="(max-width: 550px)">

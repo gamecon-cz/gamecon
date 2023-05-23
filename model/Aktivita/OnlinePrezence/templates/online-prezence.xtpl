@@ -13,7 +13,7 @@
 
     <base href="{base}">
 
-    <link rel="shortcut icon" href="files/favicon.ico"/>
+    <link rel="shortcut icon" href="files/favicon.png"/>
 
     <link rel="stylesheet" href="files/bootstrap.5.1.3.css"/>
     <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css"/>
