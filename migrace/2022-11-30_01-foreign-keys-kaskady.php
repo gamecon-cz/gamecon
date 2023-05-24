@@ -489,7 +489,7 @@ SQL
 );
 
 $this->q(<<<SQL
-ALTEr TABLE `uzivatele_hodnoty`
+ALTER TABLE `uzivatele_hodnoty`
   MODIFY COLUMN `login_uzivatele` VARCHAR(255) NOT NULL,
   MODIFY COLUMN `jmeno_uzivatele` VARCHAR(100) NOT NULL,
   MODIFY COLUMN `prijmeni_uzivatele` VARCHAR(100) NOT NULL,
