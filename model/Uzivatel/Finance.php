@@ -6,6 +6,7 @@ use Endroid\QrCode\Writer\Result\ResultInterface;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
@@ -403,19 +404,28 @@ SQL,
      * @param \Uzivatel $provedl
      * @param string|null $poznamka
      * @param string|int|null $idFioPlatby
+     * @param null|\DateTimeInterface $kdy
      * @throws \DbDuplicateEntryException
      */
-    public function pripis($castka, \Uzivatel $provedl, $poznamka = null, $idFioPlatby = null)
+    public function pripis(
+        string|float|int    $castka,
+        \Uzivatel           $provedl,
+        ?string             $poznamka = null,
+        string|int|null     $idFioPlatby = null,
+        ?\DateTimeInterface $kdy = null,
+    )
     {
+        $rok = $kdy?->format('Y') ?? $this->systemoveNastaveni->rocnik();
         dbInsert(
             PlatbySqlStruktura::PLATBY_TABULKA,
             [
                 PlatbySqlStruktura::ID_UZIVATELE => $this->u->id(),
                 PlatbySqlStruktura::FIO_ID       => $idFioPlatby ?: null,
                 PlatbySqlStruktura::CASTKA       => prevedNaFloat($castka),
-                PlatbySqlStruktura::ROK          => $this->systemoveNastaveni->rocnik(),
+                PlatbySqlStruktura::ROK          => $rok,
                 PlatbySqlStruktura::PROVEDL      => $provedl->id(),
                 PlatbySqlStruktura::POZNAMKA     => $poznamka ?: null,
+                PlatbySqlStruktura::PROVEDENO    => $kdy?->format(DateTimeCz::FORMAT_DB),
             ],
         );
     }

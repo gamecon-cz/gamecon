@@ -16,6 +16,8 @@ use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Cas\DateTimeCz;
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->pridejRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $u);
@@ -42,7 +44,17 @@ if (post('platba') && $uPracovni) {
         varovani('Platba připsána uživateli, který není přihlášen na Gamecon', false);
     }
     try {
-        $uPracovni->finance()->pripis(post('platba'), $u, post('poznamka'), post('idPohybu'));
+        $uPracovni->finance()->pripis(
+            post('platba'),
+            $u,
+            post('poznamka'),
+            !$systemoveNastaveni->jsmeNaOstre()
+                ? post('idPohybu')
+                : null,
+            !$systemoveNastaveni->jsmeNaOstre()
+                ? DateTimeImmutableStrict::createFromFormat(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD, post('provedenoKdy'))
+                : null,
+        );
     } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
         if (post('idPohybu') && FioPlatba::existujePodleFioId(post('idPohybu'))) {
             chyba(sprintf('Tato platba s Fio ID %d již existuje', post('idPohybu')), false);

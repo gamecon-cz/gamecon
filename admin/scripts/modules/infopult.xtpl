@@ -198,7 +198,19 @@
               <span class="hint">Například 23798944700. Tedy ID, pod kterým má transakci Fio. <strong>Důležité, aby stejnou platbu nepřipsalo znovu automatické párování plateb</strong>.</span>
             </span>:
           </td>
-          <td><input type="text" name="idPohybu" autocomplete="off"></td>
+          <td>
+              <input type="text" name="idPohybu" autocomplete="off">
+              <span style="float: right">{htmlTotoSeUkazujePouzeNaTestu}</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Datum platby:
+          </td>
+          <td>
+              <input type="datetime-local" name="provedenoKdy" autocomplete="off">
+              <span style="float: right">{htmlTotoSeUkazujePouzeNaTestu}</span>
+          </td>
         </tr>
         <!-- end:idFioPohybu -->
         <tr>
@@ -417,5 +429,19 @@
 
 
 <div style="clear: both;"></div>
+
+<script>
+  $('input[type=datetime-local]').each(function (index, element) {
+    element.type = 'text'
+    $(element).datetimepicker({
+      dateFormat: 'd. m. yy',
+      timeFormat: 'HH:mm:ss',
+      onSelect: function () {
+        const changeEvent = new Event('change')
+        element.dispatchEvent(changeEvent)
+      },
+    })
+  })
+</script>
 
 <!-- end:infopult -->
