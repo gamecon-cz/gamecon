@@ -22,3 +22,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    kernel.listener.prefix:
+        class: Gamecon\Symfony\EventListener\TablePrefixEventListener
+        # Adding the table_prefix configuration
+        calls:
+            - [ setConfig, [ '%table_prefix%' ] ]
+        tags:
+            - { name: doctrine.event_listener, event: loadClassMetadata, method: loadClassMetadata }

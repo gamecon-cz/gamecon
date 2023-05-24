@@ -3,19 +3,22 @@
 namespace Gamecon\Symfony\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Gamecon\Symfony\Doctrine\UserSetGameconEmailListener;
+use Gamecon\Symfony\Generator\GameconUserIdPseudoGenerator;
 use Gamecon\Symfony\Repository\UserRepository;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[ORM\EntityListeners([UserSetGameconEmailListener::class])]
 class User implements UserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\Column]
+    #[ORM\CustomIdGenerator(GameconUserIdPseudoGenerator::class)]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
@@ -62,7 +65,7 @@ class User implements UserInterface
 
     public function getUserIdentifier(): string
     {
-        return $this->getEmail();
+        return (string)$this->getId();
     }
 
 }

@@ -49,4 +49,23 @@ class DatabazoveNastaveni
         return $this->anonymizovanaDatabaze;
     }
 
+    public function symfonyDatabaseUrl(): string
+    {
+        return "mysql://{$this->mocnyUzivatelHlavniDatabaze()}:{$this->mocneHesloHlavniDatabaze()}@{$this->serverHlavniDatabaze()}:{$this->portHlavniDatabaze()}/{$this->hlavniDatabaze()}?serverVersion=10.3.27-MariaDB&&charset=utf8";
+    }
+
+    private function mocneHesloHlavniDatabaze(): string
+    {
+        return DBM_PASS;
+    }
+
+    private function mocnyUzivatelHlavniDatabaze(): string
+    {
+        return DBM_USER;
+    }
+
+    private function portHlavniDatabaze(): int
+    {
+        return (int)DB_PORT;
+    }
 }

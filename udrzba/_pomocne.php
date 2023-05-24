@@ -53,6 +53,7 @@ function nasad(array $nastaveni) {
       !/nastaveni/nastaveni-prava.php
       !/nastaveni/nastaveni-role.php
       !/nastaveni/zavadec*.php
+      !/nastaveni/nastaveni-symfony.php
       !/nastaveni/google_api_client_secret_produkce.json
       !/nastaveni/google_api_client_secret_beta.json
 

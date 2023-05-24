@@ -203,3 +203,5 @@ if (!defined('MOJE_AKTIVITY_PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZA
 if (!defined('PRODEJ_JIDLA_POZASTAVEN')) define('PRODEJ_JIDLA_POZASTAVEN', false);
 
 if (!defined('SUPERADMINI')) define('SUPERADMINI', [4032 /* Jaroslav "Kostřivec" Týc */, 1112 /* Lenka "Cemi" Zavadilová */]);
+
+require_once __DIR__ . '/nastaveni-symfony.php';

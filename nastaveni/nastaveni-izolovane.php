@@ -21,3 +21,5 @@ if (!defined('PROFILOVACI_LISTA')) define('PROFILOVACI_LISTA', false);
 if (!defined('CACHE_SLOZKY_PRAVA')) define('CACHE_SLOZKY_PRAVA', 0770);
 
 if (!defined('PRIJEMCI_CHYB')) define('PRIJEMCI_CHYB', ['it@gamecon.cz']);
+
+if (!defined('DB_PORT')) define('DB_PORT', 3306);
