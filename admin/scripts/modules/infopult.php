@@ -13,6 +13,7 @@ use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\Role\Role;
+use Gamecon\Web\Info;
 
 /**
  * @var Uzivatel|null|void $u
@@ -205,11 +206,15 @@ if ($uPracovni) {
         }
     }
 
-    // if ($u && $u->isSuperAdmin()) {
-    //     $x->parse('infopult.uzivatel.idFioPohybu');
-    // }
+    if (!$systemoveNastaveni->jsmeNaOstre()) {
+        $x->assign(
+            'htmlTotoSeUkazujePouzeNaTestu',
+            (new Info($systemoveNastaveni))->htmlTotoSeUkazujePouzeNaTestu(),
+        );
+        $x->parse('infopult.uzivatel.idFioPohybu');
+    }
 
-    if ($u && $u->jeSpravceFinanci()) {
+    if ($u?->jeSpravceFinanci()) {
         $x->parse('infopult.uzivatel.objednavky.nadpisVse');
     } else {
         $x->parse('infopult.uzivatel.objednavky.nadpisJenPredmety');

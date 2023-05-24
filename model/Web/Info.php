@@ -150,4 +150,13 @@ class Info
         }
     }
 
+    public function htmlTotoSeUkazujePouzeNaTestu(string $duvod = ''): string
+    {
+        $duvod = $duvod !== ''
+            ? "<br>$duvod"
+            : '';
+        return $this->jsmeNaLocale || $this->jsmeNaBete
+            ? '<span class="hinted">🙋<span class="hint"><em>(toto se ukazuje pouze na testu)</em>' . $duvod . ' </span></span>'
+            : '';
+    }
 }
