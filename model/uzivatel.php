@@ -526,12 +526,15 @@ SQL,
     }
 
     /** Opustil uživatel GC? */
-    public function gcOdjel()
+    public function gcOdjel(int $rocnik = null): bool
     {
-        if (!$this->gcPritomen()) {
-            return false; // ani nedorazil, nemohl odjet
+        if ($rocnik === null || $rocnik === $this->systemoveNastaveni->rocnik()) {
+            if (!$this->gcPritomen()) {
+                return false; // ani nedorazil, nemohl odjet
+            }
+            return $this->maRoli(Role::ODJEL_Z_LETOSNIHO_GC);
         }
-        return $this->maRoli(Role::ODJEL_Z_LETOSNIHO_GC);
+        return $this->maRoli(Role::odjelZRocniku($rocnik));
     }
 
     /** Je uživatel přihlášen na aktuální GC? */

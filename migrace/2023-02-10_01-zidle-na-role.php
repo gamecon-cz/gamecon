@@ -70,11 +70,10 @@ DROP VIEW IF EXISTS platne_zidle
 SQL
 );
 
-$jakykoliRocnik = \Gamecon\Role\Role::JAKYKOLI_ROCNIK;
 $this->q(<<<SQL
 CREATE SQL SECURITY INVOKER VIEW platne_role
 AS SELECT * FROM role_seznam
-WHERE rocnik_role IN ((SELECT hodnota FROM systemove_nastaveni WHERE klic = 'ROCNIK' LIMIT 1), $jakykoliRocnik)
+WHERE rocnik_role IN ((SELECT hodnota FROM systemove_nastaveni WHERE klic = 'ROCNIK' LIMIT 1), -1)
 SQL
 );
 

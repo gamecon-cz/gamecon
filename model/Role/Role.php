@@ -172,7 +172,7 @@ class Role extends \DbObject
      */
     public static function PRIHLASEN_NA_LETOSNI_GC(int $rok = ROCNIK): int
     {
-        return self::preProUcastRoku($rok) - self::ROLE_PRIHLASEN_ID_ZAKLAD;
+        return self::prihlasenNaRocnik($rok);
     }
 
     /**
@@ -182,7 +182,7 @@ class Role extends \DbObject
      */
     public static function PRITOMEN_NA_LETOSNIM_GC(int $rok = ROCNIK): int
     {
-        return self::preProUcastRoku($rok) - self::ROLE_PRITOMEN_ID_ZAKLAD;
+        return self::pritomenNaRocniku($rok);
     }
 
     /**
@@ -191,6 +191,21 @@ class Role extends \DbObject
      * @return int
      */
     public static function ODJEL_Z_LETOSNIHO_GC(int $rok = ROCNIK): int
+    {
+        return self::odjelZRocniku($rok);
+    }
+
+    public static function prihlasenNaRocnik(int $rok): int
+    {
+        return self::preProUcastRoku($rok) - self::ROLE_PRIHLASEN_ID_ZAKLAD;
+    }
+
+    public static function pritomenNaRocniku(int $rok): int
+    {
+        return self::preProUcastRoku($rok) - self::ROLE_PRITOMEN_ID_ZAKLAD;
+    }
+
+    public static function odjelZRocniku(int $rok): int
     {
         return self::preProUcastRoku($rok) - self::ROLE_ODJEL_ID_ZAKLAD;
     }
