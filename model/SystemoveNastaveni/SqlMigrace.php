@@ -10,23 +10,33 @@ class SqlMigrace
 {
     public static function vytvorZGlobals(): static
     {
-        return new static(SystemoveNastaveni::vytvorZGlobals());
+        return new static(DatabazoveNastaveni::vytvorZGlobals());
     }
 
-    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
+    public function __construct(private readonly DatabazoveNastaveni $databazoveNastaveni)
     {
     }
 
-    public function migruj(bool $zalohuj = true)
+    public function migruj(bool $zalohuj = true, \mysqli $spojeni = null)
     {
         if ($zalohuj) {
             (new Filesystem())->mkdir(ZALOHA_DB_SLOZKA);
         }
 
-        $this->dbMigrations($zalohuj)->run(true);
+        $this->dbMigrations($zalohuj, $spojeni)->run(true);
     }
 
-    private function dbMigrations(bool $zalohuj): DbMigrations
+    private function dbMigrations(bool $zalohuj, \mysqli $spojeni = null): DbMigrations
+    {
+        return new DbMigrations(new DbMigrationsConfig([
+            'connection'          => $spojeni ?? $this->spojeni(),
+            'doBackups'           => $zalohuj,
+            'migrationsDirectory' => SQL_MIGRACE_DIR,
+            'backupsDirectory'    => ZALOHA_DB_SLOZKA,
+        ]));
+    }
+
+    private function spojeni(): \mysqli
     {
         [
             'DB_SERV'  => $dbServ,
@@ -34,21 +44,16 @@ class SqlMigrace
             'DBM_PASS' => $dbmPass,
             'DB_NAME'  => $dbName,
             'DB_PORT'  => $dbPort,
-        ] = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
+        ] = $this->databazoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
 
-        return new DbMigrations(new DbMigrationsConfig([
-            'connection'          => _dbConnect(
-                dbServer: $dbServ,
-                dbUser: $dbmUser,
-                dbPass: $dbmPass,
-                dbPort: $dbPort,
-                dbName: $dbName,
-                persistent: false,
-            ),
-            'doBackups'           => $zalohuj,
-            'migrationsDirectory' => SQL_MIGRACE_DIR,
-            'backupsDirectory'    => ZALOHA_DB_SLOZKA,
-        ]));
+        return _dbConnect(
+            dbServer: $dbServ,
+            dbUser: $dbmUser,
+            dbPass: $dbmPass,
+            dbPort: $dbPort,
+            dbName: $dbName,
+            persistent: false,
+        );
     }
 
     public function nejakeMigraceKeSpusteni(): bool

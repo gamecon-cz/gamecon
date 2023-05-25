@@ -137,7 +137,7 @@ SQL,
             return;
         } catch (\DbException $dbException) {
             if (in_array($dbException->getCode(), [1146 /* table does not exist */, 1054 /* new column does not exist */])) {
-                if ((new SqlMigrace($this))->nejakeMigraceKeSpusteni()) {
+                if ((new SqlMigrace($this->databazoveNastaveni()))->nejakeMigraceKeSpusteni()) {
                     return; // tabulka či sloupec musí vzniknout SQL migrací
                 }
                 // else například jsme si na lokál stáhli příliš novou databázi
@@ -847,15 +847,7 @@ SQL;
 
     public function prihlasovaciUdajeSoucasneDatabaze(): array
     {
-        return [
-            'DBM_USER' => try_constant('DBM_USER'),
-            'DBM_PASS' => try_constant('DBM_PASS'),
-            'DB_USER'  => try_constant('DB_USER'),
-            'DB_PASS'  => try_constant('DB_PASS'),
-            'DB_NAME'  => try_constant('DB_NAME'),
-            'DB_SERV'  => try_constant('DB_SERV'),
-            'DB_PORT'  => try_constant('DB_PORT'),
-        ];
+        return $this->databazoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
     }
 
     public function kontaktniEmailGc(): string

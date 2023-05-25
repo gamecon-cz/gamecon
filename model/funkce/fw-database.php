@@ -165,6 +165,7 @@ function dbConnectForAlterStructure($selectDb = true)
             ? constant('DB_PORT')
             : null,
         $selectDb ? DB_NAME : null,
+        false,
     );
 }
 
@@ -176,6 +177,7 @@ function dbConnectionAnonymDb(): mysqli
         DB_ANONYM_PASS,
         defined('DB_ANONYM_PORT') ? (int)DB_ANONYM_PORT : null,
         null,
+        false,
     );
     $dbAnonym   = DB_ANONYM_NAME;
     $result     = mysqli_query(

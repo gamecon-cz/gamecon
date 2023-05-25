@@ -166,4 +166,31 @@ class NastrojeDatabaze
 
         return array_map(static fn(array $definition) => $definition['Name'], $localFunctionsStatuses);
     }
+
+    public function obnovDatabaziZeSouboru(string $soubor, \mysqli $spojeni)
+    {
+        if (!is_readable($soubor)) {
+            throw new \RuntimeException("Soubor '$soubor' nelze přečíst");
+        }
+        if ($this->systemoveNastaveni->jsmeNaOstre()) {
+            throw new \LogicException('Je zakázáno obnovovat databázi na ostré');
+        }
+
+        $db = $this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze();
+
+        dbQuery(q: "USE `$db`", mysqli: $spojeni);
+        $this->vymazVseZHlavniDatabaze($spojeni);
+
+        dbQuery(q: "DROP DATABASE `$db`", mysqli: $spojeni);
+        dbQuery(q: "CREATE DATABASE `$db`", mysqli: $spojeni);
+        dbQuery(q: "USE `$db`", mysqli: $spojeni);
+        (new \MySQLImport($spojeni))->load($soubor);
+
+        $this->migruj(false, $spojeni);
+    }
+
+    public function migruj(bool $zalohuj, \mysqli $spojeni)
+    {
+        (new SqlMigrace($this->systemoveNastaveni->databazoveNastaveni()))->migruj($zalohuj, $spojeni);
+    }
 }

@@ -64,7 +64,7 @@ class KopieOstreDatabaze
 
         unlink($tempFile);
 
-        (new SqlMigrace($this->systemoveNastaveni))->migruj();
+        (new SqlMigrace($this->systemoveNastaveni->databazoveNastaveni()))->migruj();
 
         $this->vyjimkovac->priZalogovaniOdeslatMailem($puvodniPriZalogovaniOdeslatMailem);
         $this->vyjimkovac->zobrazeni($puvodniZobrazeniChyb);

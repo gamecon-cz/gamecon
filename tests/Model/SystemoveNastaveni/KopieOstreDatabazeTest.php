@@ -37,7 +37,7 @@ class KopieOstreDatabazeTest extends TestCase
             (new \MySQLImport($docasneSpojeniSoucasna))
                 ->load(__DIR__ . '/../../Db/data/localhost-2023_01_27_11_18_45-dump.sql');
             // potřebujeme co největší rozdíl SQL migrací abychom vyzkoušeli že nějaká co není na betě a pustí se to nerozbije (stalo se)
-            (new SqlMigrace($this->systemoveNastaveni))->migruj(false);
+            (new SqlMigrace($this->systemoveNastaveni->databazoveNastaveni()))->migruj(false);
 
             $docasneSpojeniOstra = $this->docasneSpojeniOstra($this->systemoveNastaveni, true);
             // naplníme "jakoby ostrou" staršími daty, abychom vyzkoušeli nejen zkopírování, ale i migrace

@@ -282,18 +282,11 @@ class SystemoveNastaveniHtml
         if ($this->systemoveNastaveni->jsmeNaOstre()) {
             throw new \Chyba('Je zakázáno obnovovat databázi na ostré');
         }
-        $adresar = $this->adresarProRucniZalohu();
-        $soubor  = $adresar . '/' . $nazevSouboru;
-        if (!file_exists($soubor)) {
-            trigger_error("Soubor '$soubor' nelze přečíst", E_USER_WARNING);
-            throw new \Chyba("Soubor '$nazevSouboru' nelze přečíst");
-        }
-        $db         = DB_NAME;
-        $connection = dbConnectForAlterStructure(false);
-        dbQuery(q: "DROP DATABASE `$db`", mysqli: $connection);
-        dbQuery(q: "CREATE DATABASE `$db`", mysqli: $connection);
-        dbQuery(q: "USE `$db`", mysqli: $connection);
-        (new \MySQLImport($connection))->load($soubor);
+        $adresar          = $this->adresarProRucniZalohu();
+        $soubor           = $adresar . '/' . $nazevSouboru;
+        $nastrojeDatabaze = new NastrojeDatabaze($this->systemoveNastaveni);
+        $spojeni          = dbConnectForAlterStructure(false);
+        $nastrojeDatabaze->obnovDatabaziZeSouboru($soubor, $spojeni);
     }
 
     private function adresarProRucniZalohu(): string

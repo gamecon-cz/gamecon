@@ -49,4 +49,18 @@ class DatabazoveNastaveni
         return $this->anonymizovanaDatabaze;
     }
 
+
+    public function prihlasovaciUdajeSoucasneDatabaze(): array
+    {
+        return [
+            'DBM_USER' => try_constant('DBM_USER'),
+            'DBM_PASS' => try_constant('DBM_PASS'),
+            'DB_USER'  => try_constant('DB_USER'),
+            'DB_PASS'  => try_constant('DB_PASS'),
+            'DB_NAME'  => $this->hlavniDatabaze(),
+            'DB_SERV'  => $this->serverHlavniDatabaze(),
+            'DB_PORT'  => try_constant('DB_PORT'),
+        ];
+    }
+
 }
