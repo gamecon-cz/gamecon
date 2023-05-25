@@ -49,6 +49,7 @@ foreach ($program->cssUrls() as $cssUrl) {
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program/filtr-programu.js');
 
 $zacatekPristiVlnyOd       = $systemoveNastaveni->pristiVlnaKdy();
 $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
@@ -105,14 +106,30 @@ $zobrazitMujProgramOdkaz = isset($u);
         <div class="informaceSpustime"><?= $legendaText ?></div>
 
         <div class="program_legenda_inner">
-            <span class="program_legenda_typ">Otevřené</span>
-            <span class="program_legenda_typ vDalsiVlne">V další vlně</span>
-            <span class="program_legenda_typ vBudoucnu">Připravujeme</span>
-            <span class="program_legenda_typ sledujici">Sleduji</span>
-            <span class="program_legenda_typ prihlasen">Přihlášen<?= $u ? $u->koncovkaDlePohlavi() : '' ?></span>
-            <span class="program_legenda_typ plno">Plno</span>
+            <span class="program_legenda_typ otevrene" data-typ-class="otevrene">
+                <span class="before"></span>Otevřené
+            </span>
+            <span class="program_legenda_typ vDalsiVlne" data-typ-class="vDalsiVlne">
+                <span class="before"></span>V další vlně
+            </span>
+            <span class="program_legenda_typ vBudoucnu" data-typ-class="vBudoucnu">
+                <span class="before"></span>Připravujeme
+            </span>
+            <span class="program_legenda_typ sledujici" data-typ-class="sledujici">
+                <span class="before"></span>Sleduji
+            </span>
+            <span class="program_legenda_typ prihlasen"
+                  data-typ-class="prihlasen">
+                <span class="before"></span>
+                Přihlášen<?= $u ? $u->koncovkaDlePohlavi() : '' ?>
+            </span>
+            <span class="program_legenda_typ plno" data-typ-class="plno">
+                <span class="before"></span>Plno
+            </span>
             <?php if ($jeOrganizator) { ?>
-                <span class="program_legenda_typ organizator">organizuji</span>
+                <span class="program_legenda_typ organizator" data-typ-class="organizator">
+                    <span class="before"></span>organizuji
+                </span>
             <?php } ?>
         </div>
     </div>
@@ -125,6 +142,10 @@ $zobrazitMujProgramOdkaz = isset($u);
             </div>
         </div>
     </div>
+
+    <script type="text/javascript">
+        document.dispatchEvent(new Event('programNacteny'))
+    </script>
 
 </div>
 

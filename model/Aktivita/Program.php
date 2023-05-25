@@ -208,9 +208,9 @@ class Program
      */
     private function dny(): array
     {
-        $dny = [];
+        $dny             = [];
         $zacatekProgramu = DateTimeGamecon::zacatekProgramu($this->systemoveNastaveni->rocnik());
-        $konecProgamu = DateTimeGamecon::konecProgramu($this->systemoveNastaveni);
+        $konecProgamu    = DateTimeGamecon::konecProgramu($this->systemoveNastaveni);
         for ($den = $zacatekProgramu; $den->pred($konecProgamu); $den->plusDen()) {
             $dny[] = clone $den;
         }
@@ -345,7 +345,11 @@ class Program
         if ($aktivitaObjekt->vBudoucnu()) {
             $classes[] = 'vBudoucnu';
         }
-        $classes = $classes ? ' class="' . implode(' ', $classes) . '"' : '';
+        if (count($classes) === 0) {
+            $classes[] = 'otevrene';
+        }
+        $classes[] = 'aktivita';
+        $classes   = $classes ? ' class="' . implode(' ', $classes) . '"' : '';
 
         // název a url aktivity
         echo '<td colspan="' . $aktivitaRaw['del'] . '"><div' . $classes . '>';
