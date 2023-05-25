@@ -967,11 +967,14 @@ SQL
         string    $zdrojZruseni,
     ): int
     {
-        $prihlaseneLarpy = Aktivita::zFiltru([
-            'typ'        => TypAktivity::LARP,
-            'rok'        => $this->systemoveNastaveni->rocnik(),
-            'prihlaseni' => [$this->zakaznik->id()],
-        ]);
+        $prihlaseneLarpy = Aktivita::zFiltru(
+            filtr: [
+                'typ'        => TypAktivity::LARP,
+                'rok'        => $this->systemoveNastaveni->rocnik(),
+                'prihlaseni' => [$this->zakaznik->id()],
+            ],
+
+        );
         foreach ($prihlaseneLarpy as $prihlasenyLarp) {
             $prihlasenyLarp->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni);
         }
@@ -999,12 +1002,15 @@ SQL
         string    $zdrojZruseni,
     ): int
     {
-        $prihlaseneAktivity = Aktivita::zFiltru([
-            'rok'        => $this->systemoveNastaveni->rocnik(),
-            'prihlaseni' => [$this->zakaznik->id()],
-        ]);
+        $prihlaseneAktivity = Aktivita::zFiltru(
+            filtr: [
+                'rok'        => $this->systemoveNastaveni->rocnik(),
+                'prihlaseni' => [$this->zakaznik->id()],
+            ],
+            systemoveNastaveni: $this->systemoveNastaveni,
+        );
         foreach ($prihlaseneAktivity as $prihlasenaAktivita) {
-            $prihlasenaAktivita->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni);
+            $prihlasenaAktivita->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni, 0);
         }
         return count($prihlaseneAktivity);
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Gamecon\Tests\Model\Aktivita;
+namespace Gamecon\Tests\Model\Aktivita\SqlStruktura;
 
 use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura;
 use Gamecon\Tests\Model\AbstractTestSqlStruktura;

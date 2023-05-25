@@ -25,7 +25,7 @@ Tym::vypisZpracuj($u);
 // aktivity
 
 $aktivity = Aktivita::zFiltru([
-    'rok'           => ROCNIK,
+    'rok'           => $systemoveNastaveni->rocnik(),
     'jenViditelne'  => true,
     'bezDalsichKol' => true,
     'typ'           => $typ ? $typ->id() : null,

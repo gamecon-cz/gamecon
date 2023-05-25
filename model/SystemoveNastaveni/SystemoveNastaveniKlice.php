@@ -12,6 +12,7 @@ class SystemoveNastaveniKlice
     public const PRVNI_VLNA_KDY                                               = 'PRVNI_VLNA_KDY';
     public const DRUHA_VLNA_KDY                                               = 'DRUHA_VLNA_KDY';
     public const TRETI_VLNA_KDY                                               = 'TRETI_VLNA_KDY';
+    public const PRISTI_VLNA_AKTIVIT_KDY                                      = 'PRISTI_VLNA_AKTIVIT_KDY';
     public const HROMADNE_ODHLASOVANI_1                                       = 'HROMADNE_ODHLASOVANI_1';
     public const HROMADNE_ODHLASOVANI_2                                       = 'HROMADNE_ODHLASOVANI_2';
     public const HROMADNE_ODHLASOVANI_3                                       = 'HROMADNE_ODHLASOVANI_3';
@@ -42,6 +43,9 @@ class SystemoveNastaveniKlice
     public const BONUS_ZA_8H_AZ_9H_AKTIVITU            = 'BONUS_ZA_8H_AZ_9H_AKTIVITU';
     public const BONUS_ZA_10H_AZ_11H_AKTIVITU          = 'BONUS_ZA_10H_AZ_11H_AKTIVITU';
     public const BONUS_ZA_12H_AZ_13H_AKTIVITU          = 'BONUS_ZA_12H_AZ_13H_AKTIVITU';
+
+    public const KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY   = 'KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY';
+    public const POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI = 'POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI';
 
     public const MODRE_TRICKO_ZDARMA_OD = 'MODRE_TRICKO_ZDARMA_OD';
 
