@@ -62,6 +62,7 @@ class AktivitaPrezence
             $this->zalogujZeDorazil($dorazil, $potvrzujici);
         } else {
             $this->aktivita->odhlasZeSledovaniAktivitVeStejnemCase($dorazil, $potvrzujici);
+            $this->aktivita->odhlasSledujiciho($dorazil, $potvrzujici);
             dbInsert('akce_prihlaseni', [
                 'id_uzivatele'        => $dorazil->id(),
                 'id_akce'             => $this->aktivita->id(),

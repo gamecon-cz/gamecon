@@ -70,6 +70,11 @@ abstract class AbstractTestDb extends TestCase
                 throw $throwable;
             }
         }
+
+        $initCallbacks = static::getInitCallbacks();
+        foreach ($initCallbacks as $initCallback) {
+            $initCallback();
+        }
     }
 
     protected static function keepDbChangesInTransaction(): bool {
@@ -82,6 +87,13 @@ abstract class AbstractTestDb extends TestCase
 
     protected static function getInitData(): string {
         return (string)static::$initData;
+    }
+
+    /**
+     * @return array<callable>
+     */
+    protected static function getInitCallbacks(): array {
+        return [];
     }
 
     public static function tearDownAfterClass(): void {

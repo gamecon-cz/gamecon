@@ -74,25 +74,18 @@ class ZmenaPrihlaseni
 
     public function stavPrihlaseni(): int
     {
-        switch ($this->typPrezence()) {
-            case AktivitaPrezenceTyp::PRIHLASENI :
-                return StavPrihlaseni::PRIHLASEN;
-            case AktivitaPrezenceTyp::DORAZIL :
-                return StavPrihlaseni::PRIHLASEN_A_DORAZIL;
-            case AktivitaPrezenceTyp::NEDOSTAVENI_SE :
-                return StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
-            case AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK :
-                return StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK;
-            case AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI :
-                return StavPrihlaseni::SLEDUJICI;
-            case AktivitaPrezenceTyp::ODHLASENI :
-            case AktivitaPrezenceTyp::ODHLASENI_HROMADNE :
-            case AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL :
-            case AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI :
-                return -1; // pro tyto stavy nemáme ekvivalent
-            default :
-                throw new \RuntimeException('Neznámý typ prezence ' . $this->typPrezence());
-        }
+        return match ($this->typPrezence()) {
+            AktivitaPrezenceTyp::PRIHLASENI => StavPrihlaseni::PRIHLASEN,
+            AktivitaPrezenceTyp::DORAZIL => StavPrihlaseni::PRIHLASEN_A_DORAZIL,
+            AktivitaPrezenceTyp::NEDOSTAVENI_SE => StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL,
+            AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK => StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK,
+            AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI => StavPrihlaseni::SLEDUJICI,
+            AktivitaPrezenceTyp::ODHLASENI,
+            AktivitaPrezenceTyp::ODHLASENI_HROMADNE,
+            AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL,
+            AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI => -1,
+            default => throw new \RuntimeException('Neznámý typ prezence ' . $this->typPrezence()),
+        };
     }
 
     public function casZmenyProJs(): string

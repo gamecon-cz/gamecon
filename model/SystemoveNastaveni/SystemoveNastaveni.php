@@ -178,28 +178,28 @@ SQL,
         if ($this->odvozeneHodnoty === null) {
             $this->odvozeneHodnoty = [
                 // hodnota slevy od které má subjekt nárok na modré tričko
-                'MODRE_TRICKO_ZDARMA_OD'       => defined('MODRE_TRICKO_ZDARMA_OD')
+                Klic::MODRE_TRICKO_ZDARMA_OD       => defined('MODRE_TRICKO_ZDARMA_OD')
                     ? MODRE_TRICKO_ZDARMA_OD
-                    : 3 * $this->dejHodnotu('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU', false /* radši, abychom neskončili v nekonečné smyčce */),
-                'BONUS_ZA_1H_AKTIVITU'         => defined('BONUS_ZA_1H_AKTIVITU')
+                    : 3 * $this->dejHodnotu(Klic::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU, false /* radši, abychom neskončili v nekonečné smyčce */),
+                Klic::BONUS_ZA_1H_AKTIVITU         => defined('BONUS_ZA_1H_AKTIVITU')
                     ? BONUS_ZA_1H_AKTIVITU
-                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU'),
-                'BONUS_ZA_2H_AKTIVITU'         => defined('BONUS_ZA_2H_AKTIVITU')
+                    : $this->spocitejBonusZaVedeniAktivity(Klic::BONUS_ZA_1H_AKTIVITU),
+                Klic::BONUS_ZA_2H_AKTIVITU         => defined('BONUS_ZA_2H_AKTIVITU')
                     ? BONUS_ZA_2H_AKTIVITU
-                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU'),
-                'BONUS_ZA_6H_AZ_7H_AKTIVITU'   => defined('BONUS_ZA_6H_AZ_7H_AKTIVITU')
+                    : $this->spocitejBonusZaVedeniAktivity(Klic::BONUS_ZA_2H_AKTIVITU),
+                Klic::BONUS_ZA_6H_AZ_7H_AKTIVITU   => defined('BONUS_ZA_6H_AZ_7H_AKTIVITU')
                     ? BONUS_ZA_6H_AZ_7H_AKTIVITU
-                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU'),
-                'BONUS_ZA_8H_AZ_9H_AKTIVITU'   => defined('BONUS_ZA_8H_AZ_9H_AKTIVITU')
+                    : $this->spocitejBonusZaVedeniAktivity(Klic::BONUS_ZA_6H_AZ_7H_AKTIVITU),
+                Klic::BONUS_ZA_8H_AZ_9H_AKTIVITU   => defined('BONUS_ZA_8H_AZ_9H_AKTIVITU')
                     ? BONUS_ZA_8H_AZ_9H_AKTIVITU
-                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU'),
-                'BONUS_ZA_10H_AZ_11H_AKTIVITU' => defined('BONUS_ZA_10H_AZ_11H_AKTIVITU')
+                    : $this->spocitejBonusZaVedeniAktivity(Klic::BONUS_ZA_8H_AZ_9H_AKTIVITU),
+                Klic::BONUS_ZA_10H_AZ_11H_AKTIVITU => defined('BONUS_ZA_10H_AZ_11H_AKTIVITU')
                     ? BONUS_ZA_10H_AZ_11H_AKTIVITU
-                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU'),
-                'BONUS_ZA_12H_AZ_13H_AKTIVITU' => defined('BONUS_ZA_12H_AZ_13H_AKTIVITU')
+                    : $this->spocitejBonusZaVedeniAktivity(Klic::BONUS_ZA_10H_AZ_11H_AKTIVITU),
+                Klic::BONUS_ZA_12H_AZ_13H_AKTIVITU => defined('BONUS_ZA_12H_AZ_13H_AKTIVITU')
                     ? BONUS_ZA_12H_AZ_13H_AKTIVITU
-                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
-                'PRISTI_VLNA_AKTIVIT_KDY'      => defined('PRISTI_VLNA_AKTIVIT_KDY')
+                    : $this->spocitejBonusZaVedeniAktivity(Klic::BONUS_ZA_12H_AZ_13H_AKTIVITU),
+                Klic::PRISTI_VLNA_AKTIVIT_KDY      => defined('PRISTI_VLNA_AKTIVIT_KDY')
                     ? PRISTI_VLNA_AKTIVIT_KDY
                     : self::pristiVlnaKdy()?->formatDb(),
             ];
@@ -842,7 +842,7 @@ SQL;
     {
         return (bool)(defined('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI')
             ? POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI
-            : $this->dejHodnotu('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI'));
+            : $this->dejHodnotu(Klic::POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI));
     }
 
     public function prihlasovaciUdajeSoucasneDatabaze(): array
@@ -875,5 +875,22 @@ SQL;
             return 'άλφα';
         }
         return 'δ'; // gamu přeskočíme, je nevýrazná
+    }
+
+    public function kolikMinutJeOdhlaseniBezPokuty(): int
+    {
+        return defined('KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY')
+            ? (int)KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY
+            : (int)$this->dejHodnotu(Klic::KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY);
+    }
+
+    public function kontrolovatPokutuZaOdhlaseni(): bool
+    {
+        return (bool)ODHLASENI_POKUTA_KONTROLA;
+    }
+
+    public function kolikHodinPredAktivitouUzJePokutaZaOdhlaseni(): int
+    {
+        return (int)ODHLASENI_POKUTA1_H;
     }
 }

@@ -19,7 +19,8 @@ use Gamecon\Kanaly\GcMail;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-function textMailuOPostupu(Tym $tym, Aktivita $aktivita, bool $html = false) {
+function textMailuOPostupu(Tym $tym, Aktivita $aktivita, bool $html = false)
+{
     $druzina = $tym->nazev();
     $text    = <<<TEXT
 Milá družino {$druzina}. Gratulujeme, postoupili jste do dalšího kola turnaje {$aktivita->nazev()}.
@@ -96,7 +97,7 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
 
             Díky a s pozdravem,
             tým MDrD
-            TEXT
+            TEXT,
         );
         $mail->adresat($uc->mail());
         $mail->odeslat();
@@ -111,7 +112,7 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
             Toto je informační mail, který obdrželi i hráči z družiny.
 
             S pozdravem, tým MDrD.
-            TEXT
+            TEXT,
         );
         $mail->adresat($pj->mail());
         $mail->odeslat();
@@ -155,11 +156,11 @@ foreach (Aktivita::zFiltru(['typ' => TypAktivity::DRD, 'rok' => ROCNIK]) as $a) 
     }
     if ($uc && !$semifinale[0]->prihlasen($uc) && !$semifinale[1]->prihlasen($uc)) {
         $t->parse('drd.druzina.zakladni');
-    } elseif ($uc && !$finale[0]->prihlasen($uc)) {
+    } else if ($uc && !$finale[0]->prihlasen($uc)) {
         $t->parse('drd.druzina.semifinale');
-    } elseif ($finale[0]->uzavrena()) {
+    } else if ($finale[0]->uzavrena()) {
         $t->parse('drd.druzina.finale');
-    } elseif (!$a->uzavrena()) {
+    } else if (!$a->uzavrena()) {
         $t->parse('drd.druzina.neuzavreno');
     } else {
         if ($semifinale[0]->prihlasen($uc)) {

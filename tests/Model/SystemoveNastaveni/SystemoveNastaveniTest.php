@@ -16,7 +16,8 @@ class SystemoveNastaveniTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Muzu_zmenit_kurz_eura() {
+    public function Muzu_zmenit_kurz_eura()
+    {
         $nastaveni = SystemoveNastaveni::vytvorZGlobals();
 
         $zaznamKurzuEuro = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])['KURZ_EURO'];
@@ -30,12 +31,12 @@ class SystemoveNastaveniTest extends AbstractTestDb
         self::assertSame(
             123.0,
             $zaznamKurzuEuroPoZmene['hodnota'],
-            'Očekáváme novou hodnotu, zkonvertovanou na float'
+            'Očekáváme novou hodnotu, zkonvertovanou na float',
         );
         self::assertSame(
             (string)Uzivatel::SYSTEM,
             $zaznamKurzuEuroPoZmene['id_uzivatele'],
-            'Očekáváme ID posledního editujícícho, jako string tak jak se běžně vytáhne z databáze'
+            'Očekáváme ID posledního editujícícho, jako string tak jak se běžně vytáhne z databáze',
         );
     }
 
@@ -43,7 +44,8 @@ class SystemoveNastaveniTest extends AbstractTestDb
      * @test
      * @dataProvider provideVychoziHodnota
      */
-    public function Vychozi_hodnota_odpovida_ocekavani(int $rok, string $klic, string $ocekavanaHodnota) {
+    public function Vychozi_hodnota_odpovida_ocekavani(int $rok, string $klic, string $ocekavanaHodnota)
+    {
         $nastaveni = $this->systemoveNastaveni($rok, new DateTimeImmutableStrict($rok . '-12-31 23:59:59'));
 
         self::assertSame($ocekavanaHodnota, $nastaveni->dejVychoziHodnotu($klic));
@@ -53,8 +55,9 @@ class SystemoveNastaveniTest extends AbstractTestDb
         int                     $rocnik = ROCNIK,
         DateTimeImmutableStrict $now = new DateTimeImmutableStrict(),
         bool                    $jsmeNaBete = false,
-        bool                    $jsmeNaLocale = false
-    ): SystemoveNastaveni {
+        bool                    $jsmeNaLocale = false,
+    ): SystemoveNastaveni
+    {
         return new SystemoveNastaveni(
             $rocnik,
             $now,
@@ -65,7 +68,8 @@ class SystemoveNastaveniTest extends AbstractTestDb
         );
     }
 
-    public static function provideVychoziHodnota(): array {
+    public static function provideVychoziHodnota(): array
+    {
         /** 2023 https://trello.com/c/z2gulrWL/481-d%C5%AFle%C5%BEit%C3%A9-term%C3%ADny-2023 */
         return [
             '2022 TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE'              => [2022, 'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2022-07-01'],
@@ -89,13 +93,15 @@ class SystemoveNastaveniTest extends AbstractTestDb
      * @test
      * @dataProvider provideKonecUbytovani
      */
-    public function Muzeme_zjistit_ze_prodej_ubytovani_byl_ukoncen(string $konecUbytovaniDne, bool $ocekavaneUkoceniProdeje) {
+    public function Muzeme_zjistit_ze_prodej_ubytovani_byl_ukoncen(string $konecUbytovaniDne, bool $ocekavaneUkoceniProdeje)
+    {
         define('UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE', $konecUbytovaniDne);
         $nastaveni = $this->systemoveNastaveni();
         self::assertSame($ocekavaneUkoceniProdeje, $nastaveni->prodejUbytovaniUkoncen());
     }
 
-    public static function provideKonecUbytovani() {
+    public static function provideKonecUbytovani()
+    {
         return [
             'Byl ukončen' => [
                 (new \DateTimeImmutable())->setTime(0, 0, 0)->modify('-1 second')->format('Y-m-d'),
@@ -108,14 +114,16 @@ class SystemoveNastaveniTest extends AbstractTestDb
      * @test
      * @dataProvider provideKdeJsme
      */
-    public function Ze_systemoveho_nastaveni_vime_kde_jsme(bool $jsmeNaBete, bool $jsmeNaLocale, bool $ocekavaneJsmeNaOstre) {
+    public function Ze_systemoveho_nastaveni_vime_kde_jsme(bool $jsmeNaBete, bool $jsmeNaLocale, bool $ocekavaneJsmeNaOstre)
+    {
         $nastaveni = $this->systemoveNastaveni(ROCNIK, new DateTimeImmutableStrict(), $jsmeNaBete, $jsmeNaLocale);
         self::assertSame($jsmeNaBete, $nastaveni->jsmeNaBete());
         self::assertSame($jsmeNaLocale, $nastaveni->jsmeNaLocale());
         self::assertSame($ocekavaneJsmeNaOstre, $nastaveni->jsmeNaOstre());
     }
 
-    public static function provideKdeJsme(): array {
+    public static function provideKdeJsme(): array
+    {
         return [
             'jsme na locale' => [false, true, false],
             'jsme na betě'   => [true, false, false],
@@ -126,7 +134,8 @@ class SystemoveNastaveniTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Nemuzeme_nastavit_ze_jsme_jak_na_bete_tak_na_locale() {
+    public function Nemuzeme_nastavit_ze_jsme_jak_na_bete_tak_na_locale()
+    {
         $this->expectException(\LogicException::class);
         $this->systemoveNastaveni(ROCNIK, new DateTimeImmutableStrict(), true, true);
     }
@@ -134,18 +143,20 @@ class SystemoveNastaveniTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Zacatek_nejblizsi_vlny_ubytovani_je_ocekavany() {
+    public function Zacatek_nejblizsi_vlny_ubytovani_je_ocekavany()
+    {
         $nastaveni = $this->systemoveNastaveni();
         self::assertEquals(
             DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveni),
-            $nastaveni->nejblizsiHromadneOdhlasovaniKdy()
+            $nastaveni->nejblizsiHromadneOdhlasovaniKdy(),
         );
     }
 
     /**
      * @test
      */
-    public function Muzeme_zjistit_ze_je_april() {
+    public function Muzeme_zjistit_ze_je_april()
+    {
         $secondBeforeApril = new DateTimeImmutableStrict('2023-03-31 23:59:59');
         self::assertFalse($this->systemoveNastaveni(ROCNIK, $secondBeforeApril)->jeApril());
 
@@ -157,5 +168,16 @@ class SystemoveNastaveniTest extends AbstractTestDb
 
         $secondAfterApril = $lastSecondOfApril->modify('+1 second');
         self::assertFalse($this->systemoveNastaveni(ROCNIK, $secondAfterApril)->jeApril());
+    }
+
+    /**
+     * @test
+     */
+    public function Muzeme_zjistit_kolik_minut_po_prihlaseni_na_aktivitu_se_muzeme_odhlasit_bez_storna()
+    {
+        self::assertSame(
+            5,
+            $this->systemoveNastaveni(ROCNIK)->kolikMinutJeOdhlaseniBezPokuty(),
+        );
     }
 }

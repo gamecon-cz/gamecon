@@ -414,4 +414,9 @@ class DateTimeGamecon extends DateTimeCz
         }
         return $zdrojCasu->tretiVlnaKdy();
     }
+
+    public static function zrozeniGameconu(): static
+    {
+        return new static('2013-09-10 15:53:49');
+    }
 }

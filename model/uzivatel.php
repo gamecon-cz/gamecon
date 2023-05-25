@@ -269,6 +269,7 @@ SQL
         }
 
         $this->aktualizujPrava();
+        $this->aktualizujPrava();
     }
 
     /** Vrátí profil uživatele pro DrD */
@@ -512,7 +513,7 @@ SQL,
             [$this->id(), StavPrihlaseni::PRIHLASEN, $rok],
         );
 
-        return Aktivita::zIds($ids);
+        return Aktivita::zIds($ids, $this->systemoveNastaveni);
     }
 
     /**
@@ -2034,12 +2035,12 @@ SQL;
     ///////////////////////////////// Protected //////////////////////////////////
 
     /**
-     * Aktualizuje práva uživatele z databáze (protože se provedla nějaká změna)
+     * Aktualizuje práva a role uživatele z databáze (protože se provedla nějaká změna)
      */
     protected function aktualizujPrava()
     {
+        $this->idsRoli    = null;
         $this->r['prava'] = null;
-        $this->nactiPrava();
     }
 
     /**
