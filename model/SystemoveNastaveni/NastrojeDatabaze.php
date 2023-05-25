@@ -106,14 +106,14 @@ class NastrojeDatabaze
         $showTablesResult = mysqli_query(
             $spojeni,
             <<<SQL
-                SHOW TABLES FROM`{$databaze}`
+                SHOW TABLES FROM `{$databaze}`
             SQL,
         );
         while ($table = mysqli_fetch_column($showTablesResult)) {
             $showCreateTableResult = mysqli_query(
                 $spojeni,
                 <<<SQL
-                    SHOW CREATE TABLE `$table`
+                    SHOW CREATE TABLE `{$databaze}`.`$table`
                 SQL,
             );
             $showCreateTable       = mysqli_fetch_assoc($showCreateTableResult);
@@ -123,7 +123,7 @@ class NastrojeDatabaze
             mysqli_query(
                 $spojeni,
                 <<<SQL
-                    DROP $type `$table`
+                    DROP $type `{$databaze}`.`$table`
                 SQL,
             );
         }
@@ -142,7 +142,7 @@ class NastrojeDatabaze
             mysqli_query(
                 $spojeni,
                 <<<SQL
-                    DROP FUNCTION `$nazevNasiFunkce`
+                    DROP FUNCTION `$databaze`.`$nazevNasiFunkce`
                 SQL,
             );
         }

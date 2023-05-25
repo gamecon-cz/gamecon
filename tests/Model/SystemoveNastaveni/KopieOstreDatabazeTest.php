@@ -152,10 +152,12 @@ class KopieOstreDatabazeTest extends TestCase
 
     private function vytvorSystemoveNastaveni(): SystemoveNastaveni
     {
-        return new class(self::$soucasnaDbName, self::$ostraDbName) extends SystemoveNastaveni {
+        $databazoveNastaveni = $this->vytvorDatabazoveNastaveni(self::$soucasnaDbName);
+
+        return new class($databazoveNastaveni, self::$ostraDbName) extends SystemoveNastaveni {
 
             public function __construct(
-                private readonly string $soucasnaDbName,
+                DatabazoveNastaveni     $databazoveNastaveni,
                 private readonly string $ostraDbName,
             )
             {
@@ -164,20 +166,9 @@ class KopieOstreDatabazeTest extends TestCase
                     new DateTimeImmutableStrict(),
                     true,
                     false,
-                    DatabazoveNastaveni::vytvorZGlobals(),
+                    $databazoveNastaveni,
                     PROJECT_ROOT_DIR,
                 );
-            }
-
-            public function prihlasovaciUdajeSoucasneDatabaze(): array
-            {
-                return [
-                    'DBM_USER' => DBM_USER,
-                    'DBM_PASS' => DBM_PASS,
-                    'DB_NAME'  => $this->soucasnaDbName,
-                    'DB_SERV'  => DB_SERV,
-                    'DB_PORT'  => null,
-                ];
             }
 
             public function prihlasovaciUdajeOstreDatabaze(): array
@@ -189,6 +180,21 @@ class KopieOstreDatabazeTest extends TestCase
                     'DB_SERV'  => DB_SERV,
                     'DB_PORT'  => null,
                 ];
+            }
+        };
+    }
+
+    private function vytvorDatabazoveNastaveni(string $soucasnaDatabaze): DatabazoveNastaveni
+    {
+        return new class($soucasnaDatabaze) extends DatabazoveNastaveni {
+            public function __construct(string $soucasnaDatabaze)
+            {
+                parent::__construct(
+                    serverHlavniDatabase: DB_SERV,
+                    hlavniDatabaze: $soucasnaDatabaze,
+                    serverAnonymizovaneDatabase: '',
+                    anonymizovanaDatabaze: '',
+                );
             }
         };
     }
