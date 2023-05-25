@@ -1,0 +1,33 @@
+<!-- begin:zalohaAObnovaDatabaze -->
+<h2>Záloha & Obnova</h2>
+
+<h3>Záloha</h3>
+
+<form method="post">
+    <button type="submit" value="1" name="{synchronniPostKlic}[{zalohovatKlic}]"
+            class="disable-and-show-loading-on-click"
+            onclick="this.innerHTML='strpení prosím (chroupej oříšky, chroupu data)'">
+        Zálohovat současnou databázi do složky na serveru
+    </button>
+</form>
+
+<h3>Obnova</h3>
+
+<form method="post">
+    <select name="{synchronniPostKlic}[{obnovitKlic}]" style="min-width: 30em">
+        <!-- begin:skupina -->
+        <optgroup label="{nazevSkupinyZaloh}">{nazevSkupinyZaloh}
+            <!-- begin:zaloha -->
+            <option>{nazevZalohy}</option>
+            <!-- end:zaloha -->
+        </optgroup>
+        <!-- end:skupina -->
+    </select>
+    <button type="submit"
+            class="disable-and-show-loading-on-click"
+            onclick="this.innerHTML='strpení prosím (chroupej oříšky, chroupu data)'">
+        Přepsat současnou databázi zálohou
+    </button>
+    <span class="hinted">⏰<span class="hint">trvá přes půl minuty</span></span>
+</form>
+<!-- end:zalohaAObnovaDatabaze -->

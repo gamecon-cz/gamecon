@@ -70,6 +70,10 @@
 {zkopirovaniOstreDatabaze}
 <!-- end:beta -->
 
+<!-- begin:neNaOstre -->
+{zalohaAObnovaDatabaze}
+<!-- end:neNaOstre -->
+
 <!-- begin:exportAnonymizovaneDatabaze -->
 {exportAnonymizovaneDatabaze}
 <!-- end:exportAnonymizovaneDatabaze -->

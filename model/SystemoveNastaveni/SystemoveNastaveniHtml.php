@@ -6,12 +6,15 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniStruktura as Sql;
+use Symfony\Component\Filesystem\Filesystem;
 
 class SystemoveNastaveniHtml
 {
     public const SYNCHRONNI_POST_KLIC           = 'nastaveni';
     public const ZKOPIROVAT_OSTROU_KLIC         = 'zkopirovat_ostrou';
     public const EXPORTOVAT_ANONYMIZOVANOU_KLIC = 'exportovat_anonymizovanou';
+    public const ZALOHOVAT_KLIC                 = 'zalohovat_klic';
+    public const OBNOVIT_KLIC                   = 'obnovit_klic';
     public const ZVYRAZNI                       = 'zvyrazni';
 
     /**
@@ -52,7 +55,30 @@ class SystemoveNastaveniHtml
             $templateZkopirovaniOstre->assign('zkopirovatOstrouKlic', self::ZKOPIROVAT_OSTROU_KLIC);
             $templateZkopirovaniOstre->parse('zkopirovaniOstreDatabaze');
             $template->assign('zkopirovaniOstreDatabaze', $templateZkopirovaniOstre->text('zkopirovaniOstreDatabaze'));
+
             $template->parse('nastaveni.beta');
+        }
+
+        if (!$this->systemoveNastaveni->jsmeNaOstre()) {
+            $templateZalohaAObnova = new XTemplate(__DIR__ . '/templates/zaloha-a-obnova-databaze.xtpl');
+            $templateZalohaAObnova->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
+            $templateZalohaAObnova->assign('zalohovatKlic', self::ZALOHOVAT_KLIC);
+            $templateZalohaAObnova->assign('obnovitKlic', self::OBNOVIT_KLIC);
+            foreach ($this->zalohyDatabaze() as $obdobi => $nazvyZaloh) {
+                if (count($nazvyZaloh) === 0) {
+                    continue;
+                }
+                $templateZalohaAObnova->assign('nazevSkupinyZaloh', $obdobi);
+                foreach ($nazvyZaloh as $nazevZalohy) {
+                    $templateZalohaAObnova->assign('nazevZalohy', $nazevZalohy);
+                    $templateZalohaAObnova->parse('zalohaAObnovaDatabaze.skupina.zaloha');
+                }
+                $templateZalohaAObnova->parse('zalohaAObnovaDatabaze.skupina');
+            }
+            $templateZalohaAObnova->parse('zalohaAObnovaDatabaze');
+            $template->assign('zalohaAObnovaDatabaze', $templateZalohaAObnova->text('zalohaAObnovaDatabaze'));
+
+            $template->parse('nastaveni.neNaOstre');
         }
 
         $templateAnonymniDatabaze = new XTemplate(__DIR__ . '/templates/export-anonymizovane-databaze.xtpl');
@@ -64,6 +90,16 @@ class SystemoveNastaveniHtml
 
         $template->parse('nastaveni');
         $template->out('nastaveni');
+    }
+
+    private function zalohyDatabaze(): array
+    {
+        $adresar = $this->adresarProRucniZalohu();
+        $zalohy  = array_filter(
+            scandir($adresar, SCANDIR_SORT_DESCENDING),
+            static fn(string $slozka) => str_ends_with($slozka, '.sql') && is_file($adresar . '/' . $slozka),
+        );
+        return ['včera dnes a zítra' => $zalohy];
     }
 
     private function seskupPodleSkupin(array $zaznamy): array
@@ -199,7 +235,7 @@ class SystemoveNastaveniHtml
         return $hodnotyNastaveni;
     }
 
-    public function zpracujPost(): bool
+    public function zpracujPost(\Uzivatel $admin): bool
     {
         $pozadavky = post(self::SYNCHRONNI_POST_KLIC);
         if (!$pozadavky) {
@@ -208,6 +244,16 @@ class SystemoveNastaveniHtml
         if (!empty($pozadavky[self::ZKOPIROVAT_OSTROU_KLIC])) {
             $this->zkopirujOstrouDatabazi();
             oznameni('Ostrá databáze byla zkopírována');
+            return true;
+        }
+        if (!empty($pozadavky[self::ZALOHOVAT_KLIC])) {
+            $this->zalohujDatabazi($admin);
+            oznameni('Databáze byla zálohována');
+            return true;
+        }
+        if (!empty($pozadavky[self::OBNOVIT_KLIC])) {
+            $this->obnovDatabazi((string)$pozadavky[self::OBNOVIT_KLIC]);
+            oznameni('Databáze byla obnovena');
             return true;
         }
         if (!empty($pozadavky[self::EXPORTOVAT_ANONYMIZOVANOU_KLIC])) {
@@ -222,6 +268,39 @@ class SystemoveNastaveniHtml
     {
         $kopieOstreDatabaze = KopieOstreDatabaze::createFromGlobals();
         $kopieOstreDatabaze->zkopirujOstrouDatabazi();
+    }
+
+    private function zalohujDatabazi(\Uzivatel $zalohujici)
+    {
+        $adresar   = $this->adresarProRucniZalohu();
+        $mysqldump = NastrojeDatabaze::vytvorZGlobals()->vytvorMysqldumpHlavniDatabaze();
+        $mysqldump->start($adresar . '/' . date(DateTimeCz::FORMAT_DB) . '_' . RemoveDiacritics::toConstantLikeValue($zalohujici->prezdivka()) . '.sql');
+    }
+
+    private function obnovDatabazi(string $nazevSouboru)
+    {
+        if ($this->systemoveNastaveni->jsmeNaOstre()) {
+            throw new \Chyba('Je zakázáno obnovovat databázi na ostré');
+        }
+        $adresar = $this->adresarProRucniZalohu();
+        $soubor  = $adresar . '/' . $nazevSouboru;
+        if (!file_exists($soubor)) {
+            trigger_error("Soubor '$soubor' nelze přečíst", E_USER_WARNING);
+            throw new \Chyba("Soubor '$nazevSouboru' nelze přečíst");
+        }
+        $db         = DB_NAME;
+        $connection = dbConnectForAlterStructure(false);
+        dbQuery(q: "DROP DATABASE `$db`", mysqli: $connection);
+        dbQuery(q: "CREATE DATABASE `$db`", mysqli: $connection);
+        dbQuery(q: "USE `$db`", mysqli: $connection);
+        (new \MySQLImport($connection))->load($soubor);
+    }
+
+    private function adresarProRucniZalohu(): string
+    {
+        $adresar = ZALOHA_DB_SLOZKA . '/manual';
+        (new Filesystem())->mkdir($adresar);
+        return $adresar;
     }
 
     private function exportujAnonymizovanouDatabazi()

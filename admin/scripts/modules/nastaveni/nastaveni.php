@@ -21,7 +21,7 @@ if ($nastaveniAjax->zpracujPost()) {
     exit;
 }
 
-if ($nastaveniHtml->zpracujPost()) {
+if ($nastaveniHtml->zpracujPost($u)) {
     back();
 }
 
