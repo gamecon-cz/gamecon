@@ -555,9 +555,9 @@ SQL,
 
     /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
      *  GC? */
-    public function gcPritomen()
+    public function gcPritomen(int $rocnik = null): bool
     {
-        return $this->maRoli(Role::PRITOMEN_NA_LETOSNIM_GC);
+        return $this->maRoli(Role::pritomenNaRocniku($rocnik ?? $this->systemoveNastaveni->rocnik()));
     }
 
     /**

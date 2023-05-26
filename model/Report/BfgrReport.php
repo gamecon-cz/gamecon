@@ -32,17 +32,18 @@ class BfgrReport
     }
 
     public function exportuj(
-        ?string $format,
-        bool    $vcetneStavuNeplatice = false,
-        string  $doSouboru = null,
+        ?string    $format,
+        bool       $vcetneStavuNeplatice = false,
+        string     $doSouboru = null,
+        string|int $idUzivatele = null,
     )
     {
         $ucastPodleRoku = [];
         $maxRok         = $this->systemoveNastaveni->poRegistraciUcastniku()
             ? $this->systemoveNastaveni->rocnik()
             : $this->systemoveNastaveni->rocnik() - 1;
-        for ($i = 2009; $i <= $maxRok; $i++) {
-            $ucastPodleRoku[$i] = 'účast ' . $i;
+        for ($rokUcasti = 2009; $rokUcasti <= $maxRok; $rokUcasti++) {
+            $ucastPodleRoku[$rokUcasti] = 'účast ' . $rokUcasti;
         }
 
 //        $letosniPlacky = $this->letosniPlacky();
@@ -107,12 +108,20 @@ FROM uzivatele_hodnoty
 LEFT JOIN platne_role_uzivatelu AS prihlasen ON (prihlasen.id_role = $0 AND prihlasen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
 LEFT JOIN platne_role_uzivatelu AS pritomen ON (pritomen.id_role = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
 LEFT JOIN platne_role_uzivatelu AS odjel ON(odjel.id_role = $2 AND odjel.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
-WHERE prihlasen.id_uzivatele IS NOT NULL -- left join, takže může být NULL ve smyslu "nemáme záznam" = "není přihlášen"
+WHERE (
+    prihlasen.id_uzivatele IS NOT NULL -- left join, takže může být NULL ve smyslu "nemáme záznam" = "není přihlášen"
     OR pritomen.id_uzivatele IS NOT NULL -- tohle by bylo hodně divné, musela by být díra v systému, aby nebyl přihlášen ale byl přítomen, ale radši...
     OR EXISTS(SELECT * FROM shop_nakupy WHERE uzivatele_hodnoty.id_uzivatele = shop_nakupy.id_uzivatele AND shop_nakupy.rok = $rocnik)
     OR EXISTS(SELECT * FROM platby WHERE platby.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND platby.rok = $rocnik)
+)
+  AND IF ($3 IS NULL, TRUE, uzivatele_hodnoty.id_uzivatele = $3)
 SQL,
-            [0 => Role::PRIHLASEN_NA_LETOSNI_GC, 1 => Role::PRITOMEN_NA_LETOSNIM_GC, 2 => Role::ODJEL_Z_LETOSNIHO_GC],
+            [
+                0 => Role::PRIHLASEN_NA_LETOSNI_GC,
+                1 => Role::PRITOMEN_NA_LETOSNIM_GC,
+                2 => Role::ODJEL_Z_LETOSNIHO_GC,
+                3 => $idUzivatele ?: null,
+            ],
         );
         if (mysqli_num_rows($o) === 0) {
             if ($doSouboru) {
@@ -134,7 +143,7 @@ SQL,
             $finance        = $navstevnik->finance();
             $ucastiHistorie = [];
             foreach ($ucastPodleRoku as $rocnik => $nazevUcasti) {
-                $ucastiHistorie[$nazevUcasti] = $navstevnik->gcOdjel($rocnik)
+                $ucastiHistorie[$nazevUcasti] = $navstevnik->gcPritomen($rocnik)
                     ? 'ano'
                     : 'ne';
             }

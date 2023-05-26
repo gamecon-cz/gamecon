@@ -8,4 +8,4 @@ require __DIR__ . '/sdilene-hlavicky.php';
 global $systemoveNastaveni;
 
 $bfgrReport = new BfgrReport($systemoveNastaveni);
-$bfgrReport->exportuj(get('format'));
+$bfgrReport->exportuj(format: get('format'), idUzivatele: get('id'));
