@@ -18,15 +18,19 @@ document.addEventListener('programNacteny', function () {
       )
       document.cookie = `program_legenda_typ=`;
     } else {
-      zobrazit.forEach(function (zobrazitClass) {
-        Array.from(document.querySelectorAll(`.program .${zobrazitClass}`)).forEach(
-          (elementNaZobrazeni) => elementNaZobrazeni.style.display = ''
-        )
-      })
       document.cookie = `program_legenda_typ=${zobrazit.join(',')}`;
       skryt.forEach(function (skrytClass) {
         Array.from(document.querySelectorAll(`.program .${skrytClass}`)).forEach(
           (elementNaSkryti) => elementNaSkryti.style.display = 'none'
+        )
+      })
+      /**
+       * Nejdříve skryjeme, potom zobrazíme, protože se může stát, že aktivitu například oganizuji, ale zároveň má plno a přitom chci zobrazit ty co ogranizuji.
+       * Takže nejdřív aktivitu skryjeme, protože je plná a v zápětí ji zobrazíme, protože ji organizuji.
+       */
+      zobrazit.forEach(function (zobrazitClass) {
+        Array.from(document.querySelectorAll(`.program .${zobrazitClass}`)).forEach(
+          (elementNaZobrazeni) => elementNaZobrazeni.style.display = ''
         )
       })
     }
@@ -53,7 +57,10 @@ document.addEventListener('programNacteny', function () {
     var driveVybraneString = driveVybraneCookie.split('=').at(1)
     var driveVybrane = driveVybraneString.split(',')
     driveVybrane.forEach(function (driveVybranyTyp) {
-      document.querySelector(`.program_legenda .program_legenda_typ.${driveVybranyTyp}`).dispatchEvent(new Event('click'))
+      driveVybranyTyp = driveVybranyTyp.trim()
+      if (driveVybranyTyp !== '') {
+        document.querySelector(`.program_legenda .program_legenda_typ.${driveVybranyTyp}`).dispatchEvent(new Event('click'))
+      }
     })
   }
 })
