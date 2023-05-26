@@ -244,6 +244,7 @@ SQL,
                         $this->dejNazvyAPoctyKostek($navstevnik, $letosniKostky),
                         $this->dejNazvyAPoctyJidel($navstevnik, $letosniJidla),
                         $this->dejNazvyAPoctySvrsku($navstevnik),
+//                        $this->dejNazvyAPoctyTasek($navstevnik),
                         $this->dejNazvyAPoctyOstatnichPredmetu($navstevnik, $letosniOstatniPredmety),
                         // $this->letosniOstatniPredmetyPocty($r, $letosniOstatniPredmetyKlice),
                         $this->dejNazvyAPoctyCovidTestu($navstevnik, $letosniCovidTesty), // "dát pls až nakonec", tak pravil Gandalf 30. 7. 2021
@@ -414,13 +415,13 @@ SQL,
 
     private function najdiDenVTydnu(string $text): string
     {
-        preg_match('~' . implode('|', DateTimeCz::dejDnyVTydnu()) . '~uiS', $text, $matches);
+        preg_match('~' . $this->dejPoleJakoRegexp(DateTimeCz::dejDnyVTydnu(), '~') . '~uiS', $text, $matches);
         return $matches[0];
     }
 
     private function najdiJidloBehemDne(string $text): string
     {
-        preg_match('~' . implode('|', Jidlo::dejJidlaBehemDne()) . '~uiS', $text, $matches);
+        preg_match('~' . $this->dejPoleJakoRegexp(Jidlo::dejJidlaBehemDne(), '~') . '~uiS', $text, $matches);
         return $matches[0];
     }
 
@@ -431,9 +432,7 @@ SQL,
      */
     private function dejNazvyAPoctyPredmetu(Uzivatel $navstevnik, $castNazvuRegexpNeboPole): array
     {
-        $castNazvuRegexp = is_array($castNazvuRegexpNeboPole)
-            ? $this->dejPoleJakoRegexp($castNazvuRegexpNeboPole, '~')
-            : $castNazvuRegexpNeboPole;
+        $castNazvuRegexp = $this->dejPoleJakoRegexp((array)$castNazvuRegexpNeboPole, '~');
         $financniPrehled = $navstevnik->finance()->dejPolozkyProBfgr();
         $poctyPredmetu   = [];
         foreach ($financniPrehled as $polozka) {
@@ -581,7 +580,11 @@ SQL,
             FROM shop_predmety
             WHERE typ = $0
                 AND stav > $1
-                AND (TRIM(nazev) IN ('GameCon blok', 'Nicknack') OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci)
+                AND (nazev = 'nicknack' COLLATE utf8_czech_ci
+                         OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci
+                         OR nazev LIKE '%lok%' COLLATE utf8_czech_ci
+                         OR nazev LIKE '%taška%' COLLATE utf8_czech_ci
+                    )
             ORDER BY TRIM(nazev)
             SQL,
             [0 => TypPredmetu::PREDMET, 1 => StavPredmetu::MIMO],
