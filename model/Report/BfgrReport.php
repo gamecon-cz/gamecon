@@ -288,9 +288,13 @@ SQL,
         return date('j.n.Y G:i', strtotime($datum));
     }
 
-    private function excelCislo(string|int|float $cislo)
+    private function excelCislo(string|int|float $cislo): string
     {
-        return str_replace('.', ',', (string)$cislo);
+        $excelCislo = str_replace('.', ',', (string)$cislo);
+        if ((float)(int)$excelCislo === (float)$excelCislo) {
+            $excelCislo = (string)(int)$excelCislo; // odstraníme .00
+        }
+        return $excelCislo;
     }
 
     private function typUbytovani(string $typ)
