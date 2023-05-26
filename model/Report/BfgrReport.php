@@ -320,9 +320,9 @@ SQL,
 
     private function dejPocetPolozekZdarma(Uzivatel $navstevnik, string $castNazvu)
     {
-        $financniPrehled    = $navstevnik->finance()->dejStrukturovanyPrehled();
+        $polozky            = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocetPolozekZdarma = 0;
-        foreach ($financniPrehled as $polozka) {
+        foreach ($polozky as $polozka) {
             ['nazev' => $nazev, 'castka' => $castka] = $polozka;
             if ((float)$castka === 0.0 && mb_stripos($nazev, $castNazvu) !== false) {
                 $pocetPolozekZdarma++;

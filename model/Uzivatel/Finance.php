@@ -32,6 +32,7 @@ class Finance
     // tabulky s přehledy
     private $prehled                        = [];   // tabulka s detaily o platbách
     private $strukturovanyPrehled           = [];
+    private $polozkyProBfgr                 = [];
     private $slevyNaAktivity                = [];    // pole s textovými popisy slev uživatele na aktivity
     private $slevyO                         = [];    // pole s textovými popisy obecných slev
     private $proplacenyBonusZaVedeniAktivit = 0; // "sleva" za aktivity; nebo-li bonus vypravěče; nebo-li odměna za vedení hry; převedená na peníze
@@ -252,6 +253,19 @@ SQL,
         return $a['castka'] - $b['castka'];
     }
 
+    private function logPolozkaProBfgr(string $nazev, int $pocet, float $castka, int $typ)
+    {
+        if (!$this->logovat) {
+            return;
+        }
+        $this->polozkyProBfgr[] = [
+            'nazev'  => trim($nazev),
+            'pocet'  => $pocet,
+            'castka' => $castka,
+            'typ'    => (int)$typ,
+        ];
+    }
+
     private function logStrukturovane(string $nazev, int $pocet, ?float $castka, $typ)
     {
         if (!$this->logovat) {
@@ -395,6 +409,11 @@ SQL,
     public function dejStrukturovanyPrehled(): array
     {
         return $this->strukturovanyPrehled;
+    }
+
+    public function dejPolozkyProBfgr(): array
+    {
+        return $this->polozkyProBfgr;
     }
 
     /**
@@ -747,6 +766,9 @@ SQL,
             if ($r['model_rok'] && $r['model_rok'] != ROCNIK) {
                 $r['nazev'] = $r['nazev'] . ' ' . $r['model_rok'];
             }
+
+            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $cena, (int)$r['typ']);
+
             // logování do výpisu
             if (in_array($r['typ'], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
                 $soucty[$r['id_predmetu']]['nazev'] = $r['nazev'];
