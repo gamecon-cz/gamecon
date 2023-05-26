@@ -377,7 +377,7 @@ SQL,
 
     private function dejPocetPolozekPlacenych(Uzivatel $navstevnik, string $castNazvu)
     {
-        $financniPrehled       = $navstevnik->finance()->dejStrukturovanyPrehled();
+        $financniPrehled       = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocetPolozekPlacenych = 0;
         foreach ($financniPrehled as $polozka) {
             ['nazev' => $nazev, 'castka' => $castka] = $polozka;
@@ -434,7 +434,7 @@ SQL,
         $castNazvuRegexp = is_array($castNazvuRegexpNeboPole)
             ? $this->dejPoleJakoRegexp($castNazvuRegexpNeboPole, '~')
             : $castNazvuRegexpNeboPole;
-        $financniPrehled = $navstevnik->finance()->dejStrukturovanyPrehled();
+        $financniPrehled = $navstevnik->finance()->dejPolozkyProBfgr();
         $poctyPredmetu   = [];
         foreach ($financniPrehled as $polozka) {
             ['nazev' => $nazev, 'pocet' => $pocet] = $polozka;
