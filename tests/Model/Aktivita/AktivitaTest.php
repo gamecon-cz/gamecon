@@ -198,4 +198,12 @@ SQL,
             'odhlásil se pozdě'                    => [self::ted()->modify('-' . (self::KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY + 1) . ' minutes'), true],
         ];
     }
+
+    /**
+     * @test
+     */
+    public function Muzu_zkusit_ziskat_aktivitu_podle_id_pomoci_null()
+    {
+        self::assertSame(null, Aktivita::zId(null));
+    }
 }

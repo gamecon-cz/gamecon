@@ -3117,11 +3117,14 @@ SQL,
      * @return self|null
      */
     public static function zId(
-        string|int         $id,
+        string|int|null    $id,
         bool               $pouzijCache = false,
         SystemoveNastaveni $systemoveNastaveni = null,
     ): ?Aktivita
     {
+        if (!$id) {
+            return null;
+        }
         $id = (int)$id;
         if (!$id) {
             return null;
