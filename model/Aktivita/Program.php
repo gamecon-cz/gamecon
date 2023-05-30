@@ -352,8 +352,14 @@ class Program
         $classes   = $classes ? ' class="' . implode(' ', $classes) . '"' : '';
 
         // název a url aktivity
-        echo '<td colspan="' . $aktivitaRaw['del'] . '"><div' . $classes . '>';
-        echo '<a href="' . $aktivitaObjekt->url() . '" target="_blank" class="programNahled_odkaz" data-program-nahled-id="' . $aktivitaObjekt->id() . '" title="' . $aktivitaObjekt->nazev() . '">' . $aktivitaObjekt->nazev() . '</a>';
+        echo <<<HTML
+<td colspan="{$aktivitaRaw['del']}">
+    <div><!--jenom malý hack aby se název linie dobře zobrazoval i na mobilu když všechny aktivity skryjeme javascriptovým filtrem--></div>
+    <div {$classes}>
+        <a href="{$aktivitaObjekt->url()}" target="_blank" class="programNahled_odkaz" data-program-nahled-id="{$aktivitaObjekt->id()}" title="{$aktivitaObjekt->nazev()}">
+            {$aktivitaObjekt->nazev()}
+        </a>
+HTML;
 
         // doplňkové informace (druhý řádek)
         if ($this->nastaveni[self::DRD_PJ] && $aktivitaObjekt->typId() == TypAktivity::DRD && $aktivitaObjekt->prihlasovatelna()) {
@@ -461,7 +467,12 @@ class Program
             $radky = substr(ob_get_clean(), 0, -4);
 
             if ($radku > 0) {
-                echo '<tr><td rowspan="' . $radku . '"><div class="program_nazevLinie">' . $typNazev . '</div></td>';
+                echo <<<HTML
+<tr>
+    <td rowspan="{$radku}">
+        <div class="program_nazevLinie">{$typNazev}</div>
+    </td>
+HTML;
                 echo $radky;
             } else if ($this->nastaveni[self::PRAZDNE] && $radku == 0) {
                 echo $this->prazdnaMistnost($typNazev);
