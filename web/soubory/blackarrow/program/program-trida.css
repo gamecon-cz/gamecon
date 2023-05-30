@@ -86,7 +86,6 @@ table.program {
 @media (max-width: 800px) {
     [rowspan="1"] .program_nazevLinie {
         margin-top: 4px;
-        width: 44px;
         text-align: left;
         justify-content: left;
     }
