@@ -354,7 +354,9 @@ class Program
         // název a url aktivity
         echo <<<HTML
 <td colspan="{$aktivitaRaw['del']}">
-    <div><!--jenom malý hack aby se název linie dobře zobrazoval i na mobilu když všechny aktivity skryjeme javascriptovým filtrem--></div>
+    <div class="placeholder-pro-roztazeni-radku" style="display: none">
+        <!--jenom malý hack aby se název linie dobře zobrazoval i na mobilu když všechny aktivity skryjeme javascriptovým filtrem-->
+    </div>
     <div {$classes}>
         <a href="{$aktivitaObjekt->url()}" target="_blank" class="programNahled_odkaz" data-program-nahled-id="{$aktivitaObjekt->id()}" title="{$aktivitaObjekt->nazev()}">
             {$aktivitaObjekt->nazev()}
@@ -468,7 +470,7 @@ HTML;
 
             if ($radku > 0) {
                 echo <<<HTML
-<tr>
+<tr class="linie">
     <td rowspan="{$radku}">
         <div class="program_nazevLinie">{$typNazev}</div>
     </td>
@@ -481,7 +483,13 @@ HTML;
 
         if ($aktivit == 0) {
             $sloupcu = PROGRAM_KONEC - PROGRAM_ZACATEK + 1;
-            echo "<tr><td colspan=\"$sloupcu\">Žádné aktivity tento den</td></tr>";
+            echo <<<HTML
+<tr class="linie">
+    <td colspan="{$sloupcu}">
+        Žádné aktivity tento den
+    </td>
+</tr>
+HTML;
         }
     }
 
