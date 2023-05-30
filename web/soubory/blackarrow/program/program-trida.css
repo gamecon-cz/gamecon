@@ -111,7 +111,7 @@ table.program {
     }
 }
 
-.program td > div.aktivita {
+.program tbody td>div.otevrene {
     background-color: #CDF2D9;
 }
 
