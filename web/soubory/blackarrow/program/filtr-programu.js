@@ -23,6 +23,9 @@ document.addEventListener('programNacteny', function () {
       Array.from(document.querySelectorAll(`.program .aktivita`)).forEach(
         (elementNaZobrazeni) => elementNaZobrazeni.style.display = ''
       )
+      Array.from(document.querySelectorAll(`.program .placeholder-pro-roztazeni-radku`)).forEach(
+        (placeholderNaSkryti) => placeholderNaSkryti.style.display = 'none'
+      )
       if (customEvent.detail === undefined || !customEvent.detail.initial) {
         document.cookie = `program_legenda_typ=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
       }
@@ -48,7 +51,6 @@ document.addEventListener('programNacteny', function () {
       })
 
       skrytElementy.filter(function (skrytElement) {
-        console.log(zobrazitElementy.indexOf(skrytElement))
         return zobrazitElementy.indexOf(skrytElement) !== -1 // nebudeme skrývat elementy které chceme zobrazit
       })
 
@@ -63,6 +65,13 @@ document.addEventListener('programNacteny', function () {
       zobrazitElementy.forEach(
         (elementNaZobrazeni) => elementNaZobrazeni.style.display = ''
       )
+
+      Array.from(document.querySelectorAll(`.program .linie`)).forEach(function (linieElement) {
+        if (linieElement.querySelector('.aktivita:not([style*="display:none"]):not([style*="display: none"])')) {
+          return // nějaká aktivita se v linii zobrazuje, nechceme placeholder
+        }
+        linieElement.querySelector('.placeholder-pro-roztazeni-radku').style.display = ''
+      })
     }
   }
 

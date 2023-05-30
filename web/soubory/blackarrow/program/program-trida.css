@@ -59,11 +59,10 @@ table.program {
     .program_nazevLinie {
         transform: rotate(-90deg);
         transform-origin: bottom right;
-        width: 230px;
         height: 40px;
         top: -40px;
         right: 0;
-        margin-top: 15px;
+        margin-top: 0.5em;
         overflow: hidden;
         position: absolute;
         display: flex;
@@ -84,6 +83,10 @@ table.program {
     }
 }
 @media (max-width: 800px) {
+    .program_nazevLinie {
+      margin-top: 0.4em;
+      width: auto;
+    }
     [rowspan="1"] .program_nazevLinie {
         margin-top: 4px;
         text-align: left;
@@ -108,7 +111,7 @@ table.program {
     }
 }
 
-.program td > div {
+.program td > div.aktivita {
     background-color: #CDF2D9;
 }
 
