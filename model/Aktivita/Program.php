@@ -349,8 +349,10 @@ class Program
         if (count($classes) === 0) {
             $classes[] = 'otevrene';
         }
-        $classes[] = 'aktivita';
-        $classes   = $classes ? ' class="' . implode(' ', $classes) . '"' : '';
+        $classes[]   = 'aktivita';
+        $classesHtml = $classes ? ' class="' . implode(' ', $classes) . '"' : '';
+
+        $stitkyHtml = implode('-', array_map('htmlentities', $aktivitaObjekt->tagy()));
 
         // název a url aktivity
         echo <<<HTML
@@ -358,7 +360,7 @@ class Program
     <div class="placeholder-pro-roztazeni-radku" style="display: none">
         <!--jenom malý hack aby se název linie dobře zobrazoval i na mobilu když všechny aktivity skryjeme javascriptovým filtrem-->
     </div>
-    <div {$classes}>
+    <div {$classesHtml} data-stitky="{$stitkyHtml}">
         <a href="{$aktivitaObjekt->url()}" target="_blank" class="programNahled_odkaz" data-program-nahled-id="{$aktivitaObjekt->id()}" title="{$aktivitaObjekt->nazev()}">
             {$aktivitaObjekt->nazev()}
         </a>

@@ -55,7 +55,7 @@ $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-n
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program/filtr-programu.js');
-$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program/vyber-tagu.js');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program/vyber-stitku.js');
 
 $zacatekPristiVlnyOd       = $systemoveNastaveni->pristiVlnaKdy();
 $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
@@ -144,14 +144,17 @@ $zobrazitMujProgramOdkaz = isset($u);
             <?php } ?>
         </div>
 
-        <div class="program_legenda_tagy">
-            <select name="tag[]" multiple id="vyberTaguProgram">
-                <?php foreach ($program->tagyAktivit() as $tag) { ?>
+        <div class="program_legenda_stitky">
+            <select name="tag[]" multiple id="vyberStitkuProgram">
+                <?php
+                $tagy = $program->tagyAktivit();
+                sort($tagy);
+                foreach ($tagy as $tag) { ?>
                     <option class="program_legenda_tag" value="<?= $tag ?>"><?= $tag ?></option>
                 <?php } ?>
             </select>
             <script type="text/javascript">
-                document.dispatchEvent(new Event('tagyNahrane'))
+                document.dispatchEvent(new Event('stitkyNahrane'))
             </script>
         </div>
     </div>
