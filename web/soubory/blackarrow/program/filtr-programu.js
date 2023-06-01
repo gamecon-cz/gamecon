@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', function () {
         document.cookie = `program_legenda_typ=${zobrazit.join(',')}`;
       }
 
+      // TODO CustomEvent('tagyVybrany') web/soubory/blackarrow/program/vyber-tagu.js
+
       var zobrazitElementy = []
       zobrazit.forEach(function (zobrazitClass) {
         zobrazitElementy.push(...document.querySelectorAll(`.program .${zobrazitClass}`))

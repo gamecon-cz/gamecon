@@ -37,6 +37,7 @@ class Program
     private            $u              = null; // aktuální uživatel v objektu
     private            $posledniVydana = null;
     private            $dbPosledni     = null;
+    private array      $tagy           = [];
     private            $aktFronta      = [];
     private ?\Iterator $program        = null; // iterátor aktivit seřazených pro použití v programu
     private            $nastaveni      = [
@@ -524,7 +525,7 @@ HTML;
                 throw new \LogicException('nepodporovaný typ shlukování aktivit ' . $this->grpf);
         }
 
-        $a = [
+        $a          = [
             'grp' => $grp,
             'zac' => $zac,
             'kon' => $kon,
@@ -532,6 +533,7 @@ HTML;
             'del' => $kon - $zac,
             'obj' => $aktivita,
         ];
+        $this->tagy = [...$this->tagy, ...$aktivita->tagy()];
         $iterator->next();
 
         // u programu dne přeskočit aktivity, které nejsou daný den
@@ -601,5 +603,10 @@ HTML;
         for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++)
             $bunky .= '<td></td>';
         return "<tr><td rowspan=\"1\"><div class=\"program_nazevLinie\">$nazev</div></td>$bunky</tr>";
+    }
+
+    public function tagyAktivit(): array
+    {
+        return array_unique($this->tagy);
     }
 }
