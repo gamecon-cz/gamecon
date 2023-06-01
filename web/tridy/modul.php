@@ -117,15 +117,28 @@ class Modul
         $this->cssUrls[] = $url;
     }
 
-    public function pridejJsSoubor($cesta)
+    public function pridejJsSoubor(string $soubor)
     {
-        $cestaKSouboru  = strpos(realpath($cesta), realpath(WWW)) === 0
-            ? $cesta
-            : WWW . '/' . $cesta;
-        $verze          = md5_file($cestaKSouboru);
-        $cestaNaWebu    = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
-        $url            = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
-        $this->jsUrls[] = $url;
+        $this->jsUrls[] = $this->souborNaUrl($soubor);
+    }
+
+    private function souborNaUrl(string $soubor): string
+    {
+        if (!is_file($soubor)) {
+            trigger_error("Neexistující soubor '{$soubor}'", E_USER_WARNING);
+            return '';
+        }
+        $cestaKSouboru = strpos(realpath($soubor), realpath(WWW)) === 0
+            ? $soubor
+            : WWW . '/' . $soubor;
+        $verze         = md5_file($cestaKSouboru);
+        $cestaNaWebu   = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
+        return URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
+    }
+
+    public function pridejCssSoubor(string $soubor)
+    {
+        $this->cssUrls[] = $this->souborNaUrl($soubor);
     }
 
     /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */

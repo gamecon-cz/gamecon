@@ -185,7 +185,9 @@
 
 .informaceSpustime {
   align-self: flex-start;
-  flex      : 1 1 auto;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
 }
 
 .informaceSpustime>p {
@@ -194,9 +196,24 @@
 
 .program_legenda_inner {
   align-self: flex-end;
-  flex      : 0 1 auto;
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
 }
 
+.program_legenda_tagy {
+  align-self: flex-end;
+  flex-grow: 2;
+  flex-shrink: 1;
+  flex-basis: auto;
+  min-width: 20%;
+  position: relative;
+  margin: 0 0.5em;
+}
+
+.program_legenda_tagy button {
+  cursor: pointer;
+}
 
 .program_legenda_typ.organizator {
   text-transform: capitalize;
