@@ -42,5 +42,9 @@ document.addEventListener('stitkyPripravene', function () {
     $msOptionsElement.find('.ms-selectall').css('visibility', somethingChecked ? '' : 'hidden')
   }
 
-  document.querySelector('.ms-options-wrap button').classList.add('aktivity_stitek-nahled')
+  var buttonElement = document.querySelector('.ms-options-wrap button')
+  buttonElement.classList.add('aktivity_stitek-nahled')
+  buttonElement.addEventListener('click', function() {
+    document.querySelector('.ms-search input[type=text]').focus()
+  })
 })
