@@ -159,7 +159,7 @@ SET uzivatele_hodnoty.infopult_poznamka = `$temporaryTable`.infopult_poznamka
 WHERE TRUE
 SQL,
     );
-    $zapsanoZmen += dbAffectedOrNumRows($mysqliResult);
+    $zapsanoZmen  += dbAffectedOrNumRows($mysqliResult);
 
     dbQuery(<<<SQL
 DROP TEMPORARY TABLE `$temporaryTable`
