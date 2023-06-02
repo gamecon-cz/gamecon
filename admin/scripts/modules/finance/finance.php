@@ -3,7 +3,6 @@
 use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Ubytovani\SqlStruktura\UbytovaniSqlStruktura as UbytovaniSql;
 
 /**
  * Rychlé finanční transakce (obsolete) (starý kód)

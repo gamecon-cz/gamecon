@@ -198,12 +198,12 @@ SQL
      */
     public function cisloOp(string $op = null)
     {
-        if ($op) {
+        if ($op !== null) {
             dbQuery('
         UPDATE uzivatele_hodnoty
         SET op=$1
         WHERE id_uzivatele=' . $this->r['id_uzivatele'],
-                [Sifrovatko::zasifruj($op)],
+                [$op !== '' ? Sifrovatko::zasifruj($op) : ''],
             );
             return $op;
         }
@@ -213,6 +213,24 @@ SQL
         } else {
             return '';
         }
+    }
+
+    /**
+     * Vrátí / nastaví číslo občanského průkazu.
+     */
+    public function typDokladu(string $typDokladu = null): string
+    {
+        if ($typDokladu !== null) {
+            dbQuery('
+        UPDATE uzivatele_hodnoty
+        SET typ_dokladu_totoznosti=$0
+        WHERE id_uzivatele=' . $this->r['id_uzivatele'],
+                [0 => $typDokladu],
+            );
+            return $typDokladu;
+        }
+
+        return $this->r[Sql::TYP_DOKLADU_TOTOZNOSTI] ?? '';
     }
 
     /**

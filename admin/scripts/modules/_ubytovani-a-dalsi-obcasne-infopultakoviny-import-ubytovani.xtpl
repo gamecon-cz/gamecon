@@ -1,13 +1,17 @@
 <!-- begin:import -->
 
 <div class="aBox">
-  <h3>Importér ubytování</h3>
-  Přepíše kompletně letošní údaje o ubytování.
-  Jako soubor slouží <a href="{baseUrl}/reporty/{ubytovaniReport}"><em>Report ubytování</em> ve formátu XLSX</a>.
-  <br><br>
-  <form method="post" enctype="multipart/form-data">
-    <input type="file" name="{souborInputName}"> <input type="submit" name="pokojeImport" value="Nahrát">
-  </form>
+    <h3>Importér ubytování</h3>
+    Přepíše kompletně letošní údaje o ubytování.
+    Jako soubor slouží <a href="{baseUrl}/reporty/{ubytovaniReport}"><em>Report ubytování</em> ve formátu XLSX</a>.
+    <br><br>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="{souborInputName}"> <input type="submit" name="pokojeImport" value="Nahrát">
+        <label>
+            <input type="checkbox" name="povolitMazaniOp" value="1">
+            <i class="fa fa-trash"></i> Povolit mazání OP <span style="font-size: smaller">(prázdnou buňkou)</span>
+        </label>
+    </form>
 </div>
 
 <!-- end:import -->
