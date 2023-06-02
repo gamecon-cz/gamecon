@@ -400,7 +400,7 @@ SQL,
 
     private function dejNazvyAPoctyJidel(Uzivatel $navstevnik, array $moznaJidla): array
     {
-        $objednanaJidla = $this->dejNazvyAPoctyPredmetu($navstevnik, implode('|', Jidlo::dejJidlaBehemDne()));
+        $objednanaJidla = $this->dejNazvyAPoctyPredmetu($navstevnik, Jidlo::dejJidlaBehemDne());
         uksort($objednanaJidla, function (string $nejakeJidloADen, string $jineJidloADen) {
             $nejakeJidloBehemDne = $this->najdiJidloBehemDne($nejakeJidloADen);
             $jineJidloBehemDne   = $this->najdiJidloBehemDne($jineJidloADen);
@@ -431,17 +431,17 @@ SQL,
 
     /**
      * @param Uzivatel $navstevnik
-     * @param string|array $castNazvuRegexpNeboPole
+     * @param array<int, string> $castNazvuRegexpNeboPole
      * @return array
      */
-    private function dejNazvyAPoctyPredmetu(Uzivatel $navstevnik, $castNazvuRegexpNeboPole): array
+    private function dejNazvyAPoctyPredmetu(Uzivatel $navstevnik, array $castNazvuRegexpNeboPole): array
     {
         $castNazvuRegexp = $this->dejPoleJakoRegexp((array)$castNazvuRegexpNeboPole, '~');
         $financniPrehled = $navstevnik->finance()->dejPolozkyProBfgr();
         $poctyPredmetu   = [];
         foreach ($financniPrehled as $polozka) {
             ['nazev' => $nazev, 'pocet' => $pocet] = $polozka;
-            if (preg_match('~' . $castNazvuRegexp . '~iS', $nazev)) {
+            if (preg_match('~' . $castNazvuRegexp . '~iuS', $nazev)) {
                 $poctyPredmetu[$nazev] = ($poctyPredmetu[$nazev] ?? 0) + $pocet;
             }
         }
@@ -456,13 +456,14 @@ SQL,
                 static function (string $retezec) use ($delimiter) {
                     return preg_quote($retezec, $delimiter);
                 },
-                $retezce),
+                $retezce,
+            ),
         );
     }
 
     private function dejNazvyAPoctyCovidTestu(Uzivatel $navstevnik, array $vsechnyMozneCovidTesty): array
     {
-        $objednaneCovidTesty = $this->dejNazvyAPoctyPredmetu($navstevnik, 'covid');
+        $objednaneCovidTesty = $this->dejNazvyAPoctyPredmetu($navstevnik, ['covid']);
         return $this->seradADoplnNenakoupene($objednaneCovidTesty, $vsechnyMozneCovidTesty);
     }
 
@@ -511,7 +512,7 @@ SQL,
 
     private function dejNazvyAPoctyKostek(Uzivatel $navstevnik, array $vsechnyMozneKostky): array
     {
-        $objednaneKostky = $this->dejNazvyAPoctyPredmetu($navstevnik, 'kostka');
+        $objednaneKostky = $this->dejNazvyAPoctyPredmetu($navstevnik, ['kostka']);
         foreach ($objednaneKostky as $objednanaKostka => $pocet) {
             if (!preg_match('~ \d{4}$~', $objednanaKostka)) {
                 unset($objednaneKostky[$objednanaKostka]);
