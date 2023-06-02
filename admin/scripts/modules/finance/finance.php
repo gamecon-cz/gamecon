@@ -102,48 +102,6 @@ SQL
     exit();
 }
 
-if (post('pokojeImport')) {
-    $f = fopen($_FILES['pokojeSoubor']['tmp_name'], 'rb');
-    if (!$f) {
-        throw new RuntimeException('Soubor se nepodařilo načíst');
-    }
-
-    $hlavicka       = array_flip(fgetcsv($f, null, ";"));
-    $kliceHlavicky  = ['id_uzivatele', 'prvni_noc', 'posledni_noc', 'pokoj'];
-    $chybejiciKlice = array_diff($kliceHlavicky, array_keys($hlavicka));
-    if ($chybejiciKlice) {
-        throw new Chyba('V souboru chybí sloupce ' . implode(', ', $chybejiciKlice));
-    }
-    $idUzivateleKlic = $hlavicka['id_uzivatele'];
-    $prvniNocKlic    = $hlavicka['prvni_noc'];
-    $posledniNocKlic = $hlavicka['posledni_noc'];
-    $pokojKlic       = $hlavicka['pokoj'];
-
-    try {
-        dbBegin();
-        dbDelete('ubytovani', ['rok' => $systemoveNastaveni->rocnik()]);
-
-        while ($r = fgetcsv($f, null, ";")) {
-            if ($r[$pokojKlic]) {
-                for ($den = $r[$prvniNocKlic]; $den <= $r[$posledniNocKlic]; $den++) {
-                    dbInsert(UbytovaniSql::UBYTOVANI_TABULKA, [
-                        UbytovaniSql::ID_UZIVATELE => $r[$idUzivateleKlic],
-                        UbytovaniSql::DEN          => $den,
-                        UbytovaniSql::POKOJ        => $r[$pokojKlic],
-                        UbytovaniSql::ROK          => $systemoveNastaveni->rocnik(),
-                    ]);
-                }
-            }
-        }
-        dbCommit();
-    } catch (Throwable $throwable) {
-        dbRollback();
-        throw $throwable;
-    }
-
-    oznameni('Import dokončen');
-}
-
 $x = new XTemplate(__DIR__ . '/finance.xtpl');
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
