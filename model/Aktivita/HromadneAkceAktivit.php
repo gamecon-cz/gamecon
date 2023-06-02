@@ -9,6 +9,7 @@ use Gamecon\Aktivita\Exceptions\NevhodnyCasProAutomatickouHromadnouAktivaci;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
 
 class HromadneAkceAktivit
 {
@@ -115,9 +116,10 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
      */
     public function odemciTeamoveHromadne(\Uzivatel $odemykajici): int
     {
-        $zamcene                 = dbFetchAll('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . Aktivita::HAJENI_TEAMU_HODIN . ' HOUR');
         $odemcenoTymovychAktivit = 0;
-        foreach ($zamcene as [$aid, $uid]) {
+
+        $zamcene = dbFetchAll('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . Aktivita::HAJENI_TEAMU_HODIN . ' HOUR');
+        foreach ($zamcene as [Sql::ID_AKCE => $aid, Sql::ZAMCEL => $uid]) {
             // uvolnění zámku je součástí odhlášení, pokud je sám -> done
             Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici, 'hromadne-odemceni-teamovych');
             $odemcenoTymovychAktivit++;

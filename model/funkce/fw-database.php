@@ -593,7 +593,7 @@ function dbFetchRow(string $query, array $params = [], mysqli $mysqli = null): a
  * @param string $query
  * @param array $params
  * @param mysqli|null $mysqli
- * @return array
+ * @return array<int, array<string, string>> rows with items indexed by column names
  * @throws DbException
  */
 function dbFetchAll(string $query, array $params = [], mysqli $mysqli = null): array
