@@ -1,4 +1,4 @@
-document.addEventListener('programNacteny', function () {
+document.addEventListener('DOMContentLoaded', function () {
   function programTypCheckbox(element) {
     return element.querySelector('input[type=checkbox].program_typ_checkbox')
   }
