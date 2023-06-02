@@ -1549,15 +1549,17 @@ SQL,
         // TODO přenačíst aktuálního uživatele
     }
 
-    public function status()
+    public function status(bool $sklonovatDlePohlavi = true)
     {
-        return trim(strip_tags($this->statusHtml()));
+        return trim(strip_tags($this->statusHtml($sklonovatDlePohlavi)));
     }
 
     /** Vrátí html formátovaný „status“ uživatele (pro interní informaci) */
-    public function statusHtml()
+    public function statusHtml(bool $sklonovatDlePohlavi = true)
     {
-        $ka     = $this->koncovkaDlePohlavi('ka');
+        $ka     = $sklonovatDlePohlavi
+            ? $this->koncovkaDlePohlavi('ka')
+            : '';
         $status = [];
         if ($this->maPravo(Pravo::TITUL_ORGANIZATOR)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';

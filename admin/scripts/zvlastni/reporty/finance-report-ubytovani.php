@@ -1,17 +1,19 @@
 <?php
+/**
+ * !!! TENTO REPORT JE POUŽÍVÁN V _ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.php
+ * ZMĚNY V REPORTU MUSÍME REFLEKTOVAT I TAM (nové sloupce nebo jiné pořadí obecně ne, ale změny názvů rozhodně ano) !!!
+ */
 require __DIR__ . '/sdilene-hlavicky.php';
 
 use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 
 $o = dbQuery(<<<SQL
-SELECT uzivatele.id_uzivatele,
-     uzivatele.login_uzivatele,
-     uzivatele.jmeno_uzivatele,
-     uzivatele.prijmeni_uzivatele,
-     uzivatele.mesto_uzivatele,
-     uzivatele.ulice_a_cp_uzivatele,
-     uzivatele.op as cislo_op,
+SELECT
+    uzivatele.id_uzivatele,
+    uzivatele.login_uzivatele,
+    uzivatele.jmeno_uzivatele,
+    uzivatele.prijmeni_uzivatele,
     GROUP_CONCAT(DISTINCT IF(
         predmety.nazev LIKE CONVERT('Spacák%' USING utf8) COLLATE utf8_czech_ci,
         'Spacák',
@@ -24,7 +26,11 @@ SELECT uzivatele.id_uzivatele,
     MIN(predmety.ubytovani_den) as prvni_noc,
     MAX(predmety.ubytovani_den) as posledni_noc,
     GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj)) as pokoj,
-    uzivatele.ubytovan_s
+    uzivatele.ubytovan_s,
+    uzivatele.datum_narozeni,
+    uzivatele.mesto_uzivatele,
+    uzivatele.ulice_a_cp_uzivatele,
+    uzivatele.typ_dokladu_totoznosti as typ_dokladu
 FROM uzivatele_hodnoty uzivatele
 JOIN platne_role_uzivatelu
     ON uzivatele.id_uzivatele=platne_role_uzivatelu.id_uzivatele AND platne_role_uzivatelu.id_role=$0 -- přihlášení na gc
@@ -43,15 +49,16 @@ SQL,
         Role::PRIHLASEN_NA_LETOSNI_GC,
         ROCNIK,
         TypPredmetu::UBYTOVANI,
-    ]
+    ],
 );
 
 $vystup = [];
 while ($r = mysqli_fetch_assoc($o)) {
-    $u = Uzivatel::zId($r['id_uzivatele']);
-    $r['pozice'] = $u->status();
-    $r['cislo_op'] = $u->cisloOp();
-    $vystup[] = $r;
+    $u                  = Uzivatel::zId($r['id_uzivatele']);
+    $r['datum_narozeni'] = $u->datumNarozeni()->format(\Gamecon\Cas\DateTimeCz::FORMAT_DATUM_STANDARD);
+    $r['cislo_dokladu'] = $u->cisloOp();
+    $r['pozice']        = $u->status(false);
+    $vystup[]           = $r;
 }
 
 Report::zPole($vystup)->tFormat(get('format'));
