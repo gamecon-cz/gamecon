@@ -7,6 +7,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
+use Gamecon\Cas\DateTimeCz;
 
 $o = dbQuery(<<<SQL
 SELECT
@@ -27,10 +28,13 @@ SELECT
     MAX(predmety.ubytovani_den) as posledni_noc,
     GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj)) as pokoj,
     uzivatele.ubytovan_s,
-    uzivatele.datum_narozeni,
+    '' AS pozice, -- placeholder kvůli pořadí, hodnotu dáme později, viz PHP foreach dále
+    '' AS datum_narozeni, -- placeholder
     uzivatele.mesto_uzivatele,
     uzivatele.ulice_a_cp_uzivatele,
-    uzivatele.typ_dokladu_totoznosti as typ_dokladu
+    uzivatele.typ_dokladu_totoznosti AS typ_dokladu,
+    '' AS cislo_dokladu,
+    uzivatele.statni_obcanstvi
 FROM uzivatele_hodnoty uzivatele
 JOIN platne_role_uzivatelu
     ON uzivatele.id_uzivatele=platne_role_uzivatelu.id_uzivatele AND platne_role_uzivatelu.id_role=$0 -- přihlášení na gc
@@ -54,11 +58,11 @@ SQL,
 
 $vystup = [];
 while ($r = mysqli_fetch_assoc($o)) {
-    $u                  = Uzivatel::zId($r['id_uzivatele']);
-    $r['datum_narozeni'] = $u->datumNarozeni()->format(\Gamecon\Cas\DateTimeCz::FORMAT_DATUM_STANDARD);
-    $r['cislo_dokladu'] = $u->cisloOp();
-    $r['pozice']        = $u->status(false);
-    $vystup[]           = $r;
+    $u                   = Uzivatel::zId($r['id_uzivatele']);
+    $r['pozice']         = $u->status(false);
+    $r['datum_narozeni'] = $u->datumNarozeni()->format(DateTimeCz::FORMAT_DATUM_STANDARD);
+    $r['cislo_dokladu']  = $u->cisloOp();
+    $vystup[]            = $r;
 }
 
 Report::zPole($vystup)->tFormat(get('format'));
