@@ -4,6 +4,11 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\XTemplate\XTemplate;
 use OpenSpout\Reader\Common\Creator\ReaderFactory;
+use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as UzivatelSql;
+
+/**
+ * @var Uzivatel $u
+ */
 
 $souborInputName = 'pokojeSoubor';
 
@@ -19,7 +24,8 @@ if (!post('pokojeImport')) {
     return;
 }
 
-$vstupniSoubor = $_FILES[$souborInputName]['tmp_name'] ?? '';
+$vstupniSoubor   = $_FILES[$souborInputName]['tmp_name'] ?? '';
+$povolitMazaniOp = post('povolitMazaniOp');
 
 if (!is_readable($vstupniSoubor)) {
     throw new Chyba('Soubor se nepodařilo načíst');
@@ -43,12 +49,15 @@ $vyzadovaneSloupce = ['id_uzivatele', 'prvni_noc', 'posledni_noc', 'pokoj', 'typ
 if (!array_keys_exist($vyzadovaneSloupce, $hlavicka)) {
     throw new Chyba('Chybný formát souboru - musí mít sloupce ' . implode(', ', $vyzadovaneSloupce));
 }
-$indexIdUzivatele = $hlavicka['id_uzivatele'];
-$indexPrvniNoc    = $hlavicka['prvni_noc'];
-$indexPosledniNoc = $hlavicka['posledni_noc'];
-$indexPokoj       = $hlavicka['pokoj'];
-$indexTyp         = $hlavicka['typ'];
-$indexUbytovanS   = $hlavicka['ubytovan_s'] ?? null;
+$indexIdUzivatele  = $hlavicka['id_uzivatele'];
+$indexPrvniNoc     = $hlavicka['prvni_noc'];
+$indexPosledniNoc  = $hlavicka['posledni_noc'];
+$indexPokoj        = $hlavicka['pokoj'];
+$indexTyp          = $hlavicka['typ'];
+$indexUbytovanS    = $hlavicka['ubytovan_s'] ?? null;
+$indexCisloDokladu = $hlavicka['cislo_dokladu'] ?? null;
+
+$zasifrovanePrazdneOp = Sifrovatko::zasifruj('');
 
 $rowIterator->next();
 
@@ -152,6 +161,22 @@ while ($rowIterator->valid()) {
                     trim((string)$radek[$indexUbytovanS]),
                     $ucastnik,
                 );
+            }
+            if ($indexCisloDokladu !== null) {
+                $cisloDokladu = trim((string)$radek[$indexCisloDokladu]);
+                if ($cisloDokladu === ''
+                    && ($ucastnik->rawDb()[UzivatelSql::OP] ?? '') !== ''
+                    && ($ucastnik->rawDb()[UzivatelSql::OP] ?? '') !== $zasifrovanePrazdneOp
+                ) {
+                    if ($povolitMazaniOp) {
+                        $ucastnik->cisloOp('');
+                        $ucastnik->typDokladu('');
+                        $zapsanoZmenVTransakci++;
+                    } else {
+                        $a          = $u->koncovkaDlePohlavi();
+                        $varovani[] = "Účastník {$ucastnik->jmenoNick()} z řádku {$poradiRadku} má prázdné 'cislo_dokladu' ale mazání OP jsi nepovolil{$a}";
+                    }
+                }
             }
             dbCommit();
             if ($zapsanoZmenVTransakci > 0) {
