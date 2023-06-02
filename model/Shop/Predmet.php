@@ -2,15 +2,15 @@
 
 namespace Gamecon\Shop;
 
-use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as SQL;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 
 /**
  * @method static Predmet zId($id, bool $zCache = false)
  */
 class Predmet extends \DbObject
 {
-    protected static $tabulka = 'shop_predmety';
-    protected static $pk      = 'id_predmetu';
+    protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
+    protected static $pk      = Sql::ID_PREDMETU;
 
     public static function jeToKostka(string $nazev): bool
     {
@@ -60,11 +60,11 @@ SQL,
 
     public function nazev(): string
     {
-        return (string)$this->r[SQL::NAZEV];
+        return (string)$this->r[Sql::NAZEV];
     }
 
     public function cenaAktualni(): float
     {
-        return (float)$this->r[SQL::CENA_AKTUALNI];
+        return (float)$this->r[Sql::CENA_AKTUALNI];
     }
 }

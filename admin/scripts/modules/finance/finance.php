@@ -3,6 +3,7 @@
 use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Ubytovani\SqlStruktura\UbytovaniSqlStruktura as UbytovaniSql;
 
 /**
  * Rychlé finanční transakce (obsolete) (starý kód)
@@ -103,28 +104,41 @@ SQL
 
 if (post('pokojeImport')) {
     $f = fopen($_FILES['pokojeSoubor']['tmp_name'], 'rb');
-    if (!$f) throw new Exception('Soubor se nepodařilo načíst');
+    if (!$f) {
+        throw new RuntimeException('Soubor se nepodařilo načíst');
+    }
 
-    $hlavicka = array_flip(fgetcsv($f, 512, ";"));
-    if (!array_key_exists('id_uzivatele', $hlavicka)) throw new Exception('Nepodařilo se zpracovat soubor');
-    $uid   = $hlavicka['id_uzivatele'];
-    $od    = $hlavicka['prvni_noc'];
-    $do    = $hlavicka['posledni_noc'];
-    $pokoj = $hlavicka['pokoj'];
+    $hlavicka       = array_flip(fgetcsv($f, null, ";"));
+    $kliceHlavicky  = ['id_uzivatele', 'prvni_noc', 'posledni_noc', 'pokoj'];
+    $chybejiciKlice = array_diff($kliceHlavicky, array_keys($hlavicka));
+    if ($chybejiciKlice) {
+        throw new Chyba('V souboru chybí sloupce ' . implode(', ', $chybejiciKlice));
+    }
+    $idUzivateleKlic = $hlavicka['id_uzivatele'];
+    $prvniNocKlic    = $hlavicka['prvni_noc'];
+    $posledniNocKlic = $hlavicka['posledni_noc'];
+    $pokojKlic       = $hlavicka['pokoj'];
 
-    dbDelete('ubytovani', ['rok' => ROCNIK]);
+    try {
+        dbBegin();
+        dbDelete('ubytovani', ['rok' => $systemoveNastaveni->rocnik()]);
 
-    while ($r = fgetcsv($f, 512, ";")) {
-        if ($r[$pokoj]) {
-            for ($den = $r[$od]; $den <= $r[$do]; $den++) {
-                dbInsert('ubytovani', [
-                    'id_uzivatele' => $r[$uid],
-                    'den'          => $den,
-                    'pokoj'        => $r[$pokoj],
-                    'rok'          => ROCNIK,
-                ]);
+        while ($r = fgetcsv($f, null, ";")) {
+            if ($r[$pokojKlic]) {
+                for ($den = $r[$prvniNocKlic]; $den <= $r[$posledniNocKlic]; $den++) {
+                    dbInsert(UbytovaniSql::UBYTOVANI_TABULKA, [
+                        UbytovaniSql::ID_UZIVATELE => $r[$idUzivateleKlic],
+                        UbytovaniSql::DEN          => $den,
+                        UbytovaniSql::POKOJ        => $r[$pokojKlic],
+                        UbytovaniSql::ROK          => $systemoveNastaveni->rocnik(),
+                    ]);
+                }
             }
         }
+        dbCommit();
+    } catch (Throwable $throwable) {
+        dbRollback();
+        throw $throwable;
     }
 
     oznameni('Import dokončen');
@@ -169,7 +183,7 @@ $x->assign([
 $x->parse('finance.pripsatSlevu');
 $x->parse('finance.vyplatitBonusZaVedeniAktivity');
 
-$x->assign('rok', ROCNIK);
+$x->assign('rok', $systemoveNastaveni->rocnik());
 
 $x->assign('ubytovani', basename(__DIR__ . '/../../zvlastni/reporty/finance-report-ubytovani.php', '.php'));
 $x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/celkovy-report.php', '.php'));
