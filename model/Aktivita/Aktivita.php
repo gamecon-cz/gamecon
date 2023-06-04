@@ -2410,7 +2410,7 @@ SQL,
 
     public function typ(): TypAktivity
     {
-        if (!$this->typ) {
+        if (!$this->typ && !is_numeric($this->typ)) {
             throw new \RuntimeException("Aktivita '{$this->id()}' nemá typ");
         }
         if (is_numeric($this->typ)) {
