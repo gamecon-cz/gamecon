@@ -18,6 +18,7 @@ use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Urls;
 use Gamecon\XTemplate\XTemplate;
+use Granam\RemoveDiacritics\RemoveDiacritics;
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
 
@@ -356,7 +357,7 @@ SQL
      * @param array $a Pole odpovídající strukturou vkládanému (upravovanému) řádku DB,
      * podle toho nemá (má) id aktivity
      */
-    protected static function editorChyby($a)
+    protected static function editorChyby(array $a)
     {
         $chyby = [];
 
@@ -375,10 +376,7 @@ SQL
         }
 
         // kontrola duplicit url
-        if (dbOneLine('SELECT 1 FROM akce_seznam
-      WHERE url_akce = $1 AND ( patri_pod IS NULL OR patri_pod != $2 ) AND id_akce != $3 AND rok = $4',
-            [$a[Sql::URL_AKCE], $a[Sql::PATRI_POD], $a[Sql::ID_AKCE], ROCNIK])
-        ) {
+        if (self::urlJeObsazena($a)) {
             $chyby[] = sprintf(
                 "Url '%s' je už letos použitá pro jinou aktivitu. Vyberte jinou, nebo použijte tlačítko „inst“ v seznamu aktivit pro duplikaci.",
                 $a[Sql::URL_AKCE],
@@ -386,6 +384,14 @@ SQL
         }
 
         return $chyby;
+    }
+
+    protected static function urlJeObsazena(array $a): bool
+    {
+        return (bool)dbOneLine('SELECT 1 FROM akce_seznam
+      WHERE url_akce = $0 AND ( patri_pod IS NULL OR patri_pod != $1 ) AND id_akce != $2 AND rok = $3',
+            [0 => $a[Sql::URL_AKCE], 1 => $a[Sql::PATRI_POD], 2 => $a[Sql::ID_AKCE], 3 => ROCNIK],
+        );
     }
 
     /**
@@ -687,6 +693,15 @@ SQL
         if (empty($a['url_akce']) && !empty($_POST[self::POSTKLIC . 'staraUrl'])) {
             $a['url_akce'] = $_POST[self::POSTKLIC . 'staraUrl'];
         }
+        if (empty($a['url_akce'])) {
+            $a['url_akce'] = RemoveDiacritics::toConstantLikeValue($a[Sql::NAZEV_AKCE]);
+            $zakladUrl = $a['url_akce'];
+            $poradiUrl = 1;
+            while (self::urlJeObsazena($a)) {
+                $poradiUrl++;
+                $a['url_akce'] = $zakladUrl . '-' . $poradiUrl;
+            }
+        }
         // přepočet času
         if (empty($a['den']) || empty($a['zacatek']) || empty($a['konec'])) {
             if (!empty($a['den']) || !empty($a['zacatek']) || !empty($a['konec'])) {
@@ -732,6 +747,11 @@ SQL
                 false,
             );
             unset($a['teamova'], $a['team_min'], $a['team_max']);
+        }
+
+        $chyby = self::editorChyby($a);
+        if ($chyby) {
+            varovani(implode('; ', $chyby), false);
         }
 
         $tagIds = [];
