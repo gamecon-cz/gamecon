@@ -1,15 +1,11 @@
 <!-- begin:upravy -->
 <script type="text/javascript">
     function overeni() {
-        err = 0
+        err = false
         msg = ''
-        if (!$('[name="{fields}[url_akce]"]').val()) {
-            err = 1
-            msg += "\n• Je třeba vyplnit url."
-        }
-        if ($('[name="{fields}[url_akce]"]').val().search(/^[a-z0-9\-]*$/) == -1) {
-            err = 1
-            msg += "\n• URL smí obsahovat jenom malá písmena bez diakritiky, číslice a pomlčky."
+        if (!$('[name="{fields}[nazev_akce]"]').val()) {
+            err = true
+            msg += "\n• Chybí název."
         }
 
         if (err) {
@@ -21,7 +17,9 @@
 
     $(function () {
         $('[name="{fields}Odesilatko"]').click(function () {
-            if (!overeni()) return false
+            if (!overeni()) {
+              return false
+            }
             odesilatko = $(this)
             odesilatko.attr('disabled', 'disabled')
             $.post(document.URL, $(this).closest('form').serialize() + '&{ajaxKlic}=true', function (data) {
@@ -45,7 +43,7 @@
 <table style="float:left;margin-right:20px" id="editorAktivity">
     <tr>
         <th><label for="nazevAkce" class="display-block">Název</label></th>
-        <td><input id="nazevAkce" class="full" type="text" name="{fields}[nazev_akce]" value="{nazev_akce}"></td>
+        <td><input id="nazevAkce" class="full" type="text" name="{fields}[nazev_akce]" value="{nazev_akce}" required></td>
     </tr>
     <tr>
         <th class="hinted">
