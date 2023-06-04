@@ -1,8 +1,11 @@
 <!-- begin: formular -->
-<b>Na vyplnění ti zbývá:</b> {zbyva}
+<span class="hinted">
+    <span class="flipped-icon">🕐</span>
+    <span class="hint"><b>Na vyplnění ti zbývá:</b> {zbyva}</span>
+</span>
 
 <!-- styl formuláře je kvůli viditelnosti v programu v adminu -->
-<form method="post" style="position: relative; z-index: 1; background-color: inherit;">
+<form method="post" style="position: relative; z-index: 1; background-color: inherit;" id="formularPotvrzeniTymu">
     <!-- begin: nazevVolitelny -->
     <b>Název týmu</b> (nepovinný):<br>
     <input type="text" name="{postname}Nazev" maxlength="255"><br>
@@ -36,13 +39,42 @@
     <!-- end: misto -->
 
     <input type="hidden" name="{postname}Aktivita" value="{aktivitaId}">
-    <input type="button" value="potvrdit" onclick="tymFormularZpracuj(this)">
+    <input type="button" value="potvrdit" data-bs-toggle="modal" data-bs-target="#modalOpravduPotvrditTym" id="tlacitkoPotvrzeniTymu">
 </form>
 
 <link href="{cssUrlAutocomplete}" type="text/css" rel="stylesheet">
 <script src="{jsUrlAutocomplete}"></script>
 <script src="{jsUrl}"></script>
 <script>
-    tymFormularAutocomplete(document.querySelectorAll('.tymFormular_hrac'))
+  tymFormularAutocomplete(document.querySelectorAll('.tymFormular_hrac'))
 </script>
+
+<div class="modal fade" id="modalOpravduPotvrditTym" tabindex="-1" aria-labelledby="opravduPotvrditTym"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="opravduPotvrditTym">Opravdu potvrdit tým?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Opravdu chceš uzavřít tým a tím <b>uvolnit zbylá místa k přihlašování neznámím</b>?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Upravit
+                </button>
+                <button type="button" class="btn btn-primary" onclick="tymFormularZpracuj(document.getElementById('tlacitkoPotvrzeniTymu'))">
+                    Potvrdit tým
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="soubory/bootstrap.bundle.5.1.3.js"></script>
+<link rel="stylesheet" href="soubory/bootstrap.5.1.3.css"/>
+
 <!-- end: formular -->
