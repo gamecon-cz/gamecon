@@ -46,7 +46,6 @@ table.program {
     font-size: 14px;
     vertical-align: top;
     position: sticky; /* pozor, zajišťuje i pozicování .program_nazevLinie */
-    left: 0;
     z-index: 1; /* aby bylo nad symboly v programu */
     background-color: #FDC689;
     color: #10111A;
