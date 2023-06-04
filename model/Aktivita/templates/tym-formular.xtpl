@@ -39,7 +39,8 @@
     <!-- end: misto -->
 
     <input type="hidden" name="{postname}Aktivita" value="{aktivitaId}">
-    <input type="button" value="potvrdit" data-bs-toggle="modal" data-bs-target="#modalOpravduPotvrditTym" id="tlacitkoPotvrzeniTymu">
+    <input type="button" value="potvrdit" onclick="potvrditKompletniTymNeboVyzadatPotvrzeni()"
+           id="tlacitkoPotvrzeniTymu">
 </form>
 
 <link href="{cssUrlAutocomplete}" type="text/css" rel="stylesheet">
@@ -47,6 +48,18 @@
 <script src="{jsUrl}"></script>
 <script>
   tymFormularAutocomplete(document.querySelectorAll('.tymFormular_hrac'))
+
+  function potvrditKompletniTymNeboVyzadatPotvrzeni() {
+    var hraciElements = document.getElementById('formularPotvrzeniTymu')
+      .getElementsByClassName('tymFormular_hrac')
+    var existujeNevybranyHrac = Array.from(hraciElements).find((hracElement) => hracElement.value === '')
+    if (existujeNevybranyHrac) {
+      var modalOpravduPotvrditTym = new bootstrap.Modal(document.getElementById('modalOpravduPotvrditTym'))
+      modalOpravduPotvrditTym.show()
+    } else {
+      tymFormularZpracuj(document.getElementById('tlacitkoPotvrzeniTymu'))
+    }
+  }
 </script>
 
 <div class="modal fade" id="modalOpravduPotvrditTym" tabindex="-1" aria-labelledby="opravduPotvrditTym"
@@ -66,7 +79,8 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     Upravit
                 </button>
-                <button type="button" class="btn btn-primary" onclick="tymFormularZpracuj(document.getElementById('tlacitkoPotvrzeniTymu'))">
+                <button type="button" class="btn btn-primary"
+                        onclick="tymFormularZpracuj(document.getElementById('tlacitkoPotvrzeniTymu'))">
                     Potvrdit tým
                 </button>
             </div>
