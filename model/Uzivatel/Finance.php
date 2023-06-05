@@ -933,6 +933,10 @@ SQL,
         return $qrPlatba->dejQrObrazek();
     }
 
+    /**
+     * Jako "storno" počítáme i aktivity, které uživatel vyloženě nestornoval, ale kam prostě nedorazil.
+     * Takže suma "storna" je suma storna plus suma propadnutí.
+     */
     public function sumaStorna(): float
     {
         return $this->sumaStorna;

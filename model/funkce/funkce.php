@@ -194,7 +194,7 @@ function mb_ucfirst($string, $encoding = null)
  * Vrací true, pokud je aktuální čas mezi $od a $do. Formáty jsou stejné jaké
  * akceptují php funce (např. strtotime)
  */
-function mezi($od, $do)
+function mezi(string $od, string $do)
 {
     return strtotime($od) <= time() && time() <= strtotime($do);
 }

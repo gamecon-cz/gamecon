@@ -76,10 +76,8 @@ foreach ($aktivity as $aktivita) {
         }
         $t->parse('prezence.aktivita.form.ucastnik');
     }
-    if ($zamcena && (!$vyplnena || $u->maPravoNaZmenuHistorieAktivit())) {
-        if ($vyplnena && $u->maPravoNaZmenuHistorieAktivit()) {
-            $t->parse('prezence.aktivita.form.pozorVyplnena');
-        }
+    if ($zamcena && $vyplnena && $u->maPravoNaZmenuHistorieAktivit()) {
+        $t->parse('prezence.aktivita.form.pozorVyplnena');
     }
     if (!$uzavrena) {
         /** @var \Gamecon\Cas\DateTimeCz|null $zacatek */

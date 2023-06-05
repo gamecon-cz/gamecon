@@ -16,28 +16,43 @@ class AktivitaTest extends AbstractTestDb
 {
     private const KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY = 12345;
 
-    protected static array $initQueries = [
-        <<<SQL
+    protected static bool $disableStrictTransTables = true;
+
+    protected static function getInitQueries(): array
+    {
+        $rok         = (new DateTimeImmutableStrict())->format('Y');
+        $predHodinou = (new DateTimeImmutableStrict())->modify('-1 hodina')->format(DateTimeImmutableStrict::FORMAT_DB);
+        $zaHodinu    = (new DateTimeImmutableStrict())->modify('+1 hodina')->format(DateTimeImmutableStrict::FORMAT_DB);
+        $typRpg      = TypAktivity::RPG;
+        return [
+            <<<SQL
 INSERT INTO akce_seznam(id_akce, nazev_akce, rok)
 VALUES
     (1, 'foo', 2022),
     (2, 'bar', 2023),
     (3, 'baz', 2023)
 SQL,
-        <<<SQL
+            <<<SQL
 INSERT INTO uzivatele_hodnoty SET id_uzivatele = 123, login_uzivatele = 'BylJsemTam', jmeno_uzivatele = 'BylJsem', prijmeni_uzivatele = 'Tam', email1_uzivatele = 'byl.jsem.tam@dot.com'
 SQL,
-        <<<SQL
+            <<<SQL
 INSERT INTO uzivatele_hodnoty SET id_uzivatele = 124, login_uzivatele = 'JsemNekdoJiny', jmeno_uzivatele = 'JsemNekdo', prijmeni_uzivatele = 'Jiny', email1_uzivatele = 'jsem.nekdo.jiny@dot.com'
 SQL,
-        <<<SQL
+            <<<SQL
 INSERT INTO akce_prihlaseni_log(id_akce, rocnik, id_uzivatele, zdroj_zmeny)
 VALUES
     (1, 2022, 123, 'neco'),
     (2, 2023, 123, 'neco'),
     (3, 2023, 123, 'neco')
 SQL,
-    ];
+            <<<SQL
+INSERT INTO uzivatele_hodnoty SET id_uzivatele = 125, login_uzivatele = 'PrijduOdejduPrijdu', jmeno_uzivatele = 'Prijdu', prijmeni_uzivatele = 'OdejduPrijdu', email1_uzivatele = 'prijdu.odejdu.prijdu@dot.com'
+SQL,
+            <<<SQL
+INSERT INTO akce_seznam(id_akce, nazev_akce, rok, zacatek, konec, typ) VALUES (4, 'foo', $rok, '$predHodinou', '$zaHodinu', $typRpg)
+SQL,
+        ];
+    }
 
     protected static function getInitCallbacks(): array
     {
@@ -48,8 +63,6 @@ SQL,
             ),
         ];
     }
-
-    protected static bool $disableStrictTransTables = true;
 
     private static function ted(): DateTimeImmutableStrict
     {
@@ -154,7 +167,9 @@ SQL,
         );
     }
 
-    private function systemoveNastaveniProStorno(int $kolikMinutJeOdhlaseniBezPokuty = self::KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY)
+    private function systemoveNastaveniProStorno(
+        int $kolikMinutJeOdhlaseniBezPokuty = self::KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY,
+    )
     {
         return new class($kolikMinutJeOdhlaseniBezPokuty, self::ted()) extends SystemoveNastaveni {
             public function __construct(
@@ -205,5 +220,37 @@ SQL,
     public function Muzu_zkusit_ziskat_aktivitu_podle_id_pomoci_null()
     {
         self::assertSame(null, Aktivita::zId(null));
+    }
+
+    /**
+     * @test
+     * @backupGlobals enabled
+     */
+    public function Kdyz_se_znovu_prihlasim_na_aktivitu_kde_mam_storno_poplatek_tak_ho_to_zrusi()
+    {
+        global $systemoveNastaveni;
+
+        $aktivita = Aktivita::zId(4, false, $this->systemoveNastaveniProStorno(0));
+        $aktivita->aktivuj();
+
+        self::assertTrue(
+            $aktivita->prihlasovatelna(),
+            'Aktivita by měla už být přihlašovatelná, ale není: ' . $aktivita->procNeniPrihlasovatelna(0, $systemoveNastaveni),
+        );
+
+        $uzivatel = \Uzivatel::zId(125);
+        $uzivatel->gcPrihlas(\Uzivatel::zId(1, true));
+
+        // reload
+        $uzivatel = \Uzivatel::zId(125, false);
+
+        self::assertFalse($aktivita->prihlasen($uzivatel), 'Uživatel by ještě neměl být na aktivitu přihlášen');
+
+        $aktivita->prihlas($uzivatel, $uzivatel);
+        self::assertTrue($aktivita->prihlasen($uzivatel), 'Uživatel by už měl být na aktivitu přihlášen');
+        self::assertSame(0.0, $uzivatel->finance()->sumaStorna(), 'Zatím by uživatel neměl mít žádné storno');
+
+        $aktivita->odhlas($uzivatel, $uzivatel, 'testy');
+        self::assertGreaterThan(0.0, $uzivatel->finance()->sumaStorna(), 'Uživatel by měl mít storno poplatek');
     }
 }

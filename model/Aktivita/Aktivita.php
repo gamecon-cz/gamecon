@@ -1899,7 +1899,7 @@ SQL
         return $this->procNeniPrihlasovatelna($parametry, $systemoveNastaveni) === '';
     }
 
-    private function procNeniPrihlasovatelna($parametry, SystemoveNastaveni $systemoveNastaveni = null): string
+    public function procNeniPrihlasovatelna($parametry, SystemoveNastaveni $systemoveNastaveni = null): string
     {
         $dopredne   = $parametry & self::DOPREDNE;
         $zpetne     = $parametry & self::ZPETNE;
