@@ -195,6 +195,18 @@ SQL
     }
 
     /**
+     * POZOR: toto by se mělo dít jen výjimečně a měl by na to mít právo jen někdo.
+     * Vrátí aktivovanou (přihlašovatelnou) aktivitu zpět na publikovanou (veřejnou, ale nepřihlašovatelnou)
+     */
+    public function deaktivuj()
+    {
+        if ($this->stav()->jeAktivovana()) {
+            $this->publikuj();
+        }
+        $this->refresh();
+    }
+
+    /**
      * Jestli je na aktivitu zakázáno uplatnit jakékoli procentuální slevy
      */
     public function bezSlevy(): bool
