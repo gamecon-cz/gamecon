@@ -199,15 +199,15 @@ SQL,
                 Klic::BONUS_ZA_12H_AZ_13H_AKTIVITU => defined('BONUS_ZA_12H_AZ_13H_AKTIVITU')
                     ? BONUS_ZA_12H_AZ_13H_AKTIVITU
                     : $this->spocitejBonusZaVedeniAktivity(Klic::BONUS_ZA_12H_AZ_13H_AKTIVITU),
-                Klic::PRISTI_VLNA_AKTIVIT_KDY      => defined('PRISTI_VLNA_AKTIVIT_KDY')
-                    ? PRISTI_VLNA_AKTIVIT_KDY
+                Klic::PRISTI_VLNA_KDY              => defined('PRISTI_VLNA_KDY')
+                    ? PRISTI_VLNA_KDY
                     : self::pristiVlnaKdy()?->formatDb(),
             ];
         }
         return $this->odvozeneHodnoty;
     }
 
-    public function zkonvertujHodnotuNaTyp($hodnota, string $datovyTyp): bool|int|float|string|DateTimeCz
+    public function zkonvertujHodnotuNaTyp($hodnota, string $datovyTyp): bool|int|float|string
     {
         return match (strtolower(trim($datovyTyp))) {
             'boolean', 'bool' => (bool)$hodnota,
@@ -474,6 +474,10 @@ SQL;
     {
         $hodnota = $this->dejHodnotuZeZaznamuNastaveni($klic);
         if ($hodnota !== null) {
+            if (defined($klic)) {
+                // POZOR, nejdříve si musíme potvrdit, že hodnota pochází z nastavení, teprve potom můžeme použít hodnotu z konstanty - jinak bychom taky mohli prozradit heslo do databáze a podobně
+                return constant($klic);
+            }
             return $hodnota;
         }
 

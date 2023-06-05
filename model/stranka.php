@@ -20,6 +20,7 @@ class Stranka extends DbObject
                 }
                 return 'widget neexistuje';
             }, $html);
+            // naříklad %PRVNI_VLNA_KDY|datum:FORMAT_ZACATEK_UDALOSTI%
             $html       = nahradPlaceholderyZaNastaveni($html);
             $this->html = $html;
         }

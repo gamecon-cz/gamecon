@@ -650,13 +650,11 @@ function nahradPlaceholderyZaNastaveni(?string $value): ?string
         try {
             ['hodnota' => $kodNastaveni, 'modifikatory' => $modifikatory] = parsujModifikatory($puvodniKodNastaveni);
             $hodnotaNastaveni = $systemoveNastaveni->dejVerejnouHodnotu($kodNastaveni);
+            if ($modifikatory) {
+                $hodnotaNastaveni = aplikujModifikatory($hodnotaNastaveni, $modifikatory);
+            }
             if ($hodnotaNastaveni instanceof DateTimeInterface) {
-                if ($modifikatory) {
-                    $hodnotaNastaveni = aplikujModifikatory($hodnotaNastaveni, $modifikatory);
-                }
-                if ($hodnotaNastaveni instanceof DateTimeInterface) {
-                    $hodnotaNastaveni = $hodnotaNastaveni->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD);
-                }
+                $hodnotaNastaveni = $hodnotaNastaveni->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD);
             }
         } catch (NeznamyKlicSystemovehoNastaveni) {
             $hodnotaNastaveni = null;
