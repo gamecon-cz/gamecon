@@ -790,7 +790,7 @@ SQL;
 
     public function probihaRegistraceAktivit(): bool
     {
-        return mezi($this->prvniVlnaKdy(), REG_AKTIVIT_DO);
+        return mezi($this->prvniVlnaKdy()->format(DateTimeCz::FORMAT_DB), REG_AKTIVIT_DO);
     }
 
     public function jeApril(): bool
