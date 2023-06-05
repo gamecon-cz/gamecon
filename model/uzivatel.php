@@ -269,7 +269,6 @@ SQL
         }
 
         $this->aktualizujPrava();
-        $this->aktualizujPrava();
     }
 
     /** Vrátí profil uživatele pro DrD */
