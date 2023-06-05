@@ -288,6 +288,16 @@
           </button>
         </form>
         <!-- end:aktivovat -->
+      <!-- begin:deaktivovat -->
+        <form method="post">
+          <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+          <button type="submit" name="deaktivovat" value="1"
+                  style="padding-left: 0; padding-right: 0; letter-spacing: -1px; color: orange"
+                  title="Zavři přihlašování" onclick="confirm('Opravdu zrušit možnost přihlašování?')">
+            deakt
+          </button>
+        </form>
+        <!-- end:deaktivovat -->
       </td>
       <!-- end:tlacitka -->
     </tr><!-- end:aktivita -->

@@ -917,6 +917,16 @@ SQL,
         return $this->maRoli(Role::CLEN_RADY);
     }
 
+    public function maRoliSefProgramu(): bool
+    {
+        return $this->maRoli(Role::SEF_PROGRAMU);
+    }
+
+    public function maRoliSefInfopultu(): bool
+    {
+        return $this->maRoli(Role::SEF_INFOPULTU);
+    }
+
     /**
      * @return int[]
      */
