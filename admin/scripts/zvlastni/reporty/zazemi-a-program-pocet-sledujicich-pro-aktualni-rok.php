@@ -19,8 +19,8 @@ SELECT a.nazev_akce,
           WHEN 6 THEN 'sobota'
           WHEN 0 THEN 'neděle'
         END as 'Den',
-        DATE_FORMAT(zacatek,'%H:%i') as 'Začátek',
-        DATE_FORMAT(konec,'%H:%i') as 'Konec'
+        DATE_FORMAT(a.zacatek,'%H:%i') as 'Začátek',
+        DATE_FORMAT(a.konec,'%H:%i') as 'Konec'
 FROM akce_prihlaseni_spec aps
 JOIN akce_seznam a ON a.id_akce=aps.id_akce
 JOIN akce_typy at ON at.id_typu=a.typ
