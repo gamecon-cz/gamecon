@@ -120,7 +120,7 @@ SQL
 
     public function __construct(array $uzivatel, SystemoveNastaveni $systemoveNastaveni = null)
     {
-        if (is_array($uzivatel) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $uzivatel)) {
+        if (array_keys_exist(['id_uzivatele'], $uzivatel)) {
             $this->r = $uzivatel;
             parent::__construct($uzivatel);
             $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
