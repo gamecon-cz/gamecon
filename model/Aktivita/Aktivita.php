@@ -207,6 +207,18 @@ SQL
     }
 
     /**
+     * POZOR: toto by se mělo dít jen výjimečně a měl by na to mít právo jen někdo.
+     * Vrátí publikovanou (veřejnou, ale nepřihlašovatelnou) aktivitu zpět na novou (skrytou)
+     */
+    public function odpublikuj()
+    {
+        if ($this->stav()->jePublikovana()) {
+            $this->zmenStav(StavAktivity::NOVA);
+        }
+        $this->refresh();
+    }
+
+    /**
      * Jestli je na aktivitu zakázáno uplatnit jakékoli procentuální slevy
      */
     public function bezSlevy(): bool

@@ -288,11 +288,23 @@
           </button>
         </form>
         <!-- end:aktivovat -->
-      <!-- begin:deaktivovat -->
+        <!-- begin:odpublikovat -->
+        <form method="post">
+          <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+          <button type="submit" name="odpublikovat" value="1" style="padding-left: 0; padding-right: 0; letter-spacing: -1px"
+                  class="zmena-pouze-sef"
+                  title="Skryj před veřejností"
+                  onclick="confirm('Opravdu skrýt před veřeností?')">
+              odpu
+          </button>
+        </form>
+        <!-- end:odpublikovat -->
+        <!-- begin:deaktivovat -->
         <form method="post">
           <input type="hidden" name="aktivitaId" value="{id_akce}"/>
           <button type="submit" name="deaktivovat" value="1"
-                  style="padding-left: 0; padding-right: 0; letter-spacing: -1px; color: orange"
+                  style="padding-left: 0; padding-right: 0; letter-spacing: -1px"
+                  class="zmena-pouze-sef"
                   title="Zavři přihlašování" onclick="confirm('Opravdu zrušit možnost přihlašování?')">
             deakt
           </button>
