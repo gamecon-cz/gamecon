@@ -69,6 +69,14 @@ if (post('deaktivovat') && $u->maRoliSefProgramu()) {
     back();
 }
 
+if (post('odpublikovat') && $u->maRoliSefProgramu()) {
+    $a = Aktivita::zId(post('aktivitaId'));
+    if ($a) {
+        $a->odpublikuj();
+    }
+    back();
+}
+
 if (post('aktivovatVse') && $u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT)) {
     $hromadneAktivovano = (new HromadneAkceAktivit($systemoveNastaveni))->hromadneAktivovatRucne($u);
     oznameni("Hromadně aktivováno $hromadneAktivovano aktivit");
@@ -141,6 +149,9 @@ foreach ($aktivity as $aktivita) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
     } else if ($r['stav'] == StavAktivity::PUBLIKOVANA) {
         $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
+        if ($u->maRoliSefProgramu()) {
+            $tpl->parse('aktivity.aktivita.tlacitka.odpublikovat');
+        }
     } else if ($r['stav'] == StavAktivity::PRIPRAVENA) {
         $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');
         $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
