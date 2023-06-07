@@ -1208,8 +1208,8 @@ SQL
     /** Vrátí html kód s políčky určujícímí obsazenost */
     public function obsazenostHtml()
     {
-        $prihlasenoMuzu      = $this->prihlasenoMuzu(); // počty
-        $prihlasenoZen       = $this->prihlasenoZen();
+        $prihlasenoMuzu      = $this->pocetPrihlasenychMuzu(); // počty
+        $prihlasenoZen       = $this->pocetPrihlasenychZen();
         $prihlasenoCelkem    = $prihlasenoMuzu + $prihlasenoZen;
         $kapacitaMuzi        = (int)$this->a['kapacita_m']; // kapacity
         $kapacitaZeny        = (int)$this->a['kapacita_f'];
@@ -1277,7 +1277,7 @@ SQL,
         if ($this->a['zamcel'] == $idUzivatele) {
             dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$idAktivity");
         }
-        if ($this->a['teamova'] && $this->prihlaseno() === 1) { // odhlašuje se poslední hráč
+        if ($this->a['teamova'] && $this->pocetPrihlasenych() === 1) { // odhlašuje se poslední hráč
             dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$idAktivity");
         }
         // Poslání mailu lidem na watchlistu
@@ -1532,7 +1532,7 @@ SQL
         if ($this->a['team_max'] > $this->a['kapacita']) {
             $out .= ' <form method="post" style="display:inline"><input type="hidden" name="' . self::PN_PLUSMINUSP . '" value="' . $this->id() . '"><a href="#" onclick="this.parentNode.submit(); return false">▲</a></form>';
         }
-        if ($this->a['team_min'] < $this->a['kapacita'] && $this->prihlaseno() < $this->a['kapacita']) {
+        if ($this->a['team_min'] < $this->a['kapacita'] && $this->pocetPrihlasenych() < $this->a['kapacita']) {
             $out .= ' <form method="post" style="display:inline"><input type="hidden" name="' . self::PN_PLUSMINUSM . '" value="' . $this->id() . '"><a href="#" onclick="this.parentNode.submit(); return false">▼</a></form>';
         }
         return $out;
@@ -1614,7 +1614,7 @@ SQL
         $idAktivity  = $this->id();
         $idUzivatele = $uzivatel->id();
         if ($this->a['teamova']
-            && $this->prihlaseno() === 0
+            && $this->pocetPrihlasenych() === 0
             && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
         ) {
             $this->zamknoutProTeam($uzivatel);
@@ -1674,7 +1674,7 @@ SQL
         if ($this->a['team_kapacita'] !== null) {
             $jeNovyTym = false; // jestli se uživatel přihlašuje jako první z nového/dalšího týmu
             foreach ($this->rodice() as $rodic) {
-                if ($rodic->prihlasen($uzivatel) && $rodic->prihlaseno() == 1) {
+                if ($rodic->prihlasen($uzivatel) && $rodic->pocetPrihlasenych() == 1) {
                     $jeNovyTym = true;
                     break;
                 }
@@ -1710,7 +1710,7 @@ SQL
         }
 
         // přihlášení na navázané aktivity (jen pokud není teamleader)
-        if ($this->a['dite'] && $this->prihlaseno() > 0) {
+        if ($this->a['dite'] && $this->pocetPrihlasenych() > 0) {
             $deti = $this->deti();
             if (count($deti) === 1) {
                 current($deti)->prihlas($uzivatel, $prihlasujici, self::STAV);
@@ -1825,7 +1825,7 @@ SQL
     }
 
     /** Počet přihlášených */
-    public function prihlaseno(): int
+    public function pocetPrihlasenych(): int
     {
         if ($p = $this->prihlaseniRaw()) {
             return substr_count($p, ',') - 1;
@@ -1833,12 +1833,12 @@ SQL
         return 0;
     }
 
-    protected function prihlasenoMuzu(): int
+    protected function pocetPrihlasenychMuzu(): int
     {
         return substr_count($this->prihlaseniRaw(), 'm');
     }
 
-    protected function prihlasenoZen(): int
+    protected function pocetPrihlasenychZen(): int
     {
         return substr_count($this->prihlaseniRaw(), 'f');
     }
@@ -2391,7 +2391,7 @@ SQL,
 
     public function tym()
     {
-        if ($this->tymova() && $this->prihlaseno() > 0 && !$this->a['zamcel']) {
+        if ($this->tymova() && $this->pocetPrihlasenych() > 0 && !$this->a['zamcel']) {
             return new \Tym($this, $this->a);
         }
         return null;
@@ -2536,8 +2536,8 @@ SQL,
     /** Vrátí typ volných míst na aktivitě */
     public function volno()
     {
-        $prihlasenoMuzu = $this->prihlasenoMuzu();
-        $prihlasenoZen  = $this->prihlasenoZen();
+        $prihlasenoMuzu = $this->pocetPrihlasenychMuzu();
+        $prihlasenoZen  = $this->pocetPrihlasenychZen();
         $unisexKapacita = $this->a['kapacita'];
         $kapacitaMuzu   = $this->a['kapacita_m'];
         $kapacitaZen    = $this->a['kapacita_f'];

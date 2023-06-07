@@ -268,7 +268,7 @@ class OnlinePrezenceHtml
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
             $template->assign('nadpis', self::nazevProAnchor($aktivita));
-            $template->assign('pocetPrihlasenych', $aktivita->prihlaseno());
+            $template->assign('pocetPrihlasenych', $aktivita->pocetPrihlasenych());
             $template->assign('zacatek', $aktivita->zacatek() ? $aktivita->zacatek()->format('l H:i') : '-nevíme-');
             $template->assign('konec', $aktivita->konec() ? $aktivita->konec()->format('l H:i') : '-nevíme-');
 
