@@ -276,7 +276,7 @@ class XTemplate
     protected function outlineRead($file)
     {
         // split source file by block delimiters
-        $delim = '<!-- (begin|end): ?([a-zA-Z][a-zA-Z0-9]*) -->';
+        $delim = '<!--\s*(begin|end):\s*([a-zA-Z][a-zA-Z0-9]*)\s*-->';
         $f     = file_get_contents($file);
         $f     = preg_replace_callback('@{FILE "([^"]+)"}@', function ($m) {
             $this->dependencies[] = $m[1];
