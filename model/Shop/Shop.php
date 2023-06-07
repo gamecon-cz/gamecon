@@ -538,7 +538,10 @@ SQL,
 
         // TRIČKA
         $trickaZamcena = false;
-        if ($this->systemoveNastaveni->prodejTricekUkoncen() || !$this->tricka || $this->jsouVsechnyPredmetyNeboTrickaPozastaveny($this->tricka)) {
+        if ($this->systemoveNastaveni->prodejTricekUkoncen()
+            || !$this->tricka
+            || $this->jsouVsechnyPredmetyNeboTrickaPozastaveny($this->tricka)
+        ) {
             $t->parse('predmety.trickaPozastavena');
             $trickaZamcena = true;
         }
