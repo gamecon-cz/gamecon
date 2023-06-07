@@ -292,7 +292,8 @@
                 <!-- end:aktivovat -->
                 <!-- begin:odpublikovat -->
                 <input type="hidden" name="aktivitaId" value="{id_akce}"/>
-                <button style="padding-left: 0; padding-right: 0; letter-spacing: -1px; color: orange;"
+                <button style="padding-left: 0; padding-right: 0; letter-spacing: -1px;"
+                        class="odpublikovat"
                         title="Skryj před veřejností"
                         onclick="$('#potvrditOdpublikovani{id_akce}').modal()">
                     odpu
@@ -301,12 +302,15 @@
                     <h2>Opravdu skrýt před veřejností?</h2>
                     <form method="post">
                         <input type="hidden" name="aktivitaId" value="{id_akce}"/>
-                        <button type="submit" name="odpublikovat" value="1">Odpublikovat <i>{nazev_akce}</i></button>
+                        <button type="submit" name="odpublikovat" value="1" class="odpublikovat">
+                            Odpublikovat <i>{nazev_akce}</i>
+                        </button>
                     </form>
                 </div>
                 <!-- end:odpublikovat -->
                 <!-- begin:deaktivovat -->
-                <button style="padding-left: 0; padding-right: 0; letter-spacing: -1px; color: darkred;"
+                <button style="padding-left: 0; padding-right: 0; letter-spacing: -1px;"
+                        class="deaktivovat"
                         title="Zavři přihlašování"
                         onclick="$('#potvrditDeaktivaci{id_akce}').modal()"
                 >
@@ -333,7 +337,8 @@
                             </label>
                         </p>
                         <!-- end:potvrditDeaktivaciSPrihlasenymi -->
-                        <button type="submit" name="deaktivovat" value="1" style="color: darkred">Deaktivovat <i>{nazev_akce}</i>
+                        <button type="submit" name="deaktivovat" value="1" class="deaktivovat">
+                            Deaktivovat <i>{nazev_akce}</i>
                         </button>
                     </form>
                 </div>
