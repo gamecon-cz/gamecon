@@ -81,9 +81,6 @@ if (GC_BEZI) {
         $t->parse('prihlaskaUzavrena');
         return;
     }
-    $t->parse('prihlaskaUzavrena.gcBezi');
-    $t->parse('prihlaskaUzavrena');
-    return;
 }
 
 if (!$u) {
@@ -102,8 +99,15 @@ $shop  = new Shop($u, $u, null, $systemoveNastaveni);
 $pomoc = new Pomoc($u);
 
 if (post('odhlasit')) {
-    $u->odhlasZGc('rucne-sam-sebe', $u);
-    oznameni(hlaska('odhlaseniZGc', $u));
+    if (po($systemoveNastaveni->gcBeziOd())) {
+        $sama = $u->jeZena()
+            ? 'sama'
+            : 'sám';
+        chyba("Během Gameconu se nemůžeš $sama odhlást. Stav se na infopultu.");
+    } else {
+        $u->odhlasZGc('rucne-sam-sebe', $u);
+        oznameni(hlaska('odhlaseniZGc', $u));
+    }
 }
 
 if (post('prihlasitNeboUpravit')) {
@@ -217,6 +221,6 @@ $t->assign([
 $t->parse($u->gcPrihlasen()
     ? 'prihlaska.prihlasen'
     : 'prihlaska.neprihlasen');
-if ($u->gcPrihlasen()) {
+if ($u->gcPrihlasen() && pred($systemoveNastaveni->gcBeziOd())) {
     $t->parse('prihlaska.odhlasit');
 }
