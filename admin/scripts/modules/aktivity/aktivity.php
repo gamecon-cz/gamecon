@@ -156,6 +156,17 @@ foreach ($aktivity as $aktivita) {
         $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');
         $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
     } else if ($r['stav'] == StavAktivity::AKTIVOVANA && $u->maRoliSefProgramu()) {
+        if ($aktivita->pocetPrihlasenych() > 0) {
+            $tpl->assign('pocetPrihlasenych', $aktivita->pocetPrihlasenych());
+            if ($aktivita->pocetPrihlasenych() === 1) {
+                $tpl->parse('aktivity.aktivita.tlacitka.deaktivovat.potvrditDeaktivaciSPrihlasenymi.jedenPrihlaseny');
+            } else if ($aktivita->pocetPrihlasenych() <= 4) {
+                $tpl->parse('aktivity.aktivita.tlacitka.deaktivovat.potvrditDeaktivaciSPrihlasenymi.nekolikPrihlasenych');
+            } else {
+                $tpl->parse('aktivity.aktivita.tlacitka.deaktivovat.potvrditDeaktivaciSPrihlasenymi.hodnePrihlasenych');
+            }
+            $tpl->parse('aktivity.aktivita.tlacitka.deaktivovat.potvrditDeaktivaciSPrihlasenymi');
+        }
         $tpl->parse('aktivity.aktivita.tlacitka.deaktivovat');
     }
     $tpl->parse('aktivity.aktivita.tlacitka');
