@@ -1366,3 +1366,11 @@ Radio musí být ve tvaru:
   max-width: 350px;
   text-align: right;
 }
+
+.odpublikovat {
+  color: #ff8000;
+}
+
+.deaktivovat {
+  color: darkred;;
+}
