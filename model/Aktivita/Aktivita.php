@@ -201,7 +201,7 @@ SQL
     public function deaktivuj()
     {
         if ($this->stav()->jeAktivovana()) {
-            $this->publikuj();
+            $this->priprav();
         }
         $this->refresh();
     }
@@ -1358,7 +1358,7 @@ SQL,
             return;
         }
         if ($this->idStavu() !== StavAktivity::PRIPRAVENA) {
-            throw new \LogicException('Aktivita není v stavu "připravená"');
+            throw new \Chyba('Aktivita není v stavu "připravená"');
         }
         dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [StavAktivity::PUBLIKOVANA, $this->id()]);
     }
