@@ -96,7 +96,7 @@ class SystemoveNastaveni {
           nastaveni.zobrazZmeny(ulozenaData, inputNode)
           nastaveni.oznamUlozeni(inputNode)
         },
-        () => nastaveni.oznamChybu(inputNode),
+        (odpoved) => nastaveni.oznamChybu(inputNode, odpoved),
       )
     }
     eventsNames.forEach(function (eventName) {
@@ -255,9 +255,10 @@ class SystemoveNastaveni {
 
   /**
    * @param {HTMLElement} element
+   * @param {{error: string}} odpoved
    */
-  oznamChybu(element) {
-    this.oznamVysledek(element, '❗', 'Změny se nepodařilo uložit')
+  oznamChybu(element, odpoved) {
+    this.oznamVysledek(element, '❗', `Změny se nepodařilo uložit: <b>${odpoved.error}</b>`)
   }
 
   /**
