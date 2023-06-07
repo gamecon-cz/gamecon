@@ -345,7 +345,7 @@ class OnlinePrezenceHtml
 
     private function ucastniciOdebratelniDoTimestamp(\Uzivatel $odhlasujici, Aktivita $aktivita): int
     {
-        $ucastniciOdebratelniDo = $aktivita->ucastniciOdebratelniDo($odhlasujici, $this->systemoveNastaveni);
+        $ucastniciOdebratelniDo = $aktivita->ucastniciOdebratelniDo($odhlasujici);
         return $ucastniciOdebratelniDo <= $this->systemoveNastaveni->ted()
             ? 0 // už je nelze odebrat
             : $ucastniciOdebratelniDo->getTimestamp();

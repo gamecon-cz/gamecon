@@ -208,7 +208,7 @@ class OnlinePrezenceAjax
 
     private function ajaxUzavritAktivitu(int $idAktivity, \Uzivatel $vypravec)
     {
-        $aktivita = Aktivita::zId($idAktivity, true);
+        $aktivita = Aktivita::zId($idAktivity, true, $this->systemoveNastaveni);
         if (!$aktivita) {
             $this->echoErrorJson('Chybné ID aktivity ' . $idAktivity);
             return;
@@ -228,12 +228,12 @@ class OnlinePrezenceAjax
 
     private function ucastniciPridatelniDoTimestamp(\Uzivatel $prihlasujici, Aktivita $aktivita): int
     {
-        return $aktivita->ucastniciPridatelniDo($prihlasujici, $this->systemoveNastaveni)->getTimestamp();
+        return $aktivita->ucastniciPridatelniDo($prihlasujici)->getTimestamp();
     }
 
     private function ucastniciOdebratelniDoTimestamp(\Uzivatel $odhlasujici, Aktivita $aktivita): int
     {
-        return $aktivita->ucastniciOdebratelniDo($odhlasujici, $this->systemoveNastaveni)->getTimestamp();
+        return $aktivita->ucastniciOdebratelniDo($odhlasujici)->getTimestamp();
     }
 
     private function echoErrorJson(string $error): void

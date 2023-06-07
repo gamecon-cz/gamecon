@@ -1792,11 +1792,11 @@ SQL
         }
     }
 
-    public function zkontrolujZdaSeMuzeOdhlasit(Uzivatel $ucastnik, Uzivatel $odhlasujici, SystemoveNastaveni $systemoveNastaveni = null)
+    public function zkontrolujZdaSeMuzeOdhlasit(Uzivatel $ucastnik, Uzivatel $odhlasujici)
     {
         if ($this->prihlasen($ucastnik)
             && $this->probehnuta()
-            && !$this->ucastniciOdebratelni($odhlasujici, $systemoveNastaveni)
+            && !$this->ucastniciOdebratelni($odhlasujici)
         ) {
             throw new \Chyba('Aktivita už je uzavřena a nelze z ní odhlašovat.');
         }
@@ -1984,12 +1984,12 @@ SQL
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
-    public function prihlasovatelna($parametry = 0, SystemoveNastaveni $systemoveNastaveni = null)
+    public function prihlasovatelna($parametry = 0)
     {
-        return $this->procNeniPrihlasovatelna($parametry, $systemoveNastaveni) === '';
+        return $this->procNeniPrihlasovatelna($parametry) === '';
     }
 
-    private function procNeniPrihlasovatelna($parametry, SystemoveNastaveni $systemoveNastaveni = null): string
+    private function procNeniPrihlasovatelna($parametry): string
     {
         $dopredne   = $parametry & self::DOPREDNE;
         $zpetne     = $parametry & self::ZPETNE;
@@ -1997,11 +1997,15 @@ SQL
         $interni    = $parametry & self::INTERNI;
 
         if (!( // ← inverze ↓
-            $systemoveNastaveni?->probihaRegistraceAktivit() ?? REG_AKTIVIT
-        || ($dopredne && pred($systemoveNastaveni?->prvniVlnaKdy()->formatDb() ?? PRVNI_VLNA_KDY))
-        || ($zpetne && po($systemoveNastaveni?->prvniVlnaKdy()->formatDb() ?? REG_GC_DO))
+            $this->systemoveNastaveni->probihaRegistraceAktivit()
+            || ($dopredne && pred($this->systemoveNastaveni->prvniVlnaKdy()))
+            || ($zpetne && po($this->systemoveNastaveni->konecRegistraciUcastniku()))
         )) {
-            return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', PRVNI_VLNA_KDY, REG_AKTIVIT_DO);
+            return sprintf(
+                'Není spuštěna registrace aktivit (začíná %s a končí %s)',
+                $this->systemoveNastaveni->prvniVlnaKdy()->formatCasStandard(),
+                $this->systemoveNastaveni->konecRegistraciUcastniku()->formatCasStandard(),
+            );
         }
         if (!( // ← inverze ↓
             $this->idStavu() === StavAktivity::AKTIVOVANA
@@ -2040,17 +2044,17 @@ SQL
      * @todo v rodině instancí maximálně jedno přihlášení?
      * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
      */
-    public function prihlasovatko(Uzivatel $u = null, $parametry = 0, SystemoveNastaveni $systemoveNastaveni = null)
+    public function prihlasovatko(Uzivatel $u = null, $parametry = 0)
     {
         $out = '';
         if (!$u) {
-            $out = $this->formatujDuvodProTesting('Nejsi přihlášený/ná', $systemoveNastaveni);
+            $out = $this->formatujDuvodProTesting('Nejsi přihlášený/ná');
         } else if (!$u->gcPrihlasen()) {
-            $out = $this->formatujDuvodProTesting('Nejsi přihlášený/ná na letoční GC', $systemoveNastaveni);
+            $out = $this->formatujDuvodProTesting('Nejsi přihlášený/ná na letoční GC');
         } else if (!$this->prihlasovatelna($parametry)) {
-            $out = $this->formatujDuvodProTesting($this->procNeniPrihlasovatelna($parametry), $systemoveNastaveni);
+            $out = $this->formatujDuvodProTesting($this->procNeniPrihlasovatelna($parametry));
         } else if ($this->jeBrigadnicka() && !$u->jeBrigadnik()) {
-            $out = $this->formatujDuvodProTesting('Aktivita je brigádnická, ale ty nejsi brigádník', $systemoveNastaveni);
+            $out = $this->formatujDuvodProTesting('Aktivita je brigádnická, ale ty nejsi brigádník');
         } else {
             if (($stav = $this->stavPrihlaseni($u)) > -1 && $stav != StavPrihlaseni::SLEDUJICI) {
                 if ($stav == StavPrihlaseni::PRIHLASEN || $parametry & self::ZPETNE) {
@@ -2073,7 +2077,7 @@ SQL
                     $out .= '<em>pozdní odhlášení</em>';
                 }
             } else if ($u->organizuje($this)) {
-                $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ', $systemoveNastaveni);
+                $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ');
             } else if ($this->a['zamcel']) {
                 $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
                 $out             = <<<HTML
@@ -2115,12 +2119,11 @@ HTML
         return $out;
     }
 
-    public function formatujDuvodProTesting(string $duvod, SystemoveNastaveni $systemoveNastaveni = null): string
+    public function formatujDuvodProTesting(string $duvod): string
     {
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
         return (defined('TESTING') && TESTING)
-        || $systemoveNastaveni->jsmeNaLocale()
-        || $systemoveNastaveni->jsmeNaBete()
+        || $this->systemoveNastaveni->jsmeNaLocale()
+        || $this->systemoveNastaveni->jsmeNaBete()
             ? '<span class="hinted">🙋<span class="hint"><em>(toto se ukazuje pouze na testu)</em><br>' . $duvod . ' </span></span>'
             : '';
     }
@@ -2878,80 +2881,71 @@ SQL,
         ) ?: [];
     }
 
-    public function ucastniciOdebratelni(Uzivatel $odhlasujici, SystemoveNastaveni $systemoveNastaveni = null): bool
+    public function ucastniciOdebratelni(Uzivatel $odhlasujici): bool
     {
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
-
-        return $this->ucastniciOdebratelniDo($odhlasujici, $systemoveNastaveni) >= $systemoveNastaveni->ted();
+        return $this->ucastniciOdebratelniDo($odhlasujici) >= $this->systemoveNastaveni->ted();
     }
 
-    public function ucastniciOdebratelniDo(
-        Uzivatel           $odhlasujici,
-        SystemoveNastaveni $systemoveNastaveni = null,
-    ): \DateTimeImmutable
+    public function ucastniciOdebratelniDo(Uzivatel $odhlasujici): \DateTimeImmutable
     {
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
         if (!$this->probehnuta()) {
-            return $systemoveNastaveni->konecLetosnihoGameconu();
+            return $this->systemoveNastaveni->konecLetosnihoGameconu();
         }
         // Ze zamčené aktivity mohou účastníky odebírat (odpotvrzovat) jen její vypravěči či z admin stránky Prezence
         if ($this->zamcena()
             && ($this->maOrganizatora($odhlasujici) || $odhlasujici->maPravoNaPristupDoPrezence())
         ) {
-            return $systemoveNastaveni->konecLetosnihoGameconu();
+            return $this->systemoveNastaveni->konecLetosnihoGameconu();
         }
         /*
          * Nechceme dovolit editaci účastníků už uzavřených aktivit ani vypravěčům a adminům.
          * (při odebrání by jim naskákala storna, při opětovném přidání bychom museli storno zrušit)
          */
-        return $systemoveNastaveni->ted()->modify('-1 second');
+        return $this->systemoveNastaveni->ted()->modify('-1 second');
     }
 
-    public function ucastniciPridatelni(Uzivatel $prihlasujici, SystemoveNastaveni $systemoveNastaveni = null): bool
+    public function ucastniciPridatelni(Uzivatel $prihlasujici): bool
     {
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
-
-        return $this->ucastniciPridatelniDo($prihlasujici, $systemoveNastaveni) >= $systemoveNastaveni->ted();
+        return $this->ucastniciPridatelniDo($prihlasujici) >= $this->systemoveNastaveni->ted();
     }
 
-    public function ucastniciPridatelniDo(Uzivatel $prihlasujici, SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable
+    public function ucastniciPridatelniDo(Uzivatel $prihlasujici): \DateTimeImmutable
     {
         if ($prihlasujici->maPravoNaZmenuHistorieAktivit()) {
             // až do začátku příštího GC
             return \DateTimeImmutable::createFromMutable(DateTimeGamecon::zacatekGameconu(ROCNIK + 1));
         }
 
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
         if (!$this->zamcena() && !$this->uzavrena()) {
-            return $systemoveNastaveni->ucastniciPridatelniDoNeuzavrenePrezenceDo();
+            return $this->systemoveNastaveni->ucastniciPridatelniDoNeuzavrenePrezenceDo();
         }
 
         if (!$this->maOrganizatora($prihlasujici) && !$prihlasujici->maPravoNaPristupDoPrezence()) {
             // na zamknutou nebo dokonce uzavřenou aktivitu už mohou účastníky přidávat jen organizátoři nebo někteří admini
-            return $this->dejDrivejsiZacatekNeboPredChvilkou($systemoveNastaveni);
+            return $this->dejDrivejsiZacatekNeboPredChvilkou();
         }
         // jak organizátoři tak admini s přístupem do Prezence mohou stále přidávat na zamčenou aktivitu
         if (!$this->uzavrena()) {
-            return $systemoveNastaveni->ucastniciPridatelniDoNeuzavrenePrezenceDo();
+            return $this->systemoveNastaveni->ucastniciPridatelniDoNeuzavrenePrezenceDo();
         }
         if (!$this->maOrganizatora($prihlasujici)) {
             // admini s přístupem do Prezence, kteří nejsou vypravěči této aktivity, nemohou přidávat účastníky do uzavřené aktivity
-            return $this->dejDrivejsiZacatekNeboPredChvilkou($systemoveNastaveni);
+            return $this->dejDrivejsiZacatekNeboPredChvilkou();
         }
         if (!$this->konec()) {
-            return $systemoveNastaveni->konecLetosnihoGameconu();
+            return $this->systemoveNastaveni->konecLetosnihoGameconu();
         }
         // vypravěči mohou přidávat účastníky k uzavřené aktivitě ještě několik minut po jejím konci
         return \DateTimeImmutable::createFromMutable(
             (clone $this->konec())
-                ->modify("+ {$systemoveNastaveni->ucastnikyLzePridatXMinutPoUzavreniAktivity()} minutes"),
+                ->modify("+ {$this->systemoveNastaveni->ucastnikyLzePridatXMinutPoUzavreniAktivity()} minutes"),
         );
     }
 
-    private function dejDrivejsiZacatekNeboPredChvilkou(SystemoveNastaveni $systemoveNastaveni): \DateTimeImmutable
+    private function dejDrivejsiZacatekNeboPredChvilkou(): \DateTimeImmutable
     {
         $zacatekAktivity = $this->zacatek();
-        $predChvilkou    = $systemoveNastaveni->ted()->modify('-1 second');
+        $predChvilkou    = $this->systemoveNastaveni->ted()->modify('-1 second');
         if (!$zacatekAktivity) {
             return $predChvilkou;
         }
