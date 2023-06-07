@@ -291,15 +291,12 @@
                 </form>
                 <!-- end:aktivovat -->
                 <!-- begin:odpublikovat -->
-                <form method="post">
-                    <input type="hidden" name="aktivitaId" value="{id_akce}"/>
-                    <button style="padding-left: 0; padding-right: 0; letter-spacing: -1px"
-                            class="zmena-pouze-sef"
-                            title="Skryj před veřejností"
-                            onclick="$('#potvrditOdpublikovani{id_akce}')">
-                        odpu
-                    </button>
-                </form>
+                <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+                <button style="padding-left: 0; padding-right: 0; letter-spacing: -1px; color: orange;"
+                        title="Skryj před veřejností"
+                        onclick="$('#potvrditOdpublikovani{id_akce}').modal()">
+                    odpu
+                </button>
                 <div class="modal" id="potvrditOdpublikovani{id_akce}">
                     <h2>Opravdu skrýt před veřejností?</h2>
                     <form method="post">
@@ -309,12 +306,11 @@
                 </div>
                 <!-- end:odpublikovat -->
                 <!-- begin:deaktivovat -->
-                <button style="padding-left: 0; padding-right: 0; letter-spacing: -1px"
-                        class="zmena-pouze-sef"
+                <button style="padding-left: 0; padding-right: 0; letter-spacing: -1px; color: darkred;"
                         title="Zavři přihlašování"
                         onclick="$('#potvrditDeaktivaci{id_akce}').modal()"
                 >
-                    deakt
+                    deak
                 </button>
                 <div class="modal" id="potvrditDeaktivaci{id_akce}">
                     <h2>Opravdu zrušit možnost přihlašování?</h2>
@@ -337,7 +333,8 @@
                             </label>
                         </p>
                         <!-- end:potvrditDeaktivaciSPrihlasenymi -->
-                        <button type="submit" name="deaktivovat" value="1">Deaktivovat <i>{nazev_akce}</i></button>
+                        <button type="submit" name="deaktivovat" value="1" style="color: darkred">Deaktivovat <i>{nazev_akce}</i>
+                        </button>
                     </form>
                 </div>
                 <!-- end:deaktivovat -->
