@@ -228,7 +228,7 @@ SQL,
 
     public function ulozZmenuHodnoty($hodnota, string $klic, \Uzivatel $editujici): int
     {
-        $this->hlidejZakazaneZmeny($klic);
+        $this->hlidejZakazaneZmeny($klic, $hodnota);
         $updateQuery    = dbQuery(<<<SQL
 UPDATE systemove_nastaveni
 SET hodnota = $1
@@ -279,16 +279,24 @@ SQL,
         $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
     }
 
-    private function hlidejZakazaneZmeny(string $klic)
+    private function hlidejZakazaneZmeny(string $klic, $hodnota)
     {
-        if ($klic === 'ROCNIK') {
-            throw new \LogicException('Ročník nelze měnit jinak než konstantou ROCNIK přes PHP');
+        if ($klic === Klic::ROCNIK) {
+            throw new ChybnaHodnotaSystemovehoNastaveni('Ročník nelze měnit jinak než konstantou ROCNIK přes PHP');
+        } else if ($klic === Klic::REG_GC_DO && $hodnota) {
+            $regGcDo        = $this->vytvorDateTimeZCeskehoFormatu($hodnota);
+            $spocitanyKonec = DateTimeGamecon::spocitejKonecRegistraciUcastniku($this->rocnik);
+            if ($regGcDo->getTimestamp() > $spocitanyKonec->getTimestamp()) {
+                throw new ChybnaHodnotaSystemovehoNastaveni(
+                    "Konec registrace účastníků musí být nejpozději ke konci GC{$this->rocnik()}: '{$spocitanyKonec->formatCasStandard()}'"
+                );
+            }
         }
     }
 
     public function ulozZmenuPriznakuVlastni(bool $vlastni, string $klic, \Uzivatel $editujici): int
     {
-        $this->hlidejZakazaneZmeny($klic);
+        $this->hlidejZakazaneZmeny($klic, null);
         $updateQuery = dbQuery(<<<SQL
 UPDATE systemove_nastaveni
 SET vlastni = $1
@@ -319,7 +327,7 @@ SQL,
                     ? DateTimeCz::createFromFormat('j. n. Y', $hodnota)->formatDatumDb()
                     : $hodnota,
                 'datetime' => $hodnota
-                    ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
+                    ? $this->vytvorDateTimeZCeskehoFormatu($hodnota)->formatDb()
                     : $hodnota,
                 'bool', 'boolean' => (int)filter_var($hodnota, FILTER_VALIDATE_BOOLEAN),
                 default => $hodnota,
@@ -327,13 +335,18 @@ SQL,
         } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
             throw new ChybnaHodnotaSystemovehoNastaveni(
                 sprintf(
-                    "Can not convert %s (%s) into DB format: %s",
+                    "Chybný formát času - nepodařilo se čas %s (%s) převést do formátu databáze: %s",
                     var_export($hodnota, true),
                     var_export($klic, true),
                     $invalidDateTimeFormat->getMessage(),
                 )
             );
         }
+    }
+
+    private function vytvorDateTimeZCeskehoFormatu(string $hodnota): DateTimeCz
+    {
+        return DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota);
     }
 
     private function dejDatovyTyp(string $klic): ?string
