@@ -1784,14 +1784,24 @@ SQL,
     /**
      * Vrátí pohlaví ve tvaru 'm' nebo 'f'
      */
-    public function pohlavi()
+    public function pohlavi(): string
     {
-        return $this->r['pohlavi'];
+        return (string)$this->r[Sql::POHLAVI];
     }
 
-    public function prezdivka()
+    public function jeZena(): bool
     {
-        return $this->r['login_uzivatele'];
+        return $this->pohlavi() === Pohlavi::ZENA_KOD;
+    }
+
+    public function jeMuz(): bool
+    {
+        return $this->pohlavi() === Pohlavi::MUZ_KOD;
+    }
+
+    public function prezdivka(): string
+    {
+        return (string)$this->r[Sql::LOGIN_UZIVATELE];
     }
 
     /** Vrátí kód státu ve formátu ISO 3166-1 alpha-2 https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 */
