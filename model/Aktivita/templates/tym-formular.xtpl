@@ -7,18 +7,22 @@
 <!-- styl formuláře je kvůli viditelnosti v programu v adminu -->
 <form method="post" style="position: relative; z-index: 1; background-color: inherit;" id="formularPotvrzeniTymu">
     <!-- begin: nazevVolitelny -->
-    <b>Název týmu</b> (nepovinný):<br>
-    <input type="text" name="{postname}Nazev" maxlength="255"><br>
+    <label>
+        <b>Název týmu</b> (nepovinný):<br>
+        <input type="text" name="{postname}Nazev" maxlength="255">
+    </label><br>
     <!-- end: nazevVolitelny -->
     <!-- begin: nazevPovinny -->
-    <b>Název týmu</b>:<br>
-    <input type="text" name="{postname}Nazev" maxlength="255" required><br>
+    <label>
+        <b>Název týmu</b>:<br>
+        <input type="text" name="{postname}Nazev" maxlength="255" required>
+    </label><br>
     <!-- end: nazevPovinny -->
 
     <!-- begin: kola -->
-    <b>Výběr dalších kol:</b><br>
+    <b><label for="vyberDalsichKol">Výběr dalších kol:</label></b><br>
     <!-- begin: uroven -->
-    <select name="{postnameKolo}">
+    <select id="vyberDalsichKol" name="{postnameKolo}">
         <!-- begin: varianta -->
         <option value="{koloId}">{nazev}</option>
         <!-- end: varianta -->
@@ -26,8 +30,10 @@
     <!-- end: uroven -->
     <!-- end: kola -->
 
-    <b>Výběr spoluhráčů:</b><br>
-    <input type="text" value="{prihlasenyUzivatelId}" disabled="disabled"><br>
+    <label>
+        <b>Výběr spoluhráčů:</b><br>
+        <input type="text" value="{prihlasenyUzivatelId}" disabled="disabled">
+    </label><br>
 
     <!-- begin: misto -->
     <div>
