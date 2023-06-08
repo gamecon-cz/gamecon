@@ -45,10 +45,10 @@
     <td class="technicke" style="width: 25%">
       <form style="position:relative;">
         <input name="{postKlic}[{klic}][{hodnotaKlic}]" class="hodnota-nastaveni {hodnotaDisplayClass}"
-               id="hodnota-{klic}" value="{inputValue}" type="{inputType}" {valueChangeDisabled}
+               id="hodnota-{klic}" value="{inputValue}" type="{inputType}" {valueChangeDisabled} {inputChecked}
                data-tag-input-type="{tagInputType}">
         <span class="hinted">
-          <input id="vychozi-hodnota-{klic}" value="{vychoziHodnotaValue}" type="{inputType}"
+          <input id="vychozi-hodnota-{klic}" value="{vychoziHodnotaValue}" type="{inputType}" {vychoziInputChecked}
                  class="vychozi-hodnota-nastaveni {vychoziHodnotaDisplayClass}" disabled>
           <span class="hint">Bude použita tato výchozí hodnota</span>
         </span>

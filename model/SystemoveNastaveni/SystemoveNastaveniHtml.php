@@ -108,58 +108,47 @@ class SystemoveNastaveniHtml
 
     private function dejHtmlInputType(string $datovyTyp)
     {
-        switch (strtolower(trim($datovyTyp))) {
-            case 'boolean' :
-            case 'bool' :
-                return 'checkbox';
-            case 'integer' :
-            case 'int' :
-            case 'number' :
-                return 'number';
-            case 'date' : /* date a datetime vyžadují v Chrome nehezký formát, který nechceme
+        return match (strtolower(trim($datovyTyp))) {
+            'boolean', 'bool' => 'checkbox',
+            'integer', 'int', 'number' => 'number',
+            'date', /* date a datetime vyžadují v Chrome nehezký formát, který nechceme
  https://stackoverflow.com/questions/30798906/the-specified-value-does-not-conform-to-the-required-format-yyyy-mm-dd-
     Navíc jediný benefit z date a datetime-local je nativní datepicker prohlížeče,
     který nechceme aradši použijeme jQuery plugin...
     Takže z toho prostě uděláme text input a nazdar */
-            case 'datetime' :
-            case 'string' :
-            default :
-                return 'text';
-        }
+            'datetime', 'string' => 'text',
+            default => 'text',
+        };
     }
 
     private function dejHtmlTagInputType(string $datovyTyp)
     {
-        switch (strtolower(trim($datovyTyp))) {
-            case 'date' :
-                return 'date';
-            case 'datetime' :
-                return 'datetime-local';
-            case 'boolean' :
-            case 'bool' :
-            case 'integer' :
-            case 'int' :
-            case 'number' :
-            case 'string' :
-            default :
-                return self::dejHtmlInputType($datovyTyp);
-        }
+        return match (strtolower(trim($datovyTyp))) {
+            'date' => 'date',
+            'datetime' => 'datetime-local',
+            default => self::dejHtmlInputType($datovyTyp),
+        };
     }
 
-    public function dejHtmlInputValue($hodnota, string $datovyTyp)
+    private function dejHtmlInputValue($hodnota, string $datovyTyp)
     {
-        switch (strtolower(trim($datovyTyp))) {
-            case 'date' :
-                return $hodnota
-                    ? (new DateTimeCz($hodnota))->formatDatumStandardZarovnaneHtml()
-                    : $hodnota;
-            case 'datetime' :
-                return $hodnota
-                    ? (new DateTimeCz($hodnota))->formatCasStandardZarovnaneHtml()
-                    : $hodnota;
-            default :
-                return $hodnota;
-        }
+        return match (strtolower(trim($datovyTyp))) {
+            'date' => $hodnota
+                ? (new DateTimeCz($hodnota))->formatDatumStandardZarovnaneHtml()
+                : $hodnota,
+            'datetime' => $hodnota
+                ? (new DateTimeCz($hodnota))->formatCasStandardZarovnaneHtml()
+                : $hodnota,
+            default => $hodnota,
+        };
+    }
+
+    private function dejHtmlInputChecked($hodnota, string $datovyTyp): string
+    {
+        return match (strtolower(trim($datovyTyp))) {
+            'bool', 'boolean' => $hodnota ? 'checked' : '',
+            default => '',
+        };
     }
 
     public function dejZaznamyNastaveniProHtml(array $pouzeSTemitoKlici = null): array
@@ -178,7 +167,9 @@ class SystemoveNastaveniHtml
                 $zaznam['inputType']                  = $this->dejHtmlInputType($zaznam[Sql::DATOVY_TYP]);
                 $zaznam['tagInputType']               = $this->dejHtmlTagInputType($zaznam[Sql::DATOVY_TYP]);
                 $zaznam['inputValue']                 = $this->dejHtmlInputValue($zaznam[Sql::HODNOTA], $zaznam[Sql::DATOVY_TYP]);
+                $zaznam['inputChecked']               = $this->dejHtmlInputChecked($zaznam[Sql::HODNOTA], $zaznam[Sql::DATOVY_TYP]);
                 $zaznam['vychoziHodnotaValue']        = $this->dejHtmlInputValue($zaznam[Sql::VYCHOZI_HODNOTA], $zaznam[Sql::DATOVY_TYP]);
+                $zaznam['vychoziInputChecked']        = $this->dejHtmlInputChecked($zaznam[Sql::VYCHOZI_HODNOTA], $zaznam[Sql::DATOVY_TYP]);
                 $zaznam['checked']                    = $zaznam[Sql::VLASTNI]
                     ? 'checked'
                     : '';
