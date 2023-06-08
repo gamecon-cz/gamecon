@@ -69,7 +69,7 @@ if (post('deaktivovat') && $u->maRoliSefProgramu()) {
     back();
 }
 
-if (post('odpublikovat') && $u->maRoliSefProgramu()) {
+if (post('odpublikovat')) {
     $a = Aktivita::zId(post('aktivitaId'));
     if ($a) {
         $a->odpublikuj();
@@ -149,9 +149,7 @@ foreach ($aktivity as $aktivita) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
     } else if ($r['stav'] == StavAktivity::PUBLIKOVANA) {
         $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
-        if ($u->maRoliSefProgramu()) {
-            $tpl->parse('aktivity.aktivita.tlacitka.odpublikovat');
-        }
+        $tpl->parse('aktivity.aktivita.tlacitka.odpublikovat');
     } else if ($r['stav'] == StavAktivity::PRIPRAVENA) {
         $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');
         $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
