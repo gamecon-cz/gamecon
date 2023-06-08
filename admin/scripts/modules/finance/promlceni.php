@@ -109,7 +109,7 @@ SELECT
     u.prijmeni_uzivatele AS prijmeni,
     u.zustatek,
     ucast.roky AS ucast,
-    pohyb.datum AS pohyb
+    pohyb.cas_posledni_platby AS pohyb
 FROM uzivatele_hodnoty u
 LEFT JOIN (
     SELECT id_uzivatele, GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC) AS roky,
@@ -120,7 +120,7 @@ LEFT JOIN (
     GROUP BY id_uzivatele
 ) AS ucast ON ucast.id_uzivatele = u.id_uzivatele
 LEFT JOIN (
-    SELECT id_uzivatele, MAX(provedeno) AS datum
+    SELECT id_uzivatele, MAX(provedeno) AS cas_posledni_platby
     FROM platby
     WHERE castka > 0
     GROUP BY id_uzivatele
@@ -129,8 +129,8 @@ WHERE
     IF ($1 IS NOT NULL, zustatek BETWEEN $0 AND $1, zustatek > $0)
     AND IF (
         $3 IS NOT NULL,
-        pohyb.datum BETWEEN DATE_SUB(CURRENT_DATE, INTERVAL GREATEST($2, $3) YEAR) AND DATE_SUB(CURRENT_DATE, INTERVAL LEAST($2, $3) YEAR),
-        pohyb.datum >= DATE_SUB(CURRENT_DATE, INTERVAL $2 YEAR)
+        pohyb.cas_posledni_platby BETWEEN DATE_SUB(CURRENT_DATE, INTERVAL GREATEST($2, $3) YEAR) AND DATE_SUB(CURRENT_DATE, INTERVAL LEAST($2, $3) YEAR),
+        pohyb.cas_posledni_platby <= DATE_SUB(CURRENT_DATE, INTERVAL $2 YEAR)
     )
     AND IF ($4, TRUE, NOT EXISTS(SELECT * FROM uzivatele_role WHERE id_role IN ($5) AND u.id_uzivatele = uzivatele_role.id_uzivatele))
 SQL,
