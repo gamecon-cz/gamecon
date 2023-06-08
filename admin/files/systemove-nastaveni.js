@@ -93,6 +93,7 @@ class SystemoveNastaveni {
         inputNode,
         () => nastaveni.zrusPredchoziPotvrzeniUlozeni(inputNode),
         function (ulozenaData) {
+          nastaveni.nastavZmeny(ulozenaData, inputNode)
           nastaveni.zobrazZmeny(ulozenaData, inputNode)
           nastaveni.oznamUlozeni(inputNode)
         },
@@ -196,7 +197,42 @@ class SystemoveNastaveni {
    * 		"id_uzivatele": string,
    * 		"posledniZmena": string,
    * 		"zmenil": string,
-   * 		"inputType": string
+   * 		"inputType": string,
+   * 		"inputValue": string,
+   * 	}
+   * } novaData
+   * @param {HTMLInputElement} inputNode
+   */
+  nastavZmeny(novaData, inputNode) {
+    const hodnotaNode = this.dejNodeHodnoty(novaData.klic)
+    hodnotaNode.value = this.dekodujHtml(novaData.inputValue) // vzácně ji může backend změnit, například úpravou formátu
+  }
+
+  /**
+   * @param {string} html
+   * @return {string}
+   */
+  dekodujHtml(html) {
+    var htmlTextAreaElement = document.createElement("textarea");
+    htmlTextAreaElement.innerHTML = html;
+    return htmlTextAreaElement.value;
+  }
+
+  /**
+   * @param {
+   * 	{
+   * 		"klic": string,
+   * 		"hodnota": string,
+   * 		"datovy_typ": string,
+   * 		"vlastni": string,
+   * 		"nazev": string,
+   * 		"popis": string,
+   * 		"kdy": string,
+   * 		"id_uzivatele": string,
+   * 		"posledniZmena": string,
+   * 		"zmenil": string,
+   * 		"inputType": string,
+   *  	"inputValue": string,
    * 	}
    * } novaData
    * @param {HTMLInputElement} inputNode
@@ -236,7 +272,7 @@ class SystemoveNastaveni {
     if (vlastni) {
       const vychoziHodnotaNode = this.getElementById(`vychozi-hodnota-${klic}`)
       vychoziHodnotaNode.style.display = 'none'
-      const hodnotaNode = this.getElementById(`hodnota-${klic}`)
+      const hodnotaNode = this.dejNodeHodnoty(klic)
       hodnotaNode.style.display = 'inherit'
     } else {
       const vychoziHodnotaNode = this.getElementById(`vychozi-hodnota-${klic}`)
@@ -244,6 +280,14 @@ class SystemoveNastaveni {
       const hodnotaNode = this.getElementById(`hodnota-${klic}`)
       hodnotaNode.style.display = 'none'
     }
+  }
+
+  /**
+   * @param {string} klic
+   * @return {HTMLInputElement}
+   */
+  dejNodeHodnoty(klic) {
+    return this.getElementById(`hodnota-${klic}`)
   }
 
   /**
