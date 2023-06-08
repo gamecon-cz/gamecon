@@ -212,6 +212,11 @@ trait DateTimeCzTrait
         return (string)$hodnota;
     }
 
+    public static function trimovatZHtml(string $hodnota): string
+    {
+        return str_replace(' ', '', trim($hodnota));
+    }
+
     /** Formát data s upravenými dny česky */
     public function format($f): string
     {
