@@ -670,7 +670,9 @@ function aplikujModifikatory($hodnota, array $modifikatory)
 {
     foreach ($modifikatory as ['modifikator' => $modifikator, 'parametry' => $parametry]) {
         $hodnota = match ($modifikator) {
-            'datum' => DateTimeCz::formatujProSablonu($hodnota, $parametry),
+            'datum' => $hodnota
+                ? DateTimeCz::formatujProSablonu($hodnota, $parametry)
+                : '',
             default => $hodnota
         };
     }
