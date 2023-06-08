@@ -1396,3 +1396,14 @@ Radio musí být ve tvaru:
   line-height: 0;
   vertical-align: middle;
 }
+
+.vcetne label {
+  background-color: rgba(255,174,0,0.23);
+  padding: 0.3em;
+  text-decoration: line-through;
+}
+
+.vcetne :checked+label {
+  background-color: rgba(64, 255, 0, 0.28);
+  text-decoration: none;
+}
