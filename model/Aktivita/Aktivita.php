@@ -2020,7 +2020,11 @@ SQL
             } else if ($u->organizuje($this)) {
                 $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ', $systemoveNastaveni);
             } else if ($this->a['zamcel']) {
-                $out = '&#128274;' /* zámek */ . $this->formatujDuvodProTesting('Aktivita už je zamknutá', $systemoveNastaveni);
+                $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
+                $out = <<<HTML
+<span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
+HTML
+                    . $this->formatujDuvodProTesting('Aktivita už je zamknutá ', $systemoveNastaveni);
             } else {
                 $volno = $this->volno();
                 if ($volno === 'u' || $volno == $u->pohlavi()) {
