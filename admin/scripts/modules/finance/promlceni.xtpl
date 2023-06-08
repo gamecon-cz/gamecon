@@ -1,23 +1,66 @@
 <!-- begin:promlceni -->
 <form method="post">
-<p>
-Promlčet zůstatek vyšší jak <input type="text" name="castka" value="{castka}"> Kč u všech uživatelů, jejichž poslední připsaná platba je starší než <input type="text" name="pocetLet" value="{pocetLet}"></td> let.
-</p>
-<table>
-  <tr><th>ID</th><th>Jméno</th><th>Příjmení</th><th>Stav účtu</th><th>Účast</th><th>Poslední připsaná platba</th></tr>
-  <!-- begin:detaily -->
-  <tr>
-    <td>{id}</td>
-    <td>{jmeno}</td>
-    <td>{prijmeni}</td>
-    <td>{stav}</td>
-    <td>{ucast}</td>
-    <td>{pohyb}</td>
-  </tr>
-  <!-- end:detaily -->
-</table>
-<!-- begin:nekdo --><input type="hidden" name="ids" value="{ids}"><input type="submit" name="promlcet" value="Promlčet"><br><!-- end:nekdo -->
-<!-- begin:nikdo -->(žádní uživatelé)<br><!-- end:nikdo -->
-  <br><input type="submit" name="pripravit" value="Zobrazit uživatele">
+    <p>
+        Načíst uživatele se zůstatkem
+        <span class="hinted">mezi<span class="hint">Může být i záporné číslo pro zjištění nedopatků.<br>Nech jednu z hodnot prázdnou pro "nekonečno".</span></span>
+        <input required type="number" step="1" name="jednaHraniceZustatku" value="{jednaHraniceZustatku}"
+               style="width: 5em">
+        a
+        <input type="number" step="1" name="druhaHraniceZustatku" value="{druhaHraniceZustatku}" style="width: 5em"> Kč,
+        jejichž poslední připsaná platba byla naposledy <span class="hinted">mezi<span class="hint">Nech jednu z hodnot prázdnou pro "nekonečno".</span></span>
+        <input required type="number" step="1" min="0" name="jednaHraniceStariRoku" value="{jednaHraniceStariRoku}"
+               style="width: 4em">
+        a
+        <input type="number" step="1" min="0" name="druhaHraniceStariRoku" value="{druhaHraniceStariRoku}"
+               style="width: 4em">
+        roky.
+    </p>
+
+    <p>
+        <input type="submit" name="pripravit" value="Zobrazit uživatele">
+        <span class="vcetne">
+            <input type="checkbox" name="vcetneInternich" value="1" id="vcetneInternich" {checkedVcetneInternich}>
+            <label for="vcetneInternich">včetně organizátorů, četných organizátorů,vypravěčů a partnerů</label>
+        </span>
+    </p>
+
+    <table style="width: 100%">
+        <tr>
+            <th></th>
+            <th>ID</th>
+            <th>Jméno</th>
+            <th>Příjmení</th>
+            <th>Stav účtu</th>
+            <th>Účast</th>
+            <th>Poslední připsaná platba</th>
+        </tr>
+        <!-- begin:detaily -->
+        <tr>
+            <td>
+                <input type="checkbox" name="id[]" value="{id}" checked class="vybrany-uzivatel">
+            </td>
+            <td>
+                <a href="{adminUrl}/uzivatel?pracovni_uzivatel={id}">{id}</a>
+            </td>
+            <td>{jmeno}</td>
+            <td>{prijmeni}</td>
+            <td>{stav}</td>
+            <td>{ucast}</td>
+            <td>{pohyb}</td>
+        </tr>
+        <!-- end:detaily -->
+    </table>
+    <!-- begin:nekdo -->
+    <div>
+        <input type="submit" name="promlcet" value="Promlčet {celkem} účtům">
+    </div>
+    <!-- end:nekdo -->
+    <!-- begin:nikdo -->(žádní uživatelé)<br><!-- end:nikdo -->
+    <br>
 </form>
+
+<!-- begin: jsSoubor -->
+<script type="text/javascript" src="{jsSoubor}"></script>
+<!-- end: jsSoubor -->
+
 <!-- end:promlceni -->
