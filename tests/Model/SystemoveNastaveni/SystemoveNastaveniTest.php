@@ -25,7 +25,7 @@ class SystemoveNastaveniTest extends AbstractTestDb
         self::assertSame('24', $zaznamKurzuEuro['hodnota']);
         self::assertNull($zaznamKurzuEuro['id_uzivatele']);
 
-        $nastaveni->ulozZmenuHodnoty(123, 'KURZ_EURO', Uzivatel::zId(Uzivatel::SYSTEM));
+        $nastaveni->ulozZmenuHodnoty('123', 'KURZ_EURO', Uzivatel::zId(Uzivatel::SYSTEM));
 
         $zaznamKurzuEuroPoZmene = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])['KURZ_EURO'];
         self::assertSame(

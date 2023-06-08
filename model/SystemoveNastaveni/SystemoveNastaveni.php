@@ -226,15 +226,16 @@ SQL,
         return new DateTimeCz(preg_replace('~\s~', '', $hodnota));
     }
 
-    public function ulozZmenuHodnoty($hodnota, string $klic, \Uzivatel $editujici): int
+    public function ulozZmenuHodnoty(string $hodnota, string $klic, \Uzivatel $editujici): int
     {
         $this->hlidejZakazaneZmeny($klic, $hodnota);
+        $hodnotaProDb   = $this->formatujHodnotuProDb($hodnota, $klic);
         $updateQuery    = dbQuery(<<<SQL
 UPDATE systemove_nastaveni
 SET hodnota = $1
 WHERE klic = $2
 SQL,
-            [$this->formatujHodnotuProDb($hodnota, $klic), $klic],
+            [$hodnotaProDb, $klic],
         );
         $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
         dbQuery(<<<SQL
@@ -246,7 +247,7 @@ SQL,
             [$editujici->id(), $klic],
         );
         if ($zmenenoZaznamu > 0) {
-            $this->aktualizujZaznamVLokalniCache($hodnota, $klic, $editujici->id());
+            $this->aktualizujZaznamVLokalniCache($hodnotaProDb, $klic, $editujici->id());
         }
         return $zmenenoZaznamu;
     }
@@ -284,7 +285,11 @@ SQL,
         if ($klic === Klic::ROCNIK) {
             throw new ChybnaHodnotaSystemovehoNastaveni('Ročník nelze měnit jinak než konstantou ROCNIK přes PHP');
         } else if ($klic === Klic::REG_GC_DO && $hodnota) {
-            $regGcDo        = $this->vytvorDateTimeZCeskehoFormatu($hodnota);
+            try {
+                $regGcDo = $this->vytvorDateTimeZCeskehoFormatu($hodnota);
+            } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
+                throw new ChybnaHodnotaSystemovehoNastaveni("Neplatné datum a čas '$hodnota'");
+            }
             $spocitanyKonec = DateTimeGamecon::spocitejKonecRegistraciUcastniku($this->rocnik);
             if ($regGcDo->getTimestamp() > $spocitanyKonec->getTimestamp()) {
                 throw new ChybnaHodnotaSystemovehoNastaveni(
@@ -319,15 +324,15 @@ SQL,
         return $zmenenoZaznamu;
     }
 
-    private function formatujHodnotuProDb($hodnota, string $klic)
+    private function formatujHodnotuProDb(string $hodnota, string $klic)
     {
         try {
             return match ($this->dejDatovyTyp($klic)) {
                 'date' => $hodnota
-                    ? DateTimeCz::createFromFormat('j. n. Y', $hodnota)->formatDatumDb()
+                    ? $this->vytvorDateZCeskehoFormatu($this->sanitizujDatumZHtml($hodnota))->formatDatumDb()
                     : $hodnota,
                 'datetime' => $hodnota
-                    ? $this->vytvorDateTimeZCeskehoFormatu($hodnota)->formatDb()
+                    ? $this->vytvorDateTimeZCeskehoFormatu($this->sanitizujDatumZHtml($hodnota))->formatDb()
                     : $hodnota,
                 'bool', 'boolean' => (int)filter_var($hodnota, FILTER_VALIDATE_BOOLEAN),
                 default => $hodnota,
@@ -342,6 +347,16 @@ SQL,
                 )
             );
         }
+    }
+
+    private function sanitizujDatumZHtml(string $hodnota): string
+    {
+        return DateTimeCz::trimovatZHtml($hodnota);
+    }
+
+    private function vytvorDateZCeskehoFormatu(string $hodnota): DateTimeCz
+    {
+        return DateTimeCz::createFromFormat('j. n. Y', $hodnota);
     }
 
     private function vytvorDateTimeZCeskehoFormatu(string $hodnota): DateTimeCz
@@ -504,6 +519,11 @@ SQL;
         throw new NeznamyKlicSystemovehoNastaveni("Klíč '$klic' nemáme v záznamech nastavení");
     }
 
+    /**
+     * Pozor, toto vrací hodnotu z tabulky systemove_nastaveni, ale to nemusí být finální hodnota!
+     * Finální hodnotu určuje přiznak "vlastní" a pokud není zvolený, tak se použije výchozí hodnota,
+     * @see zaznamyDoKonstant
+     */
     private function dejHodnotuZeZaznamuNastaveni(string $klic)
     {
         $vsechnyZaznamy = $this->dejVsechnyZaznamyNastaveni();
