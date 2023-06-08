@@ -253,7 +253,9 @@
                 <!-- begin:publikovat -->
                 <form method="post">
                     <input type="hidden" name="aktivitaId" value="{id_akce}"/>
-                    <button type="submit" name="publikovat" value="1" style="padding-left: 0; padding-right: 0"
+                    <button type="submit" name="publikovat" value="1"
+                            class="publikovat"
+                            style="padding-left: 0; padding-right: 0"
                             title="Publikuj na webu">
                         pub
                     </button>
@@ -262,7 +264,9 @@
                 <!-- begin:pripravit -->
                 <form method="post">
                     <input type="hidden" name="aktivitaId" value="{id_akce}"/>
-                    <button type="submit" name="pripravit" value="1" style="padding-left: 0; padding-right: 0"
+                    <button type="submit" name="pripravit" value="1"
+                            class="pripravit"
+                            style="padding-left: 0; padding-right: 0"
                             title="Připrav k hromadné aktivaci">
                         přip
                     </button>
@@ -272,6 +276,7 @@
                 <form method="post">
                     <input type="hidden" name="aktivitaId" value="{id_akce}"/>
                     <button type="submit" name="odpripravit" value="1"
+                            class="odpripravit"
                             style="padding-left: 0; padding-right: 0; letter-spacing: -1px"
                             title="Zruš připravení k hromadné aktivaci">
                         odpři
@@ -284,6 +289,7 @@
                 <form method="post">
                     <input type="hidden" name="aktivitaId" value="{id_akce}"/>
                     <button type="submit" name="aktivovat" value="1"
+                            class="aktivovat"
                             style="padding-left: 0; padding-right: 0; letter-spacing: -1px"
                             title="Otevři k přihlašování">
                         aktiv

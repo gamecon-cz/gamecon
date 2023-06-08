@@ -1367,10 +1367,31 @@ Radio musí být ve tvaru:
   text-align: right;
 }
 
+.publikovat {
+  color: inherit;
+}
+
+.pripravit {
+  /* Připravit - zeleně */
+  color: #00dd00;
+}
+
+.aktivovat {
+  /* Aktivovat - svítivě červenou */
+  color: red;
+}
+
 .odpublikovat {
-  color: #ff8000;
+  /* Odpublikovat - matně oranžovou */
+  color: #ff6200;
+}
+
+.odpripravit {
+  /* Odpřipravit - světle oranžovou */
+  color: #ffae00;
 }
 
 .deaktivovat {
-  color: darkred;;
+  /* Odaktivovat - …ta vínově červená tam je asi ok. */
+  color: darkred;
 }
