@@ -63,13 +63,10 @@ function nasad(array $nastaveni) {
 
       /docker-compose.yml
 
-      /web/soubory/*
-      !/web/soubory/blackarrow
-      !/web/soubory/styl
-      !/web/soubory/*.js
-      !/web/soubory/*.html
+      /web/soubory/obsah/*
       !/web/soubory/systemove/*/.htaccess
-      !/web/soubory/systemove/*/.gitkeep
+      !/web/soubory/systemove/*/RAZENI-VZOR.csv
+      !/web/soubory/systemove/*/default.png
 
       /vendor/phpunit
       /vendor/sebastian
