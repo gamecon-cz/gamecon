@@ -127,7 +127,6 @@ table.program {
     font-size: 12px;
     } @media (max-width: 800px) { .program td:not([rowspan]) > div {
         padding: 10px;
-        overflow: hidden;
     }
 }
 
