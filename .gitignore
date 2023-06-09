@@ -17,7 +17,7 @@
 
 /admin/*.sql.gz
 
-/web/soubory/*
+/web/soubory/obsah/*
 !/web/soubory/blackarrow
 !/web/soubory/styl
 !/web/soubory/*.js
