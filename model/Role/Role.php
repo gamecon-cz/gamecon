@@ -16,6 +16,7 @@ class Role extends \DbObject
 
     /**
      * Konstanty jsou kopie SQL tabulky `role_seznam`
+     * PO PŘIDÁNÍ ROLE ROZŠIŘ SEZNAM @see \Gamecon\Role\Role::nazevRolePodleId
      */
     // TRVALÉ ROLE
     public const ORGANIZATOR          = 2; // Organizátor (zdarma), Člen organizačního týmu GC
@@ -317,22 +318,26 @@ class Role extends \DbObject
         try {
             return match ($idRole) {
                 self::ORGANIZATOR => 'Organizátor (zdarma)',
+                self::VYPRAVECSKA_SKUPINA => 'Vypravěčská skupina',
+                self::CESTNY_ORGANIZATOR => 'Čestný organizátor',
+                self::PREZENCNI_ADMIN => 'Prezenční admin',
+                self::CFO => 'CFO',
+                self::PUL_ORG_BONUS_UBYTKO => 'Půl-org ubytkem',
+                self::PUL_ORG_BONUS_TRICKO => 'Půl-org s tričkem',
+                self::CLEN_RADY => 'Člen rady',
+                self::SEF_INFOPULTU => 'Šéf infopultu',
+                self::SEF_PROGRAMU => 'Šéf programu',
+                //
                 self::LETOSNI_VYPRAVEC => 'Vypravěč',
                 self::LETOSNI_ZAZEMI => 'Zázemí',
                 self::LETOSNI_INFOPULT => 'Infopult',
-                self::VYPRAVECSKA_SKUPINA => 'Vypravěčská skupina',
                 self::LETOSNI_PARTNER => 'Partner',
-                self::CESTNY_ORGANIZATOR => 'Čestný organizátor',
-                self::PREZENCNI_ADMIN => 'Prezenční admin',
                 self::LETOSNI_DOBROVOLNIK_SENIOR => 'Dobrovolník senior',
                 self::LETOSNI_STREDECNI_NOC_ZDARMA => 'Středeční noc zdarma',
                 self::LETOSNI_CTVRTECNI_NOC_ZDARMA => 'Čtvrteční noc zdarma',
                 self::LETOSNI_PATECNI_NOC_ZDARMA => 'Páteční noc zdarma',
                 self::LETOSNI_SOBOTNI_NOC_ZDARMA => 'Sobotní noc zdarma',
                 self::LETOSNI_NEDELNI_NOC_ZDARMA => 'Nedělní noc zdarma',
-                self::CFO => 'CFO',
-                self::PUL_ORG_BONUS_UBYTKO => 'Půl-org ubytkem',
-                self::PUL_ORG_BONUS_TRICKO => 'Půl-org s tričkem',
                 self::LETOSNI_NEODHLASOVAT => 'Neodhlašovat',
                 self::LETOSNI_HERMAN => 'Herman',
                 self::LETOSNI_BRIGADNIK => 'Brigádník',
