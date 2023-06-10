@@ -12,6 +12,7 @@
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
+use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
@@ -44,17 +45,29 @@ if (post('platba') && $uPracovni) {
         varovani('Platba připsána uživateli, který není přihlášen na Gamecon', false);
     }
     try {
+        $castka             = post('platba');
+        $poznamka           = post('poznamka');
+        $idPohybu           = !$systemoveNastaveni->jsmeNaOstre()
+            ? post('idPohybu')
+            : null;
+        $provedenoKdy       = post('provedenoKdy');
+        $provedenoKdyObjekt = null;
+        try {
+            $provedenoKdyObjekt = $provedenoKdy && !$systemoveNastaveni->jsmeNaOstre()
+                ? DateTimeImmutableStrict::createFromFormat(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD, $provedenoKdy)
+                : null;
+        } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
+            chyba(sprintf("Neplatný formát data platby. Má být '%s'", DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD));
+        }
+
         $uPracovni->finance()->pripis(
-            post('platba'),
+            $castka,
             $u,
-            post('poznamka'),
-            !$systemoveNastaveni->jsmeNaOstre()
-                ? post('idPohybu')
-                : null,
-            !$systemoveNastaveni->jsmeNaOstre() && post('provedenoKdy')
-                ? DateTimeImmutableStrict::createFromFormat(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD, post('provedenoKdy'))
-                : null,
+            $poznamka,
+            $idPohybu,
+            $provedenoKdyObjekt,
         );
+        oznameni("Platba s částkou {$castka} byla připsána");
     } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
         if (post('idPohybu') && FioPlatba::existujePodleFioId(post('idPohybu'))) {
             chyba(sprintf('Tato platba s Fio ID %d již existuje', post('idPohybu')), false);
