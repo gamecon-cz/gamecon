@@ -51,7 +51,7 @@ if (post('platba') && $uPracovni) {
             !$systemoveNastaveni->jsmeNaOstre()
                 ? post('idPohybu')
                 : null,
-            !$systemoveNastaveni->jsmeNaOstre()
+            !$systemoveNastaveni->jsmeNaOstre() && post('provedenoKdy')
                 ? DateTimeImmutableStrict::createFromFormat(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD, post('provedenoKdy'))
                 : null,
         );
