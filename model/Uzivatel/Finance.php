@@ -24,7 +24,7 @@ class Finance
 
     public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
 
-    private         $stav       = 0;  // celkový výsledný stav uživatele na účtu
+    private float   $stav       = 0.0;  // celkový výsledný stav uživatele na účtu
     private         $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
     private         $soucinitelCenyAKtivit;              // součinitel ceny aktivit
     private         $logovat    = true;    // ukládat seznam předmětů?
@@ -456,7 +456,7 @@ SQL,
     }
 
     /** Vrátí aktuální stav na účtu uživatele pro tento rok */
-    public function stav()
+    public function stav(): float
     {
         return $this->stav;
     }

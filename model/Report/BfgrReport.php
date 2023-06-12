@@ -318,7 +318,11 @@ SQL,
         static $jmenaRoliProPozici = [];
         if (!$jmenaRoliProPozici) {
             foreach (self::ID_ROLI_PRO_POZICI as $idRole) {
-                $jmenaRoliProPozici[$idRole] = Role::zId($idRole)->nazevRole();
+                $role = Role::zId($idRole);
+                if (!$role) {
+                    throw new \RuntimeException("Role s ID '$idRole' neexistuje.");
+                }
+                $jmenaRoliProPozici[$idRole] = $role->nazevRole();
             }
         }
         return $jmenaRoliProPozici;
