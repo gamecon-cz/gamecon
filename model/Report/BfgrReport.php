@@ -13,6 +13,7 @@ use Gamecon\Role\Role;
 use Uzivatel;
 use DateInterval;
 use Gamecon\Jidlo;
+use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as UzivatelSql;
 
 // takzvaný BFGR (Big f**king Gandalf report)
 class BfgrReport
@@ -157,11 +158,11 @@ SQL,
                 [
                     'Účastník'            => array_merge(
                         [
-                            'ID'                => $r['id_uzivatele'],
-                            'Příjmení'          => $r['prijmeni_uzivatele'],
-                            'Jméno'             => $r['jmeno_uzivatele'],
-                            'Přezdívka'         => $r['login_uzivatele'],
-                            'Mail'              => $r['email1_uzivatele'],
+                            'ID'                => $r[UzivatelSql::ID_UZIVATELE],
+                            'Příjmení'          => $r[UzivatelSql::PRIJMENI_UZIVATELE],
+                            'Jméno'             => $r[UzivatelSql::JMENO_UZIVATELE],
+                            'Přezdívka'         => $r[UzivatelSql::LOGIN_UZIVATELE],
+                            'Mail'              => $r[UzivatelSql::EMAIL1_UZIVATELE],
                             'Pozice'            => $this->nazevRole(explode(',', (string)$r['idckaRoliZDotazu'])),
                             'Role'              => $r['roleZDotazu'],
                             'Práva'             => nahradNazvyKonstantZaHodnoty((string)$r['pravaZDotazu']),
@@ -178,20 +179,20 @@ SQL,
                             : [],
                     ),
                     'Datum narození'      => [
-                        'Den'   => date('j', strtotime($r['datum_narozeni'])),
-                        'Měsíc' => date('n', strtotime($r['datum_narozeni'])),
-                        'Rok'   => date('Y', strtotime($r['datum_narozeni'])),
+                        'Den'   => date('j', strtotime($r[UzivatelSql::DATUM_NAROZENI])),
+                        'Měsíc' => date('n', strtotime($r[UzivatelSql::DATUM_NAROZENI])),
+                        'Rok'   => date('Y', strtotime($r[UzivatelSql::DATUM_NAROZENI])),
                     ],
                     'Bydliště'            => [
                         'Stát'  => $stat,
-                        'Město' => $r['mesto_uzivatele'],
-                        'Ulice' => $r['ulice_a_cp_uzivatele'],
-                        'PSČ'   => $r['psc_uzivatele'],
-                        'Škola' => $r['skola'],
+                        'Město' => $r[UzivatelSql::MESTO_UZIVATELE],
+                        'Ulice' => $r[UzivatelSql::ULICE_A_CP_UZIVATELE],
+                        'PSČ'   => $r[UzivatelSql::PSC_UZIVATELE],
+                        'Škola' => $r[UzivatelSql::SKOLA],
                     ],
                     'Ubytovací informace' => array_merge(
                         [
-                            'Chci bydlet s'          => $r['ubytovan_s'],
+                            'Chci bydlet s'          => $r[UzivatelSql::UBYTOVAN_S],
                             'První noc'              => $r['den_prvni'] === null
                                 ? '-'
                                 : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),
@@ -229,12 +230,12 @@ SQL,
                         'Připsané platby'                    => $finance->sumaPlateb(),
                         'První blok'                         => $this->excelDatum($navstevnik->prvniBlok()),
                         'Poslední blok'                      => $this->excelDatum($navstevnik->posledniBlok()),
-                        'Dobrovolník pozice'                 => $r['pomoc_typ'],
-                        'Dobrovolník info'                   => $r['pomoc_vice'],
+                        'Dobrovolník pozice'                 => $r[UzivatelSql::POMOC_TYP],
+                        'Dobrovolník info'                   => $r[UzivatelSql::POMOC_VICE],
                         'Storno aktivit'                     => $finance->sumaStorna(),
                         'Dárky a zlevněné nákupy'            => implode(", ", array_merge($finance->slevyVse(), $finance->slevyAktivity())),
                         'Objednávky'                         => strip_tags($finance->prehledPopis()),
-                        'Poznámka'                           => strip_tags((string)$r['poznamka']),
+                        'Poznámka'                           => strip_tags((string)$r[UzivatelSql::POZNAMKA]),
                     ],
                     'Eshop'           => array_merge(
                         [
