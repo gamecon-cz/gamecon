@@ -219,14 +219,14 @@ SQL,
                         'Aktivity'                           => $finance->cenaAktivit(),
                         'Dobrovolné vstupné'                 => $finance->vstupne(),
                         'Dobrovolné vstupné (pozdě)'         => $finance->vstupnePozde(),
-                        'Suma slev'                          => $this->excelCislo($finance->slevaObecna()),
+                        'Suma slev'                          => $this->excelPenize($finance->slevaObecna()),
                         'Bonus za vedení aktivit'            => $finance->bonusZaVedeniAktivit(),
                         'Využitý bonus za vedení aktivit'    => $finance->vyuzityBonusZaAktivity(),
                         'Proplacený bonus za vedení aktivit' => $finance->proplacenyBonusZaAktivity(),
                         'Brigádnické odměny'                 => $finance->brigadnickaOdmena(),
-                        'Stav'                               => $this->excelCislo($finance->stav()),
-                        'Zůstatek z minula'                  => $this->excelCislo($r['zustatek']),
-                        'Připsané platby'                    => $this->excelCislo($finance->sumaPlateb()),
+                        'Stav'                               => $this->excelPenize($finance->stav()),
+                        'Zůstatek z minula'                  => $this->excelPenize($r['zustatek']),
+                        'Připsané platby'                    => $this->excelPenize($finance->sumaPlateb()),
                         'První blok'                         => $this->excelDatum($navstevnik->prvniBlok()),
                         'Poslední blok'                      => $this->excelDatum($navstevnik->posledniBlok()),
                         'Dobrovolník pozice'                 => $r['pomoc_typ'],
@@ -288,9 +288,14 @@ SQL,
         return date('j.n.Y G:i', strtotime($datum));
     }
 
-    private function excelCislo(string|int|float $cislo)
+    private function excelCislo(string|int|float $cislo): float
     {
-        return str_replace('.', ',', (string)$cislo);
+        return (float)(string)$cislo;
+    }
+
+    private function excelPenize(string|int|float $cislo): string
+    {
+        return number_format($this->excelCislo($cislo), 2, '.', '');
     }
 
     private function typUbytovani(string $typ)
