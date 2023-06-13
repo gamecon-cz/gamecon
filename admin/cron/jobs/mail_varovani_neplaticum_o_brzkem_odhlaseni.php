@@ -35,6 +35,7 @@ foreach ($posuny as $poradiOznameni => $posun) {
     );
 
     if ($nejblizsiHromadneOdhlasovaniKdy > $systemoveNastaveni->ted()->modify($posun)) {
+        // POJISTKA PROTI PŘÍLIŽ BRZKÉMU SPUŠTĚNÍ
         logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}).\nE-maily s varováním neplatičům necháme na příští běh CRONu.");
         return; // nejbližší odhlašování bude až za dlouhou dobu, tohle necháme na příštím CRONu
     }
