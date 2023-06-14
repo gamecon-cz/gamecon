@@ -520,32 +520,34 @@ SQL;
             $konecGameconuKdy            = DateTimeGamecon::spocitejKonecGameconu($this->rocnik())->formatDb();
 
             $this->vychoziHodnoty = [
-                Klic::GC_BEZI_OD                                      => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())->formatDb(),
-                Klic::GC_BEZI_DO                                      => $konecGameconuKdy,
-                Klic::REG_GC_OD                                       => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())->formatDb(),
-                Klic::REG_GC_DO                                       => $konecGameconuKdy,
-                Klic::PRVNI_VLNA_KDY                                  => DateTimeGamecon::spoctejKdyJePrvniVlna($this->rocnik())
+                Klic::GC_BEZI_OD                                               => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())->formatDb(),
+                Klic::GC_BEZI_DO                                               => $konecGameconuKdy,
+                Klic::REG_GC_OD                                                => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())->formatDb(),
+                Klic::REG_GC_DO                                                => $konecGameconuKdy,
+                Klic::PRVNI_VLNA_KDY                                           => DateTimeGamecon::spoctejKdyJePrvniVlna($this->rocnik())
                     ->formatDb(),
-                Klic::DRUHA_VLNA_KDY                                  => DateTimeGamecon::spocitejKdyJeDruhaVlna($this->rocnik())
+                Klic::DRUHA_VLNA_KDY                                           => DateTimeGamecon::spocitejKdyJeDruhaVlna($this->rocnik())
                     ->formatDb(),
-                Klic::TRETI_VLNA_KDY                                  => DateTimeGamecon::spocitejKdyJeTretiVlna($this->rocnik())
+                Klic::TRETI_VLNA_KDY                                           => DateTimeGamecon::spocitejKdyJeTretiVlna($this->rocnik())
                     ->formatDb(),
-                Klic::UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE           => $tretiHromadneOdhlasovaniKdy,
-                Klic::JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE               => $tretiHromadneOdhlasovaniKdy,
-                Klic::PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+                Klic::UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE                    => $tretiHromadneOdhlasovaniKdy,
+                Klic::JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE                        => $tretiHromadneOdhlasovaniKdy,
+                Klic::PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE          => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
                     ->modify('-1 day') // například 10. 7. 2023 00:00 -> 9. 7. 2023 myšleno včetně
                     ->formatDatumDb(),
-                Klic::TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE              => $this->rocnik() === 2023
+                Klic::TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE                       => $this->rocnik() === 2023
                     ? '2023-06-23'
                     : DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
                         ->formatDatumDb(),
-                Klic::TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY               => 'vraceni zustatku GC ID:',
-                Klic::HROMADNE_ODHLASOVANI_1                          => DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
+                Klic::TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY                        => 'vraceni zustatku GC ID:',
+                Klic::HROMADNE_ODHLASOVANI_1                                   => DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
                     ->formatDb(),
-                Klic::HROMADNE_ODHLASOVANI_2                          => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+                Klic::HROMADNE_ODHLASOVANI_2                                   => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
                     ->formatDb(),
-                Klic::HROMADNE_ODHLASOVANI_3                          => DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
+                Klic::HROMADNE_ODHLASOVANI_3                                   => DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
                     ->formatDb(),
+                Klic::KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY             => '60',
+                Klic::KOLIK_HODIN_PRED_ZACATKEM_AKTIVITY_JE_UZ_STORNO_POPLATEK => '24',
             ];
         }
         return $this->vychoziHodnoty;
@@ -895,6 +897,8 @@ SQL;
 
     public function kolikHodinPredAktivitouUzJePokutaZaOdhlaseni(): int
     {
-        return (int)ODHLASENI_POKUTA1_H;
+        return defined('KOLIK_HODIN_PRED_ZACATKEM_AKTIVITY_JE_UZ_STORNO_POPLATEK')
+            ? (int)KOLIK_HODIN_PRED_ZACATKEM_AKTIVITY_JE_UZ_STORNO_POPLATEK
+            : (int)$this->dejHodnotu(Klic::KOLIK_HODIN_PRED_ZACATKEM_AKTIVITY_JE_UZ_STORNO_POPLATEK);
     }
 }

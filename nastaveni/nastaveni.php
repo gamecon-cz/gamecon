@@ -190,7 +190,6 @@ if (!defined('GC_BEZI')) define('GC_BEZI', mezi(GC_BEZI_OD, GC_BEZI_DO)); // jes
 if (!defined('ARCHIV_OD')) define('ARCHIV_OD', 2009);           //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
 
 if (!defined('ODHLASENI_POKUTA_KONTROLA')) define('ODHLASENI_POKUTA_KONTROLA', true); // jestli se má kontrolovat pozdní odhlášní z aktivit
-if (!defined('ODHLASENI_POKUTA1_H')) define('ODHLASENI_POKUTA1_H', 24); // kolik hodin před aktivitou se začne uplatňovat pokuta 1
 
 if (!defined('DEN_PRVNI_DATE')) define('DEN_PRVNI_DATE', date('Y-m-d', strtotime(PROGRAM_OD))); // první den v programu ve formátu YYYY-MM-DD
 if (!defined('DEN_PRVNI_UBYTOVANI')) define('DEN_PRVNI_UBYTOVANI', DEN_PRVNI_DATE); // datum, kterému odpovídá ubytovani_den (tabulka shop_predmety) v hodnotě 0
