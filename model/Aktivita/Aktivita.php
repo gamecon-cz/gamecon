@@ -1922,7 +1922,7 @@ SQL
 
     public function platiStorno(Uzivatel $uzivatel): bool
     {
-        return $this->nedorazilNeboZrusil($uzivatel);
+        return StavPrihlaseni::platiStorno($this->stavPrihlaseni($uzivatel));
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
