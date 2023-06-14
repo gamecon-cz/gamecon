@@ -1,0 +1,4 @@
+*, ::after, ::before {
+  box-sizing: content-box;
+  font-family: Gilroy, sans-serif;
+}

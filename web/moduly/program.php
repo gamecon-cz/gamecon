@@ -136,6 +136,9 @@ $zobrazitMujProgramOdkaz = isset($u);
 
 
     <div class="programNahled_obalProgramu">
+        <link rel="stylesheet" href="soubory/bootstrap.5.1.3.css"/>
+        <link rel="stylesheet" href="soubory/bootstrap.fix.css?version=1"/>
+        <script type="text/javascript" src="soubory/bootstrap.bundle.5.1.3.js"></script>
         <div class="programPosuv_obal2">
             <div class="programPosuv_obal">
                 <?php $program->tisk(); ?>
