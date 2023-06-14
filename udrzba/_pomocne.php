@@ -31,6 +31,7 @@ function nasad(array $nastaveni) {
       /.idea
       /.vscode
       /.phpunit.result.cache
+      /.phpunit.cache
 
       /backup/*
       !/backup/.htaccess
