@@ -1010,8 +1010,11 @@ SQL
         $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce=' . $this->id());
         //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
         //stav se vloží implicitní hodnota v DB
-        unset($akt['id_akce'], $akt['url_akce'], $akt['stav'], $akt['zamcel'], $akt['vybaveni']);
-        if ($akt['teamova']) $akt['kapacita'] = $akt['team_max'];
+        unset($akt['id_akce'], $akt['url_akce'], $akt['stav'], $akt['zamcel']);
+        $akt['vybaveni'] = '';
+        if ($akt['teamova']) {
+            $akt['kapacita'] = $akt['team_max'];
+        }
         if ($akt['patri_pod']) { //aktivita už má instanční skupinu, použije se stávající
             dbInsert('akce_seznam', $akt);
             $idNoveAktivity = dbInsertId();
