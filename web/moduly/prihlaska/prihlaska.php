@@ -7,6 +7,7 @@ use Gamecon\Pravo;
 
 /**
  * @see web/sablony/blackarrow/prihlaska.xtpl
+ * @var Modul $this
  * @var \Gamecon\XTemplate\XTemplate $t
  * @var Uzivatel $u
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
@@ -14,7 +15,6 @@ use Gamecon\Pravo;
 
 $this->pridejJsSoubor('soubory/blackarrow/prihlaska/prihlaska.js');
 $this->blackarrowStyl(true);
-$this->bezPaticky(true);
 $this->info()->nazev('Přihláška');
 
 $covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
