@@ -7,12 +7,19 @@
                style="width: 5em">
         a
         <input type="number" step="1" name="druhaHraniceZustatku" value="{druhaHraniceZustatku}" style="width: 5em"> Kč,
-        jejichž poslední připsaná platba byla naposledy <span class="hinted">mezi<span class="hint">Nech jednu z hodnot prázdnou pro "nekonečno".</span></span>
-        <input required type="number" step="1" min="0" name="jednaHraniceStariRoku" value="{jednaHraniceStariRoku}"
-               style="width: 4em">
+        jejichž poslední účast na GC byla naposledy <span class="hinted">mezi<span class="hint">Nech jednu z hodnot prázdnou pro "nekonečno".</span></span>
+        <select name="jednaHraniceUcastiRoku">
+            <!-- begin: jednaUcastRoku -->
+            <option value="{rocnik}" {selected}>{rocnik}</option>
+            <!-- end: jednaUcastRoku -->
+        </select>
         a
-        <input type="number" step="1" min="0" name="druhaHraniceStariRoku" value="{druhaHraniceStariRoku}"
-               style="width: 4em">
+        <select name="druhaHraniceUcastiRoku">
+            <option></option>
+            <!-- begin: druhaUcastRoku -->
+            <option value="{rocnik}" {selected}>{rocnik}</option>
+            <!-- end: druhaUcastRoku -->
+        </select>
         roky.
     </p>
 
@@ -37,7 +44,7 @@
         <!-- begin:detaily -->
         <tr>
             <td>
-                <input type="checkbox" name="id[]" value="{id}" checked class="vybrany-uzivatel">
+                <input type="checkbox" name="id[]" value="{id}" checked {disabled} class="vybrany-uzivatel">
             </td>
             <td>
                 <a href="{adminUrl}/uzivatel?pracovni_uzivatel={id}">{id}</a>
@@ -52,7 +59,12 @@
     </table>
     <!-- begin:nekdo -->
     <div>
-        <input type="submit" name="promlcet" value="Promlčet {celkem} účtům">
+        <input type="submit" name="promlcet" value="Promlčet {pocet} účtům">
+        <!-- begin:omezeni -->
+        <div class="warning">Kvůli technickým omezením PHP lze najednou promlčet pouze {pocet} ze
+            <strong>{celkem}</strong> účtů
+        </div>
+        <!-- end:omezeni -->
     </div>
     <!-- end:nekdo -->
     <!-- begin:nikdo -->(žádní uživatelé)<br><!-- end:nikdo -->
