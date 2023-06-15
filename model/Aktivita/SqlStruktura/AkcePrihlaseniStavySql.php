@@ -10,6 +10,6 @@ class AkcePrihlaseniStavySql
 
     public const ID_STAVU_PRIHLASENI = 'id_stavu_prihlaseni';
     public const NAZEV               = 'nazev';
-    public const PLATBA_PROCENT      = 'platba_procent';
+    public const CENA_PROCENT        = 'cena_procent';
 
 }
