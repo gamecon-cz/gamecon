@@ -1793,11 +1793,12 @@ SQL,
         if (!is_numeric($dotaz) && mb_strlen($dotaz) < $opt['min']) {
             return [];
         }
-        $q                   = dbQv($dotaz);
-        $l                   = dbQv($dotaz . '%'); // pro LIKE dotazy
-        $kromeIdUzivatelu    = $opt['kromeIdUzivatelu'];
-        $kromeIdUzivateluSql = dbQv($kromeIdUzivatelu);
-        $pouzeIdsRoli        = [];
+        $hodnotaSql              = dbQv($dotaz);
+        $hodnotaZacinaLikeSql    = dbQv($dotaz . '%'); // pro LIKE dotazy
+        $dalsiSlovoZacinaLikeSql = dbQv('% ' . $dotaz . '%'); // pro LIKE dotazy
+        $kromeIdUzivatelu        = $opt['kromeIdUzivatelu'];
+        $kromeIdUzivateluSql     = dbQv($kromeIdUzivatelu);
+        $pouzeIdsRoli            = [];
         if ($opt['jenSRolemi']) {
             $pouzeIdsRoli = $opt['jenSRolemi'];
         }
@@ -1811,14 +1812,16 @@ SQL,
       " . ($kromeIdUzivatelu ? " AND u.id_uzivatele NOT IN ($kromeIdUzivateluSql)" : '') . "
       " . ($pouzeIdsRoli ? " AND p.id_role IN ($pouzeIdsRoliSql) " : '') . "
       AND (
-          u.id_uzivatele = $q
+          u.id_uzivatele = $hodnotaSql
           " . ((string)(int)$dotaz !== (string)$dotaz // nehledáme ID
                 ? ("
-                  OR login_uzivatele LIKE $l
-                  OR jmeno_uzivatele LIKE $l
-                  OR prijmeni_uzivatele LIKE $l
-                  " . ($opt['mail'] ? " OR email1_uzivatele LIKE $l " : "") . "
-                  OR CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele) LIKE $l
+                  OR login_uzivatele LIKE $hodnotaZacinaLikeSql
+                  OR jmeno_uzivatele LIKE $hodnotaZacinaLikeSql
+                  OR jmeno_uzivatele LIKE $dalsiSlovoZacinaLikeSql -- když účastník napíše do jména jméno i příjmení
+                  OR prijmeni_uzivatele LIKE $hodnotaZacinaLikeSql
+                  OR prijmeni_uzivatele LIKE $dalsiSlovoZacinaLikeSql -- když účastník napíše do příjmení jméno i příjmení
+                  " . ($opt['mail'] ? " OR email1_uzivatele LIKE $hodnotaZacinaLikeSql " : "") . "
+                  OR CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele) LIKE $hodnotaZacinaLikeSql
                   ")
                 : ''
             ) . "
