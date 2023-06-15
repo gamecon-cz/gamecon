@@ -64,30 +64,34 @@ if (post('promlcet')) {
     );
 }
 
-// připraví seznam uživatelů pro promlčení zůstatku
+if (post('pripravit')) {
 // kontrola hodnot ve formuláři
-if (!is_numeric($jednaHraniceZustatku)) {
-    chyba('Zadej první hraniční částku jako celé číslo');
-}
-if ($druhaHraniceZustatku && !is_numeric($druhaHraniceZustatku)) {
-    chyba('Druhou hraniční částku vynech, nebo ji zadej jako celé číslo');
+    if (!is_numeric($jednaHraniceZustatku)) {
+        chyba('Zadej první hraniční částku jako celé číslo');
+    }
+    if ($druhaHraniceZustatku && !is_numeric($druhaHraniceZustatku)) {
+        chyba('Druhou hraniční částku vynech, nebo ji zadej jako celé číslo');
+    }
+
+    if (!is_numeric($jednaHraniceUcastiRoku)) {
+        chyba('Zadej první hranici účasti na GC jako celé kladné číslo');
+    }
+    if ($druhaHraniceUcastiRoku && !is_numeric($druhaHraniceUcastiRoku)) {
+        chyba('Druhou hranici účasti na GC vynech, nebo ji zadej jako celé kladné číslo');
+    }
+
+    if ($jednaHraniceUcastiRoku < 0 || ($druhaHraniceUcastiRoku && $druhaHraniceUcastiRoku < 0)) {
+        chyba('Roky účastí musí být kladné.');
+    }
 }
 
-if (!is_numeric($jednaHraniceUcastiRoku)) {
-    chyba('Zadej první hranici účasti na GC jako celé kladné číslo');
-}
-if ($druhaHraniceUcastiRoku && !is_numeric($druhaHraniceUcastiRoku)) {
-    chyba('Druhou hranici účasti na GC vynech, nebo ji zadej jako celé kladné číslo');
-}
+if (is_numeric($jednaHraniceZustatku) && is_numeric($jednaHraniceUcastiRoku)) {
+// připraví seznam uživatelů pro promlčení zůstatku
 
-if ($jednaHraniceUcastiRoku < 0 || ($druhaHraniceUcastiRoku && $druhaHraniceUcastiRoku < 0)) {
-    chyba('Roky účastí musí být kladné.');
-}
+    $ucast    = Role::TYP_UCAST;
+    $pritomen = Role::VYZNAM_PRITOMEN;
 
-$ucast    = Role::TYP_UCAST;
-$pritomen = Role::VYZNAM_PRITOMEN;
-
-$o = dbQuery(<<<SQL
+    $o = dbQuery(<<<SQL
 SELECT
     u.id_uzivatele AS uzivatel,
     u.jmeno_uzivatele AS jmeno,
@@ -134,58 +138,59 @@ WHERE
         NOT EXISTS(SELECT * FROM uzivatele_role WHERE id_role IN ($5) AND u.id_uzivatele = uzivatele_role.id_uzivatele)
     )
 SQL,
-    [
-        0 => $jednaHraniceZustatku,
-        1 => (string)$druhaHraniceZustatku !== ''
-            ? $druhaHraniceZustatku
-            : null,
-        2 => $jednaHraniceUcastiRoku,
-        3 => (string)$druhaHraniceUcastiRoku !== ''
-            ? $druhaHraniceUcastiRoku
-            : null,
-        4 => $vcetneInternich
-            ? 1
-            : 0,
-        5 => [
-            Role::ORGANIZATOR,
-            Role::CESTNY_ORGANIZATOR,
-            Role::LETOSNI_VYPRAVEC,
-            Role::LETOSNI_PARTNER,
+        [
+            0 => $jednaHraniceZustatku,
+            1 => (string)$druhaHraniceZustatku !== ''
+                ? $druhaHraniceZustatku
+                : null,
+            2 => $jednaHraniceUcastiRoku,
+            3 => (string)$druhaHraniceUcastiRoku !== ''
+                ? $druhaHraniceUcastiRoku
+                : null,
+            4 => $vcetneInternich
+                ? 1
+                : 0,
+            5 => [
+                Role::ORGANIZATOR,
+                Role::CESTNY_ORGANIZATOR,
+                Role::LETOSNI_VYPRAVEC,
+                Role::LETOSNI_PARTNER,
+            ],
         ],
-    ],
-);
+    );
 
-$ids = [];
-$p->assign('adminUrl', URL_ADMIN);
-$maxInputVars = (int)ini_get('max_input_vars'); // omezuje například POST
-$maxUzivatelu = $maxInputVars - 100;
-$poradi       = 1;
-while ($r = mysqli_fetch_assoc($o)) {
-    $p->assign([
-        'id'           => $r['uzivatel'],
-        'jmeno'        => $r['jmeno'],
-        'prijmeni'     => $r['prijmeni'],
-        'stav'         => $r['zustatek'],
-        'ucast'        => $r['ucast'],
-        'kladny_pohyb' => $r['kladny_pohyb'],
-    ]);
-    $p->assign('disabled', $poradi > $maxUzivatelu ? 'disabled' : '');
-    $p->parse('promlceni.detaily');
-    $ids[] = $r['uzivatel'];
-    $poradi++;
-}
-
-if (count($ids) == 0) {
-    $p->parse('promlceni.nikdo');
-} else {
-    $p->assign([
-        'pocet'  => min($maxUzivatelu, count($ids)),
-        'celkem' => count($ids),
-    ]);
-    if ($maxUzivatelu < count($ids)) {
-        $p->parse('promlceni.nekdo.omezeni');
+    $ids = [];
+    $p->assign('adminUrl', URL_ADMIN);
+    $maxInputVars = (int)ini_get('max_input_vars'); // omezuje například POST
+    $maxUzivatelu = $maxInputVars - 100;
+    $poradi       = 1;
+    while ($r = mysqli_fetch_assoc($o)) {
+        $p->assign([
+            'id'           => $r['uzivatel'],
+            'jmeno'        => $r['jmeno'],
+            'prijmeni'     => $r['prijmeni'],
+            'stav'         => $r['zustatek'],
+            'ucast'        => $r['ucast'],
+            'kladny_pohyb' => $r['kladny_pohyb'],
+        ]);
+        $p->assign('disabled', $poradi > $maxUzivatelu ? 'disabled' : '');
+        $p->parse('promlceni.detaily');
+        $ids[] = $r['uzivatel'];
+        $poradi++;
     }
-    $p->parse('promlceni.nekdo');
+
+    if (count($ids) == 0) {
+        $p->parse('promlceni.nikdo');
+    } else {
+        $p->assign([
+            'pocet'  => min($maxUzivatelu, count($ids)),
+            'celkem' => count($ids),
+        ]);
+        if ($maxUzivatelu < count($ids)) {
+            $p->parse('promlceni.nekdo.omezeni');
+        }
+        $p->parse('promlceni.nekdo');
+    }
 }
 
 $soubory = [
