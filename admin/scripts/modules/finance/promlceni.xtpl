@@ -27,7 +27,7 @@
         <input type="submit" name="pripravit" value="Zobrazit uživatele">
         <span class="vcetne">
             <input type="checkbox" name="vcetneInternich" value="1" id="vcetneInternich" {checkedVcetneInternich}>
-            <label for="vcetneInternich">včetně organizátorů, četných organizátorů,vypravěčů a partnerů</label>
+            <label for="vcetneInternich">včetně organizátorů, četných organizátorů, vypravěčů a partnerů</label>
         </span>
     </p>
 
