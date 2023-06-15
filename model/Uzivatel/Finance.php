@@ -14,6 +14,7 @@ use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as AktivitaSql;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -26,7 +27,7 @@ class Finance
 
     private         $stav       = 0;  // celkový výsledný stav uživatele na účtu
     private         $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
-    private         $soucinitelCenyAKtivit;              // součinitel ceny aktivit
+    private         $soucinitelSlevyAktivit;              // součinitel ceny aktivit
     private         $logovat    = true;    // ukládat seznam předmětů?
     private ?\Cenik $cenik      = null;             // instance ceníku
     // tabulky s přehledy
@@ -482,12 +483,12 @@ SQL,
      */
     public function slevaAktivity()
     {
-        return $this->soucinitelAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
+        return $this->soucinitelSlevyAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
     }
 
     public function slevaZaAktivityVProcentech()
     {
-        return 100 - ($this->soucinitelAktivit() * 100);
+        return 100 - ($this->soucinitelSlevyAktivit() * 100);
     }
 
     /**
@@ -578,9 +579,9 @@ SQL,
      * Vrátí součinitel ceny aktivit, tedy slevy uživatele vztahující se k
      * aktivitám. Vrátí hodnotu.
      */
-    private function soucinitelAktivit()
+    private function soucinitelSlevyAktivit()
     {
-        if (!isset($this->soucinitelCenyAKtivit)) {
+        if (!isset($this->soucinitelSlevyAktivit)) {
             // pomocné proměnné
             $sleva = 0; // v procentech
             // výpočet pravidel
@@ -599,9 +600,9 @@ SQL,
             }
             $slevaAktivity = (100 - $sleva) / 100;
             // výsledek
-            $this->soucinitelCenyAKtivit = $slevaAktivity;
+            $this->soucinitelSlevyAktivit = $slevaAktivity;
         }
-        return $this->soucinitelCenyAKtivit;
+        return $this->soucinitelSlevyAktivit;
     }
 
     public function vstupne()
@@ -629,7 +630,7 @@ SQL,
      */
     private function zapoctiAktivity()
     {
-        $soucinitelAktivit     = $this->soucinitelAktivit();
+        $soucinitelAktivit     = $this->soucinitelSlevyAktivit();
         $rok                   = ROCNIK;
         $idUcastnika           = $this->u->id();
         $technicka             = TypAktivity::TECHNICKA; // výpomoc, jejíž cena se započítá jako bonus vypravěče, který může použít na nákup na GC
@@ -642,12 +643,12 @@ SELECT
     aktivita.nazev_akce AS nazev,
     (
         aktivita.cena
-        * (stav_prihlaseni.platba_procent/100)
-        * IF(aktivita.bez_slevy OR aktivita.typ IN ($technicka, $brigadnicka), 1.0, $soucinitelAktivit)
-        * IF(aktivita.typ IN ($technicka, $brigadnicka) AND prihlaseni.id_stavu_prihlaseni IN ($prihlasenAleNedorazil, $pozdeZrusil), 0.0, 1.0) -- zrušit 'storno' pro pozdě odhlášené technické a brigádnické aktivity
+        * (akce_prihlaseni_stavy.cena_procent/100)
+        * IF (aktivita.bez_slevy OR aktivita.typ IN ($technicka, $brigadnicka), 1.0, $soucinitelAktivit)
+        * IF (aktivita.typ IN ($technicka, $brigadnicka) AND prihlaseni.id_stavu_prihlaseni IN ($prihlasenAleNedorazil, $pozdeZrusil), 0.0, 1.0) -- zrušit 'storno' pro pozdě odhlášené technické a brigádnické aktivity
      ) AS cena,
     aktivita.typ,
-    stav_prihlaseni.id_stavu_prihlaseni
+    akce_prihlaseni_stavy.id_stavu_prihlaseni
 FROM (
     SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $idUcastnika
     UNION
@@ -655,19 +656,19 @@ FROM (
 ) AS prihlaseni
 JOIN akce_seznam AS aktivita
     ON prihlaseni.id_akce = aktivita.id_akce
-JOIN akce_prihlaseni_stavy AS stav_prihlaseni
-    ON prihlaseni.id_stavu_prihlaseni = stav_prihlaseni.id_stavu_prihlaseni
+JOIN akce_prihlaseni_stavy
+    ON prihlaseni.id_stavu_prihlaseni = akce_prihlaseni_stavy.id_stavu_prihlaseni
 WHERE rok = $rok
 SQL,
         );
 
         $a = $this->u->koncovkaDlePohlavi();
         while ($r = mysqli_fetch_assoc($o)) {
-            if ($r['typ'] == TypAktivity::TECHNICKA) {
+            if ($r[AktivitaSql::TYP] == TypAktivity::TECHNICKA) {
                 if ($this->u->maPravoNaBonusZaVedeniAktivit()) {
                     $this->bonusZaVedeniAktivit += $r['cena'];
                 }
-            } else if ($r['typ'] == TypAktivity::BRIGADNICKA) {
+            } else if ($r[AktivitaSql::TYP] == TypAktivity::BRIGADNICKA) {
                 if ($this->u->jeBrigadnik()) {
                     $this->brigadnickaOdmena += $r['cena'];
                 }
@@ -680,10 +681,10 @@ SQL,
 
             $poznamka = '';
             if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL) {
-                $poznamka = " <i>(nedorazil$a)</i>";
+                $poznamka = " <i>(nedorazil{$a})</i>";
             }
             if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::POZDE_ZRUSIL) {
-                $poznamka = " <i>(odhlášen$a pozdě)</i>";
+                $poznamka = " <i>(odhlášen{$a} pozdě)</i>";
             }
             if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::SLEDUJICI) {
                 continue;
