@@ -12,6 +12,9 @@
     {info}
     <link rel="icon" href="soubory/blackarrow/_spolecne/favicon.png">
 </head>
+
+{FILE "sablony/blackarrow/gtag.xtpl"}
+
 <body>
 
     {menu}
