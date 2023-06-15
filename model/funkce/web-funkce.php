@@ -10,7 +10,7 @@
  * @return string hláška s případnými substitucemi
  * @todo fixnout málo zadaných argumentů
  */
-function hlaska($nazev, $u = null)
+function hlaska($nazev, $u = null, ...$parametry)
 {
     global $HLASKY, $HLASKY_SUBST;
 
@@ -40,7 +40,7 @@ function hlaska($nazev, $u = null)
     }
 }
 
-function hlaskaMail($nazev, $u = null)
+function hlaskaMail($nazev, $u = null, ...$parametry)
 {
     $out = hlaska($nazev,
         func_num_args() > 1 ? func_get_arg(1) : '',
