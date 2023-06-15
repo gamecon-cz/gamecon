@@ -157,7 +157,7 @@ děkujeme, že ses letos zúčastnil{a} GameConu. Kliknutím na odkaz níže pot
     'nedostaveniSeNaAktivituMail' =>
         'Ahoj,
 
-Zdá se, že jsi nedorazil{a} na přihlášenou aktivitu…
+Zdá se, že jsi nedorazil{a} na přihlášenou aktivitu %1
 
 Chápeme, že se může stát spousta věcí, které změní situaci, a ty se nemůžeš/nechceš zúčastnit. Moc tě ale prosíme:
 
