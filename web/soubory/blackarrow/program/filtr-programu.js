@@ -70,7 +70,10 @@ document.addEventListener('programNacteny', function () {
         if (linieElement.querySelector('.aktivita:not([style*="display:none"]):not([style*="display: none"])')) {
           return // nějaká aktivita se v linii zobrazuje, nechceme placeholder
         }
-        linieElement.querySelector('.placeholder-pro-roztazeni-radku').style.display = ''
+        var placeholderElement = linieElement.querySelector('.placeholder-pro-roztazeni-radku')
+        if (placeholderElement) {
+          placeholderElement.style.display = ''
+        }
       })
     }
   }
