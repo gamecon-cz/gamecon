@@ -61,25 +61,19 @@ $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
 
 // pomocná funkce pro zobrazení aktivního odkazu
 $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
-    $cssTridy = 'program_den';
+    $cssTridy[] = 'program_den';
 
     if ($urlOdkazu == $url->cela() || $urlOdkazu == $alternativniUrl) {
-        $cssTridy .= ' program_den-aktivni';
+        $cssTridy[] = 'program_den-aktivni';
     }
 
-    return 'href="' . $urlOdkazu . '" class="' . $cssTridy . '"';
+    return 'href="' . $urlOdkazu . '" class="' . implode(' ', $cssTridy) . '"';
 };
 
 $zobrazitMujProgramOdkaz = isset($u);
 
+ob_start();
 ?>
-
-<style>
-    /* na stránce programu nedělat sticky menu, aby bylo maximum místa pro progam */
-    .menu {
-        position: relative; /* relative, aby fungoval z-index */
-    }
-</style>
 
 <!-- relativní obal kvůli náhledu -->
 <div style="position: relative">
@@ -90,7 +84,7 @@ $zobrazitMujProgramOdkaz = isset($u);
         <?php if ($u) { ?>
             <!-- zatim nefunguje            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>-->
         <?php } ?>
-        <h1>Program <?= ROCNIK ?></h1>
+        <h1>Program <?= $systemoveNastaveni->rocnik() ?></h1>
         <div class="program_dny">
             <?php foreach ($dny as $denSlug => $den) { ?>
                 <a <?= $aktivni('program/' . $denSlug) ?>><?= $den->format('l d.n.') ?></a>
@@ -141,16 +135,41 @@ $zobrazitMujProgramOdkaz = isset($u);
         <script type="text/javascript" src="soubory/bootstrap.bundle.5.1.3.js"></script>
         <div class="programPosuv_obal2">
             <div class="programPosuv_obal">
-                <?php $program->tisk(); ?>
+                <?php
+                $ostatniMoznosti = [];
+                if ($zobrazitMujProgramOdkaz) {
+                    $ostatniMoznosti[] = [Program::OSOBNI => true];
+                }
+                foreach ($dny as $denSlugZpracovavany => $denZpracovavany) {
+                    $ostatniMoznosti[] = [Program::DEN => $denZpracovavany->format('z')];
+                }
+                foreach ($ostatniMoznosti as $ostatniMoznost) {
+                    $kodNastaveni     = key($ostatniMoznost);
+                    $hodnotaNastaveni = reset($ostatniMoznost);
+                    $display          = ($nastaveni[$kodNastaveni] ?? null) == $hodnotaNastaveni
+                        ? 'inherit'
+                        : 'none';
+                    $program->nastavHodnotuNastaveni($kodNastaveni, $hodnotaNastaveni);
+                    echo "<div style='display: $display'>";
+                    $program->tisk();
+                    echo '</div>';
+                }
+                ?>
             </div>
         </div>
     </div>
-
-    <script type="text/javascript">
-        document.dispatchEvent(new Event('programNacteny'))
-    </script>
-
 </div>
+
+<style>
+    /* na stránce programu nedělat sticky menu, aby bylo maximum místa pro progam */
+    .menu {
+        position: relative; /* relative, aby fungoval z-index */
+    }
+</style>
+
+<script type="text/javascript">
+    document.dispatchEvent(new Event('programNacteny'))
+</script>
 
 <div style="height: 70px"></div>
 

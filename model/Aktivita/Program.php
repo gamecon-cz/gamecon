@@ -166,6 +166,11 @@ class Program
         $pdf->Output();
     }
 
+    public function nastavHodnotuNastaveni(string $klic, $hodnota)
+    {
+        $this->nastaveni[$klic] = $hodnota;
+    }
+
     /**
      * Přímý tisk programu na výstup
      */
