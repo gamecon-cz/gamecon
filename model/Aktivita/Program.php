@@ -166,9 +166,11 @@ class Program
         $pdf->Output();
     }
 
-    public function nastavHodnotuNastaveni(string $klic, $hodnota)
+    public function prepniProgram(string $klic, $hodnota)
     {
-        $this->nastaveni[$klic] = $hodnota;
+        $this->nastaveni[self::OSOBNI] = false;
+        $this->nastaveni[self::DEN]    = null;
+        $this->nastaveni[$klic]        = $hodnota;
     }
 
     /**
