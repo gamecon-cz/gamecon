@@ -151,7 +151,7 @@ ob_start();
                     $htmlClass        = ($nastaveni[$kodNastaveni] ?? null) == $hodnotaNastaveni
                         ? 'program_den_detail-aktivni'
                         : '';
-                    $program->nastavHodnotuNastaveni($kodNastaveni, $hodnotaNastaveni);
+                    $program->prepniProgram($kodNastaveni, $hodnotaNastaveni);
                     echo "<div class='program_den_detail {$htmlClass}' id='programDenDetail-{$kodProgramu}'>";
                     $program->tisk();
                     echo '</div>';
