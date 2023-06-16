@@ -804,6 +804,11 @@ SQL,
         return $this->maRoli(Role::LETOSNI_VYPRAVEC);
     }
 
+    public function jeVypravecskaSkupina(): bool
+    {
+        return $this->maRoli(Role::VYPRAVECSKA_SKUPINA);
+    }
+
     public function jeOrganizator(): bool
     {
         return Role::obsahujiOrganizatora($this->dejIdsRoli());
@@ -1577,13 +1582,13 @@ SQL,
         // TODO přenačíst aktuálního uživatele
     }
 
-    public function status(bool $sklonovatDlePohlavi = true)
+    public function status(bool $sklonovatDlePohlavi = true): string
     {
         return trim(strip_tags($this->statusHtml($sklonovatDlePohlavi)));
     }
 
     /** Vrátí html formátovaný „status“ uživatele (pro interní informaci) */
-    public function statusHtml(bool $sklonovatDlePohlavi = true)
+    public function statusHtml(bool $sklonovatDlePohlavi = true): string
     {
         $ka     = $sklonovatDlePohlavi
             ? $this->koncovkaDlePohlavi('ka')
@@ -1594,6 +1599,9 @@ SQL,
         }
         if ($this->jeVypravec()) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
+        }
+        if ($this->jeVypravecskaSkupina()) {
+            $status[] = '<span style="color:rgba(0,0,255,0.57)">Vypravěčská skupina</span>';
         }
         if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
