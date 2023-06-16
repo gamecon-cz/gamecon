@@ -50,6 +50,7 @@ $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-n
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program/filtr-programu.js');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program/program-prepnuti.js');
 
 $zacatekPristiVlnyOd       = $systemoveNastaveni->pristiVlnaKdy();
 $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
@@ -63,7 +64,8 @@ $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
 $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
     $cssTridy[] = 'program_den';
 
-    if ($urlOdkazu == $url->cela() || $urlOdkazu == $alternativniUrl) {
+    $urlOdkazuBezHashe = substr($urlOdkazu, 0, strpos($urlOdkazu, '#') ?: null);
+    if ($urlOdkazuBezHashe == $url->cela() || $urlOdkazuBezHashe == $alternativniUrl) {
         $cssTridy[] = 'program_den-aktivni';
     }
 
@@ -87,10 +89,10 @@ ob_start();
         <h1>Program <?= $systemoveNastaveni->rocnik() ?></h1>
         <div class="program_dny">
             <?php foreach ($dny as $denSlug => $den) { ?>
-                <a <?= $aktivni('program/' . $denSlug) ?>><?= $den->format('l d.n.') ?></a>
+                <a <?= $aktivni("program/{$denSlug}#{$denSlug}") ?>><?= $den->format('l d.n.') ?></a>
             <?php } ?>
             <?php if ($zobrazitMujProgramOdkaz) { ?>
-                <a <?= $aktivni('program/muj') ?>>můj program</a>
+                <a <?= $aktivni('program/muj#muj') ?>>můj program</a>
             <?php } ?>
         </div>
     </div>
@@ -138,19 +140,19 @@ ob_start();
                 <?php
                 $ostatniMoznosti = [];
                 if ($zobrazitMujProgramOdkaz) {
-                    $ostatniMoznosti[] = [Program::OSOBNI => true];
+                    $ostatniMoznosti['muj'] = [Program::OSOBNI => true];
                 }
                 foreach ($dny as $denSlugZpracovavany => $denZpracovavany) {
-                    $ostatniMoznosti[] = [Program::DEN => $denZpracovavany->format('z')];
+                    $ostatniMoznosti[$denSlugZpracovavany] = [Program::DEN => $denZpracovavany->format('z')];
                 }
-                foreach ($ostatniMoznosti as $ostatniMoznost) {
+                foreach ($ostatniMoznosti as $kodProgramu => $ostatniMoznost) {
                     $kodNastaveni     = key($ostatniMoznost);
                     $hodnotaNastaveni = reset($ostatniMoznost);
-                    $display          = ($nastaveni[$kodNastaveni] ?? null) == $hodnotaNastaveni
-                        ? 'inherit'
-                        : 'none';
+                    $htmlClass        = ($nastaveni[$kodNastaveni] ?? null) == $hodnotaNastaveni
+                        ? 'program_den_detail-aktivni'
+                        : '';
                     $program->nastavHodnotuNastaveni($kodNastaveni, $hodnotaNastaveni);
-                    echo "<div style='display: $display'>";
+                    echo "<div class='program_den_detail {$htmlClass}' id='programDenDetail-{$kodProgramu}'>";
                     $program->tisk();
                     echo '</div>';
                 }
@@ -187,6 +189,10 @@ ob_start();
     )
 
     programPosuv(document.querySelector('.programPosuv_obal2'))
+
+    Array.from(document.querySelectorAll('.program_den')).forEach(function (zalozkaElement) {
+        programPrepnuti(zalozkaElement)
+    })
 
     <?php if ($zacatekPristiVlnyZaSekund !== null && $zacatekPristiVlnyZaSekund > 3) { // nebudeme auto-refreshovat lidem co mačkají F5
     $zacatekPristiVlnyZaMilisekund = $zacatekPristiVlnyZaSekund * 1000;
