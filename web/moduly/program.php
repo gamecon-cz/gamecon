@@ -49,6 +49,7 @@ foreach ($program->cssUrls() as $cssUrl) {
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/cookies-tools.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program/filtr-programu.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program/program-prepnuti.js');
 
@@ -61,15 +62,25 @@ $legendaText   = Stranka::zUrl('program-legenda-text')->html();
 $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
 
 // pomocná funkce pro zobrazení aktivního odkazu
-$aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
+$aktivni = function ($urlOdkazu) use ($url, $alternativniUrl): string {
     $cssTridy[] = 'program_den';
+
+    $id   = null;
+    $hash = substr($urlOdkazu, strpos($urlOdkazu, '#') + 1);
+    if ($hash) {
+        $id = "programDen-{$hash}";
+    }
 
     $urlOdkazuBezHashe = substr($urlOdkazu, 0, strpos($urlOdkazu, '#') ?: null);
     if ($urlOdkazuBezHashe == $url->cela() || $urlOdkazuBezHashe == $alternativniUrl) {
         $cssTridy[] = 'program_den-aktivni';
     }
 
-    return 'href="' . $urlOdkazu . '" class="' . implode(' ', $cssTridy) . '"';
+    $html = 'href="' . $urlOdkazu . '" class="' . implode(' ', $cssTridy) . '"';
+    if ($id) {
+        $html .= " id='{$id}'";
+    }
+    return $html;
 };
 
 $zobrazitMujProgramOdkaz = isset($u);
@@ -169,10 +180,6 @@ ob_start();
     }
 </style>
 
-<script type="text/javascript">
-    document.dispatchEvent(new Event('programNacteny'))
-</script>
-
 <div style="height: 70px"></div>
 
 <script type="text/javascript">
@@ -191,7 +198,7 @@ ob_start();
     programPosuv(document.querySelector('.programPosuv_obal2'))
 
     Array.from(document.querySelectorAll('.program_den')).forEach(function (zalozkaElement) {
-        programPrepnuti(zalozkaElement)
+        initializujProgramPrepnuti(zalozkaElement)
     })
 
     <?php if ($zacatekPristiVlnyZaSekund !== null && $zacatekPristiVlnyZaSekund > 3) { // nebudeme auto-refreshovat lidem co mačkají F5
@@ -203,4 +210,6 @@ ob_start();
     }, <?= $zacatekPristiVlnyZaMilisekund + 2000 /* radši s rezervou, ať slavnostně neobnovíme stránku kde ještě nic není */ ?>)
     <?php }
     } ?>
+
+    document.dispatchEvent(new Event('programNacteny'))
 </script>
