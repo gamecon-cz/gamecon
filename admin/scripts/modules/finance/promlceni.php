@@ -18,11 +18,8 @@ $p = new XTemplate(__DIR__ . '/promlceni.xtpl');
 
 $jednaHraniceZustatku = post('jednaHraniceZustatku');
 $druhaHraniceZustatku = post('druhaHraniceZustatku');
-
-$jednaHraniceUcastiRoku = post('jednaHraniceUcastiRoku');
-$druhaHraniceUcastiRoku = post('druhaHraniceUcastiRoku');
-
-$vcetneInternich = (bool)post('vcetneInternich');
+$ucastDoRoku          = post('ucastDoRoku');
+$vcetneInternich      = (bool)post('vcetneInternich');
 
 // provede promlčení zůstatku
 if (post('promlcet')) {
@@ -73,19 +70,15 @@ if (post('pripravit')) {
         chyba('Druhou hraniční částku vynech, nebo ji zadej jako celé číslo');
     }
 
-    if (!is_numeric($jednaHraniceUcastiRoku)) {
-        chyba('Zadej první hranici účasti na GC jako celé kladné číslo');
+    if (!is_numeric($ucastDoRoku)) {
+        chyba('Zadej poslední ročník účasti na GC jako celé kladné číslo');
     }
-    if ($druhaHraniceUcastiRoku && !is_numeric($druhaHraniceUcastiRoku)) {
-        chyba('Druhou hranici účasti na GC vynech, nebo ji zadej jako celé kladné číslo');
-    }
-
-    if ($jednaHraniceUcastiRoku < 0 || ($druhaHraniceUcastiRoku && $druhaHraniceUcastiRoku < 0)) {
-        chyba('Roky účastí musí být kladné.');
+    if ($ucastDoRoku < 0) {
+        chyba('Rok poslední účasti musí být kladný.');
     }
 }
 
-if (is_numeric($jednaHraniceZustatku) && is_numeric($jednaHraniceUcastiRoku)) {
+if (is_numeric($jednaHraniceZustatku) && is_numeric($ucastDoRoku)) {
 // připraví seznam uživatelů pro promlčení zůstatku
 
     $ucast    = Role::TYP_UCAST;
@@ -125,12 +118,9 @@ WHERE
             FROM platne_role_uzivatelu
             JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
             WHERE platne_role_uzivatelu.id_uzivatele = u.id_uzivatele
-                AND role.typ_role = '$ucast' AND role.vyznam_role = '$pritomen'
-                AND IF (
-                    $3 IS NOT NULL,
-                    role.rocnik_role BETWEEN LEAST($2, $3) AND GREATEST($2, $3),
-                    role.rocnik_role >= $2
-                )
+                AND role.typ_role = '$ucast'
+                AND role.vyznam_role = '$pritomen'
+            HAVING MAX(role.rocnik_role) <= $2
     )
     AND IF (
         $4,
@@ -143,10 +133,7 @@ SQL,
             1 => (string)$druhaHraniceZustatku !== ''
                 ? $druhaHraniceZustatku
                 : null,
-            2 => $jednaHraniceUcastiRoku,
-            3 => (string)$druhaHraniceUcastiRoku !== ''
-                ? $druhaHraniceUcastiRoku
-                : null,
+            2 => $ucastDoRoku,
             4 => $vcetneInternich
                 ? 1
                 : 0,
@@ -211,27 +198,18 @@ $p->assign([
         : '',
 ]);
 
-$vybranaJednaUcastRoku = isset($jednaHraniceUcastiRoku)
-    ? (int)$jednaHraniceUcastiRoku
+$vybranaUcastRoku = isset($ucastDoRoku)
+    ? (int)$ucastDoRoku
     : null;
 foreach (range($systemoveNastaveni->rocnik(), 2009) as $rocnik) {
     $p->assign('rocnik', $rocnik);
     $p->assign(
         'selected',
-        $rocnik === $vybranaJednaUcastRoku
+        $rocnik === $vybranaUcastRoku
             ? 'selected'
             : '',
     );
-    $p->parse('promlceni.jednaUcastRoku');
-}
-
-$vybranaDruhaUcastRoku = isset($druhaHraniceUcastiRoku)
-    ? (int)$druhaHraniceUcastiRoku
-    : null;
-foreach (range($systemoveNastaveni->rocnik(), 2009) as $rocnik) {
-    $p->assign('rocnik', $rocnik);
-    $p->assign('selected', $rocnik === $vybranaDruhaUcastRoku);
-    $p->parse('promlceni.druhaUcastRoku');
+    $p->parse('promlceni.ucastDoRoku');
 }
 
 $p->parse('promlceni');

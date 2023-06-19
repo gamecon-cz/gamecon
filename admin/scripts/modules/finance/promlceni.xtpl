@@ -7,20 +7,12 @@
                style="width: 5em">
         a
         <input type="number" step="1" name="druhaHraniceZustatku" value="{druhaHraniceZustatku}" style="width: 5em"> Kč,
-        jejichž poslední účast na GC byla naposledy <span class="hinted">mezi<span class="hint">Nech jednu z hodnot prázdnou pro "nekonečno".</span></span>
-        <select name="jednaHraniceUcastiRoku">
-            <!-- begin: jednaUcastRoku -->
+        jejichž poslední účast na GC byla naposledy
+        <select name="ucastDoRoku">
+            <!-- begin: ucastDoRoku -->
             <option value="{rocnik}" {selected}>{rocnik}</option>
-            <!-- end: jednaUcastRoku -->
+            <!-- end: ucastDoRoku -->
         </select>
-        a
-        <select name="druhaHraniceUcastiRoku">
-            <option></option>
-            <!-- begin: druhaUcastRoku -->
-            <option value="{rocnik}" {selected}>{rocnik}</option>
-            <!-- end: druhaUcastRoku -->
-        </select>
-        roky.
     </p>
 
     <p>
