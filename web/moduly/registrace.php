@@ -14,12 +14,13 @@
 use Gamecon\Uzivatel\Registrace;
 
 /** @var Uzivatel|null $u */
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $this->blackarrowStyl(true);
 $this->bezPaticky(true);
 $this->info()->nazev('Registrace');
 
-$registrace = new Registrace($u);
+$registrace = new Registrace($systemoveNastaveni, $u);
 
 $registrace->zpracujRegistraci();
 $registrace->zpracujUpravu();

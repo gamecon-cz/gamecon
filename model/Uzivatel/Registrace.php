@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\Uzivatel;
 
 use Chyby;
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Stat;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
 use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
 
@@ -18,7 +18,10 @@ class Registrace
     private string|null|array $formData = 'undefined';
     private null|Chyby        $chyby    = null;
 
-    public function __construct(private ?Uzivatel $u)
+    public function __construct(
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+        private ?Uzivatel                   $u,
+    )
     {
     }
 
@@ -97,7 +100,7 @@ class Registrace
         string $nazev,
         string $typ,
         string $klic,
-        ?bool   $required = null,
+        ?bool  $required = null,
         string $inputCss = '',
         string $predrazeneHtml = '',
         string $placeholder = ' ', // schválně mezera
@@ -105,7 +108,7 @@ class Registrace
     {
         $predvyplneno = $this->formData()[$klic] ?? '';
 
-        $required ??= array_key_exists($klic, Uzivatel::povinneUdajeProRegistraci());
+        $required       ??= array_key_exists($klic, Uzivatel::povinneUdajeProRegistraci());
         $requiredHtml   = $required || $typ == 'date'
             ? 'required'
             : '';
@@ -178,7 +181,7 @@ class Registrace
                     Již mám účet <a href="prihlaseni">přihlásit se</a>
                 </div>
 
-                <?php if (!REG_GC) { ?>
+                <?php if ($this->systemoveNastaveni->zacatekRegistraciUcastniku() > $this->systemoveNastaveni->ted()) { ?>
                     <div class="formular_infobox">
                         <b>Přihlašování na GameCon se spustí <?= $this->zacatekPrihlasovani() ?></b>
                         Můžeš si předem vytvořit účet a přihlašování ti připomeneme e-mailem.
@@ -298,7 +301,7 @@ class Registrace
 
     private function zacatekPrihlasovani(): string
     {
-        return (new DateTimeCz(REG_GC_OD))->format('j.&#160;n. \v\e H:i');
+        return $this->systemoveNastaveni->zacatekRegistraciUcastniku()->format('j.&#160;n. Y \v\e H:i');
     }
 
     private function souhlasilSeZpracovanimOsobnichUdaju(): bool
