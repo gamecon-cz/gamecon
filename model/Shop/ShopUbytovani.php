@@ -256,7 +256,7 @@ SQL,
             }
             $this->mozneDny[$p[Sql::UBYTOVANI_DEN]][$nazev] = $p;
         }
-        $this->registrace = new Registrace($ubytovany);
+        $this->registrace = new Registrace($this->systemoveNastaveni, $ubytovany);
     }
 
     /**
