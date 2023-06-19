@@ -190,7 +190,7 @@ class Registrace
             <?php } ?>
 
             <div class="formular_bydlisteTooltip">
-                <div class="tooltip">
+                <div class="gc_tooltip">
                     Proč potřebujeme osobní údaje?
                     <div class="tooltip_obsah">
                         Vyplň prosím následující údaje o sobě. Nejsme žádný velký bratr, ale potřebujeme je,
@@ -228,7 +228,7 @@ class Registrace
             </div>
 
             <div class="formular_bydlisteTooltip" style="margin-top: 15px">
-                <div class="tooltip">
+                <div class="gc_tooltip">
                     Shrnutí souhlasu
                     <div class="tooltip_obsah">
                         Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je předáme jen těm, komu to bude
@@ -254,7 +254,7 @@ class Registrace
                     <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni">
                     <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
                 <?php } else { ?>
-                    <div class="tooltip">
+                    <div class="gc_tooltip">
                         <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni"
                                disabled>
                         <div class="tooltip_obsah">
@@ -373,7 +373,7 @@ class Registrace
         if ($tooltip !== '') {
             $tooltipHtml = <<<HTML
 <div style="float: right">
-    <div class="tooltip" style="position: relative; top: -4em;">
+    <div class="gc_tooltip" style="position: relative; top: -4em;">
         ℹ️
         <div class="tooltip_obsah" style="right: -247px; top: 2em;">
             Vzhledem k zákonným povinnostem bohužel musíme odevzdávat seznam ubytovaných s následujícími osobními údaji. Chybné vyplnění následujících polí může u infopultu vést k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních! (Případné stížnosti prosíme rovnou vašim politickým zástupcům.)
