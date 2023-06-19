@@ -99,6 +99,11 @@ if ($m->bezStranky()) {
 }
 
 $t = new XTemplate(__DIR__ . '/sablony/blackarrow/index.xtpl');
+
+$m->pridejCssSoubor(__DIR__ . '/soubory/bootstrap.5.1.3.css');
+$m->pridejCssSoubor(__DIR__ . '/soubory/bootstrap.fix.css');
+$t->parseEach($m->preCssUrls(), 'url', 'index.extraPreCss');
+
 $t->assign([
     'css'          => perfectcache('soubory/blackarrow/*/*.less'),
     'jsVyjimkovac' => Vyjimkovac::js(URL_WEBU),

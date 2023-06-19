@@ -22,6 +22,7 @@ class Modul
     protected $bezPaticky     = false;
     protected $blackarrowStyl = false;
     protected $info;
+    protected $preCssUrls     = [];
     protected $cssUrls        = [];
     protected $jsUrls         = [];
 
@@ -81,6 +82,14 @@ class Modul
         return $this->blackarrowStyl;
     }
 
+    /**
+     * @return array<string>
+     */
+    public function preCssUrls(): array
+    {
+        return $this->preCssUrls;
+    }
+
     public function cssUrls()
     {
         return $this->cssUrls;
@@ -117,15 +126,29 @@ class Modul
         $this->cssUrls[] = $url;
     }
 
+    public function pridejCssSoubor($cesta)
+    {
+        $this->cssUrls[] = $this->urlAssetu($cesta);
+    }
+
+    public function pridejPreCssSoubor($cesta)
+    {
+        $this->preCssUrls[] = $this->urlAssetu($cesta);
+    }
+
     public function pridejJsSoubor($cesta)
     {
-        $cestaKSouboru  = strpos(realpath($cesta), realpath(WWW)) === 0
+        $this->jsUrls[] = $this->urlAssetu($cesta);
+    }
+
+    private function urlAssetu(string $cesta)
+    {
+        $cestaKSouboru = strpos(realpath($cesta), realpath(WWW)) === 0
             ? $cesta
             : WWW . '/' . $cesta;
-        $verze          = md5_file($cestaKSouboru);
-        $cestaNaWebu    = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
-        $url            = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
-        $this->jsUrls[] = $url;
+        $verze         = md5_file($cestaKSouboru);
+        $cestaNaWebu   = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
+        return URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
     }
 
     /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */

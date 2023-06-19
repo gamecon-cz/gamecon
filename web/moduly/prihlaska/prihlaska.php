@@ -7,6 +7,7 @@ use Gamecon\Pravo;
 
 /**
  * @see web/sablony/blackarrow/prihlaska.xtpl
+ * @var Modul $this
  * @var \Gamecon\XTemplate\XTemplate $t
  * @var Uzivatel $u
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
@@ -212,6 +213,7 @@ $t->assign([
     'vstupne'                         => $shop->vstupneHtml(),
     'pomoc'                           => $pomoc->html(),
     'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejpozdejiZaplatitDo()->format(DateTimeCz::FORMAT_DATUM_LETOS),
+    'rocnik', $systemoveNastaveni->rocnik(),
 ]);
 
 $t->parse($u->gcPrihlasen()

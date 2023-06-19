@@ -2,3 +2,15 @@
   box-sizing: content-box;
   font-family: Gilroy, sans-serif;
 }
+
+a {
+  color: #E22630;
+}
+
+a:hover {
+  color: #ff000c;
+}
+
+.menu_obal2 a:hover, .program_dny a:hover {
+  color: inherit;
+}
