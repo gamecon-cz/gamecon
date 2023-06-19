@@ -34,7 +34,10 @@
       </label>
     </td>
     <td class="technicke nazev hinted" style="width: 45%">
-      <label for="hodnota-{klic}">{nazev}</label>
+      <label for="hodnota-{klic}">
+          {nazev}
+          <a href="#{klic}" class="lokalni-odkaz float-right">#</a>
+      </label>
       <div class="hint">
         <strong>{klic}</strong>
         <div id="popis-{klic}">

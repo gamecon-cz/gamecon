@@ -49,6 +49,14 @@ document.addEventListener('DOMContentLoaded', function () {
     zablikej(zvyrazniElement)
   })
 
+  Array.from(document.getElementsByClassName('lokalni-odkaz')).forEach(function (element) {
+    element.addEventListener('click', function () {
+      window.location.hash=this.hash
+      zablikej(document.getElementById(this.hash.replace('#', '')))
+      event.preventDefault()
+    })
+  })
+
 })
 
 class SystemoveNastaveni {
