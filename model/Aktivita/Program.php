@@ -33,8 +33,6 @@ class Program
     public const SKUPINY_LINIE     = 'linie';
     public const SKUPINY_MISTNOSTI = 'mistnosti';
 
-    /** @var Uzivatel|null */
-    private            $u              = null; // aktuální uživatel v objektu
     private            $posledniVydana = null;
     private            $dbPosledni     = null;
     private            $aktFronta      = [];
@@ -69,13 +67,10 @@ class Program
      */
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
-        Uzivatel                            $uzivatel = null,
+        private readonly ?Uzivatel          $prihlasovany = null,
         array                               $nastaveni = null,
     )
     {
-        if ($uzivatel instanceof Uzivatel) {
-            $this->u = $uzivatel;
-        }
         if (is_array($nastaveni)) {
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
         }
@@ -115,7 +110,7 @@ class Program
         $pdf->AddPage();
         $pdf->AddFont('DejaVu', '', 'DejaVuSansCondensed.ttf', true);
         $pdf->SetFont('DejaVu', '', 20);
-        $pdf->Cell(0, 10, "Můj program (" . $this->u->nickNeboKrestniJmeno() . ")", 0, 1, 'L');
+        $pdf->Cell(0, 10, "Můj program (" . $this->prihlasovany->nickNeboKrestniJmeno() . ")", 0, 1, 'L');
         $pdf->SetFillColor(202, 204, 206);
         $pdf->SetFont('DejaVu', '', 12);
 
@@ -126,7 +121,7 @@ class Program
             if ((count($this->aktivityUzivatele) > 0)) {
                 $pocetPrihlasenychAktivit = 0;
                 foreach ($this->aktivityUzivatele as $key => $akt) {
-                    if ($akt['obj']->prihlasen($this->u)) {
+                    if ($akt['obj']->prihlasen($this->prihlasovany)) {
                         $pocetPrihlasenychAktivit += 1;
                     }
                 }
@@ -141,15 +136,15 @@ class Program
                                 $start = $cas;
                                 $konec = $cas + $akt['del'];
 
-                                if ($this->u->prihlasenJakoSledujici($akt['obj']) ||
-                                    $akt['obj']->prihlasen($this->u) || $this->u->organizuje($akt['obj'])) {
+                                if ($this->prihlasovany->prihlasenJakoSledujici($akt['obj']) ||
+                                    $akt['obj']->prihlasen($this->prihlasovany) || $this->prihlasovany->organizuje($akt['obj'])) {
 
                                     $pdf->Cell(30, 10, $start . ":00 - " . $konec . ":00", 1);
-                                    if ($this->u->prihlasenJakoSledujici($akt['obj'])) {
+                                    if ($this->prihlasovany->prihlasenJakoSledujici($akt['obj'])) {
                                         $pdf->Cell(100, 10, "(n) " . $akt['obj']->nazev(), 1);
-                                    } else if ($akt['obj']->prihlasen($this->u)) {
+                                    } else if ($akt['obj']->prihlasen($this->prihlasovany)) {
                                         $pdf->Cell(100, 10, $akt['obj']->nazev(), 1);
-                                    } else if ($this->u->organizuje($akt['obj'])) {
+                                    } else if ($this->prihlasovany->organizuje($akt['obj'])) {
                                         $pdf->Cell(100, 10, "(o) " . $akt['obj']->nazev(), 1);
                                     }
                                     $pdf->Cell(60, 10, mb_ucfirst($akt['obj']->typ()->nazev()), 1, 1);
@@ -191,12 +186,12 @@ class Program
      */
     public function zpracujPost(?Uzivatel $prihlasujici)
     {
-        if (!$this->u) {
+        if (!$this->prihlasovany) {
             return;
         }
 
-        Aktivita::prihlasovatkoZpracuj($this->u, $prihlasujici);
-        Aktivita::vyberTeamuZpracuj($this->u, $prihlasujici);
+        Aktivita::prihlasovatkoZpracuj($this->prihlasovany, $prihlasujici);
+        Aktivita::vyberTeamuZpracuj($this->prihlasovany, $prihlasujici);
     }
 
     ////////////////////
@@ -327,19 +322,19 @@ class Program
 
         // určení css tříd
         $classes = [];
-        if ($this->u && $aktivitaObjekt->prihlasen($this->u)) {
+        if ($this->prihlasovany && $aktivitaObjekt->prihlasen($this->prihlasovany)) {
             $classes[] = 'prihlasen';
         }
-        if ($this->u && $this->u->organizuje($aktivitaObjekt)) {
+        if ($this->prihlasovany && $this->prihlasovany->organizuje($aktivitaObjekt)) {
             $classes[] = 'organizator';
         }
-        if ($this->u && $this->u->prihlasenJakoSledujici($aktivitaObjekt)) {
+        if ($this->prihlasovany && $this->prihlasovany->prihlasenJakoSledujici($aktivitaObjekt)) {
             $classes[] = 'sledujici';
         }
         if ($aktivitaObjekt->vDalsiVlne()) {
             $classes[] = 'vDalsiVlne';
         }
-        if (!$aktivitaObjekt->volnoPro($this->u)) {
+        if (!$aktivitaObjekt->volnoPro($this->prihlasovany)) {
             $classes[] = 'plno';
         }
         if ($aktivitaObjekt->vBudoucnu()) {
@@ -390,7 +385,7 @@ HTML;
             if ($this->nastaveni[self::INTERNI]) {
                 $parametry |= Aktivita::INTERNI;
             }
-            echo ' ' . $aktivitaObjekt->prihlasovatko($this->u, $parametry);
+            echo ' ' . $aktivitaObjekt->prihlasovatko($this->prihlasovany, $parametry);
         } else if (defined('TESTING') && TESTING) {
             echo $aktivitaObjekt->formatujDuvodProTesting('DrD nemá povolené přihlašování');
         }
@@ -401,7 +396,7 @@ HTML;
 
         // případný formulář pro výběr týmu
         if ($this->nastaveni[self::TEAM_VYBER]) {
-            echo $aktivitaObjekt->vyberTeamu($this->u);
+            echo $aktivitaObjekt->vyberTeamu($this->prihlasovany);
         }
 
         // Místnost v programu pro orgy
@@ -542,16 +537,16 @@ HTML;
         // u osobního programu přeskočit aktivity, kde není přihlášen
         if ($this->nastaveni[self::OSOBNI]) {
             if (
-                !$aktivita->prihlasen($this->u) &&
-                !$this->u->prihlasenJakoSledujici($aktivita) &&
-                !$this->u->organizuje($aktivita)
+                !$aktivita->prihlasen($this->prihlasovany) &&
+                !$this->prihlasovany->prihlasenJakoSledujici($aktivita) &&
+                !$this->prihlasovany->organizuje($aktivita)
             ) {
                 return $this->nactiDalsiAktivitu($iterator);
             }
         }
 
         // přeskočit případné speciální (neviditelné) aktivity
-        if ($aktivita->viditelnaPro($this->u) || $this->nastaveni[self::INTERNI]) {
+        if ($aktivita->viditelnaPro($this->prihlasovany) || $this->nastaveni[self::INTERNI]) {
             return $a;
         } else {
             return $this->nactiDalsiAktivitu($iterator);

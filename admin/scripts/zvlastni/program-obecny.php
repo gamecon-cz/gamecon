@@ -2,9 +2,10 @@
 
 use Gamecon\Aktivita\Program;
 
+/** @var Uzivatel|null $u */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
-$program = new Program(systemoveNastaveni: $systemoveNastaveni);
+$program = new Program(prihlasovany: null, systemoveNastaveni: $systemoveNastaveni);
 
 ?>
 <!DOCTYPE html>

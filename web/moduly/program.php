@@ -40,7 +40,11 @@ if ($url->cast(1) === 'muj') {
 
 $this->info()->nazev($title);
 
-$program = new Program($systemoveNastaveni, $u, $nastaveni);
+$program = new Program(
+    systemoveNastaveni: $systemoveNastaveni,
+    prihlasovany: $u,
+    nastaveni: $nastaveni
+);
 $program->zpracujPost($u);
 
 foreach ($program->cssUrls() as $cssUrl) {

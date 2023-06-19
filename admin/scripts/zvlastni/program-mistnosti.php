@@ -2,9 +2,11 @@
 
 use Gamecon\Aktivita\Program;
 
+/** @var Uzivatel|null $u */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $program = new Program(
+    prihlasovany: null,
     systemoveNastaveni: $systemoveNastaveni,
     nastaveni: [
         Program::INTERNI => true,

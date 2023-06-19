@@ -16,7 +16,7 @@ $osobniProgram = !empty($osobniProgram);
 
 $program = new Program(
     systemoveNastaveni: $systemoveNastaveni,
-    uzivatel: $uPracovni,
+    prihlasovany: $uPracovni,
     nastaveni: [
         Program::DRD_PJ       => true,
         Program::DRD_PRIHLAS  => true,

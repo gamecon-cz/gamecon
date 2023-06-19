@@ -695,8 +695,8 @@ SQL
         }
         if (empty($a['url_akce'])) {
             $a['url_akce'] = RemoveDiacritics::toConstantLikeValue($a[Sql::NAZEV_AKCE]);
-            $zakladUrl = $a['url_akce'];
-            $poradiUrl = 1;
+            $zakladUrl     = $a['url_akce'];
+            $poradiUrl     = 1;
             while (self::urlJeObsazena($a)) {
                 $poradiUrl++;
                 $a['url_akce'] = $zakladUrl . '-' . $poradiUrl;
@@ -1985,19 +1985,24 @@ SQL
      * @todo v rodině instancí maximálně jedno přihlášení?
      * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
      */
-    public function prihlasovatko(Uzivatel $u = null, $parametry = 0, SystemoveNastaveni $systemoveNastaveni = null)
+    public function prihlasovatko(
+        Uzivatel           $prihlasovany = null,
+                           $parametry = 0,
+        SystemoveNastaveni $systemoveNastaveni = null,
+    )
     {
         $out = '';
-        if (!$u) {
+        if (!$prihlasovany) {
             $out = $this->formatujDuvodProTesting('Nejsi přihlášený/ná', $systemoveNastaveni);
-        } else if (!$u->gcPrihlasen()) {
+        } else if (!$prihlasovany->gcPrihlasen()) {
             $out = $this->formatujDuvodProTesting('Nejsi přihlášený/ná na letoční GC', $systemoveNastaveni);
         } else if (!$this->prihlasovatelna($parametry)) {
             $out = $this->formatujDuvodProTesting($this->procNeniPrihlasovatelna($parametry), $systemoveNastaveni);
-        } else if ($this->jeBrigadnicka() && !$u->jeBrigadnik()) {
+        } else if ($this->jeBrigadnicka() && !$prihlasovany->jeBrigadnik()) {
             $out = $this->formatujDuvodProTesting('Aktivita je brigádnická, ale ty nejsi brigádník', $systemoveNastaveni);
         } else {
-            if (($stav = $this->stavPrihlaseni($u)) > -1 && $stav != StavPrihlaseni::SLEDUJICI) {
+            $zobrazitPrihlaseni = false;
+            if (($stav = $this->stavPrihlaseni($prihlasovany)) > -1 && $stav != StavPrihlaseni::SLEDUJICI) {
                 if ($stav == StavPrihlaseni::PRIHLASEN || $parametry & self::ZPETNE) {
                     $out .=
                         '<form method="post" style="display:inline">' .
@@ -2015,19 +2020,26 @@ SQL
                     $out .= '<em>neúčast</em>';
                 }
                 if ($stav == StavPrihlaseni::POZDE_ZRUSIL) {
-                    $out .= '<em>pozdní odhlášení</em>';
+                    $out                .= '<em>pozdní odhlášení</em>';
+                    $zobrazitPrihlaseni = true;
                 }
-            } else if ($u->organizuje($this)) {
-                $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ', $systemoveNastaveni);
+            } else if ($prihlasovany->organizuje($this)) {
+                $zobrazitPrihlaseni = false;
+                $out                = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ', $systemoveNastaveni);
             } else if ($this->a['zamcel']) {
-                $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
-                $out = <<<HTML
+                $zobrazitPrihlaseni = false;
+                $hajeniTymuHodin    = self::HAJENI_TEAMU_HODIN;
+                $out                = <<<HTML
 <span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
 HTML
                     . $this->formatujDuvodProTesting('Aktivita už je zamknutá ', $systemoveNastaveni);
             } else {
+                $zobrazitPrihlaseni = true;
+            }
+
+            if ($zobrazitPrihlaseni) {
                 $volno = $this->volno();
-                if ($volno === 'u' || $volno == $u->pohlavi()) {
+                if ($volno === 'u' || $volno == $prihlasovany->pohlavi()) {
                     $out =
                         '<form method="post" style="display:inline">' .
                         '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
@@ -2038,7 +2050,7 @@ HTML
                 } else if ($volno === 'm') {
                     $out = 'pouze mužská místa';
                 } else if ($this->prihlasovatelnaProSledujici()) {
-                    if ($u->prihlasenJakoSledujici($this)) {
+                    if ($prihlasovany->prihlasenJakoSledujici($this)) {
                         $out =
                             '<form method="post" style="display:inline">' .
                             '<input type="hidden" name="odhlasSledujiciho" value="' . $this->id() . '">' .
@@ -2055,7 +2067,7 @@ HTML
             }
         }
         if ($parametry & self::PLUSMINUS_KAZDY) {
-            $out .= '&emsp;' . $this->plusminus($u);
+            $out .= '&emsp;' . $this->plusminus($prihlasovany);
         }
         return $out;
     }

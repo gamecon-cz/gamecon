@@ -13,5 +13,9 @@ if (!$u) {
 
 $this->blackarrowStyl(true);
 $this->bezStranky(true);
-$program = new Program($systemoveNastaveni, $u, [Program::OSOBNI => $this->param('osobni')]);
+$program = new Program(
+    systemoveNastaveni: $systemoveNastaveni,
+    prihlasovany: $u,
+    nastaveni: [Program::OSOBNI => $this->param('osobni')]
+);
 $program->tiskToPrint();
