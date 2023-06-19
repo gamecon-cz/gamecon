@@ -27,11 +27,11 @@ document.addEventListener('programNacteny', function () {
         (placeholderNaSkryti) => placeholderNaSkryti.style.display = 'none'
       )
       if (customEvent.detail === undefined || !customEvent.detail.initial) {
-        document.cookie = `program_legenda_typ=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+        deleteCookie('program_legenda_typ')
       }
     } else {
       if (customEvent.detail === undefined || !customEvent.detail.initial) {
-        document.cookie = `program_legenda_typ=${zobrazit.join(',')}`;
+        setCookie('program_legenda_typ', zobrazit.join(','))
       }
 
       var zobrazitElementy = []
@@ -93,7 +93,7 @@ document.addEventListener('programNacteny', function () {
     })
   })
 
-  var driveVybraneCookie = document.cookie.split('; ').find((row) => row.startsWith('program_legenda_typ='))
+  var driveVybraneCookie = getCookie('program_legenda_typ=')
   if (driveVybraneCookie) {
     var driveVybraneString = driveVybraneCookie.split('=').at(1)
     var driveVybrane = driveVybraneString.split(',')
