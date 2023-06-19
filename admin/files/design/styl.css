@@ -1407,3 +1407,11 @@ Radio musí být ve tvaru:
   background-color: rgba(64, 255, 0, 0.28);
   text-decoration: none;
 }
+
+.float-right {
+  float: right;
+}
+
+.lokalni-odkaz {
+  padding: 3px;
+}
