@@ -29,7 +29,8 @@
             <input type="checkbox" class="shopJidlo_checkbox" name="{pnName}" {selected}>
             <!-- end:checkbox -->
             <!-- begin:locked -->
-            <input type="hidden" name="{pnName}" value="{selected}">
+            <!-- unchecked checkbox s visibility: hidden se odesílá ve formuláři, takže drží vybrané hodnoty při ukládání -->
+            <input type="checkbox" name="{pnName}" {selected} style="visibility: hidden">
             <input type="checkbox" class="shopJidlo_checkbox" {selected} disabled>
             <!-- end:locked -->
         </td>
