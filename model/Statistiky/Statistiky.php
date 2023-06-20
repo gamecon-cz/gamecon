@@ -7,28 +7,24 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 class Statistiky
 {
     public const ZAROVNANI_K_ZACATKU_REGISTRACI = 'zacatekRegistaci';
     public const ZAROVNANI_KE_KONCI_GC          = 'konecGc';
 
-    /**
-     * @var int[]
-     */
-    private $roky;
-    /**
-     * @var int
-     */
-    private $letosniRok;
+    private int $letosniRok;
 
     /**
      * @param int[]|string[] $roky
      */
-    public function __construct(array $roky, int $letosniRok)
+    public function __construct(
+        private readonly array              $roky,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    )
     {
-        $this->roky       = $roky;
-        $this->letosniRok = $letosniRok;
+        $this->letosniRok = $this->systemoveNastaveni->rocnik();
     }
 
     /**
@@ -295,6 +291,10 @@ SQL,
             $delkaNejdelsihoGrafu   = max($delkaNejdelsihoGrafu, count($dataJednohoRoku));
         }
 
+        $indexLetosnihoRoku = -1;
+        $indexDnesnihoDne   = -1;
+
+        $indexZpracovavanehoRoku = 0;
         foreach ($dataChtenychRoku as $rok => $dataJednohoRoku) {
             if ($zarovnaniGrafu === self::ZAROVNANI_KE_KONCI_GC) {
                 $delkaGrafuJednohoRoku = count($dataJednohoRoku);
@@ -308,9 +308,15 @@ SQL,
             ];
             $dnyJednohoRoku               = array_keys($dataJednohoRoku);
             $nazvyDnuJednohoRoku          = [];
-            $zacatekRegistraciJednohoRoku = \Gamecon\Cas\DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok)->formatDatumDb();
-            $zacatekGcJednohoRoku         = \Gamecon\Cas\DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
-            $konecGcJednohoRoku           = \Gamecon\Cas\DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
+            $zacatekRegistraciJednohoRoku = DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok)->formatDatumDb();
+            $zacatekGcJednohoRoku         = DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
+            $konecGcJednohoRoku           = DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
+            $dnes                         = $this->systemoveNastaveni->ted()->formatDatumDb();
+
+            if ($rok === $this->systemoveNastaveni->rocnik()) {
+                $indexLetosnihoRoku = $indexZpracovavanehoRoku;
+            }
+
             foreach ($dnyJednohoRoku as $indexDne => $denJednohoRoku) {
                 // včetně indexu 0, což je vynucená nula přes array_unshift
                 if ($indexDne === 0) {
@@ -331,18 +337,24 @@ SQL,
                     $posledniDenGcRoku = end($nazvyDnuJednohoRoku);
                     $konceGc[$rok]     = $posledniDenGcRoku;
                 }
+                if ($rok === $this->systemoveNastaveni->rocnik() && $denJednohoRoku === $dnes) {
+                    $indexDnesnihoDne = $indexDne;
+                }
             }
             array_pop($nazvyDnuJednohoRoku);
             $nazvyDnuJednohoRoku[] = 'po GC'; // všechny dny po GC smrsknute do jediného, posledního sloupce v grafu
-            $nazvyDnu              = array_unique(array_merge($nazvyDnu, $nazvyDnuJednohoRoku));
+            $nazvyDnu              = array_unique([...$nazvyDnu, ...$nazvyDnuJednohoRoku]);
+            $indexZpracovavanehoRoku++;
         }
 
         return [
-            'nazvyDnu'         => $nazvyDnu,
-            'zacatkyRegistaci' => $zacatkyRegistaci,
-            'zacatkyGc'        => $zacatkyGc,
-            'konceGc'          => $konceGc,
-            'prihlaseniProJs'  => $prihlaseniProJs,
+            'nazvyDnu'           => $nazvyDnu,
+            'zacatkyRegistaci'   => $zacatkyRegistaci,
+            'zacatkyGc'          => $zacatkyGc,
+            'konceGc'            => $konceGc,
+            'indexDnesnihoDne'   => $indexDnesnihoDne,
+            'indexLetosnihoRoku' => $indexLetosnihoRoku,
+            'prihlaseniProJs'    => $prihlaseniProJs,
         ];
     }
 
