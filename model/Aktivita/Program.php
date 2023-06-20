@@ -229,6 +229,8 @@ class Program
      */
     private function init()
     {
+        Uzivatel::prednactiUzivateleNaAktivitach($this->systemoveNastaveni->rocnik());
+
         if ($this->nastaveni[self::SKUPINY] === self::SKUPINY_MISTNOSTI) {
             $this->program = new ArrayIterator(Aktivita::zProgramu('poradi', true, true));
             $this->grpf    = self::SKUPINY_PODLE_LOKACE_ID;
