@@ -93,9 +93,8 @@ document.addEventListener('programNacteny', function () {
     })
   })
 
-  var driveVybraneCookie = getCookie('program_legenda_typ=')
-  if (driveVybraneCookie) {
-    var driveVybraneString = driveVybraneCookie.split('=').at(1)
+  var driveVybraneString = getCookie('program_legenda_typ')
+  if (driveVybraneString) {
     var driveVybrane = driveVybraneString.split(',')
     driveVybrane.forEach(function (driveVybranyTyp) {
       driveVybranyTyp = driveVybranyTyp.trim()
