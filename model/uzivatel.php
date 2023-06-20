@@ -1915,23 +1915,26 @@ SQL,
             $chybejiciUzivateleIdcka = $zCache
                 ? array_diff($ids, array_keys(self::$objekty))
                 : $ids;
-            $uzivatele               = [];
+            $nacteniUzivatele        = [];
             if ($chybejiciUzivateleIdcka) {
-                $uzivatele = self::nactiUzivatele(
+                $nacteniUzivatele = self::nactiUzivatele(
                     'WHERE u.id_uzivatele IN(' . dbQv($chybejiciUzivateleIdcka) . ')',
                 );
             }
             if (!$zCache) {
-                return $uzivatele;
+                return $nacteniUzivatele;
             }
-            foreach ($uzivatele as $uzivatel) {
-                self::$objekty[$uzivatel->id()] = $uzivatel;
+            foreach ($nacteniUzivatele as $nactenyUzivatel) {
+                self::$objekty[$nactenyUzivatel->id()] = $nactenyUzivatel;
             }
-            return array_filter(
-                self::$objekty,
-                fn(int $idUzivatele) => in_array($idUzivatele, $ids),
-                ARRAY_FILTER_USE_KEY,
-            );
+
+            $uzivatele = [];
+            foreach ($ids as $id) {
+                if (self::$objekty[$id] ?? false) {
+                    $uzivatele[$id] = self::$objekty[$id];
+                }
+            }
+            return $uzivatele;
         }
         throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
     }
