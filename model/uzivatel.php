@@ -1936,6 +1936,29 @@ SQL,
         throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
     }
 
+    public static function prednactiUzivateleNaAktivitach(int $rocnik)
+    {
+        static $prednacteniUzivateleNaAktivitach = [];
+        if (isset($prednacteniUzivateleNaAktivitach[$rocnik])) {
+            return;
+        }
+        $idUzivatelu = dbFetchColumn(
+            <<<SQL
+                    SELECT zdroj.id_uzivatele
+                    FROM akce_prihlaseni AS zdroj
+                    JOIN akce_seznam on zdroj.id_akce = akce_seznam.id_akce
+                    WHERE akce_seznam.rok = $rocnik
+                    UNION
+                    SELECT zdroj.id_uzivatele
+                    FROM akce_prihlaseni_spec AS zdroj
+                    JOIN akce_seznam on zdroj.id_akce = akce_seznam.id_akce
+                    WHERE akce_seznam.rok = $rocnik
+                SQL,
+        );
+        self::zIds($idUzivatelu, true);
+        $prednacteniUzivateleNaAktivitach[$rocnik] = true;
+    }
+
     /**
      * Vrátí uživatele dle zadaného mailu.
      */
