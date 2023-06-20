@@ -668,6 +668,7 @@ function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result
         ? ''
         : ';';
 
+    // TODO REMOVE
     file_put_contents(SPEC . '/db.sql', "-- $dbExecTime\n{$query}\n\n", FILE_APPEND);
     return $r;
 }

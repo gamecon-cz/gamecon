@@ -34,6 +34,7 @@ class Aktivita
 
     private static $objekty                      = [];
     private static $prihlaseniNaAktivityRawCache = [];
+    private static ?array $seznamUcastnikuCache = null;
 
     private                    $a;              // databázový řádek s aktivitou
     private                    $kolekce;        // nadřízená kolekce, v rámci které byla aktivita načtena
@@ -1141,28 +1142,55 @@ SQL
 
     private function seznamUcastniku(): array
     {
-        // TODO přednačítat
         if (!isset($this->seznamUcastniku)) {
-            $data                  = dbFetchAll(
-                <<<SQL
-                    SELECT id_uzivatele, id_stavu_prihlaseni FROM akce_prihlaseni WHERE akce_prihlaseni.id_akce = {$this->id()}
-                    UNION ALL
-                    SELECT Id_uzivatele, id_stavu_prihlaseni FROM akce_prihlaseni_spec WHERE akce_prihlaseni_spec.id_akce = {$this->id()}
-                SQL,
-            );
-            $idsUcasnikuPodleStavu = [];
-            foreach ($data as ['id_uzivatele' => $idUzivatele, 'id_stavu_prihlaseni' => $idStavuPrilaseni]) {
-                $idsUcasnikuPodleStavu[$idStavuPrilaseni][] = $idUzivatele;
+            if ($this->prednacitat) {
+                if (self::$seznamUcastnikuCache === null) {
+                    self::$seznamUcastnikuCache = self::seznamUcastnikuAktivit(
+                        Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->systemoveNastaveni->rocnik(),
+                    );
+                }
+                if (!array_key_exists($this->id(), self::$seznamUcastnikuCache)) {
+                    self::$seznamUcastnikuCache[$this->id()] = [];
+                }
+                $this->seznamUcastniku = self::$seznamUcastnikuCache[$this->id()];
+            } else {
+                $this->seznamUcastniku = self::seznamUcastnikuAktivit(
+                    'zdroj.id_akce=' . $this->id(),
+                )[$this->id()] ?? [];
             }
-            $this->seznamUcastniku = [];
+        }
+        return $this->seznamUcastniku;
+    }
+
+    private static function seznamUcastnikuAktivit(string $where = 'TRUE'): array
+    {
+        $data                       = dbFetchAll(
+            <<<SQL
+                    SELECT zdroj.id_akce, zdroj.id_uzivatele, zdroj.id_stavu_prihlaseni
+                    FROM akce_prihlaseni AS zdroj
+                    JOIN akce_seznam on zdroj.id_akce = akce_seznam.id_akce
+                    WHERE {$where}
+                    UNION ALL
+                    SELECT zdroj.id_akce, zdroj.id_uzivatele, zdroj.id_stavu_prihlaseni
+                    FROM akce_prihlaseni_spec AS zdroj
+                    JOIN akce_seznam on zdroj.id_akce = akce_seznam.id_akce
+                    WHERE {$where}
+                SQL,
+        );
+        $idsUcasnikuPodleAkceAStavu = [];
+        foreach ($data as ['id_akce' => $idAktivity, 'id_uzivatele' => $idUzivatele, 'id_stavu_prihlaseni' => $idStavuPrilaseni]) {
+            $idsUcasnikuPodleAkceAStavu[$idAktivity][$idStavuPrilaseni][] = $idUzivatele;
+        }
+        $seznamUcastniku = [];
+        foreach ($idsUcasnikuPodleAkceAStavu as $idAktivity => $idsUcasnikuPodleStavu) {
             foreach ($idsUcasnikuPodleStavu as $idStavuPrihlaseni => $idsUcasnikuSeStejnymStavem) {
-                $this->seznamUcastniku[(int)$idStavuPrihlaseni] = Uzivatel::zIds(
+                $seznamUcastniku[(int)$idAktivity][(int)$idStavuPrihlaseni] = Uzivatel::zIds(
                     $idsUcasnikuSeStejnymStavem,
                     true,
                 );
             }
         }
-        return $this->seznamUcastniku;
+        return $seznamUcastniku;
     }
 
     public function nazev(): string
