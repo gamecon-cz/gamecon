@@ -10,6 +10,7 @@
 /**
  * @var $u Uzivatel
  * @var $systemoveNastaveni SystemoveNastaveni
+ * @var $this Modul
  */
 
 use Gamecon\Statistiky\Statistiky;
@@ -22,12 +23,12 @@ $zbyva = $zbyva->format('%a dní') . ' (' . round($zbyva->format('%a') / 7, 1) .
 /** @var string $zbyva */
 
 $vybraneRoky = array_diff(
-    get('rok') ?? range(ROCNIK - 3, ROCNIK),
-    [2020] // abychom netrápili databázi hleáním dat pro rok Call of Covid
+    get('rok') ?? range($systemoveNastaveni->rocnik() - 3, $systemoveNastaveni->rocnik()),
+    [2020], // abychom netrápili databázi hleáním dat pro rok Call of Covid
 );
-$mozneRoky   = range(2009, ROCNIK);
+$mozneRoky   = range(2009, $systemoveNastaveni->rocnik());
 
-$statistiky = new Statistiky($vybraneRoky, ROCNIK);
+$statistiky = new Statistiky($vybraneRoky, $systemoveNastaveni);
 
 $ucast           = $statistiky->tabulkaUcastiHtml();
 $predmety        = $statistiky->tabulkaPredmetuHtml();
@@ -40,16 +41,19 @@ $prihlaseniData = $statistiky->dataProGrafUcasti($systemoveNastaveni->ted());
 
 $zarovnaniGrafu = get('zarovnaniGrafu') ?? Statistiky::ZAROVNANI_KE_KONCI_GC;
 [
-    'nazvyDnu'         => $nazvyDnu,
-    'zacatkyRegistaci' => $zacatkyRegistaci,
-    'zacatkyGc'        => $zacatkyGc,
-    'konceGc'          => $konceGc,
-    'prihlaseniProJs'  => $prihlaseniProJs,
+    'nazvyDnu'           => $nazvyDnu,
+    'zacatkyRegistaci'   => $zacatkyRegistaci,
+    'zacatkyGc'          => $zacatkyGc,
+    'konceGc'            => $konceGc,
+    'indexDnesnihoDne'   => $indexDnesnihoDne,
+    'indexLetosnihoRoku' => $indexLetosnihoRoku,
+    'prihlaseniProJs'    => $prihlaseniProJs,
 ] = $statistiky->pripravDataProGraf($prihlaseniData, $vybraneRoky, $zarovnaniGrafu);
 
+// TODO zvýraznit dnešek v názvech dnů přes HTML
 $indexyDnuZacatkuRegistraci = [];
 foreach ($zacatkyRegistaci as $rok => $nazevDneZacatkuRegistrace) {
-    if ($rok === ROCNIK && pred(REG_GC_OD)) {
+    if ($rok === $systemoveNastaveni->rocnik() && pred(REG_GC_OD)) {
         continue; // registace na letošní GC ještě nezačala
     }
     // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů
@@ -58,7 +62,7 @@ foreach ($zacatkyRegistaci as $rok => $nazevDneZacatkuRegistrace) {
 }
 $indexyDnuZacatkuGc = [];
 foreach ($zacatkyGc as $rok => $nazevDneZacatkuGc) {
-    if ($rok === ROCNIK && pred(GC_BEZI_OD)) {
+    if ($rok === $systemoveNastaveni->rocnik() && pred(GC_BEZI_OD)) {
         continue; // letošní GC ještě nezačal, nechceme ukazovat poslední známé hodnoty s názvem "začátek GC"
     }
     // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů
@@ -67,20 +71,24 @@ foreach ($zacatkyGc as $rok => $nazevDneZacatkuGc) {
 }
 $indexyDnuKoncuGc = [];
 foreach ($konceGc as $rok => $nazevDneKonceGc) {
-    if ($rok === ROCNIK && pred(GC_BEZI_DO)) {
+    if ($rok === $systemoveNastaveni->rocnik() && pred(GC_BEZI_DO)) {
         continue; // letošní GC ještě neskončil, nechceme ukazovat poslední známé hodnoty s názvem "konec GC"
     }
     $indexDneKonceJednohoGc                      = array_search($nazevDneKonceGc, $nazvyDnu);
     $indexyDnuKoncuGc[$indexDneKonceJednohoGc][] = $rok;
 }
 foreach ($indexyDnuZacatkuRegistraci as $indexDneZacatkuRegistraci => $rokyZacinajiciRegistraceStejnyDen) {
-    $nazvyDnu[$indexDneZacatkuRegistraci] = $nazvyDnu[$indexDneZacatkuRegistraci] . ", spuštění registrací " . implode(', ', $rokyZacinajiciRegistraceStejnyDen);
+    $nazvyDnu[$indexDneZacatkuRegistraci] .= ", spuštění registrací " . implode(', ', $rokyZacinajiciRegistraceStejnyDen);
 }
 foreach ($indexyDnuZacatkuGc as $indexDneZacatkuGc => $rokyZacinajiciGcStejnyDen) {
-    $nazvyDnu[$indexDneZacatkuGc] = $nazvyDnu[$indexDneZacatkuGc] . ", začátek GC " . implode(', ', $rokyZacinajiciGcStejnyDen);
+    $nazvyDnu[$indexDneZacatkuGc] .= ", začátek GC " . implode(', ', $rokyZacinajiciGcStejnyDen);
 }
 foreach ($indexyDnuKoncuGc as $indexDneKonceGc => $rokyKonciciGcStejnyDen) {
-    $nazvyDnu[$indexDneKonceGc] = $nazvyDnu[$indexDneKonceGc] . ", konec GC " . implode(', ', $rokyKonciciGcStejnyDen);
+    $nazvyDnu[$indexDneKonceGc] .= ", konec GC " . implode(', ', $rokyKonciciGcStejnyDen);
+}
+if ($indexDnesnihoDne >= 0) {
+    // highcharts změní HTML takže CSS třídy nelze použít
+    $nazvyDnu[$indexDnesnihoDne] = '<span style="font-size: larger; font-weight: bolder; font-style: italic">dnes</span>, ' . $nazvyDnu[$indexDnesnihoDne];
 }
 $pocetDni = count($nazvyDnu);
 ?>
@@ -121,11 +129,18 @@ $pocetDni = count($nazvyDnu);
                     rotation: -90,
                     style: {fontSize: '8px'},
                 },
-                plotLines: [{
-                    color: '#cccccc',
-                    width: 1,
-                    value: <?= $pocetDni ?> - 3.5,
-                }],
+                plotLines: [
+                    {
+                        color: '#ffffff',
+                        width: 1,
+                        value: <?= $pocetDni ?> - 0.5,
+                    },
+                    {
+                        color: colors.at(<?= $indexLetosnihoRoku ?? 0 ?>),
+                        width: 1,
+                        value: <?= $indexDnesnihoDne ?? -1 ?>,
+                    }
+                ],
             },
             yAxis: {
                 min: 0,
@@ -161,7 +176,7 @@ $pocetDni = count($nazvyDnu);
 </script>
 <script src="files/highcharts-v4.2.7.js"></script>
 
-<h2>Aktuální statistiky <?= ROCNIK ?></h2>
+<h2>Aktuální statistiky <?= $systemoveNastaveni->rocnik() ?></h2>
 
 <div>
     <p>
