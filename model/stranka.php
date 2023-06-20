@@ -80,7 +80,7 @@ class Stranka extends DbObject
         return self::zWhere('url_stranky LIKE $1', [$url . '/%']);
     }
 
-    static function zVsech(): array
+    static function zVsech(bool $zCache = false): array
     {
         return self::zWhere('1 ORDER BY url_stranky');
     }

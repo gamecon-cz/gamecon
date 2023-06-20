@@ -8,7 +8,7 @@ function intvalOrNull($val)
 
 /**
  * @method static ObchodMrizkaBunka zId($id)
- * @method static ObchodMrizkaBunka[] zVsech()
+ * @method static ObchodMrizkaBunka[] zVsech(bool $zCache = false)
  */
 class ObchodMrizkaBunka extends \DbObject
 {

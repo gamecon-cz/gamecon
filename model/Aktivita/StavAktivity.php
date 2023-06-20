@@ -4,7 +4,7 @@ namespace Gamecon\Aktivita;
 
 /**
  * @method static StavAktivity zId($id)
- * @method static StavAktivity[] zVsech()
+ * @method static StavAktivity[] zVsech(bool $zCache = false)
  */
 class StavAktivity extends \DbObject
 {

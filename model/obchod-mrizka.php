@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * @method static ObchodMrizka zId($id)
- * @method static ObchodMrizka[] zVsech()
+ * @method static ObchodMrizka[] zVsech(bool $zCache = false)
  */
 class ObchodMrizka extends \DbObject
 {

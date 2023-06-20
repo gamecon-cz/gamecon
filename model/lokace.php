@@ -2,7 +2,7 @@
 
 /**
  * @method static Lokace | null zId($id)
- * @method static Lokace[] zVsech()
+ * @method static Lokace[] zVsech(bool $zCache = false)
  */
 class Lokace extends DbObject
 {

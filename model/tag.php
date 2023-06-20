@@ -3,7 +3,7 @@
 /**
  * Tag aktivity
  * @method static Tag|null zId($id)
- * @method static Tag[] zVsech()
+ * @method static Tag[] zVsech(bool $zCache = false)
  */
 class Tag extends DbObject
 {
