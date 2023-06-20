@@ -1141,6 +1141,7 @@ SQL
 
     private function seznamUcastniku(): array
     {
+        // TODO přednačítat
         if (!isset($this->seznamUcastniku)) {
             $data                  = dbFetchAll(
                 <<<SQL
@@ -1155,7 +1156,10 @@ SQL
             }
             $this->seznamUcastniku = [];
             foreach ($idsUcasnikuPodleStavu as $idStavuPrihlaseni => $idsUcasnikuSeStejnymStavem) {
-                $this->seznamUcastniku[(int)$idStavuPrihlaseni] = Uzivatel::zIds($idsUcasnikuSeStejnymStavem);
+                $this->seznamUcastniku[(int)$idStavuPrihlaseni] = Uzivatel::zIds(
+                    $idsUcasnikuSeStejnymStavem,
+                    true,
+                );
             }
         }
         return $this->seznamUcastniku;
