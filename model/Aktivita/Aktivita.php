@@ -2001,7 +2001,6 @@ SQL
         } else if ($this->jeBrigadnicka() && !$prihlasovany->jeBrigadnik()) {
             $out = $this->formatujDuvodProTesting('Aktivita je brigádnická, ale ty nejsi brigádník', $systemoveNastaveni);
         } else {
-            $zobrazitPrihlaseni = false;
             if (($stav = $this->stavPrihlaseni($prihlasovany)) > -1 && $stav != StavPrihlaseni::SLEDUJICI) {
                 if ($stav == StavPrihlaseni::PRIHLASEN || $parametry & self::ZPETNE) {
                     $out .=
@@ -2020,24 +2019,17 @@ SQL
                     $out .= '<em>neúčast</em>';
                 }
                 if ($stav == StavPrihlaseni::POZDE_ZRUSIL) {
-                    $out                .= '<em>pozdní odhlášení</em>';
-                    $zobrazitPrihlaseni = true;
+                    $out .= '<em>pozdní odhlášení</em>';
                 }
             } else if ($prihlasovany->organizuje($this)) {
-                $zobrazitPrihlaseni = false;
-                $out                = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ', $systemoveNastaveni);
+                $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ', $systemoveNastaveni);
             } else if ($this->a['zamcel']) {
-                $zobrazitPrihlaseni = false;
-                $hajeniTymuHodin    = self::HAJENI_TEAMU_HODIN;
-                $out                = <<<HTML
+                $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
+                $out             = <<<HTML
 <span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
 HTML
                     . $this->formatujDuvodProTesting('Aktivita už je zamknutá ', $systemoveNastaveni);
             } else {
-                $zobrazitPrihlaseni = true;
-            }
-
-            if ($zobrazitPrihlaseni) {
                 $volno = $this->volno();
                 if ($volno === 'u' || $volno == $prihlasovany->pohlavi()) {
                     $out =
