@@ -32,13 +32,15 @@ class Aktivita
 
     use PrednacitaniTrait;
 
-    private static $cache = [];
+    private static $objekty                      = [];
+    private static $prihlaseniNaAktivityRawCache = [];
 
-    private                    $a;         // databázový řádek s aktivitou
-    private                    $kolekce;   // nadřízená kolekce, v rámci které byla aktivita načtena
+    private                    $a;              // databázový řádek s aktivitou
+    private                    $kolekce;        // nadřízená kolekce, v rámci které byla aktivita načtena
     private                    $lokace;
     private                    $stav;
-    private                    $nova;      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
+    private bool               $nova;           // jestli jde o nově uloženou aktivitu nebo načtenou z DB
+    private bool               $prednacitat;    // jestli jde o nově uloženou aktivitu nebo načtenou z DB
     private SystemoveNastaveni $systemoveNastaveni;
     private                    $organizatori;
     private                    $uzavrenaOd;
@@ -168,6 +170,7 @@ SQL
         array              $dbRow,
         bool               $povolitPrazdnou = false,
         SystemoveNastaveni $systemoveNastaveni = null,
+        bool               $prednacitat = false,
     )
     {
         if (!$dbRow && !$povolitPrazdnou) {
@@ -175,6 +178,7 @@ SQL
         }
         $this->a                  = $dbRow;
         $this->nova               = false;
+        $this->prednacitat        = $prednacitat;
         $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
     }
 
@@ -695,8 +699,8 @@ SQL
         }
         if (empty($a['url_akce'])) {
             $a['url_akce'] = RemoveDiacritics::toConstantLikeValue($a[Sql::NAZEV_AKCE]);
-            $zakladUrl = $a['url_akce'];
-            $poradiUrl = 1;
+            $zakladUrl     = $a['url_akce'];
+            $poradiUrl     = 1;
             while (self::urlJeObsazena($a)) {
                 $poradiUrl++;
                 $a['url_akce'] = $zakladUrl . '-' . $poradiUrl;
@@ -1815,15 +1819,26 @@ SQL
     private function prihlaseniRaw(): string
     {
         if (!array_key_exists('prihlaseni', $this->a)) {
-            $this->a['prihlaseni'] = $this->nactiPrihlaseniRaw();
+            if ($this->prednacitat) {
+                if (!array_key_exists($this->id(), self::$prihlaseniNaAktivityRawCache)) {
+                    // array + array přidá nové záznamy s novými klíči, ale nepřepíše původní
+                    self::$prihlaseniNaAktivityRawCache += self::nactiPrihlaseniNaAktivityRaw(
+                        Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->systemoveNastaveni->rocnik(),
+                    );
+                }
+                $this->a['prihlaseni'] = self::$prihlaseniNaAktivityRawCache[$this->id()];
+            } else {
+                $this->a['prihlaseni'] = $this->nactiPrihlaseniRaw();
+            }
         }
         return (string)$this->a['prihlaseni'];
     }
 
-    private function nactiPrihlaseniRaw(): string
+    private static function nactiPrihlaseniNaAktivityRaw(string $where = 'TRUE'): array
     {
-        return (string)dbFetchSingle(<<<SQL
-            SELECT CONCAT(
+        return dbFetchPairs(<<<SQL
+            SELECT akce_seznam.id_akce,
+                   CONCAT(
                     ',',
                     GROUP_CONCAT(
                         akce_prihlaseni.id_uzivatele,
@@ -1841,9 +1856,17 @@ SQL
             FROM akce_seznam
             LEFT JOIN akce_prihlaseni ON akce_seznam.id_akce = akce_prihlaseni.id_akce
             LEFT JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = akce_prihlaseni.id_uzivatele
-            WHERE akce_seznam.id_akce = {$this->id()}
+            WHERE {$where}
             GROUP BY akce_seznam.id_akce
             SQL,
+        );
+    }
+
+    private function nactiPrihlaseniRaw(): string
+    {
+        return (string)(
+            self::nactiPrihlaseniNaAktivityRaw(Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ID_AKCE . "={$this->id()}")[$this->id()]
+            ?? ''
         );
     }
 
@@ -2021,7 +2044,7 @@ SQL
                 $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ', $systemoveNastaveni);
             } else if ($this->a['zamcel']) {
                 $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
-                $out = <<<HTML
+                $out             = <<<HTML
 <span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
 HTML
                     . $this->formatujDuvodProTesting('Aktivita už je zamknutá ', $systemoveNastaveni);
@@ -3169,7 +3192,7 @@ SQL,
      */
     public static function zId(
         string|int|null    $id,
-        bool               $pouzijCache = false,
+        bool               $zCache = false,
         SystemoveNastaveni $systemoveNastaveni = null,
     ): ?Aktivita
     {
@@ -3180,8 +3203,8 @@ SQL,
         if (!$id) {
             return null;
         }
-        if ($pouzijCache) {
-            $cachovanaAktivita = self::$cache[$id] ?? null;
+        if ($zCache) {
+            $cachovanaAktivita = self::$objekty['ids'][$id] ?? null;
             if ($cachovanaAktivita) {
                 return $cachovanaAktivita;
             }
@@ -3193,8 +3216,8 @@ SQL,
         if (!$aktivita) {
             return null;
         }
-        if ($pouzijCache) {
-            self::$cache[$id] = $aktivita;
+        if ($zCache) {
+            self::$objekty['ids'][$id] = $aktivita;
         }
         return $aktivita;
     }
@@ -3238,18 +3261,34 @@ SQL,
     /**
      * Vrátí pole aktivit které se letos potenciálně zobrazí v programu
      */
-    public static function zProgramu($order)
+    public static function zProgramu(string $razeni, bool $zCache = false, bool $prednacitat = false)
     {
-        return self::zWhere(
-            'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
-            '',
-            [
+        if ($zCache) {
+            $objekt = self::$objekty['razeni'][$razeni] ?? null;
+            if ($objekt) {
+                return $objekt;
+            }
+        }
+
+        $aktivity = self::zWhere(
+            where1: 'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
+            args: [
                 0 => ROCNIK,
                 1 => StavAktivity::NOVA,
                 2 => TypAktivity::interniTypy(),
             ],
-            'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce',
+            order: 'ORDER BY DAY(zacatek), ' . dbQi($razeni) . ', HOUR(zacatek), nazev_akce',
+            prednacitat: $prednacitat,
         );
+
+        if ($zCache) {
+            self::$objekty['razeni'][$razeni] = $aktivity;
+            foreach ($aktivity as $aktivita) {
+                self::$objekty['ids'][$aktivita->id()] ??= $aktivita;
+            }
+        }
+
+        return $aktivity;
     }
 
     /**
@@ -3331,6 +3370,7 @@ SQL,
                            $order = null,
         ?int               $limit = null,
         SystemoveNastaveni $systemoveNastaveni = null,
+        bool               $prednacitat = false,
     ): array
     {
         $limitSql = $limit !== null
@@ -3370,7 +3410,11 @@ SQL,
 
         while ($r = mysqli_fetch_assoc($o)) {
             $r['url_akce']    = $r['url_temp'];
-            $aktivita         = new static(dbRow: $r, systemoveNastaveni: $systemoveNastaveni);
+            $aktivita         = new static(
+                dbRow: $r,
+                systemoveNastaveni: $systemoveNastaveni,
+                prednacitat: $prednacitat
+            );
             $aktivita->typ    = $r['typ'];
             $aktivita->lokace = $r['lokace'];
             $aktivita->stav   = $r['stav'];
