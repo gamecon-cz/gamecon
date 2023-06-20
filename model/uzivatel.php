@@ -1888,19 +1888,42 @@ SQL,
      * Vrátí pole uživatelů podle zadaných ID. Lze použít pole nebo string s čísly
      * oddělenými čárkami.
      * @param string|int[] $ids
+     * @param bool $zCache
      * @return Uzivatel[]
      */
-    public static function zIds($ids): array
+    public static function zIds($ids, bool $zCache = false): array
     {
         if (empty($ids)) {
             return [];
         }
-        if (is_array($ids)) {
-            return self::nactiUzivatele('WHERE u.id_uzivatele IN(' . dbQv($ids) . ')');
+        if (is_string($ids) && preg_match('@[0-9]+(,[0-9]+)+@', $ids)) {
+            $ids = explode(',', $ids);
         }
-        if (preg_match('@[0-9,]+@', $ids)) {
-            $ids = array_map('intval', explode(',', $ids));
-            return self::nactiUzivatele('WHERE u.id_uzivatele IN(' . dbQv($ids) . ')');
+        if (is_int($ids)) {
+            $ids = [$ids];
+        }
+        if (is_array($ids)) {
+            $ids                     = array_map('intval', $ids);
+            $chybejiciUzivateleIdcka = $zCache
+                ? array_diff($ids, array_keys(self::$objekty))
+                : $ids;
+            $uzivatele               = [];
+            if ($chybejiciUzivateleIdcka) {
+                $uzivatele = self::nactiUzivatele(
+                    'WHERE u.id_uzivatele IN(' . dbQv($chybejiciUzivateleIdcka) . ')',
+                );
+            }
+            if (!$zCache) {
+                return $uzivatele;
+            }
+            foreach ($uzivatele as $uzivatel) {
+                self::$objekty[$uzivatel->id()] = $uzivatel;
+            }
+            return array_filter(
+                self::$objekty,
+                fn(int $idUzivatele) => in_array($idUzivatele, $ids),
+                ARRAY_FILTER_USE_KEY,
+            );
         }
         throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
     }
