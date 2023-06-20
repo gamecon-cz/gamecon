@@ -663,6 +663,12 @@ function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result
     $end                       = microtime(true);
     $dbNumQ++;
     $dbExecTime += $end - $start;
+    $query      = $dbLastQ;
+    $query      .= str_ends_with($dbLastQ, ';')
+        ? ''
+        : ';';
+
+    file_put_contents(SPEC . '/db.sql', "-- $dbExecTime\n{$query}\n\n", FILE_APPEND);
     return $r;
 }
 

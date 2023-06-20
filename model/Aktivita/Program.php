@@ -33,8 +33,7 @@ class Program
     public const SKUPINY_LINIE     = 'linie';
     public const SKUPINY_MISTNOSTI = 'mistnosti';
 
-    /** @var Uzivatel|null */
-    private            $u              = null; // aktuální uživatel v objektu
+    private ?Uzivatel  $u              = null; // aktuální uživatel v objektu
     private            $posledniVydana = null;
     private            $dbPosledni     = null;
     private            $aktFronta      = [];
@@ -231,7 +230,7 @@ class Program
     private function init()
     {
         if ($this->nastaveni[self::SKUPINY] === self::SKUPINY_MISTNOSTI) {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('poradi'));
+            $this->program = new ArrayIterator(Aktivita::zProgramu('poradi', true, true));
             $this->grpf    = self::SKUPINY_PODLE_LOKACE_ID;
 
             $this->skupiny['0'] = 'Ostatní';
@@ -240,18 +239,18 @@ class Program
                 $this->skupiny[$t->id()] = ucfirst($t->nazev());
             }
         } else if ($this->nastaveni[self::OSOBNI]) {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('zacatek'));
+            $this->program = new ArrayIterator(Aktivita::zProgramu('zacatek', true, true));
             $this->grpf    = self::SKUPINY_PODLE_DEN;
 
             foreach ($this->dny() as $den) {
                 $this->skupiny[$den->format('z')] = mb_ucfirst($den->format('l'));
             }
         } else {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('poradi_typu'));
+            $this->program = new ArrayIterator(Aktivita::zProgramu('poradi_typu', true, true));
             $this->grpf    = self::SKUPINY_PODLE_TYP_PORADI;
 
             // řazení podle poradi typu je nutné proto, že v tomto pořadí je i seznam aktivit
-            $grp = serazenePodle(\Gamecon\Aktivita\TypAktivity::zVsech(), 'poradi');
+            $grp = serazenePodle(TypAktivity::zVsech(), 'poradi');
             foreach ($grp as $t) {
                 $this->skupiny[$t->id()] = mb_ucfirst($t->nazev());
             }
@@ -334,13 +333,13 @@ class Program
 
         // určení css tříd
         $classes = [];
-        if ($this->u && $aktivitaObjekt->prihlasen($this->u)) {
+        if ($this->u?->prihlasen($aktivitaObjekt)) {
             $classes[] = 'prihlasen';
         }
-        if ($this->u && $this->u->organizuje($aktivitaObjekt)) {
+        if ($this->u?->organizuje($aktivitaObjekt)) {
             $classes[] = 'organizator';
         }
-        if ($this->u && $this->u->prihlasenJakoSledujici($aktivitaObjekt)) {
+        if ($this->u?->prihlasenJakoSledujici($aktivitaObjekt)) {
             $classes[] = 'sledujici';
         }
         if ($aktivitaObjekt->vDalsiVlne()) {
@@ -549,7 +548,7 @@ HTML;
         // u osobního programu přeskočit aktivity, kde není přihlášen
         if ($this->nastaveni[self::OSOBNI]) {
             if (
-                !$aktivita->prihlasen($this->u) &&
+                !$this->u->prihlasen($aktivita) &&
                 !$this->u->prihlasenJakoSledujici($aktivita) &&
                 !$this->u->organizuje($aktivita)
             ) {

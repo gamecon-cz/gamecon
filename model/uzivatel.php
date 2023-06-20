@@ -103,10 +103,11 @@ SQL
         return static::zIds($ids);
     }
 
-    protected        $aktivityJakoSledujici; // pole s klíči id aktvit, kde je jako sledující
-    protected        $klic       = '';
+    protected ?array $aktivityIdsJakoSledujici = null; // pole s klíči id aktvit, kde je jako sledující
+    protected ?array $prihlaseneAktivityIds    = null; // pole s klíči id aktvit, kde je jako sledující
+    protected        $klic                     = '';
     protected        $idsRoli;         // pole s klíči id židlí uživatele
-    protected ?array $medailonek = null;
+    protected ?array $medailonek               = null;
     protected        $finance;
     protected        $shop;
 
@@ -1274,18 +1275,35 @@ SQL,
     }
 
     /**
+     * @return bool true, pokud je uživatel přihlášen na aktivitu (ač ještě nežačala, nebo už dorazil jako cokoli)
+     */
+    public function prihlasen(Aktivita $a): bool
+    {
+        if (!isset($this->prihlaseneAktivityIds)) {
+            $this->prihlaseneAktivityIds = dbOneIndex(<<<SQL
+                SELECT id_akce
+                FROM akce_prihlaseni
+                WHERE id_uzivatele = $0
+                SQL,
+                [0 => $this->id()],
+            );
+        }
+        return isset($this->prihlaseneAktivityIds[$a->id()]);
+    }
+
+    /**
      * @return bool true, pokud je uživatel přihlášen jako sledující aktivity (ve watchlistu).
      */
-    public function prihlasenJakoSledujici(Aktivita $a)
+    public function prihlasenJakoSledujici(Aktivita $a): bool
     {
-        if (!isset($this->aktivityJakoSledujici)) {
-            $this->aktivityJakoSledujici = dbOneIndex("
+        if (!isset($this->aktivityIdsJakoSledujici)) {
+            $this->aktivityIdsJakoSledujici = dbOneIndex("
         SELECT id_akce
         FROM akce_prihlaseni_spec
         WHERE id_uzivatele = $0 AND id_stavu_prihlaseni = $1
       ", [$this->id(), StavPrihlaseni::SLEDUJICI]);
         }
-        return isset($this->aktivityJakoSledujici[$a->id()]);
+        return isset($this->aktivityIdsJakoSledujici[$a->id()]);
     }
 
     public function dorazilJakoNahradnik(Aktivita $aktivita)
