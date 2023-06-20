@@ -11,9 +11,10 @@ abstract class DbObject
 
     protected $r; // řádek z databáze
 
-    protected static $tabulka;    // název tabulky - odděděná třída _musí_ přepsat
-    protected static $pk      = 'id';  // název primárního klíče - odděděná třída může přepsat
-    protected static $objekty = [];
+    protected static        $tabulka;    // název tabulky - odděděná třída _musí_ přepsat
+    protected static        $pk            = 'id';  // název primárního klíče - odděděná třída může přepsat
+    protected static        $objekty       = [];
+    protected static ?array $objektyZVsech = null;
 
     /**
      * Vytvoří objekt na základě řádku z databáze
@@ -113,9 +114,19 @@ abstract class DbObject
     }
 
     /** Načte a vrátí všechny objekt z databáze */
-    public static function zVsech(): array
+    public static function zVsech(bool $zCache = false): array
     {
-        return self::zWhere('1');
+        if ($zCache && self::$objektyZVsech !== null) {
+            return self::$objektyZVsech;
+        }
+        $objekty = self::zWhere('1');
+        if ($zCache) {
+            foreach ($objekty as $objekt) {
+                self::$objektyZVsech[$objekt->id()] = $objekt;
+            }
+            self::$objekty += self::$objektyZVsech;
+        }
+        return $objekty;
     }
 
     /** Načte a vrátí objekty pomocí dané where klauzule */
