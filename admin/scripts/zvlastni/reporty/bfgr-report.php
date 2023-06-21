@@ -11,5 +11,5 @@ $bfgrReport = new BfgrReport($systemoveNastaveni);
 $bfgrReport->exportuj(
     format: get('format'),
     idUzivatele: get('id'),
-    vcetneStavuNeplatice: !$systemoveNastaveni->jsmeNaOstre()
+    vcetneStavuNeplatice: true
 );
