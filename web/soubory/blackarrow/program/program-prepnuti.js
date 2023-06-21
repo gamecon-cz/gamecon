@@ -1,5 +1,5 @@
 /**
- * @param {Element} zalozkaElement
+ * @param {HTMLAnchorElement} zalozkaElement
  */
 function initializujProgramPrepnuti(zalozkaElement) {
   zalozkaElement.addEventListener('click', function (event) {
@@ -12,6 +12,12 @@ function initializujProgramPrepnuti(zalozkaElement) {
     var kodProgramu = hash.replace('#', '')
     var idProgramu = `programDenDetail-${kodProgramu}`
     document.getElementById(idProgramu).classList.add('program_den_detail-aktivni')
+
+    history.pushState(null, null, zalozkaElement.href)
+    var titulek = zalozkaElement.dataset.titulek
+    if (titulek) {
+      document.getElementsByTagName("title")[0].innerHTML = titulek
+    }
 
     setCookie('aktivni-program-den', this.id)
   })

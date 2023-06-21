@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Web\Info;
 use tFPDF;
 use Uzivatel;
 use ArrayIterator;
@@ -82,6 +83,36 @@ class Program
         if ($this->nastaveni[self::OSOBNI]) {
             $this->nastaveni[self::PRAZDNE] = true;
         }
+    }
+
+    public function titulek(?string $slug): string
+    {
+
+        return (new Info($this->systemoveNastaveni))->nazev($this->nazevStranky($slug))->titulek();
+    }
+
+    private function nazevStranky(?string $slug): string
+    {
+        $dny = [];
+        for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
+            $dny[slugify($den->format('l'))] = clone $den;
+        }
+
+        if (!$slug) {
+            return 'Program ' . reset($dny)->format('l');
+        }
+
+        if ($slug === 'muj') {
+            if (!$this->u) {
+                throw new \Neprihlasen();
+            }
+            return 'Můj program';
+        }
+        if (isset($dny[$slug])) {
+            return 'Program ' . $dny[$slug]->format('l');
+        }
+
+        throw new \Nenalezeno();
     }
 
     /**

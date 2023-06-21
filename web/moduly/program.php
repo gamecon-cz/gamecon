@@ -8,7 +8,7 @@ use Gamecon\Pravo;
 /** @var Modul $this */
 /** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
-/** @var url $url */
+/** @var Url $url */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $this->blackarrowStyl(true);
@@ -20,28 +20,24 @@ for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen())
 
 $nastaveni       = [];
 $alternativniUrl = null;
-$title           = 'Program';
 if ($url->cast(1) === 'muj') {
     if (!$u) {
         throw new Neprihlasen();
     }
     $nastaveni[Program::OSOBNI] = true;
-    $title                      = 'Můj program';
 } else if (isset($dny[$url->cast(1)])) {
     $nastaveni[Program::DEN] = $dny[$url->cast(1)]->format('z');
-    $title                   = 'Program ' . $dny[$url->cast(1)]->format('l');
 } else if (!$url->cast(1)) {
     $nastaveni[Program::DEN] = reset($dny)->format('z');
     $alternativniUrl         = 'program/' . slugify(reset($dny)->format('l'));
-    $title                   = 'Program ' . reset($dny)->format('l');
 } else {
     throw new Nenalezeno();
 }
 
-$this->info()->nazev($title);
-
 $program = new Program($systemoveNastaveni, $u, $nastaveni);
 $program->zpracujPost($u);
+
+$this->info()->nazev($program->titulek($url->cast(1)));
 
 foreach ($program->cssUrls() as $cssUrl) {
     $this->pridejCssUrl($cssUrl);
@@ -62,13 +58,15 @@ $legendaText   = Stranka::zUrl('program-legenda-text')->html();
 $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
 
 // pomocná funkce pro zobrazení aktivního odkazu
-$aktivni = function ($urlOdkazu) use ($url, $alternativniUrl): string {
+$aktivni = function (string $urlOdkazu) use ($url, $alternativniUrl, $program): string {
     $cssTridy[] = 'program_den';
 
-    $id   = null;
-    $hash = substr($urlOdkazu, strpos($urlOdkazu, '#') + 1);
-    if ($hash) {
-        $id = "programDen-{$hash}";
+    $id      = null;
+    $titulek = null;
+    $kodDne  = substr($urlOdkazu, strpos($urlOdkazu, '#') + 1);
+    if ($kodDne) {
+        $id      = "programDen-{$kodDne}";
+        $titulek = $program->titulek($kodDne);
     }
 
     $urlOdkazuBezHashe = substr($urlOdkazu, 0, strpos($urlOdkazu, '#') ?: null);
@@ -79,6 +77,9 @@ $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl): string {
     $html = 'href="' . $urlOdkazu . '" class="' . implode(' ', $cssTridy) . '"';
     if ($id) {
         $html .= " id='{$id}'";
+    }
+    if ($titulek) {
+        $html .= " data-titulek='{$titulek}'";
     }
     return $html;
 };
@@ -100,10 +101,10 @@ ob_start();
         <h1>Program <?= $systemoveNastaveni->rocnik() ?></h1>
         <div class="program_dny">
             <?php foreach ($dny as $denSlug => $den) { ?>
-                <a <?= $aktivni("program/{$denSlug}#{$denSlug}") ?>><?= $den->format('l d.n.') ?></a>
+                <a <?= $aktivni("program/{$denSlug}#{$denSlug}", $this->info()->titulek()) ?>><?= $den->format('l d.n.') ?></a>
             <?php } ?>
             <?php if ($zobrazitMujProgramOdkaz) { ?>
-                <a <?= $aktivni('program/muj#muj') ?>>můj program</a>
+                <a <?= $aktivni('program/muj#muj', $this->info()->titulek()) ?>>můj program</a>
             <?php } ?>
         </div>
     </div>
@@ -197,7 +198,7 @@ ob_start();
 
     programPosuv(document.querySelector('.programPosuv_obal2'))
 
-    Array.from(document.querySelectorAll('.program_den')).forEach(function (zalozkaElement) {
+    Array.from(document.querySelectorAll('a.program_den')).forEach(function (zalozkaElement) {
         initializujProgramPrepnuti(zalozkaElement)
     })
 
