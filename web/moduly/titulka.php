@@ -7,6 +7,7 @@ use Gamecon\Web\Loga;
 
 /** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Modul $this */
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $this->blackarrowStyl(true);
 $this->info()
@@ -35,15 +36,15 @@ Loga::logaSponzoru()->vypisDoSablony($t, 'titulka.sponzor');
 Loga::logaPartneru()->vypisDoSablony($t, 'titulka.partner');
 
 // odpočet
-if (pred(REG_GC_OD)) {
-    $zacatek = (new DateTimeCz(REG_GC_OD))->format('j. n. \v\e H:i');
+if ($systemoveNastaveni->predRegistraciUcastniku()) {
+    $zacatek = $systemoveNastaveni->registraceUcastnikuOd()->format(DateTimeCz::FORMAT_ZACATEK_UDALOSTI);
     $t->assign([
-        'odpocetTimestamp' => strtotime(REG_GC_OD),
+        'odpocetTimestamp' => $systemoveNastaveni->registraceUcastnikuOd()->getTimestamp(),
         'odpocetNadpis'    => "Přihlašování začne $zacatek",
     ]);
 } else {
     $t->assign([
-        'odpocetTimestamp' => strtotime(GC_BEZI_OD),
+        'odpocetTimestamp' => $systemoveNastaveni->gcBeziOd()->getTimestamp(),
         'odpocetNadpis'    => 'Do GameConu zbývá',
     ]);
     $t->parse('titulka.odpocetPrihlasit');

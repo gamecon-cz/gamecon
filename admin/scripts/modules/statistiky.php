@@ -50,10 +50,9 @@ $zarovnaniGrafu = get('zarovnaniGrafu') ?? Statistiky::ZAROVNANI_KE_KONCI_GC;
     'prihlaseniProJs'    => $prihlaseniProJs,
 ] = $statistiky->pripravDataProGraf($prihlaseniData, $vybraneRoky, $zarovnaniGrafu);
 
-// TODO zvýraznit dnešek v názvech dnů přes HTML
 $indexyDnuZacatkuRegistraci = [];
 foreach ($zacatkyRegistaci as $rok => $nazevDneZacatkuRegistrace) {
-    if ($rok === $systemoveNastaveni->rocnik() && pred(REG_GC_OD)) {
+    if ($rok === $systemoveNastaveni->rocnik() && $systemoveNastaveni->predRegistraciUcastniku()) {
         continue; // registace na letošní GC ještě nezačala
     }
     // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů

@@ -5,7 +5,7 @@
 $this->q(<<<SQL
 INSERT IGNORE INTO systemove_nastaveni (klic, hodnota, aktivni, nazev, popis, datovy_typ, skupina, poradi)
     VALUES
-        -- \Gamecon\Cas\DateTimeGamecon::zacatekRegistraciUcastniku
+        -- \Gamecon\Cas\DateTimeGamecon::registraceUcastnikuOd
         ('REG_GC_OD', '', 0 /* neaktivní, aby se vzala výchozí hodnota */, 'Začátek registrací účastníků', 'Od kdy se mohou začít účastníci registrovat na Gamecon', 'datetime', 'cas',  (SELECT MAX(poradi) + 1 FROM systemove_nastaveni AS predchozi)),
         -- \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd
         ('REG_AKTIVIT_OD', '', 0 /* neaktivní, aby se vzala výchozí hodnota */, 'Začátek první vlny aktivit', 'Od kdy se účastníci mohou začít přihlašovat na aktivity', 'datetime', 'cas',  (SELECT MAX(poradi) + 1 FROM systemove_nastaveni AS predchozi)),
