@@ -186,7 +186,7 @@ if ($uPracovni) {
         );
     }
 
-    if (GC_BEZI) {
+    if ($systemoveNastaveni->gcBezi()) {
         $zpravyProPotvrzeniZruseniPrace = [];
         if (!$uPracovni->gcPritomen()) {
             $zpravyProPotvrzeniZruseniPrace[] = 'nedostal materiály';
@@ -245,7 +245,7 @@ $x->assign('predmety', $moznosti);
 // rychloregistrace
 if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci
     $x->parse('infopult.rychloregistrace');
-    if (REG_GC) {
+    if ($systemoveNastaveni->registraceUcastnikuSpustena()) {
         $x->parse('infopult.rychloregistrace.prihlasitNaGc');
     }
 }

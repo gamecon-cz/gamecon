@@ -60,7 +60,7 @@ if (po(GC_BEZI_DO)) {
     return;
 }
 
-if (VYZADOVANO_COVID_POTVRZENI && $u && (GC_BEZI || $u->gcPritomen())) {
+if (VYZADOVANO_COVID_POTVRZENI && $u && ($systemoveNastaveni->gcBezi() || $u->gcPritomen())) {
     $t->assign('covidSekce', $covidSekceFunkce(new Shop($u, $u, null, $systemoveNastaveni)));
     $t->parse('prihlaskaUzavrena.covidSekce.doklad');
     $letosniRok = (int)date('Y');
@@ -70,7 +70,7 @@ if (VYZADOVANO_COVID_POTVRZENI && $u && (GC_BEZI || $u->gcPritomen())) {
     $t->parse('prihlaskaUzavrena.covidSekce');
 }
 
-if (GC_BEZI) {
+if ($systemoveNastaveni->gcBezi()) {
     if ($u?->gcPritomen()) {
         $t->parse('prihlaskaUzavrena.proselInfopultem');
         $t->parse('prihlaskaUzavrena');

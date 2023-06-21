@@ -72,7 +72,6 @@ if (!defined('REG_GC_DO')) define('REG_GC_DO', $systemoveNastaveni->konecRegistr
 if (!defined('PRVNI_VLNA_KDY')) define('PRVNI_VLNA_KDY', $systemoveNastaveni->prvniVlnaKdy(ROCNIK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
 if (!defined('DRUHA_VLNA_KDY')) define('DRUHA_VLNA_KDY', $systemoveNastaveni->druhaVlnaKdy(ROCNIK)->formatDb());
 if (!defined('TRETI_VLNA_KDY')) define('TRETI_VLNA_KDY', $systemoveNastaveni->tretiVlnaKdy(ROCNIK)->formatDb());
-if (!defined('REG_AKTIVIT_DO')) define('REG_AKTIVIT_DO', GC_BEZI_DO); // ukončení možnosti registrace na aktivity
 
 // 2022-07-13 00:00:00
 if (!defined('PROGRAM_OD')) define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROCNIK)->formatDb()); // první den programu
@@ -183,11 +182,8 @@ if (!defined('VYZADOVANO_COVID_POTVRZENI')) define('VYZADOVANO_COVID_POTVRZENI',
 //////////////////////////////////////////////
 
 // odpočítané tvrdé údaje podle dat
-if (!defined('REG_GC')) define('REG_GC', mezi(REG_GC_OD, REG_GC_DO));
-if (!defined('REG_AKTIVIT')) define('REG_AKTIVIT', mezi(PRVNI_VLNA_KDY, REG_AKTIVIT_DO));
-if (!defined('GC_BEZI')) define('GC_BEZI', mezi(GC_BEZI_OD, GC_BEZI_DO)); // jestli gamecon aktivně běží (zakázání online registrací ubytování aj.) - do budoucna se vyvarovat a používat speciální konstanty per vlastnost
 
-if (!defined('ARCHIV_OD')) define('ARCHIV_OD', 2009);           //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
+if (!defined('ARCHIV_OD')) define('ARCHIV_OD', 2009);           // rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
 
 if (!defined('ODHLASENI_POKUTA_KONTROLA')) define('ODHLASENI_POKUTA_KONTROLA', true); // jestli se má kontrolovat pozdní odhlášní z aktivit
 if (!defined('ODHLASENI_POKUTA1_H')) define('ODHLASENI_POKUTA1_H', 24); // kolik hodin před aktivitou se začne uplatňovat pokuta 1

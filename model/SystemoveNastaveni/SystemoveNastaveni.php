@@ -779,6 +779,11 @@ SQL;
         );
     }
 
+    public function gcBezi(): bool
+    {
+        return mezi($this->gcBeziOd(), $this->gcBeziDo());
+    }
+
     public function zacatekRegistraciUcastniku(): DateTimeGamecon
     {
         return DateTimeGamecon::zacatekRegistraciUcastniku($this->rocnik());
@@ -791,17 +796,12 @@ SQL;
 
     public function registraceUcastnikuSpustena(): bool
     {
-        return REG_GC;
-    }
-
-    public function registraceUcastnikuDo(): DateTimeGamecon
-    {
-        return DateTimeGamecon::konecRegistraciUcastniku($this->rocnik);
+        return mezi($this->zacatekRegistraciUcastniku(), $this->konecRegistraciUcastniku());
     }
 
     public function poRegistraciUcastniku(): bool
     {
-        return po($this->registraceUcastnikuDo());
+        return po($this->konecRegistraciUcastniku());
     }
 
     public function neplaticCastkaVelkyDluh(): float
@@ -827,7 +827,7 @@ SQL;
 
     public function probihaRegistraceAktivit(): bool
     {
-        return mezi($this->prvniVlnaKdy()->format(DateTimeCz::FORMAT_DB), REG_AKTIVIT_DO);
+        return mezi($this->prvniVlnaKdy(), $this->gcBeziDo());
     }
 
     public function jeApril(): bool

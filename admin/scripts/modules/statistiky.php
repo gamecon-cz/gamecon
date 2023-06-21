@@ -26,7 +26,7 @@ $vybraneRoky = array_diff(
     get('rok') ?? range($systemoveNastaveni->rocnik() - 3, $systemoveNastaveni->rocnik()),
     [2020], // abychom netrápili databázi hleáním dat pro rok Call of Covid
 );
-$mozneRoky   = range(2009, $systemoveNastaveni->rocnik());
+$mozneRoky   = range(ARCHIV_OD, $systemoveNastaveni->rocnik());
 
 $statistiky = new Statistiky($vybraneRoky, $systemoveNastaveni);
 
