@@ -36,10 +36,10 @@ Loga::logaSponzoru()->vypisDoSablony($t, 'titulka.sponzor');
 Loga::logaPartneru()->vypisDoSablony($t, 'titulka.partner');
 
 // odpočet
-if ($systemoveNastaveni->predRegistraciUcastniku()) {
-    $zacatek = $systemoveNastaveni->registraceUcastnikuOd()->format(DateTimeCz::FORMAT_ZACATEK_UDALOSTI);
+if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
+    $zacatek = $systemoveNastaveni->prihlasovaniUcastnikuOd()->format(DateTimeCz::FORMAT_ZACATEK_UDALOSTI);
     $t->assign([
-        'odpocetTimestamp' => $systemoveNastaveni->registraceUcastnikuOd()->getTimestamp(),
+        'odpocetTimestamp' => $systemoveNastaveni->prihlasovaniUcastnikuOd()->getTimestamp(),
         'odpocetNadpis'    => "Přihlašování začne $zacatek",
     ]);
 } else {

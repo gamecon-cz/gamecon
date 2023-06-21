@@ -1,27 +1,28 @@
 <!-- begin:prihlaska -->
 
 <div class="prihlaska_hlavickaObal">
-  <div class="prihlaska_hlavicka">
-    <h1>Přihláška na GameCon</h1>
+    <div class="prihlaska_hlavicka">
+        <h1>Přihláška na GameCon</h1>
 
-    <!-- begin:prihlasen -->
-    <p>Jsi přihlášen{a} na GameCon {rok}. Níže si můžeš upravovat svou přihlášku, tedy objednané ubytování a
-      předměty až
-      téměř do začátku GameConu.</p>
+        <!-- begin:prihlasen -->
+        <p>Jsi přihlášen{a} na GameCon {rok}. Níže si můžeš upravovat svou přihlášku, tedy objednané ubytování a
+            předměty až
+            téměř do začátku GameConu.</p>
 
-    <div class="prihlaska_hlavickaFinance">
-      <p>Objednávku je potřeba uhradit do {zaplatitNejpozdejiDo} včetně. Svůj přehled financí a údaje k platbě najdeš v <a
-              href="finance">Přehledu
-        financí</a>.</p>
+        <div class="prihlaska_hlavickaFinance">
+            <p>Objednávku je potřeba uhradit do {zaplatitNejpozdejiDo} včetně. Svůj přehled financí a údaje k platbě
+                najdeš v <a
+                        href="finance">Přehledu
+                    financí</a>.</p>
+        </div>
+        <!-- end:prihlasen -->
+
+        <!-- begin:neprihlasen -->
+        <p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty a ubytování s GameCon tématikou,
+            které
+            budeš chtít. Výběr jde i později změnit.</p>
+        <!-- end:neprihlasen -->
     </div>
-    <!-- end:prihlasen -->
-
-    <!-- begin:neprihlasen -->
-    <p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty a ubytování s GameCon tématikou,
-      které
-      budeš chtít. Výběr jde i později změnit.</p>
-    <!-- end:neprihlasen -->
-  </div>
 </div>
 
 <style>
@@ -34,236 +35,245 @@
 
 <form method="post" class="prihlaska" enctype="multipart/form-data">
 
-  <!----------------------------------------------------------------------------->
+    <!----------------------------------------------------------------------------->
 
-  <div class="prihlaska_sekce">
-    <h2>Předměty</h2>
-
-    <div class="prihlaska_infoPruh">
-      <div class="prihlaska_info">
-        <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/hra.png"
-             style="top: -40px; right: -19px">
-        <h3>GameCon merch</h3>
-        <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko ➕.
-            U triček se ti po vyplnění jednoho nabídne položka pro výběr dalšího.<br>
-          <b>Výběr triček a tílek jde změnit do {trickaObjednatelnaDo}, ostatních předmětů do
-            {predmetyBezTricekObjednatelneDo}</b></p>
-      </div>
-      <!-- begin: slevy -->
-      <div class="prihlaska_info prihlaska_info-ikona">
-        <p>Jako {titul} máš nárok na následující bonusy (pokud si je objednáš): {slevy}.</p>
-      </div>
-      <!-- end: slevy -->
-    </div>
-
-    {predmety}
-
-    <div class="prihlaska_nahledy">
-      <!-- begin: nahled -->
-      <a href="{obrazek}" class="prihlaska_nahled" title="{nazev}" style="display: {display}">
-        <img src="{miniatura}">
-      </a>
-      <!-- end: nahled -->
-    </div>
-  </div>
-
-  <!----------------------------------------------------------------------------->
-
-  <div class="prihlaska_sekce">
-    <h2>Jídlo</h2>
-
-    <div class="prihlaska_infoPruh">
-      <div class="prihlaska_info">
-        <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/rum.png"
-             style="top: -48px; right: -8px">
-        <h3>Informace ke stravování</h3>
-        <ul>
-          <li>Jídlo je možné objednat nebo zrušit do {jidloObjednatelneDo}</li>
-          <li>Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.
-          </li>
-          <li><a href="jidelnicek">Jídelníček</a></li>
-        </ul>
-      </div>
-    </div>
-
-    {jidlo}
-  </div>
-
-  <!----------------------------------------------------------------------------->
-
-  <div class="prihlaska_sekce">
-    <h2>Ubytování</h2>
-
-    <div class="prihlaska_infoPruh">
-      <div class="prihlaska_info">
-        <img alt="Ikona s mapou" class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/mapa.png"
-             style="top: -33px; right: -15px">
-        <h3>Informace k ubytování</h3>
-        <ul>
-          <li>Objednat nebo změnit ubytování je možné do {ubytovaniObjednatelneDo}</li>
-          <li>Čísla ukazují počet obsazených míst / celkem.</li>
-          <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
-          <!-- begin:poznamkaKUbytovaniVNedeli -->
-          <li>Ubytování v Ne - Po znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je
-            potřeba pokoj vyklidit do 9:00.
-          </li>
-          <!-- end:poznamkaKUbytovaniVNedeli -->
-        </ul>
-      </div>
-
-      <!-- begin: ubytovaniInfoVypravec -->
-      <div class="prihlaska_info prihlaska_info-ikona">
-        Jako vypravěč{ka} máš nárok na bonus odvíjející se od množství vyprávěných aktivit, který se dá uplatnit
-        na
-        ubytování, jídlo nebo aktivity. Přesnou výšku bonusu najdeš po dokončení registrace ve svém <a
-              href="finance">finančním
-        přehledu</a>.</p>
-      </div>
-      <!-- end: ubytovaniInfoVypravec -->
-
-      <!-- begin: ubytovaniInfoOrg -->
-      <div class="prihlaska_info prihlaska_info-ikona">
-        <p>Jako organizátor{ka} máš veškeré ubytování také zdarma.</p>
-      </div>
-      <!-- end: ubytovaniInfoOrg -->
-    </div>
-
-    {ubytovani}
-  </div>
-
-  <!----------------------------------------------------------------------------->
-
-  <!----------------------------------------------------------------------------->
-
-  {covidSekce}
-
-  <!----------------------------------------------------------------------------->
-
-  <div class="prihlaska_sekceObal prihlaska_sekceObal-vstupne">
     <div class="prihlaska_sekce">
-      <div class="prihlaska_infoPruh">
-        <div class="prihlaska_info">
-          <h3>K čemu slouží vstupné</h3>
-          <p><b>Je spousta příjemných maličkostí, které by nám zpříjemnily organizaci a vám udělaly lepší
-            GameCon. Již z
-            minulého dobrovolného vstupného jsme pro tento rok zajistili:</b></p>
-          <ul>
-            <li>prodlouženou otevírací dobu deskoherny</li>
-            <li>koncert a improshow</li>
-            <li>několik odměn do soutěží a miniher</li>
-            <li>rekvizity pro hry</li>
-            <li>ventilátory pro epické hraní a wargaming</li>
-          </ul>
-          <p>To stejné a možná i něco navíc chceme zajistit i příští rok. Vašich příspěvků si moc vážíme a
-            děkujeme za
-            ně.</p>
+        <h2>Předměty</h2>
+
+        <div class="prihlaska_infoPruh">
+            <div class="prihlaska_info">
+                <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/hra.png"
+                     style="top: -40px; right: -19px">
+                <h3>GameCon merch</h3>
+                <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko ➕.
+                    U triček se ti po vyplnění jednoho nabídne položka pro výběr dalšího.<br>
+                    <b>Výběr triček a tílek jde změnit do {trickaObjednatelnaDo}, ostatních předmětů do
+                        {predmetyBezTricekObjednatelneDo}</b></p>
+            </div>
+            <!-- begin: slevy -->
+            <div class="prihlaska_info prihlaska_info-ikona">
+                <p>Jako {titul} máš nárok na následující bonusy (pokud si je objednáš): {slevy}.</p>
+            </div>
+            <!-- end: slevy -->
         </div>
-      </div>
 
-      <h2>Dobrovolné vstupné</h2>
+        {predmety}
 
-      {vstupne}
+        <div class="prihlaska_nahledy">
+            <!-- begin: nahled -->
+            <a href="{obrazek}" class="prihlaska_nahled" title="{nazev}" style="display: {display}">
+                <img src="{miniatura}">
+            </a>
+            <!-- end: nahled -->
+        </div>
     </div>
-  </div>
 
-  <!----------------------------------------------------------------------------->
+    <!----------------------------------------------------------------------------->
 
-  <div class="prihlaska_sekce prihlaska_sekce-zapojit">
-    {pomoc}
-  </div>
+    <div class="prihlaska_sekce">
+        <h2>Jídlo</h2>
 
-  <!----------------------------------------------------------------------------->
+        <div class="prihlaska_infoPruh">
+            <div class="prihlaska_info">
+                <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/rum.png"
+                     style="top: -48px; right: -8px">
+                <h3>Informace ke stravování</h3>
+                <ul>
+                    <li>Jídlo je možné objednat nebo zrušit do {jidloObjednatelneDo}</li>
+                    <li>Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.
+                    </li>
+                    <li><a href="jidelnicek">Jídelníček</a></li>
+                </ul>
+            </div>
+        </div>
 
-  <div class="prihlaska_sekce">
-    <input type="submit" class="formular_primarni" name="prihlasitNeboUpravit" value="{ulozitNeboPrihlasit}">
-    <!-- begin:odhlasit -->
-    <input type="submit" class="formular_negativni" name="odhlasit" value="Odhlásit se z GameConu"
-           onclick="return confirm('Odhlášení z GameConu zruší všechny tvé registrace na aktivity a nákupy předmětů. Kliknutím na OK se odhlásíš.')">
-    <!-- end:odhlasit -->
-  </div>
+        {jidlo}
+    </div>
 
-  <!----------------------------------------------------------------------------->
+    <!----------------------------------------------------------------------------->
+
+    <div class="prihlaska_sekce">
+        <h2>Ubytování</h2>
+
+        <div class="prihlaska_infoPruh">
+            <div class="prihlaska_info">
+                <img alt="Ikona s mapou" class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/mapa.png"
+                     style="top: -33px; right: -15px">
+                <h3>Informace k ubytování</h3>
+                <ul>
+                    <li>Objednat nebo změnit ubytování je možné do {ubytovaniObjednatelneDo}</li>
+                    <li>Čísla ukazují počet obsazených míst / celkem.</li>
+                    <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
+                    <!-- begin:poznamkaKUbytovaniVNedeli -->
+                    <li>Ubytování v Ne - Po znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je
+                        potřeba pokoj vyklidit do 9:00.
+                    </li>
+                    <!-- end:poznamkaKUbytovaniVNedeli -->
+                </ul>
+            </div>
+
+            <!-- begin: ubytovaniInfoVypravec -->
+            <div class="prihlaska_info prihlaska_info-ikona">
+                Jako vypravěč{ka} máš nárok na bonus odvíjející se od množství vyprávěných aktivit, který se dá uplatnit
+                na
+                ubytování, jídlo nebo aktivity. Přesnou výšku bonusu najdeš po dokončení registrace ve svém <a
+                    href="finance">finančním
+                přehledu</a>.</p>
+            </div>
+            <!-- end: ubytovaniInfoVypravec -->
+
+            <!-- begin: ubytovaniInfoOrg -->
+            <div class="prihlaska_info prihlaska_info-ikona">
+                <p>Jako organizátor{ka} máš veškeré ubytování také zdarma.</p>
+            </div>
+            <!-- end: ubytovaniInfoOrg -->
+        </div>
+
+        {ubytovani}
+    </div>
+
+    <!----------------------------------------------------------------------------->
+
+    <!----------------------------------------------------------------------------->
+
+    {covidSekce}
+
+    <!----------------------------------------------------------------------------->
+
+    <div class="prihlaska_sekceObal prihlaska_sekceObal-vstupne">
+        <div class="prihlaska_sekce">
+            <div class="prihlaska_infoPruh">
+                <div class="prihlaska_info">
+                    <h3>K čemu slouží vstupné</h3>
+                    <p><b>Je spousta příjemných maličkostí, které by nám zpříjemnily organizaci a vám udělaly lepší
+                        GameCon. Již z
+                        minulého dobrovolného vstupného jsme pro tento rok zajistili:</b></p>
+                    <ul>
+                        <li>prodlouženou otevírací dobu deskoherny</li>
+                        <li>koncert a improshow</li>
+                        <li>několik odměn do soutěží a miniher</li>
+                        <li>rekvizity pro hry</li>
+                        <li>ventilátory pro epické hraní a wargaming</li>
+                    </ul>
+                    <p>To stejné a možná i něco navíc chceme zajistit i příští rok. Vašich příspěvků si moc vážíme a
+                        děkujeme za
+                        ně.</p>
+                </div>
+            </div>
+
+            <h2>Dobrovolné vstupné</h2>
+
+            {vstupne}
+        </div>
+    </div>
+
+    <!----------------------------------------------------------------------------->
+
+    <div class="prihlaska_sekce prihlaska_sekce-zapojit">
+        {pomoc}
+    </div>
+
+    <!----------------------------------------------------------------------------->
+
+    <div class="prihlaska_sekce">
+        <input type="submit" class="formular_primarni" name="prihlasitNeboUpravit" value="{ulozitNeboPrihlasit}">
+        <!-- begin:odhlasit -->
+        <input type="submit" class="formular_negativni" name="odhlasit" value="Odhlásit se z GameConu"
+               onclick="return confirm('Odhlášení z GameConu zruší všechny tvé registrace na aktivity a nákupy předmětů. Kliknutím na OK se odhlásíš.')">
+        <!-- end:odhlasit -->
+    </div>
+
+    <!----------------------------------------------------------------------------->
 
 </form>
 
 <link rel="stylesheet" href="soubory/blackarrow/_spolecne/baguetteBox.min.css">
 <script src="soubory/blackarrow/_spolecne/baguetteBox.min.js"></script>
 <script>
-    baguetteBox.run('.prihlaska_nahledy')
+  baguetteBox.run('.prihlaska_nahledy')
 </script>
 
 <!-- end:prihlaska -->
 
 <!-- begin: prihlaskaPred -->
 <div class="prihlaska_hlavickaObal">
-  <div class="prihlaska_hlavicka">
-    <h1>Přihláška na GameCon</h1>
-    <p>Přihlašování na GameCon bude spuštěno {zacatek}.</p>
-  </div>
+    <div class="prihlaska_hlavicka">
+        <h1>Přihláška na GameCon</h1>
+        <p>Přihlašování na GameCon bude spuštěno {zacatek}.</p>
+    </div>
 </div>
 <!-- end: prihlaskaPred -->
 
 <!-- begin: prihlaskaPo -->
 <div class="prihlaska_hlavickaObal">
-  <div class="prihlaska_hlavicka">
-    <h1>Přihláška na GameCon</h1>
-    <!-- begin: ucastnilSe -->
-    <p>
-      Děkujeme za tvou účast na GameConu! Budeme moc rádi za jakoukoliv
-      <a href="https://gamecon.cz/info-po-gc" title="Zpětná vazba">zpětnou vazbu</a>,
-      abychom věděli, co zlepšit, případně co určitě nevynechat ani v příštích letech.
-      Budeme se těšit zase za rok, do té doby nás můžeš sledovat na
-      <a href="https://www.facebook.com/gamecon" title="Facebook GameConu">Facebooku</a>,
-      <a href="https://www.instagram.com/gamecon_cz/" title="Instagram GameConu">Instagramu</a>
-      nebo na <a href="https://discord.gg/trKrQbH5rd" title="Discord GameConu">Discordu</a>.
-    </p>
-    <!-- end: ucastnilSe -->
-
-    <!-- begin: neucastnilSe -->
-    <p>
-      GameCon už proběhl, těšíme se na viděnou v roce {rok}.
-    </p>
-    <p>
-      Fotky z předešlých ročníků najdeš na našem <a href="https://www.facebook.com/gamecon"
-                                                    title="Facebook GameConu">Facebooku</a> nebo <a
-            href="https://www.instagram.com/gamecon_cz/" title="Instagram GameConu">Instagramu</a>. Přidej se k nám
-      na <a href="https://discord.gg/trKrQbH5rd" title="Discord GameConu">Discord</a>, aby ti neutekly žádné
-      novinky.
-    </p>
-    <!-- end: neucastnilSe -->
-  </div>
+    <div class="prihlaska_hlavicka">
+        <h1>Přihláška na GameCon</h1>
+        <p>Přihlašování na GameCon je uzavřeno od {konec}.</p>
+    </div>
 </div>
-<!-- end: prihlaskaPo -->
+<!-- end: prihlaskaPred -->
+
+<!-- begin: prihlaskaPoGc -->
+<div class="prihlaska_hlavickaObal">
+    <div class="prihlaska_hlavicka">
+        <h1>Přihláška na GameCon</h1>
+        <!-- begin: ucastnilSe -->
+        <p>
+            Děkujeme za tvou účast na GameConu! Budeme moc rádi za jakoukoliv
+            <a href="https://gamecon.cz/info-po-gc" title="Zpětná vazba">zpětnou vazbu</a>,
+            abychom věděli, co zlepšit, případně co určitě nevynechat ani v příštích letech.
+            Budeme se těšit zase za rok, do té doby nás můžeš sledovat na
+            <a href="https://www.facebook.com/gamecon" title="Facebook GameConu">Facebooku</a>,
+            <a href="https://www.instagram.com/gamecon_cz/" title="Instagram GameConu">Instagramu</a>
+            nebo na <a href="https://discord.gg/trKrQbH5rd" title="Discord GameConu">Discordu</a>.
+        </p>
+        <!-- end: ucastnilSe -->
+
+        <!-- begin: neucastnilSe -->
+        <p>
+            GameCon už proběhl, těšíme se na viděnou v roce {rok}.
+        </p>
+        <p>
+            Fotky z předešlých ročníků najdeš na našem <a href="https://www.facebook.com/gamecon"
+                                                          title="Facebook GameConu">Facebooku</a> nebo <a
+                href="https://www.instagram.com/gamecon_cz/" title="Instagram GameConu">Instagramu</a>. Přidej se k nám
+            na <a href="https://discord.gg/trKrQbH5rd" title="Discord GameConu">Discord</a>, aby ti neutekly žádné
+            novinky.
+        </p>
+        <!-- end: neucastnilSe -->
+    </div>
+</div>
+<!-- end: prihlaskaPoGc -->
 
 <!-- begin: prihlaskaUzavrena -->
 <div class="prihlaska_hlavickaObal">
-  <div class="prihlaska_hlavicka">
-    <h1>Přihláška na GameCon</h1>
+    <div class="prihlaska_hlavicka">
+        <h1>Přihláška na GameCon</h1>
 
-    <!-- begin: proselInfopultem -->
-    <p>Přihlášku již nelze upravovat online, případné změny je <strong>momentálně možné provádět pouze na místě u
-      Infopultu</strong>.
-      Přehled svých objednávek a plateb najdeš v záložce <a href="finance">finance</a> na svém
-      profilu.</p>
-    <!-- end: proselInfopultem -->
-    <!-- begin: neproselInfopultem -->
-    <p>Vítáme tě na GameConu! Přihlášku již nelze upravovat online, veškeré případné změny v přihlášce proto řeš na
-      Infopultu, přehled
-      plateb najdeš v záložce <a href="finance">finance</a> na svém profilu.</p>
-    <!-- end: neproselInfopultem -->
-  </div>
+        <!-- begin: proselInfopultem -->
+        <p>Přihlášku již nelze upravovat online, případné změny je <strong>momentálně možné provádět pouze na místě u
+            Infopultu</strong>.
+            Přehled svých objednávek a plateb najdeš v záložce <a href="https://gamecon.cz/finance">finance</a> na svém
+            profilu.</p>
+        <!-- end: proselInfopultem -->
+        <!-- begin: neproselInfopultem -->
+        <p>Vítáme tě na GameConu! Přihlášku již nelze upravovat online, veškeré případné změny v přihlášce proto řeš na
+            Infopultu, přehled
+            plateb najdeš v záložce <a href="https://gamecon.cz/finance">finance</a> na svém profilu.</p>
+        <!-- end: neproselInfopultem -->
+    </div>
 </div>
 
 <!-- begin: covidSekce -->
 <form method="post" class="prihlaska" enctype="multipart/form-data">
-  <!-- begin: doklad -->
-  {covidSekce}
-  <!-- end: doklad -->
-  <!-- begin: submit -->
-  <div class="prihlaska_sekce">
-    <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení">
-  </div>
-  <!-- end: submit -->
+    <!-- begin: doklad -->
+    {covidSekce}
+    <!-- end: doklad -->
+    <!-- begin: submit -->
+    <div class="prihlaska_sekce">
+        <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení">
+    </div>
+    <!-- end: submit -->
 </form>
 <!-- end: covidSekce -->
 

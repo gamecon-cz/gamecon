@@ -190,7 +190,7 @@ class Registrace
                     Již mám účet <a href="prihlaseni">přihlásit se</a>
                 </div>
 
-                <?php if ($this->systemoveNastaveni->registraceUcastnikuOd() > $this->systemoveNastaveni->ted()) { ?>
+                <?php if (pred($this->systemoveNastaveni->prihlasovaniUcastnikuOd())) { ?>
                     <div class="formular_infobox">
                         <b>Přihlašování na GameCon se spustí <?= $this->zacatekPrihlasovani() ?></b>
                         Můžeš si předem vytvořit účet a přihlašování ti připomeneme e-mailem.
@@ -259,7 +259,7 @@ class Registrace
                 <input type="submit" value="Uložit" class="formular_primarni">
             <?php } else { ?>
                 <input type="hidden" name="registrovat" value="true">
-                <?php if ($this->systemoveNastaveni->registraceUcastnikuSpustena()) { ?>
+                <?php if ($this->systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) { ?>
                     <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni">
                     <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
                 <?php } else { ?>
@@ -310,7 +310,7 @@ class Registrace
 
     private function zacatekPrihlasovani(): string
     {
-        return $this->systemoveNastaveni->registraceUcastnikuOd()->format('j.&#160;n. Y \v\e H:i');
+        return $this->systemoveNastaveni->prihlasovaniUcastnikuOd()->format('j.&#160;n. Y \v\e H:i');
     }
 
     private function souhlasilSeZpracovanimOsobnichUdaju(): bool

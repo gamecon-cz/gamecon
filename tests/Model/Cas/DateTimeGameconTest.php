@@ -107,7 +107,7 @@ class DateTimeGameconTest extends TestCase
     {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(REG_GC_OD),
-            DateTimeGamecon::registraceUcastnikuOd(ROCNIK),
+            DateTimeGamecon::prihlasovaniUcastnikuOd(ROCNIK),
             'Očekáván jiný začátek registrací, viz konstanta REG_GC_OD: ' . REG_GC_OD,
         );
     }
@@ -509,7 +509,7 @@ class DateTimeGameconTest extends TestCase
         }
         self::assertEquals(
             DateTimeGamecon::konecGameconu(),
-            DateTimeGamecon::registraceUcastnikuDo(),
+            DateTimeGamecon::prihlasovaniUcastnikuDo(),
             "Očekáván jiný konec registací účastníků pro současný ročník",
         );
     }

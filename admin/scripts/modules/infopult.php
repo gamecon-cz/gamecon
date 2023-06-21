@@ -68,7 +68,7 @@ if (get('pokoj')) {
 
 if ($uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
-        if ($systemoveNastaveni->registraceUcastnikuSpustena()) {
+        if ($systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) {
             $x->assign('prihlasDisabled', '');
         } else {
             $x->parse('infopult.neprihlasen.nelze');
@@ -245,7 +245,7 @@ $x->assign('predmety', $moznosti);
 // rychloregistrace
 if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci
     $x->parse('infopult.rychloregistrace');
-    if ($systemoveNastaveni->registraceUcastnikuSpustena()) {
+    if ($systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) {
         $x->parse('infopult.rychloregistrace.prihlasitNaGc');
     }
 }
