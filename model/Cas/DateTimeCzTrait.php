@@ -293,7 +293,7 @@ trait DateTimeCzTrait
 
     public function formatCasZacatekUdalosti(): string
     {
-        return (string)parent::format('j. n. Y \v\e H:i');
+        return (string)parent::format(self::FORMAT_ZACATEK_UDALOSTI);
     }
 
     /** Zvýší časový údaj o jeden den. Upravuje objekt. */

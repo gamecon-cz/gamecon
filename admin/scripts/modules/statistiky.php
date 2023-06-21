@@ -52,7 +52,7 @@ $zarovnaniGrafu = get('zarovnaniGrafu') ?? Statistiky::ZAROVNANI_KE_KONCI_GC;
 
 $indexyDnuZacatkuRegistraci = [];
 foreach ($zacatkyRegistaci as $rok => $nazevDneZacatkuRegistrace) {
-    if ($rok === $systemoveNastaveni->rocnik() && $systemoveNastaveni->predRegistraciUcastniku()) {
+    if ($rok === $systemoveNastaveni->rocnik() && pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
         continue; // registace na letošní GC ještě nezačala
     }
     // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů

@@ -1999,12 +1999,12 @@ SQL
         if (!( // ← inverze ↓
             $this->systemoveNastaveni->probihaRegistraceAktivit()
             || ($dopredne && pred($this->systemoveNastaveni->prvniVlnaKdy()))
-            || ($zpetne && po($this->systemoveNastaveni->registraceUcastnikuDo()))
+            || ($zpetne && po($this->systemoveNastaveni->prihlasovaniUcastnikuDo()))
         )) {
             return sprintf(
                 'Není spuštěna registrace aktivit (začíná %s a končí %s)',
                 $this->systemoveNastaveni->prvniVlnaKdy()->formatCasStandard(),
-                $this->systemoveNastaveni->registraceUcastnikuDo()->formatCasStandard(),
+                $this->systemoveNastaveni->prihlasovaniUcastnikuDo()->formatCasStandard(),
             );
         }
         if (!( // ← inverze ↓

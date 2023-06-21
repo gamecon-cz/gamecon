@@ -51,12 +51,12 @@ if (post('pridatPotvrzeniProtiCovidu')) {
 
 if (po(GC_BEZI_DO)) {
     if ($u && $u->gcPritomen()) {
-        $t->parse('prihlaskaPo.ucastnilSe');
+        $t->parse('prihlaskaPoGc.ucastnilSe');
     } else {
-        $t->assign('rok', ROCNIK + 1);
-        $t->parse('prihlaskaPo.neucastnilSe');
+        $t->assign('rok', $systemoveNastaveni->rocnik() + 1);
+        $t->parse('prihlaskaPoGc.neucastnilSe');
     }
-    $t->parse('prihlaskaPo');
+    $t->parse('prihlaskaPoGc');
     return;
 }
 
@@ -68,6 +68,12 @@ if (VYZADOVANO_COVID_POTVRZENI && $u && ($systemoveNastaveni->gcBezi() || $u->gc
         $t->parse('prihlaskaUzavrena.covidSekce.submit');
     }
     $t->parse('prihlaskaUzavrena.covidSekce');
+}
+
+if (!$u->gcPrihlasen() && po($systemoveNastaveni->prihlasovaniUcastnikuDo())) {
+    $t->assign('konec', $systemoveNastaveni->prihlasovaniUcastnikuDo()->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD));
+    $t->parse('prihlaskaPo');
+    return;
 }
 
 if ($systemoveNastaveni->gcBezi()) {
@@ -87,10 +93,10 @@ if (!$u) {
     back(URL_WEBU);
 }
 
-if ($systemoveNastaveni->predRegistraciUcastniku()) {
-    $t->assign('zacatek', ROCNIK < date('Y')
+if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
+    $t->assign('zacatek', $systemoveNastaveni->rocnik() < date('Y')
         ? '(upřesníme)' // ještě jsme nepřeklopili ročník
-        : DateTimeGamecon::registraceUcastnikuOd()->formatCasZacatekUdalosti());
+        : $systemoveNastaveni->prihlasovaniUcastnikuOd()->formatCasZacatekUdalosti());
     $t->parse('prihlaskaPred');
     return;
 }

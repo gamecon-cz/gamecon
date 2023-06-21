@@ -158,14 +158,14 @@ class DateTimeGamecon extends DateTimeCz
         return static::konecGameconu($systemoveNastaveni->rocnik());
     }
 
-    public static function registraceUcastnikuOd(int $rocnik = ROCNIK): static
+    public static function prihlasovaniUcastnikuOd(int $rocnik = ROCNIK): static
     {
         return $rocnik === (int)ROCNIK && defined('REG_GC_OD')
             ? static::zDbFormatu(REG_GC_OD)
             : static::spocitejZacatekRegistraciUcastniku($rocnik);
     }
 
-    public static function registraceUcastnikuDo(int $rocnik = ROCNIK): static
+    public static function prihlasovaniUcastnikuDo(int $rocnik = ROCNIK): static
     {
         return $rocnik === (int)ROCNIK && defined('REG_GC_DO')
             ? static::zDbFormatu(REG_GC_DO)
