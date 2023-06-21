@@ -62,8 +62,8 @@ if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $systemoveNastaveni->gcBeziDo()
 // REGISTRACE NA GAMECON //
 ///////////////////////////
 // 2022-05-12 20:22:00
-if (!defined('REG_GC_OD')) define('REG_GC_OD', $systemoveNastaveni->zacatekRegistraciUcastniku(ROCNIK)->formatDb()); // spuštění možnosti registrace na GameCon
-if (!defined('REG_GC_DO')) define('REG_GC_DO', $systemoveNastaveni->konecRegistraciUcastniku(ROCNIK)->formatDb()); // ukončení možnosti registrace na GameCon
+if (!defined('REG_GC_OD')) define('REG_GC_OD', $systemoveNastaveni->registraceUcastnikuOd(ROCNIK)->formatDb()); // spuštění možnosti registrace na GameCon
+if (!defined('REG_GC_DO')) define('REG_GC_DO', $systemoveNastaveni->registraceUcastnikuDo(ROCNIK)->formatDb()); // ukončení možnosti registrace na GameCon
 
 ////////////////////////////////////////////////////////
 // REGISTRACE NA AKTIVITY (PRVNÍ, DRUHÁ A TŘETÍ VLNA) //

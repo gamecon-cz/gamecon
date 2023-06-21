@@ -784,24 +784,29 @@ SQL;
         return mezi($this->gcBeziOd(), $this->gcBeziDo());
     }
 
-    public function zacatekRegistraciUcastniku(): DateTimeGamecon
+    public function registraceUcastnikuOd(): DateTimeGamecon
     {
-        return DateTimeGamecon::zacatekRegistraciUcastniku($this->rocnik());
+        return DateTimeGamecon::registraceUcastnikuOd($this->rocnik());
     }
 
-    public function konecRegistraciUcastniku(): DateTimeGamecon
+    public function registraceUcastnikuDo(): DateTimeGamecon
     {
-        return DateTimeGamecon::konecRegistraciUcastniku($this->rocnik());
+        return DateTimeGamecon::registraceUcastnikuDo($this->rocnik());
     }
 
     public function registraceUcastnikuSpustena(): bool
     {
-        return mezi($this->zacatekRegistraciUcastniku(), $this->konecRegistraciUcastniku());
+        return mezi($this->registraceUcastnikuOd(), $this->registraceUcastnikuDo());
+    }
+
+    public function predRegistraciUcastniku(): bool
+    {
+        return pred($this->registraceUcastnikuOd());
     }
 
     public function poRegistraciUcastniku(): bool
     {
-        return po($this->konecRegistraciUcastniku());
+        return po($this->registraceUcastnikuDo());
     }
 
     public function neplaticCastkaVelkyDluh(): float

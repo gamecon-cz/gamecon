@@ -87,10 +87,10 @@ if (!$u) {
     back(URL_WEBU);
 }
 
-if (pred(REG_GC_OD)) {
+if ($systemoveNastaveni->predRegistraciUcastniku()) {
     $t->assign('zacatek', ROCNIK < date('Y')
         ? '(upřesníme)' // ještě jsme nepřeklopili ročník
-        : DateTimeGamecon::zacatekRegistraciUcastniku()->formatCasZacatekUdalosti());
+        : DateTimeGamecon::registraceUcastnikuOd()->formatCasZacatekUdalosti());
     $t->parse('prihlaskaPred');
     return;
 }

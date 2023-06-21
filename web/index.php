@@ -9,7 +9,6 @@ use Gamecon\Pravo;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';
-require __DIR__ . '/tridy/menu.php';
 require __DIR__ . '/tridy/vyjimky.php';
 
 if (HTTPS_ONLY) {
