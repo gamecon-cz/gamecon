@@ -191,15 +191,6 @@ function mb_ucfirst($string, $encoding = null)
 }
 
 /**
- * Vrací true, pokud je aktuální čas mezi $od a $do. Formáty jsou stejné jaké
- * akceptují php funce (např. strtotime)
- */
-function mezi($od, $do)
-{
-    return strtotime($od) <= time() && time() <= strtotime($do);
-}
-
-/**
  * Zamezení csrf pro POST požadavky podle referreru.
  *
  * OWASP compliance: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#identifying-source-origin-via-originreferer-header
@@ -351,6 +342,21 @@ function pred(string|DateTimeInterface $cas): bool
 {
     $casTimestamp = ($cas instanceof DateTimeInterface) ? $cas->getTimestamp() : strtotime($cas);
     return time() < $casTimestamp;
+}
+
+/**
+ * Vrací true, pokud je aktuální čas mezi $od a $do. Formáty jsou stejné jaké
+ * akceptují php funce (např. strtotime)
+ */
+function mezi(
+    string|DateTimeInterface $od,
+    string|DateTimeInterface $do,
+)
+{
+    $odTimestamp = ($od instanceof DateTimeInterface) ? $od->getTimestamp() : strtotime($od);
+    $doTimestamp = ($do instanceof DateTimeInterface) ? $do->getTimestamp() : strtotime($do);
+
+    return $odTimestamp <= time() && time() <= $doTimestamp;
 }
 
 /**

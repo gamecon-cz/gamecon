@@ -42,7 +42,7 @@ class BfgrReport
         $maxRok         = $this->systemoveNastaveni->poRegistraciUcastniku()
             ? $this->systemoveNastaveni->rocnik()
             : $this->systemoveNastaveni->rocnik() - 1;
-        for ($rokUcasti = 2009; $rokUcasti <= $maxRok; $rokUcasti++) {
+        for ($rokUcasti = ARCHIV_OD; $rokUcasti <= $maxRok; $rokUcasti++) {
             $ucastPodleRoku[$rokUcasti] = 'účast ' . $rokUcasti;
         }
 

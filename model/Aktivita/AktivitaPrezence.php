@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura as LogSql;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\Kanaly\GcMail;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -13,20 +14,15 @@ use Symfony\Component\Filesystem\Filesystem;
 class AktivitaPrezence
 {
 
-    /** @var Aktivita */
-    private $aktivita;
-    /** @var Filesystem */
-    private $filesystem;
     /** @var ZmenaPrihlaseni[]|null[] */
     private $posledniZmenaPrihlaseni = [];
 
     public function __construct(
-        Aktivita   $aktivita,
-        Filesystem $filesystem,
+        private readonly Aktivita           $aktivita,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+        private readonly Filesystem         $filesystem,
     )
     {
-        $this->aktivita   = $aktivita;
-        $this->filesystem = $filesystem;
     }
 
     /**
@@ -203,7 +199,7 @@ class AktivitaPrezence
      */
     private function posliMailNedorazivsimu(\Uzivatel $u)
     {
-        if (!GC_BEZI || !$this->aktivita->typ()->posilatMailyNedorazivsim()) {
+        if (!$this->systemoveNastaveni->gcBezi() || !$this->aktivita->typ()->posilatMailyNedorazivsim()) {
             return;
         }
 

@@ -259,7 +259,7 @@ class Registrace
                 <input type="submit" value="Uložit" class="formular_primarni">
             <?php } else { ?>
                 <input type="hidden" name="registrovat" value="true">
-                <?php if (REG_GC) { ?>
+                <?php if ($this->systemoveNastaveni->registraceUcastnikuSpustena()) { ?>
                     <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni">
                     <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
                 <?php } else { ?>

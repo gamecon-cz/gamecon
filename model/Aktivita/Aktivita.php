@@ -1357,7 +1357,7 @@ SQL,
     public function dejPrezenci(): AktivitaPrezence
     {
         if (!$this->prezence) {
-            $this->prezence = new AktivitaPrezence($this, $this->dejFilesystem());
+            $this->prezence = new AktivitaPrezence($this, $this->systemoveNastaveni, $this->dejFilesystem());
         }
         return $this->prezence;
     }
@@ -2083,7 +2083,7 @@ SQL
                 $out             = <<<HTML
 <span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
 HTML
-                    . $this->formatujDuvodProTesting('Aktivita už je zamknutá ', $systemoveNastaveni);
+                    . $this->formatujDuvodProTesting('Aktivita už je zamknutá');
             } else {
                 $volno = $this->volno();
                 if ($volno === 'u' || $volno == $u->pohlavi()) {
@@ -2615,7 +2615,9 @@ SQL,
     public function vDalsiVlne()
     {
         return $this->a['stav'] == StavAktivity::PRIPRAVENA
-            || (!REG_AKTIVIT && $this->a['stav'] == StavAktivity::AKTIVOVANA);
+            || (!$this->systemoveNastaveni->probihaRegistraceAktivit()
+                && $this->a['stav'] == StavAktivity::AKTIVOVANA
+            );
     }
 
     /** Vrátí typ volných míst na aktivitě */
