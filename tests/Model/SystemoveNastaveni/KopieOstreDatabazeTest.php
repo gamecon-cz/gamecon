@@ -35,14 +35,14 @@ class KopieOstreDatabazeTest extends TestCase
 
             $docasneSpojeniSoucasna = $this->docasneSpojeniSoucasna($this->systemoveNastaveni, true);
             (new \MySQLImport($docasneSpojeniSoucasna))
-                ->load(__DIR__ . '/../../Db/data/localhost-2023_01_27_11_18_45-dump.sql');
+                ->load(__DIR__ . '/../../Db/data/_localhost-2023_06_21_21_58_55-dump.sql');
             // potřebujeme co největší rozdíl SQL migrací abychom vyzkoušeli že nějaká co není na betě a pustí se to nerozbije (stalo se)
             (new SqlMigrace($this->systemoveNastaveni))->migruj(false);
 
             $docasneSpojeniOstra = $this->docasneSpojeniOstra($this->systemoveNastaveni, true);
             // naplníme "jakoby ostrou" staršími daty, abychom vyzkoušeli nejen zkopírování, ale i migrace
             (new \MySQLImport($docasneSpojeniOstra))
-                ->load(__DIR__ . '/../../Db/data/localhost-2023_01_27_11_18_45-dump.sql');
+                ->load(__DIR__ . '/../../Db/data/_localhost-2023_06_21_21_58_55-dump.sql');
         } catch (\Throwable $throwable) {
             $this->setUpError = $throwable;
         }
