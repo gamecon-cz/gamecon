@@ -17,7 +17,7 @@ class KategorieNeplatice
     public const LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_NEMA_VELKY_DLUH = 3;
     public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY                         = 4;
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU         = 5;
-    public const MA_PRAVO_PLATIT_AZ_NA_MISTE                                 = 6; // orgové a tak
+    public const MA_PRAVO_NEODHLASOVAT                                       = 6; // orgové a tak
     public const LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC                  = 7;
 
     public static function vytvorProNadchazejiciVlnuZGlobals(
@@ -103,7 +103,7 @@ class KategorieNeplatice
              * tj. orgové, vypravěči, partneři, dobrovolníci senioři, čestní orgové
              */
             // kategorie 6
-            return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
+            return self::MA_PRAVO_NEODHLASOVAT;
         }
 
         if (!$this->kdySeRegistrovalNaLetosniGc) {
@@ -113,6 +113,10 @@ class KategorieNeplatice
             /*
              * zjišťovat neplatiče už vlastně nejde, některé platby mohly přijít až po začátku hromadného odhlašování
              * (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
+             */
+            /**
+             * v tomto případě je název zavádějící, pro hlavní účel této kategorie
+             * @see prihlasilSeParDniPredVlnouOdhlasovani
              */
             return self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU;
         }
@@ -200,7 +204,7 @@ class KategorieNeplatice
     {
         /**
          * Necachovat lokálně, jinak nebude fungovat postupné odhlašování položek,
-         * @see \Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu::hromadneOdhlasit
+         * @see HromadneOdhlaseniNeplaticu::hromadneOdhlasit
          */
         return $this->finance->pocetObjednavek();
     }

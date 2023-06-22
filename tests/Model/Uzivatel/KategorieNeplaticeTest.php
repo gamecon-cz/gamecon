@@ -174,7 +174,7 @@ class KategorieNeplaticeTest extends TestCase
     }
 
     /**
-     * @see KategorieNeplatice::MA_PRAVO_PLATIT_AZ_NA_MISTE
+     * @see KategorieNeplatice::MA_PRAVO_NEODHLASOVAT
      */
     private static function pravoNerusitObjednavkyPrebijeVsechno(): array
     {
