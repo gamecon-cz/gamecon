@@ -151,11 +151,11 @@ class SystemoveNastaveniHtml
         };
     }
 
-    public function dejZaznamyNastaveniProHtml(array $pouzeSTemitoKlici = null): array
+    public function dejZaznamyNastaveniProHtml(array $pouzeSTemitoKlici = null, bool $prenacti = false): array
     {
         $hodnotyNastaveni = $pouzeSTemitoKlici
-            ? $this->systemoveNastaveni->dejZaznamyNastaveniPodleKlicu($pouzeSTemitoKlici)
-            : $this->systemoveNastaveni->dejVsechnyZaznamyNastaveni();
+            ? $this->systemoveNastaveni->dejZaznamyNastaveniPodleKlicu($pouzeSTemitoKlici, $prenacti)
+            : $this->systemoveNastaveni->dejVsechnyZaznamyNastaveni($prenacti);
         array_walk(
             $hodnotyNastaveni,
             function (array &$zaznam) {
