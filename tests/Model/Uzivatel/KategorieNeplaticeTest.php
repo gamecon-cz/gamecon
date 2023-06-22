@@ -68,7 +68,7 @@ class KategorieNeplaticeTest extends TestCase
         return array_merge(
             $dataNeplatice,
             [
-                'neznámé přihlášení na GC nemá kategorii'                        => self::fixture(
+                'neznámé přihlášení na GC nemá kategorii'                     => self::fixture(
                     finance: self::finance(),
                     kdySeRegistrovalNaLetosniGc: null,
                     maPravoNerusitObjednavky: false,
@@ -78,7 +78,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: null,
                 ),
-                'vlna odhlašování před přihlášením na GC znamená chráněný'       => self::fixture(
+                'přihlášení po vlně odhlašování na GC znamená chráněný'       => self::fixture(
                     finance: self::finance(),
                     kdySeRegistrovalNaLetosniGc: $ted,
                     maPravoNerusitObjednavky: false,
@@ -88,7 +88,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: 5,
                 ),
-                'registrován v ochranné lhůtě pár dní před vlnou odhlašování'    => self::fixture(
+                'registrován v ochranné lhůtě pár dní před vlnou odhlašování' => self::fixture(
                     finance: self::finance(),
                     kdySeRegistrovalNaLetosniGc: '-9 days -59 minutes -59 seconds',
                     maPravoNerusitObjednavky: false,
@@ -98,7 +98,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 10 /* chráněn tolik dní před odhlašováním */,
                     ocekavanaKategorieNeplatice: 4,
                 ),
-                'letos poslal málo a má velký dluh'                              => self::fixture(
+                'letos poslal málo a má velký dluh'                           => self::fixture(
                     finance: self::finance(sumaPlateb: 0.1),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -108,27 +108,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: 2,
                 ),
-                'letos nic, z loňska žádný zůstatek a má velký dluh'             => self::fixture(
-                    finance: self::finance(stav: -0.1),
-                    kdySeRegistrovalNaLetosniGc: $predMesicem,
-                    maPravoNerusitObjednavky: false,
-                    zacatekVlnyOdhlasovani: $zitra,
-                    castkaVelkyDluh: 0.0,
-                    castkaPoslalDost: PHP_INT_MAX,
-                    pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 1,
-                ),
-                'letos nic, z loňska žádný zůstatek a má malý dluh situace 2023' => self::fixture(
-                    finance: self::finance(stav: -137),
-                    kdySeRegistrovalNaLetosniGc: $predMesicem,
-                    maPravoNerusitObjednavky: false,
-                    zacatekVlnyOdhlasovani: '+14 days',
-                    castkaVelkyDluh: 200.0,
-                    castkaPoslalDost: 1000,
-                    pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 7, // 1 ?
-                ),
-                'letos nic, z loňska něco málo a má malý dluh'                   => self::fixture(
+                'letos nic, z loňska něco málo a má malý dluh'                => self::fixture(
                     finance: self::finance(zustatekZPredchozichRocniku: 0.1, stav: -0.1),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -138,7 +118,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: 3,
                 ),
-                'letos poslal dost'                                              => self::fixture(
+                'letos poslal dost'                                           => self::fixture(
                     finance: self::finance(sumaPlateb: 100.0),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -148,7 +128,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: 4,
                 ),
-                'letos nic, z loňska nic a nemá velký dluh'                      => self::fixture(
+                'letos nic, z loňska nic a nemá velký dluh'                   => self::fixture(
                     finance: self::finance(stav: -0.1),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -156,7 +136,27 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 200,
                     castkaPoslalDost: PHP_INT_MAX,
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 7,
+                    ocekavanaKategorieNeplatice: 1,
+                ),
+                'letos nic, z loňska nic a má velký dluh'                     => self::fixture(
+                    finance: self::finance(stav: -0.1),
+                    kdySeRegistrovalNaLetosniGc: $predMesicem,
+                    maPravoNerusitObjednavky: false,
+                    zacatekVlnyOdhlasovani: $zitra,
+                    castkaVelkyDluh: 0.0,
+                    castkaPoslalDost: PHP_INT_MAX,
+                    pocetDnuPredVlnouKdyJeJesteChranen: 0,
+                    ocekavanaKategorieNeplatice: 1,
+                ),
+                'letos nic, z loňska nic a má malý dluh situace 2023'         => self::fixture(
+                    finance: self::finance(stav: -137),
+                    kdySeRegistrovalNaLetosniGc: $predMesicem,
+                    maPravoNerusitObjednavky: false,
+                    zacatekVlnyOdhlasovani: '+14 days',
+                    castkaVelkyDluh: 200.0,
+                    castkaPoslalDost: 1000,
+                    pocetDnuPredVlnouKdyJeJesteChranen: 0,
+                    ocekavanaKategorieNeplatice: 1,
                 ),
             ],
         );
