@@ -377,10 +377,13 @@ SQL,
         return $datoveTypy[$klic] ?? null;
     }
 
-    public function dejVsechnyZaznamyNastaveni(): array
+    public function dejVsechnyZaznamyNastaveni(bool $prenacti = false): array
     {
+        if ($prenacti) {
+            $this->vsechnyZaznamyNastaveni = null;
+        }
         if ($this->vsechnyZaznamyNastaveni === null) {
-            $this->vsechnyZaznamyNastaveni = $this->dejZaznamyNastaveni();
+            $this->vsechnyZaznamyNastaveni = $this->nactiZaznamyNastaveni();
         }
         return $this->vsechnyZaznamyNastaveni;
     }
@@ -440,18 +443,18 @@ ORDER BY systemove_nastaveni.poradi
 SQL;
     }
 
-    public function dejZaznamyNastaveniPodleKlicu(array $klice): array
+    public function dejZaznamyNastaveniPodleKlicu(array $klice, bool $prenacti = false): array
     {
         if (!$klice) {
             return [];
         }
         return array_intersect_key(
-            $this->dejVsechnyZaznamyNastaveni(),
+            $this->dejVsechnyZaznamyNastaveni($prenacti),
             array_fill_keys($klice, ''),
         );
     }
 
-    private function dejZaznamyNastaveni(array $whereArray = ['1'], array $parametryDotazu = []): array
+    private function nactiZaznamyNastaveni(array $whereArray = ['1'], array $parametryDotazu = []): array
     {
         $zaznamyNastaveni = $this->vlozOstatniBonusyVypravecuDoPopisu(
             $this->pridejVychoziHodnoty(

@@ -61,7 +61,7 @@ class SystemoveNastaveniAjax
             return true;
         }
 
-        $soucasneStavy = $this->systemoveNastaveniHtml->dejZaznamyNastaveniProHtml(array_keys($zmeny));
+        $soucasneStavy = $this->systemoveNastaveniHtml->dejZaznamyNastaveniProHtml(array_keys($zmeny), true);
         $soucasnyStav  = reset($soucasneStavy);
         $this->echoJson($soucasnyStav, true);
 
