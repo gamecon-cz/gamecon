@@ -118,6 +118,7 @@ class KategorieNeplatice
              * v tomto případě je název zavádějící, pro hlavní účel této kategorie
              * @see prihlasilSeParDniPredVlnouOdhlasovani
              */
+            // kategorie 5
             return self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU;
         }
 
@@ -155,7 +156,7 @@ class KategorieNeplatice
         }
 
         if ($this->sumaLetosnichPlateb() <= 0.0
-            && ($this->finance->zustatekZPredchozichRocniku() < 0.0 || $this->maVelkyDluh())
+            && ($this->finance->zustatekZPredchozichRocniku() <= 0.0 || $this->maVelkyDluh())
         ) {
             /**
              * - nezaplatil vůbec nic
