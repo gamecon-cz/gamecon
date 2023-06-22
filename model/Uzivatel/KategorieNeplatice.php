@@ -154,9 +154,9 @@ class KategorieNeplatice
             && ($this->finance->zustatekZPredchozichRocniku() < 0.0 || $this->maVelkyDluh())
         ) {
             /**
-             * Nezaplatil vůbec nic
-             * přitom se registroval na GC před více než týdnem
-             * pokud má kladný historický zůstatek, spadá do této kategorie, pokud má celkový dluh -200 Kč a více
+             * - nezaplatil vůbec nic
+             * - přitom se registroval na GC před více než týdnem
+             * (spadá do této kategorie i pokud má celkový dluh -200 Kč a více a má kladný historický zůstatek)
              */
             // kategorie 1
             return self::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH;
