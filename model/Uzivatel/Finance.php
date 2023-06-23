@@ -937,23 +937,4 @@ SQL,
     {
         return $this->sumaStorna;
     }
-
-    public function pocetObjednavek(): int
-    {
-        return count(
-            array_filter(
-                $this->dejStrukturovanyPrehled(),
-                static fn(array $logovanaPolozka) => in_array(
-                    $logovanaPolozka['typ'],
-                    [
-                        TypPredmetu::PREDMET,
-                        TypPredmetu::UBYTOVANI,
-                        TypPredmetu::TRICKO,
-                        TypPredmetu::VSTUPNE,
-                        TypPredmetu::JIDLO,
-                    ],
-                ),
-            ),
-        );
-    }
 }

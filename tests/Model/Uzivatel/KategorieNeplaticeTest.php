@@ -13,6 +13,19 @@ class KategorieNeplaticeTest extends TestCase
 
     /**
      * @test
+     */
+    public function Mame_srozumitelnou_konstantu_pro_kazde_cislo_kategorie()
+    {
+        self::assertSame(1, KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH);
+        self::assertSame(2, KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH);
+        self::assertSame(3, KategorieNeplatice::LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_NEMA_VELKY_DLUH);
+        self::assertSame(4, KategorieNeplatice::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY);
+        self::assertSame(5, KategorieNeplatice::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU);
+        self::assertSame(6, KategorieNeplatice::MA_PRAVO_NEODHLASOVAT);
+    }
+
+    /**
+     * @test
      * @dataProvider provideDataNeplatice
      */
     public function Muzu_ziskat_ciselnou_kategorii_neplatice_a_zjistit_zda_ma_byt_odhlasen(
@@ -86,7 +99,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 0.0,
                     castkaPoslalDost: 0,
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 5,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU,
                 ),
                 'registrován v ochranné lhůtě pár dní před vlnou odhlašování' => self::fixture(
                     finance: self::finance(),
@@ -96,7 +109,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 0.0,
                     castkaPoslalDost: 0,
                     pocetDnuPredVlnouKdyJeJesteChranen: 10 /* chráněn tolik dní před odhlašováním */,
-                    ocekavanaKategorieNeplatice: 4,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY,
                 ),
                 'letos poslal málo a má velký dluh'                           => self::fixture(
                     finance: self::finance(sumaPlateb: 0.1),
@@ -106,7 +119,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 0.0,
                     castkaPoslalDost: PHP_INT_MAX,
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 2,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
                 ),
                 'letos nic, z loňska něco málo a má malý dluh'                => self::fixture(
                     finance: self::finance(zustatekZPredchozichRocniku: 0.1, stav: -0.1),
@@ -116,7 +129,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 200,
                     castkaPoslalDost: PHP_INT_MAX,
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 3,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_NEMA_VELKY_DLUH,
                 ),
                 'letos poslal dost'                                           => self::fixture(
                     finance: self::finance(sumaPlateb: 100.0),
@@ -126,7 +139,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 200,
                     castkaPoslalDost: 100,
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 4,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY,
                 ),
                 'letos nic, z loňska nic a nemá velký dluh'                   => self::fixture(
                     finance: self::finance(stav: -0.1),
@@ -136,7 +149,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 200,
                     castkaPoslalDost: PHP_INT_MAX,
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 1,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
                 ),
                 'letos nic, z loňska nic a má velký dluh'                     => self::fixture(
                     finance: self::finance(stav: -0.1),
@@ -146,7 +159,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 0.0,
                     castkaPoslalDost: PHP_INT_MAX,
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 1,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
                 ),
                 'letos nic, z loňska nic a má malý dluh situace 2023'         => self::fixture(
                     finance: self::finance(stav: -137),
@@ -156,7 +169,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 200.0,
                     castkaPoslalDost: 1000,
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
-                    ocekavanaKategorieNeplatice: 1,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
                 ),
             ],
         );
@@ -198,7 +211,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: 0.0,
                     castkaPoslalDost: $castkaPoslalDost,
                     pocetDnuPredVlnouKdyJeJesteChranen: $pocetDnuPredVlnouKdyJeJesteChranen,
-                    ocekavanaKategorieNeplatice: 6,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::MA_PRAVO_NEODHLASOVAT,
                 );
             }
         }
@@ -230,7 +243,7 @@ class KategorieNeplaticeTest extends TestCase
                     castkaVelkyDluh: $castkaVelkyDluh,
                     castkaPoslalDost: $castkaPoslalDost,
                     pocetDnuPredVlnouKdyJeJesteChranen: $pocetDnuPredVlnouKdyJeJesteChranen,
-                    ocekavanaKategorieNeplatice: 6,
+                    ocekavanaKategorieNeplatice: KategorieNeplatice::MA_PRAVO_NEODHLASOVAT,
                 );
             }
         }

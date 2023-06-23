@@ -18,7 +18,6 @@ class KategorieNeplatice
     public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY                         = 4;
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU         = 5;
     public const MA_PRAVO_NEODHLASOVAT                                       = 6; // orgové a tak
-    public const LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC                  = 7;
 
     public static function vytvorProNadchazejiciVlnuZGlobals(
         \Uzivatel          $uzivatel,
@@ -167,10 +166,6 @@ class KategorieNeplatice
             return self::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH;
         }
 
-        if ($this->sumaLetosnichPlateb() <= 0.0 && $this->pocetLetosnichObjednavek() === 0 && !$this->maVelkyDluh()) {
-            return self::LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC;
-        }
-
         if (!$this->poslalDost() && $this->maVelkyDluh()) {
             /**
              * Letos poslal 1 - 999 Kč, má celkový dluh -200 Kč a více
@@ -199,15 +194,6 @@ class KategorieNeplatice
             $this->sumaLetosnichPlateb = $this->finance->sumaPlateb($this->rocnik);
         }
         return $this->sumaLetosnichPlateb;
-    }
-
-    private function pocetLetosnichObjednavek(): int
-    {
-        /**
-         * Necachovat lokálně, jinak nebude fungovat postupné odhlašování položek,
-         * @see HromadneOdhlaseniNeplaticu::hromadneOdhlasit
-         */
-        return $this->finance->pocetObjednavek();
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool
