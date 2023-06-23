@@ -17,34 +17,19 @@ class OnlinePrezenceHtml
         return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()]));
     }
 
-    /** @var XTemplate */
-    private $onlinePrezenceTemplate;
-    /** @var string */
-    private $jsVyjimkovac;
-    /** @var null|OnlinePrezenceUcastnikHtml */
-    private $onlinePrezenceUcastnikHtml;
-    /** @var bool */
-    private $muzemeTestovat;
-    /** @var bool */
-    private $testujeme;
-    /** @var SystemoveNastaveni */
-    private $systemoveNastaveni;
-    /** @var Filesystem */
-    private $filesystem;
+    private ?XTemplate                  $onlinePrezenceTemplate     = null;
+    private ?OnlinePrezenceUcastnikHtml $onlinePrezenceUcastnikHtml = null;
+    private bool                        $testujeme;
 
     public function __construct(
-        string             $jsVyjimkovac,
-        SystemoveNastaveni $systemoveNastaveni,
-        Filesystem         $filesystem,
-        bool               $muzemeTestovat = false,
-        bool               $testujeme = false,
+        private readonly string             $jsVyjimkovac,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+        private readonly Filesystem         $filesystem,
+        private readonly bool               $muzemeTestovat = false,
+        bool                                $testujeme = false,
     )
     {
-        $this->jsVyjimkovac       = $jsVyjimkovac;
-        $this->systemoveNastaveni = $systemoveNastaveni;
-        $this->filesystem         = $filesystem;
-        $this->muzemeTestovat     = $muzemeTestovat;
-        $this->testujeme          = $muzemeTestovat && $testujeme;
+        $this->testujeme = $muzemeTestovat && $testujeme;
     }
 
     public function dejHtmlOnlinePrezence(
@@ -141,7 +126,7 @@ class OnlinePrezenceHtml
             $this->onlinePrezenceTemplate = new XTemplate(__DIR__ . '/templates/online-prezence.xtpl');
             $this->onlinePrezenceTemplate->assign(
                 'title',
-                (new Info($this->systemoveNastaveni))->pridejPrefixPodleVyvoje('Online prezence')
+                (new Info($this->systemoveNastaveni))->pridejPrefixPodleVyvoje('Online prezence'),
             );
         }
         return $this->onlinePrezenceTemplate;

@@ -278,7 +278,8 @@ class XTemplate
         // split source file by block delimiters
         $delim = '<!--\s*(begin|end):\s*([a-zA-Z][a-zA-Z0-9]*)\s*-->';
         $f     = file_get_contents($file);
-        $f     = preg_replace_callback('@{FILE "([^"]+)"}@', function ($m) {
+        $f     = preg_replace_callback('@{FILE\s+"([^"]+)"}@', function ($m) use ($file) {
+            $m[1]                 = $this->convertIncludeFilePath((string)$m[1], $file);
             $this->dependencies[] = $m[1];
             return file_get_contents($m[1]);
         }, $f);
@@ -303,6 +304,17 @@ class XTemplate
                 $this->nodePuttext($path, $blok);
             }
         }
+    }
+
+    private function convertIncludeFilePath(string $includePath, string $parentTemplatePath): string
+    {
+        if (!str_starts_with($includePath, './')) {
+            return $includePath;
+        }
+        /** '/foo/bar/baz.xpl' -> '/foo/bar' */
+        $parentTemplateDir = dirname($parentTemplatePath);
+        /** './qux.xpl' -> '/foo/bar/qux.xpl' */
+        return $parentTemplateDir . '/' . str_replace('./', '', $includePath);
     }
 
     /**

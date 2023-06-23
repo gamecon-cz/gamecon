@@ -116,9 +116,14 @@
                                 <li>Pokud nemáš mobil, půjč si od Spojky tablet.</li>
                                 <li>Najdi / svolej si přihlášené hráče. Nepřítomným zkus zavolat.</li>
                                 <li>Přihlášeným před < 10 minutami ⏰ dej chvíli na doběhnutí.</li>
-                                <li>Volná místa nabídni náhradníkům
-                                    <span class="text-nowrap"><img alt="Náhradník" class="font-sized"
-                                                                   src="files/design/substitution-icon.png">.</span>
+                                <li>
+                                    Na aktivitu mohou pouze lidé, kteří již prošli Infopultem
+                                    {FILE "./_prosel-infopultem.html"}
+                                    (to platí i pro náhradníky {FILE "./_nahradnik.xtpl"}),
+                                    pokud nebyli {FILE "./_neprosel-infopultem.html"}, pošli je tam.
+                                </li>
+                                <li>
+                                    Volná místa nabídni náhradníkům {FILE "./_nahradnik.xtpl"}.
                                     Sledující <span class="flipped-icon"><span class="bg-dark">👀</span></span> můžeš
                                     oslovit první.
                                 </li>
