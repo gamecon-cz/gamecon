@@ -9,16 +9,10 @@
 >
     <td style="text-align: center">
         <!-- begin:pritomen -->
-        <span data-bs-toggle="tooltip" data-bs-html="true"
-              title="<strong>Je přítomen</strong> v tomto okamžiku na GC (prošel infopultem).">
-          <img src="files/design/ok-s.png" style="margin-bottom:-1px; width: 1em" alt="OK">
-    </span>
+        {FILE "./_prosel-infopultem.html"}
         <!-- end:pritomen -->
         <!-- begin:nepritomen -->
-        <span data-bs-toggle="tooltip" data-bs-html="true"
-              title="<strong>Není přítomen</strong> v tomto okamžiku na GC (neprošel infopultem).">
-          <img src="files/design/error-s.png" style="margin-bottom:-1px; width: 1em" alt="Not OK">
-    </span>
+        {FILE "./_neprosel-infopultem.html"}
         <!-- end:nepritomen -->
     </td>
     <td style="text-align: center">
