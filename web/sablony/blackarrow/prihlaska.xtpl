@@ -253,13 +253,13 @@
     <!-- begin: proselInfopultem -->
     <p>Přihlášku již nelze upravovat online, případné změny je <strong>momentálně možné provádět pouze na místě u
       Infopultu</strong>.
-      Přehled svých objednávek a plateb najdeš v záložce <a href="https://gamecon.cz/finance">finance</a> na svém
+      Přehled svých objednávek a plateb najdeš v záložce <a href="finance">finance</a> na svém
       profilu.</p>
     <!-- end: proselInfopultem -->
     <!-- begin: neproselInfopultem -->
     <p>Vítáme tě na GameConu! Přihlášku již nelze upravovat online, veškeré případné změny v přihlášce proto řeš na
       Infopultu, přehled
-      plateb najdeš v záložce <a href="https://gamecon.cz/finance">finance</a> na svém profilu.</p>
+      plateb najdeš v záložce <a href="finance">finance</a> na svém profilu.</p>
     <!-- end: neproselInfopultem -->
   </div>
 </div>
