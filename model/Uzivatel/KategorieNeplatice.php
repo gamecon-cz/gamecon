@@ -18,6 +18,7 @@ class KategorieNeplatice
     public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY                         = 4;
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU         = 5;
     public const MA_PRAVO_NEODHLASOVAT                                       = 6; // orgové a tak
+    public const NEDLUZNIK                                                   = 7;
 
     public static function vytvorProNadchazejiciVlnuZGlobals(
         \Uzivatel          $uzivatel,
@@ -91,11 +92,21 @@ class KategorieNeplatice
 
     /**
      * Specifikace viz
-     * https://trello.com/c/Zzo2htqI/892-vytvo%C5%99it-nov%C3%BD-report-email%C5%AF-p%C5%99i-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
-     * https://docs.google.com/document/d/1pP3mp9piPNAl1IKCC5YYe92zzeFdTLDMiT-xrUhVLdQ/edit
+     * - https://trello.com/c/Zzo2htqI/892-vytvo%C5%99it-nov%C3%BD-report-email%C5%AF-p%C5%99i-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
+     * - https://trello.com/c/WqLjeZEm/969-automatizovat-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
+     * - https://docs.google.com/document/d/1pP3mp9piPNAl1IKCC5YYe92zzeFdTLDMiT-xrUhVLdQ/edit
      */
     public function ciselnaKategoriiNeplatice(): ?int
     {
+        if (!$this->kdySeRegistrovalNaLetosniGc) {
+            return null;
+        }
+
+        if ($this->finance->stav() >= 0) {
+            // kategorie 7
+            return self::NEDLUZNIK;
+        }
+
         if ($this->maPravoNerusitObjednavky) {
             /**
              * Kategorie účastníka s právem platit až na místě
@@ -105,9 +116,6 @@ class KategorieNeplatice
             return self::MA_PRAVO_NEODHLASOVAT;
         }
 
-        if (!$this->kdySeRegistrovalNaLetosniGc) {
-            return null;
-        }
         if ($this->hromadneOdhlasovaniKdy < $this->kdySeRegistrovalNaLetosniGc) {
             /*
              * zjišťovat neplatiče už vlastně nejde, některé platby mohly přijít až po začátku hromadného odhlašování
