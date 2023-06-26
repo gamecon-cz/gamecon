@@ -54,9 +54,11 @@
 </div>
 
 <div class="shopUbytovani_spolubydlici">
-    Na pokoji chci být s:
-    <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}"
-           placeholder="jména oddělená čárkou, nebo nech prázdné">
+    <label>
+        Na pokoji chci být s:
+        <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}"
+               placeholder="jména oddělená čárkou, nebo nech prázdné">
+    </label>
 </div>
 
 <div class="shopUbytovani_povinne" style="display: none">
