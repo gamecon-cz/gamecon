@@ -25,7 +25,7 @@
     "ext-mysqli": "*",
     "ext-pdo": "*",
     "ext-sqlite3": "*",
-    "ext-xmlreader": "*",
+    "ext-xml": "*",
     "ext-zip": "*",
     "defuse/php-encryption": "^2.1",
     "dg/mysql-dump": "^1.5",
