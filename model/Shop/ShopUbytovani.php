@@ -288,7 +288,7 @@ SQL,
         $t->assign([
             'shopUbytovaniJs'      => URL_WEBU . '/soubory/blackarrow/shop/shop-ubytovani.js?version='
                 . md5_file(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
-            'spolubydlici'         => htmlspecialchars(dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id())),
+            'spolubydlici'         => htmlspecialchars(dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()) ?? ''),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
             'povinneUdaje'         => $this->registrace->povinneUdajeProUbytovaniHtml(
