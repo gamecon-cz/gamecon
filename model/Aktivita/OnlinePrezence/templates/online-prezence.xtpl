@@ -117,10 +117,7 @@
                                 <li>Najdi / svolej si přihlášené hráče. Nepřítomným zkus zavolat.</li>
                                 <li>Přihlášeným před < 10 minutami ⏰ dej chvíli na doběhnutí.</li>
                                 <li>
-                                    Na aktivitu mohou pouze lidé, kteří již prošli Infopultem
-                                    {FILE "./_prosel-infopultem.html"}
-                                    (to platí i pro náhradníky {FILE "./_nahradnik.xtpl"}),
-                                    pokud nebyli {FILE "./_neprosel-infopultem.html"}, pošli je tam.
+                                    Pokud účastník (i náhradník {FILE "./_nahradnik.xtpl"}) neprošel infem {FILE "./_neprosel-infopultem.html"}, pošli ho tam {FILE "./_prosel-infopultem.html"}, než aktivitu začneš.
                                 </li>
                                 <li>
                                     Volná místa nabídni náhradníkům {FILE "./_nahradnik.xtpl"}.
