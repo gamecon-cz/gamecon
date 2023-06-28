@@ -1097,7 +1097,7 @@ SQL,
         }
 
         if (!$this->klic) {
-            throw new Exception("Prázdný klíč uživatele '{$this->id()}' v session");
+            return; // uživatel nebyl přihlášen
         }
         $id   = $this->id();
         $klic = $this->klic;
@@ -1496,9 +1496,9 @@ SQL,
             $urlUzivatele = self::vytvorUrl($u->r);
         } else {
             dbInsert(Sql::UZIVATEL_TABULKA, $dbTab);
-            $idUzivatele           = dbInsertId();
+            $idUzivatele              = dbInsertId();
             $dbTab[Sql::ID_UZIVATELE] = $idUzivatele;
-            $urlUzivatele          = self::vytvorUrl($dbTab);
+            $urlUzivatele             = self::vytvorUrl($dbTab);
         }
         if ($urlUzivatele !== null) {
             dbInsertUpdate('uzivatele_url', ['id_uzivatele' => $idUzivatele, 'url' => $urlUzivatele]);
@@ -1561,8 +1561,8 @@ SQL,
         //poslání mailu
         if ($opt['informovat']) {
             $tab[Sql::ID_UZIVATELE] = $uid;
-            $u                   = new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
-            $mail                = new GcMail(
+            $u                      = new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
+            $mail                   = new GcMail(
                 $systemoveNastaveni,
                 hlaskaMail('rychloregMail', $u, $tab[Sql::EMAIL1_UZIVATELE], $rand)
             );
