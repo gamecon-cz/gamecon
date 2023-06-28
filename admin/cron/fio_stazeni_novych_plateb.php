@@ -21,11 +21,12 @@ if ($platbyService->platbyBylyAktualizovanyPredChvili()) {
 logs('Zpracovávám platby z Fio API...');
 $platby = $platbyService->nactiNove();
 foreach ($platby as $platba) {
-    logs('platba ' . $platba->id()
+    logs(' - platba ' . $platba->id()
         . ' (' . $platba->castka() . 'Kč, VS: ' . $platba->vs()
         . ($platba->zpravaProPrijemce() ? ', zpráva: ' . $platba->zpravaProPrijemce() : '')
         . ($platba->poznamkaProMne() ? ', poznámka: ' . $platba->poznamkaProMne() : '')
         . ')',
+        false,
     );
 }
 if (!$platby) {
