@@ -1388,3 +1388,11 @@ Radio musí být ve tvaru:
   /* Odaktivovat - …ta vínově červená tam je asi ok. */
   color: darkred;
 }
+
+.vyzadovane {
+  color: darkred;
+  font-size: x-large;
+  position: relative;
+  line-height: 0;
+  vertical-align: middle;
+}
