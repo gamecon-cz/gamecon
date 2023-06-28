@@ -164,7 +164,8 @@ class AnonymizovanaDatabaze
 
     private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb)
     {
-        $passwordHash = '$2y$10$IudcF5OOSXxvO9I4SK.GBe5AgLhK8IsH7CPBkCknYMhKvJ4HQskzS';
+         // na toto heslo nespoléhat - raději použít konstantu UNIVERZALNI_HESLO
+        $passwordHash = password_hash('admin', PASSWORD_DEFAULT);
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL

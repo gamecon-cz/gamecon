@@ -581,8 +581,14 @@ SQL,
     /**
      * Nastaví nové heslo (pouze setter)
      */
-    public function heslo($noveHeslo)
+    public function heslo(string $noveHeslo)
     {
+        if (PASSWORD_DEFAULT === PASSWORD_BCRYPT && strlen($noveHeslo) > 72) {
+            /**
+             * https://www.php.net/manual/en/function.password-hash.php#refsect1-function.password-hash-parameters
+             */
+            throw new Chyba("Heslo nemůže být kvůli technikým omezením delší než 72 znaků");
+        }
         $novyHash = password_hash($noveHeslo, PASSWORD_DEFAULT);
         dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $1 WHERE id_uzivatele = $2', [$novyHash, $this->id()]);
     }
