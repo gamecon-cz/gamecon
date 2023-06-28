@@ -1097,7 +1097,7 @@ SQL,
         }
 
         if (!$this->klic) {
-            throw new Exception('Neznámý klíč uživatele v session');
+            throw new Exception("Prázdný klíč uživatele '{$this->id()}' v session");
         }
         $id   = $this->id();
         $klic = $this->klic;
