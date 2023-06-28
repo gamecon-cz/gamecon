@@ -125,12 +125,12 @@ FROM (
         ON predmety.id_predmetu = nakupy.id_predmetu
             AND nakupy.rok = $0
     WHERE model_rok = $0
-        AND IF($2 IS NULL, TRUE, predmety.id_predmetu IN ($2))
+        AND IF($3, TRUE, predmety.id_predmetu IN ($2))
     GROUP BY predmety.id_predmetu, predmety.typ, predmety.ubytovani_den, predmety.nazev
 ) AS seskupeno
 ORDER BY typ, IF(typ = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den
 SQL,
-            [0 => $rok, 1 => TypPredmetu::UBYTOVANI, 2 => $idckaPolozek],
+            [0 => $rok, 1 => TypPredmetu::UBYTOVANI, 2 => $idckaPolozek, 3 => $idckaPolozek === null],
         );
         $polozky     = [];
         foreach ($polozkyData as $polozkaData) {
@@ -153,7 +153,8 @@ SQL,
 SELECT id_predmetu
 FROM shop_predmety
 WHERE model_rok = {$systemoveNastaveni->rocnik()}
-    AND (kategorie_predmetu IS NOT NULL OR typ IN ($typJidlo, $typPredmet, $typTricko))
+    AND nabizet_do IS NOT NULL
+    AND typ IN ($typJidlo, $typPredmet, $typTricko)
     AND CASE typ
         WHEN {$typJidlo} THEN nabizet_do != $2
         WHEN {$typTricko} THEN nabizet_do != $3
