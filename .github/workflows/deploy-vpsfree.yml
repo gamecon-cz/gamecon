@@ -1,0 +1,64 @@
+name: VPSFREE Deploy OSTRA (master) on direct push or merged pull request
+
+on:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  publish:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2' # musí odpovídat verzi na vpsfree
+          # extensions musí odpovídat seznamu v composer.json
+          extensions: bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json, mbstring, mysqli, pdo, sqlite3, xml, zip
+          tools: composer
+          coverage: none
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install # includes dev by default
+
+      - name: Setup MySQL for tests
+        uses: shogo82148/actions-setup-mysql@v1
+        with:
+          mysql-version: 'mariadb-10.6.12' # mělo by odpovídat verzi na vpfree
+
+      - name: Run tests
+        run: ./vendor/bin/phpunit
+
+      - name: Deploy via FTP
+        run: php ./udrzba/nasad.php --skip-tests # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
+        env:
+          FTP_DIR: ostra
+          FTP_BASE_URL: ${{ secrets.FTP_VPSFREE_BASE_URL }} # includes user in user@server notation
+          FTP_SERVER_PASSPHRASE: ${{ secrets.FTP_VPSFREE_SERVER_PASSPHRASE }}
+          DB_USER: ${{ secrets.OSTRA_DB_USER }}
+          DB_PASS: ${{ secrets.OSTRA_DB_PASS }}
+          DB_NAME: ${{ secrets.OSTRA_DB_NAME }}
+          DB_SERV: ${{ secrets.OSTRA_DB_SERV }}
+          DBM_USER: ${{ secrets.OSTRA_DBM_USER }}
+          DBM_PASS: ${{ secrets.OSTRA_DBM_PASS }}
+          MIGRACE_HESLO: ${{ secrets.OSTRA_MIGRACE_HESLO }}
+          SECRET_CRYPTO_KEY: ${{ secrets.OSTRA_SECRET_CRYPTO_KEY }}
+          # pozor změnu CRON_KEY je nutné provést i v https://console.cron-job.org
+          CRON_KEY: ${{ secrets.OSTRA_CRON_KEY }}
+          GOOGLE_API_CREDENTIALS: ${{ secrets.OSTRA_GOOGLE_API_CREDENTIALS }}
+          FIO_TOKEN: ${{ secrets.OSTRA_FIO_TOKEN }}
+          MAILER_DSN: ${{ secrets.MAILER_DSN }}
+          DB_ANONYM_SERV: ${{ secrets.DB_ANONYM_SERV }}
+          DB_ANONYM_USER: ${{ secrets.DB_ANONYM_USER }}
+          DB_ANONYM_PASS: ${{ secrets.DB_ANONYM_PASS }}
+          DB_ANONYM_NAME: ${{ secrets.DB_ANONYM_NAME }}

@@ -7,6 +7,8 @@ function nasad(array $nastaveni) {
     $deployment     = __DIR__ . '/ftp-deployment.php';
     $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
 
+    $serverPassphrase = $nastaveni['serverPassphrase'] ?? '';
+
     // some files are always required by Composer autoloader, even if not needed, so we have to copy them to server, even if they are for dev (tests) only
     $alwaysAutoloadedRelative      = getFilesAlwaysRequiredByAutoloader();
     $nutneKvuliComposerAutoRequire = implode(
@@ -21,10 +23,11 @@ function nasad(array $nastaveni) {
     $nazevSouboruSkrytehoNastaveni  = souborSkrytehoNastaveniPodleVerejneho($nazevSouboruVerejnehoNastaveni);
 
     $nastaveniDeploymentu = "
-    log     = {$logFile}
-    remote  = {$nastaveni['ciloveFtp']}
-    local   = {$zdrojovaSlozka}
-    ignore  = '
+    log         = {$logFile}
+    remote      = {$nastaveni['ciloveFtp']}
+    local       = {$zdrojovaSlozka}
+    passphrase  = {$serverPassphrase}
+    ignore      = '
       /_*
       /.git
       /.github

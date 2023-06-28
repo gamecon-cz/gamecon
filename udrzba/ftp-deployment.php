@@ -12,4 +12,4 @@ if (!class_exists(CliRunner::class)) {
 $runner = new CliRunner;
 die($runner->run());
 
-// can not use original vendor/dg/ftp-deployment/deployment as it does not use autoload and has a bug with a missing require file with class Deployment\JobRunner
+// can not use original vendor/dg/ftp-deployment/deployment as it does not use autoload and has a bug with a missing required file with class Deployment\JobRunner

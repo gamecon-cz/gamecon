@@ -43,10 +43,11 @@ if ($vetev === 'master') {
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
         'ciloveFtp'                => $nastaveni['ostra']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        'serverPassphrase'         => getenv('FTP_SERVER_PASSPHRASE') ?: '',
         'hesloMigrace'             => $nastaveni['ostra']['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-produkce.php',
     ]);
-} elseif ($vetev === 'beta') {
+} else if ($vetev === 'beta') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
@@ -54,7 +55,7 @@ if ($vetev === 'master') {
         'hesloMigrace'             => $nastaveni['beta'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-beta.php',
     ]);
-} elseif ($vetev === 'blackarrow') {
+} else if ($vetev === 'blackarrow') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
@@ -63,7 +64,7 @@ if ($vetev === 'master') {
         'log'                      => $nastaveni['blackarrow']['log'],
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-blackarrow.php',
     ]);
-} elseif ($vetev === 'jakublounek') {
+} else if ($vetev === 'jakublounek') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
@@ -71,7 +72,7 @@ if ($vetev === 'master') {
         'hesloMigrace'             => $nastaveni['jakublounek'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-jakublounek.php',
     ]);
-} elseif ($vetev === 'misahojna') {
+} else if ($vetev === 'misahojna') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
@@ -79,7 +80,7 @@ if ($vetev === 'master') {
         'hesloMigrace'             => $nastaveni['misahojna'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-misahojna.php',
     ]);
-} elseif ($vetev === 'sciator') {
+} else if ($vetev === 'sciator') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
