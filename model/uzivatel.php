@@ -1495,9 +1495,9 @@ SQL,
             $idUzivatele  = $u->id();
             $urlUzivatele = self::vytvorUrl($u->r);
         } else {
-            dbInsert('uzivatele_hodnoty', $dbTab);
+            dbInsert(Sql::UZIVATEL_TABULKA, $dbTab);
             $idUzivatele           = dbInsertId();
-            $dbTab['id_uzivatele'] = $idUzivatele;
+            $dbTab[Sql::ID_UZIVATELE] = $idUzivatele;
             $urlUzivatele          = self::vytvorUrl($dbTab);
         }
         if ($urlUzivatele !== null) {
@@ -1535,22 +1535,24 @@ SQL,
         array              $opt = [],
     )
     {
-        if (!isset($tab['login_uzivatele']) || !isset($tab['email1_uzivatele'])) {
+        if (!isset($tab[Sql::LOGIN_UZIVATELE]) || !isset($tab[Sql::EMAIL1_UZIVATELE])) {
             throw new Exception('špatný formát $tab (je to pole?)');
         }
         $opt = opt($opt, [
             'informovat' => true,
         ]);
-        if (empty($tab['stat_uzivatele'])) $tab['stat_uzivatele'] = 1;
-        $tab['random']      = $rand = randHex(20);
-        $tab['registrovan'] = date("Y-m-d H:i:s");
+        if (empty($tab[Sql::STAT_UZIVATELE])) {
+            $tab[Sql::STAT_UZIVATELE] = \Gamecon\Stat::CZ_ID;
+        }
+        $tab[Sql::RANDOM]      = $rand = randHex(20);
+        $tab[Sql::REGISTROVAN] = date("Y-m-d H:i:s");
         try {
-            dbInsert('uzivatele_hodnoty', $tab);
+            dbInsert(Sql::UZIVATEL_TABULKA, $tab);
         } catch (DbDuplicateEntryException $e) {
-            if ($e->key() == 'email1_uzivatele') {
+            if ($e->key() == Sql::EMAIL1_UZIVATELE) {
                 throw new DuplicitniEmail;
             }
-            if ($e->key() == 'login_uzivatele') {
+            if ($e->key() == Sql::LOGIN_UZIVATELE) {
                 throw new DuplicitniLogin;
             }
             throw $e;
@@ -1558,13 +1560,13 @@ SQL,
         $uid = dbInsertId();
         //poslání mailu
         if ($opt['informovat']) {
-            $tab['id_uzivatele'] = $uid;
+            $tab[Sql::ID_UZIVATELE] = $uid;
             $u                   = new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
             $mail                = new GcMail(
                 $systemoveNastaveni,
-                hlaskaMail('rychloregMail', $u, $tab['email1_uzivatele'], $rand)
+                hlaskaMail('rychloregMail', $u, $tab[Sql::EMAIL1_UZIVATELE], $rand)
             );
-            $mail->adresat($tab['email1_uzivatele']);
+            $mail->adresat($tab[Sql::EMAIL1_UZIVATELE]);
             $mail->predmet('Registrace na GameCon.cz');
             if (!$mail->odeslat()) {
                 throw new Exception('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email');

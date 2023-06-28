@@ -123,9 +123,11 @@ class Registrace
             $chybaTrida = 'formular_polozka-chyba';
         }
 
+        $labelRequired = $this->labelRequired($requiredHtml);
+
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
-                <div>{$nazev}</div>
+                <div>{$nazev}{$labelRequired}</div>
                 {$predrazeneHtml}
                 <input
                     id="input_{$klic}"
@@ -140,6 +142,13 @@ class Registrace
                 {$chybaHtml}
             </label>
         HTML;
+    }
+
+    private function labelRequired(string $requiredHtml): string
+    {
+        return $requiredHtml !== ''
+            ? '<span class="vyzadovane">*</span>'
+            : '';
     }
 
     private function formData(): ?array
@@ -331,9 +340,11 @@ class Registrace
             ? 'required'
             : '';
 
+        $labelRequired = $this->labelRequired($requiredHtml);
+
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
-                {$nazev}
+                {$nazev}{$labelRequired}
                 <select name="{$this->inputName()}[{$klic}]" {$requiredHtml}>
                 {$moznostiHtml}
                 </select>
@@ -413,7 +424,6 @@ HTML;
                 Stat::SK_ID   => 'Slovenská republika',
                 Stat::JINY_ID => '(jiný stát)',
             ],
-            false,
         )}
 </div>
 
