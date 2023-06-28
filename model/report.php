@@ -31,8 +31,6 @@ class Report
     {
         $konfiguraceReportu ??= new KonfiguraceReportu();
 
-        $previousMemoryLimit = ini_get('memory_limit');
-
         try {
             ini_set('memory_limit', '1G');
 
@@ -98,9 +96,10 @@ class Report
 
             $writer->close();
         } finally {
-            if ($previousMemoryLimit) {
-                ini_set('memory_limit', $previousMemoryLimit);
+            if (isset($writer)) {
+                unset($writer);
             }
+            gc_collect_cycles();
         }
     }
 
