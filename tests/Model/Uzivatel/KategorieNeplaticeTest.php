@@ -55,9 +55,6 @@ class KategorieNeplaticeTest extends TestCase
             $pocetDnuPredVlnouKdyJeJesteChrane
         );
         $zjistenaKategorieNeplatice = $kategorieNeplatice->ciselnaKategoriiNeplatice();
-        if ($ocekavanaKategorieNeplatice !== $zjistenaKategorieNeplatice) { // TODO REMOVE
-            $kategorieNeplatice->ciselnaKategoriiNeplatice();
-        }
         self::assertSame(
             $ocekavanaKategorieNeplatice,
             $zjistenaKategorieNeplatice,
