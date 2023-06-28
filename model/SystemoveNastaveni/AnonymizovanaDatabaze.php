@@ -60,6 +60,7 @@ class AnonymizovanaDatabaze
             SQL,
         );
         $maxId  = mysqli_fetch_column($result);
+        $systemovyUzivatelId = \Uzivatel::SYSTEM;
 
         // Anonymizace ID uživatele
         $remainingAttempts = 20;
@@ -72,7 +73,7 @@ class AnonymizovanaDatabaze
                         <<<SQL
                             UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
                             SET id_uzivatele = (SELECT $maxId + CAST(FLOOR(RAND() * 10000000) AS UNSIGNED))
-                            WHERE id_uzivatele <= $maxId
+                            WHERE id_uzivatele != $systemovyUzivatelId && id_uzivatele <= $maxId
                             LIMIT 100 -- nutno dávkovat, jinak to způsobí Duplicate entry 'X' for key 'PRIMARY'
                         SQL,
                     );
