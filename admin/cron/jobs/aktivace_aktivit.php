@@ -56,6 +56,6 @@ $zprava = "Hromadně aktivováno $automatickyAktivovanoCelkem aktivit";
             : ''
         ),
     )
-    ->odeslat();
+    ->odeslat(GcMail::FORMAT_TEXT);
 
 logs($zprava);

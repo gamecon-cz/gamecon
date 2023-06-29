@@ -405,6 +405,6 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
                 Tým Gameconu
                 TEXT,
             )
-            ->odeslat();
+            ->odeslat(GcMail::FORMAT_TEXT);
     }
 }

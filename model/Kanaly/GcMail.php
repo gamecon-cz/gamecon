@@ -13,6 +13,8 @@ use Symfony\Component\Mime\Email;
  */
 class GcMail
 {
+    public const FORMAT_HTML = 'html';
+    public const FORMAT_TEXT = 'text';
 
     public static function vytvorZGlobals(string $text = ''): static
     {
@@ -50,12 +52,16 @@ class GcMail
      * Odešle sestavenou zprávu.
      * @return bool jestli se zprávu podařilo odeslat
      */
-    public function odeslat()
+    public function odeslat(string $format = self::FORMAT_HTML)
     {
         $mail = (new Email())
             ->from($this->pridejPrefixPodleProstredi("GameCon <{$this->systemoveNastaveni->kontaktniEmailGc()}>"))
-            ->subject($this->pridejPrefixPodleProstredi($this->dejPredmet()))
-            ->html($this->pridejPrefixPodleProstredi($this->dejText()));
+            ->subject($this->pridejPrefixPodleProstredi($this->dejPredmet()));
+        $body = $this->pridejPrefixPodleProstredi($this->dejText());
+        $mail->text(strip_tags($body));
+        if ($format === self::FORMAT_HTML) {
+            $mail->html($body);
+        }
 
         $odeslano = false;
 

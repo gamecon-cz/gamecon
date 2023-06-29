@@ -128,7 +128,7 @@ TEXT;
         TEXT
     )
     ->prilohaSoubor($bfgrSoubor)
-    ->odeslat();
+    ->odeslat(GcMail::FORMAT_TEXT);
 
 $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
     $budeOdhlaseno,

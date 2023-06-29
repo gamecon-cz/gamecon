@@ -39,6 +39,6 @@ if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuD
             ->adresat('info@gamecon.cz')
             ->predmet('Neproběhla záloha databáze ' . date(DateTimeCz::FORMAT_DB))
             ->text($chybaZalohovaniDb)
-            ->odeslat();
+            ->odeslat(GcMail::FORMAT_TEXT);
     }
 }

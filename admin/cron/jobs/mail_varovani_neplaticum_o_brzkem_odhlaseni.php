@@ -88,7 +88,7 @@ try {
                 "Ahoj {$uzivatel->jmenoNick()}, zaplať prosím všechny své objednávky, jinak Tě budeme muset za tři dny odhlásit z Gameconu $rocnik"
                 TEXT,
             )
-            ->odeslat();
+            ->odeslat(GcMail::FORMAT_TEXT);
         $pocetPotencialnichNeplaticu++;
     }
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {

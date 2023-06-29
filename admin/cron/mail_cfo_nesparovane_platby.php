@@ -76,7 +76,7 @@ $oddelovac    = str_repeat('═', mb_strlen($uvod));
         $zpravyString
         TEXT
     )
-    ->odeslat();
+    ->odeslat(GcMail::FORMAT_TEXT);
 
 $platby->zalogujCfoNotifikovanONesparovanychPlatbach(
     $systemoveNastaveni->rocnik(),

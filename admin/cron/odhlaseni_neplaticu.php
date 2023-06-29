@@ -81,7 +81,7 @@ $odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
             $zaznamy
             TEXT
         )
-        ->odeslat();
+        ->odeslat(GcMail::FORMAT_TEXT);
 
     logs($zprava);
 }
