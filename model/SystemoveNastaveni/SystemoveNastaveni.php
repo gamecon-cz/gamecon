@@ -290,7 +290,7 @@ SQL,
             } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
                 throw new ChybnaHodnotaSystemovehoNastaveni("Neplatné datum a čas '$hodnota'");
             }
-            $spocitanyKonec = DateTimeGamecon::spocitejKonecRegistraciUcastniku($this->rocnik);
+            $spocitanyKonec = DateTimeGamecon::spocitejPrihlasovaniUcastnikuDo($this->rocnik);
             if ($regGcDo->getTimestamp() > $spocitanyKonec->getTimestamp()) {
                 throw new ChybnaHodnotaSystemovehoNastaveni(
                     "Konec registrace účastníků musí být nejpozději ke konci GC{$this->rocnik()}: '{$spocitanyKonec->formatCasStandard()}'"
@@ -558,7 +558,7 @@ SQL;
             $this->vychoziHodnoty = [
                 Klic::GC_BEZI_OD                                      => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())->formatDb(),
                 Klic::GC_BEZI_DO                                      => $konecGameconuKdy,
-                Klic::REG_GC_OD                                       => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())->formatDb(),
+                Klic::REG_GC_OD                                       => DateTimeGamecon::spocitejPrihlasovaniUcastnikuOd($this->rocnik())->formatDb(),
                 Klic::REG_GC_DO                                       => $konecGameconuKdy,
                 Klic::PRVNI_VLNA_KDY                                  => DateTimeGamecon::spoctejKdyJePrvniVlna($this->rocnik())
                     ->formatDb(),
