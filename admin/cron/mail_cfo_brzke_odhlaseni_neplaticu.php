@@ -35,7 +35,7 @@ foreach ([1 => '+1 day', 2 => '+1 hour'] as $poradiOznameni => $posun) {
 
     $cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy = $hromadneOdhlaseniNeplaticu->cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
         $nejblizsiHromadneOdhlasovaniKdy,
-        $poradiOznameni
+        $poradiOznameni,
     );
     if ($cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy) {
         logs("{$poradiOznameni}. email pro CFO o brzkém hromadném odhlášení už byl odeslán {$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy->format(DateTimeCz::FORMAT_DB)}");
@@ -56,9 +56,10 @@ require __DIR__ . '/fio_stazeni_novych_plateb.php';
 $zpravyNeplatici = [];
 try {
     foreach ($hromadneOdhlaseniNeplaticu->neplaticiAKategorie()
-             as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
+             as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]) {
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
-        $zpravyNeplatici[] = "Účastník '{$uzivatel->jmenoNick()}' ({$uzivatel->id()}) bude zítra odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
+        /** @var \Uzivatel $neplatic */
+        $zpravyNeplatici[] = "Účastník '{$neplatic->jmenoNick()}' ({$neplatic->id()}) bude zítra odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
     }
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
     return;
@@ -70,14 +71,14 @@ foreach (Shop::letosniPolozkySeSpatnymKoncem($systemoveNastaveni) as $polozkaSeS
     if (!$nabizetDoDleNastaveni || !$polozkaSeSpatnymKoncem->nabizetDo()) {
         trigger_error(
             "Polozka '{$polozkaSeSpatnymKoncem->nazev()}' ({$polozkaSeSpatnymKoncem->idPredmetu()}) je údajně se špatným koncem, ale nemá žádný konec prodeje",
-            E_USER_WARNING
+            E_USER_WARNING,
         );
         continue;
     }
     if ($nabizetDoDleNastaveni->getTimestamp() === $polozkaSeSpatnymKoncem->nabizetDo()->getTimestamp()) {
         trigger_error(
             "Polozka '{$polozkaSeSpatnymKoncem->nazev()}' ({$polozkaSeSpatnymKoncem->idPredmetu()}) je údajně se špatným koncem, ale přitom má konec prodeje správně",
-            E_USER_WARNING
+            E_USER_WARNING,
         );
         continue;
     }
@@ -125,7 +126,7 @@ TEXT;
         $oddelovac
 
         $zpravyString
-        TEXT
+        TEXT,
     )
     ->prilohaSoubor($bfgrSoubor)
     ->odeslat(GcMail::FORMAT_TEXT);
@@ -134,5 +135,5 @@ $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
     $budeOdhlaseno,
     $nejblizsiHromadneOdhlasovaniKdy,
     $poradiOznameni,
-    Uzivatel::zId(Uzivatel::SYSTEM)
+    Uzivatel::zId(Uzivatel::SYSTEM),
 );

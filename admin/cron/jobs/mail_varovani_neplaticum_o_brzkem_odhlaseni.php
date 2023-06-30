@@ -72,20 +72,21 @@ try {
     $uvod      = "Prosíme zaplať své objednávky na Gamecon $rocnik";
     $oddelovac = str_repeat('═', mb_strlen($uvod));
     foreach ($hromadneOdhlaseniNeplaticu->neplaticiAKategorie()
-             as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]
+             as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]
     ) {
         set_time_limit(10);
-        $a = $uzivatel->koncovkaDlePohlavi();
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
+        /** @var \Uzivatel $neplatic */
+        $a = $neplatic->koncovkaDlePohlavi();
         (new GcMail($systemoveNastaveni))
-            ->adresat($uzivatel->mail())
+            ->adresat($neplatic->mail())
             ->predmet("Nezaplacené objednávky Gamecon $rocnik")
             ->text(<<<TEXT
                 $uvod
 
                 $oddelovac
 
-                "Ahoj {$uzivatel->jmenoNick()}, zaplať prosím všechny své objednávky, jinak Tě budeme muset za tři dny odhlásit z Gameconu $rocnik"
+                "Ahoj {$neplatic->jmenoNick()}, zaplať prosím všechny své objednávky, jinak Tě budeme muset za tři dny odhlásit z Gameconu $rocnik"
                 TEXT,
             )
             ->odeslat(GcMail::FORMAT_TEXT);

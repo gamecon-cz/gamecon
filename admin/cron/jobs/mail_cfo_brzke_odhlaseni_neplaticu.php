@@ -87,9 +87,10 @@ try {
         null,
         $kDatu,
     );
-    foreach ($neplaticiAKategorie as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
+    foreach ($neplaticiAKategorie as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]) {
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
-        $zpravyNeplatici[] = "Účastník '{$uzivatel->jmenoNick()}' ({$uzivatel->id()}) bude {$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()} odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
+        /** @var \Uzivatel $neplatic */
+        $zpravyNeplatici[] = "Účastník '{$neplatic->jmenoNick()}' ({$neplatic->id()}) bude {$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()} odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
     }
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
     // POJISTKA PROTI PŘÍLIŽ BRZKÉMU NEBO POZDNÍMU SPUŠTĚNÍ

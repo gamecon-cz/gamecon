@@ -34,7 +34,7 @@ foreach ([1 => '+3 day'] as $poradiOznameni => $posun) {
 
     $neplaticiInformovaniOBrzkemHromadnemOdhlaseniKdy = $hromadneOdhlaseniNeplaticu->neplaticiNotifikovaniOBrzkemHromadnemOdhlaseniKdy(
         $nejblizsiHromadneOdhlasovaniKdy,
-        $poradiOznameni
+        $poradiOznameni,
     );
     if ($neplaticiInformovaniOBrzkemHromadnemOdhlaseniKdy) {
         logs("{$poradiOznameni}. email s varováním pro neplatiče o brzkém hromadném odhlášení už byl odeslán {$neplaticiInformovaniOBrzkemHromadnemOdhlaseniKdy->format(DateTimeCz::FORMAT_DB)}");
@@ -58,19 +58,20 @@ try {
     $uvod      = "Prosíme zaplať své objednávky na Gamecon $rocnik";
     $oddelovac = str_repeat('═', mb_strlen($uvod));
     foreach ($hromadneOdhlaseniNeplaticu->neplaticiAKategorie()
-             as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
-        $a = $uzivatel->koncovkaDlePohlavi();
+             as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]) {
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
+        /** @var \Uzivatel $neplatic */
+        $a = $neplatic->koncovkaDlePohlavi();
         (new GcMail($systemoveNastaveni))
-            ->adresat($uzivatel->mail())
+            ->adresat($neplatic->mail())
             ->predmet("Nezaplacené objednávky Gamecon $rocnik")
             ->text(<<<TEXT
                 $uvod
 
                 $oddelovac
 
-                "Ahoj {$uzivatel->jmenoNick()}, zaplať prosím všechny své objednávky, jinak Tě budeme muset za tři dny odhlásit z Gameconu $rocnik"
-                TEXT
+                "Ahoj {$neplatic->jmenoNick()}, zaplať prosím všechny své objednávky, jinak Tě budeme muset za tři dny odhlásit z Gameconu $rocnik"
+                TEXT,
             )
             ->odeslat(GcMail::FORMAT_TEXT);
         $pocetPotencialnichNeplaticu++;
@@ -83,5 +84,5 @@ $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniNeplaticuOBrzkemHromadnemOdhlase
     $pocetPotencialnichNeplaticu,
     $nejblizsiHromadneOdhlasovaniKdy,
     $poradiOznameni,
-    Uzivatel::zId(Uzivatel::SYSTEM)
+    Uzivatel::zId(Uzivatel::SYSTEM),
 );

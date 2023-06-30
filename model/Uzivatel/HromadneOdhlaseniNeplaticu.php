@@ -211,7 +211,7 @@ SQL,
     }
 
     /**
-     * @return \Generator{neplatic: \Uzivatel, kategorie_neplatice: KategorieNeplatice}
+     * @return \Generator{array{neplatic: \Uzivatel, kategorie_neplatice: KategorieNeplatice}}
      * @throws NaHromadneOdhlasovaniJeBrzy
      * @throws NaHromadneOdhlasovaniJePozde
      */
@@ -219,7 +219,6 @@ SQL,
         \DateTimeInterface $nejblizsiHromadneOdhlasovaniKdy = null,
         \DateTimeInterface $platnostZpetneKDatu = null,
         \DateTimeInterface $kDatu = null,
-
     ): \Generator
     {
         $nejblizsiHromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
