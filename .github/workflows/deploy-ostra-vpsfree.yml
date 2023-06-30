@@ -47,7 +47,7 @@ jobs:
       - name: Deploy via FTP
         run: php ./udrzba/nasad.php --skip-tests # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
         env:
-          FTP_DIR: ostra
+          FTP_DIR: gamecon.cz/ostra
           FTP_BASE_URL: ${{ secrets.FTP_VPSFREE_BASE_URL }} # includes user and password in user:pass@server notation
           FTP_SERVER_PASSPHRASE: ${{ secrets.FTP_VPSFREE_SERVER_PASSPHRASE }}
           DB_USER: ${{ secrets.OSTRA_DB_USER }}
