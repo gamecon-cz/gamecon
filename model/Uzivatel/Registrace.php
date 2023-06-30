@@ -219,7 +219,7 @@ class Registrace
             <?= $this->input('E-mailová adresa', 'email', Sql::EMAIL1_UZIVATELE) ?>
 
             <div class="formular_sloupce">
-                <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, false, 'width: 70%; float:right', $this->telefonniPredvolbaInput('predvolba', 'float: left; width: 29%')) ?>
+                <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, true, 'width: 70%; float:right', $this->telefonniPredvolbaInput('predvolba', 'float: left; width: 29%')) ?>
             </div>
 
             <?= $this->povinneUdajeProUbytovaniHtml() ?>
@@ -232,8 +232,8 @@ class Registrace
             </div>
 
             <div class="formular_sloupce">
-                <?= $this->input('Heslo', 'password', 'heslo') ?>
-                <?= $this->input('Heslo pro kontrolu', 'password', 'heslo_kontrola') ?>
+                <?= $this->input('Heslo', 'password', 'heslo', $this->u === null) ?>
+                <?= $this->input('Heslo pro kontrolu', 'password', 'heslo_kontrola', $this->u === null) ?>
             </div>
 
             <div class="formular_bydlisteTooltip" style="margin-top: 15px">
