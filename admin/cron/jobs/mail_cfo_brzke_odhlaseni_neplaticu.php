@@ -135,12 +135,16 @@ $bfgrReport->exportuj('xlsx', true, $bfgrSoubor);
 
 $cfosEmaily    = Uzivatel::cfosEmaily();
 $budeOdhlaseno = count($zpravyNeplatici);
-// TODO tohle podle $posun a ne takhle natvrdo
-$brzy         = match ($poradiOznameni) {
-    1 => 'Zítra',
-    2 => 'Za hodinu',
-    default => 'Brzy'
-};
+
+$finalniPosun                    = $posuny[$poradiOznameni];
+$overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
+    ->modifyStrict($finalniPosun); // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
+$nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
+    $systemoveNastaveni,
+    $overenaPlatnostZpetne,
+);
+
+$brzy         = $nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted());
 $uvod         = "$brzy Gamecon systém odhlásí $budeOdhlaseno účastníků z letošního Gameconu, protože jsou neplatiči.";
 $oddelovac    = count($zpravyNeplatici) > 0
     ? str_repeat('═', mb_strlen($uvod))
