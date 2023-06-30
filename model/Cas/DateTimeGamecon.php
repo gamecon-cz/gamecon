@@ -162,22 +162,22 @@ class DateTimeGamecon extends DateTimeCz
     {
         return $rocnik === (int)ROCNIK && defined('REG_GC_OD')
             ? static::zDbFormatu(REG_GC_OD)
-            : static::spocitejZacatekRegistraciUcastniku($rocnik);
+            : static::spocitejPrihlasovaniUcastnikuOd($rocnik);
     }
 
     public static function prihlasovaniUcastnikuDo(int $rocnik = ROCNIK): static
     {
         return $rocnik === (int)ROCNIK && defined('REG_GC_DO')
             ? static::zDbFormatu(REG_GC_DO)
-            : static::spocitejKonecRegistraciUcastniku($rocnik);
+            : static::spocitejPrihlasovaniUcastnikuDo($rocnik);
     }
 
-    public static function spocitejKonecRegistraciUcastniku(int $rocnik): static
+    public static function spocitejPrihlasovaniUcastnikuDo(int $rocnik): static
     {
         return static::spocitejKonecGameconu($rocnik);
     }
 
-    public static function spocitejZacatekRegistraciUcastniku(int $rocnik): static
+    public static function spocitejPrihlasovaniUcastnikuOd(int $rocnik): static
     {
         if ($rocnik === 2013) {
             // čtvrtek
@@ -233,7 +233,7 @@ class DateTimeGamecon extends DateTimeCz
 
     public static function spoctejKdyJePrvniVlna(int $rocnik): static
     {
-        return static::spocitejZacatekRegistraciUcastniku($rocnik)->modify('+1 week');
+        return static::spocitejPrihlasovaniUcastnikuOd($rocnik)->modify('+1 week');
     }
 
     public static function druhaVlnaKdy(int $rocnik = ROCNIK): static
@@ -261,7 +261,7 @@ class DateTimeGamecon extends DateTimeCz
 
     public static function spocitejKdyJeTretiVlna(int $rocnik): static
     {
-        return static::spocitejZacatekRegistraciUcastniku($rocnik)->setDate($rocnik, 7, 1);
+        return static::spocitejPrihlasovaniUcastnikuOd($rocnik)->setDate($rocnik, 7, 1);
     }
 
     public static function prvniHromadneOdhlasovani(int $rocnik = ROCNIK): static

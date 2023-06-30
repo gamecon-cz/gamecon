@@ -43,7 +43,7 @@ class Statistiky
     private function dataProGrafUcastiZaRok(int $rok, \DateTimeImmutable $doChvile): array
     {
         /** @var \DateTimeImmutable|DateTimeGamecon $zacatekRegistraci */
-        $zacatekRegistraci = min(DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok), $doChvile);
+        $zacatekRegistraci = min(DateTimeGamecon::spocitejPrihlasovaniUcastnikuOd($rok), $doChvile);
         /** @var \DateTimeImmutable|DateTimeGamecon $konecGc */
         $konecGc     = DateTimeGamecon::spocitejKonecGameconu($rok);
         $posledniDen = min($konecGc, $doChvile);
@@ -308,7 +308,7 @@ SQL,
             ];
             $dnyJednohoRoku               = array_keys($dataJednohoRoku);
             $nazvyDnuJednohoRoku          = [];
-            $zacatekRegistraciJednohoRoku = DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok)->formatDatumDb();
+            $zacatekRegistraciJednohoRoku = DateTimeGamecon::spocitejPrihlasovaniUcastnikuOd($rok)->formatDatumDb();
             $zacatekGcJednohoRoku         = DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
             $konecGcJednohoRoku           = DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
             $dnes                         = $this->systemoveNastaveni->ted()->formatDatumDb();

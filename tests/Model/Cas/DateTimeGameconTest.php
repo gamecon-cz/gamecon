@@ -103,28 +103,29 @@ class DateTimeGameconTest extends TestCase
         );
     }
 
-    public function testZacatekLetosnichRegistraciUcastniku()
+    public function testZacatekLetosnihoPrihlasovaniUcastnikuOd()
     {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(REG_GC_OD),
             DateTimeGamecon::prihlasovaniUcastnikuOd(ROCNIK),
-            'Očekáván jiný začátek registrací, viz konstanta REG_GC_OD: ' . REG_GC_OD,
+            'Očekáván jiný začátek přihlašování účastníků, viz konstanta REG_GC_OD: ' . REG_GC_OD,
         );
     }
 
     /**
-     * @dataProvider provideZacatkyRegistraciUcastniku
+     * @dataProvider providePrihlasovaniUcastnikuOd
      */
-    public function testZacatekRegistraciUcastniku(int $rok, string $ocekavanyZacatekRegistraci)
+    public function testPrihlasovaniUcastnikuOd(int $rok, string $ocekavanePrihlasovaniUcastnikuOd)
     {
         self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', $ocekavanyZacatekRegistraci),
-            DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok),
-            'Očekáván jiný spočítaný začátek registrací pro rok ' . $rok,
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', $ocekavanePrihlasovaniUcastnikuOd),
+            DateTimeGamecon::spocitejPrihlasovaniUcastnikuOd($rok),
+            'Očekáván jiný spočítaný začátek přihlašování účastníků pro rok ' . $rok,
         );
     }
 
-    public static function provideZacatkyRegistraciUcastniku(): array {
+    public static function providePrihlasovaniUcastnikuOd(): array
+    {
         return [
             [2023, '2023-05-11 20:23:00'],
             [2022, '2022-05-12 20:22:00'],
@@ -498,12 +499,12 @@ class DateTimeGameconTest extends TestCase
     /**
      * @test
      */
-    public function Konec_registraci_ucastniku_je_stejny_jako_konec_gameconu()
+    public function Konec_prihlasovani_ucastniku_je_stejny_jako_konec_gameconu()
     {
         foreach (range(2020, (int)date('Y') + 1) as $rocnik) {
             self::assertEquals(
                 DateTimeGamecon::spocitejKonecGameconu($rocnik),
-                DateTimeGamecon::spocitejKonecRegistraciUcastniku($rocnik),
+                DateTimeGamecon::spocitejPrihlasovaniUcastnikuDo($rocnik),
                 "Očekáván jiný spočítaný konec registací účastníků pro ročník $rocnik",
             );
         }
