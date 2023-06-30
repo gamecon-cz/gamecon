@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
-use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
-use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Platby;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
@@ -32,7 +30,7 @@ if (!$platby->nejakeNesparovanePlatby($systemoveNastaveni->rocnik())) {
 $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
 $poradiOznameni = null;
-$posuny         = [1 => '+1 week', 2 => '+1 day'];
+$posuny         = [1 => '+1 day', 2 => '+1 week'];
 foreach ($posuny as $poradiOznameni => $posun) {
     //  za týden mínus hodinu nebo za 23 hodin
     $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
@@ -44,28 +42,33 @@ foreach ($posuny as $poradiOznameni => $posun) {
 
     if ($nejblizsiHromadneOdhlasovaniKdy > $systemoveNastaveni->ted()->modify($posun)) {
         // POJISTKA PROTI PŘÍLIŽ BRZKÉMU SPUŠTĚNÍ
-        logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}).\nE-mail pro CFO s nespárovanými platbami necháme na příští běh CRONu.");
-        return; // nejbližší odhlašování bude až za dlouhou dobu, tohle necháme na příštím CRONu
-    }
-
-    if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
-        $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
-        if ($odhlaseniProvedenoKdy) {
-            $odhlaseniProvedenoKdy = DateTimeCz::createFromInterface($odhlaseniProvedenoKdy);
-            logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)} ({$odhlaseniProvedenoKdy->relativni()}). Už nemá smyl informovat CFO o nespárovaných platbách.");
-            return;
-        }
-
-        $cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy = $platby->cfoNotifikovanONesparovanychPlatbachKdy(
-            $systemoveNastaveni->rocnik(),
-            $poradiOznameni,
-        );
-        if (!$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy) {
-            break; // tohle oznámení jsme ještě neposlali
-        }
-        logs("{$poradiOznameni}. email pro CFO o nespárovaných platbách už byl odeslán {$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy->format(DateTimeCz::FORMAT_DB)}");
+        logs("E-mail pro CFO s nespárovanými platbami: Hromadné odhlášenís posunem '$posun' bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}). Přeskakuji.");
         $poradiOznameni = null;
+        continue;
     }
+
+    logs("E-mail pro CFO s nespárovanými platbami: zkouším {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}) (posun '$posun')");
+
+    if ($znovu && !$systemoveNastaveni->jsmeNaOstre()) {
+        break; // zkusíme hned
+    }
+
+    $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
+    if ($odhlaseniProvedenoKdy) {
+        $odhlaseniProvedenoKdy = DateTimeCz::createFromInterface($odhlaseniProvedenoKdy);
+        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)} ({$odhlaseniProvedenoKdy->relativni()}). Už nemá smyl informovat CFO o nespárovaných platbách.");
+        return;
+    }
+
+    $cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy = $platby->cfoNotifikovanONesparovanychPlatbachKdy(
+        $systemoveNastaveni->rocnik(),
+        $poradiOznameni,
+    );
+    if (!$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy) {
+        break; // tohle oznámení jsme ještě neposlali
+    }
+    logs("{$poradiOznameni}. email pro CFO o nespárovaných platbách už byl odeslán {$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy->format(DateTimeCz::FORMAT_DB)}");
+    $poradiOznameni = null;
 }
 
 if (!$poradiOznameni) {
@@ -73,7 +76,8 @@ if (!$poradiOznameni) {
 }
 
 // abychom měli čerstvé informace o platbách
-require __DIR__ . '/../fio_stazeni_novych_plateb.php';
+// local scope
+requireOnceIsolated(__DIR__ . '/../fio_stazeni_novych_plateb.php');
 
 $zpravy = [];
 foreach ($platby->nesparovanePlatby($systemoveNastaveni->rocnik()) as $platba) {
@@ -114,3 +118,5 @@ $platby->zalogujCfoNotifikovanONesparovanychPlatbach(
     $poradiOznameni,
     Uzivatel::zId(Uzivatel::SYSTEM),
 );
+
+logs('E-mail pro CFO s nespárovanými platbami: e-mail odeslán');

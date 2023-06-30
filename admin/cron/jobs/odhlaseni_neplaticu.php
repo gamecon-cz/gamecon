@@ -41,7 +41,7 @@ try {
 }
 
 // abychom neodhlásili nešťastlivce, od kterého dorazili finance chvíli před odhlašováním neplatičů
-require __DIR__ . '/../fio_stazeni_novych_plateb.php';
+requireOnceIsolated(__DIR__ . '/../fio_stazeni_novych_plateb.php');
 
 // jistota je jistota
 $vynutZalohuDatabaze = true;
@@ -56,24 +56,24 @@ try {
 }
 $odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
 
-{ // local scope
-    $zprava          = "Hromadně odhlášeno $odhlasenoCelkem účastníků z GC";
-    $zaznamy         = implode(";\n", $zaznamnik->zpravy());
-    $uvodProCfo      = "Právě jsme odhlásili $odhlasenoCelkem účastníků z letošního Gameconu.";
-    $oddelovacProCfo = str_repeat('═', mb_strlen($uvodProCfo));
-    $cfosEmaily      = Uzivatel::cfosEmaily();
-    (new GcMail($systemoveNastaveni))
-        ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
-        ->predmet($zprava)
-        ->text(<<<TEXT
+$zprava          = "Hromadně odhlášeno $odhlasenoCelkem účastníků z GC";
+$zaznamy         = implode(";\n", $zaznamnik->zpravy());
+$uvodProCfo      = "Právě jsme odhlásili $odhlasenoCelkem účastníků z letošního Gameconu.";
+$oddelovacProCfo = str_repeat('═', mb_strlen($uvodProCfo));
+$cfosEmaily      = Uzivatel::cfosEmaily();
+(new GcMail($systemoveNastaveni))
+    ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
+    ->predmet($zprava)
+    ->text(<<<TEXT
             $uvodProCfo
 
             $oddelovacProCfo
 
             $zaznamy
             TEXT,
-        )
-        ->odeslat(GcMail::FORMAT_TEXT);
+    )
+    ->odeslat(GcMail::FORMAT_TEXT);
 
-    logs($zprava);
-}
+logs($zprava);
+
+logs('Email o hromadném odhlášení odeslán');

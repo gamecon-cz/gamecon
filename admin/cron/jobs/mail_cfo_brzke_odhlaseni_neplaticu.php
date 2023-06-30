@@ -9,7 +9,6 @@ use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Report\BfgrReport;
 use Gamecon\Shop\Shop;
-use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 
 /** @var bool $znovu */
 
@@ -28,7 +27,7 @@ $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni
 
 $poradiOznameni = null;
 // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
-$posuny = [1 => '+1 day', 2 => '+1 hour'];
+$posuny = [1 => '+1 hour', 2 => '+1 day'];
 foreach ($posuny as $poradiOznameni => $posun) {
     // právě teď nebo před 23 hodinami
     $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
@@ -40,27 +39,32 @@ foreach ($posuny as $poradiOznameni => $posun) {
 
     if ($nejblizsiHromadneOdhlasovaniKdy > $systemoveNastaveni->ted()->modify($posun)) {
         // POJISTKA PROTI PŘÍLIŽ BRZKÉMU SPUŠTĚNÍ
-        logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}).\nE-mail pro CFO se seznamem neplatičů, kterým hrozí odhlášení, necháme na příští běh CRONu.");
-        return; // nejbližší odhlašování bude až za dlouhou dobu, tohle necháme na příštím CRONu
-    }
-
-    if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
-        $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
-        if ($odhlaseniProvedenoKdy) { // chceme informovat, že odhlášení bude, ne že bylo - tady končíme
-            logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)} ({$odhlaseniProvedenoKdy->relativni()}). Už nemá smysl informovat CFO o blížícím se odhlašování.");
-            return;
-        }
-
-        $cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy = $hromadneOdhlaseniNeplaticu->cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
-            $nejblizsiHromadneOdhlasovaniKdy,
-            $poradiOznameni,
-        );
-        if (!$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy) {
-            break; // tohle oznámení jsme ještě neposlali
-        }
-        logs("{$poradiOznameni}. email pro CFO o brzkém hromadném odhlášení už byl odeslán {$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy->format(DateTimeCz::FORMAT_DB)}");
+        logs("E-mail pro CFO se seznamem neplatičů: Hromadné odhlášení s posunem '$posun' bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}). Přeskakuji.");
         $poradiOznameni = null;
+        continue;
     }
+
+    logs("E-mail pro CFO se seznamem neplatičů: zkouším {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}) (posun '$posun')");
+
+    if ($znovu && !$systemoveNastaveni->jsmeNaOstre()) {
+        break; // zkusíme hned
+    }
+
+    $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
+    if ($odhlaseniProvedenoKdy) { // chceme informovat, že odhlášení bude, ne že bylo - tady končíme
+        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)} ({$odhlaseniProvedenoKdy->relativni()}). Už nemá smysl informovat CFO o blížícím se odhlašování.");
+        return;
+    }
+
+    $cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy = $hromadneOdhlaseniNeplaticu->cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
+        $nejblizsiHromadneOdhlasovaniKdy,
+        $poradiOznameni,
+    );
+    if (!$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy) {
+        break; // tohle oznámení jsme ještě neposlali
+    }
+    logs("{$poradiOznameni}. email pro CFO o brzkém hromadném odhlášení už byl odeslán {$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy->format(DateTimeCz::FORMAT_DB)}");
+    $poradiOznameni = null;
 }
 
 if (!$poradiOznameni) {
@@ -70,7 +74,7 @@ if (!$poradiOznameni) {
 unset($posun);
 
 // abychom měli čerstvé informace o neplatičích
-require __DIR__ . '/../fio_stazeni_novych_plateb.php';
+requireOnceIsolated(__DIR__ . '/../fio_stazeni_novych_plateb.php');
 
 $zpravyNeplatici = [];
 try {
@@ -93,6 +97,7 @@ try {
         $zpravyNeplatici[] = "Účastník '{$neplatic->jmenoNick()}' ({$neplatic->id()}) bude {$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()} odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
     }
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
+    logs("{$nevhodnyCasProHromadneOdhlasovani->getMessage()}.\nE-mail pro CFO se seznamem neplatičů, kterým hrozí odhlášení, necháme na příští běh CRONu.");
     // POJISTKA PROTI PŘÍLIŽ BRZKÉMU NEBO POZDNÍMU SPUŠTĚNÍ
     return;
 }
@@ -172,3 +177,5 @@ $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
     $poradiOznameni,
     Uzivatel::zId(Uzivatel::SYSTEM),
 );
+
+logs('E-mail pro CFO se seznamem neplatičů: e-mail odeslán');

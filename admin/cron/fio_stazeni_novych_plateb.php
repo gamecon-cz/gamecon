@@ -19,7 +19,7 @@ if ($platbyService->platbyBylyAktualizovanyPredChvili()) {
     return;
 }
 
-logs('Zpracovávám platby z Fio API...');
+logsText('Zpracovávám platby z Fio API...');
 $platby = $platbyService->nactiNove();
 foreach ($platby as $platba) {
     logs(' - platba ' . $platba->id()
@@ -31,7 +31,7 @@ foreach ($platby as $platba) {
     );
 }
 if (!$platby) {
-    logs('...žádné zaúčtovatelné platby.', false);
+    logsText('...žádné zaúčtovatelné platby.', false);
 }
 
 $platbyService->nastavPosledniAktulizaciPlatebBehemSessionKdy(new DateTimeImmutableStrict());
