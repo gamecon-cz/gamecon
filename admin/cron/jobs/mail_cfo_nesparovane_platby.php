@@ -113,10 +113,10 @@ $oddelovac = str_repeat('═', mb_strlen($uvod));
     ->odeslat(GcMail::FORMAT_TEXT);
 
 $platby->zalogujCfoNotifikovanONesparovanychPlatbach(
-    $systemoveNastaveni->rocnik(),
-    $pocetNesparovanychPlateb,
-    $poradiOznameni,
-    Uzivatel::zId(Uzivatel::SYSTEM),
+    rocnik: $systemoveNastaveni->rocnik(),
+    poradiOznameni: $poradiOznameni,
+    nesparovanychPlateb: $pocetNesparovanychPlateb,
+    provedl: Uzivatel::zId(Uzivatel::SYSTEM),
 );
 
 logs('E-mail pro CFO s nespárovanými platbami: e-mail odeslán');
