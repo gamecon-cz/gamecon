@@ -371,7 +371,7 @@ trait DateTimeCzTrait
         if ($rozdilDni === '') { // do 24 hodin
             $popis = $this->vPodleHodin() . ' ' . $this->format('G:i');
             if ($dnesUHodin) {
-                $popis = 'dnes ' . $dnesUHodin;
+                $popis = 'dnes ' . $popis;
             }
             return $popis;
         }
