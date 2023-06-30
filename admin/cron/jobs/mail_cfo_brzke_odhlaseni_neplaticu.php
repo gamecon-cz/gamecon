@@ -28,11 +28,11 @@ $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni
 
 $poradiOznameni = null;
 // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
-$posuny                = [1 => '+1 day', 2 => '+1 hour'];
-$overenaPlatnostZpetne = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni);
+$posuny = [1 => '+1 day', 2 => '+1 hour'];
 foreach ($posuny as $poradiOznameni => $posun) {
     // právě teď nebo před 23 hodinami
-    $overenaPlatnostZpetnePosunuta   = $overenaPlatnostZpetne->modifyStrict($posun);
+    $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
+        ->modifyStrict($posun);
     $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
         $systemoveNastaveni,
         $overenaPlatnostZpetne,
