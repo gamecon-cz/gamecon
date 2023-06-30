@@ -54,7 +54,7 @@ if ($vetev === 'master') {
         'ciloveFtp'                => $nastaveni['ostra']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
         'serverPassphrase'         => getenv('FTP_SERVER_PASSPHRASE') ?: '',
         'hesloMigrace'             => $nastaveni['ostra']['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
-        'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-produkce.php',
+        'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-vpsfree.php',
     ]);
 } else if ($vetev === 'beta') {
     nasad([

@@ -37,8 +37,10 @@ if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', 
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-misahojna.php';
 } else if (str_ends_with($host, 'sciator.gamecon.cz')) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-sciator.php';
-} else if (in_array($host, ['admin.gamecon.cz', 'gamecon.cz', 'admin.vpsfree.gamecon.cz', 'vpsfree.gamecon.cz'])) {
+} else if (in_array($host, ['admin.gamecon.cz', 'gamecon.cz'], true)) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
+} else if (in_array($host, ['admin.vpsfree.gamecon.cz', 'vpsfree.gamecon.cz'], true)) {
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-vpsfree.php';
 } else {
     echo 'Nepodařilo se detekovat prostředí, nelze načíst nastavení verze';
     exit(1);
