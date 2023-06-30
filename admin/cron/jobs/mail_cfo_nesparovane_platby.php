@@ -81,7 +81,7 @@ requireOnceIsolated(__DIR__ . '/../fio_stazeni_novych_plateb.php');
 
 $zpravy = [];
 foreach ($platby->nesparovanePlatby($systemoveNastaveni->rocnik()) as $platba) {
-    $zpravy[] = "Nespárovaná platba s FIO ID '{$platba->fioId()}' s částkou {$platba->castka()} ze dne {$platba->provedeno()}";
+    $zpravy[] = "Nespárovaná platba s FIO ID {$platba->fioId()} s částkou {$platba->castka()} ze dne {$platba->provedeno()}";
 }
 
 $pocetNesparovanychPlateb = count($zpravy);
