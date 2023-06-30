@@ -93,10 +93,16 @@ if ($pocetNesparovanychPlateb === 0) {
 $cfosEmaily   = Uzivatel::cfosEmaily();
 $zpravyString = implode(";\n", $zpravy);
 
-$finalniPosun       = $posuny[$poradiOznameni];
-$finalniPosunObjekt = $systemoveNastaveni->ted()->modify($finalniPosun);
-$brzy               = mb_ucfirst($finalniPosunObjekt->relativniVBudoucnu($systemoveNastaveni->ted()));
+$finalniPosun                    = $posuny[$poradiOznameni];
+$overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
+    ->modifyStrict($finalniPosun);
+$nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
+    $systemoveNastaveni,
+    $overenaPlatnostZpetne,
+);
 
+$brzy      = $nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted(), true);
+$brzy      = mb_ucfirst($brzy);
 $uvod      = "$brzy Gamecon systém hromadně odhlásí neplatiče. Přitom ale máme $pocetNesparovanychPlateb nespárovaných plateb a hrozí komplikace.";
 $oddelovac = str_repeat('═', mb_strlen($uvod));
 (new GcMail($systemoveNastaveni))

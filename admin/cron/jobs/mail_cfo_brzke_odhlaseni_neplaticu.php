@@ -144,7 +144,8 @@ $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovani
     $overenaPlatnostZpetne,
 );
 
-$brzy         = $nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted());
+$brzy         = $nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted(), true);
+$brzy         = mb_ucfirst($brzy);
 $uvod         = "$brzy Gamecon systém odhlásí $budeOdhlaseno účastníků z letošního Gameconu, protože jsou neplatiči.";
 $oddelovac    = count($zpravyNeplatici) > 0
     ? str_repeat('═', mb_strlen($uvod))

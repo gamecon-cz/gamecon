@@ -349,7 +349,7 @@ trait DateTimeCzTrait
         return $rozdilDni;
     }
 
-    public function relativniVBudoucnu(\DateTimeInterface $ted = null): string
+    public function relativniVBudoucnu(\DateTimeInterface $ted = null, bool $dnesUHodin = false): string
     {
         $rozdil = $this->getTimestamp() - ($ted?->getTimestamp() ?? time());
         if ($rozdil < 0) {
@@ -369,7 +369,11 @@ trait DateTimeCzTrait
         }
         $rozdilDni = $this->rozdilDni($ted ?? new static('now', $this->getTimezone()));
         if ($rozdilDni === '') { // do 24 hodin
-            return $this->vPodleHodin() . ' ' . $this->format('G:i');
+            $popis = $this->vPodleHodin() . ' ' . $this->format('G:i');
+            if ($dnesUHodin) {
+                $popis = 'dnes ' . $dnesUHodin;
+            }
+            return $popis;
         }
         return $rozdilDni;
     }
