@@ -13,6 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install ssh-agent for sftp
+        run: sudo apt-get install -y openssh-client
+
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
