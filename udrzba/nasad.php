@@ -47,6 +47,15 @@ if ($vetev === 'master') {
         'hesloMigrace'             => $nastaveni['ostra']['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-produkce.php',
     ]);
+} else if ($vetev === 'vpsfree') {
+    nasad([
+        'vetev'                    => $vetev,
+        'zdrojovaSlozka'           => __DIR__ . '/..',
+        'ciloveFtp'                => $nastaveni['ostra']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        'serverPassphrase'         => getenv('FTP_SERVER_PASSPHRASE') ?: '',
+        'hesloMigrace'             => $nastaveni['ostra']['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
+        'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-produkce.php',
+    ]);
 } else if ($vetev === 'beta') {
     nasad([
         'vetev'                    => $vetev,
