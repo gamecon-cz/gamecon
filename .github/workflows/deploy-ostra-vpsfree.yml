@@ -53,7 +53,7 @@ jobs:
           DB_USER: ${{ secrets.OSTRA_DB_USER }}
           DB_PASS: ${{ secrets.OSTRA_DB_PASS }}
           DB_NAME: ${{ secrets.OSTRA_DB_NAME }}
-          DB_SERV: ${{ secrets.OSTRA_DB_SERV }}
+          DB_SERV: ${{ secrets.VPSFREE_OSTRA_DB_SERV }}
           DBM_USER: ${{ secrets.OSTRA_DBM_USER }}
           DBM_PASS: ${{ secrets.OSTRA_DBM_PASS }}
           MIGRACE_HESLO: ${{ secrets.OSTRA_MIGRACE_HESLO }}
