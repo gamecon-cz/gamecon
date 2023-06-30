@@ -14,8 +14,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install ssh-agent for sftp
-        run: sudo apt-get install -y openssh-client
-
+        run: sudo apt-get install -y libssh2-1
+      - name: Update system
+        run: sudo apt-get update && sudo apt-get upgrade
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
