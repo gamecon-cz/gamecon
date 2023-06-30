@@ -13,10 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install ssh-agent for sftp
-        run: sudo apt-get install -y libssh2-1 libssh2-1-dev
-      - name: Update system
-        run: sudo apt-get update && sudo apt-get upgrade
+#      - name: Install ssh-agent for sftp
+#        run: sudo apt-get install -y libssh2-1
       - name: Activate ssh agent
         run: eval $(ssh-agent -s)
 
@@ -50,7 +48,7 @@ jobs:
         run: php ./udrzba/nasad.php --skip-tests # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
         env:
           FTP_DIR: ostra
-          FTP_BASE_URL: ${{ secrets.FTP_VPSFREE_BASE_URL }} # includes user in user@server notation
+          FTP_BASE_URL: ${{ secrets.FTP_VPSFREE_BASE_URL }} # includes user and password in user:pass@server notation
           FTP_SERVER_PASSPHRASE: ${{ secrets.FTP_VPSFREE_SERVER_PASSPHRASE }}
           DB_USER: ${{ secrets.OSTRA_DB_USER }}
           DB_PASS: ${{ secrets.OSTRA_DB_PASS }}
