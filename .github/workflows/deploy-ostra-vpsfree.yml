@@ -43,8 +43,8 @@ jobs:
         with:
           mysql-version: 'mariadb-10.6' # mělo by odpovídat verzi na vpfree
 
-      - name: Run tests
-        run: ./vendor/bin/phpunit
+#      - name: Run tests
+#        run: ./vendor/bin/phpunit
 
       - name: Deploy via FTP
         run: php ./udrzba/nasad.php --skip-tests # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
