@@ -3,11 +3,11 @@ name: VPSFREE Deploy OSTRA (master) on direct push or merged pull request
 on:
   push:
     branches:
-      - 'master'
+      - 'vpsfree'
 
 jobs:
   publish:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
