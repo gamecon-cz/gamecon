@@ -49,7 +49,7 @@ require __DIR__ . '/../zaloha_databaze.php';
 
 $zaznamnik = new Zaznamnik();
 try {
-    $hromadneOdhlaseniNeplaticu->hromadneOdhlasit('automaticky', $zaznamnik);
+    $hromadneOdhlaseniNeplaticu->hromadneOdhlasit(zdrojOdhlaseniZaklad: 'automaticky', zaznamnik: $zaznamnik);
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
     logs($nevhodnyCasProHromadneOdhlasovani->getMessage());
     return;

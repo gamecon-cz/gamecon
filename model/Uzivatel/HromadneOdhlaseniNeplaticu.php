@@ -73,9 +73,10 @@ class HromadneOdhlaseniNeplaticu
                 }
                 try {
                     $neplatic->odhlasZGc(
-                        $zdrojOdhlaseni,
-                        $uzivatelSystem,
-                        $zaznamnik,
+                        zdrojOdhlaseni: $zdrojOdhlaseni,
+                        odhlasujici: $uzivatelSystem,
+                        zaznamnik: $zaznamnik,
+                        odeslatMailPokudSeNeodhlasilSam: true
                     );
                     $zaznamnik?->pridejEntitu($neplatic);
                     $this->odhlasenoCelkem++;

@@ -406,11 +406,8 @@ SQL
         }
         if ($odeslatMailPokudSeNeodhlasilSam && $this->id() !== $odhlasujici->id()) {
             $mailZeBylOdhlasen = $this->mailZeBylOdhlasen();
-            if ($zaznamnik) {
-                $zaznamnik->uchovejZEmailu($mailZeBylOdhlasen);
-            } else {
-                $mailZeBylOdhlasen->odeslat();
-            }
+            // tento mail necheme zastavovat v záznamníku
+            $mailZeBylOdhlasen->odeslat();
         }
     }
 
