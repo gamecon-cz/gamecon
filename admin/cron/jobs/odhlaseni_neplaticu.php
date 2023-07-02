@@ -7,6 +7,7 @@ use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Logger\Zaznamnik;
+use Gamecon\Report\BfgrReport;
 
 /** @var bool $znovu */
 
@@ -47,6 +48,10 @@ requireOnceIsolated(__DIR__ . '/../fio_stazeni_novych_plateb.php');
 $vynutZalohuDatabaze = true;
 require __DIR__ . '/../zaloha_databaze.php';
 
+$bfgrSoubor = sys_get_temp_dir() . '/' . uniqid('bfgr-', true) . '.xlsx';
+$bfgrReport = new BfgrReport($systemoveNastaveni);
+$bfgrReport->exportuj('xlsx', true, $bfgrSoubor);
+
 $zaznamnik = new Zaznamnik();
 try {
     $hromadneOdhlaseniNeplaticu->hromadneOdhlasit(zdrojOdhlaseniZaklad: 'automaticky', zaznamnik: $zaznamnik);
@@ -72,6 +77,7 @@ $cfosEmaily      = Uzivatel::cfosEmaily();
             $zaznamy
             TEXT,
     )
+    ->prilohaSoubor($bfgrSoubor)
     ->odeslat(GcMail::FORMAT_TEXT);
 
 logs($zprava);
