@@ -22,7 +22,7 @@ use Gamecon\Web\Info;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-require_once __DIR__ . '/_ubytovani_tabulka.php';
+require_once __DIR__ . '/_submoduly/ubytovani_tabulka.php';
 
 $ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';

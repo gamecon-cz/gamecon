@@ -179,6 +179,14 @@
     </form>
   </div>
 
+
+  <div class="infopult-grid--item infopult-grid--item-přehled  aBox">
+    <h3>Osobní údaje</h3>
+    <div>
+      
+    </div>
+  </div>
+
   <div class="infopult-grid--item infopult-grid--item-platba aBox">
     <h3>Připsat platbu</h3>
     <form method="post" class="clearfix">
