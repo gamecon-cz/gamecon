@@ -106,12 +106,7 @@
   <div class="uzivatel-grid--item uzivatel-grid--item-udaje aBox">
     <h3>Osobní údaje</h3>
     Pro úpravu klikni na údaj
-    <form method="post" class="udaje clearfix" id="osobni_udaje">
-      {udajeHtml}
-      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele">Program</a>
-      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni">Program účastníka</a>
-      <input type="submit" name="zmenitUdaj" value="uložit" class="submit-btn" style="display:none;">
-    </form>
+    {udajeHtml}
     <script src="files/jquery.autosize-1.18.13.js"></script>
     <script>
       $('textarea').last().focus(function () {
