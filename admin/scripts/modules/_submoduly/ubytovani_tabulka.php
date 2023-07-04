@@ -63,7 +63,7 @@ class UbytovaniTabulka
         SystemoveNastaveni $systemoveNastaveni,
         bool               $muzeEditovatUkoncenyProdej
     ) {
-        $t = new XTemplate(__DIR__ . '/_ubytovani_tabulka.xtpl');
+        $t = new XTemplate(__DIR__ . '/ubytovani_tabulka.xtpl');
         self::htmlDny($shop, $t, $systemoveNastaveni, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
         $prvniUbytovani = null;
