@@ -110,8 +110,6 @@ if ($uPracovni) {
 
 // form s osobními údaji
 if ($uPracovni) {
-
-
     $x->assign(
         'udajeHtml',
         OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni)
