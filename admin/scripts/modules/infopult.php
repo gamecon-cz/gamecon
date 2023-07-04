@@ -23,6 +23,7 @@ use Gamecon\Web\Info;
  */
 
 require_once __DIR__ . '/_submoduly/ubytovani_tabulka.php';
+require_once __DIR__ . '/_submoduly/osobni_udaje.php';
 
 $ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
@@ -205,6 +206,12 @@ if ($uPracovni) {
             $x->parse('infopult.potvrditZruseniPrace');
         }
     }
+
+    $maUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    $x->assign(
+        'udajeHtml',
+        OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, $maUbytovani)
+    );
 
     if (!$systemoveNastaveni->jsmeNaOstre()) {
         $x->assign(
