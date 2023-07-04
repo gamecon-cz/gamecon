@@ -4,6 +4,8 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
 
+include __DIR__ . '/osobni_udaje_ovladac.php';
+
 class OsobniUdajeTabulka
 {
   private static $udajeSOp = [
@@ -35,7 +37,8 @@ class OsobniUdajeTabulka
 
   public static function osobniUdajeTabulkaZ(
     Uzivatel|null $uzivatel,
-    bool $op = true
+    bool $op = true,
+    bool $programOdkaz = false,
   ) {
     if (!$uzivatel)
       return "";
@@ -96,6 +99,10 @@ class OsobniUdajeTabulka
       }
       $x->parse('udaje.udaj');
     }
+
+    if ($programOdkaz)
+      $x->parse('udaje.programOdkaz');
+
     $x->parse('udaje');
     return $x->text('udaje');
   }
