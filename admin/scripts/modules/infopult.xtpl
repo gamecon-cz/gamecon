@@ -180,11 +180,19 @@
   </div>
 
 
-  <div class="infopult-grid--item infopult-grid--item-přehled  aBox">
+  <div class="infopult-grid--item infopult-grid--item-udaje aBox">
     <h3>Osobní údaje</h3>
-    <div>
-      
-    </div>
+    Pro úpravu klikni na údaj
+    <form method="post" class="udaje clearfix" id="osobni_udaje">
+      {udajeHtml}
+      <input type="submit" name="zmenitUdaj" value="uložit" class="submit-btn" style="display:none;">
+    </form>
+    <script src="files/jquery.autosize-1.18.13.js"></script>
+    <script>
+      $('textarea').last().focus(function () {
+        $(this).css('width', '98%').autosize()
+      })
+    </script>
   </div>
 
   <div class="infopult-grid--item infopult-grid--item-platba aBox">
