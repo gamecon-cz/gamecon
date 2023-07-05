@@ -122,10 +122,8 @@ if ($uPracovni) {
     if ($zkontrolovaneOsobniUdaje) {
         $x->assign('kontrolaOsobnichUdajuAttr', 'checked');
     }
-    $x->assign('kontrolaOsobnichUdajuText', 
-        $zkontrolovaneOsobniUdaje
-            ? $ok . ' osobní údaje zkontrolovane'
-            : $err . ' Zkontrolovat osobní údaje'
+    $x->assign('kontrolaOsobnichUdajuText',
+        ' Osobní údaje oveřené ' . ($zkontrolovaneOsobniUdaje ? $ok : $err),
     );
 
     if ($uPracovni->finance()->stav() < 0 && !$uPracovni->gcPritomen()) {
@@ -226,7 +224,7 @@ if ($uPracovni) {
     $maUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
     $x->assign(
         'udajeHtml',
-        OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, $maUbytovani)
+        OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, $maUbytovani),
     );
 
     if (!$systemoveNastaveni->jsmeNaOstre()) {

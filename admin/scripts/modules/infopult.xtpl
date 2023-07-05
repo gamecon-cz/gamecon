@@ -159,10 +159,12 @@
         <!-- end:covidSekce -->
 
         <tr>
-          <td colspan="100%" style="clearfix">
-            <input style="float: left;" type="checkbox" class="" name="kontrolaOsobnichUdaju" {kontrolaOsobnichUdajuAttr}>
-            <div style="float: left;">{kontrolaOsobnichUdajuText}</div>
-            <input style="float: right;" type="submit" value="uložit" class="submit-btn">
+          <td colspan="100%">
+              <label>
+                  <input type="checkbox" class="" name="kontrolaOsobnichUdaju" {kontrolaOsobnichUdajuAttr}>
+                  <span style="padding-left: 0.5em">{kontrolaOsobnichUdajuText}</span>
+              </label>
+              <button style="margin: 0" type="submit" name="kontrolaOsobnichUdajuSubmit" value="1" class="submit-btn">uložit</button>
           </td>
         </tr>
 
@@ -179,7 +181,7 @@
             </div>
             <div style="float: right;">
               <!-- begin:balicekTlacitko -->
-              {warn} <input style="float: right;" type="submit" name="vydatBalicek" value="vydat">
+                {warn} <button style="margin: 0" type="submit" name="vydatBalicek" class="submit-btn" value="1">vydat</button>
               <!-- end:balicekTlacitko -->
               <!-- begin:balicekVydan -->
               {ok} Vydán
