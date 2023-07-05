@@ -1,0 +1,3 @@
+---
+sftp_group: users
+sftp_root: /srv/www/gamecon.cz

@@ -1,0 +1,128 @@
+---
+- name: Ensure apt transport is present
+  ansible.builtin.apt:
+    name: apt-transport-https
+    state: present
+
+- name: Enable external repository for newest mod-php
+  ansible.builtin.apt_repository:
+    repo: ppa:ondrej/apache2
+    state: present
+
+- name: Enable external repository for newest PHP
+  ansible.builtin.apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+
+- name: Ensure webserver and PHP packages are installed
+  ansible.builtin.apt:
+    name:
+      - apache2
+      - libapache2-mod-php8.2
+      - php>=8.2
+      - php-bcmath
+      - php-bz2
+      - php-curl
+      - php-gd
+      - php-imagick
+      - php-imap
+      - php-intl
+      - php-json
+      - php-mbstring
+      - php-sqlite3
+      - php-xml
+      - php-zip
+      - php8.2-calendar
+      - php8.2-ctype
+      - php8.2-dom
+      - php8.2-exif
+      - php8.2-fileinfo
+      - php8.2-ftp
+      - php8.2-gettext
+      - php8.2-iconv
+      - php8.2-mysqli
+      - php8.2-mysqlnd
+    state: present
+
+- name: Configure timezone for PHP
+  ansible.builtin.lineinfile:
+    dest: /etc/php/8.2/apache2/php.ini
+    line: >-
+      date.timezone = Europe/Prague
+    regex: >-
+      ^;?date.timezone.*
+    state: present
+  notify: Reload apache2
+
+- name: Switch MPM modules
+  community.general.apache2_module:
+    name: "{{ module.name }}"
+    state: "{{ module.state }}"
+    warn_mpm_absent: false
+    ignore_configcheck: true
+  loop:
+    - name: mpm_event
+      state: absent
+    - name: mpm_prefork
+      state: present
+  loop_control:
+    loop_var: module
+  notify: Restart apache2
+
+- name: Enable apache modules
+  community.general.apache2_module:
+    name: "{{ module.name }}"
+    state: "{{ module.state | d('present') }}"
+  loop:
+    - name: autoindex
+      state: absent
+    - name: deflate
+    - name: expires
+    - name: headers
+    - name: md
+    - name: mime
+    - name: php8.2
+    - name: rewrite
+    - name: ssl
+    - name: vhost_alias
+  loop_control:
+    loop_var: module
+  notify: Restart apache2
+
+- name: Disable default configuration
+  ansible.builtin.file:
+    dest: /etc/apache2/conf-enabled/{{ conf }}.conf
+    state: absent
+  loop:
+    - charset
+    - localized-error-pages
+    - other-vhosts-access-log
+    - security
+    - serve-cgi-bin
+  loop_control:
+    loop_var: conf
+  notify: Reload apache2
+
+- name: Add configurations for Apache
+  ansible.builtin.template:
+    dest: /etc/apache2/conf-available/{{ conf }}.conf
+    src: apache2-{{ conf }}.conf.j2
+    mode: "0644"
+  loop:
+    - acme
+    - custom
+  loop_control:
+    loop_var: conf
+  notify: Reload apache2
+
+- name: Enable custom configuration for Apache
+  ansible.builtin.file:
+    name: /etc/apache2/conf-enabled/{{ conf }}.conf
+    src: ../conf-available/{{ conf }}.conf
+    state: link
+  loop:
+    - acme
+    - custom
+  loop_control:
+    loop_var: conf
+  notify: Reload apache2
