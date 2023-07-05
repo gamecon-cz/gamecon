@@ -68,11 +68,11 @@ class Role extends \DbObject
     public const ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC = ROLE_ZKONTROLOVANE_UDAJE;
     public const DOSTAL_BALICEK_NA_LETOSNIM_GC      = ROLE_DOSTAL_BALICEK;
 
-    protected const ROLE_PRIHLASEN_ID_ZAKLAD = 1;
-    protected const ROLE_PRITOMEN_ID_ZAKLAD  = 2;
-    protected const ROLE_ODJEL_ID_ZAKLAD     = 3;
+    protected const ROLE_PRIHLASEN_ID_ZAKLAD           = 1;
+    protected const ROLE_PRITOMEN_ID_ZAKLAD            = 2;
+    protected const ROLE_ODJEL_ID_ZAKLAD               = 3;
     protected const ROLE_ZKONTROLOVANE_UDAJE_ID_ZAKLAD = 29;
-    protected const ROLE_DOSTAL_BALICEK_ID_ZAKLAD = 30;
+    protected const ROLE_DOSTAL_BALICEK_ID_ZAKLAD      = 30;
 
     public const UDALOST_PRIHLASEN = 'přihlášen';
     public const UDALOST_PRITOMEN  = 'přítomen';
