@@ -563,6 +563,7 @@ SQL,
     /** Příhlásí uživatele na GC */
     public function gcPrihlas(Uzivatel $editor)
     {
+        // TODO: kontrola probíhá už v pridejRoli, oddělat všechny tyhle kontroly
         if ($this->gcPrihlasen()) {
             return;
         }
@@ -575,6 +576,26 @@ SQL,
     public function gcPritomen(int $rocnik = null): bool
     {
         return $this->maRoli(Role::pritomenNaRocniku($rocnik ?? $this->systemoveNastaveni->rocnik()));
+    }
+
+    public function maZkontrolovaneUdaje(int $rocnik = null): bool 
+    {
+        return $this->maRoli(Role::zkontrolovaneUdaje($rocnik ?? $this->systemoveNastaveni->rocnik()));
+    }
+
+    public function nastavZkontrolovaneUdaje(Uzivatel $editor)
+    {
+        $this->pridejRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
+    }
+
+    public function maBalicek(int $rocnik = null): bool 
+    {
+        return $this->maRoli(Role::dostalBalicek($rocnik ?? $this->systemoveNastaveni->rocnik()));
+    }
+
+    public function dejBalicek(Uzivatel $editor)
+    {
+        $this->pridejRoli(Role::DOSTAL_BALICEK_NA_LETOSNIM_GC, $editor);
     }
 
     /**

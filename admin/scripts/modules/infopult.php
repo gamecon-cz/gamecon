@@ -115,7 +115,17 @@ if ($uPracovni) {
         'udajeChybiText',
         count($chybejiciUdaje) > 0
             ? $err . ' chybí osobní údaje: <ul style="font-size: smaller">' . implode('', array_map(static fn(string $nazevUdaje) => '<li><i>' . mb_strtolower($nazevUdaje) . '</i></li>', $chybejiciUdaje)) . '</ul>'
-            : $ok . ' osobní údaje v pořádku',
+            : $ok . ' osobní údaje kompletní',
+    );
+
+    $zkontrolovaneOsobniUdaje = $uPracovni->maZkontrolovaneUdaje();
+    if ($zkontrolovaneOsobniUdaje) {
+        $x->assign('kontrolaOsobnichUdajuAttr', 'checked');
+    }
+    $x->assign('kontrolaOsobnichUdajuText', 
+        $zkontrolovaneOsobniUdaje
+            ? $ok . ' osobní údaje zkontrolovane'
+            : $err . ' Zkontrolovat osobní údaje'
     );
 
     if ($uPracovni->finance()->stav() < 0 && !$uPracovni->gcPritomen()) {
