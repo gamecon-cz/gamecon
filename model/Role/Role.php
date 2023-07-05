@@ -85,8 +85,8 @@ class Role extends \DbObject
     public const TYP_UCAST     = 'ucast';
     public const TYP_TRVALA    = 'trvala';
 
-    public const KATEGORIE_OMEZENA = 0;
-    public const KATEGORIE_BEZNA   = 1;
+    public const KATEGORIE_OMEZENA = 0; // může přidělovat jen člen rady
+    public const KATEGORIE_BEZNA   = 1; // může přidělovat každý
 
     // TYP TRVALE
     public const VYZNAM_ORGANIZATOR_ZDARMA  = 'ORGANIZATOR_ZDARMA';
