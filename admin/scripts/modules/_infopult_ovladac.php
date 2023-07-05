@@ -152,6 +152,11 @@ function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkov
     }
 }
 
+if ($uPracovni && post('vydatBalicek')) {
+    $uPracovni->dejBalicek($u);
+    back();
+}
+
 /* Editace v kartě Pŕehled */
 if ($uPracovni && $udaje = post('udaje')) {
     foreach (['potvrzeni_zakonneho_zastupce', 'potvrzeni_proti_covid19_overeno_kdy'] as $klic) {
