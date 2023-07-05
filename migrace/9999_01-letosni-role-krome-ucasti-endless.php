@@ -10,11 +10,11 @@ require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 $rocnikoveRole     = Role::vsechnyRocnikoveRole(ROCNIK);
 $idRocnikovychRoli = array_keys($rocnikoveRole);
 $idRoliUcastiSql   = implode(',', $idRocnikovychRoli);
-$resultRoli       = $this->q(<<<SQL
+$resultRoli        = $this->q(<<<SQL
     SELECT id_role
     FROM role_seznam
     WHERE id_role IN ($idRoliUcastiSql)
-    SQL
+    SQL,
 );
 
 $chybejiciRocnikoveRole = $rocnikoveRole;
@@ -31,7 +31,7 @@ if ($chybejiciRocnikoveRole) {
         $result = $this->q(<<<SQL
 SELECT rocnik_role FROM role_seznam
 WHERE nazev_role = '$nazevChybejiciRocnikoveRole'
-SQL
+SQL,
         );
         if ($result) {
             $rocnikRolePredchozihoRocniku = $result->fetch_column();
@@ -42,7 +42,7 @@ SQL
 UPDATE role_seznam
 SET nazev_role = CONCAT('$prefixProRoliPredchozihoRocniku', ' ', nazev_role)
 WHERE nazev_role = '$nazevChybejiciRocnikoveRole'
-SQL
+SQL,
                 );
             }
         }
@@ -51,6 +51,9 @@ SQL
         $kodRole   = RemoveDiacritics::toConstantLikeName($letosniPrefix . ' ' . $nazevChybejiciRocnikoveRole);
         $vyznam    = Role::vyznamPodleKodu($kodRole);
         $rocnikova = Role::TYP_ROCNIKOVA;
+        $skryta    = Role::jeToRocnikovaOverovaciRole($idChybejiciRocnikoveRole, $rocnik)
+            ? 1
+            : 0;
         $kategorie = Role::kategoriePodleVyznamu($vyznam);
         $this->q(<<<SQL
 INSERT INTO role_seznam
@@ -60,9 +63,10 @@ INSERT INTO role_seznam
         popis_role = '$nazevChybejiciRocnikoveRole',
         rocnik_role = $rocnik,
         typ_role = '$rocnikova',
+        skryta = '$skryta',
         vyznam_role = '$vyznam',
         kategorie_role = '$kategorie'
-SQL
+SQL,
         );
     }
 }

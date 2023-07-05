@@ -8,8 +8,8 @@ use Gamecon\Role\Role;
 if (!defined('ROLE_PRIHLASEN')) define('ROLE_PRIHLASEN', Role::PRIHLASEN_NA_LETOSNI_GC()); // přihlášen na GameCon
 if (!defined('ROLE_PRITOMEN')) define('ROLE_PRITOMEN', Role::PRITOMEN_NA_LETOSNIM_GC());    // prošel infopulteP_ORG_AKm a je na GameConu
 if (!defined('ROLE_ODJEL')) define('ROLE_ODJEL', Role::ODJEL_Z_LETOSNIHO_GC());              // prošel infopultem na odchodu a odjel z GC
-if (!defined('ROLE_ZKONTROLOVANE_UDAJE')) define('ROLE_ZKONTROLOVANE_UDAJE', Role::ZKONTROLOVANE_UDAJE_LETOSNIHO_GC());              // má zkontrovonaou zprávnost údajů s OP
-if (!defined('ROLE_DOSTAL_BALICEK')) define('ROLE_DOSTAL_BALICEK', Role::DOSTAL_BALICEK_LETOSNIHO_GC());              // prošel infopultem a dostal balíček
+if (!defined('ROLE_ZKONTROLOVANE_UDAJE')) define('ROLE_ZKONTROLOVANE_UDAJE', Role::ZKONTROLOVANE_UDAJE_PRO_LETOSNI_GC());              // má ověřenou správnost údajů s OP
+if (!defined('ROLE_DOSTAL_BALICEK')) define('ROLE_DOSTAL_BALICEK', Role::DOSTAL_BALICEK_NA_LETOSNIM_GC());              // prošel infopultem a dostal balíček
 
 // dočasné, ročníkové role
 if (!defined('ROLE_VYPRAVEC')) define('ROLE_VYPRAVEC', Role::LETOSNI_VYPRAVEC());
