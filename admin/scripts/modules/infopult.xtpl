@@ -159,8 +159,10 @@
         <!-- end:covidSekce -->
 
         <tr>
-          <td colspan="100%" class="text-end">
-            <input type="submit" value="uložit" class="submit-btn">
+          <td colspan="100%" style="clearfix">
+            <input style="float: left;" type="checkbox" class="" name="kontrolaOsobnichUdaju" {kontrolaOsobnichUdajuAttr}>
+            <div style="float: left;">{kontrolaOsobnichUdajuText}</div>
+            <input style="float: right;" type="submit" value="uložit" class="submit-btn">
           </td>
         </tr>
 

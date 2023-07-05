@@ -60,13 +60,17 @@ class Role extends \DbObject
     protected const ROLE_SOBOTNI_NOC_ZDARMA_ID_ZAKLAD   = 28;
 
     // ROLE ÚČASTI
-    public const PRIHLASEN_NA_LETOSNI_GC = ROLE_PRIHLASEN;
-    public const PRITOMEN_NA_LETOSNIM_GC = ROLE_PRITOMEN;
-    public const ODJEL_Z_LETOSNIHO_GC    = ROLE_ODJEL;
+    public const PRIHLASEN_NA_LETOSNI_GC            = ROLE_PRIHLASEN           ;
+    public const PRITOMEN_NA_LETOSNIM_GC            = ROLE_PRITOMEN            ;
+    public const ODJEL_Z_LETOSNIHO_GC               = ROLE_ODJEL               ;
+    public const ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC = ROLE_ZKONTROLOVANE_UDAJE ;
+    public const DOSTAL_BALICEK_NA_LETOSNIM_GC      = ROLE_DOSTAL_BALICEK      ;
 
     protected const ROLE_PRIHLASEN_ID_ZAKLAD = 1;
     protected const ROLE_PRITOMEN_ID_ZAKLAD  = 2;
     protected const ROLE_ODJEL_ID_ZAKLAD     = 3;
+    protected const ROLE_ZKONTROLOVANE_UDAJE_ID_ZAKLAD = 29;
+    protected const ROLE_DOSTAL_BALICEK_ID_ZAKLAD = 30;
 
     public const UDALOST_PRIHLASEN = 'přihlášen';
     public const UDALOST_PRITOMEN  = 'přítomen';
@@ -196,6 +200,16 @@ class Role extends \DbObject
         return self::odjelZRocniku($rok);
     }
 
+    public static function ZKONTROLOVANE_UDAJE_LETOSNIHO_GC(int $rok = ROCNIK): int
+    {
+        return self::zkontrolovaneUdaje($rok);
+    }
+
+    public static function DOSTAL_BALICEK_LETOSNIHO_GC(int $rok = ROCNIK): int
+    {
+        return self::dostalBalicek($rok);
+    }
+
     public static function prihlasenNaRocnik(int $rok): int
     {
         return self::preProUcastRoku($rok) - self::ROLE_PRIHLASEN_ID_ZAKLAD;
@@ -209,6 +223,16 @@ class Role extends \DbObject
     public static function odjelZRocniku(int $rok): int
     {
         return self::preProUcastRoku($rok) - self::ROLE_ODJEL_ID_ZAKLAD;
+    }
+
+    public static function zkontrolovaneUdaje(int $rok): int
+    {
+        return self::preProUcastRoku($rok) - self::ROLE_ZKONTROLOVANE_UDAJE_ID_ZAKLAD;
+    }
+
+    public static function dostalBalicek(int $rok): int
+    {
+        return self::preProUcastRoku($rok) - self::ROLE_DOSTAL_BALICEK_ID_ZAKLAD;
     }
 
     private static function preProUcastRoku(int $rok): int
