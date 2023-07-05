@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Gamecon\Role;
 
@@ -60,11 +62,11 @@ class Role extends \DbObject
     protected const ROLE_SOBOTNI_NOC_ZDARMA_ID_ZAKLAD   = 28;
 
     // ROLE ÚČASTI
-    public const PRIHLASEN_NA_LETOSNI_GC            = ROLE_PRIHLASEN           ;
-    public const PRITOMEN_NA_LETOSNIM_GC            = ROLE_PRITOMEN            ;
-    public const ODJEL_Z_LETOSNIHO_GC               = ROLE_ODJEL               ;
-    public const ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC = ROLE_ZKONTROLOVANE_UDAJE ;
-    public const DOSTAL_BALICEK_NA_LETOSNIM_GC      = ROLE_DOSTAL_BALICEK      ;
+    public const PRIHLASEN_NA_LETOSNI_GC            = ROLE_PRIHLASEN;
+    public const PRITOMEN_NA_LETOSNIM_GC            = ROLE_PRITOMEN;
+    public const ODJEL_Z_LETOSNIHO_GC               = ROLE_ODJEL;
+    public const ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC = ROLE_ZKONTROLOVANE_UDAJE;
+    public const DOSTAL_BALICEK_NA_LETOSNIM_GC      = ROLE_DOSTAL_BALICEK;
 
     protected const ROLE_PRIHLASEN_ID_ZAKLAD = 1;
     protected const ROLE_PRITOMEN_ID_ZAKLAD  = 2;
@@ -109,9 +111,11 @@ class Role extends \DbObject
     public const VYZNAM_VYPRAVEC             = 'VYPRAVEC';
     public const VYZNAM_ZAZEMI               = 'ZAZEMI';
     // TYP UCAST
-    public const VYZNAM_PRIHLASEN = 'PRIHLASEN';
-    public const VYZNAM_PRITOMEN  = 'PRITOMEN';
-    public const VYZNAM_ODJEL     = 'ODJEL';
+    public const VYZNAM_PRIHLASEN           = 'PRIHLASEN';
+    public const VYZNAM_PRITOMEN            = 'PRITOMEN';
+    public const VYZNAM_ODJEL               = 'ODJEL';
+    public const VYZNAM_DOSTAL_BALICEK      = 'DOSTAL_BALICEK';
+    public const VYZNAM_ZKONTROLOVANE_UDAJE = 'ZKONTROLOVANE_UDAJE';
 
     /**
      * @return int[]
@@ -165,6 +169,8 @@ class Role extends \DbObject
             self::VYZNAM_PRIHLASEN => self::KATEGORIE_OMEZENA,
             self::VYZNAM_PRITOMEN => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ODJEL => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ZKONTROLOVANE_UDAJE => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_DOSTAL_BALICEK => self::KATEGORIE_OMEZENA,
 
             'default' => throw new NeznamyVyznamRole("Vyznam '$vyznam' je neznámý"),
         };
@@ -365,6 +371,9 @@ class Role extends \DbObject
                 self::LETOSNI_NEODHLASOVAT => 'Neodhlašovat',
                 self::LETOSNI_HERMAN => 'Herman',
                 self::LETOSNI_BRIGADNIK => 'Brigádník',
+                //
+                self::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC => 'Zkontrolované údaje',
+                self::DOSTAL_BALICEK_NA_LETOSNIM_GC => 'Dostal balíček',
                 default => self::nazevRoleStareUcasti($idRole),
             };
         } catch (\LogicException $exception) {
@@ -393,13 +402,13 @@ class Role extends \DbObject
             throw new \LogicException("Role (židle) s ID $roleUcastiNagGc v sobě nemá ročník a tím ani událost");
         }
         switch (abs($roleUcastiNagGc) % 100) {
-            case 1 :
+            case 1:
                 return self::UDALOST_PRIHLASEN;
-            case 2 :
+            case 2:
                 return self::UDALOST_PRITOMEN;
-            case 3 :
+            case 3:
                 return self::UDALOST_ODJEL;
-            default :
+            default:
                 throw new \RuntimeException("Role (židle) s ID $roleUcastiNagGc v sobě má neznámou událost");
         }
     }
@@ -456,6 +465,8 @@ class Role extends \DbObject
             self::LETOSNI_NEODHLASOVAT($rocnik),
             self::LETOSNI_HERMAN($rocnik),
             self::LETOSNI_BRIGADNIK($rocnik),
+            self::ZKONTROLOVANE_UDAJE_LETOSNIHO_GC($rocnik),
+            self::DOSTAL_BALICEK_LETOSNIHO_GC($rocnik),
         ];
         $vsechnyRocnikoveRole = [];
         foreach ($idckaRocnikovychRoli as $id) {
@@ -492,5 +503,4 @@ class Role extends \DbObject
             ? null
             : (int)$kategorie;
     }
-
 }

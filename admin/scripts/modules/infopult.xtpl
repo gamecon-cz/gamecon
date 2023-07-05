@@ -173,7 +173,19 @@
 
         <tr>
           <td>Balíček:</td>
-          <td>{balicek}</td>
+          <td class="clearfix">
+            <div style="float: left;">
+              {balicek}
+            </div>
+            <div style="float: right;">
+              <!-- begin:balicekTlacitko -->
+              {warn} <input style="float: right;" type="submit" name="vydatBalicek" value="vydat">
+              <!-- end:balicekTlacitko -->
+              <!-- begin:balicekVydan -->
+              {ok} Vydán
+              <!-- end:balicekVydan -->
+            </div>
+          </td>
         </tr>
       </table>
       <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele">Program</a>

@@ -36,7 +36,7 @@ include __DIR__ . '/_infopult_ovladac.php';
 
 $x = new XTemplate(__DIR__ . '/infopult.xtpl');
 
-$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
+$x->assign(['ok' => $ok, 'warn' => $warn, 'err' => $err, 'rok' => ROCNIK]);
 if ($uPracovni) {
     $x->assign([
         'a'  => $uPracovni->koncovkaDlePohlavi(),
@@ -196,6 +196,12 @@ if ($uPracovni) {
                 true,
             ),
         );
+
+        if ($uPracovni->maBalicek()) {
+            $x->parse('infopult.uzivatel.balicekVydan');
+        } else {
+            $x->parse('infopult.uzivatel.balicekTlacitko');
+        }
     }
 
     if ($systemoveNastaveni->gcBezi()) {
