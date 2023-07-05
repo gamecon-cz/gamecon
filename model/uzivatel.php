@@ -248,10 +248,10 @@ SQL
     /**
      * Přidá uživateli roli (posadí uživatele na roli)
      */
-    public function pridejRoli(int $idRole, Uzivatel $posadil)
+    public function pridejRoli(int $idRole, Uzivatel $posadil): bool
     {
         if ($this->maRoli($idRole)) {
-            return;
+            return false;
         }
 
         $novaPrava = dbOneArray('SELECT id_prava FROM prava_role WHERE id_role = $0', [$idRole]);
@@ -261,12 +261,13 @@ SQL
         }
 
         try {
-            $result = dbQuery(
+            $result          = dbQuery(
                 "INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
             VALUES ($1, $2, $3)",
                 [$this->id(), $idRole, $posadil->id()],
             );
-            if (dbAffectedOrNumRows($result) > 0) {
+            $roleNovePridana = dbAffectedOrNumRows($result) > 0;
+            if ($roleNovePridana) {
                 $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
             }
         } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
@@ -274,6 +275,8 @@ SQL
         }
 
         $this->aktualizujPrava();
+
+        return $roleNovePridana;
     }
 
     /** Vrátí profil uživatele pro DrD */
@@ -586,9 +589,12 @@ SQL,
         return $this->maRoli(Role::zkontrolovaneUdaje($rocnik ?? $this->systemoveNastaveni->rocnik()));
     }
 
-    public function nastavZkontrolovaneUdaje(Uzivatel $editor)
+    public function nastavZkontrolovaneUdaje(Uzivatel $editor, bool $udajeZkontrolovane = true): bool
     {
-        $this->pridejRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
+        if ($udajeZkontrolovane) {
+            return $this->pridejRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
+        }
+        return $this->odeberRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
     }
 
     public function maBalicek(int $rocnik = null): bool
@@ -1775,13 +1781,16 @@ SQL,
     /**
      * Odstraní uživatele z role a aktualizuje jeho práva.
      */
-    public function odeberRoli(int $idRole, Uzivatel $editor)
+    public function odeberRoli(int $idRole, Uzivatel $editor): bool
     {
-        $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
-        if (dbAffectedOrNumRows($result) > 0) {
+        $result           = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
+        $roleNoveOdebrana = dbAffectedOrNumRows($result) > 0;
+        if ($roleNoveOdebrana) {
             $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
         }
         $this->aktualizujPrava();
+
+        return $roleNoveOdebrana;
     }
 
     private function zalogujZmenuRole(int $idRole, int $idEditora, string $zmena)
