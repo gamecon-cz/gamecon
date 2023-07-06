@@ -71,8 +71,8 @@
   <script>
     // Konstanty předáváné do Preactu (env.ts)
     window.GAMECON_KONSTANTY = {
-      BASE_PATH_API: "{$basePathApi}",
-      ROCNIK: {$rocnik},
+      BASE_PATH_API: "{basePathApi}",
+      ROCNIK: {rocnik},
     }
   </script>
 
