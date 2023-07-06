@@ -248,10 +248,10 @@ SQL
     /**
      * Přidá uživateli roli (posadí uživatele na roli)
      */
-    public function pridejRoli(int $idRole, Uzivatel $posadil)
+    public function pridejRoli(int $idRole, Uzivatel $posadil): bool
     {
         if ($this->maRoli($idRole)) {
-            return;
+            return false;
         }
 
         $novaPrava = dbOneArray('SELECT id_prava FROM prava_role WHERE id_role = $0', [$idRole]);
@@ -260,16 +260,23 @@ SQL
             throw new Chyba('Uživatel už má jinou unikátní roli.');
         }
 
-        $result = dbQuery(
-            "INSERT IGNORE INTO uzivatele_role(id_uzivatele, id_role, posadil)
+        try {
+            $result          = dbQuery(
+                "INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
             VALUES ($1, $2, $3)",
-            [$this->id(), $idRole, $posadil->id()],
-        );
-        if (dbAffectedOrNumRows($result) > 0) {
-            $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
+                [$this->id(), $idRole, $posadil->id()],
+            );
+            $roleNovePridana = dbAffectedOrNumRows($result) > 0;
+            if ($roleNovePridana) {
+                $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
+            }
+        } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
+            // roli už má, všechno OK (nechceme INSERT IGNORE protože to by zamlčelo i neexistující roli)
         }
 
         $this->aktualizujPrava();
+
+        return $roleNovePridana;
     }
 
     /** Vrátí profil uživatele pro DrD */
@@ -562,6 +569,7 @@ SQL,
     /** Příhlásí uživatele na GC */
     public function gcPrihlas(Uzivatel $editor)
     {
+        // TODO: kontrola probíhá už v pridejRoli, oddělat všechny tyhle kontroly
         if ($this->gcPrihlasen()) {
             return;
         }
@@ -574,6 +582,29 @@ SQL,
     public function gcPritomen(int $rocnik = null): bool
     {
         return $this->maRoli(Role::pritomenNaRocniku($rocnik ?? $this->systemoveNastaveni->rocnik()));
+    }
+
+    public function maZkontrolovaneUdaje(int $rocnik = null): bool
+    {
+        return $this->maRoli(Role::zkontrolovaneUdaje($rocnik ?? $this->systemoveNastaveni->rocnik()));
+    }
+
+    public function nastavZkontrolovaneUdaje(Uzivatel $editor, bool $udajeZkontrolovane = true): bool
+    {
+        if ($udajeZkontrolovane) {
+            return $this->pridejRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
+        }
+        return $this->odeberRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
+    }
+
+    public function maBalicek(int $rocnik = null): bool
+    {
+        return $this->maRoli(Role::dostalBalicek($rocnik ?? $this->systemoveNastaveni->rocnik()));
+    }
+
+    public function dejBalicek(Uzivatel $editor)
+    {
+        $this->pridejRoli(Role::DOSTAL_BALICEK_NA_LETOSNIM_GC, $editor);
     }
 
     /**
@@ -1750,13 +1781,16 @@ SQL,
     /**
      * Odstraní uživatele z role a aktualizuje jeho práva.
      */
-    public function odeberRoli(int $idRole, Uzivatel $editor)
+    public function odeberRoli(int $idRole, Uzivatel $editor): bool
     {
-        $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
-        if (dbAffectedOrNumRows($result) > 0) {
+        $result           = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
+        $roleNoveOdebrana = dbAffectedOrNumRows($result) > 0;
+        if ($roleNoveOdebrana) {
             $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
         }
         $this->aktualizujPrava();
+
+        return $roleNoveOdebrana;
     }
 
     private function zalogujZmenuRole(int $idRole, int $idEditora, string $zmena)

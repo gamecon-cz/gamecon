@@ -1156,6 +1156,7 @@ Radio musí být ve tvaru:
   align-items: start;
   grid-template-areas:
   "přehled"
+  "udaje"
   "ubytování"
   "pokoje"
   "platba"
@@ -1165,6 +1166,10 @@ Radio musí být ve tvaru:
 
 .infopult-grid--item-přehled {
   grid-area: přehled;
+}
+
+.infopult-grid--item-udaje {
+  grid-area: udaje;
 }
 
 .infopult-grid--item-ubytování {
@@ -1209,11 +1214,11 @@ Radio musí být ve tvaru:
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
   .infopult-grid--container {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr .5fr);
     grid-template-areas:
-      "přehled ubytování ubytování"
-      "platba pokoje prodej"
-      ". . predmety";
+      "přehled přehled udaje ubytování ubytování ubytování"
+      "platba platba pokoje pokoje prodej prodej"
+      ". . . . predmety predmety";
   }
 }
 
@@ -1222,10 +1227,11 @@ Radio musí být ve tvaru:
   .infopult-grid--container {
     grid-template-columns: repeat(3, 1fr);
     grid-template-areas:
+      "přehled udaje ubytování"
       "přehled pokoje ubytování"
-      "přehled prodej ubytování"
-      "platba prodej ubytování"
-      "platba prodej predmety";
+      "přehled prodej prodej"
+      "platba prodej prodej"
+      "platba . predmety";
   }
 
   .infopult-grid--item-přehled {

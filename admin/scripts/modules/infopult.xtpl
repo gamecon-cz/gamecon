@@ -159,8 +159,12 @@
         <!-- end:covidSekce -->
 
         <tr>
-          <td colspan="100%" class="text-end">
-            <input type="submit" value="uložit" class="submit-btn">
+          <td colspan="100%">
+              <label>
+                  <input type="checkbox" class="" name="kontrolaOsobnichUdaju" {kontrolaOsobnichUdajuAttr}>
+                  <span style="padding-left: 0.5em">{kontrolaOsobnichUdajuText}</span>
+              </label>
+              <button style="margin: 0" type="submit" name="kontrolaOsobnichUdajuSubmit" value="1" class="submit-btn">uložit</button>
           </td>
         </tr>
 
@@ -171,12 +175,37 @@
 
         <tr>
           <td>Balíček:</td>
-          <td>{balicek}</td>
+          <td class="clearfix">
+            <div style="float: left;">
+              {balicek}
+            </div>
+            <div style="float: right;">
+              <!-- begin:balicekTlacitko -->
+                {warn} <button style="margin: 0" type="submit" name="vydatBalicek" class="submit-btn" value="1">vydat</button>
+              <!-- end:balicekTlacitko -->
+              <!-- begin:balicekVydan -->
+              {ok} Vydán
+              <!-- end:balicekVydan -->
+            </div>
+          </td>
         </tr>
       </table>
       <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele">Program</a>
       <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni">Program účastníka</a>
     </form>
+  </div>
+
+
+  <div class="infopult-grid--item infopult-grid--item-udaje aBox">
+    <h3>Osobní údaje</h3>
+    Pro úpravu klikni na údaj
+    {udajeHtml}
+    <script src="files/jquery.autosize-1.18.13.js"></script>
+    <script>
+      $('textarea').last().focus(function () {
+        $(this).css('width', '98%').autosize()
+      })
+    </script>
   </div>
 
   <div class="infopult-grid--item infopult-grid--item-platba aBox">

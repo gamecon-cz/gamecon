@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Gamecon\Role;
 
@@ -31,19 +33,21 @@ class Role extends \DbObject
     public const SEF_PROGRAMU         = 25;
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
-    public const LETOSNI_VYPRAVEC             = ROLE_VYPRAVEC; // Organizátor aktivit na GC
-    public const LETOSNI_ZAZEMI               = ROLE_ZAZEMI; // Členové zázemí GC (kuchařky, …)
-    public const LETOSNI_INFOPULT             = ROLE_INFOPULT; // Operátor infopultu
-    public const LETOSNI_PARTNER              = ROLE_PARTNER; // Vystavovatelé, lidé od deskovek, atp.
-    public const LETOSNI_DOBROVOLNIK_SENIOR   = ROLE_DOBROVOLNIK_SENIOR; // Dobrovolník dlouhodobě spolupracující s GC
-    public const LETOSNI_STREDECNI_NOC_ZDARMA = ROLE_STREDECNI_NOC_ZDARMA;
-    public const LETOSNI_CTVRTECNI_NOC_ZDARMA = ROLE_CTVRTECNI_NOC_ZDARMA;
-    public const LETOSNI_PATECNI_NOC_ZDARMA   = ROLE_PATECNI_NOC_ZDARMA;
-    public const LETOSNI_SOBOTNI_NOC_ZDARMA   = ROLE_SOBOTNI_NOC_ZDARMA;
-    public const LETOSNI_NEDELNI_NOC_ZDARMA   = ROLE_NEDELNI_NOC_ZDARMA;
-    public const LETOSNI_NEODHLASOVAT         = ROLE_NEODHLASOVAT;
-    public const LETOSNI_HERMAN               = ROLE_HERMAN;
-    public const LETOSNI_BRIGADNIK            = ROLE_BRIGADNIK;
+    public const LETOSNI_VYPRAVEC                   = ROLE_VYPRAVEC; // Organizátor aktivit na GC
+    public const LETOSNI_ZAZEMI                     = ROLE_ZAZEMI; // Členové zázemí GC (kuchařky, …)
+    public const LETOSNI_INFOPULT                   = ROLE_INFOPULT; // Operátor infopultu
+    public const LETOSNI_PARTNER                    = ROLE_PARTNER; // Vystavovatelé, lidé od deskovek, atp.
+    public const LETOSNI_DOBROVOLNIK_SENIOR         = ROLE_DOBROVOLNIK_SENIOR; // Dobrovolník dlouhodobě spolupracující s GC
+    public const LETOSNI_STREDECNI_NOC_ZDARMA       = ROLE_STREDECNI_NOC_ZDARMA;
+    public const LETOSNI_CTVRTECNI_NOC_ZDARMA       = ROLE_CTVRTECNI_NOC_ZDARMA;
+    public const LETOSNI_PATECNI_NOC_ZDARMA         = ROLE_PATECNI_NOC_ZDARMA;
+    public const LETOSNI_SOBOTNI_NOC_ZDARMA         = ROLE_SOBOTNI_NOC_ZDARMA;
+    public const LETOSNI_NEDELNI_NOC_ZDARMA         = ROLE_NEDELNI_NOC_ZDARMA;
+    public const LETOSNI_NEODHLASOVAT               = ROLE_NEODHLASOVAT;
+    public const LETOSNI_HERMAN                     = ROLE_HERMAN;
+    public const LETOSNI_BRIGADNIK                  = ROLE_BRIGADNIK;
+    public const ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC = ROLE_ZKONTROLOVANE_UDAJE;
+    public const DOSTAL_BALICEK_NA_LETOSNIM_GC      = ROLE_DOSTAL_BALICEK;
 
     protected const ROLE_VYPRAVEC_ID_ZAKLAD             = 6;
     protected const ROLE_ZAZEMI_ID_ZAKLAD               = 7;
@@ -64,9 +68,11 @@ class Role extends \DbObject
     public const PRITOMEN_NA_LETOSNIM_GC = ROLE_PRITOMEN;
     public const ODJEL_Z_LETOSNIHO_GC    = ROLE_ODJEL;
 
-    protected const ROLE_PRIHLASEN_ID_ZAKLAD = 1;
-    protected const ROLE_PRITOMEN_ID_ZAKLAD  = 2;
-    protected const ROLE_ODJEL_ID_ZAKLAD     = 3;
+    protected const ROLE_PRIHLASEN_ID_ZAKLAD           = 1;
+    protected const ROLE_PRITOMEN_ID_ZAKLAD            = 2;
+    protected const ROLE_ODJEL_ID_ZAKLAD               = 3;
+    protected const ROLE_ZKONTROLOVANE_UDAJE_ID_ZAKLAD = 29;
+    protected const ROLE_DOSTAL_BALICEK_ID_ZAKLAD      = 30;
 
     public const UDALOST_PRIHLASEN = 'přihlášen';
     public const UDALOST_PRITOMEN  = 'přítomen';
@@ -79,8 +85,8 @@ class Role extends \DbObject
     public const TYP_UCAST     = 'ucast';
     public const TYP_TRVALA    = 'trvala';
 
-    public const KATEGORIE_OMEZENA = 0;
-    public const KATEGORIE_BEZNA   = 1;
+    public const KATEGORIE_OMEZENA = 0; // může přidělovat jen člen rady
+    public const KATEGORIE_BEZNA   = 1; // může přidělovat každý
 
     // TYP TRVALE
     public const VYZNAM_ORGANIZATOR_ZDARMA  = 'ORGANIZATOR_ZDARMA';
@@ -104,6 +110,9 @@ class Role extends \DbObject
     public const VYZNAM_NEDELNI_NOC_ZDARMA   = 'NEDELNI_NOC_ZDARMA';
     public const VYZNAM_VYPRAVEC             = 'VYPRAVEC';
     public const VYZNAM_ZAZEMI               = 'ZAZEMI';
+    // podtyp OVEROVACI (tyto role nelze přiřazovat přes admin stránku Práva)
+    public const VYZNAM_ZKONTROLOVANE_UDAJE = 'ZKONTROLOVANE_UDAJE';
+    public const VYZNAM_DOSTAL_BALICEK      = 'DOSTAL_BALICEK';
     // TYP UCAST
     public const VYZNAM_PRIHLASEN = 'PRIHLASEN';
     public const VYZNAM_PRITOMEN  = 'PRITOMEN';
@@ -161,8 +170,10 @@ class Role extends \DbObject
             self::VYZNAM_PRIHLASEN => self::KATEGORIE_OMEZENA,
             self::VYZNAM_PRITOMEN => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ODJEL => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ZKONTROLOVANE_UDAJE => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_DOSTAL_BALICEK => self::KATEGORIE_OMEZENA,
 
-            'default' => throw new NeznamyVyznamRole("Vyznam '$vyznam' je neznámý"),
+            default => throw new NeznamyVyznamRole("Vyznam '$vyznam' je neznámý"),
         };
     }
 
@@ -196,6 +207,16 @@ class Role extends \DbObject
         return self::odjelZRocniku($rok);
     }
 
+    public static function ZKONTROLOVANE_UDAJE_PRO_LETOSNI_GC(int $rok = ROCNIK): int
+    {
+        return self::zkontrolovaneUdaje($rok);
+    }
+
+    public static function DOSTAL_BALICEK_NA_LETOSNIM_GC(int $rok = ROCNIK): int
+    {
+        return self::dostalBalicek($rok);
+    }
+
     public static function prihlasenNaRocnik(int $rok): int
     {
         return self::preProUcastRoku($rok) - self::ROLE_PRIHLASEN_ID_ZAKLAD;
@@ -209,6 +230,16 @@ class Role extends \DbObject
     public static function odjelZRocniku(int $rok): int
     {
         return self::preProUcastRoku($rok) - self::ROLE_ODJEL_ID_ZAKLAD;
+    }
+
+    public static function zkontrolovaneUdaje(int $rok): int
+    {
+        return self::idRocnikoveRole(self::ROLE_ZKONTROLOVANE_UDAJE_ID_ZAKLAD, $rok);
+    }
+
+    public static function dostalBalicek(int $rok): int
+    {
+        return self::idRocnikoveRole(self::ROLE_DOSTAL_BALICEK_ID_ZAKLAD, $rok);
     }
 
     private static function preProUcastRoku(int $rok): int
@@ -341,6 +372,10 @@ class Role extends \DbObject
                 self::LETOSNI_NEODHLASOVAT => 'Neodhlašovat',
                 self::LETOSNI_HERMAN => 'Herman',
                 self::LETOSNI_BRIGADNIK => 'Brigádník',
+                //
+                self::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC => 'Zkontrolované údaje',
+                self::DOSTAL_BALICEK_NA_LETOSNIM_GC => 'Dostal balíček',
+                //
                 default => self::nazevRoleStareUcasti($idRole),
             };
         } catch (\LogicException $exception) {
@@ -369,19 +404,19 @@ class Role extends \DbObject
             throw new \LogicException("Role (židle) s ID $roleUcastiNagGc v sobě nemá ročník a tím ani událost");
         }
         switch (abs($roleUcastiNagGc) % 100) {
-            case 1 :
+            case 1:
                 return self::UDALOST_PRIHLASEN;
-            case 2 :
+            case 2:
                 return self::UDALOST_PRITOMEN;
-            case 3 :
+            case 3:
                 return self::UDALOST_ODJEL;
-            default :
+            default:
                 throw new \RuntimeException("Role (židle) s ID $roleUcastiNagGc v sobě má neznámou událost");
         }
     }
 
     /**
-     * Rozmysli, zda není lepší použít čitelnější @see \Gamecon\Role\Role::TYP_UCAST
+     * Rozmysli, zda není lepší použít čitelnější @see Role::TYP_UCAST
      */
     public static function jeToUcastNaGc(int $role): bool
     {
@@ -389,11 +424,24 @@ class Role extends \DbObject
     }
 
     /**
-     * Rozmysli, zda není lepší použít čitelnější @see \Gamecon\Role\Role::TYP_ROCNIKOVA
+     * Rozmysli, zda není lepší použít čitelnější @see Role::TYP_ROCNIKOVA
      */
     public static function jeToRocnikovaRole(int $role): bool
     {
         return $role <= self::KOEFICIENT_ROCNIKOVE_ROLE;
+    }
+
+    public static function jeToRocnikovaOverovaciRole(int $role, int $rok): bool
+    {
+        return self::jeToRocnikovaRole($role)
+            && in_array(
+                $role,
+                [
+                    self::ZKONTROLOVANE_UDAJE_PRO_LETOSNI_GC($rok),
+                    self::DOSTAL_BALICEK_NA_LETOSNIM_GC($rok),
+                ],
+                true,
+            );
     }
 
     public static function jePouzeProTentoRocnik(int $idRole, int $rocnik = ROCNIK): bool
@@ -432,6 +480,8 @@ class Role extends \DbObject
             self::LETOSNI_NEODHLASOVAT($rocnik),
             self::LETOSNI_HERMAN($rocnik),
             self::LETOSNI_BRIGADNIK($rocnik),
+            self::ZKONTROLOVANE_UDAJE_PRO_LETOSNI_GC($rocnik),
+            self::DOSTAL_BALICEK_NA_LETOSNIM_GC($rocnik),
         ];
         $vsechnyRocnikoveRole = [];
         foreach ($idckaRocnikovychRoli as $id) {
@@ -468,5 +518,4 @@ class Role extends \DbObject
             ? null
             : (int)$kategorie;
     }
-
 }

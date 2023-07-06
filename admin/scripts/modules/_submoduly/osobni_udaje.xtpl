@@ -1,0 +1,66 @@
+<!-- begin:udaje -->
+<form method="post" class="udaje clearfix" id="osobni_udaje">
+
+  <table>
+    <!-- begin:udaj -->
+    <tr>
+      <td style="width:110px">
+        <!-- begin:nazevSPopiskem -->
+        <span class="hinted">{nazev}:<span class="hint">{popisek}</span></span>
+        <!-- end:nazevSPopiskem -->
+        <!-- begin:nazevBezPopisku -->
+        {nazev}:
+        <!-- end:nazevBezPopisku -->
+      </td>
+      <td style="padding:0">
+        <div id="editace_udaju_uzivatele_trigger"
+              onclick="$('.udaje .label').hide(); $('.udaje .submit-btn').show(); $('.udaje .input').show().find('input, textarea').first().focus()"
+              style="width: 100%; cursor: pointer;" class="label">
+          {zobrazenaHodnota} &nbsp;
+          <!-- begin:chybi -->
+          <img src="files/design/error-s.png" style="margin-bottom:-2px">
+          požádej o doplnění
+          <!-- end:chybi -->
+        </div>
+
+        <table class="cista input" style="width:100%;display:none;">
+          <tr>
+            <!-- begin:input -->
+            <td><input
+                type="text" name="udaj[{sloupec}]" value="{vstupniHodnota}" style="margin-left: -3px;"
+                id="udaj_{sloupec}"></td>
+            <!-- end:input -->
+            <!-- begin:checkbox -->
+            <td><input
+                type="checkbox" name="udaj[{sloupec}]" value="{vstupniHodnota}" {checked} {disabled}
+                style="margin-left: -3px;" id="udaj_{sloupec}"></td>
+            <!-- end:checkbox -->
+            <!-- begin:select -->
+            <td>
+              <select name="udaj[{sloupec}]" style="margin-left: -3px; width: 15.3em">
+                <!-- begin:option -->
+                <option value="{optionValue}" {optionSelected}>{optionText}</option>
+                <!-- end:option -->
+              </select>
+            </td>
+            <!-- end:select -->
+            <!-- begin:text -->
+            <td colspan="2">
+              <textarea id="udaj_{sloupec}" name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{vstupniHodnota}</textarea>
+            </td>
+            <!-- end:text -->
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <!-- end:udaj -->
+  </table>
+
+  <!-- begin:programOdkaz -->
+  <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele">Program</a>
+  <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni">Program účastníka</a>
+  <!-- end:programOdkaz -->
+  <input type="submit" name="zmenitUdaj" value="uložit" class="submit-btn" style="display:none;">
+</form>
+
+<!-- end:udaje -->

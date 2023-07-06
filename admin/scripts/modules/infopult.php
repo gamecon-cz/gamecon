@@ -22,7 +22,8 @@ use Gamecon\Web\Info;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-require_once __DIR__ . '/_ubytovani_tabulka.php';
+require_once __DIR__ . '/_submoduly/ubytovani_tabulka.php';
+require_once __DIR__ . '/_submoduly/osobni_udaje.php';
 
 $ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
@@ -35,7 +36,7 @@ include __DIR__ . '/_infopult_ovladac.php';
 
 $x = new XTemplate(__DIR__ . '/infopult.xtpl');
 
-$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
+$x->assign(['ok' => $ok, 'warn' => $warn, 'err' => $err, 'rok' => ROCNIK]);
 if ($uPracovni) {
     $x->assign([
         'a'  => $uPracovni->koncovkaDlePohlavi(),
@@ -114,7 +115,15 @@ if ($uPracovni) {
         'udajeChybiText',
         count($chybejiciUdaje) > 0
             ? $err . ' chybí osobní údaje: <ul style="font-size: smaller">' . implode('', array_map(static fn(string $nazevUdaje) => '<li><i>' . mb_strtolower($nazevUdaje) . '</i></li>', $chybejiciUdaje)) . '</ul>'
-            : $ok . ' osobní údaje v pořádku',
+            : $ok . ' osobní údaje kompletní',
+    );
+
+    $zkontrolovaneOsobniUdaje = $uPracovni->maZkontrolovaneUdaje();
+    if ($zkontrolovaneOsobniUdaje) {
+        $x->assign('kontrolaOsobnichUdajuAttr', 'checked');
+    }
+    $x->assign('kontrolaOsobnichUdajuText',
+        ' Osobní údaje oveřené ' . ($zkontrolovaneOsobniUdaje ? $ok : $err),
     );
 
     if ($uPracovni->finance()->stav() < 0 && !$uPracovni->gcPritomen()) {
@@ -185,6 +194,12 @@ if ($uPracovni) {
                 true,
             ),
         );
+
+        if ($uPracovni->maBalicek()) {
+            $x->parse('infopult.uzivatel.balicekVydan');
+        } else {
+            $x->parse('infopult.uzivatel.balicekTlacitko');
+        }
     }
 
     if ($systemoveNastaveni->gcBezi()) {
@@ -205,6 +220,12 @@ if ($uPracovni) {
             $x->parse('infopult.potvrditZruseniPrace');
         }
     }
+
+    $maUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    $x->assign(
+        'udajeHtml',
+        OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, $maUbytovani),
+    );
 
     if (!$systemoveNastaveni->jsmeNaOstre()) {
         $x->assign(

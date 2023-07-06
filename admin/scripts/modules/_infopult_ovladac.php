@@ -164,6 +164,11 @@ function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkov
     }
 }
 
+if ($uPracovni && post('vydatBalicek')) {
+    $uPracovni->dejBalicek($u);
+    back();
+}
+
 /* Editace v kartě Pŕehled */
 if ($uPracovni && $udaje = post('udaje')) {
     foreach (['potvrzeni_zakonneho_zastupce', 'potvrzeni_proti_covid19_overeno_kdy'] as $klic) {
@@ -180,6 +185,14 @@ if ($uPracovni && $udaje = post('udaje')) {
 
     // TODO(SECURITY): nebezpečné krmit data do databáze tímhle způsobem Každý si vytvořit do html formuláře input který se pak také propíŠe do DB
     $zmenenoZaznamu = updateUzivatelHodnoty($udaje, $uPracovni->id(), $vyjimkovac);
+
+    if (post('kontrolaOsobnichUdajuSubmit')) {
+        $priznakZkontrolovanychUdajuZmenen = $uPracovni->nastavZkontrolovaneUdaje($u, (bool)post('kontrolaOsobnichUdaju'));
+        if ($priznakZkontrolovanychUdajuZmenen) {
+            $zmenenoZaznamu++;
+        }
+    }
+
     oznameni("Změněno $zmenenoZaznamu záznamů");
     back();
 }
