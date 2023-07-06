@@ -27,7 +27,7 @@
 
     <form method="post">
     <span class="hinted">
-      <input type="submit" name="datMaterialy" value="Přijel a Dát materiály" {datMaterialyDisabled}>
+      <input type="submit" name="prijelADatMaterialy" value="Přijel{a} a Dát materiály" {prijelADatMaterialyDisabled}>
       <span class="hint">
         Před odkliknutím zkontroluj že proběhlo:
         <ul>
@@ -214,7 +214,7 @@
         </tr>
         <!-- end:idFioPohybu -->
         <tr>
-          <td>Připsal{a}:</td>
+          <td>Připsal{orgA}:</td>
           <td><input type="text" value="{org}" disabled></td>
         </tr>
       </table>

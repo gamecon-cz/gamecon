@@ -44,10 +44,10 @@ if ($uPracovni) {
 }
 
 $x->assign([
-    'prihlasDisabled'      => "disabled",
-    'datMaterialyDisabled' => "disabled",
-    'gcOdjedDisabled'      => "disabled",
-    'odhlasDisabled'       => "disabled",
+    'prihlasDisabled'             => "disabled",
+    'prijelADatMaterialyDisabled' => "disabled",
+    'gcOdjedDisabled'             => "disabled",
+    'odhlasDisabled'              => "disabled",
 ]);
 
 // ubytovani vypis
@@ -95,7 +95,7 @@ if ($uPracovni) {
             return "<li> {$spolubydla->jmenoNick()} ({$spolubydla->id()}) {$spolubydla->telefon()} </li>";
         }),
         'org'             => $u->jmenoNick(),
-        'a'               => $u->koncovkaDlePohlavi(),
+        'orgA'            => $u->koncovkaDlePohlavi(),
         'poznamka'        => $uPracovni->poznamka(),
         'ubytovani'       => $uPracovni->shop()->dejPopisUbytovani(),
         'udajeChybiAttr'  => 'href="uzivatel"',
@@ -122,7 +122,7 @@ if ($uPracovni) {
     }
     if ($uPracovni->gcPrihlasen()) {
         if (!$uPracovni->gcPritomen()) {
-            $x->assign('datMaterialyDisabled', '');
+            $x->assign('prijelADatMaterialyDisabled', '');
         } else if (!$uPracovni->gcOdjel()) {
             $x->assign('gcOdjedDisabled', '');
         }

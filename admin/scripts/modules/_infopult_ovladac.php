@@ -20,8 +20,8 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\DateTimeCz;
 
-if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
-    $uPracovni->pridejRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $u);
+if (!empty($_POST['prijelADatMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
+    $uPracovni->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
     back();
 }
 
