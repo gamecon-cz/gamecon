@@ -42,4 +42,5 @@ class UzivatelSqlStruktura
     public const POTVRZENI_PROTI_COVID19_PRIDANO_KDY = 'potvrzeni_proti_covid19_pridano_kdy';
     public const POTVRZENI_PROTI_COVID19_OVERENO_KDY = 'potvrzeni_proti_covid19_overeno_kdy';
     public const INFOPULT_POZNAMKA                   = 'infopult_poznamka';
+    public const Z_RYCHLOREGISTRACE                   = 'z_rychloregistrace';
 }
