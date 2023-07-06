@@ -1572,17 +1572,33 @@ SQL,
         array              $opt = [],
     )
     {
-        $tab[Sql::LOGIN_UZIVATELE]    ??= 'rychloregistrace' . self::pocetRychloregistraci();
-        $tab[Sql::EMAIL1_UZIVATELE]   ??= $tab[Sql::LOGIN_UZIVATELE] . '@example.com';
-        $tab[Sql::Z_RYCHLOREGISTRACE] = 1;
-        $opt                          = opt($opt, [
+        $tab[Sql::LOGIN_UZIVATELE]                     ??= 'rychloreg' . (self::pocetRychloregistraci() + 1);
+        $tab[Sql::JMENO_UZIVATELE]                     ??= $tab[Sql::LOGIN_UZIVATELE];
+        $tab[Sql::PRIJMENI_UZIVATELE]                  ??= $tab[Sql::JMENO_UZIVATELE];
+        $tab[Sql::EMAIL1_UZIVATELE]                    ??= $tab[Sql::LOGIN_UZIVATELE] . '@example.com';
+        $tab[Sql::Z_RYCHLOREGISTRACE]                  = 1;
+        $tab[Sql::DATUM_NAROZENI]                      ??= date('Y-m-d');
+        $tab[Sql::STAT_UZIVATELE]                      ??= Stat::CZ_ID;
+        $tab[Sql::RANDOM]                              = $rand = randHex(20);
+        $tab[Sql::REGISTROVAN]                         = date("Y-m-d H:i:s");
+        $tab[Sql::ID_UZIVATELE]                        = null;
+        $tab[Sql::FUNKCE_UZIVATELE]                    = 0;
+        $tab[Sql::NECHCE_MAILY]                        = null;
+        $tab[Sql::MRTVY_MAIL]                          = 0;
+        $tab[Sql::ZUSTATEK]                            = 0;
+        $tab[Sql::POHLAVI]                             = Pohlavi::MUZ_KOD;
+        $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE]        = null;
+        $tab[Sql::POTVRZENI_PROTI_COVID19_PRIDANO_KDY] = null;
+        $tab[Sql::POTVRZENI_PROTI_COVID19_OVERENO_KDY] = null;
+        foreach (Sql::sloupce() as $sloupec) {
+            if (!array_key_exists($sloupec, $tab)) {
+                $tab[$sloupec] = '';
+            }
+        }
+        $opt = opt($opt, [
             'informovat' => false,
         ]);
-        if (empty($tab[Sql::STAT_UZIVATELE])) {
-            $tab[Sql::STAT_UZIVATELE] = Stat::CZ_ID;
-        }
-        $tab[Sql::RANDOM]      = $rand = randHex(20);
-        $tab[Sql::REGISTROVAN] = date("Y-m-d H:i:s");
+
         try {
             dbInsert(Sql::UZIVATEL_TABULKA, $tab);
         } catch (DbDuplicateEntryException $e) {

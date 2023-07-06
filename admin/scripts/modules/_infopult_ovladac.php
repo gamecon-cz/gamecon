@@ -104,7 +104,7 @@ if (!empty($_POST['rychloregistrace'])) {
         if (!empty($_POST['vcetnePrihlaseni'])) {
             $uPracovni->gcPrihlas($u);
         }
-        back();
+        oznameni("Vytořen uživatel s ID {$uPracovni->id()}");
     }
 }
 
