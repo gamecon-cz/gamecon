@@ -363,7 +363,7 @@
 <div class="aBox grid">
   <h3>Rychloregistrace</h3>
   <form method="post">
-      <input type="hidden" value="rychloregistrace">
+      <input type="hidden" name="rychloregistrace" value="1">
       <table>
           <tbody>
           <tr>
