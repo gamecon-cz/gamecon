@@ -99,7 +99,9 @@ if (!empty($_POST['rychloregistrace'])) {
         if ($systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) {
             $rychloregistrovany = Uzivatel::zId($idUzivateleZRychloregistrace);
             $rychloregistrovany->gcPrihlas($u);
-            $rychloregistrovany->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
+            if ($systemoveNastaveni->gcBezi()) {
+                $rychloregistrovany->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
+            }
         }
         oznameni("Vytořen uživatel s ID {$idUzivateleZRychloregistrace}");
     }
