@@ -113,7 +113,7 @@
         </tr>
 
         <tr>
-          <td>Poznámka:</td>
+          <td style="font-size: smaller">Poznámka:</td>
           <td>
             <textarea
                 rows="3"
@@ -138,9 +138,22 @@
         <tr>
           <td>Údaje:</td>
           <td>
-            <a {udajeChybiAttr}>
-              {udajeChybiText}
-            </a>
+              <div>
+                  <a {udajeChybiAttr}>{udajeChybiText}</a>
+              </div>
+              <!-- begin:kontrolaOsobnichUdaju -->
+              <div style="margin-top: 0.5em">
+                  <label style="white-space: nowrap">
+                      <input type="checkbox" class="" name="kontrolaOsobnichUdaju" {kontrolaOsobnichUdajuAttr}>
+                      <span>{kontrolaOsobnichUdajuText}</span>
+                  </label>
+              </div>
+              <div style="margin-top: 0.5em">
+                  <button style="margin: 0" type="submit" name="kontrolaOsobnichUdajuSubmit" value="1"
+                          class="submit-btn">uložit
+                  </button>
+              </div>
+              <!-- end:kontrolaOsobnichUdaju -->
           </td>
         </tr>
 
@@ -157,16 +170,6 @@
           </td>
         </tr>
         <!-- end:covidSekce -->
-
-        <tr>
-          <td colspan="100%">
-              <label>
-                  <input type="checkbox" class="" name="kontrolaOsobnichUdaju" {kontrolaOsobnichUdajuAttr}>
-                  <span style="padding-left: 0.5em">{kontrolaOsobnichUdajuText}</span>
-              </label>
-              <button style="margin: 0" type="submit" name="kontrolaOsobnichUdajuSubmit" value="1" class="submit-btn">uložit</button>
-          </td>
-        </tr>
 
         <tr>
           <td>Kontakt:</td>
