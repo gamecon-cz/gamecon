@@ -1,10 +1,8 @@
-<?php declare(strict_types=1);
+<?php
 
-// TODO: do pomocných funkcí
-function intvalOrNull($val)
-{
-    return $val == null ? null : intval($val);
-}
+declare(strict_types=1);
+
+namespace Gamecon\Kfc;
 
 /**
  * @method static ObchodMrizkaBunka zId($id)

@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Kfc\ObchodMrizkaBunka;
+use Gamecon\Kfc\ObchodMrizka;
 
 /*
   GET api/predmety

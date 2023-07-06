@@ -848,3 +848,8 @@ function requireOnceIsolated(string $path)
     // aby proměnné ze skriptu nepřepsaly jiné, něco jako local scope
     require_once $path;
 }
+
+function intvalOrNull($val)
+{
+    return $val == null ? null : intval($val);
+}
