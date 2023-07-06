@@ -87,31 +87,20 @@ if ($uPracovni && ($idPolozky = post(Finance::KLIC_ZRUS_NAKUP_POLOZKY)) && $u->j
     }
 }
 
-if (!empty($_POST['rychloreg'])) {
-    $tab = $_POST['rychloreg'];
-    if (empty($tab['login_uzivatele'])) {
-        $tab['login_uzivatele'] = $tab['email1_uzivatele'];
-    }
-    $tab['nechce_maily'] = isset($tab['nechce_maily']) ? dbNow() : null;
+if (!empty($_POST['rychloregistrace'])) {
     try {
-        $nid = Uzivatel::rychloreg(
-            $systemoveNastaveni,
-            $tab,
-            [
-                'informovat' => post('informovat'),
-            ],
-        );
+        $idUzivateleZRychloregistrace = Uzivatel::rychloregistrace($systemoveNastaveni);
     } catch (DuplicitniEmail $e) {
         throw new Chyba('Uživatel s zadaným e-mailem už v databázi existuje');
     } catch (DuplicitniLogin $e) {
         throw new Chyba('Uživatel s loginem odpovídajícím zadanému e-mailu už v databázi existuje');
     }
-    if ($nid) {
+    if ($idUzivateleZRychloregistrace) {
         if ($uPracovni) {
             Uzivatel::odhlasKlic('uzivatel_pracovni');
         }
-        $_SESSION["id_uzivatele"] = $nid;
-        $uPracovni                = Uzivatel::prihlasId($nid, 'uzivatel_pracovni');
+        $_SESSION["id_uzivatele"] = $idUzivateleZRychloregistrace;
+        $uPracovni                = Uzivatel::prihlasId($idUzivateleZRychloregistrace, 'uzivatel_pracovni');
         if (!empty($_POST['vcetnePrihlaseni'])) {
             $uPracovni->gcPrihlas($u);
         }

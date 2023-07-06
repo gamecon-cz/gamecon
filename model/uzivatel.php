@@ -16,6 +16,7 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
+use Gamecon\Stat;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -1544,20 +1545,20 @@ SQL,
      * @todo možno evidovat, že uživatel byl regnut na místě
      * @todo poslat mail s něčím jiným jak std hláškou
      */
-    public static function rychloreg(
+    public static function rychloregistrace(
         SystemoveNastaveni $systemoveNastaveni,
-        array              $tab,
+        array              $tab = [],
         array              $opt = [],
     )
     {
-        if (!isset($tab[Sql::LOGIN_UZIVATELE]) || !isset($tab[Sql::EMAIL1_UZIVATELE])) {
-            throw new Exception('špatný formát $tab (je to pole?)');
-        }
-        $opt = opt($opt, [
-            'informovat' => true,
+        $tab[Sql::LOGIN_UZIVATELE]    ??= 'rychloregistrace' . self::pocetRychloregistraci();
+        $tab[Sql::EMAIL1_UZIVATELE]   ??= $tab[Sql::LOGIN_UZIVATELE] . '@example.com';
+        $tab[Sql::Z_RYCHLOREGISTRACE] = 1;
+        $opt                          = opt($opt, [
+            'informovat' => false,
         ]);
         if (empty($tab[Sql::STAT_UZIVATELE])) {
-            $tab[Sql::STAT_UZIVATELE] = \Gamecon\Stat::CZ_ID;
+            $tab[Sql::STAT_UZIVATELE] = Stat::CZ_ID;
         }
         $tab[Sql::RANDOM]      = $rand = randHex(20);
         $tab[Sql::REGISTROVAN] = date("Y-m-d H:i:s");
@@ -1588,6 +1589,16 @@ SQL,
             }
         }
         return $uid;
+    }
+
+    private static function pocetRychloregistraci(): int
+    {
+        return (int)dbFetchSingle(<<<SQL
+SELECT COUNT(*)
+FROM uzivatele_hodnoty
+WHERE z_rychloregistrace = 1
+SQL,
+        );
     }
 
     /**
