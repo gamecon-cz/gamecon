@@ -70,7 +70,7 @@ if (VYZADOVANO_COVID_POTVRZENI && $u && ($systemoveNastaveni->gcBezi() || $u->gc
     $t->parse('prihlaskaUzavrena.covidSekce');
 }
 
-if (!$u->gcPrihlasen() && po($systemoveNastaveni->prihlasovaniUcastnikuDo())) {
+if (!$u?->gcPrihlasen() && po($systemoveNastaveni->prihlasovaniUcastnikuDo())) {
     $t->assign('konec', $systemoveNastaveni->prihlasovaniUcastnikuDo()->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD));
     $t->parse('prihlaskaPo');
     return;
