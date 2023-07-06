@@ -108,9 +108,8 @@ if ($uPracovni) {
         ),
     ]);
 
-    $chybejiciUdaje = $uPracovni->chybejiciUdaje(
-        Uzivatel::povinneUdajeProRegistraci($uPracovni->shop()->ubytovani()->maObjednaneUbytovani()),
-    );
+    $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    $chybejiciUdaje       = $uPracovni->chybejiciUdaje(Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani));
     $x->assign(
         'udajeChybiText',
         count($chybejiciUdaje) > 0
@@ -118,13 +117,18 @@ if ($uPracovni) {
             : $ok . ' osobní údaje kompletní',
     );
 
-    $zkontrolovaneOsobniUdaje = $uPracovni->maZkontrolovaneUdaje();
-    if ($zkontrolovaneOsobniUdaje) {
-        $x->assign('kontrolaOsobnichUdajuAttr', 'checked');
+    if ($maObjednaneUbytovani) {
+        $zkontrolovaneOsobniUdaje = $uPracovni->maZkontrolovaneUdaje();
+        if ($zkontrolovaneOsobniUdaje) {
+            $x->assign('kontrolaOsobnichUdajuAttr', 'checked');
+        }
+        $x->assign('kontrolaOsobnichUdajuText',
+            $zkontrolovaneOsobniUdaje
+                ? $ok . ' Osobní údaje oveřené'
+                : $err . ' Zkontrolovat osobní údaje',
+        );
+        $x->parse('infopult.uzivatel.kontrolaOsobnichUdaju');
     }
-    $x->assign('kontrolaOsobnichUdajuText',
-        ' Osobní údaje oveřené ' . ($zkontrolovaneOsobniUdaje ? $ok : $err),
-    );
 
     if ($uPracovni->finance()->stav() < 0 && !$uPracovni->gcPritomen()) {
         $x->parse('infopult.upoMaterialy');
