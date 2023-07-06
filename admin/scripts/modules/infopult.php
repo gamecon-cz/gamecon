@@ -275,10 +275,6 @@ $x->assign('predmety', $moznosti);
 // rychloregistrace
 if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci
     $x->parse('infopult.rychloregistrace');
-    $x->assign('rychloregistracePrihlasitNaGcDisabled', 'disabled');
-    if ($systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) {
-        $x->assign('rychloregistracePrihlasitNaGcDisabled', '');
-    }
 }
 
 $x->parse('infopult');

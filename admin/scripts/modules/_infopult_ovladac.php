@@ -96,15 +96,12 @@ if (!empty($_POST['rychloregistrace'])) {
         throw new Chyba('Uživatel s loginem odpovídajícím zadanému e-mailu už v databázi existuje');
     }
     if ($idUzivateleZRychloregistrace) {
-        if ($uPracovni) {
-            Uzivatel::odhlasKlic('uzivatel_pracovni');
+        if ($systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) {
+            $rychloregistrovany = Uzivatel::zId($idUzivateleZRychloregistrace);
+            $rychloregistrovany->gcPrihlas($u);
+            $rychloregistrovany->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
         }
-        $_SESSION["id_uzivatele"] = $idUzivateleZRychloregistrace;
-        $uPracovni                = Uzivatel::prihlasId($idUzivateleZRychloregistrace, 'uzivatel_pracovni');
-        if (!empty($_POST['vcetnePrihlaseni'])) {
-            $uPracovni->gcPrihlas($u);
-        }
-        oznameni("Vytořen uživatel s ID {$uPracovni->id()}");
+        oznameni("Vytořen uživatel s ID {$idUzivateleZRychloregistrace}");
     }
 }
 

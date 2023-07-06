@@ -400,10 +400,7 @@
           <tbody>
           <tr>
               <td>
-                    <input type="submit" value="Jen registrovat" class="submit-btn" style="float: left">
-              </td>
-              <td>
-                  <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC" class="submit-btn" {rychloregistracePrihlasitNaGcDisabled}>
+                  <input type="submit" value="Jen registrovat" class="submit-btn">
               </td>
           </tr>
           </tbody>
