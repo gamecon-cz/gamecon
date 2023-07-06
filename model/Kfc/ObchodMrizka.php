@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Gamecon\Kfc;
+
 /**
  * @method static ObchodMrizka zId($id)
  * @method static ObchodMrizka[] zVsech(bool $zCache = false)

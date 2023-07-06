@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Kfc\ObchodMrizkaBunka;
+use Gamecon\Kfc\ObchodMrizka;
+
 // TODO: vxužíváno adminem asi by mělo být v adminu (nutno dovymyslet)
 // TODO: ObchodMrizka, ObchodMrizkaBunka by měli být asi v nějakém namespace (nepodařilo se mi rozchodit - padá)
 // TODO: řešit pomocí joinu nebo view na DB
