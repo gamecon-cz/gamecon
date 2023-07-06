@@ -42,5 +42,18 @@ class UzivatelSqlStruktura
     public const POTVRZENI_PROTI_COVID19_PRIDANO_KDY = 'potvrzeni_proti_covid19_pridano_kdy';
     public const POTVRZENI_PROTI_COVID19_OVERENO_KDY = 'potvrzeni_proti_covid19_overeno_kdy';
     public const INFOPULT_POZNAMKA                   = 'infopult_poznamka';
-    public const Z_RYCHLOREGISTRACE                   = 'z_rychloregistrace';
+    public const Z_RYCHLOREGISTRACE                  = 'z_rychloregistrace';
+
+    public static function sloupce(): array
+    {
+        $reflection = new \ReflectionClass(static::class);
+        $hodnoty    = [];
+        foreach ($reflection->getConstants() as $hodnota) {
+            if ($hodnota === self::UZIVATEL_TABULKA) {
+                continue;
+            }
+            $hodnoty[] = $hodnota;
+        }
+        return $hodnoty;
+    }
 }
