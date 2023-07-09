@@ -1972,7 +1972,7 @@ SQL,
         if (empty($ids)) {
             return [];
         }
-        if (is_string($ids) && preg_match('@[0-9]+(,[0-9]+)+@', $ids)) {
+        if (is_string($ids) && preg_match('@[0-9]+(,[0-9]+)*@', $ids)) {
             $ids = explode(',', $ids);
         }
         if (is_int($ids)) {
