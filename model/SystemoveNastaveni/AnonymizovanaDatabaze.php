@@ -143,7 +143,9 @@ class AnonymizovanaDatabaze
                     potvrzeni_zakonneho_zastupce = null,
                     potvrzeni_proti_covid19_pridano_kdy = null,
                     potvrzeni_proti_covid19_overeno_kdy = null,
-                    infopult_poznamka = ''
+                    infopult_poznamka = '',
+                    typ_dokladu_totoznosti = '',
+                    statni_obcanstvi = null
                 WHERE TRUE
             SQL,
         );
