@@ -240,25 +240,31 @@
 
   <div class="infopult-grid--item infopult-grid--item-ubytování aBox">
     <h3>Ubytování</h3>
-    <table>
-      <tr>
-        <td>Pokoj:</td>
-        <td> {pokoj}</td>
-      </tr>
-      <tr>
-        <td>Spolubydlící:</td>
-        <td>
-          {spolubydlici}
-        </td>
-      </tr>
-      <tr>
-        <td>Ubytovaní:</td>
-        <td>{ubytovani}</td>
-      </tr>
-    </table>
-    Zrušit jiné ubytování než neděli může pouze šéf Infa.<br>
-    <form method="post">
-      {ubytovaniTabulka}<br>
+    <form method="post" class="clearfix">
+      <table>
+        <tr>
+          <td>Pokoj:</td>
+          <td> {pokoj}</td>
+        </tr>
+        <tr>
+          <td>Spolubydlící:</td>
+          <td>
+            {spolubydlici}
+          </td>
+        </tr>
+        <tr>
+          <td>Ubytovaní:</td>
+          <td>{ubytovani}</td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            Zrušit jiné ubytování než neděli může pouze šéf Infa.
+          </td>
+        </tr>         
+          <td colspan="2">{ubytovaniTabulka}</td>
+        </tr>
+      </table>
+
       <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
     </form>
 
@@ -270,7 +276,7 @@
 
     <div>
       Vypsat pokoj<br>
-      <form method="get">
+      <form method="get" class="clearfix">
         <table>
           <tr>
             <td>Pokoj:</td>
@@ -281,21 +287,21 @@
             <td>{ubytovaniVypis}</td>
           </tr>
         </table>
+
         <input type="submit" value="Vypsat" class="submit-btn">
       </form>
     </div>
 
-    <br>
-
-    <div style="margin-top:8px">
+    <div>
       Přidělit pokoj (přepíše stávající stav)<br>
       <form method="post" class="cleafix">
         <table>
           <tr>
             <td>Pokoj:</td>
-            <td><input type="integer" name="pokoj"></input></td>
+            <td><input type="integer" value="{pokojVypis}" name="pokoj"></input></td>
           </tr>
         </table>
+
         <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">
       </form>
     </div>
@@ -318,7 +324,7 @@
   <!-- end:uzivatel -->
 
   <div style="width: 100%;" class="infopult-grid--item infopult-grid--item-prodej">
-    <button value="Shop" class="submit-btn" style="width: 100%; height: 60px" onclick="preactMost.obchod.show()">Shop</button>
+    <button value="Shop" class="submit-btn" style="width: 100%; height: 60px" onclick="preactMost.obchod.show()">Prodej</button>
   </div>
 </div>
 
