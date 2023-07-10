@@ -429,7 +429,7 @@ SQL;
             {
             }
 
-            public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon
+            public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null, bool $overovatDatumZpetne = true): DateTimeGamecon
             {
                 return $this->nejblizsiVlnaKdy;
             }
