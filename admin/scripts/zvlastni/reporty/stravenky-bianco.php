@@ -19,8 +19,8 @@ SELECT nazev,
 FROM shop_predmety
 WHERE model_rok = {$rocnik}
   AND typ = {$typJidlo}
-ORDER BY poradi_dne,
-         poradi_jidla
+ORDER BY poradi_dne DESC,
+         poradi_jidla DESC
 SQL,
 );
 while ($r = mysqli_fetch_assoc($o)) {
