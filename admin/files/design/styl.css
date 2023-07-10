@@ -1229,8 +1229,8 @@ Radio musí být ve tvaru:
     grid-template-areas:
       "přehled udaje ubytování"
       "přehled pokoje ubytování"
-      "přehled prodej prodej"
-      "platba prodej prodej"
+      "přehled prodej ."
+      "platba prodej ."
       "platba . predmety";
   }
 

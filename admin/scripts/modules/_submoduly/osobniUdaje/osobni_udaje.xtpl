@@ -4,6 +4,11 @@
   <table>
     <!-- begin:udaj -->
     <tr>
+      <!-- begin:stav -->
+        <td style="padding:0">
+          {stavIkona}
+        </td>
+      <!-- end:stav -->
       <td style="width:110px">
         <!-- begin:nazevSPopiskem -->
         <span class="hinted">{nazev}:<span class="hint">{popisek}</span></span>
@@ -31,9 +36,12 @@
                 id="udaj_{sloupec}"></td>
             <!-- end:input -->
             <!-- begin:checkbox -->
-            <td><input
-                type="checkbox" name="udaj[{sloupec}]" value="{vstupniHodnota}" {checked} {disabled}
-                style="margin-left: -3px;" id="udaj_{sloupec}"></td>
+            <td>
+              <input type="hidden" name="udaj[{sloupec}]" value="0" {disabled} id="udaj_{sloupec}_zero_value"/>
+              <input
+                type="checkbox" name="udaj[{sloupec}]" value="1" {checked} {disabled}
+                style="margin-left: -3px;" id="udaj_{sloupec}" />
+            </td>
             <!-- end:checkbox -->
             <!-- begin:select -->
             <td>

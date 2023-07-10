@@ -137,19 +137,7 @@
 
         <tr>
           <td>Údaje:</td>
-          <td>
-              <div>
-                  <a {udajeChybiAttr}>{udajeChybiText}</a>
-              </div>
-              <!-- begin:kontrolaOsobnichUdaju -->
-              <div style="margin-top: 0.5em">
-                  <label style="white-space: nowrap">
-                      <input type="checkbox" class="" name="kontrolaOsobnichUdaju" {kontrolaOsobnichUdajuAttr} />
-                      <span>{kontrolaOsobnichUdajuText}</span>
-                  </label>
-              </div>
-              <!-- end:kontrolaOsobnichUdaju -->
-          </td>
+          <td>{udajeStav}</td>
         </tr>
 
         <!-- begin:covidSekce -->
@@ -184,14 +172,6 @@
           <td class="clearfix">
             <div style="float: left;">
               {balicek}
-            </div>
-            <div style="float: right;">
-              <!-- begin:balicekTlacitko -->
-                {warn} <button style="margin: 0" type="submit" name="vydatBalicek" class="submit-btn" value="1">vydat</button>
-              <!-- end:balicekTlacitko -->
-              <!-- begin:balicekVydan -->
-              {ok} Vydán
-              <!-- end:balicekVydan -->
             </div>
           </td>
         </tr>
@@ -337,39 +317,8 @@
 
   <!-- end:uzivatel -->
 
-  <div class="infopult-grid--item infopult-grid--item-prodej aBox">
-    <h3>Prodej předmětů</h3>
-    <div>
-      Zbývající počty předmětů jsou uvedeny v závorce
-    </div>
-    <form method="post">
-      <table>
-        <!-- begin:prodejAnonymni -->
-        <tr>
-          <td></td>
-          <td>Anonymní prodej</td>
-        </tr>
-        <!-- end:prodejAnonymni -->
-
-        <tr>
-          <td style="white-space: nowrap">
-            <label for="predmet">Předmět:</label>
-            <span class="hinted">
-              <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1"
-                     size="2" min="1" max="99" required>
-              <span class="hint" style="white-space: nowrap; width: auto">Počet kusů</span>
-            </span>
-          </td>
-          <td>
-            <select name="prodej[id_predmetu]" id="predmet" style="width: 100%;" required>
-              {predmety}
-            </select>
-          </td>
-        </tr>
-      </table>
-      <input type="submit" name="prodej[odeslano]" value="Prodat" class="submit-btn">
-    </form>
-    <button value="Shop" class="submit-btn" style="width: 100px;" onclick="preactMost.obchod.show()">Shop</button>
+  <div style="width: 100%;" class="infopult-grid--item infopult-grid--item-prodej">
+    <button value="Shop" class="submit-btn" style="width: 100%; height: 60px" onclick="preactMost.obchod.show()">Shop</button>
   </div>
 </div>
 

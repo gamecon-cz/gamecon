@@ -47,7 +47,6 @@ class Role extends \DbObject
     public const LETOSNI_HERMAN                     = ROLE_HERMAN;
     public const LETOSNI_BRIGADNIK                  = ROLE_BRIGADNIK;
     public const ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC = ROLE_ZKONTROLOVANE_UDAJE;
-    public const DOSTAL_BALICEK_NA_LETOSNIM_GC      = ROLE_DOSTAL_BALICEK;
 
     protected const ROLE_VYPRAVEC_ID_ZAKLAD             = 6;
     protected const ROLE_ZAZEMI_ID_ZAKLAD               = 7;
@@ -72,7 +71,6 @@ class Role extends \DbObject
     protected const ROLE_PRITOMEN_ID_ZAKLAD            = 2;
     protected const ROLE_ODJEL_ID_ZAKLAD               = 3;
     protected const ROLE_ZKONTROLOVANE_UDAJE_ID_ZAKLAD = 29;
-    protected const ROLE_DOSTAL_BALICEK_ID_ZAKLAD      = 30;
 
     public const UDALOST_PRIHLASEN = 'přihlášen';
     public const UDALOST_PRITOMEN  = 'přítomen';
@@ -112,7 +110,6 @@ class Role extends \DbObject
     public const VYZNAM_ZAZEMI               = 'ZAZEMI';
     // podtyp OVEROVACI (tyto role nelze přiřazovat přes admin stránku Práva)
     public const VYZNAM_ZKONTROLOVANE_UDAJE = 'ZKONTROLOVANE_UDAJE';
-    public const VYZNAM_DOSTAL_BALICEK      = 'DOSTAL_BALICEK';
     // TYP UCAST
     public const VYZNAM_PRIHLASEN = 'PRIHLASEN';
     public const VYZNAM_PRITOMEN  = 'PRITOMEN';
@@ -171,7 +168,6 @@ class Role extends \DbObject
             self::VYZNAM_PRITOMEN => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ODJEL => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ZKONTROLOVANE_UDAJE => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_DOSTAL_BALICEK => self::KATEGORIE_OMEZENA,
 
             default => throw new NeznamyVyznamRole("Vyznam '$vyznam' je neznámý"),
         };
@@ -212,11 +208,6 @@ class Role extends \DbObject
         return self::zkontrolovaneUdaje($rok);
     }
 
-    public static function DOSTAL_BALICEK_NA_LETOSNIM_GC(int $rok = ROCNIK): int
-    {
-        return self::dostalBalicek($rok);
-    }
-
     public static function prihlasenNaRocnik(int $rok): int
     {
         return self::preProUcastRoku($rok) - self::ROLE_PRIHLASEN_ID_ZAKLAD;
@@ -235,11 +226,6 @@ class Role extends \DbObject
     public static function zkontrolovaneUdaje(int $rok): int
     {
         return self::idRocnikoveRole(self::ROLE_ZKONTROLOVANE_UDAJE_ID_ZAKLAD, $rok);
-    }
-
-    public static function dostalBalicek(int $rok): int
-    {
-        return self::idRocnikoveRole(self::ROLE_DOSTAL_BALICEK_ID_ZAKLAD, $rok);
     }
 
     private static function preProUcastRoku(int $rok): int
@@ -374,7 +360,6 @@ class Role extends \DbObject
                 self::LETOSNI_BRIGADNIK => 'Brigádník',
                 //
                 self::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC => 'Zkontrolované údaje',
-                self::DOSTAL_BALICEK_NA_LETOSNIM_GC => 'Dostal balíček',
                 //
                 default => self::nazevRoleStareUcasti($idRole),
             };
@@ -438,7 +423,6 @@ class Role extends \DbObject
                 $role,
                 [
                     self::ZKONTROLOVANE_UDAJE_PRO_LETOSNI_GC($rok),
-                    self::DOSTAL_BALICEK_NA_LETOSNIM_GC($rok),
                 ],
                 true,
             );
@@ -481,7 +465,6 @@ class Role extends \DbObject
             self::LETOSNI_HERMAN($rocnik),
             self::LETOSNI_BRIGADNIK($rocnik),
             self::ZKONTROLOVANE_UDAJE_PRO_LETOSNI_GC($rocnik),
-            self::DOSTAL_BALICEK_NA_LETOSNIM_GC($rocnik),
         ];
         $vsechnyRocnikoveRole = [];
         foreach ($idckaRocnikovychRoli as $id) {
