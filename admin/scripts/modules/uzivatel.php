@@ -10,7 +10,7 @@
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 
-require_once __DIR__ . '/_submoduly/osobni_udaje.php';
+require_once __DIR__ . '/_submoduly/osobniUdaje/osobni_udaje.php';
 
 /**
  * @var Uzivatel|null|void $u
@@ -112,7 +112,7 @@ if ($uPracovni) {
 if ($uPracovni) {
     $x->assign(
         'udajeHtml',
-        OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, true, true)
+        OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, programOdkaz: true, zobrazStav: false)
     );
     $x->parse('uzivatel.udaje');
 }
