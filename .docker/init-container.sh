@@ -18,3 +18,6 @@ chown -R www-data:www-data /var/www
 chmod -R u+rw /home/www-data/.composer
 chmod -R u+rw /var/www/html/gamecon/cache
 chmod -R u+rw /var/www/html/gamecon/web/soubory/systemove
+
+SYMFONY_BIN_DIR_PATH=$(ls -d /home/www-data/.symfony*/bin | tail -n 1) \
+    && export PATH="$SYMFONY_BIN_DIR_PATH:$PATH"
