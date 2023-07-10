@@ -28,8 +28,9 @@ $o                        = dbQuery(<<<SQL
     JOIN shop_predmety AS predmety
         ON predmety.id_predmetu = nakupy.id_predmetu AND predmety.typ = {$typJidlo}
     ORDER BY uzivatele.id_uzivatele,
-             poradi_dne,
-             poradi_jidla
+             -- "bylo lepší, jak vedly zprava doleva, tj. naopak. Nalevo je totiž ID člověka a jak si stravenky postupně odtrhává, je lepší, když začne na druhé straně, aby měl pořád balíček stravenek se svým ID a jménem" Gandalf 10. červenec 2023 20:57
+             poradi_dne DESC,
+             poradi_jidla DESC
 SQL,
 );
 
