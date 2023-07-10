@@ -47,7 +47,7 @@
   <div>{login_uzivatele} ({id_uzivatele})</div>
   <!-- begin:jidlo -->
   <div class="jidlo">
-    <img src="../files/design/logo.png">
+    <img alt="logo" src="../files/design/logo.png">
     <div>
       {nazev}
       <br><br>{login_uzivatele} ({id_uzivatele})
