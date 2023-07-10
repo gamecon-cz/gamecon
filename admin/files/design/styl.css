@@ -1214,11 +1214,45 @@ Radio musí být ve tvaru:
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
   .infopult-grid--container {
-    grid-template-columns: repeat(3, 1fr .5fr);
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
     grid-template-areas:
-      "přehled přehled udaje ubytování ubytování ubytování"
-      "platba platba pokoje pokoje prodej prodej"
-      ". . . . predmety predmety";
+      "přehled přehled ubytování ubytování"
+      "udaje   udaje   ubytování ubytování"
+      "udaje   udaje   pokoje    pokoje"
+      "platba  platba  predmety    predmety"
+      "prodej  prodej  predmety  predmety"
+      ;
+  }
+
+  .infopult-grid--item {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .infopult-grid--item td:nth-child(2) {
+    width: 100%;
+  }
+  
+  .infopult-grid--item-predmety td:nth-child(2) {
+    width: unset;
+  }
+  
+  .infopult-grid--item-udaje td:nth-child(2) {
+    width: unset;
+    white-space: nowrap;
+  }
+  
+  .infopult-grid--item-udaje td:nth-child(3) {
+    width: 100%;
+  }
+  
+  .infopult-grid--item.aBox {
+    margin: 10px 0 0 0;
+  }
+  
+  .infopult-grid--item > form > table {
+    width: 100%;
   }
 }
 
@@ -1226,11 +1260,11 @@ Radio musí být ve tvaru:
 @media only screen and (min-width: 1200px) {
   .infopult-grid--container {
     grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
     grid-template-areas:
       "přehled udaje ubytování"
-      "přehled pokoje ubytování"
-      "přehled prodej ."
-      "platba prodej ."
+      "platba pokoje predmety"
+      "platba prodej predmety"
       "platba . predmety";
   }
 
