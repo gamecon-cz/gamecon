@@ -19,7 +19,9 @@ SQL
 
 $data = [];
 while ($row = mysqli_fetch_assoc($mysqliResult)) {
-    $row[UzivatelSqlStruktura::OP] = Sifrovatko::desifruj($row[UzivatelSqlStruktura::OP]);
+    $row[UzivatelSqlStruktura::OP] = (string)$row[UzivatelSqlStruktura::OP] !== ''
+        ? Sifrovatko::desifruj($row[UzivatelSqlStruktura::OP])
+        : '';
     $data[]                        = $row;
 }
 Report::zPole($data)->tFormat(get('format'));
