@@ -398,9 +398,12 @@ class DateTimeGamecon extends DateTimeCz
     public static function nejblizsiVlnaKdy(
         ZdrojVlnAktivit|ZdrojTed $zdrojCasu,
         \DateTimeInterface       $platnostZpetne = null,
+        bool                     $overovatDatumZpetne = true,
     ): static
     {
-        $platnostZpetne = static::overenaPlatnostZpetne($zdrojCasu, $platnostZpetne);
+        $platnostZpetne = $overovatDatumZpetne
+            ? static::overenaPlatnostZpetne($zdrojCasu, $platnostZpetne)
+            : $platnostZpetne;
 
         $prvniVlnaKdy = $zdrojCasu->prvniVlnaKdy();
         if ($platnostZpetne <= $prvniVlnaKdy) { // právě je nebo teprve bude

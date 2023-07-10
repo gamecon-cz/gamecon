@@ -57,6 +57,7 @@ foreach ($posuny as $poradiOznameni => $posun) {
         $poradiOznameni,
     );
     if (!$neplaticiInformovaniOBrzkemHromadnemOdhlaseniKdy) {
+        logs("E-maily s varováním neplatičům: Pošleme {$poradiOznameni}. varování k blížícímu se odhlašování {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)}.");
         break; // tohle oznámení jsme ještě neposlali
     }
     logs("{$poradiOznameni}. email s varováním pro neplatiče o brzkém hromadném odhlášení už byl odeslán {$neplaticiInformovaniOBrzkemHromadnemOdhlaseniKdy->format(DateTimeCz::FORMAT_DB)}");
@@ -70,12 +71,25 @@ if (!$poradiOznameni) {
 // abychom měli čerstvé informace o neplatičích
 requireOnceIsolated(__DIR__ . '/../fio_stazeni_novych_plateb.php');
 
-$pocetPotencialnichNeplaticu = 0;
-$rocnik                      = $systemoveNastaveni->rocnik();
+$pocetPotencialnichNeplaticu     = 0;
+$rocnik                          = $systemoveNastaveni->rocnik();
+$finalniPosun                    = $posuny[$poradiOznameni];
+$overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
+    ->modifyStrict($finalniPosun);
+$nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
+    $systemoveNastaveni,
+    $overenaPlatnostZpetne,
+);
+$kDatu                           = $systemoveNastaveni->ted()->modify($finalniPosun);
+
 try {
     $uvod      = "Prosíme zaplať své objednávky na Gamecon $rocnik";
     $oddelovac = str_repeat('═', mb_strlen($uvod));
-    foreach ($hromadneOdhlaseniNeplaticu->neplaticiAKategorie()
+    foreach ($hromadneOdhlaseniNeplaticu->neplaticiAKategorie(
+        $nejblizsiHromadneOdhlasovaniKdy,
+        $overenaPlatnostZpetne,
+        $kDatu,
+    )
              as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]
     ) {
         set_time_limit(10);
@@ -97,6 +111,7 @@ try {
         $pocetPotencialnichNeplaticu++;
     }
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
+    logs($nevhodnyCasProHromadneOdhlasovani->getMessage());
     return;
 }
 
