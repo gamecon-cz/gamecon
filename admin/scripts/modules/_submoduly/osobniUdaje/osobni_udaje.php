@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * @var Uzivatel|null|void $u
+ * @var Uzivatel|null|void $uPracovni
+ * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
+
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
@@ -39,21 +46,32 @@ class OsobniUdajeTabulka
     Uzivatel|null $uzivatel,
     bool $op = true,
     bool $programOdkaz = false,
+    bool $zobrazStav = true,
   ) {
     if (!$uzivatel)
       return "";
+      
+    $ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
+    $err  = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
+
     $x = new XTemplate(__DIR__ . '/osobni_udaje.xtpl');
 
     // form s osobními údaji
     $udaje         = $op ? OsobniUdajeTabulka::$udajeSOp : OsobniUdajeTabulka::$udaje;
     $r             = dbOneLine('SELECT ' . implode(',', array_keys($udaje)) . ' FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uzivatel->id());
     $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
-
+    
     foreach ($udaje as $sloupec => $nazev) {
       $hodnota = $r[$sloupec];
       if ($sloupec === Sql::OP) {
         $hodnota = $uzivatel->cisloOp(); // desifruj cislo obcanskeho prukazu
       }
+      if ($zobrazStav) {
+        $chybi = (trim((string)$hodnota ?? '')) === '';
+        $x->assign('stavIkona', $chybi ? $err : '');
+        $x->parse('udaje.udaj.stav');
+      }
+
       $zobrazenaHodnota = $hodnota;
       $vstupniHodnota   = $hodnota;
       $vyber            = [];
@@ -97,6 +115,34 @@ class OsobniUdajeTabulka
       } else {
         $x->parse('udaje.udaj.input');
       }
+      $x->parse('udaje.udaj');
+    }
+
+    if ($op) {
+      $sloupec = 'kontrola';
+      $nazev = 'kontrola';
+
+      $hodnota = $uzivatel->maZkontrolovaneUdaje();
+
+      $zobrazenaHodnota = $hodnota ? $ok : $err;
+
+      if ($zobrazStav) {
+        $x->assign('stavIkona', $hodnota ? '' : $err);
+        $x->parse('udaje.udaj.stav');
+      }
+
+      $checked = $hodnota ? 'checked' : '';
+
+      $x->assign([
+        'nazev'            => $nazev,
+        'sloupec'          => $sloupec,
+        'zobrazenaHodnota' => $zobrazenaHodnota,
+        'checked'          => $checked,
+      ]);
+      $x->parse('udaje.udaj.nazevBezPopisku');
+
+      $x->parse('udaje.udaj.checkbox');
+
       $x->parse('udaje.udaj');
     }
 

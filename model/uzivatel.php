@@ -597,16 +597,6 @@ SQL,
         return $this->odeberRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
     }
 
-    public function maBalicek(int $rocnik = null): bool
-    {
-        return $this->maRoli(Role::dostalBalicek($rocnik ?? $this->systemoveNastaveni->rocnik()));
-    }
-
-    public function dejBalicek(Uzivatel $editor)
-    {
-        $this->pridejRoli(Role::DOSTAL_BALICEK_NA_LETOSNIM_GC, $editor);
-    }
-
     /**
      * Nastaví nové heslo (pouze setter)
      */

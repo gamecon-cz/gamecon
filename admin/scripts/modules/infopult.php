@@ -23,7 +23,7 @@ use Gamecon\Web\Info;
  */
 
 require_once __DIR__ . '/_submoduly/ubytovani_tabulka.php';
-require_once __DIR__ . '/_submoduly/osobni_udaje.php';
+require_once __DIR__ . '/_submoduly/osobniUdaje/osobni_udaje.php';
 
 $ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
@@ -99,7 +99,6 @@ if ($uPracovni) {
         'orgA'            => $u->koncovkaDlePohlavi(),
         'poznamka'        => $uPracovni->poznamka(),
         'ubytovani'       => $uPracovni->shop()->dejPopisUbytovani(),
-        'udajeChybiAttr'  => 'href="uzivatel"',
         'balicek'         => $uPracovni->balicekHtml(),
         'prehledPredmetu' => $uPracovni->finance()->prehledHtml(
             $typyProPrehled,
@@ -110,25 +109,17 @@ if ($uPracovni) {
 
     $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
     $chybejiciUdaje       = $uPracovni->chybejiciUdaje(Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani));
-    $x->assign(
-        'udajeChybiText',
-        count($chybejiciUdaje) > 0
-            ? $err . ' chybí osobní údaje: <ul style="font-size: smaller">' . implode('', array_map(static fn(string $nazevUdaje) => '<li><i>' . mb_strtolower($nazevUdaje) . '</i></li>', $chybejiciUdaje)) . '</ul>'
-            : $ok . ' osobní údaje kompletní',
-    );
+    $udajeZkontrolovane   = $uPracovni->maZkontrolovaneUdaje();
 
-    if ($maObjednaneUbytovani) {
-        $zkontrolovaneOsobniUdaje = $uPracovni->maZkontrolovaneUdaje();
-        if ($zkontrolovaneOsobniUdaje) {
-            $x->assign('kontrolaOsobnichUdajuAttr', 'checked');
-        }
-        $x->assign('kontrolaOsobnichUdajuText',
-            $zkontrolovaneOsobniUdaje
-                ? $ok . ' Osobní údaje oveřené'
-                : $err . ' Zkontrolovat osobní údaje',
-        );
-        $x->parse('infopult.uzivatel.kontrolaOsobnichUdaju');
+    $udajeStav = '';
+    if (count($chybejiciUdaje) > 0) {
+        $udajeStav = $err . ' chybí osobní údaje';
+    } else if ($maObjednaneUbytovani && !$udajeZkontrolovane) {
+        $udajeStav = $err . ' zkontrolovat údaje';
+    } else {
+        $udajeStav = $ok . ' údaje v pořádku';
     }
+    $x->assign('udajeStav', $udajeStav);
 
     if ($uPracovni->finance()->stav() < 0 && !$uPracovni->gcPritomen()) {
         $x->parse('infopult.upoMaterialy');
@@ -198,12 +189,6 @@ if ($uPracovni) {
                 true,
             ),
         );
-
-        if ($uPracovni->maBalicek()) {
-            $x->parse('infopult.uzivatel.balicekVydan');
-        } else {
-            $x->parse('infopult.uzivatel.balicekTlacitko');
-        }
     }
 
     if ($systemoveNastaveni->gcBezi()) {
@@ -248,11 +233,11 @@ if ($uPracovni) {
     $x->parse('infopult.uzivatel');
 } else {
     $x->parse('infopult.neUzivatel');
-    $x->parse('infopult.prodejAnonymni');
 }
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
-$o        = dbQuery(<<<SQL
+$o        = dbQuery(
+    <<<SQL
   SELECT
     CONCAT(nazev,' ',model_rok) as nazev,
     kusu_vyrobeno-count(n.id_predmetu) as zbyva,

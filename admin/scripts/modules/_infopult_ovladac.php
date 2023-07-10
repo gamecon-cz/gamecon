@@ -126,31 +126,6 @@ if (!empty($_POST['telefon']) && $uPracovni) {
     back();
 }
 
-if (!empty($_POST['prodej'])) {
-    $prodej = $_POST['prodej'];
-    unset($prodej['odeslano']);
-    $prodej['id_uzivatele'] = $uPracovni ? $uPracovni->id() : Uzivatel::SYSTEM;
-    for ($kusu = $prodej['kusu'] ?? 1, $i = 1; $i <= $kusu; $i++) {
-        dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum)
-  VALUES (' . $prodej['id_uzivatele'] . ',' . $prodej['id_predmetu'] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $prodej['id_predmetu'] . '),NOW())');
-    }
-    $idPredmetu    = (int)$prodej['id_predmetu'];
-    $nazevPredmetu = dbOneCol(
-        <<<SQL
-      SELECT nazev FROM shop_predmety
-      WHERE id_predmetu = $idPredmetu
-      SQL,
-    );
-    $yu            = '';
-    if ($kusu >= 5) {
-        $yu = 'ů';
-    } else if ($kusu > 1) {
-        $yu = 'y';
-    }
-    oznameni("Prodáno $kusu kus$yu $nazevPredmetu");
-    back();
-}
-
 // TODO: mělo by být obsaženo v modelové třídě
 function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac): int
 {
@@ -162,11 +137,6 @@ function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkov
         chyba('Došlo k neočekávané chybě.');
         return 0;
     }
-}
-
-if ($uPracovni && post('vydatBalicek')) {
-    $uPracovni->dejBalicek($u);
-    back();
 }
 
 /* Editace v kartě Pŕehled */
