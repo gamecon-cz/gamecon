@@ -13,6 +13,7 @@ use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\Exceptions\HromadneOdhlasovaniJePrilisBrzyPoVlne;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJeBrzy;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJePozde;
 use Chyba;
@@ -76,7 +77,7 @@ class HromadneOdhlaseniNeplaticu
                         zdrojOdhlaseni: $zdrojOdhlaseni,
                         odhlasujici: $uzivatelSystem,
                         zaznamnik: $zaznamnik,
-                        odeslatMailPokudSeNeodhlasilSam: true
+                        odeslatMailPokudSeNeodhlasilSam: true,
                     );
                     $zaznamnik?->pridejEntitu($neplatic);
                     $this->odhlasenoCelkem++;
@@ -256,13 +257,17 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
 
         $nejblizsiVlnaKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
         if ($nejblizsiHromadneOdhlasovaniKdy >= $nejblizsiVlnaKdy) {
-            throw new NaHromadneOdhlasovaniJePozde(
-                sprintf(
-                    "Nejbližší vlna aktivit už začala v '%s', nemůžeme začít hromadně odhlašovat k okamžiku '%s'",
-                    $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
-                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
-                )
-            );
+            $tydenPoVlne = (clone $nejblizsiVlnaKdy)->modify('+1 week');
+            if ($nejblizsiHromadneOdhlasovaniKdy < $tydenPoVlne) {
+                throw new HromadneOdhlasovaniJePrilisBrzyPoVlne(
+                    sprintf(
+                        "Nejbližší vlna aktivit už začala v '%s', hromadně odhlašovat můžeme až od '%s', ne k okamžiku '%s'",
+                        $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
+                        $tydenPoVlne->format(DateTimeCz::FORMAT_DB),
+                        $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
+                    )
+                );
+            }
         }
 
         foreach ($this->uzivateleKeKontrole() as $uzivatel) {
