@@ -741,9 +741,9 @@ SQL;
             : null;
     }
 
-    public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon
+    public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null, bool $overovatDatumZpetne = true): DateTimeGamecon
     {
-        return DateTimeGamecon::nejblizsiVlnaKdy($this, $platnostZpetneKDatu);
+        return DateTimeGamecon::nejblizsiVlnaKdy($this, $platnostZpetneKDatu, $overovatDatumZpetne);
     }
 
     public function databazoveNastaveni(): DatabazoveNastaveni

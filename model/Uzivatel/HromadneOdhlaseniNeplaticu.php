@@ -255,7 +255,7 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
             );
         }
 
-        $nejblizsiVlnaKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
+        $nejblizsiVlnaKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu, false);
         if ($nejblizsiHromadneOdhlasovaniKdy >= $nejblizsiVlnaKdy) {
             $tydenPoVlne = (clone $nejblizsiVlnaKdy)->modify('+1 week');
             if ($nejblizsiHromadneOdhlasovaniKdy < $tydenPoVlne) {
