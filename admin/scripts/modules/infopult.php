@@ -191,7 +191,7 @@ if ($uPracovni) {
         );
     }
 
-    if ($systemoveNastaveni->gcBezi()) {
+    if ($u->jeInfopultak() && !$u->maRoliSefInfopultu()) {
         $zpravyProPotvrzeniZruseniPrace = [];
         $a                              = $uPracovni->koncovkaDlePohlavi();
         if (!$uPracovni->gcPritomen()) {
