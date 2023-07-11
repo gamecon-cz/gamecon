@@ -22,6 +22,11 @@ class Predmet extends \DbObject
         return mb_stripos($nazev, 'Placka') !== false;
     }
 
+    public static function jeToTaska(string $nazev): bool
+    {
+        return mb_stripos($nazev, 'Taška') !== false;
+    }
+
     public static function jeToModre(string $nazev): bool
     {
         return mb_stripos($nazev, 'modré') !== false;
