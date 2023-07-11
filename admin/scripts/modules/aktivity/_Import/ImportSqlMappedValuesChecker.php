@@ -396,7 +396,7 @@ SQL
         $requiredFieldsAcceptingZero = [
             ActivitiesImportSqlColumn::CENA,
             ActivitiesImportSqlColumn::BEZ_SLEVY,
-            ActivitiesImportSqlColumn::NEDAVA_SLEVU,
+            ActivitiesImportSqlColumn::NEDAVA_BONUS,
             ActivitiesImportSqlColumn::KAPACITA,
             ActivitiesImportSqlColumn::KAPACITA_F,
             ActivitiesImportSqlColumn::KAPACITA_M,
