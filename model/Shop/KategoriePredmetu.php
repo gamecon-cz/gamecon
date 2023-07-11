@@ -16,6 +16,7 @@ class KategoriePredmetu
     public const NICKNACK   = 6;
     public const PONOZKY    = 7;
     public const COVID_TEST = 8;
+    public const TASKA      = 10;
 
     public static function kategoriePodleNazvu(string $nazev): ?int
     {
@@ -43,6 +44,9 @@ class KategoriePredmetu
         }
         if (stripos($nazevZjednoduseny, 'covid') !== false) {
             return self::COVID_TEST;
+        }
+        if (stripos($nazevZjednoduseny, 'taska') !== false) {
+            return self::TASKA;
         }
         return null;
     }
