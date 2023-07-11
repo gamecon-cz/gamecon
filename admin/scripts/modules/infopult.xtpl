@@ -260,7 +260,7 @@
           <td colspan="2">
             Zrušit jiné ubytování než neděli může pouze šéf Infa.
           </td>
-        </tr>         
+        </tr>
           <td colspan="2">{ubytovaniTabulka}</td>
         </tr>
       </table>
@@ -369,7 +369,7 @@
 
 <!-- begin:potvrditZruseniPrace -->
 <script>
-  $('#zrusit').submit(function () {
+  $('#zrusitUzivateleProPraci').submit(function () {
     return confirm('{zpravaProPotvrzeniZruseniPrace}')
   })
 </script>
