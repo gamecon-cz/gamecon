@@ -14,6 +14,7 @@
     <!-- begin:vybrany -->
     <div class="levy">
         <img alt="avatar" class="avatar" src="{uPracovni.avatar}">
+        <!-- Zmněnu ID formu je nutné provést i v admin/scripts/modules/infopult.xtpl kvůli potvrzení zrušení práce s dlužníkem a podobnými černými ovcemi -->
         <form method="post" id="zrusitUzivateleProPraci">
             <input type="hidden" name="zrusitUzivateleProPraci" value="1">
             <input type="submit" value="z̲rušit">
