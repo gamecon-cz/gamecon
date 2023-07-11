@@ -109,7 +109,7 @@ WHERE uzivatele_hodnoty.id_uzivatele IN (
     WHERE sn.rok = $rok
 )
 GROUP BY uzivatele_hodnoty.id_uzivatele
-ORDER BY count_typu_predmetu DESC
+ORDER BY uzivatele_hodnoty.id_uzivatele
 SQL
 );
 
