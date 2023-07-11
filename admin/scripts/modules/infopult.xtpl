@@ -373,7 +373,7 @@
 
 <!-- begin:potvrditZruseniPrace -->
 <script>
-  $('#zrusit').submit(function () {
+  $('#zrusitUzivateleProPraci').submit(function () {
     return confirm('{zpravaProPotvrzeniZruseniPrace}')
   })
 </script>
