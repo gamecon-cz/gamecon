@@ -352,62 +352,20 @@
 
 <div class="aBox grid">
   <h3>Rychloregistrace</h3>
-  Všechny položky povinné<br>
   <form method="post">
-    <table>
-      <tr>
-        <td>Jméno&nbsp;a&nbsp;příjm.:</td>
-        <td>
-          <table class="cista">
-            <tr>
-              <td style="padding-right: 5px"><input type="text" name="rychloreg[jmeno_uzivatele]"></td>
-              <td><input type="text" name="rychloreg[prijmeni_uzivatele]"></td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      <tr>
-        <td>E-mail:</td>
-        <td><input type="text" name="rychloreg[email1_uzivatele]"></td>
-      </tr>
-      <tr>
-        <td>Pohlaví:</td>
-        <td>
-          <label><input type="radio" name="rychloreg[pohlavi]" value="m">muž</label> &emsp;
-          <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="2"><label>
-          Informovat e-mailem o registraci <input type="checkbox" name="informovat" checked>
-        </label></td>
-      </tr>
-      <tr>
-        <td colspan="2"><label>
-          Neposílat novinky e-mailem <input type="checkbox" name="rychloreg[nechce_maily]" unchecked>
-        </label></td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <input type="submit" value="Jen registrovat" class="submit-btn">
-          <!-- begin: prihlasitNaGc -->
-          <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC" class="submit-btn">
-          <!-- end: prihlasitNaGc -->
-        </td>
-      </tr>
-    </table>
+      <input type="hidden" name="rychloregistrace" value="1">
+      <table>
+          <tbody>
+          <tr>
+              <td>
+                  <input type="submit" value="Jen registrovat" class="submit-btn">
+              </td>
+          </tr>
+          </tbody>
+      </table>
   </form>
-  <script>
-    $('form').last().on('submit', function () {
-      if ($(this).find('[name="rychloreg[email1_uzivatele]"]').val() == '' || $(this).find('[name="rychloreg[pohlavi]"]:checked').length == 0) {
-        alert('všechny položky jsou povinné')
-        return false
-      }
-    })
-  </script>
 </div>
 <!-- end:rychloregistrace -->
-
 
 <!-- begin:potvrditZruseniPrace -->
 <script>

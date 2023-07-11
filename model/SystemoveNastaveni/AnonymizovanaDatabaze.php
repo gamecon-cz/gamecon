@@ -143,7 +143,9 @@ class AnonymizovanaDatabaze
                     potvrzeni_zakonneho_zastupce = null,
                     potvrzeni_proti_covid19_pridano_kdy = null,
                     potvrzeni_proti_covid19_overeno_kdy = null,
-                    infopult_poznamka = ''
+                    infopult_poznamka = '',
+                    typ_dokladu_totoznosti = '',
+                    statni_obcanstvi = null
                 WHERE TRUE
             SQL,
         );
@@ -201,7 +203,7 @@ INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
         op ='',
         potvrzeni_zakonneho_zastupce = NULL,
         potvrzeni_proti_covid19_pridano_kdy = NULL,
-        potvrzeni_proti_covid19_overeno_kdy=NULL,
+        potvrzeni_proti_covid19_overeno_kdy = NULL,
         infopult_poznamka= ''
 SQL,
         );

@@ -63,6 +63,10 @@ RUN usermod --home /home/www-data --shell /bin/bash www-data \
 
 USER www-data
 
+RUN curl -sS https://get.symfony.com/cli/installer | bash \
+    && SYMFONY_BIN_DIR_PATH=$(ls -d /home/www-data/.symfony*/bin | tail -n 1) \
+    && export PATH="$SYMFONY_BIN_DIR_PATH:$PATH"
+
 RUN mkdir -p /home/www-data/bin \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/home/www-data/bin --filename=composer \
     && chmod +x /home/www-data/bin/composer \

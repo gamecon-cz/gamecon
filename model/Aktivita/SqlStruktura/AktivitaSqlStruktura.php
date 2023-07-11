@@ -19,9 +19,9 @@ class AktivitaSqlStruktura
     public const KAPACITA_F    = 'kapacita_f';
     public const KAPACITA_M    = 'kapacita_m';
     public const CENA          = 'cena';
-    public const BEZ_SLEVY     = 'bez_slevy';
-    public const NEDAVA_SLEVU  = 'nedava_slevu';
-    public const TYP           = 'typ';
+    public const BEZ_SLEVY    = 'bez_slevy';
+    public const NEDAVA_BONUS = 'nedava_bonus';
+    public const TYP          = 'typ';
     public const DITE          = 'dite';
     public const ROK           = 'rok';
     public const STAV          = 'stav';

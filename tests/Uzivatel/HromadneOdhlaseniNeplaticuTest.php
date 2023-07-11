@@ -13,6 +13,7 @@ use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\Exceptions\HromadneOdhlasovaniJePrilisBrzyPoVlne;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJeBrzy;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJePozde;
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
@@ -409,7 +410,7 @@ SQL;
 
         $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
-        self::expectException(NaHromadneOdhlasovaniJePozde::class);
+        self::expectException(HromadneOdhlasovaniJePrilisBrzyPoVlne::class);
 
         $generator = $hromadneOdhlaseniNeplaticu->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy);
         $generator->next();
@@ -428,7 +429,7 @@ SQL;
             {
             }
 
-            public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon
+            public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null, bool $overovatDatumZpetne = true): DateTimeGamecon
             {
                 return $this->nejblizsiVlnaKdy;
             }
@@ -472,7 +473,7 @@ SQL;
             ->modify('-1 second');
         $ted                             = new DateTimeImmutableStrict();
         $systemoveNastaveni              = $this->dejSystemoveNastaveniSNejblizsiVlnou($nejblizsiVlnaOdhlasovani);
-        $platnostZpetneKDatu             ??= $ted->modify('-1 day');
+        $platnostZpetneKDatu             = $ted->modify('-1 day');
 
         self::assertGreaterThan(
             $systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu),
@@ -482,7 +483,7 @@ SQL;
 
         $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
-        self::expectException(NaHromadneOdhlasovaniJePozde::class);
+        self::expectException(HromadneOdhlasovaniJePrilisBrzyPoVlne::class);
         $generator = $hromadneOdhlaseniNeplaticu->neplaticiAKategorie(
             $nejblizsiHromadneOdhlasovaniKdy,
             $platnostZpetneKDatu,
