@@ -370,7 +370,7 @@
 <!-- begin:potvrditZruseniPrace -->
 <script>
   $('#zrusitUzivateleProPraci').submit(function () {
-    return confirm('{zpravaProPotvrzeniZruseniPrace}')
+    return confirm({zpravaProPotvrzeniZruseniPrace})
   })
 </script>
 <!-- end:potvrdZruseniPrace -->
