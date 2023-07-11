@@ -32,9 +32,9 @@ class Aktivita
 
     use PrednacitaniTrait;
 
-    private static $objekty                      = [];
-    private static $prihlaseniNaAktivityRawCache = [];
-    private static ?array $seznamUcastnikuCache = null;
+    private static        $objekty                      = [];
+    private static        $prihlaseniNaAktivityRawCache = [];
+    private static ?array $seznamUcastnikuCache         = null;
 
     private                    $a;              // databázový řádek s aktivitou
     private                    $kolekce;        // nadřízená kolekce, v rámci které byla aktivita načtena
@@ -229,7 +229,7 @@ SQL
      */
     public function bezSlevy(): bool
     {
-        return (bool)$this->a['bez_slevy'];
+        return (bool)$this->a[Sql::BEZ_SLEVY];
     }
 
     /**
@@ -494,7 +494,7 @@ SQL
         );
         $detiIds = $aktivita ? $aktivita->detiIds() : [];
         while ($mozneDiteData = mysqli_fetch_assoc($q)) {
-            $mozneDiteId = $mozneDiteData['id_akce'];
+            $mozneDiteId = $mozneDiteData[Sql::ID_AKCE];
             $xtpl->assign(
                 'selected',
                 in_array($mozneDiteId, $detiIds, false) ? 'selected' : '',
@@ -525,7 +525,7 @@ SQL
             [$aktivita ? $aktivita->id() : null, ROCNIK],
         );
         while ($moznyRodicData = mysqli_fetch_assoc($q)) {
-            $moznyRodicId = $moznyRodicData['id_akce'];
+            $moznyRodicId = $moznyRodicData[Sql::ID_AKCE];
             $moznyRodic   = Aktivita::zId($moznyRodicId, true);
             $xtpl->assign(
                 'selected',
@@ -840,10 +840,10 @@ SQL
         int     $odmenaZaHodinu = null,
     ): Aktivita
     {
-        $data['bez_slevy']    = (int)!empty($data['bez_slevy']); // checkbox pro "bez_slevy"
-        $data['nedava_slevu'] = (int)!empty($data['nedava_slevu']); // checkbox pro "nedava_slevu"
-        $data['cena']         = (int)($data['cena'] ?? 0);
-        if (empty($data['popis']) && empty($data['id_akce'])) {
+        $data[Sql::BEZ_SLEVY]    = (int)!empty($data[Sql::BEZ_SLEVY]); // checkbox pro "bez_slevy"
+        $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
+        $data[Sql::CENA]         = (int)($data[Sql::CENA] ?? 0);
+        if (empty($data['popis']) && empty($data[Sql::ID_AKCE])) {
             $data['popis'] = 0; // uložíme později jako jako $markdownPopis,teď jenom vyřešíme "Field 'popis' doesn't have a default value"
         }
 
@@ -872,21 +872,21 @@ SQL
             if ($trvaniVSekundach) {
                 $trvaniVHodinach = (int)round($trvaniVSekundach / 3600);
                 if ($trvaniVHodinach > 0) {
-                    $data['cena'] = $odmenaZaHodinu * $trvaniVHodinach;
+                    $data[Sql::CENA] = $odmenaZaHodinu * $trvaniVHodinach;
                 }
             }
         }
 
         // uložení změn do akce_seznam
-        if (empty($data['patri_pod']) && !empty($data['id_akce'])) {
+        if (empty($data['patri_pod']) && !empty($data[Sql::ID_AKCE])) {
             // editace jediné aktivity
             dbInsertUpdate('akce_seznam', $data);
-            $aktivita = self::zId($data['id_akce']);
+            $aktivita = self::zId($data[Sql::ID_AKCE]);
         } else if (!empty($data['patri_pod'])) {
             // editace aktivity z rodiny instancí
             $doHlavni   = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
             $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
-            $aktivita   = self::zId($data['id_akce']); // instance už musí existovat
+            $aktivita   = self::zId($data[Sql::ID_AKCE]); // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
                 $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
                 unset($data[ActivitiesImportSqlColumn::STAV]); // stav se může měnit jenom u jedné instance
@@ -898,19 +898,19 @@ SQL
             unset($data['patri_pod']);
             // změny v hlavní aktivitě
             $zmenyHlavni            = array_diff_key($data, array_flip($doAktualni));
-            $zmenyHlavni['id_akce'] = $idHlavni;
+            $zmenyHlavni[Sql::ID_AKCE] = $idHlavni;
             dbInsertUpdate('akce_seznam', $zmenyHlavni);
             // změny v konkrétní instanci
             $zmenyAktualni = array_diff_key($data, array_flip($doHlavni));
             dbInsertUpdate('akce_seznam', $zmenyAktualni);
             // změny u všech
             $zmenyVse = array_diff_key($data, array_flip(array_merge($doHlavni, $doAktualni)));
-            unset($zmenyVse['patri_pod'], $zmenyVse['id_akce']); // id se nesmí updatovat!
+            unset($zmenyVse['patri_pod'], $zmenyVse[Sql::ID_AKCE]); // id se nesmí updatovat!
             dbUpdate('akce_seznam', $zmenyVse, ['patri_pod' => $patriPod]);
         } else {
             // vkládání nové aktivity
             // inicializace hodnot pro novou aktivitu
-            $data['id_akce'] = null;
+            $data[Sql::ID_AKCE] = null;
             $data['rok']     = ROCNIK;
             if ($data['teamova']) $data['kapacita'] = $data['team_max'] ?? 0; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
             if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(bez názvu)';
@@ -919,8 +919,8 @@ SQL
             }
             // vložení
             dbInsertUpdate('akce_seznam', $data);
-            $data['id_akce'] = dbInsertId();
-            $aktivita        = self::zId($data['id_akce']);
+            $data[Sql::ID_AKCE] = dbInsertId();
+            $aktivita        = self::zId($data[Sql::ID_AKCE]);
             $aktivita->nova  = true;
         }
 
@@ -938,7 +938,7 @@ SQL
 
     public function id(): int
     {
-        return (int)$this->a['id_akce'];
+        return (int)$this->a[Sql::ID_AKCE];
     }
 
     /**
@@ -1015,7 +1015,7 @@ SQL
         $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce=' . $this->id());
         //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
         //stav se vloží implicitní hodnota v DB
-        unset($akt['id_akce'], $akt['url_akce'], $akt['stav'], $akt['zamcel']);
+        unset($akt[Sql::ID_AKCE], $akt['url_akce'], $akt['stav'], $akt['zamcel']);
         $akt['vybaveni'] = '';
         if ($akt['teamova']) {
             $akt['kapacita'] = $akt['team_max'];
@@ -1178,7 +1178,7 @@ SQL
                 SQL,
         );
         $idsUcasnikuPodleAkceAStavu = [];
-        foreach ($data as ['id_akce' => $idAktivity, 'id_uzivatele' => $idUzivatele, 'id_stavu_prihlaseni' => $idStavuPrilaseni]) {
+        foreach ($data as [Sql::ID_AKCE => $idAktivity, 'id_uzivatele' => $idUzivatele, 'id_stavu_prihlaseni' => $idStavuPrilaseni]) {
             $idsUcasnikuPodleAkceAStavu[$idAktivity][$idStavuPrilaseni][] = $idUzivatele;
         }
         $seznamUcastniku = [];
@@ -1204,7 +1204,7 @@ SQL
      */
     public function nedavaSlevu(): bool
     {
-        return (bool)$this->a['nedava_slevu'];
+        return $this->nedavaBonus();
     }
 
     /**
@@ -1212,7 +1212,7 @@ SQL
      */
     public function nedavaBonus()
     {
-        return $this->nedavaSlevu();
+        return (bool)$this->a[Sql::NEDAVA_BONUS];
     }
 
     /**
@@ -1558,7 +1558,7 @@ SQL
         if ($this->a['patri_pod']) {
             dbUpdate('akce_seznam', ['popis' => $id], ['patri_pod' => $this->a['patri_pod']]);
         } else {
-            dbUpdate('akce_seznam', ['popis' => $id], ['id_akce' => $this->id()]);
+            dbUpdate('akce_seznam', ['popis' => $id], [Sql::ID_AKCE => $this->id()]);
         }
         $this->a['popis'] = $id;
         dbTextClean($oldId);
@@ -1814,7 +1814,7 @@ SQL
         dbUpdate(
             'akce_seznam',
             ['zamcel' => $zamykajici->id(), 'zamcel_cas' => dbNow()],
-            ['id_akce' => $this->id()],
+            [Sql::ID_AKCE => $this->id()],
         );
         $this->a['zamcel'] = (string)$zamykajici->id();
     }
@@ -2262,7 +2262,7 @@ HTML
                 'team_nazev' => $nazevTymu ?: null,
                 'kapacita'   => $pocetMist ?: dbNoChange(),
             ], [
-                'id_akce' => $this->id(),
+                Sql::ID_AKCE => $this->id(),
             ]);
 
             $this->refresh();
@@ -3448,7 +3448,7 @@ SQL,
             $aktivita->stav   = $r['stav'];
 
             $aktivita->kolekce                = &$kolekce;
-            $aktivita->kolekce[$r['id_akce']] = $aktivita;
+            $aktivita->kolekce[$r[Sql::ID_AKCE]] = $aktivita;
         }
 
         return array_values($kolekce);
