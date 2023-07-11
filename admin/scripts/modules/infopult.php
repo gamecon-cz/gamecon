@@ -193,18 +193,22 @@ if ($uPracovni) {
 
     if ($systemoveNastaveni->gcBezi()) {
         $zpravyProPotvrzeniZruseniPrace = [];
+        $a                              = $uPracovni->koncovkaDlePohlavi();
         if (!$uPracovni->gcPritomen()) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'nedostal materiály';
+            $zpravyProPotvrzeniZruseniPrace[] = "nedostal{$a} materiály";
         }
         if ($uPracovni->finance()->stav() < 0) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'má záporný zůstatek';
+            $zpravyProPotvrzeniZruseniPrace[] = 'má nedoplatek';
         }
         if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
             $zpravyProPotvrzeniZruseniPrace[] = 'nemá potvrzení od rodičů';
         }
+        $ucastnikNazev = $uPracovni->jeMuz()
+            ? 'Účastník'
+            : 'Účastnice';
         foreach ($zpravyProPotvrzeniZruseniPrace as $zpravaProPotvrzeniZruseniPrace) {
             $x->assign([
-                'zpravaProPotvrzeniZruseniPrace' => "Uživatel {$zpravaProPotvrzeniZruseniPrace}. Přesto ukončit práci s uživatelem?",
+                'zpravaProPotvrzeniZruseniPrace' => "{$ucastnikNazev} {$zpravaProPotvrzeniZruseniPrace}. Přesto ukončit práci s uživatelem?",
             ]);
             $x->parse('infopult.potvrditZruseniPrace');
         }
