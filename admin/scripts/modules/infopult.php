@@ -215,12 +215,15 @@ if ($uPracovni) {
         if (!$udajeZkontrolovane) {
             $zpravyProPotvrzeniZruseniPrace[] = 'nemá zkontrolované osobní údaje';
         }
-        $ucastnikNazev = $uPracovni->jeMuz()
-            ? 'Účastník'
-            : 'Účastnice';
-        foreach ($zpravyProPotvrzeniZruseniPrace as $zpravaProPotvrzeniZruseniPrace) {
+        if ($zpravyProPotvrzeniZruseniPrace !== []) {
+            $zpravyProPotvrzeniZruseniPrace     = array_map(static fn(string $zprava) => "- $zprava", $zpravyProPotvrzeniZruseniPrace);
+            $zpravyProPotvrzeniZruseniPraceText = implode("\n", $zpravyProPotvrzeniZruseniPrace);
+            $ucastnikNazev                      = $uPracovni->jeMuz()
+                ? 'Účastník'
+                : 'Účastnice';
             $x->assign([
-                'zpravaProPotvrzeniZruseniPrace' => "{$ucastnikNazev} {$zpravaProPotvrzeniZruseniPrace}. Přesto ukončit práci s uživatelem?",
+                // json_encode kvůli JS error "SyntaxError: '' string literal contains an unescaped line break"
+                'zpravaProPotvrzeniZruseniPrace' => json_encode("{$ucastnikNazev}\n{$zpravyProPotvrzeniZruseniPraceText}.\nPřesto ukončit práci s uživatelem?"),
             ]);
             $x->parse('infopult.potvrditZruseniPrace');
         }
