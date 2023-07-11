@@ -195,13 +195,19 @@ if ($uPracovni) {
         $zpravyProPotvrzeniZruseniPrace = [];
         $a                              = $uPracovni->koncovkaDlePohlavi();
         if (!$uPracovni->gcPritomen()) {
-            $zpravyProPotvrzeniZruseniPrace[] = "nedostal{$a} materiály";
+            $zpravyProPotvrzeniZruseniPrace[] = "nemá potvrzeno že přijel{$a} a že dostal{$a} materiály";
         }
         if ($uPracovni->finance()->stav() < 0) {
             $zpravyProPotvrzeniZruseniPrace[] = 'má nedoplatek';
         }
         if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
             $zpravyProPotvrzeniZruseniPrace[] = 'nemá potvrzení od rodičů';
+        }
+        if (count($chybejiciUdaje) > 0) {
+            $zpravyProPotvrzeniZruseniPrace[] = 'nemá kompletní osobní údaje';
+        }
+        if (!$udajeZkontrolovane) {
+            $zpravyProPotvrzeniZruseniPrace[] = 'nemá zkontrolované osobní údaje';
         }
         $ucastnikNazev = $uPracovni->jeMuz()
             ? 'Účastník'
