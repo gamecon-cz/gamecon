@@ -17,7 +17,6 @@
         <form method="post" id="zrusitUzivateleProPraci">
             <input type="hidden" name="zrusitUzivateleProPraci" value="1">
             <input type="submit" value="z̲rušit">
-            <!-- todo záporný zůstatek -->
         </form>
     </div>
 
