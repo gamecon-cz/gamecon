@@ -112,7 +112,7 @@ if ($uPracovni) {
 if ($uPracovni) {
     $x->assign(
         'udajeHtml',
-        OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, programOdkaz: true, zobrazStav: false)
+        OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, programOdkaz: true, kontrolaStavu: false)
     );
     $x->parse('uzivatel.udaje');
 }
