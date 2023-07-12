@@ -14,9 +14,7 @@ if (post('zmenitUdaj') && $uPracovni) {
         unset($udaje['op']);
     }
     if (isset($udaje['kontrola'])) {
-        $uPracovni->nastavZkontrolovaneUdaje(
-            $u, (bool)$udaje['kontrola']
-        );
+        $uPracovni->nastavZkontrolovaneUdaje($u, (bool)$udaje['kontrola']);
         unset($udaje['kontrola']);
     }
     try {
@@ -35,5 +33,16 @@ if (post('zmenitUdaj') && $uPracovni) {
     }
 
     $uPracovni->otoc();
+
+    if ($uPracovni->maZkontrolovaneUdaje()) {
+        $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+        $chybejiciUdaje       = $uPracovni->chybejiciUdaje(Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani));
+        if (count($chybejiciUdaje) > 0) {
+            $uPracovni->nastavZkontrolovaneUdaje($u, false);
+            $uPracovni->uloz();
+            varovani('Uživatel nemá kompletní údaje. Potvrzení že měl údaje zkontrolované bylo zrušeno. Oprav údaje a zkontroluj je znovu.');
+        }
+    }
+
     back();
 }
