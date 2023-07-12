@@ -3,7 +3,7 @@
 <div class="aBox">
     <h3>Importér ubytování</h3>
     Přepíše kompletně letošní údaje o ubytování.
-    Jako soubor slouží <a href="{baseUrl}/reporty/{ubytovaniReport}"><em>Report ubytování</em> ve formátu XLSX</a>.
+    Jako zdrojový soubor slouží <a href="{baseUrl}/reporty/{ubytovaniReport}"><em>Report ubytování</em> ve formátu XLSX</a>.
     <br><br>
     <form method="post" enctype="multipart/form-data">
         <input type="file" name="{souborInputName}"> <input type="submit" name="pokojeImport" value="Nahrát">
