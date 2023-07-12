@@ -26,6 +26,9 @@ use Gamecon\Stat;
  */
 class Uzivatel extends DbObject
 {
+    protected static $tabulka = Sql::UZIVATEL_TABULKA;
+    protected static $pk      = Sql::ID_UZIVATELE;
+
     public const POSAZEN = 'posazen';
     public const SESAZEN = 'sesazen';
 

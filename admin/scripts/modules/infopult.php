@@ -113,11 +113,17 @@ if ($uPracovni) {
 
     $udajeStav = '';
     if (count($chybejiciUdaje) > 0) {
-        $udajeStav = $err . ' chybí osobní údaje';
-    } else if ($maObjednaneUbytovani && !$udajeZkontrolovane) {
-        $udajeStav = $err . ' zkontrolovat údaje';
+        $udajeStav = $err . ' chybí údaje';
     } else {
-        $udajeStav = $ok . ' údaje v pořádku';
+        if ($maObjednaneUbytovani) {
+            if (!$udajeZkontrolovane) {
+                $udajeStav = $err . ' zkontrolovat údaje';
+            } else {
+                $udajeStav = $ok . ' údaje v pořádku';
+            }
+        } else {
+            $udajeStav = $ok . ' údaje kompletní';
+        }
     }
     $x->assign('udajeStav', $udajeStav);
 

@@ -1,18 +1,18 @@
 <!-- begin:infopult -->
 
 <style>
-    .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec {
-        float: left;
-        width: 65px;
-    }
+  .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec {
+    float: left;
+    width: 65px;
+  }
 
-    .shopUbytovani_radek {
-        height: 40px;
-    }
+  .shopUbytovani_radek {
+    height: 40px;
+  }
 
-    .tooltip_obsah {
-        display: none;
-    }
+  .tooltip_obsah {
+    display: none;
+  }
 </style>
 
 
@@ -113,9 +113,10 @@
         </tr>
 
         <tr>
-          <td style="font-size: smaller">Poznámka:</td>
+          <td style="font-size: smaller"><label for="poznamka">Poznámka:</label></td>
           <td>
             <textarea
+                id="poznamka"
                 rows="3"
                 type="area" name="udaje[poznamka]"
                 style="margin-left: -3px; width:100%; resize: vertical;"
@@ -125,20 +126,14 @@
 
         <!-- begin:potvrzeni -->
         <tr>
-          <td>Potvrzení:</td>
+          <td><label for="udaj_potvrzeni">Potvrzení:</label></td>
           <td>
             <input type="checkbox" name="udaje[potvrzeni_zakonneho_zastupce]"
                    style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
             {potvrzeniText}
-            </input>
           </td>
         </tr>
         <!-- end:potvrzeni -->
-
-        <tr>
-          <td>Údaje:</td>
-          <td>{udajeStav}</td>
-        </tr>
 
         <!-- begin:covidSekce -->
         <tr>
@@ -156,10 +151,15 @@
 
         <tr>
           <td colspan="2" class="clearfix">
-                  <button style="margin: 0" type="submit" name="kontrolaOsobnichUdajuSubmit" value="1"
-                          class="submit-btn">uložit
-                  </button>
+            <button style="margin: 0" type="submit" name="kontrolaOsobnichUdajuSubmit" value="1"
+                    class="submit-btn">uložit
+            </button>
           </td>
+        </tr>
+
+        <tr>
+          <td>Údaje:</td>
+          <td>{udajeStav}</td>
         </tr>
 
         <tr>
@@ -176,7 +176,8 @@
           </td>
         </tr>
       </table>
-      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele">Program</a>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;"
+         href="program-uzivatele">Program</a>
       <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni">Program účastníka</a>
     </form>
   </div>
@@ -214,8 +215,8 @@
             </span>:
           </td>
           <td>
-              <input type="text" name="idPohybu" autocomplete="off">
-              <span style="float: right">{htmlTotoSeUkazujePouzeNaTestu}</span>
+            <input type="text" name="idPohybu" autocomplete="off">
+            <span style="float: right">{htmlTotoSeUkazujePouzeNaTestu}</span>
           </td>
         </tr>
         <tr>
@@ -223,8 +224,8 @@
             Datum platby:
           </td>
           <td>
-              <input type="datetime-local" name="provedenoKdy" autocomplete="off">
-              <span style="float: right">{htmlTotoSeUkazujePouzeNaTestu}</span>
+            <input type="datetime-local" name="provedenoKdy" autocomplete="off">
+            <span style="float: right">{htmlTotoSeUkazujePouzeNaTestu}</span>
           </td>
         </tr>
         <!-- end:idFioPohybu -->
@@ -261,7 +262,7 @@
             Zrušit jiné ubytování než neděli může pouze šéf Infa.
           </td>
         </tr>
-          <td colspan="2">{ubytovaniTabulka}</td>
+        <td colspan="2">{ubytovaniTabulka}</td>
         </tr>
       </table>
 
@@ -324,7 +325,9 @@
   <!-- end:uzivatel -->
 
   <div style="width: 100%;" class="infopult-grid--item infopult-grid--item-prodej">
-    <button value="Shop" class="submit-btn" style="width: 100%; height: 60px" onclick="preactMost.obchod.show()">Prodej</button>
+    <button value="Shop" class="submit-btn" style="width: 100%; height: 60px" onclick="preactMost.obchod.show()">
+      Prodej
+    </button>
   </div>
 </div>
 
@@ -353,16 +356,16 @@
 <div class="aBox grid">
   <h3>Rychloregistrace</h3>
   <form method="post">
-      <input type="hidden" name="rychloregistrace" value="1">
-      <table>
-          <tbody>
-          <tr>
-              <td>
-                  <input type="submit" value="Jen registrovat" class="submit-btn">
-              </td>
-          </tr>
-          </tbody>
-      </table>
+    <input type="hidden" name="rychloregistrace" value="1">
+    <table>
+      <tbody>
+      <tr>
+        <td>
+          <input type="submit" value="Jen registrovat" class="submit-btn">
+        </td>
+      </tr>
+      </tbody>
+    </table>
   </form>
 </div>
 <!-- end:rychloregistrace -->
