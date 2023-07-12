@@ -144,13 +144,6 @@ if ($uPracovni && $udaje = post('udaje')) {
     // TODO(SECURITY): nebezpečné krmit data do databáze tímhle způsobem Každý si vytvořit do html formuláře input který se pak také propíŠe do DB
     $zmenenoZaznamu = updateUzivatelHodnoty($udaje, $uPracovni->id(), $vyjimkovac);
 
-    if (post('kontrolaOsobnichUdajuSubmit')) {
-        $priznakZkontrolovanychUdajuZmenen = $uPracovni->nastavZkontrolovaneUdaje($u, (bool)post('kontrolaOsobnichUdaju'));
-        if ($priznakZkontrolovanychUdajuZmenen) {
-            $zmenenoZaznamu++;
-        }
-    }
-
     oznameni("Změněno $zmenenoZaznamu záznamů");
     back();
 }
