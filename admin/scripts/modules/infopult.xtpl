@@ -262,7 +262,8 @@
             Zrušit jiné ubytování než neděli může pouze šéf Infa.
           </td>
         </tr>
-        <td colspan="2">{ubytovaniTabulka}</td>
+        <tr>
+          <td colspan="2">{ubytovaniTabulka}</td>
         </tr>
       </table>
 
