@@ -41,12 +41,12 @@
 <body>
   <div>
     <p>
-      <button onclick="javascript:window.print()">Tiskni</button> a v Nastavení tisku pak změň na <b>4 Stránky na jednu A4</b>. Další jsou <a href="./stravenky?format=html" target="_blank">Stravenky k tisku</a>.
+      <button onclick="window.print()">Tiskni</button> a v Nastavení tisku pak změň na <b>4 Stránky na jednu A4</b>. Další jsou <a href="./stravenky?format=html" target="_blank">Stravenky k tisku</a>.
     </p>
     <!-- begin:balicek -->
       <section class="balicek" title="{pocet_typu} typů předmětů">
         <h2><small>id:</small> {id_uzivatele}</h2>
-        <h3>{login_uzivatele}</h3>
+        <h3>{jmeno_uzivatele} "{login_uzivatele}" {prijmeni_uzivatele}</h3>
         <ul><li>{vsechno}</li></ul>
       </section>
       <!-- end:balicek -->

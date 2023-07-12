@@ -17,7 +17,8 @@ $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuP
         : '';
     return <<<SQL
 (SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR ', ')
-    FROM (SELECT CONCAT_WS('× ', COUNT(*), CONCAT(shop_predmety.nazev, '$rokKNazvu')) AS pocet_a_nazev, shop_nakupy.id_uzivatele
+    FROM (SELECT CONCAT_WS('× ', COUNT(*), CONCAT(shop_predmety.nazev, '$rokKNazvu')) AS pocet_a_nazev,
+                 shop_nakupy.id_uzivatele
         FROM shop_nakupy
             JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
             WHERE shop_predmety.id_predmetu = shop_nakupy.id_predmetu
@@ -38,6 +39,7 @@ SELECT uzivatele_hodnoty.id_uzivatele,
        uzivatele_hodnoty.prijmeni_uzivatele,
        IF (COUNT(platne_role_uzivatelu.id_role) > 0, 'org', '') AS role,
        {$poddotazKoupenehoPredmetu('', $typTricko, $rok, false)} AS tricka,
+       {$poddotazKoupenehoPredmetu('taška', $typPredmet, $rok, false)} AS tasky,
        {$poddotazKoupenehoPredmetu('kostka', $typPredmet, $rok, true)} AS kostky,
        {$poddotazKoupenehoPredmetu('placka', $typPredmet, $rok, false)} AS placky,
        {$poddotazKoupenehoPredmetu('nicknack', $typPredmet, $rok, false)} AS nicknacky,
