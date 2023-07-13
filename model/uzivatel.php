@@ -1579,7 +1579,7 @@ SQL,
 
         // uložení
         if ($u) {
-            dbUpdate('uzivatele_hodnoty', $dbTab, ['id_uzivatele' => $u->id()]);
+            dbUpdate(Sql::UZIVATEL_TABULKA, $dbTab, [Sql::ID_UZIVATELE => $u->id()]);
             $u->otoc();
             $idUzivatele  = $u->id();
             $urlUzivatele = self::vytvorUrl($u->r);
