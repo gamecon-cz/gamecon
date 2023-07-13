@@ -39,13 +39,13 @@
       </span>
     </span>
     </form>
-    <!-- begin:upoMaterialy -->
+    <!-- begin:potvrditZmenuStavu -->
     <script>
       $('form').last().on('submit', function () {
-        return confirm('Uživatel má záporný stav financí, přesto dát materiály?')
+        return confirm({zpravaProPotvrzeniZmenyStavu})
       })
     </script>
-    <!-- end:upoMaterialy -->
+    <!-- end:potvrditZmenuStavu -->
 
 
     <form method="post" onsubmit="confirm('Opravdu odjel{a}?')">
