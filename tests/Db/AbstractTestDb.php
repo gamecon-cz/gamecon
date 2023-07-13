@@ -9,94 +9,108 @@ abstract class AbstractTestDb extends TestCase
     /** @var DbWrapper */
     private static $connection;
     /** @var string[] */
-    protected static array $initQueries = [];
-    protected static string $initData = '';
+    protected static array  $initQueries = [];
+    protected static string $initData    = '';
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
     protected static bool $disableStrictTransTables = false;
 
     protected $revertDbChangesAfterTest = true;
 
-    static function setConnection(DbWrapper $connection) {
+    static function setConnection(DbWrapper $connection)
+    {
         self::$connection = $connection;
     }
 
-    protected function setUp(): void {
+    protected function setUp(): void
+    {
         if (static::keepDbChangesInTransaction()) {
             self::$connection->begin();
         }
     }
 
-    protected function tearDown(): void {
+    protected function tearDown(): void
+    {
         if (static::keepDbChangesInTransaction()) {
             self::$connection->rollback();
         }
     }
 
-    static function setUpBeforeClass(): void {
-        if (static::keepDbChangesInTransaction()) {
-            self::$connection->begin();
-        }
-
-        if (static::$disableStrictTransTables) {
-            static::disableStrictTransTables();
-        }
-
-        foreach (static::getInitQueries() as $initQuery) {
-            $initQuerySql = $initQuery;
-            $params       = null;
-            if (is_array($initQuery)) {
-                $initQuerySql = reset($initQuery);
-                $params       = count($initQuery) > 1
-                    ? end($initQuery)
-                    : null;
+    static function setUpBeforeClass(): void
+    {
+        try {
+            if (static::keepDbChangesInTransaction()) {
+                self::$connection->begin();
             }
-            try {
-                self::$connection->query($initQuerySql, $params);
-            } catch (\Throwable $throwable) {
-                static::tearDownAfterClass();
-                throw $throwable;
-            }
-        }
 
-        $initData = static::getInitData();
-        if ($initData) {
-            $dataset = new Dataset;
-            $dataset->addCsv($initData);
-            try {
-                self::$connection->import($dataset);
-            } catch (\Throwable $throwable) {
-                self::$connection->import($dataset);
-                static::tearDownAfterClass();
-                throw $throwable;
+            if (static::$disableStrictTransTables) {
+                static::disableStrictTransTables();
             }
-        }
 
-        $initCallbacks = static::getInitCallbacks();
-        foreach ($initCallbacks as $initCallback) {
-            $initCallback();
+            foreach (static::getInitQueries() as $initQuery) {
+                $initQuerySql = $initQuery;
+                $params       = null;
+                if (is_array($initQuery)) {
+                    $initQuerySql = reset($initQuery);
+                    $params       = count($initQuery) > 1
+                        ? end($initQuery)
+                        : null;
+                }
+                try {
+                    self::$connection->query($initQuerySql, $params);
+                } catch (\Throwable $throwable) {
+                    static::tearDownAfterClass();
+                    throw $throwable;
+                }
+            }
+
+            $initData = static::getInitData();
+            if ($initData) {
+                $dataset = new Dataset;
+                $dataset->addCsv($initData);
+                try {
+                    self::$connection->import($dataset);
+                } catch (\Throwable $throwable) {
+                    self::$connection->import($dataset);
+                    static::tearDownAfterClass();
+                    throw $throwable;
+                }
+            }
+
+            $initCallbacks = static::getInitCallbacks();
+            foreach ($initCallbacks as $initCallback) {
+                $initCallback();
+            }
+        } catch (\Throwable $throwable) {
+            echo ($throwable->getMessage() . '; ' . $throwable->getTraceAsString()) . PHP_EOL;
+            throw $throwable;
         }
     }
 
-    protected static function keepDbChangesInTransaction(): bool {
+    protected static function keepDbChangesInTransaction(): bool
+    {
         return true;
     }
 
-    protected static function getInitQueries(): array {
+    protected static function getInitQueries(): array
+    {
         return static::$initQueries;
     }
 
-    protected static function getInitData(): string {
+    protected static function getInitData(): string
+    {
         return (string)static::$initData;
     }
 
     /**
      * @return array<callable>
      */
-    protected static function getInitCallbacks(): array {
+    protected static function getInitCallbacks(): array
+    {
         return [];
     }
 
-    public static function tearDownAfterClass(): void {
+    public static function tearDownAfterClass(): void
+    {
         if (static::keepDbChangesInTransaction()) {
             self::$connection->rollback();
         }
@@ -106,28 +120,31 @@ abstract class AbstractTestDb extends TestCase
     }
 
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
-    protected static function disableStrictTransTables() {
+    protected static function disableStrictTransTables()
+    {
         self::$connection->query(<<<SQL
 SET SESSION sql_mode = REGEXP_REPLACE(@@SESSION.sql_mode, 'STRICT_TRANS_TABLES,?', '')
-SQL
+SQL,
         );
     }
 
-    protected static function enableStrictTransTables() {
+    protected static function enableStrictTransTables()
+    {
         self::$connection->query(<<<SQL
 SET SESSION sql_mode = CONCAT_WS(',', @@SESSION.sql_mode, 'STRICT_TRANS_TABLES')
-SQL
+SQL,
         );
     }
 
-    protected function nazvySloupcuTabulky(string $tabulka): array {
+    protected function nazvySloupcuTabulky(string $tabulka): array
+    {
         $result = self::$connection->query(<<<SQL
 SHOW COLUMNS FROM $tabulka
-SQL
+SQL,
         );
         return array_map(
             fn(array $row) => reset($row),
-            mysqli_fetch_all($result)
+            mysqli_fetch_all($result),
         );
     }
 
