@@ -1,10 +1,9 @@
 <?php
 
-namespace Godric\DbMigrations\Report\SqlStruktura;
+namespace Gamecon\Tests\Model\Report\SqlStruktura;
 
 use Gamecon\Report\SqlStruktura\ReportyQuickSqlStruktura;
 use Gamecon\Tests\Model\AbstractTestSqlStruktura;
-use PHPUnit\Framework\TestCase;
 
 class ReportyQuickSqlStrukturaTest extends AbstractTestSqlStruktura
 {
