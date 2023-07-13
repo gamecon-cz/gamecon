@@ -129,9 +129,6 @@ if ($uPracovni) {
     }
     $x->assign('udajeStav', $udajeStav);
 
-    if ($uPracovni->finance()->stav() < 0 && !$uPracovni->gcPritomen()) {
-        $x->parse('infopult.upoMaterialy');
-    }
     if ($uPracovni->gcPrihlasen()) {
         if (!$uPracovni->gcPritomen()) {
             $x->assign('prijelADatMaterialyDisabled', '');
@@ -200,34 +197,39 @@ if ($uPracovni) {
     }
 
     if ($u->jeInfopultak() && !$u->maRoliSefInfopultu()) {
-        $zpravyProPotvrzeniZruseniPrace = [];
-        $a                              = $uPracovni->koncovkaDlePohlavi();
+        $zpravyProPotvrzeni = [];
+        $a                  = $uPracovni->koncovkaDlePohlavi();
         if (!$uPracovni->gcPritomen()) {
-            $zpravyProPotvrzeniZruseniPrace[] = "nemá potvrzeno že přijel{$a} a že dostal{$a} materiály";
+            $zpravyProPotvrzeni['materialy'] = "nemá potvrzeno že přijel{$a} a že dostal{$a} materiály";
         }
         if ($uPracovni->finance()->stav() < 0) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'má nedoplatek';
+            $zpravyProPotvrzeni[] = 'má nedoplatek';
         }
         if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'nemá potvrzení od rodičů';
+            $zpravyProPotvrzeni[] = 'nemá potvrzení od rodičů';
         }
         if (count($chybejiciUdaje) > 0) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'nemá kompletní osobní údaje';
+            $zpravyProPotvrzeni[] = 'nemá kompletní osobní údaje';
         }
         if (!$udajeNepovinneNeboZkontrolovane) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'nemá zkontrolované osobní údaje';
+            $zpravyProPotvrzeni[] = 'nemá zkontrolované osobní údaje';
         }
-        if ($zpravyProPotvrzeniZruseniPrace !== []) {
-            $zpravyProPotvrzeniZruseniPrace     = array_map(static fn(string $zprava) => "- $zprava", $zpravyProPotvrzeniZruseniPrace);
-            $zpravyProPotvrzeniZruseniPraceText = implode("\n", $zpravyProPotvrzeniZruseniPrace);
-            $ucastnikNazev                      = $uPracovni->jeMuz()
+        if ($zpravyProPotvrzeni !== []) {
+            $zpravyProPotvrzeni                 = array_map(static fn(string $zprava) => "- $zprava", $zpravyProPotvrzeni);
+            $zpravyProPotvrzeniZruseniPraceText = implode("\n", $zpravyProPotvrzeni);
+            $zpravyProPotvrzeniZmenyStavu       = $zpravyProPotvrzeni;
+            unset($zpravyProPotvrzeniZmenyStavu['materialy']);
+            $zpravyProPotvrzeniZmenyStavuText = implode("\n", $zpravyProPotvrzeniZmenyStavu);
+            $ucastnikNazev                    = $uPracovni->jeMuz()
                 ? 'Účastník'
                 : 'Účastnice';
             $x->assign([
                 // json_encode kvůli JS error "SyntaxError: '' string literal contains an unescaped line break"
                 'zpravaProPotvrzeniZruseniPrace' => json_encode("{$ucastnikNazev}\n{$zpravyProPotvrzeniZruseniPraceText}.\nPřesto ukončit práci s uživatelem?"),
+                'zpravaProPotvrzeniZmenyStavu'   => json_encode("{$ucastnikNazev}\n{$zpravyProPotvrzeniZmenyStavuText}.\nPřesto dát materiály?"),
             ]);
             $x->parse('infopult.potvrditZruseniPrace');
+            $x->parse('infopult.potvrditZmenuStavu');
         }
     }
 
