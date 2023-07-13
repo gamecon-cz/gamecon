@@ -107,16 +107,18 @@ if ($uPracovni) {
         ),
     ]);
 
-    $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
-    $chybejiciUdaje       = $uPracovni->chybejiciUdaje(Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani));
-    $udajeZkontrolovane   = $uPracovni->maZkontrolovaneUdaje();
+    $maObjednaneUbytovani            = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    $chybejiciUdaje                  = $uPracovni->chybejiciUdaje(
+        Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani),
+    );
+    $udajeNepovinneNeboZkontrolovane = !$maObjednaneUbytovani || $uPracovni->maZkontrolovaneUdaje();
 
     $udajeStav = '';
     if (count($chybejiciUdaje) > 0) {
         $udajeStav = $err . ' chybí údaje';
     } else {
         if ($maObjednaneUbytovani) {
-            if (!$udajeZkontrolovane) {
+            if (!$udajeNepovinneNeboZkontrolovane) {
                 $udajeStav = $err . ' zkontrolovat údaje';
             } else {
                 $udajeStav = $ok . ' údaje v pořádku';
@@ -127,9 +129,6 @@ if ($uPracovni) {
     }
     $x->assign('udajeStav', $udajeStav);
 
-    if ($uPracovni->finance()->stav() < 0 && !$uPracovni->gcPritomen()) {
-        $x->parse('infopult.upoMaterialy');
-    }
     if ($uPracovni->gcPrihlasen()) {
         if (!$uPracovni->gcPritomen()) {
             $x->assign('prijelADatMaterialyDisabled', '');
@@ -197,22 +196,40 @@ if ($uPracovni) {
         );
     }
 
-    if ($systemoveNastaveni->gcBezi()) {
-        $zpravyProPotvrzeniZruseniPrace = [];
+    if ($u->jeInfopultak() && !$u->maRoliSefInfopultu()) {
+        $zpravyProPotvrzeni = [];
+        $a                  = $uPracovni->koncovkaDlePohlavi();
         if (!$uPracovni->gcPritomen()) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'nedostal materiály';
+            $zpravyProPotvrzeni['materialy'] = "nemá potvrzeno že přijel{$a} a že dostal{$a} materiály";
         }
         if ($uPracovni->finance()->stav() < 0) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'má záporný zůstatek';
+            $zpravyProPotvrzeni[] = 'má nedoplatek';
         }
         if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'nemá potvrzení od rodičů';
+            $zpravyProPotvrzeni[] = 'nemá potvrzení od rodičů';
         }
-        foreach ($zpravyProPotvrzeniZruseniPrace as $zpravaProPotvrzeniZruseniPrace) {
+        if (count($chybejiciUdaje) > 0) {
+            $zpravyProPotvrzeni[] = 'nemá kompletní osobní údaje';
+        }
+        if (!$udajeNepovinneNeboZkontrolovane) {
+            $zpravyProPotvrzeni[] = 'nemá zkontrolované osobní údaje';
+        }
+        if ($zpravyProPotvrzeni !== []) {
+            $zpravyProPotvrzeni                 = array_map(static fn(string $zprava) => "- $zprava", $zpravyProPotvrzeni);
+            $zpravyProPotvrzeniZruseniPraceText = implode("\n", $zpravyProPotvrzeni);
+            $zpravyProPotvrzeniZmenyStavu       = $zpravyProPotvrzeni;
+            unset($zpravyProPotvrzeniZmenyStavu['materialy']);
+            $zpravyProPotvrzeniZmenyStavuText = implode("\n", $zpravyProPotvrzeniZmenyStavu);
+            $ucastnikNazev                    = $uPracovni->jeMuz()
+                ? 'Účastník'
+                : 'Účastnice';
             $x->assign([
-                'zpravaProPotvrzeniZruseniPrace' => "Uživatel {$zpravaProPotvrzeniZruseniPrace}. Přesto ukončit práci s uživatelem?",
+                // json_encode kvůli JS error "SyntaxError: '' string literal contains an unescaped line break"
+                'zpravaProPotvrzeniZruseniPrace' => json_encode("{$ucastnikNazev}\n{$zpravyProPotvrzeniZruseniPraceText}.\nPřesto ukončit práci s uživatelem?"),
+                'zpravaProPotvrzeniZmenyStavu'   => json_encode("{$ucastnikNazev}\n{$zpravyProPotvrzeniZmenyStavuText}.\nPřesto dát materiály?"),
             ]);
             $x->parse('infopult.potvrditZruseniPrace');
+            $x->parse('infopult.potvrditZmenuStavu');
         }
     }
 
