@@ -93,12 +93,7 @@ SELECT uzivatele_hodnoty.id_uzivatele,
        {$poddotazKoupenehoPredmetu('ponožky', $typPredmet, $rok, false)} AS ponozky,
        {$poddotazKoupenehoPredmetu('taška', $typPredmet, $rok, false)} AS tasky,
        {$poddotazOstatnichKoupeneychPredmetu(['kostka', 'placka', 'nicknack', 'blok', 'ponožky', 'taška'], $typPredmet, $rok)} AS ostatni,
-       IF ({$poddotazKoupenehoPredmetu('', $typJidlo, $rok, false)} IS NULL, '', 'stravenky') AS stravenky,
-       IF (
-            {$kopilNecoSql([$typTricko, $typPredmet], $rok)},
-            IF (uzivatele_hodnoty.infopult_poznamka = 'velký balíček $rok', 'velký balíček', 'balíček'),
-           ''
-       ) AS balicek
+       IF ({$poddotazKoupenehoPredmetu('', $typJidlo, $rok, false)} IS NULL, '', 'stravenky') AS stravenky
 FROM uzivatele_hodnoty
 LEFT JOIN platne_role_uzivatelu AS role_organizatoru
     ON uzivatele_hodnoty.id_uzivatele = role_organizatoru.id_uzivatele AND role_organizatoru.id_role IN ({$idckaRoliSOrganizatorySql})
