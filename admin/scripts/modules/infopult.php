@@ -111,14 +111,14 @@ if ($uPracovni) {
     $chybejiciUdaje                  = $uPracovni->chybejiciUdaje(
         Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani),
     );
-    $udajeNepovinneNeboZkontrolovane = !$maObjednaneUbytovani || $uPracovni->maZkontrolovaneUdaje();
+    $udajePovinneAleNezkontrolovane = $maObjednaneUbytovani && !$uPracovni->maZkontrolovaneUdaje();
 
     $udajeStav = '';
     if (count($chybejiciUdaje) > 0) {
         $udajeStav = $err . ' chybí údaje';
     } else {
         if ($maObjednaneUbytovani) {
-            if (!$udajeNepovinneNeboZkontrolovane) {
+            if ($udajePovinneAleNezkontrolovane) {
                 $udajeStav = $err . ' zkontrolovat údaje';
             } else {
                 $udajeStav = $ok . ' údaje v pořádku';
@@ -211,7 +211,7 @@ if ($uPracovni) {
         if (count($chybejiciUdaje) > 0) {
             $zpravyProPotvrzeni[] = 'nemá kompletní osobní údaje';
         }
-        if (!$udajeNepovinneNeboZkontrolovane) {
+        if ($udajePovinneAleNezkontrolovane) {
             $zpravyProPotvrzeni[] = 'nemá zkontrolované osobní údaje';
         }
         if ($zpravyProPotvrzeni !== []) {
