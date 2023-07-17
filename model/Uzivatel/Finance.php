@@ -61,20 +61,22 @@ class Finance
 
     private static $maxSlevaAktivit = 100; // v procentech
 
+    private const PORADI_NADPISU = 1;
+    private const PORADI_POLOZKY = 2;
     // idčka typů, podle kterých se řadí výstupní tabulka $prehled
-    public const AKTIVITY        = -1;
-    public const PREDMETY_STRAVA = 1;
-    public const UBYTOVANI       = 2;
+    private const AKTIVITY        = -1;
+    private const PREDMETY_STRAVA = 1;
+    private const UBYTOVANI       = 2;
     // mezera na typy předmětů (1-4? viz db)
-    public const BRIGADNICKA_ODMENA         = 10;
-    public const ORGSLEVA                   = 11;
-    public const PRIPSANE_SLEVY             = 12;
-    public const VSTUPNE                    = 13;
-    public const CELKOVA                    = 14;
-    public const PLATBY_NADPIS              = 15;
-    public const ZUSTATEK_Z_PREDCHOZICH_LET = 16;
-    public const PLATBA                     = 17;
-    public const VYSLEDNY                   = 18;
+    private const BRIGADNICKA_ODMENA         = 10;
+    private const ORGSLEVA                   = 11;
+    private const PRIPSANE_SLEVY             = 12;
+    private const VSTUPNE                    = 13;
+    private const CELKOVA                    = 14;
+    private const PLATBY_NADPIS              = 15;
+    private const ZUSTATEK_Z_PREDCHOZICH_LET = 16;
+    private const PLATBA                     = 17;
+    private const VYSLEDNY                   = 18;
 
     /**
      * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity
@@ -182,7 +184,7 @@ SQL,
             + $this->zustatekZPredchozichRocniku,
         );
 
-        $this->logb('Aktivity', $this->cenaAktivit, self::AKTIVITY);
+        $this->logb('Aktivity', $this->cenaAktivit, self::AKTIVITY,);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
         $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
@@ -223,27 +225,27 @@ SQL,
         return $this->cenaUbytovani;
     }
 
-    private static function cpm_kategorie_razeni($kategorie)
+    private static function cpm_kategorie_razeni(int $kategorie): int
     {
-        switch ($kategorie) {
-            case 2:
-                return 4;
-            case 3:
-                return 2;
-            case 4:
-                return 3;
-            default:
-                return $kategorie;
-        }
+        return match ($kategorie) {
+            2 => 4,
+            3 => 2,
+            4 => 3,
+            default => $kategorie,
+        };
     }
 
     /** Porovnávání k řazení php 4 style :/ */
     private function cmp($a, $b)
     {
         // podle typu
-        $m = Finance::cpm_kategorie_razeni($a['kategorie']) - Finance::cpm_kategorie_razeni($b['kategorie']);
-        if ($m) {
-            return $m;
+        $podleKategorii = Finance::cpm_kategorie_razeni((int)$a['kategorie']) - Finance::cpm_kategorie_razeni((int)$b['kategorie']);
+        if ($podleKategorii !== 0) {
+            return $podleKategorii;
+        }
+        $razeniVKategorii = $a['poradi_v_kategorii'] - $b['poradi_v_kategorii'];
+        if ($razeniVKategorii !== 0) {
+            return $razeniVKategorii;
         }
         // podle názvu
         $o = strcmp($a['nazev'], $b['nazev']);
@@ -283,35 +285,54 @@ SQL,
     /**
      * Zaloguje do seznamu nákupů položku (pokud je logování zapnuto)
      */
-    private function log($nazev, $castka, $kategorie = null, $idPolozky = null)
+    private function log(
+        string                $nazev,
+        null|string|float|int $castka,
+        ?int                  $kategorie,
+        int                   $poradiVKategorii = self::PORADI_POLOZKY,
+        ?int                  $idPolozky = null,
+    )
     {
         if (!$this->logovat) {
             return;
         }
         // přidání
-        $this->prehled[] = $this->formatujProLog($nazev, $castka, $kategorie, $idPolozky);
+        $this->prehled[] = $this->formatujProLog(
+            $nazev,
+            $castka,
+            $kategorie,
+            $poradiVKategorii,
+            $idPolozky,
+        );
     }
 
-    private function formatujProLog($nazev, $castka, $kategorie = null, $idPolozky = null): array
+    private function formatujProLog(
+        string                $nazev,
+        null|string|float|int $castka,
+        ?int                  $kategorie,
+        int                   $poradiVKategorii,
+        ?int                  $idPolozky = null,
+    ): array
     {
         if (is_numeric($castka)) {
             $castka = self::zaokouhli($castka);
         }
         return [
-            'nazev'      => $nazev,
-            'castka'     => $castka,
-            'kategorie'  => $kategorie,
-            'id_polozky' => $idPolozky,
+            'nazev'              => $nazev,
+            'castka'             => $castka,
+            'kategorie'          => $kategorie,
+            'poradi_v_kategorii' => $poradiVKategorii,
+            'id_polozky'         => $idPolozky,
         ];
     }
 
     /**
      * Zaloguje zvýrazněný záznam
      */
-    private function logb($nazev, $castka, $kategorie = null, $idPolozky = null)
+    private function logb($nazev, $castka, int $kategorie, int $poradiNadpisu = self::PORADI_NADPISU, ?int $idPolozky = null)
     {
         $castka = self::zaokouhli($castka);
-        $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie, $idPolozky);
+        $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie, $poradiNadpisu, $idPolozky);
     }
 
     /**
@@ -790,14 +811,14 @@ SQL,
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
             } else if ($r['typ'] != Shop::PROPLACENI_BONUSU) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r['typ']);
-                $this->log($r['nazev'], $cena, $r['typ']);
+                $this->log($r['nazev'], $cena, $r['typ'] !== null ? (int)$r['typ'] : null);
             }
         }
 
         foreach ($soucty as $idPredmetu => $predmet) {
             $this->logStrukturovane((string)$predmet['nazev'], (int)$predmet['pocet'], (float)$predmet['suma'], $predmet['typ']);
             // dvojmezera kvůli řazení
-            $this->log($predmet['nazev'] . '  ' . $predmet['pocet'] . '×', $predmet['suma'], $predmet['typ'], $idPredmetu);
+            $this->log($predmet['nazev'] . '  ' . $predmet['pocet'] . '×', $predmet['suma'], (int)$predmet['typ'], $idPredmetu);
         }
     }
 
