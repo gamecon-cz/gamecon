@@ -134,12 +134,7 @@ trait DateTimeCzTrait
         return min($poradiDnu); // po neděli je pondělí, takže číslo 1
     }
 
-    /**
-     * @param string $dateTime
-     * @param \DateTimeZone|null $timeZone
-     * @return DateTimeCz|false
-     */
-    public static function createFromMysql(string $dateTime, \DateTimeZone $timeZone = null)
+    public static function createFromMysql(string $dateTime, \DateTimeZone $timeZone = null): static|false
     {
         return static::createFromFormat('Y-m-d H:i:s', $dateTime, $timeZone);
     }
@@ -180,6 +175,9 @@ trait DateTimeCzTrait
         throw new \RuntimeException("Unknown czech day name '$den'");
     }
 
+    /**
+     * @return array<string, string>
+     */
     public static function dejDnyVTydnu(): array
     {
         return self::$dny;
@@ -224,13 +222,13 @@ trait DateTimeCzTrait
     }
 
     /** Vrací formát kompatibilní s mysql */
-    public function formatDb()
+    public function formatDb(): string
     {
         return parent::format(self::FORMAT_DB);
     }
 
     /** Vrací formát kompatibilní s mysql */
-    public function formatDatumDb()
+    public function formatDatumDb(): string
     {
         return parent::format(self::FORMAT_DATUM_DB);
     }
@@ -240,7 +238,7 @@ trait DateTimeCzTrait
      *
      * @return string
      */
-    public function formatDatumStandard()
+    public function formatDatumStandard(): string
     {
         return parent::format(self::FORMAT_DATUM_STANDARD);
     }
@@ -257,20 +255,16 @@ trait DateTimeCzTrait
 
     /**
      * Vrací běžně používaný formát data a času s přesností na minuty - tvar d. m. yyyy 16:46
-     *
-     * @return string
      */
-    public function formatCasNaMinutyStandard()
+    public function formatCasNaMinutyStandard(): string
     {
         return parent::format(self::FORMAT_CAS_NA_MINUTY_STANDARD);
     }
 
     /**
      * Vrací běžně používaný formát data a času - tvar d. m. yyyy 16:46:33
-     *
-     * @return string
      */
-    public function formatCasStandard()
+    public function formatCasStandard(): string
     {
         return parent::format(self::FORMAT_DATUM_A_CAS_STANDARD);
     }
@@ -286,26 +280,26 @@ trait DateTimeCzTrait
     }
 
     /** Vrací blogový/dopisový formát */
-    public function formatBlog()
+    public function formatBlog(): string
     {
         return strtr(parent::format('j. F Y'), static::$mesice);
     }
 
     public function formatCasZacatekUdalosti(): string
     {
-        return (string)parent::format(self::FORMAT_ZACATEK_UDALOSTI);
+        return parent::format(self::FORMAT_ZACATEK_UDALOSTI);
     }
 
     /** Zvýší časový údaj o jeden den. Upravuje objekt. */
-    public function plusDen()
+    public function plusDen(): static
     {
-        $this->add(new \DateInterval('P1D'));
+        return $this->add(new \DateInterval('P1D'));
     }
 
     /** Jestli je tento okamžik před okamžikem $d2 */
-    public function pred($d2)
+    public function pred(\DateTimeInterface|string $d2): bool
     {
-        if ($d2 instanceof \DateTime) {
+        if ($d2 instanceof \DateTimeInterface) {
             return $this->getTimestamp() < $d2->getTimestamp();
         }
         return $this->getTimestamp() < strtotime($d2);
@@ -313,9 +307,8 @@ trait DateTimeCzTrait
 
     /**
      * Jestli je tento okamžik po okamžiku $d2
-     * @param \DateTimeInterface|string
      */
-    public function po($d2): bool
+    public function po(\DateTimeInterface|string $d2): bool
     {
         if ($d2 instanceof \DateTimeInterface) {
             return $this->getTimestamp() > $d2->getTimestamp();
