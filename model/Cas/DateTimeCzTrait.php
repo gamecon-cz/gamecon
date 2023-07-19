@@ -435,7 +435,7 @@ trait DateTimeCzTrait
     }
 
     /** Zaokrouhlí nahoru na nejbližší vyšší jednotku */
-    public function zaokrouhlitNaHodinyNahoru(): DateTimeCzTrait
+    public function zaokrouhlitNaHodinyNahoru(): static
     {
         if ($this->format('is') === '0000') { // neni co zaokrouhlovat
             return $this->modify($this->format('Y-m-d H:00:00'));
