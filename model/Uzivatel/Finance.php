@@ -15,6 +15,7 @@ use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
+use Cenik;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -68,13 +69,13 @@ class Finance
     private const PREDMETY_STRAVA = 1;
     private const UBYTOVANI       = 2;
     // mezera na typy předmětů (1-4? viz db)
-    private const BRIGADNICKA_ODMENA         = 10;
-    private const ORGSLEVA                   = 11;
-    private const PRIPSANE_SLEVY             = 12;
-    private const VSTUPNE                    = 13;
-    private const CELKOVA                    = 14;
-    private const PLATBY_NADPIS              = 15;
-    private const ZUSTATEK_Z_PREDCHOZICH_LET = 16;
+    private const VSTUPNE                    = 10;
+    private const CELKOVA                    = 11;
+    private const ZUSTATEK_Z_PREDCHOZICH_LET = 12;
+    private const PRIPSANE_SLEVY             = 13;
+    private const ORGSLEVA                   = 14;
+    private const BRIGADNICKA_ODMENA         = 15;
+    private const PLATBY_NADPIS              = 16;
     private const PLATBA                     = 17;
     private const VYSLEDNY                   = 18;
 
@@ -168,15 +169,17 @@ SQL,
             + $this->cenaUbytovani
             + $this->cenaAktivit;
 
-        $cena = $this->aplikujBonusZaVedeniAktivit($cena);
-        $cena = $this->aplikujBrigadnickouOdmenu($cena);
-        $cena = $this->aplikujObecnouSlevu($cena);
-
         $cena = $cena
             + $this->cenaVstupne
             + $this->cenaVstupnePozde;
 
+        $cena = $this->aplikujObecnouSlevu($cena);
+
         $this->logb('Celková cena', $cena, self::CELKOVA);
+
+        /** bonusy a odměny nechceme v zobrazované Celkové ceně https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
+        $cena = $this->aplikujBonusZaVedeniAktivit($cena);
+        $cena = $this->aplikujBrigadnickouOdmenu($cena);
 
         $this->stav = self::zaokouhli(
             -$cena
@@ -187,7 +190,7 @@ SQL,
         $this->logb('Aktivity', $this->cenaAktivit, self::AKTIVITY,);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
         $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
-        $this->logb('Připsané platby', $this->sumaPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
+        $this->logb('Připsané platby', $this->sumaPlateb(), self::PLATBA);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
 
@@ -873,22 +876,19 @@ SQL,
     private function aplikujBonusZaVedeniAktivit(float $cena): float
     {
         $bonusZaVedeniAktivit = $this->bonusZaVedeniAktivit;
-        ['cena' => $cena, 'sleva' => $this->nevyuzityBonusZaVedeniAktivit] = \Cenik::aplikujSlevu($cena, $bonusZaVedeniAktivit);
+        $puvodniCena          = $cena;
+        ['sleva' => $this->nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu(
+            $puvodniCena,
+            $bonusZaVedeniAktivit,
+        );
         $this->vyuzityBonusZaVedeniAktivit = $this->bonusZaVedeniAktivit - $this->nevyuzityBonusZaVedeniAktivit;
+        /** Do výsledné ceny, respektive celkového stavu, už započítáváme celý bonus za aktivity https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
+        $cena -= $this->bonusZaVedeniAktivit;
+
         if ($this->bonusZaVedeniAktivit) {
             $this->logb(
-                'Bonus za aktivity - využitý',
-                $this->vyuzityBonusZaVedeniAktivit,
-                self::ORGSLEVA,
-            );
-            $this->log(
-                '<i>(z toho proplacený bonus ' . $this->proplacenyBonusZaVedeniAktivit . ')</i>',
-                '&nbsp;',
-                self::ORGSLEVA,
-            );
-            $this->log(
-                '<i>Bonus za aktivity - celkový ' . $this->bonusZaVedeniAktivit . '</i>',
-                '&nbsp;',
+                "<span class='hinted'>Bonus za aktivity - celkový<span class='hint'>využitý {$this->vyuzityBonusZaVedeniAktivit}, proplacený {$this->proplacenyBonusZaVedeniAktivit}</span></span>",
+                $this->bonusZaVedeniAktivit,
                 self::ORGSLEVA,
             );
         }
