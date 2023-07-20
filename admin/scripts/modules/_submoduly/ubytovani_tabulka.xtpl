@@ -9,27 +9,27 @@
 //TODO: less styly
 -->
 <style>
-    .shop_den {
-        text-align: center;
-    }
+  .shop_den {
+    text-align: center;
+  }
 
-    .shopUbytovani_prvniSloupec {
-        width: fit-content;
-        padding-right: 10px;
-    }
+  .shopUbytovani_prvniSloupec {
+    width: fit-content;
+    padding-right: 10px;
+  }
 
-    .shop_popisCena {
-        display: inline-block;
-    }
+  .shop_popisCena {
+    display: inline-block;
+  }
 
-    .shopUbytovani_radek {
-        height: 1.25rem;
-        margin: 1px;
-    }
+  .shopUbytovani_radek {
+    height: 1.25rem;
+    margin: 1px;
+  }
 
-    .shopUbytovani_sloupec {
-        width: 33px;
-    }
+  .shopUbytovani_sloupec {
+    width: 33px;
+  }
 </style>
 
 <div class="shopUbytovani_tabulka">
@@ -65,8 +65,8 @@
     <!-- begin:typ -->
     <div class="shopUbytovani_radek">
       <label class="radio--container radio--container--square radio--container--fill">
-          <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
-                data-kapacita="{kapacita}" {checked} {disabled}>
+        <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
+               data-kapacita="{kapacita}" {checked} {disabled}>
         <div class="radio--label">
           {zbyvaMist}
         </div>
