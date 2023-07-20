@@ -1,6 +1,6 @@
 /* logika k situaci, že není zaškrtnutý ani jeden účastník k aktivitě  */
 function zadnyUcastnikNeniPotvrzen() {
-  const checkboxy = document.querySelectorAll(`#ucastniciAktivity${posledneKliknutaAktivitaId} input.dorazil[checked]`)
+  const checkboxy = document.querySelectorAll(`#ucastniciAktivity${posledneKliknutaAktivitaId} input.dorazil:checked`)
   return checkboxy.length === 0
 }
 
