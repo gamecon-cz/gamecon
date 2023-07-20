@@ -250,7 +250,7 @@ SQL,
                 if (!isset($this->mozneTypy[$nazev])) {
                     $this->mozneTypy[$nazev] = $p;
                 }
-                $p['nabizet'] = $this->maPravoObjednatUbytovani((int)$p[Sql::UBYTOVANI_DEN]);
+                $p['nabizet'] = $p['nabizet'] && $this->maPravoObjednatUbytovani((int)$p[Sql::UBYTOVANI_DEN]);
 
                 $this->mozneDny[$p[Sql::UBYTOVANI_DEN]][$nazev] = $p;
             }
@@ -344,7 +344,7 @@ SQL,
                             || (!$ubytovanVeDniATypu
                                 && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ))
                             )
-                            || $this->maPravoObjednatUbytovani($den)
+                            || !$this->maPravoObjednatUbytovani($den)
                         )
                     )
                         ? 'disabled'
@@ -395,7 +395,7 @@ SQL,
     {
         return $poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
             || $this->objednatel->jeOrganizator()
-            || $this->objednatel->jeInfopultak();
+            || ($this->objednatel->jeInfopultak() && $this->kontextZobrazeni === KontextZobrazeni::ADMIN);
     }
 
     private function maPravoObjednatUbytovani(int $poradiHernihoDne): bool
@@ -403,6 +403,7 @@ SQL,
         return $this->maPravoZobrazitUbytovani($poradiHernihoDne)
             && ($poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
                 || $this->ubytovany->jeOrganizator()
+                || $this->objednatel->jeOrganizator()
             );
     }
 
