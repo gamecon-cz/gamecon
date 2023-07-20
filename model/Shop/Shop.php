@@ -327,7 +327,13 @@ SQL,
 
         $this->jidlo = $this->seradJidla($this->jidlo);
 
-        $this->ubytovani = new ShopUbytovani($this->ubytovaniPole, $this->zakaznik, $this->objednatel, $systemoveNastaveni); // náhrada reprezentace polem za objekt
+        $this->ubytovani = new ShopUbytovani(
+            $this->ubytovaniPole,
+            $this->zakaznik,
+            $this->objednatel,
+            KontextZobrazeni::vytvorZGlobals(),
+            $systemoveNastaveni
+        ); // náhrada reprezentace polem za objekt
     }
 
     private function seradJidla(array $jidla): array

@@ -240,21 +240,21 @@ SQL,
         array                               $predmety,
         private readonly Uzivatel           $ubytovany,
         private readonly Uzivatel           $objednatel,
+        private readonly KontextZobrazeni   $kontextZobrazeni,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
         foreach ($predmety as $p) {
-            if ((int)$p[Sql::UBYTOVANI_DEN] === DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
-                && !$this->ubytovany->jeOrganizator() // organizátor objednává pro sebe
-                && !$this->objednatel->jeOrganizator() // organizátor objednává pro nkoho jiného (což může jenom z adminu)
-            ) {
-                continue; // z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
+            if ($this->maPravoZobrazitUbytovani((int)$p[Sql::UBYTOVANI_DEN])) {
+                $nazev = Shop::bezDne($p[Sql::NAZEV]);
+                if (!isset($this->mozneTypy[$nazev])) {
+                    $this->mozneTypy[$nazev] = $p;
+                }
+                $p['nabizet'] = $this->maPravoObjednatUbytovani((int)$p[Sql::UBYTOVANI_DEN]);
+
+                $this->mozneDny[$p[Sql::UBYTOVANI_DEN]][$nazev] = $p;
             }
-            $nazev = Shop::bezDne($p[Sql::NAZEV]);
-            if (!isset($this->mozneTypy[$nazev])) {
-                $this->mozneTypy[$nazev] = $p;
-            }
-            $this->mozneDny[$p[Sql::UBYTOVANI_DEN]][$nazev] = $p;
+            // else z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
         }
         $this->registrace = new Registrace($this->systemoveNastaveni, $ubytovany);
     }
@@ -339,9 +339,13 @@ SQL,
                 $t->assign([
                     'idPredmetu' => isset($this->mozneDny[$den][$typ]) ? $this->mozneDny[$den][$typ]['id_predmetu'] : null,
                     'checked'    => $checked,
-                    'disabled'   => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
-                    && ($prodejUbytovaniUkoncen
-                        || (!$ubytovanVeDniATypu && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ)))
+                    'disabled'   => (!$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
+                        && ($prodejUbytovaniUkoncen
+                            || (!$ubytovanVeDniATypu
+                                && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ))
+                            )
+                            || $this->maPravoObjednatUbytovani($den)
+                        )
                     )
                         ? 'disabled'
                         : '',
@@ -387,9 +391,20 @@ SQL,
         return true;
     }
 
-    /////////////
-    // private //
-    /////////////
+    private function maPravoZobrazitUbytovani(int $poradiHernihoDne): bool
+    {
+        return $poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
+            || $this->objednatel->jeOrganizator()
+            || $this->objednatel->jeInfopultak();
+    }
+
+    private function maPravoObjednatUbytovani(int $poradiHernihoDne): bool
+    {
+        return $this->maPravoZobrazitUbytovani($poradiHernihoDne)
+            && ($poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
+                || $this->ubytovany->jeOrganizator()
+            );
+    }
 
     /** Vrátí, jestli daná kombinace den a typ je validní. */
     public function existujeUbytovani($den, $typ)
