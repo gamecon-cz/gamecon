@@ -956,7 +956,7 @@ SQL,
         return $this->maRoli(Role::SEF_PROGRAMU);
     }
 
-    public function maRoliSefInfopultu(): bool
+    public function jeSefInfopultu(): bool
     {
         return $this->maRoli(Role::SEF_INFOPULTU);
     }

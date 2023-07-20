@@ -103,7 +103,7 @@ if ($uPracovni) {
         'prehledPredmetu' => $uPracovni->finance()->prehledHtml(
             $typyProPrehled,
             false,
-            $u->jeSpravceFinanci(),
+            $u->jeSpravceFinanci() || $u->jeSefInfopultu(),
         ),
     ]);
 
@@ -196,7 +196,7 @@ if ($uPracovni) {
         );
     }
 
-    if ($u->jeInfopultak() && !$u->maRoliSefInfopultu()) {
+    if ($u->jeInfopultak() && !$u->jeSefInfopultu()) {
         $zpravyProPotvrzeni = [];
         $a                  = $uPracovni->koncovkaDlePohlavi();
         if (!$uPracovni->gcPritomen()) {
