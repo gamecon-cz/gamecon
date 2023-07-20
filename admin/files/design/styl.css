@@ -1221,36 +1221,35 @@ Radio musí být ve tvaru:
       "udaje   udaje   ubytování ubytování"
       "udaje   udaje   pokoje    pokoje"
       "platba  platba  predmety    predmety"
-      "prodej  prodej  predmety  predmety"
-      ;
+      "prodej  prodej  predmety  predmety";
   }
 
   .infopult-grid--item {
     width: 100%;
     box-sizing: border-box;
   }
-  
+
   .infopult-grid--item td:nth-child(2) {
     width: 100%;
   }
-  
+
   .infopult-grid--item-predmety td:nth-child(2) {
     width: unset;
   }
-  
+
   .infopult-grid--item-udaje td:nth-child(2) {
     width: unset;
     white-space: nowrap;
   }
-  
+
   .infopult-grid--item-udaje td:nth-child(3) {
     width: 100%;
   }
-  
+
   .infopult-grid--item.aBox {
     margin: 10px 0 0 0;
   }
-  
+
   .infopult-grid--item > form > table {
     width: 100%;
   }
@@ -1438,12 +1437,12 @@ Radio musí být ve tvaru:
 }
 
 .vcetne label {
-  background-color: rgba(255,174,0,0.23);
+  background-color: rgba(255, 174, 0, 0.23);
   padding: 0.3em;
   text-decoration: line-through;
 }
 
-.vcetne :checked+label {
+.vcetne :checked + label {
   background-color: rgba(64, 255, 0, 0.28);
   text-decoration: none;
 }

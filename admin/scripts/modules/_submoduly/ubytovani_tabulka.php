@@ -11,8 +11,9 @@ class UbytovaniTabulka
         ShopUbytovani      $shop,
         XTemplate          $t,
         SystemoveNastaveni $systemoveNastaveni,
-        bool               $muzeEditovatUkoncenyProdej
-    ) {
+        bool               $muzeEditovatUkoncenyProdej,
+    )
+    {
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $systemoveNastaveni->prodejUbytovaniUkoncen();
         foreach ($shop->mozneDny() as $den => $typy) { // typy _v daný den_
             $typVzor = reset($typy);
@@ -20,38 +21,38 @@ class UbytovaniTabulka
             $ubytovanVeDni = false;
             foreach ($shop->mozneTypy() as $typ => $rozsah) {
                 $ubytovanVeDniATypu = false;
-                $checked = '';
+                $checked            = '';
                 if ($shop->ubytovan($den, $typ)) {
                     $ubytovanVeDniATypu = true;
-                    $checked = 'checked';
+                    $checked            = 'checked';
                 }
                 $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
 
-                $obsazeno = $shop->obsazenoMist($den, $typ);
-                $kapacita = $shop->kapacita($den, $typ);
+                $obsazeno  = $shop->obsazenoMist($den, $typ);
+                $kapacita  = $shop->kapacita($den, $typ);
                 $zbyvaMist = $shop->zbyvaMist($den, $typ);
 
                 $t->assign([
                     'idPredmetu' => $shop->mozneDny()[$den][$typ]['id_predmetu'] ?? null,
-                    'checked' => $checked,
-                    'disabled' => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
+                    'checked'    => $checked,
+                    'disabled'   => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                     && ($prodejUbytovaniUkoncen
                         || (!$ubytovanVeDniATypu && (!$shop->existujeUbytovani($den, $typ) || $shop->plno($den, $typ)))
                     )
                         ? 'disabled'
                         : '',
-                    'obsazeno' => $obsazeno,
-                    'kapacita' => $kapacita,
-                    'zbyvaMist' => $zbyvaMist,
+                    'obsazeno'   => $obsazeno,
+                    'kapacita'   => $kapacita,
+                    'zbyvaMist'  => $zbyvaMist,
                 ])->parse('ubytovani.den.typ');
             }
             // data pro názvy dnů a pro "Žádné" ubytování
             $denText = mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1));
             $t->assign([
-                'den' => $denText,
+                'den'        => $denText,
                 'denZkratka' => mb_substr($denText, 0, 2),
-                'checked' => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
-                'disabled' => $prodejUbytovaniUkoncen || ( $ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
+                'checked'    => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
+                'disabled'   => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
                     ? 'disabled'
                     : '',
             ])->parse('ubytovani.den');
@@ -61,8 +62,9 @@ class UbytovaniTabulka
     public static function ubytovaniTabulkaZ(
         ShopUbytovani      $shop,
         SystemoveNastaveni $systemoveNastaveni,
-        bool               $muzeEditovatUkoncenyProdej
-    ) {
+        bool               $muzeEditovatUkoncenyProdej,
+    )
+    {
         $t = new XTemplate(__DIR__ . '/ubytovani_tabulka.xtpl');
         self::htmlDny($shop, $t, $systemoveNastaveni, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
@@ -70,7 +72,7 @@ class UbytovaniTabulka
         foreach ($shop->mozneTypy() as $typ => $ubytovani) {
             $prvniUbytovani = $prvniUbytovani ?? $ubytovani;
             $t->assign([
-                'typ' => $typ,
+                'typ'  => $typ,
                 'hint' => $ubytovani['popis'],
                 'cena' => round($ubytovani['cena_aktualni']),
             ]);
