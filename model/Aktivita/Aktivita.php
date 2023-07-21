@@ -3324,15 +3324,15 @@ SQL,
      * @return Aktivita[]
      * @todo možno přidat flag 'celé v rozmezí'
      */
-    public static function zRozmezi(DateTimeCz $od, DateTimeCz $do, $flags = 0, $razeni = []): array
+    public static function zRozmezi(\DateTimeInterface $od, \DateTimeInterface $do, $flags = 0, $razeni = []): array
     {
         $aktivity = self::zFiltru(
             [
                 'jenViditelne'  => (bool)($flags & self::VEREJNE),
                 'jenZamcene'    => (bool)($flags & self::ZAMCENE),
                 'jenNeuzavrene' => (bool)($flags & self::NEUZAVRENE),
-                'od'            => $od->formatDb(),
-                'do'            => $do->formatDb(),
+                'od'            => $od->format(DateTimeCz::FORMAT_DB),
+                'do'            => $do->format(DateTimeCz::FORMAT_DB),
             ],
             $razeni,
         );
