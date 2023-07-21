@@ -16,6 +16,7 @@ use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
+use Cenik;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -26,11 +27,11 @@ class Finance
 
     public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
 
-    private         $stav       = 0;  // celkový výsledný stav uživatele na účtu
-    private         $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
-    private         $soucinitelCenyAKtivit;              // součinitel ceny aktivit
-    private         $logovat    = true;    // ukládat seznam předmětů?
-    private ?\Cenik $cenik      = null;             // instance ceníku
+    private        $stav       = 0;  // celkový výsledný stav uživatele na účtu
+    private        $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
+    private        $soucinitelCenyAKtivit;              // součinitel ceny aktivit
+    private        $logovat    = true;    // ukládat seznam předmětů?
+    private ?Cenik $cenik      = null;             // instance ceníku
     // tabulky s přehledy
     private $prehled                        = [];   // tabulka s detaily o platbách
     private $strukturovanyPrehled           = [];
@@ -153,7 +154,7 @@ SQL,
         $this->zapoctiVedeniAktivit();
         $this->zapoctiSlevy();
 
-        $this->cenik = new \Cenik(
+        $this->cenik = new Cenik(
             $this->u,
             $this->bonusZaVedeniAktivit,
             $this->systemoveNastaveni
@@ -930,13 +931,13 @@ SQL,
                 '<i>(z toho proplacený bonus ' . $this->proplacenyBonusZaVedeniAktivit . ')</i>',
                 '&nbsp;',
                 self::ORGSLEVA,
-                null
+                null,
             );
             $this->log(
                 '<i>Bonus za aktivity - celkový ' . $this->bonusZaVedeniAktivit . '</i>',
                 '&nbsp;',
                 self::ORGSLEVA,
-                null
+                null,
             );
         }
 
@@ -958,7 +959,7 @@ SQL,
     private function aplikujObecnouSlevu(float $cena)
     {
         $slevaObecna = $this->slevaObecna;
-        ['cena' => $cena, 'sleva' => $this->zbyvajiciObecnaSleva] = \Cenik::aplikujSlevu($cena, $slevaObecna);
+        ['cena' => $cena, 'sleva' => $this->zbyvajiciObecnaSleva] = Cenik::aplikujSlevu($cena, $slevaObecna);
         $this->vyuzitaSlevaObecna = $this->slevaObecna - $this->zbyvajiciObecnaSleva;
         if ($this->slevaObecna) {
             $this->log(
