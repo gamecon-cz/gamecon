@@ -2224,7 +2224,6 @@ SQL;
             $this->shop = new Shop(
                 $this,
                 $this,
-                null,
                 $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals()
             );
         }

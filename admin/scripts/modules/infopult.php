@@ -30,7 +30,7 @@ $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-botto
 $err  = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
-$shop      = $uPracovni ? new Shop($uPracovni, $u, $nastaveni, $systemoveNastaveni) : null;
+$shop      = $uPracovni ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni) : null;
 
 include __DIR__ . '/_infopult_ovladac.php';
 
