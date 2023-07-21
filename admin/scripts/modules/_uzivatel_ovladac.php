@@ -2,12 +2,14 @@
 
 use \Gamecon\Cas\DateTimeCz;
 use \Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Shop\Shop;
 
 /**
  * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
  * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
  * @var \Gamecon\Shop\Shop $shop
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 if (post('pridelitPokoj') && post('uid')) {
@@ -33,24 +35,14 @@ if (post('zpracujJidlo')) {
 if (!empty($_POST['prodej'])) {
     $prodej = $_POST['prodej'];
     unset($prodej['odeslano']);
-    $prodej['id_uzivatele'] = $uPracovni ? $uPracovni->id() : Uzivatel::SYSTEM;
-    for ($kusu = $prodej['kusu'] ?? 1, $i = 1; $i <= $kusu; $i++) {
-        dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum)
-  VALUES (' . $prodej['id_uzivatele'] . ',' . $prodej['id_predmetu'] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $prodej['id_predmetu'] . '),NOW())');
-    }
-    $idPredmetu = (int)$prodej['id_predmetu'];
-    $nazevPredmetu = dbOneCol(
-        <<<SQL
-      SELECT nazev FROM shop_predmety
-      WHERE id_predmetu = $idPredmetu
-      SQL
+    $shop = new Shop(
+        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::SYSTEM),
+        objednatel: $u,
+        systemoveNastaveni: $systemoveNastaveni
     );
-    $yu = '';
-    if ($kusu >= 5) {
-        $yu = 'ů';
-    } elseif ($kusu > 1) {
-        $yu = 'y';
-    }
-    oznameni("Prodáno $kusu kus$yu $nazevPredmetu");
+    $kusu = (int)($prodej['kusu'] ?? 1);
+    $shop->prodat((int)$prodej['id_predmetu'], $kusu, true);
+
+
     back();
 }

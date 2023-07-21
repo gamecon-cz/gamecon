@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Shop\Shop;
+
 /**
  * DrD, Trojboj, Gamecon, Placení aj.
  *
@@ -9,33 +11,31 @@
 
 /**
  * @var Uzivatel|null $uPracovni
+ * @var Uzivatel $u
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-function zabalAdminSoubor(string $cestaKSouboru): string {
+function zabalAdminSoubor(string $cestaKSouboru): string
+{
     return $cestaKSouboru . '?version=' . md5_file(ADMIN . '/' . $cestaKSouboru);
 }
 
 if (!empty($_POST['prodej-mrizka'])) {
-    $prodeje = $_POST['prodej-mrizka'];
-
+    $prodeje             = $_POST['prodej-mrizka'];
+    $rocnik              = $systemoveNastaveni->rocnik();
+    $prodejIdUzivatele   = $uPracovni ? $uPracovni->id() : Uzivatel::SYSTEM;
+    $prodejIdObjednatele = $u->id();
+    $shop                = new Shop(
+        zakaznik: $uPracovni ?? Uzivatel::zId(Uzivatel::SYSTEM),
+        objednatel: $u,
+        systemoveNastaveni: $systemoveNastaveni
+    );
     foreach ($prodeje as $prodej) {
-        $prodej['id_uzivatele'] = $uPracovni ? $uPracovni->id() : Uzivatel::SYSTEM;
-
-        for ($kusu = $prodej['kusu'] ?? 1, $i = 1; $i <= $kusu; $i++) {
-            dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum)
-    VALUES (' . $prodej['id_uzivatele'] . ',' . $prodej['id_predmetu'] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $prodej['id_predmetu'] . '),NOW())');
-        }
-        $idPredmetu = (int)$prodej['id_predmetu'];
-        $nazevPredmetu = dbOneCol(
-            <<<SQL
-      SELECT nazev FROM shop_predmety
-      WHERE id_predmetu = $idPredmetu
-      SQL
-        );
+        $prodejIdPredmetu = (int)$prodej['id_predmetu'];
+        $kusu             = (int)($prodej['kusu'] ?? 1);
+        $shop->prodat($prodejIdPredmetu, $kusu, true);
+        back();
     }
-
-    oznameni("350 poprvé ... podruhé ... Prodáno !!");
-    back();
 }
 
 ?>
