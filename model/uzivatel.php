@@ -1575,7 +1575,7 @@ SQL,
         array              $opt = [],
     )
     {
-        $tab[Sql::LOGIN_UZIVATELE]                     ??= 'rychloreg' . (self::pocetRychloregistraci() + 1);
+        $tab[Sql::LOGIN_UZIVATELE]                     ??= uniqid('RR.', false);
         $tab[Sql::JMENO_UZIVATELE]                     ??= $tab[Sql::LOGIN_UZIVATELE];
         $tab[Sql::PRIJMENI_UZIVATELE]                  ??= $tab[Sql::JMENO_UZIVATELE];
         $tab[Sql::EMAIL1_UZIVATELE]                    ??= $tab[Sql::LOGIN_UZIVATELE] . '@example.com';
@@ -1631,10 +1631,10 @@ SQL,
         return $uid;
     }
 
-    private static function pocetRychloregistraci(): int
+    private static function posledniPoradiRychloregistrace(string $prefix): int
     {
         return (int)dbFetchSingle(<<<SQL
-SELECT COUNT(*)
+SELECT MAX(CAST(REPLACE(login_uzivatele, '{$prefix}', '') AS INT))
 FROM uzivatele_hodnoty
 WHERE z_rychloregistrace = 1
 SQL,
