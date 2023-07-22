@@ -240,24 +240,24 @@ SQL,
     }
 
     /** Porovnávání k řazení php 4 style :/ */
-    private function cmp($a, $b)
+    private function cmp(array $a, array $b): int|float
     {
         // podle typu
         $podleKategorii = Finance::cpm_kategorie_razeni((int)$a['kategorie']) - Finance::cpm_kategorie_razeni((int)$b['kategorie']);
         if ($podleKategorii !== 0) {
             return $podleKategorii;
         }
-        $razeniVKategorii = $a['poradi_v_kategorii'] - $b['poradi_v_kategorii'];
+        $razeniVKategorii = (int)$a['poradi_v_kategorii'] - (int)$b['poradi_v_kategorii'];
         if ($razeniVKategorii !== 0) {
             return $razeniVKategorii;
         }
         // podle názvu
-        $o = strcmp($a['nazev'], $b['nazev']);
+        $o = strcmp(strip_tags((string)$a['nazev']), strip_tags((string)$b['nazev']));
         if ($o) {
             return $o;
         }
-        // podle ceny
-        return $a['castka'] - $b['castka'];
+        // podle ceny (může obsahovat HTML, například '<b>0</b>')
+        return (float)strip_tags($a['castka']) <=> (float)strip_tags($b['castka']);
     }
 
     private function logPolozkaProBfgr(string $nazev, int $pocet, float $castka, int $typ)
