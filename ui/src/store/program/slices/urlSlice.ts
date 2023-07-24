@@ -1,4 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
+import { AktivitaStav, AktivitaStavyVšechny } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { generujUrl, parsujUrl, ProgramTabulkaVýběr, ProgramURLState, urlStateProgramTabulkaMožnostíDnyMůj, URL_STATE_VÝCHOZÍ_STAV } from "../logic/url";
 
@@ -8,6 +9,7 @@ export type ProgramUrlSlice = {
     dny: ProgramTabulkaVýběr[],
     linie: string[],
     tagy: string[],
+    stavy: readonly AktivitaStav[],
   },
 }
 
@@ -17,6 +19,7 @@ export const createProgramUrlSlice: ProgramStateCreator<ProgramUrlSlice> = () =>
     dny: urlStateProgramTabulkaMožnostíDnyMůj(),
     linie: [],
     tagy: [],
+    stavy: AktivitaStavyVšechny,
   }
 });
 
@@ -88,7 +91,7 @@ export const nastavUrlVýběr = (možnost: ProgramTabulkaVýběr) => {
 /**
  * Vybrané všechny nebo žádné => undefined
  */
-const filtrZMožností = (vybrané: string[], všechny: string[]): string[] | undefined => {
+const filtrZMožností = <T extends string>(vybrané: T[], všechny: T[]): T[] | undefined => {
   return !(!vybrané.length || (všechny.length && !všechny.some(x => !vybrané?.some(y => x === y)))) ? vybrané : undefined;
 };
 
@@ -109,6 +112,13 @@ export const nastavFiltrTagů = (vybranéTagy: string[]) => {
     s.urlState.filtrTagy = filtrZMožností(vybranéTagy,s.urlStateMožnosti.linie);
   }, undefined, "nastav filtr tagy");
 };
+
+export const nastavFiltrStavů = (vybranéStavy: AktivitaStav[]) => {
+  useProgramStore.setState((s) => {
+    s.urlState.filtrStavAktivit = filtrZMožností(vybranéStavy, s.urlStateMožnosti.stavy);
+  }, undefined, "nastav filtr stavy");
+};
+
 
 export const nastavFiltrPřihlašovatelné = (přihlašovatelné:boolean) =>{
   useProgramStore.setState((s) => {

@@ -1,14 +1,21 @@
 import { GAMECON_KONSTANTY } from "../../env";
 import { fetchTestovacíAktivity, fetchTestovacíAktivityPřihlášen } from "../../testing/fakeAPI";
 
-export type AktivitaStatus =
-  | "vDalsiVlne"
-  | "vBudoucnu"
-  | "plno"
-  | "prihlasen"
-  | "nahradnik"
-  | "organizator"
+
+export const AktivitaStavyVšechny = [
+  "vDalsiVlne",
+  "vBudoucnu",
+  "plno",
+  "prihlasen",
+  "nahradnik",
+  "organizator",
+  "volno",
+] as const;
+
+export type AktivitaStav =
+  (typeof AktivitaStavyVšechny)[number]
   ;
+
 
 export type StavPřihlášení =
   | "prihlasen"

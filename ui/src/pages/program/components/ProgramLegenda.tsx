@@ -1,5 +1,11 @@
+import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
-import { useUživatel } from "../../../store/program/selektory";
+import {
+  useUrlState,
+  useUrlStateStavyFiltr,
+  useUživatel,
+} from "../../../store/program/selektory";
+import { nastavFiltrStavů } from "../../../store/program/slices/urlSlice";
 
 export const ProgramLegenda = () => {
   const legendaText = GAMECON_KONSTANTY.LEGENDA;
@@ -8,6 +14,31 @@ export const ProgramLegenda = () => {
   const organizator = uživatel.organizator ?? false;
   const koncovkaDlePohlaví = uživatel.koncovkaDlePohlavi ?? "";
   const přihlášen = uživatel.prihlasen ?? false;
+
+  const stavyFiltr = useUrlStateStavyFiltr();
+
+  const filtrujeStav = (stav: AktivitaStav) =>
+    stavyFiltr.some((x) => x === stav);
+
+  const překlopStav = (stav: AktivitaStav) => {
+    const filtruje = filtrujeStav(stav);
+    if (filtruje) {
+      nastavFiltrStavů(stavyFiltr.filter((x) => x !== stav).sort());
+    } else {
+      nastavFiltrStavů(stavyFiltr.concat(stav).sort());
+    }
+  };
+
+  const zaškrtávátkoPro = (stav: AktivitaStav) => (
+    <input
+      type="checkbox"
+      class="program_legenda_typ--checkbox"
+      checked={filtrujeStav(stav)}
+      onClick={() => {
+        překlopStav(stav);
+      }}
+    />
+  );
 
   return (
     <div class="program_legenda">
@@ -19,36 +50,35 @@ export const ProgramLegenda = () => {
       ></div>
       <div class="program_legenda_inner">
         <label class="program_legenda_typ otevrene">
-          <input type="checkbox" class="program_legenda_typ--checkbox" />
+          {zaškrtávátkoPro("volno")}
           Otevřené
         </label>
         <label class="program_legenda_typ vDalsiVlne">
-          <input type="checkbox" class="program_legenda_typ--checkbox" />V další
-          vlně
+          {zaškrtávátkoPro("vDalsiVlne")}V další vlně
         </label>
         <label class="program_legenda_typ vBudoucnu">
-          <input type="checkbox" class="program_legenda_typ--checkbox" />
+          {zaškrtávátkoPro("vBudoucnu")}
           Připravujeme
         </label>
         {přihlášen ? (
           <>
             <label class="program_legenda_typ nahradnik">
-              <input type="checkbox" class="program_legenda_typ--checkbox" />
+              {zaškrtávátkoPro("nahradnik")}
               Sleduji
             </label>
             <label class="program_legenda_typ prihlasen">
-              <input type="checkbox" class="program_legenda_typ--checkbox" />
+              {zaškrtávátkoPro("prihlasen")}
               Přihlášen{koncovkaDlePohlaví}
             </label>
           </>
         ) : undefined}
         <label class="program_legenda_typ plno">
-          <input type="checkbox" class="program_legenda_typ--checkbox" />
+          {zaškrtávátkoPro("plno")}
           Plno
         </label>
         {organizator ? (
           <label class="program_legenda_typ organizator">
-            <input type="checkbox" class="program_legenda_typ--checkbox" />
+            {zaškrtávátkoPro("organizator")}
             organizuji
           </label>
         ) : (

@@ -1,3 +1,4 @@
+import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { formátujDenVTýdnu, tryParseNumber } from "../../../utils";
 
@@ -20,6 +21,7 @@ export type ProgramURLState = {
   aktivitaNáhledId?: number,
   filtrLinie?: string[],
   filtrTagy?: string[],
+  filtrStavAktivit?: AktivitaStav[],
 }
 
 export const URL_STATE_VÝCHOZÍ_MOŽNOST = Object.freeze({
@@ -39,6 +41,7 @@ const LINIE_QUERY_KEY = "linie";
 const TAGY_QUERY_KEY = "tagy";
 const PŘIHLAŠOVATELNÉ_QUERY_KEY = "pouzePrihlasovatelne";
 const ROCNIK_QUERY_KEY = "rocnik";
+const STAVY_QUERY_KEY = "stav";
 
 export const parsujUrl = (url: string) => {
   const basePath = new URL(GAMECON_KONSTANTY.BASE_PATH_PAGE).pathname;
@@ -69,6 +72,14 @@ export const parsujUrl = (url: string) => {
       urlState.filtrTagy = tagy;
     }
   } catch (e) { console.error(`failed to parse ${urlObj.searchParams.get(TAGY_QUERY_KEY) ?? ""}`); }
+  try {
+    const stavyRaw = urlObj.searchParams.get(STAVY_QUERY_KEY);
+    if (stavyRaw) {
+      const tagy = JSON.parse(decodeURIComponent(stavyRaw));
+      urlState.filtrStavAktivit = tagy;
+    }
+  } catch (e) { console.error(`failed to parse ${urlObj.searchParams.get(STAVY_QUERY_KEY) ?? ""}`); }
+
 
   return urlState;
 };
@@ -95,6 +106,9 @@ export const generujUrl = (urlState: ProgramURLState): string | undefined => {
 
   if (urlState.filtrTagy)
     search.push(`${TAGY_QUERY_KEY}=${encodeURIComponent(JSON.stringify(urlState.filtrTagy))}`);
+
+  if (urlState.filtrStavAktivit)
+    search.push(`${STAVY_QUERY_KEY}=${encodeURIComponent(JSON.stringify(urlState.filtrStavAktivit))}`);
 
   if (urlState.filtrPřihlašovatelné)
     search.push(`${PŘIHLAŠOVATELNÉ_QUERY_KEY}=true`);

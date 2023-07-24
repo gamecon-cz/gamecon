@@ -74,6 +74,7 @@ export const useUrlState = (): ProgramURLState => useProgramStore(s => s.urlStat
 export const useUrlVýběr = (): ProgramTabulkaVýběr => useProgramStore((s) => s.urlState.výběr);
 export const useUrlStateMožnostiDny = (): ProgramTabulkaVýběr[] => useProgramStore(s => s.urlStateMožnosti.dny);
 export const useUrlStateMožnosti = () => useProgramStore(s => s.urlStateMožnosti);
+export const useUrlStateStavyFiltr = () => useProgramStore(s => s.urlState.filtrStavAktivit ?? []);
 
 export const useUživatel = (): PřihlášenýUživatel => useProgramStore(s => s.přihlášenýUživatel.data);
 export const useUživatelPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.přihlášenýUživatel.data?.pohlavi);
