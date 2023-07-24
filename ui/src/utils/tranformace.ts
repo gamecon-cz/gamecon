@@ -1,9 +1,10 @@
 import { APIAktivita, Obsazenost, OdDo } from "../api/program";
 import { containsSame } from ".";
+import { Aktivita } from "../store/program/slices/programDataSlice";
 
 
-export const tagyZAktivit = (aktivity: APIAktivita[]): string[] => {
-  const tagyMap = new Set<string>();
+export const tagyZAktivit = (aktivity: Aktivita[]): string[] => {
+  const tagyMap: Set<string> = new Set();
 
   for (let i = aktivity.length; i--;) {
     const { stitky } = aktivity[i];
@@ -14,22 +15,22 @@ export const tagyZAktivit = (aktivity: APIAktivita[]): string[] => {
     }
   }
 
-  return Array.from(tagyMap.keys()).sort();
-};
+  return Array.from(tagyMap.keys()).sort()
+}
 
 /**
  * @param denVyber Zatím dokud nebude vyřešeno jinak
  */
-export const getFiltredActivities = (activity: APIAktivita[], linie: string[], tagy: string[], denVyber: string): APIAktivita[] => {
-  console.log(denVyber);
+export const getFiltredActivities = (activity: Aktivita[], linie: string[], tagy: string[], denVyber: string): Aktivita[] => {
+  console.log(denVyber)
   return (
     tagy.length
       ? activity.filter(a => containsSame(a.stitky, tagy))
       : activity
   )
-    .filter(x => containsSame([x.linie], linie));
-  // .filter(x => x.cas.den === denVyber)
-};
+    .filter(x => containsSame([x.linie], linie))
+    // .filter(x => x.cas.den === denVyber)
+}
 
 export const volnoTypZObsazenost = (obsazenost: Obsazenost) => {
   const { m, f, km, kf, ku } = obsazenost;
@@ -37,20 +38,20 @@ export const volnoTypZObsazenost = (obsazenost: Obsazenost) => {
   const kc = ku + km + kf;
 
   if (kc <= 0) {
-    return "u"; //aktivita bez omezení
+    return 'u'; //aktivita bez omezení
   }
   if (c >= kc) {
-    return "x"; //beznadějně plno
+    return 'x'; //beznadějně plno
   }
   if (m >= ku + km) {
-    return "f"; //muži zabrali všechna univerzální i mužská místa
+    return 'f'; //muži zabrali všechna univerzální i mužská místa
   }
   if (f >= ku + kf) {
-    return "m"; //LIKE WTF? (opak předchozího)
+    return 'm'; //LIKE WTF? (opak předchozího)
   }
   //else
-  return "u"; //je volno a žádné pohlaví nevyžralo limit míst
-};
+  return 'u'; //je volno a žádné pohlaví nevyžralo limit míst
+}
 
 export const casRozsahZAktivit = (aktivity: APIAktivita[]): OdDo => {
   // TODO: better way, spread operator passes arguments through stack, not optimal

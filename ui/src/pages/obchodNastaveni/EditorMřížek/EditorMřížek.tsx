@@ -1,6 +1,7 @@
 import { FunctionComponent } from "preact";
-import { useCallback, useEffect, useState } from "preact/hooks";
+import { StateUpdater, useCallback, useEffect, useState } from "preact/hooks";
 import {
+  DefiniceObchod,
   DefiniceObchodMřížka,
   DefiniceObchodMřížkaBuňka,
 } from "../../../api/obchod/types";
@@ -35,12 +36,12 @@ const vytvořPrázdnouMřížku = (id: number) => {
         cilId: 0,
       } as DefiniceObchodMřížkaBuňka)
   );
-  buňky[buňky.length - 1].typ = "zpět";
-  buňky[buňky.length - 1].text = "zpět";
-  buňky[buňky.length - 1].barvaPozadí = "#EAFF9E";
-  buňky[buňky.length - 2].typ = "shrnutí";
-  buňky[buňky.length - 2].text = "shrnutí";
-  buňky[buňky.length - 2].barvaPozadí = "#DEDEDE";
+  buňky[buňky.length-1].typ = "zpět";
+  buňky[buňky.length-1].text = "zpět";
+  buňky[buňky.length-1].barvaPozadí = "#EAFF9E";
+  buňky[buňky.length-2].typ ="shrnutí";
+  buňky[buňky.length-2].text = "shrnutí";
+  buňky[buňky.length-2].barvaPozadí = "#DEDEDE";
   return {
     id,
     text: "",
@@ -53,7 +54,7 @@ export const EditorMřížek: FunctionComponent<TEditorMřížekProps> = (props)
 
   const [mřížkaVybranáI, setMřížkaVybranáI] = useState(0);
 
-  const mřížka = mřížky[mřížkaVybranáI] as DefiniceObchodMřížka | undefined;
+  const mřížka = mřížky[mřížkaVybranáI];
   const setMřížka = useCallback(
     (mřížka: DefiniceObchodMřížka) => {
       setMřížky(mřížky.map((x, i) => (i !== mřížkaVybranáI ? x : mřížka)));
@@ -80,7 +81,7 @@ export const EditorMřížek: FunctionComponent<TEditorMřížekProps> = (props)
     <>
       <div>
         <button onClick={přidatMřížku}>Přidat mřížku</button>
-        <button onClick={() => void uložMřížky()} style={{ marginLeft: "24px" }}>
+        <button onClick={uložMřížky} style={{ marginLeft: "24px" }}>
           Ulož všechny změny
         </button>
       </div>
@@ -88,7 +89,7 @@ export const EditorMřížek: FunctionComponent<TEditorMřížekProps> = (props)
         Mřížka:
         <select
           value={mřížkaVybranáI}
-          onChange={(e) => { setMřížkaVybranáI(+(e.target as HTMLSelectElement).value); }}
+          onChange={(e: any) => setMřížkaVybranáI(+e.target.value)}
         >
           {mřížky.map((x, i) => {
             const text = !x.text || x.text === "" ? x.id : x.text;

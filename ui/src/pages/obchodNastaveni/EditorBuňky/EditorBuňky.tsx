@@ -1,17 +1,16 @@
-import { FunctionComponent } from "preact";
+import { FunctionComponent, options } from "preact";
 import { useContext } from "preact/hooks";
 import {
-  DefiniceObchodMřížkaBuňka} from "../../../api/obchod/types";
-import {
+  DefiniceObchodMřížkaBuňka,
   DefiniceObchodMřížkaBuňkaTyp,
 } from "../../../api/obchod/types";
-import { getEnumNames } from "../../../utils/enum";
+import { getEnumNames, getEnumValues } from "../../../utils";
 import { CíleContext } from "../app";
 
 type TEditorBuňkyProps = {
   buňka: DefiniceObchodMřížkaBuňka;
   setBuňka: (buňka: DefiniceObchodMřížkaBuňka) => void;
-}
+};
 
 const typy = getEnumNames(DefiniceObchodMřížkaBuňkaTyp);
 
@@ -26,16 +25,16 @@ export const EditorBuňky: FunctionComponent<TEditorBuňkyProps> = (props) => {
         <div>
           <input
             value={buňka.text}
-            onChange={(e) => {
-              setBuňka({ ...buňka, text: (e.target as HTMLInputElement).value });
+            onChange={(e: any) => {
+              setBuňka({ ...buňka, text: e.target.value });
             }}
           ></input>
         </div>
         <div>
           <select
             value={buňka.typ}
-            onChange={(e) => {
-              setBuňka({ ...buňka, typ: (e.target as HTMLSelectElement).value as any });
+            onChange={(e: any) => {
+              setBuňka({ ...buňka, typ: e.target.value });
             }}
           >
             {typy.map((x) => (
@@ -46,9 +45,9 @@ export const EditorBuňky: FunctionComponent<TEditorBuňkyProps> = (props) => {
         <div>
           <input
             type="color"
-            value={buňka.barvaPozadí ?? "#ffffff"}
-            onChange={(e) =>
-            { setBuňka({ ...buňka, barvaPozadí: (e.target as HTMLInputElement).value }); }
+            value={buňka.barvaPozadí || "#ffffff"}
+            onChange={(e: any) =>
+              setBuňka({ ...buňka, barvaPozadí: e.target.value })
             }
           ></input>
         </div>
@@ -56,7 +55,7 @@ export const EditorBuňky: FunctionComponent<TEditorBuňkyProps> = (props) => {
           <select
             style={{ width: "100%" }}
             value={buňka.cilId}
-            onChange={(e) => { setBuňka({ ...buňka, cilId: +(e.target as HTMLSelectElement).value }); }}
+            onChange={(e: any) => setBuňka({ ...buňka, cilId: e.target.value })}
           >
             {cíle[buňka.typ === "předmět" ? "předměty" : "mřížky"].map((x) => (
               <option value={x.id}>{x.text}</option>

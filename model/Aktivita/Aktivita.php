@@ -1303,8 +1303,8 @@ SQL
     }
 
     public function obsazenostObj() {
-        $prihlasenoMuzu      = $this->prihlasenoMuzu(); // počty
-        $prihlasenoZen       = $this->prihlasenoZen();
+        $prihlasenoMuzu      = $this->pocetPrihlasenychMuzu(); // počty
+        $prihlasenoZen       = $this->pocetPrihlasenychZen();
         $kapacitaMuzi        = (int)$this->a['kapacita_m']; // kapacity
         $kapacitaZeny        = (int)$this->a['kapacita_f'];
         $kapacitaUniverzalni = (int)$this->a['kapacita'];

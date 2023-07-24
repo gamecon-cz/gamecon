@@ -36,16 +36,16 @@ const usePředmětyObjednávka = () => {
     setPředmětyObjednávka((předměty) =>
       předměty.some((x) => x.předmět.id === předmětId)
         ? předměty.map((x) =>
-          x.předmět.id === předmětId ? { ...x, množství: x.množství + 1 } : x
-        )
+            x.předmět.id === předmětId ? { ...x, množství: x.množství + 1 } : x
+          )
         : předmětyVšechny.some((x) => x.id === předmětId)
-          ? předměty.concat([
+        ? předměty.concat([
             {
               množství: 1,
               předmět: předmětyVšechny.find((x) => x.id === předmětId)!,
             },
           ])
-          : předměty
+        : předměty
     );
   });
   const předmětOdeber = useFixed((předmět: Předmět) => {
@@ -97,13 +97,13 @@ const useMřížka = (definice: DefiniceObchod) => {
     (x) => x.id === mřížkaId
   );
 
-  const setShrnutí = useFixed(() => { setId(-1); });
+  const setShrnutí = useFixed(() => setId(-1));
 
-  const setVýchozí = useCallback(() => { setId(výchozíMřížka); }, []);
+  const setVýchozí = useCallback(() => setId(výchozíMřížka), []);
 
   const setMřížka = useMemo(
     () =>
-      Object.assign((id: number) => { setId(id); }, {
+      Object.assign((id: number) => setId(id), {
         id: setId,
         zpět: setZpět,
         výchozí: setVýchozí,
@@ -188,9 +188,9 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
   return (
     <>
       {visible ? (
-        <Overlay onClickOutside={() => { setVisible(false); }}>
+        <Overlay onClickOutside={() => setVisible(false)}>
           <div class="shop--container">
-            <span class="shop--close" title='zavřít' aria-label='close' onClick={() => { setVisible(false); }}>&times;</span>
+            <span class="shop--close" title='zavřít' aria-label='close' onClick={() => setVisible(false)}>&times;</span>
             {mřížka ? (
               <ObchodMřížka {...{ mřížka, onBuňkaClicked }} />
             ) : (

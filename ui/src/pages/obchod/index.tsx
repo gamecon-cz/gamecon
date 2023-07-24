@@ -1,1 +1,1 @@
-export {App as Obchod} from "./App";
+export {App as Obchod} from './App'
