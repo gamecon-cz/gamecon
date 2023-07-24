@@ -2,24 +2,7 @@ import { useProgramStore } from ".";
 import { Pohlavi, PřihlášenýUživatel } from "../../api/přihlášenýUživatel";
 import { ProgramTabulkaVýběr, ProgramURLState } from "./logic/url";
 import shallow from "zustand/shallow";
-import { Aktivita, jeAktivitaDotažená } from "./slices/programDataSlice";
-
-// TODO: přidat zbytek filtrů
-export const useAktivityFiltrované = (): Aktivita[] => {
-  const urlState = useProgramStore((s) => s.urlState);
-  const aktivity = useProgramStore(
-    (s) => Object.values(s.data.aktivityPodleId).filter(jeAktivitaDotažená).filter(x => new Date(x.cas.od).getFullYear() === urlState.rok)
-  );
-  const urlStateVýběr = useUrlVýběr();
-
-  const aktivityFiltrované = aktivity.filter((aktivita) =>
-    urlStateVýběr.typ === "můj"
-      ? aktivita?.stavPrihlaseni !=
-      undefined
-      : new Date(aktivita.cas.od).getDay() === urlStateVýběr.datum.getDay()
-  );
 import { FiltrAktivit, filtrujAktivity } from "./logic/aktivity";
-import { ProgramTabulkaVýběr, ProgramURLState } from "./logic/url";
 import { Aktivita, filtrujDotaženéAktivity, jeAktivitaDotažená } from "./slices/programDataSlice";
 
 const useFiltrAktivit = (aktivitaFiltr?: FiltrAktivit) => {
@@ -60,11 +43,6 @@ export const useAktivitaNáhled = (): Aktivita | undefined =>
     const aktivita = s.data.aktivityPodleId[s.urlState.aktivitaNáhledId ?? -1];
     return jeAktivitaDotažená(aktivita) ? aktivita : undefined;
   }, shallow);
-
-export const useUrlState = (): ProgramURLState => useProgramStore(s => s.urlState);
-export const useUrlVýběr = (): ProgramTabulkaVýběr => useProgramStore((s) => s.urlState.výběr);
-export const useUrlStateMožnosti = (): ProgramTabulkaVýběr[] => useProgramStore(s => s.urlStateMožnosti);
-  });
 
 /**
  * Tagy s počtem aktivit které mají filtr daný ročník

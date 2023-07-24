@@ -97,10 +97,6 @@ class Modul
         return $this->jsUrls;
     }
 
-    function jsModulyUrls(): array {
-        return $this->jsModulyUrls;
-    }
-
     /** Název modulu (odpovídá části názvu souboru) */
     protected function nazev()
     {
@@ -138,8 +134,8 @@ class Modul
         return $url;
     }
 
-    function pridejJsSoubor($cestaNaWebu) {
-        $url = $this->zabalJsSoubor($cestaNaWebu);
+    function pridejJsSoubor($cestaNaWebu, $zabal = true) {
+        $url = $zabal ? $this->zabalJsSoubor($cestaNaWebu) : $cestaNaWebu;
         $this->jsUrls[] = $url;
     }
 

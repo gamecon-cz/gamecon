@@ -42,9 +42,9 @@ foreach ($program->cssUrls() as $cssUrl) {
     $this->pridejCssUrl($cssUrl);
 }
 
-foreach ($program->jsModulyUrls() as $jsModulUrl) {
-    $this->pridejJsModulUrl($jsModulUrl);
-}
+// foreach ($program->jsModulyUrls() as $jsModulUrl) {
+//     $this->pridejJsSoubor($jsModulUrl);
+// }
 
 $zacatekPristiVlnyOd       = $systemoveNastaveni->pristiVlnaKdy();
 $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
@@ -52,7 +52,7 @@ $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
     : null;
 
 $legendaText   = Stranka::zUrl('program-legenda-text')->html();
-$jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKTIVIT);
+$jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
 
 ?>
 
@@ -63,6 +63,16 @@ $jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKTIVIT);
         /* relative, aby fungoval z-index */
     }
 </style>
+
+
+<?php
+function zabalSoubor(string $cestaKSouboru): string
+{
+    return $cestaKSouboru . '?version=' . md5_file(ADMIN . '/' . $cestaKSouboru);
+}
+?>
+
+<link rel="stylesheet" href="<?= zabalSoubor('/../web/soubory/ui/style.css') ?>">
 
 <div id="preact-program">Program se načítá ...</div>
 <script>
@@ -108,5 +118,7 @@ $jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKTIVIT);
     echo json_encode(["přihlášenýUživatel" => $res], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     ?>
 </script>
+
+<script type="module" src="<?= zabalSoubor('/../web/soubory/ui/bundle.js') ?>"></script>
 
 <div style="height: 70px"></div>

@@ -1,4 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
+import { GAMECON_KONSTANTY } from "../../../env";
 import { generujUrl, parsujUrl, ProgramTabulkaVýběr, ProgramURLState, urlStateProgramTabulkaMožnostíDnyMůj, URL_STATE_VÝCHOZÍ_STAV } from "../logic/url";
 
 export type ProgramUrlSlice = {

@@ -138,12 +138,12 @@ class Program
      */
     public function jsModulyUrls(): array {
         $soubory = [
-            __DIR__ . '/../web/soubory/ui/bundle.js',
+            __DIR__ . '/../../web/soubory/ui/bundle.js',
         ];
         $jsModulyUrls = [];
         foreach ($soubory as $soubor) {
             $verze     = md5_file($soubor);
-            $url       = str_replace(__DIR__ . '/../web/', '', $soubor);
+            $url       = str_replace(__DIR__ . '/../../web/', '', $soubor);
             $jsModulyUrls[] = URL_WEBU . '/' . $url . '?version=' . $verze;
         }
         return $jsModulyUrls;

@@ -239,13 +239,6 @@ SQL
             ;
     }
 
-    public function slevaNasobic(\Uzivatel $u = null) {
-        return (!$this->a['bez_slevy'] && $u && $u->gcPrihlasen())
-            ? $u->finance()->slevaAktivity()
-            : 1.
-            ;
-    }
-
     /**
      * Cena aktivity čitelná člověkem, poplatná aktuálnímu okamžiku. V případě
      * uvedení uživatele vrací pro něj specifickou cenu.
