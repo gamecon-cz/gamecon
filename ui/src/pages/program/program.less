@@ -107,24 +107,69 @@ margin-bottom: 6px;
 display      : block;
 }
 
-.program_legenda_typ::before {
-width         : 1em;
-height        : 1em;
-display       : inline-block;
-font-size     : 28px;
-overflow      : hidden;
-margin-top    : -3px;
-background    : #CDF2D9;
-content       : "";
-margin-right  : 12px;
-vertical-align: middle;
+.program_legenda_typ {
+  user-select: none;
+  cursor: pointer;
+
+  &--checkbox[type=checkbox] {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    font-size: 28px;
+    overflow: hidden;
+    margin-top: -3px;
+    content: "";
+    margin-right: 12px;
+    vertical-align: middle;
+    cursor: pointer;
+
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 10 10'%3E%3Crect width='10' height='10' rx='1' transform='translate(0 0)' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat center center;
+    background-color: #CDF2D9;
+
+    &:checked {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 10.698 8.288'%3E%3Cpath id='Path_2669' data-name='Path 2669' d='M7283.8,702.841l3.117,3.117,6.167-6.167' transform='translate(-7283.093 -699.085)' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat center center;
+    }
+  }
+
+  &.otevrene input[type=checkbox] {
+    background-color: #CDF2D9;
+  }
+
+  &.vDalsiVlne input[type=checkbox] {
+    background-color: #FCBCBC;
+  }
+
+  &.vBudoucnu input[type=checkbox] {
+    background-color: #FFECEC;
+  }
+
+  &.plno input[type=checkbox] {
+    background-color: #F5F5F5;
+  }
+
+  &.prihlasen input[type=checkbox] {
+    background-color: #65D161;
+  }
+
+  &.sledujici input[type=checkbox] {
+    background-color: #E5E891;
+  }
+
+  &.organizator input[type=checkbox] {
+    background-color: #7EA5FF;
+  }
+
 }
 
 .program tbody td>div {
 background-color: #CDF2D9;
 }
 
-/* docasne zde, nez to preneseme do souboru program-trida.css */
+.program tbody .otevrene,
+.program_legenda_typ.otevrene::before {
+background-color: #CDF2D9;
+}
+
 .program tbody .vDalsiVlne,
 .program_legenda_typ.vDalsiVlne::before {
 background-color: #FCBCBC;

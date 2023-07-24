@@ -18,20 +18,39 @@ export const ProgramLegenda = () => {
         }}
       ></div>
       <div class="program_legenda_inner">
-        <span class="program_legenda_typ">Otevřené</span>
-        <span class="program_legenda_typ vDalsiVlne">V další vlně</span>
-        <span class="program_legenda_typ vBudoucnu">Připravujeme</span>
-        {
-          přihlášen ? <>
-            <span class="program_legenda_typ nahradnik">Sleduji</span>
-            <span class="program_legenda_typ prihlasen">
+        <label class="program_legenda_typ otevrene">
+          <input type="checkbox" class="program_legenda_typ--checkbox" />
+          Otevřené
+        </label>
+        <label class="program_legenda_typ vDalsiVlne">
+          <input type="checkbox" class="program_legenda_typ--checkbox" />V další
+          vlně
+        </label>
+        <label class="program_legenda_typ vBudoucnu">
+          <input type="checkbox" class="program_legenda_typ--checkbox" />
+          Připravujeme
+        </label>
+        {přihlášen ? (
+          <>
+            <label class="program_legenda_typ nahradnik">
+              <input type="checkbox" class="program_legenda_typ--checkbox" />
+              Sleduji
+            </label>
+            <label class="program_legenda_typ prihlasen">
+              <input type="checkbox" class="program_legenda_typ--checkbox" />
               Přihlášen{koncovkaDlePohlaví}
-            </span>
-          </> : undefined
-        }
-        <span class="program_legenda_typ plno">Plno</span>
+            </label>
+          </>
+        ) : undefined}
+        <label class="program_legenda_typ plno">
+          <input type="checkbox" class="program_legenda_typ--checkbox" />
+          Plno
+        </label>
         {organizator ? (
-          <span class="program_legenda_typ organizator">organizuji</span>
+          <label class="program_legenda_typ organizator">
+            <input type="checkbox" class="program_legenda_typ--checkbox" />
+            organizuji
+          </label>
         ) : (
           <></>
         )}

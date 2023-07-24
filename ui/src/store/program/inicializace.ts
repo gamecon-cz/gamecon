@@ -36,7 +36,8 @@ export const inicializujProgramStore = () => {
   }
 
   const dataProgramString = localStorage.getItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM);
-  if (dataProgramString) {
+  // TODO: vyhodnotit pravidla pro to kdy se může použít cache
+  if (false as any && dataProgramString) {
     try {
       useProgramStore.setState(s=>{
         s.data =  JSON.parse(dataProgramString);
