@@ -26,43 +26,42 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
 
   const jeLetošníRočník = urlState.ročník === GAMECON_KONSTANTY.ROCNIK;
 
-
   const filtryOtevřené = useFiltryOtevřené();
 
   return (
     <>
       <div class="program_hlavicka">
         <h1>Program {urlState.ročník}</h1>
-        <div class="clearfix">
-          <div class="program_dny">
-            {urlStateMožnosti.map((možnost) => {
-              return (
-                <a
-                  href={generujUrl(
-                    produce(urlState, (s) => {
-                      s.výběr = možnost;
-                    })
-                  )}
-                  class={
-                    "program_den" +
-                    (porovnejTabulkaVýběr(možnost, urlState.výběr)
-                      ? " program_den-aktivni"
-                      : "")
-                  }
-                  onClick={(e) => {
-                    e.preventDefault();
-                    nastavUrlVýběr(možnost);
-                  }}
-                >
-                  {možnost.typ === "můj"
-                    ? "můj program"
-                    : formátujDatum(možnost.datum, !jeLetošníRočník)}
-                </a>
-              );
-            })}
-          </div>
+        <div class="program_dny">
+          {urlStateMožnosti.map((možnost) => {
+            return (
+              <a
+                href={generujUrl(
+                  produce(urlState, (s) => {
+                    s.výběr = možnost;
+                  })
+                )}
+                class={
+                  "program_den" +
+                  (porovnejTabulkaVýběr(možnost, urlState.výběr)
+                    ? " program_den-aktivni"
+                    : "")
+                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  nastavUrlVýběr(možnost);
+                }}
+              >
+                {možnost.typ === "můj"
+                  ? "můj program"
+                  : formátujDatum(možnost.datum, !jeLetošníRočník)}
+              </a>
+            );
+          })}
           <button
-            class={"program_filtry_tlacitko" + (filtryOtevřené ? " aktivni" : "")}
+            class={
+              "program_filtry_tlacitko" + (filtryOtevřené ? " aktivni" : "")
+            }
             onClick={() => {
               nastavFiltryOtevřené(!filtryOtevřené);
             }}
@@ -70,7 +69,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
             Filtry
           </button>
         </div>
-        <Filtry {...{otevřeno: filtryOtevřené}}/>
+        <Filtry {...{ otevřeno: filtryOtevřené }} />
       </div>
     </>
   );

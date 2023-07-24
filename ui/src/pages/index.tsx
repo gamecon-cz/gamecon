@@ -5,6 +5,8 @@ import { Fragment, FunctionComponent, JSX, render } from "preact";
 import { GAMECON_KONSTANTY } from "../env";
 import { ProgramWrapper } from "../testing/ProgramWrapper";
 
+import "./index.less";
+
 const renderComponent = (
   rootId: string,
   Component: FunctionComponent,

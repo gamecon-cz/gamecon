@@ -38,13 +38,16 @@ const asValueLabel = <T,>(obj: T): TValueLabel<T> => ({
 
 // TODO: return type
 const formatOptionLabel = (data: TValueLabel) =>
-  <div class="react_select_option--container">
-    <span>{data.label}</span>
-    {data.početMožností !== undefined ? (
-      <span class="react_select_option--badge">{data.početMožností === 0 ? "-" : data.početMožností}</span>
-    ) : undefined}
-  </div> as any;
-
+  (
+    <div class="react_select_option--container">
+      <span>{data.label}</span>
+      {data.početMožností !== undefined ? (
+        <span class="react_select_option--badge">
+          {data.početMožností === 0 ? "-" : data.početMožností}
+        </span>
+      ) : undefined}
+    </div>
+  ) as any;
 
 // TODO: můj program je nefiltrovaný - zašednout všechny controly ve filtry a lehce i tlačítko filtry
 // TODO: seřadí linie, tagy (přesune nahoru seznamu) podle den -> rok -> zbytek (možná i podle výskytů)
@@ -92,7 +95,10 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           <div style={{ flex: "1" }}>
             <Select<TValueLabel<string>, true>
               placeholder="Tagy"
-              options={tagySPočtemAktivit.map(x=>({...asValueLabel(x.tag), početMožností:x.celkemVRočníku}))}
+              options={tagySPočtemAktivit.map((x) => ({
+                ...asValueLabel(x.tag),
+                početMožností: x.celkemVRočníku,
+              }))}
               isMulti
               closeMenuOnSelect={false}
               value={urlState.filtrTagy?.map(asValueLabel) ?? []}
@@ -107,7 +113,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           </div>
         </div>
 
-        <div>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button class="program_filtry_tlacitko">zvětšit</button>
           <button class="program_filtry_tlacitko">sdílej</button>
           <button
