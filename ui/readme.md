@@ -32,6 +32,9 @@ nasazování pořád buildovat)
 
 
 TODO:
+rozdělit do yarn workspaces, upravit buildování tak aby se vždycky buildovalo a dotahovalo co se používá (nedotahovat logiku obchod když otevírám program - sníží šanci že něco rozbiju např. v shopu když edituju program)
+
+TODO:
 zdokumentovat používání FORCE_REDUX_DEVTOOLS
 jak používat linter
 

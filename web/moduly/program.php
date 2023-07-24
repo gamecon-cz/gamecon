@@ -42,13 +42,17 @@ foreach ($program->cssUrls() as $cssUrl) {
     $this->pridejCssUrl($cssUrl);
 }
 
+foreach ($program->jsModulyUrls() as $jsModulUrl) {
+    $this->pridejJsModulUrl($jsModulUrl);
+}
+
 $zacatekPristiVlnyOd       = $systemoveNastaveni->pristiVlnaKdy();
 $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
     ? $zacatekPristiVlnyOd->getTimestamp() - $systemoveNastaveni->ted()->getTimestamp()
     : null;
 
 $legendaText   = Stranka::zUrl('program-legenda-text')->html();
-$jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
+$jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKTIVIT);
 
 ?>
 
@@ -59,16 +63,6 @@ $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
         /* relative, aby fungoval z-index */
     }
 </style>
-
-
-<?php
-function zabalSoubor(string $cestaKSouboru): string
-{
-    return $cestaKSouboru . '?version=' . md5_file(ADMIN . '/' . $cestaKSouboru);
-}
-?>
-
-<link rel="stylesheet" href="<?= zabalSoubor('/../web/soubory/ui/style.css') ?>">
 
 <div id="preact-program">Program se načítá ...</div>
 <script>
@@ -84,44 +78,35 @@ function zabalSoubor(string $cestaKSouboru): string
     }
 
     window.gameconPřednačtení =
-        <?php
-        $res = [];
-        if ($u) {
-            $res["prihlasen"] = true;
-            $res["pohlavi"] = $u->pohlavi();
-            $res["koncovkaDlePohlavi"] = $u->koncovkaDlePohlavi();
+    <?php
+    $res = [];
+    if ($u) {
+        $res["prihlasen"]          = true;
+        $res["pohlavi"]            = $u->pohlavi();
+        $res["koncovkaDlePohlavi"] = $u->koncovkaDlePohlavi();
 
-            if ($u->jeOrganizator()) {
-                $res["organizator"] = true;
-            }
-            if ($u->jeBrigadnik()) {
-                $res["brigadnik"] = true;
-            }
-
-            $res["gcStav"] = "nepřihlášen";
-
-            if ($u->gcPrihlasen()) {
-                $res["gcStav"] = "přihlášen";
-            }
-            if ($u->gcPritomen()) {
-                $res["gcStav"] = "přítomen";
-            }
-            if ($u->gcOdjel()) {
-                $res["gcStav"] = "odjel";
-            }
+        if ($u->jeOrganizator()) {
+            $res["organizator"] = true;
         }
-        // TODO: použít jednu logiku stejně jako z API
-        echo json_encode(["přihlášenýUživatel" => $res], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        ?>
-</script>
+        if ($u->jeBrigadnik()) {
+            $res["brigadnik"] = true;
+        }
 
-<script type="module" src="<?= zabalSoubor('/../web/soubory/ui/bundle.js') ?>"></script>
+        $res["gcStav"] = "nepřihlášen";
 
-<style>
-    /* na stránce programu nedělat sticky menu, aby bylo maximum místa pro progam */
-    .menu {
-        position: relative; /* relative, aby fungoval z-index */
+        if ($u->gcPrihlasen()) {
+            $res["gcStav"] = "přihlášen";
+        }
+        if ($u->gcPritomen()) {
+            $res["gcStav"] = "přítomen";
+        }
+        if ($u->gcOdjel()) {
+            $res["gcStav"] = "odjel";
+        }
     }
-</style>
+    // TODO: použít jednu logiku stejně jako z API
+    echo json_encode(["přihlášenýUživatel" => $res], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    ?>
+</script>
 
 <div style="height: 70px"></div>

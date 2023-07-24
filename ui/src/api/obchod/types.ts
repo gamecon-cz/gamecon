@@ -2,7 +2,8 @@
 0-předmět, 1-stránka, 2-zpět, 3-shrnutí
 */
 
-type DefiniceObchodMřížkaBuňkaTypStr = "předmět" | "stránka" | "zpět" | "shrnutí";
+// TODO: vytvořit type guardy ?
+export type DefiniceObchodMřížkaBuňkaTypStr = "předmět" | "stránka" | "zpět" | "shrnutí";
 
 export enum DefiniceObchodMřížkaBuňkaTyp{
   "předmět" = 0,
@@ -48,7 +49,7 @@ export type DefiniceObchodMřížka = {
   id: number,
   buňky: DefiniceObchodMřížkaBuňka[],
   text?: string, 
-};
+}
 
 export type DefiniceObchod = {
   mřížky: DefiniceObchodMřížka[]
@@ -59,10 +60,10 @@ export type Předmět = {
   název: string,
   cena: number,
   zbývá: number | null,
-};
+}
 
 export type ObjednávkaPředmět = {
   množství: number, 
   předmět: Předmět,
-};
+}
 

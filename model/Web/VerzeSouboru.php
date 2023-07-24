@@ -18,7 +18,7 @@ class VerzeSouboru
     public function __construct(string $adresar, string $pripona)
     {
         $this->adresar = rtrim($adresar, '/');
-        $this->pripona = $pripona;
+        $this->pripona = ltrim('.', $pripona);
     }
 
     public function __call(string $nazev, array $arguments): string

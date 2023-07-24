@@ -97,6 +97,10 @@ class Modul
         return $this->jsUrls;
     }
 
+    function jsModulyUrls(): array {
+        return $this->jsModulyUrls;
+    }
+
     /** Název modulu (odpovídá části názvu souboru) */
     protected function nazev()
     {
@@ -124,12 +128,13 @@ class Modul
      * @return string
      */
     function zabalJsSoubor($cestaNaWebu) {
-        $cestaKSouboru  = strpos(realpath($cestaNaWebu), realpath(WWW)) === 0
-        ? $cestaNaWebu
-        : WWW . '/' . $cestaNaWebu;
-        $verze          = md5_file($cestaKSouboru);
-        $cestaNaWebu    = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
-        $url            = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
+        $cestaKSouboru = strpos(realpath($cestaNaWebu), realpath(WWW)) === 0
+            ? $cestaNaWebu
+            : WWW . '/' . $cestaNaWebu;
+        $verzeSouboru  = new \Gamecon\Web\VerzeSouboru(dirname($cestaKSouboru), 'js');
+        $verze         = $verzeSouboru->verze($cestaKSouboru);
+        $cestaNaWebu   = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
+        $url           = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
         return $url;
     }
 
