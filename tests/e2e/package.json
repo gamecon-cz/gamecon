@@ -1,0 +1,16 @@
+{
+  "name": "gamecon-e2e",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "cypress open --e2e --browser chrome",
+    "pretest": "cypress verify",
+    "test": "cypress run"
+  },
+  "devDependencies": {
+    "cypress": "^12.17.2",
+    "typescript": "^5.1.6"
+  }
+}
