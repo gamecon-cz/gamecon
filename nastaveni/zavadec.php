@@ -25,6 +25,8 @@ $vyjimkovac   = Vyjimkovac::vytvorZGlobals();
 $vyjimkovac->zobrazeni($typZobrazeni);
 $vyjimkovac->aktivuj();
 
+require_once __DIR__ . '/../tests/e2e.php';
+
 // automatické migrace databáze
 if (AUTOMATICKE_MIGRACE && !is_ajax()) {
     require __DIR__ . '/db-migrace.php';
