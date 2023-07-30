@@ -50,9 +50,11 @@ class DBTest
 
       DELETE FROM reporty WHERE skript LIKE "quick-%";
 
+      -- TRUNCATE TABLE akce_lokace;
+      -- TRUNCATE TABLE shop_predmety;
+
       TRUNCATE TABLE akce_import;
       TRUNCATE TABLE akce_instance;
-      TRUNCATE TABLE akce_lokace;
       TRUNCATE TABLE akce_organizatori;
       TRUNCATE TABLE akce_prihlaseni;
       TRUNCATE TABLE akce_prihlaseni_log;
@@ -74,7 +76,6 @@ class DBTest
       TRUNCATE TABLE reporty_quick;
       TRUNCATE TABLE shop_nakupy;
       TRUNCATE TABLE shop_nakupy_zrusene;
-      -- TRUNCATE TABLE shop_predmety;
       TRUNCATE TABLE slevy;
       TRUNCATE TABLE systemove_nastaveni_log;
       TRUNCATE TABLE texty;

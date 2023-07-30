@@ -1,4 +1,8 @@
 describe('login', () => {
+  before(()=>{
+    cy.cleanDatabase();
+  })
+
   it('přihlásí se jako admin', () => {
     cy.visit(Cypress.env("URL_WEBU") + 'prihlaseni');
 

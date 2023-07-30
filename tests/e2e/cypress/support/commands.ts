@@ -23,3 +23,35 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+
+Cypress.Commands.add("cleanDatabase", (createAdmin = true) => {
+  const e2eEndpoint = Cypress.env('URL_WEBU') + 'e2e';
+
+  cy.request({
+    method: 'POST',
+    url: e2eEndpoint,
+    form: true,
+    body: {
+      'db-cisti': true,
+    },
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+
+  if (createAdmin)
+    cy.request({
+      method: 'POST',
+      url: e2eEndpoint,
+      form: true,
+      body: {
+        'admin-vytvor': true,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+});
+
