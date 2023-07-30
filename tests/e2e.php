@@ -19,12 +19,32 @@ if (!E2E_TESTING) {
 if (isset($_POST["db-reset"])) {
   // TODO: vytáhnout někam kde to dává smysl
   if (!defined('DB_TEST_PREFIX')) define('DB_TEST_PREFIX', 'gamecon_test_');
-  DBTest::resetujDB("_localhost-2023_06_21_21_58_55-dump.sql");
+  DBTest::resetujDB("gamecon-cista.sql.gz");
 }
 
+if (isset($_POST["db-cisti"])) {
+  DBTest::vycistiDB();
+}
+
+if (isset($_POST["admin-vytvor"])) {
+  DBTest::vytvorAdmina();
+}
+
+
 ?>
+<script>
+function potvrd(e, zprava)
+{
+  if(!confirm(zprava)) {
+    e.preventDefault();
+  }
+}
+</script>
+
 <form method="POST">
-  <input type="submit" name="db-reset" value="resetuj db" /></input>
+  <input type="submit" name="db-reset" value="resetuj db" onclick="potvrd(event, 'doopravdy resetovat DB ?')" /></input>
+  <input type="submit" name="db-cisti" value="vycisti db" onclick="potvrd(event, 'doopravdy vymazat data z DB ?')" /></input>
+  <input type="submit" name="admin-vytvor" value="vytvoř admina" /></input>
 </form>
 <?php
 
