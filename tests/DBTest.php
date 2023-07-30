@@ -99,6 +99,23 @@ class DBTest
         dbQuery($singleQuery); // Execute each individual query
       }
     }
+
+    // TODO: oprava výchozích hodnot -> smazat až bude v db
+    dbQuery(
+      <<<SQL
+        ALTER TABLE `uzivatele_hodnoty` 
+            CHANGE `funkce_uzivatele` `funkce_uzivatele` TINYINT(4) NOT NULL DEFAULT '0'
+          , CHANGE `email2_uzivatele` `email2_uzivatele` varchar(255) COLLATE utf8_czech_ci NOT NULL DEFAULT ''
+          , CHANGE `jine_uzivatele` `jine_uzivatele` text COLLATE utf8_czech_ci NOT NULL DEFAULT ''
+          , CHANGE `mrtvy_mail` `mrtvy_mail` tinyint(4) NOT NULL DEFAULT '0'
+          , CHANGE `forum_razeni` `forum_razeni` varchar(1) COLLATE utf8_czech_ci NOT NULL DEFAULT ''
+          , CHANGE `zustatek` `zustatek` INT(11) NOT NULL DEFAULT '0' COMMENT 'zbytek z minulého roku'
+          , CHANGE `poznamka` `poznamka` VARCHAR(4096) CHARACTER SET utf8 COLLATE utf8_czech_ci NOT NULL DEFAULT ''
+          , CHANGE `pomoc_typ` `pomoc_typ` VARCHAR(64) CHARACTER SET utf8 COLLATE utf8_czech_ci NOT NULL DEFAULT ''
+          , CHANGE `pomoc_vice` `pomoc_vice` TEXT CHARACTER SET utf8 COLLATE utf8_czech_ci NOT NULL DEFAULT ''
+          ;
+      SQL
+    );
   }
 
   public static function vytvorAdmina()
