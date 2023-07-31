@@ -25,7 +25,7 @@ define('DB_SERV', 'sql.gamecon');
 - otevři si příkazový řádek
 - přejdi do složky s Gameconem
 	- třeba `cd C:\www\gamecon`
-- zkopíruj si lokální nastavení Dockeru (detaily později) `cp docker-compose.override.template.yml docker-compose.override.yml`
+- zkopíruj si lokální nastavení Dockeru (detaily později) `cp docker-compose.dev.yml docker-compose.override.yml`
 - spusť `docker-compose up`
 	- první puštění bude trvat dlouho, musí se stáhnout hodně souborů
 - otevři si ve svém prohlížeči adresu http://localhost/gamecon/web/
@@ -40,7 +40,7 @@ Do SQL databáze máš otevřený port 3306. K databázi se můžeš připojit t
 - URL zadej 127.0.0.1 a port 3306
 - jméno a heslo je `root`, `root` (nebo co máš napsané v `nastaveni/nastaveni-local.php`
 
-Podobně se připojíš i přes příkazový řádek, pokud máš mysql klienta nainstalovaného ve svém počítači. Například pro nahrání anonimizované databáze použiješ něco jako `mysql --user=root --password=root --host=127.0.0.1 --port=3306 gamecon < /home/jaroslav/Downloads/gamecon_anonym_2019_05_08.sql`
+Podobně se připojíš i přes příkazový řádek, pokud máš mysql klienta nainstalovaného ve svém počítači. Například pro nahrání anonimizované databáze použiješ něco jako `mysql --user=root --password=root --host=127.0.0.1 --port=3306 gamecon < /home/jaroslav/Downloads/gamecon_anonym_2019_05_08.sql`. (V případě problémů může pomoct použití portu 13306)
 
 ### XDebug
 Při vývoji se často hodí [XDebug](https://deliciousbrains.com/xdebug-advanced-php-debugging/), kterým jde odkrokovat jednotlivá volání a prohlédnout si hodnoty v proměnných.
@@ -73,14 +73,14 @@ Ta se hodí například pro XDebug.
 #### Nastavení adresy pro XDebug
 Máme adresu našeho počítače, ke kterému se má z Dockeru připojit XDebug. Teď už ji jenom potřebujeme PHP nějak předat.
 
-Zkopíruj si `docker-compose.override.template.yml` jako `docker-compose.override.yml`. Otevři `docker-compose.override.yml` a uprav IP adresu v textu `xdebug.remote_host=172.0.0.2` na tu, kterou jsi našel ve svýc sítích pod názvem `docker0`. V našem příkladu by z toho vzniklo `xdebug.remote_host=10.10.0.1`.
+Zkopíruj si `docker-compose.dev.yml` jako `docker-compose.override.yml`. Otevři `docker-compose.override.yml` a uprav IP adresu v textu `xdebug.remote_host=172.0.0.2` na tu, kterou jsi našel ve svýc sítích pod názvem `docker0`. V našem příkladu by z toho vzniklo `xdebug.remote_host=10.10.0.1`.
 
 Soubor ulož a pusť docker přes `docker-compose up` (přes příkazovou řádku, musíš být v adresáři s gameconem, respektive se soubory `Docker` a `docker-compose.override.yml`).
 
 ### Potíže s Dockerem
 
 #### Konflikt portů
-Pokud už na svém počítači máš obsazený port 80, nebo port 13306, tak je můžeš změnit v `docker-compose.override.yml` (zkopíruj `docker-compose.override.template.yml`).
+Pokud už na svém počítači máš obsazený port 80, nebo port 13306, tak je můžeš změnit v `docker-compose.override.yml` (zkopíruj `docker-compose.dev.yml`).
 
 - v části `ports` je něco jako `80:80`, to levé číslo je port na tvém počítači a to tě zajímá (to pravé pak port, na kterém běží Apache v Dockeru)
 	- změň ho na co chceš, třeba `8080` pokud máš takový port volný (zjištíš spuštěním)
