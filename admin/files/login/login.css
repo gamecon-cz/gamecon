@@ -13,3 +13,15 @@ input[type=text].form-control, input[type=password].form-control {
   height: auto;
   z-index: -100;
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #000;
+  }
+  .background-image {
+    filter: invert(100%);
+  }
+  label {
+    color: #fff;
+  }
+}
