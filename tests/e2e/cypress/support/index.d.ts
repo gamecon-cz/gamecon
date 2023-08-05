@@ -5,5 +5,9 @@ declare namespace Cypress {
      * clean the database.
      */
     cleanDatabase(createAdmin?: boolean): void;
+
+    připravDB(jménoDB: string): void;
+
+    použijDB(jménoDB: string): void;
   }
 }

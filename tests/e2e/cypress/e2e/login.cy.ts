@@ -1,6 +1,10 @@
 describe('login', () => {
   before(()=>{
-    cy.cleanDatabase();
+    cy.připravDB("login");
+  })
+
+  beforeEach(()=>{
+    cy.použijDB("login")
   })
 
   it('přihlásí se a odhlásí jako admin', () => {

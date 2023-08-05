@@ -24,34 +24,53 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+const testKonzoleEndpoint = Cypress.env('URL_WEBU') + 'test';
 
-Cypress.Commands.add("cleanDatabase", (createAdmin = true) => {
-  const e2eEndpoint = Cypress.env('URL_WEBU') + 'e2e';
-
+const pošliPříkazTestovacíKonzoli = (příkaz:
+  | "db-reset"
+  | "db-cisti"
+  | "db-smaz"
+  | "admin-vytvor"
+) => {
   cy.request({
     method: 'POST',
-    url: e2eEndpoint,
+    url: testKonzoleEndpoint,
     form: true,
     body: {
-      'db-cisti': true,
+      [příkaz]: true,
     },
     headers: {
       'Content-Type': 'application/json',
     },
   })
+}
 
+
+const testovacíDBZeJména = (název: string) => "gamecon_test_" + název;
+
+Cypress.Commands.add("cleanDatabase", (createAdmin = true) => {
+  pošliPříkazTestovacíKonzoli("db-cisti")
 
   if (createAdmin)
-    cy.request({
-      method: 'POST',
-      url: e2eEndpoint,
-      form: true,
-      body: {
-        'admin-vytvor': true,
-      },
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    pošliPříkazTestovacíKonzoli("admin-vytvor")
+});
+
+Cypress.Commands.add("připravDB", (jménoDB: string) => {
+  cy.setCookie("test", "1")
+  cy.setCookie("gamecon_test_db", testovacíDBZeJména(jménoDB))
+
+  pošliPříkazTestovacíKonzoli("db-reset")
+  pošliPříkazTestovacíKonzoli("admin-vytvor")
+});
+
+Cypress.Commands.add("použijDB", (jménoDB: string) => {
+  cy.session(jménoDB, () => {
+    cy.setCookie("test", "1")
+    cy.setCookie("gamecon_test_db", testovacíDBZeJména(jménoDB))
+  }, {
+    validate() {
+      // TODO:
+    }
+  })
 });
 
