@@ -2,19 +2,20 @@
 
 $url = Url::zAktualni();
 
-if ($url->cast(0) != "e2e")
+if ($url->cast(0) != "test")
   return;
 
-use Gamecon\Tests\DBTest;
-
-if (!E2E_TESTING) {
+if (!TEST) {
 ?>
   <div style="background-color: red;width: fit-content;padding:18px;color:white;font-size: 4em;">
-    E2E_TESTING není povolen v nastavení
+    TEST není povolen v nastavení
   </div>
 <?php
   exit(1);
 }
+
+use Gamecon\Tests\DBTest;
+
 
 if (isset($_POST["db-reset"])) {
   // TODO: vytáhnout někam kde to dává smysl
