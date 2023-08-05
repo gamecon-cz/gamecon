@@ -39,6 +39,27 @@ class DBTest
     dbClose();
   }
 
+  public static function nastavStrictTransTables(bool $hodnota)
+  {
+    $connection = dbConnectTemporary(false);
+    if ($hodnota)
+      dbQuery(
+        <<<SQL
+          SET GLOBAL sql_mode = CONCAT_WS(',', @@SESSION.sql_mode, 'STRICT_TRANS_TABLES')
+          SQL,
+        [],
+        $connection
+      );
+    else
+      dbQuery(
+        <<<SQL
+        SET GLOBAL sql_mode = REGEXP_REPLACE(@@SESSION.sql_mode, 'STRICT_TRANS_TABLES,?', '')
+        SQL,
+        [],
+        $connection
+      );
+  }
+
   /**
    * vymaže akce, platby, uživatele, logy, novinky, slevy, texty, ubytovani, nastaveni shopu
    * ostatní věci nutné pro správné fungování GC stránky jako jsou systemove nastaveni role atd. zůstávají vč. popisu stránek

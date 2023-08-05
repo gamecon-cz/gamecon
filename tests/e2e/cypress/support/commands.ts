@@ -31,6 +31,7 @@ const pošliPříkazTestovacíKonzoli = (příkaz:
   | "db-cisti"
   | "db-smaz"
   | "admin-vytvor"
+  | "db-STRICT_TRANS_TABLES-vypni"
 ) => {
   cy.request({
     method: 'POST',
@@ -60,6 +61,7 @@ Cypress.Commands.add("připravDB", (jménoDB: string) => {
   cy.setCookie("gamecon_test_db", testovacíDBZeJména(jménoDB))
 
   pošliPříkazTestovacíKonzoli("db-reset")
+  pošliPříkazTestovacíKonzoli("db-STRICT_TRANS_TABLES-vypni")
   pošliPříkazTestovacíKonzoli("admin-vytvor")
 });
 

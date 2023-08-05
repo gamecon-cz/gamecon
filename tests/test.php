@@ -29,6 +29,10 @@ if (isset($_POST["db-smaz"])) {
   DBTest::smazDbNakonec(false);
 }
 
+if (isset($_POST["db-STRICT_TRANS_TABLES-vypni"])) {
+  DBTest::nastavStrictTransTables(false);
+}
+
 if (isset($_POST["admin-vytvor"])) {
   DBTest::vytvorAdmina();
 }
