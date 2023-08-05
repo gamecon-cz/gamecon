@@ -18,13 +18,15 @@ use Gamecon\Tests\DBTest;
 
 
 if (isset($_POST["db-reset"])) {
-  // TODO: vytáhnout někam kde to dává smysl
-  if (!defined('DB_TEST_PREFIX')) define('DB_TEST_PREFIX', 'gamecon_test_');
   DBTest::resetujDB("gamecon-cista.sql.gz");
 }
 
 if (isset($_POST["db-cisti"])) {
   DBTest::vycistiDB();
+}
+
+if (isset($_POST["db-smaz"])) {
+  DBTest::smazDbNakonec(false);
 }
 
 if (isset($_POST["admin-vytvor"])) {
@@ -34,22 +36,24 @@ if (isset($_POST["admin-vytvor"])) {
 
 ?>
 
+<fieldset>
+  <legend>Hodnoty v cookies</legend>
 
-<label>Test: 
-  <input type="text" id="test">
-</label>
+  <label>Test: 
+    <input type="text" id="test">
+  </label>
+  <br>
+  
+  <label>
+    gamecon_test_db: 
+    <span style="white-space: nowrap;">gamecon_test_<input type="text" id="gamecon_test_db"></span>
+  </label>
+  <br>
+  
+  <button onclick="uložZměny()">Ulož změny</button>
+</fieldset>
 <br>
-
-<label>
-  gamecon_test_db: gamecon_test_
-  <input type="text" id="gamecon_test_db">
-</label>
-<br>
-
-<button onclick="uložZměny()">Ulož změny</button>
-<br>
-<br>
-
+  
 <script>
   function getCookieValue(name) {
     var value = "; " + document.cookie;
@@ -93,6 +97,7 @@ if (isset($_POST["admin-vytvor"])) {
   <input type="submit" name="db-reset" value="resetuj db" onclick="potvrď(event, 'doopravdy resetovat DB ?')" /></input>
   <input type="submit" name="db-cisti" value="vycisti db" onclick="potvrď(event, 'doopravdy vymazat data z DB ?')" /></input>
   <input type="submit" name="admin-vytvor" value="vytvoř admina" /></input>
+  <input type="submit" name="db-smaz" value="Smaž všechny testovací db" onclick="potvrď(event, 'doopravdy smazat všechny testovací DB?')" /></input>
 </form>
 <?php
 

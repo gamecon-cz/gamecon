@@ -139,12 +139,13 @@ class DBTest
 
 
   // TODO: lepší pojmenování
-  public static function smazDbNakonec()
+  public static function smazDbNakonec($smazDBNameDatabazi = true)
   {
-    register_shutdown_function(static function () {
+    register_shutdown_function(static function () use ($smazDBNameDatabazi) {
       // nemůžeme použít předchozí $connection, protože to už je uzavřené
       $connection = dbConnectTemporary();
-      dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
+      if ($smazDBNameDatabazi)
+        dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
       $dbTestPrefix            = DB_TEST_PREFIX;
       $oldTestDatabasesWrapped = dbFetchAll("SHOW DATABASES LIKE '{$dbTestPrefix}%'", [], $connection);
       foreach ($oldTestDatabasesWrapped as $oldTestDatabaseWrapped) {
