@@ -250,6 +250,7 @@ class OnlinePrezenceHtml
 
             $template->assign('disabledPridatUcastnika', $muzePridatUcastnikyHned ? '' : 'disabled');
             $template->assign('idAktivity', $aktivita->id());
+            $template->assign('urlAktivity', $aktivita->url());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
             $template->assign('nadpis', self::nazevProAnchor($aktivita));
