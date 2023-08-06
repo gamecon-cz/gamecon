@@ -24,4 +24,8 @@ input[type=text].form-control, input[type=password].form-control {
   label {
     color: #fff;
   }
+  input.form-control, input.form-control:focus {
+    background-color: #3b3b3b;
+    color: #fff;
+  }
 }
