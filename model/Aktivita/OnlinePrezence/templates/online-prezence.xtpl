@@ -160,11 +160,17 @@
             {nadpis}
           </span>
                         <a href="#{nadpis}" class="anchor">#</a>
+                        <br />
                         <span class="pocet-prihlasenych" data-bs-toggle="tooltip" data-bs-placement="right"
                               title="Počet přihlášených bez sledujících">
             <i class="fa-solid fa-user-group"></i>
             <span class="pocet-prihlasenych-cislo">{pocetPrihlasenych}</span>
           </span>
+          <a href="{urlAktivity}" target="_blank" class="zobrazit-v-programu" title="Zobrazit v programu">
+            <i class="fa-solid fa-book"></i>
+            <span>Program</span>
+            <i class="fa-solid fa-external-link"></i>
+          </a>
                         <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání viditelnosti prezence"
                               class="float-end">
             <button id="tlacitkoPrepinaniViditelnostiPrezence{idAktivity}"
