@@ -654,6 +654,19 @@ SQL,
         return self::jmenoNickZjisti($this->r);
     }
 
+    /**
+     * Novější formát zápisu jména a příjmení uživatele ve tvaru Jméno Příjmení (Nick).
+     * Funkce uvažuje možnou absenci nicku.
+     */
+    public function jmenoVolitelnyNick()
+    {
+        if ($this->nick()) {
+            return $this->jmeno() . ' (' . $this->r['login_uzivatele'] . ')';
+        } else {
+            return $this->jmeno();
+        }
+    }
+
     public function nick(): string
     {
         return strpos($this->r['login_uzivatele'], '@') === false
