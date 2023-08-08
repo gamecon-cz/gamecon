@@ -18,7 +18,7 @@ FROM platby
 LEFT JOIN uzivatele_hodnoty AS provedl ON provedl.id_uzivatele = platby.provedl
 LEFT JOIN uzivatele_hodnoty AS prijemce ON prijemce.id_uzivatele = platby.id_uzivatele
 WHERE rok = $0 AND platby.provedl != $1
-UNION ALL
+/*UNION ALL
 SELECT
     CONCAT('prodej-', nakupy.id_nakupu) AS id_pohybu,
     provedl.id_uzivatele AS objenatel_id_uzivatele,
@@ -36,7 +36,7 @@ FROM
 LEFT JOIN shop_predmety AS predmety on nakupy.id_predmetu = predmety.id_predmetu
 LEFT JOIN uzivatele_hodnoty AS provedl ON provedl.id_uzivatele = nakupy.id_objednatele
 LEFT JOIN uzivatele_hodnoty AS prijemce ON prijemce.id_uzivatele = nakupy.id_uzivatele
-WHERE nakupy.rok = $0 AND provedl.id_uzivatele != $1 AND prijemce.id_uzivatele = $1 -- pouze anonymní prodej
+WHERE nakupy.rok = $0 AND provedl.id_uzivatele != $1 AND prijemce.id_uzivatele = $1 -- pouze anonymní prodej*/
 ORDER BY id_pohybu
 SQL
     , [0 => ROCNIK, 1 => Uzivatel::SYSTEM],
