@@ -108,6 +108,14 @@ input[disabled]::placeholder {
   color: darkorange;
 }
 
+.razeni {
+  font-size: .7em;
+}
+
+.razeni.neaktivni {
+  color: darkgray;
+}
+
 .pocet-prihlasenych {
   font-size: 0.5em;
   color: darkgoldenrod;

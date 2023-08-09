@@ -261,7 +261,7 @@
                     <i class="fas fa-check-circle"></i>
                   </span>
                                 </th>
-                                <th class="text-center">
+                                <th class="text-center lze-radit" data-order='1'>
                   <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                         title="
                         <div class='text-start'>
@@ -286,9 +286,14 @@
                             <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>
                             Mladší 18ti let
                           </div>
+                          <hr>
+                          <div>
+                            Sloupec je řazený je podle času přihlášení.
+                          </div>
                         </div>
                   ">
                   <i class="fas fa-user-tie"></i>
+                  <i class="fas fa-chevron-down razeni neaktivni"></i>
                   </span>
                                 </th>
                                 <th style="text-align: center">
@@ -297,7 +302,7 @@
                     <i class="fas fa-check-square"></i>
                   </span>
                                 </th>
-                                <th>Jméno</th>
+                                <th class="lze-radit" data-order='3'>Jméno <i class="fas fa-chevron-down razeni neaktivni"></i></th>
                                 <th class="text-center"><i class="fas fa-envelope"></i></th>
                                 <th>Telefon</th>
                             </tr>
