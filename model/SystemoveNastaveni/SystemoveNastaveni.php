@@ -848,6 +848,11 @@ SQL;
         return (float)$this->dejHodnotu(Klic::PRUMERNE_LONSKE_VSTUPNE);
     }
 
+    public function rootAdresarProjektu(): string
+    {
+        return $this->rootAdresarProjektu;
+    }
+
     public function prihlasovaciUdajeOstreDatabaze(): array
     {
         $souborNastaveniOstra = $this->rootAdresarProjektu . '/../ostra/nastaveni/nastaveni-produkce.php';
