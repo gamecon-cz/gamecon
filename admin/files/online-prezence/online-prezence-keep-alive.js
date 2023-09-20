@@ -1,8 +1,15 @@
 {
 // KEEP ALIVE (admin běžně odhlašuje po třicetiminutové neaktivitě)
-  setInterval(function () {
-    $.get(dejUrlKeepAlive())
-  }, 5 * 60 * 1000)
+  setInterval(async function () {
+    try {
+      await $.get(dejUrlKeepAlive());
+    } catch(e) {
+      // kontrola odhlášení uživatele na pozadí
+      if (e.status === 403) {
+        window.location.reload(true);
+      }
+    }
+  }, 15 * 1000)
 
   /**
    * @return {string}
