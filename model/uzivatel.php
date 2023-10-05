@@ -661,7 +661,7 @@ SQL,
     public function jmenoVolitelnyNick()
     {
         if ($this->nick()) {
-            return $this->jmeno() . ' (' . $this->r['login_uzivatele'] . ')';
+            return $this->jmeno() . ' (' . $this->nick() . ')';
         } else {
             return $this->jmeno();
         }

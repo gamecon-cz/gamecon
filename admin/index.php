@@ -63,7 +63,7 @@ if ($systemoveNastaveni->jeApril()) {
 }
 
 // kontrola přihlášení při ajaxovém volání (kvůli elektronickým prezenčkám)
-if (!$u && htmlspecialchars(get("ajax") == "1")) {
+if (!$u && get('ajax')) {
     http_response_code(403);
 }
 
