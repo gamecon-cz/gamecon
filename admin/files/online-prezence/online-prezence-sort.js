@@ -1,18 +1,13 @@
 /* credits https://www.w3schools.com/howto/howto_js_sort_table.asp (slight changes) */
 function sortTable(col, table) {
   var rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-  // table = document.getElementById("myTable");
   switching = true;
-  //Set the sorting direction to ascending:
   dir = "asc"; 
-  /*Make a loop that will continue until
-  no switching has been done:*/
+  
   while (switching) {
-    //start by saying: no switching is done:
     switching = false;
     rows = table.rows;
-    /*Loop through all table rows (except the
-    first, which contains table headers):*/
+    /*Loop through all table rows (except the first, which contains table headers):*/
     for (i = 1; i < (rows.length - 1); i++) {
       //start by saying there should be no switching:
       shouldSwitch = false;
@@ -29,28 +24,21 @@ function sortTable(col, table) {
       based on the direction, asc or desc:*/
       if (dir == "asc") {
         if (x > y) {
-          //if so, mark as a switch and break the loop:
           shouldSwitch= true;
           break;
         }
       } else if (dir == "desc") {
         if (x < y) {
-          //if so, mark as a switch and break the loop:
           shouldSwitch = true;
           break;
         }
       }
     }
     if (shouldSwitch) {
-      /*If a switch has been marked, make the switch
-      and mark that a switch has been done:*/
       rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
       switching = true;
-      //Each time a switch is done, increase this count by 1:
       switchcount ++;      
     } else {
-      /*If no switching has been done AND the direction is "asc",
-      set the direction to "desc" and run the while loop again.*/
       if (switchcount == 0 && dir == "asc") {
         dir = "desc";
         switching = true;
@@ -59,6 +47,7 @@ function sortTable(col, table) {
   }
 } 
 
+/* Logika řadicích šipek (asc/desc) */
 (function ($) {
   $(function () {
     $('.lze-radit').each(function () {
@@ -85,37 +74,3 @@ function sortTable(col, table) {
     });
   })
 })(jQuery)
-
-// document.addEventListener('aktivitaVyrenderovana', function (event) {
-//   const aktivitaNode = event.detail
-//   if (aktivitaNode.dataset.editovatelnaOdTimestamp > 0) {
-//     zablokovatAktivituProEditaciSOdpoctem(aktivitaNode)
-//   }
-// })
-
-// const onlinePrezence = document.getElementById('online-prezence')
-
-// if (onlinePrezence) {
-
-//   const akceAktivity = new AkceAktivity()
-
-//   document.getElementById('online-prezence').addEventListener('uzavritAktivitu', function (event) {
-//     const idAktivity = event.detail
-//     akceAktivity.uzavritAktivitu(idAktivity)
-//   })
-
-//   document.getElementById('online-prezence').addEventListener('zmenitPritomnostUcastnika', function (event) {
-//     const {
-//       idUcastnika: idUcastnika,
-//       idAktivity: idAktivity,
-//       checkboxNode: checkboxNode,
-//       triggeringNode: triggeringNode,
-//     } = event.detail
-//     akceAktivity.zmenitPritomnostUcastnika(
-//       idUcastnika,
-//       idAktivity,
-//       checkboxNode,
-//       triggeringNode,
-//     )
-  // })
-// }
