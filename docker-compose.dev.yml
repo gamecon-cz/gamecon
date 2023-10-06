@@ -29,3 +29,16 @@ services:
       - 3306
     ports:
       - "13306:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - sql.gamecon
+    environment:
+      PMA_HOST: sql.gamecon
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8081:80
