@@ -66,14 +66,14 @@ $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
 
 
 <?php
-function zabalSoubor(string $cestaKSouboru): string
+function zabalWebSoubor(string $cestaKSouboru): string
 {
-    return $cestaKSouboru . '?version=' . md5_file(ADMIN . '/' . $cestaKSouboru);
+    return $cestaKSouboru . '?version=' . md5_file(WWW . '/' . $cestaKSouboru);
 }
 
 ?>
 
-<link rel="stylesheet" href="<?= zabalSoubor(__DIR__ . '/../../web/soubory/ui/style.css') ?>">
+<link rel="stylesheet" href="<?= zabalWebSoubor('soubory/ui/style.css') ?>">
 
 <div id="preact-program">Program se načítá ...</div>
 <script>
@@ -120,6 +120,6 @@ function zabalSoubor(string $cestaKSouboru): string
     ?>
 </script>
 
-<script type="module" src="<?= zabalSoubor(__DIR__ . '/../../web/soubory/ui/bundle.js') ?>"></script>
+<script type="module" src="<?= zabalWebSoubor('soubory/ui/bundle.js') ?>"></script>
 
 <div style="height: 70px"></div>
