@@ -70,9 +70,10 @@ function zabalSoubor(string $cestaKSouboru): string
 {
     return $cestaKSouboru . '?version=' . md5_file(ADMIN . '/' . $cestaKSouboru);
 }
+
 ?>
 
-<link rel="stylesheet" href="<?= zabalSoubor('/../web/soubory/ui/style.css') ?>">
+<link rel="stylesheet" href="<?= zabalSoubor(__DIR__ . '/../../web/soubory/ui/style.css') ?>">
 
 <div id="preact-program">Program se načítá ...</div>
 <script>
@@ -119,6 +120,6 @@ function zabalSoubor(string $cestaKSouboru): string
     ?>
 </script>
 
-<script type="module" src="<?= zabalSoubor('/../web/soubory/ui/bundle.js') ?>"></script>
+<script type="module" src="<?= zabalSoubor(__DIR__ . '/../../web/soubory/ui/bundle.js') ?>"></script>
 
 <div style="height: 70px"></div>
