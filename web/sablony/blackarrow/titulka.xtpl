@@ -29,6 +29,9 @@
     <div class="p p4" data-aos="zoom-out" data-aos-delay="600" data-aos-offset="0">ON</div>
     <div class="gchlavicka_claim" data-aos="zoom-out">Největší festival nepočítačových her</div>
     <div class="gchlavicka_datum">{gcOd} &ndash; {gcDo} <span class="gchlavicka_rok">{gcRok}</span></div>
+    <!-- begin:pristiRocnik -->
+      <div class="gchlavicka_pristi_datum">{gcPristiOd} &ndash; {gcPristiDo} <span class="gchlavicka_pristi_rok">{gcPristiRok}</span></div>
+    <!-- end:pristiRocnik -->
     <div class="gchlavicka_misto" data-aos="zoom-out">P A R D U B I C E</div>
     <a class="gchlavicka_video" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank" data-aos="zoom-out" data-aos-offset="-200">přehrát video</a>
 </div>
