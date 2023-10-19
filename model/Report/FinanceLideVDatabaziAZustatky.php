@@ -90,7 +90,8 @@ SQL,
         }
 
         $konfiguraceReportu = (new KonfiguraceReportu())
-            ->setRowToFreeze(KonfiguraceReportu::NO_ROW_TO_FREEZE)
+            ->setRowToFreeze(1)
+            ->setColumnsToFreezeUpTo('C')
             ->setMaxGenericColumnWidth(50);
 
         if ($doSouboru) {
