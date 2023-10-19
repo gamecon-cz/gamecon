@@ -66,7 +66,7 @@ SQL,
         }
 
         $ucastPodleRoku = [];
-        $maxRok         = $this->systemoveNastaveni->poRegistraciUcastniku()
+        $maxRok         = $this->systemoveNastaveni->poPrihlasovaniUcastniku()
             ? $this->systemoveNastaveni->rocnik()
             : $this->systemoveNastaveni->rocnik() - 1;
         for ($rokUcasti = 2009; $rokUcasti <= $maxRok; $rokUcasti++) {
