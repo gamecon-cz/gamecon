@@ -927,7 +927,6 @@ SQL,
                 "<span class='hinted'>Bonus za aktivity - celkový<span class='hint'>využitý {$this->vyuzityBonusZaVedeniAktivit}, proplacený {$this->proplacenyBonusZaVedeniAktivit}</span></span>",
                 $this->bonusZaVedeniAktivit,
                 self::ORGSLEVA,
-                null,
             );
         }
 
