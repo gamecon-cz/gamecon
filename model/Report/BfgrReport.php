@@ -59,7 +59,7 @@ class BfgrReport
         $rocnik           = $this->systemoveNastaveni->rocnik();
         $predmetUbytovani = TypPredmetu::UBYTOVANI;
         $typUcast         = Role::TYP_UCAST;
-        $result                = dbQuery(<<<SQL
+        $result           = dbQuery(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
     prihlasen.posazen AS prihlasen_na_gc_kdy,
@@ -141,6 +141,7 @@ SQL,
             $navstevnik = new Uzivatel($r);
             $navstevnik->nactiPrava(); // sql subdotaz, zlo
             $finance        = $navstevnik->finance();
+            $shop           = $navstevnik->shop();
             $ucastiHistorie = [];
             foreach ($ucastPodleRoku as $rocnik => $nazevUcasti) {
                 $ucastiHistorie[$nazevUcasti] = $navstevnik->gcPritomen($rocnik)
@@ -206,11 +207,10 @@ SQL,
                 ],
                 [
                     'Celkové náklady' => [
-                        'Celkem dní' => $pobyt = ($r['den_prvni'] !== null
-                            ? $r['den_posledni'] - $r['den_prvni'] + 1
-                            : 0
-                        ),
-                        'Cena / den' => $pobyt ? $finance->cenaUbytovani() / $pobyt : 0,
+                        'Celkem dní' => $celkemDniUbytovani = count($shop->ubytovani()->veKterychDnechJeUbytovan()),
+                        'Cena / den' => $celkemDniUbytovani
+                            ? $finance->cenaUbytovani() / $celkemDniUbytovani
+                            : 0,
                         'Ubytování'  => $finance->cenaUbytovani(),
                         'Předměty'   => $finance->cenaPredmetu(),
                         'Strava'     => $finance->cenaStravy(),
@@ -491,7 +491,7 @@ SQL,
         );
         if (count($objednaneANeobjednane) !== count($vsechnyMozneJenNazvy)) {
             throw new \RuntimeException(
-                'Neznámé položky ' . implode(array_keys(array_diff_key($objednaneSPocty, $vsechnyMozneJakoNeobjednane)))
+                'Neznámé položky ' . implode(array_keys(array_diff_key($objednaneSPocty, $vsechnyMozneJakoNeobjednane))),
             );
         }
         return $objednaneANeobjednane;
