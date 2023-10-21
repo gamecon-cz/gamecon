@@ -60,7 +60,7 @@ INSERT INTO role_seznam
     SET id_role = $idChybejiciRocnikoveRole,
         kod_role = '$kodRole',
         nazev_role = '$nazevChybejiciRocnikoveRole',
-        popis_role = '$nazevChybejiciRocnikoveRole',
+        popis_role = COALESCE((SELECT popis_role FROM role_seznam AS predchozi_popis_role WHERE vyznam_role = '$vyznam' LIMIT 1), '$nazevChybejiciRocnikoveRole'),
         rocnik_role = $rocnik,
         typ_role = '$rocnikova',
         skryta = '$skryta',
