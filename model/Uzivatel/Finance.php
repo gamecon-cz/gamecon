@@ -52,8 +52,8 @@ class Finance
     private $slevaObecna                   = 0.0;  // sleva získaná z tabulky slev
     private $nevyuzityBonusZaVedeniAktivit = 0.0;  // zbývající sleva za odvedené aktivity (nevyužitá část)
     private $vyuzityBonusZaVedeniAktivit   = 0.0;  // sleva za odvedené aktivity (využitá část)
-    private $zbyvajiciObecnaSleva          = 0.0;
-    private $vyuzitaSlevaObecna            = 0.0;
+    private $nevyuzitaObecnaSleva = 0.0;
+    private $vyuzitaSlevaObecna   = 0.0;
     private $sumyPlatebVRocich             = [];  // platby připsané na účet v jednotlivých letech (zatím jen letos; protože máme obskurnost jménem "Uzavření ročníku")
     /** @var string|null */
     private $datumPosledniPlatby;        // datum poslední připsané platby
@@ -71,10 +71,10 @@ class Finance
     private const UBYTOVANI       = 2;
     // mezera na typy předmětů (1-4? viz db)
     private const VSTUPNE                    = 10;
-    private const CELKOVA                    = 11;
-    private const ZUSTATEK_Z_PREDCHOZICH_LET = 12;
-    private const PRIPSANE_SLEVY             = 13;
-    private const ORGSLEVA                   = 14;
+    private const PRIPSANE_SLEVY             = 11;
+    private const CELKOVA                    = 12;
+    private const ZUSTATEK_Z_PREDCHOZICH_LET = 13;
+    private const ORGSLEVA                   = 14; // Bonus za aktivity
     private const BRIGADNICKA_ODMENA         = 15;
     private const PLATBY_NADPIS              = 16;
     private const PLATBA                     = 17;
@@ -157,7 +157,7 @@ SQL,
         $this->cenik = new \Cenik(
             $this->u,
             $this->bonusZaVedeniAktivit,
-            $this->systemoveNastaveni
+            $this->systemoveNastaveni,
         ); // musí být načteno, i pokud není přihlášen na GC
 
         $this->zapoctiAktivity();
@@ -188,7 +188,7 @@ SQL,
             + $this->zustatekZPredchozichRocniku,
         );
 
-        $this->logb('Aktivity', $this->cenaAktivit, self::AKTIVITY,);
+        $this->logb('Aktivity', $this->cenaAktivit, self::AKTIVITY);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
         $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb(), self::PLATBA);
@@ -811,7 +811,7 @@ SQL,
                     $this->cenaPredmetu += $cena;
                 } else if ($r['typ'] != Shop::PARCON) {
                     throw new NeznamyTypPredmetu(
-                        "Neznámý typ předmětu " . var_export($r['typ'], true) . ': ' . var_export($r, true)
+                        "Neznámý typ předmětu " . var_export($r['typ'], true) . ': ' . var_export($r, true),
                     );
                 }
             }
@@ -901,11 +901,10 @@ SQL,
      */
     private function zapoctiZustatekZPredchozichRocniku()
     {
-        $this->log(
+        $this->logb(
             'Zůstatek z minulých let',
             $this->zustatekZPredchozichRocniku,
             self::ZUSTATEK_Z_PREDCHOZICH_LET,
-            null,
         );
     }
 
@@ -947,17 +946,16 @@ SQL,
     private function aplikujObecnouSlevu(float $cena)
     {
         $slevaObecna = $this->slevaObecna;
-        ['cena' => $cena, 'sleva' => $this->zbyvajiciObecnaSleva] = \Cenik::aplikujSlevu($cena, $slevaObecna);
-        $this->vyuzitaSlevaObecna = $this->slevaObecna - $this->zbyvajiciObecnaSleva;
+        ['cena' => $cena, 'sleva' => $this->nevyuzitaObecnaSleva] = \Cenik::aplikujSlevu($cena, $slevaObecna);
+        $this->vyuzitaSlevaObecna = $this->slevaObecna - $this->nevyuzitaObecnaSleva;
         if ($this->slevaObecna) {
-            $this->log(
-                '<b>Sleva</b>',
-                '<b>' . $this->slevaObecna . '</b>',
+            $this->logb(
+                'Sleva',
+                $this->vyuzitaSlevaObecna,
                 self::PRIPSANE_SLEVY,
-                null,
             );
             $this->log(
-                '<i>Využitá sleva ' . $this->vyuzitaSlevaObecna . '</i>',
+                '<i>Nevyužitá sleva ' . $this->nevyuzitaObecnaSleva . '</i>',
                 '&nbsp;',
                 self::PRIPSANE_SLEVY,
                 null,
