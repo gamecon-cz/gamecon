@@ -31,7 +31,7 @@ class Finance
     private         $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
     private         $soucinitelCenyAKtivit;              // součinitel ceny aktivit
     private         $logovat    = true;    // ukládat seznam předmětů?
-    private ?\Cenik $cenik      = null;             // instance ceníku
+    private ?Cenik $cenik      = null;             // instance ceníku
     // tabulky s přehledy
     private $prehled                        = [];   // tabulka s detaily o platbách
     private $strukturovanyPrehled           = [];
@@ -52,8 +52,8 @@ class Finance
     private $slevaObecna                   = 0.0;  // sleva získaná z tabulky slev
     private $nevyuzityBonusZaVedeniAktivit = 0.0;  // zbývající sleva za odvedené aktivity (nevyužitá část)
     private $vyuzityBonusZaVedeniAktivit   = 0.0;  // sleva za odvedené aktivity (využitá část)
-    private $nevyuzitaObecnaSleva = 0.0;
-    private $vyuzitaSlevaObecna   = 0.0;
+    private $nevyuzitaObecnaSleva          = 0.0;
+    private $vyuzitaSlevaObecna            = 0.0;
     private $sumyPlatebVRocich             = [];  // platby připsané na účet v jednotlivých letech (zatím jen letos; protože máme obskurnost jménem "Uzavření ročníku")
     /** @var string|null */
     private $datumPosledniPlatby;        // datum poslední připsané platby
@@ -155,7 +155,7 @@ SQL,
         $this->zapoctiVedeniAktivit();
         $this->zapoctiSlevy();
 
-        $this->cenik = new \Cenik(
+        $this->cenik = new Cenik(
             $this->u,
             $this->bonusZaVedeniAktivit,
             $this->systemoveNastaveni,
@@ -947,7 +947,7 @@ SQL,
     private function aplikujObecnouSlevu(float $cena)
     {
         $slevaObecna = $this->slevaObecna;
-        ['cena' => $cena, 'sleva' => $this->nevyuzitaObecnaSleva] = \Cenik::aplikujSlevu($cena, $slevaObecna);
+        ['cena' => $cena, 'sleva' => $this->nevyuzitaObecnaSleva] = Cenik::aplikujSlevu($cena, $slevaObecna);
         $this->vyuzitaSlevaObecna = $this->slevaObecna - $this->nevyuzitaObecnaSleva;
         if ($this->slevaObecna) {
             $this->logb(
