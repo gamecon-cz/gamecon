@@ -473,8 +473,8 @@ SQL,
     {
         $dnyUbytovani = [];
         foreach ($this->mozneDny as $den => $typyADetaily) {
-            foreach ($typyADetaily as $typ => $detail) {
-                if ($detail['kusu_uzivatele']) {
+            foreach ($typyADetaily as /* $typUbytovani => */ $detail) {
+                if ($detail['kusu_uzivatele'] > 0) {
                     $dnyUbytovani[] = $den;
                 }
             }
