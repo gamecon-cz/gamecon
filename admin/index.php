@@ -62,6 +62,11 @@ if ($systemoveNastaveni->jeApril()) {
     $xtpl->parse('all.april');
 }
 
+// kontrola přihlášení při ajaxovém volání (kvůli elektronickým prezenčkám)
+if (!$u && get('ajax')) {
+    http_response_code(403);
+}
+
 // zobrazení stránky
 if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     require __DIR__ . '/login.php';

@@ -120,7 +120,7 @@ SQL
 
     public function __construct(array $uzivatel, SystemoveNastaveni $systemoveNastaveni = null)
     {
-        if (is_array($uzivatel) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $uzivatel)) {
+        if (array_keys_exist(['id_uzivatele'], $uzivatel)) {
             $this->r = $uzivatel;
             parent::__construct($uzivatel);
             $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
@@ -654,6 +654,19 @@ SQL,
         return self::jmenoNickZjisti($this->r);
     }
 
+    /**
+     * Novější formát zápisu jména a příjmení uživatele ve tvaru Jméno Příjmení (Nick).
+     * Funkce uvažuje možnou absenci nicku.
+     */
+    public function jmenoVolitelnyNick()
+    {
+        if ($this->nick()) {
+            return $this->jmeno() . ' (' . $this->nick() . ')';
+        } else {
+            return $this->jmeno();
+        }
+    }
+
     public function nick(): string
     {
         return strpos($this->r['login_uzivatele'], '@') === false
@@ -956,7 +969,7 @@ SQL,
         return $this->maRoli(Role::SEF_PROGRAMU);
     }
 
-    public function maRoliSefInfopultu(): bool
+    public function jeSefInfopultu(): bool
     {
         return $this->maRoli(Role::SEF_INFOPULTU);
     }
@@ -1575,7 +1588,7 @@ SQL,
         array              $opt = [],
     )
     {
-        $tab[Sql::LOGIN_UZIVATELE]                     ??= 'rychloreg' . (self::pocetRychloregistraci() + 1);
+        $tab[Sql::LOGIN_UZIVATELE]                     ??= uniqid('RR.', false);
         $tab[Sql::JMENO_UZIVATELE]                     ??= $tab[Sql::LOGIN_UZIVATELE];
         $tab[Sql::PRIJMENI_UZIVATELE]                  ??= $tab[Sql::JMENO_UZIVATELE];
         $tab[Sql::EMAIL1_UZIVATELE]                    ??= $tab[Sql::LOGIN_UZIVATELE] . '@example.com';
@@ -1631,10 +1644,10 @@ SQL,
         return $uid;
     }
 
-    private static function pocetRychloregistraci(): int
+    private static function posledniPoradiRychloregistrace(string $prefix): int
     {
         return (int)dbFetchSingle(<<<SQL
-SELECT COUNT(*)
+SELECT MAX(CAST(REPLACE(login_uzivatele, '{$prefix}', '') AS INT))
 FROM uzivatele_hodnoty
 WHERE z_rychloregistrace = 1
 SQL,
@@ -2224,7 +2237,6 @@ SQL;
             $this->shop = new Shop(
                 $this,
                 $this,
-                null,
                 $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals()
             );
         }

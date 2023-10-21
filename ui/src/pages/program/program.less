@@ -4,18 +4,20 @@
   padding: 0 140rel;
   overflow: hidden;
   margin-bottom: 50rel;
+
   @media (max-width: 800px) {
-      padding: 0 20px;
+    padding: 0 20px;
   }
 }
 
-.program_hlavicka > h1 {
+.program_hlavicka>h1 {
   color: #10111A;
   font-size: 80rel;
   margin: 58/19.2vw 0;
+
   @media (max-width: 800px) {
-      font-size: 32px;
-      margin: 20px 0;
+    font-size: 32px;
+    margin: 20px 0;
   }
 }
 
@@ -23,9 +25,11 @@
   display: flex;
   flex-wrap: wrap;
   margin-right: -10px; // pro mobil
+  width: 100%;
 }
 
-.program_den {
+.program_den,
+.program_filtry_tlacitko {
   text-transform: uppercase;
   font-size: 12px;
   font-weight: bold;
@@ -35,24 +39,29 @@
 
   display: block;
   width: 156px;
-  margin-right: 16px;
   height: 48px;
   line-height: 48px;
   text-align: center;
   background: #fff;
   border: solid 1px #FDC689;
+
   @media (max-width: 800px) {
-      margin: 0 10px 10px 0;
-      width: 130px;
-      flex-grow: 1;
+    margin: 0 10px 10px 0;
+    width: 130px;
+    flex-grow: 1;
   }
 }
 
-.program_den:hover {
+.program_den:not(:last-child) {
+  margin-right: 16px;
+}
+
+.program_den:hover,
+.program_filtry_tlacitko:hover {
   border-color: #E22630;
 }
 
-.program_den-aktivni {
+.program_den-aktivni, .program_filtry_tlacitko.aktivni {
   color: #fff;
   background-color: #E22630;
   border-color: #E22630;
@@ -71,258 +80,348 @@
   float: right;
   margin-top: 100rel; // podobně jak nadpis
 
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 
 .program_legenda {
-outline      : 1px solid #eee;
-margin-top   : -20px;
-margin-bottom: 20px;
+  outline: 1px solid #eee;
+  margin-top: -20px;
+  margin-bottom: 20px;
 }
 
 .program_legenda {
-display   : flex;
-background: #fff;
-margin    : -1.5vw 7.292vw 20px;
-flex-wrap : wrap;
-padding   : 11px 1px 5px;
-box-shadow: 0px 0px 10px -3px rgba(0, 0, 0, 0.2);
+  display: flex;
+  background: #fff;
+  margin: -1.5vw 7.292vw 20px;
+  flex-wrap: wrap;
+  padding: 11px 1px 5px;
+  box-shadow: 0px 0px 10px -3px rgba(0, 0, 0, 0.2);
 }
 
 .program_legenda_inner {
-display  : flex;
-flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .informaceSpustime,
 .program_legenda_typ {
-padding-left : 23px;
-padding-right: 11px;
-white-space  : nowrap;
-font-size    : 12px;
-line-height  : 31px;
-height       : 28px;
-margin-bottom: 6px;
-display      : block;
+  padding-left: 23px;
+  padding-right: 11px;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 31px;
+  height: 28px;
+  margin-bottom: 6px;
+  display: block;
 }
 
-.program_legenda_typ::before {
-width         : 1em;
-height        : 1em;
-display       : inline-block;
-font-size     : 28px;
-overflow      : hidden;
-margin-top    : -3px;
-background    : #CDF2D9;
-content       : "";
-margin-right  : 12px;
-vertical-align: middle;
+.program_legenda_typ {
+  user-select: none;
+  cursor: pointer;
+
+  &--checkbox[type=checkbox] {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    font-size: 28px;
+    overflow: hidden;
+    margin-top: -3px;
+    content: "";
+    margin-right: 12px;
+    vertical-align: middle;
+    cursor: pointer;
+
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 10 10'%3E%3Crect width='10' height='10' rx='1' transform='translate(0 0)' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat center center;
+    background-color: #CDF2D9;
+
+    &:checked {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 10.698 8.288'%3E%3Cpath id='Path_2669' data-name='Path 2669' d='M7283.8,702.841l3.117,3.117,6.167-6.167' transform='translate(-7283.093 -699.085)' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat center center;
+    }
+  }
+
+  &.otevrene input[type=checkbox] {
+    background-color: #CDF2D9;
+  }
+
+  &.vDalsiVlne input[type=checkbox] {
+    background-color: #FCBCBC;
+  }
+
+  &.vBudoucnu input[type=checkbox] {
+    background-color: #FFECEC;
+  }
+
+  &.plno input[type=checkbox] {
+    background-color: #F5F5F5;
+  }
+
+  &.prihlasen input[type=checkbox] {
+    background-color: #65D161;
+  }
+
+  &.sledujici input[type=checkbox] {
+    background-color: #E5E891;
+  }
+
+  &.organizator input[type=checkbox] {
+    background-color: #7EA5FF;
+  }
+
 }
 
 .program tbody td>div {
+  background-color: #CDF2D9;
+}
+
+.program tbody .otevrene,
+.program_legenda_typ.otevrene::before {
 background-color: #CDF2D9;
 }
 
-/* docasne zde, nez to preneseme do souboru program-trida.css */
 .program tbody .vDalsiVlne,
 .program_legenda_typ.vDalsiVlne::before {
-background-color: #FCBCBC;
+  background-color: #FCBCBC;
 }
 
 .program tbody .vBudoucnu,
 .program_legenda_typ.vBudoucnu::before {
-background-color: #FFECEC;
+  background-color: #FFECEC;
 }
 
 .program tbody .plno,
 .program_legenda_typ.plno::before {
-background-color: #F5F5F5;
+  background-color: #F5F5F5;
 }
 
 .program tbody .prihlasen,
 .program_legenda_typ.prihlasen::before {
-background-color: #65D161;
+  background-color: #65D161;
 }
 
-.program tbody .nahradnik,
-.program_legenda_typ.nahradnik::before {
-background-color: #E5E891;
+.program tbody .sledujici,
+.program_legenda_typ.sledujici::before {
+  background-color: #E5E891;
 }
 
 .program tbody .organizator,
 .program_legenda_typ.organizator::before {
-background-color: #7EA5FF;
+  background-color: #7EA5FF;
 }
 
 .program_legenda_typ.vDalsiVlne::before {
-opacity: 1;
+  opacity: 1;
 }
 
 .program_legenda_typ.vBudoucnu::before {
-opacity: 1;
+  opacity: 1;
 }
 
 .program_legenda_typ.plno::before {
-opacity   : 0.5;
-box-shadow: inset 0 0 1px 1px rgba(0, 0, 0, 0.2)
+  opacity: 0.5;
+  box-shadow: inset 0 0 1px 1px rgba(0, 0, 0, 0.2)
 }
 
 .program_legenda_typ.prihlasen::before {
-opacity: 1;
+  opacity: 1;
 }
 
-.program_legenda_typ.nahradnik::before {
-opacity: 1;
+.program_legenda_typ.sledujici::before {
+  opacity: 1;
 }
 
 .program_legenda_typ.organizator::before {
-opacity: 1;
+  opacity: 1;
 }
 
 .informaceSpustime {
-align-self: flex-start;
-flex      : 1 1 auto;
+  align-self: flex-start;
+  flex: 1 1 auto;
 }
 
 .informaceSpustime>p {
-display: inline;
+  display: inline;
 }
 
 .program_legenda_inner {
-align-self: flex-end;
-flex      : 0 1 auto;
+  align-self: flex-end;
+  flex: 0 1 auto;
 }
 
 
 .program_legenda_typ.organizator {
-text-transform: capitalize;
+  text-transform: capitalize;
 }
 
 @media (max-width: 800px) {
-.program_legenda {
-  padding     : 10px 0 3px 8px;
-  margin-right: 20px;
-  margin-left : 20px;
-  margin-top  : -24px;
-}
+  .program_legenda {
+    padding: 10px 0 3px 8px;
+    margin-right: 20px;
+    margin-left: 20px;
+    margin-top: -24px;
+  }
 
-.informaceSpustime {
-  padding    : 4px 4px 0;
-  line-height: 12px;
-}
+  .informaceSpustime {
+    padding: 4px 4px 0;
+    line-height: 12px;
+  }
 
-.program_legenda_typ {
-  flex         : 1 1 25%;
-  line-height  : 21px;
-  padding      : 0px 14px 1px 4px;
-  margin-bottom: 0;
-}
+  .program_legenda_typ {
+    flex: 1 1 25%;
+    line-height: 21px;
+    padding: 0px 14px 1px 4px;
+    margin-bottom: 0;
+  }
 
-.program_legenda_typ::before {
-  font-size   : 20px;
-  margin-top  : -3px;
-  margin-right: 10px
-}
+  .program_legenda_typ::before {
+    font-size: 20px;
+    margin-top: -3px;
+    margin-right: 10px
+  }
 }
 
 /* oprava zobrazeni odhlasit na stejnem radku */
 .program td>div>form {
-display      : inline-block !important;
-padding-right: 3px;
+  display: inline-block !important;
+  padding-right: 3px;
 }
 
 .program td:first-of-type div.program_nazevLinie {}
 
 .program a.programNahled_odkaz[href*="/legendy"]~.program_osobniTyp::before {
-content     : "Legendy";
-display     : inline-block;
-margin-right: 200px;
+  content: "Legendy";
+  display: inline-block;
+  margin-right: 200px;
 }
 
 .program a.programNahled_odkaz[href*="/drd"]~.program_osobniTyp::before {
-content     : "mDrD";
-display     : inline-block;
-margin-right: 200px;
+  content: "mDrD";
+  display: inline-block;
+  margin-right: 200px;
 }
 
 .program a.programNahled_odkaz[href*="/bonusy"]~.program_osobniTyp::before {
-content     : "Akční hry";
-display     : inline-block;
-margin-right: 200px;
+  content: "Akční hry";
+  display: inline-block;
+  margin-right: 200px;
 }
 
 .program a.programNahled_odkaz[href*="/epic"]~.program_osobniTyp::before {
-content     : "Epiky";
-display     : inline-block;
-margin-right: 200px;
+  content: "Epiky";
+  display: inline-block;
+  margin-right: 200px;
 }
 
 .program td div.prihlasen,
-.program td div.nahradnik,
+.program td div.sledujici,
 .program td div.organizator {
-position: relative;
+  position: relative;
 }
 
-.program .nahradnik form a:before {
-content  : "odsledovat";
-display  : inline-block;
-font-size: 12px;
+.program .sledujici form a:before {
+  content: "zrušit sledování";
+  display: inline-block;
+  font-size: 12px;
 }
 
-.program .nahradnik form a {
-display    : inline-block;
-white-space: nowrap;
-width      : 0;
-height     : 12px;
-font-size  : 0;
+.program .sledujici form a {
+  display: inline-block;
+  white-space: nowrap;
+  width: 0;
+  height: 12px;
+  font-size: 0;
 }
 
 .program .program_osobniTyp {
-position   : absolute;
-right      : 0;
-top        : 0;
-height     : 100%;
-width      : 20px;
-border-left: none;
-white-space: nowrap;
-text-indent: 20px;
-margin     : 0;
-color      : rgba(255, 255, 255, 0);
-overflow   : hidden;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 20px;
+  border-left: none;
+  white-space: nowrap;
+  text-indent: 20px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0);
+  overflow: hidden;
 }
 
 .program .programNahled_odkaz~form~b {
-padding-left: 8px;
+  padding-left: 8px;
 }
 
 .program td .programNahled_odkaz {
-display      : block;
-width        : 100%;
-text-overflow: ellipsis;
-overflow     : hidden;
-min-width    : 85px;
-display: -webkit-box;
-white-space: normal;
--webkit-box-orient: vertical;
--webkit-line-clamp: 2;
+  display: block;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  min-width: 85px;
+  display: -webkit-box;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .program .program_osobniTyp::before {
-position        : absolute;
-color           : rgba(255, 255, 255, 0.75);
-transform       : rotate(90deg);
-transform-origin: left top;
-left            : 100%;
-top             : 0;
-margin-top      : 2px;
-text-indent     : 0;
+  position: absolute;
+  color: rgba(255, 255, 255, 0.75);
+  transform: rotate(90deg);
+  transform-origin: left top;
+  left: 100%;
+  top: 0;
+  margin-top: 2px;
+  text-indent: 0;
 }
 
 .program .programNahled_odkaz~form~form {
-padding   : 2px 5px 4px;
-box-shadow: 6px 7px 7px 0 rgba(0, 0, 0, 0.15);
-position  : absolute !important;
-top       : 100%;
-left      : 0;
+  padding: 2px 5px 4px;
+  box-shadow: 6px 7px 7px 0 rgba(0, 0, 0, 0.15);
+  position: absolute !important;
+  top: 100%;
+  left: 0;
+}
+
+.program_dny .program_filtry_tlacitko {
+  margin-left: auto;
+  margin-right: 16px;
+}
+
+.program_filtry {
+  &_tlacitko {
+    margin-left: 8px;
+  }
+
+  &_container {
+    &_otevreno {
+      visibility: unset ;
+      position: unset;
+      top: 0;
+      left: 0;
+    }
+
+    visibility: hidden;
+    position: fixed;
+    top: 30000;
+    left: 30000;
+
+    background-color: white;
+    padding: 11px 1px 5px;
+    box-shadow: 0px 0px 10px -3px rgba(0,0,0,0.2);
+
+    margin-top: 12px;
+    z-index: 1;
+    top: 100%;
+    right: 0;
+    padding: 12px;
+
+    right: 0;
+  }
+}
+
+// TODO: important odebrat upravit css v GC
+.program_hlavicka {
+  overflow: visible !important;
+  padding-top: 0.67em !important;
 }

@@ -42,7 +42,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             $databazoveNastaveni ?? DatabazoveNastaveni::vytvorZGlobals(),
             $projectRootDir
             ?? try_constant('PROJECT_ROOT_DIR')
-            ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..'
+            ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
         );
     }
 
@@ -159,7 +159,7 @@ SQL,
                         $nazevKonstanty,
                         var_export(constant($nazevKonstanty), true),
                         var_export($hodnota, true),
-                    )
+                    ),
                 );
             }
         }
@@ -293,7 +293,7 @@ SQL,
             $spocitanyKonec = DateTimeGamecon::spocitejPrihlasovaniUcastnikuDo($this->rocnik);
             if ($regGcDo->getTimestamp() > $spocitanyKonec->getTimestamp()) {
                 throw new ChybnaHodnotaSystemovehoNastaveni(
-                    "Konec registrace účastníků musí být nejpozději ke konci GC{$this->rocnik()}: '{$spocitanyKonec->formatCasStandard()}'"
+                    "Konec registrace účastníků musí být nejpozději ke konci GC{$this->rocnik()}: '{$spocitanyKonec->formatCasStandard()}'",
                 );
             }
         }
@@ -344,7 +344,7 @@ SQL,
                     var_export($hodnota, true),
                     var_export($klic, true),
                     $invalidDateTimeFormat->getMessage(),
-                )
+                ),
             );
         }
     }
@@ -802,6 +802,16 @@ SQL;
         return mezi($this->prihlasovaniUcastnikuOd(), $this->prihlasovaniUcastnikuDo());
     }
 
+    public function predPrihlasovanimUcastniku(): bool
+    {
+        return pred($this->prihlasovaniUcastnikuOd());
+    }
+
+    public function poPrihlasovaniUcastniku(): bool
+    {
+        return po($this->prihlasovaniUcastnikuDo());
+    }
+
     public function neplaticCastkaVelkyDluh(): float
     {
         return defined('NEPLATIC_CASTKA_VELKY_DLUH')
@@ -846,6 +856,11 @@ SQL;
     public function prumerneLonskeVstupne(): float
     {
         return (float)$this->dejHodnotu(Klic::PRUMERNE_LONSKE_VSTUPNE);
+    }
+
+    public function rootAdresarProjektu(): string
+    {
+        return $this->rootAdresarProjektu;
     }
 
     public function prihlasovaciUdajeOstreDatabaze(): array

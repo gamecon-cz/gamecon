@@ -160,11 +160,17 @@
             {nadpis}
           </span>
                         <a href="#{nadpis}" class="anchor">#</a>
+                        <br />
                         <span class="pocet-prihlasenych" data-bs-toggle="tooltip" data-bs-placement="right"
                               title="Počet přihlášených bez sledujících">
             <i class="fa-solid fa-user-group"></i>
             <span class="pocet-prihlasenych-cislo">{pocetPrihlasenych}</span>
           </span>
+          <a href="{urlAktivity}" target="_blank" class="zobrazit-v-programu" title="Zobrazit v programu">
+            <i class="fa-solid fa-book"></i>
+            <span>Program</span>
+            <i class="fa-solid fa-external-link"></i>
+          </a>
                         <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání viditelnosti prezence"
                               class="float-end">
             <button id="tlacitkoPrepinaniViditelnostiPrezence{idAktivity}"
@@ -255,7 +261,7 @@
                     <i class="fas fa-check-circle"></i>
                   </span>
                                 </th>
-                                <th class="text-center">
+                                <th class="text-center lze-radit" data-order='1'>
                   <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                         title="
                         <div class='text-start'>
@@ -280,9 +286,14 @@
                             <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>
                             Mladší 18ti let
                           </div>
+                          <hr>
+                          <div>
+                            Sloupec je řazený je podle času přihlášení.
+                          </div>
                         </div>
                   ">
                   <i class="fas fa-user-tie"></i>
+                  <i class="fas fa-chevron-down razeni neaktivni"></i>
                   </span>
                                 </th>
                                 <th style="text-align: center">
@@ -291,7 +302,7 @@
                     <i class="fas fa-check-square"></i>
                   </span>
                                 </th>
-                                <th>Jméno</th>
+                                <th class="lze-radit" data-order='3'>Jméno <i class="fas fa-chevron-down razeni neaktivni"></i></th>
                                 <th class="text-center"><i class="fas fa-envelope"></i></th>
                                 <th>Telefon</th>
                             </tr>

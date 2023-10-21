@@ -134,6 +134,22 @@ class Program
     }
 
     /**
+     * @return string[] urls k JS modulům programu
+     */
+    public function jsModulyUrls(): array {
+        $soubory = [
+            __DIR__ . '/../../web/soubory/ui/bundle.js',
+        ];
+        $jsModulyUrls = [];
+        foreach ($soubory as $soubor) {
+            $verze     = md5_file($soubor);
+            $url       = str_replace(__DIR__ . '/../../web/', '', $soubor);
+            $jsModulyUrls[] = URL_WEBU . '/' . $url . '?version=' . $verze;
+        }
+        return $jsModulyUrls;
+    }
+
+    /**
      * Příprava pro tisk programu
      */
     public function tiskToPrint()

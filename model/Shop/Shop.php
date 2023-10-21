@@ -197,8 +197,8 @@ SQL,
     public function __construct(
         private readonly Uzivatel           $zakaznik,
         private readonly Uzivatel           $objednatel,
-        array                               $nastaveni = null,
         private readonly SystemoveNastaveni $systemoveNastaveni,
+        array                               $nastaveni = null,
     )
     {
         $this->cenik = new Cenik(
@@ -327,7 +327,13 @@ SQL,
 
         $this->jidlo = $this->seradJidla($this->jidlo);
 
-        $this->ubytovani = new ShopUbytovani($this->ubytovaniPole, $this->zakaznik, $this->objednatel, $systemoveNastaveni); // náhrada reprezentace polem za objekt
+        $this->ubytovani = new ShopUbytovani(
+            $this->ubytovaniPole,
+            $this->zakaznik,
+            $this->objednatel,
+            KontextZobrazeni::vytvorZGlobals(),
+            $systemoveNastaveni
+        ); // náhrada reprezentace polem za objekt
     }
 
     private function seradJidla(array $jidla): array
@@ -711,20 +717,15 @@ SQL,
         $nechce   = array_diff($stare, $nove);
         $chceNove = array_diff($nove, $stare);
         // přírustky
-        $values = '';
         foreach ($chceNove as $n) {
-            $sel    = 'SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = ' . $n;
-            $values .= "\n" . '(' . $this->zakaznik->id() . ',' . $n . ',' . ROCNIK . ',(' . $sel . '),NOW()),';
-        }
-        if ($values) {
-            $values[strlen($values) - 1] = ';';
-            dbQuery('INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum) VALUES ' . $values);
+            $this->prodat($n[Sql::ID_PREDMETU], 1, false);
         }
         // mazání
         if ($nechce) {
-            dbQueryS('DELETE FROM shop_nakupy WHERE id_uzivatele = $1 AND rok = $2 AND id_predmetu IN($3)', [
-                $this->zakaznik->id(), ROCNIK, $nechce,
-            ]);
+            dbQueryS(
+                'DELETE FROM shop_nakupy WHERE id_uzivatele = $1 AND rok = $2 AND id_predmetu IN($3)',
+                [$this->zakaznik->id(), $this->systemoveNastaveni->rocnik(), $nechce],
+            );
         }
     }
 
@@ -764,7 +765,7 @@ SQL,
                 if (empty($stare[$j]) || (!empty($nove[$i]) && $nove[$i] < $stare[$j]))
                     // tento prvek není v staré objednávce
                     // zapíšeme si ho pro přidání a přeskočíme na další
-                    $pridat .= "\n" . '(' . $this->zakaznik->id() . ',' . $nove[$i] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $nove[$i++] . '),NOW()),'; //$i se inkrementuje se po provedení druhého!
+                    $pridat .= "\n" . '(' . $this->zakaznik->id() . ',' . $this->objednatel->id() . ',' . $nove[$i] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $nove[$i++] . '),NOW()),'; //$i se inkrementuje se po provedení druhého!
                 else if (empty($nove[$i]) || $stare[$j] < $nove[$i])
                     // tento prvek ze staré objednávky není v nové objednávce
                     // zapíšeme si ho, že má být odstraněn, a skočíme na další
@@ -777,7 +778,7 @@ SQL,
                 $this->zrusNakupPredmetu($idPredmetuProOdstraneni, 1 /* jen jeden, necheme zlikvidovat všechny ojednávky toho předmětu */);
             }
             // přidání předmětů, které doposud objednané nemá
-            $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES ' . $pridat;
+            $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum) VALUES ' . $pridat;
             if (substr($q, -1) != ' ') { // hack testující, jestli se přidala nějaká část
                 dbQuery(substr($q, 0, -1)); // odstranění nadbytečné čárky z poslední přidávané části a spuštění dotazu
             }
@@ -829,10 +830,11 @@ SQL,
         $zmeny = function ($radek, $cena) {
             if ($radek['kusu_uzivatele'] == 0) {
                 dbInsert('shop_nakupy', [
-                    'cena_nakupni' => $cena,
-                    'id_uzivatele' => $this->zakaznik->id(),
-                    'id_predmetu'  => $radek['id_predmetu'],
-                    'rok'          => ROCNIK,
+                    'cena_nakupni'   => $cena,
+                    'id_uzivatele'   => $this->zakaznik->id(),
+                    'id_objednatele' => $this->objednatel->id(),
+                    'id_predmetu'    => $radek['id_predmetu'],
+                    'rok'            => ROCNIK,
                 ]);
             } else {
                 dbUpdate('shop_nakupy', [
@@ -1038,5 +1040,34 @@ SQL
             SQL,
             [0 => $zdrojZruseni],
         );
+    }
+
+    public function prodat(int $idPredmetu, int $kusu = 1, bool $vcetneOznamemi = false)
+    {
+        for ($i = 1; $i <= $kusu; $i++) {
+            dbQuery(<<<SQL
+INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum)
+VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$this->systemoveNastaveni->rocnik()},(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu={$idPredmetu}),NOW())
+SQL,
+            );
+        }
+
+        if (!$vcetneOznamemi) {
+            return;
+        }
+
+        $nazevPredmetu = dbOneCol(
+            <<<SQL
+            SELECT nazev FROM shop_predmety
+            WHERE id_predmetu = $idPredmetu
+            SQL,
+        );
+        $yu            = '';
+        if ($kusu >= 5) {
+            $yu = 'ů';
+        } else if ($kusu > 1) {
+            $yu = 'y';
+        }
+        oznameni("Prodáno $kusu kus$yu $nazevPredmetu");
     }
 }

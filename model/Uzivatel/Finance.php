@@ -16,6 +16,7 @@ use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
 use Cenik;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -239,24 +240,24 @@ SQL,
     }
 
     /** Porovnávání k řazení php 4 style :/ */
-    private function cmp($a, $b)
+    private function cmp(array $a, array $b): int|float
     {
         // podle typu
         $podleKategorii = Finance::cpm_kategorie_razeni((int)$a['kategorie']) - Finance::cpm_kategorie_razeni((int)$b['kategorie']);
         if ($podleKategorii !== 0) {
             return $podleKategorii;
         }
-        $razeniVKategorii = $a['poradi_v_kategorii'] - $b['poradi_v_kategorii'];
+        $razeniVKategorii = (int)$a['poradi_v_kategorii'] - (int)$b['poradi_v_kategorii'];
         if ($razeniVKategorii !== 0) {
             return $razeniVKategorii;
         }
         // podle názvu
-        $o = strcmp($a['nazev'], $b['nazev']);
+        $o = strcmp(strip_tags((string)$a['nazev']), strip_tags((string)$b['nazev']));
         if ($o) {
             return $o;
         }
-        // podle ceny
-        return $a['castka'] - $b['castka'];
+        // podle ceny (může obsahovat HTML, například '<b>0</b>')
+        return (float)strip_tags($a['castka']) <=> (float)strip_tags($b['castka']);
     }
 
     private function logPolozkaProBfgr(string $nazev, int $pocet, float $castka, int $typ)
@@ -292,8 +293,8 @@ SQL,
         string                $nazev,
         null|string|float|int $castka,
         ?int                  $kategorie,
+        ?int                  $idPolozky,
         int                   $poradiVKategorii = self::PORADI_POLOZKY,
-        ?int                  $idPolozky = null,
     )
     {
         if (!$this->logovat) {
@@ -314,7 +315,7 @@ SQL,
         null|string|float|int $castka,
         ?int                  $kategorie,
         int                   $poradiVKategorii,
-        ?int                  $idPolozky = null,
+        ?int                  $idPolozky,
     ): array
     {
         if (is_numeric($castka)) {
@@ -335,7 +336,13 @@ SQL,
     private function logb($nazev, $castka, int $kategorie, int $poradiNadpisu = self::PORADI_NADPISU, ?int $idPolozky = null)
     {
         $castka = self::zaokouhli($castka);
-        $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie, $poradiNadpisu, $idPolozky);
+        $this->log(
+            "<b>$nazev</b>",
+            "<b>$castka</b>",
+            $kategorie,
+            $idPolozky,
+            $poradiNadpisu,
+        );
     }
 
     /**
@@ -728,6 +735,7 @@ SQL,
                     ? 0
                     : $r['cena'],
                 self::AKTIVITY,
+                null,
             );
         }
     }
@@ -750,7 +758,12 @@ SQL,
             $sumaPlateb       = 0.0;
             while ($row = mysqli_fetch_assoc($result)) {
                 $sumaPlateb += (float)$row['cena'];
-                $this->log($row['nazev'], $row['cena'], self::PLATBA);
+                $this->log(
+                    $row['nazev'],
+                    $row['cena'],
+                    self::PLATBA,
+                    null,
+                );
             }
             $this->sumyPlatebVRocich[$rok] = self::zaokouhli($sumaPlateb);
         }
@@ -763,11 +776,11 @@ SQL,
     private function zapoctiShop()
     {
         $o = dbQuery('
-      SELECT p.id_predmetu, p.nazev, n.cena_nakupni, p.typ, p.ubytovani_den, p.model_rok
-      FROM shop_nakupy n
-      JOIN shop_predmety p USING(id_predmetu)
-      WHERE n.id_uzivatele = $0 AND n.rok = $1
-      ORDER BY n.cena_nakupni -- od nejlevnějších kvůli aplikaci slev na trička
+      SELECT predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok
+      FROM shop_nakupy AS nakupy
+      JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+      WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1
+      ORDER BY nakupy.cena_nakupni -- od nejlevnějších kvůli aplikaci slev na trička
     ', [$this->u->id(), ROCNIK]);
 
         $soucty = [];
@@ -782,7 +795,13 @@ SQL,
                 } else {
                     $this->cenaVstupnePozde = $cena;
                 }
-                $this->dobrovolneVstupnePrehled = $this->formatujProLog("{$r['nazev']} $cena.-", $cena, $r['typ'], $r['id_predmetu']);
+                $this->dobrovolneVstupnePrehled = $this->formatujProLog(
+                    "{$r[PredmetSql::NAZEV]} $cena.-",
+                    $cena,
+                    (int)$r[PredmetSql::TYP],
+                    self::PORADI_POLOZKY,
+                    (int)$r[PredmetSql::ID_PREDMETU],
+                );
             } else if ($r['typ'] == Shop::PROPLACENI_BONUSU) {
                 $this->proplacenyBonusZaVedeniAktivit += $cena;
             } else {
@@ -814,14 +833,26 @@ SQL,
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
             } else if ($r['typ'] != Shop::PROPLACENI_BONUSU) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r['typ']);
-                $this->log($r['nazev'], $cena, $r['typ'] !== null ? (int)$r['typ'] : null);
+                $this->log(
+                    $r['nazev'],
+                    $cena,
+                    $r['typ'] !== null ?
+                        (int)$r['typ']
+                        : null,
+                    $r[PredmetSql::ID_PREDMETU],
+                );
             }
         }
 
         foreach ($soucty as $idPredmetu => $predmet) {
             $this->logStrukturovane((string)$predmet['nazev'], (int)$predmet['pocet'], (float)$predmet['suma'], $predmet['typ']);
             // dvojmezera kvůli řazení
-            $this->log($predmet['nazev'] . '  ' . $predmet['pocet'] . '×', $predmet['suma'], (int)$predmet['typ'], $idPredmetu);
+            $this->log(
+                $predmet['nazev'] . '  ' . $predmet['pocet'] . '×',
+                $predmet['suma'],
+                (int)$predmet['typ'],
+                $idPredmetu,
+            );
         }
     }
 
@@ -870,7 +901,12 @@ SQL,
      */
     private function zapoctiZustatekZPredchozichRocniku()
     {
-        $this->log('Zůstatek z minulých let', $this->zustatekZPredchozichRocniku, self::ZUSTATEK_Z_PREDCHOZICH_LET);
+        $this->log(
+            'Zůstatek z minulých let',
+            $this->zustatekZPredchozichRocniku,
+            self::ZUSTATEK_Z_PREDCHOZICH_LET,
+            null,
+        );
     }
 
     private function aplikujBonusZaVedeniAktivit(float $cena): float
@@ -890,6 +926,7 @@ SQL,
                 "<span class='hinted'>Bonus za aktivity - celkový<span class='hint'>využitý {$this->vyuzityBonusZaVedeniAktivit}, proplacený {$this->proplacenyBonusZaVedeniAktivit}</span></span>",
                 $this->bonusZaVedeniAktivit,
                 self::ORGSLEVA,
+                null,
             );
         }
 
@@ -918,11 +955,13 @@ SQL,
                 '<b>Sleva</b>',
                 '<b>' . $this->slevaObecna . '</b>',
                 self::PRIPSANE_SLEVY,
+                null,
             );
             $this->log(
                 '<i>Využitá sleva ' . $this->vyuzitaSlevaObecna . '</i>',
                 '&nbsp;',
                 self::PRIPSANE_SLEVY,
+                null,
             );
         }
 

@@ -98,6 +98,7 @@ class OnlinePrezenceHtml
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-posledni-zname-zmeny-prihlaseni.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-errors.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-sort.js',
                 ],
             ],
         ];
@@ -250,6 +251,7 @@ class OnlinePrezenceHtml
 
             $template->assign('disabledPridatUcastnika', $muzePridatUcastnikyHned ? '' : 'disabled');
             $template->assign('idAktivity', $aktivita->id());
+            $template->assign('urlAktivity', $aktivita->url());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
             $template->assign('nadpis', self::nazevProAnchor($aktivita));

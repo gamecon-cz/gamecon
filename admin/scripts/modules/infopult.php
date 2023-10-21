@@ -30,7 +30,7 @@ $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-botto
 $err  = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
-$shop      = $uPracovni ? new Shop($uPracovni, $u, $nastaveni, $systemoveNastaveni) : null;
+$shop      = $uPracovni ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni) : null;
 
 include __DIR__ . '/_infopult_ovladac.php';
 
@@ -103,12 +103,12 @@ if ($uPracovni) {
         'prehledPredmetu' => $uPracovni->finance()->prehledHtml(
             $typyProPrehled,
             false,
-            $u->jeSpravceFinanci(),
+            $u->jeSpravceFinanci() || $u->jeSefInfopultu(),
         ),
     ]);
 
-    $maObjednaneUbytovani            = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
-    $chybejiciUdaje                  = $uPracovni->chybejiciUdaje(
+    $maObjednaneUbytovani           = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    $chybejiciUdaje                 = $uPracovni->chybejiciUdaje(
         Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani),
     );
     $udajePovinneAleNezkontrolovane = $maObjednaneUbytovani && !$uPracovni->maZkontrolovaneUdaje();
@@ -196,7 +196,7 @@ if ($uPracovni) {
         );
     }
 
-    if ($u->jeInfopultak() && !$u->maRoliSefInfopultu()) {
+    if ($u->jeInfopultak() && !$u->jeSefInfopultu()) {
         $zpravyProPotvrzeni = [];
         $a                  = $uPracovni->koncovkaDlePohlavi();
         if (!$uPracovni->gcPritomen()) {
@@ -217,19 +217,30 @@ if ($uPracovni) {
         if ($zpravyProPotvrzeni !== []) {
             $zpravyProPotvrzeni                 = array_map(static fn(string $zprava) => "- $zprava", $zpravyProPotvrzeni);
             $zpravyProPotvrzeniZruseniPraceText = implode("\n", $zpravyProPotvrzeni);
-            $zpravyProPotvrzeniZmenyStavu       = $zpravyProPotvrzeni;
-            unset($zpravyProPotvrzeniZmenyStavu['materialy']);
-            $zpravyProPotvrzeniZmenyStavuText = implode("\n", $zpravyProPotvrzeniZmenyStavu);
-            $ucastnikNazev                    = $uPracovni->jeMuz()
+
+            $ucastnikNazev = $uPracovni->jeMuz()
                 ? 'Účastník'
                 : 'Účastnice';
-            $x->assign([
+            $x->assign(
+                'zpravaProPotvrzeniZruseniPrace',
                 // json_encode kvůli JS error "SyntaxError: '' string literal contains an unescaped line break"
-                'zpravaProPotvrzeniZruseniPrace' => json_encode("{$ucastnikNazev}\n{$zpravyProPotvrzeniZruseniPraceText}.\nPřesto ukončit práci s uživatelem?"),
-                'zpravaProPotvrzeniZmenyStavu'   => json_encode("{$ucastnikNazev}\n{$zpravyProPotvrzeniZmenyStavuText}.\nPřesto dát materiály?"),
-            ]);
+                json_encode(
+                    "{$ucastnikNazev}\n{$zpravyProPotvrzeniZruseniPraceText}.\nPřesto ukončit práci s uživatelem?",
+                ),
+            );
             $x->parse('infopult.potvrditZruseniPrace');
-            $x->parse('infopult.potvrditZmenuStavu');
+
+            $zpravyProPotvrzeniZmenyStavu = $zpravyProPotvrzeni;
+            unset($zpravyProPotvrzeniZmenyStavu['materialy']);
+            if ($zpravyProPotvrzeniZmenyStavu !== []) {
+                $zpravyProPotvrzeniZmenyStavuText = implode("\n", $zpravyProPotvrzeniZmenyStavu);
+                $x->assign(
+                    'zpravaProPotvrzeniZmenyStavu',
+                    // json_encode kvůli JS error "SyntaxError: '' string literal contains an unescaped line break"
+                    json_encode("{$ucastnikNazev}\n{$zpravyProPotvrzeniZmenyStavuText}.\nPřesto dát materiály?"),
+                );
+                $x->parse('infopult.potvrditZmenuStavu');
+            }
         }
     }
 
