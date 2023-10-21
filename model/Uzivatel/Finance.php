@@ -923,19 +923,8 @@ SQL,
 
         if ($this->bonusZaVedeniAktivit) {
             $this->logb(
-                'Bonus za aktivity - využitý',
-                $this->vyuzityBonusZaVedeniAktivit,
-                self::ORGSLEVA,
-            );
-            $this->log(
-                '<i>(z toho proplacený bonus ' . $this->proplacenyBonusZaVedeniAktivit . ')</i>',
-                '&nbsp;',
-                self::ORGSLEVA,
-                null,
-            );
-            $this->log(
-                '<i>Bonus za aktivity - celkový ' . $this->bonusZaVedeniAktivit . '</i>',
-                '&nbsp;',
+                "<span class='hinted'>Bonus za aktivity - celkový<span class='hint'>využitý {$this->vyuzityBonusZaVedeniAktivit}, proplacený {$this->proplacenyBonusZaVedeniAktivit}</span></span>",
+                $this->bonusZaVedeniAktivit,
                 self::ORGSLEVA,
                 null,
             );
