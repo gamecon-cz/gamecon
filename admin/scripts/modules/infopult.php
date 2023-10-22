@@ -73,7 +73,7 @@ if ($uPracovni) {
         if ($systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) {
             $x->assign('prihlasDisabled', '');
         } else {
-            $x->parse('infopult.neprihlasen.nelze');
+            $x->parse('infopult.neprihlasen.registraceNaGcNeniSpustena');
         }
         $x->parse('infopult.neprihlasen');
     }

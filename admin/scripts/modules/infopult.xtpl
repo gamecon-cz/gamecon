@@ -95,9 +95,9 @@
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->
 <div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
-<!-- begin: nelze -->
+<!-- begin: registraceNaGcNeniSpustena -->
 <div class="error">Registrace na GameCon není spuštěna.</div>
-<!-- end: nelze -->
+<!-- end: registraceNaGcNeniSpustena -->
 <!-- end:neprihlasen -->
 
 <div class="infopult-grid--container">
