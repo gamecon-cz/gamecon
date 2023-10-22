@@ -25,97 +25,97 @@ $result = $this->q(<<<SQL
 INSERT INTO `role_texty_podle_uzivatele` (vyznam_role, id_uzivatele, popis_role)
 VALUES (
         'BRIGADNIK',
-        @idSiriena,
+        {$sirienId},
         'Lopatička'
     ),
     (
         'DOBROVOLNIK_SENIOR',
-        @idSiriena,
+        {$sirienId},
         'Krumpáček'
     ),
     (
         'HERMAN',
-        @idSiriena,
+        {$sirienId},
         'Hraje a nezlobí'
     ),
     (
         'INFOPULT',
-        @idSiriena,
+        {$sirienId},
         'Infík neni lumík!'
     ),
     (
         'NEDELNI_NOC_ZDARMA',
-        @idSiriena,
+        {$sirienId},
         'Aby měl Flantovi kdo překážet'
     ),
     (
         'NEODHLASOVAT',
-        @idSiriena,
+        {$sirienId},
         'STOP PANIC BUTTON'
     ),
     (
         'PARTNER',
-        @idSiriena,
+        {$sirienId},
         'To sou ty který za účast na GC někdo ještě platí!'
     ),
     (
         'SOBOTNI_NOC_ZDARMA',
-        @idSiriena,
+        {$sirienId},
         'Muzikanti'
     ),
     (
         'STREDECNI_NOC_ZDARMA',
-        @idSiriena,
+        {$sirienId},
         'Schodoví pizzožrtouti'
     ),
     (
         'VYPRAVEC',
-        @idSiriena,
+        {$sirienId},
         'Hraje a zlobí'
     ),
     (
         'CFO',
-        @idSiriena,
+        {$sirienId},
         'Nešmatlej na to!'
     ),
     (
         'CESTNY_ORGANIZATOR',
-        @idSiriena,
+        {$sirienId},
         'Zombieci, kostlivci, upíři a jiný revenanti'
     ),
     (
         'CLEN_RADY',
-        @idSiriena,
+        {$sirienId},
         'Dříči a flákači'
     ),
     (
         'ORGANIZATOR_ZDARMA',
-        @idSiriena,
+        {$sirienId},
         'Nažranej org'
     ),
     (
         'ADMIN',
-        @idSiriena,
+        {$sirienId},
         'Vyhazovač'
     ),
     (
         'PUL_ORG_TRICKO',
-        @idSiriena,
+        {$sirienId},
         'Homeless org'
     ),
     (
         'PUL_ORG_UBYTKO',
-        @idSiriena,
+        {$sirienId},
         '(Polo)nahej org'
     ),
     (
         'SEF_INFOPULTU',
-        @idSiriena,
+        {$sirienId},
         'GC Wikipedia'
     ),
     (
         'SEF_PROGRAMU',
-        @idSiriena,
+        {$sirienId},
         'Prostě borec!'
     )
 SQL,
