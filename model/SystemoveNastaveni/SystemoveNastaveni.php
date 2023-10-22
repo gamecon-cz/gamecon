@@ -287,13 +287,13 @@ SQL,
         } else if ($klic === Klic::REG_GC_DO && $hodnota) {
             try {
                 $regGcDo = $this->vytvorDateTimeZCeskehoFormatu($hodnota);
-            } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
+            } catch (InvalidDateTimeFormat) {
                 throw new ChybnaHodnotaSystemovehoNastaveni("Neplatné datum a čas '$hodnota'");
             }
-            $spocitanyKonec = DateTimeGamecon::spocitejPrihlasovaniUcastnikuDo($this->rocnik);
-            if ($regGcDo->getTimestamp() > $spocitanyKonec->getTimestamp()) {
+            $konecLetosnihoGameconu = $this->konecLetosnihoGameconu();
+            if ($regGcDo->getTimestamp() > $konecLetosnihoGameconu->getTimestamp()) {
                 throw new ChybnaHodnotaSystemovehoNastaveni(
-                    "Konec registrace účastníků musí být nejpozději ke konci GC{$this->rocnik()}: '{$spocitanyKonec->formatCasStandard()}'",
+                    "Konec registrace účastníků musí být nejpozději ke konci GC{$this->rocnik()}: '{$konecLetosnihoGameconu->formatCasStandard()}'",
                 );
             }
         }
