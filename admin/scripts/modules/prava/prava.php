@@ -25,7 +25,8 @@ if (!$roleObjekt || ($roleObjekt->kategorieRole() == Role::KATEGORIE_OMEZENA && 
 }
 unset($roleObjekt);
 
-function zaloguj($zprava) {
+function zaloguj($zprava)
+{
     $cas = (new DateTimeCz())->formatDb();
     file_put_contents(SPEC . '/role.log', "$cas $zprava\n", FILE_APPEND);
 }
@@ -54,20 +55,30 @@ if (!$role) {
     }
     // výpis seznamu židlí
     $o               = dbQuery(<<<SQL
-SELECT role.id_role, role.kod_role, role.nazev_role, role.popis_role, role.rocnik_role, role.typ_role, role.vyznam_role, role.skryta, role.kategorie_role,
+SELECT role.id_role, role.kod_role, role.nazev_role,
+       COALESCE(role_texty_podle_uzivatele.popis_role, role.popis_role) AS popis_role,
+       role.rocnik_role, role.typ_role, role.vyznam_role, role.skryta, role.kategorie_role,
        platne_role_uzivatelu.id_role IS NOT NULL AS sedi,
        platne_role_uzivatelu.posadil,
        platne_role_uzivatelu.posazen
 FROM role_seznam AS role
 LEFT JOIN platne_role_uzivatelu
     ON platne_role_uzivatelu.id_role = role.id_role AND platne_role_uzivatelu.id_uzivatele = $0
+LEFT JOIN role_texty_podle_uzivatele
+    ON role_texty_podle_uzivatele.id_uzivatele = $3
+    AND role_texty_podle_uzivatele.vyznam_role = role.vyznam_role
 WHERE role.rocnik_role IN ($1)
     AND role.skryta = 0
     AND (role.kategorie_role IN ($2))
 GROUP BY role.id_role, role.typ_role, role.nazev_role
 ORDER BY role.typ_role, role.nazev_role
 SQL,
-        [0 => $uPracovni?->id(), 1 => [ROCNIK, Role::JAKYKOLI_ROCNIK], 2 => $povoleneKategorie]
+        [
+            0 => $uPracovni?->id(),
+            1 => [ROCNIK, Role::JAKYKOLI_ROCNIK],
+            2 => $povoleneKategorie,
+            3 => $u->id(),
+        ],
     );
     $predchoziTyp    = null;
     $vidiRoleBezPrav = false;
@@ -79,14 +90,14 @@ SQL,
                 $t->parse('prava.roleBezPrav.roleUcast');
                 $vidiRoleBezPrav = true;
             } // 'else' jde o starou účast jako "GC2019 přijel" a ji nechceme ukazovat
-        } elseif (Role::platiProRocnik($r[RoleSqlStruktura::ROCNIK_ROLE], ROCNIK)) {
+        } else if (Role::platiProRocnik($r[RoleSqlStruktura::ROCNIK_ROLE], ROCNIK)) {
             if ($predchoziTyp !== $r[RoleSqlStruktura::TYP_ROLE]) {
                 if ($predchoziTyp !== null) {
                     $t->parse('prava.jedenTypRoli');
                 }
                 if ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_TRVALA) {
                     $t->parse('prava.jedenTypRoli.roleTrvaleNadpis');
-                } elseif ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_ROCNIKOVA) {
+                } else if ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_ROCNIKOVA) {
                     $t->assign('rocnik', ROCNIK);
                     $t->parse('prava.jedenTypRoli.roleRocnikoveNadpis');
                 }
@@ -102,7 +113,7 @@ SQL,
                         }
                     }
                     $t->parse('prava.jedenTypRoli.prava.akce.sesad');
-                } elseif ($uPracovni && !$r['sedi']) {
+                } else if ($uPracovni && !$r['sedi']) {
                     $t->parse('prava.jedenTypRoli.prava.akce.posad');
                 }
                 $t->parse('prava.jedenTypRoli.prava.akce');
