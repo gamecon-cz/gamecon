@@ -55,7 +55,8 @@ class DbMigrationsConfig
      * Reads params from associative array and loads them to class
      * attributes.
      */
-    public function __construct(array $params) {
+    public function __construct(array $params)
+    {
         foreach ($params as $key => $value) {
             if (property_exists($this, $key)) {
                 // TODO this is a little basic implementation - test if attr is public, reject unused attributes from array etc.
@@ -68,7 +69,7 @@ class DbMigrationsConfig
         if ($this->doBackups && !is_writable($this->backupsDirectory)) {
             throw new \RuntimeException(
                 'Backups are enabled but target directory is not set or not writable '
-                . var_export($this->backupsDirectory, true)
+                . var_export($this->backupsDirectory, true),
             );
         }
     }
