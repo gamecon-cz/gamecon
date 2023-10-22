@@ -2,7 +2,7 @@
 /** @var \Godric\DbMigrations\Migration $this */
 
 $this->q(<<<SQL
-CREATE TABLE `role_texty_podle_uzivatele` (
+CREATE TABLE IF NOT EXISTS `role_texty_podle_uzivatele` (
   `vyznam_role` VARCHAR(48) NOT NULL,
   `id_uzivatele` INT NOT NULL,
   `popis_role` text COLLATE utf8_czech_ci NULL,
@@ -11,9 +11,17 @@ CREATE TABLE `role_texty_podle_uzivatele` (
 SQL,
 );
 
-$this->q(<<<SQL
-SELECT id_uzivatele FROM uzivatele_hodnoty WHERE jmeno_uzivatele = 'Petr' AND prijmeni_uzivatele = 'Mazák' INTO @idSiriena;
+$result = $this->q(<<<SQL
+SELECT id_uzivatele FROM uzivatele_hodnoty WHERE jmeno_uzivatele = 'Petr' AND prijmeni_uzivatele = 'Mazák'
+SQL);
 
+$sirienId = mysqli_fetch_column($result);
+
+if (!$sirienId) {
+    return;
+}
+
+$result = $this->q(<<<SQL
 INSERT INTO `role_texty_podle_uzivatele` (vyznam_role, id_uzivatele, popis_role)
 VALUES (
         'BRIGADNIK',
