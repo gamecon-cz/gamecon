@@ -9,24 +9,23 @@ define('LATEST_MIGRATION_HASH', 'latest_migration_hash');
 class DbMigrations
 {
 
-    private $backups;
-    private $conf;
-    /** @var \mysqli */
-    private        $connection;
-    private        $migrations;
-    private        $webGui               = null;
-    private        $hasTableMigrationsV2 = null;
-    private        $hasTableMigrationsV1 = null;
-    private ?array $unappliedMigrations  = null;
+    private Backups            $backups;
+    private DbMigrationsConfig $conf;
+    private \mysqli            $connection;
+    private                    $migrations;
+    private ?WebGui            $webGui               = null;
+    private                    $hasTableMigrationsV2 = null;
+    private                    $hasTableMigrationsV1 = null;
+    private ?array             $unappliedMigrations  = null;
 
     public function __construct(DbMigrationsConfig $conf)
     {
         $this->conf = $conf;
 
-        $this->connection = $this->conf->connection;
-        $this->backups    = new Backups($this->connection, $this->conf->backupsDirectory);
+        $this->connection          = $this->conf->connection;
+        $this->backups             = new Backups($this->connection, $this->conf->backupsDirectory);
         if ($this->conf->webGui) {
-            $this->webGui = new WebGui;
+            $this->webGui = new WebGui();
         }
     }
 
@@ -187,7 +186,11 @@ SQL,
                     continue;
                 }
 
-                $migrations[$fileBaseName] = new Migration($fileName, $fileBaseName, $this->connection);
+                $migrations[$fileBaseName] = new Migration(
+                    $fileName,
+                    $fileBaseName,
+                    $this->connection,
+                );
             }
 
             ksort($migrations);

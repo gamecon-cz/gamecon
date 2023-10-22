@@ -11,11 +11,14 @@ CREATE TABLE IF NOT EXISTS `role_texty_podle_uzivatele` (
 SQL,
 );
 
-$result = $this->q(<<<SQL
-SELECT id_uzivatele FROM uzivatele_hodnoty WHERE jmeno_uzivatele = 'Petr' AND prijmeni_uzivatele = 'Mazák'
-SQL);
+$sirienIdResult = mysqli_execute_query(
+    $this->connection,
+    <<<SQL
+    SELECT id_uzivatele FROM uzivatele_hodnoty WHERE jmeno_uzivatele = 'Petr' AND prijmeni_uzivatele = 'Mazák'
+    SQL,
+);
 
-$sirienId = mysqli_fetch_column($result);
+$sirienId = mysqli_fetch_column($sirienIdResult);
 
 if (!$sirienId) {
     return;
