@@ -56,11 +56,11 @@
     <div class="mobstin"></div>
     <div class="main">
       <!-- begin:submenu -->
-      <ul id="submenu" class="submenu-selected-{stranka}">
+      <ul id="submenu" class="submenu-selected-{stranka}" style="display: {displaySubmenu}">
         <li>
           <ul class="adm_submenu_group"><!-- begin:polozka -->
             {break}
-            <li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{group}">
+            <li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{group}" style="display: {displayPolozka}">
               <a href="{url}" {add_attributes}>{nazev}</a>
             </li>
             <!-- end:polozka --></ul>
