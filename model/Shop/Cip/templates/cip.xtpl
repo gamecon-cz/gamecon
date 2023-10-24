@@ -50,18 +50,23 @@
   <div class="container">
 
     <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
-      <div class="fs-1">
-        Čip čip čip čip a dejl
-        <div>
-          {ucastnikJmenoNick}!
-        </div>
-        <div>
-          <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ zpět</a>
-        </div>
+      <div class="row">
+        <h2 class="clearfix">Zápis</h2>
+      </div>
+
+      <div class="row">
+        <h2 class="clearfix">Čtení</h2>
       </div>
     </div>
 
+
+    <script type="text/javascript">
+      { // local scope abychom nemuseli řešit že nějaká const už je definována
+      }
+    </script>
+
   </div>
+
 </main>
 
 </body>

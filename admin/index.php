@@ -67,7 +67,7 @@ if (!$stranka) {
             back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/uzivatel.php', '.php'));
         }
         if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
-            back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/infopult.php', '.php'));
+            back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/infopult/infopult.php', '.php'));
         }
         back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/moje-aktivity'));
     }
@@ -271,6 +271,7 @@ uasort($submenu, function (
 });
 
 // výstup submenu
+$allHidden = true;
 foreach ($submenu as $url => $polozka) {
     if ($u && $u->maPravo($polozka['pravo'])) {
         $xtpl->assign('url', $url == $stranka
@@ -287,11 +288,13 @@ foreach ($submenu as $url => $polozka) {
         }
         $xtpl->assign('add_attributes', implode(' ', $addAttributes));
 
-        $display = '';
+        $displayPolozka = '';
         if (!empty($polozka['hidden'])) {
-            $display = 'none';
+            $displayPolozka = 'none';
+        } else {
+            $allHidden = false;
         }
-        $xtpl->assign('display', $display);
+        $xtpl->assign('displayPolozka', $displayPolozka);
 
         $itemBreak = '';
         if ($polozka['order'] == 1 && $polozka['group'] > 1) {
@@ -305,6 +308,7 @@ foreach ($submenu as $url => $polozka) {
     }
 }
 $xtpl->assign('stranka', $stranka);
+$xtpl->assign('displaySubmenu', $allHidden ? 'none' : '');
 $xtpl->parse('all.submenu');
 
 $protipy = [
