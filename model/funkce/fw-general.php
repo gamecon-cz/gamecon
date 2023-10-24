@@ -93,6 +93,16 @@ function back(string $to = null)
     exit;
 }
 
+function localBackUrl(string $fallbackUrl = URL_WEBU): string
+{
+    if (isset($_SERVER['HTTP_REFERER'])
+        && (str_contains($_SERVER['HTTP_REFERER'], URL_WEBU) || str_contains($_SERVER['HTTP_REFERER'], URL_ADMIN))
+    ) {
+        return $_SERVER['HTTP_REFERER'];
+    }
+    return $fallbackUrl;
+}
+
 function getBackUrl(string $defaultBackUrl = null): string
 {
     $refererParts = parse_url($_SERVER['HTTP_REFERER'] ?? $defaultBackUrl ?? $_SERVER['REQUEST_URI']);
