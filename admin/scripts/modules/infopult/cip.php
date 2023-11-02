@@ -24,4 +24,4 @@ $cipHtml = new CipHtml(
 
 echo $uPracovni
     ? $cipHtml->dejHtmlCipu($uPracovni)
-    : '';
+    : '<div>Vyber pracovního uživatele</div>';
