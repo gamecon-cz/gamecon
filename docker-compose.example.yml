@@ -1,4 +1,4 @@
-# docker pull jaroslavtyc/gamecon:8.2 && docker-compose up --build
+# docker compose pull && docker compose build
 version: "3"
 services:
   web:
@@ -15,6 +15,7 @@ services:
       COMPOSER_AUTH: '{"github-oauth":{"github.com":""}}' # Go to https://github.com/settings/tokens to generate new (read only) access token to let Github pair your requests to your account and to raise the cap of allowed requests (during Composer Github-related actions like install, update, require etc)
     ports:
       - "80:80"
+      - "443:443"
 
   sql.gamecon:
     image: mariadb:10.3.27 # should be same as on live server
