@@ -216,6 +216,13 @@ if ($uPracovni) {
         );
     }
 
+    $x->assign(
+        'nfcCipUrl',
+        URL_ADMIN
+        . '/' . basename(__FILE__, '.php')
+        . '/' . basename(__DIR__ . '/cip.php', '.php'),
+    );
+
     if ($u->jeInfopultak() && !$u->jeSefInfopultu()) {
         $zpravyProPotvrzeni = [];
         $a                  = $uPracovni->koncovkaDlePohlavi();
