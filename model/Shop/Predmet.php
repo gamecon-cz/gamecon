@@ -9,8 +9,8 @@ use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
  */
 class Predmet extends \DbObject
 {
-    protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
-    protected static $pk      = Sql::ID_PREDMETU;
+    protected static $tabulka         = Sql::SHOP_PREDMETY_TABULKA;
+    protected static $pk              = Sql::ID_PREDMETU;
     protected static $letosniPredmety = [];
 
     public static function jeToKostka(string $nazev): bool
