@@ -2,9 +2,12 @@
 
 <div class="aBox">
   <h3>Importér e-shopu</h3>
-  Přepíše kompletně letošní nabízené předměty a ubytování.
-  Jako zdrojový soubor slouží <a href="{baseUrl}/reporty/{eshopReport}"><em>Report e-shopu</em> ve formátu XLSX</a>.
-  <br><br>
+  <p>
+    Přepíše kompletně letošní nabízené předměty a ubytování.
+  </p>
+  <p>
+    Jako zdrojový soubor slouží <a href="{baseUrl}/reporty/{eshopReport}"><em>Report e-shopu</em> ve formátu XLSX</a>.
+  </p>
   <form method="post" enctype="multipart/form-data">
     <input type="file" name="{souborInputName}"> <input type="submit" name="{postName}" value="Nahrát">
     <span>⚠️ Položky, které nebudou v importním souboru, import skryje ⚠️</span>
