@@ -777,6 +777,11 @@ SQL,
         return $this->maPravo(Pravo::KOSTKA_ZDARMA);
     }
 
+    public function maPravoNaPlackuZdarma(): bool
+    {
+        return $this->maPravo(Pravo::PLACKA_ZDARMA);
+    }
+
     public function maPravoNaUbytovaniZdarma(): bool
     {
         return $this->maPravo(Pravo::UBYTOVANI_ZDARMA);

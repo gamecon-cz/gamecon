@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Tests\Shop;
+namespace Gamecon\Tests\Shop\SqlStruktura;
 
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura;
 use Gamecon\Tests\Model\AbstractTestSqlStruktura;
