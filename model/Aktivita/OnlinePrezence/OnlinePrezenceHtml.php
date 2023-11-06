@@ -81,7 +81,7 @@ class OnlinePrezenceHtml
             ],
             'javascripts' => [
                 'text'   => [
-                    __DIR__ . '/../../../admin/files/omnibox-1.1.3.js',
+                    __DIR__ . '/../../../admin/files/omnibox-1.1.4.js',
                     __DIR__ . '/../../../admin/files/zablikej.1.0.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-heat-colors.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
