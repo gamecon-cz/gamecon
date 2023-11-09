@@ -53,9 +53,20 @@ if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
 $zacatekGameconu = DateTimeGamecon::zacatekGameconu();
 $konecGameconu   = DateTimeGamecon::konecGameconu();
 
-// ostatní
+// datumy
 $t->assign([
     'gcOd'  => $zacatekGameconu->format('j.'),
     'gcDo'  => $konecGameconu->format('j. n.'),
     'gcRok' => $konecGameconu->format('Y'),
 ]);
+
+if ($konecGameconu < $systemoveNastaveni->ted()) {
+    $pristiZacatekGameconu = DateTimeGamecon::zacatekGameconu((int)$zacatekGameconu->format('Y') + 1);
+    $pristiKonecGameconu   = DateTimeGamecon::konecGameconu((int)$konecGameconu->format('Y') + 1);
+    $t->assign([
+        'gcPristiOd'  => $pristiZacatekGameconu->format('j.'),
+        'gcPristiDo'  => $pristiKonecGameconu->format('j. n.'),
+        'gcPristiRok' => $pristiKonecGameconu->format('Y'),
+    ]);
+    $t->parse('titulka.pristiRocnik');
+}
