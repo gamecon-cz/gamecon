@@ -4,6 +4,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Web\Loga;
+use Gamecon\Role\Role;
 
 /** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Modul $this */
@@ -55,7 +56,33 @@ $konecGameconu   = DateTimeGamecon::konecGameconu();
 
 // ostatní
 $t->assign([
-    'gcOd'  => $zacatekGameconu->format('j.'),
-    'gcDo'  => $konecGameconu->format('j. n.'),
-    'gcRok' => $konecGameconu->format('Y'),
+    'gcOd'                       => $zacatekGameconu->format('j.'),
+    'gcDo'                       => $konecGameconu->format('j. n.'),
+    'gcRok'                      => $konecGameconu->format('Y'),
+    'stovkySpokojenychUcastniku' => dbFetchSingle(<<<SQL
+SELECT FLOOR(COUNT(*) / 10) * 10
+FROM uzivatele_role
+WHERE id_role = $0
+SQL,
+        [
+            0 => Role::pritomenNaRocniku(po($systemoveNastaveni->konecLetosnihoGameconu())
+                ? $systemoveNastaveni->rocnik()
+                : $systemoveNastaveni->rocnik() - 1,
+            ),
+        ],
+    ),
+    'stovkyAktivit'              => dbFetchSingle(<<<SQL
+SELECT FLOOR(COUNT(*) / 10) * 10
+FROM akce_seznam
+WHERE rok = $0
+    AND patri_pod IS NULL
+    AND typ NOT IN ($1)
+SQL,
+        [
+            0 => po($systemoveNastaveni->konecLetosnihoGameconu())
+                ? $systemoveNastaveni->rocnik()
+                : $systemoveNastaveni->rocnik() - 1,
+            1 => TypAktivity::interniTypy(),
+        ],
+    ),
 ]);
