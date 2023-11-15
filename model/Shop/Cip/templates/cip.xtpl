@@ -72,7 +72,7 @@
             </div>
             <div class="unsupported-nfc display-none">
               <p>Tvůj prohlížeč bohužel neumí zapisovat na NFC čip 😔</p>
-              <p>Pužij prosím Chrome v Android telefonu, vybaveném NFC.</p>
+              <p>Použij prosím Chrome v Android telefonu, vybaveném NFC.</p>
             </div>
           </div>
         </div>
@@ -90,77 +90,12 @@
             </div>
             <div class="unsupported-nfc display-none">
               <p>Tvůj prohlížeč bohužel neumí číst z NFC čipu 😔</p>
-              <p>Pužij prosím Chrome v Android telefonu, vybaveném NFC.</p>
+              <p>Použij prosím Chrome v Android telefonu, vybaveném NFC.</p>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <script type="text/javascript">
-      async function readTag() {
-        if ("NDEFReader" in window) {
-          const ndef = new NDEFReader();
-          try {
-            await ndef.scan();
-            ndef.onreading = event => {
-              const decoder = new TextDecoder();
-              for (const record of event.message.records) {
-                consoleLog("Record type:  " + record.recordType);
-                consoleLog("MIME type:    " + record.mediaType);
-                consoleLog("=== data ===\n" + decoder.decode(record.data));
-              }
-            }
-          } catch (error) {
-            consoleLog(error);
-          }
-        } else {
-          consoleLog("Web NFC is not supported-nfc.");
-        }
-      }
-
-      async function writeTag() {
-        if ("NDEFReader" in window) {
-          const ndef = new NDEFReader();
-          try {
-            await ndef.write("What Web Can Do Today");
-            consoleLog("NDEF message written!");
-          } catch (error) {
-            consoleLog(error);
-          }
-        } else {
-          consoleLog("Web NFC is not supported-nfc.");
-        }
-      }
-
-      function consoleLog(data) {
-        var logElement = document.getElementById('log');
-        logElement.innerHTML += data + '\n';
-      }
-
-      if (!window.location.href.startsWith('https:')) {
-        Array.from(document.getElementsByClassName('requires-https')).forEach(function (element) {
-          element.classList.remove('display-none')
-        })
-      } else {
-        if ("NDEFReader" in window) {
-          Array.from(document.getElementsByClassName('supported-nfc')).forEach(function (element) {
-            element.classList.remove('display-none')
-          })
-          Array.from(document.getElementsByClassName('unsupported-nfc')).forEach(function (element) {
-            element.classList.add('display-none')
-          })
-        } else {
-          Array.from(document.getElementsByClassName('supported-nfc')).forEach(function (element) {
-            element.classList.add('display-none')
-          })
-          Array.from(document.getElementsByClassName('unsupported-nfc')).forEach(function (element) {
-            element.classList.remove('display-none')
-          })
-        }
-      }
-
-    </script>
 
   </div>
 

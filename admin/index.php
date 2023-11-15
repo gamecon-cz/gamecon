@@ -318,7 +318,7 @@ $protipy = [
     'odhlášením uživatele z GC se nenávratně zruší všechny jeho aktivity a nákupy',
     'osobní údaje lze upravit kliknutím a přepsáním na úvodní straně',
     'používání klávesových zkratek urychlí práci',
-    '<q>Bacha, tady můžeš něco posrat, ses si jistej, že víš co děláš?"</q> -Cemi, 2022',
+    '<q>Bacha, tady můžeš něco posrat, seš si jistej, že víš co děláš?"</q> -Cemi, 2022',
 ];
 
 $info->nazev($info->nazev() ?? '', 'Administrace');
