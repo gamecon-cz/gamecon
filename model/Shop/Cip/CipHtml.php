@@ -54,6 +54,7 @@ class CipHtml
             ],
             'javascripts' => [
                 'text'   => [
+                    __DIR__ . '/../../../admin/files/cip/cip.js',
                 ],
                 /*
                  * Pozor, JS moduly se automaticky načítají jako deffer, tedy asynchronně a vykonávají se až někdy po načtení celé stránky.
