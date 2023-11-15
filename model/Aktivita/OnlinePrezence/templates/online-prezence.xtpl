@@ -3,38 +3,38 @@
 <html lang="cs">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{title}</title>
+  <title>{title}</title>
 
-    <meta property="og:title" content="{title}">
-    <meta property="og:type" content="website">
+  <meta property="og:title" content="{title}">
+  <meta property="og:type" content="website">
 
-    <base href="{base}">
+  <base href="{base}">
 
-    <link rel="shortcut icon" href="files/favicon.png"/>
+  <link rel="shortcut icon" href="files/favicon.png"/>
 
-    <link rel="stylesheet" href="files/bootstrap.5.1.3.css"/>
-    <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css"/>
-    <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css"/>
-    <!-- begin:stylesheet -->
-    <link rel="stylesheet" href="{url}?version={version}"/>
-    <!-- end:stylesheet -->
+  <link rel="stylesheet" href="files/bootstrap.5.1.3.css"/>
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css"/>
+  <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css"/>
+  <!-- begin:stylesheet -->
+  <link rel="stylesheet" href="{url}?version={version}"/>
+  <!-- end:stylesheet -->
 
-    <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
-    {jsVyjimkovac}
-    <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
-    <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
-    <script type="text/javascript" src="files/bootstrap.bundle.5.1.3.js"></script>
-    <!-- begin:javascript -->
-    <!-- begin:text -->
-    <script type="text/javascript" src="{url}?version={version}"></script>
-    <!-- end:text -->
-    <!-- begin:module -->
-    <script type="module" src="{url}?version={version}"></script>
-    <!-- end:module -->
-    <!-- end:javascript -->
+  <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
+  {jsVyjimkovac}
+  <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
+  <script type="text/javascript" src="files/bootstrap.bundle.5.1.3.js"></script>
+  <!-- begin:javascript -->
+  <!-- begin:text -->
+  <script type="text/javascript" src="{url}?version={version}"></script>
+  <!-- end:text -->
+  <!-- begin:module -->
+  <script type="module" src="{url}?version={version}"></script>
+  <!-- end:module -->
+  <!-- end:javascript -->
 </head>
 
 <body>
@@ -47,51 +47,51 @@
 
 <main class="main">
 
-    <div class="container">
+  <div class="container">
 
-        <!-- begin:test -->
-        <div class="row" style="margin-top: 3px">
-            <div class="col"></div>
-            <div class="col-sm col-md-3 col-xl-2" style="position: relative">
-                <!-- begin:odkazNaTest -->
-                <a class="btn btn-dark tlacitko-testu" href="{urlTest}">🪄 Testovat</a>
-                <!-- end:odkazNaTest -->
-                <!-- begin:odkazBezTestu -->
-                <a class="btn btn-danger tlacitko-testu" href="{urlBezTestu}">🥵 Do reality</a>
-                <!-- end:odkazBezTestu -->
-            </div>
+    <!-- begin:test -->
+    <div class="row" style="margin-top: 3px">
+      <div class="col"></div>
+      <div class="col-sm col-md-3 col-xl-2" style="position: relative">
+        <!-- begin:odkazNaTest -->
+        <a class="btn btn-dark tlacitko-testu" href="{urlTest}">🪄 Testovat</a>
+        <!-- end:odkazNaTest -->
+        <!-- begin:odkazBezTestu -->
+        <a class="btn btn-danger tlacitko-testu" href="{urlBezTestu}">🥵 Do reality</a>
+        <!-- end:odkazBezTestu -->
+      </div>
+    </div>
+    <!-- end:test -->
+
+    <!-- begin:zadnaAktivita -->
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
+      <div class="fs-1">
+        Nevedeš žádné aktivity 😞
+        <div>
+          <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ {textZpet}</a>
         </div>
-        <!-- end:test -->
+      </div>
+    </div>
+    <!-- end:zadnaAktivita -->
 
-        <!-- begin:zadnaAktivita -->
-        <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
-            <div class="fs-1">
-                Nevedeš žádné aktivity 😞
-                <div>
-                    <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ {textZpet}</a>
-                </div>
-            </div>
-        </div>
-        <!-- end:zadnaAktivita -->
+    <!-- begin:aktivity -->
 
-        <!-- begin:aktivity -->
+    <script>
+      let posledneKliknutaAktivitaId
+    </script>
 
-        <script>
-          let posledneKliknutaAktivitaId
-        </script>
+    <div class="online-prezence"
+         id="online-prezence"
+         data-url-razitka-posledni-zmeny="{urlRazitkaPosledniZmeny}"
+         data-razitko-posledni-zmeny="{razitkoPosledniZmeny}"
+         data-url-akce-posledni-zmeny="{urlAkcePosledniZmeny}"
+         data-url-akce-keep-alive="{urlAkceKeepAlive}"
+         data-posledni-logy-aktivit-ajax-klic="{posledniLogyAktivitAjaxKlic}"
+         data-posledni-logy-ucastniku-ajax-klic="{posledniLogyUcastnikuAjaxKlic}"
+    >
 
-        <div class="online-prezence"
-             id="online-prezence"
-             data-url-razitka-posledni-zmeny="{urlRazitkaPosledniZmeny}"
-             data-razitko-posledni-zmeny="{razitkoPosledniZmeny}"
-             data-url-akce-posledni-zmeny="{urlAkcePosledniZmeny}"
-             data-url-akce-keep-alive="{urlAkceKeepAlive}"
-             data-posledni-logy-aktivit-ajax-klic="{posledniLogyAktivitAjaxKlic}"
-             data-posledni-logy-ucastniku-ajax-klic="{posledniLogyUcastnikuAjaxKlic}"
-        >
-
-            <div class="row">
-                <div class="col-auto">
+      <div class="row">
+        <div class="col-auto">
           <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání návodu">
             <button id="tlacitkoJakNaOnlinePrezenci"
                     class="btn btn-light"
@@ -106,73 +106,74 @@
                 📖
               </button>
             </span>
-                </div>
-                <div class="col-sm-12 col-lg">
-                    <div class="collapse" id="jakNaOnlinePrezenci" data-trigger-button-id="tlacitkoJakNaOnlinePrezenci"
-                         style="margin: 5px 0">
-                        <div class="card card-body">
-                            <ul>
-                                <li>15 minut předem buď u maskota své sekce.</li>
-                                <li>Pokud nemáš mobil, půjč si od Spojky tablet.</li>
-                                <li>Najdi / svolej si přihlášené hráče. Nepřítomným zkus zavolat.</li>
-                                <li>Přihlášeným před < 10 minutami ⏰ dej chvíli na doběhnutí.</li>
-                                <li>
-                                    Pokud účastník (i náhradník {FILE "./_nahradnik.xtpl"}) neprošel infem {FILE "./_neprosel-infopultem.html"}, pošli ho tam {FILE "./_prosel-infopultem.html"}, než aktivitu začneš.
-                                </li>
-                                <li>
-                                    Volná místa nabídni náhradníkům {FILE "./_nahradnik.xtpl"}.
-                                    Sledující <span class="flipped-icon"><span class="bg-dark">👀</span></span> můžeš
-                                    oslovit první.
-                                </li>
-                                <li>Náhradníky přidej na prezenčku.</li>
-                                <li>Prezenčku uzavři. Případné další hráče můžeš přidávat nejdéle 1h po konci
-                                    aktivity.
-                                </li>
-                                <li>Po hře dej místnost do původního stavu, vybavení nech bedňákům na místě!</li>
-                            </ul>
+        </div>
+        <div class="col-sm-12 col-lg">
+          <div class="collapse" id="jakNaOnlinePrezenci" data-trigger-button-id="tlacitkoJakNaOnlinePrezenci"
+               style="margin: 5px 0">
+            <div class="card card-body">
+              <ul>
+                <li>15 minut předem buď u maskota své sekce.</li>
+                <li>Pokud nemáš mobil, půjč si od Spojky tablet.</li>
+                <li>Najdi / svolej si přihlášené hráče. Nepřítomným zkus zavolat.</li>
+                <li>Přihlášeným před < 10 minutami ⏰ dej chvíli na doběhnutí.</li>
+                <li>
+                  Pokud účastník (i náhradník {FILE "./_nahradnik.xtpl"}) neprošel infem {FILE
+                  "./_neprosel-infopultem.html"}, pošli ho tam {FILE "./_prosel-infopultem.html"}, než aktivitu začneš.
+                </li>
+                <li>
+                  Volná místa nabídni náhradníkům {FILE "./_nahradnik.xtpl"}.
+                  Sledující <span class="flipped-icon"><span class="bg-dark">👀</span></span> můžeš
+                  oslovit první.
+                </li>
+                <li>Náhradníky přidej na prezenčku.</li>
+                <li>Prezenčku uzavři. Případné další hráče můžeš přidávat nejdéle 1h po konci
+                  aktivity.
+                </li>
+                <li>Po hře dej místnost do původního stavu, vybavení nech bedňákům na místě!</li>
+              </ul>
 
-                            <p>Změny (místa atp.), problémy a dotazy prosím vyřeš s MODem
-                                (<a href="tel:703 997 328"><i class="fas fa-phone"></i> 703 997 328</a>) a/nebo šéfem
-                                své sekce.
-                                (Ne s infopultem!)</p>
-                        </div>
-                    </div>
-                </div>
+              <p>Změny (místa atp.), problémy a dotazy prosím vyřeš s MODem
+                (<a href="tel:703 997 328"><i class="fas fa-phone"></i> 703 997 328</a>) a/nebo šéfem
+                své sekce.
+                (Ne s infopultem!)</p>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <!-- begin:aktivita -->
-            <div class="aktivita"
-                 id="aktivita-{idAktivity}"
-                 data-id="{idAktivity}"
-                 data-kapacita="{kapacita}"
-                 data-cas-posledni-zmeny-stavu-aktivity="{casPosledniZmenyStavuAktivity}"
-                 data-stav-aktivity="{stavAktivity}"
-                 data-id-posledniho-logu="{idPoslednihoLogu}"
-                 data-konec-aktivity-v-timestamp="{konecAktivityVTimestamp}"
-                 data-editovatelna-od-timestamp="{editovatelnaOdTimestamp}"
-                 data-ucastnici-pridatelni-do-timestamp="{ucastniciPridatelniDoTimestamp}"
-                 data-ucastnici-odebratelni-do-timestamp="{ucastniciOdebratelniDoTimestamp}"
-            >
-                <div class="row">
-                    <h2 id="{nadpis}" class="clearfix">
+      <!-- begin:aktivita -->
+      <div class="aktivita"
+           id="aktivita-{idAktivity}"
+           data-id="{idAktivity}"
+           data-kapacita="{kapacita}"
+           data-cas-posledni-zmeny-stavu-aktivity="{casPosledniZmenyStavuAktivity}"
+           data-stav-aktivity="{stavAktivity}"
+           data-id-posledniho-logu="{idPoslednihoLogu}"
+           data-konec-aktivity-v-timestamp="{konecAktivityVTimestamp}"
+           data-editovatelna-od-timestamp="{editovatelnaOdTimestamp}"
+           data-ucastnici-pridatelni-do-timestamp="{ucastniciPridatelniDoTimestamp}"
+           data-ucastnici-odebratelni-do-timestamp="{ucastniciOdebratelniDoTimestamp}"
+      >
+        <div class="row">
+          <h2 id="{nadpis}" class="clearfix">
           <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                 title="Začátek: {zacatek}<br> Konec: {konec}">
             {nadpis}
           </span>
-                        <a href="#{nadpis}" class="anchor">#</a>
-                        <br />
-                        <span class="pocet-prihlasenych" data-bs-toggle="tooltip" data-bs-placement="right"
-                              title="Počet přihlášených bez sledujících">
+            <a href="#{nadpis}" class="anchor">#</a>
+            <br/>
+            <span class="pocet-prihlasenych" data-bs-toggle="tooltip" data-bs-placement="right"
+                  title="Počet přihlášených bez sledujících">
             <i class="fa-solid fa-user-group"></i>
             <span class="pocet-prihlasenych-cislo">{pocetPrihlasenych}</span>
           </span>
-          <a href="{urlAktivity}" target="_blank" class="zobrazit-v-programu" title="Zobrazit v programu">
-            <i class="fa-solid fa-book"></i>
-            <span>Program</span>
-            <i class="fa-solid fa-external-link"></i>
-          </a>
-                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání viditelnosti prezence"
-                              class="float-end">
+            <a href="{urlAktivity}" target="_blank" class="zobrazit-v-programu" title="Zobrazit v programu">
+              <i class="fa-solid fa-book"></i>
+              <span>Program</span>
+              <i class="fa-solid fa-external-link"></i>
+            </a>
+            <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání viditelnosti prezence"
+                  class="float-end">
             <button id="tlacitkoPrepinaniViditelnostiPrezence{idAktivity}"
                     class="btn btn-light"
                     type="button"
@@ -184,51 +185,51 @@
                     data-title-pro-skryti="Skrýt prezenci"
             >
               <span class="minimize {showMinimize} show-when-expanded"><i
-                      class="fa-solid fa-window-minimize"></i></span>
+                  class="fa-solid fa-window-minimize"></i></span>
               <span class="maximize {showMaximize} show-when-collapsed"><i
-                      class="fa-solid fa-window-maximize"></i></span>
+                  class="fa-solid fa-window-maximize"></i></span>
             </button>
           </span>
-                    </h2>
-                </div>
+          </h2>
+        </div>
 
-                <div class="errors">
-                    <div class="alert alert-warning alert-dismissible fade show display-none warning-template"
-                         role="alert">
-                        <div class="message"></div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    <div class="alert alert-danger alert-dismissible fade show display-none error-template"
-                         role="alert">
-                        <div class="message"></div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                </div>
+        <div class="errors">
+          <div class="alert alert-warning alert-dismissible fade show display-none warning-template"
+               role="alert">
+            <div class="message"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          <div class="alert alert-danger alert-dismissible fade show display-none error-template"
+               role="alert">
+            <div class="message"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        </div>
 
-                <div class="collapse mb-5" id="prezenceAktivity{idAktivity}"
-                     data-trigger-button-id="tlacitkoPrepinaniViditelnostiPrezence{idAktivity}">
-                    <div style="padding: 0.5em 0" class="row">
-                        <div class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center"
-                             style="white-space: nowrap; text-align: center">
+        <div class="collapse mb-5" id="prezenceAktivity{idAktivity}"
+             data-trigger-button-id="tlacitkoPrepinaniViditelnostiPrezence{idAktivity}">
+          <div style="padding: 0.5em 0" class="row">
+            <div class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center"
+                 style="white-space: nowrap; text-align: center">
 
-                            <div class="text-ceka {showCeka}">
-                                <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"></span>
-                                    ⏳</em>
-                            </div>
+              <div class="text-ceka {showCeka}">
+                <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"></span>
+                  ⏳</em>
+              </div>
 
-                            <div id="zamcena-{idAktivity}" class="{showZamcena}">
-                                <em>🔒 Zamčena pro online přihlašování 🔒</em>
-                            </div>
+              <div id="zamcena-{idAktivity}" class="{showZamcena}">
+                <em>🔒 Zamčena pro online přihlašování 🔒</em>
+              </div>
 
-                            <div id="uzavrena-{idAktivity}" class="{showUzavrena}">
-                                <em><span class="emoji">📕</span> Uzavřena <span class="emoji">📕</span></em>
-                            </div>
-                        </div>
+              <div id="uzavrena-{idAktivity}" class="{showUzavrena}">
+                <em><span class="emoji">📕</span> Uzavřena <span class="emoji">📕</span></em>
+              </div>
+            </div>
 
-                        <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
+            <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
             <span
-                    id="skoncila-{idAktivity}"
-                    class="alert-info text-skoncila {showAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat"
+                id="skoncila-{idAktivity}"
+                class="alert-info text-skoncila {showAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat"
             >
               ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span class="flipped-icon">✋</span>
             </span>
@@ -237,31 +238,31 @@
             </span>
           </span>
 
-                        <span class="col-xl-2 col-md-4 col-sm-12 align-self-center">
+            <span class="col-xl-2 col-md-4 col-sm-12 align-self-center">
             <a style="width: 100%" href="{urlZpet}" class="btn btn-warning">↶ {textZpet}</a>
           </span>
-                    </div>
+          </div>
 
-                    <div id="emaily-{idAktivity}" style="padding: 0.5em 0" class="row">
-                        <div class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
-                            <i class="far fa-envelope hinted" data-bs-toggle="tooltip" data-bs-placement="top"
-                               title="Emaily přihlášených (ne sledujících)"></i>
-                            <a href="mailto:?bcc={emailyHref}">{emailyText}</a>
-                        </div>
-                    </div>
+          <div id="emaily-{idAktivity}" style="padding: 0.5em 0" class="row">
+            <div class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
+              <i class="far fa-envelope hinted" data-bs-toggle="tooltip" data-bs-placement="top"
+                 title="Emaily přihlášených (ne sledujících)"></i>
+              <a href="mailto:?bcc={emailyHref}">{emailyText}</a>
+            </div>
+          </div>
 
-                    <!-- begin:form -->
-                    <form class="formAktivita">
-                        <input type="hidden" name="prezenceAktivity" value="{idAktivity}"/>
-                        <table class="zvyraznovana ucastnici" style="width: 100%" id="ucastniciAktivity{idAktivity}">
-                            <thead>
-                            <tr class="col-md col-sm-6 no-gutters">
-                                <th class="text-center">
+          <!-- begin:form -->
+          <form class="formAktivita">
+            <input type="hidden" name="prezenceAktivity" value="{idAktivity}"/>
+            <table class="zvyraznovana ucastnici" style="width: 100%" id="ucastniciAktivity{idAktivity}">
+              <thead>
+              <tr class="col-md col-sm-6 no-gutters">
+                <th class="text-center">
                   <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" title="Je vůbec na Gameconu?">
                     <i class="fas fa-check-circle"></i>
                   </span>
-                                </th>
-                                <th class="text-center lze-radit" data-order='1'>
+                </th>
+                <th class="text-center lze-radit" data-order='1'>
                   <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                         title="
                         <div class='text-start'>
@@ -295,48 +296,48 @@
                   <i class="fas fa-user-tie"></i>
                   <i class="fas fa-chevron-down razeni neaktivni"></i>
                   </span>
-                                </th>
-                                <th style="text-align: center">
+                </th>
+                <th style="text-align: center">
                   <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
                         title="Dorazil účastník na aktivitu?">
                     <i class="fas fa-check-square"></i>
                   </span>
-                                </th>
-                                <th class="lze-radit" data-order='3'>Jméno <i class="fas fa-chevron-down razeni neaktivni"></i></th>
-                                <th class="text-center"><i class="fas fa-envelope"></i></th>
-                                <th>Telefon</th>
-                            </tr>
-                            </thead>
-                            <tbody class="ucastnici-seznam">
-                            <!-- begin:ucastnik -->
-                            <!-- viz online-prezence-ucastnik.xtpl -->
-                            {ucastnikHtml}
-                            <!-- end:ucastnik -->
-                            </tbody>
-                        </table>
+                </th>
+                <th class="lze-radit" data-order='3'>Jméno <i class="fas fa-chevron-down razeni neaktivni"></i></th>
+                <th class="text-center"><i class="fas fa-envelope"></i></th>
+                <th>Telefon</th>
+              </tr>
+              </thead>
+              <tbody class="ucastnici-seznam">
+              <!-- begin:ucastnik -->
+              <!-- viz online-prezence-ucastnik.xtpl -->
+              {ucastnikHtml}
+              <!-- end:ucastnik -->
+              </tbody>
+            </table>
 
-                        <!-- begin:pridatUcastnika -->
-                        <div class="row" style="margin: 1em 0">
-                            <input type="text"
-                                   class="omnibox error-tooltip col-xl-4 col-lg-5 col-md-7"
-                                   placeholder="Přidej účastníka..."
-                                   data-vychozi-placeholder="Přidej účastníka..."
-                                   {disabledPridatUcastnika}
-                                   data-id-aktivity="{idAktivity}"
-                                   data-omnibox-min-length="3"
-                                   data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek", "gcPritomen"]}'
-                                   data-omnibox-url="{omniboxUrl}"
-                                   data-bs-toggle="tooltip"
-                                   data-bs-html="true"
-                                   title="Kapacita {kapacita}"
-                            >
-                            <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none">
+            <!-- begin:pridatUcastnika -->
+            <div class="row" style="margin: 1em 0">
+              <input type="text"
+                     class="omnibox error-tooltip col-xl-4 col-lg-5 col-md-7"
+                     placeholder="Přidej účastníka..."
+                     data-vychozi-placeholder="Přidej účastníka..."
+                     {disabledPridatUcastnika}
+                     data-id-aktivity="{idAktivity}"
+                     data-omnibox-min-length="3"
+                     data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek", "gcPritomen"]}'
+                     data-omnibox-url="{omniboxUrl}"
+                     data-bs-toggle="tooltip"
+                     data-bs-html="true"
+                     title="Kapacita {kapacita}"
+              >
+              <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none">
               <em>Nic...</em> 🤷
             </span>
-                            <span class="col-md-4" id="omniboxHledam{idAktivity}"
-                                  style="display: none"><em>Hledám...</em> ⏳</span>
-                            <span class="col-md-4 {showPozorUzavrena}" id="pozor-zamcena-{idAktivity}"
-                                  style="white-space: nowrap">
+              <span class="col-md-4" id="omniboxHledam{idAktivity}"
+                    style="display: none"><em>Hledám...</em> ⏳</span>
+              <span class="col-md-4 {showPozorUzavrena}" id="pozor-zamcena-{idAktivity}"
+                    style="white-space: nowrap">
                   <span class="hinted skryt-pokud-aktivitu-nelze-editovat"
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
@@ -344,80 +345,80 @@
                     <em style="vertical-align: sub">⚠️Pozor, aktivita je už uzavřená! ⚠️</em>
                   </span>
             </span>
-                        </div>
-                        <!-- end:pridatUcastnika -->
-
-                        <div class="col-md-4 offset-md-8">
-                            <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {showUzavrit}"
-                                    style="width: 100%"
-                                    id="otevrena-{idAktivity}"
-                                    type="button"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalOpravduUzavrit"
-                                    onclick="posledneKliknutaAktivitaId={idAktivity}">
-                                Uzavřít <span class="emoji">📕</span>
-                            </button>
-                        </div>
-
-                    </form>
-                    <!-- end:form -->
-                </div>
-
             </div>
-            <script type="text/javascript">
-              { // local scope abychom nemuseli řešit že const už je definována
-                const aktivitaVyrenderovana = new CustomEvent(
-                  'aktivitaVyrenderovana',
-                  {
-                    detail: document.getElementById(`aktivita-{idAktivity}`),
-                  },
-                )
-                document.dispatchEvent(aktivitaVyrenderovana)
-              }
-            </script>
-            <!-- end:aktivita -->
+            <!-- end:pridatUcastnika -->
 
-            <script type="text/javascript">
-              zobrazElementyPodlePosledniVolby()
-            </script>
+            <div class="col-md-4 offset-md-8">
+              <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {showUzavrit}"
+                      style="width: 100%"
+                      id="otevrena-{idAktivity}"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalOpravduUzavrit"
+                      onclick="posledneKliknutaAktivitaId={idAktivity}">
+                Uzavřít <span class="emoji">📕</span>
+              </button>
+            </div>
 
+          </form>
+          <!-- end:form -->
         </div>
 
-        <div class="modal fade" id="modalOpravduUzavrit" tabindex="-1" aria-labelledby="opravduZavrit"
-             aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="opravduZavrit">Opravdu uzavřít aktivitu?</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>
-                            Po uzavření aktivity už nebudeš mít možnost prezenci měnit. Až do 1 hodiny po skončení
-                            aktivity můžeš
-                            ještě někoho přidat.
-                        </p>
-                        <!-- V případě, že nejsou zaškrtlí účastníci: -->
-                        <div class="d-none" id="wrapperPotvrzujiBezUcastniku">
-                            <input type="checkbox" name="potvrzujiBezUcastniku" id="potvrzujiBezUcastniku">
-                            <label for="potvrzujiBezUcastniku" id="labelPotvrzujiBezUcastniku"
-                                   class="d-inline text-danger">
-                                Jsem si vědom{a}, že aktivitu uzavírám bez účastníků (tj. není zaškrtlá ničí účast).
-                            </label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci
-                        </button>
-                        <button type="button" class="btn btn-primary" onclick="potvrdModal()">
-                            Uzavřít aktivitu
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- end:aktivity -->
+      </div>
+      <script type="text/javascript">
+        { // local scope abychom nemuseli řešit že const už je definována
+          const aktivitaVyrenderovana = new CustomEvent(
+            'aktivitaVyrenderovana',
+            {
+              detail: document.getElementById(`aktivita-{idAktivity}`),
+            },
+          )
+          document.dispatchEvent(aktivitaVyrenderovana)
+        }
+      </script>
+      <!-- end:aktivita -->
+
+      <script type="text/javascript">
+        zobrazElementyPodlePosledniVolby()
+      </script>
+
     </div>
+
+    <div class="modal fade" id="modalOpravduUzavrit" tabindex="-1" aria-labelledby="opravduZavrit"
+         aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="opravduZavrit">Opravdu uzavřít aktivitu?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              Po uzavření aktivity už nebudeš mít možnost prezenci měnit. Až do 1 hodiny po skončení
+              aktivity můžeš
+              ještě někoho přidat.
+            </p>
+            <!-- V případě, že nejsou zaškrtlí účastníci: -->
+            <div class="d-none" id="wrapperPotvrzujiBezUcastniku">
+              <input type="checkbox" name="potvrzujiBezUcastniku" id="potvrzujiBezUcastniku">
+              <label for="potvrzujiBezUcastniku" id="labelPotvrzujiBezUcastniku"
+                     class="d-inline text-danger">
+                Jsem si vědom{a}, že aktivitu uzavírám bez účastníků (tj. není zaškrtlá ničí účast).
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci
+            </button>
+            <button type="button" class="btn btn-primary" onclick="potvrdModal()">
+              Uzavřít aktivitu
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- end:aktivity -->
+  </div>
 </main>
 
 </body>

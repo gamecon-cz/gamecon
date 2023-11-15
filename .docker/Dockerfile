@@ -1,11 +1,7 @@
 # UPDATE
-# docker build --pull --no-cache --tag jaroslavtyc/gamecon-8.2:latest ./.docker && docker push jaroslavtyc/gamecon-8.2:latest
+# docker build --pull --tag jaroslavtyc/gamecon-8.2:latest ./.docker && docker push jaroslavtyc/gamecon-8.2:latest
 
 FROM php:8.2-apache AS gamecon-server-step1
-
-RUN a2enmod rewrite expires && \
-	# avoid warning on start
-    echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
 # Install Linux libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -79,26 +75,54 @@ RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log
 
 FROM gamecon-php-step3 AS gamecon-php-step4
 
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
+RUN apt-get install -y ca-certificates --no-install-recommends \
+    curl \
+    gnupg
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+
+RUN apt-get update \
     && apt-get install -y nodejs
 
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
-    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get install -y yarnpkg
+RUN npm install --global yarn
 
 ENV NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
 
-FROM gamecon-php-step4 AS gamecon-project-step-final
+FROM gamecon-php-step4 AS gamecon-project-step-5
+
+# avoid warning on start
+RUN echo 'ServerName inside-docker' >> /etc/apache2/apache2.conf
+
+COPY ./apache/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY ./apache/sites-available/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
+COPY ./apache/gamecon.local.crt /etc/ssl/certs/gamecon.local.crt
+COPY ./apache/gamecon.local.key /etc/ssl/private/gamecon.local.key
+
+RUN chmod 0600 /etc/ssl/certs/gamecon.local.crt
+RUN chown root:root /etc/ssl/certs/gamecon.local.crt
+RUN chmod 0600 /etc/ssl/private/gamecon.local.key
+RUN chown root:root /etc/ssl/private/gamecon.local.key
+
+RUN a2enmod rewrite
+RUN a2enmod expires
+RUN a2enmod ssl
+RUN a2enmod socache_shmcb
+RUN a2ensite 000-default
+RUN a2ensite default-ssl
+
+RUN apache2ctl configtest
+
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/gamecon
+RUN sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+FROM gamecon-project-step-5 AS gamecon-project-step-final
 
 # dot . reflects current dir, which is .docker
 COPY . /.docker
 COPY ./.bash_aliases /home/www-data/.bash_aliases
 
 RUN chmod +x /.docker/*.sh
-
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/gamecon
-RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/*.conf
-RUN sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 ENV ENV=local
 
