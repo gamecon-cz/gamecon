@@ -227,7 +227,7 @@ function _dbConnect(
         throw new ConnectionException(
             "Failed to connect to the database, error: '{$throwable->getMessage()}'",
             $throwable->getCode(),
-            $throwable
+            $throwable,
         );
     }
     if (!$spojeni) {
@@ -733,6 +733,23 @@ function dbQv($val): string
         return '"' . $val->format('Y-m-d H:i:s') . '"';
     }
     return '"' . mysqli_real_escape_string(dbConnect(), $val) . '"';
+}
+
+function dbQRaw($val): string
+{
+    if (is_array($val)) {
+        throw new LogicException(sprintf('Can not raw escape %s', var_export($val, true)));
+    }
+    if ($val === null) {
+        return 'NULL';
+    }
+    if (is_int($val) || (is_numeric($val) && (string)(int)$val === $val)) {
+        return $val;
+    }
+    if ($val instanceof DateTimeInterface) {
+        return $val->format('Y-m-d H:i:s');
+    }
+    return mysqli_real_escape_string(dbConnect(), $val);
 }
 
 /**
