@@ -42,8 +42,8 @@ class Predmet extends \DbObject
     {
         if (!array_key_exists($castNazvu, self::$letosniPredmety)) {
             $typPredmet       = TypPredmetu::PREDMET;
-            $castNazvuSql     = dbQv($castNazvu);
-            $letosniPredmetId = (int)dbFetchSingle(<<<SQL
+            $castNazvuSql     = dbQRaw($castNazvu);
+            $letosniPredmetId = dbFetchSingle(<<<SQL
 SELECT id_predmetu
 FROM shop_predmety
 WHERE
@@ -55,7 +55,7 @@ LIMIT 1 -- pro jistotu
 SQL,
             );
             $letosniPredmet   = $letosniPredmetId
-                ? static::zId($letosniPredmetId, true)
+                ? static::zId((int)$letosniPredmetId, true)
                 : null;
         }
         return $letosniPredmet;
