@@ -4,12 +4,47 @@ require __DIR__ . '/sdilene-hlavicky.php';
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura;
 
+$idSystemUzivatele = Uzivatel::SYSTEM;
+
 $mysqliResult = dbQuery(<<<SQL
-SELECT id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, ulice_a_cp_uzivatele, mesto_uzivatele, stat_uzivatele, psc_uzivatele, telefon_uzivatele, datum_narozeni, funkce_uzivatele, email1_uzivatele, email2_uzivatele, jine_uzivatele, nechce_maily, mrtvy_mail, forum_razeni, zustatek, pohlavi, registrovan, ubytovan_s, skola, poznamka, pomoc_typ, pomoc_vice, op, potvrzeni_zakonneho_zastupce,
- (SELECT 'prihlasen' FROM platne_role_uzivatelu WHERE uzivatele_hodnoty.id_uzivatele = platne_role_uzivatelu.id_uzivatele AND platne_role_uzivatelu.id_role = $2) AS prihlasen_na_gc
+SELECT id_uzivatele,
+       login_uzivatele,
+       jmeno_uzivatele,
+       prijmeni_uzivatele,
+       ulice_a_cp_uzivatele,
+       mesto_uzivatele,
+       stat_uzivatele,
+       psc_uzivatele,
+       telefon_uzivatele,
+       datum_narozeni,
+       funkce_uzivatele,
+       email1_uzivatele,
+       email2_uzivatele,
+       jine_uzivatele,
+       nechce_maily,
+       mrtvy_mail,
+       forum_razeni,
+       zustatek,
+       pohlavi,
+       registrovan,
+       ubytovan_s,
+       skola,
+       poznamka,
+       pomoc_typ,
+       pomoc_vice,
+       op,
+       potvrzeni_zakonneho_zastupce,
+       (SELECT 'prihlasen'
+        FROM platne_role_uzivatelu
+        WHERE uzivatele_hodnoty.id_uzivatele = platne_role_uzivatelu.id_uzivatele
+          AND platne_role_uzivatelu.id_role = $2
+        ) AS prihlasen_na_gc
 FROM uzivatele_hodnoty
-WHERE (YEAR($1) - YEAR(datum_narozeni) -
-       IF(DATE_FORMAT($1, '%m%d') < DATE_FORMAT(datum_narozeni, '%m%d'), 1, 0)) < 15
+WHERE id_uzivatele != {$idSystemUzivatele}
+    AND (z_rychloregistrace = 0 OR datum_narozeni != DATE(registrovan))
+    AND (YEAR($1) - YEAR(datum_narozeni) -
+       IF(DATE_FORMAT($1, '%m%d') < DATE_FORMAT(datum_narozeni, '%m%d'), 1, 0)
+    ) < 15
 ORDER BY prihlasen_na_gc DESC,
          COALESCE(potvrzeni_zakonneho_zastupce, '0001-01-01') ASC,
          registrovan DESC;
