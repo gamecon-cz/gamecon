@@ -91,6 +91,7 @@ SELECT
     u.jmeno_uzivatele AS jmeno,
     u.prijmeni_uzivatele AS prijmeni,
     u.email1_uzivatele AS email,
+    u.telefon_uzivatele AS telefon,
     u.zustatek,
     ucast.roky AS ucast,
     kladny_pohyb.cas_posledni_platby AS kladny_pohyb
