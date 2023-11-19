@@ -219,3 +219,11 @@ body {
 .skryt-pri-uzkem {
   display: none;
 }
+
+.nic-nenalezeno {
+  position: absolute;
+  font-size: 1.5em;
+  right: calc(10% + 2em);
+  opacity: 0.5;
+  top: 1em;
+}
