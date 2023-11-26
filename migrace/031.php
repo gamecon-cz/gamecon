@@ -15,7 +15,7 @@ $this->q(<<<SQL
   INSERT INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava) VALUES
     (1020, 'Dvě jakákoli trička zdarma', ''),
     (1021, 'Právo na modré tričko', 'Může si objednávat modrá trička'),
-    (1022, 'Právo na červené tričko', 'Může si objednávat červená tričk'")
+    (1022, 'Právo na červené tričko', 'Může si objednávat červená trička')
 SQL
 );
 
