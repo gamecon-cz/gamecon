@@ -1,30 +1,33 @@
 <?php
 
+use Godric\DbMigrations\DbMigrations;
+use Godric\DbMigrations\DbMigrationsConfig;
+
 $connection = dbConnectTemporary(false /* bez konkrétní databáze */);
 if (AUTOMATICKA_TVORBA_DB) {
     $confirmedDatabase = dbOneCol(
         sprintf("SHOW DATABASES LIKE '%s'", DB_NAME),
         null,
-        $connection
+        $connection,
     );
     if ($confirmedDatabase !== DB_NAME) {
         dbQuery(
             sprintf(
                 "CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci",
-                DB_NAME
+                DB_NAME,
             ),
             null,
-            $connection
+            $connection,
         );
     }
     dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
 }
 
-(new Godric\DbMigrations\DbMigrations(
-    new \Godric\DbMigrations\DbMigrationsConfig([
+(new DbMigrations(
+    new DbMigrationsConfig([
         'connection'          => $connection, // musí mít admin práva
         'migrationsDirectory' => __DIR__ . '/../migrace',
         'doBackups'           => false,
         'webGui'              => true,
-    ])
+    ]),
 ))->run();

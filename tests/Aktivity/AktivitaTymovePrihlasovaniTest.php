@@ -4,16 +4,19 @@ namespace Gamecon\Tests\Aktivity;
 
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Aktivita\Aktivita;
+use Uzivatel;
 
 class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 {
-    private $ctvrtfinale;
-    private $semifinaleA;
-    private $semifinaleB;
-    private $finale;
-    private $tymlidr;
-    private $clen1;
-    private $clen2;
+    use ProbihaRegistraceAktivitTrait;
+
+    private ?Aktivita $ctvrtfinale = null;
+    private ?Aktivita $semifinaleA = null;
+    private ?Aktivita $semifinaleB = null;
+    private ?Aktivita $finale      = null;
+    private ?Uzivatel $tymlidr     = null;
+    private ?Uzivatel $clen1       = null;
+    private ?Uzivatel $clen2       = null;
 
     protected static bool $disableStrictTransTables = true;
 
@@ -27,10 +30,11 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
         parent::setUp();
 
         try {
-            $this->ctvrtfinale = Aktivita::zId(1);
-            $this->semifinaleA = Aktivita::zId(2);
-            $this->semifinaleB = Aktivita::zId(3);
-            $this->finale      = Aktivita::zId(4);
+            $this->systemoveNastaveni = self::vytvorSystemoveNastaveni();
+            $this->ctvrtfinale        = Aktivita::zId(1, false, $this->systemoveNastaveni);
+            $this->semifinaleA        = Aktivita::zId(2, false, $this->systemoveNastaveni);
+            $this->semifinaleB        = Aktivita::zId(3, false, $this->systemoveNastaveni);
+            $this->finale             = Aktivita::zId(4, false, $this->systemoveNastaveni);
 
             $this->tymlidr = self::prihlasenyUzivatel();
             $this->clen1   = self::prihlasenyUzivatel();
@@ -43,8 +47,15 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 
     public function testOdhlaseniPosledniho()
     {
-        $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-        $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, 2, [$this->semifinaleA, $this->finale]);
+        $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr, Aktivita::UKAZAT_DETAILY_CHYBY);
+        $this->ctvrtfinale->prihlasTym(
+            [$this->clen1],
+            $this->tymlidr,
+            'Miiistřiii světááá',
+            2,
+            [$this->semifinaleA, $this->finale],
+            Aktivita::UKAZAT_DETAILY_CHYBY,
+        );
 
         self::assertEquals(2, $this->ctvrtfinale->rawDb()['kapacita']);
 

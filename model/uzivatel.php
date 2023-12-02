@@ -120,7 +120,7 @@ SQL
 
     public function __construct(array $uzivatel, SystemoveNastaveni $systemoveNastaveni = null)
     {
-        if (is_array($uzivatel) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $uzivatel)) {
+        if (array_keys_exist(['id_uzivatele'], $uzivatel)) {
             $this->r = $uzivatel;
             parent::__construct($uzivatel);
             $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
@@ -309,7 +309,7 @@ SQL
             $this->finance = new Finance(
                 $this,
                 (float)$this->r['zustatek'],
-                $this->systemoveNastaveni
+                $this->systemoveNastaveni,
             );
         }
         return $this->finance;
@@ -654,6 +654,19 @@ SQL,
         return self::jmenoNickZjisti($this->r);
     }
 
+    /**
+     * Novější formát zápisu jména a příjmení uživatele ve tvaru Jméno Příjmení (Nick).
+     * Funkce uvažuje možnou absenci nicku.
+     */
+    public function jmenoVolitelnyNick()
+    {
+        if ($this->nick()) {
+            return $this->jmeno() . ' (' . $this->nick() . ')';
+        } else {
+            return $this->jmeno();
+        }
+    }
+
     public function nick(): string
     {
         return strpos($this->r['login_uzivatele'], '@') === false
@@ -744,7 +757,7 @@ SQL,
             Role::KATEGORIE_OMEZENA => $this->maRoli(Role::CLEN_RADY),
             Role::KATEGORIE_BEZNA => true,
             default => throw new \Gamecon\Role\Exceptions\NeznamaKategorieRole(
-                "Kategorie $kategorieRole je neznámá"
+                "Kategorie $kategorieRole je neznámá",
             )
         };
     }
@@ -762,6 +775,11 @@ SQL,
     public function maPravoNaKostkuZdarma(): bool
     {
         return $this->maPravo(Pravo::KOSTKA_ZDARMA);
+    }
+
+    public function maPravoNaPlackuZdarma(): bool
+    {
+        return $this->maPravo(Pravo::PLACKA_ZDARMA);
     }
 
     public function maPravoNaUbytovaniZdarma(): bool
@@ -1164,18 +1182,36 @@ SQL,
         return $this->r['poznamka'];
     }
 
-    public function balicekHtml()
+    public function balicekHtml(): string
     {
         if (!$this->gcPrihlasen()) {
             return '';
         }
         $shop                = $this->shop();
         $objednalNejakeJidlo = $shop->objednalNejakeJidlo();
-        if (!$shop->koupilNejakouVec()) {
-            return $objednalNejakeJidlo
-                ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->objednaneJidloPrehledHtml()}</span></span>"
-                : '';
+        $hintedParts         = [];
+        $hintParts           = [];
+
+        if ($this->jeBrigadnik()) {
+            $hintedParts[] = 'papír na bonus ✍️';
+            $hintParts[]   = 'podepsat papír na převzetí bonusu';
         }
+
+        if (!$shop->koupilNejakouVec()) {
+            if ($objednalNejakeJidlo) {
+                $hintedParts[] = 'jen stravenky 🍽️';
+                $hintParts[]   = $shop->objednaneJidloPrehledHtml();
+            }
+            if (count($hintedParts) === 0) {
+                return '';
+            }
+            $hint   = $this->joinHint($hintParts);
+            $hinted = $this->joinHinted($hintedParts);
+            return <<<HTML
+                  <span class="hinted">{$hinted}<span class="hint">{$hint}</span></span>
+                HTML;
+        }
+
         $velikostBalicku = $this->r['infopult_poznamka'] === 'velký balíček ' . $this->systemoveNastaveni->rocnik()
             ? 'velký balíček'
             : 'balíček';
@@ -1184,8 +1220,26 @@ SQL,
         if ($objednalNejakeJidlo) {
             $nakupy[] = $shop->objednaneJidloPrehledHtml();
         }
-        $nakupyHtml = implode('<hr>', $nakupy);
-        return '<span class="hinted">' . htmlentities($velikostBalicku) . ' ' . $this->id() . '<span class="hint">' . $nakupyHtml . '</span></span>';
+        $nakupyHtml    = implode('<hr>', $nakupy);
+        $hintedParts[] = htmlentities($velikostBalicku) . ' ' . $this->id();
+        $hintParts[]   = $nakupyHtml;
+
+        $hint   = $this->joinHint($hintParts);
+        $hinted = $this->joinHinted($hintedParts);
+
+        return <<<HTML
+            <span class="hinted">{$hinted}<span class="hint">{$hint}</span></span>
+        HTML;
+    }
+
+    private function joinHint(array $hintParts): string
+    {
+        return implode('<hr>', array_map('ucfirst', $hintParts));
+    }
+
+    private function joinHinted(array $hintedParts): string
+    {
+        return implode('<br>', array_map('ucfirst', $hintedParts));
     }
 
     /**
@@ -1620,7 +1674,7 @@ SQL,
             $u                      = new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
             $mail                   = new GcMail(
                 $systemoveNastaveni,
-                hlaskaMail('rychloregMail', $u, $tab[Sql::EMAIL1_UZIVATELE], $rand)
+                hlaskaMail('rychloregMail', $u, $tab[Sql::EMAIL1_UZIVATELE], $rand),
             );
             $mail->adresat($tab[Sql::EMAIL1_UZIVATELE]);
             $mail->predmet('Registrace na GameCon.cz');
@@ -2224,7 +2278,7 @@ SQL;
             $this->shop = new Shop(
                 $this,
                 $this,
-                $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals()
+                $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
             );
         }
         return $this->shop;

@@ -65,18 +65,19 @@ class Aktivita
     const HAJENI_TEAMU_HODIN    = 72;      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     const LIMIT_POPIS_KRATKY    = 180;  // max počet znaků v krátkém popisku
     // ignore a parametry kolem přihlašovátka
-    const PLUSMINUS                          = 0b000000000001;   // plus/mínus zkratky pro měnění míst v team. aktivitě
-    const PLUSMINUS_KAZDY                    = 0b000000000010;   // plus/mínus zkratky pro každého
-    const STAV                               = 0b000000000100;   // ignorování stavu
-    const ZAMEK                              = 0b000000001000;   // ignorování zamčení pro tým
-    const BEZ_POKUT                          = 0b000000010000;   // odhlášení bez pokut
-    const ZPETNE                             = 0b000000100000;   // možnost zpětně měnit přihlášení
-    const INTERNI                            = 0b000001000000;   // přihlašovat i skryté technické a brigádnické aktivity
-    const NEPOSILAT_MAILY_SLEDUJICIM         = 0b000010000000;   // odhlášení bez mailů náhradníkům
-    const DOPREDNE                           = 0b000100000000;   // možnost přihlásit před otevřením registrací na aktivity
-    const IGNOROVAT_LIMIT                    = 0b001000000000;
-    const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b010000000000;
-    const NEOTEVRENE                         = 0b100000000000; // přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity
+    const PLUSMINUS                          = 0b0000000000001;   // plus/mínus zkratky pro měnění míst v team. aktivitě
+    const PLUSMINUS_KAZDY                    = 0b0000000000010;   // plus/mínus zkratky pro každého
+    const STAV                               = 0b0000000000100;   // ignorování stavu
+    const ZAMEK                              = 0b0000000001000;   // ignorování zamčení pro tým
+    const BEZ_POKUT                          = 0b0000000010000;   // odhlášení bez pokut
+    const ZPETNE                             = 0b0000000100000;   // možnost zpětně měnit přihlášení
+    const INTERNI                            = 0b0000001000000;   // přihlašovat i skryté technické a brigádnické aktivity
+    const NEPOSILAT_MAILY_SLEDUJICIM         = 0b0000010000000;   // odhlášení bez mailů náhradníkům
+    const DOPREDNE                           = 0b0000100000000;   // možnost přihlásit před otevřením registrací na aktivity
+    const IGNOROVAT_LIMIT                    = 0b0001000000000;
+    const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b0010000000000;
+    const NEOTEVRENE                         = 0b0100000000000; // přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity
+    const UKAZAT_DETAILY_CHYBY               = 0b1000000000000;
     // parametry kolem továrních metod
     const JEN_VOLNE  = 0b00000001;   // jen volné aktivity
     const VEREJNE    = 0b00000010;   // jen veřejně viditelné aktivity
@@ -232,6 +233,13 @@ SQL
         return (bool)$this->a[Sql::BEZ_SLEVY];
     }
 
+    public function slevaNasobic(\Uzivatel $u = null) {
+        return (!$this->a['bez_slevy'] && $u && $u->gcPrihlasen())
+            ? $u->finance()->slevaAktivity()
+            : 1.
+            ;
+    }
+
     /**
      * Cena aktivity čitelná člověkem, poplatná aktuálnímu okamžiku. V případě
      * uvedení uživatele vrací pro něj specifickou cenu.
@@ -303,7 +311,10 @@ SQL
     public function deti(): array
     {
         if ($this->a[Sql::DITE]) {
-            return self::zIds($this->a[Sql::DITE]);
+            return self::zIds(
+                ids: $this->a[Sql::DITE],
+                systemoveNastaveni: $this->systemoveNastaveni,
+            );
         }
         return [];
     }
@@ -897,7 +908,7 @@ SQL
             $patriPod = $data['patri_pod'];
             unset($data['patri_pod']);
             // změny v hlavní aktivitě
-            $zmenyHlavni            = array_diff_key($data, array_flip($doAktualni));
+            $zmenyHlavni               = array_diff_key($data, array_flip($doAktualni));
             $zmenyHlavni[Sql::ID_AKCE] = $idHlavni;
             dbInsertUpdate('akce_seznam', $zmenyHlavni);
             // změny v konkrétní instanci
@@ -911,7 +922,7 @@ SQL
             // vkládání nové aktivity
             // inicializace hodnot pro novou aktivitu
             $data[Sql::ID_AKCE] = null;
-            $data['rok']     = ROCNIK;
+            $data['rok']        = ROCNIK;
             if ($data['teamova']) $data['kapacita'] = $data['team_max'] ?? 0; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
             if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(bez názvu)';
             if (empty($data['stav'])) {
@@ -920,8 +931,8 @@ SQL
             // vložení
             dbInsertUpdate('akce_seznam', $data);
             $data[Sql::ID_AKCE] = dbInsertId();
-            $aktivita        = self::zId($data[Sql::ID_AKCE]);
-            $aktivita->nova  = true;
+            $aktivita           = self::zId($data[Sql::ID_AKCE]);
+            $aktivita->nova     = true;
         }
 
         if ($obrazekSoubor) {
@@ -1295,6 +1306,22 @@ SQL
         }
     }
 
+    public function obsazenostObj() {
+        $prihlasenoMuzu      = $this->pocetPrihlasenychMuzu(); // počty
+        $prihlasenoZen       = $this->pocetPrihlasenychZen();
+        $kapacitaMuzi        = (int)$this->a['kapacita_m']; // kapacity
+        $kapacitaZeny        = (int)$this->a['kapacita_f'];
+        $kapacitaUniverzalni = (int)$this->a['kapacita'];
+
+        return [
+            'm'  => $prihlasenoMuzu,
+            'f'  => $prihlasenoZen,
+            'km' => $kapacitaMuzi,
+            'kf' => $kapacitaZeny,
+            'ku' => $kapacitaUniverzalni
+        ];
+    }
+
     /**
      * Odhlásí uživatele z aktivity
      * @todo kontroly? (např. jestli je aktivní přihlašování?) (administrativní
@@ -1658,13 +1685,13 @@ SQL
     /**
      * Přihlásí uživatele na aktivitu
      */
-    public function prihlas(Uzivatel $uzivatel, Uzivatel $prihlasujici, $ignorovat = 0)
+    public function prihlas(Uzivatel $uzivatel, Uzivatel $prihlasujici, $parametry = 0)
     {
         if ($this->prihlasen($uzivatel)) {
             return;
         }
 
-        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $prihlasujici, $ignorovat);
+        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $prihlasujici, $parametry);
 
         // odhlášení náhradnictví v kolidujících aktivitách
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici);
@@ -1764,7 +1791,11 @@ SQL
                 $this->a['stav'] = $puvodniStav;
             }
             if (!$prihlasovatelna) {
-                throw new \Chyba('Aktivita není otevřena pro přihlašování.');
+                $duvod = '';
+                if (self::UKAZAT_DETAILY_CHYBY & $parametry) {
+                    $duvod = ': ' . $this->procNeniPrihlasovatelna($parametry);
+                }
+                throw new \Chyba('Aktivita není otevřena pro přihlašování' . $duvod);
             }
         }
 
@@ -1772,7 +1803,7 @@ SQL
         if ($this->a['dite'] && $this->pocetPrihlasenych() > 0) {
             $deti = $this->deti();
             if (count($deti) === 1) {
-                current($deti)->prihlas($uzivatel, $prihlasujici, self::STAV);
+                current($deti)->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
             } else {
                 // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
                 $vzor   = Uzivatel::zId(substr(explode(',', $this->prihlaseniRaw())[1], 0, -2));
@@ -1780,7 +1811,7 @@ SQL
                 foreach ($deti as $dite) {
                     // přihlášení na navázané aktivity podle vzoru vybraného uživatele
                     if ($dite->prihlasen($vzor)) {
-                        $dite->prihlas($uzivatel, $prihlasujici, self::STAV);
+                        $dite->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
                         $uspech = true;
                         break;
                     }
@@ -1924,7 +1955,7 @@ SQL
     /**
      * @see \Gamecon\Aktivita\StavPrihlaseni
      * Vrátí stav přihlášení uživatele na aktivitu. Pokud není přihlášen, vrací
-     * hodnotu -1.
+     * hodnotu StavPrihlaseni::NEPRIHLASEN.
      */
     public function stavPrihlaseni(Uzivatel $u): int
     {
@@ -1943,7 +1974,7 @@ SQL
             }
         }
 
-        return -1;
+        return StavPrihlaseni::NEPRIHLASEN;
     }
 
     /**
@@ -2212,7 +2243,7 @@ HTML
      * @param string $nazevTymu
      * @param int $pocetMist požadovaný počet míst v týmu
      * @param self[] $dalsiKola - pořadí musí odpovídat návaznosti kol
-     * @param int $ignorovat
+     * @param int $parametry
      */
     public function prihlasTym(
         array    $uzivatele,
@@ -2220,7 +2251,7 @@ HTML
         ?string  $nazevTymu = null,
         ?int     $pocetMist = null,
         ?array   $dalsiKola = [],
-                 $ignorovat = 0,
+                 $parametry = 0,
     )
     {
         if (!$this->tymova()) {
@@ -2242,13 +2273,13 @@ HTML
             // nutno jít od konce, jinak vazby na potomky můžou vyvolat chyby kvůli
             // duplicitním pokusům o přihlášení
             foreach (array_reverse($dalsiKola) as $kolo) {
-                $kolo->prihlas($lidr, $prihlasujici, self::STAV | $ignorovat);
+                $kolo->prihlas($lidr, $prihlasujici, self::STAV | $parametry);
             }
 
             // přihlášení členů týmu
             foreach ($uzivatele as $clen) {
                 try {
-                    $this->prihlas($clen, $prihlasujici, self::ZAMEK);
+                    $this->prihlas($clen, $prihlasujici, self::ZAMEK | ($parametry & self::UKAZAT_DETAILY_CHYBY));
                 } catch (\Exception $e) {
                     $chybnyClen = $clen;
                     throw $e;
@@ -2359,7 +2390,10 @@ HTML
     /** Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí */
     public function rodice()
     {
-        return self::zWhere('WHERE a.dite rlike "(^|,)' . $this->id() . '(,|$)"');
+        return self::zWhere(
+            where1: 'WHERE a.dite rlike "(^|,)' . $this->id() . '(,|$)"',
+            systemoveNastaveni: $this->systemoveNastaveni,
+        );
     }
 
     /**
@@ -3275,10 +3309,13 @@ SQL,
     /**
      * Vrátí všechny aktivity, které vede daný uživatel
      */
-    public static function zOrganizatora(Uzivatel $u)
+    public static function zOrganizatora(Uzivatel $u, ?SystemoveNastaveni $systemoveNastaveni = null)
     {
         // join hack na akt. uživatele
-        return self::zWhere('JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce AND ao.id_uzivatele = ' . $u->id() . ') WHERE a.rok = ' . ROCNIK);
+        return self::zWhere(
+            where1: 'JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce AND ao.id_uzivatele = ' . $u->id() . ') WHERE a.rok = ' . ROCNIK,
+            systemoveNastaveni: $systemoveNastaveni,
+        );
     }
 
     public function maOrganizatora(Uzivatel $organizator): bool
@@ -3289,7 +3326,12 @@ SQL,
     /**
      * Vrátí pole aktivit které se letos potenciálně zobrazí v programu
      */
-    public static function zProgramu(string $razeni, bool $zCache = false, bool $prednacitat = false)
+    public static function zProgramu(
+        string              $razeni,
+        bool                $zCache = false,
+        bool                $prednacitat = false,
+        ?SystemoveNastaveni $systemoveNastaveni = null,
+    )
     {
         if ($zCache) {
             $objekt = self::$objekty['razeni'][$razeni] ?? null;
@@ -3306,6 +3348,7 @@ SQL,
                 2 => TypAktivity::interniTypy(),
             ],
             order: 'ORDER BY DAY(zacatek), ' . dbQi($razeni) . ', HOUR(zacatek), nazev_akce',
+            systemoveNastaveni: $systemoveNastaveni,
             prednacitat: $prednacitat,
         );
 
@@ -3441,13 +3484,13 @@ SQL,
             $aktivita         = new static(
                 dbRow: $r,
                 systemoveNastaveni: $systemoveNastaveni,
-                prednacitat: $prednacitat
+                prednacitat: $prednacitat,
             );
             $aktivita->typ    = $r['typ'];
             $aktivita->lokace = $r['lokace'];
             $aktivita->stav   = $r['stav'];
 
-            $aktivita->kolekce                = &$kolekce;
+            $aktivita->kolekce                   = &$kolekce;
             $aktivita->kolekce[$r[Sql::ID_AKCE]] = $aktivita;
         }
 

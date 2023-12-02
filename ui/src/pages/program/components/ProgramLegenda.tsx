@@ -1,31 +1,86 @@
-import { ORGANIZATOR, KONCOVKA_DLE_POHLAVÍ } from "../../../api/program";
+import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
+import {
+  useUrlState,
+  useUrlStateStavyFiltr,
+  useUživatel,
+} from "../../../store/program/selektory";
+import { nastavFiltrStavů } from "../../../store/program/slices/urlSlice";
 
 export const ProgramLegenda = () => {
   const legendaText = GAMECON_KONSTANTY.LEGENDA;
-  const organizator = ORGANIZATOR;
-  const koncovkaDlePohlaví = KONCOVKA_DLE_POHLAVÍ;
+  const uživatel = useUživatel();
+
+  const organizator = uživatel.organizator ?? false;
+  const koncovkaDlePohlaví = uživatel.koncovkaDlePohlavi ?? "";
+  const přihlášen = uživatel.prihlasen ?? false;
+
+  const stavyFiltr = useUrlStateStavyFiltr();
+
+  const filtrujeStav = (stav: AktivitaStav) =>
+    stavyFiltr.some((x) => x === stav);
+
+  const překlopStav = (stav: AktivitaStav) => {
+    const filtruje = filtrujeStav(stav);
+    if (filtruje) {
+      nastavFiltrStavů(stavyFiltr.filter((x) => x !== stav).sort());
+    } else {
+      nastavFiltrStavů(stavyFiltr.concat(stav).sort());
+    }
+  };
+
+  const zaškrtávátkoPro = (stav: AktivitaStav) => (
+    <input
+      type="checkbox"
+      class="program_legenda_typ--checkbox"
+      checked={filtrujeStav(stav)}
+      onClick={() => {
+        překlopStav(stav);
+      }}
+    />
+  );
 
   return (
     <div class="program_legenda">
       <div
         class="informaceSpustime"
-        // TODO dangerously znamená dangerously. Vykreslovat text a né html!
         dangerouslySetInnerHTML={{
           __html: legendaText,
         }}
       ></div>
       <div class="program_legenda_inner">
-        <span class="program_legenda_typ">Otevřené</span>
-        <span class="program_legenda_typ vDalsiVlne">V další vlně</span>
-        <span class="program_legenda_typ vBudoucnu">Připravujeme</span>
-        <span class="program_legenda_typ nahradnik">Sleduji</span>
-        <span class="program_legenda_typ prihlasen">
-          Přihlášen{koncovkaDlePohlaví}
-        </span>
-        <span class="program_legenda_typ plno">Plno</span>
+        <label class="program_legenda_typ otevrene">
+          {zaškrtávátkoPro("volno")}
+          Otevřené
+        </label>
+        <label class="program_legenda_typ vDalsiVlne">
+          {zaškrtávátkoPro("vDalsiVlne")}V další vlně
+        </label>
+        <label class="program_legenda_typ vBudoucnu">
+          {zaškrtávátkoPro("vBudoucnu")}
+          Připravujeme
+        </label>
+        {přihlášen ? (
+          <>
+            <label class="program_legenda_typ nahradnik">
+              {zaškrtávátkoPro("nahradnik")}
+              Sleduji
+            </label>
+            <label class="program_legenda_typ prihlasen">
+              {zaškrtávátkoPro("prihlasen")}
+              Přihlášen{koncovkaDlePohlaví}
+            </label>
+          </>
+        ) : undefined}
+        <label class="program_legenda_typ plno">
+          {zaškrtávátkoPro("plno")}
+          Plno
+        </label>
         {organizator ? (
-          <span class="program_legenda_typ organizator">organizuji</span>
+          <label class="program_legenda_typ organizator">
+            {zaškrtávátkoPro("organizator")}
+            organizuji
+          </label>
         ) : (
           <></>
         )}

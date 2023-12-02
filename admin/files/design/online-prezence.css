@@ -108,10 +108,26 @@ input[disabled]::placeholder {
   color: darkorange;
 }
 
+.razeni {
+  font-size: .7em;
+}
+
+.razeni.neaktivni {
+  color: darkgray;
+}
+
 .pocet-prihlasenych {
   font-size: 0.5em;
   color: darkgoldenrod;
   white-space: nowrap;
+}
+
+.zobrazit-v-programu {
+  font-size: 0.5em;
+  color: goldenrod;
+  white-space: nowrap;
+  text-decoration: none;
+  margin-left: .5em;
 }
 
 @media only screen and (max-width: 600px) {
