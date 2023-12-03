@@ -1,5 +1,3 @@
-## Vault
+Ansible přesunut kvůli (zakryptovaným) přihlašovacím údajům do privátního repositáře https://github.com/gamecon-cz/ansible
 
-https://docs.ansible.com/ansible/latest/vault_guide/index.html
-
-Hesla jsou zašifrována přes `ansible-vault` CLI utilitu https://docs.ansible.com/ansible/latest/cli/ansible-vault.html#ansible-vault
+`git clone git@github.com:gamecon-cz/ansible.git`
