@@ -13,6 +13,7 @@ services:
       XDEBUG_CONFIG: "client_host=172.17.0.1 client_port=9003 remote_log=/tmp/xdebug.log"
       # XDEBUG_TRIGGER: "yes" # to start XDebug for EVERY request (use `export XDEBUG_TRIGGER: "yes"` to enable it in CLI and `unset XDEBUG_TRIGGER` to disable for CLI again - in browser use same-named variable in GET, POST or COOKIE, or legacy named via some browser extension)
       COMPOSER_AUTH: '{"github-oauth":{"github.com":""}}' # Go to https://github.com/settings/tokens to generate new (read only) access token to let Github pair your requests to your account and to raise the cap of allowed requests (during Composer Github-related actions like install, update, require etc)
+      # COMPOSER_PROCESS_TIMEOUT: -1 # to let composer downloading large libraries indefinitely
     ports:
       - "80:80"
 
