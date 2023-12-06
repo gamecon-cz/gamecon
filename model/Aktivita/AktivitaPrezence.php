@@ -4,6 +4,7 @@ namespace Gamecon\Aktivita;
 
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura as LogSql;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
+use Gamecon\Hlaska\Hlaska;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
@@ -206,8 +207,28 @@ class AktivitaPrezence
         GcMail::vytvorZGlobals()
             ->adresat($u->mail())
             ->predmet('Nedostavení se na aktivitu')
-            ->text(hlaskaMail('nedostaveniSeNaAktivituMail', $u, $this->aktivita->nazev()))
+            ->text(hlaskaMail(
+                Hlaska::NEDOSTAVENI_SE_NA_AKTIVITU_MAIL,
+                $u,
+                $this->aktivita->nazev(),
+                $this->doKdyJeAktivitaBezPokuty(),
+            ))
             ->odeslat();
+    }
+
+    private function doKdyJeAktivitaBezPokuty(): string
+    {
+        if (!$this->systemoveNastaveni->kontrolovatPokutuZaOdhlaseni()) {
+            return 'hodinu'; // tohle není pravda, nebudeme počítat storno vůbec o:-)
+        }
+        $hodin = $this->systemoveNastaveni->kolikHodinPredAktivitouUzJePokutaZaOdhlaseni();
+
+        return $hodin === 1
+            ? 'hodinu'
+            : ($hodin < 5
+                ? $hodin . ' hodiny'
+                : $hodin . ' hodin'
+            );
     }
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable
@@ -340,7 +361,7 @@ SQL,
             (int)$posledniZmena['id_akce'],
             (int)$posledniZmena['id_log'],
             new \DateTimeImmutable((string) $posledniZmena['kdy']),
-            $posledniZmena['typ']
+            $posledniZmena['typ'],
         );
     }
 
