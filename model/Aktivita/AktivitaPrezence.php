@@ -212,8 +212,14 @@ class AktivitaPrezence
                 $u,
                 $this->aktivita->nazev(),
                 $this->doKdyJeAktivitaBezPokuty(),
+                $this->procentaZaPozdniOdhlaseni(),
             ))
             ->odeslat();
+    }
+
+    private function procentaZaPozdniOdhlaseni(): int
+    {
+        return AkcePrihlaseniStavy::zId(AkcePrihlaseniStavy::POZDE_ZRUSIL_ID)->platbaProcent();
     }
 
     private function doKdyJeAktivitaBezPokuty(): string
@@ -223,12 +229,20 @@ class AktivitaPrezence
         }
         $hodin = $this->systemoveNastaveni->kolikHodinPredAktivitouUzJePokutaZaOdhlaseni();
 
-        return $hodin === 1
-            ? 'hodinu'
-            : ($hodin < 5
-                ? $hodin . ' hodiny'
-                : $hodin . ' hodin'
-            );
+        return $this->hodinSlovne($hodin);
+    }
+
+    private function hodinSlovne(int $hodin): string
+    {
+        if ($hodin === 1) {
+            return 'hodinu';
+        }
+
+        if ($hodin < 5) {
+            return $hodin . ' hodiny';
+        }
+
+        return $hodin . ' hodin';
     }
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable
