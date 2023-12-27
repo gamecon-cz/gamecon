@@ -37,7 +37,7 @@ Chápeme, že může nastat situace, kvůli které se nemůžeš, nebo nechceš 
 
 VŽDY SE Z AKTIVITY ODHLAS.
 
-Žádáme tě o to z toho důvodu, aby na tebe vypravěč a ostatní účastníci nemuseli čekat a zjišťovat, jestli dorazíš. A taky to značně urychlí hledání náhradníka. Pokud se odhlásíš více než %2 před začátkem aktivity, vrátíme ti za ni část peněz.
+Žádáme tě o to z toho důvodu, aby na tebe vypravěč a ostatní účastníci nemuseli čekat a zjišťovat, jestli dorazíš. A taky to značně urychlí hledání náhradníka. Pokud se odhlásíš dříve než %2 před začátkem aktivity, vrátíme ti za ni všechny peníze. Pokud později, tak %3 %.
 
 Jedná se o omyl? Někde v systému pravděpodobně nastala chyba, za kterou se moc omlouváme. Dej nám o ní prosím vědět, abychom to opravili a znovu tě zbytečně neděsili.
 
