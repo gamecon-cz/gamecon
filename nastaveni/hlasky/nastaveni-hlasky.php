@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'aktivaceOk'           => 'Účet aktivován. Děkujeme.',
+    'aktualizacePrihlasky' => 'Přihláška aktualizována.',
+    'avatarChybaMazani'    => 'Obrázek se nepodařilo smazat.',
+    'avatarNahran'         => 'Obrázek uživatele úspěšně uložen.',
+    'avatarSmazan'         => 'Obrázek uživatele byl odstraněn.',
+    'avatarSpatnyFormat'   => 'Obrázek není v požadovaném formátu .jpg.',
+    'drdVypnuto'           => 'Přihlašování na mistrovství v DrD není spuštěno.',
+    'chybaPrihlaseni'      => 'Špatné uživatelské jméno nebo heslo.',
+    'jenPrihlaseni'        => 'Na zobrazení této stránky musíte být přihlášeni.',
+    'jenPrihlaseniGC'      => 'Na přístup k této stránce musíte být přihlášeni na letošní GameCon.',
+    'masKoliziAktivit'     => 'V daném čase už máš přihlášenu jinou aktivitu.',
+    'maKoliziAktivit'      => 'V daném čase už má přihlášenu jinou aktivitu.',
+    'nejsiPrihlasenNaGc'   => 'Nemáš aktivní přihlášku na GameCon.',
+    'neniPrihlasenNaGc'    => 'Nemá aktivní přihlášku na GameCon.',
+    'uzJsiPrihlasen'       => 'Na tuto aktivitu už jsi jednou přihlášen.',
+    'uzJePrihlasen'        => 'Na tuto aktivitu už je jednou přihlášen.',
+    'nyniPrihlaska'        => 'Nyní se vyplněním následujícího formuláře se přihlásíš na GameCon.',
+    'plno'                 => 'Místa jsou už plná',
+    'regOk'                => 'Účet vytvořen. Informaci o spuštění přihlašování ti včas pošleme e-mailem.',
+    'regOkNyniPrihlaska'   => 'Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.',
+    'upravaUzivatele'      => 'Změny registračních údajů uloženy.',
+    'uzPrihlasen'          => 'Už jsi přihlášen na GameCon, zde můžeš upravit svou přihlášku.',
+    'zamcena'              => 'Aktivitu už někdo zabral',
+];

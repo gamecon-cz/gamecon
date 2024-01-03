@@ -1,9 +1,5 @@
 /google_api_client_secret*.json
 /google-api-client-secret.json
 
-/nastaveni-*.php
-!/nastaveni-role.php
-!/nastaveni-izolovane.php
-!/nastaveni-vychozi.php
-!/nastaveni-local-default.php
-!/nastaveni-local-docker_default.php
+/nastaveni-local.php
+/nastaveni-produkce.php

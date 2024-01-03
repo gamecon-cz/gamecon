@@ -1978,7 +1978,7 @@ SQL,
     ", null, 'LIMIT ' . $limit);
     }
 
-    public static function zId($id, bool $zCache = false): ?Uzivatel
+    public static function zId($id, bool $zCache = false): ?static
     {
         $id = (int)$id;
 
