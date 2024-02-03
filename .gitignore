@@ -11,10 +11,6 @@
 /cache/public/*
 !/cache/public/.htaccess
 
-/node_modules
-
-/vendor
-
 /admin/*.sql.gz
 
 /web/soubory/obsah/*
