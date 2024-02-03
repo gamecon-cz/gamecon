@@ -34,8 +34,6 @@ This functionality is currently [soft-deprecated](https://phpunit.de/backward-co
 | [#5315](https://github.com/sebastianbergmann/phpunit/issues/5315) | `MockBuilder::disableArgumentCloning()`           | 10.1.0 |                                                                                         |
 | [#5315](https://github.com/sebastianbergmann/phpunit/issues/5315) | `MockBuilder::enableArgumentCloning()`            | 10.1.0 |                                                                                         |
 | [#5320](https://github.com/sebastianbergmann/phpunit/issues/5320) | `MockBuilder::addMethods()`                       | 10.1.0 |                                                                                         |
-| [#5421](https://github.com/sebastianbergmann/phpunit/issues/5421) | `MockBuilder::disableAutoReturnValueGeneration()` | 10.3.0 |                                                                                         |
-| [#5421](https://github.com/sebastianbergmann/phpunit/issues/5421) | `MockBuilder::enableAutoReturnValueGeneration()`  | 10.3.0 |                                                                                         |
 | [#5423](https://github.com/sebastianbergmann/phpunit/issues/5423) | `TestCase::onConsecutiveCalls()`                  | 10.3.0 | Use `$double->willReturn()` instead of `$double->will($this->onConsecutiveCalls())`     |
 | [#5423](https://github.com/sebastianbergmann/phpunit/issues/5423) | `TestCase::returnArgument()`                      | 10.3.0 | Use `$double->willReturnArgument()` instead of `$double->will($this->returnArgument())` |
 | [#5423](https://github.com/sebastianbergmann/phpunit/issues/5423) | `TestCase::returnCallback()`                      | 10.3.0 | Use `$double->willReturnCallback()` instead of `$double->will($this->returnCallback())` |
@@ -62,20 +60,23 @@ This functionality is currently [soft-deprecated](https://phpunit.de/backward-co
 
 ### Extending PHPUnit
 
-| Issue | Description                                                                                            | Since  | Replacement                                                                    |
-|-------|--------------------------------------------------------------------------------------------------------|--------|--------------------------------------------------------------------------------|
-|       | `PHPUnit\TextUI\Configuration\Configuration::excludeDirectories()`                                     | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->excludeDirectories()`   |
-|       | `PHPUnit\TextUI\Configuration\Configuration::excludeFiles()`                                           | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->excludeFiles()`         |
-|       | `PHPUnit\TextUI\Configuration\Configuration::includeDirectories()`                                     | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->includeDirectories()`   |
-|       | `PHPUnit\TextUI\Configuration\Configuration::includeFiles()`                                           | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->includeFiles()`         |
-|       | `PHPUnit\TextUI\Configuration\Configuration::loadPharExtensions()`                                     | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::noExtensions()`                   |
-|       | `PHPUnit\TextUI\Configuration\Configuration::hasNonEmptyListOfFilesToBeIncludedInCodeCoverageReport()` | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->notEmpty()`             |
-|       | `PHPUnit\TextUI\Configuration\Configuration::restrictDeprecations()`                                   | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->restrictDeprecations()` |
-|       | `PHPUnit\TextUI\Configuration\Configuration::restrictNotices()`                                        | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->restrictNotices()`      |
-|       | `PHPUnit\TextUI\Configuration\Configuration::restrictWarnings()`                                       | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->restrictWarnings()`     |
-|       | `PHPUnit\TextUI\Configuration\Configuration::cliArgument()`                                            | 10.4.0 | `PHPUnit\TextUI\Configuration\Configuration::cliArguments()[0]`                |
-|       | `PHPUnit\TextUI\Configuration\Configuration::hasCliArgument()`                                         | 10.4.0 | `PHPUnit\TextUI\Configuration\Configuration::hasCliArguments()`                |
-|       | `PHPUnit\Framework\Constraint\Constraint::exporter()`                                                  | 10.4.0 |                                                                                |
+| Issue | Description                                                                                                                  | Since  | Replacement                                                                    |
+|-------|------------------------------------------------------------------------------------------------------------------------------|--------|--------------------------------------------------------------------------------|
+|       | `PHPUnit\TextUI\Configuration\Configuration::coverageExcludeDirectories()`                                                   | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->excludeDirectories()`   |
+|       | `PHPUnit\TextUI\Configuration\Configuration::coverageExcludeFiles()`                                                         | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->excludeFiles()`         |
+|       | `PHPUnit\TextUI\Configuration\Configuration::coverageIncludeDirectories()`                                                   | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->includeDirectories()`   |
+|       | `PHPUnit\TextUI\Configuration\Configuration::coverageIncludeFiles()`                                                         | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->includeFiles()`         |
+|       | `PHPUnit\TextUI\Configuration\Configuration::loadPharExtensions()`                                                           | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::noExtensions()`                   |
+|       | `PHPUnit\TextUI\Configuration\Configuration::hasNonEmptyListOfFilesToBeIncludedInCodeCoverageReport()`                       | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->notEmpty()`             |
+|       | `PHPUnit\TextUI\Configuration\Configuration::restrictDeprecations()`                                                         | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->restrictDeprecations()` |
+|       | `PHPUnit\TextUI\Configuration\Configuration::restrictNotices()`                                                              | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->restrictNotices()`      |
+|       | `PHPUnit\TextUI\Configuration\Configuration::restrictWarnings()`                                                             | 10.2.0 | `PHPUnit\TextUI\Configuration\Configuration::source()->restrictWarnings()`     |
+|       | `PHPUnit\TextUI\Configuration\Configuration::cliArgument()`                                                                  | 10.4.0 | `PHPUnit\TextUI\Configuration\Configuration::cliArguments()[0]`                |
+|       | `PHPUnit\TextUI\Configuration\Configuration::hasCliArgument()`                                                               | 10.4.0 | `PHPUnit\TextUI\Configuration\Configuration::hasCliArguments()`                |
+|       | `PHPUnit\Framework\Constraint\Constraint::exporter()`                                                                        | 10.4.0 |                                                                                |
+|       | `PHPUnit\TextUI\Configuration\Configuration::registerMockObjectsFromTestArgumentsRecursively()`                              | 10.5.3 |                                                                                |
+|       | `Test\AssertionFailed` and `Test\AssertionSucceeded` events                                                                  | 10.5.3 |                                                                                |
+|       | `PHPUnit\Runner\Extension\Facade::requireExportOfObjects()` and `PHPUnit\Runner\Extension\Facade::requiresExportOfObjects()` | 10.5.3 |                                                                                |
 
 ## Hard Deprecations
 
