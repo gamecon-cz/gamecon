@@ -10,14 +10,22 @@
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
-$sqlParts = [];
+$sqlParts = [
+    <<<SQL
+UPDATE akce_seznam SET lokace=NULL WHERE TRUE;
+TRUNCATE TABLE akce_lokace; -- smazat všechny místnosti, aby se mohly nahrát každý rok znovu a nehrozilo, že to někdo začne zadávat k aktivitám, když to ještě není nahrané
+SQL
+];
 foreach (Uzivatel::vsichni() as $uzivatel) {
     $finance    = $uzivatel->finance();
     $sqlParts[] = <<<SQL
 UPDATE uzivatele_hodnoty
 SET zustatek={$uzivatel->finance()->stav()} /* původní zůstatek z předchozích ročníků {$finance->zustatekZPredchozichRocniku()} */,
     poznamka='',
-    ubytovan_s=''
+    ubytovan_s='',
+    infopult_poznamka='',
+    pomoc_typ='',
+    pomoc_vice=''
 WHERE id_uzivatele={$uzivatel->id()};
 SQL;
 }
