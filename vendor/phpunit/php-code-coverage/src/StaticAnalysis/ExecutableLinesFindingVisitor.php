@@ -107,6 +107,7 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
             $node instanceof Node\Expr\ConstFetch ||
             $node instanceof Node\Expr\Match_ ||
             $node instanceof Node\Expr\Variable ||
+            $node instanceof Node\Expr\Throw_ ||
             $node instanceof Node\ComplexType ||
             $node instanceof Node\Const_ ||
             $node instanceof Node\Identifier ||
@@ -116,8 +117,23 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
             return;
         }
 
+        /*
+         * nikic/php-parser ^4.18 represents <code>throw</code> statements
+         * as <code>Stmt\Throw_</code> objects
+         */
         if ($node instanceof Node\Stmt\Throw_) {
             $this->setLineBranch($node->expr->getEndLine(), $node->expr->getEndLine(), ++$this->nextBranch);
+
+            return;
+        }
+
+        /*
+         * nikic/php-parser ^5 represents <code>throw</code> statements
+         * as <code>Stmt\Expression</code> objects that contain an
+         * <code>Expr\Throw_</code> object
+         */
+        if ($node instanceof Node\Stmt\Expression && $node->expr instanceof Node\Expr\Throw_) {
+            $this->setLineBranch($node->expr->expr->getEndLine(), $node->expr->expr->getEndLine(), ++$this->nextBranch);
 
             return;
         }
@@ -129,13 +145,17 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
             $node instanceof Node\Expr\Closure ||
             $node instanceof Node\Stmt\Trait_) {
             if ($node instanceof Node\Stmt\Function_ || $node instanceof Node\Stmt\ClassMethod) {
+                $unsets = [];
+
                 foreach ($node->getParams() as $param) {
                     foreach (range($param->getStartLine(), $param->getEndLine()) as $line) {
-                        $this->unsets[$line] = true;
+                        $unsets[$line] = true;
                     }
                 }
 
-                unset($this->unsets[$node->getEndLine()]);
+                unset($unsets[$node->getEndLine()]);
+
+                $this->unsets += $unsets;
             }
 
             $isConcreteClassLike = $node instanceof Node\Stmt\Enum_ || $node instanceof Node\Stmt\Class_ || $node instanceof Node\Stmt\Trait_;
@@ -171,7 +191,7 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
                 );
 
             if ($hasEmptyBody) {
-                if ($node->getEndLine() === $node->getStartLine()) {
+                if ($node->getEndLine() === $node->getStartLine() && isset($this->executableLinesGroupedByBranch[$node->getStartLine()])) {
                     return;
                 }
 

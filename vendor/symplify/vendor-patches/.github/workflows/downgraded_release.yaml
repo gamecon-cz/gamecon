@@ -19,7 +19,7 @@ jobs:
             -
                 uses: "shivammathur/setup-php@v2"
                 with:
-                    php-version: 8.1
+                    php-version: 8.2
                     coverage: none
 
             # invoke patches
@@ -46,7 +46,7 @@ jobs:
             -   run: cp -r build/target-repository/. .
 
             # clear the dev files
-            -   run: rm -rf build prefix-code.sh monorepo-builder.php full-tool-build.sh scoper.php rector.php
+            -   run: rm -rf build prefix-code.sh full-tool-build.sh scoper.php rector.php
 
             # setup git user
             -
