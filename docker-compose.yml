@@ -26,7 +26,7 @@ services:
     image: mariadb:10.3.27 # should be same as on live server
     restart: "no"
     environment:
-      - MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root}"
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
       - TZ=Europe/Prague
     volumes:
       - ./docker/mysql:/etc/mysql/conf.d:ro
