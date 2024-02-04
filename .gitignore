@@ -29,4 +29,3 @@
 /.htdeployment
 
 /docker-compose.override.yml
-/docker-compose.yml
