@@ -897,6 +897,11 @@ SQL;
 
     public function prihlasovaciUdajeSoucasneDatabaze(): array
     {
+        $dbPort = try_constant('DB_PORT') ?: null;
+        if ($dbPort !== null) {
+            $dbPort = (int)$dbPort;
+        }
+
         return [
             'DBM_USER' => try_constant('DBM_USER'),
             'DBM_PASS' => try_constant('DBM_PASS'),
@@ -904,7 +909,7 @@ SQL;
             'DB_PASS'  => try_constant('DB_PASS'),
             'DB_NAME'  => try_constant('DB_NAME'),
             'DB_SERV'  => try_constant('DB_SERV'),
-            'DB_PORT'  => try_constant('DB_PORT'),
+            'DB_PORT'  => $dbPort,
         ];
     }
 

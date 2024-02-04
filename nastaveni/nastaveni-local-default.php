@@ -6,7 +6,7 @@ if (!defined('DB_USER')) define('DB_USER', getenv('DB_USER') ?: 'root');
 if (!defined('DB_PASS')) define('DB_PASS', getenv('DB_PASS') ?: '');
 if (!defined('DB_NAME')) define('DB_NAME', getenv('DB_NAME') ?: 'gamecon');
 if (!defined('DB_SERV')) define('DB_SERV', getenv('DB_SERV') ?: '127.0.0.1');
-if (!defined('DB_PORT')) define('DB_PORT', getenv('DB_PORT') ?: '3306');
+if (!defined('DB_PORT')) define('DB_PORT', (int) (getenv('DB_PORT') ?: '3306'));
 
 // uživatel s přístupem k změnám struktury
 if (!defined('DBM_USER')) define('DBM_USER', getenv('DBM_USER') ?: DB_USER);
