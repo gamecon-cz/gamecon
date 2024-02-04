@@ -24,6 +24,7 @@
 !/web/soubory/systemove/*/.gitkeep
 !/web/soubory/systemove/*/.htaccess
 *.map
+/vendor/composer/installed.php
 
 /nasad.log
 /.htdeployment
