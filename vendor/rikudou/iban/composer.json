@@ -1,0 +1,40 @@
+{
+  "name": "rikudou/iban",
+  "type": "library",
+  "description": "Library for working with IBANs",
+  "homepage": "https://github.com/RikudouSage/IBAN",
+  "keywords": [
+    "iban"
+  ],
+  "license": "WTFPL",
+  "authors": [
+    {
+      "name": "Dominik Chrástecký",
+      "email": "dominik@chrastecky.cz"
+    }
+  ],
+  "require": {
+    "php": "^7.3 | ^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Rikudou\\Iban\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Rikudou\\Iban\\Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.0",
+    "phpstan/phpstan": "^0.12.63",
+    "php-coveralls/php-coveralls": "^2.1",
+    "phpunit/phpunit": "^9"
+  },
+  "scripts": {
+    "fixer": "php-cs-fixer fix src --verbose",
+    "phpstan": "phpstan analyse --level=max src",
+    "phpunit": "phpunit"
+  }
+}

@@ -58,7 +58,7 @@ usort($tagsForSql, function(array $someRow, array $anotherRow) {
 });
 
 $intoSqlValues = require __DIR__ . '/pomocne/062/intToSqlValuesFunction.php';
-$fixedTagsSql = $intoSqlValues($tagsForSql, $this->db);
+$fixedTagsSql = $intoSqlValues($tagsForSql, $this->connection);
 $tagsAutoIncrementStart = 0;
 foreach ($tags as $tag) {
   $tagsAutoIncrementStart = max($tagsAutoIncrementStart, (int)$tag[1] /* id */);
@@ -72,7 +72,7 @@ $mainCategoriesForSql = array_map(
   },
   $mainCategories
 );
-$mainCategoriesSql = $intoSqlValues($mainCategoriesForSql, $this->db);
+$mainCategoriesSql = $intoSqlValues($mainCategoriesForSql, $this->connection);
 $subCategoriesForSql = [];
 foreach ($subCategories as $parentCategoryName => $subCategoriesWithSameParent) {
   $subCategoriesWithSameParentForSql = array_map(
@@ -82,7 +82,7 @@ foreach ($subCategories as $parentCategoryName => $subCategoriesWithSameParent) 
 (SELECT id FROM kategorie_sjednocenych_tagu_62 AS parent_category WHERE nazev = '%s')
 SQL
         ,
-        mysqli_real_escape_string($this->db, $parentCategoryName)
+        mysqli_real_escape_string($this->connection, $parentCategoryName)
       ); // parent category ID
       return $subCategory;
     },
@@ -92,9 +92,8 @@ SQL
     $subCategoriesForSql[] = $subCategoryWithSameParentForSql;
   }
 }
-$subCategoriesSql = $intoSqlValues($subCategoriesForSql, $this->db);
+$subCategoriesSql = $intoSqlValues($subCategoriesForSql, $this->connection);
 $queries = [];
-//TODO REMOVE THIS development CLEANUP
 $queries[] = <<<SQL
 DROP TABLE IF EXISTS sjednocene_tagy_62;
 DROP TABLE IF EXISTS kategorie_sjednocenych_tagu_62;

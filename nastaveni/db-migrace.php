@@ -19,8 +19,11 @@ if (AUTOMATICKA_TVORBA_DB) {
             null,
             $connection,
         );
+        dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
+        (new \MySQLImport($connection))->load(__DIR__ . '/../migrace/pomocne/gc_anonymizovana_databaze.sql');
+    } else {
+        dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
     }
-    dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
 }
 
 (new DbMigrations(

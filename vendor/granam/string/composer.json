@@ -1,0 +1,46 @@
+{
+  "name": "granam/string",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jaroslav Týc",
+      "homepage": "https://www.jaroslavtyc.com",
+      "role": "Original author"
+    }
+  ],
+  "type": "project",
+  "description": "Lightweight string wrapper",
+  "keywords": [
+    "php",
+    "string",
+    "object"
+  ],
+  "homepage": "https://github.com/granam/string",
+  "autoload": {
+    "psr-4": {
+      "Granam\\String\\": "String"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Granam\\Tests\\String\\": "tests/String",
+      "Granam\\Tests\\ExceptionsHierarchy\\": "vendor/granam/exceptions-hierarchy/tests/ExceptionsHierarchy"
+    }
+  },
+  "require": {
+    "php": ">=7.4",
+    "ext-intl": "*",
+    "ext-mbstring": "*",
+    "granam/strict-object": ">=3.0",
+    "granam/scalar": "^5.0"
+  },
+  "require-dev": {
+    "granam/exceptions-hierarchy": "^5.0",
+    "mockery/mockery": "^1.2",
+    "phpunit/phpunit": ">=9.0",
+    "rector/rector": "^0.14.2"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}
