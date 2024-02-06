@@ -217,12 +217,12 @@ SQL,
 
     private function apply(Migration $migration, bool $silent)
     {
-        if (!$silent && $this->webGui) {
-            $this->webGui->confirm();
+        if (!$silent) {
+            $this->webGui?->confirm();
         }
 
         if (!$silent) {
-            $this->webGui->writeMessage("Applying migration {$migration->getCode()}.");
+            $this->webGui?->writeMessage("Applying migration {$migration->getCode()}.");
         }
 
         // backup db
@@ -256,14 +256,14 @@ SQL,
         $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
 
         if ($this->hasUnappliedMigrations()) {
-            if (!$silent && $this->webGui) {
-                $this->webGui->configureEnvironment();
+            if (!$silent) {
+                $this->webGui?->configureEnvironment();
             }
 
             $this->handleUnappliedMigrations($silent);
 
-            if (!$silent && $this->webGui) {
-                $this->webGui->cleanupEnvironment();
+            if (!$silent) {
+                $this->webGui?->cleanupEnvironment();
             }
         }
 
