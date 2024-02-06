@@ -10,23 +10,28 @@ class DbMigrations
 {
 
     private Backups            $backups;
-    private DbMigrationsConfig $conf;
+    private DbMigrationsConfig $config;
     private \mysqli            $connection;
     private                    $migrations;
-    private ?WebGui            $webGui               = null;
+    private readonly ?WebGui   $webGui;
     private                    $hasTableMigrationsV2 = null;
     private                    $hasTableMigrationsV1 = null;
     private ?array             $unappliedMigrations  = null;
 
     public function __construct(DbMigrationsConfig $conf)
     {
-        $this->conf = $conf;
+        $this->config = $conf;
 
-        $this->connection          = $this->conf->connection;
-        $this->backups             = new Backups($this->connection, $this->conf->backupsDirectory);
-        if ($this->conf->webGui) {
-            $this->webGui = new WebGui();
-        }
+        $this->connection = $this->config->getConnection();
+        $this->backups    = new Backups($this->connection, $this->config->getBackupsDirectory());
+        $this->webGui     = $this->config->useWebGui()
+            ? new WebGui()
+            : null;
+    }
+
+    public function getWebGui(): ?WebGui
+    {
+        return $this->webGui;
     }
 
     public function hasUnappliedMigrations(): bool
@@ -180,7 +185,7 @@ SQL,
     {
         if (!is_array($this->migrations)) {
             $migrations = [];
-            foreach (glob($this->conf->migrationsDirectory . '/*.php') as $fileName) {
+            foreach (glob($this->config->getMigrationsDirectory() . '/*.php') as $fileName) {
                 $fileBaseName = basename($fileName, '.php');
                 if (!preg_match('~^\d.+~', $fileBaseName, $matches)) {
                     continue;
@@ -217,15 +222,11 @@ SQL,
         }
 
         if (!$silent) {
-            echo "Applying migration {$migration->getCode()}.\n";
-            if (ob_get_level() > 0) {
-                @ob_flush();
-            }
-            flush();
+            $this->webGui->writeMessage("Applying migration {$migration->getCode()}.");
         }
 
         // backup db
-        if ($this->conf->doBackups) {
+        if ($this->config->doBackups()) {
             $this->backups->backupBefore($migration);
         }
 
@@ -256,13 +257,13 @@ SQL,
 
         if ($this->hasUnappliedMigrations()) {
             if (!$silent && $this->webGui) {
-                $this->webGui->configureEnviroment();
+                $this->webGui->configureEnvironment();
             }
 
             $this->handleUnappliedMigrations($silent);
 
             if (!$silent && $this->webGui) {
-                $this->webGui->cleanupEnviroment();
+                $this->webGui->cleanupEnvironment();
             }
         }
 
