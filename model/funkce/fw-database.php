@@ -225,7 +225,13 @@ function _dbConnect(
         }
     } catch (\Throwable $throwable) {
         throw new ConnectionException(
-            "Failed to connect to the database, error: '{$throwable->getMessage()}'",
+            sprintf(
+                "Failed to connect to the %s, error: '%s'",
+                $dbName
+                    ? "database '$dbName'"
+                    : 'SQL server',
+                $throwable->getMessage(),
+            ),
             $throwable->getCode(),
             $throwable,
         );

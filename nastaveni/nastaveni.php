@@ -20,7 +20,7 @@ if (!defined('ROCNIK')) define(
     'ROCNIK',
     defined('ROK')
         ? constant('ROK')
-        : 2023,
+        : 2024,
 );
 
 require_once __DIR__ . '/nastaveni-izolovane.php';
