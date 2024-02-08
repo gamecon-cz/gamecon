@@ -25,6 +25,8 @@ class BfgrReport
         Role::LETOSNI_VYPRAVEC,
         Role::LETOSNI_PARTNER,
         Role::LETOSNI_DOBROVOLNIK_SENIOR,
+        Role::LETOSNI_BRIGADNIK,
+        Role::LETOSNI_HERMAN,
     ];
 
     public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)

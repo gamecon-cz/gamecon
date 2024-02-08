@@ -377,7 +377,7 @@ SQL
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
-        $this->shop($this->systemoveNastaveni)->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni);
+        $this->shop()->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni);
 
         try {
             $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam);
@@ -2272,13 +2272,13 @@ SQL;
         return $uzivatele;
     }
 
-    public function shop(SystemoveNastaveni $systemoveNastaveni = null): Shop
+    public function shop(): Shop
     {
         if ($this->shop === null) {
             $this->shop = new Shop(
                 $this,
                 $this,
-                $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+                $this->systemoveNastaveni,
             );
         }
         return $this->shop;
