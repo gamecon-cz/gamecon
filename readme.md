@@ -13,6 +13,8 @@ Web a informační systém (největšího československého) festivalu nepočí
 3. Zprovozni si Docker https://dockerwebdev.com/tutorials/install-docker/
 4. **Spusť Gamecon v Dockeru `docker compose up`**
 5. Oslavuj 🥳
+   - http://localhost/web
+   - http://localhost/admin
 
 Další [vychytávky pro Docker](./navody/docker.md)
 
