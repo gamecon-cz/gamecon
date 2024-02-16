@@ -29,7 +29,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2' # musí odpovídat verzi na wedosu
+          php-version: '8.3' # musí odpovídat verzi na wedosu
           # extensions musí odpovídat seznamu v composer.json
           extensions: bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json, mbstring, mysqli, pdo, sqlite3, xmlreader, zip
           tools: composer
