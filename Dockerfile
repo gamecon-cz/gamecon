@@ -1,1 +1,1 @@
-FROM jaroslavtyc/gamecon:8.2
+FROM jaroslavtyc/gamecon:8.3
