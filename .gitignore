@@ -30,3 +30,4 @@
 /.htdeployment
 
 /docker-compose.override.yml
+/.env

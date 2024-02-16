@@ -5,46 +5,84 @@ namespace Godric\DbMigrations;
 class WebGui
 {
 
-    private $headerPrinted = false;
-    private $originalEnvironment = [];
+    private bool  $headerPrinted       = false;
+    private array $originalEnvironment = [];
 
-    private static $environment = [
-        'display_errors' => true,
+    private static array $environment = [
+        'display_errors'  => true,
         'error_reporting' => E_ALL,
-        'html_errors' => false,
+        'html_errors'     => false,
     ];
 
-    public function cleanupEnviroment() {
+    public function __construct(private readonly bool $exitAfter = true)
+    {
+    }
+
+    public function cleanupEnvironment(bool $displayOkButton = true): void
+    {
         foreach ($this->originalEnvironment as $name => $value) {
             ini_set($name, $value);
         }
 
-        // print html page tail
-        if ($this->headerPrinted) {
+        if ($displayOkButton && $this->headerPrinted) {
+            // print html page tail
             require __DIR__ . '/../templates/WebGuiTail.php';
-            exit();
+            $this->exitIfWanted();
         }
     }
 
-    public function configureEnviroment() {
+    private function exitIfWanted(bool $exit = null): void
+    {
+        $exit = $exit ?? $this->exitAfter;
+        if ($exit) {
+            exit;
+        }
+    }
+
+    public function configureEnvironment(): void
+    {
         foreach (self::$environment as $name => $value) {
             $this->originalEnvironment[$name] = ini_set($name, $value);
         }
     }
 
-    public function confirm() {
+    public function answered(): bool
+    {
+        return !empty($_POST[self::getPostName()]);
+    }
+
+    private static function getPostName(): string
+    {
+        return static::class . '/confirm';
+    }
+
+    public function confirm(bool $exitOnRefuse = true): bool
+    {
         // variables for template
-        $postName = get_class() . '/confirm';
-        $confirmed = $_POST[$postName] ?? false;
+        $confirmed = $_POST[self::getPostName()] ?? false;
 
         if (!$this->headerPrinted) {
+            // print html page header
+            $postName = self::getPostName();
             require __DIR__ . '/../templates/WebGuiHead.php';
             $this->headerPrinted = true;
         }
 
         if (!$confirmed) {
-            exit();
+            $this->exitIfWanted($exitOnRefuse || !$this->answered());
+            return false;
         }
+
+        return true;
+    }
+
+    public function writeMessage(string $message, string $newLineAfter = "\n"): void
+    {
+        echo $message . $newLineAfter;
+        if (ob_get_level() > 0) {
+            @ob_flush();
+        }
+        flush();
     }
 
 }

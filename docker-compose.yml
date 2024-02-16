@@ -19,8 +19,8 @@ services:
       DB_NAME: "gamecon"
       DB_SERV: "sql.gamecon"
     ports:
-      - "80:80"
-      - "443:443"
+      - "${WEB_HTTP_HOST_MAPPING_PORT:-80}:80"
+      - "${WEB_HTTPS_HOST_MAPPING_PORT:-443}:443"
 
   sql.gamecon:
     image: mariadb:10.3.27 # should be same as on live server
@@ -44,7 +44,7 @@ services:
       PMA_PORT: 3306
       UPLOAD_LIMIT: 64M
       PMA_ARBITRARY: 1
-    restart: always
+    restart: "no"
     ports:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
       - "${PHPMYADMIN_HOST_MAPPING_PORT:-8081}:80"
@@ -55,6 +55,7 @@ services:
       - MH_STORAGE=maildir
     # volumes:
     #   - ./docker/mailhog/maildir:/maildir:rw,delegated
+    restart: "no"
     ports:
       # set MAILHOG_HOST_MAPPING_PORT variable in .env file for example
       - "${MAILHOG_HOST_MAPPING_PORT:-8125}:8025"
