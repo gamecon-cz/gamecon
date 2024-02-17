@@ -15,7 +15,7 @@ import {
 
 import "./ReactSelect.less";
 import "./Filtry.less";
-import { přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
+import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 import { useProgramStore } from "../../../../store/program";
 import { useEffect, useState } from "preact/hooks";
 import { useCallback } from "react";
@@ -67,7 +67,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
 
   const tagySPočtemAktivit = useTagySPočtemAktivit();
 
-  const zvětšeno = useProgramStore(s => s.všeobecné.zvětšeno);
+  const { zvětšeno, kompaktní } = useProgramStore(s => s.všeobecné);
   const [odkazZkopírován, setOdkazZkopírován] = useState(0);
 
   useEffect(() => {
@@ -157,7 +157,12 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           >
             Přihlašovatelné
           </button>
-          <button class="program_filtry_tlacitko">Detail</button>
+          <button class={
+            "program_filtry_tlacitko"
+            + (kompaktní ? " aktivni" : "")
+          } onClick={() => {
+            přepniKompaktní();
+          }}>Kompaktní</button>
         </div>
       </div>
     </>

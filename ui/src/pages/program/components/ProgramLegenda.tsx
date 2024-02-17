@@ -1,7 +1,6 @@
 import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import {
-  useUrlState,
   useUrlStateStavyFiltr,
   useUživatel,
 } from "../../../store/program/selektory";

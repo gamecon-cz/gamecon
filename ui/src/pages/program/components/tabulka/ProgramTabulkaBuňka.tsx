@@ -9,7 +9,7 @@ import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 
-const aktivitaTřídy = (
+export const tabulkaBuňkaAktivitaTřídy = (
   aktivita: Aktivita,
   pohlavi: Pohlavi | undefined
 ) => {
@@ -72,7 +72,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   return (
     <>
       <td colSpan={rozsah}>
-        <div class={aktivitaTřídy(aktivita, pohlavi)}>
+        <div class={tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)}>
           <a
             href={generujUrl(
               produce(urlState, (s) => {
