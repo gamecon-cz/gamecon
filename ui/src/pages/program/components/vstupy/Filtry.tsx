@@ -15,6 +15,8 @@ import {
 
 import "./ReactSelect.less";
 import "./Filtry.less";
+import { přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
+import { useProgramStore } from "../../../../store/program";
 
 type TFiltryProps = {
   otevřeno: boolean;
@@ -62,6 +64,8 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const urlStateMožnosti = useUrlStateMožnosti();
 
   const tagySPočtemAktivit = useTagySPočtemAktivit();
+
+  const zvětšeno = useProgramStore(s => s.všeobecné.zvětšeno);
 
   return (
     <>
@@ -115,7 +119,10 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button class="program_filtry_tlacitko">zvětšit</button>
+          <button class={
+            "program_filtry_tlacitko program_filtry_tlacitko_zvetsit" +
+            (zvětšeno ? " aktivni" : "")
+          } onClick={přepniZvětšeno}>zvětšit</button>
           <button class="program_filtry_tlacitko">sdílej</button>
           <button
             class={
