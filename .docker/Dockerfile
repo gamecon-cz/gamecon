@@ -79,12 +79,17 @@ RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log
 
 FROM gamecon-php-step3 AS gamecon-php-step4
 
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
+
+#RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
+#    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
+#    && apt-get install -y yarnpkg
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
     && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get install -y yarnpkg
+    && sudo apt-get update && sudo apt install yarn
+
 
 ENV NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
 
