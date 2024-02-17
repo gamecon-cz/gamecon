@@ -21,11 +21,11 @@ class DBTest
     // naimportujeme databázi s už proběhnutými staršími migracemi
     (new \MySQLImport($connection))->load(__DIR__ . '/Db/data/' . $databaze);
 
-    (new DbMigrations(new DbMigrationsConfig([
-      'connection'          => $connection, // předpokládá se, že spojení pro testy má administrativní práva
-      'migrationsDirectory' => __DIR__ . '/../migrace',
-      'doBackups'           => false,
-    ])))->run();
+    (new DbMigrations(new DbMigrationsConfig(
+      connection: $connection, // předpokládá se, že spojení pro testy má administrativní práva
+      migrationsDirectory: __DIR__ . '/../migrace',
+      doBackups: false,
+    )))->run();
 
     /**
      * pokud chceš vyřadit STRICT_TRANS_TABLES (potlačit "Field 'nazev_akce' doesn't have a default value"), použij @see \Gamecon\Tests\Db\DbTest::$disableStrictTransTables
