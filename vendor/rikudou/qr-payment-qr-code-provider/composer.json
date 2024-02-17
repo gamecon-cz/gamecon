@@ -1,0 +1,25 @@
+{
+  "name": "rikudou/qr-payment-qr-code-provider",
+  "description": "QR code provider for QR payment libraries",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Rikudou\\QrPaymentQrCodeProvider\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=7.3",
+    "rikudou/qr-payment-interface": "^1.0"
+  },
+  "require-dev": {
+    "endroid/qr-code": "^4.3",
+    "friendsofphp/php-cs-fixer": "^3.1",
+    "phpstan/phpstan": "^0.12.99",
+    "bacon/bacon-qr-code": "^2.0",
+    "chillerlan/php-qrcode": "^4.3"
+  },
+  "scripts": {
+    "fixer": "php-cs-fixer fix src --verbose",
+    "phpstan": "phpstan analyse --level=max src"
+  }
+}

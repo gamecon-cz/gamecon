@@ -225,9 +225,15 @@ function _dbConnect(
         }
     } catch (\Throwable $throwable) {
         throw new ConnectionException(
-            "Failed to connect to the database, error: '{$throwable->getMessage()}'",
+            sprintf(
+                "Failed to connect to the %s, error: '%s'",
+                $dbName
+                    ? "database '$dbName'"
+                    : 'SQL server',
+                $throwable->getMessage(),
+            ),
             $throwable->getCode(),
-            $throwable
+            $throwable,
         );
     }
     if (!$spojeni) {
@@ -311,9 +317,12 @@ function dbGetExceptionType($spojeni = null)
 
 function dbCreateExceptionFromMysqliException(mysqli_sql_exception $mysqliException): DbException|DbDuplicateEntryException
 {
-    $exceptionClass = $mysqliException->getCode() === 1062
-        ? DbDuplicateEntryException::class
-        : DbException::class;
+    $exceptionClass = match ($mysqliException->getCode()) {
+        1062 => DbDuplicateEntryException::class,
+        1927 => DbConnectionKilledException::class,
+        2006 => MysqlServerHasGoneAwayException::class,
+        default => DbException::class,
+    };
     return new $exceptionClass($mysqliException->getMessage(), $mysqliException->getCode(), $mysqliException);
 }
 
@@ -732,6 +741,23 @@ function dbQv($val): string
     return '"' . mysqli_real_escape_string(dbConnect(), $val) . '"';
 }
 
+function dbQRaw($val): string
+{
+    if (is_array($val)) {
+        throw new LogicException(sprintf('Can not raw escape %s', var_export($val, true)));
+    }
+    if ($val === null) {
+        return 'NULL';
+    }
+    if (is_int($val) || (is_numeric($val) && (string)(int)$val === $val)) {
+        return $val;
+    }
+    if ($val instanceof DateTimeInterface) {
+        return $val->format('Y-m-d H:i:s');
+    }
+    return mysqli_real_escape_string(dbConnect(), $val);
+}
+
 /**
  * Quotes $val as identifier
  */
@@ -816,6 +842,14 @@ class DbDuplicateEntryException extends DbException
         return $this->key;
     }
 
+}
+
+class DbConnectionKilledException extends DbException
+{
+}
+
+class MysqlServerHasGoneAwayException extends DbException
+{
 }
 
 class DbNoChange

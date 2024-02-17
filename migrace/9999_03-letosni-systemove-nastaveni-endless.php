@@ -55,12 +55,6 @@ if ($chybejiciKliceNastaveni) {
             throw new LogicException("Chybí loňský záznam pro nastavení '$klic'");
         }
         $lonskyZaznam = $lonskeZaznamy[$klic];
-        unset($lonskyZaznam[NastaveniSql::ID_NASTAVENI]); // záznam budeme ukládat jako nový, ID původního se nám nehodí
-        $letosniHodnota                               = $letosniSystemoveNastaveni->spocitejHodnotu($klic);
-        $lonskyZaznam[NastaveniSql::HODNOTA]          = $letosniHodnota;
-        $lonskyZaznam[NastaveniSql::POUZE_PRO_CTENI]  = 1;
-        $lonskyZaznam[NastaveniSql::ROCNIK_NASTAVENI] = $rocnik;
-
         /**
          * odstraníme přidané klíče které nepochází z původní tabulky,
          * například @see \Gamecon\SystemoveNastaveni\SystemoveNastaveniStruktura::ID_UZIVATELE
@@ -70,6 +64,11 @@ if ($chybejiciKliceNastaveni) {
             $lonskyZaznam,
             array_fill_keys(NastaveniSql::sloupce(), ''),
         );
+        unset($letosniZaznam[NastaveniSql::ID_NASTAVENI]); // záznam budeme ukládat jako nový, ID původního se nám nehodí
+        $letosniHodnota                                = $letosniSystemoveNastaveni->spocitejHodnotu($klic);
+        $letosniZaznam[NastaveniSql::HODNOTA]          = $letosniHodnota;
+        $letosniZaznam[NastaveniSql::POUZE_PRO_CTENI]  = 1;
+        $letosniZaznam[NastaveniSql::ROCNIK_NASTAVENI] = $rocnik;
 
         $setSql = implode(
             ',',

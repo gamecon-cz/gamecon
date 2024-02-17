@@ -1,0 +1,248 @@
+/**
+ * SpeciÃ¡lnÃ­ soubor kterÃ½ se nekompiluje pro web ale pouÅ¾Ã­vÃ¡ ho tÅ™Ã­da Program
+ * pomocÃ­ odkazu (i pro admin).
+ */
+
+table.program {
+  position: relative; /* kvÅ¯li vÃ½Å¡ce Å¡rafovanÃ½ch oddÄ›lovaÄÅ¯ hodin */
+  border-spacing: 10px;
+  margin: -10px;
+  } @media (max-width: 800px) { table.program {
+      border-spacing: 6px;
+      margin: -6px;
+  }
+}
+
+.program tr {
+  border: none;
+}
+
+.program th {
+  font-weight: normal;
+  text-align: left;
+  font-size: 14px;
+  padding: 0;
+  height: 20px;
+  vertical-align: bottom;
+}
+
+.program th::before {
+  content: '';
+  display: block;
+  position: absolute;
+  height: calc(100% - 50px);
+  border-right: dashed 1px #0002;
+  margin: 28px 0 0 -1px;
+}
+
+.program th:nth-child(1)::before {
+  display: none;
+}
+
+.program td[rowspan] {
+  padding: 16px;
+  font-weight: bold;
+  font-size: 14px;
+  vertical-align: top;
+  position: sticky; /* pozor, zajiÅ¡Å¥uje i pozicovÃ¡nÃ­ .program_nazevLinie */
+  left: 0;
+  z-index: 1; /* aby bylo nad symboly v programu */
+  background-color: #FDC689;
+  color: #10111A;
+}
+@media (max-width: 1500px) {.program td[rowspan] {
+  padding: 0;
+  overflow: hidden;
+}}
+
+@media (max-width: 1500px) {
+  .program_nazevLinie {
+      transform: rotate(-90deg);
+      transform-origin: bottom right;
+      width: 230px;
+      height: 40px;
+      top: -40px;
+      right: 0;
+      margin-top: 15px;
+      overflow: hidden;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: right;
+      text-align: right;
+  }
+  [rowspan="1"] .program_nazevLinie {
+      width: 63px;
+      justify-content: center;
+      text-align: center;
+      margin-top: 5px;
+      font-size: 80%;
+  }
+  [rowspan="2"] .program_nazevLinie {
+      margin-top: 10px;
+      width: 140px;
+  }
+}
+@media (max-width: 800px) {
+  [rowspan="1"] .program_nazevLinie {
+      margin-top: 4px;
+      width: 44px;
+      text-align: left;
+      justify-content: left;
+  }
+  [rowspan="2"] .program_nazevLinie {
+      margin-top: 10px;
+      width: 120px;
+  }
+}
+
+.program td {
+  min-width: 100px;
+  max-width: 100px;
+  padding: 0;
+  } @media (max-width: 1500px) { .program td:first-child {
+      min-width: 40px;
+      max-width: 40px;
+  }} @media (max-width: 800px) { .program td {
+      min-width: 70px;
+      max-width: 70px;
+  }
+}
+
+.program td > div {
+  background-color: #CDF2D9;
+}
+
+.program td > .program_nazevLinie {
+  background-color: transparent; /* obejitÃ­ barev kvÅ¯li legendÄ› */
+}
+
+.program td:not([rowspan]) > div {
+  height: 72px;
+  padding: 12px 15px;
+  box-sizing: border-box;
+  /* nechat pÅ™etÃ©kat kvÅ¯li tÃ½movÃ©mu formulÃ¡Å™i v adminu */
+
+  font-size: 12px;
+  } @media (max-width: 800px) { .program td:not([rowspan]) > div {
+      padding: 10px;
+      height: 52px;
+      overflow: hidden;
+  }
+}
+
+.program td > div > a {
+  text-decoration: none;
+  font-weight: bold;
+  color: inherit;
+  font-size: 14px;
+  display: block;
+  min-height: 2em;
+  max-height: 35px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  width: -moz-fit-content;
+  width: fit-content;
+  } @media (max-width: 800px) { .program td > div > a {
+      line-height: 14px;
+      min-height: 14px;
+      max-height: 14px;
+      min-width: 200px; /* vynutit jeden Å™Ã¡dek */
+      margin-bottom: 7px;
+  }
+}
+
+.program td > div > a:hover {
+  text-decoration: underline;
+}
+
+.program td > div > form > a {
+  color: inherit;
+  text-decoration: none;
+  border-left: solid 1px #0002;
+  padding-left: 9px;
+  margin-left: 7px;
+}
+
+.program td > div > a + form > a {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.program td > div > form > a:hover {
+  text-decoration: underline;
+}
+
+/* druhÃ½ Å™Ã¡dek */
+.program_osobniTyp {
+  border-left: solid 1px #0002;
+  padding-left: 9px;
+  margin-left: 9px;
+}
+
+.program_obsazenost {
+  display: inline-block;
+  background-color: inherit;
+  padding-left: 16px;
+}
+
+.program_obsazenost::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 9px;
+  height: 14px;
+  margin: -2px 0 0 -17px;
+  background: url('clovek.svg');
+}
+
+.program_obsazenost .f {
+  background-color: inherit;
+}
+
+.program_obsazenost .f::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 9px;
+  height: 16px;
+  margin: -2px 0 0 -17px;
+  background: url('zena.svg') 0 2px no-repeat;
+  background-color: inherit;
+}
+
+.program_obsazenost .m {
+  display: inline-block;
+  padding-left: 32px;
+}
+
+.program_obsazenost .m::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  margin: 0 0 0 -19px;
+  background: url('muz.svg');
+}
+
+.program_lokace {
+background-color: inherit;
+font-style: italic;
+font-size: smaller;
+position: relative;
+left: -4px;
+height: 1em;
+overflow: hidden;
+white-space: nowrap;
+text-overflow: ellipsis;
+}
+
+/* legenda (pozor na css priority) */
+.program .vDalsiVlne { background-color: #FCBCBC; }
+.program .vBudoucnu { background-color: #FFECEC; }
+.program .plno { background-color: #F5F5F5; opacity: 0.5; }
+.program .prihlasen { background-color: #65D161; opacity: 1; }
+.program .sledujici { background-color: #E5E891; opacity: 1; }
+.program .organizator { background-color: #7EA5FF; opacity: 1; }

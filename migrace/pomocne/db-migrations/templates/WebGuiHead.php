@@ -16,6 +16,10 @@
             max-width: 25em;
         }
 
+        body p:first-child {
+            max-width: initial;
+        }
+
         input[type=submit] {
             min-width: 150px;
             min-height: 40px;
@@ -45,7 +49,7 @@
 
 <?php if (!$confirmed): ?>
 
-    <p>There is a database migration pending. Press <i>confirm</i> to apply it (might take some time).</p>
+    <p>There is a database migration pending. Press <i>Confirm</i> to apply it (might take some time).</p>
 
     <form method="POST">
         <input type="hidden" name="<?= $postName ?>" value="1">

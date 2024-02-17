@@ -42,7 +42,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             $databazoveNastaveni ?? DatabazoveNastaveni::vytvorZGlobals(),
             $projectRootDir
             ?? try_constant('PROJECT_ROOT_DIR')
-            ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..'
+            ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
         );
     }
 
@@ -159,7 +159,7 @@ SQL,
                         $nazevKonstanty,
                         var_export(constant($nazevKonstanty), true),
                         var_export($hodnota, true),
-                    )
+                    ),
                 );
             }
         }
@@ -287,13 +287,13 @@ SQL,
         } else if ($klic === Klic::REG_GC_DO && $hodnota) {
             try {
                 $regGcDo = $this->vytvorDateTimeZCeskehoFormatu($hodnota);
-            } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
+            } catch (InvalidDateTimeFormat) {
                 throw new ChybnaHodnotaSystemovehoNastaveni("Neplatné datum a čas '$hodnota'");
             }
-            $spocitanyKonec = DateTimeGamecon::spocitejPrihlasovaniUcastnikuDo($this->rocnik);
-            if ($regGcDo->getTimestamp() > $spocitanyKonec->getTimestamp()) {
+            $konecLetosnihoGameconu = $this->konecLetosnihoGameconu();
+            if ($regGcDo->getTimestamp() > $konecLetosnihoGameconu->getTimestamp()) {
                 throw new ChybnaHodnotaSystemovehoNastaveni(
-                    "Konec registrace účastníků musí být nejpozději ke konci GC{$this->rocnik()}: '{$spocitanyKonec->formatCasStandard()}'"
+                    "Konec registrace účastníků musí být nejpozději ke konci GC{$this->rocnik()}: '{$konecLetosnihoGameconu->formatCasStandard()}'",
                 );
             }
         }
@@ -344,7 +344,7 @@ SQL,
                     var_export($hodnota, true),
                     var_export($klic, true),
                     $invalidDateTimeFormat->getMessage(),
-                )
+                ),
             );
         }
     }
@@ -802,6 +802,16 @@ SQL;
         return mezi($this->prihlasovaniUcastnikuOd(), $this->prihlasovaniUcastnikuDo());
     }
 
+    public function predPrihlasovanimUcastniku(): bool
+    {
+        return pred($this->prihlasovaniUcastnikuOd());
+    }
+
+    public function poPrihlasovaniUcastniku(): bool
+    {
+        return po($this->prihlasovaniUcastnikuDo());
+    }
+
     public function neplaticCastkaVelkyDluh(): float
     {
         return defined('NEPLATIC_CASTKA_VELKY_DLUH')
@@ -848,6 +858,11 @@ SQL;
         return (float)$this->dejHodnotu(Klic::PRUMERNE_LONSKE_VSTUPNE);
     }
 
+    public function rootAdresarProjektu(): string
+    {
+        return $this->rootAdresarProjektu;
+    }
+
     public function prihlasovaciUdajeOstreDatabaze(): array
     {
         $souborNastaveniOstra = $this->rootAdresarProjektu . '/../ostra/nastaveni/nastaveni-produkce.php';
@@ -882,6 +897,11 @@ SQL;
 
     public function prihlasovaciUdajeSoucasneDatabaze(): array
     {
+        $dbPort = try_constant('DB_PORT') ?: null;
+        if ($dbPort !== null) {
+            $dbPort = (int)$dbPort;
+        }
+
         return [
             'DBM_USER' => try_constant('DBM_USER'),
             'DBM_PASS' => try_constant('DBM_PASS'),
@@ -889,7 +909,7 @@ SQL;
             'DB_PASS'  => try_constant('DB_PASS'),
             'DB_NAME'  => try_constant('DB_NAME'),
             'DB_SERV'  => try_constant('DB_SERV'),
-            'DB_PORT'  => try_constant('DB_PORT'),
+            'DB_PORT'  => $dbPort,
         ];
     }
 

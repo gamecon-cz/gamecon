@@ -15,7 +15,7 @@ class Cenik
 {
 
     private int   $zbyvajicichMoznychKostekZdarma = 1;
-    private int   $slevaPlacky                    = 0;
+    private int   $zbyvajicichMoznychPlacekZdarma = 1;
     private int   $jakychkoliTricekZdarma         = 0;
     private int   $modrychTricekZdarma            = 0;
     private array $textySlevExtra                 = [];
@@ -64,9 +64,6 @@ class Cenik
         private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
-        if ($u->maPravo(Pravo::PLACKA_ZDARMA)) {
-            $this->slevaPlacky = 25;
-        }
         if ($u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)) {
             $this->jakychkoliTricekZdarma = 2;
         }
@@ -109,6 +106,42 @@ class Cenik
             return false;
         }
         return (int)$letosniKostka->id() === (int)$r[PredmetySql::ID_PREDMETU];
+    }
+
+    public function cenaPlacky(array $r): int
+    {
+        $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
+        $slevaNaPlacku = $this->slevaNaPlacku($r, $cena, false);
+        return $cena - $slevaNaPlacku;
+    }
+
+    private function slevaNaPlacku(array $r, $cena, bool $omezPocet = true): int
+    {
+        if ($omezPocet && $this->zbyvajicichMoznychPlacekZdarma <= 0) {
+            return 0;
+        }
+        if (!$this->u->maPravoNaPlackuZdarma()) {
+            return 0;
+        }
+        if (!$this->maObjednanouLetosniPlacku($r)) {
+            return 0;
+        }
+        if ($omezPocet) {
+            $this->zbyvajicichMoznychPlacekZdarma--;
+        }
+        return (int)$cena;
+    }
+
+    private function maObjednanouLetosniPlacku(array $r): bool
+    {
+        if (!Predmet::jeToPlacka($r[PredmetySql::NAZEV])) {
+            return false;
+        }
+        $letosniPlacka = Predmet::letosniPlacka($this->systemoveNastaveni->rocnik());
+        if (!$letosniPlacka) {
+            return false;
+        }
+        return (int)$letosniPlacka->id() === (int)$r[PredmetySql::ID_PREDMETU];
     }
 
     /**
@@ -177,8 +210,9 @@ class Cenik
             if (Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
                 $slevaKostky = $this->slevaNaKostku($r, $cena);
                 ['cena' => $cena] = self::aplikujSlevu($cena, $slevaKostky);
-            } else if (Predmet::jeToPlacka($r[PredmetySql::NAZEV]) && $this->slevaPlacky) {
-                ['cena' => $cena, 'sleva' => $this->slevaPlacky] = self::aplikujSlevu($cena, $this->slevaPlacky);
+            } else if (Predmet::jeToPlacka($r[PredmetySql::NAZEV])) {
+                $slevaPlacky = $this->slevaNaPlacku($r, $cena);
+                ['cena' => $cena] = self::aplikujSlevu($cena, $slevaPlacky);
             }
         } else if ($typ == Shop::TRICKO && Predmet::jeToModre($r[PredmetySql::NAZEV]) && $this->modrychTricekZdarma > 0) {
             $cena = 0;

@@ -95,9 +95,18 @@
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->
 <div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
-<!-- begin: nelze -->
-<div class="error">Registrace na GameCon není spuštěna.</div>
-<!-- end: nelze -->
+<!-- begin:registraceNaGcNeniSpustena -->
+<div class="error">
+  Registrace na GameCon není spuštěna.
+  <!-- begin:hintJakSpustitRegistrace -->
+  <div>
+    Pro spuštění reigstrací nastav platné datumy <a href="{urlNastaveniZacatkuRegistraci}">začátku registrací</a> a <a
+      href="{urlNastaveniKonceRegistraci}">konce registrací</a>
+    {totoSeUkazujePouzeNaTestu}
+  </div>
+  <!-- end:hintJakSpustitRegistrace -->
+</div>
+<!-- end:registraceNaGcNeniSpustena -->
 <!-- end:neprihlasen -->
 
 <div class="infopult-grid--container">

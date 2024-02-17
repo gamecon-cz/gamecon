@@ -19,11 +19,11 @@ dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
 // naimportujeme databázi s už proběhnutými staršími migracemi
 (new \MySQLImport($connection))->load(__DIR__ . '/Db/data/_localhost-2023_06_21_21_58_55-dump.sql');
 
-(new DbMigrations(new DbMigrationsConfig([
-    'connection'          => $connection, // předpokládá se, že spojení pro testy má administrativní práva
-    'migrationsDirectory' => __DIR__ . '/../migrace',
-    'doBackups'           => false,
-])))->run();
+(new DbMigrations(new DbMigrationsConfig(
+    connection: $connection, // předpokládá se, že spojení pro testy má administrativní práva
+    migrationsDirectory: SQL_MIGRACE_DIR,
+    doBackups: false,
+)))->run();
 
 /**
  * pokud chceš vyřadit STRICT_TRANS_TABLES (potlačit "Field 'nazev_akce' doesn't have a default value"), použij @see \Gamecon\Tests\Db\DbTest::$disableStrictTransTables
@@ -39,6 +39,22 @@ dbClose();
 register_shutdown_function(static function () {
     // nemůžeme použít předchozí $connection, protože to už je uzavřené
     $connection = dbConnectTemporary();
+
+    // force stop any remaining processes running on test DB
+    $fullProcessList  = dbFetchAll('SHOW FULL PROCESSLIST');
+    $testDbProcesses  = array_filter($fullProcessList, static fn(array $process) => $process['db'] === DB_NAME);
+    $testDbProcessIds = array_map(static fn(array $process) => $process['Id'], $testDbProcesses);
+    foreach ($testDbProcessIds as $testDbProcessId) {
+        try {
+            dbQuery(<<<SQL
+            KILL {$testDbProcessId}
+            SQL,
+                $connection,
+            );
+        } catch (\DbConnectionKilledException|\MysqlServerHasGoneAwayException $dbExcetion) {
+        }
+    }
+
     dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
     $dbTestPrefix            = DB_TEST_PREFIX;
     $oldTestDatabasesWrapped = dbFetchAll("SHOW DATABASES LIKE '{$dbTestPrefix}%'", [], $connection);

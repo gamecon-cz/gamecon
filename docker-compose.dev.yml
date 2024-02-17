@@ -1,4 +1,4 @@
-# docker pull jaroslavtyc/gamecon:8.2 && docker-compose up --build
+# docker compose pull && docker compose up --build
 version: "3"
 services:
   web:
@@ -6,26 +6,51 @@ services:
     restart: "no"
     volumes:
       - .:/var/www/html/gamecon:delegated
-      # - ~/.cache/composer:/home/www-data/.composer # Linux only
-      # - ~/.cache/composer:/root/.composer # Linux only
+      # - ~/.cache/composer:/home/www-data/.composer
       - ./.docker/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/docker-compose-xdebug.ini:ro
     environment:
-      XDEBUG_CONFIG: "client_host=172.17.0.1 client_port=9003 remote_log=/tmp/xdebug.log"
+      # XDEBUG_CONFIG: "client_host=172.17.0.1 client_port=9003 remote_log=/tmp/xdebug.log"
       # XDEBUG_TRIGGER: "yes" # to start XDebug for EVERY request (use `export XDEBUG_TRIGGER: "yes"` to enable it in CLI and `unset XDEBUG_TRIGGER` to disable for CLI again - in browser use same-named variable in GET, POST or COOKIE, or legacy named via some browser extension)
-      COMPOSER_AUTH: '{"github-oauth":{"github.com":""}}' # Go to https://github.com/settings/tokens to generate new (read only) access token to let Github pair your requests to your account and to raise the cap of allowed requests (during Composer Github-related actions like install, update, require etc)
+      # COMPOSER_AUTH: '{"github-oauth":{"github.com":""}}' # Go to https://github.com/settings/tokens to generate new (read only) access token to let Github pair your requests to your account and to raise the cap of allowed requests (during Composer Github-related actions like install, update, require etc)
+      PHP_IDE_CONFIG: "serverName=gamecon"
+      COMPOSER_PROCESS_TIMEOUT: -1 # to let composer downloading large libraries indefinitely
     ports:
       - "80:80"
+      - "443:443"
 
   sql.gamecon:
     image: mariadb:10.3.27 # should be same as on live server
     restart: "no"
     environment:
-      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root}"
       - TZ=Europe/Prague
     volumes:
       - ./docker/mysql:/etc/mysql/conf.d:ro
-      - ~/.cache/gamecon/mysql:/var/lib/mysql
-    expose:
-      - 3306
+      # - ~/.cache/gamecon/mysql:/var/lib/mysql
     ports:
-      - "13306:3306"
+      # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
+      - "${SQL_HOST_MAPPING_PORT:-13306}:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - sql.gamecon
+    environment:
+      PMA_HOST: sql.gamecon
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
+      - "${PHPMYADMIN_HOST_MAPPING_PORT:-8081}:80"
+
+  mailhog.gamecon:
+    image: mailhog/mailhog:latest
+    environment:
+      - MH_STORAGE=maildir
+    # volumes:
+    #   - ./docker/mailhog/maildir:/maildir:rw,delegated
+    ports:
+      # set MAILHOG_HOST_MAPPING_PORT variable in .env file for example
+      - "${MAILHOG_HOST_MAPPING_PORT:-8125}:8025"

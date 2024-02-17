@@ -12,9 +12,11 @@
             element.disabled = true
           }, 1) // malý trik aby zablokování tlačítka proběhlo až v dalším "tiku" a tím se nezablokoval samotný submit
 
-          setTimeout(function () {
-            unblockAndRemoveLoading(element, originalBodyCursor, originalElementCursor)
-          }, 10000) // něco se pokazilo, už to trvá déle než deset sekund...
+          if (!element.classList.contains('without-safety-unlock')) {
+            setTimeout(function () {
+              unblockAndRemoveLoading(element, originalBodyCursor, originalElementCursor)
+            }, 10000) // něco se pokazilo, už to trvá déle než deset sekund...
+          }
         })
       }
     })

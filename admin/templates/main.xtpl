@@ -29,7 +29,7 @@
   <script type="text/javascript" src="files/jquery.serializeobject.js?version=756c72ca3178bfe417882afe5b460406"></script>
   <script type="text/javascript" src="files/jquery.cookie-v1.4.1.js"></script>
   <script type="text/javascript" src="files/aplikace.js?version={jsVersions.aplikace}"></script>
-  <script type="text/javascript" src="files/omnibox-1.1.3.js"></script>
+  <script type="text/javascript" src="files/omnibox-1.1.4.js"></script>
   <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
   <script type="text/javascript" src="files/jquery.modal-0.9.1.min.js"></script>
   <script type="text/javascript" src="files/jquery.dirty-0.8.3.js"></script>
