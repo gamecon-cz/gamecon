@@ -30,14 +30,11 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         ?string                 $projectRootDir = null,
     ): self
     {
-        $jsmeNaBete ??= in_array(
-            parse_url(URL_WEBU, PHP_URL_HOST),
-            ['beta.gamecon.cz', 'jakublounek.gamecon.cz'],
-        );
+        
         return new static(
             $rocnik,
             $ted,
-            $jsmeNaBete ?? str_ends_with(parse_url(URL_WEBU, PHP_URL_HOST), 'beta.gamecon.cz'),
+            $jsmeNaBete ?? jsmeNaBete(),
             $jsmeNaLocale ?? jsmeNaLocale(),
             $databazoveNastaveni ?? DatabazoveNastaveni::vytvorZGlobals(),
             $projectRootDir
