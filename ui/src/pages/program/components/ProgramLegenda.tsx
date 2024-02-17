@@ -49,6 +49,9 @@ export const ProgramLegenda = () => {
         }}
       ></div>
       <div class="program_legenda_inner">
+        <div class="program_legenda_typ">
+          Filtruj podle:
+        </div>
         <label class="program_legenda_typ otevrene">
           {zaškrtávátkoPro("volno")}
           Otevřené
