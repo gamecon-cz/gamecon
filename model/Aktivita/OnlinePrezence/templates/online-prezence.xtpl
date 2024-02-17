@@ -289,18 +289,19 @@
                           </div>
                           <hr>
                           <div>
-                            Sloupec je řazený je podle času přihlášení.
+                            Sloupec je řazený podle času přihlášení.
                           </div>
                         </div>
                   ">
                   <i class="fas fa-user-tie"></i>
                   <i class="fas fa-chevron-down razeni neaktivni"></i>
                   </span>
-                </th>
-                <th style="text-align: center">
+                                </th>
+                                <th style="text-align: center" class="lze-radit" data-order='2'>
                   <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
                         title="Dorazil účastník na aktivitu?">
                     <i class="fas fa-check-square"></i>
+                    <i class="fas fa-chevron-down razeni neaktivni"></i>
                   </span>
                 </th>
                 <th class="lze-radit" data-order='3'>Jméno <i class="fas fa-chevron-down razeni neaktivni"></i></th>
