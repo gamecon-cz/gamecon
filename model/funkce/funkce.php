@@ -853,3 +853,8 @@ function intvalOrNull($val)
 {
     return $val == null ? null : intval($val);
 }
+
+function jsmeNaLocale()
+{
+    return PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']) || ($_ENV['ENV'] ?? '') === 'local';
+}
