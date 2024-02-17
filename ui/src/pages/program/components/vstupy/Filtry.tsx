@@ -17,6 +17,8 @@ import "./ReactSelect.less";
 import "./Filtry.less";
 import { přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 import { useProgramStore } from "../../../../store/program";
+import { useEffect, useState } from "preact/hooks";
+import { useCallback } from "react";
 
 type TFiltryProps = {
   otevřeno: boolean;
@@ -66,6 +68,21 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const tagySPočtemAktivit = useTagySPočtemAktivit();
 
   const zvětšeno = useProgramStore(s => s.všeobecné.zvětšeno);
+  const [odkazZkopírován, setOdkazZkopírován] = useState(0);
+
+  useEffect(() => {
+    if (!odkazZkopírován) return;
+    const timeout = setTimeout(() => {
+      setOdkazZkopírován(0);
+    }, 1500);
+    return () => clearTimeout(timeout);
+  }, [odkazZkopírován])
+
+  const sdílejKlik = useCallback(() => {
+    navigator.clipboard.writeText(window.location.href);
+    setOdkazZkopírován(Date.now());
+  }, [])
+
 
   return (
     <>
@@ -123,7 +140,12 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
             "program_filtry_tlacitko program_filtry_tlacitko_zvetsit" +
             (zvětšeno ? " aktivni" : "")
           } onClick={přepniZvětšeno}>zvětšit</button>
-          <button class="program_filtry_tlacitko">sdílej</button>
+          <button class={
+            "program_filtry_tlacitko"
+            + (odkazZkopírován ? " aktivni" : "")
+          }
+            onClick={sdílejKlik}
+          >{odkazZkopírován ? "zkopírováno" : "sdílej"}</button>
           <button
             class={
               "program_filtry_tlacitko" +
