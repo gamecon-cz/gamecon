@@ -20,5 +20,3 @@ if (!defined('PROFILOVACI_LISTA')) define('PROFILOVACI_LISTA', false);
 if (!defined('CACHE_SLOZKY_PRAVA')) define('CACHE_SLOZKY_PRAVA', 0770);
 
 if (!defined('PRIJEMCI_CHYB')) define('PRIJEMCI_CHYB', ['it@gamecon.cz']);
-if (!defined('TEST')) define('TEST', false);
-if (!defined('DB_TEST_PREFIX')) define('DB_TEST_PREFIX', 'gamecon_test_');
