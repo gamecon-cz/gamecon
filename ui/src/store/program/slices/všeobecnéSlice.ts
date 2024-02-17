@@ -4,6 +4,7 @@ export type VšeobecnéSlice = {
   všeobecné: {
     filtryOtevřené: boolean,
     zvětšeno: boolean,
+    kompaktní: boolean,
   }
 }
 
@@ -11,13 +12,14 @@ export const createVšeobecnéSlice: ProgramStateCreator<VšeobecnéSlice> = (_s
   všeobecné: {
     filtryOtevřené: false,
     zvětšeno: false,
+    kompaktní: false,
   },
 });
 
 export const nastavFiltryOtevřené = (hodnota: boolean) => {
   useProgramStore.setState(s => {
     s.všeobecné.filtryOtevřené = hodnota;
-  }, undefined, "filtry otevřené");
+  }, undefined, "nastav filtry otevřené");
 };
 
 export const přepniZvětšeno = () => {
@@ -30,5 +32,17 @@ export const nastavZvětšeno = (hodnota: boolean) => {
   useProgramStore.setState(s => {
     s.všeobecné.zvětšeno = hodnota;
   }, undefined, "nastav zvětšeno");
+};
+
+export const nastavKompaktní = (hodnota: boolean) => {
+  useProgramStore.setState(s => {
+    s.všeobecné.kompaktní = hodnota;
+  }, undefined, "nastav kompaktní");
+};
+
+export const přepniKompaktní = () => {
+  useProgramStore.setState(s => {
+    s.všeobecné.kompaktní = !s.všeobecné.kompaktní;
+  }, undefined, "přepni kompaktní");
 };
 
