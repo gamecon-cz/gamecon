@@ -923,7 +923,7 @@ SQL,
 
         if ($this->bonusZaVedeniAktivit) {
             $this->logb(
-                "<span class='hinted'>Bonus za aktivity - celkový<span class='hint'>využitý {$this->vyuzityBonusZaVedeniAktivit}</span></span>",
+                "<span class='hinted'>Bonus za aktivity</span>",
                 $this->bonusZaVedeniAktivit,
                 self::ORGSLEVA,
             );
