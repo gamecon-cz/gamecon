@@ -9,7 +9,7 @@ on:
       branch:
         description: 'Branch to run tests on'
         required: false
-        default: 'main'
+        default: 'master'
   pull_request:
     branches:
       - master
