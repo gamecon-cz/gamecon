@@ -6,6 +6,7 @@
     } catch(e) {
       // kontrola odhlášení uživatele na pozadí
       if (e.status === 403) {
+        alert("Na pozadí proběhlo odhlášení. Pro pokračování se prosím znovu přihlaste.")
         window.location.reload(true);
       }
     }
