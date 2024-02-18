@@ -81,8 +81,7 @@
         <td>
             <select id="zacatekAkce" name="{fields}[zacatek]">
                 <!-- begin:zacatek -->
-                <option {selected} value="{zacatek}">{zacatekSlovy}</option>
-                <!-- end:zacatek -->
+                <option {selected} value="{zacatek}">{zacatekSlovy}</option><!-- end:zacatek -->
             </select>–<select name="{fields}[konec]" id="konecAkce">
             <!-- begin:konec -->
             <option {selected} value="{konec}">{konecSlovy}</option><!-- end:konec -->

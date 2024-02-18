@@ -86,8 +86,6 @@ function zabalWebSoubor(string $cestaKSouboru): string
         FORCE_REDUX_DEVTOOLS: <?= defined("FORCE_REDUX_DEVTOOLS") ? "true" : "false" ?>,
         PROGRAM_OD: <?= (new DateTimeCz(PROGRAM_OD))->getTimestamp() ?>000,
         PROGRAM_DO: <?= (new DateTimeCz(PROGRAM_DO))->getTimestamp() ?>000,
-        PROGRAM_ZACATEK: <?= PROGRAM_ZACATEK ?>,
-        PROGRAM_KONEC: <?= PROGRAM_KONEC ?>,
     }
 
     window.gameconPřednačtení =

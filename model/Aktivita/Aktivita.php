@@ -379,7 +379,7 @@ SQL
 
         // kontrola dostupnosti organizátorů v daný čas
         if (!empty($a['den']) && !empty($a[Sql::ZACATEK]) && !empty($a[Sql::KONEC])) {
-            $zacatek           = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
+            $zacatek           = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
             $konec             = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
             $ignorovatAktivitu = isset($a[Sql::ID_AKCE]) ? self::zId($a[Sql::ID_AKCE]) : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
@@ -550,11 +550,6 @@ SQL
 
     private static function parseUpravyTabulkaDen(?Aktivita $aktivita, XTemplate $xtpl)
     {
-        if ($aktivita) {
-            $denAktivity = $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK ? $aktivita->zacatek() : $aktivita->zacatek()->minusDen();
-        } else {
-            $denAktivity = null;
-        }
         $xtpl->assign([
             'selected' => $aktivita && !$aktivita->zacatek() ? 'selected' : '',
             'den'      => 0,
@@ -563,7 +558,7 @@ SQL
         $xtpl->parse('upravy.tabulka.den');
         for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
             $xtpl->assign([
-                'selected' => $aktivita && $den->stejnyDen($denAktivity) ? 'selected' : '',
+                'selected' => $aktivita && $den->stejnyDen($aktivita->zacatek()) ? 'selected' : '',
                 'den'      => $den->format('Y-m-d'),
                 'denSlovy' => $den->format('l'),
             ]);
@@ -579,13 +574,7 @@ SQL
         $aKonec        = $aktivita && $aktivita->konec()
             ? (int)$aktivita->konec()->sub(new \DateInterval('PT1H'))->format('G')
             : null;
-
-        // kontrola přehoupnutí přes půlnoc
-        if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
-            $hodinyZacatku = array_merge(range(PROGRAM_ZACATEK, 24 - 1, 1), range(0, PROGRAM_KONEC - 1, 1));
-        } else {
-            $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
-        }
+        $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
         array_unshift($hodinyZacatku, null);
         foreach ($hodinyZacatku as $hodinaZacatku) {
             $xtpl->assign('selected', $aZacatek === $hodinaZacatku ? 'selected' : '');
@@ -737,11 +726,8 @@ SQL
             $a['zacatek'] = null;
             $a['konec']   = null;
         } else {
-            $zacatekDen = $a['zacatek'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
-            $a['zacatek'] = ($zacatekDen)->add(new \DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
-
-            $konecDen = $a['konec'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
-            $a['konec']   = ($konecDen)->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
+            $a['zacatek'] = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
+            $a['konec']   = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
         }
         unset($a['den']);
         // extra položky kvůli sep. tabulkám
