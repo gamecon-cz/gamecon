@@ -28,6 +28,7 @@ $vetev = $out[0];
 exec('git status', $out);
 if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
     echo "error: working directory is not clean\n";
+    print_r($out);
     exit(1);
 }
 
