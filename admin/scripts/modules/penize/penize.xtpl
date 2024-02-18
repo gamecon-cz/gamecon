@@ -2,9 +2,127 @@
 
 <h1>Peníze</h1>
 
-<p>♪ Pod dubem za dubem
-  tam si na tě počíháme</p>
-<p>pod dubem za dubem
-  tam tě voškubem! 🎶</p>
+<!-- begin: pripsatSlevu -->
+<div style="float: left">
+  <strong>Připsat slevu</strong>
+  <form method="post">∂
+    <table>
+      <tr>
+        <td>Výše slevy:</td>
+        <td>
+          <input type="text" name="sleva" title="Zadej výši slevy"
+                 style="text-align:right;width:40px" pattern="[0-9,]+" required>&thinsp;Kč
+        </td>
+      </tr>
+      <tr>
+        <td>Uživateli s ID:</td>
+        <td><input type="text" name="uzivatelProPripsaniSlevy" value="{id}"></td>
+      </tr>
+      <tr>
+        <td>Poznámka:</td>
+        <td>
+          <input type="text" name="poznamkaKUzivateliProPripsaniSlevy" title="Zadej poznámku" required>
+        </td>
+      </tr>
+      <tr>
+        <td>Připsal{aa}:</td>
+        <td><input type="text" value="{org}" disabled style="background-color: lightgray; cursor: not-allowed"></td>
+      </tr>
+    </table>
+    <input type="submit" value="Připsat">
+  </form>
+</div>
+<!-- end: pripsatSlevu -->
+
+<!-- begin: vyplatitBonusZaVedeniAktivity -->
+<div style="float: left; margin-left: 1em">
+  <strong>Převést bonus za vedení aktivity na peníze</strong>
+  <form method="post">
+    <table>
+      <tr>
+        <td><label for="uzivatelKVyplaceniAktivity">Uživatel</label></td>
+        <td>
+          <div class="hinted">
+            <select name="uzivatelKVyplaceniAktivity" id="uzivatelKVyplaceniAktivity" required style="display: none">
+            </select>
+            <span id="nahravamUzivateleKVyplaceniAktivity"
+                  style="display: inline-block; width: 100%; background-image: url('files/design/ui-lightness/images/animated-overlay.gif')">&nbsp;</span>
+            <span class="hint">Vypravěči s letošní učastí na GC</span>
+          </div>
+          <script type="text/javascript">
+            const uzivatelKVyplaceniAktivity = jQuery('#uzivatelKVyplaceniAktivity')
+            jQuery.ajax({
+              async: true,
+              method: 'GET',
+              url: window.location.pathname + '?ajax=uzivatel-k-vyplaceni-aktivity',
+              timeout: 20 * 1000, // milliseconds
+              success: function (data) {
+                data.forEach(function (vypravec) {
+                  const option = jQuery(
+                      '<option value="' + encodeURIComponent(vypravec.id) + '">'
+                      + vypravec.jmeno
+                      + ' - bonus k vyplacení ' + vypravec.nevyuzityBonusZaAktivity
+                      + '</option>',
+                  )
+                  uzivatelKVyplaceniAktivity.append(option)
+                })
+                jQuery('#nahravamUzivateleKVyplaceniAktivity').remove()
+                uzivatelKVyplaceniAktivity.css('display', 'initial')
+              },
+              error: function (jqXHR, textStatus, errorThrown) {
+                jQuery('#nahravamUzivateleKVyplaceniAktivity').replaceWith(
+                    '<span class="error inline">Něco se nepovedlo: "' + errorThrown + '"</span>',
+                )
+              },
+            })
+          </script>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="poznamkaKVyplaceniBonusu">Poznámka:</label></td>
+        <td>
+          <input id="poznamkaKVyplaceniBonusu" type="text" name="poznamkaKVyplaceniBonusu" title="Zadej poznámku"
+                 required value="Převedení bonusu">
+        </td>
+      </tr>
+      <tr>
+        <td><label for="prevedlBonus">Převedl{aa}:</label></td>
+        <td><input id="prevedlBonus" type="text" value="{org}" disabled
+                   style="background-color: lightgray; cursor: not-allowed"></td>
+      </tr>
+    </table>
+    <span class="hinted">
+    <input type="submit" value="Převést" class="hinted">
+    <span class="hint">
+      Jde pouze o převod bonusu (<i>Slevy za organizované aktivity</i>) na pohyb na účtu (připsání).<br>
+      Samotné fyzické vyplacení je potřeba provést <strong>ručně</strong>.
+    </span>
+  </span>
+  </form>
+</div>
+<!-- end: vyplatitBonusZaVedeniAktivity -->
+
+<hr style="clear: left">
+
+<!-- begin:reporty -->
+<table class="zvyraznovana">
+  <tbody>
+  <tr>
+    <th>Report</th>
+    <th colspan="2">Formáty</th>
+  </tr>
+  <tr>
+    <td>Ubytování</td>
+    <td><a href="reporty/{ubytovani}">xlsx</a></td>
+    <td><a href="reporty/{ubytovani}?format=html" target="_blank">html</a></td>
+  </tr>
+  <tr>
+    <td>Celkový report {rok}</td>
+    <td><a href="reporty/{bfgr}">xlsx</a></td>
+    <td><a href="reporty/{bfgr}?format=html" target="_blank">html</a></td>
+  </tr>
+  </tbody>
+</table>
+<!-- end:reporty -->
 
 <!-- end:penize -->

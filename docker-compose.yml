@@ -2,7 +2,7 @@
 version: "3"
 services:
   web:
-    image: jaroslavtyc/gamecon:8.2
+    image: gameconcz/gamecon:8.2
     restart: "no"
     volumes:
       - .:/var/www/html/gamecon:delegated

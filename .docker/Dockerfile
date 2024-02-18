@@ -75,17 +75,12 @@ RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log
 
 FROM gamecon-php-step3 AS gamecon-php-step4
 
-RUN apt-get install -y ca-certificates --no-install-recommends \
-    curl \
-    gnupg
-RUN mkdir -p /etc/apt/keyrings
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-
-RUN apt-get update \
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
-RUN npm install --global yarn
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+    && apt-get update && apt install yarn
 
 ENV NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
 
