@@ -2,17 +2,18 @@ import produce from "immer";
 import { FunctionComponent } from "preact";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
-import { useAktivita, useUrlState, useUživatelPohlaví } from "../../../../store/program/selektory";
+import {
+  useAktivita,
+  useUrlState,
+  useUživatelPohlaví,
+} from "../../../../store/program/selektory";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 
-const aktivitaTřídy = (
-  aktivita: Aktivita,
-  pohlavi: Pohlavi | undefined
-) => {
+const aktivitaTřídy = (aktivita: Aktivita, pohlavi: Pohlavi | undefined) => {
   const classes: string[] = [];
   if (
     aktivita.stavPrihlaseni != undefined &&
@@ -67,7 +68,8 @@ export const ProgramTabulkaBuňka: FunctionComponent<
 
   const hodinOd = new Date(aktivita.cas.od).getHours();
   const hodinDo = new Date(aktivita.cas.do).getHours();
-  const rozsah = hodinDo - hodinOd;
+  const rozsah =
+    hodinDo > hodinOd ? hodinDo - hodinOd : 23 - hodinOd + hodinDo + 1;
 
   return (
     <>
