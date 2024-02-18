@@ -14,6 +14,7 @@ import {
 } from "../../../../store/program/slices/urlSlice";
 
 import "./ReactSelect.less";
+import "./Filtry.less";
 
 type TFiltryProps = {
   otevřeno: boolean;

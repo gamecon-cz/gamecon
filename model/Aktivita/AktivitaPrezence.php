@@ -339,7 +339,7 @@ SQL,
             (int)$posledniZmena['id_uzivatele'],
             (int)$posledniZmena['id_akce'],
             (int)$posledniZmena['id_log'],
-            new \DateTimeImmutable($posledniZmena['kdy']),
+            new \DateTimeImmutable((string) $posledniZmena['kdy']),
             $posledniZmena['typ']
         );
     }

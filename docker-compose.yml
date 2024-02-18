@@ -44,7 +44,7 @@ services:
       PMA_PORT: 3306
       UPLOAD_LIMIT: 64M
       PMA_ARBITRARY: 1
-    restart: no
+    restart: "no"
     ports:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
       - "${PHPMYADMIN_HOST_MAPPING_PORT:-8081}:80"
@@ -55,7 +55,7 @@ services:
       - MH_STORAGE=maildir
     # volumes:
     #   - ./docker/mailhog/maildir:/maildir:rw,delegated
-    restart: no
+    restart: "no"
     ports:
       # set MAILHOG_HOST_MAPPING_PORT variable in .env file for example
       - "${MAILHOG_HOST_MAPPING_PORT:-8125}:8025"

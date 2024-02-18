@@ -4,6 +4,16 @@ on:
     branches: # beta a master si pouští testy samy, před deployem, viz deploy-beta.yml a deploy-ostra.yml
       - '!beta'
       - '!master'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests on'
+        required: false
+        default: 'main'
+  pull_request:
+    branches:
+      - master
+
 jobs:
   run-tests:
     strategy:
