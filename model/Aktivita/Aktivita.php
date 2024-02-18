@@ -552,7 +552,6 @@ SQL
     private static function parseUpravyTabulkaDen(?Aktivita $aktivita, XTemplate $xtpl)
     {
         if ($aktivita) {
-            // die(var_dump($aktivita));
             $denAktivity = $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK ? $aktivita->zacatek() : $aktivita->zacatek()->minusDen();
         } else {
             $denAktivity = null;
