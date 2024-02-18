@@ -657,4 +657,17 @@ HTML;
             $bunky .= '<td></td>';
         return "<tr><td rowspan=\"1\"><div class=\"program_nazevLinie\">$nazev</div></td>$bunky</tr>";
     }
+
+    /**
+     * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni)
+     * @param Aktivita $a
+     * @param Boolean  $podleZacatku
+     */
+    public static function denAktivity($a, $podleZacatku = true) {
+        if ($podleZacatku) {
+            return $a['zacatek'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
+        } else {
+            return $a['konec'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
+        }
+    }
 }

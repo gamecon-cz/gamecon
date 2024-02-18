@@ -379,8 +379,9 @@ SQL
 
         // kontrola dostupnosti organizátorů v daný čas
         if (!empty($a['den']) && !empty($a[Sql::ZACATEK]) && !empty($a[Sql::KONEC])) {
-            $zacatek           = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
-            $konec             = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
+
+            $zacatek           = (Program::denAktivity($a))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
+            $konec             = (Program::denAktivity($a, false))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
             $ignorovatAktivitu = isset($a[Sql::ID_AKCE]) ? self::zId($a[Sql::ID_AKCE]) : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = Uzivatel::zId($orgId);
@@ -551,6 +552,7 @@ SQL
     private static function parseUpravyTabulkaDen(?Aktivita $aktivita, XTemplate $xtpl)
     {
         if ($aktivita) {
+            // die(var_dump($aktivita));
             $denAktivity = $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK ? $aktivita->zacatek() : $aktivita->zacatek()->minusDen();
         } else {
             $denAktivity = null;
@@ -589,8 +591,13 @@ SQL
         array_unshift($hodinyZacatku, null);
         foreach ($hodinyZacatku as $hodinaZacatku) {
             $xtpl->assign('selected', $aZacatek === $hodinaZacatku ? 'selected' : '');
-            $xtpl->assign('zacatek', $hodinaZacatku);
-            $xtpl->assign('zacatekSlovy', $hodinaZacatku !== null ? ($hodinaZacatku . ':00') : '?');
+            if ($hodinaZacatku === 0) {
+                $xtpl->assign('zacatek', "24");
+                $xtpl->assign('zacatekSlovy', '24:00');
+            } else {
+                $xtpl->assign('zacatek', $hodinaZacatku);
+                $xtpl->assign('zacatekSlovy', $hodinaZacatku !== null ? ($hodinaZacatku . ':00') : '?');
+            }
             $xtpl->parse('upravy.tabulka.zacatek');
 
             $xtpl->assign('selected', $aKonec === $hodinaZacatku ? 'selected' : '');
@@ -737,10 +744,10 @@ SQL
             $a['zacatek'] = null;
             $a['konec']   = null;
         } else {
-            $zacatekDen = $a['zacatek'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
+            $zacatekDen = Program::denAktivity($a);
             $a['zacatek'] = ($zacatekDen)->add(new \DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
 
-            $konecDen = $a['konec'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
+            $konecDen = Program::denAktivity($a, false);
             $a['konec']   = ($konecDen)->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
         }
         unset($a['den']);
