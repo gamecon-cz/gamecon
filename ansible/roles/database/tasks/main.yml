@@ -1,0 +1,34 @@
+---
+- name: Ensure database and corresponding python modules are installed
+  ansible.builtin.apt:
+    name:
+      - mariadb-server
+      - python3-pymysql
+    state: present
+
+- name: Ensure database is enabled and running
+  ansible.builtin.systemd:
+    name: mariadb.service
+    state: started
+    enabled: true
+
+- name: Ensure all databases are created
+  community.mysql.mysql_db:
+    name: "{{ mysql.databases }}"
+    state: present
+    config_file: ""
+    login_unix_socket: /run/mysqld/mysqld.sock
+
+- name: Ensure all users are created with proper privs
+  community.mysql.mysql_user:
+    name: "{{ dbuser.name }}"
+    password: "{{ dbuser.pass }}"
+    priv: "{{ dbuser.priv }}"
+    host: "{{ dbuser.host | d('localhost') }}"
+    state: present
+    config_file: ""
+    login_unix_socket: /run/mysqld/mysqld.sock
+  loop: "{{ mysql.users }}"
+  loop_control:
+    loop_var: dbuser
+    label: "{{ dbuser.name }}"

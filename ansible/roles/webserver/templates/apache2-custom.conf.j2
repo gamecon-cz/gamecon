@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+
+ServerName      {{ apache.server_name }}
+ServerAdmin     {{ apache.server_admin }}
+
+ServerTokens    Prod
+ServerSignature Off
+TraceEnable     Off
+
+LogLevel        info ssl:warn
+CustomLog       ${APACHE_LOG_DIR}/access.log combined
+ErrorLog        ${APACHE_LOG_DIR}/error.log
+
+<IfModule mpm_prefork_module>
+    MinSpareServers         10
+    MaxSpareServers         20
+    MaxConnectionsPerChild  1000
+    MaxRequestWorkers       150
+    #ServerLimit            256
+    #ListenBacklog          511
+    TimeOut                 100
+</IfModule>
+
+# vim: set ft=apache :
