@@ -4,8 +4,8 @@ import Select from "react-select";
 import { GAMECON_KONSTANTY, ROKY } from "../../../../env";
 import {
   useTagySPočtemAktivit,
-  useUrlState,
-  useUrlStateMožnosti,
+  useUrlStav,
+  useUrlStavMožnosti,
 } from "../../../../store/program/selektory";
 import {
   nastavFiltrLinií,
@@ -62,9 +62,9 @@ const formatOptionLabel = (data: TValueLabel) =>
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
-  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrTagy, filtrText } = useUrlState();
+  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrTagy, filtrText } = useUrlStav();
 
-  const urlStateMožnosti = useUrlStateMožnosti();
+  const urlStavMožnosti = useUrlStavMožnosti();
 
   const tagySPočtemAktivit = useTagySPočtemAktivit();
 
@@ -105,7 +105,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           <div style={{ flex: "1", maxWidth: "400px" }}>
             <Select
               placeholder="Linie"
-              options={urlStateMožnosti.linie.map(asValueLabel)}
+              options={urlStavMožnosti.linie.map(asValueLabel)}
               closeMenuOnSelect={false}
               isMulti
               value={filtrLinie?.map(asValueLabel) ?? []}

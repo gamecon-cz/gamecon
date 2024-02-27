@@ -1,14 +1,14 @@
 import { useProgramStore } from ".";
 import { Pohlavi, PřihlášenýUživatel } from "../../api/přihlášenýUživatel";
-import { ProgramTabulkaVýběr, ProgramURLState } from "./logic/url";
+import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
 import shallow from "zustand/shallow";
 import { FiltrAktivit, filtrujAktivity } from "./logic/aktivity";
 import { Aktivita, filtrujDotaženéAktivity, jeAktivitaDotažená } from "./slices/programDataSlice";
 
 const useFiltrAktivit = (aktivitaFiltr?: FiltrAktivit) => {
-  const urlState = useProgramStore((s) => s.urlState);
+  const urlStav = useProgramStore((s) => s.urlStav);
 
-  return aktivitaFiltr ?? (urlState as FiltrAktivit);
+  return aktivitaFiltr ?? (urlStav as FiltrAktivit);
 };
 
 /**
@@ -40,7 +40,7 @@ export const useAktivita = (akitivitaId: number): Aktivita | undefined =>
 
 export const useAktivitaNáhled = (): Aktivita | undefined =>
   useProgramStore(s => {
-    const aktivita = s.data.aktivityPodleId[s.urlState.aktivitaNáhledId ?? -1];
+    const aktivita = s.data.aktivityPodleId[s.urlStav.aktivitaNáhledId ?? -1];
     return jeAktivitaDotažená(aktivita) ? aktivita : undefined;
   }, shallow);
 
@@ -48,15 +48,15 @@ export const useAktivitaNáhled = (): Aktivita | undefined =>
  * Tagy s počtem aktivit které mají filtr daný ročník
  */
 export const useTagySPočtemAktivit = () => {
-  const urlStateMožnosti = useUrlStateMožnosti();
+  const urlStavMožnosti = useUrlStavMožnosti();
 
-  const urlState = useProgramStore((s) => s.urlState);
+  const urlStav = useProgramStore((s) => s.urlStav);
 
   const aktivvityRočník = useAktivityFiltrované({
-    ročník: urlState.ročník,
+    ročník: urlStav.ročník,
   });
 
-  const tagy = urlStateMožnosti.tagy;
+  const tagy = urlStavMožnosti.tagy;
 
   const tagyPočetVRočníku = new Map<string, number>(tagy.map(x => [x, 0] as [string, number]));
 
@@ -70,11 +70,11 @@ export const useTagySPočtemAktivit = () => {
     .sort((a, b) => b.celkemVRočníku - a.celkemVRočníku);
 };
 
-export const useUrlState = (): ProgramURLState => useProgramStore(s => s.urlState);
-export const useUrlVýběr = (): ProgramTabulkaVýběr => useProgramStore((s) => s.urlState.výběr);
-export const useUrlStateMožnostiDny = (): ProgramTabulkaVýběr[] => useProgramStore(s => s.urlStateMožnosti.dny);
-export const useUrlStateMožnosti = () => useProgramStore(s => s.urlStateMožnosti);
-export const useUrlStateStavyFiltr = () => useProgramStore(s => s.urlState.filtrStavAktivit ?? []);
+export const useUrlStav = (): ProgramURLStav => useProgramStore(s => s.urlStav);
+export const useUrlVýběr = (): ProgramTabulkaVýběr => useProgramStore((s) => s.urlStav.výběr);
+export const useUrlStavMožnostiDny = (): ProgramTabulkaVýběr[] => useProgramStore(s => s.urlStavMožnosti.dny);
+export const useUrlStavMožnosti = () => useProgramStore(s => s.urlStavMožnosti);
+export const useUrlStavStavyFiltr = () => useProgramStore(s => s.urlStav.filtrStavAktivit ?? []);
 
 export const useUživatel = (): PřihlášenýUživatel => useProgramStore(s => s.přihlášenýUživatel.data);
 export const useUživatelPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.přihlášenýUživatel.data?.pohlavi);
