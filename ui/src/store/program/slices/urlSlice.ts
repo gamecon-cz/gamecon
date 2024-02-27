@@ -119,6 +119,11 @@ export const nastavFiltrStavů = (vybranéStavy: AktivitaStav[]) => {
   }, undefined, "nastav filtr stavy");
 };
 
+export const nastavFiltrTextu = (text: string | undefined | null) => {
+  useProgramStore.setState((s) => {
+    s.urlState.filtrText = !text /* žádná hodnota nebo prázdná */ ? undefined : text;
+  }, undefined, "nastav filtr text");
+};
 
 export const nastavFiltrPřihlašovatelné = (přihlašovatelné:boolean) =>{
   useProgramStore.setState((s) => {

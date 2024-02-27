@@ -22,6 +22,7 @@ export type ProgramURLState = {
   filtrLinie?: string[],
   filtrTagy?: string[],
   filtrStavAktivit?: AktivitaStav[],
+  filtrText?: string,
 }
 
 export const URL_STATE_VÝCHOZÍ_MOŽNOST = Object.freeze({
@@ -42,6 +43,7 @@ const TAGY_QUERY_KEY = "tagy";
 const PŘIHLAŠOVATELNÉ_QUERY_KEY = "pouzePrihlasovatelne";
 const ROCNIK_QUERY_KEY = "rocnik";
 const STAVY_QUERY_KEY = "stav";
+const TEXT_QUERY_KEY = "text";
 
 export const parsujUrl = (url: string) => {
   const basePath = new URL(GAMECON_KONSTANTY.BASE_PATH_PAGE).pathname;
@@ -79,7 +81,13 @@ export const parsujUrl = (url: string) => {
       urlState.filtrStavAktivit = tagy;
     }
   } catch (e) { console.error(`failed to parse ${urlObj.searchParams.get(STAVY_QUERY_KEY) ?? ""}`); }
-
+  try {
+    const textRaw = urlObj.searchParams.get(TEXT_QUERY_KEY);
+    if (textRaw) {
+      const text = JSON.parse(decodeURIComponent(textRaw));
+      urlState.filtrText = text;
+    }
+  } catch (e) { console.error(`failed to parse ${urlObj.searchParams.get(TEXT_QUERY_KEY) ?? ""}`); }
 
   return urlState;
 };
@@ -95,7 +103,7 @@ export const generujUrl = (urlState: ProgramURLState): string | undefined => {
 
   const search: string[] = [];
 
-  if (urlState.ročník !== GAMECON_KONSTANTY.ROCNIK) 
+  if (urlState.ročník !== GAMECON_KONSTANTY.ROCNIK)
     search.push(`${ROCNIK_QUERY_KEY}=${urlState.ročník}`);
 
   if (urlState.aktivitaNáhledId)
@@ -109,6 +117,9 @@ export const generujUrl = (urlState: ProgramURLState): string | undefined => {
 
   if (urlState.filtrStavAktivit)
     search.push(`${STAVY_QUERY_KEY}=${encodeURIComponent(JSON.stringify(urlState.filtrStavAktivit))}`);
+
+  if (urlState.filtrText)
+    search.push(`${TEXT_QUERY_KEY}=${encodeURIComponent(JSON.stringify(urlState.filtrText))}`);
 
   if (urlState.filtrPřihlašovatelné)
     search.push(`${PŘIHLAŠOVATELNÉ_QUERY_KEY}=true`);
@@ -129,9 +140,10 @@ export const urlStateProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?:
     .concat(...((props?.přihlášen ?? false) ? [{ typ: "můj" } as ProgramTabulkaVýběr] : []));
 
 const urlZTabulkaVýběr = (výběr: ProgramTabulkaVýběr) =>
-  (výběr.typ === "můj"
+  výběr.typ === "můj"
     ? "muj"
-    : formátujDenVTýdnu(výběr.datum));
+    : formátujDenVTýdnu(výběr.datum)
+    ;
 
 export const porovnejTabulkaVýběr = (v1: ProgramTabulkaVýběr, v2: ProgramTabulkaVýběr) =>
   urlZTabulkaVýběr(v1) === urlZTabulkaVýběr(v2);

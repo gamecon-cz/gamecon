@@ -1,4 +1,5 @@
 import { FunctionComponent } from "preact";
+import { useEffect, useState } from "preact/hooks";
 import Select from "react-select";
 import { GAMECON_KONSTANTY, ROKY } from "../../../../env";
 import {
@@ -11,13 +12,13 @@ import {
   nastavFiltrPřihlašovatelné,
   nastavFiltrRočník,
   nastavFiltrTagů,
+  nastavFiltrTextu,
 } from "../../../../store/program/slices/urlSlice";
 
 import "./ReactSelect.less";
 import "./Filtry.less";
 import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 import { useProgramStore } from "../../../../store/program";
-import { useEffect, useState } from "preact/hooks";
 import { useCallback } from "react";
 
 type TFiltryProps = {
@@ -61,7 +62,7 @@ const formatOptionLabel = (data: TValueLabel) =>
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
-  const urlState = useUrlState();
+  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrTagy, filtrText } = useUrlState();
 
   const urlStateMožnosti = useUrlStateMožnosti();
 
@@ -75,14 +76,13 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
     const timeout = setTimeout(() => {
       setOdkazZkopírován(0);
     }, 1500);
-    return () => clearTimeout(timeout);
-  }, [odkazZkopírován])
+    return () => { clearTimeout(timeout); };
+  }, [odkazZkopírován]);
 
   const sdílejKlik = useCallback(() => {
-    navigator.clipboard.writeText(window.location.href);
+    void navigator.clipboard.writeText(window.location.href);
     setOdkazZkopírován(Date.now());
-  }, [])
-
+  }, []);
 
   return (
     <>
@@ -95,7 +95,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
         <div style={{ display: "flex", gap: 16 }}>
           <div style={{ width: "120px" }}>
             <Select
-              value={asValueLabel(urlState.ročník)}
+              value={asValueLabel(ročník)}
               onChange={(e) => {
                 nastavFiltrRočník(e?.value);
               }}
@@ -108,7 +108,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
               options={urlStateMožnosti.linie.map(asValueLabel)}
               closeMenuOnSelect={false}
               isMulti
-              value={urlState.filtrLinie?.map(asValueLabel) ?? []}
+              value={filtrLinie?.map(asValueLabel) ?? []}
               onChange={(e) => {
                 nastavFiltrLinií(e.map((x) => x.value));
               }}
@@ -123,7 +123,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
               }))}
               isMulti
               closeMenuOnSelect={false}
-              value={urlState.filtrTagy?.map(asValueLabel) ?? []}
+              value={filtrTagy?.map(asValueLabel) ?? []}
               onChange={(e) => {
                 nastavFiltrTagů(e.map((x) => x.value));
               }}
@@ -131,7 +131,12 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
             />
           </div>
           <div style={{ minWidth: "300px" }} class="formular_polozka">
-            <input style={{ marginTop: 0 }} placeholder="Hledej v textu" />
+            <input style={{ marginTop: 0 }} placeholder="Hledej v textu"
+              value={filtrText}
+              onChange={(e)=>{
+                nastavFiltrTextu(e.currentTarget.value);
+              }}
+            />
           </div>
         </div>
 
@@ -143,16 +148,15 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           <button class={
             "program_filtry_tlacitko"
             + (odkazZkopírován ? " aktivni" : "")
-          }
-            onClick={sdílejKlik}
+          } onClick={sdílejKlik}
           >{odkazZkopírován ? "zkopírováno" : "sdílej"}</button>
           <button
             class={
               "program_filtry_tlacitko" +
-              (urlState.filtrPřihlašovatelné ? " aktivni" : "")
+              (filtrPřihlašovatelné ? " aktivni" : "")
             }
             onClick={() => {
-              nastavFiltrPřihlašovatelné(!urlState.filtrPřihlašovatelné);
+              nastavFiltrPřihlašovatelné(!filtrPřihlašovatelné);
             }}
           >
             Přihlašovatelné
