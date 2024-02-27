@@ -59,7 +59,7 @@ class BfgrReport
         $rocnik           = $this->systemoveNastaveni->rocnik();
         $predmetUbytovani = TypPredmetu::UBYTOVANI;
         $typUcast         = Role::TYP_UCAST;
-        $o                = dbQuery(<<<SQL
+        $result                = dbQuery(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
     prihlasen.posazen AS prihlasen_na_gc_kdy,
@@ -123,7 +123,7 @@ SQL,
                 3 => $idUzivatele ?: null,
             ],
         );
-        if (mysqli_num_rows($o) === 0) {
+        if (mysqli_num_rows($result) === 0) {
             if ($doSouboru) {
                 file_put_contents($doSouboru, '');
                 return;
@@ -137,7 +137,7 @@ SQL,
 //        $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
 //        $letosniCovidTestyKlice      = array_fill_keys($letosniCovidTesty, null);
 
-        while ($r = mysqli_fetch_assoc($o)) {
+        while ($r = mysqli_fetch_assoc($result)) {
             $navstevnik = new Uzivatel($r);
             $navstevnik->nactiPrava(); // sql subdotaz, zlo
             $finance        = $navstevnik->finance();
@@ -232,7 +232,7 @@ SQL,
                         'Dobrovolník pozice'                 => $r['pomoc_typ'],
                         'Dobrovolník info'                   => $r['pomoc_vice'],
                         'Storno aktivit'                     => $finance->sumaStorna(),
-                        'Dárky a zlevněné nákupy'            => implode(", ", array_merge($finance->slevyVse(), $finance->slevyAktivity())),
+                        'Dárky a zlevněné nákupy'            => implode(', ', array_merge($finance->slevyVse(), $finance->slevyAktivity())),
                         'Objednávky'                         => strip_tags($finance->prehledPopis()),
                         'Poznámka'                           => strip_tags((string)$r['poznamka']),
                     ],

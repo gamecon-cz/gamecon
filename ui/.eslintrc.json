@@ -1,0 +1,106 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:@typescript-eslint/strict"
+  ],
+  "overrides": [],
+  "settings": {
+    "react": {
+      "pragma": "h",
+      "version": "16.0"
+    }
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "project": [
+      "./tsconfig.json"
+    ]
+  },
+  "plugins": [
+    "react",
+    "@typescript-eslint"
+  ],
+  "rules": {
+    "indent": [
+      "warn",
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    // "linebreak-style": [
+    //   "error",
+    //   "unix"
+    // ],
+    "quotes": [
+      "warn",
+      "double",
+      {
+        "allowTemplateLiterals": true
+      }
+    ],
+    "semi": [
+      "warn",
+      "always"
+    ],
+    "@typescript-eslint/non-nullable-type-assertion-style": "off",
+    "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/consistent-indexed-object-style": "off",
+    "@typescript-eslint/consistent-type-definitions": [
+      "warn",
+      "type"
+    ],
+    "@typescript-eslint/ban-types": [
+      "warn",
+      {
+        "types": {
+          "{}": false
+        }
+      }
+    ],
+    // asi není úplně ok nevynucovat key
+    "react/jsx-key": "off",
+    "no-empty-pattern": "off",
+    "@typescript-eslint/no-empty-pattern": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    // validace budeme ignorovat. Doufáme že v runtime bude vše ok
+    "react/prop-types": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "(props)|(^_)"
+      }
+    ],
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    // stojí za zvážení jestli zapnout
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    // stojí za zvážení jestli zapnout
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "react/no-unknown-property": [
+      "error",
+      {
+        "ignore": [
+          "class"
+        ]
+      }
+    ],
+    "@typescript-eslint/consistent-type-exports": "warn",
+    "@typescript-eslint/no-confusing-void-expression": "warn",
+    "@typescript-eslint/prefer-regexp-exec": "warn",
+    "@typescript-eslint/promise-function-async": "warn",
+    "@typescript-eslint/prefer-enum-initializers": "error",
+    "@typescript-eslint/switch-exhaustiveness-check": "warn",
+    "@typescript-eslint/no-unnecessary-condition": "off",
+    "@typescript-eslint/unbound-method": "off"
+  }
+}

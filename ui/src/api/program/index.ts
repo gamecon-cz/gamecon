@@ -1,14 +1,30 @@
 import { GAMECON_KONSTANTY } from "../../env";
+import { fetchTestovacíAktivity, fetchTestovacíAktivityPřihlášen } from "../../testing/fakeAPI";
 
-export * from "./fakeApi";
 
-export type ActivityStatus =
-  | "vDalsiVlne"
-  | "vBudoucnu"
-  | "plno"
+export const AktivitaStavyVšechny = [
+  "vDalsiVlne",
+  "vBudoucnu",
+  "plno",
+  "prihlasen",
+  "nahradnik",
+  "organizator",
+  "volno",
+] as const;
+
+export type AktivitaStav =
+  (typeof AktivitaStavyVšechny)[number]
+  ;
+
+
+export type StavPřihlášení =
   | "prihlasen"
-  | "nahradnik"
-  | "organizator";
+  | "prihlasenADorazil"
+  | "dorazilJakoNahradnik"
+  | "prihlasenAleNedorazil"
+  | "pozdeZrusil"
+  | "sledujici"
+  ;
 
 export type Obsazenost = {
   m: number,
@@ -18,7 +34,12 @@ export type Obsazenost = {
   ku: number,
 }
 
-export type Aktivita = {
+export type OdDo = {
+  od: number,
+  do: number,
+};
+
+export type APIAktivita = {
   id: number,
   nazev: string,
   kratkyPopis: string,
@@ -28,31 +49,50 @@ export type Aktivita = {
   stitky: string[],
   cenaZaklad: number,
   casText: string,
-  cas: {
-    od: number,
-    do: number,
-  },
-  obsazenost: Obsazenost,
+  cas: OdDo,
   linie: string,
   vBudoucnu?: boolean,
   vdalsiVlne?: boolean,
   probehnuta?: boolean,
-  /** uživatelská vlastnost */
-  prihlaseno?: boolean,
+  jeBrigadnicka?: boolean,
+  /** idčka */
+  dite?: number[],
+  tymova?: boolean,
+}
+
+/**
+ * Pro jednodušší práci musí být všechny parametry optional
+ */
+export type APIAktivitaPřihlášen = {
+  id: number,
+  obsazenost?: Obsazenost,
+  /** V jakém stavu je pokud je přihlášen */
+  stavPrihlaseni?: StavPřihlášení,
   /** uživatelská vlastnost */
   slevaNasobic?: number,
-  /** uživatelská vlastnost */
-  nahradnik?: boolean,
+  // nahradnik?: boolean,
   /** orgovská vlastnost */
   mistnost?: string,
   /** orgovská vlastnost */
   vedu?: boolean,
+  zamcena?: boolean,
+  prihlasovatelna?: boolean,
 }
 
-
-// TODO: dotahovat zvlášť aktivity a metadata k nim (současně posílá moc velký soubor)
-
-export const fetchAktivity = async (rok: number): Promise<Aktivita[]> => {
+export const fetchAktivity = async (rok: number): Promise<APIAktivita[]> => {
+  if (GAMECON_KONSTANTY.IS_DEV_SERVER) {
+    return fetchTestovacíAktivity(rok);
+  }
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityProgram?${rok ? `rok=${rok}` : ""}`;
-  return fetch(url, { method: "POST" }).then(x => x.json());
-}
+  return fetch(url, { method: "POST" }).then(async x => x.json());
+};
+
+
+export const fetchAktivityPřihlášen = async (rok: number): Promise<APIAktivitaPřihlášen[]> => {
+  if (GAMECON_KONSTANTY.IS_DEV_SERVER) {
+    return fetchTestovacíAktivityPřihlášen(rok);
+  }
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityProgramPrihlasen?${rok ? `rok=${rok}` : ""}`;
+  return fetch(url, { method: "POST" }).then(async x => x.json());
+};
+

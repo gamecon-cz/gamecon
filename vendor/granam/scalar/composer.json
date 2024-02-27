@@ -1,0 +1,39 @@
+{
+  "name": "granam/scalar",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jaroslav Týc",
+      "homepage": "http://jaroslavtyc.com",
+      "role": "Original author"
+    }
+  ],
+  "type": "project",
+  "description": "Lightweight scalar-type container",
+  "keywords": [
+    "php",
+    "scalar"
+  ],
+  "homepage": "https://github.com/jaroslavtyc/granam-scalar",
+  "autoload": {
+    "psr-4": {
+      "Granam\\Scalar\\": "Scalar"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Granam\\Tests\\Scalar\\": "tests/Scalar",
+      "Granam\\Tests\\ExceptionsHierarchy\\": "vendor/granam/exceptions-hierarchy/tests/ExceptionsHierarchy"
+    }
+  },
+  "require": {
+    "php": ">=7.3",
+    "granam/strict-object": "^3.0",
+    "granam/tools": "^6.0"
+  },
+  "require-dev": {
+    "mockery/mockery": "^1.2",
+    "granam/exceptions-hierarchy": "^5.0",
+    "phpunit/phpunit": "^9.0"
+  }
+}

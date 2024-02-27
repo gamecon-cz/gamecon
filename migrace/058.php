@@ -1,4 +1,6 @@
 <?php
+/** @var \Godric\DbMigrations\Migration $this */
+
 // CATEGORIES
 $fetchCategories = function (): array {
   $categoriesSourceFile = __DIR__ . '/pomocne/055_kategorie_sjednocenych_tagu.csv';
@@ -202,7 +204,8 @@ $intoSqlValues = function (array $values): string {
                 if (preg_match('~^[(].+[)]$~', $value)) {
                   return $value; // some sub-select
                 }
-                return sprintf("'%s'", mysqli_real_escape_string($this->db, $value));
+                  /** @var \Godric\DbMigrations\Migration $this */
+                  return sprintf("'%s'", mysqli_real_escape_string($this->connection, $value));
               },
               $row
             )
@@ -235,7 +238,7 @@ foreach ($subCategories as $parentCategoryName => $subCategoriesWithSameParent) 
       $subCategory[0] = $subCategory[1]; // sub-category name moved to first position
       $subCategory[1] = sprintf(
         '(SELECT id FROM kategorie_sjednocenych_tagu AS parent_category WHERE nazev = "%s")',
-        mysqli_real_escape_string($this->db, $parentCategoryName)
+        mysqli_real_escape_string($this->connection, $parentCategoryName)
       ); // parent category ID
       return $subCategory;
     },

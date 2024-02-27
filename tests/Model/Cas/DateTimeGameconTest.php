@@ -11,14 +11,6 @@ use PHPUnit\Framework\TestCase;
 
 class DateTimeGameconTest extends TestCase
 {
-    private static SystemoveNastaveni $systemoveNastaveni;
-
-    public static function setUpBeforeClass(): void
-    {
-        parent::setUpBeforeClass();
-        self::$systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals();
-    }
-
     /**
      * @test
      */
@@ -28,6 +20,18 @@ class DateTimeGameconTest extends TestCase
             DateTimeGamecon::createFromMysql(GC_BEZI_OD),
             DateTimeGamecon::zacatekGameconu(),
             'Očekáván jiný začátek Gameconu, viz konstanta GC_BEZI_OD: ' . GC_BEZI_OD,
+        );
+
+        self::assertEquals(
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2024-07-18 07:00:00'),
+            DateTimeGamecon::spocitejZacatekGameconu(2024),
+            'Očekáván jiný spočítaný začátek Gameconu pro rok 2024',
+        );
+
+        self::assertEquals(
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-07-20 07:00:00'),
+            DateTimeGamecon::spocitejZacatekGameconu(2023),
+            'Očekáván jiný spočítaný začátek Gameconu pro rok 2023',
         );
 
         self::assertEquals(
@@ -58,6 +62,18 @@ class DateTimeGameconTest extends TestCase
             DateTimeGamecon::createFromMysql(GC_BEZI_DO),
             DateTimeGamecon::konecGameconu(),
             'Očekáván jiný konec Gameconu, viz konstanta GC_BEZI_DO: ' . GC_BEZI_DO,
+        );
+
+        self::assertEquals(
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2024-07-21 21:00:00'),
+            DateTimeGamecon::spocitejKonecGameconu(2024),
+            'Očekáván jiný spočítaný konec Gameconu pro rok 2024',
+        );
+
+        self::assertEquals(
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-07-23 21:00:00'),
+            DateTimeGamecon::spocitejKonecGameconu(2023),
+            'Očekáván jiný spočítaný konec Gameconu pro rok 2023',
         );
 
         self::assertEquals(
@@ -522,23 +538,32 @@ class DateTimeGameconTest extends TestCase
     public function Muzu_ziskat_poradi_hromadneho_odhlasovani(
         int                $ocekavanePoradi,
         \DateTimeInterface $casHromadnehoOdhlasovani,
+        int                $rocnik = ROCNIK,
     )
     {
         self::assertSame(
             $ocekavanePoradi,
-            DateTimeGamecon::poradiHromadnehoOdhlasovani($casHromadnehoOdhlasovani, self::$systemoveNastaveni),
+            DateTimeGamecon::poradiHromadnehoOdhlasovani(
+                $casHromadnehoOdhlasovani,
+                $this->dejSystemoveNastaveni(new DateTimeImmutableStrict(), $rocnik),
+            ),
         );
     }
 
     public static function provideCasAPoradiHromadnehoOdhlasovani(): array
     {
         return [
-            'první; 2023'            => [1, DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2023)],
-            'druhé; 2023'            => [2, DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2023)],
-            'třetí; 2023'            => [3, DateTimeGamecon::spocitejTretiHromadneOdhlasovani(2023)],
-            'první; současý ročník'  => [1, DateTimeGamecon::prvniHromadneOdhlasovani()],
+            'první; současný ročník' => [1, DateTimeGamecon::prvniHromadneOdhlasovani()],
             'druhé; současný ročník' => [2, DateTimeGamecon::druheHromadneOdhlasovani()],
             'třetí; současný ročník' => [3, DateTimeGamecon::tretiHromadneOdhlasovani()],
+            // 2024
+            'první; 2024'            => [1, DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2024), 2024],
+            'druhé; 2024'            => [2, DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2024), 2024],
+            'třetí; 2024'            => [3, DateTimeGamecon::spocitejTretiHromadneOdhlasovani(2024), 2024],
+            // 2023
+            'první; 2023'            => [1, DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2023), 2023],
+            'druhé; 2023'            => [2, DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2023), 2023],
+            'třetí; 2023'            => [3, DateTimeGamecon::spocitejTretiHromadneOdhlasovani(2023), 2023],
         ];
     }
 }

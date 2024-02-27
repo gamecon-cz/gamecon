@@ -63,11 +63,14 @@ $logfile = 'cron-' . date('Y-m') . '.log';
 if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
     throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
 }
-$logDescriptor = fopen($logdir . '/' . $logfile, 'ab');
-ob_start(static function ($string) use ($logDescriptor) {
-    fwrite($logDescriptor, $string . "\n");
-    fclose($logDescriptor);
-});
+
+if (empty($_GET['echo'])) {
+    $logDescriptor = fopen($logdir . '/' . $logfile, 'ab');
+    ob_start(static function ($string) use ($logDescriptor) {
+        fwrite($logDescriptor, $string . "\n");
+        fclose($logDescriptor);
+    });
+}
 
 // zapnout zobrazení chyb
 ini_set('display_errors', true); // zobrazovat chyby obecně
@@ -76,7 +79,7 @@ ini_set('html_errors', false); // chyby zobrazovat jako plaintext
 
 /////////////////////////////////// cron kód ///////////////////////////////////
 
-logs('Začínám provádět cron script.');
+logs('Spuštím cron script...');
 
 require __DIR__ . '/cron/fio_stazeni_novych_plateb.php';
 
@@ -104,4 +107,4 @@ if (date('G') >= 5) { // 5 hodin ráno či později
     include __DIR__ . '/cron/zaloha_databaze.php';
 }
 
-logs('Cron dokončen.');
+logs('...cron skript dokončen.');

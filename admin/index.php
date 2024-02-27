@@ -62,6 +62,11 @@ if ($systemoveNastaveni->jeApril()) {
     $xtpl->parse('all.april');
 }
 
+// kontrola přihlášení při ajaxovém volání (kvůli elektronickým prezenčkám)
+if (!$u && get('ajax')) {
+    http_response_code(403);
+}
+
 // zobrazení stránky
 if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     require __DIR__ . '/login.php';
@@ -149,7 +154,7 @@ $xtpl->assign('a', $u->koncovkaDlePohlavi());
 $xtpl->assign('operator', $u->jmenoNick());
 if ($u && ($u->jeSuperAdmin() || $u->jeInfopultak())) {
     $dataOmnibox = [];
-    if ($u->jeInfopultak()) {
+    if ($u->jeInfopultak() && !$u->jeSuperAdmin()) {
         $dataOmnibox['jenSRolemi'] = [Role::LETOSNI_VYPRAVEC, Role::LETOSNI_PARTNER];
     }
     $xtpl->assign('dataOmniboxJson', htmlspecialchars(json_encode($dataOmnibox, JSON_FORCE_OBJECT)));

@@ -6,7 +6,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
-use Gamecon\Shop\Shop;
+use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 class Statistiky
@@ -27,10 +27,6 @@ class Statistiky
         $this->letosniRok = $this->systemoveNastaveni->rocnik();
     }
 
-    /**
-     * @param \DateTimeInterface $doChvile
-     * @return array
-     */
     public function dataProGrafUcasti(\DateTimeImmutable $doChvile): array
     {
         $data = [];
@@ -70,13 +66,12 @@ SELECT
   FROM uzivatele_role_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
   WHERE log.id_role = $0 AND log.kdy > $4
-
 ORDER BY den
 SQL,
             [
-                Role::PRIHLASEN_NA_LETOSNI_GC($rok),
-                \Uzivatel::POSAZEN,
-                \Uzivatel::SESAZEN,
+                0 => Role::PRIHLASEN_NA_LETOSNI_GC($rok),
+                1 => \Uzivatel::POSAZEN,
+                2 => \Uzivatel::SESAZEN,
                 $zacatekRegistraci,
                 $posledniDen,
             ],
@@ -117,11 +112,15 @@ SQL,
             [Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok), Role::PRITOMEN_NA_LETOSNIM_GC($this->letosniRok)],
             dbOneArray(
                 'SELECT id_role FROM prava_role WHERE id_prava = $0',
-                [Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI],
+                [
+                    0 => Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI,
+                ],
             ),
         );
 
-        return tabMysql(dbQuery(<<<SQL
+        return tabMysql(
+            dbQuery(
+                <<<SQL
 SELECT
     role_seznam.nazev_role as "Role",
     COUNT(uzivatele_role.id_uzivatele) AS `<span class="hinted">Celkem<span class="hint">Všech uživatelů s rolí i bez přihlášení</span></span>`,
@@ -135,15 +134,21 @@ LEFT JOIN uzivatele_role AS role_prihlasen
 WHERE role_seznam.id_role IN ($1)
 GROUP BY role_seznam.id_role, role_seznam.nazev_role
 ORDER BY SUBSTR(role_seznam.nazev_role, 1, 10), role_seznam.id_role
-SQL, [
-            Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
-            $sledovaneRole,
-        ]), 'Účast');
+SQL,
+                [
+                    0 => Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
+                    1 => $sledovaneRole,
+                ],
+            ),
+            'Účast',
+        );
     }
 
     public function tabulkaPredmetuHtml(): string
     {
-        return tabMysql(dbQuery(<<<SQL
+        return tabMysql(
+            dbQuery(
+                <<<SQL
 SELECT
     shop_predmety.nazev Název,
     shop_predmety.model_rok Model,
@@ -151,43 +156,59 @@ SELECT
 FROM shop_nakupy
 JOIN shop_predmety
     ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-WHERE shop_nakupy.rok=$0
+WHERE shop_nakupy.rok = $0
     AND shop_predmety.typ IN ($1)
 GROUP BY shop_nakupy.id_predmetu
-SQL, [
-            $this->letosniRok,
-            [Shop::PREDMET, Shop::TRICKO],
-        ]), 'Předměty');
+SQL,
+                [
+                    0 => $this->letosniRok,
+                    1 => [
+                        TypPredmetu::PREDMET,
+                        TypPredmetu::TRICKO,
+                    ],
+                ],
+            ),
+            'Předměty',
+        );
     }
 
     public function tabulkaUbytovaniHtml(): string
     {
-        return tabMysql(dbQuery(<<<SQL
-SELECT Název, Počet FROM (
+        return tabMysql(
+            dbQuery(
+                <<<SQL
+SELECT Název, Počet
+FROM (
   SELECT
-    predmety.nazev Název,
-    COUNT(nakupy.id_predmetu) Počet,
+    predmety.nazev AS Název,
+    COUNT(nakupy.id_predmetu) AS Počet,
     FIND_IN_SET(
-        SUBSTR(predmety.nazev,1,6),
+        SUBSTR(TRIM(predmety.nazev), 1, 6),
         'Jednol,Dvojlů,Trojlů,Spacák'
     ) AS ubytovani_sort_nazev,
     predmety.ubytovani_den
   FROM shop_nakupy AS nakupy
-  JOIN shop_predmety AS predmety ON nakupy.id_predmetu=predmety.id_predmetu
-  WHERE nakupy.rok=$0 AND predmety.typ=$1
+  JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+  WHERE nakupy.rok = $0 AND predmety.typ = $1
   GROUP BY nakupy.id_predmetu
 ) AS seskupeno
 ORDER BY ubytovani_sort_nazev, ubytovani_den
-SQL, [
-            0 => $this->letosniRok,
-            1 => Shop::UBYTOVANI,
-        ]), 'Ubytování dny a místa');
+SQL,
+                [
+                    0 => $this->letosniRok,
+                    1 => TypPredmetu::UBYTOVANI,
+                ],
+            ),
+            'Ubytování dny a místa',
+        );
     }
 
     public function tabulkaUbytovaniKratce(): string
     {
 
-        return tabMysql(dbQuery(<<<SQL
+        return tabMysql(
+            dbQuery(
+                <<<SQL
 SELECT Den, Počet FROM (
     SELECT
         SUBSTR(predmety.nazev,11) Den,
@@ -216,17 +237,23 @@ UNION ALL
     WHERE id_role=$2 AND ISNULL(nn.id_uzivatele)
 ORDER BY ubytovani_den
 ) AS serazeno
-SQL, [
-            0 => $this->letosniRok,
-            1 => Shop::UBYTOVANI,
-            2 => Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
-        ]), 'Ubytování dny');
+SQL,
+                [
+                    0 => $this->letosniRok,
+                    1 => TypPredmetu::UBYTOVANI,
+                    2 => Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
+                ],
+            ),
+            'Ubytování dny',
+        );
     }
 
     public function tabulkaJidlaHtml(): string
     {
 
-        return tabMysql(dbQuery(<<<SQL
+        return tabMysql(
+            dbQuery(
+                <<<SQL
 SELECT Název,Cena,Počet,Slev FROM (
   SELECT
     TRIM(predmety.nazev) Název,
@@ -248,13 +275,21 @@ SELECT Název,Cena,Počet,Slev FROM (
 ) AS seskupeno
 ORDER BY ubytovani_den, Název, id_predmetu
 SQL,
-            [[Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU], $this->letosniRok, Shop::JIDLO],
-        ), 'Jídlo');
+                [
+                    0 => [Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU],
+                    1 => $this->letosniRok,
+                    2 => TypPredmetu::JIDLO,
+                ],
+            ),
+            'Jídlo',
+        );
     }
 
     public function tabulkaZastoupeniPohlaviHtml(): string
     {
-        return tabMysqlR(dbQuery(<<<SQL
+        return tabMysqlR(
+            dbQuery(
+                <<<SQL
     SELECT
     'Počet' AS ' ', -- formátování
     COALESCE(SUM(IF(uzivatele.pohlavi='m',1,0)), 0) as Muži,
@@ -264,8 +299,10 @@ SQL,
     JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_role.id_uzivatele=uzivatele.id_uzivatele
     WHERE uzivatele_role.id_role = $0
 SQL,
-            [Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok)],
-        ),
+                [
+                    0 => Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
+                ],
+            ),
             'Pohlaví',
         );
     }
@@ -363,7 +400,9 @@ SQL,
         $prihlasen = Role::VYZNAM_PRIHLASEN;
         $pritomen  = Role::VYZNAM_PRITOMEN;
         $ucast     = Role::TYP_UCAST;
-        return tabMysqlR(dbQuery(<<<SQL
+        return tabMysqlR(
+            dbQuery(
+                <<<SQL
 SELECT
     rocnik_role AS ' ', -- formátování
     Registrovaných,
@@ -481,18 +520,24 @@ FROM (
     ) AS podle_roku
     GROUP BY rocnik_role
 ) AS pocty
-SQL, [
-            0 => Role::ORGANIZATOR,
-            1 => Role::LETOSNI_ZAZEMI,
-            2 => Role::LETOSNI_VYPRAVEC,
-            3 => \Uzivatel::POSAZEN,
-            4 => \Uzivatel::SESAZEN,
-        ]), 'Registrovaní vs Dorazili');
+SQL,
+                [
+                    0 => Role::ORGANIZATOR,
+                    1 => Role::LETOSNI_ZAZEMI,
+                    2 => Role::LETOSNI_VYPRAVEC,
+                    3 => \Uzivatel::POSAZEN,
+                    4 => \Uzivatel::SESAZEN,
+                ],
+            ),
+            'Registrovaní vs Dorazili',
+        );
     }
 
     public function tabulkaLidiNaGcCelkemHtml(): string
     {
-        return tabMysqlR(dbQuery(<<<SQL
+        return tabMysqlR(
+            dbQuery(
+                <<<SQL
 SELECT
     rok AS ' ', -- formátování
     Dorazilo AS `Dorazilo na GC celkem`,
@@ -516,12 +561,16 @@ FROM (
     GROUP BY rok
 ) AS pohlavi
 SQL,
-        ), 'Lidé na GC celkem');
+            ),
+            'Lidé na GC celkem',
+        );
     }
 
     public function tabulkaHistorieProdanychPredmetuHtml(): string
     {
-        return tabMysqlR(dbQuery(<<<SQL
+        return tabMysqlR(
+            dbQuery(
+                <<<SQL
 SELECT 2009 AS '', 43 AS 'Prodané placky', 43 AS 'Prodané kostky', 6 AS 'Prodaná trička'
 UNION ALL
 SELECT 2010 AS '', 45 AS 'Prodané placky', 45 AS 'Prodané kostky', 8 AS 'Prodaná trička'
@@ -544,13 +593,16 @@ WHERE shop_nakupy.rok >= 2014 /* starší data z DB nesedí, jsou vložena fixn�
 GROUP BY shop_nakupy.rok
 ORDER BY ''
 SQL,
-        ),
-            'Prodané předměty');
+            ),
+            'Prodané předměty',
+        );
     }
 
     public function tabulkaHistorieUbytovaniHtml(): string
     {
-        return tabMysqlR(dbQuery(<<<SQL
+        return tabMysqlR(
+            dbQuery(
+                <<<SQL
 SELECT
     shop_nakupy.rok AS '',
     SUM(nazev LIKE '%lůžák%') AS 'Postel',
@@ -583,9 +635,11 @@ WHERE shop_predmety.typ = $0
 GROUP BY shop_nakupy.rok
 ORDER BY shop_nakupy.rok
 SQL,
-            [
-                0 => Shop::UBYTOVANI,
-            ],
-        ), 'Ubytování');
+                [
+                    0 => TypPredmetu::UBYTOVANI,
+                ],
+            ),
+            'Ubytování',
+        );
     }
 }

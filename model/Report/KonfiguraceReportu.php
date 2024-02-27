@@ -6,11 +6,13 @@ namespace Gamecon\Report;
 
 class KonfiguraceReportu
 {
-    public const NO_ROW_TO_FREEZE = 0;
+    public const NO_ROW_TO_FREEZE    = 0;
+    public const NO_COLUMN_TO_FREEZE = '';
 
-    private $headerFontSize = 10;
-    private $bodyFontSize   = 10;
-    private $rowToFreeze    = 1;
+    private $headerFontSize     = 10;
+    private $bodyFontSize       = 10;
+    private $rowToFreeze         = 1;
+    private $columnsToFreezeUpTo = self::NO_COLUMN_TO_FREEZE;
     /** @var null|int */
     private $maxGenericColumnWidth = null;
     /** @var int[] */
@@ -39,7 +41,7 @@ class KonfiguraceReportu
         return $this;
     }
 
-    public function getRowToFreeze(): int
+    public function getRowsToFreezeUpTo(): int
     {
         return $this->rowToFreeze;
     }
@@ -47,6 +49,21 @@ class KonfiguraceReportu
     public function setRowToFreeze(int $rowToFreeze): self
     {
         $this->rowToFreeze = $rowToFreeze;
+        return $this;
+    }
+
+    public function getColumnsToFreezeUpTo(): string
+    {
+        return $this->columnsToFreezeUpTo;
+    }
+
+    /**
+     * TODO fix excluding instead of up to
+     * Freezes columns from 'A' to given. So 'A' freezes just first column, 'D' freezes 'A', 'B', 'C' and 'D' columns.
+     */
+    public function setColumnsToFreezeUpTo(string $columnsToFreezeUpTo): self
+    {
+        $this->columnsToFreezeUpTo = $columnsToFreezeUpTo;
         return $this;
     }
 

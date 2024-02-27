@@ -14,6 +14,7 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\Role\Role;
 use Gamecon\Web\Info;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 
 /**
  * @var Uzivatel|null|void $u
@@ -73,7 +74,13 @@ if ($uPracovni) {
         if ($systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) {
             $x->assign('prihlasDisabled', '');
         } else {
-            $x->parse('infopult.neprihlasen.nelze');
+            if (!$systemoveNastaveni->jsmeNaOstre()) {
+                $x->assign('urlNastaveniZacatkuRegistraci', URL_ADMIN . '/nastaveni#' . SystemoveNastaveniKlice::REG_GC_OD);
+                $x->assign('urlNastaveniKonceRegistraci', URL_ADMIN . '/nastaveni#' . SystemoveNastaveniKlice::REG_GC_DO);
+                $x->assign('totoSeUkazujePouzeNaTestu', (new Info($systemoveNastaveni))->htmlTotoSeUkazujePouzeNaTestu());
+                $x->parse('infopult.neprihlasen.registraceNaGcNeniSpustena.hintJakSpustitRegistrace');
+            }
+            $x->parse('infopult.neprihlasen.registraceNaGcNeniSpustena');
         }
         $x->parse('infopult.neprihlasen');
     }

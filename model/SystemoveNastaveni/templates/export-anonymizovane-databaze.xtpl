@@ -3,7 +3,7 @@
 
 <form method="post">
   <button type="submit" value="1" name="{synchronniPostKlic}[{exportovatAnonymizovanouKlic}]"
-          class="disable-and-show-loading-on-click"
+          class="disable-and-show-loading-on-click without-safety-unlock"
           onclick="this.innerHTML='strpení prosím (chroupej oříšky, chroupu data)'">
     Exportovat současnou databázi s anonymizovanými daty
   </button>

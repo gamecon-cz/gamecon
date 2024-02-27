@@ -1,11 +1,12 @@
 import Preact from "preact";
-import { Ref, useEffect, useState } from "preact/hooks";
+import { Ref} from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 const POSUN = 220;
 
 type ProgramPosuvProps = {
   obalRef: Ref<HTMLElement>;
-};
+}
 
 export const ProgramPosuv: Preact.FunctionComponent<ProgramPosuvProps> = (
   props: ProgramPosuvProps
@@ -18,7 +19,7 @@ export const ProgramPosuv: Preact.FunctionComponent<ProgramPosuvProps> = (
 
   const checkScroll = () => {
     if (!obal) return;
-    let left = obal.scrollLeft;
+    const left = obal.scrollLeft;
     if (left <= 0) {
       setLVisible(false);
     } else {
@@ -64,7 +65,7 @@ export const ProgramPosuv: Preact.FunctionComponent<ProgramPosuvProps> = (
           >
             <div
               onClick={() =>
-                obal?.scrollBy?.({
+                obal?.scrollBy({
                   left: POSUN * (i ? 1 : -1),
                   behavior: "smooth",
                 })

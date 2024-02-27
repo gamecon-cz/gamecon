@@ -3,9 +3,11 @@
 <h1>Finance</h1>
 
 <form>
-  Vypsat uživatele, kteří mají stav účtu vyšší rovno jak
-  <input type="text" name="minimum" value="{minimum}">
-  <input type="submit" value="Vypsat"> (chvíli trvá)
+  <label>
+    Vypsat uživatele, kteří mají stav účtu vyšší rovno jak
+    <input type="text" name="minimum" value="{minimum}">
+  </label>
+  <input type="submit" value="Vypsat">
 </form>
 
 <!-- begin:uzivatele -->
@@ -46,18 +48,20 @@
         </td>
       </tr>
       <tr>
-        <td>Uživateli s ID:</td>
-        <td><input type="text" name="uzivatelProPripsaniSlevy" value="{id}"></td>
+        <td><label for="uzivatelProPripsaniSlevy">Uživateli s ID:</label></td>
+        <td><input type="text" name="uzivatelProPripsaniSlevy" value="{id}" id="uzivatelProPripsaniSlevy"></td>
       </tr>
       <tr>
-        <td>Poznámka:</td>
+        <td><label for="poznamkaKUzivateliProPripsaniSlevy">Poznámka:</label></td>
         <td>
-          <input type="text" name="poznamkaKUzivateliProPripsaniSlevy" title="Zadej poznámku" required>
+          <input type="text" name="poznamkaKUzivateliProPripsaniSlevy" title="Zadej poznámku" required
+                 id="poznamkaKUzivateliProPripsaniSlevy">
         </td>
       </tr>
       <tr>
-        <td>Připsal{aa}:</td>
-        <td><input type="text" value="{org}" disabled style="background-color: lightgray; cursor: not-allowed"></td>
+        <td><label for="pripsal">Připsal{aa}:</label></td>
+        <td><input type="text" value="{org}" disabled style="background-color: lightgray; cursor: not-allowed"
+                   id="pripsal"></td>
       </tr>
     </table>
     <input type="submit" value="Připsat">
@@ -90,10 +94,10 @@
               success: function (data) {
                 data.forEach(function (vypravec) {
                   const option = jQuery(
-                      '<option value="' + encodeURIComponent(vypravec.id) + '">'
-                      + vypravec.jmeno
-                      + ' - bonus k vyplacení ' + vypravec.nevyuzityBonusZaAktivity
-                      + '</option>',
+                    '<option value="' + encodeURIComponent(vypravec.id) + '">'
+                    + vypravec.jmeno
+                    + ' - bonus k vyplacení ' + vypravec.nevyuzityBonusZaAktivity
+                    + '</option>',
                   )
                   uzivatelKVyplaceniAktivity.append(option)
                 })
@@ -102,7 +106,7 @@
               },
               error: function (jqXHR, textStatus, errorThrown) {
                 jQuery('#nahravamUzivateleKVyplaceniAktivity').replaceWith(
-                    '<span class="error inline">Něco se nepovedlo: "' + errorThrown + '"</span>',
+                  '<span class="error inline">Něco se nepovedlo: "' + errorThrown + '"</span>',
                 )
               },
             })

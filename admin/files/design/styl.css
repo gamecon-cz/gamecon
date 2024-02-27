@@ -1454,3 +1454,33 @@ Radio musí být ve tvaru:
 .lokalni-odkaz {
   padding: 3px;
 }
+
+.nic-nenalezeno {
+  position: absolute;
+  font-size: 1.5em;
+  right: 1em;
+  opacity: 0.5;
+}
+
+.hinted .nic-nenalezeno {
+  right: 0.3em;
+}
+
+.nic-nenalezeno::after {
+  content: '😵';
+}
+
+.cekame {
+  position: absolute;
+  font-size: 1.5em;
+  right: 1em;
+  opacity: 0.5;
+}
+
+.hinted .cekame {
+  right: 0.3em;
+}
+
+.cekame::after {
+  content: '⏳';
+}

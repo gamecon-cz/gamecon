@@ -45,11 +45,19 @@ class Report
                 $writer->openToBrowser($fileName);
             }
 
-            if ($konfiguraceReportu->getRowToFreeze() > 0) {
+            $sheetView = new SheetView();
+            if ($konfiguraceReportu->getRowsToFreezeUpTo() > 0) {
                 // OpenSpout library uses 2 for first row, so it is +1 from our point of view
-                $sheetView = (new SheetView())->setFreezeRow($konfiguraceReportu->getRowToFreeze() + 1);
+                $sheetView->setFreezeRow($konfiguraceReportu->getRowsToFreezeUpTo() + 1);
                 $writer->getCurrentSheet()->setSheetView($sheetView);
             }
+
+            if ($konfiguraceReportu->getColumnsToFreezeUpTo() !== $konfiguraceReportu::NO_COLUMN_TO_FREEZE) {
+                // it is called 'setFreezeColumn' but should be 'setFreezeColumnFromFirst'
+                // OpenSpout library uses 'B' for first column, so it is +1 position from our point of view
+                $sheetView->setFreezeColumn(chr(ord($konfiguraceReportu->getColumnsToFreezeUpTo()) + 1));
+            }
+            $writer->getCurrentSheet()->setSheetView($sheetView);
 
             $rows = [];
 

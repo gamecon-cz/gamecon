@@ -10,7 +10,7 @@ on:
 
 jobs:
   create-backup:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -24,7 +24,7 @@ jobs:
       BORG_PASSPHRASE: ${{ secrets.BORG_PASSPHRASE }}
       FTP_DIR: ostra
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install prerequisites and create initial configuration
         run: |
           sudo apt-get update

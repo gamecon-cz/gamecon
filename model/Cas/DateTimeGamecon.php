@@ -347,7 +347,7 @@ class DateTimeGamecon extends DateTimeCz
             return 3;
         }
         throw new \LogicException(
-            "Neznámé pořadí data hromadného odhlašování '{$casOdhlasovani->format(static::FORMAT_DB)}'"
+            "Neznámé pořadí data hromadného odhlašování '{$casOdhlasovani->format(static::FORMAT_DB)}'. Známé časy jsou 1. {$systemoveNastaveni->prvniHromadneOdhlasovani()->format(self::FORMAT_DB)}, 2. {$systemoveNastaveni->druheHromadneOdhlasovani()->format(self::FORMAT_DB)}, 3. {$systemoveNastaveni->tretiHromadneOdhlasovani()->format(self::FORMAT_DB)}"
         );
     }
 

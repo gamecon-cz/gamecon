@@ -10,11 +10,15 @@ class Migration
     private string  $path;
     private bool    $endless = false;
 
-    public function __construct(string $path, string $code, \mysqli $db)
+    public function __construct(
+        string  $path,
+        string  $code,
+        \mysqli $connection,
+    )
     {
         $this->path       = $path;
         $this->code       = removeDiacritics($code);
-        $this->connection = $db;
+        $this->connection = $connection;
         // jen malý, neškodný hack, aby se migrace pouštěla pořád
         $this->setEndless(str_ends_with(basename($path, '.php'), 'endless'));
     }

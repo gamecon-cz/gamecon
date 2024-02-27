@@ -36,8 +36,8 @@ class SqlMigrace
             'DB_PORT'  => $dbPort,
         ] = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
 
-        return new DbMigrations(new DbMigrationsConfig([
-            'connection'          => _dbConnect(
+        return new DbMigrations(new DbMigrationsConfig(
+            connection: _dbConnect(
                 dbServer: $dbServ,
                 dbUser: $dbmUser,
                 dbPass: $dbmPass,
@@ -45,10 +45,10 @@ class SqlMigrace
                 dbName: $dbName,
                 persistent: false,
             ),
-            'doBackups'           => $zalohuj,
-            'migrationsDirectory' => SQL_MIGRACE_DIR,
-            'backupsDirectory'    => ZALOHA_DB_SLOZKA,
-        ]));
+            migrationsDirectory: SQL_MIGRACE_DIR,
+            doBackups: $zalohuj,
+            backupsDirectory: ZALOHA_DB_SLOZKA,
+        ));
     }
 
     public function nejakeMigraceKeSpusteni(): bool

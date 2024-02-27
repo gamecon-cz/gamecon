@@ -11,6 +11,9 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class AnonymizovanaDatabaze
 {
+    public const ADMIN_LOGIN    = 'admin';
+    public const ADMIN_PASSWORD = 'admin';
+
     public static function vytvorZGlobals(): self
     {
         global $systemoveNastaveni;
@@ -18,7 +21,7 @@ class AnonymizovanaDatabaze
             DB_NAME,
             \DB_ANONYM_NAME,
             $systemoveNastaveni,
-            new NastrojeDatabaze($systemoveNastaveni)
+            new NastrojeDatabaze($systemoveNastaveni),
         );
     }
 
@@ -53,13 +56,13 @@ class AnonymizovanaDatabaze
 
     private function anonymizujData(\mysqli $dbConnectionAnonymDb)
     {
-        $result = mysqli_query(
+        $result              = mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
                 SELECT COALESCE(MAX(id_uzivatele), 0) FROM `{$this->anonymniDatabaze}`.uzivatele_hodnoty
             SQL,
         );
-        $maxId  = mysqli_fetch_column($result);
+        $maxId               = mysqli_fetch_column($result);
         $systemovyUzivatelId = \Uzivatel::SYSTEM;
 
         // Anonymizace ID uživatele
@@ -86,7 +89,7 @@ class AnonymizovanaDatabaze
             throw new \RuntimeException(
                 "Ani po několika pokusech se nepodařilo změnit všechna ID uživatelů: " . $dbException->getMessage(),
                 $dbException->getCode(),
-                $dbException
+                $dbException,
             );
         }
 
@@ -167,15 +170,16 @@ class AnonymizovanaDatabaze
 
     private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb)
     {
-         // na toto heslo nespoléhat - raději použít konstantu UNIVERZALNI_HESLO
-        $passwordHash = password_hash('admin', PASSWORD_DEFAULT);
+        // na toto heslo nespoléhat - raději použít konstantu UNIVERZALNI_HESLO
+        $passwordHash = password_hash(self::ADMIN_PASSWORD, PASSWORD_DEFAULT);
+        $adminLogin = self::ADMIN_LOGIN;
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
 INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
     SET id_uzivatele = null,
-        login_uzivatele = 'admin',
-        jmeno_uzivatele = 'admin',
+        login_uzivatele = '{$adminLogin}',
+        jmeno_uzivatele = '{$adminLogin}',
         prijmeni_uzivatele = 'adminovec',
         ulice_a_cp_uzivatele = '',
         mesto_uzivatele = '',
@@ -185,7 +189,7 @@ INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
         datum_narozeni = NOW(),
         heslo_md5 = '$passwordHash',
         funkce_uzivatele = 0,
-        email1_uzivatele = 'gamecon@example.com',
+        email1_uzivatele = '{$adminLogin}.gamecon@example.com',
         email2_uzivatele = '',
         jine_uzivatele = '',
         nechce_maily = null,

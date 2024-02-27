@@ -11,25 +11,23 @@
 /cache/public/*
 !/cache/public/.htaccess
 
-/node_modules
-
-/vendor
-
 /admin/*.sql.gz
 
 /web/soubory/obsah/*
 !/web/soubory/blackarrow
 !/web/soubory/styl
 !/web/soubory/*.js
+!/web/soubory/ui
 /web/soubory/**/*.js.map
 !/web/soubory/systemove
 /web/soubory/systemove/*/*
 !/web/soubory/systemove/*/.gitkeep
 !/web/soubory/systemove/*/.htaccess
 *.map
+/vendor/composer/installed.php
 
 /nasad.log
 /.htdeployment
 
 /docker-compose.override.yml
-/docker-compose.yml
+/.env

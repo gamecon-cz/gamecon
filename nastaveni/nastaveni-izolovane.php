@@ -15,7 +15,6 @@ if (!defined('ADMIN_STAMPS')) define('ADMIN_STAMPS', rtrim(ADMIN, '/') . '/stamp
 if (!defined('NAZEV_SPOLECNOSTI_GAMECON')) define('NAZEV_SPOLECNOSTI_GAMECON', 'GameCon z.s.');
 
 if (!defined('AUTOMATICKE_MIGRACE')) define('AUTOMATICKE_MIGRACE', false);
-if (!defined('AUTOMATICKA_TVORBA_DB')) define('AUTOMATICKA_TVORBA_DB', false);
 if (!defined('ZOBRAZIT_STACKTRACE_VYJIMKY')) define('ZOBRAZIT_STACKTRACE_VYJIMKY', false);
 if (!defined('PROFILOVACI_LISTA')) define('PROFILOVACI_LISTA', false);
 if (!defined('CACHE_SLOZKY_PRAVA')) define('CACHE_SLOZKY_PRAVA', 0770);
