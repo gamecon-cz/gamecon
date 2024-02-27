@@ -12,6 +12,7 @@
     "lint:fix": "eslint src/**/*.ts{,x} --fix"
   },
   "dependencies": {
+    "flexsearch": "^0.7.43",
     "immer": "^9.0.16",
     "preact": "^10.5.15",
     "react-select": "^5.7.0",

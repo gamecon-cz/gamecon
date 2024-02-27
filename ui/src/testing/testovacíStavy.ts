@@ -20,12 +20,12 @@ const resetStav = {
         gcStav: "nepřihlášen",
       };
 
-      s.urlState.aktivitaNáhledId = undefined;
-      s.urlState.výběr = {
+      s.urlStav.aktivitaNáhledId = undefined;
+      s.urlStav.výběr = {
         typ: "den",
         datum: new Date(GAMECON_KONSTANTY.PROGRAM_OD),
       };
-      s.urlState.ročník = GAMECON_KONSTANTY.ROCNIK;
+      s.urlStav.ročník = GAMECON_KONSTANTY.ROCNIK;
     });
   },
 };

@@ -2,7 +2,7 @@ import { useProgramStore } from ".";
 import { GAMECON_KONSTANTY } from "../../env";
 import { distinct } from "../../utils";
 import { LOCAL_STORAGE_KLÍČE } from "../localStorageKlíče";
-import { urlStateProgramTabulkaMožnostíDnyMůj } from "./logic/url";
+import { urlStavProgramTabulkaMožnostíDnyMůj } from "./logic/url";
 import { filtrujDotaženéAktivity, načtiRok } from "./slices/programDataSlice";
 import { nastavStateZUrl, nastavUrlZState } from "./slices/urlSlice";
 import { nastavFiltryOtevřené } from "./slices/všeobecnéSlice";
@@ -25,7 +25,7 @@ export const inicializujProgramStore = () => {
   // Normalizuju url podle stavu
   nastavUrlZState(true);
 
-  useProgramStore.subscribe(s => s.urlState, () => {
+  useProgramStore.subscribe(s => s.urlStav, () => {
     nastavUrlZState();
   });
 
@@ -35,15 +35,15 @@ export const inicializujProgramStore = () => {
 
   useProgramStore.subscribe(s => !!s.přihlášenýUživatel.data.prihlasen, (přihlášen) => {
     useProgramStore.setState(s => {
-      s.urlStateMožnosti.dny = urlStateProgramTabulkaMožnostíDnyMůj({ přihlášen });
+      s.urlStavMožnosti.dny = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen });
     });
   });
 
   useProgramStore.subscribe(s => s.data, (data) => {
     useProgramStore.setState(s => {
-      s.urlStateMožnosti.linie = distinct(filtrujDotaženéAktivity(data.aktivityPodleId).map(x => x.linie))
+      s.urlStavMožnosti.linie = distinct(filtrujDotaženéAktivity(data.aktivityPodleId).map(x => x.linie))
         .sort((a, b) => indexŘazeníLinie(a) - indexŘazeníLinie(b));
-      s.urlStateMožnosti.tagy = distinct(filtrujDotaženéAktivity(data.aktivityPodleId).map(x => x.stitky).flat(1))
+      s.urlStavMožnosti.tagy = distinct(filtrujDotaženéAktivity(data.aktivityPodleId).map(x => x.stitky).flat(1))
         .sort();
     });
   });
@@ -71,25 +71,25 @@ export const inicializujProgramStore = () => {
     localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM, JSON.stringify(data));
   });
 
-  const urlState = useProgramStore.getState().urlState;
-  void načtiRok(urlState.ročník);
+  const urlStav = useProgramStore.getState().urlStav;
+  void načtiRok(urlStav.ročník);
 
   // ať máme vždy přednačtený aktuální ročník
-  if (urlState.ročník !== GAMECON_KONSTANTY.ROCNIK) {
+  if (urlStav.ročník !== GAMECON_KONSTANTY.ROCNIK) {
     setTimeout(() => {
       void načtiRok(GAMECON_KONSTANTY.ROCNIK);
     }, 2000);
   }
 
-  useProgramStore.subscribe(s => s.urlState.ročník, (rok) => {
+  useProgramStore.subscribe(s => s.urlStav.ročník, (rok) => {
     void načtiRok(rok);
   });
 
   if (
-    urlState.ročník !== GAMECON_KONSTANTY.ROCNIK
-    || urlState.filtrLinie?.length
-    || urlState.filtrTagy?.length
-    || urlState.filtrPřihlašovatelné
+    urlStav.ročník !== GAMECON_KONSTANTY.ROCNIK
+    || urlStav.filtrLinie?.length
+    || urlStav.filtrTagy?.length
+    || urlStav.filtrPřihlašovatelné
   ) {
     nastavFiltryOtevřené(true);
   }

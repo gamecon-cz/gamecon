@@ -1,8 +1,7 @@
 import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import {
-  useUrlState,
-  useUrlStateStavyFiltr,
+  useUrlStavStavyFiltr,
   useUživatel,
 } from "../../../store/program/selektory";
 import { nastavFiltrStavů } from "../../../store/program/slices/urlSlice";
@@ -15,7 +14,7 @@ export const ProgramLegenda = () => {
   const koncovkaDlePohlaví = uživatel.koncovkaDlePohlavi ?? "";
   const přihlášen = uživatel.prihlasen ?? false;
 
-  const stavyFiltr = useUrlStateStavyFiltr();
+  const stavyFiltr = useUrlStavStavyFiltr();
 
   const filtrujeStav = (stav: AktivitaStav) =>
     stavyFiltr.some((x) => x === stav);
@@ -49,6 +48,9 @@ export const ProgramLegenda = () => {
         }}
       ></div>
       <div class="program_legenda_inner">
+        <div class="program_legenda_typ">
+          Filtruj podle:
+        </div>
         <label class="program_legenda_typ otevrene">
           {zaškrtávátkoPro("volno")}
           Otevřené

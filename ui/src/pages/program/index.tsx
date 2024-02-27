@@ -17,7 +17,7 @@ export const Program: FunctionComponent = () => {
   }, []);
 
   return (
-    <div style={{ position: "relative" }}>
+    <div class={"program-obal"}>
       <ProgramNáhled />
       <ProgramUživatelskéVstupy />
       <ProgramLegenda />
