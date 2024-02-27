@@ -5,7 +5,7 @@ import shallow from "zustand/shallow";
 import { FiltrAktivit, filtrujAktivity } from "./logic/aktivity";
 import { Aktivita, filtrujDotaženéAktivity, jeAktivitaDotažená } from "./slices/programDataSlice";
 
-const useFiltrAktivit = (aktivitaFiltr?: FiltrAktivit) => {
+const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   const urlStav = useProgramStore((s) => s.urlStav);
 
   return aktivitaFiltr ?? (urlStav as FiltrAktivit);
@@ -22,7 +22,7 @@ export const useAktivityDotažené = () => useProgramStore(
  * Aplikuje filtr na aktivity, pokud není předaný 
  */
 export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): Aktivita[] => {
-  const filtr = useFiltrAktivit(aktivitaFiltr);
+  const filtr = useFiltrAktivitNeboZeStavu(aktivitaFiltr);
 
   const aktivityDotažené = useAktivityDotažené();
 
