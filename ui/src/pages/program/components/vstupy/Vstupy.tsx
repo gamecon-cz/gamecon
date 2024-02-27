@@ -8,8 +8,8 @@ import {
 import { nastavUrlVýběr } from "../../../../store/program/slices/urlSlice";
 import {
   useFiltryOtevřené,
-  useUrlState,
-  useUrlStateMožnostiDny,
+  useUrlStav,
+  useUrlStavMožnostiDny,
 } from "../../../../store/program/selektory";
 import { Filtry } from "./Filtry";
 import { GAMECON_KONSTANTY } from "../../../../env";
@@ -21,29 +21,29 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
   ProgramUživatelskéVstupyProps
 > = (props) => {
   const {} = props;
-  const urlState = useUrlState();
-  const urlStateMožnosti = useUrlStateMožnostiDny();
+  const urlStav = useUrlStav();
+  const urlStavMožnosti = useUrlStavMožnostiDny();
 
-  const jeLetošníRočník = urlState.ročník === GAMECON_KONSTANTY.ROCNIK;
+  const jeLetošníRočník = urlStav.ročník === GAMECON_KONSTANTY.ROCNIK;
 
   const filtryOtevřené = useFiltryOtevřené();
 
   return (
     <>
       <div class="program_hlavicka">
-        <h1>Program {urlState.ročník}</h1>
+        <h1>Program {urlStav.ročník}</h1>
         <div class="program_dny">
-          {urlStateMožnosti.map((možnost) => {
+          {urlStavMožnosti.map((možnost) => {
             return (
               <a
                 href={generujUrl(
-                  produce(urlState, (s) => {
+                  produce(urlStav, (s) => {
                     s.výběr = možnost;
                   })
                 )}
                 class={
                   "program_den" +
-                  (porovnejTabulkaVýběr(možnost, urlState.výběr)
+                  (porovnejTabulkaVýběr(možnost, urlStav.výběr)
                     ? " program_den-aktivni"
                     : "")
                 }

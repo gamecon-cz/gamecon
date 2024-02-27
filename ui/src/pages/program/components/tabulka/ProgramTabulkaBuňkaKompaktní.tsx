@@ -1,7 +1,7 @@
 import produce from "immer";
 import { FunctionComponent } from "preact";
 import { generujUrl } from "../../../../store/program/logic/url";
-import { useAktivita, useUrlState, useUživatelPohlaví } from "../../../../store/program/selektory";
+import { useAktivita, useUrlStav, useUživatelPohlaví } from "../../../../store/program/selektory";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
 import { tabulkaBuňkaAktivitaTřídy } from "./ProgramTabulkaBuňka";
 
@@ -17,7 +17,7 @@ export const ProgramTabulkaBuňkaKompaktní: FunctionComponent<
 
   const aktivita = useAktivita(aktivitaId);
   const pohlavi = useUživatelPohlaví();
-  const urlState = useUrlState();
+  const urlStav = useUrlStav();
 
   const onAktivitaOdkazKlik = (
     e: JSX.TargetedMouseEvent<HTMLAnchorElement>
@@ -38,7 +38,7 @@ export const ProgramTabulkaBuňkaKompaktní: FunctionComponent<
         <div class={"kompaktni " + tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)} >
           <a
             href={generujUrl(
-              produce(urlState, (s) => {
+              produce(urlStav, (s) => {
                 s.aktivitaNáhledId = aktivita.id;
               })
             )}

@@ -40,7 +40,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 ) => {
   const { } = props;
 
-  const urlStateVýběr = useUrlVýběr();
+  const urlStavVýběr = useUrlVýběr();
   const aktivityFiltrované = useAktivityFiltrované();
 
   const kompaktní = useProgramStore(s=>s.všeobecné.kompaktní);
@@ -48,7 +48,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const BuňkaKomponenta = kompaktní ? ProgramTabulkaBuňkaKompaktní : ProgramTabulkaBuňka;
 
   const seskupPodle =
-    urlStateVýběr.typ === "můj"
+    urlStavVýběr.typ === "můj"
       ? SeskupováníAktivit.den
       : SeskupováníAktivit.linie;
 

@@ -14,7 +14,7 @@ export type ProgramTabulkaVýběr =
   }
   ;
 
-export type ProgramURLState = {
+export type ProgramURLStav = {
   ročník: number,
   výběr: ProgramTabulkaVýběr,
   filtrPřihlašovatelné: boolean,
@@ -30,7 +30,7 @@ export const URL_STATE_VÝCHOZÍ_MOŽNOST = Object.freeze({
   datum: new Date(GAMECON_KONSTANTY.PROGRAM_OD),
 });
 
-export const URL_STATE_VÝCHOZÍ_STAV: ProgramURLState = Object.freeze({
+export const URL_STATE_VÝCHOZÍ_STAV: ProgramURLStav = Object.freeze({
   ročník: GAMECON_KONSTANTY.ROCNIK,
   výběr: URL_STATE_VÝCHOZÍ_MOŽNOST,
   filtrPřihlašovatelné: false,
@@ -46,7 +46,7 @@ const TEXT_QUERY_KEY = "text";
 
 const párováníQueryDoStavu: {
   query: string,
-  stavString: keyof ProgramURLState,
+  stavString: keyof ProgramURLStav,
 }[] = [
   { stavString: "filtrPřihlašovatelné", query: PŘIHLAŠOVATELNÉ_QUERY_KEY },
   { stavString: "aktivitaNáhledId", query: NÁHLED_QUERY_KEY },
@@ -58,27 +58,27 @@ const párováníQueryDoStavu: {
 
 const parsujUrlDoStavu = (
   urlObj: URL,
-  urlState: ProgramURLState,
-  klíčVUrlState: keyof ProgramURLState,
+  urlStav: ProgramURLStav,
+  klíčVUrlStav: keyof ProgramURLStav,
   klíčVQuery: string
 ) => {
   const hodnotaString = urlObj.searchParams.get(klíčVQuery);
   try {
     if (hodnotaString) {
       const hodnota = JSON.parse(decodeURIComponent(hodnotaString));
-      (urlState[klíčVUrlState] as any) = hodnota;
+      (urlStav[klíčVUrlStav] as any) = hodnota;
     }
   } catch (e) { console.error(`nepodařilo se rozparsovat hodnotu ${hodnotaString ?? ""}`); }
 };
 
 const vytvořQueryHodnotuZeStavu = (
   search: string[],
-  urlState: ProgramURLState,
-  klíčVUrlState: keyof ProgramURLState,
+  urlStav: ProgramURLStav,
+  klíčVUrlStav: keyof ProgramURLStav,
   klíčVQuery: string
 ) => {
-  if (urlState[klíčVUrlState])
-    search.push(`${klíčVQuery}=${encodeURIComponent(JSON.stringify(urlState[klíčVUrlState]))}`);
+  if (urlStav[klíčVUrlStav])
+    search.push(`${klíčVQuery}=${encodeURIComponent(JSON.stringify(urlStav[klíčVUrlStav]))}`);
 };
 
 export const parsujUrl = (url: string) => {
@@ -88,12 +88,12 @@ export const parsujUrl = (url: string) => {
   const den = urlObj.pathname.slice(basePath.length);
 
   // TODO: co tady dělá přihlášen: true ?? nemá být náhodou z předaných konstant ?
-  const výběr = urlStateProgramTabulkaMožnostíDnyMůj({ přihlášen: true })
+  const výběr = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true })
     .find(x => urlZTabulkaVýběr(x) === den)
     ?? URL_STATE_VÝCHOZÍ_MOŽNOST;
 
   // výchozí hodnoty
-  const urlState: ProgramURLState = {
+  const urlStav: ProgramURLStav = {
     výběr,
     ročník: GAMECON_KONSTANTY.ROCNIK,
     filtrPřihlašovatelné: false,
@@ -104,17 +104,17 @@ export const parsujUrl = (url: string) => {
       { stavString: "ročník", query: ROCNIK_QUERY_KEY }
     ]
   )) {
-    parsujUrlDoStavu(urlObj, urlState, stavString, query);
+    parsujUrlDoStavu(urlObj, urlStav, stavString, query);
   }
 
-  return urlState;
+  return urlStav;
 };
 
 // TODO: z nějakého důvodu se na každé kliknutí volá moc často
 /** vytvoří url z aktuálního url-stavu nebo z předaného stavu */
-export const generujUrl = (urlState: ProgramURLState): string | undefined => {
+export const generujUrl = (urlStav: ProgramURLStav): string | undefined => {
   const výběr =
-    urlStateProgramTabulkaMožnostíDnyMůj({ přihlášen: true }).find(x => porovnejTabulkaVýběr(x, urlState.výběr));
+    urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true }).find(x => porovnejTabulkaVýběr(x, urlStav.výběr));
 
   if (!výběr) return undefined;
 
@@ -124,11 +124,11 @@ export const generujUrl = (urlState: ProgramURLState): string | undefined => {
 
   for (const { query, stavString } of párováníQueryDoStavu.concat(
     // pokud je ročník aktuální
-    urlState.ročník !== GAMECON_KONSTANTY.ROCNIK ? [
+    urlStav.ročník !== GAMECON_KONSTANTY.ROCNIK ? [
       { stavString: "ročník", query: ROCNIK_QUERY_KEY }
     ] : []
   )) {
-    vytvořQueryHodnotuZeStavu(search, urlState, stavString, query);
+    vytvořQueryHodnotuZeStavu(search, urlStav, stavString, query);
   }
 
   if (search.length)
@@ -137,7 +137,7 @@ export const generujUrl = (urlState: ProgramURLState): string | undefined => {
   return url;
 };
 
-export const urlStateProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?: boolean, ročník?: number }): ProgramTabulkaVýběr[] =>
+export const urlStavProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?: boolean, ročník?: number }): ProgramTabulkaVýběr[] =>
   GAMECON_KONSTANTY.PROGRAM_DNY
     .map((den) => ({
       typ: "den",

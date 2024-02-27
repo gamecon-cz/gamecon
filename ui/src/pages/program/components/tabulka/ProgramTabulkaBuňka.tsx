@@ -2,7 +2,7 @@ import produce from "immer";
 import { FunctionComponent } from "preact";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
-import { useAktivita, useUrlState, useUživatelPohlaví } from "../../../../store/program/selektory";
+import { useAktivita, useUrlStav, useUživatelPohlaví } from "../../../../store/program/selektory";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
 import { volnoTypZObsazenost } from "../../../../utils";
@@ -54,7 +54,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
 
   const aktivita = useAktivita(aktivitaId);
   const pohlavi = useUživatelPohlaví();
-  const urlState = useUrlState();
+  const urlStav = useUrlStav();
 
   const onAktivitaOdkazKlik = (
     e: JSX.TargetedMouseEvent<HTMLAnchorElement>
@@ -75,7 +75,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
         <div class={tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)}>
           <a
             href={generujUrl(
-              produce(urlState, (s) => {
+              produce(urlStav, (s) => {
                 s.aktivitaNáhledId = aktivita.id;
               })
             )}

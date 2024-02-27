@@ -1,7 +1,7 @@
 import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import {
-  useUrlStateStavyFiltr,
+  useUrlStavStavyFiltr,
   useUživatel,
 } from "../../../store/program/selektory";
 import { nastavFiltrStavů } from "../../../store/program/slices/urlSlice";
@@ -14,7 +14,7 @@ export const ProgramLegenda = () => {
   const koncovkaDlePohlaví = uživatel.koncovkaDlePohlavi ?? "";
   const přihlášen = uživatel.prihlasen ?? false;
 
-  const stavyFiltr = useUrlStateStavyFiltr();
+  const stavyFiltr = useUrlStavStavyFiltr();
 
   const filtrujeStav = (stav: AktivitaStav) =>
     stavyFiltr.some((x) => x === stav);
