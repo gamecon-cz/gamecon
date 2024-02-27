@@ -1,5 +1,6 @@
 import { initEnv } from "./env";
 import { renderPages } from "./pages";
+import { registerFlexSearchCs } from "./store/program/logic/flexSearch";
 
 // TODO: zbavit se html v db kde to jde (legenda text, program náhled ...)
 // TODO: uklidit duplicitní less styly.
@@ -18,4 +19,5 @@ import { renderPages } from "./pages";
 console.log("Preact starting ...");
 
 initEnv();
+registerFlexSearchCs();
 renderPages();

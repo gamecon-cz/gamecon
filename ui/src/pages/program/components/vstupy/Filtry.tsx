@@ -131,7 +131,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
             />
           </div>
           <div style={{ minWidth: "300px" }} class="formular_polozka">
-            <input style={{ marginTop: 0 }} placeholder="Hledej v textu"
+            <input style={{ marginTop: 0, height: "38px" }} placeholder="Hledej v textu"
               value={filtrText}
               onChange={(e)=>{
                 nastavFiltrTextu(e.currentTarget.value);
