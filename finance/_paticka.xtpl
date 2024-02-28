@@ -1,0 +1,9 @@
+<!-- begin:paticka -->
+<!-- begin:kurz -->
+
+<hr>
+
+Nastavený kurz € = {kurzEura} Kč <em>(kurz můžeš změnit v <a href="{nastaveniUrl}">nastavení</a>)</em>
+
+<!-- end:kurs -->
+<!-- end:paticka -->

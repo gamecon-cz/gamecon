@@ -1,0 +1,59 @@
+<!-- begin:finance -->
+
+<h1>Finance</h1>
+
+<form>
+  <label>
+    Vypsat uživatele, kteří mají stav účtu vyšší rovno jak
+    <input type="text" name="minimum" value="{minimum}">
+  </label>
+  <input type="submit" value="Vypsat">
+</form>
+
+<!-- begin:uzivatele -->
+<em>pozn.: vypravěči mají právo „zaplatil včas“ vždy</em>
+<table>
+  <tr>
+    <th>Login</th>
+    <th>Stav účtu</th>
+    <th>aktiv</th>
+    <th>ubyt</th>
+    <th>předm</th>
+  </tr>
+  <!-- begin:uzivatel -->
+  <tr>
+    <td>{login}</td>
+    <td>{stav}</td>
+    <td>{aktivity}</td>
+    <td>{ubytovani}</td>
+    <td>{predmety}</td>
+  </tr>
+  <!-- end:uzivatel -->
+</table>
+<!-- end:uzivatele -->
+<!-- begin:nikdo -->(žádní uživatelé)<br><!-- end:nikdo -->
+
+<hr style="clear: left">
+
+<!-- begin:reporty -->
+<table class="zvyraznovana">
+  <tbody>
+  <tr>
+    <th>Report</th>
+    <th colspan="2">Formáty</th>
+  </tr>
+  <tr>
+    <td>Ubytování</td>
+    <td><a href="reporty/{ubytovani}">xlsx</a></td>
+    <td><a href="reporty/{ubytovani}?format=html" target="_blank">html</a></td>
+  </tr>
+  <tr>
+    <td>Celkový report {rok}</td>
+    <td><a href="reporty/{bfgr}">xlsx</a></td>
+    <td><a href="reporty/{bfgr}?format=html" target="_blank">html</a></td>
+  </tr>
+  </tbody>
+</table>
+<!-- end:reporty -->
+
+<!-- end:finance -->
