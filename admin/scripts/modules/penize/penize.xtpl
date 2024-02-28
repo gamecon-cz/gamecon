@@ -116,11 +116,6 @@
     <td><a href="reporty/{ubytovani}">xlsx</a></td>
     <td><a href="reporty/{ubytovani}?format=html" target="_blank">html</a></td>
   </tr>
-  <tr>
-    <td>Celkový report {rok}</td>
-    <td><a href="reporty/{bfgr}">xlsx</a></td>
-    <td><a href="reporty/{bfgr}?format=html" target="_blank">html</a></td>
-  </tr>
   </tbody>
 </table>
 <!-- end:reporty -->

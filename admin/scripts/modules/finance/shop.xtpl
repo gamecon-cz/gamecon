@@ -2,7 +2,23 @@
 <hr>
 
 <div>
-
+  <h3>E-shop</h3>
+  <form method="post" class="prevent-leaving-without-save">
+    <div class="sticky-pinned text-center" style="padding: 0">
+      <input style="margin: 0.5em" type="submit" name="ulozit" value="Uložit změny">
+    </div>
+    <br>
+    <table>
+      <tr>
+        <th>Název</th>
+        <th>Cena za kus</th>
+        <th>Suma</th>
+        <th>Model rok</th>
+        <th>Naposledy koupeno</th>
+        <th>Letos prodáno kusů</th>
+        <th>Zbývá kusů</th>
+        <th>Kusů celkem</th>
+      </tr>
       <!-- begin:typ -->
       <!-- begin:typPolozky -->
       <tr>
@@ -43,25 +59,5 @@
   const event = new CustomEvent("contentReadyToScrollToPreviousPosition")
   document.dispatchEvent(event)
 </script>
-
-<!-- begin:kfc -->
-<div class="aBox" style="width:100%; overflow: auto;">
-  <h3>Nastavení mřížkového prodeje</h3>
-
-  <link rel="stylesheet" href="files/ui/style.css?version={$cssVersions.style}">
-
-  <div id="preact-obchod-nastaveni">Nastavení mřížek obchodu se načítá ...</div>
-
-  <script>
-    // Konstanty předáváné do Preactu (env.ts)
-    window.GAMECON_KONSTANTY = {
-      BASE_PATH_API: "{basePathApi}",
-      ROCNIK: {rocnik},
-    }
-  </script>
-
-  <script type="module" src="files/ui/bundle.js?version={jsVersions.bundle}"></script>
-</div>
-<!-- end:kfc -->
 
 <!-- end:shop -->

@@ -7,8 +7,8 @@ use Gamecon\XTemplate\XTemplate;
  * Nástroj na zrušení storna za to, když se účastník nedostavil na aktivitu.
  *
  * nazev: Rušení storna
- * pravo: 108
- * submenu_group: 5
+ * pravo: 110
+ *
  */
 
 // zpracování POST požadavků

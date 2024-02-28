@@ -5,11 +5,10 @@ use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * Rychlé finanční transakce (obsolete) (starý kód)
+ * Koutek pro šéfa financí GC
  *
- * nazev: Penize
- * pravo: 108
- * submenu_group: 5
+ * nazev: Peníze
+ * pravo: 110
  */
 
 /**
@@ -17,6 +16,7 @@ use Gamecon\XTemplate\XTemplate;
  * @var Uzivatel|null $uPracovni
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
+
 
 if (post('uzivatelProPripsaniSlevy')) {
     $uzivatel = Uzivatel::zId(post('uzivatelProPripsaniSlevy'));
@@ -124,7 +124,7 @@ $x->parse('penize.vyplatitBonusZaVedeniAktivity');
 $x->assign('rok', $systemoveNastaveni->rocnik());
 
 $x->assign('ubytovani', basename(__DIR__ . '/../../zvlastni/reporty/finance-report-ubytovani.php', '.php'));
-$x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/bfgr-report.php', '.php'));
+//$x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/bfgr-report.php', '.php'));
 $x->parse('penize.reporty');
 
 $o = dbQuery('
