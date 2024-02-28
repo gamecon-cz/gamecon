@@ -6,6 +6,7 @@ import { GAMECON_KONSTANTY } from "../env";
 import { ProgramWrapper } from "../testing/ProgramWrapper";
 
 import "./index.less";
+import { UbytovaníNastavení } from "./ubytovaniNastaveni";
 
 const renderComponent = (
   rootId: string,
@@ -27,6 +28,7 @@ const renderComponent = (
 };
 
 export const renderPages = () => {
+  renderComponent("preact-ubytovani-nastaveni", UbytovaníNastavení);
   renderComponent("preact-obchod-nastaveni", ObchodNastaveni);
   renderComponent("preact-program", Program, ProgramWrapper);
   renderComponent("preact-obchod", Obchod);
