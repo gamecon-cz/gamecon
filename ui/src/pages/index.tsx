@@ -1,12 +1,12 @@
 import { Program } from "./program";
 import { Obchod } from "./obchod";
 import { ObchodNastaveni } from "./obchodNastaveni";
+import { UbytovaníNastavení } from "./ubytovaniNastaveni";
 import { Fragment, FunctionComponent, JSX, render } from "preact";
 import { GAMECON_KONSTANTY } from "../env";
 import { ProgramWrapper } from "../testing/ProgramWrapper";
 
 import "./index.less";
-import { UbytovaníNastavení } from "./ubytovaniNastaveni";
 
 const renderComponent = (
   rootId: string,
