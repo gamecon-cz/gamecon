@@ -2,6 +2,12 @@
 
 use Gamecon\Kfc\ObchodMrizkaBunka;
 use Gamecon\Kfc\ObchodMrizka;
+use Gamecon\Pravo;
+
+if (empty($u) || !$u->maPravo(Pravo::ADMINISTRACE_FINANCE)) {
+    header('HTTP/1.1 403 Forbidden');
+    die('403 Forbidden');
+}
 
 // TODO: vxužíváno adminem asi by mělo být v adminu (nutno dovymyslet)
 // TODO: ObchodMrizka, ObchodMrizkaBunka by měli být asi v nějakém namespace (nepodařilo se mi rozchodit - padá)

@@ -2,6 +2,12 @@
 
 use Gamecon\Kfc\ObchodMrizkaBunka;
 use Gamecon\Kfc\ObchodMrizka;
+use Gamecon\Pravo;
+
+if (empty($u)) {
+    header('HTTP/1.1 403 Forbidden');
+    die('403 Forbidden');
+}
 
 /*
   GET api/predmety
@@ -18,14 +24,14 @@ $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
 // GET
 $vsechny = ObchodMrizka::zVsech();
-$bunky = ObchodMrizkaBunka::zVsech();
-$res = [];
+$bunky   = ObchodMrizkaBunka::zVsech();
+$res     = [];
 
 // TODO: přesunout do nějaké DB třídy
 $o = dbQuery('
   SELECT
     CONCAT(nazev," ",model_rok) as nazev,
-    kusu_vyrobeno-count(n.id_predmetu) as zbyva,
+    kusu_vyrobeno - COUNT(n.id_predmetu) as zbyva,
     p.id_predmetu,
     ROUND(p.cena_aktualni) as cena
   FROM shop_predmety p
@@ -34,16 +40,13 @@ $o = dbQuery('
   GROUP BY p.id_predmetu
   ORDER BY model_rok DESC, nazev');
 
-
-
 while ($r = mysqli_fetch_assoc($o)) {
-  $res[] = [
-    'nazev' => $r['nazev'],
-    'zbyva' => intvalOrNull($r['zbyva']),
-    'id' => intval($r['id_predmetu']),
-    'cena' => intval($r['cena']),
-  ];
+    $res[] = [
+        'nazev' => $r['nazev'],
+        'zbyva' => intvalOrNull($r['zbyva']),
+        'id'    => intval($r['id_predmetu']),
+        'cena'  => intval($r['cena']),
+    ];
 }
-
 
 echo json_encode($res, $config);
