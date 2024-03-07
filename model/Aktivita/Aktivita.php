@@ -552,7 +552,7 @@ SQL
     private static function parseUpravyTabulkaDen(?Aktivita $aktivita, XTemplate $xtpl)
     {
         $denAktivity = null;
-        if ($aktivita->zacatek()) {
+        if ($aktivita && $aktivita->zacatek()) {
             $denAktivity = $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK 
                 ? $aktivita->zacatek() 
                 : $aktivita->zacatek()->minusDen();
@@ -584,7 +584,7 @@ SQL
 
         // kontrola přehoupnutí přes půlnoc
         if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
-            $hodinaZacatku = [...range(PROGRAM_ZACATEK, 24 - 1, 1), ...range(0, min(PROGRAM_KONEC - 1, 0), 1)];
+            $hodinyZacatku = [...range(PROGRAM_ZACATEK, 24 - 1, 1), ...range(0, PROGRAM_KONEC - 1, 1)];
         } else {
             $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
         }

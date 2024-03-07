@@ -660,29 +660,29 @@ HTML;
 
     /**
      * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času zahájení
-     * @param Aktivita $a
+     * @param array $a
      */
-    public static function denAktivityDleZacatku(Aktivita $aktivita) {
-        if ($aktivita->zacatek() === null) {
+    public static function denAktivityDleZacatku($a) {
+        if (!isset($a['den']) || !isset($a['zacatek'])) {
             return null;
         }
 
-        return $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK
-            ? clone $aktivita->zacatek()
-            : (clone $aktivita->zacatek())->plusDen();
+        return $a['zacatek'] > PROGRAM_ZACATEK 
+            ? new DateTimeCz($a['den']) 
+            : (new DateTimeCz($a['den']))->plusDen();
     }
 
     /**
      * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času ukončení
-     * @param Aktivita $a
+     * @param array $a
      */
-    public static function denAktivityDleKonce(Aktivita $aktivita) {
-        if ($aktivita->konec() === null) {
+    public static function denAktivityDleKonce($a) {
+        if (!isset($a['den']) || !isset($a['konec'])) {
             return null;
         }
 
-        return $aktivita->konec()->format('H') > PROGRAM_ZACATEK
-            ? clone $aktivita->konec()
-            : (clone $aktivita->konec())->plusDen();
+        return $a['konec'] > PROGRAM_ZACATEK 
+            ? new DateTimeCz($a['den']) 
+            : (new DateTimeCz($a['den']))->plusDen();
     }
 }
