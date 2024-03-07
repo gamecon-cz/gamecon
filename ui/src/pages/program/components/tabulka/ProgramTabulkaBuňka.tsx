@@ -68,8 +68,9 @@ export const ProgramTabulkaBuňka: FunctionComponent<
 
   const hodinOd = new Date(aktivita.cas.od).getHours();
   const hodinDo = new Date(aktivita.cas.do).getHours();
-  const rozsah =
-    hodinDo > hodinOd ? hodinDo - hodinOd : 23 - hodinOd + hodinDo + 1;
+  const rozsah = hodinDo > hodinOd 
+    ? hodinDo - hodinOd 
+    : 24 - hodinOd + hodinDo;
 
   return (
     <>

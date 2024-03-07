@@ -294,7 +294,7 @@ trait DateTimeCzTrait
     /** Sníží časový údaj o jeden den. Upravuje objekt. */
     public function minusDen(): static
     {
-        return $this->sub(new \DateInterval('P1D'));
+        return $this->modify('-1 day');
     }
 
     /** Zvýší časový údaj o jeden den. Upravuje objekt. */
