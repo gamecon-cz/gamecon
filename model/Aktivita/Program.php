@@ -659,15 +659,18 @@ HTML;
     }
 
     /**
-     * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni)
+     * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času zahájení
      * @param Aktivita $a
-     * @param Boolean  $podleZacatku
      */
-    public static function denAktivity($a, $podleZacatku = true) {
-        if ($podleZacatku) {
-            return $a['zacatek'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
-        } else {
-            return $a['konec'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
-        }
+    public static function denAktivityDleZacatku($a) {
+        return $a['zacatek'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
+    }
+
+    /**
+     * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času ukončení
+     * @param Aktivita $a
+     */
+    public static function denAktivityDleKonce($a) {
+        return $a['konec'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
     }
 }

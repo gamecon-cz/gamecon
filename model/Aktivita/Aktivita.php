@@ -380,8 +380,8 @@ SQL
         // kontrola dostupnosti organizátorů v daný čas
         if (!empty($a['den']) && !empty($a[Sql::ZACATEK]) && !empty($a[Sql::KONEC])) {
 
-            $zacatek           = (Program::denAktivity($a))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
-            $konec             = (Program::denAktivity($a, false))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
+            $zacatek           = (Program::denAktivityDleZacatku($a))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
+            $konec             = (Program::denAktivityDleKonce($a))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
             $ignorovatAktivitu = isset($a[Sql::ID_AKCE]) ? self::zId($a[Sql::ID_AKCE]) : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = Uzivatel::zId($orgId);
@@ -744,10 +744,10 @@ SQL
             $a['zacatek'] = null;
             $a['konec']   = null;
         } else {
-            $zacatekDen = Program::denAktivity($a);
+            $zacatekDen = Program::denAktivityDleZacatku($a);
             $a['zacatek'] = ($zacatekDen)->add(new \DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
 
-            $konecDen = Program::denAktivity($a, false);
+            $konecDen = Program::denAktivityDleKonce($a);
             $a['konec']   = ($konecDen)->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
         }
         unset($a['den']);
