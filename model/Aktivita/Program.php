@@ -663,7 +663,9 @@ HTML;
      * @param Aktivita $a
      */
     public static function denAktivityDleZacatku($a) {
-        return $a['zacatek'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
+        return $a['zacatek'] > PROGRAM_ZACATEK 
+            ? new DateTimeCz($a['den']) 
+            : (new DateTimeCz($a['den']))->plusDen();
     }
 
     /**
@@ -671,6 +673,8 @@ HTML;
      * @param Aktivita $a
      */
     public static function denAktivityDleKonce($a) {
-        return $a['konec'] > PROGRAM_ZACATEK ? new DateTimeCz($a['den']) : (new DateTimeCz($a['den']))->plusDen();
+        return $a['konec'] > PROGRAM_ZACATEK 
+            ? new DateTimeCz($a['den']) 
+            : (new DateTimeCz($a['den']))->plusDen();
     }
 }
