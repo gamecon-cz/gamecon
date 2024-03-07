@@ -662,19 +662,27 @@ HTML;
      * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času zahájení
      * @param Aktivita $a
      */
-    public static function denAktivityDleZacatku($a) {
-        return $a['zacatek'] > PROGRAM_ZACATEK 
-            ? new DateTimeCz($a['den']) 
-            : (new DateTimeCz($a['den']))->plusDen();
+    public static function denAktivityDleZacatku(Aktivita $aktivita) {
+        if ($aktivita->zacatek() === null) {
+            return null;
+        }
+
+        return $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK
+            ? clone $aktivita->zacatek()
+            : (clone $aktivita->zacatek())->plusDen();
     }
 
     /**
      * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času ukončení
      * @param Aktivita $a
      */
-    public static function denAktivityDleKonce($a) {
-        return $a['konec'] > PROGRAM_ZACATEK 
-            ? new DateTimeCz($a['den']) 
-            : (new DateTimeCz($a['den']))->plusDen();
+    public static function denAktivityDleKonce(Aktivita $aktivita) {
+        if ($aktivita->konec() === null) {
+            return null;
+        }
+
+        return $aktivita->konec()->format('H') > PROGRAM_ZACATEK
+            ? clone $aktivita->konec()
+            : (clone $aktivita->konec())->plusDen();
     }
 }
