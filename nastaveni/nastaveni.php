@@ -192,7 +192,7 @@ if (!defined('DEN_PRVNI_DATE')) define('DEN_PRVNI_DATE', date('Y-m-d', strtotime
 if (!defined('DEN_PRVNI_UBYTOVANI')) define('DEN_PRVNI_UBYTOVANI', DEN_PRVNI_DATE); // datum, kterému odpovídá ubytovani_den (tabulka shop_predmety) v hodnotě 0
 if (!defined('PROGRAM_ZACATEK')) define('PROGRAM_ZACATEK', 8); // první hodina programu
 if (!defined('PROGRAM_KONEC')) define('PROGRAM_KONEC', 6); // konec programu (tuto hodinu už se nehraje). Používejte pouze hodnoty 1-24. Pokud je menší než PROGRAM_ZACATEK, znamená to, že končí následujícího dne.
-if (PROGRAM_KONEC === 0) define('PROGRAM_KONEC', 24); // kontrola kdyby někdo zadal konec jako 0 (rozbíjí to vytváření aktivit, noční aktivity aj.)
+if (PROGRAM_KONEC === 0) throw new Exception('Konstanta PROGRAM_KONEC bere pouze hodnoty 1 až 24'); // kontrola kdyby někdo zadal konec jako 0 (rozbíjí to vytváření aktivit, noční aktivity aj.)
 
 if (!defined('MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM')) define('MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM', 20);
 if (!defined('MOJE_AKTIVITY_PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM')) define('MOJE_AKTIVITY_PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM', 10);
