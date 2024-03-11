@@ -657,4 +657,32 @@ HTML;
             $bunky .= '<td></td>';
         return "<tr><td rowspan=\"1\"><div class=\"program_nazevLinie\">$nazev</div></td>$bunky</tr>";
     }
+
+    /**
+     * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času zahájení
+     * @param array $a
+     */
+    public static function denAktivityDleZacatku($a) {
+        if (!isset($a['den']) || !isset($a['zacatek'])) {
+            return null;
+        }
+
+        return $a['zacatek'] > PROGRAM_ZACATEK 
+            ? new DateTimeCz($a['den']) 
+            : (new DateTimeCz($a['den']))->plusDen();
+    }
+
+    /**
+     * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času ukončení
+     * @param array $a
+     */
+    public static function denAktivityDleKonce($a) {
+        if (!isset($a['den']) || !isset($a['konec'])) {
+            return null;
+        }
+
+        return $a['konec'] > PROGRAM_ZACATEK 
+            ? new DateTimeCz($a['den']) 
+            : (new DateTimeCz($a['den']))->plusDen();
+    }
 }

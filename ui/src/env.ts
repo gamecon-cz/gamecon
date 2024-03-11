@@ -38,6 +38,12 @@ define('FORCE_REDUX_DEVTOOLS', true);
   PROGRAM_DNY: number[],
   PROGRAM_ŘAZENÍ_LINIE: string[],
   LEGENDA: string,
+
+  /*
+   * Začátek a konec programu pro determinaci toho které aktivity po půlnoci spadají ještě do daného dne
+   */
+  PROGRAM_ZACATEK: number;
+  PROGRAM_KONEC: number;
 }
 
 type GameconPřednačtení = {
@@ -76,6 +82,8 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
     "mistrovství v DrD", "legendy klubu dobrodruhů",
     "akční a bonusové aktivity", "Přednášky", "doprovodný program"
   ],
+  PROGRAM_ZACATEK: 8,
+  PROGRAM_KONEC: 6,
 };
 
 export const GAMECON_KONSTANTY = {

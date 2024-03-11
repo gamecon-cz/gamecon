@@ -8,6 +8,7 @@ use Granam\RemoveDiacritics\RemoveDiacritics;
 /**
  * Datum a čas s českými názvy dnů a měsíců + další vychytávky
  * @method DateTimeCz add(\DateInterval $interval)
+ * @method DateTimeCz sub(\DateInterval $interval)
  * @method static DateTimeCz createFromInterface(\DateTimeInterface $object)
  */
 trait DateTimeCzTrait
@@ -288,6 +289,12 @@ trait DateTimeCzTrait
     public function formatCasZacatekUdalosti(): string
     {
         return parent::format(self::FORMAT_ZACATEK_UDALOSTI);
+    }
+
+    /** Sníží časový údaj o jeden den. Upravuje objekt. */
+    public function minusDen(): static
+    {
+        return $this->modify('-1 day');
     }
 
     /** Zvýší časový údaj o jeden den. Upravuje objekt. */
