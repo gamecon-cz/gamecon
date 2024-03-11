@@ -2,7 +2,7 @@
 <form method="post">
     <p>
         Načíst uživatele se zůstatkem
-        <span class="hinted">mezi<span class="hint">Může být i záporné číslo pro zjištění nedopatků.<br>Nech jednu z hodnot prázdnou pro "nekonečno".</span></span>
+        <span class="hinted">mezi<span class="hint">Může být i záporné číslo pro zjištění nedoplatků.<br>Nech jednu z hodnot prázdnou pro "nekonečno".</span></span>
         <input required type="number" step="1" name="jednaHraniceZustatku" value="{jednaHraniceZustatku}"
                style="width: 5em">
         a
@@ -22,6 +22,10 @@
             <label for="vcetneInternich">včetně organizátorů, četných organizátorů, vypravěčů a partnerů</label>
         </span>
     </p>
+
+  <p>
+    <input type="submit" name="exportovat" value="Exportovat do XLSX" {disabledExport}>
+  </p>
 
     <table style="width: 100%">
         <tr>
