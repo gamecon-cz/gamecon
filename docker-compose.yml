@@ -2,7 +2,7 @@
 version: "3"
 services:
   web:
-    image: jaroslavtyc/gamecon:8.2
+    image: jaroslavtyc/gamecon:8.3
     restart: "no"
     volumes:
       - .:/var/www/html/gamecon:delegated
@@ -23,7 +23,7 @@ services:
       - "${WEB_HTTPS_HOST_MAPPING_PORT:-443}:443"
 
   sql.gamecon:
-    image: mariadb:10.3.27 # should be same as on live server
+    image: mariadb:10.6  # should be same as on live server
     restart: "no"
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
