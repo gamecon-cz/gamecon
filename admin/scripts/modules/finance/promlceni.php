@@ -78,6 +78,7 @@ if (post('pripravit')) {
     }
 }
 
+$ids = [];
 if (is_numeric($jednaHraniceZustatku) && is_numeric($ucastDoRoku)) {
 // připraví seznam uživatelů pro promlčení zůstatku
 
@@ -89,6 +90,8 @@ SELECT
     u.id_uzivatele AS uzivatel,
     u.jmeno_uzivatele AS jmeno,
     u.prijmeni_uzivatele AS prijmeni,
+    u.email1_uzivatele AS email,
+    u.telefon_uzivatele AS telefon,
     u.zustatek,
     ucast.roky AS ucast,
     kladny_pohyb.cas_posledni_platby AS kladny_pohyb
@@ -146,7 +149,15 @@ SQL,
         ],
     );
 
-    $ids = [];
+    if (post('exportovat')) {
+        $data = mysqli_fetch_all($o, MYSQLI_ASSOC);
+        if ($data !== []) {
+            $report = Report::zPole($data);
+            $report->tXlsx('Promlčení zůstatků');
+            exit();
+        }
+    }
+
     $p->assign('adminUrl', URL_ADMIN);
     $maxInputVars = (int)ini_get('max_input_vars'); // omezuje například POST
     $maxUzivatelu = $maxInputVars - 100;
@@ -166,7 +177,7 @@ SQL,
         $poradi++;
     }
 
-    if (count($ids) == 0) {
+    if ($ids === []) {
         $p->parse('promlceni.nikdo');
     } else {
         $p->assign([
@@ -195,6 +206,9 @@ $p->assign([
     'druhaHraniceZustatku'   => $druhaHraniceZustatku ?? null,
     'checkedVcetneInternich' => $vcetneInternich ?? false
         ? 'checked'
+        : '',
+    'disabledExport'         => $ids === []
+        ? 'disabled'
         : '',
 ]);
 
