@@ -117,16 +117,6 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
                 </>
                 : undefined
             }
-            {/*
-            // TODO: původní kód smazat
-            <p style={{ opacity: 0.3, display:"inline" }}>
-                {aktivita?.slevaNasobic !== undefined &&
-                aktivita?.slevaNasobic !== 1
-                  ? `*(osobni sleva ${
-                    (1 - aktivita?.slevaNasobic) * 100
-                  }%)`
-                  : undefined}
-              </p> */}
           </div>
         </div>
       </div>

@@ -1,8 +1,6 @@
 import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
-import { formátujDenVTýdnu, tryParseNumber } from "../../../utils";
-
-// TODO: přidat title generátor pro daný url state, následně někde do tsx přicpat logiku měnení title stránky, title se bude generovat i přes php pro statické odkazy
+import { formátujDenVTýdnu } from "../../../utils";
 
 export type ProgramTabulkaVýběr =
   | {
