@@ -87,7 +87,6 @@ export const nastavUrlVýběr = (možnost: ProgramTabulkaVýběr) => {
 //   }, undefined, "nastav program linie");
 // };
 
-// TODO: lepší název
 /**
  * Vybrané všechny nebo žádné => undefined
  */

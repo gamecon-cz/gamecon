@@ -57,7 +57,6 @@ export const aktivitaStatusZAktivity = (
   return "volno";
 };
 
-// TODO: přidat zbytek filtrů
 export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
   const {
     filtrLinie, filtrPřihlašovatelné, filtrTagy, ročník, výběr, filtrStavAktivit, filtrText
@@ -90,7 +89,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
       );
 
   // TODO: přihlašovatelnost aktivity dle pohlaví
-  // TODO: přihlašovatelnost aktivity dle pohlaví přidat poznámku na tlačítko
+  // TODO: přihlašovatelnost aktivity dle pohlaví přidat tooltip na tlačítko
   if (filtrStavAktivit)
     aktivityFiltrované = aktivityFiltrované
       .filter((aktivita) =>

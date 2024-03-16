@@ -19,7 +19,7 @@ import "./ReactSelect.less";
 import "./Filtry.less";
 import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 import { useProgramStore } from "../../../../store/program";
-import { useCallback } from "react";
+import React, { ReactNode, useCallback } from "react";
 
 type TFiltryProps = {
   otevřeno: boolean;
@@ -40,10 +40,7 @@ const asValueLabel = <T,>(obj: T): TValueLabel<T> => ({
   label: obj,
 });
 
-// TODO: zaobalit a vytáhnout Select do globálních komponent (vedle Overlay)
-
-// TODO: return type
-const formatOptionLabel = (data: TValueLabel) =>
+const formatOptionLabel = (data: TValueLabel): ReactNode =>
   (
     <div class="react_select_option--container">
       <span>{data.label}</span>
@@ -55,10 +52,6 @@ const formatOptionLabel = (data: TValueLabel) =>
     </div>
   ) as any;
 
-// TODO: můj program je nefiltrovaný - zašednout všechny controly ve filtry a lehce i tlačítko filtry
-// TODO: seřadí linie, tagy (přesune nahoru seznamu) podle den -> rok -> zbytek (možná i podle výskytů)
-// TODO: tlačítko křížek vedle tlačítka filtry které všechny smaže
-// TODO: mobilní zobrazení
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
