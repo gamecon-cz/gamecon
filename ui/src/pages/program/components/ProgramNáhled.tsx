@@ -10,7 +10,7 @@ type ProgramNáhledProps = {};
 
 // TODO: přihlašovátko ?
 export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) => {
-  const { } = props;
+  const {} = props;
   const aktivita = useAktivitaNáhled();
 
   const programNáhledTextRef = useRef<HTMLDivElement>(null);
@@ -77,7 +77,9 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               class="programNahled_cas"
               dangerouslySetInnerHTML={{ __html: aktivita?.casText ?? "" }}
             ></div>
-            <div style={{ display: "flex", alignItems: "center" }}>
+            {
+            // TODO: řešeno na kartě https://trello.com/c/5yW69Zjt/806-ceny-aktivit-neukazuj%C3%AD-slevy 
+            /* <div style={{ display: "flex", alignItems: "center" }}>
               <div style={{ width: 30 }}>
                 💲💲
               </div>
@@ -116,7 +118,24 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
                   </div>
                 </>
                 : undefined
-            }
+            } */}
+            <div class="programNahled_cena">
+              {aktivita?.slevaNasobic !== 0 &&
+              aktivita?.cenaZaklad !== 0
+                ? aktivita?.cenaZaklad != undefined
+                  ? aktivita?.cenaZaklad *
+                    (aktivita?.slevaNasobic ?? 1)
+                  : " - "
+                : "zdarma"}
+              <p style={{ opacity: 0.3 }}>
+                {aktivita?.slevaNasobic !== undefined &&
+                aktivita?.slevaNasobic !== 1
+                  ? `*(osobni sleva ${
+                    (1 - aktivita?.slevaNasobic) * 100
+                  }%)`
+                  : undefined}
+              </p>
+            </div>
           </div>
         </div>
       </div>
