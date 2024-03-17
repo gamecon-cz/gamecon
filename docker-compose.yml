@@ -29,7 +29,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
       - TZ=Europe/Prague
     volumes:
-      - ./docker/mysql:/etc/mysql/conf.d:ro
+      - ./.docker/mysql:/etc/mysql/conf.d:ro
       # - ~/.cache/gamecon/mysql:/var/lib/mysql
     ports:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
