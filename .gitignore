@@ -5,6 +5,7 @@
 /.phpunit.result.cache
 /.phpunit.cache
 /test-results
+/.envrc
 
 /cache/private/*
 !/cache/private/.htaccess
