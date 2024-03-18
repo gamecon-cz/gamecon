@@ -377,7 +377,7 @@ SQL
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
-        $this->shop($this->systemoveNastaveni)->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni);
+        $this->shop()->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni);
 
         try {
             $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam);
@@ -1978,7 +1978,7 @@ SQL,
     ", null, 'LIMIT ' . $limit);
     }
 
-    public static function zId($id, bool $zCache = false): ?Uzivatel
+    public static function zId($id, bool $zCache = false): ?static
     {
         $id = (int)$id;
 
@@ -2272,13 +2272,13 @@ SQL;
         return $uzivatele;
     }
 
-    public function shop(SystemoveNastaveni $systemoveNastaveni = null): Shop
+    public function shop(): Shop
     {
         if ($this->shop === null) {
             $this->shop = new Shop(
                 $this,
                 $this,
-                $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+                $this->systemoveNastaveni,
             );
         }
         return $this->shop;
@@ -2454,7 +2454,7 @@ SQL;
     public function infopultAdminUrl(string $zakladniAdminUrl = URL_ADMIN): string
     {
         // vrátí "infopult" - máme to schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
-        return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/infopult.php', '.php');
+        return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/infopult/infopult.php', '.php');
     }
 
     /**
@@ -2468,7 +2468,7 @@ SQL;
         // URL máme schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
         if ($this->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/infopult */
-            $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/infopult.php', '.php');
+            $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/infopult/infopult.php', '.php');
             return ['url' => $zakladniAdminUrl . '/' . $adminUvodUrl, 'nazev' => 'do Adminu'];
         }
         if ($this->jeOrganizator()) {

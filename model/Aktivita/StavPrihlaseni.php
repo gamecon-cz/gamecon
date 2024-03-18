@@ -4,14 +4,14 @@ namespace Gamecon\Aktivita;
 
 class StavPrihlaseni
 {
-    public const NEPRIHLASEN             = -1;
+    public const NEPRIHLASEN = -1;
     // akce_prihlaseni
-    public const PRIHLASEN               = 0;
-    public const PRIHLASEN_A_DORAZIL     = 1;
-    public const DORAZIL_JAKO_NAHRADNIK  = 2;
+    public const PRIHLASEN              = 0;
+    public const PRIHLASEN_A_DORAZIL    = 1;
+    public const DORAZIL_JAKO_NAHRADNIK = 2;
     // akce_prihlaseni_spec
-    public const PRIHLASEN_ALE_NEDORAZIL = 3;
-    public const POZDE_ZRUSIL            = 4;
+    public const PRIHLASEN_ALE_NEDORAZIL = 3; // storno poplatek 100%, viz SELECT platba_procent FROM akce_prihlaseni_stavy WHERE nazev = 'nedorazil'
+    public const POZDE_ZRUSIL            = 4; // storno poplatek 50%, viz SELECT platba_procent FROM akce_prihlaseni_stavy WHERE nazev = 'pozdě zrušil'
     public const SLEDUJICI               = 5;
 
     public static function dorazilJakoCokoliv(int $stavPrihlaseni): bool

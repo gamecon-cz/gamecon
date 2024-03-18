@@ -181,6 +181,9 @@
           <td class="clearfix">
             <div style="float: left;">
               {balicek}
+              <div>
+                <a href="{nfcCipUrl}">Čip 🏷️</a>
+              </div>
             </div>
           </td>
         </tr>

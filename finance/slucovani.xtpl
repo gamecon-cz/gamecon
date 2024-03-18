@@ -1,0 +1,136 @@
+<!-- begin:slucovani -->
+
+<p>
+  Výsledné ID by se vždy mělo zvolit nižší. Přihláška na GC se uživateli zachová, i když bude mít přihlášku původně s
+  vyšším ID. Pokud je uživatel vybrán pro práci, je potřeba ho zrušit a vybrat znova. Případné dluhy / zůstatky se
+  sečtou. Pokud se vyskytne chyba, hlásit.
+</p>
+
+<p>
+  Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně duplicitními uživateli.
+</p>
+
+<form method="post">
+
+  <table>
+    <tr>
+      <th></th>
+      <th><label for="uzivatelA" style="display: block; cursor: pointer">První</label></th>
+      <th><label for="uzivatelB" style="display: block; cursor: pointer">Druhý</label></th>
+    </tr>
+    <tr>
+      <td>ID</td>
+      <td><input id="uzivatelA" type="text" name="ua" value="{uaid}" class="omnibox"></td>
+      <td><input id="uzivatelB" type="text" name="ub" value="{ubid}" class="omnibox"></td>
+    </tr>
+    <!-- begin:detaily -->
+    <tr>
+      <td></td>
+      <td><input type="hidden" name="skrytyUA" value="{uaid}"></td>
+      <td><input type="hidden" name="skrytyUB" value="{ubid}"></td>
+    </tr>
+    <!-- begin: historiePrihlaseni -->
+    <tr>
+      <td>Přihlášen {rok}</td>
+      <!-- begin:aPrihlasen -->
+      <td style="background-color: #8d8">ano</td><!-- end:aPrihlasen -->
+      <!-- begin:aNeprihlasen -->
+      <td style="background-color: #faa">ne</td><!-- end:aNeprihlasen -->
+      <!-- begin:bPrihlasen -->
+      <td style="background-color: #8d8">ano</td><!-- end:bPrihlasen -->
+      <!-- begin:bNeprihlasen -->
+      <td style="background-color: #faa">ne</td><!-- end:bNeprihlasen -->
+    </tr>
+    <!-- end: historiePrihlaseni -->
+    <tr>
+      <td>Login</td>
+      <td><label><input type="radio" name="login" value="{uaid}" checked> {ua.nick}</label></td>
+      <td><label><input type="radio" name="login" value="{ubid}"> {ub.nick}</label></td>
+    </tr>
+    <tr>
+      <td>Heslo</td>
+      <td><label><input type="radio" name="heslo" value="{uaid}" checked> od id {ua.id}</label></td>
+      <td><label><input type="radio" name="heslo" value="{ubid}"> od id {ub.id}</label></td>
+    </tr>
+    <tr>
+      <td>Mail</td>
+      <td><label><input type="radio" name="mail" value="{uaid}" checked> {ua.mail} {amrtvy}</label></td>
+      <td><label><input type="radio" name="mail" value="{ubid}"> {ub.mail} {bmrtvy}</label></td>
+    </tr>
+    <tr>
+      <td>Jméno a příjmení</td>
+      <td><label><input type="radio" name="jmeno" value="{uaid}" checked> {ua.jmeno}</label></td>
+      <td><label><input type="radio" name="jmeno" value="{ubid}"> {ub.jmeno}</label></td>
+    </tr>
+    <tr>
+      <td>Adresa</td>
+      <td><label><input type="radio" name="adresa" value="{uaid}" checked> {ua.adresa}</label></td>
+      <td><label><input type="radio" name="adresa" value="{ubid}"> {ub.adresa}</label></td>
+    </tr>
+    <tr>
+      <td>Telefon</td>
+      <td><label><input type="radio" name="telefon" value="{uaid}" checked> {ua.telefon}</label></td>
+      <td><label><input type="radio" name="telefon" value="{ubid}"> {ub.telefon}</label></td>
+    </tr>
+    <tr>
+      <td>Poznámka</td>
+      <td><label><input type="radio" name="poznamka" value="{uaid}" checked> {ua.poznamka}</label></td>
+      <td><label><input type="radio" name="poznamka" value="{ubid}"> {ub.poznamka}</label></td>
+    </tr>
+    <tr>
+      <td>OP</td>
+      <td><label><input type="radio" name="op" value="{uaid}" checked> {ua.cisloOp}</label></td>
+      <td><label><input type="radio" name="op" value="{ubid}"> {ub.cisloOp}</label></td>
+    </tr>
+    <!--  TODO později
+    <tr>
+      <td>Medailonek</td>
+      <td><label><input type="radio" name="medailonek" value="{uaid}" checked> {ua.id}</label></td>
+      <td><label><input type="radio" name="medailonek" value="{ubid}"> {ub.id}</label></td>
+    </tr>
+    -->
+    <tr>
+      <td>Pohlaví</td>
+      <td><label><input type="radio" name="pohlavi" value="{uaid}" checked> {ua.pohlavi}</label></td>
+      <td><label><input type="radio" name="pohlavi" value="{ubid}"> {ub.pohlavi}</label></td>
+    </tr>
+    <tr>
+      <td>Datum narození</td>
+      <td><label><input type="radio" name="datum_narozeni" value="{uaid}" checked>
+        {ua.datumNarozeni.formatDatumStandard}</label></td>
+      <td><label><input type="radio" name="datum_narozeni" value="{ubid}">
+        {ub.datumNarozeni.formatDatumStandard}</label></td>
+    </tr>
+    <tr>
+      <td>Zůstatek z předchozích ročníků</td>
+      <td>{ua.finance.zustatekZPredchozichRocniku}</td>
+      <td>{ub.finance.zustatekZPredchozichRocniku}</td>
+    </tr>
+    <tr>
+      <td>Poslední Platba</td>
+      <td>{ua.finance.datumPosledniPlatby}</td>
+      <td>{ub.finance.datumPosledniPlatby}</td>
+    </tr>
+    <!-- TODO později
+    <tr>
+      <td>Upo mailem</td>
+      <td colspan="2"><input type="checkbox" name="upo"></td>
+    </tr>
+    -->
+    <tr>
+      <td colspan="3" style="text-align: center">
+        <input id="sloucit" data-jmeno-nick-a="{ua.jmenoNick}" data-jmeno-nick-b="{ub.jmenoNick}"
+               type="submit" name="sloucit" value="Sloučit uživatele"
+               onclick="return confirm(`Opravdu sloučit ${document.getElementById('sloucit').dataset.jmenoNickA} s ${document.getElementById('sloucit').dataset.jmenoNickB}?`)">
+      </td>
+    </tr>
+    <!-- end:detaily -->
+  </table>
+
+  <br>
+  <input type="submit" name="pripravit" value="Načíst údaje">
+
+</form>
+
+
+<!-- end:slucovani -->

@@ -1,0 +1,57 @@
+<!-- begin: ruseniPredmetu -->
+
+<h1>Hromadné rušení objednávek</h1>
+
+<p>Ve výpisu se neobjeví lidé, kteří mají právo "nerušit automaticky objednávky".</p>
+
+<form method="post">
+  <table>
+    <tr>
+      <td>Minimální zůstatek:</td>
+      <td><input type="number" name="zustatek" value="{zustatek}">&thinsp;Kč</td>
+    <tr>
+      <td>Typ objednávek:</td>
+      <td>
+        <select name="typ">
+          <!-- begin: typ -->
+          <option value="{id}" {selected}>{nazev}</option>
+          <!-- end: typ -->
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <input type="submit" name="vypsat" value="Vypsat uživatele s nižším zůstatkem">
+        <input type="submit" name="rusit"
+          <!-- begin: ruseniBlocker -->
+          onclick="alert('Nejdříve si musíte uživatele vypsat.');return false;"
+          <!-- end: ruseniBlocker -->
+          value="Zrušit vypsaným uživatelům vybrané objednávky"
+        >
+      </td>
+    </tr>
+  </table>
+</form>
+
+<!-- begin: vypis -->
+<br>
+<table>
+  <tr>
+    <th>Jméno</th>
+    <th>Zůstatek</th>
+  </tr>
+  <!-- begin: uzivatel -->
+  <tr>
+    <td>{uzivatel.jmenoNick}</td>
+    <td>{uzivatel.finance.stavHr}</td>
+  </tr>
+  <!-- end: uzivatel -->
+  <!-- begin: zadniUzivatele -->
+  <tr>
+    <td colspan="2">(žádní uživatelé)</td>
+  </tr>
+  <!-- end: zadniUzivatele -->
+</table>
+<!-- end: vypis -->
+
+<!-- end: ruseniPredmetu -->

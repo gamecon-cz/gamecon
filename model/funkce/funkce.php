@@ -211,7 +211,7 @@ function omezCsrf()
     if ($referrerHost !== $_SERVER['SERVER_NAME'] && $referrerHost !== parse_url(URL_ADMIN, PHP_URL_HOST)) {
         // výjimka, aby došlo k zalogování
         throw new Exception(
-            "Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['SERVER_NAME']}' ani '" . parse_url(URL_ADMIN, PHP_URL_HOST) . "'"
+            "Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['SERVER_NAME']}' ani '" . parse_url(URL_ADMIN, PHP_URL_HOST) . "'",
         );
     }
 }
@@ -627,18 +627,26 @@ function sanitizeUrlForCurl(string $url): string
     return $sanitizedUrl;
 }
 
-function removeDiacritics(string $value)
+function removeDiacritics(string $value): string
 {
-    $withoutDiacritics = '';
-    $specialsReplaced  = \str_replace(
-        ['̱', '̤', '̩', 'Ə', 'ə', 'ʿ', 'ʾ', 'ʼ',],
-        ['', '', '', 'E', 'e', "'", "'", "'",],
-        $value,
-    );
-    \preg_match_all('~(?<words>\w*)(?<nonWords>\W*)~u', $specialsReplaced, $matches);
-    foreach ($matches['words'] as $index => $word) {
-        $wordWithoutDiacritics = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
-        $withoutDiacritics     .= $wordWithoutDiacritics . $matches['nonWords'][$index];
+    if ($value === '') {
+        return '';
+    }
+
+    static $cache = [];
+    $withoutDiacritics = $cache[$value] ?? '';
+    if ($withoutDiacritics === '') {
+        $specialsReplaced = \str_replace(
+            ['̱', '̤', '̩', 'Ə', 'ə', 'ʿ', 'ʾ', 'ʼ',],
+            ['', '', '', 'E', 'e', "'", "'", "'",],
+            $value,
+        );
+        \preg_match_all('~(?<words>\w*)(?<nonWords>\W*)~u', $specialsReplaced, $matches);
+        foreach ($matches['words'] as $index => $word) {
+            $wordWithoutDiacritics = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
+            $withoutDiacritics     .= $wordWithoutDiacritics . $matches['nonWords'][$index];
+        }
+        $cache[$value] = $withoutDiacritics;
     }
     return $withoutDiacritics;
 }
