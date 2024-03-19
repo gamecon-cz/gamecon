@@ -7,7 +7,8 @@ init:
 	cp --no-clobber .envrc.dist .envrc
 	direnv allow
 	docker compose up -d
-	composer install
+	# has to explicitly use direnv exec to use the freshly allowed .envrc in current prompt instance
+	direnv exec bin-docker/composer install
 	echo 'Gamecon initialized ✅'
 
 bare-phpunit:
