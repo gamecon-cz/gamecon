@@ -54,9 +54,13 @@ export const volnoTypZObsazenost = (obsazenost: Obsazenost) => {
 };
 
 export const casRozsahZAktivit = (aktivity: APIAktivita[]): OdDo => {
-  // TODO: better way, spread operator passes arguments through stack, not optimal
-  const casOd = Math.min(...aktivity.map(x => x.cas.od));
-  const casDo = Math.max(...aktivity.map(x => x.cas.do));
+  let casOd = Math.min();
+  let casDo = Math.max();
+
+  for (const aktivita of aktivity) {
+    casOd = Math.min(casOd, aktivita.cas.od);
+    casDo = Math.max(casDo, aktivita.cas.do);
+  }
 
   return { od: casOd, do: casDo };
 };
