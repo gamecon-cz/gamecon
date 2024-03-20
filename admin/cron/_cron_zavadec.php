@@ -28,9 +28,6 @@ function logsText(string $s): void
 function writeMessage(string $message, string $newLineAfter = "\n"): void
 {
     echo $message . $newLineAfter;
-    if (ob_get_level() > 0) {
-        @ob_flush();
-    }
     flush();
 }
 
