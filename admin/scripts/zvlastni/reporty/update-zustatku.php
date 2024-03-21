@@ -25,7 +25,8 @@ SET zustatek={$uzivatel->finance()->stav()} /* původní zůstatek z předchozí
     ubytovan_s='',
     infopult_poznamka='',
     pomoc_typ='',
-    pomoc_vice=''
+    pomoc_vice='',
+    op=''
 WHERE id_uzivatele={$uzivatel->id()};
 SQL;
 }
