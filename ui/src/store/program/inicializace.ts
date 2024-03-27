@@ -56,20 +56,21 @@ export const inicializujProgramStore = () => {
     });
   }
 
-  const dataProgramString = localStorage.getItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM);
-  if (dataProgramString) {
-    try {
-      useProgramStore.setState(s => {
-        s.data = JSON.parse(dataProgramString);
-      }, undefined, "načtení uložených dat");
-    } catch (e) {
-      console.warn("nepodařilo se načíst data z local storage");
-    }
-  }
+  localStorage.removeItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM);
+  // const dataProgramString = localStorage.getItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM);
+  // if (dataProgramString) {
+  //   try {
+  //     useProgramStore.setState(s => {
+  //       s.data = JSON.parse(dataProgramString);
+  //     }, undefined, "načtení uložených dat");
+  //   } catch (e) {
+  //     console.warn("nepodařilo se načíst data z local storage");
+  //   }
+  // }
 
-  useProgramStore.subscribe(s => s.data, (data) => {
-    localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM, JSON.stringify(data));
-  });
+  // useProgramStore.subscribe(s => s.data, (data) => {
+  //   localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM, JSON.stringify(data));
+  // });
 
   const urlState = useProgramStore.getState().urlState;
   void načtiRok(urlState.ročník);
