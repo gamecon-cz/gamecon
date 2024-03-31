@@ -61,7 +61,7 @@ const jeAktivitaVeDni = (casAktivity: Date, datum: Date) => {
     return (
       (casAktivity.getDay() === datum.getDay() &&
         casAktivity.getHours() >= GAMECON_KONSTANTY.PROGRAM_ZACATEK) ||
-      (casAktivity.getDay() === datum.getDay() + 1 &&
+      (casAktivity.getDay() === (datum.getDay() + 1) % 7 &&
         casAktivity.getHours() <= GAMECON_KONSTANTY.PROGRAM_KONEC)
     );
   }

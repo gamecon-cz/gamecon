@@ -179,7 +179,7 @@ class Program
 
                 if ($pocetPrihlasenychAktivit > 0) {
                     $pdf->Cell(0, 10, mb_ucfirst($den->format('l j.n.Y')), 1, 1, 'L', true);
-                    for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
+                    foreach (Program::seznamHodinZacatku() as $cas) {
 
                         foreach ($this->aktivityUzivatele as $key => $akt) {
 
@@ -479,7 +479,7 @@ HTML;
 
         // tisk hlavičkového řádku s čísly
         echo '<tr><th></th>';
-        for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
+        foreach (Program::seznamHodinZacatku() as $cas) {
             echo '<th>' . $cas . ':00</th>';
         }
         echo '</tr>';
@@ -508,7 +508,7 @@ HTML;
                     break;
                 }
 
-                for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
+                foreach (Program::seznamHodinZacatku() as $cas) {
                     if ($aktivitaRaw && $typId == $aktivitaRaw['grp'] && $cas == $aktivitaRaw['zac']) {
                         $cas += $aktivitaRaw['del'] - 1; // na konci cyklu jeste bude ++
                         $this->tiskAktivity($aktivitaRaw);
@@ -537,7 +537,7 @@ HTML;
         }
 
         if ($aktivit == 0) {
-            $sloupcu = PROGRAM_KONEC - PROGRAM_ZACATEK + 1;
+            $sloupcu = count(Program::seznamHodinZacatku());
             echo <<<HTML
 <tr class="linie">
     <td colspan="{$sloupcu}">
@@ -583,8 +583,8 @@ HTML;
             'grp' => $grp,
             'zac' => $zac,
             'kon' => $kon,
-            'den' => (int)$aktivita->zacatek()->format('z'),
-            'del' => $kon - $zac,
+            'den' => (int)$aktivita->den()->format('z'),
+            'del' => $aktivita->delka(),
             'obj' => $aktivita,
         ];
         $iterator->next();
@@ -653,7 +653,7 @@ HTML;
     private function prazdnaMistnost($nazev)
     {
         $bunky = '';
-        for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++)
+        foreach (Program::seznamHodinZacatku() as $cas)
             $bunky .= '<td></td>';
         return "<tr><td rowspan=\"1\"><div class=\"program_nazevLinie\">$nazev</div></td>$bunky</tr>";
     }
@@ -684,5 +684,19 @@ HTML;
         return $a['konec'] > PROGRAM_ZACATEK 
             ? new DateTimeCz($a['den']) 
             : (new DateTimeCz($a['den']))->plusDen();
+    }
+
+    /**
+     * Vrátí range hodin, kdy začínají aktivity
+     * 
+     * @return array
+     */
+    public static function seznamHodinZacatku() {
+        if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
+            $hodinyZacatku = [...range(PROGRAM_ZACATEK, 24 - 1, 1), ...range(0, PROGRAM_KONEC - 1, 1)];
+        } else {
+            $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
+        }
+        return $hodinyZacatku;
     }
 }

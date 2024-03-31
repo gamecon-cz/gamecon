@@ -286,7 +286,9 @@ SQL
     public function delka(): float
     {
         if (($zacatek = $this->zacatek()) && ($konec = $this->konec())) {
-            return ($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600;
+            return $konec->format('H') > $zacatek->format('H')
+                ? ($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600
+                : ($konec->getTimestamp() / 3600) + 24 - ($zacatek->getTimestamp() / 3600);
         }
         return 0.0;
     }
@@ -302,9 +304,23 @@ SQL
     public function denCas(): string
     {
         if ($this->zacatek() && $this->konec()) {
-            return $this->zacatek()->format('l G') . '–' . $this->konec()->format('G');
+            return $this->zacatek()->format('H') > PROGRAM_ZACATEK 
+                ? $this->zacatek()->format('l G') . '–' . $this->konec()->format('G')
+                : (clone $this->zacatek())->minusDen()->format('l G') . '–' . $this->konec()->format('G');
         }
         return '';
+    }
+
+    /**
+     * Oficiální den, do kterého aktivita spadá (může být po půlnoci, ale spadá do předchozího dne)
+     */
+    public function den(): DateTimeCz|null
+    {
+        if ($this->zacatek()) {
+            return $this->zacatek()->format('H') > PROGRAM_ZACATEK 
+                ? $this->zacatek()
+                : (clone $this->zacatek())->minusDen();
+        }
     }
 
     /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
@@ -583,11 +599,8 @@ SQL
             : null;
 
         // kontrola přehoupnutí přes půlnoc
-        if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
-            $hodinyZacatku = [...range(PROGRAM_ZACATEK, 24 - 1, 1), ...range(0, PROGRAM_KONEC - 1, 1)];
-        } else {
-            $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
-        }
+        $hodinyZacatku = Program::seznamHodinZacatku();
+
         array_unshift($hodinyZacatku, null);
         foreach ($hodinyZacatku as $hodinaZacatku) {
             $xtpl->assign('selected', $aZacatek === $hodinaZacatku ? 'selected' : '');
@@ -748,6 +761,8 @@ SQL
             $a['zacatek'] = ($zacatekDen)->add(new \DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
 
             $konecDen = Program::denAktivityDleKonce($a);
+
+            // TODO: pokud je $a['konec'] 3 a větší, tak se vždycky přičte o hodinu navíc (dělá to fce add)
             $a['konec']   = ($konecDen)->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
         }
         unset($a['den']);

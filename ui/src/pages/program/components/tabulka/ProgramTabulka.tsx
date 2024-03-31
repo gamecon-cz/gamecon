@@ -17,9 +17,12 @@ import { ProgramTabulkaBuňka } from "./ProgramTabulkaBuňka";
 
 type ProgramTabulkaProps = {};
 
-const PROGRAM_ČASY = GAMECON_KONSTANTY.PROGRAM_ZACATEK < GAMECON_KONSTANTY.PROGRAM_KONEC
+const PROGRAM_ČASY =
+  GAMECON_KONSTANTY.PROGRAM_ZACATEK < GAMECON_KONSTANTY.PROGRAM_KONEC
     ? range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, GAMECON_KONSTANTY.PROGRAM_KONEC)
-    : range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, 24).concat(range(0, GAMECON_KONSTANTY.PROGRAM_KONEC));
+    : range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, 24).concat(
+        range(0, GAMECON_KONSTANTY.PROGRAM_KONEC)
+      );
 
 const indexŘazení = (klíč: string) => {
   const index = GAMECON_KONSTANTY.PROGRAM_ŘAZENÍ_LINIE.findIndex(
@@ -100,7 +103,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                     const hodinOd = new Date(aktivita.cas.od).getHours();
                     const hodinDo = new Date(aktivita.cas.do).getHours();
 
-                    const časOdsazení = hodinOd - posledníAktivitaDo;
+                    const časOdsazení = hodinOd > posledníAktivitaDo ? hodinOd - posledníAktivitaDo : hodinOd + 24 - posledníAktivitaDo;
                     posledníAktivitaDo = hodinDo;
                     const odsazení = range(časOdsazení).map(() => <td></td>);
 
@@ -115,9 +118,9 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                     );
                   })}
                 {posledníAktivitaDo > 0
-                  ? range(GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo).map(() => (
-                      <td></td>
-                    ))
+                  ? range(
+                      GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo
+                    ).map(() => <td></td>)
                   : undefined}
               </tr>
             );
