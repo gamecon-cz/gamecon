@@ -4,6 +4,7 @@
 /.vscode/
 /.phpunit.result.cache
 /.phpunit.cache
+/phpunit_log
 /test-results
 /.envrc
 
