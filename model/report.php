@@ -21,7 +21,7 @@ class Report
     private $poleObsah;             // obsah ve formě pole
     private $csvSeparator = ';';    // oddělovač v csv souborech
 
-    public const BEZ_STYLU                        = 1;
+    public const BEZ_STYLU = 1;
     public const HLAVICKU_ZACINAT_VElKYM_PISMENEM = 10;
 
     /**
@@ -72,23 +72,31 @@ class Report
                 ->setFontSize($konfiguraceReportu->getBodyFontSize())
                 ->setFontName('Arial')
                 ->setCellAlignment(CellAlignment::LEFT)
-                ->setShouldWrapText(false);
+                ->setShouldWrapText(false)
+            ;
             while ($radek = $this->radek()) {
                 $cells = [];
                 foreach ($radek as $hodnota) {
-                    if ((string)(int)$hodnota === trim((string)$hodnota)) {
-                        $cells[] = new Cell\NumericCell((int)$hodnota, $integerStyle);
-                    } else if (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
-                        $cells[] = new Cell\NumericCell((float)$hodnota, $moneyStyle);
-                    } else if ((string)(float)$hodnota === trim((string)$hodnota)
-                        || preg_match('~^-?\d+([.,]\d+)?$~', trim((string)$hodnota))
-                    ) {
-                        $cells[] = new Cell\NumericCell((float)$hodnota, $numberStyle);
-                    } else {
-                        $textCell = new Cell\StringCell((string)$hodnota, null);
-//                        $textCell->setType($textCell::TYPE_STRING); // jinak by ignorován styl (font a jeho velikost) v prázdných buňkách
-                        $cells[] = $textCell;
+                    if (!$konfiguraceReportu->useStringCellsOnly()) {
+                        if ((string) (int) $hodnota === trim((string) $hodnota)) {
+                            $cells[] = new Cell\NumericCell((int) $hodnota, $integerStyle);
+                            continue;
+                        }
+                        if (preg_match('~^-?\d+[.,]\d{2}$~', trim((string) $hodnota))) {
+                            $cells[] = new Cell\NumericCell((float) $hodnota, $moneyStyle);
+                            continue;
+                        }
+                        if ((string) (float) $hodnota === trim((string) $hodnota)
+                            || preg_match('~^-?\d+([.,]\d+)?$~', trim((string) $hodnota))
+                        ) {
+                            $cells[] = new Cell\NumericCell((float) $hodnota, $numberStyle);
+                            continue;
+                        }
                     }
+
+                    $textCell = new Cell\StringCell((string) $hodnota, null);
+//                        $textCell->setType($textCell::TYPE_STRING); // jinak by ignorován styl (font a jeho velikost) v prázdných buňkách
+                    $cells[] = $textCell;
                 }
                 $rows[] = new Row($cells, $genericSizeStyle);
             }
@@ -136,7 +144,7 @@ class Report
                     ? 1.5
                     : 1.3;
                 $widths[$columnNumber] = max(
-                    (int)ceil(mb_strlen((string)$cell->getValue()) / $ratio) + 1,
+                    (int) ceil(mb_strlen((string) $cell->getValue()) / $ratio) + 1,
                     $widths[$columnNumber] ?? 1, // maximum from previous rows
                 );
                 if ($maxGenericColumnWidth) {
@@ -144,6 +152,7 @@ class Report
                 }
             }
         }
+
         return $widths;
     }
 
@@ -152,6 +161,7 @@ class Report
         $nazevReportu = $nazevReportu !== null
             ? preg_replace('~[^[:alnum:]_-]~', '_', removeDiacritics(trim($nazevReportu)))
             : $this->nazevReportuZRequestu();
+
         return $nazevReportu . '_' . (new \Gamecon\Cas\DateTimeCz())->formatCasSoubor() . '.' . $pripona;
     }
 
@@ -160,6 +170,7 @@ class Report
         // část url za posledním lomítkem
         $posledniCastUrl    = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
         $poziceZacatkuQuery = strpos($posledniCastUrl, '?');
+
         return $poziceZacatkuQuery !== false
             ? substr($posledniCastUrl, 0, $poziceZacatkuQuery)
             : $posledniCastUrl;
@@ -197,12 +208,12 @@ class Report
      */
     public function tFormat(string $format = null, string $nazev = null, KonfiguraceReportu $konfiguraceReportu = null)
     {
-        $format = trim((string)$format);
+        $format = trim((string) $format);
         if (!$format || $format === 'xlsx') {
             $this->tXlsx($nazev, $konfiguraceReportu);
-        } else if ($format === 'csv') {
+        } elseif ($format === 'csv') {
             $this->tCsv($nazev);
-        } else if ($format === 'html') {
+        } elseif ($format === 'html') {
             $this->tHtml();
         } else {
             throw new Chyba(sprintf("Formát '%s' není podporován", $format));
@@ -304,6 +315,7 @@ HTML;
         $report            = new static();
         $report->hlavicky  = $hlavicky;
         $report->poleObsah = $obsah;
+
         return $report;
     }
 
@@ -317,6 +329,7 @@ HTML;
         $report               = new static();
         $report->sql          = $dotaz;
         $report->sqlParametry = $dotazParametry;
+
         return $report;
     }
 
@@ -366,6 +379,7 @@ HTML;
                 $pocetPodsloupcuPredtim++;
             }
         }
+
         return null;
     }
 
@@ -392,6 +406,7 @@ HTML;
             $field_info       = mysqli_fetch_field($this->o);
             $this->hlavicky[] = $field_info->name;
         }
+
         return $this->hlavicky;
     }
 
@@ -400,11 +415,13 @@ HTML;
         if (isset($this->poleObsah)) {
             $t = current($this->poleObsah);
             next($this->poleObsah);
+
             return $t;
         }
         if (!$this->o) {
             $this->o = dbQuery($this->sql, $this->sqlParametry);
         }
+
         return mysqli_fetch_row($this->o);
     }
 
