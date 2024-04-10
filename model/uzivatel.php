@@ -377,7 +377,7 @@ SQL
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
-        $this->shop($this->systemoveNastaveni)->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni);
+        $this->shop()->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni);
 
         try {
             $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam);
@@ -1959,7 +1959,7 @@ SQL,
         return self::zWhere("
       WHERE TRUE
       " . ($kromeIdUzivatelu ? " AND u.id_uzivatele NOT IN ($kromeIdUzivateluSql)" : '') . "
-      " . ($pouzeIdsRoli ? " AND p.id_role IN ($pouzeIdsRoliSql) " : '') . "
+      " . ($pouzeIdsRoli ? " AND z.id_role IN ($pouzeIdsRoliSql) " : '') . "
       AND (
           u.id_uzivatele = $hodnotaSql
           " . ((string)(int)$dotaz !== (string)$dotaz // nehledáme ID
@@ -2210,8 +2210,6 @@ SQL,
 
     /**
      * Načte uživatele podle zadané where klauzle
-     * @todo asi lazy loading práv
-     * @todo zrefaktorovat nactiUzivatele na toto
      */
     protected static function zWhere($where, $params = null, $extra = ''): array
     {
@@ -2272,13 +2270,13 @@ SQL;
         return $uzivatele;
     }
 
-    public function shop(SystemoveNastaveni $systemoveNastaveni = null): Shop
+    public function shop(): Shop
     {
         if ($this->shop === null) {
             $this->shop = new Shop(
                 $this,
                 $this,
-                $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+                $this->systemoveNastaveni,
             );
         }
         return $this->shop;

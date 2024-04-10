@@ -10,7 +10,7 @@ class FioPlatba
      * Vrátí platby za posledních X dní
      * @return FioPlatba[]
      */
-    public static function zPoslednichDni(int $pocetDniZpet)
+    public static function zPoslednichDni(int $pocetDniZpet): array
     {
         return self::zRozmezi(
             new DateTimeImmutable("-{$pocetDniZpet} days"),
@@ -27,8 +27,9 @@ class FioPlatba
     {
         $odString = $od->format('Y-m-d');
         $doString = $do->format('Y-m-d');
-        $token    = FIO_TOKEN;
-        $url      = "https://www.fio.cz/ib_api/rest/periods/$token/$odString/$doString/transactions.json";
+        $token = FIO_TOKEN;
+        $url = "https://www.fio.cz/ib_api/rest/periods/$token/$odString/$doString/transactions.json";
+
         return self::zUrl($url);
     }
 
@@ -46,38 +47,66 @@ class FioPlatba
         if (!$decoded) {
             return [];
         }
-        $platby    = $decoded->accountStatement->transactionList->transaction ?? [];
+        $platby = $decoded->accountStatement->transactionList->transaction ?? [];
         $fioPlatby = [];
         foreach ($platby as $platba) {
             $fioPlatby[] = self::zPlatby($platba);
         }
+
         return $fioPlatby;
     }
 
     /** Cacheuje a zpracovává surovou rest odpověď (kvůli limitu 30s na straně FIO) */
-    private static function cached($url)
+    private static function cached(string $url)
     {
         $adresar = SPEC . '/fio';
-        $soubor  = $adresar . '/' . md5($url) . '.json';
+        $soubor = $adresar . '/' . md5($url) . '.json';
         if (!is_dir($adresar) && (!mkdir($adresar, 0777, true) || !is_dir($adresar))) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $adresar));
         }
         if (@filemtime($soubor) < (time() - 60)) {
             self::fetch($url, $soubor);
         }
+
         // konverze čísel na stringy kvůli IDs většími než PHP_MAX_INT
         return preg_replace('@"value":([\d.]+),@', '"value":"$1",', file_get_contents($soubor));
     }
 
     private static function fetch(string $url, string $soubor)
     {
+        $errors = [];
         for ($odpoved = false, $pokus = 1; $odpoved === false && $pokus < 5; $pokus++, usleep(100)) {
-            $odpoved = @file_get_contents($url); // v prvních pokusech chyby maskovat
+            try {
+                $odpoved = self::rawFetch($url);
+            } catch (\RuntimeException $runtimeException) {
+                // v prvních pokusech chyby maskovat
+                $errors[] = $runtimeException->getMessage();
+            }
         }
         if ($odpoved === false) {
-            $odpoved = file_get_contents($url); // v záverečném pokusu chybu reportovat
+            try {
+                // v záverečném pokusu chybu reportovat
+                $odpoved = self::rawFetch($url);
+            } catch (\RuntimeException $runtimeException) {
+                throw new \RuntimeException($runtimeException->getMessage() . '; ' . implode(',', $errors));
+            }
         }
         file_put_contents($soubor, $odpoved);
+    }
+
+    private static function rawFetch(string $url): false|string
+    {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            throw new \RuntimeException(curl_error($ch));
+        }
+
+        return $response;
     }
 
     /** Vrátí platbu načtenou z předaného elementu z jsonového pole ...->transaction */
@@ -89,12 +118,13 @@ class FioPlatba
                 $pole[$sloupec->name] = $sloupec->value;
             }
         }
+
         return new static($pole);
     }
 
     public static function existujePodleFioId($idFioPlatby): bool
     {
-        return (bool)dbOneCol(<<<SQL
+        return (bool) dbOneCol(<<<SQL
 SELECT 1 FROM platby WHERE fio_id = $1
 SQL,
             [$idFioPlatby],
@@ -115,7 +145,7 @@ SQL,
     /** Objem platby (kladný pro příchozí, záporný pro odchozí) */
     public function castka(): float
     {
-        return (float)$this->data['Objem'];
+        return (float) $this->data['Objem'];
     }
 
     /** Vrací ID jako string (64bitů int) */
@@ -129,13 +159,15 @@ SQL,
     {
         // '2021-06-10+0200' for example (despite documentation where timezone format mentioned is with colon as +02:00)
         return \DateTimeImmutable::createFromFormat('Y-m-dO', $this->data['Datum'])
-            ->setTime(0, 0, 0);
+            ->setTime(0, 0, 0)
+        ;
     }
 
     /** Variabilní symbol */
     public function vs(): string
     {
         $vs = $this->data['VS'] ?? '';
+
         return $vs ?: $this->nactiVsZTextu($this->zpravaProPrijemce());
     }
 
@@ -144,6 +176,7 @@ SQL,
         if (!preg_match('~(^|/)vs/(?<vs>\d+)~i', $text, $matches)) {
             return '';
         }
+
         return $matches['vs'];
     }
 
@@ -153,11 +186,12 @@ SQL,
         if ($this->castka() > 0) {
             return trim($this->vs()) === ''
                 ? null
-                : (int)trim($this->vs());
+                : (int) trim($this->vs());
         }
         if ($this->castka() === 0.0) {
             return null;
         }
+
         return $this->nactiIdUcastnikaZeZpravyProPrijemce();
     }
 
@@ -173,7 +207,7 @@ SQL,
         if ($poznamkaProMe === '') {
             return null;
         }
-        $parovaciTextBezDiakritiky  = $this->lowercaseBezMezerABezDiakritiky($parovaciText);
+        $parovaciTextBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($parovaciText);
         $poznamkaProMeBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($poznamkaProMe);
         if (!preg_match(
             '~' . preg_quote($parovaciTextBezDiakritiky, '~') . '[^[:alnum:]]*(?<idUcastnika>\d+)~',
@@ -182,13 +216,15 @@ SQL,
         ) {
             return null;
         }
-        return (int)$matches['idUcastnika'];
+
+        return (int) $matches['idUcastnika'];
     }
 
     private function lowercaseBezMezerABezDiakritiky(string $text): string
     {
-        $bezMezer      = preg_replace('~\s~', '', $text);
+        $bezMezer = preg_replace('~\s~', '', $text);
         $bezDiakritiky = removeDiacritics($bezMezer);
+
         return strtolower($bezDiakritiky);
     }
 

@@ -748,8 +748,8 @@ SQL,
             $result           = dbQuery(<<<SQL
                 SELECT
                     IF(provedl=$uzivatelSystemId,
-                      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' Platba na účet'),
-                      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' ',IFNULL(poznamka,'(bez poznámky)'))
+                      CONCAT(DATE_FORMAT(COALESCE(pripsano_na_ucet_banky, provedeno),'%e.%c.'),' Platba na účet'),
+                      CONCAT(DATE_FORMAT(COALESCE(pripsano_na_ucet_banky, provedeno),'%e.%c.'),' ',IFNULL(poznamka,'(bez poznámky)'))
                       ) as nazev,
                     castka as cena
                 FROM platby

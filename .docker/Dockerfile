@@ -1,7 +1,6 @@
-# UPDATE
-# docker build --pull --no-cache --tag jaroslavtyc/gamecon-8.2:latest ./.docker && docker push jaroslavtyc/gamecon-8.2:latest
+# update image by ./docker-build.sh
 
-FROM php:8.2-apache AS gamecon-server-step1
+FROM php:8.3-apache AS gamecon-server-step1
 
 RUN a2enmod rewrite expires && \
 	# avoid warning on start
@@ -79,12 +78,10 @@ RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log
 
 FROM gamecon-php-step3 AS gamecon-php-step4
 
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
-    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get install -y yarnpkg
+RUN corepack enable && yarn --version && sudo -u www-data corepack enable && sudo -u www-data yarn --version
 
 ENV NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
 
