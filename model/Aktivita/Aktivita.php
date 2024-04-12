@@ -286,7 +286,11 @@ SQL
     public function delka(): float
     {
         if (($zacatek = $this->zacatek()) && ($konec = $this->konec())) {
-            return $konec->format('H') > $zacatek->format('H')
+            $konec24 = $konec->format('G');
+            if ($konec24 == 0) {
+                $konec24 = 24;
+            }
+            return $konec24 > $zacatek->format('G')
                 ? ($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600
                 : ($konec->getTimestamp() / 3600) + 24 - ($zacatek->getTimestamp() / 3600);
         }
