@@ -692,10 +692,13 @@ HTML;
      * @return array
      */
     public static function seznamHodinZacatku() {
-        if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
-            $hodinyZacatku = [...range(PROGRAM_ZACATEK, 24 - 1, 1), ...range(0, PROGRAM_KONEC - 1, 1)];
-        } else {
-            $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
+        static $hodinyZacatku = null;
+        if ($hodinyZacatku === null) {
+            if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
+                $hodinyZacatku = [...range(PROGRAM_ZACATEK, 24 - 1, 1), ...range(0, PROGRAM_KONEC - 1, 1)];
+            } else {
+                $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
+            }
         }
         return $hodinyZacatku;
     }
