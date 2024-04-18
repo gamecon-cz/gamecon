@@ -46,10 +46,14 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     /**
      * @return array<int, int>
      */
-    public function bonusyZaVedeniAktivity(): array
+    public function bonusyZaVedeniAktivity(
+        ?int   $bonusZaStandardni3hAz5hAktivitu = null,
+    ): array
     {
-        static $bonusyZaVedeniAktivity = null;
-        if ($bonusyZaVedeniAktivity === null) {
+        static $bonusyZaVedeniAktivity = [];
+
+        $bonusZaStandardni3hAz5hAktivitu ??= $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
+        if (($bonusyZaVedeniAktivity[$bonusZaStandardni3hAz5hAktivitu] ?? null) === null) {
             $casAKlic = [
                 1  => 'BONUS_ZA_1H_AKTIVITU',
                 2  => 'BONUS_ZA_2H_AKTIVITU',
@@ -61,10 +65,10 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             ];
             foreach ($casAKlic as $hodin => $klic) {
                 // ve formátu max. délka => sleva
-                $bonusyZaVedeniAktivity[$hodin] = $this->spocitejBonusZaVedeniAktivity($klic);
+                $bonusyZaVedeniAktivity[$bonusZaStandardni3hAz5hAktivitu][$hodin] = $this->spocitejBonusZaVedeniAktivity($klic, $bonusZaStandardni3hAz5hAktivitu);
             }
         }
-        return $bonusyZaVedeniAktivity;
+        return $bonusyZaVedeniAktivity[$bonusZaStandardni3hAz5hAktivitu];
     }
 
     /**
