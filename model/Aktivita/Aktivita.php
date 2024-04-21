@@ -286,13 +286,9 @@ SQL
     public function delka(): float
     {
         if (($zacatek = $this->zacatek()) && ($konec = $this->konec())) {
-            $konec24 = $konec->format('G');
-            if ($konec24 == 0) {
-                $konec24 = 24;
-            }
-            return $konec24 > $zacatek->format('G')
-                ? ($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600
-                : ($konec->getTimestamp() / 3600) + 24 - ($zacatek->getTimestamp() / 3600);
+            return $konec->getTimestamp() > $zacatek->getTimestamp() ? 
+                ($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600 : 
+                ($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600 + 24;
         }
         return 0.0;
     }
@@ -766,7 +762,6 @@ SQL
 
             $konecDen = Program::denAktivityDleKonce($a);
 
-            // TODO: pokud je $a['konec'] 3 a větší, tak se vždycky přičte o hodinu navíc (dělá to fce add)
             $a['konec']   = ($konecDen)->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
         }
         unset($a['den']);

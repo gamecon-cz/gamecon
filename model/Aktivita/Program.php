@@ -500,17 +500,20 @@ HTML;
             if (!$this->nastaveni[self::PRAZDNE] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typId)) {
                 continue;
             }
-
             ob_start(); // výstup bufferujeme, pro případ že bude na víc řádků
             $radku = 0;
             while ($aktivitaRaw && $typId == $aktivitaRaw['grp']) {
                 if ($denId && $aktivitaRaw['den'] != $denId) {
                     break;
                 }
-
+                $skip = 0;
                 foreach (Program::seznamHodinZacatku() as $cas) {
-                    if ($aktivitaRaw && $typId == $aktivitaRaw['grp'] && $cas == $aktivitaRaw['zac']) {
-                        $cas += $aktivitaRaw['del'] - 1; // na konci cyklu jeste bude ++
+                    if ($skip) {
+                        $skip--;
+                        continue;
+                    }
+                    if ($aktivitaRaw && $typId == $aktivitaRaw['grp'] && $cas == $aktivitaRaw['zac'] && (!$denId || $aktivitaRaw['den'] == $denId)) {
+                        $skip = $aktivitaRaw['del'] - 1;
                         $this->tiskAktivity($aktivitaRaw);
                         $aktivitaRaw = $this->dalsiAktivita();
                         $aktivit++;
@@ -573,7 +576,7 @@ HTML;
                 $grp = $aktivita->lokaceId();
                 break;
             case self::SKUPINY_PODLE_DEN :
-                $grp = $aktivita->zacatek()->format('z');
+                $grp = (int)$aktivita->den()->format('z');
                 break;
             default :
                 throw new \LogicException('nepodporovaný typ shlukování aktivit ' . $this->grpf);
