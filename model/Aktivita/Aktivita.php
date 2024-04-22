@@ -3382,7 +3382,7 @@ SQL,
                 1 => StavAktivity::NOVA,
                 2 => TypAktivity::interniTypy(),
             ],
-            order: 'ORDER BY DAY(zacatek), ' . dbQi($razeni) . ', HOUR(zacatek), nazev_akce',
+            order: 'ORDER BY DAY(zacatek) - IF(HOUR(zacatek) > ' . dbQv(PROGRAM_ZACATEK) . ', 0, 1), ' . dbQi($razeni) . ', DAY(zacatek), HOUR(zacatek), nazev_akce',
             systemoveNastaveni: $systemoveNastaveni,
             prednacitat: $prednacitat,
         );
