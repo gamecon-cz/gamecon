@@ -85,7 +85,8 @@ if (post('aktivovatVse') && $u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT)) {
 
 if (post('instance')) {
     Aktivita::zId(post('aktivitaId'))
-        ?->instancuj();
+        ?->instancuj()
+    ;
     back();
 }
 
@@ -147,18 +148,18 @@ foreach ($aktivity as $aktivita) {
     }
     if ($r['stav'] == StavAktivity::NOVA) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
-    } else if ($r['stav'] == StavAktivity::PUBLIKOVANA) {
+    } elseif ($r['stav'] == StavAktivity::PUBLIKOVANA) {
         $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
         $tpl->parse('aktivity.aktivita.tlacitka.odpublikovat');
-    } else if ($r['stav'] == StavAktivity::PRIPRAVENA) {
+    } elseif ($r['stav'] == StavAktivity::PRIPRAVENA) {
         $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');
         $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
-    } else if ($r['stav'] == StavAktivity::AKTIVOVANA && $u->maRoliSefProgramu()) {
+    } elseif ($r['stav'] == StavAktivity::AKTIVOVANA && $u->maRoliSefProgramu()) {
         if ($aktivita->pocetPrihlasenych() > 0) {
             $tpl->assign('pocetPrihlasenych', $aktivita->pocetPrihlasenych());
             if ($aktivita->pocetPrihlasenych() === 1) {
                 $tpl->parse('aktivity.aktivita.tlacitka.deaktivovat.potvrditDeaktivaciSPrihlasenymi.jedenPrihlaseny');
-            } else if ($aktivita->pocetPrihlasenych() <= 4) {
+            } elseif ($aktivita->pocetPrihlasenych() <= 4) {
                 $tpl->parse('aktivity.aktivita.tlacitka.deaktivovat.potvrditDeaktivaciSPrihlasenymi.nekolikPrihlasenych');
             } else {
                 $tpl->parse('aktivity.aktivita.tlacitka.deaktivovat.potvrditDeaktivaciSPrihlasenymi.hodnePrihlasenych');
@@ -171,10 +172,13 @@ foreach ($aktivity as $aktivita) {
     $tpl->parse('aktivity.aktivita');
 }
 
-if ($filtr == ['rok' => ROCNIK]) {
-    $tpl->assign('disabled', $u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT) ? '' : 'disabled');
-    $tpl->parse('aktivity.aktivovatVse');
-}
+$tpl->assign(
+    'aktivovatVseDisabled',
+    $filtr != ['rok' => ROCNIK] || !$u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT)
+        ? 'disabled'
+        : '',
+);
+$tpl->parse('aktivity.aktivovatVse');
 
 $tpl->parse('aktivity');
 $tpl->out('aktivity');
