@@ -1,11 +1,10 @@
 <!-- begin:ubytovani -->
 
 <!-- begin:konec -->
-<p>{ubytOmluva}</p>
 <p>Možnost objednávek ubytování přes web už skončila. Zbylé postele lze zarezervovat přes e-mail <a
         href="mailto:info@gamecon.cz">info@gamecon.cz</a>.</p>
 <!-- end:konec -->
-
+<p>{ubytOmluva}</p>
 <div class="shopUbytovani_tabulka">
 
     <div class="shopUbytovani_prvniSloupec">
