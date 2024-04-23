@@ -10,7 +10,6 @@ use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
-use function VendorPatches202401\Symfony\Component\String\u;
 
 class ShopUbytovani
 {
