@@ -292,6 +292,7 @@ SQL,
         return $this->ubytovany;
     }
 
+
     private function maPravoNaPokoj(): bool
     {
         /*
@@ -320,6 +321,7 @@ Situace nás mrzí, přesto věříme, že tě od účasti na letošním GC neod
 Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a>.';
 
         return $this->omezitNaSpacáky && !$this->maPravoNaPokoj() ? $omluva_text : "";
+
     }
 
     public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
@@ -381,7 +383,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                     !$this->maPravoNaPokoj()){
                     continue;
                 }
-
+              
                 $ubytovanVeDniATypu = false;
                 $checked            = '';
                 if ($this->ubytovan($den, $typ)) {
