@@ -236,7 +236,8 @@ SQL,
     private            $pnDny                = 'shopUbytovaniDny';
     private            $pnPokoj              = 'shopUbytovaniPokoj';
     private            $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
-    private bool $ubytovatZbyle = false;
+    private bool       $omezitNaSpacáky      = true; // přepínač pro omezení běžných návštěvníků čistě na spacáky
+                                                     // výpadek C 2024
 
     public function __construct(
         array                               $predmety,
@@ -290,22 +291,41 @@ SQL,
         return $this->ubytovany;
     }
 
-    private function maPravoNaPokoj(Uzivatel $u): bool
+    private function maPravoNaPokoj(): bool
     {
-        if ($this->ubytovatZbyle) {
-            return true;
-        }
+        /*
+         * funkce pro kontrolu jestli uživatel má právo na jiné ubytování než spacák
+         * důvod výpadek budovy C v roce 2024
+         *
+         * použití ve spolupráci s proměnno $omezitNaSpacáky
+         * */
+        return $this->uzivatel()->jeVypravec() || $this->uzivatel()->jeOrganizator() ||
+            $this->uzivatel()->jeHerman() || $this->uzivatel()->jePartner() ||
+            $this->uzivatel()->jeInfopultak() || $this->uzivatel()->jeDobrovolnikSenior() ||
+            $this->uzivatel()->jeZazemi();
+    }
 
-        return $u->jeVypravec() || $u->jeOrganizator() || $u->jeHerman() ||
-            $u->jePartner() || $u->jeInfopultak() || $u->jeDobrovolnikSenior() ||
-            $u->jeZazemi();
+    private function omluvaText()
+    {
+        /*
+         * Omluvný text pro běžné účastníky kváli omezení na čistě spacýky
+         * řízená proměnnou $omezitNaSpacáky
+         *
+         * výpadek budovy C v roce 2024
+         * */
+
+        $omluva_text = 'Vzhledem k rekonstrukci budovy C jsme museli letos zrušit možnost ubytování na postelích. Jako částečnou kompenzaci nabízíme větší počet míst pro spaní ve spacácích v tělocvičnách.
+Situace nás mrzí, přesto věříme, že tě od účasti na letošním GC neodradí a v létě se spolu uvidíme. Děkujeme za tvou podporu.
+Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a>.';
+
+        return $this->omezitNaSpacáky && !$this->maPravoNaPokoj() ? $omluva_text : "";
     }
 
     public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
     {
         $t = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
         $t->assign([
-            'ubytOmluva' => 'čupr dupr zpráva od comms',
+            'ubytOmluva' => $this->omluvaText(),
             'shopUbytovaniJs'      => URL_WEBU . '/soubory/blackarrow/shop/shop-ubytovani.js?version='
                 . md5_file(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
             'spolubydlici'         => htmlspecialchars(dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()) ?? ''),
@@ -319,7 +339,9 @@ SQL,
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
         foreach ($this->mozneTypy as $typ => $predmet) {
-            if ($typ != 'Spacák' && !$this->maPravoNaPokoj($this->uzivatel())){
+
+            if ($this->omezitNaSpacáky && $typ != 'Spacák' &&
+                !$this->maPravoNaPokoj()){
                 continue;
             }
 
@@ -353,9 +375,12 @@ SQL,
             $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
             $ubytovanVeDni = false;
             foreach ($this->mozneTypy as $typ => $rozsah) {
-                if ($typ != 'Spacák' && !$this->maPravoNaPokoj($this->uzivatel())){
+
+                if ($this->omezitNaSpacáky && $typ != 'Spacák' &&
+                    !$this->maPravoNaPokoj()){
                     continue;
                 }
+
                 $ubytovanVeDniATypu = false;
                 $checked            = '';
                 if ($this->ubytovan($den, $typ)) {
