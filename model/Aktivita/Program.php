@@ -508,7 +508,7 @@ HTML;
                 }
                 $skip = 0;
                 foreach (Program::seznamHodinZacatku() as $cas) {
-                    if ($skip) {
+                    if ($skip > 0) {
                         $skip--;
                         continue;
                     }
