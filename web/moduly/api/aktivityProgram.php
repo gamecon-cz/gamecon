@@ -52,10 +52,10 @@ foreach ($aktivity as &$a) {
   if (!$a->zacatek()) continue;
   if (!$a->viditelnaPro($u)) continue;
 
-  // TODO: opravit, padá v PrednacitaniTrait.php:93
-  // $vypraveci = array_map(function ($o) {
-  //   return $o->jmenoNick();
-  // }, $a->organizatori());
+  $vypraveci = array_map(function ($o) {
+    return $o->jmenoNick();
+  }, $a->organizatori());
+
   $stitky = array_map(function ($s) {
     return mb_ucfirst($s);
   }, $a->tagy());
@@ -64,9 +64,9 @@ foreach ($aktivity as &$a) {
     'id'        =>  $a->id(),
     'nazev'     =>  $a->nazev(),
     'kratkyPopis' => $a->kratkyPopis(),
-    // 'popis'     =>  $a->popis(),
+    'popis'     =>  $a->popis(),
     'obrazek'   =>  (string) $a->obrazek(),
-    // 'vypraveci' =>  $vypraveci,
+    'vypraveci' =>  $vypraveci,
     'stitky'    =>  $stitky,
     // TODO: cenaZaklad by měla být číslo ?
     'cenaZaklad'      => intval($a->cenaZaklad()),
