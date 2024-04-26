@@ -22,23 +22,25 @@ class RozpoctovyReport
         string $doSouboru = null,
     )
     {
-        $poctyVyznamuRoliPodleRoku            = $this->poctyVyznamuRoliPodleRoku();
-        $dobrovolneVstupnePodleRoku           = $this->dobrovolneVstupnePodleRoku();
-        $poctyProdanychPredmetuPodleRoku      = $this->poctyProdanychPredmetuPodleRoku();
-        $ucastNaAktivitachPodleRoku           = $this->ucastNaAktivitachPodleRoku();
-        $prumernaKapacitaAktivitPodleRoku     = $this->prumernaKapacitaAktivitPodleRoku();
-        $prumernyPocetVypravecuPodleRoku      = $this->prumernyPocetVypravecuPodleRoku();
-        $pocetNeorgVypravecuPodleRoku         = $this->pocetNeorgVypravecuPodleRoku();
-        $pocetOrgVypravecuPodleRoku           = $this->pocetOrgVypravecuPodleRoku();
-        $bonusyZaAktivityPodleRoku            = $this->bonusyZaAktivityPodleRoku();
-        $poctyProdanychAktivitPodleRoku       = $this->poctyProdanychAktivitPodleRoku();
-        $pocetOrguZdarmaNaAktivitachPodleRoku = $this->pocetOrguZdarmaNaAktivitachPodleRoku();
-        $pocetNeorgTricekPodleRoku            = $this->pocetNeorgTricekPodleRoku();
-        $pocetModrychTricekPodleRoku          = $this->pocetModrychTricekPodleRoku();
-        $pocetCervenychTricekPodleRoku        = $this->pocetCervenychTricekPodleRoku();
-        $pocetModrychTilekPodleRoku           = $this->pocetModrychTilekPodleRoku();
-        $pocetCervenychTilekPodleRoku         = $this->pocetCervenychTilekPodleRoku();
-        $poctyStornPodleRoku                  = $this->poctyStornPodleRoku();
+        $poctyVyznamuRoliPodleRoku               = $this->poctyVyznamuRoliPodleRoku();
+        $dobrovolneVstupnePodleRoku              = $this->dobrovolneVstupnePodleRoku();
+        $poctyNabizenychPredmetuPodleRoku        = $this->poctyNabizenychPredmetuPodleRoku();
+        $poctyProdanychPredmetuPodleRoku         = $this->poctyProdanychPredmetuPodleRoku();
+        $poctyStornPodleRoku                     = $this->poctyStornPodleRoku();
+        $ucastNaAktivitachPodleRoku              = $this->ucastNaAktivitachPodleRoku();
+        $prumernaKapacitaAktivitPodleRoku        = $this->prumernaKapacitaAktivitPodleRoku();
+        $prumernyPocetVypravecuPodleRoku         = $this->prumernyPocetVypravecuPodleRoku();
+        $pocetNeorgVypravecuPodleRoku            = $this->pocetNeorgVypravecuPodleRoku();
+        $pocetOrgVypravecuPodleRoku              = $this->pocetOrgVypravecuPodleRoku();
+        $bonusyZaAktivityPodleRoku               = $this->bonusyZaAktivityPodleRoku();
+        $poctyProdanychMistNaAktivitachPodleRoku = $this->poctyProdanychMistNaAktivitachPodleRoku();
+        $pocetOrguZdarmaNaAktivitachPodleRoku    = $this->pocetOrguZdarmaNaAktivitachPodleRoku();
+        $pocetNeorgTricekPodleRoku               = $this->pocetNeorgTricekPodleRoku();
+        $pocetModrychTricekPodleRoku             = $this->pocetModrychTricekPodleRoku();
+        $pocetCervenychTricekPodleRoku           = $this->pocetCervenychTricekPodleRoku();
+        $pocetModrychTilekPodleRoku              = $this->pocetModrychTilekPodleRoku();
+        $pocetCervenychTilekPodleRoku            = $this->pocetCervenychTilekPodleRoku();
+        $poctyJidelZdarmaPodleRoku               = $this->poctyJidelZdarmaPodleRoku();
 
         $letos       = (int) date('Y');
         $dataReportu = [];
@@ -51,9 +53,130 @@ class RozpoctovyReport
             $dataReportu[] = [$nazevVstupneho, ...$sumyPodleRoku];
         }
 
+        $nabizenaMistaNaSpani = $this->filtrujMistaNaSpani($poctyNabizenychPredmetuPodleRoku);
+        foreach ($this->pripravOdDo($nabizenaMistaNaSpani, $letos, 2012) as $nazevSpani => $poctyPodleRoku) {
+            $dataReportu[] = ['(nabídka) ' . $nazevSpani, ...$poctyPodleRoku];
+        }
+
         $prodanaMistaNaSpani = $this->filtrujMistaNaSpani($poctyProdanychPredmetuPodleRoku);
         foreach ($this->pripravOdDo($prodanaMistaNaSpani, $letos, 2012) as $nazevSpani => $poctyPodleRoku) {
-            $dataReportu[] = [$nazevSpani, ...$poctyPodleRoku];
+            $dataReportu[] = ['(prodáno) ' . $nazevSpani, ...$poctyPodleRoku];
+        }
+
+        foreach ($this->pripravOdDo($poctyStornPodleRoku, $letos, 2012) as $nazevTypuAktivit => $poctyPodleRoku) {
+            $dataReportu[] = ['(storno) ' . $nazevTypuAktivit, ...$poctyPodleRoku];
+        }
+
+        foreach ($this->pripravOdDo($ucastNaAktivitachPodleRoku, $letos, 2012) as $nazevTypuAktivit => $poctyPodleRoku) {
+            $dataReportu[] = ['Počet ' . $nazevTypuAktivit, ...$poctyPodleRoku];
+        }
+
+        foreach ($this->pripravOdDo($prumernaKapacitaAktivitPodleRoku, $letos, 2012) as $nazevTypuAktivit => $kapacityPodleRoku) {
+            $dataReportu[] = ['Průměr kapacit ' . $nazevTypuAktivit, ...$kapacityPodleRoku];
+        }
+
+        foreach ($this->pripravOdDo($prumernyPocetVypravecuPodleRoku, $letos, 2012) as $nazevTypuAktivit => $poctyPodleRoku) {
+            $dataReportu[] = ['Průměr vypravěčů ' . $nazevTypuAktivit, ...$poctyPodleRoku];
+        }
+
+        foreach ($this->pripravOdDo($pocetNeorgVypravecuPodleRoku, $letos, 2012) as $nazevTypuAktivit => $poctyPodleRoku) {
+            $dataReportu[] = ['Neorg vypravěči ' . $nazevTypuAktivit, ...$poctyPodleRoku];
+        }
+
+        foreach ($this->pripravOdDo($pocetOrgVypravecuPodleRoku, $letos, 2012) as $nazevTypuAktivit => $poctyPodleRoku) {
+            $dataReportu[] = ['Org vypravěči ' . $nazevTypuAktivit, ...$poctyPodleRoku];
+        }
+
+        foreach ($this->pripravOdDo($bonusyZaAktivityPodleRoku, $letos, 2012) as $nazevTypuAktivit => $poctyPodleRoku) {
+            $dataReportu[] = ['Bonusy za ' . $nazevTypuAktivit, ...$poctyPodleRoku];
+        }
+
+        foreach ($this->pripravOdDo($poctyProdanychMistNaAktivitachPodleRoku, $letos, 2012) as $nazevTypuAktivit => $poctyPodleRoku) {
+            $dataReportu[] = ['Prodáno ' . $nazevTypuAktivit, ...$poctyPodleRoku];
+        }
+
+        foreach ($this->pripravOdDo($pocetOrguZdarmaNaAktivitachPodleRoku, $letos, 2012) as $nazevTypuAktivit => $poctyPodleRoku) {
+            $dataReportu[] = ['Orgové na ' . $nazevTypuAktivit, ...$poctyPodleRoku];
+        }
+
+        $trickaZaklad = ['Trička neorg' => $pocetNeorgTricekPodleRoku];
+        foreach ($this->pripravOdDo($trickaZaklad, $letos, 2012) as $nazevSkupinyTricek => $poctyPodleRoku) {
+            $dataReportu[] = [$nazevSkupinyTricek, ...$poctyPodleRoku];
+        }
+
+        $trickaCervena = ['Trička červená' => $pocetCervenychTricekPodleRoku];
+        foreach ($this->pripravOdDo($trickaCervena, $letos, 2012) as $nazevSkupinyTricek => $poctyPodleRoku) {
+            $dataReportu[] = [$nazevSkupinyTricek, ...$poctyPodleRoku];
+        }
+
+        $trickaModra = ['Trička modrá' => $pocetModrychTricekPodleRoku];
+        foreach ($this->pripravOdDo($trickaModra, $letos, 2012) as $nazevSkupinyTricek => $poctyPodleRoku) {
+            $dataReportu[] = [$nazevSkupinyTricek, ...$poctyPodleRoku];
+        }
+
+        $tilkaCervena = ['Tílka červená' => $pocetCervenychTilekPodleRoku];
+        foreach ($this->pripravOdDo($tilkaCervena, $letos, 2012) as $nazevSkupinyTilek => $poctyPodleRoku) {
+            $dataReportu[] = [$nazevSkupinyTilek, ...$poctyPodleRoku];
+        }
+
+        $tilkaModra = ['Tílka modrá' => $pocetModrychTilekPodleRoku];
+        foreach ($this->pripravOdDo($tilkaModra, $letos, 2012) as $nazevSkupinyTilek => $poctyPodleRoku) {
+            $dataReportu[] = [$nazevSkupinyTilek, ...$poctyPodleRoku];
+        }
+
+        $prodaneKostky = ['kostka 2012-2022' => $this->filtrujPoctyKostek($poctyProdanychPredmetuPodleRoku)];
+        foreach ($this->pripravOdDo($prodaneKostky, 2022, 2012, $letos) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodaneKostky = ['kostka plast 2023+' => $this->filtrujPoctyKostek($poctyProdanychPredmetuPodleRoku)];
+        foreach ($this->pripravOdDo($prodaneKostky, $letos, 2023, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodanePlacky = ['placka ' => $this->filtrujPoctyPlacek($poctyProdanychPredmetuPodleRoku)];
+        foreach ($this->pripravOdDo($prodanePlacky, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodaneNicknacky = ['nicknacky ' => $this->filtrujPoctyNicknacku($poctyProdanychPredmetuPodleRoku)];
+        foreach ($this->pripravOdDo($prodaneNicknacky, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodaneBloky = ['bloky ' => $this->filtrujPoctyBloku($poctyProdanychPredmetuPodleRoku)];
+        foreach ($this->pripravOdDo($prodaneBloky, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodanePonozky = ['ponožky ' => $this->filtrujPoctyPonozek($poctyProdanychPredmetuPodleRoku)];
+        foreach ($this->pripravOdDo($prodanePonozky, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodaneTasky = ['tašky ' => $this->filtrujPoctyTasek($poctyProdanychPredmetuPodleRoku)];
+        foreach ($this->pripravOdDo($prodaneTasky, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodaneTasky = ['snídaně ' => $this->filtrujPoctySnidani($poctyProdanychPredmetuPodleRoku)];
+        foreach ($this->pripravOdDo($prodaneTasky, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodaneTasky = ['hl. jídla ' => $this->filtrujPoctyHlavnichJidel($poctyProdanychPredmetuPodleRoku)];
+        foreach ($this->pripravOdDo($prodaneTasky, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodaneTasky = ['snídaně zdarma ' => $this->filtrujPoctySnidani([TypPredmetu::JIDLO => $poctyJidelZdarmaPodleRoku])];
+        foreach ($this->pripravOdDo($prodaneTasky, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
+        }
+
+        $prodaneTasky = ['hl. jídla zdarma ' => $this->filtrujPoctyHlavnichJidel([TypPredmetu::JIDLO => $poctyJidelZdarmaPodleRoku])];
+        foreach ($this->pripravOdDo($prodaneTasky, $letos, 2012) as $nazev => $poctyPodleRoku) {
+            $dataReportu[] = [$nazev, ...$poctyPodleRoku];
         }
 
         $report = \Report::zPoli(
@@ -73,15 +196,165 @@ class RozpoctovyReport
     }
 
     /**
-     * @param array<string, array<int, int>> $poctyVyznamuRoliPodleRoku
+     * @param array<int, array<string, array<int,int>>> $poctyProdanychPredmetuPodleRoku
+     * @return array<int,int>
+     */
+    private function filtrujPoctyKostek(array $poctyProdanychPredmetuPodleRoku): array
+    {
+        return $this->filtrujPodleNazvuSkupiny(
+            $poctyProdanychPredmetuPodleRoku[TypPredmetu::PREDMET] ?? [],
+            'Kostka',
+        );
+    }
+
+    /**
+     * @param array<int, array<string, array<int,int>>> $poctyProdanychPredmetuPodleRoku
+     * @return array<int,int>
+     */
+    private function filtrujPoctyPlacek(array $poctyProdanychPredmetuPodleRoku): array
+    {
+        return $this->filtrujPodleNazvuSkupiny(
+            $poctyProdanychPredmetuPodleRoku[TypPredmetu::PREDMET] ?? [],
+            'Placka',
+        );
+    }
+
+    /**
+     * @param array<int, array<string, array<int,int>>> $poctyProdanychPredmetuPodleRoku
+     * @return array<int,int>
+     */
+    private function filtrujPoctyNicknacku(array $poctyProdanychPredmetuPodleRoku): array
+    {
+        return $this->filtrujPodleNazvuSkupiny(
+            $poctyProdanychPredmetuPodleRoku[TypPredmetu::PREDMET] ?? [],
+            'Nicknack',
+        );
+    }
+
+    /**
+     * @param array<int, array<string, array<int,int>>> $poctyProdanychPredmetuPodleRoku
+     * @return array<int,int>
+     */
+    private function filtrujPoctyBloku(array $poctyProdanychPredmetuPodleRoku): array
+    {
+        return $this->filtrujPodleNazvuSkupiny(
+            $poctyProdanychPredmetuPodleRoku[TypPredmetu::PREDMET] ?? [],
+            'Blok',
+        );
+    }
+
+    /**
+     * @param array<int, array<string, array<int,int>>> $poctyProdanychPredmetuPodleRoku
+     * @return array<int,int>
+     */
+    private function filtrujPoctyPonozek(array $poctyProdanychPredmetuPodleRoku): array
+    {
+        return $this->filtrujPodleNazvuSkupiny(
+            $poctyProdanychPredmetuPodleRoku[TypPredmetu::PREDMET] ?? [],
+            'Ponožky',
+        );
+    }
+
+    /**
+     * @param array<int, array<string, array<int,int>>> $poctyProdanychPredmetuPodleRoku
+     * @return array<int,int>
+     */
+    private function filtrujPoctyTasek(array $poctyProdanychPredmetuPodleRoku): array
+    {
+        return $this->filtrujPodleNazvuSkupiny(
+            $poctyProdanychPredmetuPodleRoku[TypPredmetu::PREDMET] ?? [],
+            'Taška',
+        );
+    }
+
+    /**
+     * @param array<int, array<string, array<int,int>>> $poctyProdanychPredmetuPodleRoku
+     * @return array<int,int>
+     */
+    private function filtrujPoctySnidani(array $poctyProdanychPredmetuPodleRoku): array
+    {
+        return $this->filtrujPodleNazvuSkupiny(
+            $poctyProdanychPredmetuPodleRoku[TypPredmetu::JIDLO] ?? [],
+            'Snídaně',
+        );
+    }
+
+    /**
+     * @param array<int, array<string, array<int,int>>> $poctyProdanychPredmetuPodleRoku
+     * @return array<int,int>
+     */
+    private function filtrujPoctyHlavnichJidel(array $poctyProdanychPredmetuPodleRoku): array
+    {
+        return $this->filtrujPodleVyloucenehoNazvuSkupiny(
+            $poctyProdanychPredmetuPodleRoku[TypPredmetu::JIDLO] ?? [],
+            'Snídaně',
+        );
+    }
+
+    /**
+     * @param array<string, <int, int>> $predmety
+     * @param string $nazevSkupiny
+     * @return array<int, int>
+     */
+    private function filtrujPodleNazvuSkupiny(array $predmety, string $nazevSkupiny): array
+    {
+        $predmetyFiltrovane = [];
+        $nazevSkupiny       = mb_strtolower($nazevSkupiny);
+        foreach ($predmety as $nazevPredmetu => $poctyPodleRoku) {
+            if (str_contains(mb_strtolower($nazevPredmetu), $nazevSkupiny)) {
+                foreach ($poctyPodleRoku as $rok => $pocet) {
+                    $predmetyFiltrovane[$rok] ??= 0;
+                    $predmetyFiltrovane[$rok] += $pocet;
+                }
+            }
+        }
+
+        return $predmetyFiltrovane;
+    }
+
+    /**
+     * @param array<string, <int, int>> $predmety
+     * @param string $vyloucenyNazevSkupiny
+     * @return array<int, int>
+     */
+    private function filtrujPodleVyloucenehoNazvuSkupiny(array $predmety, string $vyloucenyNazevSkupiny): array
+    {
+        $predmetyFiltrovane    = [];
+        $vyloucenyNazevSkupiny = mb_strtolower($vyloucenyNazevSkupiny);
+        foreach ($predmety as $nazevPredmetu => $poctyPodleRoku) {
+            if (!str_contains(mb_strtolower($nazevPredmetu), $vyloucenyNazevSkupiny)) {
+                foreach ($poctyPodleRoku as $rok => $pocet) {
+                    $predmetyFiltrovane[$rok] ??= 0;
+                    $predmetyFiltrovane[$rok] += $pocet;
+                }
+            }
+        }
+
+        return $predmetyFiltrovane;
+    }
+
+    /**
+     * @param array<string, array<int, int>> $poctyPodleSkupin
      * @return array<string, array<int,int>>
      */
-    private function pripravOdDo(array $poctyVyznamuRoliPodleRoku, int $odRoku, int $doRoku): array
+    private function pripravOdDo(
+        array $poctyPodleSkupin,
+        int $odRoku,
+        int $doRoku,
+        int $prvniRokReportu = null,
+        int $posledniRokReportu = null,
+    ): array
     {
+        $prvniRokReportu      ??= $odRoku;
+        $posledniRokReportu   ??= $doRoku;
         $poctyVyznamuRoliOdDo = [];
-        foreach ($poctyVyznamuRoliPodleRoku as $vyznamRole => $poctyVyznamuRolePodleRoku) {
-            for ($rok = $odRoku; $rok >= $doRoku; $rok--) {
-                $poctyVyznamuRoliOdDo[$vyznamRole][] = $poctyVyznamuRolePodleRoku[$rok] ?? 0;
+        foreach ($poctyPodleSkupin as $skupina => $poctyVyznamuRolePodleRoku) {
+            for ($rok = $prvniRokReportu; $rok >= $posledniRokReportu; $rok--) {
+                if ($rok > $odRoku || $rok < $doRoku) {
+                    $poctyVyznamuRoliOdDo[$skupina][] = 0;
+                    continue;
+                }
+                $poctyVyznamuRoliOdDo[$skupina][] = $poctyVyznamuRolePodleRoku[$rok] ?? 0;
             }
         }
 
@@ -89,13 +362,13 @@ class RozpoctovyReport
     }
 
     /**
-     * @return array<int, array<int, float>>
+     * @return array<string, array<int, float>>
      */
     private function prumernaKapacitaAktivitPodleRoku(): array
     {
         $kapacitaAktivitPodleRoku = [];
         foreach ($this->nactPrumernouKapacituAktivitPodleRoku() as $prumernaKapacitaVRoce) {
-            $typAktivity             = (int) $prumernaKapacitaVRoce['typ'];
+            $typAktivity             = $prumernaKapacitaVRoce['typ_aktivity'];
             $rok                     = (int) $prumernaKapacitaVRoce['rok'];
             $kapacita                = (int) $prumernaKapacitaVRoce['celkova_kapacita'];
             $delka                   = (int) $prumernaKapacitaVRoce['delka'];
@@ -105,7 +378,7 @@ class RozpoctovyReport
         }
         foreach ($kapacitaAktivitPodleRoku as $typAktivity => $kapacitaAktivitVRoce) {
             foreach ($kapacitaAktivitVRoce as $rok => $kapacitaAktivit) {
-                $kapacitaAktivitPodleRoku[$typAktivity][$rok] = array_sum($kapacitaAktivit) / count($kapacitaAktivit);
+                $kapacitaAktivitPodleRoku[$typAktivity][$rok] = round(array_sum($kapacitaAktivit) / count($kapacitaAktivit), 1);
             }
         }
 
@@ -113,15 +386,15 @@ class RozpoctovyReport
     }
 
     /**
-     * @return array<int, array<int, float>>
+     * @return array<string, array<int, float>>
      */
     private function prumernyPocetVypravecuPodleRoku(): array
     {
         $pocetVypravecuAktivitPodleRoku = [];
         foreach ($this->nactiPrumernyPocetVypravecuPodleRoku() as $prumernyPocetVypravecuVRoce) {
-            $typAktivity                  = (int) $prumernyPocetVypravecuVRoce['typ'];
+            $typAktivity                  = $prumernyPocetVypravecuVRoce['typ_aktivity'];
             $rok                          = (int) $prumernyPocetVypravecuVRoce['rok'];
-            $prumernyPocet                = (int) $prumernyPocetVypravecuVRoce['prumerny_pocet'];
+            $prumernyPocet                = (float) $prumernyPocetVypravecuVRoce['prumerny_pocet'];
             $delka                        = (int) $prumernyPocetVypravecuVRoce['delka'];
             $prumernyPocetNaJednotkuPrace = $this->naJednotkuPrace($prumernyPocet, $delka);
 
@@ -129,7 +402,7 @@ class RozpoctovyReport
         }
         foreach ($pocetVypravecuAktivitPodleRoku as $typAktivity => $pocetVypravecuAktivitVRoce) {
             foreach ($pocetVypravecuAktivitVRoce as $rok => $pocetVypravecuAktivit) {
-                $pocetVypravecuAktivitPodleRoku[$typAktivity][$rok] = array_sum($pocetVypravecuAktivit) / count($pocetVypravecuAktivit);
+                $pocetVypravecuAktivitPodleRoku[$typAktivity][$rok] = round(array_sum($pocetVypravecuAktivit) / count($pocetVypravecuAktivit), 1);
             }
         }
 
@@ -137,13 +410,13 @@ class RozpoctovyReport
     }
 
     /**
-     * @return array<int, array<int, int>>
+     * @return array<string, array<int, int>>
      */
     private function pocetNeorgVypravecuPodleRoku(): array
     {
         $pocetNeorgVypravecuAktivitPodleRoku = [];
         foreach ($this->nactiPocetNeorgVypravecuNaAktivitachPodleRoku() as $pocetVypravecuVRoce) {
-            $typAktivity          = (int) $pocetVypravecuVRoce['typ'];
+            $typAktivity          = $pocetVypravecuVRoce['typ_aktivity'];
             $rok                  = (int) $pocetVypravecuVRoce['rok'];
             $pocetOrganizatoru    = (int) $pocetVypravecuVRoce['pocet_organizatoru'];
             $delka                = (int) $pocetVypravecuVRoce['delka'];
@@ -157,13 +430,13 @@ class RozpoctovyReport
     }
 
     /**
-     * @return array<int, array<int, int>>
+     * @return array<string, array<int, int>>
      */
     private function pocetOrgVypravecuPodleRoku(): array
     {
         $pocetOrgVypravecuAktivitPodleRoku = [];
         foreach ($this->nactiPocetOrgVypravecuNaAktivitachPodleRoku() as $pocetVypravecuVRoce) {
-            $typAktivity          = (int) $pocetVypravecuVRoce['typ'];
+            $typAktivity          = $pocetVypravecuVRoce['typ_aktivity'];
             $rok                  = (int) $pocetVypravecuVRoce['rok'];
             $pocetOrganizatoru    = (int) $pocetVypravecuVRoce['pocet_organizatoru'];
             $delka                = (int) $pocetVypravecuVRoce['delka'];
@@ -177,13 +450,13 @@ class RozpoctovyReport
     }
 
     /**
-     * @return array<int, array<int, int>>
+     * @return array<string, array<int, int>>
      */
     private function pocetOrguZdarmaNaAktivitachPodleRoku(): array
     {
         $pocetOrguZdarmaNaAktivitachPodleRoku = [];
         foreach ($this->nactiPocetOrguZdarmaNaAktivitachPodleRoku() as $pocetOrguZdarmaVRoce) {
-            $typAktivity          = (int) $pocetOrguZdarmaVRoce['typ'];
+            $typAktivity          = $pocetOrguZdarmaVRoce['typ_aktivity'];
             $rok                  = (int) $pocetOrguZdarmaVRoce['rok'];
             $pocetOrganizatoru    = (int) $pocetOrguZdarmaVRoce['pocet_organizatoru'];
             $delka                = (int) $pocetOrguZdarmaVRoce['delka'];
@@ -197,53 +470,54 @@ class RozpoctovyReport
     }
 
     /**
-     * @return array<int, array<int, int>>
+     * @return array<string, array<int, int>>
      */
     private function bonusyZaAktivityPodleRoku(): array
     {
         $bonusyZaAktivityPodleRoku = [];
         foreach ($this->nactiBonusyZaAktivityPodleRoku() as $bonusyVRoce) {
-            $typAktivity          = (int) $bonusyVRoce['typ'];
-            $rok                  = (int) $bonusyVRoce['rok'];
-            $pocetOrganizatoru    = (int) $bonusyVRoce['pocet_organizatoru'];
-            $delka                = (int) $bonusyVRoce['delka'];
-            $pocetNaJednotkuPrace = $this->naJednotkuPrace($pocetOrganizatoru, $delka);
+            $typAktivity         = $bonusyVRoce['typ_aktivity'];
+            $rok                 = (int) $bonusyVRoce['rok'];
+            $pocetOrganizatoru   = (int) $bonusyVRoce['pocet_organizatoru'];
+            $delka               = (int) $bonusyVRoce['delka'];
+            $bonusZaAktivitu     = $this->bonusZaVedeniAktivity($delka);
+            $bonusZaOrganizatory = $bonusZaAktivitu * $pocetOrganizatoru;
 
             $bonusyZaAktivityPodleRoku[$typAktivity][$rok] ??= 0;
-            $bonusyZaAktivityPodleRoku[$typAktivity][$rok] += $pocetNaJednotkuPrace;
+            $bonusyZaAktivityPodleRoku[$typAktivity][$rok] += $bonusZaOrganizatory;
         }
 
         return $bonusyZaAktivityPodleRoku;
     }
 
     /**
-     * @return array<int, array<int, int>>
+     * @return array<string, array<int, int>>
      */
-    private function poctyProdanychAktivitPodleRoku(): array
+    private function poctyProdanychMistNaAktivitachPodleRoku(): array
     {
-        $poctyProdanychAktivitPodleRoku = [];
-        foreach ($this->nactiPoctyProdanychAktivitPodleRoku() as $poctyVRoce) {
-            $typAktivity          = (int) $poctyVRoce['typ'];
+        $poctyProdanychMistNaAktivitachPodleRoku = [];
+        foreach ($this->nactiPoctyProdanychMistNaAktivitachPodleRoku() as $poctyVRoce) {
+            $typAktivity          = $poctyVRoce['typ_aktivity'];
             $rok                  = (int) $poctyVRoce['rok'];
-            $pocetAktivit         = (int) $poctyVRoce['pocet_aktivit'];
+            $pocetDorazivsich     = (int) $poctyVRoce['pocet_dorazivsich'];
             $delka                = (int) $poctyVRoce['delka'];
-            $pocetNaJednotkuPrace = $this->naJednotkuPrace($pocetAktivit, $delka);
+            $pocetNaJednotkuPrace = $this->naJednotkuPrace($pocetDorazivsich, $delka);
 
-            $poctyProdanychAktivitPodleRoku[$typAktivity][$rok] ??= 0;
-            $poctyProdanychAktivitPodleRoku[$typAktivity][$rok] += $pocetNaJednotkuPrace;
+            $poctyProdanychMistNaAktivitachPodleRoku[$typAktivity][$rok] ??= 0;
+            $poctyProdanychMistNaAktivitachPodleRoku[$typAktivity][$rok] += $pocetNaJednotkuPrace;
         }
 
-        return $poctyProdanychAktivitPodleRoku;
+        return $poctyProdanychMistNaAktivitachPodleRoku;
     }
 
     /**
-     * @return array<int, array<int, array<int, int>>>
+     * @return array<string, array<int, int>>
      */
     private function ucastNaAktivitachPodleRoku(): array
     {
         $ucastNaAktivitachPodleRoku = [];
         foreach ($this->nactiUcastNaAktivitachPodleRoku() as $ucastNaAktivitachVRoce) {
-            $typAktivity          = (int) $ucastNaAktivitachVRoce['typ'];
+            $typAktivity          = $ucastNaAktivitachVRoce['typ_aktivity'];
             $rok                  = (int) $ucastNaAktivitachVRoce['rok'];
             $pocetUcasti          = (int) $ucastNaAktivitachVRoce['pocet_ucasti'];
             $delka                = (int) $ucastNaAktivitachVRoce['delka'];
@@ -257,13 +531,13 @@ class RozpoctovyReport
     }
 
     /**
-     * @return array<int, array<int, array<int, int>>>
+     * @return array<string, array<int, int>>
      */
     private function poctyStornPodleRoku(): array
     {
         $stornaPodleRoku = [];
         foreach ($this->nactiStornaPodleRoku() as $stornaVRoce) {
-            $typAktivity = (int) $stornaVRoce['typ'];
+            $typAktivity = $stornaVRoce['typ_aktivity'];
             $rok         = (int) $stornaVRoce['rok'];
             $pocet       = (int) $stornaVRoce['pocet'];
 
@@ -274,7 +548,7 @@ class RozpoctovyReport
         return $stornaPodleRoku;
     }
 
-    private function naJednotkuPrace(int $hodnota, int $delka): int
+    private function naJednotkuPrace(int|float $hodnota, int $delka): int
     {
         if ($delka === 0) {
             return 0;
@@ -283,6 +557,18 @@ class RozpoctovyReport
         foreach ($hodnotyNaJednotkuPrace as $nejmensiCas => $hodnotaNaJednotkuPrace) {
             if ($delka <= $nejmensiCas) {
                 return $hodnotaNaJednotkuPrace;
+            }
+        }
+
+        return 0;
+    }
+
+    private function bonusZaVedeniAktivity(int $delka): int
+    {
+        $bonusyZaVedeniAktivity = $this->systemoveNastaveni->bonusyZaVedeniAktivity();
+        foreach ($bonusyZaVedeniAktivity as $nejmensiCas => $bonusZaVedeniAktivity) {
+            if ($delka <= $nejmensiCas) {
+                return $bonusZaVedeniAktivity;
             }
         }
 
@@ -309,6 +595,25 @@ class RozpoctovyReport
     /**
      * @return array<int, array<string, array<int, int>>>
      */
+    private function poctyNabizenychPredmetuPodleRoku(): array
+    {
+        $poctyNabizenychPredmetuPodleRoku = [];
+        foreach ($this->nactiPoctyNabizenychPredmetuPodleRoku() as $poctyNabizenehoPredmetu) {
+            $typPredmetu = (int) $poctyNabizenehoPredmetu['typ_predmetu'];
+            $nazev       = $poctyNabizenehoPredmetu['nazev'];
+            $rok         = (int) $poctyNabizenehoPredmetu['rok'];
+            $pocet       = (int) $poctyNabizenehoPredmetu['pocet'];
+
+            $poctyNabizenychPredmetuPodleRoku[$typPredmetu][$nazev][$rok] ??= 0;
+            $poctyNabizenychPredmetuPodleRoku[$typPredmetu][$nazev][$rok] += $pocet;
+        }
+
+        return $poctyNabizenychPredmetuPodleRoku;
+    }
+
+    /**
+     * @return array<int, array<string, array<int, int>>>
+     */
     private function poctyProdanychPredmetuPodleRoku(): array
     {
         $poctyProdanychPredmetuPodleRoku = [];
@@ -320,6 +625,24 @@ class RozpoctovyReport
 
             $poctyProdanychPredmetuPodleRoku[$typPredmetu][$nazev][$rok] ??= 0;
             $poctyProdanychPredmetuPodleRoku[$typPredmetu][$nazev][$rok] += $pocetNakupu;
+        }
+
+        return $poctyProdanychPredmetuPodleRoku;
+    }
+
+    /**
+     * @return array<string, array<int, int>>
+     */
+    private function poctyJidelZdarmaPodleRoku(): array
+    {
+        $poctyProdanychPredmetuPodleRoku = [];
+        foreach ($this->nactiPoctyJidelZdarmaPodleRoku() as $poctyProdanehoPredmetu) {
+            $nazev       = $poctyProdanehoPredmetu['nazev'];
+            $rok         = (int) $poctyProdanehoPredmetu['rok'];
+            $pocetNakupu = (int) $poctyProdanehoPredmetu['pocet'];
+
+            $poctyProdanychPredmetuPodleRoku[$nazev][$rok] ??= 0;
+            $poctyProdanychPredmetuPodleRoku[$nazev][$rok] += $pocetNakupu;
         }
 
         return $poctyProdanychPredmetuPodleRoku;
@@ -393,7 +716,7 @@ class RozpoctovyReport
     private function nactPrumernouKapacituAktivitPodleRoku(): array
     {
         return dbFetchAll(<<<SQL
-SELECT typ,
+SELECT akce_typy.typ_1p AS typ_aktivity,
        rok,
        kapacita + kapacita_f + kapacita_m AS celkova_kapacita,
        CASE
@@ -402,6 +725,8 @@ SELECT typ,
             ELSE TIMESTAMPDIFF(HOUR, zacatek, konec)
         END AS delka
 FROM akce_seznam
+JOIN akce_typy
+    ON akce_seznam.typ = akce_typy.id_typu
 GROUP BY akce_seznam.typ, akce_seznam.rok, celkova_kapacita
 SQL,
         );
@@ -413,7 +738,7 @@ SQL,
     private function nactiPrumernyPocetVypravecuPodleRoku(): array
     {
         return dbFetchAll(<<<SQL
-SELECT akce_seznam.typ,
+SELECT akce_typy.typ_1p AS typ_aktivity,
        akce_seznam.rok,
        COUNT(akce_organizatori.id_uzivatele) / COUNT(DISTINCT akce_seznam.id_akce) AS prumerny_pocet,
        CASE
@@ -422,6 +747,8 @@ SELECT akce_seznam.typ,
             ELSE TIMESTAMPDIFF(HOUR, akce_seznam.zacatek, akce_seznam.konec)
         END AS delka
 FROM akce_seznam
+JOIN akce_typy
+    ON akce_seznam.typ = akce_typy.id_typu
 LEFT JOIN akce_organizatori
     ON akce_seznam.id_akce = akce_organizatori.id_akce
 GROUP BY akce_seznam.typ, akce_seznam.rok, delka
@@ -471,7 +798,7 @@ SQL,
     private function nactiPocetOrguSRolemiNaAktivitachPodleRoku(array $vyznamyRoli): array
     {
         return dbFetchAll(<<<SQL
-SELECT akce_seznam.typ,
+SELECT akce_typy.typ_1p AS typ_aktivity,
        akce_seznam.rok,
        COUNT(DISTINCT akce_organizatori.id_uzivatele) AS pocet_organizatoru,
        CASE
@@ -480,14 +807,16 @@ SELECT akce_seznam.typ,
             ELSE TIMESTAMPDIFF(HOUR, akce_seznam.zacatek, akce_seznam.konec)
         END AS delka
 FROM akce_seznam
-LEFT JOIN akce_organizatori
+JOIN akce_typy
+    ON akce_seznam.typ = akce_typy.id_typu
+JOIN akce_organizatori
     ON akce_seznam.id_akce = akce_organizatori.id_akce
-LEFT JOIN uzivatele_role
+JOIN uzivatele_role
     ON akce_organizatori.id_uzivatele = uzivatele_role.id_uzivatele
-LEFT JOIN role_seznam
+JOIN role_seznam
     ON uzivatele_role.id_role = role_seznam.id_role
-    AND role_seznam.vyznam_role IN ($0)
-GROUP BY akce_seznam.typ, akce_seznam.rok, delka
+WHERE role_seznam.vyznam_role IN ($0)
+GROUP BY typ_aktivity, akce_seznam.rok, delka
 SQL,
             [
                 0 => $vyznamyRoli,
@@ -502,7 +831,7 @@ SQL,
     private function nactiPocetOrguSPravemNaAktivitachPodleRoku(array $prava): array
     {
         return dbFetchAll(<<<SQL
-SELECT akce_seznam.typ,
+SELECT akce_typy.typ_1p AS typ_aktivity,
        akce_seznam.rok,
        COUNT(DISTINCT akce_organizatori.id_uzivatele) AS pocet_organizatoru,
        CASE
@@ -511,14 +840,16 @@ SELECT akce_seznam.typ,
             ELSE TIMESTAMPDIFF(HOUR, akce_seznam.zacatek, akce_seznam.konec)
         END AS delka
 FROM akce_seznam
-LEFT JOIN akce_organizatori
+JOIN akce_typy
+    ON akce_seznam.typ = akce_typy.id_typu
+JOIN akce_organizatori
     ON akce_seznam.id_akce = akce_organizatori.id_akce
-LEFT JOIN uzivatele_role
+JOIN uzivatele_role
     ON akce_organizatori.id_uzivatele = uzivatele_role.id_uzivatele
-LEFT JOIN role_seznam
+JOIN role_seznam
     ON uzivatele_role.id_role = role_seznam.id_role
-LEFT JOIN prava_role on role_seznam.id_role = prava_role.id_role
-    WHERE prava_role.id_prava IN ($0)
+JOIN prava_role on role_seznam.id_role = prava_role.id_role
+WHERE prava_role.id_prava IN ($0)
 GROUP BY akce_seznam.typ, akce_seznam.rok, delka
 SQL,
             [
@@ -532,14 +863,12 @@ SQL,
      */
     private function nactiBonusyZaAktivityPodleRoku(): array
     {
-        $kromeVyznamuRoli = [
-            Role::VYZNAM_ORGANIZATOR_ZDARMA,
-            Role::VYZNAM_PARTNER,
-            Role::VYZNAM_VYPRAVECSKA_SKUPINA,
-        ];
+        /** @see \Gamecon\Uzivatel\Finance::nechOrganizatorySBonusemZaVedeniAktivit */
+        $pravoPoradaniAktivit    = Pravo::PORADANI_AKTIVIT;
+        $bezSlevyZaVedeniAktivit = Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT;
 
         return dbFetchAll(<<<SQL
-SELECT akce_seznam.typ,
+SELECT akce_typy.typ_1p AS typ_aktivity,
        akce_seznam.rok,
        CASE
             WHEN akce_seznam.nedava_bonus = 1 THEN 0
@@ -549,28 +878,32 @@ SELECT akce_seznam.typ,
         END AS delka,
         COUNT(DISTINCT akce_organizatori.id_uzivatele) AS pocet_organizatoru
 FROM akce_seznam
-LEFT JOIN akce_organizatori
+JOIN akce_typy
+    ON akce_seznam.typ = akce_typy.id_typu
+JOIN akce_organizatori
     ON akce_seznam.id_akce = akce_organizatori.id_akce
-LEFT JOIN uzivatele_role
+JOIN uzivatele_role
     ON akce_organizatori.id_uzivatele = uzivatele_role.id_uzivatele
-LEFT JOIN role_seznam
-    ON uzivatele_role.id_role = role_seznam.id_role
-    AND role_seznam.vyznam_role NOT IN ($0)
-GROUP BY akce_seznam.typ, akce_seznam.rok, delka
+WHERE
+    EXISTS(SELECT * FROM prava_role WHERE prava_role.id_role = uzivatele_role.id_role AND prava_role.id_prava = $pravoPoradaniAktivit)
+    AND NOT EXISTS(SELECT * FROM prava_role WHERE prava_role.id_role = uzivatele_role.id_role AND prava_role.id_prava = $bezSlevyZaVedeniAktivit)
+GROUP BY typ_aktivity, akce_seznam.rok, delka
 SQL,
-            [
-                0 => $kromeVyznamuRoli,
-            ],
         );
     }
 
     /**
      * @return array<int, array<string, int|string>>
      */
-    private function nactiPoctyProdanychAktivitPodleRoku(): array
+    private function nactiPoctyProdanychMistNaAktivitachPodleRoku(): array
     {
+        $stavy = [
+            StavPrihlaseni::PRIHLASEN_A_DORAZIL,
+            StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK,
+        ];
+
         return dbFetchAll(<<<SQL
-SELECT akce_seznam.typ,
+SELECT akce_typy.typ_1p AS typ_aktivity,
        akce_seznam.rok,
        CASE
             WHEN akce_seznam.nedava_bonus = 1 THEN 0
@@ -578,10 +911,17 @@ SELECT akce_seznam.typ,
             WHEN akce_seznam.zacatek > akce_seznam.konec THEN TIMESTAMPDIFF(HOUR, akce_seznam.zacatek, akce_seznam.konec) + 24
             ELSE TIMESTAMPDIFF(HOUR, akce_seznam.zacatek, akce_seznam.konec)
         END AS delka,
-        COUNT(*) AS pocet_aktivit
+        COUNT(*) AS pocet_dorazivsich
 FROM akce_seznam
-GROUP BY akce_seznam.typ, akce_seznam.rok, delka
+JOIN akce_typy
+    ON akce_seznam.typ = akce_typy.id_typu
+JOIN akce_prihlaseni ON akce_seznam.id_akce = akce_prihlaseni.id_akce
+    WHERE akce_prihlaseni.id_stavu_prihlaseni IN ($0)
+GROUP BY typ_aktivity, akce_seznam.rok, delka
 SQL,
+            [
+                0 => $stavy,
+            ],
         );
     }
 
@@ -594,7 +934,7 @@ SQL,
         $stavySql = implode(',', $stavy);
 
         return dbFetchAll(<<<SQL
-SELECT akce_seznam.typ,
+SELECT akce_typy.typ_1p AS typ_aktivity,
        akce_seznam.rok,
        COUNT(*) AS pocet_ucasti,
        CASE
@@ -603,10 +943,12 @@ SELECT akce_seznam.typ,
             ELSE TIMESTAMPDIFF(HOUR, zacatek, konec)
         END AS delka
 FROM akce_seznam
+JOIN akce_typy
+    ON akce_seznam.typ = akce_typy.id_typu
 JOIN akce_prihlaseni
     ON akce_seznam.id_akce = akce_prihlaseni.id_akce 
 WHERE akce_prihlaseni.id_stavu_prihlaseni IN ({$stavySql})
-GROUP BY akce_seznam.typ, akce_seznam.rok, delka
+GROUP BY typ_aktivity, akce_seznam.rok, delka
 SQL,
         );
     }
@@ -622,15 +964,31 @@ SQL,
         $pozdeZrusil           = StavPrihlaseni::POZDE_ZRUSIL;
 
         return dbFetchAll(<<<SQL
-SELECT akce_seznam.typ,
+SELECT akce_typy.typ_1p AS typ_aktivity,
        akce_seznam.rok,
        COUNT(*) AS pocet
 FROM akce_seznam
+JOIN akce_typy
+    ON akce_seznam.typ = akce_typy.id_typu
 JOIN akce_prihlaseni_spec
     ON akce_seznam.id_akce = akce_prihlaseni_spec.id_akce 
 WHERE akce_seznam.typ NOT IN ($technicka, $brigadnicka)
     AND akce_prihlaseni_spec.id_stavu_prihlaseni IN ($prihlasenAleNedorazil, $pozdeZrusil)
-GROUP BY akce_seznam.typ, akce_seznam.rok
+GROUP BY typ_aktivity, akce_seznam.rok
+SQL,
+        );
+    }
+
+    /**
+     * @return array<int, array<string, int|string>>
+     */
+    private function nactiPoctyNabizenychPredmetuPodleRoku(): array
+    {
+        return dbFetchAll(<<<SQL
+SELECT shop_predmety.typ AS typ_predmetu, shop_predmety.nazev, YEAR(shop_predmety.nabizet_do) AS rok, SUM(shop_predmety.kusu_vyrobeno) AS pocet
+FROM shop_predmety
+GROUP BY shop_predmety.typ, shop_predmety.id_predmetu, shop_predmety.nazev, rok
+ORDER BY shop_predmety.typ, shop_predmety.nazev, rok
 SQL,
         );
     }
@@ -645,6 +1003,31 @@ SELECT shop_predmety.typ AS typ_predmetu, shop_predmety.nazev, shop_nakupy.rok, 
 FROM shop_predmety
 JOIN shop_nakupy
     ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+GROUP BY shop_predmety.typ, shop_predmety.id_predmetu, shop_predmety.nazev, shop_nakupy.rok
+ORDER BY shop_predmety.typ, shop_predmety.nazev, shop_nakupy.rok
+SQL,
+        );
+    }
+
+    /**
+     * @return array<int, array<string, int|string>>
+     */
+    private function nactiPoctyJidelZdarmaPodleRoku(): array
+    {
+        $typJidlo         = TypPredmetu::JIDLO;
+        $pravoJidloZdarma = Pravo::JIDLO_ZDARMA;
+
+        return dbFetchAll(<<<SQL
+SELECT shop_predmety.nazev, shop_nakupy.rok, COUNT(DISTINCT shop_nakupy.id_nakupu) AS pocet
+FROM shop_predmety
+JOIN shop_nakupy
+    ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+JOIN uzivatele_role
+    ON shop_nakupy.id_uzivatele = uzivatele_role.id_uzivatele
+JOIN prava_role
+    ON uzivatele_role.id_role = prava_role.id_role
+WHERE shop_predmety.typ = {$typJidlo}
+    AND prava_role.id_prava = {$pravoJidloZdarma}
 GROUP BY shop_predmety.typ, shop_predmety.id_predmetu, shop_predmety.nazev, shop_nakupy.rok
 ORDER BY shop_predmety.typ, shop_predmety.nazev, shop_nakupy.rok
 SQL,
@@ -669,26 +1052,41 @@ SQL,
         );
     }
 
+    /**
+     * @return array<int, int>
+     */
     private function pocetNeorgTricekPodleRoku(): array
     {
         return $this->sestavPocetDleRoku($this->nactiPocetNeorgTricekPodleRoku());
     }
 
+    /**
+     * @return array<int, int>
+     */
     private function pocetModrychTricekPodleRoku(): array
     {
         return $this->sestavPocetDleRoku($this->nactiPocetModrychTricekPodleRoku());
     }
 
+    /**
+     * @return array<int, int>
+     */
     private function pocetCervenychTricekPodleRoku(): array
     {
         return $this->sestavPocetDleRoku($this->nactiPocetCervenychTricekPodleRoku());
     }
 
+    /**
+     * @return array<int, int>
+     */
     private function pocetModrychTilekPodleRoku(): array
     {
         return $this->sestavPocetDleRoku($this->nactiPocetModrychTilekPodleRoku());
     }
 
+    /**
+     * @return array<int, int>
+     */
     private function pocetCervenychTilekPodleRoku(): array
     {
         return $this->sestavPocetDleRoku($this->nactiPocetCervenychTilekPodleRoku());

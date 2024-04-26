@@ -22,12 +22,12 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     public const JAKYKOLI_ROCNIK = -1;
 
     public static function vytvorZGlobals(
-        int                     $rocnik = ROCNIK,
+        int $rocnik = ROCNIK,
         DateTimeImmutableStrict $ted = new DateTimeImmutableStrict(),
-        ?bool                   $jsmeNaBete = null,
-        ?bool                   $jsmeNaLocale = null,
-        ?bool                   $databazoveNastaveni = null,
-        ?string                 $projectRootDir = null,
+        ?bool $jsmeNaBete = null,
+        ?bool $jsmeNaLocale = null,
+        ?bool $databazoveNastaveni = null,
+        ?string $projectRootDir = null,
     ): self
     {
 
@@ -43,17 +43,41 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         );
     }
 
+    private static function zakrouhliNaCele(float $cislo): int
+    {
+        return (int) round($cislo, 0);
+    }
+
+    private ?array $vsechnyZaznamyNastaveni = null;
+    private ?array $odvozeneHodnoty = null;
+    private ?array $vychoziHodnoty = null;
+    private $bonusyZaVedeniAktivity = [];
+
+    public function __construct(
+        private readonly int $rocnik,
+        private readonly DateTimeImmutableStrict $ted,
+        private readonly bool $jsmeNaBete,
+        private readonly bool $jsmeNaLocale,
+        private readonly DatabazoveNastaveni $databazoveNastaveni,
+        private readonly string $rootAdresarProjektu,
+    )
+    {
+        if ($jsmeNaLocale && $jsmeNaBete) {
+            throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
+        }
+    }
+
     /**
      * @return array<int, int>
      */
     public function bonusyZaVedeniAktivity(
-        ?int   $bonusZaStandardni3hAz5hAktivitu = null,
+        int|float|null $bonusZaStandardni3hAz5hAktivitu = null,
     ): array
     {
-        static $bonusyZaVedeniAktivity = [];
-
         $bonusZaStandardni3hAz5hAktivitu ??= $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
-        if (($bonusyZaVedeniAktivity[$bonusZaStandardni3hAz5hAktivitu] ?? null) === null) {
+        // protože float 0.33333 by byl konvertovaný na integer a to necheme
+        $bonusJakoKlic = (string)$bonusZaStandardni3hAz5hAktivitu;
+        if (($this->bonusyZaVedeniAktivity[$bonusJakoKlic] ?? null) === null) {
             $casAKlic = [
                 1  => 'BONUS_ZA_1H_AKTIVITU',
                 2  => 'BONUS_ZA_2H_AKTIVITU',
@@ -65,10 +89,11 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             ];
             foreach ($casAKlic as $hodin => $klic) {
                 // ve formátu max. délka => sleva
-                $bonusyZaVedeniAktivity[$bonusZaStandardni3hAz5hAktivitu][$hodin] = $this->spocitejBonusZaVedeniAktivity($klic, $bonusZaStandardni3hAz5hAktivitu);
+                $this->bonusyZaVedeniAktivity[$bonusJakoKlic][$hodin] = $this->spocitejBonusZaVedeniAktivity($klic, $bonusZaStandardni3hAz5hAktivitu);
             }
         }
-        return $bonusyZaVedeniAktivity[$bonusZaStandardni3hAz5hAktivitu];
+
+        return $this->bonusyZaVedeniAktivity[$bonusJakoKlic];
     }
 
     /**
@@ -78,43 +103,21 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
      */
     public function spocitejBonusZaVedeniAktivity(
         string $klic,
-        ?int   $bonusZaStandardni3hAz5hAktivitu = null,
+        int|float|null $bonusZaStandardni3hAz5hAktivitu = null,
     ): int
     {
         $bonusZaStandardni3hAz5hAktivitu ??= $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
+
         return match ($klic) {
-            'BONUS_ZA_1H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4),
-            'BONUS_ZA_2H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2),
-            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => $bonusZaStandardni3hAz5hAktivitu,
-            'BONUS_ZA_6H_AZ_7H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5),
-            'BONUS_ZA_8H_AZ_9H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2),
-            'BONUS_ZA_10H_AZ_11H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5),
-            'BONUS_ZA_12H_AZ_13H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3),
+            'BONUS_ZA_1H_AKTIVITU' => self::zakrouhliNaCele($bonusZaStandardni3hAz5hAktivitu / 4),
+            'BONUS_ZA_2H_AKTIVITU' => self::zakrouhliNaCele($bonusZaStandardni3hAz5hAktivitu / 2),
+            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => self::zakrouhliNaCele($bonusZaStandardni3hAz5hAktivitu),
+            'BONUS_ZA_6H_AZ_7H_AKTIVITU' => self::zakrouhliNaCele($bonusZaStandardni3hAz5hAktivitu * 1.5),
+            'BONUS_ZA_8H_AZ_9H_AKTIVITU' => self::zakrouhliNaCele($bonusZaStandardni3hAz5hAktivitu * 2),
+            'BONUS_ZA_10H_AZ_11H_AKTIVITU' => self::zakrouhliNaCele($bonusZaStandardni3hAz5hAktivitu * 2.5),
+            'BONUS_ZA_12H_AZ_13H_AKTIVITU' => self::zakrouhliNaCele($bonusZaStandardni3hAz5hAktivitu * 3),
             default => throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'"),
         };
-    }
-
-    private static function zakrouhli(float $cislo): int
-    {
-        return (int)round($cislo, 0);
-    }
-
-    private ?array $vsechnyZaznamyNastaveni = null;
-    private ?array $odvozeneHodnoty         = null;
-    private ?array $vychoziHodnoty          = null;
-
-    public function __construct(
-        private readonly int                     $rocnik,
-        private readonly DateTimeImmutableStrict $ted,
-        private readonly bool                    $jsmeNaBete,
-        private readonly bool                    $jsmeNaLocale,
-        private readonly DatabazoveNastaveni     $databazoveNastaveni,
-        private readonly string                  $rootAdresarProjektu,
-    )
-    {
-        if ($jsmeNaLocale && $jsmeNaBete) {
-            throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
-        }
     }
 
     public function zaznamyDoKonstant()
@@ -153,7 +156,7 @@ SQL,
             $hodnota        = $this->zkonvertujHodnotuNaTyp($hodnota, $zaznam[SystemoveNastaveniStruktura::DATOVY_TYP]);
             if (!defined($nazevKonstanty)) {
                 define($nazevKonstanty, $hodnota);
-            } else if (constant($nazevKonstanty) !== $hodnota && $this->jsmeNaOstre()) {
+            } elseif (constant($nazevKonstanty) !== $hodnota && $this->jsmeNaOstre()) {
                 throw new ChybnaHodnotaSystemovehoNastaveni(
                     sprintf(
                         "Konstanta '%s' už je definována, ale s jinou hodnotou '%s' než očekávanou '%s'",
@@ -205,20 +208,21 @@ SQL,
                     : self::pristiVlnaKdy()?->formatDb(),
             ];
         }
+
         return $this->odvozeneHodnoty;
     }
 
     public function zkonvertujHodnotuNaTyp($hodnota, string $datovyTyp): bool|int|float|string
     {
         return match (strtolower(trim($datovyTyp))) {
-            'boolean', 'bool' => (bool)$hodnota,
-            'integer', 'int' => (int)$hodnota,
-            'number', 'float' => (float)$hodnota,
+            'boolean', 'bool' => (bool) $hodnota,
+            'integer', 'int' => (int) $hodnota,
+            'number', 'float' => (float) $hodnota,
             // když to změníš, rozbiješ JS systemove-nastaveni.js
             'date' => $this->vytvorDateTime($hodnota)->formatDatumDb(),
             // když to změníš, rozbiješ JS systemove-nastaveni.js
             'datetime' => $this->vytvorDateTime($hodnota)->formatDb(),
-            default => (string)$hodnota,
+            default => (string) $hodnota,
         };
     }
 
@@ -250,6 +254,7 @@ SQL,
         if ($zmenenoZaznamu > 0) {
             $this->aktualizujZaznamVLokalniCache($hodnotaProDb, $klic, $editujici->id());
         }
+
         return $zmenenoZaznamu;
     }
 
@@ -268,7 +273,7 @@ SQL,
         $zkonvertovanaHodnota = $this->zkonvertujHodnotuNaTyp($novaHodnota, $puvodniZaznam[Sql::DATOVY_TYP]);
 
         $this->vsechnyZaznamyNastaveni[$klic][Sql::HODNOTA]   = $zkonvertovanaHodnota;
-        $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
+        $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string) $idEditujicihoUzivatele;
     }
 
     private function aktualizujPriznakVlastniVLokalniCache(bool $vlastni, string $klic, int $idEditujicihoUzivatele)
@@ -277,15 +282,15 @@ SQL,
             return;
         }
 
-        $this->vsechnyZaznamyNastaveni[$klic][Sql::VLASTNI]   = (string)(int)$vlastni;
-        $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
+        $this->vsechnyZaznamyNastaveni[$klic][Sql::VLASTNI]   = (string) (int) $vlastni;
+        $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string) $idEditujicihoUzivatele;
     }
 
     private function hlidejZakazaneZmeny(string $klic, $hodnota)
     {
         if ($klic === Klic::ROCNIK) {
             throw new ChybnaHodnotaSystemovehoNastaveni('Ročník nelze měnit jinak než konstantou ROCNIK přes PHP');
-        } else if ($klic === Klic::REG_GC_DO && $hodnota) {
+        } elseif ($klic === Klic::REG_GC_DO && $hodnota) {
             try {
                 $regGcDo = $this->vytvorDateTimeZCeskehoFormatu($hodnota);
             } catch (InvalidDateTimeFormat) {
@@ -322,6 +327,7 @@ SQL,
         if ($zmenenoZaznamu > 0) {
             $this->aktualizujPriznakVlastniVLokalniCache($vlastni, $klic, $editujici->id());
         }
+
         return $zmenenoZaznamu;
     }
 
@@ -335,7 +341,7 @@ SQL,
                 'datetime' => $hodnota
                     ? $this->vytvorDateTimeZCeskehoFormatu($this->sanitizujDatumZHtml($hodnota))->formatDb()
                     : $hodnota,
-                'bool', 'boolean' => (int)filter_var($hodnota, FILTER_VALIDATE_BOOLEAN),
+                'bool', 'boolean' => (int) filter_var($hodnota, FILTER_VALIDATE_BOOLEAN),
                 default => $hodnota,
             };
         } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
@@ -375,6 +381,7 @@ FROM systemove_nastaveni
 SQL,
             );
         }
+
         return $datoveTypy[$klic] ?? null;
     }
 
@@ -386,6 +393,7 @@ SQL,
         if ($this->vsechnyZaznamyNastaveni === null) {
             $this->vsechnyZaznamyNastaveni = $this->nactiZaznamyNastaveni();
         }
+
         return $this->vsechnyZaznamyNastaveni;
     }
 
@@ -395,7 +403,7 @@ SQL,
             if ($zaznam['klic'] !== 'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU') {
                 continue;
             }
-            $bonusZaStandardni3hAz5hAktivitu = (int)$zaznam['hodnota'];
+            $bonusZaStandardni3hAz5hAktivitu = (int) $zaznam['hodnota'];
             $popis                           = &$zaznam['popis'];
             $popis                           .= '<hr><i>vypočtené bonusy</i>:<br>'
                 . 'BONUS_ZA_1H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
@@ -406,6 +414,7 @@ SQL,
                 . 'BONUS_ZA_10H_AZ_11H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . 'BONUS_ZA_12H_AZ_13H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>';
         }
+
         return $zaznamy;
     }
 
@@ -449,6 +458,7 @@ SQL;
         if (!$klice) {
             return [];
         }
+
         return array_intersect_key(
             $this->dejVsechnyZaznamyNastaveni($prenacti),
             array_fill_keys($klice, ''),
@@ -484,6 +494,7 @@ SQL;
                         ? htmlspecialchars($zaznam['vychozi_hodnota'], ENT_QUOTES | ENT_HTML5)
                         : '<i>' . htmlspecialchars('>>>není<<<', ENT_QUOTES | ENT_HTML5) . '</i>'
                     );
+
                 return $zaznam;
             },
             $zaznamy,
@@ -510,6 +521,7 @@ SQL;
                 // POZOR, nejdříve si musíme potvrdit, že hodnota pochází z nastavení, teprve potom můžeme použít hodnotu z konstanty - jinak bychom taky mohli prozradit heslo do databáze a podobně
                 return constant($klic);
             }
+
             return $hodnota;
         }
 
@@ -534,6 +546,7 @@ SQL;
         if (!array_key_exists($klic, $vsechnyZaznamy)) {
             return null;
         }
+
         return $this->zkonvertujHodnotuNaTyp(
             $vsechnyZaznamy[$klic][Sql::HODNOTA],
             $vsechnyZaznamy[$klic][Sql::DATOVY_TYP],
@@ -553,7 +566,8 @@ SQL;
         if ($this->vychoziHodnoty === null) {
             $tretiHromadneOdhlasovaniKdy = DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
                 ->modify('-1 day') // například 17. 7. 2023 00:00 -> 16. 7. 2023 myšleno včetně
-                ->formatDatumDb();
+                ->formatDatumDb()
+            ;
             $konecGameconuKdy            = DateTimeGamecon::spocitejKonecGameconu($this->rocnik())->formatDb();
 
             $this->vychoziHodnoty = [
@@ -585,13 +599,14 @@ SQL;
                     ->formatDb(),
             ];
         }
+
         return $this->vychoziHodnoty;
     }
 
     public function spocitejHodnotu(string $klic): string
     {
         return match ($klic) {
-            Klic::PRUMERNE_LONSKE_VSTUPNE => (string)Finance::prumerneVstupneRoku($this->rocnik() - 1),
+            Klic::PRUMERNE_LONSKE_VSTUPNE => (string) Finance::prumerneVstupneRoku($this->rocnik() - 1),
             default => $this->dejVychoziHodnotu($klic),
         };
     }
@@ -638,28 +653,29 @@ SQL;
 
     public function aktivitaEditovatelnaXMinutPredJejimZacatkem(): int
     {
-        return (int)AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM;
+        return (int) AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM;
     }
 
     public function ucastnikyLzePridatXMinutPoUzavreniAktivity(): int
     {
-        return (int)UCASTNIKY_LZE_PRIDAVAT_X_MINUT_PO_KONCI_AKTIVITY;
+        return (int) UCASTNIKY_LZE_PRIDAVAT_X_MINUT_PO_KONCI_AKTIVITY;
     }
 
     public function ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity(): int
     {
-        return (int)UCASTNIKY_LZE_PRIDAVAT_X_DNI_PO_GC_U_NEUZAVRENE_PREZENCE;
+        return (int) UCASTNIKY_LZE_PRIDAVAT_X_DNI_PO_GC_U_NEUZAVRENE_PREZENCE;
     }
 
     public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int
     {
-        return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
+        return (int) PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
     }
 
     public function prodejUbytovaniDo(): DateTimeImmutableStrict
     {
         return (new DateTimeImmutableStrict(UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE))
-            ->setTime(23, 59, 59);
+            ->setTime(23, 59, 59)
+        ;
     }
 
     public function prodejUbytovaniUkoncen(): bool
@@ -670,7 +686,8 @@ SQL;
     public function prodejJidlaDo(): DateTimeImmutableStrict
     {
         return (new DateTimeImmutableStrict(JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE))
-            ->setTime(23, 59, 59);
+            ->setTime(23, 59, 59)
+        ;
     }
 
     public function prodejJidlaUkoncen(): bool
@@ -681,7 +698,8 @@ SQL;
     public function prodejTricekDo(): DateTimeImmutableStrict
     {
         return (new DateTimeImmutableStrict(TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE))
-            ->setTime(23, 59, 59);
+            ->setTime(23, 59, 59)
+        ;
     }
 
     public function prodejTricekUkoncen(): bool
@@ -692,7 +710,8 @@ SQL;
     public function prodejPredmetuBezTricekDo(): DateTimeImmutableStrict
     {
         return (new DateTimeImmutableStrict(PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE))
-            ->setTime(23, 59, 59);
+            ->setTime(23, 59, 59)
+        ;
     }
 
     public function prodejPredmetuBezTricekUkoncen(): bool
@@ -740,6 +759,7 @@ SQL;
     public function pristiVlnaKdy(): ?DateTimeGamecon
     {
         $nejblizsiVlnaKdy = $this->nejblizsiVlnaKdy($this->ted());
+
         return $nejblizsiVlnaKdy >= $this->ted()
             ? $nejblizsiVlnaKdy
             : null;
@@ -854,12 +874,12 @@ SQL;
 
     public function modreTrickoZdarmaOd(): float
     {
-        return (float)$this->dejHodnotu(Klic::MODRE_TRICKO_ZDARMA_OD);
+        return (float) $this->dejHodnotu(Klic::MODRE_TRICKO_ZDARMA_OD);
     }
 
     public function prumerneLonskeVstupne(): float
     {
-        return (float)$this->dejHodnotu(Klic::PRUMERNE_LONSKE_VSTUPNE);
+        return (float) $this->dejHodnotu(Klic::PRUMERNE_LONSKE_VSTUPNE);
     }
 
     public function rootAdresarProjektu(): string
@@ -889,12 +909,13 @@ SQL;
             }
             $nastaveniOstre[$klic] = $matches['hodnota'] ?? null;
         }
+
         return $nastaveniOstre;
     }
 
     public function poslatMailZeBylOdhlasenAMelUbytovani(): bool
     {
-        return (bool)(defined('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI')
+        return (bool) (defined('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI')
             ? POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI
             : $this->dejHodnotu(Klic::POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI));
     }
@@ -903,7 +924,7 @@ SQL;
     {
         $dbPort = try_constant('DB_PORT') ?: null;
         if ($dbPort !== null) {
-            $dbPort = (int)$dbPort;
+            $dbPort = (int) $dbPort;
         }
 
         return [
@@ -933,24 +954,25 @@ SQL;
         if ($this->jsmeNaLocale()) {
             return 'άλφα';
         }
+
         return 'δ'; // gamu přeskočíme, je nevýrazná
     }
 
     public function kolikMinutJeOdhlaseniBezPokuty(): int
     {
         return defined('KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY')
-            ? (int)KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY
-            : (int)$this->dejHodnotu(Klic::KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY);
+            ? (int) KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY
+            : (int) $this->dejHodnotu(Klic::KOLIK_MINUT_JE_ODHLASENI_AKTIVITY_BEZ_POKUTY);
     }
 
     public function kontrolovatPokutuZaOdhlaseni(): bool
     {
-        return (bool)ODHLASENI_POKUTA_KONTROLA;
+        return (bool) ODHLASENI_POKUTA_KONTROLA;
     }
 
     public function kolikHodinPredAktivitouUzJePokutaZaOdhlaseni(): int
     {
-        return (int)ODHLASENI_POKUTA1_H;
+        return (int) ODHLASENI_POKUTA1_H;
     }
 
     public function jeOmezeniUbytovaniPouzeNaSpacaky(): bool
