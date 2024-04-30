@@ -1,11 +1,11 @@
 ---
-name: Deploy OSTRA (master) on direct push or merged pull request
+name: Deploy OSTRA (main) on direct push or merged pull request
 
 # yamllint disable-line rule:truthy
 on:
   push:
     branches:
-      - 'master'
+      - 'main'
   workflow_dispatch:
 
 jobs:

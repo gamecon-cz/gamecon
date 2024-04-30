@@ -895,7 +895,7 @@ SQL
             $aktivita = self::zId($data[Sql::ID_AKCE]);
         } else if (!empty($data['patri_pod'])) {
             // editace aktivity z rodiny instancí
-            $doHlavni   = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
+            $doHlavni   = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (main) `instance
             $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
             $aktivita   = self::zId($data[Sql::ID_AKCE]); // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {

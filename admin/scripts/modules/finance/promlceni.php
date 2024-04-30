@@ -97,7 +97,8 @@ SELECT
     kladny_pohyb.cas_posledni_platby AS kladny_pohyb
 FROM uzivatele_hodnoty u
 LEFT JOIN (
-    SELECT id_uzivatele, GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC) AS roky,
+    SELECT id_uzivatele,
+           GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC SEPARATOR ';' /*aby si Excel nevykládal 2012,2017 jako desettiné číslo*/) AS roky,
     COUNT(*) AS pocet
     FROM platne_role_uzivatelu
     JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role

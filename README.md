@@ -42,8 +42,8 @@ Další [vychytávky pro Docker](./navody/docker.md)
   - V žádosti nastavím někoho jako reviewer, nebo požádám někoho přes Trello v související kartě
   - Počkám na kontrolu a případné připomínky (připomínek se neboj, už jenom to že každá skupina má jiné zvyky může přinést žádost o úpravu dle Gamecon nářečí)
   - Pokud se objeví v review připomínky, přidám je do kódu jako nové commity a pushnu je do stejné větvě, viz výše
-  - Změny se nasadí automaticky v okamžiku zmergování pull requestu do `master` větve, viz [Github Actions](https://github.com/gamecon-cz/gamecon/actions/workflows/deploy-ostra.yml)
-- Jakmile je vše vyřešeno a schváleno, vrátím se do větve master pomocí `git checkout master` a pomocí `git pull` si v ní stáhnu nejnovější změny.
+  - Změny se nasadí automaticky v okamžiku zmergování pull requestu do `main` větve, viz [Github Actions](https://github.com/gamecon-cz/gamecon/actions/workflows/deploy-ostra.yml)
+- Jakmile je vše vyřešeno a schváleno, vrátím se do větve main pomocí `git checkout main` a pomocí `git pull` si v ní stáhnu nejnovější změny.
 
 ## Návod k externím zálohám databáze
 
