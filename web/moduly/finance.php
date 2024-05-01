@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Stat;
 
 $this->blackarrowStyl(true);
 
@@ -9,6 +10,7 @@ $this->blackarrowStyl(true);
 
 if (!$u) { //jen přihlášení
     echo hlaska('jenPrihlaseni');
+
     return;
 }
 if (!FINANCE_VIDITELNE) {
@@ -22,6 +24,7 @@ if (!FINANCE_VIDITELNE) {
     <p><a href="{$urlWebu}">Zpět na <i>Úvodní stránku</i></a></p>
 </div>
 HTML;
+
     return; // přehled vidí jen přihlášení na GC (a jen po začátku letošních registrací)
 }
 
@@ -92,7 +95,7 @@ if (!$zaplaceno) {
     <div style="clear:both"></div>
 
     <?php if (!$zaplaceno) { ?>
-        <?php if ($u->stat() == \Gamecon\Stat::CZ) { ?>
+        <?php if ($u->stat() == Stat::CZ) { ?>
             <h2 id="placeni">Platba</h2>
             <div>
                 <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
@@ -104,13 +107,13 @@ if (!$zaplaceno) {
             <div>
                 <strong>IBAN:</strong> <?= IBAN ?><br>
                 <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(vč. lomítek)</i><br>
+                <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(včetně lomítek)</i><br>
                 <strong>Částka k zaplacení:</strong> <?= $castka ?>
             </div>
         <?php } ?>
 
         <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)) { ?>
-            <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
+            <?php if ($u->stat() === Stat::CZ) { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
                     <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
             <?php } else { ?>
@@ -125,7 +128,8 @@ if (!$zaplaceno) {
                                 odhlásí</strong>.
                         </li>
                         <li class="poznamka">
-                            Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
+                            Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi
+                            vrátíme.
                         </li>
                     </ul>
                 <?php } ?>
@@ -136,12 +140,13 @@ if (!$zaplaceno) {
                             odhlásí</strong>.
                     </li>
                     <li class="poznamka">
-                        Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
+                        Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi
+                        vrátíme.
                     </li>
                 </ul>
             <?php } ?>
         <?php } else { ?>
-            <?php if ($u->stat() == \Gamecon\Stat::CZ) { ?>
+            <?php if ($u->stat() == Stat::CZ) { ?>
                 <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castka ?></strong>, variabilní
                     symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
             <?php } else { ?>
@@ -156,7 +161,7 @@ if (!$zaplaceno) {
         <?php } ?>
     <?php } else { ?>
     <div>
-        <?php if ($u->stat() == \Gamecon\Stat::CZ) { ?>
+        <?php if ($u->stat() == Stat::CZ) { ?>
             <h2 id="placeni">Platba</h2>
             <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
                 platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
@@ -173,12 +178,16 @@ if (!$zaplaceno) {
             <div>
                 <strong>IBAN:</strong> <?= IBAN ?><br>
                 <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(vč. lomítek)</i><br>
+                <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(včetně lomítek)</i><br>
+            </div>
+        <?php }
+        }
+        $qrKodProPlatbu = $u->finance()->dejQrKodProPlatbu();
+        if ($qrKodProPlatbu !== null) {
+            ?>
+            <div style="text-align: center">
+                <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
             </div>
         <?php } ?>
-        <?php } ?>
-        <div style="text-align: center">
-            <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
-        </div>
-
     </div>
+</div>

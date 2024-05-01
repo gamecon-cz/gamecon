@@ -57,13 +57,14 @@ if (po(GC_BEZI_DO)) {
         $t->parse('prihlaskaPoGc.neucastnilSe');
     }
     $t->parse('prihlaskaPoGc');
+
     return;
 }
 
 if (VYZADOVANO_COVID_POTVRZENI && $u && ($systemoveNastaveni->gcBezi() || $u->gcPritomen())) {
     $t->assign('covidSekce', $covidSekceFunkce(new Shop($u, $u, $systemoveNastaveni)));
     $t->parse('prihlaskaUzavrena.covidSekce.doklad');
-    $letosniRok = (int)date('Y');
+    $letosniRok = (int) date('Y');
     if (!$u->maNahranyDokladProtiCoviduProRok($letosniRok) && !$u->maOverenePotvrzeniProtiCoviduProRok($letosniRok)) {
         $t->parse('prihlaskaUzavrena.covidSekce.submit');
     }
@@ -73,6 +74,7 @@ if (VYZADOVANO_COVID_POTVRZENI && $u && ($systemoveNastaveni->gcBezi() || $u->gc
 if (!$u?->gcPrihlasen() && po($systemoveNastaveni->prihlasovaniUcastnikuDo())) {
     $t->assign('konec', $systemoveNastaveni->prihlasovaniUcastnikuDo()->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD));
     $t->parse('prihlaskaPo');
+
     return;
 }
 
@@ -80,11 +82,13 @@ if ($systemoveNastaveni->gcBezi()) {
     if ($u?->gcPritomen()) {
         $t->parse('prihlaskaUzavrena.proselInfopultem');
         $t->parse('prihlaskaUzavrena');
+
         return;
     }
     if ($u?->gcPrihlasen()) {
         $t->parse('prihlaskaUzavrena.neproselInfopultem');
         $t->parse('prihlaskaUzavrena');
+
         return;
     }
 }
@@ -98,6 +102,7 @@ if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
         ? '(upřesníme)' // ještě jsme nepřeklopili ročník
         : $systemoveNastaveni->prihlasovaniUcastnikuOd()->formatCasZacatekUdalosti());
     $t->parse('prihlaskaPred');
+
     return;
 }
 
@@ -153,7 +158,7 @@ if ($u->jeOrganizator()) {
 $t->assign('ka', $u->koncovkaDlePohlavi() ? 'ka' : '');
 if ($u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
     $t->parse('prihlaska.ubytovaniInfoOrg');
-} else if ($u->maPravo(Pravo::PORADANI_AKTIVIT) && !$u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)) {
+} elseif ($u->maPravo(Pravo::PORADANI_AKTIVIT) && !$u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)) {
     $t->parse('prihlaska.ubytovaniInfoVypravec');
 }
 
@@ -201,8 +206,6 @@ foreach ($nahledy as $nahled) {
     $t->parse('prihlaska.nahled');
 }
 
-$qrObrazekProPlatbu = $u->finance()->dejQrKodProPlatbu();
-
 $t->assign([
     'a'                               => $u->koncovkaDlePohlavi(),
     'jidlo'                           => $shop->jidloHtml(),
@@ -214,8 +217,6 @@ $t->assign([
     'ubytovani'                       => $shop->ubytovaniHtml(),
     'ubytovaniObjednatelneDo'         => $shop->ubytovaniObjednatelneDoHtml(),
     'covidSekce'                      => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',
-    'qrPlatbaMimeType'                => $qrObrazekProPlatbu->getMimeType(),
-    'qrPlatbaBase64'                  => base64_encode($qrObrazekProPlatbu->getString()),
     'ulozitNeboPrihlasit'             => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',
