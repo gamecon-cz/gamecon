@@ -70,7 +70,7 @@ class VyjimkovacChyba
             'vznikla' => time(),
             'url'     => PHP_SAPI === 'cli'
                 ? ''
-                : 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+                : 'http://' . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? ''),
             'zdroj'   => $_SERVER['HTTP_REFERER'] ?? null,
         ];
 
