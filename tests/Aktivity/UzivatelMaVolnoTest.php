@@ -9,14 +9,16 @@ class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
 {
     use ProbihaRegistraceAktivitTrait;
 
-    protected static string $initData = '
-    # akce_seznam
-    id_akce, stav, typ, rok,     zacatek,          konec
-    1,       2,    1,   ' . ROCNIK . ', 2000-01-01 16:00, 2000-01-01 18:00
-    2,       2,    1,   ' . ROCNIK . ', 2000-01-01 10:00, 2000-01-01 12:00
-';
+    protected static bool $disableStrictTransTables = true;
 
-    private static $uzivatel;
+    protected static array $initQueries = [
+        "INSERT INTO akce_seznam(id_akce, stav, typ, rok, zacatek, konec, nazev_akce)
+        VALUES
+        (1, 2, 1, " . ROCNIK . ", '2000-01-01 16:00', '2000-01-01 18:00', 'Aktivita 1'),
+        (2, 2, 1, " . ROCNIK . ", '2000-01-01 10:00', '2000-01-01 12:00', 'Aktivita 2')",
+    ];
+
+    private static ?\Uzivatel $uzivatel = null;
 
     static function setUpBeforeClass(): void
     {

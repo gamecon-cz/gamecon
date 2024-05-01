@@ -2,6 +2,7 @@
 
 namespace Gamecon\Tests\Aktivity;
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Aktivita\Aktivita;
 use Uzivatel;
@@ -10,13 +11,15 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 {
     use ProbihaRegistraceAktivitTrait;
 
+    private ?SystemoveNastaveni $systemoveNastaveni = null;
+
     private ?Aktivita $ctvrtfinale = null;
     private ?Aktivita $semifinaleA = null;
     private ?Aktivita $semifinaleB = null;
-    private ?Aktivita $finale      = null;
-    private ?Uzivatel $tymlidr     = null;
-    private ?Uzivatel $clen1       = null;
-    private ?Uzivatel $clen2       = null;
+    private ?Aktivita $finale = null;
+    private ?Uzivatel $tymlidr = null;
+    private ?Uzivatel $clen1 = null;
+    private ?Uzivatel $clen2 = null;
 
     protected static bool $disableStrictTransTables = true;
 

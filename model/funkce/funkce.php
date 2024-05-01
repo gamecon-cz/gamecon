@@ -249,7 +249,7 @@ function omezCsrf()
         return;
     }
 
-    if (in_array($_SERVER['REQUEST_URI'], ['/web/wp/xmlrpc.php', '/web/wordpress/xmlrpc.php'])) {
+    if (in_array($_SERVER['REQUEST_URI'] ?? null, ['/web/wp/xmlrpc.php', '/web/wordpress/xmlrpc.php'])) {
         /** Když vy takhle, tak my takhle web/moduly/wordpress/xmlrpc.php */
         return;
     }
