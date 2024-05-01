@@ -17,6 +17,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
 use Cenik;
+use Gamecon\Finance\QrPlatba;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -982,23 +983,20 @@ SQL,
         return $this->kategorieNeplatice;
     }
 
-    public function dejQrKodProPlatbu(): ResultInterface
+    public function dejQrKodProPlatbu(): ?ResultInterface
     {
         $castkaCzk = $this->stav() >= 0
             ? 0.1 // nulová, respektive dobrovolná platba
             : -$this->stav();
 
         $qrPlatba = $this->u->stat() === \Gamecon\Stat::CZ
-            ? \Gamecon\Finance\QrPlatba::dejQrProTuzemskouPlatbu(
+            ? QrPlatba::dejQrProTuzemskouPlatbu(
                 $castkaCzk,
                 $this->u->id(),
             )
-            : \Gamecon\Finance\QrPlatba::dejQrProSepaPlatbu(
-                $castkaCzk, // SEPA platba je vždy v Eur se splatností do druhého dne
-                $this->u->id(),
-            );
+            : null; // SEPA platbu přes QR kód neumí zřejmě žádná slovenská banka, takže pro mimočeské nezobrazíme nic
 
-        return $qrPlatba->dejQrObrazek();
+        return $qrPlatba?->dejQrObrazek();
     }
 
     public function sumaStorna(): float
