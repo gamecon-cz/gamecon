@@ -1,20 +1,25 @@
 import { FunctionComponent } from "preact";
+import { useEffect, useState } from "preact/hooks";
 import Select from "react-select";
 import { GAMECON_KONSTANTY, ROKY } from "../../../../env";
 import {
   useTagySPočtemAktivit,
-  useUrlState,
-  useUrlStateMožnosti,
+  useUrlStav,
+  useUrlStavMožnosti,
 } from "../../../../store/program/selektory";
 import {
   nastavFiltrLinií,
   nastavFiltrPřihlašovatelné,
   nastavFiltrRočník,
   nastavFiltrTagů,
+  nastavFiltrTextu,
 } from "../../../../store/program/slices/urlSlice";
 
 import "./ReactSelect.less";
 import "./Filtry.less";
+import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
+import { useProgramStore } from "../../../../store/program";
+import React, { ReactNode, useCallback } from "react";
 
 type TFiltryProps = {
   otevřeno: boolean;
@@ -35,10 +40,7 @@ const asValueLabel = <T,>(obj: T): TValueLabel<T> => ({
   label: obj,
 });
 
-// TODO: zaobalit a vytáhnout Select do globálních komponent (vedle Overlay)
-
-// TODO: return type
-const formatOptionLabel = (data: TValueLabel) =>
+const formatOptionLabel = (data: TValueLabel): ReactNode =>
   (
     <div class="react_select_option--container">
       <span>{data.label}</span>
@@ -50,18 +52,30 @@ const formatOptionLabel = (data: TValueLabel) =>
     </div>
   ) as any;
 
-// TODO: můj program je nefiltrovaný - zašednout všechny controly ve filtry a lehce i tlačítko filtry
-// TODO: seřadí linie, tagy (přesune nahoru seznamu) podle den -> rok -> zbytek (možná i podle výskytů)
-// TODO: tlačítko křížek vedle tlačítka filtry které všechny smaže
-// TODO: mobilní zobrazení
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
-  const urlState = useUrlState();
+  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrTagy, filtrText } = useUrlStav();
 
-  const urlStateMožnosti = useUrlStateMožnosti();
+  const urlStavMožnosti = useUrlStavMožnosti();
 
   const tagySPočtemAktivit = useTagySPočtemAktivit();
+
+  const { zvětšeno, kompaktní } = useProgramStore(s => s.všeobecné);
+  const [odkazZkopírován, setOdkazZkopírován] = useState(0);
+
+  useEffect(() => {
+    if (!odkazZkopírován) return;
+    const timeout = setTimeout(() => {
+      setOdkazZkopírován(0);
+    }, 1500);
+    return () => { clearTimeout(timeout); };
+  }, [odkazZkopírován]);
+
+  const sdílejKlik = useCallback(() => {
+    void navigator.clipboard.writeText(window.location.href);
+    setOdkazZkopírován(Date.now());
+  }, []);
 
   return (
     <>
@@ -74,7 +88,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
         <div style={{ display: "flex", gap: 16 }}>
           <div style={{ width: "120px" }}>
             <Select
-              value={asValueLabel(urlState.ročník)}
+              value={asValueLabel(ročník)}
               onChange={(e) => {
                 nastavFiltrRočník(e?.value);
               }}
@@ -84,10 +98,10 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           <div style={{ flex: "1", maxWidth: "400px" }}>
             <Select
               placeholder="Linie"
-              options={urlStateMožnosti.linie.map(asValueLabel)}
+              options={urlStavMožnosti.linie.map(asValueLabel)}
               closeMenuOnSelect={false}
               isMulti
-              value={urlState.filtrLinie?.map(asValueLabel) ?? []}
+              value={filtrLinie?.map(asValueLabel) ?? []}
               onChange={(e) => {
                 nastavFiltrLinií(e.map((x) => x.value));
               }}
@@ -102,7 +116,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
               }))}
               isMulti
               closeMenuOnSelect={false}
-              value={urlState.filtrTagy?.map(asValueLabel) ?? []}
+              value={filtrTagy?.map(asValueLabel) ?? []}
               onChange={(e) => {
                 nastavFiltrTagů(e.map((x) => x.value));
               }}
@@ -110,25 +124,42 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
             />
           </div>
           <div style={{ minWidth: "300px" }} class="formular_polozka">
-            <input style={{ marginTop: 0 }} placeholder="Hledej v textu" />
+            <input style={{ marginTop: 0, height: "38px" }} placeholder="Hledej v textu"
+              value={filtrText}
+              onChange={(e)=>{
+                nastavFiltrTextu(e.currentTarget.value);
+              }}
+            />
           </div>
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button class="program_filtry_tlacitko">zvětšit</button>
-          <button class="program_filtry_tlacitko">sdílej</button>
+          <button class={
+            "program_filtry_tlacitko program_filtry_tlacitko_zvetsit" +
+            (zvětšeno ? " aktivni" : "")
+          } onClick={přepniZvětšeno}>zvětšit</button>
+          <button class={
+            "program_filtry_tlacitko"
+            + (odkazZkopírován ? " aktivni" : "")
+          } onClick={sdílejKlik}
+          >{odkazZkopírován ? "zkopírováno" : "sdílej"}</button>
           <button
             class={
               "program_filtry_tlacitko" +
-              (urlState.filtrPřihlašovatelné ? " aktivni" : "")
+              (filtrPřihlašovatelné ? " aktivni" : "")
             }
             onClick={() => {
-              nastavFiltrPřihlašovatelné(!urlState.filtrPřihlašovatelné);
+              nastavFiltrPřihlašovatelné(!filtrPřihlašovatelné);
             }}
           >
             Přihlašovatelné
           </button>
-          <button class="program_filtry_tlacitko">Detail</button>
+          <button class={
+            "program_filtry_tlacitko"
+            + (kompaktní ? " aktivni" : "")
+          } onClick={() => {
+            přepniKompaktní();
+          }}>Kompaktní</button>
         </div>
       </div>
     </>

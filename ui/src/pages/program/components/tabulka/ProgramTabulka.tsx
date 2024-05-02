@@ -14,6 +14,10 @@ import {
   useUrlVýběr,
 } from "../../../../store/program/selektory";
 import { ProgramTabulkaBuňka } from "./ProgramTabulkaBuňka";
+import { ProgramTabulkaBuňkaKompaktní } from "./ProgramTabulkaBuňkaKompaktní";
+import { useProgramStore } from "../../../../store/program";
+import { useEffect } from "react";
+import { nastavZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 
 type ProgramTabulkaProps = {};
 
@@ -36,13 +40,17 @@ const indexŘazení = (klíč: string) => {
 export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   props
 ) => {
-  const {} = props;
+  const { } = props;
 
-  const urlStateVýběr = useUrlVýběr();
+  const urlStavVýběr = useUrlVýběr();
   const aktivityFiltrované = useAktivityFiltrované();
 
+  const kompaktní = useProgramStore(s=>s.všeobecné.kompaktní);
+
+  const BuňkaKomponenta = kompaktní ? ProgramTabulkaBuňkaKompaktní : ProgramTabulkaBuňka;
+
   const seskupPodle =
-    urlStateVýběr.typ === "můj"
+    urlStavVýběr.typ === "můj"
       ? SeskupováníAktivit.den
       : SeskupováníAktivit.linie;
 
@@ -110,7 +118,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                     return (
                       <>
                         {odsazení}
-                        <ProgramTabulkaBuňka
+                        <BuňkaKomponenta
                           aktivitaId={aktivita.id}
                           zobrazLinii={seskupPodle === SeskupováníAktivit.den}
                         />
@@ -142,13 +150,55 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
   const aktivitaNáhled = useAktivitaNáhled();
 
+  const zvětšeno = useProgramStore(s => s.všeobecné.zvětšeno);
+
   const programNáhledObalProgramuClass =
-    "programNahled_obalProgramu" +
-    (aktivitaNáhled ? " programNahled_obalProgramu-zuzeny" : "");
+    "programNahled_obalProgramu"
+    + (aktivitaNáhled ? " programNahled_obalProgramu-zuzeny" : "")
+    + (zvětšeno ? " programNahled_obalProgramu-zvetseny" : "")
+    ;
+;
+  const obalHlavníRef = useRef<HTMLDivElement>(null);
+  const posledníZvětšeno = useRef(false);
+
+  useEffect(() => {
+    if (!obalHlavníRef.current) return;
+    const nastavZvětšenoPodleDokumentu = () => {
+      nastavZvětšeno(!!document.fullscreenElement)
+    };
+    obalHlavníRef.current.addEventListener("fullscreenchange", nastavZvětšenoPodleDokumentu);
+    return () => obalHlavníRef.current?.removeEventListener("fullscreenchange", nastavZvětšenoPodleDokumentu);
+  })
+
+  useEffect(() => {
+    const element = obalHlavníRef.current;
+    if (!element) return;
+
+    if (posledníZvětšeno.current === zvětšeno) return;
+    posledníZvětšeno.current = zvětšeno
+
+    if (zvětšeno) {
+      if ((element as any)?.requestFullscreen) {
+        (element as any)?.requestFullscreen();
+      } else if ((element as any)?.webkitRequestFullscreen) { /* Safari */
+        (element as any)?.webkitRequestFullscreen();
+      } else if ((element as any)?.msRequestFullscreen) { /* IE11 */
+        (element as any)?.msRequestFullscreen();
+      }
+    } else {
+      if ((element as any)?.exitFullscreen) {
+        (element as any)?.exitFullscreen();
+      } else if ((element as any)?.webkitExitFullscreen) { /* Safari */
+        (element as any)?.webkitExitFullscreen();
+      } else if ((element as any)?.msExitFullscreen) { /* IE11 */
+        (element as any)?.msExitFullscreen();
+      }
+    }
+  }, [zvětšeno])
 
   return (
     <>
-      <div class={programNáhledObalProgramuClass}>
+      <div ref={obalHlavníRef} class={programNáhledObalProgramuClass}>
         <div class="programPosuv_obal2">
           <div class="programPosuv_obal" ref={obalRef}>
             <table class="program">

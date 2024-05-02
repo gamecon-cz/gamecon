@@ -85,7 +85,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
                     (aktivita?.slevaNasobic ?? 1)
                   : " - "
                 : "zdarma"}
-              <p style={{ opacity: 0.3, display:"inline" }}>
+              <p style={{ opacity: 0.3 }}>
                 {aktivita?.slevaNasobic !== undefined &&
                 aktivita?.slevaNasobic !== 1
                   ? `*(osobni sleva ${

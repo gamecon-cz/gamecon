@@ -3,6 +3,8 @@ import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { volnoTypZObsazenost } from "../../../utils";
 import { Aktivita } from "../slices/programDataSlice";
+// Pozor musí být defaultní import!
+import FlexSearch from "flexsearch";
 
 export type FiltrProgramTabulkaVýběr =
   | {
@@ -14,12 +16,13 @@ export type FiltrProgramTabulkaVýběr =
     };
 
 export type FiltrAktivit = Partial<{
-  ročník: number;
-  výběr: FiltrProgramTabulkaVýběr;
-  filtrPřihlašovatelné: boolean;
-  filtrLinie: string[];
-  filtrTagy: string[];
-  filtrStavAktivit: AktivitaStav[];
+  ročník: number,
+  výběr: FiltrProgramTabulkaVýběr,
+  filtrPřihlašovatelné: boolean,
+  filtrLinie: string[],
+  filtrTagy: string[],
+  filtrStavAktivit: AktivitaStav[],
+  filtrText: string,
 }>;
 
 export const aktivitaStatusZAktivity = (
@@ -67,15 +70,9 @@ const jeAktivitaVeDni = (casAktivity: Date, datum: Date) => {
   }
 };
 
-// TODO: přidat zbytek filtrů
 export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
   const {
-    filtrLinie,
-    filtrPřihlašovatelné,
-    filtrTagy,
-    ročník,
-    výběr,
-    filtrStavAktivit,
+    filtrLinie, filtrPřihlašovatelné, filtrTagy, ročník, výběr, filtrStavAktivit, filtrText
   } = filtr;
 
   let aktivityFiltrované = aktivity;
@@ -103,6 +100,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
     );
 
   // TODO: přihlašovatelnost aktivity dle pohlaví
+  // TODO: přihlašovatelnost aktivity dle pohlaví přidat tooltip na tlačítko
   if (filtrStavAktivit)
     aktivityFiltrované = aktivityFiltrované.filter((aktivita) =>
       filtrStavAktivit.some((x) => aktivitaStatusZAktivity(aktivita) === x)
@@ -112,6 +110,47 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
     aktivityFiltrované = aktivityFiltrované.filter(
       (aktivita) => aktivita.prihlasovatelna && !aktivita.probehnuta
     );
+
+  if (filtrText) {
+    const flexDocument = new FlexSearch.Document<Aktivita, true>({
+      language: "cs",
+      tokenize: "forward",
+      preset: "performance",
+      document: {
+        id: "id",
+        store: true,
+        index: [
+          // zanořené vlasnosti se přidávají neco:vlastnost
+          "nazev",
+          "kratkyPopis",
+          "popis",
+          "vypraveci[]",
+          //"stitky[]",
+          "cenaZaklad",
+          "casText",
+          //"linie",
+        ],
+      }
+    });
+
+    for (const aktivita of aktivityFiltrované) {
+      flexDocument.add(aktivita);
+    }
+
+    const výsledek = flexDocument.search(filtrText, {
+      limit: 1000,
+    });
+
+    let idčka = výsledek.flatMap(x=>x.result) as number[];
+    idčka = Array.from(new Set(idčka));
+
+    const filtr = idčka.map(id=>
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      (flexDocument as any).get(id) as Aktivita
+    );
+
+    aktivityFiltrované = filtr;
+  }
 
   return aktivityFiltrované;
 };
