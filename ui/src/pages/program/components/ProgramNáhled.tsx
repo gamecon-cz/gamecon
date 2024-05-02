@@ -77,48 +77,6 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               class="programNahled_cas"
               dangerouslySetInnerHTML={{ __html: aktivita?.casText ?? "" }}
             ></div>
-            {
-            // TODO: řešeno na kartě https://trello.com/c/5yW69Zjt/806-ceny-aktivit-neukazuj%C3%AD-slevy 
-            /* <div style={{ display: "flex", alignItems: "center" }}>
-              <div style={{ width: 30 }}>
-                💲💲
-              </div>
-              <div class="programNahled_cena" style={{ paddingLeft: 0, background: "unset" }}>
-                {aktivita?.cenaZaklad !== 0
-                  ? aktivita?.cenaZaklad != undefined
-                    ? aktivita?.cenaZaklad?.toString(10) + "\u2009Kč"
-                    : " - "
-                  : "zdarma"}
-              </div>
-            </div>
-            {
-              aktivita?.slevaNasobic !== undefined ?
-                <>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <div style={{ width: 30 }}>
-                      🧍💲
-                    </div>
-                    <div class="programNahled_cena" style={{ paddingLeft: 0, background: "unset" }}>
-                      {aktivita?.slevaNasobic !== 0 &&
-                        aktivita?.cenaZaklad !== 0
-                        ? aktivita?.cenaZaklad != undefined
-                          ? (aktivita.cenaZaklad *
-                            (aktivita?.slevaNasobic ?? 1))?.toString(10) + "\u2009Kč"
-                          : " - "
-                        : "zdarma"}
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <div style={{ width: 30 }}>
-                      🔻
-                    </div>
-                    <div class="programNahled_cena" style={{ paddingLeft: 0, background: "unset" }}>
-                      {`${(1 - aktivita?.slevaNasobic) * 100}%`}
-                    </div>
-                  </div>
-                </>
-                : undefined
-            } */}
             <div class="programNahled_cena">
               {aktivita?.slevaNasobic !== 0 &&
               aktivita?.cenaZaklad !== 0
