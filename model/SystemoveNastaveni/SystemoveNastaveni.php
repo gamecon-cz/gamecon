@@ -30,7 +30,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         ?string                 $projectRootDir = null,
     ): self
     {
-        
+
         return new static(
             $rocnik,
             $ted,
@@ -944,5 +944,10 @@ SQL;
     public function kolikHodinPredAktivitouUzJePokutaZaOdhlaseni(): int
     {
         return (int)ODHLASENI_POKUTA1_H;
+    }
+
+    public function jeOmezeniUbytovaniPouzeNaSpacaky(): bool
+    {
+        return (bool)UBYTOVANI_POUZE_SPACAKY;
     }
 }
