@@ -19,8 +19,11 @@ class ShopUbytovani
      * @param bool $hodVyjimkuNeniLiPresne
      * @return int[]
      */
-    public static function dejIdsPredmetuUbytovani(array $nazvyUbytovani, int $rok = ROCNIK, bool $hodVyjimkuNeniLiPresne = true): array
-    {
+    public static function dejIdsPredmetuUbytovani(
+        array $nazvyUbytovani,
+        int   $rok = ROCNIK,
+        bool  $hodVyjimkuNeniLiPresne = true
+    ): array {
         $idsPredmetuUbytovani = array_map('intval', dbOneArray(<<<SQL
 SELECT id_predmetu
 FROM shop_predmety
@@ -38,6 +41,7 @@ SQL,
                 implode(',', $idsPredmetuUbytovani),
             ));
         }
+
         return $idsPredmetuUbytovani;
     }
 
@@ -50,6 +54,7 @@ WHERE id_uzivatele = $0 AND rok = $1
 SQL,
                 [$ucastnik->id(), ROCNIK],
             );
+
             return dbAffectedOrNumRows($mysqliResult);
         }
 
@@ -87,6 +92,7 @@ SQL,
         }
         $ucastnik->ubytovanS($ubytovanS);
         $mysqliResult = dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele=' . $ucastnik->id(), [trim($ubytovanS)]);
+
         return dbAffectedOrNumRows($mysqliResult);
     }
 
@@ -102,6 +108,7 @@ WHERE nakupy.id_uzivatele=$0
 SQL,
             [$ucastnik->id(), TypPredmetu::UBYTOVANI, $rok],
         );
+
         return dbAffectedOrNumRows($mysqliResult);
     }
 
@@ -140,8 +147,7 @@ SQL,
         Uzivatel $ucastnik,
         bool     $hlidatKapacituUbytovani = true,
         int      $rok = ROCNIK,
-    ): int
-    {
+    ): int {
         // vložit jeho zaklikané věci - note: není zabezpečeno
         $sqlValuesArray          = [];
         $idsPredmetuUbytovaniInt = [];
@@ -226,17 +232,16 @@ SQL,
 DROP TEMPORARY TABLE IF EXISTS `$tmpTable`
 SQL,
         );
+
         return $pocetZmen;
     }
 
     private Registrace $registrace;
-    private            $mozneDny             = []; // pouze ubytování, které si může uživatel koupit
-    private            $mozneTypy            = []; // asoc. pole [typ] => předmět sloužící jako vzor daného typu
-    private            $ubytovanPoDnech      = []; // všechna ubytování
-    private            $pnDny                = 'shopUbytovaniDny';
-    private            $pnPokoj              = 'shopUbytovaniPokoj';
-    private            $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
-    private bool       $omezeniNaSpacaky      = true; // přepínač pro omezení běžných návštěvníků čistě na spacáky
+    private            $mozneDny        = []; // pouze ubytování, které si může uživatel koupit
+    private            $mozneTypy       = []; // asoc. pole [typ] => předmět sloužící jako vzor daného typu
+    private            $ubytovanPoDnech = []; // všechna ubytování
+    private            $pnDny           = 'shopUbytovaniDny';
+    private            $pnPokoj         = 'shopUbytovaniPokoj';
 
     public function __construct(
         array                               $predmety,
@@ -244,8 +249,7 @@ SQL,
         private readonly Uzivatel           $objednatel,
         private readonly KontextZobrazeni   $kontextZobrazeni,
         private readonly SystemoveNastaveni $systemoveNastaveni,
-    )
-    {
+    ) {
         foreach ($predmety as $predmet) {
             $nazev = Shop::bezDne($predmet[Sql::NAZEV]);
             if ($this->maPravoZobrazitUbytovani((int)$predmet[Sql::UBYTOVANI_DEN])) {
@@ -304,22 +308,7 @@ SQL,
             $this->uzivatel()->jeZazemi();
     }
 
-    public function jeOmezeniNaSpacaky(): bool
-    {
-        return $this->omezeniNaSpacaky;
-    }
-
-    public function nastavOmezeniNaSpacaky(bool $omezeniNaSpacaky): void
-    {
-        $this->omezeniNaSpacaky = $omezeniNaSpacaky;
-    }
-
-    public function zrusOmezeniNaSpacaky(): void
-    {
-        $this->omezeniNaSpacaky = false;
-    }
-
-    private function omluvaText()
+    private function omluvaZaNedostupneUbytovani(): string
     {
         /*
          *
@@ -329,18 +318,29 @@ SQL,
          * výpadek budovy C v roce 2024
          * */
 
-        $omluvaText = 'Vzhledem k rekonstrukci budovy C jsme museli letos zrušit možnost ubytování na postelích. Jako částečnou kompenzaci nabízíme větší počet míst pro spaní ve spacácích v tělocvičnách.
+        return $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky() && !$this->maPravoNaPostel()
+            ? self::omluvaZaNedostupneUbytovaniText()
+            : '';
+    }
+
+    private static function omluvaZaNedostupneUbytovaniText(): string
+    {
+        return 'Vzhledem k rekonstrukci budovy C jsme museli letos zrušit možnost ubytování na postelích. Jako částečnou kompenzaci nabízíme větší počet míst pro spaní ve spacácích v tělocvičnách.
 Situace nás mrzí, přesto věříme, že tě od účasti na letošním GC neodradí a v létě se spolu uvidíme. Děkujeme za tvou podporu.
 Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a>.';
-
-        return $this->jeOmezeniNaSpacaky() && !$this->maPravoNaPostel() ? $omluvaText : "";
     }
 
     public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
     {
-        $t = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
+        $t                           = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
+        $omluvaZaNedostupneUbytovani = $this->omluvaZaNedostupneUbytovani();
+        if ($omluvaZaNedostupneUbytovani !== '') {
+            $t->assign([
+                'omluvaZaNedostupneUbytovani' => $omluvaZaNedostupneUbytovani,
+            ]);
+            $t->parse('ubytovani.omluvaZaNedostupneUbytovani');
+        }
         $t->assign([
-            'ubytOmluva'           => $this->omluvaText(),
             'shopUbytovaniJs'      => URL_WEBU . '/soubory/blackarrow/shop/shop-ubytovani.js?version='
                 . md5_file(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
             'spolubydlici'         => htmlspecialchars(dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()) ?? ''),
@@ -352,11 +352,11 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             ),
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
+        $nemuzeSiObjednatPokoj = $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky()
+            && !$this->maPravoNaPostel();
         // sloupce popisků
         foreach ($this->mozneTypy as $typ => $predmet) {
-
-            if ($this->jeOmezeniNaSpacaky() && $typ != 'Spacák' &&
-                !$this->maPravoNaPostel()){
+            if ($nemuzeSiObjednatPokoj && $typ != 'Spacák') {
                 continue;
             }
 
@@ -365,7 +365,9 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                 'hint' => $predmet[Sql::POPIS],
                 'cena' => round($predmet[Sql::CENA_AKTUALNI]),
             ]);
-            $t->parse($predmet['popis'] ? 'ubytovani.typ.hinted' : 'ubytovani.typ.normal');
+            $t->parse($predmet['popis']
+                ? 'ubytovani.typ.hinted'
+                : 'ubytovani.typ.normal');
             $t->parse('ubytovani.typ');
         }
 
@@ -378,6 +380,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         }
 
         $t->parse('ubytovani');
+
         return $t->text('ubytovani');
     }
 
@@ -385,14 +388,14 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     private function htmlDny(XTemplate $t, bool $muzeEditovatUkoncenyProdej)
     {
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen();
+        $nemuzeSiObjednatPokoj  = $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky()
+            && !$this->maPravoNaPostel();
         foreach ($this->mozneDny as $den => $typy) { // typy _v daný den_
             $typVzor = reset($typy);
             $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
             $ubytovanVeDni = false;
             foreach ($this->mozneTypy as $typ => $rozsah) {
-
-                if ($this->jeOmezeniNaSpacaky() && $typ != 'Spacák' &&
-                    !$this->maPravoNaPostel()){
+                if ($nemuzeSiObjednatPokoj && $typ != 'Spacák') {
                     continue;
                 }
 
@@ -404,7 +407,9 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                 }
                 $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
                 $t->assign([
-                    'idPredmetu' => isset($this->mozneDny[$den][$typ]) ? $this->mozneDny[$den][$typ]['id_predmetu'] : null,
+                    'idPredmetu' => isset($this->mozneDny[$den][$typ])
+                        ? $this->mozneDny[$den][$typ]['id_predmetu']
+                        : null,
                     'checked'    => $checked,
                     'disabled'   => (!$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                         && ($prodejUbytovaniUkoncen
@@ -424,7 +429,9 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             // data pro názvy dnů a pro "Žádné" ubytování
             $t->assign([
                 'den'      => $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]),
-                'checked'  => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
+                'checked'  => $ubytovanVeDni
+                    ? ''
+                    : 'checked', // checked = "Žádné" ubytování
                 'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
                     ? 'disabled'
                     : '',
@@ -436,6 +443,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     private function dejNazevJakoRozsahDnu(int $indexDneKZacatkuGc): string
     {
         $poradiDneVTydnu = DateTimeGamecon::poradiDneVTydnuPodleIndexuOdZacatkuGameconu($indexDneKZacatkuGc);
+
         return DateTimeCz::poradiDneVTydnuNaPrelomDnuVeZkratkach($poradiDneVTydnu, true);
     }
 
@@ -486,6 +494,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     {
         if (!isset($this->mozneDny[$den][$typ])) return 0;
         $ub = $this->mozneDny[$den][$typ];
+
         return max(0, $ub['kusu_vyrobeno']);
     }
 
@@ -523,6 +532,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                 }
             }
         }
+
         return $dnyUbytovani;
     }
 
@@ -538,6 +548,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             return 0;
         }
         $ub = $this->mozneDny[$den][$typ];
+
         return (int)max(0, $ub['kusu_vyrobeno'] - $ub['kusu_prodano']);
     }
 
@@ -557,6 +568,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         while ($u = mysqli_fetch_row($o)) {
             $a[] = $u[0];
         }
+
         return json_encode($a);
     }
 
@@ -578,6 +590,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         foreach ($dnyPoTypech as $typ => $dny) {
             $typySeDny[] = "$typ: " . implode(',', $dny);
         }
+
         return implode($oddelovacDalsihoRadku, $typySeDny);
     }
 }
