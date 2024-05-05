@@ -60,7 +60,7 @@ $t->assign([
     'gcDo'                       => $konecGameconu->format('j. n.'),
     'gcRok'                      => $konecGameconu->format('Y'),
     'stovkySpokojenychUcastniku' => dbFetchSingle(<<<SQL
-SELECT FLOOR(COUNT(*) / 10) * 10
+SELECT FLOOR(COUNT(*) / 100) * 100
 FROM uzivatele_role
 WHERE id_role = $0
 SQL,
@@ -72,7 +72,7 @@ SQL,
         ],
     ),
     'stovkyAktivit'              => dbFetchSingle(<<<SQL
-SELECT FLOOR(COUNT(*) / 10) * 10
+SELECT FLOOR(COUNT(*) / 100) * 100
 FROM akce_seznam
 WHERE rok = $0
     AND patri_pod IS NULL
