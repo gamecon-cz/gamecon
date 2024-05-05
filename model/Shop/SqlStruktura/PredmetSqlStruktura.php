@@ -11,6 +11,7 @@ class PredmetSqlStruktura
     public const ID_PREDMETU        = 'id_predmetu';
     public const NAZEV              = 'nazev';
     public const MODEL_ROK          = 'model_rok';
+    public const KOD_PREDMETU       = 'kod_predmetu';
     public const CENA_AKTUALNI      = 'cena_aktualni';
     public const STAV               = 'stav';
     public const AUTO               = 'auto';
