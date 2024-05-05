@@ -72,7 +72,7 @@ SQL,
         ],
     ),
     'stovkyAktivit'              => dbFetchSingle(<<<SQL
-SELECT FLOOR(COUNT(*) / 100) * 100
+SELECT FLOOR(COUNT(*) / 10) * 10
 FROM akce_seznam
 WHERE rok = $0
     AND patri_pod IS NULL
