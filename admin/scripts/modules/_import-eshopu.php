@@ -1,8 +1,8 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
-use OpenSpout\Reader\Common\Creator\ReaderFactory;
 use Gamecon\Shop\StavPredmetu;
+use OpenSpout\Reader\XLSX\Reader as XLSXReader;
 
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
@@ -31,7 +31,7 @@ if (!is_readable($vstupniSoubor)) {
     throw new Chyba('Soubor se nepodařilo načíst');
 }
 
-$reader = ReaderFactory::createFromFileByMimeType($vstupniSoubor);
+$reader = new XLSXReader();
 $reader->open($vstupniSoubor);
 
 $reader->getSheetIterator()->rewind();
@@ -45,13 +45,14 @@ $row           = $rowIterator->current();
 $hlavickaKlice = array_map('trim', $row->toArray());
 $hlavicka      = array_flip($hlavickaKlice);
 
-$pozadovaneSloupce = ['model_rok', 'nazev', 'cena_aktualni', 'stav', 'auto', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'ubytovani_den', 'popis'];
+$pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'auto', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'ubytovani_den', 'popis'];
 if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
     throw new Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
 }
 
 $indexModelRok     = $hlavicka['model_rok'];
 $indexNazev        = $hlavicka['nazev'];
+$indexKodPredmetu  = $hlavicka['kod_predmetu'];
 $indexCenaAktualni = $hlavicka['cena_aktualni'];
 $indexStav         = $hlavicka['stav'];
 $indexAuto         = $hlavicka['auto'];
@@ -66,6 +67,10 @@ $rowIterator->next();
 $cisloNeboNull = static fn($hodnota) => trim((string)$hodnota) !== ''
     ? $hodnota
     : null;
+
+$hodnotaNeboKodZNazvu = static fn($hodnota, string $nazev, $rok) => trim((string)$hodnota) !== ''
+    ? $hodnota
+    : kodZNazvu($nazev . ' ' . trim((string)$rok));
 
 $trimRadek = static fn(array $radek) => array_map(
     static fn($hodnota) => is_string($hodnota)
@@ -107,6 +112,11 @@ while ($rowIterator->valid()) {
         $sqlValuesArray[] = '(' . dbQa([
                 $radek[$indexModelRok],
                 $radek[$indexNazev],
+                $hodnotaNeboKodZNazvu(
+                    $radek[$indexKodPredmetu],
+                    $radek[$indexNazev],
+                    $radek[$indexModelRok]
+                ),
                 $radek[$indexCenaAktualni],
                 $radek[$indexStav],
                 $radek[$indexAuto],
@@ -141,7 +151,7 @@ SQL,
     $sqlValues = implode(",\n", $sqlValuesArray);
 
     dbQuery(<<<SQL
-INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `cena_aktualni`, `stav`, `auto`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
+INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `auto`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
     VALUES
 $sqlValues
 SQL,
@@ -150,9 +160,10 @@ SQL,
     $mysqliResult   = dbQuery(<<<SQL
 UPDATE shop_predmety
 JOIN `$temporaryTable` AS import
-    ON shop_predmety.nazev = import.nazev
-    AND shop_predmety.model_rok = import.model_rok
-SET shop_predmety.cena_aktualni = import.cena_aktualni,
+    ON shop_predmety.kod_predmetu = import.kod_predmetu
+SET
+    shop_predmety.nazev = import.nazev,
+    shop_predmety.cena_aktualni = import.cena_aktualni,
     shop_predmety.stav = import.stav,
     shop_predmety.auto = import.auto,
     shop_predmety.nabizet_do = import.nabizet_do,
@@ -166,9 +177,10 @@ SQL,
     $pocetZmenenych = dbAffectedOrNumRows($mysqliResult);
 
     $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_predmety (`model_rok`, `nazev`, `cena_aktualni`, `stav`, `auto`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
+INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `auto`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
 SELECT import.`model_rok`,
     import.`nazev`,
+    import.`kod_predmetu`,
     import.`cena_aktualni`,
     import.`stav`,
     import.`auto`,
@@ -189,8 +201,7 @@ SQL,
     dbQuery(<<<SQL
 UPDATE shop_predmety AS stare
 LEFT JOIN `$temporaryTable` AS import
-    ON stare.nazev = import.nazev
-    AND stare.model_rok = import.model_rok
+    ON stare.kod_predmetu = import.kod_predmetu
 SET stare.stav = $0
 WHERE import.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme záznam přes ON podmínky nenašli
 SQL,

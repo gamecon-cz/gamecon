@@ -139,13 +139,15 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
     ): string
     {
         $rok = $systemoveNastaveni->rocnik();
+        $kodPredmetu = kodZNazvu($nazev . '_' . $rok);
 
         return <<<SQL
 INSERT INTO shop_predmety
 SET id_predmetu = $idPredmetu,
     nazev = '$nazev',
-    typ = $typPredmetu,
     model_rok = $rok,
+    kod_predmetu = '$kodPredmetu',
+    typ = $typPredmetu,
     cena_aktualni = 0.0 -- nemá na nic vliv, "nákup" řešíme přímým zápisem do DB včetně vlastní podejní ceny
 SQL;
     }
