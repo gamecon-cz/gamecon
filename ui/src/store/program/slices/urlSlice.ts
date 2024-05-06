@@ -8,7 +8,6 @@ export type ProgramUrlSlice = {
   urlStavMožnosti: {
     dny: ProgramTabulkaVýběr[],
     linie: string[],
-    tagy: string[],
     stavy: readonly AktivitaStav[],
   },
 }
@@ -18,7 +17,6 @@ export const createProgramUrlSlice: ProgramStateCreator<ProgramUrlSlice> = () =>
   urlStavMožnosti: {
     dny: urlStavProgramTabulkaMožnostíDnyMůj(),
     linie: [],
-    tagy: [],
     stavy: AktivitaStavyVšechny,
   }
 });
@@ -70,27 +68,10 @@ export const nastavUrlVýběr = (možnost: ProgramTabulkaVýběr) => {
   }, undefined, "nastav program den");
 };
 
-// export const nastavFiltrLinie = (linie: string, hodnota: boolean) => {
-//   useProgramStore.setState((s) => {
-//     if (hodnota) {
-//       const filtrLinie = s.urlStav.filtrLinie ?? [];
-//       if (!s.urlStav.filtrLinie)
-//         s.urlStav.filtrLinie = filtrLinie;
-
-//       filtrLinie.push(linie);
-//       if (!s.urlStavMožnosti.linie.some(x => !filtrLinie.some(y => x === y))) {
-//         s.urlStav.filtrLinie = undefined;
-//       }
-//     } else {
-//       s.urlStav.filtrLinie = (s.urlStav.filtrLinie ?? s.urlStavMožnosti.linie).filter(x => x !== linie);
-//     }
-//   }, undefined, "nastav program linie");
-// };
-
 /**
  * Vybrané všechny nebo žádné => undefined
  */
-const filtrZMožností = <T extends string>(vybrané: T[], všechny: T[]): T[] | undefined => {
+const filtrZMožností = <T extends string | number>(vybrané: T[], všechny: T[]): T[] | undefined => {
   return !(!vybrané.length || (všechny.length && !všechny.some(x => !vybrané?.some(y => x === y)))) ? vybrané : undefined;
 };
 
@@ -102,14 +83,14 @@ export const nastavFiltrRočník = (ročník?: number) => {
 
 export const nastavFiltrLinií = (vybranéLinie: string[]) => {
   useProgramStore.setState((s) => {
-    s.urlStav.filtrLinie = filtrZMožností(vybranéLinie,s.urlStavMožnosti.linie);
+    s.urlStav.filtrLinie = filtrZMožností(vybranéLinie, s.urlStavMožnosti.linie);
   }, undefined, "nastav filtr linie");
 };
 
-export const nastavFiltrTagů = (vybranéTagy: string[]) => {
+export const nastavFiltrŠtítků = (vybranéTagy: number[]) => {
   useProgramStore.setState((s) => {
-    s.urlStav.filtrTagy = filtrZMožností(vybranéTagy,s.urlStavMožnosti.linie);
-  }, undefined, "nastav filtr tagy");
+    s.urlStav.filtrTagy = vybranéTagy;
+  }, undefined, "nastav filtr štítků");
 };
 
 export const nastavFiltrStavů = (vybranéStavy: AktivitaStav[]) => {
@@ -124,7 +105,7 @@ export const nastavFiltrTextu = (text: string | undefined | null) => {
   }, undefined, "nastav filtr text");
 };
 
-export const nastavFiltrPřihlašovatelné = (přihlašovatelné:boolean) =>{
+export const nastavFiltrPřihlašovatelné = (přihlašovatelné: boolean) => {
   useProgramStore.setState((s) => {
     s.urlStav.filtrPřihlašovatelné = přihlašovatelné;
   }, undefined, "nastav filtr přihlašovatelné");

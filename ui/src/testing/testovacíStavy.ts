@@ -59,9 +59,9 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
     nazev: "Dominion",
     kratkyPopis: "Stojíte na počátku budování své vlastní říše a nemáte nic než trochu peněz a malé pozemky.",
     obrazek: "",
-    stitky: [
-      "Turnaj"
-    ],
+    // stitky: [
+    //   "Turnaj"
+    // ],
     // TODO:
     stitkyId: [],
     cenaZaklad: 90,
@@ -102,27 +102,27 @@ export const TESTOVACÍ_STAVY: TestovacíStav[] = [
       nastavAktivity([
         produce(createAktivita({ id: 1, hodina: 8, trvání:3 }), x => {
           x.prihlasovatelna = true;
-          x.stitky.push("Kartičková");
-          x.stitky.push("Historie");
+          // x.stitky.push("Kartičková");
+          // x.stitky.push("Historie");
 
         }),
         produce(createAktivita({ id: 2, hodina: 9 }), x => {
           x.vdalsiVlne = true;
-          x.stitky.push("Rozhodovací");
+          // x.stitky.push("Rozhodovací");
         }),
         produce(createAktivita({ id: 3, hodina: 10 }), x => {
           x.vBudoucnu = true;
-          x.stitky.push("Věk: 6+");
+          // x.stitky.push("Věk: 6+");
         }),
         produce(createAktivita({ id: 4, hodina: 11 }), x => {
           x.prihlasovatelna = true;
           x.stavPrihlaseni = "prihlasen";
-          x.stitky.push("Kartičková");
+          // x.stitky.push("Kartičková");
         }),
         produce(createAktivita({ id: 5, hodina: 12, trvání: 3 }), x => {
           x.prihlasovatelna = true;
           x.stavPrihlaseni = "prihlasen";
-          x.stitky.push("Kartičková");
+          // x.stitky.push("Kartičková");
         }),
         produce(createAktivita({ id: 6, hodina: 13 }), x => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
