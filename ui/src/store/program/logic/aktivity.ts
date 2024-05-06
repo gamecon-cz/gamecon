@@ -15,6 +15,11 @@ export type FiltrProgramTabulkaVýběr =
   }
   ;
 
+/** Klíč je štítek (APIŠtítek.nazev) hodnota je kategorie štítku (APIŠtítek.nazevKategorie) */
+export type KategorieŠtítků = {
+  [štítek: string]: string
+}
+
 export type FiltrAktivit = Partial<{
   ročník: number,
   výběr: FiltrProgramTabulkaVýběr,
@@ -57,7 +62,8 @@ export const aktivitaStatusZAktivity = (
   return "volno";
 };
 
-export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
+// TODO: přidat zbytek filtrů
+export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, kategorieŠtítků: KategorieŠtítků) => {
   const {
     filtrLinie, filtrPřihlašovatelné, filtrTagy, ročník, výběr, filtrStavAktivit, filtrText
   } = filtr;
@@ -82,11 +88,25 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
         filtrLinie.some(x => x === aktivita.linie)
       );
 
-  if (filtrTagy)
+  if (filtrTagy) {
+    const štítkyPodleKategorie: { [kategorie: string]: string[] } = {};
+    for (const štítek of filtrTagy) {
+      const kategorieŠtítku = kategorieŠtítků[štítek] ?? "";
+      if (!kategorieŠtítku) {
+        console.error(`nenalezena kategorie pro štítek ${štítek}`);
+      }
+      const kategorie = štítkyPodleKategorie[kategorieŠtítku] = štítkyPodleKategorie[kategorieŠtítku] ?? [];
+      kategorie.push(štítek);
+    }
+
+    const štítkyPodleKategorieValues = Object.values(štítkyPodleKategorie);
     aktivityFiltrované = aktivityFiltrované
       .filter((aktivita) =>
-        filtrTagy.some(x => aktivita.stitky.some(stitek => stitek === x))
+        štítkyPodleKategorieValues.every(štítkyZKategorie =>
+          štítkyZKategorie.some(x => aktivita.stitky.some(stitek => stitek === x))
+        )
       );
+  }
 
   // TODO: přihlašovatelnost aktivity dle pohlaví
   // TODO: přihlašovatelnost aktivity dle pohlaví přidat tooltip na tlačítko

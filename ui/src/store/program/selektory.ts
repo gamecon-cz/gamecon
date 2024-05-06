@@ -2,7 +2,7 @@ import { useProgramStore } from ".";
 import { Pohlavi, PřihlášenýUživatel } from "../../api/přihlášenýUživatel";
 import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
 import shallow from "zustand/shallow";
-import { FiltrAktivit, filtrujAktivity } from "./logic/aktivity";
+import { FiltrAktivit, filtrujAktivity, KategorieŠtítků } from "./logic/aktivity";
 import { Aktivita, filtrujDotaženéAktivity, jeAktivitaDotažená } from "./slices/programDataSlice";
 import { distinct } from "../../utils";
 import { useMemo } from "preact/hooks";
@@ -11,6 +11,18 @@ const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   const urlStav = useProgramStore((s) => s.urlStav);
 
   return aktivitaFiltr ?? (urlStav as FiltrAktivit);
+};
+
+const useŠtítkyMapováníKategorieŠtítků = () => {
+  const štítky = useŠtítky();
+
+  const mapování: KategorieŠtítků =
+    useMemo(
+      () => Object.fromEntries(štítky.map(x => [x.nazev, x.nazevKategorie])),
+      [štítky]
+    );
+
+  return mapování;
 };
 
 /**
@@ -25,10 +37,11 @@ export const useAktivityDotažené = () => useProgramStore(
  */
 export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): Aktivita[] => {
   const filtr = useFiltrAktivitNeboZeStavu(aktivitaFiltr);
+  const mapaŠtítků = useŠtítkyMapováníKategorieŠtítků();
 
   const aktivityDotažené = useAktivityDotažené();
 
-  const aktivityFiltrované = filtrujAktivity(aktivityDotažené, filtr);
+  const aktivityFiltrované = filtrujAktivity(aktivityDotažené, filtr, mapaŠtítků);
 
   return aktivityFiltrované;
 };
@@ -74,11 +87,11 @@ export const useTagySPočtemAktivit = () => {
 };
 
 export const useŠtítkyPodleKategorie = () => {
-  const štítky = useProgramStore((s) => s.data.štítky);
+  const štítky = useŠtítky();
 
   const štítkyPodleKategorie = useMemo(() => {
     const všechnyKategorie = distinct(štítky.map(x => x.nazevKategorie));
-    
+
     return všechnyKategorie.map(kategorie => ({
       kategorie: kategorie,
       štítky: štítky.filter(štítek => štítek.nazevKategorie === kategorie)
@@ -86,6 +99,25 @@ export const useŠtítkyPodleKategorie = () => {
   }, [štítky]);
 
   return štítkyPodleKategorie;
+};
+
+const prázdnéPole: string[] = [];
+export const useŠtítkyVybranéPodleKategorie = () => {
+  const urlState = useUrlState();
+  const vybranéŠtítky = urlState.filtrTagy ?? prázdnéPole;
+  const štítkyPodleKategorie = useŠtítkyPodleKategorie();
+  const vybranéŠtítkyPodleKategorie = useMemo(
+    () =>
+      štítkyPodleKategorie
+        .map(({ kategorie, štítky }) => ({
+          kategorie,
+          štítky: štítky.filter(štítek => vybranéŠtítky.some(x => x === štítek.nazev))
+        }))
+        .filter(x => x.štítky.length)
+    ,
+    [štítkyPodleKategorie, vybranéŠtítky]);
+
+  return vybranéŠtítkyPodleKategorie;
 };
 
 export const useUrlStav = (): ProgramURLStav => useProgramStore(s => s.urlStav);
@@ -98,4 +130,6 @@ export const useUživatel = (): PřihlášenýUživatel => useProgramStore(s => 
 export const useUživatelPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.přihlášenýUživatel.data?.pohlavi);
 
 export const useFiltryOtevřené = (): boolean => useProgramStore(s => s.všeobecné.filtryOtevřené);
+
+export const useŠtítky = () => useProgramStore((s) => s.data.štítky);
 
