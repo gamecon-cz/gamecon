@@ -14,6 +14,7 @@ const resetStav = {
     useProgramStore.setState(s => {
       s.data = {
         aktivityPodleId: {},
+        štítky: [],
       };
 
       s.přihlášenýUživatel.data = {
