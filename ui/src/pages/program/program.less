@@ -45,7 +45,7 @@
   background: #fff;
   border: solid 1px #FDC689;
 
-  @media (max-width: 800px) {
+  @media (max-width: 1200px) {
     margin: 0 10px 10px 0;
     width: 130px;
     flex-grow: 1;
@@ -104,6 +104,7 @@
 .program_legenda_inner {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .informaceSpustime,
@@ -116,6 +117,23 @@
   height: 28px;
   margin-bottom: 6px;
   display: block;
+}
+
+:root {
+  --program-barva-otevrene: #CDF2D9;
+  --program-barva-otevrene-pruhledna: #CDF2D900;
+  --program-barva-vDalsiVlne: #FCBCBC;
+  --program-barva-vDalsiVlne-pruhledna: #FCBCBC00;
+  --program-barva-vBudoucnu: #FFECEC;
+  --program-barva-vBudoucnu-pruhledna: #FFECEC00;
+  --program-barva-plno: #F5F5F5;
+  --program-barva-plno-pruhledna: #F5F5F500;
+  --program-barva-prihlasen: #65D161;
+  --program-barva-prihlasen-pruhledna: #65D16100;
+  --program-barva-nahradnik: #E5E891;
+  --program-barva-nahradnik-pruhledna: #E5E89100;
+  --program-barva-organizator: #7EA5FF;
+  --program-barva-organizator-pruhledna: #7EA5FF00;
 }
 
 .program_legenda_typ {
@@ -135,7 +153,7 @@
     cursor: pointer;
 
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 10 10'%3E%3Crect width='10' height='10' rx='1' transform='translate(0 0)' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat center center;
-    background-color: #CDF2D9;
+    background-color: var(--program-barva-otevrene);
 
     &:checked {
       background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 10.698 8.288'%3E%3Cpath id='Path_2669' data-name='Path 2669' d='M7283.8,702.841l3.117,3.117,6.167-6.167' transform='translate(-7283.093 -699.085)' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat center center;
@@ -143,72 +161,111 @@
   }
 
   &.otevrene input[type=checkbox] {
-    background-color: #CDF2D9;
+    background-color: var(--program-barva-otevrene);
   }
 
   &.vDalsiVlne input[type=checkbox] {
-    background-color: #FCBCBC;
+    background-color: var(--program-barva-vDalsiVlne);
   }
 
   &.vBudoucnu input[type=checkbox] {
-    background-color: #FFECEC;
+    background-color: var(--program-barva-vBudoucnu);
   }
 
   &.plno input[type=checkbox] {
-    background-color: #F5F5F5;
+    background-color: var(--program-barva-plno);
   }
 
   &.prihlasen input[type=checkbox] {
-    background-color: #65D161;
+    background-color: var(--program-barva-prihlasen);
   }
 
-  &.sledujici input[type=checkbox] {
-    background-color: #E5E891;
+  &.nahradnik input[type=checkbox] {
+    background-color: var(--program-barva-nahradnik);
   }
 
   &.organizator input[type=checkbox] {
-    background-color: #7EA5FF;
+    background-color: var(--program-barva-organizator);
   }
 
 }
 
 .program tbody td>div {
-  background-color: #CDF2D9;
+  background-color: var(--program-barva-otevrene);
 }
 
 .program tbody .otevrene,
 .program_legenda_typ.otevrene::before {
-background-color: #CDF2D9;
+  background-color: var(--program-barva-otevrene)
 }
 
 .program tbody .vDalsiVlne,
 .program_legenda_typ.vDalsiVlne::before {
-  background-color: #FCBCBC;
+  background-color: var(--program-barva-vDalsiVlne);
 }
 
 .program tbody .vBudoucnu,
 .program_legenda_typ.vBudoucnu::before {
-  background-color: #FFECEC;
+  background-color: var(--program-barva-vBudoucnu);
 }
 
 .program tbody .plno,
 .program_legenda_typ.plno::before {
-  background-color: #F5F5F5;
+  background-color: var(--program-barva-plno);
 }
 
 .program tbody .prihlasen,
 .program_legenda_typ.prihlasen::before {
-  background-color: #65D161;
+  background-color: var(--program-barva-prihlasen);
 }
 
 .program tbody .sledujici,
 .program_legenda_typ.sledujici::before {
-  background-color: #E5E891;
+  background-color: var(--program-barva-nahradnik);
 }
 
 .program tbody .organizator,
 .program_legenda_typ.organizator::before {
-  background-color: #7EA5FF;
+  background-color: var(--program-barva-organizator);
+}
+
+
+
+.program td:not([rowspan]) > .kompaktni {
+  height: 34px;
+  padding: 2px;
+  display: flex;
+  align-items: center ;
+
+  > a {
+    position: relative;
+    white-space: nowrap;
+    min-height: unset;
+    &::after {
+      position: absolute;
+      display: block;
+      content: "";
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+    }
+  }
+}
+
+:root {
+  --popis-doztracena-mezibod: 18px;
+  --popis-doztracena-bod: 30px;
+}
+
+.program td:not([rowspan]) > .kompaktni {
+  > a::after { background: linear-gradient(to left, var(--program-barva-otevrene), var(--popis-doztracena-mezibod), var(--program-barva-otevrene-pruhledna) var(--popis-doztracena-bod)); }
+  &.vDalsiVlne > a::after { background: linear-gradient(to left, var(--program-barva-vDalsiVlne), var(--popis-doztracena-mezibod), var(--program-barva-vDalsiVlne-pruhledna) var(--popis-doztracena-bod)); }
+  &.vBudoucnu > a::after { background: linear-gradient(to left, var(--program-barva-vBudoucnu), var(--popis-doztracena-mezibod), var(--program-barva-vBudoucnu-pruhledna) var(--popis-doztracena-bod)); }
+  &.plno > a::after { background: linear-gradient(to left, var(--program-barva-plno), var(--popis-doztracena-mezibod), var(--program-barva-plno-pruhledna) var(--popis-doztracena-bod)); }
+  &.prihlasen > a::after { background: linear-gradient(to left, var(--program-barva-prihlasen), var(--popis-doztracena-mezibod), var(--program-barva-prihlasen-pruhledna) var(--popis-doztracena-bod)); }
+  &.nahradnik > a::after { background: linear-gradient(to left, var(--program-barva-nahradnik), var(--popis-doztracena-mezibod), var(--program-barva-nahradnik-pruhledna) var(--popis-doztracena-bod)); }
+  &.organizator > a::after { background: linear-gradient(to left, var(--program-barva-organizator), var(--popis-doztracena-mezibod), var(--program-barva-organizator-pruhledna) var(--popis-doztracena-bod)); }
 }
 
 .program_legenda_typ.vDalsiVlne::before {
@@ -424,4 +481,19 @@ background-color: #CDF2D9;
 .program_hlavicka {
   overflow: visible !important;
   padding-top: 0.67em !important;
+}
+
+.programNahled_obalProgramu {
+  &-zvetseny {
+    position: fixed;
+    max-height: 100vh;
+    height: 100vh;
+    width: 100vw;
+    top: 0;
+    left: 0;
+    background-color: white;
+    z-index: 1000;
+    overflow-y: auto;
+    display: block;
+  }
 }

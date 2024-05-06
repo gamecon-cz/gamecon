@@ -34,7 +34,7 @@ export const EditorMřížky: FunctionComponent<TEditorMřížkyProps> = (props)
         Text:{" "}
         <input
           value={mřížka.text ?? ""}
-          onChange={(e: any) => setMřížkaText(e.target.value)}
+          onChange={(e) => {setMřížkaText(e.currentTarget.value);}}
         ></input>
       </div>
       <div style={{marginTop:"24px",display:"grid", gridTemplateColumns: "repeat(4,1fr)", gap:"8px"}}>

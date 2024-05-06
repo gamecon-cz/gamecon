@@ -78,6 +78,7 @@ if (post('pripravit')) {
     }
 }
 
+$ids = [];
 if (is_numeric($jednaHraniceZustatku) && is_numeric($ucastDoRoku)) {
 // připraví seznam uživatelů pro promlčení zůstatku
 
@@ -89,12 +90,15 @@ SELECT
     u.id_uzivatele AS uzivatel,
     u.jmeno_uzivatele AS jmeno,
     u.prijmeni_uzivatele AS prijmeni,
+    u.email1_uzivatele AS email,
+    u.telefon_uzivatele AS telefon,
     u.zustatek,
     ucast.roky AS ucast,
     kladny_pohyb.cas_posledni_platby AS kladny_pohyb
 FROM uzivatele_hodnoty u
 LEFT JOIN (
-    SELECT id_uzivatele, GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC) AS roky,
+    SELECT id_uzivatele,
+           GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC SEPARATOR ';' /*aby si Excel nevykládal 2012,2017 jako desettiné číslo*/) AS roky,
     COUNT(*) AS pocet
     FROM platne_role_uzivatelu
     JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
@@ -146,7 +150,15 @@ SQL,
         ],
     );
 
-    $ids = [];
+    if (post('exportovat')) {
+        $data = mysqli_fetch_all($o, MYSQLI_ASSOC);
+        if ($data !== []) {
+            $report = Report::zPole($data);
+            $report->tXlsx('Promlčení zůstatků');
+            exit();
+        }
+    }
+
     $p->assign('adminUrl', URL_ADMIN);
     $maxInputVars = (int)ini_get('max_input_vars'); // omezuje například POST
     $maxUzivatelu = $maxInputVars - 100;
@@ -166,7 +178,7 @@ SQL,
         $poradi++;
     }
 
-    if (count($ids) == 0) {
+    if ($ids === []) {
         $p->parse('promlceni.nikdo');
     } else {
         $p->assign([
@@ -195,6 +207,9 @@ $p->assign([
     'druhaHraniceZustatku'   => $druhaHraniceZustatku ?? null,
     'checkedVcetneInternich' => $vcetneInternich ?? false
         ? 'checked'
+        : '',
+    'disabledExport'         => $ids === []
+        ? 'disabled'
         : '',
 ]);
 

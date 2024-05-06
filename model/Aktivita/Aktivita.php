@@ -895,7 +895,7 @@ SQL
             $aktivita = self::zId($data[Sql::ID_AKCE]);
         } else if (!empty($data['patri_pod'])) {
             // editace aktivity z rodiny instancí
-            $doHlavni   = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
+            $doHlavni   = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (main) `instance
             $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
             $aktivita   = self::zId($data[Sql::ID_AKCE]); // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
@@ -2460,13 +2460,26 @@ HTML
     }
 
     /**
-     * Vrátí iterátor tagů
      * @return string[]
      */
     public function tagy(): array
     {
         if ($this->a['tagy']) {
             return explode(',', $this->a['tagy']);
+        }
+        return [];
+    }
+
+    /**
+     * @return int[]
+     */
+    public function tagyId(): array
+    {
+        if ($this->a['ids_tagu']) {
+            return array_map(
+                'intval',
+                explode(',', $this->a['ids_tagu'])
+            );
         }
         return [];
     }
@@ -3343,7 +3356,7 @@ SQL,
         $aktivity = self::zWhere(
             where1: 'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
             args: [
-                0 => ROCNIK,
+                0 => ($systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals())->rocnik(),
                 1 => StavAktivity::NOVA,
                 2 => TypAktivity::interniTypy(),
             ],
@@ -3454,7 +3467,11 @@ SQL,
                 JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
                 JOIN kategorie_sjednocenych_tagu kst ON sjednocene_tagy.id_kategorie_tagu = kst.id
                 WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
-            ) AS tagy
+            ) AS tagy,
+            (SELECT GROUP_CONCAT(akce_sjednocene_tagy.id_tagu)
+                FROM akce_sjednocene_tagy
+                WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
+            ) AS ids_tagu
         FROM (
             SELECT t2.*,
                 IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp

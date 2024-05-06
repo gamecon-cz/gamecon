@@ -1,4 +1,4 @@
 <?php
 
-$osobniProgram=true;
-require_once('program-uzivatele.php');
+$osobniProgram = true;
+require __DIR__ . '/program-uzivatele.php';

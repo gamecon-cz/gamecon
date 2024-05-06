@@ -6,18 +6,19 @@ namespace Gamecon\Report;
 
 class KonfiguraceReportu
 {
-    public const NO_ROW_TO_FREEZE    = 0;
+    public const NO_ROW_TO_FREEZE = 0;
     public const NO_COLUMN_TO_FREEZE = '';
 
-    private $headerFontSize     = 10;
-    private $bodyFontSize       = 10;
-    private $rowToFreeze         = 1;
+    private $headerFontSize = 10;
+    private $bodyFontSize = 10;
+    private $rowToFreeze = 1;
     private $columnsToFreezeUpTo = self::NO_COLUMN_TO_FREEZE;
     /** @var null|int */
     private $maxGenericColumnWidth = null;
     /** @var int[] */
-    private         $columnsWidths   = [];
+    private $columnsWidths = [];
     private ?string $destinationFile = null;
+    private bool $useStringCellsOnly = false;
 
     public function getHeaderFontSize(): int
     {
@@ -27,6 +28,7 @@ class KonfiguraceReportu
     public function setHeaderFontSize(int $headerFontSize): self
     {
         $this->headerFontSize = $headerFontSize;
+
         return $this;
     }
 
@@ -38,6 +40,7 @@ class KonfiguraceReportu
     public function setBodyFontSize(int $bodyFontSize): self
     {
         $this->bodyFontSize = $bodyFontSize;
+
         return $this;
     }
 
@@ -49,6 +52,7 @@ class KonfiguraceReportu
     public function setRowToFreeze(int $rowToFreeze): self
     {
         $this->rowToFreeze = $rowToFreeze;
+
         return $this;
     }
 
@@ -64,6 +68,7 @@ class KonfiguraceReportu
     public function setColumnsToFreezeUpTo(string $columnsToFreezeUpTo): self
     {
         $this->columnsToFreezeUpTo = $columnsToFreezeUpTo;
+
         return $this;
     }
 
@@ -75,6 +80,7 @@ class KonfiguraceReportu
     public function setMaxGenericColumnWidth(?int $maxGenericColumnWidth): self
     {
         $this->maxGenericColumnWidth = $maxGenericColumnWidth;
+
         return $this;
     }
 
@@ -92,6 +98,7 @@ class KonfiguraceReportu
     public function setColumnsWidths(array $columnsWidths): self
     {
         $this->columnsWidths = $columnsWidths;
+
         return $this;
     }
 
@@ -105,4 +112,13 @@ class KonfiguraceReportu
         return $this->destinationFile;
     }
 
+    public function useStringCellsOnly(): bool
+    {
+        return $this->useStringCellsOnly;
+    }
+
+    public function setUseStringCellsOnly(bool $useStringCellsOnly): void
+    {
+        $this->useStringCellsOnly = $useStringCellsOnly;
+    }
 }

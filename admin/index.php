@@ -154,7 +154,7 @@ $xtpl->assign('a', $u->koncovkaDlePohlavi());
 $xtpl->assign('operator', $u->jmenoNick());
 if ($u && ($u->jeSuperAdmin() || $u->jeInfopultak())) {
     $dataOmnibox = [];
-    if ($u->jeInfopultak()) {
+    if ($u->jeInfopultak() && !$u->jeSuperAdmin()) {
         $dataOmnibox['jenSRolemi'] = [Role::LETOSNI_VYPRAVEC, Role::LETOSNI_PARTNER];
     }
     $xtpl->assign('dataOmniboxJson', htmlspecialchars(json_encode($dataOmnibox, JSON_FORCE_OBJECT)));

@@ -1,7 +1,7 @@
 
 <p align="center"><a href="http://gamecon.cz" target="_blank"><img width="346" height="55" src="http://gamecon.cz/soubory/styl/logo-github.png" alt="GameCon"></a></p>
 
-Web a informační systém (největšího československého) festivalu nepočítačových her [GameCon](https://gamecon.cz).
+_Web a informační systém (největšího československého) festivalu nepočítačových her [GameCon.cz](https://gamecon.cz)_
 
 ## Návod na rozjetí
 
@@ -16,15 +16,18 @@ Web a informační systém (největšího československého) festivalu nepočí
    - http://localhost/web
    - http://localhost/admin
 
-Další [vychytávky pro Docker](./navody/docker.md)
+Další [vychytávky pro Docker](./dokumentace/docker.md)
 
 ### Windows
--  [na holých Windows](./navody/windows.md) (to nechceš 🙄)
+-  [na holých Windows](./dokumentace/windows.md) (to nechceš 🙄)
 
 ## Návod na přispívání
 
 ### Git
 - Potřebuješ alespoň základy Gitu. Dobrá je online knížka [Pro Git](https://git-scm.com/book/cs/v2) (důležité jsou hlavně první tři kapitoly).
+
+### Code style
+- Abychom měli kód konzistentní, používáme `.editorconfig`
 
 ### Tvoje změny
 - Aby ti šlo rovnou vytvářet větve kódu v našem repositáři, nech se přidat do _Gamecon Github_ organizace https://github.com/gamecon-cz,
@@ -42,9 +45,9 @@ Další [vychytávky pro Docker](./navody/docker.md)
   - V žádosti nastavím někoho jako reviewer, nebo požádám někoho přes Trello v související kartě
   - Počkám na kontrolu a případné připomínky (připomínek se neboj, už jenom to že každá skupina má jiné zvyky může přinést žádost o úpravu dle Gamecon nářečí)
   - Pokud se objeví v review připomínky, přidám je do kódu jako nové commity a pushnu je do stejné větvě, viz výše
-  - Změny se nasadí automaticky v okamžiku zmergování pull requestu do `master` větve, viz [Github Actions](https://github.com/gamecon-cz/gamecon/actions/workflows/deploy-ostra.yml)
-- Jakmile je vše vyřešeno a schváleno, vrátím se do větve master pomocí `git checkout master` a pomocí `git pull` si v ní stáhnu nejnovější změny.
+  - Změny se nasadí automaticky v okamžiku zmergování pull requestu do `main` větve, viz [Github Actions](https://github.com/gamecon-cz/gamecon/actions/workflows/deploy-ostra.yml)
+- Jakmile je vše vyřešeno a schváleno, vrátím se do větve main pomocí `git checkout main` a pomocí `git pull` si v ní stáhnu nejnovější změny.
 
 ## Návod k externím zálohám databáze
 
-- Viz [Borg](./navody/borg.md)
+- Viz [Borg](./dokumentace/borg.md)

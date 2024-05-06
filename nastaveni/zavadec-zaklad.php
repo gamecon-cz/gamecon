@@ -22,7 +22,7 @@ $souborVerejnehoNastaveni = null;
 if (!empty($_COOKIE['test'])) {
     include __DIR__ . '/verejne-nastaveni-tests.php';
 }
-if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']) || ($_ENV['ENV'] ?? '') === 'local') {
+if (jsmeNaLocale()) {
     if (file_exists(__DIR__ . '/nastaveni-local.php')) {
         include __DIR__ . '/nastaveni-local.php'; // nepovinné lokální nastavení
     }

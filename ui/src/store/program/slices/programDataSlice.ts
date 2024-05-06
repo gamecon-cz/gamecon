@@ -1,5 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { APIAktivita, APIAktivitaPřihlášen, fetchAktivity, fetchAktivityPřihlášen } from "../../../api/program";
+import { APIAktivita, APIAktivitaPřihlášen, APIŠtítek, fetchAktivity, fetchAktivityPřihlášen, fetchŠtítky } from "../../../api/program";
 
 const DOTAŽENO = "dotaženo";
 
@@ -24,12 +24,14 @@ export type ProgramDataSlice = {
     aktivityPodleId: {
       [id: number]: AktivitaČást
     },
+    štítky: APIŠtítek[],
   },
 }
 
 export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () => ({
   data: {
     aktivityPodleId: {},
+    štítky: [],
   },
 });
 
@@ -49,4 +51,12 @@ export const načtiRok = async (rok: number) => {
       s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita };
     }
   }, undefined, "dotažení aktivit");
+};
+
+export const načtiŠtítky = async () => {
+  const štítky = await fetchŠtítky();
+
+  useProgramStore.setState(s => {
+    s.data.štítky = štítky;
+  }, undefined, "dotažení štítků");
 };

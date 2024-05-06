@@ -5,6 +5,10 @@
         href="mailto:info@gamecon.cz">info@gamecon.cz</a>.</p>
 <!-- end:konec -->
 
+<!-- begin:omluvaZaNedostupneUbytovani -->
+<p>{omluvaZaNedostupneUbytovani}</p>
+<!-- end:omluvaZaNedostupneUbytovani -->
+
 <div class="shopUbytovani_tabulka">
 
     <div class="shopUbytovani_prvniSloupec">

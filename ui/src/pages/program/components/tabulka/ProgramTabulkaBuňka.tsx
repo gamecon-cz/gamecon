@@ -2,14 +2,14 @@ import produce from "immer";
 import { FunctionComponent } from "preact";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
-import { useAktivita, useUrlState, useUživatelPohlaví } from "../../../../store/program/selektory";
+import { useAktivita, useUrlStav, useUživatelPohlaví } from "../../../../store/program/selektory";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 
-const aktivitaTřídy = (
+export const tabulkaBuňkaAktivitaTřídy = (
   aktivita: Aktivita,
   pohlavi: Pohlavi | undefined
 ) => {
@@ -54,7 +54,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
 
   const aktivita = useAktivita(aktivitaId);
   const pohlavi = useUživatelPohlaví();
-  const urlState = useUrlState();
+  const urlStav = useUrlStav();
 
   const onAktivitaOdkazKlik = (
     e: JSX.TargetedMouseEvent<HTMLAnchorElement>
@@ -72,10 +72,10 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   return (
     <>
       <td colSpan={rozsah}>
-        <div class={aktivitaTřídy(aktivita, pohlavi)}>
+        <div class={tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)}>
           <a
             href={generujUrl(
-              produce(urlState, (s) => {
+              produce(urlStav, (s) => {
                 s.aktivitaNáhledId = aktivita.id;
               })
             )}

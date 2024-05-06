@@ -1,10 +1,11 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import {
-  useAktivitaNáhled,
+  useAktivitaNáhled, useŠtítky,
 } from "../../../store/program/selektory";
 import { skryjAktivitaNáhledId } from "../../../store/program/slices/urlSlice";
 import { Obsazenost } from "./tabulka/Obsazenost";
+import { štítkyZId } from "../../../utils";
 
 type ProgramNáhledProps = {};
 
@@ -12,6 +13,7 @@ type ProgramNáhledProps = {};
 export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) => {
   const {} = props;
   const aktivita = useAktivitaNáhled();
+  const štítky = useŠtítky();
 
   const programNáhledTextRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +49,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               }}
             ></div>
             <div class="programNahled_stitky">
-              {aktivita?.stitky.map((x) => (
+              {štítkyZId(aktivita?.stitkyId, štítky).map((x) => (
                 <div class="programNahled_stitek">{x}</div>
               ))}
             </div>
@@ -85,7 +87,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
                     (aktivita?.slevaNasobic ?? 1)
                   : " - "
                 : "zdarma"}
-              <p style={{ opacity: 0.3, display:"inline" }}>
+              <p style={{ opacity: 0.3 }}>
                 {aktivita?.slevaNasobic !== undefined &&
                 aktivita?.slevaNasobic !== 1
                   ? `*(osobni sleva ${

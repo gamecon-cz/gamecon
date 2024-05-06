@@ -38,7 +38,7 @@ if (!$skipTests) {
 }
 
 // nasazení
-if ($vetev === 'master') {
+if ($vetev === 'main') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',

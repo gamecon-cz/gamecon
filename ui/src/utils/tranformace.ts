@@ -1,35 +1,10 @@
-import { APIAktivita, Obsazenost, OdDo } from "../api/program";
-import { containsSame } from ".";
-import { Aktivita } from "../store/program/slices/programDataSlice";
+import { APIAktivita, APIŠtítek, Obsazenost, OdDo } from "../api/program";
 
-
-export const tagyZAktivit = (aktivity: APIAktivita[]): string[] => {
-  const tagyMap = new Set<string>();
-
-  for (let i = aktivity.length; i--;) {
-    const { stitky } = aktivity[i];
-
-    for (let i = stitky.length; i--;) {
-      const stitek: string = stitky[i];
-      tagyMap.add(stitek);
-    }
-  }
-
-  return Array.from(tagyMap.keys()).sort();
-};
-
-/**
- * @param denVyber Zatím dokud nebude vyřešeno jinak
- */
-export const getFiltredActivities = (activity: APIAktivita[], linie: string[], tagy: string[], denVyber: string): APIAktivita[] => {
-  console.log(denVyber);
-  return (
-    tagy.length
-      ? activity.filter(a => containsSame(a.stitky, tagy))
-      : activity
-  )
-    .filter(x => containsSame([x.linie], linie));
-  // .filter(x => x.cas.den === denVyber)
+export const štítkyZId = (štítkyId: number[] | undefined, štítky: APIŠtítek[]) => {
+  return štítkyId
+    ?.map(id => štítky.find(štítek => štítek.id === id)?.nazev)
+    ?.filter(název=> název)
+    ?? [];
 };
 
 export const volnoTypZObsazenost = (obsazenost: Obsazenost) => {
@@ -54,9 +29,13 @@ export const volnoTypZObsazenost = (obsazenost: Obsazenost) => {
 };
 
 export const casRozsahZAktivit = (aktivity: APIAktivita[]): OdDo => {
-  // TODO: better way, spread operator passes arguments through stack, not optimal
-  const casOd = Math.min(...aktivity.map(x => x.cas.od));
-  const casDo = Math.max(...aktivity.map(x => x.cas.do));
+  let casOd = Math.min();
+  let casDo = Math.max();
+
+  for (const aktivita of aktivity) {
+    casOd = Math.min(casOd, aktivita.cas.od);
+    casDo = Math.max(casDo, aktivita.cas.do);
+  }
 
   return { od: casOd, do: casDo };
 };
