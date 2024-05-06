@@ -2460,7 +2460,6 @@ HTML
     }
 
     /**
-     * Vrátí iterátor tagů
      * @return string[]
      */
     public function tagy(): array
@@ -2472,12 +2471,17 @@ HTML
     }
 
     /**
-     * Vrátí iterátor tagů
-     * @return string[]
+     * @return int[]
      */
     public function tagyId(): array
     {
-        return dbFetchColumn('SELECT id_tagu FROM `akce_sjednocene_tagy` WHERE id_akce = $1', [$this->id()]);
+        if ($this->a['ids_tagu']) {
+            return array_map(
+                'intval',
+                explode(',', $this->a['ids_tagu'])
+            );
+        }
+        return [];
     }
 
     public function nastavTagy(array $tagy)
@@ -3463,7 +3467,11 @@ SQL,
                 JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
                 JOIN kategorie_sjednocenych_tagu kst ON sjednocene_tagy.id_kategorie_tagu = kst.id
                 WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
-            ) AS tagy
+            ) AS tagy,
+            (SELECT GROUP_CONCAT(akce_sjednocene_tagy.id_tagu)
+                FROM akce_sjednocene_tagy
+                WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
+            ) AS ids_tagu
         FROM (
             SELECT t2.*,
                 IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp

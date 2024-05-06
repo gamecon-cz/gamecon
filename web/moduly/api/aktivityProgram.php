@@ -8,7 +8,7 @@ use Gamecon\Aktivita\Aktivita;
 
 $u = Uzivatel::zSession();
 
-// TODO: remove tesing snippet: 
+// TODO: remove tesing snippet:
 /*
 var downloadAsJSON = (storageObj, name= "object") =>{
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(storageObj));
@@ -20,7 +20,7 @@ var downloadAsJSON = (storageObj, name= "object") =>{
 
 Promise.all(
   [2016, 2017, 2022]
-    .map(rok => 
+    .map(rok =>
       fetch(`/web/api/aktivityProgram?rok=${rok}`, {method:"POST"})
         .then(x=>x.json())
         .catch(x=>[])
@@ -48,7 +48,7 @@ $rok = array_key_exists("rok", $_GET) ? intval($_GET["rok"], 10) : ROK;
 
 $aktivity = Aktivita::zFiltru(["rok" => $rok]);
 
-foreach ($aktivity as &$a) {
+foreach ($aktivity as $a) {
   if (!$a->zacatek()) continue;
   if (!$a->viditelnaPro($u)) continue;
 
@@ -56,9 +56,7 @@ foreach ($aktivity as &$a) {
     return $o->jmenoNick();
   }, $a->organizatori());
 
-  $stitkyId = array_map(function ($stitekId) {
-    return (int)$stitekId;
-  }, $a->tagyId());
+  $stitkyId = $a->tagyId();
 
   $aktivitaRes = [
     'id'        =>  $a->id(),
