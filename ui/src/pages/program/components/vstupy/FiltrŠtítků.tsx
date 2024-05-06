@@ -95,8 +95,6 @@ export const FiltrŠtítků: React.FC<TFiltrŠtítkůProps> = (props) => {
       });
     }, [vybranéŠtítkyPodleKategorie]);
 
-  console.log({ štítkyMožnosti, vybranéŠtítkySKategorií, vybranéŠtítkyPodleKategorie });
-
   return <>
     <Select<ŠttítekValueLabel, true>
       placeholder="Tagy"

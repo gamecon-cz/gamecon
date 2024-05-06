@@ -83,13 +83,13 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
     aktivityFiltrované = aktivityFiltrované
       .filter(aktivita => new Date(aktivita.cas.od).getFullYear() === ročník);
 
-  if (výběr !== undefined)
+  if (výběr?.typ === "můj") {
     aktivityFiltrované = aktivityFiltrované
-      .filter((aktivita) =>
-        výběr.typ === "můj"
-          ? aktivita?.stavPrihlaseni != undefined
-          : new Date(aktivita.cas.od).getDay() === výběr.datum.getDay()
-      );
+      .filter((aktivita) => aktivita?.stavPrihlaseni != undefined || aktivita?.vedu);
+  } else if (výběr?.typ === "den") {
+    aktivityFiltrované = aktivityFiltrované
+      .filter((aktivita) => new Date(aktivita.cas.od).getDay() === výběr.datum.getDay());
+  }
 
   if (filtrLinie)
     aktivityFiltrované = aktivityFiltrované
