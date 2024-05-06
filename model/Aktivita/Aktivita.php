@@ -285,10 +285,8 @@ SQL
     /** Délka aktivity v hodinách (float) */
     public function delka(): float
     {
-        if (($zacatek = $this->zacatek()) && ($konec = $this->konec())) {
-            return $konec->getTimestamp() > $zacatek->getTimestamp() ? 
-                ($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600 : 
-                ($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600 + 24;
+        if (($zacatek = $this->zacatek()) && ($konec = $this->konec())) { 
+            return (($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600 + 24) % 24;
         }
         return 0.0;
     }
@@ -303,10 +301,8 @@ SQL
      */
     public function denCas(): string
     {
-        if ($this->zacatek() && $this->konec()) {
-            return $this->zacatek()->format('H') > PROGRAM_ZACATEK 
-                ? $this->zacatek()->format('l G') . '–' . $this->konec()->format('G')
-                : (clone $this->zacatek())->minusDen()->format('l G') . '–' . $this->konec()->format('G');
+        if ($this->den() && $this->konec()) {
+            return $this->den()->format('l G') . '–' . $this->konec()->format('G');
         }
         return '';
     }
@@ -316,10 +312,15 @@ SQL
      */
     public function den(): DateTimeCz|null
     {
-        if ($this->zacatek()) {
-            return $this->zacatek()->format('H') > PROGRAM_ZACATEK 
-                ? $this->zacatek()
-                : (clone $this->zacatek())->minusDen();
+        return self::denAktivity($this);
+    }
+
+    private static function denAktivity(?Aktivita $aktivita): DateTimeCz|null
+    {
+        if ($aktivita && $aktivita->zacatek()) {
+            return $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK 
+                ? $aktivita->zacatek()
+                : (clone $aktivita->zacatek())->minusDen();
         }
     }
 
@@ -567,12 +568,7 @@ SQL
 
     private static function parseUpravyTabulkaDen(?Aktivita $aktivita, XTemplate $xtpl)
     {
-        $denAktivity = null;
-        if ($aktivita && $aktivita->zacatek()) {
-            $denAktivity = $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK 
-                ? $aktivita->zacatek() 
-                : $aktivita->zacatek()->minusDen();
-        }
+        $denAktivity = self::denAktivity($aktivita);
         $xtpl->assign([
             'selected' => $aktivita && !$aktivita->zacatek() ? 'selected' : '',
             'den'      => 0,

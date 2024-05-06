@@ -111,7 +111,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                     const hodinOd = new Date(aktivita.cas.od).getHours();
                     const hodinDo = new Date(aktivita.cas.do).getHours();
 
-                    const časOdsazení = hodinOd > posledníAktivitaDo ? hodinOd - posledníAktivitaDo : hodinOd + 24 - posledníAktivitaDo;
+                    const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
                     posledníAktivitaDo = hodinDo;
                     const odsazení = range(časOdsazení).map(() => <td></td>);
 
@@ -125,11 +125,10 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                       </>
                     );
                   })}
-                {posledníAktivitaDo > 0
-                  ? range(
-                      GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo
-                    ).map(() => <td></td>)
-                  : undefined}
+                {
+                  range((GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24)
+                    .map(() => <td></td>)
+                }
               </tr>
             );
           })}
