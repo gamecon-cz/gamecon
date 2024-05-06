@@ -108,6 +108,8 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
             />
           </div>
           <div style={{ flex: "1" }}>
+          {// TODO: Vytvořit filtr štítků stejně jako je v adminu → aktivity → nová aktivita → tagy
+          }
             <Select<TValueLabel<string>, true>
               placeholder="Tagy"
               options={tagySPočtemAktivit.map((x) => ({
