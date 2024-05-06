@@ -2,7 +2,7 @@ import { useProgramStore } from ".";
 import { Pohlavi, PřihlášenýUživatel } from "../../api/přihlášenýUživatel";
 import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
 import shallow from "zustand/shallow";
-import { FiltrAktivit, filtrujAktivity, KategorieŠtítků } from "./logic/aktivity";
+import { FiltrAktivit, filtrujAktivity, MapováníŠtítků, vytvořMapováníŠtítků } from "./logic/aktivity";
 import { Aktivita, filtrujDotaženéAktivity, jeAktivitaDotažená } from "./slices/programDataSlice";
 import { distinct } from "../../utils";
 import { useMemo } from "preact/hooks";
@@ -16,11 +16,8 @@ const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
 const useŠtítkyMapováníKategorieŠtítků = () => {
   const štítky = useŠtítky();
 
-  const mapování: KategorieŠtítků =
-    useMemo(
-      () => Object.fromEntries(štítky.map(x => [x.nazev, x.nazevKategorie])),
-      [štítky]
-    );
+  const mapování: MapováníŠtítků =
+    useMemo(() => vytvořMapováníŠtítků(štítky), [štítky]);
 
   return mapování;
 };
@@ -120,13 +117,13 @@ export const useŠtítkyVybranéPodleKategorie = () => {
   return vybranéŠtítkyPodleKategorie;
 };
 
-export const useŠtítkyPočetAktivit = () =>{
+export const useŠtítkyPočetAktivit = () => {
   const štítky = useŠtítky();
   const aktivityDotažené = useAktivityDotažené();
   const mapaŠtítků = useŠtítkyMapováníKategorieŠtítků();
   const filtr = useFiltrAktivitNeboZeStavu();
 
-  const štítekSPočtemAktivit = štítky.map(štítek =>({
+  const štítekSPočtemAktivit = štítky.map(štítek => ({
     štítek: štítek.nazev,
     počet: filtrujAktivity(aktivityDotažené, {
       ...filtr,

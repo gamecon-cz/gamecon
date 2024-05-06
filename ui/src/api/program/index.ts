@@ -47,6 +47,7 @@ export type APIAktivita = {
   obrazek: string,
   vypraveci: string[],
   stitky: string[],
+  stitkyId: string[],
   cenaZaklad: number,
   casText: string,
   cas: OdDo,
