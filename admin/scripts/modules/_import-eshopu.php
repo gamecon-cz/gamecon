@@ -68,9 +68,9 @@ $cisloNeboNull = static fn($hodnota) => trim((string)$hodnota) !== ''
     ? $hodnota
     : null;
 
-$hodnotaNeboKodZNazvu = static fn($hodnota, string $nazev, $rok) => trim((string)$hodnota) !== ''
+$hodnotaNeboKodZNazvu = static fn($hodnota, string $nazev) => trim((string)$hodnota) !== ''
     ? $hodnota
-    : kodZNazvu($nazev . ' ' . trim((string)$rok));
+    : kodZNazvu($nazev);
 
 $trimRadek = static fn(array $radek) => array_map(
     static fn($hodnota) => is_string($hodnota)
@@ -86,6 +86,7 @@ $stringNullJakoNullRadek = static fn(array $radek) => array_map(
     $radek,
 );
 
+$kodyPredmetu   = [];
 $chyby          = [];
 $varovani       = [];
 $sqlValuesArray = [];
@@ -108,14 +109,12 @@ while ($rowIterator->valid()) {
             );
             continue;
         }
-
         $sqlValuesArray[] = '(' . dbQa([
                 $radek[$indexModelRok],
                 $radek[$indexNazev],
                 $hodnotaNeboKodZNazvu(
                     $radek[$indexKodPredmetu],
                     $radek[$indexNazev],
-                    $radek[$indexModelRok]
                 ),
                 $radek[$indexCenaAktualni],
                 $radek[$indexStav],
@@ -161,6 +160,7 @@ SQL,
 UPDATE shop_predmety
 JOIN `$temporaryTable` AS import
     ON shop_predmety.kod_predmetu = import.kod_predmetu
+    AND shop_predmety.model_rok = import.model_rok
 SET
     shop_predmety.nazev = import.nazev,
     shop_predmety.cena_aktualni = import.cena_aktualni,
@@ -191,8 +191,8 @@ SELECT import.`model_rok`,
     import.`popis`
 FROM `$temporaryTable` AS import
 LEFT JOIN shop_predmety AS uz_zname
-    ON uz_zname.nazev = import.nazev
-    AND uz_zname.model_rok = import.model_rok
+    ON uz_zname.kod_predmetu = import.kod_predmetu
+        AND uz_zname.model_rok = import.model_rok
 WHERE uz_zname.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme záznam přes ON podmínky nenašli
 SQL,
     );
@@ -202,6 +202,7 @@ SQL,
 UPDATE shop_predmety AS stare
 LEFT JOIN `$temporaryTable` AS import
     ON stare.kod_predmetu = import.kod_predmetu
+    AND stare.model_rok = import.model_rok
 SET stare.stav = $0
 WHERE import.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme záznam přes ON podmínky nenašli
 SQL,
