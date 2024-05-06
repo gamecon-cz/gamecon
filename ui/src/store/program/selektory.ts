@@ -4,6 +4,8 @@ import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
 import shallow from "zustand/shallow";
 import { FiltrAktivit, filtrujAktivity } from "./logic/aktivity";
 import { Aktivita, filtrujDotaženéAktivity, jeAktivitaDotažená } from "./slices/programDataSlice";
+import { distinct } from "../../utils";
+import { useMemo } from "preact/hooks";
 
 const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   const urlStav = useProgramStore((s) => s.urlStav);
@@ -44,8 +46,9 @@ export const useAktivitaNáhled = (): Aktivita | undefined =>
     return jeAktivitaDotažená(aktivita) ? aktivita : undefined;
   }, shallow);
 
+// TODO: pouze jako inspirace pro implementaci počtu aktivit pro štítek, potom smazat
 /**
- * Tagy s počtem aktivit které mají filtr daný ročník
+ * @deprecated použít useŠtítkyPodleKategorie
  */
 export const useTagySPočtemAktivit = () => {
   const urlStavMožnosti = useUrlStavMožnosti();
@@ -68,6 +71,21 @@ export const useTagySPočtemAktivit = () => {
 
   return Array.from(tagyPočetVRočníku).map(x => ({ tag: x[0], celkemVRočníku: x[1] }))
     .sort((a, b) => b.celkemVRočníku - a.celkemVRočníku);
+};
+
+export const useŠtítkyPodleKategorie = () => {
+  const štítky = useProgramStore((s) => s.data.štítky);
+
+  const štítkyPodleKategorie = useMemo(() => {
+    const všechnyKategorie = distinct(štítky.map(x => x.nazevKategorie));
+    
+    return všechnyKategorie.map(kategorie => ({
+      kategorie: kategorie,
+      štítky: štítky.filter(štítek => štítek.nazevKategorie === kategorie)
+    }));
+  }, [štítky]);
+
+  return štítkyPodleKategorie;
 };
 
 export const useUrlStav = (): ProgramURLStav => useProgramStore(s => s.urlStav);

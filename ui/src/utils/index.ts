@@ -9,3 +9,10 @@ export const tryParseNumber = (str: string | null): number | undefined => {
   const maybeNumber = +str;
   if (str && !Number.isNaN(maybeNumber)) return maybeNumber;
 };
+
+/**
+ * Match the first character of the string and capitalize it
+ */
+export const mb_ucfirst = (input: string): string => {
+  return input.replace(/^./u, match => match.toUpperCase());
+}
