@@ -2,10 +2,12 @@ import React from "react";
 import { useMemo } from "preact/hooks";
 import Select, { GroupBase, GroupProps, MultiValueProps, OptionsOrGroups, components } from "react-select";
 import { useAktivityFiltrované, useŠtítkyPodleKategorie, useŠtítkyPočetAktivit, useŠtítkyVybranéPodleKategorie } from "../../../../store/program/selektory";
-import { nastavFiltrTagů } from "../../../../store/program/slices/urlSlice";
-import { TValueLabel, asValueLabel } from "../../../../utils";
+import { nastavFiltrŠtítků } from "../../../../store/program/slices/urlSlice";
+import { asValueLabel } from "../../../../utils";
 
-type ŠttítekValueLabel = TValueLabel<string> & {
+type ŠttítekValueLabel = {
+  value: number;
+  label: string;
   početMožností?: number;
   /** pokud číslo značí kolik vybráním této možnosti přibyde aktivit */
   početMožnostíNavíc?: boolean;
@@ -61,10 +63,13 @@ export const FiltrŠtítků: React.FC<TFiltrŠtítkůProps> = (props) => {
   const štítkyMožnosti: OptionsOrGroups<ŠttítekValueLabel, GroupBase<ŠttítekValueLabel>> =
     štítkyPodleKategorie.map(({ kategorie, štítky }) => ({
       label: kategorie,
-      options: štítky.map(x => x.nazev)
+      options: štítky
         .map(((štítek) => {
-          const valueLabel: ŠttítekValueLabel = asValueLabel(štítek);
-          const početAktivitŠtítku = štítkySPočtemAktivit.find(x => x.štítek === štítek)?.počet ?? -1;
+          const valueLabel: ŠttítekValueLabel = {
+            value: štítek.id,
+            label: štítek.nazev,
+          };
+          const početAktivitŠtítku = štítkySPočtemAktivit.find(x => x.štítekId === štítek.id)?.počet ?? -1;
           if (početAktivitŠtítku >= 0) {
             valueLabel.početMožností = početAktivitŠtítku;
             if (početAktivitŠtítku >= početAktivit) {
@@ -79,12 +84,18 @@ export const FiltrŠtítků: React.FC<TFiltrŠtítkůProps> = (props) => {
   const vybranéŠtítkySKategorií = useMemo(
     () => {
       return vybranéŠtítkyPodleKategorie.flatMap(({ kategorie, štítky }) => {
-        const kat: ŠttítekValueLabel = asValueLabel(kategorie);
+        // TODO: opravit typování
+        const kat: ŠttítekValueLabel = asValueLabel(kategorie) as any;
         kat.jeNázevKategorie = true;
-        return [kat].concat(štítky.map(x => x.nazev).map(asValueLabel)
+        return [kat].concat(štítky.map(štítek => ({
+          value: štítek.id,
+          label: štítek.nazev,
+        }))
         );
       });
-    }, [vybranéŠtítkyPodleKategorie, štítkySPočtemAktivit]);
+    }, [vybranéŠtítkyPodleKategorie]);
+
+  console.log({ štítkyMožnosti, vybranéŠtítkySKategorií, vybranéŠtítkyPodleKategorie });
 
   return <>
     <Select<ŠttítekValueLabel, true>
@@ -94,7 +105,8 @@ export const FiltrŠtítků: React.FC<TFiltrŠtítkůProps> = (props) => {
       closeMenuOnSelect={false}
       value={vybranéŠtítkySKategorií}
       onChange={(e) => {
-        nastavFiltrTagů(e.filter(x => !x?.jeNázevKategorie).map((x) => x.value));
+        console.log(e);
+        nastavFiltrŠtítků(e.filter(x => !x?.jeNázevKategorie).map((x) => x.value));
       }}
       components={{
         MultiValue: MultiValueŠtítky,

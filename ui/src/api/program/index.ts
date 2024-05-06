@@ -46,8 +46,8 @@ export type APIAktivita = {
   popis: string,
   obrazek: string,
   vypraveci: string[],
-  stitky: string[],
-  stitkyId: string[],
+  // stitky: string[],
+  stitkyId: number[],
   cenaZaklad: number,
   casText: string,
   cas: OdDo,
@@ -81,12 +81,12 @@ export type APIAktivitaPřihlášen = {
 }
 
 export type APIŠtítek = {
-  id: string,
+  id: number,
   nazev: string,
   nazevKategorie: string,
-  nazevHlavniKategorie: string,
-  idKategorieTagu: string,
-  poznamka: string,
+  // nazevHlavniKategorie: string,
+  // idKategorieTagu: string,
+  // poznamka: string,
 };
 
 export const fetchAktivity = async (rok: number): Promise<APIAktivita[]> => {

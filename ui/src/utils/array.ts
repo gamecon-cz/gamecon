@@ -1,3 +1,4 @@
+export const PRÁZDNÉ_POLE: [] = [];
 
 export const asArray = <T>(arrLike: T | T[]): T[] => {
   return Array.isArray(arrLike)

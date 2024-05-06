@@ -20,18 +20,12 @@ export type MapováníŠtítků = {
   idDoKategorie: {
     [štítekId: string]: string
   },
-  /** Klíč je název (APIŠtítek.nazev) hodnota je id (APIŠtítek.id) */
-  štítekLowercaseDoId: {
-    [štítekId: string]: string
-  },
 }
 
 export const vytvořMapováníŠtítků = (štítky: APIŠtítek[]): MapováníŠtítků => {
   const idDoKategorie = Object.fromEntries(štítky.map(x => [x.id, x.nazevKategorie]));
-  const štítekLowercaseDoId = Object.fromEntries(štítky.map(x => [x.nazev.toLowerCase(), x.id]));
   return {
     idDoKategorie,
-    štítekLowercaseDoId,
   };
 };
 
@@ -40,7 +34,7 @@ export type FiltrAktivit = Partial<{
   výběr: FiltrProgramTabulkaVýběr,
   filtrPřihlašovatelné: boolean,
   filtrLinie: string[],
-  filtrTagy: string[],
+  filtrTagy: number[],
   filtrStavAktivit: AktivitaStav[],
   filtrText: string,
 }>;
@@ -80,7 +74,7 @@ export const aktivitaStatusZAktivity = (
 // TODO: přidat zbytek filtrů
 export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníŠtítků: MapováníŠtítků) => {
   const {
-    filtrLinie, filtrPřihlašovatelné, filtrTagy, ročník, výběr, filtrStavAktivit, filtrText
+    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrŠtítkyId, ročník, výběr, filtrStavAktivit, filtrText
   } = filtr;
 
   let aktivityFiltrované = aktivity;
@@ -103,14 +97,8 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
         filtrLinie.some(x => x === aktivita.linie)
       );
 
-  if (filtrTagy) {
-    const filtrŠtítkyId = filtrTagy.map(štítek => mapováníŠtítků.štítekLowercaseDoId[štítek.toLowerCase()]);
-    // TODO: pravděpodobně existuje lepší řešení (tohle mapování má asi hodně bodů kde může dojít k chybě) pravděpodobně je dobré získat idkategorie hned z názvu v URL (v url chceme nějak zachovat pseudočitelnou verzi textu ať jde z url uhádnout co se filtruje)
-    if (filtrŠtítkyId.some(štítekId => !štítekId)) {
-      console.error(`nenalezeny štítky ${filtrŠtítkyId.map((x, i) => [x, i] as const).filter(x => !x[0]).map(x => filtrTagy[x[1]]).join(",")}`);
-    }
-
-    const štítkyIdPodleKategorie: { [kategorie: string]: string[] } = {};
+  if (filtrŠtítkyId) {
+    const štítkyIdPodleKategorie: { [kategorie: string]: number[] } = {};
     for (const štítekId of filtrŠtítkyId) {
       const kategorieŠtítku = mapováníŠtítků.idDoKategorie[štítekId] ?? "";
       if (!kategorieŠtítku) {

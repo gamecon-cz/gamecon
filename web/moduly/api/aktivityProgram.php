@@ -56,11 +56,9 @@ foreach ($aktivity as &$a) {
     return $o->jmenoNick();
   }, $a->organizatori());
 
-  $stitky = array_map(function ($s) {
-    return mb_ucfirst($s);
-  }, $a->tagy());
-
-  $stitkyId = $a->tagyId();
+  $stitkyId = array_map(function ($stitekId) {
+    return (int)$stitekId;
+  }, $a->tagyId());
 
   $aktivitaRes = [
     'id'        =>  $a->id(),
@@ -69,7 +67,6 @@ foreach ($aktivity as &$a) {
     'popis'     =>  $a->popis(),
     'obrazek'   =>  (string) $a->obrazek(),
     'vypraveci' =>  $vypraveci,
-    'stitky'    =>  $stitky,
     'stitkyId'  =>  $stitkyId,
     // TODO: cenaZaklad by měla být číslo ?
     'cenaZaklad'      => intval($a->cenaZaklad()),

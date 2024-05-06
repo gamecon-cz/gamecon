@@ -21,12 +21,12 @@ $res = $editorTagu->getTagy();
 $res = array_map(
   static function ($stitek) {
     return  [
-      'id' => $stitek['id'],
+      'id' => (int)$stitek['id'],
       'nazev' => $stitek['nazev'],
       'nazevKategorie' => $stitek['nazev_kategorie'],
-      'nazevHlavniKategorie' => $stitek['nazev_hlavni_kategorie'],
-      'idKategorieTagu' => $stitek['id_kategorie_tagu'],
-      'poznamka' => $stitek['poznamka'],
+      // 'nazevHlavniKategorie' => $stitek['nazev_hlavni_kategorie'],
+      // 'idKategorieTagu' => $stitek['id_kategorie_tagu'],
+      // 'poznamka' => $stitek['poznamka'],
     ];
   },
   $res

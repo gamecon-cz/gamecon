@@ -4,7 +4,7 @@ import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
 import shallow from "zustand/shallow";
 import { FiltrAktivit, filtrujAktivity, MapováníŠtítků, vytvořMapováníŠtítků } from "./logic/aktivity";
 import { Aktivita, filtrujDotaženéAktivity, jeAktivitaDotažená } from "./slices/programDataSlice";
-import { distinct } from "../../utils";
+import { PRÁZDNÉ_POLE, distinct } from "../../utils";
 import { useMemo } from "preact/hooks";
 
 const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
@@ -56,33 +56,6 @@ export const useAktivitaNáhled = (): Aktivita | undefined =>
     return jeAktivitaDotažená(aktivita) ? aktivita : undefined;
   }, shallow);
 
-// TODO: pouze jako inspirace pro implementaci počtu aktivit pro štítek, potom smazat
-/**
- * @deprecated použít useŠtítkyPodleKategorie
- */
-export const useTagySPočtemAktivit = () => {
-  const urlStavMožnosti = useUrlStavMožnosti();
-
-  const urlStav = useProgramStore((s) => s.urlStav);
-
-  const aktivvityRočník = useAktivityFiltrované({
-    ročník: urlStav.ročník,
-  });
-
-  const tagy = urlStavMožnosti.tagy;
-
-  const tagyPočetVRočníku = new Map<string, number>(tagy.map(x => [x, 0] as [string, number]));
-
-  for (const aktivita of aktivvityRočník) {
-    for (const tag of aktivita.stitky) {
-      tagyPočetVRočníku.set(tag, (tagyPočetVRočníku.get(tag) ?? 0) + 1);
-    }
-  }
-
-  return Array.from(tagyPočetVRočníku).map(x => ({ tag: x[0], celkemVRočníku: x[1] }))
-    .sort((a, b) => b.celkemVRočníku - a.celkemVRočníku);
-};
-
 export const useŠtítkyPodleKategorie = () => {
   const štítky = useŠtítky();
 
@@ -98,21 +71,20 @@ export const useŠtítkyPodleKategorie = () => {
   return štítkyPodleKategorie;
 };
 
-const prázdnéPole: string[] = [];
 export const useŠtítkyVybranéPodleKategorie = () => {
   const urlStav = useUrlStav();
-  const vybranéŠtítky = urlStav.filtrTagy ?? prázdnéPole;
+  const vybranéŠtítkyId = urlStav.filtrTagy ?? PRÁZDNÉ_POLE;
   const štítkyPodleKategorie = useŠtítkyPodleKategorie();
   const vybranéŠtítkyPodleKategorie = useMemo(
     () =>
       štítkyPodleKategorie
         .map(({ kategorie, štítky }) => ({
           kategorie,
-          štítky: štítky.filter(štítek => vybranéŠtítky.some(x => x === štítek.nazev))
+          štítky: štítky.filter(štítek => vybranéŠtítkyId.some(x => x === štítek.id))
         }))
         .filter(x => x.štítky.length)
     ,
-    [štítkyPodleKategorie, vybranéŠtítky]);
+    [štítkyPodleKategorie, vybranéŠtítkyId]);
 
   return vybranéŠtítkyPodleKategorie;
 };
@@ -124,10 +96,10 @@ export const useŠtítkyPočetAktivit = () => {
   const filtr = useFiltrAktivitNeboZeStavu();
 
   const štítekSPočtemAktivit = štítky.map(štítek => ({
-    štítek: štítek.nazev,
+    štítekId: štítek.id,
     počet: filtrujAktivity(aktivityDotažené, {
       ...filtr,
-      filtrTagy: (filtr.filtrTagy ?? []).concat([štítek.nazev]),
+      filtrTagy: (filtr.filtrTagy ?? []).concat([štítek.id]),
     }, mapaŠtítků).length,
   }));
 
