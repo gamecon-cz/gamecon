@@ -208,7 +208,7 @@ WHERE import.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme zázn
 SQL,
         [0 => StavPredmetu::MIMO],
     );
-    $pocetNovych = dbAffectedOrNumRows($mysqliResult);
+    $pocetVyrazenych = dbAffectedOrNumRows($mysqliResult);
 
     dbQuery(<<<SQL
 DROP TEMPORARY TABLE `$temporaryTable`
@@ -216,4 +216,4 @@ SQL,
     );
 }
 
-oznameni("Import dokončen. Přidáno {$pocetNovych} nových položek, upraveno {$pocetZmenenych} stávajících.");
+oznameni("Import dokončen. Přidáno {$pocetNovych} nových položek, upraveno {$pocetZmenenych} stávajících, vyřazeno {$pocetVyrazenych} starých.");
