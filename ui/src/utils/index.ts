@@ -9,3 +9,21 @@ export const tryParseNumber = (str: string | null): number | undefined => {
   const maybeNumber = +str;
   if (str && !Number.isNaN(maybeNumber)) return maybeNumber;
 };
+
+/**
+ * Match the first character of the string and capitalize it
+ */
+export const mb_ucfirst = (input: string): string => {
+  return input.replace(/^./u, match => match.toUpperCase());
+}
+
+export type TValueLabel<T = any> = {
+  value: T;
+  label: T;
+};
+
+export const asValueLabel = <T,>(obj: T): TValueLabel<T> => ({
+  value: obj,
+  label: obj,
+});
+

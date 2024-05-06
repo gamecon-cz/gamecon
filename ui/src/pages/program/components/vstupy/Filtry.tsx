@@ -1,9 +1,8 @@
 import { FunctionComponent } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import Select from "react-select";
 import { GAMECON_KONSTANTY, ROKY } from "../../../../env";
 import {
-  useTagySPočtemAktivit,
   useUrlStav,
   useUrlStavMožnosti,
 } from "../../../../store/program/selektory";
@@ -11,15 +10,15 @@ import {
   nastavFiltrLinií,
   nastavFiltrPřihlašovatelné,
   nastavFiltrRočník,
-  nastavFiltrTagů,
   nastavFiltrTextu,
 } from "../../../../store/program/slices/urlSlice";
 
 import "./ReactSelect.less";
 import "./Filtry.less";
-import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
+import { FiltrŠtítků } from "./FiltrŠtítků";
+import { asValueLabel } from "../../../../utils";
 import { useProgramStore } from "../../../../store/program";
-import React, { ReactNode, useCallback } from "react";
+import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 
 type TFiltryProps = {
   otevřeno: boolean;
@@ -29,37 +28,13 @@ const ROKY_OPTIONS = ROKY.concat(GAMECON_KONSTANTY.ROCNIK)
   .map((x) => ({ value: x, label: x }))
   .reverse();
 
-type TValueLabel<T = any> = {
-  value: T;
-  label: T;
-  početMožností?: number;
-};
-
-const asValueLabel = <T,>(obj: T): TValueLabel<T> => ({
-  value: obj,
-  label: obj,
-});
-
-const formatOptionLabel = (data: TValueLabel): ReactNode =>
-  (
-    <div class="react_select_option--container">
-      <span>{data.label}</span>
-      {data.početMožností !== undefined ? (
-        <span class="react_select_option--badge">
-          {data.početMožností === 0 ? "-" : data.početMožností}
-        </span>
-      ) : undefined}
-    </div>
-  ) as any;
 
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
-  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrTagy, filtrText } = useUrlStav();
+  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrText } = useUrlStav();
 
   const urlStavMožnosti = useUrlStavMožnosti();
-
-  const tagySPočtemAktivit = useTagySPočtemAktivit();
 
   const { zvětšeno, kompaktní } = useProgramStore(s => s.všeobecné);
   const [odkazZkopírován, setOdkazZkopírován] = useState(0);
@@ -108,20 +83,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
             />
           </div>
           <div style={{ flex: "1" }}>
-            <Select<TValueLabel<string>, true>
-              placeholder="Tagy"
-              options={tagySPočtemAktivit.map((x) => ({
-                ...asValueLabel(x.tag),
-                početMožností: x.celkemVRočníku,
-              }))}
-              isMulti
-              closeMenuOnSelect={false}
-              value={filtrTagy?.map(asValueLabel) ?? []}
-              onChange={(e) => {
-                nastavFiltrTagů(e.map((x) => x.value));
-              }}
-              formatOptionLabel={formatOptionLabel}
-            />
+            <FiltrŠtítků />
           </div>
           <div style={{ minWidth: "300px" }} class="formular_polozka">
             <input style={{ marginTop: 0, height: "38px" }} placeholder="Hledej v textu"
@@ -157,9 +119,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           <button class={
             "program_filtry_tlacitko"
             + (kompaktní ? " aktivni" : "")
-          } onClick={() => {
-            přepniKompaktní();
-          }}>Kompaktní</button>
+          } onClick={přepniKompaktní}>Kompaktní</button>
         </div>
       </div>
     </>

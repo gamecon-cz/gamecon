@@ -18,7 +18,7 @@ export type ProgramURLStav = {
   filtrPřihlašovatelné: boolean,
   aktivitaNáhledId?: number,
   filtrLinie?: string[],
-  filtrTagy?: string[],
+  filtrTagy?: number[],
   filtrStavAktivit?: AktivitaStav[],
   filtrText?: string,
 }

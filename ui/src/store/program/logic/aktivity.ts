@@ -1,4 +1,4 @@
-import { AktivitaStav } from "../../../api/program";
+import { APIŠtítek, AktivitaStav } from "../../../api/program";
 import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { volnoTypZObsazenost } from "../../../utils";
@@ -15,12 +15,26 @@ export type FiltrProgramTabulkaVýběr =
       datum: Date;
     };
 
+export type MapováníŠtítků = {
+  /** Klíč je id (APIŠtítek.id) hodnota je kategorie štítku (APIŠtítek.nazevKategorie) */
+  idDoKategorie: {
+    [štítekId: string]: string
+  },
+}
+
+export const vytvořMapováníŠtítků = (štítky: APIŠtítek[]): MapováníŠtítků => {
+  const idDoKategorie = Object.fromEntries(štítky.map(x => [x.id, x.nazevKategorie]));
+  return {
+    idDoKategorie,
+  };
+};
+
 export type FiltrAktivit = Partial<{
   ročník: number,
   výběr: FiltrProgramTabulkaVýběr,
   filtrPřihlašovatelné: boolean,
   filtrLinie: string[],
-  filtrTagy: string[],
+  filtrTagy: number[],
   filtrStavAktivit: AktivitaStav[],
   filtrText: string,
 }>;
@@ -70,9 +84,10 @@ const jeAktivitaVeDni = (casAktivity: Date, datum: Date) => {
   }
 };
 
-export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
+// TODO: přidat zbytek filtrů
+export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníŠtítků: MapováníŠtítků) => {
   const {
-    filtrLinie, filtrPřihlašovatelné, filtrTagy, ročník, výběr, filtrStavAktivit, filtrText
+    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrŠtítkyId, ročník, výběr, filtrStavAktivit, filtrText
   } = filtr;
 
   let aktivityFiltrované = aktivity;
@@ -82,22 +97,40 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
       (aktivita) => new Date(aktivita.cas.od).getFullYear() === ročník
     );
 
-  if (výběr !== undefined)
-    aktivityFiltrované = aktivityFiltrované.filter((aktivita) =>
-      výběr.typ === "můj"
-        ? aktivita?.stavPrihlaseni != undefined
-        : jeAktivitaVeDni(new Date(aktivita.cas.od), výběr.datum)
-    );
+  if (výběr?.typ === "můj") {
+    aktivityFiltrované = aktivityFiltrované
+      .filter((aktivita) => aktivita?.stavPrihlaseni != undefined || aktivita?.vedu);
+  } else if (výběr?.typ === "den") {
+    aktivityFiltrované = aktivityFiltrované
+      .filter((aktivita) => jeAktivitaVeDni(new Date(aktivita.cas.od), výběr.datum));
+  }
 
   if (filtrLinie)
     aktivityFiltrované = aktivityFiltrované.filter((aktivita) =>
       filtrLinie.some((x) => x === aktivita.linie)
     );
 
-  if (filtrTagy)
-    aktivityFiltrované = aktivityFiltrované.filter((aktivita) =>
-      filtrTagy.some((x) => aktivita.stitky.some((stitek) => stitek === x))
-    );
+  if (filtrŠtítkyId) {
+    const štítkyIdPodleKategorie: { [kategorie: string]: number[] } = {};
+    for (const štítekId of filtrŠtítkyId) {
+      const kategorieŠtítku = mapováníŠtítků.idDoKategorie[štítekId] ?? "";
+      if (!kategorieŠtítku) {
+        console.error(`nenalezena kategorie pro štítek id: ${štítekId}`);
+      }
+      const kategorie = štítkyIdPodleKategorie[kategorieŠtítku] = štítkyIdPodleKategorie[kategorieŠtítku] ?? [];
+      kategorie.push(štítekId);
+    }
+
+    const štítkyIdPodleKategorieValues = Object.values(štítkyIdPodleKategorie);
+    aktivityFiltrované = aktivityFiltrované
+      .filter((aktivita) =>
+        štítkyIdPodleKategorieValues.every(štítkyIdZKategorie =>
+          štítkyIdZKategorie.some(štítekIdZKategorie =>
+            aktivita.stitkyId
+              .some(štítekId => štítekId === štítekIdZKategorie))
+        )
+      );
+  }
 
   // TODO: přihlašovatelnost aktivity dle pohlaví
   // TODO: přihlašovatelnost aktivity dle pohlaví přidat tooltip na tlačítko
@@ -141,10 +174,10 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit) => {
       limit: 1000,
     });
 
-    let idčka = výsledek.flatMap(x=>x.result) as number[];
+    let idčka = výsledek.flatMap(x => x.result) as number[];
     idčka = Array.from(new Set(idčka));
 
-    const filtr = idčka.map(id=>
+    const filtr = idčka.map(id =>
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       (flexDocument as any).get(id) as Aktivita
     );

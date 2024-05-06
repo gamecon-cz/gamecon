@@ -3,7 +3,7 @@ import { GAMECON_KONSTANTY } from "../../env";
 import { distinct } from "../../utils";
 import { LOCAL_STORAGE_KLÍČE } from "../localStorageKlíče";
 import { urlStavProgramTabulkaMožnostíDnyMůj } from "./logic/url";
-import { filtrujDotaženéAktivity, načtiRok } from "./slices/programDataSlice";
+import { filtrujDotaženéAktivity, načtiRok, načtiŠtítky } from "./slices/programDataSlice";
 import { nastavStateZUrl, nastavUrlZState } from "./slices/urlSlice";
 import { nastavFiltryOtevřené } from "./slices/všeobecnéSlice";
 
@@ -39,8 +39,6 @@ export const inicializujProgramStore = () => {
     useProgramStore.setState(s => {
       s.urlStavMožnosti.linie = distinct(filtrujDotaženéAktivity(data.aktivityPodleId).map(x => x.linie))
         .sort((a, b) => indexŘazeníLinie(a) - indexŘazeníLinie(b));
-      s.urlStavMožnosti.tagy = distinct(filtrujDotaženéAktivity(data.aktivityPodleId).map(x => x.stitky).flat(1))
-        .sort();
     });
   });
 
@@ -48,24 +46,44 @@ export const inicializujProgramStore = () => {
   if (přihlášenýUživatelPřednačteno) {
     useProgramStore.setState(s => {
       s.přihlášenýUživatel.data = přihlášenýUživatelPřednačteno;
-      console.log(přihlášenýUživatelPřednačteno);
     });
   }
 
+  //Tohle je cachování které bude vypnuté než se navrhne strategie jak to cachovat
+  // const dataProgramString = localStorage.getItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM);
+  // if (dataProgramString) {
+  //   try {
+  //     useProgramStore.setState(s => {
+  //       s.data = JSON.parse(dataProgramString);
+  //     }, undefined, "načtení uložených dat");
+  //   } catch (e) {
+  //     console.warn("nepodařilo se načíst data z local storage");
+  //   }
+  // }
+
+  // useProgramStore.subscribe(s => s.data, (data) => {
+  //   localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM, JSON.stringify(data));
+  // });
+
+  // tohle je prozatimní cachování štítků
   const dataProgramString = localStorage.getItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM);
   if (dataProgramString) {
     try {
       useProgramStore.setState(s => {
-        s.data = JSON.parse(dataProgramString);
-      }, undefined, "načtení uložených dat");
+        // s.data = JSON.parse(dataProgramString);
+        s.data.štítky = (JSON.parse(dataProgramString) as typeof s.data).štítky;
+      }, undefined, "načtení uložených dat POUZE ŠTÍTKY");
     } catch (e) {
-      console.warn("nepodařilo se načíst data z local storage");
+      console.warn("nepodařilo se načíst ŠTÍTKY z local storage");
     }
   }
 
-  useProgramStore.subscribe(s => s.data, (data) => {
-    localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM, JSON.stringify(data));
+  useProgramStore.subscribe(s => s.data, (data): void => {
+    localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM,
+      JSON.stringify(({ aktivityPodleId: {}, štítky: data.štítky } as typeof data)));
   });
+
+  void načtiŠtítky();
 
   const urlStav = useProgramStore.getState().urlStav;
   void načtiRok(urlStav.ročník);
