@@ -60,6 +60,8 @@ foreach ($aktivity as &$a) {
     return mb_ucfirst($s);
   }, $a->tagy());
 
+  $stitkyId = $a->tagyId();
+
   $aktivitaRes = [
     'id'        =>  $a->id(),
     'nazev'     =>  $a->nazev(),
@@ -68,6 +70,7 @@ foreach ($aktivity as &$a) {
     'obrazek'   =>  (string) $a->obrazek(),
     'vypraveci' =>  $vypraveci,
     'stitky'    =>  $stitky,
+    'stitkyId'  =>  $stitkyId,
     // TODO: cenaZaklad by měla být číslo ?
     'cenaZaklad'      => intval($a->cenaZaklad()),
     'casText'   =>  $a->zacatek() ? $a->zacatek()->format('G') . ':00&ndash;' . $a->konec()->format('G') . ':00' : "",

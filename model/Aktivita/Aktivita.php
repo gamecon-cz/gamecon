@@ -2471,6 +2471,15 @@ HTML
         return [];
     }
 
+    /**
+     * Vrátí iterátor tagů
+     * @return string[]
+     */
+    public function tagyId(): array
+    {
+        return dbFetchColumn('SELECT id_tagu FROM `akce_sjednocene_tagy` WHERE id_akce = $1', [$this->id()]);
+    }
+
     public function nastavTagy(array $tagy)
     {
         // nastavit tagy aktivitám

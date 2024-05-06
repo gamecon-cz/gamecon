@@ -62,6 +62,8 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
     stitky: [
       "Turnaj"
     ],
+    // TODO:
+    stitkyId: [],
     cenaZaklad: 90,
     casText: "10:00&ndash;15:00",
     cas,
