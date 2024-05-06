@@ -1,8 +1,0 @@
----
-- name: Gamecon server installation and configuration
-  hosts: vpsfree.gamecon.cz
-
-  roles:
-    - database
-    - webserver
-    - sftp
