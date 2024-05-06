@@ -46,7 +46,6 @@ export const inicializujProgramStore = () => {
   if (přihlášenýUživatelPřednačteno) {
     useProgramStore.setState(s => {
       s.přihlášenýUživatel.data = přihlášenýUživatelPřednačteno;
-      console.log(přihlášenýUživatelPřednačteno);
     });
   }
 
