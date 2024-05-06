@@ -3343,7 +3343,7 @@ SQL,
         $aktivity = self::zWhere(
             where1: 'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
             args: [
-                0 => ROCNIK,
+                0 => ($systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals())->rocnik(),
                 1 => StavAktivity::NOVA,
                 2 => TypAktivity::interniTypy(),
             ],
