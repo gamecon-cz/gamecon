@@ -285,7 +285,7 @@ SQL
     /** Délka aktivity v hodinách (float) */
     public function delka(): float
     {
-        if (($zacatek = $this->zacatek()) && ($konec = $this->konec())) { 
+        if (($zacatek = $this->zacatek()) && ($konec = $this->konec())) {
             return (($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600 + 24) % 24;
         }
         return 0.0;
@@ -318,10 +318,11 @@ SQL
     private static function denAktivity(?Aktivita $aktivita): DateTimeCz|null
     {
         if ($aktivita && $aktivita->zacatek()) {
-            return $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK 
+            return $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK
                 ? $aktivita->zacatek()
                 : (clone $aktivita->zacatek())->minusDen();
         }
+        return null;
     }
 
     /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
