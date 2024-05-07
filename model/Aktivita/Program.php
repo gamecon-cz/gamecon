@@ -494,14 +494,14 @@ HTML;
      */
     private function tiskObsahuTabulky(?array &$aktivitaRaw, $denId = null)
     {
-        $aktivit = 0;
+        $pocetAktivit = 0;
         foreach ($this->skupiny as $typId => $typNazev) {
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
             if (!$this->nastaveni[self::PRAZDNE] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typId)) {
                 continue;
             }
             ob_start(); // výstup bufferujeme, pro případ že bude na víc řádků
-            $radku = 0;
+            $pocetRadku = 0;
             while ($aktivitaRaw && $typId == $aktivitaRaw['grp']) {
                 if ($denId && $aktivitaRaw['den'] != $denId) {
                     break;
@@ -516,34 +516,33 @@ HTML;
                         $skip = $aktivitaRaw['del'] - 1;
                         $this->tiskAktivity($aktivitaRaw);
                         $aktivitaRaw = $this->dalsiAktivita();
-                        $aktivit++;
+                        $pocetAktivit++;
                     } else {
                         echo '<td></td>';
                     }
                 }
                 echo '</tr><tr>';
-                $radku++;
+                $pocetRadku++;
             }
             $radky = substr(ob_get_clean(), 0, -4);
 
-            if ($radku > 0) {
+            if ($pocetRadku > 0) {
                 echo <<<HTML
 <tr class="linie">
-    <td rowspan="{$radku}">
+    <td rowspan="{$pocetRadku}">
         <div class="program_nazevLinie">{$typNazev}</div>
     </td>
 HTML;
                 echo $radky;
-            } else if ($this->nastaveni[self::PRAZDNE] && $radku == 0) {
+            } else if ($this->nastaveni[self::PRAZDNE] && $pocetRadku == 0) {
                 echo $this->prazdnaMistnost($typNazev);
             }
         }
 
-        if ($aktivit == 0) {
-            $sloupcu = count(Program::seznamHodinZacatku());
+        if ($pocetAktivit == 0) {
             echo <<<HTML
 <tr class="linie">
-    <td colspan="{$sloupcu}">
+    <td colspan="100%">
         Žádné aktivity tento den
     </td>
 </tr>
@@ -670,8 +669,8 @@ HTML;
             return null;
         }
 
-        return $a['zacatek'] > PROGRAM_ZACATEK 
-            ? new DateTimeCz($a['den']) 
+        return $a['zacatek'] > PROGRAM_ZACATEK
+            ? new DateTimeCz($a['den'])
             : (new DateTimeCz($a['den']))->plusDen();
     }
 
@@ -684,21 +683,23 @@ HTML;
             return null;
         }
 
-        return $a['konec'] > PROGRAM_ZACATEK 
-            ? new DateTimeCz($a['den']) 
+        return $a['konec'] > PROGRAM_ZACATEK
+            ? new DateTimeCz($a['den'])
             : (new DateTimeCz($a['den']))->plusDen();
     }
 
     /**
      * Vrátí range hodin, kdy začínají aktivity
-     * 
-     * @return array
+     * @return array<int>
      */
-    public static function seznamHodinZacatku() {
+    public static function seznamHodinZacatku(): array {
         static $hodinyZacatku = null;
         if ($hodinyZacatku === null) {
             if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
-                $hodinyZacatku = [...range(PROGRAM_ZACATEK, 24 - 1, 1), ...range(0, PROGRAM_KONEC - 1, 1)];
+                $hodinyZacatku = [
+                    ...range(PROGRAM_ZACATEK, 24 - 1, 1),
+                    ...range(0, PROGRAM_KONEC - 1, 1),
+                ];
             } else {
                 $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
             }

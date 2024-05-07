@@ -27,3 +27,8 @@ export const asValueLabel = <T,>(obj: T): TValueLabel<T> => ({
   label: obj,
 });
 
+export const datumPřidejDen = (datum: Date, dny = 1) =>{
+  const výsledek = new Date(datum);
+  výsledek.setDate(výsledek.getDate() + dny);
+  return výsledek;
+};

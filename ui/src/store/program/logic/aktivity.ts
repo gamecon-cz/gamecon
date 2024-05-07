@@ -1,19 +1,19 @@
 import { APIŠtítek, AktivitaStav } from "../../../api/program";
 import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
-import { volnoTypZObsazenost } from "../../../utils";
+import { datumPřidejDen, volnoTypZObsazenost } from "../../../utils";
 import { Aktivita } from "../slices/programDataSlice";
 // Pozor musí být defaultní import!
 import FlexSearch from "flexsearch";
 
 export type FiltrProgramTabulkaVýběr =
   | {
-      typ: "můj";
-    }
+    typ: "můj";
+  }
   | {
-      typ: "den";
-      datum: Date;
-    };
+    typ: "den";
+    datum: Date;
+  };
 
 export type MapováníŠtítků = {
   /** Klíč je id (APIŠtítek.id) hodnota je kategorie štítku (APIŠtítek.nazevKategorie) */
@@ -71,17 +71,10 @@ export const aktivitaStatusZAktivity = (
   return "volno";
 };
 
-const jeAktivitaVeDni = (casAktivity: Date, datum: Date) => {
-  if (GAMECON_KONSTANTY.PROGRAM_ZACATEK < GAMECON_KONSTANTY.PROGRAM_KONEC) {
-    return casAktivity.getDay() === datum.getDay();
-  } else {
-    return (
-      (casAktivity.getDay() === datum.getDay() &&
-        casAktivity.getHours() >= GAMECON_KONSTANTY.PROGRAM_ZACATEK) ||
-      (casAktivity.getDay() === (datum.getDay() + 1) % 7 &&
-        casAktivity.getHours() <= GAMECON_KONSTANTY.PROGRAM_KONEC)
-    );
-  }
+const denAktivity = (casAktivity: Date) => {
+  return casAktivity.getHours() >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
+    ? casAktivity
+    : datumPřidejDen(casAktivity, -1);
 };
 
 // TODO: přidat zbytek filtrů
@@ -102,7 +95,8 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       .filter((aktivita) => aktivita?.stavPrihlaseni != undefined || aktivita?.vedu);
   } else if (výběr?.typ === "den") {
     aktivityFiltrované = aktivityFiltrované
-      .filter((aktivita) => jeAktivitaVeDni(new Date(aktivita.cas.od), výběr.datum));
+      .filter((aktivita) => 
+        denAktivity(new Date(aktivita.cas.od)).getDay() === výběr.datum.getDay());
   }
 
   if (filtrLinie)
