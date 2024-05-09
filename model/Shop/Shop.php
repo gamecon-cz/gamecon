@@ -731,16 +731,16 @@ SQL,
 
     /**
      * Upraví objednávku z pole id $stare na pole $nove
-     * @todo zaintegrovat i jinde (ale zároveň nutno zobecnit pro vícenásobné
-     * nákupy jednoho ID)
+     * @param array<int|string> $stare
+     * @param array<int|string> $nove
      */
-    private function zmenObjednavku($stare, $nove)
+    private function zmenObjednavku(array $stare, array $nove): void
     {
         $nechce   = array_diff($stare, $nove);
         $chceNove = array_diff($nove, $stare);
         // přírustky
-        foreach ($chceNove as $n) {
-            $this->prodat($n[Sql::ID_PREDMETU], 1, false);
+        foreach ($chceNove as $noveId) {
+            $this->prodat((int)$noveId, 1, false);
         }
         // mazání
         if ($nechce) {
@@ -879,7 +879,7 @@ SQL,
     }
 
     /** Zpracuje formulář s jídlem */
-    public function zpracujJidlo()
+    public function zpracujJidlo(): void
     {
         if (!isset($_POST[self::PN_JIDLO_ZMEN])) {
             return;
@@ -890,7 +890,7 @@ SQL,
         $this->zmenObjednavku($ma, $chce);
     }
 
-    private function cenaTricka()
+    private function cenaTricka(): ?float
     {
         $ceny = array_column($this->tricka, 'cena_aktualni');
 
