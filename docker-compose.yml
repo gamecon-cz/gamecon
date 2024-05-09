@@ -4,6 +4,9 @@ services:
   web:
     image: gameconcz/gamecon:8.3
     restart: "no"
+    depends_on:
+      - sql.gamecon
+      - mailhog.gamecon
     volumes:
       - .:/var/www/html/gamecon:delegated
       # - ~/.cache/composer:/home/www-data/.composer
