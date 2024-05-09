@@ -1276,7 +1276,7 @@ SQL
         $soub = $this->cestaObrazku();
         if (!$obrazek) {
             try {
-                return \Nahled::zSouboru($soub)->pasuj(400);
+                return \Nahled::zeSouboru($soub)->pasuj(400);
             } catch (\Exception $e) {
                 return null;
             }
