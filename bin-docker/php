@@ -10,12 +10,10 @@ source "${DIR}/_tty.sh"
 if [ "$(docker compose ps web | grep --count Up)" -gt 0 ]; then
   docker_compose_exec \
     --workdir="/var/www/html/${PROJECT_DIR}" \
-    --user=www-data \
     web php "$@"
 else
   docker_compose_run \
     --entrypoint=/usr/local/bin/php \
     --workdir="/var/www/html/${PROJECT_DIR}" \
-    --user=www-data \
     web "$@"
 fi
