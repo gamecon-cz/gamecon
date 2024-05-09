@@ -150,7 +150,7 @@ if (post('prihlasitNeboUpravit')) {
     $shop->zpracujPredmety();
     $shop->zpracujUbytovani();
     $shop->zpracujJidlo();
-    $shop->zpracujVstupne();
+    //$shop->zpracujVstupne();
     $u->zpracujPotvrzeniProtiCovidu();
     $pomoc->zpracuj();
     if ($prihlasovani) {
