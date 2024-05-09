@@ -36,7 +36,7 @@ function adresarKObrazkuEshopPredmetu(): string
 function miniauturaNahleduPredmetu(string $cestaKObrazku): string
 {
     return Nahled::zeSouboru($cestaKObrazku)
-        ->kvalita(100)
+        ->kvalita(98)
         ->pasuj(268)
         ->url();
 }
