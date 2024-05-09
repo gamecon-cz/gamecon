@@ -1,6 +1,6 @@
 # Gamecon na Windows
 
-💡 Dej šanci Dockeru. Samotné spuštění Gameconu je v něm mnohem jednodušší [jak GameCon rozjet v Dockeru](../readme.md#Docker).
+💡 Dej šanci Dockeru. Samotné spuštění Gameconu je v něm mnohem jednodušší [jak GameCon rozjet v Dockeru](../README#Docker).
 
 ⚠️ _zastaralý návod, potřebnou verzi PHP a MySQL/MariaDB si zkontroluj v [docker-compose.yml](./../docker-compose.yml)_ ⚠️
 

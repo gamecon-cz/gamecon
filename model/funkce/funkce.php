@@ -3,6 +3,7 @@
 use \Gamecon\Cas\DateTimeCz;
 use \Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
+use Granam\RemoveDiacritics\RemoveDiacritics;
 
 $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
 
@@ -25,6 +26,7 @@ function aktivityDiverzifikace($poleTypu)
         else
             $nPocty[] = $pocty[$i] / $pocet;
     }
+
     return array_sum($nPocty) * $typu / ($typu - 1); //výsledná míra diverzifikace 0.0 - 1.0
 }
 
@@ -56,9 +58,11 @@ function datum2($dbRadek)
  * Vrací datum ve stylu 1. července
  *  akceptuje vše, co žere strtotime
  */
-function datum3(string|DateTimeInterface $datum): string
+function datum3(string | DateTimeInterface $datum): string
 {
-    $datumTimestamp = ($datum instanceof DateTimeInterface) ? $datum->getTimestamp() : strtotime($datum);
+    $datumTimestamp = ($datum instanceof DateTimeInterface)
+        ? $datum->getTimestamp()
+        : strtotime($datum);
     $mesic          = [
         'ledna', 'února', 'března', 'dubna', 'května', 'června',
         'července', 'srpna', 'září', 'října', 'listopadu', 'prosince',
@@ -77,6 +81,7 @@ function dbMarkdown($hash)
         if (!$text) throw new Exception('Text s daným ID se nenachází v databázi');
         $out = markdown($text);
     }
+
     return $out;
 }
 
@@ -96,8 +101,9 @@ function dbText($hash)
 {
     if (func_num_args() == 1) {
         return dbOneCol('SELECT text FROM texty WHERE id = ' . (int)$hash);
-    } else if (func_num_args() == 2 and !func_get_arg(1)) {
+    } elseif (func_num_args() == 2 and !func_get_arg(1)) {
         dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
+
         return 0;
     } else {
         $text  = func_get_arg(1);
@@ -105,6 +111,7 @@ function dbText($hash)
         $nrow  = ['text' => $text, 'id' => $nhash];
         if ($hash) dbUpdate('texty', $nrow, ['id' => $hash]);
         else dbInsert('texty', $nrow);
+
         return $nhash;
     }
 }
@@ -117,6 +124,7 @@ function dbTextHash($text): int
     $text = (string)$text;
     $hash = scrc32($text);
     dbInsertIgnore('texty', ['id' => $hash, 'text' => $text]);
+
     return $hash;
 }
 
@@ -165,6 +173,7 @@ function markdown($text)
         kvs('markdown', $hash, markdownNoCache($text));
         $out = kvs('markdown', $hash);
     }
+
     return $out;
 }
 
@@ -176,6 +185,7 @@ function markdownNoCache($text): string
     }
     $text = \Michelf\MarkdownExtra::defaultTransform($text);
     $text = Smartyp::defaultTransform($text);
+
     return $text;
 }
 
@@ -187,6 +197,7 @@ function mb_ucfirst($string, $encoding = null)
     }
     $firstChar = mb_substr($string, 0, 1, $encoding);
     $then      = mb_substr($string, 1, mb_strlen($string), $encoding);
+
     return mb_strtoupper($firstChar, $encoding) . $then;
 }
 
@@ -229,7 +240,9 @@ function perfectcache(/* variadic */)
 {
     $args  = perfectcacheExpandujArgumenty(func_get_args());
     $lastf = end($args);
-    $typ   = substr($lastf, -3) == '.js' ? 'js' : 'css';
+    $typ   = substr($lastf, -3) == '.js'
+        ? 'js'
+        : 'css';
     $last  = 0;
     foreach ($args as $a) {
         if (!$a) continue;
@@ -264,6 +277,7 @@ function perfectcache(/* variadic */)
             file_put_contents($minf, $parser->getCss());
         }
     }
+
     return $minu . '?v=' . $last;
 }
 
@@ -277,6 +291,7 @@ function perfectcacheExpandujArgumenty($argumenty)
             $out[] = $argument;
         }
     }
+
     return $out;
 }
 
@@ -332,15 +347,21 @@ function pefrectcacheProcessRel($css, $originalWidth, $minWidth)
     );
 }
 
-function po(string|DateTimeInterface $cas): bool
+function po(string | DateTimeInterface $cas): bool
 {
-    $casTimestamp = ($cas instanceof DateTimeInterface) ? $cas->getTimestamp() : strtotime($cas);
+    $casTimestamp = ($cas instanceof DateTimeInterface)
+        ? $cas->getTimestamp()
+        : strtotime($cas);
+
     return $casTimestamp < time();
 }
 
-function pred(string|DateTimeInterface $cas): bool
+function pred(string | DateTimeInterface $cas): bool
 {
-    $casTimestamp = ($cas instanceof DateTimeInterface) ? $cas->getTimestamp() : strtotime($cas);
+    $casTimestamp = ($cas instanceof DateTimeInterface)
+        ? $cas->getTimestamp()
+        : strtotime($cas);
+
     return time() < $casTimestamp;
 }
 
@@ -349,12 +370,15 @@ function pred(string|DateTimeInterface $cas): bool
  * akceptují php funce (např. strtotime)
  */
 function mezi(
-    string|DateTimeInterface $od,
-    string|DateTimeInterface $do,
-)
-{
-    $odTimestamp = ($od instanceof DateTimeInterface) ? $od->getTimestamp() : strtotime($od);
-    $doTimestamp = ($do instanceof DateTimeInterface) ? $do->getTimestamp() : strtotime($do);
+    string | DateTimeInterface $od,
+    string | DateTimeInterface $do,
+) {
+    $odTimestamp = ($od instanceof DateTimeInterface)
+        ? $od->getTimestamp()
+        : strtotime($od);
+    $doTimestamp = ($do instanceof DateTimeInterface)
+        ? $do->getTimestamp()
+        : strtotime($do);
 
     return $odTimestamp <= time() && time() <= $doTimestamp;
 }
@@ -385,6 +409,7 @@ function scrc32($data)
         $crc += 1;
         $crc = -$crc;
     }
+
     return $crc;
 }
 
@@ -401,7 +426,9 @@ function serazenePodle($pole, $kriterium)
             return $a->$kriterium() <=> $b->$kriterium();
         });
     } else {
-        $prvek = $pole ? $kriterium(current($pole)) : null;
+        $prvek = $pole
+            ? $kriterium(current($pole))
+            : null;
         if ($prvek && is_string($prvek) && !is_numeric($prvek)) {
             $razeni = new Collator('cs');
             usort($pole, function ($a, $b) use ($kriterium, $razeni) {
@@ -413,6 +440,7 @@ function serazenePodle($pole, $kriterium)
             });
         }
     }
+
     return $pole;
 }
 
@@ -437,7 +465,13 @@ function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int
 function vek(DateTimeInterface $datumNarozeni, ?DateTimeInterface $kDatu): int
 {
     $kDatu = $kDatu ?? new DateTimeImmutable(date('Y-m-d 00:00:00'));
+
     return $kDatu->diff($datumNarozeni)->y;
+}
+
+function kodZNazvu(string $nazev): string
+{
+    return RemoveDiacritics::toSnakeCaseId($nazev);
 }
 
 function odstranDiakritiku(string $value): string
@@ -453,6 +487,7 @@ function odstranDiakritiku(string $value): string
         $wordWithoutDiacritics  = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
         $valueWithoutDiacritics .= $wordWithoutDiacritics . $matches['nonWords'][$index];
     }
+
     return $valueWithoutDiacritics;
 }
 
@@ -462,6 +497,7 @@ if (!function_exists('array_key_first')) {
         foreach ($values as $key => $unused) {
             return $key;
         }
+
         return null;
     }
 }
@@ -544,6 +580,7 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
             curl_multi_strerror($totalResultCode),
             $totalResultCode,
         );
+
         return $result;
     }
 
@@ -648,6 +685,7 @@ function removeDiacritics(string $value): string
         }
         $cache[$value] = $withoutDiacritics;
     }
+
     return $withoutDiacritics;
 }
 
@@ -677,6 +715,7 @@ function nahradPlaceholderyZaNastaveni(?string $value): ?string
             $value = str_replace("%$puvodniKodNastaveni%", $hodnotaNastaveni, $value);
         }
     }
+
     return $value;
 }
 
@@ -690,6 +729,7 @@ function aplikujModifikatory($hodnota, array $modifikatory)
             default => $hodnota
         };
     }
+
     return $hodnota;
 }
 
@@ -708,6 +748,7 @@ function parsujModifikatory(string $hodnota): array
             'parametry'   => $rozdelenaCast,
         ];
     }
+
     return ['hodnota' => $cistaHodnota, 'modifikatory' => $modifikatory];
 }
 
@@ -720,8 +761,7 @@ function omnibox(
     bool   $jenPrihlaseniAPritomniNaGc = false,
     int    $minimumZnaku = 3,
     array  $jenSRolemi = null,
-): array
-{
+): array {
 
     $uzivatele = Uzivatel::zHledani(
         $term,
@@ -764,18 +804,22 @@ function omnibox(
                     trigger_error("Nepodporovana polozka pro Omnibox: '$polozka'", E_USER_WARNING);
             }
         }
+
         return $data;
     };
 
     $sestavLabel = static function (Uzivatel $uzivatel, ?array $labelSlozenZ) use ($sestavData): string {
-        $labelSlozenZ = $labelSlozenZ ?: ['id', 'jmenoNick', 'mail'];
+        $labelSlozenZ = $labelSlozenZ
+            ?: ['id', 'jmenoNick', 'mail'];
         $data         = $sestavData($uzivatel, $labelSlozenZ);
         $labelCasti   = [];
         if (isset($data['gcPritomen'])) {
             if ($labelCasti) {
                 $labelCasti[] = '; ';
             }
-            $labelCasti[] = $data['gcPritomen'] ? '✅' : '❌';
+            $labelCasti[] = $data['gcPritomen']
+                ? '✅'
+                : '❌';
         }
         if (!empty($data['id'])) {
             if ($labelCasti) {
@@ -807,6 +851,7 @@ function omnibox(
             }
             $labelCasti[] = "{$data['zustatek']}";
         }
+
         return implode($labelCasti);
     };
 
@@ -825,6 +870,7 @@ function omnibox(
 function pridejNaZacatekPole(string $klic, $hodnota, array $pole): array
 {
     unset($pole[$klic]); // pro případ, že by byl klíč obsazen - potom by původní honota přepsala novou níže a to nechceme
+
     return array_merge([$klic => $hodnota], $pole);
 }
 
@@ -839,6 +885,7 @@ function prevedNaFloat($castka): float
     if (!preg_match('~^-?\d+[.]?(\d+)?$~', $castka)) { // 1. je OK, stane se z toho 1.0
         throw new \InvalidArgumentException("Chybné číslo '$original'");
     }
+
     return (float)$castka;
 }
 
@@ -859,7 +906,9 @@ function requireOnceIsolated(string $path)
 
 function intvalOrNull($val)
 {
-    return $val == null ? null : intval($val);
+    return $val == null
+        ? null
+        : intval($val);
 }
 
 function jsmeNaLocale()

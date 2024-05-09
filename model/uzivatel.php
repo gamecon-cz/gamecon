@@ -155,7 +155,7 @@ SQL
     {
         $soubor = WWW . '/soubory/systemove/avatary/' . $this->id() . '.jpg';
         if (is_file($soubor))
-            return Nahled::zSouboru($soubor)->pasuj(null, 100);
+            return Nahled::zeSouboru($soubor)->pasuj(null, 100);
         else
             return self::avatarDefault();
     }
@@ -320,7 +320,7 @@ SQL
     {
         $soubor = WWW . '/soubory/systemove/fotky/' . $this->id() . '.jpg';
         if (is_file($soubor)) {
-            return Nahled::zSouboru($soubor);
+            return Nahled::zeSouboru($soubor);
         }
         return null;
     }
@@ -333,9 +333,9 @@ SQL
             return $f;
         }
         if ($this->pohlavi() === Pohlavi::ZENA_KOD) {
-            return Nahled::zSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
+            return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
         }
-        return Nahled::zSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
+        return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
     }
 
     /**
@@ -1959,7 +1959,7 @@ SQL,
         return self::zWhere("
       WHERE TRUE
       " . ($kromeIdUzivatelu ? " AND u.id_uzivatele NOT IN ($kromeIdUzivateluSql)" : '') . "
-      " . ($pouzeIdsRoli ? " AND p.id_role IN ($pouzeIdsRoliSql) " : '') . "
+      " . ($pouzeIdsRoli ? " AND z.id_role IN ($pouzeIdsRoliSql) " : '') . "
       AND (
           u.id_uzivatele = $hodnotaSql
           " . ((string)(int)$dotaz !== (string)$dotaz // nehledáme ID
@@ -2210,8 +2210,6 @@ SQL,
 
     /**
      * Načte uživatele podle zadané where klauzle
-     * @todo asi lazy loading práv
-     * @todo zrefaktorovat nactiUzivatele na toto
      */
     protected static function zWhere($where, $params = null, $extra = ''): array
     {

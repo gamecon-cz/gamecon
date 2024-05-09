@@ -286,7 +286,7 @@ SQL
     public function delka(): float
     {
         if (($zacatek = $this->zacatek()) && ($konec = $this->konec())) {
-            return ($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600;
+            return (($konec->getTimestamp() - $zacatek->getTimestamp()) / 3600 + 24) % 24;
         }
         return 0.0;
     }
@@ -301,10 +301,28 @@ SQL
      */
     public function denCas(): string
     {
-        if ($this->zacatek() && $this->konec()) {
-            return $this->zacatek()->format('l G') . '–' . $this->konec()->format('G');
+        if ($this->den() && $this->konec()) {
+            return $this->den()->format('l G') . '–' . $this->konec()->format('G');
         }
         return '';
+    }
+
+    /**
+     * Oficiální den, do kterého aktivita spadá (může být po půlnoci, ale spadá do předchozího dne)
+     */
+    public function den(): DateTimeCz|null
+    {
+        return self::denAktivity($this);
+    }
+
+    private static function denAktivity(?Aktivita $aktivita): DateTimeCz|null
+    {
+        if ($aktivita && $aktivita->zacatek()) {
+            return $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK
+                ? $aktivita->zacatek()
+                : (clone $aktivita->zacatek())->minusDen();
+        }
+        return null;
     }
 
     /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
@@ -379,8 +397,9 @@ SQL
 
         // kontrola dostupnosti organizátorů v daný čas
         if (!empty($a['den']) && !empty($a[Sql::ZACATEK]) && !empty($a[Sql::KONEC])) {
-            $zacatek           = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
-            $konec             = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
+
+            $zacatek           = (Program::denAktivityDleZacatku($a))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
+            $konec             = (Program::denAktivityDleKonce($a))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
             $ignorovatAktivitu = isset($a[Sql::ID_AKCE]) ? self::zId($a[Sql::ID_AKCE]) : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = Uzivatel::zId($orgId);
@@ -550,6 +569,7 @@ SQL
 
     private static function parseUpravyTabulkaDen(?Aktivita $aktivita, XTemplate $xtpl)
     {
+        $denAktivity = self::denAktivity($aktivita);
         $xtpl->assign([
             'selected' => $aktivita && !$aktivita->zacatek() ? 'selected' : '',
             'den'      => 0,
@@ -558,7 +578,7 @@ SQL
         $xtpl->parse('upravy.tabulka.den');
         for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
             $xtpl->assign([
-                'selected' => $aktivita && $den->stejnyDen($aktivita->zacatek()) ? 'selected' : '',
+                'selected' => $aktivita && $den->stejnyDen($denAktivity) ? 'selected' : '',
                 'den'      => $den->format('Y-m-d'),
                 'denSlovy' => $den->format('l'),
             ]);
@@ -574,12 +594,20 @@ SQL
         $aKonec        = $aktivita && $aktivita->konec()
             ? (int)$aktivita->konec()->sub(new \DateInterval('PT1H'))->format('G')
             : null;
-        $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
+
+        // kontrola přehoupnutí přes půlnoc
+        $hodinyZacatku = Program::seznamHodinZacatku();
+
         array_unshift($hodinyZacatku, null);
         foreach ($hodinyZacatku as $hodinaZacatku) {
             $xtpl->assign('selected', $aZacatek === $hodinaZacatku ? 'selected' : '');
-            $xtpl->assign('zacatek', $hodinaZacatku);
-            $xtpl->assign('zacatekSlovy', $hodinaZacatku !== null ? ($hodinaZacatku . ':00') : '?');
+            if ($hodinaZacatku === 0) {
+                $xtpl->assign('zacatek', "24");
+                $xtpl->assign('zacatekSlovy', '24:00');
+            } else {
+                $xtpl->assign('zacatek', $hodinaZacatku);
+                $xtpl->assign('zacatekSlovy', $hodinaZacatku !== null ? ($hodinaZacatku . ':00') : '?');
+            }
             $xtpl->parse('upravy.tabulka.zacatek');
 
             $xtpl->assign('selected', $aKonec === $hodinaZacatku ? 'selected' : '');
@@ -726,8 +754,12 @@ SQL
             $a['zacatek'] = null;
             $a['konec']   = null;
         } else {
-            $a['zacatek'] = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
-            $a['konec']   = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
+            $zacatekDen = Program::denAktivityDleZacatku($a);
+            $a['zacatek'] = ($zacatekDen)->add(new \DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
+
+            $konecDen = Program::denAktivityDleKonce($a);
+
+            $a['konec']   = ($konecDen)->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
         }
         unset($a['den']);
         // extra položky kvůli sep. tabulkám
@@ -895,7 +927,7 @@ SQL
             $aktivita = self::zId($data[Sql::ID_AKCE]);
         } else if (!empty($data['patri_pod'])) {
             // editace aktivity z rodiny instancí
-            $doHlavni   = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
+            $doHlavni   = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (main) `instance
             $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
             $aktivita   = self::zId($data[Sql::ID_AKCE]); // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
@@ -1244,7 +1276,7 @@ SQL
         $soub = $this->cestaObrazku();
         if (!$obrazek) {
             try {
-                return \Nahled::zSouboru($soub)->pasuj(400);
+                return \Nahled::zeSouboru($soub)->pasuj(400);
             } catch (\Exception $e) {
                 return null;
             }
@@ -2460,13 +2492,26 @@ HTML
     }
 
     /**
-     * Vrátí iterátor tagů
      * @return string[]
      */
     public function tagy(): array
     {
         if ($this->a['tagy']) {
             return explode(',', $this->a['tagy']);
+        }
+        return [];
+    }
+
+    /**
+     * @return int[]
+     */
+    public function tagyId(): array
+    {
+        if ($this->a['ids_tagu']) {
+            return array_map(
+                'intval',
+                explode(',', $this->a['ids_tagu'])
+            );
         }
         return [];
     }
@@ -3343,11 +3388,11 @@ SQL,
         $aktivity = self::zWhere(
             where1: 'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
             args: [
-                0 => ROCNIK,
+                0 => ($systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals())->rocnik(),
                 1 => StavAktivity::NOVA,
                 2 => TypAktivity::interniTypy(),
             ],
-            order: 'ORDER BY DAY(zacatek), ' . dbQi($razeni) . ', HOUR(zacatek), nazev_akce',
+            order: 'ORDER BY DAY(zacatek) - IF(HOUR(zacatek) > ' . dbQv(PROGRAM_ZACATEK) . ', 0, 1), ' . dbQi($razeni) . ', DAY(zacatek), HOUR(zacatek), nazev_akce',
             systemoveNastaveni: $systemoveNastaveni,
             prednacitat: $prednacitat,
         );
@@ -3454,7 +3499,11 @@ SQL,
                 JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
                 JOIN kategorie_sjednocenych_tagu kst ON sjednocene_tagy.id_kategorie_tagu = kst.id
                 WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
-            ) AS tagy
+            ) AS tagy,
+            (SELECT GROUP_CONCAT(akce_sjednocene_tagy.id_tagu)
+                FROM akce_sjednocene_tagy
+                WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
+            ) AS ids_tagu
         FROM (
             SELECT t2.*,
                 IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp

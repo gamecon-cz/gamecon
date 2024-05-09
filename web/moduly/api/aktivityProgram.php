@@ -48,26 +48,24 @@ $rok = array_key_exists("rok", $_GET) ? intval($_GET["rok"], 10) : ROCNIK;
 
 $aktivity = Aktivita::zFiltru(["rok" => $rok]);
 
-foreach ($aktivity as &$a) {
+foreach ($aktivity as $a) {
   if (!$a->zacatek()) continue;
   if (!$a->viditelnaPro($u)) continue;
 
-  // TODO: opravit, padá v PrednacitaniTrait.php:93
-  // $vypraveci = array_map(function ($o) {
-  //   return $o->jmenoNick();
-  // }, $a->organizatori());
-  $stitky = array_map(function ($s) {
-    return mb_ucfirst($s);
-  }, $a->tagy());
+  $vypraveci = array_map(function ($o) {
+    return $o->jmenoNick();
+  }, $a->organizatori());
+
+  $stitkyId = $a->tagyId();
 
   $aktivitaRes = [
     'id'        =>  $a->id(),
     'nazev'     =>  $a->nazev(),
     'kratkyPopis' => $a->kratkyPopis(),
-    // 'popis'     =>  $a->popis(),
+    'popis'     =>  $a->popis(),
     'obrazek'   =>  (string) $a->obrazek(),
-    // 'vypraveci' =>  $vypraveci,
-    'stitky'    =>  $stitky,
+    'vypraveci' =>  $vypraveci,
+    'stitkyId'  =>  $stitkyId,
     // TODO: cenaZaklad by měla být číslo ?
     'cenaZaklad'      => intval($a->cenaZaklad()),
     'casText'   =>  $a->zacatek() ? $a->zacatek()->format('G') . ':00&ndash;' . $a->konec()->format('G') . ':00' : "",

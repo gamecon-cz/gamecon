@@ -2,8 +2,11 @@
 version: "3"
 services:
   web:
-    image: gameconcz/gamecon:8.2
+    image: gameconcz/gamecon:8.3
     restart: "no"
+    depends_on:
+      - sql.gamecon
+      - mailhog.gamecon
     volumes:
       - .:/var/www/html/gamecon:delegated
       # - ~/.cache/composer:/home/www-data/.composer
@@ -29,7 +32,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
       - TZ=Europe/Prague
     volumes:
-      - ./docker/mysql:/etc/mysql/conf.d:ro
+      - ./.docker/mysql:/etc/mysql/conf.d:ro
       # - ~/.cache/gamecon/mysql:/var/lib/mysql
     ports:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example

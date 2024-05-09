@@ -34,7 +34,6 @@ export const formátujDenVTýdnu = (datum: Date | number, háčky = false) => {
   return háčky ? doplňHáčkyDoDne(denText) : denText;
 };
 
-// TODO: až bude logika pro datum tak odebrat feturu pouzeText
 /** datum ve tvaru "denVTýdnuNázev denVMesíci.měsíc" */
 export const formátujDatum = (datum: Date, pouzeText = false) => {
   const denText = formátujDenVTýdnu(datum, true);

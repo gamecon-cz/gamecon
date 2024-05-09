@@ -179,7 +179,7 @@ class Program
 
                 if ($pocetPrihlasenychAktivit > 0) {
                     $pdf->Cell(0, 10, mb_ucfirst($den->format('l j.n.Y')), 1, 1, 'L', true);
-                    for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
+                    foreach (Program::seznamHodinZacatku() as $cas) {
 
                         foreach ($this->aktivityUzivatele as $key => $akt) {
 
@@ -479,7 +479,7 @@ HTML;
 
         // tisk hlavičkového řádku s čísly
         echo '<tr><th></th>';
-        for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
+        foreach (Program::seznamHodinZacatku() as $cas) {
             echo '<th>' . $cas . ':00</th>';
         }
         echo '</tr>';
@@ -494,53 +494,55 @@ HTML;
      */
     private function tiskObsahuTabulky(?array &$aktivitaRaw, $denId = null)
     {
-        $aktivit = 0;
+        $pocetAktivit = 0;
         foreach ($this->skupiny as $typId => $typNazev) {
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
             if (!$this->nastaveni[self::PRAZDNE] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typId)) {
                 continue;
             }
-
             ob_start(); // výstup bufferujeme, pro případ že bude na víc řádků
-            $radku = 0;
+            $pocetRadku = 0;
             while ($aktivitaRaw && $typId == $aktivitaRaw['grp']) {
                 if ($denId && $aktivitaRaw['den'] != $denId) {
                     break;
                 }
-
-                for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
-                    if ($aktivitaRaw && $typId == $aktivitaRaw['grp'] && $cas == $aktivitaRaw['zac']) {
-                        $cas += $aktivitaRaw['del'] - 1; // na konci cyklu jeste bude ++
+                $skip = 0;
+                foreach (Program::seznamHodinZacatku() as $cas) {
+                    if ($skip > 0) {
+                        $skip--;
+                        continue;
+                    }
+                    if ($aktivitaRaw && $typId == $aktivitaRaw['grp'] && $cas == $aktivitaRaw['zac'] && (!$denId || $aktivitaRaw['den'] == $denId)) {
+                        $skip = $aktivitaRaw['del'] - 1;
                         $this->tiskAktivity($aktivitaRaw);
                         $aktivitaRaw = $this->dalsiAktivita();
-                        $aktivit++;
+                        $pocetAktivit++;
                     } else {
                         echo '<td></td>';
                     }
                 }
                 echo '</tr><tr>';
-                $radku++;
+                $pocetRadku++;
             }
             $radky = substr(ob_get_clean(), 0, -4);
 
-            if ($radku > 0) {
+            if ($pocetRadku > 0) {
                 echo <<<HTML
 <tr class="linie">
-    <td rowspan="{$radku}">
+    <td rowspan="{$pocetRadku}">
         <div class="program_nazevLinie">{$typNazev}</div>
     </td>
 HTML;
                 echo $radky;
-            } else if ($this->nastaveni[self::PRAZDNE] && $radku == 0) {
+            } else if ($this->nastaveni[self::PRAZDNE] && $pocetRadku == 0) {
                 echo $this->prazdnaMistnost($typNazev);
             }
         }
 
-        if ($aktivit == 0) {
-            $sloupcu = PROGRAM_KONEC - PROGRAM_ZACATEK + 1;
+        if ($pocetAktivit == 0) {
             echo <<<HTML
 <tr class="linie">
-    <td colspan="{$sloupcu}">
+    <td colspan="100%">
         Žádné aktivity tento den
     </td>
 </tr>
@@ -573,7 +575,7 @@ HTML;
                 $grp = $aktivita->lokaceId();
                 break;
             case self::SKUPINY_PODLE_DEN :
-                $grp = $aktivita->zacatek()->format('z');
+                $grp = (int)$aktivita->den()->format('z');
                 break;
             default :
                 throw new \LogicException('nepodporovaný typ shlukování aktivit ' . $this->grpf);
@@ -583,8 +585,8 @@ HTML;
             'grp' => $grp,
             'zac' => $zac,
             'kon' => $kon,
-            'den' => (int)$aktivita->zacatek()->format('z'),
-            'del' => $kon - $zac,
+            'den' => (int)$aktivita->den()->format('z'),
+            'del' => $aktivita->delka(),
             'obj' => $aktivita,
         ];
         $iterator->next();
@@ -653,8 +655,55 @@ HTML;
     private function prazdnaMistnost($nazev)
     {
         $bunky = '';
-        for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++)
+        foreach (Program::seznamHodinZacatku() as $cas)
             $bunky .= '<td></td>';
         return "<tr><td rowspan=\"1\"><div class=\"program_nazevLinie\">$nazev</div></td>$bunky</tr>";
+    }
+
+    /**
+     * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času zahájení
+     * @param array $a
+     */
+    public static function denAktivityDleZacatku($a) {
+        if (!isset($a['den']) || !isset($a['zacatek'])) {
+            return null;
+        }
+
+        return $a['zacatek'] > PROGRAM_ZACATEK
+            ? new DateTimeCz($a['den'])
+            : (new DateTimeCz($a['den']))->plusDen();
+    }
+
+    /**
+     * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času ukončení
+     * @param array $a
+     */
+    public static function denAktivityDleKonce($a) {
+        if (!isset($a['den']) || !isset($a['konec'])) {
+            return null;
+        }
+
+        return $a['konec'] > PROGRAM_ZACATEK
+            ? new DateTimeCz($a['den'])
+            : (new DateTimeCz($a['den']))->plusDen();
+    }
+
+    /**
+     * Vrátí range hodin, kdy začínají aktivity
+     * @return array<int>
+     */
+    public static function seznamHodinZacatku(): array {
+        static $hodinyZacatku = null;
+        if ($hodinyZacatku === null) {
+            if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
+                $hodinyZacatku = [
+                    ...range(PROGRAM_ZACATEK, 24 - 1, 1),
+                    ...range(0, PROGRAM_KONEC - 1, 1),
+                ];
+            } else {
+                $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
+            }
+        }
+        return $hodinyZacatku;
     }
 }

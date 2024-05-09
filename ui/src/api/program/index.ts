@@ -46,7 +46,8 @@ export type APIAktivita = {
   popis: string,
   obrazek: string,
   vypraveci: string[],
-  stitky: string[],
+  // stitky: string[],
+  stitkyId: number[],
   cenaZaklad: number,
   casText: string,
   cas: OdDo,
@@ -79,6 +80,15 @@ export type APIAktivitaPřihlášen = {
   prihlasovatelna?: boolean,
 }
 
+export type APIŠtítek = {
+  id: number,
+  nazev: string,
+  nazevKategorie: string,
+  // nazevHlavniKategorie: string,
+  // idKategorieTagu: string,
+  // poznamka: string,
+};
+
 export const fetchAktivity = async (rok: number): Promise<APIAktivita[]> => {
   if (GAMECON_KONSTANTY.IS_DEV_SERVER) {
     return fetchTestovacíAktivity(rok);
@@ -96,3 +106,7 @@ export const fetchAktivityPřihlášen = async (rok: number): Promise<APIAktivit
   return fetch(url, { method: "POST" }).then(async x => x.json());
 };
 
+export const fetchŠtítky = async (): Promise<APIŠtítek[]> =>{
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}stitky`;
+  return fetch(url, { method: "GET" }).then(async x => x.json());
+};

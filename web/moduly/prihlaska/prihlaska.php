@@ -19,18 +19,37 @@ $this->info()->nazev('Přihláška');
 
 $covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
 
-function cestaKObrazkuPredmetu(string $soubor): string
+function cestaKObrazkuEshopPredmetu(string $soubor): string
 {
-    return WWW . '/soubory/obsah/materialy/' . ROCNIK . '/' . $soubor;
+    return adresarKObrazkuEshopPredmetu() . '/' . $soubor;
+}
+
+function adresarKObrazkuEshopPredmetu(): string
+{
+    return WWW . '/soubory/obsah/materialy/' . ROCNIK . '/eshop';
 }
 
 /**
  * @throws \RuntimeException
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
  */
-function nahledPredmetu(string $cestaKObrazku)
+function miniauturaNahleduPredmetu(string $cestaKObrazku): string
 {
-    return Nahled::zSouboru($cestaKObrazku)->kvalita(98)->url();
+    return Nahled::zeSouboru($cestaKObrazku)
+        ->kvalita(98)
+        ->pasuj(268)
+        ->url();
+}
+
+/**
+ * @throws \RuntimeException
+ * Pomocná funkce pro náhled předmětu pro aktuální ročník
+ */
+function nahledPredmetu(string $cestaKObrazku): string
+{
+    return Nahled::zeSouboru($cestaKObrazku)
+        ->kvalita(98)
+        ->url();
 }
 
 if (post('pridatPotvrzeniProtiCovidu')) {
@@ -57,6 +76,7 @@ if (po(GC_BEZI_DO)) {
         $t->parse('prihlaskaPoGc.neucastnilSe');
     }
     $t->parse('prihlaskaPoGc');
+
     return;
 }
 
@@ -73,6 +93,7 @@ if (VYZADOVANO_COVID_POTVRZENI && $u && ($systemoveNastaveni->gcBezi() || $u->gc
 if (!$u?->gcPrihlasen() && po($systemoveNastaveni->prihlasovaniUcastnikuDo())) {
     $t->assign('konec', $systemoveNastaveni->prihlasovaniUcastnikuDo()->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD));
     $t->parse('prihlaskaPo');
+
     return;
 }
 
@@ -80,11 +101,13 @@ if ($systemoveNastaveni->gcBezi()) {
     if ($u?->gcPritomen()) {
         $t->parse('prihlaskaUzavrena.proselInfopultem');
         $t->parse('prihlaskaUzavrena');
+
         return;
     }
     if ($u?->gcPrihlasen()) {
         $t->parse('prihlaskaUzavrena.neproselInfopultem');
         $t->parse('prihlaskaUzavrena');
+
         return;
     }
 }
@@ -95,9 +118,11 @@ if (!$u) {
 
 if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
     $t->assign('zacatek', $systemoveNastaveni->rocnik() < date('Y')
-        ? '(upřesníme)' // ještě jsme nepřeklopili ročník
+        ? '(upřesníme)'
+        // ještě jsme nepřeklopili ročník
         : $systemoveNastaveni->prihlasovaniUcastnikuOd()->formatCasZacatekUdalosti());
     $t->parse('prihlaskaPred');
+
     return;
 }
 
@@ -150,58 +175,67 @@ if ($u->jeOrganizator()) {
     $t->parse('prihlaska.poznamkaKUbytovaniVNedeli');
 }
 
-$t->assign('ka', $u->koncovkaDlePohlavi() ? 'ka' : '');
+$t->assign('ka', $u->koncovkaDlePohlavi()
+    ? 'ka'
+    : '');
 if ($u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
     $t->parse('prihlaska.ubytovaniInfoOrg');
-} else if ($u->maPravo(Pravo::PORADANI_AKTIVIT) && !$u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)) {
+} elseif ($u->maPravo(Pravo::PORADANI_AKTIVIT) && !$u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)) {
     $t->parse('prihlaska.ubytovaniInfoVypravec');
 }
 
-// náhledy
-$nahledy = [
-    ['obrazek' => 'Triko.jpg', 'miniatura' => 'Triko_detail.jpg', 'nazev' => 'Tričko'],
-    ['obrazek' => 'Tilko.jpg', 'miniatura' => 'Tilko_detail.jpg', 'nazev' => 'Tílko'],
-    ['obrazek' => 'Kostka_Draci_2023.jpg', 'miniatura' => 'Kostka_Draci_2023_detail.jpg', 'nazev' => 'Dračí kostka'],
-    ['obrazek' => 'Kostka_Duna_2022.png', 'miniatura' => 'Kostka_Duna_2022_detail.png', 'nazev' => $systemoveNastaveni->rocnik() === 2022 ? 'Kostka' : 'Kostka Duna'],
-    //    ['obrazek' => 'Kostka_Cthulhu_2021.png', 'miniatura' => 'Kostka_Cthulhu_2021_detail.png', 'nazev' => 'Kostka Cthulhu'],
-    ['obrazek' => 'Kostka_Fate_2019.png', 'miniatura' => 'Kostka_Fate_2019_detail.png', 'nazev' => 'Fate kostka'],
-    ['obrazek' => 'Placka.png', 'miniatura' => 'Placka_detail.png', 'nazev' => 'Placka'],
-    ['obrazek' => 'nicknack.jpg', 'miniatura' => 'nicknack_m.jpg', 'nazev' => 'Nicknack'],
-    ['obrazek' => 'Ponozky.png', 'miniatura' => 'Ponozky_detail.png', 'nazev' => 'Ponožky'],
-    ['obrazek' => 'Taska.jpg', 'miniatura' => 'Taska_detail.jpg', 'nazev' => 'Taška'],
-    ['obrazek' => 'Blok.jpg', 'miniatura' => 'Blok_detail.jpg', 'nazev' => 'Blog'],
-];
-foreach ($nahledy as $nahled) {
-    $cestaKObrazku = cestaKObrazkuPredmetu($nahled['obrazek']);
-    $chybiObrazek  = false;
-    try {
-        $obrazek = nahledPredmetu($cestaKObrazku);
-    } catch (\RuntimeException $runtimeException) {
-        $obrazek      = $cestaKObrazku;
-        $chybiObrazek = true;
-    }
+$adresarKObrazkuPredmetu = adresarKObrazkuEshopPredmetu();
+if (is_dir($adresarKObrazkuPredmetu)) {
+    foreach (scandir(adresarKObrazkuEshopPredmetu()) as $soubor) {
+        if ($soubor === '.' || $soubor === '..') {
+            continue;
+        }
+        $cestaKObrazku = cestaKObrazkuEshopPredmetu($soubor);
+        if (!is_file($cestaKObrazku)) {
+            continue;
+        }
+        if (!Obrazek::jeToPodporovanyObrazek($cestaKObrazku)) {
+            continue;
+        }
+        $chybiObrazek  = false;
+        try {
+            $obrazek = nahledPredmetu($cestaKObrazku);
+        } catch (\RuntimeException $runtimeException) {
+            $obrazek      = $cestaKObrazku;
+            $chybiObrazek = true;
+        }
 
-    $cestaKMiniature = cestaKObrazkuPredmetu($nahled['miniatura']);
-    $chybiMiniatura  = false;
-    try {
-        $miniatura = nahledPredmetu($cestaKMiniature);
-    } catch (\RuntimeException $runtimeException) {
-        $miniatura      = $cestaKObrazku;
-        $chybiMiniatura = true;
-    }
+        $chybiMiniatura = false;
+        try {
+            $miniatura = miniauturaNahleduPredmetu($cestaKObrazku);
+        } catch (\RuntimeException $runtimeException) {
+            $miniatura      = $cestaKObrazku;
+            $chybiMiniatura = true;
+        }
+        $bezPripony = basename($soubor, '.' . pathinfo($soubor, PATHINFO_EXTENSION));
+        $nazev      = trim(
+            preg_replace(
+                '~^\d+~', // odstraníme pořadové číslo souboru
+                '',
+                preg_replace(
+                    '~[^[:alnum:]]+~u',
+                    ' ',
+                    $bezPripony
+                )
+            )
+        );
 
-    $t->assign([
-        'obrazek'   => $obrazek,
-        'miniatura' => $miniatura,
-        'nazev'     => $nahled['nazev'],
-        'display'   => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT))
-            ? 'none'
-            : 'inherit',
-    ]);
-    $t->parse('prihlaska.nahled');
+        $t->assign([
+            'obrazek'   => $obrazek,
+            'miniatura' => $miniatura,
+            'nazev'     => $nazev,
+            'display'   => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(Pravo::ADMINISTRACE_INFOPULT))
+                ? 'none'
+                : 'inherit',
+        ]);
+        $t->parse('prihlaska.nahled');
+    }
 }
-
-$qrObrazekProPlatbu = $u->finance()->dejQrKodProPlatbu();
 
 $t->assign([
     'a'                               => $u->koncovkaDlePohlavi(),
@@ -213,9 +247,9 @@ $t->assign([
     'rok'                             => ROCNIK,
     'ubytovani'                       => $shop->ubytovaniHtml(),
     'ubytovaniObjednatelneDo'         => $shop->ubytovaniObjednatelneDoHtml(),
-    'covidSekce'                      => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',
-    'qrPlatbaMimeType'                => $qrObrazekProPlatbu->getMimeType(),
-    'qrPlatbaBase64'                  => base64_encode($qrObrazekProPlatbu->getString()),
+    'covidSekce'                      => VYZADOVANO_COVID_POTVRZENI
+        ? $covidSekceFunkce($shop)
+        : '',
     'ulozitNeboPrihlasit'             => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',

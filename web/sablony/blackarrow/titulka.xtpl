@@ -69,12 +69,12 @@
 <div class="cisla">
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="200">
         <img src="soubory/blackarrow/cisla/1.jpg" style="margin: -30px 0 0 87px">
-        <div class="cisla_cislo">800+</div>
+        <div class="cisla_cislo">{stovkySpokojenychUcastniku}+</div>
         <div class="cisla_text">spokojených účastníků</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up">
         <img src="soubory/blackarrow/cisla/2.jpg" style="margin: -13px 0 0 73px">
-        <div class="cisla_cislo">200+</div>
+        <div class="cisla_cislo">{stovkyAktivit}+</div>
         <div class="cisla_text">různých aktivit</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="100">
