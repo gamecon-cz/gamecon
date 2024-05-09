@@ -19,14 +19,14 @@ $this->info()->nazev('Přihláška');
 
 $covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
 
-function cestaKObrazkuPredmetu(string $soubor): string
+function cestaKObrazkuEshopPredmetu(string $soubor): string
 {
-    return adresarKObrazkuPredmetu() . '/' . $soubor;
+    return adresarKObrazkuEshopPredmetu() . '/' . $soubor;
 }
 
-function adresarKObrazkuPredmetu(): string
+function adresarKObrazkuEshopPredmetu(): string
 {
-    return WWW . '/soubory/obsah/materialy/' . ROCNIK;
+    return WWW . '/soubory/obsah/materialy/' . ROCNIK . '/eshop';
 }
 
 /**
@@ -184,13 +184,19 @@ if ($u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
     $t->parse('prihlaska.ubytovaniInfoVypravec');
 }
 
-$adresarKObrazkuPredmetu = adresarKObrazkuPredmetu();
+$adresarKObrazkuPredmetu = adresarKObrazkuEshopPredmetu();
 if (is_dir($adresarKObrazkuPredmetu)) {
-    foreach (scandir(adresarKObrazkuPredmetu()) as $soubor) {
+    foreach (scandir(adresarKObrazkuEshopPredmetu()) as $soubor) {
         if ($soubor === '.' || $soubor === '..') {
             continue;
         }
-        $cestaKObrazku = cestaKObrazkuPredmetu($soubor);
+        $cestaKObrazku = cestaKObrazkuEshopPredmetu($soubor);
+        if (!is_file($cestaKObrazku)) {
+            continue;
+        }
+        if (!Obrazek::jeToPodporovanyObrazek($cestaKObrazku)) {
+            continue;
+        }
         $chybiObrazek  = false;
         try {
             $obrazek = nahledPredmetu($cestaKObrazku);
