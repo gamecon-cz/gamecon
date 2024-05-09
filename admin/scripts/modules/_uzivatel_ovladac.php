@@ -8,7 +8,7 @@ use Gamecon\Shop\Shop;
  * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
  * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
- * @var \Gamecon\Shop\Shop $shop
+ * @var \Gamecon\Shop\Shop|null $shop
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
@@ -22,14 +22,16 @@ if (post('pridelitPokoj') && post('uid')) {
     }
 }
 
-if (post('zpracujUbytovani')) {
-    $shop->zpracujUbytovani(true, false);
-    oznameni('Ubytování uloženo');
-}
+if ($shop !== null) {
+    if (post('zpracujUbytovani')) {
+        $shop->zpracujUbytovani(true, false);
+        oznameni('Ubytování uloženo');
+    }
 
-if (post('zpracujJidlo')) {
-    $shop->zpracujJidlo();
-    oznameni('Jídlo uloženo');
+    if (post('zpracujJidlo')) {
+        $shop->zpracujJidlo();
+        oznameni('Jídlo uloženo');
+    }
 }
 
 if (!empty($_POST['prodej'])) {
