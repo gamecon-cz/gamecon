@@ -43,6 +43,5 @@ if (!empty($_POST['prodej'])) {
     $kusu = (int)($prodej['kusu'] ?? 1);
     $shop->prodat((int)$prodej['id_predmetu'], $kusu, true);
 
-
     back();
 }

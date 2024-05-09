@@ -24,7 +24,9 @@ $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-botto
 $err  = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
-$shop      = $uPracovni ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni) : null;
+$shop      = $uPracovni
+    ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni)
+    : null;
 
 include __DIR__ . '/_uzivatel_ovladac.php';
 
@@ -40,15 +42,22 @@ if ($uPracovni) {
 
 // ubytovani vypis
 $pokojVypis     = Pokoj::zCisla(get('pokoj'));
-$ubytovaniVypis = $pokojVypis ? $pokojVypis->ubytovani() : [];
+$ubytovaniVypis = $pokojVypis
+    ? $pokojVypis->ubytovani()
+    : [];
 
 if (get('pokoj')) {
     $x->assign('pokojVypis', get('pokoj'));
     if ($pokojVypis) {
         $x->assign('ubytovaniVypis', array_uprint($ubytovaniVypis, function ($e) {
-            $ne    = $e->gcPritomen() ? '' : 'ne';
-            $color = $ne ? '#f00' : '#0a0';
+            $ne    = $e->gcPritomen()
+                ? ''
+                : 'ne';
+            $color = $ne
+                ? '#f00'
+                : '#0a0';
             $a     = $e->koncA();
+
             return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
         }, '<br>'));
     } else
@@ -78,7 +87,7 @@ if (!$uPracovni) {
         </div>
         HTML,
     );
-} else if (!$uPracovni->gcPrihlasen()) {
+} elseif (!$uPracovni->gcPrihlasen()) {
     $x->assign('status', '<div class="error">Uživatel není přihlášen na GC</div>');
 }
 
@@ -133,8 +142,12 @@ SQL,
 );
 $moznosti = '<option value="">(vyber)</option>';
 while ($r = mysqli_fetch_assoc($o)) {
-    $zbyva    = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
-    $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
+    $zbyva    = $r['zbyva'] === null
+        ? '&infin;'
+        : $r['zbyva'];
+    $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null
+            ? ''
+            : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
 }
 $x->assign('predmety', $moznosti);
 
