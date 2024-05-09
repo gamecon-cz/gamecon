@@ -54,7 +54,7 @@ class Loga
             // odstraníme prefix pro řazení 'číslo_'
             $urlPartnera = preg_replace('~^\d+_~', '', $info['filename']);
             yield [
-                'src' => Nahled::zSouboru($obrazek)->pasuj(120, 60),
+                'src' => Nahled::zeSouboru($obrazek)->pasuj(120, 60),
                 'url' => 'http://' . $urlPartnera,
             ];
         }

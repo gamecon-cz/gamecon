@@ -155,7 +155,7 @@ SQL
     {
         $soubor = WWW . '/soubory/systemove/avatary/' . $this->id() . '.jpg';
         if (is_file($soubor))
-            return Nahled::zSouboru($soubor)->pasuj(null, 100);
+            return Nahled::zeSouboru($soubor)->pasuj(null, 100);
         else
             return self::avatarDefault();
     }
@@ -320,7 +320,7 @@ SQL
     {
         $soubor = WWW . '/soubory/systemove/fotky/' . $this->id() . '.jpg';
         if (is_file($soubor)) {
-            return Nahled::zSouboru($soubor);
+            return Nahled::zeSouboru($soubor);
         }
         return null;
     }
@@ -333,9 +333,9 @@ SQL
             return $f;
         }
         if ($this->pohlavi() === Pohlavi::ZENA_KOD) {
-            return Nahled::zSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
+            return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
         }
-        return Nahled::zSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
+        return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
     }
 
     /**
