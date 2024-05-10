@@ -3,20 +3,21 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Kanaly\GcMail;
+use Gamecon\Logger\Zaznamnik;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
+use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\XTemplate\XTemplate;
-use Gamecon\Logger\Zaznamnik;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
-use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Uzivatel\Finance;
+use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
-use Gamecon\Stat;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
