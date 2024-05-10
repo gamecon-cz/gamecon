@@ -105,7 +105,7 @@ SQL
 $x = new XTemplate(__DIR__ . '/finance.xtpl');
 
 $platby = new Platby($systemoveNastaveni);
-if (true || $platby->platbyNaposledyAktualizovanyKdy() < new DateTimeImmutable('-1 day')) {
+if ($platby->platbyNaposledyAktualizovanyKdy() < new DateTimeImmutable('-1 day')) {
     $x->parse('finance.fioAktualizace');
 }
 
