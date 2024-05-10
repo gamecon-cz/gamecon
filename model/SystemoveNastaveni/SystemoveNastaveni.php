@@ -842,7 +842,7 @@ SQL;
 
     public function nacitatPlatbyXDniZpet(): int
     {
-        return 14; // kolik dní zpět se mají načítat platby při kontrole nově došlých plateb
+        return 90; // kolik dní zpět se mají načítat platby při kontrole nově došlých plateb
     }
 
     public function modreTrickoZdarmaOd(): float
