@@ -11,12 +11,31 @@
 <table class="vypis">
   <tr>
     <th>ID uživatele</th>
-    <th>Akce</th>
+    <th>Uživatel</th>
+    <th>Popis</th>
+    <th>DrD</th>
+    <th>Upravit</th>
   </tr>
   <!-- begin:radek -->
   <tr>
-    <td>{medailonek.id}</td>
-    <td><a href="aktivity/medailonky?id={medailonek.id}" class="tlacitko">upravit</a></td>
+    <td>{uzivatelId}</td>
+    <td>{jmenoNick}</td>
+    <td style="text-align: center">
+      <div class="hinted">{maPopisOSobe}
+        <div class="hint">{oSobe}</div>
+      </div>
+    </td>
+    <td style="text-align: center">
+      <div class="hinted">{maDrdPopis}
+        <div class="hint">{drdPopis}</div>
+      </div>
+    </td>
+    <td style="text-align: center">
+      <a href="aktivity/medailonky?id={medailonek.id}" class="tlacitko"
+         style="display: inline">
+        <i class="fa fa-pencil-square-o" aria-hidden="true" style="padding: 0.2em"></i>
+      </a>
+    </td>
   </tr>
   <!-- end:radek -->
 </table>

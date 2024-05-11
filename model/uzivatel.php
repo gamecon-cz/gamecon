@@ -3,20 +3,21 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Kanaly\GcMail;
+use Gamecon\Logger\Zaznamnik;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
+use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\XTemplate\XTemplate;
-use Gamecon\Logger\Zaznamnik;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
-use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Uzivatel\Finance;
+use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
-use Gamecon\Stat;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -74,6 +75,7 @@ class Uzivatel extends DbObject
                 ],
             ];
         }
+
         return $povinneUdaje;
     }
 
@@ -87,6 +89,7 @@ SELECT DISTINCT uzivatele_hodnoty.id_uzivatele
 FROM uzivatele_hodnoty
 SQL,
         );
+
         return static::zIds($ids);
     }
 
@@ -104,6 +107,7 @@ WHERE prava_role.id_prava = $1
 SQL
             , [Pravo::PORADANI_AKTIVIT],
         );
+
         return static::zIds($ids);
     }
 
@@ -135,6 +139,7 @@ SQL
     public function adresa()
     {
         $adresa = $this->r['mesto_uzivatele'] . ', ' . $this->r['ulice_a_cp_uzivatele'] . ', ' . $this->r['psc_uzivatele'] . ', ' . $this->stat();
+
         return $adresa;
     }
 
@@ -143,6 +148,7 @@ SQL
         if ($ubytovanS !== null) {
             $this->r['ubytovan_s'] = $ubytovanS;
         }
+
         return $this->r['ubytovan_s'] ?? '';
     }
 
@@ -155,7 +161,7 @@ SQL
     {
         $soubor = WWW . '/soubory/systemove/avatary/' . $this->id() . '.jpg';
         if (is_file($soubor))
-            return Nahled::zSouboru($soubor)->pasuj(null, 100);
+            return Nahled::zeSouboru($soubor)->pasuj(null, 100);
         else
             return self::avatarDefault();
     }
@@ -186,6 +192,7 @@ SQL
         }
         $o->fitCrop(2048, 2048);
         $o->uloz(WWW . '/soubory/systemove/avatary/' . $this->id() . '.jpg');
+
         return true;
     }
 
@@ -208,8 +215,11 @@ SQL
         UPDATE uzivatele_hodnoty
         SET op=$1
         WHERE id_uzivatele=' . $this->r['id_uzivatele'],
-                [$op !== '' ? Sifrovatko::zasifruj($op) : ''],
+                [$op !== ''
+                     ? Sifrovatko::zasifruj($op)
+                     : ''],
             );
+
             return $op;
         }
 
@@ -232,6 +242,7 @@ SQL
         WHERE id_uzivatele=' . $this->r['id_uzivatele'],
                 [0 => $typDokladu],
             );
+
             return $typDokladu;
         }
 
@@ -286,7 +297,9 @@ SQL
     /** Vrátí profil uživatele pro DrD */
     public function drdProfil()
     {
-        return $this->medailonek() ? $this->medailonek()->drd() : null;
+        return $this->medailonek()
+            ? $this->medailonek()->drd()
+            : null;
     }
 
     /**
@@ -296,6 +309,7 @@ SQL
     {
         $tituly = ['Pán Jeskyně', 'vypravěč'];
         if ($this->maPravo(Pravo::TITUL_ORGANIZATOR)) $tituly[] = 'organizátor GC';
+
         return $tituly;
     }
 
@@ -312,16 +326,19 @@ SQL
                 $this->systemoveNastaveni,
             );
         }
+
         return $this->finance;
     }
 
     /** Vrátí objekt Náhled s fotkou uživatele nebo null */
     public function fotka(): ?Nahled
     {
-        $soubor = WWW . '/soubory/systemove/fotky/' . $this->id() . '.jpg';
-        if (is_file($soubor)) {
-            return Nahled::zSouboru($soubor);
+        foreach (glob(WWW . '/soubory/systemove/fotky/' . $this->id() . '.*') as $soubor) {
+            if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $soubor)) {
+                return Nahled::zeSouboru($soubor);
+            }
         }
+
         return null;
     }
 
@@ -333,9 +350,10 @@ SQL
             return $f;
         }
         if ($this->pohlavi() === Pohlavi::ZENA_KOD) {
-            return Nahled::zSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
+            return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
         }
-        return Nahled::zSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
+
+        return Nahled::zeSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
     }
 
     /**
@@ -352,8 +370,7 @@ SQL
         Uzivatel  $odhlasujici,
         Zaznamnik $zaznamnik = null,
         bool      $odeslatMailPokudSeNeodhlasilSam = true,
-    ): bool
-    {
+    ): bool {
         if (!$this->gcPrihlasen()) {
             return false;
         }
@@ -394,8 +411,7 @@ SQL
         Uzivatel   $odhlasujici,
         ?Zaznamnik $zaznamnik,
         bool       $odeslatMailPokudSeNeodhlasilSam,
-    )
-    {
+    ) {
         // odeslání upozornění, pokud u nás má peníze
         if (($celkemLetosPoslal = $this->finance()->sumaPlateb()) > 0) {
             $mailOdhlasilAlePlatil = $this->mailOdhlasilAlePlatil($celkemLetosPoslal, $odhlasujici);
@@ -540,6 +556,7 @@ AND akce_seznam.rok = $2
 SQL,
             [$this->id(), $rok],
         );
+
         return Aktivita::zIds($ids);
     }
 
@@ -559,8 +576,10 @@ SQL,
             if (!$this->gcPritomen()) {
                 return false; // ani nedorazil, nemohl odjet
             }
+
             return $this->maRoli(Role::ODJEL_Z_LETOSNIHO_GC);
         }
+
         return $this->maRoli(Role::odjelZRocniku($rocnik));
     }
 
@@ -598,6 +617,7 @@ SQL,
         if ($udajeZkontrolovane) {
             return $this->pridejRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
         }
+
         return $this->odeberRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
     }
 
@@ -638,6 +658,7 @@ SQL,
             $roky                     = array_map(fn($e) => (int)$e[0], $rokyWrapped);
             $this->historiePrihlaseni = $roky;
         }
+
         return $this->historiePrihlaseni;
     }
 
@@ -676,12 +697,15 @@ SQL,
 
     public function nickNeboKrestniJmeno(): string
     {
-        return $this->nick() ?: $this->krestniJmeno() ?: $this->jmeno();
+        return $this->nick()
+            ?: $this->krestniJmeno()
+                ?: $this->jmeno();
     }
 
     public function krestniJmeno(): string
     {
-        return trim($this->r['jmeno_uzivatele'] ?: '');
+        return trim($this->r['jmeno_uzivatele']
+            ?: '');
     }
 
     /**
@@ -700,8 +724,10 @@ SQL,
             if ($celeJmeno == $r['login_uzivatele'] || $jeMail) {
                 return $celeJmeno;
             }
+
             return $r['jmeno_uzivatele'] . ' „' . $r['login_uzivatele'] . '“ ' . $r['prijmeni_uzivatele'];
         }
+
         return $r['login_uzivatele'];
     }
 
@@ -734,6 +760,7 @@ SQL,
     public function chybejiciUdaje(array $povinneUdaje): array
     {
         $validator = fn(string $sloupec) => (trim((string)$this->r[$sloupec] ?? '')) === '';
+
         return array_filter($povinneUdaje, $validator, ARRAY_FILTER_USE_KEY);
     }
 
@@ -748,6 +775,7 @@ SQL,
         if (!$role) {
             return false;
         }
+
         return $this->maPravoNaZmenuKategorieRole($role->kategorieRole());
     }
 
@@ -886,6 +914,7 @@ SQL,
         if (!defined('SUPERADMINI') || !is_array(SUPERADMINI)) {
             return false;
         }
+
         return in_array($this->id(), SUPERADMINI, false);
     }
 
@@ -897,8 +926,11 @@ SQL,
      * @return bool jestli se uživatel v daném čase neúčastní / neorganizuje
      *  žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
      */
-    public function maVolno(DateTimeInterface $od, DateTimeInterface $do, Aktivita $ignorovanaAktivita = null, bool $jenPritomen = false)
-    {
+    public function maVolno(DateTimeInterface $od,
+                            DateTimeInterface $do,
+                            Aktivita          $ignorovanaAktivita = null,
+                            bool              $jenPritomen = false
+    ) {
         // právo na překrytí aktivit dává volno vždy automaticky
         // TODO zkontrolovat, jestli vlastníci práva dřív měli někdy paralelně i účast nebo jen organizovali a pokud jen organizovali, vyhodit test odsud a vložit do kontroly kdy se ukládá aktivita
         if ($this->maPravo(Pravo::PREKRYVANI_AKTIVIT)) {
@@ -924,9 +956,15 @@ SQL,
      * @param bool $jenPritomen
      * @return bool
      */
-    private function maCasovouKolizi(array $aktivity, DateTimeInterface $od, DateTimeInterface $do, ?Aktivita $ignorovanaAktivita, bool $jenPritomen): bool
-    {
-        $ignorovanaAktivitaId = $ignorovanaAktivita ? $ignorovanaAktivita->id() : 0;
+    private function maCasovouKolizi(array             $aktivity,
+                                     DateTimeInterface $od,
+                                     DateTimeInterface $do,
+                                     ?Aktivita         $ignorovanaAktivita,
+                                     bool              $jenPritomen
+    ): bool {
+        $ignorovanaAktivitaId = $ignorovanaAktivita
+            ? $ignorovanaAktivita->id()
+            : 0;
         foreach ($aktivity as $aktivita) {
             if ($ignorovanaAktivitaId === $aktivita->id()) {
                 continue;
@@ -942,10 +980,12 @@ SQL,
             /* koliduje, pokud začíná před koncem jiné aktivity a končí po začátku jiné aktivity */
             if ($zacatek < $do && $konec > $od) {
                 return $jenPritomen
-                    ? $aktivita->dorazilJakoCokoliv($this) // někde už je v daný čas přítomen
+                    ? $aktivita->dorazilJakoCokoliv($this)
+                    // někde už je v daný čas přítomen
                     : true; // nekde už je na daný čas přihlášen
             }
         }
+
         return false;
     }
 
@@ -961,6 +1001,7 @@ SQL,
         if (!$idRole) {
             return false;
         }
+
         return in_array($idRole, $this->dejIdsRoli(), true);
     }
 
@@ -988,6 +1029,7 @@ SQL,
             $role          = dbOneArray('SELECT id_role FROM platne_role_uzivatelu WHERE id_uzivatele = ' . $this->id());
             $this->idsRoli = array_map('intval', $role);
         }
+
         return $this->idsRoli;
     }
 
@@ -996,6 +1038,7 @@ SQL,
         if (!isset($this->medailonek)) {
             $this->medailonek[] = Medailonek::zId($this->id()); // pole kvůli korektní detekci null
         }
+
         return $this->medailonek[0];
     }
 
@@ -1037,9 +1080,10 @@ SQL,
     {
         if (!isset($this->r['prava'])) {
             $this->nactiPrava();
-        } else if (is_string($this->r['prava'])) {
+        } elseif (is_string($this->r['prava'])) {
             $this->r['prava'] = array_map('intval', explode(',', $this->r['prava']));
         }
+
         return $this->r['prava'];
     }
 
@@ -1118,13 +1162,16 @@ SQL,
                 SQL,
             );
         }
+
         return isset($this->organizovaneAktivityIds[$a->id()]);
     }
 
     /** Vrátí medailonek vypravěče */
     public function oSobe()
     {
-        return $this->medailonek() ? $this->medailonek()->oSobe() : null;
+        return $this->medailonek()
+            ? $this->medailonek()->oSobe()
+            : null;
     }
 
     /**
@@ -1134,6 +1181,7 @@ SQL,
     {
         if (PHP_SAPI === 'cli') {
             $this->r = self::zId($this->id())->r;
+
             return;
         }
 
@@ -1168,6 +1216,7 @@ SQL,
             WHERE p.id_uzivatele = {$this->id()} AND a.rok = {$this->systemoveNastaveni->rocnik()}
             SQL,
         );
+
         return $cas;
     }
 
@@ -1177,8 +1226,10 @@ SQL,
         if (isset($poznamka)) {
             dbQueryS('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', [$poznamka, $this->id()]);
             $this->otoc();
+
             return $poznamka;
         }
+
         return $this->r['poznamka'];
     }
 
@@ -1207,6 +1258,7 @@ SQL,
             }
             $hint   = $this->joinHint($hintParts);
             $hinted = $this->joinHinted($hintedParts);
+
             return <<<HTML
                   <span class="hinted">{$hinted}<span class="hint">{$hint}</span></span>
                 HTML;
@@ -1347,6 +1399,7 @@ SQL,
             );
             setcookie('gcTrvalePrihlaseni', $rand, time() + 3600 * 24 * 365, '/');
         }
+
         return $u;
     }
 
@@ -1364,6 +1417,7 @@ SQL,
                 [0 => $this->id()],
             );
         }
+
         return isset($this->prihlaseneAktivityIds[$a->id()]);
     }
 
@@ -1379,6 +1433,7 @@ SQL,
         WHERE id_uzivatele = $0 AND id_stavu_prihlaseni = $1
       ", [$this->id(), StavPrihlaseni::SLEDUJICI]);
         }
+
         return isset($this->aktivityIdsJakoSledujici[$a->id()]);
     }
 
@@ -1399,6 +1454,7 @@ SQL,
                 WHERE p.id_uzivatele = {$this->id()} AND a.rok = {$this->systemoveNastaveni->rocnik()}
             SQL,
         );
+
         return $prvniBlok
             ? (string)$prvniBlok
             : null;
@@ -1450,6 +1506,7 @@ SQL,
             if ($u2 && $u && $u2->id() != $u->id()) {
                 return 'přezdívka už je zabraná, vyber si prosím jinou';
             }
+
             return '';
         };
 
@@ -1465,6 +1522,7 @@ SQL,
             if ($u2 && $u && $u2->id() != $u->id()) {
                 return 'e-mail už je zabraný. Pokud je tvůj, resetuj si heslo';
             }
+
             return '';
         };
 
@@ -1473,6 +1531,7 @@ SQL,
             if (!DateTimeImmutable::createFromFormat('Y-m-d', trim((string)$datum))) {
                 return 'vyplň prosím platné datum narození';
             }
+
             return '';
         };
 
@@ -1487,6 +1546,7 @@ SQL,
             ) {
                 return 'hesla se neshodují';
             }
+
             return '';
         };
 
@@ -1627,8 +1687,7 @@ SQL,
         SystemoveNastaveni $systemoveNastaveni,
         array              $tab = [],
         array              $opt = [],
-    )
-    {
+    ) {
         $tab[Sql::LOGIN_UZIVATELE]                     ??= uniqid('RR.', false);
         $tab[Sql::JMENO_UZIVATELE]                     ??= $tab[Sql::LOGIN_UZIVATELE];
         $tab[Sql::PRIJMENI_UZIVATELE]                  ??= $tab[Sql::JMENO_UZIVATELE];
@@ -1682,6 +1741,7 @@ SQL,
                 throw new Exception('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email');
             }
         }
+
         return $uid;
     }
 
@@ -1752,6 +1812,7 @@ SQL,
         if (count($status) > 0) {
             return implode(', ', $status);
         }
+
         return 'Účastník';
     }
 
@@ -1781,6 +1842,7 @@ SQL,
             $htmPredvolba        = $predvolba === ''
                 ? ''
                 : "<span class='predvolba'>$predvolba</span> ";
+
             return "<span class='telefon $cssClassSPredvolbou'>$htmPredvolba$telefon</span>";
         }
 
@@ -1800,6 +1862,7 @@ SQL,
     public function uprav(array $tab)
     {
         $tab = array_filter($tab);
+
         return self::registrujUprav($tab, $this);
     }
 
@@ -1816,6 +1879,7 @@ SQL,
                 ? $this->id() . '-' . $this->r['url']
                 : $this->r['url'];
         }
+
         return self::vytvorUrl($this->r);
     }
 
@@ -1835,6 +1899,7 @@ SQL,
             return null;
         }
         $narozeni = new DateTime($this->r['datum_narozeni']);
+
         return $narozeni->diff(new DateTime(DEN_PRVNI_DATE))->y;
     }
 
@@ -1849,6 +1914,7 @@ SQL,
         if ($this->r['datum_narozeni'] == '0000-00-00') {
             return null;
         }
+
         return date_diff($this->datumNarozeni(), $datum)->y;
     }
 
@@ -1912,7 +1978,9 @@ SQL,
     /** Vrátí kód státu ve formátu ISO 3166-1 alpha-2 https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 */
     public function stat(): ?string
     {
-        return \Gamecon\Stat::dejKodStatuPodleId($this->r['stat_uzivatele'] ? (int)$this->r['stat_uzivatele'] : null);
+        return \Gamecon\Stat::dejKodStatuPodleId($this->r['stat_uzivatele']
+            ? (int)$this->r['stat_uzivatele']
+            : null);
     }
 
     /**
@@ -1958,18 +2026,25 @@ SQL,
 
         return self::zWhere("
       WHERE TRUE
-      " . ($kromeIdUzivatelu ? " AND u.id_uzivatele NOT IN ($kromeIdUzivateluSql)" : '') . "
-      " . ($pouzeIdsRoli ? " AND z.id_role IN ($pouzeIdsRoliSql) " : '') . "
+      " . ($kromeIdUzivatelu
+                ? " AND u.id_uzivatele NOT IN ($kromeIdUzivateluSql)"
+                : '') . "
+      " . ($pouzeIdsRoli
+                ? " AND z.id_role IN ($pouzeIdsRoliSql) "
+                : '') . "
       AND (
           u.id_uzivatele = $hodnotaSql
-          " . ((string)(int)$dotaz !== (string)$dotaz // nehledáme ID
+          " . ((string)(int)$dotaz !== (string)$dotaz
+                // nehledáme ID
                 ? ("
                   OR login_uzivatele LIKE $hodnotaZacinaLikeSql
                   OR jmeno_uzivatele LIKE $hodnotaZacinaLikeSql
                   OR jmeno_uzivatele LIKE $dalsiSlovoZacinaLikeSql -- když účastník napíše do jména jméno i příjmení
                   OR prijmeni_uzivatele LIKE $hodnotaZacinaLikeSql
                   OR prijmeni_uzivatele LIKE $dalsiSlovoZacinaLikeSql -- když účastník napíše do příjmení jméno i příjmení
-                  " . ($opt['mail'] ? " OR email1_uzivatele LIKE $hodnotaZacinaLikeSql " : "") . "
+                  " . ($opt['mail']
+                        ? " OR email1_uzivatele LIKE $hodnotaZacinaLikeSql "
+                        : "") . "
                   OR CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele) LIKE $hodnotaZacinaLikeSql
                   ")
                 : ''
@@ -2049,6 +2124,7 @@ SQL,
                     $uzivatele[$id] = self::$objekty[$id];
                 }
             }
+
             return $uzivatele;
         }
         throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
@@ -2089,6 +2165,7 @@ SQL,
             'WHERE email1_uzivatele = $0',
             [0 => filter_var($mail, FILTER_SANITIZE_EMAIL)],
         );
+
         return $uzivatele[0] ?? null;
     }
 
@@ -2098,7 +2175,9 @@ SQL,
             return null;
         }
         $uzivatelWrapped = Uzivatel::zWhere('WHERE login_uzivatele = $1', [$nick]);
-        return reset($uzivatelWrapped) ?: null;
+
+        return reset($uzivatelWrapped)
+            ?: null;
     }
 
     /**
@@ -2111,6 +2190,7 @@ SQL,
             $pole['nechce_maily']     = null;
             $pole['mrtvy_mail']       = 1;
             dbInsert('uzivatele_hodnoty', $pole);
+
             return self::zId(dbInsertId());
         }
         throw new Exception('nepodporováno');
@@ -2153,6 +2233,7 @@ SQL,
             }
             if ($u) {
                 $u->klic = $klic;
+
                 return $u;
             }
         }
@@ -2173,8 +2254,10 @@ SQL,
                 [$rand],
             );
             setcookie('gcTrvalePrihlaseni', $rand, time() + 3600 * 24 * 365, '/');
+
             return Uzivatel::prihlasId($id, $klic);
         }
+
         return null;
     }
 
@@ -2190,6 +2273,7 @@ SQL,
         }
         $urlUzivatele = preg_replace('~^[^[:alnum:]]*\d*-?~', '', $aktualniUrl);
         $u            = self::nactiUzivatele("WHERE uzivatele_url.url = " . dbQv($urlUzivatele));
+
         return count($u) !== 1
             ? null
             : $u[0];
@@ -2267,6 +2351,7 @@ SQL;
             $u->r['prava'] = explode(',', $u->r['prava'] ?? '');
             $uzivatele[]   = $u;
         }
+
         return $uzivatele;
     }
 
@@ -2279,12 +2364,14 @@ SQL;
                 $this->systemoveNastaveni,
             );
         }
+
         return $this->shop;
     }
 
     public function maNahranyDokladProtiCoviduProRok(int $rok): bool
     {
         $potvrzeniProtiCovid19PridanoKdy = $this->potvrzeniProtiCoviduPridanoKdy();
+
         return $potvrzeniProtiCovid19PridanoKdy
             && $potvrzeniProtiCovid19PridanoKdy->format('Y') === (string)$rok;
     }
@@ -2295,6 +2382,7 @@ SQL;
             return false;
         }
         $potvrzeniProtiCovid19OverenoKdy = $this->potvrzeniProtiCoviduOverenoKdy();
+
         return $potvrzeniProtiCovid19OverenoKdy
             && $potvrzeniProtiCovid19OverenoKdy->format('Y') === (string)$rok;
     }
@@ -2331,6 +2419,7 @@ SQL;
             $x->parse('covid.nahrat');
         }
         $x->parse('covid');
+
         return $x->text('covid');
     }
 
@@ -2377,7 +2466,9 @@ SQL;
         ], [
             'id_uzivatele' => $this->id(),
         ]);
-        $this->r['potvrzeni_proti_covid19_pridano_kdy'] = $kdy ? $kdy->format(DateTimeCz::FORMAT_DB) : null;
+        $this->r['potvrzeni_proti_covid19_pridano_kdy'] = $kdy
+            ? $kdy->format(DateTimeCz::FORMAT_DB)
+            : null;
     }
 
     private function ulozPotvrzeniProtiCoviduOverenoKdy(?\DateTimeInterface $kdy)
@@ -2387,7 +2478,9 @@ SQL;
         ], [
             'id_uzivatele' => $this->id(),
         ]);
-        $this->r['potvrzeni_proti_covid19_overeno_kdy'] = $kdy ? $kdy->format(DateTimeCz::FORMAT_DB) : null;
+        $this->r['potvrzeni_proti_covid19_overeno_kdy'] = $kdy
+            ? $kdy->format(DateTimeCz::FORMAT_DB)
+            : null;
     }
 
     public function urlNaPotvrzeniProtiCoviduProAdmin(): string
@@ -2425,6 +2518,7 @@ SQL;
     public function potvrzeniProtiCoviduPridanoKdy(): ?\DateTimeInterface
     {
         $potvrzeniProtiCovid19PridanoKdy = $this->r['potvrzeni_proti_covid19_pridano_kdy'] ?? null;
+
         return $potvrzeniProtiCovid19PridanoKdy
             ? new DateTimeImmutable($potvrzeniProtiCovid19PridanoKdy)
             : null;
@@ -2433,6 +2527,7 @@ SQL;
     public function potvrzeniProtiCoviduOverenoKdy(): ?\DateTimeInterface
     {
         $potvrzeniProtiCovid19OverenoKdy = $this->r['potvrzeni_proti_covid19_overeno_kdy'] ?? null;
+
         return $potvrzeniProtiCovid19OverenoKdy
             ? new DateTimeImmutable($potvrzeniProtiCovid19OverenoKdy)
             : null;
@@ -2446,6 +2541,7 @@ SQL;
         if ($this->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             return $this->mojeAktivityAdminUrl($zakladniAdminUrl);
         }
+
         return $zakladniAdminUrl;
     }
 
@@ -2461,20 +2557,24 @@ SQL;
      * @param string $zakladniWebUrl
      * @return string[] nazev => název, url => URL
      */
-    public function mimoMojeAktivityUvodniAdminLink(string $zakladniAdminUrl = URL_ADMIN, string $zakladniWebUrl = URL_WEBU): array
-    {
+    public function mimoMojeAktivityUvodniAdminLink(string $zakladniAdminUrl = URL_ADMIN,
+                                                    string $zakladniWebUrl = URL_WEBU
+    ): array {
         // URL máme schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
         if ($this->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/infopult */
             $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/infopult.php', '.php');
+
             return ['url' => $zakladniAdminUrl . '/' . $adminUvodUrl, 'nazev' => 'do Adminu'];
         }
         if ($this->jeOrganizator()) {
             /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/uzivatel */
             $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/uzivatel.php', '.php');
+
             return ['url' => $zakladniAdminUrl . '/' . $adminUvodUrl, 'nazev' => 'do Adminu'];
         }
         $webProgramUrl = basename(__DIR__ . '/../web/moduly/program.php', '.php');
+
         return ['url' => $zakladniWebUrl . '/' . $webProgramUrl, 'nazev' => 'na Program'];
     }
 
@@ -2499,6 +2599,7 @@ SQL,
                 ? new DateTimeImmutable($hodnota)
                 : null;
         }
+
         return $this->kdySeRegistrovalNaLetosniGc;
     }
 }

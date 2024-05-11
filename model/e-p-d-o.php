@@ -17,16 +17,25 @@ class EPDO extends PDO
     }
 
     /**
+     * Vloží do tabulky daného názvu nový řádek definovaný jako asoc. pole
+     */
+    public function fetchSingleValue(string $query): int|string|float|bool|null
+    {
+        $pdo = $this->query($query);
+
+        return $pdo->fetchColumn();
+    }
+
+    /**
      * Provede dotaz
-     * @param string $statement
-     * @param int $mode
+     * @param string $query
+     * @param int $fetchMode
      * @param mixed $fetch_mode_args
-     * @return PDOStatement|false
      * @todo počítání času a podobně
      * @todo argumenty
      * @todo nějaký složitější systém výjimek na jemné ladění
      */
-    public function query($statement, $mode = PDO::ATTR_DEFAULT_FETCH_MODE, ...$fetch_mode_args): PDOStatement|false
+    public function query($query, $fetchMode = PDO::ATTR_DEFAULT_FETCH_MODE, ...$fetch_mode_args): PDOStatement
     {
         /*
         // inspirace pro argumenty preg style
@@ -37,11 +46,12 @@ class EPDO extends PDO
           },$q)
         );
         */
-        $o = parent::query($statement);
+        $o = parent::query($query);
         if ($o === false) {
             var_dump($this->errorInfo());
             throw new Exception($this->errorInfo()[2]);
         }
+
         return $o;
     }
 

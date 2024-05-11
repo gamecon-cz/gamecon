@@ -49,6 +49,8 @@ class Platby
      */
     private function zpracujPlatby(array $fioPlatby): array
     {
+        $this->zalogujPrichoziPlatby($fioPlatby);
+
         $vysledek = [];
         foreach ($fioPlatby as $fioPlatba) {
             if ($this->platbuUzMame($fioPlatba->id())) {
@@ -74,12 +76,76 @@ class Platby
             );
             $vysledek[] = $fioPlatba;
         }
+
+        $this->zalogujNoveSparovanePlatby($vysledek);
+
         return $vysledek;
+    }
+
+    /**
+     * @param array<FioPlatba> $fioPlatby
+     */
+    private function zalogujPrichoziPlatby(array $fioPlatby): void
+    {
+        $this->zalogujPlatby($fioPlatby, 'prichozi');
+    }
+
+    /**
+     * @param array<FioPlatba> $fioPlatby
+     */
+    private function zalogujNoveSparovanePlatby(array $fioPlatby): void
+    {
+        $this->zalogujPlatby($fioPlatby, 'nove_sparovane');
+    }
+
+    private function zalogujPlatby(array $fioPlatby, string $typZaznamu)
+    {
+        $db = $this->zajistiTabulkuProLogovani();
+        $db->insert(
+            'fio_platby',
+            [
+                'typ'            => $typZaznamu,
+                'platby'         => json_encode(
+                    array_map(
+                        fn(FioPlatba $fioPlatba) => $fioPlatba->jakoArray(),
+                        $fioPlatby
+                    ),
+                    JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE
+                ),
+                'zalogovano_kdy' => date('c'),
+            ]
+        );
+    }
+
+    private function zajistiTabulkuProLogovani(): \EPDO
+    {
+        $db = new \EPDO('sqlite:' . SPEC . '/platby.sqlite');
+
+        $db->query('CREATE TABLE IF NOT EXISTS fio_platby(
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            typ                 VARCHAR(255) NOT NULL,
+            platby              TEXT,
+            zalogovano_kdy      DATETIME
+        )');
+
+        $db->query('CREATE INDEX IF NOT EXISTS idx_zalogovano_kdy ON fio_platby (zalogovano_kdy)');
+
+        return $db;
     }
 
     private function platbuUzMame(string $idFioPlatby): bool
     {
         return (bool)dbOneCol('SELECT 1 FROM platby WHERE fio_id = $1', [$idFioPlatby]);
+    }
+
+    public function platbyNaposledyAktualizovanyKdy(): ?DateTimeImmutable
+    {
+        $db                     = $this->zajistiTabulkuProLogovani();
+        $naposledyAktualizovano = $db->fetchSingleValue('SELECT MAX(zalogovano_kdy) FROM fio_platby WHERE typ = "prichozi"');
+
+        return $naposledyAktualizovano
+            ? new DateTimeImmutable($naposledyAktualizovano)
+            : null;
     }
 
     /**
@@ -129,8 +195,7 @@ class Platby
         int      $poradiOznameni,
         int      $nesparovanychPlateb,
         Uzivatel $provedl,
-    )
-    {
+    ) {
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuONesparovanychPlatbach($rocnik, $poradiOznameni),
@@ -147,8 +212,7 @@ class Platby
 
     public function nastavPosledniAktulizaciPlatebBehemSessionKdy(
         DateTimeInterface $posledniAktulizacePlatebBehemSessionKdy,
-    )
-    {
+    ) {
         $this->posledniAktulizacePlatebBehemSessionKdy = $posledniAktulizacePlatebBehemSessionKdy;
     }
 

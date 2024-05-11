@@ -21,10 +21,12 @@ import { nastavZvětšeno } from "../../../../store/program/slices/všeobecnéSl
 
 type ProgramTabulkaProps = {};
 
-const ZAČÁTEK_AKTIVIT = 8;
-const KONEC_AKITIVIT = 24;
-
-const PROGRAM_ČASY = range(ZAČÁTEK_AKTIVIT, KONEC_AKITIVIT);
+const PROGRAM_ČASY =
+  GAMECON_KONSTANTY.PROGRAM_ZACATEK < GAMECON_KONSTANTY.PROGRAM_KONEC
+    ? range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, GAMECON_KONSTANTY.PROGRAM_KONEC)
+    : range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, 24).concat(
+        range(0, GAMECON_KONSTANTY.PROGRAM_KONEC)
+      );
 
 const indexŘazení = (klíč: string) => {
   const index = GAMECON_KONSTANTY.PROGRAM_ŘAZENÍ_LINIE.findIndex(
@@ -97,7 +99,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
           {range(řádků).map((řádek) => {
             const klíčSkupiny = řádek === 0 ? nadpisSkupiny : <></>;
 
-            let posledníAktivitaDo = ZAČÁTEK_AKTIVIT;
+            let posledníAktivitaDo = GAMECON_KONSTANTY.PROGRAM_ZACATEK;
             return (
               <tr>
                 {klíčSkupiny}
@@ -109,7 +111,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                     const hodinOd = new Date(aktivita.cas.od).getHours();
                     const hodinDo = new Date(aktivita.cas.do).getHours();
 
-                    const časOdsazení = hodinOd - posledníAktivitaDo;
+                    const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
                     posledníAktivitaDo = hodinDo;
                     const odsazení = range(časOdsazení).map(() => <td></td>);
 
@@ -123,11 +125,10 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                       </>
                     );
                   })}
-                {posledníAktivitaDo > 0
-                  ? range(KONEC_AKITIVIT - posledníAktivitaDo).map(() => (
-                    <td></td>
-                  ))
-                  : undefined}
+                {
+                  range((GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24)
+                    .map(() => <td></td>)
+                }
               </tr>
             );
           })}

@@ -10,19 +10,19 @@ class Nahled
     protected $s       = null;
     protected $v       = null;
     protected $mod     = null;
-    protected $soubor;
-    protected $datum;         // poslední změna orig. souboru
+    protected string $soubor;
+    protected ?int $datum;         // poslední změna orig. souboru
     protected $kvalita = 92;  // kvalita exportu
 
     const PASUJ       = 1;
     const POKRYJ      = 2;
     const POKRYJ_OREZ = 3;
 
-    protected function __construct($soubor)
+    protected function __construct(string $soubor)
     {
         $this->soubor = $soubor;
-        $this->datum  = @filemtime($this->soubor);
-        if ($this->datum === false) {
+        $this->datum  = @filemtime($this->soubor) ?: null;
+        if (!$this->datum) {
             throw new RuntimeException('Obrázek neexistuje. Hledán na ' . $soubor);
         }
     }
@@ -71,19 +71,27 @@ class Nahled
     }
 
     /** Uloží stávající soubor s požadovanými úpravami */
-    protected function uloz($cil)
+    protected function uloz(string $cil)
     {
         $o = Obrazek::zSouboru($this->soubor);
         $s = $this->s ?: 10000;
         $v = $this->v ?: 10000;
-        if ($this->mod == self::PASUJ) $o->fitCrop($s, $v); // pozor, cache může odstínit změny v tomto kódu
-        if ($this->mod == self::POKRYJ) $o->fillCrop($s, $v);
-        if ($this->mod == self::POKRYJ_OREZ) $o->fill($s, $v);
+        switch ($this->mod) {
+            case self::PASUJ:
+                $o->fitCrop($s, $v);
+                break;
+            case self::POKRYJ:
+                $o->fillCrop($s, $v);
+                break;
+            case self::POKRYJ_OREZ:
+                $o->fill($s, $v);
+                break;
+        }
         $o->uloz($cil, $this->kvalita);
     }
 
     /** Vrátí url obrázku, je možné ji cacheovat navždy */
-    function url()
+    function url(): string
     {
         $hash  = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita);
         $cache = CACHE . '/img/' . $hash . '.jpg';
@@ -95,7 +103,7 @@ class Nahled
         return $url;
     }
 
-    static function zSouboru($nazev)
+    static function zeSouboru(string $nazev): self
     {
         return new self($nazev);
     }

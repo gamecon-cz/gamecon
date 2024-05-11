@@ -1,6 +1,7 @@
 import { APIŠtítek, AktivitaStav } from "../../../api/program";
 import { Pohlavi } from "../../../api/přihlášenýUživatel";
-import { volnoTypZObsazenost } from "../../../utils";
+import { GAMECON_KONSTANTY } from "../../../env";
+import { datumPřidejDen, volnoTypZObsazenost } from "../../../utils";
 import { Aktivita } from "../slices/programDataSlice";
 // Pozor musí být defaultní import!
 import FlexSearch from "flexsearch";
@@ -12,8 +13,7 @@ export type FiltrProgramTabulkaVýběr =
   | {
     typ: "den";
     datum: Date;
-  }
-  ;
+  };
 
 export type MapováníŠtítků = {
   /** Klíč je id (APIŠtítek.id) hodnota je kategorie štítku (APIŠtítek.nazevKategorie) */
@@ -71,6 +71,12 @@ export const aktivitaStatusZAktivity = (
   return "volno";
 };
 
+const denAktivity = (casAktivity: Date) => {
+  return casAktivity.getHours() >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
+    ? casAktivity
+    : datumPřidejDen(casAktivity, -1);
+};
+
 // TODO: přidat zbytek filtrů
 export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníŠtítků: MapováníŠtítků) => {
   const {
@@ -80,22 +86,23 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
   let aktivityFiltrované = aktivity;
 
   if (ročník)
-    aktivityFiltrované = aktivityFiltrované
-      .filter(aktivita => new Date(aktivita.cas.od).getFullYear() === ročník);
+    aktivityFiltrované = aktivityFiltrované.filter(
+      (aktivita) => new Date(aktivita.cas.od).getFullYear() === ročník
+    );
 
   if (výběr?.typ === "můj") {
     aktivityFiltrované = aktivityFiltrované
       .filter((aktivita) => aktivita?.stavPrihlaseni != undefined || aktivita?.vedu);
   } else if (výběr?.typ === "den") {
     aktivityFiltrované = aktivityFiltrované
-      .filter((aktivita) => new Date(aktivita.cas.od).getDay() === výběr.datum.getDay());
+      .filter((aktivita) => 
+        denAktivity(new Date(aktivita.cas.od)).getDay() === výběr.datum.getDay());
   }
 
   if (filtrLinie)
-    aktivityFiltrované = aktivityFiltrované
-      .filter((aktivita) =>
-        filtrLinie.some(x => x === aktivita.linie)
-      );
+    aktivityFiltrované = aktivityFiltrované.filter((aktivita) =>
+      filtrLinie.some((x) => x === aktivita.linie)
+    );
 
   if (filtrŠtítkyId) {
     const štítkyIdPodleKategorie: { [kategorie: string]: number[] } = {};
@@ -122,16 +129,14 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
   // TODO: přihlašovatelnost aktivity dle pohlaví
   // TODO: přihlašovatelnost aktivity dle pohlaví přidat tooltip na tlačítko
   if (filtrStavAktivit)
-    aktivityFiltrované = aktivityFiltrované
-      .filter((aktivita) =>
-        filtrStavAktivit.some(x => aktivitaStatusZAktivity(aktivita) === x)
-      );
+    aktivityFiltrované = aktivityFiltrované.filter((aktivita) =>
+      filtrStavAktivit.some((x) => aktivitaStatusZAktivity(aktivita) === x)
+    );
 
   if (filtrPřihlašovatelné)
-    aktivityFiltrované = aktivityFiltrované
-      .filter((aktivita) =>
-        aktivita.prihlasovatelna && !aktivita.probehnuta
-      );
+    aktivityFiltrované = aktivityFiltrované.filter(
+      (aktivita) => aktivita.prihlasovatelna && !aktivita.probehnuta
+    );
 
   if (filtrText) {
     const flexDocument = new FlexSearch.Document<Aktivita, true>({
@@ -176,4 +181,3 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
 
   return aktivityFiltrované;
 };
-

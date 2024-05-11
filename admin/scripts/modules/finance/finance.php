@@ -3,6 +3,7 @@
 use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Uzivatel\Platby;
 
 /**
  * Rychlé finanční transakce (obsolete) (starý kód)
@@ -102,6 +103,12 @@ SQL
 }
 
 $x = new XTemplate(__DIR__ . '/finance.xtpl');
+
+$platby = new Platby($systemoveNastaveni);
+if ($platby->platbyNaposledyAktualizovanyKdy() < new DateTimeImmutable('-1 day')) {
+    $x->parse('finance.fioAktualizace');
+}
+
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
     $o   = dbQuery(<<<SQL

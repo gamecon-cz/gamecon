@@ -25,12 +25,11 @@ const useŠtítkyMapováníKategorieŠtítků = () => {
 /**
  * Všechny dotažené aktivity
  */
-export const useAktivityDotažené = () => useProgramStore(
-  (s) => filtrujDotaženéAktivity(s.data.aktivityPodleId)
-);
+export const useAktivityDotažené = () =>
+  useProgramStore((s) => filtrujDotaženéAktivity(s.data.aktivityPodleId));
 
 /**
- * Aplikuje filtr na aktivity, pokud není předaný 
+ * Aplikuje filtr na aktivity, pokud není předaný
  */
 export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): Aktivita[] => {
   const filtr = useFiltrAktivitNeboZeStavu(aktivitaFiltr);
@@ -44,11 +43,10 @@ export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): Aktivita[]
 };
 
 export const useAktivita = (akitivitaId: number): Aktivita | undefined =>
-  useProgramStore(s => {
+  useProgramStore((s) => {
     const aktivita = s.data.aktivityPodleId[akitivitaId];
     return jeAktivitaDotažená(aktivita) ? aktivita : undefined;
   });
-
 
 export const useAktivitaNáhled = (): Aktivita | undefined =>
   useProgramStore(s => {

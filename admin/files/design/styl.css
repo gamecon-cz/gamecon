@@ -873,6 +873,7 @@ li.list-header {
   text-align: center;
   z-index: 99;
 }
+.chybaBlok.inline { position: inherit; z-index: inherit; top: 0; width: 100%; left: 0; margin-bottom: 1em }
 
 .chybaBlok .hlaska {
   padding: 28px;

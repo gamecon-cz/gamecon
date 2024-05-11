@@ -165,12 +165,25 @@ class Obrazek
         if ($this->o == $this->original) { // žádné změny
             return copy($this->soubor, $cil); // použít originál
         }
-        return imagejpeg($this->o, $cil, $kvalita ?: 98); // uložit
+
+        return imagejpeg($this->o, $cil, $kvalita
+            ?: 98); // uložit
     }
 
     function width()
     {
         return imagesx($this->o);
+    }
+
+    public static function jeToPodporovanyObrazek(string $soubor): bool
+    {
+        try {
+            self::zUrl($soubor, $soubor);
+
+            return true;
+        } catch (ObrazekException) {
+            return false;
+        }
     }
 
     /** Načte obrázek z některého z podporovaných typů souboru */
@@ -212,15 +225,20 @@ class Obrazek
                 $soubor === null,
             );
         }
-        return new self($o, $soubor ?: $url);
+
+        return new self($o, $soubor
+            ?: $url);
     }
 
 }
 
 class ObrazekException extends \RuntimeException
 {
-    public function __construct(string $message, protected readonly bool $zUrl, int $code = 0, ?Throwable $previous = null)
-    {
+    public function __construct(string                  $message,
+                                protected readonly bool $zUrl,
+                                int                     $code = 0,
+                                ?Throwable              $previous = null
+    ) {
         parent::__construct($message, $code, $previous);
     }
 

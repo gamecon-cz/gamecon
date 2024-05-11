@@ -55,6 +55,7 @@ if (get('key') !== CRON_KEY) {
 $job = get('job');
 if ($job !== null) {
     require __DIR__ . '/cron/_cron_job.php';
+
     return;
 }
 
@@ -64,11 +65,13 @@ if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
     throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
 }
 
+$output = '';
 if (empty($_GET['echo'])) {
     $logDescriptor = fopen($logdir . '/' . $logfile, 'ab');
-    ob_start(static function ($string) use ($logDescriptor) {
+    ob_start(static function ($string) use ($logDescriptor, &$output) {
         fwrite($logDescriptor, $string . "\n");
         fclose($logDescriptor);
+        $output .= $string . "\n";
     });
 }
 
@@ -108,3 +111,8 @@ if (date('G') >= 5) { // 5 hodin ráno či později
 }
 
 logs('...cron skript dokončen.');
+
+if (!empty($_GET['tee'])) {
+    ob_end_flush();
+    echo $output . "\n";
+}

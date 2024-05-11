@@ -2,6 +2,14 @@
 
 <h1>Finance</h1>
 
+<!-- begin:fioAktualizace -->
+<div class="chybaBlok inline">
+  <div class="hlaska varovani">
+    Platby z Fio nebyly aktualizovány už delší dobu.
+  </div>
+</div>
+<!-- end:fioAktualizace -->
+
 <form>
   <label>
     Vypsat uživatele, kteří mají stav účtu vyšší rovno jak
