@@ -52,6 +52,17 @@
     @media (max-width: 600px) { display: none; }
 }
 
+.gchlavicka > .video {
+    position: absolute;
+    width: 36vw;
+    /* Keep 16/9 ratio */
+    height: 20.25vw;
+    bottom: 41%;
+    left: 51.042vw;
+    @media (max-width: 600px) { display: none; }
+}
+
+
 .gchlavicka_claim {
     position: absolute;
     font-size: 20px;
@@ -74,8 +85,10 @@
     width: 350rel;
     padding: 20rel 0 15rel 30rel;
     box-sizing: border-box;
-    bottom: 32%;
-    left: 61.7%;
+    // bottom: 32%;
+    bottom: calc(~"41% + 20.25vw + -0.8em");
+    // left: 61.7%;
+    left: 50.7%;
     @media (max-width: 600px) {
         top: 71.5vw;
         bottom: unset;
@@ -87,13 +100,20 @@
 
 .gchlavicka_misto {
     position: absolute;
-    width: 1em;
+    // width: 1em;
     text-align: center;
     font-weight: 800;
     font-size: 42rel;
     line-height: 56rel;
-    bottom: 33%;
-    left: 1500rel;
+    bottom: calc(~"41% + -1.2em");
+    right: 4em;
+    @media (max-width: 1280px) {
+        width: 1em;
+        bottom: 33%;
+        left: 88.125vw;
+        right: unset;
+    }
+    @media (max-width: 600px) { display: none; }
 }
 
 .gchlavicka_video {
@@ -112,6 +132,7 @@
         left: 243/3.2vw;
         color: transparent; // trik na zakrytí textu
     }
+    @media (min-width: 600px) { display: none; }
 }
 
 .gchlavicka_video::before {
