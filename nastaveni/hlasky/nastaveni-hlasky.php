@@ -17,11 +17,11 @@ return [
     'neniPrihlasenNaGc'    => 'Nemá aktivní přihlášku na GameCon.',
     'uzJsiPrihlasen'       => 'Na tuto aktivitu už jsi jednou přihlášen.',
     'uzJePrihlasen'        => 'Na tuto aktivitu už je jednou přihlášen.',
-    'nyniPrihlaska'        => 'Nyní se vyplněním následujícího formuláře se přihlásíš na GameCon.',
+    'nyniPrihlaska'        => 'Vyplněním následujícího formuláře se přihlásíš na GameCon.',
     'plno'                 => 'Místa jsou už plná',
     'regOk'                => 'Účet vytvořen. Informaci o spuštění přihlašování ti včas pošleme e-mailem.',
     'regOkNyniPrihlaska'   => 'Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.',
     'upravaUzivatele'      => 'Změny registračních údajů uloženy.',
-    'uzPrihlasen'          => 'Už jsi přihlášen na GameCon, zde můžeš upravit svou přihlášku.',
+    'uzPrihlasen'          => 'Na GameCon už jsi přihlášen{a}, zde můžeš upravit svou přihlášku.',
     'zamcena'              => 'Aktivitu už někdo zabral',
 ];
