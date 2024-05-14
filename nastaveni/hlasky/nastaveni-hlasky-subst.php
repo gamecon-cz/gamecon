@@ -5,7 +5,7 @@ use Gamecon\Hlaska\Hlaska;
 return [
     'odhlasilPlatil'                        => 'Uživatel %1 (ID %2) %3 z GameConu, ale v aktuálním roce (%4) si poslal %5 Kč. Bude vhodné to prověřit popř. smazat platby z připsaných a dát do zůstatku v seznamu uživatelů, aby mu peníze nepropadly',
     'odhlasilMelUbytovani'                  => 'Uživatel %1 (ID %2) %3 z GameConu a v aktuálním roce (%4) měl ubytování ve dnech %5. Uvolnilo se tak místo.',
-    'uvolneneMisto'                         => 'Na aktivitě %1, která se koná v %2 se uvolnilo místo. Tento e-mail dostáváš, protože jsi se přihlásil k sledování uvedené aktivity. Přihlaš se na aktivitu přes <a href="https://gamecon.cz/program">program</a> (pokud nebudeš dost rychlý, je možné že místo sebere někdo jiný).',
+    'uvolneneMisto'                         => 'Na aktivitě %1, která se koná v %2, se uvolnilo místo. Tento e-mail dostáváš, protože ses přihlásil{a} ke sledování uvedené aktivity. Přihlaš se na aktivitu přes <a href="https://gamecon.cz/program">program</a> (pospěš si, ať ti místo nezabere někdo jiný).',
     'chybaClenaTymu'                        => 'Nepodařilo se přihlásit tým. Při přihlášování uživatele %1 (id %2) se u něj objevila chyba: %3',
     'zapomenuteHeslo'                       =>
         'Ahoj,
@@ -18,7 +18,7 @@ S pozdravem Tým organizátorů GameConu',
     'prihlaseniTeamMail'                    =>
         'Ahoj,
 
-v rámci GameConu tě %1 přihlásil{a} na aktivitu %2, která se koná %3. Pokud s přihlášením nepočítáš nebo na aktivitu nemůžeš, dohodni se prosím s tím, kdo tě přihlásil a případně se můžeš odhlásit na <a href="https://gamecon.cz">webu gameconu</a>.
+v rámci GameConu tě %1 přihlásil{a} na aktivitu %2, která se koná %3. Pokud s přihlášením nepočítáš, nebo na aktivitu nemůžeš, dohodni se prosím s tím, kdo tě přihlásil, případně se odhlas na <a href="https://gamecon.cz">webu gameconu</a>.
 
 Pokud člověka, který tě přihlásil, neznáš, kontaktuj nás prosím na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>.',
     'kapacitaMaxUpo'                        => 'Z ubytovací kapacity typu %1 je naplněno %2 míst z maxima %3 míst.',
