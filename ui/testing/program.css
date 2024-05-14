@@ -46,6 +46,7 @@ table.program {
   vertical-align: top;
   position: sticky; /* pozor, zajiÅ¡Å¥uje i pozicovÃ¡nÃ­ .program_nazevLinie */
   left: 0;
+  padding-right: 14px;
   z-index: 1; /* aby bylo nad symboly v programu */
   background-color: #FDC689;
   color: #10111A;
