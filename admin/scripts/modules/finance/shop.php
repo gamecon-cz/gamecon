@@ -69,14 +69,6 @@ foreach (Shop::letosniPolozky() as $polozka) {
 }
 $template->parse('shop.typ');
 
-$template->assign([
-    'cssVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/../../../files/ui', 'css'),
-    'jsVersions'  => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/../../../files/ui', 'js'),
-]);
-$template->assign('basePathApi', URL_ADMIN . '/api/');
-$template->assign('rocnik', $systemoveNastaveni->rocnik());
-$template->parse('shop.kfc');
-
 $template->parse('shop');
 $template->out('shop');
 

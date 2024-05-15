@@ -10,6 +10,6 @@ global $systemoveNastaveni;
 $bfgrReport = new BfgrReport($systemoveNastaveni);
 $bfgrReport->exportuj(
     format: get('format'),
-    idUzivatele: get('id'),
-    vcetneStavuNeplatice: true
+    vcetneStavuNeplatice: true,
+    idUzivatele: get('id')
 );
