@@ -47,7 +47,7 @@ final class Help
         foreach ($this->elements() as $options) {
             foreach ($options as $option) {
                 if (isset($option['arg'])) {
-                    $this->lengthOfLongestOptionName = max($this->lengthOfLongestOptionName, isset($option['arg']) ? strlen($option['arg']) : 0);
+                    $this->lengthOfLongestOptionName = max($this->lengthOfLongestOptionName, strlen($option['arg']));
                 }
             }
         }
@@ -206,6 +206,7 @@ final class Help
                 ['arg'    => '--stop-on-incomplete', 'desc' => 'Stop after first incomplete test'],
                 ['spacer' => ''],
 
+                ['arg'    => '--fail-on-empty-test-suite', 'desc' => 'Signal failure using shell exit code when no tests were run'],
                 ['arg'    => '--fail-on-warning', 'desc' => 'Signal failure using shell exit code when a warning was triggered'],
                 ['arg'    => '--fail-on-risky', 'desc' => 'Signal failure using shell exit code when a test was considered risky'],
                 ['arg'    => '--fail-on-deprecation', 'desc' => 'Signal failure using shell exit code when a deprecation was triggered'],
@@ -288,7 +289,7 @@ final class Help
             ['arg' => '-h|--help', 'desc' => 'Prints this usage information'],
             ['arg' => '--version', 'desc' => 'Prints the version and exits'],
             ['arg' => '--atleast-version <min>', 'desc' => 'Checks that version is greater than <min> and exits'],
-            ['arg' => '--check-version', 'desc' => 'Check whether PHPUnit is the latest version and exits'],
+            ['arg' => '--check-version', 'desc' => 'Checks whether PHPUnit is the latest version and exits'],
         ];
 
         return $elements;

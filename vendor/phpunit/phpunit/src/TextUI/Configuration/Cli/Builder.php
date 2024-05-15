@@ -16,6 +16,7 @@ use function getcwd;
 use function is_file;
 use function is_numeric;
 use function sprintf;
+use PHPUnit\Event\Facade as EventFacade;
 use PHPUnit\Runner\TestSuiteSorter;
 use PHPUnit\Util\Filesystem;
 use SebastianBergmann\CliParser\Exception as CliParserException;
@@ -126,6 +127,11 @@ final class Builder
         'debug',
     ];
     private const SHORT_OPTIONS = 'd:c:h';
+
+    /**
+     * @psalm-var array<string, non-negative-int>
+     */
+    private array $processed = [];
 
     /**
      * @throws Exception
@@ -245,6 +251,8 @@ final class Builder
         $debug                             = false;
 
         foreach ($options[0] as $option) {
+            $optionAllowedMultipleTimes = false;
+
             switch ($option[0]) {
                 case '--colors':
                     $colors = $option[1] ?: \PHPUnit\TextUI\Configuration\Configuration::COLOR_AUTO;
@@ -358,6 +366,8 @@ final class Builder
                         }
                     }
 
+                    $optionAllowedMultipleTimes = true;
+
                     break;
 
                 case 'h':
@@ -393,7 +403,7 @@ final class Builder
                 case '--use-baseline':
                     $useBaseline = $option[1];
 
-                    if (!is_file($useBaseline) && basename($useBaseline) === $useBaseline) {
+                    if (basename($useBaseline) === $useBaseline && !is_file($useBaseline)) {
                         $useBaseline = getcwd() . DIRECTORY_SEPARATOR . $useBaseline;
                     }
 
@@ -806,9 +816,9 @@ final class Builder
                     break;
 
                 case '--log-events-text':
-                    $logEventsText = Filesystem::resolvePathOrStream($option[1]);
+                    $logEventsText = Filesystem::resolveStreamOrFile($option[1]);
 
-                    if (!$logEventsText) {
+                    if ($logEventsText === false) {
                         throw new Exception(
                             sprintf(
                                 'The path "%s" specified for the --log-events-text option could not be resolved',
@@ -820,9 +830,9 @@ final class Builder
                     break;
 
                 case '--log-events-verbose-text':
-                    $logEventsVerboseText = Filesystem::resolvePathOrStream($option[1]);
+                    $logEventsVerboseText = Filesystem::resolveStreamOrFile($option[1]);
 
-                    if (!$logEventsVerboseText) {
+                    if ($logEventsVerboseText === false) {
                         throw new Exception(
                             sprintf(
                                 'The path "%s" specified for the --log-events-verbose-text option could not be resolved',
@@ -837,6 +847,10 @@ final class Builder
                     $debug = true;
 
                     break;
+            }
+
+            if (!$optionAllowedMultipleTimes) {
+                $this->markProcessed($option[0]);
             }
         }
 
@@ -948,5 +962,28 @@ final class Builder
             $printerTestDox,
             $debug,
         );
+    }
+
+    /**
+     * @psalm-param non-empty-string $option
+     */
+    private function markProcessed(string $option): void
+    {
+        if (!isset($this->processed[$option])) {
+            $this->processed[$option] = 1;
+
+            return;
+        }
+
+        $this->processed[$option]++;
+
+        if ($this->processed[$option] === 2) {
+            EventFacade::emitter()->testRunnerTriggeredWarning(
+                sprintf(
+                    'Option %s cannot be used more than once',
+                    $option,
+                ),
+            );
+        }
     }
 }

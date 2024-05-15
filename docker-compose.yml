@@ -26,7 +26,7 @@ services:
       - "${WEB_HTTPS_HOST_MAPPING_PORT:-443}:443"
 
   sql.gamecon:
-    image: mariadb:10.3.27 # should be same as on live server
+    image: mariadb:10.6  # should be same as on live server
     restart: "no"
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
