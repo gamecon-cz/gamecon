@@ -12,15 +12,22 @@ use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
 class XTemplate
 {
 
-    protected        $tc       = null;     // compiled template class instance
+    protected        $tc;     // compiled template class instance
+    protected string $root;     // compiled template class instance
     protected static $cacheDir = null;  // where to store compiled templates (null = same as template)
 
     /**
      * Prepares template from given file
      */
-    function __construct($file)
+    function __construct(string $file)
     {
-        $this->tc = $this->compiledTemplate($file);
+        $this->tc   = $this->compiledTemplate($file);
+        $this->root = basename($file, '.xtpl');
+    }
+
+    public function root(): string
+    {
+        return $this->root;
     }
 
     /**
@@ -45,6 +52,7 @@ class XTemplate
         } else {
             $this->tc->context[$a] = $b;
         }
+
         return $this;
     }
 
@@ -85,18 +93,24 @@ class XTemplate
     /**
      * Get/set caching directory for templates (null = same as template)
      */
-    static function cache(/* variadic set/get */)
+    static function cache(/* variadic set/get */): ?string
     {
-        if (func_num_args() == 1) self::$cacheDir = func_get_arg(0);
-        else return self::$cacheDir;
+        if (func_num_args() == 1) {
+            self::$cacheDir = func_get_arg(0);
+
+            return null;
+        }
+
+        return self::$cacheDir;
     }
 
     /**
      * Returns block's parsed contents
      */
-    function text($block)
+    function text(string $block)
     {
         $m = strtr($block, '.', '_');
+
         return $this->tc->$m();
     }
 
@@ -155,6 +169,7 @@ class XTemplate
         $text = preg_replace('@{([a-zA-Z][a-zA-Z0-9_]*)}@', '<?=isset($this->context["$1"])?$this->context["$1"]:\'\'?>', $text);
         $text = preg_replace('@{([a-zA-Z]+)\.([a-zA-Z_]+)}@', '<?=$this->context["$1"]->$2()?>', $text);
         $text = preg_replace('@{([a-zA-Z]+)\.([a-zA-Z]+)\.([a-zA-Z]+)}@', '<?=$this->context["$1"]->$2()->$3()?>', $text);
+
         return $text;
     }
 
@@ -164,23 +179,23 @@ class XTemplate
      *  redeclaration issues. Some reset, debugs, ...?
      * @todo dependency injection of cache location
      */
-    protected function compiledTemplate($file)
+    protected function compiledTemplate(string $file)
     {
         $cFile = self::$cacheDir
-            ?  // comiled file name
-            self::$cacheDir . '/' . md5($file) . '.php'
-            :
-            dirname($file) . '/' . basename($file, '.xtpl') . '.xtpc';
+            ? self::$cacheDir . '/' . md5($file) . '.php'
+            : dirname($file) . '/' . basename($file, '.xtpl') . '.xtpc';
         $cName = $this->generateClassName($file);
 
         // main template modification check & load
-        $compiledModified = file_exists($cFile) ? filemtime($cFile) : 0;
+        $compiledModified = file_exists($cFile)
+            ? filemtime($cFile)
+            : 0;
         $templateModified = filemtime($file);
         if ($compiledModified < $templateModified || $compiledModified < $this->libraryModified()) {
             $this->outlineRead($file);
             file_put_contents($cFile, $this->outlineCompiled($cName));
         }
-        require_once($cFile);
+        require_once $cFile;
         $t = new $cName();
 
         // dependecies modification check
@@ -192,7 +207,9 @@ class XTemplate
                 $modified = true;
             }
         }
-        if ($modified) throw new XTemplateRecompilationException();
+        if ($modified) {
+            throw new XTemplateRecompilationException();
+        }
 
         // return
         return $t;
@@ -207,6 +224,7 @@ class XTemplate
         if ($modified === null) {
             $modified = filemtime(__FILE__);
         }
+
         return $modified;
     }
 
@@ -267,6 +285,7 @@ class XTemplate
             '<methods>'      => $methods,
             '<dependencies>' => '"' . implode('","', $this->dependencies) . '"',
         ]);
+
         return $class;
     }
 
@@ -281,6 +300,7 @@ class XTemplate
         $f     = preg_replace_callback('@{FILE\s+"([^"]+)"}@', function ($m) use ($file) {
             $m[1]                 = $this->convertIncludeFilePath((string)$m[1], $file);
             $this->dependencies[] = $m[1];
+
             return file_get_contents($m[1]);
         }, $f);
         $bloky = preg_split('@' . $delim . '@', $f, -1, PREG_SPLIT_DELIM_CAPTURE);
@@ -294,7 +314,7 @@ class XTemplate
                 // beginning of block
                 $i++; // skip to next token (which is block's name)
                 array_push($path, $bloky[$i]);
-            } else if ($blok == 'end') {
+            } elseif ($blok == 'end') {
                 // end of block
                 $i++;
                 $last = array_pop($path);
@@ -313,6 +333,7 @@ class XTemplate
         }
         /** '/foo/bar/baz.xpl' -> '/foo/bar' */
         $parentTemplateDir = dirname($parentTemplatePath);
+
         /** './qux.xpl' -> '/foo/bar/qux.xpl' */
         return $parentTemplateDir . '/' . str_replace('./', '', $includePath);
     }
@@ -331,6 +352,7 @@ class XTemplate
     protected function toIdent($node)
     {
         $o = implode('_', $node);
+
         return $o;
     }
 
