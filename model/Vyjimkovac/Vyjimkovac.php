@@ -56,8 +56,7 @@ class Vyjimkovac implements Logovac
             }
 
             $eException = new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
-            $eFixed     = Helpers::fixStack($eException);
-            $this->zpracuj($eFixed);
+            $this->zpracuj($eException);
         });
         $this->markShutdownFunctionRegistered();
 
@@ -71,11 +70,10 @@ class Vyjimkovac implements Logovac
             }
 
             $eException = new \ErrorException($msg, 0, $typ, $file, $line);
-            $eFixed     = Helpers::fixStack($eException);
             if ($this->zobrazeni == self::PICARD) {
-                $this->zaloguj($eFixed); // pouze log - necheme ukazovat Pickarda na warning
+                $this->zaloguj($eException); // pouze log - necheme ukazovat Pickarda na warning
             } else {
-                $this->zpracuj($eFixed);
+                $this->zpracuj($eException);
             }
         });
 

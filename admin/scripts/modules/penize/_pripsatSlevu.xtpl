@@ -1,0 +1,34 @@
+
+<!-- begin: pripsatSlevu -->
+<div style="float: left">
+  <strong>Připsat slevu</strong>
+  <form method="post">
+    <table>
+      <tr>
+        <td>Výše slevy:</td>
+        <td>
+          <input type="text" name="sleva" title="Zadej výši slevy"
+                 style="text-align:right;width:40px" pattern="[0-9,]+" required>&thinsp;Kč
+        </td>
+      </tr>
+      <tr>
+        <td><label for="uzivatelProPripsaniSlevy">Uživateli s ID:</label></td>
+        <td><input type="text" name="uzivatelProPripsaniSlevy" value="{id}" id="uzivatelProPripsaniSlevy"></td>
+      </tr>
+      <tr>
+        <td><label for="poznamkaKUzivateliProPripsaniSlevy">Poznámka:</label></td>
+        <td>
+          <input type="text" name="poznamkaKUzivateliProPripsaniSlevy" title="Zadej poznámku" required
+                 id="poznamkaKUzivateliProPripsaniSlevy">
+        </td>
+      </tr>
+      <tr>
+        <td><label for="pripsal">Připsal{aa}:</label></td>
+        <td><input type="text" value="{org}" disabled style="background-color: lightgray; cursor: not-allowed"
+                   id="pripsal"></td>
+      </tr>
+    </table>
+    <input type="submit" value="Připsat">
+  </form>
+</div>
+<!-- end: pripsatSlevu -->
