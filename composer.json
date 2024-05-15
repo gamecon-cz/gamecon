@@ -66,9 +66,6 @@
     "patches": {
       "dg/mysql-dump": [
         "patches/dg-mysql-dump-src-mysqlimport-php.patch"
-      ],
-      "tracy/tracy": [
-        "patches/tracy-tracy-src-tracy-helpers-php.patch"
       ]
     },
     "google/apiclient-services": [
