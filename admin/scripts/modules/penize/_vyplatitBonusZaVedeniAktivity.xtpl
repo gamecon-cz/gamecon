@@ -1,0 +1,67 @@
+<!-- begin: vyplatitBonusZaVedeniAktivity -->
+<div style="float: left; margin-left: 1em">
+  <strong>Převést bonus za vedení aktivity na peníze</strong>
+  <form method="post">
+    <table>
+      <tr>
+        <td><label for="uzivatelKVyplaceniAktivity">Uživatel</label></td>
+        <td>
+          <div class="hinted">
+            <select name="uzivatelKVyplaceniAktivity" id="uzivatelKVyplaceniAktivity" required style="display: none">
+            </select>
+            <span id="nahravamUzivateleKVyplaceniAktivity"
+                  style="display: inline-block; width: 100%; background-image: url('files/design/ui-lightness/images/animated-overlay.gif')">&nbsp;</span>
+            <span class="hint">Vypravěči s letošní učastí na GC</span>
+          </div>
+          <script type="text/javascript">
+            const uzivatelKVyplaceniAktivity = jQuery('#uzivatelKVyplaceniAktivity')
+            jQuery.ajax({
+              async: true,
+              method: 'GET',
+              url: window.location.pathname + '?ajax=uzivatel-k-vyplaceni-aktivity',
+              timeout: 20 * 1000, // milliseconds
+              success: function (data) {
+                data.forEach(function (vypravec) {
+                  const option = jQuery(
+                    '<option value="' + encodeURIComponent(vypravec.id) + '">'
+                    + vypravec.jmeno
+                    + ' - bonus k vyplacení ' + vypravec.nevyuzityBonusZaAktivity
+                    + '</option>',
+                  )
+                  uzivatelKVyplaceniAktivity.append(option)
+                })
+                jQuery('#nahravamUzivateleKVyplaceniAktivity').remove()
+                uzivatelKVyplaceniAktivity.css('display', 'initial')
+              },
+              error: function (jqXHR, textStatus, errorThrown) {
+                jQuery('#nahravamUzivateleKVyplaceniAktivity').replaceWith(
+                  '<span class="error inline">Něco se nepovedlo: "' + errorThrown + '"</span>',
+                )
+              },
+            })
+          </script>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="poznamkaKVyplaceniBonusu">Poznámka:</label></td>
+        <td>
+          <input id="poznamkaKVyplaceniBonusu" type="text" name="poznamkaKVyplaceniBonusu" title="Zadej poznámku"
+                 required value="Převedení bonusu">
+        </td>
+      </tr>
+      <tr>
+        <td><label for="prevedlBonus">Převedl{aa}:</label></td>
+        <td><input id="prevedlBonus" type="text" value="{org}" disabled
+                   style="background-color: lightgray; cursor: not-allowed"></td>
+      </tr>
+    </table>
+    <span class="hinted">
+    <input type="submit" value="Převést" class="hinted">
+    <span class="hint">
+      Jde pouze o převod bonusu (<i>Slevy za organizované aktivity</i>) na pohyb na účtu (připsání).<br>
+      Samotné fyzické vyplacení je potřeba provést <strong>ručně</strong>.
+    </span>
+  </span>
+  </form>
+</div>
+<!-- end: vyplatitBonusZaVedeniAktivity -->
