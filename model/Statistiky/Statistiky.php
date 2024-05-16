@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Gamecon\Statistiky;
 
@@ -14,7 +15,7 @@ class Statistiky
     public const ZAROVNANI_K_ZACATKU_REGISTRACI = 'zacatekRegistaci';
     public const ZAROVNANI_KE_KONCI_GC          = 'konecGc';
 
-    private int $letosniRok;
+    private int $soucasnyRocnik;
 
     /**
      * @param int[]|string[] $roky
@@ -22,9 +23,8 @@ class Statistiky
     public function __construct(
         private readonly array              $roky,
         private readonly SystemoveNastaveni $systemoveNastaveni,
-    )
-    {
-        $this->letosniRok = $this->systemoveNastaveni->rocnik();
+    ) {
+        $this->soucasnyRocnik = $this->systemoveNastaveni->rocnik();
     }
 
     public function dataProGrafUcasti(\DateTimeImmutable $doChvile): array
@@ -33,6 +33,7 @@ class Statistiky
         foreach ($this->roky as $rok) {
             $data[$rok] = $this->dataProGrafUcastiZaRok((int)$rok, $doChvile);
         }
+
         return $data;
     }
 
@@ -108,35 +109,38 @@ SQL,
 
     public function tabulkaUcastiHtml(): string
     {
-        $sledovaneRole = array_merge(
-            [Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok), Role::PRITOMEN_NA_LETOSNIM_GC($this->letosniRok)],
-            dbOneArray(
+        $sledovaneRole = [
+            ...[
+                Role::PRIHLASEN_NA_LETOSNI_GC($this->soucasnyRocnik),
+                Role::PRITOMEN_NA_LETOSNIM_GC($this->soucasnyRocnik),
+            ],
+            ...dbOneArray(
                 'SELECT id_role FROM prava_role WHERE id_prava = $0',
                 [
                     0 => Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI,
                 ],
             ),
-        );
+        ];
 
         return tabMysql(
             dbQuery(
                 <<<SQL
 SELECT
     role_seznam.nazev_role as "Role",
-    COUNT(uzivatele_role.id_uzivatele) AS `<span class="hinted">Celkem<span class="hint">Všech uživatelů s rolí i bez přihlášení</span></span>`,
-    COUNT(role_prihlasen.id_role) AS `<span class="hinted">Přihlášen<span class="hint">Letos přihlášených uživatelů s rolí</span></span>`
+    COUNT(DISTINCT uzivatele_role.id_uzivatele) AS `<span class="hinted">Celkem<span class="hint">Všech uživatelů s rolí i bez přihlášení</span></span>`,
+    COUNT(DISTINCT letos_prihlasen.id_uzivatele) AS `<span class="hinted">Přihlášen<span class="hint">Letos přihlášených uživatelů s rolí</span></span>`
 FROM role_seznam
 LEFT JOIN uzivatele_role
     ON role_seznam.id_role = uzivatele_role.id_role
-LEFT JOIN uzivatele_role AS role_prihlasen
-    ON role_prihlasen.id_role = $0
-        AND role_prihlasen.id_uzivatele = uzivatele_role.id_uzivatele
+LEFT JOIN uzivatele_role AS letos_prihlasen
+    ON letos_prihlasen.id_role = $0
+        AND letos_prihlasen.id_uzivatele = uzivatele_role.id_uzivatele
 WHERE role_seznam.id_role IN ($1)
 GROUP BY role_seznam.id_role, role_seznam.nazev_role
 ORDER BY SUBSTR(role_seznam.nazev_role, 1, 10), role_seznam.id_role
 SQL,
                 [
-                    0 => Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
+                    0 => Role::PRIHLASEN_NA_LETOSNI_GC($this->soucasnyRocnik),
                     1 => $sledovaneRole,
                 ],
             ),
@@ -161,7 +165,7 @@ WHERE shop_nakupy.rok = $0
 GROUP BY shop_nakupy.id_predmetu
 SQL,
                 [
-                    0 => $this->letosniRok,
+                    0 => $this->soucasnyRocnik,
                     1 => [
                         TypPredmetu::PREDMET,
                         TypPredmetu::TRICKO,
@@ -195,7 +199,7 @@ FROM (
 ORDER BY ubytovani_sort_nazev, ubytovani_den
 SQL,
                 [
-                    0 => $this->letosniRok,
+                    0 => $this->soucasnyRocnik,
                     1 => TypPredmetu::UBYTOVANI,
                 ],
             ),
@@ -239,9 +243,9 @@ ORDER BY ubytovani_den
 ) AS serazeno
 SQL,
                 [
-                    0 => $this->letosniRok,
+                    0 => $this->soucasnyRocnik,
                     1 => TypPredmetu::UBYTOVANI,
-                    2 => Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
+                    2 => Role::PRIHLASEN_NA_LETOSNI_GC($this->soucasnyRocnik),
                 ],
             ),
             'Ubytování dny',
@@ -277,7 +281,7 @@ ORDER BY ubytovani_den, Název, id_predmetu
 SQL,
                 [
                     0 => [Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU],
-                    1 => $this->letosniRok,
+                    1 => $this->soucasnyRocnik,
                     2 => TypPredmetu::JIDLO,
                 ],
             ),
@@ -300,7 +304,7 @@ SQL,
     WHERE uzivatele_role.id_role = $0
 SQL,
                 [
-                    0 => Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
+                    0 => Role::PRIHLASEN_NA_LETOSNI_GC($this->soucasnyRocnik),
                 ],
             ),
             'Pohlaví',
@@ -350,7 +354,7 @@ SQL,
             $konecGcJednohoRoku           = DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
             $dnes                         = $this->systemoveNastaveni->ted()->formatDatumDb();
 
-            if ($rok === $this->systemoveNastaveni->rocnik()) {
+            if ($rok === $this->soucasnyRocnik) {
                 $indexLetosnihoRoku = $indexZpracovavanehoRoku;
             }
 
@@ -358,7 +362,7 @@ SQL,
                 // včetně indexu 0, což je vynucená nula přes array_unshift
                 if ($indexDne === 0) {
                     $nazvyDnuJednohoRoku[] = 'před prvním přihlášeným';
-                } else if ($indexDne === 1) {
+                } elseif ($indexDne === 1) {
                     $nazvyDnuJednohoRoku[] = 'před registracemi';
                 } else {
                     $denRegistraci         = $indexDne - 1;
@@ -367,14 +371,14 @@ SQL,
                 if ($zacatekRegistraciJednohoRoku === $denJednohoRoku) {
                     $prvniDenRegistraciJednohoRoku = end($nazvyDnuJednohoRoku);
                     $zacatkyRegistaci[$rok]        = $prvniDenRegistraciJednohoRoku;
-                } else if ($zacatekGcJednohoRoku === $denJednohoRoku) {
+                } elseif ($zacatekGcJednohoRoku === $denJednohoRoku) {
                     $prvniDenGcRoku  = end($nazvyDnuJednohoRoku);
                     $zacatkyGc[$rok] = $prvniDenGcRoku;
-                } else if ($konecGcJednohoRoku === $denJednohoRoku) {
+                } elseif ($konecGcJednohoRoku === $denJednohoRoku) {
                     $posledniDenGcRoku = end($nazvyDnuJednohoRoku);
                     $konceGc[$rok]     = $posledniDenGcRoku;
                 }
-                if ($rok === $this->systemoveNastaveni->rocnik() && $denJednohoRoku === $dnes) {
+                if ($rok === $this->soucasnyRocnik && $denJednohoRoku === $dnes) {
                     $indexDnesnihoDne = $indexDne;
                 }
             }
@@ -400,6 +404,7 @@ SQL,
         $prihlasen = Role::VYZNAM_PRIHLASEN;
         $pritomen  = Role::VYZNAM_PRITOMEN;
         $ucast     = Role::TYP_UCAST;
+
         return tabMysqlR(
             dbQuery(
                 <<<SQL
@@ -439,7 +444,7 @@ FROM (
             WHEN 2018 THEN 176
             WHEN 2019 THEN 185
             WHEN 2021 THEN 198
-            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role IN ($0, $1, $2)), 1 , 0))
+            WHEN {$this->soucasnyRocnik} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role IN ($0, $1, $2)), 1 , 0))
             ELSE SUM(IF(dorazeni AND EXISTS(
                 SELECT * FROM uzivatele_role_log AS posazen
                     LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
@@ -459,7 +464,7 @@ FROM (
             WHEN 2018 THEN 38
             WHEN 2019 THEN 38
             WHEN 2021 THEN 37
-            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $0), 1 , 0))
+            WHEN {$this->soucasnyRocnik} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $0), 1 , 0))
             ELSE SUM(IF(dorazeni AND EXISTS(
                 SELECT * FROM uzivatele_role_log AS posazen
                     LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
@@ -479,7 +484,7 @@ FROM (
             WHEN 2018 THEN ''
             WHEN 2019 THEN ''
             WHEN 2021 THEN 15
-            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $1), 1 , 0))
+            WHEN {$this->soucasnyRocnik} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $1), 1 , 0))
             ELSE SUM(IF(dorazeni AND EXISTS(
                 SELECT * FROM uzivatele_role_log AS posazen
                     LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
@@ -499,7 +504,7 @@ FROM (
             WHEN 2018 THEN 138
             WHEN 2019 THEN 147
             WHEN 2021 THEN 146
-            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $2), 1 , 0))
+            WHEN {$this->soucasnyRocnik} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $2), 1 , 0))
             ELSE SUM(IF(dorazeni AND EXISTS(
                 SELECT * FROM uzivatele_role_log AS posazen
                     LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele = posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4

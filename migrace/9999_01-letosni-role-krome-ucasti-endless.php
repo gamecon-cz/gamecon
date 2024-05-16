@@ -3,6 +3,7 @@
 
 use Gamecon\Role\Role;
 use Granam\RemoveDiacritics\RemoveDiacritics;
+use Gamecon\Pravo;
 
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 
@@ -34,6 +35,7 @@ WHERE nazev_role = '$nazevChybejiciRocnikoveRole'
 SQL,
         );
         $idRolePredchozihoRocniku = null;
+        $idPravaZobrazovatVeStatistikach = Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI;
         if ($result) {
             [$idRolePredchozihoRocniku, $rocnikRolePredchozihoRocniku] = $result->fetch_row();
             $result->close();
@@ -43,6 +45,13 @@ SQL,
 UPDATE role_seznam
 SET nazev_role = CONCAT('$prefixProRoliPredchozihoRocniku', ' ', nazev_role)
 WHERE id_role = $idRolePredchozihoRocniku
+SQL,
+                );
+                $this->q(<<<SQL
+DELETE FROM prava_role
+WHERE
+    id_prava = {$idPravaZobrazovatVeStatistikach}
+    AND id_role = {$idRolePredchozihoRocniku}
 SQL,
                 );
             }
