@@ -18,9 +18,7 @@
         <!-- end:prihlasen -->
 
         <!-- begin:neprihlasen -->
-        <p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty a ubytování s GameCon tématikou,
-            které
-            budeš chtít. Výběr jde i později změnit.</p>
+        <p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty s GameCon tématikou a ubytování, které budeš chtít. Výběr jde i později změnit.</p>
         <!-- end:neprihlasen -->
     </div>
 </div>
