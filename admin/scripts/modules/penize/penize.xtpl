@@ -6,11 +6,10 @@
 
 <!--{FILE "scripts/modules/penize/_vyplatitBonusZaVedeniAktivity.xtpl"}-->
 
-
-{FILE "scripts/modules/penize/_kfcMrizkovyProdej.xtpl"}
-
 {FILE "scripts/modules/penize/_pripsatSlevu.xtpl"}
 
 <hr style="clear: left">
+
+{FILE "scripts/modules/penize/_kfcMrizkovyProdej.xtpl"}
 
 <!-- end:penize -->
