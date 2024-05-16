@@ -71,10 +71,10 @@ export const aktivitaStatusZAktivity = (
   return "volno";
 };
 
-const denAktivity = (casAktivity: Date) => {
-  return casAktivity.getHours() >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
-    ? casAktivity
-    : datumPřidejDen(casAktivity, -1);
+const denAktivity = (časAktivity: Date) => {
+  return (časAktivity.getHours() +1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
+    ? časAktivity
+    : datumPřidejDen(časAktivity, -1);
 };
 
 // TODO: přidat zbytek filtrů
@@ -82,6 +82,16 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
   const {
     filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrŠtítkyId, ročník, výběr, filtrStavAktivit, filtrText
   } = filtr;
+  const textovéFiltry = filtrText?.split("|").map(text=>({text,id: RegExp(/id=([0-9]*)/).exec(text)?.[1]}));
+
+  const aktivityPodleId = textovéFiltry
+    ?.filter(filtr=>filtr.id)
+    .map(filtr=>+filtr.id!)
+    .map(idAktivity=>aktivity.find(x=>x.id === idAktivity) as Aktivita)
+    .filter(x=>x !== undefined)
+    ?? []
+    ;
+
 
   let aktivityFiltrované = aktivity;
 
@@ -98,6 +108,9 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       .filter((aktivita) => 
         denAktivity(new Date(aktivita.cas.od)).getDay() === výběr.datum.getDay());
   }
+
+  if (textovéFiltry?.some(x=>x.text==="*"))
+    return aktivityFiltrované;
 
   if (filtrLinie)
     aktivityFiltrované = aktivityFiltrované.filter((aktivita) =>
@@ -138,7 +151,9 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       (aktivita) => aktivita.prihlasovatelna && !aktivita.probehnuta
     );
 
-  if (filtrText) {
+  // TODO: filtrovat podle všech podmínek oddělených | ne jen podle první
+  const prvníTextovýFiltr = textovéFiltry?.filter(x=>!x.id)?.[0]?.text;
+  if (prvníTextovýFiltr) {
     const flexDocument = new FlexSearch.Document<Aktivita, true>({
       language: "cs",
       tokenize: "forward",
@@ -164,7 +179,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       flexDocument.add(aktivita);
     }
 
-    const výsledek = flexDocument.search(filtrText, {
+    const výsledek = flexDocument.search(prvníTextovýFiltr, {
       limit: 1000,
     });
 
@@ -178,6 +193,8 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
 
     aktivityFiltrované = filtr;
   }
+
+  aktivityFiltrované = aktivityFiltrované.concat(aktivityPodleId);
 
   return aktivityFiltrované;
 };
