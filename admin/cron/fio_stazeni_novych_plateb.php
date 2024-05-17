@@ -25,7 +25,7 @@ foreach ($platby as $platba) {
     logs(' - platba ' . $platba->id()
         . ' (' . $platba->castka() . 'Kč, VS: ' . $platba->vs()
         . ($platba->zpravaProPrijemce() ? ', zpráva: ' . $platba->zpravaProPrijemce() : '')
-        . ($platba->poznamkaProMne() ? ', poznámka: ' . $platba->poznamkaProMne() : '')
+        . ($platba->zkrytaPoznamka() ? ', poznámka: ' . $platba->zkrytaPoznamka() : '')
         . ')',
         false,
     );

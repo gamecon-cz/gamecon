@@ -152,13 +152,14 @@ class Platby
      * @param int|null $rok
      * @return \Generator|Platba[]
      */
-    public function nesparovanePlatby(?int $rok = ROCNIK): \Generator
+    public function nesparovanePlatby(?int $rok = ROCNIK, string $orderByDesc = Sql::ID): \Generator
     {
         $result = dbQuery(<<<SQL
             SELECT id
             FROM platby
             WHERE id_uzivatele IS NULL
-                AND IF ($0, rok = $0, TRUE)
+                AND IF ($0 IS NOT NULL, rok = $0, TRUE)
+            ORDER BY {$orderByDesc} DESC
             SQL,
             [0 => $rok],
             dbConnectTemporary(),
