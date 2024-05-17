@@ -228,7 +228,6 @@ SQL,
         return strtolower($bezDiakritiky);
     }
 
-    /** Zpráva pro příjemce */
     public function zpravaProPrijemce(): string
     {
         return $this->data['Zpráva pro příjemce'] ?? '';
