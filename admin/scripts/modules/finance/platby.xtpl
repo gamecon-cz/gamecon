@@ -3,13 +3,15 @@
   <caption>Nespárované platby</caption>
   <tr>
     <th>Částka</th>
+    <th>Poznámka</th>
     <th>Fio ID pohybu</th>
-    <th>Kdy připsáno na bankovní účet</th>
-    <th>Kdy připsáno na GC účastnický účet</th>
+    <th>Na bankovní účet</th>
+    <th>Na GC účastnický účet</th>
   </tr>
   <!-- begin: nesparovanaPlatba -->
   <tr>
     <td>{castka}</td>
+    <td>{poznamka}</td>
     <td>{fioId}</td>
     <td>{kdyPripsanoNaUcetBanky}</td>
     <td>{kdyPripsanoNaUcetGc}</td>

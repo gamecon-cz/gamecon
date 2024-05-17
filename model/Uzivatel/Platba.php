@@ -79,7 +79,7 @@ class Platba extends DbObject
             : null;
     }
 
-    public function stranka(): ?string
+    public function poznamka(): ?string
     {
         return $this->r[Sql::POZNAMKA] ?? null;
     }

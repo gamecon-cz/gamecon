@@ -192,10 +192,10 @@ SQL,
             return null;
         }
 
-        return $this->nactiIdUcastnikaZeZpravyProPrijemce();
+        return $this->nactiIdUcastnikaZeZkrytePoznamky();
     }
 
-    private function nactiIdUcastnikaZeZpravyProPrijemce(): ?int
+    private function nactiIdUcastnikaZeZkrytePoznamky(): ?int
     {
         $parovaciText = defined('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY')
             ? trim(TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY)
@@ -203,15 +203,15 @@ SQL,
         if ($parovaciText === '') {
             return null;
         }
-        $poznamkaProMe = trim($this->poznamkaProMne());
-        if ($poznamkaProMe === '') {
+        $zkrytaPoznamka = trim($this->zkrytaPoznamka());
+        if ($zkrytaPoznamka === '') {
             return null;
         }
         $parovaciTextBezDiakritiky  = $this->lowercaseBezMezerABezDiakritiky($parovaciText);
-        $poznamkaProMeBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($poznamkaProMe);
+        $zkrytaPoznamkaBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($zkrytaPoznamka);
         if (!preg_match(
             '~' . preg_quote($parovaciTextBezDiakritiky, '~') . '[^[:alnum:]]*(?<idUcastnika>\d+)~',
-            $poznamkaProMeBezDiakritiky,
+            $zkrytaPoznamkaBezDiakritiky,
             $matches)
         ) {
             return null;
@@ -233,7 +233,7 @@ SQL,
         return $this->data['Zpráva pro příjemce'] ?? '';
     }
 
-    public function poznamkaProMne(): string
+    public function zkrytaPoznamka(): string
     {
         return $this->data['Komentář'] ?? '';
     }

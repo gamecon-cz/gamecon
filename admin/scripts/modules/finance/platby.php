@@ -4,6 +4,7 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Platby;
 use Gamecon\Uzivatel\PlatbySqlStruktura;
+use Gamecon\Cas\DateTimeCz;
 
 /**
  * nazev: Platby
@@ -23,9 +24,14 @@ $nesparovanePlatby = $platby->nesparovanePlatby(null, PlatbySqlStruktura::PROVED
 foreach ($nesparovanePlatby as $nesparovanaPlatba) {
     $p->assign([
         'castka'                 => $nesparovanaPlatba->castka(),
-        'fioId'               => $nesparovanaPlatba->fioId(),
-        'kdyPripsanoNaUcetBanky' => $nesparovanaPlatba->pripsanoNaUcetBanky(),
-        'kdyPripsanoNaUcetGc'    => $nesparovanaPlatba->provedeno(),
+        'poznamka'               => $nesparovanaPlatba->poznamka(),
+        'fioId'                  => $nesparovanaPlatba->fioId(),
+        'kdyPripsanoNaUcetBanky' => $nesparovanaPlatba->pripsanoNaUcetBanky() !== null
+            ? DateTimeCz::createFromInterface(new \DateTime($nesparovanaPlatba->pripsanoNaUcetBanky()))->formatCasStandard()
+            : '?',
+        'kdyPripsanoNaUcetGc'    => $nesparovanaPlatba->provedeno() !== null
+            ? DateTimeCz::createFromInterface(new \DateTime($nesparovanaPlatba->provedeno()))->formatCasStandard()
+            : '',
     ]);
     $p->parse('nesparovanePlatby.nesparovanaPlatba');
 }
