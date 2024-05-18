@@ -236,6 +236,7 @@ SQL,
     private            $pnDny                = 'shopUbytovaniDny';
     private            $pnPokoj              = 'shopUbytovaniPokoj';
     private            $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
+    private bool $ubytovatZbyle = false;
 
     public function __construct(
         array                               $predmety,
@@ -289,10 +290,22 @@ SQL,
         return $this->ubytovany;
     }
 
+    private function maPravoNaPokoj(Uzivatel $u): bool
+    {
+        if ($this->ubytovatZbyle) {
+            return true;
+        }
+
+        return $u->jeVypravec() || $u->jeOrganizator() || $u->jeHerman() ||
+            $u->jePartner() || $u->jeInfopultak() || $u->jeDobrovolnikSenior() ||
+            $u->jeZazemi();
+    }
+
     public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
     {
         $t = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
         $t->assign([
+            'ubytOmluva' => 'čupr dupr zpráva od comms',
             'shopUbytovaniJs'      => URL_WEBU . '/soubory/blackarrow/shop/shop-ubytovani.js?version='
                 . md5_file(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
             'spolubydlici'         => htmlspecialchars(dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()) ?? ''),
@@ -306,6 +319,10 @@ SQL,
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
         foreach ($this->mozneTypy as $typ => $predmet) {
+            if ($typ != 'Spacák' && !$this->maPravoNaPokoj($this->uzivatel())){
+                continue;
+            }
+
             $t->assign([
                 'typ'  => $typ,
                 'hint' => $predmet[Sql::POPIS],
@@ -336,6 +353,9 @@ SQL,
             $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
             $ubytovanVeDni = false;
             foreach ($this->mozneTypy as $typ => $rozsah) {
+                if ($typ != 'Spacák' && !$this->maPravoNaPokoj($this->uzivatel())){
+                    continue;
+                }
                 $ubytovanVeDniATypu = false;
                 $checked            = '';
                 if ($this->ubytovan($den, $typ)) {
