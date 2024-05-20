@@ -6,8 +6,4 @@
 
 {FILE "scripts/modules/penize/_pripsatSlevu.xtpl"}
 
-<hr style="clear: left">
-
-{FILE "scripts/modules/penize/_kfcMrizkovyProdej.xtpl"}
-
 <!-- end:penize -->
