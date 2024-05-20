@@ -24,8 +24,6 @@ require __DIR__ . '/_ajaxGetUzivatelKVyplaceniAktivity.php';
 
 $x = new XTemplate(__DIR__ . '/penize.xtpl');
 
-require __DIR__ . '/_varovaniOZasekleSynchronizaciFio.php';
-
 $x->assign([
     'id'  => $uPracovni
         ? $uPracovni->id()
