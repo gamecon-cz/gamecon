@@ -2,8 +2,6 @@
 
 <h1>Finance</h1>
 
-{FILE "scripts/modules/penize/_varovaniOZasekleSynchronizaciFio.xtpl"}
-
 <form>
   <label>
     Vypsat uživatele, kteří mají stav účtu vyšší rovno jak

@@ -24,7 +24,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
  */
 
 require_once __DIR__ . '/_submoduly/ubytovani_tabulka.php';
-require_once __DIR__ . '/_submoduly/osobniUdaje/osobni_udaje.php';
+require_once __DIR__ . '/_submoduly/osobni-udaje/osobni_udaje.php';
 
 $ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
