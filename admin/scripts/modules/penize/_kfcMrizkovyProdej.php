@@ -1,9 +1,11 @@
 <?php
 
 use Gamecon\Web\VerzeSouboru;
+use Gamecon\XTemplate\XTemplate;
 
-/** @var \Gamecon\XTemplate\XTemplate $x */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
+$x = new XTemplate(__DIR__ . '/_kfcMrizkovyProdej.xtpl');
 
 $x->assign([
     'cssVersions' => new VerzeSouboru(__DIR__ . '/../../../files/ui', 'css'),
@@ -12,4 +14,6 @@ $x->assign([
 
 $x->assign('basePathApi', URL_ADMIN . '/api/');
 $x->assign('rocnik', $systemoveNastaveni->rocnik());
-$x->parse("{$x->root()}.kfc");
+
+$x->parse('kfc');
+$x->out('kfc');
