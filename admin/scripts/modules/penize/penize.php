@@ -30,15 +30,8 @@ $x->assign([
         : null,
     'org' => $u->jmenoNick(),
 ]);
-$x->parse("{$x->root()}.pripsatSlevu");
-$x->parse("{$x->root()}.vyplatitBonusZaVedeniAktivity");
+$x->parse('penize.pripsatSlevu');
+$x->parse('penize.vyplatitBonusZaVedeniAktivity');
 
-$x->assign('rok', $systemoveNastaveni->rocnik());
-
-require __DIR__ . '/_kfcMrizkovyProdej.php';
-
-$x->parse($x->root());
-$x->out($x->root());
-
-require __DIR__ . '/../_ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.php';
-require __DIR__ . '/../_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.php';
+$x->parse('penize');
+$x->out('penize');
