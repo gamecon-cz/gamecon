@@ -25,8 +25,6 @@ require __DIR__ . '/../penize/_ajaxGetUzivatelKVyplaceniAktivity.php';
 
 $x = new XTemplate(__DIR__ . '/finance.xtpl');
 
-require __DIR__ . '/../penize/_varovaniOZasekleSynchronizaciFio.php';
-
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
     $o   = dbQuery(<<<SQL
@@ -70,8 +68,10 @@ $x->parse('finance.pripsatSlevu');
 
 $x->assign('rok', $systemoveNastaveni->rocnik());
 
-$x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/celkovy-report.php', '.php'));
+$x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/bfgr-report.php', '.php'));
 $x->parse('finance.reporty');
 
 $x->parse('finance');
 $x->out('finance');
+
+require __DIR__ . '/../_ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.php';

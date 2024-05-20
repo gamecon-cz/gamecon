@@ -10,7 +10,7 @@
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 
-require_once __DIR__ . '/_submoduly/osobniUdaje/osobni_udaje.php';
+require_once __DIR__ . '/_submoduly/osobni-udaje/osobni_udaje.php';
 
 /**
  * @var Uzivatel|null|void $u
