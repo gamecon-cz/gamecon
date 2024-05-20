@@ -97,7 +97,7 @@ if ($u && $u->jeOrganizator()) {
         || $platbyNaposledyAktualizovanyKdy < new DateTimeImmutable('-1 day')
     ) {
         varovani(
-            'Platby z Fio byly naposledy aktualizovány před ' . (
+            'Platby z Fio byly naposledy aktualizovány ' . (
             $platbyNaposledyAktualizovanyKdy === null
                 ? '"nikdy"'
                 : DateTimeCz::createFromInterface($platbyNaposledyAktualizovanyKdy)->relativni()
