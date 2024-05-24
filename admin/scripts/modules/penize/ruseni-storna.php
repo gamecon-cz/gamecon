@@ -8,6 +8,7 @@ use Gamecon\XTemplate\XTemplate;
  *
  * nazev: Rušení storna
  * pravo: 111
+ * submenu_group: 1
  */
 
 require __DIR__ . '/../finance/ruseni-storna.php';

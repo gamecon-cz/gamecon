@@ -8,6 +8,7 @@ use Gamecon\XTemplate\XTemplate;
  *
  * nazev: Info věci před GC
  * pravo: 111
+ * submenu_group: 1
  */
 
 require __DIR__ . '/_kfcMrizkovyProdej.php';
