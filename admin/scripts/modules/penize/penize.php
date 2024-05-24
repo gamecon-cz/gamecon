@@ -35,3 +35,5 @@ $x->parse('penize.vyplatitBonusZaVedeniAktivity');
 
 $x->parse('penize');
 $x->out('penize');
+
+require __DIR__ . '/_odkazNaReportUbytovani.php';
