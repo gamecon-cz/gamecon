@@ -13,6 +13,9 @@ abstract class DbObject
 
     protected static        $tabulka;    // název tabulky - odděděná třída _musí_ přepsat
     protected static        $pk            = 'id';  // název primárního klíče - odděděná třída může přepsat
+    /**
+     * @var array<string, array<int, static>>
+     */
     protected static        $objekty       = [];
     protected static ?array $objektyZVsech = null;
 
@@ -83,11 +86,11 @@ abstract class DbObject
     {
         $objekt = null;
         if ($zCache) {
-            $objekt = self::$objekty[(int)$id] ?? null;
+            $objekt = self::$objekty[static::class][(int)$id] ?? null;
         }
         $objekt = $objekt ?? self::zWhereRadek(static::$pk . ' = ' . dbQv($id));
         if ($objekt && $zCache) {
-            self::$objekty[(int)$id] = $objekt;
+            self::$objekty[static::class][(int)$id] = $objekt;
         }
         return $objekt;
     }
