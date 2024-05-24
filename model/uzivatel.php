@@ -27,8 +27,9 @@ use Gamecon\XTemplate\XTemplate;
  */
 class Uzivatel extends DbObject
 {
-    protected static $tabulka = Sql::UZIVATEL_TABULKA;
-    protected static $pk      = Sql::ID_UZIVATELE;
+    protected static     $tabulka = Sql::UZIVATEL_TABULKA;
+    protected static     $pk      = Sql::ID_UZIVATELE;
+    private static array $objekty = [];
 
     public const POSAZEN = 'posazen';
     public const SESAZEN = 'sesazen';
@@ -529,7 +530,7 @@ SQL
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
-JOIN akce_seznam on akce_prihlaseni.id_akce = akce_seznam.id_akce
+JOIN akce_seznam ON akce_prihlaseni.id_akce = akce_seznam.id_akce
 WHERE akce_prihlaseni.id_uzivatele = $1
 AND akce_prihlaseni.id_stavu_prihlaseni = $2
 AND akce_seznam.rok = $3
@@ -550,7 +551,7 @@ SQL,
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
-JOIN akce_seznam on akce_prihlaseni.id_akce = akce_seznam.id_akce
+JOIN akce_seznam ON akce_prihlaseni.id_akce = akce_seznam.id_akce
 WHERE akce_prihlaseni.id_uzivatele = $1
 AND akce_seznam.rok = $2
 SQL,
@@ -2103,7 +2104,7 @@ SQL,
         if (is_array($ids)) {
             $ids                     = array_map('intval', $ids);
             $chybejiciUzivateleIdcka = $zCache
-                ? array_diff($ids, array_keys(self::$objekty))
+                ? array_diff($ids, array_keys(self::$objekty[static::class] ?? []))
                 : $ids;
             $nacteniUzivatele        = [];
             if ($chybejiciUzivateleIdcka) {
@@ -2120,8 +2121,8 @@ SQL,
 
             $uzivatele = [];
             foreach ($ids as $id) {
-                if (self::$objekty[$id] ?? false) {
-                    $uzivatele[$id] = self::$objekty[$id];
+                if (self::$objekty[static::class][$id] ?? false) {
+                    $uzivatele[$id] = self::$objekty[static::class][$id];
                 }
             }
 
