@@ -7,8 +7,7 @@ use Gamecon\XTemplate\XTemplate;
  * Nástroje potřebné rpo infopult před začátkem GC
  *
  * nazev: Info věci před GC
- * pravo: 110
- * submenu_group: 1
+ * pravo: 111
  */
 
 require __DIR__ . '/_kfcMrizkovyProdej.php';
