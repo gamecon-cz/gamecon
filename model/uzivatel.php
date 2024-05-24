@@ -2058,7 +2058,7 @@ SQL,
         $id = (int)$id;
 
         if ($zCache) {
-            $objekt = self::$objekty[$id] ?? null;
+            $objekt = self::$objekty[static::class][$id] ?? null;
             if ($objekt) {
                 return $objekt;
             }
@@ -2067,7 +2067,7 @@ SQL,
         $uzivatel = self::zIds($id)[0] ?? null;
 
         if ($uzivatel && $zCache) {
-            self::$objekty[$id] = $uzivatel;
+            self::$objekty[static::class][$id] = $uzivatel;
         }
 
         return $uzivatel;
@@ -2115,7 +2115,7 @@ SQL,
                 return $nacteniUzivatele;
             }
             foreach ($nacteniUzivatele as $nactenyUzivatel) {
-                self::$objekty[$nactenyUzivatel->id()] = $nactenyUzivatel;
+                self::$objekty[static::class][$nactenyUzivatel->id()] = $nactenyUzivatel;
             }
 
             $uzivatele = [];
