@@ -7,7 +7,7 @@ use Gamecon\XTemplate\XTemplate;
  * Nástroje potřebné rpo infopult před začátkem GC
  *
  * nazev: Info věci před GC
- * pravo: 110
+ * pravo: 111
  * submenu_group: 1
  */
 
