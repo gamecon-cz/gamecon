@@ -24,18 +24,18 @@ $zbyva = $zbyva->format('%a dní') . ' (' . round($zbyva->format('%a') / 7, 1) .
 
 $vybraneRoky = array_diff(
     get('rok') ?? range($systemoveNastaveni->rocnik() - 3, $systemoveNastaveni->rocnik()),
-    [2020], // abychom netrápili databázi hleáním dat pro rok Call of Covid
+    [2020], // abychom netrápili databázi hledáním dat pro rok Call of Covid
 );
 $mozneRoky   = range(ARCHIV_OD, $systemoveNastaveni->rocnik());
 
 $statistiky = new Statistiky($vybraneRoky, $systemoveNastaveni);
 
-$ucast           = $statistiky->tabulkaUcastiHtml();
-$predmety        = $statistiky->tabulkaPredmetuHtml();
-$ubytovani       = $statistiky->tabulkaUbytovaniHtml();
-$ubytovaniKratce = $statistiky->tabulkaUbytovaniKratce();
-$jidlo           = $statistiky->tabulkaJidlaHtml();
-$pohlavi         = $statistiky->tabulkaZastoupeniPohlaviHtml();
+$ucast             = $statistiky->tabulkaUcastiHtml();
+$predmety          = $statistiky->tabulkaPredmetuHtml();
+$ubytovani         = $statistiky->tabulkaUbytovaniHtml();
+$ubytovaniKratce   = $statistiky->tabulkaUbytovaniKratce();
+$jidlo             = $statistiky->tabulkaJidlaHtml();
+$zastoupeniPohlavi = $statistiky->tabulkaZastoupeniPohlaviHtml();
 
 $prihlaseniData = $statistiky->dataProGrafUcasti($systemoveNastaveni->ted());
 
@@ -102,136 +102,153 @@ $pocetDni = count($nazvyDnu);
     }
 </style>
 <script>
-    $(function () {
-        const colors = [
-            '#2fd8b9',
-            '#2f7ed8',
-            '#8bbc21',
-            '#910000',
-            '#1aadce',
-            '#492970',
-            '#f28f43',
-            '#77a1e5',
-            '#c42525',
-            '#a6c96a',
-        ]
-        $('#vyvojRegu').highcharts({
-            chart: {
-                type: 'line',
-            },
-            title: {text: null},
-            legend: {enabled: false},
-            credits: {enabled: false},
-            xAxis: {
-                categories: <?= json_encode($nazvyDnu) ?>,
-                labels: {
-                    rotation: -90,
-                    style: {fontSize: '8px'},
-                },
-                plotLines: [
-                    {
-                        color: '#ffffff',
-                        width: 1,
-                        value: <?= $pocetDni ?> - 0.5,
-                    },
-                    {
-                        color: colors.at(<?= $indexLetosnihoRoku ?? 0 ?>),
-                        width: 1,
-                        value: <?= $indexDnesnihoDne ?? -1 ?>,
-                    }
-                ],
-            },
-            yAxis: {
-                min: 0,
-                minRange: 250,
-                title: {text: null},
-            },
-            plotOptions: {
-                line: {
-                    marker: {radius: 2, symbol: 'circle'},
-                    connectNulls: true,
-                    animation: false,
-                },
-            },
-            series: <?= json_encode($prihlaseniProJs) ?>,
-            colors: colors,
-        })
-
-        Array.from(document.querySelectorAll('input[name="rok[]"][checked]:not(:disabled)')).forEach(function (rokInput, index) {
-            // pokud by snad barev bylo méně než grafů, tak se začnou opakovat od začátku - proto ten výpočet restartu indexu, když už pro současný barvu nemáme
-            rokInput.parentElement.style.backgroundColor = colors[index] || colors[index - colors.length - 1]
-        })
-
-        const grafInputs = Array.from(document.querySelectorAll('input[name="rok[]"]:not(:disabled), input[name="zarovnaniGrafu"]:not(:disabled)'))
-        grafInputs.forEach(function (grafInput) {
-            grafInput.addEventListener('change', function () {
-                document.getElementById('vyberGrafuStatistik').submit()
-                grafInputs.forEach(function (grafInput) {
-                    grafInput.disabled = true
-                })
-            })
-        })
+  $(function () {
+    const colors = [
+      '#2fd8b9',
+      '#2f7ed8',
+      '#8bbc21',
+      '#910000',
+      '#1aadce',
+      '#492970',
+      '#f28f43',
+      '#77a1e5',
+      '#c42525',
+      '#a6c96a',
+    ]
+    $('#vyvojRegu').highcharts({
+      chart: {
+        type: 'line',
+      },
+      title: { text: null },
+      legend: { enabled: false },
+      credits: { enabled: false },
+      xAxis: {
+        categories: <?= json_encode($nazvyDnu) ?>,
+        labels: {
+          rotation: -90,
+          style: { fontSize: '8px' },
+        },
+        plotLines: [
+          {
+            color: '#ffffff',
+            width: 1,
+            value: <?= $pocetDni ?> - 0.5,
+          },
+          {
+            color: colors.at(<?= $indexLetosnihoRoku ?? 0 ?>),
+            width: 1,
+            value: <?= $indexDnesnihoDne ?? -1 ?>,
+          }
+        ],
+      },
+      yAxis: {
+        min: 0,
+        minRange: 250,
+        title: { text: null },
+      },
+      plotOptions: {
+        line: {
+          marker: { radius: 2, symbol: 'circle' },
+          connectNulls: true,
+          animation: false,
+        },
+      },
+      series: <?= json_encode($prihlaseniProJs) ?>,
+      colors: colors,
     })
+
+    Array.from(document.querySelectorAll('input[name="rok[]"][checked]:not(:disabled)')).forEach(function (rokInput, index) {
+      // pokud by snad barev bylo méně než grafů, tak se začnou opakovat od začátku - proto ten výpočet restartu indexu, když už pro současný barvu nemáme
+      rokInput.parentElement.style.backgroundColor = colors[index] || colors[index - colors.length - 1]
+    })
+
+    const grafInputs = Array.from(document.querySelectorAll('input[name="rok[]"]:not(:disabled), input[name="zarovnaniGrafu"]:not(:disabled)'))
+    grafInputs.forEach(function (grafInput) {
+      grafInput.addEventListener('change', function () {
+        document.getElementById('vyberGrafuStatistik').submit()
+        grafInputs.forEach(function (grafInput) {
+          grafInput.disabled = true
+        })
+      })
+    })
+  })
 </script>
 <script src="files/highcharts-v4.2.7.js"></script>
 
 <h2>Aktuální statistiky <?= $systemoveNastaveni->rocnik() ?></h2>
 
 <div>
-    <p>
-        Do gameconu zbývá <?= $zbyva ?>
-    </p>
-    <div style="float: left"><?= $ucast ?></div>
-    <div style="float: left; margin-left: 1em"><?= $pohlavi ?></div>
-    <div style="clear: both"></div>
+  <p>
+    Do gameconu zbývá <?= $zbyva ?>
+  </p>
+  <div style="float: left"><?= $ucast ?></div>
+  <div style="float: left; margin-left: 1em"><?= $zastoupeniPohlavi ?></div>
+  <div style="clear: both"></div>
 </div>
 
 <p id="vyvojRegu"></p>
 
 <div>
-    <form action="" style="padding: 0.5em 0" id="vyberGrafuStatistik">
-        <fieldset>
-            <legend style="padding: 0 0 0.5em; font-style: italic">
-                Zarovnání grafu
-            </legend>
-            <label style="margin-left: 1em">
-                <input type="radio" name="zarovnaniGrafu" value="<?= Statistiky::ZAROVNANI_K_ZACATKU_REGISTRACI ?>"
-                       <?php if ($zarovnaniGrafu === Statistiky::ZAROVNANI_K_ZACATKU_REGISTRACI) { ?>checked<?php } ?>>
-                Začátek registrací na GC
-            </label>
-            <label>
-                <input type="radio" name="zarovnaniGrafu" value="<?= Statistiky::ZAROVNANI_KE_KONCI_GC ?>"
-                       <?php if ($zarovnaniGrafu === Statistiky::ZAROVNANI_KE_KONCI_GC) { ?>checked<?php } ?>>
-                Konec GC
-            </label>
-        </fieldset>
+  <form action="" style="padding: 0.5em 0" id="vyberGrafuStatistik">
+    <fieldset>
+      <legend style="padding: 0 0 0.5em; font-style: italic">
+        Zarovnání grafu
+      </legend>
+      <label style="margin-left: 1em">
+        <input type="radio" name="zarovnaniGrafu" value="<?= Statistiky::ZAROVNANI_K_ZACATKU_REGISTRACI ?>"
+               <?php
+               if ($zarovnaniGrafu === Statistiky::ZAROVNANI_K_ZACATKU_REGISTRACI) { ?>checked<?php
+        } ?>>
+        Začátek registrací na GC
+      </label>
+      <label>
+        <input type="radio" name="zarovnaniGrafu" value="<?= Statistiky::ZAROVNANI_KE_KONCI_GC ?>"
+               <?php
+               if ($zarovnaniGrafu === Statistiky::ZAROVNANI_KE_KONCI_GC) { ?>checked<?php
+        } ?>>
+        Konec GC
+      </label>
+    </fieldset>
 
 
-        <fieldset style="margin-top: 1em">
-            <legend style="padding: 0 0 0.5em; font-style: italic">
-                Roky v grafu <span style="font-size: smaller">(počty platí k půlnoci toho dne)</span>
-            </legend>
-            <?php foreach ($mozneRoky as $moznyRok) {
-                $callOfCovid = (int)$moznyRok === 2020;
-                ?>
-                <span style="min-width: 4em; display: inline-block">
-                    <label class="<?php if ($callOfCovid) { ?>hinted<?php } ?>"
-                           style="border-bottom: none; padding-right: 0.3em; cursor: <?php if ($callOfCovid) { ?>not-allowed<?php } else { ?>pointer<?php } ?>">
+    <fieldset style="margin-top: 1em">
+      <legend style="padding: 0 0 0.5em; font-style: italic">
+        Roky v grafu <span style="font-size: smaller">(počty platí k půlnoci toho dne)</span>
+      </legend>
+        <?php
+        foreach ($mozneRoky as $moznyRok) {
+            $callOfCovid = (int)$moznyRok === 2020;
+            ?>
+          <span style="min-width: 4em; display: inline-block">
+                    <label class="<?php
+                    if ($callOfCovid) { ?>hinted<?php
+                    } ?>"
+                           style="border-bottom: none; padding-right: 0.3em; cursor: <?php
+                           if ($callOfCovid) { ?>not-allowed<?php
+                           } else { ?>pointer<?php
+                           } ?>">
                         <input type="checkbox" name="rok[]" value="<?= $moznyRok ?>" style="padding-right: 0.2em"
-                               <?php if ($callOfCovid) { ?>disabled<?php } ?>
-                               <?php if (in_array($moznyRok, $vybraneRoky, false)) { ?>checked<?php } ?>>
-                        <?php if ($callOfCovid) { ?>
-                            <span>
+                               <?php
+                               if ($callOfCovid) { ?>disabled<?php
+                        } ?>
+                               <?php
+                               if (in_array($moznyRok, $vybraneRoky, false)) { ?>checked<?php
+                        } ?>>
+                        <?php
+                        if ($callOfCovid) { ?>
+                          <span>
                                 👾
                                 <span class="hint">Call of Covid</span>
                             </span>
-                        <?php } ?>
+                        <?php
+                        } ?>
                         <?= $moznyRok ?>
                     </label>
             </span>
-            <?php } ?>
-        </fieldset>
-    </form>
+        <?php
+        } ?>
+    </fieldset>
+  </form>
 </div>
 
 <hr>
@@ -261,23 +278,23 @@ $pocetDni = count($nazvyDnu);
 </style>
 
 <div class="dlouhodobeStatistiky">
-    <div class="responzivni-tabulka odscrolluj-doprava">
-        <?= $statistiky->tabulkaHistorieRegistrovaniVsDoraziliHtml() ?>
-    </div>
+  <div class="responzivni-tabulka odscrolluj-doprava">
+      <?= $statistiky->tabulkaHistorieRegistrovaniVsDoraziliHtml() ?>
+  </div>
 
-    <div class="responzivni-tabulka odscrolluj-doprava">
-        <?= $statistiky->tabulkaLidiNaGcCelkemHtml() ?>
-    </div>
+  <div class="responzivni-tabulka odscrolluj-doprava">
+      <?= $statistiky->tabulkaLidiNaGcCelkemHtml() ?>
+  </div>
 
-    <div class="responzivni-tabulka odscrolluj-doprava">
-        <?= $statistiky->tabulkaHistorieProdanychPredmetuHtml() ?>
-    </div>
+  <div class="responzivni-tabulka odscrolluj-doprava">
+      <?= $statistiky->tabulkaHistorieProdanychPredmetuHtml() ?>
+  </div>
 
-    <div class="responzivni-tabulka odscrolluj-doprava">
-        <?= $statistiky->tabulkaHistorieUbytovaniHtml() ?><br>
-    </div>
+  <div class="responzivni-tabulka odscrolluj-doprava">
+      <?= $statistiky->tabulkaHistorieUbytovaniHtml() ?><br>
+  </div>
 </div>
 
 <script type="text/javascript">
-    odscrollujElementyDoprava(document.querySelectorAll('.responzivni-tabulka.odscrolluj-doprava'))
+  odscrollujElementyDoprava(document.querySelectorAll('.responzivni-tabulka.odscrolluj-doprava'))
 </script>

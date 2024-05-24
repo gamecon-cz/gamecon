@@ -48,14 +48,14 @@ class Statistiky
         $ucastResult         = dbQuery(<<<SQL
 SELECT
     SUBDATE(DATE($3), 1) AS den, -- všichni přihlášení před začátkem registrací nahloučení v jednom "dni"
-    SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) as prihlasenych
+    SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) AS prihlasenych
   FROM uzivatele_role_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
   WHERE log.id_role = $0 AND log.kdy < $3
 UNION ALL
 SELECT
     DATE(log.kdy) AS den,
-    SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) as prihlasenych
+    SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) AS prihlasenych
 FROM uzivatele_role_log AS log
 JOIN uzivatele_hodnoty u USING(id_uzivatele)
 WHERE log.id_role = $0 AND log.kdy BETWEEN $3 AND $4
@@ -63,7 +63,7 @@ GROUP BY DATE(log.kdy)
 UNION ALL
 SELECT
     ADDDATE(DATE($4), 1) AS den, -- všichni přihlášení po GC nahloučení v jednom "dni"
-    SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) as prihlasenych
+    SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) AS prihlasenych
   FROM uzivatele_role_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
   WHERE log.id_role = $0 AND log.kdy > $4
@@ -126,7 +126,7 @@ SQL,
             dbQuery(
                 <<<SQL
 SELECT
-    role_seznam.nazev_role as "Role",
+    role_seznam.nazev_role AS "Role",
     COUNT(DISTINCT uzivatele_role.id_uzivatele) AS `<span class="hinted">Celkem<span class="hint">Všech uživatelů s rolí i bez přihlášení</span></span>`,
     COUNT(DISTINCT letos_prihlasen.id_uzivatele) AS `<span class="hinted">Přihlášen<span class="hint">Letos přihlášených uživatelů s rolí</span></span>`
 FROM role_seznam
@@ -154,9 +154,9 @@ SQL,
             dbQuery(
                 <<<SQL
 SELECT
-    shop_predmety.nazev Název,
-    shop_predmety.model_rok Model,
-    COUNT(shop_nakupy.id_predmetu) Počet
+    shop_predmety.nazev AS Název,
+    shop_predmety.model_rok AS Model,
+    COUNT(shop_nakupy.id_predmetu) AS Počet
 FROM shop_nakupy
 JOIN shop_predmety
     ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
@@ -215,8 +215,8 @@ SQL,
                 <<<SQL
 SELECT Den, Počet FROM (
     SELECT
-        SUBSTR(predmety.nazev,11) Den,
-        COUNT(nakupy.id_predmetu) Počet,
+        SUBSTR(predmety.nazev,11) AS Den,
+        COUNT(nakupy.id_predmetu) AS Počet,
         predmety.ubytovani_den
     FROM shop_nakupy AS nakupy
     JOIN shop_predmety AS predmety
@@ -225,8 +225,8 @@ SELECT Den, Počet FROM (
         AND predmety.typ=$1
     GROUP BY predmety.ubytovani_den
 UNION ALL
-    SELECT 'neubytovaní' as Den,
-         COUNT(*) as Počet,
+    SELECT 'neubytovaní' AS Den,
+         COUNT(*) AS Počet,
          'zzz' AS ubytovani_den
     FROM uzivatele_role AS uzivatele_role
     LEFT JOIN(
@@ -260,10 +260,10 @@ SQL,
                 <<<SQL
 SELECT Název,Cena,Počet,Slev FROM (
   SELECT
-    TRIM(predmety.nazev) Název,
+    TRIM(predmety.nazev) AS Název,
     predmety.cena_aktualni AS Cena, -- například v roce 2022 jsme část jídla prodali za menší cenu a část za větší - mohlo by se to stát u čehokoliv
-    COUNT(nakupy.id_predmetu) Počet,
-    COUNT(slevy.id_uzivatele) as Slev, -- počet slev
+    COUNT(nakupy.id_predmetu) AS Počet,
+    COUNT(slevy.id_uzivatele) AS Slev, -- počet slev
     predmety.ubytovani_den,
     nakupy.id_predmetu
   FROM shop_nakupy AS nakupy
@@ -296,9 +296,9 @@ SQL,
                 <<<SQL
     SELECT
     'Počet' AS ' ', -- formátování
-    COALESCE(SUM(IF(uzivatele.pohlavi='m',1,0)), 0) as Muži,
-    COALESCE(SUM(IF(uzivatele.pohlavi='f',1,0)), 0) as Ženy,
-    COALESCE(ROUND(SUM(IF(uzivatele.pohlavi='f',1,0))/COUNT(1),2), 0) as Poměr
+    COALESCE(SUM(IF(uzivatele.pohlavi='m',1,0)), 0) AS Muži,
+    COALESCE(SUM(IF(uzivatele.pohlavi='f',1,0)), 0) AS Ženy,
+    COALESCE(ROUND(SUM(IF(uzivatele.pohlavi='f',1,0))/COUNT(1),2), 0) AS Poměr
     FROM uzivatele_role
     JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_role.id_uzivatele=uzivatele.id_uzivatele
     WHERE uzivatele_role.id_role = $0
@@ -401,9 +401,16 @@ SQL,
 
     public function tabulkaHistorieRegistrovaniVsDoraziliHtml(): string
     {
-        $prihlasen = Role::VYZNAM_PRIHLASEN;
-        $pritomen  = Role::VYZNAM_PRITOMEN;
-        $ucast     = Role::TYP_UCAST;
+        $vyznamPrihlasen  = Role::VYZNAM_PRIHLASEN;
+        $vyznamPritomen   = Role::VYZNAM_PRITOMEN;
+        $ucast            = Role::TYP_UCAST;
+        $letosniVypravec  = Role::LETOSNI_VYPRAVEC;
+        $letosniZazemi    = Role::LETOSNI_ZAZEMI;
+        $roleOrganizatoru = implode(',', [Role::ORGANIZATOR, Role::PUL_ORG_BONUS_TRICKO, Role::PUL_ORG_BONUS_UBYTKO]);
+        $vypravecZaklad   = Role::ROLE_VYPRAVEC_ID_ZAKLAD;
+        $zazemiZaklad     = Role::ROLE_ZAZEMI_ID_ZAKLAD;
+        $zmenaPosazen     = \Uzivatel::POSAZEN;
+        $zmenaSesazen     = \Uzivatel::POSAZEN;
 
         return tabMysqlR(
             dbQuery(
@@ -411,7 +418,9 @@ SQL,
 SELECT
     rocnik_role AS ' ', -- formátování
     Registrovaných,
+    `registrovaných nováčků` AS ` &zwnj;z toho nováčků`,
     Dorazilo,
+    `přihlášených nováčků` AS ` z toho nováčků`,
     studenti AS ` z toho studenti`,
     IF (studenti = '', '', Dorazilo - studenti) AS ` z toho ostatní`,
     `Podpůrný tým`,
@@ -421,8 +430,8 @@ SELECT
 FROM (
     SELECT
         rocnik_role,
-        SUM(IF(registrace, 1, 0)) AS Registrovaných,
-        SUM(IF(dorazeni, 1, 0)) AS Dorazilo,
+        SUM(IF(registrovan, 1, 0)) AS Registrovaných,
+        SUM(IF(dorazil, 1, 0)) AS Dorazilo,
         CASE rocnik_role
             WHEN 2013 THEN 149
             WHEN 2014 THEN 172
@@ -444,12 +453,41 @@ FROM (
             WHEN 2018 THEN 176
             WHEN 2019 THEN 185
             WHEN 2021 THEN 198
-            WHEN {$this->soucasnyRocnik} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role IN ($0, $1, $2)), 1 , 0))
-            ELSE SUM(IF(dorazeni AND EXISTS(
-                SELECT * FROM uzivatele_role_log AS posazen
-                    LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
-                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_role IN ($0, $1, $2)
-                ), 1 , 0)) END
+            WHEN {$this->soucasnyRocnik}
+                THEN SUM(
+                    IF(
+                        dorazil
+                        AND EXISTS(
+                            SELECT *
+                            FROM uzivatele_role
+                            WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                                AND uzivatele_role.id_role IN ({$roleOrganizatoru}, {$letosniZazemi}, {$letosniVypravec})
+                        ),
+                        1,
+                        0
+                    )
+                )
+            ELSE SUM(
+                IF(
+                    dorazil
+                    AND EXISTS(
+                        SELECT *
+                        FROM uzivatele_role_log AS posazen
+                        LEFT JOIN uzivatele_role_log AS sesazen
+                            ON sesazen.zmena = '{$zmenaSesazen}'
+                                AND sesazen.id_uzivatele = posazen.id_uzivatele
+                                AND sesazen.id_role = posazen.id_role
+                                AND sesazen.kdy > posazen.kdy
+                                AND sesazen.kdy <= CONCAT(rocnik_role, '-07-31') -- přibližný konec GC univerzální pro každý rok
+                        WHERE posazen.zmena = '{$zmenaPosazen}'
+                            AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam do konce GC */
+                            AND posazen.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            AND posazen.id_role IN ({$roleOrganizatoru}, {$letosniZazemi}, {$letosniVypravec})
+                    ),
+                    1,
+                    0
+                )
+            ) END
         AS `Podpůrný tým`,
         CASE rocnik_role
             WHEN 2009 THEN 6
@@ -464,12 +502,40 @@ FROM (
             WHEN 2018 THEN 38
             WHEN 2019 THEN 38
             WHEN 2021 THEN 37
-            WHEN {$this->soucasnyRocnik} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $0), 1 , 0))
-            ELSE SUM(IF(dorazeni AND EXISTS(
-                SELECT * FROM uzivatele_role_log AS posazen
-                    LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
-                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_role = $0
-            ), 1 , 0)) END
+            WHEN {$this->soucasnyRocnik}
+                THEN SUM(
+                    IF(
+                        dorazil
+                        AND EXISTS(
+                            SELECT *
+                            FROM uzivatele_role
+                            WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                                AND uzivatele_role.id_role IN ({$roleOrganizatoru})
+                            ),
+                        1,
+                        0
+                    )
+                )
+            ELSE SUM(
+                IF(
+                    dorazil
+                    AND EXISTS(
+                        SELECT *
+                        FROM uzivatele_role_log AS posazen
+                        LEFT JOIN uzivatele_role_log AS sesazen
+                            ON sesazen.id_role = posazen.id_role
+                                AND sesazen.id_uzivatele =posazen.id_uzivatele
+                                AND sesazen.kdy > posazen.kdy
+                                AND sesazen.zmena = '{$zmenaSesazen}'
+                        WHERE posazen.zmena = '{$zmenaPosazen}'
+                            AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */
+                            AND posazen.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            AND posazen.id_role IN ({$roleOrganizatoru})
+                    ),
+                    1,
+                    0
+                )
+            ) END
         AS organizátoři,
         CASE rocnik_role
             WHEN 2009 THEN 7
@@ -484,13 +550,100 @@ FROM (
             WHEN 2018 THEN ''
             WHEN 2019 THEN ''
             WHEN 2021 THEN 15
-            WHEN {$this->soucasnyRocnik} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $1), 1 , 0))
-            ELSE SUM(IF(dorazeni AND EXISTS(
-                SELECT * FROM uzivatele_role_log AS posazen
-                    LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
-                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_role = $1
-            ), 1 , 0)) END
-        AS zázemí,
+            ELSE SUM(
+                    IF(
+                        dorazil
+                        AND EXISTS(
+                            SELECT *
+                            FROM uzivatele_role
+                            WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                                AND uzivatele_role.id_role = ucast_podle_roku.rocnik_role * -100000 - {$zazemiZaklad}
+                        )
+                        AND NOT EXISTS(
+                            SELECT *
+                            FROM uzivatele_role
+                            WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                                AND (
+                                    uzivatele_role.id_role = ucast_podle_roku.rocnik_role * -100000 - {$vypravecZaklad}
+                                    OR  uzivatele_role.id_role IN ({$roleOrganizatoru})
+                                )
+                        ),
+                        1,
+                        0
+                    )
+                )
+            END
+            AS zázemí,
+        CASE
+            WHEN rocnik_role <= 2021 THEN ''
+            ELSE SUM(
+                    IF(
+                        EXISTS(
+                            SELECT * FROM uzivatele_role
+                            JOIN role_seznam
+                                ON uzivatele_role.id_role = role_seznam.id_role
+                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            WHERE role_seznam.rocnik_role = ucast_podle_roku.rocnik_role
+                                AND role_seznam.vyznam_role = '{$vyznamPrihlasen}'
+                        )
+                        AND NOT EXISTS(
+                            SELECT * FROM uzivatele_role
+                            JOIN role_seznam
+                                ON uzivatele_role.id_role = role_seznam.id_role
+                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            -- nemá žádné přihlášení ze strarších ročníků
+                            WHERE role_seznam.rocnik_role < ucast_podle_roku.rocnik_role
+                            AND role_seznam.vyznam_role = '{$vyznamPrihlasen}'
+                        )
+                        AND NOT EXISTS(
+                            SELECT * FROM uzivatele_role
+                            JOIN role_seznam
+                                ON uzivatele_role.id_role = role_seznam.id_role
+                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            -- nemá žádné přihlášení z novějších ročníků
+                            WHERE role_seznam.rocnik_role > ucast_podle_roku.rocnik_role
+                            AND role_seznam.vyznam_role = '{$vyznamPrihlasen}'
+                        ),
+                        1,
+                        0
+                    )
+                ) END
+        AS `registrovaných nováčků`,
+        CASE
+            WHEN rocnik_role <= 2021 THEN ''
+            ELSE SUM(
+                    IF(
+                        EXISTS(
+                            SELECT * FROM uzivatele_role
+                            JOIN role_seznam
+                                ON uzivatele_role.id_role = role_seznam.id_role
+                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            WHERE role_seznam.rocnik_role = ucast_podle_roku.rocnik_role
+                                AND role_seznam.vyznam_role = '{$vyznamPritomen}'
+                        )
+                        AND NOT EXISTS(
+                            SELECT * FROM uzivatele_role
+                            JOIN role_seznam
+                                ON uzivatele_role.id_role = role_seznam.id_role
+                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            -- nemá žádné přihlášení ze strarších ročníků
+                            WHERE role_seznam.rocnik_role < ucast_podle_roku.rocnik_role
+                            AND role_seznam.vyznam_role = '{$vyznamPritomen}'
+                        )
+                        AND NOT EXISTS(
+                            SELECT * FROM uzivatele_role
+                            JOIN role_seznam
+                                ON uzivatele_role.id_role = role_seznam.id_role
+                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            -- nemá žádné přihlášení z novějších ročníků
+                            WHERE role_seznam.rocnik_role > ucast_podle_roku.rocnik_role
+                            AND role_seznam.vyznam_role = '{$vyznamPrihlasen}'
+                        ),
+                        1,
+                        0
+                    )
+                ) END
+        AS `přihlášených nováčků`,
         CASE rocnik_role
             WHEN 2009 THEN 30
             WHEN 2010 THEN 30
@@ -504,35 +657,40 @@ FROM (
             WHEN 2018 THEN 138
             WHEN 2019 THEN 147
             WHEN 2021 THEN 146
-            WHEN {$this->soucasnyRocnik} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $2), 1 , 0))
-            ELSE SUM(IF(dorazeni AND EXISTS(
-                SELECT * FROM uzivatele_role_log AS posazen
-                    LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele = posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
-                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_role = $2
-            ), 1 , 0)) END
+            WHEN 2022 THEN 116
+            ELSE SUM(
+                    IF(
+                        dorazil
+                        AND EXISTS(
+                            SELECT *
+                            FROM uzivatele_role
+                            WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
+                                AND uzivatele_role.id_role = ucast_podle_roku.rocnik_role * -100000 - {$vypravecZaklad}
+                        ),
+                        1,
+                        0
+                    )
+            ) END
         AS vypravěči
     FROM (
         SELECT
             role_seznam.rocnik_role,
             uzivatele_role.id_role,
-            role_seznam.vyznam_role = '$prihlasen' AS registrace,
-            role_seznam.vyznam_role = '$pritomen' AS dorazeni,
-            uzivatele_role.id_uzivatele
-            FROM uzivatele_role AS uzivatele_role
+            uzivatele_role.id_uzivatele,
+            role_seznam.vyznam_role = '$vyznamPrihlasen' AS registrovan,
+            role_seznam.vyznam_role = '$vyznamPritomen' AS dorazil
+            FROM uzivatele_role
             JOIN role_seznam
                 ON uzivatele_role.id_role = role_seznam.id_role
             WHERE role_seznam.typ_role = '$ucast'
-    ) AS podle_roku
+            AND (
+                role_seznam.vyznam_role = '$vyznamPrihlasen' 
+                OR role_seznam.vyznam_role = '$vyznamPritomen'
+            )
+    ) AS ucast_podle_roku
     GROUP BY rocnik_role
 ) AS pocty
-SQL,
-                [
-                    0 => Role::ORGANIZATOR,
-                    1 => Role::LETOSNI_ZAZEMI,
-                    2 => Role::LETOSNI_VYPRAVEC,
-                    3 => \Uzivatel::POSAZEN,
-                    4 => \Uzivatel::SESAZEN,
-                ],
+SQL
             ),
             'Registrovaní vs Dorazili',
         );
@@ -545,14 +703,14 @@ SQL,
                 <<<SQL
 SELECT
     rok AS ' ', -- formátování
-    Dorazilo AS `Dorazilo na GC celkem`,
+    celkem AS `Dorazilo na GC celkem`,
     muzu AS ` z toho muži`,
     zen AS ` z toho ženy`,
-    CONCAT(CAST(zen / muzu * 100 AS UNSIGNED), ' %') ` podíl žen`
+    CONCAT(CAST(zen / celkem * 100 AS UNSIGNED), ' %') AS ` podíl žen`
 FROM (
     SELECT
         rok,
-        COUNT(*) AS Dorazilo,
+        COUNT(*) AS celkem,
         SUM(IF(pohlavi = 'm', 1, 0)) AS muzu,
         SUM(IF(pohlavi= 'f', 1, 0)) AS zen
     FROM (
@@ -562,7 +720,7 @@ FROM (
             FROM uzivatele_role AS uzivatele_role
             JOIN uzivatele_hodnoty ON uzivatele_role.id_uzivatele = uzivatele_hodnoty.id_uzivatele
             WHERE uzivatele_role.id_role % 100 = -2
-    ) AS podle_roku
+    ) AS ucast_podle_roku
     GROUP BY rok
 ) AS pohlavi
 SQL,
@@ -590,7 +748,7 @@ SELECT
     shop_nakupy.rok AS '',
     SUM(shop_predmety.nazev LIKE 'Placka%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodané placky',
     SUM(shop_predmety.nazev LIKE 'Kostka%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodané kostky',
-    SUM(shop_predmety.nazev like 'Tričko%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodaná trička'
+    SUM(shop_predmety.nazev LIKE 'Tričko%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodaná trička'
 FROM shop_nakupy
 JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
 WHERE shop_nakupy.rok >= 2014 /* starší data z DB nesedí, jsou vložena fixně */
@@ -605,6 +763,8 @@ SQL,
 
     public function tabulkaHistorieUbytovaniHtml(): string
     {
+        $ubytovani = TypPredmetu::UBYTOVANI;
+
         return tabMysqlR(
             dbQuery(
                 <<<SQL
@@ -636,13 +796,10 @@ SELECT
     SUM(nazev LIKE 'chata%' AND ubytovani_den=4) AS '&emsp;neděle   '
 FROM shop_nakupy
 JOIN shop_predmety USING (id_predmetu)
-WHERE shop_predmety.typ = $0
+WHERE shop_predmety.typ = {$ubytovani}
 GROUP BY shop_nakupy.rok
 ORDER BY shop_nakupy.rok
-SQL,
-                [
-                    0 => TypPredmetu::UBYTOVANI,
-                ],
+SQL
             ),
             'Ubytování',
         );
