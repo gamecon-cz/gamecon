@@ -531,6 +531,8 @@ SQL,
             $cenaPoSleve = $cena;
             if (Predmet::jeToKostka($predmet[Sql::NAZEV])) {
                 $cenaPoSleve = (float)$this->cenik->cenaKostky($predmet);
+            } else if (Predmet::jeToPlacka($predmet[Sql::NAZEV])) {
+                $cenaPoSleve = (float)$this->cenik->cenaPlacky($predmet);
             }
             $cena        = round($cena);
             $cenaPoSleve = round($cenaPoSleve);
