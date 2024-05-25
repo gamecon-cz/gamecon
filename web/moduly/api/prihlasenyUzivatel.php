@@ -2,19 +2,16 @@
 
 // TODO: udělat REST api definice
 
-use Gamecon\Cas\DateTimeCz;
+use Gamecon\Api\Pomocne\ApiFunkce;
 
 $u = Uzivatel::zSession();
 
 $this->bezStranky(true);
 header('Content-type: application/json');
-$config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
   return;
 }
-
-
 
 $res = [];
 
@@ -43,4 +40,5 @@ if ($u) {
   }
 }
 
-echo json_encode($res, $config);
+$json = ApiFunkce::vytvorApiJson($res);
+echo $json;
