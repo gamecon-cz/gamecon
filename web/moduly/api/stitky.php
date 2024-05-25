@@ -33,4 +33,16 @@ $res = array_map(
 );
 
 
-echo json_encode($res, $config);
+$data = json_encode($res, $config);
+
+$etag = md5($data);
+
+$ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : '';
+
+if ($ifNoneMatch === $etag) {
+    header("HTTP/1.1 304 Not Modified");
+    exit();
+}
+
+header("Etag: $etag");
+echo $data;
