@@ -32,9 +32,9 @@
         Před odkliknutím zkontroluj že proběhlo:
         <ul>
           <li>Předání trička, placky, stravenek, číslo pokoje, srovnání nedoplatku</li>
-          <li>Předání manuálu účastníka a vysvětlení last moment přihlašování.</li>
+          <li>Vysvětlení last moment přihlašování.</li>
           <li>Doplnění chybějících údajů, jako adresy, telefonu</li>
-          <li>Vyplnění čísla OP do sdíleného dokumentu</li>
+          <li>Vyplnění čísla OP a kontrola všech ostatních údajů u ubytovaných</li>
         </ul>
       </span>
     </span>
@@ -100,7 +100,7 @@
   Registrace na GameCon není spuštěna.
   <!-- begin:hintJakSpustitRegistrace -->
   <div>
-    Pro spuštění reigstrací nastav platné datumy <a href="{urlNastaveniZacatkuRegistraci}">začátku registrací</a> a <a
+    Pro spuštění registrací nastav platné datumy <a href="{urlNastaveniZacatkuRegistraci}">začátku registrací</a> a <a
       href="{urlNastaveniKonceRegistraci}">konce registrací</a>
     {totoSeUkazujePouzeNaTestu}
   </div>
