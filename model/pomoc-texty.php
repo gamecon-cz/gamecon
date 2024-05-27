@@ -3,18 +3,18 @@
 return [
     [
         'dobrovolnik',
-        'dobrovoln{ík}',
+        'dobrovolníci',
         'Za to, že je GameCon takový jaký je, vděčíme nejen vypravěčům a organizátorům, ale i dobrovolníkům, kteří pomáhají vybudovat jeho zázemí. Pomoc potřebujeme především s přípravou prostor (nošení stolů, lepení plakátů apod), Infopultem a hermanováním v deskoherně.',
     ],
     [
         'vypravec',
-        'vypravěč{ka}',
-        'Vypravěč je jednotný pojem, který GameCon používá pro všechny, kteří vedou některou z aktivit – ať už se jedná o deskovku, RPG, larp či jinou hru. Máš nápad na nějakou aktivitu, kterou bys chtěl{a} uvést?',
+        'vypravěči',
+        'Vypravěč je jednotný pojem, který GameCon používá pro všechny, kteří vedou některou z aktivit – ať už se jedná o deskovku, RPG, larp či jinou hru. Máš nápad na nějakou aktivitu, kterou chceš uvést?',
     ],
     [
         'organizator',
-        'organizátor{ka}',
-        'Máš organizační talent, nebo tě napadá konkrétní věc, se kterou bys nám v organizaci mohl{a} pomoct? Spíš než profesionály hledáme samostatné, aktivní jedince, kteří se rádi budou podílet na chodu středně velké organizace.',
+        'organizátoři',
+        'Máš organizační talent, nebo tě napadá konkrétní věc, se kterou nám v organizaci můžeš pomoct? Spíš než profesionály hledáme samostatné, aktivní jedince, kteří se rádi budou podílet na chodu středně velké organizace.',
     ],
     [
         'partner',

@@ -5,9 +5,8 @@
         <h1>Přihláška na GameCon</h1>
 
         <!-- begin:prihlasen -->
-        <p>Jsi přihlášen{a} na GameCon {rok}. Níže si můžeš upravovat svou přihlášku, tedy objednané ubytování a
-            předměty až
-            téměř do začátku GameConu.</p>
+        <p>Jsi přihlášen*a na GameCon {rok}. Níže si můžeš upravovat svou přihlášku, tedy objednané ubytování a
+            předměty až téměř do začátku GameConu.</p>
 
         <div class="prihlaska_hlavickaFinance">
             <p>Objednávku je potřeba uhradit do {zaplatitNejpozdejiDo} včetně. Svůj přehled financí a údaje k platbě

@@ -22,6 +22,6 @@ return [
     'regOk'                => 'Účet vytvořen. Informaci o spuštění přihlašování ti včas pošleme e-mailem.',
     'regOkNyniPrihlaska'   => 'Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.',
     'upravaUzivatele'      => 'Změny registračních údajů uloženy.',
-    'uzPrihlasen'          => 'Na GameCon už jsi přihlášen{a}, zde můžeš upravit svou přihlášku.',
+    'uzPrihlasen'          => 'Na GameCon už máš platnou přihlášku, zde ji můžeš upravit.',
     'zamcena'              => 'Aktivitu už někdo zabral',
 ];
