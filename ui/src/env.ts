@@ -47,7 +47,9 @@ define('FORCE_REDUX_DEVTOOLS', true);
 }
 
 type GameconPřednačtení = {
-  přihlášenýUživatel?: PřihlášenýUživatel
+  přihlášenýUživatel?: PřihlášenýUživatel,
+  časPřednačtení?: number,
+  etagy?: Record<string, string>
 };
 
 declare global {

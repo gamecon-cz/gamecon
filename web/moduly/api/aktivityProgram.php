@@ -3,8 +3,8 @@
 // TODO: při pojmenování jako api/aktivity.php z nezámeho důvodu připisuje obsah aktivity.php
 // TODO: udělat REST api definice
 
-use Gamecon\Cas\DateTimeCz;
-use Gamecon\Aktivita\Aktivita;
+use Gamecon\Api\ApiAktivityProgram;
+use Gamecon\Api\Pomocne\ApiFunkce;
 
 $u = Uzivatel::zSession();
 
@@ -36,68 +36,22 @@ fetch("/web/api/aktivityProgram", {method:"POST"}).then(x=>x.text()).then(x=>con
 // TODO: tohle nastavení by mělo platit pro všechny php soubory ve složce api
 $this->bezStranky(true);
 header('Content-type: application/json');
-$config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
   return;
 }
 
-$res = [];
-
 $rok = array_key_exists("rok", $_GET) ? intval($_GET["rok"], 10) : ROK;
 
-$aktivity = Aktivita::zFiltru(["rok" => $rok]);
+$json = ApiFunkce::vytvorApiJson(ApiAktivityProgram::apiAktivityProgram($rok, $u));
+$etag = ApiFunkce::etagZApiJson($json);
 
-foreach ($aktivity as $a) {
-  if (!$a->zacatek()) continue;
-  if (!$a->viditelnaPro($u)) continue;
+$ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : '';
 
-  $vypraveci = array_map(function ($o) {
-    return $o->jmenoNick();
-  }, $a->organizatori());
-
-  $stitkyId = $a->tagyId();
-
-  $aktivitaRes = [
-    'id'        =>  $a->id(),
-    'nazev'     =>  $a->nazev(),
-    'kratkyPopis' => $a->kratkyPopis(),
-    'popis'     =>  $a->popis(),
-    'obrazek'   =>  (string) $a->obrazek(),
-    'vypraveci' =>  $vypraveci,
-    'stitkyId'  =>  $stitkyId,
-    // TODO: cenaZaklad by měla být číslo ?
-    'cenaZaklad'      => intval($a->cenaZaklad()),
-    'casText'   =>  $a->zacatek() ? $a->zacatek()->format('G') . ':00&ndash;' . $a->konec()->format('G') . ':00' : "",
-    'cas'        =>  $a->zacatek() ? [
-      'od'         => $a->zacatek()->getTimestamp() * 1000,
-      'do'         => $a->konec()->getTimestamp() * 1000,
-    ] : null,
-    'linie'      =>  $a->typ()->nazev(),
-  ];
-
-  $vBudoucnu = $a->vBudoucnu();
-  if ($vBudoucnu)
-    $aktivitaRes['vBudoucnu'] = $vBudoucnu;
-
-  $vdalsiVlne = $a->vDalsiVlne();
-  if ($vdalsiVlne)
-    $aktivitaRes['vdalsiVlne'] = $vdalsiVlne;
-
-  $probehnuta = $a->probehnuta();
-  if ($probehnuta)
-    $aktivitaRes['probehnuta'] = $probehnuta;
-
-  $jeBrigadnicka = $a->jeBrigadnicka();
-  if ($jeBrigadnicka)
-    $aktivitaRes['jeBrigadnicka'] = $jeBrigadnicka;
-
-  $dite = $a->detiIds();
-  if ($dite && count($dite))
-    $aktivitaRes['dite'] = $dite;
-
-  $res[] = $aktivitaRes;
+if ($ifNoneMatch === $etag) {
+    header("HTTP/1.1 304 Not Modified");
+    exit();
 }
 
-
-echo json_encode($res, $config);
+header("Etag: $etag");
+echo $json;
