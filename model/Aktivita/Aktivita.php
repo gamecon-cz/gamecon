@@ -318,7 +318,7 @@ SQL
     private static function denAktivity(?Aktivita $aktivita): DateTimeCz|null
     {
         if ($aktivita && $aktivita->zacatek()) {
-            return $aktivita->zacatek()->format('H') > PROGRAM_ZACATEK
+            return $aktivita->zacatek()->format('H') >= PROGRAM_ZACATEK
                 ? $aktivita->zacatek()
                 : (clone $aktivita->zacatek())->minusDen();
         }
