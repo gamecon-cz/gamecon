@@ -113,7 +113,7 @@ if ($systemoveNastaveni->gcBezi()) {
 }
 
 if (!$u) {
-    back(URL_WEBU);
+    oznameniPresmeruj('Tato stránka vyžaduje přihlášení', URL_WEBU . '/prihlaseni');
 }
 
 if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {

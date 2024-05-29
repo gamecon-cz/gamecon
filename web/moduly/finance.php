@@ -9,9 +9,7 @@ $this->blackarrowStyl(true);
 /** @var SystemoveNastaveni $systemoveNastaveni */
 
 if (!$u) { //jen přihlášení
-    echo hlaska('jenPrihlaseni');
-
-    return;
+    throw new \Neprihlasen();
 }
 if (!FINANCE_VIDITELNE) {
     $urlWebu = URL_WEBU;
