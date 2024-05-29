@@ -132,6 +132,9 @@ abstract class DbObject
             foreach ($objekty as $objekt) {
                 self::$objektyZVsech[static::class][$objekt->id()] = $objekt;
             }
+            if ((self::$objekty[static::class] ?? null) == null) {
+                self::$objekty[static::class] = [];
+            }
             self::$objekty[static::class] += (self::$objektyZVsech[static::class] ?? []);
         }
 
