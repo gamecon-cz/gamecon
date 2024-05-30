@@ -35,69 +35,74 @@ fetch("/web/api/aktivityProgram", {method:"POST"}).then(x=>x.text()).then(x=>con
 // TODO: je potřeba otestovat taky $u->gcPrihlasen() ?
 // TODO: tohle nastavení by mělo platit pro všechny php soubory ve složce api
 $this->bezStranky(true);
-header('Content-type: application/json');
-$config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
-  return;
+    return;
 }
 
-$res = [];
+$response = [];
 
-$rok = array_key_exists("rok", $_GET) ? intval($_GET["rok"], 10) : ROK;
+$rok = array_key_exists('rok', $_GET)
+    ? (int)$_GET['rok']
+    : ROCNIK;
 
 $aktivity = Aktivita::zFiltru(["rok" => $rok]);
 
-foreach ($aktivity as $a) {
-  if (!$a->zacatek()) continue;
-  if (!$a->viditelnaPro($u)) continue;
+foreach ($aktivity as $aktivita) {
+    if (!$aktivita->zacatek() || !$aktivita->konec() || !$aktivita->viditelnaPro($u)) {
+        continue;
+    }
 
-  $vypraveci = array_map(function ($o) {
-    return $o->jmenoNick();
-  }, $a->organizatori());
+    $vypraveci = array_map(
+        fn(Uzivatel $organizator) => $organizator->jmenoNick(),
+        $aktivita->organizatori()
+    );
 
-  $stitkyId = $a->tagyId();
+    $stitkyId = $aktivita->tagyId();
 
-  $aktivitaRes = [
-    'id'        =>  $a->id(),
-    'nazev'     =>  $a->nazev(),
-    'kratkyPopis' => $a->kratkyPopis(),
-    'popis'     =>  $a->popis(),
-    'obrazek'   =>  (string) $a->obrazek(),
-    'vypraveci' =>  $vypraveci,
-    'stitkyId'  =>  $stitkyId,
-    // TODO: cenaZaklad by měla být číslo ?
-    'cenaZaklad'      => intval($a->cenaZaklad()),
-    'casText'   =>  $a->zacatek() ? $a->zacatek()->format('G') . ':00&ndash;' . $a->konec()->format('G') . ':00' : "",
-    'cas'        =>  $a->zacatek() ? [
-      'od'         => $a->zacatek()->getTimestamp() * 1000,
-      'do'         => $a->konec()->getTimestamp() * 1000,
-    ] : null,
-    'linie'      =>  $a->typ()->nazev(),
-  ];
+    $aktivitaRes = [
+        'id'          => $aktivita->id(),
+        'nazev'       => $aktivita->nazev(),
+        'kratkyPopis' => $aktivita->kratkyPopis(),
+        'popis'       => $aktivita->popis(),
+        'obrazek'     => (string)$aktivita->obrazek(),
+        'vypraveci'   => $vypraveci,
+        'stitkyId'    => $stitkyId,
+        // TODO: cenaZaklad by měla být číslo ?
+        'cenaZaklad'  => intval($aktivita->cenaZaklad()),
+        'casText'     => $aktivita->zacatek()
+            ? $aktivita->zacatek()->format('G') . ':00&ndash;' . $aktivita->konec()->format('G') . ':00'
+            : '',
+        'cas'         => [
+            'od' => $aktivita->zacatek()->getTimestamp() * 1000,
+            'do' => $aktivita->konec()->getTimestamp() * 1000,
+        ],
+        'linie'       => $aktivita->typ()->nazev(),
+    ];
 
-  $vBudoucnu = $a->vBudoucnu();
-  if ($vBudoucnu)
-    $aktivitaRes['vBudoucnu'] = $vBudoucnu;
+    $vBudoucnu = $aktivita->vBudoucnu();
+    if ($vBudoucnu)
+        $aktivitaRes['vBudoucnu'] = $vBudoucnu;
 
-  $vdalsiVlne = $a->vDalsiVlne();
-  if ($vdalsiVlne)
-    $aktivitaRes['vdalsiVlne'] = $vdalsiVlne;
+    $vdalsiVlne = $aktivita->vDalsiVlne();
+    if ($vdalsiVlne)
+        $aktivitaRes['vdalsiVlne'] = $vdalsiVlne;
 
-  $probehnuta = $a->probehnuta();
-  if ($probehnuta)
-    $aktivitaRes['probehnuta'] = $probehnuta;
+    $probehnuta = $aktivita->probehnuta();
+    if ($probehnuta)
+        $aktivitaRes['probehnuta'] = $probehnuta;
 
-  $jeBrigadnicka = $a->jeBrigadnicka();
-  if ($jeBrigadnicka)
-    $aktivitaRes['jeBrigadnicka'] = $jeBrigadnicka;
+    $jeBrigadnicka = $aktivita->jeBrigadnicka();
+    if ($jeBrigadnicka)
+        $aktivitaRes['jeBrigadnicka'] = $jeBrigadnicka;
 
-  $dite = $a->detiIds();
-  if ($dite && count($dite))
-    $aktivitaRes['dite'] = $dite;
+    $dite = $aktivita->detiIds();
+    if ($dite && count($dite))
+        $aktivitaRes['dite'] = $dite;
 
-  $res[] = $aktivitaRes;
+    $response[] = $aktivitaRes;
 }
 
-
-echo json_encode($res, $config);
+$jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+header('Content-type: application/json');
+echo json_encode($response, $jsonConfig);
