@@ -129,6 +129,7 @@ abstract class DbObject
         }
         $objekty = self::zWhere('1');
         if ($zCache) {
+            self::$objekty[static::class] ??= [];
             foreach ($objekty as $objekt) {
                 self::$objektyZVsech[static::class][$objekt->id()] = $objekt;
             }
