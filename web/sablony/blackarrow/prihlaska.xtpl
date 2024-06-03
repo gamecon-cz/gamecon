@@ -14,6 +14,16 @@
                         href="finance">Přehledu
                     financí</a>.</p>
         </div>
+
+        <!-- begin:potvrzeniZakonnyZastupce -->
+        <div class="prihlaska_potrebaPotvrzeni">
+            <p>Jakožto mladší 15ti let budeš potřebovat dodat potvrzení o souhlasu tvého zákonného zástupce s
+                účastí na GameConu. Formulář ke stažení můžeš najít na <a href="#">TODO tomto odkazu</a> a vyplněný
+                nám jej můžeš kdykoliv před GameConem poslat naskenovaný na <a href="mailto:info@gamecon.cz">
+                info@gamecon.cz</a>, nebo donést fyzicky při příjezdu na GameCon k Infopultu. Připravené formuláře k
+                vyplnění budeme mít i na Infopultu.</p>
+        </div>
+        <!-- end:potvrzeniZakonnyZastupce -->
         <!-- end:prihlasen -->
 
         <!-- begin:neprihlasen -->
