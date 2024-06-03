@@ -5,7 +5,7 @@
         <h1>Přihláška na GameCon</h1>
 
         <!-- begin:prihlasen -->
-        <p>Jsi přihlášen*a na GameCon {rok}. Níže si můžeš upravovat svou přihlášku, tedy objednané ubytování a
+        <p>Tvoji přihlášku na GameCon {rok} jsme zaevidovali. Níže si můžeš upravovat svou přihlášku, tedy objednané ubytování a
            předměty až téměř do začátku GameConu.</p>
 
         <div class="prihlaska_hlavickaFinance">
