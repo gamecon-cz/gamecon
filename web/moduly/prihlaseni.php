@@ -20,10 +20,14 @@ if (post('prihlasit')) {
     }
 
     if ($u) {
-        back(URL_WEBU . '/prihlaska');
+        back(to: null, defaultFallback: URL_WEBU . '/prihlaska');
     } else {
         Chyba::nastav(hlaska('chybaPrihlaseni'));
     }
+}
+
+if ($u) {
+    back(URL_WEBU);
 }
 
 ?>

@@ -72,7 +72,7 @@ function parseRoute(): array
  * Ends current script execution and reloads page to http referrer.
  * @param string $to alternative location to go to instead of referrer
  */
-function back(string $to = null)
+function back(string $to = null, string $defaultFallback = URL_WEBU)
 {
     if ($to) {
         header('Location: ' . $to, true, 303);
