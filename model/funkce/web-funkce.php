@@ -103,9 +103,9 @@ function oznameni($zprava, $back = true)
 /**
  * Předá oznámení volajícímu skritpu a přesměruje na $cil
  */
-function oznameniPresmeruj($zprava, $cil)
+function oznameniPresmeruj($zprava, $cil, int $typOznameni = Chyba::OZNAMENI)
 {
-    Chyba::nastav((string)$zprava, Chyba::OZNAMENI);
+    Chyba::nastav((string)$zprava, $typOznameni);
     back($cil);
 }
 
