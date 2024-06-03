@@ -229,6 +229,21 @@ class Registrace
             <div class="formular_sloupce">
                 <?= $this->input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE) ?>
                 <?= $this->select('Pohlaví', Sql::POHLAVI, Pohlavi::seznamProSelect()) ?>
+              <div class="formular_bydlisteTooltip">
+                <div class="gc_tooltip">
+                  Proč potřebujeme znát pohlaví?
+                  <div class="tooltip_obsah">
+                    Informace slouží pouze interně pro<br>
+                    <ul>
+                      <li>přidělování ubytování bez preference spolubydlících,</li>
+                      <li>zpřístupnění genderově omezených míst pro aktivity.</li>
+                    </ul>
+                    <div>
+                      Informaci vyplň co nejvíce autentickým/komfortním způsobem nejen pro sebe, ale také pro případné spolubydlící a spoluhráče.
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="formular_sloupce">

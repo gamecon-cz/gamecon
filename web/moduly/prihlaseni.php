@@ -26,6 +26,10 @@ if (post('prihlasit')) {
     }
 }
 
+if ($u) {
+    back(URL_WEBU);
+}
+
 ?>
 
 <form method="post" class="formular formular_stranka formular_stranka-login">
