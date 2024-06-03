@@ -100,7 +100,7 @@
   Registrace na GameCon není spuštěna.
   <!-- begin:hintJakSpustitRegistrace -->
   <div>
-    Pro spuštění reigstrací nastav platné datumy <a href="{urlNastaveniZacatkuRegistraci}">začátku registrací</a> a <a
+    Pro spuštění registrací nastav platné datumy <a href="{urlNastaveniZacatkuRegistraci}">začátku registrací</a> a <a
       href="{urlNastaveniKonceRegistraci}">konce registrací</a>
     {totoSeUkazujePouzeNaTestu}
   </div>

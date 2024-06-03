@@ -403,7 +403,7 @@
                             <input type="checkbox" name="potvrzujiBezUcastniku" id="potvrzujiBezUcastniku">
                             <label for="potvrzujiBezUcastniku" id="labelPotvrzujiBezUcastniku"
                                    class="d-inline text-danger">
-                                Jsem si vědom{a}, že aktivitu uzavírám bez účastníků (tj. není zaškrtlá ničí účast).
+                                Uvědomuji si, že aktivitu uzavírám bez účastníků (tj. není zaškrtlá ničí účast).
                             </label>
                         </div>
                     </div>
