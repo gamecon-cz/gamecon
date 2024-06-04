@@ -19,27 +19,48 @@ hr {
 }
 
 .chybaBlok {
+  text-align: center;
   position: fixed;
-  background: #FFF700 url('../blackarrow/_spolecne/chyba-err.svg') no-repeat 28px 50%;
   font-weight: bold;
-  color: #E22630;
   font-size: 14px;
   letter-spacing: 0.05em;
-  padding: 20px 60px 16px;
-  width: 323px;
+  padding: 20px 40px 16px;
+  width: 460px;
+  box-sizing: border-box;
   box-shadow: 0 3px 15px rgba(0, 0, 0, 0.16);
   left: 50%;
   margin-left: -220px;
   bottom: 24px;
   z-index: 100;
+  background-color: antiquewhite;
+}
+
+.chybaBlok .hlaska {
+  padding: 1.3em 2px;
+  color: #d00;
+  border-radius: 5px;
+}
+
+.chybaBlok .hlaska+.hlaska {
+  margin-top: 1em;
 }
 
 .chybaBlok .errorHlaska {
-  background-color: rgba(255, 191, 191, 0.85);
+  background: rgba(255, 191, 191, 0.85) url('../blackarrow/_spolecne/chyba-err.svg') no-repeat 28px 50%;
+  color: #a00;
+}
+
+.chybaBlok-errorHlaska {
+  background: rgba(255, 191, 191, 0.85) url('../blackarrow/_spolecne/chyba-err.svg') no-repeat 28px 50%;
   color: #a00;
 }
 
 .chybaBlok .varovani {
+  background-color: rgba(245, 228, 150, 0.75);
+  color: #f67f00;
+}
+
+.chybaBlok-varovani {
   background-color: rgba(245, 228, 150, 0.75);
   color: #f67f00;
 }
@@ -57,12 +78,6 @@ hr {
   font-size: 16px;
   cursor: pointer;
   color: #515151;
-}
-
-.chybaBlok-oznameni {
-  color: #10111A;
-  background-color: #B7E4B6;
-  background-image: url('../blackarrow/_spolecne/chyba-ok.svg');
 }
 
 .gc_tooltip {
