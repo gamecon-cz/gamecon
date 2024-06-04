@@ -1,335 +1,365 @@
 @levyOkraj: 50%;
 
 .formular_stranka {
-    min-height: ~'calc(100vh - 70px)';
-    box-sizing: border-box;
-    padding: 60px 60px 120px ~'calc(' @levyOkraj ~'+ 60px)';
-    position: relative; // kvůli nadpisu
-    @media (max-width: 900px) {
-        padding: 20px;
-    }
+  min-height: ~'calc(100vh - 70px)';
+  box-sizing: border-box;
+  padding: 60px 60px 120px ~'calc(' @levyOkraj ~'+ 60px)';
+  position: relative; // kvůli nadpisu
+  @media (max-width: 900px) {
+    padding: 20px;
+  }
 }
 
 .formular_stranka .bg {
-    background:
-        url('../blackarrow/formular/pozadi.jpg') no-repeat center center/cover;;
-    width: 50%;
-    height: 100%;
-    position: fixed;
-    left: 0;
-    top: 100px;
-    @media (max-width: 900px) {
-        display: none;
-    }
+  background: url('../blackarrow/formular/pozadi.jpg') no-repeat center center/cover;;
+  width: 50%;
+  height: 100%;
+  position: fixed;
+  left: 0;
+  top: 100px;
+  @media (max-width: 900px) {
+    display: none;
+  }
 }
 
 .formular_stranka-login {
-    padding-top: 170px;
-    @media (max-width: 900px) {
-        padding-top: 50px;
-    }
+  padding-top: 170px;
+  @media (max-width: 900px) {
+    padding-top: 50px;
+  }
 }
 
 .formular_strankaNadpis {
-    position: fixed;
-    top: ~'calc(43vh)'; // vh aby se neposouval nadpis vůči ikoně
-    left: 0;
-    text-align: center;
-    font-weight: bold;
-    font-size: 64rel;
-    color: #fff;
-    width: 47.5%; //@levyOkraj
-    @media (max-width: 900px) {
-        display: none;
-    }
+  position: fixed;
+  top: ~'calc(43vh)'; // vh aby se neposouval nadpis vůči ikoně
+  left: 0;
+  text-align: center;
+  font-weight: bold;
+  font-size: 64rel;
+  color: #fff;
+  width: 47.5%; //@levyOkraj
+  @media (max-width: 900px) {
+    display: none;
+  }
 }
 
 .formular_strankaPodtitul {
-    position: fixed;
-    top: ~'calc(43vh + 110rel)';
-    left: 0;
-    text-align: center;
-    font-size: 16px;
-    line-height: 1.5;
-    color: #fff;
-    width: @levyOkraj;
-    box-sizing: border-box;
-    &>div { margin: 0 auto; } // center
-    @media (max-width: 900px) {
-        display: none;
-    }
+  position: fixed;
+  top: ~'calc(43vh + 110rel)';
+  left: 0;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #fff;
+  width: @levyOkraj;
+  box-sizing: border-box;
+
+  & > div {
+    margin: 0 auto;
+  }
+
+  // center
+  @media (max-width: 900px) {
+    display: none;
+  }
 }
 
 .formular_zapomenuteHeslo {
-    position: absolute;
-    width: 200px;
-    margin-left: 244px;
-    text-align: right;
-    font-size: 13px;
-    color: inherit;
-    opacity: 0.5;
-    @media (max-width: 900px) {
-        right: 20px;
-    }
+  position: absolute;
+  width: 200px;
+  margin-left: 244px;
+  text-align: right;
+  font-size: 13px;
+  color: inherit;
+  opacity: 0.5;
+  @media (max-width: 900px) {
+    right: 20px;
+  }
 }
 
-.formular_bydlisteTooltip {
-    font-size: 13px;
-    color: #86878b;
-    text-decoration: underline;
-    margin: 30px 0 -50px 0;
-    text-align: right;
-    max-width: 530px;
-    @media (max-width: 900px) {
-        right: 20px;
-        max-width: 440px;
-    }
-    @media (max-width: 600px) {
-        position: relative;
-        top: 1.25rem;
-    }
+.formular_tooltip {
+  float: left;
+  font-size: 13px;
+  color: #86878b;
+  text-decoration: underline;
+  text-align: right;
+  max-width: 530px;
+  padding-bottom: 1em;
+}
+
+.formular_sekceNadpis+.formular_tooltip {
+  margin: 28px 0 -50px 15em;
+  @media (max-width: 1200px) {
+    float: right;
+    margin: 28px 0 -50px 0em;
+  }
 }
 
 .formular_registrovat {
-    margin-top: 19px;
+  margin-top: 19px;
 }
 
 // generický formulář
 
 .formular {
-    font-size: 14px;
+  font-size: 14px;
 }
 
 // generický formulář - inputy
 
 .formular_polozka {
-    font-size: 13px;
-    letter-spacing: 0.03em;
-    display: block;
-    margin-bottom: 17px;
-    max-width: 444px;
-    clear: both;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  display: block;
+  margin-bottom: 17px;
+  max-width: 444px;
+  clear: both;
 }
 
 .formular_polozka > input,
 .formular_polozka > select,
 .formular_input,
 .formular_select {
-    display: block;
-    border: solid 1px #DBDBDB;
-    font-size: 14px;
-    font-weight: bold;
-    letter-spacing: 0.03em;
-    line-height: 42px;
-    box-sizing: border-box;
-    width: 100%;
-    margin-top: 7px;
-    padding: 2px 10px 0;
+  display: block;
+  border: solid 1px #DBDBDB;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.03em;
+  line-height: 42px;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 7px;
+  padding: 2px 10px 0;
 }
 
 .formular_polozka > input:focus,
 .formular_polozka > select:focus,
 .formular_input:focus,
 .formular_select:focus {
-    border-color: #10111A;
+  border-color: #10111A;
 }
 
 .formular_polozka > input:placeholder-shown,
 .formular_input:placeholder-shown {
-    background-color: #F6F1EA;
+  background-color: #F6F1EA;
 }
 
 .formular_polozka > input[type="date"]:invalid,
 .formular_input[type="date"]:invalid {
-    background-color: #F6F1EA;
-    color: #0004;
+  background-color: #F6F1EA;
+  color: #0004;
 }
 
 .formular_polozka > select,
 .formular_select {
-    height: 46px;
-    appearance: none;
-    background-color: transparent;
-    position: relative;
-    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAFCAYAAACJmvbYAAAABHNCSVQICAgIfAhkiAAAAGFJREFUCFtj5BeUWv7x/bMoBgaG/0AMBvz8/IIMDNwtjGCOgOS/jx+eswCZ/zg5haXZOdhPfnj/TAYsCVXw99fPn/LsHBwnQBIgMbgkA4M4Nz8/89yPH59FwDQgScKEEDQAXxUa05ZVD2IAAAAASUVORK5CYII=)
-        no-repeat ~'calc(100% - 12px)' 21px;
+  height: 46px;
+  appearance: none;
+  background-color: transparent;
+  position: relative;
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAFCAYAAACJmvbYAAAABHNCSVQICAgIfAhkiAAAAGFJREFUCFtj5BeUWv7x/bMoBgaG/0AMBvz8/IIMDNwtjGCOgOS/jx+eswCZ/zg5haXZOdhPfnj/TAYsCVXw99fPn/LsHBwnQBIgMbgkA4M4Nz8/89yPH59FwDQgScKEEDQAXxUa05ZVD2IAAAAASUVORK5CYII=) no-repeat ~'calc(100% - 12px)' 21px;
 }
 
 .formular_polozka > select:invalid {
-    background-color: #F6F1EA;
+  background-color: #F6F1EA;
 }
 
 // generický formulář - textarea
 .formular_textarea {
-    .formular_input();
-    line-height: 1.4;
-    padding: 8px 10px;
-    resize: none;
-    &:placeholder-shown { background-color: #F6F1EA }
-    &:focus { border-color: #10111A }
+  .formular_input();
+  line-height: 1.4;
+  padding: 8px 10px;
+  resize: none;
+
+  &:placeholder-shown {
+    background-color: #F6F1EA
+  }
+
+  &:focus {
+    border-color: #10111A
+  }
 }
 
 // generický formulář - checkbox
 
 input[type=checkbox] {
-    appearance: none;
-    background-color: #EBEBEB;
-    width: 18px;
-    height: 18px;
-    margin: 0 7px -4px 0;
-    border-radius: 2px;
-    &:checked {
-        background: #10111A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10.698' height='8.288' viewBox='0 0 10.698 8.288'%3E%3Cpath id='Path_2669' data-name='Path 2669' d='M7283.8,702.841l3.117,3.117,6.167-6.167' transform='translate(-7283.093 -699.085)' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat 4px 5px;
-    }
+  appearance: none;
+  background-color: #EBEBEB;
+  width: 18px;
+  height: 18px;
+  margin: 0 7px -4px 0;
+  border-radius: 2px;
+
+  &:checked {
+    background: #10111A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10.698' height='8.288' viewBox='0 0 10.698 8.288'%3E%3Cpath id='Path_2669' data-name='Path 2669' d='M7283.8,702.841l3.117,3.117,6.167-6.167' transform='translate(-7283.093 -699.085)' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat 4px 5px;
+  }
 }
 
 .formular_checkbox-mega[type=checkbox] {
-    width: 30px;
-    height: 30px;
-    &:checked {
-        background-size: 18px auto;
-        background-position: 6px 9px;
-    }
+  width: 30px;
+  height: 30px;
+
+  &:checked {
+    background-size: 18px auto;
+    background-position: 6px 9px;
+  }
 }
 
 // generický formulář - ostatní
 
 .formular_sloupce {
-    display: flex;
-    flex-wrap: wrap;
-    max-width: 600px;
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 600px;
 }
 
 .formular_sloupce .formular_polozka {
-    width: 260px;
-    margin-right: 16px;
-    @media (max-width: 900px) {
-        width: 100%;
-        margin-right: 0;
-    }
+  width: 260px;
+  margin-right: 16px;
+  @media (max-width: 900px) {
+    width: 100%;
+    margin-right: 0;
+  }
 }
 
 .formular_sekceNadpis {
-    margin: 30px 0 17px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
+  margin: 30px 0 17px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
 }
 
 .formular_polozka.formular_polozka-chyba input,
 .formular_polozka.formular_polozka-chyba select {
-    background-color: #FCE9EA;
-    border-color: #E22630;
+  background-color: #FCE9EA;
+  border-color: #E22630;
 }
 
 .formular_chyba {
-    font-size: 10px;
-    color: #E22630;
-    margin-top: 2px;
+  font-size: 10px;
+  color: #E22630;
+  margin-top: 2px;
 }
 
 .formular_duleziteInfo {
-    font-weight: bold;
-    font-size: 14px;
-    & > a {
-        color: #E22630;
-        text-decoration: underline;
-    }
+  font-weight: bold;
+  font-size: 14px;
+
+  & > a {
+    color: #E22630;
+    text-decoration: underline;
+  }
 }
 
 .formular_polozka-checkbox {
+  cursor: pointer;
+
+  input {
     cursor: pointer;
-    input { cursor: pointer; }
+  }
 }
 
 // generický formulář - submity
 
 .formular_primarni, .formular_sekundarni, .formular_negativni {
-    font-weight: bold;
-    font-size: 12px;
-    text-transform: uppercase;
-    text-decoration: none;
-    letter-spacing: 0.15em;
+  font-weight: bold;
+  font-size: 12px;
+  text-transform: uppercase;
+  text-decoration: none;
+  letter-spacing: 0.15em;
 
-    cursor: pointer;
+  cursor: pointer;
 
-    @media (max-width: 900px) {
-        margin: 0 0 16px 0;
-        width: 100%;
-    }
+  @media (max-width: 900px) {
+    margin: 0 0 16px 0;
+    width: 100%;
+  }
 }
 
 .formular_primarni {
-    color: #fff;
-    background-color: #10111A;
-    border: none;
-    line-height: 50px;
-    padding: 0 30px;
-    min-width: 200px;
+  color: #fff;
+  background-color: #10111A;
+  border: none;
+  line-height: 50px;
+  padding: 0 30px;
+  min-width: 200px;
 }
 
 .formular_primarni:hover {
-    background-color: #30323E;
+  background-color: #30323E;
 }
 
 .formular_primarni:disabled {
-    background-color: #c6c6c6;
-    cursor: not-allowed;
+  background-color: #c6c6c6;
+  cursor: not-allowed;
 }
 
 .formular_primarni-sipka {
-    min-width: 240px;
-    text-align: left;
-    background:
-        url('../blackarrow/formular/sipka.svg') no-repeat ~'calc(100% - 16px)' 13px,
-        #10111A;
-    transition: background-position 0.3s;
+  min-width: 240px;
+  text-align: left;
+  background: url('../blackarrow/formular/sipka.svg') no-repeat ~'calc(100% - 16px)' 13px,
+  #10111A;
+  transition: background-position 0.3s;
 }
 
 .formular_primarni-sipka:hover {
-    background-position: ~'calc(100% - 10px)' 13px;
+  background-position: ~'calc(100% - 10px)' 13px;
 }
 
 .formular_sekundarni {
-    margin-left: 12px;
-    border: solid 2px #84888c;
-    background-color: transparent;
-    line-height: 48px;
-    padding: 0 19px;
-    @media (max-width: 900px) { margin-left: 0; }
+  margin-left: 12px;
+  border: solid 2px #84888c;
+  background-color: transparent;
+  line-height: 48px;
+  padding: 0 19px;
+  @media (max-width: 900px) {
+    margin-left: 0;
+  }
 }
 
 .formular_sekundarni:hover {
-    color: #445;
-    border-color: #aaa;
+  color: #445;
+  border-color: #aaa;
 }
 
 .formular_negativni {
-    background-color: transparent;
-    color: #E22630;
-    letter-spacing: 0.1em;
-    line-height: 20px; // aby se aktivovalo jen najetím na text, ne celou výšku
-    padding: 0;
-    margin: 15px 30px;
-    border: none;
-    &:hover { color: #BE0F18 }
-    @media (max-width: 900px) { margin: 30px 0; }
+  background-color: transparent;
+  color: #E22630;
+  letter-spacing: 0.1em;
+  line-height: 20px; // aby se aktivovalo jen najetím na text, ne celou výšku
+  padding: 0;
+  margin: 15px 30px;
+  border: none;
+
+  &:hover {
+    color: #BE0F18
+  }
+
+  @media (max-width: 900px) {
+    margin: 30px 0;
+  }
 }
 
 // generický formulář - infobox
 
 .formular_infobox {
-    font-size: 13px;
-    background-color: #FDC689;
-    padding: 24px;
-    letter-spacing: 0.03em;
-    max-width: 2 * 260px + 16px;
-    box-sizing: border-box;
-    margin: 30px 0;
-    & > b {
-        font-size: 14px;
-        display: block;
-        margin-bottom: 10px;
-    }
+  font-size: 13px;
+  background-color: #FDC689;
+  padding: 24px;
+  letter-spacing: 0.03em;
+  max-width: 2 * 260px + 16px;
+  box-sizing: border-box;
+  margin: 30px 0;
+
+  & > b {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 10px;
+  }
+}
+
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both
 }
