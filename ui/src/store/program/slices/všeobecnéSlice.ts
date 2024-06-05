@@ -6,6 +6,8 @@ export type VšeobecnéSlice = {
     zvětšeno: boolean,
     kompaktní: boolean,
     modalOdhlásitAktivitaId?: number,
+    // TODO: dvě souběžné načítání mají za výsledek že jak doběhme první tak se načítání dá na false ikdyž běží další dotazy
+    načítání: boolean,
   }
 }
 
@@ -14,6 +16,7 @@ export const createVšeobecnéSlice: ProgramStateCreator<VšeobecnéSlice> = (_s
     filtryOtevřené: false,
     zvětšeno: false,
     kompaktní: false,
+    načítání: false,
   },
 });
 
