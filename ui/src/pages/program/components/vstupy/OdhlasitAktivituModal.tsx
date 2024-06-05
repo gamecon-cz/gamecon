@@ -22,7 +22,8 @@ export const OdhlasitAktivituModal: FunctionComponent<PotvrzeniModalProps> = (pr
           }}>
             <div className="modalOdhlasit clearfix">
               <h3>Opravdu se chceš odhlásit z aktivity {aktivita?.nazev}?</h3>
-              <input type="submit">Odhlásit</input>
+              <input type="submit" value="Odhlásit"></input>
+              <button onClick={() => { nastavModalOdhlásit(); }}>Zavřít</button>
             </div>
           </div>
           : undefined}

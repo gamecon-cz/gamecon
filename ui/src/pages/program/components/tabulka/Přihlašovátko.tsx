@@ -16,8 +16,6 @@ type FormTlačítkoTyp =
   | "prihlasSledujiciho"
   | "odhlasSledujiciho";
 
-
-
 const FormTlačítko: FunctionComponent<{ id: number; typ: FormTlačítkoTyp }> = ({
   id,
   typ,
