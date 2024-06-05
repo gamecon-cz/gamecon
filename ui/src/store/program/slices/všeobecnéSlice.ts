@@ -5,6 +5,7 @@ export type VšeobecnéSlice = {
     filtryOtevřené: boolean,
     zvětšeno: boolean,
     kompaktní: boolean,
+    modalOdhlásitAktivitaId?: number,
   }
 }
 
@@ -46,3 +47,11 @@ export const přepniKompaktní = () => {
   }, undefined, "přepni kompaktní");
 };
 
+/**
+ * Bez id aktivity se modal skryje
+ */
+export const nastavModalOdhlásit = (aktivitaId?: number) => {
+  useProgramStore.setState(s => {
+    s.všeobecné.modalOdhlásitAktivitaId = aktivitaId;
+  }, undefined, "nastav modal odhlásit");
+};
