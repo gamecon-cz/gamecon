@@ -1,7 +1,8 @@
 import { FunctionComponent } from "preact";
-import { MutableRef, useRef } from "preact/hooks";
+import { useRef } from "preact/hooks";
 import { useAktivita, useUživatel } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
+import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
 
 const zámeček = `🔒`;
 
@@ -16,40 +17,12 @@ type FormTlačítkoTyp =
   | "odhlasSledujiciho";
 
 
-interface PotvrzeniModalProps {
-  formRef: MutableRef<HTMLFormElement | null>;
-  potvrzovatkoRef: MutableRef<any>;
-  aktivitaId: number;
-}
-
-const PotvrzeniModal: FunctionComponent<PotvrzeniModalProps> = ({
-  formRef,
-  potvrzovatkoRef,
-    aktivitaId,
-}) => {
-  const aktivita = useAktivita(aktivitaId);
-  return (
-    <div className="potvrzeniModalObal" ref={potvrzovatkoRef} onClick={(_) => {
-      potvrzovatkoRef.current.style.display = "none";
-    }}>
-      <div className="potvrzeniModal">
-        <h3>Opravdu se chceš odhlásit z aktivity{" " + aktivita?.nazev}?</h3>
-        <a href="#" onClick={(e) => {
-          formRef.current?.submit?.();
-          e.preventDefault();
-        }
-        }>Odhlásit</a>
-      </div>
-    </div>
-  );
-};
 
 const FormTlačítko: FunctionComponent<{ id: number; typ: FormTlačítkoTyp }> = ({
   id,
   typ,
 }) => {
   const formRef = useRef<HTMLFormElement>(null);
-  const potvrzovatkoRef = useRef<HTMLDivElement>(null);
 
   const text =
     typ === "prihlasit"
@@ -63,26 +36,24 @@ const FormTlačítko: FunctionComponent<{ id: number; typ: FormTlačítkoTyp }> 
             : "";
 
   return (
-  <>
-    <PotvrzeniModal formRef={formRef} potvrzovatkoRef={potvrzovatkoRef} aktivitaId={id}/>
-    <form ref={formRef} method="post" style="display:inline">
-      <input type="hidden" name={typ} value={id}></input>
-      <a
-        href="#"
-        onClick={(e) => {
-          if (typ == "odhlasit" && potvrzovatkoRef.current != null) {
-            potvrzovatkoRef.current.style.display = "block";
-          }
-          else {
-            formRef.current?.submit?.();
-          }
-          e.preventDefault();
-        }}
-      >
-        {text}
-      </a>
-    </form>
-  </>
+    <>
+      <form ref={formRef} method="post" style="display:inline">
+        <input type="hidden" name={typ} value={id}></input>
+        <a
+          href="#"
+          onClick={(e) => {
+            if (typ == "odhlasit") {
+              nastavModalOdhlásit(id);
+            } else {
+              formRef.current?.submit?.();
+            }
+            e.preventDefault();
+          }}
+        >
+          {text}
+        </a>
+      </form>
+    </>
   );
 };
 
