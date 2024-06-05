@@ -71,7 +71,7 @@ export const aktivitaStatusZAktivity = (
   return "volno";
 };
 
-const denAktivity = (časAktivity: Date) => {
+export const denAktivity = (časAktivity: Date) => {
   return (časAktivity.getHours() +1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
     ? časAktivity
     : datumPřidejDen(časAktivity, -1);
