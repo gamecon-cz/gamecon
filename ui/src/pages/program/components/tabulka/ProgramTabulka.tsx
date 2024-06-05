@@ -1,9 +1,8 @@
 import { FunctionComponent } from "preact";
 import { useRef } from "preact/hooks";
-import { range } from "../../../../utils";
+import { DNY_NÁZVY_S_HÁČKY, range } from "../../../../utils";
 import { ProgramPosuv } from "./ProgramPosuv";
 import {
-  PROGRAM_DNY_TEXT,
   připravTabulkuAktivit,
   SeskupováníAktivit,
 } from "./seskupování";
@@ -32,7 +31,7 @@ const indexŘazení = (klíč: string) => {
   const index = GAMECON_KONSTANTY.PROGRAM_ŘAZENÍ_LINIE.findIndex(
     (x) => x === klíč
   );
-  const indexDen = PROGRAM_DNY_TEXT.findIndex((x) => x === klíč);
+  const indexDen = DNY_NÁZVY_S_HÁČKY.findIndex((x) => x === klíč);
 
   return index !== -1 ? index : indexDen !== -1 ? indexDen : 1000;
 };
@@ -101,7 +100,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
             let posledníAktivitaDo = GAMECON_KONSTANTY.PROGRAM_ZACATEK;
             return (
-              <tr>
+              <tr key={nadpisSkupiny}>
                 {klíčSkupiny}
                 {skupina
                   .filter((x) => x.řádek === řádek)
