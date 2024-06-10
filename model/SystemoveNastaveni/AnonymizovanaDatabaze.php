@@ -17,6 +17,7 @@ class AnonymizovanaDatabaze
     public static function vytvorZGlobals(): self
     {
         global $systemoveNastaveni;
+
         return new static(
             DB_NAME,
             \DB_ANONYM_NAME,
@@ -32,8 +33,7 @@ class AnonymizovanaDatabaze
         private string           $anonymniDatabaze,
         SystemoveNastaveni       $systemoveNastaveni,
         private NastrojeDatabaze $nastrojeDatabaze,
-    )
-    {
+    ) {
         $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
         if ($anonymniDatabaze === $zdrojovaDatabaze) {
             throw new \LogicException("Anonymní a současná databáze nemůžou být stejné: '$zdrojovaDatabaze'");
@@ -56,6 +56,7 @@ class AnonymizovanaDatabaze
 
     private function anonymizujData(\mysqli $dbConnectionAnonymDb)
     {
+        ini_set('max_execution_time', '300');
         $result              = mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
@@ -172,7 +173,7 @@ class AnonymizovanaDatabaze
     {
         // na toto heslo nespoléhat - raději použít konstantu UNIVERZALNI_HESLO
         $passwordHash = password_hash(self::ADMIN_PASSWORD, PASSWORD_DEFAULT);
-        $adminLogin = self::ADMIN_LOGIN;
+        $adminLogin   = self::ADMIN_LOGIN;
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
@@ -260,8 +261,7 @@ SQL,
 
     private function zkopirujData(
         \mysqli $dbConnectionAnonymDb,
-    )
-    {
+    ) {
         $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
         /*
         * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat

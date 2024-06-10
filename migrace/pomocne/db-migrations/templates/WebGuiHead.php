@@ -53,7 +53,7 @@
 
     <form method="POST">
         <input type="hidden" name="<?= $postName ?>" value="1">
-        <input type="submit" value="Confirm">
+        <input type="submit" value="Confirm" onclick="this.disabled = true; this.form.submit()">
     </form>
 
 <?php else: ?>
