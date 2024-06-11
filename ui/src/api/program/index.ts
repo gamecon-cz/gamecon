@@ -77,7 +77,10 @@ export type APIAktivitaPřihlášen = {
   mistnost?: string,
   /** orgovská vlastnost */
   vedu?: boolean,
-  zamcena?: boolean,
+  /** pokud je aktivita zamčená, tak do kdy */
+  zamcenaDo?: number,
+  /** aktivita zamčená přihlášeným užviatelem */
+  zamcenaMnou?: boolean,
   prihlasovatelna?: boolean,
 }
 
