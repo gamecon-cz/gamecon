@@ -18,6 +18,7 @@ use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Role\RolePodleRocniku;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -1934,7 +1935,7 @@ SQL,
         return $roleNoveOdebrana;
     }
 
-    private function zalogujZmenuRole(int $idRole, int $idEditora, string $zmena)
+    private function zalogujZmenuRole(int $idRole, int $idEditora, string $zmena): void
     {
         dbQuery(<<<SQL
 INSERT INTO uzivatele_role_log(id_uzivatele, id_role, id_zmenil, zmena, kdy)
@@ -1942,6 +1943,8 @@ VALUES ($0, $1, $2, $3, NOW())
 SQL,
             [$this->id(), $idRole, $idEditora, $zmena],
         );
+        (new RolePodleRocniku())
+            ->prepocitejHistoriiRoliProRocnik($this->systemoveNastaveni->rocnik(), $this->id());
     }
 
     //getters, setters
