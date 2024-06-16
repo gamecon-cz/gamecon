@@ -956,6 +956,9 @@ SQL
             : null;
 
         if ($teamova) {
+            // Vedoucí týmu může ručně nastavit kapacitu nižší, dokud je větší rovna team_min. V takovém
+            // případě se NESMÍ kapacita změnit při např. úpravě popisu aktivity z adminu. DB trigger
+            // trigger_check_and_apply_team_limit toto zajišťuje s pomocí sloupce team_limit
             $data['kapacita']   = $data['team_max'] ?? 0;
             $data['kapacita_f'] = 0;
             $data['kapacita_m'] = 0;
