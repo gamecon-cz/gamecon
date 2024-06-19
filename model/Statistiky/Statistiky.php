@@ -403,14 +403,11 @@ SQL,
     {
         $vyznamPrihlasen  = Role::VYZNAM_PRIHLASEN;
         $vyznamPritomen   = Role::VYZNAM_PRITOMEN;
-        $ucast            = Role::TYP_UCAST;
         $letosniVypravec  = Role::LETOSNI_VYPRAVEC;
         $letosniZazemi    = Role::LETOSNI_ZAZEMI;
         $roleOrganizatoru = implode(',', [Role::ORGANIZATOR, Role::PUL_ORG_BONUS_TRICKO, Role::PUL_ORG_BONUS_UBYTKO]);
-        $vypravecZaklad   = Role::ROLE_VYPRAVEC_ID_ZAKLAD;
-        $zazemiZaklad     = Role::ROLE_ZAZEMI_ID_ZAKLAD;
-        $zmenaPosazen     = \Uzivatel::POSAZEN;
-        $zmenaSesazen     = \Uzivatel::POSAZEN;
+        $vyznamZazemi     = Role::VYZNAM_ZAZEMI;
+        $vyznamVypravec   = Role::VYZNAM_VYPRAVEC;
 
         return tabMysqlR(
             dbQuery(
@@ -453,6 +450,7 @@ FROM (
             WHEN 2018 THEN 176
             WHEN 2019 THEN 185
             WHEN 2021 THEN 198
+            WHEN 2022 THEN 177
             WHEN {$this->soucasnyRocnik}
                 THEN SUM(
                     IF(
@@ -472,17 +470,15 @@ FROM (
                     dorazil
                     AND EXISTS(
                         SELECT *
-                        FROM uzivatele_role_log AS posazen
-                        LEFT JOIN uzivatele_role_log AS sesazen
-                            ON sesazen.zmena = '{$zmenaSesazen}'
-                                AND sesazen.id_uzivatele = posazen.id_uzivatele
-                                AND sesazen.id_role = posazen.id_role
-                                AND sesazen.kdy > posazen.kdy
-                                AND sesazen.kdy <= CONCAT(rocnik_role, '-07-31') -- přibližný konec GC univerzální pro každý rok
-                        WHERE posazen.zmena = '{$zmenaPosazen}'
-                            AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam do konce GC */
-                            AND posazen.id_uzivatele = ucast_podle_roku.id_uzivatele
-                            AND posazen.id_role IN ({$roleOrganizatoru}, {$letosniZazemi}, {$letosniVypravec})
+                        FROM uzivatele_role_podle_rocniku AS podpurny_tym
+                        JOIN role_seznam AS podpurny_tym_detail_role
+                            ON podpurny_tym.id_role = podpurny_tym_detail_role.id_role
+                        WHERE podpurny_tym.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            AND podpurny_tym.rocnik = ucast_podle_roku.rocnik_role
+                            AND (
+                                podpurny_tym.id_role IN ({$roleOrganizatoru})
+                                OR podpurny_tym_detail_role.vyznam_role IN ('{$vyznamZazemi}', '{$vyznamVypravec}')
+                            )
                     ),
                     1,
                     0
@@ -502,16 +498,17 @@ FROM (
             WHEN 2018 THEN 38
             WHEN 2019 THEN 38
             WHEN 2021 THEN 37
+            WHEN 2022 THEN 39
             WHEN {$this->soucasnyRocnik}
                 THEN SUM(
                     IF(
                         dorazil
                         AND EXISTS(
                             SELECT *
-                            FROM uzivatele_role
-                            WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                                AND uzivatele_role.id_role IN ({$roleOrganizatoru})
-                            ),
+                            FROM uzivatele_role AS pouze_organizatori
+                            WHERE pouze_organizatori.id_uzivatele = ucast_podle_roku.id_uzivatele
+                                AND pouze_organizatori.id_role IN ({$roleOrganizatoru})
+                        ),
                         1,
                         0
                     )
@@ -521,16 +518,10 @@ FROM (
                     dorazil
                     AND EXISTS(
                         SELECT *
-                        FROM uzivatele_role_log AS posazen
-                        LEFT JOIN uzivatele_role_log AS sesazen
-                            ON sesazen.id_role = posazen.id_role
-                                AND sesazen.id_uzivatele =posazen.id_uzivatele
-                                AND sesazen.kdy > posazen.kdy
-                                AND sesazen.zmena = '{$zmenaSesazen}'
-                        WHERE posazen.zmena = '{$zmenaPosazen}'
-                            AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */
-                            AND posazen.id_uzivatele = ucast_podle_roku.id_uzivatele
-                            AND posazen.id_role IN ({$roleOrganizatoru})
+                        FROM uzivatele_role_podle_rocniku AS pouze_organizatori
+                        WHERE pouze_organizatori.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            AND pouze_organizatori.rocnik = ucast_podle_roku.rocnik_role
+                            AND pouze_organizatori.id_role IN ('{$roleOrganizatoru}')
                     ),
                     1,
                     0
@@ -550,23 +541,18 @@ FROM (
             WHEN 2018 THEN ''
             WHEN 2019 THEN ''
             WHEN 2021 THEN 15
+            WHEN 2022 THEN 10
             ELSE SUM(
                     IF(
                         dorazil
                         AND EXISTS(
                             SELECT *
-                            FROM uzivatele_role
-                            WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                                AND uzivatele_role.id_role = ucast_podle_roku.rocnik_role * -100000 - {$zazemiZaklad}
-                        )
-                        AND NOT EXISTS(
-                            SELECT *
-                            FROM uzivatele_role
-                            WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                                AND (
-                                    uzivatele_role.id_role = ucast_podle_roku.rocnik_role * -100000 - {$vypravecZaklad}
-                                    OR  uzivatele_role.id_role IN ({$roleOrganizatoru})
-                                )
+                            FROM uzivatele_role_podle_rocniku AS zazemi
+                            JOIN role_seznam AS zazemi_detail_role
+                                ON zazemi.id_role = zazemi_detail_role.id_role
+                            WHERE zazemi.id_uzivatele = ucast_podle_roku.id_uzivatele
+                                AND zazemi.rocnik = ucast_podle_roku.rocnik_role
+                                AND zazemi_detail_role.vyznam_role = '{$vyznamZazemi}'
                         ),
                         1,
                         0
@@ -574,76 +560,6 @@ FROM (
                 )
             END
             AS zázemí,
-        CASE
-            WHEN rocnik_role <= 2021 THEN ''
-            ELSE SUM(
-                    IF(
-                        EXISTS(
-                            SELECT * FROM uzivatele_role
-                            JOIN role_seznam
-                                ON uzivatele_role.id_role = role_seznam.id_role
-                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                            WHERE role_seznam.rocnik_role = ucast_podle_roku.rocnik_role
-                                AND role_seznam.vyznam_role = '{$vyznamPrihlasen}'
-                        )
-                        AND NOT EXISTS(
-                            SELECT * FROM uzivatele_role
-                            JOIN role_seznam
-                                ON uzivatele_role.id_role = role_seznam.id_role
-                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                            -- nemá žádné přihlášení ze strarších ročníků
-                            WHERE role_seznam.rocnik_role < ucast_podle_roku.rocnik_role
-                            AND role_seznam.vyznam_role = '{$vyznamPrihlasen}'
-                        )
-                        AND NOT EXISTS(
-                            SELECT * FROM uzivatele_role
-                            JOIN role_seznam
-                                ON uzivatele_role.id_role = role_seznam.id_role
-                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                            -- nemá žádné přihlášení z novějších ročníků
-                            WHERE role_seznam.rocnik_role > ucast_podle_roku.rocnik_role
-                            AND role_seznam.vyznam_role = '{$vyznamPrihlasen}'
-                        ),
-                        1,
-                        0
-                    )
-                ) END
-        AS `registrovaných nováčků`,
-        CASE
-            WHEN rocnik_role <= 2021 THEN ''
-            ELSE SUM(
-                    IF(
-                        EXISTS(
-                            SELECT * FROM uzivatele_role
-                            JOIN role_seznam
-                                ON uzivatele_role.id_role = role_seznam.id_role
-                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                            WHERE role_seznam.rocnik_role = ucast_podle_roku.rocnik_role
-                                AND role_seznam.vyznam_role = '{$vyznamPritomen}'
-                        )
-                        AND NOT EXISTS(
-                            SELECT * FROM uzivatele_role
-                            JOIN role_seznam
-                                ON uzivatele_role.id_role = role_seznam.id_role
-                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                            -- nemá žádné přihlášení ze strarších ročníků
-                            WHERE role_seznam.rocnik_role < ucast_podle_roku.rocnik_role
-                            AND role_seznam.vyznam_role = '{$vyznamPritomen}'
-                        )
-                        AND NOT EXISTS(
-                            SELECT * FROM uzivatele_role
-                            JOIN role_seznam
-                                ON uzivatele_role.id_role = role_seznam.id_role
-                                 AND uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                            -- nemá žádné přihlášení z novějších ročníků
-                            WHERE role_seznam.rocnik_role > ucast_podle_roku.rocnik_role
-                            AND role_seznam.vyznam_role = '{$vyznamPrihlasen}'
-                        ),
-                        1,
-                        0
-                    )
-                ) END
-        AS `přihlášených nováčků`,
         CASE rocnik_role
             WHEN 2009 THEN 30
             WHEN 2010 THEN 30
@@ -663,15 +579,94 @@ FROM (
                         dorazil
                         AND EXISTS(
                             SELECT *
-                            FROM uzivatele_role
-                            WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
-                                AND uzivatele_role.id_role = ucast_podle_roku.rocnik_role * -100000 - {$vypravecZaklad}
+                            FROM uzivatele_role_podle_rocniku AS vypravec
+                            JOIN role_seznam AS vypravec_detail_role
+                                ON vypravec.id_role = vypravec_detail_role.id_role
+                            WHERE vypravec.id_uzivatele = ucast_podle_roku.id_uzivatele
+                                AND vypravec.rocnik = ucast_podle_roku.rocnik_role
+                                AND vypravec_detail_role.vyznam_role = '{$vyznamVypravec}'
                         ),
                         1,
                         0
                     )
             ) END
-        AS vypravěči
+        AS vypravěči,
+        CASE
+            WHEN rocnik_role <= 2021 THEN ''
+            ELSE SUM(
+                    IF(
+                        EXISTS(
+                            SELECT *
+                            FROM uzivatele_role AS prihlaseni_na_rocnik
+                            JOIN role_seznam AS prihlaseni_na_rocnik_role
+                                ON prihlaseni_na_rocnik.id_role = prihlaseni_na_rocnik_role.id_role
+                                    AND prihlaseni_na_rocnik.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            WHERE prihlaseni_na_rocnik_role.rocnik_role = ucast_podle_roku.rocnik_role
+                                AND prihlaseni_na_rocnik_role.vyznam_role = '{$vyznamPrihlasen}'
+                        )
+                        AND NOT EXISTS(
+                            SELECT *
+                            FROM uzivatele_role AS prihlaseni_na_starsi_rocnik
+                            JOIN role_seznam AS prihlaseni_na_starsi_rocnik_role
+                                ON prihlaseni_na_starsi_rocnik.id_role = prihlaseni_na_starsi_rocnik_role.id_role
+                                    AND prihlaseni_na_starsi_rocnik.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            -- nemá žádné přihlášení ze strarších ročníků
+                            WHERE prihlaseni_na_starsi_rocnik_role.rocnik_role < ucast_podle_roku.rocnik_role
+                                AND prihlaseni_na_starsi_rocnik_role.vyznam_role = '{$vyznamPrihlasen}'
+                        )
+                        AND NOT EXISTS(
+                            SELECT *
+                            FROM uzivatele_role AS prihlaseni_na_novejsi_rocnik
+                            JOIN role_seznam AS prihlaseni_na_novejsi_rocnik_role
+                                ON prihlaseni_na_novejsi_rocnik.id_role = prihlaseni_na_novejsi_rocnik_role.id_role
+                                    AND prihlaseni_na_novejsi_rocnik.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            -- nemá žádné přihlášení z novějších ročníků
+                            WHERE prihlaseni_na_novejsi_rocnik_role.rocnik_role > ucast_podle_roku.rocnik_role
+                                AND prihlaseni_na_novejsi_rocnik_role.vyznam_role = '{$vyznamPrihlasen}'
+                        ),
+                        1,
+                        0
+                    )
+                ) END
+        AS `registrovaných nováčků`,
+        CASE
+            WHEN rocnik_role <= 2021 THEN ''
+            ELSE SUM(
+                    IF(
+                        EXISTS(
+                            SELECT *
+                            FROM uzivatele_role AS pritomen_na_rocniku
+                            JOIN role_seznam AS pritomen_na_rocniku_role
+                                ON pritomen_na_rocniku.id_role = pritomen_na_rocniku_role.id_role
+                                    AND pritomen_na_rocniku.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            WHERE pritomen_na_rocniku_role.rocnik_role = ucast_podle_roku.rocnik_role
+                                AND pritomen_na_rocniku_role.vyznam_role = '{$vyznamPritomen}'
+                        )
+                        AND NOT EXISTS(
+                            SELECT *
+                            FROM uzivatele_role AS pritomen_na_starsim_rocniku
+                            JOIN role_seznam AS pritomen_na_starsim_rocniku_role
+                                ON pritomen_na_starsim_rocniku.id_role = pritomen_na_starsim_rocniku_role.id_role
+                                    AND pritomen_na_starsim_rocniku.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            -- nemá žádné přihlášení ze strarších ročníků
+                            WHERE pritomen_na_starsim_rocniku_role.rocnik_role < ucast_podle_roku.rocnik_role
+                                AND pritomen_na_starsim_rocniku_role.vyznam_role = '{$vyznamPritomen}'
+                        )
+                        AND NOT EXISTS(
+                            SELECT *
+                            FROM uzivatele_role AS pritomen_na_novejsim_rocniku
+                            JOIN role_seznam AS pritomen_na_novejsim_rocniku_role
+                                ON pritomen_na_novejsim_rocniku.id_role = pritomen_na_novejsim_rocniku_role.id_role
+                                    AND pritomen_na_novejsim_rocniku.id_uzivatele = ucast_podle_roku.id_uzivatele
+                            -- nemá žádné přihlášení z novějších ročníků
+                            WHERE pritomen_na_novejsim_rocniku_role.rocnik_role > ucast_podle_roku.rocnik_role
+                                AND pritomen_na_novejsim_rocniku_role.vyznam_role = '{$vyznamPrihlasen}'
+                        ),
+                        1,
+                        0
+                    )
+                ) END
+        AS `přihlášených nováčků`
     FROM (
         SELECT
             role_seznam.rocnik_role,
@@ -682,11 +677,7 @@ FROM (
             FROM uzivatele_role
             JOIN role_seznam
                 ON uzivatele_role.id_role = role_seznam.id_role
-            WHERE role_seznam.typ_role = '$ucast'
-            AND (
-                role_seznam.vyznam_role = '$vyznamPrihlasen' 
-                OR role_seznam.vyznam_role = '$vyznamPritomen'
-            )
+            WHERE role_seznam.vyznam_role IN ('$vyznamPrihlasen', '$vyznamPritomen')
     ) AS ucast_podle_roku
     GROUP BY rocnik_role
 ) AS pocty
