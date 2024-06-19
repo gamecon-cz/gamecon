@@ -48,19 +48,19 @@ class Role extends \DbObject
     public const LETOSNI_BRIGADNIK                  = ROLE_BRIGADNIK;
     public const ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC = ROLE_ZKONTROLOVANE_UDAJE;
 
-    protected const ROLE_VYPRAVEC_ID_ZAKLAD             = 6;
-    protected const ROLE_ZAZEMI_ID_ZAKLAD               = 7;
-    protected const ROLE_INFOPULT_ID_ZAKLAD             = 8;
-    protected const ROLE_PARTNER_ID_ZAKLAD              = 13;
-    protected const ROLE_DOBROVOLNIK_SENIOR_ID_ZAKLAD   = 17;
-    protected const ROLE_STREDECNI_NOC_ZDARMA_ID_ZAKLAD = 18;
-    protected const ROLE_NEDELNI_NOC_ZDARMA_ID_ZAKLAD   = 19;
-    protected const ROLE_NEODHLASOVAT_ID_ZAKLAD         = 23;
-    protected const ROLE_HERMAN_ID_ZAKLAD               = 24;
-    protected const ROLE_BRIGADNIK_ID_ZAKLAD            = 25;
-    protected const ROLE_CTVRTECNI_NOC_ZDARMA_ID_ZAKLAD = 26;
-    protected const ROLE_PATECNI_NOC_ZDARMA_ID_ZAKLAD   = 27;
-    protected const ROLE_SOBOTNI_NOC_ZDARMA_ID_ZAKLAD   = 28;
+    public const ROLE_VYPRAVEC_ID_ZAKLAD             = 6;
+    public const ROLE_ZAZEMI_ID_ZAKLAD               = 7;
+    public const ROLE_INFOPULT_ID_ZAKLAD             = 8;
+    public const ROLE_PARTNER_ID_ZAKLAD              = 13;
+    public const ROLE_DOBROVOLNIK_SENIOR_ID_ZAKLAD   = 17;
+    public const ROLE_STREDECNI_NOC_ZDARMA_ID_ZAKLAD = 18;
+    public const ROLE_NEDELNI_NOC_ZDARMA_ID_ZAKLAD   = 19;
+    public const ROLE_NEODHLASOVAT_ID_ZAKLAD         = 23;
+    public const ROLE_HERMAN_ID_ZAKLAD               = 24;
+    public const ROLE_BRIGADNIK_ID_ZAKLAD            = 25;
+    public const ROLE_CTVRTECNI_NOC_ZDARMA_ID_ZAKLAD = 26;
+    public const ROLE_PATECNI_NOC_ZDARMA_ID_ZAKLAD   = 27;
+    public const ROLE_SOBOTNI_NOC_ZDARMA_ID_ZAKLAD   = 28;
 
     // ROLE ÚČASTI
     public const PRIHLASEN_NA_LETOSNI_GC = ROLE_PRIHLASEN;
@@ -210,17 +210,27 @@ class Role extends \DbObject
 
     public static function prihlasenNaRocnik(int $rok): int
     {
-        return self::preProUcastRoku($rok) - self::ROLE_PRIHLASEN_ID_ZAKLAD;
+        return self::vytvorIdRoleUcasti($rok, self::ROLE_PRIHLASEN_ID_ZAKLAD);
+    }
+
+    /**
+     * Například z roku 2024 a základu role 1 (přihlášen) vytvoří -2401
+     *
+     * SQL zápis pro "letošek" a základ role přihlášen: -(SUBSTR(YEAR(NOW()), -2) * 100 + 1);
+     */
+    private static function vytvorIdRoleUcasti(int $rok, int $zakladIdRole): int
+    {
+        return -(self::preProUcastRoku($rok) + $zakladIdRole);
     }
 
     public static function pritomenNaRocniku(int $rok): int
     {
-        return self::preProUcastRoku($rok) - self::ROLE_PRITOMEN_ID_ZAKLAD;
+        return self::vytvorIdRoleUcasti($rok, self::ROLE_PRITOMEN_ID_ZAKLAD);
     }
 
     public static function odjelZRocniku(int $rok): int
     {
-        return self::preProUcastRoku($rok) - self::ROLE_ODJEL_ID_ZAKLAD;
+        return self::vytvorIdRoleUcasti($rok, self::ROLE_ODJEL_ID_ZAKLAD);
     }
 
     public static function zkontrolovaneUdaje(int $rok): int
@@ -228,9 +238,14 @@ class Role extends \DbObject
         return self::idRocnikoveRole(self::ROLE_ZKONTROLOVANE_UDAJE_ID_ZAKLAD, $rok);
     }
 
+    /**
+     * Například z roku 2024 vytvoří 2400.
+     *
+     * SQL zápis pro "letošek" SUBSTR(YEAR(NOW()), -2) * 100;
+     */
     private static function preProUcastRoku(int $rok): int
     {
-        return -($rok - 2000) * 100; // předpona pro role a práva vázaná na daný rok
+        return ($rok - 2000) * 100; // předpona pro role a práva vázaná na daný rok
     }
 
     public static function LETOSNI_VYPRAVEC(int $rok = ROCNIK): int
@@ -298,6 +313,10 @@ class Role extends \DbObject
         return self::idRocnikoveRole(self::ROLE_BRIGADNIK_ID_ZAKLAD, $rok);
     }
 
+    /**
+     * SQL pro brigádníka
+     * YEAR(NOW()) * -100000 - 25
+     */
     public static function idRocnikoveRole(int $zakladIdRole, int $rok)
     {
         // 6, 2023 = -2 023 006
@@ -306,7 +325,7 @@ class Role extends \DbObject
 
     private static function preProRocnikovouRoli(int $rok): int
     {
-        return $rok * self::KOEFICIENT_ROCNIKOVE_ROLE; // 2023 = 202 300 000
+        return $rok * self::KOEFICIENT_ROCNIKOVE_ROLE; // 2023 => 202300000
     }
 
     /**
@@ -319,6 +338,7 @@ class Role extends \DbObject
             return (int)$idRole;
         }, $idsRoli);
         $maRole     = array_intersect($idsRoliInt, self::dejIdckaRoliSOrganizatory());
+
         return count($maRole) > 0;
     }
 
@@ -372,6 +392,7 @@ class Role extends \DbObject
     {
         $rok     = self::rokDleRoleUcasti($idRole);
         $udalost = self::udalostDleRole($idRole);
+
         return "GC{$rok} {$udalost}";
     }
 
@@ -433,6 +454,7 @@ class Role extends \DbObject
         if (!self::jeToUcastNaGc($idRole) && !self::jeToRocnikovaRole($idRole)) {
             return false;
         }
+
         return self::rokDleRoleUcasti($idRole) === $rocnik;
     }
 
@@ -470,6 +492,7 @@ class Role extends \DbObject
         foreach ($idckaRocnikovychRoli as $id) {
             $vsechnyRocnikoveRole[$id] = self::nazevRolePodleId($id);
         }
+
         return $vsechnyRocnikoveRole;
     }
 
@@ -497,6 +520,7 @@ class Role extends \DbObject
     public function kategorieRole(): ?int
     {
         $kategorie = $this->r[RoleSqlStruktura::KATEGORIE_ROLE] ?? null;
+
         return $kategorie === null
             ? null
             : (int)$kategorie;
