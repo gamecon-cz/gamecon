@@ -3,8 +3,12 @@
 /** @var \Godric\DbMigrations\Migration $this */
 
 $this->q(<<<SQL
-CREATE FUNCTION `konec_gc`(datum DATE) RETURNS DATE DETERMINISTIC
+DROP FUNCTION IF EXISTS konec_gc;
+
+CREATE FUNCTION `konec_gc`(datum TEXT) RETURNS DATE DETERMINISTIC
 BEGIN
+    SET datum = IF(LENGTH(datum) = 4, CONCAT(datum, '-01-01'), datum);
+    
 -- První den v červenci
     SET @first_day_of_july = DATE(CONCAT(YEAR(datum), '-07-01'));
 
