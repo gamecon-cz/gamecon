@@ -238,23 +238,29 @@ class Registrace
         <div class="formular_sloupce">
             <?= $this->input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE) ?>
           <div style="float:left">
-              <?= $this->select('Pohlaví', Sql::POHLAVI, Pohlavi::seznamProSelect()) ?>
-          </div>
-          <div class="formular_tooltip">
-            <div class="gc_tooltip">
-              Proč potřebujeme znát pohlaví?
-              <div class="tooltip_obsah">
-                Informace slouží pouze interně pro<br>
-                <ul>
-                  <li>přidělování ubytování bez preference spolubydlících,</li>
-                  <li>zpřístupnění genderově omezených míst pro aktivity.</li>
-                </ul>
-                <div>
-                  Informaci vyplň co nejvíce autentickým/komfortním způsobem nejen pro sebe, ale také pro případné
-                  spolubydlící a spoluhráče.
-                </div>
-              </div>
-            </div>
+              <?= $this->select(
+                  nazev: 'Pohlaví',
+                  klic: Sql::POHLAVI,
+                  moznosti: Pohlavi::seznamProSelect(),
+                  tooltip: <<<HTML
+<div class="formular_tooltip" style="float: right; padding: 0">
+  <div class="gc_tooltip">
+    Proč potřebujeme znát pohlaví?
+    <div class="tooltip_obsah">
+      Informace slouží pouze interně pro<br>
+      <ul>
+        <li>přidělování ubytování bez preference spolubydlících,</li>
+        <li>zpřístupnění genderově omezených míst pro aktivity.</li>
+      </ul>
+      <div>
+        Informaci vyplň co nejvíce autentickým/komfortním způsobem nejen pro sebe, ale také pro případné
+        spolubydlící a spoluhráče.
+      </div>
+    </div>
+  </div>
+</div>
+HTML
+              ) ?>
           </div>
         </div>
 
@@ -285,7 +291,7 @@ class Registrace
           </div>
         </div>
 
-          <div class="clearfix"></div>
+        <div class="clearfix"></div>
 
           <?php
           if ($this->u) { ?>
@@ -357,8 +363,13 @@ class Registrace
         return $this->u || post('registrovat');
     }
 
-    private function select(string $nazev, string $klic, array $moznosti, bool $required = true): string
-    {
+    private function select(
+        string $nazev,
+        string $klic,
+        array  $moznosti,
+        bool   $required = true,
+        string $tooltip = '',
+    ): string {
         $vybranaHodnota = $this->formData()[$klic] ?? '';
 
         $moznostiHtml = '<option disabled value selected></option>';
@@ -385,7 +396,7 @@ class Registrace
 
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
-                {$nazev}{$labelRequired}
+                {$nazev}{$labelRequired}{$tooltip}
                 <select name="{$this->inputName()}[{$klic}]" {$requiredHtml}>
                 {$moznostiHtml}
                 </select>
