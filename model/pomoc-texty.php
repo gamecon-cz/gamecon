@@ -9,12 +9,12 @@ return [
     [
         'vypravec',
         'vypravěči',
-        'Vypravěč je jednotný pojem, který GameCon používá pro všechny, kteří vedou některou z aktivit – ať už se jedná o deskovku, RPG, larp či jinou hru. Máš nápad na nějakou aktivitu, kterou chceš uvést?',
+        'Vypravěč je jednotný pojem, který GameCon používá pro všechny, kteří vedou některou z aktivit – ať už se jedná o deskovku, RPG, larp či jinou hru. Napadá tě nějaká aktivita, kterou chceš uvést?',
     ],
     [
         'organizator',
         'organizatoři',
-        'Máš organizační talent, nebo tě napadá konkrétní věc, se kterou nám v organizaci můžeš pomoct? Spíš než profesionály hledáme samostatné, aktivní jedince, kteří se rádi budou podílet na chodu středně velké organizace.',
+        'Máš organizační talent, nebo tě napadá konkrétní věc, se kterou nám můžeš pomoct? Spíš než profesionály hledáme samostatné aktivní jedince, kteří se budou rádi podílet na chodu středně velké organizace.',
     ],
     [
         'partner',
