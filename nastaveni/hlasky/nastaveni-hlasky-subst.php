@@ -25,7 +25,9 @@ Pokud člověka, který tě přihlásil, neznáš, kontaktuj nás prosím na <a 
     'rychloregMail'                         =>
         'Ahoj,
 
-děkujeme, že se letos účastníš GameConu. Kliknutím na odkaz níže potvrdíš registraci na web a můžeš si nastavit přezdívku a heslo, pokud chceš používat web a třeba přijet i příští rok. (V případě pozdější registrace na web by bylo nutné nechat si vygenerovat heslo znova)
+děkujeme, že se letos účastníš GameConu! Kliknutím na odkaz níže potvrdíš registraci na web, kde si nastavíš přezdívku a heslo tak, ať můžeš používat web a přijet třeba i příští rok. V případě pozdější registrace na web by bylo nutné nechat si vygenerovat heslo znovu.
+
+
 
 <a href="https://gamecon.cz/potvrzeni-registrace/%2">https://gamecon.cz/potvrzeni-registrace/%2</a>',
     Hlaska::NEDOSTAVENI_SE_NA_AKTIVITU_MAIL =>
