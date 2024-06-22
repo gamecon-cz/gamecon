@@ -956,9 +956,13 @@ SQL
             : null;
 
         if ($teamova) {
-            // Vedoucí týmu může ručně nastavit kapacitu nižší, dokud je větší rovna team_min. V takovém
-            // případě se NESMÍ kapacita změnit při např. úpravě popisu aktivity z adminu. DB trigger
-            // trigger_check_and_apply_team_limit toto zajišťuje s pomocí sloupce team_limit
+            /**
+             * Vedoucí týmu může ručně nastavit kapacitu nižší, dokud je větší rovna team_min,
+             * @see \Tym::vypisZpracuj
+             * V takovém případě se NESMÍ kapacita změnit při např. úpravě popisu aktivity z adminu.
+             * Kapacitu finálně nastaví SQL trigger trigger_nastav_kapacitu_podle_team_limit s pomocí sloupce team_limit
+             * @see file://migrace/2024-06-16-opravit-tymove-limity-kapacity.php
+             */
             $data['kapacita']   = $data['team_max'] ?? 0;
             $data['kapacita_f'] = 0;
             $data['kapacita_m'] = 0;

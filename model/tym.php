@@ -91,7 +91,7 @@ class Tym
         return $t->text('vypis');
     }
 
-    static function vypisZpracuj(Uzivatel $u = null, $post = self::POST)
+    public static function vypisZpracuj(Uzivatel $u = null, $post = self::POST)
     {
         if (!$u) {
             return;
