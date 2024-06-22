@@ -33,9 +33,10 @@ if (!empty($_POST['prodej-mrizka'])) {
     foreach ($prodeje as $prodej) {
         $prodejIdPredmetu = (int)$prodej['id_predmetu'];
         $kusu             = (int)($prodej['kusu'] ?? 1);
-        $shop->prodat($prodejIdPredmetu, $kusu, true);
-        back();
+        $shop->prodat($prodejIdPredmetu, $kusu, false);
     }
+    $pocetTypuPredmetu = count($prodej);
+    oznameni("Předměty prodány.");
 }
 
 ?>
