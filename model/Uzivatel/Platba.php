@@ -8,6 +8,9 @@ use DbObject;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura as Sql;
 
+/**
+ * @method static Platba zId(int $id)
+ */
 class Platba extends DbObject
 {
     protected static $tabulka = Sql::PLATBY_TABULKA;
@@ -16,6 +19,7 @@ class Platba extends DbObject
     public function id(): ?int
     {
         $id = parent::id();
+
         return $id
             ? (int)$id
             : null;
@@ -24,6 +28,7 @@ class Platba extends DbObject
     public function idUzivatele(): ?int
     {
         $idUzivatele = $this->r[Sql::ID_UZIVATELE] ?? null;
+
         return $idUzivatele
             ? (int)$idUzivatele
             : null;
@@ -37,6 +42,7 @@ class Platba extends DbObject
     public function castka(): ?float
     {
         $castka = $this->r[Sql::CASTKA] ?? null;
+
         return $castka !== null
             ? (float)$castka
             : null;
@@ -45,6 +51,7 @@ class Platba extends DbObject
     public function rok(): ?int
     {
         $rok = $this->r[Sql::ROK] ?? null;
+
         return $rok !== null
             ? (int)$rok
             : null;
@@ -53,6 +60,7 @@ class Platba extends DbObject
     public function pripsanoNaUcetBanky(): ?string
     {
         $pripsanoNaUcetBanky = $this->r[Sql::PRIPSANO_NA_UCET_BANKY] ?? null;
+
         return $pripsanoNaUcetBanky !== null
             ? (string)$pripsanoNaUcetBanky
             : null;
@@ -66,6 +74,7 @@ class Platba extends DbObject
     public function provedenoObject(): ?DateTimeImmutableStrict
     {
         $provedeno = $this->provedeno();
+
         return $provedeno !== null
             ? new DateTimeImmutableStrict($provedeno)
             : null;
@@ -74,6 +83,7 @@ class Platba extends DbObject
     public function provedl(): ?int
     {
         $povedl = $this->r[Sql::PROVEDL] ?? null;
+
         return $povedl !== null
             ? (int)$povedl
             : null;
@@ -84,4 +94,13 @@ class Platba extends DbObject
         return $this->r[Sql::POZNAMKA] ?? null;
     }
 
+    public function skrytaPoznamka(): ?string
+    {
+        return $this->r[Sql::SKRYTA_POZNAMKA] ?? null;
+    }
+
+    public function priradUzivateli(\Uzivatel $uzivatel)
+    {
+        $this->r[Sql::ID_UZIVATELE] = $uzivatel->id();
+    }
 }
