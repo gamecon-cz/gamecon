@@ -17,5 +17,6 @@ class PlatbySqlStruktura
     public const PROVEDENO              = 'provedeno';
     public const PROVEDL                = 'provedl';
     public const POZNAMKA               = 'poznamka';
+    public const SKRYTA_POZNAMKA        = 'skryta_poznamka';
 
 }
