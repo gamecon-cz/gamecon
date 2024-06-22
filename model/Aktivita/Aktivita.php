@@ -956,20 +956,10 @@ SQL
             : null;
 
         if ($teamova) {
-            ///// Kapacita může být u teamových aktivit upravena vedoucím týmu na libovolnou hodnotu v rozmezí
-            ///// team_min, team_max. Tato úprava se propíše přímo do kapacity, a při uložení aktivity v adminovi
-            ///// se tedy NESMÍ přepsat kapacita pokud ji už takto tým upravil.
-            if (!empty($data[Sql::ID_AKCE])) {
-                $aktivita = self::zId($data[Sql::ID_AKCE]);
-                if ($aktivita->tymova() && $aktivita->tymMaxKapacita() === (int)$data['team_max']) {
-                    $data['kapacita'] = $aktivita->getKapacitaUnisex();
-                } else {
-                    $data['kapacita'] = $data['team_max'] ?? 0;
-                }
-            } else {
-                $data['kapacita'] = $data['team_max'] ?? 0;
-            }
-            ////
+            // Vedoucí týmu může ručně nastavit kapacitu nižší, dokud je větší rovna team_min. V takovém
+            // případě se NESMÍ kapacita změnit při např. úpravě popisu aktivity z adminu. DB trigger
+            // trigger_check_and_apply_team_limit toto zajišťuje s pomocí sloupce team_limit
+            $data['kapacita']   = $data['team_max'] ?? 0;
             $data['kapacita_f'] = 0;
             $data['kapacita_m'] = 0;
         } else {
