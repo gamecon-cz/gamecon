@@ -165,13 +165,13 @@ class Chyba extends Exception
     // warning! this is both for web (without jQuery) as well a for admin (without LESS)
     (() => {
       let chyba = document.currentScript.parentNode
-/*      setTimeout(() => {
+      setTimeout(() => {
             chyba.style.transition = "opacity "+{$mizeniSekund}+"s"
             chyba.style.opacity = 0.0
             setTimeout(() => chyba.remove(), ({$mizeniSekund} * 1000))
         },
         ({$zobrazeniSekund} * 1000)
-      )*/
+      )
       chyba.querySelector(".chybaBlok_zavrit").onclick = () => chyba.remove()
     })()
   </script>

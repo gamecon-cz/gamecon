@@ -57,4 +57,4 @@ jobs:
           mysql-version: 'mariadb-10.6'  # mělo by odpovídat verzi na serveru
 
       - name: Run tests
-        run: ./vendor/bin/phpunit --testdox
+        run: ./vendor/bin/phpunit
