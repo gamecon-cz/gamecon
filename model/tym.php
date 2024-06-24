@@ -91,7 +91,7 @@ class Tym
         return $t->text('vypis');
     }
 
-    static function vypisZpracuj(Uzivatel $u = null, $post = self::POST)
+    public static function vypisZpracuj(Uzivatel $u = null, $post = self::POST)
     {
         if (!$u) {
             return;
@@ -105,13 +105,13 @@ class Tym
                 if ($tym->kapacita() <= $tym->minKapacita()) {
                     throw new Exception('Kapacita týmu nelze snížit, už je minimální');
                 }
-                dbQuery('UPDATE akce_seznam SET kapacita = kapacita - 1 WHERE id_akce = $1', [post($post, 'id')]);
+                dbQuery('UPDATE akce_seznam SET team_limit = $2 - 1 WHERE id_akce = $1', [post($post, 'id'), $tym->kapacita()]);
             }
             if (post($post, 'pridat')) {
                 if ($tym->kapacita() >= $tym->maxKapacita()) {
                     throw new Exception('Kapacita týmu nelze zvýšit, už je maximální');
                 }
-                dbQuery('UPDATE akce_seznam SET kapacita = kapacita + 1 WHERE id_akce = $1', [post($post, 'id')]);
+                dbQuery('UPDATE akce_seznam SET team_limit = $2 + 1 WHERE id_akce = $1', [post($post, 'id'), $tym->kapacita()]);
             }
             back();
         }
