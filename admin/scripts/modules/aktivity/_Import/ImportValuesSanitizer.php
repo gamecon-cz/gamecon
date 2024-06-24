@@ -5,8 +5,10 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Aktivita\StavAktivity;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 class ImportValuesSanitizer
 {
@@ -912,7 +914,20 @@ HTML;
                 )]
             );
         }
-        return $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::ZACATEK], 'začátek');
+        $startDateTime = $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::ZACATEK], 'začátek');
+        if ($startDateTime->isSuccess()) {
+            $startHour = (int)(DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $startDateTime->getSuccess())->format('G'));
+            if (($startHour < PROGRAM_ZACATEK) && $startHour >= PROGRAM_KONEC) {
+                return ImportStepResult::successWithErrorLikeWarnings(
+                    null,
+                    [sprintf(
+                        'Aktivita má uvedený začátek (%s), který je mimo rozsah denního začátku a konce GameConu.',
+                        $activityValues[ExportAktivitSloupce::ZACATEK]
+                    )]
+                );
+            }
+        }
+        return $startDateTime;
     }
 
     private function getValidatedEnd(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
@@ -937,7 +952,21 @@ HTML;
                 )]
             );
         }
-        return $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::KONEC], 'konec');
+
+        $endDateTime = $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::KONEC], 'konec');
+        if ($endDateTime->isSuccess()) {
+            $endHour = (int)(DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $endDateTime->getSuccess())->format('G'));
+            if (($endHour < PROGRAM_ZACATEK) && $endHour >= PROGRAM_KONEC) {
+                return ImportStepResult::successWithErrorLikeWarnings(
+                    null,
+                    [sprintf(
+                        'Aktivita má uvedený konec (%s), který je mimo rozsah denního začátku a konce GameConu.',
+                        $activityValues[ExportAktivitSloupce::ZACATEK]
+                    )]
+                );
+            }
+        }
+        return $endDateTime;
     }
 
     private function createDateTimeFromRangeBorder(string $dayName, string $hoursAndMinutes, string $timeName): ImportStepResult {
