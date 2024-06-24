@@ -262,9 +262,16 @@ $t->assign([
     'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejpozdejiZaplatitDo()->format(DateTimeCz::FORMAT_DATUM_LETOS),
 ]);
 
-$t->parse($u->gcPrihlasen()
-    ? 'prihlaska.prihlasen'
-    : 'prihlaska.neprihlasen');
-if ($u->gcPrihlasen() && pred($systemoveNastaveni->gcBeziOd())) {
-    $t->parse('prihlaska.odhlasit');
+if ($u->gcPrihlasen()) {
+    if ($u->vekKDatu($systemoveNastaveni->gcBeziOd()) < 15 &&
+        (!$u->potvrzeniZakonnehoZastupceOd() ||
+            $u->potvrzeniZakonnehoZastupceOd()->format('y') !== date('y'))) {
+        $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce');
+    }
+    $t->parse('prihlaska.prihlasen');
+    if (pred($systemoveNastaveni->gcBeziOd())) {
+        $t->parse('prihlaska.odhlasit');
+    }
+} else {
+    $t->parse('prihlaska.neprihlasen');
 }
