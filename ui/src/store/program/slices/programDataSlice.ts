@@ -37,20 +37,31 @@ export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () 
 
 /** Pokud ještě není dotažený tak dotáhne rok, příhlášen se dotahuje vždy */
 export const načtiRok = async (rok: number) => {
-  const [aktivityPřihlášen, aktivity] =
-    await Promise.all([
-      fetchAktivityPřihlášen(rok),
-      fetchAktivity(rok)
-    ]);
+  useProgramStore.setState(s => { s.všeobecné.načítání = true });
+  try {
+    const [aktivityPřihlášen, aktivity] =
+      await Promise.all([
+        fetchAktivityPřihlášen(rok),
+        fetchAktivity(rok)
+      ]);
 
-  useProgramStore.setState(s => {
-    for (const aktivita of aktivity) {
-      s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita, [DOTAŽENO]: Date.now() };
-    }
-    for (const aktivita of aktivityPřihlášen) {
-      s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita };
-    }
-  }, undefined, "dotažení aktivit");
+    useProgramStore.setState(s => {
+      for (const aktivita of aktivity) {
+        s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita, [DOTAŽENO]: Date.now() };
+      }
+      for (const aktivita of aktivityPřihlášen) {
+        s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita };
+        const aktivitaObj = s.data.aktivityPodleId[aktivita.id];
+        // TODO: tohle není ideální řešení, hodně dalších vlastností potřebuje stejný přístup
+        if (!aktivita.stavPrihlaseni) {
+          delete aktivitaObj.stavPrihlaseni;
+        }
+      }
+      s.všeobecné.načítání = false;
+    }, undefined, "dotažení aktivit");
+  } catch(e) {
+    useProgramStore.setState(s => { s.všeobecné.načítání = false; });
+  }
 };
 
 export const načtiŠtítky = async () => {
