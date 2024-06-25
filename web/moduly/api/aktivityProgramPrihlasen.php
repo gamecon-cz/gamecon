@@ -6,6 +6,9 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Api\Pomocne\ApiFunkce;
+
+use function Gamecon\Api\vytvorApiJson;
 
 $u = Uzivatel::zSession();
 
@@ -37,7 +40,6 @@ fetch("/web/api/aktivityProgram", {method:"POST"}).then(x=>x.text()).then(x=>con
 // TODO: tohle nastavení by mělo platit pro všechny php soubory ve složce api
 $this->bezStranky(true);
 header('Content-type: application/json');
-$config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
 // if ($_SERVER["REQUEST_METHOD"] != "POST") {
 //   return;
@@ -100,4 +102,6 @@ foreach ($aktivity as &$a) {
 }
 
 
-echo json_encode($res, $config);
+$json = ApiFunkce::vytvorApiJson($res);
+echo $json;
+
