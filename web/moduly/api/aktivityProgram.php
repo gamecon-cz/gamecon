@@ -103,6 +103,20 @@ foreach ($aktivity as $aktivita) {
     $response[] = $aktivitaRes;
 }
 
-$jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+
+
+$config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+$data = json_encode($res, $config);
+
+$etag = md5($data);
+
+$ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : '';
+
+if ($ifNoneMatch === $etag) {
+    header("HTTP/1.1 304 Not Modified");
+    exit();
+}
+
 header('Content-type: application/json');
-echo json_encode($response, $jsonConfig);
+header("Etag: $etag");
+echo $data;
