@@ -19,6 +19,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Urls;
 use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
+use PHPUnit\Exception;
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
 
@@ -1935,12 +1936,16 @@ SQL
             }
         }
 
-        // přihlášení na navázané aktivity (jen pokud není teamleader)
-        if ($this->a['dite'] && $this->pocetPrihlasenych() > 0) {
+        // přihlášení na navázané aktivity
+        if ($this->a['dite']) {
             $deti = $this->deti();
             if (count($deti) === 1) {
-                current($deti)->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
-            } else {
+                try {
+                    current($deti)->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
+                } catch (Exception $e) {
+                    throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu s chybou: ' . $e->getMessage());
+                }
+            } elseif ($this->pocetPrihlasenych() > 0) { // (není teamleader)
                 // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
                 $vzor   = Uzivatel::zId(substr(explode(',', $this->prihlaseniRaw())[1], 0, -2));
                 $uspech = false;
