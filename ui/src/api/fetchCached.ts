@@ -3,6 +3,14 @@ const LOCAL_STORAGE_KLÍČ_CACHE_ZÁKLAD = "fetch_cache_";
 const LOCAL_STORAGE_KLÍČ_CACHE_ETAG = "etag_";
 const LOCAL_STORAGE_KLÍČ_CACHE_DATA = "data_";
 
+const LOGUJ_CACHE = false;
+
+const loguj = (msg: string) =>{
+  if (LOGUJ_CACHE) {
+    console.log(msg);
+  }
+};
+
 const vytvořCacheLocalStorageKlíčeProUrl = (url: string) => {
   return {
     klíčEtag: LOCAL_STORAGE_KLÍČ_CACHE_ZÁKLAD
@@ -19,6 +27,7 @@ const nastavCache = (url: string, etag: string | undefined, data: any) => {
   localStorage.removeItem(klíčEtag);
   localStorage.removeItem(klíčData);
   if (etag) {
+    loguj(`ukládám do cache url ${url} s etagem ${etag}`);
     localStorage.setItem(klíčData, JSON.stringify(data));
     localStorage.setItem(klíčEtag, etag);
   } else {
@@ -52,6 +61,30 @@ const získejDataZCache = (url: string) => {
   }
 };
 
+const MAXIMÁLNÍ_ŽIVOTNOST_ETAGU_PŘEDNAČTENÍ_S = 10;
+
+/**
+ * Vrátí hodnotu z cache pokud:
+ *  - Je v přednačtení její etag
+ *  - Pouze pokud je čas přednačtení v rozumné minulosti (max životnost etagu přednačtení)
+ *  - Je dostupná v cache
+ */
+const získejDatazCachePodleEtaguPřednačtení = (url: string) =>{
+  const {etagy,časPřednačtení} = window.gameconPřednačtení;
+  if (!časPřednačtení) {
+    loguj("čas přednačtení není určen, nelze zkontrolovat aktualialitu cache bez dotazu na api");
+    return undefined;
+  }
+  if (časPřednačtení > (Date.now() + MAXIMÁLNÍ_ŽIVOTNOST_ETAGU_PŘEDNAČTENÍ_S * 1_000)) {
+    loguj("čas přednačtení je daleko v minulosti. Cache už může být nevalidní, je lepší provolat api");
+    return undefined;}
+  const etagPřednačtení = etagy?.[url];
+  const etagCache = získejEtagZCache(url);
+  if (etagPřednačtení === etagCache) {
+    return získejDataZCache(url);
+  }
+};
+
 /**
  * Server musí na daný endpoint mít implementované Etagy (viz api/aktivityProgram.php).
  * Na straně serveru stejně dojde ke všem operacím ale pokud nedojde ke změně dat (pozná se podle hashe)
@@ -60,12 +93,19 @@ const získejDataZCache = (url: string) => {
 export const fetchCachedJson = async (url: string, init?: RequestInit | undefined) => {
   const headers = {} as Record<string, string>;
 
+  const přednačteníObj = získejDatazCachePodleEtaguPřednačtení(url);
+  if (přednačteníObj) {
+    loguj(`Podle etagu přednačtení už máme aktuální cache pro URL: ${url}`);
+    return přednačteníObj;
+  }
+
   const etag = získejEtagZCache(url);
   if (etag) { headers["if-none-match"] = etag; }
 
   const response = await fetch(url, { ...init, headers: { ...init?.headers, ...headers } });
 
   if (response.status === 200) {
+    loguj(`nové data pro Url: ${url}`);
     const data = await response.json();
     const etag = response.headers.get("etag") ?? undefined;
     nastavCache(url, etag, data);
@@ -73,7 +113,7 @@ export const fetchCachedJson = async (url: string, init?: RequestInit | undefine
   }
 
   if (response.status === 304) {
-    // console.log(`data pro url nezměněna, načteno z cache. Url: ${url}`);
+    loguj(`data pro url nezměněna, načteno z cache. Url: ${url}`);
     return získejDataZCache(url);
   }
 
