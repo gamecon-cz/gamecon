@@ -312,7 +312,7 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
         \DateTimeInterface $hromadneOdhlasovaniKdy,
     ): string
     {
-        return "email-varobvani-neplaticum-brzke-odhlaseni-$poradiOznameni-" . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
+        return "email-varovani-neplaticum-brzke-odhlaseni-$poradiOznameni-" . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 
     public function zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
