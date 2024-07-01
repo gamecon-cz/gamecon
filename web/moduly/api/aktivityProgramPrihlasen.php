@@ -84,9 +84,14 @@ foreach ($aktivity as &$a) {
     $aktivitaRes['prihlasovatelna'] = $prihlasovatelna;
   }
 
-  $zamcena = $a->zamcena();
-  if ($zamcena) {
-    $aktivitaRes['zamcena'] = $zamcena;
+  $zamcenaDo = $a->tymZamcenyDo();
+  if ($zamcenaDo) {
+    $aktivitaRes['zamcenaDo'] = $zamcenaDo->getTimestamp() * 1000;
+  }
+
+  $zamcenaMnou = $a->zamcenoUzivatelem($u);
+  if ($zamcenaMnou || $zamcenaDo) {
+    $aktivitaRes['zamcenaMnou'] = $zamcenaMnou;
   }
 
   $aktivitaRes['obsazenost'] = $a->obsazenostObj();

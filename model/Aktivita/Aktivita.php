@@ -2730,6 +2730,14 @@ SQL,
         return null;
     }
 
+    /**
+     * @return DateTimeCz|null jestli je týmová aktivita zamčená tímto uživatelem
+     */
+    public function zamcenoUzivatelem(\Uzivatel $u = null): bool 
+    {
+        return !!$u && $this->a['zamcel'] == $u->id();
+    }
+
     public function typ(): TypAktivity
     {
         if (!$this->typ && !is_numeric($this->typ)) {

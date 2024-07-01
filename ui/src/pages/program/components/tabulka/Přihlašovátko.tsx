@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { useAktivita, useUživatel } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
@@ -14,13 +14,44 @@ type FormTlačítkoTyp =
   | "prihlasit"
   | "odhlasit"
   | "prihlasSledujiciho"
-  | "odhlasSledujiciho";
+  | "odhlasSledujiciho"
+  | "zamceno";
 
-const FormTlačítko: FunctionComponent<{ id: number; typ: FormTlačítkoTyp }> = ({
+type FormTlačítkoProps = {
+  id: number;
+  typ: FormTlačítkoTyp;
+  zamčenaDo?: number;
+};
+
+const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
   id,
   typ,
+  zamčenaDo,
 }) => {
   const formRef = useRef<HTMLFormElement>(null);
+
+  const [zbýváText, setZbýváText] = useState("666 hodin");
+  const spočítejZbýváText = () => {
+    if (!zamčenaDo) return;
+    const zbýváMinut = Math.floor((zamčenaDo - Date.now()) / (1_000 * 60));
+    const zbýváHodin = Math.floor(zbýváMinut / 60);
+    setZbýváText(zbýváHodin >= 1
+      ? `${zbýváHodin} hodin${zbýváHodin === 1 ? "a" : ""}`
+      : zbýváMinut >= 1
+        ? `${zbýváMinut} minut${zbýváMinut === 1 ? "a" : ""}`
+        : zbýváMinut >= 0
+          ? `méně než minuta`
+          : `žádný čas (načti znova stránku)`
+    );
+  };
+  // schov zámeček pokud je zamčenaDo 5 minut v minulosti (výpočet rerenderu komponenty)
+  const zámečekViditelný = zamčenaDo && (((zamčenaDo - (Date.now() - 5 * 1_000 * 60)) / (1_000 * 60)) > 0);
+  useEffect(() => {
+    if (!zamčenaDo) return;
+    const interval = setInterval(spočítejZbýváText, 10_000);
+    spočítejZbýváText();
+    return () => { clearInterval(interval); };
+  }, []);
 
   const text =
     typ === "prihlasit"
@@ -40,15 +71,20 @@ const FormTlačítko: FunctionComponent<{ id: number; typ: FormTlačítkoTyp }> 
         <a
           href="#"
           onClick={(e) => {
-            if (typ == "odhlasit") {
+            e.preventDefault();
+            if (typ === "zamceno") {
+              return;
+            } else if (typ == "odhlasit") {
               nastavModalOdhlásit(id);
             } else {
               formRef.current?.submit?.();
             }
-            e.preventDefault();
           }}
         >
           {text}
+          {zámečekViditelný ?
+            <span class="hinted">{zámeček}<span class="hint">Kapitánovi týmu zbývá {zbýváText} na vyplnění svého týmu</span></span>
+            : undefined}
         </a>
       </form>
     </>
@@ -76,7 +112,7 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
     aktivita.stavPrihlaseni !== "sledujici"
   ) {
     if (aktivita.stavPrihlaseni === "prihlasen")
-      return <FormTlačítko id={akitivitaId} typ={"odhlasit"} />;
+      return <FormTlačítko id={akitivitaId} typ={"odhlasit"} zamčenaDo={aktivita.zamcenaDo} />;
     else if (aktivita.stavPrihlaseni === "prihlasenADorazil")
       return <em>účast</em>;
     else if (aktivita.stavPrihlaseni === "dorazilJakoNahradnik")
@@ -89,7 +125,8 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
 
   if (aktivita.vedu) return <></>;
 
-  if (aktivita.zamcena) return <>{zámeček}</>;
+  if (aktivita.zamcenaDo && (aktivita.zamcenaDo > Date.now()) && !aktivita.zamcenaMnou)
+    return <FormTlačítko id={akitivitaId} typ={"zamceno"} zamčenaDo={aktivita.zamcenaDo} />;
 
   if (aktivita.obsazenost) {
     const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
