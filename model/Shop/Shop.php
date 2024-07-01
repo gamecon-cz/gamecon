@@ -1073,18 +1073,18 @@ SQL
 
     public function prodat(int $idPredmetu, int $kusu = 1, bool $vcetneOznamemi = false)
     {
-        $cena_aktualni = dbOneCol("SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu={$idPredmetu}");
+        $cenaAktualni = dbOneCol("SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu={$idPredmetu}");
 
         for ($i = 1; $i <= $kusu; $i++) {
             dbQuery(<<<SQL
 INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum)
-VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$this->systemoveNastaveni->rocnik()},{$cena_aktualni},NOW())
+VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$this->systemoveNastaveni->rocnik()},{$cenaAktualni},NOW())
 SQL,
             );
         }
 
-        if ($this->zakaznik->id() === 1) {
-            $this->zakaznik->finance()->pripis(((float)$cena_aktualni) * $kusu, $this->objednatel, 'anonymní prodej');
+        if ($this->zakaznik->id() === Uzivatel::SYSTEM) {
+            $this->zakaznik->finance()->pripis(((float)$cenaAktualni) * $kusu, $this->objednatel, 'anonymní prodej');
         }
 
         if (!$vcetneOznamemi) {
