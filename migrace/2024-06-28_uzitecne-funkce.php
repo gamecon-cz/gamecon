@@ -4,21 +4,21 @@
 
 $this->q(<<<SQL
 CREATE FUNCTION IF NOT EXISTS aktualniRocnik() RETURNS int READS SQL DATA
-RETURN (select hodnota from gamecon.systemove_nastaveni where klic = 'ROCNIK' limit 1)
+RETURN (select hodnota from systemove_nastaveni where klic = 'ROCNIK' limit 1)
 SQL
 );
 
 $this->q(<<<SQL
 CREATE FUNCTION IF NOT EXISTS systemoveNastaveni(klic varchar(128)) RETURNS varchar(255) READS SQL DATA
-    RETURN (select hodnota from gamecon.systemove_nastaveni sn where sn.klic collate utf8mb3_general_ci = klic limit 1)
+    RETURN (select hodnota from systemove_nastaveni sn where sn.klic collate utf8mb3_general_ci = klic limit 1)
 SQL
 );
 
 $this->q(<<<SQL
 CREATE FUNCTION IF NOT EXISTS maPravo(user int, pravo int) RETURNS bool READS SQL DATA
 RETURN exists(select 1
-              from gamecon.platne_role_uzivatelu pru
-                join gamecon.prava_role pr on pr.id_role = pru.id_role
+              from platne_role_uzivatelu pru
+                join prava_role pr on pr.id_role = pru.id_role
               where pru.id_uzivatele = user and pr.id_prava = pravo)
 SQL
 );
@@ -26,7 +26,7 @@ SQL
 $this->q(<<<SQL
 CREATE FUNCTION IF NOT EXISTS delkaAktivityJakoNasobekStandardni(id_akce int) RETURNS decimal(4, 2) READS SQL DATA
     RETURN
-        CASE (select hour(timediff(ase.konec, ase.zacatek)) from gamecon.akce_seznam ase where ase.id_akce = id_akce limit 1)
+        CASE (select hour(timediff(ase.konec, ase.zacatek)) from akce_seznam ase where ase.id_akce = id_akce limit 1)
             WHEN 1 THEN 0.25
             WHEN 2 THEN 0.5
             WHEN 3 THEN 1
