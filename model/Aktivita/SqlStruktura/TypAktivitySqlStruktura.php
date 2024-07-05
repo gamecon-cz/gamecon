@@ -18,4 +18,5 @@ class TypAktivitySqlStruktura
     public const POPIS_KRATKY    = 'popis_kratky';
     public const AKTIVNI         = 'aktivni';
     public const ZOBRAZIT_V_MENU = 'zobrazit_v_menu';
+    public const KOD_TYPU        = 'kod_typu';
 }
