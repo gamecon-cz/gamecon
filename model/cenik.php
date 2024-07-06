@@ -233,7 +233,7 @@ class Cenik
         } else if ($typ == Shop::JIDLO) {
             if ($this->u->maPravoNaJidloZdarma()) {
                 $cena = 0;
-            } else if ($this->u->maPravo(Pravo::JIDLO_SE_SLEVOU) && !Jidlo::jeToSnidane($r[PredmetySql::NAZEV])) {
+            } else if ($this->u->maPravo(Pravo::JIDLO_SE_SLEVOU)) {
                 $cena -= SLEVA_ORGU_NA_JIDLO_CASTKA;
             }
         }
