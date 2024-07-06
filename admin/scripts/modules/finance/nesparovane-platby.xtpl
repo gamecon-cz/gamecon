@@ -19,7 +19,7 @@
     <td>{kdyPripsanoNaUcetBanky}</td>
     <td>{kdyPripsanoNaUcetGc}</td>
     <td>
-      <form method="post">
+      <form method="post" onsubmit="return confirm('Opravdu spárovat?')">
         <input type="hidden" name="sprarovatIdPlatby" value="{idPlatby}">
         <input class="omnibox autosubmit" type="text" name="sprarovatIdUzivatele">
       </form>

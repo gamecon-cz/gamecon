@@ -234,7 +234,7 @@ class Cenik
             if ($this->u->maPravoNaJidloZdarma()) {
                 $cena = 0;
             } else if ($this->u->maPravo(Pravo::JIDLO_SE_SLEVOU) && !Jidlo::jeToSnidane($r[PredmetySql::NAZEV])) {
-                $cena -= 20;
+                $cena -= SLEVA_ORGU_NA_JIDLO_CASTKA;
             }
         }
 
