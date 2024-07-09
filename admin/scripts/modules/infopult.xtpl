@@ -140,6 +140,7 @@
             <input type="checkbox" name="udaje[potvrzeni_zakonneho_zastupce]"
                    style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
             {potvrzeniText}
+            {potvrzeniOdkaz}
           </td>
         </tr>
         <!-- end:potvrzeni -->
