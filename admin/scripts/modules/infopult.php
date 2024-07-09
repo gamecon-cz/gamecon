@@ -153,9 +153,11 @@ if ($uPracovni) {
     }
 
     $datumNarozeni                 = DateTimeImmutable::createFromMutable($uPracovni->datumNarozeni());
-    $potvrzeniOd                   = $uPracovni->potvrzeniZakonnehoZastupceOd();
     $potrebujePotvrzeniKvuliVeku   = potrebujePotvrzeni($datumNarozeni);
-    $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
+    $potvrzeniOd                   = $uPracovni->potvrzeniZakonnehoZastupceOd();
+    $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('Y') == ROCNIK;
+    $nahranePotvrzeni              = $uPracovni->potvrzeniZakonnehoZastupceSouborOd();
+    $mameLetosniNahranePotvrzeni   = $nahranePotvrzeni && $nahranePotvrzeni->format('Y') == ROCNIK;
 
     if ($potrebujePotvrzeniKvuliVeku) {
         if ($mameLetosniPotvrzeniKvuliVeku) {
@@ -163,6 +165,9 @@ if ($uPracovni) {
             $x->assign("potvrzeniText", $ok . " má potvrzení od rodičů");
         } else {
             $x->assign("potvrzeniText", $err . " chybí potvrzení od rodičů!");
+        }
+        if ($mameLetosniNahranePotvrzeni) {
+            $x->assign("potvrzeniOdkaz", '<a href="infopult/potvrzeni-rodicu?id=' . $uPracovni->id() . '">odkaz na potvrzení</a>');
         }
         $x->parse('infopult.uzivatel.potvrzeni');
     }
