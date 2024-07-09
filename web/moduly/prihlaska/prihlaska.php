@@ -273,8 +273,8 @@ $t->assign([
 
 if ($u->gcPrihlasen()) {
     if ($u->vekKDatu($systemoveNastaveni->gcBeziOd()) < 15 &&
-        (!$u->potvrzeniZakonnehoZastupceOd() ||
-            $u->potvrzeniZakonnehoZastupceOd()->format('y') != $systemoveNastaveni->rocnik())) {
+        ((!$u->potvrzeniZakonnehoZastupceOd()) ||
+            $u->potvrzeniZakonnehoZastupceOd()->format('Y') != $systemoveNastaveni->rocnik())) {
         if ($u->potvrzeniZakonnehoZastupceSouborOd() && ((!$u->potvrzeniZakonnehoZastupceOd()) || $u->potvrzeniZakonnehoZastupceSouborOd() > ($u->potvrzeniZakonnehoZastupceOd()))) {
             $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce.nahrano');
         }
