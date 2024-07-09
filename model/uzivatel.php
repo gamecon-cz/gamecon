@@ -1090,7 +1090,16 @@ SQL,
 
     public function potvrzeniZakonnehoZastupceOd(): ?DateTimeImmutable
     {
-        $potvrzeniOdString = $this->r['potvrzeni_zakonneho_zastupce'];
+        $potvrzeniOdString = $this->r[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE];
+
+        return $potvrzeniOdString
+            ? new \DateTimeImmutable($potvrzeniOdString)
+            : null;
+    }
+
+    public function potvrzeniZakonnehoZastupceSouborOd(): ?DateTimeImmutable
+    {
+        $potvrzeniOdString = $this->r[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR];
 
         return $potvrzeniOdString
             ? new \DateTimeImmutable($potvrzeniOdString)
@@ -2484,6 +2493,18 @@ SQL;
             : null;
     }
 
+    private function ulozPotvrzeniRodicuPridanoKdy(?\DateTimeInterface $kdy)
+    {
+        dbUpdate(Sql::UZIVATEL_TABULKA, [
+            Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR => $kdy,
+        ], [
+            Sql::ID_UZIVATELE => $this->id(),
+        ]);
+        $this->r[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR] = $kdy
+            ? $kdy->format(DateTimeCz::FORMAT_DB)
+            : null;
+    }
+
     public function urlNaPotvrzeniProtiCoviduProAdmin(): string
     {
         // admin/scripts/zvlastni/infopult/potvrzeni-proti-covidu.php
@@ -2532,6 +2553,46 @@ SQL;
         return $potvrzeniProtiCovid19OverenoKdy
             ? new DateTimeImmutable($potvrzeniProtiCovid19OverenoKdy)
             : null;
+    }
+
+    public function cestaKSouboruSPotvrzenimRodicu(): ?string
+    {
+        return WWW . '/soubory/systemove/potvrzeni/potvrzeni-rodicu-' . $this->id() . '.png';
+    }
+
+    public function zpracujPotvrzeniRodicu(): bool
+    {
+        if (!isset($_FILES['potvrzeniRodicu']) || empty($_FILES['potvrzeniRodicu']['tmp_name'])) {
+            return false;
+        }
+        $f = @fopen($_FILES['potvrzeniRodicu']['tmp_name'], 'rb');
+        if (!$f) {
+            throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo načíst");
+        }
+        $imagick = new Imagick();
+
+        $imageRead = false;
+        try {
+            $imageRead = $imagick->readImageFile($f);
+        } catch (\Throwable $throwable) {
+            trigger_error($throwable->getMessage(), E_USER_WARNING);
+        }
+        if (!$imageRead) {
+            throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo přečíst. Je to obrázek nebo PDF?");
+        }
+
+        try {
+            $imagick->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
+            $imagick->setImageCompressionQuality(100);
+        } catch (\Throwable $throwable) {
+            trigger_error($throwable->getMessage(), E_USER_WARNING);
+        }
+        $imagick->writeImage($this->cestaKSouboruSPotvrzenimRodicu());
+
+        $ted = new DateTimeImmutable();
+        $this->ulozPotvrzeniRodicuPridanoKdy($ted);
+
+        return true;
     }
 
     public function uvodniAdminUrl(string $zakladniAdminUrl = URL_ADMIN): string
