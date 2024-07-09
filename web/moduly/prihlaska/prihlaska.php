@@ -68,6 +68,15 @@ if (post('pridatPotvrzeniProtiCovidu')) {
     }
 }
 
+if (post('pridatPotvrzeniRodicu')) {
+    if (!$u->zpracujPotvrzeniRodicu()) {
+        chyba('Nejdříve vlož potvrzení.');
+    } else {
+        oznameni('Potvrzení bylo uloženo.');
+    }
+    back();
+}
+
 if (po(GC_BEZI_DO)) {
     if ($u && $u->gcPritomen()) {
         $t->parse('prihlaskaPoGc.ucastnilSe');
@@ -266,6 +275,9 @@ if ($u->gcPrihlasen()) {
     if ($u->vekKDatu($systemoveNastaveni->gcBeziOd()) < 15 &&
         (!$u->potvrzeniZakonnehoZastupceOd() ||
             $u->potvrzeniZakonnehoZastupceOd()->format('y') != $systemoveNastaveni->rocnik())) {
+        if ($u->potvrzeniZakonnehoZastupceSouborOd() && ((!$u->potvrzeniZakonnehoZastupceOd()) || $u->potvrzeniZakonnehoZastupceSouborOd() > ($u->potvrzeniZakonnehoZastupceOd()))) {
+            $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce.nahrano');
+        }
         $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce');
     }
     $t->parse('prihlaska.prihlasen');

@@ -19,10 +19,19 @@
         <!-- begin:potvrzeniZakonnyZastupce -->
         <div class="prihlaska_potrebaPotvrzeni">
             <p>Jakožto mladší 15ti let budeš potřebovat dodat potvrzení o souhlasu tvého zákonného zástupce s
-                účastí na GameConu. Formulář ke stažení můžeš najít na <a href="#">TODO tomto odkazu</a> a vyplněný
-                nám jej můžeš kdykoliv před GameConem poslat naskenovaný na <a href="mailto:info@gamecon.cz">
-                info@gamecon.cz</a>, nebo donést fyzicky při příjezdu na GameCon k Infopultu. Připravené formuláře k
-                vyplnění budeme mít i na Infopultu.</p>
+                účastí na GameConu. Formulář ke stažení můžeš najít na
+                <a href="/soubory/obsah//materialy/2024/souhlas_rodicu_2024.pdf">tomto odkazu</a> a vyplněný
+                nám jej můžeš kdykoliv před příjezdem na GameCon nahrát pomocí tohoto formuláře, nebo donést fyzicky při
+                příjezdu na GameCon k Infopultu. Připravené formuláře k vyplnění budeme mít i na Infopultu.</p>
+
+            <form method="post" enctype="multipart/form-data">
+                <input type="file" class="formular_input" name="potvrzeniRodicu" id="potvrzeniRodicu"
+                style="display: inline; width: auto; border: none; margin: 0; cursor: pointer" accept="image/*">
+                <input type="submit" name="pridatPotvrzeniRodicu" id="pridatPotvrzeniRodicu" value="Odeslat">
+            </form>
+            <!-- begin:nahrano -->
+            Potvrzení je úspěšně nahrané. <a href="prihlaska/potvrzeni-rodicu">Zobrazit</a>
+            <!-- end:nahrano -->
         </div>
         <!-- end:potvrzeniZakonnyZastupce -->
         <!-- end:prihlasen -->
