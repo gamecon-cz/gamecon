@@ -727,7 +727,9 @@ SQL;
 
     public function nejpozdejiZaplatitDo(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeImmutableStrict
     {
-        return $this->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu)->modify('-1 day');
+        $hromadneOdhlasovaniKdy = $this->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
+        // Pokud je v rámci poslední hodiny dne, tak efektivně mohou zaplatit kdykoliv v průběhu toho dne. Jinak raději napsat den předem, ať nejsou stížnosti
+        return $hromadneOdhlasovaniKdy->zaokrouhlitNaHodinyNahoru()->modify('-1 day');
     }
 
     public function pristiVlnaKdy(): ?DateTimeGamecon
