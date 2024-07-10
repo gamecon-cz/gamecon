@@ -27,7 +27,7 @@ $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni
 
 $poradiOznameni = null;
 // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
-$posuny = [1 => '+1 hour', 2 => '+1 day'];
+$posuny = [1 => '+1 hour', 2 => '+1 day', 3 => '+1 week'];
 foreach ($posuny as $poradiOznameni => $posun) {
     // právě teď nebo před 23 hodinami
     $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
@@ -162,9 +162,16 @@ $zpravyPolozkyString
 TEXT;
 }
 
+$uvod .= <<<TEXT
+
+$oddelovac
+
+Sirien: zkontroluj partnery ty kokos ať se hromadně nezjebou i se svym ubytkem
+TEXT;
+
 (new GcMail($systemoveNastaveni))
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
-    ->predmet("$brzy bude hromadně odhlášeno $budeOdhlaseno neplatičů z GC")
+    ->predmet("Odhlášení neplatičů: $brzy bude hromadně odhlášeno $budeOdhlaseno neplatičů z GC")
     ->text(<<<TEXT
         $uvod
 

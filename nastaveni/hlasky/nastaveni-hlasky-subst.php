@@ -5,16 +5,16 @@ use Gamecon\Hlaska\Hlaska;
 return [
     'odhlasilPlatil'                        => 'Uživatel %1 (ID %2) %3 z GameConu, ale v aktuálním roce (%4) si poslal %5 Kč. Bude vhodné to prověřit popř. smazat platby z připsaných a dát do zůstatku v seznamu uživatelů, aby mu peníze nepropadly',
     'odhlasilMelUbytovani'                  => 'Uživatel %1 (ID %2) %3 z GameConu a v aktuálním roce (%4) měl ubytování ve dnech %5. Uvolnilo se tak místo.',
-    'uvolneneMisto'                         => 'Na aktivitě %1, která se koná v %2, se uvolnilo místo. Tento e-mail dostáváš, protože ses přihlásil{a} ke sledování uvedené aktivity. Přihlaš se na aktivitu přes <a href="https://gamecon.cz/program">program</a> (pospěš si, ať ti místo nezabere někdo jiný).',
-    'chybaClenaTymu'                        => 'Nepodařilo se přihlásit tým. Při přihlášování uživatele %1 (id %2) se u něj objevila chyba: %3',
+    'uvolneneMisto'                         => 'Na aktivitě %1, která se koná v %2, se uvolnilo místo. Tento e-mail dostáváš, protože máš nastavené sledování uvedené aktivity. Přihlaš se na aktivitu přes <a href="https://gamecon.cz/program">program</a> (pospěš si, ať ti místo nezabere někdo jiný).',
+    'chybaClenaTymu'                        => 'Nepodařilo se přihlásit tým. Při přihlašování uživatele %1 (id %2) se u něj objevila chyba: %3',
     'zapomenuteHeslo'                       =>
         'Ahoj,
 
-nechal{a} sis vygenerovat nové heslo na Gamecon.cz. Tvoje přihlašovací jméno je stejné jako e-mail (%1), tvoje nové heslo je %2. Heslo si prosím po přihlášení změň.
+dostali jsme žádost o vygenerování nového hesla na Gamecon.cz. Tvoje přihlašovací jméno je stejné jako e-mail (%1), tvoje nové heslo je %2. Heslo si prosím po přihlášení změň.
 
 S pozdravem Tým organizátorů GameConu',
-    'odhlaseniZGc'                          => 'Odhlásil{a} ses z GameConu ' . ROCNIK,
-    'prihlaseniNaGc'                        => 'Přihlásil{a} ses na GameCon ' . ROCNIK,
+    'odhlaseniZGc'                          => 'Odhlášení z GameConu ' . ROCNIK . ' proběhlo úspěšně',
+    'prihlaseniNaGc'                        => 'Přihlášení na GameCon ' . ROCNIK . ' proběhlo úspěšně',
     'prihlaseniTeamMail'                    =>
         'Ahoj,
 
@@ -25,7 +25,7 @@ Pokud člověka, který tě přihlásil, neznáš, kontaktuj nás prosím na <a 
     'rychloregMail'                         =>
         'Ahoj,
 
-děkujeme, že ses letos zúčastnil{a} GameConu. Kliknutím na odkaz níže potvrdíš registraci na web a můžeš si nastavit přezdívku a heslo, pokud chceš používat web a třeba přijet příští rok. (Pokud by ses registroval{a} na web později, musel{a} by sis nechat vygenerovat heslo znova)
+děkujeme, že se letos účastníš GameConu! Kliknutím na odkaz níže potvrdíš registraci na web, kde si nastavíš přezdívku a heslo tak, ať můžeš používat web a přijet třeba i příští rok. V případě pozdější registrace na web by bylo nutné nechat si vygenerovat heslo znovu.
 
 <a href="https://gamecon.cz/potvrzeni-registrace/%2">https://gamecon.cz/potvrzeni-registrace/%2</a>',
     Hlaska::NEDOSTAVENI_SE_NA_AKTIVITU_MAIL =>

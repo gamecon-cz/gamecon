@@ -5,9 +5,8 @@
         <h1>Přihláška na GameCon</h1>
 
         <!-- begin:prihlasen -->
-        <p>Jsi přihlášen{a} na GameCon {rok}. Níže si můžeš upravovat svou přihlášku, tedy objednané ubytování a
-            předměty až
-            téměř do začátku GameConu.</p>
+        <p>Tvá přihláška na GameCon {rok} je aktivní! Nyní můžeš upravovat objednané ubytování i předměty až téměř
+        do začátku GameConu.</p>
 
         <div class="prihlaska_hlavickaFinance">
             <p>Objednávku je potřeba uhradit do {zaplatitNejpozdejiDo} včetně. Svůj přehled financí a údaje k platbě
@@ -131,17 +130,15 @@
 
             <!-- begin: ubytovaniInfoVypravec -->
             <div class="prihlaska_info prihlaska_info-ikona">
-                Jako vypravěč{ka} máš nárok na bonus odvíjející se od množství vyprávěných aktivit, který se dá uplatnit
-                na
-                ubytování, jídlo nebo aktivity. Přesnou výšku bonusu najdeš po dokončení registrace ve svém <a
-                    href="finance">finančním
-                přehledu</a>.</p>
+                Každý vypravěč má nárok na bonus odvíjející se od množství vyprávěných aktivit, který se dá uplatnit
+                na ubytování, jídlo a aktivity. Přesnou výšku svého bonusu najdeš po dokončení registrace ve svém
+                <a href="finance">finančním přehledu</a>.</p>
             </div>
             <!-- end: ubytovaniInfoVypravec -->
 
             <!-- begin: ubytovaniInfoOrg -->
             <div class="prihlaska_info prihlaska_info-ikona">
-                <p>Jako organizátor{ka} máš veškeré ubytování také zdarma.</p>
+                <p>Jako organizátor{ka} máš zdarma také veškeré ubytování.</p>
             </div>
             <!-- end: ubytovaniInfoOrg -->
         </div>

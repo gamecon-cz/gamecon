@@ -1,0 +1,30 @@
+<!-- begin: nesparovanePlatby -->
+<table>
+  <caption>Nespárované platby</caption>
+  <tr>
+    <th>Částka</th>
+    <th>Zpráva pro příjemce</th>
+    <th>Skrytá poznámka</th>
+    <th>Fio ID pohybu</th>
+    <th>Na bankovní účet</th>
+    <th>Na GC účastnický účet</th>
+    <th>Spárovat s uživatelem</th>
+  </tr>
+  <!-- begin: nesparovanaPlatba -->
+  <tr>
+    <td>{castka}</td>
+    <td>{zpravaProPrijemce}</td>
+    <td>{skrytaPoznamka}</td>
+    <td>{fioId}</td>
+    <td>{kdyPripsanoNaUcetBanky}</td>
+    <td>{kdyPripsanoNaUcetGc}</td>
+    <td>
+      <form method="post" onsubmit="return confirm('Opravdu spárovat?')">
+        <input type="hidden" name="sprarovatIdPlatby" value="{idPlatby}">
+        <input class="omnibox autosubmit" type="text" name="sprarovatIdUzivatele">
+      </form>
+    </td>
+  </tr>
+  <!-- end: nesparovanaPlatba -->
+</table>
+<!-- end: nesparovanePlatby -->

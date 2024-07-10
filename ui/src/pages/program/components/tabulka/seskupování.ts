@@ -1,5 +1,6 @@
 import { OdDo } from "../../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../../env";
+import { denAktivity } from "../../../../store/program/logic/aktivity";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
 import { formátujDenVTýdnu, zip } from "../../../../utils";
 
@@ -42,7 +43,7 @@ const seskupAktivity = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktiv
   const skupinyAktivit: SkupinyAktivit = Object.create(null);
 
   const získejKlíč = (seskupitPodle === SeskupováníAktivit.den)
-    ? (aktivita: Aktivita) => formátujDenVTýdnu(aktivita.cas.od, true)
+    ? (aktivita: Aktivita) => formátujDenVTýdnu(denAktivity(new Date(aktivita.cas.od)), true)
     : (aktivita: Aktivita) => aktivita.linie
     ;
 

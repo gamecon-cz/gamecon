@@ -96,14 +96,17 @@ if ($u && $u->jeOrganizator()) {
         $platbyNaposledyAktualizovanyKdy === null
         || $platbyNaposledyAktualizovanyKdy < new DateTimeImmutable('-1 day')
     ) {
-        varovani(
-            'Platby z Fio byly naposledy aktualizovány ' . (
-            $platbyNaposledyAktualizovanyKdy === null
-                ? '"nikdy"'
-                : DateTimeCz::createFromInterface($platbyNaposledyAktualizovanyKdy)->relativni()
-            ),
-            false
-        );
+        // logiku výše cíleně pouštíme ikdyž hlášku nechceme, abychom i při vývoji měli jistotu, že v kódu není fatální chyba
+        if (VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB) {
+            varovani(
+                'Platby z Fio byly naposledy aktualizovány ' . (
+                $platbyNaposledyAktualizovanyKdy === null
+                    ? '"nikdy"'
+                    : DateTimeCz::createFromInterface($platbyNaposledyAktualizovanyKdy)->relativni()
+                ),
+                false
+            );
+        }
     }
 }
 
