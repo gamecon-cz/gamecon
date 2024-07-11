@@ -1349,7 +1349,7 @@ SQL
     /**
      * @return bool Zda vypravěč za vedení této aktivity nedostane od Gameconu finanční bonus.
      */
-    public function nedavaBonus()
+    public function nedavaBonus(): bool
     {
         return (bool)$this->a[Sql::NEDAVA_BONUS];
     }
