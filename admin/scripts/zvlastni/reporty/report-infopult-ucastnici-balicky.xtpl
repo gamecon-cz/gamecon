@@ -18,7 +18,7 @@
     h2 { font-size: 5rem; padding: 0; margin: 0; }
     h3 { font-size: 2rem; font-weight: normal;  padding: 0; margin: 0; }
     .balicek { margin: 1px; padding: 10pt; box-sizing: border-box; outline: 1pt solid #000; }
-    .balicek ul { padding: 1rem 0 0 1rem; height: calc(83vh - 10rem); margin: 0; column-count: 2; column-fill: auto; }
+    .balicek ul { padding: 1rem 0 0 1rem; height: calc(83vh - 10rem); margin: 0; column-count: 1; column-fill: auto; }
     .balicek ul li { list-style-type: none; margin: 0; padding: 0 0 0.5rem 0; font-size: 18pt; }
     .balicek ul li:empty { margin: 0; padding: 0; list-style-type: none; display: none; }
     button { font-size: 18pt; height: 21pt; line-height: 1.0; padding: 1pt 4pt; border: 1px solid grey; cursor: pointer; background-color: lightgrey; color: #000; display: inline-block; }
