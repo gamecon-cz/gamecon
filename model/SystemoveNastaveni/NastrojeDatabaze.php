@@ -77,7 +77,7 @@ class NastrojeDatabaze
     public static function fixDefiners(string $filename): void
     {
         $file = file_get_contents($filename);
-        $file = preg_replace('DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`', '', $file);
+        $file = preg_replace('#DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`#', '', $file);
         file_put_contents($filename, $file);
     }
 
