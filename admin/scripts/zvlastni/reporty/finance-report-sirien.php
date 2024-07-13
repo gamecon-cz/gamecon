@@ -4,7 +4,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 /** @var $systemoveNastaveni */
 
 $report = Report::zSql(<<<SQL
-select e.kod as kod, e.popis as posis, e.data as data
+select e.kod as kod, e.popis as popis, e.data as data
 from (
 SELECT MAX(d.poradi) as poradi, d.kod, MAX(d.nazev) AS popis, MAX(d.data) AS data
 FROM ((
@@ -12,22 +12,9 @@ SELECT 0 AS poradi, 'Ir-Timestamp' AS kod, 'Timestamp reportu' AS nazev, NOW() A
 
 UNION
 
-SELECT 0 AS poradi, CONCAT('Ir-Ucast-', IF(r.rid IS NULL, 'Ucastnici', CASE r.rid
-                                                            WHEN 'ORGANIZATOR_ZDARMA' THEN 'Org0'
-                                                            WHEN 'PUL_ORG_UBYTKO' THEN 'OrgU'
-                                                            WHEN 'PUL_ORG_TRICKO' THEN 'OrgT'
-                                                            WHEN 'VYPRAVEC' THEN 'Vypraveci'
-                                                            WHEN 'DOBROVOLNIK_SENIOR' THEN 'Dobrovolnici'
-                                                            WHEN 'PARTNER' THEN 'Partneri'
-                                                            WHEN 'BRIGADNIK' THEN 'Brigadnici'
-                                                           END)) AS kod, 'Počet přihlášených účastníků dle kategorií' AS nazev, COUNT(u.id) AS data
-FROM (SELECT DISTINCT id_uzivatele AS id
-      FROM uzivatele_role
-      JOIN role_seznam ON uzivatele_role.id_role = role_seznam.id_role
-      WHERE typ_role = 'ucast'
-        AND role_seznam.vyznam_role = 'PRIHLASEN'
-        AND rocnik_role = aktualniRocnik()) u
-LEFT JOIN (SELECT ur.id_uzivatele uid, rs.vyznam_role rid
+select 0 as poradi, h.kod as kod, null as nazev, h.data as data
+from (
+WITH r AS (SELECT ur.id_uzivatele uid, rs.vyznam_role rid
            FROM uzivatele_role ur
            JOIN role_seznam rs ON ur.id_role = rs.id_role
            WHERE rs.rocnik_role IN (aktualniRocnik(), -1)
@@ -37,8 +24,28 @@ LEFT JOIN (SELECT ur.id_uzivatele uid, rs.vyznam_role rid
                                     'VYPRAVEC',
                                     'DOBROVOLNIK_SENIOR',
                                     'PARTNER',
-                                    'BRIGADNIK')) r ON r.uid = u.id
-GROUP BY r.rid
+                                    'HERMAN',
+                                    'BRIGADNIK'))
+SELECT CONCAT('Ir-Ucast-', IF(r.rid IS NULL, 'Ucastnici', CASE r.rid
+                                                            WHEN 'ORGANIZATOR_ZDARMA' THEN 'Org0'
+                                                            WHEN 'PUL_ORG_UBYTKO' THEN 'OrgU'
+                                                            WHEN 'PUL_ORG_TRICKO' THEN 'OrgT'
+                                                            WHEN 'VYPRAVEC' THEN 'Vypraveci'
+                                                            WHEN 'DOBROVOLNIK_SENIOR' THEN 'Dobrovolnici'
+                                                            WHEN 'PARTNER' THEN 'Partneri'
+                                                            WHEN 'BRIGADNIK' THEN 'Brigadnici'
+                                                            WHEN 'HERMAN' THEN 'Hermani'
+                                                           END)) AS kod, COUNT(u.id) AS data
+FROM (SELECT DISTINCT id_uzivatele AS id
+      FROM uzivatele_role
+      JOIN role_seznam ON uzivatele_role.id_role = role_seznam.id_role
+      WHERE typ_role = 'ucast'
+        AND role_seznam.vyznam_role = 'PRIHLASEN'
+        AND rocnik_role = aktualniRocnik()) u
+LEFT JOIN r ON r.uid = u.id
+WHERE (not (r.rid = 'HERMAN' and exists(SELECT 1 from r g where g.uid = r.uid and g.rid in ('PARTNER', 'VYPRAVEC')))) -- hermany počítat pouze pokud nejsou souběžně ani partneři, ani vypravěči
+  AND (not (r.rid = 'DOBROVOLNIK_SENIOR' and exists(SELECT 1 from r g where g.uid = r.uid and g.rid in ('PARTNER', 'VYPRAVEC', 'HERMAN')))) -- dobrovolníky počítat pouze pokud nejsou souběžně ani partneři, ani vypravěči, ani hermani
+GROUP BY r.rid) h
 
 UNION
 
@@ -182,6 +189,7 @@ FROM akce_seznam ase
 JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = aktualniRocnik()
   AND at.kod_typu IS NOT NULL
+  AND (NOT(at.id_typu IN (8, 9) AND EXISTS(select 1 from akce_seznam akse where find_in_set(ase.id_akce, akse.dite) != 0))) -- pouze první kole LKD a mDrD
 ) a
 GROUP BY a.kod
 
@@ -193,11 +201,12 @@ SELECT CONCAT('Ir-Kapacita', IF(at.id_typu = 6, -- Wargaming
                                    IF(at.id_typu = 7, -- Bonus
                                       IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
-        'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, ase.kapacita AS kapacita, delkaAktivityJakoNasobekStandardni(ase.id_akce) AS dajns
+        'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, IF(ase.teamova = 0, ase.kapacita, ase.team_max) AS kapacita, delkaAktivityJakoNasobekStandardni(ase.id_akce) AS dajns
 FROM akce_seznam ase
 JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = aktualniRocnik()
   AND at.kod_typu IS NOT NULL
+  AND (NOT(at.id_typu IN (8, 9) AND EXISTS(select 1 from akce_seznam akse where find_in_set(ase.id_akce, akse.dite) != 0))) -- pouze první kole LKD a mDrD
 ) a
 GROUP BY a.kod
 
@@ -214,6 +223,7 @@ FROM akce_seznam ase
 JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = aktualniRocnik()
   AND at.kod_typu IS NOT NULL
+  AND (NOT(at.id_typu IN (8, 9) AND EXISTS(select 1 from akce_seznam akse where find_in_set(ase.id_akce, akse.dite) != 0))) -- pouze první kole LKD a mDrD
 ) a
 GROUP BY a.kod
 
@@ -232,6 +242,7 @@ JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = aktualniRocnik()
   AND NOT EXISTS(SELECT 1 FROM uzivatele_role ur WHERE ur.id_uzivatele = ao.id_uzivatele AND ur.id_role = 2) -- není full-org
   AND at.kod_typu IS NOT NULL
+  AND (NOT(at.id_typu IN (8, 9) AND EXISTS(select 1 from akce_seznam akse where find_in_set(ase.id_akce, akse.dite) != 0))) -- pouze první kole LKD a mDrD
 ) a
 GROUP BY a.kod
 
@@ -250,6 +261,7 @@ JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = aktualniRocnik()
   AND EXISTS(SELECT 1 FROM uzivatele_role ur WHERE ur.id_uzivatele = ao.id_uzivatele AND ur.id_role = 2) -- není full-org
   AND at.kod_typu IS NOT NULL
+  AND (NOT(at.id_typu IN (8, 9) AND EXISTS(select 1 from akce_seznam akse where find_in_set(ase.id_akce, akse.dite) != 0))) -- pouze první kole LKD a mDrD
 ) a
 GROUP BY a.kod
 
@@ -285,6 +297,7 @@ JOIN akce_seznam ase ON ap.id_akce = ase.id_akce
 JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = aktualniRocnik()
   AND at.kod_typu IS NOT NULL
+  AND (NOT(at.id_typu IN (8, 9) AND EXISTS(select 1 from akce_seznam akse where find_in_set(ase.id_akce, akse.dite) != 0))) -- pouze první kole LKD a mDrD
 ) a
 GROUP BY a.kod
 
@@ -420,18 +433,39 @@ FROM shop_nakupy sn
 WHERE sn.rok = aktualniRocnik()
   AND (sp.kod_predmetu LIKE '%obed%' OR sp.kod_predmetu LIKE '%vecere%')
   AND maPravo(sn.id_uzivatele, 1005) -- jidlo zdarma
+
+UNION
+
+SELECT 0 AS poradi, CONCAT('Nr-JidlaSleva-Snidane') AS kod, 'snídaně se slevou - kusy' AS nazev, COUNT(*) AS data
+FROM shop_nakupy sn
+         JOIN shop_predmety sp ON sn.id_predmetu = sp.id_predmetu
+WHERE sn.rok = aktualniRocnik()
+  AND sp.kod_predmetu LIKE '%snidane%'
+  AND NOT maPravo(sn.id_uzivatele, 1005) -- jidlo zdarma
+  AND maPravo(sn.id_uzivatele, 1004) -- jidlo se slevou
+
+UNION
+
+SELECT 0 AS poradi, CONCAT('Nr-JidlaSleva-Hlavni') AS kod, 'hl. jídla se slevou - kusy' AS nazev, COUNT(*) AS data
+FROM shop_nakupy sn
+         JOIN shop_predmety sp ON sn.id_predmetu = sp.id_predmetu
+WHERE sn.rok = aktualniRocnik()
+  AND (sp.kod_predmetu LIKE '%obed%' OR sp.kod_predmetu LIKE '%vecere%')
+  AND NOT maPravo(sn.id_uzivatele, 1005) -- jidlo zdarma
+  AND maPravo(sn.id_uzivatele, 1004) -- jidlo se slevou
 )
 UNION ALL
 (
 SELECT 1   AS poradi, 'Ir-Timestamp'           AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 10  AS poradi, 'Ir-Ucast-Ucastnici'     AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 11  AS poradi, 'Ir-Ucast-Org0'          AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 12  AS poradi, 'Ir-Ucast-OrgU'          AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 13  AS poradi, 'Ir-Ucast-OrgT'          AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 14  AS poradi, 'Ir-Ucast-Vypraveci'     AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 15  AS poradi, 'Ir-Ucast-Dobrovolnici'  AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 16  AS poradi, 'Ir-Ucast-Partneri'      AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 17  AS poradi, 'Ir-Ucast-Brigadnici'    AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 10  AS poradi, 'Ir-Ucast-Ucastnici'     AS kod, 'Počet letos přihlášených normálních účastníků (nespadajících do žádného z dalších Ir-Ucast-)' AS nazev, NULL AS data UNION
+SELECT 11  AS poradi, 'Ir-Ucast-Org0'          AS kod, 'Počet letos přihlášených úplných orgů' AS nazev, NULL AS data UNION
+SELECT 12  AS poradi, 'Ir-Ucast-OrgU'          AS kod, 'Počet letos přihlášených orgů s ubytováním' AS nazev, NULL AS data UNION
+SELECT 13  AS poradi, 'Ir-Ucast-OrgT'          AS kod, 'Počet letos přihlášených orgů s tričkem' AS nazev, NULL AS data UNION
+SELECT 14  AS poradi, 'Ir-Ucast-Vypraveci'     AS kod, 'Počet letos přihlášených vypravěčů' AS nazev, NULL AS data UNION
+SELECT 15  AS poradi, 'Ir-Ucast-Dobrovolnici'  AS kod, 'Počet letos přihlášených dobrovolníků-seniorů, kteří souběžně nejsou partneři, vypravěči ani hermani' AS nazev, NULL AS data UNION
+SELECT 16  AS poradi, 'Ir-Ucast-Partneri'      AS kod, 'Počet letos přihlášených partnerů' AS nazev, NULL AS data UNION
+SELECT 17  AS poradi, 'Ir-Ucast-Brigadnici'    AS kod, 'Počet letos přihlášených brigádníků' AS nazev, NULL AS data UNION
+SELECT 18  AS poradi, 'Ir-Ucast-Hermani'       AS kod, 'Počet letos přihlášených hermanů, kteří souběžně nejsou partneři ani vypravěči' AS nazev, NULL AS data UNION
 SELECT 20  AS poradi, 'Vr-Vstupne'             AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 30  AS poradi, 'Vr-Ubytovani-3L'        AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 31  AS poradi, 'Vr-Ubytovani-2L'        AS kod, NULL AS nazev, NULL AS data UNION
@@ -467,7 +501,7 @@ SELECT 86  AS poradi, 'Ir-StdWGHry'            AS kod, NULL AS nazev, NULL AS da
 SELECT 87  AS poradi, 'Ir-StdWGmal'            AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 88  AS poradi, 'Ir-StdAHry'             AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 89  AS poradi, 'Ir-StdAHEsc'            AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 90  AS poradi, 'Ir-StdPred'            AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 90  AS poradi, 'Ir-StdPred'             AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 100 AS poradi, 'Ir-KapacitaRPG'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 101 AS poradi, 'Ir-KapacitaLKD'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 102 AS poradi, 'Ir-KapacitaDrD'         AS kod, NULL AS nazev, NULL AS data UNION
@@ -562,7 +596,9 @@ SELECT 269 AS poradi, 'Vr-Tasky'               AS kod, NULL AS nazev, NULL AS da
 SELECT 280 AS poradi, 'Xr-Jidla-Snidane'       AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 281 AS poradi, 'Xr-Jidla-Hlavni'        AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 282 AS poradi, 'Nr-JidlaZdarma-Snidane' AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 283 AS poradi, 'Nr-JidlaZdarma-Hlavni'  AS kod, NULL AS nazev, NULL AS data
+SELECT 283 AS poradi, 'Nr-JidlaZdarma-Hlavni'  AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 284 AS poradi, 'Nr-JidlaSleva-Snidane'  AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 285 AS poradi, 'Nr-JidlaSleva-Hlavni'   AS kod, NULL AS nazev, NULL AS data
 )) d
 GROUP BY kod
 ) e
