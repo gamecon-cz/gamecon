@@ -362,7 +362,7 @@ FROM (
     JOIN shop_predmety sp ON sn.id_predmetu = sp.id_predmetu
   WHERE sn.rok = aktualniRocnik()
     AND sp.kod_predmetu LIKE '%plack%'
-    AND maPravo(sn.id_uzivatele, 1002) -- kostka zdarma
+    AND maPravo(sn.id_uzivatele, 1002) -- placka zdarma
   GROUP BY sn.id_uzivatele
 ) a
 
@@ -481,6 +481,7 @@ SELECT 46  AS poradi, 'Nr-Zdarma-WGhry'        AS kod, NULL AS nazev, NULL AS da
 SELECT 47  AS poradi, 'Nr-Zdarma-WGmal'        AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 48  AS poradi, 'Nr-Zdarma-AHry'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 49  AS poradi, 'Nr-Zdarma-AHEsc'        AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 50  AS poradi, 'Nr-Zdarma-Pred'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 60  AS poradi, 'Vr-Storna-RPG'          AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 61  AS poradi, 'Vr-Storna-LKD'          AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 62  AS poradi, 'Vr-Storna-DrD'          AS kod, NULL AS nazev, NULL AS data UNION
@@ -522,7 +523,8 @@ SELECT 125 AS poradi, 'Ir-PrumPocVyp-Epic'     AS kod, NULL AS nazev, NULL AS da
 SELECT 126 AS poradi, 'Ir-PrumPocVyp-WGhry'    AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 127 AS poradi, 'Ir-PrumPocVyp-WGmal'    AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 128 AS poradi, 'Ir-PrumPocVyp-AHry'     AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 129 AS poradi, 'Ir-PrumPocVyp-Pred'     AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 129 AS poradi, 'Ir-PrumPocVyp-AHEsc'    AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 130 AS poradi, 'Ir-PrumPocVyp-Pred'     AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 140 AS poradi, 'Ir-StdVypraveci-RPG'    AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 141 AS poradi, 'Ir-StdVypraveci-LKD'    AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 142 AS poradi, 'Ir-StdVypraveci-DrD'    AS kod, NULL AS nazev, NULL AS data UNION
@@ -532,7 +534,8 @@ SELECT 145 AS poradi, 'Ir-StdVypraveci-Epic'   AS kod, NULL AS nazev, NULL AS da
 SELECT 146 AS poradi, 'Ir-StdVypraveci-WGhry'  AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 147 AS poradi, 'Ir-StdVypraveci-WGmal'  AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 148 AS poradi, 'Ir-StdVypraveci-AHry'   AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 149 AS poradi, 'Ir-StdVypraveci-Pred'   AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 149 AS poradi, 'Ir-StdVypraveci-AHEsc'  AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 150 AS poradi, 'Ir-StdVypraveci-Pred'   AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 160 AS poradi, 'Ir-StdVypOrgove-RPG'    AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 161 AS poradi, 'Ir-StdVypOrgove-LKD'    AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 162 AS poradi, 'Ir-StdVypOrgove-DrD'    AS kod, NULL AS nazev, NULL AS data UNION
@@ -542,7 +545,8 @@ SELECT 165 AS poradi, 'Ir-StdVypOrgove-Epic'   AS kod, NULL AS nazev, NULL AS da
 SELECT 166 AS poradi, 'Ir-StdVypOrgove-WGhry'  AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 167 AS poradi, 'Ir-StdVypOrgove-WGmal'  AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 168 AS poradi, 'Ir-StdVypOrgove-AHry'   AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 169 AS poradi, 'Ir-StdVypOrgove-Pred'   AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 169 AS poradi, 'Ir-StdVypOrgove-AHEsc'  AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 170 AS poradi, 'Ir-StdVypOrgove-Pred'   AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 180 AS poradi, 'Nr-BonusyRPG'           AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 181 AS poradi, 'Nr-BonusyLKD'           AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 182 AS poradi, 'Nr-BonusyDrD'           AS kod, NULL AS nazev, NULL AS data UNION
@@ -552,7 +556,8 @@ SELECT 185 AS poradi, 'Nr-BonusyEpic'          AS kod, NULL AS nazev, NULL AS da
 SELECT 186 AS poradi, 'Nr-BonusyWGhry'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 187 AS poradi, 'Nr-BonusyWGmal'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 188 AS poradi, 'Nr-BonusyAHry'          AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 189 AS poradi, 'Nr-BonusyPred'          AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 189 AS poradi, 'Nr-BonusyAHEsc'         AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 190 AS poradi, 'Nr-BonusyPred'          AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 200 AS poradi, 'Ir-UcastRPG'            AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 201 AS poradi, 'Ir-UcastLKD'            AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 202 AS poradi, 'Ir-UcastDrD'            AS kod, NULL AS nazev, NULL AS data UNION
@@ -563,6 +568,7 @@ SELECT 206 AS poradi, 'Ir-UcastWGhry'          AS kod, NULL AS nazev, NULL AS da
 SELECT 207 AS poradi, 'Ir-UcastWGmal'          AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 208 AS poradi, 'Ir-UcastAHry'           AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 209 AS poradi, 'Ir-UcastAHEsc'          AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 210 AS poradi, 'Ir-UcastPred'           AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 220 AS poradi, 'Vr-Vynosy-RPG'          AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 221 AS poradi, 'Vr-Vynosy-LKD'          AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 222 AS poradi, 'Vr-Vynosy-DrD'          AS kod, NULL AS nazev, NULL AS data UNION
@@ -573,6 +579,7 @@ SELECT 226 AS poradi, 'Vr-Vynosy-WGhry'        AS kod, NULL AS nazev, NULL AS da
 SELECT 227 AS poradi, 'Vr-Vynosy-WGmal'        AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 228 AS poradi, 'Vr-Vynosy-AHry'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 229 AS poradi, 'Vr-Vynosy-AHEsc'        AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 230 AS poradi, 'Vr-Vynosy-Pred'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 240 AS poradi, 'Xr-Tricka-Zaklad'       AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 241 AS poradi, 'Xr-Tricka-Sleva'        AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 242 AS poradi, 'Nr-TrickaZdarma-Org'    AS kod, NULL AS nazev, NULL AS data UNION
@@ -586,9 +593,9 @@ SELECT 249 AS poradi, 'Nr-TilkaZdarma-Dobr'    AS kod, NULL AS nazev, NULL AS da
 SELECT 260 AS poradi, 'Vr-KostkyDrevo'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 261 AS poradi, 'Vr-KostkyOld'           AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 262 AS poradi, 'Vr-Kostky'              AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 263 AS poradi, 'Ir-KostkyZdarma'        AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 263 AS poradi, 'Ir-Kostky-CelkemZdarma'        AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 264 AS poradi, 'Vr-Placky'              AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 265 AS poradi, 'Ir-PlackyZdarma'        AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 265 AS poradi, 'Ir-Placky-Zdarma'        AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 266 AS poradi, 'Vr-Nicknacky'           AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 267 AS poradi, 'Vr-Bloky'               AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 268 AS poradi, 'Vr-Ponozky'             AS kod, NULL AS nazev, NULL AS data UNION
