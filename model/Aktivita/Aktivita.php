@@ -16,6 +16,7 @@ use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Urls;
 use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
@@ -1941,9 +1942,12 @@ SQL
             $deti = $this->deti();
             if (count($deti) === 1) {
                 try {
-                    current($deti)->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
-                } catch (Exception $e) {
-                    throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu s chybou: ' . $e->getMessage());
+                    reset($deti)->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
+                } catch (\Chyba $chyba) {
+                    throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu s chybou: ' . $chyba->getMessage());
+                } catch (\Throwable $throwable) {
+                    Vyjimkovac::vytvorZGlobals()->zaloguj($throwable);
+                    throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu. Interní chyba systému.');
                 }
             } elseif ($this->pocetPrihlasenych() > 0) { // (není teamleader)
                 // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
