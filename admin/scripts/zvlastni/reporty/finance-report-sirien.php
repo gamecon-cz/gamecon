@@ -593,9 +593,9 @@ SELECT 249 AS poradi, 'Nr-TilkaZdarma-Dobr'    AS kod, NULL AS nazev, NULL AS da
 SELECT 260 AS poradi, 'Vr-KostkyDrevo'         AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 261 AS poradi, 'Vr-KostkyOld'           AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 262 AS poradi, 'Vr-Kostky'              AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 263 AS poradi, 'Ir-Kostky-CelkemZdarma'        AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 263 AS poradi, 'Ir-Kostky-CelkemZdarma' AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 264 AS poradi, 'Vr-Placky'              AS kod, NULL AS nazev, NULL AS data UNION
-SELECT 265 AS poradi, 'Ir-Placky-Zdarma'        AS kod, NULL AS nazev, NULL AS data UNION
+SELECT 265 AS poradi, 'Ir-Placky-Zdarma'       AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 266 AS poradi, 'Vr-Nicknacky'           AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 267 AS poradi, 'Vr-Bloky'               AS kod, NULL AS nazev, NULL AS data UNION
 SELECT 268 AS poradi, 'Vr-Ponozky'             AS kod, NULL AS nazev, NULL AS data UNION
