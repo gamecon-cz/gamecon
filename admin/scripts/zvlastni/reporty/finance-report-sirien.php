@@ -201,7 +201,7 @@ SELECT CONCAT('Ir-Kapacita', IF(at.id_typu = 6, -- Wargaming
                                    IF(at.id_typu = 7, -- Bonus
                                       IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
-        'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, IF(ase.teamova = 0, ase.kapacita, ase.team_max) AS kapacita, delkaAktivityJakoNasobekStandardni(ase.id_akce) AS dajns
+        'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, IF(ase.teamova = 0, ase.kapacita + ase.kapacita_f + ase.kapacita_m, ase.team_max) AS kapacita, delkaAktivityJakoNasobekStandardni(ase.id_akce) AS dajns
 FROM akce_seznam ase
 JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = aktualniRocnik()
