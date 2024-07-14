@@ -41,7 +41,7 @@ $t->parse('prezence.filtrAktivit');
 $aktivity = [];
 if ($jenZamceneNeuzavrene) {
     $aktivity = Aktivita::zRozmezi(
-        new \Gamecon\Cas\DateTimeCz('0001-01-01 00:00:01'),
+        \Gamecon\Cas\DateTimeGamecon::zacatekGameconu()->modify('-1 week'),
         new \Gamecon\Cas\DateTimeCz('2999-12-31 00:00:01'),
         Aktivita::ZAMCENE | Aktivita::NEUZAVRENE
     );
