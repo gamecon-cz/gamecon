@@ -166,7 +166,7 @@ while ($rowIterator->valid()) {
                 $cisloDokladu = trim((string)$radek[$indexCisloDokladu]);
                 if ($cisloDokladu === ''
                     && ($ucastnik->rawDb()[UzivatelSql::OP] ?? '') !== ''
-                    && ($ucastnik->rawDb()[UzivatelSql::OP] ?? '') !== $zasifrovanePrazdneOp
+                    && Sifrovatko::desifruj($ucastnik->rawDb()[UzivatelSql::OP] ?? '') !== ''
                 ) {
                     if ($povolitMazaniOp) {
                         $ucastnik->cisloOp('');
