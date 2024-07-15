@@ -10,14 +10,25 @@
     <!-- begin:filtrAktivit -->
     <form id="filtr-aktivit">
       <label style="cursor:pointer">
-        Jen zamčené, ale dosud neuzavřené
-        <input type="checkbox" name="zamcene_neuzavrene" value="1"
-               {checked}
+        Ignorovat výběr času
+        <input type="checkbox" name="ignorovat_cas" value="1"
+               {checkedCas}
                onchange="document.getElementById('filtr-aktivit').submit()"
                style="cursor:pointer;">
-        <!-- begin:ostatniFiltry -->
-        <input type="hidden" name="{name}" value="{value}">
-        <!-- end:ostatniFiltry -->
+      </label>
+      <label style="cursor:pointer">
+        Jen zamčené, ale dosud neuzavřené
+        <input type="checkbox" name="zamcene_neuzavrene" id="zamcene_neuzavrene" value="1"
+               {checkedNeuzavrene}
+               onchange="document.getElementById('uzavrene_nevyplnene').checked = false; document.getElementById('filtr-aktivit').submit()"
+               style="cursor:pointer;">
+      </label>
+      <label style="cursor:pointer">
+        Jen uzavřené, ale nevyplněné
+        <input type="checkbox" name="uzavrene_nevyplnene" id="uzavrene_nevyplnene" value="1"
+               {checkedNevyplnene}
+               onchange="document.getElementById('zamcene_neuzavrene').checked = false; document.getElementById('filtr-aktivit').submit()"
+               style="cursor:pointer;">
       </label>
     </form>
     <!-- end:filtrAktivit -->
