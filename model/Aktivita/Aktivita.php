@@ -3380,6 +3380,10 @@ SQL,
         if (!empty($filtr['jenNeuzavrene'])) {
             $wheres1[] = 'a.stav != ' . StavAktivity::UZAVRENA;
         }
+        if (!empty($filtr['jenNevyplnene'])) { // byli tam přihlášení nějací hráči a nikdo nedorazil
+            $wheres1[] = 'NOT exists(SELECT 1 FROM akce_prihlaseni ap WHERE ap.id_akce = a.id_akce AND ap.id_stavu_prihlaseni IN (1, 2))';
+            $wheres1[] = 'exists(SELECT 1 FROM akce_prihlaseni_spec aps WHERE aps.id_akce = a.id_akce AND aps.id_stavu_prihlaseni = 3)';
+        }
         if (!empty($filtr['od'])) {
             $wheres1[] = dbQv($filtr['od']) . ' <= a.zacatek';
         }
