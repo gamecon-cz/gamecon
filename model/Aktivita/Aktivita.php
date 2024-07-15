@@ -2366,6 +2366,52 @@ HTML
         }
     }
 
+    /** Zpracuje post data z přihlašovátka. */
+    public static function prihlasovatkoZpracujJSON(?Uzivatel $u, ?Uzivatel $prihlasujici, $parametry = 0)
+    {
+        if ($u) {
+            $prihlasujici = $prihlasujici ?? $u;
+            if (post('prihlasit')) {
+                $aktivita = self::zId(post('prihlasit'));
+                if ($aktivita) {
+                    $aktivita->prihlas($u, $prihlasujici, $parametry);
+                }
+            }
+            if (post('odhlasit')) {
+                $bezPokut = ($parametry & self::ZPETNE)
+                    ? self::BEZ_POKUT
+                    // v případě zpětných změn bez pokut
+                    : 0;
+                $aktivita = self::zId(post('odhlasit'));
+                if ($aktivita) {
+                    $aktivita->odhlas(
+                        $u,
+                        $prihlasujici,
+                        $u?->id() === $prihlasujici?->id()
+                            ? 'rucne-vlastni-odhlaseni'
+                            : 'rucni-odhlaseni-adminem',
+                        $bezPokut,
+                    );
+                }
+            }
+            if (post('prihlasSledujiciho')) {
+                $aktivita = self::zId(post('prihlasSledujiciho'));
+                if ($aktivita) {
+                    $aktivita->prihlasSledujiciho($u, $prihlasujici);
+                }
+            }
+            if (post('odhlasSledujiciho')) {
+                $aktivita = self::zId(post('odhlasSledujiciho'));
+                if ($aktivita) {
+                    $aktivita->odhlasSledujiciho($u, $prihlasujici);
+                }
+            }
+        }
+        if ($parametry & self::PLUSMINUS_KAZDY) {
+            self::plusminusZpracuj();
+        }
+    }
+
     /**
      * Přihlásí uživatele jako sledujícího (watchlist)
      */
