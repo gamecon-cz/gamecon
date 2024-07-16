@@ -90,14 +90,14 @@ foreach ($aktivity as $aktivita) {
     }
     if (!$uzavrena) {
         /** @var \Gamecon\Cas\DateTimeCz|null $zacatek */
-        $t->assign('cas', $zacatek ? $zacatek->formatDb() : null);
+        $t->assign('cas', $aktivita->zacatek()?->formatDb());
         $t->assign('htmlIdAktivity', OnlinePrezenceHtml::nazevProAnchor($aktivita));
         $t->parse('prezence.aktivita.form.onlinePrezence');
         $t->parse('prezence.aktivita.pozorNeuzavrena');
     }
     $t->assign(
         'nadpis',
-        implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace(), $aktivita->zacatek()->format('l H:i')]))
+        implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace(), $aktivita->zacatek()?->format('l H:i')]))
         . ($aktivita->zamcena() ? ' <span class="hinted">🔒<span class="hint">Zamčená pro přihlašování</span></span> ' : '')
         . ($aktivita->uzavrena() ? ' <span class="hinted">📕<span class="hint">S uzavřenou prezencí</span></span> ' : '')
     );
