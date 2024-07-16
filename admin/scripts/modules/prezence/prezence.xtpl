@@ -137,12 +137,8 @@
   <!-- end:aktivita -->
 
   <!-- begin:zadnaAktivita -->
-  <p>Žádné aktivity (které se mají evidovat) nezačínají v zadaný čas.</p>
+  <p>Žádné aktivity neodpovídají zadaným filtrům.</p>
   <!-- end:zadnaAktivita -->
-
-  <!-- begin:nevybrano -->
-  <p>Není vybrán blok, který se má zobrazit. Vyberte vpravo nahoře.</p>
-  <!-- end:nevybrano -->
 
 </div>
 
