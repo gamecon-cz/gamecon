@@ -61,13 +61,8 @@ if ($jenUzavreneNevyplnene) {
 }
 $aktivity = Aktivita::zFiltru($filtr);
 
-if (!$jenZamceneNeuzavrene) {
-    if ($zacatek && count($aktivity) === 0) {
-        $t->parse('prezence.zadnaAktivita');
-    }
-    if (!$zacatek) {
-        $t->parse('prezence.nevybrano');
-    }
+if (count($aktivity) === 0) {
+    $t->parse('prezence.zadnaAktivita');
 }
 
 foreach ($aktivity as $aktivita) {
