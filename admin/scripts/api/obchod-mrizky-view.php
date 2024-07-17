@@ -4,7 +4,7 @@ use Gamecon\Kfc\ObchodMrizkaBunka;
 use Gamecon\Kfc\ObchodMrizka;
 use Gamecon\Pravo;
 
-if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE))
+if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE) && !$u->jeInfopultak() && !$u->jeOrganizator())
 ) {
     header('HTTP/1.1 403 Forbidden');
     echo '{error: "403 Forbidden"}';
