@@ -893,6 +893,9 @@ SQL,
         if ($this->u->nemaPravoNaBonusZaVedeniAktivit()) {
             return;
         }
+        if (!$this->u->gcPrihlasen()) {
+            return; // pokud se například odhlásí těsně před GC
+        }
         foreach (Aktivita::zOrganizatora($this->u) as $a) {
             $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a, $this->systemoveNastaveni);
         }
