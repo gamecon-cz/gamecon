@@ -2,9 +2,8 @@
 
 <h1>Peníze</h1>
 
-<p>♪ Pod dubem za dubem
-  tam si na tě počíháme</p>
-<p>pod dubem za dubem
-  tam tě voškubem! 🎶</p>
+<!--{FILE "scripts/modules/penize/_vyplatitBonusZaVedeniAktivity.xtpl"}-->
+
+{FILE "scripts/modules/penize/_pripsatSlevu.xtpl"}
 
 <!-- end:penize -->

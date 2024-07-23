@@ -2,7 +2,7 @@ FTP Deployment: smart upload
 ============================
 
 [![Downloads this Month](https://img.shields.io/packagist/dm/dg/ftp-deployment.svg)](https://packagist.org/packages/dg/ftp-deployment)
-[![Tests](https://github.com/dg/ftp-deployment/workflows/Tests/badge.svg?branch=master)](https://github.com/dg/ftp-deployment/actions)
+[![Tests](https://github.com/dg/ftp-deployment/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/dg/ftp-deployment/actions/workflows/tests.yml)
 [![Latest Stable Version](https://poser.pugx.org/dg/ftp-deployment/v/stable)](https://github.com/dg/ftp-deployment/releases)
 [![License](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://github.com/dg/ftp-deployment/blob/master/license.md)
 
@@ -190,11 +190,11 @@ FTP Deployment 3.6 requires PHP 8.0 or later. It also requires openssl extension
 
 The easiest way to obtain FTP Deployment is to download [a single PHAR file](https://github.com/dg/ftp-deployment/releases).
 
-If you want to use minification, install [Node.js](https://nodejs.org/en/) and [UglifyES](https://www.npmjs.com/package/uglify-es)
+If you want to use minification, install [Node.js](https://nodejs.org/en/), [UglifyJS 3](https://www.npmjs.com/package/uglify-js)
 for JavaScript minification and [clean-css](https://www.npmjs.com/package/clean-css-cli) for CSS minification.
 
 ```
-npm install uglify-es -g
+npm install uglify-js -g
 npm install clean-css-cli -g
 ```
 

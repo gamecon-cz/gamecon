@@ -4,6 +4,7 @@ namespace Gamecon\Aktivita;
 
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura as LogSql;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
+use Gamecon\Hlaska\Hlaska;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
@@ -206,8 +207,42 @@ class AktivitaPrezence
         GcMail::vytvorZGlobals()
             ->adresat($u->mail())
             ->predmet('Nedostavení se na aktivitu')
-            ->text(hlaskaMail('nedostaveniSeNaAktivituMail', $u, $this->aktivita->nazev()))
+            ->text(hlaskaMail(
+                Hlaska::NEDOSTAVENI_SE_NA_AKTIVITU_MAIL,
+                $u,
+                $this->aktivita->nazev(),
+                $this->doKdyJeAktivitaBezPokuty(),
+                $this->procentaZaPozdniOdhlaseni(),
+            ))
             ->odeslat();
+    }
+
+    private function procentaZaPozdniOdhlaseni(): int
+    {
+        return AkcePrihlaseniStavy::zId(AkcePrihlaseniStavy::POZDE_ZRUSIL_ID)->platbaProcent();
+    }
+
+    private function doKdyJeAktivitaBezPokuty(): string
+    {
+        if (!$this->systemoveNastaveni->kontrolovatPokutuZaOdhlaseni()) {
+            return 'hodinu'; // tohle není pravda, nebudeme počítat storno vůbec o:-)
+        }
+        $hodin = $this->systemoveNastaveni->kolikHodinPredAktivitouUzJePokutaZaOdhlaseni();
+
+        return $this->hodinSlovne($hodin);
+    }
+
+    private function hodinSlovne(int $hodin): string
+    {
+        if ($hodin === 1) {
+            return 'hodinu';
+        }
+
+        if ($hodin < 5) {
+            return $hodin . ' hodiny';
+        }
+
+        return $hodin . ' hodin';
     }
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable
@@ -340,7 +375,7 @@ SQL,
             (int)$posledniZmena['id_akce'],
             (int)$posledniZmena['id_log'],
             new \DateTimeImmutable((string) $posledniZmena['kdy']),
-            $posledniZmena['typ']
+            $posledniZmena['typ'],
         );
     }
 

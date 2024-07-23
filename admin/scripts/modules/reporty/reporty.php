@@ -26,6 +26,7 @@ $pouzitiReportu = static function (array $r): array {
 };
 
 $t = new XTemplate(__DIR__ . '/reporty.xtpl');
+$t->assign('baseUrl', URL_ADMIN);
 
 $univerzalniReporty = dbFetchAll(<<<SQL
 SELECT reporty.*,

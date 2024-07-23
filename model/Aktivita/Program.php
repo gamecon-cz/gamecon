@@ -669,7 +669,7 @@ HTML;
             return null;
         }
 
-        return $a['zacatek'] > PROGRAM_ZACATEK
+        return $a['zacatek'] >= PROGRAM_ZACATEK
             ? new DateTimeCz($a['den'])
             : (new DateTimeCz($a['den']))->plusDen();
     }

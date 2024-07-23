@@ -27,8 +27,9 @@ use Gamecon\XTemplate\XTemplate;
  */
 class Uzivatel extends DbObject
 {
-    protected static $tabulka = Sql::UZIVATEL_TABULKA;
-    protected static $pk      = Sql::ID_UZIVATELE;
+    protected static     $tabulka = Sql::UZIVATEL_TABULKA;
+    protected static     $pk      = Sql::ID_UZIVATELE;
+    private static array $objekty = [];
 
     public const POSAZEN = 'posazen';
     public const SESAZEN = 'sesazen';
@@ -529,7 +530,7 @@ SQL
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
-JOIN akce_seznam on akce_prihlaseni.id_akce = akce_seznam.id_akce
+JOIN akce_seznam ON akce_prihlaseni.id_akce = akce_seznam.id_akce
 WHERE akce_prihlaseni.id_uzivatele = $1
 AND akce_prihlaseni.id_stavu_prihlaseni = $2
 AND akce_seznam.rok = $3
@@ -550,7 +551,7 @@ SQL,
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
-JOIN akce_seznam on akce_prihlaseni.id_akce = akce_seznam.id_akce
+JOIN akce_seznam ON akce_prihlaseni.id_akce = akce_seznam.id_akce
 WHERE akce_prihlaseni.id_uzivatele = $1
 AND akce_seznam.rok = $2
 SQL,
@@ -1089,7 +1090,16 @@ SQL,
 
     public function potvrzeniZakonnehoZastupceOd(): ?DateTimeImmutable
     {
-        $potvrzeniOdString = $this->r['potvrzeni_zakonneho_zastupce'];
+        $potvrzeniOdString = $this->r[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE];
+
+        return $potvrzeniOdString
+            ? new \DateTimeImmutable($potvrzeniOdString)
+            : null;
+    }
+
+    public function potvrzeniZakonnehoZastupceSouborOd(): ?DateTimeImmutable
+    {
+        $potvrzeniOdString = $this->r[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR];
 
         return $potvrzeniOdString
             ? new \DateTimeImmutable($potvrzeniOdString)
@@ -2053,12 +2063,12 @@ SQL,
     ", null, 'LIMIT ' . $limit);
     }
 
-    public static function zId($id, bool $zCache = false): ?Uzivatel
+    public static function zId($id, bool $zCache = false): ?static
     {
         $id = (int)$id;
 
         if ($zCache) {
-            $objekt = self::$objekty[$id] ?? null;
+            $objekt = self::$objekty[static::class][$id] ?? null;
             if ($objekt) {
                 return $objekt;
             }
@@ -2067,7 +2077,7 @@ SQL,
         $uzivatel = self::zIds($id)[0] ?? null;
 
         if ($uzivatel && $zCache) {
-            self::$objekty[$id] = $uzivatel;
+            self::$objekty[static::class][$id] = $uzivatel;
         }
 
         return $uzivatel;
@@ -2103,7 +2113,7 @@ SQL,
         if (is_array($ids)) {
             $ids                     = array_map('intval', $ids);
             $chybejiciUzivateleIdcka = $zCache
-                ? array_diff($ids, array_keys(self::$objekty))
+                ? array_diff($ids, array_keys(self::$objekty[static::class] ?? []))
                 : $ids;
             $nacteniUzivatele        = [];
             if ($chybejiciUzivateleIdcka) {
@@ -2115,13 +2125,13 @@ SQL,
                 return $nacteniUzivatele;
             }
             foreach ($nacteniUzivatele as $nactenyUzivatel) {
-                self::$objekty[$nactenyUzivatel->id()] = $nactenyUzivatel;
+                self::$objekty[static::class][$nactenyUzivatel->id()] = $nactenyUzivatel;
             }
 
             $uzivatele = [];
             foreach ($ids as $id) {
-                if (self::$objekty[$id] ?? false) {
-                    $uzivatele[$id] = self::$objekty[$id];
+                if (self::$objekty[static::class][$id] ?? false) {
+                    $uzivatele[$id] = self::$objekty[static::class][$id];
                 }
             }
 
@@ -2483,6 +2493,18 @@ SQL;
             : null;
     }
 
+    private function ulozPotvrzeniRodicuPridanoKdy(?\DateTimeInterface $kdy)
+    {
+        dbUpdate(Sql::UZIVATEL_TABULKA, [
+            Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR => $kdy,
+        ], [
+            Sql::ID_UZIVATELE => $this->id(),
+        ]);
+        $this->r[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR] = $kdy
+            ? $kdy->format(DateTimeCz::FORMAT_DB)
+            : null;
+    }
+
     public function urlNaPotvrzeniProtiCoviduProAdmin(): string
     {
         // admin/scripts/zvlastni/infopult/potvrzeni-proti-covidu.php
@@ -2531,6 +2553,46 @@ SQL;
         return $potvrzeniProtiCovid19OverenoKdy
             ? new DateTimeImmutable($potvrzeniProtiCovid19OverenoKdy)
             : null;
+    }
+
+    public function cestaKSouboruSPotvrzenimRodicu(): ?string
+    {
+        return WWW . '/soubory/systemove/potvrzeni/potvrzeni-rodicu-' . $this->id() . '.png';
+    }
+
+    public function zpracujPotvrzeniRodicu(): bool
+    {
+        if (!isset($_FILES['potvrzeniRodicu']) || empty($_FILES['potvrzeniRodicu']['tmp_name'])) {
+            return false;
+        }
+        $f = @fopen($_FILES['potvrzeniRodicu']['tmp_name'], 'rb');
+        if (!$f) {
+            throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo načíst");
+        }
+        $imagick = new Imagick();
+
+        $imageRead = false;
+        try {
+            $imageRead = $imagick->readImageFile($f);
+        } catch (\Throwable $throwable) {
+            trigger_error($throwable->getMessage(), E_USER_WARNING);
+        }
+        if (!$imageRead) {
+            throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo přečíst. Je to obrázek nebo PDF?");
+        }
+
+        try {
+            $imagick->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
+            $imagick->setImageCompressionQuality(100);
+        } catch (\Throwable $throwable) {
+            trigger_error($throwable->getMessage(), E_USER_WARNING);
+        }
+        $imagick->writeImage($this->cestaKSouboruSPotvrzenimRodicu());
+
+        $ted = new DateTimeImmutable();
+        $this->ulozPotvrzeniRodicuPridanoKdy($ted);
+
+        return true;
     }
 
     public function uvodniAdminUrl(string $zakladniAdminUrl = URL_ADMIN): string

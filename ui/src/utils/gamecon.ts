@@ -9,6 +9,16 @@ export const DNY_NÁZVY = [
   "nedele",
 ];
 
+export const DNY_NÁZVY_S_HÁČKY = [
+  "pondělí",
+  "úterý",
+  "středa",
+  "čtvrtek",
+  "pátek",
+  "sobota",
+  "neděle",
+];
+
 export const doplňHáčkyDoDne = (den: string) => {
   if (den === "pondeli") return "pondělí";
   if (den === "utery") return "úterý";

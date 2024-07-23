@@ -1,7 +1,12 @@
+---
 name: Run tests
+
+# yamllint disable-line rule:truthy
 on:
   push:
-    branches: # beta a main si pouští testy samy, před deployem, viz deploy-beta.yml a deploy-ostra.yml
+    branches:
+      # beta a main si pouští testy samy, před deployem,
+      # viz deploy-beta.yml a deploy-ostra.yml
       - '!beta'
       - '!main'
   workflow_dispatch:
@@ -20,34 +25,36 @@ jobs:
       fail-fast: false
 
     name: Run tests job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2' # musí odpovídat verzi na wedosu
+          php-version: '8.3'  # musí odpovídat verzi na serveru
           # extensions musí odpovídat seznamu v composer.json
-          extensions: bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json, mbstring, mysqli, pdo, sqlite3, xmlreader, zip
+          extensions: >-
+            bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json,
+            mbstring, mysqli, pdo, sqlite3, xmlreader, zip
           tools: composer
           coverage: none
 
       - name: Cache composer dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: vendor
           key: composer-${{ hashFiles('composer.lock') }}
 
       - name: Install dependencies
-        run: composer install # includes dev by default
+        run: composer install  # includes dev by default
 
       - name: Setup MySQL for tests
         uses: shogo82148/actions-setup-mysql@v1
         with:
-          mysql-version: 'mariadb-10.3' # mělo by odpovídat verzi na wedosu
+          mysql-version: 'mariadb-10.6'  # mělo by odpovídat verzi na serveru
 
       - name: Run tests
-        run: ./vendor/bin/phpunit --testdox
+        run: ./vendor/bin/phpunit

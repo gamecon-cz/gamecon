@@ -39,6 +39,7 @@ class UzivatelSqlStruktura
     public const OP                                  = 'op';
     public const STATNI_OBCANSTVI                    = 'statni_obcanstvi';
     public const POTVRZENI_ZAKONNEHO_ZASTUPCE        = 'potvrzeni_zakonneho_zastupce';
+    public const POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR = 'potvrzeni_zakonneho_zastupce_soubor';
     public const POTVRZENI_PROTI_COVID19_PRIDANO_KDY = 'potvrzeni_proti_covid19_pridano_kdy';
     public const POTVRZENI_PROTI_COVID19_OVERENO_KDY = 'potvrzeni_proti_covid19_overeno_kdy';
     public const INFOPULT_POZNAMKA                   = 'infopult_poznamka';

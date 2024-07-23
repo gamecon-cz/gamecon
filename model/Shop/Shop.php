@@ -35,7 +35,7 @@ class Shop
     public const STAV_POZASTAVENY = StavPredmetu::POZASTAVENY;
 
     public const PN_JIDLO      = 'cShopJidlo';          // post proměnná pro jídlo
-    public const PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
+    public const PN_JIDLO_ZMEN = 'cShopJidloZmen';      // post proměnná indikující, že se má jídlo aktualizovat
 
     /** https://cs.wikipedia.org/wiki/Gama_korekce pro nelineární rozsah vstupneho */
     private const VSTUPNE_GAMA_KOREKCE = 0.5;
@@ -71,14 +71,18 @@ class Shop
      * @return void
      * @throws \DbException
      */
-    public static function zrusObjednavkyPro(array $uzivatele, $typ)
-    {
+    public static function zrusObjednavkyPro(
+        array $uzivatele,
+              $typ,
+    ) {
         $povoleneTypy = [self::PREDMET, self::UBYTOVANI, self::TRICKO, self::JIDLO];
         if (!in_array($typ, $povoleneTypy)) {
             throw new \Exception('Tento typ objednávek není možné hromadně zrušit');
         }
 
-        $ids = array_map(static function ($u) {
+        $ids = array_map(static function (
+            $u,
+        ) {
             return $u->id();
         }, $uzivatele);
 
@@ -104,8 +108,10 @@ SQL,
      * @return Polozka[]
      * @throws \DbException
      */
-    public static function letosniPolozky(int $rok = ROCNIK, ?array $idckaPolozek = null): array
-    {
+    public static function letosniPolozky(
+        int    $rok = ROCNIK,
+        ?array $idckaPolozek = null,
+    ): array {
         $polozkyData = dbFetchAll(<<<SQL
 SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,kategorie_predmetu,nabizet_do
 FROM (
@@ -188,14 +194,14 @@ SQL,
     private               $ubytovaniDo;
     private               $ubytovaniTypy = [];
     private               $vstupne       = ['sum_cena_nakupni' => 0.];                   // dobrovolné vstupné (složka zaplacená regurélně včas)
-    private               $vstupnePozde  = ['sum_cena_nakupni' => 0.0];              // dobrovolné vstupné (složka zaplacená pozdě)
-    private               $vstupneJeVcas;             // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
-    private               $klicU         = 'shopU';           // klíč formu pro identifikaci polí
-    private               $klicUPokoj    = 'shopUPokoj'; // s kým chce být na pokoji
-    private               $klicV         = 'shopV';           // klíč formu pro identifikaci vstupného
-    private               $klicP         = 'shopP';           // klíč formu pro identifikaci polí
-    private               $klicT         = 'shopT';           // klíč formu pro identifikaci polí s tričkama
-    private               $klicS         = 'shopS';           // klíč formu pro identifikaci polí se slevami
+    private               $vstupnePozde  = ['sum_cena_nakupni' => 0.0];                  // dobrovolné vstupné (složka zaplacená pozdě)
+    private               $vstupneJeVcas;                                                // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
+    private               $klicU         = 'shopU';                                      // klíč formu pro identifikaci polí
+    private               $klicUPokoj    = 'shopUPokoj';                                 // s kým chce být na pokoji
+    private               $klicV         = 'shopV';                                      // klíč formu pro identifikaci vstupného
+    private               $klicP         = 'shopP';                                      // klíč formu pro identifikaci polí
+    private               $klicT         = 'shopT';                                      // klíč formu pro identifikaci polí s tričkama
+    private               $klicS         = 'shopS';                                      // klíč formu pro identifikaci polí se slevami
 
     public function __construct(
         private readonly Uzivatel           $zakaznik,
@@ -203,11 +209,6 @@ SQL,
         private readonly SystemoveNastaveni $systemoveNastaveni,
         array                               $nastaveni = null,
     ) {
-        $this->cenik = new Cenik(
-            $zakaznik,
-            $zakaznik->finance()->bonusZaVedeniAktivit(),
-            $systemoveNastaveni
-        );
         if (is_array($nastaveni)) {
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
         }
@@ -220,9 +221,9 @@ FROM (
         predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav, predmety.auto,
         predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis,
         IF(predmety.model_rok = $1 OR COALESCE(predmety.popis, '') = '', predmety.nazev, CONCAT(predmety.nazev, ' (', predmety.popis, ')')) AS nazev,
-        COUNT(IF(nakupy.rok = $1, 1, NULL)) kusu_prodano,
-        COUNT(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, 1, NULL)) kusu_uzivatele,
-        SUM(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, nakupy.cena_nakupni, 0)) sum_cena_nakupni
+        COUNT(IF(nakupy.rok = $1, 1, NULL)) AS kusu_prodano,
+        COUNT(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, 1, NULL)) AS kusu_uzivatele,
+        SUM(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, nakupy.cena_nakupni, 0)) AS sum_cena_nakupni
       FROM shop_predmety predmety
       LEFT JOIN shop_nakupy AS nakupy
         ON predmety.id_predmetu = nakupy.id_predmetu
@@ -334,8 +335,21 @@ SQL,
             $this->zakaznik,
             $this->objednatel,
             KontextZobrazeni::vytvorZGlobals(),
-            $systemoveNastaveni
+            $systemoveNastaveni,
         ); // náhrada reprezentace polem za objekt
+    }
+
+    private function cenik(): Cenik
+    {
+        if (($this->cenik ?? null) === null) {
+            $this->cenik = new Cenik(
+                $this->zakaznik,
+                $this->zakaznik->finance()->bonusZaVedeniAktivit(),
+                $this->systemoveNastaveni,
+            );
+        }
+
+        return $this->cenik;
     }
 
     private function seradJidla(array $jidla): array
@@ -348,8 +362,10 @@ SQL,
         return $jidla;
     }
 
-    private function seradDruhyJidel(string $nejakyDruh, string $jinyDruh): int
-    {
+    private function seradDruhyJidel(
+        string $nejakyDruh,
+        string $jinyDruh,
+    ): int {
         return Jidlo::dejPoradiJidlaBehemDne($nejakyDruh) <=> Jidlo::dejPoradiJidlaBehemDne($jinyDruh);
     }
 
@@ -378,6 +394,7 @@ SQL,
         $druhy              = $this->jidlo['druhy'];
         $jidla              = $this->jidlo['jidla'] ?? [];
         $prodejJidlaUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejJidlaUkoncen();
+        $cenik              = $this->cenik();
         // vykreslení
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!defined('PRODEJ_JIDLA_POZASTAVEN') || !PRODEJ_JIDLA_POZASTAVEN) {
@@ -397,7 +414,7 @@ SQL,
                     $t->parse('jidlo.druh.den');
                 }
                 $t->assign('druh', $druh);
-                $t->assign('cena', $this->cenik->shop($jidlo) . '&thinsp;Kč');
+                $t->assign('cena', $cenik->shop($jidlo) . '&thinsp;Kč');
                 $t->parse('jidlo.druh');
             }
             // hlavička
@@ -526,11 +543,14 @@ SQL,
             $predmetyZamceny = true;
         }
 
+        $cenik = $this->cenik();
         foreach ($this->predmety as $predmet) {
             $cena        = (float)$predmet['cena_aktualni'];
             $cenaPoSleve = $cena;
             if (Predmet::jeToKostka($predmet[Sql::NAZEV])) {
-                $cenaPoSleve = (float)$this->cenik->cenaKostky($predmet);
+                $cenaPoSleve = (float)$cenik->cenaKostky($predmet);
+            } elseif (Predmet::jeToPlacka($predmet[Sql::NAZEV])) {
+                $cenaPoSleve = (float)$cenik->cenaPlacky($predmet);
             }
             $cena        = round($cena);
             $cenaPoSleve = round($cenaPoSleve);
@@ -693,7 +713,7 @@ SQL,
         $t = new XTemplate(__DIR__ . '/templates/shop-vstupne.xtpl');
         $t->assign([
             'jsSlider'              => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js?version='
-                . md5_file(WWW . '/soubory/blackarrow/shop/shop-vstupne.js'),
+                                       . md5_file(WWW . '/soubory/blackarrow/shop/shop-vstupne.js'),
             'stav'                  => $this->zakaznik->gcPrihlasen()
                 ? $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni']
                 : VYCHOZI_DOBROVOLNE_VSTUPNE, // výchozí hodnota
@@ -734,8 +754,10 @@ SQL,
      * @param array<int|string> $stare
      * @param array<int|string> $nove
      */
-    private function zmenObjednavku(array $stare, array $nove): void
-    {
+    private function zmenObjednavku(
+        array $stare,
+        array $nove,
+    ): void {
         $nechce   = array_diff($stare, $nove);
         $chceNove = array_diff($nove, $stare);
         // přírustky
@@ -783,7 +805,7 @@ SQL,
             $i         = $j = 0;
             $odstranit = []; //čísla (kvůli nutností více delete dotazů s limitem)
             $pridat    = ''; //část sql dotazu
-            while (!empty($nove[$i]) || !empty($stare[$j]))
+            while (!empty($nove[$i]) || !empty($stare[$j])) {
                 if (empty($stare[$j]) || (!empty($nove[$i]) && $nove[$i] < $stare[$j]))
                     // tento prvek není v staré objednávce
                     // zapíšeme si ho pro přidání a přeskočíme na další
@@ -794,21 +816,24 @@ SQL,
                     $odstranit[] = $stare[$j++];
                 else
                     // prvky jsou shodné, skočíme o jedna v obou seznamech a neděláme nic
-                    $i++ == $j++; //porovnání bez efektu
+                    $i++ == $j++;
+            } //porovnání bez efektu
             // odstranění předmětů, které z objednávky oproti DB zmizely
             foreach ($odstranit as $idPredmetuProOdstraneni) {
                 $this->zrusNakupPredmetu($idPredmetuProOdstraneni, 1 /* jen jeden, necheme zlikvidovat všechny ojednávky toho předmětu */);
             }
             // přidání předmětů, které doposud objednané nemá
             $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum) VALUES ' . $pridat;
-            if (substr($q, -1) != ' ') { // hack testující, jestli se přidala nějaká část
+            if (substr($q, -1) != ' ') {    // hack testující, jestli se přidala nějaká část
                 dbQuery(substr($q, 0, -1)); // odstranění nadbytečné čárky z poslední přidávané části a spuštění dotazu
             }
         }
     }
 
-    public function zrusNakupPredmetu($idPredmetu, int $pocet): int
-    {
+    public function zrusNakupPredmetu(
+        $idPredmetu,
+        int $pocet,
+    ): int {
         $idPredmetu = (int)$idPredmetu;
         $rok        = ROCNIK;
         $query      = <<<SQL
@@ -832,8 +857,10 @@ SQL,
      * Zpracuje část formuláře s ubytováním
      * @return bool jestli došlo k zpracování dat
      */
-    public function zpracujUbytovani(bool $vcetneSpolubydliciho = true, bool $hlidatKapacituUbytovani = true): bool
-    {
+    public function zpracujUbytovani(
+        bool $vcetneSpolubydliciho = true,
+        bool $hlidatKapacituUbytovani = true,
+    ): bool {
         return $this->ubytovani->zpracuj($vcetneSpolubydliciho, $hlidatKapacituUbytovani);
     }
 
@@ -850,7 +877,10 @@ SQL,
         $vstupneVcas  = $castka;
         $vstupnePozde = 0;
         // funkce pro provedení změn
-        $zmeny = function ($radek, $cena) {
+        $zmeny = function (
+            $radek,
+            $cena,
+        ) {
             if ($radek['kusu_uzivatele'] == 0) {
                 dbInsert('shop_nakupy', [
                     'cena_nakupni'   => $cena,
@@ -1053,8 +1083,10 @@ SQL
      * @param int|null $rocnik
      * @return string[]
      */
-    public function dejNazvyZrusenychNakupu(string $zdrojZruseni, int $rocnik = null): array
-    {
+    public function dejNazvyZrusenychNakupu(
+        string $zdrojZruseni,
+        int    $rocnik = null,
+    ): array {
         $rocnik ??= $this->systemoveNastaveni->rocnik();
 
         return dbFetchColumn(<<<SQL
@@ -1069,14 +1101,23 @@ SQL
         );
     }
 
-    public function prodat(int $idPredmetu, int $kusu = 1, bool $vcetneOznamemi = false)
-    {
+    public function prodat(
+        int  $idPredmetu,
+        int  $kusu = 1,
+        bool $vcetneOznamemi = false,
+    ) {
+        $cenaAktualni = dbOneCol("SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu={$idPredmetu}");
+
         for ($i = 1; $i <= $kusu; $i++) {
             dbQuery(<<<SQL
 INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum)
-VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$this->systemoveNastaveni->rocnik()},(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu={$idPredmetu}),NOW())
+VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$this->systemoveNastaveni->rocnik()},{$cenaAktualni},NOW())
 SQL,
             );
+        }
+
+        if ($this->zakaznik->id() === Uzivatel::SYSTEM) {
+            $this->zakaznik->finance()->pripis(((float)$cenaAktualni) * $kusu, $this->objednatel, 'anonymní prodej');
         }
 
         if (!$vcetneOznamemi) {

@@ -45,9 +45,9 @@
 <div class="aktivity_aktivity {specTridy}">
     <!-- begin: aktivita -->
     <div class="aktivity_aktivita" id="{htmlId}">
-        <img class="aktivity_obrazek" src="{obrazek}">
+        <label class="aktivity_vice_bezstylu" for="aktivity_nahledId{aktivita.id}"><img class="aktivity_obrazek" src="{obrazek}"></label>
         <h2 class="aktivity_nazev">
-          {aktivita.nazev}<a href="{kotva}" class="aktivity_kotva">#</a>
+            <label class="aktivity_vice_bezstylu" for="aktivity_nahledId{aktivita.id}">{aktivita.nazev}</label><a href="{kotva}" class="aktivity_kotva">#</a>
         </h2>
         <div class="aktivity_vypravec"><b>Vypravěč:</b> {organizatori}</div>
         <div class="aktivity_stitky">

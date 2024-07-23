@@ -68,6 +68,15 @@ if (post('pridatPotvrzeniProtiCovidu')) {
     }
 }
 
+if (post('pridatPotvrzeniRodicu')) {
+    if (!$u->zpracujPotvrzeniRodicu()) {
+        chyba('Nejdříve vlož potvrzení.');
+    } else {
+        oznameni('Potvrzení bylo uloženo.');
+    }
+    back();
+}
+
 if (po(GC_BEZI_DO)) {
     if ($u && $u->gcPritomen()) {
         $t->parse('prihlaskaPoGc.ucastnilSe');
@@ -113,7 +122,11 @@ if ($systemoveNastaveni->gcBezi()) {
 }
 
 if (!$u) {
-    back(URL_WEBU);
+    oznameniPresmeruj(
+        'Tato stránka vyžaduje přihlášení',
+        URL_WEBU . '/prihlaseni',
+        Chyba::VAROVANI
+    );
 }
 
 if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
@@ -258,9 +271,19 @@ $t->assign([
     'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejpozdejiZaplatitDo()->format(DateTimeCz::FORMAT_DATUM_LETOS),
 ]);
 
-$t->parse($u->gcPrihlasen()
-    ? 'prihlaska.prihlasen'
-    : 'prihlaska.neprihlasen');
-if ($u->gcPrihlasen() && pred($systemoveNastaveni->gcBeziOd())) {
-    $t->parse('prihlaska.odhlasit');
+if ($u->gcPrihlasen()) {
+    if ($u->vekKDatu($systemoveNastaveni->gcBeziOd()) < 15 &&
+        ((!$u->potvrzeniZakonnehoZastupceOd()) ||
+            $u->potvrzeniZakonnehoZastupceOd()->format('Y') != $systemoveNastaveni->rocnik())) {
+        if ($u->potvrzeniZakonnehoZastupceSouborOd() && ((!$u->potvrzeniZakonnehoZastupceOd()) || $u->potvrzeniZakonnehoZastupceSouborOd() > ($u->potvrzeniZakonnehoZastupceOd()))) {
+            $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce.nahrano');
+        }
+        $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce');
+    }
+    $t->parse('prihlaska.prihlasen');
+    if (pred($systemoveNastaveni->gcBeziOd())) {
+        $t->parse('prihlaska.odhlasit');
+    }
+} else {
+    $t->parse('prihlaska.neprihlasen');
 }

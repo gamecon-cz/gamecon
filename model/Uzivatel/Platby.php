@@ -38,8 +38,10 @@ class Platby
      * @param DateTimeInterface $do
      * @return FioPlatba[]
      */
-    public function nactiZRozmezi(DateTimeInterface $od, DateTimeInterface $do)
-    {
+    public function nactiZRozmezi(
+        DateTimeInterface $od,
+        DateTimeInterface $do,
+    ) {
         return $this->zpracujPlatby(FioPlatba::zRozmezi($od, $do));
     }
 
@@ -69,9 +71,8 @@ class Platby
                     Sql::PRIPSANO_NA_UCET_BANKY => $fioPlatba->datum(),
                     Sql::PROVEDENO              => new DateTimeImmutable(),
                     Sql::PROVEDL                => Uzivatel::SYSTEM,
-                    Sql::POZNAMKA               => strlen($fioPlatba->zpravaProPrijemce()) > 4
-                        ? $fioPlatba->zpravaProPrijemce()
-                        : null,
+                    Sql::POZNAMKA               => $fioPlatba->zpravaProPrijemce(),
+                    Sql::SKRYTA_POZNAMKA        => $fioPlatba->zkrytaPoznamka(),
                 ],
             );
             $vysledek[] = $fioPlatba;
@@ -98,8 +99,10 @@ class Platby
         $this->zalogujPlatby($fioPlatby, 'nove_sparovane');
     }
 
-    private function zalogujPlatby(array $fioPlatby, string $typZaznamu)
-    {
+    private function zalogujPlatby(
+        array  $fioPlatby,
+        string $typZaznamu,
+    ) {
         $db = $this->zajistiTabulkuProLogovani();
         $db->insert(
             'fio_platby',
@@ -107,13 +110,13 @@ class Platby
                 'typ'            => $typZaznamu,
                 'platby'         => json_encode(
                     array_map(
-                        fn(FioPlatba $fioPlatba) => $fioPlatba->jakoArray(),
-                        $fioPlatby
+                        fn(FioPlatba $fioPlatba,) => $fioPlatba->jakoArray(),
+                        $fioPlatby,
                     ),
-                    JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE
+                    JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE,
                 ),
                 'zalogovano_kdy' => date('c'),
-            ]
+            ],
         );
     }
 
@@ -149,18 +152,21 @@ class Platby
     }
 
     /**
-     * @param int|null $rok
-     * @return \Generator|Platba[]
+     * @param int|null $rocnik
+     * @return iterable<Platba>
      */
-    public function nesparovanePlatby(?int $rok = ROCNIK): \Generator
-    {
+    public function nesparovanePlatby(
+        ?int   $rocnik = ROCNIK,
+        string $orderByDesc = Sql::ID,
+    ): iterable {
         $result = dbQuery(<<<SQL
             SELECT id
             FROM platby
             WHERE id_uzivatele IS NULL
-                AND IF ($0, rok = $0, TRUE)
+                AND IF ($0 IS NOT NULL, rok = $0, TRUE)
+            ORDER BY {$orderByDesc} DESC
             SQL,
-            [0 => $rok],
+            [0 => $rocnik],
             dbConnectTemporary(),
         );
         while ($id = mysqli_fetch_column($result)) {
@@ -177,16 +183,20 @@ class Platby
         );
     }
 
-    public function cfoNotifikovanONesparovanychPlatbachKdy(int $rocnik, int $poradiOznameni): ?DateTimeImmutableStrict
-    {
+    public function cfoNotifikovanONesparovanychPlatbachKdy(
+        int $rocnik,
+        int $poradiOznameni,
+    ): ?DateTimeImmutableStrict {
         return $this->posledniHromadnaAkceKdy(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuONesparovanychPlatbach($rocnik, $poradiOznameni),
         );
     }
 
-    private function sestavNazevAkceEmailuONesparovanychPlatbach(int $rocnik, int $poradiOznameni): string
-    {
+    private function sestavNazevAkceEmailuONesparovanychPlatbach(
+        int $rocnik,
+        int $poradiOznameni,
+    ): string {
         return "email-cfo-nesparovane-platby-$rocnik-$poradiOznameni";
     }
 
@@ -207,7 +217,7 @@ class Platby
     public function platbyBylyAktualizovanyPredChvili(): bool
     {
         return $this->posledniAktulizacePlatebBehemSessionKdy !== null
-            && ($this->posledniAktulizacePlatebBehemSessionKdy->getTimestamp() + 30) > time();
+               && ($this->posledniAktulizacePlatebBehemSessionKdy->getTimestamp() + 30) > time();
     }
 
     public function nastavPosledniAktulizaciPlatebBehemSessionKdy(

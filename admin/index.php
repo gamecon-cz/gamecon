@@ -5,6 +5,8 @@ use Gamecon\Web\Info;
 use Gamecon\Web\VerzeSouboru;
 use Gamecon\Role\Role;
 use Gamecon\Pravo;
+use Gamecon\Uzivatel\Platby;
+use Gamecon\Cas\DateTimeCz;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 
@@ -40,6 +42,7 @@ if (!$stranka) {
 if ($stranka == "api") {
     chdir(__DIR__ . '/scripts/api/');
     require $podstranka . '.php';
+
     return;
 }
 
@@ -71,17 +74,40 @@ if (!$u && get('ajax')) {
 if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     require __DIR__ . '/login.php';
     profilInfo();
+
     return;
 }
 
 if (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/');
-    return require($stranka . '.php');
+
+    return require $stranka . '.php';
 }
 
 if (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/' . $stranka);
-    return require($podstranka . '.php');
+
+    return require $podstranka . '.php';
+}
+
+if ($u && $u->jeOrganizator()) {
+    $platbyNaposledyAktualizovanyKdy = (new Platby($systemoveNastaveni))->platbyNaposledyAktualizovanyKdy();
+    if (
+        $platbyNaposledyAktualizovanyKdy === null
+        || $platbyNaposledyAktualizovanyKdy < new DateTimeImmutable('-1 day')
+    ) {
+        // logiku výše cíleně pouštíme ikdyž hlášku nechceme, abychom i při vývoji měli jistotu, že v kódu není fatální chyba
+        if (VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB) {
+            varovani(
+                'Platby z Fio byly naposledy aktualizovány ' . (
+                $platbyNaposledyAktualizovanyKdy === null
+                    ? '"nikdy"'
+                    : DateTimeCz::createFromInterface($platbyNaposledyAktualizovanyKdy)->relativni()
+                ),
+                false
+            );
+        }
+    }
 }
 
 // načtení menu
@@ -105,7 +131,9 @@ $uzivatelMaPristup  = $strankaExistuje && $u->maPravo($menu[$stranka]['pravo'])
 // konstrukce stránky
 if ($strankaExistuje && $uzivatelMaPristup) {
     $_SESSION['id_admin']     = $u->id(); // součást interface starých modulů
-    $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null; // součást interface starých modulů
+    $_SESSION['id_uzivatele'] = $uPracovni
+        ? $uPracovni->id()
+        : null; // součást interface starých modulů
     $BEZ_DEKORACE             = false;
     if ($submenu) {
         $soubor = $podstranka && $podstrankaExistuje
@@ -132,7 +160,7 @@ if ($strankaExistuje && $uzivatelMaPristup) {
     if ($BEZ_DEKORACE) {
         return;
     }
-} else if ($strankaExistuje && !$uzivatelMaPristup) {
+} elseif ($strankaExistuje && !$uzivatelMaPristup) {
     http_response_code(403);
     if ($u) {
         $xtpl->assign('a', $u->koncovkaDlePohlavi());
@@ -177,7 +205,9 @@ foreach ($menu as $url => $polozka) {
     if ($u->maPravo($polozka['pravo'])) {
         $xtpl->assign('url', $url);
         $xtpl->assign('nazev', $polozka['nazev']);
-        $xtpl->assign('aktivni', $stranka == $url ? 'class="active"' : '');
+        $xtpl->assign('aktivni', $stranka == $url
+            ? 'class="active"'
+            : '');
         $xtpl->parse('all.menuPolozka');
     }
 }
@@ -191,13 +221,16 @@ uasort($submenu, function ($a, $b) {
             return 0;
         }
     }
+
     return $diff;
 });
 
 // výstup submenu
 foreach ($submenu as $url => $polozka) {
     if ($u && $u->maPravo($polozka['pravo'])) {
-        $xtpl->assign('url', $url == $stranka ? $url : $stranka . '/' . $url);
+        $xtpl->assign('url', $url == $stranka
+            ? $url
+            : $stranka . '/' . $url);
         $xtpl->assign('nazev', $polozka['nazev']);
         $addAttributes = [];
         if ($polozka['link_in_blank']) {

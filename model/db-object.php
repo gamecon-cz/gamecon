@@ -11,10 +11,13 @@ abstract class DbObject
 
     protected $r; // řádek z databáze
 
-    protected static        $tabulka;    // název tabulky - odděděná třída _musí_ přepsat
-    protected static        $pk            = 'id';  // název primárního klíče - odděděná třída může přepsat
-    protected static        $objekty       = [];
-    protected static ?array $objektyZVsech = null;
+    protected static $tabulka;    // název tabulky - odděděná třída _musí_ přepsat
+    protected static $pk = 'id';  // název primárního klíče - odděděná třída může přepsat
+    /**
+     * @var array<string, array<int, static>>
+     */
+    private static array $objekty       = [];
+    private static array $objektyZVsech = [];
 
     /**
      * Vytvoří objekt na základě řádku z databáze
@@ -36,6 +39,7 @@ abstract class DbObject
                 ? null
                 : $val;
         }
+
         return $this->r[$name];
     }
 
@@ -61,6 +65,7 @@ abstract class DbObject
                 $form->loadRow($object->r);
             }
         }
+
         return $form;
     }
 
@@ -69,6 +74,7 @@ abstract class DbObject
         $form = new DbFormGc(static::$tabulka);
         $form->loadRow($this->r);
         $form->save();
+
         return $form->lastSaveChangesCount();
     }
 
@@ -83,12 +89,13 @@ abstract class DbObject
     {
         $objekt = null;
         if ($zCache) {
-            $objekt = self::$objekty[(int)$id] ?? null;
+            $objekt = self::$objekty[static::class][(int)$id] ?? null;
         }
         $objekt = $objekt ?? self::zWhereRadek(static::$pk . ' = ' . dbQv($id));
         if ($objekt && $zCache) {
-            self::$objekty[(int)$id] = $objekt;
+            self::$objekty[static::class][(int)$id] = $objekt;
         }
+
         return $objekt;
     }
 
@@ -102,10 +109,11 @@ abstract class DbObject
             if (empty($ids)) {
                 return [];
             } // vůbec se nedotazovat DB
+
             return self::zWhere(static::$pk . ' IN (' . dbQa($ids) . ')');
-        } else if (preg_match('@^([0-9]+,)*[0-9]+$@', $ids)) {
+        } elseif (preg_match('@^([0-9]+,)*[0-9]+$@', $ids)) {
             return self::zWhere(static::$pk . ' IN (' . $ids . ')');
-        } else if ($ids === '') {
+        } elseif ($ids === '') {
             return [];
         } else {
             throw new InvalidArgumentException('Argument musí být pole čísel nebo řetězec čísel oddělených čárkou');
@@ -113,19 +121,21 @@ abstract class DbObject
         // TODO co když $ids === null?
     }
 
-    /** Načte a vrátí všechny objekt z databáze */
+    /** Načte a vrátí všechny objekty z databáze */
     public static function zVsech(bool $zCache = false): array
     {
-        if ($zCache && self::$objektyZVsech !== null) {
-            return self::$objektyZVsech;
+        if ($zCache && (self::$objektyZVsech[static::class] ?? null) !== null) {
+            return self::$objektyZVsech[static::class];
         }
         $objekty = self::zWhere('1');
         if ($zCache) {
+            self::$objekty[static::class] ??= [];
             foreach ($objekty as $objekt) {
-                self::$objektyZVsech[$objekt->id()] = $objekt;
+                self::$objektyZVsech[static::class][$objekt->id()] = $objekt;
             }
-            self::$objekty += self::$objektyZVsech;
+            self::$objekty[static::class] += (self::$objektyZVsech[static::class] ?? []);
         }
+
         return $objekty;
     }
 

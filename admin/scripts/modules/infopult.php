@@ -24,7 +24,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
  */
 
 require_once __DIR__ . '/_submoduly/ubytovani_tabulka.php';
-require_once __DIR__ . '/_submoduly/osobniUdaje/osobni_udaje.php';
+require_once __DIR__ . '/_submoduly/osobni-udaje/osobni_udaje.php';
 
 $ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
@@ -153,9 +153,11 @@ if ($uPracovni) {
     }
 
     $datumNarozeni                 = DateTimeImmutable::createFromMutable($uPracovni->datumNarozeni());
-    $potvrzeniOd                   = $uPracovni->potvrzeniZakonnehoZastupceOd();
     $potrebujePotvrzeniKvuliVeku   = potrebujePotvrzeni($datumNarozeni);
-    $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
+    $potvrzeniOd                   = $uPracovni->potvrzeniZakonnehoZastupceOd();
+    $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('Y') == ROCNIK;
+    $nahranePotvrzeni              = $uPracovni->potvrzeniZakonnehoZastupceSouborOd();
+    $mameLetosniNahranePotvrzeni   = $nahranePotvrzeni && $nahranePotvrzeni->format('Y') == ROCNIK;
 
     if ($potrebujePotvrzeniKvuliVeku) {
         if ($mameLetosniPotvrzeniKvuliVeku) {
@@ -163,6 +165,9 @@ if ($uPracovni) {
             $x->assign("potvrzeniText", $ok . " má potvrzení od rodičů");
         } else {
             $x->assign("potvrzeniText", $err . " chybí potvrzení od rodičů!");
+        }
+        if ($mameLetosniNahranePotvrzeni) {
+            $x->assign("potvrzeniOdkaz", '<a href="infopult/potvrzeni-rodicu?id=' . $uPracovni->id() . '">odkaz na potvrzení</a>');
         }
         $x->parse('infopult.uzivatel.potvrzeni');
     }

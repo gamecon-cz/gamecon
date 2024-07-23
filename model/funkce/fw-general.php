@@ -10,6 +10,7 @@ function array_keys_exist($keys, $search)
             return false;
         }
     }
+
     return true;
 }
 
@@ -20,6 +21,7 @@ function array_flat($pre, $array, $post = '', $sep = '')
     foreach ($array as $e) {
         $out .= $pre . $e . $post;
     }
+
     return $out;
 }
 
@@ -36,6 +38,7 @@ function array_uprint($array, callable $func, $sep = '')
     if ($sep) {
         $out = substr($out, 0, -strlen($sep));
     }
+
     return $out;
 }
 
@@ -53,7 +56,7 @@ function parseRoute(): array
 
         if (str_starts_with($requestUri, '/admin')) {
             $rawReq = substr($requestUri, strlen('/admin'));
-        } else if (str_starts_with($requestUri, '/web')) {
+        } elseif (str_starts_with($requestUri, '/web')) {
             $rawReq = substr($requestUri, strlen('/web'));
         } else {
             $rawReq = $requestUri;
@@ -65,6 +68,7 @@ function parseRoute(): array
     $rawReq = ltrim($rawReq, '/');
     $req    = explode('/', $rawReq ?? '');
     $req[1] = $req[1] ?? '';
+
     return $req;
 }
 
@@ -76,15 +80,15 @@ function back(string $to = null)
 {
     if ($to) {
         header('Location: ' . $to, true, 303);
-    } else if (isset($_SERVER['HTTP_REFERER'])
+    } elseif (isset($_SERVER['HTTP_REFERER'])
         && (str_contains($_SERVER['HTTP_REFERER'], URL_WEBU) || str_contains($_SERVER['HTTP_REFERER'], URL_ADMIN))
     ) {
         header('Location: ' . $_SERVER['HTTP_REFERER'], true, 303);
-    } else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_SERVER['REDIRECT_URL'])
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_SERVER['REDIRECT_URL'])
         && $_SERVER['REDIRECT_URL'] !== ($_SERVER['REQUEST_URI'] ?? '')
     ) {
         header('Location: ' . $_SERVER['REDIRECT_URL'], true, 303);
-    } else if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    } elseif ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         header('Location: ' . $_SERVER['REQUEST_URI'], true, 303);
     } else {
         header('Location: ' . URL_WEBU, true, 303);
@@ -96,6 +100,7 @@ function back(string $to = null)
 function getBackUrl(string $defaultBackUrl = null): string
 {
     $refererParts = parse_url($_SERVER['HTTP_REFERER'] ?? $defaultBackUrl ?? $_SERVER['REQUEST_URI']);
+
     return rtrim(implode('?', [$refererParts['path'], $refererParts['query'] ?? '']), '?');
 }
 
@@ -114,7 +119,9 @@ function getCurrentUrlWithQuery(array $queryPartsToAddOrReplace = []): string
         return $path;
     }
     $newQueryString = http_build_query($newQuery);
-    return $newQueryString !== '' // když je nějaká hodnota NULL, tak se z query smaže
+
+    return $newQueryString !== ''
+        // když je nějaká hodnota NULL, tak se z query smaže
         ? $path . '?' . $newQueryString
         : $path;
 }
@@ -147,6 +154,7 @@ function opt($actual, $default)
             }
         }
     }
+
     return $opt;
 }
 
@@ -155,6 +163,7 @@ function post($name, $field = null)
     if ($field === null) {
         return $_POST[$name] ?? null;
     }
+
     return $_POST[$name][$field] ?? null;
 }
 
@@ -162,6 +171,7 @@ function postBody()
 {
     $rawdata = file_get_contents("php://input");
     $decoded = json_decode($rawdata, true);
+
     return $decoded;
 }
 
@@ -178,6 +188,7 @@ function preg_quote_wildcard($re)
 {
     $re = preg_quote($re);
     $re = preg_replace('@~(\\\\?.)@', '([^$1]*)$1', $re);
+
     return $re;
 }
 
@@ -190,6 +201,7 @@ function randHex($chars)
     if (!($chars <= 32 && $chars >= 0)) {
         throw new Exception('maximum characters is 32 so far.');
     }
+
     return substr(md5(mt_rand()), 0, $chars);
 }
 
@@ -214,6 +226,7 @@ function snakeToCamel($str)
     $str = ucwords($str, '-');
     $str = str_replace('-', '', $str);
     $str = lcfirst($str);
+
     return $str;
 }
 
@@ -223,6 +236,7 @@ function snakeToCamel($str)
 function strrafter($string, $delimiter)
 {
     $pos = strrpos($string, $delimiter);
+
     return substr($string, $pos + 1);
 }
 
@@ -232,6 +246,7 @@ function strrafter($string, $delimiter)
 function strrbefore($string, $delimiter)
 {
     $pos = strrpos($string, $delimiter);
+
     return substr($string, 0, $pos);
 }
 
@@ -248,6 +263,7 @@ function tabArrayR(array $ai): array
             $ao[$ic][$ir] = $ai[$ir][$ic];
         }
     }
+
     return $ao;
 }
 
@@ -265,6 +281,7 @@ function tabHtml(array $tab, string $title = ''): string
         $tabOut .= "  <tr>\n    <td>" . implode("</td>\n    <td>", $tab[$i]) . "</td>\n  </tr>\n";
     }
     $tabOut .= "</table>\n\n";
+
     return $tabOut;
 }
 
@@ -289,6 +306,7 @@ function tabMysql($a, string $title = ''): string
         $tabOut .= "  <tr>\n    <td>" . implode("</td>\n    <td>", $r) . "</td>\n  </tr>\n";
     }
     $tabOut .= "</table>\n\n";
+
     return $tabOut;
 }
 
@@ -304,6 +322,7 @@ function tabMysqlArray(mysqli_result $result): array
     while ($values = mysqli_fetch_row($result)) {
         $oa[] = $values;
     }
+
     return $oa;
 }
 
@@ -319,13 +338,14 @@ function tabMysqlR(mysqli_result $result, string $title = ''): string
  * @param Iterator|array $multiDimensionalArray
  * @return array
  */
-function flatten(Iterator|array $multiDimensionalArray): array
+function flatten(Iterator | array $multiDimensionalArray): array
 {
     $flattened             = [];
     $multiDimensionalArray = (array)$multiDimensionalArray;
     array_walk_recursive($multiDimensionalArray, function ($array) use (&$flattened) {
         $flattened[] = $array;
     });
+
     return $flattened;
 }
 
@@ -338,6 +358,7 @@ function nahradNazvyKonstantZaHodnoty(string $text): string
             }
         }
     }
+
     return $text;
 }
 
@@ -353,5 +374,6 @@ function try_constant(string $constantName)
     if (defined($constantName)) {
         return constant($constantName);
     }
+
     return null;
 }

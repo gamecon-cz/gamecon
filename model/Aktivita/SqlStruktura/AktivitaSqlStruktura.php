@@ -30,6 +30,7 @@ class AktivitaSqlStruktura
     public const TEAM_MAX      = 'team_max';
     public const TEAM_KAPACITA = 'team_kapacita';
     public const TEAM_NAZEV    = 'team_nazev';
+    public const TEAM_LIMIT    = 'team_limit';
     public const ZAMCEL        = 'zamcel';
     public const ZAMCEL_CAS    = 'zamcel_cas';
     public const POPIS         = 'popis';

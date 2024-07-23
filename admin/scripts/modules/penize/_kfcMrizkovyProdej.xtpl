@@ -1,0 +1,21 @@
+<!-- begin:kfc -->
+<hr style="clear: left">
+
+<div class="aBox" style="width:100%; overflow: auto;">
+  <h3>Nastavení mřížkového prodeje</h3>
+
+  <link rel="stylesheet" href="files/ui/style.css?version={$cssVersions.style}">
+
+  <div id="preact-obchod-nastaveni">Nastavení mřížek obchodu se načítá ...</div>
+
+  <script>
+    // Konstanty předáváné do Preactu (env.ts)
+    window.GAMECON_KONSTANTY = {
+      BASE_PATH_API: "{basePathApi}",
+      ROCNIK: "{rocnik}",
+    }
+  </script>
+
+  <script type="module" src="files/ui/bundle.js?version={jsVersions.bundle}"></script>
+</div>
+<!-- end:kfc -->

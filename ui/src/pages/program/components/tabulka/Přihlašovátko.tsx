@@ -2,6 +2,7 @@ import { FunctionComponent } from "preact";
 import { useRef } from "preact/hooks";
 import { useAktivita, useUživatel } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
+import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
 
 const zámeček = `🔒`;
 
@@ -33,18 +34,24 @@ const FormTlačítko: FunctionComponent<{ id: number; typ: FormTlačítkoTyp }> 
             : "";
 
   return (
-    <form ref={formRef} method="post" style="display:inline">
-      <input type="hidden" name={typ} value={id}></input>
-      <a
-        href="#"
-        onClick={(e) => {
-          formRef.current?.submit?.();
-          e.preventDefault();
-        }}
-      >
-        {text}
-      </a>
-    </form>
+    <>
+      <form ref={formRef} method="post" style="display:inline">
+        <input type="hidden" name={typ} value={id}></input>
+        <a
+          href="#"
+          onClick={(e) => {
+            if (typ == "odhlasit") {
+              nastavModalOdhlásit(id);
+            } else {
+              formRef.current?.submit?.();
+            }
+            e.preventDefault();
+          }}
+        >
+          {text}
+        </a>
+      </form>
+    </>
   );
 };
 

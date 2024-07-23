@@ -114,6 +114,7 @@ export const useUživatel = (): PřihlášenýUživatel => useProgramStore(s => 
 export const useUživatelPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.přihlášenýUživatel.data?.pohlavi);
 
 export const useFiltryOtevřené = (): boolean => useProgramStore(s => s.všeobecné.filtryOtevřené);
+export const useOdhlasitModalAktivitaId = (): number | undefined => useProgramStore(s => s.všeobecné.modalOdhlásitAktivitaId);
 
 export const useŠtítky = () => useProgramStore((s) => s.data.štítky);
 

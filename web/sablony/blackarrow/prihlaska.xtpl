@@ -5,9 +5,8 @@
         <h1>Přihláška na GameCon</h1>
 
         <!-- begin:prihlasen -->
-        <p>Jsi přihlášen{a} na GameCon {rok}. Níže si můžeš upravovat svou přihlášku, tedy objednané ubytování a
-            předměty až
-            téměř do začátku GameConu.</p>
+        <p>Tvá přihláška na GameCon {rok} je aktivní! Nyní můžeš upravovat objednané ubytování i předměty až téměř
+        do začátku GameConu.</p>
 
         <div class="prihlaska_hlavickaFinance">
             <p>Objednávku je potřeba uhradit do {zaplatitNejpozdejiDo} včetně. Svůj přehled financí a údaje k platbě
@@ -15,12 +14,29 @@
                         href="finance">Přehledu
                     financí</a>.</p>
         </div>
+
+        <!-- begin:potvrzeniZakonnyZastupce -->
+        <div class="prihlaska_potrebaPotvrzeni">
+            <p>Jakožto mladší 15ti let budeš potřebovat dodat potvrzení o souhlasu tvého zákonného zástupce s
+                účastí na GameConu. Formulář ke stažení můžeš najít na
+                <a href="https://gamecon.cz/soubory/obsah//materialy/2024/souhlas_rodicu_2024.pdf">tomto odkazu</a> a vyplněný
+                nám jej můžeš kdykoliv před příjezdem na GameCon nahrát pomocí tohoto formuláře, nebo donést fyzicky při
+                příjezdu na GameCon k Infopultu. Připravené formuláře k vyplnění budeme mít i na Infopultu.</p>
+
+            <form method="post" enctype="multipart/form-data">
+                <input type="file" class="formular_input" name="potvrzeniRodicu" id="potvrzeniRodicu"
+                style="display: inline; width: auto; border: none; margin: 0; cursor: pointer" accept="image/*">
+                <input type="submit" name="pridatPotvrzeniRodicu" id="pridatPotvrzeniRodicu" value="Odeslat">
+            </form>
+            <!-- begin:nahrano -->
+            Potvrzení je úspěšně nahrané. <a href="prihlaska/potvrzeni-rodicu">Zobrazit</a>
+            <!-- end:nahrano -->
+        </div>
+        <!-- end:potvrzeniZakonnyZastupce -->
         <!-- end:prihlasen -->
 
         <!-- begin:neprihlasen -->
-        <p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty a ubytování s GameCon tématikou,
-            které
-            budeš chtít. Výběr jde i později změnit.</p>
+        <p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty s GameCon tématikou a ubytování, které budeš chtít. Výběr jde i později změnit.</p>
         <!-- end:neprihlasen -->
     </div>
 </div>
@@ -114,17 +130,15 @@
 
             <!-- begin: ubytovaniInfoVypravec -->
             <div class="prihlaska_info prihlaska_info-ikona">
-                Jako vypravěč{ka} máš nárok na bonus odvíjející se od množství vyprávěných aktivit, který se dá uplatnit
-                na
-                ubytování, jídlo nebo aktivity. Přesnou výšku bonusu najdeš po dokončení registrace ve svém <a
-                    href="finance">finančním
-                přehledu</a>.</p>
+                Každý vypravěč má nárok na bonus odvíjející se od množství vyprávěných aktivit, který se dá uplatnit
+                na ubytování, jídlo a aktivity. Přesnou výšku svého bonusu najdeš po dokončení registrace ve svém
+                <a href="finance">finančním přehledu</a>.</p>
             </div>
             <!-- end: ubytovaniInfoVypravec -->
 
             <!-- begin: ubytovaniInfoOrg -->
             <div class="prihlaska_info prihlaska_info-ikona">
-                <p>Jako organizátor{ka} máš veškeré ubytování také zdarma.</p>
+                <p>Jako organizátor{ka} máš zdarma také veškeré ubytování.</p>
             </div>
             <!-- end: ubytovaniInfoOrg -->
         </div>
