@@ -139,3 +139,5 @@ if (!defined('SUPERADMINI')) define('SUPERADMINI', [4032 /* Jaroslav "Kostřivec
 if (!defined('UBYTOVANI_POUZE_SPACAKY')) define('UBYTOVANI_POUZE_SPACAKY', false);
 
 if (!defined('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB')) define('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB', true);
+
+if (!defined('TEST')) define('TEST', false);
