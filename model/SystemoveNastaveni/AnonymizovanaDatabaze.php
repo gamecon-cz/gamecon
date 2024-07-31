@@ -271,7 +271,7 @@ SQL,
             'skip-definer' => true,
         ]);
         $mysqldump->start($tempFile);
-        NastrojeDatabaze::fixDefiners($tempFile);
+        NastrojeDatabaze::removeDefiners($tempFile);
 
         (new \MySQLImport($dbConnectionAnonymDb))->load($tempFile);
 
@@ -299,7 +299,7 @@ SQL,
             'add-drop-trigger' => true,
         ]);
         $mysqldump->start($tempFile);
-        NastrojeDatabaze::fixDefiners($tempFile);
+        NastrojeDatabaze::removeDefiners($tempFile);
         $request  = new Request();
         $response = (new BinaryFileResponse($tempFile));
         $response->headers->set('Content-Type', 'application/sql');
