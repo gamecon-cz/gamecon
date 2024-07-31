@@ -6,7 +6,7 @@ $cas = null;
 
 $casString = get('cas');
 if (!$casString) {
-    throw new RuntimeException("Chybí čas přes GET parametr 'cas'");
+    throw new RuntimeException("Chybí čas předaný GET parametrem 'cas'");
 }
 
 global $systemoveNastaveni;
