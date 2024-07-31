@@ -74,7 +74,9 @@ class NastrojeDatabaze
         );
     }
 
-    public static function fixDefiners(string $filename): void
+    // MariaDb občas vyblije syntaxi nezachycenou regexi MySQLDumpu a tím se do výsledného dumpu dostanou DEFINER klauze.
+    // Zavoláním této funkce nad souborem s SQLdumpem se tyto DEFINER klauze odstraní nahrubo
+    public static function removeDefiners(string $filename): void
     {
         $file = file_get_contents($filename);
         $file = preg_replace('#DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`#', '', $file);
