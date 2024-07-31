@@ -34,7 +34,7 @@ if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
 }
 
 try {
-    /** musíme použít @see \Generator::current kód spustili a vyhodnotil se */
+    /** musíme použít @see \Generator::current aby se kód spustil a vyhodnotil se */
     $hromadneOdhlaseniNeplaticu->neplaticiAKategorie()->current();
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
     logs($nevhodnyCasProHromadneOdhlasovani->getMessage());

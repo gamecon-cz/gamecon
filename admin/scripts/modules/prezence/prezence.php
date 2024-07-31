@@ -2,6 +2,8 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
+use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -18,44 +20,49 @@ use Gamecon\XTemplate\XTemplate;
 $t = new XTemplate(__DIR__ . '/prezence.xtpl');
 
 $jenZamceneNeuzavrene = !empty($_GET['zamcene_neuzavrene']);
+$jenUzavreneNevyplnene = !empty($_GET['uzavrene_nevyplnene']);
+$ignorovatCas = !empty($_GET['ignorovat_cas']);
 
 $zacatek = null; // bude nastaven přes referenci ve funkci _casy
-if (!$jenZamceneNeuzavrene) {
+
+require_once __DIR__ . '/../aktivity/_filtr-moznosti.php';
+
+$filtrMoznosti = FiltrMoznosti::vytvorZGlobals(FiltrMoznosti::NEFILTROVAT_PODLE_ROKU);
+if (!$ignorovatCas) {
     require __DIR__ . '/_casy.php'; // vhackování vybírátka času
 
-    $t->assign('casy', _casy($zacatek, true));
+    $t->assign('casy', _casy($zacatek, true) . $filtrMoznosti->dejProTemplate());
+} else {
+    $t->assign('casy', $filtrMoznosti->dejProTemplate());
 }
 
-$t->assign('checked', $jenZamceneNeuzavrene ? 'checked' : '');
+
+$t->assign('checkedNeuzavrene', $jenZamceneNeuzavrene ? 'checked' : '');
+$t->assign('checkedNevyplnene', $jenUzavreneNevyplnene ? 'checked' : '');
+$t->assign('checkedCas', $ignorovatCas ? 'checked' : '');
 $t->assign('urlAkce', getCurrentUrlWithQuery());
-foreach ($_GET as $name => $value) {
-    if ($name === 'zamcene_neuzavrene') {
-        continue;
-    }
-    $t->assign('name', $name);
-    $t->assign('value', $value);
-    $t->parse('prezence.filtrAktivit.ostatniFiltry');
-}
 $t->parse('prezence.filtrAktivit');
 
 $aktivity = [];
-if ($jenZamceneNeuzavrene) {
-    $aktivity = Aktivita::zRozmezi(
-        new \Gamecon\Cas\DateTimeCz('0001-01-01 00:00:01'),
-        new \Gamecon\Cas\DateTimeCz('2999-12-31 00:00:01'),
-        Aktivita::ZAMCENE | Aktivita::NEUZAVRENE
-    );
+$filtr = $filtrMoznosti->dejFiltr()[0];
+if ($ignorovatCas) {
+    $filtr['rok'] = ROCNIK;
 } else if ($zacatek) {
-    $aktivity = Aktivita::zRozmezi($zacatek, $zacatek);
+    $filtr['od'] = $zacatek->format(DateTimeGamecon::FORMAT_DB);
+    $filtr['do'] = $zacatek->format(DateTimeGamecon::FORMAT_DB);
 }
+if ($jenZamceneNeuzavrene) {
+    $filtr['jenZamcene'] = true;
+    $filtr['jenNeuzavrene'] = true;
+}
+if ($jenUzavreneNevyplnene) {
+    $filtr['stav'] = StavAktivity::UZAVRENA;
+    $filtr['jenNevyplnene'] = true;
+}
+$aktivity = Aktivita::zFiltru($filtr);
 
-if (!$jenZamceneNeuzavrene) {
-    if ($zacatek && count($aktivity) === 0) {
-        $t->parse('prezence.zadnaAktivita');
-    }
-    if (!$zacatek) {
-        $t->parse('prezence.nevybrano');
-    }
+if (count($aktivity) === 0) {
+    $t->parse('prezence.zadnaAktivita');
 }
 
 foreach ($aktivity as $aktivita) {
@@ -83,14 +90,14 @@ foreach ($aktivity as $aktivita) {
     }
     if (!$uzavrena) {
         /** @var \Gamecon\Cas\DateTimeCz|null $zacatek */
-        $t->assign('cas', $zacatek ? $zacatek->formatDb() : null);
+        $t->assign('cas', $aktivita->zacatek()?->formatDb());
         $t->assign('htmlIdAktivity', OnlinePrezenceHtml::nazevProAnchor($aktivita));
         $t->parse('prezence.aktivita.form.onlinePrezence');
         $t->parse('prezence.aktivita.pozorNeuzavrena');
     }
     $t->assign(
         'nadpis',
-        implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()]))
+        implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace(), $aktivita->zacatek()?->format('l H:i')]))
         . ($aktivita->zamcena() ? ' <span class="hinted">🔒<span class="hint">Zamčená pro přihlašování</span></span> ' : '')
         . ($aktivita->uzavrena() ? ' <span class="hinted">📕<span class="hint">S uzavřenou prezencí</span></span> ' : '')
     );
