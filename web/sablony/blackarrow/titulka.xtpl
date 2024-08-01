@@ -43,7 +43,7 @@
 
 <div class="karty">
     <div class="karty_karta" data-aos="fade-right">
-        <img  src="soubory/blackarrow/karty/1.jpg">
+        <img src="soubory/blackarrow/karty/1.jpg">
         <h2>Akce pro všechny</h2>
         <div class="karty_text">Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.</div>
     </div>
