@@ -1,4 +1,5 @@
 {
+    // TODO: var je fuj, nahradit s const/let
     var shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
     var shopUbytovaniNames = []
     var zmeneneElementy = []
@@ -138,4 +139,103 @@
     })
 
     obnovPovinnePolozky()
+}
+/* ubytovací skupiny */
+{
+  const mockApi = (()=>{
+    const randomPismeno = () => {
+      const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      return characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    
+
+    return {
+      generujKód: async () => {
+        return new Array(4).fill(0).map(()=>randomPismeno()).join("")
+      },
+      opusťSkupinu: async () =>{
+      },
+      schvalUživatele: async(id) =>{
+      }
+    }
+  })()
+
+  const api = mockApi;
+
+  const kódVstupElement = document.querySelector(".js-skupina-kod-vstup")
+  const čekámNaPřijetíElement = document.querySelector(".js-skupina-ceka")
+  const kódAktuálníElement = document.querySelector(".js-skupina-kod-aktualni")
+  const uživateléElement = document.querySelector(".js-skupina-uzivatele")
+  const založitElement = document.querySelector(".js-skupina-zalozit")
+  const opustitElement = document.querySelector(".js-skupina-opustit")
+
+  const skryj = (element) => element.classList.add("skryty")
+  const zobraz = (element) => element.classList.remove("skryty")
+
+  const resetujStav = () => {
+    skryj(čekámNaPřijetíElement)
+    skryj(opustitElement)
+    uživateléElement.innerHTML = ""
+    kódAktuálníElement.value = ""
+  }
+
+  /**
+   * přidá nebo upraví uživatele
+   * @param {"schválený" | "neschválený"} stav
+   */
+  const nastavUživatele = (id, jméno, stav) => {
+    let uživatelElement = uživateléElement.querySelector(`[data-id-uzivatel="${id}"]`);
+
+    let tlačítkoElement;
+    if (!uživatelElement) {
+      uživatelElement = document.createElement('li');
+      uživatelElement.setAttribute('data-id-uzivatel', id);
+  
+      const uživatelJménoElement = document.createElement('span');
+      uživatelJménoElement.textContent = jméno;
+      uživatelElement.appendChild(uživatelJménoElement);
+
+      tlačítkoElement = document.createElement('button');
+      tlačítkoElement.textContent = 'Akce';
+
+      uživatelElement.appendChild(tlačítkoElement);
+      uživateléElement.appendChild(uživatelElement);
+    } else {
+      tlačítkoElement = uživatelElement.querySelector("button")
+    }
+
+    if (stav === 'neschválený') {
+      const schválit = async () => {
+        await api.schvalUživatele(id)
+        tlačítkoElement.removeEventListener("click", schválit)
+        // TODO: lepší využít reakci z schvalUživatele
+        nastavUživatele(id, jméno, "schválený")
+      };
+      tlačítkoElement.addEventListener('click', schválit);
+      tlačítkoElement.disabled=false;
+      tlačítkoElement.classList.remvoe("schvaleny")
+    } else {
+      tlačítkoElement.disabled=true;
+      tlačítkoElement.classList.add("schvaleny")
+    } 
+
+    tlačítkoElement.textContent = stav === "neschválený" ? "schválit" : "schválený";
+  }
+
+  založitElement.addEventListener("click", async (e)=>{
+    e.preventDefault();
+    const kód = await api.generujKód()
+    kódAktuálníElement.value = kód
+    zobraz(opustitElement)
+  })
+
+  opustitElement.addEventListener("click", async (e)=>{
+    e.preventDefault();
+    await api.opusťSkupinu();
+    resetujStav()
+  })
+
+  resetujStav()
+  nastavUživatele(10, "blah ouš", "neschválený")
+  
 }
