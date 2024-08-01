@@ -443,7 +443,7 @@ SQL;
     }
 
     protected function setLocalServerCookieWithGameconTestDb(\CurlHandle $curlHandle) {
-        curl_setopt($curlHandle, CURLOPT_COOKIE, 'gamecon_test_db=' . DB_NAME . '; unit_tests=1');
+        curl_setopt($curlHandle, CURLOPT_COOKIE, 'gamecon_test_db=' . DB_NAME . '; test=1');
     }
 
 }
