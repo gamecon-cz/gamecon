@@ -18,24 +18,24 @@
         src="soubory/blackarrow/gchlavicka/obr_1.jpg"
         data-aos="fade-right"
     >
-    <iframe 
-        class="video" 
-        data-aos="fade-left" 
+    <iframe
+        class="video"
+        data-aos="fade-left"
         data-aos-delay="250"
-        width="560" 
-        height="315" 
-        src="https://www.youtube.com/embed/GNVFqDw12bY?playlist=GNVFqDw12bY&autoplay=1&loop=1&mute=1" 
-        title="YouTube video player" 
-        frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        width="560"
+        height="315"
+        src="https://www.youtube.com/embed/GNVFqDw12bY?playlist=GNVFqDw12bY&autoplay=1&loop=1&mute=1"
+        title="YouTube video player"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
     <div class="p p1" data-aos="zoom-out" data-aos-delay="200" data-aos-offset="0">GA</div>
     <div class="p p2" data-aos="zoom-out" data-aos-delay="250" data-aos-offset="0">ME</div>
     <div class="p p3" data-aos="zoom-out" data-aos-delay="550" data-aos-offset="0">C</div>
     <div class="p p4" data-aos="zoom-out" data-aos-delay="600" data-aos-offset="0">ON</div>
     <div class="gchlavicka_claim" data-aos="zoom-out">Největší festival nepočítačových her</div>
-    <div class="gchlavicka_datum" 
-        data-aos="fade-top" 
+    <div class="gchlavicka_datum"
+        data-aos="fade-top"
         data-aos-delay="200">{gcOd} &ndash; {gcDo} <span class="gchlavicka_rok">{gcRok}</span></div>
     <div class="gchlavicka_misto" data-aos="zoom-out">P A R D U B I C E</div>
     <a class="gchlavicka_video" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank" data-aos="zoom-out" data-aos-offset="-200">přehrát video</a>
@@ -43,7 +43,7 @@
 
 <div class="karty">
     <div class="karty_karta" data-aos="fade-right">
-        <img src="soubory/blackarrow/karty/1.jpg">
+        <img  src="soubory/blackarrow/karty/1.jpg">
         <h2>Akce pro všechny</h2>
         <div class="karty_text">Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.</div>
     </div>
@@ -73,34 +73,34 @@
 
 <div class="cisla">
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="200">
-        <img src="soubory/blackarrow/cisla/1.jpg" style="margin: -30px 0 0 87px">
+        <img src="soubory/blackarrow/cisla/1.jpg" loading="lazy" style="margin: -30px 0 0 87px">
         <div class="cisla_cislo">{stovkySpokojenychUcastniku}+</div>
         <div class="cisla_text">spokojených účastníků</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up">
-        <img src="soubory/blackarrow/cisla/2.jpg" style="margin: -13px 0 0 73px">
+        <img src="soubory/blackarrow/cisla/2.jpg" loading="lazy" style="margin: -13px 0 0 73px">
         <div class="cisla_cislo">{stovkyAktivit}+</div>
         <div class="cisla_text">různých aktivit</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="100">
-        <img src="soubory/blackarrow/cisla/3.jpg" style="margin: -23px 0 0 30px">
+        <img src="soubory/blackarrow/cisla/3.jpg" loading="lazy" style="margin: -23px 0 0 30px">
         <div class="cisla_cislo">4</div>
         <div class="cisla_text">dny zábavy</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="50">
-        <img src="soubory/blackarrow/cisla/4.jpg" style="margin: -13px 0 0 30px">
+        <img src="soubory/blackarrow/cisla/4.jpg" loading="lazy" style="margin: -13px 0 0 30px">
         <div class="cisla_cislo">2</div>
         <div class="cisla_text">super párty</div>
     </div>
 </div>
 
 <div class="fotky">
-    <img src="soubory/blackarrow/fotky/1.jpg" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
-    <img src="soubory/blackarrow/fotky/2.jpg" data-aos="fotky" data-aos-offset="200" style="top:  6.042vw; left:  22.083vw">
-    <img src="soubory/blackarrow/fotky/3.jpg" data-aos="fotky" data-aos-offset="200" style="top: 28.177vw; left:  25.990vw">
-    <img src="soubory/blackarrow/fotky/4.jpg" data-aos="fotky" data-aos-offset="200" style="top: 15.417vw; left:  46.667vw">
-    <img src="soubory/blackarrow/fotky/5.jpg" data-aos="fotky" data-aos-offset="200" style="top: 37.188vw; left:  65.521vw">
-    <img src="soubory/blackarrow/fotky/6.jpg" data-aos="fotky" data-aos-offset="200" style="top:  2.969vw; right:      0vw; transform-origin: top right">
+    <img src="soubory/blackarrow/fotky/1.jpg" loading="lazy" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
+    <img src="soubory/blackarrow/fotky/2.jpg" loading="lazy" data-aos="fotky" data-aos-offset="200" style="top:  6.042vw; left:  22.083vw">
+    <img src="soubory/blackarrow/fotky/3.jpg" loading="lazy" data-aos="fotky" data-aos-offset="200" style="top: 28.177vw; left:  25.990vw">
+    <img src="soubory/blackarrow/fotky/4.jpg" loading="lazy" data-aos="fotky" data-aos-offset="200" style="top: 15.417vw; left:  46.667vw">
+    <img src="soubory/blackarrow/fotky/5.jpg" loading="lazy" data-aos="fotky" data-aos-offset="200" style="top: 37.188vw; left:  65.521vw">
+    <img src="soubory/blackarrow/fotky/6.jpg" loading="lazy" data-aos="fotky" data-aos-offset="200" style="top:  2.969vw; right:      0vw; transform-origin: top right">
 </div>
 
 <div class="zazijes">

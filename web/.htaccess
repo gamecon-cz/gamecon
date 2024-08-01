@@ -1,3 +1,20 @@
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access 1 year"
+  ExpiresByType image/jpeg "access 1 year"
+  ExpiresByType image/gif "access 1 year"
+  ExpiresByType image/png "access 1 year"
+  ExpiresByType image/svg+xml "access 1 year"
+  ExpiresByType application/pdf "access 1 year"
+  ExpiresByType image/x-icon "access 1 year"
+  ExpiresByType font/woff2 "access 1 year"
+  ExpiresDefault "access 1 month"
+</IfModule>
+
+SetOutputFilter DEFLATE
+AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/x-javascript application/x-httpd-php
+SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip
+
 Allow from all
 
 AddDefaultCharset   UTF-8
