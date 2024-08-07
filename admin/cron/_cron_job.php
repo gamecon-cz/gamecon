@@ -43,6 +43,12 @@ if (in_array($job, ['mail_cfo_nesparovane_platby', 'aktivity_hromadne'])) {
     }
 }
 
+if (in_array($job, ['materializace_roli_podle_rocniku'])) {
+    require __DIR__ . '/jobs/materializace_roli_podle_rocniku.php';
+
+    return;
+}
+
 if ($job !== 'aktivity_hromadne') {
     throw new \RuntimeException(sprintf("Invalid job '%s'", $job));
 }
