@@ -18,24 +18,24 @@
         src="soubory/blackarrow/gchlavicka/obr_1.jpg"
         data-aos="fade-right"
     >
-    <iframe 
-        class="video" 
-        data-aos="fade-left" 
+    <iframe
+        class="video"
+        data-aos="fade-left"
         data-aos-delay="250"
-        width="560" 
-        height="315" 
-        src="https://www.youtube.com/embed/GNVFqDw12bY?playlist=GNVFqDw12bY&autoplay=1&loop=1&mute=1" 
-        title="YouTube video player" 
-        frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        width="560"
+        height="315"
+        src="https://www.youtube.com/embed/GNVFqDw12bY?playlist=GNVFqDw12bY&autoplay=1&loop=1&mute=1"
+        title="YouTube video player"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
     <div class="p p1" data-aos="zoom-out" data-aos-delay="200" data-aos-offset="0">GA</div>
     <div class="p p2" data-aos="zoom-out" data-aos-delay="250" data-aos-offset="0">ME</div>
     <div class="p p3" data-aos="zoom-out" data-aos-delay="550" data-aos-offset="0">C</div>
     <div class="p p4" data-aos="zoom-out" data-aos-delay="600" data-aos-offset="0">ON</div>
     <div class="gchlavicka_claim" data-aos="zoom-out">Největší festival nepočítačových her</div>
-    <div class="gchlavicka_datum" 
-        data-aos="fade-top" 
+    <div class="gchlavicka_datum"
+        data-aos="fade-top"
         data-aos-delay="200">{gcOd} &ndash; {gcDo} <span class="gchlavicka_rok">{gcRok}</span></div>
     <div class="gchlavicka_misto" data-aos="zoom-out">P A R D U B I C E</div>
     <a class="gchlavicka_video" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank" data-aos="zoom-out" data-aos-offset="-200">přehrát video</a>
@@ -89,8 +89,8 @@
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="50">
         <img src="soubory/blackarrow/cisla/4.jpg" style="margin: -13px 0 0 30px">
-        <div class="cisla_cislo">2</div>
-        <div class="cisla_text">super párty</div>
+        <div class="cisla_cislo">1</div>
+        <div class="cisla_text">super koncert</div>
     </div>
 </div>
 
