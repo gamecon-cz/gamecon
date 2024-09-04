@@ -17,7 +17,7 @@
 
 .menu_obal2 {
     margin: 0 146px;
-    @media (max-width: 1200px) {
+    @media (max-width: 1355px) { /* fix po pridani prihlasky na hlavni panel */
         margin: 0 20px;
     }
     @media (max-width: 900px) {
@@ -215,4 +215,10 @@
 
 .menu_uzivatel:hover .menu_uzivatelpolozky {
     display: initial;
+}
+
+.item--prihlaska {
+  @media (max-width: 1083px) {
+    display: none;
+  }
 }
