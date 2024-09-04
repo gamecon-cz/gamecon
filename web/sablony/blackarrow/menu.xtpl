@@ -12,7 +12,7 @@
         <a class="menu_prihlasit" href="prihlaseni">přihlásit</a>
         <!-- end: neprihlasen -->
         <!-- begin: prihlasen -->
-        <div class="menu_jmeno">{u.mail}</div>
+        <div class="menu_jmeno">{u.nick} ({u.id})</div>
         <div class="menu_uzivatelpolozky">
           <a href="finance">Finance</a>
           <a href="registrace">Nastavení</a>
@@ -31,6 +31,8 @@
         <!-- end: prihlasen -->
       </div>
 
+      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">Přihláška</a>
+
       <div class="menu_menu">
         <a href="program" class="menu_odkaz">program</a>
         <div class="menu_kategorie">
@@ -39,18 +41,23 @@
             <!-- begin: typAktivit -->
             <a href="{typ.url}" class="menu_polozka">{typ.nazev}</a>
             <!-- end: typAktivit -->
+            <a class="menu_polozka" href="celohra">Celohra</a>
           </div>
         </div>
         <div class="menu_kategorie">
           <div class="menu_nazevkategorie">informace</div>
           <div class="menu_polozky">
-            <a class="menu_polozka" href="prihlaska">Přihláška</a>
-            <a class="menu_polozka" href="novinky">Novinky</a>
+            <!-- prihlaska presunuta na hlavni panel -->
+            <!-- <a class="menu_polozka" href="prihlaska">Přihláška</a> -->
+            <!-- novinky schovany pro redudanci -->
+            <!-- <a class="menu_polozka" href="novinky">Novinky</a> -->
             <a class="menu_polozka" href="blog">Blog</a>
-            <a class="menu_polozka" href="organizacni-vypomoc">Chci pomoct s GameConem</a>
+            <!-- dojde k přesunu -->
+            <!-- <a class="menu_polozka" href="organizacni-vypomoc">Chci pomoct s GameConem</a> -->
             <a class="menu_polozka" href="chci-se-prihlasit">Chci na GameCon</a>
             <a class="menu_polozka" href="prakticke-informace">Praktické informace</a>
-            <a class="menu_polozka" href="celohra">Celohra</a>
+            <!-- celohra přesunuta pod aktivity -->
+            <!-- <a class="menu_polozka" href="celohra">Celohra</a> -->
             <a class="menu_polozka" href="kontakty">Kontakty</a>
             <a class="menu_polozka" href="info-po-gc">Info po GC a zpětná vazba</a>
           </div>
