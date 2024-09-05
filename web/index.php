@@ -70,11 +70,11 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
-    $t->assign(['u' => $u]);
-    $t->assign(['sn' => $systemoveNastaveni]);
+    $t->assign(['rocnik' => $systemoveNastaveni->rocnik()]);
 
     // položky uživatelského menu
     if ($u) {
+        $t->assign(['u' => $u]);
         if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
             $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
             $t->parse('menu.prihlasen.admin');
