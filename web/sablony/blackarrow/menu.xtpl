@@ -31,7 +31,7 @@
         <!-- end: prihlasen -->
       </div>
 
-      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">Přihláška</a>
+      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">Přihláška na GC</a>
 
       <div class="menu_menu">
         <a href="program" class="menu_odkaz">program</a>
