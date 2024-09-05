@@ -271,7 +271,6 @@ SQL,
             'skip-definer' => true,
         ]);
         $mysqldump->start($tempFile);
-        NastrojeDatabaze::removeDefiners($tempFile);
 
         (new \MySQLImport($dbConnectionAnonymDb))->load($tempFile);
 
