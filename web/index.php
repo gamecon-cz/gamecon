@@ -70,9 +70,11 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
+    $t->assign(['u' => $u]);
+    $t->assign(['sn' => $systemoveNastaveni]);
+
     // položky uživatelského menu
     if ($u) {
-        $t->assign(['u' => $u]);
         if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
             $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
             $t->parse('menu.prihlasen.admin');
@@ -82,8 +84,16 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
         }
 
         $t->parse('menu.prihlasen');
+        if($u->gcPrihlasen()){
+            $t->parse('menu.prihlasenNaGC');
+        }
+        else {
+            $t->parse('menu.neprihlasenNaGC');
+        }
+
     } else {
         $t->parse('menu.neprihlasen');
+        $t->parse('menu.neprihlasenNaGC');
     }
 
     $t->parse('menu');

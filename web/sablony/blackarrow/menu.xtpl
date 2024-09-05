@@ -31,7 +31,13 @@
         <!-- end: prihlasen -->
       </div>
 
-      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">Přihláška na GC</a>
+      <!-- begin: neprihlasenNaGC -->
+      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">Přihlásit na GC {sn.rocnik}</a>
+      <!-- end: neprihlasenNaGC -->
+
+      <!-- begin: prihlasenNaGC -->
+      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">upravit přihlášku</a>
+      <!-- end: prihlasenNaGC -->
 
       <div class="menu_menu">
         <a href="program" class="menu_odkaz">program</a>
