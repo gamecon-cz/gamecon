@@ -32,7 +32,7 @@
       </div>
 
       <!-- begin: neprihlasenNaGC -->
-      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">Přihlásit na GC {rocnik}</a>
+      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">Přihlásit na GC</a>
       <!-- end: neprihlasenNaGC -->
 
       <!-- begin: prihlasenNaGC -->

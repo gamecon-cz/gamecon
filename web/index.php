@@ -70,8 +70,6 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
-    $t->assign(['rocnik' => $systemoveNastaveni->rocnik()]);
-
     // položky uživatelského menu
     if ($u) {
         $t->assign(['u' => $u]);
