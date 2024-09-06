@@ -82,12 +82,7 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
         }
 
         $t->parse('menu.prihlasen');
-        if($u->gcPrihlasen()){
-            $t->parse('menu.prihlasenNaGC');
-        }
-        else {
-            $t->parse('menu.neprihlasenNaGC');
-        }
+        $t->parse($u->gcPrihlasen() ? 'menu.prihlasenNaGC' : 'menu.neprihlasenNaGC');
 
     } else {
         $t->parse('menu.neprihlasen');
