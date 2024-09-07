@@ -1,0 +1,55 @@
+details {
+  background-color: #E22630;
+  color: #fff;
+  font-size: 1em;
+}
+
+summary {
+  padding: .5em 1.3rem;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  transition: height 1s ease, color 0.3s ease;
+  color: white;
+  margin-bottom: 0;
+  font-weight: bold;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary:after {
+  content: "\002B";
+  font-weight: bold;
+  text-decoration: none;
+}
+
+details[open] summary:after {
+  content: "\2212";
+  font-weight: bold;
+  text-decoration: none;
+}
+
+summary:hover {
+  cursor: pointer;
+}
+
+summary:hover > span {
+  color: yellow;
+  text-decoration: underline;
+}
+
+/*
+  details[open] summary {
+    border-bottom: 1px solid #aaa;
+    margin-bottom: 0.2em;
+  }
+*/
+
+details[open] div {
+  padding: .2em 1em;
+  background-color: white;
+  border: 2px solid #E22630;
+  color: black;
+}

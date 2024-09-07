@@ -102,6 +102,7 @@ if ($m->bezStranky()) {
 
 $t = new XTemplate(__DIR__ . '/sablony/blackarrow/index.xtpl');
 $t->assign([
+    'summary'          => __DIR__ . DIRECTORY_SEPARATOR . 'soubory' . DIRECTORY_SEPARATOR . 'blackarrow' . DIRECTORY_SEPARATOR . '_spolecne' . DIRECTORY_SEPARATOR . 'summary.less',
     'css'          => perfectcache('soubory/blackarrow/*/*.less'),
     'jsVyjimkovac' => Vyjimkovac::js(URL_WEBU),
     'chyba'        => Chyba::vyzvedniHtml(),
