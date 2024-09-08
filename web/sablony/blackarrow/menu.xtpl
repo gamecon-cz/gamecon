@@ -22,7 +22,7 @@
           <!-- begin: mujPrehled -->
           <a href="{mojeAktivityAdminUrl}" target="_blank">Hry, které vedu</a>
           <!-- end: mujPrehled -->
-          <a href="prihlaska">Přihláška na GC</a>
+          <a href="prihlaska">{prihlaskaNaGC}</a>
           <a href="#" onclick="odhlasForm.submit(); return false;">Odhlásit</a>
           <form id="odhlasForm" method="post" action="prihlaseni">
             <input type="hidden" name="odhlasit" value="true">
@@ -31,14 +31,8 @@
         <!-- end: prihlasen -->
       </div>
 
-      <!-- begin: neprihlasenNaGC -->
-      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">Přihlásit se na GC</a>
-      <!-- end: neprihlasenNaGC -->
-
-      <!-- begin: prihlasenNaGC -->
-      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">upravit přihlášku</a>
-      <!-- end: prihlasenNaGC -->
-
+      <a class="item--prihlaska menu_odkaz menu_uzivatel" href="prihlaska">{prihlaskaNaGC}</a>
+      
       <div class="menu_menu">
         <a href="program" class="menu_odkaz">program</a>
         <div class="menu_kategorie">

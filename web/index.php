@@ -64,6 +64,7 @@ try {
 
 // sestavení menu
 $menu = '';
+$prihlaskaText = 'Přihlásit se na GC';
 if (!$m->bezStranky() && !$m->bezMenu()) {
     $t = new XTemplate(__DIR__ . '/sablony/blackarrow/menu.xtpl');
 
@@ -81,12 +82,13 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
             $t->parse('menu.prihlasen.mujPrehled');
         }
 
+        if ($u->gcPrihlasen()) { $prihlaskaText = 'Upravit přihlášku'; }
+        $t->assign(['prihlaskaNaGC' => $prihlaskaText]);
         $t->parse('menu.prihlasen');
-        $t->parse($u->gcPrihlasen() ? 'menu.prihlasenNaGC' : 'menu.neprihlasenNaGC');
 
     } else {
+        $t->assign(['prihlaskaNaGC' => $prihlaskaText]);
         $t->parse('menu.neprihlasen');
-        $t->parse('menu.neprihlasenNaGC');
     }
 
     $t->parse('menu');
