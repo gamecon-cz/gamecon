@@ -25,37 +25,20 @@ summary:after {
   text-decoration: none;
 }
 
-details[open] summary:after {
-  content: "\2212";
-  font-weight: bold;
-  text-decoration: none;
-}
-
-summary:hover {
-  cursor: pointer;
-}
-
-
-summary:hover {
-  /*background-color: #90BEDE;*/
-  background-color: #f6c988;
-  color: black;
-  
-}
-
-/*
-summary:hover > span {
-  color: yellow;
-  text-decoration: underline;
-}
-*/
-
-/*
-  details[open] summary {
-    border-bottom: 1px solid #aaa;
-    margin-bottom: 0.2em;
+@media (hover: hover) {
+  details[open] summary:after {
+    content: "\2212";
+    font-weight: bold;
+    text-decoration: none;
   }
-*/
+  
+  summary:hover {
+    /*background-color: #90BEDE;*/
+    background-color: #f6c988;
+    color: black;
+    cursor: pointer;
+  }
+}
 
 details[open] div {
   padding: .2em 1em;
