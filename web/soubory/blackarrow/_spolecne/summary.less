@@ -25,19 +25,17 @@ summary:after {
   text-decoration: none;
 }
 
-@media (hover: hover) {
-  details[open] summary:after {
-    content: "\2212";
-    font-weight: bold;
-    text-decoration: none;
-  }
-  
-  summary:hover {
-    /*background-color: #90BEDE;*/
-    background-color: #f6c988;
-    color: black;
-    cursor: pointer;
-  }
+details[open] summary:after {
+  content: "\2212";
+  font-weight: bold;
+  text-decoration: none;
+}
+
+summary:hover {
+  /*background-color: #90BEDE;*/
+  background-color: #f6c988;
+  color: black;
+  cursor: pointer;
 }
 
 details[open] div {
