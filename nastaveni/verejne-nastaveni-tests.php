@@ -6,7 +6,6 @@ define('DB_TEST_PREFIX', 'gamecon_test_');
 define('DB_NAME', $_COOKIE['gamecon_test_db'] ?? uniqid(DB_TEST_PREFIX, true));
 define('DB_ANONYM_NAME', $_COOKIE['gamecon_test_anonym_db'] ?? uniqid(DB_TEST_PREFIX . 'anonym_', true));
 define('SPEC', sys_get_temp_dir());
-define('UNIT_TESTS', true);
 
 // konfigurace
 // TODO dokud není konfigurace vyřešena jinak, než přes konstanty, musíme testovat jen jeden vydefinovaný stav, tj. "reg na aktivity běží"
