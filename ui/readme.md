@@ -30,6 +30,11 @@ nasazování pořád buildovat)
 
 ## Přidávání kódů
 
+### Navázání pro editaci na chrome dev tools
+
+Rychlé změny lze provádět i v chrome dev tools. Stačí otevřít dev tools(F12) -> záložka sources -> podzáložka workspace a přidat složku ui (+potvrdit přístup ke složce). Chrome se pak pokusí namapovat části kódu na reálné soubory a když pak otevřu v chrome nějaký file tak ho můžu rovnou upravit a uložit stejně jako bych to dělal z textového editoru. 
+Pro aplikace změn na webu se musí ale kód i tak zbuildovat.
+
 ### Lintování
 
 Po každé změně před commitem je třeba kód nastylovat.

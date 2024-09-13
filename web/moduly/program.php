@@ -1,6 +1,10 @@
 <?php
 
 use Gamecon\Aktivita\Program;
+use Gamecon\Api\ApiAktivityProgram;
+use Gamecon\Api\ApiStitky;
+use Gamecon\Api\ApiUzivatel;
+use Gamecon\Api\Pomocne\ApiFunkce;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
@@ -92,33 +96,23 @@ function zabalWebSoubor(string $cestaKSouboru): string
 
     window.gameconPřednačtení =
     <?php
-    $res = [];
-    if ($u) {
-        $res["prihlasen"]          = true;
-        $res["pohlavi"]            = $u->pohlavi();
-        $res["koncovkaDlePohlavi"] = $u->koncovkaDlePohlavi();
 
-        if ($u->jeOrganizator()) {
-            $res["organizator"] = true;
-        }
-        if ($u->jeBrigadnik()) {
-            $res["brigadnik"] = true;
-        }
+    $aktivityProgramEtag = ApiFunkce::etagZApiJson(
+        ApiFunkce::vytvorApiJson(ApiAktivityProgram::apiAktivityProgram(ROCNIK, $u))
+    );
 
-        $res["gcStav"] = "nepřihlášen";
+    $stitkyEtag = ApiFunkce::etagZApiJson(
+        ApiFunkce::vytvorApiJson(ApiStitky::apiStitky()));
 
-        if ($u->gcPrihlasen()) {
-            $res["gcStav"] = "přihlášen";
-        }
-        if ($u->gcPritomen()) {
-            $res["gcStav"] = "přítomen";
-        }
-        if ($u->gcOdjel()) {
-            $res["gcStav"] = "odjel";
-        }
-    }
-    // TODO: použít jednu logiku stejně jako z API
-    echo json_encode(["přihlášenýUživatel" => $res], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo ApiFunkce::vytvorApiJson([
+        "časPřednačtení" => (new DateTimeCz())->getTimestamp() * 1_000,
+        "přihlášenýUživatel" => ApiUzivatel::apiUzivatel($u),
+        "etagy" => [
+            (URL_WEBU . "/api/") . "aktivityProgram" => $aktivityProgramEtag,
+            (URL_WEBU . "/api/") . "aktivityProgram?rok=" . ROCNIK => $aktivityProgramEtag,
+            (URL_WEBU . "/api/") . "stitky" => $stitkyEtag,
+        ],
+    ]);
     ?>
 </script>
 
