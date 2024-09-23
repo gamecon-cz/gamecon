@@ -24,8 +24,8 @@ const PROGRAM_ČASY =
   GAMECON_KONSTANTY.PROGRAM_ZACATEK < GAMECON_KONSTANTY.PROGRAM_KONEC
     ? range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, GAMECON_KONSTANTY.PROGRAM_KONEC)
     : range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, 24).concat(
-        range(0, GAMECON_KONSTANTY.PROGRAM_KONEC)
-      );
+      range(0, GAMECON_KONSTANTY.PROGRAM_KONEC)
+    );
 
 const indexŘazení = (klíč: string) => {
   const index = GAMECON_KONSTANTY.PROGRAM_ŘAZENÍ_LINIE.findIndex(
@@ -44,7 +44,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const urlStavVýběr = useUrlVýběr();
   const aktivityFiltrované = useAktivityFiltrované();
 
-  const kompaktní = useProgramStore(s=>s.všeobecné.kompaktní);
+  const kompaktní = useProgramStore(s => s.všeobecné.kompaktní);
 
   const BuňkaKomponenta = kompaktní ? ProgramTabulkaBuňkaKompaktní : ProgramTabulkaBuňka;
 
@@ -155,7 +155,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     + (aktivitaNáhled ? " programNahled_obalProgramu-zuzeny" : "")
     + (zvětšeno ? " programNahled_obalProgramu-zvetseny" : "")
     ;
-;
+
   const obalHlavníRef = useRef<HTMLDivElement>(null);
   const posledníZvětšeno = useRef(false);
 
@@ -192,11 +192,24 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
         (element as any)?.msExitFullscreen();
       }
     }
-  }, [zvětšeno])
+  }, [zvětšeno]);
+
+  const načítání = useProgramStore(s => s.všeobecné.načítání);
 
   return (
     <>
       <div ref={obalHlavníRef} class={programNáhledObalProgramuClass}>
+        {// TODO: refactor
+          načítání
+            ? <div style="
+            position: absolute;
+            background-color: white;
+            z-index: 2;
+            padding: 4px;
+            font-size: 3em;
+            opacity: .8;
+          ">Načítání...</div>
+            : <></>}
         <div class="programPosuv_obal2">
           <div class="programPosuv_obal" ref={obalRef}>
             <table class="program">
