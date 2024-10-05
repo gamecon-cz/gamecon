@@ -39,6 +39,7 @@ class KopieOstreDatabaze
         $tempFile  = tempnam(sys_get_temp_dir(), 'kopie_ostre_databaze_');
         $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpOstreDatabaze();
         $mysqldump->start($tempFile);
+        NastrojeDatabaze::removeDefiners($tempFile);
 
         [
             'DB_SERV'  => $dbServ,
