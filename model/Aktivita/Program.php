@@ -515,7 +515,7 @@ HTML;
                     if (
                       $aktivitaRaw &&
                       $typId == $aktivitaRaw['grp'] &&
-                      ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < PROGRAM_ZACATEK) && // pro případ že by někdo nastavil aktivitu na již dřívější začátek, tak aby to nerozbilo program. (např. 2024 brigádnické aktivity od 7:00, kdy program zařínal 8:00)
+                      ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < PROGRAM_ZACATEK) && // pro případ že by někdo nastavil aktivitu na již dřívější začátek, tak aby to nerozbilo program. (např. 2024 brigádnické aktivity od 7:00, kdy program začínal 8:00)
                       (!$denId || $aktivitaRaw['den'] == $denId)
                     ) {
                         $skip = $aktivitaRaw['del'] - 1;

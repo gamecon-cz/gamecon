@@ -921,8 +921,10 @@ HTML;
                 return ImportStepResult::successWithErrorLikeWarnings(
                     null,
                     [sprintf(
-                        'Aktivita má uvedený začátek (%s), který je mimo rozsah denního začátku a konce GameConu.',
-                        $activityValues[ExportAktivitSloupce::ZACATEK]
+                        'Aktivita má uvedený začátek (%s), který je mimo rozsah denního začátku a konce GameConu (%s - %s)',
+                        $activityValues[ExportAktivitSloupce::ZACATEK],
+                        PROGRAM_ZACATEK,
+                        PROGRAM_KONEC,
                     )]
                 );
             }
@@ -960,8 +962,10 @@ HTML;
                 return ImportStepResult::successWithErrorLikeWarnings(
                     null,
                     [sprintf(
-                        'Aktivita má uvedený konec (%s), který je mimo rozsah denního začátku a konce GameConu.',
-                        $activityValues[ExportAktivitSloupce::ZACATEK]
+                        'Aktivita má uvedený konec (%s), který je mimo rozsah denního začátku a konce GameConu (%s, %s)',
+                        $activityValues[ExportAktivitSloupce::ZACATEK],
+                        PROGRAM_ZACATEK,
+                        PROGRAM_KONEC,
                     )]
                 );
             }
