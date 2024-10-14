@@ -6,6 +6,7 @@ use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportLogger;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Role\Role;
 use Gamecon\Vyjimkovac\Logovac;
+use Gamecon\Web\Urls;
 
 /** @var \Gamecon\XTemplate\XTemplate $template */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService $googleDriveService */
@@ -17,7 +18,7 @@ $now                    = new \DateTimeImmutable();
 if (defined('TESTING') && TESTING && (int)$now->format('Y') !== (int)ROCNIK) {
     $now = DateTimeImmutable::createFromFormat(\Gamecon\Cas\DateTimeCz::FORMAT_DB, GC_BEZI_OD);
 }
-$urlNaEditaciAktivity = \Gamecon\Web\Urls::urlAdminDetailAktivity(null);
+$urlNaEditaciAktivity = Urls::urlAdminDetailAktivity(null);
 
 $importFormatHint = include __DIR__ . '/_export-import-hint.php';
 $template->assign('importFormatHint', $importFormatHint);

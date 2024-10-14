@@ -2,11 +2,18 @@
 
 <!-- begin:exportImport -->
 <div>
-    <form action="{urlProImport}" method="get" style="float: left">
-        <input type="submit" value="Importovat">
+    <form action="{urlProImportAktivit}" method="get" style="float: left">
+        <input type="submit" value="Importovat aktivity">
     </form>
-    <form method="get" action="{urlProExport}" style="float: right">
-        <input type="submit" value="Exportovat">
+    <form method="get" action="{urlProExportAktivit}" style="float: right">
+        <input type="submit" value="Exportovat aktivity">
+    </form>
+    <div style="clear: both; border-bottom: rgba(0,0,0,0.12) dashed thin; margin-bottom: 1em; padding-bottom: 1em"></div>
+    <form action="{urlProImportUcastniku}" method="get" style="float: left">
+        <input type="submit" value="Importovat účastníky">
+    </form>
+    <form method="get" action="{urlProExportUcastniku}" style="float: right">
+        <input type="submit" value="Exportovat účastníky">
     </form>
     <div style="clear: both"></div>
 </div>
