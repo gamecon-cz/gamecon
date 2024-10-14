@@ -2,7 +2,7 @@
 /**
  * Stránka pro hromadný export aktivit.
  *
- * nazev: Export & Import
+ * nazev: Export & Import aktivit
  * pravo: 102
  * submenu_group: 1
  * submenu_order: 2
@@ -36,7 +36,7 @@ try {
     exit;
 }
 
-/** @type \Uzivatel $u */
+/** @var \Uzivatel $u */
 $currentUserId = $u->id();
 $googleApiClient = new GoogleApiClient(
     $googleApiCredentials,
@@ -55,7 +55,7 @@ if (isset($_GET['code'])) {
     back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 }
 
-$template = new XTemplate(__DIR__ . '/export-import.xtpl');
+$template = new XTemplate(__DIR__ . '/export-import-aktivit.xtpl');
 
 $urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';
 $template->assign('urlNaAktivity', $urlNaAktivity);
@@ -72,11 +72,11 @@ try {
         $template->parse('autorizace');
         $template->out('autorizace');
     } else {
-        require __DIR__ . '/_import.php';
+        require __DIR__ . '/_import-aktivit.php';
     }
     $importOutput = ob_get_clean();
 
-    require __DIR__ . '/_export.php';
+    require __DIR__ . '/_export-aktivit.php';
 
     echo $importOutput;
 

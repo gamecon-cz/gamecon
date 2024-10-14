@@ -39,7 +39,7 @@ class Uzivatel extends DbObject
     public const UZIVATEL          = 'uzivatel';
 
     public const FAKE         = 0x01;  // modifikátor "fake uživatel"
-    public const SYSTEM       = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
+    public const SYSTEM       = 1;     // id uživatele reprezentujícího systém (např. "operaci provedl systém")
     public const SYSTEM_LOGIN = 'SYSTEM';
 
     public const TYPY_DOKLADU     = [
@@ -124,8 +124,10 @@ SQL
     private                    $kdySeRegistrovalNaLetosniGc;
     private SystemoveNastaveni $systemoveNastaveni;
 
-    public function __construct(array $uzivatel, SystemoveNastaveni $systemoveNastaveni = null)
-    {
+    public function __construct(
+        array              $uzivatel,
+        SystemoveNastaveni $systemoveNastaveni = null,
+    ) {
         if (array_keys_exist(['id_uzivatele'], $uzivatel)) {
             $this->r = $uzivatel;
             parent::__construct($uzivatel);
@@ -265,8 +267,10 @@ SQL
     /**
      * Přidá uživateli roli (posadí uživatele na roli)
      */
-    public function pridejRoli(int $idRole, Uzivatel $posadil): bool
-    {
+    public function pridejRoli(
+        int      $idRole,
+        Uzivatel $posadil,
+    ): bool {
         if ($this->maRoli($idRole)) {
             return false;
         }
@@ -440,8 +444,10 @@ SQL
         }
     }
 
-    private function mailOdhlasilAlePlatil(float $celkemLetosPoslal, Uzivatel $odhlasujici): GcMail
-    {
+    private function mailOdhlasilAlePlatil(
+        float    $celkemLetosPoslal,
+        Uzivatel $odhlasujici,
+    ): GcMail {
         $odhlasen = $this->id() === $odhlasujici->id()
             ? ' se odhlásil'
             : 'byl odhlášen';
@@ -461,8 +467,10 @@ SQL
             );
     }
 
-    private function mailZeBylOdhlasenAMelUbytovani(array $dnyUbytovani, Uzivatel $odhlasujici): GcMail
-    {
+    private function mailZeBylOdhlasenAMelUbytovani(
+        array    $dnyUbytovani,
+        Uzivatel $odhlasujici,
+    ): GcMail {
         $odhlasen = $this->id() === $odhlasujici->id()
             ? ' se odhlásil'
             : 'byl odhlášen';
@@ -614,8 +622,10 @@ SQL,
         return $this->maRoli(Role::zkontrolovaneUdaje($rocnik ?? $this->systemoveNastaveni->rocnik()));
     }
 
-    public function nastavZkontrolovaneUdaje(Uzivatel $editor, bool $udajeZkontrolovane = true): bool
-    {
+    public function nastavZkontrolovaneUdaje(
+        Uzivatel $editor,
+        bool     $udajeZkontrolovane = true,
+    ): bool {
         if ($udajeZkontrolovane) {
             return $this->pridejRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
         }
@@ -657,7 +667,9 @@ WHERE uzivatele_role.id_uzivatele = $0
 SQL,
                 [$this->id()]);
             $rokyWrapped              = mysqli_fetch_all($q);
-            $roky                     = array_map(fn($e) => (int)$e[0], $rokyWrapped);
+            $roky                     = array_map(fn(
+                $e,
+            ) => (int)$e[0], $rokyWrapped);
             $this->historiePrihlaseni = $roky;
         }
 
@@ -734,6 +746,31 @@ SQL,
     }
 
     /**
+     * @param string $jmenoNick
+     * @return array{jmeno: string, nick: string|null, prijmeni: string}
+     */
+    public static function jmenoNickRozloz(string $jmenoNick): array
+    {
+        if (preg_match('~^(?<jmeno>[^„]*)„(?<nick>[^“]+)“(?<prijmeni>.*)$~u', $jmenoNick, $matches)) {
+            return [
+                'jmeno'    => trim($matches['jmeno']),
+                'nick'     => trim($matches['nick']),
+                'prijmeni' => trim($matches['prijmeni']),
+            ];
+        }
+
+        $parts    = explode(' ', $jmenoNick);
+        $prijmeni = trim(array_pop($parts) ?? '');
+        $jmeno    = implode(' ', array_map('trim', $parts));
+
+        return [
+            'jmeno'    => $jmeno,
+            'nick'     => null,
+            'prijmeni' => $prijmeni,
+        ];
+    }
+
+    /**
      * Vrátí koncovku "a" pro holky (resp. "" pro kluky)
      * @deprecated use \Uzivatel::koncovkaDlePohlavi instead
      */
@@ -761,7 +798,9 @@ SQL,
      */
     public function chybejiciUdaje(array $povinneUdaje): array
     {
-        $validator = fn(string $sloupec) => (trim((string)$this->r[$sloupec] ?? '')) === '';
+        $validator = fn(
+            string $sloupec,
+        ) => (trim((string)$this->r[$sloupec] ?? '')) === '';
 
         return array_filter($povinneUdaje, $validator, ARRAY_FILTER_USE_KEY);
     }
@@ -785,8 +824,8 @@ SQL,
     {
         return match ($kategorieRole) {
             Role::KATEGORIE_OMEZENA => $this->maRoli(Role::CLEN_RADY),
-            Role::KATEGORIE_BEZNA => true,
-            default => throw new \Gamecon\Role\Exceptions\NeznamaKategorieRole(
+            Role::KATEGORIE_BEZNA   => true,
+            default                 => throw new \Gamecon\Role\Exceptions\NeznamaKategorieRole(
                 "Kategorie $kategorieRole je neznámá",
             )
         };
@@ -928,10 +967,11 @@ SQL,
      * @return bool jestli se uživatel v daném čase neúčastní / neorganizuje
      *  žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
      */
-    public function maVolno(DateTimeInterface $od,
-                            DateTimeInterface $do,
-                            Aktivita          $ignorovanaAktivita = null,
-                            bool              $jenPritomen = false
+    public function maVolno(
+        DateTimeInterface $od,
+        DateTimeInterface $do,
+        Aktivita          $ignorovanaAktivita = null,
+        bool              $jenPritomen = false,
     ) {
         // právo na překrytí aktivit dává volno vždy automaticky
         // TODO zkontrolovat, jestli vlastníci práva dřív měli někdy paralelně i účast nebo jen organizovali a pokud jen organizovali, vyhodit test odsud a vložit do kontroly kdy se ukládá aktivita
@@ -958,11 +998,12 @@ SQL,
      * @param bool $jenPritomen
      * @return bool
      */
-    private function maCasovouKolizi(array             $aktivity,
-                                     DateTimeInterface $od,
-                                     DateTimeInterface $do,
-                                     ?Aktivita         $ignorovanaAktivita,
-                                     bool              $jenPritomen
+    private function maCasovouKolizi(
+        array             $aktivity,
+        DateTimeInterface $od,
+        DateTimeInterface $do,
+        ?Aktivita         $ignorovanaAktivita,
+        bool              $jenPritomen,
     ): bool {
         $ignorovanaAktivitaId = $ignorovanaAktivita
             ? $ignorovanaAktivita->id()
@@ -1204,7 +1245,7 @@ SQL,
         // máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesssionObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] == $this->id());
         if ($klic === self::UZIVATEL) { // pokud je klíč default, zničíme celou session
-            $this->odhlasProTed(); // ponech případnou cookie pro trvalé přihášení
+            $this->odhlasProTed();      // ponech případnou cookie pro trvalé přihášení
         } else { // pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
         }
@@ -1312,8 +1353,11 @@ SQL,
      * @param string $heslo heslo uživatele
      * @return mixed objekt s uživatelem nebo null
      */
-    public static function prihlas($login, $heslo, $klic = self::UZIVATEL)
-    {
+    public static function prihlas(
+        $login,
+        $heslo,
+        $klic = self::UZIVATEL,
+    ) {
         if (!$login || !$heslo) {
             return null;
         }
@@ -1370,8 +1414,10 @@ SQL,
      * Vytvoří v session na indexu $klic dalšího uživatele pro práci
      * @return null|Uzivatel nebo null
      */
-    public static function prihlasId($idUzivatele, $klic = self::UZIVATEL): ?Uzivatel
-    {
+    public static function prihlasId(
+        $idUzivatele,
+        $klic = self::UZIVATEL,
+    ): ?Uzivatel {
         $idUzivatele  = (int)$idUzivatele;
         $uzivatelData = dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=$0', [$idUzivatele]);
         if (!$uzivatelData) {
@@ -1397,8 +1443,11 @@ SQL,
     }
 
     /** Alias prihlas() pro trvalé přihlášení */
-    public static function prihlasTrvale($login, $heslo, $klic = self::UZIVATEL)
-    {
+    public static function prihlasTrvale(
+        $login,
+        $heslo,
+        $klic = self::UZIVATEL,
+    ) {
         $u    = Uzivatel::prihlas($login, $heslo, $klic);
         $rand = randHex(20);
         if ($u) {
@@ -1487,14 +1536,18 @@ SQL,
     /**
      * Zregistruje nového uživatele nebo upraví stávajícího $u, pokud je zadán.
      */
-    private static function registrujUprav(array $tab, ?Uzivatel $u): string
-    {
+    private static function registrujUprav(
+        array     $tab,
+        ?Uzivatel $u,
+    ): string {
         $dbTab                  = $tab;
         $chyby                  = [];
         $preskocitChybejiciPole = (bool)$u;
 
         // opravy
-        $dbTab = array_map(static function ($hodnota) {
+        $dbTab = array_map(static function (
+            $hodnota,
+        ) {
             return preg_replace('/\s+/', ' ', trim((string)$hodnota));
         }, $dbTab);
 
@@ -1505,12 +1558,17 @@ SQL,
         // TODO fallback prázdná přezdívka -> mail?
 
         // validátory
-        $validaceLoginu = function ($login) use ($u) {
+        $validaceLoginu = function (
+            $login,
+        ) use
+        (
+            $u,
+        ) {
             if (empty($login)) {
                 return 'vyber si prosím přezdívku';
             }
 
-            $u2 = Uzivatel::zNicku($login) ?? Uzivatel::zMailu($login);
+            $u2 = Uzivatel::zNicku($login) ?? Uzivatel::zEmailu($login);
             if ($u2 && !$u) {
                 return 'přezdívka už je zabraná; pokud je tvoje, přihlaš se nebo si resetuj heslo';
             }
@@ -1521,12 +1579,17 @@ SQL,
             return '';
         };
 
-        $validaceMailu = function ($mail) use ($u) {
+        $validaceMailu = function (
+            $mail,
+        ) use
+        (
+            $u,
+        ) {
             if (!preg_match('/^[a-z0-9_\-.+]+@[a-z0-9_\-.]+\.[a-z]+$/', $mail)) {
                 return 'zadej prosím platný e-mail';
             }
 
-            $u2 = Uzivatel::zNicku($mail) ?? Uzivatel::zMailu($mail);
+            $u2 = Uzivatel::zNicku($mail) ?? Uzivatel::zEmailu($mail);
             if ($u2 && !$u) {
                 return 'e-mail už máš zaregistrovaný. Přihlaš se nebo si resetuj heslo';
             }
@@ -1537,7 +1600,9 @@ SQL,
             return '';
         };
 
-        $validaceDataNarozeni = function ($datum) {
+        $validaceDataNarozeni = function (
+            $datum,
+        ) {
             // přichází ve formátu rrrr-mm-dd
             if (!DateTimeImmutable::createFromFormat('Y-m-d', trim((string)$datum))) {
                 return 'vyplň prosím platné datum narození';
@@ -1546,7 +1611,12 @@ SQL,
             return '';
         };
 
-        $validaceHesla = function ($heslo) use ($dbTab) {
+        $validaceHesla = function (
+            $heslo,
+        ) use
+        (
+            $dbTab,
+        ) {
             if (empty($heslo)) {
                 return 'vyplň prosím heslo';
             }
@@ -1605,7 +1675,7 @@ SQL,
             $hodnota = trim((string)$hodnota);
             if ($hodnota === '') {
                 $povinne = in_array($klic, ['heslo', 'heslo_kontrola'])
-                    || array_key_exists($klic, $povinneUdaje);
+                           || array_key_exists($klic, $povinneUdaje);
                 if (!$povinne) {
                     continue;
                 }
@@ -1770,8 +1840,10 @@ SQL,
      * Smaže uživatele $u a jeho historii připojí k tomuto uživateli. Sloupečky
      * v poli $zmeny případně aktualizuje podle hodnot smazaného uživatele.
      */
-    public function sluc(Uzivatel $u, $zmeny = [])
-    {
+    public function sluc(
+        Uzivatel $u,
+                 $zmeny = [],
+    ) {
         $zmeny             = array_intersect_key($u->r, array_flip($zmeny));
         $zmeny['zustatek'] = $this->r['zustatek'] + $u->r['zustatek'];
 
@@ -1932,8 +2004,10 @@ SQL,
     /**
      * Odstraní uživatele z role a aktualizuje jeho práva.
      */
-    public function odeberRoli(int $idRole, Uzivatel $editor): bool
-    {
+    public function odeberRoli(
+        int      $idRole,
+        Uzivatel $editor,
+    ): bool {
         $result           = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
         $roleNoveOdebrana = dbAffectedOrNumRows($result) > 0;
         if ($roleNoveOdebrana) {
@@ -1944,8 +2018,11 @@ SQL,
         return $roleNoveOdebrana;
     }
 
-    private function zalogujZmenuRole(int $idRole, int $idEditora, string $zmena): void
-    {
+    private function zalogujZmenuRole(
+        int    $idRole,
+        int    $idEditora,
+        string $zmena,
+    ): void {
         dbQuery(<<<SQL
 INSERT INTO uzivatele_role_log(id_uzivatele, id_role, id_zmenil, zmena, kdy)
 VALUES ($0, $1, $2, $3, NOW())
@@ -2008,8 +2085,12 @@ SQL,
      * Na základě řetězce $dotaz zkusí najít všechny uživatele, kteří odpovídají
      * jménem, nickem, apod.
      */
-    public static function zHledani(string $dotaz, $opt = [], int $limit = 20, int $minimumZnaku = 3)
-    {
+    public static function zHledani(
+        string $dotaz,
+               $opt = [],
+        int    $limit = 20,
+        int    $minimumZnaku = 3,
+    ) {
         $opt = opt(
             $opt,
             [
@@ -2024,7 +2105,7 @@ SQL,
             return [];
         }
         $hodnotaSql              = dbQv($dotaz);
-        $hodnotaZacinaLikeSql    = dbQv($dotaz . '%'); // pro LIKE dotazy
+        $hodnotaZacinaLikeSql    = dbQv($dotaz . '%');        // pro LIKE dotazy
         $dalsiSlovoZacinaLikeSql = dbQv('% ' . $dotaz . '%'); // pro LIKE dotazy
         $kromeIdUzivatelu        = $opt['kromeIdUzivatelu'];
         $kromeIdUzivateluSql     = dbQv($kromeIdUzivatelu);
@@ -2061,13 +2142,15 @@ SQL,
                   OR CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele) LIKE $hodnotaZacinaLikeSql
                   ")
                 : ''
-            ) . "
+                            ) . "
       )
     ", null, 'LIMIT ' . $limit);
     }
 
-    public static function zId($id, bool $zCache = false): ?static
-    {
+    public static function zId(
+        $id,
+        bool $zCache = false,
+    ): ?static {
         $id = (int)$id;
 
         if ($zCache) {
@@ -2086,8 +2169,10 @@ SQL,
         return $uzivatel;
     }
 
-    public static function zIdUrcite($id, bool $zCache = false): self
-    {
+    public static function zIdUrcite(
+        $id,
+        bool $zCache = false,
+    ): self {
         $uzivatel = static::zId($id, $zCache);
         if ($uzivatel !== null) {
             return $uzivatel;
@@ -2102,8 +2187,10 @@ SQL,
      * @param bool $zCache
      * @return Uzivatel[]
      */
-    public static function zIds($ids, bool $zCache = false): array
-    {
+    public static function zIds(
+        $ids,
+        bool $zCache = false,
+    ): array {
         if (empty($ids)) {
             return [];
         }
@@ -2169,14 +2256,14 @@ SQL,
     /**
      * Vrátí uživatele dle zadaného mailu.
      */
-    public static function zMailu(?string $mail): ?Uzivatel
+    public static function zEmailu(?string $email): ?Uzivatel
     {
-        if (!$mail) {
+        if (!$email) {
             return null;
         }
         $uzivatele = Uzivatel::zWhere(
             'WHERE email1_uzivatele = $0',
-            [0 => filter_var($mail, FILTER_SANITIZE_EMAIL)],
+            [0 => filter_var($email, FILTER_SANITIZE_EMAIL)],
         );
 
         return $uzivatele[0] ?? null;
@@ -2193,11 +2280,50 @@ SQL,
             ?: null;
     }
 
+    public static function zJmenaAPrijmeni(
+        string $jmeno,
+        string $prijemni,
+    ): ?Uzivatel {
+        if (!$jmeno && !$prijemni) {
+            return null;
+        }
+        $uzivatelWrapped = Uzivatel::zWhere(
+            'WHERE ' . Sql::JMENO_UZIVATELE . ' = $0 AND ' . Sql::PRIJMENI_UZIVATELE . ' = $1',
+            [$jmeno, $prijemni],
+        );
+
+        return reset($uzivatelWrapped)
+            ?: null;
+    }
+
+    public static function zIndicii(string $jmenoNickEmailId, bool $zCache = false): ?\Uzivatel
+    {
+        if (!$jmenoNickEmailId) {
+            return null;
+        }
+        $jmenoNickEmailId = trim($jmenoNickEmailId);
+        if (is_numeric($jmenoNickEmailId)) {
+            return self::zId((int)$jmenoNickEmailId, $zCache)
+                   ?? self::zNicku($jmenoNickEmailId);
+        }
+        if (filter_var($jmenoNickEmailId, FILTER_VALIDATE_EMAIL)) {
+            return self::zEmailu($jmenoNickEmailId);
+        }
+        ['jmeno' => $jmeno, 'prijmeni' => $prijmeni, 'nick' => $nick] = self::jmenoNickRozloz($jmenoNickEmailId);
+        if (trim($nick ?? '') !== '') {
+            return self::zNicku($nick);
+        }
+
+        return self::zJmenaAPrijmeni($jmeno, $prijmeni);
+    }
+
     /**
      * Vytvoří a vrátí nového uživatele z zadaného pole odpovídajícího db struktuře
      */
-    public static function zPole($pole, $mod = 0)
-    {
+    public static function zPole(
+        $pole,
+        $mod = 0,
+    ) {
         if ($mod & self::FAKE) {
             $pole['email1_uzivatele'] = $pole['login_uzivatele'] . '@FAKE';
             $pole['nechce_maily']     = null;
@@ -2300,16 +2426,23 @@ SQL,
         $cfos = Uzivatel::zRole(Role::CFO);
 
         return array_filter(
-            array_map(static fn(Uzivatel $cfo) => $cfo->mail(), $cfos),
-            static fn($mail) => is_string($mail) && filter_var($mail, FILTER_VALIDATE_EMAIL) !== false,
+            array_map(static fn(
+                Uzivatel $cfo,
+            ) => $cfo->mail(), $cfos),
+            static fn(
+                $mail,
+            ) => is_string($mail) && filter_var($mail, FILTER_VALIDATE_EMAIL) !== false,
         );
     }
 
     /**
      * Načte uživatele podle zadané where klauzle
      */
-    protected static function zWhere($where, $params = null, $extra = ''): array
-    {
+    protected static function zWhere(
+        $where,
+        $params = null,
+        $extra = '',
+    ): array {
         return parent::zWhere($where, $params, $extra);
     }
 
@@ -2386,18 +2519,20 @@ SQL;
         $potvrzeniProtiCovid19PridanoKdy = $this->potvrzeniProtiCoviduPridanoKdy();
 
         return $potvrzeniProtiCovid19PridanoKdy
-            && $potvrzeniProtiCovid19PridanoKdy->format('Y') === (string)$rok;
+               && $potvrzeniProtiCovid19PridanoKdy->format('Y') === (string)$rok;
     }
 
-    public function maOverenePotvrzeniProtiCoviduProRok(int $rok, bool $musiMitNahranyDokument = false): bool
-    {
+    public function maOverenePotvrzeniProtiCoviduProRok(
+        int  $rok,
+        bool $musiMitNahranyDokument = false,
+    ): bool {
         if ($musiMitNahranyDokument && !$this->maNahranyDokladProtiCoviduProRok($rok)) {
             return false;
         }
         $potvrzeniProtiCovid19OverenoKdy = $this->potvrzeniProtiCoviduOverenoKdy();
 
         return $potvrzeniProtiCovid19OverenoKdy
-            && $potvrzeniProtiCovid19OverenoKdy->format('Y') === (string)$rok;
+               && $potvrzeniProtiCovid19OverenoKdy->format('Y') === (string)$rok;
     }
 
     public function covidFreePotvrzeniHtml(int $rok): string
@@ -2617,13 +2752,15 @@ SQL;
     }
 
     /**
-     * Může vrátit i URL na web mimo admin, pokud jediná admin stránka, na kterou má uživatel právo, je nechtěná moje-aktivity.
+     * Může vrátit i URL na web mimo admin, pokud jediná admin stránka, na kterou má uživatel právo, je nechtěná
+     * moje-aktivity.
      * @param string $zakladniAdminUrl
      * @param string $zakladniWebUrl
      * @return string[] nazev => název, url => URL
      */
-    public function mimoMojeAktivityUvodniAdminLink(string $zakladniAdminUrl = URL_ADMIN,
-                                                    string $zakladniWebUrl = URL_WEBU
+    public function mimoMojeAktivityUvodniAdminLink(
+        string $zakladniAdminUrl = URL_ADMIN,
+        string $zakladniWebUrl = URL_WEBU,
     ): array {
         // URL máme schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
         if ($this->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
