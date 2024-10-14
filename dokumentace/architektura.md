@@ -23,7 +23,7 @@ __Views__ jsou skripty, které obsahují html kód k zobrazení a pracují s dat
 Model je postaven nad relační databází a částečně využívá vzoru __ActiveRecord__. To znamená, že třída obvykle odpovídá určité tabulce a objekt odpovídá jednomu řádku z ní. Nejlepší bude začít jednoduchým příkladem, na kterém se dají popsat základní principy:
 
 ```php
-$u = Uzivatel::zMailu('shako@gamecon.cz');
+$u = Uzivatel::zEmailu('shako@gamecon.cz');
 $a = Aktivita::zId(123);
 $a->prihlas($u);
 echo 'Uživatel '.$u->jmeno().' se přihlásil na aktivitu '.$a->nazev();
@@ -32,7 +32,7 @@ echo 'Uživatel '.$u->jmeno().' se přihlásil na aktivitu '.$a->nazev();
 ### Načtení objektu (zNěčeho)
 
 ```php
-$u = Uzivatel::zMailu('shako@gamecon.cz'); // načte uživatele s daným mailem z databáze
+$u = Uzivatel::zEmailu('shako@gamecon.cz'); // načte uživatele s daným mailem z databáze
 ```
 
 Objekty se běžně nenačítají způsobem `new Trida(argumenty)`, jak je zvykem, ale voláním statické metody, například `Uzivatel::zMailu('nejaky@mail.cz')`, pokud chceme načíst uživatele na základě mailu. Těmto metodám se říká tovární metody (__Factory Method__) a třída jich může mít hodně. Tovární metody nemusí odpovídat jen sloupcům, mohou brát různé parametry a libovolně z nich kombinovat výsledný dotaz do databáze (viz třeba `Aktivita::zFiltru()`).
