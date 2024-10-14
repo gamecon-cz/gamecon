@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Gamecon\Admin\Modules\Aktivity\Import;
+namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
-use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
+use Gamecon\Admin\Modules\Aktivity\Import\Activities\Exceptions\ActivitiesImportException;
 use Gamecon\Aktivita\Aktivita;
 
 class ImportModelsFetcher
