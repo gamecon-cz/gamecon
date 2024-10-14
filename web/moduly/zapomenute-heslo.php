@@ -43,7 +43,7 @@ if (post('login')) {
 }
 
 if (post('mail')) {
-    $u = Uzivatel::zMailu(post('mail'));
+    $u = Uzivatel::zEmailu(post('mail'));
     obnovHesloUzivateli($u, $systemoveNastaveni);
 }
 

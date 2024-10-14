@@ -2,7 +2,7 @@
 
 $mail = get('email');
 
-$uzivatel = Uzivatel::zMailu($mail);
+$uzivatel = Uzivatel::zEmailu($mail);
 if ($uzivatel) {
     $uzivatel->odhlasZMaileru();
 

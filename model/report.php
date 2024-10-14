@@ -206,7 +206,7 @@ class Report
      * Vytiskne report v zadaném formátu. Pokud není zadán, použije výchozí csv.
      * @throws Exception pokud formát není podporován
      */
-    public function tFormat(string $format = null, string $nazev = null, KonfiguraceReportu $konfiguraceReportu = null)
+    public function tFormat(?string $format = 'xlsx', string $nazev = null, KonfiguraceReportu $konfiguraceReportu = null)
     {
         $format = trim((string) $format);
         if (!$format || $format === 'xlsx') {

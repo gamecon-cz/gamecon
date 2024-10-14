@@ -4,7 +4,7 @@ namespace Gamecon\Aktivita;
 
 /**
  * Typ aktivit (programová linie)
- * @method static TypAktivity|null zId($id)
+ * @method static TypAktivity|null zId($id, bool $zCache = false)
  * @method static TypAktivity[] zVsech(bool $zCache = false)
  */
 class TypAktivity extends \DbObject
