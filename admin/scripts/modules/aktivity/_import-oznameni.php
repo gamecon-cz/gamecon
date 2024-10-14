@@ -2,7 +2,8 @@
 
 use Gamecon\XTemplate\XTemplate;
 
-return static function (\Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportResult $vysledekImportuAktivit): string {
+return static function (
+    \Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportResult $vysledekImportuAktivit): string {
     $naimportovanoPocet = $vysledekImportuAktivit->getImportedCount();
     $nazevImportovanehoSouboru = $vysledekImportuAktivit->getProcessedFilename();
 
