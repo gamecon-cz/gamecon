@@ -108,10 +108,13 @@ if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechn
 
 $tpl = new XTemplate(__DIR__ . '/aktivity.xtpl');
 
-$currentRequestUrl = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-$exportImportUrl   = $currentRequestUrl . '/export-import';
-$tpl->assign('urlProExport', $exportImportUrl);
-$tpl->assign('urlProImport', $exportImportUrl);
+$currentRequestUrl      = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+$exportImportAktivitUrl = $currentRequestUrl . '/export-import-aktivit';
+$tpl->assign('urlProExportAktivit', $exportImportAktivitUrl);
+$tpl->assign('urlProImportAktivit', $exportImportAktivitUrl);
+$exportImportUcastnikuUrl = $currentRequestUrl . '/export-import-ucastniku';
+$tpl->assign('urlProExportUcastniku', $exportImportUcastnikuUrl);
+$tpl->assign('urlProImportUcastniku', $exportImportUcastnikuUrl);
 $tpl->parse('aktivity.exportImport');
 
 if (defined('TESTING') && TESTING && !empty($filtr['typ'])) {
