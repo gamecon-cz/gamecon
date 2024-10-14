@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita;
 
-use Gamecon\Admin\Modules\Aktivity\Import\ImportSqlMappedValuesChecker;
-use Gamecon\Admin\Modules\Aktivity\Import\ImportValuesDescriber;
-use Gamecon\Kanaly\GcMail;
-use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
+use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportSqlColumn;
+use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportSqlMappedValuesChecker;
+use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesDescriber;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
+use Gamecon\Kanaly\GcMail;
 use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -20,7 +20,6 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Urls;
 use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
-use PHPUnit\Exception;
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
 

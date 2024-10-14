@@ -1,8 +1,8 @@
 <?php
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
-use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImporter;
-use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportLogger;
+use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImporter;
+use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportLogger;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Role\Role;
 use Gamecon\Vyjimkovac\Logovac;
