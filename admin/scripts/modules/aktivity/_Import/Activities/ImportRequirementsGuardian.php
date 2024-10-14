@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Gamecon\Admin\Modules\Aktivity\Import;
+namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
-use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
+use Gamecon\Admin\Modules\Aktivity\Import\Activities\Exceptions\ActivitiesImportException;
 use Gamecon\Aktivita\TypAktivity;
 
 class ImportRequirementsGuardian
@@ -45,7 +45,7 @@ class ImportRequirementsGuardian
                     }
                 } catch (ActivitiesImportException $activitiesImportException) {
                     /** invalid activity ID - not a responsibility of this method
-                     * @see \Gamecon\Admin\Modules\Aktivity\Import\ImportValuesSanitizer::sanitizeValuesToImport
+                     * @see \Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesSanitizer::sanitizeValuesToImport
                      */
                 }
             }
