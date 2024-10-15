@@ -9,6 +9,7 @@
  */
 namespace PHPUnit\Event;
 
+use const PHP_EOL;
 use function array_key_exists;
 use function dirname;
 use function sprintf;
@@ -16,6 +17,8 @@ use function str_starts_with;
 use Throwable;
 
 /**
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
+ *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
 final class DirectDispatcher implements SubscribableDispatcher

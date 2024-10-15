@@ -166,11 +166,21 @@ class ServiceAccountJwtAccessCredentials extends CredentialsLoader implements
     }
 
     /**
+     * Return the cache key for the credentials.
+     * The format for the Cache Key one of the following:
+     * ClientEmail.Scope
+     * ClientEmail.Audience
+     *
      * @return string
      */
     public function getCacheKey()
     {
-        return $this->auth->getCacheKey();
+        $scopeOrAudience = $this->auth->getScope();
+        if (!$scopeOrAudience) {
+            $scopeOrAudience = $this->auth->getAudience();
+        }
+
+        return $this->auth->getIssuer() . '.' . $scopeOrAudience;
     }
 
     /**
@@ -205,6 +215,18 @@ class ServiceAccountJwtAccessCredentials extends CredentialsLoader implements
     public function getClientName(callable $httpHandler = null)
     {
         return $this->auth->getIssuer();
+    }
+
+    /**
+     * Get the private key from the keyfile.
+     *
+     * In this case, it returns the keyfile's private_key key, needed for JWT signing.
+     *
+     * @return string
+     */
+    public function getPrivateKey()
+    {
+        return $this->auth->getSigningKey();
     }
 
     /**

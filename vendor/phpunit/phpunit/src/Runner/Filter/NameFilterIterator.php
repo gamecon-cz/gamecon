@@ -14,6 +14,7 @@ use function implode;
 use function preg_match;
 use function sprintf;
 use function str_replace;
+use function substr;
 use Exception;
 use PHPUnit\Framework\SelfDescribing;
 use PHPUnit\Framework\Test;
@@ -23,6 +24,8 @@ use RecursiveFilterIterator;
 use RecursiveIterator;
 
 /**
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
+ *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
 final class NameFilterIterator extends RecursiveFilterIterator
@@ -75,7 +78,7 @@ final class NameFilterIterator extends RecursiveFilterIterator
      */
     private function setFilter(string $filter): void
     {
-        if (@preg_match($filter, '') === false) {
+        if (preg_match('/[a-zA-Z0-9]/', substr($filter, 0, 1)) === 1 || @preg_match($filter, '') === false) {
             // Handles:
             //  * testAssertEqualsSucceeds#4
             //  * testAssertEqualsSucceeds#4-8

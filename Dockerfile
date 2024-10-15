@@ -1,1 +1,1 @@
-FROM gameconcz/gamecon:8.3
+FROM gameconcz/gamecon:8.2

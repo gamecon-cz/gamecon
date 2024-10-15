@@ -2,8 +2,8 @@
 version: "3"
 services:
   web:
-    image: gameconcz/gamecon:8.3
-    restart: "no"
+    image: gameconcz/gamecon:8.2
+    restart: on-failure
     depends_on:
       - sql.gamecon
       - mailhog.gamecon

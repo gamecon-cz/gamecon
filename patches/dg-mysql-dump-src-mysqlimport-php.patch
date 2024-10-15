@@ -1,28 +1,12 @@
 --- /dev/null
 +++ ../src/MySQLImport.php
-@@ -38,7 +38,7 @@
- 	 * @param  string filename
- 	 * @return int
- 	 */
--	public function load($file)
-+    public function load($file)
- 	{
- 		$handle = strcasecmp(substr($file, -3), '.gz') ? fopen($file, 'rb') : gzopen($file, 'rb');
- 		if (!$handle) {
-@@ -73,9 +73,13 @@
+@@ -65,6 +65,9 @@
  
- 			} elseif (substr($ts = rtrim($s), -strlen($delimiter)) === $delimiter) {
- 				$sql .= substr($ts, 0, -strlen($delimiter));
--				if (!$this->connection->query($sql)) {
--					throw new Exception($this->connection->error . ': ' . $sql);
--				}
-+                try {
-+                    if (!$this->connection->query($sql)) {
-+                        throw new Exception($this->connection->error . ': ' . $sql);
-+                    }
-+                } catch (mysqli_sql_exception $mysqli_sql_exception) {
-+                    throw new Exception($mysqli_sql_exception->getMessage() . ': ' . $sql);
-+                }
- 				$sql = '';
- 				$count++;
- 				if ($this->onProgress) {
+ 		while (!feof($handle)) {
+ 			$s = fgets($handle);
++            if ($s === false) {
++                break;
++            }
+ 			$size += strlen($s);
+ 			if (strtoupper(substr($s, 0, 10)) === 'DELIMITER ') {
+ 				$delimiter = trim(substr($s, 10));
