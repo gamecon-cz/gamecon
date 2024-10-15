@@ -9,11 +9,14 @@
  */
 namespace PHPUnit\TextUI\XmlConfiguration;
 
+use const PHP_EOL;
 use function sprintf;
 use function trim;
 use LibXMLError;
 
 /**
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
+ *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  *
  * @psalm-immutable

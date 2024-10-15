@@ -17,6 +17,7 @@ use function is_string;
 use function preg_match;
 use function preg_replace;
 use function sprintf;
+use function str_contains;
 use function strlen;
 use function strpos;
 use function substr;
@@ -30,6 +31,8 @@ use SebastianBergmann\Type\Type;
 use SebastianBergmann\Type\UnknownType;
 
 /**
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
+ *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
 final class MockMethod
@@ -209,13 +212,21 @@ EOT;
 
         $template = $this->loadTemplate($templateFile);
 
+        $argumentsCount = 0;
+
+        if (str_contains($this->argumentsForCall, '...')) {
+            $argumentsCount = null;
+        } elseif (!empty($this->argumentsForCall)) {
+            $argumentsCount = substr_count($this->argumentsForCall, ',') + 1;
+        }
+
         $template->setVar(
             [
                 'arguments_decl'     => $this->argumentsForDeclaration,
                 'arguments_call'     => $this->argumentsForCall,
                 'return_declaration' => !empty($this->returnType->asString()) ? (': ' . $this->returnType->asString()) : '',
                 'return_type'        => $this->returnType->asString(),
-                'arguments_count'    => !empty($this->argumentsForCall) ? substr_count($this->argumentsForCall, ',') + 1 : 0,
+                'arguments_count'    => $argumentsCount,
                 'class_name'         => $this->className,
                 'method_name'        => $this->methodName,
                 'modifier'           => $this->modifier,

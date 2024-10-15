@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * MySQL database dump loader.
  *
@@ -18,9 +20,8 @@ class MySQLImport
 
 	/**
 	 * Connects to database.
-	 * @param  mysqli connection
 	 */
-	public function __construct(mysqli $connection, $charset = 'utf8')
+	public function __construct(mysqli $connection, string $charset = 'utf8mb4')
 	{
 		$this->connection = $connection;
 
@@ -35,10 +36,8 @@ class MySQLImport
 
 	/**
 	 * Loads dump from the file.
-	 * @param  string filename
-	 * @return int
 	 */
-    public function load($file)
+	public function load(string $file): int
 	{
 		$handle = strcasecmp(substr($file, -3), '.gz') ? fopen($file, 'rb') : gzopen($file, 'rb');
 		if (!$handle) {
@@ -51,9 +50,8 @@ class MySQLImport
 	/**
 	 * Reads dump from logical file.
 	 * @param  resource
-	 * @return int
 	 */
-	public function read($handle)
+	public function read($handle): int
 	{
 		if (!is_resource($handle) || get_resource_type($handle) !== 'stream') {
 			throw new Exception('Argument must be stream resource.');
@@ -67,19 +65,18 @@ class MySQLImport
 
 		while (!feof($handle)) {
 			$s = fgets($handle);
+            if ($s === false) {
+                break;
+            }
 			$size += strlen($s);
 			if (strtoupper(substr($s, 0, 10)) === 'DELIMITER ') {
 				$delimiter = trim(substr($s, 10));
 
 			} elseif (substr($ts = rtrim($s), -strlen($delimiter)) === $delimiter) {
 				$sql .= substr($ts, 0, -strlen($delimiter));
-                try {
-                    if (!$this->connection->query($sql)) {
-                        throw new Exception($this->connection->error . ': ' . $sql);
-                    }
-                } catch (mysqli_sql_exception $mysqli_sql_exception) {
-                    throw new Exception($mysqli_sql_exception->getMessage() . ': ' . $sql);
-                }
+				if (!$this->connection->query($sql)) {
+					throw new Exception($this->connection->error . ': ' . $sql);
+				}
 				$sql = '';
 				$count++;
 				if ($this->onProgress) {

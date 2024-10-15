@@ -11,8 +11,9 @@ $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
  * Vrátí míru diverzifikace aktivit v poli udávajícím počty aktivit od jedno-
  * tlivých typů. Délka pole ovlivňuje výsledek (je potřeba aby obsahovalo i 0)
  */
-function aktivityDiverzifikace($poleTypu)
-{
+function aktivityDiverzifikace(
+    $poleTypu,
+) {
     $typu  = count($poleTypu);
     $pocet = array_sum($poleTypu);
     if ($pocet == 0) return 0.0;
@@ -38,16 +39,21 @@ function aktivityDiverzifikace($poleTypu)
  * @todo záporná čísla
  * @todo nepovinné přepisování ('%d' => 'přihlásil se 1 uživatel', případně slovy apod)
  */
-function cislo($i, $jeden, $dva, $pet)
-{
+function cislo(
+    $i,
+    $jeden,
+    $dva,
+    $pet,
+) {
     if ($i == 1) return $i . $jeden;
     if (1 < $i && $i < 5) return $i . $dva;
     else return $i . $pet;
 }
 
 /** Vrací datum ve stylu "pátek 14:00-18:00" na základě řádku db */
-function datum2($dbRadek)
-{
+function datum2(
+    $dbRadek,
+) {
     if ($dbRadek['zacatek'])
         return (new DateTimeCz($dbRadek['zacatek']))->format('l G:i') . '–' . (new DateTimeCz($dbRadek['konec']))->format('G:i');
     else
@@ -58,8 +64,9 @@ function datum2($dbRadek)
  * Vrací datum ve stylu 1. července
  *  akceptuje vše, co žere strtotime
  */
-function datum3(string | DateTimeInterface $datum): string
-{
+function datum3(
+    string | DateTimeInterface $datum,
+): string {
     $datumTimestamp = ($datum instanceof DateTimeInterface)
         ? $datum->getTimestamp()
         : strtotime($datum);
@@ -72,8 +79,9 @@ function datum3(string | DateTimeInterface $datum): string
 }
 
 /** Vrátí markdown textu daného hashe (cacheované, text musí být v DB) */
-function dbMarkdown($hash)
-{
+function dbMarkdown(
+    $hash,
+) {
     if ($hash == 0) return '';
     $out = kvs('markdown', $hash);
     if (!$out) {
@@ -97,8 +105,9 @@ function dbMarkdown($hash)
  *  TODO vše implementovat a otestovat
  *  TODO co s duplicitami
  */
-function dbText($hash)
-{
+function dbText(
+    $hash,
+) {
     if (func_num_args() == 1) {
         return dbOneCol('SELECT text FROM texty WHERE id = ' . (int)$hash);
     } elseif (func_num_args() == 2 and !func_get_arg(1)) {
@@ -119,8 +128,9 @@ function dbText($hash)
 /**
  * Uloží daný text do databáze a vrátí id (hash) kterým se na něj odkázat
  */
-function dbTextHash($text): int
-{
+function dbTextHash(
+    $text,
+): int {
     $text = (string)$text;
     $hash = scrc32($text);
     dbInsertIgnore('texty', ['id' => $hash, 'text' => $text]);
@@ -131,8 +141,9 @@ function dbTextHash($text): int
 /**
  * Vymaže text s daným hashem z DB pokud je to možné
  */
-function dbTextClean($hash)
-{
+function dbTextClean(
+    $hash,
+) {
     try {
         dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
     } catch (DbException $e) {
@@ -142,12 +153,15 @@ function dbTextClean($hash)
 }
 
 /** Načte / uloží hodnotu do key-value storage s daným názvem */
-function kvs($nazev, $index, $hodnota = null)
-{
+function kvs(
+    $nazev,
+    $index,
+    $hodnota = null,
+) {
     if (!isset($GLOBALS['CACHEDB'][$nazev])) {
         $db                         = new SQLite3(SPEC . '/' . $nazev . '.sqlite');
         $GLOBALS['CACHEDB'][$nazev] = $db;
-        $db->exec("create table if not exists kvs (k integer primary key, v text)");
+        $db->exec("CREATE TABLE IF NOT EXISTS kvs (k INTEGER PRIMARY KEY, v TEXT)");
     }
     $db = $GLOBALS['CACHEDB'][$nazev];
     if ($hodnota === null) {
@@ -165,8 +179,9 @@ function kvs($nazev, $index, $hodnota = null)
  * @see Originální implementace markdownu je rychlejší jak Parsedown, ale díky
  *  cacheování je to jedno
  */
-function markdown($text)
-{
+function markdown(
+    $text,
+) {
     $hash = scrc32($text);
     $out  = kvs('markdown', $hash);
     if ($out === null) {
@@ -178,8 +193,9 @@ function markdown($text)
 }
 
 /** Převede text markdown na html (přímo on the fly) */
-function markdownNoCache($text): string
-{
+function markdownNoCache(
+    $text,
+): string {
     if (!$text) {
         return '';
     }
@@ -189,22 +205,27 @@ function markdownNoCache($text): string
     return $text;
 }
 
-/** Multibyte (utf-8) první písmeno velké */
-function mb_ucfirst($string, $encoding = null)
-{
-    if (!$encoding) {
-        $encoding = mb_internal_encoding();
-    }
-    $firstChar = mb_substr($string, 0, 1, $encoding);
-    $then      = mb_substr($string, 1, mb_strlen($string), $encoding);
+if (!function_exists('mb_ucfirst')) {
+    /** Multibyte (utf-8) první písmeno velké */
+    function mb_ucfirst(
+        $string,
+        $encoding = null,
+    ) {
+        if (!$encoding) {
+            $encoding = mb_internal_encoding();
+        }
+        $firstChar = mb_substr($string, 0, 1, $encoding);
+        $then      = mb_substr($string, 1, mb_strlen($string), $encoding);
 
-    return mb_strtoupper($firstChar, $encoding) . $then;
+        return mb_strtoupper($firstChar, $encoding) . $then;
+    }
 }
 
 /**
  * Zamezení csrf pro POST požadavky podle referreru.
  *
- * OWASP compliance: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#identifying-source-origin-via-originreferer-header
+ * OWASP compliance:
+ * https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#identifying-source-origin-via-originreferer-header
  */
 function omezCsrf()
 {
@@ -258,20 +279,24 @@ function perfectcache(/* variadic */)
         pripravCache($mind);
         if (is_file($minf)) unlink($minf);
         if ($typ == 'js') {
-            foreach ($args as $a) if ($a) file_put_contents($minf, file_get_contents($a), FILE_APPEND);
+            foreach ($args as $a) {
+                if ($a) file_put_contents($minf, file_get_contents($a), FILE_APPEND);
+            }
         } else {
             $parser = new Less_Parser(['compress' => true]);
-            foreach ($args as $a) if ($a) {
-                if (substr($a, -4) != '.ttf') {
-                    $tmpSouborStylu = tempnam(sys_get_temp_dir(), 'perfectcacheCss');
-                    $css            = file_get_contents($a);
-                    $css            = pefrectcacheProcessRel($css, 1920, 1200);
-                    file_put_contents($tmpSouborStylu, $css);
-                    $parser->parseFile($tmpSouborStylu, URL_WEBU . '/soubory/styl/');
-                    unlink($tmpSouborStylu);
-                } else {
-                    // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu
-                    $parser->ModifyVars([perfectcacheFontNazev($a) => 'url("' . perfectcacheFont($a) . '")']);
+            foreach ($args as $a) {
+                if ($a) {
+                    if (substr($a, -4) != '.ttf') {
+                        $tmpSouborStylu = tempnam(sys_get_temp_dir(), 'perfectcacheCss');
+                        $css            = file_get_contents($a);
+                        $css            = pefrectcacheProcessRel($css, 1920, 1200);
+                        file_put_contents($tmpSouborStylu, $css);
+                        $parser->parseFile($tmpSouborStylu, URL_WEBU . '/soubory/styl/');
+                        unlink($tmpSouborStylu);
+                    } else {
+                        // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu
+                        $parser->ModifyVars([perfectcacheFontNazev($a) => 'url("' . perfectcacheFont($a) . '")']);
+                    }
                 }
             }
             file_put_contents($minf, $parser->getCss());
@@ -281,8 +306,9 @@ function perfectcache(/* variadic */)
     return $minu . '?v=' . $last;
 }
 
-function perfectcacheExpandujArgumenty($argumenty)
-{
+function perfectcacheExpandujArgumenty(
+    $argumenty,
+) {
     $out = [];
     foreach ($argumenty as $argument) {
         if (str_contains($argument, '*')) {
@@ -295,14 +321,16 @@ function perfectcacheExpandujArgumenty($argumenty)
     return $out;
 }
 
-function perfectcacheFont($font)
-{
+function perfectcacheFont(
+    $font,
+) {
     // font musí pocházet ze stejné url - nelze použít cache
     return URL_WEBU . '/' . $font . '?v=' . filemtime($font);
 }
 
-function perfectcacheFontNazev($font)
-{
+function perfectcacheFontNazev(
+    $font,
+) {
     return 'font' . preg_replace('@.*/([^/]+)\.ttf$@', '$1', $font);
 }
 
@@ -311,22 +339,47 @@ function perfectcacheFontNazev($font)
  * kombinaci vw (odpovídající $originalWidth) s relativním zmenšením až na
  * $minWidth, kde se zmenšování zastaví (pomocí media queries).
  */
-function pefrectcacheProcessRel($css, $originalWidth, $minWidth)
-{
-    $toVw = function ($line) use ($originalWidth) {
+function pefrectcacheProcessRel(
+    $css,
+    $originalWidth,
+    $minWidth,
+) {
+    $toVw = function (
+        $line,
+    ) use
+    (
+        $originalWidth,
+    ) {
         return preg_replace_callback(
             '/(\d+)rel/',
-            function ($m) use ($originalWidth) {
+            function (
+                $m,
+            ) use
+            (
+                $originalWidth,
+            ) {
                 return round($m[1] / ($originalWidth / 100), 3) . 'vw';
             },
             $line,
         );
     };
 
-    $toPx = function ($line) use ($originalWidth, $minWidth) {
+    $toPx = function (
+        $line,
+    ) use
+    (
+        $originalWidth,
+        $minWidth,
+    ) {
         $new = preg_replace_callback(
             '/(\d+)rel/',
-            function ($m) use ($minWidth, $originalWidth) {
+            function (
+                $m,
+            ) use
+            (
+                $minWidth,
+                $originalWidth,
+            ) {
                 return round($m[1] * ($minWidth / $originalWidth), 0) . 'px';
             },
             $line,
@@ -340,15 +393,22 @@ function pefrectcacheProcessRel($css, $originalWidth, $minWidth)
 
     return preg_replace_callback(
         '/^.*\drel.*$/m',
-        function ($m) use ($toVw, $toPx) {
+        function (
+            $m,
+        ) use
+        (
+            $toVw,
+            $toPx,
+        ) {
             return $toVw($m[0]) . "\n" . $toPx($m[0]);
         },
         $css,
     );
 }
 
-function po(string | DateTimeInterface $cas): bool
-{
+function po(
+    string | DateTimeInterface $cas,
+): bool {
     $casTimestamp = ($cas instanceof DateTimeInterface)
         ? $cas->getTimestamp()
         : strtotime($cas);
@@ -356,8 +416,9 @@ function po(string | DateTimeInterface $cas): bool
     return $casTimestamp < time();
 }
 
-function pred(string | DateTimeInterface $cas): bool
-{
+function pred(
+    string | DateTimeInterface $cas,
+): bool {
     $casTimestamp = ($cas instanceof DateTimeInterface)
         ? $cas->getTimestamp()
         : strtotime($cas);
@@ -386,8 +447,9 @@ function mezi(
 /**
  * Vytvoří zapisovatelnou složku, pokud taková už neexistuje
  */
-function pripravCache($slozka)
-{
+function pripravCache(
+    $slozka,
+) {
     if (is_writable($slozka)) {
         return;
     }
@@ -401,8 +463,9 @@ function pripravCache($slozka)
 }
 
 /** Znaménkové crc32 chovající se stejně na 32bit i 64bit systémech */
-function scrc32($data)
-{
+function scrc32(
+    $data,
+) {
     $crc = crc32($data);
     if ($crc & 0x80000000) {
         $crc ^= 0xffffffff;
@@ -413,16 +476,25 @@ function scrc32($data)
     return $crc;
 }
 
-function potrebujePotvrzeni(DateTimeImmutable $datumNarozeni): bool
-{
+function potrebujePotvrzeni(
+    DateTimeImmutable $datumNarozeni,
+): bool {
     // cilene bez hodin, minut a sekund
     return vekNaZacatkuLetosnihoGameconu($datumNarozeni) < 15;
 }
 
-function serazenePodle($pole, $kriterium)
-{
+function serazenePodle(
+    $pole,
+    $kriterium,
+) {
     if (is_string($kriterium)) {
-        usort($pole, function ($a, $b) use ($kriterium) {
+        usort($pole, function (
+            $a,
+            $b,
+        ) use
+        (
+            $kriterium,
+        ) {
             return $a->$kriterium() <=> $b->$kriterium();
         });
     } else {
@@ -431,11 +503,24 @@ function serazenePodle($pole, $kriterium)
             : null;
         if ($prvek && is_string($prvek) && !is_numeric($prvek)) {
             $razeni = new Collator('cs');
-            usort($pole, function ($a, $b) use ($kriterium, $razeni) {
+            usort($pole, function (
+                $a,
+                $b,
+            ) use
+            (
+                $kriterium,
+                $razeni,
+            ) {
                 return $razeni->compare($kriterium($a), $kriterium($b));
             });
         } else {
-            usort($pole, function ($a, $b) use ($kriterium) {
+            usort($pole, function (
+                $a,
+                $b,
+            ) use
+            (
+                $kriterium,
+            ) {
                 return $kriterium($a) <=> $kriterium($b);
             });
         }
@@ -444,8 +529,10 @@ function serazenePodle($pole, $kriterium)
     return $pole;
 }
 
-function seskupenePodle($pole, $funkce)
-{
+function seskupenePodle(
+    $pole,
+    $funkce,
+) {
     $out = [];
 
     foreach ($pole as $prvek) {
@@ -456,26 +543,31 @@ function seskupenePodle($pole, $funkce)
     return $out;
 }
 
-function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int
-{
+function vekNaZacatkuLetosnihoGameconu(
+    DateTimeImmutable $datumNarozeni,
+): int {
     // cilene bez hodin, minut a sekund
     return vek($datumNarozeni->setTime(0, 0, 0), DateTimeGamecon::zacatekGameconu()->setTime(0, 0, 0));
 }
 
-function vek(DateTimeInterface $datumNarozeni, ?DateTimeInterface $kDatu): int
-{
+function vek(
+    DateTimeInterface  $datumNarozeni,
+    ?DateTimeInterface $kDatu,
+): int {
     $kDatu = $kDatu ?? new DateTimeImmutable(date('Y-m-d 00:00:00'));
 
     return $kDatu->diff($datumNarozeni)->y;
 }
 
-function kodZNazvu(string $nazev): string
-{
+function kodZNazvu(
+    string $nazev,
+): string {
     return RemoveDiacritics::toSnakeCaseId($nazev);
 }
 
-function odstranDiakritiku(string $value): string
-{
+function odstranDiakritiku(
+    string $value,
+): string {
     $valueWithoutDiacritics    = '';
     $valueWithSpecialsReplaced = \str_replace(
         ['̱', '̤', '̩', 'Ə', 'ə', 'ʿ', 'ʾ', 'ʼ',],
@@ -492,8 +584,9 @@ function odstranDiakritiku(string $value): string
 }
 
 if (!function_exists('array_key_first')) {
-    function array_key_first(array $values)
-    {
+    function array_key_first(
+        array $values,
+    ) {
         foreach ($values as $key => $unused) {
             return $key;
         }
@@ -508,10 +601,15 @@ if (!function_exists('array_key_first')) {
  * @param string|null $dirToSaveTo
  * @return string[][] Cesty ke staženým souborům a chyby [ ['files'][], ['errors'][] ]
  */
-function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = null): array
-{
+function hromadneStazeni(
+    array  $urls,
+    int    $timeout = 60,
+    string $dirToSaveTo = null,
+): array {
     $urls   = array_map('trim', $urls);
-    $urls   = array_filter($urls, static function (string $url) {
+    $urls   = array_filter($urls, static function (
+        string $url,
+    ) {
         return $url !== '';
     });
     $result = [
@@ -623,8 +721,9 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
     return $result;
 }
 
-function sanitizeUrlForCurl(string $url): string
-{
+function sanitizeUrlForCurl(
+    string $url,
+): string {
     $urlParts = parse_url($url);
 
     $sanitizedUrl = '';
@@ -664,8 +763,9 @@ function sanitizeUrlForCurl(string $url): string
     return $sanitizedUrl;
 }
 
-function removeDiacritics(string $value): string
-{
+function removeDiacritics(
+    string $value,
+): string {
     if ($value === '') {
         return '';
     }
@@ -689,8 +789,9 @@ function removeDiacritics(string $value): string
     return $withoutDiacritics;
 }
 
-function nahradPlaceholderyZaNastaveni(?string $value): ?string
-{
+function nahradPlaceholderyZaNastaveni(
+    ?string $value,
+): ?string {
     if (!$value) {
         return $value;
     }
@@ -719,8 +820,10 @@ function nahradPlaceholderyZaNastaveni(?string $value): ?string
     return $value;
 }
 
-function aplikujModifikatory($hodnota, array $modifikatory)
-{
+function aplikujModifikatory(
+    $hodnota,
+    array $modifikatory,
+) {
     foreach ($modifikatory as ['modifikator' => $modifikator, 'parametry' => $parametry]) {
         $hodnota = match ($modifikator) {
             'datum' => $hodnota
@@ -733,8 +836,9 @@ function aplikujModifikatory($hodnota, array $modifikatory)
     return $hodnota;
 }
 
-function parsujModifikatory(string $hodnota): array
-{
+function parsujModifikatory(
+    string $hodnota,
+): array {
     $casti        = explode('|', $hodnota);
     $cistaHodnota = $casti[0];
     unset($casti[0]);
@@ -775,7 +879,10 @@ function omnibox(
         $minimumZnaku,
     );
 
-    $sestavData = static function (Uzivatel $uzivatel, array $dataVOdpovedi): array {
+    $sestavData = static function (
+        Uzivatel $uzivatel,
+        array    $dataVOdpovedi,
+    ): array {
         $data = [];
         foreach ($dataVOdpovedi as $polozka) {
             switch ($polozka) {
@@ -808,7 +915,13 @@ function omnibox(
         return $data;
     };
 
-    $sestavLabel = static function (Uzivatel $uzivatel, ?array $labelSlozenZ) use ($sestavData): string {
+    $sestavLabel = static function (
+        Uzivatel $uzivatel,
+        ?array   $labelSlozenZ,
+    ) use
+    (
+        $sestavData,
+    ): string {
         $labelSlozenZ = $labelSlozenZ
             ?: ['id', 'jmenoNick', 'mail'];
         $data         = $sestavData($uzivatel, $labelSlozenZ);
@@ -856,7 +969,15 @@ function omnibox(
     };
 
     return array_map(
-        static function (Uzivatel $uzivatel) use ($sestavLabel, $sestavData, $dataVOdpovedi, $labelSlozenZ) {
+        static function (
+            Uzivatel $uzivatel,
+        ) use
+        (
+            $sestavLabel,
+            $sestavData,
+            $dataVOdpovedi,
+            $labelSlozenZ,
+        ) {
             return [
                 'label' => $sestavLabel($uzivatel, $labelSlozenZ),
                 'data'  => $sestavData($uzivatel, $dataVOdpovedi),
@@ -867,15 +988,19 @@ function omnibox(
     );
 }
 
-function pridejNaZacatekPole(string $klic, $hodnota, array $pole): array
-{
+function pridejNaZacatekPole(
+    string $klic,
+           $hodnota,
+    array  $pole,
+): array {
     unset($pole[$klic]); // pro případ, že by byl klíč obsazen - potom by původní honota přepsala novou níže a to nechceme
 
     return array_merge([$klic => $hodnota], $pole);
 }
 
-function prevedNaFloat($castka): float
-{
+function prevedNaFloat(
+    $castka,
+): float {
     if (is_int($castka) || is_float($castka)) {
         return (float)$castka;
     }
@@ -893,19 +1018,22 @@ function prevedNaFloat($castka): float
  * @param string $text utf-8 řetězec
  * @return string enkódovaný řetězec pro použití v emailové hlavičce
  */
-function encodeToUtf8(string $text)
-{
+function encodeToUtf8(
+    string $text,
+) {
     return '=?UTF-8?B?' . base64_encode($text) . '?=';
 }
 
-function requireOnceIsolated(string $path)
-{
+function requireOnceIsolated(
+    string $path,
+) {
     // aby proměnné ze skriptu nepřepsaly jiné, něco jako local scope
     require_once $path;
 }
 
-function intvalOrNull($val)
-{
+function intvalOrNull(
+    $val,
+) {
     return $val == null
         ? null
         : intval($val);
