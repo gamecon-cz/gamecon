@@ -14,7 +14,7 @@ use \OpenSpout\Common\Exception\IOException;
 
 class ImporterUcastnikuNaAktivitu
 {
-    public const array STAVY_AKTIVITY_MENITELNE_IMPORTEM = [
+    public const STAVY_AKTIVITY_MENITELNE_IMPORTEM = [
         StavAktivity::SYSTEMOVA,
         StavAktivity::NOVA,
         StavAktivity::PUBLIKOVANA,
