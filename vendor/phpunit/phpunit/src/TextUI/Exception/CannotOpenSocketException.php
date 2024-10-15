@@ -7,21 +7,25 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace PHPUnit\Framework\MockObject\Generator;
+namespace PHPUnit\TextUI;
 
 use function sprintf;
+use RuntimeException;
 
 /**
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
+ *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
-final class ClassAlreadyExistsException extends \PHPUnit\Framework\Exception implements Exception
+final class CannotOpenSocketException extends RuntimeException implements Exception
 {
-    public function __construct(string $className)
+    public function __construct(string $hostname, int $port)
     {
         parent::__construct(
             sprintf(
-                'Class "%s" already exists',
-                $className,
+                'Cannot open socket %s:%d',
+                $hostname,
+                $port,
             ),
         );
     }
