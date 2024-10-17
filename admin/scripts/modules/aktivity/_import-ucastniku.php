@@ -9,6 +9,10 @@ use Gamecon\Web\Urls;
 /** @var \Uzivatel $u */
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('output_buffering', '0');
+
 $activitiesImportLogger = new ActivitiesImportLogger();
 $now                    = new \DateTimeImmutable();
 if (defined('TESTING') && TESTING && (int)$now->format('Y') !== $systemoveNastaveni->rocnik()) {
