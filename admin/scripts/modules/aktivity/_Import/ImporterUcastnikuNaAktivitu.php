@@ -27,7 +27,7 @@ class ImporterUcastnikuNaAktivitu
     }
 
     /**
-     * @return array{prihlasenoCelkem: int, odhlasenoCelkem: int};
+     * @return array{prihlasenoCelkem: int, odhlasenoCelkem: int, varovani: array<string>};
      */
     public function importFile(
         string    $importFile,
@@ -71,6 +71,7 @@ class ImporterUcastnikuNaAktivitu
         $poradiRadku              = 0;
         /** @var int[] $preskoceneAktivity */
         $preskoceneAktivity = [];
+        $varovani           = [];
 
         dbBegin();
         try {
@@ -102,10 +103,7 @@ class ImporterUcastnikuNaAktivitu
                     true,
                 )) {
                     if (!in_array($aktivita->id(), $preskoceneAktivity)) {
-                        varovani(
-                            "Aktivita '$nazevAktivity' už je v provozu a nelze jí měnit účastníky importem.",
-                            false,
-                        );
+                        $varovani[]           = "Aktivita '$nazevAktivity' už je v provozu a nelze jí měnit účastníky importem.";
                         $preskoceneAktivity[] = $aktivita->id();
                     }
                     continue;
@@ -127,7 +125,11 @@ class ImporterUcastnikuNaAktivitu
             throw $e;
         }
 
-        return ['prihlasenoCelkem' => $prihlasenoCelkem, 'odhlasenoCelkem' => $odhlasenoCelkem];
+        return [
+            'prihlasenoCelkem' => $prihlasenoCelkem,
+            'odhlasenoCelkem'  => $odhlasenoCelkem,
+            'varovani'         => $varovani,
+        ];
     }
 
     private function odhlasNeuvedeneUcastniky(
