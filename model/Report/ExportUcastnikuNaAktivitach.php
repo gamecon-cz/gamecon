@@ -23,7 +23,7 @@ class ExportUcastnikuNaAktivitach
 
     /**
      * @param array<Aktivita> $aktivity
-     * @return array<array{nazevAktivity: string, ucastnik: string}>
+     * @return array<array{id_aktivity: int, aktivita: string, ucastnik: string}>
      */
     private function extrahujDataUcastnikuNaAktivitach(array $aktivity): array
     {
@@ -39,13 +39,14 @@ class ExportUcastnikuNaAktivitach
     }
 
     /**
-     * @return array<array{nazevAktivity: string, ucastnik: string}>
+     * @return array<array{id_aktivity: int, aktivita: string, ucastnik: string}>
      */
     private function extrahujDataUcastnikuNaJedneAktivite(Aktivita $aktivita): array
     {
         $data = [];
         foreach ($aktivita->seznamPrihlasenychNeboDorazivsich() as $ucastnik) {
             $data[] = [
+                'id_aktivity' => $aktivita->id(),
                 'aktivita' => $aktivita->nazev(),
                 'ucastnik' => $ucastnik->jmenoNick(),
             ];
