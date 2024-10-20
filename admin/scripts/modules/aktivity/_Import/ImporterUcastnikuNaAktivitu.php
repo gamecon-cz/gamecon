@@ -56,12 +56,12 @@ class ImporterUcastnikuNaAktivitu
         }
         assert($row instanceof Row);
         $hlavickaKlice = array_map('trim', $row->toArray());
-        sort($hlavickaKlice);
-        if ($hlavickaKlice !== ['aktivita', 'ucastnik']) {
-            throw new \Chyba('Soubor s účastníky na aktivitu nemá správnou hlavičku. Očekáváme sloupce "aktivita" a "ucastnik".');
+        if (array_diff(['id_aktivity', 'ucastnik'], $hlavickaKlice) !== []) {
+            throw new \Chyba('Soubor s účastníky na aktivitu nemá správnou hlavičku. Očekáváme sloupce "id_aktivity" a "ucastnik".');
         }
-        $indexAktivity  = array_search('aktivita', $hlavickaKlice, true);
-        $indexUcastnika = array_search('ucastnik', $hlavickaKlice, true);
+        $indexIdAktivity    = array_search('id_aktivity', $hlavickaKlice, true);
+        $indexNazvuAktivity = array_search('aktivita', $hlavickaKlice, true);
+        $indexUcastnika     = array_search('ucastnik', $hlavickaKlice, true);
 
         $rocnik = $this->systemoveNastaveni->rocnik();
 
@@ -84,18 +84,23 @@ class ImporterUcastnikuNaAktivitu
                 if ($radek === []) {
                     continue;
                 }
-                $nazevAktivity  = trim($radek[$indexAktivity] ?? '');
+                $idAktivity     = trim((string)($radek[$indexIdAktivity] ?? ''));
+                $nazevAktivity  = trim($radek[$indexNazvuAktivity] ?? '');
                 $jmenoUcastnika = trim($radek[$indexUcastnika] ?? '');
                 if ($jmenoUcastnika === '') {
                     continue;
                 }
-                if ($nazevAktivity === '') {
-                    throw new \Chyba("Na řádku $poradiRadku chybí název aktivity.");
+                if ($idAktivity === '' || !is_numeric($idAktivity)) {
+                    throw new \Chyba("Na řádku $poradiRadku chybí ID aktivity.");
                 }
 
-                $aktivita = $this->dejAktivitu($nazevAktivity, $rocnik);
+                $aktivita = $this->dejAktivitu((int)$idAktivity);
                 if ($aktivita === null) {
-                    throw new \Chyba("Aktivita '$nazevAktivity' z řádku $poradiRadku neexistuje, nebo není v ročníku $rocnik, nebo je více takových se stejným názvem.");
+                    throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku neexistuje.");
+                }
+                if ($aktivita->rok() !== $rocnik) {
+                    throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není pro současný ročník.");
+
                 }
                 if (!in_array(
                     $aktivita->idStavu(),
@@ -103,7 +108,7 @@ class ImporterUcastnikuNaAktivitu
                     true,
                 )) {
                     if (!in_array($aktivita->id(), $preskoceneAktivity)) {
-                        $varovani[]           = "Aktivita '$nazevAktivity' už je v provozu a nelze jí měnit účastníky importem.";
+                        $varovani[]           = "Aktivita '$idAktivity' ('$nazevAktivity') už je v provozu a nelze jí měnit účastníky importem.";
                         $preskoceneAktivity[] = $aktivita->id();
                     }
                     continue;
@@ -157,26 +162,9 @@ class ImporterUcastnikuNaAktivitu
     }
 
     private function dejAktivitu(
-        string $nazevAktivity,
-        int    $rocnik,
+        int $idAktivity,
     ): ?Aktivita {
-        /** @var array<string, Aktivita|null> $cache */
-        static $cache = [];
-        if (array_key_exists($nazevAktivity, $cache)) {
-            return $cache[$nazevAktivity];
-        }
-        $aktivity = Aktivita::zNazvuARoku($nazevAktivity, $rocnik);
-        if (count($aktivity) !== 1) {
-            $cache[$nazevAktivity] = null;
-
-            return null;
-        }
-        $aktivita = reset($aktivity);
-        assert($aktivita instanceof Aktivita);
-
-        $cache[$nazevAktivity] = $aktivita;
-
-        return $aktivita;
+        return Aktivita::zId($idAktivity, true, $this->systemoveNastaveni);
     }
 
     private function dejUzivatele(string $jmenoNickEmailId): ?\Uzivatel
