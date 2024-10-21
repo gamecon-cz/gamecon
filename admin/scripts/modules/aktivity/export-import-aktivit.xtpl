@@ -55,7 +55,7 @@
 <form method="post">
   <div>
     <div style="margin: 1em 1em 1em 0; padding: 4px 4px 4px 0; float: left">
-      <input type="submit" value="Importovat" id="importSubmit">
+      <input type="submit" value="Importovat aktivity" id="importSubmit">
       {importFormatHint}
     </div>
     <div id="googleSheetNotSelected" class="warning no-image"

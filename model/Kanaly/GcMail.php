@@ -134,7 +134,7 @@ class GcMail
                 continue;
             }
             $email    = $matches['email'];
-            $uzivatel = \Uzivatel::zMailu($email);
+            $uzivatel = \Uzivatel::zEmailu($email);
             if (!$uzivatel) {
                 continue;
             }

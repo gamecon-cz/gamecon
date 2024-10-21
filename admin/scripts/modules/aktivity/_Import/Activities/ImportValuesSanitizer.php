@@ -1,14 +1,13 @@
 <?php declare(strict_types=1);
 
-namespace Gamecon\Admin\Modules\Aktivity\Import;
+namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Aktivita\StavAktivity;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 class ImportValuesSanitizer
 {

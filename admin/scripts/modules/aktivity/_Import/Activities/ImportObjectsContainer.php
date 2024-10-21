@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Gamecon\Admin\Modules\Aktivity\Import;
+namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
-use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Aktivita\TypAktivity;
 
 class ImportObjectsContainer
 {
