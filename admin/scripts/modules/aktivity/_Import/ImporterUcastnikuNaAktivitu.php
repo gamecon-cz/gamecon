@@ -6,6 +6,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\SheetInterface;
@@ -100,7 +101,9 @@ class ImporterUcastnikuNaAktivitu
                 }
                 if ($aktivita->rok() !== $rocnik) {
                     throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není pro současný ročník.");
-
+                }
+                if (!in_array($aktivita->typId(), [TypAktivity::BRIGADNICKA, TypAktivity::TECHNICKA], true)) {
+                    throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není brigádnická ani technická a jiným není dovoleno měnit účastníky importem.");
                 }
                 if (!in_array(
                     $aktivita->idStavu(),
