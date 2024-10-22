@@ -4,7 +4,7 @@
  *
  * nazev: Export & Import účastníků
  * pravo: 102
- * submenu_group: 1
+ * submenu_group: 3
  * submenu_order: 3
  */
 
