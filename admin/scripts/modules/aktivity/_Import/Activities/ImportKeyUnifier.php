@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Gamecon\Admin\Modules\Aktivity\Import;
+namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
-use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\DuplicatedUnifiedKeyException;
+use Gamecon\Admin\Modules\Aktivity\Import\Activities\Exceptions\DuplicatedUnifiedKeyException;
 
 class ImportKeyUnifier
 {
