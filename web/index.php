@@ -76,6 +76,7 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
     // položky uživatelského menu
     if ($u) {
         $t->assign(['u' => $u]);
+        $t->assign(["gcPrihlaska" => $u->gcPrihlasen() ? "Upravit přihlášku" : "Prihláška na GC"]);
         if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
             $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
             $t->parse('menu.prihlasen.admin');
