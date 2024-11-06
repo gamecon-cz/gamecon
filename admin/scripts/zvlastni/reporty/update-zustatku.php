@@ -20,23 +20,14 @@ foreach (Uzivatel::vsichni() as $uzivatel) {
     $finance    = $uzivatel->finance();
     $sqlParts[] = <<<SQL
 UPDATE uzivatele_hodnoty
-SET zustatek = {$uzivatel->finance()->stav()} /* původní zůstatek z předchozích ročníků {$finance->zustatekZPredchozichRocniku()} */,
-    poznamka = '',
-    ubytovan_s = '',
-    infopult_poznamka = '',
-    pomoc_typ = '',
-    pomoc_vice = '',
-    op = ''
-WHERE id_uzivatele = {$uzivatel->id()}
-    AND ( -- optimalizace, aby se dotaz provedl jen v případě, že je co aktualizovat
-        zustatek != {$uzivatel->finance()->stav()}
-        OR poznamka != '',
-        OR ubytovan_s != '',
-        OR infopult_poznamka != '',
-        OR pomoc_typ != '',
-        OR pomoc_vice != '',
-        OR op != ''
-    );
+SET zustatek={$uzivatel->finance()->stav()} /* původní zůstatek z předchozích ročníků {$finance->zustatekZPredchozichRocniku()} */,
+    poznamka='',
+    ubytovan_s='',
+    infopult_poznamka='',
+    pomoc_typ='',
+    pomoc_vice='',
+    op=''
+WHERE id_uzivatele={$uzivatel->id()};
 SQL;
 }
 
