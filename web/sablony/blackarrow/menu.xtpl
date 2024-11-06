@@ -12,7 +12,7 @@
         <a class="menu_prihlasit" href="prihlaseni">přihlásit</a>
         <!-- end: neprihlasen -->
         <!-- begin: prihlasen -->
-        <div class="menu_jmeno">{u.mail}</div>
+        <div class="menu_jmeno">{u.nick} ({u.id})</div>
         <div class="menu_uzivatelpolozky">
           <a href="finance">Finance</a>
           <a href="registrace">Nastavení</a>
@@ -22,7 +22,8 @@
           <!-- begin: mujPrehled -->
           <a href="{mojeAktivityAdminUrl}" target="_blank">Hry, které vedu</a>
           <!-- end: mujPrehled -->
-          <a href="prihlaska">Přihláška na GC</a>
+          <!--<a href="prihlaska">Přihláška na GC</a> -->
+          <a href="prihlaska">{gcPrihlaska}</a>
           <a href="#" onclick="odhlasForm.submit(); return false;">Odhlásit</a>
           <form id="odhlasForm" method="post" action="prihlaseni">
             <input type="hidden" name="odhlasit" value="true">
@@ -39,18 +40,18 @@
             <!-- begin: typAktivit -->
             <a href="{typ.url}" class="menu_polozka">{typ.nazev}</a>
             <!-- end: typAktivit -->
+            <a class="menu_polozka" href="celohra">Celohra</a>
           </div>
         </div>
         <div class="menu_kategorie">
           <div class="menu_nazevkategorie">informace</div>
           <div class="menu_polozky">
             <a class="menu_polozka" href="prihlaska">Přihláška</a>
-            <a class="menu_polozka" href="novinky">Novinky</a>
+            <!-- <a class="menu_polozka" href="novinky">Novinky</a> -->
             <a class="menu_polozka" href="blog">Blog</a>
             <a class="menu_polozka" href="organizacni-vypomoc">Chci pomoct s GameConem</a>
             <a class="menu_polozka" href="chci-se-prihlasit">Chci na GameCon</a>
             <a class="menu_polozka" href="prakticke-informace">Praktické informace</a>
-            <a class="menu_polozka" href="celohra">Celohra</a>
             <a class="menu_polozka" href="kontakty">Kontakty</a>
             <a class="menu_polozka" href="info-po-gc">Info po GC a zpětná vazba</a>
           </div>
