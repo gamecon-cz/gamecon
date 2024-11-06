@@ -9,6 +9,8 @@ define('URL_CACHE', 'https://cache.beta.gamecon.cz'); // url sdílených cachí
 define('ANALYTICS', false);
 define('HTTPS_ONLY', true);
 
+define('ROCNIK', 2025);
+
 define('REACT_V_PROHLIZECI', true);
 define('AUTOMATICKE_SESTAVENI', true);
 define('BABEL_BINARKA', null);
