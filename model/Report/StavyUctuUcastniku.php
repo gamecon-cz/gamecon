@@ -24,9 +24,9 @@ class StavyUctuUcastniku
             $obsah[] = [
                 'id_uzivatele'                                       => $uzivatel->id(),
                 'jmeno'                                              => $uzivatel->jmenoNick(),
-                'konecny_zustatek_' . $rocnik                        => $uzivatel->finance()->stav(),
-                'suma_plateb_' . $rocnik                             => $uzivatel->finance()->sumaPlateb($rocnik),
                 'zustatek_z_predchoziho_rocniku_' . $predchoziRocnik => $uzivatel->finance()->zustatekZPredchozichRocniku(),
+                'suma_plateb_' . $rocnik                             => $uzivatel->finance()->sumaPlateb($rocnik),
+                'aktualni_zustatek_' . $rocnik                        => $uzivatel->finance()->stav(),
             ];
         }
 
