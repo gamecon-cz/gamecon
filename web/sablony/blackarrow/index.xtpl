@@ -3,6 +3,7 @@
 <html lang="cs">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Největší festival nepočítačových her. Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.">
     <base href="{base}">
     {FILE "sablony/blackarrow/fonty.xtpl"}
     <link rel="stylesheet" href="{css}">
