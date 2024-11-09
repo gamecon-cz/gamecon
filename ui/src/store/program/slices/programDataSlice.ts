@@ -1,5 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { APIAktivita, APIAktivitaPřihlášen, APIŠtítek, fetchAktivity, fetchAktivityPřihlášen, fetchŠtítky } from "../../../api/program";
+import { APIAktivita, APIAktivitaPřihlášen, APIŠtítek, fetchAktivity, fetchŠtítky } from "../../../api/program";
 
 const DOTAŽENO = "dotaženo";
 
@@ -37,9 +37,8 @@ export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () 
 
 /** Pokud ještě není dotažený tak dotáhne rok, příhlášen se dotahuje vždy */
 export const načtiRok = async (rok: number) => {
-  const [aktivityPřihlášen, aktivity] =
+  const [aktivity] =
     await Promise.all([
-      fetchAktivityPřihlášen(rok),
       fetchAktivity(rok)
     ]);
 
