@@ -76,6 +76,7 @@
 .menu_kategorie, .menu_odkaz {
     display: block;
     float: left;
+    user-select: none;
 }
 
 .menu_nazevkategorie {
@@ -160,6 +161,7 @@
     line-height: 70px;
     padding: 0 30px;
     z-index: 1; // kvůli překrytí šipek menu aktivit na mobilu
+    user-select: none;
 }
 
 .menu_uzivatel:hover {
@@ -215,4 +217,11 @@
 
 .menu_uzivatel:hover .menu_uzivatelpolozky {
     display: initial;
+}
+
+.menu_pryc {
+    display: none; 
+    @media (min-width: 491px) {
+        display: block;
+    }
 }
