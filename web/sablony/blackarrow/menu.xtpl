@@ -6,6 +6,7 @@
     <div class="menu_obal2">
 
       <a href="." class="menu_nazev">GameCon</a>
+      
 
       <div class="menu_uzivatel">
         <!-- begin: neprihlasen -->
@@ -46,16 +47,17 @@
         <div class="menu_kategorie">
           <div class="menu_nazevkategorie">informace</div>
           <div class="menu_polozky">
-            <a class="menu_polozka" href="prihlaska">Přihláška</a>
+            <!--<a class="menu_polozka" href="prihlaska">Přihláška</a> -->
             <!-- <a class="menu_polozka" href="novinky">Novinky</a> -->
             <a class="menu_polozka" href="blog">Blog</a>
-            <a class="menu_polozka" href="organizacni-vypomoc">Chci pomoct s GameConem</a>
-            <a class="menu_polozka" href="chci-se-prihlasit">Chci na GameCon</a>
+            <a class="menu_polozka" href="organizacni-vypomoc">Chci organizovat GameCon</a>
+            <!-- <a class="menu_polozka" href="chci-se-prihlasit">Chci na GameCon</a> -->
             <a class="menu_polozka" href="prakticke-informace">Praktické informace</a>
             <a class="menu_polozka" href="kontakty">Kontakty</a>
-            <a class="menu_polozka" href="info-po-gc">Info po GC a zpětná vazba</a>
+            <!-- <a class="menu_polozka" href="info-po-gc">Info po GC a zpětná vazba</a> -->
           </div>
         </div>
+        <a href="prihlaska" class="menu_odkaz menu_pryc">{gcPrihlaska}</a>
       </div>
 
     </div>
