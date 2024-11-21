@@ -25,6 +25,11 @@ $vyjimkovac   = Vyjimkovac::vytvorZGlobals();
 $vyjimkovac->zobrazeni($typZobrazeni);
 $vyjimkovac->aktivuj();
 
+$host = $_SERVER['SERVER_NAME'] ?? 'localhost';
+if ($host == 'localhost') {
+    require_once __DIR__ . '/../tests/test.php';
+}
+
 // automatické migrace databáze
 if (AUTOMATICKE_MIGRACE && !is_ajax()) {
     require __DIR__ . '/db-migrace.php';
