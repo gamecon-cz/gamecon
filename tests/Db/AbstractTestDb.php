@@ -70,7 +70,10 @@ abstract class AbstractTestDb extends TestCase
                 try {
                     self::$connection->import($dataset);
                 } catch (\Throwable $throwable) {
-                    self::$connection->import($dataset);
+                    try {
+                        // ještě jeden pokus
+                        self::$connection->import($dataset);
+                    } catch (\Throwable) {}
                     static::tearDownAfterClass();
                     throw $throwable;
                 }
