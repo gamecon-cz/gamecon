@@ -3,7 +3,7 @@ version: "3"
 services:
   web:
     image: gameconcz/gamecon:8.2
-    restart: on-failure
+    restart: "no"
     depends_on:
       - sql.gamecon
       - mailhog.gamecon
@@ -60,5 +60,5 @@ services:
     #   - ./docker/mailhog/maildir:/maildir:rw,delegated
     restart: "no"
     ports:
-      # set MAILHOG_HOST_MAPPING_PORT variable in .env file for example
+          # set MAILHOG_HOST_MAPPING_PORT variable in .env file for example
       - "${MAILHOG_HOST_MAPPING_PORT:-8125}:8025"
