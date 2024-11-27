@@ -21,10 +21,8 @@ if (jsmeNaLocale()) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-sciator.php';
 } elseif (in_array($host, ['admin.gamecon.cz', 'gamecon.cz'], true)) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
-} elseif (in_array($host, ['admin.vpsfree.gamecon.cz', 'vpsfree.gamecon.cz'], true)) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-vpsfree.php';
 } elseif (preg_match('~(?<rocnik>[0-9]{4})[.]gamecon[.]cz$~', $host, $matches)) {
-    $souborVerejnehoNastaveni = __DIR__ . "/verejne-nastaveni-{$matches['rocnik']}.php";
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
 } else {
     echo 'Nepodařilo se detekovat prostředí, nelze načíst nastavení verze';
     exit(1);
