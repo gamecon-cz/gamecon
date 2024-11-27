@@ -12,16 +12,11 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 date_default_timezone_set('Europe/Prague');
 mb_internal_encoding('UTF-8');
 
-$puvodni = error_reporting(); // vymaskování notice, aby bylo možné "přetížit" konstanty dříve includnutými
+$puvodni = error_reporting();                                                                                     // vymaskování notice, aby bylo možné "přetížit" konstanty dříve includnutými
 error_reporting($puvodni ^ E_NOTICE);
 
-// aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
-if (!defined('ROCNIK')) define(
-    'ROCNIK',
-    defined('ROK')
-        ? constant('ROK')
-        : 2024,
-);
+/** aktuální rok -- při změně roku viz Překlápění ročníku @link PREKLOPENI_ROCNIKU_NAVOD.md */
+if (!defined('ROCNIK')) define('ROCNIK', 2024);
 
 require_once __DIR__ . '/nastaveni-izolovane.php';
 
@@ -54,9 +49,9 @@ $systemoveNastaveni->zaznamyDoKonstant();
 // SAMOTNÝ GAMECON //
 /////////////////////
 // 2022-07-21 07:00:00 čtvrtek ve třetím týdnu v červenci
-if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $systemoveNastaveni->gcBeziOd()->formatDb()); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $systemoveNastaveni->gcBeziOd()->formatDb());                    // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 // 2022-07-24 21:00:00
-if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $systemoveNastaveni->gcBeziDo()->formatDb()); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $systemoveNastaveni->gcBeziDo()->formatDb());                    // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 
 ///////////////////////////
 // REGISTRACE NA GAMECON //
@@ -69,16 +64,16 @@ if (!defined('REG_GC_DO')) define('REG_GC_DO', $systemoveNastaveni->prihlasovani
 // REGISTRACE NA AKTIVITY (PRVNÍ, DRUHÁ A TŘETÍ VLNA) //
 ////////////////////////////////////////////////////////
 // 2022-05-19 20:22:00
-if (!defined('PRVNI_VLNA_KDY')) define('PRVNI_VLNA_KDY', $systemoveNastaveni->prvniVlnaKdy(ROCNIK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
+if (!defined('PRVNI_VLNA_KDY')) define('PRVNI_VLNA_KDY', $systemoveNastaveni->prvniVlnaKdy(ROCNIK)->formatDb());  // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
 if (!defined('DRUHA_VLNA_KDY')) define('DRUHA_VLNA_KDY', $systemoveNastaveni->druhaVlnaKdy(ROCNIK)->formatDb());
 if (!defined('TRETI_VLNA_KDY')) define('TRETI_VLNA_KDY', $systemoveNastaveni->tretiVlnaKdy(ROCNIK)->formatDb());
 
 // 2022-07-13 00:00:00
-if (!defined('PROGRAM_OD')) define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROCNIK)->formatDb()); // první den programu
-if (!defined('PROGRAM_DO')) define('PROGRAM_DO', GC_BEZI_DO); // poslední den programu
-if (!defined('PROGRAM_VIDITELNY')) define('PROGRAM_VIDITELNY', po(REG_GC_OD)); // jestli jsou viditelné linky na program
-if (!defined('CENY_VIDITELNE')) define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
-if (!defined('FINANCE_VIDITELNE')) define('FINANCE_VIDITELNE', true); // jestli jsou public viditelné finance
+if (!defined('PROGRAM_OD')) define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROCNIK)->formatDb());           // první den programu
+if (!defined('PROGRAM_DO')) define('PROGRAM_DO', GC_BEZI_DO);                                                     // poslední den programu
+if (!defined('PROGRAM_VIDITELNY')) define('PROGRAM_VIDITELNY', po(REG_GC_OD));                                    // jestli jsou viditelné linky na program
+if (!defined('CENY_VIDITELNE')) define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pred(GC_BEZI_DO));                  // jestli jsou viditelné ceny aktivit
+if (!defined('FINANCE_VIDITELNE')) define('FINANCE_VIDITELNE', true);                                             // jestli jsou public viditelné finance
 
 ///////////////////
 // Role a práva //
@@ -93,9 +88,9 @@ require_once __DIR__ . '/nastaveni-role.php';
 // Finanční nastavení //
 ////////////////////////
 
-if (!defined('UCET_CZ')) define('UCET_CZ', '2800035147/2010'); // číslo účtu pro platby v CZK - v statických stránkách není
+if (!defined('UCET_CZ')) define('UCET_CZ', '2800035147/2010');    // číslo účtu pro platby v CZK - v statických stránkách není
 if (!defined('IBAN')) define('IBAN', 'CZ2820100000002800035147'); // mezinárodní číslo účtu
-if (!defined('BIC_SWIFT')) define('BIC_SWIFT', 'FIOBCZPPXXX'); // mezinárodní ID (něco jako mezinárodní VS)
+if (!defined('BIC_SWIFT')) define('BIC_SWIFT', 'FIOBCZPPXXX');    // mezinárodní ID (něco jako mezinárodní VS)
 //if (!defined('FIO_TOKEN')) define('FIO_TOKEN', ''); // tajné - musí nastavit lokální soubor definic
 
 /////////////////////////
@@ -121,12 +116,12 @@ if (!defined('VYZADOVANO_COVID_POTVRZENI')) define('VYZADOVANO_COVID_POTVRZENI',
 if (!defined('ARCHIV_OD')) define('ARCHIV_OD', 2009);           // rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
 
 if (!defined('ODHLASENI_POKUTA_KONTROLA')) define('ODHLASENI_POKUTA_KONTROLA', true); // jestli se má kontrolovat pozdní odhlášní z aktivit
-if (!defined('ODHLASENI_POKUTA1_H')) define('ODHLASENI_POKUTA1_H', 24); // kolik hodin před aktivitou se začne uplatňovat pokuta 1
+if (!defined('ODHLASENI_POKUTA1_H')) define('ODHLASENI_POKUTA1_H', 24);               // kolik hodin před aktivitou se začne uplatňovat pokuta 1
 
-if (!defined('DEN_PRVNI_DATE')) define('DEN_PRVNI_DATE', date('Y-m-d', strtotime(PROGRAM_OD))); // první den v programu ve formátu YYYY-MM-DD
-if (!defined('DEN_PRVNI_UBYTOVANI')) define('DEN_PRVNI_UBYTOVANI', DEN_PRVNI_DATE); // datum, kterému odpovídá ubytovani_den (tabulka shop_predmety) v hodnotě 0
-if (!defined('PROGRAM_ZACATEK')) define('PROGRAM_ZACATEK', 8); // první hodina programu
-if (!defined('PROGRAM_KONEC')) define('PROGRAM_KONEC', 6); // konec programu (tuto hodinu už se nehraje). Používejte pouze hodnoty 1-24. Pokud je menší než PROGRAM_ZACATEK, znamená to, že končí následujícího dne.
+if (!defined('DEN_PRVNI_DATE')) define('DEN_PRVNI_DATE', date('Y-m-d', strtotime(PROGRAM_OD)));     // první den v programu ve formátu YYYY-MM-DD
+if (!defined('DEN_PRVNI_UBYTOVANI')) define('DEN_PRVNI_UBYTOVANI', DEN_PRVNI_DATE);                 // datum, kterému odpovídá ubytovani_den (tabulka shop_predmety) v hodnotě 0
+if (!defined('PROGRAM_ZACATEK')) define('PROGRAM_ZACATEK', 8);                                      // první hodina programu
+if (!defined('PROGRAM_KONEC')) define('PROGRAM_KONEC', 6);                                          // konec programu (tuto hodinu už se nehraje). Používejte pouze hodnoty 1-24. Pokud je menší než PROGRAM_ZACATEK, znamená to, že končí následujícího dne.
 if (PROGRAM_KONEC === 0) throw new Exception('Konstanta PROGRAM_KONEC bere pouze hodnoty 1 až 24'); // kontrola kdyby někdo zadal konec jako 0 (rozbíjí to vytváření aktivit, noční aktivity aj.)
 
 if (!defined('MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM')) define('MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM', 20);
