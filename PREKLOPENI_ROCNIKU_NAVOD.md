@@ -18,21 +18,18 @@ Vytvoř zálohu databáze
 mysqldump -u root --result-file="gamecon_STARY_ROCNIK_`date +'%Y-%m-%d_%H-%M-%S'`-dump.sql" --extended-insert --routines --triggers --delayed-insert --no-tablespaces "d16779_gcostra"
 ```
 
-Ze svého PC si zkopíruj zálohu databáze
+Na své PC si zkopíruj zálohu databáze
 ```bash
 scp 'gamecon.cz:gamecon_*.sql' .
 ```
 
-Nahraj zálohu databáze na Gamecon GDrive
+Nahraj zálohu databáze na [Gamecon Gdrive](https://drive.google.com/drive/folders/1QZIzXCrOQ2JMYi0EjI5EMbri0KHTJ9Nv?usp=drive_link) do složky _Záloha {STARY_ROCNIK}_
+```
 
 Přidej novou databázi `gamecon_STARY_ROCNIK` a subdoménu `STARY_ROCNIK.gamecon.cz` do [Gamecon Ansible](https://github.com/gamecon-cz/ansible)
 ```bash
 ansible-vault edit secrets.yaml
 ```
-
-TODO
-
-2) Takto vytvořenou zálohu nakopírovat do adresáře ZALOHOVY\_ADRESAR
 
 3) Odhlásit se z ostré database a přihlásit se na nově vytvořenou databázi (opět buďto přes PHPMyAdmin [https://pma.wedos.net/](https://pma.wedos.net/) nebo Adminer [https://databaze.gamecon.cz/](https://databaze.gamecon.cz/)).
 

@@ -17,39 +17,7 @@ require_once __DIR__ . '/../model/funkce/skryte-nastaveni-z-env-funkce.php';
 
 error_reporting(E_ALL & ~E_NOTICE); // skrýt notice, aby se konstanty daly "přetížit" dřív vloženými
 
-$host                     = $_SERVER['SERVER_NAME'] ?? 'localhost';
-$souborVerejnehoNastaveni = null;
-if (!empty($_COOKIE['unit_tests'])) {
-    include __DIR__ . '/verejne-nastaveni-tests.php';
-}
-if (jsmeNaLocale()) {
-    if (file_exists(__DIR__ . '/nastaveni-local.php')) {
-        include __DIR__ . '/nastaveni-local.php'; // nepovinné lokální nastavení
-    }
-    require_once __DIR__ . '/nastaveni-local-default.php'; // výchozí lokální nastavení
-} else if (str_ends_with($host, 'beta.gamecon.cz')) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-beta.php';
-} else if (str_ends_with($host, 'blackarrow.gamecon.cz')) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-blackarrow.php';
-} else if (str_ends_with($host, 'jakublounek.gamecon.cz')) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-jakublounek.php';
-} else if (str_ends_with($host, 'misahojna.gamecon.cz')) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-misahojna.php';
-} else if (str_ends_with($host, 'sciator.gamecon.cz')) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-sciator.php';
-} else if (in_array($host, ['admin.gamecon.cz', 'gamecon.cz'], true)) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
-} else if (in_array($host, ['admin.vpsfree.gamecon.cz', 'vpsfree.gamecon.cz'], true)) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-vpsfree.php';
-} else {
-    echo 'Nepodařilo se detekovat prostředí, nelze načíst nastavení verze';
-    exit(1);
-}
-
-if ($souborVerejnehoNastaveni) {
-    vytvorSouborSkrytehoNastaveniPodleEnv($souborVerejnehoNastaveni);
-    require_once $souborVerejnehoNastaveni;
-}
+require __DIR__ . '/zavadec-nastaveni.php';
 
 // výchozí hodnoty konstant
 // (nezobrazovat chyby, pokud už konstanta byla nastavena dřív)
