@@ -73,6 +73,8 @@ define('DBM_PASS', '');
 
 // ...
 define('FIO_TOKEN', '');
+define('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB', false);
+
 define('CRON_KEY', '');
 define('GOOGLE_API_CREDENTIALS', '');
 ```
