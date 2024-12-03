@@ -91,11 +91,12 @@ a [https://admin.{STARY\_ROCNIK}.gamecon.cz/](https://admin.stary_rocnik.gamecon
         - _Tato stránka pouze vygeneruje kód, kterým později upravíš zůstatky peněz u všech lidí. Tento kód je potřeba
           si zkopírovat a uložit. V posledním kroku po nasazení webu tento skript pustíme na ostré databázi._
     - Skript zkopíruj a ručně spusť na ostré databázi
+      - Pozor ⚠️, poté už negeneruj a hlavně nespouštěj nový skript, do zůstatků by se znovu započetly už započtené změny! 
 
 - Z gitu si stáhni aktuální repozitář projektu Gamecon a vytvoř novou větev, do které budeš commitovat změny.
 
-- V souboru [`./nastaveni/nastaveni.php`](./nastaveni/nastaveni.php) změň konstanty dle požadavků, hlavně nastav
-  konstantu `ROCNIK` na `{NOVY_ROCNIK}`
+- V souboru [`./nastaveni/verejne-nastaveni-produkce.php`](./nastaveni/verejne-nastaveni-produkce.php) změň konstanty dle požadavků, hlavně nastav
+  konstantu `define('ROCNIK', {NOVY_ROCNIK});`
     - Pozor ⚠️, nový ročník musí být změněn až po spuštění skriptu na ostré databázi, viz výše, jinak se zůstatky
       nepřevedou správně.
 

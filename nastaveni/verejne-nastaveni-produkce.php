@@ -12,4 +12,7 @@ define('REACT_V_PROHLIZECI', false);
 define('AUTOMATICKE_SESTAVENI', false);
 define('BABEL_BINARKA', null);
 
+/** aktuální ročník -- při změně roku viz Překlápění ročníku @link PREKLOPENI_ROCNIKU_NAVOD.md */
+define('ROCNIK', 2025);
+
 error_reporting(E_ALL); // reportuje se vše, o zobrazení se stará výjimkovač
