@@ -15,8 +15,7 @@ mb_internal_encoding('UTF-8');
 $puvodni = error_reporting();                                                                                     // vymaskování notice, aby bylo možné "přetížit" konstanty dříve includnutými
 error_reporting($puvodni ^ E_NOTICE);
 
-/** aktuální rok -- při změně roku viz Překlápění ročníku @link PREKLOPENI_ROCNIKU_NAVOD.md */
-if (!defined('ROCNIK')) define('ROCNIK', 2024);
+if (!defined('ROCNIK')) define('ROCNIK', (int)date('Y'));
 
 require_once __DIR__ . '/nastaveni-izolovane.php';
 
