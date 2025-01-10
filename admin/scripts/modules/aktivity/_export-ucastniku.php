@@ -20,11 +20,9 @@ $aktivity = Aktivita::zFiltru($filtr, $razeni);
 
 $activityTypeIdsFromFilter = array_unique(
     array_map(
-        static function (
+        static fn(
             Aktivita $aktivita,
-        ) {
-            return $aktivita->typId();
-        },
+        ) => $aktivita->typId(),
         $aktivity,
     ),
 );
