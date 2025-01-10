@@ -86,8 +86,8 @@ class ImporterUcastnikuNaAktivitu
                     continue;
                 }
                 $idAktivity     = trim((string)($radek[$indexIdAktivity] ?? ''));
-                $nazevAktivity  = trim($radek[$indexNazvuAktivity] ?? '');
-                $jmenoUcastnika = trim($radek[$indexUcastnika] ?? '');
+                $nazevAktivity  = trim((string)$radek[$indexNazvuAktivity] ?? '');
+                $jmenoUcastnika = trim((string)$radek[$indexUcastnika] ?? '');
                 if ($jmenoUcastnika === '') {
                     continue;
                 }
@@ -121,8 +121,12 @@ class ImporterUcastnikuNaAktivitu
                     throw new \Chyba("Nerozpoznaný uživatel '$jmenoUcastnika' na řádku $poradiRadku.");
                 }
 
-                if ($aktivita->prihlas($ucastnik, $imporujici)) {
-                    $prihlasenoCelkem++;
+                try {
+                    if ($aktivita->prihlas(uzivatel: $ucastnik, prihlasujici: $imporujici, hlaskyVeTretiOsobe: true)) {
+                        $prihlasenoCelkem++;
+                    }
+                } catch (\Chyba $chyba) {
+                    $varovani[] = $chyba->getMessage();
                 }
                 $idUcastnikuPodleAktivity[$aktivita->id()][] = $ucastnik->id();
             }
