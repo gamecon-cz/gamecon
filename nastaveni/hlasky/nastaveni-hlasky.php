@@ -12,7 +12,7 @@ return [
     'jenPrihlaseni'        => 'Na zobrazení této stránky musíte být přihlášeni.',
     'jenPrihlaseniGC'      => 'Na přístup k této stránce musíte být přihlášeni na letošní GameCon.',
     'masKoliziAktivit'     => 'V daném čase už máš přihlášenu jinou aktivitu.',
-    'maKoliziAktivit'      => 'V daném čase už má přihlášenu jinou aktivitu.',
+    'maKoliziAktivit'      => 'má v daném čase už přihlášenu jinou aktivitu.',
     'nejsiPrihlasenNaGc'   => 'Nemáš aktivní přihlášku na GameCon.',
     'neniPrihlasenNaGc'    => 'Nemá aktivní přihlášku na GameCon.',
     'uzJsiPrihlasen'       => 'Na tuto aktivitu už jsi jednou přihlášen.',

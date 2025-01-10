@@ -762,11 +762,18 @@ SQL,
         $parts    = explode(' ', $jmenoNick);
         $prijmeni = trim(array_pop($parts) ?? '');
         $jmeno    = implode(' ', array_map('trim', $parts));
+        if ($jmeno !== '' && $prijmeni !== '') {
+            return [
+                'jmeno'    => $jmeno,
+                'nick'     => null,
+                'prijmeni' => $prijmeni,
+            ];
+        }
 
         return [
-            'jmeno'    => $jmeno,
-            'nick'     => null,
-            'prijmeni' => $prijmeni,
+            'jmeno'    => null,
+            'nick'     => $prijmeni, // pokud nemáme jméno a příjmení, tak to považujeme za sólo nick
+            'prijmeni' => null,
         ];
     }
 
