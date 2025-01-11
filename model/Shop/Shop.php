@@ -304,11 +304,6 @@ SQL,
                     } else {
                         $typTricka = 'tričko.*pánské L';
                     }
-                    $r['auto'] = (
-                        $r['nabizet'] &&
-                        preg_match("@$barva@i", $r['nazev']) &&
-                        preg_match("@$typTricka@i", $r['nazev'])
-                    );
                 }
             } elseif ($typ == self::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
@@ -319,10 +314,6 @@ SQL,
                 }
             } else {
                 throw new \Exception('Objevil se nepodporovaný typ předmětu s č.' . var_export($r['typ'], true));
-            }
-            // vybrané předměty nastavit jako automaticky objednané
-            if ($r['nabizet'] && $r['auto'] && $this->prvniNakup()) {
-                $r['kusu_uzivatele']++;
             }
             // finální uložení předmětu na vrchol dané fronty
             $fronta = $r;
