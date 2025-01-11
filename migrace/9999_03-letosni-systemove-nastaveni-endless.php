@@ -52,7 +52,7 @@ if ($chybejiciKliceNastaveni) {
     foreach ($chybejiciKliceNastaveni as $klicWrapped) {
         $klic = reset($klicWrapped);
         if (empty($lonskeZaznamy[$klic])) {
-            throw new LogicException("Chybí loňský záznam pro nastavení '$klic'");
+            throw new LogicException("Chybí loňský záznam pro nastavení '$klic' (zřejmě se měnil ROCNIK, exportuj novou testovací databázi)");
         }
         $lonskyZaznam = $lonskeZaznamy[$klic];
         /**
