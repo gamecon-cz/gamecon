@@ -17,7 +17,7 @@ dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB
 dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
 
 // naimportujeme databázi s už proběhnutými staršími migracemi
-(new \MySQLImport($connection))->load(__DIR__ . '/Db/data/_localhost-2023_06_21_21_58_55-dump.sql');
+(new \MySQLImport($connection))->load(__DIR__ . '/Db/data/_localhost-2025_01_11_12_40_18-dump.sql');
 
 (new DbMigrations(new DbMigrationsConfig(
     connection: $connection, // předpokládá se, že spojení pro testy má administrativní práva
