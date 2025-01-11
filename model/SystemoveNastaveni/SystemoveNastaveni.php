@@ -287,7 +287,7 @@ SQL,
             } catch (InvalidDateTimeFormat) {
                 throw new ChybnaHodnotaSystemovehoNastaveni("Neplatné datum a čas '$hodnota'");
             }
-            $konecLetosnihoGameconu = $this->konecLetosnihoGameconu();
+            $konecLetosnihoGameconu = $this->spocitanyKonecLetosnihoGameconu();
             if ($regGcDo->getTimestamp() > $konecLetosnihoGameconu->getTimestamp()) {
                 throw new ChybnaHodnotaSystemovehoNastaveni(
                     "Konec registrace účastníků musí být nejpozději ke konci GC{$this->rocnik()}: '{$konecLetosnihoGameconu->formatCasStandard()}'",
@@ -606,14 +606,14 @@ SQL;
         return $this->ted;
     }
 
-    public function konecLetosnihoGameconu(): DateTimeImmutableStrict
+    public function spocitanyKonecLetosnihoGameconu(): DateTimeImmutableStrict
     {
         return DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::konecGameconu($this->rocnik()));
     }
 
     public function ucastniciPridatelniDoNeuzavrenePrezenceDo(): DateTimeImmutableStrict
     {
-        return $this->konecLetosnihoGameconu()
+        return $this->spocitanyKonecLetosnihoGameconu()
             ->modify($this->ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity() . ' days');
     }
 

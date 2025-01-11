@@ -1,4 +1,4 @@
-/*M!999999\- enable the sandbox mode */ 
+/*M!999999\- enable the sandbox mode */
 -- MariaDB dump 10.19-11.6.2-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: 127.0.0.1    Database: gamecon_test_6782587d36bad4.57234391
@@ -417,7 +417,7 @@ CREATE TABLE `akce_seznam` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`%`*/ /*!50003 trigger trigger_check_and_apply_team_limit
+/*!50003 CREATE*/ /*!50017 DEFINER=CURRENT_USER*/ /*!50003 trigger trigger_check_and_apply_team_limit
     before update
     on akce_seznam
     for each row
@@ -2400,11 +2400,11 @@ CREATE TABLE `uzivatele_url` (
 /*!50003 SET character_set_results = utf8mb4 */ ;
 /*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`%` FUNCTION `konec_gc`(datum TEXT) RETURNS date
+CREATE DEFINER=CURRENT_USER FUNCTION `konec_gc`(datum TEXT) RETURNS date
     DETERMINISTIC
 BEGIN
     SET datum = IF(LENGTH(datum) = 4, CONCAT(datum, '-01-01'), datum);
-    
+
 -- První den v červenci
     SET @first_day_of_july = DATE(CONCAT(YEAR(datum), '-07-01'));
 
@@ -2442,7 +2442,7 @@ DELIMITER ;
 /*!50001 SET character_set_results     = utf8mb3 */;
 /*!50001 SET collation_connection      = utf8mb3_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`%` SQL SECURITY INVOKER */
+/*!50013 DEFINER=CURRENT_USER SQL SECURITY INVOKER */
 /*!50001 VIEW `platne_role` AS select `role_seznam`.`id_role` AS `id_role`,`role_seznam`.`kod_role` AS `kod_role`,`role_seznam`.`nazev_role` AS `nazev_role`,`role_seznam`.`popis_role` AS `popis_role`,`role_seznam`.`rocnik_role` AS `rocnik_role`,`role_seznam`.`typ_role` AS `typ_role`,`role_seznam`.`vyznam_role` AS `vyznam_role`,`role_seznam`.`skryta` AS `skryta`,`role_seznam`.`kategorie_role` AS `kategorie_role` from `role_seznam` where `role_seznam`.`rocnik_role` in ((select `systemove_nastaveni`.`hodnota` from `systemove_nastaveni` where `systemove_nastaveni`.`klic` = 'ROCNIK' limit 1),-1) or `role_seznam`.`typ_role` = 'ucast' */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -2460,7 +2460,7 @@ DELIMITER ;
 /*!50001 SET character_set_results     = utf8mb3 */;
 /*!50001 SET collation_connection      = utf8mb3_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`%` SQL SECURITY INVOKER */
+/*!50013 DEFINER=CURRENT_USER SQL SECURITY INVOKER */
 /*!50001 VIEW `platne_role_uzivatelu` AS select `uzivatele_role`.`id_uzivatele` AS `id_uzivatele`,`uzivatele_role`.`id_role` AS `id_role`,`uzivatele_role`.`posazen` AS `posazen`,`uzivatele_role`.`posadil` AS `posadil` from (`uzivatele_role` join `platne_role` on(`uzivatele_role`.`id_role` = `platne_role`.`id_role`)) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;

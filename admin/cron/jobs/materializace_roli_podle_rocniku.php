@@ -12,7 +12,7 @@ if (!$cronNaCas) {
     return;
 }
 
-$rolePodleRocniku = new RolePodleRocniku();
+$rolePodleRocniku = new RolePodleRocniku($systemoveNastaveni);
 
 // až v roce 2022 jsme začali logovat odhlašování z rolí
 for ($rocnik = 2022; $rocnik <= $systemoveNastaveni->rocnik(); $rocnik++) {
