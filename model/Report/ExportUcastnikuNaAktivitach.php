@@ -51,9 +51,6 @@ class ExportUcastnikuNaAktivitach
                 'ucastnik' => $ucastnik->jmenoNick(),
             ];
         }
-        if ($aktivita->id() === 5414) {
-            $foo = 1;
-        }
         if ($data === []) {
             $data[] = [
                 'id_aktivity' => $aktivita->id(),
