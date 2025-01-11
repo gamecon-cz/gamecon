@@ -1922,7 +1922,7 @@ SQL
                  $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
-    ) {
+    ): void {
         if ($jenPritomen) {
             if ($this->dorazilJakoCokoliv($uzivatel)) {
                 return; // na současnou aktivitu už dorazil, takže se vlastně na ní může přihlásit
