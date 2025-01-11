@@ -14,12 +14,9 @@ class PredmetSqlStruktura
     public const KOD_PREDMETU       = 'kod_predmetu';
     public const CENA_AKTUALNI      = 'cena_aktualni';
     public const STAV               = 'stav';
-    public const AUTO               = 'auto';
     public const NABIZET_DO         = 'nabizet_do';
     public const KUSU_VYROBENO      = 'kusu_vyrobeno';
     public const TYP                = 'typ';
     public const UBYTOVANI_DEN      = 'ubytovani_den';
     public const POPIS              = 'popis';
-    public const KATEGORIE_PREDMETU = 'kategorie_predmetu';
-    public const SE_SLEVOU          = 'se_slevou';
 }

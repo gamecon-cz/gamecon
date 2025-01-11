@@ -113,7 +113,7 @@ SQL,
         ?array $idckaPolozek = null,
     ): array {
         $polozkyData = dbFetchAll(<<<SQL
-SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,kategorie_predmetu,nabizet_do
+SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,nabizet_do
 FROM (
     SELECT predmety.id_predmetu,
            TRIM(predmety.nazev) AS nazev,
@@ -124,7 +124,6 @@ FROM (
            COUNT(nakupy.id_predmetu) AS prodano_kusu,
            predmety.kusu_vyrobeno,
            predmety.typ,
-           predmety.kategorie_predmetu,
            predmety.nabizet_do,
            predmety.ubytovani_den
     FROM shop_predmety AS predmety
@@ -218,7 +217,7 @@ SQL,
 SELECT *
 FROM (
       SELECT
-        predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav, predmety.auto,
+        predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav,
         predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis,
         IF(predmety.model_rok = $1 OR COALESCE(predmety.popis, '') = '', predmety.nazev, CONCAT(predmety.nazev, ' (', predmety.popis, ')')) AS nazev,
         COUNT(IF(nakupy.rok = $1, 1, NULL)) AS kusu_prodano,
@@ -290,26 +289,6 @@ SQL,
                     || ($r['stav'] == self::STAV_PODPULTOVY && mb_stripos($r['nazev'], 'červené') !== false && $smiCervene)
                 );
                 $fronta       = &$this->tricka[];
-                if (AUTOMATICKY_VYBER_TRICKA) {
-                    // hack pro výběr správného automaticky objednaného trička
-                    if ($smiCervene) {
-                        $barva = 'červené';
-                    } elseif ($smiModre) {
-                        $barva = 'modré';
-                    } else {
-                        $barva = '.*';
-                    }
-                    if ($this->zakaznik->pohlavi() == 'f') {
-                        $typTricka = 'tílko.*dámské S';
-                    } else {
-                        $typTricka = 'tričko.*pánské L';
-                    }
-                    $r['auto'] = (
-                        $r['nabizet'] &&
-                        preg_match("@$barva@i", $r['nazev']) &&
-                        preg_match("@$typTricka@i", $r['nazev'])
-                    );
-                }
             } elseif ($typ == self::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
                     $this->vstupne       = $r;
@@ -319,10 +298,6 @@ SQL,
                 }
             } else {
                 throw new \Exception('Objevil se nepodporovaný typ předmětu s č.' . var_export($r['typ'], true));
-            }
-            // vybrané předměty nastavit jako automaticky objednané
-            if ($r['nabizet'] && $r['auto'] && $this->prvniNakup()) {
-                $r['kusu_uzivatele']++;
             }
             // finální uložení předmětu na vrchol dané fronty
             $fronta = $r;
