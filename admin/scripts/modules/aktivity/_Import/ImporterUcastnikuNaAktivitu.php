@@ -78,50 +78,50 @@ class ImporterUcastnikuNaAktivitu
         try {
             /** @var \OpenSpout\Common\Entity\Row|null $row */
             while ($rowIterator->valid()) {
-                $radek = $rowIterator->current()->toArray();
-                $poradiRadku++;
-                $rowIterator->next();
-
-                if ($radek === []) {
-                    continue;
-                }
-                $idAktivity     = trim((string)($radek[$indexIdAktivity] ?? ''));
-                $nazevAktivity  = trim((string)$radek[$indexNazvuAktivity] ?? '');
-                $jmenoUcastnika = trim((string)$radek[$indexUcastnika] ?? '');
-                if ($jmenoUcastnika === '') {
-                    continue;
-                }
-                if ($idAktivity === '' || !is_numeric($idAktivity)) {
-                    throw new \Chyba("Na řádku $poradiRadku chybí ID aktivity.");
-                }
-
-                $aktivita = $this->dejAktivitu((int)$idAktivity);
-                if ($aktivita === null) {
-                    throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku neexistuje.");
-                }
-                if ($aktivita->rok() !== $rocnik) {
-                    throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není pro současný ročník.");
-                }
-                if (!in_array($aktivita->typId(), [TypAktivity::BRIGADNICKA, TypAktivity::TECHNICKA], true)) {
-                    throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není brigádnická ani technická a jiným není dovoleno měnit účastníky importem.");
-                }
-                if (!in_array(
-                    $aktivita->idStavu(),
-                    self::STAVY_AKTIVITY_MENITELNE_IMPORTEM,
-                    true,
-                )) {
-                    if (!in_array($aktivita->id(), $preskoceneAktivity)) {
-                        $varovani[]           = "Aktivita '$idAktivity' ('$nazevAktivity') už je v provozu a nelze jí měnit účastníky importem.";
-                        $preskoceneAktivity[] = $aktivita->id();
-                    }
-                    continue;
-                }
-                $ucastnik = $this->dejUzivatele($jmenoUcastnika);
-                if ($ucastnik === null) {
-                    throw new \Chyba("Nerozpoznaný uživatel '$jmenoUcastnika' na řádku $poradiRadku.");
-                }
-
                 try {
+                    $radek = $rowIterator->current()->toArray();
+                    $poradiRadku++;
+                    $rowIterator->next();
+
+                    if ($radek === []) {
+                        continue;
+                    }
+                    $idAktivity     = trim((string)($radek[$indexIdAktivity] ?? ''));
+                    $nazevAktivity  = trim((string)$radek[$indexNazvuAktivity] ?? '');
+                    $jmenoUcastnika = trim((string)$radek[$indexUcastnika] ?? '');
+                    if ($jmenoUcastnika === '') {
+                        continue;
+                    }
+                    if ($idAktivity === '' || !is_numeric($idAktivity)) {
+                        throw new \Chyba("Na řádku $poradiRadku chybí ID aktivity.");
+                    }
+
+                    $aktivita = $this->dejAktivitu((int)$idAktivity);
+                    if ($aktivita === null) {
+                        throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku neexistuje.");
+                    }
+                    if ($aktivita->rok() !== $rocnik) {
+                        throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není pro současný ročník.");
+                    }
+                    if (!in_array($aktivita->typId(), [TypAktivity::BRIGADNICKA, TypAktivity::TECHNICKA], true)) {
+                        throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není brigádnická ani technická a jiným není dovoleno měnit účastníky importem.");
+                    }
+                    if (!in_array(
+                        $aktivita->idStavu(),
+                        self::STAVY_AKTIVITY_MENITELNE_IMPORTEM,
+                        true,
+                    )) {
+                        if (!in_array($aktivita->id(), $preskoceneAktivity)) {
+                            $varovani[]           = "Aktivita '$idAktivity' ('$nazevAktivity') už je v provozu a nelze jí měnit účastníky importem.";
+                            $preskoceneAktivity[] = $aktivita->id();
+                        }
+                        continue;
+                    }
+                    $ucastnik = $this->dejUzivatele($jmenoUcastnika);
+                    if ($ucastnik === null) {
+                        throw new \Chyba("Nerozpoznaný uživatel '$jmenoUcastnika' na řádku $poradiRadku.");
+                    }
+
                     if ($aktivita->prihlas(uzivatel: $ucastnik, prihlasujici: $imporujici, hlaskyVeTretiOsobe: true)) {
                         $prihlasenoCelkem++;
                     }
