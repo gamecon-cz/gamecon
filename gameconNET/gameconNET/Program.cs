@@ -17,6 +17,7 @@ const string JWT_KEY = "your-256-bit-seghghghghgfhdsagresgfdgfcret";
 builder.Services.AddControllers();
 builder.Services.AddDbContext<GameConContext>();
 builder.Services.AddScoped<GoogleDriveService>();
+builder.Services.AddScoped<SettingsService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 

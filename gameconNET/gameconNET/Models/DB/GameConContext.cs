@@ -7,6 +7,8 @@ public class GameConContext : DbContext
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<SystemSetting> SystemSettings { get; set; }
+    public DbSet<ShopItem> ShopItems { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder
