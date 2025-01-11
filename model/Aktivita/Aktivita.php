@@ -57,7 +57,7 @@ class Aktivita
     const AJAXKLIC              = 'aEditFormTest';   // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
     const OBRAZEK_KLIC          = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
     const ODMENA_ZA_HODINU_KLIC = 'odmena_za_hodinu';
-    const TAGYKLIC              = 'aEditTag';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        // název proměnné; v které jdou tagy
+    const TAGYKLIC              = 'aEditTag';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   // název proměnné; v které jdou tagy
     const POSTKLIC              = 'aEditForm';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
     const TEAMKLIC              = 'aTeamForm';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      // název post proměnné s formulářem pro výběr teamu
     const TEAMKLIC_KOLA         = 'aTeamFormKolo';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  // název post proměnné s výběrem kol pro team
@@ -77,11 +77,11 @@ class Aktivita
     const DOPREDNE                           = 0b0000100000000;   // možnost přihlásit před otevřením registrací na aktivity
     const IGNOROVAT_LIMIT                    = 0b0001000000000;
     const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b0010000000000;
-    const NEOTEVRENE                         = 0b0100000000000;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   // přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity
+    const NEOTEVRENE                         = 0b0100000000000;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              // přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity
     const UKAZAT_DETAILY_CHYBY               = 0b1000000000000;
     // parametry kolem továrních metod
-    const JEN_VOLNE  = 0b00000001;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // jen volné aktivity
-    const VEREJNE    = 0b00000010;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // jen veřejně viditelné aktivity
+    const JEN_VOLNE  = 0b00000001;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  // jen volné aktivity
+    const VEREJNE    = 0b00000010;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  // jen veřejně viditelné aktivity
     const ZAMCENE    = 0b00000100;
     const NEUZAVRENE = 0b00001000;
 
@@ -1868,12 +1868,20 @@ SQL
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
                  $parametry = 0,
+        bool     $jenPritomen = false,
+        bool     $hlaskyVeTretiOsobe = false,
     ): bool {
         if ($this->prihlasen($uzivatel)) {
             return false;
         }
 
-        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $prihlasujici, $parametry);
+        $this->zkontrolujZdaSeMuzePrihlasit(
+            $uzivatel,
+            $prihlasujici,
+            $parametry,
+            $jenPritomen,
+            $hlaskyVeTretiOsobe,
+        );
 
         // odhlášení náhradnictví v kolidujících aktivitách
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici);
@@ -1923,14 +1931,26 @@ SQL
             return;
         }
         if ($this->zacatek() && $this->konec() && !$uzivatel->maVolno($this->zacatek(), $this->konec(), null, $jenPritomen)) {
-            throw new \Chyba(hlaska($hlaskyVeTretiOsobe
-                ? 'maKoliziAktivit'
-                : 'masKoliziAktivit'));
+            throw new \Chyba(
+                ($hlaskyVeTretiOsobe
+                    ? 'Uživatel ' . $uzivatel->jmenoVolitelnyNick() . ' '
+                    : ''
+                ) .
+                hlaska($hlaskyVeTretiOsobe
+                    ? 'maKoliziAktivit'
+                    : 'masKoliziAktivit'),
+            );
         }
         if (!$uzivatel->gcPrihlasen()) {
-            throw new \Chyba(hlaska($hlaskyVeTretiOsobe
+            throw new \Chyba(
+                ($hlaskyVeTretiOsobe
+                    ? 'Uživatel ' . $uzivatel->jmenoVolitelnyNick() . ' '
+                    : ''
+                ) .
+                hlaska($hlaskyVeTretiOsobe
                 ? 'neniPrihlasenNaGc'
-                : 'nejsiPrihlasenNaGc'));
+                : 'nejsiPrihlasenNaGc')
+            );
         }
         if (!(self::IGNOROVAT_LIMIT & $parametry) && $this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()) {
             throw new \Chyba(hlaska('plno'));
@@ -3420,9 +3440,9 @@ SQL,
      *  parametr => sloupec
      */
     public static function zFiltru(
-        array $filtr,
-        array $razeni = [],
-        ?int $limit = null,
+        array              $filtr,
+        array              $razeni = [],
+        ?int               $limit = null,
         SystemoveNastaveni $systemoveNastaveni = null,
     ): array {
         // sestavení filtrů

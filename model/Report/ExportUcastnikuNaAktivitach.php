@@ -51,6 +51,13 @@ class ExportUcastnikuNaAktivitach
                 'ucastnik' => $ucastnik->jmenoNick(),
             ];
         }
+        if ($data === []) {
+            $data[] = [
+                'id_aktivity' => $aktivita->id(),
+                'aktivita' => $aktivita->nazev(),
+                'ucastnik' => '',
+            ];
+        }
 
         return $data;
     }
