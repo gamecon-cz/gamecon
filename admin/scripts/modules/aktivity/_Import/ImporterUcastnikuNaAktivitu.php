@@ -122,11 +122,17 @@ class ImporterUcastnikuNaAktivitu
                         throw new \Chyba("Nerozpoznaný uživatel '$jmenoUcastnika' na řádku $poradiRadku.");
                     }
 
-                    if ($aktivita->prihlas(uzivatel: $ucastnik, prihlasujici: $imporujici, hlaskyVeTretiOsobe: true)) {
+                    if ($aktivita->prihlas(
+                        uzivatel: $ucastnik,
+                        prihlasujici: $imporujici,
+                        hlaskyVeTretiOsobe: true,
+                        parametry: Aktivita::INTERNI,
+                    )) {
                         $prihlasenoCelkem++;
                     }
                 } catch (\Chyba $chyba) {
                     $varovani[] = $chyba->getMessage();
+                    continue;
                 }
                 $idUcastnikuPodleAktivity[$aktivita->id()][] = $ucastnik->id();
             }
