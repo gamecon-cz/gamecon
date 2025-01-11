@@ -58,7 +58,7 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
         }
 
-        if (($vek = $ucastnik->vekKDatu($aktivita->zacatek() ?? $this->systemoveNastaveni->konecLetosnihoGameconu())) < 18) {
+        if (($vek = $ucastnik->vekKDatu($aktivita->zacatek() ?? $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu())) < 18) {
             $ucastnikTemplate->assign('vek', $vek);
             $ucastnikTemplate->parse('ucastnik.mladsiOsmnactiLet');
         }

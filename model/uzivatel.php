@@ -2036,7 +2036,7 @@ VALUES ($0, $1, $2, $3, NOW())
 SQL,
             [$this->id(), $idRole, $idEditora, $zmena],
         );
-        (new RolePodleRocniku())
+        (new RolePodleRocniku($this->systemoveNastaveni))
             ->prepocitejHistoriiRoliProRocnik($this->systemoveNastaveni->rocnik(), $this->id());
     }
 
