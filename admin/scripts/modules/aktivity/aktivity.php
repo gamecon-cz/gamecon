@@ -7,6 +7,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Pravo;
 use Gamecon\Aktivita\HromadneAkceAktivit;
+use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
 
 /**
  * Stránka pro tvorbu a správu aktivit.
@@ -148,6 +149,9 @@ foreach ($aktivity as $aktivita) {
 
     if ($r['patri_pod']) {
         $tpl->parse('aktivity.aktivita.symbolInstance');
+    }
+    if ($r[Sql::PO_KOREKCI]) {
+        $tpl->parse('aktivity.aktivita.symbolKorekce');
     }
     if ($r['stav'] == StavAktivity::NOVA) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
