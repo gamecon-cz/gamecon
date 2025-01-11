@@ -16,8 +16,12 @@ dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), [], $connection);
 dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME), [], $connection);
 dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
 
+$testDumps = scandir(__DIR__ . '/Db/data', SCANDIR_SORT_DESCENDING);
+assert($testDumps !== false, 'Nepodařilo se načíst testovací SQL');
+$latestDump = __DIR__ . '/Db/data/' . reset($testDumps);
+
 // naimportujeme databázi s už proběhnutými staršími migracemi
-(new \MySQLImport($connection))->load(__DIR__ . '/Db/data/_localhost-2023_06_21_21_58_55-dump.sql');
+(new \MySQLImport($connection))->load($latestDump);
 
 (new DbMigrations(new DbMigrationsConfig(
     connection: $connection, // předpokládá se, že spojení pro testy má administrativní práva
