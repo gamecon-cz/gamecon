@@ -15,7 +15,6 @@ class Polozka
     private ?DateTimeImmutableStrict $naposledyKoupenoKdy;
     private float                    $prodanoKusu;
     private float                    $vyrobenoKusu;
-    private ?int                     $kategoriePredmetu;
     private ?DateTimeImmutableStrict $nabizetDo;
     private float                    $zbyvaKusu;
     private int                      $idTypu;
@@ -32,9 +31,6 @@ class Polozka
             : null;
         $this->prodanoKusu         = (float)$hodnoty['prodano_kusu'];
         $this->vyrobenoKusu        = (float)$hodnoty['kusu_vyrobeno'];
-        $this->kategoriePredmetu   = $hodnoty['kategorie_predmetu']
-            ? (int)$hodnoty['kategorie_predmetu']
-            : null;
         $this->nabizetDo           = $hodnoty['nabizet_do']
             ? new DateTimeImmutableStrict($hodnoty['nabizet_do'])
             : null;
@@ -90,11 +86,6 @@ class Polozka
     public function idTypu(): int
     {
         return $this->idTypu;
-    }
-
-    public function kategoriePredmetu(): ?int
-    {
-        return $this->kategoriePredmetu;
     }
 
     public function nabizetDo(): ?DateTimeImmutableStrict
