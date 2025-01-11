@@ -206,6 +206,9 @@
             <th><span class="hinted">Ins<span class="hint">
       Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
     </span></span></th>
+            <th><span class="hinted">Kor<span class="hint">
+      U aktivity proběhla gramatická korekce a od té doby nebyly úpravy textu.
+    </span></span></th>
             <th colspan="5"><span class="hinted">Akce<span class="hint">
       <i class="fa fa-trash" aria-hidden="true"></i> <strong>smaž:</strong> nevratné smazání aktivity<br>
       <i class="fa fa-pencil-square-o" aria-hidden="true"></i> <strong>uprav:</strong> podrobná editace aktivity na vlastní stránce<br>
@@ -228,6 +231,11 @@
                 <!-- begin:symbolInstance -->
                 <img alt="Řetěz instance" src="files/design/chain-icon.png"/>
                 <!-- end:symbolInstance -->
+            </td>
+            <td>
+                <!-- begin:symbolKorekce -->
+                <img alt="Řetěz instance" src="files/design/ok.png"/>
+                <!-- end:symbolKorekce -->
             </td>
             <!-- begin:tlacitka -->
             <td class="tlacitko-aktivity">

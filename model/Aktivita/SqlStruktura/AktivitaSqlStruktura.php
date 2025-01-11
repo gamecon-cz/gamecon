@@ -36,4 +36,5 @@ class AktivitaSqlStruktura
     public const POPIS         = 'popis';
     public const POPIS_KRATKY  = 'popis_kratky';
     public const VYBAVENI      = 'vybaveni';
+    public const PO_KOREKCI    = 'probehla_korekce';
 }

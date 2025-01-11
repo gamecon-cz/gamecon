@@ -396,7 +396,23 @@
     </table>
 </div>
 
-<div style="clear:both"></div><input type="submit" name="{fields}Odesilatko" value="Uložit">
+
+<div style="clear:both"></div>
+<!-- begin:checkboxKorekce -->
+<div style="width: 30%">
+<input style="float:right" type="checkbox" name="{fields}[probehla_korekce]" value="1" id="probehla_korekce">
+<div class="hinted" style="float:right;margin:2px 0 0 1em"><label for="probehla_korekce">Proběhla korekce?</label>
+    <div class="hint">Poslední, kdo upravoval popis aktivity byl člověk oprávněný provádět korekce a zaškrtl tento checkbox.</div>
+</div>
+<script>
+    var box = $('[name="{fields}[probehla_korekce]"]')
+    if ('{probehla_korekce}' == true) {
+        box.attr('checked', true)
+    }
+</script>
+</div>
+<!-- end:checkboxKorekce -->
+<input type="submit" name="{fields}Odesilatko" value="Uložit">
 
 <br style="clear:both">
 
