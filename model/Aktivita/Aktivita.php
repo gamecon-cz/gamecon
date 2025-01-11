@@ -3220,13 +3220,13 @@ SQL,
     public function ucastniciOdebratelniDo(Uzivatel $odhlasujici): \DateTimeImmutable
     {
         if (!$this->probehnuta()) {
-            return $this->systemoveNastaveni->konecLetosnihoGameconu();
+            return $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
         }
         // Ze zamčené aktivity mohou účastníky odebírat (odpotvrzovat) jen její vypravěči či z admin stránky Prezence
         if ($this->zamcena()
             && ($this->maOrganizatora($odhlasujici) || $odhlasujici->maPravoNaPristupDoPrezence())
         ) {
-            return $this->systemoveNastaveni->konecLetosnihoGameconu();
+            return $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
         }
 
         /*
@@ -3266,7 +3266,7 @@ SQL,
             return $this->dejDrivejsiZacatekNeboPredChvilkou();
         }
         if (!$this->konec()) {
-            return $this->systemoveNastaveni->konecLetosnihoGameconu();
+            return $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
         }
 
         // vypravěči mohou přidávat účastníky k uzavřené aktivitě ještě několik minut po jejím konci

@@ -65,7 +65,7 @@ FROM uzivatele_role
 WHERE id_role = $0
 SQL,
         [
-            0 => Role::pritomenNaRocniku(po($systemoveNastaveni->konecLetosnihoGameconu())
+            0 => Role::pritomenNaRocniku(po($systemoveNastaveni->spocitanyKonecLetosnihoGameconu())
                 ? $systemoveNastaveni->rocnik()
                 : $systemoveNastaveni->rocnik() - 1,
             ),
@@ -79,7 +79,7 @@ WHERE rok = $0
     AND typ NOT IN ($1)
 SQL,
         [
-            0 => po($systemoveNastaveni->konecLetosnihoGameconu())
+            0 => po($systemoveNastaveni->spocitanyKonecLetosnihoGameconu())
                 ? $systemoveNastaveni->rocnik()
                 : $systemoveNastaveni->rocnik() - 1,
             1 => TypAktivity::interniTypy(),

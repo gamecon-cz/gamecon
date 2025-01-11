@@ -34,15 +34,19 @@ class KopieOstreDatabazeTest extends TestCase
             $this->systemoveNastaveni = $this->vytvorSystemoveNastaveni();
 
             $docasneSpojeniSoucasna = $this->docasneSpojeniSoucasna($this->systemoveNastaveni, true);
+            $testDumps              = scandir(__DIR__ . '/../../Db/data', SCANDIR_SORT_DESCENDING);
+            assert($testDumps !== false, 'Nepodařilo se načíst testovací SQL');
+            $latestDump = __DIR__ . '/../../Db/data/' . reset($testDumps);
+
             (new \MySQLImport($docasneSpojeniSoucasna))
-                ->load(__DIR__ . '/../../Db/data/_localhost-2023_06_21_21_58_55-dump.sql');
+                ->load($latestDump);
             // potřebujeme co největší rozdíl SQL migrací abychom vyzkoušeli že nějaká co není na betě a pustí se to nerozbije (stalo se)
             (new SqlMigrace($this->systemoveNastaveni))->migruj(false);
 
             $docasneSpojeniOstra = $this->docasneSpojeniOstra($this->systemoveNastaveni, true);
             // naplníme "jakoby ostrou" staršími daty, abychom vyzkoušeli nejen zkopírování, ale i migrace
             (new \MySQLImport($docasneSpojeniOstra))
-                ->load(__DIR__ . '/../../Db/data/_localhost-2023_06_21_21_58_55-dump.sql');
+                ->load($latestDump);
         } catch (\Throwable $throwable) {
             $this->setUpError = $throwable;
         }
@@ -60,8 +64,7 @@ class KopieOstreDatabazeTest extends TestCase
     private function docasneSpojeniSoucasna(
         SystemoveNastaveni $systemoveNastaveni,
         bool               $resetDatabaze,
-    ): \mysqli
-    {
+    ): \mysqli {
         [
             'DBM_USER' => $dbmUser,
             'DBM_PASS' => $dbmPass,
@@ -84,8 +87,7 @@ class KopieOstreDatabazeTest extends TestCase
     private function docasneSpojeniOstra(
         SystemoveNastaveni $systemoveNastaveni,
         bool               $resetDatabaze,
-    ): \mysqli
-    {
+    ): \mysqli {
         [
             'DBM_USER' => $dbmUser,
             'DBM_PASS' => $dbmPass,
@@ -106,15 +108,14 @@ class KopieOstreDatabazeTest extends TestCase
     }
 
     private function docasneSpojeni(
-        string          $dbServer,
-        string          $dbmUser,
-        string          $dbmPass,
-        string|int|null $dbPort,
-        string          $dbName,
-        int             $rocnik,
-        bool            $resetDatabaze,
-    )
-    {
+        string              $dbServer,
+        string              $dbmUser,
+        string              $dbmPass,
+        string | int | null $dbPort,
+        string              $dbName,
+        int                 $rocnik,
+        bool                $resetDatabaze,
+    ) {
         $spojeni = _dbConnect(
             $dbServer,
             $dbmUser,
@@ -152,13 +153,13 @@ class KopieOstreDatabazeTest extends TestCase
 
     private function vytvorSystemoveNastaveni(): SystemoveNastaveni
     {
-        return new class(self::$soucasnaDbName, self::$ostraDbName) extends SystemoveNastaveni {
+        return new class(self::$soucasnaDbName, self::$ostraDbName) extends SystemoveNastaveni
+        {
 
             public function __construct(
                 private readonly string $soucasnaDbName,
                 private readonly string $ostraDbName,
-            )
-            {
+            ) {
                 parent::__construct(
                     ROCNIK,
                     new DateTimeImmutableStrict(),
