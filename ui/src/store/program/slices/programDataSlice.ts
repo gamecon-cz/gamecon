@@ -47,9 +47,6 @@ export const načtiRok = async (rok: number) => {
     for (const aktivita of aktivity) {
       s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita, [DOTAŽENO]: Date.now() };
     }
-    for (const aktivita of aktivityPřihlášen) {
-      s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita };
-    }
   }, undefined, "dotažení aktivit");
 };
 
