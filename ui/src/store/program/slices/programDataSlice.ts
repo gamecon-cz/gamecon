@@ -45,7 +45,6 @@ export const načtiRok = async (rok: number) => {
   useProgramStore.setState(s => {
     for (const aktivita of aktivity) {
       s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita, [DOTAŽENO]: Date.now() };
-      s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita };
     }
   }, undefined, "dotažení aktivit");
 };
