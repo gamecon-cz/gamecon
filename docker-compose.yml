@@ -62,3 +62,9 @@ services:
     ports:
           # set MAILHOG_HOST_MAPPING_PORT variable in .env file for example
       - "${MAILHOG_HOST_MAPPING_PORT:-8125}:8025"
+
+  gameconnet:
+    image: gameconnet
+    build:
+      context: gameconNET
+      dockerfile: gameconNET/Dockerfile

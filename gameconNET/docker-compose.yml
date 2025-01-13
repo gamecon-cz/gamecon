@@ -1,0 +1,6 @@
+﻿services:
+  gameconnet:
+    image: gameconnet
+    build:
+      context: .
+      dockerfile: gameconNET/Dockerfile
