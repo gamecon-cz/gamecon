@@ -237,7 +237,7 @@ SQL
 
     public function probehlaKorekce(): bool
     {
-        return (bool)$this->a[Sql::PO_KOREKCI];
+        return (bool)$this->a[Sql::PROBEHLA_KOREKCE];
     }
 
     public function slevaNasobic(\Uzivatel $u = null)
@@ -977,7 +977,7 @@ SQL
     ): Aktivita {
         $data[Sql::BEZ_SLEVY]    = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
         $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
-        $data[Sql::PO_KOREKCI]   = (int)!empty($data[Sql::PO_KOREKCI]); // checkbox pro "nedava_bonus"
+        $data[Sql::PROBEHLA_KOREKCE]   = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "nedava_bonus"
         $data[Sql::CENA]         = (int)($data[Sql::CENA] ?? 0);
         if (empty($data['popis']) && empty($data[Sql::ID_AKCE])) {
             $data['popis'] = 0; // uložíme později jako jako $markdownPopis,teď jenom vyřešíme "Field 'popis' doesn't have a default value"
@@ -1767,7 +1767,7 @@ SQL
         $oldId = $this->a['popis'];
         $id    = dbTextHash($popis);
         if ($id != $oldId) {
-            dbUpdate('akce_seznam', [Sql::PO_KOREKCI => 0], []);
+            dbUpdate('akce_seznam', [Sql::PROBEHLA_KOREKCE => 0], [Sql::ID_AKCE => $this->id()]);
         }
         if ($this->a['patri_pod']) {
             dbUpdate('akce_seznam', ['popis' => $id], ['patri_pod' => $this->a['patri_pod']]);
