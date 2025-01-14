@@ -102,7 +102,6 @@ $GLOBALS['HLASKY_SUBST'] = require __DIR__ . '/hlasky/nastaveni-hlasky-subst.php
 /////////////////////////
 // Nastavení přihlášek //
 /////////////////////////
-if (!defined('AUTOMATICKY_VYBER_TRICKA')) define('AUTOMATICKY_VYBER_TRICKA', false);
 if (!defined('VYCHOZI_DOBROVOLNE_VSTUPNE')) define('VYCHOZI_DOBROVOLNE_VSTUPNE', 0);
 if (!defined('VYZADOVANO_COVID_POTVRZENI')) define('VYZADOVANO_COVID_POTVRZENI', false);
 
