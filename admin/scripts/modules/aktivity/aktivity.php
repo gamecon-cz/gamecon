@@ -150,7 +150,7 @@ foreach ($aktivity as $aktivita) {
     if ($r['patri_pod']) {
         $tpl->parse('aktivity.aktivita.symbolInstance');
     }
-    if ($r[Sql::PO_KOREKCI]) {
+    if ($r[Sql::PROBEHLA_KOREKCE]) {
         $tpl->parse('aktivity.aktivita.symbolKorekce');
     }
     if ($r['stav'] == StavAktivity::NOVA) {
