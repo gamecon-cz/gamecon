@@ -77,7 +77,6 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     .sort((a, b) => indexŘazení(a[0]) - indexŘazení(b[0]))
     .map(([klíč, skupina]) => {
       const řádků: number = Math.max(...skupina.map((x) => x.řádek)) + 1;
-
       const nadpisSkupiny = (
         <td rowSpan={Math.max(řádků, 1)}>
           <div class="program_nazevLinie">{klíč}</div>
@@ -112,7 +111,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
                     const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
                     posledníAktivitaDo = hodinDo;
-                    const odsazení = range(časOdsazení).map(() => <td></td>);
+                    const odsazení = <td colSpan={časOdsazení}></td>;
 
                     return (
                       <>
@@ -124,10 +123,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                       </>
                     );
                   })}
-                {
-                  range((GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24)
-                    .map(() => <td></td>)
-                }
+                  {<td colSpan={(GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24}></td>}
               </tr>
             );
           })}
