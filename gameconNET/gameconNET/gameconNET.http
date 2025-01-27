@@ -1,0 +1,6 @@
+@gameconNET_HostAddress = http://localhost:5251
+
+GET {{gameconNET_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
