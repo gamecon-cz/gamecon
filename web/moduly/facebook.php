@@ -1,3 +1,3 @@
 <?php
 
-header('Location: ' . 'https://www.facebook.com/groups/gamecon/', true, 301);
+header('Location: ' . 'https://www.facebook.com/groups/gamecon', true, 301);
