@@ -18,7 +18,7 @@ function copyQrCode(qrCodeId) {
             const item = new ClipboardItem({ "image/png": blob });
             navigator.clipboard.write([item])
                 .then(() => {
-                    showNotification(qrCodeId + " skopírován");
+                    showNotification(qrCodeId + " zkopírován");
                 })
                 .catch((err) => {
                     showNotification("Chyba při kopírování QR kódu: " + err, true);
