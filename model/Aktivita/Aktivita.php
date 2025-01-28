@@ -975,10 +975,11 @@ SQL
         string  $obrazekUrl = null,
         int     $odmenaZaHodinu = null,
     ): Aktivita {
-        $data[Sql::BEZ_SLEVY]    = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
-        $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
-        $data[Sql::PROBEHLA_KOREKCE]   = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "nedava_bonus"
-        $data[Sql::CENA]         = (int)($data[Sql::CENA] ?? 0);
+        $data[Sql::BEZ_SLEVY]           = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
+        $data[Sql::NEDAVA_BONUS]        = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
+        $data[Sql::PROBEHLA_KOREKCE]    = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "probehla_korekce"
+        $data[Sql::CENA]                = (int)($data[Sql::CENA] ?? 0);
+
         if (empty($data['popis']) && empty($data[Sql::ID_AKCE])) {
             $data['popis'] = 0; // uložíme později jako jako $markdownPopis,teď jenom vyřešíme "Field 'popis' doesn't have a default value"
         }
