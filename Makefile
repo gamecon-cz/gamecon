@@ -11,10 +11,6 @@ init:
 	direnv exec bin-docker/composer install
 	echo 'Gamecon initialized ✅'
 
-bare-phpunit:
-	cp --no-clobber phpunit.xml.dist phpunit.xml
-	bin/phpunit-local.sh --stop-on-error --testdox
-
 start-docker-foreground:
 	docker compose up
 
