@@ -58,9 +58,9 @@ function generateQrCode($url, $logoPngPath, $id) {
     return "
         <div>
             <img id='qrCode-$id' src='data:image/png;base64,$base64' alt='QR Code'>
-            <button onclick='copyQrCode(\"qrCode-$id\")'>Copy</button>
+            <button onclick='copyQrCode(\"qrCode-$id\")'>Zkopírovat</button>
             <a href='data:image/png;base64,$base64' download='qr-code-$id.png'>
-                <button>Download</button>
+                <button>Stáhnout</button>
             </a>
         </div>
     ";
