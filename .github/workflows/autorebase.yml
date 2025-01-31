@@ -1,4 +1,7 @@
 # https://github.com/marketplace/actions/auto-rebase
+
+name: Automatically rebase pull requests if necessary
+
 on:
     # Run on every push on every branch
     push:
@@ -26,4 +29,6 @@ jobs:
                   #   See https://github.com/marketplace/actions/github-app-token.
                   # - a personal access token
                   #   See https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line.
+
+                  # note: used fine-grained personal access token, owned by gamecon-cz organization https://github.com/settings/personal-access-tokens
                   github_token: ${{ secrets.AUTOREBASE_TOKEN }}
