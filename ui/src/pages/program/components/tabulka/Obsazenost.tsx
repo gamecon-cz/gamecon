@@ -16,7 +16,6 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
   if (obsazenost) {
     const { m, f, km, kf, ku } = obsazenost;
     const volnoTyp = volnoTypZObsazenost(obsazenost);
-
     const celkem = m + f;
     const kapacitaCelkem = km + kf + ku;
 
