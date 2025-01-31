@@ -4,6 +4,7 @@ name: Run tests
 on:
   push:
     branches:
+      - '**'  # Ensure tests run on all branches, except beta and main
       # beta a main si pouští testy samy, před deployem,
       # viz deploy-beta.yml a deploy-ostra.yml
       - '!beta'
@@ -17,6 +18,9 @@ on:
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize  # Ensures tests rerun on force-pushes
 
 jobs:
   run-tests:
