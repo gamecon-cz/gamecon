@@ -1,6 +1,7 @@
 import { Program } from "./program";
 import { Obchod } from "./obchod";
 import { ObchodNastaveni } from "./obchodNastaveni";
+import { UbytovaníNastavení } from "./ubytovaniNastaveni";
 import { Fragment, FunctionComponent, JSX, render } from "preact";
 import { GAMECON_KONSTANTY } from "../env";
 import { ProgramWrapper } from "../testing/ProgramWrapper";
@@ -27,6 +28,7 @@ const renderComponent = (
 };
 
 export const renderPages = () => {
+  renderComponent("preact-ubytovani-nastaveni", UbytovaníNastavení);
   renderComponent("preact-obchod-nastaveni", ObchodNastaveni);
   renderComponent("preact-program", Program, ProgramWrapper);
   renderComponent("preact-obchod", Obchod);
