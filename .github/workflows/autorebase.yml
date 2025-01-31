@@ -9,3 +9,4 @@ jobs:
             -   uses: peter-evans/rebase@v3
                 with:
                     base: main
+                    head: 'gamecon-cz:gamecon'
