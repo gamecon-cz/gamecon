@@ -9,6 +9,7 @@ import { načtiPřihlášenýUživatel } from "../../store/program/slices/přihl
 import { OdhlasitAktivituModal } from "./components/vstupy/OdhlasitAktivituModal";
 
 import "./program.less";
+import { ProgramPlanovac } from "./components/planovac/ProgramPlanovac";
 
 export const Program: FunctionComponent = () => {
   useEffect(inicializujProgramStore, []);
@@ -23,6 +24,7 @@ export const Program: FunctionComponent = () => {
       <div class={"program-obal"}>
         <ProgramNáhled />
         <ProgramUživatelskéVstupy />
+        <ProgramPlanovac />
         <ProgramLegenda />
         <ProgramTabulka />
       </div>
