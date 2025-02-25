@@ -5,6 +5,7 @@
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavPrihlaseni;
 
 $u = Uzivatel::zSession();
 
@@ -49,7 +50,10 @@ $rok = array_key_exists('rok', $_GET)
 $aktivity = Aktivita::zFiltru(["rok" => $rok]);
 
 foreach ($aktivity as $aktivita) {
-    if (!$aktivita->zacatek() || !$aktivita->konec() || !$aktivita->viditelnaPro($u)) {
+    $zacatekAktivity = $aktivita->zacatek();
+    $konecAktivity = $aktivita->konec();
+
+    if (!$zacatekAktivity || !$konecAktivity || !$aktivita->viditelnaPro($u)) {
         continue;
     }
 
@@ -70,36 +74,58 @@ foreach ($aktivity as $aktivita) {
         'stitkyId'    => $stitkyId,
         // TODO: cenaZaklad by měla být číslo ?
         'cenaZaklad'  => intval($aktivita->cenaZaklad()),
-        'casText'     => $aktivita->zacatek()
-            ? $aktivita->zacatek()->format('G') . ':00&ndash;' . $aktivita->konec()->format('G') . ':00'
+        'casText'     => $zacatekAktivity
+            ? $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00'
             : '',
         'cas'         => [
-            'od' => $aktivita->zacatek()->getTimestamp() * 1000,
-            'do' => $aktivita->konec()->getTimestamp() * 1000,
+            'od' => $zacatekAktivity->getTimestamp() * 1000,
+            'do' => $konecAktivity->getTimestamp() * 1000,
         ],
         'linie'       => $aktivita->typ()->nazev(),
+        'vBudoucnu' => $aktivita->vBudoucnu(),
+        'vdalsiVlne' => $aktivita->vDalsiVlne(),
+        'probehnuta' => $aktivita->probehnuta(),
+        'jeBrigadnicka' => $aktivita->jeBrigadnicka(),
     ];
 
-    $vBudoucnu = $aktivita->vBudoucnu();
-    if ($vBudoucnu)
-        $aktivitaRes['vBudoucnu'] = $vBudoucnu;
+    if ($u) {
+        $stavPrihlasen = $aktivita->stavPrihlaseni($u);
+        switch ($stavPrihlasen) {
+            case StavPrihlaseni::PRIHLASEN:
+                $aktivitaRes['prihlasen'] = true;
+                break;
+            case StavPrihlaseni::PRIHLASEN_A_DORAZIL:
+                $aktivitaRes['prihlasenADorazil'] = true;
+                break;
+            case StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK:
+                $aktivitaRes['dorazilJakoNahradnik'] = true;
+                break;
+            case StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL:
+                $aktivitaRes['prihlasenAleNedorazil'] = true;
+                break;
+            case StavPrihlaseni::POZDE_ZRUSIL:
+                $aktivitaRes['pozdeZrusil'] = true;
+                break;
+            case StavPrihlaseni::SLEDUJICI:
+                $aktivitaRes['sledujici'] = true;
+                break;
+        }
 
-    $vdalsiVlne = $aktivita->vDalsiVlne();
-    if ($vdalsiVlne)
-        $aktivitaRes['vdalsiVlne'] = $vdalsiVlne;
+        $aktivitaRes['slevaNasobic'] = $aktivita->slevaNasobic($u);
 
-    $probehnuta = $aktivita->probehnuta();
-    if ($probehnuta)
-        $aktivitaRes['probehnuta'] = $probehnuta;
-
-    $jeBrigadnicka = $aktivita->jeBrigadnicka();
-    if ($jeBrigadnicka)
-        $aktivitaRes['jeBrigadnicka'] = $jeBrigadnicka;
-
+        $aktivitaRes['vedu'] = $u && $u->organizuje($aktivita);
+        // TODO: argumenty pro admin
+        $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
+    }
+    $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
+    $aktivitaRes['zamcenaDo'] = $aktivita->tymZamcenyDo() * 1000;
+    $aktivitaRes['obsazenost'] = $aktivita->obsazenostObj();
+    $aktivitaRes['tymova'] = $aktivita->tymova();
     $dite = $aktivita->detiIds();
     if ($dite && count($dite))
         $aktivitaRes['dite'] = $dite;
-
+    // remove falsey values
+    $aktivitaRes = array_filter($aktivitaRes);
     $response[] = $aktivitaRes;
 }
 
