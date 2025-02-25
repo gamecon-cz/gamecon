@@ -27,7 +27,7 @@ exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0];
 exec('git status', $out);
 if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
-    echo "error: working directory is not clean\n";
+    echo "error: working directory is not clean\n" . var_export($out, true);
     exit(1);
 }
 
