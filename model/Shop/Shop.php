@@ -356,7 +356,7 @@ SQL,
 
     public function jidloObjednatelneDoHtml(): string
     {
-        return $this->systemoveNastaveni->prodejJidlaDo()->format('j. n.');
+        return $this->systemoveNastaveni->prodejJidlaDo()->format('j. n.');
     }
 
     /**
@@ -492,12 +492,12 @@ SQL,
 
     public function trickaObjednatelnaDoHtml(): string
     {
-        return $this->systemoveNastaveni->prodejTricekDo()->format('j. n.');
+        return $this->systemoveNastaveni->prodejTricekDo()->format('j. n.');
     }
 
     public function predmetyBezTricekObjednatelneDoHtml(): string
     {
-        return $this->systemoveNastaveni->prodejPredmetuBezTricekDo()->format('j. n.');
+        return $this->systemoveNastaveni->prodejPredmetuBezTricekDo()->format('j. n.');
     }
 
     /**
@@ -674,7 +674,7 @@ SQL,
 
     public function ubytovaniObjednatelneDoHtml(): string
     {
-        return $this->systemoveNastaveni->prodejUbytovaniDo()->format('j. n.');
+        return $this->systemoveNastaveni->prodejUbytovaniDo()->format('j. n.');
     }
 
     public function covidFreePotrvzeniHtml(int $rok): string
