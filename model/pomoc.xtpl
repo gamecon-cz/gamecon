@@ -1,22 +1,12 @@
 <!-- begin:pomoc -->
-
-<input
-        type="checkbox"
-        class="formular_checkbox-mega shopPomoc_checkbox"
-        name="{postname}[chci]"
-        id="chci"
-        {vChci}
->
 <span class="shopPomoc_obalTextu">
-
-  <label for="chci" class="shopPomoc_label">Chci se zapojit</label>
-
-  <div class="shopPomoc_text">
-   GameCon připravujeme celý rok, a tak vždycky oceníme další pár rukou, a to nejen přes rok ale i na místě v průběhu
-    festivalu. Ať už se jedná o uvedení nějaké aktivity, přípravu zázemí nebo například chod na Infopultu. Za každou
-    výpomoc je vypsaná odměna, kterou můžeš použít třeba na úhradu ostatních aktivit na GC. Chceš se zapojit?
-    Více se dozvíš na stránce <a href="organizacni-vypomoc" target="_blank">Chci pomoct s GameConem</a>.
-  </div>
+<div class="shopPomoc_text">
+  <h3>Chceš se zapojit do organizace?</h3>
+  <p>Pokud chceš jako dobrovolník pomoct s přípravou na místě, přihlaš se v programu na některou z dobrovolnických aktivit (Příprava, Úklid).</p>
+  <p>Jestli tě láká vedení nějaké aktivity, kontaktuj vedoucího dané programové sekce. Kontakt na něj najdeš na příslušné podstránce Aktivit.</p>
+  <p>V případě, že bys chtěl/a GameCon podpořit sponzoringem, vše potřebné najdeš zde (odkaz na page sponzoringu a presskit).</p>
+  <p>A jestliže chceš přiložit ruku k dílu a zapojit se do celoroční organizace, bližší informace najdeš <a href="organizacni-vypomoc">tady</a>.</p>
+</div>
 
   <div class="shopPomoc_vyber">
     <div class="shopPomoc_typy">
