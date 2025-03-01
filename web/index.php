@@ -68,6 +68,16 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
     $t = new XTemplate(__DIR__ . '/sablony/blackarrow/menu.xtpl');
 
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
+
+    // Zkopírujeme původní pole
+    $upraveneTypy = $typy;
+
+    foreach ($typy as $typ) { 
+        if ($typ->id() === TypAktivity::BONUS) { 
+            $typ->nastavNazev('akční hry a bonusy');
+        }
+    }
+    
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
     // položky uživatelského menu
