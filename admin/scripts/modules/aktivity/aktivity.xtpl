@@ -2,11 +2,18 @@
 
 <!-- begin:exportImport -->
 <div>
-    <form action="{urlProImport}" method="get" style="float: left">
-        <input type="submit" value="Importovat">
+    <form action="{urlProImportAktivit}" method="get" style="float: left">
+        <input type="submit" value="Importovat aktivity">
     </form>
-    <form method="get" action="{urlProExport}" style="float: right">
-        <input type="submit" value="Exportovat">
+    <form method="get" action="{urlProExportAktivit}" style="float: right">
+        <input type="submit" value="Exportovat aktivity">
+    </form>
+    <div style="clear: both; border-bottom: rgba(0,0,0,0.12) dashed thin; margin-bottom: 1em; padding-bottom: 1em"></div>
+    <form action="{urlProImportUcastniku}" method="get" style="float: left">
+        <input type="submit" value="Importovat účastníky">
+    </form>
+    <form method="get" action="{urlProExportUcastniku}" style="float: right">
+        <input type="submit" value="Exportovat účastníky">
     </form>
     <div style="clear: both"></div>
 </div>
@@ -199,6 +206,9 @@
             <th><span class="hinted">Ins<span class="hint">
       Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
     </span></span></th>
+            <th><span class="hinted">Kor<span class="hint">
+      U aktivity proběhla gramatická korekce a od té doby nebyly úpravy textu.
+    </span></span></th>
             <th colspan="5"><span class="hinted">Akce<span class="hint">
       <i class="fa fa-trash" aria-hidden="true"></i> <strong>smaž:</strong> nevratné smazání aktivity<br>
       <i class="fa fa-pencil-square-o" aria-hidden="true"></i> <strong>uprav:</strong> podrobná editace aktivity na vlastní stránce<br>
@@ -221,6 +231,11 @@
                 <!-- begin:symbolInstance -->
                 <img alt="Řetěz instance" src="files/design/chain-icon.png"/>
                 <!-- end:symbolInstance -->
+            </td>
+            <td>
+                <!-- begin:symbolKorekce -->
+                <img alt="Řetěz instance" src="files/design/ok.png"/>
+                <!-- end:symbolKorekce -->
             </td>
             <!-- begin:tlacitka -->
             <td class="tlacitko-aktivity">

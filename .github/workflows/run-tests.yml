@@ -1,4 +1,3 @@
----
 name: Run tests
 
 # yamllint disable-line rule:truthy
@@ -34,22 +33,13 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'  # musí odpovídat verzi na serveru
+          php-version: '8.2'  # musí odpovídat verzi na serveru
           # extensions musí odpovídat seznamu v composer.json
           extensions: >-
             bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json,
             mbstring, mysqli, pdo, sqlite3, xmlreader, zip
           tools: composer
           coverage: none
-
-      - name: Cache composer dependencies
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: composer-${{ hashFiles('composer.lock') }}
-
-      - name: Install dependencies
-        run: composer install  # includes dev by default
 
       - name: Setup MySQL for tests
         uses: shogo82148/actions-setup-mysql@v1
