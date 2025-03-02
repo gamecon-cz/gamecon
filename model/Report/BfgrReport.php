@@ -25,7 +25,6 @@ class BfgrReport
         Role::MINI_ORG,
         Role::LETOSNI_VYPRAVEC,
         Role::LETOSNI_PARTNER,
-        Role::LETOSNI_DOBROVOLNIK_SENIOR,
         Role::LETOSNI_BRIGADNIK,
         Role::LETOSNI_HERMAN,
     ];
