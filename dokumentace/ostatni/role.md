@@ -1,4 +1,4 @@
-
+TODO: popis role a role_texty_podle_uzivatele do 2025-03-02....
 
 - Práva se dají naklikat v adminu. (Stačí vytvořit roli)
 - /model/Role/Role.php
@@ -13,7 +13,7 @@ idckaTrvalychRoli
 kategoriePodleVyznamu
 nazevRolePodleId
 dejIdckaRoliSOrganizatory
-BfgrReport ???
+BfgrReport
 
 
 Jde o to dostat novou roli migrací do databáze a ohlídat, že má v PHP svého zástupce jako konstantu s IDčkem SQL záznamu (je to divné, ale už to tak máme  ).

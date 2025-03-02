@@ -31,6 +31,7 @@ class Role extends \DbObject
     public const CLEN_RADY            = 23;
     public const SEF_INFOPULTU        = 24;
     public const SEF_PROGRAMU         = 25;
+    public const MINI_ORG             = 26;
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC                   = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -90,6 +91,7 @@ class Role extends \DbObject
     public const VYZNAM_ORGANIZATOR_ZDARMA  = 'ORGANIZATOR_ZDARMA';
     public const VYZNAM_PUL_ORG_UBYTKO      = 'PUL_ORG_UBYTKO';
     public const VYZNAM_PUL_ORG_TRICKO      = 'PUL_ORG_TRICKO';
+    public const VYZNAM_MINI_ORG            = 'MINI_ORG';
     public const VYZNAM_CESTNY_ORGANIZATOR  = 'CESTNY_ORGANIZATOR';
     public const VYZNAM_CFO                 = 'CFO';
     public const VYZNAM_ADMIN               = 'ADMIN';
@@ -131,6 +133,7 @@ class Role extends \DbObject
             Role::CLEN_RADY,
             Role::SEF_INFOPULTU,
             Role::SEF_PROGRAMU,
+            Role::MINI_ORG,
         ];
     }
 
@@ -145,6 +148,7 @@ class Role extends \DbObject
             self::VYZNAM_ORGANIZATOR_ZDARMA => self::KATEGORIE_OMEZENA,
             self::VYZNAM_PUL_ORG_UBYTKO => self::KATEGORIE_OMEZENA,
             self::VYZNAM_PUL_ORG_TRICKO => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_MINI_ORG => self::KATEGORIE_OMEZENA,
             self::VYZNAM_CESTNY_ORGANIZATOR => self::KATEGORIE_OMEZENA,
             self::VYZNAM_CFO => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ADMIN => self::KATEGORIE_OMEZENA,
@@ -347,7 +351,7 @@ class Role extends \DbObject
      */
     public static function dejIdckaRoliSOrganizatory(): array
     {
-        return [self::ORGANIZATOR, self::PUL_ORG_BONUS_UBYTKO, self::PUL_ORG_BONUS_TRICKO];
+        return [self::ORGANIZATOR, self::PUL_ORG_BONUS_UBYTKO, self::PUL_ORG_BONUS_TRICKO, self::MINI_ORG];
     }
 
     public static function nazevRolePodleId(int $idRole): string
@@ -364,6 +368,7 @@ class Role extends \DbObject
                 self::CLEN_RADY => 'Člen rady',
                 self::SEF_INFOPULTU => 'Šéf infopultu',
                 self::SEF_PROGRAMU => 'Šéf programu',
+                self::MINI_ORG => 'Mini-org',
                 //
                 self::LETOSNI_VYPRAVEC => 'Vypravěč',
                 self::LETOSNI_ZAZEMI => 'Zázemí',
