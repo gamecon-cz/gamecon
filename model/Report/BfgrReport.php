@@ -22,6 +22,7 @@ class BfgrReport
         Role::ORGANIZATOR,
         Role::PUL_ORG_BONUS_UBYTKO,
         Role::PUL_ORG_BONUS_TRICKO,
+        Role::MINI_ORG,
         Role::LETOSNI_VYPRAVEC,
         Role::LETOSNI_PARTNER,
         Role::LETOSNI_DOBROVOLNIK_SENIOR,
