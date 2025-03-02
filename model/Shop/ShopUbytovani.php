@@ -304,7 +304,7 @@ SQL,
          * */
         return $this->uzivatel()->jeVypravec() || $this->uzivatel()->jeOrganizator() ||
             $this->uzivatel()->jeHerman() || $this->uzivatel()->jePartner() ||
-            $this->uzivatel()->jeInfopultak() || $this->uzivatel()->jeDobrovolnikSenior() ||
+            $this->uzivatel()->jeInfopultak() ||
             $this->uzivatel()->jeZazemi();
     }
 

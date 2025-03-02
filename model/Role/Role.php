@@ -38,7 +38,6 @@ class Role extends \DbObject
     public const LETOSNI_ZAZEMI                     = ROLE_ZAZEMI; // Členové zázemí GC (kuchařky, …)
     public const LETOSNI_INFOPULT                   = ROLE_INFOPULT; // Operátor infopultu
     public const LETOSNI_PARTNER                    = ROLE_PARTNER; // Vystavovatelé, lidé od deskovek, atp.
-    public const LETOSNI_DOBROVOLNIK_SENIOR         = ROLE_DOBROVOLNIK_SENIOR; // Dobrovolník dlouhodobě spolupracující s GC
     public const LETOSNI_STREDECNI_NOC_ZDARMA       = ROLE_STREDECNI_NOC_ZDARMA;
     public const LETOSNI_CTVRTECNI_NOC_ZDARMA       = ROLE_CTVRTECNI_NOC_ZDARMA;
     public const LETOSNI_PATECNI_NOC_ZDARMA         = ROLE_PATECNI_NOC_ZDARMA;
@@ -53,7 +52,6 @@ class Role extends \DbObject
     public const ROLE_ZAZEMI_ID_ZAKLAD               = 7;
     public const ROLE_INFOPULT_ID_ZAKLAD             = 8;
     public const ROLE_PARTNER_ID_ZAKLAD              = 13;
-    public const ROLE_DOBROVOLNIK_SENIOR_ID_ZAKLAD   = 17;
     public const ROLE_STREDECNI_NOC_ZDARMA_ID_ZAKLAD = 18;
     public const ROLE_NEDELNI_NOC_ZDARMA_ID_ZAKLAD   = 19;
     public const ROLE_NEODHLASOVAT_ID_ZAKLAD         = 23;
@@ -100,7 +98,6 @@ class Role extends \DbObject
     public const VYZNAM_SEF_INFOPULTU       = 'SEF_INFOPULTU';
     // TYP ROCNIKOVE
     public const VYZNAM_BRIGADNIK            = 'BRIGADNIK';
-    public const VYZNAM_DOBROVOLNIK_SENIOR   = 'DOBROVOLNIK_SENIOR';
     public const VYZNAM_HERMAN               = 'HERMAN';
     public const VYZNAM_INFOPULT             = 'INFOPULT';
     public const VYZNAM_NEODHLASOVAT         = 'NEODHLASOVAT';
@@ -158,7 +155,6 @@ class Role extends \DbObject
             self::VYZNAM_BRIGADNIK => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ZAZEMI => self::KATEGORIE_OMEZENA,
 
-            self::VYZNAM_DOBROVOLNIK_SENIOR => self::KATEGORIE_BEZNA,
             self::VYZNAM_HERMAN => self::KATEGORIE_BEZNA,
             self::VYZNAM_INFOPULT => self::KATEGORIE_BEZNA,
             self::VYZNAM_NEODHLASOVAT => self::KATEGORIE_BEZNA,
@@ -272,11 +268,6 @@ class Role extends \DbObject
         return self::idRocnikoveRole(self::ROLE_PARTNER_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_DOBROVOLNIK_SENIOR(int $rok = ROCNIK): int
-    {
-        return self::idRocnikoveRole(self::ROLE_DOBROVOLNIK_SENIOR_ID_ZAKLAD, $rok);
-    }
-
     public static function LETOSNI_STREDECNI_NOC_ZDARMA(int $rok = ROCNIK): int
     {
         return self::idRocnikoveRole(self::ROLE_STREDECNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
@@ -374,7 +365,6 @@ class Role extends \DbObject
                 self::LETOSNI_ZAZEMI => 'Zázemí',
                 self::LETOSNI_INFOPULT => 'Infopult',
                 self::LETOSNI_PARTNER => 'Partner',
-                self::LETOSNI_DOBROVOLNIK_SENIOR => 'Dobrovolník senior',
                 self::LETOSNI_STREDECNI_NOC_ZDARMA => 'Středeční noc zdarma',
                 self::LETOSNI_CTVRTECNI_NOC_ZDARMA => 'Čtvrteční noc zdarma',
                 self::LETOSNI_PATECNI_NOC_ZDARMA => 'Páteční noc zdarma',
@@ -484,7 +474,6 @@ class Role extends \DbObject
             self::LETOSNI_ZAZEMI($rocnik),
             self::LETOSNI_INFOPULT($rocnik),
             self::LETOSNI_PARTNER($rocnik),
-            self::LETOSNI_DOBROVOLNIK_SENIOR($rocnik),
             self::LETOSNI_STREDECNI_NOC_ZDARMA($rocnik),
             self::LETOSNI_SOBOTNI_NOC_ZDARMA($rocnik),
             self::LETOSNI_NEDELNI_NOC_ZDARMA($rocnik),
