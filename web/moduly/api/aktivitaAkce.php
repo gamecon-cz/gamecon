@@ -8,5 +8,4 @@ if (!$u) {
   return ;
 }
 
-Aktivita::prihlasovatkoZpracujJSON($u, $u);
-
+Aktivita::prihlasovatkoZpracuj($u, $u, reload: false);

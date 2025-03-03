@@ -1765,15 +1765,17 @@ SQL
     }
 
     /** Zpracuje formy na měnění počtu míst team. aktivit */
-    protected static function plusminusZpracuj()
+    protected static function plusminusZpracuj($reload = true)
     {
         if (post(self::PN_PLUSMINUSP)) {
             dbQueryS('UPDATE akce_seznam SET kapacita = kapacita + 1 WHERE id_akce = $1', [post(self::PN_PLUSMINUSP)]);
-            back();
+            if ($reload) back();
+            return;
         }
         if (post(self::PN_PLUSMINUSM)) {
             dbQueryS('UPDATE akce_seznam SET kapacita = kapacita - 1 WHERE id_akce = $1', [post(self::PN_PLUSMINUSM)]);
-            back();
+            if ($reload) back();
+            return;
         }
     }
 
@@ -2316,8 +2318,8 @@ HTML
             : '';
     }
 
-    /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload */
-    public static function prihlasovatkoZpracuj(?Uzivatel $u, ?Uzivatel $prihlasujici, $parametry = 0)
+    /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload pokud není vypnutý */
+    public static function prihlasovatkoZpracuj(?Uzivatel $u, ?Uzivatel $prihlasujici, $parametry = 0, $reload = true)
     {
         if ($u) {
             $prihlasujici = $prihlasujici ?? $u;
@@ -2326,7 +2328,8 @@ HTML
                 if ($aktivita) {
                     $aktivita->prihlas($u, $prihlasujici, $parametry);
                 }
-                back();
+                if ($reload) back();
+                return;
             }
             if (post('odhlasit')) {
                 $bezPokut = ($parametry & self::ZPETNE)
@@ -2344,71 +2347,28 @@ HTML
                         $bezPokut,
                     );
                 }
-                back();
+                if ($reload) back();
+                return;
             }
             if (post('prihlasSledujiciho')) {
                 $aktivita = self::zId(post('prihlasSledujiciho'));
                 if ($aktivita) {
                     $aktivita->prihlasSledujiciho($u, $prihlasujici);
                 }
-                back();
+                if ($reload) back();
+                return;
             }
             if (post('odhlasSledujiciho')) {
                 $aktivita = self::zId(post('odhlasSledujiciho'));
                 if ($aktivita) {
                     $aktivita->odhlasSledujiciho($u, $prihlasujici);
                 }
-                back();
+                if ($reload) back();
+                return;
             }
         }
         if ($parametry & self::PLUSMINUS_KAZDY) {
-            self::plusminusZpracuj();
-        }
-    }
-
-    /** Zpracuje post data z přihlašovátka. */
-    public static function prihlasovatkoZpracujJSON(?Uzivatel $u, ?Uzivatel $prihlasujici, $parametry = 0)
-    {
-        if ($u) {
-            $prihlasujici = $prihlasujici ?? $u;
-            if (post('prihlasit')) {
-                $aktivita = self::zId(post('prihlasit'));
-                if ($aktivita) {
-                    $aktivita->prihlas($u, $prihlasujici, $parametry);
-                }
-            }
-            if (post('odhlasit')) {
-                $bezPokut = ($parametry & self::ZPETNE)
-                    ? self::BEZ_POKUT
-                    // v případě zpětných změn bez pokut
-                    : 0;
-                $aktivita = self::zId(post('odhlasit'));
-                if ($aktivita) {
-                    $aktivita->odhlas(
-                        $u,
-                        $prihlasujici,
-                        $u?->id() === $prihlasujici?->id()
-                            ? 'rucne-vlastni-odhlaseni'
-                            : 'rucni-odhlaseni-adminem',
-                        $bezPokut,
-                    );
-                }
-            }
-            if (post('prihlasSledujiciho')) {
-                $aktivita = self::zId(post('prihlasSledujiciho'));
-                if ($aktivita) {
-                    $aktivita->prihlasSledujiciho($u, $prihlasujici);
-                }
-            }
-            if (post('odhlasSledujiciho')) {
-                $aktivita = self::zId(post('odhlasSledujiciho'));
-                if ($aktivita) {
-                    $aktivita->odhlasSledujiciho($u, $prihlasujici);
-                }
-            }
-        }
-        if ($parametry & self::PLUSMINUS_KAZDY) {
-            self::plusminusZpracuj();
+            self::plusminusZpracuj($reload);
         }
     }
 
