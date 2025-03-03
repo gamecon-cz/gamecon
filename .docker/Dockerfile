@@ -1,6 +1,6 @@
 # update image by ./docker-build.sh
 
-FROM php:8.2-apache AS gamecon-server-step1
+FROM arm64v8/php:8.3-apache AS gamecon-server-step1
 
 RUN a2enmod rewrite expires && \
 	# avoid warning on start
@@ -46,10 +46,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && php -r 'exit(function_exists("imagecreatefromjpeg") ? 0 : 1);'
 
 # XDebug - to start it use docker compose
-RUN pecl channel-update pecl.php.net \
-    && yes | pecl install xdebug imagick \
-    && docker-php-ext-enable imagick \
-    && sed 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read" pattern="PDF" \/>/' --in-place /etc/ImageMagick*/policy.xml
 
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
