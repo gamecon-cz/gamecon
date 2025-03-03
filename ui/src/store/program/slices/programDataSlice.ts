@@ -37,10 +37,7 @@ export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () 
 
 /** Pokud ještě není dotažený tak dotáhne rok, příhlášen se dotahuje vždy */
 export const načtiRok = async (rok: number) => {
-  const [aktivity] =
-    await Promise.all([
-      fetchAktivity(rok)
-    ]);
+  const aktivity = await fetchAktivity(rok);
 
   useProgramStore.setState(s => {
     for (const aktivita of aktivity) {
