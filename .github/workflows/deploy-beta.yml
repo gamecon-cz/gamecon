@@ -1,4 +1,3 @@
----
 name: Deploy BETA on direct push or merged pull request
 
 # yamllint disable-line rule:truthy
