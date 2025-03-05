@@ -133,7 +133,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       .filter((aktivita) =>
         štítkyIdPodleKategorieValues.every(štítkyIdZKategorie =>
           štítkyIdZKategorie.some(štítekIdZKategorie =>
-            aktivita.stitkyId
+            (aktivita.stitkyId || [])
               .some(štítekId => štítekId === štítekIdZKategorie))
         )
       );
