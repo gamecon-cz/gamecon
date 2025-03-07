@@ -8,7 +8,7 @@ services:
       - sql.gamecon
       - mailhog.gamecon
     volumes:
-      - .:/var/www/html/gamecon:delegated
+      - .:/var/www/html/gamecon:cached
       # - ~/.cache/composer:/home/www-data/.composer
       - ./.docker/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/docker-compose-xdebug.ini:ro
     environment:
