@@ -25,6 +25,8 @@ use PHPUnit\Event\TestSuite\Skipped as TestSuiteSkipped;
 use PHPUnit\TestRunner\TestResult\Issues\Issue;
 
 /**
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
+ *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
 final class TestResult
@@ -488,6 +490,28 @@ final class TestResult
     public function hasDeprecations(): bool
     {
         return $this->numberOfDeprecations() > 0;
+    }
+
+    public function hasPhpOrUserDeprecations(): bool
+    {
+        return $this->numberOfPhpOrUserDeprecations() > 0;
+    }
+
+    public function numberOfPhpOrUserDeprecations(): int
+    {
+        return count($this->deprecations) +
+               count($this->phpDeprecations);
+    }
+
+    public function hasPhpunitDeprecations(): bool
+    {
+        return $this->numberOfPhpunitDeprecations() > 0;
+    }
+
+    public function numberOfPhpunitDeprecations(): int
+    {
+        return count($this->testTriggeredPhpunitDeprecationEvents) +
+               count($this->testRunnerTriggeredDeprecationEvents);
     }
 
     public function numberOfDeprecations(): int

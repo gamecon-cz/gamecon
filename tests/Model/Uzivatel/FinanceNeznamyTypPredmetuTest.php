@@ -17,7 +17,7 @@ INSERT INTO uzivatele_hodnoty SET id_uzivatele = 334, login_uzivatele = 'KoupimD
 SQL,
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33313, nazev = 'nesmysl', model_rok = $0, cena_aktualni = 0, stav = 1, auto = 0, nabizet_do = NOW(), kusu_vyrobeno = 0, typ = 8888
+INSERT INTO shop_predmety SET id_predmetu = 33313, nazev = 'nesmysl', model_rok = $0, cena_aktualni = 0, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 0, typ = 8888
 SQL,
             [
                 0 => ROCNIK,

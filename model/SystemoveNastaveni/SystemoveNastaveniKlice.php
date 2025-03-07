@@ -48,6 +48,7 @@ class SystemoveNastaveniKlice
     public const POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI = 'POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI';
 
     public const MODRE_TRICKO_ZDARMA_OD = 'MODRE_TRICKO_ZDARMA_OD';
+    public const SLEVA_ORGU_NA_JIDLO_CASTKA = 'SLEVA_ORGU_NA_JIDLO_CASTKA';
 
     /**
      * @return array{string}

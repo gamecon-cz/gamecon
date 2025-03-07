@@ -23,8 +23,10 @@ class KopieOstreDatabaze
     {
     }
 
-    public function zkopirujOstrouDatabazi()
+    public function zkopirujOstrouDatabazi(): void
     {
+        set_time_limit(120);
+
         $puvodniPriZalogovaniOdeslatMailem = $this->vyjimkovac->priZalogovaniOdeslatMailem();
         // protože migrace mohou padnout, zkopírovaná ostrá databáze nemusí ještě mít nové tabulky a pak odeslání taky padne
         $this->vyjimkovac->priZalogovaniOdeslatMailem(false);
@@ -39,6 +41,7 @@ class KopieOstreDatabaze
         $tempFile  = tempnam(sys_get_temp_dir(), 'kopie_ostre_databaze_');
         $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpOstreDatabaze();
         $mysqldump->start($tempFile);
+        NastrojeDatabaze::removeDefiners($tempFile);
 
         [
             'DB_SERV'  => $dbServ,

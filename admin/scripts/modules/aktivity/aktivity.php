@@ -7,6 +7,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Pravo;
 use Gamecon\Aktivita\HromadneAkceAktivit;
+use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
 
 /**
  * Stránka pro tvorbu a správu aktivit.
@@ -108,10 +109,13 @@ if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechn
 
 $tpl = new XTemplate(__DIR__ . '/aktivity.xtpl');
 
-$currentRequestUrl = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-$exportImportUrl   = $currentRequestUrl . '/export-import';
-$tpl->assign('urlProExport', $exportImportUrl);
-$tpl->assign('urlProImport', $exportImportUrl);
+$currentRequestUrl      = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+$exportImportAktivitUrl = $currentRequestUrl . '/export-import-aktivit';
+$tpl->assign('urlProExportAktivit', $exportImportAktivitUrl);
+$tpl->assign('urlProImportAktivit', $exportImportAktivitUrl);
+$exportImportUcastnikuUrl = $currentRequestUrl . '/export-import-ucastniku';
+$tpl->assign('urlProExportUcastniku', $exportImportUcastnikuUrl);
+$tpl->assign('urlProImportUcastniku', $exportImportUcastnikuUrl);
 $tpl->parse('aktivity.exportImport');
 
 if (defined('TESTING') && TESTING && !empty($filtr['typ'])) {
@@ -145,6 +149,9 @@ foreach ($aktivity as $aktivita) {
 
     if ($r['patri_pod']) {
         $tpl->parse('aktivity.aktivita.symbolInstance');
+    }
+    if ($r[Sql::PROBEHLA_KOREKCE]) {
+        $tpl->parse('aktivity.aktivita.symbolKorekce');
     }
     if ($r['stav'] == StavAktivity::NOVA) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');

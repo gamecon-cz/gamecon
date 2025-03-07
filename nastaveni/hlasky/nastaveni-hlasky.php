@@ -12,7 +12,7 @@ return [
     'jenPrihlaseni'        => 'Na zobrazení této stránky musíte být přihlášeni.',
     'jenPrihlaseniGC'      => 'Na přístup k této stránce musíte být přihlášeni na letošní GameCon.',
     'masKoliziAktivit'     => 'V daném čase už máš přihlášenu jinou aktivitu.',
-    'maKoliziAktivit'      => 'V daném čase už má přihlášenu jinou aktivitu.',
+    'maKoliziAktivit'      => 'má v daném čase už přihlášenu jinou aktivitu.',
     'nejsiPrihlasenNaGc'   => 'Nemáš aktivní přihlášku na GameCon.',
     'neniPrihlasenNaGc'    => 'Nemá aktivní přihlášku na GameCon.',
     'uzJsiPrihlasen'       => 'Na tuto aktivitu už jsi jednou přihlášen.',
@@ -22,6 +22,6 @@ return [
     'regOk'                => 'Účet vytvořen. Informaci o spuštění přihlašování ti včas pošleme e-mailem.',
     'regOkNyniPrihlaska'   => 'Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.',
     'upravaUzivatele'      => 'Změny registračních údajů uloženy.',
-    'uzPrihlasen'          => 'Na GameCon už jsi přihlášen{a}, zde můžeš upravit svou přihlášku.',
+    'uzPrihlasen'          => 'Na GameCon už máš platnou přihlášku, zde ji můžeš upravit.',
     'zamcena'              => 'Aktivitu už někdo zabral',
 ];

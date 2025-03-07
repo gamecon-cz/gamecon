@@ -28,7 +28,7 @@ class FioPlatba
         $odString = $od->format('Y-m-d');
         $doString = $do->format('Y-m-d');
         $token    = FIO_TOKEN;
-        $url      = "https://www.fio.cz/ib_api/rest/periods/$token/$odString/$doString/transactions.json";
+        $url      = "https://fioapi.fio.cz/ib_api/rest/periods/$token/$odString/$doString/transactions.json";
 
         return self::zUrl($url);
     }
@@ -135,7 +135,7 @@ SQL,
 
     /**
      * Platba se vytváří z asociativního pole s klíči odpovídajícími názvům atributů v fio api
-     * viz https://www.fio.cz/docs/cz/API_Bankovnictvi.pdf
+     * viz https://fioapi.fio.cz/docs/cz/API_Bankovnictvi.pdf
      */
     private function __construct(array $data)
     {

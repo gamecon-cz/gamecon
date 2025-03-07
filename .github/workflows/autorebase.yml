@@ -1,0 +1,14 @@
+name: Rebase
+on:
+    push:
+        branches: [ main ]
+jobs:
+    rebase:
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: peter-evans/rebase@v3
+                with:
+                    base: main
+                    head: 'gamecon-cz:*'
+                    # AUTOREBASE_TOKEN is a manually created fine-grained access token with the repo scope
+                    token: ${{ secrets.AUTOREBASE_TOKEN }}

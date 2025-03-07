@@ -30,20 +30,25 @@ class Chyba extends Exception
         back();
     }
 
-    public static function nastavZChyb(Chyby $chyby, int $typ)
-    {
+    public static function nastavZChyb(
+        Chyby $chyby,
+        int   $typ,
+    ) {
         foreach ($chyby->vsechny() as $klic => $text) {
             static::nastav($text, $typ, $klic);
         }
     }
 
-    public static function nastav(string $zprava, int $typ = self::CHYBA, ?string $klic = null)
-    {
+    public static function nastav(
+        string  $zprava,
+        int     $typ = self::CHYBA,
+        ?string $klic = null,
+    ) {
         $cookieName = match ($typ) {
             static::VAROVANI => static::KLIC_VAROVANI,
             static::OZNAMENI => static::KLIC_OZNAMENI,
             static::VALIDACE => static::KLIC_VALIDACE,
-            default => static::KLIC_CHYBY,
+            default          => static::KLIC_CHYBY,
         };
         $zpravy     = static::vyzvedni($cookieName);
         if ($klic !== null) {
@@ -54,11 +59,15 @@ class Chyba extends Exception
         static::setCookie($cookieName, $zpravy, time() + static::COOKIE_ZIVOTNOST_SEKUND);
     }
 
-    protected static function setCookie(string $cookieName, $value, int $ttl)
-    {
+    protected static function setCookie(
+        string $cookieName,
+               $value,
+        int    $ttl,
+    ) {
         if ($value === '') {
             setcookie($cookieName, '', $ttl);
             unset($_COOKIE[$cookieName]);
+
             return;
         }
         $jsonValue = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
@@ -72,6 +81,7 @@ class Chyba extends Exception
     public static function vyzvedniChybu(): string
     {
         $chyby = static::vyzvedni(static::KLIC_CHYBY);
+
         return (string)reset($chyby);
     }
 
@@ -92,6 +102,7 @@ class Chyba extends Exception
         if ($hodnota === '') {
             return [];
         }
+
         return (array)$hodnota;
     }
 
@@ -126,6 +137,7 @@ class Chyba extends Exception
         if (!$zpravyPodleTypu) {
             return '';
         }
+
         return static::vytvorHtmlZpravu($zpravyPodleTypu);
     }
 
@@ -165,13 +177,13 @@ class Chyba extends Exception
     // warning! this is both for web (without jQuery) as well a for admin (without LESS)
     (() => {
       let chyba = document.currentScript.parentNode
-/*      setTimeout(() => {
+      setTimeout(() => {
             chyba.style.transition = "opacity "+{$mizeniSekund}+"s"
             chyba.style.opacity = 0.0
             setTimeout(() => chyba.remove(), ({$mizeniSekund} * 1000))
         },
         ({$zobrazeniSekund} * 1000)
-      )*/
+      )
       chyba.querySelector(".chybaBlok_zavrit").onclick = () => chyba.remove()
     })()
   </script>

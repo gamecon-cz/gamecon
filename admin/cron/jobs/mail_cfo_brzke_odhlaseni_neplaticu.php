@@ -163,6 +163,7 @@ TEXT;
 }
 
 $uvod .= <<<TEXT
+
 $oddelovac
 
 Sirien: zkontroluj partnery ty kokos ať se hromadně nezjebou i se svym ubytkem
@@ -170,7 +171,7 @@ TEXT;
 
 (new GcMail($systemoveNastaveni))
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
-    ->predmet("$brzy bude hromadně odhlášeno $budeOdhlaseno neplatičů z GC")
+    ->predmet("Odhlášení neplatičů: $brzy bude hromadně odhlášeno $budeOdhlaseno neplatičů z GC")
     ->text(<<<TEXT
         $uvod
 

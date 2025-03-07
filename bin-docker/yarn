@@ -8,12 +8,14 @@ PROJECT_DIR="$(basename "$PROJECT_ROOT")"
 source "${DIR}/_tty.sh"
 
 if [ "$(docker compose ps web | grep --count Up)" -gt 0 ]; then
-  docker_compose_exec \
+	docker_compose_exec \
     --workdir="/var/www/html/${PROJECT_DIR}/ui" \
-    web yarn "$@"
+		--user=www-data \
+		web yarn "$@"
 else
-  docker_compose_run \
-    --entrypoint=yarn \
+	docker_compose_run \
+		--entrypoint=yarn \
     --workdir="/var/www/html/${PROJECT_DIR}/ui" \
-    web "$@"
+		--user=www-data \
+		web "$@"
 fi

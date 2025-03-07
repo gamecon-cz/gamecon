@@ -9,7 +9,7 @@ use Gamecon\Aktivita\StavPrihlaseni;
 
 $u = Uzivatel::zSession();
 
-// TODO: remove tesing snippet: 
+// TODO: remove tesing snippet:
 /*
 var downloadAsJSON = (storageObj, name= "object") =>{
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(storageObj));
@@ -21,7 +21,7 @@ var downloadAsJSON = (storageObj, name= "object") =>{
 
 Promise.all(
   [2016, 2017, 2022]
-    .map(rok => 
+    .map(rok =>
       fetch(`/web/api/aktivityProgram?rok=${rok}`, {method:"POST"})
         .then(x=>x.json())
         .catch(x=>[])
@@ -45,7 +45,7 @@ $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
 $res = [];
 
-$rok = array_key_exists("rok", $_GET) ? intval($_GET["rok"], 10) : ROK;
+$rok = array_key_exists("rok", $_GET) ? intval($_GET["rok"], 10) : ROCNIK;
 
 $aktivity = Aktivita::zFiltru(["rok" => $rok]);
 
@@ -84,9 +84,14 @@ foreach ($aktivity as &$a) {
     $aktivitaRes['prihlasovatelna'] = $prihlasovatelna;
   }
 
-  $zamcena = $a->zamcena();
-  if ($zamcena) {
-    $aktivitaRes['zamcena'] = $zamcena;
+  $zamcenaDo = $a->tymZamcenyDo();
+  if ($zamcenaDo) {
+    $aktivitaRes['zamcenaDo'] = $zamcenaDo->getTimestamp() * 1000;
+  }
+
+  $zamcenaMnou = $a->zamcenoUzivatelem($u);
+  if ($zamcenaMnou || $zamcenaDo) {
+    $aktivitaRes['zamcenaMnou'] = $zamcenaMnou;
   }
 
   $aktivitaRes['obsazenost'] = $a->obsazenostObj();

@@ -67,6 +67,11 @@ class FiltrMoznosti
         $this->naplnTemplate()->out('filtr');
     }
 
+    public function dejProTemplate() : string
+    {
+        return $this->naplnTemplate()->text('filtr');
+    }
+
     private function naplnTemplate(): XTemplate {
         $tplFiltrMoznosti = new XTemplate(__DIR__ . '/_filtr-moznosti.xtpl');
 

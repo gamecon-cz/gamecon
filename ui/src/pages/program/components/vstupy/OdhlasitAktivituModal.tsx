@@ -1,5 +1,4 @@
 import { FunctionComponent } from "preact";
-import { useRef } from "preact/hooks";
 import { useAktivita, useOdhlasitModalAktivitaId } from "../../../../store/program/selektory";
 import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
 import { fetchAktivitaAkce } from "../../../../api/program";

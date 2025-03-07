@@ -34,7 +34,7 @@ if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
 }
 
 try {
-    /** musíme použít @see \Generator::current kód spustili a vyhodnotil se */
+    /** musíme použít @see \Generator::current aby se kód spustil a vyhodnotil se */
     $hromadneOdhlaseniNeplaticu->neplaticiAKategorie()->current();
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
     logs($nevhodnyCasProHromadneOdhlasovani->getMessage());
@@ -48,6 +48,7 @@ requireOnceIsolated(__DIR__ . '/../fio_stazeni_novych_plateb.php');
 $vynutZalohuDatabaze = true;
 require __DIR__ . '/../zaloha_databaze.php';
 
+set_time_limit(90);
 $bfgrSoubor = sys_get_temp_dir() . '/' . uniqid('bfgr-', true) . '.xlsx';
 $bfgrReport = new BfgrReport($systemoveNastaveni);
 $bfgrReport->exportuj('xlsx', true, $bfgrSoubor);

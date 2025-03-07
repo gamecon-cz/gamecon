@@ -1,6 +1,6 @@
 # update image by ./docker-build.sh
 
-FROM php:8.3-apache AS gamecon-server-step1
+FROM php:8.2-apache AS gamecon-server-step1
 
 RUN a2enmod rewrite expires && \
 	# avoid warning on start
