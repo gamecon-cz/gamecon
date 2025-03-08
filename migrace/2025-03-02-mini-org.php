@@ -23,7 +23,7 @@ INSERT INTO `role_texty_podle_uzivatele` (vyznam_role, id_uzivatele, popis_role)
 VALUES (
         'MINI_ORG',
         $sirienId,
-        'Výpomoc při organizaci GC'
+        'Goblin'
     )
 SQL,
 );
