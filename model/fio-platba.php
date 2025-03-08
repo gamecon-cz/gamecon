@@ -6,6 +6,22 @@
 class FioPlatba
 {
 
+    /**y
+     * @link https://www.fio.cz/docs/cz/API_Bankovnictvi.pdf
+     *
+     * Vrátí nové platby od posledního stažení. Pozor! Fio považuje za úspěšné odeslání dat, to že to padne u nás se Fio nedozví a v další odpovědi už ztracené platby nebudou.
+     * @see \FioPlatba::zPoslednichDni je jistější
+     *
+     * @return FioPlatba[]
+     */
+    public static function posledniZmeny(): array
+    {
+        $token = FIO_TOKEN;
+        $url = "https://fioapi.fio.cz/v1/rest/last/$token/transactions.json";
+
+        return self::zUrl($url);
+    }
+
     /**
      * Vrátí platby za posledních X dní
      * @return FioPlatba[]
@@ -23,12 +39,14 @@ class FioPlatba
      * @param DateTimeInterface $do
      * @return FioPlatba[]
      */
-    public static function zRozmezi(DateTimeInterface $od, DateTimeInterface $do): array
-    {
+    public static function zRozmezi(
+        DateTimeInterface $od,
+        DateTimeInterface $do,
+    ): array {
         $odString = $od->format('Y-m-d');
         $doString = $do->format('Y-m-d');
-        $token    = FIO_TOKEN;
-        $url      = "https://fioapi.fio.cz/ib_api/rest/periods/$token/$odString/$doString/transactions.json";
+        $token = FIO_TOKEN;
+        $url = "https://fioapi.fio.cz/v1/rest/periods/$token/$odString/$doString/transactions.json";
 
         return self::zUrl($url);
     }
@@ -47,7 +65,7 @@ class FioPlatba
         if (!$decoded) {
             return [];
         }
-        $platby    = $decoded->accountStatement->transactionList->transaction ?? [];
+        $platby = $decoded->accountStatement->transactionList->transaction ?? [];
         $fioPlatby = [];
         foreach ($platby as $platba) {
             $fioPlatby[] = self::zPlatby($platba);
@@ -60,7 +78,7 @@ class FioPlatba
     private static function cached(string $url)
     {
         $adresar = SPEC . '/fio';
-        $soubor  = $adresar . '/' . md5($url) . '.json';
+        $soubor = $adresar . '/' . md5($url) . '.json';
         if (!is_dir($adresar) && (!mkdir($adresar, 0777, true) || !is_dir($adresar))) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $adresar));
         }
@@ -72,8 +90,10 @@ class FioPlatba
         return preg_replace('@"value":([\d.]+),@', '"value":"$1",', file_get_contents($soubor));
     }
 
-    private static function fetch(string $url, string $soubor)
-    {
+    private static function fetch(
+        string $url,
+        string $soubor,
+    ) {
         $errors = [];
         for ($odpoved = false, $pokus = 1; $odpoved === false && $pokus < 5; $pokus++, usleep(100)) {
             try {
@@ -207,7 +227,7 @@ SQL,
         if ($zkrytaPoznamka === '') {
             return null;
         }
-        $parovaciTextBezDiakritiky  = $this->lowercaseBezMezerABezDiakritiky($parovaciText);
+        $parovaciTextBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($parovaciText);
         $zkrytaPoznamkaBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($zkrytaPoznamka);
         if (!preg_match(
             '~' . preg_quote($parovaciTextBezDiakritiky, '~') . '[^[:alnum:]]*(?<idUcastnika>\d+)~',
@@ -222,7 +242,7 @@ SQL,
 
     private function lowercaseBezMezerABezDiakritiky(string $text): string
     {
-        $bezMezer      = preg_replace('~\s~', '', $text);
+        $bezMezer = preg_replace('~\s~', '', $text);
         $bezDiakritiky = removeDiacritics($bezMezer);
 
         return strtolower($bezDiakritiky);
@@ -241,7 +261,7 @@ SQL,
     public function jakoArray(): array
     {
         $array = [];
-        $soucasnaMetoda  = explode('::', __METHOD__)[1];
+        $soucasnaMetoda = explode('::', __METHOD__)[1];
         foreach ($this->seznamGetteru($soucasnaMetoda) as $getter) {
             $array[$getter] = $this->$getter();
         }
@@ -256,11 +276,11 @@ SQL,
     {
         static $gettery = null;
         if ($gettery === null) {
-            $gettery         = [];
+            $gettery = [];
             $reflectionClass = new ReflectionClass($this);
-            $publicMethods   = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
-            $soucasnaMetoda  = explode('::', __METHOD__)[1];
-            $gettery         = [];
+            $publicMethods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
+            $soucasnaMetoda = explode('::', __METHOD__)[1];
+            $gettery = [];
             foreach ($publicMethods as $method) {
                 if ($method->getName() === $soucasnaMetoda || $method->isStatic() || $method->getNumberOfParameters() > 0) {
                     continue;
@@ -271,6 +291,8 @@ SQL,
             }
         }
 
-        return array_filter($gettery, fn($getter) => $getter !== $kromeMetody);
+        return array_filter($gettery, fn(
+            $getter,
+        ) => $getter !== $kromeMetody);
     }
 }

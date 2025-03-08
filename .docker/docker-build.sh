@@ -10,4 +10,6 @@ if [ -z "${PHP_VERSION}" ]; then
 fi
 TAG=gameconcz/gamecon:"${PHP_VERSION}"
 
-docker build --pull --tag "${TAG}" "${PROJECT_ROOT}/.docker" && docker push "${TAG}"
+docker buildx create --use
+
+docker buildx build --platform linux/amd64,linux/arm64/v8 --pull --tag "${TAG}" "${PROJECT_ROOT}/.docker" && docker push "${TAG}"

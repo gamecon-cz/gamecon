@@ -28,9 +28,9 @@ class Platby
      * Načte a uloží nové platby z FIO, vrátí zaúčtované platby
      * @return \FioPlatba[]
      */
-    public function nactiNove(): array
+    public function nactiPoslednichParDni(int $pocetDni = null): array
     {
-        return $this->zpracujPlatby(FioPlatba::zPoslednichDni($this->systemoveNastaveni->nacitatPlatbyXDniZpet()));
+        return $this->zpracujPlatby(FioPlatba::zPoslednichDni($pocetDni ?? $this->systemoveNastaveni->nacitatPlatbyXDniZpet()));
     }
 
     /**

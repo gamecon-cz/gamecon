@@ -92,7 +92,7 @@ if (post('pripravit')) {
         foreach ($uzivatele as $uzivatel) {
             $t->assign('id', $uzivatel->id());
             $t->assign('jmenoNick', $uzivatel->jmenoNick());
-            $t->assign('stavUctu', $uzivatel->finance()->stavHr());
+            $t->assign('stavUctu', $uzivatel->finance()->formatovanyStav());
             $t->parse('hromadneOdhlasovani.vypis.uzivatel');
         }
         $t->parse('hromadneOdhlasovani.vypis');
