@@ -68,11 +68,22 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
     $t = new XTemplate(__DIR__ . '/sablony/blackarrow/menu.xtpl');
 
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
+
+    // Zkopírujeme původní pole
+    $upraveneTypy = $typy;
+
+    foreach ($typy as $typ) { 
+        if ($typ->id() === TypAktivity::BONUS) { 
+            $typ->nastavNazev('akční hry a bonusy');
+        }
+    }
+    
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
     // položky uživatelského menu
     if ($u) {
         $t->assign(['u' => $u]);
+        $t->assign(["gcPrihlaska" => $u->gcPrihlasen() ? "Upravit přihlášku" : "Prihláška na GC"]);
         if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
             $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
             $t->parse('menu.prihlasen.admin');
@@ -84,6 +95,7 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
         $t->parse('menu.prihlasen');
     } else {
         $t->parse('menu.neprihlasen');
+        $t->assign(["gcPrihlaska" => "Prihláška na GC"]);
     }
 
     $t->parse('menu');
