@@ -18,7 +18,7 @@ if (!$u) {
 
 
 try {
-    Aktivita::prihlasovatkoZpracuj($u, $u, reload: false);
+    Aktivita::prihlasovatkoZpracujBezBack($u, $u);
     $response["úspěch"] = true;
 } catch (Chyba $chyba) {
     $response["úspěch"] = false;

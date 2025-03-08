@@ -2407,7 +2407,14 @@ HTML
     }
 
     /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload pokud není vypnutý */
-    public static function prihlasovatkoZpracuj(?Uzivatel $u, ?Uzivatel $prihlasujici, $parametry = 0, $reload = true)
+    public static function prihlasovatkoZpracuj(?Uzivatel $u, ?Uzivatel $prihlasujici, $parametry = 0) {
+        if (static::prihlasovatkoZpracujBezBack($u, $prihlasujici, $parametry)) {
+            back();
+        }
+    }
+
+    /** Zpracuje post data z přihlašovátka. Vrátí jestli došlo ke změně */
+    public static function prihlasovatkoZpracujBezBack(?Uzivatel $u, ?Uzivatel $prihlasujici, $parametry = 0)
     {
         if ($u) {
             $prihlasujici = $prihlasujici ?? $u;
@@ -2416,8 +2423,7 @@ HTML
                 if ($aktivita) {
                     $aktivita->prihlas($u, $prihlasujici, $parametry);
                 }
-                if ($reload) back();
-                return;
+                return true;
             }
             if (post('odhlasit')) {
                 $bezPokut = ($parametry & self::ZPETNE)
@@ -2435,29 +2441,27 @@ HTML
                         $bezPokut,
                     );
                 }
-                if ($reload) back();
-                return;
+                return true;
             }
             if (post('prihlasSledujiciho')) {
                 $aktivita = self::zId(post('prihlasSledujiciho'));
                 if ($aktivita) {
                     $aktivita->prihlasSledujiciho($u, $prihlasujici);
                 }
-                if ($reload) back();
-                return;
+                return true;
             }
             if (post('odhlasSledujiciho')) {
                 $aktivita = self::zId(post('odhlasSledujiciho'));
                 if ($aktivita) {
                     $aktivita->odhlasSledujiciho($u, $prihlasujici);
                 }
-                if ($reload) back();
-                return;
+                return true;
             }
         }
         if ($parametry & self::PLUSMINUS_KAZDY) {
-            self::plusminusZpracuj($reload);
+            return self::plusminusZpracuj();
         }
+        return false;
     }
 
     /**
