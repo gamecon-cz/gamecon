@@ -511,12 +511,17 @@ SQL,
     }
 
     /** Vrátí člověkem čitelný stav účtu */
-    public function stavHr(bool $vHtmlFormatu = true)
+    public function formatovanyStav(bool $vHtmlFormatu = true)
     {
         $mezera = $vHtmlFormatu
             ? '&thinsp;' // thin space
             : ' ';
-        return $this->stav() . $mezera . 'Kč';
+        return $this->stav() . $mezera . $this->mena();
+    }
+
+    public function mena(): string
+    {
+        return 'Kč';
     }
 
     /**
@@ -742,9 +747,9 @@ SQL,
         }
     }
 
-    public function sumaPlateb(int $rok = ROCNIK): float
+    public function sumaPlateb(int $rok = ROCNIK, bool $prepocti = false): float
     {
-        if (!isset($this->sumyPlatebVRocich[$rok])) {
+        if (!isset($this->sumyPlatebVRocich[$rok]) || $prepocti) {
             $uzivatelSystemId = \Uzivatel::SYSTEM;
             $result           = dbQuery(<<<SQL
                 SELECT
