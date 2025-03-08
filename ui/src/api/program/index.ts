@@ -120,10 +120,14 @@ type ApiAktivitaAkce =
   | "prihlasSledujiciho"
   | "odhlasSledujiciho";
 
-export const fetchAktivitaAkce = async (typ: ApiAktivitaAkce, aktivitaId: number): Promise<void> => {
-  // TODO: tady by se šiklo udělat vlastní api endpoint
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_PAGE}`;
+type ApiAktivitaAkceResponse = {
+  úspěch: boolean,
+  chyba?: {hláška:string},
+}
+
+export const fetchAktivitaAkce = async (typ: ApiAktivitaAkce, aktivitaId: number): Promise<ApiAktivitaAkceResponse> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaAkce`;
   const formdata = new FormData();
   formdata.set(typ, aktivitaId.toString(10));
-  await fetch(url, {method: "POST", body: formdata});
+  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };

@@ -82,6 +82,7 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
             } else {
               useProgramStore.setState(s => { s.všeobecné.načítání = true; });
               fetchAktivitaAkce(typ, id)
+                .then(x => console.log(x))
                 .then(async () => načtiRok(GAMECON_KONSTANTY.ROCNIK))
                 .catch(x => { console.error(x); })
                 .finally(() => { useProgramStore.setState(s => { s.všeobecné.načítání = false; }); });

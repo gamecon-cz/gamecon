@@ -4,8 +4,28 @@
 
 use Gamecon\Aktivita\Aktivita;
 
-if (!$u) {
-  return ;
+$u = Uzivatel::zSession();
+$this->bezStranky(true);
+$response = [];
+
+if ($_SERVER["REQUEST_METHOD"] != "POST") {
+    return;
 }
 
-Aktivita::prihlasovatkoZpracuj($u, $u, reload: false);
+if (!$u) {
+    return ;
+}
+
+
+try {
+    Aktivita::prihlasovatkoZpracuj($u, $u, reload: false);
+    $response["úspěch"] = true;
+} catch (Chyba $chyba) {
+    $response["úspěch"] = false;
+    $response["chyba"] = ["hláška" => $chyba->getMessage()];
+}
+
+$jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+header('Content-type: application/json');
+echo json_encode($response, $jsonConfig);
+
