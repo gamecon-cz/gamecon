@@ -24,7 +24,7 @@ class FioPlatbaTest extends TestCase
         $pocetDniZpet = 1;
         $od = (new \DateTimeImmutable("-{$pocetDniZpet} days"))->format('Y-m-d');
         $do = date('Y-m-d');
-        $url = "https://fioapi.fio.cz/ib_api/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
+        $url = "https://fioapi.fio.cz/v1/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
         $soubor = $adresar . '/' . md5($url) . '.json';
         $jsonData = json_encode([
             'accountStatement' => [
@@ -37,6 +37,7 @@ class FioPlatbaTest extends TestCase
         file_put_contents($soubor, $jsonData);
 
         $platby = FioPlatba::zPoslednichDni($pocetDniZpet);
+        self::assertGreaterThan(0, count($platby), 'Platby nebyly načteny');
         $platba = reset($platby);
         self::assertSame($expectedVs, $platba->vs());
         self::assertSame($ocekavaneIdUcastnika, $platba->idUcastnika());
@@ -162,7 +163,7 @@ class FioPlatbaTest extends TestCase
         $pocetDniZpet = 7;
         $od = (new \DateTimeImmutable("-{$pocetDniZpet} days"))->format('Y-m-d');
         $do = date('Y-m-d');
-        $url = "https://fioapi.fio.cz/ib_api/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
+        $url = "https://fioapi.fio.cz/v1/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
         $soubor = $adresar . '/' . md5($url) . '.json';
         /** will be used as a less-than-minute-old "cache", @see \FioPlatba::cached */
         self::assertTrue(

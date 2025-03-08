@@ -1,7 +1,7 @@
 {
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.disable-and-show-loading-on-click').forEach(function (element) {
-      if ((element instanceof HTMLInputElement || element instanceof HTMLButtonElement) && element.type === 'submit') {
+      if ((element instanceof HTMLInputElement || element instanceof HTMLButtonElement) && ['submit', 'button'].includes(element.type)) {
         element.addEventListener('click', function () {
           const originalBodyCursor = document.body.style.cursor
           const originalElementCursor = this.style.cursor
@@ -31,6 +31,6 @@
 function unblockAndRemoveLoading(element, originalBodyCursor = 'inherit', originalElementCursor = 'inherit') {
   document.body.style.cursor = originalBodyCursor
   element.style.cursor = originalElementCursor
-  delete element.disabled
+  element.disabled = false
   return true
 }

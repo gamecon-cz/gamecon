@@ -899,7 +899,7 @@ function omnibox(
                     $data['mail'] = $uzivatel->mail();
                     break;
                 case 'zustatek' :
-                    $data['zustatek'] = $uzivatel->finance()->stavHr(false);
+                    $data['zustatek'] = $uzivatel->finance()->formatovanyStav(false);
                     break;
                 case 'telefon' :
                     $data['telefon'] = $uzivatel->telefon();
