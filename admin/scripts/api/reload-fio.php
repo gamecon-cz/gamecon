@@ -2,6 +2,7 @@
 
 use Gamecon\Pravo;
 use Gamecon\Uzivatel\Platby;
+use Gamecon\Uzivatel\Finance;
 
 /** @var Uzivatel $u */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
@@ -30,7 +31,7 @@ $novaSuma = $u->finance()->sumaPlateb($systemoveNastaveni->rocnik(), true);
 
 echo json_encode([
     'puvodniStav' => $puvodniStav,
-    'novyStav' => $puvodniStav + ($novaSuma - $puvodniSuma),
+    'novyStav' => Finance::zaokouhli($puvodniStav + ($novaSuma - $puvodniSuma)),
     'zmenilSeZustatek' => $zmenilSeZustatek,
     'novaSuma' => $novaSuma,
     'puvodniSuma' => $puvodniSuma,
