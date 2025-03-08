@@ -2,7 +2,11 @@ import { FunctionComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useAktivita, useUživatel } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
-import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
+import { nastavChyba, nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
+import { GAMECON_KONSTANTY } from "../../../../env";
+import { načtiRok } from "../../../../store/program/slices/programDataSlice";
+import { fetchAktivitaAkce } from "../../../../api/program";
+import { useProgramStore } from "../../../../store/program";
 
 const zámeček = `🔒`;
 
@@ -66,8 +70,7 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
 
   return (
     <>
-      <form ref={formRef} method="post" style="display:inline">
-        <input type="hidden" name={typ} value={id}></input>
+      <form method="none" style="display:inline" onSubmit={(e) => { e.preventDefault(); }}>
         <a
           href="#"
           onClick={(e) => {
@@ -77,7 +80,15 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
             } else if (typ == "odhlasit") {
               nastavModalOdhlásit(id);
             } else {
-              formRef.current?.submit?.();
+              useProgramStore.setState(s => { s.všeobecné.načítání = true; });
+              fetchAktivitaAkce(typ, id)
+                .then(x => {
+                  if (x.chyba?.hláška)
+                    nastavChyba(x.chyba?.hláška)
+                })
+                .then(async () => načtiRok(GAMECON_KONSTANTY.ROCNIK))
+                .catch(x => { console.error(x); })
+                .finally(() => { useProgramStore.setState(s => { s.všeobecné.načítání = false; }); });
             }
           }}
         >
