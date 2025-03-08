@@ -15,3 +15,6 @@ start-docker-foreground:
 	docker compose up
 
 run: init start-docker-foreground
+
+bash:
+	./bin-docker/docker-bash

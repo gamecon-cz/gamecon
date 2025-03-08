@@ -24,7 +24,7 @@ class FioPlatbaTest extends TestCase
         $pocetDniZpet = 1;
         $od = (new \DateTimeImmutable("-{$pocetDniZpet} days"))->format('Y-m-d');
         $do = date('Y-m-d');
-        $url = "https://www.fio.cz/ib_api/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
+        $url = "https://fioapi.fio.cz/ib_api/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
         $soubor = $adresar . '/' . md5($url) . '.json';
         $jsonData = json_encode([
             'accountStatement' => [
@@ -162,7 +162,7 @@ class FioPlatbaTest extends TestCase
         $pocetDniZpet = 7;
         $od = (new \DateTimeImmutable("-{$pocetDniZpet} days"))->format('Y-m-d');
         $do = date('Y-m-d');
-        $url = "https://www.fio.cz/ib_api/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
+        $url = "https://fioapi.fio.cz/ib_api/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
         $soubor = $adresar . '/' . md5($url) . '.json';
         /** will be used as a less-than-minute-old "cache", @see \FioPlatba::cached */
         self::assertTrue(
