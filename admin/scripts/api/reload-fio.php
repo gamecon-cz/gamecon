@@ -14,7 +14,11 @@ if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Prav
     exit;
 }
 
-$puvodniStav = $u->finance()->stav();
+$puvodniStav = $_GET['puvodniStav'] ?? null;
+if (is_numeric($puvodniStav)) {
+    $puvodniStav = Finance::zaokouhli($puvodniStav);
+}
+$puvodniStav ??= $u->finance()->stav();
 $puvodniSuma = $u->finance()->sumaPlateb($systemoveNastaveni->rocnik());
 
 $platby = new Platby($systemoveNastaveni);

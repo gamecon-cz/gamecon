@@ -16,9 +16,11 @@
             button.disabled = true
           }, 1) // malý trik aby zablokování tlačítka proběhlo až v dalším "tiku" a tím se nezablokoval samotný submit
 
+          const puvodniStav = element.querySelector('.stav-uctu-castka').textContent;
+          const query = new URLSearchParams({puvodniStav: puvodniStav.trim()})
           const baseUrl = document.baseURI;
           fetch(
-            `${baseUrl}/api/reload-fio`,
+            `${baseUrl}/api/reload-fio?` + query.toString(),
             {
               method: 'GET',
               headers: {
