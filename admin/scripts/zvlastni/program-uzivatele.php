@@ -93,7 +93,7 @@ $chyba = Chyba::vyzvedniHtml();
       height: 35px;
     ">
     <?= $uPracovni->jmenoNick() ?><br>
-    <span id="stavUctu"><?= $uPracovni->finance()->stavHr() ?></span><br>
+    <span id="stavUctu"><?= $uPracovni->finance()->formatovanyStav() ?></span><br>
 
     <a href="program-uzivatele" class="program-odkaz">Program</a> |
     <a href="program-osobni" class="program-odkaz">Program účastníka</a>
