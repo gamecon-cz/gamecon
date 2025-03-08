@@ -118,7 +118,19 @@
       <table>
         <tr>
           <td style="width: 60px">Stav účtu:</td>
-          <td style="{stavStyle}"> {stavUctu}</td>
+          <td style="{stavStyle}" class="reload-fio">
+              <span>
+                <span class="stav-uctu">{stavUctu}</span>
+                <span style="float: right">
+                  <span class="chybaFio hinted" style="display: none"> ⚠️
+                    <span class="hint">
+                      Stahování plateb z Fio se nezdařilo. Zkus to prosím za chvíli znovu.
+                    </span>
+                  </span>
+                  <button type="button">🗘 Fio</button>
+                </span>
+              </span>
+          </td>
         </tr>
 
         <tr>
