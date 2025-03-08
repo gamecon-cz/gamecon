@@ -3,7 +3,7 @@
  * @param {string} color
  * @param {int} pocetBliknuti
  */
-function zablikej(node, color, pocetBliknuti = 4) {
+function zablikej(node, color = '#cdec94', pocetBliknuti = 4) {
   blikni(node, color)
   pocetBliknuti--
 

@@ -20,7 +20,7 @@ if ($platbyService->platbyBylyAktualizovanyPredChvili()) {
 }
 
 logsText('Zpracovávám platby z Fio API...');
-$platby = $platbyService->nactiNove();
+$platby = $platbyService->nactiPoslednichParDni();
 foreach ($platby as $platba) {
     logs(' - platba ' . $platba->id()
         . ' (' . $platba->castka() . 'Kč, VS: ' . $platba->vs()

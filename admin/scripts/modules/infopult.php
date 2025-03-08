@@ -96,7 +96,14 @@ if ($uPracovni) {
         $typyProPrehled[] = TypPredmetu::VSTUPNE;
     }
     $x->assign([
-        'stavUctu'        => ($uPracovni->finance()->stav() < 0 ? $err : $ok) . ' ' . $uPracovni->finance()->stavHr(),
+        'stavUctu'        => sprintf(
+            '%s <span class="stav-uctu-castka">%d</span> %s',
+            $uPracovni->finance()->stav() < 0
+                ? $err
+                : $ok,
+            $uPracovni->finance()->stav(),
+            $uPracovni->finance()->mena()
+        ),
         'stavStyle'       => ($uPracovni->finance()->stav() < 0 ? 'color: #f22; font-weight: bolder;' : ''),
         'pokoj'           => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
         'spolubydlici'    => array_uprint($spolubydlici, static function (Uzivatel $spolubydla) {
