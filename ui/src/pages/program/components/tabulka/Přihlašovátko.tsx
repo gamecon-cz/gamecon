@@ -2,7 +2,7 @@ import { FunctionComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useAktivita, useUživatel } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
-import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
+import { nastavChyba, nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
 import { GAMECON_KONSTANTY } from "../../../../env";
 import { načtiRok } from "../../../../store/program/slices/programDataSlice";
 import { fetchAktivitaAkce } from "../../../../api/program";
@@ -82,7 +82,10 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
             } else {
               useProgramStore.setState(s => { s.všeobecné.načítání = true; });
               fetchAktivitaAkce(typ, id)
-                .then(x => console.log(x))
+                .then(x => {
+                  if (x.chyba?.hláška)
+                    nastavChyba(x.chyba?.hláška)
+                })
                 .then(async () => načtiRok(GAMECON_KONSTANTY.ROCNIK))
                 .catch(x => { console.error(x); })
                 .finally(() => { useProgramStore.setState(s => { s.všeobecné.načítání = false; }); });
