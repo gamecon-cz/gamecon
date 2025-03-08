@@ -2,10 +2,13 @@ import { ProgramStateCreator, useProgramStore } from "..";
 
 export type VšeobecnéSlice = {
   všeobecné: {
+    chyba?: string,
     filtryOtevřené: boolean,
     zvětšeno: boolean,
     kompaktní: boolean,
     modalOdhlásitAktivitaId?: number,
+    // TODO: dvě souběžné načítání mají za výsledek že jak doběhme první tak se načítání dá na false ikdyž běží další dotazy
+    načítání: boolean,
   }
 }
 
@@ -14,6 +17,7 @@ export const createVšeobecnéSlice: ProgramStateCreator<VšeobecnéSlice> = (_s
     filtryOtevřené: false,
     zvětšeno: false,
     kompaktní: false,
+    načítání: false,
   },
 });
 
@@ -54,4 +58,10 @@ export const nastavModalOdhlásit = (aktivitaId?: number) => {
   useProgramStore.setState(s => {
     s.všeobecné.modalOdhlásitAktivitaId = aktivitaId;
   }, undefined, "nastav modal odhlásit");
+};
+
+export const nastavChyba = (chyba?: string) => {
+  useProgramStore.setState(s => {
+    s.všeobecné.chyba = chyba;
+  }, undefined, "nastav chyba");
 };

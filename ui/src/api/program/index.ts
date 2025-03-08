@@ -109,7 +109,25 @@ export const fetchAktivityPřihlášen = async (rok: number): Promise<APIAktivit
   return fetch(url, { method: "POST" }).then(async x => x.json());
 };
 
-export const fetchŠtítky = async (): Promise<APIŠtítek[]> =>{
+export const fetchŠtítky = async (): Promise<APIŠtítek[]> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}stitky`;
   return fetch(url, { method: "GET" }).then(async x => x.json());
+};
+
+type ApiAktivitaAkce =
+  | "prihlasit"
+  | "odhlasit"
+  | "prihlasSledujiciho"
+  | "odhlasSledujiciho";
+
+type ApiAktivitaAkceResponse = {
+  úspěch: boolean,
+  chyba?: {hláška:string},
+}
+
+export const fetchAktivitaAkce = async (typ: ApiAktivitaAkce, aktivitaId: number): Promise<ApiAktivitaAkceResponse> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaAkce`;
+  const formdata = new FormData();
+  formdata.set(typ, aktivitaId.toString(10));
+  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };
