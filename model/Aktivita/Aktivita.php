@@ -2019,6 +2019,15 @@ SQL
             }
         }
 
+        if ($this->jeBrigadnicka() && !$uzivatel->jeBrigadnik()) {
+            throw new \Chyba(
+                'Na tuto aktivitu se může přihlásit pouze brigádník'
+                . ($hlaskyVeTretiOsobe
+                    ? hlaska('nejsiBrigadnik')
+                    : ($uzivatel->jmenoVolitelnyNick() . ': ' . hlaska('neniBrigadnik')))
+            );
+        }
+
         // potlačitelné kontroly
         if ($this->a['zamcel'] && !($parametry & self::ZAMEK)) {
             throw new \Chyba(hlaska('zamcena')); // zamčena pro tým, nikoli zamčena / uzavřena
