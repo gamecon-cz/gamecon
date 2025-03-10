@@ -125,8 +125,8 @@ class ImporterUcastnikuNaAktivitu
                     if ($aktivita->prihlas(
                         uzivatel: $ucastnik,
                         prihlasujici: $imporujici,
-                        hlaskyVeTretiOsobe: true,
                         parametry: Aktivita::INTERNI,
+                        hlaskyVeTretiOsobe: true,
                     )) {
                         $prihlasenoCelkem++;
                     }
