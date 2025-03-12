@@ -2021,10 +2021,10 @@ SQL
 
         if ($this->jeBrigadnicka() && !$uzivatel->jeBrigadnik()) {
             throw new \Chyba(
-                'Na tuto aktivitu se může přihlásit pouze brigádník'
+                'Na tuto aktivitu se může přihlásit pouze brigádník. '
                 . ($hlaskyVeTretiOsobe
-                    ? hlaska('nejsiBrigadnik')
-                    : ($uzivatel->jmenoVolitelnyNick() . ': ' . hlaska('neniBrigadnik')))
+                    ? ($uzivatel->jmenoVolitelnyNick() . ': ' . hlaska('neniBrigadnik'))
+                    : hlaska('nejsiBrigadnik'))
             );
         }
 
