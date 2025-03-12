@@ -32,7 +32,7 @@ class ImporterUcastnikuNaAktivitu
      */
     public function importFile(
         string    $importFile,
-        \Uzivatel $imporujici,
+        \Uzivatel $importujici,
     ): array {
         if (!is_readable($importFile)) {
             throw new \Chyba('Soubor s účastníky na aktivitu neexistuje nebo ho nelze přečíst.');
@@ -60,83 +60,114 @@ class ImporterUcastnikuNaAktivitu
         if (array_diff(['id_aktivity', 'ucastnik'], $hlavickaKlice) !== []) {
             throw new \Chyba('Soubor s účastníky na aktivitu nemá správnou hlavičku. Očekáváme sloupce "id_aktivity" a "ucastnik".');
         }
-        $indexIdAktivity    = array_search('id_aktivity', $hlavickaKlice, true);
+        $indexIdAktivity = array_search('id_aktivity', $hlavickaKlice, true);
         $indexNazvuAktivity = array_search('aktivita', $hlavickaKlice, true);
-        $indexUcastnika     = array_search('ucastnik', $hlavickaKlice, true);
+        $indexUcastnika = array_search('ucastnik', $hlavickaKlice, true);
 
         $rocnik = $this->systemoveNastaveni->rocnik();
 
-        /** @var array<int, array<int>> $idUcastnikuPodleAktivity */
-        $idUcastnikuPodleAktivity = [];
-        $prihlasenoCelkem         = 0;
-        $poradiRadku              = 0;
+        /** @var $idUcastnikuPodleAktivit array{aktivita: Aktivita, ucastnici: array<int>}[] */
+        $idUcastnikuPodleAktivit = [];
+        $prihlasenoCelkem = 0;
+        $poradiRadku = 0;
         /** @var int[] $preskoceneAktivity */
         $preskoceneAktivity = [];
-        $varovani           = [];
+        $varovani = [];
+        $odhlasenoCelkem = 0;
+
+        /** @var array{ucastnik: \Uzivatel, aktivita: Aktivita}[] $ucastniciPlusAktivity */
+        $ucastniciPlusAktivity = [];
+
+        /** @var \OpenSpout\Common\Entity\Row|null $row */
+        while ($rowIterator->valid()) {
+            try {
+                $radek = $rowIterator->current()->toArray();
+                $poradiRadku++;
+                $rowIterator->next();
+
+                if ($radek === []) {
+                    continue;
+                }
+                $idAktivity = trim((string)($radek[$indexIdAktivity] ?? ''));
+                $nazevAktivity = trim((string)$radek[$indexNazvuAktivity] ?? '');
+                $jmenoUcastnika = trim((string)$radek[$indexUcastnika] ?? '');
+
+                if ($idAktivity === '' || !is_numeric($idAktivity)) {
+                    throw new \Chyba("Na řádku $poradiRadku chybí ID aktivity.");
+                }
+
+                $aktivita = $this->dejAktivitu((int)$idAktivity);
+                if ($aktivita === null) {
+                    throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku neexistuje.");
+                }
+                if ($aktivita->rok() !== $rocnik) {
+                    throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není pro současný ročník.");
+                }
+                if (!in_array($aktivita->typId(), [TypAktivity::BRIGADNICKA, TypAktivity::TECHNICKA], true)) {
+                    throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není brigádnická ani technická a jiným není dovoleno měnit účastníky importem.");
+                }
+                if (!in_array(
+                    $aktivita->idStavu(),
+                    self::STAVY_AKTIVITY_MENITELNE_IMPORTEM,
+                    true,
+                )) {
+                    if (!in_array($aktivita->id(), $preskoceneAktivity)) {
+                        $varovani[] = "Aktivita '$idAktivity' ('$nazevAktivity') už je v provozu a nelze jí měnit účastníky importem.";
+                        $preskoceneAktivity[] = $aktivita->id();
+                    }
+                    continue;
+                }
+                $idUcastnikuPodleAktivit[$aktivita->id()] ??= [
+                    'aktivita'  => $aktivita,
+                    'ucastnici' => [],
+                ];
+
+                if ($jmenoUcastnika === '') {
+                    continue;
+                }
+                $ucastnik = $this->dejUzivatele($jmenoUcastnika);
+                if ($ucastnik === null) {
+                    throw new \Chyba("Nerozpoznaný uživatel '$jmenoUcastnika' na řádku $poradiRadku.");
+                }
+                $ucastniciPlusAktivity[] = [
+                    'ucastnik' => $ucastnik,
+                    'aktivita' => $aktivita,
+                ];
+                $idUcastnikuPodleAktivit[$aktivita->id()]['ucastnici'][] = $ucastnik->id();
+            } catch (\Chyba $chyba) {
+                $varovani[] = $chyba->getMessage();
+                continue;
+            }
+        }
 
         dbBegin();
         try {
-            /** @var \OpenSpout\Common\Entity\Row|null $row */
-            while ($rowIterator->valid()) {
-                try {
-                    $radek = $rowIterator->current()->toArray();
-                    $poradiRadku++;
-                    $rowIterator->next();
-
-                    if ($radek === []) {
-                        continue;
-                    }
-                    $idAktivity     = trim((string)($radek[$indexIdAktivity] ?? ''));
-                    $nazevAktivity  = trim((string)$radek[$indexNazvuAktivity] ?? '');
-                    $jmenoUcastnika = trim((string)$radek[$indexUcastnika] ?? '');
-                    if ($jmenoUcastnika === '') {
-                        continue;
-                    }
-                    if ($idAktivity === '' || !is_numeric($idAktivity)) {
-                        throw new \Chyba("Na řádku $poradiRadku chybí ID aktivity.");
-                    }
-
-                    $aktivita = $this->dejAktivitu((int)$idAktivity);
-                    if ($aktivita === null) {
-                        throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku neexistuje.");
-                    }
-                    if ($aktivita->rok() !== $rocnik) {
-                        throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není pro současný ročník.");
-                    }
-                    if (!in_array($aktivita->typId(), [TypAktivity::BRIGADNICKA, TypAktivity::TECHNICKA], true)) {
-                        throw new \Chyba("Aktivita '$idAktivity' ('$nazevAktivity') z řádku $poradiRadku není brigádnická ani technická a jiným není dovoleno měnit účastníky importem.");
-                    }
-                    if (!in_array(
-                        $aktivita->idStavu(),
-                        self::STAVY_AKTIVITY_MENITELNE_IMPORTEM,
-                        true,
-                    )) {
-                        if (!in_array($aktivita->id(), $preskoceneAktivity)) {
-                            $varovani[]           = "Aktivita '$idAktivity' ('$nazevAktivity') už je v provozu a nelze jí měnit účastníky importem.";
-                            $preskoceneAktivity[] = $aktivita->id();
-                        }
-                        continue;
-                    }
-                    $ucastnik = $this->dejUzivatele($jmenoUcastnika);
-                    if ($ucastnik === null) {
-                        throw new \Chyba("Nerozpoznaný uživatel '$jmenoUcastnika' na řádku $poradiRadku.");
-                    }
-
-                    if ($aktivita->prihlas(
-                        uzivatel: $ucastnik,
-                        prihlasujici: $imporujici,
-                        parametry: Aktivita::INTERNI,
-                        hlaskyVeTretiOsobe: true,
-                    )) {
-                        $prihlasenoCelkem++;
-                    }
-                } catch (\Chyba $chyba) {
-                    $varovani[] = $chyba->getMessage();
-                    continue;
-                }
-                $idUcastnikuPodleAktivity[$aktivita->id()][] = $ucastnik->id();
+            // nejdříve odhlásíme, abychom získali místo pro nová přihlášení
+            foreach ($idUcastnikuPodleAktivit as $idUcastnikuPodleAktivity) {
+                $aktivita = $idUcastnikuPodleAktivity['aktivita'];
+                $idUcastniku = $idUcastnikuPodleAktivity['ucastnici'];
+                $odhlasenoCelkem += $this->odhlasNeuvedeneUcastniky(
+                    $idUcastniku,
+                    $aktivita,
+                    $importujici,
+                );
             }
-            $odhlasenoCelkem = $this->odhlasNeuvedeneUcastniky($idUcastnikuPodleAktivity, $imporujici);
+
+            foreach ($ucastniciPlusAktivity as $ucastnikPlusAktivita) {
+                $ucastnik = $ucastnikPlusAktivita['ucastnik'];
+                assert($ucastnik instanceof \Uzivatel);
+                $aktivita = $ucastnikPlusAktivita['aktivita'];
+                assert($aktivita instanceof Aktivita);
+                if ($aktivita->prihlas(
+                    uzivatel: $ucastnik,
+                    prihlasujici: $importujici,
+                    parametry: Aktivita::INTERNI,
+                    hlaskyVeTretiOsobe: true,
+                )) {
+                    $prihlasenoCelkem++;
+                }
+            }
+
             dbCommit();
         } catch (\Throwable $e) {
             dbRollback();
@@ -150,24 +181,24 @@ class ImporterUcastnikuNaAktivitu
         ];
     }
 
+    /**
+     * @param array<int> $idUcastniku
+     */
     private function odhlasNeuvedeneUcastniky(
-        array     $idUcastnikuPodleAktivity,
+        array     $idUcastniku,
+        Aktivita  $aktivita,
         \Uzivatel $odhlasujici,
     ): int {
         $odhlasenoCelkem = 0;
-        foreach ($idUcastnikuPodleAktivity as $idAktivity => $idUcastniku) {
-            $idUcastniku         = array_unique($idUcastniku);
-            $aktivita            = Aktivita::zId($idAktivity);
-            $prihlaseniUzivatele = $aktivita->seznamPrihlasenychNeboDorazivsich();
-            foreach ($prihlaseniUzivatele as $prihlasenyUzivatel) {
-                if (!in_array($prihlasenyUzivatel->id(), $idUcastniku, true)) {
-                    $aktivita->odhlas(
-                        $prihlasenyUzivatel,
-                        $odhlasujici,
-                        'hromadny-import-ucastniku-na-aktivitu',
-                    );
-                    $odhlasenoCelkem++;
-                }
+        $prihlaseniUzivatele = $aktivita->seznamPrihlasenychNeboDorazivsich();
+        foreach ($prihlaseniUzivatele as $prihlasenyUzivatel) {
+            if (!in_array($prihlasenyUzivatel->id(), $idUcastniku, true)) {
+                $aktivita->odhlas(
+                    $prihlasenyUzivatel,
+                    $odhlasujici,
+                    'hromadny-import-ucastniku-na-aktivitu',
+                );
+                $odhlasenoCelkem++;
             }
         }
 
