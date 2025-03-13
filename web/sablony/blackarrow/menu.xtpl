@@ -41,7 +41,7 @@
             <!-- begin: typAktivit -->
             <a href="{typ.url}" class="menu_polozka">{typ.nazev}</a>
             <!-- end: typAktivit -->
-            <a class="menu_polozka" href="celohra">Celohra</a>
+            <!-- <a class="menu_polozka" href="celohra">Celohra</a> -->
           </div>
         </div>
         <div class="menu_kategorie">

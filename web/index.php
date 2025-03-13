@@ -6,6 +6,7 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Web\Info;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Pravo;
+use Gamecon\Aktivita\VlastniTypAktivity;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';
@@ -69,12 +70,28 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
 
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
 
-    // Zkopírujeme původní pole
-    $upraveneTypy = $typy;
+    $typy[] = new VlastniTypAktivity([
+        'id_typu'      => -1,
+        'typ_1pmn'     => 'Celohra',
+        'url_typu_mn'  => '/celohra',
+    ]);
 
     foreach ($typy as $typ) { 
         if ($typ->id() === TypAktivity::BONUS) { 
             $typ->nastavNazev('akční hry a bonusy');
+        }
+        $puvodniNazev = $typ->nazev();
+        $malyNazev = mb_strtolower($puvodniNazev, 'UTF-8');
+        $typ->nastavNazev($malyNazev);
+    }
+    
+    usort($typy, function($a, $b) {
+        return strcoll($a->nazev(), $b->nazev());
+    });
+
+    foreach ($typy as $typ) { 
+        if ($typ->id() === TypAktivity::RPG) { 
+            $typ->nastavNazev('RPG');
         }
     }
     
