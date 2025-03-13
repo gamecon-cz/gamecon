@@ -28,7 +28,7 @@ class Finance
 
     public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
 
-    private         $stav       = 0;  // celkový výsledný stav uživatele na účtu
+    private         $stav       = 0.0;  // celkový výsledný stav uživatele na účtu
     private         $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
     private         $soucinitelCenyAKtivit;              // součinitel ceny aktivit
     private         $logovat    = true;    // ukládat seznam předmětů?
@@ -499,7 +499,7 @@ SQL,
     }
 
     /** Vrátí aktuální stav na účtu uživatele pro tento rok */
-    public function stav()
+    public function stav(): float
     {
         return $this->stav;
     }
@@ -511,12 +511,17 @@ SQL,
     }
 
     /** Vrátí člověkem čitelný stav účtu */
-    public function stavHr(bool $vHtmlFormatu = true)
+    public function formatovanyStav(bool $vHtmlFormatu = true)
     {
         $mezera = $vHtmlFormatu
             ? '&thinsp;' // thin space
             : ' ';
-        return $this->stav() . $mezera . 'Kč';
+        return $this->stav() . $mezera . $this->mena();
+    }
+
+    public function mena(): string
+    {
+        return 'Kč';
     }
 
     /**
@@ -742,9 +747,9 @@ SQL,
         }
     }
 
-    public function sumaPlateb(int $rok = ROCNIK): float
+    public function sumaPlateb(int $rok = ROCNIK, bool $prepocti = false): float
     {
-        if (!isset($this->sumyPlatebVRocich[$rok])) {
+        if (!isset($this->sumyPlatebVRocich[$rok]) || $prepocti) {
             $uzivatelSystemId = \Uzivatel::SYSTEM;
             $result           = dbQuery(<<<SQL
                 SELECT
@@ -892,6 +897,9 @@ SQL,
         }
         if ($this->u->nemaPravoNaBonusZaVedeniAktivit()) {
             return;
+        }
+        if (!$this->u->gcPrihlasen()) {
+            return; // pokud se například odhlásí těsně před GC
         }
         foreach (Aktivita::zOrganizatora($this->u) as $a) {
             $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a, $this->systemoveNastaveni);
