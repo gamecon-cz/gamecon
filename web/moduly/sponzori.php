@@ -3,7 +3,7 @@
 /** @var Modul $this */
 /** @var \Gamecon\XTemplate\XTemplate $t */
 
-$this->bezStranky(true);
+//$this->bezStranky(true);
 
 { // local variables scope
     foreach (['sponzor' => 'sponzori', 'partner' => 'partneri'] as $kategorie => $adresar) {
