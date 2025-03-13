@@ -96,6 +96,9 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
         if ($typ->id() === TypAktivity::RPG) { 
             $typ->nastavNazev('RPG');
         }
+        else if ($typ->id() === TypAktivity::DRD){
+            $typ->nastavNazev('Mistrovství v DrD');
+        }
     }
     
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
