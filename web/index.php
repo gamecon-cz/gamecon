@@ -6,6 +6,7 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Web\Info;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Pravo;
+use Gamecon\Aktivita\VlastniTypAktivity;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';
@@ -68,11 +69,41 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
     $t = new XTemplate(__DIR__ . '/sablony/blackarrow/menu.xtpl');
 
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
+
+    $typy[] = new VlastniTypAktivity([
+        'id_typu'      => -1,
+        'typ_1pmn'     => 'Celohra',
+        'url_typu_mn'  => '/celohra',
+    ]);
+
+    foreach ($typy as $typ) { 
+        if ($typ->id() === TypAktivity::BONUS) { 
+            $typ->nastavNazev('akční hry a bonusy');
+        }
+        $puvodniNazev = $typ->nazev();
+        $malyNazev = mb_strtolower($puvodniNazev, 'UTF-8');
+        $typ->nastavNazev($malyNazev);
+    }
+    
+    usort($typy, function($a, $b) {
+        return strcoll($a->nazev(), $b->nazev());
+    });
+
+    foreach ($typy as $typ) { 
+        if ($typ->id() === TypAktivity::RPG) { 
+            $typ->nastavNazev('RPG');
+        }
+        else if ($typ->id() === TypAktivity::DRD){
+            $typ->nastavNazev('Mistrovství v DrD');
+        }
+    }
+    
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
     // položky uživatelského menu
     if ($u) {
         $t->assign(['u' => $u]);
+        $t->assign(["gcPrihlaska" => $u->gcPrihlasen() ? "Upravit přihlášku" : "Prihláška na GC"]);
         if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
             $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
             $t->parse('menu.prihlasen.admin');
@@ -84,6 +115,7 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
         $t->parse('menu.prihlasen');
     } else {
         $t->parse('menu.neprihlasen');
+        $t->assign(["gcPrihlaska" => "Prihláška na GC"]);
     }
 
     $t->parse('menu');
