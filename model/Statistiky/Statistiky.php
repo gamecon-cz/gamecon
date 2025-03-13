@@ -405,7 +405,7 @@ SQL,
         $vyznamPritomen   = Role::VYZNAM_PRITOMEN;
         $letosniVypravec  = Role::LETOSNI_VYPRAVEC;
         $letosniZazemi    = Role::LETOSNI_ZAZEMI;
-        $roleOrganizatoru = implode(',', [Role::ORGANIZATOR, Role::PUL_ORG_BONUS_TRICKO, Role::PUL_ORG_BONUS_UBYTKO]);
+        $roleOrganizatoru = implode(',', Role::dejIdckaRoliSOrganizatory());
         $vyznamZazemi     = Role::VYZNAM_ZAZEMI;
         $vyznamVypravec   = Role::VYZNAM_VYPRAVEC;
 

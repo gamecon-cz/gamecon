@@ -917,11 +917,6 @@ SQL,
         return $this->maRoli(Role::LETOSNI_ZAZEMI);
     }
 
-    public function jeDobrovolnikSenior(): bool
-    {
-        return $this->maRoli(Role::LETOSNI_DOBROVOLNIK_SENIOR);
-    }
-
     public function jeVypravec(): bool
     {
         return $this->maRoli(Role::LETOSNI_VYPRAVEC);
@@ -1895,9 +1890,6 @@ SQL,
         }
         if ($this->jeZazemi()) {
             $status[] = "Zázemí";
-        }
-        if ($this->jeDobrovolnikSenior()) {
-            $status[] = "Dobrovolník senior";
         }
         if (count($status) > 0) {
             return implode(', ', $status);
