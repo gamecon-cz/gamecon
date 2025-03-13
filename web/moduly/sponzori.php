@@ -3,7 +3,7 @@
 /** @var Modul $this */
 /** @var \Gamecon\XTemplate\XTemplate $t */
 
-$this->bezStranky(true);
+//$this->bezStranky(true);
 
 { // local variables scope
     foreach (['sponzor' => 'sponzori', 'partner' => 'partneri'] as $kategorie => $adresar) {
@@ -13,6 +13,7 @@ $this->bezStranky(true);
                 continue; // skrývání odebraných sponzorů ([^_] znamená "jen pokud nezačíná podtržítkem" a podtržítko znamená "vyřazený obrázek")
             }
             $t->assign([
+                'css' => perfectcache('soubory/blackarrow/*/*.less'),
                 'url' => $fn,
                 'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
             ]);
