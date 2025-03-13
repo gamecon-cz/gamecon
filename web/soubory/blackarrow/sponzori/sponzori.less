@@ -80,5 +80,13 @@
 }
 
 .obal > .sponzori > .partneri_loga {
-    gap: 0 22rel;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0 20px; 
+}
+
+@media (max-width: 600px) {
+    .obal > .sponzori > .partneri_loga {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
