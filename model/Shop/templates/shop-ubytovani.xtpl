@@ -57,6 +57,21 @@
 
 </div>
 
+<div class="shop-ubytovani-skupina">
+    <h3>Chci pokoj s někým</h3>
+    <label>Připojit se do skupiny
+        <input class="js-skupina-kod-vstup"></input>
+        <div class="js-skupina-ceka">čekám na přijetí do skupiny</div>
+    </label>
+    <button class="js-skupina-zalozit">Založit vlastní skupinu</button>
+    <label>Kód skupiny <input class="js-skupina-kod-aktualni" disabled></input></label>
+    <button class="js-skupina-opustit">Opustit skupinu</button>
+    <ul class="js-skupina-uzivatele">
+        <li data-uzivatel="id">Uživatel1 <button disabled>Schválen</button></li>
+        <li>Uživatel1 <button>Schválit</button></li>
+    </ul>
+</div>
+
 <div class="shopUbytovani_spolubydlici">
     <label>
         Na pokoji chci být s:
