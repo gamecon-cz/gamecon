@@ -118,7 +118,7 @@ foreach ($aktivity as $aktivita) {
         $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
     }
     $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
-    $aktivitaRes['zamcenaDo'] = $aktivita->tymZamcenyDo() * 1000;
+    $aktivitaRes['zamcenaDo'] = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
     $aktivitaRes['obsazenost'] = $aktivita->obsazenostObj();
     $aktivitaRes['tymova'] = $aktivita->tymova();
 
