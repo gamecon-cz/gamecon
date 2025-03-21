@@ -1,5 +1,4 @@
 # docker compose pull && docker compose up --build
-version: "3"
 services:
   web:
     image: gameconcz/gamecon:8.2
