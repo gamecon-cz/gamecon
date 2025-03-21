@@ -112,7 +112,7 @@ class ImporterUcastnikuNaAktivitu
                     true,
                 )) {
                     if (!in_array($aktivita->id(), $preskoceneAktivity)) {
-                        $varovani[] = "Aktivita '$idAktivity' ('$nazevAktivity') už je v provozu a nelze jí měnit účastníky importem.";
+                        $varovani[] = "Aktivita '$idAktivity' ('$nazevAktivity') už je v provozu (stav '{$aktivita->stav()->nazev()}') a nelze jí měnit účastníky importem.";
                         $preskoceneAktivity[] = $aktivita->id();
                     }
                     continue;
