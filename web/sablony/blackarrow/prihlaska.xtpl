@@ -96,7 +96,6 @@
                 <h3>Informace ke stravování</h3>
                 <ul>
                     <li>Jídlo je možné objednat nebo zrušit do {jidloObjednatelneDo}</li>
-                    <li>Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.</li>
                     <li>Na výběr je z 3–5 jídel, která jsou stejná na oběd i večeři a jedno z nich je vždy vegetariánské.</li>
                     <li>Jídelníček je k dispozici <a href="jidelnicek">zde</a>.</li>
                 </ul>
@@ -125,6 +124,7 @@
                     <!-- end:ubytovani3+Noci -->
                     <li>Bližší informace o ubytování najdeš <a href="prakticke-informace">zde</a> v FAQ.</li>
                     <!-- begin:poznamkaKUbytovaniVNedeli -->
+                    <li>Ubytování Ne–Po znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00.</li>
                     <!-- end:poznamkaKUbytovaniVNedeli -->
                 </ul>
             </div>
