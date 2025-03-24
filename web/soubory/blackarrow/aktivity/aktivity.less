@@ -68,7 +68,8 @@
 .aktivity_ikonaLinie {
     position: absolute;
     margin: 54px 0 0 75%;
-    background: url('../blackarrow/aktivity/flek.png');
+    background: url('../blackarrow/aktivity/flek.png') no-repeat center center;
+    background-size: contain;
     width: 209px;
     height: 206px;
 
@@ -78,15 +79,18 @@
 
     img {
         display: block;
+        max-width: 100%;
+        height: auto;
     }
 
     @media (max-width: 600px) {
-        transform-origin: 0 0;
-        transform: scale(0.75);
-        margin: -10px 0 0 66%;
+        position: relative;
+        width: 100%;
+        min-height: 150px; /* Zajistí, že pozadí zůstane viditelné */
+        margin: 20px auto;
+        background-size: contain;
     }
 }
-
 
 // stránky
 
