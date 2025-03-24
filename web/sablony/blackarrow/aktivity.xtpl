@@ -3,7 +3,10 @@
 <div class="aktivity_hlavickaObal">
 <div class="aktivity_hlavicka">
     <div class="aktivity_ikonaLinie">
-        <img src="{ikonaLinie}">
+        <figure>
+            <img src="{ikonaLinie}">
+            <figcaption>{ikonaLiniePopis}</figcaption>
+        </figure>
     </div>
     <div class="aktivity_popisLinie stranka_format">
         {popisLinie}

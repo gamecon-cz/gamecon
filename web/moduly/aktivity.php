@@ -103,6 +103,7 @@ foreach ($skupiny as $skupina) {
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.nahled.stitek');
     $t->parse('aktivity.aktivita');
     $t->parse('aktivity.nahled');
+    $t->parse('aktivity.testBlock');
 }
 
 // záhlaví a informace
@@ -120,10 +121,17 @@ if (!empty($org)) {
     $t->parse('aktivity.hlavickaVypravec');
 } else if ($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
+
+    $descriptionFile = 'soubory/systemove/linie-ikony/' . $typ->id() . '.txt';
+    $varIkonaLiniePopis = file_exists($descriptionFile) 
+        ? nl2br(htmlspecialchars(file_get_contents($descriptionFile))) 
+        : "<p><em>File not found: $descriptionFile</em></p>";
+    
     $t->assign([
-        'popisLinie' => $typ->oTypu(),
-        'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
-        'specTridy'  => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
+        'popisLinie'      => $typ->oTypu(),
+        'ikonaLinie'      => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
+        'ikonaLiniePopis' => $varIkonaLiniePopis,
+        'specTridy'       => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
     ]);
 
     // podstránky linie
