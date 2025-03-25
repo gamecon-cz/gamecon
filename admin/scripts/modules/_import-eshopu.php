@@ -45,7 +45,7 @@ $row           = $rowIterator->current();
 $hlavickaKlice = array_map('trim', $row->toArray());
 $hlavicka      = array_flip($hlavickaKlice);
 
-$pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'auto', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'ubytovani_den', 'popis'];
+$pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'ubytovani_den', 'popis'];
 if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
     throw new Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
 }
@@ -55,7 +55,6 @@ $indexNazev        = $hlavicka['nazev'];
 $indexKodPredmetu  = $hlavicka['kod_predmetu'];
 $indexCenaAktualni = $hlavicka['cena_aktualni'];
 $indexStav         = $hlavicka['stav'];
-$indexAuto         = $hlavicka['auto'];
 $indexNabizetDo    = $hlavicka['nabizet_do'];
 $indexKusuVyrobeno = $hlavicka['kusu_vyrobeno'];
 $indexTyp          = $hlavicka['typ'];
@@ -118,7 +117,6 @@ while ($rowIterator->valid()) {
                 ),
                 $radek[$indexCenaAktualni],
                 $radek[$indexStav],
-                $radek[$indexAuto],
                 $radek[$indexNabizetDo],
                 $cisloNeboNull($radek[$indexKusuVyrobeno]),
                 $cisloNeboNull($radek[$indexTyp]),
@@ -150,7 +148,7 @@ SQL,
     $sqlValues = implode(",\n", $sqlValuesArray);
 
     dbQuery(<<<SQL
-INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `auto`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
+INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
     VALUES
 $sqlValues
 SQL,
