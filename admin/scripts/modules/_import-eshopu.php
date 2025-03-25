@@ -165,7 +165,6 @@ SET
     shop_predmety.nazev = import.nazev,
     shop_predmety.cena_aktualni = import.cena_aktualni,
     shop_predmety.stav = import.stav,
-    shop_predmety.auto = import.auto,
     shop_predmety.nabizet_do = import.nabizet_do,
     shop_predmety.kusu_vyrobeno = import.kusu_vyrobeno,
     shop_predmety.typ = import.typ,
@@ -177,13 +176,12 @@ SQL,
     $pocetZmenenych = dbAffectedOrNumRows($mysqliResult);
 
     $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `auto`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
+INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
 SELECT import.`model_rok`,
     import.`nazev`,
     import.`kod_predmetu`,
     import.`cena_aktualni`,
     import.`stav`,
-    import.`auto`,
     import.`nabizet_do`,
     import.`kusu_vyrobeno`,
     import.`typ`,
