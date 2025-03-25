@@ -60,6 +60,4 @@
   document.dispatchEvent(event)
 </script>
 
-{FILE "scripts/modules/penize/_kfcMrizkovyProdej.xtpl"}
-
 <!-- end:shop -->
