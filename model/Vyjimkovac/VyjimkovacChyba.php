@@ -39,7 +39,7 @@ class VyjimkovacChyba
             'vyjimka'   => base64_encode($serialized),
         ]);
         if ($throwable instanceof \DbException) {
-            $radek['data'] = trim($throwable->getTrace()[0]['args'][0] ?? null);
+            $radek['data'] = trim($throwable->getTrace()[0]['args'][0] ?? '');
         }
         if ($throwable instanceof JsException) {
             $radek['url']       = $_SERVER['HTTP_REFERER'] ?? null;
