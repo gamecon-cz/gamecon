@@ -12,6 +12,7 @@
             if ($pocetZmen === 0) {
                 continue; // skrývání odebraných sponzorů ([^_] znamená "jen pokud nezačíná podtržítkem" a podtržítko znamená "vyřazený obrázek")
             }
+            $fn = 'https://' . $fn;
             $t->assign([
                 'url' => $fn,
                 'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
