@@ -406,3 +406,20 @@ figure {
     align-items: center;
     text-align: center;
 }
+
+@media (max-width: 600px) {
+    .aktivity_hlavicka {
+        display: grid;
+        grid-template-areas: 
+            "popis"
+            "ikona";
+    }
+
+    .aktivity_ikonaLinie {
+        grid-area: ikona;
+    }
+
+    .aktivity_popisLinie {
+        grid-area: popis;
+    }
+}
