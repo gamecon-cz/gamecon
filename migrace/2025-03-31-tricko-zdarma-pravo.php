@@ -11,7 +11,7 @@ SQL,
 $this->q(<<<SQL
 INSERT IGNORE INTO prava_role(id_role, id_prava)
     VALUES
-        (26/* mini-org */, 1035/* JAKEKOLIV_TRICKO_ZDARMA */)
+        (26/* mini-org */, 1035/* JAKEKOLIV_TRICKO_ZDARMA */),
         (26/* mini-org */, 1021/* MUZE_OBJEDNAVAT_MODRA_TRICKA */)
 SQL
 );
