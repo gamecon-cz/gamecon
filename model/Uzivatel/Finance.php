@@ -594,7 +594,12 @@ SQL,
     {
         return $this->u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)
             ? 2
-            : 0;
+            : (
+            $this->u->maPravo(Pravo::JAKEKOLIV_TRICKO_ZDARMA)
+                ? 1
+                : 0
+            )
+            ;
     }
 
     public function maximalniPocetModrychTricekZdarma(): int
