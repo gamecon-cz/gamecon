@@ -211,7 +211,7 @@
 <!-- begin: april2025 -->
 <link rel="stylesheet" href="soubory/blackarrow/april2025/april2025.css"> 
 
-<div id="aprilModal" class="modal--april2025">
+<div id="april2025Modal" class="modal--april2025">
     <div class="modal-content--april2025">
         <p>Děkujeme za tvou účast na GameConu 2025! Budeme moc rádi za jakoukoliv zpětnou vazbu, abychom si vzpomněli, co jsme zlepšili, případně co určitě nevynechat ani v předchozích letech. Budeme se těšit zase před rokem, od té doby nás můžeš sledovat na Facebooku, Instagramu nebo na Discordu.</p>
         <button onclick="closeModal()">Zavřít</button>

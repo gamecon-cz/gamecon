@@ -1,8 +1,3 @@
-if (!sessionStorage.getItem("aprilFools")) {
-    document.getElementById("aprilFools").style.display = "flex";
-    sessionStorage.setItem("aprilFools", "true");
-}
-
 function closeModal() {
-    document.getElementById("aprilModal").style.display = "none";
+    document.getElementById("april2025Modal").style.display = "none";
 }
