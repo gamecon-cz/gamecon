@@ -32,6 +32,7 @@ class Cenik
         Pravo::JIDLO_ZDARMA                   => 'jídlo zdarma',
         Pravo::JIDLO_SE_SLEVOU                => ['jídlo se slevou', Pravo::JIDLO_ZDARMA],
         Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA     => 'dvě jakákoli trička zdarma',
+        Pravo::JAKEKOLIV_TRICKO_ZDARMA        => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
         Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA   => 'modré tričko se slevou',
     ];
 
@@ -64,6 +65,9 @@ class Cenik
         private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
+        if ($u->maPravo(Pravo::JAKEKOLIV_TRICKO_ZDARMA)) {
+            $this->jakychkoliTricekZdarma = 1;
+        }
         if ($u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)) {
             $this->jakychkoliTricekZdarma = 2;
         }

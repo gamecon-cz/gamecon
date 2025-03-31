@@ -25,3 +25,9 @@ define('BABEL_BINARKA', null);
 
 @define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
 @define('MAILY_ROLIM', [\Gamecon\Role\Role::ORGANIZATOR]);
+
+@define('SUPERADMINI', [
+    4032 /* Jaroslav "Kostřivec" Týc */,
+    1112 /* Lenka "Cemi" Zavadilová */,
+    4275 /* Roman "Sciator" Wehmhoner */
+]);
