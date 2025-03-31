@@ -54,6 +54,10 @@ if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
 $zacatekGameconu = DateTimeGamecon::zacatekGameconu();
 $konecGameconu   = DateTimeGamecon::konecGameconu();
 
+if (date('Y-m-d') === '2025-04-01') {
+    $t->parse(block: 'titulka.april2025');
+}
+
 // ostatní
 $t->assign([
     'gcOd'                       => $zacatekGameconu->format('j.'),
