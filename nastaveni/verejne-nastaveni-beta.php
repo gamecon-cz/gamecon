@@ -9,8 +9,6 @@ define('URL_CACHE', 'https://cache.beta.gamecon.cz'); // url sdílených cachí
 define('ANALYTICS', false);
 define('HTTPS_ONLY', true);
 
-// define('ROCNIK', 2025);
-
 define('REACT_V_PROHLIZECI', true);
 define('AUTOMATICKE_SESTAVENI', true);
 define('BABEL_BINARKA', null);
@@ -27,3 +25,9 @@ define('BABEL_BINARKA', null);
 
 @define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
 @define('MAILY_ROLIM', [\Gamecon\Role\Role::ORGANIZATOR]);
+
+@define('SUPERADMINI', [
+    4032 /* Jaroslav "Kostřivec" Týc */,
+    1112 /* Lenka "Cemi" Zavadilová */,
+    4275 /* Roman "Sciator" Wehmhoner */
+]);
