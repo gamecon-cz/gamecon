@@ -4,11 +4,6 @@
   --gc-dark: rgb(16, 17, 26);
 }
 
-.dropdowns {
-  margin-bottom: 8vw;
-  /* outline: 2px dotted purple; */
-}
-
 details {
   width: 100%;
   margin: 0 auto;
@@ -162,30 +157,17 @@ details article ol > li::before {
 
 details article ul li {
   margin: 0 0 1em 0;
-  padding-left: 1em;
+  padding-left: 0.5em;
 }
 
 details article ol li {
   display: block;
   list-style-type: none;
-  margin: 0 0 1em 0;
+  margin: 0 0 0.5em 0;
   padding-left: 1em;
 }
 
 details article ul {
-  list-style: none; 
-  padding-left: 2em; 
+  margin-left: 1em;
 }
 
-details article ul li {
-  display: flex; 
-  align-items: start; 
-}
-
-details article ul li::before {
-  content: "➤";
-  color: var(--gc-red);
-  font-size: 1em;
-  margin-top: 0.3em;
-  margin-left: -1.5em; 
-}
