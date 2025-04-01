@@ -5,7 +5,9 @@
     <div class="aktivity_ikonaLinie">
         <figure>
             <img src="{ikonaLinie}">
-            <figcaption>{ikonaLiniePopis}</figcaption>
+            <figcaption>{ikonaLinieSekce}</figcaption>
+            <figcaption>{ikonaLinieJmeno}</figcaption>
+            <figcaption><a href="mailto:{ikonaLinieEmail}">{ikonaLinieEmail}</a></figcaption>
         </figure>
     </div>
     <div class="aktivity_popisLinie stranka_format">
