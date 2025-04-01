@@ -103,7 +103,7 @@ details summary::-webkit-details-marker {
 .dropdowns details article {
   padding: 1em;
   counter-reset: dropdown-counter;
-  background: url(images/vlny.svg);
+  background: url(vlny.svg);
   background-position: 40em 1em;
   background-size: 15em 50em;
   background-repeat: no-repeat;
@@ -126,6 +126,7 @@ details summary::-webkit-details-marker {
   font-weight: bolder;
 }
 
+.dropdowns details article > ul,
 .dropdowns details article > ol {
   display: block;
   list-style-type: none;
@@ -143,6 +144,7 @@ details summary::-webkit-details-marker {
   margin: .25em 0 .5em 0;
 }
 
+.dropdowns details article ul > li::before,
 .dropdowns details article ol > li::before {
   content: counter(dropdown-counter);
   counter-increment: dropdown-counter;
@@ -160,6 +162,9 @@ details summary::-webkit-details-marker {
   color: white;
 }
 
+.dropdowns details article ul > li > ol,
+.dropdowns details article ul > li > ul,
+.dropdowns details article ol > li > ul,
 .dropdowns details article ol > li > ol {
   display: block;
   list-style-type: none;
@@ -167,6 +172,9 @@ details summary::-webkit-details-marker {
   padding-left: 1em;
 }
 
+.dropdowns details article ul > li > ul > li::before,
+.dropdowns details article ul > li > ol > li::before,
+.dropdowns details article ol > li > ul > li::before,
 .dropdowns details article ol > li > ol > li::before {
   content: counter(dropdown-2nd-counter, lower-latin);
   counter-increment: dropdown-2nd-counter;
