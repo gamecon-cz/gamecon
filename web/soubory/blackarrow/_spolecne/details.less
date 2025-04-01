@@ -10,7 +10,7 @@
 }
 
 details {
-  width: 80%;
+  width: 100%;
   margin: 0 auto;
   margin-bottom: .5rem;
   overflow: hidden;
@@ -100,7 +100,7 @@ details summary::-webkit-details-marker {
   }
 }
 
-.dropdowns details article {
+details article {
   padding: 1em;
   counter-reset: dropdown-counter;
   background: url(vlny.svg);
@@ -109,25 +109,24 @@ details summary::-webkit-details-marker {
   background-repeat: no-repeat;
 }
 
-.dropdowns details article p {
+details article p {
   margin: .25em 0 .25em 0;
 }
 
-.dropdowns details article h2,
-.dropdowns details article h3,
-.dropdowns details article h4,
-.dropdowns details article h5,
-.dropdowns details article h6 {
+details article h2,
+details article h3,
+details article h4,
+details article h5,
+details article h6 {
   margin: 0 0 .5em 0;
 }
 
-.dropdowns details article span {
+details article span {
   color: var(--gc-red);
   font-weight: bolder;
 }
 
-.dropdowns details article > ul,
-.dropdowns details article > ol {
+details article > ol {
   display: block;
   list-style-type: none;
   margin: 0 0 0 0;
@@ -135,17 +134,16 @@ details summary::-webkit-details-marker {
   counter-reset: dropdown-2nd-counter;
 }
 
-.dropdowns details article li {
+details article li {
   margin: .25em 0 0 0;
   position: relative;
 }
 
-.dropdowns details article li:last-child {
+details article li:last-child {
   margin: .25em 0 .5em 0;
 }
 
-.dropdowns details article ul > li::before,
-.dropdowns details article ol > li::before {
+details article ol > li::before {
   content: counter(dropdown-counter);
   counter-increment: dropdown-counter;
   position: absolute;
@@ -162,31 +160,32 @@ details summary::-webkit-details-marker {
   color: white;
 }
 
-.dropdowns details article ul > li > ol,
-.dropdowns details article ul > li > ul,
-.dropdowns details article ol > li > ul,
-.dropdowns details article ol > li > ol {
+details article ul li {
+  margin: 0 0 1em 0;
+  padding-left: 1em;
+}
+
+details article ol li {
   display: block;
   list-style-type: none;
   margin: 0 0 1em 0;
   padding-left: 1em;
 }
 
-.dropdowns details article ul > li > ul > li::before,
-.dropdowns details article ul > li > ol > li::before,
-.dropdowns details article ol > li > ul > li::before,
-.dropdowns details article ol > li > ol > li::before {
-  content: counter(dropdown-2nd-counter, lower-latin);
-  counter-increment: dropdown-2nd-counter;
-  background-color: var(--gc-dark);
+details article ul {
+  list-style: none; 
+  padding-left: 2em; 
 }
 
-.dropdowns details article ul > li {
-  margin-left: 1em;
-  padding-left: 1em;
+details article ul li {
+  display: flex; 
+  align-items: start; 
 }
 
-.dropdowns details article ul > li > ul,
-.dropdowns details article ul > li > ol {
-    padding-left: 2em;
+details article ul li::before {
+  content: "➤";
+  color: var(--gc-red);
+  font-size: 1em;
+  margin-top: 0.3em;
+  margin-left: -1.5em; 
 }
