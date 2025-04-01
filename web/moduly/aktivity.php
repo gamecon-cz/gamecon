@@ -123,14 +123,19 @@ if (!empty($org)) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
 
     $descriptionFile = 'soubory/systemove/linie-ikony/' . $typ->id() . '.txt';
-    $varIkonaLiniePopis = file_exists($descriptionFile) 
-        ? nl2br(htmlspecialchars(file_get_contents($descriptionFile))) 
-        : "<p><em>File not found: $descriptionFile</em></p>";
     
+    /*$varIkonaLiniePopis = file_exists($descriptionFile) 
+        ? nl2br(htmlspecialchars(file_get_contents($descriptionFile))) 
+        : "<p><em>File not found: $descriptionFile</em></p>";*/
+
+    $lines = file($descriptionFile, FILE_IGNORE_NEW_LINES);
+    /* 'ikonaLiniePopis' => $varIkonaLiniePopis, */ 
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
         'ikonaLinie'      => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
-        'ikonaLiniePopis' => $varIkonaLiniePopis,
+        'ikonaLinieSekce' => $lines[0],
+        'ikonaLinieJmeno' => $lines[1],
+        'ikonaLinieEmail' => $lines[2],
         'specTridy'       => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
     ]);
 
