@@ -24,7 +24,7 @@ $puvodniSuma = $u->finance()->sumaPlateb($systemoveNastaveni->rocnik());
 $platby = new Platby($systemoveNastaveni);
 
 $zmenilSeZustatek = false;
-foreach ($platby->nactiPoslednichParDni(1) as $platba) {
+foreach ($platby->nactiZPoslednichDni(1) as $platba) {
     if ($platba->idUcastnika() === $u->id()) {
         $zmenilSeZustatek = true;
         break;

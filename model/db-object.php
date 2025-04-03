@@ -8,9 +8,6 @@ if (!defined('DB_NULL')) {
  */
 abstract class DbObject
 {
-
-    protected $r; // řádek z databáze
-
     protected static $tabulka;    // název tabulky - odděděná třída _musí_ přepsat
     protected static $pk = 'id';  // název primárního klíče - odděděná třída může přepsat
     /**
@@ -23,9 +20,8 @@ abstract class DbObject
      * Vytvoří objekt na základě řádku z databáze
      * @param array $r
      */
-    protected function __construct(array $r)
+    protected function __construct(protected array $r)
     {
-        $this->r = $r;
     }
 
     /**
