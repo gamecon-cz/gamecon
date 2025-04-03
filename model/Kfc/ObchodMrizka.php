@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Kfc;
 
 /**
- * @method static ObchodMrizka zId($id)
+ * @method static ObchodMrizka|null zId($id, bool $zCache = false)
  * @method static ObchodMrizka[] zVsech(bool $zCache = false)
  */
 class ObchodMrizka extends \DbObject
