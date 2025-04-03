@@ -9,17 +9,31 @@ class EPDO extends PDO
     /**
      * Vloží do tabulky daného názvu nový řádek definovaný jako asoc. pole
      */
-    public function insert($tabulka, $radek)
-    {
+    public function insert(
+        string $tabulka,
+        array  $radek,
+    ) {
         $sloupce = implode(',', array_map([$this, 'qi'], array_keys($radek)));
         $hodnoty = implode(',', array_map([$this, 'qv'], $radek));
         $this->query("INSERT INTO $tabulka ($sloupce) VALUES ($hodnoty)");
     }
 
     /**
+     * Vloží nebo přepíše v tabulce daného názvu řádek definovaný jako asoc. pole
+     */
+    public function insertOrReplace(
+        string $tabulka,
+        array  $radek,
+    ) {
+        $sloupce = implode(',', array_map([$this, 'qi'], array_keys($radek)));
+        $hodnoty = implode(',', array_map([$this, 'qv'], $radek));
+        $this->query("INSERT OR REPLACE INTO $tabulka ($sloupce) VALUES ($hodnoty)");
+    }
+
+    /**
      * Vloží do tabulky daného názvu nový řádek definovaný jako asoc. pole
      */
-    public function fetchSingleValue(string $query): int|string|float|bool|null
+    public function fetchSingleValue(string $query): int | string | float | bool | null
     {
         $pdo = $this->query($query);
 
@@ -35,8 +49,11 @@ class EPDO extends PDO
      * @todo argumenty
      * @todo nějaký složitější systém výjimek na jemné ladění
      */
-    public function query($query, $fetchMode = PDO::ATTR_DEFAULT_FETCH_MODE, ...$fetch_mode_args): PDOStatement
-    {
+    public function query(
+        $query,
+        $fetchMode = PDO::ATTR_DEFAULT_FETCH_MODE,
+        ...$fetch_mode_args
+    ): PDOStatement {
         /*
         // inspirace pro argumenty preg style
         $delta = strpos($q, '$0')===false ? -1 : 0; // povolení číslování $1, $2, $3...

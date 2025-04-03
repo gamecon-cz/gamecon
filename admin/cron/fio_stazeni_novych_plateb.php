@@ -10,28 +10,37 @@ global $systemoveNastaveni;
 
 if (!defined('FIO_TOKEN') || FIO_TOKEN === '') {
     logs('FIO_TOKEN není definován, přeskakuji aktualizaci plateb.');
+
     return;
 }
 
 $platbyService = new Platby($systemoveNastaveni);
 if ($platbyService->platbyBylyAktualizovanyPredChvili()) {
     logs('Platby byly aktualizovány před chvílí, přeskakuji.');
+
     return;
 }
 
 logsText('Zpracovávám platby z Fio API...');
-$platby = $platbyService->nactiPoslednichParDni();
-foreach ($platby as $platba) {
-    logs(' - platba ' . $platba->id()
-        . ' (' . $platba->castka() . 'Kč, VS: ' . $platba->vs()
-        . ($platba->zpravaProPrijemce() ? ', zpráva: ' . $platba->zpravaProPrijemce() : '')
-        . ($platba->zkrytaPoznamka() ? ', poznámka: ' . $platba->zkrytaPoznamka() : '')
-        . ')',
+$fioPlatby = $platbyService->nactiZPoslednichDni();
+$platbyService->nastavPosledniAktulizaciPlatebBehemSessionKdy(new DateTimeImmutableStrict());
+
+if (!$fioPlatby) {
+    logsText('...žádné zaúčtovatelné platby.', false);
+
+    return;
+}
+
+foreach ($fioPlatby as $fioPlatba) {
+    logs(' - platba ' . $fioPlatba->id()
+         . ' (' . $fioPlatba->castka() . 'Kč, VS: ' . $fioPlatba->variabilniSymbol()
+         . ($fioPlatba->zpravaProPrijemce()
+            ? ', zpráva: ' . $fioPlatba->zpravaProPrijemce()
+            : '')
+         . ($fioPlatba->skrytaPoznamka()
+            ? ', poznámka: ' . $fioPlatba->skrytaPoznamka()
+            : '')
+         . ')',
         false,
     );
 }
-if (!$platby) {
-    logsText('...žádné zaúčtovatelné platby.', false);
-}
-
-$platbyService->nastavPosledniAktulizaciPlatebBehemSessionKdy(new DateTimeImmutableStrict());
