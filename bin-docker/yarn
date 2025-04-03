@@ -14,8 +14,7 @@ if [ "$(docker compose ps web | grep --count Up)" -gt 0 ]; then
 		web yarn "$@"
 else
 	docker_compose_run \
-		--entrypoint=yarn \
     --workdir="/var/www/html/${PROJECT_DIR}/ui" \
 		--user=www-data \
-		web "$@"
+		web yarn "$@"
 fi

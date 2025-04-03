@@ -22,7 +22,7 @@ if (post('sprarovatIdUzivatele')) {
     if (!$uzivatel) {
         chyba(sprintf('Uživatel %d neexistuje.', post('sprarovatIdUzivatele')));
     }
-    $platba = Platba::zId(post('sprarovatIdPlatby'));
+    $platba = Platba::zId(post('sprarovatIdPlatby'), true);
     if (!$platba) {
         chyba(sprintf('Platbna %d neexistuje.', post('sprarovatIdPlatby')));
     }
@@ -46,7 +46,11 @@ foreach ($nesparovanePlatby as $nesparovanaPlatba) {
         'castka'                 => $nesparovanaPlatba->castka(),
         'zpravaProPrijemce'      => $nesparovanaPlatba->poznamka(),
         'skrytaPoznamka'         => $nesparovanaPlatba->skrytaPoznamka(),
-        'fioId'                  => $nesparovanaPlatba->fioId(),
+        'nazevProtiuctu'         => $nesparovanaPlatba->nazevProtiuctu(),
+        'nazevBankyProtiuctu'    => $nesparovanaPlatba->nazevBankyProtiuctu(),
+        'cisloProtiuctu'         => $nesparovanaPlatba->cisloProtiuctu(),
+        'kodBankyProtiuctu'      => $nesparovanaPlatba->kodBankyProtiuctu(),
+        'vs'                     => $nesparovanaPlatba->variabilniSymbol(),
         'kdyPripsanoNaUcetBanky' => $nesparovanaPlatba->pripsanoNaUcetBanky() !== null
             ? DateTimeCz::createFromInterface(new \DateTime($nesparovanaPlatba->pripsanoNaUcetBanky()))->formatCasStandard()
             : '?',
