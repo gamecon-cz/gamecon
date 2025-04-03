@@ -39,7 +39,7 @@ class FioPlatbaTest extends TestCase
         $platby = FioPlatba::zPoslednichDni($pocetDniZpet);
         self::assertGreaterThan(0, count($platby), 'Platby nebyly načteny');
         $platba = reset($platby);
-        self::assertSame($expectedVs, $platba->vs());
+        self::assertSame($expectedVs, $platba->variabilniSymbol());
         self::assertSame($ocekavaneIdUcastnika, $platba->idUcastnika());
     }
 
@@ -146,7 +146,7 @@ class FioPlatbaTest extends TestCase
         );
         self::assertCount(2, $platbyMajiciVsVeZprave);
         foreach ($platbyMajiciVsVeZprave as $platbaMajiciVsVeZprave) {
-            self::assertSame($platbaMajiciVsVeZprave->zpravaProPrijemce(), "/VS/{$platbaMajiciVsVeZprave->vs()}");
+            self::assertSame($platbaMajiciVsVeZprave->zpravaProPrijemce(), "/VS/{$platbaMajiciVsVeZprave->variabilniSymbol()}");
         }
     }
 

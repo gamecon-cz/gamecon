@@ -1,4 +1,3 @@
-# -t is for testing if stdin (file descriptor 0) and stdout (file descriptor 1) are a terminal
 if [ -t 0 ] && [ -t 1 ]; then
 	DC_INTERACTIVITY=""
 else
@@ -14,7 +13,9 @@ function docker_run {
 }
 
 function docker_compose_run {
-	docker compose run --rm $DC_INTERACTIVITY "$@"
+  docker compose up -d
+	docker compose exec $DC_INTERACTIVITY "$@"
+	docker compose stop
 }
 
 function docker_compose_exec {
