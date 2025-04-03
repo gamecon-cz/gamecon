@@ -57,6 +57,7 @@ foreach ($posuny as $poradiOznameni => $posun) {
     if ($odhlaseniProvedenoKdy) {
         $odhlaseniProvedenoKdy = DateTimeCz::createFromInterface($odhlaseniProvedenoKdy);
         logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)} ({$odhlaseniProvedenoKdy->relativni()}). Už nemá smyl informovat CFO o nespárovaných platbách.");
+
         return;
     }
 
@@ -87,6 +88,7 @@ foreach ($platby->nesparovanePlatby($systemoveNastaveni->rocnik()) as $platba) {
 $pocetNesparovanychPlateb = count($zpravy);
 if ($pocetNesparovanychPlateb === 0) {
     logs('Žádné nespárované platby');
+
     return;
 }
 
@@ -106,7 +108,8 @@ $brzy      = mb_ucfirst($brzy);
 $uvod      = "$brzy Gamecon systém hromadně odhlásí neplatiče. Přitom ale máme $pocetNesparovanychPlateb nespárovaných plateb a hrozí komplikace.";
 $oddelovac = str_repeat('═', mb_strlen($uvod));
 (new GcMail($systemoveNastaveni))
-    ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
+    ->adresati($cfosEmaily
+                   ?: ['info@gamecon.cz'])
     ->predmet("$brzy bude hromadné odhlášení a stále máme $pocetNesparovanychPlateb nespárovaných plateb")
     ->text(<<<TEXT
         $uvod
@@ -119,10 +122,10 @@ $oddelovac = str_repeat('═', mb_strlen($uvod));
     ->odeslat(GcMail::FORMAT_TEXT);
 
 $platby->zalogujCfoNotifikovanONesparovanychPlatbach(
-    rocnik: $systemoveNastaveni->rocnik(),
-    poradiOznameni: $poradiOznameni,
+    rocnik:              $systemoveNastaveni->rocnik(),
+    poradiOznameni:      $poradiOznameni,
     nesparovanychPlateb: $pocetNesparovanychPlateb,
-    provedl: Uzivatel::zId(Uzivatel::SYSTEM),
+    provedl:             Uzivatel::zId(Uzivatel::SYSTEM),
 );
 
 logs('E-mail pro CFO s nespárovanými platbami: e-mail odeslán');

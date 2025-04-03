@@ -5,7 +5,7 @@ namespace Gamecon;
 use Gamecon\Role\Role;
 
 /**
- * @method static Pravo|null zId($id)
+ * @method static Pravo|null zId($id, bool $zCache = false)
  */
 class Pravo extends \DbObject
 {
