@@ -49,6 +49,12 @@ if (in_array($job, ['materializace_roli_podle_rocniku'])) {
     return;
 }
 
+if (in_array($job, ['synchronizace_historickych_plateb'])) {
+    require __DIR__ . '/jobs/synchronizace_historickych_plateb.php';
+
+    return;
+}
+
 if ($job !== 'aktivity_hromadne') {
     throw new \RuntimeException(sprintf("Invalid job '%s'", $job));
 }
