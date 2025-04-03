@@ -17,8 +17,7 @@ if [ "$(docker compose ps phpnginx | grep --count Up)" -gt 0 ]; then
 		web composer "$@"
 else
 	docker_compose_run \
-		--entrypoint=php \
     --workdir="/var/www/html/${PROJECT_DIR}" \
 		--user=www-data \
-		web /usr/local/bin/composer "$@"
+		web composer "$@"
 fi

@@ -5,7 +5,8 @@
     <th>Částka</th>
     <th>Zpráva pro příjemce</th>
     <th>Skrytá poznámka</th>
-    <th>Fio ID pohybu</th>
+    <th>Název protiúčtu</th>
+    <th>VS</th>
     <th>Na bankovní účet</th>
     <th>Na GC účastnický účet</th>
     <th>Spárovat s uživatelem</th>
@@ -15,7 +16,13 @@
     <td>{castka}</td>
     <td>{zpravaProPrijemce}</td>
     <td>{skrytaPoznamka}</td>
-    <td>{fioId}</td>
+    <td class="hinted">
+      {nazevProtiuctu}
+      <span class="hint">
+        Číslo protiúčtu: {cisloProtiuctu}/{kodBankyProtiuctu} {nazevBankyProtiuctu}
+      </span>
+    </td>
+    <td>{vs}</td>
     <td>{kdyPripsanoNaUcetBanky}</td>
     <td>{kdyPripsanoNaUcetGc}</td>
     <td>

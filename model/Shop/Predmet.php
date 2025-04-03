@@ -5,7 +5,7 @@ namespace Gamecon\Shop;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 
 /**
- * @method static Predmet zId($id, bool $zCache = false)
+ * @method static Predmet|null zId($id, bool $zCache = false)
  */
 class Predmet extends \DbObject
 {
