@@ -10,8 +10,7 @@
     <!-- begin:exportovat -->
     <form method="post">
       <input type="hidden" name="export_activity_type_id" value="{activityTypeId}">
-      <input type="submit" name="exportovat" value="Exportovat účastníky {pocetAktivit} {pocetAktivitSlovo} typu {nazevTypu}"
-             {exportDisabled} class="disable-and-show-loading-on-click">
+      <input type="submit" name="exportovat" value="Exportovat účastníky {pocetAktivit} {pocetAktivitSlovo} typu {nazevTypu}" {exportDisabled}>
     </form>
     <!-- end:exportovat -->
 

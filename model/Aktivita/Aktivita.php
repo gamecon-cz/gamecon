@@ -1993,6 +1993,15 @@ SQL
             }
         }
 
+        if ($this->jeBrigadnicka() && !$uzivatel->jeBrigadnik()) {
+            throw new \Chyba(
+                'Na tuto aktivitu se může přihlásit pouze brigádník. '
+                . ($hlaskyVeTretiOsobe
+                    ? ($uzivatel->jmenoVolitelnyNick() . ': ' . hlaska('neniBrigadnik'))
+                    : hlaska('nejsiBrigadnik'))
+            );
+        }
+
         // potlačitelné kontroly
         if ($this->a['zamcel'] && !($parametry & self::ZAMEK)) {
             throw new \Chyba(hlaska('zamcena')); // zamčena pro tým, nikoli zamčena / uzavřena
