@@ -73,6 +73,18 @@
     filter: none;
 }
 
+.obal > .sponzori {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.obal > .sponzori > .partneri_loga {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0 20px; 
+}
+
 .obal > .sponzori > .sponzori_loga {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -86,4 +98,12 @@
     .obal > .sponzori > .sponzori_loga {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+
+.obal > .sponzori > .sponzori_loga > .sponzori_logo > a > img { 
+    filter: none;
+}
+
+.obal > .sponzori > .partneri_loga > .partneri_logo > a > img {
+    filter: none;
 }
