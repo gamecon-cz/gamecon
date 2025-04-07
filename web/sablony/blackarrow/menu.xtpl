@@ -50,9 +50,9 @@
             <a class="menu_polozka" href="prakticke-informace">Praktické informace</a>
             <a class="menu_polozka" href="organizacni-vypomoc">Chci organizovat GameCon</a>
             <a class="menu_polozka" href="blog">Blog</a>
-            <a class="menu_polozka" href="pro-sponzory-a-media">Pro sponzory a média</a>
+            <!-- <a class="menu_polozka" href="pro-sponzory-a-media">Pro sponzory a média</a> -->
             <a class="menu_polozka" href="kontakty">Kontakty</a>
-            <!--<a class="menu_polozka" href="prihlaska">Přihláška</a> -->
+            <!-- <a class="menu_polozka" href="prihlaska">Přihláška</a> -->
             <!-- <a class="menu_polozka" href="novinky">Novinky</a> -->
             <!-- <a class="menu_polozka" href="chci-se-prihlasit">Chci na GameCon</a> -->
             <!-- <a class="menu_polozka" href="info-po-gc">Info po GC a zpětná vazba</a> -->
