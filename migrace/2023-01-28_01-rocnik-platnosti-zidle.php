@@ -40,7 +40,7 @@ DROP TEMPORARY TABLE r_zidle_soupis_rocnik_temp
 SQL
 );
 
-$idckaTrvalychZidli    = \Gamecon\Role\Role::idckaTrvalychRoli();
+$idckaTrvalychZidli    = [2, 21, 22, 15, 20, 16, 9, 23, 24, 25];
 $idckaTrvalychZidliSql = implode(',', $idckaTrvalychZidli);
 
 $this->q(<<<SQL

@@ -8,7 +8,7 @@ use Gamecon\Role\Exceptions\NeznamyVyznamRole;
 use Gamecon\Role\SqlStruktura\RoleSqlStruktura;
 
 /**
- * @method static Role zId($id, bool $zCache = false)
+ * @method static Role|null zId($id, bool $zCache = false)
  */
 class Role extends \DbObject
 {
@@ -113,26 +113,6 @@ class Role extends \DbObject
     public const VYZNAM_PRIHLASEN = 'PRIHLASEN';
     public const VYZNAM_PRITOMEN  = 'PRITOMEN';
     public const VYZNAM_ODJEL     = 'ODJEL';
-
-    /**
-     * @return int[]
-     */
-    public static function idckaTrvalychRoli(): array
-    {
-        return [
-            Role::ORGANIZATOR,
-            Role::PUL_ORG_BONUS_UBYTKO,
-            Role::PUL_ORG_BONUS_TRICKO,
-            Role::CESTNY_ORGANIZATOR,
-            Role::CFO,
-            Role::PREZENCNI_ADMIN,
-            Role::VYPRAVECSKA_SKUPINA,
-            Role::CLEN_RADY,
-            Role::SEF_INFOPULTU,
-            Role::SEF_PROGRAMU,
-            Role::MINI_ORG,
-        ];
-    }
 
     public static function vyznamPodleKodu(string $kodRole): string
     {
