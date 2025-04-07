@@ -24,8 +24,8 @@ const PROGRAM_ČASY =
   GAMECON_KONSTANTY.PROGRAM_ZACATEK < GAMECON_KONSTANTY.PROGRAM_KONEC
     ? range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, GAMECON_KONSTANTY.PROGRAM_KONEC)
     : range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, 24).concat(
-        range(0, GAMECON_KONSTANTY.PROGRAM_KONEC)
-      );
+      range(0, GAMECON_KONSTANTY.PROGRAM_KONEC)
+    );
 
 const indexŘazení = (klíč: string) => {
   const index = GAMECON_KONSTANTY.PROGRAM_ŘAZENÍ_LINIE.findIndex(
@@ -44,7 +44,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const urlStavVýběr = useUrlVýběr();
   const aktivityFiltrované = useAktivityFiltrované();
 
-  const kompaktní = useProgramStore(s=>s.všeobecné.kompaktní);
+  const kompaktní = useProgramStore(s => s.všeobecné.kompaktní);
 
   const BuňkaKomponenta = kompaktní ? ProgramTabulkaBuňkaKompaktní : ProgramTabulkaBuňka;
 
@@ -112,7 +112,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
                     const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
                     posledníAktivitaDo = hodinDo;
-                    const odsazení = range(časOdsazení).map(() => <td></td>);
+                    const odsazení = <td colSpan={časOdsazení}></td>;
 
                     return (
                       <>
@@ -125,8 +125,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                     );
                   })}
                 {
-                  range((GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24)
-                    .map(() => <td></td>)
+                  <td colSpan={(GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24}></td>
                 }
               </tr>
             );
@@ -155,7 +154,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     + (aktivitaNáhled ? " programNahled_obalProgramu-zuzeny" : "")
     + (zvětšeno ? " programNahled_obalProgramu-zvetseny" : "")
     ;
-;
+  ;
   const obalHlavníRef = useRef<HTMLDivElement>(null);
   const posledníZvětšeno = useRef(false);
 

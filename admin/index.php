@@ -61,9 +61,6 @@ $xtpl->assign([
         ? getCurrentUrlWithQuery(['pracovni_uzivatel' => $uPracovni->id()])
         : '',
 ]);
-if ($systemoveNastaveni->jeApril()) {
-    $xtpl->parse('all.april');
-}
 
 // kontrola přihlášení při ajaxovém volání (kvůli elektronickým prezenčkám)
 if (!$u && get('ajax')) {
@@ -88,6 +85,10 @@ if (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.ph
     chdir(__DIR__ . '/scripts/zvlastni/' . $stranka);
 
     return require $podstranka . '.php';
+}
+
+if ($systemoveNastaveni->jeApril()) {
+    $xtpl->parse('all.april');
 }
 
 if ($u && $u->jeOrganizator()) {

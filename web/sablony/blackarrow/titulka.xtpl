@@ -14,6 +14,7 @@
 
 <div class="gchlavicka">
     <img
+        alt=""
         class="img1"
         src="soubory/blackarrow/gchlavicka/obr_1.jpg"
         data-aos="fade-right"
@@ -43,17 +44,17 @@
 
 <div class="karty">
     <div class="karty_karta" data-aos="fade-right">
-        <img src="soubory/blackarrow/karty/1.jpg">
+        <img alt="" src="soubory/blackarrow/karty/1.jpg">
         <h2>Akce pro všechny</h2>
         <div class="karty_text">Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.</div>
     </div>
     <div class="karty_karta" data-aos="fade-right" data-aos-delay="200">
-        <img src="soubory/blackarrow/karty/2.jpg">
+        <img alt="" src="soubory/blackarrow/karty/2.jpg">
         <h2>Festival aktivní zábavy</h2>
         <div class="karty_text">Na GameConu najdeš všechno od celodenně otevřené deskoherny, přes rolové hry až po koncert.</div>
     </div>
     <div class="karty_karta" data-aos="fade-right" data-aos-delay="400">
-        <img src="soubory/blackarrow/karty/3.jpg">
+        <img alt="" src="soubory/blackarrow/karty/3.jpg">
         <h2>Žádné vstupné</h2>
         <div class="karty_text">Registrace na GameCon je zdarma. Platíš jen za služby a aktivity, které si sám vybereš a objednáš.</div>
     </div>
@@ -73,34 +74,34 @@
 
 <div class="cisla">
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="200">
-        <img src="soubory/blackarrow/cisla/1.jpg" style="margin: -30px 0 0 87px">
+        <img alt="ikona účastníků" src="soubory/blackarrow/cisla/1.jpg" style="margin: -30px 0 0 87px">
         <div class="cisla_cislo">{stovkySpokojenychUcastniku}+</div>
         <div class="cisla_text">spokojených účastníků</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up">
-        <img src="soubory/blackarrow/cisla/2.jpg" style="margin: -13px 0 0 73px">
+        <img alt="ikona aktivit" src="soubory/blackarrow/cisla/2.jpg" style="margin: -13px 0 0 73px">
         <div class="cisla_cislo">{stovkyAktivit}+</div>
         <div class="cisla_text">různých aktivit</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="100">
-        <img src="soubory/blackarrow/cisla/3.jpg" style="margin: -23px 0 0 30px">
+        <img alt="ikona trvání" src="soubory/blackarrow/cisla/3.jpg" style="margin: -23px 0 0 30px">
         <div class="cisla_cislo">4</div>
         <div class="cisla_text">dny zábavy</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="50">
-        <img src="soubory/blackarrow/cisla/4.jpg" style="margin: -13px 0 0 30px">
+        <img alt="ikona koncert" src="soubory/blackarrow/cisla/4.jpg" style="margin: -13px 0 0 30px">
         <div class="cisla_cislo">1</div>
         <div class="cisla_text">super koncert</div>
     </div>
 </div>
 
 <div class="fotky">
-    <img src="soubory/blackarrow/fotky/1.jpg" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
-    <img src="soubory/blackarrow/fotky/2.jpg" data-aos="fotky" data-aos-offset="200" style="top:  6.042vw; left:  22.083vw">
-    <img src="soubory/blackarrow/fotky/3.jpg" data-aos="fotky" data-aos-offset="200" style="top: 28.177vw; left:  25.990vw">
-    <img src="soubory/blackarrow/fotky/4.jpg" data-aos="fotky" data-aos-offset="200" style="top: 15.417vw; left:  46.667vw">
-    <img src="soubory/blackarrow/fotky/5.jpg" data-aos="fotky" data-aos-offset="200" style="top: 37.188vw; left:  65.521vw">
-    <img src="soubory/blackarrow/fotky/6.jpg" data-aos="fotky" data-aos-offset="200" style="top:  2.969vw; right:      0vw; transform-origin: top right">
+    <img loading="lazy" alt="Koncert" src="soubory/blackarrow/fotky/1.jpg" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
+    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/2.jpg" data-aos="fotky" data-aos-offset="200" style="top:  6.042vw; left:  22.083vw">
+    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/3.jpg" data-aos="fotky" data-aos-offset="200" style="top: 28.177vw; left:  25.990vw">
+    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/4.jpg" data-aos="fotky" data-aos-offset="200" style="top: 15.417vw; left:  46.667vw">
+    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/5.jpg" data-aos="fotky" data-aos-offset="200" style="top: 37.188vw; left:  65.521vw">
+    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/6.jpg" data-aos="fotky" data-aos-offset="200" style="top:  2.969vw; right:      0vw; transform-origin: top right">
 </div>
 
 <div class="zazijes">
@@ -186,14 +187,14 @@
     <div class="sponzori_loga">
         <!-- begin: sponzor -->
         <div class="sponzori_logo">
-            <a href="{url}" target="_blank"><img src="{src}"></a>
+            <a href="{url}" target="_blank"><img loading="lazy" src="{src}"></a>
         </div>
         <!-- end:sponzor -->
     </div>
     <div class="partneri_loga">
         <!-- begin: partner -->
         <div class="partneri_logo">
-            <a href="{url}" target="_blank"><img src="{src}"></a>
+            <a href="{url}" target="_blank"><img loading="lazy" src="{src}"></a>
         </div>
         <!-- end:partner -->
     </div>
@@ -206,5 +207,19 @@
         disableMutationObserver: true,
     });
 </script>
+
+<!-- begin: april2025 -->
+<link rel="stylesheet" href="soubory/blackarrow/april2025/april2025.css">
+
+<div id="april2025Modal" class="modal--april2025">
+    <div class="modal-content--april2025">
+        <h2>Děkujeme za tvou účast na GameConu 2025!</h2>
+        <p>Budeme moc rádi za jakoukoliv zpětnou vazbu, abychom si vzpomněli, co jsme zlepšili, případně co určitě nevynechat ani v předchozích letech. Budeme se těšit zase před rokem, od té doby nás můžeš sledovat na Facebooku, Instagramu nebo na Discordu.</p>
+        <button onclick="closeModal()">Otevřít</button>
+    </div>
+</div>
+
+<script src="soubory/blackarrow/april2025/april2025.js"></script>
+<!-- end: april2025 -->
 
 <!-- end: titulka -->
