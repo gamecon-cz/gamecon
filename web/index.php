@@ -117,6 +117,12 @@ if (!$m->bezPaticky()) {
             'nazev' => 'qrka',
         ]);
     }
+    else {
+        $t->assign([
+            'odkaz' => '',
+            'nazev' => '',
+        ]);
+    }
     $t->parse('index.paticka');
 }
 
