@@ -4,7 +4,7 @@
 <div class="aktivity_hlavicka">
     <div class="aktivity_ikonaLinie">
         <figure>
-            <img src="{ikonaLinie}">
+            <img class="org-obrazek" src="{ikonaLinie}">
             <figcaption>{ikonaLinieSekce}</figcaption>
             <figcaption>{ikonaLinieJmeno}</figcaption>
             <figcaption><a href="mailto:{ikonaLinieEmail}">{ikonaLinieEmail}</a></figcaption>

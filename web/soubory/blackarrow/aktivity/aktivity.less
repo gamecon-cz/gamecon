@@ -8,7 +8,7 @@
 
     @media (max-width: 600px) {
         background: url('../blackarrow/aktivity/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto,
-        linear-gradient(to bottom, #f6f1ea 50%, #fff 50%);
+            linear-gradient(to bottom, #f6f1ea 50%, #fff 50%);
         overflow: hidden;
     }
 }
@@ -28,6 +28,7 @@
 .aktivity_hlavickaVypravecFotka {
     width: 180px;
     margin-top: 55px;
+
     @media (max-width: 600px) {
         display: none;
     }
@@ -37,15 +38,18 @@
     margin-top: -9px; // aby bylo zarovnané s hranou fotky
     margin-left: 30px;
     max-width: 55%;
+
     @media (max-width: 600px) {
         margin: 0;
         max-width: none;
+
         &.stranka_format h1 {
             margin-top: 30px;
         }
     }
 }
 
+/*
 .aktivity_popisLinie {
     position: relative;
     z-index: 1; // kvůli ikoně pod textem (nejen) na mobilu
@@ -58,38 +62,23 @@
 
     @media (max-width: 600px) {
         max-width: none;
+
         &.stranka_format h1 {
             margin-right: 0;
             margin-top: 30px;
         }
     }
-}
+}*/
 
 .aktivity_ikonaLinie {
-    position: absolute;
-    margin: 54px 0 0 75%;
     background: url('../blackarrow/aktivity/flek.png') no-repeat center center;
     background-size: contain;
-    width: 30em;
-    height: 30em;
+    width: 27em;
+    height: 27em;
 
     display: flex;
     justify-content: center;
     align-items: center;
-
-    img {
-        display: block;
-        max-width: 100%;
-        height: auto;
-    }
-
-    @media (max-width: 600px) {
-        position: relative;
-        width: 100%;
-        min-height: 150px; /* Zajistí, že pozadí zůstane viditelné */
-        margin: 20px auto;
-        background-size: contain;
-    }
 }
 
 // stránky
@@ -102,6 +91,7 @@
     grid-template-columns: repeat(3, 1fr);
     column-gap: 2%;
     row-gap: 0.83vw;
+
     @media (max-width: 600px) {
         max-width: 97%;
         grid-template-columns: 1fr;
@@ -119,6 +109,7 @@
     color: #fff;
     padding: 0 24px;
     position: relative; // kvůli šipce
+
     @media (min-width: 1500px) {
         line-height: 72px;
         height: 72px;
@@ -137,6 +128,7 @@
     border-right: solid 2px #CE232D;
     transform: rotate(-45deg);
     transition: right 0.3s;
+
     @media (min-width: 1500px) {
         top: 32px
     }
@@ -161,6 +153,7 @@
     max-width: 90%; // na toto je navázaná výška obrázků
     padding: 40px;
     background: url('../blackarrow/aktivity/smouha.jpg') no-repeat 100% 0;
+
     @media (max-width: 600px) {
         column-count: 1;
         box-sizing: border-box;
@@ -184,6 +177,7 @@
 
     font-size: 13px;
     line-height: 22/13;
+
     @media (min-width: 1500px) {
         font-size: 15px
     }
@@ -194,9 +188,11 @@
     margin: 0 -26px 17px;
     width: ~'calc(100% + 52px)';
     height: 512px * 9/16;
+
     @media (max-width: 1600px) {
         height: 16.125vw
     }
+
     @media (max-width: 600px) {
         height: 97vw * 9/16
     }
@@ -210,13 +206,16 @@
 .aktivity_nazev {
     margin: 0 0 15px 0;
     font-size: 32px;
+
     @media (max-width: 1000px) {
         font-size: calc(150% + 1vw + 1vh);
     }
+
     @media (max-width: 600px) {
         // z čeho to jsou procenta viz .aktivity_aktivita font-size
         font-size: calc(220% + 1vw + 1vh)
     }
+
     font-weight: bold;
     line-height: 1.25;
     overflow: auto;
@@ -236,7 +235,7 @@
 .aktivity_vypravec {
     margin-bottom: 12px;
 
-    & > a {
+    &>a {
         text-decoration: underline lightgrey 1px;
         color: inherit;
     }
@@ -256,6 +255,7 @@
     padding: 6px 12px 5px;
     margin: 0 8px 8px 0;
     letter-spacing: 0.03em;
+
     @media (min-width: 1500px) {
         font-size: 12px
     }
@@ -344,7 +344,7 @@
     }
 }
 
-.aktivity_nahledCheckbox:checked + .aktivity_nahledObal {
+.aktivity_nahledCheckbox:checked+.aktivity_nahledObal {
     display: flex;
 }
 
@@ -407,22 +407,44 @@ figure {
     text-align: center;
 }
 
-@media (max-width: 600px) {
-    .aktivity_hlavicka {
-        display: grid;
-        grid-template-areas: 
+.aktivity_hlavicka {
+    display: grid;
+    grid-template-areas:
+        "popis ikona"
+        "popis ikona"
+        "navod navod";
+
+
+    @media (max-width: 789px) {
+        grid-template-areas:
             "popis"
-            "ikona";
+            "ikona"
+            "navod";
     }
+}
 
-    .aktivity_ikonaLinie {
-        grid-area: ikona;
-        margin: 0;
-        margin-top: -5em;
-        margin-bottom: -5em;
+.aktivity_ikonaLinie {
+    grid-area: ikona;
+    @media (max-width: 789px) {
+        justify-content: center;
+        align-content: center;
+        margin: 0 auto;
+        margin-top: -3em;
+        margin-bottom: -3em;
     }
+}
 
-    .aktivity_popisLinie {
-        grid-area: popis;
-    }
+.aktivity_popisLinie {
+    grid-area: popis;
+}
+
+.navod {
+    grid-area: navod;
+}
+
+
+.org-obrazek {
+    height: 150px;
+    width: 150px;
+    border-radius: 50%;
 }
