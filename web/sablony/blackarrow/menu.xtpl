@@ -23,7 +23,6 @@
           <!-- begin: mujPrehled -->
           <a href="{mojeAktivityAdminUrl}" target="_blank">Hry, které vedu</a>
           <!-- end: mujPrehled -->
-          <!--<a href="prihlaska">Přihláška na GC</a> -->
           <a href="prihlaska">{gcPrihlaska}</a>
           <a href="#" onclick="odhlasForm.submit(); return false;">Odhlásit</a>
           <form id="odhlasForm" method="post" action="prihlaseni">
@@ -41,7 +40,6 @@
             <!-- begin: typAktivit -->
             <a href="{typ.url}" class="menu_polozka">{typ.nazev}</a>
             <!-- end: typAktivit -->
-            <!-- <a class="menu_polozka" href="celohra">Celohra</a> -->
           </div>
         </div>
         <div class="menu_kategorie">
@@ -52,10 +50,6 @@
             <a class="menu_polozka" href="blog">Blog</a>
             <!-- <a class="menu_polozka" href="pro-sponzory-a-media">Pro sponzory a média</a> -->
             <a class="menu_polozka" href="kontakty">Kontakty</a>
-            <!-- <a class="menu_polozka" href="prihlaska">Přihláška</a> -->
-            <!-- <a class="menu_polozka" href="novinky">Novinky</a> -->
-            <!-- <a class="menu_polozka" href="chci-se-prihlasit">Chci na GameCon</a> -->
-            <!-- <a class="menu_polozka" href="info-po-gc">Info po GC a zpětná vazba</a> -->
 
           </div>
         </div>
