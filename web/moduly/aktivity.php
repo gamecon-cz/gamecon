@@ -132,7 +132,7 @@ if (!empty($org)) {
     /* 'ikonaLiniePopis' => $varIkonaLiniePopis, */ 
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
-        'ikonaLinie'      => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
+        'ikonaLinie'      => 'soubory/systemove/linie-ikony/' . $typ->id() . '.jpg',
         'ikonaLinieSekce' => $lines[0],
         'ikonaLinieJmeno' => $lines[1],
         'ikonaLinieEmail' => $lines[2],
