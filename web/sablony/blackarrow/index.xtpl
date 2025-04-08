@@ -31,7 +31,9 @@
             <div class="paticka_copy">&copy; {letosniRok} GameCon, Created by GameCon z.s.</div>
         </div>
         <div class="paticka_odkazy">
+            <!-- begin: qrka -->
             <a href="{odkaz}">{nazev}</a>
+            <!-- end: qrka -->
             <a href="sponzori">sponzoři</a>
             <a href="kontakty">kontakt</a>
             <!-- <a href="facebook" target="_blank" class="paticka_ext paticka_facebook">Facebook</a> -->
