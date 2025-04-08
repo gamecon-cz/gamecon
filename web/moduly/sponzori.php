@@ -12,12 +12,16 @@
             if ($pocetZmen === 0) {
                 continue; // skrývání odebraných sponzorů ([^_] znamená "jen pokud nezačíná podtržítkem" a podtržítko znamená "vyřazený obrázek")
             }
-            $fn = "https://$fn";
+
+            $href = preg_match('/^!/', $fn) ? '#' : "https://$fn";
             $t->assign([
-                'url' => $fn,
+                'url' => $href,
                 'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
+                'alt' => $fn,
             ]);
+
             $t->parse("sponzori.$kategorie");
+            if ($href === '#') { $t->parse("sponzori.{$kategorie}OnClick"); }
         }
     }
 }
