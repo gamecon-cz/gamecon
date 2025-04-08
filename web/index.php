@@ -143,7 +143,7 @@ $t->assign([
 $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
 $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
 if (!$m->bezPaticky()) {
-    if ($u->jeOrganizator()){
+    if ($u?->jeOrganizator()){
         $t->assign([
             'odkaz' => 'qrka',
             'nazev' => 'qrka',
