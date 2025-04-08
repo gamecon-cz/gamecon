@@ -7,7 +7,6 @@ use Gamecon\Role\Role;
  * nazev: Promlčení zůstatků
  * pravo: 108
  * submenu_group: 5
- * TODO
  */
 
 /** @var Uzivatel $u */
@@ -98,7 +97,7 @@ SELECT
 FROM uzivatele_hodnoty u
 LEFT JOIN (
     SELECT id_uzivatele,
-           GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC SEPARATOR ';' /*aby si Excel nevykládal 2012,2017 jako desettiné číslo*/) AS roky,
+           GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC SEPARATOR ';' /*aby si Excel nevykládal 2012,2017 jako desetinné číslo*/) AS roky,
     COUNT(*) AS pocet
     FROM platne_role_uzivatelu
     JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
@@ -150,15 +149,6 @@ SQL,
         ],
     );
 
-    if (post('exportovat')) {
-        $data = mysqli_fetch_all($o, MYSQLI_ASSOC);
-        if ($data !== []) {
-            $report = Report::zPole($data);
-            $report->tXlsx('Promlčení zůstatků');
-            exit();
-        }
-    }
-
     $p->assign('adminUrl', URL_ADMIN);
     $maxInputVars = (int)ini_get('max_input_vars'); // omezuje například POST
     $maxUzivatelu = $maxInputVars - 100;
@@ -207,9 +197,6 @@ $p->assign([
     'druhaHraniceZustatku'   => $druhaHraniceZustatku ?? null,
     'checkedVcetneInternich' => $vcetneInternich ?? false
         ? 'checked'
-        : '',
-    'disabledExport'         => $ids === []
-        ? 'disabled'
         : '',
 ]);
 
