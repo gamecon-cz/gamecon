@@ -4,14 +4,14 @@
   <div class="sponzori_loga">
     <!-- begin: sponzor -->
     <div class="sponzori_logo">
-      <a href="{url}" target="_blank"><img src="{src}" alt="{url}"></a>
+      <a href="{url}"<!-- begin:sponzorOnClick -->onclick="return false;"<!-- end:sponzorOnClick --> target="_blank"><img src="{src}" alt="{alt}"></a>
     </div>
     <!-- end:sponzor -->
   </div>
   <div class="partneri_loga">
     <!-- begin: partner -->
     <div class="partneri_logo">
-      <a href="{url}" target="_blank"><img src="{src}" alt="{url}"></a>
+      <a href="{url}"<!-- begin:partnerOnClick -->onclick="return false;"<!-- end:partnerOnClick --> target="_blank"><img src="{src}" alt="{alt}"></a>
     </div>
     <!-- end:partner -->
   </div>
