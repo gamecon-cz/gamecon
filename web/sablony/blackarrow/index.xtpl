@@ -7,7 +7,7 @@
     <base href="{base}">
     {FILE "sablony/blackarrow/fonty.xtpl"}
     <link rel="stylesheet" href="{css}">
-    <link rel="stylesheet" href="../../soubory/blackarrow/_spolecne/details.less">
+    <link rel="styleshee=t" href="../../soubory/blackarrow/_spolecne/details.less">
     <!-- begin: extraCss --><link rel="stylesheet" href="{url}"><!-- end: extraCss -->
     <!-- begin: extraJs --><script src="{url}"></script><!-- end: extraJs -->
     {jsVyjimkovac}
@@ -32,7 +32,9 @@
             <div class="paticka_copy">&copy; {letosniRok} GameCon, Created by GameCon z.s.</div>
         </div>
         <div class="paticka_odkazy">
+            <!-- begin: qrka -->
             <a href="{odkaz}">{nazev}</a>
+            <!-- end: qrka -->
             <a href="sponzori">sponzoři</a>
             <a href="kontakty">kontakt</a>
             <!-- <a href="facebook" target="_blank" class="paticka_ext paticka_facebook">Facebook</a> -->
