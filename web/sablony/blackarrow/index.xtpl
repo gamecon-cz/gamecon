@@ -6,6 +6,7 @@
     <meta name="description" content="Největší festival nepočítačových her. Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.">
     <base href="{base}">
     {FILE "sablony/blackarrow/fonty.xtpl"}
+    <link rel="stylesheet" href="../../soubory/blackarrow/_spolecne/details.less">
     <link rel="stylesheet" href="{css}">
     <!-- begin: extraCss --><link rel="stylesheet" href="{url}"><!-- end: extraCss -->
     <!-- begin: extraJs --><script src="{url}"></script><!-- end: extraJs -->
@@ -36,7 +37,6 @@
             <!-- end: qrka -->
             <a href="sponzori">sponzoři</a>
             <a href="kontakty">kontakt</a>
-            <!-- <a href="facebook" target="_blank" class="paticka_ext paticka_facebook">Facebook</a> -->
             <a href="discord" target="_blank" class="paticka_ext paticka_discord">Discord</a>
             <a href="instagram" target="_blank" class="paticka_ext paticka_instagram">Instagram</a>
             <a href="youtube" target="_blank" class="paticka_ext paticka_youtube">Youtube</a>

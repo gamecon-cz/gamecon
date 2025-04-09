@@ -1,0 +1,164 @@
+* {
+  --gc-light-gray: rgb(161, 161, 161);
+  --gc-red: rgb(226, 38, 48);
+  --gc-dark: rgb(16, 17, 26);
+}
+
+details {
+  width: 100%;
+  margin: 0 auto;
+  margin-bottom: .5rem;
+  overflow: hidden;
+  position: relative;
+  transition: all 500ms ease-in;
+}
+
+details[open] {
+  margin: 0 auto;
+  margin-bottom: 1em;
+}
+
+details > article {
+  border: solid 2px var(--gc-dark);
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  z-index: 0;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  transition: all 500ms ease-in;
+  animation: fadeOut 500ms ease-in forwards;
+}
+
+details[open] > article {
+  border: solid 2px var(--gc-dark);
+  height: auto;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  translate: 0 0;
+  scale: 100%;
+  opacity: 1;
+  animation: fadeIn 500ms ease-in forwards;
+}
+
+summary {
+  color: white;
+  background: var(--gc-red);
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.5em 1em;
+  z-index: 1;
+  transition: background-color 200ms ease-in;
+}
+
+details[open]>summary {
+  background-color: var(--gc-dark);
+}
+
+summary:hover {
+  background: var(--gc-dark);
+}
+
+details[open]>summary:before {
+  transform: rotate(90deg);
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      translate: 0 -10rem;
+      scale: 100% 150%;
+  }
+
+  to {
+      opacity: 1;
+      translate: 0 0;
+      scale: 100%;
+  }
+}
+
+@keyframes fadeOut {
+  from { 
+      opacity: 1; 
+      translate: 0 0;
+      scale: 100%;
+  }
+  to { 
+      opacity: 0; 
+      translate: 0 -10rem; 
+      scale: 100% 150%;
+  }
+}
+
+details article p {
+  margin: .25em 0 .25em 0;
+}
+
+details article h2,
+details article h3,
+details article h4,
+details article h5,
+details article h6 {
+  margin: 0 0 .5em 0;
+}
+
+details article span {
+  color: var(--gc-red);
+  font-weight: bolder;
+}
+
+details article > ol {
+  display: block;
+  list-style-type: none;
+  margin: 0 0 0 0;
+  padding-left: 2em;
+  counter-reset: dropdown-2nd-counter;
+}
+
+details article li {
+  margin: .25em 0 0 0;
+  position: relative;
+}
+
+details article li:last-child {
+  margin: .25em 0 .5em 0;
+}
+
+details article ol > li::before {
+  content: counter(dropdown-counter);
+  counter-increment: dropdown-counter;
+  position: absolute;
+  left: -2.2em;
+  top: .2em;
+  width: 1.2em;
+  border-radius: 1em;
+  padding: .25em;
+  background-color: var(--gc-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .5em;
+  color: white;
+}
+
+details article ul li {
+  margin: 0 0 1em 0;
+  padding-left: 0.5em;
+}
+
+details article ol li {
+  display: block;
+  list-style-type: none;
+  margin: 0 0 0.5em 0;
+  padding-left: 1em;
+}
+
+details article ul {
+  margin-left: 1em;
+}
+

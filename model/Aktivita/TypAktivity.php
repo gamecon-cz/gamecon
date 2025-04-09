@@ -100,6 +100,10 @@ class TypAktivity extends \DbObject
         return $this->r['typ_1pmn'];
     }
 
+    public function nastavNazev(string $novyNazev): void {
+        $this->r['typ_1pmn'] = $novyNazev;
+    }
+
     public function nazevJednotnehoCisla()
     {
         return $this->r['typ_1p'];
