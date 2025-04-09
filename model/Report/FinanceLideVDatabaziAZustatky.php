@@ -23,16 +23,13 @@ class FinanceLideVDatabaziAZustatky
         $result = dbFetchAll(<<<SQL
 SELECT
   uzivatele_hodnoty.id_uzivatele,
+  uzivatele_hodnoty.login_uzivatele AS nick,
   uzivatele_hodnoty.jmeno_uzivatele,
   uzivatele_hodnoty.prijmeni_uzivatele,
-  uzivatele_hodnoty.mesto_uzivatele,
-  uzivatele_hodnoty.ulice_a_cp_uzivatele,
-  uzivatele_hodnoty.psc_uzivatele,
-  uzivatele_hodnoty.email1_uzivatele,
-  uzivatele_hodnoty.telefon_uzivatele,
-  uzivatele_hodnoty.zustatek,
-  kladny_pohyb.datum AS "poslední kladný pohyb na účtu",
-  zaporny_pohyb.datum AS "poslední záporný pohyb na účtu",
+  uzivatele_hodnoty.email1_uzivatele AS email,
+  CAST(kladny_pohyb.datum AS DATE) AS "poslední kladný pohyb na účtu",
+  CAST(zaporny_pohyb.datum AS DATE) AS "poslední záporný pohyb na účtu",
+  uzivatele_hodnoty.zustatek AS "současný zůstatek na účtu",
   GROUP_CONCAT(platne_role_uzivatelu.id_role) AS ids_roli
 FROM uzivatele_hodnoty
 LEFT JOIN ( -- poslední kladný pohyb na účtu
