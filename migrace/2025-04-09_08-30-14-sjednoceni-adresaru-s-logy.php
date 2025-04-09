@@ -10,7 +10,6 @@ $zdrojeACile = [$partneriZdrojDir => $partneriCilDir, $sponzoriZdrojDir => $spon
 
 foreach ($zdrojeACile as $zdroj => $cil) {
     if (!is_dir($zdroj)) {
-       echo "Zdrojový adresář '{$zdroj}' neexistuje nebo nelze přečíst.\n";
        continue;
     }
     if (!file_exists($cil) && !@mkdir($cil, 0755, true) && !is_dir($cil)) {
@@ -23,13 +22,15 @@ foreach ($zdrojeACile as $zdroj => $cil) {
         $zdrojSoubor = $zdroj . '/' . $soubor;
         $cilSoubor   = $cil . '/' . $soubor;
         if (file_exists($cilSoubor)) {
-            echo "Cílový soubor '{$cilSoubor}' již existuje, přeskočeno.\n";
-            continue;
+            if (filesize($cilSoubor) > 0) {
+                continue;
+            }
+            if (!unlink($cilSoubor) && file_exists($cilSoubor)) {
+                throw new \RuntimeException("Chyba při mazání '{$cilSoubor}'");
+            }
         }
         if (!copy($zdrojSoubor, $cilSoubor)) {
-            echo "Chyba při kopírování '{$zdrojSoubor}' do '{$cilSoubor}'.\n";
-        } else {
-            echo "Zkopírováno '{$zdrojSoubor}' do '{$cilSoubor}'.\n";
+            throw new \RuntimeException("Chyba při kopírování '{$zdrojSoubor}' do '{$cilSoubor}'");
         }
     }
 }
