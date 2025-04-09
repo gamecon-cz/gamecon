@@ -7,22 +7,31 @@ namespace Gamecon\Web;
 use Gamecon\XTemplate\XTemplate;
 use Nahled;
 
-class Loga
+readonly class Loga
 {
-    public static function logaSponzoru(): static
+    public static function logaSponzoruTitulka(): static
     {
-        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/sponzori');
+        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/sponzori/titulka');
     }
 
-    public static function logaPartneru(): static
+    public static function logaPartneruTitulka(): static
     {
-        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/partneri');
+        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri/titulka');
+    }
+
+    public static function logaSponzoruPrehled(): static
+    {
+        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/sponzori');
+    }
+
+    public static function logaPartneruPrehled(): static
+    {
+        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri');
     }
 
     public function __construct(
-        private readonly string $adresarLog,
-    )
-    {
+        private string $adresarLog,
+    ) {
         if (!is_dir($this->adresarLog)) {
             throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelez přečíst.");
         }
@@ -31,15 +40,17 @@ class Loga
     public function vypisDoSablony(
         XTemplate $template,
         string    $templateBlock,
-    )
-    {
+    ) {
         foreach ($this->serazenaLoga() as ['src' => $src, 'url' => $url]) {
             $template->assign(['src' => $src, 'url' => $url]);
             $template->parse($templateBlock);
         }
     }
 
-    public function serazenaLoga()
+    /**
+     * @return iterable{src: string, url: string}
+     */
+    public function serazenaLoga(): iterable
     {
         $soubory = glob($this->adresarLog . '/*', GLOB_NOSORT);
         ['obrazky' => $obrazky, 'radici_soubor' => $radiciSoubor] = $this->rozdel($soubory);
@@ -55,13 +66,19 @@ class Loga
             $urlPartnera = preg_replace('~^\d+_~', '', $info['filename']);
             yield [
                 'src' => Nahled::zeSouboru($obrazek)->pasuj(120, 60),
-                'url' => 'http://' . $urlPartnera,
+                'url' => 'https://' . $urlPartnera,
             ];
         }
     }
 
-    private function serad(array $obrazky, ?string $radiciSoubor)
-    {
+    /**
+     * @param array<string> $obrazky
+     * @return array<string, string>
+     */
+    private function serad(
+        array   $obrazky,
+        ?string $radiciSoubor,
+    ) {
         $klicovaneObrazky = [];
         foreach ($obrazky as $obrazek) {
             $klicovaneObrazky[$this->baseNazev($obrazek)] = $obrazek;
@@ -79,14 +96,18 @@ class Loga
         $razeniZeSouboru = array_filter(
             $razeniZeSouboru,
             // odtranění prázdných řádků a #komentářů
-            fn(string $radek) => trim($radek) !== '' && !str_starts_with(trim($radek), '#'),
+            fn(
+                string $radek,
+            ) => trim($radek) !== '' && !str_starts_with(trim($radek), '#'),
         );
 
         if (count($razeniZeSouboru) === 0) {
             return $klicovaneObrazky; // seřazené abecedně
         }
 
-        $baseRazeniZeSouboru = array_map(fn(string $nazev) => $this->baseNazev($nazev), $razeniZeSouboru);
+        $baseRazeniZeSouboru = array_map(fn(
+            string $nazev,
+        ) => $this->baseNazev($nazev), $razeniZeSouboru);
         $serazeneObrazky     = [];
         foreach ($baseRazeniZeSouboru as $baseNazevZeSouboru) {
             if (array_key_exists($baseNazevZeSouboru, $klicovaneObrazky)) {
@@ -103,6 +124,7 @@ class Loga
                 $serazeneObrazky[$nazev] = $obrazek; // doplníme obrázky seřazené podle seznamu v souboru ještě obrázky s pořadím abecedním, pokud nějaké v souboru nebyly
             }
         }
+
         // seřazené nejdříve podle seznamu v souboru a pokud v něm nebyly, tak přidané ke konci v abecedním pořadí
         return $serazeneObrazky;
     }
@@ -114,9 +136,16 @@ class Loga
     {
         $basename = basename($soubor);
         $base     = preg_replace('~(^www[.]|[.][^.]+$)~', '', $basename);
+
         return mb_strtolower($base);
     }
 
+    /**
+     * Rozdělí soubory na obrázky a soubor pro řazení.
+     *
+     * @param array<string> $soubory
+     * @return array{obrazky: array<string>, radici_soubor: string|null}
+     */
     private function rozdel(array $soubory): array
     {
         $obrazky = [];
@@ -128,21 +157,33 @@ class Loga
         }
         $radiciSoubory = array_filter(
             $soubory,
-            fn(string $soubor) => str_ends_with($soubor, 'RAZENI.csv'),
+            fn(
+                string $soubor,
+            ) => str_ends_with($soubor, 'RAZENI.csv'),
         );
-        $radiciSoubor  = reset($radiciSoubory) ?: null;
+        $radiciSoubor  = reset($radiciSoubory)
+            ?: null;
+
         return [
             'obrazky'       => $obrazky,
             'radici_soubor' => $radiciSoubor,
         ];
     }
 
+    /**
+     * Vyhodí obrázky, které začínají podtržítkem '_'.
+     *
+     * @param array<string> $obrazky
+     * @return array<string>
+     */
     private function vyhodVyrazene(array $obrazky): array
     {
         return array_filter(
             $obrazky,
             // vyřazený obrázek, jeho název začíná podtržítkem '_'
-            fn(string $obrazek) => substr($obrazek, 0) !== '_',
+            fn(
+                string $obrazek,
+            ) => substr($obrazek, 0) !== '_',
         );
     }
 }
