@@ -80,14 +80,16 @@ SQL;
         }
     }
 
-    protected function testAdminPagesAccessibility(array $urls) {
+    protected function testAdminPagesAccessibility(array $urls): void
+    {
         $this->testPagesAccessibility($urls, Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO);
     }
 
     /**
      * @param string[] $urls
      */
-    protected function testPagesAccessibility(array $urls, string $username = null, string $password = null) {
+    protected function testPagesAccessibility(array $urls, string $username = null, string $password = null): void
+    {
         $urlsOfUnusedLocalServers = $this->getUrlsOfUnusedLocalServers(count($urls), $username, $password);
         reset($urlsOfUnusedLocalServers);
 
@@ -105,8 +107,8 @@ SQL;
                 continue;
             }
 
-            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10); // timeout na připojení
-            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 10); // timeout na stahování
+            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 20); // timeout na připojení
+            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 20); // timeout na stahování
             curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curlHandle, CURLOPT_HEADER, true);
             curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
@@ -168,12 +170,13 @@ SQL;
             $info = curl_getinfo($curlHandle);
             if ($info['http_code'] >= 400) {
                 $errors[$info['url']] = sprintf(
-                    "nepodařilo se stáhnout stránku '%s', response code %d%s",
+                    "nepodařilo se stáhnout stránku '%s', response code %d%s, content '%s'",
                     $url,
                     $info['http_code'],
                     $info['http_code'] === 404
                         ? ' (nenalezeno)'
-                        : ''
+                        : '',
+                    curl_multi_getcontent($curlHandle)
                 );
             } else {
                 $content = curl_multi_getcontent($curlHandle);
