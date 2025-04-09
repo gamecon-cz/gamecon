@@ -27,9 +27,9 @@ SELECT
   uzivatele_hodnoty.jmeno_uzivatele,
   uzivatele_hodnoty.prijmeni_uzivatele,
   uzivatele_hodnoty.email1_uzivatele AS email,
+  uzivatele_hodnoty.zustatek AS "počáteční stav účtu",
   CAST(kladny_pohyb.datum AS DATE) AS "poslední kladný pohyb na účtu",
   CAST(zaporny_pohyb.datum AS DATE) AS "poslední záporný pohyb na účtu",
-  uzivatele_hodnoty.zustatek AS "současný zůstatek na účtu",
   GROUP_CONCAT(platne_role_uzivatelu.id_role) AS ids_roli
 FROM uzivatele_hodnoty
 LEFT JOIN ( -- poslední kladný pohyb na účtu
@@ -72,6 +72,8 @@ SQL,
 
         $obsah = [];
         foreach ($result as $r) {
+            $uzivatel = \Uzivatel::zIdUrcite($r['id_uzivatele'], true);
+            $r['současný stav účtu'] = $uzivatel->finance()->stav();
             $ucastiHistorie   = [];
             $idsRoliUcastnika = explode(',', $r['ids_roli'] ?? '');
             foreach ($ucastPodleRoku as $idRolePritomenNaRocniku => $nazevUcasti) {
