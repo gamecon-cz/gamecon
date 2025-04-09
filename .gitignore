@@ -15,7 +15,8 @@
 
 /admin/*.sql.gz
 
-/web/soubory/obsah/*
+/web/soubory/obsah/**
+!/web/soubory/obsah/**/.gitignore
 !/web/soubory/blackarrow
 !/web/soubory/styl
 !/web/soubory/*.js

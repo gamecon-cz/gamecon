@@ -33,8 +33,8 @@ foreach ($typy as $i => $typ) {
 }
 
 // sponzoři a partneři
-Loga::logaSponzoru()->vypisDoSablony($t, 'titulka.sponzor');
-Loga::logaPartneru()->vypisDoSablony($t, 'titulka.partner');
+Loga::logaSponzoruTitulka()->vypisDoSablony($t, 'titulka.sponzor');
+Loga::logaPartneruTitulka()->vypisDoSablony($t, 'titulka.partner');
 
 // odpočet
 if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
