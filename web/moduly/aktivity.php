@@ -134,11 +134,16 @@ if (!empty($org)) {
         ];
     }
     
+    $picture_path = 'soubory/systemove/linie-ikony/' . 'org_' . $typ->id() . '.jpg';
+
+    if (!file_exists($picture_path)) {
+        $picture_path = "soubory/obsah/obrazky/organizatori/flant.jpg";
+    } 
 
     /* 'ikonaLiniePopis' => $varIkonaLiniePopis, */ 
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
-        'ikonaLinie'      => 'soubory/systemove/linie-ikony/' . 'org_' . $typ->id() . '.jpg',
+        'ikonaLinie'      => $picture_path,
         'ikonaLinieSekce' => $lines[0],
         'ikonaLinieJmeno' => $lines[1],
         'ikonaLinieEmail' => $lines[2],
