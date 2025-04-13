@@ -6,6 +6,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
+use Gamecon\Pravo;
 use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
@@ -469,6 +470,8 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     private function maPravoZobrazitUbytovani(int $poradiHernihoDne): bool
     {
         return $poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
+            || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
+            || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
             || $this->objednatel->jeOrganizator()
             || ($this->objednatel->jeInfopultak() && $this->kontextZobrazeni === KontextZobrazeni::ADMIN);
     }
@@ -477,7 +480,8 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     {
         return $this->maPravoZobrazitUbytovani($poradiHernihoDne)
             && ($poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
-                || $this->ubytovany->jeOrganizator()
+                || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
+                || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
                 || $this->objednatel->jeOrganizator()
             );
     }
