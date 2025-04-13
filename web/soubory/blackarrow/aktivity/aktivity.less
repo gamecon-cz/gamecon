@@ -70,17 +70,6 @@
     }
 }*/
 
-.aktivity_ikonaLinie {
-    background: url('../blackarrow/aktivity/flek.png') no-repeat center center;
-    background-size: contain;
-    width: 27em;
-    height: 27em;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 // stránky
 
 .aktivity_stranky {
@@ -109,6 +98,7 @@
     color: #fff;
     padding: 0 24px;
     position: relative; // kvůli šipce
+    user-select: none;
 
     @media (min-width: 1500px) {
         line-height: 72px;
@@ -405,6 +395,7 @@ figure {
     justify-content: center;
     align-items: center;
     text-align: center;
+    margin: 0;
 }
 
 .aktivity_hlavicka {
@@ -423,28 +414,39 @@ figure {
     }
 }
 
-.aktivity_ikonaLinie {
-    grid-area: ikona;
-    @media (max-width: 789px) {
-        justify-content: center;
-        align-content: center;
-        margin: 0 auto;
-        margin-top: -3em;
-        margin-bottom: -3em;
-    }
-}
-
 .aktivity_popisLinie {
     grid-area: popis;
+
+    @media (min-width: 790px) {
+        width: 69%;
+    }
 }
 
 .navod {
     grid-area: navod;
 }
 
-
 .org-obrazek {
     height: 150px;
     width: 150px;
-    border-radius: 50%;
+
+    mask-image: url('../blackarrow/aktivity/flek.png');
+    mask-repeat: no-repeat;
+    mask-size: 120% 120%;
+    mask-position: center;
+}
+
+.aktivity_ikonaLinie {
+    grid-area: ikona;
+
+    justify-content: center;
+    align-content: center;
+    margin: 0 auto;
+    width: 17em;
+
+    padding-top: 3em;
+    @media (max-width: 789px) {
+        margin-top: -3em;
+        margin-bottom: -3em;
+    }
 }
