@@ -1,28 +1,29 @@
 <?php
 
 use Gamecon\Role\Role;
+use Gamecon\Pravo;
 
 // přidání UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC
-$this->q(<<<SQL
+$sql1 = "
     INSERT INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
     VALUES
-        (1037, 'Ubytování může objednat jednu noc', '')
-SQL,
-);
-
-$sql = "
-INSERT IGNORE INTO prava_role(id_role, id_prava)
-VALUES
-    (2, 1037),
-    (21, 1037),
-    (22, 1037),
-    (15, 1037),
-    (26, 1037),
-    (" . Role::LETOSNI_VYPRAVEC . ", 1037),
-    (" . Role::LETOSNI_INFOPULT . ", 1037),
-    (" . Role::LETOSNI_PARTNER . ", 1037),
-    (" . Role::LETOSNI_HERMAN . ", 1037),
-    (" . Role::LETOSNI_BRIGADNIK . ", 1037)
+        (" . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . ", 'Ubytování může objednat jednu noc', '')
 ";
 
-$this->q($sql);
+$sql2 = "
+INSERT IGNORE INTO prava_role(id_role, id_prava)
+VALUES
+    (" . Role::ORGANIZATOR          . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . "),
+    (" . Role::PUL_ORG_BONUS_UBYTKO . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . "),
+    (" . Role::PUL_ORG_BONUS_TRICKO . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . "),
+    (" . Role::MINI_ORG             . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . "),
+    (" . Role::CESTNY_ORGANIZATOR   . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . "),
+    (" . Role::LETOSNI_VYPRAVEC     . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . "),
+    (" . Role::LETOSNI_INFOPULT     . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . "),
+    (" . Role::LETOSNI_PARTNER      . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . "),
+    (" . Role::LETOSNI_HERMAN       . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . "),
+    (" . Role::LETOSNI_BRIGADNIK    . ", " . Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC . ")
+";
+
+$this->q($sql1);
+$this->q($sql2);
