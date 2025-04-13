@@ -65,6 +65,7 @@ class Pravo extends \DbObject
     public const ZMENA_PRAV                                  = 1033;
     public const PROVADI_KOREKCE                             = 1034; // Může nastavit checkbox u aktivity o provedené korekci a nesmaže ho při úpravě textu
     public const JAKEKOLIV_TRICKO_ZDARMA                     = 1035;
+    public const UBYTOVANI_NEDELNI_NOC_NABIZET               = 1036; // nedělní ubytování zobrazení a objednání
 
     public static function dejIdsVsechPrav(): array
     {
