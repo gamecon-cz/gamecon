@@ -119,9 +119,9 @@
                     <li>Objednat nebo změnit ubytování lze do {ubytovaniObjednatelneDo}</li>
                     <li>Čísla ukazují počet obsazených postelí / celkem.</li>
                     <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
-                    <!-- begin: ubytovani3+Noci -->
+                    <!-- begin: ubytovaniTriPlusNoci -->
                     <li>Ubytování je možné objednat pouze v balíčku 3+ nocí.</li>
-                    <!-- end: ubytovani3+Noci -->
+                    <!-- end: ubytovaniTriPlusNoci -->
                     <li>Bližší informace o ubytování najdeš <a href="prakticke-informace">zde</a> v FAQ.</li>
                     <!-- begin: poznamkaKUbytovaniVNedeli -->
                     <li>Ubytování Ne–Po znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00.</li>

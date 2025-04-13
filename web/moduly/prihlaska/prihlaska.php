@@ -184,6 +184,10 @@ if ($slevy) {
     $t->parse('prihlaska.slevy');
 }
 
+if (!$u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)){
+    $t->parse('prihlaska.ubytovaniTriPlusNoci');
+}
+
 if ($u->jeOrganizator()) {
     $t->parse('prihlaska.poznamkaKUbytovaniVNedeli');
 }
