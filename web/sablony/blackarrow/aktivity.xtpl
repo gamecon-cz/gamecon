@@ -3,7 +3,12 @@
 <div class="aktivity_hlavickaObal">
 <div class="aktivity_hlavicka">
     <div class="aktivity_ikonaLinie">
-        <img src="{ikonaLinie}">
+        <figure>
+            <img class="org-obrazek" src="{ikonaLinie}">
+            <figcaption>{ikonaLinieSekce}</figcaption>
+            <figcaption>{ikonaLinieJmeno}</figcaption>
+            <figcaption><a href="mailto:{ikonaLinieEmail}">{ikonaLinieEmail}</a></figcaption>
+        </figure>
     </div>
     <div class="aktivity_popisLinie stranka_format">
         {popisLinie}

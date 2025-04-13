@@ -103,6 +103,7 @@ foreach ($skupiny as $skupina) {
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.nahled.stitek');
     $t->parse('aktivity.aktivita');
     $t->parse('aktivity.nahled');
+    $t->parse('aktivity.testBlock');
 }
 
 // záhlaví a informace
@@ -120,10 +121,33 @@ if (!empty($org)) {
     $t->parse('aktivity.hlavickaVypravec');
 } else if ($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
+
+    $descriptionFile = 'soubory/systemove/linie-ikony/' . $typ->id() . '.txt';
+
+    $lines = @file($descriptionFile, FILE_IGNORE_NEW_LINES);
+    
+    if ($lines === false) {
+        $lines = [
+            "Sekce",
+            'Jmeno "Prezdivka" Prijmeni',
+            "info@gamecon.cz"
+        ];
+    }
+    
+    $picture_path = 'soubory/systemove/linie-ikony/' . 'org_' . $typ->id() . '.jpg';
+
+    if (!file_exists($picture_path)) {
+        $picture_path = "soubory/obsah/obrazky/organizatori/flant.jpg";
+    } 
+
+    /* 'ikonaLiniePopis' => $varIkonaLiniePopis, */ 
     $t->assign([
-        'popisLinie' => $typ->oTypu(),
-        'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
-        'specTridy'  => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
+        'popisLinie'      => $typ->oTypu(),
+        'ikonaLinie'      => $picture_path,
+        'ikonaLinieSekce' => $lines[0],
+        'ikonaLinieJmeno' => $lines[1],
+        'ikonaLinieEmail' => $lines[2],
+        'specTridy'       => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
     ]);
 
     // podstránky linie
