@@ -33,7 +33,7 @@
         </div>
         <div class="paticka_odkazy">
             <!-- begin: qrka -->
-            <a href="{odkaz}">{nazev}</a>
+            <a href="qrka">QR k sockám</a>
             <!-- end: qrka -->
             <a href="sponzori">sponzoři</a>
             <a href="kontakty">kontakt</a>
