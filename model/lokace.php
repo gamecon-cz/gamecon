@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @method static Lokace | null zId($id)
+ * @method static Lokace|null zId($id, bool $zCache = false)
  * @method static Lokace[] zVsech(bool $zCache = false)
  */
 class Lokace extends DbObject
