@@ -25,16 +25,16 @@ class Cenik
      * ručně. V polích se případně udává, které právo daný index „přebíjí“.
      */
     private static array $textySlev = [
-        Pravo::KOSTKA_ZDARMA                     => 'kostka zdarma',
-        Pravo::PLACKA_ZDARMA                     => 'placka zdarma',
-        Pravo::UBYTOVANI_ZDARMA                  => 'ubytování zdarma',
-        Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA    => ['ubytování ve středu zdarma', Pravo::UBYTOVANI_ZDARMA],
-        Pravo::JIDLO_ZDARMA                      => 'jídlo zdarma',
-        Pravo::JIDLO_SE_SLEVOU                   => ['jídlo se slevou', Pravo::JIDLO_ZDARMA],
-        Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA        => 'dvě jakákoli trička zdarma',
-        Pravo::JAKEKOLIV_TRICKO_ZDARMA           => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
-        Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA      => 'modré tričko se slevou',
-        Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => 'můžeš si objednat ubytování i pro jedinou noc',
+        Pravo::KOSTKA_ZDARMA                  => 'kostka zdarma',
+        Pravo::PLACKA_ZDARMA                  => 'placka zdarma',
+        Pravo::UBYTOVANI_ZDARMA               => 'ubytování zdarma',
+        Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA => ['ubytování ve středu zdarma', Pravo::UBYTOVANI_ZDARMA],
+        Pravo::JIDLO_ZDARMA                   => 'jídlo zdarma',
+        Pravo::JIDLO_SE_SLEVOU                => ['jídlo se slevou', Pravo::JIDLO_ZDARMA],
+        Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA     => 'dvě jakákoli trička zdarma',
+        Pravo::JAKEKOLIV_TRICKO_ZDARMA        => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
+        Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA   => 'modré tričko se slevou',
+        Pravo::MODRE_TRICKO_ZDARMA            => 'modré tričko zdarma za dosažení bonusu 1140',
     ];
 
     /**
