@@ -35,6 +35,7 @@ class Cenik
         Pravo::JAKEKOLIV_TRICKO_ZDARMA           => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
         Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA      => 'modré tričko se slevou',
         Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => 'můžeš si objednat ubytování i pro jedinou noc',
+        Pravo::MODRE_TRICKO_ZDARMA            => 'modré tričko zdarma za dosažení bonusu 1140',
     ];
 
     /**
