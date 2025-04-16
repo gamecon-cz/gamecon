@@ -78,7 +78,7 @@ if (!$zaplaceno) {
             <h2>Bonusy</h2>
             <ul><?= trim($slevyA . $slevyV) ?></ul>
         </div>
-    <?php } ?>
+    <?php ?>
 
     <div style="clear:both"></div>
 
