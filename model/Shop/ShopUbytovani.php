@@ -389,112 +389,65 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     private function htmlDny(XTemplate $t, bool $muzeEditovatUkoncenyProdej)
     {
         $u = Uzivatel::zSession();
+        $pravoJedneNoci = $u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen();
         $nemuzeSiObjednatPokoj  = $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky()
             && !$this->maPravoNaPostel();
-        if ($u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)) {
-            foreach ($this->mozneDny as $den => $typy) { // typy _v daný den_
-                $typVzor = reset($typy);
-                $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
-                $ubytovanVeDni = false;
-                foreach ($this->mozneTypy as $typ => $rozsah) {
-                    if ($nemuzeSiObjednatPokoj && $typ != 'Spacák') {
-                        continue;
-                    }
-
-                    $ubytovanVeDniATypu = false;
-                    $checked            = '';
-                    if ($this->ubytovan($den, $typ)) {
-                        $ubytovanVeDniATypu = true;
-                        $checked            = 'checked';
-                    }
-                    $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
-                    $t->assign([
-                        'idPredmetu' => isset($this->mozneDny[$den][$typ])
-                            ? $this->mozneDny[$den][$typ]['id_predmetu']
-                            : null,
-                        'checked'    => $checked,
-                        'disabled'   => (!$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
-                            && ($prodejUbytovaniUkoncen
-                                || (!$ubytovanVeDniATypu
-                                    && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ))
-                                )
-                                || !$this->maPravoObjednatUbytovani($den)
-                            )
-                        )
-                            ? 'disabled'
-                            : '',
-                        'obsazeno'   => $this->obsazenoMist($den, $typ),
-                        'kapacita'   => $this->kapacita($den, $typ),
-                        'typ'        => $typ,
-                    ])->parse('ubytovani.den.typ');
-                }
-                // data pro názvy dnů a pro "Žádné" ubytování
-                $t->assign([
-                    'den'      => $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]),
-                    'checked'  => $ubytovanVeDni
-                        ? ''
-                        : 'checked', // checked = "Žádné" ubytování
-                    'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
-                        ? 'disabled'
-                        : '',
-                ]);
-                $t->parse('ubytovani.den');
+        foreach ($this->mozneDny as $den => $typy) { // typy _v daný den_
+            if (!$pravoJedneNoci && $den > 1) {
+                break;
             }
-        } else if (!$u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)) {
-            foreach ($this->mozneDny as $den => $typy) { // typy _v daný den_
-                if ($den > 1) {
+            $typVzor = reset($typy);
+            $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
+            $ubytovanVeDni = false;
+            foreach ($this->mozneTypy as $typ => $rozsah) {
+                if ($nemuzeSiObjednatPokoj && $typ != 'Spacák') {
                     continue;
                 }
-                $typVzor = reset($typy);
-                $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
-                $ubytovanVeDni = false;
-                foreach ($this->mozneTypy as $typ => $rozsah) {
-                    if ($nemuzeSiObjednatPokoj && $typ != 'Spacák') {
-                        continue;
-                    }
 
-                    $ubytovanVeDniATypu = false;
-                    $checked            = '';
-                    if ($this->ubytovan($den, $typ)) {
-                        $ubytovanVeDniATypu = true;
-                        $checked            = 'checked';
-                    }
-                    $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
-                    $t->assign([
-                        'idPredmetu' => isset($this->mozneDny[$den][$typ])
-                            ? $this->mozneDny[$den][$typ]['id_predmetu']
-                            : null,
-                        'checked'    => $checked,
-                        'disabled'   => (!$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
-                            && ($prodejUbytovaniUkoncen
-                                || (!$ubytovanVeDniATypu
-                                    && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ))
-                                )
-                                || !$this->maPravoObjednatUbytovani($den)
-                            )
-                        )
-                            ? 'disabled'
-                            : '',
-                        'obsazeno'   => $this->obsazenoMist($den, $typ),
-                        'kapacita'   => $this->kapacita($den, $typ),
-                        'typ'        => $typ,
-                    ])->parse('ubytovani.den.typ');
+                $ubytovanVeDniATypu = false;
+                $checked            = '';
+                if ($this->ubytovan($den, $typ)) {
+                    $ubytovanVeDniATypu = true;
+                    $checked            = 'checked';
                 }
-                // data pro názvy dnů a pro "Žádné" ubytování
-                $den_prnt = $den == 1 ? "Čt - Ne" : $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]);
-
+                $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
                 $t->assign([
-                    'den'      => $den_prnt,
-                    'checked'  => $ubytovanVeDni
-                        ? ''
-                        : 'checked', // checked = "Žádné" ubytování
-                    'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
+                    'idPredmetu' => isset($this->mozneDny[$den][$typ])
+                        ? $this->mozneDny[$den][$typ]['id_predmetu']
+                        : null,
+                    'checked'    => $checked,
+                    'disabled'   => (!$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
+                        && ($prodejUbytovaniUkoncen
+                            || (!$ubytovanVeDniATypu
+                                && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ))
+                            )
+                            || !$this->maPravoObjednatUbytovani($den)
+                        )
+                    )
                         ? 'disabled'
                         : '',
-                ]);
-                $t->parse('ubytovani.den');
+                    'obsazeno'   => $this->obsazenoMist($den, $typ),
+                    'kapacita'   => $this->kapacita($den, $typ),
+                    'typ'        => $typ,
+                ])->parse('ubytovani.den.typ');
             }
+
+            $den_prnt = !$pravoJedneNoci && $den == 1
+                ? "Čt - Ne"
+                : $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]);
+
+            // data pro názvy dnů a pro "Žádné" ubytování
+            $t->assign([
+                'den'      => $den_prnt,
+                'checked'  => $ubytovanVeDni
+                    ? ''
+                    : 'checked', // checked = "Žádné" ubytování
+                'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
+                    ? 'disabled'
+                    : '',
+            ]);
+            $t->parse('ubytovani.den');
         }
     }
 
@@ -517,20 +470,17 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         if (!$u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)) {
             $postDny = $_POST[$this->pnDny];
 
-            // Pokud je v POST den 0, přidáme ho
             if (isset($postDny[0])) {
                 $dny[0] = $postDny[0];
             }
 
-            // Pokud je v POST den 1, přidáme den 1, 2 a 3 se stejným typem
             if (!empty($postDny[1])) {
-                $typ = $postDny[1];
-                $dny[1] = $typ;
-                $dny[2] = (string)($typ - 1);
-                $dny[3] = (string)($typ - 2);
+                $id = $postDny[1];
+                $dny[1] = $id;
+                $dny[2] = (string)($id - 1);
+                $dny[3] = (string)($id - 2);
             }
         } else {
-            // Uživatel má právo objednávat jednotlivé dny → vezmeme co poslal
             $dny = $_POST[$this->pnDny];
         }
 
