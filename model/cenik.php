@@ -34,6 +34,7 @@ class Cenik
         Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA     => 'dvě jakákoli trička zdarma',
         Pravo::JAKEKOLIV_TRICKO_ZDARMA        => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
         Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA   => 'modré tričko se slevou',
+        Pravo::MODRE_TRICKO_ZDARMA            => 'modré tričko zdarma za dosažení bonusu 1140',
     ];
 
     /**
