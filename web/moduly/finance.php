@@ -73,7 +73,7 @@ if (!$zaplaceno) {
         <?= $veci ?>
     </div>
 
-    <?php if ($u && $u->jeOrganizator()) { ?>
+    <?php if ($u?->jeOrganizator() || $u?->jeVypravec()) // Jarda would be proud { ?>
         <div style="float:left">
             <h2>Slevy</h2>
             <?php if ($slevyA) { ?>
@@ -85,7 +85,7 @@ if (!$zaplaceno) {
                 <ul><?= $slevyV ?></ul>
             <?php } ?>
         </div>
-    <?php } ?>
+    <?php ?>
 
     <div style="clear:both"></div>
 
