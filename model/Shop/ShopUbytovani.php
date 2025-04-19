@@ -11,7 +11,6 @@ use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
-use Gamecon\Pravo;
 
 class ShopUbytovani
 {
