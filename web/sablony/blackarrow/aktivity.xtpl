@@ -25,7 +25,7 @@
     </div>
     <!-- end: hlavickaVypravec -->
     <!-- begin: strankaNavod -->
-    <div style="padding: 1em; background-color: #B7E4B6">
+    <div class="navod">
         <span class="hinted">
             🙋
             <span class="hint">
