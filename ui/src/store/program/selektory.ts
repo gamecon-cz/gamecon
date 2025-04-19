@@ -6,6 +6,7 @@ import { FiltrAktivit, filtrujAktivity, MapováníŠtítků, vytvořMapováníŠ
 import { Aktivita, filtrujDotaženéAktivity, jeAktivitaDotažená } from "./slices/programDataSlice";
 import { PRÁZDNÉ_POLE, distinct } from "../../utils";
 import { useMemo } from "preact/hooks";
+import { GAMECON_KONSTANTY } from "../../env";
 
 const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   const urlStav = useProgramStore((s) => s.urlStav);
@@ -40,6 +41,16 @@ export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): Aktivita[]
   const aktivityFiltrované = filtrujAktivity(aktivityDotažené, filtr, mapaŠtítků);
 
   return aktivityFiltrované;
+};
+
+/**
+ * Aktuální stav dotahování aktivit pro daný ročník nebo z aktuálního filtru
+ */
+export const useAktivityStatus = (ročník?: number) => {
+  const filtr = useFiltrAktivitNeboZeStavu();
+  const ročníkZFiltru = ročník ?? filtr.ročník ?? GAMECON_KONSTANTY.ROCNIK;
+
+  return useProgramStore(s=>s.dataStatus.podleRoku[ročníkZFiltru]);
 };
 
 export const useAktivita = (akitivitaId: number): Aktivita | undefined =>
