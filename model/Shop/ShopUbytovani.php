@@ -10,6 +10,7 @@ use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
+use Gamecon\Pravo;
 
 class ShopUbytovani
 {
@@ -387,10 +388,15 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     /** Zparsuje šablonu s ubytováním po dnech */
     private function htmlDny(XTemplate $t, bool $muzeEditovatUkoncenyProdej)
     {
+        $u = Uzivatel::zSession();
+        $pravoJedneNoci = $u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen();
         $nemuzeSiObjednatPokoj  = $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky()
             && !$this->maPravoNaPostel();
         foreach ($this->mozneDny as $den => $typy) { // typy _v daný den_
+            if (!$pravoJedneNoci && $den > 1) {
+                break;
+            }
             $typVzor = reset($typy);
             $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
             $ubytovanVeDni = false;
@@ -426,9 +432,14 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                     'typ'        => $typ,
                 ])->parse('ubytovani.den.typ');
             }
+
+            $den_prnt = !$pravoJedneNoci && $den == 1
+                ? "Čt - Ne"
+                : $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]);
+
             // data pro názvy dnů a pro "Žádné" ubytování
             $t->assign([
-                'den'      => $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]),
+                'den'      => $den_prnt,
                 'checked'  => $ubytovanVeDni
                     ? ''
                     : 'checked', // checked = "Žádné" ubytování
@@ -453,8 +464,31 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             return false;
         }
 
-        // vložit jeho zaklikané věci - note: není zabezpečeno
-        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->ubytovany, $hlidatKapacituUbytovani);
+        $u = Uzivatel::zSession();
+        $dny = [];
+
+        if (!$u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)) {
+            $postDny = $_POST[$this->pnDny];
+
+            if (isset($postDny[0])) {
+                $dny[0] = $postDny[0];
+            }
+
+            if (!empty($postDny[1])) {
+                $id = $postDny[1];
+                $dny[1] = $id;
+                $dny[2] = (string)($id - 1);
+                $dny[3] = (string)($id - 2);
+            }
+        } else {
+            $dny = $_POST[$this->pnDny];
+        }
+
+
+        foreach ($dny as $den_n) {
+            self::ulozObjednaneUbytovaniUcastnika($dny, $this->ubytovany, $hlidatKapacituUbytovani);
+        }
+
 
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji
