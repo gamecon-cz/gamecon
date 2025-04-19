@@ -204,20 +204,20 @@
                 <a href="aktivity?sort=typ%20DESC">▼</a>
             </th>
             <th><span class="hinted">Ins<span class="hint">
-      Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
-    </span></span></th>
+                Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
+            </span></span></th>
             <th><span class="hinted">Kor<span class="hint">
-      U aktivity proběhla gramatická korekce a od té doby nebyly úpravy textu.
-    </span></span></th>
+                U aktivity proběhla gramatická korekce a od té doby nebyly úpravy textu.
+            </span></span></th>
             <th colspan="5"><span class="hinted">Akce<span class="hint">
-      <i class="fa fa-trash" aria-hidden="true"></i> <strong>smaž:</strong> nevratné smazání aktivity<br>
-      <i class="fa fa-pencil-square-o" aria-hidden="true"></i> <strong>uprav:</strong> podrobná editace aktivity na vlastní stránce<br>
-      <strong>inst:</strong> vytvořit novou instanci aktivity (čas příp. místo lze následně měnit v editaci)<br>
-      <strong>pub:</strong> publikovat (ukázat) akci na webu<br>
-      <strong>přip:</strong> připravit aktivitu k hromadné aktivaci<br>
-      <strong>odpři:</strong> zrušit připravení aktivity k hromadné aktivaci<br>
-      <strong>aktiv:</strong> aktivovat (otevřít k přihlašování) akci v programu (projevuje se jen pokud jede registrace)
-    </span></span></th>
+                <i class="fa fa-trash" aria-hidden="true"></i> <strong>smaž:</strong> nevratné smazání aktivity<br>
+                <i class="fa fa-pencil-square-o" aria-hidden="true"></i> <strong>uprav:</strong> podrobná editace aktivity na vlastní stránce<br>
+                <strong>inst:</strong> vytvořit novou instanci aktivity (čas příp. místo lze následně měnit v editaci)<br>
+                <strong>pub:</strong> publikovat (ukázat) akci na webu<br>
+                <strong>přip:</strong> připravit aktivitu k hromadné aktivaci<br>
+                <strong>odpři:</strong> zrušit připravení aktivity k hromadné aktivaci<br>
+                <strong>aktiv:</strong> aktivovat (otevřít k přihlašování) akci v programu (projevuje se jen pokud jede registrace)
+            </span></span></th>
         </tr>
         <!-- begin:aktivita -->
         <tr>
