@@ -40,6 +40,7 @@
   <script type="text/javascript" src="files/responsivni_tabulka_auto_scroll_right.js?version={jsVersions.responsivni_tabulka_auto_scroll_right}"></script>
   <script type="text/javascript" src="files/zablikej-1.0.js"></script>
   <script type="text/javascript" src="files/reload-fio-1.0.js"></script>
+  <script type="text/javascript" src="files/hinted-1.0.js"></script>
 </head>
 <body>
 <div class="obal">
