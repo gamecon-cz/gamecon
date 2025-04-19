@@ -29,9 +29,20 @@ readonly class Loga
         return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri');
     }
 
+    private function vytvorAdresar($cesta)
+    {
+        if (!is_dir($cesta)) {
+            if (!mkdir($cesta, 0777, true)) {
+                throw new \RuntimeException("Nepodařilo se vytvořit adresář: {$cesta}");
+            }
+        }
+    }
+
     public function __construct(
         private string $adresarLog,
     ) {
+        // smazat
+        $this->vytvorAdresar($adresarLog);
         if (!is_dir($this->adresarLog)) {
             throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelez přečíst.");
         }
