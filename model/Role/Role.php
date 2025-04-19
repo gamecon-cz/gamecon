@@ -32,6 +32,7 @@ class Role extends \DbObject
     public const SEF_INFOPULTU        = 24;
     public const SEF_PROGRAMU         = 25;
     public const MINI_ORG             = 26;
+    public const KOREKTOR             = 27;
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC                   = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -96,6 +97,7 @@ class Role extends \DbObject
     public const VYZNAM_VYPRAVECSKA_SKUPINA = 'VYPRAVECSKA_SKUPINA';
     public const VYZNAM_CLEN_RADY           = 'CLEN_RADY';
     public const VYZNAM_SEF_INFOPULTU       = 'SEF_INFOPULTU';
+    public const VYZNAM_KOREKTOR            = 'KOREKTOR';
     // TYP ROCNIKOVE
     public const VYZNAM_BRIGADNIK            = 'BRIGADNIK';
     public const VYZNAM_HERMAN               = 'HERMAN';
@@ -134,6 +136,8 @@ class Role extends \DbObject
             self::VYZNAM_SEF_INFOPULTU => self::KATEGORIE_OMEZENA,
             self::VYZNAM_BRIGADNIK => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ZAZEMI => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_KOREKTOR => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ZKONTROLOVANE_UDAJE => self::KATEGORIE_OMEZENA,
 
             self::VYZNAM_HERMAN => self::KATEGORIE_BEZNA,
             self::VYZNAM_INFOPULT => self::KATEGORIE_BEZNA,
@@ -147,7 +151,6 @@ class Role extends \DbObject
             self::VYZNAM_PRIHLASEN => self::KATEGORIE_OMEZENA,
             self::VYZNAM_PRITOMEN => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ODJEL => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_ZKONTROLOVANE_UDAJE => self::KATEGORIE_OMEZENA,
 
             default => throw new NeznamyVyznamRole("Vyznam '$vyznam' je neznámý"),
         };
@@ -340,6 +343,7 @@ class Role extends \DbObject
                 self::SEF_INFOPULTU => 'Šéf infopultu',
                 self::SEF_PROGRAMU => 'Šéf programu',
                 self::MINI_ORG => 'Mini-org',
+                self::KOREKTOR => 'Korektor',
                 //
                 self::LETOSNI_VYPRAVEC => 'Vypravěč',
                 self::LETOSNI_ZAZEMI => 'Zázemí',
