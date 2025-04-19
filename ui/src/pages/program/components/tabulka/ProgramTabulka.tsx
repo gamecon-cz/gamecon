@@ -10,6 +10,7 @@ import { GAMECON_KONSTANTY } from "../../../../env";
 import {
   useAktivitaNáhled,
   useAktivityFiltrované,
+  useAktivityStatus,
   useUrlVýběr,
 } from "../../../../store/program/selektory";
 import { ProgramTabulkaBuňka } from "./ProgramTabulkaBuňka";
@@ -17,6 +18,7 @@ import { ProgramTabulkaBuňkaKompaktní } from "./ProgramTabulkaBuňkaKompaktní
 import { useProgramStore } from "../../../../store/program";
 import { useEffect } from "react";
 import { nastavZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
+import { PřekrývacíNačítač } from "../Načítač";
 
 type ProgramTabulkaProps = {};
 
@@ -43,6 +45,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
   const urlStavVýběr = useUrlVýběr();
   const aktivityFiltrované = useAktivityFiltrované();
+  const aktivityStatus = useAktivityStatus();
 
   const kompaktní = useProgramStore(s => s.všeobecné.kompaktní);
 
@@ -154,25 +157,25 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     + (aktivitaNáhled ? " programNahled_obalProgramu-zuzeny" : "")
     + (zvětšeno ? " programNahled_obalProgramu-zvetseny" : "")
     ;
-  ;
+  
   const obalHlavníRef = useRef<HTMLDivElement>(null);
   const posledníZvětšeno = useRef(false);
 
   useEffect(() => {
     if (!obalHlavníRef.current) return;
     const nastavZvětšenoPodleDokumentu = () => {
-      nastavZvětšeno(!!document.fullscreenElement)
+      nastavZvětšeno(!!document.fullscreenElement);
     };
     obalHlavníRef.current.addEventListener("fullscreenchange", nastavZvětšenoPodleDokumentu);
     return () => obalHlavníRef.current?.removeEventListener("fullscreenchange", nastavZvětšenoPodleDokumentu);
-  })
+  });
 
   useEffect(() => {
     const element = obalHlavníRef.current;
     if (!element) return;
 
     if (posledníZvětšeno.current === zvětšeno) return;
-    posledníZvětšeno.current = zvětšeno
+    posledníZvětšeno.current = zvětšeno;
 
     if (zvětšeno) {
       if ((element as any)?.requestFullscreen) {
@@ -191,11 +194,17 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
         (element as any)?.msExitFullscreen();
       }
     }
-  }, [zvětšeno])
+  }, [zvětšeno]);
 
   return (
     <>
-      <div ref={obalHlavníRef} class={programNáhledObalProgramuClass}>
+      <div ref={obalHlavníRef} class={programNáhledObalProgramuClass}
+        style={{
+          position:"relative",
+          // místo pro načítač
+          minHeight: 200,
+        }}
+      >
         <div class="programPosuv_obal2">
           <div class="programPosuv_obal" ref={obalRef}>
             <table class="program">
@@ -204,6 +213,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
           </div>
           <ProgramPosuv {...{ obalRef }} />
         </div>
+        <PřekrývacíNačítač zobrazit={aktivityStatus?.stav === "načítání"} />
       </div>
     </>
   );

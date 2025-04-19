@@ -4,7 +4,7 @@ import { APIAktivita, APIAktivitaPřihlášen, APIŠtítek, fetchAktivity, fetch
 const DOTAŽENO = "dotaženo";
 
 export type Aktivita = APIAktivita & APIAktivitaPřihlášen & {
-  /** 
+  /**
    * kdy byla APIAktivita dotažena
    */
   [DOTAŽENO]: number
@@ -19,12 +19,25 @@ export const filtrujDotaženéAktivity = (aktivityPodleId: {
   [id: number]: AktivitaČást
 }): Aktivita[] => Object.values(aktivityPodleId).filter(jeAktivitaDotažená);
 
+export type DataApiStav = {
+  stav: "načítání",
+} | {
+  stav: "dotaženo",
+}| {
+  stav: "chyba",
+}
+
 export type ProgramDataSlice = {
   data: {
     aktivityPodleId: {
       [id: number]: AktivitaČást
     },
     štítky: APIŠtítek[],
+  },
+  dataStatus: {
+    podleRoku: {
+      [rok: number]: DataApiStav
+    },
   },
 }
 
@@ -33,17 +46,34 @@ export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () 
     aktivityPodleId: {},
     štítky: [],
   },
+  dataStatus: {
+    podleRoku: {},
+  }
 });
+
+const nastavStavProRok = (rok: number, stavString: DataApiStav["stav"]) => {
+  useProgramStore.setState(s=>{
+    s.dataStatus.podleRoku[rok] = {stav: stavString};
+  }, undefined, "Natavení api stavu pro rok");
+}
 
 /** Pokud ještě není dotažený tak dotáhne rok, příhlášen se dotahuje vždy */
 export const načtiRok = async (rok: number) => {
-  const aktivity = await fetchAktivity(rok);
+  const nastavStav = nastavStavProRok.bind(undefined, rok);
 
-  useProgramStore.setState(s => {
-    for (const aktivita of aktivity) {
-      s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita, [DOTAŽENO]: Date.now() };
-    }
-  }, undefined, "dotažení aktivit");
+  try {
+    nastavStav("načítání");
+    const aktivity = await fetchAktivity(rok);
+    nastavStav("dotaženo");
+
+    useProgramStore.setState(s => {
+      for (const aktivita of aktivity) {
+        s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita, [DOTAŽENO]: Date.now() };
+      }
+    }, undefined, "dotažení aktivit");
+  } catch(e) {
+    nastavStav("chyba");
+  }
 };
 
 export const načtiŠtítky = async () => {
