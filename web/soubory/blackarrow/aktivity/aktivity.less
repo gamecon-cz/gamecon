@@ -9,8 +9,8 @@
     @media (max-width: 600px) {
         background: url('../blackarrow/aktivity/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto,
             linear-gradient(to bottom, #f6f1ea 50%, #fff 50%);
-            padding-bottom: 4em;
         /*overflow: hidden;*/
+        padding-bottom: 4em;
     }
 }
 
@@ -417,8 +417,6 @@ figure {
 
 .aktivity_popisLinie {
     grid-area: popis;
-    width: 85%;
-
     @media (min-width: 790px) {
         width: 69%;
     }
@@ -426,9 +424,8 @@ figure {
 
 .navod {
     grid-area: navod;
-    padding: 1em; 
+    padding: 1em;
     background-color: #B7E4B6;
-    margin-top: 5em;
 }
 
 .org-obrazek {
@@ -444,15 +441,19 @@ figure {
 .aktivity_ikonaLinie {
     grid-area: ikona;
 
+    display: flex;
     justify-content: center;
-    align-content: center;
-    margin: 0 auto;
-    width: 17em;
+    align-items: center;
 
+    width: 17em;
+    margin: 0 auto;
     padding-top: 3em;
-    @media (max-width: 789px) {
+}
+
+/* Media query musí být mimo selektor */
+@media (max-width: 789px) {
+    .aktivity_ikonaLinie {
         margin-top: -3em;
         margin-bottom: -3em;
-        margin-left: 1.5em;
     }
 }

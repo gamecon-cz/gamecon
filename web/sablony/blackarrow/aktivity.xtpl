@@ -26,9 +26,7 @@
     <!-- end: hlavickaVypravec -->
     <!-- begin: strankaNavod -->
     <div class="navod">
-        <span class="hinted">
-            🙋
-            <span class="hint">
+        <span>🙋<span>
                 <em>(toto se ukazuje pouze na testu a pouze přhlášeným organizátorům)</em><br>
             </span>
         </span>
