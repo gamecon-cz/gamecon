@@ -25,10 +25,8 @@
     </div>
     <!-- end: hlavickaVypravec -->
     <!-- begin: strankaNavod -->
-    <div style="padding: 1em; background-color: #B7E4B6">
-        <span class="hinted">
-            🙋
-            <span class="hint">
+    <div class="navod">
+        <span>🙋<span>
                 <em>(toto se ukazuje pouze na testu a pouze přhlášeným organizátorům)</em><br>
             </span>
         </span>

@@ -417,7 +417,6 @@ figure {
 
 .aktivity_popisLinie {
     grid-area: popis;
-
     @media (min-width: 790px) {
         width: 69%;
     }
@@ -425,6 +424,8 @@ figure {
 
 .navod {
     grid-area: navod;
+    padding: 1em;
+    background-color: #B7E4B6;
 }
 
 .org-obrazek {
@@ -440,13 +441,18 @@ figure {
 .aktivity_ikonaLinie {
     grid-area: ikona;
 
+    display: flex;
     justify-content: center;
-    align-content: center;
-    margin: 0 auto;
-    width: 17em;
+    align-items: center;
 
+    width: 17em;
+    margin: 0 auto;
     padding-top: 3em;
-    @media (max-width: 789px) {
+}
+
+/* Media query musí být mimo selektor */
+@media (max-width: 789px) {
+    .aktivity_ikonaLinie {
         margin-top: -3em;
         margin-bottom: -3em;
     }
