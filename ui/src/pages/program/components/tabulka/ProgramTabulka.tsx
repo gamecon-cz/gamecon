@@ -202,7 +202,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
           </div>
           <ProgramPosuv {...{ obalRef }} />
         </div>
-        <PřekrývacíNačítač zobrazit={aktivityStatus?.stav === "načítání"} />
+        <PřekrývacíNačítač zobrazit={aktivityStatus === "načítání"} />
       </div>
     </>
   );
