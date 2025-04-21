@@ -32,6 +32,7 @@ const vytvořPrázdnouMřížku = (id: number) => {
       ({
         typ: "předmět",
         barvaPozadí: "",
+        barvaText: "",
         text: "",
         cilId: 0,
       } as DefiniceObchodMřížkaBuňka)
@@ -89,7 +90,7 @@ export const EditorMřížek: FunctionComponent<TEditorMřížekProps> = (props)
         Mřížka:
         <select
           value={mřížkaVybranáI}
-          onChange={(e: any) => setMřížkaVybranáI(+e.target.value)}
+          onChange={(e) => setMřížkaVybranáI(+e.currentTarget.value)}
         >
           {mřížky.map((x, i) => {
             const text = !x.text || x.text === "" ? x.id : x.text;
