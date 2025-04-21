@@ -15,7 +15,7 @@ export const tryParseNumber = (str: string | null): number | undefined => {
  */
 export const mb_ucfirst = (input: string): string => {
   return input.replace(/^./u, match => match.toUpperCase());
-}
+};
 
 export type TValueLabel<T = any> = {
   value: T;

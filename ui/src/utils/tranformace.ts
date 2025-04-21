@@ -1,6 +1,6 @@
-import { APIAktivita, APIŠtítek, Obsazenost, OdDo } from "../api/program";
+import { ApiAktivita, ApiŠtítek, Obsazenost, OdDo } from "../api/program";
 
-export const štítkyZId = (štítkyId: number[] | undefined, štítky: APIŠtítek[]) => {
+export const štítkyZId = (štítkyId: number[] | undefined, štítky: ApiŠtítek[]) => {
   return štítkyId
     ?.map(id => štítky.find(štítek => štítek.id === id)?.nazev)
     ?.filter(název=> název)
@@ -28,7 +28,7 @@ export const volnoTypZObsazenost = (obsazenost: Obsazenost) => {
   return "u"; //je volno a žádné pohlaví nevyžralo limit míst
 };
 
-export const casRozsahZAktivit = (aktivity: APIAktivita[]): OdDo => {
+export const casRozsahZAktivit = (aktivity: ApiAktivita[]): OdDo => {
   let casOd = Math.min();
   let casDo = Math.max();
 

@@ -39,14 +39,16 @@ export type OdDo = {
   do: number,
 };
 
-export type APIAktivita = {
+/**
+ * Data nezávislé na tom jestli je uživatel přihlášený
+ */
+export type ApiAktivitaNepřihlášen = {
   id: number,
   nazev: string,
   kratkyPopis: string,
   popis: string,
   obrazek: string,
   vypraveci: string[],
-  // stitky: string[],
   stitkyId: number[],
   cenaZaklad: number,
   casText: string,
@@ -64,7 +66,7 @@ export type APIAktivita = {
 /**
  * Pro jednodušší práci musí být všechny parametry optional
  */
-export type APIAktivitaPřihlášen = {
+export type ApiAktivitaPřihlášen = {
   id: number,
   obsazenost?: Obsazenost,
   /** V jakém stavu je pokud je přihlášen */
@@ -83,7 +85,9 @@ export type APIAktivitaPřihlášen = {
   prihlasovatelna?: boolean,
 }
 
-export type APIŠtítek = {
+export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaPřihlášen;
+
+export type ApiŠtítek = {
   id: number,
   nazev: string,
   nazevKategorie: string,
@@ -92,7 +96,7 @@ export type APIŠtítek = {
   // poznamka: string,
 };
 
-export const fetchAktivity = async (rok: number): Promise<APIAktivita[]> => {
+export const fetchAktivity = async (rok: number): Promise<ApiAktivita[]> => {
   if (GAMECON_KONSTANTY.IS_DEV_SERVER) {
     return fetchTestovacíAktivity(rok);
   }
@@ -100,8 +104,25 @@ export const fetchAktivity = async (rok: number): Promise<APIAktivita[]> => {
   return fetch(url, { method: "POST" }).then(async x => x.json());
 };
 
-
-export const fetchŠtítky = async (): Promise<APIŠtítek[]> =>{
+export const fetchŠtítky = async (): Promise<ApiŠtítek[]> =>{
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}stitky`;
   return fetch(url, { method: "GET" }).then(async x => x.json());
+};
+
+export type ApiAktivitaAkce =
+  | "prihlasit"
+  | "odhlasit"
+  | "prihlasSledujiciho"
+  | "odhlasSledujiciho";
+
+type ApiAktivitaAkceResponse = {
+  úspěch: boolean,
+  chyba?: {hláška:string},
+}
+
+export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce): Promise<ApiAktivitaAkceResponse> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaAkce`;
+  const formdata = new FormData();
+  formdata.set(typ, aktivitaId.toString(10));
+  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };

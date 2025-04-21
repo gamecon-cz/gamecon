@@ -3,7 +3,7 @@ import { GAMECON_KONSTANTY } from "../../env";
 import { distinct } from "../../utils";
 import { LOCAL_STORAGE_KLÍČE } from "../localStorageKlíče";
 import { urlStavProgramTabulkaMožnostíDnyMůj } from "./logic/url";
-import { filtrujDotaženéAktivity, načtiRok, načtiŠtítky } from "./slices/programDataSlice";
+import { načtiRok, načtiŠtítky } from "./slices/programDataSlice";
 import { nastavStateZUrl, nastavUrlZState } from "./slices/urlSlice";
 import { nastavFiltryOtevřené } from "./slices/všeobecnéSlice";
 
@@ -37,7 +37,7 @@ export const inicializujProgramStore = () => {
 
   useProgramStore.subscribe(s => s.data, (data) => {
     useProgramStore.setState(s => {
-      s.urlStavMožnosti.linie = distinct(filtrujDotaženéAktivity(data.aktivityPodleId).map(x => x.linie))
+      s.urlStavMožnosti.linie = distinct(Object.values(data.aktivityPodleId).map(x => x.linie))
         .sort((a, b) => indexŘazeníLinie(a) - indexŘazeníLinie(b));
     });
   });

@@ -1,43 +1,22 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { APIAktivita, APIAktivitaPřihlášen, APIŠtítek, fetchAktivity, fetchŠtítky } from "../../../api/program";
+import { ApiAktivita, ApiAktivitaAkce, ApiŠtítek, fetchAktivitaAkce, fetchAktivity, fetchŠtítky } from "../../../api/program";
+import { GAMECON_KONSTANTY } from "../../../env";
+import { nastavChyba } from "./všeobecnéSlice";
 
-const DOTAŽENO = "dotaženo";
-
-export type Aktivita = APIAktivita & APIAktivitaPřihlášen & {
-  /**
-   * kdy byla APIAktivita dotažena
-   */
-  [DOTAŽENO]: number
-};
-type AktivitaČást = Aktivita | APIAktivitaPřihlášen;
-
-export const jeAktivitaDotažená = (část: AktivitaČást | undefined): část is Aktivita => {
-  return !!část && (DOTAŽENO in část);
-};
-
-export const filtrujDotaženéAktivity = (aktivityPodleId: {
-  [id: number]: AktivitaČást
-}): Aktivita[] => Object.values(aktivityPodleId).filter(jeAktivitaDotažená);
-
-export type DataApiStav = {
-  stav: "načítání",
-} | {
-  stav: "dotaženo",
-}| {
-  stav: "chyba",
-}
+export type DataApiStav = "načítání" | "dotaženo" | "chyba";
 
 export type ProgramDataSlice = {
   data: {
     aktivityPodleId: {
-      [id: number]: AktivitaČást
+      [id: number]: ApiAktivita
     },
-    štítky: APIŠtítek[],
+    štítky: ApiŠtítek[],
   },
   dataStatus: {
     podleRoku: {
       [rok: number]: DataApiStav
     },
+    akce?: DataApiStav
   },
 }
 
@@ -51,13 +30,12 @@ export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () 
   }
 });
 
-const nastavStavProRok = (rok: number, stavString: DataApiStav["stav"]) => {
+const nastavStavProRok = (rok: number, stav: DataApiStav) => {
   useProgramStore.setState(s=>{
-    s.dataStatus.podleRoku[rok] = {stav: stavString};
+    s.dataStatus.podleRoku[rok] = stav;
   }, undefined, "Natavení api stavu pro rok");
-}
+};
 
-/** Pokud ještě není dotažený tak dotáhne rok, příhlášen se dotahuje vždy */
 export const načtiRok = async (rok: number) => {
   const nastavStav = nastavStavProRok.bind(undefined, rok);
 
@@ -68,7 +46,7 @@ export const načtiRok = async (rok: number) => {
 
     useProgramStore.setState(s => {
       for (const aktivita of aktivity) {
-        s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita, [DOTAŽENO]: Date.now() };
+        s.data.aktivityPodleId[aktivita.id] = aktivita;
       }
     }, undefined, "dotažení aktivit");
   } catch(e) {
@@ -82,4 +60,30 @@ export const načtiŠtítky = async () => {
   useProgramStore.setState(s => {
     s.data.štítky = štítky;
   }, undefined, "dotažení štítků");
+};
+
+const nastavStavAkce = (stav: DataApiStav) => {
+  useProgramStore.setState(s=>{
+    s.dataStatus.akce = stav;
+  }, undefined, "Natavení api stavu pro akci");
+};
+
+export const useStavAkce = () => useProgramStore(s=>s.dataStatus.akce);
+
+export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAkce) => {
+  try {
+    nastavStavAkce("načítání");
+    const { chyba } = await fetchAktivitaAkce(aktivitaId, typ);
+
+    if (chyba?.hláška){
+      nastavStavAkce("chyba");
+      nastavChyba(chyba.hláška);
+    } else {
+      nastavStavAkce("dotaženo");
+    }
+
+    await načtiRok(GAMECON_KONSTANTY.ROCNIK);
+  } catch (e) {
+    console.error(e);
+  }
 };

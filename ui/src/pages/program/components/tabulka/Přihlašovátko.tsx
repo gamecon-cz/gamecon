@@ -1,8 +1,9 @@
 import { FunctionComponent } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { useAktivita, useUživatel } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
+import { proveďAkciAktivity, useStavAkce } from "../../../../store/program/slices/programDataSlice";
 
 const zámeček = `🔒`;
 
@@ -28,8 +29,6 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
   typ,
   zamčenaDo,
 }) => {
-  const formRef = useRef<HTMLFormElement>(null);
-
   const [zbýváText, setZbýváText] = useState("666 hodin");
   const spočítejZbýváText = () => {
     if (!zamčenaDo) return;
@@ -66,8 +65,7 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
 
   return (
     <>
-      <form ref={formRef} method="post" style="display:inline">
-        <input type="hidden" name={typ} value={id}></input>
+      <form method="none" style="display:inline" onSubmit={(e) => { e.preventDefault(); }}>
         <a
           href="#"
           onClick={(e) => {
@@ -77,7 +75,7 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
             } else if (typ == "odhlasit") {
               nastavModalOdhlásit(id);
             } else {
-              formRef.current?.submit?.();
+              void proveďAkciAktivity(id, typ);
             }
           }}
         >
@@ -91,6 +89,19 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
   );
 };
 
+const NačítáníText = () => {
+  const [teček, setTeček] = useState(0);
+
+  useEffect(()=>{
+    const interval = setInterval(() => {
+      setTeček(x=>(x+1)%3);
+    }, 1000);
+    return ()=> clearInterval(interval);
+  }, [])
+
+  return <em>Načítání {"".padEnd(teček+1, ".")}</em>;
+}
+
 export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   props
 ) => {
@@ -98,6 +109,7 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
 
   const uživatel = useUživatel();
   const aktivita = useAktivita(akitivitaId);
+  const stavAkce = useStavAkce();
 
   if (!uživatel.prihlasen) return <></>;
 
@@ -106,6 +118,11 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   if (!aktivita?.prihlasovatelna) return <></>;
 
   if (aktivita?.jeBrigadnicka && !uživatel.brigadnik) return <></>;
+
+
+  if (stavAkce === "načítání") {
+    return <NačítáníText />;
+  }
 
   if (
     aktivita.stavPrihlaseni &&
