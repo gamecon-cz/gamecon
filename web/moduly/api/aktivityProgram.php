@@ -92,22 +92,22 @@ foreach ($aktivity as $aktivita) {
         $stavPrihlasen = $aktivita->stavPrihlaseni($u);
         switch ($stavPrihlasen) {
             case StavPrihlaseni::PRIHLASEN:
-                $aktivitaRes['prihlasen'] = true;
+                $aktivitaRes['stavPrihlaseni'] = "prihlasen";
                 break;
             case StavPrihlaseni::PRIHLASEN_A_DORAZIL:
-                $aktivitaRes['prihlasenADorazil'] = true;
+                $aktivitaRes['stavPrihlaseni'] = "prihlasenADorazil";
                 break;
             case StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK:
-                $aktivitaRes['dorazilJakoNahradnik'] = true;
+                $aktivitaRes['stavPrihlaseni'] = "dorazilJakoNahradnik";
                 break;
             case StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL:
-                $aktivitaRes['prihlasenAleNedorazil'] = true;
+                $aktivitaRes['stavPrihlaseni'] = "prihlasenAleNedorazil";
                 break;
             case StavPrihlaseni::POZDE_ZRUSIL:
-                $aktivitaRes['pozdeZrusil'] = true;
+                $aktivitaRes['stavPrihlaseni'] = "pozdeZrusil";
                 break;
             case StavPrihlaseni::SLEDUJICI:
-                $aktivitaRes['sledujici'] = true;
+                $aktivitaRes['stavPrihlaseni'] = "sledujici";
                 break;
         }
 
