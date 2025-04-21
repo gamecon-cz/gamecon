@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import React from "react";
 
 export const PřekrývacíNačítač: React.FC<{

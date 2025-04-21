@@ -3,14 +3,14 @@ import { FunctionComponent } from "preact";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
 import { useAktivita, useUrlStav, useUživatelPohlaví } from "../../../../store/program/selektory";
-import { Aktivita } from "../../../../store/program/slices/programDataSlice";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
+import { ApiAktivita } from "../../../../api/program";
 
 export const tabulkaBuňkaAktivitaTřídy = (
-  aktivita: Aktivita,
+  aktivita: ApiAktivita,
   pohlavi: Pohlavi | undefined
 ) => {
   const classes: string[] = [];

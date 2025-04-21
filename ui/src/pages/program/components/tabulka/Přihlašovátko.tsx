@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { useAktivita, useUživatel } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
@@ -29,8 +29,6 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
   typ,
   zamčenaDo,
 }) => {
-  const formRef = useRef<HTMLFormElement>(null);
-
   const [zbýváText, setZbýváText] = useState("666 hodin");
   const spočítejZbýváText = () => {
     if (!zamčenaDo) return;

@@ -19,6 +19,7 @@ import { useProgramStore } from "../../../../store/program";
 import { useEffect } from "react";
 import { nastavZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 import { PřekrývacíNačítač } from "../Načítač";
+import { exitFullscreen, requestFullscreen } from "../../../../utils/dom";
 
 type ProgramTabulkaProps = {};
 
@@ -157,7 +158,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     + (aktivitaNáhled ? " programNahled_obalProgramu-zuzeny" : "")
     + (zvětšeno ? " programNahled_obalProgramu-zvetseny" : "")
     ;
-  
+
   const obalHlavníRef = useRef<HTMLDivElement>(null);
   const posledníZvětšeno = useRef(false);
 
@@ -178,21 +179,9 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     posledníZvětšeno.current = zvětšeno;
 
     if (zvětšeno) {
-      if ((element as any)?.requestFullscreen) {
-        (element as any)?.requestFullscreen();
-      } else if ((element as any)?.webkitRequestFullscreen) { /* Safari */
-        (element as any)?.webkitRequestFullscreen();
-      } else if ((element as any)?.msRequestFullscreen) { /* IE11 */
-        (element as any)?.msRequestFullscreen();
-      }
+      requestFullscreen(element);
     } else {
-      if ((element as any)?.exitFullscreen) {
-        (element as any)?.exitFullscreen();
-      } else if ((element as any)?.webkitExitFullscreen) { /* Safari */
-        (element as any)?.webkitExitFullscreen();
-      } else if ((element as any)?.msExitFullscreen) { /* IE11 */
-        (element as any)?.msExitFullscreen();
-      }
+      exitFullscreen(element);
     }
   }, [zvětšeno]);
 

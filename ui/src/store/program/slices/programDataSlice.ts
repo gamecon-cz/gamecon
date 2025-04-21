@@ -1,25 +1,7 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { APIAktivita, ApiAktivitaAkce, APIAktivitaPřihlášen, APIŠtítek, fetchAktivitaAkce, fetchAktivity, fetchŠtítky } from "../../../api/program";
+import { ApiAktivita, ApiAktivitaAkce, ApiŠtítek, fetchAktivitaAkce, fetchAktivity, fetchŠtítky } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { nastavChyba } from "./všeobecnéSlice";
-
-const DOTAŽENO = "dotaženo";
-
-export type Aktivita = APIAktivita & APIAktivitaPřihlášen & {
-  /**
-   * kdy byla APIAktivita dotažena
-   */
-  [DOTAŽENO]: number
-};
-type AktivitaČást = Aktivita | APIAktivitaPřihlášen;
-
-export const jeAktivitaDotažená = (část: AktivitaČást | undefined): část is Aktivita => {
-  return !!část && (DOTAŽENO in část);
-};
-
-export const filtrujDotaženéAktivity = (aktivityPodleId: {
-  [id: number]: AktivitaČást
-}): Aktivita[] => Object.values(aktivityPodleId).filter(jeAktivitaDotažená);
 
 export type DataApiStav = {
   stav: "načítání",
@@ -32,9 +14,9 @@ export type DataApiStav = {
 export type ProgramDataSlice = {
   data: {
     aktivityPodleId: {
-      [id: number]: AktivitaČást
+      [id: number]: ApiAktivita
     },
-    štítky: APIŠtítek[],
+    štítky: ApiŠtítek[],
   },
   dataStatus: {
     podleRoku: {
@@ -57,9 +39,8 @@ const nastavStavProRok = (rok: number, stavString: DataApiStav["stav"]) => {
   useProgramStore.setState(s=>{
     s.dataStatus.podleRoku[rok] = {stav: stavString};
   }, undefined, "Natavení api stavu pro rok");
-}
+};
 
-/** Pokud ještě není dotažený tak dotáhne rok, příhlášen se dotahuje vždy */
 export const načtiRok = async (rok: number) => {
   const nastavStav = nastavStavProRok.bind(undefined, rok);
 
@@ -70,7 +51,7 @@ export const načtiRok = async (rok: number) => {
 
     useProgramStore.setState(s => {
       for (const aktivita of aktivity) {
-        s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita, [DOTAŽENO]: Date.now() };
+        s.data.aktivityPodleId[aktivita.id] = aktivita;
       }
     }, undefined, "dotažení aktivit");
   } catch(e) {
@@ -88,13 +69,13 @@ export const načtiŠtítky = async () => {
 
 export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAkce) => {
   try {
-    const { chyba } = await fetchAktivitaAkce(aktivitaId, typ)
+    const { chyba } = await fetchAktivitaAkce(aktivitaId, typ);
 
     if (chyba?.hláška)
-      nastavChyba(chyba.hláška)
+      nastavChyba(chyba.hláška);
 
-    await načtiRok(GAMECON_KONSTANTY.ROCNIK)
+    await načtiRok(GAMECON_KONSTANTY.ROCNIK);
   } catch (e) {
     console.error(e);
   }
-}
+};

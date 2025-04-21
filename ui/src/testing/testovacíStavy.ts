@@ -1,7 +1,7 @@
 import produce from "immer";
 import { GAMECON_KONSTANTY } from "../env";
 import { useProgramStore } from "../store/program";
-import { Aktivita } from "../store/program/slices/programDataSlice";
+import { ApiAktivita } from "../api/program";
 
 type TestovacíStav = {
   název: string,
@@ -41,7 +41,7 @@ const časV = (hodina: number) => {
 
 type AktivitaCreateParams = { id: number, hodina?: number, trvání?: number };
 
-const createAktivita = (a: AktivitaCreateParams): Aktivita => {
+const createAktivita = (a: AktivitaCreateParams): ApiAktivita => {
   const {
     id,
     hodina,
@@ -55,7 +55,6 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
 
   return {
     id,
-    dotaženo: Date.now(),
     nazev: "Dominion",
     kratkyPopis: "Stojíte na počátku budování své vlastní říše a nemáte nic než trochu peněz a malé pozemky.",
     obrazek: "",
@@ -81,7 +80,7 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
   };
 };
 
-const nastavAktivity = (aktivity: Aktivita[]) => {
+const nastavAktivity = (aktivity: ApiAktivita[]) => {
   useProgramStore.setState(s => {
 
     aktivity.forEach(x => {
