@@ -1,5 +1,7 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { APIAktivita, APIAktivitaPřihlášen, APIŠtítek, fetchAktivity, fetchŠtítky } from "../../../api/program";
+import { APIAktivita, ApiAktivitaAkce, APIAktivitaPřihlášen, APIŠtítek, fetchAktivitaAkce, fetchAktivity, fetchŠtítky } from "../../../api/program";
+import { GAMECON_KONSTANTY } from "../../../env";
+import { nastavChyba } from "./všeobecnéSlice";
 
 const DOTAŽENO = "dotaženo";
 
@@ -83,3 +85,16 @@ export const načtiŠtítky = async () => {
     s.data.štítky = štítky;
   }, undefined, "dotažení štítků");
 };
+
+export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAkce) => {
+  try {
+    const { chyba } = await fetchAktivitaAkce(aktivitaId, typ)
+
+    if (chyba?.hláška)
+      nastavChyba(chyba.hláška)
+
+    await načtiRok(GAMECON_KONSTANTY.ROCNIK)
+  } catch (e) {
+    console.error(e);
+  }
+}
