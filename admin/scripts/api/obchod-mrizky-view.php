@@ -70,12 +70,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $bunkaRaw['mrizka_id'] = $mrizka->id();
             if (isset($bunkaRaw['cilId'])) {
                 $bunkaRaw['cil_id'] = $bunkaRaw['cilId'];
-                unset($bunkaRaw['cilId']);
             }
+            unset($bunkaRaw['cilId']);
             if (isset($bunkaRaw['barvaText'])) {
                 $bunkaRaw['barva_text'] = $bunkaRaw['barvaText'];
-                unset($bunkaRaw['barvaText']);
             }
+            unset($bunkaRaw['barvaText']);
 
             $bunkyRaw[] = $bunkaRaw;
         }
