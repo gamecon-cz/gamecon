@@ -25,6 +25,7 @@ export const EditorBuňky: FunctionComponent<TEditorBuňkyProps> = (props) => {
         <div>
           <input
             value={buňka.text}
+            style={{backgroundColor:"transparent", color: buňka.barvaText ?? "#000000"}}
             onChange={(e) => {
               setBuňka({ ...buňka, text: e.currentTarget.value });
             }}
@@ -49,6 +50,15 @@ export const EditorBuňky: FunctionComponent<TEditorBuňkyProps> = (props) => {
             value={buňka.barvaPozadí ?? "#ffffff"}
             onChange={(e) => {
               setBuňka({ ...buňka, barvaPozadí: e.currentTarget.value });
+            }}
+          ></input>
+        </div>
+        <div>
+          <input
+            type="color"
+            value={buňka.barvaText ?? "#000000"}
+            onChange={(e) => {
+              setBuňka({ ...buňka, barvaText: e.currentTarget.value });
             }}
           ></input>
         </div>

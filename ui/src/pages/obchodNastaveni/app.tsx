@@ -28,7 +28,7 @@ export const CíleContext = createContext<Cíle>({
 const usePředměty = () => {
   const [předměty, setPředměty] = useState<Předmět[] | null | undefined>();
   useEffect(() => {
-    (async () => {
+    void (async () => {
       setPředměty(await fetchPředměty());
     })();
   }, []);
@@ -58,7 +58,7 @@ export const ObchodNastaveni: FunctionComponent<TObchodNastaveniProps> = (
   const předměty = usePředměty();
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       setDefiniceObchod(await fetchMřížky());
     })();
   }, []);
@@ -84,7 +84,7 @@ export const ObchodNastaveni: FunctionComponent<TObchodNastaveniProps> = (
     <>
       <CíleContext.Provider value={cíle}>
         <EditorMřížek
-          {...{ mřížky: definiceObchod!.mřížky, setMřížky, uložMřížky }}
+          {...{ mřížky: definiceObchod.mřížky, setMřížky, uložMřížky }}
         />
       </CíleContext.Provider>
     </>
