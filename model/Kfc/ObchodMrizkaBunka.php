@@ -47,12 +47,17 @@ class ObchodMrizkaBunka extends \DbObject
         return $this->getSetR('barva', $val);
     }
 
-    public function cil_id($val = null)
+    public function barvaText($val = null)
+    {
+        return $this->getSetR('barva_text', $val);
+    }
+
+    public function cilId($val = null)
     {
         return intvalOrNull($this->getSetR('cil_id', $val));
     }
 
-    public function mrizka_id($val = null)
+    public function mrizkaId($val = null)
     {
         return intvalOrNull($this->getSetR('mrizka_id', $val));
     }
