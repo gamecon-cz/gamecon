@@ -7,6 +7,7 @@ import { ProgramTabulka } from "./components/tabulka/ProgramTabulka";
 import { inicializujProgramStore } from "../../store/program/inicializace";
 import { načtiPřihlášenýUživatel } from "../../store/program/slices/přihlášenSlice";
 import { OdhlasitAktivituModal } from "./components/vstupy/OdhlasitAktivituModal";
+import { ChybaBox } from "./components/ChybaBox";
 
 import "./program.less";
 
@@ -25,6 +26,7 @@ export const Program: FunctionComponent = () => {
         <ProgramUživatelskéVstupy />
         <ProgramLegenda />
         <ProgramTabulka />
+        <ChybaBox/>
       </div>
     </>
   );

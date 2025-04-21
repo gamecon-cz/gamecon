@@ -2,6 +2,7 @@ import { ProgramStateCreator, useProgramStore } from "..";
 
 export type VšeobecnéSlice = {
   všeobecné: {
+    chyba?: string,
     filtryOtevřené: boolean,
     zvětšeno: boolean,
     kompaktní: boolean,
@@ -54,4 +55,10 @@ export const nastavModalOdhlásit = (aktivitaId?: number) => {
   useProgramStore.setState(s => {
     s.všeobecné.modalOdhlásitAktivitaId = aktivitaId;
   }, undefined, "nastav modal odhlásit");
+};
+
+export const nastavChyba = (chyba?: string) => {
+  useProgramStore.setState(s => {
+    s.všeobecné.chyba = chyba;
+  }, undefined, "nastav chyba");
 };
