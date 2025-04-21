@@ -3,10 +3,10 @@ import { Pohlavi, PřihlášenýUživatel } from "../../api/přihlášenýUživa
 import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
 import shallow from "zustand/shallow";
 import { FiltrAktivit, filtrujAktivity, MapováníŠtítků, vytvořMapováníŠtítků } from "./logic/aktivity";
-import { Aktivita, filtrujDotaženéAktivity, jeAktivitaDotažená } from "./slices/programDataSlice";
 import { PRÁZDNÉ_POLE, distinct } from "../../utils";
 import { useMemo } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
+import { ApiAktivita } from "../../api/program";
 
 const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   const urlStav = useProgramStore((s) => s.urlStav);
@@ -26,19 +26,19 @@ const useŠtítkyMapováníKategorieŠtítků = () => {
 /**
  * Všechny dotažené aktivity
  */
-export const useAktivityDotažené = () =>
-  useProgramStore((s) => filtrujDotaženéAktivity(s.data.aktivityPodleId));
+export const useAktivity = () =>
+  useProgramStore((s) => Object.values(s.data.aktivityPodleId));
 
 /**
  * Aplikuje filtr na aktivity, pokud není předaný
  */
-export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): Aktivita[] => {
+export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): ApiAktivita[] => {
   const filtr = useFiltrAktivitNeboZeStavu(aktivitaFiltr);
   const mapaŠtítků = useŠtítkyMapováníKategorieŠtítků();
 
-  const aktivityDotažené = useAktivityDotažené();
+  const aktivity = useAktivity();
 
-  const aktivityFiltrované = filtrujAktivity(aktivityDotažené, filtr, mapaŠtítků);
+  const aktivityFiltrované = filtrujAktivity(aktivity, filtr, mapaŠtítků);
 
   return aktivityFiltrované;
 };
@@ -53,16 +53,16 @@ export const useAktivityStatus = (ročník?: number) => {
   return useProgramStore(s=>s.dataStatus.podleRoku[ročníkZFiltru]);
 };
 
-export const useAktivita = (akitivitaId: number): Aktivita | undefined =>
+export const useAktivita = (akitivitaId: number): ApiAktivita | undefined =>
   useProgramStore((s) => {
     const aktivita = s.data.aktivityPodleId[akitivitaId];
-    return jeAktivitaDotažená(aktivita) ? aktivita : undefined;
+    return aktivita;
   });
 
-export const useAktivitaNáhled = (): Aktivita | undefined =>
+export const useAktivitaNáhled = (): ApiAktivita | undefined =>
   useProgramStore(s => {
     const aktivita = s.data.aktivityPodleId[s.urlStav.aktivitaNáhledId ?? -1];
-    return jeAktivitaDotažená(aktivita) ? aktivita : undefined;
+    return aktivita;
   }, shallow);
 
 export const useŠtítkyPodleKategorie = () => {
@@ -100,13 +100,13 @@ export const useŠtítkyVybranéPodleKategorie = () => {
 
 export const useŠtítkyPočetAktivit = () => {
   const štítky = useŠtítky();
-  const aktivityDotažené = useAktivityDotažené();
+  const aktivity = useAktivity();
   const mapaŠtítků = useŠtítkyMapováníKategorieŠtítků();
   const filtr = useFiltrAktivitNeboZeStavu();
 
   const štítekSPočtemAktivit = štítky.map(štítek => ({
     štítekId: štítek.id,
-    počet: filtrujAktivity(aktivityDotažené, {
+    počet: filtrujAktivity(aktivity, {
       ...filtr,
       filtrTagy: (filtr.filtrTagy ?? []).concat([štítek.id]),
     }, mapaŠtítků).length,

@@ -1,8 +1,7 @@
-import { APIŠtítek, AktivitaStav } from "../../../api/program";
+import { ApiŠtítek, AktivitaStav, ApiAktivita } from "../../../api/program";
 import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { datumPřidejDen, volnoTypZObsazenost } from "../../../utils";
-import { Aktivita } from "../slices/programDataSlice";
 // Pozor musí být defaultní import!
 import FlexSearch from "flexsearch";
 
@@ -16,13 +15,13 @@ export type FiltrProgramTabulkaVýběr =
   };
 
 export type MapováníŠtítků = {
-  /** Klíč je id (APIŠtítek.id) hodnota je kategorie štítku (APIŠtítek.nazevKategorie) */
+  /** Klíč je id (ApiŠtítek.id) hodnota je kategorie štítku (ApiŠtítek.nazevKategorie) */
   idDoKategorie: {
     [štítekId: string]: string
   },
 }
 
-export const vytvořMapováníŠtítků = (štítky: APIŠtítek[]): MapováníŠtítků => {
+export const vytvořMapováníŠtítků = (štítky: ApiŠtítek[]): MapováníŠtítků => {
   const idDoKategorie = Object.fromEntries(štítky.map(x => [x.id, x.nazevKategorie]));
   return {
     idDoKategorie,
@@ -40,7 +39,7 @@ export type FiltrAktivit = Partial<{
 }>;
 
 export const aktivitaStatusZAktivity = (
-  aktivita: Aktivita,
+  aktivita: ApiAktivita,
   pohlavi?: Pohlavi | undefined
 ): AktivitaStav => {
   if (
@@ -77,21 +76,34 @@ export const denAktivity = (časAktivity: Date) => {
     : datumPřidejDen(časAktivity, -1);
 };
 
+const ziskejIdZTextovéhoFiltru = (text: string): number | undefined => {
+  const idFiltrText = RegExp(/id=([0-9]*)/).exec(text)?.[1];
+  if (!idFiltrText) return;
+  return +idFiltrText;
+};
+
 // TODO: přidat zbytek filtrů
-export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníŠtítků: MapováníŠtítků) => {
+export const filtrujAktivity = (aktivity: ApiAktivita[], filtr: FiltrAktivit, mapováníŠtítků: MapováníŠtítků) => {
   const {
     filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrŠtítkyId, ročník, výběr, filtrStavAktivit, filtrText
   } = filtr;
-  const textovéFiltry = filtrText?.split("|").map(text=>({text,id: RegExp(/id=([0-9]*)/).exec(text)?.[1]}));
 
-  const aktivityPodleId = textovéFiltry
-    ?.filter(filtr=>filtr.id)
-    .map(filtr=>+filtr.id!)
-    .map(idAktivity=>aktivity.find(x=>x.id === idAktivity) as Aktivita)
-    .filter(x=>x !== undefined)
+  const textovéFiltry: string[] = [];
+  const idFiltry: number[] = [];
+  for (const textovýFiltr of (filtrText?.split("|") ?? [])) {
+    const idFiltr = ziskejIdZTextovéhoFiltru(textovýFiltr);
+    if (idFiltr === undefined) {
+      textovéFiltry.push(textovýFiltr);
+    } else {
+      idFiltry.push(idFiltr);
+    }
+  }
+
+  const aktivityPodleId = idFiltry
+    .map(idAktivity=>aktivity.find(x=>x.id === idAktivity))
+    .filter(x => x !== undefined)
     ?? []
     ;
-
 
   let aktivityFiltrované = aktivity;
 
@@ -105,11 +117,11 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       .filter((aktivita) => aktivita?.stavPrihlaseni != undefined || aktivita?.vedu);
   } else if (výběr?.typ === "den") {
     aktivityFiltrované = aktivityFiltrované
-      .filter((aktivita) => 
+      .filter((aktivita) =>
         denAktivity(new Date(aktivita.cas.od)).getDay() === výběr.datum.getDay());
   }
 
-  if (textovéFiltry?.some(x=>x.text==="*"))
+  if (textovéFiltry?.some(x=>x==="*"))
     return aktivityFiltrované;
 
   if (filtrLinie)
@@ -152,9 +164,9 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
     );
 
   // TODO: filtrovat podle všech podmínek oddělených | ne jen podle první
-  const prvníTextovýFiltr = textovéFiltry?.filter(x=>!x.id)?.[0]?.text;
+  const prvníTextovýFiltr = textovéFiltry?.[0];
   if (prvníTextovýFiltr) {
-    const flexDocument = new FlexSearch.Document<Aktivita, true>({
+    const flexDocument = new FlexSearch.Document<ApiAktivita, true>({
       language: "cs",
       tokenize: "forward",
       preset: "performance",
@@ -188,7 +200,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
 
     const filtr = idčka.map(id =>
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      (flexDocument as any).get(id) as Aktivita
+      (flexDocument as any).get(id) as ApiAktivita
     );
 
     aktivityFiltrované = filtr;
