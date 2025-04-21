@@ -206,7 +206,8 @@ export const filtrujAktivity = (aktivity: ApiAktivita[], filtr: FiltrAktivit, ma
     aktivityFiltrované = filtr;
   }
 
-  aktivityFiltrované = aktivityFiltrované.concat(aktivityPodleId);
+  const chybějícíAktivityPodleId = aktivityPodleId.filter(aktivitaPodleId => !aktivityFiltrované.some(aktivita=>aktivita.id === aktivitaPodleId.id));
+  aktivityFiltrované = aktivityFiltrované.concat(chybějícíAktivityPodleId);
 
   return aktivityFiltrované;
 };

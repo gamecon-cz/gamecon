@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { useAktivita, useUživatel } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
-import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
+import { proveďAkciAktivity, useStavAkce } from "../../../../store/program/slices/programDataSlice";
 
 const zámeček = `🔒`;
 
@@ -89,6 +89,19 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
   );
 };
 
+const NačítáníText = () => {
+  const [teček, setTeček] = useState(0);
+
+  useEffect(()=>{
+    const interval = setInterval(() => {
+      setTeček(x=>(x+1)%3);
+    }, 1000);
+    return ()=> clearInterval(interval);
+  }, [])
+
+  return <em>Načítání {"".padEnd(teček+1, ".")}</em>;
+}
+
 export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   props
 ) => {
@@ -96,6 +109,7 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
 
   const uživatel = useUživatel();
   const aktivita = useAktivita(akitivitaId);
+  const stavAkce = useStavAkce();
 
   if (!uživatel.prihlasen) return <></>;
 
@@ -104,6 +118,11 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   if (!aktivita?.prihlasovatelna) return <></>;
 
   if (aktivita?.jeBrigadnicka && !uživatel.brigadnik) return <></>;
+
+
+  if (stavAkce === "načítání") {
+    return <NačítáníText />;
+  }
 
   if (
     aktivita.stavPrihlaseni &&
