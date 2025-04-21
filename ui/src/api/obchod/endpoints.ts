@@ -4,7 +4,7 @@ import { DefiniceObchod, DefiniceObchodMřížka, DefiniceObchodMřížkaBuňka,
 /**
  * Typ pro zápis a čtení pro api
  */
-type MřížkaAPI = {
+type ApiMřížka = {
   id?: number,
   text?: string,
   bunky?: {
@@ -12,11 +12,12 @@ type MřížkaAPI = {
     typ: number,
     text?: string,
     barva?: string,
-    cil_id?: number,
+    barvaText?: string,
+    cilId?: number,
   }[],
 }[];
 
-type PředmětyAPI = {
+type ApiPředměty = {
   nazev: string,
   zbyva: number | undefined,
   id: number,
@@ -26,7 +27,7 @@ type PředmětyAPI = {
 export const fetchMřížky = async (): Promise<DefiniceObchod | null> => {
   try {
     const res = await fetch(GAMECON_KONSTANTY.BASE_PATH_API + "obchod-mrizky-view");
-    const mřížkyApi = await res.json() as MřížkaAPI;
+    const mřížkyApi = await res.json() as ApiMřížka;
 
     const obj: DefiniceObchod = {
       mřížky: mřížkyApi.map(mřížkaRaw => ({
@@ -35,9 +36,10 @@ export const fetchMřížky = async (): Promise<DefiniceObchod | null> => {
         buňky: mřížkaRaw.bunky?.map(
           (buňka) => ({
             typ: DefiniceObchodMřížkaBuňkaTyp[buňka.typ] as string,
-            cilId: buňka.cil_id,
+            cilId: buňka.cilId,
             text: buňka.text,
             barvaPozadí: buňka.barva,
+            barvaText: buňka.barvaText,
             id: buňka.id,
           } as DefiniceObchodMřížkaBuňka)
         ) ?? [],
@@ -59,13 +61,14 @@ export const fetchNastavMřížky = async (obj: DefiniceObchod) => {
       bunky: mřížka.buňky.map(buňka => ({
         id: buňka.id,
         barva: buňka.barvaPozadí,
-        cil_id: (buňka as (
+        barvaText: buňka.barvaText,
+        cilId: (buňka as (
           DefiniceObchodMřížkaBuňkaPředmět | DefiniceObchodMřížkaBuňkaStránka
         ))?.cilId,
         text: buňka.text,
         typ: DefiniceObchodMřížkaBuňkaTyp[buňka.typ],
-      } as (Required<MřížkaAPI[0]>["bunky"][0])))
-    } as MřížkaAPI[0])) as MřížkaAPI);
+      } as (Required<ApiMřížka[0]>["bunky"][0])))
+    } as ApiMřížka[0])) as ApiMřížka);
 
     const res = await fetch(GAMECON_KONSTANTY.BASE_PATH_API + "obchod-mrizky-view", {
       method: "POST",
@@ -83,7 +86,7 @@ export const fetchNastavMřížky = async (obj: DefiniceObchod) => {
 export const fetchPředměty = async (): Promise<Předmět[] | null> => {
   try {
     const res = await fetch(GAMECON_KONSTANTY.BASE_PATH_API + "predmety");
-    const předmětyApi = await res.json() as PředmětyAPI;
+    const předmětyApi = await res.json() as ApiPředměty;
     const předměty = předmětyApi.map(předmět => ({
       název: předmět.nazev,
       cena: předmět.cena,
@@ -120,6 +123,7 @@ const fakeFetchProdej = (objednávky: ObjednávkaPředmět[]) => {
 /**
  * TODO: aktuálně refreshne stránku!!
  */
+// eslint-disable-next-line @typescript-eslint/require-await
 export const fetchProdej = async (objednávky: ObjednávkaPředmět[]): Promise<void> => {
   try {
     fakeFetchProdej(objednávky);

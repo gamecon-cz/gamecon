@@ -19,17 +19,18 @@ if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Prav
 // TODO: OpenAPI
 
 /*
-  type MřížkaAPI = {
+  type ApiMřížka = {
     id?: number,
     text?: string,
     bunky?: {
       id?: number,
-      typ: number - TypBunky,
+      typ: number,
       text?: string,
       barva?: string,
-      cil_id?: number,
+      barvaText?: string,
+      cilId?: number,
     }[],
-  }[]
+  }[];
 
   GET api/obchod-mrizky-view
   response: MřížkaAPI všechno přítomné
@@ -67,7 +68,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         foreach ($bunky as &$bunkaRaw) {
             $bunkaRaw['mrizka_id'] = $mrizka->id();
-            $bunkyRaw[]            = $bunkaRaw;
+            if (isset($bunkaRaw['cilId'])) {
+                $bunkaRaw['cil_id'] = $bunkaRaw['cilId'];
+            }
+            unset($bunkaRaw['cilId']);
+            if (isset($bunkaRaw['barvaText'])) {
+                $bunkaRaw['barva_text'] = $bunkaRaw['barvaText'];
+            }
+            unset($bunkaRaw['barvaText']);
+
+            $bunkyRaw[] = $bunkaRaw;
         }
     }
 
@@ -93,7 +103,7 @@ foreach ($vsechny as &$x) {
     $bunkyMrizky = array_values(
         array_filter($bunky, function ($y) use ($x) {
             /** @var ObchodMrizkaBunka $y */
-            return $y->mrizka_id() == $x->id();
+            return $y->mrizkaId() == $x->id();
         })
     );
     $res[]       = [
@@ -105,7 +115,8 @@ foreach ($vsechny as &$x) {
                 'typ'    => $y->typ(),
                 'text'   => $y->text(),
                 'barva'  => $y->barva(),
-                'cil_id' => $y->cil_id(),
+                'barvaText'  => $y->barvaText(),
+                'cilId' => $y -> cilId(),
             ];
         }, $bunkyMrizky),
     ];
