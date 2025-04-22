@@ -3,11 +3,13 @@
 // TODO: při pojmenování jako api/aktivity.php z nezámeho důvodu připisuje obsah aktivity.php
 // TODO: udělat REST api definice
 
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 
-$u = Uzivatel::zSession();
+/**
+ * @var Uzivatel|null $u
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
 
 // TODO: remove tesing snippet:
 /*
@@ -34,10 +36,8 @@ Promise.all(
 fetch("/web/api/aktivityProgram", {method:"POST"}).then(x=>x.text()).then(x=>console.log(x))
 */
 // TODO: je potřeba otestovat taky $u->gcPrihlasen() ?
-// TODO: tohle nastavení by mělo platit pro všechny php soubory ve složce api
-$this->bezStranky(true);
 
-if ($_SERVER["REQUEST_METHOD"] != "POST") {
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     return;
 }
 

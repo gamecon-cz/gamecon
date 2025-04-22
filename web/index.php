@@ -48,6 +48,9 @@ if (!$m) {
 // spuštění kódu modulu + buffering výstupu a nastavení
 $m->param('u', $u);
 $m->param('url', $url);
+    if (($url->cast(0) ?? null) === 'api') {
+    $m->bezStranky(true);
+}
 $i = (new Info($systemoveNastaveni))
     ->obrazek('soubory/styl/og-image.jpg')
     ->site('GameCon')
