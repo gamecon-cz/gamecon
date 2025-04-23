@@ -90,7 +90,7 @@
         <h2>Jídlo</h2>
 
         <div class="prihlaska_infoPruh">
-            <div class="prihlaska_info prekryti">
+            <div class="prihlaska_info">
                 <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/rum.png"
                      style="top: -48px; right: -8px">
                 <h3>Informace ke stravování</h3>
