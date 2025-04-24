@@ -115,8 +115,10 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                     const hodinDo = new Date(aktivita.cas.do).getHours();
 
                     const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
+                    const odsazení = časOdsazení > 0
+                        ? <td colSpan={časOdsazení}></td>
+                        : <></>;
                     posledníAktivitaDo = hodinDo;
-                    const odsazení = <td colSpan={časOdsazení}></td>;
 
                     return (
                       <>
