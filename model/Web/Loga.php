@@ -32,9 +32,6 @@ readonly class Loga
     public function __construct(
         private string $adresarLog,
     ) {
-        if (!is_dir($this->adresarLog)) {
-            throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelez přečíst.");
-        }
     }
 
     public function vypisDoSablony(
@@ -52,6 +49,9 @@ readonly class Loga
      */
     public function serazenaLoga(): iterable
     {
+        if (!is_dir($this->adresarLog)) {
+            throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelze přečíst.");
+        }
         $soubory = glob($this->adresarLog . '/*', GLOB_NOSORT);
         ['obrazky' => $obrazky, 'radici_soubor' => $radiciSoubor] = $this->rozdel($soubory);
         $obrazky  = $this->vyhodVyrazene($obrazky);

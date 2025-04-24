@@ -28,17 +28,6 @@ jobs:
 
     steps:
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'  # musí odpovídat verzi na serveru
-          # extensions musí odpovídat seznamu v composer.json
-          extensions: >-
-            bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json,
-            mbstring, mysqli, pdo, sqlite3, xmlreader, zip
-          tools: composer
-          coverage: none
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -47,9 +36,9 @@ jobs:
 
       - name: Run tests in container
         run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
-        continue-on-error: true
 
       - name: Upload test output as artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: php-test-logs
