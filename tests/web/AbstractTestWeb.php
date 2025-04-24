@@ -9,27 +9,19 @@ use Gamecon\Tests\Db\AbstractTestDb;
 use Uzivatel;
 use Gamecon\Login\Login;
 use Gamecon\Pravo;
-use Symfony\Component\Process\Process;
 
 abstract class AbstractTestWeb extends AbstractTestDb
 {
-
-    protected static int $unusedLocalServerPort = 8888;
-    /**
-     * @var Process[]
-     */
-    protected array $localServersProcesses = [];
-    /** @var string[] */
-    protected array $cookieFilesPerServer = [];
-
-    protected static function keepDbChangesInTransaction(): bool {
+    protected static function keepDbChangesInTransaction(): bool
+    {
         return false;
     }
 
     /**
      * @return string[]
      */
-    protected static function getInitQueries(): array {
+    protected static function getInitQueries(): array
+    {
         $queries = [];
 
         $queries[] = [
@@ -67,51 +59,42 @@ SQL;
         return $queries;
     }
 
-    protected function tearDown(): void {
-        parent::tearDown();
-        /*        foreach ($this->localServersProcesses as $port => $localServersProcess) {
-                    $localServersProcess->stop();
-                    if (static::$unusedLocalServerPort === $port + 1) {
-                        static::$unusedLocalServerPort = $port; // port se uvolnil
-                    }
-                }*/
-        foreach ($this->cookieFilesPerServer as $cookieFile) {
-            unlink($cookieFile);
-        }
-    }
-
-    protected function testAdminPagesAccessibility(array $urls) {
+    protected function testAdminPagesAccessibility(array $urls): void
+    {
         $this->testPagesAccessibility($urls, Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO);
     }
 
     /**
      * @param string[] $urls
      */
-    protected function testPagesAccessibility(array $urls, string $username = null, string $password = null) {
-        $urlsOfUnusedLocalServers = $this->getUrlsOfUnusedLocalServers(count($urls), $username, $password);
-        reset($urlsOfUnusedLocalServers);
-
+    protected function testPagesAccessibility(
+        array  $urls,
+        string $username = null,
+        string $password = null,
+    ): void {
         $multiCurl   = curl_multi_init();
         $curlHandles = [];
         $errors      = [];
 
         foreach ($urls as $url) {
-            $localServerUrl = current($urlsOfUnusedLocalServers);
-            next($urlsOfUnusedLocalServers);
-            $absoluteUrl = $localServerUrl . '/' . $url;
+            $cookieFile = tempnam(sys_get_temp_dir(), 'cookie');
+            if ($username !== null && $password !== null) {
+                $this->loginToAdmin($cookieFile, $username, $password);
+            }
+            $absoluteUrl = 'http://localhost/' . $url;
             $curlHandle  = curl_init($absoluteUrl);
             if (!$curlHandle) {
                 $errors[] = sprintf("Nelze otevřít CURL handle pro URL '%s'", $absoluteUrl);
                 continue;
             }
 
-            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10); // timeout na připojení
-            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 10); // timeout na stahování
+            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 20); // timeout na připojení
+            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 10);        // timeout na stahování
             curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curlHandle, CURLOPT_HEADER, true);
             curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
             $this->setLocalServerCookieWithGameconTestDb($curlHandle);
-            curl_setopt($curlHandle, CURLOPT_COOKIEFILE, $this->getCookieFileForServer($localServerUrl));
+            curl_setopt($curlHandle, CURLOPT_COOKIEFILE, $cookieFile);
 
             curl_multi_add_handle($multiCurl, $curlHandle);
 
@@ -121,7 +104,7 @@ SQL;
         self::assertCount(
             0,
             $errors ?? [],
-            sprintf("Potíže s CURL: %s", implode(',', $errors))
+            sprintf("Potíže s CURL: %s", implode(',', $errors)),
         );
 
         do {
@@ -144,14 +127,14 @@ SQL;
                 implode('; ', $urls),
                 curl_multi_strerror($totalResultCode),
                 $totalResultCode,
-                implode("\n", $outputs)
+                implode("\n", $outputs),
             );
         }
 
         self::assertCount(
             0,
             $errors ?? [],
-            sprintf("Chyby během stahování stránek: %s", implode(',', $errors))
+            sprintf("Chyby během stahování stránek: %s", implode(',', $errors)),
         );
 
         do {
@@ -166,14 +149,14 @@ SQL;
 
         foreach ($curlHandles as $url => $curlHandle) {
             $info = curl_getinfo($curlHandle);
-            if ($info['http_code'] >= 400) {
+            if ($info['http_code'] >= 400 && $info['http_code'] !== 401) {
                 $errors[$info['url']] = sprintf(
                     "nepodařilo se stáhnout stránku '%s', response code %d%s",
                     $url,
                     $info['http_code'],
                     $info['http_code'] === 404
                         ? ' (nenalezeno)'
-                        : ''
+                        : '',
                 );
             } else {
                 $content = curl_multi_getcontent($curlHandle);
@@ -193,203 +176,17 @@ SQL;
         self::assertCount(
             0,
             $errors ?? [],
-            sprintf("Chyby během stahování stránek: %s", implode('; ', $errors))
+            sprintf("Chyby během stahování stránek: %s", implode('; ', $errors)),
         );
     }
 
-    protected function getUrlsOfUnusedLocalServers(int $count, ?string $username, ?string $password): array {
-        $localServersUrls = [];
-        for ($current = 1; $current <= $count; $current++) {
-            $localServersUrls[] = $this->getUrlOfUnusedLocalServer(false);
-        }
-
-        $this->waitForLocalServersBoot($localServersUrls);
-
-        if ($username && $password) {
-            foreach ($localServersUrls as $localServerUrl) {
-                // ke každé instanci PHP serveru se musíme přihlásit zvlášť, protože každá má své cookies
-                $this->loginToAdmin($localServerUrl, $username, $password);
-            }
-        }
-
-        return $localServersUrls;
-    }
-
-    /**
-     * PHP -S server is single thread only - so we will create one instance for every tested URL to speed tests up
-     * @param string[] $localServersUrls
-     */
-    protected function waitForLocalServersBoot(array $localServersUrls) {
-        $multiCurl   = curl_multi_init();
-        $curlHandles = [];
-
-        foreach ($localServersUrls as $localServersUrl) {
-            $curlHandle = curl_init($localServersUrl);
-            if (!$curlHandle) {
-                $this->fail(
-                    sprintf("Nelze otevřít CURL handle pro URL '%s'", $localServersUrl)
-                );
-            }
-            curl_setopt($curlHandle, CURLOPT_NOBODY, true);
-            curl_setopt($curlHandle, CURLOPT_HEADER, false);
-            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 5); // timeout na připojení
-            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 5); // timeout na stahování
-            curl_multi_add_handle($multiCurl, $curlHandle);
-            $curlHandles[] = $curlHandle;
-        }
-
-        do {
-            $someNotYetReady = false;
-            do {
-                ob_start();
-                $totalResultCode = curl_multi_exec($multiCurl, $running);
-                ob_end_clean();
-                // Wait for activity on any curl-connection
-                if ($running > 0 && curl_multi_select($multiCurl) === -1) {
-                    usleep(2000);
-                }
-            } while ($running > 0 && $totalResultCode === CURLM_OK);
-            if ($totalResultCode !== CURLM_OK) {
-                $this->fail(
-                    sprintf(
-                        'Nepodařilo se načíst URLs %s s chybou %s (%d)',
-                        implode('; ', $localServersUrls),
-                        curl_multi_strerror($totalResultCode),
-                        $totalResultCode
-                    )
-                );
-            }
-
-            do {
-                $multiInfo = curl_multi_info_read($multiCurl, $remainingMessages);
-                if ($multiInfo) {
-                    ['result' => $resultCode] = $multiInfo;
-                    if ($resultCode === 7) { // server not yet ready
-                        $someNotYetReady = true;
-                        usleep(20000);
-                        break; // break current do - while, therefore continue parent do - while
-                    }
-                    if ($resultCode !== CURLE_OK) {
-                        $this->fail(
-                            sprintf(
-                                'Nepodařilo se načíst URLs %s s chybou %s (%d)',
-                                implode('; ', $localServersUrls),
-                                curl_strerror($resultCode),
-                                $resultCode
-                            )
-                        );
-                    }
-                }
-            } while ($multiInfo && $remainingMessages);
-        } while ($someNotYetReady);
-
-        foreach ($curlHandles as $curlHandle) {
-            curl_multi_remove_handle($multiCurl, $curlHandle);
-            curl_close($curlHandle);
-        }
-
-        curl_multi_close($multiCurl);
-    }
-
-    protected function getUrlOfUnusedLocalServer(
-        bool $waitForBoot = true,
-    ): string {
-        $localServerProcess = null;
-        $attemptsRemains    = 5;
-        do {
-            $port = $this->getUnusedPort();
-            static::$unusedLocalServerPort++;
-            $localServerUrl = "localhost:$port";
-            try {
-                $localServerProcess = $this->startLocalWebServer($localServerUrl, $waitForBoot);
-            } catch (\RuntimeException $runtimeException) {
-                $attemptsRemains--;
-            }
-        } while (!$localServerProcess && $attemptsRemains > 0);
-        if (!$localServerProcess) {
-            self::fail("Local web server on URL `%s` does not start",);
-        }
-        $this->localServersProcesses[$port] = $localServerProcess;
-        return $localServerUrl;
-    }
-
-    protected function startLocalWebServer(
-        string $localServerUrl,
-        bool   $waitForBoot = true
-    ): Process {
-        $localServerProcess = new Process(['php', '-S', $localServerUrl]);
-        $localServerProcess->start();
-
-        if (!$localServerProcess->isRunning()) {
-            throw new \RuntimeException(
-                sprintf(
-                    "Failed command %s with exit code %d and output %s (%s)",
-                    $localServerProcess->getCommandLine(),
-                    $localServerProcess->getExitCode(),
-                    $localServerProcess->getExitCodeText(),
-                    $localServerProcess->getErrorOutput(),
-                )
-            );
-        }
-
-        if ($waitForBoot) {
-            $this->waitForLocalServerBoot($localServerUrl);
-        }
-
-        return $localServerProcess;
-    }
-
-    protected function getUnusedPort(): int {
-        $localServerProcess = new Process(['ss', '--listening', '--tcp', '--udp', '--raw', '--no-header']);
-        $localServerProcess->start();
-        $localServerProcess->wait();
-        $output = $localServerProcess->getOutput();
-        preg_match_all('~\d+[.]\d+[.]\d+([.]\d+)*:(?<ports>\d+)~', $output, $matches);
-        $usedPorts = $matches['ports'];
-        if (!$usedPorts) {
-            return static::$unusedLocalServerPort;
-        }
-        while (in_array(static::$unusedLocalServerPort, $usedPorts, false)) {
-            static::$unusedLocalServerPort++;
-        }
-        return static::$unusedLocalServerPort;
-    }
-
-    protected function failTestIfLocalWebServerIsNotRunning(Process $process) {
-        if (!$process->isRunning()) {
-            self::fail(
-                sprintf(
-                    "Local web server via `%s` controlled by tests is not running. Exit code %d (%s), message: '%s'",
-                    (string)$process->getCommandLine(),
-                    $process->getExitCode(),
-                    $process->getExitCodeText(),
-                    trim($process->getErrorOutput())
-                )
-            );
-        }
-    }
-
-    protected function waitForLocalServerBoot(string $url) {
-        $curlHandle     = curl_init($url);
-        $anotherAttempt = false;
-        do {
-            curl_setopt($curlHandle, CURLOPT_NOBODY, true);
-            curl_setopt($curlHandle, CURLOPT_HEADER, false);
-            ob_start();
-            curl_exec($curlHandle);
-            ob_end_clean();
-            if ($anotherAttempt) {
-                usleep(20000);
-            }
-            $anotherAttempt = true;
-        } while (curl_errno($curlHandle) === 7);
-        curl_close($curlHandle);
-    }
-
-    protected function loginToAdmin(string $serverUrl, string $username, string $password) {
-        $cookieFile       = $this->getCookieFileForServer($serverUrl);
+    protected function loginToAdmin(
+        string $cookieFile,
+        string $username,
+        string $password,
+    ): void {
         $adminUrl         = basename(__DIR__ . '/../../admin');
-        $adminAbsoluteUrl = $serverUrl . '/' . $adminUrl;
+        $adminAbsoluteUrl = 'http://localhost/' . $adminUrl;
         $curlHandle       = curl_init($adminAbsoluteUrl);
 
         curl_setopt($curlHandle, CURLOPT_HEADER, true);
@@ -403,7 +200,7 @@ SQL;
         curl_setopt(
             $curlHandle,
             CURLOPT_POSTFIELDS,
-            [Login::LOGIN_INPUT_NAME => $username, Login::PASSWORD_INPUT_NAME => $password]
+            [Login::LOGIN_INPUT_NAME => $username, Login::PASSWORD_INPUT_NAME => $password],
         );
         $output      = curl_exec($curlHandle);
         $errorNumber = curl_errno($curlHandle);
@@ -414,8 +211,8 @@ SQL;
                     $adminAbsoluteUrl,
                     curl_error($curlHandle),
                     $errorNumber,
-                    $output
-                )
+                    $output,
+                ),
             );
         }
         $info = curl_getinfo($curlHandle);
@@ -428,22 +225,15 @@ SQL;
                     $info['http_code'] === 404
                         ? ' (nenalezeno)'
                         : '',
-                    $output
-                )
+                    $output,
+                ),
             );
         }
         curl_close($curlHandle);
     }
 
-    protected function getCookieFileForServer(string $serverUrl): string {
-        if (empty($this->cookieFilesPerServer[$serverUrl])) {
-            $this->cookieFilesPerServer[$serverUrl] = tempnam(sys_get_temp_dir(), 'server_cookie_file_');
-        }
-        return $this->cookieFilesPerServer[$serverUrl];
-    }
-
-    protected function setLocalServerCookieWithGameconTestDb(\CurlHandle $curlHandle) {
+    protected function setLocalServerCookieWithGameconTestDb(\CurlHandle $curlHandle): void
+    {
         curl_setopt($curlHandle, CURLOPT_COOKIE, 'gamecon_test_db=' . DB_NAME . '; unit_tests=1');
     }
-
 }

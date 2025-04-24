@@ -27,8 +27,6 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -41,10 +39,11 @@ jobs:
           tools: composer
           coverage: none
 
-      - name: Setup MySQL for tests
-        uses: shogo82148/actions-setup-mysql@v1
-        with:
-          mysql-version: 'mariadb-10.6'  # mělo by odpovídat verzi na serveru
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Run tests
-        run: ./vendor/bin/phpunit
+      - name: Build and start containers
+        run: docker compose up --build --detach
+
+      - name: Run tests in container
+        run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
