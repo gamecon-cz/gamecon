@@ -5,8 +5,10 @@ services:
     image: gameconcz/gamecon:8.2
     restart: "no"
     depends_on:
-      - sql.gamecon
-      - mailhog.gamecon
+      sql.gamecon:
+          condition: service_healthy
+      mailhog.gamecon:
+          condition: service_started
     volumes:
       - .:/var/www/html/gamecon:cached
       # - ~/.cache/composer:/home/www-data/.composer
@@ -34,6 +36,11 @@ services:
     volumes:
       - ./.docker/mysql:/etc/mysql/conf.d:ro
       # - ~/.cache/gamecon/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
       - "${SQL_HOST_MAPPING_PORT:-13306}:3306"
