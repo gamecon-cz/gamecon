@@ -13,6 +13,9 @@ class StrankyWebuTest extends AbstractTestWeb
      */
     public function Muzu_si_zobrazit_kazdou_stranku_na_webu(...$urls)
     {
+        // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
+        get_headers(URL_WEBU);
+
         $this->testPagesAccessibility($urls);
     }
 

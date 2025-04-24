@@ -61,6 +61,9 @@ SQL;
 
     protected function testAdminPagesAccessibility(array $urls): void
     {
+        // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
+        get_headers(URL_ADMIN);
+
         $this->testPagesAccessibility($urls, Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO);
     }
 
@@ -158,6 +161,18 @@ SQL;
                         ? ' (nenalezeno)'
                         : '',
                 );
+                $file = TESTS_LOG_DIR . '/' . DB_NAME . '_' . parse_url($url, PHP_URL_PATH) . '.html';
+                $dir = dirname($file);
+                if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+                    self::fail("Nelze vytvořit adresář '$dir' pro výstup selhaného testu URL '$url'");
+                }
+                $bytes = file_put_contents(
+                    $file,
+                    curl_multi_getcontent($curlHandle),
+                );
+                if ($bytes === false) {
+                    self::fail("Nelze uložit data do souboru '$file' pro výstup selhaného testu URL '$url'");
+                }
             } else {
                 $content = curl_multi_getcontent($curlHandle);
                 $parts   = explode("\r\n\r\n", $content);
