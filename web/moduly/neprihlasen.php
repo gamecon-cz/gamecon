@@ -1,6 +1,6 @@
 <?php
 
-http_response_code(400);
+header(header: 'HTTP/1.1 401 Unauthorized', response_code: 401);
 
 ?>
 

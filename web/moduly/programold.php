@@ -55,7 +55,7 @@ $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
     ? $zacatekPristiVlnyOd->getTimestamp() - $systemoveNastaveni->ted()->getTimestamp()
     : null;
 
-$legendaText   = Stranka::zUrl('program-legenda-text')->html();
+$legendaText   = Stranka::zUrl('program-legenda-text')?->html();
 $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
 
 // pomocná funkce pro zobrazení aktivního odkazu

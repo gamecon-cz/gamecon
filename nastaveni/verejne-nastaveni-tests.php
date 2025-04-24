@@ -1,5 +1,5 @@
 <?php
-ini_set('zend.exception_ignore_args', '0'); // zaloguj argumenty při erroru
+ini_set('zend.exception_ignore_args', '0');            // zaloguj argumenty při erroru
 ini_set('zend.exception_string_param_max_len', '999'); // loguj argumenty až do délky 999 bajtů před oříznutím
 
 define('DB_TEST_PREFIX', 'gamecon_test_');
@@ -13,3 +13,5 @@ define('UNIT_TESTS', true);
 define('PRVNI_VLNA_KDY', '2000-01-01 00:00:00');
 
 define('MAILY_DO_SOUBORU', '/dev/null'); // TODO přidat speciální nastavení pro CI
+
+if (!defined('UNIVERZALNI_HESLO')) define('UNIVERZALNI_HESLO', 'Testuj testuj vykrúcaj!');
