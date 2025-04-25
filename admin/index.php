@@ -91,23 +91,21 @@ if ($systemoveNastaveni->jeApril()) {
     $xtpl->parse('all.april');
 }
 
-if ($u && $u->jeOrganizator()) {
+if (VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB && $u && $u->jeOrganizator() && empty($_SESSION['VAROVAN_O_ZASEKLE_SYNCHRONIZACI_PLATEB'])) {
     $platbyNaposledyAktualizovanyKdy = (new Platby($systemoveNastaveni))->platbyNaposledyAktualizovanyKdy();
     if (
         $platbyNaposledyAktualizovanyKdy === null
         || $platbyNaposledyAktualizovanyKdy < new DateTimeImmutable('-1 day')
     ) {
-        // logiku výše cíleně pouštíme ikdyž hlášku nechceme, abychom i při vývoji měli jistotu, že v kódu není fatální chyba
-        if (VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB) {
-            varovani(
-                'Platby z Fio byly naposledy aktualizovány ' . (
-                $platbyNaposledyAktualizovanyKdy === null
-                    ? '"nikdy"'
-                    : DateTimeCz::createFromInterface($platbyNaposledyAktualizovanyKdy)->relativni()
-                ),
-                false
-            );
-        }
+        varovani(
+            'Platby z Fio byly naposledy aktualizovány ' . (
+            $platbyNaposledyAktualizovanyKdy === null
+                ? '"nikdy"'
+                : DateTimeCz::createFromInterface($platbyNaposledyAktualizovanyKdy)->relativni()
+            ),
+            false,
+        );
+        $_SESSION['VAROVAN_O_ZASEKLE_SYNCHRONIZACI_PLATEB'] = time();
     }
 }
 
@@ -127,7 +125,7 @@ if (!empty($menu[$stranka]['submenu'])) {
 $strankaExistuje    = isset($menu[$stranka]);
 $podstrankaExistuje = isset($submenu[$podstranka]);
 $uzivatelMaPristup  = $strankaExistuje && $u->maPravo($menu[$stranka]['pravo'])
-    && (!$podstrankaExistuje || $u->maPravo($submenu[$podstranka]['pravo']));
+                      && (!$podstrankaExistuje || $u->maPravo($submenu[$podstranka]['pravo']));
 
 // konstrukce stránky
 if ($strankaExistuje && $uzivatelMaPristup) {
@@ -214,7 +212,10 @@ foreach ($menu as $url => $polozka) {
 }
 
 // submenu setřídění dle group, pak order, pak nazev
-uasort($submenu, function ($a, $b) {
+uasort($submenu, function (
+    $a,
+    $b,
+) {
     $diff = $a['group'] - $b['group'];
     if ($diff == 0) {
         $diff = $a['order'] - $b['order'];
