@@ -113,7 +113,9 @@ if ($uPracovni) {
     ]);
     $datumNarozeni = DateTimeImmutable::createFromMutable($up->datumNarozeni());
 
-    $x->parse('uzivatel.slevy');
+    if ($u->jeVypravec() || $u->jeOrganizator()) {
+        $x->parse('uzivatel.slevy');
+    }
     $x->parse('uzivatel.objednavky');
 }
 
