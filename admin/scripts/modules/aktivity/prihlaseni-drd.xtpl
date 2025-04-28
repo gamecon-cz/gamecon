@@ -6,7 +6,7 @@
   <!-- begin:semifinale --><span style="color: #f60"> – skončili v semifinále</span><!-- end:semifinale -->
   <!-- begin:finale --><span style="color: #0a0"> – postoupili do finále</span><!-- end:finale -->
 </b><br>
-{a.denCas}<br>
+{a.denCasSkutecny}<br>
 <!-- begin:clen -->
 {u.jmenoNick}<br>
 <!-- end:clen -->
