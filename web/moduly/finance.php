@@ -80,7 +80,7 @@ if (!$zaplaceno) {
                 <ul><?= trim($slevyA . $slevyV) ?></ul>
             <?php } ?>
         </div>
-    <?php ?>
+    <?php } ?>
 
     <div style="clear:both"></div>
 
