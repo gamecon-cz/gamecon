@@ -22,7 +22,7 @@ if(post('zrusit')) {
   oznameni(
     'Zrušeno storno pro ' . $uzivatel->jmenoNick() .
     ' za ' . $aktivita->nazev() .
-    ' (' . $aktivita->denCas() . ')'
+    ' (' . $aktivita->denCasSkutecny() . ')'
   );
 }
 

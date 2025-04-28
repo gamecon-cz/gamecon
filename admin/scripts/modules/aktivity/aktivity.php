@@ -137,7 +137,7 @@ foreach ($aktivity as $aktivita) {
         'id_akce'      => $aktivita->id(),
         'nazev_akce'   => $aktivita->nazev(),
         'hinted'       => $aktivita->tagy() ? 'hinted' : '',
-        'cas'          => $aktivita->denCas(),
+        'cas'          => $aktivita->denCasSkutecny(),
         'organizatori' => $aktivita->orgJmena(),
         'typ'          => $typy[$r['typ']],
         'mistnost'     => $mistnosti[$r['lokace']] ?? '(žádná)',

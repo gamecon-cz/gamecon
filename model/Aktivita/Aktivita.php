@@ -309,7 +309,7 @@ SQL
     /**
      * @return string datum ve stylu Pátek 14-18 (skutečný čas)
      */
-    public function denCas(): string
+    public function denCasSkutecny(): string
     {
         if ($this->denSkutecny() && $this->konec()) {
             return $this->denSkutecny()->format('l G') . '–' . $this->konec()->format('G');
@@ -334,10 +334,10 @@ SQL
         return self::denAktivity($this, true);
     }
 
-    private static function denAktivity(?Aktivita $aktivita, Bool $programu): DateTimeCz | null
+    private static function denAktivity(?Aktivita $aktivita, bool $programovy): DateTimeCz | null
     {
         if ($aktivita && $aktivita->zacatek()) {
-            return (!$programu || ($aktivita->zacatek()->format('H') >= PROGRAM_ZACATEK))
+            return (!$programovy || ($aktivita->zacatek()->format('H') >= PROGRAM_ZACATEK))
                 ? $aktivita->zacatek()
                 : (clone $aktivita->zacatek())->minusDen();
         }
@@ -1879,7 +1879,7 @@ SQL
         foreach ($emaily as $email) {
             $mail = GcMail::vytvorZGlobals();
             $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
-            $mail->text(hlaskaMail('uvolneneMisto', $this->nazev(), $this->denCas()));
+            $mail->text(hlaskaMail('uvolneneMisto', $this->nazev(), $this->denCasSkutecny()));
             $mail->adresat($email);
             $mail->odeslat();
         }
@@ -1999,7 +1999,7 @@ SQL
                 }
             }
             if ($jeNovyTym && $this->pocetTeamu() >= $this->a['team_kapacita']) {
-                throw new \Chyba('Na aktivitu ' . $this->nazev() . ': ' . $this->denCas() . ' je už přihlášen maximální počet týmů');
+                throw new \Chyba('Na aktivitu ' . $this->nazev() . ': ' . $this->denCasSkutecny() . ' je už přihlášen maximální počet týmů');
             }
         }
 
@@ -2580,7 +2580,7 @@ HTML
                 $lidr,
                 $lidr->jmenoNick(),
                 $this->nazev(),
-                $this->denCas(),
+                $this->denCasSkutecny(),
             ),
         );
         $mail->predmet('Přihláška na ' . $this->nazev());
@@ -3092,7 +3092,7 @@ SQL,
                 foreach ($uroven as $varianta) {
                     $t->assign([
                         'koloId' => $varianta->id(),
-                        'nazev'  => $varianta->nazev() . ': ' . $varianta->denCas(),
+                        'nazev'  => $varianta->nazev() . ': ' . $varianta->denCasSkutecny(),
                     ]);
                     $t->parse('formular.kola.uroven.varianta');
                 }
