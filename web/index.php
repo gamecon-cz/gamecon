@@ -49,7 +49,7 @@ if (!$m) {
 // spuštění kódu modulu + buffering výstupu a nastavení
 $m->param('u', $u);
 $m->param('url', $url);
-    if (($url->cast(0) ?? null) === 'api') {
+    if (($url?->cast(0) ?? null) === 'api') {
     $m->bezStranky(true);
 }
 $i = (new Info($systemoveNastaveni))
@@ -79,28 +79,28 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
         'url_typu_mn'  => '/celohra',
     ]);
 
-    foreach ($typy as $typ) { 
-        if ($typ->id() === TypAktivity::BONUS) { 
+    foreach ($typy as $typ) {
+        if ($typ->id() === TypAktivity::BONUS) {
             $typ->nastavNazev('akční hry a bonusy');
         }
         $puvodniNazev = $typ->nazev();
         $malyNazev = mb_strtolower($puvodniNazev, 'UTF-8');
         $typ->nastavNazev($malyNazev);
     }
-    
+
     usort($typy, function($a, $b) {
         return strcoll($a->nazev(), $b->nazev());
     });
 
-    foreach ($typy as $typ) { 
-        if ($typ->id() === TypAktivity::RPG) { 
+    foreach ($typy as $typ) {
+        if ($typ->id() === TypAktivity::RPG) {
             $typ->nastavNazev('RPG');
         }
         else if ($typ->id() === TypAktivity::DRD){
             $typ->nastavNazev('Mistrovství v DrD');
         }
     }
-    
+
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
     // položky uživatelského menu
