@@ -103,7 +103,6 @@ foreach ($skupiny as $skupina) {
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.nahled.stitek');
     $t->parse('aktivity.aktivita');
     $t->parse('aktivity.nahled');
-    $t->parse('aktivity.testBlock');
 }
 
 // záhlaví a informace
