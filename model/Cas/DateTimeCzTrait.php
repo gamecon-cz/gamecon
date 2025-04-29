@@ -86,9 +86,9 @@ trait DateTimeCzTrait
     ];
 
     /**
-     * Z 'Neděle' udělá 'Ne - Po'
+     * Z 'Neděle' udělá 'Ne–Po'
      */
-    public static function denNaPrelomDnuVeZkratkach(string $den, string $oddelovac = ' - '): string
+    public static function denNaPrelomDnuVeZkratkach(string $den, string $oddelovac = '–'): string
     {
         $den              = trim($den);
         $denBezDiakritiky = RemoveDiacritics::toConstantLikeValue($den);
@@ -105,12 +105,12 @@ trait DateTimeCzTrait
     }
 
     /**
-     * Z 'Neděle' udělá 'Ne - Po'
+     * Z 'Neděle' udělá 'Ne–Po'
      */
     public static function poradiDneVTydnuNaPrelomDnuVeZkratkach(
         int    $poradiDneVTydnu,
         bool   $zacatekVelkymiPismeny,
-        string $oddelovac = ' - ',
+        string $oddelovac = '–',
     ): string
     {
         $poradiNasledujicihoDne = self::poradiNasledujicihoDne($poradiDneVTydnu);
