@@ -73,11 +73,12 @@ if (!$zaplaceno) {
         <?= $veci ?>
     </div>
 
-<!--    <?php //if ($u?->jeOrganizator() || $u?->jeVypravec()) { ?> -->
     <?php if ($slevyA || $slevyV) { ?>
         <div style="float:left">
             <h2>Bonusy</h2>
-            <ul><?= trim($slevyA . $slevyV) ?></ul>
+            <?php if ($slevyA || $slevyV) { ?>
+                <ul><?= trim($slevyA . $slevyV) ?></ul>
+            <?php } ?>
         </div>
     <?php } ?>
 
