@@ -12,10 +12,30 @@
             if ($pocetZmen === 0) {
                 continue; // skrývání odebraných sponzorů ([^_] znamená "jen pokud nezačíná podtržítkem" a podtržítko znamená "vyřazený obrázek")
             }
-            $t->assign([
-                'url' => $fn,
-                'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
-            ]);
+
+            // Odstranění vykřičníku z názvu souboru pro "alt" atribut
+            $alt_var = ltrim($fn, '!');
+
+            // Podmínka pro nastavení odkazu a OnClick
+            if (strpos($fn, '!') === 0) {
+                $href = '#'; // Odkaz bude "#", což znamená, že kliknutí nevede na nic
+                $t->assign([
+                    'url' => $href,
+                    'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
+                    'alt' => $alt_var,
+                ]);
+                // Vytvoření "OnClick" bloku, pokud je odkaz "#"
+                $t->parse("sponzori.$kategorie.{$kategorie}OnClick");
+            } else {
+                $href = "https://$alt_var"; // Odkaz je platný URL
+                $t->assign([
+                    'url' => $href,
+                    'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
+                    'alt' => $alt_var,
+                ]);
+            }
+
+            // Spuštění generování šablony pro danou kategorii
             $t->parse("sponzori.$kategorie");
         }
     }
