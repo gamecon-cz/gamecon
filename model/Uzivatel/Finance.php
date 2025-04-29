@@ -257,6 +257,8 @@ SQL,
             if ($razeniVKategorii !== 0) {
                 return $razeniVKategorii;
             }
+        }
+        if ($a['poradi_v_podkategorii'] !== $b['poradi_v_podkategorii']) {
             $razeniVPodkategorii = (int)$a['poradi_v_podkategorii'] - (int)$b['poradi_v_podkategorii'];
             if ($razeniVPodkategorii !== 0) {
                 return $razeniVPodkategorii;
