@@ -18,7 +18,7 @@
         <!-- begin:normal -->
         <div class="shop_popis shopUbytovani_radek">
             {typ}
-            <div class="shop_popisCena">{cena}&thinsp;Kč</div>
+            <div class="shop_popisCena">{cena}&thinsp;Kč&thinsp;/&thinsp;noc</div>
         </div>
         <!-- end:normal -->
 
