@@ -663,11 +663,11 @@ SQL,
             if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA)) {
                 // sleva 100%
                 $sleva                   += 100;
-                $this->slevyNaAktivity[] = 'sleva 100%';
+                $this->slevyNaAktivity[] = 'aktivity zdarma';
             } else if ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY)) {
                 // sleva 40%
                 $sleva                   += 40;
-                $this->slevyNaAktivity[] = 'sleva 40%';
+                $this->slevyNaAktivity[] = 'aktivity se slevou ' . $sleva . ' %';
             }
             if ($sleva > self::$maxSlevaAktivit) {
                 // omezení výše slevy na maximální hodnotu
