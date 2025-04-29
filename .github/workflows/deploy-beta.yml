@@ -15,24 +15,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'  # musí odpovídat verzi na serveru
-          # extensions musí odpovídat seznamu v composer.json
-          extensions: >-
-            bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json,
-            mbstring, mysqli, pdo, sqlite3, xmlreader, zip
-          tools: composer
-          coverage: none
+      - name: Build and start containers
+        run: docker compose up --build --detach
 
-      - name: Setup MySQL for tests
-        uses: shogo82148/actions-setup-mysql@v1
-        with:
-          mysql-version: 'mariadb-10.6'  # mělo by odpovídat verzi na serveru
+      - name: Run tests in container
+        run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
 
-      - name: Run tests
-        run: ./vendor/bin/phpunit
+      - name: Upload test output as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-test-logs
+          path: ./tests/logs
 
       - name: Deploy via FTP
         # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
