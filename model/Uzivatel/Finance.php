@@ -245,21 +245,40 @@ SQL,
     private function cmp(array $a, array $b): int|float
     {
         // podle typu
-        $podleKategorii = Finance::cpm_kategorie_razeni((int)$a['kategorie']) - Finance::cpm_kategorie_razeni((int)$b['kategorie']);
-        if ($podleKategorii !== 0) {
-            return $podleKategorii;
+        if ($a['kategorie'] !== $b['kategorie']) {
+            $podleKategorii = Finance::cpm_kategorie_razeni((int)$a['kategorie'])
+                              - Finance::cpm_kategorie_razeni((int)$b['kategorie']);
+            if ($podleKategorii !== 0) {
+                return $podleKategorii;
+            }
         }
-        $razeniVKategorii = (int)$a['poradi_v_kategorii'] - (int)$b['poradi_v_kategorii'];
-        if ($razeniVKategorii !== 0) {
-            return $razeniVKategorii;
+        if ($a['poradi_v_kategorii'] !== $b['poradi_v_kategorii']) {
+            $razeniVKategorii = (int)$a['poradi_v_kategorii'] - (int)$b['poradi_v_kategorii'];
+            if ($razeniVKategorii !== 0) {
+                return $razeniVKategorii;
+            }
+        }
+        if ($a['poradi_v_podkategorii'] !== $b['poradi_v_podkategorii']) {
+            $razeniVPodkategorii = (int)$a['poradi_v_podkategorii'] - (int)$b['poradi_v_podkategorii'];
+            if ($razeniVPodkategorii !== 0) {
+                return $razeniVPodkategorii;
+            }
         }
         // podle názvu
-        $o = strcmp(strip_tags((string)$a['nazev']), strip_tags((string)$b['nazev']));
-        if ($o) {
-            return $o;
+        if ($a['nazev'] !== $b['nazev']) {
+            $o = strcmp(strip_tags((string)$a['nazev']), strip_tags((string)$b['nazev']));
+            if ($o) {
+                return $o;
+            }
         }
-        // podle ceny (může obsahovat HTML, například '<b>0</b>')
-        return (float)strip_tags($a['castka']) <=> (float)strip_tags($b['castka']);
+        if ($a['castka'] !== $b['castka']) {
+            // podle ceny (může obsahovat HTML, například '<b>0</b>')
+            $dleCastky = (float)strip_tags($a['castka']) <=> (float)strip_tags($b['castka']);
+            if ($dleCastky !== 0) {
+                return $dleCastky;
+            }
+        }
+        return $a['id_polozky'] <=> $b['id_polozky'];
     }
 
     private function logPolozkaProBfgr(string $nazev, int $pocet, float $castka, int $typ)
@@ -297,6 +316,7 @@ SQL,
         ?int                  $kategorie,
         ?int                  $idPolozky,
         int                   $poradiVKategorii = self::PORADI_POLOZKY,
+        ?int                  $poradiVPodkategorii = 0,
     )
     {
         if (!$this->logovat) {
@@ -308,6 +328,7 @@ SQL,
             $castka,
             $kategorie,
             $poradiVKategorii,
+            $poradiVPodkategorii,
             $idPolozky,
         );
     }
@@ -317,6 +338,7 @@ SQL,
         null|string|float|int $castka,
         ?int                  $kategorie,
         int                   $poradiVKategorii,
+        ?int                  $poradiVPodkategorii,
         ?int                  $idPolozky,
     ): array
     {
@@ -328,6 +350,7 @@ SQL,
             'castka'             => $castka,
             'kategorie'          => $kategorie,
             'poradi_v_kategorii' => $poradiVKategorii,
+            'poradi_v_podkategorii' => $poradiVPodkategorii,
             'id_polozky'         => $idPolozky,
         ];
     }
@@ -339,11 +362,11 @@ SQL,
     {
         $castka = self::zaokouhli($castka);
         $this->log(
-            "<b>$nazev</b>",
-            "<b>$castka</b>",
-            $kategorie,
-            $idPolozky,
-            $poradiNadpisu,
+            nazev: "<b>$nazev</b>",
+            castka: "<b>$castka</b>",
+            kategorie: $kategorie,
+            idPolozky: $idPolozky,
+            poradiVKategorii: $poradiNadpisu,
         );
     }
 
@@ -742,12 +765,12 @@ SQL,
                 continue;
             }
             $this->log(
-                $r['nazev'] . $poznamka,
-                in_array($r['typ'], TypAktivity::interniTypy())
+                nazev: $r['nazev'] . $poznamka,
+                castka: in_array($r['typ'], TypAktivity::interniTypy())
                     ? 0
                     : $r['cena'],
-                self::AKTIVITY,
-                null,
+                kategorie: self::AKTIVITY,
+                idPolozky: null,
             );
         }
     }
@@ -771,10 +794,10 @@ SQL,
             while ($row = mysqli_fetch_assoc($result)) {
                 $sumaPlateb += (float)$row['cena'];
                 $this->log(
-                    $row['nazev'],
-                    $row['cena'],
-                    self::PLATBA,
-                    null,
+                    nazev: $row['nazev'],
+                    castka: $row['cena'],
+                    kategorie: self::PLATBA,
+                    idPolozky: null,
                 );
             }
             $this->sumyPlatebVRocich[$rok] = self::zaokouhli($sumaPlateb);
@@ -799,29 +822,30 @@ SQL,
         foreach ($o as $r) {
             $cena = $this->cenik->shop($r);
             // započtení ceny
-            if ($r['typ'] == Shop::UBYTOVANI) {
+            if ($r['typ'] == TypPredmetu::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
-            } else if ($r['typ'] == Shop::VSTUPNE) {
+            } else if ($r['typ'] == TypPredmetu::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
                     $this->cenaVstupne = $cena;
                 } else {
                     $this->cenaVstupnePozde = $cena;
                 }
                 $this->dobrovolneVstupnePrehled = $this->formatujProLog(
-                    "{$r[PredmetSql::NAZEV]} $cena.-",
-                    $cena,
-                    (int)$r[PredmetSql::TYP],
-                    self::PORADI_POLOZKY,
-                    (int)$r[PredmetSql::ID_PREDMETU],
+                    nazev: "{$r[PredmetSql::NAZEV]} $cena.-",
+                    castka: $cena,
+                    kategorie: (int)$r[PredmetSql::TYP],
+                    poradiVKategorii: self::PORADI_POLOZKY,
+                    poradiVPodkategorii: 0,
+                    idPolozky: (int)$r[PredmetSql::ID_PREDMETU],
                 );
-            } else if ($r['typ'] == Shop::PROPLACENI_BONUSU) {
+            } else if ($r['typ'] == TypPredmetu::PROPLACENI_BONUSU) {
                 $this->proplacenyBonusZaVedeniAktivit += $cena;
             } else {
-                if ($r['typ'] == Shop::JIDLO) {
+                if ($r['typ'] == TypPredmetu::JIDLO) {
                     $this->cenaStravy += $cena;
-                } else if (in_array($r['typ'], [Shop::PREDMET, Shop::TRICKO])) {
+                } else if (in_array($r['typ'], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
                     $this->cenaPredmetu += $cena;
-                } else if ($r['typ'] != Shop::PARCON) {
+                } else if ($r['typ'] != TypPredmetu::PARCON) {
                     throw new NeznamyTypPredmetu(
                         "Neznámý typ předmětu " . var_export($r['typ'], true) . ': ' . var_export($r, true),
                     );
@@ -840,18 +864,29 @@ SQL,
                 $soucty[$r['id_predmetu']]['typ']   = $r['typ'];
                 $soucty[$r['id_predmetu']]['pocet'] = ($soucty[$r['id_predmetu']]['pocet'] ?? 0) + 1;
                 $soucty[$r['id_predmetu']]['suma']  = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
-            } else if ($r['typ'] == Shop::VSTUPNE) {
+            } else if ($r['typ'] == TypPredmetu::VSTUPNE) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::VSTUPNE);
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
-            } else if ($r['typ'] != Shop::PROPLACENI_BONUSU) {
+            } else if ($r['typ'] == TypPredmetu::UBYTOVANI) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r['typ']);
                 $this->log(
-                    $r['nazev'],
-                    $cena,
-                    $r['typ'] !== null ?
+                    nazev: $r['nazev'],
+                    castka: $cena,
+                    kategorie: $r['typ'] !== null ?
                         (int)$r['typ']
                         : null,
-                    $r[PredmetSql::ID_PREDMETU],
+                    idPolozky: $r[PredmetSql::ID_PREDMETU],
+                    poradiVPodkategorii: $r[PredmetSql::UBYTOVANI_DEN],
+                );
+            } else if ($r['typ'] != TypPredmetu::PROPLACENI_BONUSU) {
+                $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r['typ']);
+                $this->log(
+                    nazev: $r['nazev'],
+                    castka: $cena,
+                    kategorie: $r['typ'] !== null ?
+                        (int)$r['typ']
+                        : null,
+                    idPolozky: $r[PredmetSql::ID_PREDMETU],
                 );
             }
         }
@@ -860,10 +895,10 @@ SQL,
             $this->logStrukturovane((string)$predmet['nazev'], (int)$predmet['pocet'], (float)$predmet['suma'], $predmet['typ']);
             // dvojmezera kvůli řazení
             $this->log(
-                $predmet['nazev'] . '  ' . $predmet['pocet'] . '×',
-                $predmet['suma'],
-                (int)$predmet['typ'],
-                $idPredmetu,
+                nazev: $predmet['nazev'] . '  ' . $predmet['pocet'] . '×',
+                castka: $predmet['suma'],
+                kategorie: (int)$predmet['typ'],
+                idPolozky: $idPredmetu,
             );
         }
     }
@@ -970,10 +1005,10 @@ SQL,
                 self::PRIPSANE_SLEVY,
             );
             $this->log(
-                '<i>Nevyužitá sleva ' . $this->nevyuzitaObecnaSleva . '</i>',
-                '&nbsp;',
-                self::PRIPSANE_SLEVY,
-                null,
+                nazev: '<i>Nevyužitá sleva ' . $this->nevyuzitaObecnaSleva . '</i>',
+                castka: '&nbsp;',
+                kategorie: self::PRIPSANE_SLEVY,
+                idPolozky: null,
             );
         }
 
