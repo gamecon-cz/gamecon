@@ -450,15 +450,15 @@ function mezi(
  * Vytvoří zapisovatelnou složku, pokud taková už neexistuje
  */
 function pripravCache(
-    $slozka,
+    string $slozka,
 ) {
     if (is_writable($slozka)) {
         return;
     }
-    if (is_dir($slozka)) {
+    if (is_dir($slozka) && !is_writable($slozka)) {
         throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
     }
-    if (!mkdir($slozka, 0777, true)) {
+    if (!@mkdir($slozka, 0777, true) && !is_dir($slozka)) {
         throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
     }
     chmod($slozka, CACHE_SLOZKY_PRAVA);
