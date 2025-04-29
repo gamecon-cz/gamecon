@@ -435,7 +435,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             }
 
             $den_prnt = !$pravoJedneNoci && $den == 1
-                ? "Čt–Ne (3 noci)"
+                ? "Čt–Ne (3 noci)"
                 : $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]);
 
             // data pro názvy dnů a pro "Žádné" ubytování
