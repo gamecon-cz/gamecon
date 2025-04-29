@@ -113,10 +113,8 @@ if (!$zaplaceno) {
         <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)) { ?>
             <?php if ($u->stat() === Stat::CZ) { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
-                    <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
             <?php } else { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
-                    <strong><?= $castka ?></strong>, přesné údaje o platbě nalezneš výše.</p>
             <?php } ?>
             <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani())) { ?>
                 <?php if (!$u->maPravoNerusitObjednavky()) { ?>
@@ -158,27 +156,6 @@ if (!$zaplaceno) {
             </ul>
         <?php } ?>
     <?php } else { ?>
-    <div>
-        <?php if ($u->stat() == Stat::CZ) { ?>
-            <h2 id="placeni">Platba</h2>
-            <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
-                platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
-                můžeš si samozřejmě kdykoli převést peníze do zásoby:</p>
-            <div>
-                <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
-                <strong>Variabilní symbol:</strong> <?= $uid ?><br>
-            </div>
-        <?php } else { ?>
-            <h2 id="placeni">Platba (SEPA)</h2>
-            <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
-                platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
-                můžeš si samozřejmě kdykoli převést peníze do zásoby:</p>
-            <div>
-                <strong>IBAN:</strong> <?= IBAN ?><br>
-                <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(včetně lomítek)</i><br>
-            </div>
-        <?php }
         }
         $qrKodProPlatbu = $u->finance()->dejQrKodProPlatbu();
         if ($qrKodProPlatbu !== null) {
@@ -187,5 +164,3 @@ if (!$zaplaceno) {
                 <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
             </div>
         <?php } ?>
-    </div>
-</div>
