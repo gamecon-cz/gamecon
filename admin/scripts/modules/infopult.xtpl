@@ -276,7 +276,7 @@
           </td>
         </tr>
         <tr>
-          <td>Ubytovaní:</td>
+          <td>Ubytování:</td>
           <td>{ubytovani}</td>
         </tr>
         <tr>
@@ -307,7 +307,7 @@
             <td><input type="integer" value="{pokojVypis}" name="pokoj"></input></td>
           </tr>
           <tr>
-            <td>Ubytovaní:</td>
+            <td>Ubytování:</td>
             <td>{ubytovaniVypis}</td>
           </tr>
         </table>
@@ -366,7 +366,7 @@
           <td><input type="integer" value="{pokojVypis}" name="pokoj"></input></td>
         </tr>
         <tr>
-          <td>Ubytovaní:</td>
+          <td>Ubytování:</td>
           <td>{ubytovaniVypis}</td>
         </tr>
       </table>

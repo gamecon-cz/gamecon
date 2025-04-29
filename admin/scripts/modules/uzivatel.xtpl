@@ -58,7 +58,7 @@
             <td><input id="pokojVypis" type="number" min="1" step="1" value="{pokojVypis}" name="pokoj"></td>
           </tr>
           <tr>
-            <td>Ubytovaní:</td>
+            <td>Ubytování:</td>
             <td>{ubytovaniVypis}</td>
           </tr>
         </table>
