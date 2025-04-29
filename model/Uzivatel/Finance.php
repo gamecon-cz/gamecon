@@ -549,8 +549,10 @@ SQL,
             // výpočet pravidel
             if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA, $dataSourcesCollector)) {
                 $sleva += self::PLNA_SLEVA_PROCENT;
+                $this->slevyNaAktivity[] = 'aktivity zdarma';
             } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY, $dataSourcesCollector)) {
                 $sleva += self::CASTECNA_SLEVA_PROCENT;
+                $this->slevyNaAktivity[] = 'aktivity se slevou ' . $sleva . ' %';
             }
             if ($sleva > self::MAX_SLEVA_AKTIVIT_PROCENT) {
                 // omezení výše slevy na maximální hodnotu
