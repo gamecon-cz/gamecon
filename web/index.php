@@ -115,7 +115,7 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
         $t->parse('menu.prihlasen');
     } else {
         $t->parse('menu.neprihlasen');
-        $t->assign(["gcPrihlaska" => "Prihláška na GC"]);
+        $t->assign(["gcPrihlaska" => "Přihláška na GC"]);
     }
 
     $t->parse('menu');
