@@ -51,7 +51,8 @@ class Uzivatel extends DbObject
     public const TYP_DOKLADU_PAS  = 'pas';
     public const TYP_DOKLADU_JINY = 'jiny';
 
-    private ?array $organizovaneAktivityIds = null;
+    /** @var array<int, array<int, int|string>> */
+    private array $organizovaneAktivityIds = [];
     private ?array $historiePrihlaseni      = null;
 
     public static function povinneUdajeProRegistraci(bool $vcetneProUbytovani = false): array
@@ -1206,18 +1207,18 @@ SQL,
      */
     public function organizuje(Aktivita $a)
     {
-        if (!isset($this->organizovaneAktivityIds)) {
-            $this->organizovaneAktivityIds = dbOneIndex(<<<SQL
+        if (!isset($this->organizovaneAktivityIds[$a->rok()])) {
+            $this->organizovaneAktivityIds[$a->rok()] = dbOneIndex(<<<SQL
                 SELECT akce_seznam.id_akce
                 FROM akce_organizatori
                 JOIN akce_seznam
-                    ON akce_seznam.id_akce = akce_organizatori.id_akce AND akce_seznam.rok = {$this->systemoveNastaveni->rocnik()}
+                    ON akce_seznam.id_akce = akce_organizatori.id_akce AND akce_seznam.rok = {$a->rok()}
                 WHERE akce_organizatori.id_uzivatele = {$this->id()}
                 SQL,
             );
         }
 
-        return isset($this->organizovaneAktivityIds[$a->id()]);
+        return isset($this->organizovaneAktivityIds[$a->rok()][$a->id()]);
     }
 
     /** Vrátí medailonek vypravěče */
