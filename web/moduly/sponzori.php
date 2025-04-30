@@ -8,32 +8,32 @@
 { // local variables scope
     foreach (['sponzor' => 'sponzori', 'partner' => 'partneri'] as $kategorie => $adresar) {
         foreach (glob(ADRESAR_WEBU_S_OBRAZKY . "/soubory/obsah/{$adresar}/*") as $soubor) {
-            $fn = preg_replace('@.*/([^_].*)\.(?:jpg|png|gif)@', '$1', $soubor, -1, $pocetZmen);
-            if ($pocetZmen === 0) {
-                continue; // skrývání odebraných sponzorů ([^_] znamená "jen pokud nezačíná podtržítkem" a podtržítko znamená "vyřazený obrázek")
+            if (!is_file($soubor)) {
+                continue; // přeskočit, pokud to není soubor (adresář například)
             }
+            if (str_starts_with(basename($soubor), '_')) {
+                continue; // skrývání odebraných sponzorů - podtržítko znamená "vyřazený obrázek"
+            }
+            $nazev = pathinfo($soubor, PATHINFO_FILENAME);
+            $basename = basename($soubor);
 
             // Odstranění vykřičníku z názvu souboru pro "alt" atribut
-            $alt_var = ltrim($fn, '!');
+            $imageAlternative = ltrim($nazev, '!');
+
+            $href = "https://$basename"; // v názvu je doména, sestavíme, platné URL
 
             // Podmínka pro nastavení odkazu a OnClick
-            if (strpos($fn, '!') === 0) {
+            if (str_starts_with($nazev, '!')) {
                 $href = '#'; // Odkaz bude "#", což znamená, že kliknutí nevede na nic
-                $t->assign([
-                    'url' => $href,
-                    'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
-                    'alt' => $alt_var,
-                ]);
                 // Vytvoření "OnClick" bloku, pokud je odkaz "#"
                 $t->parse("sponzori.$kategorie.{$kategorie}OnClick");
-            } else {
-                $href = "https://$alt_var"; // Odkaz je platný URL
-                $t->assign([
-                    'url' => $href,
-                    'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
-                    'alt' => $alt_var,
-                ]);
             }
+
+            $t->assign([
+                'url' => $href,
+                'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
+                'alt' => $imageAlternative,
+            ]);
 
             // Spuštění generování šablony pro danou kategorii
             $t->parse("sponzori.$kategorie");
