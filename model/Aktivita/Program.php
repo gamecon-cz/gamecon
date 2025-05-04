@@ -580,7 +580,7 @@ HTML;
                 $grp = $aktivita->lokaceId();
                 break;
             case self::SKUPINY_PODLE_DEN :
-                $grp = (int)$aktivita->den()->format('z');
+                $grp = (int)$aktivita->denProgramu()->format('z');
                 break;
             default :
                 throw new \LogicException('nepodporovaný typ shlukování aktivit ' . $this->grpf);
@@ -590,7 +590,7 @@ HTML;
             'grp' => $grp,
             'zac' => $zac,
             'kon' => $kon,
-            'den' => (int)$aktivita->den()->format('z'),
+            'den' => (int)$aktivita->denProgramu()->format('z'),
             'del' => $aktivita->delka(),
             'obj' => $aktivita,
         ];

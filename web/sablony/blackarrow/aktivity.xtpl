@@ -67,7 +67,7 @@
         <div class="aktivity_terminy">
             <!-- begin: termin -->
             <div class="aktivity_termin">
-                <b>{aktivita.denCas}</b>&ensp;
+                <b>{aktivita.denCasSkutecny}</b>&ensp;
                 {obsazenost}&ensp;
                 {prihlasit}
 
@@ -133,7 +133,7 @@ zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
         <h3>Termíny:</h3>
         <!-- begin: termin -->
         <div class="aktivity_termin">
-            <b>{aktivita.denCas}</b>&ensp;
+            <b>{aktivita.denCasSkutecny}</b>&ensp;
             {obsazenost}&ensp;
         </div>
         <!-- end: termin -->

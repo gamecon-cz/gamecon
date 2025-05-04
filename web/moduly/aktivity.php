@@ -123,19 +123,13 @@ if (!empty($org)) {
 
     $descriptionFile = 'soubory/systemove/linie-ikony/' . $typ->id() . '.txt';
 
-    $lines = @file($descriptionFile, FILE_IGNORE_NEW_LINES);
+    $lines = is_file($descriptionFile)
+        ? @file($descriptionFile, FILE_IGNORE_NEW_LINES)
+        : false;
 
-    if ($lines === false) {
-        $lines = [
-            "Sekce",
-            'Jmeno "Prezdivka" Prijmeni',
-            "info@gamecon.cz"
-        ];
-    }
+    $picture_path = 'soubory/systemove/linie-ikony/org_' . $typ->id() . '.jpg';
 
-    $picture_path = 'soubory/systemove/linie-ikony/' . 'org_' . $typ->id() . '.jpg';
-
-    if (!file_exists($picture_path)) {
+    if (!is_file($picture_path)) {
         $picture_path = "soubory/obsah/obrazky/organizatori/flant.jpg";
     }
 
@@ -143,9 +137,9 @@ if (!empty($org)) {
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
         'ikonaLinie'      => $picture_path,
-        'ikonaLinieSekce' => $lines[0],
-        'ikonaLinieJmeno' => $lines[1],
-        'ikonaLinieEmail' => $lines[2],
+        'ikonaLinieSekce' => $lines[0] ?? 'Sekce',
+        'ikonaLinieJmeno' => $lines[1] ?? 'Jmeno "Prezdivka" Prijmeni',
+        'ikonaLinieEmail' => $lines[2] ?? 'info@gamecon.cz',
         'specTridy'       => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
     ]);
 

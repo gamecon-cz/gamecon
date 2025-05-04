@@ -307,29 +307,37 @@ SQL
     }
 
     /**
-     * @return string datum ve stylu Pátek 14-18
+     * @return string datum ve stylu Pátek 14-18 (skutečný čas)
      */
-    public function denCas(): string
+    public function denCasSkutecny(): string
     {
-        if ($this->den() && $this->konec()) {
-            return $this->den()->format('l G') . '–' . $this->konec()->format('G');
+        if ($this->denSkutecny() && $this->konec()) {
+            return $this->denSkutecny()->format('l G') . '–' . $this->konec()->format('G');
         }
 
         return '';
     }
 
     /**
-     * Oficiální den, do kterého aktivita spadá (může být po půlnoci, ale spadá do předchozího dne)
+     * Skutečný den - nepřesouvá se do předchozího dne pokud je po půlnoci
      */
-    public function den(): DateTimeCz | null
+    public function denSkutecny(): DateTimeCz | null
     {
-        return self::denAktivity($this);
+        return self::denAktivity($this, false);
     }
 
-    private static function denAktivity(?Aktivita $aktivita): DateTimeCz | null
+    /**
+     * Oficiální den, do kterého aktivita spadá (může být po půlnoci, ale spadá do předchozího dne)
+     */
+    public function denProgramu(): DateTimeCz | null
+    {
+        return self::denAktivity($this, true);
+    }
+
+    private static function denAktivity(?Aktivita $aktivita, bool $programovy): DateTimeCz | null
     {
         if ($aktivita && $aktivita->zacatek()) {
-            return $aktivita->zacatek()->format('H') >= PROGRAM_ZACATEK
+            return (!$programovy || ($aktivita->zacatek()->format('H') >= PROGRAM_ZACATEK))
                 ? $aktivita->zacatek()
                 : (clone $aktivita->zacatek())->minusDen();
         }
@@ -626,7 +634,7 @@ SQL
         ?Aktivita $aktivita,
         XTemplate $xtpl,
     ) {
-        $denAktivity = self::denAktivity($aktivita);
+        $denAktivity = self::denAktivity($aktivita, true);
         $xtpl->assign([
             'selected' => $aktivita && !$aktivita->zacatek()
                 ? 'selected'
@@ -1871,7 +1879,7 @@ SQL
         foreach ($emaily as $email) {
             $mail = GcMail::vytvorZGlobals();
             $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
-            $mail->text(hlaskaMail('uvolneneMisto', $this->nazev(), $this->denCas()));
+            $mail->text(hlaskaMail('uvolneneMisto', $this->nazev(), $this->denCasSkutecny()));
             $mail->adresat($email);
             $mail->odeslat();
         }
@@ -1991,7 +1999,7 @@ SQL
                 }
             }
             if ($jeNovyTym && $this->pocetTeamu() >= $this->a['team_kapacita']) {
-                throw new \Chyba('Na aktivitu ' . $this->nazev() . ': ' . $this->denCas() . ' je už přihlášen maximální počet týmů');
+                throw new \Chyba('Na aktivitu ' . $this->nazev() . ': ' . $this->denCasSkutecny() . ' je už přihlášen maximální počet týmů');
             }
         }
 
@@ -2581,7 +2589,7 @@ HTML
                 $lidr,
                 $lidr->jmenoNick(),
                 $this->nazev(),
-                $this->denCas(),
+                $this->denCasSkutecny(),
             ),
         );
         $mail->predmet('Přihláška na ' . $this->nazev());
@@ -3093,7 +3101,7 @@ SQL,
                 foreach ($uroven as $varianta) {
                     $t->assign([
                         'koloId' => $varianta->id(),
-                        'nazev'  => $varianta->nazev() . ': ' . $varianta->denCas(),
+                        'nazev'  => $varianta->nazev() . ': ' . $varianta->denCasSkutecny(),
                     ]);
                     $t->parse('formular.kola.uroven.varianta');
                 }

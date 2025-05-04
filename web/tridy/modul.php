@@ -12,7 +12,6 @@ class Modul
 {
     private const VYCHOZI = 'titulka';
 
-    protected $src;
     protected $params         = [];
     protected $vystup;
     protected $bezDekorace    = false;
@@ -25,47 +24,54 @@ class Modul
     protected $cssUrls        = [];
     protected $jsUrls         = [];
 
-    /** @var SystemoveNastaveni */
-    private $systemoveNastaveni;
-
     /** Načte modul ze zadané cesty k souboru */
-    protected function __construct(string $soubor, SystemoveNastaveni $systemoveNastaveni)
-    {
-        $this->src                = $soubor;
-        $this->systemoveNastaveni = $systemoveNastaveni;
+    protected function __construct(
+        private readonly string             $soubor,
+        private readonly SystemoveNastaveni $systemoveNastaveni
+    ) {
     }
 
     /** Jestli se má modul renderovat bez obalovacího divu (tj. ne jak stránka) */
     protected function bezDekorace($val = null)
     {
-        if (isset($val)) $this->bezDekorace = (bool)$val;
+        if (isset($val)) {
+            $this->bezDekorace = (bool)$val;
+        }
         return $this->bezDekorace;
     }
 
     /** Jestli se modul má renderovat bez zobrazeného menu */
     public function bezMenu($val = null)
     {
-        if (isset($val)) $this->bezMenu = (bool)$val;
+        if (isset($val)) {
+            $this->bezMenu = (bool)$val;
+        }
         return $this->bezMenu;
     }
 
     /** Jestli se má modul renderovat přes celou šířku monitoru */
     public function bezOkraju($val = null)
     {
-        if (isset($val)) $this->bezOkraju = (bool)$val;
+        if (isset($val)) {
+            $this->bezOkraju = (bool)$val;
+        }
         return $this->bezOkraju;
     }
 
     /** Jestli se má modul renderovat čistě jako plaintext */
     public function bezStranky($val = null)
     {
-        if (isset($val)) $this->bezStranky = $val;
+        if (isset($val)) {
+            $this->bezStranky = $val;
+        }
         return $this->bezStranky;
     }
 
     public function bezPaticky($val = null)
     {
-        if (isset($val)) $this->bezPaticky = $val;
+        if (isset($val)) {
+            $this->bezPaticky = $val;
+        }
         return $this->bezPaticky;
     }
 
@@ -88,7 +94,9 @@ class Modul
 
     public function info(Info $val = null): ?Info
     {
-        if (isset($val)) $this->info = $val;
+        if (isset($val)) {
+            $this->info = $val;
+        }
         return $this->info;
     }
 
@@ -100,7 +108,7 @@ class Modul
     /** Název modulu (odpovídá části názvu souboru) */
     protected function nazev()
     {
-        return basename($this->src, '.php');
+        return basename($this->soubor, '.php');
     }
 
     /** Setter/getter pro parametr (proměnnou) předanou dovnitř modulu */
@@ -117,9 +125,9 @@ class Modul
         $this->cssUrls[] = $url;
     }
 
-    /** 
+    /**
      * Přidá k js souboru kořenovou cestu webu a verzi
-     * 
+     *
      * @param string $cestaNaWebu cesta ve tvaru soubory/blackarrow/... .js
      * @return string
      */
@@ -163,7 +171,7 @@ class Modul
 
         ob_start();
         $systemoveNastaveni = $this->systemoveNastaveni;
-        $vysledek           = require $this->src;
+        $vysledek           = require $this->soubor;
         $earlyReturn        = ($vysledek === null); // při dokončení skriptu je výsledek 1
         if ($t && !$earlyReturn) {
             $t->parse($this->nazev());

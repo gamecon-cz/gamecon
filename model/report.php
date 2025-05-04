@@ -14,12 +14,12 @@ use OpenSpout\Writer\XLSX\Options;
  */
 class Report
 {
-    private $sql;                   // text dotazu, z kterého se report generuje
-    private $sqlParametry;          // parametry dotazu, z kterého se report generuje
-    private $o;                     // odpověď dotazu
-    private $hlavicky;              // hlavičky (názvy sloupců) výsledku
-    private $poleObsah;             // obsah ve formě pole
-    private $csvSeparator = ';';    // oddělovač v csv souborech
+    private $sql;                     // text dotazu, z kterého se report generuje
+    private $sqlParametry;            // parametry dotazu, z kterého se report generuje
+    private $o;                       // odpověď dotazu
+    private ?array $hlavicky = null;  // hlavičky (názvy sloupců) výsledku
+    private ?array $poleObsah = null; // obsah ve formě pole
+    private $csvSeparator = ';';      // oddělovač v csv souborech
 
     public const BEZ_STYLU = 1;
     public const HLAVICKU_ZACINAT_VElKYM_PISMENEM = 10;
@@ -233,7 +233,7 @@ class Report
     /**
      * Vytiskne report jako HTML tabulku
      */
-    public function tHtml($param = 0)
+    public function tHtml($param = 0): void
     {
         if (!($param & self::BEZ_STYLU)) {
             echo <<<HTML
@@ -258,15 +258,15 @@ HTML;
     /**
      * Vytvoří report z asoc. polí, jako hlavičky použije klíče
      */
-    static function zPole($pole)
+    public static function zPole(array $pole): self
     {
-        return self::zPoli(array_keys($pole[0]), $pole);
+        return self::zPoli(array_keys($pole[0] ?? []), $pole);
     }
 
     /**
      * Vytvoří report z asoc. polí, jako hlavičky použije klíče
      */
-    static function zPoleSDvojitouHlavickou(array $pole, int $parametry = 0)
+    public static function zPoleSDvojitouHlavickou(array $pole, int $parametry = 0): self
     {
         $hlavniHlavicka   = [];
         $obsah            = [];
@@ -310,7 +310,7 @@ HTML;
      * @param array $hlavicky hlavičkový řádek
      * @param array $obsah pole normálních řádků
      */
-    static function zPoli(array $hlavicky, array $obsah): self
+    public static function zPoli(array $hlavicky, array $obsah): self
     {
         $report            = new static();
         $report->hlavicky  = $hlavicky;
@@ -324,7 +324,7 @@ HTML;
      * @param string $dotaz
      * @param array|null $dotazParametry = []
      */
-    static function zSql(string $dotaz, array $dotazParametry = null): self
+    public static function zSql(string $dotaz, array $dotazParametry = null): self
     {
         $report               = new static();
         $report->sql          = $dotaz;
@@ -387,21 +387,19 @@ HTML;
     // Neveřejné metody //
     //////////////////////
 
-    /**
-     * Konstruktor
-     */
     protected function __construct()
     {
     }
 
-    private function hlavicky()
+    private function hlavicky(): array
     {
-        if ($this->hlavicky) {
+        if ($this->hlavicky !== null) {
             return $this->hlavicky;
         }
         if (!$this->o) {
             $this->o = dbQuery($this->sql, $this->sqlParametry);
         }
+        $this->hlavicky = [];
         for ($i = 0, $sloupcu = mysqli_num_fields($this->o); $i < $sloupcu; $i++) {
             $field_info       = mysqli_fetch_field($this->o);
             $this->hlavicky[] = $field_info->name;

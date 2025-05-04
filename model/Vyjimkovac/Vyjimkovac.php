@@ -140,13 +140,6 @@ class Vyjimkovac implements Logovac
 
                 newXHR.send(encoded)
             }
-            /*window.onerror = function(msg, url, line) {
-              $.post('<?=$url?>', {
-          msg: msg,
-          url: url,
-          line: line
-        });
-      };*/
         </script><?php
         return ob_get_clean();
     }

@@ -2,19 +2,14 @@
 
 // TODO: udělat REST api definice
 
-use Gamecon\Cas\DateTimeCz;
-
 $u = Uzivatel::zSession();
 
-$this->bezStranky(true);
 header('Content-type: application/json');
 $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
-if ($_SERVER["REQUEST_METHOD"] != "POST") {
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
   return;
 }
-
-
 
 $res = [];
 
@@ -34,7 +29,7 @@ if ($u) {
 
   if ($u->gcPrihlasen()) {
     $res["gcStav"] = "přihlášen";
-  } 
+  }
   if ($u->gcPritomen()) {
     $res["gcStav"] = "přítomen";
   }
