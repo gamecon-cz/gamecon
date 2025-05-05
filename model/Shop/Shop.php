@@ -192,8 +192,8 @@ SQL,
     private               $ubytovaniOd;
     private               $ubytovaniDo;
     private               $ubytovaniTypy = [];
-    private               $vstupne       = ['sum_cena_nakupni' => 0.];                   // dobrovolné vstupné (složka zaplacená regurélně včas)
-    private               $vstupnePozde  = ['sum_cena_nakupni' => 0.0];                  // dobrovolné vstupné (složka zaplacená pozdě)
+    private               $vstupne       = ['sum_cena_nakupni' => 0., 'id_predmetu' => null /*Před začátkem prodejů musí být vstupné naimportováno (typ VSTUPNE)*/];                   // dobrovolné vstupné (složka zaplacená regurélně včas)
+    private               $vstupnePozde  = ['sum_cena_nakupni' => 0.0, 'id_predmetu' => null/*Před začátkem prodejů musí být dobrovolné vstupné naimportováno (typ VSTUPNE, v názvu "pozdě")*/];                  // dobrovolné vstupné (složka zaplacená pozdě)
     private               $vstupneJeVcas;                                                // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
     private               $klicU         = 'shopU';                                      // klíč formu pro identifikaci polí
     private               $klicUPokoj    = 'shopUPokoj';                                 // s kým chce být na pokoji
