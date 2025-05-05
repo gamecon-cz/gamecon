@@ -1,7 +1,7 @@
 <?php
 
 $this->q(<<<SQL
-INSERT INTO role_seznam
+INSERT IGNORE INTO role_seznam
 SET
     id_role = 27,
     kod_role = 'KOREKTOR',
@@ -17,7 +17,7 @@ SQL,
 
 
 $this->q(<<<SQL
-INSERT INTO role_seznam
+INSERT IGNORE INTO role_seznam
 SET
     id_role = 28,
     kod_role = 'ROZHRANI_ORG',

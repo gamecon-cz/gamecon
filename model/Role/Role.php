@@ -21,13 +21,13 @@ class Role extends \DbObject
      * PO PŘIDÁNÍ ROLE ROZŠIŘ SEZNAM @see \Gamecon\Role\Role::nazevRolePodleId
      */
     // TRVALÉ ROLE
-    public const ORGANIZATOR          = 2; // Organizátor (zdarma), Člen organizačního týmu GC
+    public const ORGANIZATOR          = 2;  // Organizátor (zdarma), Člen organizačního týmu GC
     public const PUL_ORG_BONUS_UBYTKO = 21; // Ubytování zdarma
     public const PUL_ORG_BONUS_TRICKO = 22; // Dvě jakákoli trička zdarma
     public const CESTNY_ORGANIZATOR   = 15; // Bývalý organizátor GC
     public const CFO                  = 20; // Organizátor, který může nakládat s financemi GC
     public const PREZENCNI_ADMIN      = 16; // Pro změnu účastníků v uzavřených aktivitách. NEBEZPEČNÉ, NEPOUŽÍVAT!
-    public const VYPRAVECSKA_SKUPINA  = 9; // Organizátorská skupina pořádající na GC (dodavatelé, …)
+    public const VYPRAVECSKA_SKUPINA  = 9;  // Organizátorská skupina pořádající na GC (dodavatelé, …)
     public const CLEN_RADY            = 23;
     public const SEF_INFOPULTU        = 24;
     public const SEF_PROGRAMU         = 25;
@@ -36,9 +36,9 @@ class Role extends \DbObject
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC                   = ROLE_VYPRAVEC; // Organizátor aktivit na GC
-    public const LETOSNI_ZAZEMI                     = ROLE_ZAZEMI; // Členové zázemí GC (kuchařky, …)
+    public const LETOSNI_ZAZEMI                     = ROLE_ZAZEMI;   // Členové zázemí GC (kuchařky, …)
     public const LETOSNI_INFOPULT                   = ROLE_INFOPULT; // Operátor infopultu
-    public const LETOSNI_PARTNER                    = ROLE_PARTNER; // Vystavovatelé, lidé od deskovek, atp.
+    public const LETOSNI_PARTNER                    = ROLE_PARTNER;  // Vystavovatelé, lidé od deskovek, atp.
     public const LETOSNI_STREDECNI_NOC_ZDARMA       = ROLE_STREDECNI_NOC_ZDARMA;
     public const LETOSNI_CTVRTECNI_NOC_ZDARMA       = ROLE_CTVRTECNI_NOC_ZDARMA;
     public const LETOSNI_PATECNI_NOC_ZDARMA         = ROLE_PATECNI_NOC_ZDARMA;
