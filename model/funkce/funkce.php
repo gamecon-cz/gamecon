@@ -243,10 +243,8 @@ function omezCsrf()
     if (strcasecmp($referrerHost, $_SERVER['SERVER_NAME'] ?? '') !== 0
         && strcasecmp($referrerHost, parse_url(URL_ADMIN, PHP_URL_HOST)) !== 0
     ) {
-        // výjimka, aby došlo k zalogování
-        throw new Exception(
-            "Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['SERVER_NAME']}' ani '" . parse_url(URL_ADMIN, PHP_URL_HOST) . "'",
-        );
+        require __DIR__ . '/../../web/moduly/nenalezeno.php';
+        exit;
     }
 }
 
