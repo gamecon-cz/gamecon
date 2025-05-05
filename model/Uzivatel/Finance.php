@@ -120,7 +120,8 @@ class Finance
     {
         $typVstupne = TypPredmetu::VSTUPNE;
         return round(
-            (float)dbOneCol(<<<SQL
+            (float)dbOneCol(
+                <<<SQL
 SELECT SUM(cena_nakupni) / COUNT(*)
 FROM shop_nakupy
 JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
@@ -146,10 +147,7 @@ SQL,
         private readonly \Uzivatel          $u,
         private readonly float              $zustatekZPredchozichRocniku,
         private readonly SystemoveNastaveni $systemoveNastaveni,
-    )
-    {
-        $this->prepocti();
-    }
+    ) {}
 
     private function prepocti()
     {
@@ -186,8 +184,8 @@ SQL,
 
         $this->stav = self::zaokouhli(
             -$cena
-            + $this->sumaPlateb()
-            + $this->zustatekZPredchozichRocniku,
+                + $this->sumaPlateb()
+                + $this->zustatekZPredchozichRocniku,
         );
 
         $this->logb('Aktivity', $this->cenaAktivit, self::AKTIVITY);
@@ -208,6 +206,9 @@ SQL,
     /** Cena za uživatelovy aktivity */
     public function cenaAktivit()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->cenaAktivit;
     }
 
@@ -218,16 +219,25 @@ SQL,
 
     public function cenaPredmetu()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->cenaPredmetu;
     }
 
     public function cenaStravy()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->cenaStravy;
     }
 
     public function cenaUbytovani()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->cenaUbytovani;
     }
 
@@ -297,8 +307,7 @@ SQL,
         ?int                  $kategorie,
         ?int                  $idPolozky,
         int                   $poradiVKategorii = self::PORADI_POLOZKY,
-    )
-    {
+    ) {
         if (!$this->logovat) {
             return;
         }
@@ -318,8 +327,7 @@ SQL,
         ?int                  $kategorie,
         int                   $poradiVKategorii,
         ?int                  $idPolozky,
-    ): array
-    {
+    ): array {
         if (is_numeric($castka)) {
             $castka = self::zaokouhli($castka);
         }
@@ -356,10 +364,12 @@ SQL,
     {
         if (!isset($this->datumPosledniPlatby)) {
             $uid                       = $this->u->id();
-            $this->datumPosledniPlatby = dbOneCol("
+            $this->datumPosledniPlatby = dbOneCol(
+                "
         SELECT max(provedeno) as datum
         FROM platby
-        WHERE castka > 0 AND id_uzivatele = $1", [$uid],
+        WHERE castka > 0 AND id_uzivatele = $1",
+                [$uid],
             );
         }
         return $this->datumPosledniPlatby;
@@ -465,8 +475,7 @@ SQL,
         ?string             $poznamka = null,
         string|int|null     $idFioPlatby = null,
         ?\DateTimeInterface $kdy = null,
-    )
-    {
+    ) {
         $rok = $kdy?->format('Y') ?? $this->systemoveNastaveni->rocnik();
         dbInsert(
             PlatbySqlStruktura::PLATBY_TABULKA,
@@ -507,6 +516,9 @@ SQL,
     /** Vrátí výši obecné slevy připsané uživateli pro tento rok. */
     public function slevaObecna()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->slevaObecna;
     }
 
@@ -530,11 +542,17 @@ SQL,
      */
     public function slevaAktivity()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->soucinitelAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
     }
 
     public function slevaZaAktivityVProcentech()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return 100 - ($this->soucinitelAktivit() * 100);
     }
 
@@ -543,6 +561,9 @@ SQL,
      */
     public function bonusZaVedeniAktivit(): float
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->bonusZaVedeniAktivit;
     }
 
@@ -551,6 +572,9 @@ SQL,
      */
     public function nevyuzityBonusZaAktivity(): float
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->nevyuzityBonusZaVedeniAktivit;
     }
 
@@ -559,6 +583,9 @@ SQL,
      */
     public function vyuzityBonusZaAktivity(): float
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->vyuzityBonusZaVedeniAktivit;
     }
 
@@ -567,6 +594,9 @@ SQL,
      */
     public function slevyAktivity()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         //return $this->cenik->slevyObecne();
         return $this->slevyNaAktivity;
     }
@@ -595,11 +625,10 @@ SQL,
         return $this->u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)
             ? 2
             : (
-            $this->u->maPravo(Pravo::JAKEKOLIV_TRICKO_ZDARMA)
+                $this->u->maPravo(Pravo::JAKEKOLIV_TRICKO_ZDARMA)
                 ? 1
                 : 0
-            )
-            ;
+            );
     }
 
     public function maximalniPocetModrychTricekZdarma(): int
@@ -624,6 +653,9 @@ SQL,
      */
     public function slevyVse()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->cenik->slevySpecialni();
     }
 
@@ -659,21 +691,33 @@ SQL,
 
     public function vstupne()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->cenaVstupne;
     }
 
     public function vstupnePozde()
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->cenaVstupnePozde;
     }
 
     public function proplacenyBonusZaAktivity(): float
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->proplacenyBonusZaVedeniAktivit;
     }
 
     public function brigadnickaOdmena(): float
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->brigadnickaOdmena;
     }
 
@@ -690,7 +734,8 @@ SQL,
         $prihlasenAleNedorazil = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
         $pozdeZrusil           = StavPrihlaseni::POZDE_ZRUSIL;
 
-        $o = dbQuery(<<<SQL
+        $o = dbQuery(
+            <<<SQL
 SELECT
     aktivita.nazev_akce AS nazev,
     (
@@ -756,7 +801,8 @@ SQL,
     {
         if (!isset($this->sumyPlatebVRocich[$rok]) || $prepocti) {
             $uzivatelSystemId = \Uzivatel::SYSTEM;
-            $result           = dbQuery(<<<SQL
+            $result           = dbQuery(
+                <<<SQL
                 SELECT
                     IF(provedl=$uzivatelSystemId,
                       CONCAT(DATE_FORMAT(COALESCE(pripsano_na_ucet_banky, provedeno),'%e.%c.'),' Platba na účet'),
@@ -794,7 +840,9 @@ SQL,
       WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1
       ORDER BY nakupy.cena_nakupni -- od nejlevnějších kvůli aplikaci slev na trička
     ', [$this->u->id(), ROCNIK]);
-
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         $soucty = [];
         foreach ($o as $r) {
             $cena = $this->cenik->shop($r);
