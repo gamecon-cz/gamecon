@@ -37,7 +37,7 @@ SQL,
      */
     public function Neznamy_typ_predmetu_hodi_excepton() {
         $this->expectException(NeznamyTypPredmetu::class);
-        new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0, SystemoveNastaveni::vytvorZGlobals());
+        (new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0, SystemoveNastaveni::vytvorZGlobals()))->obnovUdaje();
     }
 
     private function dejUzivateleSNeznamymTypemPredmetu(): \Uzivatel {
