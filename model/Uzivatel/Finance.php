@@ -383,6 +383,9 @@ SQL,
      */
     public function prehledHtml(array $jenKategorieIds = null, bool $vcetneCeny = true, bool $vcetneMazani = false)
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         $out     = '<table class="objednavky">';
         $prehled = $this->serazenyPrehled();
         if ($jenKategorieIds) {
@@ -436,6 +439,9 @@ SQL,
 
     public function prehledPopis(): string
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         $out = [];
         foreach ($this->serazenyPrehled() as $r) {
             $out[] = $r['nazev'] . ' ' . $r['castka'];
@@ -452,11 +458,17 @@ SQL,
 
     public function dejStrukturovanyPrehled(): array
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->strukturovanyPrehled;
     }
 
     public function dejPolozkyProBfgr(): array
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->polozkyProBfgr;
     }
 
@@ -510,6 +522,9 @@ SQL,
     /** Vrátí aktuální stav na účtu uživatele pro tento rok */
     public function stav(): float
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->stav;
     }
 
@@ -799,6 +814,9 @@ SQL,
 
     public function sumaPlateb(int $rok = ROCNIK, bool $prepocti = false): float
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         if (!isset($this->sumyPlatebVRocich[$rok]) || $prepocti) {
             $uzivatelSystemId = \Uzivatel::SYSTEM;
             $result           = dbQuery(
@@ -1033,6 +1051,9 @@ SQL,
      */
     public function zustatekZPredchozichRocniku(): float
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->zustatekZPredchozichRocniku;
     }
 
@@ -1046,6 +1067,9 @@ SQL,
 
     public function dejQrKodProPlatbu(): ?ResultInterface
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         $castkaCzk = $this->stav() >= 0
             ? 0.1 // nulová, respektive dobrovolná platba
             : -$this->stav();
@@ -1062,6 +1086,9 @@ SQL,
 
     public function sumaStorna(): float
     {
+        if ($this->cenik === null) {
+            $this->prepocti();
+        }
         return $this->sumaStorna;
     }
 }
