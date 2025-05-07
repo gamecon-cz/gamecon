@@ -1065,7 +1065,12 @@ HTML;
                  )],
             );
         }
-        $startDateTime = $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::ZACATEK], 'začátek');
+        $startDateTime = $this->createDateTimeFromRangeBorder(
+            $activityValues[ExportAktivitSloupce::DEN],
+            $activityValues[ExportAktivitSloupce::ZACATEK],
+            'začátek',
+            false,
+        );
         if ($startDateTime->isError()) {
             return ImportStepResult::successWithErrorLikeWarnings(null, [$startDateTime->getError()]);
         }
@@ -1098,10 +1103,7 @@ HTML;
             }
             $activityEnd = $sourceActivity->konec();
 
-            return ImportStepResult::success($activityEnd
-                ? $activityEnd->formatDb()
-                : null,
-            );
+            return ImportStepResult::success($activityEnd?->formatDb());
         }
         if (empty($activityValues[ExportAktivitSloupce::DEN])) {
             return ImportStepResult::successWithErrorLikeWarnings(
@@ -1113,7 +1115,11 @@ HTML;
             );
         }
 
-        $endDateTime = $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::KONEC], 'konec');
+        $endDateTime = $this->createDateTimeFromRangeBorder(
+            $activityValues[ExportAktivitSloupce::DEN],
+            $activityValues[ExportAktivitSloupce::KONEC],
+            'konec',
+        );
         if ($endDateTime->isError()) {
             return ImportStepResult::successWithErrorLikeWarnings(
                 null,
@@ -1188,8 +1194,13 @@ HTML;
                 ),
             );
         }
-        $dateTime = $date->setTime($hours, $minutes, 0, 0);
-        if ((int)$dateTime->format('G') !== $hours || (int)$dateTime->format('i') !== $minutes) {
+
+        $dateTime = (clone $date)->setTime($hours, $minutes, 0, 0);
+        if (
+            ((int)$dateTime->format('G') !== $hours || (int)$dateTime->format('i') !== $minutes)
+            // aktivita s koncem o půlnoci
+            && (!($hours === 24 && $minutes === 0 && ($dateTime->format('d') - $date->format('d') == 1)))
+        ) {
             return ImportStepResult::error(
                 sprintf(
                     "Nepodařilo se nastavit čas podle dne '%s' a času '%s'. Chybný formát. Čas aktivity je vynechán.",
