@@ -1903,6 +1903,8 @@ SQL
 
     /**
      * Přihlásí uživatele na aktivitu
+     *
+     * @throws \Chyba
      */
     public function prihlas(
         Uzivatel $uzivatel,

@@ -28,7 +28,7 @@ class ImporterUcastnikuNaAktivitu
     }
 
     /**
-     * @return array{prihlasenoCelkem: int, odhlasenoCelkem: int, varovani: array<string>};
+     * @return array{prihlasenoCelkem: int, odhlasenoCelkem: int, varovani: array<string>, chyby: array<string>};
      */
     public function importFile(
         string    $importFile,
@@ -60,22 +60,23 @@ class ImporterUcastnikuNaAktivitu
         if (array_diff(['id_aktivity', 'ucastnik'], $hlavickaKlice) !== []) {
             throw new \Chyba('Soubor s účastníky na aktivitu nemá správnou hlavičku. Očekáváme sloupce "id_aktivity" a "ucastnik".');
         }
-        $indexIdAktivity = array_search('id_aktivity', $hlavickaKlice, true);
+        $indexIdAktivity    = array_search('id_aktivity', $hlavickaKlice, true);
         $indexNazvuAktivity = array_search('aktivita', $hlavickaKlice, true);
-        $indexUcastnika = array_search('ucastnik', $hlavickaKlice, true);
+        $indexUcastnika     = array_search('ucastnik', $hlavickaKlice, true);
 
         $rocnik = $this->systemoveNastaveni->rocnik();
 
         /** @var $idUcastnikuPodleAktivit array{aktivita: Aktivita, ucastnici: array<int>}[] */
         $idUcastnikuPodleAktivit = [];
-        $prihlasenoCelkem = 0;
-        $poradiRadku = 0;
+        $prihlasenoCelkem        = 0;
+        $poradiRadku             = 0;
         /** @var int[] $preskoceneAktivity */
         $preskoceneAktivity = [];
-        $varovani = [];
-        $odhlasenoCelkem = 0;
+        $varovani           = [];
+        $chyby = [];
+        $odhlasenoCelkem    = 0;
 
-        /** @var array{ucastnik: \Uzivatel, aktivita: Aktivita}[] $ucastniciPlusAktivity */
+        /** @var array{ucastnik: \Uzivatel, aktivita: Aktivita, radek: int}[] $ucastniciPlusAktivity */
         $ucastniciPlusAktivity = [];
 
         /** @var \OpenSpout\Common\Entity\Row|null $row */
@@ -88,8 +89,8 @@ class ImporterUcastnikuNaAktivitu
                 if ($radek === []) {
                     continue;
                 }
-                $idAktivity = trim((string)($radek[$indexIdAktivity] ?? ''));
-                $nazevAktivity = trim((string)$radek[$indexNazvuAktivity] ?? '');
+                $idAktivity     = trim((string)($radek[$indexIdAktivity] ?? ''));
+                $nazevAktivity  = trim((string)$radek[$indexNazvuAktivity] ?? '');
                 $jmenoUcastnika = trim((string)$radek[$indexUcastnika] ?? '');
 
                 if ($idAktivity === '' || !is_numeric($idAktivity)) {
@@ -112,7 +113,7 @@ class ImporterUcastnikuNaAktivitu
                     true,
                 )) {
                     if (!in_array($aktivita->id(), $preskoceneAktivity)) {
-                        $varovani[] = "Aktivita '$idAktivity' ('$nazevAktivity') už je v provozu (stav '{$aktivita->stav()->nazev()}') a nelze jí měnit účastníky importem.";
+                        $varovani[]           = "Aktivita '$idAktivity' ('$nazevAktivity') už je v provozu (stav '{$aktivita->stav()->nazev()}') a nelze jí měnit účastníky importem.";
                         $preskoceneAktivity[] = $aktivita->id();
                     }
                     continue;
@@ -129,9 +130,10 @@ class ImporterUcastnikuNaAktivitu
                 if ($ucastnik === null) {
                     throw new \Chyba("Nerozpoznaný uživatel '$jmenoUcastnika' na řádku $poradiRadku.");
                 }
-                $ucastniciPlusAktivity[] = [
+                $ucastniciPlusAktivity[]                                 = [
                     'ucastnik' => $ucastnik,
                     'aktivita' => $aktivita,
+                    'radek'    => $poradiRadku,
                 ];
                 $idUcastnikuPodleAktivit[$aktivita->id()]['ucastnici'][] = $ucastnik->id();
             } catch (\Chyba $chyba) {
@@ -144,8 +146,8 @@ class ImporterUcastnikuNaAktivitu
         try {
             // nejdříve odhlásíme, abychom získali místo pro nová přihlášení
             foreach ($idUcastnikuPodleAktivit as $idUcastnikuPodleAktivity) {
-                $aktivita = $idUcastnikuPodleAktivity['aktivita'];
-                $idUcastniku = $idUcastnikuPodleAktivity['ucastnici'];
+                $aktivita        = $idUcastnikuPodleAktivity['aktivita'];
+                $idUcastniku     = $idUcastnikuPodleAktivity['ucastnici'];
                 $odhlasenoCelkem += $this->odhlasNeuvedeneUcastniky(
                     $idUcastniku,
                     $aktivita,
@@ -158,26 +160,41 @@ class ImporterUcastnikuNaAktivitu
                 assert($ucastnik instanceof \Uzivatel);
                 $aktivita = $ucastnikPlusAktivita['aktivita'];
                 assert($aktivita instanceof Aktivita);
-                if ($aktivita->prihlas(
-                    uzivatel: $ucastnik,
-                    prihlasujici: $importujici,
-                    parametry: Aktivita::INTERNI,
-                    hlaskyVeTretiOsobe: true,
-                )) {
-                    $prihlasenoCelkem++;
+                try {
+                    if ($aktivita->prihlas(
+                        uzivatel: $ucastnik,
+                        prihlasujici: $importujici,
+                        parametry: Aktivita::INTERNI,
+                        hlaskyVeTretiOsobe: true,
+                    )) {
+                        $prihlasenoCelkem++;
+                    }
+                } catch (\Chyba $chyba) {
+                    throw new \Chyba(sprintf(
+                        "Nepodařilo se přihlásit uživatele %s na aktivitu '%s' z řádku %d: %s",
+                        $ucastnik->jmenoVolitelnyNick(),
+                        $aktivita->nazev(),
+                        $ucastnikPlusAktivita['radek'],
+                        $chyba->getMessage(),
+                    ));
                 }
             }
 
             dbCommit();
         } catch (\Throwable $e) {
             dbRollback();
-            throw $e;
+            if ($e instanceof \Chyba) {
+                $chyby[] = $e->getMessage();
+            } else {
+                throw $e;
+            }
         }
 
         return [
             'prihlasenoCelkem' => $prihlasenoCelkem,
             'odhlasenoCelkem'  => $odhlasenoCelkem,
             'varovani'         => $varovani,
+            'chyby'            => $chyby,
         ];
     }
 
@@ -189,7 +206,7 @@ class ImporterUcastnikuNaAktivitu
         Aktivita  $aktivita,
         \Uzivatel $odhlasujici,
     ): int {
-        $odhlasenoCelkem = 0;
+        $odhlasenoCelkem     = 0;
         $prihlaseniUzivatele = $aktivita->seznamPrihlasenychNeboDorazivsich();
         foreach ($prihlaseniUzivatele as $prihlasenyUzivatel) {
             if (!in_array($prihlasenyUzivatel->id(), $idUcastniku, true)) {
