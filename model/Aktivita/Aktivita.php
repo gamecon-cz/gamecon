@@ -985,7 +985,11 @@ SQL
     ): Aktivita {
         $data[Sql::BEZ_SLEVY]           = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
         $data[Sql::NEDAVA_BONUS]        = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
-        $data[Sql::PROBEHLA_KOREKCE]    = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "probehla_korekce"
+        if (empty($data[Sql::ID_AKCE]) /* nová aktivita */
+            || array_key_exists(Sql::PROBEHLA_KOREKCE, $data) /** editace korekce; reakce na změnu textu viz @see popis */
+        ) {
+            $data[Sql::PROBEHLA_KOREKCE] = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "probehla_korekce"
+        }
         $data[Sql::CENA]                = (int)($data[Sql::CENA] ?? 0);
 
         if (empty($data['popis']) && empty($data[Sql::ID_AKCE])) {
@@ -1771,19 +1775,31 @@ SQL
     public function popis(string $popis = null)
     {
         if ($popis === null) {
-            return dbMarkdown($this->a['popis']);
+            return dbMarkdown($this->a[Sql::POPIS]);
         }
-        $oldId = $this->a['popis'];
+        $oldId = $this->a[Sql::POPIS];
         $id    = dbTextHash($popis);
+        $zmeny = [];
+        // popis musíme změnit všem aktivitám, které "patří pod" jinou, i kdyby se text nezměnil, abychom ho případně rozkopírovali kde ještě není
+        if ($this->a['patri_pod'] || $id != $oldId) {
+            $zmeny[Sql::POPIS] = $id;
+        }
         if ($id != $oldId) {
-            dbUpdate('akce_seznam', [Sql::PROBEHLA_KOREKCE => 0], [Sql::ID_AKCE => $this->id()]);
+            $zmeny[Sql::PROBEHLA_KOREKCE] = 0;
         }
-        if ($this->a['patri_pod']) {
-            dbUpdate('akce_seznam', ['popis' => $id], ['patri_pod' => $this->a['patri_pod']]);
-        } else {
-            dbUpdate('akce_seznam', ['popis' => $id], [Sql::ID_AKCE => $this->id()]);
+
+        if ($zmeny === []) {
+            return $popis;
         }
+        dbUpdate(
+            'akce_seznam',
+            $zmeny,
+            $this->a['patri_pod']
+                ? ['patri_pod' => $this->a['patri_pod']]
+                : [Sql::ID_AKCE => $this->id()]
+        );
         $this->a['popis'] = $id;
+
         dbTextClean($oldId);
 
         return $popis;

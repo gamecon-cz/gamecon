@@ -400,8 +400,9 @@
 <div style="clear:both"></div>
 <!-- begin:checkboxKorekce -->
 <div style="width: 30%">
-<input style="float:right" type="checkbox" name="{fields}[probehla_korekce]" value="1" id="probehla_korekce">
-<div class="hinted" style="float:right;margin:2px 0 0 1em"><label for="probehla_korekce">Proběhla korekce?</label>
+<div class="hinted" style="float:right;margin:2px 0 0 1em">
+    <label for="probehla_korekce">Proběhla korekce?</label>
+    <input type="checkbox" name="{fields}[probehla_korekce]" value="1" id="probehla_korekce">
     <div class="hint">Poslední, kdo upravoval popis aktivity byl člověk oprávněný provádět korekce a zaškrtl tento checkbox.</div>
 </div>
 <script>
