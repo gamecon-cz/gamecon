@@ -5,8 +5,8 @@ use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetySql;
 use Gamecon\Shop\SqlStruktura\NakupySqlStruktura as NakupySql;
-use Gamecon\Jidlo;
 use Gamecon\Shop\Predmet;
+use Gamecon\Cas\DateTimeGamecon;
 
 /**
  * Třída zodpovědná za stanovení / prezentaci cen a slev věcí
@@ -227,11 +227,11 @@ class Cenik
             $this->jakychkoliTricekZdarma--;
         } else if ($typ == Shop::UBYTOVANI) {
             if ($this->u->maPravoNaUbytovaniZdarma()
-                || ($r[PredmetySql::UBYTOVANI_DEN] == 0 && $this->u->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA))
-                || ($r[PredmetySql::UBYTOVANI_DEN] == 1 && $this->u->maPravo(Pravo::UBYTOVANI_CTVRTECNI_NOC_ZDARMA))
-                || ($r[PredmetySql::UBYTOVANI_DEN] == 2 && $this->u->maPravo(Pravo::UBYTOVANI_PATECNI_NOC_ZDARMA))
-                || ($r[PredmetySql::UBYTOVANI_DEN] == 3 && $this->u->maPravo(Pravo::UBYTOVANI_SOBOTNI_NOC_ZDARMA))
-                || ($r[PredmetySql::UBYTOVANI_DEN] == 4 && $this->u->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA))
+                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_STREDA && $this->u->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA))
+                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK && $this->u->maPravo(Pravo::UBYTOVANI_CTVRTECNI_NOC_ZDARMA))
+                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK && $this->u->maPravo(Pravo::UBYTOVANI_PATECNI_NOC_ZDARMA))
+                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA && $this->u->maPravo(Pravo::UBYTOVANI_SOBOTNI_NOC_ZDARMA))
+                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE && $this->u->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA))
             ) {
                 $cena = 0;
             }
