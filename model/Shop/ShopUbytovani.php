@@ -11,7 +11,6 @@ use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
-use Gamecon\Pravo;
 
 class ShopUbytovani
 {
@@ -389,13 +388,13 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     /** Zparsuje šablonu s ubytováním po dnech */
     private function htmlDny(XTemplate $t, bool $muzeEditovatUkoncenyProdej)
     {
-        $u = Uzivatel::zSession();
-        $pravoJedneNoci = $u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
+        $muzeObjednatJednuNoc = $this->muzeObjednatJednuNoc();
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen();
         $nemuzeSiObjednatPokoj  = $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky()
             && !$this->maPravoNaPostel();
         foreach ($this->mozneDny as $den => $typy) { // typy _v daný den_
-            if (!$pravoJedneNoci && $den > 1) {
+            if (!$muzeObjednatJednuNoc && $den > 1) {
+                // uživatel nemá právo na objednání jedné noci, tak se mu to zabalilo do jednoho checkboxu
                 break;
             }
             $typVzor = reset($typy);
@@ -434,13 +433,13 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                 ])->parse('ubytovani.den.typ');
             }
 
-            $den_prnt = !$pravoJedneNoci && $den == 1
+            $denText = !$muzeObjednatJednuNoc && $den == 1
                 ? "Čt–Ne (3 noci)"
                 : $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]);
 
             // data pro názvy dnů a pro "Žádné" ubytování
             $t->assign([
-                'den'      => $den_prnt,
+                'den'      => $denText,
                 'checked'  => $ubytovanVeDni
                     ? ''
                     : 'checked', // checked = "Žádné" ubytování
@@ -465,10 +464,9 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             return false;
         }
 
-        $u = Uzivatel::zSession();
         $dny = [];
 
-        if (!$u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)) {
+        if (!$this->muzeObjednatJednuNoc()) {
             $postDny = $_POST[$this->pnDny];
 
             if (isset($postDny[0])) {
@@ -499,6 +497,11 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         $this->registrace->ulozZmeny(); // povinné údaje pro ubytování
 
         return true;
+    }
+
+    private function muzeObjednatJednuNoc(): bool
+    {
+        return $this->objednatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
     }
 
     private function maPravoZobrazitUbytovani(int $poradiHernihoDne): bool
