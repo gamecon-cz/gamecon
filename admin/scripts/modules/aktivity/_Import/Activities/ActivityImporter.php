@@ -6,41 +6,15 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Vyjimkovac\Logovac;
 
-class ActivityImporter
+readonly class ActivityImporter
 {
-    /**
-     * @var ImportValuesDescriber
-     */
-    private $importValuesDescriber;
-    /**
-     * @var ImportSqlMappedValuesChecker
-     */
-    private $importValuesChecker;
-    /**
-     * @var ActivityImagesImporter
-     */
-    private $imagesImporter;
-    /**
-     * @var int
-     */
-    private $currentYear;
-    /**
-     * @var Logovac
-     */
-    private $logovac;
-
     public function __construct(
-        ImportValuesDescriber        $importValuesDescriber,
-        ImportSqlMappedValuesChecker $importValuesChecker,
-        ActivityImagesImporter       $imagesImporter,
-        int                          $currentYear,
-        Logovac                      $logovac
+        private ImportValuesDescriber        $importValuesDescriber,
+        private ImportSqlMappedValuesChecker $importValuesChecker,
+        private ActivityImagesImporter       $imagesImporter,
+        private int                          $currentYear,
+        private Logovac                      $logovac
     ) {
-        $this->importValuesDescriber = $importValuesDescriber;
-        $this->importValuesChecker = $importValuesChecker;
-        $this->imagesImporter = $imagesImporter;
-        $this->currentYear = $currentYear;
-        $this->logovac = $logovac;
     }
 
     public function importActivity(
