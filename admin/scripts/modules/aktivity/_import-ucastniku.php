@@ -24,29 +24,45 @@ if (!empty($importFile)) {
         'prihlasenoCelkem' => $prihlasenoCelkem,
         'odhlasenoCelkem'  => $odhlasenoCelkem,
         'varovani'         => $varovani,
+        'chyby'            => $chyby,
     ] = $importerUcastniku->importFile($importFile, $u);
-    oznameni(
-        sprintf(
-            'Import proběhl úspěšně. Přihlášeno %d účastníků, odhlášeno %d účastníků.',
-            $prihlasenoCelkem,
-            $odhlasenoCelkem,
-        ),
-        false,
-    );
+
+    if (empty($chyby)) {
+        oznameni(
+            sprintf(
+                'Import proběhl úspěšně. Přihlášeno %d účastníků, odhlášeno %d účastníků.',
+                $prihlasenoCelkem,
+                $odhlasenoCelkem,
+            ),
+            false,
+        );
+    }
 }
 
-if (!empty($varovani)) {
+if (!empty($varovani) || !empty($chyby)) {
     $importOznameniTemplate = new XTemplate(__DIR__ . '/_import-oznameni.xtpl');
-    foreach ($varovani as $zpravaVarovani) {
-        $importOznameniTemplate->assign('message', $zpravaVarovani);
-        $importOznameniTemplate->parse('oznameni.warnings.warning.message');
-        $importOznameniTemplate->parse('oznameni.warnings.warning');
+    if (!empty($varovani)) {
+        foreach ($varovani as $zpravaVarovani) {
+            $importOznameniTemplate->assign('message', $zpravaVarovani);
+            $importOznameniTemplate->parse('oznameni.warnings.warning.message');
+            $importOznameniTemplate->parse('oznameni.warnings.warning');
+        }
+        $importOznameniTemplate->parse('oznameni.warnings');
     }
-    $importOznameniTemplate->parse('oznameni.warnings');
+    if (!empty($chyby)) {
+        foreach ($chyby as $chyba) {
+            $importOznameniTemplate->assign('message', $chyba);
+            $importOznameniTemplate->parse('oznameni.errors.error.message');
+            $importOznameniTemplate->parse('oznameni.errors.error');
+        }
+        $importOznameniTemplate->parse('oznameni.errors.stoppedHeader');
+        $importOznameniTemplate->parse('oznameni.errors');
+    }
     $importOznameniTemplate->parse('oznameni');
     $importOznameni = $importOznameniTemplate->text('oznameni');
     $template->assign('importOznameni', $importOznameni);
     $template->parse('import.oznameni');
 }
+
 $template->parse('import');
 $template->out('import');
