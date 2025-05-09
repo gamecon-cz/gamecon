@@ -36,15 +36,12 @@ $a   = $u->koncovkaDlePohlavi();
 $uid = $u->id();
 
 if (!$zaplaceno) {
-    $castka                          = -$u->finance()->stav();
+    $castka                        = -$u->finance()->stav();
     $nejblizsiHromadneOdhlasovaniKdy = $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
     $nejpozdejiZaplatitDo            = $systemoveNastaveni->nejpozdejiZaplatitDo();
     $limit                           = datum3($nejpozdejiZaplatitDo);
-    if ($u->stat() == 'CZ') {
-        $castka .= '&thinsp;Kč';
-    } else {
-        $castka = round($castka / KURZ_EURO, 2) . '&thinsp;€';
-    }
+    $castkaCZ = $castka . '&thinsp;Kč';
+    $castkaEUR = round($castka / KURZ_EURO, 2) . '&thinsp;€';
 }
 
 ?>
@@ -92,100 +89,94 @@ if (!$zaplaceno) {
 
     <div style="clear:both"></div>
 
-    <?php if (!$zaplaceno) { ?>
-        <?php if ($u->stat() == Stat::CZ) { ?>
-            <h2 id="placeni">Platba</h2>
-            <div>
-                <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
-                <strong>Variabilní symbol:</strong> <?= $uid ?><br>
-                <strong>Částka k zaplacení:</strong> <?= $castka ?>
+    <?php
+    $qrKodProPlatbu = $u->finance()->dejQrKodProPlatbu();
+    ?>
+
+    <?php if (!$zaplaceno): ?>
+        <h2 id="placeni">Platba (CZ)</h2>
+        <div>
+            <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
+            <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+            <strong>Částka k zaplacení:</strong> <?= $castkaCZ ?>
+        </div>
+
+        <?php if ($qrKodProPlatbu !== null): ?>
+            <div style="text-align: center; margin-top: 16px">
+                <img src="<?= $qrKodProPlatbu->getDataUri() ?>" alt="qrPlatba">
             </div>
-        <?php } else { ?>
-            <h2 id="placeni">Platba (SEPA)</h2>
+        <?php endif; ?>
+
+        <?php if ($u->stat() !== Stat::CZ): ?>
+            <h2 id="placeni-sepa">Platba (SEPA)</h2>
             <div>
                 <strong>IBAN:</strong> <?= IBAN ?><br>
                 <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
                 <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(včetně lomítek)</i><br>
-                <strong>Částka k zaplacení:</strong> <?= $castka ?>
+                <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
             </div>
-        <?php } ?>
+        <?php endif; ?>
 
-        <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)) { ?>
-            <?php if ($u->stat() === Stat::CZ) { ?>
-                <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
-                    <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
-            <?php } else { ?>
-                <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
-                    <strong><?= $castka ?></strong>, přesné údaje o platbě nalezneš výše.</p>
-            <?php } ?>
-            <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani())) { ?>
-                <?php if (!$u->maPravoNerusitObjednavky()) { ?>
-                    <ul class="seznam-bez-okraje">
-                        <li class="poznamka">Při pozdější platbě tě systém dne
-                            <strong><?php echo datum3($systemoveNastaveni->prvniHromadneOdhlasovani()) ?> automaticky
-                                odhlásí</strong>.
-                        </li>
-                        <li class="poznamka">
-                            Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi
-                            vrátíme.
-                        </li>
-                    </ul>
-                <?php } ?>
-            <?php } else { ?>
+        <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)): ?>
+            <p>
+                GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
+                <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
+            </p>
+
+            <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani()) && !$u->maPravoNerusitObjednavky()): ?>
                 <ul class="seznam-bez-okraje">
                     <li class="poznamka">Při pozdější platbě tě systém dne
-                        <strong><?php echo datum3($nejblizsiHromadneOdhlasovaniKdy) ?> automaticky
-                            odhlásí</strong>.
+                        <strong><?= datum3($systemoveNastaveni->prvniHromadneOdhlasovani()) ?></strong> automaticky odhlásí.
                     </li>
                     <li class="poznamka">
-                        Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi
-                        vrátíme.
+                        Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
                     </li>
                 </ul>
-            <?php } ?>
-        <?php } else { ?>
-            <?php if ($u->stat() == Stat::CZ) { ?>
-                <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castka ?></strong>, variabilní
-                    symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
-            <?php } else { ?>
-                <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castka ?></strong>, přesné údaje o
-                    platbě nalezneš výše.</p>
-            <?php } ?>
+            <?php else: ?>
+                <ul class="seznam-bez-okraje">
+                    <li class="poznamka">Při pozdější platbě tě systém dne
+                        <strong><?= datum3($nejblizsiHromadneOdhlasovaniKdy) ?></strong> automaticky odhlásí.
+                    </li>
+                    <li class="poznamka">
+                        Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
+                    </li>
+                </ul>
+            <?php endif; ?>
+        <?php else: ?>
+            <p>
+                Zaplatit můžeš převodem nebo na místě. Platíš celkem
+                <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
+            </p>
             <ul class="seznam-bez-okraje">
                 <li class="poznamka">
                     Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
                 </li>
             </ul>
-        <?php } ?>
-    <?php } else { ?>
-    <div>
-        <?php if ($u->stat() == Stat::CZ) { ?>
-            <h2 id="placeni">Platba</h2>
-            <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
-                platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
-                můžeš si samozřejmě kdykoli převést peníze do zásoby:</p>
-            <div>
-                <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
-                <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+        <?php endif; ?>
+    <?php else: ?>
+        <h2 id="placeni">Platba (CZ)</h2>
+        <p>
+            Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
+            platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
+            můžeš si samozřejmě kdykoli převést peníze do zásoby:
+        </p>
+        <div>
+            <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
+            <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+        </div>
+
+        <?php if ($qrKodProPlatbu !== null): ?>
+            <div style="text-align: center; margin-top: 16px">
+                <img src="<?= $qrKodProPlatbu->getDataUri() ?>" alt="qrPlatba">
             </div>
-        <?php } else { ?>
-            <h2 id="placeni">Platba (SEPA)</h2>
-            <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
-                platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
-                můžeš si samozřejmě kdykoli převést peníze do zásoby:</p>
+        <?php endif; ?>
+
+        <?php if ($u->stat() !== Stat::CZ): ?>
+            <h2 id="placeni-sepa">Platba (SEPA)</h2>
             <div>
                 <strong>IBAN:</strong> <?= IBAN ?><br>
                 <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
                 <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(včetně lomítek)</i><br>
             </div>
-        <?php }
-        }
-        $qrKodProPlatbu = $u->finance()->dejQrKodProPlatbu();
-        if ($qrKodProPlatbu !== null) {
-            ?>
-            <div style="text-align: center">
-                <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
-            </div>
-        <?php } ?>
-    </div>
-</div>
+        <?php endif; ?>
+    <?php endif; ?>
