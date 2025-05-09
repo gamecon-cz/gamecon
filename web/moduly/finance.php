@@ -111,7 +111,7 @@ if (!$zaplaceno) {
         <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)) { ?>
             <?php { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
-                    <strong><?= $castkaCZ . '/' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
+                    <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
                 </p>
             <?php } ?>
             <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani())) { ?>
@@ -141,7 +141,7 @@ if (!$zaplaceno) {
             <?php } ?>
         <?php } else { ?>
             <?php { ?>
-                <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castkaCZ . '/' . $castkaEUR ?></strong>, přesné údaje o
+                <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o
                     platbě nalezneš výše.</p>
             <?php } ?>
             <ul class="seznam-bez-okraje">
