@@ -94,7 +94,7 @@ if (!$zaplaceno) {
     ?>
 
     <?php if (!$zaplaceno): ?>
-        <h2 id="placeni">Platba</h2>
+        <h2 id="placeni">Platba (CZ)</h2>
         <div>
             <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
             <strong>Variabilní symbol:</strong> <?= $uid ?><br>
@@ -154,7 +154,7 @@ if (!$zaplaceno) {
             </ul>
         <?php endif; ?>
     <?php else: ?>
-        <h2 id="placeni">Platba</h2>
+        <h2 id="placeni">Platba (CZ)</h2>
         <p>
             Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
             platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
