@@ -36,15 +36,12 @@ $a   = $u->koncovkaDlePohlavi();
 $uid = $u->id();
 
 if (!$zaplaceno) {
-    $castka                          = -$u->finance()->stav();
+    $castka                        = -$u->finance()->stav();
     $nejblizsiHromadneOdhlasovaniKdy = $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
     $nejpozdejiZaplatitDo            = $systemoveNastaveni->nejpozdejiZaplatitDo();
     $limit                           = datum3($nejpozdejiZaplatitDo);
-    if ($u->stat() == 'CZ') {
-        $castka .= '&thinsp;Kč';
-    } else {
-        $castka = round($castka / KURZ_EURO, 2) . '&thinsp;€';
-    }
+    $castkaCZ = $castka . '&thinsp;Kč';
+    $castkaEUR = round($castka / KURZ_EURO, 2) . '&thinsp;€';
 }
 
 ?>
@@ -98,7 +95,7 @@ if (!$zaplaceno) {
             <div>
                 <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
                 <strong>Variabilní symbol:</strong> <?= $uid ?><br>
-                <strong>Částka k zaplacení:</strong> <?= $castka ?>
+                <strong>Částka k zaplacení:</strong> <?= $castkaCZ ?>
             </div>
         <?php }
         if ($u->stat() != Stat::CZ) { ?>
@@ -107,14 +104,14 @@ if (!$zaplaceno) {
                 <strong>IBAN:</strong> <?= IBAN ?><br>
                 <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
                 <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(včetně lomítek)</i><br>
-                <strong>Částka k zaplacení:</strong> <?= $castka ?>
+                <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
             </div>
         <?php } ?>
 
         <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)) { ?>
             <?php { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
-                    <strong><?= $castka ?></strong>, přesné údaje o platbě nalezneš výše.
+                    <strong><?= $castkaCZ . '/' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
                 </p>
             <?php } ?>
             <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani())) { ?>
@@ -144,7 +141,7 @@ if (!$zaplaceno) {
             <?php } ?>
         <?php } else { ?>
             <?php { ?>
-                <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castka ?></strong>, přesné údaje o
+                <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castkaCZ . '/' . $castkaEUR ?></strong>, přesné údaje o
                     platbě nalezneš výše.</p>
             <?php } ?>
             <ul class="seznam-bez-okraje">
