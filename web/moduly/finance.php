@@ -101,6 +101,12 @@ if (!$zaplaceno) {
             <strong>Částka k zaplacení:</strong> <?= $castkaCZ ?>
         </div>
 
+        <?php if ($qrKodProPlatbu !== null): ?>
+            <div style="text-align: center; margin-top: 16px">
+                <img src="<?= $qrKodProPlatbu->getDataUri() ?>" alt="qrPlatba">
+            </div>
+        <?php endif; ?>
+
         <?php if ($u->stat() !== Stat::CZ): ?>
             <h2 id="placeni-sepa">Platba (SEPA)</h2>
             <div>
