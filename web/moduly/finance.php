@@ -88,14 +88,15 @@ if (!$zaplaceno) {
     <div style="clear:both"></div>
 
     <?php if (!$zaplaceno) { ?>
-        <?php if ($u->stat() == Stat::CZ) { ?>
+        <?php { ?>
             <h2 id="placeni">Platba</h2>
             <div>
                 <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
                 <strong>Variabilní symbol:</strong> <?= $uid ?><br>
                 <strong>Částka k zaplacení:</strong> <?= $castka ?>
             </div>
-        <?php } else { ?>
+        <?php }
+        if ($u->stat() != Stat::CZ) { ?>
             <h2 id="placeni">Platba (SEPA)</h2>
             <div>
                 <strong>IBAN:</strong> <?= IBAN ?><br>
@@ -106,12 +107,15 @@ if (!$zaplaceno) {
         <?php } ?>
 
         <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)) { ?>
-            <?php if ($u->stat() === Stat::CZ) { ?>
+            <?php { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
+<<<<<<< Updated upstream
                     <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.
                 </p>
             <?php } else { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
+=======
+>>>>>>> Stashed changes
                     <strong><?= $castka ?></strong>, přesné údaje o platbě nalezneš výše.
                 </p>
             <?php } ?>
@@ -141,10 +145,7 @@ if (!$zaplaceno) {
                 </ul>
             <?php } ?>
         <?php } else { ?>
-            <?php if ($u->stat() == Stat::CZ) { ?>
-                <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castka ?></strong>, variabilní
-                    symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
-            <?php } else { ?>
+            <?php { ?>
                 <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?= $castka ?></strong>, přesné údaje o
                     platbě nalezneš výše.</p>
             <?php } ?>
@@ -156,7 +157,11 @@ if (!$zaplaceno) {
         <?php } ?>
     <?php } else { ?>
         <div>
+<<<<<<< Updated upstream
             <?php if ($u->stat() == Stat::CZ) { ?>
+=======
+            <?php { ?>
+>>>>>>> Stashed changes
                 <h2 id="placeni">Platba</h2>
                 <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
                     platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
@@ -165,11 +170,17 @@ if (!$zaplaceno) {
                     <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
                     <strong>Variabilní symbol:</strong> <?= $uid ?><br>
                 </div>
+<<<<<<< Updated upstream
             <?php } else { ?>
                 <h2 id="placeni">Platba (SEPA)</h2>
                 <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
                     platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
                     můžeš si samozřejmě kdykoli převést peníze do zásoby:</p>
+=======
+            <?php }
+            if ($u->stat() != Stat::CZ) { ?>
+                <h2 id="placeni">Platba (SEPA)</h2>
+>>>>>>> Stashed changes
                 <div>
                     <strong>IBAN:</strong> <?= IBAN ?><br>
                     <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
