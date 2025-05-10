@@ -1037,12 +1037,11 @@ SQL,
             ? 0.1 // nulová, respektive dobrovolná platba
             : -$this->stav();
 
-        $qrPlatba = $this->u->stat() === \Gamecon\Stat::CZ
-            ? QrPlatba::dejQrProTuzemskouPlatbu(
+        $qrPlatba = QrPlatba::dejQrProTuzemskouPlatbu(
                 $castkaCzk,
                 $this->u->id(),
-            )
-            : null; // SEPA platbu přes QR kód neumí zřejmě žádná slovenská banka, takže pro mimočeské nezobrazíme nic
+        ); 
+        // SEPA platbu přes QR kód neumí zřejmě žádná slovenská banka, takže pro mimočeské nezobrazíme nic
 
         return $qrPlatba?->dejQrObrazek();
     }
