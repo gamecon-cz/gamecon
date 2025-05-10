@@ -389,7 +389,7 @@ SQL,
                     $t->parse('jidlo.druh.den');
                 }
                 $t->assign('druh', $druh);
-                $t->assign('cena', $cenik->shop($jidlo) . '&thinsp;Kč');
+                $t->assign('cena', $jidlo !== null ? ($cenik->shop($jidlo) . '&thinsp;Kč') : '');
                 $t->parse('jidlo.druh');
             }
             // hlavička
