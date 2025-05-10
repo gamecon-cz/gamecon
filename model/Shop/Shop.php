@@ -303,6 +303,8 @@ SQL,
             $fronta = $r;
         }
 
+        $this->jidlo['jidla'][4]['Večeře']['nabizet'] = 0;
+
         $this->jidlo = $this->seradJidla($this->jidlo);
 
         $this->ubytovani = new ShopUbytovani(
