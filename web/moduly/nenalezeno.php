@@ -2,7 +2,7 @@
 
 header('HTTP/1.1 404 Not Found', true, 404);
 
-$this->blackarrowStyl(true);
+$this?->blackarrowStyl(true);
 
 ?>
 
