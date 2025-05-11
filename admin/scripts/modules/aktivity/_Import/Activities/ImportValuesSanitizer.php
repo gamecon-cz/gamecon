@@ -52,12 +52,12 @@ class ImportValuesSanitizer
             unset($inputValuesForDescription[ExportAktivitSloupce::ID_AKTIVITY]);
 
             return ImportStepResult::error($originalActivityResult->getError())
-                ->setLastActivityDescription(
-                    $this->importValuesDescriber->describeActivityByInputValues(
-                        $inputValuesForDescription,
-                        null,
-                    ),
-                );
+                                   ->setLastActivityDescription(
+                                       $this->importValuesDescriber->describeActivityByInputValues(
+                                           $inputValuesForDescription,
+                                           null,
+                                       ),
+                                   );
         }
 
         $stepsResults = [];
@@ -70,7 +70,7 @@ class ImportValuesSanitizer
         $sanitizedValuesResult = $this->getSanitizedValues($inputValues, $singleProgramLine, $originalActivity);
         if ($sanitizedValuesResult->isError()) {
             return ImportStepResult::error($sanitizedValuesResult->getError())
-                ->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, $originalActivity));
+                                   ->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, $originalActivity));
         }
         [
             'sanitizedValues' => $sanitizedValues,
@@ -86,7 +86,7 @@ class ImportValuesSanitizer
         $potentialImageUrlsResult = $this->getPotentialImageUrls($inputValues, $activityUrl);
         if ($potentialImageUrlsResult->isError()) {
             return ImportStepResult::error($potentialImageUrlsResult->getError())
-                ->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, $originalActivity));
+                                   ->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, $originalActivity));
         }
         $potentialImageUrls = $potentialImageUrlsResult->getSuccess();
         $stepsResults[]     = $potentialImageUrlsResult;
@@ -1164,14 +1164,13 @@ HTML;
         }
 
         if (!preg_match('~^(?<hours>\d+)(\s*:\s*(?<minutes>\d+))?$~', $hoursAndMinutes, $timeMatches)) {
-            return ImportStepResult::successWithErrorLikeWarnings(
-                null,
-                [sprintf(
-                     "Nepodařilo se nastavit čas podle dne '%s' a času '%s'. Chybný formát času '%s'. Čas aktivity je vynechán.",
-                     $dayName,
-                     $hoursAndMinutes,
-                     $hoursAndMinutes,
-                 )],
+            return ImportStepResult::error(
+                sprintf(
+                    "Nepodařilo se nastavit čas podle dne '%s' a času '%s'. Chybný formát času '%s'. Čas aktivity je vynechán.",
+                    $dayName,
+                    $hoursAndMinutes,
+                    $hoursAndMinutes,
+                ),
             );
         }
         $hours = (int)$timeMatches['hours'];
