@@ -111,6 +111,10 @@
     <div class="prihlaska_sekce">
         <h2>Ubytování</h2>
 
+        <!-- begin: triPlusNoci2025 -->
+        <p>Pozor, oproti předchozím rokům změna: ubytování je možné objednat pouze v balíčku 3+ nocí.</p>
+        <!-- end: triPlusNoci2025 -->
+
         <div class="prihlaska_infoPruh">
             <div class="prihlaska_info">
                 <img alt="Ikona s mapou" class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/mapa.png"
