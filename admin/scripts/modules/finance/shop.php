@@ -73,8 +73,8 @@ foreach (Shop::letosniPolozky() as $polozka) {
         $template->assign('stavNazev', match ($constantValue){
             StavPredmetu::MIMO => 'Vyřazený',
             StavPredmetu::VEREJNY => 'Veřejný',
-            StavPredmetu::POZASTAVENY => 'Neprodejný',
-            StavPredmetu::PODPULTOVY => 'Skrytý',
+            StavPredmetu::POZASTAVENY => 'Prodejný na místě',
+            StavPredmetu::PODPULTOVY => 'Orgové',
             default => $constantName,
         });
         $template->assign('selected', $polozka->stav() === $constantValue
