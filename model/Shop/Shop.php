@@ -391,7 +391,10 @@ SQL,
                     $t->parse('jidlo.druh.den');
                 }
                 $t->assign('druh', $druh);
-                $t->assign('cena', $jidlo !== null ? ($cenik->shop($jidlo) . '&thinsp;Kč') : '');
+                if ($jidlo !== null){
+                    $vec = $cenik->shop($jidlo) . '&thinsp;Kč';
+                }
+                $t->assign('cena', $jidlo !== null ? ($cenik->shop($jidlo) . '&thinsp;Kč') : $vec);
                 $t->parse('jidlo.druh');
             }
             // hlavička
