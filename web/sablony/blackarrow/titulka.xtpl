@@ -43,21 +43,23 @@
 </div>
 
 <div class="karty">
+<!-- begin: karty -->
     <div class="karty_karta" data-aos="fade-right">
-        <img alt="" src="soubory/blackarrow/karty/1.jpg">
+        <img alt="" src="{src1}">
         <h2>Akce pro všechny</h2>
         <div class="karty_text">Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.</div>
     </div>
     <div class="karty_karta" data-aos="fade-right" data-aos-delay="200">
-        <img alt="" src="soubory/blackarrow/karty/2.jpg">
+        <img alt="" src="{src2}">
         <h2>Festival aktivní zábavy</h2>
         <div class="karty_text">Na GameConu najdeš všechno od celodenně otevřené deskoherny, přes rolové hry až po koncert.</div>
     </div>
     <div class="karty_karta" data-aos="fade-right" data-aos-delay="400">
-        <img alt="" src="soubory/blackarrow/karty/3.jpg">
+        <img alt="" src="{src3}">
         <h2>Žádné vstupné</h2>
         <div class="karty_text">Registrace na GameCon je zdarma. Platíš jen za služby a aktivity, které si sám vybereš a objednáš.</div>
     </div>
+<!-- end: karty -->
 </div>
 
 <div class="popisbox">
@@ -73,35 +75,39 @@
 </div>
 
 <div class="cisla">
+<!-- begin: cisla -->
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="200">
-        <img alt="ikona účastníků" src="soubory/blackarrow/cisla/1.jpg" style="margin: -30px 0 0 87px">
+        <img alt="ikona účastníků" src="{src1}" style="margin: -30px 0 0 87px">
         <div class="cisla_cislo">{stovkySpokojenychUcastniku}+</div>
         <div class="cisla_text">spokojených účastníků</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up">
-        <img alt="ikona aktivit" src="soubory/blackarrow/cisla/2.jpg" style="margin: -13px 0 0 73px">
+        <img alt="ikona aktivit" src="{src2}" style="margin: -13px 0 0 73px">
         <div class="cisla_cislo">{stovkyAktivit}+</div>
         <div class="cisla_text">různých aktivit</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="100">
-        <img alt="ikona trvání" src="soubory/blackarrow/cisla/3.jpg" style="margin: -23px 0 0 30px">
+        <img alt="ikona trvání" src="{src3}" style="margin: -23px 0 0 30px">
         <div class="cisla_cislo">4</div>
         <div class="cisla_text">dny zábavy</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="50">
-        <img alt="ikona koncert" src="soubory/blackarrow/cisla/4.jpg" style="margin: -13px 0 0 30px">
+        <img alt="ikona koncert" src="{src4}" style="margin: -13px 0 0 30px">
         <div class="cisla_cislo">1</div>
         <div class="cisla_text">super koncert</div>
     </div>
+<!-- end: cisla -->
 </div>
 
 <div class="fotky">
-    <img loading="lazy" alt="Koncert" src="soubory/blackarrow/fotky/1.jpg" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
-    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/2.jpg" data-aos="fotky" data-aos-offset="200" style="top:  6.042vw; left:  22.083vw">
-    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/3.jpg" data-aos="fotky" data-aos-offset="200" style="top: 28.177vw; left:  25.990vw">
-    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/4.jpg" data-aos="fotky" data-aos-offset="200" style="top: 15.417vw; left:  46.667vw">
-    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/5.jpg" data-aos="fotky" data-aos-offset="200" style="top: 37.188vw; left:  65.521vw">
-    <img loading="lazy" alt="" src="soubory/blackarrow/fotky/6.jpg" data-aos="fotky" data-aos-offset="200" style="top:  2.969vw; right:      0vw; transform-origin: top right">
+<!-- begin: fotky -->
+    <img loading="lazy" alt="Koncert" src="{src1}" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
+    <img loading="lazy" alt="" src="{src2}" data-aos="fotky" data-aos-offset="200" style="top:  6.042vw; left:  22.083vw">
+    <img loading="lazy" alt="" src="{src3}" data-aos="fotky" data-aos-offset="200" style="top: 28.177vw; left:  25.990vw">
+    <img loading="lazy" alt="" src="{src4}" data-aos="fotky" data-aos-offset="200" style="top: 15.417vw; left:  46.667vw">
+    <img loading="lazy" alt="" src="{src5}" data-aos="fotky" data-aos-offset="200" style="top: 37.188vw; left:  65.521vw">
+    <img loading="lazy" alt="" src="{src6}" data-aos="fotky" data-aos-offset="200" style="top:  2.969vw; right:      0vw; transform-origin: top right">
+<!-- end: fotky -->
 </div>
 
 <div class="zazijes">

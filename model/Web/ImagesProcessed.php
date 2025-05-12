@@ -7,7 +7,7 @@ namespace Gamecon\Web;
 use Gamecon\XTemplate\XTemplate;
 use Nahled;
 
-readonly class Loga
+readonly class ImagesProcessed
 {
     public static function logaSponzoruTitulka(): static
     {
@@ -29,10 +29,29 @@ readonly class Loga
         return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri');
     }
 
+    public static function fotkyTitulka(): static
+    {
+        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/blackarrow/fotky');
+    }
+
+    public static function cislaTitulka(): static
+    {
+        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/blackarrow/cisla');
+    }
+
+    public static function kartyTitulka(): static
+    {
+        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/blackarrow/karty');
+    }
+
+    public static function linieTitulka(): static
+    {
+        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/linie');
+    }
+
     public function __construct(
         private string $adresarLog,
-    ) {
-    }
+    ) {}
 
     public function vypisDoSablony(
         XTemplate $template,
@@ -44,10 +63,24 @@ readonly class Loga
         }
     }
 
+    public function vypisDoSablonySorted(
+        XTemplate $template,
+        string    $templateBlock,
+        int $width = 120,
+        int $height = 60,
+    ) {
+        $i = 1;
+        foreach ($this->serazenaLoga($width, $height) as ['src' => $src, 'url' => $url]) {
+            $template->assign(['src' . $i => $src, 'url' . $i => $url]);
+            $i++;
+        }
+        $template->parse($templateBlock);
+    }
+
     /**
      * @return iterable{src: string, url: string}
      */
-    public function serazenaLoga(): iterable
+    public function serazenaLoga($width = 120, $height = 60): iterable
     {
         if (!is_dir($this->adresarLog)) {
             throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelze přečíst.");
@@ -65,7 +98,7 @@ readonly class Loga
             // odstraníme prefix pro řazení 'číslo_'
             $urlPartnera = preg_replace('~^\d+_~', '', $info['filename']);
             yield [
-                'src' => Nahled::zeSouboru($obrazek)->pasuj(120, 60),
+                'src' => Nahled::zeSouboru($obrazek)->pasuj($width, $height),
                 'url' => 'https://' . $urlPartnera,
             ];
         }
