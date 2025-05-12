@@ -49,6 +49,7 @@ if ($chybejiciKliceNastaveni) {
     $lonskeSystemoveNastaveni  = SystemoveNastaveni::vytvorZGlobals(rocnik: $lonskyRok);
     $lonskeZaznamy             = $lonskeSystemoveNastaveni->dejVsechnyZaznamyNastaveni();
     $letosniSystemoveNastaveni = SystemoveNastaveni::vytvorZGlobals(rocnik: $rocnik);
+    $systemUzivatelId = Uzivatel::SYSTEM;
     foreach ($chybejiciKliceNastaveni as $klicWrapped) {
         $klic = reset($klicWrapped);
         if (empty($lonskeZaznamy[$klic])) {
@@ -73,7 +74,8 @@ if ($chybejiciKliceNastaveni) {
         $setSql = implode(
             ',',
             array_map(
-                static function ($klic, $hodnota) {
+                function ($klic, $hodnota) {
+                    $hodnota = $this->connection->real_escape_string($hodnota);
                     return "`$klic` = '$hodnota'";
                 },
                 array_keys($letosniZaznam),
@@ -83,6 +85,12 @@ if ($chybejiciKliceNastaveni) {
         $this->q(<<<SQL
 INSERT INTO systemove_nastaveni
 SET {$setSql}
+SQL,
+        );
+        $letosniHodnotaEscaped = $this->connection->real_escape_string($letosniHodnota);
+        $this->q(<<<SQL
+INSERT INTO systemove_nastaveni_log 
+SET id_nastaveni_log = NULL, id_uzivatele = {$systemUzivatelId}, id_nastaveni = LAST_INSERT_ID(), hodnota = '{$letosniHodnotaEscaped}', vlastni = null, kdy = NOW()
 SQL,
         );
     }
