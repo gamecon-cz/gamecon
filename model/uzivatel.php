@@ -2693,9 +2693,9 @@ SQL;
             : null;
     }
 
-    public function cestaKSouboruSPotvrzenimRodicu(): ?string
+    public function cestaKSouboruSPotvrzenimRodicu(string $pripona = 'png'): ?string
     {
-        return WWW . '/soubory/systemove/potvrzeni/potvrzeni-rodicu-' . $this->id() . '.png';
+        return WWW . '/soubory/systemove/potvrzeni/potvrzeni-rodicu-' . $this->id() . '.' . $pripona;
     }
 
     public function zpracujPotvrzeniRodicu(): bool
@@ -2707,25 +2707,35 @@ SQL;
         if (!$f) {
             throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo načíst");
         }
-        $imagick = new Imagick();
+        if (mime_content_type($f) === 'application/pdf') {
+            $targetResource = fopen($this->cestaKSouboruSPotvrzenimRodicu('pdf'), 'wb');
+            if ($targetResource === false) {
+                throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo uložit");
+            }
+            fwrite($targetResource, fread($f, filesize($_FILES['potvrzeniRodicu']['tmp_name'])));
+            fclose($targetResource);
+        } else {
+            $imagick = new Imagick();
 
-        $imageRead = false;
-        try {
-            $imageRead = $imagick->readImageFile($f);
-        } catch (\Throwable $throwable) {
-            trigger_error($throwable->getMessage(), E_USER_WARNING);
-        }
-        if (!$imageRead) {
-            throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo přečíst. Je to obrázek nebo PDF?");
-        }
+            $imageRead = false;
+            try {
+                $imageRead = $imagick->readImageFile($f);
+            } catch (\Throwable $throwable) {
+                trigger_error($throwable->getMessage(), E_USER_WARNING);
+            }
+            if (!$imageRead) {
+                throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo přečíst. Je to obrázek nebo PDF?");
+            }
 
-        try {
-            $imagick->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
-            $imagick->setImageCompressionQuality(100);
-        } catch (\Throwable $throwable) {
-            trigger_error($throwable->getMessage(), E_USER_WARNING);
+            try {
+                $imagick->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
+                $imagick->setImageCompressionQuality(100);
+            } catch (\Throwable $throwable) {
+                trigger_error($throwable->getMessage(), E_USER_WARNING);
+            }
+            $imagick->writeImage($this->cestaKSouboruSPotvrzenimRodicu());
         }
-        $imagick->writeImage($this->cestaKSouboruSPotvrzenimRodicu());
+        @fclose($f);
 
         $ted = new DateTimeImmutable();
         $this->ulozPotvrzeniRodicuPridanoKdy($ted);
