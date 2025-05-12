@@ -4,8 +4,10 @@
  * Stránka statistik GC
  *
  * nazev: Statistiky
- * pravo: 107
+ * pravo: 9999
  */
+
+//107
 
 /**
  * @var $u Uzivatel
