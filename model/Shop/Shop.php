@@ -279,7 +279,8 @@ SQL,
                 }
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
             } elseif ($typ == self::UBYTOVANI) {
-                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == StavPredmetu::POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
+                $r['nabizet'] = true; /** protože se to řeší v @see \Gamecon\Shop\ShopUbytovani::totoUbytovaniVyrazeno
+                 */
                 $fronta       = &$this->ubytovaniPole[];
             } elseif ($typ == self::TRICKO) {
                 $smiModre     = $this->zakaznik->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
