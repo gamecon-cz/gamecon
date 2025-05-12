@@ -187,7 +187,7 @@ if ($slevy) {
 if (!$u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)){
     $t->parse('prihlaska.ubytovaniTriPlusNoci');
     if ((int)date('Y') === 2025){
-       $t->parse('prihlaska.triPlusNoci2025'); 
+       $t->parse('prihlaska.triPlusNoci2025');
     }
 }
 
@@ -285,6 +285,8 @@ if ($u->gcPrihlasen()) {
         if ($u->potvrzeniZakonnehoZastupceSouborOd() && ((!$u->potvrzeniZakonnehoZastupceOd()) || $u->potvrzeniZakonnehoZastupceSouborOd() > ($u->potvrzeniZakonnehoZastupceOd()))) {
             $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce.nahrano');
         }
+        $t->assign('urlWebu', URL_WEBU);
+        $t->assign('rocnik', $systemoveNastaveni->rocnik());
         $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce');
     }
     $t->parse('prihlaska.prihlasen');
