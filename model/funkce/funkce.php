@@ -75,7 +75,7 @@ function datum3(
         'července', 'srpna', 'září', 'října', 'listopadu', 'prosince',
     ];
 
-    return date('j. ', $datumTimestamp) . $mesic[date('n', $datumTimestamp) - 1];
+    return date('j. ', $datumTimestamp) . $mesic[date('n', $datumTimestamp) - 1];
 }
 
 function datum4(string | DateTimeInterface $datum): string {
@@ -88,7 +88,7 @@ function datum4(string | DateTimeInterface $datum): string {
         'července', 'srpna', 'září', 'října', 'listopadu', 'prosince',
     ];
 
-    return date('j. ', $datumTimestamp)
+    return date('j. ', $datumTimestamp)
         . $mesic[date('n', $datumTimestamp) - 1]
         . date(' H:i', $datumTimestamp);
 }
