@@ -3,7 +3,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Web\Loga;
+use Gamecon\Web\ImagesProcessed;
 use Gamecon\Role\Role;
 
 /** @var \Gamecon\XTemplate\XTemplate $t */
@@ -20,6 +20,8 @@ $this->info()
 $offsety = [120, 320, 280];
 $typy    = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
 foreach ($typy as $i => $typ) {
+    $processed_img = ImagesProcessed::linieTitulka('soubory/systemove/linie/' . $typ->id() . '.jpg');
+    $processed_icon = ImagesProcessed::linieTitulka('soubory/systemove/linie-ikony/' . $typ->id() . '.png');
     $t->assign([
         'cislo'     => sprintf('%02d', $i + 1),
         'nazev'     => mb_ucfirst($typ->nazev()),
@@ -32,9 +34,13 @@ foreach ($typy as $i => $typ) {
     $t->parse('titulka.linie');
 }
 
-// sponzoři a partneři
-Loga::logaSponzoruTitulka()->vypisDoSablony($t, 'titulka.sponzor');
-Loga::logaPartneruTitulka()->vypisDoSablony($t, 'titulka.partner');
+// vyplnění obrázku
+ImagesProcessed::kartyTitulka()->vypisDoSablonySorted($t, 'titulka.karty');
+ImagesProcessed::cislaTitulka()->vypisDoSablonySorted($t, 'titulka.cisla');
+ImagesProcessed::fotkyTitulka()->vypisDoSablonySorted($t, 'titulka.fotky', 525, 525);
+// ImagesProcessed::linieTitulka()->vypisDoSablonySorted($t, 'titulka.linie', 525, 525);
+ImagesProcessed::logaSponzoruTitulka()->vypisDoSablony($t, 'titulka.sponzor');
+ImagesProcessed::logaPartneruTitulka()->vypisDoSablony($t, 'titulka.partner');
 
 // odpočet
 if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
