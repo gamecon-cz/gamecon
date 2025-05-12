@@ -23,7 +23,7 @@ class ShopUbytovani
     public static function dejIdsPredmetuUbytovani(
         array $nazvyUbytovani,
         int   $rok = ROCNIK,
-        bool  $hodVyjimkuNeniLiPresne = true
+        bool  $hodVyjimkuNeniLiPresne = true,
     ): array {
         $idsPredmetuUbytovani = array_map('intval', dbOneArray(<<<SQL
 SELECT id_predmetu
@@ -46,8 +46,12 @@ SQL,
         return $idsPredmetuUbytovani;
     }
 
-    public static function ulozPokojUzivatele(string $pokoj, ?int $prvniNoc, ?int $posledniNoc, Uzivatel $ucastnik): int
-    {
+    public static function ulozPokojUzivatele(
+        string   $pokoj,
+        ?int     $prvniNoc,
+        ?int     $posledniNoc,
+        Uzivatel $ucastnik,
+    ): int {
         if ($pokoj === '' || ($prvniNoc === null && $posledniNoc === null)) {
             $mysqliResult = dbQuery(<<<SQL
 DELETE FROM ubytovani
@@ -86,8 +90,10 @@ SQL,
         return $zapsanoZmen;
     }
 
-    public static function ulozSKymChceBytNaPokoji(string $ubytovanS, Uzivatel $ucastnik): int
-    {
+    public static function ulozSKymChceBytNaPokoji(
+        string   $ubytovanS,
+        Uzivatel $ucastnik,
+    ): int {
         if ($ucastnik->ubytovanS() === $ubytovanS) {
             return 0;
         }
@@ -97,8 +103,10 @@ SQL,
         return dbAffectedOrNumRows($mysqliResult);
     }
 
-    private static function smazLetosniNakupyUbytovaniUcastnika(Uzivatel $ucastnik, int $rok = ROCNIK): int
-    {
+    private static function smazLetosniNakupyUbytovaniUcastnika(
+        Uzivatel $ucastnik,
+        int      $rok = ROCNIK,
+    ): int {
         $mysqliResult = dbQuery(<<<SQL
 DELETE nakupy.*
 FROM shop_nakupy AS nakupy
@@ -118,8 +126,10 @@ SQL,
      * @param string[][][] $dny
      * @return bool jestli si uživatel objednává ubytování přes kapacitu
      */
-    public static function ubytovaniPresKapacitu(int $idPredmetu, array $dny): bool
-    {
+    public static function ubytovaniPresKapacitu(
+        int   $idPredmetu,
+        array $dny,
+    ): bool {
         // načtení předmětu
         $predmet = null;
         foreach ($dny as $den) {
@@ -304,9 +314,9 @@ SQL,
          * použití ve spolupráci s proměnno $omezitNaSpacáky
          * */
         return $this->uzivatel()->jeVypravec() || $this->uzivatel()->jeOrganizator() ||
-            $this->uzivatel()->jeHerman() || $this->uzivatel()->jePartner() ||
-            $this->uzivatel()->jeInfopultak() ||
-            $this->uzivatel()->jeZazemi();
+               $this->uzivatel()->jeHerman() || $this->uzivatel()->jePartner() ||
+               $this->uzivatel()->jeInfopultak() ||
+               $this->uzivatel()->jeZazemi();
     }
 
     private function omluvaZaNedostupneUbytovani(): string
@@ -343,7 +353,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         }
         $t->assign([
             'shopUbytovaniJs'      => URL_WEBU . '/soubory/blackarrow/shop/shop-ubytovani.js?version='
-                . md5_file(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
+                                      . md5_file(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
             'spolubydlici'         => htmlspecialchars(dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()) ?? ''),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
@@ -354,7 +364,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         $nemuzeSiObjednatPokoj = $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky()
-            && !$this->maPravoNaPostel();
+                                 && !$this->maPravoNaPostel();
         // sloupce popisků
         foreach ($this->mozneTypy as $typ => $predmet) {
             if ($nemuzeSiObjednatPokoj && $typ != 'Spacák') {
@@ -375,7 +385,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         // specifická info podle uživatele a stavu nabídky
         if ((!$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen())
             || !$this->mozneTypy
-            || reset($this->mozneTypy)[Sql::STAV] == StavPredmetu::POZASTAVENY
+            || $this->vsechnPozastaveno()
         ) {
             $t->parse('ubytovani.konec');
         }
@@ -385,13 +395,26 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         return $t->text('ubytovani');
     }
 
-    /** Zparsuje šablonu s ubytováním po dnech */
-    private function htmlDny(XTemplate $t, bool $muzeEditovatUkoncenyProdej)
+    private function vsechnPozastaveno(): bool
     {
-        $muzeObjednatJednuNoc = $this->muzeObjednatJednuNoc();
+        foreach ($this->mozneTypy as $moznyTyp) {
+            if ($moznyTyp[Sql::STAV] != StavPredmetu::POZASTAVENY) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Zparsuje šablonu s ubytováním po dnech */
+    private function htmlDny(
+        XTemplate $t,
+        bool      $muzeEditovatUkoncenyProdej,
+    ) {
+        $muzeObjednatJednuNoc   = $this->muzeObjednatJednuNoc();
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen();
         $nemuzeSiObjednatPokoj  = $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky()
-            && !$this->maPravoNaPostel();
+                                  && !$this->maPravoNaPostel();
         foreach ($this->mozneDny as $den => $typy) { // typy _v daný den_
             if (!$muzeObjednatJednuNoc && $den > 1) {
                 // uživatel nemá právo na objednání jedné noci, tak se mu to zabalilo do jednoho checkboxu
@@ -417,13 +440,12 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                         ? $this->mozneDny[$den][$typ]['id_predmetu']
                         : null,
                     'checked'    => $checked,
-                    'disabled'   => (!$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
-                        && ($prodejUbytovaniUkoncen
-                            || (!$ubytovanVeDniATypu
-                                && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ))
-                            )
-                            || !$this->maPravoObjednatUbytovani($den)
-                        )
+                    'disabled'   => $this->totoUbytovaniVyrazeno(
+                        $checked,
+                        $prodejUbytovaniUkoncen,
+                        $ubytovanVeDniATypu,
+                        $den,
+                        $typ,
                     )
                         ? 'disabled'
                         : '',
@@ -451,6 +473,23 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         }
     }
 
+    private function totoUbytovaniVyrazeno(
+        bool         $checked,
+        bool         $prodejUbytovaniUkoncen,
+        bool         $ubytovanVeDniATypu,
+        int | string $den,
+        int | string $typ,
+    ): bool {
+        return (!$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
+                && ($prodejUbytovaniUkoncen
+                    || (!$ubytovanVeDniATypu
+                        && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ) || $this->neprodejne($den, $typ))
+                    )
+                    || !$this->maPravoObjednatUbytovani($den)
+                )
+        );
+    }
+
     private function dejNazevJakoRozsahDnu(int $indexDneKZacatkuGc): string
     {
         $poradiDneVTydnu = DateTimeGamecon::poradiDneVTydnuPodleIndexuOdZacatkuGameconu($indexDneKZacatkuGc);
@@ -458,8 +497,10 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         return DateTimeCz::poradiDneVTydnuNaPrelomDnuVeZkratkach($poradiDneVTydnu, true);
     }
 
-    public function zpracuj(bool $vcetneSpolubydliciho = true, bool $hlidatKapacituUbytovani = true): bool
-    {
+    public function zpracuj(
+        bool $vcetneSpolubydliciho = true,
+        bool $hlidatKapacituUbytovani = true,
+    ): bool {
         if (!isset($_POST[$this->pnDny])) {
             return false;
         }
@@ -474,7 +515,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             }
 
             if (!empty($postDny[1])) {
-                $id = $postDny[1];
+                $id     = $postDny[1];
                 $dny[1] = $id;
                 $dny[2] = (string)($id - 1);
                 $dny[3] = (string)($id - 2);
@@ -483,11 +524,9 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             $dny = $_POST[$this->pnDny];
         }
 
-
         foreach ($dny as $den_n) {
             self::ulozObjednaneUbytovaniUcastnika($dny, $this->ubytovany, $hlidatKapacituUbytovani);
         }
-
 
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji
@@ -507,32 +546,36 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     private function maPravoZobrazitUbytovani(int $poradiHernihoDne): bool
     {
         return $poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
-            || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
-            || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
-            || $this->objednatel->jeOrganizator()
-            || ($this->objednatel->jeInfopultak() && $this->kontextZobrazeni === KontextZobrazeni::ADMIN);
+               || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
+               || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
+               || $this->objednatel->jeOrganizator()
+               || ($this->objednatel->jeInfopultak() && $this->kontextZobrazeni === KontextZobrazeni::ADMIN);
     }
 
     private function maPravoObjednatUbytovani(int $poradiHernihoDne): bool
     {
         return $this->maPravoZobrazitUbytovani($poradiHernihoDne)
-            && ($poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
-                || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
-                || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
-                || $this->objednatel->jeOrganizator()
-            );
+               && ($poradiHernihoDne !== DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
+                   || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_NABIZET)
+                   || $this->ubytovany->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)
+                   || $this->objednatel->jeOrganizator()
+               );
     }
 
     /** Vrátí, jestli daná kombinace den a typ je validní. */
-    public function existujeUbytovani($den, $typ)
-    {
+    public function existujeUbytovani(
+        $den,
+        $typ,
+    ) {
         return isset($this->mozneDny[$den][$typ])
-            && $this->mozneDny[$den][$typ]['nabizet'] == true;
+               && $this->mozneDny[$den][$typ]['nabizet'] == true;
     }
 
     /** Vrátí kapacitu */
-    public function kapacita($den, $typ)
-    {
+    public function kapacita(
+        $den,
+        $typ,
+    ) {
         if (!isset($this->mozneDny[$den][$typ])) return 0;
         $ub = $this->mozneDny[$den][$typ];
 
@@ -540,15 +583,27 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     }
 
     /** Vrátí počet obsazených míst pro daný den a typu ubytování */
-    public function obsazenoMist($den, $typ)
-    {
+    public function obsazenoMist(
+        $den,
+        $typ,
+    ) {
         return $this->kapacita($den, $typ) - $this->zbyvaMist($den, $typ);
     }
 
     /** Vrátí, jestli je v daný den a typ ubytování plno */
-    public function plno($den, $typ): bool
-    {
+    public function plno(
+        $den,
+        $typ,
+    ): bool {
         return $this->zbyvaMist($den, $typ) <= 0;
+    }
+
+    private function neprodejne(
+        int|string $den,
+        int|string $typ
+    ): bool
+    {
+        return (int) $this->mozneDny[$den][$typ]['stav'] === StavPredmetu::POZASTAVENY;
     }
 
     /**
@@ -557,10 +612,12 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
      * @param string $typ typ ubytování ve smyslu názvu z DB bez posledního slova
      * @return bool je ubytován?
      */
-    public function ubytovan($den, $typ): bool
-    {
+    public function ubytovan(
+        $den,
+        $typ,
+    ): bool {
         return isset($this->ubytovanPoDnech[$den][$typ])
-            && $this->ubytovanPoDnech[$den][$typ]['kusu_uzivatele'] > 0;
+               && $this->ubytovanPoDnech[$den][$typ]['kusu_uzivatele'] > 0;
     }
 
     public function veKterychDnechJeUbytovan(): array
@@ -583,8 +640,10 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     }
 
     /** Vrátí počet volných míst */
-    public function zbyvaMist($den, $typ): int
-    {
+    public function zbyvaMist(
+        $den,
+        $typ,
+    ): int {
         if (!isset($this->mozneDny[$den][$typ])) {
             return 0;
         }
