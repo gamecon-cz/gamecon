@@ -78,6 +78,22 @@ function datum3(
     return date('j. ', $datumTimestamp) . $mesic[date('n', $datumTimestamp) - 1];
 }
 
+function datum4(string | DateTimeInterface $datum): string {
+    $datumTimestamp = ($datum instanceof DateTimeInterface)
+        ? $datum->getTimestamp()
+        : strtotime($datum);
+
+    $mesic = [
+        'ledna', 'února', 'března', 'dubna', 'května', 'června',
+        'července', 'srpna', 'září', 'října', 'listopadu', 'prosince',
+    ];
+
+    return date('j. ', $datumTimestamp)
+        . $mesic[date('n', $datumTimestamp) - 1]
+        . date(' H:i', $datumTimestamp);
+}
+
+
 /** Vrátí markdown textu daného hashe (cacheované, text musí být v DB) */
 function dbMarkdown(
     $hash,
