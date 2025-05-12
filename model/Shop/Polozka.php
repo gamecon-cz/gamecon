@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Gamecon\Shop;
 
@@ -18,6 +19,7 @@ class Polozka
     private ?DateTimeImmutableStrict $nabizetDo;
     private float                    $zbyvaKusu;
     private int                      $idTypu;
+    private int                      $stav;
 
     public function __construct(array $hodnoty)
     {
@@ -36,6 +38,7 @@ class Polozka
             : null;
         $this->zbyvaKusu           = $this->vyrobenoKusu - $this->prodanoKusu;
         $this->idTypu              = (int)$hodnoty['typ'];
+        $this->stav                = (int)$hodnoty['stav'];
     }
 
     public function idPredmetu(): ?int
@@ -93,13 +96,18 @@ class Polozka
         return $this->nabizetDo;
     }
 
+    public function stav(): int
+    {
+        return $this->stav;
+    }
+
     public function doKdyNabizetDleNastaveni(SystemoveNastaveni $systemoveNastaveni): ?DateTimeImmutableStrict
     {
         return match ($this->idTypu()) {
-            TypPredmetu::JIDLO => $systemoveNastaveni->prodejJidlaDo(),
-            TypPredmetu::TRICKO => $systemoveNastaveni->prodejTricekDo(),
+            TypPredmetu::JIDLO   => $systemoveNastaveni->prodejJidlaDo(),
+            TypPredmetu::TRICKO  => $systemoveNastaveni->prodejTricekDo(),
             TypPredmetu::PREDMET => $systemoveNastaveni->prodejPredmetuBezTricekDo(),
-            default => null,
+            default              => null,
         };
     }
 

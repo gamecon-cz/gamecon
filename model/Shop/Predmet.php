@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Gamecon\Shop;
 
@@ -38,8 +39,10 @@ class Predmet extends \DbObject
         return self::letosniPredmet('Kostka', $rocnik);
     }
 
-    private static function letosniPredmet(string $castNazvu, int $rocnik): ?static
-    {
+    private static function letosniPredmet(
+        string $castNazvu,
+        int    $rocnik,
+    ): ?static {
         if (!array_key_exists($castNazvu, self::$letosniPredmety)) {
             $typPredmet       = TypPredmetu::PREDMET;
             $castNazvuSql     = dbQRaw($castNazvu);
@@ -58,6 +61,7 @@ SQL,
                 ? static::zId((int)$letosniPredmetId, true)
                 : null;
         }
+
         return $letosniPredmet;
     }
 
@@ -71,6 +75,7 @@ SQL,
         if ($kusuVyrobeno !== null) {
             $this->r['kusu_vyrobeno'] = $kusuVyrobeno;
         }
+
         return (int)$this->r['kusu_vyrobeno'];
     }
 
@@ -82,5 +87,13 @@ SQL,
     public function cenaAktualni(): float
     {
         return (float)$this->r[Sql::CENA_AKTUALNI];
+    }
+
+    public function stav(int $stav = null): int
+    {
+        if ($stav !== null) {
+            $this->r[Sql::STAV] = $stav;
+        }
+        return (int)$this->r[Sql::STAV];
     }
 }

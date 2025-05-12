@@ -113,7 +113,7 @@ SQL,
         ?array $idckaPolozek = null,
     ): array {
         $polozkyData = dbFetchAll(<<<SQL
-SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,nabizet_do
+SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,nabizet_do, stav
 FROM (
     SELECT predmety.id_predmetu,
            TRIM(predmety.nazev) AS nazev,
@@ -125,7 +125,8 @@ FROM (
            predmety.kusu_vyrobeno,
            predmety.typ,
            predmety.nabizet_do,
-           predmety.ubytovani_den
+           predmety.ubytovani_den,
+           predmety.stav
     FROM shop_predmety AS predmety
     LEFT JOIN shop_nakupy AS nakupy
         ON predmety.id_predmetu = nakupy.id_predmetu

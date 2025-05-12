@@ -4,6 +4,7 @@ use Gamecon\Shop\Shop;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Shop\StavPredmetu;
 
 /**
  * nazev: Shop
@@ -25,6 +26,7 @@ if (($polozkyKUlozeni = post('polozky')) !== null) {
             chyba("Nenzámé ID předmětu $idPredmetu");
         }
         $predmet->kusuVyrobeno((int)$polozkaKUlozeni['kusu_celkem']);
+        $predmet->stav((int)$polozkaKUlozeni['stav']);
         $zmenenoZaznamu += $predmet->uloz();
     }
     oznameni("Uloženo $zmenenoZaznamu změn", false);
@@ -54,17 +56,32 @@ foreach (Shop::letosniPolozky() as $polozka) {
         'naposledyKoupenoKdyRelativni',
         $polozka->naposledyKoupenoKdy()
             ? $polozka->naposledyKoupenoKdy()->relativni()
-            : ''
+            : '',
     );
     $template->assign(
         'naposledyKoupenoKdyPresne',
         $polozka->naposledyKoupenoKdy()
             ? $polozka->naposledyKoupenoKdy()->formatCasStandard()
-            : ''
+            : '',
     );
     $template->assign('letosProdanoKusu', $polozka->prodanoKusu());
     $template->assign('zbyvaKusu', $polozka->zbyvaKusu());
     $template->assign('kusuCelkem', $polozka->vyrobenoKusu());
+    $template->assign('stav', $polozka->stav());
+    foreach ((new ReflectionClass(StavPredmetu::class))->getConstants() as $constantName => $constantValue) {
+        $template->assign('stavCislo', $constantValue);
+        $template->assign('stavNazev', match ($constantValue){
+            StavPredmetu::MIMO => 'Vyřazený',
+            StavPredmetu::VEREJNY => 'Veřejný',
+            StavPredmetu::POZASTAVENY => 'Neprodejný',
+            StavPredmetu::PODPULTOVY => 'Skrytý',
+            default => $constantName,
+        });
+        $template->assign('selected', $polozka->stav() === $constantValue
+            ? 'selected'
+            : '');
+        $template->parse('shop.typ.polozka.stav');
+    }
     $template->parse('shop.typ.polozka');
 }
 $template->parse('shop.typ');

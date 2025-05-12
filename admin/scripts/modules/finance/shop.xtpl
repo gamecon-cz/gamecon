@@ -18,6 +18,7 @@
         <th>Letos prodáno kusů</th>
         <th>Zbývá kusů</th>
         <th>Kusů celkem</th>
+        <th>Stav</th>
       </tr>
       <!-- begin:typ -->
       <!-- begin:typPolozky -->
@@ -26,7 +27,8 @@
       </tr>
       <tr>
         <th colspan="100%">
-          <h3 id="{htmlIdTypu}" style="margin: 0.5em">{typPolozky} <a class="kotva" href="{kotvaNaTypPolozky}">#</a></h3>
+          <h3 id="{htmlIdTypu}" style="margin: 0.5em">{typPolozky} <a class="kotva" href="{kotvaNaTypPolozky}">#</a>
+          </h3>
         </th>
       </tr>
       <!-- end:typPolozky -->
@@ -48,6 +50,14 @@
           <input name="polozky[{idPredmetu}][kusu_celkem]" type="number" step="1" min="0" value="{kusuCelkem}"
                  style="width: 5em">
           <input name="polozky_original[{idPredmetu}][kusu_celkem]" type="hidden" value="{kusuCelkem}">
+        </td>
+        <td>
+          <select name="polozky[{idPredmetu}][stav]" type="number">
+            <!-- begin:stav -->
+            <option value="{stavCislo}" {selected}>{stavNazev}</option>
+            <!-- end:stav -->
+          </select>
+          <input name="polozky_original[{idPredmetu}][stav]" type="hidden" value="{stav}">
         </td>
       </tr>
       <!-- end:polozka -->
