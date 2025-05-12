@@ -94,6 +94,25 @@ SQL,
         if ($stav !== null) {
             $this->r[Sql::STAV] = $stav;
         }
+
         return (int)$this->r[Sql::STAV];
+    }
+
+    public function modelRok(): ?int
+    {
+        if ($this->r[Sql::MODEL_ROK] === null) {
+            return null;
+        }
+
+        return (int)$this->r[Sql::MODEL_ROK];
+    }
+
+    public function typ(): ?int
+    {
+        if ($this->r[Sql::TYP] === null) {
+            return null;
+        }
+
+        return (int)$this->r[Sql::TYP];
     }
 }

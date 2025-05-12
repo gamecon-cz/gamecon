@@ -515,18 +515,25 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             }
 
             if (!empty($postDny[1])) {
-                $id     = $postDny[1];
-                $dny[1] = $id;
-                $dny[2] = (string)($id - 1);
-                $dny[3] = (string)($id - 2);
+                $id         = $postDny[1];
+                $jedenZeDnu = Predmet::zId($id);
+                $druhUbytka = preg_split('~\s+~', $jedenZeDnu->nazev())[0];
+                $vsechnyDny = dbOneArray(<<<SQL
+                    SELECT id_predmetu FROM shop_predmety WHERE model_rok = $0 AND typ = $1 AND nazev LIKE $2
+                    AND ubytovani_den IN (1, 2, 3)
+                SQL,
+                    [$jedenZeDnu->modelRok(), $jedenZeDnu->typ(), $druhUbytka . '%'],
+                );
+
+                $dny[1]     = (string) $vsechnyDny[0];
+                $dny[2]     = (string) $vsechnyDny[1];
+                $dny[3]     = (string) $vsechnyDny[2];
             }
         } else {
             $dny = $_POST[$this->pnDny];
         }
 
-        foreach ($dny as $den_n) {
-            self::ulozObjednaneUbytovaniUcastnika($dny, $this->ubytovany, $hlidatKapacituUbytovani);
-        }
+        self::ulozObjednaneUbytovaniUcastnika($dny, $this->ubytovany, $hlidatKapacituUbytovani);
 
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji
@@ -599,11 +606,10 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
     }
 
     private function neprodejne(
-        int|string $den,
-        int|string $typ
-    ): bool
-    {
-        return (int) $this->mozneDny[$den][$typ]['stav'] === StavPredmetu::POZASTAVENY;
+        int | string $den,
+        int | string $typ,
+    ): bool {
+        return (int)$this->mozneDny[$den][$typ]['stav'] === StavPredmetu::POZASTAVENY;
     }
 
     /**
