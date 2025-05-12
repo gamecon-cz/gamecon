@@ -437,7 +437,11 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                 $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
                 $t->assign([
                     'idPredmetu' => isset($this->mozneDny[$den][$typ])
-                        ? $this->mozneDny[$den][$typ]['id_predmetu']
+                        ? ($muzeObjednatJednuNoc ?
+                            $this->mozneDny[$den][$typ]['id_predmetu']
+: implode(",", $this->mozneDny -> filter (vybrat spravne dny) -> [$typ]['id_predmetu'] -> vybrat id)
+                        )
+
                         : null,
                     'checked'    => $checked,
                     'disabled'   => $this->totoUbytovaniVyrazeno(
@@ -516,9 +520,10 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
 
             if (!empty($postDny[1])) {
                 $id     = $postDny[1];
-                $dny[1] = $id;
-                $dny[2] = (string)($id - 1);
-                $dny[3] = (string)($id - 2);
+                $ids = explode(",", $id);
+                $dny[1] = $ids[0];
+                $dny[2] = $ids[1];
+                $dny[3] = $ids[2];
             }
         } else {
             $dny = $_POST[$this->pnDny];
