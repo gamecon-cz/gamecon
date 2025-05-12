@@ -29,5 +29,6 @@ define('BABEL_BINARKA', null);
 @define('SUPERADMINI', [
     4032 /* Jaroslav "Kostřivec" Týc */,
     1112 /* Lenka "Cemi" Zavadilová */,
-    4275 /* Roman "Sciator" Wehmhoner */
+    4275 /* Roman "Sciator" Wehmhoner */,
+    5475 /* Michal "Gerete" Bezděk*/
 ]);
