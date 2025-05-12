@@ -38,9 +38,8 @@ $uid = $u->id();
 if (!$zaplaceno) {
     $castka                        = -$u->finance()->stav();
     $nejblizsiHromadneOdhlasovaniKdy = $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
-    $nejpozdejiZaplatitDo            = $systemoveNastaveni->nejpozdejiZaplatitDo2025();
-    //$limit                           = datum3($nejpozdejiZaplatitDo);
-    $limit                           = datum4($nejpozdejiZaplatitDo);
+    $nejpozdejiZaplatitDo            = $systemoveNastaveni->tretiVlnaKdy();
+    $limit                           = datum4($nejpozdejiZaplatitDo)    ;
     $castkaCZ = $castka . '&thinsp;Kč';
     $castkaEUR = round($castka / KURZ_EURO, 2) . '&thinsp;€';
 }
@@ -123,7 +122,7 @@ if (!$zaplaceno) {
                 GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong> (tento den musejí být peníze na účtu GameConu). Platíš celkem
                 <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
             </p>
-
+            
             <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani()) && !$u->maPravoNerusitObjednavky()): ?>
                 <ul class="seznam-bez-okraje">
                     <li class="poznamka">Při pozdější platbě tě systém dne
