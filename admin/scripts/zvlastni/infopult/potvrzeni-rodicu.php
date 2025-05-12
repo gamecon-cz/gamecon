@@ -23,23 +23,27 @@ if ($uPotvrzeni->potvrzeniZakonnehoZastupceSouborOd() === null) {
     return;
 }
 
-if (!is_readable($uPotvrzeni->cestaKSouboruSPotvrzenimRodicu())) {
-    header('HTTP/1.1 404 Not Found');
-    echo 'Not Found 🔎';
-    return;
+$cestaKSouboruSPotvrzenimRodicu = $uPotvrzeni->cestaKSouboruSPotvrzenimRodicu();
+if (!is_readable($cestaKSouboruSPotvrzenimRodicu)) {
+    $cestaKSouboruSPotvrzenimRodicu = $uPotvrzeni->cestaKSouboruSPotvrzenimRodicu('pdf');
+    if (!is_readable($cestaKSouboruSPotvrzenimRodicu)) {
+        header('HTTP/1.1 404 Not Found');
+        echo 'Not Found 🔎';
+        return;
+    }
 }
 
 header('HTTP/1.1 200 OK');
-$changeTime = filectime($uPotvrzeni->cestaKSouboruSPotvrzenimRodicu());
+$changeTime = filectime($cestaKSouboruSPotvrzenimRodicu);
 if ($changeTime) {
     header(
         'Last-Modified: ' .
         (new DateTimeImmutable())->setTimestamp($changeTime)->format(DateTimeInterface::RFC7231)
     );
 }
-header('ETag: ' . md5_file($uPotvrzeni->cestaKSouboruSPotvrzenimRodicu()));
-header('Content-Length: ' . filesize($uPotvrzeni->cestaKSouboruSPotvrzenimRodicu()));
-header('Content-Type: ' . mime_content_type($uPotvrzeni->cestaKSouboruSPotvrzenimRodicu()));
+header('ETag: ' . md5_file($cestaKSouboruSPotvrzenimRodicu));
+header('Content-Length: ' . filesize($cestaKSouboruSPotvrzenimRodicu));
+header('Content-Type: ' . mime_content_type($cestaKSouboruSPotvrzenimRodicu));
 
-readfile($uPotvrzeni->cestaKSouboruSPotvrzenimRodicu());
+readfile($cestaKSouboruSPotvrzenimRodicu);
 exit();

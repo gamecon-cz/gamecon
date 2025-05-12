@@ -25,7 +25,7 @@
 
             <form method="post" enctype="multipart/form-data">
                 <input type="file" class="formular_input" name="potvrzeniRodicu" id="potvrzeniRodicu"
-                style="display: inline; width: auto; border: none; margin: 0; cursor: pointer" accept="image/*">
+                style="display: inline; width: auto; border: none; margin: 0; cursor: pointer" accept="image/*,.pdf">
                 <input type="submit" name="pridatPotvrzeniRodicu" id="pridatPotvrzeniRodicu" value="Odeslat">
             </form>
             <!-- begin:nahrano -->
