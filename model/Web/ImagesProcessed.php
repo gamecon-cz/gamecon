@@ -77,8 +77,19 @@ readonly class ImagesProcessed
         $template->parse($templateBlock);
     }
 
+    public function seznamObrazku(): array
+    {
+        $seznam = [];
+        foreach ($this->serazenaLoga() as ['src' => $src, 'url' => $url, 'name' => $name]) {
+            $seznam[$name] = [
+                'src' => $src,
+                'url' => $url,
+            ];
+        }
+        return $seznam;
+    }
     /**
-     * @return iterable{src: string, url: string}
+     * @return iterable{src: string, url: string, name: string}
      */
     public function serazenaLoga($width = 120, $height = 60): iterable
     {
@@ -99,6 +110,7 @@ readonly class ImagesProcessed
             $urlPartnera = preg_replace('~^\d+_~', '', $info['filename']);
             yield [
                 'src' => Nahled::zeSouboru($obrazek)->pasuj($width, $height),
+                'name' => $info['filename'],
                 'url' => 'https://' . $urlPartnera,
             ];
         }
