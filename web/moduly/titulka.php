@@ -19,14 +19,13 @@ $this->info()
 // linie
 $offsety = [120, 320, 280];
 $typy    = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
+$obrazky = ImagesProcessed::linieTitulka()->seznamObrazku();
 foreach ($typy as $i => $typ) {
-    $processed_img = ImagesProcessed::linieTitulka('soubory/systemove/linie/' . $typ->id() . '.jpg');
-    $processed_icon = ImagesProcessed::linieTitulka('soubory/systemove/linie-ikony/' . $typ->id() . '.png');
     $t->assign([
         'cislo'     => sprintf('%02d', $i + 1),
         'nazev'     => mb_ucfirst($typ->nazev()),
         'url'       => $typ->url(),
-        'obrazek'   => 'soubory/systemove/linie/' . $typ->id() . '.jpg',
+        'obrazek'   => $obrazky[$typ->id()]['src'] ?? '', // prevent errors, mainly for local testing
         'ikona'     => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
         'aosOffset' => $offsety[$i % 3],
         'popis'     => $typ->popisKratky(),
@@ -38,7 +37,6 @@ foreach ($typy as $i => $typ) {
 ImagesProcessed::kartyTitulka()->vypisDoSablonySorted($t, 'titulka.karty');
 ImagesProcessed::cislaTitulka()->vypisDoSablonySorted($t, 'titulka.cisla');
 ImagesProcessed::fotkyTitulka()->vypisDoSablonySorted($t, 'titulka.fotky', 525, 525);
-// ImagesProcessed::linieTitulka()->vypisDoSablonySorted($t, 'titulka.linie', 525, 525);
 ImagesProcessed::logaSponzoruTitulka()->vypisDoSablony($t, 'titulka.sponzor');
 ImagesProcessed::logaPartneruTitulka()->vypisDoSablony($t, 'titulka.partner');
 

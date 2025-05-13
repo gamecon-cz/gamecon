@@ -25,11 +25,18 @@
         data-aos-delay="250"
         width="560"
         height="315"
-        src="https://www.youtube.com/embed/GNVFqDw12bY?playlist=GNVFqDw12bY&autoplay=1&loop=1&mute=1"
+        src="_blank"
         title="YouTube video player"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <script>
+        function deferVideoLoad() {
+            let iframe = document.querySelector(".video");
+            iframe.src = "https://www.youtube.com/embed/GNVFqDw12bY?playlist=GNVFqDw12bY&autoplay=1&loop=1&mute=1"
+        };
+        window.onload = deferVideoLoad;
+    </script>
     <div class="p p1" data-aos="zoom-out" data-aos-delay="200" data-aos-offset="0">GA</div>
     <div class="p p2" data-aos="zoom-out" data-aos-delay="250" data-aos-offset="0">ME</div>
     <div class="p p3" data-aos="zoom-out" data-aos-delay="550" data-aos-offset="0">C</div>
