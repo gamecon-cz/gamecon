@@ -143,9 +143,10 @@ export const filtrujAktivity = (aktivity: ApiAktivita[], filtr: FiltrAktivit, ma
     const štítkyIdPodleKategorieValues = Object.values(štítkyIdPodleKategorie);
     aktivityFiltrované = aktivityFiltrované
       .filter((aktivita) =>
+        // aktivita splňuje podmínku alespoň jednoho štítku z každé kategorie
         štítkyIdPodleKategorieValues.every(štítkyIdZKategorie =>
           štítkyIdZKategorie.some(štítekIdZKategorie =>
-            aktivita.stitkyId || []
+            (aktivita.stitkyId ?? [])
               .some(štítekId => štítekId === štítekIdZKategorie))
         )
       );
