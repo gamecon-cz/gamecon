@@ -14,7 +14,6 @@ import {
   useUrlVýběr,
 } from "../../../../store/program/selektory";
 import { ProgramTabulkaBuňka } from "./ProgramTabulkaBuňka";
-import { ProgramTabulkaBuňkaKompaktní } from "./ProgramTabulkaBuňkaKompaktní";
 import { useProgramStore } from "../../../../store/program";
 import { useEffect } from "react";
 import { nastavZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
@@ -49,8 +48,6 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const aktivityStatus = useAktivityStatus();
 
   const kompaktní = useProgramStore(s => s.všeobecné.kompaktní);
-
-  const BuňkaKomponenta = kompaktní ? ProgramTabulkaBuňkaKompaktní : ProgramTabulkaBuňka;
 
   const seskupPodle =
     urlStavVýběr.typ === "můj"
@@ -123,9 +120,10 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                     return (
                       <>
                         {odsazení}
-                        <BuňkaKomponenta
+                        <ProgramTabulkaBuňka
                           aktivitaId={aktivita.id}
                           zobrazLinii={seskupPodle === SeskupováníAktivit.den}
+                          kompaktní={kompaktní}
                         />
                       </>
                     );
