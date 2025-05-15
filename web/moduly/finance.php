@@ -27,7 +27,7 @@ HTML;
 }
 
 $veci      = $u->finance()->prehledHtml();
-$slevyA    = array_flat('<li>', $u->finance()->slevyAktivity(), '</li>');
+$slevyA    = array_flat('<li>', $u->finance()->slevyNaAktivity(), '</li>');
 $slevyV    = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
 $zaplaceno = $u->finance()->stav() >= 0;
 $limit     = false;
@@ -122,7 +122,7 @@ if (!$zaplaceno) {
                 GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong> (tento den musejí být peníze na účtu GameConu). Platíš celkem
                 <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
             </p>
-            
+
             <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani()) && !$u->maPravoNerusitObjednavky()): ?>
                 <ul class="seznam-bez-okraje">
                     <li class="poznamka">Při pozdější platbě tě systém dne

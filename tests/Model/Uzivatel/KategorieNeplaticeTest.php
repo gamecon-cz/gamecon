@@ -445,6 +445,7 @@ class KategorieNeplaticeTest extends TestCase
 
             public function obnovUdaje()
             {
+                return $this;
             }
 
             public function nastavSumuPlateb(float $sumaPlateb)
@@ -452,7 +453,7 @@ class KategorieNeplaticeTest extends TestCase
                 $this->sumaPlateb = $sumaPlateb;
             }
 
-            public function sumaPlateb(int $rok = ROCNIK, bool $prepocti = false): float
+            public function sumaPlateb(?int $rocnik = ROCNIK, bool $prepocti = false): float
             {
                 return $this->sumaPlateb;
             }

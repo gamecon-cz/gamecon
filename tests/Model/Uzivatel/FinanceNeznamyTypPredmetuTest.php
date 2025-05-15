@@ -35,12 +35,15 @@ SQL,
     /**
      * @test
      */
-    public function Neznamy_typ_predmetu_hodi_excepton() {
+    public function Neznamy_typ_predmetu_hodi_excepton()
+    {
         $this->expectException(NeznamyTypPredmetu::class);
-        new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0, SystemoveNastaveni::vytvorZGlobals());
+        $finance = new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0, SystemoveNastaveni::vytvorZGlobals());
+        $finance->cenaPredmetu();
     }
 
-    private function dejUzivateleSNeznamymTypemPredmetu(): \Uzivatel {
+    private function dejUzivateleSNeznamymTypemPredmetu(): \Uzivatel
+    {
         return \Uzivatel::zIdUrcite(334);
     }
 }
