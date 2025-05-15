@@ -72,6 +72,10 @@ foreach ($aktivity as $aktivita) {
     $t->assign('a', $aktivita);
     foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
         $t->assign('u', $prihlasenyUzivatel);
+        $t->assign('idUzivatele', $prihlasenyUzivatel->id());
+        $t->assign('jmenoNick', $prihlasenyUzivatel->jmenoNick());
+        $t->assign('telefon', $prihlasenyUzivatel->telefon());
+        $t->assign('stavFinanci', $prihlasenyUzivatel->finance()->formatovanyStav());
         $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->gcPritomen() ? 'pritomen' : 'nepritomen'));
         $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->finance()->stav() < 0 ? 'dluh' : 'prebytek'));
         if ($aktivita->dorazilJakoCokoliv($prihlasenyUzivatel)) {
