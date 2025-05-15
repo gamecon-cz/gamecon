@@ -102,11 +102,11 @@ SQL,
     public function Cena_nakupu_odpovida() {
         $cenaPredmetuBezTricek = 333.11 + 333.12;
         $cenaTricek            = 333.17 + 333.18;
-        $cenavsechPredmetu     = $cenaPredmetuBezTricek + $cenaTricek;
+        $cenaVsechPredmetu     = $cenaPredmetuBezTricek + $cenaTricek;
         define('MODRE_TRICKO_ZDARMA_OD', 0);
         $finance = new Finance($this->dejUzivateleSNakupy(), 0, SystemoveNastaveni::vytvorZGlobals());
         self::assertSame(
-            round($cenavsechPredmetu, 2),
+            round($cenaVsechPredmetu, 2),
             round($finance->cenaPredmetu(), 2)
         );
         self::assertSame(
@@ -114,7 +114,7 @@ SQL,
             round($finance->cenaStravy(), 2)
         );
         self::assertSame(
-            round($cenavsechPredmetu + 333.15 + 333.16, 2),
+            round($cenaVsechPredmetu + 333.15 + 333.16, 2),
             round($finance->cenaPredmetyAStrava(), 2)
         );
         self::assertSame(
