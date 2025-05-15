@@ -27,7 +27,7 @@ HTML;
 }
 
 $veci      = $u->finance()->prehledHtml();
-$slevyA    = array_flat('<li>', $u->finance()->slevyAktivity(), '</li>');
+$slevyA    = array_flat('<li>', $u->finance()->slevyNaAktivity(), '</li>');
 $slevyV    = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
 $zaplaceno = $u->finance()->stav() >= 0;
 $limit     = false;
