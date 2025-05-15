@@ -2101,10 +2101,7 @@ SQL
             return (int)$this->a[Sql::TEAM_KAPACITA];
         }
 
-        return $this->typ()->id() === TypAktivity::DRD
-               && mb_stripos($this->nazev(), 'Semifinále')
-            ? count($this->organizatori())
-            : null;
+        return null;
     }
 
     public function zkontrolujZdaSeMuzeOdhlasit(
