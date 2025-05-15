@@ -147,21 +147,21 @@ foreach ($aktivity as $aktivita) {
         $tpl->parse('aktivity.aktivita.hint');
     }
 
-    if ($r['patri_pod']) {
+    if ($r[Sql::PATRI_POD]) {
         $tpl->parse('aktivity.aktivita.symbolInstance');
     }
     if ($r[Sql::PROBEHLA_KOREKCE]) {
         $tpl->parse('aktivity.aktivita.symbolKorekce');
     }
-    if ($r['stav'] == StavAktivity::NOVA) {
+    if ($r[Sql::STAV] == StavAktivity::NOVA) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
-    } elseif ($r['stav'] == StavAktivity::PUBLIKOVANA) {
+    } elseif ($r[Sql::STAV] == StavAktivity::PUBLIKOVANA) {
         $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
         $tpl->parse('aktivity.aktivita.tlacitka.odpublikovat');
-    } elseif ($r['stav'] == StavAktivity::PRIPRAVENA) {
+    } elseif ($r[Sql::STAV] == StavAktivity::PRIPRAVENA) {
         $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');
         $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
-    } elseif ($r['stav'] == StavAktivity::AKTIVOVANA && $u->maRoliSefProgramu()) {
+    } elseif ($r[Sql::STAV] == StavAktivity::AKTIVOVANA && $u->maRoliSefProgramu()) {
         if ($aktivita->pocetPrihlasenych() > 0) {
             $tpl->assign('pocetPrihlasenych', $aktivita->pocetPrihlasenych());
             if ($aktivita->pocetPrihlasenych() === 1) {
