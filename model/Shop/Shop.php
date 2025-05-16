@@ -718,7 +718,7 @@ SQL,
 
     private function lonskyPrumerVstupneho(): int
     {
-        $pomer = $this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::PRUMERNE_LONSKE_VSTUPNE) / 1000;
+        $pomer = $this->systemoveNastaveni->prumerneLonskeVstupne() / 1000;
         /**
          * https://cs.wikipedia.org/wiki/Gama_korekce
          * @see web/soubory/blackarrow/shop/shop-vstupne.js

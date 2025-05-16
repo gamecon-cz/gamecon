@@ -4,6 +4,10 @@ namespace Gamecon\Uzivatel;
 
 use Endroid\QrCode\Writer\Result\ResultInterface;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniStavySqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
@@ -154,70 +158,9 @@ SQL,
     ) {
     }
 
-    private function cenik(): Cenik
-    {
-        if ($this->cenik === null) {
-            $this->cenik = new Cenik(
-                $this->u,
-                $this,
-                $this->systemoveNastaveni,
-            );
-        }
-
-        return $this->cenik;
-    }
-
-    private function prepocti(): void
-    {
-        if (!empty($this->zapocteno[__FUNCTION__])) {
-            return;
-        }
-        $this->zapoctiVedeniAktivit();
-        $this->zapoctiSlevy();
-
-        $this->zapoctiAktivity();
-        $this->zapoctiShop();
-        $this->zapoctiZustatekZPredchozichRocniku();
-
-        $cena =
-            $this->cenaPredmetu()
-            + $this->cenaStravy()
-            + $this->cenaUbytovani()
-            + $this->cenaAktivit();
-
-        $cena = $cena
-                + $this->cenaVstupne()
-                + $this->cenaVstupnePozde();
-
-        $cena = $this->aplikujObecnouSlevu($cena);
-
-        $this->logb('Celková cena', $cena, self::CELKOVA);
-
-        /** bonusy a odměny nechceme v zobrazované Celkové ceně https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
-        $cena = $this->aplikujBonusZaVedeniAktivit($cena);
-        $cena = $this->aplikujBrigadnickouOdmenu($cena);
-
-        $this->stav = self::zaokouhli(
-            -$cena
-            + $this->sumaPlateb()
-            + $this->zustatekZPredchozichRocniku,
-        );
-
-        $this->logb('Aktivity', $this->cenaAktivit(), self::AKTIVITY);
-        $this->logb('Ubytování', $this->cenaUbytovani(), self::UBYTOVANI);
-        $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
-        $this->logb('Připsané platby', $this->sumaPlateb(), self::PLATBA);
-        $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
-
-        $this->zapocteno[__FUNCTION__] = true;
-    }
-
-    public function obnovUdaje()
+    public function obnovUdaje(): void
     {
         $this->obnovVychoziHodnotyObjektu();
-        $this->prepocti();
-
-        return $this;
     }
 
     /** Cena za uživatelovy aktivity */
@@ -260,164 +203,6 @@ SQL,
         }
 
         return $this->cenaUbytovani;
-    }
-
-    private static function cpm_kategorie_razeni(int $kategorie): int
-    {
-        return match ($kategorie) {
-            2       => 4,
-            3       => 2,
-            4       => 3,
-            default => $kategorie,
-        };
-    }
-
-    /** Porovnávání k řazení php 4 style :/ */
-    private function cmp(
-        array $a,
-        array $b,
-    ): int | float {
-        // podle typu
-        if ($a['kategorie'] !== $b['kategorie']) {
-            $podleKategorii = Finance::cpm_kategorie_razeni((int)$a['kategorie'])
-                              - Finance::cpm_kategorie_razeni((int)$b['kategorie']);
-            if ($podleKategorii !== 0) {
-                return $podleKategorii;
-            }
-        }
-        if ($a['poradi_v_kategorii'] !== $b['poradi_v_kategorii']) {
-            $razeniVKategorii = (int)$a['poradi_v_kategorii'] - (int)$b['poradi_v_kategorii'];
-            if ($razeniVKategorii !== 0) {
-                return $razeniVKategorii;
-            }
-        }
-        if ($a['poradi_v_podkategorii'] !== $b['poradi_v_podkategorii']) {
-            $razeniVPodkategorii = (int)$a['poradi_v_podkategorii'] - (int)$b['poradi_v_podkategorii'];
-            if ($razeniVPodkategorii !== 0) {
-                return $razeniVPodkategorii;
-            }
-        }
-        // podle názvu
-        if ($a['nazev'] !== $b['nazev']) {
-            $o = strcmp(strip_tags((string)$a['nazev']), strip_tags((string)$b['nazev']));
-            if ($o) {
-                return $o;
-            }
-        }
-        if ($a['castka'] !== $b['castka']) {
-            // podle ceny (může obsahovat HTML, například '<b>0</b>')
-            $dleCastky = (float)strip_tags($a['castka']) <=> (float)strip_tags($b['castka']);
-            if ($dleCastky !== 0) {
-                return $dleCastky;
-            }
-        }
-
-        return $a['id_polozky'] <=> $b['id_polozky'];
-    }
-
-    private function logPolozkaProBfgr(
-        string $nazev,
-        int    $pocet,
-        float  $castka,
-        int    $typ,
-    ): void {
-        if (!$this->logovat) {
-            return;
-        }
-        $this->polozkyProBfgr   ??= [];
-        $this->polozkyProBfgr[] = [
-            'nazev'  => trim($nazev),
-            'pocet'  => $pocet,
-            'castka' => $castka,
-            'typ'    => $typ,
-        ];
-    }
-
-    private function logStrukturovane(
-        string       $nazev,
-        int          $pocet,
-        ?float       $castka,
-        int | string $typ,
-    ): void {
-        if (!$this->logovat) {
-            return;
-        }
-        $this->strukturovanyPrehled   ??= [];
-        $this->strukturovanyPrehled[] = [
-            'nazev'  => trim($nazev),
-            'pocet'  => $pocet,
-            'castka' => $castka,
-            'typ'    => (int)$typ,
-        ];
-    }
-
-    /**
-     * Zaloguje do seznamu nákupů položku (pokud je logování zapnuto)
-     */
-    private function log(
-        string                      $nazev,
-        null | string | float | int $castka,
-        ?int                        $kategorie,
-        ?int                        $idPolozky,
-        int                         $poradiVKategorii = self::PORADI_POLOZKY,
-        ?int                        $poradiVPodkategorii = 0,
-    ): void {
-        if (!$this->logovat) {
-            return;
-        }
-        $this->prehled ??= [];
-        // přidání
-        $this->prehled[] = $this->formatujProLog(
-            $nazev,
-            $castka,
-            $kategorie,
-            $poradiVKategorii,
-            $poradiVPodkategorii,
-            $idPolozky,
-        );
-    }
-
-    private function formatujProLog(
-        string                      $nazev,
-        null | string | float | int $castka,
-        ?int                        $kategorie,
-        int                         $poradiVKategorii,
-        ?int                        $poradiVPodkategorii,
-        ?int                        $idPolozky,
-    ): array {
-        if (is_numeric($castka)) {
-            $castka = self::zaokouhli($castka);
-        }
-
-        return [
-            'nazev'                 => $nazev,
-            'castka'                => $castka,
-            'kategorie'             => $kategorie,
-            'poradi_v_kategorii'    => $poradiVKategorii,
-            'poradi_v_podkategorii' => $poradiVPodkategorii,
-            'id_polozky'            => $idPolozky,
-        ];
-    }
-
-    /**
-     * Zaloguje zvýrazněný záznam
-     */
-    private function logb(
-        $nazev,
-        $castka,
-        int $kategorie,
-        int $poradiNadpisu = self::PORADI_NADPISU,
-        ?int $idPolozky = null,
-    ): void {
-        $castka = self::zaokouhli($castka);
-
-        $this->log(
-            nazev: "<b>$nazev</b>",
-            castka: "<b>$castka</b>",
-            kategorie: $kategorie,
-            idPolozky: $idPolozky,
-            poradiVKategorii: $poradiNadpisu,
-        );
     }
 
     /**
@@ -564,11 +349,6 @@ SQL,
 
     /**
      * Připíše aktuálnímu uživateli platbu ve výši $castka.
-     * @param float|string $castka
-     * @param \Uzivatel $provedl
-     * @param string|null $poznamka
-     * @param string|int|null $idFioPlatby
-     * @param null|\DateTimeInterface $kdy
      * @throws \DbDuplicateEntryException
      */
     public function pripis(
@@ -577,7 +357,7 @@ SQL,
         ?string              $poznamka = null,
         string | int | null  $idFioPlatby = null,
         ?\DateTimeInterface  $kdy = null,
-    ) {
+    ): void {
         $rok = $kdy?->format('Y') ?? $this->systemoveNastaveni->rocnik();
         dbInsert(
             PlatbySqlStruktura::PLATBY_TABULKA,
@@ -597,9 +377,6 @@ SQL,
 
     /**
      * Připíše aktuálnímu uživateli $u slevu ve výši $sleva
-     * @param float $sleva
-     * @param string|null $poznamka
-     * @param \Uzivatel $provedl
      */
     public function pripisSlevu(
         string | float | int $sleva,
@@ -825,7 +602,9 @@ SQL,
     private function zapoctiAktivity(): void
     {
         if (!empty($this->zapocteno[__FUNCTION__])) {
-            return;
+            throw new \RuntimeException(
+                sprintf('Započítání %s již proběhlo.', __FUNCTION__),
+            );
         }
         $this->cenaAktivit          = 0.0;
         $this->brigadnickaOdmena    = 0.0;
@@ -840,7 +619,7 @@ SQL,
         $prihlasenAleNedorazil = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
         $pozdeZrusil           = StavPrihlaseni::POZDE_ZRUSIL;
 
-        $o = dbQuery(<<<SQL
+        $sql = <<<SQL
 SELECT
     aktivita.nazev_akce AS nazev,
     (
@@ -861,11 +640,20 @@ JOIN akce_seznam AS aktivita
 JOIN akce_prihlaseni_stavy AS stav_prihlaseni
     ON prihlaseni.id_stavu_prihlaseni = stav_prihlaseni.id_stavu_prihlaseni
 WHERE rok = $rok
-SQL,
+SQL;
+
+        $result = $this->systemoveNastaveni->cachedDb()->dbFetchAll(
+            [
+                AktivitaSqlStruktura::AKCE_SEZNAM_TABULKA,
+                AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
+                AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA,
+                AkcePrihlaseniStavySqlStruktura::AKCE_PRIHLASENI_STAVY_TABULKA,
+            ],
+            $sql,
         );
 
         $a = $this->u->koncovkaDlePohlavi();
-        while ($r = mysqli_fetch_assoc($o)) {
+        foreach ($result as $r) {
             if ($r['typ'] == TypAktivity::TECHNICKA) {
                 if ($this->u->maPravoNaBonusZaVedeniAktivit()) {
                     $this->bonusZaVedeniAktivit += (float)$r['cena'];
@@ -952,7 +740,9 @@ SQL,
     private function zapoctiShop(): void
     {
         if (!empty($this->zapocteno[__FUNCTION__])) {
-            return;
+            throw new \RuntimeException(
+                sprintf('Započítání %s již proběhlo.', __FUNCTION__),
+            );
         }
         $this->cenaUbytovani                  = 0.0;
         $this->cenaVstupne                    = 0.0;
@@ -1066,7 +856,9 @@ SQL,
     private function zapoctiSlevy(): void
     {
         if (!empty($this->zapocteno[__FUNCTION__])) {
-            return;
+            throw new \RuntimeException(
+                sprintf('Započítání %s již proběhlo.', __FUNCTION__),
+            );
         }
         $this->slevaObecna          = 0.0;
         $this->bonusZaVedeniAktivit ??= 0.0;
@@ -1098,7 +890,9 @@ SQL,
     private function zapoctiVedeniAktivit(): void
     {
         if (!empty($this->zapocteno[__FUNCTION__])) {
-            return;
+            throw new \RuntimeException(
+                sprintf('Započítání %s již proběhlo.', __FUNCTION__),
+            );
         }
         $this->bonusZaVedeniAktivit ??= 0.0;
         if (!$this->u->maPravoNaPoradaniAktivit()) {
@@ -1122,7 +916,9 @@ SQL,
     private function zapoctiZustatekZPredchozichRocniku(): void
     {
         if (!empty($this->zapocteno[__FUNCTION__])) {
-            return;
+            throw new \RuntimeException(
+                sprintf('Započítání %s již proběhlo.', __FUNCTION__),
+            );
         }
         $this->logb(
             'Zůstatek z minulých let',
@@ -1234,4 +1030,223 @@ SQL,
 
         return $this->sumaStorna;
     }
+
+    private function cenik(): Cenik
+    {
+        if ($this->cenik === null) {
+            $this->cenik = new Cenik(
+                $this->u,
+                $this,
+                $this->systemoveNastaveni,
+            );
+        }
+
+        return $this->cenik;
+    }
+
+    private function prepocti(): void
+    {
+        if (!empty($this->zapocteno[__FUNCTION__])) {
+            throw new \RuntimeException(
+                sprintf('Započítání %s již proběhlo.', __FUNCTION__),
+            );
+        }
+        $this->zapoctiVedeniAktivit();
+        $this->zapoctiSlevy();
+
+        $this->zapoctiAktivity();
+        $this->zapoctiShop();
+        $this->zapoctiZustatekZPredchozichRocniku();
+
+        $cena =
+            $this->cenaPredmetu()
+            + $this->cenaStravy()
+            + $this->cenaUbytovani()
+            + $this->cenaAktivit();
+
+        $cena = $cena
+                + $this->cenaVstupne()
+                + $this->cenaVstupnePozde();
+
+        $cena = $this->aplikujObecnouSlevu($cena);
+
+        $this->logb('Celková cena', $cena, self::CELKOVA);
+
+        /** bonusy a odměny nechceme v zobrazované Celkové ceně https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
+        $cena = $this->aplikujBonusZaVedeniAktivit($cena);
+        $cena = $this->aplikujBrigadnickouOdmenu($cena);
+
+        $this->stav = self::zaokouhli(
+            -$cena
+            + $this->sumaPlateb()
+            + $this->zustatekZPredchozichRocniku,
+        );
+
+        $this->logb('Aktivity', $this->cenaAktivit(), self::AKTIVITY);
+        $this->logb('Ubytování', $this->cenaUbytovani(), self::UBYTOVANI);
+        $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
+        $this->logb('Připsané platby', $this->sumaPlateb(), self::PLATBA);
+        $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
+
+        $this->zapocteno[__FUNCTION__] = true;
+    }
+
+    private static function cpm_kategorie_razeni(int $kategorie): int
+    {
+        return match ($kategorie) {
+            2       => 4,
+            3       => 2,
+            4       => 3,
+            default => $kategorie,
+        };
+    }
+
+    /** Porovnávání k řazení php 4 style :/ */
+    private function cmp(
+        array $a,
+        array $b,
+    ): int | float {
+        // podle typu
+        if ($a['kategorie'] !== $b['kategorie']) {
+            $podleKategorii = Finance::cpm_kategorie_razeni((int)$a['kategorie'])
+                              - Finance::cpm_kategorie_razeni((int)$b['kategorie']);
+            if ($podleKategorii !== 0) {
+                return $podleKategorii;
+            }
+        }
+        if ($a['poradi_v_kategorii'] !== $b['poradi_v_kategorii']) {
+            $razeniVKategorii = (int)$a['poradi_v_kategorii'] - (int)$b['poradi_v_kategorii'];
+            if ($razeniVKategorii !== 0) {
+                return $razeniVKategorii;
+            }
+        }
+        if ($a['poradi_v_podkategorii'] !== $b['poradi_v_podkategorii']) {
+            $razeniVPodkategorii = (int)$a['poradi_v_podkategorii'] - (int)$b['poradi_v_podkategorii'];
+            if ($razeniVPodkategorii !== 0) {
+                return $razeniVPodkategorii;
+            }
+        }
+        // podle názvu
+        if ($a['nazev'] !== $b['nazev']) {
+            $o = strcmp(strip_tags((string)$a['nazev']), strip_tags((string)$b['nazev']));
+            if ($o) {
+                return $o;
+            }
+        }
+        if ($a['castka'] !== $b['castka']) {
+            // podle ceny (může obsahovat HTML, například '<b>0</b>')
+            $dleCastky = (float)strip_tags($a['castka']) <=> (float)strip_tags($b['castka']);
+            if ($dleCastky !== 0) {
+                return $dleCastky;
+            }
+        }
+
+        return $a['id_polozky'] <=> $b['id_polozky'];
+    }
+
+    private function logPolozkaProBfgr(
+        string $nazev,
+        int    $pocet,
+        float  $castka,
+        int    $typ,
+    ): void {
+        if (!$this->logovat) {
+            return;
+        }
+        $this->polozkyProBfgr   ??= [];
+        $this->polozkyProBfgr[] = [
+            'nazev'  => trim($nazev),
+            'pocet'  => $pocet,
+            'castka' => $castka,
+            'typ'    => $typ,
+        ];
+    }
+
+    private function logStrukturovane(
+        string       $nazev,
+        int          $pocet,
+        ?float       $castka,
+        int | string $typ,
+    ): void {
+        if (!$this->logovat) {
+            return;
+        }
+        $this->strukturovanyPrehled   ??= [];
+        $this->strukturovanyPrehled[] = [
+            'nazev'  => trim($nazev),
+            'pocet'  => $pocet,
+            'castka' => $castka,
+            'typ'    => (int)$typ,
+        ];
+    }
+
+    /**
+     * Zaloguje do seznamu nákupů položku (pokud je logování zapnuto)
+     */
+    private function log(
+        string                      $nazev,
+        null | string | float | int $castka,
+        ?int                        $kategorie,
+        ?int                        $idPolozky,
+        int                         $poradiVKategorii = self::PORADI_POLOZKY,
+        ?int                        $poradiVPodkategorii = 0,
+    ): void {
+        if (!$this->logovat) {
+            return;
+        }
+        $this->prehled ??= [];
+        // přidání
+        $this->prehled[] = $this->formatujProLog(
+            $nazev,
+            $castka,
+            $kategorie,
+            $poradiVKategorii,
+            $poradiVPodkategorii,
+            $idPolozky,
+        );
+    }
+
+    private function formatujProLog(
+        string                      $nazev,
+        null | string | float | int $castka,
+        ?int                        $kategorie,
+        int                         $poradiVKategorii,
+        ?int                        $poradiVPodkategorii,
+        ?int                        $idPolozky,
+    ): array {
+        if (is_numeric($castka)) {
+            $castka = self::zaokouhli($castka);
+        }
+
+        return [
+            'nazev'                 => $nazev,
+            'castka'                => $castka,
+            'kategorie'             => $kategorie,
+            'poradi_v_kategorii'    => $poradiVKategorii,
+            'poradi_v_podkategorii' => $poradiVPodkategorii,
+            'id_polozky'            => $idPolozky,
+        ];
+    }
+
+    /**
+     * Zaloguje zvýrazněný záznam
+     */
+    private function logb(
+        $nazev,
+        $castka,
+        int $kategorie,
+        int $poradiNadpisu = self::PORADI_NADPISU,
+        ?int $idPolozky = null,
+    ): void {
+        $castka = self::zaokouhli($castka);
+
+        $this->log(
+            nazev: "<b>$nazev</b>",
+            castka: "<b>$castka</b>",
+            kategorie: $kategorie,
+            idPolozky: $idPolozky,
+            poradiVKategorii: $poradiNadpisu,
+        );
+    }
+
 }

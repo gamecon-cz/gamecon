@@ -459,6 +459,7 @@ class DateTimeGameconTest extends TestCase
             false,
             DatabazoveNastaveni::vytvorZGlobals(),
             PROJECT_ROOT_DIR,
+            SPEC,
         );
     }
 
