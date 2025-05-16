@@ -1,31 +1,28 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavAktivity;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
-class OnlinePrezenceTestovaciAktivity
+readonly class OnlinePrezenceTestovaciAktivity
 {
-
-    public static function vytvor(): self
+    public static function vytvor(SystemoveNastaveni $systemoveNastaveni): self
     {
-        return new static(Aktivita::dejPrazdnou(), StavAktivity::dejPrazdny());
+        return new static(
+            Aktivita::dejPrazdnou(),
+            StavAktivity::dejPrazdny(),
+            $systemoveNastaveni,
+        );
     }
 
-    /**
-     * @var Aktivita
-     */
-    private $obecnaAktivita;
-    /**
-     * @var StavAktivity
-     */
-    private $obecnyStav;
-
-    public function __construct(Aktivita $obecnaAktivita, StavAktivity $obecnyStav)
-    {
-        $this->obecnaAktivita = $obecnaAktivita;
-        $this->obecnyStav     = $obecnyStav;
+    public function __construct(
+        private Aktivita           $obecnaAktivita,
+        private StavAktivity       $obecnyStav,
+        private SystemoveNastaveni $systemoveNastaveni,
+    ) {
     }
 
     /**
@@ -34,8 +31,10 @@ class OnlinePrezenceTestovaciAktivity
      * @return array|Aktivita[]
      * @throws \ReflectionException
      */
-    public function dejTestovaciAktivity(int $rok = ROCNIK, int $limit = 10): array
-    {
+    public function dejTestovaciAktivity(
+        int $rok = ROCNIK,
+        int $limit = 10,
+    ): array {
         $organizovaneAktivityFiltr = [
             'rok'  => $rok,
             'stav' => [
@@ -49,9 +48,10 @@ class OnlinePrezenceTestovaciAktivity
         ];
 
         $organizovaneAktivity = $this->obecnaAktivita::zFiltru(
-            $organizovaneAktivityFiltr,
-            ['zacatek'], // razeni
-            $limit,
+            systemoveNastaveni: $this->systemoveNastaveni,
+            filtr: $organizovaneAktivityFiltr,
+            razeni: ['zacatek'],
+            limit: $limit,
         );
 
         if ($organizovaneAktivity) {
@@ -69,6 +69,7 @@ SQL,
         );
         $organizovaneAktivity = $this->dejTestovaciAktivity($rok, $limit);
         dbRollback();
+
         return $organizovaneAktivity;
     }
 
@@ -81,9 +82,14 @@ SQL,
         array              $aktivity,
         \DateTimeInterface $now,
         int                $rozptylSekund = 10,
-    )
-    {
-        array_walk($aktivity, function (Aktivita $aktivita) use ($now, $rozptylSekund) {
+    ) {
+        array_walk($aktivity, function (
+            Aktivita $aktivita,
+        ) use
+        (
+            $now,
+            $rozptylSekund,
+        ) {
             $sekundyPredZacatkemKdyUzJeEditovatelna = AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM * 60;
             $sekundyKousekPredTimNezJeEditovatelna  = $sekundyPredZacatkemKdyUzJeEditovatelna + random_int(0, $rozptylSekund);
             $this->upravZacatkyAktivitNa([$aktivita], (clone $now)->modify("+ $sekundyKousekPredTimNezJeEditovatelna seconds"));
@@ -98,9 +104,13 @@ SQL,
     public function upravZacatkyAktivitNa(
         array              $aktivityKeZmene,
         \DateTimeInterface $novyZacatekAktivit,
-    )
-    {
-        array_walk($aktivityKeZmene, static function (Aktivita $aktivita) use ($novyZacatekAktivit) {
+    ) {
+        array_walk($aktivityKeZmene, static function (
+            Aktivita $aktivita,
+        ) use
+        (
+            $novyZacatekAktivit,
+        ) {
             $aReflection = (new \ReflectionClass(Aktivita::class))->getProperty('a');
             $aReflection->setAccessible(true);
             $aValue = $aReflection->getValue($aktivita);
@@ -118,9 +128,13 @@ SQL,
     public function upravKonceAktivitNa(
         array              $aktivityKeZmene,
         \DateTimeInterface $novyKonecAktivit,
-    )
-    {
-        array_walk($aktivityKeZmene, static function (Aktivita $aktivita) use ($novyKonecAktivit) {
+    ) {
+        array_walk($aktivityKeZmene, static function (
+            Aktivita $aktivita,
+        ) use
+        (
+            $novyKonecAktivit,
+        ) {
             $aReflection = (new \ReflectionClass(Aktivita::class))->getProperty('a');
             $aReflection->setAccessible(true);
             $aValue = $aReflection->getValue($aktivita);
@@ -130,8 +144,10 @@ SQL,
         });
     }
 
-    public function upravKonceAktivitNaSekundyPoOdemceni(Aktivita $aktivita, int $sekundPoOdemceni)
-    {
+    public function upravKonceAktivitNaSekundyPoOdemceni(
+        Aktivita $aktivita,
+        int      $sekundPoOdemceni,
+    ) {
         $this->upravKonceAktivitNa(
             [$aktivita],
             (clone $aktivita->zacatek())

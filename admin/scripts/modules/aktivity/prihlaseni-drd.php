@@ -19,21 +19,31 @@ use Gamecon\Kanaly\GcMail;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-function textMailuOPostupu(Tym $tym, Aktivita $aktivita, bool $html = false)
-{
+function textMailuOPostupu(
+    Tym      $tym,
+    Aktivita $aktivita,
+    bool     $html = false,
+) {
     $druzina = $tym->nazev();
     $text    = <<<TEXT
 Milá družino {$druzina}. Gratulujeme, postoupili jste do dalšího kola turnaje {$aktivita->nazev()}.
 
 tým MDrD
 TEXT;
+
     return $html
         ? preg_replace("~\n~", '<br>', $text)
         : $text;
 }
 
 $log                          = new LogUdalosti();
-$vsichniUzDostaliMailOPostupu = function (Aktivita $zakladni, Aktivita $pristiKolo) use ($log) {
+$vsichniUzDostaliMailOPostupu = function (
+    Aktivita $zakladni,
+    Aktivita $pristiKolo,
+) use
+(
+    $log,
+) {
     $text = textMailuOPostupu($zakladni->tym(), $pristiKolo);
     foreach ($zakladni->prihlaseni() as $uc) {
         $metadataLogu = ['ucastnik' => $uc->id()];
@@ -41,14 +51,19 @@ $vsichniUzDostaliMailOPostupu = function (Aktivita $zakladni, Aktivita $pristiKo
             return false;
         }
     }
+
     return true;
 };
 
 $predmetMailuOPostupu = 'Gamecon: postoupení družiny v MDrD';
 
 if (post('postoupiliDoSemifinale') || post('postoupiliDoFinale')) {
-    $a          = Aktivita::zId(post('zakladni'));
-    $pristiKolo = Aktivita::zId(post('postoupiliDoSemifinale') ? post('semifinale') : post('finale'));
+    $a          = Aktivita::zId(id: post('zakladni'), systemoveNastaveni: $systemoveNastaveni);
+    $pristiKolo = Aktivita::zId(id: post('postoupiliDoSemifinale')
+        ? post('semifinale')
+        : post('finale'),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
 
     $mail = new GcMail($systemoveNastaveni);
     $mail->predmet($predmetMailuOPostupu);
@@ -77,7 +92,9 @@ if (post('postoupiliDoSemifinale') || post('postoupiliDoFinale')) {
 
 if (post('vypadliSemifinale') || post('vypadliFinale')) {
     $a        = Aktivita::zId(post('zakladni'));
-    $aVypadli = post('vypadliSemifinale') ? Aktivita::zId(post('semifinale')) : Aktivita::zId(post('finale'));
+    $aVypadli = post('vypadliSemifinale')
+        ? Aktivita::zId(post('semifinale'))
+        : Aktivita::zId(post('finale'));
 
     foreach ($a->prihlaseni() as $uc) {
         $aVypadli->odhlas($uc, $u, 'hromadne-vypadli-drd', Aktivita::BEZ_POKUT);
@@ -125,7 +142,10 @@ $t = new XTemplate(__DIR__ . '/prihlaseni-drd.xtpl');
 
 $semifinale = [];
 $finale     = [];
-foreach (Aktivita::zFiltru(['typ' => TypAktivity::DRD, 'rok' => ROCNIK]) as $a) {
+foreach (Aktivita::zFiltru(
+    systemoveNastaveni: $systemoveNastaveni,
+    filtr: ['typ' => TypAktivity::DRD, 'rok' => $systemoveNastaveni->rocnik()],
+) as $a) {
     if ($a->cenaZaklad() == 0) {
         continue;
     }
@@ -156,11 +176,11 @@ foreach (Aktivita::zFiltru(['typ' => TypAktivity::DRD, 'rok' => ROCNIK]) as $a) 
     }
     if ($uc && !$semifinale[0]->prihlasen($uc) && !$semifinale[1]->prihlasen($uc)) {
         $t->parse('drd.druzina.zakladni');
-    } else if ($uc && !$finale[0]->prihlasen($uc)) {
+    } elseif ($uc && !$finale[0]->prihlasen($uc)) {
         $t->parse('drd.druzina.semifinale');
-    } else if ($finale[0]->uzavrena()) {
+    } elseif ($finale[0]->uzavrena()) {
         $t->parse('drd.druzina.finale');
-    } else if (!$a->uzavrena()) {
+    } elseif (!$a->uzavrena()) {
         $t->parse('drd.druzina.neuzavreno');
     } else {
         if ($semifinale[0]->prihlasen($uc)) {

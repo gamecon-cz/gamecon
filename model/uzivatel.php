@@ -16,7 +16,7 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
-use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\RolePodleRocniku;
 
@@ -28,7 +28,7 @@ use Gamecon\Role\RolePodleRocniku;
  */
 class Uzivatel extends DbObject
 {
-    protected static     $tabulka = Sql::UZIVATEL_TABULKA;
+    protected static     $tabulka = Sql::UZIVATELE_HODNOTY_TABULKA;
     protected static     $pk      = Sql::ID_UZIVATELE;
     private static array $objekty = [];
 
@@ -525,8 +525,9 @@ SQL
         $rok ??= $this->systemoveNastaveni->rocnik();
 
         return Aktivita::zFiltru(
-            ['rok' => $rok, 'organizator' => $this->id()],
-            ['zacatek'],
+            systemoveNastaveni: $this->systemoveNastaveni,
+            filtr: ['rok' => $rok, 'organizator' => $this->id()],
+            razeni: ['zacatek'],
         );
     }
 
@@ -1728,12 +1729,12 @@ SQL,
 
         // uložení
         if ($u) {
-            dbUpdate(Sql::UZIVATEL_TABULKA, $dbTab, [Sql::ID_UZIVATELE => $u->id()]);
+            dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [Sql::ID_UZIVATELE => $u->id()]);
             $u->otoc();
             $idUzivatele  = $u->id();
             $urlUzivatele = self::vytvorUrl($u->r);
         } else {
-            dbInsert(Sql::UZIVATEL_TABULKA, $dbTab);
+            dbInsert(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab);
             $idUzivatele              = dbInsertId();
             $dbTab[Sql::ID_UZIVATELE] = $idUzivatele;
             $urlUzivatele             = self::vytvorUrl($dbTab);
@@ -1800,7 +1801,7 @@ SQL,
         ]);
 
         try {
-            dbInsert(Sql::UZIVATEL_TABULKA, $tab);
+            dbInsert(Sql::UZIVATELE_HODNOTY_TABULKA, $tab);
         } catch (DbDuplicateEntryException $e) {
             if ($e->key() == Sql::EMAIL1_UZIVATELE) {
                 throw new DuplicitniEmail;
@@ -2633,7 +2634,7 @@ SQL;
 
     private function ulozPotvrzeniRodicuPridanoKdy(?\DateTimeInterface $kdy)
     {
-        dbUpdate(Sql::UZIVATEL_TABULKA, [
+        dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
             Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR => $kdy,
         ], [
             Sql::ID_UZIVATELE => $this->id(),

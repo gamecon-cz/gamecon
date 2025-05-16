@@ -1,4 +1,5 @@
 <?php
+/** @var \Godric\DbMigrations\Migration $this */
 
 use Gamecon\Role\Role;
 use Gamecon\Pravo;

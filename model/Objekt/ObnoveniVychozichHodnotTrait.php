@@ -4,7 +4,7 @@ namespace Gamecon\Objekt;
 
 trait ObnoveniVychozichHodnotTrait
 {
-    private function obnovVychoziHodnotyObjektu()
+    private function obnovVychoziHodnotyObjektu(): void
     {
         $classReflection = new \ReflectionClass($this);
         foreach ($classReflection->getDefaultProperties() as $name => $defaultValue) {
@@ -12,7 +12,6 @@ trait ObnoveniVychozichHodnotTrait
             if ($propertyReflection->isReadOnly()) {
                 continue;
             }
-            $propertyReflection->setAccessible(true);
             if ($propertyReflection->isStatic()) {
                 $classReflection->setStaticPropertyValue($name, $defaultValue);
             } else {

@@ -2,7 +2,7 @@
 require __DIR__ . '/sdilene-hlavicky.php';
 
 use Gamecon\Role\Role;
-use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 
 $idSystemUzivatele = Uzivatel::SYSTEM;
 
@@ -54,8 +54,8 @@ SQL
 
 $data = [];
 while ($row = mysqli_fetch_assoc($mysqliResult)) {
-    $row[UzivatelSqlStruktura::OP] = (string)$row[UzivatelSqlStruktura::OP] !== ''
-        ? Sifrovatko::desifruj($row[UzivatelSqlStruktura::OP])
+    $row[UzivateleHodnotySqlStruktura::OP] = (string)$row[UzivateleHodnotySqlStruktura::OP] !== ''
+        ? Sifrovatko::desifruj($row[UzivateleHodnotySqlStruktura::OP])
         : '';
     $data[]                        = $row;
 }

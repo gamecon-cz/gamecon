@@ -7,7 +7,7 @@ use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Pohlavi;
-use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as UzivatelSql;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
 class BfgrReportTest extends AbstractTestDb
 {
@@ -17,7 +17,7 @@ class BfgrReportTest extends AbstractTestDb
     {
         return [
             function () {
-                dbInsert(UzivatelSql::UZIVATEL_TABULKA,
+                dbInsert(UzivatelSql::UZIVATELE_HODNOTY_TABULKA,
                     [
                         UzivatelSql::ID_UZIVATELE                        => self::ID_UZDLUZNIKA,
                         UzivatelSql::OP                                  => '123456789',

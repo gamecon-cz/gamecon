@@ -91,8 +91,8 @@ SQL;
                 continue;
             }
 
-            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 20); // timeout na připojení
-            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 10);        // timeout na stahování
+            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 30); // timeout na připojení
+            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 20);        // timeout na stahování
             curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curlHandle, CURLOPT_HEADER, true);
             curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);

@@ -100,7 +100,7 @@ if ($uPracovni) {
         : [];
     $x->assign([
         'prehled'       => $up->finance()->prehledHtml(),
-        'slevyAktivity' => ($akt = $up->finance()->slevyAktivity())
+        'slevyAktivity' => ($akt = $up->finance()->slevyNaAktivity())
             ?
             '<li>' . implode('<li>', $akt)
             :

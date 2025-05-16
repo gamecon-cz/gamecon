@@ -1055,12 +1055,12 @@ function intvalOrNull(
         : intval($val);
 }
 
-function jsmeNaLocale()
+function jsmeNaLocale(): bool
 {
     return PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']) || ($_ENV['ENV'] ?? '') === 'local';
 }
 
-function jsmeNaBete()
+function jsmeNaBete(): bool
 {
     return in_array(
         parse_url(URL_WEBU, PHP_URL_HOST),

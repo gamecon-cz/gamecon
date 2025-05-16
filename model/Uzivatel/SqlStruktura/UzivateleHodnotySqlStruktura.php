@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Gamecon\Uzivatel\SqlStruktura;
 
-class UzivatelSqlStruktura
+class UzivateleHodnotySqlStruktura
 {
-    public const UZIVATEL_TABULKA = 'uzivatele_hodnoty';
+    public const UZIVATELE_HODNOTY_TABULKA = 'uzivatele_hodnoty';
 
     public const ID_UZIVATELE                        = 'id_uzivatele';
     public const LOGIN_UZIVATELE                     = 'login_uzivatele';
@@ -50,7 +50,7 @@ class UzivatelSqlStruktura
         $reflection = new \ReflectionClass(static::class);
         $hodnoty    = [];
         foreach ($reflection->getConstants() as $hodnota) {
-            if ($hodnota === self::UZIVATEL_TABULKA) {
+            if ($hodnota === self::UZIVATELE_HODNOTY_TABULKA) {
                 continue;
             }
             $hodnoty[] = $hodnota;

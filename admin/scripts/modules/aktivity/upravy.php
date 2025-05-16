@@ -13,6 +13,10 @@ use Gamecon\Web\Urls;
  * submenu_order: 1
  */
 
+/**
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
+
 if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
     echo Aktivita::editorChybyJson();
     exit;
@@ -40,7 +44,7 @@ try {
 }
 
 $a              = Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
-$editorAktivity = Aktivita::editor($a);         // načtení html editoru aktivity
+$editorAktivity = Aktivita::editor($systemoveNastaveni, $a);         // načtení html editoru aktivity
 
 ?>
 

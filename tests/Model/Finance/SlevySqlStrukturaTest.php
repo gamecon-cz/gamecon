@@ -7,7 +7,8 @@ use Gamecon\Tests\Model\AbstractTestSqlStruktura;
 
 class SlevySqlStrukturaTest extends AbstractTestSqlStruktura
 {
-    protected function strukturaClass(): string {
+    protected function strukturaClass(): string
+    {
         return SlevySqlStruktura::class;
     }
 
