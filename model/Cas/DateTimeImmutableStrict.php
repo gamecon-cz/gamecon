@@ -11,6 +11,7 @@ use Gamecon\Cas\Exceptions\InvalidModifyFormat;
 /**
  * @method static static createFromMutable(DateTime $object)
  * @method static static createFromInterface(DateTimeInterface $object)
+ * @method static static modify(string $modifier = '')
  */
 class DateTimeImmutableStrict extends \DateTimeImmutable
 {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\SystemoveNastaveni;
 
 use Composer\Autoload\ClassLoader;
+use Gamecon\Cache\QueryCache;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -13,6 +14,7 @@ use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\SystemoveNastaveni\Exceptions\ChybnaHodnotaSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Sql;
+use Gamecon\Uzivatel\CachedDb;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice as Klic;
 
@@ -28,8 +30,8 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         ?bool                   $jsmeNaLocale = null,
         ?bool                   $databazoveNastaveni = null,
         ?string                 $projectRootDir = null,
+        ?string                 $cacheDir = null,
     ): self {
-
         return new static(
             $rocnik,
             $ted,
@@ -39,7 +41,33 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             $projectRootDir
             ?? try_constant('PROJECT_ROOT_DIR')
                ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
+            $cacheDir ?? SPEC,
         );
+    }
+
+    private static function zakrouhli(float $cislo): int
+    {
+        return (int)round($cislo, 0);
+    }
+
+    private ?array      $vsechnyZaznamyNastaveni = null;
+    private ?array      $odvozeneHodnoty         = null;
+    private ?array      $vychoziHodnoty          = null;
+    private ?CachedDb   $cachedDb                = null;
+    private ?QueryCache $queryCache              = null;
+
+    public function __construct(
+        private readonly int                     $rocnik,
+        private readonly DateTimeImmutableStrict $ted,
+        private readonly bool                    $jsmeNaBete,
+        private readonly bool                    $jsmeNaLocale,
+        private readonly DatabazoveNastaveni     $databazoveNastaveni,
+        private readonly string                  $rootAdresarProjektu,
+        private readonly string                  $cacheDir,
+    ) {
+        if ($jsmeNaLocale && $jsmeNaBete) {
+            throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
+        }
     }
 
     /**
@@ -88,28 +116,6 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             'BONUS_ZA_12H_AZ_13H_AKTIVITU'          => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3),
             default                                 => throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'"),
         };
-    }
-
-    private static function zakrouhli(float $cislo): int
-    {
-        return (int)round($cislo, 0);
-    }
-
-    private ?array $vsechnyZaznamyNastaveni = null;
-    private ?array $odvozeneHodnoty         = null;
-    private ?array $vychoziHodnoty          = null;
-
-    public function __construct(
-        private readonly int                     $rocnik,
-        private readonly DateTimeImmutableStrict $ted,
-        private readonly bool                    $jsmeNaBete,
-        private readonly bool                    $jsmeNaLocale,
-        private readonly DatabazoveNastaveni     $databazoveNastaveni,
-        private readonly string                  $rootAdresarProjektu,
-    ) {
-        if ($jsmeNaLocale && $jsmeNaBete) {
-            throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
-        }
     }
 
     public function zaznamyDoKonstant()
@@ -906,6 +912,11 @@ SQL;
         return $this->rootAdresarProjektu;
     }
 
+    public function cacheDir(): string
+    {
+        return $this->cacheDir;
+    }
+
     public function prihlasovaciUdajeOstreDatabaze(): array
     {
         $souborNastaveniOstra = $this->rootAdresarProjektu . '/../ostra/nastaveni/nastaveni-produkce.php';
@@ -998,5 +1009,23 @@ SQL;
     public function jeOmezeniUbytovaniPouzeNaSpacaky(): bool
     {
         return (bool)UBYTOVANI_POUZE_SPACAKY;
+    }
+
+    public function cachedDb(): CachedDb
+    {
+        if (!$this->cachedDb) {
+            $this->cachedDb = new CachedDb($this->queryCache());
+        }
+
+        return $this->cachedDb;
+    }
+
+    public function queryCache(): QueryCache
+    {
+        if (!$this->queryCache) {
+            $this->queryCache = new QueryCache($this->cacheDir());
+        }
+
+        return $this->queryCache;
     }
 }

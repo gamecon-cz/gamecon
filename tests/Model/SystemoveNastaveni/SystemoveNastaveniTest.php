@@ -65,6 +65,7 @@ class SystemoveNastaveniTest extends AbstractTestDb
             $jsmeNaLocale,
             DatabazoveNastaveni::vytvorZGlobals(),
             PROJECT_ROOT_DIR,
+            SPEC,
         );
     }
 

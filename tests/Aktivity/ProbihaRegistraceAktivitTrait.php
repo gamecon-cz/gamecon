@@ -22,6 +22,7 @@ trait ProbihaRegistraceAktivitTrait
                     $original->jsmeNaLocale(),
                     $original->databazoveNastaveni(),
                     $original->rootAdresarProjektu(),
+                    $original->cacheDir(),
                 );
             }
 

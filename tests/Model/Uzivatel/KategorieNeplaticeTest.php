@@ -443,9 +443,8 @@ class KategorieNeplaticeTest extends TestCase
             {
             }
 
-            public function obnovUdaje()
+            public function obnovUdaje(): void
             {
-                return $this;
             }
 
             public function nastavSumuPlateb(float $sumaPlateb)

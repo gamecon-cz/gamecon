@@ -169,6 +169,7 @@ SQL,
                     false,
                     DatabazoveNastaveni::vytvorZGlobals(),
                     '',
+                    '',
                 );
             }
 
