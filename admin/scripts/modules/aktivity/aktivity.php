@@ -7,7 +7,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Pravo;
 use Gamecon\Aktivita\HromadneAkceAktivit;
-use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 
 /**
  * Stránka pro tvorbu a správu aktivit.
@@ -23,7 +23,10 @@ use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
  */
 
 if (post('smazat')) {
-    $a = Aktivita::zId(post('aktivitaId'));
+    $a = Aktivita::zId(
+        id: post('aktivitaId'),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
     if ($a) {
         $a->smaz($u);
     }
@@ -31,7 +34,10 @@ if (post('smazat')) {
 }
 
 if (post('publikovat')) {
-    $a = Aktivita::zId(post('aktivitaId'));
+    $a = Aktivita::zId(
+        id: post('aktivitaId'),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
     if ($a) {
         $a->publikuj();
     }
@@ -39,7 +45,10 @@ if (post('publikovat')) {
 }
 
 if (post('pripravit')) {
-    $a = Aktivita::zId(post('aktivitaId'));
+    $a = Aktivita::zId(
+        id: post('aktivitaId'),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
     if ($a) {
         $a->priprav();
     }
@@ -47,7 +56,10 @@ if (post('pripravit')) {
 }
 
 if (post('odpripravit')) {
-    $a = Aktivita::zId(post('aktivitaId'));
+    $a = Aktivita::zId(
+        id: post('aktivitaId'),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
     if ($a) {
         $a->odpriprav();
     }
@@ -55,7 +67,10 @@ if (post('odpripravit')) {
 }
 
 if (post('aktivovat')) {
-    $a = Aktivita::zId(post('aktivitaId'));
+    $a = Aktivita::zId(
+        id: post('aktivitaId'),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
     if ($a) {
         $a->aktivuj();
     }
@@ -63,7 +78,10 @@ if (post('aktivovat')) {
 }
 
 if (post('deaktivovat') && $u->maRoliSefProgramu()) {
-    $a = Aktivita::zId(post('aktivitaId'));
+    $a = Aktivita::zId(
+        id: post('aktivitaId'),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
     if ($a) {
         $a->deaktivuj();
     }
@@ -71,7 +89,10 @@ if (post('deaktivovat') && $u->maRoliSefProgramu()) {
 }
 
 if (post('odpublikovat')) {
-    $a = Aktivita::zId(post('aktivitaId'));
+    $a = Aktivita::zId(
+        id: post('aktivitaId'),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
     if ($a) {
         $a->odpublikuj();
     }
@@ -85,9 +106,10 @@ if (post('aktivovatVse') && $u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT)) {
 }
 
 if (post('instance')) {
-    Aktivita::zId(post('aktivitaId'))
-        ?->instancuj()
-    ;
+    Aktivita::zId(
+        id: post('aktivitaId'),
+        systemoveNastaveni: $systemoveNastaveni,
+    )?->instancuj();
     back();
 }
 
@@ -98,7 +120,11 @@ $filtrMoznosti = FiltrMoznosti::vytvorZGlobals(FiltrMoznosti::NEFILTROVAT_PODLE_
 $filtrMoznosti->zobraz();
 
 [$filtr, $razeni] = $filtrMoznosti->dejFiltr();
-$aktivity = Aktivita::zFiltru($filtr, $razeni);
+$aktivity = Aktivita::zFiltru(
+    systemoveNastaveni: $systemoveNastaveni,
+    filtr: $filtr,
+    razeni: $razeni,
+);
 
 if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechnyTypu')) {
     foreach ($aktivity as $aktivita) {
@@ -136,7 +162,9 @@ foreach ($aktivity as $aktivita) {
     $tpl->assign([
         'id_akce'      => $aktivita->id(),
         'nazev_akce'   => $aktivita->nazev(),
-        'hinted'       => $aktivita->tagy() ? 'hinted' : '',
+        'hinted'       => $aktivita->tagy()
+            ? 'hinted'
+            : '',
         'cas'          => $aktivita->denCasSkutecny(),
         'organizatori' => $aktivita->orgJmena(),
         'typ'          => $typy[$r['typ']],

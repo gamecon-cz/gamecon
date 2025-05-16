@@ -4,7 +4,7 @@ use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
@@ -39,7 +39,7 @@ $next = mysqli_fetch_assoc($o);
 while ($curr) {
     $t->assign($curr);
     $t->parse('stravenky.uzivatel.jidlo');
-    if (!$next || $curr[UzivatelSqlStruktura::ID_UZIVATELE] != $next[UzivatelSqlStruktura::ID_UZIVATELE]) {
+    if (!$next || $curr[UzivateleHodnotySqlStruktura::ID_UZIVATELE] != $next[UzivateleHodnotySqlStruktura::ID_UZIVATELE]) {
         $t->parse('stravenky.uzivatel');
     }
     $curr = $next;

@@ -9,7 +9,7 @@
 
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Uzivatel\Pohlavi;
-use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
 include __DIR__ . '/osobni_udaje_ovladac.php';
 

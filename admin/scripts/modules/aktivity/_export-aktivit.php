@@ -9,6 +9,7 @@ use Gamecon\Admin\Modules\Aktivity\Export\ExportVypravecuSloupce;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 /** @var DateTimeInterface $now */
 /** @var Uzivatel $u */
 /** @var \Gamecon\XTemplate\XTemplate $template */
@@ -23,26 +24,32 @@ $filtrMoznosti = FiltrMoznosti::vytvorZGlobals(FiltrMoznosti::FILTROVAT_PODLE_RO
 $filtrMoznosti->zobraz();
 
 [$filtr, $razeni] = $filtrMoznosti->dejFiltr(true);
-$aktivity = Aktivita::zFiltru($filtr, $razeni);
+$aktivity = Aktivita::zFiltru(
+    systemoveNastaveni: $systemoveNastaveni,
+    filtr: $filtr,
+    razeni: $razeni,
+);
 
 $activityTypeIdsFromFilter = array_unique(
     array_map(
-        static function (Aktivita $aktivita) {
+        static function (
+            Aktivita $aktivita,
+        ) {
             return $aktivita->typId();
         },
-        $aktivity
-    )
+        $aktivity,
+    ),
 );
 
 if (count($activityTypeIdsFromFilter) > 1) {
     $template->parse('export.neniVybranTyp');
-} else if (count($activityTypeIdsFromFilter) === 0) {
+} elseif (count($activityTypeIdsFromFilter) === 0) {
     $template->parse('export.zadneAktivity');
-} else if (count($activityTypeIdsFromFilter) === 1) {
+} elseif (count($activityTypeIdsFromFilter) === 1) {
     $activityTypeIdFromFilter = reset($activityTypeIdsFromFilter);
 
     if (!empty($_POST['export_activity_type_id']) && (int)$_POST['export_activity_type_id'] === (int)$activityTypeIdFromFilter && $googleApiClient->isAuthorized()) {
-        $activitiesExporter = new ActivitiesExporter(
+        $activitiesExporter        = new ActivitiesExporter(
             $u,
             $googleDriveService,
             $googleSheetsService,
@@ -50,7 +57,7 @@ if (count($activityTypeIdsFromFilter) > 1) {
             new ExportTaguSloupce(),
             new ExportStavuAktivitSloupce(),
             new ExportLokaciSloupce(),
-            new ExportVypravecuSloupce()
+            new ExportVypravecuSloupce(),
         );
         $nazevExportovanehoSouboru = $activitiesExporter->exportActivities($aktivity, (string)($filtr['rok'] ?? ROCNIK));
         oznameni(sprintf("Aktivity byly exportovány do Google sheets pod názvem '%s'", $nazevExportovanehoSouboru));
@@ -59,8 +66,10 @@ if (count($activityTypeIdsFromFilter) > 1) {
     $template->assign('activityTypeId', $activityTypeIdFromFilter);
 
     $typAktivity = TypAktivity::zId($activityTypeIdFromFilter);
-    $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()) . (($filtr['rok'] ?? ROCNIK) != ROCNIK ? (' ' . $filtr['rok']) : ''));
-    $pocetAktivit = count($aktivity);
+    $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()) . (($filtr['rok'] ?? ROCNIK) != ROCNIK
+            ? (' ' . $filtr['rok'])
+            : ''));
+    $pocetAktivit      = count($aktivity);
     $pocetAktivitSlovo = 'aktivit';
     if ($pocetAktivit === 1) {
         $pocetAktivitSlovo = 'aktivitu';
@@ -71,7 +80,7 @@ if (count($activityTypeIdsFromFilter) > 1) {
     $template->assign('pocetAktivitSlovo', $pocetAktivitSlovo);
     $template->assign('exportDisabled', $googleApiClient->isAuthorized()
         ? ''
-        : 'disabled'
+        : 'disabled',
     );
 
     $template->parse('export.exportovat');

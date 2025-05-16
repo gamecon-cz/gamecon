@@ -1,6 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../../../admin/scripts/modules/aktivity/_editor-tagu.php';
+use Gamecon\Aktivita\EditorTagu;
+
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 header('Content-type: application/json');
 $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
@@ -9,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] != "GET") {
   return;
 }
 
-$editorTagu = new \EditorTagu();
+$editorTagu = new EditorTagu($systemoveNastaveni->cachedDb());
 
 $res = $editorTagu->getTagy();
 $res = array_map(

@@ -279,9 +279,10 @@ SQL,
                 }
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
             } elseif ($typ == self::UBYTOVANI) {
-                $r['nabizet'] = true; /** protože se to řeší v @see \Gamecon\Shop\ShopUbytovani::totoUbytovaniVyrazeno
+                $r['nabizet'] = true;
+                /** protože se to řeší v @see \Gamecon\Shop\ShopUbytovani::totoUbytovaniVyrazeno
                  */
-                $fronta       = &$this->ubytovaniPole[];
+                $fronta = &$this->ubytovaniPole[];
             } elseif ($typ == self::TRICKO) {
                 $smiModre     = $this->zakaznik->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
                 $smiCervene   = $this->zakaznik->maPravo(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
@@ -391,10 +392,12 @@ SQL,
                     $t->parse('jidlo.druh.den');
                 }
                 $t->assign('druh', $druh);
-                if ($jidlo !== null){
+                if ($jidlo !== null) {
                     $vec = $cenik->cena($jidlo) . '&thinsp;Kč';
                 }
-                $t->assign('cena', $jidlo !== null ? ($cenik->cena($jidlo) . '&thinsp;Kč') : $vec);
+                $t->assign('cena', $jidlo !== null
+                    ? ($cenik->cena($jidlo) . '&thinsp;Kč')
+                    : $vec);
                 $t->parse('jidlo.druh');
             }
             // hlavička
@@ -1010,6 +1013,7 @@ SQL
         string    $zdrojZruseni,
     ): int {
         $prihlaseneLarpy = Aktivita::zFiltru(
+            systemoveNastaveni: $this->systemoveNastaveni,
             filtr: [
                 'typ'        => TypAktivity::LARP,
                 'rok'        => $this->systemoveNastaveni->rocnik(),
@@ -1028,11 +1032,14 @@ SQL
         \Uzivatel $odhlasujici,
         string    $zdrojZruseni,
     ): int {
-        $prihlasenaRpg = Aktivita::zFiltru([
-            'typ'        => TypAktivity::RPG,
-            'rok'        => $this->systemoveNastaveni->rocnik(),
-            'prihlaseni' => [$this->zakaznik->id()],
-        ]);
+        $prihlasenaRpg = Aktivita::zFiltru(
+            systemoveNastaveni: $this->systemoveNastaveni,
+            filtr: [
+                'typ'        => TypAktivity::RPG,
+                'rok'        => $this->systemoveNastaveni->rocnik(),
+                'prihlaseni' => [$this->zakaznik->id()],
+            ]
+        );
         foreach ($prihlasenaRpg as $prihlaseneRpg) {
             $prihlaseneRpg->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni);
         }
@@ -1045,11 +1052,11 @@ SQL
         string    $zdrojZruseni,
     ): int {
         $prihlaseneAktivity = Aktivita::zFiltru(
+            systemoveNastaveni: $this->systemoveNastaveni,
             filtr: [
                 'rok'        => $this->systemoveNastaveni->rocnik(),
                 'prihlaseni' => [$this->zakaznik->id()],
             ],
-            systemoveNastaveni: $this->systemoveNastaveni,
         );
         foreach ($prihlaseneAktivity as $prihlasenaAktivita) {
             $prihlasenaAktivita->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni, 0);

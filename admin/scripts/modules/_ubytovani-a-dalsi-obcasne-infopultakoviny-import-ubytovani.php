@@ -4,7 +4,7 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\XTemplate\XTemplate;
 use OpenSpout\Reader\Common\Creator\ReaderFactory;
-use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as UzivatelSql;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
 /**
  * @var Uzivatel $u

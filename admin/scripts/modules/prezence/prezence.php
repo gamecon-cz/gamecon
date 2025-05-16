@@ -14,14 +14,15 @@ use Gamecon\XTemplate\XTemplate;
  */
 
 /**
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  * @var Uzivatel $u
  */
 
 $t = new XTemplate(__DIR__ . '/prezence.xtpl');
 
-$jenZamceneNeuzavrene = !empty($_GET['zamcene_neuzavrene']);
+$jenZamceneNeuzavrene  = !empty($_GET['zamcene_neuzavrene']);
 $jenUzavreneNevyplnene = !empty($_GET['uzavrene_nevyplnene']);
-$ignorovatCas = !empty($_GET['ignorovat_cas']);
+$ignorovatCas          = !empty($_GET['ignorovat_cas']);
 
 $zacatek = null; // bude nastaven přes referenci ve funkci _casy
 
@@ -36,30 +37,38 @@ if (!$ignorovatCas) {
     $t->assign('casy', $filtrMoznosti->dejProTemplate());
 }
 
-
-$t->assign('checkedNeuzavrene', $jenZamceneNeuzavrene ? 'checked' : '');
-$t->assign('checkedNevyplnene', $jenUzavreneNevyplnene ? 'checked' : '');
-$t->assign('checkedCas', $ignorovatCas ? 'checked' : '');
+$t->assign('checkedNeuzavrene', $jenZamceneNeuzavrene
+    ? 'checked'
+    : '');
+$t->assign('checkedNevyplnene', $jenUzavreneNevyplnene
+    ? 'checked'
+    : '');
+$t->assign('checkedCas', $ignorovatCas
+    ? 'checked'
+    : '');
 $t->assign('urlAkce', getCurrentUrlWithQuery());
 $t->parse('prezence.filtrAktivit');
 
 $aktivity = [];
-$filtr = $filtrMoznosti->dejFiltr()[0];
+$filtr    = $filtrMoznosti->dejFiltr()[0];
 if ($ignorovatCas) {
     $filtr['rok'] = ROCNIK;
-} else if ($zacatek) {
+} elseif ($zacatek) {
     $filtr['od'] = $zacatek->format(DateTimeGamecon::FORMAT_DB);
     $filtr['do'] = $zacatek->format(DateTimeGamecon::FORMAT_DB);
 }
 if ($jenZamceneNeuzavrene) {
-    $filtr['jenZamcene'] = true;
+    $filtr['jenZamcene']    = true;
     $filtr['jenNeuzavrene'] = true;
 }
 if ($jenUzavreneNevyplnene) {
-    $filtr['stav'] = StavAktivity::UZAVRENA;
+    $filtr['stav']          = StavAktivity::UZAVRENA;
     $filtr['jenNevyplnene'] = true;
 }
-$aktivity = Aktivita::zFiltru($filtr);
+$aktivity = Aktivita::zFiltru(
+    systemoveNastaveni: $systemoveNastaveni,
+    filtr: $filtr,
+);
 
 if (count($aktivity) === 0) {
     $t->parse('prezence.zadnaAktivita');
@@ -67,7 +76,7 @@ if (count($aktivity) === 0) {
 
 foreach ($aktivity as $aktivita) {
     $vyplnena = $aktivita->nekdoUzDorazil();
-    $zamcena = $aktivita->zamcena();
+    $zamcena  = $aktivita->zamcena();
     $uzavrena = $aktivita->uzavrena();
     $t->assign('a', $aktivita);
     foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
@@ -76,8 +85,12 @@ foreach ($aktivity as $aktivita) {
         $t->assign('jmenoNick', $prihlasenyUzivatel->jmenoNick());
         $t->assign('telefon', $prihlasenyUzivatel->telefon());
         $t->assign('stavFinanci', $prihlasenyUzivatel->finance()->formatovanyStav());
-        $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->gcPritomen() ? 'pritomen' : 'nepritomen'));
-        $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->finance()->stav() < 0 ? 'dluh' : 'prebytek'));
+        $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->gcPritomen()
+                ? 'pritomen'
+                : 'nepritomen'));
+        $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->finance()->stav() < 0
+                ? 'dluh'
+                : 'prebytek'));
         if ($aktivita->dorazilJakoCokoliv($prihlasenyUzivatel)) {
             $t->parse('prezence.aktivita.form.ucastnik.dorazil');
         } elseif ($aktivita->nedorazilNeboZrusil($prihlasenyUzivatel)) {
@@ -102,8 +115,12 @@ foreach ($aktivity as $aktivita) {
     $t->assign(
         'nadpis',
         implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace(), $aktivita->zacatek()?->format('l H:i')]))
-        . ($aktivita->zamcena() ? ' <span class="hinted">🔒<span class="hint">Zamčená pro přihlašování</span></span> ' : '')
-        . ($aktivita->uzavrena() ? ' <span class="hinted">📕<span class="hint">S uzavřenou prezencí</span></span> ' : '')
+        . ($aktivita->zamcena()
+            ? ' <span class="hinted">🔒<span class="hint">Zamčená pro přihlašování</span></span> '
+            : '')
+        . ($aktivita->uzavrena()
+            ? ' <span class="hinted">📕<span class="hint">S uzavřenou prezencí</span></span> '
+            : ''),
     );
     $t->parse('prezence.aktivita.form');
     $t->parse('prezence.aktivita');
