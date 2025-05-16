@@ -1,4 +1,5 @@
 <?php
+/** @var \Godric\DbMigrations\Migration $this */
 
 $this->q(<<<SQL
 INSERT INTO role_seznam

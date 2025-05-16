@@ -1,4 +1,5 @@
 <?php
+/** @var \Godric\DbMigrations\Migration $this */
 
 // přidání UBYTOVANI_NEDELNI_NOC_NABIZET
 $this->q(<<<SQL
