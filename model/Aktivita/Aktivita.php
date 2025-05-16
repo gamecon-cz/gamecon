@@ -8,7 +8,16 @@ use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportSqlColumn;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportSqlMappedValuesChecker;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesDescriber;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
-use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
+use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkceOrganizatoriSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
+use Gamecon\Aktivita\SqlStruktura\AkceSjednoceneTagySqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkceTypySqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
@@ -16,14 +25,13 @@ use Gamecon\Kanaly\GcMail;
 use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Urls;
 use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
-
-require_once __DIR__ . '/../../admin/scripts/modules/aktivity/_editor-tagu.php';
 
 /**
  * Třída aktivity
@@ -37,8 +45,8 @@ class Aktivita
     private static        $prihlaseniNaAktivityRawCache = [];
     private static ?array $seznamUcastnikuCache         = null;
 
-    private                    $a; // databázový řádek s aktivitou
-    private                    $kolekce;        // nadřízená kolekce, v rámci které byla aktivita načtena
+    private                    $a;              // databázový řádek s aktivitou
+    private array              $kolekce = [];        // nadřízená kolekce, v rámci které byla aktivita načtena
     private                    $lokace;
     private                    $stav;
     private bool               $nova; // jestli jde o nově uloženou aktivitu nebo načtenou z DB
@@ -57,10 +65,10 @@ class Aktivita
     const AJAXKLIC              = 'aEditFormTest'; // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
     const OBRAZEK_KLIC          = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
     const ODMENA_ZA_HODINU_KLIC = 'odmena_za_hodinu';
-    const TAGYKLIC              = 'aEditTag'; // název proměnné; v které jdou tagy
+    const TAGYKLIC              = 'aEditTag';       // název proměnné; v které jdou tagy
     const POSTKLIC              = 'aEditForm'; // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
     const TEAMKLIC              = 'aTeamForm'; // název post proměnné s formulářem pro výběr teamu
-    const TEAMKLIC_KOLA         = 'aTeamFormKolo'; // název post proměnné s výběrem kol pro team
+    const TEAMKLIC_KOLA         = 'aTeamFormKolo';  // název post proměnné s výběrem kol pro team
     const PN_PLUSMINUSP         = 'cAktivitaPlusminusp'; // název post proměnné pro úpravy typu plus
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
     const HAJENI_TEAMU_HODIN    = 72; // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
@@ -80,8 +88,8 @@ class Aktivita
     const NEOTEVRENE                         = 0b0100000000000; // přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity
     const UKAZAT_DETAILY_CHYBY               = 0b1000000000000;
     // parametry kolem továrních metod
-    const JEN_VOLNE  = 0b00000001;    // jen volné aktivity
-    const VEREJNE    = 0b00000010;    // jen veřejně viditelné aktivity
+    const JEN_VOLNE  = 0b00000001; // jen volné aktivity
+    const VEREJNE    = 0b00000010; // jen veřejně viditelné aktivity
     const ZAMCENE    = 0b00000100;
     const NEUZAVRENE = 0b00001000;
 
@@ -184,6 +192,10 @@ SQL
         $this->nova               = false;
         $this->prednacitat        = $prednacitat;
         $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
+
+        $this->typ    = $dbRow[Sql::TYP] ?? null;
+        $this->lokace = $dbRow[Sql::LOKACE] ?? null;
+        $this->stav   = $dbRow[Sql::STAV] ?? null;
     }
 
     public function posledniZmenaStavuAktivity(): ?ZmenaStavuAktivity
@@ -406,9 +418,11 @@ SQL
      * @todo Zkusit refaktorovat editor na samostatnou třídu, pokud to půjde bez
      * vytvoření závislostí na vnitřní proměnné aktivity.
      */
-    public static function editor(Aktivita $a = null)
-    {
-        return self::editorParam(new \EditorTagu(), $a);
+    public static function editor(
+        SystemoveNastaveni $systemoveNastaveni,
+        Aktivita           $a = null,
+    ) {
+        return self::editorParam(new EditorTagu($systemoveNastaveni->cachedDb()), $a);
     }
 
     /**
@@ -468,9 +482,9 @@ SQL
      * Vrátí html kód editoru, je možné parametrizovat, co se pomocí něj dá měnit
      */
     protected static function editorParam(
-        \EditorTagu $editorTagu,
-        Aktivita    $aktivita = null,
-                    $omezeni = [],
+        EditorTagu $editorTagu,
+        Aktivita   $aktivita = null,
+                   $omezeni = [],
     ) {
         // inicializace šablony
         $xtpl = new XTemplate(__DIR__ . '/templates/editor-aktivity.xtpl');
@@ -758,9 +772,9 @@ SQL
     }
 
     private static function nactiTagy(
-        array       $vybraneTagy,
-        \EditorTagu $editorTagu,
-        XTemplate   $xtpl,
+        array      $vybraneTagy,
+        EditorTagu $editorTagu,
+        XTemplate  $xtpl,
     ) {
         $vsechnyTagy             = $editorTagu->getTagy();
         $pocetVsechTagu          = count($vsechnyTagy);
@@ -2685,19 +2699,24 @@ HTML
     }
 
     /** Aktualizuje stav aktivity podle databáze */
-    public function refresh()
+    public function refresh(): void
     {
         $this->a               = self::zId($this->id())->a;
         $this->prezence        = null;
         $this->seznamUcastniku = null;
     }
 
-    /** Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí */
-    public function rodice()
+    /**
+     * Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí
+     *
+     * @return array<Aktivita>
+     */
+    public function rodice(): array
     {
         return self::zWhere(
-            where1: 'WHERE a.dite rlike "(^|,)' . $this->id() . '(,|$)"',
             systemoveNastaveni: $this->systemoveNastaveni,
+            dalsiPouziteSqlTabulky: [],
+            where1: 'WHERE a.dite rlike "(^|,)' . $this->id() . '(,|$)"',
         );
     }
 
@@ -3498,11 +3517,12 @@ SQL,
      *  parametr => sloupec
      */
     public static function zFiltru(
+        SystemoveNastaveni $systemoveNastaveni,
         array              $filtr,
         array              $razeni = [],
         ?int               $limit = null,
-        SystemoveNastaveni $systemoveNastaveni = null,
     ): array {
+        $dalsiPouziteSqlTabulky = [];
         // sestavení filtrů
         $wheres1 = [];
         $wheres2 = [];
@@ -3516,7 +3536,8 @@ SQL,
             $wheres1[] = 'a.typ = ' . (int)$filtr[FiltrAktivity::TYP];
         }
         if (!empty($filtr[FiltrAktivity::ORGANIZATOR])) {
-            $wheres1[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr[FiltrAktivity::ORGANIZATOR] . ')';
+            $dalsiPouziteSqlTabulky[] = AkceOrganizatoriSqlStruktura::AKCE_ORGANIZATORI_TABULKA;
+            $wheres1[]                = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr[FiltrAktivity::ORGANIZATOR] . ')';
         }
         if (!empty($filtr[FiltrAktivity::JEN_VIDITELNE])) {
             $wheres1[] = 'a.stav IN (' . implode(',', StavAktivity::bezneViditelneStavy()) . ')
@@ -3529,8 +3550,10 @@ SQL,
             $wheres1[] = 'a.stav != ' . StavAktivity::UZAVRENA;
         }
         if (!empty($filtr[FiltrAktivity::JEN_NEVYPLNENE])) { // byli tam přihlášení nějací hráči a nikdo nedorazil
-            $wheres1[] = 'NOT exists(SELECT 1 FROM akce_prihlaseni ap WHERE ap.id_akce = a.id_akce AND ap.id_stavu_prihlaseni IN (1, 2))';
-            $wheres1[] = 'exists(SELECT 1 FROM akce_prihlaseni_spec aps WHERE aps.id_akce = a.id_akce AND aps.id_stavu_prihlaseni = 3)';
+            $dalsiPouziteSqlTabulky[] = AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA;
+            $dalsiPouziteSqlTabulky[] = AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA;
+            $wheres1[]                = 'NOT exists(SELECT 1 FROM akce_prihlaseni ap WHERE ap.id_akce = a.id_akce AND ap.id_stavu_prihlaseni IN (1, 2))';
+            $wheres1[]                = 'exists(SELECT 1 FROM akce_prihlaseni_spec aps WHERE aps.id_akce = a.id_akce AND aps.id_stavu_prihlaseni = 3)';
         }
         if (!empty($filtr[FiltrAktivity::OD])) {
             $wheres1[] = dbQv($filtr[FiltrAktivity::OD]) . ' <= a.zacatek';
@@ -3574,11 +3597,12 @@ SQL,
 
         // select
         $aktivity = self::zWhere(
+            systemoveNastaveni: $systemoveNastaveni,
+            dalsiPouziteSqlTabulky: $dalsiPouziteSqlTabulky,
             where1: 'WHERE ' . $where1,
             where2: 'WHERE ' . $where2,
             order: $order,
             limit: $limit,
-            systemoveNastaveni: $systemoveNastaveni,
         );
         if (!empty($filtr[FiltrAktivity::JEN_VOLNE])) {
             foreach ($aktivity as $id => $a) {
@@ -3653,8 +3677,9 @@ SQL,
             }
         }
         $aktivita = current(self::zWhere(
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.id_akce=' . $id,
-            systemoveNastaveni: $systemoveNastaveni,
         ));
         if (!$aktivita) {
             return null;
@@ -3690,7 +3715,11 @@ SQL,
             return [];
         }
 
-        return self::zWhere(where1: 'WHERE a.id_akce IN(' . dbQa($ids) . ')', systemoveNastaveni: $systemoveNastaveni);
+        return self::zWhere(
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            dalsiPouziteSqlTabulky: [],
+            where1: 'WHERE a.id_akce IN(' . dbQa($ids) . ')',
+        );
     }
 
     /**
@@ -3700,10 +3729,13 @@ SQL,
         Uzivatel            $u,
         ?SystemoveNastaveni $systemoveNastaveni = null,
     ) {
+        $systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+
         // join hack na akt. uživatele
         return self::zWhere(
-            where1: 'JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce AND ao.id_uzivatele = ' . $u->id() . ') WHERE a.rok = ' . ROCNIK,
-            systemoveNastaveni: $systemoveNastaveni,
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            dalsiPouziteSqlTabulky: [AkceOrganizatoriSqlStruktura::AKCE_ORGANIZATORI_TABULKA],
+            where1: 'JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce AND ao.id_uzivatele = ' . $u->id() . ') WHERE a.rok = ' . $systemoveNastaveni->rocnik(),
         );
     }
 
@@ -3729,6 +3761,8 @@ SQL,
         }
 
         $aktivity = self::zWhere(
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
             args: [
                 0 => ($systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals())->rocnik(),
@@ -3736,7 +3770,6 @@ SQL,
                 2 => TypAktivity::interniTypy(),
             ],
             order: 'ORDER BY DAY(zacatek) - IF(HOUR(zacatek) >= ' . dbQv(PROGRAM_ZACATEK) . ', 0, 1), ' . dbQi($razeni) . ', DAY(zacatek), HOUR(zacatek), nazev_akce',
-            systemoveNastaveni: $systemoveNastaveni,
             prednacitat: $prednacitat,
         );
 
@@ -3756,20 +3789,22 @@ SQL,
      * @todo možno přidat flag 'celé v rozmezí'
      */
     public static function zRozmezi(
-        \DateTimeInterface $od,
-        \DateTimeInterface $do,
-                           $flags = 0,
-                           $razeni = [],
+        \DateTimeInterface  $od,
+        \DateTimeInterface  $do,
+                            $flags = 0,
+                            $razeni = [],
+        ?SystemoveNastaveni $systemoveNastaveni = null,
     ): array {
         $aktivity = self::zFiltru(
-            [
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            filtr: [
                 'jenViditelne'  => (bool)($flags & self::VEREJNE),
                 'jenZamcene'    => (bool)($flags & self::ZAMCENE),
                 'jenNeuzavrene' => (bool)($flags & self::NEUZAVRENE),
                 'od'            => $od->format(DateTimeCz::FORMAT_DB),
                 'do'            => $do->format(DateTimeCz::FORMAT_DB),
             ],
-            $razeni,
+            razeni: $razeni,
         );
         if ($flags & self::JEN_VOLNE) {
             foreach ($aktivity as $i => $a) {
@@ -3788,11 +3823,13 @@ SQL,
      * @return Aktivita[]
      */
     public static function zNazvuARoku(
-        string $nazev,
-        int    $rocnik,
+        string              $nazev,
+        int                 $rocnik,
+        ?SystemoveNastaveni $systemoveNastaveni = null,
     ): array {
         return self::zFiltru(
-            [
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            filtr: [
                 'nazev_akce' => $nazev,
                 'rok'        => $rocnik,
             ],
@@ -3836,83 +3873,86 @@ SQL,
      *     se celá odpověď načte a přesype do paměti)
      */
     protected static function zWhere(
+        SystemoveNastaveni $systemoveNastaveni,
+        array              $dalsiPouziteSqlTabulky,
         string             $where1,
         string             $where2 = '',
-                           $args = null,
-                           $order = null,
+        ?array             $args = null,
+        ?string            $order = null,
         ?int               $limit = null,
-        SystemoveNastaveni $systemoveNastaveni = null,
         bool               $prednacitat = false,
     ): array {
         $limitSql = $limit !== null
             ? "LIMIT $limit"
             : '';
-        $o        = dbQueryS(<<<SQL
-        SELECT t3.*,
-            (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
-                FROM sjednocene_tagy
-                JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
-                JOIN kategorie_sjednocenych_tagu kst ON sjednocene_tagy.id_kategorie_tagu = kst.id
-                WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
-            ) AS tagy,
-            (SELECT GROUP_CONCAT(akce_sjednocene_tagy.id_tagu)
-                FROM akce_sjednocene_tagy
-                WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
-            ) AS ids_tagu
-        FROM (
-            SELECT t2.*,
-                IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
-            FROM (
-                SELECT a.*, al.poradi, akce_typy.poradi AS poradi_typu
-                FROM akce_seznam a
-                LEFT JOIN akce_lokace al ON al.id_lokace = a.lokace
-                LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu
-                $where1
-            ) AS t2
-            --  používané pro filtr \Gamecon\Aktivita\Aktivita::zFiltru
-            LEFT JOIN akce_prihlaseni AS p ON (p.id_akce = t2.id_akce)
-            LEFT JOIN uzivatele_hodnoty AS u ON (u.id_uzivatele = p.id_uzivatele)
-            $where2
-            GROUP BY t2.id_akce
-      ) AS t3
-      $order
-      $limitSql
-SQL,
-            $args,
+
+        $plainSql = dbQueryAssemble(
+            q: <<<SQL
+                SELECT t3.*,
+                    (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
+                        FROM sjednocene_tagy
+                        JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
+                        JOIN kategorie_sjednocenych_tagu kst ON sjednocene_tagy.id_kategorie_tagu = kst.id
+                        WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
+                    ) AS tagy,
+                    (SELECT GROUP_CONCAT(akce_sjednocene_tagy.id_tagu)
+                        FROM akce_sjednocene_tagy
+                        WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
+                    ) AS ids_tagu
+                FROM (
+                    SELECT t2.*,
+                        IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
+                    FROM (
+                        SELECT a.*, al.poradi, akce_typy.poradi AS poradi_typu
+                        FROM akce_seznam a
+                        LEFT JOIN akce_lokace al ON al.id_lokace = a.lokace
+                        LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu
+                        $where1
+                    ) AS t2
+                    --  používané pro filtr \Gamecon\Aktivita\Aktivita::zFiltru
+                    LEFT JOIN akce_prihlaseni AS p ON (p.id_akce = t2.id_akce)
+                    LEFT JOIN uzivatele_hodnoty AS u ON (u.id_uzivatele = p.id_uzivatele)
+                    $where2
+                    GROUP BY t2.id_akce
+                ) AS t3
+              $order
+              $limitSql
+            SQL,
+            pole: $args ?? [],
+        );
+        $cachedDb = $systemoveNastaveni->cachedDb();
+        $result   = $cachedDb->dbFetchAll(
+            [
+                ...[
+                    SjednoceneTagySqlStruktura::SJEDNOCENE_TAGY_TABULKA,
+                    AkceSjednoceneTagySqlStruktura::AKCE_SJEDNOCENE_TAGY_TABULKA,
+                    KategorieSjednocenychTaguSqlStruktura::KATEGORIE_SJEDNOCENYCH_TAGU_TABULKA,
+                    AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA,
+                    AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA,
+                    AkceTypySqlStruktura::AKCE_TYPY_TABULKA,
+                    AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
+                    UzivateleHodnotySqlStruktura::UZIVATELE_HODNOTY_TABULKA,
+                ],
+                ...$dalsiPouziteSqlTabulky,
+            ],
+            $plainSql,
         );
 
         $kolekce = []; // pomocný sdílený seznam aktivit pro přednačítání
 
-        while ($r = mysqli_fetch_assoc($o)) {
+        foreach ($result as $r) {
             $r[Sql::URL_AKCE] = $r['url_temp'];
             $aktivita         = new static(
                 dbRow: $r,
                 systemoveNastaveni: $systemoveNastaveni,
                 prednacitat: $prednacitat,
             );
-            $aktivita->typ    = $r[Sql::TYP];
-            $aktivita->lokace = $r[Sql::LOKACE];
-            $aktivita->stav   = $r[Sql::STAV];
 
             $aktivita->kolekce                   = &$kolekce;
             $aktivita->kolekce[$r[Sql::ID_AKCE]] = $aktivita;
         }
 
         return array_values($kolekce);
-    }
-
-    public static function hodinaNejblizsiAktivity(\DateTimeInterface $po = null)
-    {
-        dbQuery('
-        SELECT *
-        FROM akce_seznam
-        WHERE CASE WHEN ? THEN zacatek > ? ELSE TRUE END
-    ');
-    }
-
-    public static function aktivujVsePripravene(int $rok)
-    {
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE stav=$2 AND rok=$3', [StavAktivity::AKTIVOVANA, StavAktivity::PRIPRAVENA, $rok]);
     }
 
     public static function idExistujiciInstancePodleUrl(

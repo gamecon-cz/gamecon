@@ -8,7 +8,7 @@ use Chyby;
 use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
-use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
 class Registrace
 {

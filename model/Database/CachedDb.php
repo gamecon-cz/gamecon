@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Uzivatel;
+namespace Gamecon\Database;
 
 use Gamecon\Cache\QueryCache;
 
@@ -20,6 +20,8 @@ readonly class CachedDb
         array  $relatedTables,
         string $sql,
     ): array {
+        $relatedTables = array_unique($relatedTables);
+
         $this->checkUsedTables($relatedTables, $sql);
 
         $tablesDataVersions = $this->getTablesDataVersions($relatedTables);

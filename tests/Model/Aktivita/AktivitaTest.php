@@ -8,7 +8,7 @@ use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
-use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
 use Uzivatel;
 
@@ -169,7 +169,7 @@ SQL,
                     false,
                     DatabazoveNastaveni::vytvorZGlobals(),
                     '',
-                    '',
+                    sys_get_temp_dir(),
                 );
             }
 
