@@ -24,19 +24,31 @@ Tym::vypisZpracuj($u);
 
 // aktivity
 
-$aktivity = Aktivita::zFiltru([
-    'rok'           => $systemoveNastaveni->rocnik(),
-    'jenViditelne'  => true,
-    'bezDalsichKol' => true,
-    'typ'           => $typ ? $typ->id() : null,
-    'organizator'   => !empty($org) ? $org->id() : null,
-]);
+$aktivity = Aktivita::zFiltru(
+    systemoveNastaveni: $systemoveNastaveni,
+    filtr: [
+        'rok'           => $systemoveNastaveni->rocnik(),
+        'jenViditelne'  => true,
+        'bezDalsichKol' => true,
+        'typ'           => $typ
+            ? $typ->id()
+            : null,
+        'organizator'   => !empty($org)
+            ? $org->id()
+            : null,
+    ],
+);
 
-$skupiny = seskupenePodle($aktivity, function ($aktivita) {
-    return $aktivita->patriPod() ?: -$aktivita->id();
+$skupiny = seskupenePodle($aktivity, function (
+    $aktivita,
+) {
+    return $aktivita->patriPod()
+        ?: -$aktivita->id();
 });
 
-$skupiny = serazenePodle($skupiny, function ($skupina) {
+$skupiny = serazenePodle($skupiny, function (
+    $skupina,
+) {
     return current($skupina)->nazev();
 });
 
@@ -57,7 +69,9 @@ foreach ($skupiny as $skupina) {
             $t->parse('aktivity.aktivita.termin.tym');
         }
 
-        $vypisTymu = $tym && $u && $aktivita->prihlasen($u) ? $tym->vypis() : null;
+        $vypisTymu = $tym && $u && $aktivita->prihlasen($u)
+            ? $tym->vypis()
+            : null;
         if ($vypisTymu && !$vyberTymu) {
             $t->assign('vypisTymu', $vypisTymu);
             $t->parse('aktivity.aktivita.termin.vypisTymu');
@@ -71,7 +85,9 @@ foreach ($skupiny as $skupina) {
 
         $t->assign([
             'aktivita'   => $aktivita,
-            'obsazenost' => $aktivita->obsazenost() ? '(' . trim($aktivita->obsazenost()) . ')' : '',
+            'obsazenost' => $aktivita->obsazenost()
+                ? '(' . trim($aktivita->obsazenost()) . ')'
+                : '',
             'prihlasit'  => $aktivita->prihlasovatko($u),
         ]);
 
@@ -79,9 +95,13 @@ foreach ($skupiny as $skupina) {
         $t->parse('aktivity.aktivita.termin');
     }
 
-    $organizatori = implode(', ', array_map(static function (Uzivatel $organizator) {
+    $organizatori = implode(', ', array_map(static function (
+        Uzivatel $organizator,
+    ) {
         $url = $organizator->url(true);
-        return $url === null // asi vypravěčská skupina nebo podobně
+
+        return $url === null
+            // asi vypravěčská skupina nebo podobně
             ? $organizator->jmenoNick()
             : '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
     }, $aktivita->organizatori()));
@@ -93,10 +113,13 @@ foreach ($skupiny as $skupina) {
         'htmlId'             => $aktivita->urlId(),
         // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
         'kotva'              => URL_WEBU . '/' . $url->cela() . '#' . $aktivita->urlId(),
-        'obrazek'            => $obrazek ? $obrazek->pasuj(512) : null, // TODO kvalita?
+        'obrazek'            => $obrazek
+            ? $obrazek->pasuj(512)
+            : null, // TODO kvalita?
         'organizatori'       => $organizatori,
         'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
-        'kapacita'           => $aktivita->kapacita() ?: 'neomezeně',
+        'kapacita'           => $aktivita->kapacita()
+            ?: 'neomezeně',
     ]);
 
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.aktivita.stitek');
@@ -114,11 +137,12 @@ if (!empty($org)) {
     $this->info()->nazev($org->jmenoNick());
     $t->assign([
         'jmeno' => $org->jmenoNick(),
-        'popis' => $org->oSobe() ?: '<p><em>popisek od vypravěče nemáme</em></p>',
+        'popis' => $org->oSobe()
+            ?: '<p><em>popisek od vypravěče nemáme</em></p>',
         'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
     ]);
     $t->parse('aktivity.hlavickaVypravec');
-} else if ($typ) {
+} elseif ($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
 
     $descriptionFile = 'soubory/systemove/linie-ikony/' . $typ->id() . '.txt';
@@ -140,7 +164,9 @@ if (!empty($org)) {
         'ikonaLinieSekce' => $lines[0] ?? 'Sekce',
         'ikonaLinieJmeno' => $lines[1] ?? 'Jmeno "Prezdivka" Prijmeni',
         'ikonaLinieEmail' => $lines[2] ?? 'info@gamecon.cz',
-        'specTridy'       => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
+        'specTridy'       => $typ->id() == TypAktivity::DRD
+            ? 'aktivity_aktivity-drd'
+            : null,
     ]);
 
     // podstránky linie

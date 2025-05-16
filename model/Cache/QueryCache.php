@@ -8,8 +8,8 @@ readonly class QueryCache
 {
     public function __construct(private string $cacheDir)
     {
-        if (!is_dir($this->cacheDir)) {
-            throw new \RuntimeException('Cache directory does not exist');
+        if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
+            throw new \RuntimeException('Cache directory can not be created: ' . var_export($cacheDir, true));
         }
     }
 

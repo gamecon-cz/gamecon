@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita\SqlStruktura;
 
-class AktivitaSqlStruktura
+class AkceSeznamSqlStruktura
 {
     public const AKCE_SEZNAM_TABULKA = 'akce_seznam';
 

@@ -11,12 +11,12 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Gamecon\Database\CachedDb;
 use Gamecon\SystemoveNastaveni\Exceptions\ChybnaHodnotaSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Sql;
-use Gamecon\Uzivatel\CachedDb;
-use Gamecon\Uzivatel\Finance;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice as Klic;
+use Gamecon\Uzivatel\Finance;
 
 class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
 {
@@ -67,6 +67,9 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     ) {
         if ($jsmeNaLocale && $jsmeNaBete) {
             throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
+        }
+        if (!$cacheDir) {
+            throw new \LogicException('Cache dir musí být nastaven');
         }
     }
 

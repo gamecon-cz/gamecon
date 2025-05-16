@@ -678,24 +678,29 @@ function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result
  * Dotaz s nahrazováním jmen proměnných, pokud je nastaveno pole, tak jen z
  * pole ve forme $0 $1 atd resp $index
  */
-function dbQueryS($q, array $pole = null, mysqli $mysqli = null)
+function dbQueryS(string $q, array $pole = null, mysqli $mysqli = null): mysqli_result | bool
 {
     if (!$pole) {
         return dbQuery($q, null, $mysqli);
     }
+
+    return dbQuery(
+        q: dbQueryAssemble($q, $pole, $mysqli),
+        mysqli: $mysqli,
+    );
+}
+
+function dbQueryAssemble(string $q, array $pole, mysqli $mysqli = null): string {
     $delta = array_key_exists(0, $pole) && !str_contains($q, '$0')
         ? -1
         : 0; // povolení číslování $1, $2, $3...
-    return dbQuery(
-        preg_replace_callback(
-            '~\$(?<cislo_parametru>\d+)~',
-            static function (array $matches) use ($pole, $delta) {
-                return dbQv($pole[$matches['cislo_parametru'] + $delta]);
-            },
-            $q,
-        ),
-        null,
-        $mysqli,
+
+    return preg_replace_callback(
+        '~\$(?<cislo_parametru>\d+)~',
+        static function (array $matches) use ($pole, $delta, $mysqli) {
+            return dbQv($pole[$matches['cislo_parametru'] + $delta], $mysqli);
+        },
+        $q,
     );
 }
 
@@ -719,7 +724,7 @@ function dbQa(array $array): string
  * Quotes input values for DB. Nulls are passed as real NULLs, other values as
  * strings. Quotes $val as value
  */
-function dbQv($val): string
+function dbQv($val, ?mysqli $mysqli = null): string
 {
     if (is_array($val)) {
         if ($val === []) {
@@ -736,7 +741,7 @@ function dbQv($val): string
     if ($val instanceof DateTimeInterface) {
         return '"' . $val->format('Y-m-d H:i:s') . '"';
     }
-    return '"' . mysqli_real_escape_string(dbConnect(), $val) . '"';
+    return '"' . mysqli_real_escape_string($mysqli ?? dbConnect(), $val) . '"';
 }
 
 function dbQRaw($val): string

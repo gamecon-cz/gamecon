@@ -45,46 +45,51 @@ $response = [];
 
 $rok = array_key_exists('rok', $_GET)
     ? (int)$_GET['rok']
-    : ROCNIK;
+    : $systemoveNastaveni->rocnik();
 
-$aktivity = Aktivita::zFiltru(["rok" => $rok]);
+$aktivity = Aktivita::zFiltru(
+    systemoveNastaveni: $systemoveNastaveni,
+    filtr: ['rok' => $rok],
+);
 
 foreach ($aktivity as $aktivita) {
     $zacatekAktivity = $aktivita->zacatek();
-    $konecAktivity = $aktivita->konec();
+    $konecAktivity   = $aktivita->konec();
 
     if (!$zacatekAktivity || !$konecAktivity || !$aktivita->viditelnaPro($u)) {
         continue;
     }
 
     $vypraveci = array_map(
-        fn(Uzivatel $organizator) => $organizator->jmenoNick(),
-        $aktivita->organizatori()
+        fn(
+            Uzivatel $organizator,
+        ) => $organizator->jmenoNick(),
+        $aktivita->organizatori(),
     );
 
     $stitkyId = $aktivita->tagyId();
 
     $aktivitaRes = [
-        'id'          => $aktivita->id(),
-        'nazev'       => $aktivita->nazev(),
-        'kratkyPopis' => $aktivita->kratkyPopis(),
-        'popis'       => $aktivita->popis(),
-        'obrazek'     => (string)$aktivita->obrazek(),
-        'vypraveci'   => $vypraveci,
-        'stitkyId'    => $stitkyId,
+        'id'            => $aktivita->id(),
+        'nazev'         => $aktivita->nazev(),
+        'kratkyPopis'   => $aktivita->kratkyPopis(),
+        'popis'         => $aktivita->popis(),
+        'obrazek'       => (string)$aktivita->obrazek(),
+        'vypraveci'     => $vypraveci,
+        'stitkyId'      => $stitkyId,
         // TODO: cenaZaklad by měla být číslo ?
-        'cenaZaklad'  => intval($aktivita->cenaZaklad()),
-        'casText'     => $zacatekAktivity
+        'cenaZaklad'    => intval($aktivita->cenaZaklad()),
+        'casText'       => $zacatekAktivity
             ? $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00'
             : '',
-        'cas'         => [
+        'cas'           => [
             'od' => $zacatekAktivity->getTimestamp() * 1000,
             'do' => $konecAktivity->getTimestamp() * 1000,
         ],
-        'linie'       => $aktivita->typ()->nazev(),
-        'vBudoucnu' => $aktivita->vBudoucnu(),
-        'vdalsiVlne' => $aktivita->vDalsiVlne(),
-        'probehnuta' => $aktivita->probehnuta(),
+        'linie'         => $aktivita->typ()->nazev(),
+        'vBudoucnu'     => $aktivita->vBudoucnu(),
+        'vdalsiVlne'    => $aktivita->vDalsiVlne(),
+        'probehnuta'    => $aktivita->probehnuta(),
         'jeBrigadnicka' => $aktivita->jeBrigadnicka(),
     ];
 
@@ -118,16 +123,16 @@ foreach ($aktivity as $aktivita) {
         $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
     }
     $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
-    $aktivitaRes['zamcenaDo'] = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
-    $aktivitaRes['obsazenost'] = $aktivita->obsazenostObj();
-    $aktivitaRes['tymova'] = $aktivita->tymova();
+    $aktivitaRes['zamcenaDo']       = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
+    $aktivitaRes['obsazenost']      = $aktivita->obsazenostObj();
+    $aktivitaRes['tymova']          = $aktivita->tymova();
 
     $dite = $aktivita->detiIds();
     if ($dite && count($dite))
         $aktivitaRes['dite'] = $dite;
 
     $aktivitaRes = array_filter($aktivitaRes);
-    $response[] = $aktivitaRes;
+    $response[]  = $aktivitaRes;
 }
 
 $jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;

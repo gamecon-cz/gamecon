@@ -7,7 +7,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniStavySqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
@@ -644,7 +644,7 @@ SQL;
 
         $result = $this->systemoveNastaveni->cachedDb()->dbFetchAll(
             [
-                AktivitaSqlStruktura::AKCE_SEZNAM_TABULKA,
+                AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA,
                 AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
                 AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA,
                 AkcePrihlaseniStavySqlStruktura::AKCE_PRIHLASENI_STAVY_TABULKA,
