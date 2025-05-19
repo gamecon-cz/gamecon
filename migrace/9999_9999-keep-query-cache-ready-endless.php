@@ -4,7 +4,7 @@
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 $systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
-$systemoveNastaveni->queryCache()->flush();
+$systemoveNastaveni->queryCache()->clear();
 
 $tablesResult = $this->q(<<<SQL
 SHOW TABLES
