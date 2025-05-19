@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace Gamecon\Cache;
 
-readonly class QueryCache
+class QueryCache
 {
-    public function __construct(private string $cacheDir)
+    private ?\EPDO $table = null;
+
+    public function __construct(private readonly string $cacheDir)
     {
         if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
             throw new \RuntimeException('Cache directory can not be created: ' . var_export($cacheDir, true));
         }
     }
 
-    public function flush(): void
+    public function clear(): void
     {
-        $this->getTableForCache()->query(<<<SQL
-            DELETE FROM query_cache
-            SQL,
-        );
+        /* SQLite does not have TRUNCATE, but DELETE without WHERE is the same
+        (it is a TRUNCATE optimizer for the DELETE statement) */
+        $this->executeQuery('DELETE FROM query_cache');
     }
 
     /**
@@ -28,52 +29,17 @@ readonly class QueryCache
         string $key,
         string $queryHash,
     ): false | array {
-        $table = $this->getTableForCache();
-        $stmt  = $table->prepare(<<<SQLITE
-            SELECT "value" FROM query_cache WHERE "key" = :KEY
-            SQLITE,
-            [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            ],
+        $stmt = $this->executeQuery(
+            'SELECT "value" FROM query_cache WHERE "key" = :KEY',
+            ['KEY' => $key],
         );
-        if (!$stmt->execute(['KEY' => $key])) {
-            throw new \RuntimeException('Failed to execute query');
-        }
 
         $encodedValues = $stmt->fetchColumn();
         if ($encodedValues === false) {
-            // remove invalid cache of the same query (but different query-and-data-version key)
-            $table->prepare(<<<SQLITE
-                DELETE FROM query_cache WHERE "query_hash" = :QUERY_HASH
-            SQLITE,
-            )->execute(['QUERY_HASH' => $queryHash]);
-
             return false;
         }
 
         return json_decode($encodedValues, true, 512, JSON_THROW_ON_ERROR);
-    }
-
-    private function getTableForCache(): \EPDO
-    {
-        $sqlite = new \EPDO('sqlite:' . $this->cacheDir . '/query_cache.sqlite');
-
-        $sqlite->query(<<<SQLITE
-            CREATE TABLE IF NOT EXISTS query_cache(
-                "key"   VARCHAR(255) NOT NULL PRIMARY KEY,
-                "query_hash" VARCHAR(255) NOT NULL,
-                "value" TEXT NULL,
-                "data_versions" TEXT NULL
-            )
-            SQLITE,
-        );
-
-        $sqlite->query(<<<SQLITE
-            CREATE INDEX IF NOT EXISTS idx_query_hash ON query_cache("query_hash")
-            SQLITE,
-        );
-
-        return $sqlite;
     }
 
     public function set(
@@ -82,14 +48,52 @@ readonly class QueryCache
         array  $values,
         ?array $dataVersions = null,
     ): void {
-        $stmt = $this->getTableForCache()->prepare(<<<SQLITE
-            INSERT INTO query_cache("key", "query_hash", "value", "data_versions")
-            VALUES (:KEY, :QUERY_HASH, :VALUE, :DATA_VERSIONS)
-            ON CONFLICT("key") DO UPDATE SET "value" = :VALUE
+        $this->executeQuery(
+            'INSERT OR REPLACE INTO query_cache("key", "query_hash", "value", "data_versions")
+            VALUES (:KEY, :QUERY_HASH, :VALUE, :DATA_VERSIONS)',
+            [
+                'KEY'           => $key,
+                'QUERY_HASH'    => $queryHash,
+                'VALUE'         => json_encode($values),
+                'DATA_VERSIONS' => json_encode($dataVersions),
+            ],
+        );
+    }
+
+    private function executeQuery(
+        string $query,
+        ?array  $params = null,
+    ): \PDOStatement {
+        $stmt = $this->getTableForCache()->prepare($query);
+        if (!$stmt->execute($params)) {
+            throw new \RuntimeException(
+                'Failed to execute query: ' . var_export($stmt->errorInfo(), true),
+            );
+        }
+
+        return $stmt;
+    }
+
+    private function getTableForCache(): \EPDO
+    {
+        if ($this->table) {
+            return $this->table;
+        }
+
+        $sqlite = new \EPDO('sqlite:' . $this->cacheDir . '/query_cache.sqlite');
+
+        $sqlite->query(<<<SQLITE
+            CREATE TABLE IF NOT EXISTS query_cache(
+                "key"   VARCHAR(255) NOT NULL PRIMARY KEY,
+                "query_hash" VARCHAR(255) NOT NULL UNIQUE,
+                "value" TEXT NULL,
+                "data_versions" TEXT NULL
+            )
             SQLITE,
         );
-        if (!$stmt->execute(['KEY' => $key, 'QUERY_HASH' => $queryHash, 'VALUE' => json_encode($values), 'DATA_VERSIONS' => json_encode($dataVersions)])) {
-            throw new \RuntimeException('Failed to execute query');
-        }
+
+        $this->table = $sqlite;
+
+        return $this->table;
     }
 }
