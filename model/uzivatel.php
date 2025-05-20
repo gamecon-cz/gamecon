@@ -1,7 +1,9 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Kanaly\GcMail;
@@ -19,6 +21,8 @@ use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\RolePodleRocniku;
+use Gamecon\Uzivatel\SqlStruktura\PravaRoleSqlStruktura;
+use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -52,7 +56,7 @@ class Uzivatel extends DbObject
     public const TYP_DOKLADU_JINY = 'jiny';
 
     /** @var array<int, array<int, int|string>> */
-    private array $organizovaneAktivityIds = [];
+    private array  $organizovaneAktivityIds = [];
     private ?array $historiePrihlaseni      = null;
 
     public static function povinneUdajeProRegistraci(bool $vcetneProUbytovani = false): array
@@ -526,7 +530,7 @@ SQL
 
         return Aktivita::zFiltru(
             systemoveNastaveni: $this->systemoveNastaveni,
-            filtr: ['rok' => $rok, 'organizator' => $this->id()],
+            filtr: [FiltrAktivity::ROK => $rok, FiltrAktivity::ORGANIZATOR => $this->id()],
             razeni: ['zacatek'],
         );
     }
@@ -596,8 +600,10 @@ SQL,
     }
 
     /** Je uživatel přihlášen na aktuální GC? */
-    public function gcPrihlasen()
+    public function gcPrihlasen(?DataSourcesCollector $dataSourcesCollector = null): bool
     {
+        $dataSourcesCollector?->addDataSource(Sql::UZIVATELE_HODNOTY_TABULKA);
+
         return $this->maRoli(Role::PRIHLASEN_NA_LETOSNI_GC);
     }
 
@@ -736,7 +742,7 @@ SQL,
     {
         if (!empty($r['jmeno_uzivatele']) && !empty($r['prijmeni_uzivatele'])) {
             $celeJmeno = $r['jmeno_uzivatele'] . ' ' . $r['prijmeni_uzivatele'];
-            $jeMail    = strpos($r['login_uzivatele'], '@') !== false;
+            $jeMail    = str_contains($r['login_uzivatele'], '@');
             if ($celeJmeno == $r['login_uzivatele'] || $jeMail) {
                 return $celeJmeno;
             }
@@ -814,9 +820,11 @@ SQL,
         return array_filter($povinneUdaje, $validator, ARRAY_FILTER_USE_KEY);
     }
 
-    public function maPravo($pravo): bool
-    {
-        return in_array($pravo, $this->prava());
+    public function maPravo(
+        $pravo,
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): bool {
+        return in_array($pravo, $this->prava($dataSourcesCollector));
     }
 
     public function maPravoNaPrirazeniRole(int $idRole): bool
@@ -1103,30 +1111,35 @@ SQL,
      * Ručně načte práva - neoptimalizovaná varianta, přijatelné pouze pro prasečí
      * řešení, kde si to můžeme dovolit (=reporty)
      */
-    public function nactiPrava()
+    public function nactiPrava(?DataSourcesCollector $dataSourcesCollector = null): void
     {
-        if (!isset($this->r['prava'])) {
-            //načtení uživatelských práv
-            $p     = dbQuery(<<<SQL
+        $dataSourcesCollector?->addDataSources([
+            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
+            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
+        ]);
+        if (isset($this->r['prava'])) {
+            return;
+        }
+        //načtení uživatelských práv
+        $p     = dbQuery(<<<SQL
                 SELECT prava_role.id_prava
                 FROM platne_role_uzivatelu
                 LEFT JOIN prava_role USING(id_role)
                 WHERE platne_role_uzivatelu.id_uzivatele=$0
                 SQL,
-                [0 => $this->id()],
-            );
-            $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-            while ($r = mysqli_fetch_assoc($p)) {
-                $prava[] = (int)$r['id_prava'];
-            }
-            $this->r['prava'] = $prava;
+            [0 => $this->id()],
+        );
+        $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+        while ($r = mysqli_fetch_assoc($p)) {
+            $prava[] = (int)$r['id_prava'];
         }
+        $this->r['prava'] = $prava;
     }
 
-    public function prava(): array
+    public function prava(?DataSourcesCollector $dataSourcesCollector = null): array
     {
         if (!isset($this->r['prava'])) {
-            $this->nactiPrava();
+            $this->nactiPrava($dataSourcesCollector);
         } elseif (is_string($this->r['prava'])) {
             $this->r['prava'] = array_map('intval', explode(',', $this->r['prava']));
         }
@@ -1206,7 +1219,7 @@ SQL,
     /**
      * @return bool Jestli uživatel organizuje danou aktivitu nebo ne.
      */
-    public function organizuje(Aktivita $a)
+    public function organizuje(Aktivita $a): bool
     {
         if (!isset($this->organizovaneAktivityIds[$a->rok()])) {
             $this->organizovaneAktivityIds[$a->rok()] = dbOneIndex(<<<SQL
@@ -2297,8 +2310,10 @@ SQL,
             ?: null;
     }
 
-    public static function zIndicii(string $jmenoNickEmailId, bool $zCache = false): ?\Uzivatel
-    {
+    public static function zIndicii(
+        string $jmenoNickEmailId,
+        bool   $zCache = false,
+    ): ?\Uzivatel {
         if (!$jmenoNickEmailId) {
             return null;
         }

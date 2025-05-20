@@ -10,6 +10,7 @@ use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniStavySqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
@@ -21,6 +22,7 @@ use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
 use Cenik;
 use Gamecon\Finance\QrPlatba;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -433,9 +435,9 @@ SQL,
      * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
      * zdarma a 1.0 pro aktivity za plnou cenu.
      */
-    public function slevaAktivity()
+    public function slevaAktivity(?DataSourcesCollector $dataSourcesCollector = null): float
     {
-        return $this->soucinitelCenyAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
+        return $this->soucinitelCenyAktivit($dataSourcesCollector); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
     }
 
     public function slevaZaAktivityVProcentech(): float
@@ -537,15 +539,16 @@ SQL,
      * Vrátí součinitel ceny aktivit, tedy slevy uživatele vztahující se k
      * aktivitám. Vrátí hodnotu.
      */
-    private function soucinitelCenyAktivit(): float
-    {
+    private function soucinitelCenyAktivit(
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): float {
         if ($this->soucinitelCenyAKtivit === null) {
             // pomocné proměnné
             $sleva = 0; // v procentech
             // výpočet pravidel
-            if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA)) {
+            if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA, $dataSourcesCollector)) {
                 $sleva += self::PLNA_SLEVA_PROCENT;
-            } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY)) {
+            } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY, $dataSourcesCollector)) {
                 $sleva += self::CASTECNA_SLEVA_PROCENT;
             }
             if ($sleva > self::MAX_SLEVA_AKTIVIT_PROCENT) {
@@ -904,7 +907,7 @@ SQL;
         if (!$this->u->gcPrihlasen()) {
             return; // pokud se například odhlásí těsně před GC
         }
-        foreach (Aktivita::zOrganizatora($this->u) as $a) {
+        foreach (Aktivita::zOrganizatora($this->u, $this->systemoveNastaveni) as $a) {
             $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a, $this->systemoveNastaveni);
         }
         $this->zapocteno[__FUNCTION__] = true;

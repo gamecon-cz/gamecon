@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\TypAktivity;
 
 /** @var Modul $this */
@@ -27,13 +28,13 @@ Tym::vypisZpracuj($u);
 $aktivity = Aktivita::zFiltru(
     systemoveNastaveni: $systemoveNastaveni,
     filtr: [
-        'rok'           => $systemoveNastaveni->rocnik(),
-        'jenViditelne'  => true,
-        'bezDalsichKol' => true,
-        'typ'           => $typ
+        FiltrAktivity::ROK             => $systemoveNastaveni->rocnik(),
+        FiltrAktivity::JEN_VIDITELNE   => true,
+        FiltrAktivity::BEZ_DALSICH_KOL => true,
+        FiltrAktivity::TYP             => $typ
             ? $typ->id()
             : null,
-        'organizator'   => !empty($org)
+        FiltrAktivity::ORGANIZATOR     => !empty($org)
             ? $org->id()
             : null,
     ],

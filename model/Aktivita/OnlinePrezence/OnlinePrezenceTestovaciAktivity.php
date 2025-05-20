@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
@@ -36,15 +37,15 @@ readonly class OnlinePrezenceTestovaciAktivity
         int $limit = 10,
     ): array {
         $organizovaneAktivityFiltr = [
-            'rok'  => $rok,
-            'stav' => [
+            FiltrAktivity::ROK  => $rok,
+            FiltrAktivity::STAV => [
                 $this->obecnyStav::PRIPRAVENA,
                 $this->obecnyStav::NOVA,
                 $this->obecnyStav::AKTIVOVANA,
                 $this->obecnyStav::PUBLIKOVANA,
             ],
-            'od'   => '2000-01-01', // hlavně prostě aby měly vyplěný začátek a konec
-            'do'   => '3000-01-01',
+            FiltrAktivity::OD   => '2000-01-01', // hlavně prostě aby měly vyplěný začátek a konec
+            FiltrAktivity::DO   => '3000-01-01',
         ];
 
         $organizovaneAktivity = $this->obecnaAktivita::zFiltru(

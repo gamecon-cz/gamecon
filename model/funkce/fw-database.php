@@ -132,7 +132,7 @@ function _nastavRocnikDoSpojeni(int $rocnik, mysqli $spojeni, bool $databaseSele
     if ($databaseSelected) {
         try {
             // pro SQL view, který nesnese variable
-            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rocnik, $spojeni);
+            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK' AND hodnota != $0", $rocnik, $spojeni);
         } catch (Throwable $throwable) {
             if ($throwable->getCode() !== 1146) {
                 throw $throwable;

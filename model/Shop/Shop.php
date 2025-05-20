@@ -3,6 +3,7 @@
 namespace Gamecon\Shop;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Jidlo;
@@ -1015,9 +1016,9 @@ SQL
         $prihlaseneLarpy = Aktivita::zFiltru(
             systemoveNastaveni: $this->systemoveNastaveni,
             filtr: [
-                'typ'        => TypAktivity::LARP,
-                'rok'        => $this->systemoveNastaveni->rocnik(),
-                'prihlaseni' => [$this->zakaznik->id()],
+                FiltrAktivity::TYP        => TypAktivity::LARP,
+                FiltrAktivity::ROK        => $this->systemoveNastaveni->rocnik(),
+                FiltrAktivity::PRIHLASENI => [$this->zakaznik->id()],
             ],
 
         );
@@ -1035,10 +1036,10 @@ SQL
         $prihlasenaRpg = Aktivita::zFiltru(
             systemoveNastaveni: $this->systemoveNastaveni,
             filtr: [
-                'typ'        => TypAktivity::RPG,
-                'rok'        => $this->systemoveNastaveni->rocnik(),
-                'prihlaseni' => [$this->zakaznik->id()],
-            ]
+                FiltrAktivity::TYP        => TypAktivity::RPG,
+                FiltrAktivity::ROK        => $this->systemoveNastaveni->rocnik(),
+                FiltrAktivity::PRIHLASENI => [$this->zakaznik->id()],
+            ],
         );
         foreach ($prihlasenaRpg as $prihlaseneRpg) {
             $prihlaseneRpg->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni);
@@ -1054,8 +1055,8 @@ SQL
         $prihlaseneAktivity = Aktivita::zFiltru(
             systemoveNastaveni: $this->systemoveNastaveni,
             filtr: [
-                'rok'        => $this->systemoveNastaveni->rocnik(),
-                'prihlaseni' => [$this->zakaznik->id()],
+                FiltrAktivity::ROK        => $this->systemoveNastaveni->rocnik(),
+                FiltrAktivity::PRIHLASENI => [$this->zakaznik->id()],
             ],
         );
         foreach ($prihlaseneAktivity as $prihlasenaAktivita) {

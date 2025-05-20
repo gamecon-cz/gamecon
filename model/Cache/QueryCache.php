@@ -27,7 +27,6 @@ class QueryCache
      */
     public function get(
         string $key,
-        string $queryHash,
     ): false | array {
         $stmt = $this->executeQuery(
             'SELECT "value" FROM query_cache WHERE "key" = :KEY',
