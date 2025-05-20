@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Database;
 
+use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cache\QueryCache;
 
 readonly class CachedDb
@@ -19,17 +20,20 @@ readonly class CachedDb
     public function dbFetchAll(
         array  $relatedTables,
         string $sql,
+        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
         $relatedTables = array_unique($relatedTables);
 
         $this->checkUsedTables($relatedTables, $sql);
+
+        $dataSourcesCollector?->addDataSources($relatedTables);
 
         $tablesDataVersions = $this->getTablesDataVersions($relatedTables);
         $queryHash          = $this->getHash($sql);
 
         $cacheKey = $this->getCacheKey($tablesDataVersions, $queryHash);
 
-        $data = $this->queryCache->get($cacheKey, $queryHash);
+        $data = $this->queryCache->get($cacheKey);
 
         if ($data !== false) {
             return $data;
@@ -74,7 +78,7 @@ readonly class CachedDb
             throw new \RuntimeException(
                 sprintf(
                     'Used tables in SQL do not match the related tables. '
-                    . 'Used tables: %s, related tables: %s',
+                    . 'Really used tables: %s, given related tables: %s',
                     var_export($usedTables, true),
                     var_export($relatedTables, true),
                 ),

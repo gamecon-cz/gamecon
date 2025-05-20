@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
@@ -144,7 +145,7 @@ $semifinale = [];
 $finale     = [];
 foreach (Aktivita::zFiltru(
     systemoveNastaveni: $systemoveNastaveni,
-    filtr: ['typ' => TypAktivity::DRD, 'rok' => $systemoveNastaveni->rocnik()],
+    filtr: [FiltrAktivity::TYP => TypAktivity::DRD, FiltrAktivity::ROK => $systemoveNastaveni->rocnik()],
 ) as $a) {
     if ($a->cenaZaklad() == 0) {
         continue;

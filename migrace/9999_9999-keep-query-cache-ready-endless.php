@@ -5,6 +5,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 $systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
 $systemoveNastaveni->queryCache()->clear();
+$systemoveNastaveni->tableDataDependentCache()->clear();
 
 $tablesResult = $this->q(<<<SQL
 SHOW TABLES
@@ -53,7 +54,7 @@ SQL,
     );
     $this->q(<<<SQL
 CREATE TRIGGER IF NOT EXISTS `{$tableEscaped}_update`
-AFTER UPDATE ON `{$table}`
+AFTER UPDATE ON `{$table}` -- sadly AFTER UPDATE is triggered even if nothing changed
 FOR EACH ROW
 BEGIN
     INSERT INTO _table_data_versions (table_name, version)

@@ -6,6 +6,8 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Composer\Autoload\ClassLoader;
 use Gamecon\Cache\QueryCache;
+use Gamecon\Cache\TableDataVersionsRepository;
+use Gamecon\Cache\TableDataDependentCache;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -50,11 +52,13 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         return (int)round($cislo, 0);
     }
 
-    private ?array      $vsechnyZaznamyNastaveni = null;
-    private ?array      $odvozeneHodnoty         = null;
-    private ?array      $vychoziHodnoty          = null;
-    private ?CachedDb   $cachedDb                = null;
-    private ?QueryCache $queryCache              = null;
+    private ?array             $vsechnyZaznamyNastaveni = null;
+    private ?array             $odvozeneHodnoty         = null;
+    private ?array             $vychoziHodnoty          = null;
+    private ?CachedDb          $cachedDb                = null;
+    private ?QueryCache                  $queryCache                  = null;
+    private ?TableDataDependentCache     $tableDataDependentCache     = null;
+    private ?TableDataVersionsRepository $tableDataVersionsRepository = null;
 
     public function __construct(
         private readonly int                     $rocnik,
@@ -1030,5 +1034,26 @@ SQL;
         }
 
         return $this->queryCache;
+    }
+
+    public function tableDataDependentCache(): TableDataDependentCache
+    {
+        if (!$this->tableDataDependentCache) {
+            $this->tableDataDependentCache = new TableDataDependentCache(
+                $this->cacheDir() . '/table_data_dependent',
+                $this->tableDataVersionsRepository(),
+            );
+        }
+
+        return $this->tableDataDependentCache;
+    }
+
+    public function tableDataVersionsRepository(): TableDataVersionsRepository
+    {
+        if (!$this->tableDataVersionsRepository) {
+            $this->tableDataVersionsRepository = new TableDataVersionsRepository();
+        }
+
+        return $this->tableDataVersionsRepository;
     }
 }
