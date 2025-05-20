@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Cas\DateTimeGamecon;
@@ -62,8 +63,8 @@ if ($jenZamceneNeuzavrene) {
     $filtr['jenNeuzavrene'] = true;
 }
 if ($jenUzavreneNevyplnene) {
-    $filtr['stav']          = StavAktivity::UZAVRENA;
-    $filtr['jenNevyplnene'] = true;
+    $filtr[FiltrAktivity::STAV]           = StavAktivity::UZAVRENA;
+    $filtr[FiltrAktivity::JEN_NEVYPLNENE] = true;
 }
 $aktivity = Aktivita::zFiltru(
     systemoveNastaveni: $systemoveNastaveni,

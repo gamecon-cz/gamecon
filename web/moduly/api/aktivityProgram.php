@@ -5,6 +5,8 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Cache\DataSourcesCollector;
+use Gamecon\Aktivita\FiltrAktivity;
 
 /**
  * @var Uzivatel|null $u
@@ -41,17 +43,34 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     return;
 }
 
-$response = [];
-
 $rok = array_key_exists('rok', $_GET)
     ? (int)$_GET['rok']
     : $systemoveNastaveni->rocnik();
 
+$tableDataDependentCache = $systemoveNastaveni->tableDataDependentCache();
+// has to fetch all data versions before data itself, because after that we could fetch invalidly new, by some other process changed version and that would cache old data under new version
+$tableDataDependentCache->preloadTableDataVersions();
+
+$cacheKey                = 'aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym');
+$cachedResponse          = $tableDataDependentCache->getItem($cacheKey);
+
+if ($cachedResponse !== null) {
+    header('Content-type: application/json');
+    unset($cachedResponse['_metadata']);
+    echo json_encode($cachedResponse, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+$dataSourcesCollector = new DataSourcesCollector();
+
 $aktivity = Aktivita::zFiltru(
     systemoveNastaveni: $systemoveNastaveni,
-    filtr: ['rok' => $rok],
+    filtr: [FiltrAktivity::ROK => $rok],
+    prednacitat: true,
+    dataSourcesCollector: $dataSourcesCollector,
 );
 
+$response = [];
 foreach ($aktivity as $aktivita) {
     $zacatekAktivity = $aktivita->zacatek();
     $konecAktivity   = $aktivita->konec();
@@ -74,6 +93,7 @@ foreach ($aktivity as $aktivita) {
         'nazev'         => $aktivita->nazev(),
         'kratkyPopis'   => $aktivita->kratkyPopis(),
         'popis'         => $aktivita->popis(),
+        // obrazek jak cachovat?
         'obrazek'       => (string)$aktivita->obrazek(),
         'vypraveci'     => $vypraveci,
         'stitkyId'      => $stitkyId,
@@ -88,13 +108,13 @@ foreach ($aktivity as $aktivita) {
         ],
         'linie'         => $aktivita->typ()->nazev(),
         'vBudoucnu'     => $aktivita->vBudoucnu(),
-        'vdalsiVlne'    => $aktivita->vDalsiVlne(),
+        'vdalsiVlne'    => $aktivita->vDalsiVlne($dataSourcesCollector),
         'probehnuta'    => $aktivita->probehnuta(),
         'jeBrigadnicka' => $aktivita->jeBrigadnicka(),
     ];
 
     if ($u) {
-        $stavPrihlasen = $aktivita->stavPrihlaseni($u);
+        $stavPrihlasen = $aktivita->stavPrihlaseni($u, $dataSourcesCollector);
         switch ($stavPrihlasen) {
             case StavPrihlaseni::PRIHLASEN:
                 $aktivitaRes['stavPrihlaseni'] = "prihlasen";
@@ -116,15 +136,15 @@ foreach ($aktivity as $aktivita) {
                 break;
         }
 
-        $aktivitaRes['slevaNasobic'] = $aktivita->slevaNasobic($u);
+        $aktivitaRes['slevaNasobic'] = $aktivita->slevaNasobic($u, $dataSourcesCollector);
 
-        $aktivitaRes['vedu'] = $u && $u->organizuje($aktivita);
+        $aktivitaRes['vedu'] = $u && $aktivita->organizuje($u);
         // TODO: argumenty pro admin
         $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
     }
-    $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
+    $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna(dataSourcesCollector: $dataSourcesCollector);
     $aktivitaRes['zamcenaDo']       = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
-    $aktivitaRes['obsazenost']      = $aktivita->obsazenostObj();
+    $aktivitaRes['obsazenost']      = $aktivita->obsazenostObj($dataSourcesCollector);
     $aktivitaRes['tymova']          = $aktivita->tymova();
 
     $dite = $aktivita->detiIds();
@@ -135,6 +155,13 @@ foreach ($aktivity as $aktivita) {
     $response[]  = $aktivitaRes;
 }
 
-$jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+$tableDataDependentCache->setItem(
+    $cacheKey,
+    $response,
+    $dataSourcesCollector,
+);
+
+unset($response['_metadata']);
+
 header('Content-type: application/json');
-echo json_encode($response, $jsonConfig);
+echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

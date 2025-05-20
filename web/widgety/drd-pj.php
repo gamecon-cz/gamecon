@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Aktivita\FiltrAktivity;
 
 /**
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
@@ -11,13 +12,13 @@ use Gamecon\Aktivita\TypAktivity;
 // načíst aktivity DrD (všechna kola)
 $aktivity = Aktivita::zFiltru(
     systemoveNastaveni: $systemoveNastaveni,
-    filtr: ['typ' => TypAktivity::DRD, 'rok' => ROCNIK],
+    filtr: [FiltrAktivity::TYP => TypAktivity::DRD, FiltrAktivity::ROK => ROCNIK],
 );
 if (empty($aktivity)) {
     // když aktivity nejsou založeny, použít z minulého roku
     $aktivity = Aktivita::zFiltru(
         systemoveNastaveni: $systemoveNastaveni,
-        filtr: ['typ' => TypAktivity::DRD, 'rok' => ROCNIK - 1],
+        filtr: [FiltrAktivity::TYP => TypAktivity::DRD, FiltrAktivity::ROK => ROCNIK - 1],
     );
 }
 
