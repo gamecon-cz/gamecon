@@ -132,7 +132,7 @@ function _nastavRocnikDoSpojeni(int $rocnik, mysqli $spojeni, bool $databaseSele
     if ($databaseSelected) {
         try {
             // pro SQL view, který nesnese variable
-            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rocnik, $spojeni);
+            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK' AND hodnota != $0", $rocnik, $spojeni);
         } catch (Throwable $throwable) {
             if ($throwable->getCode() !== 1146) {
                 throw $throwable;
@@ -680,24 +680,29 @@ function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result
  * Dotaz s nahrazováním jmen proměnných, pokud je nastaveno pole, tak jen z
  * pole ve forme $0 $1 atd resp $index
  */
-function dbQueryS($q, array $pole = null, mysqli $mysqli = null)
+function dbQueryS(string $q, array $pole = null, mysqli $mysqli = null): mysqli_result | bool
 {
     if (!$pole) {
         return dbQuery($q, null, $mysqli);
     }
+
+    return dbQuery(
+        q: dbQueryAssemble($q, $pole, $mysqli),
+        mysqli: $mysqli,
+    );
+}
+
+function dbQueryAssemble(string $q, array $pole, mysqli $mysqli = null): string {
     $delta = array_key_exists(0, $pole) && !str_contains($q, '$0')
         ? -1
         : 0; // povolení číslování $1, $2, $3...
-    return dbQuery(
-        preg_replace_callback(
-            '~\$(?<cislo_parametru>\d+)~',
-            static function (array $matches) use ($pole, $delta) {
-                return dbQv($pole[$matches['cislo_parametru'] + $delta]);
-            },
-            $q,
-        ),
-        null,
-        $mysqli,
+
+    return preg_replace_callback(
+        '~\$(?<cislo_parametru>\d+)~',
+        static function (array $matches) use ($pole, $delta, $mysqli) {
+            return dbQv($pole[$matches['cislo_parametru'] + $delta], $mysqli);
+        },
+        $q,
     );
 }
 
@@ -721,7 +726,7 @@ function dbQa(array $array): string
  * Quotes input values for DB. Nulls are passed as real NULLs, other values as
  * strings. Quotes $val as value
  */
-function dbQv($val): string
+function dbQv($val, ?mysqli $mysqli = null): string
 {
     if (is_array($val)) {
         if ($val === []) {
@@ -738,7 +743,7 @@ function dbQv($val): string
     if ($val instanceof DateTimeInterface) {
         return '"' . $val->format('Y-m-d H:i:s') . '"';
     }
-    return '"' . mysqli_real_escape_string(dbConnect(), $val) . '"';
+    return '"' . mysqli_real_escape_string($mysqli ?? dbConnect(), $val) . '"';
 }
 
 function dbQRaw($val): string
@@ -801,6 +806,16 @@ function dbUpdate(string $table, array $vals, array $where)
         throw new $type();
     }
     return $r;
+}
+
+/**
+ * @return array<string>
+ */
+function dbParseUsedTables(string $query): array {
+    /** https://dev.mysql.com/doc/refman/8.4/en/identifiers.html */
+    preg_match_all('~(?:FROM|JOIN)\s+`?([a-zA-Z0-9$_]+)~i', $query, $matches);
+
+    return array_unique($matches[1]);
 }
 
 class ConnectionException extends DbException

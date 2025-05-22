@@ -9,7 +9,7 @@ use Gamecon\Aktivita\Exceptions\NevhodnyCasProAutomatickouHromadnouAktivaci;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 
 class HromadneAkceAktivit
 {

@@ -4,7 +4,7 @@ namespace Gamecon\Tests\Aktivity;
 
 use Gamecon\Tests\Db\AbstractTestDb;
 
-use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
 /**
  * Testy pokrývající metody na přihlášení a registraci.

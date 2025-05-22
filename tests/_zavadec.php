@@ -65,4 +65,10 @@ register_shutdown_function(static function () {
     foreach ($oldTestDatabasesWrapped as $oldTestDatabaseWrapped) {
         dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', reset($oldTestDatabaseWrapped)), null, $connection);
     }
+
+    $rootCacheDir = SPEC;
+    if (preg_match('~/[0-9]+$~', $rootCacheDir)) {
+        $rootCacheDir = dirname($rootCacheDir);
+    }
+    shell_exec('rm -rf ' . escapeshellarg($rootCacheDir));
 });

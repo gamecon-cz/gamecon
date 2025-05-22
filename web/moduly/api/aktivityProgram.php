@@ -5,6 +5,8 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Cache\DataSourcesCollector;
+use Gamecon\Aktivita\FiltrAktivity;
 
 /**
  * @var Uzivatel|null $u
@@ -41,55 +43,78 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     return;
 }
 
-$response = [];
-
 $rok = array_key_exists('rok', $_GET)
     ? (int)$_GET['rok']
-    : ROCNIK;
+    : $systemoveNastaveni->rocnik();
 
-$aktivity = Aktivita::zFiltru(["rok" => $rok]);
+$tableDataDependentCache = $systemoveNastaveni->tableDataDependentCache();
+// has to fetch all data versions before data itself, because after that we could fetch invalidly new, by some other process changed version and that would cache old data under new version
+$tableDataDependentCache->preloadTableDataVersions();
 
+$cacheKey                = 'aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym');
+$cachedResponse          = $tableDataDependentCache->getItem($cacheKey);
+
+if ($cachedResponse !== null) {
+    header('Content-type: application/json');
+    unset($cachedResponse['_metadata']);
+    echo json_encode($cachedResponse, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+$dataSourcesCollector = new DataSourcesCollector();
+
+$aktivity = Aktivita::zFiltru(
+    systemoveNastaveni: $systemoveNastaveni,
+    filtr: [FiltrAktivity::ROK => $rok],
+    prednacitat: true,
+    dataSourcesCollector: $dataSourcesCollector,
+);
+
+$response = [];
 foreach ($aktivity as $aktivita) {
     $zacatekAktivity = $aktivita->zacatek();
-    $konecAktivity = $aktivita->konec();
+    $konecAktivity   = $aktivita->konec();
 
     if (!$zacatekAktivity || !$konecAktivity || !$aktivita->viditelnaPro($u)) {
         continue;
     }
 
     $vypraveci = array_map(
-        fn(Uzivatel $organizator) => $organizator->jmenoNick(),
-        $aktivita->organizatori()
+        fn(
+            Uzivatel $organizator,
+        ) => $organizator->jmenoNick(),
+        $aktivita->organizatori(),
     );
 
     $stitkyId = $aktivita->tagyId();
 
     $aktivitaRes = [
-        'id'          => $aktivita->id(),
-        'nazev'       => $aktivita->nazev(),
-        'kratkyPopis' => $aktivita->kratkyPopis(),
-        'popis'       => $aktivita->popis(),
-        'obrazek'     => (string)$aktivita->obrazek(),
-        'vypraveci'   => $vypraveci,
-        'stitkyId'    => $stitkyId,
+        'id'            => $aktivita->id(),
+        'nazev'         => $aktivita->nazev(),
+        'kratkyPopis'   => $aktivita->kratkyPopis(),
+        'popis'         => $aktivita->popis(),
+        // obrazek jak cachovat?
+        'obrazek'       => (string)$aktivita->obrazek(),
+        'vypraveci'     => $vypraveci,
+        'stitkyId'      => $stitkyId,
         // TODO: cenaZaklad by měla být číslo ?
-        'cenaZaklad'  => intval($aktivita->cenaZaklad()),
-        'casText'     => $zacatekAktivity
+        'cenaZaklad'    => intval($aktivita->cenaZaklad()),
+        'casText'       => $zacatekAktivity
             ? $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00'
             : '',
-        'cas'         => [
+        'cas'           => [
             'od' => $zacatekAktivity->getTimestamp() * 1000,
             'do' => $konecAktivity->getTimestamp() * 1000,
         ],
-        'linie'       => $aktivita->typ()->nazev(),
-        'vBudoucnu' => $aktivita->vBudoucnu(),
-        'vdalsiVlne' => $aktivita->vDalsiVlne(),
-        'probehnuta' => $aktivita->probehnuta(),
+        'linie'         => $aktivita->typ()->nazev(),
+        'vBudoucnu'     => $aktivita->vBudoucnu(),
+        'vdalsiVlne'    => $aktivita->vDalsiVlne($dataSourcesCollector),
+        'probehnuta'    => $aktivita->probehnuta(),
         'jeBrigadnicka' => $aktivita->jeBrigadnicka(),
     ];
 
     if ($u) {
-        $stavPrihlasen = $aktivita->stavPrihlaseni($u);
+        $stavPrihlasen = $aktivita->stavPrihlaseni($u, $dataSourcesCollector);
         switch ($stavPrihlasen) {
             case StavPrihlaseni::PRIHLASEN:
                 $aktivitaRes['stavPrihlaseni'] = "prihlasen";
@@ -111,25 +136,32 @@ foreach ($aktivity as $aktivita) {
                 break;
         }
 
-        $aktivitaRes['slevaNasobic'] = $aktivita->slevaNasobic($u);
+        $aktivitaRes['slevaNasobic'] = $aktivita->slevaNasobic($u, $dataSourcesCollector);
 
-        $aktivitaRes['vedu'] = $u && $u->organizuje($aktivita);
+        $aktivitaRes['vedu'] = $u && $aktivita->organizuje($u);
         // TODO: argumenty pro admin
         $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
     }
-    $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
-    $aktivitaRes['zamcenaDo'] = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
-    $aktivitaRes['obsazenost'] = $aktivita->obsazenostObj();
-    $aktivitaRes['tymova'] = $aktivita->tymova();
+    $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna(dataSourcesCollector: $dataSourcesCollector);
+    $aktivitaRes['zamcenaDo']       = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
+    $aktivitaRes['obsazenost']      = $aktivita->obsazenostObj($dataSourcesCollector);
+    $aktivitaRes['tymova']          = $aktivita->tymova();
 
     $dite = $aktivita->detiIds();
     if ($dite && count($dite))
         $aktivitaRes['dite'] = $dite;
 
     $aktivitaRes = array_filter($aktivitaRes);
-    $response[] = $aktivitaRes;
+    $response[]  = $aktivitaRes;
 }
 
-$jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+$tableDataDependentCache->setItem(
+    $cacheKey,
+    $response,
+    $dataSourcesCollector,
+);
+
+unset($response['_metadata']);
+
 header('Content-type: application/json');
-echo json_encode($response, $jsonConfig);
+echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

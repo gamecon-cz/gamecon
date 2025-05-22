@@ -9,11 +9,14 @@
  * submenu_order: 2
  */
 
-require_once __DIR__ . '/_editor-tagu.php';
+/**
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
 
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Aktivita\EditorTagu;
 
-$editorTagu = new EditorTagu();
+$editorTagu = new EditorTagu($systemoveNastaveni->cachedDb());
 
 $zpracovanyTag = $editorTagu->pridejNovyTag();
 if (!$zpracovanyTag) {

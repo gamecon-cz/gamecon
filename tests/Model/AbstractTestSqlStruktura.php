@@ -9,10 +9,22 @@ abstract class AbstractTestSqlStruktura extends AbstractTestDb
     /**
      * @test
      */
-    public function Konstanty_odpovidaji_sloupcum() {
+    public function Konstanty_odpovidaji_sloupcum()
+    {
         $sqlStrukturaClass = $this->strukturaClass();
 
-        $classReflection   = new \ReflectionClass($sqlStrukturaClass);
+        $classReflection = new \ReflectionClass($sqlStrukturaClass);
+
+        self::assertSame(
+            preg_replace(
+                '~Test$~',
+                '',
+                (new \ReflectionClass(static::class))->getShortName(),
+            ),
+            $classReflection->getShortName(),
+            "Název třídy neodpovídá očekávanému názvu podle testu",
+        );
+
         $constantsToValues = $classReflection->getConstants(\ReflectionClassConstant::IS_PUBLIC);
         $tabulka           = $this->nazevTabulkyZKonstant($classReflection);
 
@@ -27,11 +39,12 @@ abstract class AbstractTestSqlStruktura extends AbstractTestDb
         self::assertSame(
             $nazvySloupcu,
             $nazvySloupcuPodleKonstant,
-            "Konstanty s názvy sloupců neodpovídají tabulce '$tabulka'"
+            "Konstanty s názvy sloupců neodpovídají tabulce '$tabulka'",
         );
     }
 
-    protected function nazevTabulkyZKonstant(\ReflectionClass $classReflection): string {
+    protected function nazevTabulkyZKonstant(\ReflectionClass $classReflection): string
+    {
         $constantsToValues           = $classReflection->getConstants(\ReflectionClassConstant::IS_PUBLIC);
         $expectedTableConstantSuffix = '_TABULKA';
         $constantNames               = [];
@@ -43,7 +56,7 @@ abstract class AbstractTestSqlStruktura extends AbstractTestDb
         }
         throw new \LogicException(
             "Nenašli jsme public konstantu s názvem tabulky v {$classReflection->getName()}.
-            Očekáváme nějakou co končí '$expectedTableConstantSuffix'. Našli jsme pouze " . implode(',', $constantNames)
+            Očekáváme nějakou co končí '$expectedTableConstantSuffix'. Našli jsme pouze " . implode(',', $constantNames),
         );
     }
 

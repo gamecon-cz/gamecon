@@ -613,7 +613,7 @@ HTML;
         }
 
         // přeskočit případné speciální (neviditelné) aktivity
-        if ($aktivita->viditelnaPro($this->u) || $this->nastaveni[self::INTERNI]) {
+        if ($aktivita->viditelnaPro($this->u, null) || $this->nastaveni[self::INTERNI]) {
             return $a;
         } else {
             return $this->nactiDalsiAktivitu($iterator);
