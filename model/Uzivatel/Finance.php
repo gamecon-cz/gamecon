@@ -311,12 +311,13 @@ SQL,
     private function prehled(): array
     {
         if ($this->prehled === null) {
+            $this->prehled = [];
             if ($this->logovat) {
                 $this->prepocti();
             }
         }
 
-        return $this->prehled ?? [];
+        return $this->prehled;
     }
 
     private function serazenyPrehled(): array
