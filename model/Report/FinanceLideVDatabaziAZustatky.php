@@ -6,7 +6,6 @@ namespace Gamecon\Report;
 
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
 class FinanceLideVDatabaziAZustatky
 {

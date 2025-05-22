@@ -1,6 +1,6 @@
 <?php
 
-namespace Gamecon\Tests\Model\Finance;
+namespace Gamecon\Tests\Model\Aktivita\SqlStruktura;
 
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
 use Gamecon\Tests\Model\AbstractTestSqlStruktura;

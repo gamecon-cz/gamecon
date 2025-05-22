@@ -4,8 +4,8 @@ namespace Gamecon\Aktivita;
 
 use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
+use Gamecon\Cache\CachedDb;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Database\CachedDb;
 
 class EditorTagu
 {

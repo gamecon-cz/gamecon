@@ -2,10 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Database;
-
-use Gamecon\Cache\DataSourcesCollector;
-use Gamecon\Cache\QueryCache;
+namespace Gamecon\Cache;
 
 readonly class CachedDb
 {
@@ -91,9 +88,7 @@ readonly class CachedDb
      */
     private function parseUsedTables(string $sql): array
     {
-        preg_match_all('/(?:FROM|JOIN)\s+`?([a-zA-Z0-9_]+)/i', $sql, $matches);
-
-        return array_unique($matches[1]);
+        return dbParseUsedTables($sql);
     }
 
     /**
