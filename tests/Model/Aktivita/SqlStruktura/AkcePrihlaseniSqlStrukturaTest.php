@@ -1,16 +1,14 @@
 <?php
 
-namespace Gamecon\Tests\Model\Finance;
+namespace Gamecon\Tests\Model\Aktivita\SqlStruktura;
 
-use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
 use Gamecon\Tests\Model\AbstractTestSqlStruktura;
 
-class AkcePrihlaseniSpecStrukturaTest extends AbstractTestSqlStruktura
+class AkcePrihlaseniSqlStrukturaTest extends AbstractTestSqlStruktura
 {
     protected function strukturaClass(): string
     {
         return AkcePrihlaseniSqlStruktura::class;
     }
-
 }

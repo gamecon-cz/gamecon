@@ -808,6 +808,16 @@ function dbUpdate(string $table, array $vals, array $where)
     return $r;
 }
 
+/**
+ * @return array<string>
+ */
+function dbParseUsedTables(string $query): array {
+    /** https://dev.mysql.com/doc/refman/8.4/en/identifiers.html */
+    preg_match_all('~(?:FROM|JOIN)\s+`?([a-zA-Z0-9$_]+)~i', $query, $matches);
+
+    return array_unique($matches[1]);
+}
+
 class ConnectionException extends DbException
 {
 

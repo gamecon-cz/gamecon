@@ -43,6 +43,10 @@ class TableDataDependentCache
     ): mixed {
         $encodedRawItem = $this->getEncodedRawItem($key);
 
+        if ($encodedRawItem === null) {
+            return null;
+        }
+
         $rawItem = $this->decodeRawItem($encodedRawItem);
 
         if (!is_array($rawItem)) {
