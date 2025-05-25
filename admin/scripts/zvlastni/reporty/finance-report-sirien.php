@@ -1,6 +1,5 @@
 <?php
 
-use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice as Klice;
 use Gamecon\Pravo as Pravo;
 
 require __DIR__ . '/sdilene-hlavicky.php';
@@ -9,14 +8,14 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 $rocnik = $systemoveNastaveni->rocnik();
 
-$bonusyZaVEdeniAktivity  = $systemoveNastaveni->bonusyZaVedeniAktivity();
-$bonusZa1hAktivitu       = $bonusyZaVEdeniAktivity[Klice::BONUS_ZA_1H_AKTIVITU];
-$bonusZa2hAktivitu       = $bonusyZaVEdeniAktivity[Klice::BONUS_ZA_2H_AKTIVITU];
-$bonusZa3hAz5hAktivitu   = $bonusyZaVEdeniAktivity[Klice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU];
-$bonusZa6hAz7hAktivitu   = $bonusyZaVEdeniAktivity[Klice::BONUS_ZA_6H_AZ_7H_AKTIVITU];
-$bonusZa8hAz9hAktivitu   = $bonusyZaVEdeniAktivity[Klice::BONUS_ZA_8H_AZ_9H_AKTIVITU];
-$bonusZa10hAz11hAktivitu = $bonusyZaVEdeniAktivity[Klice::BONUS_ZA_10H_AZ_11H_AKTIVITU];
-$bonusZa12hAz13hAktivitu = $bonusyZaVEdeniAktivity[Klice::BONUS_ZA_12H_AZ_13H_AKTIVITU];
+$bonusyZaVedeniAktivity  = $systemoveNastaveni->bonusyZaVedeniAktivity();
+$bonusZa1hAktivitu       = $bonusyZaVedeniAktivity[1];
+$bonusZa2hAktivitu       = $bonusyZaVedeniAktivity[2];
+$bonusZa3hAz5hAktivitu   = $bonusyZaVedeniAktivity[5];
+$bonusZa6hAz7hAktivitu   = $bonusyZaVedeniAktivity[7];
+$bonusZa8hAz9hAktivitu   = $bonusyZaVedeniAktivity[9];
+$bonusZa10hAz11hAktivitu = $bonusyZaVedeniAktivity[11];
+$bonusZa12hAz13hAktivitu = $bonusyZaVedeniAktivity[13];
 
 $bezBonusuZaVedeniAktivit = Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT;
 $maAktivityZdarma         = Pravo::AKTIVITY_ZDARMA;
@@ -212,7 +211,15 @@ SELECT CONCAT('Ir-Std', IF(at.id_typu = 6, -- Wargaming
                                    IF(at.id_typu = 7, -- Bonus
                                       IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
-        'Počet aktivit přepočtený na standardní aktivitu' AS nazev, (delkaAktivityJakoNasobekStandardni(ase.id_akce)) AS data
+        'Počet aktivit přepočtený na standardní aktivitu' AS nazev, CASE
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 60) THEN $bonusZa1hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 120) THEN $bonusZa2hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 300) THEN $bonusZa3hAz5hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 420) THEN $bonusZa6hAz7hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 540) THEN $bonusZa8hAz9hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 660) THEN $bonusZa10hAz11hAktivitu
+            ELSE $bonusZa12hAz13hAktivitu
+        END AS data
 FROM akce_seznam ase
 JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = $rocnik
@@ -229,7 +236,16 @@ SELECT CONCAT('Ir-Kapacita', IF(at.id_typu = 6, -- Wargaming
                                    IF(at.id_typu = 7, -- Bonus
                                       IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
-        'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, IF(ase.teamova = 0, ase.kapacita + ase.kapacita_f + ase.kapacita_m, ase.team_max) AS kapacita, delkaAktivityJakoNasobekStandardni(ase.id_akce) AS dajns
+        'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, IF(ase.teamova = 0, ase.kapacita + ase.kapacita_f + ase.kapacita_m, ase.team_max) AS kapacita,
+        CASE
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 60) THEN $bonusZa1hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 120) THEN $bonusZa2hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 300) THEN $bonusZa3hAz5hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 420) THEN $bonusZa6hAz7hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 540) THEN $bonusZa8hAz9hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 660) THEN $bonusZa10hAz11hAktivitu
+            ELSE $bonusZa12hAz13hAktivitu
+        END AS dajns
 FROM akce_seznam ase
 JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = $rocnik
@@ -246,7 +262,16 @@ SELECT CONCAT('Ir-PrumPocVyp-', IF(at.id_typu = 6, -- Wargaming
                                    IF(at.id_typu = 7, -- Bonus
                                       IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
-        'Prům. počet vypravěčů 1 aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, (SELECT COUNT(*) FROM akce_organizatori ao WHERE ao.id_akce = ase.id_akce) AS vypraveci, delkaAktivityJakoNasobekStandardni(ase.id_akce) AS dajns
+        'Prům. počet vypravěčů 1 aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, (SELECT COUNT(*) FROM akce_organizatori ao WHERE ao.id_akce = ase.id_akce) AS vypraveci,
+        CASE
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 60) THEN $bonusZa1hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 120) THEN $bonusZa2hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 300) THEN $bonusZa3hAz5hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 420) THEN $bonusZa6hAz7hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 540) THEN $bonusZa8hAz9hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 660) THEN $bonusZa10hAz11hAktivitu
+            ELSE $bonusZa12hAz13hAktivitu
+        END AS dajns
 FROM akce_seznam ase
 JOIN akce_typy at ON ase.typ = at.id_typu
 WHERE ase.rok = $rocnik
@@ -263,7 +288,16 @@ SELECT CONCAT('Ir-StdVypraveci-', IF(at.id_typu = 6, -- Wargaming
                                    IF(at.id_typu = 7, -- Bonus
                                       IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
-        'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Vypravěči nebo Half-orgy' AS nazev, (delkaAktivityJakoNasobekStandardni(ase.id_akce)) AS data
+        'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Vypravěči nebo Half-orgy' AS nazev,
+        CASE
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 60) THEN $bonusZa1hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 120) THEN $bonusZa2hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 300) THEN $bonusZa3hAz5hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 420) THEN $bonusZa6hAz7hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 540) THEN $bonusZa8hAz9hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 660) THEN $bonusZa10hAz11hAktivitu
+            ELSE $bonusZa12hAz13hAktivitu
+        END AS data
 FROM akce_organizatori ao
 JOIN akce_seznam ase ON ase.id_akce = ao.id_akce
 JOIN akce_typy at ON ase.typ = at.id_typu
@@ -282,7 +316,16 @@ SELECT CONCAT('Ir-StdVypOrgove-', IF(at.id_typu = 6, -- Wargaming
                                    IF(at.id_typu = 7, -- Bonus
                                       IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
-        'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Orgy' AS nazev, (delkaAktivityJakoNasobekStandardni(ase.id_akce)) AS data
+        'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Orgy' AS nazev,
+        CASE
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 60) THEN $bonusZa1hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 120) THEN $bonusZa2hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 300) THEN $bonusZa3hAz5hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 420) THEN $bonusZa6hAz7hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 540) THEN $bonusZa8hAz9hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 660) THEN $bonusZa10hAz11hAktivitu
+            ELSE $bonusZa12hAz13hAktivitu
+        END AS data
 FROM akce_organizatori ao
 JOIN akce_seznam ase ON ase.id_akce = ao.id_akce
 JOIN akce_typy at ON ase.typ = at.id_typu
@@ -328,7 +371,16 @@ SELECT CONCAT('Ir-Ucast', IF(at.id_typu = 6, -- Wargaming
                                    IF(at.id_typu = 7, -- Bonus
                                       IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
-        'Počet herních bloků zabraný hráči přepočtený na standardní aktivitu (bez ohledu na kategorii hráče)' AS nazev, (delkaAktivityJakoNasobekStandardni(ase.id_akce)) AS data
+        'Počet herních bloků zabraný hráči přepočtený na standardní aktivitu (bez ohledu na kategorii hráče)' AS nazev,
+        CASE
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 60) THEN $bonusZa1hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 120) THEN $bonusZa2hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 300) THEN $bonusZa3hAz5hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 420) THEN $bonusZa6hAz7hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 540) THEN $bonusZa8hAz9hAktivitu
+            WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 660) THEN $bonusZa10hAz11hAktivitu
+            ELSE $bonusZa12hAz13hAktivitu
+        END AS data
 FROM akce_prihlaseni ap
 JOIN akce_seznam ase ON ap.id_akce = ase.id_akce
 JOIN akce_typy at ON ase.typ = at.id_typu
