@@ -4,9 +4,9 @@
  * Stránka statistik GC
  *
  * nazev: Statistiky
- * pravo: 107
+ * pravo: 99999
  */
-
+// pravo: 107
 
 
 /**
