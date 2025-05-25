@@ -45,12 +45,12 @@ class XTemplate
      *      of simple getters)
      *    - temptable object may be used also as value in array mode (see above)
      */
-    function assign($a, $b = null)
+    function assign($keyOrArray, $value = null)
     {
-        if (is_array($a) && $b === null) {
-            $this->tc->context = array_merge($this->tc->context, $a);
+        if (is_array($keyOrArray) && $value === null) {
+            $this->tc->context = array_merge($this->tc->context, $keyOrArray);
         } else {
-            $this->tc->context[$a] = $b;
+            $this->tc->context[$keyOrArray] = $value;
         }
 
         return $this;

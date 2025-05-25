@@ -82,7 +82,35 @@ const ziskejIdZTextovéhoFiltru = (text: string): number | undefined => {
   return +idFiltrText;
 };
 
-// TODO: přidat zbytek filtrů
+const flexDocument = new FlexSearch.Document<ApiAktivita, true>({
+  language: "cs",
+  tokenize: "forward",
+  preset: "performance",
+  document: {
+    id: "id",
+    store: true,
+    index: [
+      // zanořené vlasnosti se přidávají neco:vlastnost
+      "nazev",
+      "kratkyPopis",
+      "popis",
+      "vypraveci[]",
+      //"stitky[]",
+      "cenaZaklad",
+      "casText",
+      //"linie",
+    ],
+  }
+});
+
+const zaindexovanéIdAktivit = new Set<number>()
+const zaindexujFullText = (aktivita: ApiAktivita) => {
+  if (zaindexovanéIdAktivit.has(aktivita.id)) return;
+  flexDocument.add(aktivita)
+  zaindexovanéIdAktivit.add(aktivita.id)
+}
+
+
 export const filtrujAktivity = (aktivity: ApiAktivita[], filtr: FiltrAktivit, mapováníŠtítků: MapováníŠtítků) => {
   const {
     filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrŠtítkyId, ročník, výběr, filtrStavAktivit, filtrText
@@ -143,9 +171,10 @@ export const filtrujAktivity = (aktivity: ApiAktivita[], filtr: FiltrAktivit, ma
     const štítkyIdPodleKategorieValues = Object.values(štítkyIdPodleKategorie);
     aktivityFiltrované = aktivityFiltrované
       .filter((aktivita) =>
+        // aktivita splňuje podmínku alespoň jednoho štítku z každé kategorie
         štítkyIdPodleKategorieValues.every(štítkyIdZKategorie =>
           štítkyIdZKategorie.some(štítekIdZKategorie =>
-            aktivita.stitkyId || []
+            (aktivita.stitkyId ?? [])
               .some(štítekId => štítekId === štítekIdZKategorie))
         )
       );
@@ -166,44 +195,18 @@ export const filtrujAktivity = (aktivity: ApiAktivita[], filtr: FiltrAktivit, ma
   // TODO: filtrovat podle všech podmínek oddělených | ne jen podle první
   const prvníTextovýFiltr = textovéFiltry?.[0];
   if (prvníTextovýFiltr) {
-    const flexDocument = new FlexSearch.Document<ApiAktivita, true>({
-      language: "cs",
-      tokenize: "forward",
-      preset: "performance",
-      document: {
-        id: "id",
-        store: true,
-        index: [
-          // zanořené vlasnosti se přidávají neco:vlastnost
-          "nazev",
-          "kratkyPopis",
-          "popis",
-          "vypraveci[]",
-          //"stitky[]",
-          "cenaZaklad",
-          "casText",
-          //"linie",
-        ],
-      }
-    });
-
     for (const aktivita of aktivityFiltrované) {
-      flexDocument.add(aktivita);
+      zaindexujFullText(aktivita);
     }
 
     const výsledek = flexDocument.search(prvníTextovýFiltr, {
       limit: 1000,
     });
 
-    let idčka = výsledek.flatMap(x => x.result) as number[];
-    idčka = Array.from(new Set(idčka));
 
-    const filtr = idčka.map(id =>
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      (flexDocument as any).get(id) as ApiAktivita
-    );
+    const idčka = new Set(výsledek.flatMap(x => x.result) as number[]);
 
-    aktivityFiltrované = filtr;
+    aktivityFiltrované = aktivityFiltrované.filter(aktivita=>idčka.has(aktivita.id));
   }
 
   const chybějícíAktivityPodleId = aktivityPodleId.filter(aktivitaPodleId => !aktivityFiltrované.some(aktivita=>aktivita.id === aktivitaPodleId.id));

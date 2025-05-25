@@ -42,8 +42,8 @@
   </tr>
   <!-- begin: uzivatel -->
   <tr>
-    <td>{uzivatel.jmenoNick}</td>
-    <td>{uzivatel.finance.stavHr}</td>
+    <td>{jmenoNick}</td>
+    <td>{stavFinanci}</td>
   </tr>
   <!-- end: uzivatel -->
   <!-- begin: zadniUzivatele -->

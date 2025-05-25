@@ -13,7 +13,7 @@ export const PřekrývacíNačítač: React.FC<{
       flexDirection: "row",
       justifyContent: "center"
     }}>
-      <div style={{ marginTop: 50 }}>
+      <div style={{ position: "sticky", top: "50%", height: "fit-content" }}>
         <Načítač />
       </div>
     </div>;

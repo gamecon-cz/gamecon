@@ -45,12 +45,13 @@ export const tabulkaBuňkaAktivitaTřídy = (
 type TProgramTabulkaBuňkaProps = {
   aktivitaId: number;
   zobrazLinii?: boolean;
+  kompaktní?: boolean;
 };
 
 export const ProgramTabulkaBuňka: FunctionComponent<
   TProgramTabulkaBuňkaProps
 > = (props) => {
-  const { aktivitaId, zobrazLinii } = props;
+  const { aktivitaId, zobrazLinii, kompaktní } = props;
 
   const aktivita = useAktivita(aktivitaId);
   const pohlavi = useUživatelPohlaví();
@@ -69,7 +70,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   const hodinDo = new Date(aktivita.cas.do).getHours();
   const rozsah = (hodinDo - hodinOd + 24) % 24;
 
-  return (
+  return !kompaktní ? (
     <>
       <td colSpan={rozsah}>
         <div class={tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)}>
@@ -96,6 +97,24 @@ export const ProgramTabulkaBuňka: FunctionComponent<
           {zobrazLinii ? (
             <span class="program_osobniTyp">{aktivita.linie}</span>
           ) : undefined}
+        </div>
+      </td>
+    </>
+  ) : (
+    <>
+      <td colSpan={rozsah}>
+        <div class={"kompaktni " + tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)} >
+          <a
+            href={generujUrl(
+              produce(urlStav, (s) => {
+                s.aktivitaNáhledId = aktivita.id;
+              })
+            )}
+            class="programNahled_odkaz"
+            onClick={onAktivitaOdkazKlik}
+          >
+            {aktivita.nazev}
+          </a>
         </div>
       </td>
     </>
