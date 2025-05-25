@@ -6,8 +6,8 @@
  * nazev: Statistiky
  * pravo: 99999
  */
+//pravo: 107
 
-//107
 
 /**
  * @var $u Uzivatel
