@@ -66,7 +66,7 @@ SQL
 
 $this->q(<<<SQL
 UPDATE akce_typy
-SET kod_typu = 'Pred'
+SET kod_typu = 'Prednasky'
 WHERE id_typu = 3
 SQL
 );

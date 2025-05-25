@@ -8,6 +8,9 @@
 class Tag extends DbObject
 {
 
+    public const MALOVANI = 12445; // Malování
+    public const UNIKOVKA = 12444; // Únikovka
+
     protected static $tabulka = 'sjednocene_tagy';
     protected static $pk      = 'id';
 

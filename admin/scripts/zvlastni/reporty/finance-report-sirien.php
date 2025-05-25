@@ -30,6 +30,9 @@ $plackaZdarma             = Pravo::PLACKA_ZDARMA;
 $jidloZdarma              = Pravo::JIDLO_ZDARMA;
 $jidloSeSlevou            = Pravo::JIDLO_SE_SLEVOU;
 
+$idTaguUnikovka = Tag::UNIKOVKA;
+$idTaguMalovani = Tag::MALOVANI;
+
 $report = Report::zSql(<<<SQL
 SELECT e.kod AS kod, e.popis AS popis, e.data AS data
 FROM (
@@ -169,9 +172,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.data)) AS data FROM (
 SELECT CONCAT('Nr-Zdarma-', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Cena za účast orgů zdarma na programu (s právem "Plná sleva na aktivity" na akci, která není "bez slev") (sum CZK)' AS nazev, (ase.cena) AS data
 FROM akce_seznam ase
@@ -188,9 +191,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.data)) AS data FROM (
 SELECT CONCAT('Vr-Storna-', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Storna za' AS nazev, ((ase.cena) / 2) AS data
 FROM akce_seznam ase
@@ -207,9 +210,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.data)) AS data FROM (
 SELECT CONCAT('Ir-Std', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Počet aktivit přepočtený na standardní aktivitu' AS nazev, CASE
             WHEN (TIMESTAMPDIFF(MINUTE, ase.zacatek, ase.konec) <= 60) THEN $bonusZa1hAktivitu
@@ -232,9 +235,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.kapacita * a.dajns) / SUM(dajns)) AS data FROM (
 SELECT CONCAT('Ir-Kapacita', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Průměrná kapacita aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, IF(ase.teamova = 0, ase.kapacita + ase.kapacita_f + ase.kapacita_m, ase.team_max) AS kapacita,
         CASE
@@ -258,9 +261,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.vypraveci * a.dajns) / SUM(dajns)) AS data FROM (
 SELECT CONCAT('Ir-PrumPocVyp-', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Prům. počet vypravěčů 1 aktivity, vážený průměr podle přepočtu na standardní aktivitu' AS nazev, (SELECT COUNT(*) FROM akce_organizatori ao WHERE ao.id_akce = ase.id_akce) AS vypraveci,
         CASE
@@ -284,9 +287,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.data)) AS data FROM (
 SELECT CONCAT('Ir-StdVypraveci-', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Vypravěči nebo Half-orgy' AS nazev,
         CASE
@@ -312,9 +315,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.data)) AS data FROM (
 SELECT CONCAT('Ir-StdVypOrgove-', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Orgy' AS nazev,
         CASE
@@ -340,9 +343,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.data)) AS data FROM (
 SELECT CONCAT('Nr-Bonusy', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Suma bonusů za vedení aktivit u lidí bez práva "bez bonusu za vedení aktivit"' AS nazev,
         CASE
@@ -367,9 +370,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.data)) AS data FROM (
 SELECT CONCAT('Ir-Ucast', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Počet herních bloků zabraný hráči přepočtený na standardní aktivitu (bez ohledu na kategorii hráče)' AS nazev,
         CASE
@@ -394,9 +397,9 @@ UNION
 
 SELECT 0 AS poradi, a.kod, a.nazev, (SUM(a.data)) AS data FROM (
 SELECT CONCAT('Vr-Vynosy-', IF(at.id_typu = 6, -- Wargaming
-                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12445 /*Malování*/), 'WGmal', 'WGhry'),
+                                   IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguMalovani), 'WGmal', 'WGhry'),
                                    IF(at.id_typu = 7, -- Bonus
-                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = 12444 /*Únikovka*/), 'AHEsc', 'AHry'),
+                                      IF(EXISTS(SELECT 1 FROM akce_sjednocene_tagy ast WHERE ast.id_akce = ase.id_akce AND ast.id_tagu = $idTaguUnikovka), 'AHEsc', 'AHry'),
                                       at.kod_typu))) AS kod,
         'Příjmy z aktivit, bez storn a bez lidí co mají účast zdarma' AS nazev, (ase.cena) AS data
 FROM akce_prihlaseni ap
