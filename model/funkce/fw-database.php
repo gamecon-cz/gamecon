@@ -197,7 +197,6 @@ function dbConnectionAnonymDb(): mysqli
 }
 
 /**
- * @param bool $selectDb if database should be selected on connect or not
  * @throws ConnectionException
  */
 function _dbConnect(
@@ -207,8 +206,7 @@ function _dbConnect(
     ?int    $dbPort,
     ?string $dbName,
     bool    $persistent = true,
-)
-{
+): mysqli {
     try {
         // persistent connection
         $spojeni = @mysqli_connect(

@@ -6,9 +6,9 @@ namespace Gamecon\Role;
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
-class RolePodleRocniku
+readonly class RolePodleRocniku
 {
-    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
+    public function __construct(private SystemoveNastaveni $systemoveNastaveni)
     {
     }
 
