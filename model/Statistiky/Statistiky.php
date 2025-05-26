@@ -8,7 +8,7 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\SystemoveNastaveni\ZdrojRocniku;
 
 class Statistiky
 {
@@ -21,10 +21,10 @@ class Statistiky
      * @param int[]|string[] $roky
      */
     public function __construct(
-        private readonly array              $roky,
-        private readonly SystemoveNastaveni $systemoveNastaveni,
+        private readonly array        $roky,
+        private readonly ZdrojRocniku $zdrojRocniku,
     ) {
-        $this->soucasnyRocnik = $this->systemoveNastaveni->rocnik();
+        $this->soucasnyRocnik = $this->zdrojRocniku->rocnik();
     }
 
     public function dataProGrafUcasti(\DateTimeImmutable $doChvile): array
@@ -352,7 +352,7 @@ SQL,
             $zacatekRegistraciJednohoRoku = DateTimeGamecon::spocitejPrihlasovaniUcastnikuOd($rok)->formatDatumDb();
             $zacatekGcJednohoRoku         = DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
             $konecGcJednohoRoku           = DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
-            $dnes                         = $this->systemoveNastaveni->ted()->formatDatumDb();
+            $dnes                         = $this->zdrojRocniku->ted()->formatDatumDb();
 
             if ($rok === $this->soucasnyRocnik) {
                 $indexLetosnihoRoku = $indexZpracovavanehoRoku;
@@ -456,7 +456,7 @@ FROM (
                     IF(
                         dorazil
                         AND EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role
                             WHERE uzivatele_role.id_uzivatele = ucast_podle_roku.id_uzivatele
                                 AND uzivatele_role.id_role IN ({$roleOrganizatoru}, {$letosniZazemi}, {$letosniVypravec})
@@ -469,7 +469,7 @@ FROM (
                 IF(
                     dorazil
                     AND EXISTS(
-                        SELECT *
+                        SELECT 1
                         FROM uzivatele_role_podle_rocniku AS podpurny_tym
                         JOIN role_seznam AS podpurny_tym_detail_role
                             ON podpurny_tym.id_role = podpurny_tym_detail_role.id_role
@@ -504,7 +504,7 @@ FROM (
                     IF(
                         dorazil
                         AND EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role AS pouze_organizatori
                             WHERE pouze_organizatori.id_uzivatele = ucast_podle_roku.id_uzivatele
                                 AND pouze_organizatori.id_role IN ({$roleOrganizatoru})
@@ -546,7 +546,7 @@ FROM (
                     IF(
                         dorazil
                         AND EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role_podle_rocniku AS zazemi
                             JOIN role_seznam AS zazemi_detail_role
                                 ON zazemi.id_role = zazemi_detail_role.id_role
@@ -578,7 +578,7 @@ FROM (
                     IF(
                         dorazil
                         AND EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role_podle_rocniku AS vypravec
                             JOIN role_seznam AS vypravec_detail_role
                                 ON vypravec.id_role = vypravec_detail_role.id_role
@@ -596,7 +596,7 @@ FROM (
             ELSE SUM(
                     IF(
                         EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role AS prihlaseni_na_rocnik
                             JOIN role_seznam AS prihlaseni_na_rocnik_role
                                 ON prihlaseni_na_rocnik.id_role = prihlaseni_na_rocnik_role.id_role
@@ -605,7 +605,7 @@ FROM (
                                 AND prihlaseni_na_rocnik_role.vyznam_role = '{$vyznamPrihlasen}'
                         )
                         AND NOT EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role AS prihlaseni_na_starsi_rocnik
                             JOIN role_seznam AS prihlaseni_na_starsi_rocnik_role
                                 ON prihlaseni_na_starsi_rocnik.id_role = prihlaseni_na_starsi_rocnik_role.id_role
@@ -615,7 +615,7 @@ FROM (
                                 AND prihlaseni_na_starsi_rocnik_role.vyznam_role = '{$vyznamPrihlasen}'
                         )
                         AND NOT EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role AS prihlaseni_na_novejsi_rocnik
                             JOIN role_seznam AS prihlaseni_na_novejsi_rocnik_role
                                 ON prihlaseni_na_novejsi_rocnik.id_role = prihlaseni_na_novejsi_rocnik_role.id_role
@@ -634,7 +634,7 @@ FROM (
             ELSE SUM(
                     IF(
                         EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role AS pritomen_na_rocniku
                             JOIN role_seznam AS pritomen_na_rocniku_role
                                 ON pritomen_na_rocniku.id_role = pritomen_na_rocniku_role.id_role
@@ -643,7 +643,7 @@ FROM (
                                 AND pritomen_na_rocniku_role.vyznam_role = '{$vyznamPritomen}'
                         )
                         AND NOT EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role AS pritomen_na_starsim_rocniku
                             JOIN role_seznam AS pritomen_na_starsim_rocniku_role
                                 ON pritomen_na_starsim_rocniku.id_role = pritomen_na_starsim_rocniku_role.id_role
@@ -653,7 +653,7 @@ FROM (
                                 AND pritomen_na_starsim_rocniku_role.vyznam_role = '{$vyznamPritomen}'
                         )
                         AND NOT EXISTS(
-                            SELECT *
+                            SELECT 1
                             FROM uzivatele_role AS pritomen_na_novejsim_rocniku
                             JOIN role_seznam AS pritomen_na_novejsim_rocniku_role
                                 ON pritomen_na_novejsim_rocniku.id_role = pritomen_na_novejsim_rocniku_role.id_role

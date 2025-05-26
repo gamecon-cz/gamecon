@@ -13,6 +13,6 @@ CREATE TABLE uzivatele_role_podle_rocniku (
     FOREIGN KEY (id_uzivatele) REFERENCES uzivatele_hodnoty(id_uzivatele) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_role) REFERENCES role_seznam(id_role) ON DELETE CASCADE ON UPDATE CASCADE,
     INDEX rocnik (rocnik)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci
+)
 SQL
 );
