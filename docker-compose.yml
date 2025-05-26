@@ -39,7 +39,7 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}"]
       interval: 1s
       timeout: 5s
-      retries: 5
+      retries: 50
     ports:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
       - "${SQL_HOST_MAPPING_PORT:-13306}:3306"
