@@ -36,10 +36,11 @@ services:
       - ./.docker/mysql:/etc/mysql/conf.d:ro
       # - ~/.cache/gamecon/mysql:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      test: ["CMD", "mariadb", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}", "-e", "SELECT 1"]
       interval: 1s
       timeout: 5s
-      retries: 50
+      retries: 20
+      start_period: 3s
     ports:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
       - "${SQL_HOST_MAPPING_PORT:-13306}:3306"
