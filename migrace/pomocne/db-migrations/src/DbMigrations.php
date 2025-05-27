@@ -185,9 +185,10 @@ SQL,
     {
         if (!is_array($this->migrations)) {
             $migrations = [];
-            foreach (glob($this->config->getMigrationsDirectory() . '/*.php') as $fileName) {
+            foreach (glob($this->config->getMigrationsDirectory() . '/*.{php,sql}', GLOB_BRACE) as $fileName) {
+                // intentionally remove only .php suffix for backwards compatibility, other extensions need to be used as a migration key to avoid conflicts, like old 'foo.php' vs new 'foo.sql'
                 $fileBaseName = basename($fileName, '.php');
-                if (!preg_match('~^\d.+~', $fileBaseName, $matches)) {
+                if (!preg_match('~^\d.+~', $fileBaseName)) {
                     continue;
                 }
 

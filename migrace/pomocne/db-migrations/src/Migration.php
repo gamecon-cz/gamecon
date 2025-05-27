@@ -14,8 +14,7 @@ class Migration
         string  $path,
         string  $code,
         \mysqli $connection,
-    )
-    {
+    ) {
         $this->path       = $path;
         $this->code       = removeDiacritics($code);
         $this->connection = $connection;
@@ -23,9 +22,29 @@ class Migration
         $this->setEndless(str_ends_with(basename($path, '.php'), 'endless'));
     }
 
-    public function apply()
+    public function apply(): void
     {
-        require $this->path;
+        if (!file_exists($this->path)) {
+            throw new \RuntimeException('Migration file does not exist: ' . $this->path);
+        }
+        if (!is_readable($this->path)) {
+            throw new \RuntimeException('Migration file is not readable: ' . $this->path);
+        }
+        if (str_ends_with($this->path, '.php')) {
+            require $this->path;
+
+            return;
+        }
+        if (str_ends_with($this->path, '.sql')) {
+            $query = file_get_contents($this->path);
+            if ($query === false) {
+                throw new \RuntimeException('Can not read DB migration file ' . $this->path);
+            }
+            $this->q($query);
+
+            return;
+        }
+        throw new \RuntimeException('Migration file type is not supported: ' . $this->path);
     }
 
     public function getHash(): string
@@ -34,6 +53,7 @@ class Migration
         if ($hash === false) {
             throw new \RuntimeException('Can not read DB migration file ' . $this->path);
         }
+
         return $hash;
     }
 
@@ -79,8 +99,10 @@ class Migration
         return $result;
     }
 
-    public function dropForeignKeysIfExist(array $foreignKeysToDrop, string $tableName)
-    {
+    public function dropForeignKeysIfExist(
+        array  $foreignKeysToDrop,
+        string $tableName,
+    ): void {
         $db          = $this->getCurrentDb();
         $result      = $this->q(<<<SQL
 SELECT
@@ -101,7 +123,9 @@ SQL,
             $constraints,
         );
 
-        $foreignKeysToDropSqlParts = array_map(static function (string $foreignKeyToDrop) {
+        $foreignKeysToDropSqlParts = array_map(static function (
+            string $foreignKeyToDrop,
+        ) {
             return "DROP FOREIGN KEY `$foreignKeyToDrop`";
         }, $existingForeignKeysToDrop);
 
@@ -118,7 +142,7 @@ SQL,
     private function getCurrentDb(): string
     {
         $result = $this->q(<<<SQL
-SELECT database()
+SELECT DATABASE()
 SQL,
         );
         $db     = $result !== false
@@ -127,10 +151,11 @@ SQL,
         if ((string)$db === '') {
             throw new \RuntimeException('Can not determine current DB as no DB is selected');
         }
+
         return $db;
     }
 
-    private function setEndless(bool $endless = true)
+    private function setEndless(bool $endless = true): void
     {
         $this->endless = $endless;
     }

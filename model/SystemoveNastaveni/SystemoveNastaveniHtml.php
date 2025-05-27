@@ -215,8 +215,10 @@ class SystemoveNastaveniHtml
         $kopieOstreDatabaze->zkopirujOstrouDatabazi();
     }
 
-    private function exportujAnonymizovanouDatabazi()
+    private function exportujAnonymizovanouDatabazi(): void
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
         $anonymizovanaDatabaze = AnonymizovanaDatabaze::vytvorZGlobals();
         $anonymizovanaDatabaze->obnov();
         $anonymizovanaDatabaze->exportuj();
