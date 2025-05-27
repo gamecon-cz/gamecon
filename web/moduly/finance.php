@@ -75,14 +75,9 @@ if (!$zaplaceno) {
 
     <?php if ($u?->jeOrganizator() || $u?->jeVypravec()) { ?>
         <div style="float:left">
-            <h2>Slevy</h2>
-            <?php if ($slevyA) { ?>
-                <strong>Použité slevy na aktivity</strong>
-                <ul><?= $slevyA ?></ul>
-            <?php } ?>
-            <?php if ($slevyV) { ?>
-                <strong>Další bonusy</strong> (pokud si je objednáš)
-                <ul><?= $slevyV ?></ul>
+            <h2>Bonusy</h2>
+            <?php if ($slevyA || $slevyV) { ?>
+                <ul><?= trim($slevyA . $slevyV) ?></ul>
             <?php } ?>
         </div>
     <?php } ?>

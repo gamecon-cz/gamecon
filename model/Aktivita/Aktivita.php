@@ -66,7 +66,7 @@ class Aktivita
     /** @var null|Filesystem */
     private $filesystem;
 
-    const AJAXKLIC              = 'aEditFormTest';   // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
+    const AJAXKLIC              = 'aEditFormTest'; // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
     const OBRAZEK_KLIC          = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
     const ODMENA_ZA_HODINU_KLIC = 'odmena_za_hodinu';
     const TAGYKLIC              = 'aEditTag';       // název proměnné; v které jdou tagy
@@ -438,9 +438,7 @@ SQL
      */
     protected static function editorChyby(array $a)
     {
-        $chyby = [];
-
-        // kontrola dostupnosti organizátorů v daný čas
+        $chyby = []; // kontrola dostupnosti organizátorů v daný čas
         if (!empty($a['den']) && !empty($a[Sql::ZACATEK]) && !empty($a[Sql::KONEC])) {
 
             $zacatek           = (Program::denAktivityDleZacatku($a))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
@@ -451,8 +449,7 @@ SQL
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = Uzivatel::zId($orgId);
                 if (!$org->maVolno($zacatek, $konec, $ignorovatAktivitu)) {
-                    $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu.';
-                    // TODO doplnit název kolizní aktivity
+                    $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu.'; // TODO doplnit název kolizní aktivity
                 }
             }
         }
@@ -515,9 +512,7 @@ SQL
         $vybraneTagy = $aktivita
             ? $aktivita->tagy()
             : [];
-        self::nactiTagy($vybraneTagy, $editorTagu, $xtpl);
-
-        // načtení lokací
+        self::nactiTagy($vybraneTagy, $editorTagu, $xtpl); // načtení lokací
         if (!$omezeni || !empty($omezeni[Sql::LOKACE])) {
             self::parseUpravyTabulkaLokace($aktivita, $xtpl);
         }
@@ -533,8 +528,7 @@ SQL
         // editace dnů + časů
         if (!$omezeni || !empty($omezeni[Sql::ZACATEK])) {
             // načtení dnů
-            self::parseUpravyTabulkaDen($aktivita, $xtpl);
-            // načtení časů
+            self::parseUpravyTabulkaDen($aktivita, $xtpl); // načtení časů
             self::parseUpravyTabulkaZacatekAKonec($aktivita, $xtpl);
         }
 
@@ -680,14 +674,12 @@ SQL
         ?Aktivita $aktivita,
         XTemplate $xtpl,
     ) {
-        $aZacatek = $aktivita && $aktivita->zacatek()
+        $aZacatek      = $aktivita && $aktivita->zacatek()
             ? (int)$aktivita->zacatek()->format('G')
             : null;
-        $aKonec   = $aktivita && $aktivita->konec()
+        $aKonec        = $aktivita && $aktivita->konec()
             ? (int)$aktivita->konec()->sub(new \DateInterval('PT1H'))->format('G')
-            : null;
-
-        // kontrola přehoupnutí přes půlnoc
+            : null; // kontrola přehoupnutí přes půlnoc
         $hodinyZacatku = Program::seznamHodinZacatku();
 
         array_unshift($hodinyZacatku, null);
@@ -1018,7 +1010,7 @@ SQL
         }
 
         $teamova             = !empty($data[Sql::TEAMOVA]);
-        $data[Sql::TEAMOVA]  = (int)$teamova;   //checkbox pro "teamova"
+        $data[Sql::TEAMOVA]  = (int)$teamova; //checkbox pro "teamova"
         $data[Sql::TEAM_MIN] = $teamova
             ? (int)$data[Sql::TEAM_MIN]
             : null;
@@ -1082,15 +1074,12 @@ SQL
             // určení hlavní aktivity
             $idHlavni = $aktivita->idHlavni();
             $patriPod = $data[Sql::PATRI_POD];
-            unset($data[Sql::PATRI_POD]);
-            // změny v hlavní aktivitě
+            unset($data[Sql::PATRI_POD]); // změny v hlavní aktivitě
             $zmenyHlavni               = array_diff_key($data, array_flip($doAktualni));
             $zmenyHlavni[Sql::ID_AKCE] = $idHlavni;
-            dbInsertUpdate('akce_seznam', $zmenyHlavni);
-            // změny v konkrétní instanci
+            dbInsertUpdate('akce_seznam', $zmenyHlavni); // změny v konkrétní instanci
             $zmenyAktualni = array_diff_key($data, array_flip($doHlavni));
-            dbInsertUpdate('akce_seznam', $zmenyAktualni);
-            // změny u všech
+            dbInsertUpdate('akce_seznam', $zmenyAktualni); // změny u všech
             $zmenyVse = array_diff_key($data, array_flip(array_merge($doHlavni, $doAktualni)));
             unset($zmenyVse[Sql::PATRI_POD], $zmenyVse[Sql::ID_AKCE]); // id se nesmí updatovat!
             dbUpdate('akce_seznam', $zmenyVse, [Sql::PATRI_POD => $patriPod]);
@@ -1955,12 +1944,8 @@ SQL
             $parametry,
             $jenPritomen,
             $hlaskyVeTretiOsobe,
-        );
-
-        // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici);
-
-        // přihlášení na samu aktivitu (uložení věcí do DB)
+        ); // odhlášení náhradnictví v kolidujících aktivitách
+        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity  = $this->id();
         $idUzivatele = $uzivatel->id();
         if ($this->a[Sql::TEAMOVA]
@@ -2688,9 +2673,7 @@ HTML
             }
             throw $e;
         }
-        dbCommit();
-
-        // maily přihlášeným
+        dbCommit(); // maily přihlášeným
         $mail = GcMail::vytvorZGlobals(
             hlaskaMail(
                 'prihlaseniTeamMail',
@@ -3184,9 +3167,7 @@ SQL,
             return null;
         }
 
-        $t = new XTemplate(__DIR__ . '/templates/tym-formular.xtpl');
-
-        // obecné proměnné šablony
+        $t     = new XTemplate(__DIR__ . '/templates/tym-formular.xtpl'); // obecné proměnné šablony
         $zbyva = strtotime($this->a[Sql::ZAMCEL_CAS]) + self::HAJENI_TEAMU_HODIN * 60 * 60 - time();
         $t->assign([
             'zbyva'                => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
@@ -3196,9 +3177,7 @@ SQL,
             'cssUrlAutocomplete'   => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
             'jsUrlAutocomplete'    => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.min.js',
             'jsUrl'                => URL_WEBU . '/soubory/blackarrow/tym-formular/tym-formular.js',
-        ]);
-
-        // výběr instancí, pokud to aktivita vyžaduje
+        ]); // výběr instancí, pokud to aktivita vyžaduje
         if ($this->a[Sql::DITE]) {
 
             // načtení "kol" (podle hloubky zanoření v grafu instancí)
@@ -3290,9 +3269,7 @@ SQL,
         ) { // array_map kvůli nutnosti zachovat pořadí
             return self::zId($id);
         }, post(self::TEAMKLIC_KOLA)
-            ?: []));
-
-        // přihlášení týmu
+            ?: [])); // přihlášení týmu
         try {
             $a->prihlasTym($clenove, $prihlasujici, $nazev, $novaKapacita, $dalsiKola);
             $chyby = [];
@@ -3551,8 +3528,7 @@ SQL,
         }
 
         foreach ($vypraveciAktivit as $idVypravece => $neuzavreneAktivity) {
-            $vypravec = Uzivatel::zId($idVypravece);
-            // například nechceme posílat mail vypravěčským skupinám
+            $vypravec = Uzivatel::zId($idVypravece); // například nechceme posílat mail vypravěčským skupinám
             if ((!$vypravec->jeVypravec() && !$vypravec->jePartner()) || $vypravec->mrtvyMail()) {
                 continue;
             }
@@ -3655,12 +3631,10 @@ SQL,
             $dalsiPouziteSqlTabulky[] = AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA;
             $wheres1[]                = 'EXISTS (SELECT * FROM akce_prihlaseni AS p WHERE p.id_akce = a.id_akce AND p.id_uzivatele IN (' . dbQa((array)$filtr[FiltrAktivity::PRIHLASENI]) . '))';
         }
-        $where1 = implode(' AND ', $wheres1)
+        $where1    = implode(' AND ', $wheres1)
             ?: '1';
-        $where2 = implode(' AND ', $wheres2)
-            ?: '1';
-
-        // sestavení řazení
+        $where2    = implode(' AND ', $wheres2)
+            ?: '1'; // sestavení řazení
         $order     = null;
         $phpRazeni = [];
         $orderBy   = [];

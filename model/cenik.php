@@ -34,7 +34,8 @@ class Cenik
         Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA     => 'dvě jakákoli trička zdarma',
         Pravo::JAKEKOLIV_TRICKO_ZDARMA        => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
         Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA   => 'modré tričko se slevou',
-        Pravo::MODRE_TRICKO_ZDARMA            => 'modré tričko zdarma za dosažení bonusu 1140',
+        Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => 'můžeš si objednat ubytování i pro jedinou noc',
+        Pravo::MODRE_TRICKO_ZDARMA            => 'modré tričko zdarma za dosažení bonusu %d',
     ];
 
     /**
@@ -68,6 +69,17 @@ class Cenik
         private readonly Finance            $finance,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     ) {
+    }
+
+    public function getTextySlev(): array
+    {
+        $texty = self::$textySlev;
+        $bonus = $this->systemoveNastaveni->modreTrickoZdarmaOd();
+        $texty[Pravo::MODRE_TRICKO_ZDARMA] = sprintf(
+            $texty[Pravo::MODRE_TRICKO_ZDARMA],
+            $bonus
+        );
+        return $texty;
     }
 
     public function cenaKostky(array $r): int
@@ -174,9 +186,10 @@ class Cenik
     {
         $u     = $this->u;
         $slevy = [];
+        $texty  = $this->getTextySlev();
 
         // standardní slevy vyplývající z práv
-        foreach (self::$textySlev as $pravo => $text) {
+        foreach ($texty as $pravo => $text) {
             // přeskočení práv, která mohou být přebita + normalizace textu
             if (is_array($text)) {
                 $zahrnuteVPravu = $text[1];
