@@ -40,7 +40,7 @@ class AnonymizovanaDatabaze
         }
     }
 
-    public function obnov()
+    public function obnov(): void
     {
         $dbConnectionAnonymDb = dbConnectionAnonymDb();
 
