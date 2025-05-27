@@ -1315,12 +1315,12 @@ SQL
     }
 
     /** Vrátí lokaci (ndef. formát, ale musí podporovat __toString) */
-    public function lokace(): ?\Lokace
+    public function lokace(): ?Lokace
     {
         if (is_numeric($this->lokace)) {
             $this->prednactiN1([
                 'atribut' => Sql::LOKACE,
-                'cil'     => \Lokace::class,
+                'cil'     => Lokace::class,
             ]);
         }
 
