@@ -2610,7 +2610,9 @@ HTML
             }
         }
         if ($parametry & self::PLUSMINUS_KAZDY) {
-            return self::plusminusZpracuj();
+            self::plusminusZpracuj();
+
+            return true;
         }
 
         return false;
