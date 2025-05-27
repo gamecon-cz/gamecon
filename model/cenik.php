@@ -80,6 +80,17 @@ class Cenik
         return $texty;
     }
 
+    public function getTextySlev(): array
+    {
+        $texty = self::$textySlev;
+        $bonus = $this->systemoveNastaveni->modreTrickoZdarmaOd();
+        $texty[Pravo::MODRE_TRICKO_ZDARMA] = sprintf(
+            $texty[Pravo::MODRE_TRICKO_ZDARMA],
+            $bonus
+        );
+        return $texty;
+    }
+
     public function cenaKostky(array $r): int
     {
         $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
