@@ -7,8 +7,9 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionExcep
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\Lokace;
 
 class ActivitiesExporter
 {
@@ -250,7 +251,7 @@ class ActivitiesExporter
 
     private function getAllRoomsData(): array {
         $data[] = $this->exportLokaciSloupce::vsechnySloupceLokace();
-        foreach (\Lokace::zVsech() as $jednaLokace) {
+        foreach (Lokace::zVsech() as $jednaLokace) {
             $data[] = [
                 $jednaLokace->id(),
                 $jednaLokace->nazev(),

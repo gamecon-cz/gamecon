@@ -4,14 +4,15 @@ namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\Exceptions\ActivitiesImportException;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\Lokace;
 
 class ImportModelsFetcher
 {
 
-    public static function fetchLocation(int $locationId): \Lokace {
+    public static function fetchLocation(int $locationId): Lokace {
         static $locations = [];
         if (!array_key_exists($locationId, $locations)) {
-            $location = \Lokace::zId($locationId);
+            $location = Lokace::zId($locationId);
             if (!$location) {
                 throw new ActivitiesImportException("Location with ID '$locationId' does not exist");
             }
