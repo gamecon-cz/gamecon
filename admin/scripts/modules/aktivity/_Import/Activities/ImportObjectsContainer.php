@@ -5,6 +5,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Aktivita\Lokace;
 
 class ImportObjectsContainer
 {
@@ -155,7 +156,7 @@ class ImportObjectsContainer
         return $this->tagsCache;
     }
 
-    public function getLocationFromValue(string $locationValue): ?\Lokace
+    public function getLocationFromValue(string $locationValue): ?Lokace
     {
         $locationId = ImportKeyUnifier::parseId($locationValue);
         if ($locationId !== null) {
@@ -165,12 +166,12 @@ class ImportObjectsContainer
         return $this->getProgramLocationByName($locationValue);
     }
 
-    private function getProgramLocationById(int $id): ?\Lokace
+    private function getProgramLocationById(int $id): ?Lokace
     {
         return $this->getProgramLocationsCache()['id'][$id] ?? null;
     }
 
-    private function getProgramLocationByName(string $name): ?\Lokace
+    private function getProgramLocationByName(string $name): ?Lokace
     {
         $unifiedKey      = ImportKeyUnifier::toUnifiedKey($name, [], ImportKeyUnifier::UNIFY_UP_TO_NUMBERS_AND_LETTERS);
         $programLocation = $this->getProgramLocationsCache()['keyFromName'][$unifiedKey] ?? null;
@@ -199,7 +200,7 @@ class ImportObjectsContainer
     {
         if (!$this->programLocationsCache) {
             $this->programLocationsCache = ['id' => [], 'keyFromName' => []];
-            foreach (\Lokace::zVsech() as $lokace) {
+            foreach (Lokace::zVsech() as $lokace) {
                 $this->programLocationsCache['id'][$lokace->id()]         = $lokace;
                 $keyFromName                                              = ImportKeyUnifier::toUnifiedKey($lokace->nazev(), array_keys($this->programLocationsCache['keyFromName']), ImportKeyUnifier::UNIFY_UP_TO_NUMBERS_AND_LETTERS);
                 $this->programLocationsCache['keyFromName'][$keyFromName] = $lokace;
