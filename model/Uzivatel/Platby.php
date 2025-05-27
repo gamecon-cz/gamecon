@@ -186,6 +186,11 @@ class Platby
         $sparovaneFioPlatby = [];
         foreach ($fioPlatby as $fioPlatba) {
             if ($this->platbuUzMame($fioPlatba->id())) {
+                // TODO jen dočasně než postahujeme minuté KOD_BANKY_PROTIUCTU atd
+                $gcPlatba = $this->dejGcPlatbuPodleFioPlatby($fioPlatba);
+                if ($gcPlatba) {
+                    $this->doplnPlatbu($gcPlatba, $fioPlatba);
+                }
                 continue;
             }
             $vlastnik = $fioPlatba->idUcastnika()
@@ -204,6 +209,7 @@ class Platby
                     Sql::PROVEDL                => Uzivatel::SYSTEM,
                     Sql::NAZEV_PROTIUCTU        => $fioPlatba->nazevProtiuctu(),
                     Sql::CISLO_PROTIUCTU        => $fioPlatba->protiucet(),
+                    Sql::KOD_BANKY_PROTIUCTU    => $fioPlatba->kodBanky(),
                     Sql::POZNAMKA               => $fioPlatba->zpravaProPrijemce(),
                     Sql::SKRYTA_POZNAMKA        => $fioPlatba->skrytaPoznamka(),
                 ],
@@ -330,7 +336,7 @@ class Platby
         if ($gcPlatba->poznamka() === null && $fioPlatba->zpravaProPrijemce() !== null) {
             $zmeny[Sql::POZNAMKA] = $fioPlatba->zpravaProPrijemce();
         }
-        if ($gcPlatba->poznamka() === null && $fioPlatba->zpravaProPrijemce() !== null) {
+        if ($gcPlatba->skrytaPoznamka() === null && $fioPlatba->zpravaProPrijemce() !== null) {
             $zmeny[Sql::SKRYTA_POZNAMKA] = $fioPlatba->skrytaPoznamka();
         }
         if ($gcPlatba->pripsanoNaUcetBanky() === null) {
