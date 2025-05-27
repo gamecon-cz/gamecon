@@ -9,6 +9,7 @@ class AkceTypySqlStruktura
     public const AKCE_TYPY_TABULKA = 'akce_typy';
 
     public const ID_TYPU         = 'id_typu';
+    public const KOD_TYPU         = 'kod_typu';
     public const TYP_1P          = 'typ_1p';
     public const TYP_1PMN        = 'typ_1pmn';
     public const URL_TYPU_MN     = 'url_typu_mn';

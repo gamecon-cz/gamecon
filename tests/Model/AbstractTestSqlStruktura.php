@@ -36,10 +36,25 @@ abstract class AbstractTestSqlStruktura extends AbstractTestDb
 
         sort($nazvySloupcu);
         sort($nazvySloupcuPodleKonstant);
+        $chybi = array_diff($nazvySloupcu, $nazvySloupcuPodleKonstant);
         self::assertSame(
-            $nazvySloupcu,
-            $nazvySloupcuPodleKonstant,
-            "Konstanty s názvy sloupců neodpovídají tabulce '$tabulka'",
+            [],
+            $chybi,
+            sprintf(
+                "Konstanty s názvy sloupců neodpovídají tabulce '%s', chybí %s",
+                $tabulka,
+                var_export(implode(', ', $chybi), true),
+            ),
+        );
+        $pprebyva = array_diff($nazvySloupcuPodleKonstant, $nazvySloupcu);
+        self::assertSame(
+            [],
+            $pprebyva,
+            sprintf(
+                "Konstanty s názvy sloupců neodpovídají tabulce '%s', přebývá %s",
+                $tabulka,
+                var_export(implode(', ', $pprebyva), true),
+            ),
         );
     }
 
