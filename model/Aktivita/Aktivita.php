@@ -2755,7 +2755,7 @@ HTML
         if ($parametry & self::PLUSMINUS_KAZDY) {
             self::plusminusZpracuj();
 
-            return false;
+            return true;
         }
 
         return false;
