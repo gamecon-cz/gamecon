@@ -17,57 +17,16 @@ class ActivitiesExporter
     private const EXPORT_DIR = '/%user%.admin.gamecon.cz/aktivity';
     private const EXPORT_DIR_TAG = 'root-export-dir';
 
-    /**
-     * @var GoogleDriveService
-     */
-    private $googleDriveService;
-    /**
-     * @var GoogleSheetsService
-     */
-    private $googleSheetsService;
-    /**
-     * @var \Uzivatel
-     */
-    private $uzivatel;
-    /**
-     * @var ExportAktivitSloupce
-     */
-    private $exportAktivitSloupce;
-    /**
-     * @var ExportTaguSloupce
-     */
-    private $exportTaguSloupce;
-    /**
-     * @var ExportStavuAktivitSloupce
-     */
-    private $exportStavuAktivitSloupce;
-    /**
-     * @var ExportLokaciSloupce
-     */
-    private $exportLokaciSloupce;
-    /**
-     * @var ExportVypravecuSloupce
-     */
-    private $exportVypravecuSloupce;
-
     public function __construct(
-        \Uzivatel                 $uzivatel,
-        GoogleDriveService        $googleDriveService,
-        GoogleSheetsService       $googleSheetsService,
-        ExportAktivitSloupce      $exportAktivitSloupce,
-        ExportTaguSloupce         $exportTaguSloupce,
-        ExportStavuAktivitSloupce $exportStavuAktivitSloupce,
-        ExportLokaciSloupce       $exportLokaciSloupce,
-        ExportVypravecuSloupce    $exportVypravecuSloupce
+        private readonly \Uzivatel                 $uzivatel,
+        private readonly GoogleDriveService        $googleDriveService,
+        private readonly GoogleSheetsService       $googleSheetsService,
+        private readonly ExportAktivitSloupce      $exportAktivitSloupce,
+        private readonly ExportTaguSloupce         $exportTaguSloupce,
+        private readonly ExportStavuAktivitSloupce $exportStavuAktivitSloupce,
+        private readonly ExportLokaciSloupce       $exportLokaciSloupce,
+        private readonly ExportVypravecuSloupce    $exportVypravecuSloupce
     ) {
-        $this->googleDriveService = $googleDriveService;
-        $this->googleSheetsService = $googleSheetsService;
-        $this->uzivatel = $uzivatel;
-        $this->exportAktivitSloupce = $exportAktivitSloupce;
-        $this->exportTaguSloupce = $exportTaguSloupce;
-        $this->exportStavuAktivitSloupce = $exportStavuAktivitSloupce;
-        $this->exportLokaciSloupce = $exportLokaciSloupce;
-        $this->exportVypravecuSloupce = $exportVypravecuSloupce;
     }
 
     /**
@@ -161,9 +120,13 @@ class ActivitiesExporter
                 $this->exportAktivitSloupce::DEN => $zacatekDen, // Den
                 $this->exportAktivitSloupce::ZACATEK => $zacatekCas, // Začátek
                 $this->exportAktivitSloupce::KONEC => $konecCas, // Konec
-                $this->exportAktivitSloupce::MISTNOST => ($lokace = $aktivita->lokace())
-                    ? $lokace->nazev()
-                    : '', // Místnost
+                $this->exportAktivitSloupce::MISTNOST => implode(  // Místnosti
+                    '; ',
+                    array_map(
+                        static fn(Lokace $lokace) => $lokace->nazev(),
+                        $aktivita->seznamLokaci() // main location should be first
+                    )
+                ),
                 $this->exportAktivitSloupce::VYPRAVECI => implode('; ', $aktivita->orgLoginy()->getArrayCopy()), // Vypravěči
                 $this->exportAktivitSloupce::KAPACITA_UNISEX => !$aktivita->tymova()
                     ? $aktivita->getKapacitaUnisex() // Kapacita unisex
