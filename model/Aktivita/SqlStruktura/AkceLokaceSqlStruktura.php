@@ -9,6 +9,7 @@ class AkceLokaceSqlStruktura
     public const AKCE_LOKACE_TABULKA = 'akce_lokace';
 
     public const ID_LOKACE = 'id_lokace';
+    public const ID_AKCE   = 'id_akce';
     public const NAZEV     = 'nazev';
     public const DVERE     = 'dvere';
     public const POZNAMKA  = 'poznamka';

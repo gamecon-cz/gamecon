@@ -578,7 +578,7 @@ HTML;
      * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
      * (s cacheovanými hodnotami) pro program.
      */
-    private function nactiDalsiAktivitu(\Iterator $iterator)
+    private function nactiDalsiAktivitu(\Iterator $iterator): ?array
     {
         if (!$iterator->valid()) {
             return null;
@@ -596,7 +596,7 @@ HTML;
                 $grp = $aktivita->typId();
                 break;
             case self::SKUPINY_PODLE_LOKACE_ID :
-                $grp = $aktivita->lokaceId();
+                $grp = implode(',', $aktivita->seznamLokaciIdcka());
                 break;
             case self::SKUPINY_PODLE_DEN :
                 $grp = (int)$aktivita->denProgramu()->format('z');
