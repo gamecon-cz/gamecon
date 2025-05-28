@@ -637,7 +637,7 @@ HTML;
                 $grp = $aktivita->typId();
                 break;
             case self::SKUPINY_PODLE_LOKACE_ID :
-                $grp = $aktivita->lokaceId();
+                $grp = implode(',', $aktivita->seznamLokaciIdcka());
                 break;
             case self::SKUPINY_PODLE_DEN :
                 $grp = (int)$aktivita->denProgramu()->format('z');

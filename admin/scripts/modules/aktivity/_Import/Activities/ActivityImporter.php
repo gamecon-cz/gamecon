@@ -21,6 +21,7 @@ readonly class ActivityImporter
         array       $sqlMappedValues,
         ?string     $longAnnotation,
         array       $storytellersIds,
+        array       $locationIds,
         array       $tagIds,
         TypAktivity $singleProgramLine,
         array       $potentialImageUrls,
@@ -29,11 +30,12 @@ readonly class ActivityImporter
         $checkBeforeSaveResult = $this->importValuesChecker->checkBeforeSave(
             sqlMappedValues: $sqlMappedValues,
             longAnnotation: $longAnnotation,
+            locationIds: $locationIds,
             tagIds: $tagIds,
             storytellersIds: $storytellersIds,
             singleProgramLine: $singleProgramLine,
             potentialImageUrls: $potentialImageUrls,
-            originalActivity: $originalActivity,
+            originalActivity: $originalActivity
         );
         if ($checkBeforeSaveResult->isError()) {
             return ImportStepResult::error($checkBeforeSaveResult->getError());
@@ -46,9 +48,10 @@ readonly class ActivityImporter
             sqlMappedValues: $sqlMappedValues,
             longAnnotation: $longAnnotation,
             storytellersIds: $availableStorytellerIds,
+            locationIds: $locationIds,
             tagIds: $tagIds,
             potentialImageUrls: $potentialImageUrls,
-            singleProgramLine: $singleProgramLine,
+            singleProgramLine: $singleProgramLine
         );
         $importedActivity    = $savedActivityResult->getSuccess();
 
@@ -103,6 +106,7 @@ readonly class ActivityImporter
         array       $sqlMappedValues,
         ?string     $longAnnotation,
         array       $storytellersIds,
+        array       $locationIds,
         array       $tagIds,
         array       $potentialImageUrls,
         TypAktivity $singleProgramLine,
@@ -116,10 +120,12 @@ readonly class ActivityImporter
                     $sqlMappedValues[ActivitiesImportSqlColumn::PATRI_POD] = $newInstance->patriPod();
                 }
             }
-            $savedActivity  = Aktivita::uloz(
+            $savedActivity = Aktivita::uloz(
                 data: $sqlMappedValues,
                 markdownPopis: $longAnnotation,
                 organizatoriIds: $storytellersIds,
+                lokaceIds: $locationIds,
+                hlavniLokaceId: reset($locationIds) ?: null,
                 tagIds: $tagIds,
             );
             $addImageResult = $this->imagesImporter->addImage($potentialImageUrls, $savedActivity);
