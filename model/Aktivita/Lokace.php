@@ -15,6 +15,11 @@ class Lokace extends \DbObject
 
     public function __toString()
     {
+        return $this->rozsirenyNazev();
+    }
+
+    public function rozsirenyNazev(): string
+    {
         $casti = array_filter([$this->r[Sql::NAZEV], $this->r[Sql::DVERE]]);
 
         return implode(', ', $casti);

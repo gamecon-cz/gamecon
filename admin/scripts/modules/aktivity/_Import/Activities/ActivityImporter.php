@@ -21,19 +21,21 @@ readonly class ActivityImporter
         array       $sqlMappedValues,
         ?string     $longAnnotation,
         array       $storytellersIds,
+        array       $locationIds,
         array       $tagIds,
         TypAktivity $singleProgramLine,
         array       $potentialImageUrls,
         ?Aktivita   $originalActivity
     ): ImportStepResult {
         $checkBeforeSaveResult = $this->importValuesChecker->checkBeforeSave(
-            $sqlMappedValues,
-            $longAnnotation,
-            $tagIds,
-            $storytellersIds,
-            $singleProgramLine,
-            $potentialImageUrls,
-            $originalActivity
+            sqlMappedValues: $sqlMappedValues,
+            longAnnotation: $longAnnotation,
+            locationIds: $locationIds,
+            tagIds: $tagIds,
+            storytellersIds: $storytellersIds,
+            singleProgramLine: $singleProgramLine,
+            potentialImageUrls: $potentialImageUrls,
+            originalActivity: $originalActivity
         );
         if ($checkBeforeSaveResult->isError()) {
             return ImportStepResult::error($checkBeforeSaveResult->getError());
@@ -43,12 +45,13 @@ readonly class ActivityImporter
 
         /** @var Aktivita $importedActivity */
         $savedActivityResult = $this->saveActivity(
-            $sqlMappedValues,
-            $longAnnotation,
-            $availableStorytellerIds,
-            $tagIds,
-            $potentialImageUrls,
-            $singleProgramLine
+            sqlMappedValues: $sqlMappedValues,
+            longAnnotation: $longAnnotation,
+            storytellersIds: $availableStorytellerIds,
+            locationIds: $locationIds,
+            tagIds: $tagIds,
+            potentialImageUrls: $potentialImageUrls,
+            singleProgramLine: $singleProgramLine
         );
         $importedActivity = $savedActivityResult->getSuccess();
 
@@ -98,6 +101,7 @@ readonly class ActivityImporter
         array       $sqlMappedValues,
         ?string     $longAnnotation,
         array       $storytellersIds,
+        array       $locationIds,
         array       $tagIds,
         array       $potentialImageUrls,
         TypAktivity $singleProgramLine
@@ -111,7 +115,14 @@ readonly class ActivityImporter
                     $sqlMappedValues[ActivitiesImportSqlColumn::PATRI_POD] = $newInstance->patriPod();
                 }
             }
-            $savedActivity = Aktivita::uloz($sqlMappedValues, $longAnnotation, $storytellersIds, $tagIds);
+            $savedActivity = Aktivita::uloz(
+                data: $sqlMappedValues,
+                markdownPopis: $longAnnotation,
+                organizatoriIds: $storytellersIds,
+                lokaceIds: $locationIds,
+                hlavniLokaceId: reset($locationIds) ?: null,
+                tagIds: $tagIds,
+            );
             $addImageResult = $this->imagesImporter->addImage($potentialImageUrls, $savedActivity);
             return ImportStepResult::successWithWarnings($savedActivity, $addImageResult->getWarnings(), $addImageResult->getErrorLikeWarnings());
         } catch (\Exception $exception) {

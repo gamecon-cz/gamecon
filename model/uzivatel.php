@@ -26,15 +26,17 @@ use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
+ * @method array<Uzivatel> zIds(array | string $ids, bool $zCache = false)
  * @todo načítání separátního (nepřihlášeného uživatele) např. pro účely schi-
  *   zofrenie v adminovi (nehrozí špatný přístup při nadměrném volání např. při
  *   práci s více uživateli někde jinde?)
  */
 class Uzivatel extends DbObject
 {
-    protected static     $tabulka = Sql::UZIVATELE_HODNOTY_TABULKA;
-    protected static     $pk      = Sql::ID_UZIVATELE;
-    private static array $objekty = [];
+    protected static         $tabulka      = Sql::UZIVATELE_HODNOTY_TABULKA;
+    protected static ?string $aliasTabulky = 'u';
+    protected static         $pk           = Sql::ID_UZIVATELE;
+    private static array     $objekty      = [];
 
     public const POSAZEN = 'posazen';
     public const SESAZEN = 'sesazen';
@@ -134,7 +136,6 @@ SQL
         SystemoveNastaveni $systemoveNastaveni = null,
     ) {
         if (array_keys_exist(['id_uzivatele'], $uzivatel)) {
-            $this->r = $uzivatel;
             parent::__construct($uzivatel);
             $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::zGlobals();
         } else {
@@ -837,7 +838,6 @@ SQL,
         self::pravaDSC($dataSourcesCollector);
     }
 
-
     public function maPravoNaPrirazeniRole(int $idRole): bool
     {
         $role = Role::zId($idRole, true);
@@ -992,50 +992,45 @@ SQL,
      * @param DateTimeInterface $do
      * @param Aktivita|null $ignorovanaAktivita
      * @param bool $jenPritomen
-     * @return bool jestli se uživatel v daném čase neúčastní / neorganizuje
+     * @return Aktivita|null jestli se uživatel v daném čase neúčastní / neorganizuje
      *  žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
      */
-    public function maVolno(
+    public function maKoliziSJinouAktivitou(
         DateTimeInterface $od,
         DateTimeInterface $do,
         Aktivita          $ignorovanaAktivita = null,
         bool              $jenPritomen = false,
-    ) {
+    ): ?Aktivita {
         // právo na překrytí aktivit dává volno vždy automaticky
         // TODO zkontrolovat, jestli vlastníci práva dřív měli někdy paralelně i účast nebo jen organizovali a pokud jen organizovali, vyhodit test odsud a vložit do kontroly kdy se ukládá aktivita
         if ($this->maPravo(Pravo::PREKRYVANI_AKTIVIT)) {
-            return true;
+            return null;
         }
 
-        if ($this->maCasovouKolizi($this->zapsaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
-            return false;
+        if ($kolizniAktivita = $this->dejKolizniAktivitu($this->zapsaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
+            return $kolizniAktivita;
         }
 
-        if ($this->maCasovouKolizi($this->organizovaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
-            return false;
+        if ($kolizniAktivita = $this->dejKolizniAktivitu($this->organizovaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
+            return $kolizniAktivita;
         }
 
-        return true;
+        return null;
     }
 
     /**
      * @param Aktivita[] $aktivity
-     * @param DateTimeInterface $od
-     * @param DateTimeInterface $do
-     * @param Aktivita|null $ignorovanaAktivita
-     * @param bool $jenPritomen
-     * @return bool
      */
-    private function maCasovouKolizi(
+    private function dejKolizniAktivitu(
         array             $aktivity,
         DateTimeInterface $od,
         DateTimeInterface $do,
         ?Aktivita         $ignorovanaAktivita,
         bool              $jenPritomen,
-    ): bool {
+    ): ?Aktivita {
         $ignorovanaAktivitaId = $ignorovanaAktivita
             ? $ignorovanaAktivita->id()
-            : 0;
+            : false;
         foreach ($aktivity as $aktivita) {
             if ($ignorovanaAktivitaId === $aktivita->id()) {
                 continue;
@@ -1050,14 +1045,17 @@ SQL,
             }
             /* koliduje, pokud začíná před koncem jiné aktivity a končí po začátku jiné aktivity */
             if ($zacatek < $do && $konec > $od) {
-                return $jenPritomen
-                    ? $aktivita->dorazilJakoCokoliv($this)
-                    // někde už je v daný čas přítomen
-                    : true; // nekde už je na daný čas přihlášen
+                if ($jenPritomen) {
+                    return $aktivita->dorazilJakoCokoliv($this)
+                        ? $aktivita
+                        : null;
+                }
+
+                return $aktivita;
             }
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -1172,7 +1170,8 @@ SQL,
         return $this->r['prava'];
     }
 
-    public static function pravaDSC(?DataSourcesCollector $dataSourcesCollector): void {
+    public static function pravaDSC(?DataSourcesCollector $dataSourcesCollector): void
+    {
         self::nactiPravaDSC($dataSourcesCollector);
     }
 
@@ -1572,15 +1571,24 @@ SQL,
      *
      * Extra položky: heslo a heslo_kontrola (metoda si je sama převede na hash).
      *
-     * @return int id nově vytvořeného uživatele
+     * @return int|null id nově vytvořeného uživatele
      */
-    public static function registruj(array $tab)
+    public static function registruj(array $tab): ?int
     {
-        return self::registrujUprav($tab, null);
+        $idNeboHlaska = self::registrujUprav($tab, null);
+        if (is_numeric($idNeboHlaska)) {
+            return (int)$idNeboHlaska;
+        }
+        if ($idNeboHlaska === '') {
+            return null;
+        }
+        throw new Chyba($idNeboHlaska);
     }
 
     /**
      * Zregistruje nového uživatele nebo upraví stávajícího $u, pokud je zadán.
+     *
+     * @return string id nově vytvořeného nebo upraveného uživatele nebo hláška s chybou
      */
     private static function registrujUprav(
         array     $tab,
@@ -1987,11 +1995,18 @@ SQL,
      *
      * Extra položky: heslo a heslo_kontrola (metoda si je sama převede na hash).
      */
-    public function uprav(array $tab)
+    public function uprav(array $tab): ?int
     {
         $tab = array_filter($tab);
 
-        return self::registrujUprav($tab, $this);
+        $idNeboHlaska = self::registrujUprav($tab, $this);
+        if (is_numeric($idNeboHlaska)) {
+            return (int)$idNeboHlaska;
+        }
+        if ($idNeboHlaska === '') {
+            return null;
+        }
+        throw new Chyba($idNeboHlaska);
     }
 
     /**
@@ -2164,7 +2179,7 @@ SQL,
         $pouzeIdsRoliSql = dbQv($pouzeIdsRoli);
 
         return self::zWhere("
-      WHERE TRUE
+      TRUE
       " . ($kromeIdUzivatelu
                 ? " AND u.id_uzivatele NOT IN ($kromeIdUzivateluSql)"
                 : '') . "
@@ -2239,43 +2254,7 @@ SQL,
     ): array {
         self::zIdsDSC($dataSourcesCollector);
 
-        if (empty($ids)) {
-            return [];
-        }
-        if (is_string($ids) && preg_match('@[0-9]+(,[0-9]+)*@', $ids)) {
-            $ids = explode(',', $ids);
-        }
-        if (is_int($ids)) {
-            $ids = [$ids];
-        }
-        if (is_array($ids)) {
-            $ids                     = array_map('intval', $ids);
-            $chybejiciUzivateleIdcka = $zCache
-                ? array_diff($ids, array_keys(self::$objekty[static::class] ?? []))
-                : $ids;
-            $nacteniUzivatele        = [];
-            if ($chybejiciUzivateleIdcka) {
-                $nacteniUzivatele = self::nactiUzivatele(
-                    'WHERE u.id_uzivatele IN(' . dbQv($chybejiciUzivateleIdcka) . ')',
-                );
-            }
-            if (!$zCache) {
-                return $nacteniUzivatele;
-            }
-            foreach ($nacteniUzivatele as $nactenyUzivatel) {
-                self::$objekty[static::class][$nactenyUzivatel->id()] = $nactenyUzivatel;
-            }
-
-            $uzivatele = [];
-            foreach ($ids as $id) {
-                if (self::$objekty[static::class][$id] ?? false) {
-                    $uzivatele[$id] = self::$objekty[static::class][$id];
-                }
-            }
-
-            return $uzivatele;
-        }
-        throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
+        return parent::zIds($ids, $zCache);
     }
 
     public static function zIdsDSC(
@@ -2316,7 +2295,7 @@ SQL,
             return null;
         }
         $uzivatele = Uzivatel::zWhere(
-            'WHERE email1_uzivatele = $0',
+            'email1_uzivatele = $0',
             [0 => filter_var($email, FILTER_SANITIZE_EMAIL)],
         );
 
@@ -2328,7 +2307,7 @@ SQL,
         if (!$nick) {
             return null;
         }
-        $uzivatelWrapped = Uzivatel::zWhere('WHERE login_uzivatele = $1', [$nick]);
+        $uzivatelWrapped = Uzivatel::zWhere('login_uzivatele = $1', [$nick]);
 
         return reset($uzivatelWrapped)
             ?: null;
@@ -2342,7 +2321,7 @@ SQL,
             return null;
         }
         $uzivatelWrapped = Uzivatel::zWhere(
-            'WHERE ' . Sql::JMENO_UZIVATELE . ' = $0 AND ' . Sql::PRIJMENI_UZIVATELE . ' = $1',
+            Sql::JMENO_UZIVATELE . ' = $0 AND ' . Sql::PRIJMENI_UZIVATELE . ' = $1',
             [$jmeno, $prijemni],
         );
 
@@ -2397,13 +2376,13 @@ SQL,
      */
     public static function zPrihlasenych()
     {
-        return self::zWhere('
-      WHERE u.id_uzivatele IN(
-        SELECT id_uzivatele
-        FROM platne_role_uzivatelu
-        WHERE id_role = ' . Role::PRIHLASEN_NA_LETOSNI_GC . '
-      )
-    ');
+        return self::zWhere(
+            'u.id_uzivatele IN(
+                SELECT id_uzivatele
+                FROM platne_role_uzivatelu
+                WHERE id_role = ' . Role::PRIHLASEN_NA_LETOSNI_GC . '
+            )',
+        );
     }
 
     /**
@@ -2491,19 +2470,10 @@ SQL,
         );
     }
 
-    /**
-     * Načte uživatele podle zadané where klauzle
-     */
-    protected static function zWhere(
+    protected static function dotaz(
         $where,
-        $params = null,
-        $extra = '',
-    ): array {
-        return parent::zWhere($where, $params, $extra);
-    }
-
-    protected static function dotaz($where, ?DataSourcesCollector $dataSourcesCollector = null): string
-    {
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): string {
         self::dotazDSC($dataSourcesCollector);
 
         return <<<SQL
@@ -2520,7 +2490,8 @@ GROUP BY u.id_uzivatele
 SQL;
     }
 
-    protected static function dotazDSC(?DataSourcesCollector $dataSourcesCollector = null): void {
+    protected static function dotazDSC(?DataSourcesCollector $dataSourcesCollector = null): void
+    {
         $dataSourcesCollector?->addDataSource("uzivatele_url");
         $dataSourcesCollector?->addDataSource("uzivatele_hodnoty");
         $dataSourcesCollector?->addDataSource("platne_role_uzivatelu");
@@ -2552,8 +2523,10 @@ SQL;
      * @param string $where
      * @return Uzivatel[]
      */
-    protected static function nactiUzivatele(string $where, ?DataSourcesCollector $dataSourcesCollector = null): array
-    {
+    protected static function nactiUzivatele(
+        string                $where,
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): array {
         $query     = self::dotaz(where: $where, dataSourcesCollector: $dataSourcesCollector);
         $o         = dbQuery($query);
         $uzivatele = [];
@@ -2566,10 +2539,10 @@ SQL;
         return $uzivatele;
     }
 
-    protected static function nactiUzivateleDSC(?DataSourcesCollector $dataSourcesCollector): void {
+    protected static function nactiUzivateleDSC(?DataSourcesCollector $dataSourcesCollector): void
+    {
         self::dotazDSC($dataSourcesCollector);
     }
-
 
     public function shop(): Shop
     {

@@ -5,6 +5,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
@@ -48,7 +49,7 @@ class ImportValuesSanitizer
         $originalActivityResult = $this->getValidatedOriginalActivity($inputValues);
         if ($originalActivityResult->isError()) {
             $inputValuesForDescription = $inputValues;
-            // original activity does not exists, so we do not want a link to it (which is created from ID, so we remove it)
+            // original activity does not exist, so we do not want a link to it (which is created from ID, so we remove it)
             unset($inputValuesForDescription[ExportAktivitSloupce::ID_AKTIVITY]);
 
             return ImportStepResult::error($originalActivityResult->getError())
@@ -76,6 +77,7 @@ class ImportValuesSanitizer
             'sanitizedValues' => $sanitizedValues,
             'stepsResults'    => $sanitizedValuesStepsResults,
             'longAnnotation'  => $longAnnotation,
+            'locationIds'     => $locationIds,
             'tagIds'          => $tagIds,
             'activityUrl'     => $activityUrl,
             'storytellersIds' => $storytellersIds,
@@ -100,6 +102,7 @@ class ImportValuesSanitizer
                 'originalActivity'   => $originalActivity,
                 'longAnnotation'     => $longAnnotation,
                 'storytellersIds'    => $storytellersIds,
+                'locationIds'        => $locationIds,
                 'tagIds'             => $tagIds,
                 'potentialImageUrls' => $potentialImageUrls,
             ],
@@ -190,13 +193,13 @@ class ImportValuesSanitizer
         $stepsResults[]                                    = $activityEndResult;
         unset($activityEndResult);
 
-        $locationIdResult = $this->getValidatedLocationId($inputValues, $originalActivity, $parentActivity);
-        if ($locationIdResult->isError()) {
-            return ImportStepResult::error($locationIdResult->getError());
+        $locationIdsResult = $this->getValidatedLocationIds($inputValues, $originalActivity, $parentActivity);
+        if ($locationIdsResult->isError()) {
+            return ImportStepResult::error($locationIdsResult->getError());
         }
-        $sanitizedValues[ActivitiesImportSqlColumn::LOKACE] = $locationIdResult->getSuccess();
-        $stepsResults[]                                     = $locationIdResult;
-        unset($locationIdResult);
+        $locationIds    = $locationIdsResult->getSuccess();
+        $stepsResults[] = $locationIdsResult;
+        unset($locationIdsResult);
 
         $storytellersIdsResult = $this->getValidatedStorytellersIds($inputValues, $originalActivity, $parentActivity);
         if ($storytellersIdsResult->isError()) {
@@ -314,6 +317,7 @@ class ImportValuesSanitizer
             'sanitizedValues' => $sanitizedValues,
             'stepsResults'    => $stepsResults,
             'longAnnotation'  => $longAnnotation,
+            'locationIds'     => $locationIds,
             'tagIds'          => $tagIds,
             'activityUrl'     => $activityUrl,
             'storytellersIds' => $storytellersIds,
@@ -1010,30 +1014,44 @@ HTML;
         ));
     }
 
-    private function getValidatedLocationId(
+    private function getValidatedLocationIds(
         array     $activityValues,
         ?Aktivita $originalActivity,
         ?Aktivita $parentActivity,
     ): ImportStepResult {
-        $locationValue = $activityValues[ExportAktivitSloupce::MISTNOST] ?? null;
-        if (!$locationValue) {
+        $locationsValue = $activityValues[ExportAktivitSloupce::MISTNOST] ?? null;
+        if (!$locationsValue) {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
             if ($sourceActivity) {
-                return ImportStepResult::success($sourceActivity->lokaceId());
+                return ImportStepResult::success($sourceActivity->seznamLokaciIdcka());
             }
 
             return ImportStepResult::success(null);
         }
-        $location = $this->importObjectsContainer->getLocationFromValue((string)$locationValue);
-        if ($location) {
-            return ImportStepResult::success($location->id());
+        $locations              = $this->importObjectsContainer->getLocationsFromValue((string)$locationsValue);
+        $foundLocations         = array_filter($locations, fn(
+            ?Lokace $location,
+        ) => $location !== null);
+        $notFoundLocationValues = array_keys(array_diff_key($locations, $foundLocations));
+        $foundLocationIds       = array_map(
+            static fn(
+                Lokace $lokace,
+            ) => $lokace->id(),
+            $foundLocations,
+        );
+
+        if ($notFoundLocationValues === []) {
+            return ImportStepResult::success($foundLocationIds);
         }
 
         return ImportStepResult::successWithErrorLikeWarnings(
-            null,
+            $foundLocationIds,
             [sprintf(
-                 "Neznámá místnost '%s'. Aktivita je bez místnosti.",
-                 $locationValue,
+                 "Neznámé místnosti %s. %s.",
+                 var_export($notFoundLocationValues, true),
+                 $foundLocationIds === []
+                     ? 'Aktivita je bez místnosti'
+                     : 'Tyto místnosti jsou vynechány',
              )],
         );
     }

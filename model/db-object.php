@@ -8,12 +8,12 @@ if (!defined('DB_NULL')) {
  */
 abstract class DbObject
 {
-    protected static $tabulka;    // název tabulky - odděděná třída _musí_ přepsat
-    protected static $pk = 'id';  // název primárního klíče - odděděná třída může přepsat
-    /**
-     * @var array<string, array<int, static>>
-     */
-    private static array $objekty       = [];
+    protected static         $tabulka;    // název tabulky - odděděná třída _musí_ přepsat
+    protected static ?string $aliasTabulky = null; // volitelný alias tabulky pro zWhere
+    protected static         $pk           = 'id';  // název primárního klíče - odděděná třída může přepsat
+    /** @var array<string, array<int, static>> */
+    private static array $objekty = [];
+    /** @var array<string, array<int, static>> */
     private static array $objektyZVsech = [];
 
     /**
@@ -22,14 +22,19 @@ abstract class DbObject
      */
     protected function __construct(protected array $r)
     {
+        if (!empty($this->r[static::$pk])) {
+            self::doCache($this);
+        }
     }
 
     /**
      * Vrací dbrow pokud je hodnota přítomna nastaví na ni dbrow.
      * Pro nastavení hodnoty na null je potřeba předat DB_NULL
      */
-    protected function getSetR($name, $val = null)
-    {
+    protected function getSetR(
+        $name,
+        $val = null,
+    ) {
         if ($val != null) {
             $this->r[$name] = $val == DB_NULL
                 ? null
@@ -48,7 +53,7 @@ abstract class DbObject
      */
     protected static function dotaz($where)
     {
-        return 'SELECT * FROM ' . static::$tabulka . ' WHERE ' . $where;
+        return 'SELECT * FROM ' . static::$tabulka . ' ' . $where;
     }
 
     /** Vrátí formulář pro editaci objektu s daným ID nebo pro přidání nového */
@@ -81,40 +86,75 @@ abstract class DbObject
     }
 
     /** Načte a vrátí objekt s daným ID nebo null */
-    public static function zId($id, bool $zCache = false)
-    {
+    public static function zId(
+        $id,
+        bool $zCache = false,
+    ) {
         $objekt = null;
         if ($zCache) {
-            $objekt = self::$objekty[static::class][(int)$id] ?? null;
+            $objekt = self::zCache($id);
         }
         $objekt = $objekt ?? self::zWhereRadek(static::$pk . ' = ' . dbQv($id));
         if ($objekt && $zCache) {
-            self::$objekty[static::class][(int)$id] = $objekt;
+            self::doCache($objekt);
         }
 
         return $objekt;
     }
 
+    private static function zCache($id): ?static
+    {
+        return self::$objekty[static::class][(int)$id] ?? null;
+    }
+
+    private static function doCache(self $object): void
+    {
+        self::$objekty[static::class][$object->id()] = $object;
+    }
+
     /**
      * Načte a vrátí pole objektů s danými ID (může být prázdné)
-     * @param array $ids pole čísel nebo řetězec čísel oddělených čárkami
+     * @param array<int|string>|string $ids pole čísel nebo řetězec čísel oddělených čárkami
+     * @return array<int, static>
      */
-    public static function zIds($ids)
-    {
-        if (is_array($ids)) {
-            if (empty($ids)) {
+    public static function zIds(
+        array | string $ids,
+        bool           $zCache = false,
+    ): array {
+        if (is_string($ids)) {
+            if ($ids === '') {
                 return [];
-            } // vůbec se nedotazovat DB
-
-            return self::zWhere(static::$pk . ' IN (' . dbQa($ids) . ')');
-        } elseif (preg_match('@^([0-9]+,)*[0-9]+$@', $ids)) {
-            return self::zWhere(static::$pk . ' IN (' . $ids . ')');
-        } elseif ($ids === '') {
-            return [];
-        } else {
-            throw new InvalidArgumentException('Argument musí být pole čísel nebo řetězec čísel oddělených čárkou');
+            }
+            assert(preg_match('~^([0-9]+,)*[0-9]+$~', $ids), 'Argument musí být čísla oddělená čárkami, pokud je to string');
+            $ids = array_map('intval', explode(',', $ids));
         }
-        // TODO co když $ids === null?
+        if ($ids === []) {
+            return [];
+        }
+        $cachedObjects = [];
+        if ($zCache) {
+            foreach ($ids as $index => $id) {
+                $cachedObject = self::zCache($id);
+                if ($cachedObject) {
+                    $cachedObjects[] = $cachedObject;
+                    unset($ids[$index]); // odstraní z pole, aby se nevolal dotaz na databázi
+                }
+            }
+        }
+
+        $freshObjects = $ids !== []
+            ? self::zWhere((static::$aliasTabulky
+                    ? (static::$aliasTabulky . '.')
+                    : '') . static::$pk . ' IN (' . dbQa($ids) . ')')
+            : [];
+        if (!$zCache) {
+            return $freshObjects;
+        }
+        foreach ($freshObjects as $freshObject) {
+            self::doCache($freshObject);
+        }
+
+        return [...$cachedObjects, ...$freshObjects];
     }
 
     /** Načte a vrátí všechny objekty z databáze */
@@ -136,15 +176,18 @@ abstract class DbObject
     }
 
     /** Načte a vrátí objekty pomocí dané where klauzule */
-    protected static function zWhere($where, $params = null, $extra = ''): array
-    {
-        $o = dbQuery(static::dotaz($where) . ' ' . $extra, $params); // static aby odděděná třída mohla přepsat dotaz na něco složitějšího
+    protected static function zWhere(
+        $where,
+        $params = null,
+        $extra = '',
+    ): array {
+        $o = dbQuery(static::dotaz("WHERE $where") . ' ' . $extra, $params); // static aby odděděná třída mohla přepsat dotaz na něco složitějšího
         $a = [];
         while ($r = mysqli_fetch_assoc($o)) {
             $a[] = new static($r); // static aby vznikaly objekty správné třídy
         }
+
         // TODO id jako klíč pole?
-        // TODO cacheování?
         return $a;
     }
 
@@ -152,8 +195,10 @@ abstract class DbObject
      * Načte a vrátí objekt vyhovující where klauzuli nebo null
      * @throws RuntimeException pokud se načte více řádků
      */
-    protected static function zWhereRadek($where, $params = null)
-    {
+    protected static function zWhereRadek(
+        $where,
+        $params = null,
+    ) {
         $a = self::zWhere($where, $params);
         if (count($a) === 1) {
             return $a[0];
