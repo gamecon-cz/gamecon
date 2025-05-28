@@ -880,10 +880,10 @@ li.list-header {
 .chybaBlok.inline { position: inherit; z-index: inherit; top: 0; width: 100%; left: 0; margin-bottom: 1em }
 
 .chybaBlok .hlaska {
-  padding: 28px;
+  padding: 1em;
   margin: 5px 0;
   box-shadow: 0 0 10px;
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .chybaBlok .errorHlaska {
