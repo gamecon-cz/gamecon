@@ -147,7 +147,22 @@ class ImportObjectsContainer
         return $this->tagsCache;
     }
 
-    public function getLocationFromValue(string $locationValue): ?Lokace
+    /**
+     * @return array<string, Lokace|null>
+     */
+    public function getLocationsFromValue(string $locationsString): array
+    {
+        $locationValues = array_map('trim', explode(';', $locationsString));
+        $locations      = [];
+        foreach ($locationValues as $locationValue) {
+            $locations[$locationValue] = $this->getLocationFromValue($locationValue);
+        }
+
+        return $locations;
+    }
+
+
+    private function getLocationFromValue(string $locationValue): ?Lokace
     {
         $locationId = ImportKeyUnifier::parseId($locationValue);
         if ($locationId !== null) {

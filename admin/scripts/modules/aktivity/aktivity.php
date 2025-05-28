@@ -172,8 +172,6 @@ if (defined('TESTING') && TESTING && !empty($filtr['typ'])) {
 $typy    = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
 $typy[0] = '';
 
-$mistnosti = dbArrayCol('SELECT id_lokace, nazev FROM akce_lokace');
-
 foreach ($aktivity as $aktivita) {
     $r = $aktivita->rawDb();
     $tpl->assign([
@@ -185,7 +183,7 @@ foreach ($aktivity as $aktivita) {
         'cas'          => $aktivita->denCasSkutecny(),
         'organizatori' => $aktivita->orgJmena(),
         'typ'          => $typy[$r['typ']],
-        'mistnost'     => $mistnosti[$r['lokace']] ?? '(žádná)',
+        'mistnost'     => $aktivita->nazevLokaci() ?? '(žádná)',
     ]);
     if ($aktivita->tagy()) {
         $tpl->assign('tagy', implode(' | ', $aktivita->tagy()));
