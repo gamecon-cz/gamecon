@@ -6,7 +6,7 @@ namespace Gamecon\Aktivita\SqlStruktura;
 
 class LokaceSqlStruktura
 {
-    public const LOKACE_TABULKA = 'akce_lokace';
+    public const LOKACE_TABULKA = 'lokace';
 
     public const ID_LOKACE = 'id_lokace';
     public const NAZEV     = 'nazev';
