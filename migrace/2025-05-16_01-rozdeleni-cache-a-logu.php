@@ -4,16 +4,12 @@ if (file_exists(PROJECT_ROOT_DIR . '/cache/private/chyby.sqlite')) {
     rename(PROJECT_ROOT_DIR . '/cache/private/chyby.sqlite', LOGY . '/chyby.sqlite');
 }
 
-if (file_exists(PROJECT_ROOT_DIR . '/cache/private/maily.log')) {
-    rename(PROJECT_ROOT_DIR . '/cache/private/maily.log', LOGY . '/maily.log');
-}
-
 if (file_exists(PROJECT_ROOT_DIR . '/cache/private/platby.sqlite')) {
     rename(PROJECT_ROOT_DIR . '/cache/private/platby.sqlite', LOGY . '/platby.sqlite');
 }
 
-if (file_exists(PROJECT_ROOT_DIR . '/cache/private/role.log')) {
-    rename(PROJECT_ROOT_DIR . '/cache/private/role.log', LOGY . '/role.log');
+foreach (glob(PROJECT_ROOT_DIR . '/cache/private/*.log') as $file) {
+    rename($file, LOGY . '/' . basename($file));
 }
 
 $filesystem = new \Symfony\Component\Filesystem\Filesystem();
