@@ -276,7 +276,7 @@ class Platby
 
     private function tabulkaProLogovani(): \EPDO
     {
-        $sqlite = new \EPDO('sqlite:' . SPEC . '/platby.sqlite');
+        $sqlite = new \EPDO('sqlite:' . LOGY . '/platby.sqlite');
 
         $sqlite->query(<<<SQLITE3
             CREATE TABLE IF NOT EXISTS fio_platby_log(

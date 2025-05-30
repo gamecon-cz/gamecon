@@ -13,7 +13,7 @@ require_once __DIR__ . '/cron/_cron_zavadec.php';
 
 /////////////////////////////////// příprava ///////////////////////////////////
 
-$logdir = SPEC . '/logs';
+$logdir = LOGY . '/cron';
 (new Filesystem())->mkdir($logdir);
 
 // otestovat, že je skript volán s heslem a sprvánou url

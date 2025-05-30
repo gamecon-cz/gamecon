@@ -30,7 +30,7 @@ class Vyjimkovac implements Logovac
             return $vyjimkovac;
         }
 
-        $novaInstance = new static(SPEC . '/chyby.sqlite', PRIJEMCI_CHYB);
+        $novaInstance = new static(LOGY . '/chyby.sqlite', PRIJEMCI_CHYB);
         if ($novouInstanci) {
             return $novaInstance;
         }
