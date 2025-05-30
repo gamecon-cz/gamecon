@@ -95,7 +95,7 @@ class Nahled
                         $imagick->thumbnailImage($s, $v, true, false);
                         break;
                     case self::POKRYJ:
-                        $imagick->cropThumbnailImage($s, $v);
+                        $imagick->thumbnailImage($s, $v, true, true);
                         break;
                     case self::POKRYJ_OREZ:
                         $imagick->cropThumbnailImage($s, $v);
