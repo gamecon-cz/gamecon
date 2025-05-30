@@ -8,6 +8,7 @@ if (!defined('PROJECT_ROOT_DIR')) define('PROJECT_ROOT_DIR', __DIR__ . '/..');
 if (!defined('WWW')) define('WWW', __DIR__ . '/../web');
 if (!defined('ADMIN')) define('ADMIN', __DIR__ . '/../admin');
 if (!defined('SPEC')) define('SPEC', __DIR__ . '/../cache/private');
+if (!defined('LOGY')) define('LOGY', __DIR__ . '/../logy');
 if (!defined('CACHE')) define('CACHE', __DIR__ . '/../cache/public');
 if (!defined('SQL_MIGRACE_DIR')) define('SQL_MIGRACE_DIR', __DIR__ . '/../migrace');
 if (!defined('ZALOHA_DB_SLOZKA')) define('ZALOHA_DB_SLOZKA', __DIR__ . '/../backup/db'); // cesta pro zálohy databáze
