@@ -1,10 +1,10 @@
 <?php
 
-use Gamecon\Web\ImagesProcessed;
+use Gamecon\Web\zpracovaneObrazky;
 
 /** @var Modul $this */
 /** @var \Gamecon\XTemplate\XTemplate $t */
 
-ImagesProcessed::logaSponzoruPrehled()->vypisDoSablony($t, 'sponzori.sponzor');
-ImagesProcessed::logaPartneruPrehled()->vypisDoSablony($t, 'sponzori.partner');
+zpracovaneObrazky::logaSponzoruPrehled()->vypisDoSablony($t, 'sponzori.sponzor');
+zpracovaneObrazky::logaPartneruPrehled()->vypisDoSablony($t, 'sponzori.partner');
 $t->parse('sponzori');

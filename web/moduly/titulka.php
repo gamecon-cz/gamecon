@@ -3,7 +3,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Web\ImagesProcessed;
+use Gamecon\Web\zpracovaneObrazky;
 use Gamecon\Role\Role;
 
 /** @var \Gamecon\XTemplate\XTemplate $t */
@@ -19,7 +19,7 @@ $this->info()
 // linie
 $offsety = [120, 320, 280];
 $typy    = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
-$obrazky = ImagesProcessed::linieTitulka()->seznamObrazku();
+$obrazky = zpracovaneObrazky::linieTitulka()->seznamObrazku();
 foreach ($typy as $i => $typ) {
     $t->assign([
         'cislo'     => sprintf('%02d', $i + 1),
@@ -34,11 +34,11 @@ foreach ($typy as $i => $typ) {
 }
 
 // vyplnění obrázku
-ImagesProcessed::kartyTitulka()->vypisDoSablonySorted($t, 'titulka.karty');
-ImagesProcessed::cislaTitulka()->vypisDoSablonySorted($t, 'titulka.cisla');
-ImagesProcessed::fotkyTitulka()->vypisDoSablonySorted($t, 'titulka.fotky', 525, 525);
-ImagesProcessed::logaSponzoruTitulka()->vypisDoSablony($t, 'titulka.sponzor');
-ImagesProcessed::logaPartneruTitulka()->vypisDoSablony($t, 'titulka.partner');
+zpracovaneObrazky::kartyTitulka()->vypisDoSablonySorted($t, 'titulka.karty');
+zpracovaneObrazky::cislaTitulka()->vypisDoSablonySorted($t, 'titulka.cisla');
+zpracovaneObrazky::fotkyTitulka()->vypisDoSablonySorted($t, 'titulka.fotky', 525, 525);
+zpracovaneObrazky::logaSponzoruTitulka()->vypisDoSablony($t, 'titulka.sponzor');
+zpracovaneObrazky::logaPartneruTitulka()->vypisDoSablony($t, 'titulka.partner');
 
 // odpočet
 if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
