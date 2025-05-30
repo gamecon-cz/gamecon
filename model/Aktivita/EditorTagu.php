@@ -23,7 +23,7 @@ class EditorTagu
 
     public function getEditorTaguHtml()
     {
-        $editorTaguSablona = new XTemplate(__DIR__ . '/_editor-tagu.xtpl');
+        $editorTaguSablona = new XTemplate(__DIR__ . '/templates/editor-tagu.xtpl');
 
         $vsechnyKategorieTagu = $this->getAllCategories();
         foreach ($vsechnyKategorieTagu as $kategorie) {
