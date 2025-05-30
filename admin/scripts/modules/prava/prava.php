@@ -28,7 +28,7 @@ unset($roleObjekt);
 function zaloguj($zprava)
 {
     $cas = (new DateTimeCz())->formatDb();
-    file_put_contents(SPEC . '/role.log', "$cas $zprava\n", FILE_APPEND);
+    file_put_contents(LOGY . '/role.log', "$cas $zprava\n", FILE_APPEND);
 }
 
 if ($idRoleNaPrirazeni = (int)get('posad')) {

@@ -78,7 +78,9 @@ function datum3(
     return date('j. ', $datumTimestamp) . $mesic[date('n', $datumTimestamp) - 1];
 }
 
-function datum4(string | DateTimeInterface $datum): string {
+function datum4(
+    string | DateTimeInterface $datum,
+): string {
     $datumTimestamp = ($datum instanceof DateTimeInterface)
         ? $datum->getTimestamp()
         : strtotime($datum);
@@ -89,10 +91,9 @@ function datum4(string | DateTimeInterface $datum): string {
     ];
 
     return date('j. ', $datumTimestamp)
-        . $mesic[date('n', $datumTimestamp) - 1]
-        . date(' H:i', $datumTimestamp);
+           . $mesic[date('n', $datumTimestamp) - 1]
+           . date(' H:i', $datumTimestamp);
 }
-
 
 /** Vrátí markdown textu daného hashe (cacheované, text musí být v DB) */
 function dbMarkdown(
@@ -102,7 +103,11 @@ function dbMarkdown(
     $out = kvs('markdown', $hash);
     if (!$out) {
         $text = dbOneCol('SELECT text FROM texty WHERE id = ' . (int)$hash);
-        if (!$text) throw new Exception('Text s daným ID se nenachází v databázi');
+        if (!$text) {
+            throw new Exception(
+                sprintf('Text s daným ID %s se nenachází v databázi', var_export($hash, true)),
+            );
+        }
         $out = markdown($text);
     }
 
@@ -175,7 +180,7 @@ function kvs(
     $hodnota = null,
 ) {
     if (!isset($GLOBALS['CACHEDB'][$nazev])) {
-        $db                         = new SQLite3(SPEC . '/' . $nazev . '.sqlite');
+        $db                         = new SQLite3(LOGY . '/' . $nazev . '.sqlite');
         $GLOBALS['CACHEDB'][$nazev] = $db;
         $db->exec("CREATE TABLE IF NOT EXISTS kvs (k INTEGER PRIMARY KEY, v TEXT)");
     }
@@ -472,7 +477,7 @@ function pripravCache(
     if (is_dir($slozka) && !is_writable($slozka)) {
         throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
     }
-    if (!@mkdir($slozka, 0777, true) && !is_dir($slozka)) {
+    if (!@mkdir($slozka, 0700, true) && !is_dir($slozka)) {
         throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
     }
     chmod($slozka, CACHE_SLOZKY_PRAVA);

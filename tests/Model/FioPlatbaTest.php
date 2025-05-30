@@ -15,7 +15,7 @@ class FioPlatbaTest extends TestCase
      * @dataProvider provideTransactions
      */
     public function Muzeme_nacist_variabilni_symbol_ze_zpravy_nebo_poznamky(array $transaction, string $expectedVs, ?int $ocekavaneIdUcastnika) {
-        $adresar = SPEC . '/fio';
+        $adresar = LOGY . '/fio';
         if (!is_dir($adresar)) {
             mkdir($adresar, 0777, true);
         }
@@ -154,7 +154,7 @@ class FioPlatbaTest extends TestCase
      * @return array|FioPlatba[]
      */
     private function dejAnonymizovanePlatby(): array {
-        $adresar = SPEC . '/fio';
+        $adresar = LOGY . '/fio';
         if (!is_dir($adresar)) {
             mkdir($adresar, 0777, true);
         }

@@ -46,9 +46,9 @@ class DbMigrations
         }
     }
 
-    private function handleEndlessMigrations(): void
+    private function handleEndlessMigrations(bool $hasUnappliedOneTimeMigrations): void
     {
-        foreach ($this->getEndlessMigrations() as $migration) {
+        foreach ($this->getEndlessMigrations($hasUnappliedOneTimeMigrations) as $migration) {
             $this->apply($migration, true);
         }
     }
@@ -205,9 +205,10 @@ SQL,
     {
         if (!is_array($this->migrations)) {
             $migrations = [];
-            foreach (glob($this->config->getMigrationsDirectory() . '/*.php') as $fileName) {
+            foreach (glob($this->config->getMigrationsDirectory() . '/*.{php,sql}', GLOB_BRACE) as $fileName) {
+                // intentionally remove only .php suffix for backwards compatibility, other extensions need to be used as a migration key to avoid conflicts, like old 'foo.php' vs new 'foo.sql'
                 $fileBaseName = basename($fileName, '.php');
-                if (!preg_match('~^\d.+~', $fileBaseName, $matches)) {
+                if (!preg_match('~^\d.+~', $fileBaseName)) {
                     continue;
                 }
 
@@ -233,7 +234,7 @@ SQL,
         ) => !$migration->isEndless());
     }
 
-    private function getEndlessMigrations(): array
+    private function getEndlessMigrations(bool $hasUnappliedOneTimeMigrations): array
     {
         $endless = array_filter(
             $this->getMigrations(),
@@ -241,7 +242,7 @@ SQL,
                 Migration $migration,
             ) => $migration->isEndless(),
         );
-        if (!jsmeNaLocale()) {
+        if ($hasUnappliedOneTimeMigrations || !jsmeNaLocale()) {
             return $endless;
         }
         if (!session_id()) {
@@ -249,11 +250,14 @@ SQL,
         }
         $alreadyExecuted = $_SESSION['endless_migrations'] ?? [];
 
+        $timestamp = time();
+
         return array_filter(
             $endless,
             static fn(
                 Migration $migration,
-            ) => !in_array($migration->getCode(), $alreadyExecuted, true),
+            ) => !array_key_exists($migration->getCode(), $alreadyExecuted) ||
+                 ($alreadyExecuted[$migration->getCode()] < ($timestamp - 3600)),
         );
     }
 
@@ -293,7 +297,7 @@ SQL,
                     session_start();
                 }
                 $_SESSION['endless_migrations']   ??= [];
-                $_SESSION['endless_migrations'][] = $migration->getCode();
+                $_SESSION['endless_migrations'][$migration->getCode()] = time();
             }
         } catch (\Throwable $throwable) {
             $this->connection->query('ROLLBACK');
@@ -307,7 +311,9 @@ SQL,
         $oldReportMode       = $driver->report_mode;
         $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
 
-        if ($this->hasUnappliedMigrations()) {
+        $hasUnappliedOneTimeMigrations = $this->hasUnappliedMigrations();
+
+        if ($hasUnappliedOneTimeMigrations) {
             if (!$silent) {
                 $this->webGui?->configureEnvironment();
             }
@@ -319,7 +325,7 @@ SQL,
             }
         }
 
-        $this->handleEndlessMigrations();
+        $this->handleEndlessMigrations($hasUnappliedOneTimeMigrations);
 
         $driver->report_mode = $oldReportMode;
     }
