@@ -9,7 +9,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Vyjimkovac\VyjimkovacChyba;
 
-$db         = new EPDO('sqlite:' . SPEC . '/chyby.sqlite');
+$db         = new EPDO('sqlite:' . LOGY . '/chyby.sqlite');
 $ignorovane = json_decode($_COOKIE['ignorovaneChyby'] ?? '[]');
 
 if (post('vyresit')) {

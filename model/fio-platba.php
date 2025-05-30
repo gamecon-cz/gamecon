@@ -102,7 +102,7 @@ class FioPlatba
     /** Cacheuje a zpracovává surovou rest odpověď (kvůli limitu 30s na straně FIO) */
     private static function cached(string $url): ?string
     {
-        $adresar = SPEC . '/fio';
+        $adresar = LOGY . '/fio';
         $soubor  = $adresar . '/' . md5($url) . '.json';
         if (!is_dir($adresar) && (!mkdir($adresar, 0777, true) || !is_dir($adresar))) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $adresar));

@@ -45,7 +45,7 @@ if (post('promlcet')) {
             chyba('Nepodařilo se aktualizovat údaje v databázi. Kontaktuj IT tým.');
         }
 
-        $soubor = SPEC . '/promlceni-' . date('Y-m-d_H-i-s') . '.log';
+        $soubor = LOGY . '/promlceni-' . date('Y-m-d_H-i-s') . '.log';
         $cas    = date('Y-m-d H:i:s');
         $zprava = "Promlčení provedl admin s id:          $idAdm";
         file_put_contents($soubor, "$cas $zprava\n", FILE_APPEND);

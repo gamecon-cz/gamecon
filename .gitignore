@@ -12,6 +12,8 @@
 !/cache/private/.htaccess
 /cache/public/*
 !/cache/public/.htaccess
+/logy/*
+!/logy/.htaccess
 
 /admin/*.sql.gz
 

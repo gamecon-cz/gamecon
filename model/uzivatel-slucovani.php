@@ -77,7 +77,7 @@ SQL
      */
     private function zaloguj($zprava)
     {
-        $soubor = SPEC . '/slucovani.log';
+        $soubor = LOGY . '/slucovani.log';
         $cas    = date('Y-m-d H:i:s');
         file_put_contents($soubor, "$cas $zprava\n", FILE_APPEND);
     }

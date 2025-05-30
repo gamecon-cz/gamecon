@@ -105,6 +105,6 @@ RENAME TABLE r_prava_zidle TO prava_role
 SQL
 );
 
-if (file_exists(SPEC . '/zidle.log')) {
-    rename(SPEC . '/zidle.log', SPEC . '/role.log');
+if (file_exists(LOGY . '/zidle.log')) {
+    rename(LOGY . '/zidle.log', LOGY . '/role.log');
 }
