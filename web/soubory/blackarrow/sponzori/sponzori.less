@@ -1,89 +1,98 @@
 .sponzori {
-    padding: 168rel 286/19.2vw 0;
-    @media (max-width: 600px) {
-        padding: 35vw 10vw 6vw;
-    }
-    margin-bottom: 4vw;
+  padding: 168rel 286/19.2vw 0;
+  @media (max-width: 600px) {
+    padding: 35vw 10vw 6vw;
+  }
+  margin-bottom: 4vw;
 }
 
 .sponzori h2 {
-    color: #E22630;
-    font-size: 42rel;
-    margin: 0 0 30px 0;
+  color: #E22630;
+  font-size: 42rel;
+  margin: 0 0 30px 0;
 }
 
 .sponzori h2 > a {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 
 .sponzori_loga {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, 160px);
-    gap: 0 90rel;
-    justify-content: space-between;
-    @media (max-width: 600px) {
-        grid-template-columns: repeat(auto-fill, 75px);
-        gap: 0 10px;
-    }
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 160px);
+  gap: 0 90rel;
+  justify-content: space-between;
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(auto-fill, 75px);
+    gap: 0 10px;
+  }
 }
 
 .sponzori_logo {
-    height: 160px; // aby se zabránilo skákání
-    line-height: 96px; // kvůli zarovnání obrázků
-    text-align: center;
+  height: 160px; // aby se zabránilo skákání
+  line-height: 96px; // kvůli zarovnání obrázků
+  text-align: center;
 }
 
 .sponzori_logo > a > img {
-    vertical-align: middle;
-    max-width: 100%;
-    filter: saturate(0) brightness(0.85) contrast(1.5) opacity(0.5);
-    transition: filter 0.2s;
+  vertical-align: middle;
+  max-width: 100%;
+  filter: saturate(0) brightness(0.85) contrast(1.5) opacity(0.5);
+  transition: filter 0.2s;
 }
 
 .sponzori_logo > a:hover > img {
-    filter: none;
+  filter: none;
 }
 
 .partneri_loga {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, 120px);
-    gap: 0 90rel;
-    justify-content: space-between;
-    @media (max-width: 600px) {
-        grid-template-columns: repeat(auto-fill, 75px);
-        gap: 0 10px;
-    }
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 120px);
+  gap: 0 90rel;
+  justify-content: space-between;
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(auto-fill, 75px);
+    gap: 0 10px;
+  }
 }
 
 .partneri_logo {
-    height: 120px; // aby se zabránilo skákání
-    line-height: 60px; // kvůli zarovnání obrázků
-    text-align: center;
+  height: 120px; // aby se zabránilo skákání
+  line-height: 60px; // kvůli zarovnání obrázků
+  text-align: center;
 }
 
 .partneri_logo > a > img {
-    vertical-align: middle;
-    max-width: 100%;
-    filter: saturate(0) brightness(0.85) contrast(1.5) opacity(0.5);
-    transition: filter 0.2s;
+  vertical-align: middle;
+  max-width: 100%;
+  filter: saturate(0) brightness(0.85) contrast(1.5) opacity(0.5);
+  transition: filter 0.2s;
 }
 
+.sponzori_logo > a:hover > img,
 .partneri_logo > a:hover > img {
-    filter: none;
+  filter: none;
 }
 
+.obal > .sponzori > .partneri_loga > .partneri_logo > a > img,
+.obal > .sponzori > .sponzori_loga > .sponzori_logo > a > img {
+  filter: none;
+}
+
+.obal > .sponzori {
+  padding: 0;
+}
+
+.obal > .sponzori > .partneri_loga,
 .obal > .sponzori > .sponzori_loga {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0 20px; 
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0 20px;
 }
 
 @media (max-width: 600px) {
-    .obal > .sponzori > .partneri_loga {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .obal > .sponzori > .sponzori_loga {
-        grid-template-columns: repeat(2, 1fr);
-    }
+  .obal > .sponzori > .partneri_loga,
+  .obal > .sponzori > .sponzori_loga {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

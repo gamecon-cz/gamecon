@@ -7,4 +7,3 @@ use Gamecon\Web\Loga;
 
 Loga::logaSponzoruPrehled()->vypisDoSablony($t, 'sponzori.sponzor');
 Loga::logaPartneruPrehled()->vypisDoSablony($t, 'sponzori.partner');
-$t->parse('sponzori');
