@@ -76,9 +76,7 @@ if (!$zaplaceno) {
     <?php if ($slevyA || $slevyV) { ?>
         <div style="float:left">
             <h2>Bonusy</h2>
-            <?php if ($slevyA || $slevyV) { ?>
-                <ul><?= trim($slevyA . $slevyV) ?></ul>
-            <?php } ?>
+            <ul><?= trim($slevyA . $slevyV) ?></ul>
         </div>
     <?php } ?>
 
