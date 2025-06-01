@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Cache;
 
-readonly class CachedDb
+readonly class CachedDb implements DbInterface
 {
     public function __construct(private QueryCache $queryCache)
     {

@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] != "GET") {
   return;
 }
 
-$editorTagu = new EditorTagu($systemoveNastaveni->cachedDb());
+$editorTagu = new EditorTagu($systemoveNastaveni->db());
 
 $res = $editorTagu->getTagy();
 $res = array_map(
