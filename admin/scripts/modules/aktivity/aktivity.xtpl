@@ -233,9 +233,23 @@
                 <!-- end:symbolInstance -->
             </td>
             <td>
-                <!-- begin:symbolKorekce -->
-                <img alt="Řetěz instance" src="files/design/ok.png"/>
-                <!-- end:symbolKorekce -->
+                <!-- begin:rychlokorekce1 -->
+                <form method="post">
+                    <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+                    <button type="submit" name="korekce" value="1" class="no-background-color"
+                            title="Změna stavu korekce"
+                            onclick="return window.confirm('Opravdu změnit stav korekce {nazev_akce}?');">
+                        <!-- end:rychlokorekce1 -->
+                        <!-- begin:symbolKorekce -->
+                        <img alt="Řetěz instance" src="files/design/ok.png"/>
+                        <!-- end:symbolKorekce -->
+                        <!-- begin:symbolBezKorekce -->
+                        <img alt="Řetěz instance" src="files/design/error.png"/>
+                        <!-- end:symbolBezKorekce -->
+                        <!-- begin:rychlokorekce2 -->
+                    </button>
+                </form>
+                <!-- end:rychlokorekce2 -->
             </td>
             <!-- begin:tlacitka -->
             <td class="tlacitko-aktivity">
