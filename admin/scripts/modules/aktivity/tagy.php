@@ -16,7 +16,7 @@
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Aktivita\EditorTagu;
 
-$editorTagu = new EditorTagu($systemoveNastaveni->cachedDb());
+$editorTagu = new EditorTagu($systemoveNastaveni->db());
 
 $zpracovanyTag = $editorTagu->pridejNovyTag();
 if (!$zpracovanyTag) {

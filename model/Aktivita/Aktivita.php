@@ -427,7 +427,7 @@ SQL
         SystemoveNastaveni $systemoveNastaveni,
         Aktivita           $a = null,
     ) {
-        return self::editorParam(new EditorTagu($systemoveNastaveni->cachedDb()), $a);
+        return self::editorParam(new EditorTagu($systemoveNastaveni->db()), $a);
     }
 
     /**
@@ -3990,8 +3990,8 @@ SQL,
             SQL,
             pole: $args ?? [],
         );
-        $cachedDb = $systemoveNastaveni->cachedDb();
-        $result   = $cachedDb->dbFetchAll(
+        $db = $systemoveNastaveni->db();
+        $result   = $db->dbFetchAll(
             [
                 ...[
                     SjednoceneTagySqlStruktura::SJEDNOCENE_TAGY_TABULKA,

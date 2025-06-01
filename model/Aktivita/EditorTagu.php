@@ -4,7 +4,7 @@ namespace Gamecon\Aktivita;
 
 use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
-use Gamecon\Cache\CachedDb;
+use Gamecon\Cache\DbInterface;
 use Gamecon\XTemplate\XTemplate;
 
 class EditorTagu
@@ -17,7 +17,7 @@ class EditorTagu
     private const NAZEV_TAGU_KLIC     = 'aEditNazevTagu';       // název proměnné, v které je název tagu
     private const POZNAMKA_TAGU_KLIC  = 'aEditPoznamkaTagu';       // název proměnné, v které je poznámka k tagu
 
-    public function __construct(private readonly CachedDb $cachedDb)
+    public function __construct(private readonly DbInterface $db)
     {
     }
 
@@ -185,7 +185,7 @@ WHERE sjednocene_tagy.id = $1',
 
     public function getTagy(): array
     {
-        $result     = $this->cachedDb->dbFetchAll(
+        $result     = $this->db->dbFetchAll(
             [
                 SjednoceneTagySqlStruktura::SJEDNOCENE_TAGY_TABULKA,
                 KategorieSjednocenychTaguSqlStruktura::KATEGORIE_SJEDNOCENYCH_TAGU_TABULKA,

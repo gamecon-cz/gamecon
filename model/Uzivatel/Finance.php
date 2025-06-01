@@ -646,7 +646,7 @@ JOIN akce_prihlaseni_stavy AS stav_prihlaseni
 WHERE rok = $rok
 SQL;
 
-        $result = $this->systemoveNastaveni->cachedDb()->dbFetchAll(
+        $result = $this->systemoveNastaveni->db()->dbFetchAll(
             [
                 AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA,
                 AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,

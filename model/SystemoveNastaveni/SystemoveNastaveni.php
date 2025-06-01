@@ -6,7 +6,9 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Composer\Autoload\ClassLoader;
 use Gamecon\Cache\CachedDb;
+use Gamecon\Cache\DbInterface;
 use Gamecon\Cache\QueryCache;
+use Gamecon\Cache\RawDb;
 use Gamecon\Cache\TableDataDependentCache;
 use Gamecon\Cache\TableDataVersionsRepository;
 use Gamecon\Cas\DateTimeCz;
@@ -52,10 +54,10 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         return (int)round($cislo, 0);
     }
 
-    private ?array             $vsechnyZaznamyNastaveni = null;
-    private ?array             $odvozeneHodnoty         = null;
-    private ?array             $vychoziHodnoty          = null;
-    private ?CachedDb          $cachedDb                = null;
+    private ?array                       $vsechnyZaznamyNastaveni     = null;
+    private ?array                       $odvozeneHodnoty             = null;
+    private ?array                       $vychoziHodnoty              = null;
+    private ?DbInterface                 $db                          = null;
     private ?QueryCache                  $queryCache                  = null;
     private ?TableDataDependentCache     $tableDataDependentCache     = null;
     private ?TableDataVersionsRepository $tableDataVersionsRepository = null;
@@ -1018,13 +1020,20 @@ SQL;
         return (bool)UBYTOVANI_POUZE_SPACAKY;
     }
 
-    public function cachedDb(): CachedDb
+    public function jeZapnuteCachovaniSqlDotazu(): bool
     {
-        if (!$this->cachedDb) {
-            $this->cachedDb = new CachedDb($this->queryCache());
+        return (bool)CACHOVAT_SQL_DOTAZY;
+    }
+
+    public function db(): DbInterface
+    {
+        if (!$this->db) {
+            $this->db = $this->jeZapnuteCachovaniSqlDotazu()
+                ? new CachedDb($this->queryCache())
+                : new RawDb();
         }
 
-        return $this->cachedDb;
+        return $this->db;
     }
 
     public function queryCache(): QueryCache
