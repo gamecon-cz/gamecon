@@ -113,6 +113,14 @@ if (post('instance')) {
     back();
 }
 
+if (post("korekce")) {
+    $a = Aktivita::zId(
+        id: post("aktivitaId"),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
+    $a?->nastavKorekci(!$a->probehlaKorekce());
+}
+
 require_once __DIR__ . '/_filtr-moznosti.php';
 
 $filtrMoznosti = FiltrMoznosti::vytvorZGlobals(FiltrMoznosti::NEFILTROVAT_PODLE_ROKU);
@@ -178,8 +186,16 @@ foreach ($aktivity as $aktivita) {
     if ($r[Sql::PATRI_POD]) {
         $tpl->parse('aktivity.aktivita.symbolInstance');
     }
+    if ($u->maPravo(Pravo::PROVADI_KOREKCE)) {
+        $tpl->parse("aktivity.aktivita.rychlokorekce1");
+    }
     if ($r[Sql::PROBEHLA_KOREKCE]) {
         $tpl->parse('aktivity.aktivita.symbolKorekce');
+    } else {
+        $tpl->parse('aktivity.aktivita.symbolBezKorekce');
+    }
+    if ($u->maPravo(Pravo::PROVADI_KOREKCE)) {
+        $tpl->parse("aktivity.aktivita.rychlokorekce2");
     }
     if ($r[Sql::STAV] == StavAktivity::NOVA) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
