@@ -255,6 +255,15 @@ SQL
         return (bool)$this->a[Sql::PROBEHLA_KOREKCE];
     }
 
+    public function nastavKorekci(bool $stav)
+    {
+        dbQuery('UPDATE ' . Sql::AKCE_SEZNAM_TABULKA .
+            ' SET ' . Sql::PROBEHLA_KOREKCE . ' = $0 ' .
+            ' WHERE ' . Sql::ID_AKCE . ' = ' . $this->id(),
+            [$stav]);
+        $this->a[Sql::PROBEHLA_KOREKCE] = $stav;
+    }
+
     public function slevaNasobic(
         \Uzivatel             $u = null,
         ?DataSourcesCollector $dataSourcesCollector = null,
@@ -997,8 +1006,9 @@ SQL
     ): Aktivita {
         $data[Sql::BEZ_SLEVY]    = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
         $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
-        if (empty($data[Sql::ID_AKCE]) /* nová aktivita */
-            || array_key_exists(Sql::PROBEHLA_KOREKCE, $data)/** editace korekce; reakce na změnu textu viz @see popis */
+        $nastavujeKorekci = empty($data[Sql::ID_AKCE]) /* nová aktivita */
+            || array_key_exists(Sql::PROBEHLA_KOREKCE, $data);
+        if ($nastavujeKorekci  /** editace korekce; reakce na změnu textu viz @see popis */
         ) {
             $data[Sql::PROBEHLA_KOREKCE] = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "probehla_korekce"
         }
@@ -1105,7 +1115,7 @@ SQL
             $aktivita->obrazek(\Obrazek::zUrl($obrazekUrl));
         }
         $aktivita->organizatori($organizatoriIds);
-        $aktivita->popis($markdownPopis);
+        $aktivita->popis($markdownPopis, resetujKorekci: !$nastavujeKorekci);
         $aktivita->nastavTagyPodleIds($tagIds);
 
         return $aktivita;
@@ -1832,7 +1842,7 @@ SQL
     /**
      * Vrátí formátovaný (html) popisek aktivity
      */
-    public function popis(string $popis = null)
+    public function popis(string $popis = null, bool $resetujKorekci = false)
     {
         if ($popis === null) {
             return dbMarkdown($this->a[Sql::POPIS]);
@@ -1844,7 +1854,7 @@ SQL
         if ($this->a[Sql::PATRI_POD] || $id != $oldId) {
             $zmeny[Sql::POPIS] = $id;
         }
-        if ($id != $oldId) {
+        if ($resetujKorekci && $id != $oldId) {
             $zmeny[Sql::PROBEHLA_KOREKCE] = 0;
         }
 
