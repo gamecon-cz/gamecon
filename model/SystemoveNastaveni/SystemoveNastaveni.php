@@ -926,6 +926,11 @@ SQL;
         return $this->cacheDir;
     }
 
+    public function tableDataDependentCacheDir(): string
+    {
+        return $this->cacheDir() . DB_NAME . '/table_data_dependent';
+    }
+
     public function prihlasovaciUdajeOstreDatabaze(): array
     {
         $souborNastaveniOstra = $this->rootAdresarProjektu . '/../ostra/nastaveni/nastaveni-produkce.php';
@@ -1025,6 +1030,11 @@ SQL;
         return (bool)CACHOVAT_SQL_DOTAZY;
     }
 
+    public function jeZapnuteCachovaniApiOdpovedi(): bool
+    {
+        return (bool)CACHOVAT_API_ODPOVEDI;
+    }
+
     public function db(): DbInterface
     {
         if (!$this->db) {
@@ -1049,7 +1059,7 @@ SQL;
     {
         if (!$this->tableDataDependentCache) {
             $this->tableDataDependentCache = new TableDataDependentCache(
-                $this->cacheDir() . '/table_data_dependent',
+                $this->tableDataDependentCacheDir(),
                 $this->tableDataVersionsRepository(),
             );
         }

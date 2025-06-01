@@ -47,18 +47,22 @@ $rok = array_key_exists('rok', $_GET)
     ? (int)$_GET['rok']
     : $systemoveNastaveni->rocnik();
 
-$tableDataDependentCache = $systemoveNastaveni->tableDataDependentCache();
-// has to fetch all data versions before data itself, because after that we could fetch invalidly new, by some other process changed version and that would cache old data under new version
-$tableDataDependentCache->preloadTableDataVersions();
+$jeZapnuteCachovaniApiOdpovedi = $systemoveNastaveni->jeZapnuteCachovaniApiOdpovedi();
 
-$cacheKey                = 'aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym');
-$cachedResponse          = $tableDataDependentCache->getItem($cacheKey);
+if ($jeZapnuteCachovaniApiOdpovedi) {
+    $tableDataDependentCache = $systemoveNastaveni->tableDataDependentCache();
+    // has to fetch all data versions before data itself, because after that we could fetch invalidly new, by some other process changed version and that would cache old data under new version
+    $tableDataDependentCache->preloadTableDataVersions();
 
-if ($cachedResponse !== null) {
-    header('Content-type: application/json');
-    unset($cachedResponse['_metadata']);
-    echo json_encode($cachedResponse, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
+    $cacheKey       = 'aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym');
+    $cachedResponse = $tableDataDependentCache->getItem($cacheKey);
+
+    if ($cachedResponse !== null) {
+        header('Content-type: application/json');
+        unset($cachedResponse['_metadata']);
+        echo json_encode($cachedResponse, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
 }
 
 $dataSourcesCollector = new DataSourcesCollector();
@@ -155,11 +159,18 @@ foreach ($aktivity as $aktivita) {
     $response[]  = $aktivitaRes;
 }
 
-$tableDataDependentCache->setItem(
-    $cacheKey,
-    $response,
-    $dataSourcesCollector,
-);
+if ($jeZapnuteCachovaniApiOdpovedi) {
+    $response['_metadata'] = [
+        'cacheKey' => $cacheKey,
+        'rok'      => $rok,
+        'userId'   => $u?->id() ?? 'anonym',
+    ];
+    $tableDataDependentCache->setItem(
+        $cacheKey,
+        $response,
+        $dataSourcesCollector,
+    );
+}
 
 unset($response['_metadata']);
 
