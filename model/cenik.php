@@ -21,24 +21,6 @@ class Cenik
     private array $textySlevExtra                 = [];
 
     /**
-     * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
-     * ručně. V polích se případně udává, které právo daný index „přebíjí“.
-     */
-    private static array $textySlev = [
-        Pravo::KOSTKA_ZDARMA                     => 'kostka zdarma',
-        Pravo::PLACKA_ZDARMA                     => 'placka zdarma',
-        Pravo::UBYTOVANI_ZDARMA                  => 'ubytování zdarma',
-        Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA    => ['ubytování ve středu zdarma', Pravo::UBYTOVANI_ZDARMA],
-        Pravo::JIDLO_ZDARMA                      => 'jídlo zdarma',
-        Pravo::JIDLO_SE_SLEVOU                   => ['jídlo se slevou', Pravo::JIDLO_ZDARMA],
-        Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA        => 'dvě jakákoli trička zdarma',
-        Pravo::JAKEKOLIV_TRICKO_ZDARMA           => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
-        Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA      => 'modré tričko se slevou',
-        Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => 'můžeš si objednat ubytování i pro jedinou noc',
-        Pravo::MODRE_TRICKO_ZDARMA            => 'modré tričko zdarma za dosažení bonusu %d',
-    ];
-
-    /**
      * Sníží $cena o částku $sleva až do nuly. Změnu odečte i z $sleva.
      */
     public static function aplikujSlevu(
@@ -73,18 +55,23 @@ class Cenik
 
     public function getTextySlev(): array
     {
-        $texty = self::$textySlev;
-        $bonus = $this->systemoveNastaveni->modreTrickoZdarmaOd();
-        $texty[Pravo::MODRE_TRICKO_ZDARMA] = sprintf(
-            $texty[Pravo::MODRE_TRICKO_ZDARMA],
-            $bonus
-        );
-        return $texty;
-    }
-
-    public function getTextySlev(): array
-    {
-        $texty = self::$textySlev;
+        /**
+         * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
+         * ručně. V polích se případně udává, které právo daný index „přebíjí“.
+         */
+        $texty = [
+            Pravo::KOSTKA_ZDARMA                     => 'kostka zdarma',
+            Pravo::PLACKA_ZDARMA                     => 'placka zdarma',
+            Pravo::UBYTOVANI_ZDARMA                  => 'ubytování zdarma',
+            Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA    => ['ubytování ve středu zdarma', Pravo::UBYTOVANI_ZDARMA],
+            Pravo::JIDLO_ZDARMA                      => 'jídlo zdarma',
+            Pravo::JIDLO_SE_SLEVOU                   => ['jídlo se slevou', Pravo::JIDLO_ZDARMA],
+            Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA        => 'dvě jakákoli trička zdarma',
+            Pravo::JAKEKOLIV_TRICKO_ZDARMA           => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
+            Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA      => 'modré tričko se slevou',
+            Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => 'můžeš si objednat ubytování i pro jedinou noc',
+            Pravo::MODRE_TRICKO_ZDARMA               => 'modré tričko zdarma za dosažení bonusu %d',
+            ];
         $bonus = $this->systemoveNastaveni->modreTrickoZdarmaOd();
         $texty[Pravo::MODRE_TRICKO_ZDARMA] = sprintf(
             $texty[Pravo::MODRE_TRICKO_ZDARMA],
