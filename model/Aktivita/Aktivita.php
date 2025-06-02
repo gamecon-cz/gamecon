@@ -427,7 +427,11 @@ SQL
         SystemoveNastaveni $systemoveNastaveni,
         Aktivita           $a = null,
     ) {
-        return self::editorParam(new EditorTagu($systemoveNastaveni->db()), $a);
+        return self::editorParam(
+            editorTagu: new EditorTagu($systemoveNastaveni->db()),
+            aktivita: $a,
+            systemoveNastaveni: $systemoveNastaveni,
+        );
     }
 
     /**
@@ -487,9 +491,10 @@ SQL
      * Vrátí html kód editoru, je možné parametrizovat, co se pomocí něj dá měnit
      */
     protected static function editorParam(
-        EditorTagu $editorTagu,
-        Aktivita   $aktivita = null,
-                   $omezeni = [],
+        EditorTagu         $editorTagu,
+        Aktivita           $aktivita = null,
+                           $omezeni = [],
+        SystemoveNastaveni $systemoveNastaveni = null,
     ) {
         // inicializace šablony
         $xtpl = new XTemplate(__DIR__ . '/templates/editor-aktivity.xtpl');
@@ -518,11 +523,11 @@ SQL
         }
 
         if (!$omezeni || !empty($omezeni['deti'])) {
-            self::parseUpravyTabulkaDeti($aktivita, $xtpl);
+            self::parseUpravyTabulkaDeti(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
         }
 
         if (!$omezeni || !empty($omezeni['rodice'])) {
-            self::parseUpravyTabulkaRodice($aktivita, $xtpl);
+            self::parseUpravyTabulkaRodice(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
         }
 
         // editace dnů + časů
@@ -558,13 +563,11 @@ SQL
     private static function parseUpravyTabulkaLokace(
         ?Aktivita $aktivita,
         XTemplate $xtpl,
-    ) {
-        $aktivitaData = $aktivita
-            ? $aktivita->a
-            : null; // databázový řádek
-        $q            = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
+    ): void {
+        $aktivitaData = $aktivita?->a; // databázový řádek
         $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)', 'selected' => '']);
         $xtpl->parse('upravy.tabulka.lokace');
+        $q = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
         while ($lokaceData = mysqli_fetch_assoc($q)) {
             $xtpl->assign('selected', $aktivita && $aktivitaData[Sql::LOKACE] == $lokaceData['id_lokace']
                 ? 'selected'
@@ -575,14 +578,13 @@ SQL
     }
 
     private static function parseUpravyTabulkaDeti(
-        ?Aktivita $aktivita,
-        XTemplate $xtpl,
-    ) {
+        ?Aktivita           $aktivita,
+        XTemplate           $xtpl,
+        ?SystemoveNastaveni $systemoveNastaveni,
+    ): void {
         $q       = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
-            [$aktivita
-                 ? $aktivita->id()
-                 : null, ROCNIK],
+            [1 => $aktivita?->id(), 2 => ROCNIK],
         );
         $detiIds = $aktivita
             ? $aktivita->detiIds()
@@ -595,7 +597,11 @@ SQL
                     ? 'selected'
                     : '',
             );
-            $mozneDite = Aktivita::zId($mozneDiteId, true);
+            $mozneDite = Aktivita::zId(
+                id: $mozneDiteId,
+                zCache: true,
+                systemoveNastaveni: $systemoveNastaveni,
+            );
             $xtpl->assign('id_ditete', $mozneDiteId);
             $xtpl->assign('nazev_ditete', self::dejRozsirenyNazevAktivity($mozneDite));
             $xtpl->parse('upravy.tabulka.dite');
@@ -621,18 +627,17 @@ SQL
     }
 
     private static function parseUpravyTabulkaRodice(
-        ?Aktivita $aktivita,
-        XTemplate $xtpl,
-    ) {
+        ?Aktivita           $aktivita,
+        XTemplate           $xtpl,
+        ?SystemoveNastaveni $systemoveNastaveni,
+    ): void {
         $q = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
-            [$aktivita
-                 ? $aktivita->id()
-                 : null, ROCNIK],
+            [1 => $aktivita?->id(), 2 => ROCNIK],
         );
         while ($moznyRodicData = mysqli_fetch_assoc($q)) {
             $moznyRodicId = $moznyRodicData[Sql::ID_AKCE];
-            $moznyRodic   = Aktivita::zId($moznyRodicId, true);
+            $moznyRodic   = Aktivita::zId(id: $moznyRodicId, zCache: true, systemoveNastaveni: $systemoveNastaveni);
             $xtpl->assign(
                 'selected',
                 $aktivita && $moznyRodic->maDite($aktivita->id())
@@ -1275,7 +1280,10 @@ SQL
         return $this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F];
     }
 
-    protected function kolekce()
+    /**
+     * @return array<int, Aktivita>
+     */
+    protected function kolekce(): array
     {
         return $this->kolekce;
     }
@@ -3748,10 +3756,12 @@ SQL,
                 return $cachovanaAktivita;
             }
         }
-        $aktivita = current(self::zWhere(
-            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+        $systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+        $aktivita           = current(self::zWhere(
+            systemoveNastaveni: $systemoveNastaveni,
             dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.id_akce=' . $id,
+            optimisticCache: $zCache,
         ));
         if (!$aktivita) {
             return null;
@@ -3792,6 +3802,18 @@ SQL,
             dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.id_akce IN(' . dbQa($ids) . ')',
         );
+    }
+
+    public static function prednactiVse(SystemoveNastaveni $systemoveNastaveni): void
+    {
+        $aktivity = self::zWhere(
+            systemoveNastaveni: $systemoveNastaveni,
+            dalsiPouziteSqlTabulky: [],
+            where1: '',
+        );
+        foreach ($aktivity as $aktivita) {
+            self::$objekty['ids'][$aktivita->id()] = $aktivita;
+        }
     }
 
     /**
@@ -3954,6 +3976,7 @@ SQL,
         ?int                  $limit = null,
         bool                  $prednacitat = false,
         ?DataSourcesCollector $dataSourcesCollector = null,
+        bool                  $optimisticCache = false,
     ): array {
         $limitSql = $limit !== null
             ? "LIMIT $limit"
@@ -3993,7 +4016,7 @@ SQL,
             SQL,
             pole: $args ?? [],
         );
-        $db = $systemoveNastaveni->db();
+        $db       = $systemoveNastaveni->db();
         $result   = $db->dbFetchAll(
             [
                 ...[
@@ -4009,6 +4032,7 @@ SQL,
             ],
             $plainSql,
             $dataSourcesCollector,
+            $optimisticCache,
         );
 
         $kolekce = []; // pomocný sdílený seznam aktivit pro přednačítání
