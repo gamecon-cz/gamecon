@@ -928,7 +928,7 @@ SQL;
 
     public function tableDataDependentCacheDir(): string
     {
-        return $this->cacheDir() . DB_NAME . '/table_data_dependent';
+        return $this->cacheDir() . '/' . DB_NAME . '/table_data_dependent';
     }
 
     public function prihlasovaciUdajeOstreDatabaze(): array

@@ -1350,11 +1350,14 @@ SQL
         if (!isset($this->seznamUcastniku)) {
             if ($this->prednacitat) {
                 if (!array_key_exists($this->id(), self::$seznamUcastnikuCache)) {
-                    // array + array přidá nové záznamy s novými klíči, ale nepřepíše původní
-                    self::$seznamUcastnikuCache += self::seznamUcastnikuAktivit(
-                        Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->systemoveNastaveni->rocnik(),
-                        $dataSourcesCollector,
-                    );
+                    // pouze pokud je někdo na aktivitu přihlášen, jinak nemá cenu zkoušet načítat její účastníky
+                    if ($this->prihlaseniRaw($dataSourcesCollector) !== '') {
+                        // array + array přidá nové záznamy s novými klíči, ale nepřepíše původní
+                        self::$seznamUcastnikuCache += self::seznamUcastnikuAktivit(
+                            Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->systemoveNastaveni->rocnik(),
+                            $dataSourcesCollector,
+                        );
+                    }
                 }
                 self::$seznamUcastnikuCache[$this->id()] ??= [];
                 $this->seznamUcastniku                   = self::$seznamUcastnikuCache[$this->id()];
