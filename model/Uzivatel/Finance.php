@@ -947,8 +947,8 @@ SQL;
 
         if ($bonusZaVedeniAktivit) {
             $this->logb(
-                "<span class='hinted'>Bonus za aktivity</span>",
-                $this->bonusZaVedeniAktivit(),
+                'Bonus za aktivity',
+                $bonusZaVedeniAktivit,
                 self::ORGSLEVA,
             );
         }
