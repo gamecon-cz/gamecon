@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Gamecon\Cache;
 
-readonly class CachedDb implements DbInterface
+class CachedDb implements DbInterface
 {
-    public function __construct(private QueryCache $queryCache)
-    {
+    private array $tableDataVersions = [];
+
+    public function __construct(
+        private readonly QueryCache $queryCache,
+    ) {
     }
 
     /**
@@ -15,9 +18,10 @@ readonly class CachedDb implements DbInterface
      * @return array<array<string, mixed>>
      */
     public function dbFetchAll(
-        array  $relatedTables,
-        string $sql,
+        array                 $relatedTables,
+        string                $sql,
         ?DataSourcesCollector $dataSourcesCollector = null,
+        bool                  $optimisticCache = false,
     ): array {
         $relatedTables = array_unique($relatedTables);
 
@@ -25,10 +29,10 @@ readonly class CachedDb implements DbInterface
 
         $dataSourcesCollector?->addDataSources($relatedTables);
 
-        $tablesDataVersions = $this->getTablesDataVersions($relatedTables);
-        $queryHash          = $this->getHash($sql);
+        $tableDataVersions = $this->getTableDataVersions($relatedTables, $optimisticCache);
+        $queryHash         = $this->getHash($sql);
 
-        $cacheKey = $this->getCacheKey($tablesDataVersions, $queryHash);
+        $cacheKey = $this->getCacheKey($tableDataVersions, $queryHash);
 
         $data = $this->queryCache->get($cacheKey);
 
@@ -37,29 +41,29 @@ readonly class CachedDb implements DbInterface
         }
 
         $data = dbFetchAll($sql);
-        $this->queryCache->set($cacheKey, $queryHash, $data, $tablesDataVersions);
+        $this->queryCache->set($cacheKey, $queryHash, $data, $tableDataVersions);
 
         return $data;
     }
 
     private function getCacheKey(
-        array  $tablesDataVersions,
+        array  $tableDataVersions,
         string $queryHash,
     ): string {
-        $tablesDataVersionsString = json_encode($tablesDataVersions)
+        $tableDataVersionsString = json_encode($tableDataVersions)
             ?: throw new \RuntimeException(
                 sprintf(
                     'Failed to encode tables data versions to JSON. '
                     . 'Tables data versions: %s',
-                    var_export($tablesDataVersions, true),
+                    var_export($tableDataVersions, true),
                 ),
             );
 
-        $tablesDataVersionsHash = $this->getHash($tablesDataVersionsString);
+        $tableDataVersionsHash = $this->getHash($tableDataVersionsString);
 
         return sprintf(
             '%s:%s',
-            $tablesDataVersionsHash,
+            $tableDataVersionsHash,
             $queryHash,
         );
     }
@@ -95,8 +99,21 @@ readonly class CachedDb implements DbInterface
      * @param array<string> $relatedTables
      * @return array<array<string, int>>
      */
-    private function getTablesDataVersions(array $relatedTables): array
-    {
+    private function getTableDataVersions(
+        array $relatedTables,
+        bool  $optimisticCache,
+    ): array {
+        if ($optimisticCache) {
+            // If optimistic cache is enabled, we assume that the data versions are already up-to-date.
+            $tableDataVersions = array_intersect_key(
+                $this->tableDataVersions,
+                array_flip($relatedTables),
+            );
+            if (count($tableDataVersions) === count($relatedTables)) {
+                return $tableDataVersions;
+            }
+        }
+
         $tableVersions = dbFetchPairs(<<<SQL
             SELECT table_name, version
             FROM _table_data_versions
@@ -113,6 +130,10 @@ readonly class CachedDb implements DbInterface
                     var_export($tableVersions, true),
                 ),
             );
+        }
+
+        foreach ($tableVersions as $tableName => $dataVersion) {
+            $this->tableDataVersions[$tableName] = $dataVersion;
         }
 
         return $tableVersions;

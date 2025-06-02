@@ -12,5 +12,6 @@ interface DbInterface
         array                 $relatedTables,
         string                $sql,
         ?DataSourcesCollector $dataSourcesCollector = null,
+        bool                  $optimisticCache = false,
     ): array;
 }

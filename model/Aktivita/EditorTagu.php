@@ -186,11 +186,11 @@ WHERE sjednocene_tagy.id = $1',
     public function getTagy(): array
     {
         $result     = $this->db->dbFetchAll(
-            [
+            relatedTables: [
                 SjednoceneTagySqlStruktura::SJEDNOCENE_TAGY_TABULKA,
                 KategorieSjednocenychTaguSqlStruktura::KATEGORIE_SJEDNOCENYCH_TAGU_TABULKA,
             ],
-            'SELECT sjednocene_tagy.id, sjednocene_tagy.nazev, sjednocene_tagy.poznamka,
+            sql: 'SELECT sjednocene_tagy.id, sjednocene_tagy.nazev, sjednocene_tagy.poznamka,
        kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
        IF (kategorie_sjednocenych_tagu.id_hlavni_kategorie IS NULL, kategorie_sjednocenych_tagu.nazev, (SELECT hlavni_kategorie.nazev FROM kategorie_sjednocenych_tagu AS hlavni_kategorie WHERE hlavni_kategorie.id = kategorie_sjednocenych_tagu.id_hlavni_kategorie)) AS nazev_hlavni_kategorie,
        sjednocene_tagy.id_kategorie_tagu
@@ -198,6 +198,7 @@ FROM sjednocene_tagy
 JOIN kategorie_sjednocenych_tagu ON sjednocene_tagy.id_kategorie_tagu = kategorie_sjednocenych_tagu.id
 ORDER BY kategorie_sjednocenych_tagu.poradi, sjednocene_tagy.nazev
 ',
+            optimisticCache: true,
         );
         $mappedTags = [];
         foreach ($result as $row) {

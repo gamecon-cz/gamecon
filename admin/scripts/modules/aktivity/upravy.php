@@ -43,7 +43,14 @@ try {
     }
 }
 
-$a              = Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
+Aktivita::prednactiVse($systemoveNastaveni);
+
+$a = Aktivita::zId(
+    id: get('aktivitaId'),
+    zCache: true,
+    systemoveNastaveni: $systemoveNastaveni,
+);  // načtení aktivity podle předaného ID
+
 $editorAktivity = Aktivita::editor($systemoveNastaveni, $a);         // načtení html editoru aktivity
 
 ?>
