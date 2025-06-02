@@ -936,21 +936,21 @@ SQL;
 
     private function aplikujBonusZaVedeniAktivit(float $cena): float
     {
-        $bonusZaVedeniAktivit = $this->bonusZaVedeniAktivit();
-        $puvodniCena          = $cena;
+        $zbyvajiciBonusZaVedeniAktivit = $this->bonusZaVedeniAktivit();
+        $zbyvajiciCena          = $cena;
         ['sleva' => $nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu(
-            $puvodniCena,
-            $bonusZaVedeniAktivit,
+            $zbyvajiciCena,
+            $zbyvajiciBonusZaVedeniAktivit,
         );
         $this->nevyuzityBonusZaVedeniAktivit = $nevyuzityBonusZaVedeniAktivit;
-        $this->vyuzityBonusZaVedeniAktivit   = $bonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
+        $this->vyuzityBonusZaVedeniAktivit   = $zbyvajiciBonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
         /** Do výsledné ceny, respektive celkového stavu, už započítáváme celý bonus za aktivity https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
-        $cena -= $bonusZaVedeniAktivit;
+        $cena -= $this->bonusZaVedeniAktivit();
 
-        if ($bonusZaVedeniAktivit) {
+        if ($zbyvajiciBonusZaVedeniAktivit) {
             $this->logb(
                 'Bonus za aktivity',
-                $bonusZaVedeniAktivit,
+                $this->bonusZaVedeniAktivit(),
                 self::ORGSLEVA,
             );
         }
