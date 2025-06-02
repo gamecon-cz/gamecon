@@ -13,6 +13,8 @@ define('REACT_V_PROHLIZECI', true);
 define('AUTOMATICKE_SESTAVENI', true);
 define('BABEL_BINARKA', null);
 
+define('FORCE_REDUX_DEVTOOLS', true);
+
 /**
  * Pozor! Při vypnutí na betě to ovlivní i posílání mailů z CRONu, pokud není výslovně nastavená konstanta MAILY_DO_SOUBORU
  * @see admin/cron.php
