@@ -3,7 +3,7 @@
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
-$systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+$systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 $systemoveNastaveni->queryCache()->clear();
 $systemoveNastaveni->tableDataDependentCache()->clear();
 

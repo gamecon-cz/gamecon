@@ -13,6 +13,11 @@ class CachedDb implements DbInterface
     ) {
     }
 
+    public function clearPrefetchedDataVersions(): void
+    {
+        $this->tableDataVersions = [];
+    }
+
     /**
      * @param array<string> $relatedTables
      * @return array<array<string, mixed>>
@@ -21,7 +26,6 @@ class CachedDb implements DbInterface
         array                 $relatedTables,
         string                $sql,
         ?DataSourcesCollector $dataSourcesCollector = null,
-        bool                  $optimisticCache = false,
     ): array {
         $relatedTables = array_unique($relatedTables);
 
@@ -29,7 +33,7 @@ class CachedDb implements DbInterface
 
         $dataSourcesCollector?->addDataSources($relatedTables);
 
-        $tableDataVersions = $this->getTableDataVersions($relatedTables, $optimisticCache);
+        $tableDataVersions = $this->getTableDataVersions($relatedTables);
         $queryHash         = $this->getHash($sql);
 
         $cacheKey = $this->getCacheKey($tableDataVersions, $queryHash);
@@ -101,17 +105,10 @@ class CachedDb implements DbInterface
      */
     private function getTableDataVersions(
         array $relatedTables,
-        bool  $optimisticCache,
     ): array {
-        if ($optimisticCache) {
-            // If optimistic cache is enabled, we assume that the data versions are already up-to-date.
-            $tableDataVersions = array_intersect_key(
-                $this->tableDataVersions,
-                array_flip($relatedTables),
-            );
-            if (count($tableDataVersions) === count($relatedTables)) {
-                return $tableDataVersions;
-            }
+        $tableDataVersions = array_intersect_key($this->tableDataVersions, array_flip($relatedTables));
+        if (count($tableDataVersions) === count($relatedTables)) {
+            return $tableDataVersions;
         }
 
         $tableVersions = dbFetchPairs(<<<SQL

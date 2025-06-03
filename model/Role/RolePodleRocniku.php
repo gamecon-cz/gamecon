@@ -18,7 +18,7 @@ readonly class RolePodleRocniku
     ): void {
         $rocnikoveSystemoveNastaveni = $rocnik === $this->systemoveNastaveni->rocnik()
             ? $this->systemoveNastaveni
-            : SystemoveNastaveni::vytvorZGlobals(
+            : SystemoveNastaveni::zGlobals(
                 $rocnik,
                 $this->systemoveNastaveni->ted(),
             );

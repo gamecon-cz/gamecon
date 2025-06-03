@@ -10,7 +10,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 $t = new XTemplate(__DIR__ . '/stravenky.xtpl');
 
-$systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+$systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 
 $rolePrihlasenNaLetosniGc = Role::PRIHLASEN_NA_LETOSNI_GC;
 $rocnik                   = $systemoveNastaveni->rocnik();

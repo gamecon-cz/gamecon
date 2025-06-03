@@ -292,7 +292,7 @@ function dbDescribe($table)
  */
 function dbExecTime()
 {
-    return isset($GLOBALS['dbExecTime']) ? $GLOBALS['dbExecTime'] : 0.0;
+    return $GLOBALS['dbExecTime'] ?? 0.0;
 }
 
 function throwDbException($spojeni = null)
@@ -327,7 +327,7 @@ function dbCreateExceptionFromMysqliException(mysqli_sql_exception $mysqliExcept
 /**
  * Returns instance of concrete DbException based on error message
  */
-function dbGetExceptionMessage($spojeni = null)
+function dbGetExceptionMessage($spojeni = null): string
 {
     return mysqli_error($spojeni ?? $GLOBALS['spojeni']);
 }
@@ -337,9 +337,8 @@ function dbGetExceptionMessage($spojeni = null)
  * @throws DbDuplicateEntryException
  * @throws DbException
  */
-function dbInsert($table, $valArray, bool $ignore = false)
+function dbInsert($table, $valArray, bool $ignore = false): void
 {
-    global $dbLastQ;
     $sloupce = '';
     $hodnoty = '';
     foreach ($valArray as $sloupec => $hodnota) {
@@ -352,16 +351,16 @@ function dbInsert($table, $valArray, bool $ignore = false)
         ? 'IGNORE'
         : '';
     $q         = "INSERT $ignoreSql INTO $table ($sloupce) VALUES ($hodnoty)";
-    $dbLastQ   = $q;
-    dbMysqliQuery($q);
+    dbQuery($q);
 }
 
 /**
  * @param string $query
  * @throws DbDuplicateEntryException
  * @throws DbException
+ * @internal
  */
-function dbMysqliQuery(string $query, mysqli $mysqli = null): bool|mysqli_result
+function _dbMysqliQuery(string $query, mysqli $mysqli = null): bool|mysqli_result
 {
     try {
         if (!$r = mysqli_query($mysqli ?? dbConnect(), $query)) {
@@ -379,9 +378,9 @@ function dbMysqliQuery(string $query, mysqli $mysqli = null): bool|mysqli_result
  * @param array $valArray
  * @throws DbException
  */
-function dbInsertIgnore(string $table, array $valArray)
+function dbInsertIgnore(string $table, array $valArray): void
 {
-    dbInsert($table, $valArray, true);
+    dbInsert(table: $table, valArray: $valArray, ignore: true);
 }
 
 /**
@@ -462,8 +461,6 @@ function dbInsertUpdate($table, $valArray)
         }
     }
 
-    global $dbLastQ;
-
     $update  = 'INSERT INTO ' . $table . ' SET ';
     $dupl    = ' ON DUPLICATE KEY UPDATE ';
     $sqlVals = [];
@@ -472,8 +469,7 @@ function dbInsertUpdate($table, $valArray)
     }
     $vals    = implode(',', $sqlVals);
     $q       = $update . $vals . $dupl . $vals;
-    $dbLastQ = $q;
-    return dbMysqliQuery($q);
+    return dbQuery($q);
 }
 
 /**
@@ -654,22 +650,22 @@ function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result
     if ($param) {
         return dbQueryS($q, (array)$param, $mysqli);
     }
-    global $dbLastQ, $dbNumQ, $dbExecTime;
+    global $dbLastQ, $dbNumQ, $dbExecTime, $systemoveNastaveni;
     $mysqli  = $mysqli ?? dbConnect();
     $dbLastQ = $q;
     $start   = microtime(true);
-    $r       = dbMysqliQuery($q, $mysqli);
-    if (!$r) {
-        $type = dbGetExceptionType();
-        throw new $type();
-    }
+    $r       = _dbMysqliQuery($q, $mysqli);
     // raději si to hned odložíme, protože opakovaný dotaz na mysqli->affected_rows vede k tomu, že první dotaz vrátí správnou hodnotu, ale druhý už -1 ("disk se automaticky zničí po přečtení za pět, čtyři, tři...")
-    $GLOBALS['dbAffectedRows'] = $r === true // INSERT, DELETE, UPDATE
+    $wasDataAffecting = $r === true; // INSERT, DELETE, UPDATE
+    $GLOBALS['dbAffectedRows'] = $wasDataAffecting
         ? $mysqli->affected_rows
         : mysqli_affected_rows($mysqli);
     $end                       = microtime(true);
     $dbNumQ++;
     $dbExecTime += $end - $start;
+    if ($wasDataAffecting && $GLOBALS['dbAffectedRows'] > 0) {
+        $systemoveNastaveni?->db()->clearPrefetchedDataVersions();
+    }
 
     return $r;
 }

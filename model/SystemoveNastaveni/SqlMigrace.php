@@ -10,7 +10,7 @@ class SqlMigrace
 {
     public static function vytvorZGlobals(): static
     {
-        return new static(SystemoveNastaveni::vytvorZGlobals());
+        return new static(SystemoveNastaveni::zGlobals());
     }
 
     public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)

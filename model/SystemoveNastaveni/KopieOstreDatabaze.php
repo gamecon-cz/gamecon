@@ -10,7 +10,7 @@ class KopieOstreDatabaze
     {
         return new static(
             NastrojeDatabaze::vytvorZGlobals(),
-            SystemoveNastaveni::vytvorZGlobals(),
+            SystemoveNastaveni::zGlobals(),
             Vyjimkovac::vytvorZGlobals(),
         );
     }

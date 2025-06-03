@@ -19,7 +19,7 @@ class GcMail
     public static function vytvorZGlobals(string $text = ''): static
     {
         return new static(
-            SystemoveNastaveni::vytvorZGlobals(),
+            SystemoveNastaveni::zGlobals(),
             $text
         );
     }

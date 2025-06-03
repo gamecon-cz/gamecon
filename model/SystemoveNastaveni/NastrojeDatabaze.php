@@ -12,7 +12,7 @@ class NastrojeDatabaze
     {
         global $systemoveNastaveni;
         if (!$systemoveNastaveni) {
-            $systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals();
+            $systemoveNastaveni = SystemoveNastaveni::zGlobals();
         }
         return new self($systemoveNastaveni);
     }

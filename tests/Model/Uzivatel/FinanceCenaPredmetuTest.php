@@ -104,7 +104,7 @@ SQL,
         $cenaTricek            = 333.17 + 333.18;
         $cenaVsechPredmetu     = $cenaPredmetuBezTricek + $cenaTricek;
         define('MODRE_TRICKO_ZDARMA_OD', 0);
-        $finance = new Finance($this->dejUzivateleSNakupy(), 0, SystemoveNastaveni::vytvorZGlobals());
+        $finance = new Finance($this->dejUzivateleSNakupy(), 0, SystemoveNastaveni::zGlobals());
         self::assertSame(
             round($cenaVsechPredmetu, 2),
             round($finance->cenaPredmetu(), 2)

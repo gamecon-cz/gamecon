@@ -66,7 +66,7 @@ class BfgrReportTest extends AbstractTestDb
     public function Bfgr_report_odpovida_ocekavani()
     {
         $tmpFile = sys_get_temp_dir() . '/' . uniqid('BFGR_test_', true);
-        $bfgr    = new BfgrReport(SystemoveNastaveni::vytvorZGlobals());
+        $bfgr    = new BfgrReport(SystemoveNastaveni::zGlobals());
         $bfgr->exportuj('csv', true, $tmpFile);
         self::assertFileExists($tmpFile, 'BFGR nebyl exportován do souboru');
         return;

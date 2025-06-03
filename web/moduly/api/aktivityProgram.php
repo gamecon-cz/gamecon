@@ -152,8 +152,9 @@ foreach ($aktivity as $aktivita) {
     $aktivitaRes['tymova']          = $aktivita->tymova();
 
     $dite = $aktivita->detiIds();
-    if ($dite && count($dite))
+    if ($dite && count($dite)) {
         $aktivitaRes['dite'] = $dite;
+    }
 
     $aktivitaRes = array_filter($aktivitaRes);
     $response[]  = $aktivitaRes;

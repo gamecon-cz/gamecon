@@ -10,7 +10,7 @@ trait ProbihaRegistraceAktivitTrait
 {
     private static function vytvorSystemoveNastaveni(): SystemoveNastaveni
     {
-        $original = SystemoveNastaveni::vytvorZGlobals();
+        $original = SystemoveNastaveni::zGlobals();
         return new class($original) extends SystemoveNastaveni {
 
             public function __construct(SystemoveNastaveni $original)

@@ -136,7 +136,7 @@ SQL
         if (array_keys_exist(['id_uzivatele'], $uzivatel)) {
             $this->r = $uzivatel;
             parent::__construct($uzivatel);
-            $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
+            $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::zGlobals();
         } else {
             throw new Exception('Špatný vstup konstruktoru uživatele');
         }

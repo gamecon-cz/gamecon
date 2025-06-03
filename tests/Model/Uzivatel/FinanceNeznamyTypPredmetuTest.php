@@ -38,7 +38,7 @@ SQL,
     public function Neznamy_typ_predmetu_hodi_excepton()
     {
         $this->expectException(NeznamyTypPredmetu::class);
-        $finance = new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0, SystemoveNastaveni::vytvorZGlobals());
+        $finance = new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0, SystemoveNastaveni::zGlobals());
         $finance->cenaPredmetu();
     }
 

@@ -27,7 +27,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
 
     public const JAKYKOLI_ROCNIK = -1;
 
-    public static function vytvorZGlobals(
+    public static function zGlobals(
         int                     $rocnik = ROCNIK,
         DateTimeImmutableStrict $ted = new DateTimeImmutableStrict(),
         ?bool                   $jsmeNaBete = null,
@@ -36,7 +36,13 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         ?string                 $projectRootDir = null,
         ?string                 $cacheDir = null,
     ): self {
-        return new static(
+        global $systemoveNastaveni;
+
+        if ($systemoveNastaveni && $systemoveNastaveni->rocnik() === $rocnik) {
+            return $systemoveNastaveni;
+        }
+
+        $noveSystemoveNastaveni = new static(
             $rocnik,
             $ted,
             $jsmeNaBete ?? jsmeNaBete(),
@@ -47,6 +53,12 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
                ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
             $cacheDir ?? SPEC,
         );
+
+        if ($rocnik === ROCNIK) {
+            $systemoveNastaveni = $noveSystemoveNastaveni;
+        }
+
+        return $noveSystemoveNastaveni;
     }
 
     private static function zakrouhli(float $cislo): int

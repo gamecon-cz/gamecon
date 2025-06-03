@@ -6,6 +6,10 @@ namespace Gamecon\Cache;
 
 readonly class RawDb implements DbInterface
 {
+    public function clearPrefetchedDataVersions(): void
+    {
+    }
+
     /**
      * @param array<string> $relatedTables
      * @return array<array<string, mixed>>
@@ -14,9 +18,7 @@ readonly class RawDb implements DbInterface
         array                 $relatedTables,
         string                $sql,
         ?DataSourcesCollector $dataSourcesCollector = null,
-        bool                  $optimisticCache = false,
     ): array {
-        return dbFetchAll($sql, $relatedTables, $dataSourcesCollector);
+        return dbFetchAll(query: $sql);
     }
-
 }

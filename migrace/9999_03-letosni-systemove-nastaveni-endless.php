@@ -46,9 +46,9 @@ SQL,
 
 if ($chybejiciKliceNastaveni) {
     $lonskyRok                 = $rocnik - 1;
-    $lonskeSystemoveNastaveni  = SystemoveNastaveni::vytvorZGlobals(rocnik: $lonskyRok);
+    $lonskeSystemoveNastaveni  = SystemoveNastaveni::zGlobals(rocnik: $lonskyRok);
     $lonskeZaznamy             = $lonskeSystemoveNastaveni->dejVsechnyZaznamyNastaveni();
-    $letosniSystemoveNastaveni = SystemoveNastaveni::vytvorZGlobals(rocnik: $rocnik);
+    $letosniSystemoveNastaveni = SystemoveNastaveni::zGlobals(rocnik: $rocnik);
     $systemUzivatelId = Uzivatel::SYSTEM;
     foreach ($chybejiciKliceNastaveni as $klicWrapped) {
         $klic = reset($klicWrapped);
