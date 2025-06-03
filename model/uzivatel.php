@@ -156,6 +156,14 @@ SQL
         return $adresa;
     }
 
+    /**
+     * @return string adresa uživatele ve Ulice ČP
+     */
+    public function uliceACp(): string
+    {
+        return $this->r['ulice_a_cp_uzivatele'];
+    }
+
     public function ubytovanS(string $ubytovanS = null): string
     {
         if ($ubytovanS !== null) {
