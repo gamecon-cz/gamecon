@@ -24,7 +24,7 @@ require_once __DIR__ . '/nastaveni-izolovane.php';
 ////////////////////////
 
 global $systemoveNastaveni;
-$systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals();
+$systemoveNastaveni = SystemoveNastaveni::zGlobals();
 $systemoveNastaveni->zaznamyDoKonstant();
 
 ////////////////////////

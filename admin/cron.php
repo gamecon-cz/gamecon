@@ -93,7 +93,10 @@ $odemcenoTymovychAktivit = (new HromadneAkceAktivit($systemoveNastaveni))
 logs("odemčeno $odemcenoTymovychAktivit týmových aktivit.");
 
 logs('Zamykám před veřejností už běžící, dosud nezamčené aktivity...');
-$idsZamcenmych  = Aktivita::zamkniZacinajiciDo(new DateTimeImmutable('-' . AUTOMATICKY_UZAMKNOUT_AKTIVITU_X_MINUT_PO_ZACATKU . ' minutes'));
+$idsZamcenmych  = Aktivita::zamkniZacinajiciDo(
+    new DateTimeImmutable('-' . AUTOMATICKY_UZAMKNOUT_AKTIVITU_X_MINUT_PO_ZACATKU . ' minutes'),
+    $systemoveNastaveni,
+);
 $pocetZamcenych = count($idsZamcenmych);
 logs("zamčeno $pocetZamcenych aktivit.");
 

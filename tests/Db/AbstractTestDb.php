@@ -2,21 +2,21 @@
 
 namespace Gamecon\Tests\Db;
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\TestCase;
 
 abstract class AbstractTestDb extends TestCase
 {
-    /** @var DbWrapper */
-    private static $connection;
+    private static ?DbWrapper $connection = null;
     /** @var string[] */
     protected static array  $initQueries = [];
     protected static string $initData    = '';
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
     protected static bool $disableStrictTransTables = false;
 
-    protected $revertDbChangesAfterTest = true;
+    protected bool $revertDbChangesAfterTest = true;
 
-    static function setConnection(DbWrapper $connection)
+    static function setConnection(DbWrapper $connection): void
     {
         self::$connection = $connection;
     }
@@ -33,6 +33,7 @@ abstract class AbstractTestDb extends TestCase
         if (static::keepDbChangesInTransaction()) {
             self::$connection->rollback();
         }
+        SystemoveNastaveni::zGlobals()->db()->clearPrefetchedDataVersions();
     }
 
     static function setUpBeforeClass(): void

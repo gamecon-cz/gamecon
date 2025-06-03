@@ -51,7 +51,7 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
 
     protected static function getInitQueries(): array
     {
-        $systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals();
+        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
 
         $queries[] = self::nejakyPredmetQuery($systemoveNastaveni);
         $queries[] = self::predmetUbytovaniQuery($systemoveNastaveni);
@@ -323,7 +323,7 @@ SQL;
      */
     public function Muzu_zalogovat_notifikovani_neplaticu_o_brzkem_hromadnem_odhlaseni_a_zpetne_precist_kdy()
     {
-        $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::vytvorZGlobals());
+        $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::zGlobals());
 
         $hromadneOdhlasovaniKdy = new \DateTimeImmutable('2023-05-01 01:01:01');
         $staloSeKdy             = new \DateTimeImmutable('2023-05-01 10:11:12');
@@ -347,7 +347,7 @@ SQL;
      */
     public function Muzu_zalogovat_notifikovani_cfo_o_brzkem_hromadnem_odhlaseni_a_zpetne_precist_kdy()
     {
-        $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::vytvorZGlobals());
+        $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::zGlobals());
 
         $hromadneOdhlasovaniKdy = new \DateTimeImmutable('2023-06-02 02:02:02');
         $staloSeKdy             = new \DateTimeImmutable('2023-06-02 03:04:05');
@@ -371,8 +371,8 @@ SQL;
      */
     public function Nemuzu_ziskat_neplatice_kdyz_nejblizsi_odhlasovani_teprve_bude()
     {
-        $systemoveNastaveni                    = SystemoveNastaveni::vytvorZGlobals();
-        $hromadneOdhlaseniNeplaticu            = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::vytvorZGlobals());
+        $systemoveNastaveni                    = SystemoveNastaveni::zGlobals();
+        $hromadneOdhlaseniNeplaticu            = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::zGlobals());
         $nejblizsiHromadneOdhlasovaniVBudoucnu = $systemoveNastaveni->ted()->modify('+1 second');
 
         self::expectException(NaHromadneOdhlasovaniJeBrzy::class);
@@ -385,8 +385,8 @@ SQL;
      */
     public function Nemuzu_ziskat_neplatice_kdyz_okno_pro_nejblizsi_odhlasovani_uz_bylo()
     {
-        $systemoveNastaveni                = SystemoveNastaveni::vytvorZGlobals();
-        $hromadneOdhlaseniNeplaticu        = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::vytvorZGlobals());
+        $systemoveNastaveni                = SystemoveNastaveni::zGlobals();
+        $hromadneOdhlaseniNeplaticu        = new HromadneOdhlaseniNeplaticu(SystemoveNastaveni::zGlobals());
         $nejblizsiHromadneOdhlasovaniVcera = $systemoveNastaveni->ted()->modify('-1 day -1 second');
 
         self::expectException(NaHromadneOdhlasovaniJePozde::class);

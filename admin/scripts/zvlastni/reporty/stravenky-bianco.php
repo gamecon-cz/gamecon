@@ -8,7 +8,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 $t = new XTemplate(__DIR__ . '/stravenky-bianco.xtpl');
 
-$systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+$systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 $rocnik             = $systemoveNastaveni->rocnik();
 $typJidlo           = Shop::JIDLO;
 

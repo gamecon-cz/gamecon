@@ -195,7 +195,7 @@ SQL
         $this->a                  = $dbRow;
         $this->nova               = false;
         $this->prednacitat        = $prednacitat;
-        $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
+        $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::zGlobals();
 
         $this->typ    = $dbRow[Sql::TYP] ?? null;
         $this->lokace = $dbRow[Sql::LOKACE] ?? null;
@@ -2202,7 +2202,7 @@ SQL
                 if (!array_key_exists($this->id(), self::$prihlaseniNaAktivityRawCache)) {
                     // array + array přidá nové záznamy s novými klíči, ale nepřepíše původní
                     self::$prihlaseniNaAktivityRawCache += self::nactiPrihlaseniNaAktivityRaw(
-                        Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->systemoveNastaveni->rocnik(),
+                        Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->rok(),
                         $dataSourcesCollector,
                     );
                 }
@@ -3393,7 +3393,9 @@ SQL,
     {
         if ($prihlasujici->maPravoNaZmenuHistorieAktivit()) {
             // až do začátku příštího GC
-            return \DateTimeImmutable::createFromMutable(DateTimeGamecon::zacatekGameconu(ROCNIK + 1));
+            return \DateTimeImmutable::createFromMutable(
+                DateTimeGamecon::zacatekGameconu($this->systemoveNastaveni->rocnik() + 1),
+            );
         }
 
         if (!$this->zamcena() && !$this->uzavrena()) {
@@ -3474,8 +3476,12 @@ SQL,
      * @param \DateTimeInterface $zacinajiciDo
      * @return array|int[]
      */
-    public static function zamkniZacinajiciDo(\DateTimeInterface $zacinajiciDo)
-    {
+    public static function zamkniZacinajiciDo(
+        \DateTimeInterface  $zacinajiciDo,
+        ?SystemoveNastaveni $systemoveNastaveni = null,
+    ): array {
+        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
+
         $ids = dbOneArray(<<<SQL
 SELECT id_akce FROM akce_seznam
 WHERE zacatek <= $0
@@ -3491,7 +3497,7 @@ SQL,
                     StavAktivity::PRIPRAVENA,
                     StavAktivity::SYSTEMOVA,
                 ],
-                2 => ROCNIK,
+                2 => $systemoveNastaveni->rocnik(),
             ],
         );
         $ids = array_map('intval', $ids);
@@ -3510,7 +3516,10 @@ SQL,
     public static function upozorniNaNeuzavreneKonciciOdDo(
         \DateTimeInterface $konciciNejmeneDo,
         \DateTimeInterface $konciciNejviceDo,
+        ?SystemoveNastaveni $systemoveNastaveni = null,
     ): int {
+        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
+
         $ids = dbOneArray(<<<SQL
 SELECT akce_seznam.id_akce
 FROM akce_seznam
@@ -3523,7 +3532,7 @@ SQL,
                 0 => $konciciNejmeneDo->format(DateTimeCz::FORMAT_DB),
                 1 => $konciciNejviceDo->format(DateTimeCz::FORMAT_DB),
                 2 => [StavAktivity::UZAVRENA, StavAktivity::SYSTEMOVA],
-                3 => ROCNIK,
+                3 => $systemoveNastaveni->rocnik(),
             ],
         );
 
@@ -3756,12 +3765,11 @@ SQL,
                 return $cachovanaAktivita;
             }
         }
-        $systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
         $aktivita           = current(self::zWhere(
             systemoveNastaveni: $systemoveNastaveni,
             dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.id_akce=' . $id,
-            optimisticCache: $zCache,
         ));
         if (!$aktivita) {
             return null;
@@ -3798,7 +3806,7 @@ SQL,
         }
 
         return self::zWhere(
-            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
             dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.id_akce IN(' . dbQa($ids) . ')',
         );
@@ -3824,10 +3832,10 @@ SQL,
         Uzivatel            $u,
         ?SystemoveNastaveni $systemoveNastaveni = null,
     ): array {
-        $systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 
         return self::zWhere(
-            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
             dalsiPouziteSqlTabulky: [AkceOrganizatoriSqlStruktura::AKCE_ORGANIZATORI_TABULKA],
             where1: "WHERE EXISTS (SELECT * FROM akce_organizatori ao WHERE ao.id_akce = a.id_akce AND ao.id_uzivatele = {$u->id()}) AND a.rok = {$systemoveNastaveni->rocnik()}",
         );
@@ -3854,12 +3862,14 @@ SQL,
             }
         }
 
+        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
+
         $aktivity = self::zWhere(
-            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            systemoveNastaveni: $systemoveNastaveni,
             dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
             args: [
-                0 => ($systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals())->rocnik(),
+                0 => $systemoveNastaveni->rocnik(),
                 1 => StavAktivity::NOVA,
                 2 => TypAktivity::interniTypy(),
             ],
@@ -3890,7 +3900,7 @@ SQL,
         ?SystemoveNastaveni $systemoveNastaveni = null,
     ): array {
         $aktivity = self::zFiltru(
-            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
             filtr: [
                 FiltrAktivity::JEN_VIDITELNE  => (bool)($flags & self::VEREJNE),
                 FiltrAktivity::JEN_ZAMCENE    => (bool)($flags & self::ZAMCENE),
@@ -3922,7 +3932,7 @@ SQL,
         ?SystemoveNastaveni $systemoveNastaveni = null,
     ): array {
         return self::zFiltru(
-            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals(),
+            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
             filtr: [
                 FiltrAktivity::NAZEV_AKCE => $nazev,
                 FiltrAktivity::ROK        => $rocnik,
@@ -3976,7 +3986,6 @@ SQL,
         ?int                  $limit = null,
         bool                  $prednacitat = false,
         ?DataSourcesCollector $dataSourcesCollector = null,
-        bool                  $optimisticCache = false,
     ): array {
         $limitSql = $limit !== null
             ? "LIMIT $limit"
@@ -4018,7 +4027,7 @@ SQL,
         );
         $db       = $systemoveNastaveni->db();
         $result   = $db->dbFetchAll(
-            [
+            relatedTables: [
                 ...[
                     SjednoceneTagySqlStruktura::SJEDNOCENE_TAGY_TABULKA,
                     AkceSjednoceneTagySqlStruktura::AKCE_SJEDNOCENE_TAGY_TABULKA,
@@ -4030,9 +4039,8 @@ SQL,
                 ],
                 ...$dalsiPouziteSqlTabulky,
             ],
-            $plainSql,
-            $dataSourcesCollector,
-            $optimisticCache,
+            sql: $plainSql,
+            dataSourcesCollector: $dataSourcesCollector,
         );
 
         $kolekce = []; // pomocný sdílený seznam aktivit pro přednačítání

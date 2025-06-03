@@ -7,7 +7,7 @@ use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Na
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 
 $rocnik             = rocnik_z_promenne_mysql();
-$systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals($rocnik);
+$systemoveNastaveni = SystemoveNastaveni::zGlobals($rocnik);
 
 $vychoziHodnotySqlParts = [];
 foreach ($systemoveNastaveni->dejVychoziHodnoty() as $klic => $vychoziHodnota) {

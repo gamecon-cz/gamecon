@@ -198,7 +198,6 @@ FROM sjednocene_tagy
 JOIN kategorie_sjednocenych_tagu ON sjednocene_tagy.id_kategorie_tagu = kategorie_sjednocenych_tagu.id
 ORDER BY kategorie_sjednocenych_tagu.poradi, sjednocene_tagy.nazev
 ',
-            optimisticCache: true,
         );
         $mappedTags = [];
         foreach ($result as $row) {

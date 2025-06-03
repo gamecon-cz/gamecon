@@ -60,7 +60,7 @@ SQL,
 );
 
 $p                  = [];
-$systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+$systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 while ($r = mysqli_fetch_assoc($o)) {
     $a                                      = Aktivita::zId($r['id_akce']);
     $bonusZaAktivitu                        = Finance::bonusZaAktivitu($a, $systemoveNastaveni);

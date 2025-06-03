@@ -3,7 +3,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
-$systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+$systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 $rocnik             = $systemoveNastaveni->rocnik();
 
 $report = Report::zSql(<<<SQL
