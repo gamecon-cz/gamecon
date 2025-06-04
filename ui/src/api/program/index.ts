@@ -39,6 +39,18 @@ export type OdDo = {
   do: number,
 };
 
+/* todo:
+  první kolekce bez uživatele viditelnaPro (pohlídat ať to nemění datasourceColector)
+  druhá kolekce s uživatelem
+  upravit viditelnaPro ať vrací jen aktivity které jsou viditelné jen pro konkrétního uživatele ALE ne normálně viditelná (bez přihlášení)
+ */
+// todo: datasourceColector pro viditelnaPro a organizuje a prihlasen
+/* todo:
+každý sub dotaz bude mít vlastní datasourceColector
+pohlídat aby datasource collector obsahoval vždy všechny relevantní data
+(např aktivity viditelné pouze pro přihlášeného uživatele budou mít stejný datasourceColector jako )
+ */
+
 /**
  * Data nezávislé na tom jestli je uživatel přihlášený
  */
@@ -46,6 +58,7 @@ export type ApiAktivitaNepřihlášen = {
   id: number,
   nazev: string,
   kratkyPopis: string,
+  // todo: popis posílat zvlášť ()
   popis: string,
   obrazek: string,
   vypraveci: string[],
@@ -58,6 +71,8 @@ export type ApiAktivitaNepřihlášen = {
   vdalsiVlne?: boolean,
   probehnuta?: boolean,
   jeBrigadnicka?: boolean,
+  // todo: přida kapacita bez obsazenosti
+  // todo: změnit na boolean jestli má dítě, více nepotřebujeme prozatím
   /** idčka */
   dite?: number[],
   tymova?: boolean,
@@ -68,6 +83,8 @@ export type ApiAktivitaNepřihlášen = {
  */
 export type ApiAktivitaPřihlášen = {
   id: number,
+  //todo: obsazenost posílat zvlášť
+  //todo: obsazenost rozdělit na kapacitu a obsazenost
   obsazenost?: Obsazenost,
   /** V jakém stavu je pokud je přihlášen */
   stavPrihlaseni?: StavPřihlášení,
@@ -76,12 +93,14 @@ export type ApiAktivitaPřihlášen = {
   // nahradnik?: boolean,
   /** orgovská vlastnost */
   mistnost?: string,
-  /** orgovská vlastnost */
+  // todo: tohle je taky možný stav přihlášení (odebrat tady a přidat do stavPrihlaseni)
   vedu?: boolean,
   /** pokud je aktivita zamčená, tak do kdy */
   zamcenaDo?: number,
   /** aktivita zamčená přihlášeným užviatelem */
   zamcenaMnou?: boolean,
+  // todo: přesunout do Aktivity
+  /** přihlašovatelná na základě stavu (ne kapacity) */
   prihlasovatelna?: boolean,
 }
 
