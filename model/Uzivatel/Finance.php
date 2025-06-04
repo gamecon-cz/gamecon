@@ -441,6 +441,11 @@ SQL,
         return $this->soucinitelCenyAktivit($dataSourcesCollector); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
     }
 
+    public static function slevaAktivityDSC(?DataSourcesCollector $dataSourcesCollector): void {
+        self::soucinitelCenyAktivitDSC($dataSourcesCollector);
+    }
+
+
     public function slevaZaAktivityVProcentech(): float
     {
         return 100 - ($this->soucinitelCenyAktivit() * 100);
@@ -543,6 +548,8 @@ SQL,
     private function soucinitelCenyAktivit(
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
+        self::soucinitelCenyAktivitDSC($dataSourcesCollector);
+
         if ($this->soucinitelCenyAKtivit === null) {
             // pomocné proměnné
             $sleva = 0; // v procentech
@@ -564,6 +571,12 @@ SQL,
         }
 
         return $this->soucinitelCenyAKtivit;
+    }
+
+    private static function soucinitelCenyAktivitDSC(
+        ?DataSourcesCollector $dataSourcesCollector
+    ): void {
+        \Uzivatel::maPravoDSC($dataSourcesCollector);
     }
 
     public function cenaVstupne(): float
