@@ -64,7 +64,7 @@ export type ApiAktivitaNepřihlášen = {
   nazev: string,
   kratkyPopis: string,
   // todo: popis posílat zvlášť ()
-  popis: string,
+  popisId: string,
   obrazek: string,
   vypraveci: string[],
   stitkyId: number[],
@@ -111,8 +111,15 @@ export type ApiAktivitaPřihlášen = {
 
 export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaPřihlášen;
 
+export type ApiPopis = {
+  /** id popisu */
+  id: string;
+  popis: string;
+};
+
 type ApiAktivityProgramResponse = {
   aktivityNeprihlasen: ApiCachovanaOdpověď<ApiAktivita[]>;
+  popisy: ApiCachovanaOdpověď<ApiPopis[]>;
 };
 
 export type ApiŠtítek = {
@@ -124,14 +131,10 @@ export type ApiŠtítek = {
   // poznamka: string,
 };
 
-export const fetchAktivity = async (rok: number): Promise<ApiAktivita[]> => {
-  if (GAMECON_KONSTANTY.IS_DEV_SERVER) {
-    return fetchTestovacíAktivity(rok);
-  }
+export const fetchRocnikAktivity = async (rok: number): Promise<ApiAktivityProgramResponse> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityProgram?${rok ? `rok=${rok}` : ""}`;
   return fetch(url, { method: "POST" })
   .then(async x => x.json())
-  .then((x: ApiAktivityProgramResponse) => x.aktivityNeprihlasen.data)
   ;
 };
 

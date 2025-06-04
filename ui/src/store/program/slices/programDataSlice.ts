@@ -1,14 +1,21 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { ApiAktivita, ApiAktivitaAkce, ApiŠtítek, fetchAktivitaAkce, fetchAktivity, fetchŠtítky } from "../../../api/program";
+import { ApiAktivita, ApiAktivitaAkce, ApiŠtítek, fetchAktivitaAkce, fetchRocnikAktivity, fetchŠtítky } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { nastavChyba } from "./všeobecnéSlice";
 
 export type DataApiStav = "načítání" | "dotaženo" | "chyba";
 
+// todo: tyhle transofrmace toho co jde z api by se měli asi dít dřív
+export type Aktivita = Omit<ApiAktivita, "popisId"> & {
+  popis: string;
+};
+
 export type ProgramDataSlice = {
   data: {
-    aktivityPodleId: {
-      [id: number]: ApiAktivita
+    podleRočníku: {
+      [ročník: number]: {
+        aktivityPodleId: { [id: number]: Aktivita },
+      }
     },
     štítky: ApiŠtítek[],
   },
@@ -22,7 +29,7 @@ export type ProgramDataSlice = {
 
 export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () => ({
   data: {
-    aktivityPodleId: {},
+    podleRočníku: {},
     štítky: [],
   },
   dataStatus: {
@@ -36,17 +43,22 @@ const nastavStavProRok = (rok: number, stav: DataApiStav) => {
   }, undefined, "Natavení api stavu pro rok");
 };
 
-export const načtiRok = async (rok: number) => {
-  const nastavStav = nastavStavProRok.bind(undefined, rok);
+export const načtiRok = async (ročník: number) => {
+  const nastavStav = nastavStavProRok.bind(undefined, ročník);
 
   try {
     nastavStav("načítání");
-    const aktivity = await fetchAktivity(rok);
+    const rocnikData = await fetchRocnikAktivity(ročník);
     nastavStav("dotaženo");
 
     useProgramStore.setState(s => {
-      for (const aktivita of aktivity) {
-        s.data.aktivityPodleId[aktivita.id] = aktivita;
+      s.data.podleRočníku[ročník] = {
+        aktivityPodleId: {},
+      };
+      const ročníkData = s.data.podleRočníku[ročník];
+      for (const aktivita of rocnikData.aktivityNeprihlasen.data) {
+        const popis = rocnikData.popisy.data.find(x=>x.id === aktivita.popisId)?.popis ?? "";
+        ročníkData.aktivityPodleId[aktivita.id] = {...aktivita, popis};
       }
     }, undefined, "dotažení aktivit");
   } catch(e) {
