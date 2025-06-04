@@ -39,10 +39,9 @@ export type OdDo = {
   do: number,
 };
 
-export type ApiCachovanaOdpověď<Data> = {
+export type ApiCachovanaOdpověď<Data, kompletni = true> = {
   hash: string,
-  data: Data,
-};
+} & ( kompletni extends true ? {data: Data,} : {data?:Data});
 
 /* todo:
   první kolekce bez uživatele viditelnaPro (pohlídat ať to nemění datasourceColector)
@@ -117,9 +116,9 @@ export type ApiPopis = {
   popis: string;
 };
 
-type ApiAktivityProgramResponse = {
-  aktivityNeprihlasen: ApiCachovanaOdpověď<ApiAktivita[]>;
-  popisy: ApiCachovanaOdpověď<ApiPopis[]>;
+type ApiAktivityProgramResponse<kompletni = true> = {
+  aktivityNeprihlasen: ApiCachovanaOdpověď<ApiAktivita[], kompletni>;
+  popisy: ApiCachovanaOdpověď<ApiPopis[], kompletni>;
 };
 
 export type ApiŠtítek = {
@@ -131,11 +130,65 @@ export type ApiŠtítek = {
   // poznamka: string,
 };
 
-export const fetchRocnikAktivity = async (rok: number): Promise<ApiAktivityProgramResponse> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityProgram?${rok ? `rok=${rok}` : ""}`;
-  return fetch(url, { method: "POST" })
+const vytvořLocalStorageKlíč = (ročník: number) => `_cache_fetchRocnikAktivity_${ročník}`;
+
+const vraťDataZCache = (ročník: number): ApiAktivityProgramResponse | undefined =>{
+  const localStorageKlíč = vytvořLocalStorageKlíč(ročník);
+  try {
+    const cachovanéDataStr = localStorage.getItem(localStorageKlíč);
+    if (!cachovanéDataStr) return undefined;
+    const cachovanéData = JSON.parse(cachovanéDataStr);
+    return cachovanéData;
+  }catch(e) {
+    console.log("nepodařilo se rozparsovat data z cache");
+    return undefined;
+  }
+}
+
+const zapišCache = (ročník: number, data: ApiAktivityProgramResponse): void =>{
+  const localStorageKlíč = vytvořLocalStorageKlíč(ročník);
+  try {
+    localStorage.setItem(localStorageKlíč, JSON.stringify(data));
+  }catch(e) {
+    console.log("nepodařilo se zapsat cache");
+  }
+}
+
+const vytvořNovéDataZCacheADat = <T,>(cache: ApiCachovanaOdpověď<T, false> | undefined, data: ApiCachovanaOdpověď<T, false>): ApiCachovanaOdpověď<T, true> =>{
+  if (!cache) return data as any;
+  if (
+    cache?.hash !== ""
+    && cache?.hash === data?.hash
+  ) {
+    console.log(`využívám cache ${cache.hash}`)
+    return cache as any;
+  }
+  return data as any;
+}
+
+/**
+ * spojí cachované data s dotaženými a uloží novou cache
+ */
+const aplikujCacheNaOdpověď = (ročník: number, data: ApiAktivityProgramResponse<false>) => {
+  const cacheData = vraťDataZCache(ročník);
+
+  const spojenéData: ApiAktivityProgramResponse = {
+    aktivityNeprihlasen: vytvořNovéDataZCacheADat(cacheData?.aktivityNeprihlasen, data?.aktivityNeprihlasen),
+    popisy: vytvořNovéDataZCacheADat(cacheData?.popisy, data?.popisy),
+  };
+  zapišCache(ročník, spojenéData);
+
+  return spojenéData;
+};
+
+export const fetchRocnikAktivity = async (ročník: number): Promise<ApiAktivityProgramResponse> => {
+
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityProgram?${ročník ? `rok=${ročník}` : ""}`;
+  const odpověď: ApiAktivityProgramResponse<false> = await fetch(url, { method: "POST" })
   .then(async x => x.json())
   ;
+  const kompletníOdpověď = aplikujCacheNaOdpověď(ročník, odpověď);
+  return kompletníOdpověď;
 };
 
 export const fetchŠtítky = async (): Promise<ApiŠtítek[]> =>{
