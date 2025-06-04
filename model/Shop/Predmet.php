@@ -50,10 +50,12 @@ class Predmet extends \DbObject
 SELECT id_predmetu
 FROM shop_predmety
 WHERE
-    -- letošní je ten, která má nejnovější model a v dřívějších letech si ho nikdo neobjednal
-    NOT EXISTS(SELECT * FROM shop_nakupy WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
-    AND typ = {$typPredmet} AND nazev COLLATE utf8_czech_ci LIKE '%{$castNazvuSql}%'
-ORDER BY model_rok DESC, cena_aktualni DESC, id_predmetu DESC
+    -- letošní je z aktuálního ročníku a veřejný, v případě více výsledků vezmeme ten s popiskem, v krajním případě ten novější
+    model_rok = {$rocnik} AND
+    stav = 1 AND
+    typ = {$typPredmet} AND
+    nazev COLLATE utf8_czech_ci LIKE '%{$castNazvuSql}%'
+ORDER BY model_rok DESC, cena_aktualni DESC, popis DESC, id_predmetu Desc
 LIMIT 1 -- pro jistotu
 SQL,
             );

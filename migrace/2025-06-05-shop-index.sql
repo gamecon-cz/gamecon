@@ -1,0 +1,1 @@
+ALTER TABLE shop_predmety ADD INDEX idx_nazev (nazev);
