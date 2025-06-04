@@ -1816,6 +1816,11 @@ SQL
             : null;
     }
 
+    public function popisId() {
+        // todo: tohle může být číslo ?
+        return $this->a[Sql::POPIS];
+    }
+
     /**
      * Vrátí formátovaný (html) popisek aktivity
      */

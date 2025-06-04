@@ -65,9 +65,11 @@ $vytvorCachovanyDotaz = function (
     string $requestHash = "",
 ) use ($tableDataDependentCache, $jeZapnuteCachovaniApiOdpovedi) {
     $cachedItem = $tableDataDependentCache->getItem($cacheKey);
+    $cached = true;
 
     if (!$cachedItem) {
         $dataNove = $dotahniData($dataSourcesCollector);
+        $cached = false;
 
         if ($jeZapnuteCachovaniApiOdpovedi) {
             $cachedItem = $tableDataDependentCache->setItem(
@@ -79,6 +81,7 @@ $vytvorCachovanyDotaz = function (
             return [
                 "data" => $dataNove,
                 "hash" => "",
+                "cached" => $cached,
             ];
         }
     }
@@ -86,6 +89,7 @@ $vytvorCachovanyDotaz = function (
     return [
         "data" => $cachedItem->data,
         "hash" => $cachedItem->hash,
+        "cached" => $cached,
     ];
 };
 
@@ -126,7 +130,7 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
             'nazev'         => $aktivita->nazev(),
             'kratkyPopis'   => $aktivita->kratkyPopis(),
             // vlastní cache, není dsc portože budeme porovnávat podle hashe
-            'popis'         => $aktivita->popis(),
+            'popisId'         => $aktivita->popisId(),
             // obrazek jak cachovat?
             'obrazek'       => (string)$aktivita->obrazek(),
             'vypraveci'     => $vypraveci,
@@ -192,6 +196,31 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
     return $aktivityNeprihlasen;
 };
 
+$dotahniPopisyCachovane  = function () use ($aktivity, $u) {
+    // todo:
+    $cached = true;
+
+    $popisyId = [];
+    foreach ($aktivity as $aktivita) {
+        $popisyId[] = $aktivita->popisId();
+    }
+    $hash = md5(json_encode($popisyId));
+
+    $popisy = [];
+    foreach ($aktivity as $aktivita) {
+        $popisy[] = [
+            "id" => $aktivita->popisId(),
+            "popis" => $aktivita->popis(),
+        ];
+    }
+
+    return [
+        "data" => $popisy,
+        "hash" => $hash,
+        "cached" => $cached,
+    ];
+};
+
 /*
  $cacheKey = 'aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym'),
  */
@@ -202,6 +231,7 @@ $response = [
         $dataSourcesCollector->copy(),
         $dotahniAktivityNeprihlasen,
     ),
+    "popisy" => $dotahniPopisyCachovane(),
 ];
 
 header('Content-type: application/json');
