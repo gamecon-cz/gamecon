@@ -40,25 +40,21 @@ class TableDataDependentCache
 
     public function getItem(
         string $key,
-    ): mixed {
+    ): ?ItemWithMetadata {
         $encodedRawItem = $this->getEncodedRawItem($key);
 
         if ($encodedRawItem === null) {
             return null;
         }
 
-        $rawItem = $this->decodeRawItem($encodedRawItem);
-
-        if (!is_array($rawItem)) {
-            return null;
-        }
-
-        return $this->decodeItem($rawItem);
+        $array = json_decode(json: $encodedRawItem, associative: true, flags: JSON_THROW_ON_ERROR);
+        $rawItem = ItemWithMetadata::array_decode($array);
+        return $this->checkItem($rawItem);
     }
 
-    private function decodeItem(array $rawItem): mixed
+    private function checkItem(ItemWithMetadata $rawItem): ?ItemWithMetadata
     {
-        $cachedTableDataVersions = $rawItem['_metadata']['usedTableDataVersions'] ?? null;
+        $cachedTableDataVersions = $rawItem->usedTableDataVersions;
         if (!is_array($cachedTableDataVersions)) {
             return null;
         } else {
@@ -70,7 +66,7 @@ class TableDataDependentCache
             }
         }
 
-        return $rawItem['_value'] ?? null;
+        return $rawItem;
     }
 
     private function getEncodedRawItem(string $key): ?string
@@ -101,7 +97,7 @@ class TableDataDependentCache
         string               $key,
         mixed                $value,
         DataSourcesCollector $dataSourcesCollector,
-    ): string {
+    ): ItemWithMetadata {
         $filePath = $this->getOriginalFilePath($key);
 
         $dir = dirname($filePath);
@@ -109,20 +105,21 @@ class TableDataDependentCache
             throw new \RuntimeException("Unable to create cache directory: {$dir}");
         }
 
-        $item = $this->createItem($value, $dataSourcesCollector);
+        $item = $this->createItem($key, $value, $dataSourcesCollector);
 
-        $encodedItem = $this->encodeValue($item);
+        $encodedItem = json_encode($item->array_encode());
         if (file_put_contents($filePath, $encodedItem) === false) {
             throw new \RuntimeException("Failed to write cache file: {$filePath}");
         }
 
-        return $filePath;
+        return $item;
     }
 
     private function createItem(
+        $key,
         $value,
         DataSourcesCollector $dataSourcesCollector,
-    ): array {
+    ): ItemWithMetadata {
         $usedTables = $dataSourcesCollector->getDataSources();
         /**
          * @var array<array{
@@ -138,10 +135,7 @@ class TableDataDependentCache
             ARRAY_FILTER_USE_KEY,
         );
 
-        return [
-            '_value'    => $value,
-            '_metadata' => ['usedTableDataVersions' => $usedTableDataVersions],
-        ];
+        return new ItemWithMetadata($key, $value, $usedTableDataVersions);
     }
 
     private function getOriginalFilePath(string $key): string
@@ -169,9 +163,44 @@ class TableDataDependentCache
 
         return $encoded;
     }
+}
 
-    private function decodeRawItem(string $encoded): mixed
-    {
-        return json_decode(json: $encoded, associative: true, flags: JSON_THROW_ON_ERROR);
+class ItemWithMetadata {
+    public readonly string $hash;
+
+    /** @var array<string|int, array{table_name: string, version: int} $usedTableDataVersions */
+    public function __construct(
+        public string $key,
+        public mixed $data,
+        public array $usedTableDataVersions,
+    ) {
+        // todo: somehow sort usedTableDataVersions
+        $this->hash = md5(json_encode([$data, $usedTableDataVersions]));
+    }
+
+    private const JSON_KEY = 'key';
+    private const JSON_DATA = 'data';
+    private const JSON_USEDTABLEDATAVERSIONS = 'usedTableDataVersions';
+
+    public function array_encode() {
+        return [
+            ItemWithMetadata::JSON_KEY => $this->key,
+            ItemWithMetadata::JSON_DATA => $this->data,
+            ItemWithMetadata::JSON_USEDTABLEDATAVERSIONS => $this->usedTableDataVersions,
+        ];
+    }
+
+    public static function array_decode(array $obj): ?ItemWithMetadata {
+        if (!isset($obj[ItemWithMetadata::JSON_KEY])
+            || !isset($obj[ItemWithMetadata::JSON_DATA])
+            || !isset($obj[ItemWithMetadata::JSON_USEDTABLEDATAVERSIONS])) {
+            return null;
+        }
+
+        return new self(
+            $obj[ItemWithMetadata::JSON_KEY],
+            $obj[ItemWithMetadata::JSON_DATA],
+            $obj[ItemWithMetadata::JSON_USEDTABLEDATAVERSIONS]
+        );
     }
 }
