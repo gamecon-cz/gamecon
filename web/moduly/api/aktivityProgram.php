@@ -53,14 +53,32 @@ $tableDataDependentCache = $systemoveNastaveni->tableDataDependentCache();
 // has to fetch all data versions before data itself, because after that we could fetch invalidly new, by some other process changed version and that would cache old data under new version
 $tableDataDependentCache->preloadTableDataVersions();
 
-$cacheKey                = 'aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym');
-$cachedResponse          = $tableDataDependentCache->getItem($cacheKey);
+$cacheKey       = 'aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym');
 
-if ($cachedResponse !== null) {
-    header('Content-type: application/json');
-    unset($cachedResponse['_metadata']);
-    echo json_encode($cachedResponse, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
+if ($jeZapnuteCachovaniApiOdpovedi) {
+    $tableDataDependentCache = $systemoveNastaveni->tableDataDependentCache();
+    // has to fetch all data versions before data itself, because after that we could fetch invalidly new, by some other process changed version and that would cache old data under new version
+    $tableDataDependentCache->preloadTableDataVersions();
+
+    $cachedResponse = $tableDataDependentCache->getItem($cacheKey);
+
+    $aktivityNeprihlasen = $cachedResponse->data;
+    $hash = $cachedResponse->hash;
+
+    $aktivityNeprihlasen = [
+        "data" => $aktivityNeprihlasen,
+        "hash" => $hash,
+    ];
+
+    $response = [
+        "aktivityNeprihlasen" => $aktivityNeprihlasen,
+    ];
+
+    if ($cachedResponse !== null) {
+        header('Content-type: application/json');
+        echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
 }
 
 $dataSourcesCollector = new DataSourcesCollector();
@@ -76,7 +94,7 @@ $aktivity = Aktivita::zFiltru(
     dataSourcesCollector: $dataSourcesCollector,
 );
 
-$response = [];
+$aktivityNeprihlasen = [];
 foreach ($aktivity as $aktivita) {
     $zacatekAktivity = $aktivita->zacatek();
     $konecAktivity   = $aktivita->konec();
@@ -159,16 +177,28 @@ foreach ($aktivity as $aktivita) {
         $aktivitaRes['dite'] = $dite;
 
     $aktivitaRes = array_filter($aktivitaRes);
-    $response[]  = $aktivitaRes;
+    $aktivityNeprihlasen[]  = $aktivitaRes;
 }
 
-$tableDataDependentCache->setItem(
-    $cacheKey,
-    $response,
-    $dataSourcesCollector,
-);
+$hash = null;
+if ($jeZapnuteCachovaniApiOdpovedi) {
+    $item = $tableDataDependentCache->setItem(
+        $cacheKey,
+        $aktivityNeprihlasen,
+        $dataSourcesCollector,
+    );
+    $hash = $item?->hash;
+};
 
-unset($response['_metadata']);
+$aktivityNeprihlasen = [
+    "data" => $aktivityNeprihlasen,
+    "hash" => $hash,
+];
+
+
+$response = [
+    "aktivityNeprihlasen" => $aktivityNeprihlasen,
+];
 
 header('Content-type: application/json');
 echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
