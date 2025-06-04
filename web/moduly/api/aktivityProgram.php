@@ -7,6 +7,8 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\SqlStruktura\AkceTypySqlStruktura;
+use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura;
 
 /**
  * @var Uzivatel|null $u
@@ -66,6 +68,10 @@ if ($jeZapnuteCachovaniApiOdpovedi) {
 }
 
 $dataSourcesCollector = new DataSourcesCollector();
+// předpokládá se že se nebude měnit ale pro klid v duši přidáme
+$dataSourcesCollector?->addDataSource(AkceTypySqlStruktura::AKCE_TYPY_TABULKA);
+// systémové nastavení se používá na hodně místech, proto nemá smysl se ním zatěžovat do podrobna
+$dataSourcesCollector?->addDataSource(SystemoveNastaveniSqlStruktura::SYSTEMOVE_NASTAVENI_TABULKA);
 
 $aktivity = Aktivita::zFiltru(
     systemoveNastaveni: $systemoveNastaveni,
@@ -87,7 +93,7 @@ foreach ($aktivity as $aktivita) {
         fn(
             Uzivatel $organizator,
         ) => $organizator->jmenoNick(),
-        $aktivita->organizatori(),
+        $aktivita->organizatori(dataSourcesCollector: $dataSourcesCollector),
     );
 
     $stitkyId = $aktivita->tagyId();
@@ -96,6 +102,7 @@ foreach ($aktivity as $aktivita) {
         'id'            => $aktivita->id(),
         'nazev'         => $aktivita->nazev(),
         'kratkyPopis'   => $aktivita->kratkyPopis(),
+        // vlastní cache, není dsc portože budeme porovnávat podle hashe
         'popis'         => $aktivita->popis(),
         // obrazek jak cachovat?
         'obrazek'       => (string)$aktivita->obrazek(),
@@ -146,7 +153,7 @@ foreach ($aktivity as $aktivita) {
         // TODO: argumenty pro admin
         $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
     }
-    $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna(dataSourcesCollector: $dataSourcesCollector);
+    $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
     $aktivitaRes['zamcenaDo']       = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
     $aktivitaRes['obsazenost']      = $aktivita->obsazenostObj($dataSourcesCollector);
     $aktivitaRes['tymova']          = $aktivita->tymova();
