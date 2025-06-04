@@ -835,6 +835,13 @@ SQL,
         return in_array($pravo, $this->prava($dataSourcesCollector));
     }
 
+    public static function maPravoDSC(
+        ?DataSourcesCollector $dataSourcesCollector,
+    ): void {
+        self::pravaDSC($dataSourcesCollector);
+    }
+
+
     public function maPravoNaPrirazeniRole(int $idRole): bool
     {
         $role = Role::zId($idRole, true);
@@ -1126,10 +1133,8 @@ SQL,
      */
     public function nactiPrava(?DataSourcesCollector $dataSourcesCollector = null): void
     {
-        $dataSourcesCollector?->addDataSources([
-            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
-            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
-        ]);
+        self::nactiPravaDSC($dataSourcesCollector);
+
         if (isset($this->r['prava'])) {
             return;
         }
@@ -1149,8 +1154,18 @@ SQL,
         $this->r['prava'] = $prava;
     }
 
+    public static function nactiPravaDSC(?DataSourcesCollector $dataSourcesCollector): void
+    {
+        $dataSourcesCollector?->addDataSources([
+            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
+            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
+        ]);
+    }
+
     public function prava(?DataSourcesCollector $dataSourcesCollector = null): array
     {
+        self::pravaDSC($dataSourcesCollector);
+
         if (!isset($this->r['prava'])) {
             $this->nactiPrava($dataSourcesCollector);
         } elseif (is_string($this->r['prava'])) {
@@ -1158,6 +1173,10 @@ SQL,
         }
 
         return $this->r['prava'];
+    }
+
+    public static function pravaDSC(?DataSourcesCollector $dataSourcesCollector): void {
+        self::nactiPravaDSC($dataSourcesCollector);
     }
 
     public function potvrzeniZakonnehoZastupceOd(): ?DateTimeImmutable
@@ -2220,7 +2239,10 @@ SQL,
     public static function zIds(
         $ids,
         bool $zCache = false,
+        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
+        self::zIdsDSC($dataSourcesCollector);
+
         if (empty($ids)) {
             return [];
         }
@@ -2258,6 +2280,12 @@ SQL,
             return $uzivatele;
         }
         throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
+    }
+
+    public static function zIdsDSC(
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): void {
+        self::nactiUzivateleDSC($dataSourcesCollector);
     }
 
     public static function prednactiUzivateleNaAktivitach(int $rocnik)
@@ -2478,8 +2506,10 @@ SQL,
         return parent::zWhere($where, $params, $extra);
     }
 
-    protected static function dotaz($where): string
+    protected static function dotaz($where, ?DataSourcesCollector $dataSourcesCollector = null): string
     {
+        self::dotazDSC($dataSourcesCollector);
+
         return <<<SQL
 SELECT
     u.*,
@@ -2492,6 +2522,13 @@ LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
 $where
 GROUP BY u.id_uzivatele
 SQL;
+    }
+
+    protected static function dotazDSC(?DataSourcesCollector $dataSourcesCollector = null): void {
+        $dataSourcesCollector?->addDataSource("uzivatele_url");
+        $dataSourcesCollector?->addDataSource("uzivatele_hodnoty");
+        $dataSourcesCollector?->addDataSource("platne_role_uzivatelu");
+        $dataSourcesCollector?->addDataSource("prava_role");
     }
 
     /** Vrátí pole uživatelů sedících na roli s daným ID */
@@ -2519,9 +2556,9 @@ SQL;
      * @param string $where
      * @return Uzivatel[]
      */
-    protected static function nactiUzivatele(string $where): array
+    protected static function nactiUzivatele(string $where, ?DataSourcesCollector $dataSourcesCollector = null): array
     {
-        $query     = self::dotaz($where);
+        $query     = self::dotaz($where, dataSourcesCollector: $dataSourcesCollector);
         $o         = dbQuery($query);
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
@@ -2532,6 +2569,11 @@ SQL;
 
         return $uzivatele;
     }
+
+    protected static function nactiUzivateleDSC(?DataSourcesCollector $dataSourcesCollector): void {
+        self::dotazDSC($dataSourcesCollector);
+    }
+
 
     public function shop(): Shop
     {
