@@ -119,13 +119,23 @@ $aktivity = Aktivita::zFiltru(
     dataSourcesCollector: $dataSourcesCollector,
 );
 
-$dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollector) use ($aktivity, $u) {
+$skryteAktivityViditelnePro = [null];
+
+$dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollector) use ($aktivity, $skryteAktivityViditelnePro) {
     $aktivityNeprihlasen = [];
     foreach ($aktivity as $aktivita) {
         $zacatekAktivity = $aktivita->zacatek();
         $konecAktivity   = $aktivita->konec();
 
-        if (!$zacatekAktivity || !$konecAktivity || !$aktivita->viditelnaPro($u)) {
+        $verejneViditelna = $aktivita->viditelnaPro(null);
+        $viditelnaPouzeProUzivatele = $aktivita->viditelnaPro($skryteAktivityViditelnePro[0] ?? null);
+        $viditelna = (
+            $verejneViditelna
+            // pokud je uživatel přihlášený tak to znamená že cheme poslat specificky pro něj jen skryté aktivity které vidí
+            || (!$verejneViditelna && $viditelnaPouzeProUzivatele)
+        );
+
+        if (!$zacatekAktivity || !$konecAktivity || !$viditelna) {
             continue;
         }
 
@@ -164,6 +174,34 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
             'jeBrigadnicka' => $aktivita->jeBrigadnicka(),
         ];
 
+        $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
+        $aktivitaRes['tymova']          = $aktivita->tymova();
+
+        $dite = $aktivita->detiIds();
+        if ($dite && count($dite)) {
+            $aktivitaRes['dite'] = $dite;
+        }
+
+        $aktivitaRes = array_filter($aktivitaRes);
+        $aktivityNeprihlasen[]  = $aktivitaRes;
+    }
+    return $aktivityNeprihlasen;
+};
+
+$dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector) use ($aktivity, $u) {
+    $aktivityUzivatel = [];
+    foreach ($aktivity as $aktivita) {
+        $zacatekAktivity = $aktivita->zacatek();
+        $konecAktivity   = $aktivita->konec();
+
+        if (!$zacatekAktivity || !$konecAktivity || !$aktivita->viditelnaPro($u)) {
+            continue;
+        }
+
+        $aktivitaRes = [
+            'id'            => $aktivita->id(),
+        ];
+
         if ($u) {
             $stavPrihlasen = $aktivita->stavPrihlaseni($u, $dataSourcesCollector);
             switch ($stavPrihlasen) {
@@ -193,19 +231,12 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
             // TODO: argumenty pro admin
             $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
         }
-        $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
         $aktivitaRes['zamcenaDo']       = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
-        $aktivitaRes['tymova']          = $aktivita->tymova();
-
-        $dite = $aktivita->detiIds();
-        if ($dite && count($dite)) {
-            $aktivitaRes['dite'] = $dite;
-        }
 
         $aktivitaRes = array_filter($aktivitaRes);
-        $aktivityNeprihlasen[]  = $aktivitaRes;
+        $aktivityUzivatel[]  = $aktivitaRes;
     }
-    return $aktivityNeprihlasen;
+    return $aktivityUzivatel;
 };
 
 $dotahniobsazenosti = function (DataSourcesCollector $dataSourcesCollector) use ($aktivity) {
@@ -253,8 +284,26 @@ $dotahniPopisyCachovane  = function () use ($aktivity, $body) {
     return $vysledek;
 };
 
+
+$aktivityNeprihlasen = $vytvorCachovanyDotaz(
+    ('aktivity_program-rocnik_' . "aktivityNeprihlasen" . "_" . $rok),
+    $dataSourcesCollector->copy(),
+    $dotahniAktivityNeprihlasen,
+    $body?->hashe?->aktivityNeprihlasen ?? "",
+);
+
+// na druhé volání dotahniAktivityNeprihlasen chci pouze aktivity které vidí uživatel ale ne veřejné
+$skryteAktivityViditelnePro[0] = $u;
+
 $response = [
-    "aktivityNeprihlasen" => $vytvorCachovanyDotaz(
+    "aktivityNeprihlasen" => $aktivityNeprihlasen,
+    "aktivitySkryte" => $vytvorCachovanyDotaz(
+        ('aktivity_program-rocnik_' . "aktivitySkryte" . "_" . $rok . '-' . ($u?->id() ?? 'anonym')),
+        $dataSourcesCollector->copy(),
+        $dotahniAktivityNeprihlasen,
+        $body?->hashe?->aktivityNeprihlasen ?? "",
+    ),
+    "aktivityUživatel" => $vytvorCachovanyDotaz(
         ('aktivity_program-rocnik_' . "aktivityNeprihlasen" . "_" . $rok . '-' . ($u?->id() ?? 'anonym')),
         $dataSourcesCollector->copy(),
         $dotahniAktivityNeprihlasen,
