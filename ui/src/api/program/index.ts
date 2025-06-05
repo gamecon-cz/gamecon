@@ -79,12 +79,14 @@ export type ApiAktivitaNepřihlášen = {
   /** idčka */
   dite?: number[],
   tymova?: boolean,
+  /** přihlašovatelná na základě stavu (ne kapacity) */
+  prihlasovatelna?: boolean,
 }
 
 /**
  * Pro jednodušší práci musí být všechny parametry optional
  */
-export type ApiAktivitaPřihlášen = {
+export type ApiAktivitaUživatel = {
   id: number,
   /** V jakém stavu je pokud je přihlášen */
   stavPrihlaseni?: StavPřihlášení,
@@ -99,12 +101,11 @@ export type ApiAktivitaPřihlášen = {
   zamcenaDo?: number,
   /** aktivita zamčená přihlášeným užviatelem */
   zamcenaMnou?: boolean,
-  // todo: přesunout do Aktivity
-  /** přihlašovatelná na základě stavu (ne kapacity) */
-  prihlasovatelna?: boolean,
+  /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusím aby tam bylo */
+  __TS_STRUKTURALNI_KONTROLA__: true,
 }
 
-export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaPřihlášen;
+export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaUživatel;
 
 export type ApiAktivitaPopis = {
   /** id popisu */
@@ -119,13 +120,17 @@ export type ApiAktivitaObsazenost = {
 };
 
 type ApiAktivityProgramResponse<kompletni = true> = {
-  aktivityNeprihlasen: ApiCachovanaOdpověď<ApiAktivita[], kompletni>;
+  aktivityNeprihlasen: ApiCachovanaOdpověď<ApiAktivitaNepřihlášen[], kompletni>;
+  aktivitySkryte: ApiCachovanaOdpověď<ApiAktivitaNepřihlášen[], kompletni>;
+  aktivityUživatel: ApiCachovanaOdpověď<ApiAktivitaUživatel[], kompletni>;
   popisy: ApiCachovanaOdpověď<ApiAktivitaPopis[], kompletni>;
   obsazenosti: ApiCachovanaOdpověď<ApiAktivitaObsazenost[], kompletni>;
 };
 
 type ApiAktivityProgramResponseHashe = {
   aktivityNeprihlasen: string,
+  aktivitySkryte: string,
+  aktivityUživatel: string,
   popisy: string,
   obsazenosti: string,
 }
@@ -175,6 +180,8 @@ const vytvořNovéDataZCacheADat = <T,>(cache: ApiCachovanaOdpověď<T, false> |
 const aplikujCacheNaOdpověď = (cacheData :ApiAktivityProgramResponse<true> | undefined, ročník: number, data: ApiAktivityProgramResponse<false>) => {
   const spojenéData: ApiAktivityProgramResponse = {
     aktivityNeprihlasen: vytvořNovéDataZCacheADat(cacheData?.aktivityNeprihlasen, data?.aktivityNeprihlasen),
+    aktivitySkryte: vytvořNovéDataZCacheADat(cacheData?.aktivitySkryte, data?.aktivitySkryte),
+    aktivityUživatel: vytvořNovéDataZCacheADat(cacheData?.aktivityUživatel, data?.aktivityUživatel),
     popisy: vytvořNovéDataZCacheADat(cacheData?.popisy, data?.popisy),
     obsazenosti: vytvořNovéDataZCacheADat(cacheData?.obsazenosti, data?.obsazenosti),
   };
@@ -187,6 +194,8 @@ const vraťAktuálníHasheZCache = (cacheData: ApiAktivityProgramResponse<true> 
   if (!cacheData) return undefined;
   return {
     aktivityNeprihlasen: cacheData.aktivityNeprihlasen.hash,
+    aktivitySkryte: cacheData.aktivitySkryte.hash,
+    aktivityUživatel: cacheData.aktivityUživatel.hash,
     popisy: cacheData.popisy.hash,
     obsazenosti: cacheData.obsazenosti.hash,
   };
