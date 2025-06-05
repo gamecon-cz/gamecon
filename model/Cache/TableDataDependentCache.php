@@ -174,8 +174,7 @@ class ItemWithMetadata {
         public mixed $data,
         public array $usedTableDataVersions,
     ) {
-        // todo: somehow sort usedTableDataVersions
-        $this->hash = md5(json_encode([$data, $usedTableDataVersions]));
+        $this->hash = md5(json_encode($data));
     }
 
     private const JSON_KEY = 'key';
