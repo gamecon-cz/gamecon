@@ -68,19 +68,23 @@ foreach (Shop::letosniPolozky() as $polozka) {
     $template->assign('zbyvaKusu', $polozka->zbyvaKusu());
     $template->assign('kusuCelkem', $polozka->vyrobenoKusu());
     $template->assign('stav', $polozka->stav());
+
     foreach ((new ReflectionClass(StavPredmetu::class))->getConstants() as $constantName => $constantValue) {
         $template->assign('stavCislo', $constantValue);
-        $template->assign('stavNazev', match ($constantValue){
-            StavPredmetu::MIMO => 'Vyřazený',
-            StavPredmetu::VEREJNY => 'Veřejný',
+        $template->assign('stavNazev', match ($constantValue) {
+            StavPredmetu::MIMO        => 'Vyřazený',
+            StavPredmetu::VEREJNY     => 'Veřejný',
             StavPredmetu::POZASTAVENY => 'Prodejný na místě',
-            StavPredmetu::PODPULTOVY => 'Orgové',
-            default => $constantName,
+            StavPredmetu::PODPULTOVY  => 'Orgové',
+            default                   => $constantName,
         });
         $template->assign('selected', $polozka->stav() === $constantValue
             ? 'selected'
             : '');
         $template->parse('shop.typ.polozka.stav');
+    }
+    if ($polozka->jeLetosniHlavni()) {
+        $template->parse('shop.typ.polozka.jeLetosniHlavni');
     }
     $template->parse('shop.typ.polozka');
 }
