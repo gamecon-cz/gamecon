@@ -1114,10 +1114,8 @@ SQL,
      */
     public function nactiPrava(?DataSourcesCollector $dataSourcesCollector = null): void
     {
-        $dataSourcesCollector?->addDataSources([
-            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
-            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
-        ]);
+        $dataSourcesCollector?->addDataSources(self::pravaDataSources());
+
         if (isset($this->r['prava'])) {
             return;
         }
@@ -1139,6 +1137,8 @@ SQL,
 
     public function prava(?DataSourcesCollector $dataSourcesCollector = null): array
     {
+        $dataSourcesCollector?->addDataSources(self::pravaDataSources());
+
         if (!isset($this->r['prava'])) {
             $this->nactiPrava($dataSourcesCollector);
         } elseif (is_string($this->r['prava'])) {
@@ -1146,6 +1146,14 @@ SQL,
         }
 
         return $this->r['prava'];
+    }
+
+    public static function pravaDataSources(): array
+    {
+        return [
+            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
+            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
+        ];
     }
 
     public function potvrzeniZakonnehoZastupceOd(): ?DateTimeImmutable
@@ -2205,7 +2213,10 @@ SQL,
     public static function zIds(
         $ids,
         bool $zCache = false,
+        ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
+        $dataSourcesCollector?->addDataSources(self::zIdsDataSources());
+
         if (empty($ids)) {
             return [];
         }
@@ -2243,6 +2254,11 @@ SQL,
             return $uzivatele;
         }
         throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
+    }
+
+    public static function zIdsDataSources(): array
+    {
+        return self::nactiUzivateleDataSources();
     }
 
     public static function prednactiUzivateleNaAktivitach(int $rocnik)
@@ -2463,8 +2479,12 @@ SQL,
         return parent::zWhere($where, $params, $extra);
     }
 
-    protected static function dotaz($where): string
-    {
+    protected static function dotaz(
+        $where,
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): string {
+        $dataSourcesCollector?->addDataSources(self::dotazDataSources());
+
         return <<<SQL
 SELECT
     u.*,
@@ -2477,6 +2497,16 @@ LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
 $where
 GROUP BY u.id_uzivatele
 SQL;
+    }
+
+    protected static function dotazDataSources(): array
+    {
+        return [
+            Sql::UZIVATELE_HODNOTY_TABULKA,
+            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
+            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
+            'uzivatele_url',
+        ];
     }
 
     /** Vrátí pole uživatelů sedících na roli s daným ID */
@@ -2504,9 +2534,11 @@ SQL;
      * @param string $where
      * @return Uzivatel[]
      */
-    protected static function nactiUzivatele(string $where): array
-    {
-        $query     = self::dotaz($where);
+    protected static function nactiUzivatele(
+        string                $where,
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): array {
+        $query     = self::dotaz(where: $where, dataSourcesCollector: $dataSourcesCollector);
         $o         = dbQuery($query);
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
@@ -2516,6 +2548,11 @@ SQL;
         }
 
         return $uzivatele;
+    }
+
+    protected static function nactiUzivateleDataSources(): array
+    {
+        return self::dotazDataSources();
     }
 
     public function shop(): Shop

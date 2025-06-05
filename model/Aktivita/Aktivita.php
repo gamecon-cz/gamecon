@@ -28,6 +28,7 @@ use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Urls;
@@ -260,7 +261,7 @@ SQL
         \Uzivatel             $u = null,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
-        $dataSourcesCollector?->addDataSource(Sql::AKCE_SEZNAM_TABULKA);
+        $dataSourcesCollector?->addDataSources(Finance::slevaAktivitDataSources());
 
         return (!$this->a[Sql::BEZ_SLEVY] && $u && $u->gcPrihlasen($dataSourcesCollector))
             ? $u->finance()->slevaAktivity($dataSourcesCollector)
@@ -1355,6 +1356,8 @@ SQL
      */
     private function seznamUcastniku(?DataSourcesCollector $dataSourcesCollector = null): array
     {
+        $dataSourcesCollector?->addDataSources(self::seznamUcastnikuDataSources());
+
         if (!isset($this->seznamUcastniku)) {
             if ($this->prednacitat) {
                 if (!array_key_exists($this->id(), self::$seznamUcastnikuCache)) {
@@ -1380,15 +1383,19 @@ SQL
         return $this->seznamUcastniku;
     }
 
+    private static function seznamUcastnikuDataSources(): array
+    {
+        return [
+            ...self::prihlaseniRawDataSources(),
+            ...self::seznamUcastnikuAktivitDataSources(),
+        ];
+    }
+
     private static function seznamUcastnikuAktivit(
         string                $where = 'TRUE',
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
-        $dataSourcesCollector?->addDataSources([
-            Sql::AKCE_SEZNAM_TABULKA,
-            AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
-            AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA,
-        ]);
+        $dataSourcesCollector?->addDataSources(self::seznamUcastnikuAktivitDataSources());
 
         $data = dbFetchAll(
             <<<SQL
@@ -1419,6 +1426,16 @@ SQL
         }
 
         return $seznamUcastniku;
+    }
+
+    private static function seznamUcastnikuAktivitDataSources(): array
+    {
+        return [
+            Sql::AKCE_SEZNAM_TABULKA,
+            AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
+            AkcePrihlaseniSpecSqlStruktura::AKCE_PRIHLASENI_SPEC_TABULKA,
+            ...Uzivatel::zIdsDataSources(),
+        ];
     }
 
     public function nazev(): string
@@ -1679,8 +1696,11 @@ SQL,
      * @return Uzivatel[]|void
      */
     public function organizatori(
-        array $ids = null,
+        array                 $ids = null,
+        ?DataSourcesCollector $dataSourcesCollector = null,
     ) {
+        $dataSourcesCollector?->addDataSources(Uzivatel::zIdsDataSources());
+
         if ($ids !== null) {
             dbQuery('DELETE FROM akce_organizatori WHERE id_akce = ' . $this->id());
             if ($ids) {
@@ -1697,7 +1717,7 @@ SQL,
             return;
         }
         if (!isset($this->organizatori)) {
-            $this->organizatori = Uzivatel::zIds($this->organizatoriRaw());
+            $this->organizatori = Uzivatel::zIds($this->organizatoriRaw(), dataSourcesCollector: $dataSourcesCollector);
         }
 
         return $this->organizatori;
@@ -2197,23 +2217,32 @@ SQL
      */
     private function prihlaseniRaw(?DataSourcesCollector $dataSourcesCollector = null): string
     {
+        $dataSourcesCollector?->addDataSources(self::prihlaseniRawDataSources());
+
         if (!array_key_exists('prihlaseni', $this->a)) {
             if ($this->prednacitat) {
                 if (!array_key_exists($this->id(), self::$prihlaseniNaAktivityRawCache)) {
                     // array + array přidá nové záznamy s novými klíči, ale nepřepíše původní
                     self::$prihlaseniNaAktivityRawCache += self::nactiPrihlaseniNaAktivityRaw(
                         Sql::AKCE_SEZNAM_TABULKA . '.' . Sql::ROK . '=' . $this->rok(),
-                        $dataSourcesCollector,
                     );
                 }
                 self::$prihlaseniNaAktivityRawCache[$this->id()] ??= '';
                 $this->a['prihlaseni']                           = self::$prihlaseniNaAktivityRawCache[$this->id()];
             } else {
-                $this->a['prihlaseni'] = $this->nactiPrihlaseniRaw($dataSourcesCollector);
+                $this->a['prihlaseni'] = $this->nactiPrihlaseniRaw();
             }
         }
 
         return (string)$this->a['prihlaseni'];
+    }
+
+    private static function prihlaseniRawDataSources(): array
+    {
+        return [
+            ...self::nactiPrihlaseniNaAktivityRawDataSources(),
+            ...self::nactiPrihlaseniRawDataSources(),
+        ];
     }
 
     private function organizatoriRaw(): string
@@ -2225,12 +2254,7 @@ SQL
         string                $where = 'TRUE',
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
-        $dataSourcesCollector?->addDataSources([
-            Sql::AKCE_SEZNAM_TABULKA,
-            AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
-            UzivateleHodnotySqlStruktura::UZIVATELE_HODNOTY_TABULKA,
-            AkcePrihlaseniLogSqlStruktura::AKCE_PRIHLASENI_LOG_TABULKA,
-        ]);
+        $dataSourcesCollector?->addDataSources(self::nactiPrihlaseniNaAktivityRawDataSources());
 
         return dbFetchPairs(<<<SQL
             SELECT akce_seznam.id_akce,
@@ -2258,6 +2282,16 @@ SQL
         );
     }
 
+    private static function nactiPrihlaseniNaAktivityRawDataSources(): array
+    {
+        return [
+            Sql::AKCE_SEZNAM_TABULKA,
+            AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA,
+            UzivateleHodnotySqlStruktura::UZIVATELE_HODNOTY_TABULKA,
+            AkcePrihlaseniLogSqlStruktura::AKCE_PRIHLASENI_LOG_TABULKA,
+        ];
+    }
+
     private function nactiPrihlaseniRaw(?DataSourcesCollector $dataSourcesCollector = null): string
     {
         return (string)(
@@ -2267,6 +2301,11 @@ SQL
             )[$this->id()]
             ?? ''
         );
+    }
+
+    private static function nactiPrihlaseniRawDataSources(): array
+    {
+        return self::nactiPrihlaseniNaAktivityRawDataSources();
     }
 
     /** Počet přihlášených */
@@ -2978,6 +3017,7 @@ SQL,
 
     public function typId(): int
     {
+        // todo: tohle je trochu naruby. Víme typId bez vytvoření dotazu do db, takže bychom neměli potřebovat celý typ abychom zjistili jeho id které dávno známe
         return $this->typ()->id();
     }
 
@@ -3514,8 +3554,8 @@ SQL,
      * @return int
      */
     public static function upozorniNaNeuzavreneKonciciOdDo(
-        \DateTimeInterface $konciciNejmeneDo,
-        \DateTimeInterface $konciciNejviceDo,
+        \DateTimeInterface  $konciciNejmeneDo,
+        \DateTimeInterface  $konciciNejviceDo,
         ?SystemoveNastaveni $systemoveNastaveni = null,
     ): int {
         $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
