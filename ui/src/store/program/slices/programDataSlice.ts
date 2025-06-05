@@ -1,12 +1,12 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { ApiAktivita, ApiAktivitaAkce, ApiŠtítek, fetchAktivitaAkce, fetchRocnikAktivity, fetchŠtítky, Obsazenost } from "../../../api/program";
+import { ApiAktivitaAkce, ApiAktivitaNepřihlášen, ApiAktivitaUživatel, ApiŠtítek, fetchAktivitaAkce, fetchRocnikAktivity, fetchŠtítky, Obsazenost } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { nastavChyba } from "./všeobecnéSlice";
 
 export type DataApiStav = "načítání" | "dotaženo" | "chyba";
 
 // todo: tyhle transofrmace toho co jde z api by se měli asi dít dřív
-export type Aktivita = Omit<ApiAktivita, "popisId"> & {
+export type Aktivita = Omit<ApiAktivitaNepřihlášen & ApiAktivitaUživatel, "popisId"> & {
   popis: string;
   obsazenost: Obsazenost;
 };
@@ -68,11 +68,12 @@ export const načtiRok = async (ročník: number) => {
         aktivityPodleId: {},
       };
       const ročníkData = s.data.podleRočníku[ročník];
-      for (const aktivita of rocnikData.aktivityNeprihlasen.data) {
+      for (const aktivita of rocnikData.aktivityNeprihlasen.data.concat(rocnikData.aktivitySkryte.data)) {
         const popis = rocnikData.popisy.data.find(x=>x.id === aktivita.popisId)?.popis ?? "";
+        const aktivitaUživatel = rocnikData.aktivityUživatel.data.find(x=>x.id === aktivita.id)!;
         const obsazenost = rocnikData.obsazenosti.data.find(x=>x.idAktivity === aktivita.id)?.obsazenost
           ?? vytvořObsazenostPrázdnéSUpozorněním(aktivita.id);
-        ročníkData.aktivityPodleId[aktivita.id] = {...aktivita, popis, obsazenost};
+        ročníkData.aktivityPodleId[aktivita.id] = {...aktivita, ...aktivitaUživatel, popis, obsazenost};
       }
     }, undefined, "dotažení aktivit");
   } catch(e) {
