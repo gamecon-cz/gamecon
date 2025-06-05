@@ -2543,7 +2543,7 @@ SQL;
      */
     protected static function nactiUzivatele(string $where, ?DataSourcesCollector $dataSourcesCollector = null): array
     {
-        $query     = self::dotaz($where, dataSourcesCollector: $dataSourcesCollector);
+        $query     = self::dotaz(where: $where, dataSourcesCollector: $dataSourcesCollector);
         $o         = dbQuery($query);
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
