@@ -67,9 +67,8 @@ $vytvorCachovanyDotaz = function (
     string $cacheKey,
     DataSourcesCollector $dataSourcesCollector,
     callable $dotahniData,
-    // todo: tady se předá hash z requestu
     string $requestHash = "",
-) use ($tableDataDependentCache, $jeZapnuteCachovaniApiOdpovedi) {
+) use (&$tableDataDependentCache, &$jeZapnuteCachovaniApiOdpovedi) {
     $cachedItem = $tableDataDependentCache->getItem($cacheKey);
     $cached = true;
 
@@ -121,7 +120,7 @@ $aktivity = Aktivita::zFiltru(
 
 $skryteAktivityViditelnePro = [null];
 
-$dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollector) use ($aktivity, $skryteAktivityViditelnePro) {
+$dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollector) use (&$aktivity, &$skryteAktivityViditelnePro) {
     $aktivityNeprihlasen = [];
     foreach ($aktivity as $aktivita) {
         $zacatekAktivity = $aktivita->zacatek();
@@ -188,7 +187,7 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
     return $aktivityNeprihlasen;
 };
 
-$dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector) use ($aktivity, $u) {
+$dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector) use (&$aktivity, &$u) {
     $aktivityUzivatel = [];
     foreach ($aktivity as $aktivita) {
         $zacatekAktivity = $aktivita->zacatek();
@@ -239,7 +238,7 @@ $dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector)
     return $aktivityUzivatel;
 };
 
-$dotahniobsazenosti = function (DataSourcesCollector $dataSourcesCollector) use ($aktivity) {
+$dotahniobsazenosti = function (DataSourcesCollector $dataSourcesCollector) use (&$aktivity) {
     $aktivityObsazenost = [];
     foreach ($aktivity as $aktivita) {
     $aktivityObsazenost[] = [
@@ -252,7 +251,7 @@ $dotahniobsazenosti = function (DataSourcesCollector $dataSourcesCollector) use 
 
 
 // tady je potřeba cachovat trochu jinak. MD už jsou samy o sobě cachované a z hashe víme jestli se nezměnili. Proto stačí spojit dohromady všechny hashe a udělat si hash z toho a víme jestli nedošlo ke změně popisu nějaké aktivity
-$dotahniPopisyCachovane  = function () use ($aktivity, $body) {
+$dotahniPopisyCachovane  = function () use (&$aktivity, &$body) {
     // todo:
     $cached = true;
     $puvodniHash = $body?->hashe?->popisy ?? null;
