@@ -7,7 +7,7 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\StavPredmetu;
 
 /**
- * nazev: Shop
+ * nazev: Shop 🛒
  * pravo: 108
  * submenu_group: 5
  */
