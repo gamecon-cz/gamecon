@@ -57,9 +57,7 @@ $rok = array_key_exists('rok', $_GET)
     ? (int)$_GET['rok']
     : $systemoveNastaveni->rocnik();
 
-$tableDataDependentCache = $systemoveNastaveni->tableDataDependentCache();
-// has to fetch all data versions before data itself, because after that we could fetch invalidly new, by some other process changed version and that would cache old data under new version
-$tableDataDependentCache->preloadTableDataVersions();
+$jeZapnuteCachovaniApiOdpovedi = true;
 
 $tableDataDependentCache = $systemoveNastaveni->tableDataDependentCache();
 // has to fetch all data versions before data itself, because after that we could fetch invalidly new, by some other process changed version and that would cache old data under new version
@@ -197,7 +195,6 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
         }
         $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
         $aktivitaRes['zamcenaDo']       = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
-        $aktivitaRes['obsazenost']      = $aktivita->obsazenostObj($dataSourcesCollector);
         $aktivitaRes['tymova']          = $aktivita->tymova();
 
         $dite = $aktivita->detiIds();
@@ -211,6 +208,19 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
     return $aktivityNeprihlasen;
 };
 
+$dotahniobsazenosti = function (DataSourcesCollector $dataSourcesCollector) use ($aktivity) {
+    $aktivityObsazenost = [];
+    foreach ($aktivity as $aktivita) {
+    $aktivityObsazenost[] = [
+        'idAktivity' => $aktivita->id(),
+        'obsazenost' => $aktivita->obsazenostObj($dataSourcesCollector),
+    ];
+    }
+    return $aktivityObsazenost;
+};
+
+
+// tady je potřeba cachovat trochu jinak. MD už jsou samy o sobě cachované a z hashe víme jestli se nezměnili. Proto stačí spojit dohromady všechny hashe a udělat si hash z toho a víme jestli nedošlo ke změně popisu nějaké aktivity
 $dotahniPopisyCachovane  = function () use ($aktivity, $body) {
     // todo:
     $cached = true;
@@ -245,10 +255,16 @@ $dotahniPopisyCachovane  = function () use ($aktivity, $body) {
 
 $response = [
     "aktivityNeprihlasen" => $vytvorCachovanyDotaz(
-        ('aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym')),
+        ('aktivity_program-rocnik_' . "aktivityNeprihlasen" . "_" . $rok . '-' . ($u?->id() ?? 'anonym')),
         $dataSourcesCollector->copy(),
         $dotahniAktivityNeprihlasen,
         $body?->hashe?->aktivityNeprihlasen ?? "",
+    ),
+    "obsazenosti" => $vytvorCachovanyDotaz(
+        ('aktivity_program-rocnik_' . "obsazenosti" . "_" . $rok . '-' . ($u?->id() ?? 'anonym')),
+        $dataSourcesCollector->copy(),
+        $dotahniobsazenosti,
+        $body?->hashe?->obsazenosti ?? "",
     ),
     "popisy" => $dotahniPopisyCachovane(),
 ];
