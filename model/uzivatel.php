@@ -118,13 +118,13 @@ SQL
         return static::zIds($ids);
     }
 
-    protected ?array $aktivityIdsJakoSledujici = null; // pole s klíči id aktvit, kde je jako sledující
-    protected ?array $prihlaseneAktivityIds    = null; // pole s klíči id aktvit, kde je jako sledující
-    protected        $klic                     = '';
-    protected        $idsRoli;         // pole s klíči id židlí uživatele
-    protected ?array $medailonek               = null;
-    protected        $finance;
-    protected        $shop;
+    protected ?array                    $aktivityIdsJakoSledujici = null; // pole s klíči id aktvit, kde je jako sledující
+    protected ?array                    $prihlaseneAktivityIds    = null; // pole s klíči id aktvit, kde je jako sledující
+    protected                           $klic                     = '';
+    protected                           $idsRoli;         // pole s klíči id židlí uživatele
+    protected Medailonek | false | null $medailonek               = null;
+    protected                           $finance;
+    protected                           $shop;
 
     private                    $kdySeRegistrovalNaLetosniGc;
     private SystemoveNastaveni $systemoveNastaveni;
@@ -1088,13 +1088,14 @@ SQL,
         return $this->idsRoli;
     }
 
-    protected function medailonek()
+    protected function medailonek(): ?Medailonek
     {
         if (!isset($this->medailonek)) {
-            $this->medailonek[] = Medailonek::zId($this->id()); // pole kvůli korektní detekci null
+            $this->medailonek = Medailonek::zId($this->id()) ?? false;
         }
 
-        return $this->medailonek[0];
+        return $this->medailonek
+            ?: null;
     }
 
     /**

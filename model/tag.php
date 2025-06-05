@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\KategorieTagu;
+
 /**
  * Tag aktivity
  * @method static Tag|null zId($id, bool $zCache = false)
@@ -39,8 +41,8 @@ class Tag extends DbObject
         return (int)$this->r['id_kategorie_tagu'];
     }
 
-    public function katregorieTagu(): \Gamecon\KategorieTagu
+    public function katregorieTagu(): KategorieTagu
     {
-        return \Gamecon\KategorieTagu::zid($this->idKategorieTagu());
+        return KategorieTagu::zId($this->idKategorieTagu());
     }
 }
