@@ -88,7 +88,7 @@ $vytvorCachovanyDotaz = function (
                 "data" => $dataNove,
                 "hash" => "",
                 "cached" => $cached,
-                // "tabulky" => $dataSourcesCollector->getDataSources(),
+                "tabulky" => $dataSourcesCollector->getDataSources(),
             ];
         }
     }
@@ -96,7 +96,7 @@ $vytvorCachovanyDotaz = function (
     $vysledek = [
         "hash" => $cachedItem->hash,
         "cached" => $cached,
-        // "tabulky" => $dataSourcesCollector->getDataSources(),
+        "tabulky" => $dataSourcesCollector->getDataSources(),
     ];
 
     if ($requestHash === "" || $requestHash !== $cachedItem->hash) {
