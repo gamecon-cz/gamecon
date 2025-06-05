@@ -37,7 +37,7 @@ export const inicializujProgramStore = () => {
 
   useProgramStore.subscribe(s => s.data, (data) => {
     useProgramStore.setState(s => {
-      s.urlStavMožnosti.linie = distinct(Object.values(data.aktivityPodleId).map(x => x.linie))
+      s.urlStavMožnosti.linie = distinct(Object.values(s.data.podleRočníku).flatMap(x=>Object.values(x.aktivityPodleId)).map(x => x.linie))
         .sort((a, b) => indexŘazeníLinie(a) - indexŘazeníLinie(b));
     });
   });
@@ -48,6 +48,8 @@ export const inicializujProgramStore = () => {
       s.přihlášenýUživatel.data = přihlášenýUživatelPřednačteno;
     });
   }
+
+  // todo: hodně zakomentovaného kódu asi ke smazání
 
   //Tohle je cachování které bude vypnuté než se navrhne strategie jak to cachovat
   // const dataProgramString = localStorage.getItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM);
@@ -66,22 +68,22 @@ export const inicializujProgramStore = () => {
   // });
 
   // tohle je prozatimní cachování štítků
-  const dataProgramString = localStorage.getItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM);
-  if (dataProgramString) {
-    try {
-      useProgramStore.setState(s => {
-        // s.data = JSON.parse(dataProgramString);
-        s.data.štítky = (JSON.parse(dataProgramString) as typeof s.data).štítky;
-      }, undefined, "načtení uložených dat POUZE ŠTÍTKY");
-    } catch (e) {
-      console.warn("nepodařilo se načíst ŠTÍTKY z local storage");
-    }
-  }
+  // const dataProgramString = localStorage.getItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM);
+  // if (dataProgramString) {
+  //   try {
+  //     useProgramStore.setState(s => {
+  //       // s.data = JSON.parse(dataProgramString);
+  //       s.data.štítky = (JSON.parse(dataProgramString) as typeof s.data).štítky;
+  //     }, undefined, "načtení uložených dat POUZE ŠTÍTKY");
+  //   } catch (e) {
+  //     console.warn("nepodařilo se načíst ŠTÍTKY z local storage");
+  //   }
+  // }
 
-  useProgramStore.subscribe(s => s.data, (data): void => {
-    localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM,
-      JSON.stringify(({ aktivityPodleId: {}, štítky: data.štítky } as typeof data)));
-  });
+  // useProgramStore.subscribe(s => s.data, (data): void => {
+  //   localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM,
+  //     JSON.stringify(({ aktivityPodleId: {}, štítky: data.štítky } as typeof data)));
+  // });
 
   void načtiŠtítky();
 
