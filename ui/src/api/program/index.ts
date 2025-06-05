@@ -62,7 +62,6 @@ export type ApiAktivitaNepřihlášen = {
   id: number,
   nazev: string,
   kratkyPopis: string,
-  // todo: popis posílat zvlášť ()
   popisId: string,
   obrazek: string,
   vypraveci: string[],
@@ -121,6 +120,11 @@ type ApiAktivityProgramResponse<kompletni = true> = {
   popisy: ApiCachovanaOdpověď<ApiPopis[], kompletni>;
 };
 
+type ApiAktivityProgramResponseHashe = {
+  aktivityNeprihlasen: string,
+  popisy: string,
+}
+
 export type ApiŠtítek = {
   id: number,
   nazev: string,
@@ -154,23 +158,16 @@ const zapišCache = (ročník: number, data: ApiAktivityProgramResponse): void =
   }
 }
 
-const vytvořNovéDataZCacheADat = <T,>(cache: ApiCachovanaOdpověď<T, false> | undefined, data: ApiCachovanaOdpověď<T, false>): ApiCachovanaOdpověď<T, true> =>{
-  if (!cache) return data as any;
-  if (
-    cache?.hash !== ""
-    && cache?.hash === data?.hash
-  ) {
-    console.log(`využívám cache ${cache.hash}`)
-    return cache as any;
-  }
-  return data as any;
+const vytvořNovéDataZCacheADat = <T,>(cache: ApiCachovanaOdpověď<T, false> | undefined, newData: ApiCachovanaOdpověď<T, false>): ApiCachovanaOdpověď<T, true> =>{
+  if (!cache || newData.data) return newData as any;
+  console.log(`využívám cache ${cache.hash}`)
+  return cache as any;
 }
 
 /**
  * spojí cachované data s dotaženými a uloží novou cache
  */
-const aplikujCacheNaOdpověď = (ročník: number, data: ApiAktivityProgramResponse<false>) => {
-  const cacheData = vraťDataZCache(ročník);
+const aplikujCacheNaOdpověď = (cacheData :ApiAktivityProgramResponse<true> | undefined, ročník: number, data: ApiAktivityProgramResponse<false>) => {
 
   const spojenéData: ApiAktivityProgramResponse = {
     aktivityNeprihlasen: vytvořNovéDataZCacheADat(cacheData?.aktivityNeprihlasen, data?.aktivityNeprihlasen),
@@ -181,13 +178,27 @@ const aplikujCacheNaOdpověď = (ročník: number, data: ApiAktivityProgramRespo
   return spojenéData;
 };
 
+const vraťAktuálníHasheZCache = (cacheData: ApiAktivityProgramResponse<true> | undefined): ApiAktivityProgramResponseHashe | undefined =>{
+  if (!cacheData) return undefined;
+  return {
+    aktivityNeprihlasen: cacheData.aktivityNeprihlasen.hash,
+    popisy: cacheData.popisy.hash,
+  };
+}
+
 export const fetchRocnikAktivity = async (ročník: number): Promise<ApiAktivityProgramResponse> => {
+  const cacheData = vraťDataZCache(ročník);
+  const hashe = vraťAktuálníHasheZCache(cacheData);
 
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityProgram?${ročník ? `rok=${ročník}` : ""}`;
-  const odpověď: ApiAktivityProgramResponse<false> = await fetch(url, { method: "POST" })
+  const body = JSON.stringify({ hashe });
+  const odpověď: ApiAktivityProgramResponse<false> = await fetch(url, { method: "POST", body,
+    headers: {
+    'Content-Type': 'application/json'
+  }, })
   .then(async x => x.json())
   ;
-  const kompletníOdpověď = aplikujCacheNaOdpověď(ročník, odpověď);
+  const kompletníOdpověď = aplikujCacheNaOdpověď(cacheData, ročník, odpověď);
   return kompletníOdpověď;
 };
 
