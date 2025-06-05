@@ -1715,7 +1715,7 @@ SQL,
             return;
         }
         if (!isset($this->organizatori)) {
-            $this->organizatori = Uzivatel::zIds($this->organizatoriRaw(), dataSourcesCollector: $dataSourcesCollector);
+            $this->organizatori = Uzivatel::zIds(ids: $this->organizatoriRaw(), dataSourcesCollector: $dataSourcesCollector);
         }
 
         return $this->organizatori;
