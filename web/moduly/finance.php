@@ -73,17 +73,10 @@ if (!$zaplaceno) {
         <?= $veci ?>
     </div>
 
-    <?php if ($u && $u->jeOrganizator()) { ?>
+    <?php if ($slevyA || $slevyV) { ?>
         <div style="float:left">
-            <h2>Slevy</h2>
-            <?php if ($slevyA) { ?>
-                <strong>Použité slevy na aktivity</strong>
-                <ul><?= $slevyA ?></ul>
-            <?php } ?>
-            <?php if ($slevyV) { ?>
-                <strong>Další bonusy</strong> (pokud si je objednáš)
-                <ul><?= $slevyV ?></ul>
-            <?php } ?>
+            <h2>Bonusy</h2>
+            <ul><?= trim($slevyA . $slevyV) ?></ul>
         </div>
     <?php } ?>
 
