@@ -602,9 +602,13 @@ SQL,
     /** Je uživatel přihlášen na aktuální GC? */
     public function gcPrihlasen(?DataSourcesCollector $dataSourcesCollector = null): bool
     {
-        $dataSourcesCollector?->addDataSource(Sql::UZIVATELE_HODNOTY_TABULKA);
+        self::gcPrihlasenDSC($dataSourcesCollector);
 
         return $this->maRoli(Role::PRIHLASEN_NA_LETOSNI_GC);
+    }
+
+    public static function gcPrihlasenDSC(?DataSourcesCollector $dataSourcesCollector) {
+        $dataSourcesCollector?->addDataSource(Sql::UZIVATELE_HODNOTY_TABULKA);
     }
 
     /** Příhlásí uživatele na GC */
