@@ -153,7 +153,7 @@ foreach ($aktivity as $aktivita) {
         // TODO: argumenty pro admin
         $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
     }
-    $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
+    $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna(dataSourcesCollector: $dataSourcesCollector);
     $aktivitaRes['zamcenaDo']       = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
     $aktivitaRes['obsazenost']      = $aktivita->obsazenostObj($dataSourcesCollector);
     $aktivitaRes['tymova']          = $aktivita->tymova();

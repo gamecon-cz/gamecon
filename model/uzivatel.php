@@ -827,13 +827,6 @@ SQL,
         return in_array($pravo, $this->prava($dataSourcesCollector));
     }
 
-    public static function maPravoDSC(
-        ?DataSourcesCollector $dataSourcesCollector,
-    ): void {
-        self::pravaDSC($dataSourcesCollector);
-    }
-
-
     public function maPravoNaPrirazeniRole(int $idRole): bool
     {
         $role = Role::zId($idRole, true);
@@ -1121,7 +1114,7 @@ SQL,
      */
     public function nactiPrava(?DataSourcesCollector $dataSourcesCollector = null): void
     {
-        self::nactiPravaDSC($dataSourcesCollector);
+        $dataSourcesCollector?->addDataSources(self::pravaDataSources());
 
         if (isset($this->r['prava'])) {
             return;
@@ -1142,17 +1135,9 @@ SQL,
         $this->r['prava'] = $prava;
     }
 
-    public static function nactiPravaDSC(?DataSourcesCollector $dataSourcesCollector): void
-    {
-        $dataSourcesCollector?->addDataSources([
-            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
-            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
-        ]);
-    }
-
     public function prava(?DataSourcesCollector $dataSourcesCollector = null): array
     {
-        self::pravaDSC($dataSourcesCollector);
+        $dataSourcesCollector?->addDataSources(self::pravaDataSources());
 
         if (!isset($this->r['prava'])) {
             $this->nactiPrava($dataSourcesCollector);
@@ -1163,8 +1148,12 @@ SQL,
         return $this->r['prava'];
     }
 
-    public static function pravaDSC(?DataSourcesCollector $dataSourcesCollector): void {
-        self::nactiPravaDSC($dataSourcesCollector);
+    public static function pravaDataSources(): array
+    {
+        return [
+            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
+            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
+        ];
     }
 
     public function potvrzeniZakonnehoZastupceOd(): ?DateTimeImmutable
@@ -2226,7 +2215,7 @@ SQL,
         bool $zCache = false,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
-        self::zIdsDSC($dataSourcesCollector);
+        $dataSourcesCollector?->addDataSources(self::zIdsDataSources());
 
         if (empty($ids)) {
             return [];
@@ -2267,10 +2256,9 @@ SQL,
         throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
     }
 
-    public static function zIdsDSC(
-        ?DataSourcesCollector $dataSourcesCollector = null,
-    ): void {
-        self::nactiUzivateleDSC($dataSourcesCollector);
+    public static function zIdsDataSources(): array
+    {
+        return self::nactiUzivateleDataSources();
     }
 
     public static function prednactiUzivateleNaAktivitach(int $rocnik)
@@ -2491,9 +2479,11 @@ SQL,
         return parent::zWhere($where, $params, $extra);
     }
 
-    protected static function dotaz($where, ?DataSourcesCollector $dataSourcesCollector = null): string
-    {
-        self::dotazDSC($dataSourcesCollector);
+    protected static function dotaz(
+        $where,
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): string {
+        $dataSourcesCollector?->addDataSources(self::dotazDataSources());
 
         return <<<SQL
 SELECT
@@ -2509,11 +2499,14 @@ GROUP BY u.id_uzivatele
 SQL;
     }
 
-    protected static function dotazDSC(?DataSourcesCollector $dataSourcesCollector = null): void {
-        $dataSourcesCollector?->addDataSource("uzivatele_url");
-        $dataSourcesCollector?->addDataSource("uzivatele_hodnoty");
-        $dataSourcesCollector?->addDataSource("platne_role_uzivatelu");
-        $dataSourcesCollector?->addDataSource("prava_role");
+    protected static function dotazDataSources(): array
+    {
+        return [
+            Sql::UZIVATELE_HODNOTY_TABULKA,
+            PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
+            PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
+            'uzivatele_url',
+        ];
     }
 
     /** Vrátí pole uživatelů sedících na roli s daným ID */
@@ -2541,9 +2534,11 @@ SQL;
      * @param string $where
      * @return Uzivatel[]
      */
-    protected static function nactiUzivatele(string $where, ?DataSourcesCollector $dataSourcesCollector = null): array
-    {
-        $query     = self::dotaz($where, dataSourcesCollector: $dataSourcesCollector);
+    protected static function nactiUzivatele(
+        string                $where,
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): array {
+        $query     = self::dotaz(where: $where, dataSourcesCollector: $dataSourcesCollector);
         $o         = dbQuery($query);
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
@@ -2555,10 +2550,10 @@ SQL;
         return $uzivatele;
     }
 
-    protected static function nactiUzivateleDSC(?DataSourcesCollector $dataSourcesCollector): void {
-        self::dotazDSC($dataSourcesCollector);
+    protected static function nactiUzivateleDataSources(): array
+    {
+        return self::dotazDataSources();
     }
-
 
     public function shop(): Shop
     {

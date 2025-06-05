@@ -441,10 +441,10 @@ SQL,
         return $this->soucinitelCenyAktivit($dataSourcesCollector); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
     }
 
-    public static function slevaAktivityDSC(?DataSourcesCollector $dataSourcesCollector): void {
-        self::soucinitelCenyAktivitDSC($dataSourcesCollector);
+    public static function slevaAktivitDataSources(): array
+    {
+        return \Uzivatel::pravaDataSources();
     }
-
 
     public function slevaZaAktivityVProcentech(): float
     {
@@ -548,17 +548,17 @@ SQL,
     private function soucinitelCenyAktivit(
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
-        self::soucinitelCenyAktivitDSC($dataSourcesCollector);
+        $dataSourcesCollector?->addDataSources(self::slevaAktivitDataSources());
 
         if ($this->soucinitelCenyAKtivit === null) {
             // pomocné proměnné
             $sleva = 0; // v procentech
             // výpočet pravidel
             if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA, $dataSourcesCollector)) {
-                $sleva += self::PLNA_SLEVA_PROCENT;
+                $sleva                   += self::PLNA_SLEVA_PROCENT;
                 $this->slevyNaAktivity[] = 'aktivity zdarma';
             } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY, $dataSourcesCollector)) {
-                $sleva += self::CASTECNA_SLEVA_PROCENT;
+                $sleva                   += self::CASTECNA_SLEVA_PROCENT;
                 $this->slevyNaAktivity[] = 'aktivity se slevou ' . $sleva . ' %';
             }
             if ($sleva > self::MAX_SLEVA_AKTIVIT_PROCENT) {
@@ -571,12 +571,6 @@ SQL,
         }
 
         return $this->soucinitelCenyAKtivit;
-    }
-
-    private static function soucinitelCenyAktivitDSC(
-        ?DataSourcesCollector $dataSourcesCollector
-    ): void {
-        \Uzivatel::maPravoDSC($dataSourcesCollector);
     }
 
     public function cenaVstupne(): float
@@ -950,7 +944,7 @@ SQL;
     private function aplikujBonusZaVedeniAktivit(float $cena): float
     {
         $zbyvajiciBonusZaVedeniAktivit = $this->bonusZaVedeniAktivit();
-        $zbyvajiciCena          = $cena;
+        $zbyvajiciCena                 = $cena;
         ['sleva' => $nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu(
             $zbyvajiciCena,
             $zbyvajiciBonusZaVedeniAktivit,
