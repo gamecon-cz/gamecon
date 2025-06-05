@@ -144,7 +144,7 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
             fn(
                 Uzivatel $organizator,
             ) => $organizator->jmenoNick(),
-            $aktivita->organizatori(dataSourcesCollector: $dataSourcesCollector),
+            $aktivita->organizatori(null, $dataSourcesCollector),
         );
 
         $stitkyId = $aktivita->tagyId();
