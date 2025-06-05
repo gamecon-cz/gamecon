@@ -1,35 +1,38 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Aktivita\Aktivita;
 
-class ImportValuesDescriber
+readonly class ImportValuesDescriber
 {
-    /**
-     * @var string
-     */
-    private $editActivityUrlSkeleton;
-
-    public function __construct(string $editActivityUrlSkeleton) {
-        $this->editActivityUrlSkeleton = $editActivityUrlSkeleton;
+    public function __construct(private string $editActivityUrlSkeleton)
+    {
     }
 
-    public function describeActivityById(int $activityId): string {
+    public function describeActivityById(int $activityId): string
+    {
         $activity = ImportModelsFetcher::fetchActivity($activityId);
+
         return $this->describeActivity($activity);
     }
 
-    public function describeActivity(Aktivita $activity): string {
+    public function describeActivity(Aktivita $activity): string
+    {
         return $this->getLinkToActivity($activity);
     }
 
-    private function getLinkToActivity(Aktivita $activity): string {
+    private function getLinkToActivity(Aktivita $activity): string
+    {
         return $this->createLinkToActivity($activity->id(), $activity->nazev());
     }
 
-    public function describeActivityByInputValues(array $activityValues, ?Aktivita $originalActivity): string {
+    public function describeActivityByInputValues(
+        array     $activityValues,
+        ?Aktivita $originalActivity,
+    ): string {
         return $this->describeActivityByValues(
             empty($activityValues[ExportAktivitSloupce::ID_AKTIVITY])
                 ? null
@@ -37,21 +40,30 @@ class ImportValuesDescriber
             $activityValues[ExportAktivitSloupce::NAZEV] ?? null,
             $activityValues[ExportAktivitSloupce::URL] ?? null,
             $activityValues[ExportAktivitSloupce::KRATKA_ANOTACE] ?? null,
-            $originalActivity
+            $originalActivity,
         );
     }
 
-    public function describeActivityBySqlMappedValues(array $sqlMappedValues, ?Aktivita $originalActivity): string {
+    public function describeActivityBySqlMappedValues(
+        array     $sqlMappedValues,
+        ?Aktivita $originalActivity,
+    ): string {
         return $this->describeActivityByValues(
             $sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE] ?? null,
             $sqlMappedValues[ActivitiesImportSqlColumn::NAZEV_AKCE] ?? null,
             $sqlMappedValues[ActivitiesImportSqlColumn::URL_AKCE] ?? null,
             $sqlMappedValues[ActivitiesImportSqlColumn::POPIS_KRATKY] ?? null,
-            $originalActivity
+            $originalActivity,
         );
     }
 
-    private function describeActivityByValues(?int $id, ?string $nazev, ?string $url, ?string $kratkaAnotace, ?Aktivita $originalActivity): string {
+    private function describeActivityByValues(
+        ?int      $id,
+        ?string   $nazev,
+        ?string   $url,
+        ?string   $kratkaAnotace,
+        ?Aktivita $originalActivity,
+    ): string {
         if (!$id && $originalActivity) {
             $id = $originalActivity->id();
         }
@@ -82,28 +94,38 @@ class ImportValuesDescriber
         if ($kratkaAnotace) {
             return "(bez názvu) '$kratkaAnotace'";
         }
+
         return '(bez názvu)';
     }
 
-    private function createLinkToActivity(int $id, string $name): string {
+    private function createLinkToActivity(
+        int    $id,
+        string $name,
+    ): string {
         $nameWithId = sprintf("'%s' (ID %d)", $name, $id);
+
         return <<<HTML
 <a target="_blank" href="{$this->editActivityUrlSkeleton}{$id}">{$nameWithId}</a>
 HTML
             ;
     }
 
-    public function describeLocationById(int $locationId): string {
+    public function describeLocationById(int $locationId): string
+    {
         $location = ImportModelsFetcher::fetchLocation($locationId);
+
         return sprintf('%s (%s)', $location->nazev(), $location->id());
     }
 
-    public function describeUserById(int $userId): string {
+    public function describeUserById(int $userId): string
+    {
         $user = ImportModelsFetcher::fetchUser($userId);
+
         return $this->describeUser($user);
     }
 
-    public function describeUser(\Uzivatel $user): string {
+    public function describeUser(\Uzivatel $user): string
+    {
         return sprintf('%s (%s)', $user->jmenoNick(), $user->id());
     }
 }
