@@ -1106,6 +1106,12 @@ SQL;
         $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb(), self::PLATBA);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
+        if ($this->bonusZaVedeniAktivit() > 0) {
+            $this->logb('Bonus za aktivity', $this->bonusZaVedeniAktivit(), self::ORGSLEVA);
+        }
+        if ($this->slevaObecna() > 0) {
+            $this->logb('Obecné slevy', $this->slevaObecna(), self::PRIPSANE_SLEVY);
+        }
 
         $this->zapocteno[__FUNCTION__] = true;
     }
