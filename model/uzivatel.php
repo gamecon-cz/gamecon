@@ -969,6 +969,11 @@ SQL,
         return $this->maRoli(Role::CFO);
     }
 
+    public function jeCestnyOrg(): bool
+    {
+        return $this->maRoli(Role::CESTNY_ORGANIZATOR);
+    }
+
     public function jeSuperAdmin(): bool
     {
         if (!defined('SUPERADMINI') || !is_array(SUPERADMINI)) {
@@ -1910,6 +1915,9 @@ SQL,
         }
         if ($this->jeVypravecskaSkupina()) {
             $status[] = '<span style="color:rgba(0,0,255,0.57)">Vypravěčská skupina</span>';
+        }
+        if ($this->jeCestnyOrg()) {
+            $status[] = '<span style="color:#a80f84">Čestný organizátor' . $ka . '</span>';
         }
         if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
