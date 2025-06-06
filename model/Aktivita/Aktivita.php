@@ -3867,7 +3867,7 @@ SQL,
         $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 
         return self::zWhere(
-            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
+            systemoveNastaveni: $systemoveNastaveni,
             dalsiPouziteSqlTabulky: [AkceOrganizatoriSqlStruktura::AKCE_ORGANIZATORI_TABULKA],
             where1: "WHERE EXISTS (SELECT * FROM akce_organizatori ao WHERE ao.id_akce = a.id_akce AND ao.id_uzivatele = {$u->id()}) AND a.rok = {$systemoveNastaveni->rocnik()}",
         );
