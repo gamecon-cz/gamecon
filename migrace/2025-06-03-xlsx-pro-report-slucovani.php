@@ -4,6 +4,6 @@
 $this->q(<<<SQL
 UPDATE reporty
 SET format_xlsx = 1
-WHERE id = 9;
+WHERE skript like "duplicity";
 SQL,
 );
