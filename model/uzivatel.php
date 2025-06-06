@@ -26,15 +26,17 @@ use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
+ * @method array<Uzivatel> zIds(array | string $ids, bool $zCache = false)
  * @todo načítání separátního (nepřihlášeného uživatele) např. pro účely schi-
  *   zofrenie v adminovi (nehrozí špatný přístup při nadměrném volání např. při
  *   práci s více uživateli někde jinde?)
  */
 class Uzivatel extends DbObject
 {
-    protected static     $tabulka = Sql::UZIVATELE_HODNOTY_TABULKA;
-    protected static     $pk      = Sql::ID_UZIVATELE;
-    private static array $objekty = [];
+    protected static         $tabulka      = Sql::UZIVATELE_HODNOTY_TABULKA;
+    protected static ?string $aliasTabulky = 'u';
+    protected static         $pk           = Sql::ID_UZIVATELE;
+    private static array     $objekty      = [];
 
     public const POSAZEN = 'posazen';
     public const SESAZEN = 'sesazen';
@@ -134,7 +136,6 @@ SQL
         SystemoveNastaveni $systemoveNastaveni = null,
     ) {
         if (array_keys_exist(['id_uzivatele'], $uzivatel)) {
-            $this->r = $uzivatel;
             parent::__construct($uzivatel);
             $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::zGlobals();
         } else {
@@ -983,50 +984,45 @@ SQL,
      * @param DateTimeInterface $do
      * @param Aktivita|null $ignorovanaAktivita
      * @param bool $jenPritomen
-     * @return bool jestli se uživatel v daném čase neúčastní / neorganizuje
+     * @return Aktivita|null jestli se uživatel v daném čase neúčastní / neorganizuje
      *  žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
      */
-    public function maVolno(
+    public function maKoliziSJinouAktivitou(
         DateTimeInterface $od,
         DateTimeInterface $do,
         Aktivita          $ignorovanaAktivita = null,
         bool              $jenPritomen = false,
-    ) {
+    ): ?Aktivita {
         // právo na překrytí aktivit dává volno vždy automaticky
         // TODO zkontrolovat, jestli vlastníci práva dřív měli někdy paralelně i účast nebo jen organizovali a pokud jen organizovali, vyhodit test odsud a vložit do kontroly kdy se ukládá aktivita
         if ($this->maPravo(Pravo::PREKRYVANI_AKTIVIT)) {
-            return true;
+            return null;
         }
 
-        if ($this->maCasovouKolizi($this->zapsaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
-            return false;
+        if ($kolizniAktivita = $this->dejKolizniAktivitu($this->zapsaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
+            return $kolizniAktivita;
         }
 
-        if ($this->maCasovouKolizi($this->organizovaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
-            return false;
+        if ($kolizniAktivita = $this->dejKolizniAktivitu($this->organizovaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
+            return $kolizniAktivita;
         }
 
-        return true;
+        return null;
     }
 
     /**
      * @param Aktivita[] $aktivity
-     * @param DateTimeInterface $od
-     * @param DateTimeInterface $do
-     * @param Aktivita|null $ignorovanaAktivita
-     * @param bool $jenPritomen
-     * @return bool
      */
-    private function maCasovouKolizi(
+    private function dejKolizniAktivitu(
         array             $aktivity,
         DateTimeInterface $od,
         DateTimeInterface $do,
         ?Aktivita         $ignorovanaAktivita,
         bool              $jenPritomen,
-    ): bool {
+    ): ?Aktivita {
         $ignorovanaAktivitaId = $ignorovanaAktivita
             ? $ignorovanaAktivita->id()
-            : 0;
+            : false;
         foreach ($aktivity as $aktivita) {
             if ($ignorovanaAktivitaId === $aktivita->id()) {
                 continue;
@@ -1041,14 +1037,17 @@ SQL,
             }
             /* koliduje, pokud začíná před koncem jiné aktivity a končí po začátku jiné aktivity */
             if ($zacatek < $do && $konec > $od) {
-                return $jenPritomen
-                    ? $aktivita->dorazilJakoCokoliv($this)
-                    // někde už je v daný čas přítomen
-                    : true; // nekde už je na daný čas přihlášen
+                if ($jenPritomen) {
+                    return $aktivita->dorazilJakoCokoliv($this)
+                        ? $aktivita
+                        : null;
+                }
+
+                return $aktivita;
             }
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -2228,43 +2227,7 @@ SQL,
     ): array {
         self::zIdsDSC($dataSourcesCollector);
 
-        if (empty($ids)) {
-            return [];
-        }
-        if (is_string($ids) && preg_match('@[0-9]+(,[0-9]+)*@', $ids)) {
-            $ids = explode(',', $ids);
-        }
-        if (is_int($ids)) {
-            $ids = [$ids];
-        }
-        if (is_array($ids)) {
-            $ids                     = array_map('intval', $ids);
-            $chybejiciUzivateleIdcka = $zCache
-                ? array_diff($ids, array_keys(self::$objekty[static::class] ?? []))
-                : $ids;
-            $nacteniUzivatele        = [];
-            if ($chybejiciUzivateleIdcka) {
-                $nacteniUzivatele = self::nactiUzivatele(
-                    'WHERE u.id_uzivatele IN(' . dbQv($chybejiciUzivateleIdcka) . ')',
-                );
-            }
-            if (!$zCache) {
-                return $nacteniUzivatele;
-            }
-            foreach ($nacteniUzivatele as $nactenyUzivatel) {
-                self::$objekty[static::class][$nactenyUzivatel->id()] = $nactenyUzivatel;
-            }
-
-            $uzivatele = [];
-            foreach ($ids as $id) {
-                if (self::$objekty[static::class][$id] ?? false) {
-                    $uzivatele[$id] = self::$objekty[static::class][$id];
-                }
-            }
-
-            return $uzivatele;
-        }
-        throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
+        return parent::zIds($ids, $zCache);
     }
 
     public static function zIdsDSC(

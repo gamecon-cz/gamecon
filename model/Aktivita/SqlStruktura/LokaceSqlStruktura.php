@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita\SqlStruktura;
 
-class AkceLokaceSqlStruktura
+class LokaceSqlStruktura
 {
-    public const AKCE_LOKACE_TABULKA = 'akce_lokace';
+    public const LOKACE_TABULKA = 'lokace';
 
     public const ID_LOKACE = 'id_lokace';
-    public const ID_AKCE   = 'id_akce';
     public const NAZEV     = 'nazev';
     public const DVERE     = 'dvere';
     public const POZNAMKA  = 'poznamka';

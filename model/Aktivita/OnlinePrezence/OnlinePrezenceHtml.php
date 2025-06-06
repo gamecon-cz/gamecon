@@ -4,6 +4,7 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
+use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Info;
@@ -14,7 +15,7 @@ class OnlinePrezenceHtml
 {
     public static function nazevProAnchor(Aktivita $aktivita): string
     {
-        return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()]));
+        return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->popisLokaci()]));
     }
 
     private ?XTemplate                  $onlinePrezenceTemplate     = null;
