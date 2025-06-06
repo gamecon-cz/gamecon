@@ -53,14 +53,9 @@ if (get('key') !== CRON_KEY) {
 }
 
 $job = get('job');
-if ($job !== null) {
-    require __DIR__ . '/cron/_cron_job.php';
-
-    return;
-}
 
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
-$logfile = 'cron-' . date('Y-m') . '.log';
+$logfile = 'cron-' .($job ? "{$job}-" : '') . date('Y-m') . '.log';
 if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
     throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
 }
@@ -79,6 +74,12 @@ if (empty($_GET['echo'])) {
 ini_set('display_errors', true); // zobrazovat chyby obecně
 ini_set('error_reporting', E_ALL ^ E_STRICT); // vybrat typy chyb k zobrazení
 ini_set('html_errors', false); // chyby zobrazovat jako plaintext
+
+if ($job !== null) {
+    require __DIR__ . '/cron/_cron_job.php';
+
+    return;
+}
 
 /////////////////////////////////// cron kód ///////////////////////////////////
 
