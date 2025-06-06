@@ -260,7 +260,11 @@ SQL
     {
         dbQuery('UPDATE ' . Sql::AKCE_SEZNAM_TABULKA .
             ' SET ' . Sql::PROBEHLA_KOREKCE . ' = $0 ' .
-            ' WHERE ' . Sql::ID_AKCE . ' = ' . $this->id(),
+            ' WHERE ' . Sql::ID_AKCE . ' = ' . $this->id() .
+            ' OR (' . Sql::PATRI_POD . ' IS NOT NULL AND ' .
+            Sql::PATRI_POD . ' = (SELECT a.' . Sql::PATRI_POD .
+                                ' FROM ' . Sql::AKCE_SEZNAM_TABULKA . ' a' .
+                                ' WHERE a.' . Sql::ID_AKCE . ' = ' . $this->id() . '))',
             [$stav]);
         $this->a[Sql::PROBEHLA_KOREKCE] = $stav;
     }
