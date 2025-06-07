@@ -256,6 +256,19 @@ SQL
         return (bool)$this->a[Sql::PROBEHLA_KOREKCE];
     }
 
+    public function nastavKorekci(bool $stav)
+    {
+        dbQuery('UPDATE ' . Sql::AKCE_SEZNAM_TABULKA .
+            ' SET ' . Sql::PROBEHLA_KOREKCE . ' = $0 ' .
+            ' WHERE ' . Sql::ID_AKCE . ' = ' . $this->id() .
+            ' OR (' . Sql::PATRI_POD . ' IS NOT NULL AND ' .
+            Sql::PATRI_POD . ' = (SELECT a.' . Sql::PATRI_POD .
+                                ' FROM ' . Sql::AKCE_SEZNAM_TABULKA . ' a' .
+                                ' WHERE a.' . Sql::ID_AKCE . ' = ' . $this->id() . '))',
+            [$stav]);
+        $this->a[Sql::PROBEHLA_KOREKCE] = $stav;
+    }
+
     public function slevaNasobic(
         \Uzivatel             $u = null,
         ?DataSourcesCollector $dataSourcesCollector = null,
@@ -1003,8 +1016,9 @@ SQL
     ): Aktivita {
         $data[Sql::BEZ_SLEVY]    = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
         $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
-        if (empty($data[Sql::ID_AKCE]) /* nová aktivita */
-            || array_key_exists(Sql::PROBEHLA_KOREKCE, $data)/** editace korekce; reakce na změnu textu viz @see popis */
+        $nastavujeKorekci = empty($data[Sql::ID_AKCE]) /* nová aktivita */
+            || array_key_exists(Sql::PROBEHLA_KOREKCE, $data);
+        if (array_key_exists(Sql::PROBEHLA_KOREKCE, $data)  /** editace korekce; reakce na změnu textu viz @see popis */
         ) {
             $data[Sql::PROBEHLA_KOREKCE] = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "probehla_korekce"
         }
@@ -1098,6 +1112,16 @@ SQL
             if (empty($data[Sql::STAV])) {
                 $data[Sql::STAV] = StavAktivity::NOVA;
             }
+            if (!array_key_exists(Sql::PROBEHLA_KOREKCE, $data) && empty($data[Sql::ID_AKCE])) {
+                $data[Sql::PROBEHLA_KOREKCE] = dbAffectedOrNumRows(dbQuery(
+                    'SELECT 1
+                        FROM akce_seznam a
+                        WHERE a.nazev_akce = $0
+                        AND a.popis_kratky = $2
+                        AND a.probehla_korekce = 1
+                        AND exists(SELECT 1 FROM texty t JOIN akce_seznam aa ON aa.popis = t.id WHERE t.text = $1 AND aa.probehla_korekce = 1)
+                        LIMIT 1', [$data[Sql::NAZEV_AKCE], $data[Sql::POPIS], $data[Sql::POPIS_KRATKY]]));
+            }
             // vložení
             dbInsertUpdate('akce_seznam', $data);
             $data[Sql::ID_AKCE] = dbInsertId();
@@ -1111,7 +1135,7 @@ SQL
             $aktivita->obrazek(\Obrazek::zUrl($obrazekUrl));
         }
         $aktivita->organizatori($organizatoriIds);
-        $aktivita->popis($markdownPopis);
+        $aktivita->popis($markdownPopis, resetujKorekci: !$nastavujeKorekci);
         $aktivita->nastavTagyPodleId($tagIds);
 
         return $aktivita;
@@ -1820,7 +1844,7 @@ SQL
     /**
      * Vrátí formátovaný (html) popisek aktivity
      */
-    public function popis(string $popis = null)
+    public function popis(string $popis = null, bool $resetujKorekci = false)
     {
         if ($popis === null) {
             return dbMarkdown($this->a[Sql::POPIS]);
@@ -1832,7 +1856,7 @@ SQL
         if ($this->a[Sql::PATRI_POD] || $id != $oldId) {
             $zmeny[Sql::POPIS] = $id;
         }
-        if ($id != $oldId) {
+        if ($resetujKorekci && $id != $oldId) {
             $zmeny[Sql::PROBEHLA_KOREKCE] = 0;
         }
 
