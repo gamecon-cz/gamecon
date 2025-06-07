@@ -241,10 +241,10 @@
                             onclick="return window.confirm('Opravdu změnit stav korekce {nazev_akce}?');">
                         <!-- end:rychlokorekce1 -->
                         <!-- begin:symbolKorekce -->
-                        <img alt="Řetěz instance" src="files/design/ok.png"/>
+                        <img alt="Korekce OK" src="files/design/ok.png"/>
                         <!-- end:symbolKorekce -->
                         <!-- begin:symbolBezKorekce -->
-                        <img alt="Řetěz instance" src="files/design/error.png"/>
+                        <img alt="Korekce neproběhla" src="files/design/error.png"/>
                         <!-- end:symbolBezKorekce -->
                         <!-- begin:rychlokorekce2 -->
                     </button>
