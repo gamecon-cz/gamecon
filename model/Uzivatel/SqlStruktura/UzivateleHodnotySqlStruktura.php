@@ -19,10 +19,7 @@ class UzivateleHodnotySqlStruktura
     public const TELEFON_UZIVATELE                   = 'telefon_uzivatele';
     public const DATUM_NAROZENI                      = 'datum_narozeni';
     public const HESLO_MD5                           = 'heslo_md5';
-    public const FUNKCE_UZIVATELE                    = 'funkce_uzivatele';
     public const EMAIL1_UZIVATELE                    = 'email1_uzivatele';
-    public const EMAIL2_UZIVATELE                    = 'email2_uzivatele';
-    public const JINE_UZIVATELE                      = 'jine_uzivatele';
     public const NECHCE_MAILY                        = 'nechce_maily';
     public const MRTVY_MAIL                          = 'mrtvy_mail';
     public const FORUM_RAZENI                        = 'forum_razeni';
@@ -31,7 +28,6 @@ class UzivateleHodnotySqlStruktura
     public const POHLAVI                             = 'pohlavi';
     public const REGISTROVAN                         = 'registrovan';
     public const UBYTOVAN_S                          = 'ubytovan_s';
-    public const SKOLA                               = 'skola';
     public const POZNAMKA                            = 'poznamka';
     public const POMOC_TYP                           = 'pomoc_typ';
     public const POMOC_VICE                          = 'pomoc_vice';

@@ -190,7 +190,6 @@ SQL,
                         'Město' => $r['mesto_uzivatele'],
                         'Ulice' => $r['ulice_a_cp_uzivatele'],
                         'PSČ'   => $r['psc_uzivatele'],
-                        'Škola' => $r['skola'],
                     ],
                     'Ubytovací informace' => array_merge(
                         [

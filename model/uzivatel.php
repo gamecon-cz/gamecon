@@ -1821,7 +1821,6 @@ SQL,
         $tab[Sql::RANDOM]                              = $rand = randHex(20);
         $tab[Sql::REGISTROVAN]                         = date("Y-m-d H:i:s");
         $tab[Sql::ID_UZIVATELE]                        = null;
-        $tab[Sql::FUNKCE_UZIVATELE]                    = 0;
         $tab[Sql::NECHCE_MAILY]                        = null;
         $tab[Sql::MRTVY_MAIL]                          = 0;
         $tab[Sql::ZUSTATEK]                            = 0;
