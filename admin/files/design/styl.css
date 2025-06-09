@@ -598,6 +598,10 @@ input[type="submit"]:disabled {
   background-color: #5b5b5b;
 }
 
+.main .hint table tr:nth-child(even) {
+  color: #0f0f0f;
+}
+
 .main .hint table th {
   background: none;
   border: none;
@@ -1230,10 +1234,6 @@ Radio musí být ve tvaru:
     box-sizing: border-box;
   }
 
-  .infopult-grid--item td:nth-child(2) {
-    width: 100%;
-  }
-
   .infopult-grid--item-predmety td:nth-child(2) {
     width: unset;
   }
@@ -1244,6 +1244,10 @@ Radio musí být ve tvaru:
   }
 
   .infopult-grid--item-udaje td:nth-child(3) {
+    width: 100%;
+  }
+
+  .infopult-grid--item-pokoje td:nth-child(2) {
     width: 100%;
   }
 
