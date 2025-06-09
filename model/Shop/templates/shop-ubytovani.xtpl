@@ -65,6 +65,10 @@
     </label>
 </div>
 
+<div class="shopUbytovani_spolubydlici">
+    <input class="danger" type="button" value="přes kapacitu" onClick="document.querySelectorAll('input.shopUbytovani_radio[disabled]').forEach(el => el.removeAttribute('disabled'));document.getElementById('input_op')?.removeAttribute('required');">
+</div>
+
 <div class="shopUbytovani_povinne" style="display: none">
     {povinneUdaje}
 </div>
