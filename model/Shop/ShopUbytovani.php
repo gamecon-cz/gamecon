@@ -12,6 +12,8 @@ use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 
+/** @var Uzivatel $u */
+
 class ShopUbytovani
 {
     /**
@@ -388,6 +390,11 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             || $this->vsechnPozastaveno()
         ) {
             $t->parse('ubytovani.konec');
+        }
+
+        global $u;
+        if ($u?->jeSpravceFinanci()) {
+            $t->parse('ubytovani.ubytovaniPresKapacitu');
         }
 
         $t->parse('ubytovani');
