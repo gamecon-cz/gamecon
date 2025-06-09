@@ -34,7 +34,15 @@
       <!-- end:typPolozky -->
       <!-- begin:polozka -->
       <tr>
-        <td>{nazev}</td>
+        <td>
+          {nazev}
+          <!-- begin:jeLetosniHlavni -->
+          <span class="hinted">
+            <i class="fa fa-star" aria-hidden="true" style="color: darkgoldenrod"></i>
+            <span class="hint">Vybráno pro slevu či zdarma organizátorům</span>
+          </span>
+          <!-- end:jeLetosniHlavni -->
+        </td>
         <td>{cenaZaKus}.-</td>
         <td>{suma}.-</td>
         <td>{modelRok}</td>

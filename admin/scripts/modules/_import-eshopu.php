@@ -45,41 +45,59 @@ $row           = $rowIterator->current();
 $hlavickaKlice = array_map('trim', $row->toArray());
 $hlavicka      = array_flip($hlavickaKlice);
 
-$pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'ubytovani_den', 'popis'];
+$pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'je_letosni_hlavni', 'ubytovani_den', 'popis'];
 if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
     throw new Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
 }
 
-$indexModelRok     = $hlavicka['model_rok'];
-$indexNazev        = $hlavicka['nazev'];
-$indexKodPredmetu  = $hlavicka['kod_predmetu'];
-$indexCenaAktualni = $hlavicka['cena_aktualni'];
-$indexStav         = $hlavicka['stav'];
-$indexNabizetDo    = $hlavicka['nabizet_do'];
-$indexKusuVyrobeno = $hlavicka['kusu_vyrobeno'];
-$indexTyp          = $hlavicka['typ'];
-$indexUbytovaniDen = $hlavicka['ubytovani_den'];
-$indexPopis        = $hlavicka['popis'];
+$indexModelRok        = $hlavicka['model_rok'];
+$indexNazev           = $hlavicka['nazev'];
+$indexKodPredmetu     = $hlavicka['kod_predmetu'];
+$indexCenaAktualni    = $hlavicka['cena_aktualni'];
+$indexStav            = $hlavicka['stav'];
+$indexNabizetDo       = $hlavicka['nabizet_do'];
+$indexKusuVyrobeno    = $hlavicka['kusu_vyrobeno'];
+$indexTyp             = $hlavicka['typ'];
+$indexJeLetosniHlavni = $hlavicka['je_letosni_hlavni'];
+$indexUbytovaniDen    = $hlavicka['ubytovani_den'];
+$indexPopis           = $hlavicka['popis'];
 
 $rowIterator->next();
 
-$cisloNeboNull = static fn($hodnota) => trim((string)$hodnota) !== ''
+$cisloNeboNull = static fn(
+    $hodnota,
+) => trim((string)$hodnota) !== ''
     ? $hodnota
     : null;
 
-$hodnotaNeboKodZNazvu = static fn($hodnota, string $nazev) => trim((string)$hodnota) !== ''
+$celeCislo = static fn(
+    $hodnota,
+) => (int)((string)$hodnota);
+
+$hodnotaNeboKodZNazvu = static fn(
+    $hodnota,
+    string $nazev,
+) => trim((string)$hodnota) !== ''
     ? $hodnota
     : kodZNazvu($nazev);
 
-$trimRadek = static fn(array $radek) => array_map(
-    static fn($hodnota) => is_string($hodnota)
+$trimRadek = static fn(
+    array $radek,
+) => array_map(
+    static fn(
+        $hodnota,
+    ) => is_string($hodnota)
         ? trim($hodnota)
         : $hodnota,
     $radek,
 );
 
-$stringNullJakoNullRadek = static fn(array $radek) => array_map(
-    static fn($hodnota) => is_string($hodnota) && strtoupper($hodnota) === 'NULL'
+$stringNullJakoNullRadek = static fn(
+    array $radek,
+) => array_map(
+    static fn(
+        $hodnota,
+    ) => is_string($hodnota) && strtoupper($hodnota) === 'NULL'
         ? null
         : $hodnota,
     $radek,
@@ -120,6 +138,7 @@ while ($rowIterator->valid()) {
                 $radek[$indexNabizetDo],
                 $cisloNeboNull($radek[$indexKusuVyrobeno]),
                 $cisloNeboNull($radek[$indexTyp]),
+                $celeCislo($radek[$indexJeLetosniHlavni]),
                 $cisloNeboNull($radek[$indexUbytovaniDen]),
                 $radek[$indexPopis],
             ]) . ')';

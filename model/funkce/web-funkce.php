@@ -122,13 +122,24 @@ function profilInfo()
     $delka = microtime(true) - $GLOBALS['SKRIPT_ZACATEK'];
     // počet sekund, kdy už je skript pomalý (čas zčervená)
     $barva = $delka > 0.2 ? 'color:#f80;' : '';
+    $queries = [];
+    if (jsmeNaLocale()) {
+        foreach (dbQueries() as $query => ['microtime' => $microtime, 'count' => $count]) {
+            $queries[] = '<span class="profilQueryCount">' . $count . 'x</span> <span class="profilQuery" style="font-family: monospace; font-size: smaller; background-color: #331608">' . htmlspecialchars($query) . '</span> <span class="profilQueryTime" style="font-weight: bolder; font-size: larger">' . round($microtime * 1000) . '&thinsp;ms</span>';
+        }
+    } else {
+        foreach (dbQueries() as $query => ['microtime' => $microtime, 'count' => $count]) {
+            $usedTables = dbParseUsedTables($query);
+            $queries[] = '<span class="profilQueryCount">' . $count . 'x</span> <span class="profilQuery" style="font-family: monospace; font-size: smaller; background-color: #331608">' . (htmlspecialchars(implode(',', $usedTables)) ?: '>> <i>no tables</i> <<') . '</span> <span class="profilQueryTime" style="font-weight: bolder; font-size: larger">' . round($microtime * 1000) . '&thinsp;ms</span>';
+        }
+    }
     // výstup
     echo '
     <div class="profilInfo" style="
       background-color: rgba(0,192,255,0.80);
       color: #fff;
       bottom: 0;
-      right: 0;
+      left: 0;
       position: fixed;
       padding: 2px 7px;
       cursor: default;
@@ -143,8 +154,13 @@ function profilInfo()
     <img src="' . $iHodiny . '" alt="délka skriptu včetně DB">
     <span style="' . $barva . '">' . round($delka * 1000) . '&thinsp;ms</span>
     &ensp;
-    <img src="' . $iDb . '" alt="délka odbavení DB/počet dotazů">
+    <div class="hinted">
+      <img src="' . $iDb . '" alt="délka odbavení DB/počet dotazů">
     ' . round(dbExecTime() * 1000) . '&thinsp;ms (' . dbNumQ() . ' dotazů)
+      <div class="hint" style="position: absolute; bottom: 2em; left: 0; width: 90vw; max-width: 90vw;">
+        ' . implode('<br>', $queries) . '
+      </div>
+    </div>
     </div>';
 }
 

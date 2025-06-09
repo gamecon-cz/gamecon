@@ -20,6 +20,7 @@ class Polozka
     private float                    $zbyvaKusu;
     private int                      $idTypu;
     private int                      $stav;
+    private bool                     $jeLetosniHlavni;
 
     public function __construct(array $hodnoty)
     {
@@ -39,6 +40,7 @@ class Polozka
         $this->zbyvaKusu           = $this->vyrobenoKusu - $this->prodanoKusu;
         $this->idTypu              = (int)$hodnoty['typ'];
         $this->stav                = (int)$hodnoty['stav'];
+        $this->jeLetosniHlavni     = (bool)$hodnoty['je_letosni_hlavni'];
     }
 
     public function idPredmetu(): ?int
@@ -99,6 +101,11 @@ class Polozka
     public function stav(): int
     {
         return $this->stav;
+    }
+
+    public function jeLetosniHlavni(): bool
+    {
+        return $this->jeLetosniHlavni;
     }
 
     public function doKdyNabizetDleNastaveni(SystemoveNastaveni $systemoveNastaveni): ?DateTimeImmutableStrict

@@ -441,6 +441,11 @@ SQL,
         return $this->soucinitelCenyAktivit($dataSourcesCollector); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
     }
 
+    public static function slevaAktivityDSC(?DataSourcesCollector $dataSourcesCollector): void {
+        self::soucinitelCenyAktivitDSC($dataSourcesCollector);
+    }
+
+
     public function slevaZaAktivityVProcentech(): float
     {
         return 100 - ($this->soucinitelCenyAktivit() * 100);
@@ -543,14 +548,18 @@ SQL,
     private function soucinitelCenyAktivit(
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
+        self::soucinitelCenyAktivitDSC($dataSourcesCollector);
+
         if ($this->soucinitelCenyAKtivit === null) {
             // pomocné proměnné
             $sleva = 0; // v procentech
             // výpočet pravidel
             if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA, $dataSourcesCollector)) {
                 $sleva += self::PLNA_SLEVA_PROCENT;
+                $this->slevyNaAktivity[] = 'aktivity zdarma';
             } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY, $dataSourcesCollector)) {
                 $sleva += self::CASTECNA_SLEVA_PROCENT;
+                $this->slevyNaAktivity[] = 'aktivity se slevou ' . $sleva . ' %';
             }
             if ($sleva > self::MAX_SLEVA_AKTIVIT_PROCENT) {
                 // omezení výše slevy na maximální hodnotu
@@ -562,6 +571,12 @@ SQL,
         }
 
         return $this->soucinitelCenyAKtivit;
+    }
+
+    private static function soucinitelCenyAktivitDSC(
+        ?DataSourcesCollector $dataSourcesCollector
+    ): void {
+        \Uzivatel::maPravoDSC($dataSourcesCollector);
     }
 
     public function cenaVstupne(): float
@@ -934,21 +949,21 @@ SQL;
 
     private function aplikujBonusZaVedeniAktivit(float $cena): float
     {
-        $bonusZaVedeniAktivit = $this->bonusZaVedeniAktivit();
-        $puvodniCena          = $cena;
+        $zbyvajiciBonusZaVedeniAktivit = $this->bonusZaVedeniAktivit();
+        $zbyvajiciCena          = $cena;
         ['sleva' => $nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu(
-            $puvodniCena,
-            $bonusZaVedeniAktivit,
+            $zbyvajiciCena,
+            $zbyvajiciBonusZaVedeniAktivit,
         );
         $this->nevyuzityBonusZaVedeniAktivit = $nevyuzityBonusZaVedeniAktivit;
-        $this->vyuzityBonusZaVedeniAktivit   = $bonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
+        $this->vyuzityBonusZaVedeniAktivit   = $zbyvajiciBonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
         /** Do výsledné ceny, respektive celkového stavu, už započítáváme celý bonus za aktivity https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
-        $cena -= $bonusZaVedeniAktivit;
+        $cena -= $this->bonusZaVedeniAktivit();
 
-        if ($bonusZaVedeniAktivit) {
+        if ($zbyvajiciBonusZaVedeniAktivit) {
             $this->logb(
                 'Bonus za aktivity',
-                $bonusZaVedeniAktivit,
+                $this->bonusZaVedeniAktivit(),
                 self::ORGSLEVA,
             );
         }
@@ -1091,6 +1106,12 @@ SQL;
         $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb(), self::PLATBA);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
+        if ($this->bonusZaVedeniAktivit() > 0) {
+            $this->logb('Bonus za aktivity', $this->bonusZaVedeniAktivit(), self::ORGSLEVA);
+        }
+        if ($this->slevaObecna() > 0) {
+            $this->logb('Obecné slevy', $this->slevaObecna(), self::PRIPSANE_SLEVY);
+        }
 
         $this->zapocteno[__FUNCTION__] = true;
     }
