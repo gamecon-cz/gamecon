@@ -123,17 +123,8 @@ class ImportObjectsContainer
 
     public function getTagFromValue(string $tagValue): ?\Tag
     {
-        $tagId = ImportKeyUnifier::parseId($tagValue);
-        if ($tagId !== null) {
-            return $this->getTagById($tagId);
-        }
-
+        /* intentionally no tag by ID, because there are tags named like "2400", also there is no need to import tags by IDs */
         return $this->getTagByName($tagValue);
-    }
-
-    private function getTagById(int $id): ?\Tag
-    {
-        return $this->getTagsCache()['id'][$id] ?? null;
     }
 
     private function getTagByName(string $name): ?\Tag
