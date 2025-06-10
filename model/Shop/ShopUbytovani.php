@@ -12,8 +12,6 @@ use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 
-/** @var Uzivatel $u */
-
 class ShopUbytovani
 {
     /**
@@ -343,8 +341,10 @@ Situace nás mrzí, přesto věříme, že tě od účasti na letošním GC neod
 Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a>.';
     }
 
-    public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
-    {
+    public function ubytovaniHtml(
+        bool $muzeEditovatUkoncenyProdej = false,
+        bool $muzeUbytovatPresKapacitu = false,
+    ) {
         $t                           = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
         $omluvaZaNedostupneUbytovani = $this->omluvaZaNedostupneUbytovani();
         if ($omluvaZaNedostupneUbytovani !== '') {
@@ -392,8 +392,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             $t->parse('ubytovani.konec');
         }
 
-        global $u;
-        if ($u?->jeSpravceFinanci()) {
+        if ($muzeUbytovatPresKapacitu) {
             $t->parse('ubytovani.ubytovaniPresKapacitu');
         }
 
@@ -532,9 +531,9 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                     [$jedenZeDnu->modelRok(), $jedenZeDnu->typ(), $druhUbytka . '%'],
                 );
 
-                $dny[1]     = (string) $vsechnyDny[0];
-                $dny[2]     = (string) $vsechnyDny[1];
-                $dny[3]     = (string) $vsechnyDny[2];
+                $dny[1] = (string)$vsechnyDny[0];
+                $dny[2] = (string)$vsechnyDny[1];
+                $dny[3] = (string)$vsechnyDny[2];
             }
         } else {
             $dny = $_POST[$this->pnDny];
