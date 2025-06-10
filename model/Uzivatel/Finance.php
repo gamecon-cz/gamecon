@@ -950,21 +950,22 @@ SQL;
 
     private function aplikujBonusZaVedeniAktivit(float $cena): float
     {
-        $zbyvajiciBonusZaVedeniAktivit = $this->bonusZaVedeniAktivit();
+        $puvodniBonusZaVedeniAktivit   = $this->bonusZaVedeniAktivit();
+        $zbyvajiciBonusZaVedeniAktivit = $puvodniBonusZaVedeniAktivit;
         $zbyvajiciCena                 = $cena;
         ['sleva' => $nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu(
-            $zbyvajiciCena,
-            $zbyvajiciBonusZaVedeniAktivit,
+            cena: $zbyvajiciCena, // ovlivněno zpětně přes referenci !
+            sleva: $zbyvajiciBonusZaVedeniAktivit, // ovlivněno zpětně přes referenci !
         );
         $this->nevyuzityBonusZaVedeniAktivit = $nevyuzityBonusZaVedeniAktivit;
         $this->vyuzityBonusZaVedeniAktivit   = $zbyvajiciBonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
         /** Do výsledné ceny, respektive celkového stavu, už započítáváme celý bonus za aktivity https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
         $cena -= $this->bonusZaVedeniAktivit();
 
-        if ($zbyvajiciBonusZaVedeniAktivit) {
+        if ($puvodniBonusZaVedeniAktivit) {
             $this->logb(
                 'Bonus za aktivity',
-                $this->bonusZaVedeniAktivit(),
+                $puvodniBonusZaVedeniAktivit,
                 self::ORGSLEVA,
             );
         }
@@ -987,11 +988,19 @@ SQL;
 
     private function aplikujObecnouSlevu(float $cena): float
     {
-        $slevaObecna = $this->slevaObecna();
-        ['cena' => $cena, 'sleva' => $nevyuzitaObecnaSleva] = Cenik::aplikujSlevu($cena, $slevaObecna);
+        $puvodniObecnaSleva = $this->slevaObecna();
+        $zbyvajiciObecnaSleva = $puvodniObecnaSleva;
+        ['cena' => $cena, 'sleva' => $nevyuzitaObecnaSleva] = Cenik::aplikujSlevu(
+            cena: $cena, // ovlivněno zpětně přes referenci !
+            sleva: $zbyvajiciObecnaSleva, // ovlivněno zpětně přes referenci !
+        );
+
+        if ($puvodniObecnaSleva > 0) {
+            $this->logb('Obecné slevy', $puvodniObecnaSleva, self::PRIPSANE_SLEVY);
+        }
 
         if ((float)$nevyuzitaObecnaSleva !== 0.0) {
-            $vyuzitaSlevaObecna = $slevaObecna - $nevyuzitaObecnaSleva;
+            $vyuzitaSlevaObecna = $zbyvajiciObecnaSleva - $nevyuzitaObecnaSleva;
             $this->logb(
                 'Sleva',
                 $vyuzitaSlevaObecna,
@@ -1110,12 +1119,6 @@ SQL;
         $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb(), self::PLATBA);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
-        if ($this->bonusZaVedeniAktivit() > 0) {
-            $this->logb('Bonus za aktivity', $this->bonusZaVedeniAktivit(), self::ORGSLEVA);
-        }
-        if ($this->slevaObecna() > 0) {
-            $this->logb('Obecné slevy', $this->slevaObecna(), self::PRIPSANE_SLEVY);
-        }
         if ($this->kategorieNeplatice()?->melByBytOdhlasen()) {
             $this->logb(
                 '<span style="color: darkred">Bude odhlášen jako neplatič kategorie</span>',
