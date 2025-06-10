@@ -677,9 +677,15 @@ SQL,
     }
 
     /** Vrátí html kód s rádiobuttonky pro vyklikání ubytování */
-    public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
+    public function ubytovaniHtml(
+        bool $muzeEditovatUkoncenyProdej = false,
+        bool $muzeUbytovatPresKapacitu = false,
+    )
     {
-        return $this->ubytovani->ubytovaniHtml($muzeEditovatUkoncenyProdej);
+        return $this->ubytovani->ubytovaniHtml(
+            muzeEditovatUkoncenyProdej: $muzeEditovatUkoncenyProdej,
+            muzeUbytovatPresKapacitu: $muzeUbytovatPresKapacitu,
+        );
     }
 
     public function ubytovaniObjednatelneDoHtml(): string

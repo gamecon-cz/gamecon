@@ -49,7 +49,9 @@ $ubytovaniVypis = $pokojVypis
 if (get('pokoj')) {
     $x->assign('pokojVypis', get('pokoj'));
     if ($pokojVypis) {
-        $x->assign('ubytovaniVypis', array_uprint($ubytovaniVypis, function ($e) {
+        $x->assign('ubytovaniVypis', array_uprint($ubytovaniVypis, function (
+            $e,
+        ) {
             $ne    = $e->gcPritomen()
                 ? ''
                 : 'ne';
@@ -65,7 +67,13 @@ if (get('pokoj')) {
 }
 
 if ($uPracovni && $uPracovni->gcPrihlasen()) {
-    $x->assign('ubytovaniHtml', $shop->ubytovaniHtml(true));
+    $x->assign(
+        'ubytovaniHtml',
+        $shop->ubytovaniHtml(
+            muzeEditovatUkoncenyProdej: true,
+            muzeUbytovatPresKapacitu: $u->jeSpravceFinanci(),
+        ),
+    );
     $x->assign('jidloHtml', $shop->jidloHtml(true));
     $x->parse('uzivatel.ubytovani');
     $x->parse('uzivatel.jidlo');
@@ -129,10 +137,10 @@ if ($uPracovni) {
 // načtení předmětů a form s rychloprodejem předmětů, fixme
 $o        = dbQuery(<<<SQL
   SELECT
-    CONCAT(nazev,' ',model_rok) as nazev,
-    kusu_vyrobeno-count(n.id_predmetu) as zbyva,
+    CONCAT(nazev,' ',model_rok) AS nazev,
+    kusu_vyrobeno-COUNT(n.id_predmetu) AS zbyva,
     p.id_predmetu,
-    ROUND(p.cena_aktualni) as cena
+    ROUND(p.cena_aktualni) AS cena
   FROM shop_predmety p
   LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
   WHERE p.stav > 0
