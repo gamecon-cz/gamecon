@@ -5,3 +5,15 @@ RewriteEngine       On
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule .* index.php?req=$0 [L,QSA]
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType font/woff2 "access 1 year"
+    ExpiresByType font/woff "access 1 year"
+    ExpiresByType font/ttf "access 1 year"
+    ExpiresByType font/otf "access 1 year"
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/text text/html text/plain text/xml text/css application/x-javascript application/javascript
+</IfModule>
