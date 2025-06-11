@@ -59,7 +59,7 @@ class Nahled
     function pasuj($s, $v = null): Nahled
     {
         // make sure the image is not made larger
-        if ($this->s < $s && $this->v < $v) {
+        if ($this->s <= $s && $this->v <= $v) {
             return $this;
         }
         return $this->mod($s, $v, self::PASUJ);
@@ -85,7 +85,7 @@ class Nahled
 
             $s = $this->s ?: $imagick->getImageWidth();
             $v = $this->v ?: $imagick->getImageHeight();
-            
+
             $s = max(1, (int)$s);
             $v = max(1, (int)$v);
 
@@ -105,7 +105,7 @@ class Nahled
 
             $imagick->setImageFormat('WEBP');
             $imagick->setImageCompressionQuality($this->kvalita);
-            
+
             $imagick->writeImage($cil);
             $imagick->clear();
             $imagick->destroy();
@@ -120,9 +120,9 @@ class Nahled
         $hash  = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita . 'v2_webp'); // Added version/format to hash
         $cache = CACHE . '/img/' . $hash . '.webp'; // Changed extension to .webp
         $url   = URL_CACHE . '/img/' . $hash . '.webp?m=' . $this->datum; // Changed extension to .webp
-        
+
         if (!file_exists($cache) || @filemtime($cache) < $this->datum) {
-            pripravCache(CACHE . '/img/'); // Ensure directory exists
+            pripravCache(CACHE . '/img'); // Ensure directory exists
             $this->uloz($cache);
         }
         return $url;
