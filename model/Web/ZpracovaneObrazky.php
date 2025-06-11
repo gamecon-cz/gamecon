@@ -7,7 +7,7 @@ namespace Gamecon\Web;
 use Gamecon\XTemplate\XTemplate;
 use Nahled;
 
-readonly class zpracovaneObrazky
+readonly class ZpracovaneObrazky
 {
     public static function logaSponzoruTitulka(): static
     {
