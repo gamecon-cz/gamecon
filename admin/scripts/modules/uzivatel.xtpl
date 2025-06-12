@@ -25,6 +25,9 @@
     <!-- begin:ubytovani -->
     <form method="post" class="clearfix">
       {ubytovaniHtml}<br>
+        <!-- begin:presLimitOdstranitNezbytne -->
+      <input type="button" name="odstranVyzadovane" value="Odstraň povinné pole" class="danger" onclick="clearRequired()">
+        <!-- end:presLimitOdstranitNezbytne -->
       <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
     </form>
     <!-- end:ubytovani -->
@@ -149,5 +152,17 @@
   </div>
 
 </div>
+
+<script>
+/**
+ * Odebere atribut required
+ * z polí: input_op, input_ulice_a_cp_uzivatele, input_mesto_uzivatele, input_psc_uzivatele
+ */
+function clearRequired() {
+    document.querySelectorAll(
+        '#input_op, #input_ulice_a_cp_uzivatele, #input_mesto_uzivatele, #input_psc_uzivatele'
+    ).forEach(el => el.removeAttribute('required'));
+}
+</script>
 
 <!-- end:uzivatel -->
