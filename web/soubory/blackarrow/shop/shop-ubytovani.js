@@ -139,12 +139,13 @@
 
     obnovPovinnePolozky()
 
-    function clearRequired() {
+    function presKapacitu() {
         zobrazPovinnePolozky()
-        doClearRequired()
+        aplikujPresKapacitu()
+        ClearRequired()
     }
 
-    function doClearRequired() {
+    function ClearRequired() {
         // selektor pro IDčka
         document.querySelectorAll(
             '#input_op, #input_ulice_a_cp_uzivatele, #input_mesto_uzivatele, #input_psc_uzivatele'
@@ -154,5 +155,9 @@
         document.querySelectorAll(
             '[name="registraceFormData[typ_dokladu_totoznosti]"]'
         ).forEach(el => el.removeAttribute('required'));
+    }
+    function aplikujPresKapacitu(){
+        document.querySelectorAll('input.shopUbytovani_radio[disabled]')
+            .forEach(el => el.removeAttribute('disabled'));
     }
 }
