@@ -27,24 +27,27 @@ if (!get('typ')) {
 }
 
 $odpoved = dbQuery(<<<SQL
-  SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek, a.konec, a.team_nazev,
-    u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, u.id_uzivatele,
-    u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
-    GROUP_CONCAT(org.login_uzivatele) AS orgove,
-    CONCAT(l.nazev,', ',l.dvere) as mistnost,
-    MAX(log.kdy) datum_prihlaseni
-  FROM akce_seznam a
-  LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
-  LEFT JOIN uzivatele_hodnoty u ON (p.id_uzivatele=u.id_uzivatele)
-  LEFT JOIN akce_prihlaseni_log log ON (log.id_akce=a.id_akce AND log.id_uzivatele=u.id_uzivatele)
-  LEFT JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce)
-  LEFT JOIN uzivatele_hodnoty org ON (org.id_uzivatele = ao.id_uzivatele)
-  LEFT JOIN akce_lokace l ON (l.id_lokace = a.lokace)
-  WHERE a.rok = $0
-  AND a.zacatek
-  AND a.typ = $1
-  GROUP BY u.id_uzivatele, a.id_akce
-  ORDER BY a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele
+SELECT  akce_seznam.nazev_akce AS nazevAktivity, akce_seznam.id_akce AS id,
+        (akce_seznam.kapacita + akce_seznam.kapacita_m + akce_seznam.kapacita_f) AS kapacita,
+        akce_seznam.zacatek, akce_seznam.konec, akce_seznam.team_nazev,
+        ucastnik.login_uzivatele AS nick, ucastnik.jmeno_uzivatele AS jmeno, ucastnik.id_uzivatele,
+        ucastnik.prijmeni_uzivatele AS prijmeni, ucastnik.email1_uzivatele AS mail, ucastnik.telefon_uzivatele AS telefon,
+        GROUP_CONCAT(organizator.login_uzivatele) AS orgove,
+        GROUP_CONCAT(lokace.nazev, ', ', lokace.dvere SEPARATOR '; ') AS mistnost,
+        MAX(log.kdy) AS datum_prihlaseni
+FROM akce_seznam
+LEFT JOIN akce_prihlaseni ON akce_seznam.id_akce = akce_prihlaseni.id_akce
+LEFT JOIN uzivatele_hodnoty AS ucastnik ON akce_prihlaseni.id_uzivatele = ucastnik.id_uzivatele
+LEFT JOIN akce_prihlaseni_log AS log ON log.id_akce = akce_seznam.id_akce AND log.id_uzivatele = ucastnik.id_uzivatele
+LEFT JOIN akce_organizatori ON akce_organizatori.id_akce = akce_seznam.id_akce
+LEFT JOIN uzivatele_hodnoty AS organizator ON organizator.id_uzivatele = akce_organizatori.id_uzivatele
+LEFT JOIN akce_lokace ON akce_lokace.id_akce = akce_seznam.id_akce
+LEFT JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
+WHERE akce_seznam.rok = $0
+    AND akce_seznam.zacatek
+    AND akce_seznam.typ = $1
+GROUP BY ucastnik.id_uzivatele, akce_seznam.id_akce, akce_seznam.nazev_akce, akce_seznam.zacatek
+ORDER BY akce_seznam.zacatek, akce_seznam.nazev_akce, akce_seznam.id_akce, ucastnik.id_uzivatele
 SQL,
     [0 => ROCNIK, 1 => get('typ')]
 );
