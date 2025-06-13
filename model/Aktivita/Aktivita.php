@@ -3027,8 +3027,9 @@ HTML
     /** Aktualizuje stav aktivity podle databáze */
     public function refresh(): void
     {
+        $id = $this->id();
         $this->reset();
-        $this->a = self::zId($this->id())->a;
+        $this->a = self::zId($id)->a;
     }
 
     private function reset(): void
