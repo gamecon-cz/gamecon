@@ -142,6 +142,7 @@
     })
 
     function presKapacitu() {
+        presKapacituBtn = true;
         prepniPovinnePolozky(true)
         aplikujPresKapacitu()
     }
