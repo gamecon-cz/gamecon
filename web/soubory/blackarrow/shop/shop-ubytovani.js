@@ -99,13 +99,15 @@
     /**
      * @param {boolean} show
      */
-    function prepniPovinnePolozky(show) {
-        Array.from(document.getElementsByClassName('shopUbytovani_povinne')).forEach(function (povinnyElement) {
-            povinnyElement.style.display = show
-                ? 'inherit'
-                : 'none'
-            Array.from(povinnyElement.querySelectorAll('input, select')).forEach((input) => input.required = show)
-        })
+    function prepniPovinnePolozky(show, required = show) {
+        Array.from(document.getElementsByClassName('shopUbytovani_povinne'))
+            .forEach(function (povinnyElement) {
+                povinnyElement.style.display = show ? 'inherit' : 'none';
+                Array.from(povinnyElement.querySelectorAll('input, select'))
+                    .forEach((input) => {
+                        input.required = required;
+                    });
+            });
     }
 
     function skryjPovinnePolozky() {
@@ -140,22 +142,10 @@
     obnovPovinnePolozky()
 
     function presKapacitu() {
-        zobrazPovinnePolozky()
+        prepniPovinnePolozky(true, false);
         aplikujPresKapacitu()
-        ClearRequired()
     }
 
-    function ClearRequired() {
-        // selektor pro IDčka
-        document.querySelectorAll(
-            '#input_op, #input_ulice_a_cp_uzivatele, #input_mesto_uzivatele, #input_psc_uzivatele'
-        ).forEach(el => el.removeAttribute('required'));
-
-        // selektor pro jméno registraceFormData[typ_dokladu_totoznosti]
-        document.querySelectorAll(
-            '[name="registraceFormData[typ_dokladu_totoznosti]"]'
-        ).forEach(el => el.removeAttribute('required'));
-    }
     function aplikujPresKapacitu(){
         document.querySelectorAll('input.shopUbytovani_radio[disabled]')
             .forEach(el => el.removeAttribute('disabled'));
