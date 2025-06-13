@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
@@ -51,7 +52,7 @@ readonly class OnlinePrezenceTestovaciAktivity
         $organizovaneAktivity = $this->obecnaAktivita::zFiltru(
             systemoveNastaveni: $this->systemoveNastaveni,
             filtr: $organizovaneAktivityFiltr,
-            razeni: ['zacatek'],
+            razeni: [AkceSeznamSqlStruktura::ZACATEK],
             limit: $limit,
         );
 
