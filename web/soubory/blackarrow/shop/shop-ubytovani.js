@@ -2,6 +2,7 @@
     var shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
     var shopUbytovaniNames = []
     var zmeneneElementy = []
+    let inputRequiredState = true;
 
     shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
         if (!shopUbytovaniNames.includes(shopUbytovaniRadio.name)) {
@@ -99,13 +100,13 @@
     /**
      * @param {boolean} show
      */
-    function prepniPovinnePolozky(show, required = show) {
+    function prepniPovinnePolozky(show) {
         Array.from(document.getElementsByClassName('shopUbytovani_povinne'))
             .forEach(function (povinnyElement) {
                 povinnyElement.style.display = show ? 'inherit' : 'none';
                 Array.from(povinnyElement.querySelectorAll('input, select'))
                     .forEach((input) => {
-                        input.required = required;
+                        input.required = inputRequiredState;
                     });
             });
     }
@@ -142,7 +143,8 @@
     obnovPovinnePolozky()
 
     function presKapacitu() {
-        prepniPovinnePolozky(true, false);
+        inputRequiredState = false;
+        zobrazPovinnePolozky()
         aplikujPresKapacitu()
     }
 
