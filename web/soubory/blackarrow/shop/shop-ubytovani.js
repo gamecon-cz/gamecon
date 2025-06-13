@@ -140,6 +140,11 @@
     obnovPovinnePolozky()
 
     function clearRequired() {
+        zobrazPovinnePolozky()
+        doClearRequired()
+    }
+
+    function doClearRequired() {
         // selektor pro IDčka
         document.querySelectorAll(
             '#input_op, #input_ulice_a_cp_uzivatele, #input_mesto_uzivatele, #input_psc_uzivatele'
