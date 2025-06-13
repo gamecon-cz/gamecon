@@ -1,6 +1,8 @@
 <?php
 
+use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 
 class FiltrMoznosti
 {
@@ -167,7 +169,7 @@ SQL
     }
 
     public function dejFiltr(bool $pouzitFiltrRokuProExport = false): array {
-        $razeni = ['nazev_akce', 'zacatek'];
+        $razeni = [AkceSeznamSqlStruktura::NAZEV_AKCE, AkceSeznamSqlStruktura::ZACATEK];
         if (!empty($_COOKIE['akceRazeni'])) {
             array_unshift($razeni, $_COOKIE['akceRazeni']);
         }
@@ -182,8 +184,8 @@ SQL
         $varianty        = $this->pocetAktivitProgramovychLinii($programoveLinie);
         $filtr           = empty($varianty[$this->adminAktivityFiltr]['db'])
             ? []
-            : ['typ' => $varianty[$this->adminAktivityFiltr]['db']];
-        $filtr['rok']    = $filtrRoku;
+            : [FiltrAktivity::TYP => $varianty[$this->adminAktivityFiltr]['db']];
+        $filtr[FiltrAktivity::ROK]    = $filtrRoku;
 
         return [$filtr, $razeni];
     }

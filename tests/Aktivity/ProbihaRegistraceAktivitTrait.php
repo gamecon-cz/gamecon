@@ -11,18 +11,20 @@ trait ProbihaRegistraceAktivitTrait
     private static function vytvorSystemoveNastaveni(): SystemoveNastaveni
     {
         $original = SystemoveNastaveni::zGlobals();
-        return new class($original) extends SystemoveNastaveni {
+
+        return new class($original) extends SystemoveNastaveni
+        {
 
             public function __construct(SystemoveNastaveni $original)
             {
                 parent::__construct(
-                    $original->rocnik(),
-                    $original->ted(),
-                    $original->jsmeNaBete(),
-                    $original->jsmeNaLocale(),
-                    $original->databazoveNastaveni(),
-                    $original->rootAdresarProjektu(),
-                    $original->cacheDir(),
+                    rocnik: $original->rocnik(),
+                    ted: $original->ted(),
+                    jsmeNaBete: $original->jsmeNaBete(),
+                    jsmeNaLocale: $original->jsmeNaLocale(),
+                    databazoveNastaveni: $original->databazoveNastaveni(),
+                    rootAdresarProjektu: $original->rootAdresarProjektu(),
+                    cacheDir: $original->cacheDir(),
                 );
             }
 
