@@ -112,6 +112,7 @@
     }
 
     function skryjPovinnePolozky() {
+        inputRequiredState = false;
         prepniPovinnePolozky(false)
     }
 
@@ -140,8 +141,6 @@
         shopUbytovaniRadio.addEventListener('click', onShopUbytovaniClick)
     })
 
-    obnovPovinnePolozky()
-
     function presKapacitu() {
         inputRequiredState = false;
         zobrazPovinnePolozky()
@@ -152,4 +151,6 @@
         document.querySelectorAll('input.shopUbytovani_radio[disabled]')
             .forEach(el => el.removeAttribute('disabled'));
     }
+
+    obnovPovinnePolozky()
 }
