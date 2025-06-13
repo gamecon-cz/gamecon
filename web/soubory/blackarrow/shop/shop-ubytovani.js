@@ -138,4 +138,16 @@
     })
 
     obnovPovinnePolozky()
+
+    function clearRequired() {
+        // selektor pro IDčka
+        document.querySelectorAll(
+            '#input_op, #input_ulice_a_cp_uzivatele, #input_mesto_uzivatele, #input_psc_uzivatele'
+        ).forEach(el => el.removeAttribute('required'));
+
+        // selektor pro jméno registraceFormData[typ_dokladu_totoznosti]
+        document.querySelectorAll(
+            '[name="registraceFormData[typ_dokladu_totoznosti]"]'
+        ).forEach(el => el.removeAttribute('required'));
+    }
 }
