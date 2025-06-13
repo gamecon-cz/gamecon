@@ -936,9 +936,14 @@ SQL;
         return $this->cacheDir;
     }
 
+    public function databaseDataDependentCacheDir(): string
+    {
+        return $this->cacheDir . '/' . DB_NAME ;
+    }
+
     public function tableDataDependentCacheDir(): string
     {
-        return $this->cacheDir() . '/' . DB_NAME . '/table_data_dependent';
+        return $this->databaseDataDependentCacheDir() . '/table_data_dependent';
     }
 
     public function prihlasovaciUdajeOstreDatabaze(): array
@@ -1059,7 +1064,7 @@ SQL;
     public function queryCache(): QueryCache
     {
         if (!$this->queryCache) {
-            $this->queryCache = new QueryCache($this->cacheDir());
+            $this->queryCache = new QueryCache($this->databaseDataDependentCacheDir());
         }
 
         return $this->queryCache;

@@ -23,6 +23,7 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\RolePodleRocniku;
 use Gamecon\Uzivatel\SqlStruktura\PravaRoleSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -532,7 +533,7 @@ SQL
         return Aktivita::zFiltru(
             systemoveNastaveni: $this->systemoveNastaveni,
             filtr: [FiltrAktivity::ROK => $rok, FiltrAktivity::ORGANIZATOR => $this->id()],
-            razeni: ['zacatek'],
+            razeni: [AkceSeznamSqlStruktura::ZACATEK],
         );
     }
 
