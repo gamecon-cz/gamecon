@@ -75,9 +75,6 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
         ),
     );
     $x->assign('jidloHtml', $shop->jidloHtml(true));
-    if ($u->jeSefInfopultu()){
-        $x->parse('uzivatel.ubytovani.presLimitOdstranitNezbytne');
-    }
     $x->parse('uzivatel.ubytovani');
     $x->parse('uzivatel.jidlo');
     $x->parse('uzivatel.pokojPridel');

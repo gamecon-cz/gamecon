@@ -25,9 +25,6 @@
     <!-- begin:ubytovani -->
     <form method="post" class="clearfix">
       {ubytovaniHtml}<br>
-        <!-- begin:presLimitOdstranitNezbytne -->
-      <input type="button" name="odstranVyzadovane" value="Odstraň povinné pole" class="danger" onclick="clearRequired()">
-        <!-- end:presLimitOdstranitNezbytne -->
       <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
     </form>
     <!-- end:ubytovani -->
