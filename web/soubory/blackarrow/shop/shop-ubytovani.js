@@ -94,6 +94,7 @@
     }
 
     function zobrazPovinnePolozky() {
+        inputRequiredState = true;
         prepniPovinnePolozky(true)
     }
 
@@ -143,7 +144,7 @@
 
     function presKapacitu() {
         inputRequiredState = false;
-        zobrazPovinnePolozky()
+        prepniPovinnePolozky(true)
         aplikujPresKapacitu()
     }
 
