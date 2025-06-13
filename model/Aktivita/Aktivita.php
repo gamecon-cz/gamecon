@@ -13,13 +13,8 @@ use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\AkceSjednoceneTagySqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkceTypySqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\LokaceSqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
 use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
@@ -670,8 +665,8 @@ SQL
     }
 
     private static function parseUpravyTabulkaDeti(
-        ?Aktivita $aktivita,
-        XTemplate $xtpl,
+        ?Aktivita           $aktivita,
+        XTemplate           $xtpl,
         ?SystemoveNastaveni $systemoveNastaveni,
     ): void {
         $q = dbQuery(
