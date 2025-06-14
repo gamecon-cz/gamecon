@@ -71,7 +71,7 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
         'ubytovaniHtml',
         $shop->ubytovaniHtml(
             muzeEditovatUkoncenyProdej: true,
-            muzeUbytovatPresKapacitu: $u->jeSpravceFinanci(),
+            muzeUbytovatPresKapacitu: $u->jeSefInfopultu(),
         ),
     );
     $x->assign('jidloHtml', $shop->jidloHtml(true));

@@ -2,6 +2,26 @@
     var shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
     var shopUbytovaniNames = []
     var zmeneneElementy = []
+    // 1) Načtení ze sessionStorage (pokud tam nic není, zůstane null)
+    let stored = sessionStorage.getItem('presKapacituBtn');
+
+    // 2) Pokud tam hodnota je, použij ji, jinak nastav výchozí a ulož
+    let presKapacituBtn;
+    if (stored !== null) {
+        // načteme uložené true/false
+        presKapacituBtn = JSON.parse(stored);
+    } else {
+        // výchozí hodnota
+        presKapacituBtn = false;
+        sessionStorage.setItem('presKapacituBtn', JSON.stringify(presKapacituBtn));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (presKapacituBtn) {
+            zobrazPovinnePolozky();
+            aplikujPresKapacitu();
+        }
+    });
 
     shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
         if (!shopUbytovaniNames.includes(shopUbytovaniRadio.name)) {
@@ -100,12 +120,14 @@
      * @param {boolean} show
      */
     function prepniPovinnePolozky(show) {
-        Array.from(document.getElementsByClassName('shopUbytovani_povinne')).forEach(function (povinnyElement) {
-            povinnyElement.style.display = show
-                ? 'inherit'
-                : 'none'
-            Array.from(povinnyElement.querySelectorAll('input, select')).forEach((input) => input.required = show)
-        })
+        Array.from(document.getElementsByClassName('shopUbytovani_povinne'))
+            .forEach(function (povinnyElement) {
+                povinnyElement.style.display = show ? 'inherit' : 'none';
+                Array.from(povinnyElement.querySelectorAll('input, select'))
+                    .forEach((input) => {
+                        input.required = !presKapacituBtn ? show : false;
+                    });
+            });
     }
 
     function skryjPovinnePolozky() {
@@ -136,6 +158,21 @@
 
         shopUbytovaniRadio.addEventListener('click', onShopUbytovaniClick)
     })
+
+    function presKapacitu() {
+        // 1) aktualizuješ proměnnou
+        presKapacituBtn = true;
+        // 2) uložíš ji do sessionStorage
+        sessionStorage.setItem('presKapacituBtn', JSON.stringify(presKapacituBtn));
+
+        prepniPovinnePolozky(true);
+        aplikujPresKapacitu();
+    }
+
+    function aplikujPresKapacitu() {
+        document.querySelectorAll('input.shopUbytovani_radio[disabled]')
+            .forEach(el => el.removeAttribute('disabled'));
+    }
 
     obnovPovinnePolozky()
 }
