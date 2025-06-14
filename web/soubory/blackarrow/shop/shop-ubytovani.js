@@ -2,7 +2,25 @@
     var shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
     var shopUbytovaniNames = []
     var zmeneneElementy = []
-    let presKapacituBtn = false;
+    // 1) Načtení ze sessionStorage (pokud tam nic není, zůstane null)
+    let stored = sessionStorage.getItem('presKapacituBtn');
+
+    // 2) Pokud tam hodnota je, použij ji, jinak nastav výchozí a ulož
+    let presKapacituBtn;
+    if (stored !== null) {
+        // načteme uložené true/false
+        presKapacituBtn = JSON.parse(stored);
+    } else {
+        // výchozí hodnota
+        presKapacituBtn = false;
+        sessionStorage.setItem('presKapacituBtn', JSON.stringify(presKapacituBtn));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (presKapacituBtn) {
+            zobrazPovinnePolozky();
+        }
+    });
 
     shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
         if (!shopUbytovaniNames.includes(shopUbytovaniRadio.name)) {
@@ -94,7 +112,6 @@
     }
 
     function zobrazPovinnePolozky() {
-        inputRequiredState = true;
         prepniPovinnePolozky(true)
     }
 
@@ -142,12 +159,16 @@
     })
 
     function presKapacitu() {
+        // 1) aktualizuješ proměnnou
         presKapacituBtn = true;
-        prepniPovinnePolozky(true)
-        aplikujPresKapacitu()
+        // 2) uložíš ji do sessionStorage
+        sessionStorage.setItem('presKapacituBtn', JSON.stringify(presKapacituBtn));
+
+        prepniPovinnePolozky(true);
+        aplikujPresKapacitu();
     }
 
-    function aplikujPresKapacitu(){
+    function aplikujPresKapacitu() {
         document.querySelectorAll('input.shopUbytovani_radio[disabled]')
             .forEach(el => el.removeAttribute('disabled'));
     }
