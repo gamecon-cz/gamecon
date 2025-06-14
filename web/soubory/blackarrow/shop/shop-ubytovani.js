@@ -19,6 +19,7 @@
     window.addEventListener('DOMContentLoaded', () => {
         if (presKapacituBtn) {
             zobrazPovinnePolozky();
+            aplikujPresKapacitu();
         }
     });
 
