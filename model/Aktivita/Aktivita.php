@@ -992,17 +992,25 @@ SQL
             }
         }
 
-        $locaceIds = [];
+        $lokaceIds = [];
         foreach ((array)post(self::LOKACE_KLIC) as $lokaceId) {
             $lokaceId = (int)$lokaceId;
             if ($lokaceId > 0) {
-                $locaceIds[] = $lokaceId;
+                $lokaceIds[$lokaceId] = $lokaceId;
             }
         }
         $hlavniLokaceId = post(self::HLAVNI_LOKACE_KLIC);
         $hlavniLokaceId = $hlavniLokaceId
             ? (int)$hlavniLokaceId
             : null;
+        if ($hlavniLokaceId !== null) {
+            $lokaceIds[$hlavniLokaceId] = $hlavniLokaceId; // automaticky přidáme zvolenou hlavní lokaci do seznamu lokací
+        }
+        if ($hlavniLokaceId === null && count($lokaceIds) === 1) {
+            // pokud je vybrána pouze jedna lokace, nastavíme ji jako hlavní
+            $hlavniLokaceId = reset($lokaceIds);
+        }
+        self::chybaNebylaLiHlavniLokaceNastavena($lokaceIds, $hlavniLokaceId);
 
         $obrazekSoubor = postFile(self::OBRAZEK_KLIC);
         $obrazekUrl    = post(self::OBRAZEK_KLIC . 'Url');
@@ -1013,7 +1021,7 @@ SQL
             data: $a,
             markdownPopis: $popis,
             organizatoriIds: $organizatori,
-            lokaceIds: $locaceIds,
+            lokaceIds: $lokaceIds,
             hlavniLokaceId: $hlavniLokaceId,
             tagIds: $tagIds,
             obrazekSoubor: $obrazekSoubor,
@@ -1021,7 +1029,6 @@ SQL
             odmenaZaHodinu: $odmenaZaHodinu,
         );
         self::varujBylaLiNejakaLokaceObsazena($aktivita);
-        self::varujNebylaLiHlavniLokaceNastavena($aktivita, $hlavniLokaceId);
 
         if ($rodiceIds) {
             $detiIds    = $aktivita->detiIds();
@@ -1081,20 +1088,19 @@ SQL
         }
     }
 
-    private static function varujNebylaLiHlavniLokaceNastavena(
-        Aktivita $aktivita,
-        ?int     $hlavniLokaceId,
+    private static function chybaNebylaLiHlavniLokaceNastavena(
+        array $lokaceIds,
+        ?int  $hlavniLokaceId,
     ): void {
-        if ($hlavniLokaceId === null) {
+        if ($lokaceIds === [] && $hlavniLokaceId === null) {
             return;
         }
-        $seznamLokaciIdcka = $aktivita->seznamLokaciIdcka();
-        if (in_array($hlavniLokaceId, $seznamLokaciIdcka, true)) {
+        if (in_array($hlavniLokaceId, $lokaceIds, true)) {
             return;
         }
-        varovani(
+        chyba(
             'Hlavní místnost musí být jednou z vybraných místností.',
-            false,
+            true,
         );
     }
 
