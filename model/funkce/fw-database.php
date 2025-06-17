@@ -702,6 +702,9 @@ function dbFetchAll(
     return $resultAsArray;
 }
 
+/**
+ * @return array<int, string|int|null> single column values
+ */
 function dbFetchColumn(
     string $query,
     array  $params = [],
@@ -709,7 +712,7 @@ function dbFetchColumn(
 ): array {
     $result       = dbQuery($query, $params, $connection);
     $columnValues = [];
-    while ($row = mysqli_fetch_array($result)) {
+    while ($row = mysqli_fetch_array($result, MYSQLI_NUM)) {
         $columnValues[] = reset($row);
     }
 

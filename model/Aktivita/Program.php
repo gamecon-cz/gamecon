@@ -361,7 +361,7 @@ class Program
      * Pomocná funkce pro načítání další aktivity z DB nebo z lokálního stacku
      * aktivit (globální proměnné se používají)
      */
-    private function dalsiAktivita()
+    private function dalsiAktivita(): ?array
     {
         if (!$this->dbPosledni) {
             $this->dbPosledni = $this->nactiDalsiAktivitu($this->program);
@@ -491,7 +491,7 @@ HTML;
     private function tiskTabulky(
         ?array &$aktivitaRaw,
                $denId = null,
-    ) {
+    ): void {
         echo '<table class="' . $this->nastaveni[self::TABLE_CSS_CLASS] . '">';
 
         // tisk hlavičkového řádku s čísly
@@ -512,7 +512,7 @@ HTML;
     private function tiskObsahuTabulky(
         ?array &$aktivitaRaw,
                $denId = null,
-    ) {
+    ): void {
         $pocetAktivit = 0;
         foreach ($this->skupiny as $typId => $typNazev) {
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
