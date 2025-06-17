@@ -1478,7 +1478,7 @@ SQL
         ));
     }
 
-    private function idHlavniLokace(): ?int
+    public function idHlavniLokace(): ?int
     {
         if (!isset($this->idHlavniLokace)) {
             $idHlavniLokace       = dbFetchSingle(<<<SQL
