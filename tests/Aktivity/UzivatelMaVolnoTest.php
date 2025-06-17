@@ -34,8 +34,8 @@ class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
 
     function testZadneAktivity()
     {
-        self::assertTrue(
-            self::prihlasenyUzivatel()->maVolno(
+        self::assertNull(
+            self::prihlasenyUzivatel()->maKoliziSJinouAktivitou(
                 new \DateTime('2000-01-01 00:00'),
                 new \DateTime('2000-01-01 24:00'),
             ),
@@ -45,18 +45,25 @@ class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
     /**
      * @dataProvider provideRuzneVarianty
      */
-    public function testRuzneVarianty(string $od, string $do, ?int $aktivitaId, bool $ocekavanyVysledek)
-    {
-        self::assertSame(
-            $ocekavanyVysledek,
-            self::$uzivatel->maVolno(
-                new \DateTime('2000-01-01 ' . $od),
-                new \DateTime('2000-01-01 ' . $do),
-                $aktivitaId
-                    ? Aktivita::zId($aktivitaId)
-                    : null,
-            ),
+    public function testRuzneVarianty(
+        string $od,
+        string $do,
+        ?int   $aktivitaId,
+        bool   $nemaKolizi,
+    ) {
+        $kolizniAktivita = self::$uzivatel->maKoliziSJinouAktivitou(
+            new \DateTime('2000-01-01 ' . $od),
+            new \DateTime('2000-01-01 ' . $do),
+            $aktivitaId
+                ? Aktivita::zId($aktivitaId)
+                : null,
         );
+        if ($nemaKolizi) {
+            self::assertNull($kolizniAktivita);
+
+            return;
+        }
+        self::assertInstanceOf(Aktivita::class, $kolizniAktivita);
     }
 
     public static function provideRuzneVarianty(): array
