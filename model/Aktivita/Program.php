@@ -6,6 +6,7 @@ use ArrayIterator;
 use ArrayObject;
 use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceTypySqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\LokaceSqlStruktura;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -289,14 +290,16 @@ class Program
                 Aktivita::zProgramu(
                     razeni: '_razeni_tmp',
                     select: '
-                        (SELECT akce_lokace.poradi
+                        (SELECT lokace.poradi
                             FROM akce_lokace
-                            WHERE akce_lokace.id_lokace = a.lokace
-                            ORDER BY akce_lokace.poradi
+                            JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
+                            WHERE akce_lokace.id_akce = a.id_akce
+                            ORDER BY akce_lokace.je_hlavni, lokace.poradi
                             LIMIT 1
                         ) AS _razeni_tmp
                     ',
                     dalsiPouziteSqlTabulky: [
+                        LokaceSqlStruktura::LOKACE_TABULKA,
                         AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA,
                     ],
                     zCache: true,
