@@ -562,7 +562,7 @@ HTML;
             }
             ob_start(); // výstup bufferujeme, pro případ že bude na víc řádků
             $pocetRadku = 0;
-            while ($aktivitaRaw && $typId == $aktivitaRaw['grp']) {
+            while ($aktivitaRaw && $typId === (int)$aktivitaRaw['grp']) {
                 if ($denId && $aktivitaRaw['den'] != $denId) {
                     break;
                 }
@@ -637,7 +637,7 @@ HTML;
                 $grp = $aktivita->typId();
                 break;
             case self::SKUPINY_PODLE_LOKACE_ID :
-                $grp = implode(',', $aktivita->seznamLokaciIdcka());
+                $grp = $aktivita->idHlavniLokace();
                 break;
             case self::SKUPINY_PODLE_DEN :
                 $grp = (int)$aktivita->denProgramu()->format('z');
