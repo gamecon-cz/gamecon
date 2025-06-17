@@ -1547,7 +1547,11 @@ SQL
     {
         if (!isset($this->idHlavniLokace)) {
             $idHlavniLokace       = dbFetchSingle(<<<SQL
-                SELECT id_lokace FROM akce_lokace WHERE id_akce = {$this->id()} AND je_hlavni = 1
+                SELECT id_lokace
+                FROM akce_lokace
+                WHERE id_akce = {$this->id()}
+                ORDER BY je_hlavni DESC, id_lokace ASC
+                LIMIT 1
                 SQL,
             );
             $this->idHlavniLokace = $idHlavniLokace
