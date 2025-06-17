@@ -119,6 +119,8 @@ class CachedDb implements DbInterface
             [0 => $relatedTables],
         );
         if (count($tableVersions) !== count($relatedTables)) {
+            sort($relatedTables);
+            ksort($tableVersions);
             throw new \RuntimeException(
                 sprintf(
                     'Not all tables have a version in the cache. '
