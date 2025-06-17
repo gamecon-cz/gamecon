@@ -43,6 +43,8 @@ function nasad(array $nastaveni) {
       /admin/stamps/*
       /cache/public/*
       !/cache/public/.htaccess
+      
+      /logy
 
       /dokumentace
 
