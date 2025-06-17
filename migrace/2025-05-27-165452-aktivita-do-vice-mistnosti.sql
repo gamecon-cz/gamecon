@@ -1,5 +1,9 @@
 RENAME TABLE akce_lokace TO lokace;
 
+UPDATE _table_data_versions
+SET table_name = 'lokace'
+WHERE table_name = 'akce_lokace';
+
 CREATE TABLE akce_lokace
 (
     id_akce_lokace SERIAL,

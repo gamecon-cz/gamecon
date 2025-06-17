@@ -16,7 +16,6 @@ use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\AkceSjednoceneTagySqlStruktura;
-use Gamecon\Aktivita\SqlStruktura\AkceTypySqlStruktura;
 use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
@@ -4128,7 +4127,6 @@ SQL,
         $aktivity = self::zWhere(
             systemoveNastaveni: $systemoveNastaveni,
             dalsiPouziteSqlTabulky: [],
-            where1: '',
         );
         foreach ($aktivity as $aktivita) {
             self::$objekty['ids'][$aktivita->id()] = $aktivita;
@@ -4162,6 +4160,9 @@ SQL,
      */
     public static function zProgramu(
         string              $razeni,
+        ?string             $select = null,
+        ?string             $join = null,
+        array               $dalsiPouziteSqlTabulky = [],
         bool                $zCache = false,
         bool                $prednacitat = false,
         ?SystemoveNastaveni $systemoveNastaveni = null,
@@ -4177,8 +4178,9 @@ SQL,
 
         $aktivity = self::zWhere(
             systemoveNastaveni: $systemoveNastaveni,
-            dalsiPouziteSqlTabulky: [],
-            where1: 'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
+            dalsiPouziteSqlTabulky: $dalsiPouziteSqlTabulky,
+            select: $select,
+            where1: "$join WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))",
             args: [
                 0 => $systemoveNastaveni->rocnik(),
                 1 => StavAktivity::NOVA,
@@ -4288,13 +4290,15 @@ SQL,
     protected static function zWhere(
         SystemoveNastaveni    $systemoveNastaveni,
         array                 $dalsiPouziteSqlTabulky,
-        string                $where1,
+        ?string               $select = null,
+        string                $where1 = '',
         ?array                $args = null,
         ?string               $order = null,
         ?int                  $limit = null,
         bool                  $prednacitat = false,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
+        $select   ??= 'NULL AS _';
         $limitSql = $limit !== null
             ? "LIMIT $limit"
             : '';
@@ -4302,6 +4306,7 @@ SQL,
         $plainSql = dbQueryAssemble(
             q: <<<SQL
                 SELECT
+                    $select,
                     (SELECT GROUP_CONCAT(akce_sjednocene_tagy.id_tagu)
                         FROM akce_sjednocene_tagy
                         WHERE akce_sjednocene_tagy.id_akce = a.id_akce
@@ -4310,10 +4315,9 @@ SQL,
                         FROM akce_organizatori
                         WHERE akce_organizatori.id_akce = a.id_akce
                     ) AS organizatori,
-                    a.*, akce_typy.poradi AS poradi_typu,
+                    a.*,
                     IF(a.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = a.patri_pod), a.url_akce) AS url_temp
                 FROM akce_seznam a
-                LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu
                 $where1
                 $order
                 $limitSql
@@ -4327,7 +4331,6 @@ SQL,
                     AkceSjednoceneTagySqlStruktura::AKCE_SJEDNOCENE_TAGY_TABULKA,
                     AkceOrganizatoriSqlStruktura::AKCE_ORGANIZATORI_TABULKA,
                     AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA,
-                    AkceTypySqlStruktura::AKCE_TYPY_TABULKA,
                 ],
                 ...$dalsiPouziteSqlTabulky,
             ],

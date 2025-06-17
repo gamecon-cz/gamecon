@@ -4,6 +4,9 @@ namespace Gamecon\Aktivita;
 
 use ArrayIterator;
 use ArrayObject;
+use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkceTypySqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\LokaceSqlStruktura;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -283,7 +286,26 @@ class Program
         Uzivatel::prednactiUzivateleNaAktivitach($this->systemoveNastaveni->rocnik());
 
         if ($this->nastaveni[self::SKUPINY] === self::SKUPINY_MISTNOSTI) {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('poradi', true, true));
+            $this->program = new ArrayIterator(
+                Aktivita::zProgramu(
+                    razeni: 'poradi_lokace',
+                    select: '
+                        (SELECT lokace.poradi
+                            FROM akce_lokace
+                            JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
+                            WHERE akce_lokace.id_akce = a.id_akce
+                            ORDER BY akce_lokace.je_hlavni, lokace.poradi
+                            LIMIT 1
+                        ) AS poradi_lokace
+                    ',
+                    dalsiPouziteSqlTabulky: [
+                        LokaceSqlStruktura::LOKACE_TABULKA,
+                        AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA,
+                    ],
+                    zCache: true,
+                    prednacitat: true,
+                ),
+            );
             $this->grpf    = self::SKUPINY_PODLE_LOKACE_ID;
 
             $this->skupiny['0'] = 'Ostatní';
@@ -292,14 +314,29 @@ class Program
                 $this->skupiny[$t->id()] = ucfirst($t->nazev());
             }
         } elseif ($this->nastaveni[self::OSOBNI]) {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('zacatek', true, true));
+            $this->program = new ArrayIterator(
+                Aktivita::zProgramu(
+                    razeni: 'zacatek',
+                    zCache: true,
+                    prednacitat: true,
+                ),
+            );
             $this->grpf    = self::SKUPINY_PODLE_DEN;
 
             foreach ($this->dny() as $den) {
                 $this->skupiny[$den->format('z')] = mb_ucfirst($den->format('l'));
             }
         } else {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('poradi_typu', true, true));
+            $this->program = new ArrayIterator(
+                Aktivita::zProgramu(
+                    razeni: 'poradi_typu',
+                    select: 'akce_typy.poradi AS poradi_typu',
+                    join: 'LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu',
+                    dalsiPouziteSqlTabulky: [AkceTypySqlStruktura::AKCE_TYPY_TABULKA],
+                    zCache: true,
+                    prednacitat: true,
+                ),
+            );
             $this->grpf    = self::SKUPINY_PODLE_TYP_PORADI;
 
             // řazení podle poradi typu je nutné proto, že v tomto pořadí je i seznam aktivit
