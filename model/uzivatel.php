@@ -932,6 +932,11 @@ SQL,
         return $this->maPravo(Pravo::PRIHLASOVANI_NA_DOSUD_NEOTEVRENE);
     }
 
+    public function maPravoNaProvadeniKorekci(): bool
+    {
+        return $this->maPravo(Pravo::PROVADI_KOREKCE);
+    }
+
     public function jeBrigadnik(): bool
     {
         return $this->maRoli(Role::LETOSNI_BRIGADNIK);
