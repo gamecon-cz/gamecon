@@ -857,7 +857,7 @@ SQL
      * vrací null pokud se nic nestalo nebo aktualizovaný objekt Aktivita,
      *   pokud k nějaké aktualizaci došlo.
      */
-    public static function editorZpracuj(): ?Aktivita
+    public static function editorZpracuj(bool|null $maPravoNaProvadeniKorekci): ?Aktivita
     {
         if (!isset($_POST[self::POSTKLIC])) {
             return null;
@@ -951,7 +951,7 @@ SQL
 
         $odmenaZaHodinu = (int)post(self::ODMENA_ZA_HODINU_KLIC);
 
-        $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl, $odmenaZaHodinu);
+        $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl, $odmenaZaHodinu, $maPravoNaProvadeniKorekci);
         self::varujBylaLiMistnostObsazena($aktivita);
 
         if ($rodiceIds) {
@@ -1018,12 +1018,15 @@ SQL
         string  $obrazekSoubor = null,
         string  $obrazekUrl = null,
         int     $odmenaZaHodinu = null,
+        ?bool    $maPravoNaProvadeniKorekci = null,
     ): Aktivita {
         $data[Sql::BEZ_SLEVY]    = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
         $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
         $nastavujeKorekci        = empty($data[Sql::ID_AKCE]) /* nová aktivita */
-                                   || array_key_exists(Sql::PROBEHLA_KOREKCE, $data); /* checkbox pro korekci se zobrazil na základě práv */
-        if (array_key_exists(Sql::PROBEHLA_KOREKCE, $data)/** editace korekce; reakce na změnu textu viz @see popis */
+                                   || $maPravoNaProvadeniKorekci
+                                   || ($maPravoNaProvadeniKorekci === null && array_key_exists(Sql::PROBEHLA_KOREKCE, $data));
+        if ($maPravoNaProvadeniKorekci
+            || array_key_exists(Sql::PROBEHLA_KOREKCE, $data)/** editace korekce; reakce na změnu textu viz @see popis */
         ) {
             $data[Sql::PROBEHLA_KOREKCE] = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "probehla_korekce"
         }
@@ -1874,7 +1877,7 @@ SQL
             return $popis;
         }
         dbUpdate(
-            'akce_seznam',
+            Sql::AKCE_SEZNAM_TABULKA,
             $zmeny,
             $this->a[Sql::PATRI_POD]
                 ? [Sql::PATRI_POD => $this->a[Sql::PATRI_POD]]

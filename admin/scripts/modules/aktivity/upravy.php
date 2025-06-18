@@ -15,6 +15,7 @@ use Gamecon\Web\Urls;
 
 /**
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ * @var \Uzivatel|null $u
  */
 
 if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
@@ -24,7 +25,7 @@ if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
 
 /** @var Logovac $vyjimkovac */
 try {
-    if ($a = Aktivita::editorZpracuj()) {  // úspěšné uložení změn ve formuláři
+    if ($a = Aktivita::editorZpracuj($u?->maPravoNaProvadeniKorekci())) {  // úspěšné uložení změn ve formuláři
         if ($a->nova()) {
             back(Urls::urlAdminDetailAktivity($a->id()));
         } else {
