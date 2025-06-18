@@ -25,7 +25,7 @@ class QrPlatba
      * @param float $castkaCzk Bude zaokrouhlena na dve desetinna mista!
      * @return static
      */
-    /*
+
     public static function dejQrProSepaPlatbu(
         float  $castkaCzk,
         int    $variabilniSymbol,
@@ -43,52 +43,7 @@ class QrPlatba
             'EUR',
             $jmenoPrijemcePlatby,
         );
-    }*/
-
-    public static function dejQrProSepaPlatbu(
-        float              $castka,
-        string             $bic,
-        int                $variabilniSymbol,
-        string             $iban = IBAN,
-        string             $jmenoPrijemce = NAZEV_SPOLECNOSTI_GAMECON,
-        string             $zpravaProPrijemce = '',
-        \DateTimeInterface $datumSplatnosti   = null,
-    ): self {
-        // Pokud datum není specifikováno, použijeme dnešek
-        $datum = $datumSplatnosti
-            ? $datumSplatnosti->format('Y-m-d')
-            : (new \DateTimeImmutable())->format('Y-m-d');
-
-        // Skládáme payload dle EPC QR spec
-        $lines = [
-            'BCD',               // formát
-            '001',               // verze
-            '1',                 // charset (1=UTF-8)
-            'SCT',               // SEPA Credit Transfer
-            $bic,                // BIC (volitelně lze nechat prázdné od 2016)
-            $iban,               // IBAN příjemce
-            $jmenoPrijemce,      // jméno příjemce
-            sprintf('EUR%.2F', $castka),  // částka s dvou desetinnými místy
-            '',                  // purpose – můžete sem dát kód (NAPř. CHAR)
-            $zpravaProPrijemce,  // remittance info (zpráva pro příjemce)
-            $datum,              // datum splatnosti (volitelné pole)
-        ];
-
-        $payload = implode("\n", $lines);
-
-        return new static(
-        // Místo CzechIbanAdapter použijte obecný adapter, který přijme už celý IBAN
-            new GenericIbanAdapter($iban),
-            $bic,
-            $variabilniSymbol,      // variabilní symbol SEPA standard nevyužívá
-            $castka,
-            'EUR',
-            $jmenoPrijemce,
-            $datumSplatnosti,
-            $payload    // nebo předat payload do třídy QR
-        );
     }
-
 
     /**
      * @param string $cisloUctu
