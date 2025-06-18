@@ -28,6 +28,7 @@ use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Urls;
@@ -256,15 +257,19 @@ SQL
         return (bool)$this->a[Sql::PROBEHLA_KOREKCE];
     }
 
-    public function nastavKorekci(bool $stav)
+    public function nastavKorekci(bool $stav): void
     {
-        dbQuery('UPDATE ' . Sql::AKCE_SEZNAM_TABULKA .
-            ' SET ' . Sql::PROBEHLA_KOREKCE . ' = $0 ' .
-            ' WHERE ' . Sql::ID_AKCE . ' = ' . $this->id() .
-            ' OR (' . Sql::PATRI_POD . ' IS NOT NULL AND ' .
-            Sql::PATRI_POD . ' = (SELECT a.' . Sql::PATRI_POD .
-                                ' FROM ' . Sql::AKCE_SEZNAM_TABULKA . ' a' .
-                                ' WHERE a.' . Sql::ID_AKCE . ' = ' . $this->id() . '))',
+        dbQuery(<<<SQL
+            UPDATE akce_seznam
+            SET probehla_korekce = $0
+            WHERE id_akce = {$this->id()}
+            OR (patri_pod IS NOT NULL
+                AND patri_pod = (SELECT a.patri_pod
+                    FROM akce_seznam a
+                    WHERE a.id_akce = {$this->id()}
+                )
+            )
+            SQL,
             [$stav]);
         $this->a[Sql::PROBEHLA_KOREKCE] = $stav;
     }
@@ -273,7 +278,7 @@ SQL
         \Uzivatel             $u = null,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
-        \Gamecon\Uzivatel\Finance::slevaAktivityDSC($dataSourcesCollector);
+        Finance::slevaAktivityDSC($dataSourcesCollector);
 
         return (!$this->a[Sql::BEZ_SLEVY] && $u && $u->gcPrihlasen($dataSourcesCollector))
             ? $u->finance()->slevaAktivity($dataSourcesCollector)
@@ -1016,9 +1021,9 @@ SQL
     ): Aktivita {
         $data[Sql::BEZ_SLEVY]    = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
         $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
-        $nastavujeKorekci = empty($data[Sql::ID_AKCE]) /* nová aktivita */
-            || array_key_exists(Sql::PROBEHLA_KOREKCE, $data);
-        if (array_key_exists(Sql::PROBEHLA_KOREKCE, $data)  /** editace korekce; reakce na změnu textu viz @see popis */
+        $nastavujeKorekci        = empty($data[Sql::ID_AKCE]) /* nová aktivita */
+                                   || array_key_exists(Sql::PROBEHLA_KOREKCE, $data); /* checkbox pro korekci se zobrazil na základě práv */
+        if (array_key_exists(Sql::PROBEHLA_KOREKCE, $data)/** editace korekce; reakce na změnu textu viz @see popis */
         ) {
             $data[Sql::PROBEHLA_KOREKCE] = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "probehla_korekce"
         }
@@ -1113,17 +1118,20 @@ SQL
                 $data[Sql::STAV] = StavAktivity::NOVA;
             }
             if (!array_key_exists(Sql::PROBEHLA_KOREKCE, $data) && empty($data[Sql::ID_AKCE])) {
-                $data[Sql::PROBEHLA_KOREKCE] = dbAffectedOrNumRows(dbQuery(
-                    'SELECT 1
-                        FROM akce_seznam a
-                        WHERE a.nazev_akce = $0
-                        AND a.popis_kratky = $2
-                        AND a.probehla_korekce = 1
-                        AND exists(SELECT 1 FROM texty t JOIN akce_seznam aa ON aa.popis = t.id WHERE t.text = $1 AND aa.probehla_korekce = 1)
-                        LIMIT 1', [$data[Sql::NAZEV_AKCE], $data[Sql::POPIS], $data[Sql::POPIS_KRATKY]]));
+                $data[Sql::PROBEHLA_KOREKCE] = (int)dbOneCol(
+                    'SELECT EXISTS(
+                            SELECT 1
+                            FROM akce_seznam a
+                            WHERE a.nazev_akce = $0
+                            AND a.popis_kratky = $2
+                            AND a.probehla_korekce = 1
+                            AND EXISTS(SELECT 1 FROM texty t JOIN akce_seznam aa ON aa.popis = t.id WHERE t.text = $1 AND aa.probehla_korekce = 1)
+                        )',
+                    [0 => $data[Sql::NAZEV_AKCE], 1 => $data[Sql::POPIS], 2 => $data[Sql::POPIS_KRATKY]],
+                );
             }
             // vložení
-            dbInsertUpdate('akce_seznam', $data);
+            dbInsertUpdate(Sql::AKCE_SEZNAM_TABULKA, $data);
             $data[Sql::ID_AKCE] = dbInsertId();
             $aktivita           = self::zId($data[Sql::ID_AKCE]);
             $aktivita->nova     = true;
@@ -1406,11 +1414,11 @@ SQL
         return $this->seznamUcastniku;
     }
 
-    private static function seznamUcastnikuDSC(?DataSourcesCollector $dataSourcesCollector): void {
+    private static function seznamUcastnikuDSC(?DataSourcesCollector $dataSourcesCollector): void
+    {
         self::prihlaseniRawDSC($dataSourcesCollector);
         self::seznamUcastnikuAktivitDSC($dataSourcesCollector);
     }
-
 
     private static function seznamUcastnikuAktivit(
         string                $where = 'TRUE',
@@ -1450,7 +1458,7 @@ SQL
     }
 
     private static function seznamUcastnikuAktivitDSC(
-        ?DataSourcesCollector $dataSourcesCollector
+        ?DataSourcesCollector $dataSourcesCollector,
     ): void {
         $dataSourcesCollector?->addDataSources([
             Sql::AKCE_SEZNAM_TABULKA,
@@ -1718,7 +1726,7 @@ SQL,
      * @return Uzivatel[]|void
      */
     public function organizatori(
-        array $ids = null,
+        array                 $ids = null,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ) {
         Uzivatel::zIdsDSC($dataSourcesCollector);
@@ -1844,8 +1852,10 @@ SQL
     /**
      * Vrátí formátovaný (html) popisek aktivity
      */
-    public function popis(string $popis = null, bool $resetujKorekci = false)
-    {
+    public function popis(
+        string $popis = null,
+        bool   $resetujKorekci = false,
+    ) {
         if ($popis === null) {
             return dbMarkdown($this->a[Sql::POPIS]);
         }
@@ -2299,10 +2309,10 @@ SQL
             WHERE {$where}
             GROUP BY akce_seznam.id_akce
             SQL,
-            );
-        }
+        );
+    }
 
-    private static function nactiPrihlaseniNaAktivityRawDSC (
+    private static function nactiPrihlaseniNaAktivityRawDSC(
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): void {
         $dataSourcesCollector?->addDataSources([
@@ -2324,7 +2334,8 @@ SQL
         );
     }
 
-    private static function nactiPrihlaseniRawDSC(?DataSourcesCollector $dataSourcesCollector): void {
+    private static function nactiPrihlaseniRawDSC(?DataSourcesCollector $dataSourcesCollector): void
+    {
         self::nactiPrihlaseniNaAktivityRawDSC($dataSourcesCollector);
     }
 
@@ -2417,13 +2428,13 @@ SQL
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
     public function prihlasovatelna(
-        int                   $parametry = 0,
+        int $parametry = 0,
     ) {
         return $this->procNeniPrihlasovatelna($parametry) === '';
     }
 
     private function procNeniPrihlasovatelna(
-        int                   $parametry,
+        int $parametry,
     ): string {
         $dopredne   = $parametry & self::DOPREDNE;
         $zpetne     = $parametry & self::ZPETNE;
@@ -3570,8 +3581,8 @@ SQL,
      * @return int
      */
     public static function upozorniNaNeuzavreneKonciciOdDo(
-        \DateTimeInterface $konciciNejmeneDo,
-        \DateTimeInterface $konciciNejviceDo,
+        \DateTimeInterface  $konciciNejmeneDo,
+        \DateTimeInterface  $konciciNejviceDo,
         ?SystemoveNastaveni $systemoveNastaveni = null,
     ): int {
         $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();

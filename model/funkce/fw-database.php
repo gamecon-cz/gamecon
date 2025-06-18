@@ -622,6 +622,7 @@ function dbOneArray(
 
 /**
  * For selecting single-line one column value
+ * @return scalar|null
  */
 function dbOneCol(
     $q,

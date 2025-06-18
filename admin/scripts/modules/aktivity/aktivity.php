@@ -113,12 +113,21 @@ if (post('instance')) {
     back();
 }
 
-if (post("korekce")) {
+if (($opacnyStavKorekce = post("korekce") !== null)) {
+    $idAktivity = post('aktivitaId');
+    if (!$idAktivity) {
+        chyba('Chybí ID aktivity pro korekci.');
+        back();
+    }
     $a = Aktivita::zId(
-        id: post("aktivitaId"),
+        id: $idAktivity,
         systemoveNastaveni: $systemoveNastaveni,
     );
-    $a?->nastavKorekci(!$a->probehlaKorekce());
+    if (!$a) {
+        chyba("Aktivita s ID $idAktivity neexistuje.");
+        back();
+    }
+    $a->nastavKorekci((bool)$opacnyStavKorekce);
 }
 
 require_once __DIR__ . '/_filtr-moznosti.php';
@@ -187,6 +196,7 @@ foreach ($aktivity as $aktivita) {
         $tpl->parse('aktivity.aktivita.symbolInstance');
     }
     if ($u->maPravo(Pravo::PROVADI_KOREKCE)) {
+        $tpl->assign('opacnyStavKorekce', $aktivita->probehlaKorekce() ? 1 : 0);
         $tpl->parse("aktivity.aktivita.rychlokorekce1");
     }
     if ($r[Sql::PROBEHLA_KOREKCE]) {
