@@ -84,7 +84,7 @@ if (!$zaplaceno) {
 
     <?php
     $qrKodProPlatbuCz = $u->finance()->dejQrKodProPlatbuCz();
-    $qrKodProPlatbuSepa = $u->finance()->dejQrKodProPlatbuSEPA();
+    $qrKodProPlatbuSepa = $u->finance()->dejQrKodProPlatbuSepa();
     ?>
 
     <?php if (!$zaplaceno): ?>

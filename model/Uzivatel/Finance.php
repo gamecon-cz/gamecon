@@ -1046,18 +1046,16 @@ SQL;
         return $qrPlatba->dejQrObrazek();
     }
 
-    public function dejQrKodProPlatbuSEPA(): ?ResultInterface
+    public function dejQrKodProPlatbuSepa(): ?ResultInterface
     {
         // SEPA platbu přes QR kód neumí zřejmě žádná slovenská banka, takže pro mimočeské nezobrazíme nic
-
-        $castkaEur = round($this->stav() / KURZ_EURO, 2) >= 0
+        $castkaCzk = $this->stav() >= 0
             ? 0.1
             // nulová, respektive dobrovolná platba
             : -$this->stav();
 
         $qrPlatba = QrPlatba::dejQrProSepaPlatbu(
-            $castkaEur,
-            "/VS/{$this->u->id()}",
+            $castkaCzk,
             $this->u->id()
         );
         return $qrPlatba->dejQrObrazek();
