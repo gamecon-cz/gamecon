@@ -255,15 +255,19 @@ SQL
         return (bool)$this->a[Sql::PROBEHLA_KOREKCE];
     }
 
-    public function nastavKorekci(bool $stav)
+    public function nastavKorekci(bool $stav): void
     {
-        dbQuery('UPDATE ' . Sql::AKCE_SEZNAM_TABULKA .
-            ' SET ' . Sql::PROBEHLA_KOREKCE . ' = $0 ' .
-            ' WHERE ' . Sql::ID_AKCE . ' = ' . $this->id() .
-            ' OR (' . Sql::PATRI_POD . ' IS NOT NULL AND ' .
-            Sql::PATRI_POD . ' = (SELECT a.' . Sql::PATRI_POD .
-                                ' FROM ' . Sql::AKCE_SEZNAM_TABULKA . ' a' .
-                                ' WHERE a.' . Sql::ID_AKCE . ' = ' . $this->id() . '))',
+        dbQuery(<<<SQL
+            UPDATE akce_seznam
+            SET probehla_korekce = $0
+            WHERE id_akce = {$this->id()}
+            OR (patri_pod IS NOT NULL
+                AND patri_pod = (SELECT a.patri_pod
+                    FROM akce_seznam a
+                    WHERE a.id_akce = {$this->id()}
+                )
+            )
+            SQL,
             [$stav]);
         $this->a[Sql::PROBEHLA_KOREKCE] = $stav;
     }
@@ -1010,9 +1014,9 @@ SQL
     ): Aktivita {
         $data[Sql::BEZ_SLEVY]    = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
         $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
-        $nastavujeKorekci = empty($data[Sql::ID_AKCE]) /* nová aktivita */
-            || array_key_exists(Sql::PROBEHLA_KOREKCE, $data);
-        if (array_key_exists(Sql::PROBEHLA_KOREKCE, $data)  /** editace korekce; reakce na změnu textu viz @see popis */
+        $nastavujeKorekci        = empty($data[Sql::ID_AKCE]) /* nová aktivita */
+                                   || array_key_exists(Sql::PROBEHLA_KOREKCE, $data); /* checkbox pro korekci se zobrazil na základě práv */
+        if (array_key_exists(Sql::PROBEHLA_KOREKCE, $data)/** editace korekce; reakce na změnu textu viz @see popis */
         ) {
             $data[Sql::PROBEHLA_KOREKCE] = (int)!empty($data[Sql::PROBEHLA_KOREKCE]); // checkbox pro "probehla_korekce"
         }
@@ -1107,17 +1111,20 @@ SQL
                 $data[Sql::STAV] = StavAktivity::NOVA;
             }
             if (!array_key_exists(Sql::PROBEHLA_KOREKCE, $data) && empty($data[Sql::ID_AKCE])) {
-                $data[Sql::PROBEHLA_KOREKCE] = dbAffectedOrNumRows(dbQuery(
-                    'SELECT 1
-                        FROM akce_seznam a
-                        WHERE a.nazev_akce = $0
-                        AND a.popis_kratky = $2
-                        AND a.probehla_korekce = 1
-                        AND exists(SELECT 1 FROM texty t JOIN akce_seznam aa ON aa.popis = t.id WHERE t.text = $1 AND aa.probehla_korekce = 1)
-                        LIMIT 1', [$data[Sql::NAZEV_AKCE], $data[Sql::POPIS], $data[Sql::POPIS_KRATKY]]));
+                $data[Sql::PROBEHLA_KOREKCE] = (int)dbOneCol(
+                    'SELECT EXISTS(
+                            SELECT 1
+                            FROM akce_seznam a
+                            WHERE a.nazev_akce = $0
+                            AND a.popis_kratky = $2
+                            AND a.probehla_korekce = 1
+                            AND EXISTS(SELECT 1 FROM texty t JOIN akce_seznam aa ON aa.popis = t.id WHERE t.text = $1 AND aa.probehla_korekce = 1)
+                        )',
+                    [0 => $data[Sql::NAZEV_AKCE], 1 => $data[Sql::POPIS], 2 => $data[Sql::POPIS_KRATKY]],
+                );
             }
             // vložení
-            dbInsertUpdate('akce_seznam', $data);
+            dbInsertUpdate(Sql::AKCE_SEZNAM_TABULKA, $data);
             $data[Sql::ID_AKCE] = dbInsertId();
             $aktivita           = self::zId($data[Sql::ID_AKCE]);
             $aktivita->nova = true;
@@ -1856,8 +1863,10 @@ SQL
     /**
      * Vrátí formátovaný (html) popisek aktivity
      */
-    public function popis(string $popis = null, bool $resetujKorekci = false)
-    {
+    public function popis(
+        string $popis = null,
+        bool   $resetujKorekci = false,
+    ) {
         if ($popis === null) {
             return dbMarkdown($this->a[Sql::POPIS]);
         }
