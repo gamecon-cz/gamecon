@@ -797,7 +797,7 @@ SQL;
         $hromadneOdhlasovaniKdy = $this->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
         // Pokud je v rámci poslední hodiny dne, tak efektivně mohou zaplatit kdykoliv v průběhu toho dne. Jinak raději napsat den předem, ať nejsou stížnosti
         // už neplatí došlo k mírné změně textu
-        return $hromadneOdhlasovaniKdy->zaokrouhlitNaHodinyNahoru();//->modify('-1 day');
+        return $hromadneOdhlasovaniKdy;//->modify('-1 day');
     }
 
     public function pristiVlnaKdy(): ?DateTimeGamecon
