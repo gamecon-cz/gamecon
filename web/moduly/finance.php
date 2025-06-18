@@ -83,7 +83,8 @@ if (!$zaplaceno) {
     <div style="clear:both"></div>
 
     <?php
-    $qrKodProPlatbu = $u->finance()->dejQrKodProPlatbu();
+    $qrKodProPlatbuCz = $u->finance()->dejQrKodProPlatbuCz();
+    $qrKodProPlatbuSepa = $u->finance()->dejQrKodProPlatbuSEPA();
     ?>
 
     <?php if (!$zaplaceno): ?>
@@ -94,9 +95,9 @@ if (!$zaplaceno) {
             <strong>Částka k zaplacení:</strong> <?= $castkaCZ ?>
         </div>
 
-        <?php if ($qrKodProPlatbu !== null): ?>
+        <?php if ($qrKodProPlatbuCz !== null): ?>
             <div style="text-align: center; margin-top: 16px">
-                <img src="<?= $qrKodProPlatbu->getDataUri() ?>" alt="qrPlatba">
+                <img src="<?= $qrKodProPlatbuCz->getDataUri() ?>" alt="qrPlatba">
             </div>
         <?php endif; ?>
 
@@ -158,9 +159,9 @@ if (!$zaplaceno) {
             <strong>Variabilní symbol:</strong> <?= $uid ?><br>
         </div>
 
-        <?php if ($qrKodProPlatbu !== null): ?>
+        <?php if ($qrKodProPlatbuCz !== null): ?>
             <div style="text-align: center; margin-top: 16px">
-                <img src="<?= $qrKodProPlatbu->getDataUri() ?>" alt="qrPlatba">
+                <img src="<?= $qrKodProPlatbuCz->getDataUri() ?>" alt="qrPlatba">
             </div>
         <?php endif; ?>
 
@@ -171,5 +172,10 @@ if (!$zaplaceno) {
                 <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
                 <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(včetně lomítek)</i><br>
             </div>
+            <?php if ($qrKodProPlatbuSepa !== null): ?>
+                <div style="text-align: center; margin-top: 16px">
+                    <img src="<?= $qrKodProPlatbuSepa->getDataUri() ?>" alt="qrPlatba">
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
     <?php endif; ?>
