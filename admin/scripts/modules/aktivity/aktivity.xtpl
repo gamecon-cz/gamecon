@@ -234,7 +234,7 @@
                 <!-- begin:rychlokorekce1 -->
                 <form method="post">
                     <input type="hidden" name="aktivitaId" value="{id_akce}"/>
-                    <button type="submit" name="korekce" value="1" class="no-background-color"
+                    <button type="submit" name="korekce" value="{opacnyStavKorekce}" class="no-background-color"
                             title="Změna stavu korekce"
                             onclick="return window.confirm('Opravdu změnit stav korekce {nazev_akce}?');">
                         <!-- end:rychlokorekce1 -->
