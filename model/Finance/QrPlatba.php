@@ -20,19 +20,23 @@ class QrPlatba
      * Jednotná oblast pro platby v eurech v rámci EU
      * https://cs.wikipedia.org/wiki/Jednotn%C3%A1_oblast_pro_platby_v_eurech
      *
-     * @param string $iban IBAN
-     * @param float $variabilniSymbol
-     * @param float $castkaCzk Bude zaokrouhlena na dve desetinna mista!
+     * @param float  $castkaCzk         Bude zaokrouhlena na dvě desetinná místa!
+     * @param int    $variabilniSymbol
+     * @param float  $kurzCzkNaEur      Výchozí kurz pro převod
+     * @param string $iban              IBAN
+     * @param string $bic               BIC/SWIFT
+     * @param string $jmenoPrijemcePlatby
+     * @param string $zamereniFirmy     Zaměření firmy
      * @return static
      */
-
     public static function dejQrProSepaPlatbu(
         float  $castkaCzk,
         int    $variabilniSymbol,
-        float  $kurzCzkNaEur = KURZ_EURO,
-        string $iban = IBAN,
-        string $bic = BIC_SWIFT,
-        string $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON,
+        float  $kurzCzkNaEur         = KURZ_EURO,
+        string $iban                 = IBAN,
+        string $bic                  = BIC_SWIFT,
+        string $jmenoPrijemcePlatby  = NAZEV_SPOLECNOSTI_GAMECON,
+        string $zamereniFirmy        = ZAMERENI_FIRMY
     ): self
     {
         return new static(
@@ -42,32 +46,40 @@ class QrPlatba
             $castkaCzk / $kurzCzkNaEur,
             'EUR',
             $jmenoPrijemcePlatby,
+            $zamereniFirmy
         );
     }
 
     /**
-     * @param string $cisloUctu
-     * @param float $variabilniSymbol
-     * @param float $castka Bude zaokrouhlena na dve desetinna mista!
+     * Tuzemská platba
+     *
+     * @param float              $castka              Bude zaokrouhlena na dvě desetinná místa!
+     * @param int                $variabilniSymbol
+     * @param string             $cisloUctu           Číslo účtu ve formátu '12345678/0100'
+     * @param string             $jmenoPrijemcePlatby
+     * @param string             $zamereniFirmy       Zaměření firmy
+     * @param \DateTimeInterface|null $datumSplatnosti Při nezadaném datu dnes
      * @return static
      */
     public static function dejQrProTuzemskouPlatbu(
         float              $castka,
         int                $variabilniSymbol,
-        string             $cisloUctu = UCET_CZ,
-        string             $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON,
-        \DateTimeInterface $datumSplatnosti = null,
+        string             $cisloUctu             = UCET_CZ,
+        string             $jmenoPrijemcePlatby   = NAZEV_SPOLECNOSTI_GAMECON,
+        string             $zamereniFirmy         = ZAMERENI_FIRMY,
+        \DateTimeInterface $datumSplatnosti       = null,
     ): self
     {
         [$cisloUctuBezBanky, $kodBanky] = array_map('trim', explode('/', $cisloUctu));
 
         return new static(
             new CzechIbanAdapter($cisloUctuBezBanky, $kodBanky),
-            '', // BIC není potřeba
+            '', // BIC není potřeba pro tuzemské platby
             $variabilniSymbol,
             $castka,
             'CZK',
             $jmenoPrijemcePlatby,
+            $zamereniFirmy,
             $datumSplatnosti
         );
     }
@@ -104,13 +116,20 @@ class QrPlatba
      * @var string
      */
     private $jmenoPrijemcePlatby;
+    /**
+     * @var string
+     */
+    private $zamereniFirmy;
 
     /**
-     * @param IbanInterface $iban
-     * @param int $variabilniSymbol
-     * @param float $castka bude zaokrouhlena na dvě desetinná místa
-     * @param string $kodMeny ISO 4217
-     * @param \DateTimeInterface|null $datumSplatnosti Pouze pro tuzemské platby, SEPA platby jsou vždy splatné do jednoho dne
+     * @param IbanInterface            $iban
+     * @param string                   $bic
+     * @param int                      $variabilniSymbol
+     * @param float                    $castka              Bude zaokrouhlena na dvě desetinná místa
+     * @param string                   $kodMeny             ISO 4217
+     * @param string                   $jmenoPrijemcePlatby
+     * @param string                   $zamereniFirmy       Zaměření firmy
+     * @param \DateTimeInterface|null $datumSplatnosti     Pouze pro tuzemské platby, SEPA platby jsou vždy splatné do jednoho dne
      */
     private function __construct(
         IbanInterface      $iban,
@@ -119,6 +138,7 @@ class QrPlatba
         float              $castka,
         string             $kodMeny,
         string             $jmenoPrijemcePlatby,
+        string             $zamereniFirmy = ZAMERENI_FIRMY,
         \DateTimeInterface $datumSplatnosti = null,
     )
     {
@@ -128,6 +148,7 @@ class QrPlatba
         $this->castka              = Finance::zaokouhli($castka);
         $this->kodMeny             = $kodMeny;
         $this->jmenoPrijemcePlatby = $jmenoPrijemcePlatby;
+        $this->zamereniFirmy       = $zamereniFirmy;
         $this->datumSplatnosti     = $datumSplatnosti ?? new \DateTimeImmutable(); // dnes
     }
 
@@ -179,12 +200,12 @@ class QrPlatba
                 : 0.1,/** nejmenší povolená částka, @see \SepaQr\Data::setAmount */
             )
             ->setCurrency($this->kodMeny)
-            ->setRemittanceText('/VS/' . $this->variabilniSymbol);
+            ->setRemittanceText('/VS/' . $this->variabilniSymbol)
+            ->setInformation($this->zamereniFirmy);
 
         return Builder::create()
             ->errorCorrectionLevel(new ErrorCorrectionLevelMedium())
             ->data($sepaQrData->__toString())
             ->build();
     }
-
 }
