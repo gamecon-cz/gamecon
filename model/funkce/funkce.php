@@ -92,7 +92,7 @@ function datum4(
 
     return date('j. ', $datumTimestamp)
            . $mesic[date('n', $datumTimestamp) - 1]
-           . date(' H:i', $datumTimestamp);
+           . date(' H:i', $datumTimestamp);
 }
 
 /** Vrátí markdown textu daného hashe (cacheované, text musí být v DB) */
