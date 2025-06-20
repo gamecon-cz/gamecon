@@ -20,10 +20,13 @@ class Nahled
 
     protected function __construct(string $soubor)
     {
+        if (!file_exists($soubor) || !is_readable($soubor)) {
+            throw new RuntimeException('Obrázek neexistuje nebo není čitelný. Hledán na ' . $soubor);
+        }
         $this->soubor = $soubor;
         $this->datum  = @filemtime($this->soubor) ?: null;
         if (!$this->datum) {
-            throw new RuntimeException('Obrázek neexistuje. Hledán na ' . $soubor);
+            throw new RuntimeException('Nepodařilo se zjistit datum modifikace obrázku: ' . $soubor);
         }
     }
 
@@ -40,21 +43,25 @@ class Nahled
     /** Nastaví kvalitu jpeg exportu */
     function kvalita($q)
     {
-        $this->kvalita = $q;
+        $this->kvalita = (int) $q;
         return $this;
     }
 
     protected function mod($s, $v, $mod): Nahled
     {
         $this->mod = $mod;
-        $this->s   = $s;
-        $this->v   = $v;
+        $this->s   = $s ? (int)$s : null;
+        $this->v   = $v ? (int)$v : null;
         return $this;
     }
 
     /** Zmenší obrázek aby pasoval do obdelníku s šířkou $s a výškou $v */
     function pasuj($s, $v = null): Nahled
     {
+        // make sure the image is not made larger
+        if ($this->s <= $s && $this->v <= $v) {
+            return $this;
+        }
         return $this->mod($s, $v, self::PASUJ);
     }
 
@@ -70,34 +77,52 @@ class Nahled
         return $this->mod($s, $v, self::POKRYJ_OREZ);
     }
 
-    /** Uloží stávající soubor s požadovanými úpravami */
+    /** Uloží stávající soubor s požadovanými úpravami do WebP formátu */
     protected function uloz(string $cil)
     {
-        $o = Obrazek::zSouboru($this->soubor);
-        $s = $this->s ?: 10000;
-        $v = $this->v ?: 10000;
-        switch ($this->mod) {
-            case self::PASUJ:
-                $o->fitCrop($s, $v);
-                break;
-            case self::POKRYJ:
-                $o->fillCrop($s, $v);
-                break;
-            case self::POKRYJ_OREZ:
-                $o->fill($s, $v);
-                break;
+        try {
+            $imagick = new Imagick($this->soubor);
+
+            $s = $this->s ?: $imagick->getImageWidth();
+            $v = $this->v ?: $imagick->getImageHeight();
+
+            $s = max(1, (int)$s);
+            $v = max(1, (int)$v);
+
+            if ($this->mod) {
+                switch ($this->mod) {
+                    case self::PASUJ:
+                        $imagick->thumbnailImage($s, $v, true, false);
+                        break;
+                    case self::POKRYJ:
+                        $imagick->thumbnailImage($s, $v, true, true);
+                        break;
+                    case self::POKRYJ_OREZ:
+                        $imagick->cropThumbnailImage($s, $v);
+                        break;
+                }
+            }
+
+            $imagick->setImageFormat('WEBP');
+            $imagick->setImageCompressionQuality($this->kvalita);
+
+            $imagick->writeImage($cil);
+            $imagick->clear();
+            $imagick->destroy();
+        } catch (ImagickException $e) {
+            throw new RuntimeException("Chyba při zpracování obrázku (Imagick): " . $e->getMessage(), 0, $e);
         }
-        $o->uloz($cil, $this->kvalita);
     }
 
     /** Vrátí url obrázku, je možné ji cacheovat navždy */
     function url(): string
     {
-        $hash  = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita);
-        $cache = CACHE . '/img/' . $hash . '.jpg';
-        $url   = URL_CACHE . '/img/' . $hash . '.jpg?m=' . $this->datum;
-        if (@filemtime($cache) < $this->datum) {
-            pripravCache(CACHE . '/img/');
+        $hash  = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita . 'v2_webp'); // Added version/format to hash
+        $cache = CACHE . '/img/' . $hash . '.webp'; // Changed extension to .webp
+        $url   = URL_CACHE . '/img/' . $hash . '.webp?m=' . $this->datum; // Changed extension to .webp
+
+        if (!file_exists($cache) || @filemtime($cache) < $this->datum) {
+            pripravCache(CACHE . '/img'); // Ensure directory exists
             $this->uloz($cache);
         }
         return $url;
