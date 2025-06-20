@@ -38,8 +38,8 @@ $uid = $u->id();
 if (!$zaplaceno) {
     $castka                        = -$u->finance()->stav();
     $nejblizsiHromadneOdhlasovaniKdy = $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
-    $nejpozdejiZaplatitDo            = $systemoveNastaveni->tretiVlnaKdy();
-    $limit                           = datum4($nejpozdejiZaplatitDo)    ;
+    $nejpozdejiZaplatitDo            = $systemoveNastaveni->nejpozdejiZaplatitDo();
+    $limit                           = datum4($nejpozdejiZaplatitDo);
     $castkaCZ = $castka . '&thinsp;Kč';
     $castkaEUR = round($castka / KURZ_EURO, 2) . '&thinsp;€';
 }
@@ -110,16 +110,16 @@ if (!$zaplaceno) {
             </div>
         <?php endif; ?>
 
-        <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)): ?>
+        <?php if (pred($nejpozdejiZaplatitDo)): ?>
             <p>
                 GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong> (tento den musejí být peníze na účtu GameConu). Platíš celkem
                 <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
             </p>
 
-            <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani()) && !$u->maPravoNerusitObjednavky()): ?>
+            <?php if (pred($nejpozdejiZaplatitDo) && !$u->maPravoNerusitObjednavky()): ?>
                 <ul class="seznam-bez-okraje">
                     <li class="poznamka">Při pozdější platbě tě systém dne
-                        <strong><?= datum3($systemoveNastaveni->prvniHromadneOdhlasovani()) ?></strong> automaticky odhlásí.
+                        <strong><?= datum3($nejpozdejiZaplatitDo) ?></strong> automaticky odhlásí.
                     </li>
                     <li class="poznamka">
                         Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
@@ -128,7 +128,7 @@ if (!$zaplaceno) {
             <?php else: ?>
                 <ul class="seznam-bez-okraje">
                     <li class="poznamka">Při pozdější platbě tě systém dne
-                        <strong><?= datum3($nejblizsiHromadneOdhlasovaniKdy) ?></strong> automaticky odhlásí.
+                        <strong><?= datum3($nejpozdejiZaplatitDo) ?></strong> automaticky odhlásí.
                     </li>
                     <li class="poznamka">
                         Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
