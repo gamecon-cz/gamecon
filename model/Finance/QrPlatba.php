@@ -129,7 +129,7 @@ class QrPlatba
      * @param string                   $kodMeny             ISO 4217
      * @param string                   $jmenoPrijemcePlatby
      * @param string                   $zamereniFirmy       Zaměření firmy
-     * @param \DateTimeInterface|null $datumSplatnosti     Pouze pro tuzemské platby, SEPA platby jsou vždy splatné do jednoho dne
+     * @param \DateTimeInterface|null  $datumSplatnosti     Pouze pro tuzemské platby, SEPA platby jsou vždy splatné do jednoho dne
      */
     private function __construct(
         IbanInterface      $iban,
@@ -201,7 +201,8 @@ class QrPlatba
             )
             ->setCurrency($this->kodMeny)
             ->setRemittanceText('/VS/' . $this->variabilniSymbol)
-            ->setInformation($this->zamereniFirmy);
+            ->setInformation($this->zamereniFirmy)
+            ->setVersion(1);
 
         return Builder::create()
             ->errorCorrectionLevel(new ErrorCorrectionLevelMedium())
