@@ -40,8 +40,14 @@ if (!$stranka) {
 }
 
 if ($stranka == "api") {
-    chdir(__DIR__ . '/scripts/api/');
-    require $podstranka . '.php';
+    $apiDir = __DIR__ . '/scripts/api';
+    chdir($apiDir);
+    if (is_file($apiDir . '/' . $podstranka . '.php')) {
+        require $podstranka . '.php';
+    } else {
+        http_response_code(404);
+        echo 'API endpoint not found.';
+    }
 
     return;
 }
