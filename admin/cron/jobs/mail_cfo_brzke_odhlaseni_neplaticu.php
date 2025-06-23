@@ -39,7 +39,7 @@ foreach ($posuny as $poradiOznameni => $posun) {
 
     if ($nejblizsiHromadneOdhlasovaniKdy > $systemoveNastaveni->ted()->modify($posun)) {
         // POJISTKA PROTI PŘÍLIŽ BRZKÉMU SPUŠTĚNÍ
-        logs("E-mail pro CFO se seznamem neplatičů: Hromadné odhlášení s posunem '$posun' bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}). Přeskakuji.");
+        logs("E-mail pro CFO se seznamem neplatičů: Hromadné odhlášení s posunem '$posun' bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted())}). Přeskakuji.");
         $poradiOznameni = null;
         continue;
     }
@@ -94,7 +94,7 @@ try {
     foreach ($neplaticiAKategorie as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]) {
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
         /** @var \Uzivatel $neplatic */
-        $zpravyNeplatici[] = "Účastník '{$neplatic->jmenoNick()}' ({$neplatic->id()}) bude {$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()} odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
+        $zpravyNeplatici[] = "Účastník '{$neplatic->jmenoNick()}' ({$neplatic->id()}) bude {$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted())} odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
     }
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
     logs("{$nevhodnyCasProHromadneOdhlasovani->getMessage()}.\nE-mail pro CFO se seznamem neplatičů, kterým hrozí odhlášení, necháme na příští běh CRONu.");

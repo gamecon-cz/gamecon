@@ -42,12 +42,12 @@ foreach ($posuny as $poradiOznameni => $posun) {
 
     if ($nejblizsiHromadneOdhlasovaniKdy > $systemoveNastaveni->ted()->modify($posun)) {
         // POJISTKA PROTI PŘÍLIŽ BRZKÉMU SPUŠTĚNÍ
-        logs("E-mail pro CFO s nespárovanými platbami: Hromadné odhlášení s posunem '$posun' bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}). Přeskakuji.");
+        logs("E-mail pro CFO s nespárovanými platbami: Hromadné odhlášení s posunem '$posun' bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted())}). Přeskakuji.");
         $poradiOznameni = null;
         continue;
     }
 
-    logs("E-mail pro CFO s nespárovanými platbami: zkouším {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}) (posun '$posun')");
+    logs("E-mail pro CFO s nespárovanými platbami: zkouším {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($systemoveNastaveni->ted())}) (posun '$posun')");
 
     if ($znovu && !$systemoveNastaveni->jsmeNaOstre()) {
         break; // zkusíme hned

@@ -231,7 +231,7 @@ SQL,
                 sprintf(
                     "Hromadné odhlášení může být spuštěno nejdříve v '%s' (%s)",
                     $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
-                    $nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu(),
+                    $nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu($this->systemoveNastaveni->ted()),
                 )
             );
         }

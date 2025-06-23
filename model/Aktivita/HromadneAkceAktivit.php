@@ -33,7 +33,7 @@ class HromadneAkceAktivit
                 sprintf(
                     "Hromadná aktivace může být spuštěna nejdříve v '%s' (%s) podle nejbližší vlny.",
                     $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
-                    $nejblizsiVlnaKdy->relativniVBudoucnu(),
+                    $nejblizsiVlnaKdy->relativniVBudoucnu($this->systemoveNastaveni->ted()),
                 )
             );
         }
