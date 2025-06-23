@@ -3,15 +3,16 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
- * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni|null $systemoveNastaveni
  * @var \Gamecon\XTemplate\XTemplate $t
  */
 
 // načíst aktivity DrD (všechna kola)
 $aktivity = Aktivita::zFiltru(
-    systemoveNastaveni: $systemoveNastaveni,
+    systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
     filtr: [FiltrAktivity::TYP => TypAktivity::DRD, FiltrAktivity::ROK => ROCNIK],
 );
 if (empty($aktivity)) {
