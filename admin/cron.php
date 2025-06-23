@@ -78,6 +78,11 @@ ini_set('html_errors', false); // chyby zobrazovat jako plaintext
 if ($job !== null) {
     require __DIR__ . '/cron/_cron_job.php';
 
+    if (!empty($_GET['tee'])) {
+        ob_end_flush();
+        echo $output . "\n";
+    }
+
     return;
 }
 
