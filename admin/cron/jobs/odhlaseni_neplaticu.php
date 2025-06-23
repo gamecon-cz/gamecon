@@ -48,10 +48,10 @@ requireOnceIsolated(__DIR__ . '/../fio_stazeni_novych_plateb.php');
 $vynutZalohuDatabaze = true;
 require __DIR__ . '/../zaloha_databaze.php';
 
-set_time_limit(90);
-$bfgrSoubor = sys_get_temp_dir() . '/' . uniqid('bfgr-', true) . '.xlsx';
-$bfgrReport = new BfgrReport($systemoveNastaveni);
-$bfgrReport->exportuj('xlsx', true, $bfgrSoubor);
+// set_time_limit(90);
+// $bfgrSoubor = sys_get_temp_dir() . '/' . uniqid('bfgr-', true) . '.xlsx';
+// $bfgrReport = new BfgrReport($systemoveNastaveni);
+// $bfgrReport->exportuj('xlsx', true, $bfgrSoubor);
 
 $zaznamnik = new Zaznamnik();
 try {
@@ -78,7 +78,7 @@ $cfosEmaily      = Uzivatel::cfosEmaily();
             $zaznamy
             TEXT,
     )
-    ->prilohaSoubor($bfgrSoubor)
+    // ->prilohaSoubor($bfgrSoubor)
     ->odeslat(GcMail::FORMAT_TEXT);
 
 logs($zprava);
