@@ -28,6 +28,7 @@ use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\Urls;
@@ -260,11 +261,17 @@ SQL
         \Uzivatel             $u = null,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
-        \Gamecon\Uzivatel\Finance::slevaAktivityDSC($dataSourcesCollector);
+        self::slevaNasobicDSC($dataSourcesCollector);
 
         return (!$this->a[Sql::BEZ_SLEVY] && $u && $u->gcPrihlasen($dataSourcesCollector))
             ? $u->finance()->slevaAktivity($dataSourcesCollector)
             : 1.;
+    }
+
+    public static function slevaNasobicDSC(?DataSourcesCollector $dataSourcesCollector)
+    {
+        Finance::slevaAktivityDSC($dataSourcesCollector);
+        Uzivatel::gcPrihlasenDSC($dataSourcesCollector);
     }
 
     /**
@@ -1382,11 +1389,11 @@ SQL
         return $this->seznamUcastniku;
     }
 
-    private static function seznamUcastnikuDSC(?DataSourcesCollector $dataSourcesCollector): void {
+    private static function seznamUcastnikuDSC(?DataSourcesCollector $dataSourcesCollector): void
+    {
         self::prihlaseniRawDSC($dataSourcesCollector);
         self::seznamUcastnikuAktivitDSC($dataSourcesCollector);
     }
-
 
     private static function seznamUcastnikuAktivit(
         string                $where = 'TRUE',
@@ -1426,7 +1433,7 @@ SQL
     }
 
     private static function seznamUcastnikuAktivitDSC(
-        ?DataSourcesCollector $dataSourcesCollector
+        ?DataSourcesCollector $dataSourcesCollector,
     ): void {
         $dataSourcesCollector?->addDataSources([
             Sql::AKCE_SEZNAM_TABULKA,
@@ -1541,6 +1548,8 @@ SQL
 
     public function obsazenostObj(?DataSourcesCollector $dataSourcesCollector = null)
     {
+        self::obsazenostObjDSC($dataSourcesCollector);
+
         $prihlasenoMuzu      = $this->pocetPrihlasenychMuzu($dataSourcesCollector); // počty
         $prihlasenoZen       = $this->pocetPrihlasenychZen($dataSourcesCollector);
         $kapacitaMuzi        = (int)$this->a[Sql::KAPACITA_M]; // kapacity
@@ -1554,6 +1563,11 @@ SQL
             'kf' => $kapacitaZeny,
             'ku' => $kapacitaUniverzalni,
         ];
+    }
+
+    public static function obsazenostObjDSC(?DataSourcesCollector $dataSourcesCollector)
+    {
+        self::prihlaseniRawDSC($dataSourcesCollector);
     }
 
     /**
@@ -1694,10 +1708,10 @@ SQL,
      * @return Uzivatel[]|void
      */
     public function organizatori(
-        array $ids = null,
+        array                 $ids = null,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ) {
-        Uzivatel::zIdsDSC($dataSourcesCollector);
+        self::organizatoriDSC($dataSourcesCollector);
 
         if ($ids !== null) {
             dbQuery('DELETE FROM akce_organizatori WHERE id_akce = ' . $this->id());
@@ -1719,6 +1733,11 @@ SQL,
         }
 
         return $this->organizatori;
+    }
+
+    public static function organizatoriDSC(?DataSourcesCollector $dataSourcesCollector)
+    {
+        Uzivatel::zIdsDSC($dataSourcesCollector);
     }
 
     /**
@@ -1814,6 +1833,16 @@ SQL
     {
         return $this->a[Sql::PATRI_POD]
             ? (int)$this->a[Sql::PATRI_POD]
+            : null;
+    }
+
+    public function popisId(): ?int
+    {
+        // todo: tohle může být číslo ?
+        $popisId = $this->a[Sql::POPIS] ?? null;
+
+        return $popisId !== null
+            ? (int)$popisId
             : null;
     }
 
@@ -2275,10 +2304,10 @@ SQL
             WHERE {$where}
             GROUP BY akce_seznam.id_akce
             SQL,
-            );
-        }
+        );
+    }
 
-    private static function nactiPrihlaseniNaAktivityRawDSC (
+    private static function nactiPrihlaseniNaAktivityRawDSC(
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): void {
         $dataSourcesCollector?->addDataSources([
@@ -2300,7 +2329,8 @@ SQL
         );
     }
 
-    private static function nactiPrihlaseniRawDSC(?DataSourcesCollector $dataSourcesCollector): void {
+    private static function nactiPrihlaseniRawDSC(?DataSourcesCollector $dataSourcesCollector): void
+    {
         self::nactiPrihlaseniNaAktivityRawDSC($dataSourcesCollector);
     }
 
@@ -2351,6 +2381,13 @@ SQL
         return StavPrihlaseni::NEPRIHLASEN;
     }
 
+    public static function stavPrihlaseniDSC(
+        ?DataSourcesCollector $dataSourcesCollector,
+    ) {
+        self::prihlaseniRawDSC($dataSourcesCollector);
+        self::seznamUcastnikuDSC($dataSourcesCollector);
+    }
+
     /**
      * @return int[]
      */
@@ -2393,13 +2430,13 @@ SQL
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
     public function prihlasovatelna(
-        int                   $parametry = 0,
+        int $parametry = 0,
     ) {
         return $this->procNeniPrihlasovatelna($parametry) === '';
     }
 
     private function procNeniPrihlasovatelna(
-        int                   $parametry,
+        int $parametry,
     ): string {
         $dopredne   = $parametry & self::DOPREDNE;
         $zpetne     = $parametry & self::ZPETNE;
@@ -3113,8 +3150,6 @@ SQL,
     /** Vrátí, jestli aktivita bude aktivována v další vlně */
     public function vDalsiVlne(?DataSourcesCollector $dataSourcesCollector = null): bool
     {
-        $dataSourcesCollector?->addDataSource(SystemoveNastaveniSqlStruktura::SYSTEMOVE_NASTAVENI_TABULKA);
-
         return $this->a[Sql::STAV] == StavAktivity::PRIPRAVENA
                || (!$this->systemoveNastaveni->probihaRegistraceAktivit()
                    && $this->a[Sql::STAV] == StavAktivity::AKTIVOVANA
@@ -3176,13 +3211,16 @@ SQL,
      * Jestli má uživatel aktivitu vidět (případně jestli má být vidět veřejně,
      * pokud $u == null).
      */
+    // todo: přidat DSC
     public function viditelnaPro(
         ?Uzivatel $uzivatel,
     ) {
         return (
             (in_array($this->a[Sql::STAV], StavAktivity::bezneViditelneStavy(), false) // podle stavu je aktivita viditelná
+             // todo: co se tu děje ?
              && !(TypAktivity::jeInterniDleId($this->a[Sql::TYP]) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
             )
+            // todo: přidat DSC
             || ($uzivatel && ($this->prihlasen($uzivatel) || $this->organizuje($uzivatel)))
         );
     }
@@ -3546,8 +3584,8 @@ SQL,
      * @return int
      */
     public static function upozorniNaNeuzavreneKonciciOdDo(
-        \DateTimeInterface $konciciNejmeneDo,
-        \DateTimeInterface $konciciNejviceDo,
+        \DateTimeInterface  $konciciNejmeneDo,
+        \DateTimeInterface  $konciciNejviceDo,
         ?SystemoveNastaveni $systemoveNastaveni = null,
     ): int {
         $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
@@ -3719,6 +3757,7 @@ SQL,
             prednacitat: $prednacitat,
             dataSourcesCollector: $dataSourcesCollector,
         );
+        // todo: tady je další podmíňené dsc ale netýká se to programu
         if (!empty($filtr[FiltrAktivity::JEN_VOLNE])) {
             foreach ($aktivity as $id => $a) {
                 if ($a->volno($dataSourcesCollector) === 'x') {
@@ -3727,6 +3766,7 @@ SQL,
             }
         }
 
+        // todo: tady je další podmíňené dsc ale netýká se to programu
         // řazení v php
         if (!empty($phpRazeni['organizatori'])) { // prozatím podporujeme jen řazení dle orga
             if ($phpRazeni['organizatori'] === 'DESC') {

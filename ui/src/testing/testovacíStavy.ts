@@ -1,7 +1,7 @@
 import produce from "immer";
 import { GAMECON_KONSTANTY } from "../env";
 import { useProgramStore } from "../store/program";
-import { ApiAktivita } from "../api/program";
+import { Aktivita } from "../store/program/slices/programDataSlice";
 
 type TestovacíStav = {
   název: string,
@@ -13,7 +13,11 @@ const resetStav = {
   setter() {
     useProgramStore.setState(s => {
       s.data = {
-        aktivityPodleId: {},
+        podleRočníku:{
+          [GAMECON_KONSTANTY.ROCNIK]: {
+            aktivityPodleId: {},
+          }
+        },
         štítky: [],
       };
 
@@ -41,7 +45,7 @@ const časV = (hodina: number) => {
 
 type AktivitaCreateParams = { id: number, hodina?: number, trvání?: number };
 
-const createAktivita = (a: AktivitaCreateParams): ApiAktivita => {
+const createAktivita = (a: AktivitaCreateParams): Aktivita => {
   const {
     id,
     hodina,
@@ -77,14 +81,16 @@ const createAktivita = (a: AktivitaCreateParams): ApiAktivita => {
       kf: 0,
       ku: 1
     },
+    __TS_STRUKTURALNI_KONTROLA__: true,
   };
 };
 
-const nastavAktivity = (aktivity: ApiAktivita[]) => {
+const nastavAktivity = (aktivity: Aktivita[]) => {
   useProgramStore.setState(s => {
-
     aktivity.forEach(x => {
-      s.data.aktivityPodleId[x.id] = x;
+      const ročník =  s.data.podleRočníku[GAMECON_KONSTANTY.ROCNIK] ?? {aktivityPodleId: {}};
+      s.data.podleRočníku[GAMECON_KONSTANTY.ROCNIK] = ročník;
+      ročník.aktivityPodleId[x.id] = x;
     });
   });
 };
@@ -103,7 +109,6 @@ export const TESTOVACÍ_STAVY: TestovacíStav[] = [
           x.prihlasovatelna = true;
           // x.stitky.push("Kartičková");
           // x.stitky.push("Historie");
-
         }),
         produce(createAktivita({ id: 2, hodina: 9 }), x => {
           x.vdalsiVlne = true;
@@ -125,7 +130,7 @@ export const TESTOVACÍ_STAVY: TestovacíStav[] = [
         }),
         produce(createAktivita({ id: 6, hodina: 13 }), x => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          x.obsazenost!.m = 1;
+          x.obsazenost.m = 1;
         }),
         produce(createAktivita({ id: 7, hodina: 14 }), x => {
           x.vedu = true;
