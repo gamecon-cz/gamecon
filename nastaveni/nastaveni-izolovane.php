@@ -14,6 +14,7 @@ if (!defined('SQL_MIGRACE_DIR')) define('SQL_MIGRACE_DIR', __DIR__ . '/../migrac
 if (!defined('ZALOHA_DB_SLOZKA')) define('ZALOHA_DB_SLOZKA', __DIR__ . '/../backup/db'); // cesta pro zálohy databáze
 if (!defined('ADMIN_STAMPS')) define('ADMIN_STAMPS', rtrim(ADMIN, '/') . '/stamps');
 if (!defined('NAZEV_SPOLECNOSTI_GAMECON')) define('NAZEV_SPOLECNOSTI_GAMECON', 'GameCon z.s.');
+if (!defined('ZAMERENI_FIRMY')) define('ZAMERENI_FIRMY', 'Největší festival nepočítačových her');
 
 if (!defined('AUTOMATICKE_MIGRACE')) define('AUTOMATICKE_MIGRACE', false);
 if (!defined('ZOBRAZIT_STACKTRACE_VYJIMKY')) define('ZOBRAZIT_STACKTRACE_VYJIMKY', false);
