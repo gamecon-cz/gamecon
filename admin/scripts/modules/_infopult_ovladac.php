@@ -19,6 +19,7 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Vyjimkovac\Vyjimkovac;
 
 if (!empty($_POST['prijelADatMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
@@ -116,7 +117,7 @@ if (!empty($_POST['telefon']) && $uPracovni) {
 }
 
 // TODO: mělo by být obsaženo v modelové třídě
-function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac): int
+function updateUzivatelHodnoty(array $udaje, int $uPracovniId, Vyjimkovac $vyjimkovac): int
 {
     try {
         $result = dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
