@@ -135,7 +135,8 @@ if ($uPracovni) {
 }
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
-$o        = dbQuery(<<<SQL
+$o        = dbQuery(
+    <<<SQL
   SELECT
     CONCAT(nazev,' ',model_rok) AS nazev,
     kusu_vyrobeno-COUNT(n.id_predmetu) AS zbyva,
@@ -153,9 +154,13 @@ while ($r = mysqli_fetch_assoc($o)) {
     $zbyva    = $r['zbyva'] === null
         ? '&infin;'
         : $r['zbyva'];
-    $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null
-            ? ''
-            : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
+
+    // úplně odstraníme logiku pro 'disabled', aby šlo prodávat i při zbyva ≤ 0
+    $moznosti .= '<option value="' . $r['id_predmetu'] . '">'
+        . $r['nazev']
+        . ' (' . $zbyva . ') '
+        . $r['cena']
+        . '&thinsp;Kč</option>';
 }
 $x->assign('predmety', $moznosti);
 
