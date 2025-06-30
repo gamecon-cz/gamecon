@@ -3176,13 +3176,16 @@ SQL,
      * Jestli má uživatel aktivitu vidět (případně jestli má být vidět veřejně,
      * pokud $u == null).
      */
+    // todo: přidat DSC
     public function viditelnaPro(
         ?Uzivatel $uzivatel,
     ) {
         return (
             (in_array($this->a[Sql::STAV], StavAktivity::bezneViditelneStavy(), false) // podle stavu je aktivita viditelná
-             && !(TypAktivity::jeInterniDleId($this->a[Sql::TYP]) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
+            // todo: co se tu děje ?
+            && !(TypAktivity::jeInterniDleId($this->a[Sql::TYP]) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
             )
+            // todo: přidat DSC
             || ($uzivatel && ($this->prihlasen($uzivatel) || $this->organizuje($uzivatel)))
         );
     }
