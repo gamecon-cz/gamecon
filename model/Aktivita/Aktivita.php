@@ -1817,7 +1817,7 @@ SQL
             : null;
     }
 
-    public function popisId() {
+    public function popisId(): string {
         // todo: tohle může být číslo ?
         return $this->a[Sql::POPIS];
     }
