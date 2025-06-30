@@ -1,22 +1,14 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { ApiAktivitaAkce, ApiAktivitaNepřihlášen, ApiAktivitaUživatel, ApiŠtítek, fetchAktivitaAkce, fetchRocnikAktivity, fetchŠtítky, Obsazenost } from "../../../api/program";
+import { ApiAktivita, ApiAktivitaAkce, ApiŠtítek, fetchAktivitaAkce, fetchAktivity, fetchŠtítky } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { nastavChyba } from "./všeobecnéSlice";
 
 export type DataApiStav = "načítání" | "dotaženo" | "chyba";
 
-// todo: tyhle transofrmace toho co jde z api by se měli asi dít dřív
-export type Aktivita = Omit<ApiAktivitaNepřihlášen & ApiAktivitaUživatel, "popisId"> & {
-  popis: string;
-  obsazenost: Obsazenost;
-};
-
 export type ProgramDataSlice = {
   data: {
-    podleRočníku: {
-      [ročník: number]: {
-        aktivityPodleId: { [id: number]: Aktivita },
-      }
+    aktivityPodleId: {
+      [id: number]: ApiAktivita
     },
     štítky: ApiŠtítek[],
   },
@@ -30,7 +22,7 @@ export type ProgramDataSlice = {
 
 export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () => ({
   data: {
-    podleRočníku: {},
+    aktivityPodleId: {},
     štítky: [],
   },
   dataStatus: {
@@ -44,36 +36,17 @@ const nastavStavProRok = (rok: number, stav: DataApiStav) => {
   }, undefined, "Natavení api stavu pro rok");
 };
 
-const vytvořObsazenostPrázdnéSUpozorněním = (aktivitaId: number):Obsazenost =>{
-  console.warn(`pro aktivitu ${aktivitaId} nebyla nalezena obsazenost`);
-  return {
-    f: 0,
-    kf:0,
-    km:0,
-    ku:0,
-    m:0,
-  };
-}
-
-export const načtiRok = async (ročník: number) => {
-  const nastavStav = nastavStavProRok.bind(undefined, ročník);
+export const načtiRok = async (rok: number) => {
+  const nastavStav = nastavStavProRok.bind(undefined, rok);
 
   try {
     nastavStav("načítání");
-    const rocnikData = await fetchRocnikAktivity(ročník);
+    const aktivity = await fetchAktivity(rok);
     nastavStav("dotaženo");
 
     useProgramStore.setState(s => {
-      s.data.podleRočníku[ročník] = {
-        aktivityPodleId: {},
-      };
-      const ročníkData = s.data.podleRočníku[ročník];
-      for (const aktivita of rocnikData.aktivityNeprihlasen.data.concat(rocnikData.aktivitySkryte.data)) {
-        const popis = rocnikData.popisy.data.find(x=>x.id === aktivita.popisId)?.popis ?? "";
-        const aktivitaUživatel = rocnikData.aktivityUživatel.data.find(x=>x.id === aktivita.id)!;
-        const obsazenost = rocnikData.obsazenosti.data.find(x=>x.idAktivity === aktivita.id)?.obsazenost
-          ?? vytvořObsazenostPrázdnéSUpozorněním(aktivita.id);
-        ročníkData.aktivityPodleId[aktivita.id] = {...aktivita, ...aktivitaUživatel, popis, obsazenost};
+      for (const aktivita of aktivity) {
+        s.data.aktivityPodleId[aktivita.id] = aktivita;
       }
     }, undefined, "dotažení aktivit");
   } catch(e) {

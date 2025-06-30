@@ -1,7 +1,6 @@
-import { OdDo } from "../../../../api/program";
+import { ApiAktivita, OdDo } from "../../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../../env";
 import { denAktivity } from "../../../../store/program/logic/aktivity";
-import { Aktivita } from "../../../../store/program/slices/programDataSlice";
 import { formátujDenVTýdnu, zip } from "../../../../utils";
 
 /**
@@ -33,18 +32,18 @@ export enum SeskupováníAktivit {
   den = "den",
 }
 
-type SkupinyAktivit = { [klíč: string]: Aktivita[] };
+type SkupinyAktivit = { [klíč: string]: ApiAktivita[] };
 
 export const PROGRAM_DNY_TEXT = GAMECON_KONSTANTY.PROGRAM_DNY.map((x) =>
   formátujDenVTýdnu(x, true)
 );
 
-const seskupAktivity = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie): SkupinyAktivit => {
+const seskupAktivity = (aktivity: ApiAktivita[], seskupitPodle = SeskupováníAktivit.linie): SkupinyAktivit => {
   const skupinyAktivit: SkupinyAktivit = Object.create(null);
 
   const získejKlíč = (seskupitPodle === SeskupováníAktivit.den)
-    ? (aktivita: Aktivita) => formátujDenVTýdnu(denAktivity(new Date(aktivita.cas.od)), true)
-    : (aktivita: Aktivita) => aktivita.linie
+    ? (aktivita: ApiAktivita) => formátujDenVTýdnu(denAktivity(new Date(aktivita.cas.od)), true)
+    : (aktivita: ApiAktivita) => aktivita.linie
     ;
 
   if (seskupitPodle === SeskupováníAktivit.den) {
@@ -63,12 +62,12 @@ const seskupAktivity = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktiv
   return skupinyAktivit;
 };
 
-type PředpřivenáTabulkaAktivit = { [klíč: string]: { řádek: number, aktivita: Aktivita }[] }
+type PředpřivenáTabulkaAktivit = { [klíč: string]: { řádek: number, aktivita: ApiAktivita }[] }
 
-export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie) => {
+export const připravTabulkuAktivit = (aktivity: ApiAktivita[], seskupitPodle = SeskupováníAktivit.linie) => {
   const seskupené = seskupAktivity(aktivity, seskupitPodle);
 
-  const zpracujSkupinu = (skupina: Aktivita[]): PředpřivenáTabulkaAktivit["klíč"] =>
+  const zpracujSkupinu = (skupina: ApiAktivita[]): PředpřivenáTabulkaAktivit["klíč"] =>
     zip(skupina, časyDoŘádkůBezPřekryvu(skupina.map(x => x.cas))).map(([aktivita, řádek]) => ({ aktivita, řádek }));
 
 

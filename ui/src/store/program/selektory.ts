@@ -1,11 +1,12 @@
 import { useProgramStore } from ".";
 import { Pohlavi, PřihlášenýUživatel } from "../../api/přihlášenýUživatel";
 import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
+import shallow from "zustand/shallow";
 import { FiltrAktivit, filtrujAktivity, MapováníŠtítků, vytvořMapováníŠtítků } from "./logic/aktivity";
 import { PRÁZDNÉ_POLE, distinct } from "../../utils";
 import { useMemo } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
-import { Aktivita } from "./slices/programDataSlice";
+import { ApiAktivita } from "../../api/program";
 
 const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   const urlStav = useProgramStore((s) => s.urlStav);
@@ -25,24 +26,17 @@ const useŠtítkyMapováníKategorieŠtítků = () => {
 /**
  * Všechny dotažené aktivity
  */
-export const useAktivity = (ročník?: number) => {
-  return useProgramStore((s) => {
-    if (ročník)
-      return Object.values(s.data.podleRočníku[ročník].aktivityPodleId ?? {});
-    else
-      // todo: tahle část se opakuje na více místech
-      return Object.values(s.data.podleRočníku).flatMap(x=>Object.values(x.aktivityPodleId));
-  });
-}
+export const useAktivity = () =>
+  useProgramStore((s) => Object.values(s.data.aktivityPodleId));
 
 /**
  * Aplikuje filtr na aktivity, pokud není předaný
  */
-export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): Aktivita[] => {
+export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): ApiAktivita[] => {
   const filtr = useFiltrAktivitNeboZeStavu(aktivitaFiltr);
   const mapaŠtítků = useŠtítkyMapováníKategorieŠtítků();
 
-  const aktivity = useAktivity(aktivitaFiltr?.ročník);
+  const aktivity = useAktivity();
 
   const aktivityFiltrované = filtrujAktivity(aktivity, filtr, mapaŠtítků);
 
@@ -59,24 +53,17 @@ export const useAktivityStatus = (ročník?: number) => {
   return useProgramStore(s=>s.dataStatus.podleRoku[ročníkZFiltru]);
 };
 
-export const useAktivita = (akitivitaId: number): Aktivita | undefined =>
+export const useAktivita = (akitivitaId: number): ApiAktivita | undefined =>
   useProgramStore((s) => {
-    for (const ročník of Object.values(s.data.podleRočníku)) {
-      const aktivita = ročník.aktivityPodleId[akitivitaId];
-      if (aktivita) return aktivita;
-    }
+    const aktivita = s.data.aktivityPodleId[akitivitaId];
+    return aktivita;
   });
 
-export const useAktivitaNáhled = (): Aktivita | undefined =>
-  useProgramStore((s) => {
-    for (const ročník of Object.values(s.data.podleRočníku)) {
-      const aktivita = ročník.aktivityPodleId[s.urlStav.aktivitaNáhledId ?? -1];
-      if (aktivita) return aktivita;
-    }
-  }
-  // todo: použít shallow ?
-  // , shallow
-  );
+export const useAktivitaNáhled = (): ApiAktivita | undefined =>
+  useProgramStore(s => {
+    const aktivita = s.data.aktivityPodleId[s.urlStav.aktivitaNáhledId ?? -1];
+    return aktivita;
+  }, shallow);
 
 export const useŠtítkyPodleKategorie = () => {
   const štítky = useŠtítky();

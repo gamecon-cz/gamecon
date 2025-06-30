@@ -7,10 +7,10 @@ import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/url
 import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
-import { Aktivita } from "../../../../store/program/slices/programDataSlice";
+import { ApiAktivita } from "../../../../api/program";
 
 export const tabulkaBuňkaAktivitaTřídy = (
-  aktivita: Aktivita,
+  aktivita: ApiAktivita,
   pohlavi: Pohlavi | undefined
 ) => {
   const classes: string[] = [];
