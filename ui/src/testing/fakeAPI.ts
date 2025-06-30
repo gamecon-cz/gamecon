@@ -1,5 +1,5 @@
 import { ApiAktivita, ApiAktivitaPřihlášen } from "../api/program";
-
+//todo: smazat
 export const fetchTestovacíAktivity = async (rok: number): Promise<ApiAktivita[]> => {
   const res = await fetch("/testing/aktivityProgram.json");
   const json = await res.json() as { [rok: number]: ApiAktivita[] };

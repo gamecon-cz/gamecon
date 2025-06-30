@@ -4,6 +4,7 @@ import { GAMECON_KONSTANTY } from "../../../env";
 import { datumPřidejDen, volnoTypZObsazenost } from "../../../utils";
 // Pozor musí být defaultní import!
 import FlexSearch from "flexsearch";
+import { Aktivita } from "../slices/programDataSlice";
 
 export type FiltrProgramTabulkaVýběr =
   | {
@@ -39,7 +40,7 @@ export type FiltrAktivit = Partial<{
 }>;
 
 export const aktivitaStatusZAktivity = (
-  aktivita: ApiAktivita,
+  aktivita: Aktivita,
   pohlavi?: Pohlavi | undefined
 ): AktivitaStav => {
   if (
@@ -82,7 +83,7 @@ const ziskejIdZTextovéhoFiltru = (text: string): number | undefined => {
   return +idFiltrText;
 };
 
-const flexDocument = new FlexSearch.Document<ApiAktivita, true>({
+const flexDocument = new FlexSearch.Document<Aktivita, true>({
   language: "cs",
   tokenize: "forward",
   preset: "performance",
@@ -104,14 +105,14 @@ const flexDocument = new FlexSearch.Document<ApiAktivita, true>({
 });
 
 const zaindexovanéIdAktivit = new Set<number>()
-const zaindexujFullText = (aktivita: ApiAktivita) => {
+const zaindexujFullText = (aktivita: Aktivita) => {
   if (zaindexovanéIdAktivit.has(aktivita.id)) return;
   flexDocument.add(aktivita)
   zaindexovanéIdAktivit.add(aktivita.id)
 }
 
 
-export const filtrujAktivity = (aktivity: ApiAktivita[], filtr: FiltrAktivit, mapováníŠtítků: MapováníŠtítků) => {
+export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníŠtítků: MapováníŠtítků) => {
   const {
     filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrŠtítkyId, ročník, výběr, filtrStavAktivit, filtrText
   } = filtr;
