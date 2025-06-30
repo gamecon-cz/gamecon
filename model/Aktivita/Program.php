@@ -309,9 +309,9 @@ class Program
             $this->grpf    = self::SKUPINY_PODLE_LOKACE_ID;
 
             $this->skupiny['0'] = 'Ostatní';
-            $grp                = serazenePodle(Lokace::zVsech(), 'poradi');
-            foreach ($grp as $t) {
-                $this->skupiny[$t->id()] = ucfirst($t->nazev());
+            $seskupeneLokace = serazenePodle(Lokace::zVsech(), 'poradi');
+            foreach ($seskupeneLokace as $lokace) {
+                $this->skupiny[$lokace->id()] = ucfirst($lokace->nazev());
             }
         } elseif ($this->nastaveni[self::OSOBNI]) {
             $this->program = new ArrayIterator(
@@ -340,8 +340,8 @@ class Program
             $this->grpf    = self::SKUPINY_PODLE_TYP_PORADI;
 
             // řazení podle poradi typu je nutné proto, že v tomto pořadí je i seznam aktivit
-            $grp = serazenePodle(TypAktivity::zVsech(true), 'poradi');
-            foreach ($grp as $t) {
+            $seskupeneLokace = serazenePodle(TypAktivity::zVsech(true), 'poradi');
+            foreach ($seskupeneLokace as $t) {
                 $this->skupiny[$t->id()] = mb_ucfirst($t->nazev());
             }
         }
@@ -354,7 +354,7 @@ class Program
     ) {
         if ($a === null
             || $b === null
-            || $a['grp'] != $b['grp']
+            || array_intersect($a['grps'], $b['grps']) === []
             || $a['den'] != $b['den']
             || $a['kon'] <= $b['zac']
             || $b['kon'] <= $a['zac']
@@ -370,9 +370,11 @@ class Program
     ) {
         if ($a === null
             || $b === null
-            || $a['grp'] != $b['grp']
+            || array_intersect($a['grps'], $b['grps']) === []
             || $a['den'] != $b['den']
-        ) return false;
+        ) {
+            return false;
+        }
 
         return true;
     }
@@ -553,12 +555,12 @@ HTML;
         $pocetAktivit = 0;
         foreach ($this->skupiny as $typId => $typNazev) {
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
-            if (!$this->nastaveni[self::PRAZDNE] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typId)) {
+            if (!$this->nastaveni[self::PRAZDNE] && (!$aktivitaRaw || !in_array($typId, $aktivitaRaw['grps']))) {
                 continue;
             }
             ob_start(); // výstup bufferujeme, pro případ že bude na víc řádků
             $pocetRadku = 0;
-            while ($aktivitaRaw && $typId === (int)$aktivitaRaw['grp']) {
+            while ($aktivitaRaw && in_array($typId, $aktivitaRaw['grps'])) {
                 if ($denId && $aktivitaRaw['den'] != $denId) {
                     break;
                 }
@@ -570,14 +572,18 @@ HTML;
                     }
                     if (
                         $aktivitaRaw &&
-                        $typId == $aktivitaRaw['grp'] &&
+                        in_array($typId, $aktivitaRaw['grps']) &&
                         ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < PROGRAM_ZACATEK) && // pro případ že by někdo nastavil aktivitu na již dřívější začátek, tak aby to nerozbilo program. (např. 2024 brigádnické aktivity od 7:00, kdy program začínal 8:00)
                         (!$denId || $aktivitaRaw['den'] == $denId)
                     ) {
                         $skip = $aktivitaRaw['del'] - 1;
                         $this->tiskAktivity($aktivitaRaw);
-                        $aktivitaRaw = $this->dalsiAktivita();
-                        $pocetAktivit++;
+                        $indexSkupiny = array_search($typId, $aktivitaRaw['grps']);
+                        unset($aktivitaRaw['grps'][$indexSkupiny]);
+                        if ($aktivitaRaw['grps'] === []) { // už nebude vykreslena v další skupině (například v jiné místnosti)
+                            $aktivitaRaw = $this->dalsiAktivita();
+                            $pocetAktivit++;
+                        }
                     } else {
                         echo '<td></td>';
                     }
@@ -630,20 +636,21 @@ HTML;
         switch ($this->grpf) {
             case self::SKUPINY_PODLE_TYP_ID :
             case self::SKUPINY_PODLE_TYP_PORADI :
-                $grp = $aktivita->typId();
+                $grps = [$aktivita->typId()];
                 break;
             case self::SKUPINY_PODLE_LOKACE_ID :
-                $grp = $aktivita->idHlavniLokace();
+                // pokud nemá žádnou lokaci, tak ji zařadíme do skupiny 0 (ostatní)
+                $grps = $aktivita->seznamLokaciIdcka() ?: [0];
                 break;
             case self::SKUPINY_PODLE_DEN :
-                $grp = (int)$aktivita->denProgramu()->format('z');
+                $grps = [(int)$aktivita->denProgramu()->format('z')];
                 break;
             default :
                 throw new \LogicException('nepodporovaný typ shlukování aktivit ' . $this->grpf);
         }
 
         $a = [
-            'grp' => $grp,
+            'grps' => $grps,
             'zac' => $zac,
             'kon' => $kon,
             'den' => (int)$aktivita->denProgramu()->format('z'),
