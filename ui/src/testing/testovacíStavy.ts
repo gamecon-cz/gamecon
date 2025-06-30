@@ -129,7 +129,7 @@ export const TESTOVACÍ_STAVY: TestovacíStav[] = [
         }),
         produce(createAktivita({ id: 6, hodina: 13 }), x => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          x.obsazenost!.m = 1;
+          x.obsazenost.m = 1;
         }),
         produce(createAktivita({ id: 7, hodina: 14 }), x => {
           x.vedu = true;

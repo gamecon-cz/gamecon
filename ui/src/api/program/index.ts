@@ -86,9 +86,6 @@ export type ApiAktivitaNepřihlášen = {
  */
 export type ApiAktivitaPřihlášen = {
   id: number,
-  //todo: obsazenost posílat zvlášť
-  //todo: obsazenost rozdělit na kapacitu a obsazenost
-  obsazenost?: Obsazenost,
   /** V jakém stavu je pokud je přihlášen */
   stavPrihlaseni?: StavPřihlášení,
   /** uživatelská vlastnost */
@@ -109,20 +106,28 @@ export type ApiAktivitaPřihlášen = {
 
 export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaPřihlášen;
 
-export type ApiPopis = {
+export type ApiAktivitaPopis = {
   /** id popisu */
   id: string;
   popis: string;
 };
 
+export type ApiAktivitaObsazenost = {
+  idAktivity: number;
+  //todo: obsazenost rozdělit na kapacitu a obsazenost kapacita se bude posílat s aktivitou základ
+  obsazenost: Obsazenost,
+};
+
 type ApiAktivityProgramResponse<kompletni = true> = {
   aktivityNeprihlasen: ApiCachovanaOdpověď<ApiAktivita[], kompletni>;
-  popisy: ApiCachovanaOdpověď<ApiPopis[], kompletni>;
+  popisy: ApiCachovanaOdpověď<ApiAktivitaPopis[], kompletni>;
+  obsazenosti: ApiCachovanaOdpověď<ApiAktivitaObsazenost[], kompletni>;
 };
 
 type ApiAktivityProgramResponseHashe = {
   aktivityNeprihlasen: string,
   popisy: string,
+  obsazenosti: string,
 }
 
 export type ApiŠtítek = {
@@ -168,10 +173,10 @@ const vytvořNovéDataZCacheADat = <T,>(cache: ApiCachovanaOdpověď<T, false> |
  * spojí cachované data s dotaženými a uloží novou cache
  */
 const aplikujCacheNaOdpověď = (cacheData :ApiAktivityProgramResponse<true> | undefined, ročník: number, data: ApiAktivityProgramResponse<false>) => {
-
   const spojenéData: ApiAktivityProgramResponse = {
     aktivityNeprihlasen: vytvořNovéDataZCacheADat(cacheData?.aktivityNeprihlasen, data?.aktivityNeprihlasen),
     popisy: vytvořNovéDataZCacheADat(cacheData?.popisy, data?.popisy),
+    obsazenosti: vytvořNovéDataZCacheADat(cacheData?.obsazenosti, data?.obsazenosti),
   };
   zapišCache(ročník, spojenéData);
 
@@ -183,6 +188,7 @@ const vraťAktuálníHasheZCache = (cacheData: ApiAktivityProgramResponse<true> 
   return {
     aktivityNeprihlasen: cacheData.aktivityNeprihlasen.hash,
     popisy: cacheData.popisy.hash,
+    obsazenosti: cacheData.obsazenosti.hash,
   };
 }
 

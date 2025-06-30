@@ -1,5 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { ApiAktivita, ApiAktivitaAkce, ApiŠtítek, fetchAktivitaAkce, fetchRocnikAktivity, fetchŠtítky } from "../../../api/program";
+import { ApiAktivita, ApiAktivitaAkce, ApiŠtítek, fetchAktivitaAkce, fetchRocnikAktivity, fetchŠtítky, Obsazenost } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { nastavChyba } from "./všeobecnéSlice";
 
@@ -8,6 +8,7 @@ export type DataApiStav = "načítání" | "dotaženo" | "chyba";
 // todo: tyhle transofrmace toho co jde z api by se měli asi dít dřív
 export type Aktivita = Omit<ApiAktivita, "popisId"> & {
   popis: string;
+  obsazenost: Obsazenost;
 };
 
 export type ProgramDataSlice = {
@@ -43,6 +44,17 @@ const nastavStavProRok = (rok: number, stav: DataApiStav) => {
   }, undefined, "Natavení api stavu pro rok");
 };
 
+const vytvořObsazenostPrázdnéSUpozorněním = (aktivitaId: number):Obsazenost =>{
+  console.warn(`pro aktivitu ${aktivitaId} nebyla nalezena obsazenost`);
+  return {
+    f: 0,
+    kf:0,
+    km:0,
+    ku:0,
+    m:0,
+  };
+}
+
 export const načtiRok = async (ročník: number) => {
   const nastavStav = nastavStavProRok.bind(undefined, ročník);
 
@@ -58,7 +70,9 @@ export const načtiRok = async (ročník: number) => {
       const ročníkData = s.data.podleRočníku[ročník];
       for (const aktivita of rocnikData.aktivityNeprihlasen.data) {
         const popis = rocnikData.popisy.data.find(x=>x.id === aktivita.popisId)?.popis ?? "";
-        ročníkData.aktivityPodleId[aktivita.id] = {...aktivita, popis};
+        const obsazenost = rocnikData.obsazenosti.data.find(x=>x.idAktivity === aktivita.id)?.obsazenost
+          ?? vytvořObsazenostPrázdnéSUpozorněním(aktivita.id);
+        ročníkData.aktivityPodleId[aktivita.id] = {...aktivita, popis, obsazenost};
       }
     }, undefined, "dotažení aktivit");
   } catch(e) {
