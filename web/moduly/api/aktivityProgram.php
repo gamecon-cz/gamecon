@@ -130,9 +130,9 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
 
         $verejneViditelna = $aktivita->viditelnaPro(null);
         $viditelnaPouzeProUzivatele = $aktivita->viditelnaPro($skryteAktivityViditelnePro[0] ?? null);
+        // pokud je uživatel přihlášený tak to znamená že cheme poslat specificky pro něj jen skryté aktivity které vidí
         $viditelna = (
-            $verejneViditelna
-            // pokud je uživatel přihlášený tak to znamená že cheme poslat specificky pro něj jen skryté aktivity které vidí
+            ($verejneViditelna && ($skryteAktivityViditelnePro[0] === null))
             || (!$verejneViditelna && $viditelnaPouzeProUzivatele)
         );
 
@@ -312,7 +312,7 @@ $response = [
     "aktivityUživatel" => $vytvorCachovanyDotaz(
         ('aktivity_program-rocnik_' . "aktivityUživatel" . "_" . $rok . '-' . ($u?->id() ?? 'anonym')),
         $dataSourcesCollector->copy(),
-        $dotahniAktivityNeprihlasen,
+        $dotahniAktivityUzivatel,
         $body?->hashe?->aktivityNeprihlasen ?? "",
     ),
     "obsazenosti" => $vytvorCachovanyDotaz(
