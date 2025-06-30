@@ -45,6 +45,14 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     return;
 }
 
+$body = null;
+try {
+    $bodyStr = file_get_contents("php://input");
+    $body = json_decode($bodyStr);
+} catch (Chyba $chyba) {
+    // todo:
+}
+
 $rok = array_key_exists('rok', $_GET)
     ? (int)$_GET['rok']
     : $systemoveNastaveni->rocnik();
@@ -80,15 +88,22 @@ $vytvorCachovanyDotaz = function (
                 "data" => $dataNove,
                 "hash" => "",
                 "cached" => $cached,
+                // "tabulky" => $dataSourcesCollector->getDataSources(),
             ];
         }
     }
 
-    return [
-        "data" => $cachedItem->data,
+    $vysledek = [
         "hash" => $cachedItem->hash,
         "cached" => $cached,
+        // "tabulky" => $dataSourcesCollector->getDataSources(),
     ];
+
+    if ($requestHash === "" || $requestHash !== $cachedItem->hash) {
+        $vysledek["data"] = $cachedItem->data;
+    }
+
+    return $vysledek;
 };
 
 $dataSourcesCollector = new DataSourcesCollector();
@@ -194,40 +209,44 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
     return $aktivityNeprihlasen;
 };
 
-$dotahniPopisyCachovane  = function () use ($aktivity, $u) {
+$dotahniPopisyCachovane  = function () use ($aktivity, $body) {
     // todo:
     $cached = true;
+    $puvodniHash = $body?->hashe?->popisy ?? null;
 
     $popisyId = [];
     foreach ($aktivity as $aktivita) {
         $popisyId[] = $aktivita->popisId();
     }
+    // zajistí pořadí když neřadíme aktivity pro stejný hash nezávisle na poŕadí v jakém nám DB aktivity vrátí
+    sort($popisyId);
     $hash = md5(json_encode($popisyId));
 
-    $popisy = [];
-    foreach ($aktivity as $aktivita) {
-        $popisy[] = [
-            "id" => $aktivita->popisId(),
-            "popis" => $aktivita->popis(),
-        ];
-    }
-
-    return [
-        "data" => $popisy,
+    $vysledek = [
         "hash" => $hash,
         "cached" => $cached,
     ];
-};
 
-/*
- $cacheKey = 'aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym'),
- */
+    if (!$puvodniHash || $puvodniHash === "" || $puvodniHash !== $hash) {
+        $popisy = [];
+        foreach ($aktivity as $aktivita) {
+            $popisy[] = [
+                "id" => $aktivita->popisId(),
+                "popis" => $aktivita->popis(),
+            ];
+        }
+        $vysledek["data"] = $popisy;
+    }
+
+    return $vysledek;
+};
 
 $response = [
     "aktivityNeprihlasen" => $vytvorCachovanyDotaz(
-        ('aktivity_program-rocnik_' . $rok),
+        ('aktivity_program-rocnik_' . $rok . '-' . ($u?->id() ?? 'anonym')),
         $dataSourcesCollector->copy(),
         $dotahniAktivityNeprihlasen,
+        $body?->hashe?->aktivityNeprihlasen ?? "",
     ),
     "popisy" => $dotahniPopisyCachovane(),
 ];
