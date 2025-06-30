@@ -121,6 +121,8 @@ $aktivity = Aktivita::zFiltru(
 $skryteAktivityViditelnePro = [null];
 
 $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollector) use (&$aktivity, &$skryteAktivityViditelnePro) {
+    Aktivita::organizatoriDSC($dataSourcesCollector);
+
     $aktivityNeprihlasen = [];
     foreach ($aktivity as $aktivita) {
         $zacatekAktivity = $aktivita->zacatek();
@@ -168,7 +170,7 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
             ],
             'linie'         => $aktivita->typ()->nazev(),
             'vBudoucnu'     => $aktivita->vBudoucnu(),
-            'vdalsiVlne'    => $aktivita->vDalsiVlne($dataSourcesCollector),
+            'vdalsiVlne'    => $aktivita->vDalsiVlne(),
             'probehnuta'    => $aktivita->probehnuta(),
             'jeBrigadnicka' => $aktivita->jeBrigadnicka(),
         ];
@@ -188,6 +190,9 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
 };
 
 $dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector) use (&$aktivity, &$u) {
+    Aktivita::stavPrihlaseniDSC($dataSourcesCollector);
+    Aktivita::slevaNasobicDSC($dataSourcesCollector);
+
     $aktivityUzivatel = [];
     foreach ($aktivity as $aktivita) {
         $zacatekAktivity = $aktivita->zacatek();
@@ -239,6 +244,8 @@ $dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector)
 };
 
 $dotahniobsazenosti = function (DataSourcesCollector $dataSourcesCollector) use (&$aktivity) {
+    Aktivita::obsazenostObjDSC($dataSourcesCollector);
+
     $aktivityObsazenost = [];
     foreach ($aktivity as $aktivita) {
     $aktivityObsazenost[] = [
@@ -303,13 +310,12 @@ $response = [
         $body?->hashe?->aktivityNeprihlasen ?? "",
     ),
     "aktivityUživatel" => $vytvorCachovanyDotaz(
-        ('aktivity_program-rocnik_' . "aktivityNeprihlasen" . "_" . $rok . '-' . ($u?->id() ?? 'anonym')),
+        ('aktivity_program-rocnik_' . "aktivityUživatel" . "_" . $rok . '-' . ($u?->id() ?? 'anonym')),
         $dataSourcesCollector->copy(),
         $dotahniAktivityNeprihlasen,
         $body?->hashe?->aktivityNeprihlasen ?? "",
     ),
     "obsazenosti" => $vytvorCachovanyDotaz(
-        // todo: skryté aktivity posílat zvlášť
         ('aktivity_program-rocnik_' . "obsazenosti" . "_" . $rok),
         $dataSourcesCollector->copy(),
         $dotahniobsazenosti,
