@@ -7,7 +7,6 @@ use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Report\BfgrReport;
 use Gamecon\Shop\Shop;
 
 /** @var bool $znovu */
@@ -129,10 +128,6 @@ foreach (Shop::letosniPolozkySeSpatnymKoncem($systemoveNastaveni) as $polozkaSeS
     $zpravyPolozky[] = "Položka '{$polozkaSeSpatnymKoncem->nazev()}' ({$polozkaSeSpatnymKoncem->idPredmetu()}) by se měla přestat podávat {$nabizetDoDleNastaveni->formatCasStandard()}, ale bude se prodávat až do {$polozkaSeSpatnymKoncem->nabizetDo()->formatCasStandard()}. Opravte její datum konce prodeje v shopu.";
 }
 
-$bfgrSoubor = sys_get_temp_dir() . '/' . uniqid('bfgr-', true) . '.xlsx';
-$bfgrReport = new BfgrReport($systemoveNastaveni);
-$bfgrReport->exportuj('xlsx', true, $bfgrSoubor);
-
 $cfosEmaily    = Uzivatel::cfosEmaily();
 $budeOdhlaseno = count($zpravyNeplatici);
 
@@ -180,7 +175,6 @@ TEXT;
         $zpravyString
         TEXT,
     )
-    ->prilohaSoubor($bfgrSoubor)
     ->odeslat(GcMail::FORMAT_TEXT);
 
 $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
