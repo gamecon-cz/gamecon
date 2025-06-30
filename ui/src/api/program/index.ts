@@ -39,6 +39,11 @@ export type OdDo = {
   do: number,
 };
 
+export type ApiCachovanaOdpověď<Data> = {
+  hash: string,
+  data: Data,
+};
+
 /* todo:
   první kolekce bez uživatele viditelnaPro (pohlídat ať to nemění datasourceColector)
   druhá kolekce s uživatelem
@@ -106,6 +111,10 @@ export type ApiAktivitaPřihlášen = {
 
 export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaPřihlášen;
 
+type ApiAktivityProgramResponse = {
+  aktivityNeprihlasen: ApiCachovanaOdpověď<ApiAktivita[]>;
+};
+
 export type ApiŠtítek = {
   id: number,
   nazev: string,
@@ -120,7 +129,10 @@ export const fetchAktivity = async (rok: number): Promise<ApiAktivita[]> => {
     return fetchTestovacíAktivity(rok);
   }
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityProgram?${rok ? `rok=${rok}` : ""}`;
-  return fetch(url, { method: "POST" }).then(async x => x.json());
+  return fetch(url, { method: "POST" })
+  .then(async x => x.json())
+  .then((x: ApiAktivityProgramResponse) => x.aktivityNeprihlasen.data)
+  ;
 };
 
 export const fetchŠtítky = async (): Promise<ApiŠtítek[]> =>{
