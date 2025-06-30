@@ -2889,7 +2889,7 @@ HTML
         if ($parametry & self::PLUSMINUS_KAZDY) {
             self::plusminusZpracuj();
 
-            return true;
+            return false;
         }
 
         return false;

@@ -245,7 +245,7 @@ SQL,
         if ($hasUnappliedOneTimeMigrations || !jsmeNaLocale()) {
             return $endless;
         }
-        if (!session_id()) {
+        if (!session_id() && !headers_sent()) {
             session_start();
         }
         $alreadyExecuted = $_SESSION['endless_migrations'] ?? [];
