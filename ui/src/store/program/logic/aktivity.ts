@@ -1,4 +1,4 @@
-import { ApiŠtítek, AktivitaStav, ApiAktivita } from "../../../api/program";
+import { ApiŠtítek, AktivitaStav } from "../../../api/program";
 import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { datumPřidejDen, volnoTypZObsazenost } from "../../../utils";
