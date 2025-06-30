@@ -81,6 +81,7 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
       kf: 0,
       ku: 1
     },
+    __TS_STRUKTURALNI_KONTROLA__: true,
   };
 };
 
