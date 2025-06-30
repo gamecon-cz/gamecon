@@ -156,7 +156,7 @@ while ($r = mysqli_fetch_assoc($o)) {
         : $r['zbyva'];
 
     // úplně odstraníme logiku pro 'disabled', aby šlo prodávat i při zbyva ≤ 0
-    $moznosti .= '<option value="' . $r['id_predmetu'] . '">'
+    $moznosti .= "<option value='{$r['id_predmetu']}>'>{$r['nazev']} ($zbyva) {$r['cena']}&thinsp;Kč</option>";
         . $r['nazev']
         . ' (' . $zbyva . ') '
         . $r['cena']
