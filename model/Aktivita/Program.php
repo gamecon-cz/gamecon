@@ -313,6 +313,10 @@ class Program
             foreach ($seskupeneLokace as $lokace) {
                 $this->skupiny[$lokace->id()] = ucfirst($lokace->nazev());
             }
+            $this->program = $this->rozkopirujAktivityVeViceLokacich(
+                $this->program,
+                array_keys($this->skupiny),
+            );
         } elseif ($this->nastaveni[self::OSOBNI]) {
             $this->program = new ArrayIterator(
                 Aktivita::zProgramu(
@@ -398,6 +402,50 @@ class Program
         }
 
         return null;
+    }
+
+    /**
+     * @param iterable<Aktivita> $aktivity
+     * @return ArrayIterator<Aktivita>
+     */
+    private function rozkopirujAktivityVeViceLokacich(
+        iterable $aktivity,
+        array    $serazenaIdsLokaci,
+    ): ArrayIterator {
+        $aktivityPodleDnuALokaci = [];
+        foreach ($aktivity as $aktivita) {
+            $den               = $aktivita->denProgramu()->format('Ymd');
+            $seznamLokaciIdcka = $aktivita->seznamLokaciIdcka();
+            if ($seznamLokaciIdcka === []) {
+                $aktivityPodleDnuALokaci[$den][0][$aktivita->id()] = $aktivita;
+            } else {
+                foreach ($aktivita->seznamLokaciIdcka() as $idLokace) {
+                    $aktivityPodleDnuALokaci[$den][$idLokace][$aktivita->id()] = $aktivita;
+                }
+            }
+        }
+        // podle dnů
+        ksort($aktivityPodleDnuALokaci);
+
+        foreach ($aktivityPodleDnuALokaci as &$aktivityPodleLokaci) {
+            foreach ($aktivityPodleLokaci as &$aktivityJedneLokace) {
+                // podle lokací
+                usort($aktivityJedneLokace, fn(
+                    Aktivita $a,
+                    Aktivita $b,
+                ) => $a->zacatek() <=> $b->zacatek());
+            }
+        }
+        unset($aktivityPodleLokaci, $aktivityJedneLokace);
+
+        $serazeneRozkopirovane = [];
+        foreach ($aktivityPodleDnuALokaci as $aktivityPodleLokaci) {
+            foreach ($serazenaIdsLokaci as $idLokace) {
+                $serazeneRozkopirovane = [...$serazeneRozkopirovane, ...$aktivityPodleLokaci[$idLokace] ?? []];
+            }
+        }
+
+        return new ArrayIterator($serazeneRozkopirovane);
     }
 
     /**
@@ -559,6 +607,10 @@ HTML;
     ): void {
         $pocetAktivit = 0;
         foreach ($this->skupiny as $typId => $typNazev) {
+            if ($typNazev === 'LKD 5' && $denId == 198 && $typId == 22) {
+               $foo = 1; // hack pro LKD 5, aby se nevypisovala
+            }
+            $vytisknuteVTetoSkupine = [];
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
             if (!$this->nastaveni[self::PRAZDNE] && (!$aktivitaRaw || !in_array($typId, $aktivitaRaw['grps']))) {
                 continue;
@@ -566,7 +618,7 @@ HTML;
             ob_start(); // výstup bufferujeme, pro případ že bude na víc řádků
             $pocetRadku = 0;
             while ($aktivitaRaw && in_array($typId, $aktivitaRaw['grps'])) {
-                if ($denId && $aktivitaRaw['den'] != $denId) {
+                if ($denId && ($aktivitaRaw['den'] != $denId)) {
                     break;
                 }
                 $skip = 0;
@@ -645,7 +697,8 @@ HTML;
                 break;
             case self::SKUPINY_PODLE_LOKACE_ID :
                 // pokud nemá žádnou lokaci, tak ji zařadíme do skupiny 0 (ostatní)
-                $grps = $aktivita->seznamLokaciIdcka() ?: [0];
+                $grps = $aktivita->seznamLokaciIdcka()
+                    ?: [0];
                 break;
             case self::SKUPINY_PODLE_DEN :
                 $grps = [(int)$aktivita->denProgramu()->format('z')];
