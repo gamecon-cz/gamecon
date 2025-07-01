@@ -22,12 +22,9 @@ class KategorieNeplatice
 
     public static function vytvorProNadchazejiciVlnuZGlobals(
         \Uzivatel          $uzivatel,
-        SystemoveNastaveni $systemoveNastaveni = null,
+        SystemoveNastaveni $systemoveNastaveni,
     ): static
     {
-        /** @var SystemoveNastaveni $systemoveNastaveni */
-        $systemoveNastaveni ??= $GLOBALS['systemoveNastaveni'];
-
         return static::vytvorZHromadnehoOdhlasovani(
             $uzivatel,
             $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy(),

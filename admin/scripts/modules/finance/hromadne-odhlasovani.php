@@ -19,7 +19,7 @@ use Gamecon\XTemplate\XTemplate;
  * @param array $idUzivatelu
  * @return Uzivatel[]|null
  */
-$dejUzivatelekOdhlaseni = static function (array $idUzivatelu): ?array {
+$dejUzivateleKOdhlaseni = static function (array $idUzivatelu): ?array {
     $idUzivatelu = array_unique(
         array_map('intval', $idUzivatelu)
     );
@@ -86,7 +86,7 @@ if (post('pripravit')) {
     }
     $idUzivatelu = $matches['idcka'];
 
-    $uzivatele = $dejUzivatelekOdhlaseni($idUzivatelu);
+    $uzivatele = $dejUzivateleKOdhlaseni($idUzivatelu);
 
     if (count($uzivatele) > 0) {
         foreach ($uzivatele as $uzivatel) {
@@ -101,7 +101,7 @@ if (post('pripravit')) {
 
 if (post('odhlasit')) {
     $idUzivatelu = post('id');
-    $uzivatele   = $dejUzivatelekOdhlaseni($idUzivatelu);
+    $uzivatele   = $dejUzivateleKOdhlaseni($idUzivatelu);
 
     array_walk($uzivatele, static function (Uzivatel $uzivatel) use (&$potize, $u) {
         try {

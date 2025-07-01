@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use Gamecon\Cas\DateTimeCz;
-use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Role\Role;
 
 require_once __DIR__ . '/sdilene-hlavicky.php';
 
@@ -38,12 +38,12 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
         ',',
         array_map(
             static function (int $role) {
-                return \Gamecon\Role\Role::nazevRolePodleId($role);
+                return Role::nazevRolePodleId($role);
             },
             array_filter(
                 $letosniUcastnik->dejIdsRoli(),
                 static function (int $role) {
-                    return !\Gamecon\Role\Role::jeToUcastNaGc($role);
+                    return !Role::jeToUcastNaGc($role);
                 }
             )
         ));
