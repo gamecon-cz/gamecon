@@ -3064,8 +3064,12 @@ HTML
     /**
      * Vrací surový databázový řádek, nepoužívat (pouze pro debug a zpětnou kompatibilitu, postupně odstranit).
      */
-    public function rawDb(): array
+    public function rawDb(array $values = null): array
     {
+        if ($values !== null) {
+            $this->a = [...$this->a, ...$values];
+        }
+
         return $this->a;
     }
 
@@ -3473,7 +3477,6 @@ SQL,
     ) {
         return (
             (in_array($this->a[Sql::STAV], StavAktivity::bezneViditelneStavy(), false) // podle stavu je aktivita viditelná
-             // todo: co se tu děje ?
              && !(TypAktivity::jeInterniDleId($this->a[Sql::TYP]) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
             )
             // todo: přidat DSC
@@ -4172,7 +4175,7 @@ SQL,
         bool                $zCache = false,
         bool                $prednacitat = false,
         ?SystemoveNastaveni $systemoveNastaveni = null,
-    ) {
+    ): array {
         if ($zCache) {
             $objekt = self::$objekty['razeni'][$razeni] ?? null;
             if ($objekt) {
