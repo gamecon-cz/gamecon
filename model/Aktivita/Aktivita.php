@@ -3185,8 +3185,12 @@ HTML
     /**
      * Vrací surový databázový řádek, nepoužívat (pouze pro debug a zpětnou kompatibilitu, postupně odstranit).
      */
-    public function rawDb(): array
+    public function rawDb(array $values = null): array
     {
+        if ($values !== null) {
+            $this->a = [...$this->a, ...$values];
+        }
+
         return $this->a;
     }
 
