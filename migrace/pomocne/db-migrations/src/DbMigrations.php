@@ -245,7 +245,7 @@ SQL,
         if ($hasUnappliedOneTimeMigrations || !jsmeNaLocale()) {
             return $endless;
         }
-        if (!session_id()) {
+        if (!session_id() && !headers_sent()) {
             session_start();
         }
         $alreadyExecuted = $_SESSION['endless_migrations'] ?? [];
@@ -265,6 +265,14 @@ SQL,
         Migration $migration,
         bool      $silent,
     ): void {
+        if ($migration->isEndless() && jsmeNaLocale()) {
+            if (!session_id() && !headers_sent()) {
+                session_start();
+            }
+            $_SESSION['endless_migrations']                        ??= [];
+            $_SESSION['endless_migrations'][$migration->getCode()] = time();
+        }
+
         if (!$silent) {
             $this->webGui?->confirm();
         }
@@ -291,14 +299,6 @@ SQL,
                 }
             }
             $this->connection->query('COMMIT');
-
-            if ($migration->isEndless() && jsmeNaLocale()) {
-                if (!session_id()) {
-                    session_start();
-                }
-                $_SESSION['endless_migrations']   ??= [];
-                $_SESSION['endless_migrations'][$migration->getCode()] = time();
-            }
         } catch (\Throwable $throwable) {
             $this->connection->query('ROLLBACK');
             throw $throwable;
@@ -319,6 +319,7 @@ SQL,
             }
 
             $this->handleUnappliedMigrations($silent);
+            $this->handleEndlessMigrations(true);
 
             if (!$silent) {
                 $this->webGui?->cleanupEnvironment();

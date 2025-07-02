@@ -12,33 +12,12 @@ use Gamecon\Cas\DateTimeGamecon;
 
 class ImportValuesSanitizer
 {
-    /**
-     * @var ImportValuesDescriber
-     */
-    private $importValuesDescriber;
-    /**
-     * @var int
-     */
-    private $currentYear;
-    /**
-     * @var ImportObjectsContainer
-     */
-    private $importObjectsContainer;
-    /**
-     * @var string
-     */
-    private $storytellersPermissionsUrl;
-
     public function __construct(
-        ImportValuesDescriber  $importValuesDescriber,
-        ImportObjectsContainer $importObjectsContainer,
-        int                    $currentYear,
-        string                 $storytellersPermissionsUrl,
+        private ImportValuesDescriber  $importValuesDescriber,
+        private ImportObjectsContainer $importObjectsContainer,
+        private int                    $currentYear,
+        private string                 $storytellersPermissionsUrl,
     ) {
-        $this->importValuesDescriber      = $importValuesDescriber;
-        $this->currentYear                = $currentYear;
-        $this->importObjectsContainer     = $importObjectsContainer;
-        $this->storytellersPermissionsUrl = $storytellersPermissionsUrl;
     }
 
     public function sanitizeValuesToImport(
@@ -48,7 +27,7 @@ class ImportValuesSanitizer
         $originalActivityResult = $this->getValidatedOriginalActivity($inputValues);
         if ($originalActivityResult->isError()) {
             $inputValuesForDescription = $inputValues;
-            // original activity does not exists, so we do not want a link to it (which is created from ID, so we remove it)
+            // original activity does not exist, so we do not want a link to it (which is created from ID, so we remove it)
             unset($inputValuesForDescription[ExportAktivitSloupce::ID_AKTIVITY]);
 
             return ImportStepResult::error($originalActivityResult->getError())

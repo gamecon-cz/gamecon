@@ -38,9 +38,9 @@ services:
     healthcheck:
       test: ["CMD", "mariadb", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}", "-e", "SELECT 1"]
       interval: 1s
-      timeout: 5s
+      timeout: 3s
       retries: 20
-      start_period: 3s
+      start_period: 1s
     ports:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
       - "${SQL_HOST_MAPPING_PORT:-13306}:3306"
