@@ -1061,6 +1061,23 @@ SQL;
         return $qrPlatba->dejQrObrazek();
     }
 
+    public function dejQrKodProPlatbuSk(): ?ResultInterface
+    {
+        // SEPA platbu přes QR kód neumí zřejmě žádná slovenská banka, takže pro mimočeské nezobrazíme nic
+        $castkaCzk = $this->stav() >= 0
+            ? 0.1
+            // nulová, respektive dobrovolná platba
+            : -$this->stav();
+
+        $qrPlatba = QrPlatba::SkQr(
+            $castkaCzk,
+            $this->u->id()
+        );
+        return $qrPlatba->dejQrObrazek();
+    }
+
+
+
     public function sumaStorna(): float
     {
         if ($this->sumaStorna === null) {
