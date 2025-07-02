@@ -110,13 +110,13 @@ if (!$zaplaceno) {
             </div>
         <?php endif; ?>
 
-        <?php if (pred($nejpozdejiZaplatitDo)): ?>
+        <?php if (pred($nejblizsiHromadneOdhlasovaniKdy)): ?>
             <p>
                 GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong> (tento den musejí být peníze na účtu GameConu). Platíš celkem
                 <strong><?= $castkaCZ . ' / ' . $castkaEUR ?></strong>, přesné údaje o platbě nalezneš výše.
             </p>
 
-            <?php if (pred($nejpozdejiZaplatitDo) && !$u->maPravoNerusitObjednavky()): ?>
+            <?php if (pred($nejblizsiHromadneOdhlasovaniKdy) && !$u->maPravoNerusitObjednavky()): ?>
                 <ul class="seznam-bez-okraje">
                     <li class="poznamka">Při pozdější platbě tě systém dne
                         <strong><?= datum3($nejpozdejiZaplatitDo) ?></strong> automaticky odhlásí.
