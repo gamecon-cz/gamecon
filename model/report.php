@@ -14,21 +14,24 @@ use OpenSpout\Writer\XLSX\Options;
  */
 class Report
 {
-    private $sql;                     // text dotazu, z kterého se report generuje
-    private $sqlParametry;            // parametry dotazu, z kterého se report generuje
-    private $o;                       // odpověď dotazu
-    private ?array $hlavicky = null;  // hlavičky (názvy sloupců) výsledku
-    private ?array $poleObsah = null; // obsah ve formě pole
-    private $csvSeparator = ';';      // oddělovač v csv souborech
+    private         $sql;                     // text dotazu, z kterého se report generuje
+    private         $sqlParametry;            // parametry dotazu, z kterého se report generuje
+    private ?mysqli $mysqli       = null;
+    private         $o;                       // odpověď dotazu
+    private ?array  $hlavicky     = null;  // hlavičky (názvy sloupců) výsledku
+    private ?array  $poleObsah    = null; // obsah ve formě pole
+    private         $csvSeparator = ';';      // oddělovač v csv souborech
 
-    public const BEZ_STYLU = 1;
+    public const BEZ_STYLU                        = 1;
     public const HLAVICKU_ZACINAT_VElKYM_PISMENEM = 10;
 
     /**
      * Vytiskne report jako XLSX
      */
-    public function tXlsx(?string $nazevReportu, KonfiguraceReportu $konfiguraceReportu = null)
-    {
+    public function tXlsx(
+        ?string            $nazevReportu,
+        KonfiguraceReportu $konfiguraceReportu = null,
+    ) {
         $konfiguraceReportu ??= new KonfiguraceReportu();
 
         try {
@@ -72,30 +75,29 @@ class Report
                 ->setFontSize($konfiguraceReportu->getBodyFontSize())
                 ->setFontName('Arial')
                 ->setCellAlignment(CellAlignment::LEFT)
-                ->setShouldWrapText(false)
-            ;
+                ->setShouldWrapText(false);
             while ($radek = $this->radek()) {
                 $cells = [];
                 foreach ($radek as $hodnota) {
                     if (!$konfiguraceReportu->useStringCellsOnly()) {
-                        if ((string) (int) $hodnota === trim((string) $hodnota)) {
-                            $cells[] = new Cell\NumericCell((int) $hodnota, $integerStyle);
+                        if ((string)(int)$hodnota === trim((string)$hodnota)) {
+                            $cells[] = new Cell\NumericCell((int)$hodnota, $integerStyle);
                             continue;
                         }
-                        if (preg_match('~^-?\d+[.,]\d{2}$~', trim((string) $hodnota))) {
-                            $cells[] = new Cell\NumericCell((float) $hodnota, $moneyStyle);
+                        if (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
+                            $cells[] = new Cell\NumericCell((float)$hodnota, $moneyStyle);
                             continue;
                         }
-                        if ((string) (float) $hodnota === trim((string) $hodnota)
-                            || preg_match('~^-?\d+([.,]\d+)?$~', trim((string) $hodnota))
+                        if ((string)(float)$hodnota === trim((string)$hodnota)
+                            || preg_match('~^-?\d+([.,]\d+)?$~', trim((string)$hodnota))
                         ) {
-                            $cells[] = new Cell\NumericCell((float) $hodnota, $numberStyle);
+                            $cells[] = new Cell\NumericCell((float)$hodnota, $numberStyle);
                             continue;
                         }
                     }
 
-                    $textCell = new Cell\StringCell((string) $hodnota, null);
-//                        $textCell->setType($textCell::TYPE_STRING); // jinak by ignorován styl (font a jeho velikost) v prázdných buňkách
+                    $textCell = new Cell\StringCell((string)$hodnota, null);
+                    //                        $textCell->setType($textCell::TYPE_STRING); // jinak by ignorován styl (font a jeho velikost) v prázdných buňkách
                     $cells[] = $textCell;
                 }
                 $rows[] = new Row($cells, $genericSizeStyle);
@@ -124,8 +126,10 @@ class Report
      * @param KonfiguraceReportu $konfiguraceReportu
      * @return int[]
      */
-    private function calculateColumnsWidth(array $rows, KonfiguraceReportu $konfiguraceReportu): array
-    {
+    private function calculateColumnsWidth(
+        array              $rows,
+        KonfiguraceReportu $konfiguraceReportu,
+    ): array {
         $maxGenericColumnWidth = $konfiguraceReportu->getMaxGenericColumnWidth();
         $columnsWidths         = $konfiguraceReportu->getColumnsWidths();
         $widths                = [];
@@ -144,7 +148,7 @@ class Report
                     ? 1.5
                     : 1.3;
                 $widths[$columnNumber] = max(
-                    (int) ceil(mb_strlen((string) $cell->getValue()) / $ratio) + 1,
+                    (int)ceil(mb_strlen((string)$cell->getValue()) / $ratio) + 1,
                     $widths[$columnNumber] ?? 1, // maximum from previous rows
                 );
                 if ($maxGenericColumnWidth) {
@@ -156,8 +160,10 @@ class Report
         return $widths;
     }
 
-    private function nazevSouboru(string $pripona, ?string $nazevReportu): string
-    {
+    private function nazevSouboru(
+        string  $pripona,
+        ?string $nazevReportu,
+    ): string {
         $nazevReportu = $nazevReportu !== null
             ? preg_replace('~[^[:alnum:]_-]~', '_', removeDiacritics(trim($nazevReportu)))
             : $this->nazevReportuZRequestu();
@@ -192,8 +198,10 @@ class Report
         }
     }
 
-    private function zapisCsvRadek($stream, array $radek)
-    {
+    private function zapisCsvRadek(
+        $stream,
+        array $radek,
+    ) {
         fputcsv($stream, $this->odstranTagyZPole($radek), $this->csvSeparator);
     }
 
@@ -206,9 +214,12 @@ class Report
      * Vytiskne report v zadaném formátu. Pokud není zadán, použije výchozí csv.
      * @throws Exception pokud formát není podporován
      */
-    public function tFormat(?string $format = 'xlsx', string $nazev = null, KonfiguraceReportu $konfiguraceReportu = null)
-    {
-        $format = trim((string) $format);
+    public function tFormat(
+        ?string            $format = 'xlsx',
+        string             $nazev = null,
+        KonfiguraceReportu $konfiguraceReportu = null,
+    ) {
+        $format = trim((string)$format);
         if (!$format || $format === 'xlsx') {
             $this->tXlsx($nazev, $konfiguraceReportu);
         } elseif ($format === 'csv') {
@@ -266,8 +277,10 @@ HTML;
     /**
      * Vytvoří report z asoc. polí, jako hlavičky použije klíče
      */
-    public static function zPoleSDvojitouHlavickou(array $pole, int $parametry = 0): self
-    {
+    public static function zPoleSDvojitouHlavickou(
+        array $pole,
+        int   $parametry = 0,
+    ): self {
         $hlavniHlavicka   = [];
         $obsah            = [];
         $vedlejsiHlavicka = [];
@@ -310,8 +323,10 @@ HTML;
      * @param array $hlavicky hlavičkový řádek
      * @param array $obsah pole normálních řádků
      */
-    public static function zPoli(array $hlavicky, array $obsah): self
-    {
+    public static function zPoli(
+        array $hlavicky,
+        array $obsah,
+    ): self {
         $report            = new static();
         $report->hlavicky  = $hlavicky;
         $report->poleObsah = $obsah;
@@ -324,11 +339,15 @@ HTML;
      * @param string $dotaz
      * @param array|null $dotazParametry = []
      */
-    public static function zSql(string $dotaz, array $dotazParametry = null): self
-    {
+    public static function zSql(
+        string  $dotaz,
+        array   $dotazParametry = null,
+        ?mysqli $mysqli = null,
+    ): self {
         $report               = new static();
         $report->sql          = $dotaz;
         $report->sqlParametry = $dotazParametry;
+        $report->mysqli       = $mysqli;
 
         return $report;
     }
@@ -339,8 +358,10 @@ HTML;
      * @param string[][] $pole
      * @return string[]
      */
-    public static function dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku(string $hledanyKlicHlavnihoSloupce, array $pole): array
-    {
+    public static function dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku(
+        string $hledanyKlicHlavnihoSloupce,
+        array  $pole,
+    ): array {
         $prvniRadek = reset($pole);
         if (!$prvniRadek) {
             return [];
@@ -359,13 +380,20 @@ HTML;
         $klicePodsloupcu       = array_keys($dataSloupceDlePrvnihoRadku);
         $indexyKlicuPodsloupcu = array_keys($klicePodsloupcu);
 
-        return array_map(static function (int $indexKlicePodsloupce) use ($pocetPodsloupcuPredtim) {
+        return array_map(static function (
+            int $indexKlicePodsloupce,
+        ) use
+        (
+            $pocetPodsloupcuPredtim,
+        ) {
             return $indexKlicePodsloupce + $pocetPodsloupcuPredtim;
         }, $indexyKlicuPodsloupcu);
     }
 
-    public static function dejIndexKlicePodsloupceDruhehoRadku(string $hledanyKlicPodsloupce, array $pole): ?int
-    {
+    public static function dejIndexKlicePodsloupceDruhehoRadku(
+        string $hledanyKlicPodsloupce,
+        array  $pole,
+    ): ?int {
         $prvniRadek = reset($pole);
         if (!$prvniRadek) {
             return null;
@@ -397,7 +425,7 @@ HTML;
             return $this->hlavicky;
         }
         if (!$this->o) {
-            $this->o = dbQuery($this->sql, $this->sqlParametry);
+            $this->o = dbQuery($this->sql, $this->sqlParametry, $this->mysqli);
         }
         $this->hlavicky = [];
         for ($i = 0, $sloupcu = mysqli_num_fields($this->o); $i < $sloupcu; $i++) {

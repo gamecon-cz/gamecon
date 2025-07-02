@@ -184,13 +184,13 @@ class ActivitiesImporter
                 ] = $validatedValues;
 
                 $importActivityResult = $this->activityImporter->importActivity(
-                    $sqlMappedValues,
-                    $longAnnotation,
-                    $storytellersIds,
-                    $tagIds,
-                    $typAktivity,
-                    $potentialImageUrls,
-                    $originalActivity
+                    sqlMappedValues: $sqlMappedValues,
+                    longAnnotation: $longAnnotation,
+                    storytellersIds: $storytellersIds,
+                    tagIds: $tagIds,
+                    singleProgramLine: $typAktivity,
+                    potentialImageUrls: $potentialImageUrls,
+                    originalActivity: $originalActivity
                 );
                 $result->addWarnings($importActivityResult, $activityGuid);
                 $result->addErrorLikeWarnings($importActivityResult, $activityGuid);

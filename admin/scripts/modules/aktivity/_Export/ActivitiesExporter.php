@@ -7,8 +7,9 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionExcep
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\Lokace;
 
 class ActivitiesExporter
 {
@@ -16,57 +17,16 @@ class ActivitiesExporter
     private const EXPORT_DIR = '/%user%.admin.gamecon.cz/aktivity';
     private const EXPORT_DIR_TAG = 'root-export-dir';
 
-    /**
-     * @var GoogleDriveService
-     */
-    private $googleDriveService;
-    /**
-     * @var GoogleSheetsService
-     */
-    private $googleSheetsService;
-    /**
-     * @var \Uzivatel
-     */
-    private $uzivatel;
-    /**
-     * @var ExportAktivitSloupce
-     */
-    private $exportAktivitSloupce;
-    /**
-     * @var ExportTaguSloupce
-     */
-    private $exportTaguSloupce;
-    /**
-     * @var ExportStavuAktivitSloupce
-     */
-    private $exportStavuAktivitSloupce;
-    /**
-     * @var ExportLokaciSloupce
-     */
-    private $exportLokaciSloupce;
-    /**
-     * @var ExportVypravecuSloupce
-     */
-    private $exportVypravecuSloupce;
-
     public function __construct(
-        \Uzivatel                 $uzivatel,
-        GoogleDriveService        $googleDriveService,
-        GoogleSheetsService       $googleSheetsService,
-        ExportAktivitSloupce      $exportAktivitSloupce,
-        ExportTaguSloupce         $exportTaguSloupce,
-        ExportStavuAktivitSloupce $exportStavuAktivitSloupce,
-        ExportLokaciSloupce       $exportLokaciSloupce,
-        ExportVypravecuSloupce    $exportVypravecuSloupce
+        private readonly \Uzivatel                 $uzivatel,
+        private readonly GoogleDriveService        $googleDriveService,
+        private readonly GoogleSheetsService       $googleSheetsService,
+        private readonly ExportAktivitSloupce      $exportAktivitSloupce,
+        private readonly ExportTaguSloupce         $exportTaguSloupce,
+        private readonly ExportStavuAktivitSloupce $exportStavuAktivitSloupce,
+        private readonly ExportLokaciSloupce       $exportLokaciSloupce,
+        private readonly ExportVypravecuSloupce    $exportVypravecuSloupce
     ) {
-        $this->googleDriveService = $googleDriveService;
-        $this->googleSheetsService = $googleSheetsService;
-        $this->uzivatel = $uzivatel;
-        $this->exportAktivitSloupce = $exportAktivitSloupce;
-        $this->exportTaguSloupce = $exportTaguSloupce;
-        $this->exportStavuAktivitSloupce = $exportStavuAktivitSloupce;
-        $this->exportLokaciSloupce = $exportLokaciSloupce;
-        $this->exportVypravecuSloupce = $exportVypravecuSloupce;
     }
 
     /**
@@ -250,7 +210,7 @@ class ActivitiesExporter
 
     private function getAllRoomsData(): array {
         $data[] = $this->exportLokaciSloupce::vsechnySloupceLokace();
-        foreach (\Lokace::zVsech() as $jednaLokace) {
+        foreach (Lokace::zVsech() as $jednaLokace) {
             $data[] = [
                 $jednaLokace->id(),
                 $jednaLokace->nazev(),
