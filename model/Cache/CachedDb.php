@@ -111,14 +111,23 @@ class CachedDb implements DbInterface
             return $tableDataVersions;
         }
 
-        $tableVersions = dbFetchPairs(<<<SQL
+        try {
+            $tableVersions = dbFetchPairs(<<<SQL
             SELECT table_name, version
             FROM _table_data_versions
             WHERE table_name IN ($0)
             SQL,
-            [0 => $relatedTables],
-        );
+                [0 => $relatedTables],
+            );
+        } catch (\DbException $dbException) {
+            if (str_ends_with($dbException->getMessage(), "._table_data_versions' doesn't exist")) {
+                // migration with _table_data_versions was not executed yet
+                return [];
+            }
+        }
         if (count($tableVersions) !== count($relatedTables)) {
+            sort($relatedTables);
+            ksort($tableVersions);
             throw new \RuntimeException(
                 sprintf(
                     'Not all tables have a version in the cache. '
