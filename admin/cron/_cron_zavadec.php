@@ -4,7 +4,6 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
 
 require_once __DIR__ . '/../../nastaveni/zavadec.php';
 
-// TODO nutný hack před zmergeování zavaděče mezi redesignem a masterem
 // tato proměnná je nastavena zavaděčem a zde upravíme zobrazení výjimek
 /** @var Vyjimkovac $vyjimkovac */
 $vyjimkovac->zobrazeni(Vyjimkovac::PLAIN);

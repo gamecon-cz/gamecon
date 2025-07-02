@@ -13,7 +13,7 @@ readonly class ActivityImporter
         private ImportSqlMappedValuesChecker $importValuesChecker,
         private ActivityImagesImporter       $imagesImporter,
         private int                          $currentYear,
-        private Logovac                      $logovac
+        private Logovac                      $logovac,
     ) {
     }
 
@@ -24,16 +24,16 @@ readonly class ActivityImporter
         array       $tagIds,
         TypAktivity $singleProgramLine,
         array       $potentialImageUrls,
-        ?Aktivita   $originalActivity
+        ?Aktivita   $originalActivity,
     ): ImportStepResult {
         $checkBeforeSaveResult = $this->importValuesChecker->checkBeforeSave(
-            $sqlMappedValues,
-            $longAnnotation,
-            $tagIds,
-            $storytellersIds,
-            $singleProgramLine,
-            $potentialImageUrls,
-            $originalActivity
+            sqlMappedValues: $sqlMappedValues,
+            longAnnotation: $longAnnotation,
+            tagIds: $tagIds,
+            storytellersIds: $storytellersIds,
+            singleProgramLine: $singleProgramLine,
+            potentialImageUrls: $potentialImageUrls,
+            originalActivity: $originalActivity,
         );
         if ($checkBeforeSaveResult->isError()) {
             return ImportStepResult::error($checkBeforeSaveResult->getError());
@@ -43,14 +43,14 @@ readonly class ActivityImporter
 
         /** @var Aktivita $importedActivity */
         $savedActivityResult = $this->saveActivity(
-            $sqlMappedValues,
-            $longAnnotation,
-            $availableStorytellerIds,
-            $tagIds,
-            $potentialImageUrls,
-            $singleProgramLine
+            sqlMappedValues: $sqlMappedValues,
+            longAnnotation: $longAnnotation,
+            storytellersIds: $availableStorytellerIds,
+            tagIds: $tagIds,
+            potentialImageUrls: $potentialImageUrls,
+            singleProgramLine: $singleProgramLine,
         );
-        $importedActivity = $savedActivityResult->getSuccess();
+        $importedActivity    = $savedActivityResult->getSuccess();
 
         if ($savedActivityResult->isError()) {
             return ImportStepResult::error($savedActivityResult->getError());
@@ -63,34 +63,39 @@ readonly class ActivityImporter
         if ($originalActivity) {
             return ImportStepResult::successWithWarnings(
                 [
-                    'message' => sprintf('Upravena existující %s.', $importedActivity->jeHlavni() ? '"mateřská" aktivita' : 'instance'),
+                    'message'          => sprintf('Upravena existující %s.', $importedActivity->jeHlavni()
+                        ? '"mateřská" aktivita'
+                        : 'instance'),
                     'importedActivity' => $importedActivity,
                 ],
                 $warnings,
-                $errorLikeWarnings
+                $errorLikeWarnings,
             );
         }
         if ($importedActivity->jeInstance()) {
             return ImportStepResult::successWithWarnings(
                 [
-                    'message' => sprintf(
+                    'message'          => sprintf(
                         'Nahrána jako nová, %d. instance k "mateřské" aktivitě %s.',
                         $importedActivity->pocetInstanci(),
-                        $this->importValuesDescriber->describeActivity($importedActivity->patriPodAktivitu())
+                        $this->importValuesDescriber->describeActivity($importedActivity->patriPodAktivitu()),
                     ),
                     'importedActivity' => $importedActivity,
                 ],
                 $warnings,
-                $errorLikeWarnings
+                $errorLikeWarnings,
             );
         }
+
         return ImportStepResult::successWithWarnings(
             [
-                'message' => sprintf('Nahrána jako nová %s.', $importedActivity->jeHlavni() ? '"mateřská" aktivita' : 'instance'),
+                'message'          => sprintf('Nahrána jako nová %s.', $importedActivity->jeHlavni()
+                    ? '"mateřská" aktivita'
+                    : 'instance'),
                 'importedActivity' => $importedActivity,
             ],
             $warnings,
-            $errorLikeWarnings
+            $errorLikeWarnings,
         );
     }
 
@@ -100,37 +105,48 @@ readonly class ActivityImporter
         array       $storytellersIds,
         array       $tagIds,
         array       $potentialImageUrls,
-        TypAktivity $singleProgramLine
+        TypAktivity $singleProgramLine,
     ): ImportStepResult {
         try {
             if (empty($sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE])) {
                 $newInstanceParentActivityId = $this->findParentActivityId($sqlMappedValues[ActivitiesImportSqlColumn::URL_AKCE], $singleProgramLine);
                 if ($newInstanceParentActivityId) {
-                    $newInstance = $this->createInstanceForParentActivity($newInstanceParentActivityId);
-                    $sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE] = $newInstance->id();
+                    $newInstance                                           = $this->createInstanceForParentActivity($newInstanceParentActivityId);
+                    $sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE]   = $newInstance->id();
                     $sqlMappedValues[ActivitiesImportSqlColumn::PATRI_POD] = $newInstance->patriPod();
                 }
             }
-            $savedActivity = Aktivita::uloz($sqlMappedValues, $longAnnotation, $storytellersIds, $tagIds);
+            $savedActivity  = Aktivita::uloz(
+                data: $sqlMappedValues,
+                markdownPopis: $longAnnotation,
+                organizatoriIds: $storytellersIds,
+                tagIds: $tagIds,
+            );
             $addImageResult = $this->imagesImporter->addImage($potentialImageUrls, $savedActivity);
+
             return ImportStepResult::successWithWarnings($savedActivity, $addImageResult->getWarnings(), $addImageResult->getErrorLikeWarnings());
         } catch (\Exception $exception) {
             $this->logovac->zaloguj($exception);
+
             return ImportStepResult::error(
                 sprintf(
                     'Aktivitu %s se nepodařilo uložit: %s.',
                     $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, null),
-                    $exception->getMessage()
-                )
+                    $exception->getMessage(),
+                ),
             );
         }
     }
 
-    private function findParentActivityId(string $url, TypAktivity $singleProgramLine): ?int {
+    private function findParentActivityId(
+        string      $url,
+        TypAktivity $singleProgramLine,
+    ): ?int {
         return Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
     }
 
-    private function createInstanceForParentActivity(int $parentActivityId): Aktivita {
+    private function createInstanceForParentActivity(int $parentActivityId): Aktivita
+    {
         return ImportModelsFetcher::fetchActivity($parentActivityId)->instancuj();
     }
 

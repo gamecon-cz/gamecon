@@ -19,5 +19,4 @@ class FiltrAktivity
     public const STAV = 'stav'; // id stavu, array nebo int
     public const BEZ_DALSICH_KOL = 'bezDalsichKol';
     public const PRIHLASENI = 'prihlaseni'; // id uživatelů, array nebo int
-    public const JEN_VOLNE = 'jenVolne';
 }
