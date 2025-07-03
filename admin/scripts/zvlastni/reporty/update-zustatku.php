@@ -12,8 +12,9 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 $sqlParts = [
     <<<SQL
-UPDATE akce_seznam SET lokace=NULL WHERE TRUE;
-TRUNCATE TABLE akce_lokace; -- smazat všechny místnosti, aby se mohly nahrát každý rok znovu a nehrozilo, že to někdo začne zadávat k aktivitám, když to ještě není nahrané
+-- smazat všechny místnosti, aby se mohly nahrát každý rok znovu a nehrozilo, že to někdo začne zadávat k aktivitám, když to ještě není nahrané
+DELETE FROM akce_lokace WHERE TRUE;
+DELETE FROM lokace WHERE TRUE;
 SQL
 ];
 foreach (Uzivatel::vsichni() as $uzivatel) {

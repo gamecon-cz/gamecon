@@ -179,6 +179,7 @@ class ActivitiesImporter
                     'originalActivity' => $originalActivity,
                     'longAnnotation' => $longAnnotation,
                     'storytellersIds' => $storytellersIds,
+                    'locationIds' => $locationIds,
                     'tagIds' => $tagIds,
                     'potentialImageUrls' => $potentialImageUrls,
                 ] = $validatedValues;
@@ -187,6 +188,7 @@ class ActivitiesImporter
                     sqlMappedValues: $sqlMappedValues,
                     longAnnotation: $longAnnotation,
                     storytellersIds: $storytellersIds,
+                    locationIds: $locationIds,
                     tagIds: $tagIds,
                     singleProgramLine: $typAktivity,
                     potentialImageUrls: $potentialImageUrls,

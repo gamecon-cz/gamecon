@@ -6,6 +6,7 @@ use ArrayIterator;
 use ArrayObject;
 use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceTypySqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\LokaceSqlStruktura;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -231,7 +232,7 @@ class Program
     {
         $this->init();
 
-        $aktivita = $this->dalsiAktivita();
+        $aktivita = $this->dalsiAktivita([]);
         if ($this->nastaveni[self::OSOBNI] || $this->nastaveni[self::DEN]) {
             $this->tiskTabulky($aktivita);
         } else {
@@ -280,7 +281,7 @@ class Program
      * Inicializuje privátní proměnné skupiny (podle kterých se shlukuje) a
      * program (iterátor aktivit)
      */
-    private function init()
+    private function init(): void
     {
         Uzivatel::prednactiUzivateleNaAktivitach($this->systemoveNastaveni->rocnik());
 
@@ -289,14 +290,16 @@ class Program
                 Aktivita::zProgramu(
                     razeni: '_razeni_tmp',
                     select: '
-                        (SELECT akce_lokace.poradi
+                        (SELECT lokace.poradi
                             FROM akce_lokace
-                            WHERE akce_lokace.id_lokace = a.lokace
-                            ORDER BY akce_lokace.poradi
+                            JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
+                            WHERE akce_lokace.id_akce = a.id_akce
+                            ORDER BY akce_lokace.je_hlavni, lokace.poradi
                             LIMIT 1
                         ) AS _razeni_tmp
                     ',
                     dalsiPouziteSqlTabulky: [
+                        LokaceSqlStruktura::LOKACE_TABULKA,
                         AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA,
                     ],
                     zCache: true,
@@ -332,11 +335,8 @@ class Program
             $this->program = new ArrayIterator(
                 Aktivita::zProgramu(
                     razeni: '_razeni_tmp',
-                    select: '(SELECT akce_typy.poradi
-                        FROM akce_typy
-                        WHERE a.typ = akce_typy.id_typu
-                        LIMIT 1
-                     ) AS _razeni_tmp',
+                    select: 'akce_typy.poradi AS _razeni_tmp',
+                    join: 'LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu',
                     dalsiPouziteSqlTabulky: [AkceTypySqlStruktura::AKCE_TYPY_TABULKA],
                     zCache: true,
                     prednacitat: true,
@@ -402,18 +402,63 @@ class Program
     }
 
     /**
+     * @param iterable<Aktivita> $aktivity
+     * @return ArrayIterator<Aktivita>
+     */
+    private function rozkopirujAktivityVeViceLokacich(
+        iterable $aktivity,
+        array    $serazenaIdsLokaci,
+    ): ArrayIterator {
+        $aktivityPodleDnuALokaci = [];
+        foreach ($aktivity as $aktivita) {
+            $den               = $aktivita->denProgramu()->format('Ymd');
+            $seznamLokaciIdcka = $aktivita->seznamLokaciIdcka();
+            if ($seznamLokaciIdcka === []) {
+                $aktivityPodleDnuALokaci[$den][0][$aktivita->id()] = $aktivita;
+            } else {
+                foreach ($aktivita->seznamLokaciIdcka() as $idLokace) {
+                    $aktivityPodleDnuALokaci[$den][$idLokace][$aktivita->id()] = $aktivita;
+                }
+            }
+        }
+        // podle dnů
+        ksort($aktivityPodleDnuALokaci);
+
+        foreach ($aktivityPodleDnuALokaci as &$aktivityPodleLokaci) {
+            foreach ($aktivityPodleLokaci as &$aktivityJedneLokace) {
+                // podle lokací
+                usort($aktivityJedneLokace, fn(
+                    Aktivita $a,
+                    Aktivita $b,
+                ) => $a->zacatek() <=> $b->zacatek());
+            }
+        }
+        unset($aktivityPodleLokaci, $aktivityJedneLokace);
+
+        $serazeneRozkopirovane = [];
+        foreach ($aktivityPodleDnuALokaci as $aktivityPodleLokaci) {
+            foreach ($serazenaIdsLokaci as $idLokace) {
+                $serazeneRozkopirovane = [...$serazeneRozkopirovane, ...$aktivityPodleLokaci[$idLokace] ?? []];
+            }
+        }
+
+        return new ArrayIterator($serazeneRozkopirovane);
+    }
+
+    /**
+     * @param array<int, array<int, bool>>|null $dnesVytistknuteTypyPodleAktivit
      * Pomocná funkce pro načítání další aktivity z DB nebo z lokálního stacku
      * aktivit (globální proměnné se používají)
      */
-    private function dalsiAktivita(): ?array
+    private function dalsiAktivita(?array $dnesVytistknuteTypyPodleAktivit): ?array
     {
         if (!$this->dbPosledni) {
-            $this->dbPosledni = $this->nactiDalsiAktivitu($this->program);
+            $this->dbPosledni = $this->nactiDalsiAktivitu($this->program, $dnesVytistknuteTypyPodleAktivit);
         }
 
         while ($this->koliduje($this->posledniVydana, $this->dbPosledni)) {
             $this->aktFronta[] = $this->dbPosledni;
-            $this->dbPosledni  = $this->nactiDalsiAktivitu($this->program);
+            $this->dbPosledni  = $this->nactiDalsiAktivitu($this->program, $dnesVytistknuteTypyPodleAktivit);
         }
 
         if ($this->stejnaSkupina($this->dbPosledni, $this->posledniVydana) || !$this->aktFronta) {
@@ -558,7 +603,8 @@ HTML;
         ?array &$aktivitaRaw,
                $denId = null,
     ): void {
-        $pocetAktivit = 0;
+        $pocetAktivit            = 0;
+        $vytisknuteTypyPodleAktivitVTomtoDni = [];
         foreach ($this->skupiny as $typId => $typNazev) {
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
             if (!$this->nastaveni[self::PRAZDNE] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typId)) {
@@ -578,14 +624,17 @@ HTML;
                     }
                     if (
                         $aktivitaRaw &&
-                      $typId == $aktivitaRaw['grp'] &&
+                        $typId == $aktivitaRaw['grp'] &&
                         ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < PROGRAM_ZACATEK) && // pro případ že by někdo nastavil aktivitu na již dřívější začátek, tak aby to nerozbilo program. (např. 2024 brigádnické aktivity od 7:00, kdy program začínal 8:00)
                         (!$denId || $aktivitaRaw['den'] == $denId)
                     ) {
                         $skip = $aktivitaRaw['delka'] - 1;
                         $this->tiskAktivity($aktivitaRaw);
-                        $aktivitaRaw = $this->dalsiAktivita();
-                        $pocetAktivit++;
+                        $vytisknuteTypyPodleAktivitVTomtoDni[$aktivitaRaw['obj']->id()][$typId] = true;
+                        $aktivitaRaw                     = $this->dalsiAktivita($denId !== null
+                            ? $vytisknuteTypyPodleAktivitVTomtoDni
+                            : null);
+                        $pocetAktivit++; // jedna aktivita se může počítat vícekrát, pokud je ve více místnostech
                     } else {
                         echo '<td></td>';
                     }
@@ -620,11 +669,14 @@ HTML;
     }
 
     /**
+     * @param array<int, array<int, bool>>|null $dnesVytistknuteTypyPodleAktivit
      * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
      * (s cacheovanými hodnotami) pro program.
      */
-    private function nactiDalsiAktivitu(\Iterator $iterator): ?array
-    {
+    private function nactiDalsiAktivitu(
+        \Iterator $iterator,
+        ?array    $dnesVytistknuteTypyPodleAktivit,
+    ): ?array {
         if (!$iterator->valid()) {
             return null;
         }
@@ -641,7 +693,14 @@ HTML;
                 $grp = $aktivita->typId();
                 break;
             case self::SKUPINY_PODLE_LOKACE_ID :
-                $grp = $aktivita->lokaceId();
+                // pokud nemá žádnou lokaci, tak ji zařadíme do skupiny 0 (ostatní)
+                $grp = 0;
+                foreach ($aktivita->seznamLokaciIdcka() as $idLokace) {
+                    if (empty($dnesVytistknuteTypyPodleAktivit[$aktivita->id()][$idLokace])) {
+                        $grp = $idLokace;
+                        break;
+                    }
+                }
                 break;
             case self::SKUPINY_PODLE_DEN :
                 $grp = (int)$aktivita->denProgramu()->format('z');
@@ -651,7 +710,7 @@ HTML;
         }
 
         $a = [
-            'grp' => $grp,
+            'grp'   => $grp,
             'zac'   => $zac,
             'kon'   => $kon,
             'den'   => (int)$aktivita->denProgramu()->format('z'),
@@ -662,7 +721,7 @@ HTML;
 
         // u programu dne přeskočit aktivity, které nejsou daný den
         if ($this->nastaveni[self::DEN] && $this->nastaveni[self::DEN] != $a['den']) {
-            return $this->nactiDalsiAktivitu($iterator);
+            return $this->nactiDalsiAktivitu($iterator, $dnesVytistknuteTypyPodleAktivit);
         }
 
         // u osobního programu přeskočit aktivity, kde není přihlášen
@@ -672,7 +731,7 @@ HTML;
                 !$this->u->prihlasenJakoSledujici($aktivita) &&
                 !$this->u->organizuje($aktivita)
             ) {
-                return $this->nactiDalsiAktivitu($iterator);
+                return $this->nactiDalsiAktivitu($iterator, $dnesVytistknuteTypyPodleAktivit);
             }
         }
 
@@ -680,7 +739,7 @@ HTML;
         if ($aktivita->viditelnaPro($this->u, null) || $this->nastaveni[self::INTERNI]) {
             return $a;
         } else {
-            return $this->nactiDalsiAktivitu($iterator);
+            return $this->nactiDalsiAktivitu($iterator, $dnesVytistknuteTypyPodleAktivit);
         }
     }
 
