@@ -10,35 +10,35 @@
  */
 
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\LokaceSqlStruktura;
 
 if (post('upravit')) {
-    dbInsertUpdate(AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA, $_POST['fields']);
+    dbInsertUpdate(LokaceSqlStruktura::LOKACE_TABULKA, $_POST['fields']);
     back();
 }
 
 if (post('nahoru')) {
-    dbQueryS('UPDATE akce_lokace SET poradi=poradi+1 WHERE poradi=$0', [post('poradi') - 1]);
-    dbQueryS('UPDATE akce_lokace SET poradi=poradi-1 WHERE id_lokace=$0', [post('nahoru')]);
+    dbQueryS('UPDATE lokace SET poradi=poradi+1 WHERE poradi=$0', [post('poradi') - 1]);
+    dbQueryS('UPDATE lokace SET poradi=poradi-1 WHERE id_lokace=$0', [post('nahoru')]);
     back();
 }
 
 if (post('dolu')) {
-    dbQueryS('UPDATE akce_lokace SET poradi=poradi-1 WHERE poradi=$0', [post('poradi') + 1]);
-    dbQueryS('UPDATE akce_lokace SET poradi=poradi+1 WHERE id_lokace=$0', [post('dolu')]);
+    dbQueryS('UPDATE lokace SET poradi=poradi-1 WHERE poradi=$0', [post('poradi') + 1]);
+    dbQueryS('UPDATE lokace SET poradi=poradi+1 WHERE id_lokace=$0', [post('dolu')]);
     back();
 }
 
 if (post('novaMistnost')) {
-    $a      = dbOneLine('SELECT MAX(poradi) as posledni FROM akce_lokace');
+    $a      = dbOneLine('SELECT MAX(poradi) AS posledni FROM lokace');
     $poradi = $a['posledni'] + 1;
-    dbInsertUpdate(AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA, [LokaceSqlStruktura::NAZEV => 'Nová místnost ' . $poradi, LokaceSqlStruktura::PORADI => $poradi]);
+    dbInsertUpdate(LokaceSqlStruktura::LOKACE_TABULKA, [LokaceSqlStruktura::NAZEV => 'Nová místnost ' . $poradi, LokaceSqlStruktura::PORADI => $poradi]);
     back();
 }
 
 $tpl = new XTemplate(__DIR__ . '/mistnosti.xtpl');
 
-$o = dbQuery('SELECT * FROM akce_lokace ORDER BY poradi');
+$o = dbQuery('SELECT * FROM lokace ORDER BY poradi');
 $l = mysqli_num_rows($o);
 for ($i = 0; $r = mysqli_fetch_assoc($o); $i++) {
     $tpl->assign($r);
