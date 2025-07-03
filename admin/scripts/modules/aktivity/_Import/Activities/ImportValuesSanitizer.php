@@ -13,12 +13,33 @@ use Gamecon\Cas\DateTimeGamecon;
 
 class ImportValuesSanitizer
 {
+    /**
+     * @var ImportValuesDescriber
+     */
+    private $importValuesDescriber;
+    /**
+     * @var int
+     */
+    private $currentYear;
+    /**
+     * @var ImportObjectsContainer
+     */
+    private $importObjectsContainer;
+    /**
+     * @var string
+     */
+    private $storytellersPermissionsUrl;
+
     public function __construct(
-        private ImportValuesDescriber  $importValuesDescriber,
-        private ImportObjectsContainer $importObjectsContainer,
-        private int                    $currentYear,
-        private string                 $storytellersPermissionsUrl,
+        ImportValuesDescriber  $importValuesDescriber,
+        ImportObjectsContainer $importObjectsContainer,
+        int                    $currentYear,
+        string                 $storytellersPermissionsUrl,
     ) {
+        $this->importValuesDescriber      = $importValuesDescriber;
+        $this->currentYear                = $currentYear;
+        $this->importObjectsContainer     = $importObjectsContainer;
+        $this->storytellersPermissionsUrl = $storytellersPermissionsUrl;
     }
 
     public function sanitizeValuesToImport(
