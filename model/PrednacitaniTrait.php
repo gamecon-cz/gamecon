@@ -26,7 +26,7 @@ trait PrednacitaniTrait
      * Kolekce musí být ve formátu id objektu => objekt. Ideální je naplnit
      * ji v metodě zWhere().
      */
-    abstract protected function kolekce();
+    abstract protected function kolekce(): array;
 
     /**
      *
@@ -41,19 +41,20 @@ trait PrednacitaniTrait
      * Načte objekty s vazbou M:N, tj. pomocí nějaké vazební tabulky. Do
      * vybraného atributu v zdrjových objektech doplní pole (může být i prázdné).
      *
-     * @param atribut Název atributu, do kterého se má zapsat pole odkazovaných
-     * objektů.
-     * @param cil Název třídy, jejíž instance se mají vytvořit jako cíle. Vhodné
-     * použít zápis Trida::class místo 'Trida'.
-     * @param tabulka Název vazební tabulky.
-     * @param zdrojSloupec Název sloupce, kde jsou id objektů zdrojové kolekce.
-     * @param cilSloupec Název sloupce, kde jsou id objektů cílové třídy.
+     * @param array{
+     *     atribut: string, // Název atributu, do kterého se má zapsat pole odkazovaných objektů
+     *     cil: string, // Název třídy, jejíž instance se mají vytvořit jako cíle. Vhodné použít zápis Trida::class místo 'Trida'
+     *     tabulka: string, // Název vazební tabulky
+     *     zdrojSloupec: string, // Název sloupce, kde jsou id objektů zdrojové kolekce
+     *     cilSloupec: string, // Název sloupce, kde jsou id objektů cílové třídy
+     * } $argumenty
      */
-    protected function prednactiMN($argumenty)
+    protected function prednactiMN(array $argumenty, bool $zCache = false)
     {
         // načtení pojmenovaných argumentů
         $atribut      = $argumenty['atribut'];
         $cil          = $argumenty['cil'];
+        assert(is_a($cil, \DbObject::class, true), 'Cíl musí být DbObject');
         $tabulka      = $argumenty['tabulka'];
         $zdrojSloupec = $argumenty['zdrojSloupec'];
         $cilSloupec   = $argumenty['cilSloupec'];
@@ -61,26 +62,28 @@ trait PrednacitaniTrait
 
         // dotaz vracející dvojice: id zdroje => ids cílů oddělené čárkou
         $q = dbQuery('
-      SELECT
-        ' . dbQi($zdrojSloupec) . ',
-        GROUP_CONCAT(' . dbQi($cilSloupec) . ') as ' . dbQv($cilSloupec) . '
-      FROM        ' . dbQi($tabulka) . '
-      WHERE       ' . dbQi($zdrojSloupec) . ' IN ($1)
-      GROUP BY    ' . dbQi($zdrojSloupec) . '
-    ', [array_keys($kolekce)]);
+            SELECT
+            ' . dbQi($zdrojSloupec) . ',
+            GROUP_CONCAT(' . dbQi($cilSloupec) . ') as ' . dbQv($cilSloupec) . '
+            FROM        ' . dbQi($tabulka) . '
+            WHERE       ' . dbQi($zdrojSloupec) . ' IN ($1)
+            GROUP BY    ' . dbQi($zdrojSloupec) . '
+            ', [1 => array_keys($kolekce)]
+        );
 
         // TODO extra metody na vytvoření indexů
 
         // načtení ids cílů plus jejich vložení do zdrojových objektů
-        $cilIds = '0';
+        $cilIds = [];
         while ($r = mysqli_fetch_row($q)) {
             $zdrojObjekt           = $kolekce[$r[0]];
-            $zdrojObjekt->$atribut = explode(',', $r[1]);
-            $cilIds                .= ',' . $r[1];
+            $zdrojObjektCilIds = array_map('intval', explode(',', $r[1]));
+            $zdrojObjekt->$atribut = $zdrojObjektCilIds;
+            $cilIds = [...$cilIds, ...$zdrojObjektCilIds];
         }
 
         // vytvoření indexu cílů k vyhledávání podle id
-        $cile      = $cil::zIds(array_unique(explode(',', $cilIds)));
+        $cile      = $cil::zIds(array_unique($cilIds), $zCache);
         $cileIndex = [];
         foreach ($cile as $c) {
             $cileIndex[$c->id()] = $c;

@@ -10,9 +10,10 @@
  */
 
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
 
 if (post('upravit')) {
-    dbInsertUpdate('akce_lokace', $_POST['fields']);
+    dbInsertUpdate(AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA, $_POST['fields']);
     back();
 }
 
@@ -31,7 +32,7 @@ if (post('dolu')) {
 if (post('novaMistnost')) {
     $a      = dbOneLine('SELECT MAX(poradi) as posledni FROM akce_lokace');
     $poradi = $a['posledni'] + 1;
-    dbInsertUpdate('akce_lokace', ['nazev' => 'Nová místnost ' . $poradi, 'poradi' => $poradi]);
+    dbInsertUpdate(AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA, [LokaceSqlStruktura::NAZEV => 'Nová místnost ' . $poradi, LokaceSqlStruktura::PORADI => $poradi]);
     back();
 }
 
