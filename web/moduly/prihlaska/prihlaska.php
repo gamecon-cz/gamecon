@@ -283,6 +283,7 @@ if ($u->gcPrihlasen()) {
         ((!$u->potvrzeniZakonnehoZastupceOd()) ||
             $u->potvrzeniZakonnehoZastupceOd()->format('Y') != $systemoveNastaveni->rocnik())) {
         if ($u->potvrzeniZakonnehoZastupceSouborOd() && ((!$u->potvrzeniZakonnehoZastupceOd()) || $u->potvrzeniZakonnehoZastupceSouborOd() > ($u->potvrzeniZakonnehoZastupceOd()))) {
+            $t->assign('uspesneNahrano', 'prihlaska_uspesneNahrano');
             $t->parse('prihlaska.prihlasen.potvrzeniZakonnyZastupce.nahrano');
         }
         $t->assign('urlWebu', URL_WEBU);

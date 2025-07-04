@@ -16,7 +16,7 @@
         </div>
 
         <!-- begin:potvrzeniZakonnyZastupce -->
-        <div class="prihlaska_potrebaPotvrzeni">
+        <div class="prihlaska_potrebaPotvrzeni {uspesneNahrano}">
             <p>Jakožto mladší 15ti let budeš potřebovat dodat potvrzení o souhlasu tvého zákonného zástupce s
                 účastí na GameConu. Formulář ke stažení můžeš najít na
                 <a href="{urlWebu}/soubory/obsah/materialy/{rocnik}/souhlas_rodicu_{rocnik}.pdf">tomto odkazu</a> a vyplněný
@@ -29,7 +29,9 @@
                 <input type="submit" name="pridatPotvrzeniRodicu" id="pridatPotvrzeniRodicu" value="Odeslat">
             </form>
             <!-- begin:nahrano -->
-            Potvrzení je úspěšně nahrané. <a href="prihlaska/potvrzeni-rodicu">Zobrazit</a>
+            <div style="font-weight: bolder">
+                Potvrzení je úspěšně nahrané ✅ <a href="prihlaska/potvrzeni-rodicu">(zobrazit)</a>
+            </div>
             <!-- end:nahrano -->
         </div>
         <!-- end:potvrzeniZakonnyZastupce -->
