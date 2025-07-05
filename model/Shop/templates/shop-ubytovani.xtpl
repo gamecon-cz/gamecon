@@ -67,7 +67,7 @@
 
 <!-- begin:ubytovaniPresKapacitu -->
     <div>
-        <strong>Šéf Infopultu: </strong><input class="danger" type="button" value="přes kapacitu" onClick="presKapacitu()">
+        <strong>Šéf Infopultu: </strong><input class="danger" type="button" value="{presKapacituText}" onClick="{presKapacituFkce}">
     </div>
 <!-- end:ubytovaniPresKapacitu -->
 

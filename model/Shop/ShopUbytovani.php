@@ -393,6 +393,22 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
         }
 
         if ($muzeUbytovatPresKapacitu) {
+            $presKapacituBtn = !empty($_SESSION['presKapacituBtn']);
+
+            $t->assign(
+                'presKapacituText',
+                $presKapacituBtn
+                ? 'zrušit přes kapacitu'
+                : 'přes kapacitu'
+            );
+
+            $t->assign(
+                'presKapacituFkce',
+                $presKapacituBtn
+                ? 'presKapacitu()'
+                : 'zrusitPresKapacitu()'
+            );
+
             $t->parse('ubytovani.ubytovaniPresKapacitu');
         }
 
