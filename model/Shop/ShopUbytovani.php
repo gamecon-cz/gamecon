@@ -406,7 +406,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
                 'presKapacituFkce',
                 $presKapacituBtn
                 ? 'presKapacitu()'
-                : 'zrusitPresKapacitu()'
+                : 'zrusPresKapacitu()'
             );
 
             $t->parse('ubytovani.ubytovaniPresKapacitu');

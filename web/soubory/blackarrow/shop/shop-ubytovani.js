@@ -1,98 +1,182 @@
-(() => {
-  const radios = Array.from(document.querySelectorAll('.shopUbytovani_radio'));
-  const povinneEls = Array.from(document.getElementsByClassName('shopUbytovani_povinne'));
-  const names = [...new Set(radios.map(r => r.name))];
+{
+    var shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
+    var shopUbytovaniNames = []
+    var zmeneneElementy = []
+    // 1) Načtení ze sessionStorage (pokud tam nic není, zůstane null)
+    let stored = sessionStorage.getItem('presKapacituBtn');
 
-  // Load or initialize flag
-  let presKapacituBtn = JSON.parse(sessionStorage.getItem('presKapacituBtn') || 'false');
-
-  // Helper: toggle "povinne" elements
-  const togglePovinne = show => {
-    povinneEls.forEach(el => {
-      el.style.display = show ? '' : 'none';
-      el.querySelectorAll('input, select').forEach(input => {
-        input.required = show && !presKapacituBtn;
-      });
-    });
-  };
-
-  // Helper: enable all disabled radios when override is active
-  const applyOverride = () => {
-    radios.filter(r => r.disabled).forEach(r => r.disabled = false);
-  };
-
-  // Remember user choice for each day group
-  const rememberChoice = radio => {
-    radios
-      .filter(r => r.name === radio.name)
-      .forEach(r => r.dataset.kapacitaZvolenaUzivatelem = radio.dataset.kapacita);
-  };
-
-  // Select matching or "Žádné" when capacity is full
-  const syncCapacity = radio => {
-    const cap = +radio.dataset.kapacita;
-    if (cap === 0) return;
-    names.forEach(name => {
-      if (name === radio.name) return;
-      const match = radios.find(r => r.name === name && r.dataset.typ === radio.dataset.typ);
-      if (match && !match.disabled) {
-        match.checked = true;
-      } else {
-        const none = radios.find(r => r.name === name && r.dataset.typ === 'Žádné');
-        none.checked = true;
-      }
-    });
-  };
-
-  // On change handler
-  const handleChange = evt => {
-    const radio = evt.target;
-    rememberChoice(radio);
-    const anySelected = radios.some(r => r.checked && r.dataset.typ !== 'Žádné');
-    togglePovinne(anySelected);
-    if (presKapacituBtn) syncCapacity(radio);
-  };
-
-  // On click handler to toggle off same-type repeat
-  const handleClick = evt => {
-    const radio = evt.target;
-    if (!radio.checked || radio.dataset.typ === 'Žádné' || !presKapacituBtn) return;
-    // If same type was already selected earlier, reset previous
-    radios
-      .filter(r => r !== radio && r.name === radio.name && r.dataset.typ === radio.dataset.typ)
-      .forEach(prev => prev.checked = false);
-  };
-
-  // Initialize on DOM ready
-  document.addEventListener('DOMContentLoaded', () => {
-    // Initial "povinne" visibility
-    const anySelected = radios.some(r => r.checked && r.dataset.typ !== 'Žádné');
-    togglePovinne(anySelected);
-
-    if (presKapacituBtn) {
-      applyOverride();
-      togglePovinne(true);
+    // 2) Pokud tam hodnota je, použij ji, jinak nastav výchozí a ulož
+    let presKapacituBtn;
+    if (stored !== null) {
+        // načteme uložené true/false
+        presKapacituBtn = JSON.parse(stored);
+    } else {
+        // výchozí hodnota
+        presKapacituBtn = false;
     }
 
-    // Attach handlers & remember initial
-    radios.forEach(r => {
-      if (r.checked) rememberChoice(r);
-      r.addEventListener('change', handleChange);
-      r.addEventListener('click', handleClick);
+    window.addEventListener('DOMContentLoaded', () => {
+        if (presKapacituBtn) {
+            zobrazPovinnePolozky();
+            aplikujPresKapacitu();
+        }
     });
-  });
 
-  // Expose override trigger
-  window.presKapacitu = () => {
-    presKapacituBtn = true;
-    sessionStorage.setItem('presKapacituBtn', 'true');
-    applyOverride();
-    togglePovinne(true);
-  };
+    shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
+        if (!shopUbytovaniNames.includes(shopUbytovaniRadio.name)) {
+            shopUbytovaniNames.push(shopUbytovaniRadio.name)
+        }
+    })
 
-  // Expose cancel override trigger
-  window.zrusitPresKapacitu = () => {
-    sessionStorage.removeItem('presKapacituBtn');
-    location.reload();
-  };
-})();
+    function zapamatujKapacituJakoRucneZvolenou(radioInput) {
+        var zvolenaKapacita = radioInput.dataset.kapacita
+        var radiaJednohoDne = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio][name="' + radioInput.name + '"]')
+        radiaJednohoDne.forEach(radioJednohoDne => radioJednohoDne.dataset.kapacitaZvolenaUzivatelem = zvolenaKapacita)
+    }
+
+    function onShopUbytovaniChange() {
+        zmeneneElementy = []
+        zmeneneElementy.push(this)
+        zapamatujKapacituJakoRucneZvolenou(this)
+        obnovPovinnePolozky()
+        var zvolenaKapacita = this.dataset.kapacita
+        var zvolenaKapacitaInt = Number.parseInt(zvolenaKapacita)
+        if (zvolenaKapacitaInt === 0) {
+            return
+        }
+        var zvolenyTyp = this.dataset.typ
+        var zvoleneName = this.name
+        var ostatniNames = shopUbytovaniNames.filter(name => name !== zvoleneName)
+        ostatniNames.forEach(function (ostatniName) {
+            var ostatniZvoleneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"]:checked')
+            if (ostatniZvoleneUbytovani
+                && ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem !== undefined
+                && Number.parseInt(ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem) === 0
+            ) {
+                return // v tomto dni je uzivatelem rucne vybrano Zadne ubytovani, to nechceme menit
+            }
+            var ostatniStejneUbytovaniInput = ubytovaniInput(ostatniName, zvolenyTyp)
+            if (!ostatniStejneUbytovaniInput.disabled) {
+                ostatniStejneUbytovaniInput.checked = true
+                zmeneneElementy.push(ostatniStejneUbytovaniInput)
+            } else {
+                // v tomto dni je cilova kapacita jiz vycerpana, vybereme proto Zadne ubytovani (kapacita 0)
+                vyberZadneUbytovani(ostatniName)
+            }
+        })
+    }
+
+    /**
+     * @param {string} inputName
+     * @param {string} typUbytovani
+     * @return {HTMLInputElement}
+     */
+    function ubytovaniInput(inputName, typUbytovani) {
+        return document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + inputName + '"][data-typ="' + typUbytovani + '"]')
+    }
+
+    /**
+     * @param {string} inputName
+     */
+    function vyberZadneUbytovani(inputName) {
+        var zadneUbytovaniInput = ubytovaniInput(inputName, 'Žádné')
+        zadneUbytovaniInput.checked = true
+        zmeneneElementy.forEach(function (predtimZmenenyElement, index) {
+            if (predtimZmenenyElement.name === zadneUbytovaniInput.name) {
+                zmeneneElementy.splice(index, 1) // odstraníme ze seznamu předchozí výběr ubytování ve stejný den jako je teď vybrané "Žádné" ubytování
+            }
+        })
+        zmeneneElementy.push(zadneUbytovaniInput)
+    }
+
+    function onShopUbytovaniClick() {
+        /** @var {HTMLInputElement} kliknutyInput */
+        var kliknutyInput = this
+        if (kliknutyInput.disabled) {
+            return
+        }
+        if (!kliknutyInput.checked) {
+            return
+        }
+        if (kliknutyInput.dataset.typ === 'Žádné') {
+            return
+        }
+        // click event je pred onchange, zmeneneElementy pochází z předchozího, už dokončeného výběru
+        zmeneneElementy.forEach(function (zmenenyElement) {
+            if (zmenenyElement.name === kliknutyInput.name // například "shopUbytovaniDny[0]"
+                && zmenenyElement.dataset.typ === kliknutyInput.dataset.typ // například "Trojlůžák"
+            ) {
+                vyberZadneUbytovani(kliknutyInput.name)
+            }
+        })
+    }
+
+    function zobrazPovinnePolozky() {
+        prepniPovinnePolozky(true)
+    }
+
+    /**
+     * @param {boolean} show
+     */
+    function prepniPovinnePolozky(show) {
+        Array.from(document.getElementsByClassName('shopUbytovani_povinne'))
+            .forEach(function (povinnyElement) {
+                povinnyElement.style.display = show ? 'inherit' : 'none';
+                Array.from(povinnyElement.querySelectorAll('input, select'))
+                    .forEach((input) => {
+                        input.required = !presKapacituBtn ? show : false;
+                    });
+            });
+    }
+
+    function skryjPovinnePolozky() {
+        prepniPovinnePolozky(false)
+    }
+
+    function obnovPovinnePolozky() {
+        let nejakeUbytovaniVybrano = false
+        shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
+            if (shopUbytovaniRadio.checked) {
+                nejakeUbytovaniVybrano = nejakeUbytovaniVybrano || shopUbytovaniRadio.dataset.typ !== 'Žádné'
+            }
+        })
+        if (nejakeUbytovaniVybrano) {
+            zobrazPovinnePolozky()
+        } else {
+            skryjPovinnePolozky()
+        }
+    }
+
+    shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
+        shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange)
+
+        if (shopUbytovaniRadio.checked) {
+            zapamatujKapacituJakoRucneZvolenou(shopUbytovaniRadio)
+            zmeneneElementy.push(shopUbytovaniRadio) // abychom měli výchozí stav pro "odškrtávání"
+        }
+
+        shopUbytovaniRadio.addEventListener('click', onShopUbytovaniClick)
+    })
+
+    function presKapacitu() {
+        // 1) aktualizuješ proměnnou
+        presKapacituBtn = true;
+        // 2) uložíš ji do sessionStorage
+        sessionStorage.setItem('presKapacituBtn', JSON.stringify(presKapacituBtn));
+
+        zobrazPovinnePolozky();
+        aplikujPresKapacitu();
+    }
+
+    function aplikujPresKapacitu() {
+        document.querySelectorAll('input.shopUbytovani_radio[disabled]')
+            .forEach(el => el.removeAttribute('disabled'));
+    }
+    
+    function zrusPresKapacitu() {
+        sessionStorage.removeItem('presKapacituBtn');
+        presKapacituBtn = false;
+    }
+
+    obnovPovinnePolozky()
+}
