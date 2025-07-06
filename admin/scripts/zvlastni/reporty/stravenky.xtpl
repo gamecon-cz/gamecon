@@ -1,62 +1,275 @@
 <!-- begin:stravenky -->
 <style>
-
-  body {
-    font-size: 4mm;
-    font-family: sans-serif;
-  }
-
-  .radek {
-    border: solid 0.3mm;
-    page-break-inside: avoid;
-    display: inline-block;
-    border-left: none;
-  }
-
-  .radek > div {
-    float: left;
-    width: 16mm;
-    height: 32mm;
-    padding: 2mm;
-    border-left: solid 0.3mm;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .radek > hr {
-    margin: 0;
-    border: 0;
-    clear: both;
-    height: 0;
-  }
-
-  .jidlo > img {
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0.5;
-  }
-
+/* css reset */
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
 </style>
 
-<h1 style="color: red">Tisknout na šířku!</h1>
+<style>
 
-<!-- begin:uzivatel -->
-<div class="radek">
-  <div>{login_uzivatele} ({id_uzivatele})</div>
-  <!-- begin:jidlo -->
-  <div class="jidlo">
-    <img alt="logo" src="../files/design/logo.png">
-    <div>
-      {nazev}
-      <br><br>{login_uzivatele} ({id_uzivatele})
+  .stranka {
+    page-break-after: always;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: 100%;
+    height: 100%;
+    /* gap: 5mm; */
+    /* padding: 10mm; */
+    padding-left: var(--l, "0px");
+    padding-right: var(--r, "0px");
+    padding-top: var(--u, "0px");
+    padding-bottom: var(--d, "0px");
+    box-sizing: border-box;
+  }
+
+  .bunka {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .bunka-obrazek {
+    transform-origin: center;
+    object-fit: contain;
+    display: block;
+    width: 110px;
+    /* To re-center the image after rotation */
+    transform: rotate(-90deg);
+    margin-right: -25px;
+  }
+
+  .texty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+  }
+  .text {
+    font-family: Gilroy, sans-serif;
+    font-weight: bold;
+  }
+
+  @media print {
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    .stranka {
+      break-after: page;
+    }
+  }
+
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+  }
+
+  .schovej {
+    display: none;
+  }
+</style>
+
+<script>
+const dataStr = {data};
+</script>
+
+<!-- "../files/design/logo.png" -->
+
+<div class="no-print" style="font-size: 3em;" >
+  L:<input style="width: 120px; font-size: 1em;" value="0" type="number" oninput="document.documentElement.style.setProperty('--l', this.value + 'px')"/>
+  R:<input style="width: 120px; font-size: 1em;" value="0" type="number" oninput="document.documentElement.style.setProperty('--r', this.value + 'px')"/>
+  U:<input style="width: 120px; font-size: 1em;" value="0" type="number" oninput="document.documentElement.style.setProperty('--u', this.value + 'px')"/>
+  D:<input style="width: 120px; font-size: 1em;" value="0" type="number" oninput="document.documentElement.style.setProperty('--d', this.value + 'px')"/>
+  kalibrační tisk <input type="checkbox" style="scale: 2.5;" id="calcheck"/>
+</div>
+
+<style>
+  .kalibracni {
+    page-break-after: always;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    position:"relative";
+  }
+  .kalibracni-vrstva {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+  }
+  .kalibracni-vrstva-radky {
+    flex-direction: column;
+  }
+  .kalibracni-radek {
+  border-left: 2px solid black;
+  border-right: 2px solid black;
+  padding: 0px;
+  margin-left: var(--m, 0);
+  margin-right: var(--m, 0);
+  }
+  .kalibracni-sloupec {
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  padding: 0px;
+  margin-top: var(--m, 0);
+  margin-bottom: var(--m, 0);
+  position: relative;
+  }
+  .kalibracni-popis-dole {
+  position: absolute;
+  bottom: 0px;
+  }
+</style>
+
+<div id="kalibracni" class="schovej kalibracni">
+  <div class="kalibracni-vrstva">
+    <div class="stranka">
+      <div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div>
+      <div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div>
+      <div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div>
+      <div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div>
+
+      <div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div>
+      <div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div>
+      <div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div>
+      <div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div><div style="border: 1px dashed black"></div>
     </div>
   </div>
-  <!-- end:jidlo -->
-  <hr>
-</div><br>
-<!-- end:uzivatel -->
 
+  <div class="kalibracni-vrstva kalibracni-vrstva-radky">
+    <div style="--m: 00" class="kalibracni-radek">00<div style="float: right;">00</div><div style="clear:both;"></div></div>
+    <div style="--m: 05" class="kalibracni-radek">05<div style="float: right;">05</div><div style="clear:both;"></div></div>
+    <div style="--m: 10" class="kalibracni-radek">10<div style="float: right;">10</div><div style="clear:both;"></div></div>
+    <div style="--m: 15" class="kalibracni-radek">15<div style="float: right;">15</div><div style="clear:both;"></div></div>
+    <div style="--m: 20" class="kalibracni-radek">20<div style="float: right;">20</div><div style="clear:both;"></div></div>
+    <div style="--m: 25" class="kalibracni-radek">25<div style="float: right;">25</div><div style="clear:both;"></div></div>
+  </div>
+  <div class="kalibracni-vrstva kalibracni-vrstva-radky">
+    <div style="--m: 25" class="kalibracni-radek">25<div style="float: right;">25</div><div style="clear:both;"></div></div>
+    <div style="--m: 30" class="kalibracni-radek">30<div style="float: right;">30</div><div style="clear:both;"></div></div>
+    <div style="--m: 35" class="kalibracni-radek">35<div style="float: right;">35</div><div style="clear:both;"></div></div>
+    <div style="--m: 40" class="kalibracni-radek">40<div style="float: right;">40</div><div style="clear:both;"></div></div>
+    <div style="--m: 45" class="kalibracni-radek">45<div style="float: right;">45</div><div style="clear:both;"></div></div>
+    <div style="--m: 50" class="kalibracni-radek">50<div style="float: right;">50</div><div style="clear:both;"></div></div>
+  </div>
+  <div class="kalibracni-vrstva kalibracni-vrstva-radky">
+    <div style="--m: 50" class="kalibracni-radek">50<div style="float: right;">50</div><div style="clear:both;"></div></div>
+    <div style="--m: 55" class="kalibracni-radek">55<div style="float: right;">55</div><div style="clear:both;"></div></div>
+    <div style="--m: 60" class="kalibracni-radek">60<div style="float: right;">60</div><div style="clear:both;"></div></div>
+    <div style="--m: 65" class="kalibracni-radek">65<div style="float: right;">65</div><div style="clear:both;"></div></div>
+    <div style="--m: 70" class="kalibracni-radek">70<div style="float: right;">70</div><div style="clear:both;"></div></div>
+    <div style="--m: 75" class="kalibracni-radek">75<div style="float: right;">75</div><div style="clear:both;"></div></div>
+  </div>
+
+  <div class="kalibracni-vrstva">
+    <div style="--m: 00" class="kalibracni-sloupec">00<div class="kalibracni-popis-dole">00</div><div style="clear:both;"></div></div>
+    <div style="--m: 05" class="kalibracni-sloupec">05<div class="kalibracni-popis-dole">05</div><div style="clear:both;"></div></div>
+    <div style="--m: 10" class="kalibracni-sloupec">10<div class="kalibracni-popis-dole">10</div><div style="clear:both;"></div></div>
+    <div style="--m: 15" class="kalibracni-sloupec">15<div class="kalibracni-popis-dole">15</div><div style="clear:both;"></div></div>
+    <div style="--m: 20" class="kalibracni-sloupec">20<div class="kalibracni-popis-dole">20</div><div style="clear:both;"></div></div>
+    <div style="--m: 25" class="kalibracni-sloupec">25<div class="kalibracni-popis-dole">25</div><div style="clear:both;"></div></div>
+  </div>
+  <div class="kalibracni-vrstva">
+    <div style="--m: 25" class="kalibracni-sloupec">25<div class="kalibracni-popis-dole">25</div><div style="clear:both;"></div></div>
+    <div style="--m: 30" class="kalibracni-sloupec">30<div class="kalibracni-popis-dole">30</div><div style="clear:both;"></div></div>
+    <div style="--m: 35" class="kalibracni-sloupec">35<div class="kalibracni-popis-dole">35</div><div style="clear:both;"></div></div>
+    <div style="--m: 40" class="kalibracni-sloupec">40<div class="kalibracni-popis-dole">40</div><div style="clear:both;"></div></div>
+    <div style="--m: 45" class="kalibracni-sloupec">45<div class="kalibracni-popis-dole">45</div><div style="clear:both;"></div></div>
+    <div style="--m: 50" class="kalibracni-sloupec">50<div class="kalibracni-popis-dole">50</div><div style="clear:both;"></div></div>
+  </div>
+  <div class="kalibracni-vrstva">
+    <div style="--m: 50" class="kalibracni-sloupec">50<div class="kalibracni-popis-dole">50</div><div style="clear:both;"></div></div>
+    <div style="--m: 55" class="kalibracni-sloupec">55<div class="kalibracni-popis-dole">55</div><div style="clear:both;"></div></div>
+    <div style="--m: 60" class="kalibracni-sloupec">60<div class="kalibracni-popis-dole">60</div><div style="clear:both;"></div></div>
+    <div style="--m: 65" class="kalibracni-sloupec">65<div class="kalibracni-popis-dole">65</div><div style="clear:both;"></div></div>
+    <div style="--m: 70" class="kalibracni-sloupec">70<div class="kalibracni-popis-dole">70</div><div style="clear:both;"></div></div>
+    <div style="--m: 75" class="kalibracni-sloupec">75<div class="kalibracni-popis-dole">75</div><div style="clear:both;"></div></div>
+  </div>
+
+  <div style="position: absolute; left: 130px; font-size: 50px; top: 48%;">
+    L
+  </div>
+  <div style="position: absolute; right: 130px; font-size: 50px; top: 48%;">
+    R
+  </div>
+  <div style="position: absolute; left: 48%; font-size: 50px; top: 130px;">
+    U
+  </div>
+  <div style="position: absolute; right: 48%; font-size: 50px; bottom: 130px;">
+    D
+  </div>
+</div>
+
+
+
+<div id="entry" />
+<script type="text/javascript" src="../files/stravenky.js"></script>
+
+<script>
+  const calEl = document.querySelector("#kalibracni");
+  const entryEl = document.querySelector("#entry");
+  const checkbox = document.querySelector("#calcheck");
+
+  function přepniKalibraci() {
+    (checkbox.checked ? calEl : entryEl).classList.remove("schovej");
+    (checkbox.checked ? entryEl : calEl).classList.add("schovej");
+  }
+
+  checkbox.addEventListener('change', přepniKalibraci);
+
+  přepniKalibraci();
+</script>
 
 <!-- end:stravenky -->
