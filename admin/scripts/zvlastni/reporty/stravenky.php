@@ -34,17 +34,13 @@ $o                        = dbQuery(<<<SQL
 SQL,
 );
 
-$curr = mysqli_fetch_assoc($o);
-$next = mysqli_fetch_assoc($o);
-while ($curr) {
-    $t->assign($curr);
-    $t->parse('stravenky.uzivatel.jidlo');
-    if (!$next || $curr[UzivateleHodnotySqlStruktura::ID_UZIVATELE] != $next[UzivateleHodnotySqlStruktura::ID_UZIVATELE]) {
-        $t->parse('stravenky.uzivatel');
-    }
-    $curr = $next;
-    $next = mysqli_fetch_assoc($o);
+$res = [];
+
+while ($r = mysqli_fetch_assoc($o)) {
+    $res[] = $r;
 }
 
+$config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+$t->assign("data", json_encode($res, $config));
 $t->parse('stravenky');
 $t->out('stravenky');
