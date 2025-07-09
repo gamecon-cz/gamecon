@@ -184,7 +184,7 @@ class Chyba extends Exception
         },
         ({$zobrazeniSekund} * 1000)
       )
-      chyba.querySelector(".chybaBlok_zavrit").onclick = () => chyba.remove()
+      chyba.onclick = () => chyba.remove()
     })()
   </script>
   </div>
