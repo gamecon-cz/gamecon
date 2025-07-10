@@ -32,8 +32,8 @@ abstract class AbstractTestDb extends TestCase
     {
         if (static::keepDbChangesInTransaction()) {
             self::$connection->rollback();
+            SystemoveNastaveni::zGlobals()->queryCache()->clear();
         }
-        SystemoveNastaveni::zGlobals()->db()->clearPrefetchedDataVersions();
     }
 
     static function setUpBeforeClass(): void

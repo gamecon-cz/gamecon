@@ -377,9 +377,9 @@ function dbGetExceptionMessage(
  * @throws DbException
  */
 function dbInsert(
-    $table,
-    $valArray,
-    bool $ignore = false,
+    string $table,
+    array  $valArray,
+    bool   $ignore = false,
 ): void {
     $sloupce = '';
     $hodnoty = '';
@@ -404,7 +404,7 @@ function dbInsert(
  */
 function _dbMysqliQuery(
     string $query,
-    mysqli $mysqli = null,
+    ?mysqli $mysqli = null,
 ): bool | mysqli_result {
     try {
         if (!$r = mysqli_query($mysqli ?? dbConnect(), $query)) {
@@ -494,8 +494,8 @@ SQL,
  * @see dbInsert
  */
 function dbInsertUpdate(
-    $table,
-    $valArray,
+    string $table,
+           $valArray,
 ) {
     $uniqueKeysColumns = getTableUniqueKeysColumns($table);
     if ($uniqueKeysColumns) {
@@ -702,6 +702,9 @@ function dbFetchAll(
     return $resultAsArray;
 }
 
+/**
+ * @return array<int, string|int|null> single column values
+ */
 function dbFetchColumn(
     string $query,
     array  $params = [],
@@ -709,7 +712,7 @@ function dbFetchColumn(
 ): array {
     $result       = dbQuery($query, $params, $connection);
     $columnValues = [];
-    while ($row = mysqli_fetch_array($result)) {
+    while ($row = mysqli_fetch_array($result, MYSQLI_NUM)) {
         $columnValues[] = reset($row);
     }
 
@@ -730,16 +733,20 @@ function dbFetchPairs(
     return $pairs;
 }
 
+/**
+ * @return scalar|null
+ */
 function dbFetchSingle(
     string $query,
     array  $params = [],
-) {
+): float | bool | int | string | null {
     $result = dbQuery($query, $params);
     $row    = mysqli_fetch_array($result);
+    if (!$row) {
+        return null;
+    }
 
-    return $row
-        ? reset($row)
-        : null;
+    return reset($row);
 }
 
 /**
@@ -834,13 +841,14 @@ function dbQueryAssemble(
  */
 function dbQa(
     array $array,
+    ?mysqli $mysqli = null,
 ): string {
-    if (count($array) === 0) {
+    if ($array === []) {
         return 'NULL';
     }
     $out = [];
     foreach ($array as $value) {
-        $out[] = dbQv($value);
+        $out[] = dbQv($value, $mysqli);
     }
 
     return implode(',', $out);
@@ -855,11 +863,7 @@ function dbQv(
     ?mysqli $mysqli = null,
 ): string {
     if (is_array($val)) {
-        if ($val === []) {
-            return 'NULL';
-        }
-
-        return implode(',', array_map('dbQv', $val));
+        return dbQa($val, $mysqli);
     }
     if ($val === null) {
         return 'NULL';
