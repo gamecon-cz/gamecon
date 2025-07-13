@@ -260,6 +260,10 @@
     </form>
   </div>
 
+  <div class="infopult=grid--item aBox">
+      <h3>QR kód účastníka</h3>
+      <img src="{qrKodPlatba}" alt="qrPlatba">
+  </div>
 
   <div class="infopult-grid--item infopult-grid--item-ubytování aBox">
     <h3>Ubytování</h3>

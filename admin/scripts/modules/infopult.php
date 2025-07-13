@@ -269,6 +269,11 @@ if ($uPracovni) {
         OsobniUdajeTabulka::osobniUdajeTabulkaZ($uPracovni, $maUbytovani),
     );
 
+    $qrKod = $uPracovni->finance()->dejQrKodProPlatbu();
+    $x->assign(
+        "qrKodPlatba", $qrKod->getDataUri()
+    );
+
     if (!$systemoveNastaveni->jsmeNaOstre()) {
         $x->assign(
             'htmlTotoSeUkazujePouzeNaTestu',
