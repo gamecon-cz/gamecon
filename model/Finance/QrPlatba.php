@@ -94,10 +94,6 @@ class QrPlatba
     /**
      * @var \DateTimeInterface
      */
-    private $datumSplatnosti;
-    /**
-     * @var ResultInterface|null
-     */
     private $qrImage;
     /**
      * @var string
@@ -127,7 +123,6 @@ class QrPlatba
         $this->castka              = Finance::zaokouhli($castka);
         $this->kodMeny             = $kodMeny;
         $this->jmenoPrijemcePlatby = $jmenoPrijemcePlatby;
-        $this->datumSplatnosti     = $datumSplatnosti ?? new \DateTimeImmutable(); // dnes
     }
 
     /**
@@ -155,8 +150,8 @@ class QrPlatba
             CzQrPaymentOptions::VARIABLE_SYMBOL => $this->variabilniSymbol,
             CzQrPaymentOptions::AMOUNT          => $this->castka,
             CzQrPaymentOptions::CURRENCY        => $this->kodMeny,
-            CzQrPaymentOptions::DUE_DATE        => $this->datumSplatnosti,
             CzQrPaymentOptions::PAYEE_NAME      => $this->jmenoPrijemcePlatby,
+            CzQrPaymentOptions::INSTANT_PAYMENT => true,
         ]);
         /** @var ResultInterface $qrImage */
         $qrImage = $qrPayment->getQrCode()->getRawObject();
