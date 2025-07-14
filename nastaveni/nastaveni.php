@@ -127,7 +127,11 @@ if (!defined('MOJE_AKTIVITY_PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZA
 
 if (!defined('PRODEJ_JIDLA_POZASTAVEN')) define('PRODEJ_JIDLA_POZASTAVEN', false);
 
-if (!defined('SUPERADMINI')) define('SUPERADMINI', [4032 /* Jaroslav "Kostřivec" Týc */, 1112 /* Lenka "Cemi" Zavadilová */]);
+if (!defined('SUPERADMINI')) define('SUPERADMINI', [4032 /* Jaroslav "Kostřivec" Týc */,
+                                                                 1112 /* Lenka "Cemi" Zavadilová */,
+                                                                 5475 /* Michal "Gerete" Bezděk */,
+                                                                 5222 /* Jindřich "adrijaned" Dítě */,
+                                                                 4275 /* Roman "Sciator" Wehmhóner */]);
 
 if (!defined('UBYTOVANI_POUZE_SPACAKY')) define('UBYTOVANI_POUZE_SPACAKY', false);
 
