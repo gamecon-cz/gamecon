@@ -13,7 +13,7 @@ function generateQrCode($url, $logoPngPath, $id) {
     $qrCode->setEncoding(new Encoding('UTF-8'));
     $qrCode->setErrorCorrectionLevel(new ErrorCorrectionLevelHigh());
     $qrCode->setRoundBlockSizeMode(new RoundBlockSizeModeMargin());
-    
+
     // Set up the writer for generating the QR code
     $writer = new PngWriter();
 
@@ -67,10 +67,11 @@ function generateQrCode($url, $logoPngPath, $id) {
 }
 
 $qrCodes = [
-    'instagram' => 'https://gamecon.cz/instagram',
-    'facebook' => 'https://gamecon.cz/facebook',
-    'discord' => 'https://gamecon.cz/discord',
-    'youtube' => 'https://gamecon.cz/youtube',
+    'instagram'       => 'https://gamecon.cz/instagram',
+    'facebook'        => 'https://gamecon.cz/facebook',
+    'discord'         => 'https://gamecon.cz/discord',
+    'youtube'         => 'https://gamecon.cz/youtube',
+    'tiskova_kronika' => 'https://gamecon.cz/soubory/obsah/download/tiskova_kronika.pdf'
 ];
 
 $basePath = realpath('soubory' . DIRECTORY_SEPARATOR . 'blackarrow' . DIRECTORY_SEPARATOR . 'qrka');
