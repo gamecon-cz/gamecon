@@ -261,7 +261,7 @@
   </div>
 
   <div class="infopult=grid--item aBox">
-      <h3>QR kód účastníka</h3>
+      <h3>Pouze pro tuzemskou (českou) platbu</h3>
       <img src="{qrKodPlatba}" alt="qrPlatba">
   </div>
 
