@@ -17,7 +17,8 @@ $NAZEV_SKRIPTU = $podstranka; // převzato z index.php
 
 $skript = $NAZEV_SKRIPTU;
 if ($skript === 'quick') {
-    $skript .= '-' . get('id');
+    // někdy se stane že v URL je ID vícekrát, například quick?id=80?id=80?id=80?id=80
+    $skript .= '-' . explode('?', get('id'))[0];
 }
 $format = get('format') ?: 'html';
 

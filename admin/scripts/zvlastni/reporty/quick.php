@@ -4,7 +4,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 $r = dbOneLine('SELECT * FROM reporty_quick WHERE id = $1', [get('id')]);
 if ($r) {
-    $sql = str_ireplace(['{ROK}', '{ROCNIK}'], ROCNIK, $r['dotaz']);
+    $sql = quickReportPlaceholderReplace($r['dotaz']);
     try {
         ob_start();
         $report            = Report::zSql($sql);

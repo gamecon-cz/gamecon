@@ -1072,3 +1072,8 @@ function jsmeNaBete(): bool
         ['beta.gamecon.cz', 'jakublounek.gamecon.cz'],
     );
 }
+
+function quickReportPlaceholderReplace(string $sql): string
+{
+    return str_ireplace(['{ROK}', '{ROCNIK}'], ROCNIK, $sql);
+}

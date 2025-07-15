@@ -19,6 +19,7 @@ function quickReportValidation(array $data)
     if (preg_match('~(^|\W)(INSERT|UPDATE|DELETE|DROP|CREATE|MODIFY|RENAME|SET)\W~i', $dotazKeKontole)) {
         throw new \LogicException('Quick report dotaz muze obsahovat jen SELECT a SHOW: ' . $data['dotaz']);
     }
+    $data['dotaz'] = quickReportPlaceholderReplace($data['dotaz']);
     try {
         dbQuery($data['dotaz']);
     } catch (\Throwable $throwable) {
