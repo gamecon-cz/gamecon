@@ -2,22 +2,22 @@
 
 namespace Gamecon\Aktivita;
 
+use ArrayIterator;
+use ArrayObject;
+use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkceTypySqlStruktura;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Info;
 use tFPDF;
 use Uzivatel;
-use ArrayIterator;
-use Lokace;
-use ArrayObject;
 
 /**
  * Zrychlený výpis programu
  */
 class Program
 {
-
     public const DRD_PJ          = 'drd_pj';
     public const DRD_PRIHLAS     = 'drd_prihlas';
     public const PLUS_MINUS      = 'plus_minus';
@@ -34,12 +34,12 @@ class Program
     public const SKUPINY_LINIE     = 'linie';
     public const SKUPINY_MISTNOSTI = 'mistnosti';
 
-    private ?Uzivatel  $u              = null; // aktuální uživatel v objektu
-    private            $posledniVydana = null;
-    private            $dbPosledni     = null;
-    private            $aktFronta      = [];
-    private ?\Iterator $program        = null; // iterátor aktivit seřazených pro použití v programu
-    private            $nastaveni      = [
+    private ?Uzivatel       $u              = null; // aktuální uživatel v objektu
+    private                 $posledniVydana = null;
+    private                 $dbPosledni     = null;
+    private                 $aktFronta      = [];
+    private ?\ArrayIterator $program        = null; // iterátor aktivit seřazených pro použití v programu
+    private                 $nastaveni      = [
         self::DRD_PJ          => false, // u DrD explicitně zobrazit jména PJů
         self::DRD_PRIHLAS     => false, // jestli se zobrazují přihlašovátka pro DrD
         self::PLUS_MINUS      => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
@@ -53,8 +53,8 @@ class Program
         self::NEOTEVRENE      => false, // jestli smí přihlašovat na aktivity které ještě jsou teprve aktivované
         self::DEN             => null,  // zobrazit jen konkrétní den
     ];
-    private            $grpf; // název metody na objektu aktivita, podle které se shlukuje
-    private array      $skupiny        = []; // pole skupin, do kterých se shlukuje program, ve stylu id => název
+    private                 $grpf; // název metody na objektu aktivita, podle které se shlukuje
+    private array           $skupiny        = []; // pole skupin, do kterých se shlukuje program, ve stylu id => název
 
     private $aktivityUzivatele = []; // aktivity uživatele
     private $maxPocetAktivit   = []; // maximální počet souběžných aktivit v daném dni
@@ -71,8 +71,7 @@ class Program
         private readonly SystemoveNastaveni $systemoveNastaveni,
         Uzivatel                            $uzivatel = null,
         array                               $nastaveni = null,
-    )
-    {
+    ) {
         if ($uzivatel instanceof Uzivatel) {
             $this->u = $uzivatel;
         }
@@ -106,6 +105,7 @@ class Program
             if (!$this->u) {
                 throw new \Neprihlasen();
             }
+
             return 'Můj program';
         }
         if (isset($dny[$slug])) {
@@ -130,22 +130,25 @@ class Program
             $url       = str_replace(__DIR__ . '/../../web/', '', $soubor);
             $cssUrls[] = URL_WEBU . '/' . $url . '?version=' . $verze;
         }
+
         return $cssUrls;
     }
 
     /**
      * @return string[] urls k JS modulům programu
      */
-    public function jsModulyUrls(): array {
-        $soubory = [
+    public function jsModulyUrls(): array
+    {
+        $soubory      = [
             __DIR__ . '/../../web/soubory/ui/bundle.js',
         ];
         $jsModulyUrls = [];
         foreach ($soubory as $soubor) {
-            $verze     = md5_file($soubor);
-            $url       = str_replace(__DIR__ . '/../../web/', '', $soubor);
+            $verze          = md5_file($soubor);
+            $url            = str_replace(__DIR__ . '/../../web/', '', $soubor);
             $jsModulyUrls[] = URL_WEBU . '/' . $url . '?version=' . $verze;
         }
+
         return $jsModulyUrls;
     }
 
@@ -185,7 +188,7 @@ class Program
 
                             if ($akt && $denId == $akt['den'] && $cas == $akt['zac']) {
                                 $start = $cas;
-                                $konec = $cas + $akt['del'];
+                                $konec = $cas + $akt['delka'];
 
                                 if ($this->u->prihlasenJakoSledujici($akt['obj']) ||
                                     $akt['obj']->prihlasen($this->u) || $this->u->organizuje($akt['obj'])) {
@@ -193,9 +196,9 @@ class Program
                                     $pdf->Cell(30, 10, $start . ":00 - " . $konec . ":00", 1);
                                     if ($this->u->prihlasenJakoSledujici($akt['obj'])) {
                                         $pdf->Cell(100, 10, "(n) " . $akt['obj']->nazev(), 1);
-                                    } else if ($akt['obj']->prihlasen($this->u)) {
+                                    } elseif ($akt['obj']->prihlasen($this->u)) {
                                         $pdf->Cell(100, 10, $akt['obj']->nazev(), 1);
-                                    } else if ($this->u->organizuje($akt['obj'])) {
+                                    } elseif ($this->u->organizuje($akt['obj'])) {
                                         $pdf->Cell(100, 10, "(o) " . $akt['obj']->nazev(), 1);
                                     }
                                     $pdf->Cell(60, 10, mb_ucfirst($akt['obj']->typ()->nazev()), 1, 1);
@@ -212,8 +215,10 @@ class Program
         $pdf->Output();
     }
 
-    public function prepniProgram(string $klic, $hodnota)
-    {
+    public function prepniProgram(
+        string $klic,
+               $hodnota,
+    ) {
         $this->nastaveni[self::OSOBNI] = false;
         $this->nastaveni[self::DEN]    = null;
         $this->nastaveni[$klic]        = $hodnota;
@@ -267,6 +272,7 @@ class Program
         for ($den = $zacatekProgramu; $den->pred($konecProgamu); $den->plusDen()) {
             $dny[] = clone $den;
         }
+
         return $dny;
     }
 
@@ -279,36 +285,78 @@ class Program
         Uzivatel::prednactiUzivateleNaAktivitach($this->systemoveNastaveni->rocnik());
 
         if ($this->nastaveni[self::SKUPINY] === self::SKUPINY_MISTNOSTI) {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('poradi', true, true));
+            $this->program = new ArrayIterator(
+                Aktivita::zProgramu(
+                    razeni: '_razeni_tmp',
+                    select: '
+                        (SELECT akce_lokace.poradi
+                            FROM akce_lokace
+                            WHERE akce_lokace.id_lokace = a.lokace
+                            ORDER BY akce_lokace.poradi
+                            LIMIT 1
+                        ) AS _razeni_tmp
+                    ',
+                    dalsiPouziteSqlTabulky: [
+                        AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA,
+                    ],
+                    zCache: true,
+                    prednacitat: true,
+                ),
+            );
             $this->grpf    = self::SKUPINY_PODLE_LOKACE_ID;
 
             $this->skupiny['0'] = 'Ostatní';
-            $grp                = serazenePodle(Lokace::zVsech(), 'poradi');
-            foreach ($grp as $t) {
-                $this->skupiny[$t->id()] = ucfirst($t->nazev());
+            $seskupeneLokace    = serazenePodle(Lokace::zVsech(), 'poradi');
+            foreach ($seskupeneLokace as $lokace) {
+                $this->skupiny[$lokace->id()] = ucfirst($lokace->nazev());
             }
-        } else if ($this->nastaveni[self::OSOBNI]) {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('zacatek', true, true));
+            $this->program = $this->rozkopirujAktivityVeViceLokacich(
+                $this->program,
+                array_keys($this->skupiny),
+            );
+        } elseif ($this->nastaveni[self::OSOBNI]) {
+            $this->program = new ArrayIterator(
+                Aktivita::zProgramu(
+                    razeni: '_razeni_tmp',
+                    select: 'a.zacatek AS _razeni_tmp',
+                    zCache: true,
+                    prednacitat: true,
+                ),
+            );
             $this->grpf    = self::SKUPINY_PODLE_DEN;
 
             foreach ($this->dny() as $den) {
                 $this->skupiny[$den->format('z')] = mb_ucfirst($den->format('l'));
             }
         } else {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('poradi_typu', true, true));
+            $this->program = new ArrayIterator(
+                Aktivita::zProgramu(
+                    razeni: '_razeni_tmp',
+                    select: '(SELECT akce_typy.poradi
+                        FROM akce_typy
+                        WHERE a.typ = akce_typy.id_typu
+                        LIMIT 1
+                     ) AS _razeni_tmp',
+                    dalsiPouziteSqlTabulky: [AkceTypySqlStruktura::AKCE_TYPY_TABULKA],
+                    zCache: true,
+                    prednacitat: true,
+                ),
+            );
             $this->grpf    = self::SKUPINY_PODLE_TYP_PORADI;
 
             // řazení podle poradi typu je nutné proto, že v tomto pořadí je i seznam aktivit
-            $grp = serazenePodle(TypAktivity::zVsech(true), 'poradi');
-            foreach ($grp as $t) {
+            $seskupeneLokace = serazenePodle(TypAktivity::zVsech(true), 'poradi');
+            foreach ($seskupeneLokace as $t) {
                 $this->skupiny[$t->id()] = mb_ucfirst($t->nazev());
             }
         }
     }
 
     /** detekce kolize dvou aktivit (jsou ve stejné místnosti v kryjícím se čase) */
-    private static function koliduje($a = null, $b = null)
-    {
+    private static function koliduje(
+        $a = null,
+        $b = null,
+    ) {
         if ($a === null
             || $b === null
             || $a['grp'] != $b['grp']
@@ -316,17 +364,23 @@ class Program
             || $a['kon'] <= $b['zac']
             || $b['kon'] <= $a['zac']
         ) return false;
+
         return true;
     }
 
     /** Řekne, jestli jsou aktivity v stejné skupině (místnosti a dnu) */
-    private static function stejnaSkupina($a = null, $b = null)
-    {
+    private static function stejnaSkupina(
+        $a = null,
+        $b = null,
+    ) {
         if ($a === null
             || $b === null
             || $a['grp'] != $b['grp']
             || $a['den'] != $b['den']
-        ) return false;
+        ) {
+            return false;
+        }
+
         return true;
     }
 
@@ -339,9 +393,11 @@ class Program
             if ($prvek['zac'] >= $this->posledniVydana['kon']) {
                 $t = $prvek;
                 unset($fronta[$key]);
+
                 return $t;
             }
         }
+
         return null;
     }
 
@@ -349,7 +405,7 @@ class Program
      * Pomocná funkce pro načítání další aktivity z DB nebo z lokálního stacku
      * aktivit (globální proměnné se používají)
      */
-    private function dalsiAktivita()
+    private function dalsiAktivita(): ?array
     {
         if (!$this->dbPosledni) {
             $this->dbPosledni = $this->nactiDalsiAktivitu($this->program);
@@ -363,12 +419,14 @@ class Program
         if ($this->stejnaSkupina($this->dbPosledni, $this->posledniVydana) || !$this->aktFronta) {
             $t                = $this->dbPosledni;
             $this->dbPosledni = null;
+
             return $this->posledniVydana = $t;
         } else {
-            if ($t = $this->popNasledujiciNekolizni($this->aktFronta))
+            if ($t = $this->popNasledujiciNekolizni($this->aktFronta)) {
                 return $this->posledniVydana = $t;
-            else
+            } else {
                 return $this->posledniVydana = array_shift($this->aktFronta);
+            }
         }
     }
 
@@ -404,11 +462,13 @@ class Program
             $classes[] = 'otevrene';
         }
         $classes[] = 'aktivita';
-        $classes   = $classes ? ' class="' . implode(' ', $classes) . '"' : '';
+        $classes   = $classes
+            ? ' class="' . implode(' ', $classes) . '"'
+            : '';
 
         // název a url aktivity
         echo <<<HTML
-<td colspan="{$aktivitaRaw['del']}">
+<td colspan="{$aktivitaRaw['delka']}">
     <div class="placeholder-pro-roztazeni-radku" style="display: none">
         <!--jenom malý hack aby se název linie dobře zobrazoval i na mobilu když všechny aktivity skryjeme javascriptovým filtrem-->
     </div>
@@ -423,7 +483,7 @@ HTML;
             echo ' (' . $aktivitaObjekt->orgJmena() . ') ';
         }
 
-        if ($aktivitaRaw['del'] > 1) {
+        if ($aktivitaRaw['delka'] > 1) {
             $obsazenost = $aktivitaObjekt->obsazenost();
             if ($obsazenost) {
                 echo '<span class="program_obsazenost">' . $obsazenost . '</span>';
@@ -446,7 +506,7 @@ HTML;
                 $parametry |= Aktivita::INTERNI;
             }
             echo ' ' . $aktivitaObjekt->prihlasovatko($this->u, $parametry);
-        } else if (defined('TESTING') && TESTING) {
+        } elseif (defined('TESTING') && TESTING) {
             echo $aktivitaObjekt->formatujDuvodProTesting('DrD nemá povolené přihlašování');
         }
 
@@ -473,8 +533,10 @@ HTML;
     /**
      * Vytiskne tabulku programu
      */
-    private function tiskTabulky(?array &$aktivitaRaw, $denId = null)
-    {
+    private function tiskTabulky(
+        ?array &$aktivitaRaw,
+               $denId = null,
+    ): void {
         echo '<table class="' . $this->nastaveni[self::TABLE_CSS_CLASS] . '">';
 
         // tisk hlavičkového řádku s čísly
@@ -492,8 +554,10 @@ HTML;
     /**
      * Vytiskne obsah (vnitřní řádky) tabulky
      */
-    private function tiskObsahuTabulky(?array &$aktivitaRaw, $denId = null)
-    {
+    private function tiskObsahuTabulky(
+        ?array &$aktivitaRaw,
+               $denId = null,
+    ): void {
         $pocetAktivit = 0;
         foreach ($this->skupiny as $typId => $typNazev) {
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
@@ -513,12 +577,12 @@ HTML;
                         continue;
                     }
                     if (
-                      $aktivitaRaw &&
+                        $aktivitaRaw &&
                       $typId == $aktivitaRaw['grp'] &&
-                      ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < PROGRAM_ZACATEK) && // pro případ že by někdo nastavil aktivitu na již dřívější začátek, tak aby to nerozbilo program. (např. 2024 brigádnické aktivity od 7:00, kdy program začínal 8:00)
-                      (!$denId || $aktivitaRaw['den'] == $denId)
+                        ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < PROGRAM_ZACATEK) && // pro případ že by někdo nastavil aktivitu na již dřívější začátek, tak aby to nerozbilo program. (např. 2024 brigádnické aktivity od 7:00, kdy program začínal 8:00)
+                        (!$denId || $aktivitaRaw['den'] == $denId)
                     ) {
-                        $skip = $aktivitaRaw['del'] - 1;
+                        $skip = $aktivitaRaw['delka'] - 1;
                         $this->tiskAktivity($aktivitaRaw);
                         $aktivitaRaw = $this->dalsiAktivita();
                         $pocetAktivit++;
@@ -539,7 +603,7 @@ HTML;
     </td>
 HTML;
                 echo $radky;
-            } else if ($this->nastaveni[self::PRAZDNE] && $pocetRadku == 0) {
+            } elseif ($this->nastaveni[self::PRAZDNE] && $pocetRadku == 0) {
                 echo $this->prazdnaMistnost($typNazev);
             }
         }
@@ -559,7 +623,7 @@ HTML;
      * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
      * (s cacheovanými hodnotami) pro program.
      */
-    private function nactiDalsiAktivitu(\Iterator $iterator)
+    private function nactiDalsiAktivitu(\Iterator $iterator): ?array
     {
         if (!$iterator->valid()) {
             return null;
@@ -588,11 +652,11 @@ HTML;
 
         $a = [
             'grp' => $grp,
-            'zac' => $zac,
-            'kon' => $kon,
-            'den' => (int)$aktivita->denProgramu()->format('z'),
-            'del' => $aktivita->delka(),
-            'obj' => $aktivita,
+            'zac'   => $zac,
+            'kon'   => $kon,
+            'den'   => (int)$aktivita->denProgramu()->format('z'),
+            'delka' => $aktivita->delka(),
+            'obj'   => $aktivita,
         ];
         $iterator->next();
 
@@ -642,7 +706,7 @@ HTML;
 
         $pocetKoliziDenCas = [];
         foreach ($this->aktivityUzivatele as $key => $value) {
-            for ($cas = $value['zac']; $cas < $value['zac'] + $value['del']; $cas++) {
+            for ($cas = $value['zac']; $cas < $value['zac'] + $value['delka']; $cas++) {
                 if (isset($pocetKoliziDenCas[$denId][($cas)])) {
                     $pocetKoliziDenCas[$denId][($cas)]++;
                 } else {
@@ -660,8 +724,10 @@ HTML;
     private function prazdnaMistnost($nazev)
     {
         $bunky = '';
-        foreach (Program::seznamHodinZacatku() as $cas)
+        foreach (Program::seznamHodinZacatku() as $cas) {
             $bunky .= '<td></td>';
+        }
+
         return "<tr><td rowspan=\"1\"><div class=\"program_nazevLinie\">$nazev</div></td>$bunky</tr>";
     }
 
@@ -669,7 +735,8 @@ HTML;
      * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času zahájení
      * @param array $a
      */
-    public static function denAktivityDleZacatku($a) {
+    public static function denAktivityDleZacatku($a)
+    {
         if (!isset($a['den']) || !isset($a['zacatek'])) {
             return null;
         }
@@ -683,7 +750,8 @@ HTML;
      * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času ukončení
      * @param array $a
      */
-    public static function denAktivityDleKonce($a) {
+    public static function denAktivityDleKonce($a)
+    {
         if (!isset($a['den']) || !isset($a['konec'])) {
             return null;
         }
@@ -697,7 +765,8 @@ HTML;
      * Vrátí range hodin, kdy začínají aktivity
      * @return array<int>
      */
-    public static function seznamHodinZacatku(): array {
+    public static function seznamHodinZacatku(): array
+    {
         static $hodinyZacatku = null;
         if ($hodinyZacatku === null) {
             if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
@@ -709,6 +778,7 @@ HTML;
                 $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
             }
         }
+
         return $hodinyZacatku;
     }
 }

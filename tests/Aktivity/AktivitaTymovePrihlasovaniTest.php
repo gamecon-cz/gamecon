@@ -2,6 +2,7 @@
 
 namespace Gamecon\Tests\Aktivity;
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Aktivita\Aktivita;
 use Uzivatel;
@@ -10,13 +11,14 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 {
     use ProbihaRegistraceAktivitTrait;
 
-    private ?Aktivita $ctvrtfinale = null;
-    private ?Aktivita $semifinaleA = null;
-    private ?Aktivita $semifinaleB = null;
-    private ?Aktivita $finale      = null;
-    private ?Uzivatel $tymlidr     = null;
-    private ?Uzivatel $clen1       = null;
-    private ?Uzivatel $clen2       = null;
+    private ?SystemoveNastaveni $systemoveNastaveni = null;
+    private ?Aktivita           $ctvrtfinale        = null;
+    private ?Aktivita           $semifinaleA        = null;
+    private ?Aktivita           $semifinaleB        = null;
+    private ?Aktivita           $finale             = null;
+    private ?Uzivatel           $tymlidr            = null;
+    private ?Uzivatel           $clen1              = null;
+    private ?Uzivatel           $clen2              = null;
 
     protected static bool $disableStrictTransTables = true;
 
@@ -101,8 +103,10 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
     /**
      * @dataProvider provideNastaveniKapacity
      */
-    public function testZmenaKapacity($nastaveno, $ocekavano)
-    {
+    public function testZmenaKapacity(
+        $nastaveno,
+        $ocekavano,
+    ) {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, $nastaveno, [$this->semifinaleA, $this->finale]);
         $this->ctvrtfinale->refresh();
@@ -186,7 +190,9 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Nepovolený výběr dalších kol.');
-        $this->ctvrtfinale->prihlasTym([], $this->tymlidr, null, null, array_map(function ($id) {
+        $this->ctvrtfinale->prihlasTym([], $this->tymlidr, null, null, array_map(function (
+            $id,
+        ) {
             return Aktivita::zId($id);
         }, $dalsiKolaIds));
     }
