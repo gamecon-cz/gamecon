@@ -16,7 +16,7 @@ for (buňka of data) {
 }
 
 uživatelé = Object.values(uživatelé);
-uživatelé.sort((a, b) => a.length - b.length);
+uživatelé.sort((a, b) => a[0].id_uzivatele - b[0].id_uzivatele);
 uživatelé.forEach(uživ => uživ.sort(
   (uživA, uživB) =>
     (uživA.poradi_dne * 10 + uživA.poradi_jidla)
@@ -55,15 +55,26 @@ const vytvořBuňku = (texty) => {
   const obrazekElm = document.createElement("img");
   obrazekElm.src = "../files/design/logo_stravenky.png";
   obrazekElm.classList.add("bunka-obrazek");
-  buňkaElm.appendChild(obrazekElm);
+
+  const obrazekObalElm = document.createElement("div");
+  obrazekObalElm.classList.add("bunka-obrazek-obal");
+
+  obrazekObalElm.appendChild(obrazekElm);
+  buňkaElm.appendChild(obrazekObalElm);
 
   const textyElm = document.createElement("div");
   textyElm.classList.add("texty");
+  let i = 0;
   for (text of texty) {
     const textElm = document.createElement("div");
     textElm.classList.add("text");
+    if (i === 1)
+      textElm.classList.add("text-id");
+    if (i === 2)
+      textElm.classList.add("text-den");
     textElm.innerText = text;
     textyElm.appendChild(textElm);
+    i++;
   }
   buňkaElm.appendChild(textyElm);
 
@@ -72,6 +83,7 @@ const vytvořBuňku = (texty) => {
 
 
 for (uživ of uživatelé) {
+  /*
   if (stránkaZustává < uživ.length) {
     for (let i = stránkaZustává; i--;) {
       vytvořBuňku([
@@ -79,14 +91,20 @@ for (uživ of uživatelé) {
     }
     vytvořStránku();
   }
+  */
 
   for (buňka of uživ) {
+    if (stránkaZustává === 0)
+      vytvořStránku();
     vytvořBuňku([
-      buňka.login_uzivatele,
+      buňka.login_uzivatele.slice(0,18) + (buňka.login_uzivatele.length >= 18 ? "..." : ""),
       "ID " + buňka.id_uzivatele,
       buňka.nazev,
     ]);
   }
+
+  if (stránkaZustává === 0)
+    vytvořStránku();
 
   for (let i = stránkaZustává % mřížkaVelikost.šířka; i--;) {
     vytvořBuňku([]);
