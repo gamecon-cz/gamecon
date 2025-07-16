@@ -83,7 +83,10 @@ table {
     width: 110px;
     /* To re-center the image after rotation */
     transform: rotate(-90deg);
-    margin-right: -25px;
+    margin-left: -45px;
+  }
+  .bunka-obrazek-obal {
+    width: 33px;
   }
 
   .texty {
@@ -91,10 +94,17 @@ table {
     flex-direction: column;
     justify-content: center;
     gap: 8px;
+    width: 75%;
   }
   .text {
     font-family: Gilroy, sans-serif;
     font-weight: bold;
+  }
+  .text-id {
+    font-size: 1.2em;
+  }
+  .text-den {
+    font-size: 1.3em;
   }
 
   @media print {
