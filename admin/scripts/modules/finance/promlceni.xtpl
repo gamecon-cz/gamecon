@@ -23,10 +23,6 @@
         </span>
     </p>
 
-  <p>
-    <input type="submit" name="exportovat" value="Exportovat do XLSX" {disabledExport}>
-  </p>
-
     <table style="width: 100%">
         <tr>
             <th></th>
