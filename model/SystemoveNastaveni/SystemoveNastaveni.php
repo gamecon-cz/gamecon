@@ -995,7 +995,7 @@ SQL;
 
     public function kontaktniEmailGc(): string
     {
-        return 'info@gamecon.cz';
+        return 'gamecon.fallback@seznam.cz';
     }
 
     public function prefixPodleProstredi(): string
