@@ -41,6 +41,7 @@
         "roderik/pwgen-php": "^0.1.8",
         "setasign/tfpdf": "^1.25",
         "smhg/sepa-qr-data": "^1.2",
+        "steverhoades/oauth2-openid-connect-server": "^3.0",
         "symfony/filesystem": "^5.4",
         "symfony/http-foundation": "^6.2",
         "symfony/mailer": "^6.2",
