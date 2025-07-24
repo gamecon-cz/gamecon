@@ -23,6 +23,8 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\RolePodleRocniku;
 use Gamecon\Uzivatel\SqlStruktura\PravaRoleSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
+use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserEntityInterface;
+use OpenIDConnectServer\Entities\ClaimSetInterface as OidcClaimSetInterface;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -30,7 +32,7 @@ use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
  *   zofrenie v adminovi (nehrozí špatný přístup při nadměrném volání např. při
  *   práci s více uživateli někde jinde?)
  */
-class Uzivatel extends DbObject
+class Uzivatel extends DbObject implements OAuth2UserEntityInterface, OidcClaimSetInterface
 {
     protected static     $tabulka = Sql::UZIVATELE_HODNOTY_TABULKA;
     protected static     $pk      = Sql::ID_UZIVATELE;
@@ -84,6 +86,18 @@ class Uzivatel extends DbObject
         }
 
         return $povinneUdaje;
+    }
+
+    public function getIdentifier(): string
+    {
+        return strval($this->id());
+    }
+
+    public function getClaims(): array
+    {
+        return [
+            'name' => $this->nickNeboKrestniJmeno()
+        ];
     }
 
     /**

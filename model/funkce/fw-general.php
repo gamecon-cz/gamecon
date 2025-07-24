@@ -72,6 +72,19 @@ function parseRoute(): array
     return $req;
 }
 
+function sessionBackUrl(string $url = null) : ?string
+{
+    $urlRet = null;
+    if (isset($_SESSION['backUrl'])) {
+        $urlRet = $_SESSION['backUrl'];
+        unset($_SESSION['backUrl']);
+    }
+    if (isset($url)) {
+        $_SESSION['backUrl'] = $url;
+    }
+    return $urlRet;
+}
+
 /**
  * Ends current script execution and reloads page to http referrer.
  * @param string $to alternative location to go to instead of referrer
