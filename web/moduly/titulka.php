@@ -12,9 +12,9 @@ use Gamecon\Role\Role;
 
 $this->blackarrowStyl(true);
 $this->info()
-    ->nazev('GameCon – největší festival nepočítačových her')
-    ->popis('GameCon je největší festival nepočítačových her v České republice, který se každoročně koná třetí víkend v červenci. Opět se můžete těšit na desítky RPGček, deskovek, larpů, akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční mistrovství v DrD a v neposlední řadě úžasné lidi a vůbec zážitky, které ve vás přetrvají minimálně do dalšího roku.')
-    ->url(URL_WEBU);
+     ->nazev('GameCon – největší festival nepočítačových her')
+     ->popis('GameCon je největší festival nepočítačových her v České republice, který se každoročně koná třetí víkend v červenci. Opět se můžete těšit na desítky RPGček, deskovek, larpů, akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční mistrovství v DrD a v neposlední řadě úžasné lidi a vůbec zážitky, které ve vás přetrvají minimálně do dalšího roku.')
+     ->url(URL_WEBU);
 
 // linie
 $offsety = [120, 320, 280];
@@ -63,35 +63,39 @@ if (date('Y-m-d') === '2025-04-01' && !isset($_SESSION['april2025Modal'])) {
     $_SESSION['april2025Modal'] = true;
 }
 
-// ostatní
-$t->assign([
-    'gcOd'                       => $zacatekGameconu->format('j.'),
-    'gcDo'                       => $konecGameconu->format('j. n.'),
-    'gcRok'                      => $konecGameconu->format('Y'),
-    'stovkySpokojenychUcastniku' => dbFetchSingle(<<<SQL
+$stovkySpokojenychUcastniku = dbFetchSingle(<<<SQL
 SELECT FLOOR(COUNT(*) / 100) * 100
 FROM uzivatele_role
 WHERE id_role = $0
 SQL,
-        [
-            0 => Role::pritomenNaRocniku(po($systemoveNastaveni->spocitanyKonecLetosnihoGameconu())
-                ? $systemoveNastaveni->rocnik()
-                : $systemoveNastaveni->rocnik() - 1,
-            ),
-        ],
-    ),
-    'stovkyAktivit'              => dbFetchSingle(<<<SQL
+    [
+        0 => Role::pritomenNaRocniku(pred($systemoveNastaveni->spocitanyZacatekLetosnihoGameconu())
+            ? $systemoveNastaveni->rocnik() - 1
+            : $systemoveNastaveni->rocnik(),
+        ),
+    ],
+);
+
+$stovkyAktivit = dbFetchSingle(<<<SQL
 SELECT FLOOR(COUNT(*) / 10) * 10
 FROM akce_seznam
 WHERE rok = $0
     AND patri_pod IS NULL
     AND typ NOT IN ($1)
 SQL,
-        [
-            0 => po($systemoveNastaveni->spocitanyKonecLetosnihoGameconu())
-                ? $systemoveNastaveni->rocnik()
-                : $systemoveNastaveni->rocnik() - 1,
-            1 => TypAktivity::interniTypy(),
-        ],
-    ),
+    [
+        0 => pred($systemoveNastaveni->spocitanyZacatekLetosnihoGameconu())
+            ? $systemoveNastaveni->rocnik() - 1
+            : $systemoveNastaveni->rocnik(),
+        1 => TypAktivity::interniTypy(),
+    ],
+);
+
+// ostatní
+$t->assign([
+    'gcOd'                       => $zacatekGameconu->format('j.'),
+    'gcDo'                       => $konecGameconu->format('j. n.'),
+    'gcRok'                      => $konecGameconu->format('Y'),
+    'stovkySpokojenychUcastniku' => $stovkySpokojenychUcastniku,
+    'stovkyAktivit'              => $stovkyAktivit,
 ]);
