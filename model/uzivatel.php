@@ -23,6 +23,8 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\RolePodleRocniku;
 use Gamecon\Uzivatel\SqlStruktura\PravaRoleSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
+use Gamecon\Uzivatel\UserRepository;
+use Gamecon\Uzivatel\UserController;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -607,7 +609,8 @@ SQL,
         return $this->maRoli(Role::PRIHLASEN_NA_LETOSNI_GC);
     }
 
-    public static function gcPrihlasenDSC(?DataSourcesCollector $dataSourcesCollector) {
+    public static function gcPrihlasenDSC(?DataSourcesCollector $dataSourcesCollector)
+    {
         $dataSourcesCollector?->addDataSource(Sql::UZIVATELE_HODNOTY_TABULKA);
     }
 
@@ -836,7 +839,6 @@ SQL,
     ): void {
         self::pravaDSC($dataSourcesCollector);
     }
-
 
     public function maPravoNaPrirazeniRole(int $idRole): bool
     {
@@ -1172,7 +1174,8 @@ SQL,
         return $this->r['prava'];
     }
 
-    public static function pravaDSC(?DataSourcesCollector $dataSourcesCollector): void {
+    public static function pravaDSC(?DataSourcesCollector $dataSourcesCollector): void
+    {
         self::nactiPravaDSC($dataSourcesCollector);
     }
 
@@ -2502,8 +2505,10 @@ SQL,
         return parent::zWhere($where, $params, $extra);
     }
 
-    protected static function dotaz($where, ?DataSourcesCollector $dataSourcesCollector = null): string
-    {
+    protected static function dotaz(
+        $where,
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): string {
         self::dotazDSC($dataSourcesCollector);
 
         return <<<SQL
@@ -2520,7 +2525,8 @@ GROUP BY u.id_uzivatele
 SQL;
     }
 
-    protected static function dotazDSC(?DataSourcesCollector $dataSourcesCollector = null): void {
+    protected static function dotazDSC(?DataSourcesCollector $dataSourcesCollector = null): void
+    {
         $dataSourcesCollector?->addDataSource("uzivatele_url");
         $dataSourcesCollector?->addDataSource("uzivatele_hodnoty");
         $dataSourcesCollector?->addDataSource("platne_role_uzivatelu");
@@ -2552,8 +2558,9 @@ SQL;
      * @param string $where
      * @return Uzivatel[]
      */
-    protected static function nactiUzivatele(string $where, ?DataSourcesCollector $dataSourcesCollector = null): array
-    {
+    protected static function nactiUzivatele(string                $where,
+                                             ?DataSourcesCollector $dataSourcesCollector = null,
+    ): array {
         $query     = self::dotaz(where: $where, dataSourcesCollector: $dataSourcesCollector);
         $o         = dbQuery($query);
         $uzivatele = [];
@@ -2566,10 +2573,10 @@ SQL;
         return $uzivatele;
     }
 
-    protected static function nactiUzivateleDSC(?DataSourcesCollector $dataSourcesCollector): void {
+    protected static function nactiUzivateleDSC(?DataSourcesCollector $dataSourcesCollector): void
+    {
         self::dotazDSC($dataSourcesCollector);
     }
-
 
     public function shop(): Shop
     {
@@ -2607,77 +2614,15 @@ SQL;
 
     public function covidFreePotvrzeniHtml(int $rok): string
     {
-        $x = new XTemplate(__DIR__ . '/uzivatel-covid-potvrzeni.xtpl');
-        $x->assign('a', $this->koncovkaDlePohlavi());
-        if ($this->maNahranyDokladProtiCoviduProRok($rok)) {
-            if ($this->maOverenePotvrzeniProtiCoviduProRok($rok, true)) {
-                $x->assign(
-                    'datumOvereniPotvrzeniProtiCovid',
-                    (new DateTimeCz($this->potvrzeniProtiCoviduOverenoKdy()->format(DATE_ATOM)))->rozdilDni(new DateTimeImmutable()),
-                );
-                $x->parse('covid.nahrano.overeno');
-            } else {
-                $x->assign('urlNaSmazaniPotvrzeni', $this->urlNaSmazaniPotrvrzeniVlastnikem());
-                $x->parse('covid.nahrano.smazat');
-            }
-            $x->assign('urlNaPotvrzeniProtiCoviduProVlastnika', $this->urlNaPotvrzeniProtiCoviduProVlastnika());
-            $x->assign(
-                'datumNahraniPotvrzeniProtiCovid',
-                (new DateTimeCz($this->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni(),
-            );
-            $x->parse('covid.nahrano');
-        } else {
-            if ($this->maOverenePotvrzeniProtiCoviduProRok($rok, true)) {
-                $x->assign(
-                    'datumOvereniPotvrzeniProtiCovid',
-                    (new DateTimeCz($this->potvrzeniProtiCoviduOverenoKdy()->format(DATE_ATOM)))->relativni(),
-                );
-                $x->parse('covid.overenoBezDokladu');
-            }
-            $x->parse('covid.nahrat');
-        }
-        $x->parse('covid');
-
-        return $x->text('covid');
+        return UserController::covidFreePotvrzeniHtml($this, $rok);
     }
 
     public function zpracujPotvrzeniProtiCovidu(): bool
     {
-        if (!isset($_FILES['potvrzeniProtiCovidu']) || empty($_FILES['potvrzeniProtiCovidu']['tmp_name'])) {
-            return false;
-        }
-        $f = @fopen($_FILES['potvrzeniProtiCovidu']['tmp_name'], 'rb');
-        if (!$f) {
-            throw new Chyba("Soubor '{$_FILES['potvrzeniProtiCovidu']['name']}' se nepodařilo načíst");
-        }
-        $imagick = new Imagick();
-        $imagick->setResolution(120, 120);
-
-        $imageRead = false;
-        try {
-            $imageRead = $imagick->readImageFile($f);
-        } catch (\Throwable $throwable) {
-            trigger_error($throwable->getMessage(), E_USER_WARNING);
-        }
-        if (!$imageRead) {
-            throw new Chyba("Soubor '{$_FILES['potvrzeniProtiCovidu']['name']}' se nepodařilo přečíst. Je to obrázek nebo PDF?");
-        }
-
-        try {
-            $imagick->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
-            $imagick->setImageCompressionQuality(100);
-        } catch (\Throwable $throwable) {
-            trigger_error($throwable->getMessage(), E_USER_WARNING);
-        }
-        $imagick->writeImage(WWW . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png');
-
-        $ted = new DateTimeImmutable();
-        $this->ulozPotvrzeniProtiCoviduPridanyKdy($ted);
-
-        return true;
+        return UserController::zpracujPotvrzeniProtiCovidu($this);
     }
 
-    private function ulozPotvrzeniProtiCoviduPridanyKdy(?\DateTimeInterface $kdy)
+    public function ulozPotvrzeniProtiCoviduPridanyKdy(?\DateTimeInterface $kdy)
     {
         dbUpdate('uzivatele_hodnoty', [
             'potvrzeni_proti_covid19_pridano_kdy' => $kdy,
@@ -2701,7 +2646,7 @@ SQL;
             : null;
     }
 
-    private function ulozPotvrzeniRodicuPridanoKdy(?\DateTimeInterface $kdy)
+    public function ulozPotvrzeniRodicuPridanoKdy(?\DateTimeInterface $kdy)
     {
         dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
             Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR => $kdy,
@@ -2770,47 +2715,7 @@ SQL;
 
     public function zpracujPotvrzeniRodicu(): bool
     {
-        if (!isset($_FILES['potvrzeniRodicu']) || empty($_FILES['potvrzeniRodicu']['tmp_name'])) {
-            return false;
-        }
-        $f = @fopen($_FILES['potvrzeniRodicu']['tmp_name'], 'rb');
-        if (!$f) {
-            throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo načíst");
-        }
-        if (mime_content_type($f) === 'application/pdf') {
-            $targetResource = fopen($this->cestaKSouboruSPotvrzenimRodicu('pdf'), 'wb');
-            if ($targetResource === false) {
-                throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo uložit");
-            }
-            fwrite($targetResource, fread($f, filesize($_FILES['potvrzeniRodicu']['tmp_name'])));
-            fclose($targetResource);
-        } else {
-            $imagick = new Imagick();
-
-            $imageRead = false;
-            try {
-                $imageRead = $imagick->readImageFile($f);
-            } catch (\Throwable $throwable) {
-                trigger_error($throwable->getMessage(), E_USER_WARNING);
-            }
-            if (!$imageRead) {
-                throw new Chyba("Soubor '{$_FILES['potvrzeniRodicu']['name']}' se nepodařilo přečíst. Je to obrázek nebo PDF?");
-            }
-
-            try {
-                $imagick->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
-                $imagick->setImageCompressionQuality(100);
-            } catch (\Throwable $throwable) {
-                trigger_error($throwable->getMessage(), E_USER_WARNING);
-            }
-            $imagick->writeImage($this->cestaKSouboruSPotvrzenimRodicu());
-        }
-        @fclose($f);
-
-        $ted = new DateTimeImmutable();
-        $this->ulozPotvrzeniRodicuPridanoKdy($ted);
-
-        return true;
+        return UserController::zpracujPotvrzeniRodicu($this);
     }
 
     public function uvodniAdminUrl(string $zakladniAdminUrl = URL_ADMIN): string
@@ -2872,14 +2777,7 @@ SQL;
             return null;
         }
         if (!$this->kdySeRegistrovalNaLetosniGc) {
-            $hodnota                           = dbOneCol(<<<SQL
-SELECT posazen FROM platne_role_uzivatelu WHERE id_uzivatele = $0 AND id_role = $1
-SQL,
-                [$this->id(), Role::PRIHLASEN_NA_LETOSNI_GC],
-            );
-            $this->kdySeRegistrovalNaLetosniGc = $hodnota
-                ? new DateTimeImmutable($hodnota)
-                : null;
+            $this->kdySeRegistrovalNaLetosniGc = UserRepository::kdySeRegistrovalNaLetosniGc($this->id() ?? 0);
         }
 
         return $this->kdySeRegistrovalNaLetosniGc;
