@@ -673,6 +673,11 @@ SQL;
         return $this->ted;
     }
 
+    public function spocitanyZacatekLetosnihoGameconu(): DateTimeImmutableStrict
+    {
+        return DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::zacatekGameconu($this->rocnik()));
+    }
+
     public function spocitanyKonecLetosnihoGameconu(): DateTimeImmutableStrict
     {
         return DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::konecGameconu($this->rocnik()));
