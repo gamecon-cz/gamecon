@@ -1,66 +1,73 @@
 <!-- begin:promlceni -->
 <form method="post">
-    <p>
-        Načíst uživatele se zůstatkem
-        <span class="hinted">mezi<span class="hint">Může být i záporné číslo pro zjištění nedoplatků.<br>Nech jednu z hodnot prázdnou pro "nekonečno".</span></span>
-        <input required type="number" step="1" name="jednaHraniceZustatku" value="{jednaHraniceZustatku}"
-               style="width: 5em">
-        a
-        <input type="number" step="1" name="druhaHraniceZustatku" value="{druhaHraniceZustatku}" style="width: 5em"> Kč,
-        jejichž poslední účast na GC byla naposledy
-        <select name="ucastDoRoku">
-            <!-- begin: ucastDoRoku -->
-            <option value="{rocnik}" {selected}>{rocnik}</option>
-            <!-- end: ucastDoRoku -->
-        </select>
-    </p>
+  <p>
+    Načíst uživatele se zůstatkem
+    <span class="hinted">mezi<span class="hint">Může být i záporné číslo pro zjištění nedoplatků.<br>Nech jednu z hodnot prázdnou pro "nekonečno".</span></span>
+    <input required type="number" step="1" name="jednaHraniceZustatku" value="{jednaHraniceZustatku}"
+           style="width: 5em">
+    a
+    <input type="number" step="1" name="druhaHraniceZustatku" value="{druhaHraniceZustatku}" style="width: 5em"> Kč,
+    jejichž poslední účast na GC byla naposledy
+    <select name="ucastDoRoku">
+      <!-- begin: ucastDoRoku -->
+      <option value="{rocnik}" {selected}>{rocnik}</option>
+      <!-- end: ucastDoRoku -->
+    </select>
+  </p>
 
-    <p>
-        <input type="submit" name="pripravit" value="Zobrazit uživatele">
-        <span class="vcetne">
-            <input type="checkbox" name="vcetneInternich" value="1" id="vcetneInternich" {checkedVcetneInternich}>
-            <label for="vcetneInternich">včetně organizátorů, četných organizátorů, vypravěčů a partnerů</label>
-        </span>
-    </p>
+  <p>
+    <input type="submit" name="pripravit" value="Zobrazit uživatele">
+    <input type="submit" name="exportovat" value="Exportovat do XLSX" {disabledExport}>
+  </p>
 
-    <table style="width: 100%">
-        <tr>
-            <th></th>
-            <th>ID</th>
-            <th>Jméno</th>
-            <th>Příjmení</th>
-            <th>Stav účtu</th>
-            <th>Účast</th>
-            <th>Poslední připsaná platba</th>
-        </tr>
-        <!-- begin:detaily -->
-        <tr>
-            <td>
-                <input type="checkbox" name="id[]" value="{id}" checked {disabled} class="vybrany-uzivatel">
-            </td>
-            <td>
-                <a href="{adminUrl}/uzivatel?pracovni_uzivatel={id}">{id}</a>
-            </td>
-            <td>{jmeno}</td>
-            <td>{prijmeni}</td>
-            <td>{stav}</td>
-            <td>{ucast}</td>
-            <td>{pohyb}</td>
-        </tr>
-        <!-- end:detaily -->
-    </table>
-    <!-- begin:nekdo -->
-    <div>
-        <input type="submit" name="promlcet" value="Promlčet {pocet} účtům">
-        <!-- begin:omezeni -->
-        <div class="warning">Kvůli technickým omezením PHP lze najednou promlčet pouze {pocet} ze
-            <strong>{celkem}</strong> účtů
-        </div>
-        <!-- end:omezeni -->
+</form>
+
+<p>
+  <a href="{adminUrl}/reporty/finance-lide-v-databazi-a-zustatky?format=xlsx">
+    report <i>Finance: Zůstatky všech účastníků</i>
+  </a>
+</p>
+
+<form onsubmit="return confirm('Opravdu promlčet {pocet} účtů?')" method="post">
+  <table style="width: 100%">
+    <tr>
+      <th></th>
+      <th>ID</th>
+      <th>Jméno</th>
+      <th>Příjmení</th>
+      <th>Stav účtu</th>
+      <th>Účast</th>
+      <th>Poslední připsaná platba</th>
+    </tr>
+    <!-- begin:detaily -->
+    <tr>
+      <td>
+        <input id="vybranyUzivatel{id}" type="checkbox" name="id[]" value="{id}" checked {disabled}
+               class="vybrany-uzivatel">
+      </td>
+      <td>
+        <a href="{adminUrl}/uzivatel?pracovni_uzivatel={id}">{id}</a>
+      </td>
+      <td><label for="vybranyUzivatel{id}" style="display: block">{jmeno}</label></td>
+      <td><label for="vybranyUzivatel{id}" style="display: block">{prijmeni}</label></td>
+      <td>{stav}</td>
+      <td>{ucast}</td>
+      <td>{pohyb}</td>
+    </tr>
+    <!-- end:detaily -->
+  </table>
+  <!-- begin:nekdo -->
+  <div>
+    <input type="submit" name="promlcet" value="Promlčet {pocet} účtům">
+    <!-- begin:omezeni -->
+    <div class="warning">Kvůli technickým omezením PHP lze najednou promlčet pouze {pocet} ze
+      <strong>{celkem}</strong> účtů
     </div>
-    <!-- end:nekdo -->
-    <!-- begin:nikdo -->(žádní uživatelé)<br><!-- end:nikdo -->
-    <br>
+    <!-- end:omezeni -->
+  </div>
+  <!-- end:nekdo -->
+  <!-- begin:nikdo -->(žádní uživatelé)<br><!-- end:nikdo -->
+  <br>
 </form>
 
 <!-- begin: jsSoubor -->
