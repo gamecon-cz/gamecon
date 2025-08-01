@@ -33,13 +33,6 @@ foreach ($typy as $i => $typ) {
     $t->parse('titulka.linie');
 }
 
-// vyplnění obrázku
-ZpracovaneObrazky::kartyTitulka()->vypisDoSablonySorted($t, 'titulka.karty');
-ZpracovaneObrazky::cislaTitulka()->vypisDoSablonySorted($t, 'titulka.cisla');
-ZpracovaneObrazky::fotkyTitulka()->vypisDoSablonySorted($t, 'titulka.fotky', 525, 525);
-ZpracovaneObrazky::logaSponzoruTitulka()->vypisDoSablony($t, 'titulka.sponzor');
-ZpracovaneObrazky::logaPartneruTitulka()->vypisDoSablony($t, 'titulka.partner');
-
 // odpočet
 if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
     $zacatek = $systemoveNastaveni->prihlasovaniUcastnikuOd()->format(DateTimeCz::FORMAT_ZACATEK_UDALOSTI);
@@ -99,3 +92,10 @@ $t->assign([
     'stovkySpokojenychUcastniku' => $stovkySpokojenychUcastniku,
     'stovkyAktivit'              => $stovkyAktivit,
 ]);
+
+// vyplnění obrázku
+ZpracovaneObrazky::kartyTitulka()->vypisDoSablonySorted($t, 'titulka.karty');
+ZpracovaneObrazky::cislaTitulka()->vypisDoSablonySorted($t, 'titulka.cisla');
+ZpracovaneObrazky::fotkyTitulka()->vypisDoSablonySorted($t, 'titulka.fotky', 525, 525);
+ZpracovaneObrazky::logaSponzoruTitulka()->vypisDoSablony($t, 'titulka.sponzor');
+ZpracovaneObrazky::logaPartneruTitulka()->vypisDoSablony($t, 'titulka.partner');
