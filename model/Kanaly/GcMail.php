@@ -24,16 +24,15 @@ class GcMail
         );
     }
 
-    private array  $adresati      = [];
-    private string $predmet       = '';
+    private array $adresati = [];
+    private string $predmet = '';
     private string $prilohaSoubor = '';
-    private string $prilohaNazev  = '';
+    private string $prilohaNazev = '';
 
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
-        private string                      $text = '',
-    )
-    {
+        private string $text = '',
+    ) {
     }
 
     public function adresat(string $adresat): self
@@ -52,11 +51,17 @@ class GcMail
      * Odešle sestavenou zprávu.
      * @return bool jestli se zprávu podařilo odeslat
      */
-    public function odeslat(string $format = self::FORMAT_HTML)
-    {
+    public function odeslat(
+        string $format = self::FORMAT_HTML,
+        ?string $from = null
+    ) {
+        $odesilatel = $from
+            ?? "GameCon <{$this->systemoveNastaveni->kontaktniEmailGc()}>";
+
         $mail = (new Email())
-            ->from($this->pridejPrefixPodleProstredi("GameCon <{$this->systemoveNastaveni->kontaktniEmailGc()}>"))
+            ->from($this->pridejPrefixPodleProstredi($odesilatel))
             ->subject($this->pridejPrefixPodleProstredi($this->dejPredmet()));
+
         $body = $this->pridejPrefixPodleProstredi($this->dejText());
         $mail->text(strip_tags($body));
         if ($format === self::FORMAT_HTML) {
@@ -133,12 +138,12 @@ class GcMail
             if (!preg_match('~(?<email>[^@\s<>]+@[^@\s<>]+)~', $adresat, $matches)) {
                 continue;
             }
-            $email    = $matches['email'];
+            $email = $matches['email'];
             $uzivatel = \Uzivatel::zEmailu($email);
             if (!$uzivatel) {
                 continue;
             }
-            foreach ((array)MAILY_ROLIM as $role) {
+            foreach ((array) MAILY_ROLIM as $role) {
                 if ($uzivatel->maRoli($role)) {
                     $povoleniPodleRoli[] = $adresat;
                     break;

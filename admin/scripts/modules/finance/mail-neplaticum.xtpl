@@ -1,0 +1,39 @@
+<!-- begin: mailneplaticum -->
+
+<!-- Hláška po odeslání -->
+<!-- begin: vysledek -->
+<div class="alert">
+  Odesláno: {POCET_OK} • Selhalo: {POCET_FAIL}
+  <!-- begin: failradek -->
+  <div>- {EMAIL}: {CHYBA}</div>
+  <!-- end: failradek -->
+</div>
+<!-- end: vysledek -->
+
+<form method="post" id="odeslat-form">
+  <!-- <input type="hidden" name="csrf_token" value="{CSRF_TOKEN}"> -->
+  <button type="submit" name="odeslat_maily" class="btn btn--primary" id="odeslat-btn">
+    Odeslat e‑maily neplatičům
+  </button>
+</form>
+
+<style>
+  .btn--primary{padding:.6rem 1rem;border:0;border-radius:10px;background:#2563eb;color:#fff;cursor:pointer}
+  .btn--primary:hover{background:#1d4ed8}
+  .alert{margin:1rem 0;padding:.75rem 1rem;border-radius:10px;background:#f3f4f6}
+</style>
+
+<script>
+  (function(){
+    var form = document.getElementById('odeslat-form');
+    var btn  = document.getElementById('odeslat-btn');
+    if(form && btn){
+      form.addEventListener('submit', function(){
+        btn.disabled = true;
+        btn.textContent = 'Odesílám…';
+      });
+    }
+  })();
+</script>
+
+<!-- end: mailneplaticum -->
