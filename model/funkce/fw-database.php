@@ -26,10 +26,12 @@ function dbArrayCol(
 
 /**
  * Begins transaction
- * @todo support fake nesting by savepoints
  */
 function dbBegin()
 {
+    if (!isset($GLOBALS['dbTransactionDepth']) || $GLOBALS['dbTransactionDepth'] < 0) {
+        $GLOBALS['dbTransactionDepth'] = 0;
+    }
     if ($GLOBALS['dbTransactionDepth'] == 0) {
         dbQuery('BEGIN');
     } else {
@@ -43,13 +45,26 @@ function dbBegin()
  */
 function dbCommit()
 {
-    if ($GLOBALS['dbTransactionDepth'] == 0) {
+    if (!isset($GLOBALS['dbTransactionDepth'])) {
+        $GLOBALS['dbTransactionDepth'] = 0;
+    }
+    if ($GLOBALS['dbTransactionDepth'] <= 0) {
         throw new Exception('nothing to commit');
     }
     if ($GLOBALS['dbTransactionDepth'] == 1) {
         dbQuery('COMMIT');
     } else {
-        dbQuery('RELEASE SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+        try {
+            dbQuery('RELEASE SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+        } catch (\Throwable $e) {
+            // If savepoint doesn't exist, do a full commit and reset depth
+            if (str_contains($e->getMessage(), 'SAVEPOINT') && str_contains($e->getMessage(), 'does not exist')) {
+                dbQuery('COMMIT'); // just to be sure (executing COMMIT even if there is nothing to commit is safe); missing SAVEPOINT mostly means that an implicit COMMIT happened on CREATE / ALTER / DROP
+                $GLOBALS['dbTransactionDepth'] = 0;
+                return;
+            }
+            throw $e;
+        }
     }
     $GLOBALS['dbTransactionDepth']--;
 }
@@ -59,13 +74,26 @@ function dbCommit()
  */
 function dbRollback()
 {
-    if ($GLOBALS['dbTransactionDepth'] == 0) {
+    if (!isset($GLOBALS['dbTransactionDepth'])) {
+        $GLOBALS['dbTransactionDepth'] = 0;
+    }
+    if ($GLOBALS['dbTransactionDepth'] <= 0) {
         return;
     }
     if ($GLOBALS['dbTransactionDepth'] == 1) {
         dbQuery('ROLLBACK');
     } else {
-        dbQuery('ROLLBACK TO SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+        try {
+            dbQuery('ROLLBACK TO SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+        } catch (\Throwable $e) {
+            // If savepoint doesn't exist, do a full rollback and reset depth
+            if (str_contains($e->getMessage(), 'SAVEPOINT') && str_contains($e->getMessage(), 'does not exist')) {
+                dbQuery('ROLLBACK');
+                $GLOBALS['dbTransactionDepth'] = 0;
+                return;
+            }
+            throw $e;
+        }
     }
     $GLOBALS['dbTransactionDepth']--;
 }

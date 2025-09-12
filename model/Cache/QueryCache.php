@@ -19,7 +19,7 @@ class QueryCache
     {
         /* SQLite does not have TRUNCATE, but DELETE without WHERE is the same
         (it is a TRUNCATE optimizer for the DELETE statement) */
-        $this->executeQuery('DELETE FROM query_cache');
+        $this->executeQuery('DELETE FROM query_cache WHERE TRUE');
     }
 
     /**
