@@ -25,6 +25,7 @@ use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
 use Gamecon\Uzivatel\UserRepository;
 use Gamecon\Uzivatel\UserController;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
+use Gamecon\Uzivatel\UzivatelSlucovani;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -1902,10 +1903,10 @@ SQL,
         $zmeny             = array_intersect_key($u->r, array_flip($zmeny));
         $zmeny['zustatek'] = $this->r['zustatek'] + $u->r['zustatek'];
 
-        $slucovani = new UzivatelSlucovani;
+        $slucovani = new UzivatelSlucovani();
         $slucovani->sluc($u, $this, $zmeny);
 
-        // TODO přenačíst aktuálního uživatele
+        $this->otoc();
     }
 
     public function status(bool $sklonovatDlePohlavi = true): string

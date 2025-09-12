@@ -27,6 +27,11 @@ class DbWrapper
     return dbQuery($sql, $params);
   }
 
+  public function commit()
+  {
+    dbCommit();
+  }
+
   public function rollback()
   {
     dbRollback();
