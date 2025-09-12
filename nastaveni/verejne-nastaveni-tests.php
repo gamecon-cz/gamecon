@@ -7,6 +7,7 @@ define('DB_NAME', $_COOKIE['gamecon_test_db'] ?? uniqid(DB_TEST_PREFIX, true));
 define('DB_ANONYM_NAME', $_COOKIE['gamecon_test_anonym_db'] ?? uniqid(DB_TEST_PREFIX . 'anonym_', true));
 if (!defined('SPEC')) define('SPEC', __DIR__ . '/../cache/private/tests/' . getmypid());
 define('TESTS_LOG_DIR', __DIR__ . '/../tests/logs');
+define('LOGY', TESTS_LOG_DIR . '/' . getmypid());
 define('UNIT_TESTS', true);
 
 // konfigurace

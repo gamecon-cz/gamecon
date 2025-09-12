@@ -12,7 +12,7 @@ use Gamecon\Pravo;
 
 abstract class AbstractTestWeb extends AbstractTestDb
 {
-    protected static function keepDbChangesInTransaction(): bool
+    protected static function keepTestClassDbChangesInTransaction(): bool
     {
         return false;
     }
@@ -20,7 +20,7 @@ abstract class AbstractTestWeb extends AbstractTestDb
     /**
      * @return string[]
      */
-    protected static function getInitQueries(): array
+    protected static function getSetUpBeforeClassInitQueries(): array
     {
         $queries = [];
 

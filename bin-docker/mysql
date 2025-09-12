@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+IFS=$'\n\t'
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$(dirname "$DIR")"
+
+source "${DIR}/_tty.sh"
+
+if [ "$(docker compose ps sql.gamecon | grep --count Up)" -gt 0 ]; then
+    docker_compose_exec \
+        sql.gamecon \
+        mariadb -h127.0.0.1 -uroot -proot "$@"
+else
+    docker_compose_run \
+        sql.gamecon \
+        mariadb -h127.0.0.1 -uroot -proot "$@"
+fi

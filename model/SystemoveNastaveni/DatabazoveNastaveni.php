@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\SystemoveNastaveni;
 
-class DatabazoveNastaveni
+readonly class DatabazoveNastaveni
 {
     public static function vytvorZGlobals(): static
     {

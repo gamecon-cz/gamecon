@@ -49,7 +49,7 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
 
     protected static bool $disableStrictTransTables = true;
 
-    protected static function getInitQueries(): array
+    protected static function getSetUpBeforeClassInitQueries(): array
     {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
 

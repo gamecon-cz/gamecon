@@ -16,30 +16,15 @@ abstract class AbstractTestDb extends TestCase
 
     protected bool $revertDbChangesAfterTest = true;
 
-    static function setConnection(DbWrapper $connection): void
+    public static function setConnection(DbWrapper $connection): void
     {
         self::$connection = $connection;
     }
 
-    protected function setUp(): void
-    {
-        if (static::keepDbChangesInTransaction()) {
-            self::$connection->begin();
-        }
-    }
-
-    protected function tearDown(): void
-    {
-        if (static::keepDbChangesInTransaction()) {
-            self::$connection->rollback();
-            SystemoveNastaveni::zGlobals()->queryCache()->clear();
-        }
-    }
-
-    static function setUpBeforeClass(): void
+    public static function setUpBeforeClass(): void
     {
         try {
-            if (static::keepDbChangesInTransaction()) {
+            if (static::keepTestClassDbChangesInTransaction()) {
                 self::$connection->begin();
             }
 
@@ -47,7 +32,7 @@ abstract class AbstractTestDb extends TestCase
                 static::disableStrictTransTables();
             }
 
-            foreach (static::getInitQueries() as $initQuery) {
+            foreach (static::getSetUpBeforeClassInitQueries() as $initQuery) {
                 $initQuerySql = $initQuery;
                 $params       = null;
                 if (is_array($initQuery)) {
@@ -87,12 +72,35 @@ abstract class AbstractTestDb extends TestCase
         }
     }
 
-    protected static function keepDbChangesInTransaction(): bool
+    protected function setUp(): void
+    {
+        if (static::keepSingleTestMethodDbChangesInTransaction()) {
+            // note that any structure changes trigger implicit COMMIT
+            self::$connection->begin();
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        if (static::keepSingleTestMethodDbChangesInTransaction()) {
+            self::$connection->rollback();
+        }
+        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
+        $systemoveNastaveni->queryCache()->clear();
+        $systemoveNastaveni->db()->clearPrefetchedDataVersions();
+    }
+
+    protected static function keepTestClassDbChangesInTransaction(): bool
     {
         return true;
     }
 
-    protected static function getInitQueries(): array
+    protected static function keepSingleTestMethodDbChangesInTransaction(): bool
+    {
+        return true;
+    }
+
+    protected static function getSetUpBeforeClassInitQueries(): array
     {
         return static::$initQueries;
     }
@@ -112,12 +120,14 @@ abstract class AbstractTestDb extends TestCase
 
     public static function tearDownAfterClass(): void
     {
-        if (static::keepDbChangesInTransaction()) {
+        if (static::keepTestClassDbChangesInTransaction()) {
             self::$connection->rollback();
         }
         if (static::$disableStrictTransTables) {
             static::disableStrictTransTables();
         }
+        SystemoveNastaveni::zGlobals()->queryCache()->clear();
+        SystemoveNastaveni::zGlobals()->db()->clearPrefetchedDataVersions();
     }
 
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
@@ -143,8 +153,11 @@ SQL,
 SHOW COLUMNS FROM $tabulka
 SQL,
         );
+
         return array_map(
-            fn(array $row) => reset($row),
+            fn(
+                array $row,
+            ) => reset($row),
             mysqli_fetch_all($result),
         );
     }

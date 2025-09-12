@@ -16,7 +16,18 @@ SQL,
 );
 
 
-$sirienId = 102;
+$sirienIdResult = mysqli_execute_query(
+    $this->connection,
+    <<<SQL
+    SELECT id_uzivatele FROM uzivatele_hodnoty WHERE jmeno_uzivatele = 'Petr' AND prijmeni_uzivatele = 'Mazák'
+    SQL,
+);
+
+$sirienId = mysqli_fetch_column($sirienIdResult);
+
+if (!$sirienId) {
+    return;
+}
 
 $result = $this->q(<<<SQL
 INSERT INTO `role_texty_podle_uzivatele` (vyznam_role, id_uzivatele, popis_role)
