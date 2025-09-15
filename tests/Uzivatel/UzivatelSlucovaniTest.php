@@ -166,6 +166,145 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $this->assertEmpty($newRecords); // This table is not in the whitelist for this test
     }
 
+    public function test_sluc_copies_all_uzivatele_hodnoty_fields(): void
+    {
+        $staryUzivatel = $this->createTestUser('stary_complete@test.com', 'StaryJmeno', 'StaryPrijmeni');
+        $novyUzivatel = $this->createTestUser('novy_complete@test.com', 'NovyJmeno', 'NovyPrijmeni');
+
+        $staryId = (int)$staryUzivatel->id();
+        $novyId = (int)$novyUzivatel->id();
+
+        // Update old user with comprehensive data
+        dbUpdate('uzivatele_hodnoty', [
+            'login_uzivatele' => 'stary_login_unique',
+            'email1_uzivatele' => 'stary_unique@test.com',
+            'ulice_a_cp_uzivatele' => 'Stará ulice 123',
+            'mesto_uzivatele' => 'Staré Město',
+            'stat_uzivatele' => 1,
+            'psc_uzivatele' => '12345',
+            'telefon_uzivatele' => '+420111222333',
+            'datum_narozeni' => '1990-05-15',
+            'heslo_md5' => 'old_hash_value',
+            'nechce_maily' => '2023-01-15 10:30:00',
+            'mrtvy_mail' => 1,
+            'forum_razeni' => 'A',
+            'random' => 'old_random_123',
+            'zustatek' => 500,
+            'pohlavi' => 'm',
+            'registrovan' => '2020-01-01 12:00:00',
+            'ubytovan_s' => 'Někdo Jiný',
+            'poznamka' => 'Poznámka starého uživatele',
+            'pomoc_typ' => 'vypravec',
+            'pomoc_vice' => 'Detaily pomoci starého',
+            'op' => 'encrypted_op_old',
+            'potvrzeni_zakonneho_zastupce' => '2022-06-01',
+            'potvrzeni_proti_covid19_pridano_kdy' => '2022-07-01 14:00:00',
+            'potvrzeni_proti_covid19_overeno_kdy' => '2022-07-02 15:00:00',
+            'infopult_poznamka' => 'Stará infopult poznámka',
+            'typ_dokladu_totoznosti' => 'OP',
+            'statni_obcanstvi' => 'CZ',
+            'z_rychloregistrace' => 1,
+            'potvrzeni_zakonneho_zastupce_soubor' => '2022-06-01 10:00:00',
+        ], ['id_uzivatele' => $staryId]);
+
+        // Update new user with some existing data
+        dbUpdate('uzivatele_hodnoty', [
+            'login_uzivatele' => 'novy_login_unique',
+            'email1_uzivatele' => 'novy_unique@test.com',
+            'ulice_a_cp_uzivatele' => 'Nová ulice 456',
+            'mesto_uzivatele' => '',  // Empty field
+            'zustatek' => 200,
+            'poznamka' => 'Původní poznámka nového',
+        ], ['id_uzivatele' => $novyId]);
+
+        $slucovani = new UzivatelSlucovani();
+
+        $zmeny = [
+            // Unique fields
+            'login_uzivatele' => 'stary_login_unique',
+            'email1_uzivatele' => 'stary_unique@test.com',
+            
+            // All other fields
+            'jmeno_uzivatele' => 'StaryJmeno',
+            'prijmeni_uzivatele' => 'StaryPrijmeni',
+            'ulice_a_cp_uzivatele' => 'Stará ulice 123',
+            'mesto_uzivatele' => 'Staré Město',
+            'stat_uzivatele' => 1,
+            'psc_uzivatele' => '12345',
+            'telefon_uzivatele' => '+420111222333',
+            'datum_narozeni' => '1990-05-15',
+            'heslo_md5' => 'old_hash_value',
+            'nechce_maily' => '2023-01-15 10:30:00',
+            'mrtvy_mail' => 1,
+            'forum_razeni' => 'A',
+            'random' => 'old_random_123',
+            // 'zustatek' => 500,  // Zustatek is handled separately by merge logic
+            'pohlavi' => 'm',
+            'registrovan' => '2020-01-01 12:00:00',
+            'ubytovan_s' => 'Někdo Jiný',
+            'poznamka' => 'Poznámka starého uživatele',
+            'pomoc_typ' => 'vypravec',
+            'pomoc_vice' => 'Detaily pomoci starého',
+            'op' => 'encrypted_op_old',
+            'potvrzeni_zakonneho_zastupce' => '2022-06-01',
+            'potvrzeni_proti_covid19_pridano_kdy' => '2022-07-01 14:00:00',
+            'potvrzeni_proti_covid19_overeno_kdy' => '2022-07-02 15:00:00',
+            'infopult_poznamka' => 'Stará infopult poznámka',
+            'typ_dokladu_totoznosti' => 'OP',
+            'statni_obcanstvi' => 'CZ',
+            'z_rychloregistrace' => 1,
+            'potvrzeni_zakonneho_zastupce_soubor' => '2022-06-01 10:00:00',
+        ];
+
+        // Act
+        $slucovani->sluc($staryUzivatel, $novyUzivatel, $zmeny);
+
+        // Assert
+        $mergedUser = dbFetchAll("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele = $novyId");
+        $this->assertCount(1, $mergedUser);
+        $user = $mergedUser[0];
+
+        // Check that UNIQUE fields were NOT changed (to avoid duplicate key errors)
+        $this->assertEquals('stary_login_unique', $user['login_uzivatele'], 'Login should remain unchanged (UNIQUE constraint)');
+        $this->assertEquals('stary_unique@test.com', $user['email1_uzivatele'], 'Email should remain unchanged (UNIQUE constraint)');
+
+        // Check that all non-unique fields were copied from old user
+        $this->assertEquals('StaryJmeno', $user['jmeno_uzivatele']);
+        $this->assertEquals('StaryPrijmeni', $user['prijmeni_uzivatele']);
+        $this->assertEquals('Stará ulice 123', $user['ulice_a_cp_uzivatele']);
+        $this->assertEquals('Staré Město', $user['mesto_uzivatele']);
+        $this->assertEquals(1, $user['stat_uzivatele']);
+        $this->assertEquals('12345', $user['psc_uzivatele']);
+        $this->assertEquals('+420111222333', $user['telefon_uzivatele']);
+        $this->assertEquals('1990-05-15', $user['datum_narozeni']);
+        $this->assertEquals('old_hash_value', $user['heslo_md5']);
+        $this->assertEquals('2023-01-15 10:30:00', $user['nechce_maily']);
+        $this->assertEquals(1, $user['mrtvy_mail']);
+        $this->assertEquals('A', $user['forum_razeni']);
+        $this->assertEquals('old_random_123', $user['random']);
+        $this->assertEquals('m', $user['pohlavi']);
+        $this->assertEquals('2020-01-01 12:00:00', $user['registrovan']);
+        $this->assertEquals('Někdo Jiný', $user['ubytovan_s']);
+        $this->assertEquals('Poznámka starého uživatele', $user['poznamka']);
+        $this->assertEquals('vypravec', $user['pomoc_typ']);
+        $this->assertEquals('Detaily pomoci starého', $user['pomoc_vice']);
+        $this->assertEquals('encrypted_op_old', $user['op']);
+        $this->assertEquals('2022-06-01', $user['potvrzeni_zakonneho_zastupce']);
+        $this->assertEquals('2022-07-01 14:00:00', $user['potvrzeni_proti_covid19_pridano_kdy']);
+        $this->assertEquals('2022-07-02 15:00:00', $user['potvrzeni_proti_covid19_overeno_kdy']);
+        $this->assertEquals('Stará infopult poznámka', $user['infopult_poznamka']);
+        $this->assertEquals('OP', $user['typ_dokladu_totoznosti']);
+        $this->assertEquals('CZ', $user['statni_obcanstvi']);
+        $this->assertEquals(1, $user['z_rychloregistrace']);
+        $this->assertEquals('2022-06-01 10:00:00', $user['potvrzeni_zakonneho_zastupce_soubor']);
+
+        // Check that balance was merged (200 + 500 = 700)
+        $this->assertEquals(700, (int)$user['zustatek'], 'Balance should be sum of both users');
+
+        // Old user should be deleted
+        $this->assertOldUserDeleted($staryId);
+    }
+
     private function createTestUser(string $email, string $jmeno, string $prijmeni): Uzivatel
     {
         $login = strtolower(str_replace('@', '_', str_replace('.', '_', $email)));

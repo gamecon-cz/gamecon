@@ -49,8 +49,8 @@
     </tr>
     <tr>
       <td>Heslo</td>
-      <td><label><input type="radio" name="heslo" value="{uaid}" checked> od id {ua.id}</label></td>
-      <td><label><input type="radio" name="heslo" value="{ubid}"> od id {ub.id}</label></td>
+      <td><label><input type="radio" name="heslo" value="{uaid}" checked> převzít z ID {ua.id}</label></td>
+      <td><label><input type="radio" name="heslo" value="{ubid}"> převzít z ID {ub.id}</label></td>
     </tr>
     <tr>
       <td>Mail</td>
