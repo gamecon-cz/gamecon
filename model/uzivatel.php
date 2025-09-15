@@ -1901,7 +1901,6 @@ SQL,
                  $zmeny = [],
     ) {
         $zmeny             = array_intersect_key($u->r, array_flip($zmeny));
-        $zmeny['zustatek'] = $this->r['zustatek'] + $u->r['zustatek'];
 
         $slucovani = new UzivatelSlucovani();
         $slucovani->sluc($u, $this, $zmeny);
