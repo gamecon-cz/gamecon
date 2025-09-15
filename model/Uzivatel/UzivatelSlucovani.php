@@ -4,16 +4,10 @@ namespace Gamecon\Uzivatel;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
 class UzivatelSlucovani
 {
-    private string $databaseName;
-
-    public function __construct(string $databaseName)
-    {
-        $this->databaseName = $databaseName;
-    }
-
     /**
      * @param array<string, mixed> $zmeny páry sloupec => hodnota, které se mají upravit v novém uživateli
      */
@@ -22,6 +16,10 @@ class UzivatelSlucovani
         Uzivatel $novyUzivatel,
         array    $zmeny,
     ): void {
+        if (array_key_exists(Sql::ZUSTATEK, $zmeny)) {
+            throw new \InvalidArgumentException('Zůstatek nelze měnit při slučování uživatelů, je automaticky převeden ze starého uživatele na nového.');
+        }
+
         $idStarehoUzivatele = (int)$staryUzivatel->id();
         $idNovehoUzivatele  = (int)$novyUzivatel->id();
 
@@ -31,20 +29,30 @@ class UzivatelSlucovani
 
         dbBegin();
         try {
-            // 1) Update nového uživatele se změnami
-            dbUpdate('uzivatele_hodnoty', $zmeny, ['id_uzivatele' => $idNovehoUzivatele]);
+            // Anonymizace unikátních polí starého uživatele pro zabránění konfliktům duplicitních klíčů
+            $unikatniPole = $this->najdiUnikatniPole();
+            $unikatniData = [];
+            foreach ($unikatniPole as $pole) {
+                $unikatniData[$pole] = uniqid('slucovani_');
+            }
+            if ($unikatniData !== []) {
+                dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $unikatniData, ['id_uzivatele' => $idStarehoUzivatele]);
+            }
 
-            // 2) Převod zůstatku ze starého na nového uživatele
+            // Update nového uživatele se změnami
+            dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $zmeny, ['id_uzivatele' => $idNovehoUzivatele]);
+
+            // Převod zůstatku ze starého na nového uživatele
             dbQuery("UPDATE uzivatele_hodnoty SET zustatek = zustatek + (SELECT zustatek FROM uzivatele_hodnoty u2 WHERE u2.id_uzivatele = $idStarehoUzivatele) WHERE id_uzivatele = $idNovehoUzivatele");
 
-            // 3) Převod všech odkazovaných dat na nového uživatele pomocí FK
+            // Převod všech odkazovaných dat na nového uživatele pomocí FK
             $odkazujiciTabulky = $this->najdiOdkazujiciTabulky();
 
             foreach ($odkazujiciTabulky as $tabulka) {
                 $this->prevedDataVTabulce($tabulka['table_name'], $tabulka['column_name'], $idStarehoUzivatele, $idNovehoUzivatele);
             }
 
-            // 4) Smazání starého uživatele - FK CASCADE automaticky smaže související data
+            // Smazání starého uživatele - FK CASCADE automaticky smaže související data
             dbQuery("DELETE FROM `uzivatele_hodnoty` WHERE `id_uzivatele` = $idStarehoUzivatele");
 
             dbCommit();
@@ -65,25 +73,54 @@ class UzivatelSlucovani
     }
 
     /**
+     * Najde všechny sloupce, které mají UNIQUE klíč v tabulce uzivatele_hodnoty
+     * @return array<string>
+     */
+    private function najdiUnikatniPole(): array
+    {
+        $result = dbQuery("
+            SELECT COLUMN_NAME
+            FROM information_schema.KEY_COLUMN_USAGE
+            WHERE CONSTRAINT_SCHEMA = (SELECT DATABASE())
+                AND TABLE_NAME = $1
+                AND CONSTRAINT_NAME != 'PRIMARY'
+                AND CONSTRAINT_NAME IN (
+                    SELECT CONSTRAINT_NAME
+                    FROM information_schema.TABLE_CONSTRAINTS
+                    WHERE CONSTRAINT_SCHEMA = (SELECT DATABASE())
+                        AND TABLE_NAME = $1
+                        AND CONSTRAINT_TYPE = 'UNIQUE'
+                )
+        ", [1 => Sql::UZIVATELE_HODNOTY_TABULKA]);
+
+        $unikatniPole = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $unikatniPole[] = $row['COLUMN_NAME'];
+        }
+
+        return $unikatniPole;
+    }
+
+    /**
      * Najde všechny tabulky, které mají foreign key na uzivatele_hodnoty.id_uzivatele
      * @return array<array{table_name: string, column_name: string}>
      */
     private function najdiOdkazujiciTabulky(): array
     {
-        $sql = "
+        $result = dbQuery("
             SELECT 
-                key_column_usage.TABLE_NAME as table_name,
-                key_column_usage.COLUMN_NAME as column_name
+                key_column_usage.TABLE_NAME AS table_name,
+                key_column_usage.COLUMN_NAME AS column_name
             FROM 
                 information_schema.KEY_COLUMN_USAGE key_column_usage
             WHERE 
-                key_column_usage.CONSTRAINT_SCHEMA = $1
-                AND key_column_usage.REFERENCED_TABLE_NAME = 'uzivatele_hodnoty'
-                AND key_column_usage.REFERENCED_COLUMN_NAME = 'id_uzivatele'
-                AND key_column_usage.TABLE_NAME != 'uzivatele_hodnoty'
-        ";
+                key_column_usage.CONSTRAINT_SCHEMA = (SELECT DATABASE())
+                AND key_column_usage.REFERENCED_TABLE_NAME = $1
+                AND key_column_usage.REFERENCED_COLUMN_NAME = $2
+                AND key_column_usage.TABLE_NAME != $1
+        ", [1 => Sql::UZIVATELE_HODNOTY_TABULKA, 2 => Sql::ID_UZIVATELE]);
 
-        $result = dbQuery($sql, [1 => $this->databaseName]);
         $tabulky = [];
 
         while ($row = $result->fetch_assoc()) {
@@ -96,102 +133,31 @@ class UzivatelSlucovani
     /**
      * Převede data v tabulce ze starého uživatele na nového s ošetřením unique constraints
      */
-    private function prevedDataVTabulce(string $tabulka, string $sloupec, int $idStarehoUzivatele, int $idNovehoUzivatele): void
-    {
-        // Nejdřív zjistíme, zda má tabulka unique constraints obsahující id_uzivatele
-        $uniqueConstraints = $this->najdiUniqueConstraints($tabulka, $sloupec);
-
-        if (!empty($uniqueConstraints)) {
-            // Pokud jsou unique constraints, musíme nejdřív smazat konfliktní záznamy starého uživatele
-            $this->smazKonfliktniZaznamy($tabulka, $sloupec, $idStarehoUzivatele, $idNovehoUzivatele, $uniqueConstraints);
-        }
-
-        // Teď můžeme bezpečně převést zbývající data
-        dbQuery("UPDATE `$tabulka` SET `$sloupec` = $idNovehoUzivatele WHERE `$sloupec` = $idStarehoUzivatele");
-    }
-
-    /**
-     * Najde unique constraints obsahující daný sloupec
-     * @return array<array{constraint_name: string, columns: array<string>}>
-     */
-    private function najdiUniqueConstraints(string $tabulka, string $sloupec): array
-    {
-        $sql = "
-            SELECT 
-                table_constraints.CONSTRAINT_NAME as constraint_name,
-                GROUP_CONCAT(key_column_usage.COLUMN_NAME ORDER BY key_column_usage.ORDINAL_POSITION) as columns
-            FROM 
-                information_schema.TABLE_CONSTRAINTS table_constraints
-                JOIN information_schema.KEY_COLUMN_USAGE key_column_usage
-                    ON table_constraints.TABLE_SCHEMA = key_column_usage.TABLE_SCHEMA 
-                    AND table_constraints.TABLE_NAME = key_column_usage.TABLE_NAME 
-                    AND table_constraints.CONSTRAINT_NAME = key_column_usage.CONSTRAINT_NAME
-            WHERE 
-                table_constraints.TABLE_SCHEMA = $1
-                AND table_constraints.TABLE_NAME = $2
-                AND table_constraints.CONSTRAINT_TYPE = 'UNIQUE'
-                AND table_constraints.CONSTRAINT_NAME IN (
-                    SELECT DISTINCT key_column_usage_for_unique.CONSTRAINT_NAME
-                    FROM information_schema.KEY_COLUMN_USAGE key_column_usage_for_unique
-                    WHERE key_column_usage_for_unique.TABLE_SCHEMA = $3
-                        AND key_column_usage_for_unique.TABLE_NAME = $4
-                        AND key_column_usage_for_unique.COLUMN_NAME = $5
-                )
-            GROUP BY table_constraints.CONSTRAINT_NAME
-        ";
-
-        $result = dbQuery($sql, [1 => $this->databaseName, 2 => $tabulka, 3 => $this->databaseName, 4 => $tabulka, 5 => $sloupec]);
-        $constraints = [];
-
-        while ($row = $result->fetch_assoc()) {
-            $constraints[] = [
-                'constraint_name' => $row['constraint_name'],
-                'columns' => explode(',', $row['columns'])
-            ];
-        }
-
-        return $constraints;
-    }
-
-    /**
-     * Smaže konfliktní záznamy starého uživatele, které by porušily unique constraints
-     */
-    private function smazKonfliktniZaznamy(
+    private function prevedDataVTabulce(
         string $tabulka,
         string $sloupec,
-        int $idStarehoUzivatele,
-        int $idNovehoUzivatele,
-        array $uniqueConstraints
+        int    $idStarehoUzivatele,
+        int    $idNovehoUzivatele,
     ): void {
-        foreach ($uniqueConstraints as $constraint) {
-            // Sestavíme WHERE podmínku pro nalezení konfliktů
-            $whereColumns = [];
-            foreach ($constraint['columns'] as $col) {
-                if ($col !== $sloupec) {
-                    $whereColumns[] = "old_user.`$col` = new_user.`$col`";
-                }
-            }
+        // Teď můžeme bezpečně převést zbývající data
+        dbQuery(
+            "UPDATE `$tabulka` SET `$sloupec` = $idNovehoUzivatele
+            WHERE `$sloupec` = $idStarehoUzivatele
+                AND NOT EXISTS (
+                    SELECT 1 FROM `$tabulka` t2
+                    WHERE t2.`$sloupec` = $idNovehoUzivatele
+            )",
+        );
 
-            if (empty($whereColumns)) {
-                // Pokud je unique constraint pouze na id_uzivatele, není co řešit
-                continue;
-            }
+        // Smažeme co nešlo převést
+        dbQuery(
+            <<<SQL
+            DELETE
+            FROM `$tabulka`
+            WHERE `$sloupec` = $idStarehoUzivatele
+            SQL,
+        );
 
-            $whereCondition = implode(' AND ', $whereColumns);
-
-            // Smažeme záznamy starého uživatele, které by způsobily konflikt
-            $sql = "
-                DELETE old_user FROM `$tabulka` old_user
-                WHERE old_user.`$sloupec` = $idStarehoUzivatele
-                    AND EXISTS (
-                        SELECT 1 FROM (SELECT * FROM `$tabulka`) new_user
-                        WHERE new_user.`$sloupec` = $idNovehoUzivatele
-                            AND $whereCondition
-                    )
-            ";
-
-            dbQuery($sql);
-        }
     }
 
     /**
