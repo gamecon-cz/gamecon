@@ -1,0 +1,18 @@
+<!-- begin:anonymizace -->
+<form method="post" class="panel">
+  <h2>Anonymizace uživatelů</h2>
+
+  <div class="radek">
+    <h3>Anonymizace jednoho uživatele</h3>
+    <p>
+      <strong>Varování:</strong> Tato akce nenávratně anonymizuje všechna osobní data uživatele (jméno, příjmení, adresa, telefon, email, atd.).
+    </p>
+    <p>
+      <label for="id_uzivatele">ID uživatele:</label>
+      <input type="number" name="id_uzivatele" id="id_uzivatele" min="1" required>
+      <input type="submit" name="anonymizovat_uzivatele" value="Anonymizovat uživatele"
+             onclick="return confirm('Opravdu chcete anonymizovat tohoto uživatele? Tato akce je nevratná!')">
+    </p>
+  </div>
+</form>
+<!-- end:anonymizace -->

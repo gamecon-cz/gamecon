@@ -7,7 +7,7 @@ use Symfony\Component\Filesystem\Filesystem;
 /**
  * Správa log sponzorů a partnerů
  *
- * nazev: Loga 👻
+ * nazev: Loga 🎨
  * pravo: 112
  */
 
