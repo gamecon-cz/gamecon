@@ -33,6 +33,7 @@ class Role extends \DbObject
     public const SEF_PROGRAMU         = 25;
     public const MINI_ORG             = 26;
     public const KOREKTOR             = 27;
+    public const SPRAVCE_PARTNERU     = 28;
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC                   = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -98,6 +99,7 @@ class Role extends \DbObject
     public const VYZNAM_CLEN_RADY           = 'CLEN_RADY';
     public const VYZNAM_SEF_INFOPULTU       = 'SEF_INFOPULTU';
     public const VYZNAM_KOREKTOR            = 'KOREKTOR';
+    public const VYZNAM_SPRAVCE_PARTNERU    = 'SPRAVCE_PARTNERU';
     // TYP ROCNIKOVE
     public const VYZNAM_BRIGADNIK            = 'BRIGADNIK';
     public const VYZNAM_HERMAN               = 'HERMAN';
@@ -124,35 +126,36 @@ class Role extends \DbObject
     public static function kategoriePodleVyznamu(string $vyznam): int
     {
         return match ($vyznam) {
-            self::VYZNAM_ORGANIZATOR_ZDARMA => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_PUL_ORG_UBYTKO => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_PUL_ORG_TRICKO => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_MINI_ORG => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_CESTNY_ORGANIZATOR => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_CFO => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_ADMIN => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_VYPRAVECSKA_SKUPINA => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_CLEN_RADY => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_SEF_INFOPULTU => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_BRIGADNIK => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_ZAZEMI => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_KOREKTOR => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_ZKONTROLOVANE_UDAJE => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ORGANIZATOR_ZDARMA   => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_PUL_ORG_UBYTKO       => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_PUL_ORG_TRICKO       => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_MINI_ORG             => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_CESTNY_ORGANIZATOR   => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_CFO                  => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ADMIN                => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_VYPRAVECSKA_SKUPINA  => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_CLEN_RADY            => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_SEF_INFOPULTU        => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_BRIGADNIK            => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ZAZEMI               => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_KOREKTOR             => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ZKONTROLOVANE_UDAJE  => self::KATEGORIE_OMEZENA,
 
-            self::VYZNAM_HERMAN => self::KATEGORIE_BEZNA,
-            self::VYZNAM_INFOPULT => self::KATEGORIE_BEZNA,
-            self::VYZNAM_NEODHLASOVAT => self::KATEGORIE_BEZNA,
-            self::VYZNAM_PARTNER => self::KATEGORIE_BEZNA,
+            self::VYZNAM_HERMAN               => self::KATEGORIE_BEZNA,
+            self::VYZNAM_INFOPULT             => self::KATEGORIE_BEZNA,
+            self::VYZNAM_NEODHLASOVAT         => self::KATEGORIE_BEZNA,
+            self::VYZNAM_PARTNER              => self::KATEGORIE_BEZNA,
             self::VYZNAM_STREDECNI_NOC_ZDARMA => self::KATEGORIE_BEZNA,
-            self::VYZNAM_SOBOTNI_NOC_ZDARMA => self::KATEGORIE_BEZNA,
-            self::VYZNAM_NEDELNI_NOC_ZDARMA => self::KATEGORIE_BEZNA,
-            self::VYZNAM_VYPRAVEC => self::KATEGORIE_BEZNA,
+            self::VYZNAM_SOBOTNI_NOC_ZDARMA   => self::KATEGORIE_BEZNA,
+            self::VYZNAM_NEDELNI_NOC_ZDARMA   => self::KATEGORIE_BEZNA,
+            self::VYZNAM_VYPRAVEC             => self::KATEGORIE_BEZNA,
+            self::VYZNAM_SPRAVCE_PARTNERU     => self::KATEGORIE_BEZNA,
 
-            self::VYZNAM_PRIHLASEN => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_PRITOMEN => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_ODJEL => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_PRIHLASEN            => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_PRITOMEN             => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ODJEL                => self::KATEGORIE_OMEZENA,
 
-            default => throw new NeznamyVyznamRole("Vyznam '$vyznam' je neznámý"),
+            default                           => throw new NeznamyVyznamRole("Vyznam '$vyznam' je neznámý"),
         };
     }
 
@@ -201,8 +204,10 @@ class Role extends \DbObject
      *
      * SQL zápis pro "letošek" a základ role přihlášen: -(SUBSTR(YEAR(NOW()), -2) * 100 + 1);
      */
-    private static function vytvorIdRoleUcasti(int $rok, int $zakladIdRole): int
-    {
+    private static function vytvorIdRoleUcasti(
+        int $rok,
+        int $zakladIdRole,
+    ): int {
         return -(self::preProUcastRoku($rok) + $zakladIdRole);
     }
 
@@ -295,8 +300,10 @@ class Role extends \DbObject
      * SQL pro brigádníka
      * YEAR(NOW()) * -100000 - 25
      */
-    public static function idRocnikoveRole(int $zakladIdRole, int $rok)
-    {
+    public static function idRocnikoveRole(
+        int $zakladIdRole,
+        int $rok,
+    ) {
         // 6, 2023 = -2 023 006
         return self::preProRocnikovouRoli($rok) - $zakladIdRole;
     }
@@ -312,7 +319,9 @@ class Role extends \DbObject
      */
     public static function obsahujiOrganizatora(array $idsRoli): bool
     {
-        $idsRoliInt = array_map(static function ($idRole) {
+        $idsRoliInt = array_map(static function (
+            $idRole,
+        ) {
             return (int)$idRole;
         }, $idsRoli);
         $maRole     = array_intersect($idsRoliInt, self::dejIdckaRoliSOrganizatory());
@@ -332,35 +341,36 @@ class Role extends \DbObject
     {
         try {
             return match ($idRole) {
-                self::ORGANIZATOR => 'Organizátor (zdarma)',
-                self::VYPRAVECSKA_SKUPINA => 'Vypravěčská skupina',
-                self::CESTNY_ORGANIZATOR => 'Čestný organizátor',
-                self::PREZENCNI_ADMIN => 'Prezenční admin',
-                self::CFO => 'CFO',
-                self::PUL_ORG_BONUS_UBYTKO => 'Půl-org ubytkem',
-                self::PUL_ORG_BONUS_TRICKO => 'Půl-org s tričkem',
-                self::CLEN_RADY => 'Člen rady',
-                self::SEF_INFOPULTU => 'Šéf infopultu',
-                self::SEF_PROGRAMU => 'Šéf programu',
-                self::MINI_ORG => 'Mini-org',
-                self::KOREKTOR => 'Korektor',
+                self::ORGANIZATOR                        => 'Organizátor (zdarma)',
+                self::VYPRAVECSKA_SKUPINA                => 'Vypravěčská skupina',
+                self::CESTNY_ORGANIZATOR                 => 'Čestný organizátor',
+                self::PREZENCNI_ADMIN                    => 'Prezenční admin',
+                self::CFO                                => 'CFO',
+                self::PUL_ORG_BONUS_UBYTKO               => 'Půl-org ubytkem',
+                self::PUL_ORG_BONUS_TRICKO               => 'Půl-org s tričkem',
+                self::CLEN_RADY                          => 'Člen rady',
+                self::SEF_INFOPULTU                      => 'Šéf infopultu',
+                self::SEF_PROGRAMU                       => 'Šéf programu',
+                self::MINI_ORG                           => 'Mini-org',
+                self::KOREKTOR                           => 'Korektor',
+                self::SPRAVCE_PARTNERU                   => 'Správce partnerů',
                 //
-                self::LETOSNI_VYPRAVEC => 'Vypravěč',
-                self::LETOSNI_ZAZEMI => 'Zázemí',
-                self::LETOSNI_INFOPULT => 'Infopult',
-                self::LETOSNI_PARTNER => 'Partner',
-                self::LETOSNI_STREDECNI_NOC_ZDARMA => 'Středeční noc zdarma',
-                self::LETOSNI_CTVRTECNI_NOC_ZDARMA => 'Čtvrteční noc zdarma',
-                self::LETOSNI_PATECNI_NOC_ZDARMA => 'Páteční noc zdarma',
-                self::LETOSNI_SOBOTNI_NOC_ZDARMA => 'Sobotní noc zdarma',
-                self::LETOSNI_NEDELNI_NOC_ZDARMA => 'Nedělní noc zdarma',
-                self::LETOSNI_NEODHLASOVAT => 'Neodhlašovat',
-                self::LETOSNI_HERMAN => 'Herman',
-                self::LETOSNI_BRIGADNIK => 'Brigádník',
+                self::LETOSNI_VYPRAVEC                   => 'Vypravěč',
+                self::LETOSNI_ZAZEMI                     => 'Zázemí',
+                self::LETOSNI_INFOPULT                   => 'Infopult',
+                self::LETOSNI_PARTNER                    => 'Partner',
+                self::LETOSNI_STREDECNI_NOC_ZDARMA       => 'Středeční noc zdarma',
+                self::LETOSNI_CTVRTECNI_NOC_ZDARMA       => 'Čtvrteční noc zdarma',
+                self::LETOSNI_PATECNI_NOC_ZDARMA         => 'Páteční noc zdarma',
+                self::LETOSNI_SOBOTNI_NOC_ZDARMA         => 'Sobotní noc zdarma',
+                self::LETOSNI_NEDELNI_NOC_ZDARMA         => 'Nedělní noc zdarma',
+                self::LETOSNI_NEODHLASOVAT               => 'Neodhlašovat',
+                self::LETOSNI_HERMAN                     => 'Herman',
+                self::LETOSNI_BRIGADNIK                  => 'Brigádník',
                 //
                 self::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC => 'Zkontrolované údaje',
                 //
-                default => self::nazevRoleStareUcasti($idRole),
+                default                                  => self::nazevRoleStareUcasti($idRole),
             };
         } catch (\LogicException $exception) {
             throw new \LogicException("Pro roli '$idRole' nemáme název.", 0, $exception);
@@ -416,20 +426,24 @@ class Role extends \DbObject
         return $role <= self::KOEFICIENT_ROCNIKOVE_ROLE;
     }
 
-    public static function jeToRocnikovaOverovaciRole(int $role, int $rok): bool
-    {
+    public static function jeToRocnikovaOverovaciRole(
+        int $role,
+        int $rok,
+    ): bool {
         return self::jeToRocnikovaRole($role)
-            && in_array(
-                $role,
-                [
-                    self::ZKONTROLOVANE_UDAJE_PRO_LETOSNI_GC($rok),
-                ],
-                true,
-            );
+               && in_array(
+                   $role,
+                   [
+                       self::ZKONTROLOVANE_UDAJE_PRO_LETOSNI_GC($rok),
+                   ],
+                   true,
+               );
     }
 
-    public static function jePouzeProTentoRocnik(int $idRole, int $rocnik = ROCNIK): bool
-    {
+    public static function jePouzeProTentoRocnik(
+        int $idRole,
+        int $rocnik = ROCNIK,
+    ): bool {
         if (!self::jeToUcastNaGc($idRole) && !self::jeToRocnikovaRole($idRole)) {
             return false;
         }
@@ -446,8 +460,10 @@ class Role extends \DbObject
         ];
     }
 
-    private static function pridejGcRocnikPrefix(int $rocnik, string $nazev): string
-    {
+    private static function pridejGcRocnikPrefix(
+        int    $rocnik,
+        string $nazev,
+    ): string {
         return self::prefixRocniku($rocnik) . ' ' . $nazev;
     }
 
@@ -474,14 +490,18 @@ class Role extends \DbObject
         return $vsechnyRocnikoveRole;
     }
 
-    public static function platiProRocnik(int $roleProRok, int $rocnik = ROCNIK): bool
-    {
+    public static function platiProRocnik(
+        int $roleProRok,
+        int $rocnik = ROCNIK,
+    ): bool {
         return $roleProRok === self::JAKYKOLI_ROCNIK
-            || self::platiPouzeProRocnik($roleProRok, $rocnik);
+               || self::platiPouzeProRocnik($roleProRok, $rocnik);
     }
 
-    public static function platiPouzeProRocnik(int $roleProRok, int $rocnik = ROCNIK): bool
-    {
+    public static function platiPouzeProRocnik(
+        int $roleProRok,
+        int $rocnik = ROCNIK,
+    ): bool {
         return $roleProRok === $rocnik;
     }
 

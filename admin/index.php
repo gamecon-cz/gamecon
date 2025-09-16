@@ -130,8 +130,11 @@ if (!empty($menu[$stranka]['submenu'])) {
 // zjištění práv na zobrazení stránky
 $strankaExistuje    = isset($menu[$stranka]);
 $podstrankaExistuje = isset($submenu[$podstranka]);
-$uzivatelMaPristup  = $strankaExistuje && $u->maPravo($menu[$stranka]['pravo'])
-                      && (!$podstrankaExistuje || $u->maPravo($submenu[$podstranka]['pravo']));
+$uzivatelMaPristup  = $strankaExistuje
+                      && (
+                          $u->maPravo($menu[$stranka]['pravo'])
+                          || ($podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
+                      );
 
 // konstrukce stránky
 if ($strankaExistuje && $uzivatelMaPristup) {
