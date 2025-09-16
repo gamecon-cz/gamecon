@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Role\Role;
+use Gamecon\Uzivatel\AnonymizovanyUzivatel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -119,51 +120,29 @@ class AnonymizovanaDatabaze
             <<<SQL
                 UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
                 SET
-                    login_uzivatele = CONCAT('Login', id_uzivatele),
-                    jmeno_uzivatele = '',
-                    prijmeni_uzivatele = '',
-                    ulice_a_cp_uzivatele = '',
-                    mesto_uzivatele = '',
-                    stat_uzivatele = -1,
-                    psc_uzivatele = '',
-                    telefon_uzivatele = '',
-                    datum_narozeni = '0000-01-01',
-                    heslo_md5 = '',
-                    email1_uzivatele = CONCAT('email', id_uzivatele, '@gamecon.cz'),
-                    nechce_maily = null,
-                    mrtvy_mail = 0,
-                    forum_razeni = '',
-                    random = '',
-                    zustatek = 0,
-                    registrovan = NOW(),
-                    ubytovan_s = '',
-                    poznamka = '',
-                    pomoc_typ = '',
-                    pomoc_vice = '',
-                    op = '',
-                    potvrzeni_zakonneho_zastupce = null,
-                    potvrzeni_proti_covid19_pridano_kdy = null,
-                    potvrzeni_proti_covid19_overeno_kdy = null,
-                    infopult_poznamka = '',
-                    typ_dokladu_totoznosti = '',
-                    statni_obcanstvi = null
+                    {$this->sqlSetProAnonymizaciUzivatele()}
                 WHERE TRUE
             SQL,
         );
 
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            "UPDATE `{$this->anonymniDatabaze}`.medailonky SET o_sobe = '', drd = '' WHERE TRUE",
-        );
+        $medailonkyData = AnonymizovanyUzivatel::vytvorAnonymniMedailonkoveDaje();
+        $medailonkySet  = implode(', ', array_map(
+            fn(
+                $key,
+                $value,
+            ) => "$key = '$value'",
+            array_keys($medailonkyData),
+            array_values($medailonkyData),
+        ));
 
         mysqli_query(
             $dbConnectionAnonymDb,
-            "ALTER TABLE `{$this->anonymniDatabaze}`.uzivatele_role MODIFY COLUMN `posazen` TIMESTAMP NULL",
+            "UPDATE `$databaze`.`medailonky` SET $medailonkySet WHERE TRUE",
         );
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            "ALTER TABLE `{$this->anonymniDatabaze}`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL",
-        );
+
+        mysqli_query($dbConnectionAnonymDb, "ALTER TABLE `$databaze`.uzivatele_role MODIFY COLUMN `posazen` TIMESTAMP NULL");
+        mysqli_query($dbConnectionAnonymDb, "ALTER TABLE `$databaze`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL");
+        mysqli_query($dbConnectionAnonymDb, "UPDATE `$databaze`.uzivatele_role SET `posazen` = NULL, `kdy` = NULL WHERE TRUE");
     }
 
     private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb)
@@ -216,7 +195,12 @@ SQL,
         );
     }
 
-    private function obnovAnonymniDatabazi(\mysqli $dbConnectionAnonymDb)
+    private function sqlSetProAnonymizaciUzivatele(): string
+    {
+        return AnonymizovanyUzivatel::sqlSetProAnonymizaci();
+    }
+
+    private function obnovAnonymniDatabazi(\mysqli $dbConnectionAnonymDb): void
     {
         if ($this->jsmeNaLocale) {
             $this->smazVytvorAnonymniDatabazi($dbConnectionAnonymDb);
@@ -225,7 +209,7 @@ SQL,
         }
     }
 
-    private function smazVytvorAnonymniDatabazi(\mysqli $dbConnectionAnonymDb)
+    private function smazVytvorAnonymniDatabazi(\mysqli $dbConnectionAnonymDb): void
     {
         mysqli_query(
             $dbConnectionAnonymDb,
@@ -247,14 +231,14 @@ SQL,
         );
     }
 
-    private function vycistiAnonymniDatabazi(\mysqli $dbConnectionAnonymDb)
+    private function vycistiAnonymniDatabazi(\mysqli $dbConnectionAnonymDb): void
     {
         $this->nastrojeDatabaze->vymazVseZDatabaze($this->anonymniDatabaze, $dbConnectionAnonymDb);
     }
 
     private function zkopirujData(
         \mysqli $dbConnectionAnonymDb,
-    ) {
+    ): void {
         $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
         /*
         * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
@@ -279,7 +263,7 @@ SQL,
         }
     }
 
-    public function exportuj()
+    public function exportuj(): void
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
         /*
@@ -297,11 +281,11 @@ SQL,
         $response = (new BinaryFileResponse($tempFile));
         $response->headers->set('Content-Type', 'application/sql');
         $response->deleteFileAfterSend()
-            ->setContentDisposition(
-                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-                'gc_anonymizovana_databaze_' . date('Y-m-d_h-i-s') . '.sql',
-            )
-            ->prepare($request)
-            ->send();
+                 ->setContentDisposition(
+                     ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                     'gc_anonymizovana_databaze_' . date('Y-m-d_h-i-s') . '.sql',
+                 )
+                 ->prepare($request)
+                 ->send();
     }
 }
