@@ -81,8 +81,8 @@ $ids = [];
 if (is_numeric($jednaHraniceZustatku) && is_numeric($ucastDoRoku)) {
     // připraví seznam uživatelů pro promlčení zůstatku
 
-    $ucast    = Role::TYP_UCAST;
-    $pritomen = Role::VYZNAM_PRITOMEN;
+    $ucast     = Role::TYP_UCAST;
+    $prihlasen = Role::VYZNAM_PRIHLASEN;
 
     $o = dbQuery(<<<SQL
 SELECT
@@ -92,7 +92,7 @@ SELECT
     u.email1_uzivatele AS email,
     u.telefon_uzivatele AS telefon,
     u.zustatek,
-    ucast.roky AS ucast,
+    prihlaseni.roky AS prihlaseniNaRocniky,
     kladny_pohyb.cas_posledni_platby AS kladny_pohyb
 FROM uzivatele_hodnoty u
 LEFT JOIN (
@@ -101,9 +101,9 @@ LEFT JOIN (
     COUNT(*) AS pocet
     FROM platne_role_uzivatelu
     JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
-    WHERE role.typ_role = '$ucast' AND role.vyznam_role = '$pritomen'
+    WHERE role.typ_role = '$ucast' AND role.vyznam_role = '$prihlasen'
     GROUP BY id_uzivatele
-) AS ucast ON ucast.id_uzivatele = u.id_uzivatele
+) AS prihlaseni ON prihlaseni.id_uzivatele = u.id_uzivatele
 LEFT JOIN (
     SELECT id_uzivatele, MAX(provedeno) AS cas_posledni_platby
     FROM platby
@@ -122,8 +122,8 @@ WHERE
             JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
             WHERE platne_role_uzivatelu.id_uzivatele = u.id_uzivatele
                 AND role.typ_role = '$ucast'
-                AND role.vyznam_role = '$pritomen'
-            HAVING MAX(role.rocnik_role) <= $2
+                AND role.vyznam_role = '$prihlasen'
+            HAVING MAX(role.rocnik_role) <= $ucastDoRoku
     )
         OR NOT EXISTS (
             SELECT 1
@@ -131,7 +131,7 @@ WHERE
             JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
             WHERE platne_role_uzivatelu.id_uzivatele = u.id_uzivatele
                 AND role.typ_role = '$ucast'
-                AND role.vyznam_role = '$pritomen'
+                AND role.vyznam_role = '$prihlasen'
         )
     )
 SQL,
@@ -140,7 +140,6 @@ SQL,
             1 => (string)$druhaHraniceZustatku !== ''
                 ? $druhaHraniceZustatku
                 : null,
-            2 => $ucastDoRoku,
         ],
     );
 
@@ -149,7 +148,7 @@ SQL,
         if ($data !== []) {
             $report = Report::zPole($data);
             $report->tXlsx('Promlčení zůstatků');
-            exit;
+            exit();
         }
     }
 
@@ -158,12 +157,12 @@ SQL,
     $poradi       = 1;
     while ($r = mysqli_fetch_assoc($o)) {
         $p->assign([
-            'id'           => $r['uzivatel'],
-            'jmeno'        => $r['jmeno'],
-            'prijmeni'     => $r['prijmeni'],
-            'stav'         => $r['zustatek'],
-            'ucast'        => $r['ucast'],
-            'kladny_pohyb' => $r['kladny_pohyb'],
+            'id'                  => $r['uzivatel'],
+            'jmeno'               => $r['jmeno'],
+            'prijmeni'            => $r['prijmeni'],
+            'stav'                => $r['zustatek'],
+            'prihlaseniNaRocniky' => $r['prihlaseniNaRocniky'],
+            'kladny_pohyb'        => $r['kladny_pohyb'],
         ]);
         $p->assign('disabled', $poradi > $maxUzivatelu
             ? 'disabled'
