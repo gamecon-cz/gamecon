@@ -7,31 +7,37 @@
 class Nahled
 {
 
-    protected $s       = null;
-    protected $v       = null;
-    protected $mod     = null;
-    protected string $soubor;
-    protected ?int $datum;         // poslední změna orig. souboru
-    protected $kvalita = 92;  // kvalita exportu
+    private        $s       = null;
+    private        $v       = null;
+    private        $mod     = null;
+    private string $soubor;
+    private ?int   $datum;         // poslední změna orig. souboru
+    private        $kvalita = 92;  // kvalita exportu
 
     const PASUJ       = 1;
     const POKRYJ      = 2;
     const POKRYJ_OREZ = 3;
 
-    protected function __construct(string $soubor)
+    public static function zeSouboru(string $nazev): self
+    {
+        return new self($nazev);
+    }
+
+    private function __construct(string $soubor)
     {
         if (!file_exists($soubor) || !is_readable($soubor)) {
             throw new RuntimeException('Obrázek neexistuje nebo není čitelný. Hledán na ' . $soubor);
         }
         $this->soubor = $soubor;
-        $this->datum  = @filemtime($this->soubor) ?: null;
+        $this->datum  = @filemtime($this->soubor)
+            ?: null;
         if (!$this->datum) {
             throw new RuntimeException('Nepodařilo se zjistit datum modifikace obrázku: ' . $soubor);
         }
     }
 
     /** Vrátí url obrázku, je možné ji cacheovat navždy */
-    function __toString()
+    public function __toString()
     {
         try {
             return $this->url();
@@ -40,51 +46,89 @@ class Nahled
         }
     }
 
-    /** Nastaví kvalitu jpeg exportu */
-    function kvalita($q)
+    public function soubor(): string
     {
-        $this->kvalita = (int) $q;
-        return $this;
+        return $this->soubor;
     }
 
-    protected function mod($s, $v, $mod): Nahled
+    /** Nastaví kvalitu jpeg exportu */
+    public function kvalita(int | string $q): static
     {
-        $this->mod = $mod;
-        $this->s   = $s ? (int)$s : null;
-        $this->v   = $v ? (int)$v : null;
+        $this->kvalita = (int)$q;
+
         return $this;
     }
 
     /** Zmenší obrázek aby pasoval do obdelníku s šířkou $s a výškou $v */
-    function pasuj($s, $v = null): Nahled
-    {
+    public function pasuj(
+        $s,
+        $v = null,
+    ): Nahled {
         // make sure the image is not made larger
         if ($this->s <= $s && $this->v <= $v) {
             return $this;
         }
+
         return $this->mod($s, $v, self::PASUJ);
     }
 
     /** Zmenší proporčně obrázek aby šířka byla min $s a výška min $v */
-    function pokryj($s, $v)
-    {
+    public function pokryj(
+        $s,
+        $v,
+    ): Nahled {
         return $this->mod($s, $v, self::POKRYJ);
     }
 
     /** Zmenší obrázek aby pokrýval šířku i výšku, vystředí a ořízne přebytek */
-    function pokryjOrez($s, $v)
-    {
+    public function pokryjOrez(
+        $s,
+        $v,
+    ): Nahled {
         return $this->mod($s, $v, self::POKRYJ_OREZ);
     }
 
+    /** Vrátí url obrázku, je možné ji cacheovat navždy */
+    public function url(): string
+    {
+        $hash  = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita . 'v2_webp'); // Added version/format to hash
+        $cache = CACHE . '/img/' . $hash . '.webp'; // Changed extension to .webp
+        $url   = URL_CACHE . '/img/' . $hash . '.webp?m=' . $this->datum; // Changed extension to .webp
+
+        if (!file_exists($cache) || @filemtime($cache) < $this->datum) {
+            pripravCache(CACHE . '/img'); // Ensure directory exists
+            $this->uloz($cache);
+        }
+
+        return $url;
+    }
+
+    private function mod(
+        $s,
+        $v,
+        $mod,
+    ): Nahled {
+        $this->mod = $mod;
+        $this->s   = $s
+            ? (int)$s
+            : null;
+        $this->v   = $v
+            ? (int)$v
+            : null;
+
+        return $this;
+    }
+
     /** Uloží stávající soubor s požadovanými úpravami do WebP formátu */
-    protected function uloz(string $cil)
+    private function uloz(string $cil): void
     {
         try {
             $imagick = new Imagick($this->soubor);
 
-            $s = $this->s ?: $imagick->getImageWidth();
-            $v = $this->v ?: $imagick->getImageHeight();
+            $s = $this->s
+                ?: $imagick->getImageWidth();
+            $v = $this->v
+                ?: $imagick->getImageHeight();
 
             $s = max(1, (int)$s);
             $v = max(1, (int)$v);
@@ -112,25 +156,6 @@ class Nahled
         } catch (ImagickException $e) {
             throw new RuntimeException("Chyba při zpracování obrázku (Imagick): " . $e->getMessage(), 0, $e);
         }
-    }
-
-    /** Vrátí url obrázku, je možné ji cacheovat navždy */
-    function url(): string
-    {
-        $hash  = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita . 'v2_webp'); // Added version/format to hash
-        $cache = CACHE . '/img/' . $hash . '.webp'; // Changed extension to .webp
-        $url   = URL_CACHE . '/img/' . $hash . '.webp?m=' . $this->datum; // Changed extension to .webp
-
-        if (!file_exists($cache) || @filemtime($cache) < $this->datum) {
-            pripravCache(CACHE . '/img'); // Ensure directory exists
-            $this->uloz($cache);
-        }
-        return $url;
-    }
-
-    static function zeSouboru(string $nazev): self
-    {
-        return new self($nazev);
     }
 
 }

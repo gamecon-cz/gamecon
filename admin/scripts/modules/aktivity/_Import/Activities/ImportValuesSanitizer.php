@@ -351,15 +351,17 @@ class ImportValuesSanitizer
         if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) {
             return ImportStepResult::successWithWarnings([], [sprintf("Rozbité URL obrázku '%s'.", $imageUrl)]);
         }
-        if (preg_match('~[.](jpg|png|gif)$~i', $imageUrl)) {
+        if (preg_match('~[.](jpg|jpeg|png|gif|webp)$~i', $imageUrl)) {
             return ImportStepResult::success([$imageUrl]);
         }
         $imageUrlWithoutExtension = rtrim($imageUrl, '/') . '/' . $activityUrl;
 
         return ImportStepResult::success([
             $imageUrlWithoutExtension . '.jpg',
+            $imageUrlWithoutExtension . '.jpeg',
             $imageUrlWithoutExtension . '.png',
             $imageUrlWithoutExtension . '.gif',
+            $imageUrlWithoutExtension . '.webp',
         ]);
     }
 

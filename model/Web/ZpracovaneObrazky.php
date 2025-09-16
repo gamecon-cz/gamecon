@@ -11,22 +11,22 @@ readonly class ZpracovaneObrazky
 {
     public static function logaSponzoruTitulka(): static
     {
-        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/sponzori/titulka');
+        return new static(self::adresarSponzoruTitulka());
     }
 
     public static function logaPartneruTitulka(): static
     {
-        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri/titulka');
+        return new static(self::adresarPartneruTitulka());
     }
 
     public static function logaSponzoruPrehled(): static
     {
-        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/sponzori');
+        return new static(self::adresarSponzoruPrehled());
     }
 
     public static function logaPartneruPrehled(): static
     {
-        return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri');
+        return new static(self::adresarPartneruPrehled());
     }
 
     public static function fotkyTitulka(): static
@@ -49,9 +49,30 @@ readonly class ZpracovaneObrazky
         return new static(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/linie');
     }
 
+    public static function adresarSponzoruTitulka(): string
+    {
+        return self::adresarSponzoruPrehled() . '/titulka';
+    }
+
+    public static function adresarPartneruTitulka(): string
+    {
+        return self::adresarPartneruPrehled() . '/titulka';
+    }
+
+    public static function adresarSponzoruPrehled(): string
+    {
+        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/sponzori';
+    }
+
+    public static function adresarPartneruPrehled(): string
+    {
+        return ADRESAR_WEBU_S_OBRAZKY . '/soubory/obsah/partneri';
+    }
+
     public function __construct(
         private string $adresarLog,
-    ) {}
+    ) {
+    }
 
     public function vypisDoSablony(
         XTemplate $template,
@@ -66,8 +87,8 @@ readonly class ZpracovaneObrazky
     public function vypisDoSablonySorted(
         XTemplate $template,
         string    $templateBlock,
-        int $width = 120,
-        int $height = 60,
+        int       $width = 120,
+        int       $height = 60,
     ) {
         $i = 1;
         foreach ($this->serazenaLoga($width, $height) as ['src' => $src, 'url' => $url]) {
@@ -77,6 +98,9 @@ readonly class ZpracovaneObrazky
         $template->parse($templateBlock);
     }
 
+    /**
+     * @return array<string, array{src: Nahled, url: string, name: string}>
+     */
     public function seznamObrazku(): array
     {
         $seznam = [];
@@ -86,13 +110,17 @@ readonly class ZpracovaneObrazky
                 'url' => $url,
             ];
         }
+
         return $seznam;
     }
+
     /**
-     * @return iterable{src: string, url: string, name: string}
+     * @return iterable{src: Nahled, url: string, name: string}
      */
-    public function serazenaLoga($width = 120, $height = 60): iterable
-    {
+    public function serazenaLoga(
+        $width = 120,
+        $height = 60,
+    ): iterable {
         if (!is_dir($this->adresarLog)) {
             throw new \RuntimeException("Adresář '{$this->adresarLog}' neexistuje nebo nelze přečíst.");
         }
@@ -109,9 +137,9 @@ readonly class ZpracovaneObrazky
             // odstraníme prefix pro řazení 'číslo_'
             $urlPartnera = preg_replace('~^\d+_~', '', $info['filename']);
             yield [
-                'src' => Nahled::zeSouboru($obrazek)->pasuj($width, $height),
+                'src'  => Nahled::zeSouboru($obrazek)->pasuj($width, $height),
                 'name' => $info['filename'],
-                'url' => 'https://' . $urlPartnera,
+                'url'  => 'https://' . $urlPartnera,
             ];
         }
     }

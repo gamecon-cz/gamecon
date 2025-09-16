@@ -349,7 +349,7 @@ SQL
     public function fotka(): ?Nahled
     {
         foreach (glob(WWW . '/soubory/systemove/fotky/' . $this->id() . '.*') as $soubor) {
-            if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $soubor)) {
+            if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $soubor)) {
                 return Nahled::zeSouboru($soubor);
             }
         }
