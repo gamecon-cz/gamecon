@@ -7,7 +7,7 @@
            style="width: 5em">
     a
     <input type="number" step="1" name="druhaHraniceZustatku" value="{druhaHraniceZustatku}" style="width: 5em"> Kč,
-    jejichž poslední účast na GC byla naposledy
+    jejichž poslední přihlášení na GC byla naposledy
     <select name="ucastDoRoku">
       <!-- begin: ucastDoRoku -->
       <option value="{rocnik}" {selected}>{rocnik}</option>
@@ -36,7 +36,7 @@
       <th>Jméno</th>
       <th>Příjmení</th>
       <th>Stav účtu</th>
-      <th>Účast</th>
+      <th>Přihlášení na ročníky</th>
       <th>Poslední připsaná platba</th>
     </tr>
     <!-- begin:detaily -->
@@ -51,7 +51,7 @@
       <td><label for="vybranyUzivatel{id}" style="display: block">{jmeno}</label></td>
       <td><label for="vybranyUzivatel{id}" style="display: block">{prijmeni}</label></td>
       <td>{stav}</td>
-      <td>{ucast}</td>
+      <td>{prihlaseniNaRocniky}</td>
       <td>{pohyb}</td>
     </tr>
     <!-- end:detaily -->
