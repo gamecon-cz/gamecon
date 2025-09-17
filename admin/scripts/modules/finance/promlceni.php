@@ -4,10 +4,9 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\Role;
 
 /**
- * nazev: Promlčení zůstatků
+ * nazev: Promlčení zůstatků 🤫
  * pravo: 108
  * submenu_group: 5
- * TODO
  */
 
 /** @var Uzivatel $u */
@@ -15,11 +14,11 @@ use Gamecon\Role\Role;
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $p = new XTemplate(__DIR__ . '/promlceni.xtpl');
+$p->assign('adminUrl', URL_ADMIN);
 
 $jednaHraniceZustatku = post('jednaHraniceZustatku');
 $druhaHraniceZustatku = post('druhaHraniceZustatku');
 $ucastDoRoku          = post('ucastDoRoku');
-$vcetneInternich      = (bool)post('vcetneInternich');
 
 // provede promlčení zůstatku
 if (post('promlcet')) {
@@ -62,7 +61,7 @@ if (post('promlcet')) {
 }
 
 if (post('pripravit')) {
-// kontrola hodnot ve formuláři
+    // kontrola hodnot ve formuláři
     if (!is_numeric($jednaHraniceZustatku)) {
         chyba('Zadej první hraniční částku jako celé číslo');
     }
@@ -80,10 +79,10 @@ if (post('pripravit')) {
 
 $ids = [];
 if (is_numeric($jednaHraniceZustatku) && is_numeric($ucastDoRoku)) {
-// připraví seznam uživatelů pro promlčení zůstatku
+    // připraví seznam uživatelů pro promlčení zůstatku
 
-    $ucast    = Role::TYP_UCAST;
-    $pritomen = Role::VYZNAM_PRITOMEN;
+    $ucast     = Role::TYP_UCAST;
+    $prihlasen = Role::VYZNAM_PRIHLASEN;
 
     $o = dbQuery(<<<SQL
 SELECT
@@ -93,18 +92,18 @@ SELECT
     u.email1_uzivatele AS email,
     u.telefon_uzivatele AS telefon,
     u.zustatek,
-    ucast.roky AS ucast,
+    prihlaseni.roky AS prihlaseniNaRocniky,
     kladny_pohyb.cas_posledni_platby AS kladny_pohyb
 FROM uzivatele_hodnoty u
 LEFT JOIN (
     SELECT id_uzivatele,
-           GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC SEPARATOR ';' /*aby si Excel nevykládal 2012,2017 jako desettiné číslo*/) AS roky,
+           GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC SEPARATOR ';' /*aby si Excel nevykládal 2012,2017 jako desetinné číslo*/) AS roky,
     COUNT(*) AS pocet
     FROM platne_role_uzivatelu
     JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
-    WHERE role.typ_role = '$ucast' AND role.vyznam_role = '$pritomen'
+    WHERE role.typ_role = '$ucast' AND role.vyznam_role = '$prihlasen'
     GROUP BY id_uzivatele
-) AS ucast ON ucast.id_uzivatele = u.id_uzivatele
+) AS prihlaseni ON prihlaseni.id_uzivatele = u.id_uzivatele
 LEFT JOIN (
     SELECT id_uzivatele, MAX(provedeno) AS cas_posledni_platby
     FROM platby
@@ -117,19 +116,23 @@ WHERE
         u.zustatek BETWEEN LEAST($0, $1) AND GREATEST($0, $1),
         u.zustatek >= $0
     )
-    AND EXISTS(
-            SELECT *
+    AND (EXISTS(
+            SELECT 1
             FROM platne_role_uzivatelu
             JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
             WHERE platne_role_uzivatelu.id_uzivatele = u.id_uzivatele
                 AND role.typ_role = '$ucast'
-                AND role.vyznam_role = '$pritomen'
-            HAVING MAX(role.rocnik_role) <= $2
+                AND role.vyznam_role = '$prihlasen'
+            HAVING MAX(role.rocnik_role) <= $ucastDoRoku
     )
-    AND IF (
-        $4,
-        TRUE,
-        NOT EXISTS(SELECT * FROM uzivatele_role WHERE id_role IN ($5) AND u.id_uzivatele = uzivatele_role.id_uzivatele)
+        OR NOT EXISTS (
+            SELECT 1
+            FROM platne_role_uzivatelu
+            JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
+            WHERE platne_role_uzivatelu.id_uzivatele = u.id_uzivatele
+                AND role.typ_role = '$ucast'
+                AND role.vyznam_role = '$prihlasen'
+        )
     )
 SQL,
         [
@@ -137,16 +140,6 @@ SQL,
             1 => (string)$druhaHraniceZustatku !== ''
                 ? $druhaHraniceZustatku
                 : null,
-            2 => $ucastDoRoku,
-            4 => $vcetneInternich
-                ? 1
-                : 0,
-            5 => [
-                Role::ORGANIZATOR,
-                Role::CESTNY_ORGANIZATOR,
-                Role::LETOSNI_VYPRAVEC,
-                Role::LETOSNI_PARTNER,
-            ],
         ],
     );
 
@@ -155,24 +148,25 @@ SQL,
         if ($data !== []) {
             $report = Report::zPole($data);
             $report->tXlsx('Promlčení zůstatků');
-            exit();
+            exit;
         }
     }
 
-    $p->assign('adminUrl', URL_ADMIN);
     $maxInputVars = (int)ini_get('max_input_vars'); // omezuje například POST
     $maxUzivatelu = $maxInputVars - 100;
     $poradi       = 1;
     while ($r = mysqli_fetch_assoc($o)) {
         $p->assign([
-            'id'           => $r['uzivatel'],
-            'jmeno'        => $r['jmeno'],
-            'prijmeni'     => $r['prijmeni'],
-            'stav'         => $r['zustatek'],
-            'ucast'        => $r['ucast'],
-            'kladny_pohyb' => $r['kladny_pohyb'],
+            'id'                  => $r['uzivatel'],
+            'jmeno'               => $r['jmeno'],
+            'prijmeni'            => $r['prijmeni'],
+            'stav'                => $r['zustatek'],
+            'prihlaseniNaRocniky' => $r['prihlaseniNaRocniky'],
+            'kladny_pohyb'        => $r['kladny_pohyb'],
         ]);
-        $p->assign('disabled', $poradi > $maxUzivatelu ? 'disabled' : '');
+        $p->assign('disabled', $poradi > $maxUzivatelu
+            ? 'disabled'
+            : '');
         $p->parse('promlceni.detaily');
         $ids[] = $r['uzivatel'];
         $poradi++;
@@ -203,12 +197,9 @@ foreach ($soubory as $soubor) {
 }
 
 $p->assign([
-    'jednaHraniceZustatku'   => $jednaHraniceZustatku ?? 0,
-    'druhaHraniceZustatku'   => $druhaHraniceZustatku ?? null,
-    'checkedVcetneInternich' => $vcetneInternich ?? false
-        ? 'checked'
-        : '',
-    'disabledExport'         => $ids === []
+    'jednaHraniceZustatku' => $jednaHraniceZustatku ?? 0,
+    'druhaHraniceZustatku' => $druhaHraniceZustatku ?? null,
+    'disabledExport'       => $ids === []
         ? 'disabled'
         : '',
 ]);
