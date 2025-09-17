@@ -27,3 +27,7 @@ services:
         decorates: 'clock'
         parent: 'clock'
         public: true
+
+    # JWT service for cross-app authentication
+    App\Service\JwtService:
+        public: true
