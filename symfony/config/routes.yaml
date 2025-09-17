@@ -1,0 +1,24 @@
+# Admin Routes (paths relative to admin directory)
+admin_dashboard:
+    path: /dashboard
+    controller: App\Controller\AdminController::dashboard
+
+admin_users:
+    path: /users
+    controller: App\Controller\AdminController::users
+
+admin_activities:
+    path: /activities
+    controller: App\Controller\AdminController::activities
+
+# API Routes
+admin_api:
+    path: /api/{endpoint}
+    controller: App\Controller\ApiController::handle
+    requirements:
+        endpoint: '.*'
+
+# Test route for Symfony functionality
+admin_test:
+    path: /symfony-test
+    controller: App\Controller\TestController::index

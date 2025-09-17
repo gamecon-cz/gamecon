@@ -1256,4 +1256,5 @@ return array(
     'ValueError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
     'lessc' => $vendorDir . '/wikimedia/less.php/lessc.inc.php',
     'tFPDF' => $vendorDir . '/setasign/tfpdf/tfpdf.php',
+    '©' => $vendorDir . '/symfony/cache/Traits/ValueWrapper.php',
 );
