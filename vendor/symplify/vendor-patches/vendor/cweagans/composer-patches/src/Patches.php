@@ -4,25 +4,25 @@
  * @file
  * Provides a way to patch Composer packages after installation.
  */
-namespace VendorPatches202401\cweagans\Composer;
+namespace VendorPatches202507\cweagans\Composer;
 
-use VendorPatches202401\Composer\Composer;
-use VendorPatches202401\Composer\DependencyResolver\Operation\InstallOperation;
-use VendorPatches202401\Composer\DependencyResolver\Operation\UninstallOperation;
-use VendorPatches202401\Composer\DependencyResolver\Operation\UpdateOperation;
-use VendorPatches202401\Composer\DependencyResolver\Operation\OperationInterface;
-use VendorPatches202401\Composer\EventDispatcher\EventSubscriberInterface;
-use VendorPatches202401\Composer\IO\IOInterface;
-use VendorPatches202401\Composer\Package\AliasPackage;
-use VendorPatches202401\Composer\Package\PackageInterface;
-use VendorPatches202401\Composer\Plugin\PluginInterface;
-use VendorPatches202401\Composer\Installer\PackageEvents;
-use VendorPatches202401\Composer\Script\Event;
-use VendorPatches202401\Composer\Script\ScriptEvents;
-use VendorPatches202401\Composer\Installer\PackageEvent;
-use VendorPatches202401\Composer\Util\ProcessExecutor;
-use VendorPatches202401\Composer\Util\RemoteFilesystem;
-use VendorPatches202401\Symfony\Component\Process\Process;
+use VendorPatches202507\Composer\Composer;
+use VendorPatches202507\Composer\DependencyResolver\Operation\InstallOperation;
+use VendorPatches202507\Composer\DependencyResolver\Operation\UninstallOperation;
+use VendorPatches202507\Composer\DependencyResolver\Operation\UpdateOperation;
+use VendorPatches202507\Composer\DependencyResolver\Operation\OperationInterface;
+use VendorPatches202507\Composer\EventDispatcher\EventSubscriberInterface;
+use VendorPatches202507\Composer\IO\IOInterface;
+use VendorPatches202507\Composer\Package\AliasPackage;
+use VendorPatches202507\Composer\Package\PackageInterface;
+use VendorPatches202507\Composer\Plugin\PluginInterface;
+use VendorPatches202507\Composer\Installer\PackageEvents;
+use VendorPatches202507\Composer\Script\Event;
+use VendorPatches202507\Composer\Script\ScriptEvents;
+use VendorPatches202507\Composer\Installer\PackageEvent;
+use VendorPatches202507\Composer\Util\ProcessExecutor;
+use VendorPatches202507\Composer\Util\RemoteFilesystem;
+use VendorPatches202507\Symfony\Component\Process\Process;
 class Patches implements PluginInterface, EventSubscriberInterface
 {
     /**
@@ -431,7 +431,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
             }
         }
         // And replace the arguments.
-        $command = \call_user_func_array('VendorPatches202401\\sprintf', $args);
+        $command = \call_user_func_array('VendorPatches202507\\sprintf', $args);
         $output = '';
         if ($this->io->isVerbose()) {
             $this->io->write('<comment>' . $command . '</comment>');

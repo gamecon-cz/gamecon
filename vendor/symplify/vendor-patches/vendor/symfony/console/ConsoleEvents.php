@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console;
+namespace VendorPatches202507\Symfony\Component\Console;
 
-use VendorPatches202401\Symfony\Component\Console\Event\ConsoleCommandEvent;
-use VendorPatches202401\Symfony\Component\Console\Event\ConsoleErrorEvent;
-use VendorPatches202401\Symfony\Component\Console\Event\ConsoleSignalEvent;
-use VendorPatches202401\Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use VendorPatches202507\Symfony\Component\Console\Event\ConsoleCommandEvent;
+use VendorPatches202507\Symfony\Component\Console\Event\ConsoleErrorEvent;
+use VendorPatches202507\Symfony\Component\Console\Event\ConsoleSignalEvent;
+use VendorPatches202507\Symfony\Component\Console\Event\ConsoleTerminateEvent;
 /**
  * Contains all events dispatched by an Application.
  *

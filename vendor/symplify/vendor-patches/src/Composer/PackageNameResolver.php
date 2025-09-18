@@ -3,11 +3,11 @@
 declare (strict_types=1);
 namespace Symplify\VendorPatches\Composer;
 
-use VendorPatches202401\Nette\Utils\FileSystem;
-use VendorPatches202401\Nette\Utils\Json;
+use VendorPatches202507\Nette\Utils\FileSystem;
+use VendorPatches202507\Nette\Utils\Json;
 use Symplify\VendorPatches\Exception\ShouldNotHappenException;
 use Symplify\VendorPatches\FileSystem\PathResolver;
-use VendorPatches202401\Webmozart\Assert\Assert;
+use VendorPatches202507\Webmozart\Assert\Assert;
 /**
  * @see \Symplify\VendorPatches\Tests\Composer\PackageNameResolverTest
  */

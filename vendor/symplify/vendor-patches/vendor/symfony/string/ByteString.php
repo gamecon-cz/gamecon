@@ -8,11 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\String;
+namespace VendorPatches202507\Symfony\Component\String;
 
-use VendorPatches202401\Symfony\Component\String\Exception\ExceptionInterface;
-use VendorPatches202401\Symfony\Component\String\Exception\InvalidArgumentException;
-use VendorPatches202401\Symfony\Component\String\Exception\RuntimeException;
+use Random\Randomizer;
+use VendorPatches202507\Symfony\Component\String\Exception\ExceptionInterface;
+use VendorPatches202507\Symfony\Component\String\Exception\InvalidArgumentException;
+use VendorPatches202507\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a binary-safe string of bytes.
  *
@@ -37,7 +38,7 @@ class ByteString extends AbstractString
      *
      * Copyright (c) 2004-2020, Facebook, Inc. (https://www.facebook.com/)
      */
-    public static function fromRandom(int $length = 16, string $alphabet = null) : self
+    public static function fromRandom(int $length = 16, ?string $alphabet = null) : self
     {
         if ($length <= 0) {
             throw new InvalidArgumentException(\sprintf('A strictly positive length is expected, "%d" given.', $length));
@@ -47,6 +48,9 @@ class ByteString extends AbstractString
         $bits = (int) \ceil(\log($alphabetSize, 2.0));
         if ($bits <= 0 || $bits > 56) {
             throw new InvalidArgumentException('The length of the alphabet must in the [2^1, 2^56] range.');
+        }
+        if (\PHP_VERSION_ID >= 80300) {
+            return new static((new Randomizer())->getBytesFromString($alphabet, $length));
         }
         $ret = '';
         while ($length > 0) {
@@ -191,7 +195,7 @@ class ByteString extends AbstractString
     /**
      * @return static
      */
-    public function join(array $strings, string $lastGlue = null)
+    public function join(array $strings, ?string $lastGlue = null)
     {
         $str = clone $this;
         $tail = null !== $lastGlue && 1 < \count($strings) ? $lastGlue . \array_pop($strings) : '';
@@ -318,10 +322,10 @@ class ByteString extends AbstractString
     /**
      * @return static
      */
-    public function slice(int $start = 0, int $length = null)
+    public function slice(int $start = 0, ?int $length = null)
     {
         $str = clone $this;
-        $str->string = (string) \substr($this->string, $start, $length ?? \PHP_INT_MAX);
+        $str->string = \substr($this->string, $start, $length ?? \PHP_INT_MAX);
         return $str;
     }
     /**
@@ -330,19 +334,19 @@ class ByteString extends AbstractString
     public function snake()
     {
         $str = $this->camel();
-        $str->string = \strtolower(\preg_replace(['/([A-Z]+)([A-Z][a-z])/', '/([a-z\\d])([A-Z])/'], 'VendorPatches202401\\1_\\2', $str->string));
+        $str->string = \strtolower(\preg_replace(['/([A-Z]+)([A-Z][a-z])/', '/([a-z\\d])([A-Z])/'], 'VendorPatches202507\\1_\\2', $str->string));
         return $str;
     }
     /**
      * @return static
      */
-    public function splice(string $replacement, int $start = 0, int $length = null)
+    public function splice(string $replacement, int $start = 0, ?int $length = null)
     {
         $str = clone $this;
         $str->string = \substr_replace($this->string, $replacement, $start, $length ?? \PHP_INT_MAX);
         return $str;
     }
-    public function split(string $delimiter, int $limit = null, int $flags = null) : array
+    public function split(string $delimiter, ?int $limit = null, ?int $flags = null) : array
     {
         if (1 > ($limit = $limit ?? \PHP_INT_MAX)) {
             throw new InvalidArgumentException('Split limit must be a positive integer.');
@@ -382,11 +386,11 @@ class ByteString extends AbstractString
         $str->string = $allWords ? \ucwords($str->string) : \ucfirst($str->string);
         return $str;
     }
-    public function toUnicodeString(string $fromEncoding = null) : UnicodeString
+    public function toUnicodeString(?string $fromEncoding = null) : UnicodeString
     {
         return new UnicodeString($this->toCodePointString($fromEncoding)->string);
     }
-    public function toCodePointString(string $fromEncoding = null) : CodePointString
+    public function toCodePointString(?string $fromEncoding = null) : CodePointString
     {
         $u = new CodePointString();
         if (\in_array($fromEncoding, [null, 'utf8', 'utf-8', 'UTF8', 'UTF-8'], \true) && \preg_match('//u', $this->string)) {

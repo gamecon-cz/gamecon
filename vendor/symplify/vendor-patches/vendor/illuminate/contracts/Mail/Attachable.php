@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Mail;
+namespace VendorPatches202507\Illuminate\Contracts\Mail;
 
 interface Attachable
 {

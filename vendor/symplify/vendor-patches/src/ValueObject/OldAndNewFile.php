@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Symplify\VendorPatches\ValueObject;
 
-use VendorPatches202401\Nette\Utils\FileSystem;
+use VendorPatches202507\Nette\Utils\FileSystem;
 final class OldAndNewFile
 {
     /**

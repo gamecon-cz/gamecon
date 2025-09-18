@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Bus;
+namespace VendorPatches202507\Illuminate\Contracts\Bus;
 
 interface QueueingDispatcher extends Dispatcher
 {

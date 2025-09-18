@@ -1,9 +1,9 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Container;
+namespace VendorPatches202507\Illuminate\Container;
 
 use Exception;
-use VendorPatches202401\Psr\Container\NotFoundExceptionInterface;
+use VendorPatches202507\Psr\Container\NotFoundExceptionInterface;
 class EntryNotFoundException extends Exception implements NotFoundExceptionInterface
 {
     //

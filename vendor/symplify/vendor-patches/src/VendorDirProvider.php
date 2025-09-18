@@ -3,9 +3,9 @@
 declare (strict_types=1);
 namespace Symplify\VendorPatches;
 
-use VendorPatches202401\Composer\Autoload\ClassLoader;
+use VendorPatches202507\Composer\Autoload\ClassLoader;
 use ReflectionClass;
-use VendorPatches202401\Webmozart\Assert\Assert;
+use VendorPatches202507\Webmozart\Assert\Assert;
 final class VendorDirProvider
 {
     public static function provide() : string

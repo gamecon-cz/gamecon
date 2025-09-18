@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\SignalRegistry;
+namespace VendorPatches202507\Symfony\Component\Console\SignalRegistry;
 
 /**
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
@@ -28,7 +28,7 @@ class SignalMap
             $r = new \ReflectionExtension('pcntl');
             $c = $r->getConstants();
             $map = \array_filter($c, function ($k) {
-                return \strncmp($k, 'SIG', \strlen('SIG')) === 0 && \strncmp($k, 'SIG_', \strlen('SIG_')) !== 0;
+                return \strncmp($k, 'SIG', \strlen('SIG')) === 0 && \strncmp($k, 'SIG_', \strlen('SIG_')) !== 0 && 'SIGBABY' !== $k;
             }, \ARRAY_FILTER_USE_KEY);
             self::$map = \array_flip($map);
         }

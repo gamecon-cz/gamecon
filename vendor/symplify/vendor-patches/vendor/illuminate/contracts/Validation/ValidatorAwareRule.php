@@ -1,8 +1,8 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Validation;
+namespace VendorPatches202507\Illuminate\Contracts\Validation;
 
-use VendorPatches202401\Illuminate\Validation\Validator;
+use VendorPatches202507\Illuminate\Validation\Validator;
 interface ValidatorAwareRule
 {
     /**

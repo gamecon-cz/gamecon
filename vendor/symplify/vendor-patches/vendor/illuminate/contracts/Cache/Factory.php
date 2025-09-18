@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Cache;
+namespace VendorPatches202507\Illuminate\Contracts\Cache;
 
 interface Factory
 {

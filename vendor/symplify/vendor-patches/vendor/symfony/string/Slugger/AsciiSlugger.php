@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\String\Slugger;
+namespace VendorPatches202507\Symfony\Component\String\Slugger;
 
-use VendorPatches202401\Symfony\Component\Intl\Transliterator\EmojiTransliterator;
-use VendorPatches202401\Symfony\Component\String\AbstractUnicodeString;
-use VendorPatches202401\Symfony\Component\String\UnicodeString;
-use VendorPatches202401\Symfony\Contracts\Translation\LocaleAwareInterface;
+use VendorPatches202507\Symfony\Component\Emoji\EmojiTransliterator;
+use VendorPatches202507\Symfony\Component\String\AbstractUnicodeString;
+use VendorPatches202507\Symfony\Component\String\UnicodeString;
+use VendorPatches202507\Symfony\Contracts\Translation\LocaleAwareInterface;
 if (!\interface_exists(LocaleAwareInterface::class)) {
     throw new \LogicException('You cannot use the "Symfony\\Component\\String\\Slugger\\AsciiSlugger" as the "symfony/translation-contracts" package is not installed. Try running "composer require symfony/translation-contracts".');
 }
@@ -22,11 +22,11 @@ if (!\interface_exists(LocaleAwareInterface::class)) {
  */
 class AsciiSlugger implements SluggerInterface, LocaleAwareInterface
 {
-    private const LOCALE_TO_TRANSLITERATOR_ID = ['am' => 'Amharic-Latin', 'ar' => 'Arabic-Latin', 'az' => 'Azerbaijani-Latin', 'be' => 'Belarusian-Latin', 'bg' => 'Bulgarian-Latin', 'bn' => 'Bengali-Latin', 'de' => 'de-ASCII', 'el' => 'Greek-Latin', 'fa' => 'Persian-Latin', 'he' => 'Hebrew-Latin', 'hy' => 'Armenian-Latin', 'ka' => 'Georgian-Latin', 'kk' => 'Kazakh-Latin', 'ky' => 'Kirghiz-Latin', 'ko' => 'Korean-Latin', 'mk' => 'Macedonian-Latin', 'mn' => 'Mongolian-Latin', 'or' => 'Oriya-Latin', 'ps' => 'Pashto-Latin', 'ru' => 'Russian-Latin', 'sr' => 'Serbian-Latin', 'sr_Cyrl' => 'Serbian-Latin', 'th' => 'Thai-Latin', 'tk' => 'Turkmen-Latin', 'uk' => 'Ukrainian-Latin', 'uz' => 'Uzbek-Latin', 'zh' => 'Han-Latin'];
     /**
      * @var string|null
      */
     private $defaultLocale;
+    private const LOCALE_TO_TRANSLITERATOR_ID = ['am' => 'Amharic-Latin', 'ar' => 'Arabic-Latin', 'az' => 'Azerbaijani-Latin', 'be' => 'Belarusian-Latin', 'bg' => 'Bulgarian-Latin', 'bn' => 'Bengali-Latin', 'de' => 'de-ASCII', 'el' => 'Greek-Latin', 'fa' => 'Persian-Latin', 'he' => 'Hebrew-Latin', 'hy' => 'Armenian-Latin', 'ka' => 'Georgian-Latin', 'kk' => 'Kazakh-Latin', 'ky' => 'Kirghiz-Latin', 'ko' => 'Korean-Latin', 'mk' => 'Macedonian-Latin', 'mn' => 'Mongolian-Latin', 'or' => 'Oriya-Latin', 'ps' => 'Pashto-Latin', 'ru' => 'Russian-Latin', 'sr' => 'Serbian-Latin', 'sr_Cyrl' => 'Serbian-Latin', 'th' => 'Thai-Latin', 'tk' => 'Turkmen-Latin', 'uk' => 'Ukrainian-Latin', 'uz' => 'Uzbek-Latin', 'zh' => 'Han-Latin'];
     /**
      * @var \Closure|mixed[]
      */
@@ -42,9 +42,9 @@ class AsciiSlugger implements SluggerInterface, LocaleAwareInterface
      */
     private $transliterators = [];
     /**
-     * @param mixed[]|\Closure $symbolsMap
+     * @param mixed[]|\Closure|null $symbolsMap
      */
-    public function __construct(string $defaultLocale = null, $symbolsMap = null)
+    public function __construct(?string $defaultLocale = null, $symbolsMap = null)
     {
         $this->defaultLocale = $defaultLocale;
         $this->symbolsMap = $symbolsMap ?? $this->symbolsMap;
@@ -66,13 +66,13 @@ class AsciiSlugger implements SluggerInterface, LocaleAwareInterface
     public function withEmoji($emoji = \true)
     {
         if (\false !== $emoji && !\class_exists(EmojiTransliterator::class)) {
-            throw new \LogicException(\sprintf('You cannot use the "%s()" method as the "symfony/intl" package is not installed. Try running "composer require symfony/intl".', __METHOD__));
+            throw new \LogicException(\sprintf('You cannot use the "%s()" method as the "symfony/emoji" package is not installed. Try running "composer require symfony/emoji".', __METHOD__));
         }
         $new = clone $this;
         $new->emoji = $emoji;
         return $new;
     }
-    public function slug(string $string, string $separator = '-', string $locale = null) : AbstractUnicodeString
+    public function slug(string $string, string $separator = '-', ?string $locale = null) : AbstractUnicodeString
     {
         $locale = $locale ?? $this->defaultLocale;
         $transliterator = [];

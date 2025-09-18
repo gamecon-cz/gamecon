@@ -2,6 +2,7 @@
 
 namespace Gamecon\Tests\Model\Aktivita;
 
+use App\Kernel;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -170,6 +171,7 @@ SQL,
                     DatabazoveNastaveni::vytvorZGlobals(),
                     '',
                     sys_get_temp_dir(),
+                    kernel: new Kernel('test', false),
                 );
             }
 

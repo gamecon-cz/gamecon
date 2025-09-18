@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Exception;
+namespace VendorPatches202507\Symfony\Component\Console\Exception;
 
-use VendorPatches202401\Symfony\Component\Console\Messenger\RunCommandContext;
+use VendorPatches202507\Symfony\Component\Console\Messenger\RunCommandContext;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */

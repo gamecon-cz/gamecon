@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Hashing;
+namespace VendorPatches202507\Illuminate\Contracts\Hashing;
 
 interface Hasher
 {

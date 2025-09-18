@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace Symplify\VendorPatches\Composer;
 
-use VendorPatches202401\Nette\Utils\FileSystem;
-use VendorPatches202401\Nette\Utils\Json;
+use VendorPatches202507\Nette\Utils\FileSystem;
+use VendorPatches202507\Nette\Utils\Json;
 use Symplify\VendorPatches\Utils\ParametersMerger;
 /**
  * @see \Symplify\VendorPatches\Tests\Composer\ComposerPatchesConfigurationUpdater\ComposerPatchesConfigurationUpdaterTest
@@ -19,6 +19,17 @@ final class ComposerPatchesConfigurationUpdater
     public function __construct(ParametersMerger $parametersMerger)
     {
         $this->parametersMerger = $parametersMerger;
+    }
+    /**
+     * @api
+     * @param mixed[] $composerExtraPatches
+     * @return mixed[]
+     */
+    public function updatePatchesFileJson(string $patchesFilePath, array $composerExtraPatches) : array
+    {
+        $patchesFileContents = FileSystem::read($patchesFilePath);
+        $patchesFileJson = Json::decode($patchesFileContents, Json::FORCE_ARRAY);
+        return $this->parametersMerger->merge($patchesFileJson, ['patches' => $composerExtraPatches]);
     }
     /**
      * @api
@@ -46,6 +57,15 @@ final class ComposerPatchesConfigurationUpdater
         $composerJson = $this->updateComposerJson($composerJsonFilePath, $composerExtraPatches);
         // print composer.json
         $composerJsonFileContents = Json::encode($composerJson, Json::PRETTY);
-        FileSystem::write($composerJsonFilePath, $composerJsonFileContents);
+        FileSystem::write($composerJsonFilePath, $composerJsonFileContents, null);
+    }
+    /**
+     * @param mixed[] $composerExtraPatches
+     */
+    public function updatePatchesFileJsonAndPrint(string $patchesFilePath, array $composerExtraPatches) : void
+    {
+        $patchesFileJson = $this->updatePatchesFileJson($patchesFilePath, $composerExtraPatches);
+        $patchesFileContents = Json::encode($patchesFileJson, Json::PRETTY);
+        FileSystem::write($patchesFilePath, $patchesFileContents, null);
     }
 }

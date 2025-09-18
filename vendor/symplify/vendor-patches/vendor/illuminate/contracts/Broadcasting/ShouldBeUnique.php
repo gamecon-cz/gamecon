@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Broadcasting;
+namespace VendorPatches202507\Illuminate\Contracts\Broadcasting;
 
 interface ShouldBeUnique
 {

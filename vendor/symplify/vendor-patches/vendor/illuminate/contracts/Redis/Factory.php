@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Redis;
+namespace VendorPatches202507\Illuminate\Contracts\Redis;
 
 interface Factory
 {

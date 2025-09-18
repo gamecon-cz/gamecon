@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Messenger;
+namespace VendorPatches202507\Symfony\Component\Console\Messenger;
 
-use VendorPatches202401\Symfony\Component\Console\Exception\RunCommandFailedException;
+use VendorPatches202507\Symfony\Component\Console\Exception\RunCommandFailedException;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */

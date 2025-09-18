@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\String;
+namespace VendorPatches202507\Symfony\Component\String;
 
 /**
  * A string whose value is computed lazily by a callback.
@@ -40,7 +40,7 @@ class LazyString implements \JsonSerializable
                     $callback[1] = $callback[1] ?? '__invoke';
                 }
                 $value = $callback(...$arguments);
-                $callback = self::getPrettyName($callback);
+                $callback = !\is_scalar($value) && !(\is_object($value) && \method_exists($value, '__toString')) ? self::getPrettyName($callback) : 'callable';
                 $arguments = null;
             }
             return $value ?? '';
@@ -66,7 +66,7 @@ class LazyString implements \JsonSerializable
      */
     public static final function isStringable($value) : bool
     {
-        return \is_string($value) || $value instanceof \Stringable || \is_scalar($value);
+        return \is_string($value) || \is_object($value) && \method_exists($value, '__toString') || \is_scalar($value);
     }
     /**
      * Casts scalars and stringable objects to strings.
@@ -118,7 +118,7 @@ class LazyString implements \JsonSerializable
             $method = $callback[1];
         } elseif ($callback instanceof \Closure) {
             $r = new \ReflectionFunction($callback);
-            if (\strpos($r->name, '{closure}') !== \false || !($class = $r->getClosureCalledClass())) {
+            if ($r->isAnonymous() || !($class = $r->getClosureCalledClass())) {
                 return $r->name;
             }
             $class = $class->name;

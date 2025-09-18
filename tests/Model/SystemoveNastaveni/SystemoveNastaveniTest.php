@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
+use App\Kernel;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
@@ -66,6 +67,7 @@ class SystemoveNastaveniTest extends AbstractTestDb
             DatabazoveNastaveni::vytvorZGlobals(),
             PROJECT_ROOT_DIR,
             SPEC,
+            new Kernel('test', false),
         );
     }
 

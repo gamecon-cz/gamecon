@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Tester\Constraint;
+namespace VendorPatches202507\Symfony\Component\Console\Tester\Constraint;
 
-use VendorPatches202401\PHPUnit\Framework\Constraint\Constraint;
-use VendorPatches202401\Symfony\Component\Console\Command\Command;
+use VendorPatches202507\PHPUnit\Framework\Constraint\Constraint;
+use VendorPatches202507\Symfony\Component\Console\Command\Command;
 final class CommandIsSuccessful extends Constraint
 {
     public function toString() : string

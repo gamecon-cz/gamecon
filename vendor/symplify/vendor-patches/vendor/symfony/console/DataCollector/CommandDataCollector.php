@@ -8,16 +8,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\DataCollector;
+namespace VendorPatches202507\Symfony\Component\Console\DataCollector;
 
-use VendorPatches202401\Symfony\Component\Console\Command\Command;
-use VendorPatches202401\Symfony\Component\Console\Debug\CliRequest;
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
-use VendorPatches202401\Symfony\Component\Console\SignalRegistry\SignalMap;
-use VendorPatches202401\Symfony\Component\HttpFoundation\Request;
-use VendorPatches202401\Symfony\Component\HttpFoundation\Response;
-use VendorPatches202401\Symfony\Component\HttpKernel\DataCollector\DataCollector;
-use VendorPatches202401\Symfony\Component\VarDumper\Cloner\Data;
+use VendorPatches202507\Symfony\Component\Console\Command\Command;
+use VendorPatches202507\Symfony\Component\Console\Debug\CliRequest;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\Console\SignalRegistry\SignalMap;
+use VendorPatches202507\Symfony\Component\HttpFoundation\Request;
+use VendorPatches202507\Symfony\Component\HttpFoundation\Response;
+use VendorPatches202507\Symfony\Component\HttpKernel\DataCollector\DataCollector;
+use VendorPatches202507\Symfony\Component\VarDumper\Cloner\Data;
 /**
  * @internal
  *
@@ -25,7 +25,7 @@ use VendorPatches202401\Symfony\Component\VarDumper\Cloner\Data;
  */
 final class CommandDataCollector extends DataCollector
 {
-    public function collect(Request $request, Response $response, \Throwable $exception = null) : void
+    public function collect(Request $request, Response $response, ?\Throwable $exception = null) : void
     {
         if (!$request instanceof CliRequest) {
             return;

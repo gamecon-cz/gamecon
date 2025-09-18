@@ -9,7 +9,7 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\SebastianBergmann\Diff;
+namespace VendorPatches202507\SebastianBergmann\Diff;
 
 use const PHP_INT_SIZE;
 use const PREG_SPLIT_DELIM_CAPTURE;
@@ -28,7 +28,7 @@ use function prev;
 use function reset;
 use function str_ends_with;
 use function substr;
-use VendorPatches202401\SebastianBergmann\Diff\Output\DiffOutputBuilderInterface;
+use VendorPatches202507\SebastianBergmann\Diff\Output\DiffOutputBuilderInterface;
 final class Differ
 {
     public const OLD = 0;
@@ -45,19 +45,19 @@ final class Differ
         $this->outputBuilder = $outputBuilder;
     }
     /**
-     * @param mixed[]|string $from
-     * @param mixed[]|string $to
+     * @param list<string>|string $from
+     * @param list<string>|string $to
      */
-    public function diff($from, $to, LongestCommonSubsequenceCalculator $lcs = null) : string
+    public function diff($from, $to, ?LongestCommonSubsequenceCalculator $lcs = null) : string
     {
         $diff = $this->diffToArray($from, $to, $lcs);
         return $this->outputBuilder->getDiff($diff);
     }
     /**
-     * @param mixed[]|string $from
-     * @param mixed[]|string $to
+     * @param list<string>|string $from
+     * @param list<string>|string $to
      */
-    public function diffToArray($from, $to, LongestCommonSubsequenceCalculator $lcs = null) : array
+    public function diffToArray($from, $to, ?LongestCommonSubsequenceCalculator $lcs = null) : array
     {
         if (is_string($from)) {
             $from = $this->splitStringByLines($from);

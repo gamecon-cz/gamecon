@@ -8,17 +8,17 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Command;
+namespace VendorPatches202507\Symfony\Component\Console\Command;
 
-use VendorPatches202401\Symfony\Component\Console\Application;
-use VendorPatches202401\Symfony\Component\Console\Completion\CompletionInput;
-use VendorPatches202401\Symfony\Component\Console\Completion\CompletionSuggestions;
-use VendorPatches202401\Symfony\Component\Console\Completion\Suggestion;
-use VendorPatches202401\Symfony\Component\Console\Helper\HelperInterface;
-use VendorPatches202401\Symfony\Component\Console\Helper\HelperSet;
-use VendorPatches202401\Symfony\Component\Console\Input\InputDefinition;
-use VendorPatches202401\Symfony\Component\Console\Input\InputInterface;
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Application;
+use VendorPatches202507\Symfony\Component\Console\Completion\CompletionInput;
+use VendorPatches202507\Symfony\Component\Console\Completion\CompletionSuggestions;
+use VendorPatches202507\Symfony\Component\Console\Completion\Suggestion;
+use VendorPatches202507\Symfony\Component\Console\Helper\HelperInterface;
+use VendorPatches202507\Symfony\Component\Console\Helper\HelperSet;
+use VendorPatches202507\Symfony\Component\Console\Input\InputDefinition;
+use VendorPatches202507\Symfony\Component\Console\Input\InputInterface;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author Nicolas Grekas <p@tchwork.com>
  */
@@ -42,7 +42,7 @@ final class LazyCommand extends Command
     {
         $this->getCommand()->ignoreValidationErrors();
     }
-    public function setApplication(Application $application = null) : void
+    public function setApplication(?Application $application = null) : void
     {
         if (1 > \func_num_args()) {
             trigger_deprecation('symfony/console', '6.2', 'Calling "%s()" without any arguments is deprecated, pass null explicitly instead.', __METHOD__);
@@ -108,7 +108,7 @@ final class LazyCommand extends Command
      * @param mixed $default
      * @return static
      */
-    public function addArgument(string $name, int $mode = null, string $description = '', $default = null)
+    public function addArgument(string $name, ?int $mode = null, string $description = '', $default = null)
     {
         $suggestedValues = 5 <= \func_num_args() ? \func_get_arg(4) : [];
         $this->getCommand()->addArgument($name, $mode, $description, $default, $suggestedValues);
@@ -116,11 +116,11 @@ final class LazyCommand extends Command
     }
     /**
      * @param array|\Closure(CompletionInput,CompletionSuggestions):list<string|Suggestion> $suggestedValues The values used for input completion
-     * @param string|mixed[] $shortcut
+     * @param string|mixed[]|null $shortcut
      * @param mixed $default
      * @return static
      */
-    public function addOption(string $name, $shortcut = null, int $mode = null, string $description = '', $default = null)
+    public function addOption(string $name, $shortcut = null, ?int $mode = null, string $description = '', $default = null)
     {
         $suggestedValues = 6 <= \func_num_args() ? \func_get_arg(5) : [];
         $this->getCommand()->addOption($name, $shortcut, $mode, $description, $default, $suggestedValues);

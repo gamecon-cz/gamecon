@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Http;
+namespace VendorPatches202507\Illuminate\Contracts\Http;
 
 interface Kernel
 {

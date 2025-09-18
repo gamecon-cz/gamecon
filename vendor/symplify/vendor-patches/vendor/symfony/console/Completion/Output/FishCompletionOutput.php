@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Completion\Output;
+namespace VendorPatches202507\Symfony\Component\Console\Completion\Output;
 
-use VendorPatches202401\Symfony\Component\Console\Completion\CompletionSuggestions;
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Completion\CompletionSuggestions;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author Guillaume Aveline <guillaume.aveline@pm.me>
  */

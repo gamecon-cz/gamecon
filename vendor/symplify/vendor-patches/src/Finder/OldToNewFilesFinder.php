@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Symplify\VendorPatches\Finder;
 
-use VendorPatches202401\Symfony\Component\Finder\Finder;
+use VendorPatches202507\Symfony\Component\Finder\Finder;
 use Symplify\VendorPatches\Composer\PackageNameResolver;
 use Symplify\VendorPatches\ValueObject\OldAndNewFile;
 /**

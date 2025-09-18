@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Login\Login;
+use Gamecon\Exceptions\UzivatelNenalezen;
 
 /**
  * Kód starající o přihlášení uživatele a výběr uživatele pro práci
@@ -59,7 +60,7 @@ if (post('prihlasitSeJakoUzivatel')) {
                 );
             }
         }
-    } catch (\Gamecon\Exceptions\UzivatelNenalezen $uzivatelNenalezen) {
+    } catch (UzivatelNenalezen $uzivatelNenalezen) {
         chyba($uzivatelNenalezen->getMessage());
     }
 }

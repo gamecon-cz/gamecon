@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Container;
+namespace VendorPatches202507\Illuminate\Container;
 
 use Countable;
 use IteratorAggregate;

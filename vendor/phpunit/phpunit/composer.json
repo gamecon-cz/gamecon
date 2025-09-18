@@ -29,7 +29,7 @@
         "ext-mbstring": "*",
         "ext-xml": "*",
         "ext-xmlwriter": "*",
-        "myclabs/deep-copy": "^1.12.0",
+        "myclabs/deep-copy": "^1.13.4",
         "phar-io/manifest": "^2.0.4",
         "phar-io/version": "^3.2.1",
         "phpunit/php-code-coverage": "^10.1.16",
@@ -39,13 +39,13 @@
         "phpunit/php-timer": "^6.0.0",
         "sebastian/cli-parser": "^2.0.1",
         "sebastian/code-unit": "^2.0.0",
-        "sebastian/comparator": "^5.0.2",
+        "sebastian/comparator": "^5.0.4",
         "sebastian/diff": "^5.1.1",
         "sebastian/environment": "^6.1.0",
         "sebastian/exporter": "^5.1.2",
         "sebastian/global-state": "^6.0.2",
         "sebastian/object-enumerator": "^5.0.0",
-        "sebastian/recursion-context": "^5.0.0",
+        "sebastian/recursion-context": "^5.0.1",
         "sebastian/type": "^4.0.0",
         "sebastian/version": "^4.0.1"
     },
@@ -53,6 +53,7 @@
         "platform": {
             "php": "8.1.0"
         },
+        "classmap-authoritative": true,
         "optimize-autoloader": true,
         "sort-packages": true
     },

@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Helper;
+namespace VendorPatches202507\Symfony\Component\Console\Helper;
 
-use VendorPatches202401\Symfony\Component\Console\Formatter\OutputFormatterInterface;
-use VendorPatches202401\Symfony\Component\String\UnicodeString;
+use VendorPatches202507\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use VendorPatches202507\Symfony\Component\String\UnicodeString;
 /**
  * Helper is the base class for all helper classes.
  *
@@ -23,7 +23,7 @@ abstract class Helper implements HelperInterface
     /**
      * @return void
      */
-    public function setHelperSet(HelperSet $helperSet = null)
+    public function setHelperSet(?HelperSet $helperSet = null)
     {
         if (1 > \func_num_args()) {
             trigger_deprecation('symfony/console', '6.2', 'Calling "%s()" without any arguments is deprecated, pass null explicitly instead.', __METHOD__);
@@ -42,7 +42,8 @@ abstract class Helper implements HelperInterface
     {
         $string = $string ?? '';
         if (\preg_match('//u', $string)) {
-            return (new UnicodeString($string))->width(\false);
+            $string = \preg_replace('/[\\p{Cc}\\x7F]++/u', '', $string, -1, $count);
+            return (new UnicodeString($string))->width(\false) + $count;
         }
         if (\false === ($encoding = \mb_detect_encoding($string, null, \true))) {
             return \strlen($string);
@@ -67,7 +68,7 @@ abstract class Helper implements HelperInterface
     /**
      * Returns the subset of a string, using mb_substr if it is available.
      */
-    public static function substr(?string $string, int $from, int $length = null) : string
+    public static function substr(?string $string, int $from, ?int $length = null) : string
     {
         $string = $string ?? '';
         if (\false === ($encoding = \mb_detect_encoding($string, null, \true))) {

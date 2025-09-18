@@ -2,6 +2,7 @@
 
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
+use App\Kernel;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\KopieOstreDatabaze;
@@ -167,7 +168,8 @@ class KopieOstreDatabazeTest extends TestCase
                     false,
                     DatabazoveNastaveni::vytvorZGlobals(),
                     PROJECT_ROOT_DIR,
-                    SPEC
+                    SPEC,
+                    kernel: new Kernel('test', false),
                 );
             }
 

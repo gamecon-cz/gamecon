@@ -1,9 +1,9 @@
 <?php
 
 declare (strict_types=1);
-namespace VendorPatches202401;
+namespace VendorPatches202507;
 
-use VendorPatches202401\Symfony\Component\Console\Application;
+use VendorPatches202507\Symfony\Component\Console\Application;
 use Symplify\VendorPatches\DependencyInjection\ContainerFactory;
 $possibleAutoloadPaths = [__DIR__ . '/../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php', __DIR__ . '/../../../vendor/autoload.php'];
 foreach ($possibleAutoloadPaths as $possibleAutoloadPath) {

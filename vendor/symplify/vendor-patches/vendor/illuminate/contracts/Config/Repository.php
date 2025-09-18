@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Config;
+namespace VendorPatches202507\Illuminate\Contracts\Config;
 
 interface Repository
 {

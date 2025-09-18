@@ -8,13 +8,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Descriptor;
+namespace VendorPatches202507\Symfony\Component\Console\Descriptor;
 
-use VendorPatches202401\Symfony\Component\Console\Application;
-use VendorPatches202401\Symfony\Component\Console\Command\Command;
-use VendorPatches202401\Symfony\Component\Console\Input\InputArgument;
-use VendorPatches202401\Symfony\Component\Console\Input\InputDefinition;
-use VendorPatches202401\Symfony\Component\Console\Input\InputOption;
+use VendorPatches202507\Symfony\Component\Console\Application;
+use VendorPatches202507\Symfony\Component\Console\Command\Command;
+use VendorPatches202507\Symfony\Component\Console\Input\InputArgument;
+use VendorPatches202507\Symfony\Component\Console\Input\InputDefinition;
+use VendorPatches202507\Symfony\Component\Console\Input\InputOption;
 /**
  * JSON descriptor.
  *

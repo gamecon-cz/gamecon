@@ -52,7 +52,7 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorPatches202401\\Symfony\\Component\\Console\\": ""
+            "VendorPatches202507\\Symfony\\Component\\Console\\": ""
         },
         "exclude-from-classmap": [
             "\/Tests\/"

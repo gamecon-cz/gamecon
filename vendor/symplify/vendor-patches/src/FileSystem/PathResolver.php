@@ -3,10 +3,10 @@
 declare (strict_types=1);
 namespace Symplify\VendorPatches\FileSystem;
 
-use VendorPatches202401\Nette\Utils\Strings;
+use VendorPatches202507\Nette\Utils\Strings;
 use Symplify\VendorPatches\Exception\ShouldNotHappenException;
 use Symplify\VendorPatches\Utils\FileSystemHelper;
-use VendorPatches202401\Webmozart\Assert\Assert;
+use VendorPatches202507\Webmozart\Assert\Assert;
 final class PathResolver
 {
     /**

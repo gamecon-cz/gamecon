@@ -1,7 +1,14 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Pagination;
+namespace VendorPatches202507\Illuminate\Contracts\Pagination;
 
+/**
+ * @template TKey of array-key
+ *
+ * @template-covariant TValue
+ *
+ * @extends Paginator<TKey, TValue>
+ */
 interface LengthAwarePaginator extends Paginator
 {
     /**

@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Descriptor;
+namespace VendorPatches202507\Symfony\Component\Console\Descriptor;
 
-use VendorPatches202401\Symfony\Component\Console\Application;
-use VendorPatches202401\Symfony\Component\Console\Command\Command;
-use VendorPatches202401\Symfony\Component\Console\Exception\CommandNotFoundException;
+use VendorPatches202507\Symfony\Component\Console\Application;
+use VendorPatches202507\Symfony\Component\Console\Command\Command;
+use VendorPatches202507\Symfony\Component\Console\Exception\CommandNotFoundException;
 /**
  * @author Jean-François Simon <jeanfrancois.simon@sensiolabs.com>
  *
@@ -45,7 +45,7 @@ class ApplicationDescription
      * @var array<string, Command>
      */
     private $aliases = [];
-    public function __construct(Application $application, string $namespace = null, bool $showHidden = \false)
+    public function __construct(Application $application, ?string $namespace = null, bool $showHidden = \false)
     {
         $this->application = $application;
         $this->namespace = $namespace;

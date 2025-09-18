@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Auth;
+namespace VendorPatches202507\Illuminate\Contracts\Auth;
 
 interface Factory
 {

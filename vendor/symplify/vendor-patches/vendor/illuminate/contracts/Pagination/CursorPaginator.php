@@ -1,7 +1,12 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Pagination;
+namespace VendorPatches202507\Illuminate\Contracts\Pagination;
 
+/**
+ * @template TKey of array-key
+ *
+ * @template-covariant TValue
+ */
 interface CursorPaginator
 {
     /**
@@ -47,7 +52,7 @@ interface CursorPaginator
     /**
      * Get all of the items being paginated.
      *
-     * @return array
+     * @return array<TKey, TValue>
      */
     public function items();
     /**

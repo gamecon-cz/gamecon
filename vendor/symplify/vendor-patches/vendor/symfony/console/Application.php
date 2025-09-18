@@ -8,51 +8,51 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console;
+namespace VendorPatches202507\Symfony\Component\Console;
 
-use VendorPatches202401\Symfony\Component\Console\Command\Command;
-use VendorPatches202401\Symfony\Component\Console\Command\CompleteCommand;
-use VendorPatches202401\Symfony\Component\Console\Command\DumpCompletionCommand;
-use VendorPatches202401\Symfony\Component\Console\Command\HelpCommand;
-use VendorPatches202401\Symfony\Component\Console\Command\LazyCommand;
-use VendorPatches202401\Symfony\Component\Console\Command\ListCommand;
-use VendorPatches202401\Symfony\Component\Console\Command\SignalableCommandInterface;
-use VendorPatches202401\Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
-use VendorPatches202401\Symfony\Component\Console\Completion\CompletionInput;
-use VendorPatches202401\Symfony\Component\Console\Completion\CompletionSuggestions;
-use VendorPatches202401\Symfony\Component\Console\Completion\Suggestion;
-use VendorPatches202401\Symfony\Component\Console\Event\ConsoleCommandEvent;
-use VendorPatches202401\Symfony\Component\Console\Event\ConsoleErrorEvent;
-use VendorPatches202401\Symfony\Component\Console\Event\ConsoleSignalEvent;
-use VendorPatches202401\Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use VendorPatches202401\Symfony\Component\Console\Exception\CommandNotFoundException;
-use VendorPatches202401\Symfony\Component\Console\Exception\ExceptionInterface;
-use VendorPatches202401\Symfony\Component\Console\Exception\LogicException;
-use VendorPatches202401\Symfony\Component\Console\Exception\NamespaceNotFoundException;
-use VendorPatches202401\Symfony\Component\Console\Exception\RuntimeException;
-use VendorPatches202401\Symfony\Component\Console\Formatter\OutputFormatter;
-use VendorPatches202401\Symfony\Component\Console\Helper\DebugFormatterHelper;
-use VendorPatches202401\Symfony\Component\Console\Helper\DescriptorHelper;
-use VendorPatches202401\Symfony\Component\Console\Helper\FormatterHelper;
-use VendorPatches202401\Symfony\Component\Console\Helper\Helper;
-use VendorPatches202401\Symfony\Component\Console\Helper\HelperSet;
-use VendorPatches202401\Symfony\Component\Console\Helper\ProcessHelper;
-use VendorPatches202401\Symfony\Component\Console\Helper\QuestionHelper;
-use VendorPatches202401\Symfony\Component\Console\Input\ArgvInput;
-use VendorPatches202401\Symfony\Component\Console\Input\ArrayInput;
-use VendorPatches202401\Symfony\Component\Console\Input\InputArgument;
-use VendorPatches202401\Symfony\Component\Console\Input\InputAwareInterface;
-use VendorPatches202401\Symfony\Component\Console\Input\InputDefinition;
-use VendorPatches202401\Symfony\Component\Console\Input\InputInterface;
-use VendorPatches202401\Symfony\Component\Console\Input\InputOption;
-use VendorPatches202401\Symfony\Component\Console\Output\ConsoleOutput;
-use VendorPatches202401\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
-use VendorPatches202401\Symfony\Component\Console\SignalRegistry\SignalRegistry;
-use VendorPatches202401\Symfony\Component\Console\Style\SymfonyStyle;
-use VendorPatches202401\Symfony\Component\ErrorHandler\ErrorHandler;
-use VendorPatches202401\Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
-use VendorPatches202401\Symfony\Contracts\Service\ResetInterface;
+use VendorPatches202507\Symfony\Component\Console\Command\Command;
+use VendorPatches202507\Symfony\Component\Console\Command\CompleteCommand;
+use VendorPatches202507\Symfony\Component\Console\Command\DumpCompletionCommand;
+use VendorPatches202507\Symfony\Component\Console\Command\HelpCommand;
+use VendorPatches202507\Symfony\Component\Console\Command\LazyCommand;
+use VendorPatches202507\Symfony\Component\Console\Command\ListCommand;
+use VendorPatches202507\Symfony\Component\Console\Command\SignalableCommandInterface;
+use VendorPatches202507\Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
+use VendorPatches202507\Symfony\Component\Console\Completion\CompletionInput;
+use VendorPatches202507\Symfony\Component\Console\Completion\CompletionSuggestions;
+use VendorPatches202507\Symfony\Component\Console\Completion\Suggestion;
+use VendorPatches202507\Symfony\Component\Console\Event\ConsoleCommandEvent;
+use VendorPatches202507\Symfony\Component\Console\Event\ConsoleErrorEvent;
+use VendorPatches202507\Symfony\Component\Console\Event\ConsoleSignalEvent;
+use VendorPatches202507\Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use VendorPatches202507\Symfony\Component\Console\Exception\CommandNotFoundException;
+use VendorPatches202507\Symfony\Component\Console\Exception\ExceptionInterface;
+use VendorPatches202507\Symfony\Component\Console\Exception\LogicException;
+use VendorPatches202507\Symfony\Component\Console\Exception\NamespaceNotFoundException;
+use VendorPatches202507\Symfony\Component\Console\Exception\RuntimeException;
+use VendorPatches202507\Symfony\Component\Console\Formatter\OutputFormatter;
+use VendorPatches202507\Symfony\Component\Console\Helper\DebugFormatterHelper;
+use VendorPatches202507\Symfony\Component\Console\Helper\DescriptorHelper;
+use VendorPatches202507\Symfony\Component\Console\Helper\FormatterHelper;
+use VendorPatches202507\Symfony\Component\Console\Helper\Helper;
+use VendorPatches202507\Symfony\Component\Console\Helper\HelperSet;
+use VendorPatches202507\Symfony\Component\Console\Helper\ProcessHelper;
+use VendorPatches202507\Symfony\Component\Console\Helper\QuestionHelper;
+use VendorPatches202507\Symfony\Component\Console\Input\ArgvInput;
+use VendorPatches202507\Symfony\Component\Console\Input\ArrayInput;
+use VendorPatches202507\Symfony\Component\Console\Input\InputArgument;
+use VendorPatches202507\Symfony\Component\Console\Input\InputAwareInterface;
+use VendorPatches202507\Symfony\Component\Console\Input\InputDefinition;
+use VendorPatches202507\Symfony\Component\Console\Input\InputInterface;
+use VendorPatches202507\Symfony\Component\Console\Input\InputOption;
+use VendorPatches202507\Symfony\Component\Console\Output\ConsoleOutput;
+use VendorPatches202507\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\Console\SignalRegistry\SignalRegistry;
+use VendorPatches202507\Symfony\Component\Console\Style\SymfonyStyle;
+use VendorPatches202507\Symfony\Component\ErrorHandler\ErrorHandler;
+use VendorPatches202507\Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use VendorPatches202507\Symfony\Contracts\Service\ResetInterface;
 /**
  * An Application is the container for a collection of commands.
  *
@@ -188,7 +188,7 @@ class Application implements ResetInterface
      *
      * @throws \Exception When running fails. Bypass this when {@link setCatchExceptions()}.
      */
-    public function run(InputInterface $input = null, OutputInterface $output = null) : int
+    public function run(?InputInterface $input = null, ?OutputInterface $output = null) : int
     {
         if (\function_exists('putenv')) {
             @\putenv('LINES=' . $this->terminal->getHeight());
@@ -211,8 +211,8 @@ class Application implements ResetInterface
                 $phpHandler[0]->setExceptionHandler($errorHandler);
             }
         }
-        $this->configureIO($input, $output);
         try {
+            $this->configureIO($input, $output);
             $exitCode = $this->doRun($input, $output);
         } catch (\Throwable $e) {
             if ($e instanceof \Exception && !$this->catchExceptions) {
@@ -720,7 +720,7 @@ class Application implements ResetInterface
      *
      * @return Command[]
      */
-    public function all(string $namespace = null)
+    public function all(?string $namespace = null)
     {
         $this->init();
         if (null === $namespace) {
@@ -787,7 +787,7 @@ class Application implements ResetInterface
                 $len = 0;
             }
             if (\strpos($message, "@anonymous\x00") !== \false) {
-                $message = \preg_replace_callback('/[a-zA-Z_\\x7f-\\xff][\\\\a-zA-Z0-9_\\x7f-\\xff]*+@anonymous\\x00.*?\\.php(?:0x?|:[0-9]++\\$)[0-9a-fA-F]++/', function ($m) {
+                $message = \preg_replace_callback('/[a-zA-Z_\\x7f-\\xff][\\\\a-zA-Z0-9_\\x7f-\\xff]*+@anonymous\\x00.*?\\.php(?:0x?|:[0-9]++\\$)?[0-9a-fA-F]++/', function ($m) {
                     return \class_exists($m[0], \false) ? ((\get_parent_class($m[0]) ?: \key(\class_implements($m[0]))) ?: 'class') . '@anonymous' : $m[0];
                 }, $message);
             }
@@ -1032,7 +1032,7 @@ class Application implements ResetInterface
      *
      * This method is not part of public API and should not be used directly.
      */
-    public function extractNamespace(string $name, int $limit = null) : string
+    public function extractNamespace(string $name, ?int $limit = null) : string
     {
         $parts = \explode(':', $name, -1);
         return \implode(':', null === $limit ? $parts : \array_slice($parts, 0, $limit));
@@ -1118,7 +1118,7 @@ class Application implements ResetInterface
             $offset += \strlen($m[0]);
             foreach (\preg_split('//u', $m[0]) as $char) {
                 // test if $char could be appended to current line
-                if (\mb_strwidth($line . $char, 'utf8') <= $width) {
+                if (Helper::width($line . $char) <= $width) {
                     $line .= $char;
                     continue;
                 }

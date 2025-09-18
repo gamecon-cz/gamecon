@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Finder\Iterator;
+namespace VendorPatches202507\Symfony\Component\Finder\Iterator;
 
-use VendorPatches202401\Symfony\Component\Finder\Gitignore;
+use VendorPatches202507\Symfony\Component\Finder\Gitignore;
 /**
  * @extends \FilterIterator<string, \SplFileInfo>
  */
@@ -34,9 +34,9 @@ final class VcsIgnoredFilterIterator extends \FilterIterator
     public function __construct(\Iterator $iterator, string $baseDir)
     {
         $this->baseDir = $this->normalizePath($baseDir);
-        foreach ($this->parentDirectoriesUpwards($this->baseDir) as $parentDirectory) {
-            if (@\is_dir("{$parentDirectory}/.git")) {
-                $this->baseDir = $parentDirectory;
+        foreach (\array_merge([$this->baseDir], $this->parentDirectoriesUpwards($this->baseDir)) as $directory) {
+            if (@\is_dir("{$directory}/.git")) {
+                $this->baseDir = $directory;
                 break;
             }
         }

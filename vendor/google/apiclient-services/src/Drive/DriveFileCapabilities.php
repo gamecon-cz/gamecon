@@ -42,6 +42,10 @@ class DriveFileCapabilities extends \Google\Model
   /**
    * @var bool
    */
+  public $canChangeItemDownloadRestriction;
+  /**
+   * @var bool
+   */
   public $canChangeSecurityUpdateEnabled;
   /**
    * @var bool
@@ -66,11 +70,19 @@ class DriveFileCapabilities extends \Google\Model
   /**
    * @var bool
    */
+  public $canDisableInheritedPermissions;
+  /**
+   * @var bool
+   */
   public $canDownload;
   /**
    * @var bool
    */
   public $canEdit;
+  /**
+   * @var bool
+   */
+  public $canEnableInheritedPermissions;
   /**
    * @var bool
    */
@@ -257,6 +269,20 @@ class DriveFileCapabilities extends \Google\Model
   /**
    * @param bool
    */
+  public function setCanChangeItemDownloadRestriction($canChangeItemDownloadRestriction)
+  {
+    $this->canChangeItemDownloadRestriction = $canChangeItemDownloadRestriction;
+  }
+  /**
+   * @return bool
+   */
+  public function getCanChangeItemDownloadRestriction()
+  {
+    return $this->canChangeItemDownloadRestriction;
+  }
+  /**
+   * @param bool
+   */
   public function setCanChangeSecurityUpdateEnabled($canChangeSecurityUpdateEnabled)
   {
     $this->canChangeSecurityUpdateEnabled = $canChangeSecurityUpdateEnabled;
@@ -341,6 +367,20 @@ class DriveFileCapabilities extends \Google\Model
   /**
    * @param bool
    */
+  public function setCanDisableInheritedPermissions($canDisableInheritedPermissions)
+  {
+    $this->canDisableInheritedPermissions = $canDisableInheritedPermissions;
+  }
+  /**
+   * @return bool
+   */
+  public function getCanDisableInheritedPermissions()
+  {
+    return $this->canDisableInheritedPermissions;
+  }
+  /**
+   * @param bool
+   */
   public function setCanDownload($canDownload)
   {
     $this->canDownload = $canDownload;
@@ -365,6 +405,20 @@ class DriveFileCapabilities extends \Google\Model
   public function getCanEdit()
   {
     return $this->canEdit;
+  }
+  /**
+   * @param bool
+   */
+  public function setCanEnableInheritedPermissions($canEnableInheritedPermissions)
+  {
+    $this->canEnableInheritedPermissions = $canEnableInheritedPermissions;
+  }
+  /**
+   * @return bool
+   */
+  public function getCanEnableInheritedPermissions()
+  {
+    return $this->canEnableInheritedPermissions;
   }
   /**
    * @param bool

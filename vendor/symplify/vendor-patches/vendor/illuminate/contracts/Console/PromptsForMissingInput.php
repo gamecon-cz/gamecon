@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Console;
+namespace VendorPatches202507\Illuminate\Contracts\Console;
 
 interface PromptsForMissingInput
 {

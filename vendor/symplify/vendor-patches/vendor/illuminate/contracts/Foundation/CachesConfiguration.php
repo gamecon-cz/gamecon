@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Foundation;
+namespace VendorPatches202507\Illuminate\Contracts\Foundation;
 
 interface CachesConfiguration
 {
