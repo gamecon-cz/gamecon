@@ -12,6 +12,7 @@ require_once __DIR__ . '/../model/funkce/fw-database.php';
 require_once __DIR__ . '/../model/funkce/funkce.php';
 require_once __DIR__ . '/../model/funkce/web-funkce.php';
 require_once __DIR__ . '/../model/funkce/skryte-nastaveni-z-env-funkce.php';
+require_once __DIR__ . '/../nastaveni/jwt-bridge.php';
 
 // načtení konfiguračních konstant
 
