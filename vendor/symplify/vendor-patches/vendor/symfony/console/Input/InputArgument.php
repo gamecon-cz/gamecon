@@ -8,14 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Input;
+namespace VendorPatches202507\Symfony\Component\Console\Input;
 
-use VendorPatches202401\Symfony\Component\Console\Command\Command;
-use VendorPatches202401\Symfony\Component\Console\Completion\CompletionInput;
-use VendorPatches202401\Symfony\Component\Console\Completion\CompletionSuggestions;
-use VendorPatches202401\Symfony\Component\Console\Completion\Suggestion;
-use VendorPatches202401\Symfony\Component\Console\Exception\InvalidArgumentException;
-use VendorPatches202401\Symfony\Component\Console\Exception\LogicException;
+use VendorPatches202507\Symfony\Component\Console\Command\Command;
+use VendorPatches202507\Symfony\Component\Console\Completion\CompletionInput;
+use VendorPatches202507\Symfony\Component\Console\Completion\CompletionSuggestions;
+use VendorPatches202507\Symfony\Component\Console\Completion\Suggestion;
+use VendorPatches202507\Symfony\Component\Console\Exception\InvalidArgumentException;
+use VendorPatches202507\Symfony\Component\Console\Exception\LogicException;
 /**
  * Represents a command line argument.
  *
@@ -35,7 +35,7 @@ class InputArgument
      */
     private $mode;
     /**
-     * @var string|int|bool|mixed[]|null|float
+     * @var mixed[]|bool|float|int|string|null
      */
     private $default;
     /**
@@ -55,7 +55,7 @@ class InputArgument
      *
      * @throws InvalidArgumentException When argument mode is not valid
      */
-    public function __construct(string $name, int $mode = null, string $description = '', $default = null, $suggestedValues = [])
+    public function __construct(string $name, ?int $mode = null, string $description = '', $default = null, $suggestedValues = [])
     {
         if (null === $mode) {
             $mode = self::OPTIONAL;
@@ -99,7 +99,7 @@ class InputArgument
      * @return void
      *
      * @throws LogicException When incorrect default value is given
-     * @param string|bool|int|float|mixed[] $default
+     * @param string|bool|int|float|mixed[]|null $default
      */
     public function setDefault($default = null)
     {
@@ -120,7 +120,7 @@ class InputArgument
     }
     /**
      * Returns the default value.
-     * @return string|bool|int|float|mixed[]|null
+     * @return mixed[]|bool|float|int|string|null
      */
     public function getDefault()
     {

@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Container;
+namespace VendorPatches202507\Illuminate\Contracts\Container;
 
 interface ContextualBindingBuilder
 {

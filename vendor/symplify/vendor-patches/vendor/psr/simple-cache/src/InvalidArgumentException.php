@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Psr\SimpleCache;
+namespace VendorPatches202507\Psr\SimpleCache;
 
 /**
  * Exception interface for invalid cache arguments.

@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Contracts\Service;
+namespace VendorPatches202507\Symfony\Contracts\Service;
 
-use VendorPatches202401\Psr\Container\ContainerInterface;
+use VendorPatches202507\Psr\Container\ContainerInterface;
 /**
  * A ServiceProviderInterface exposes the identifiers and the types of services provided by a container.
  *

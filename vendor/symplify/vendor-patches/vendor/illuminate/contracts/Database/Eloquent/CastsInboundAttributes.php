@@ -1,8 +1,8 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Database\Eloquent;
+namespace VendorPatches202507\Illuminate\Contracts\Database\Eloquent;
 
-use VendorPatches202401\Illuminate\Database\Eloquent\Model;
+use VendorPatches202507\Illuminate\Database\Eloquent\Model;
 interface CastsInboundAttributes
 {
     /**
@@ -11,7 +11,7 @@ interface CastsInboundAttributes
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @param  string  $key
      * @param  mixed  $value
-     * @param  array  $attributes
+     * @param  array<string, mixed>  $attributes
      * @return mixed
      */
     public function set(Model $model, string $key, $value, array $attributes);

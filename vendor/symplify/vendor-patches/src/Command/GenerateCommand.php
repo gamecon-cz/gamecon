@@ -3,11 +3,12 @@
 declare (strict_types=1);
 namespace Symplify\VendorPatches\Command;
 
-use VendorPatches202401\Nette\Utils\FileSystem;
-use VendorPatches202401\Symfony\Component\Console\Command\Command;
-use VendorPatches202401\Symfony\Component\Console\Input\InputInterface;
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
-use VendorPatches202401\Symfony\Component\Console\Style\SymfonyStyle;
+use VendorPatches202507\Nette\Utils\FileSystem;
+use VendorPatches202507\Symfony\Component\Console\Command\Command;
+use VendorPatches202507\Symfony\Component\Console\Input\InputInterface;
+use VendorPatches202507\Symfony\Component\Console\Input\InputOption;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Style\SymfonyStyle;
 use Symplify\VendorPatches\Composer\ComposerPatchesConfigurationUpdater;
 use Symplify\VendorPatches\Console\GenerateCommandReporter;
 use Symplify\VendorPatches\Differ\PatchDiffer;
@@ -46,6 +47,8 @@ final class GenerateCommand extends Command
      * @var \Symfony\Component\Console\Style\SymfonyStyle
      */
     private $symfonyStyle;
+    private const PATCHES_FILE_OPTION = 'patches-file';
+    private const PATCHES_OUTPUT_OPTION = 'patches-folder';
     public function __construct(OldToNewFilesFinder $oldToNewFilesFinder, PatchDiffer $patchDiffer, ComposerPatchesConfigurationUpdater $composerPatchesConfigurationUpdater, PatchFileFactory $patchFileFactory, GenerateCommandReporter $generateCommandReporter, SymfonyStyle $symfonyStyle)
     {
         $this->oldToNewFilesFinder = $oldToNewFilesFinder;
@@ -60,6 +63,8 @@ final class GenerateCommand extends Command
     {
         $this->setName('generate');
         $this->setDescription('Generate patches from /vendor directory');
+        $this->addOption(self::PATCHES_FILE_OPTION, null, InputOption::VALUE_OPTIONAL, 'Path to the patches file, relative to project root');
+        $this->addOption(self::PATCHES_OUTPUT_OPTION, null, InputOption::VALUE_OPTIONAL, 'Folder to output the patches to.');
     }
     protected function execute(InputInterface $input, OutputInterface $output) : int
     {
@@ -67,6 +72,10 @@ final class GenerateCommand extends Command
         $oldAndNewFiles = $this->oldToNewFilesFinder->find($projectVendorDirectory);
         $composerExtraPatches = [];
         $addedPatchFilesByPackageName = [];
+        $patchesOutputFolder = $input->getOption(self::PATCHES_OUTPUT_OPTION);
+        if (\is_string($patchesOutputFolder)) {
+            $this->patchFileFactory->setOutputFolder($patchesOutputFolder);
+        }
         foreach ($oldAndNewFiles as $oldAndNewFile) {
             if ($oldAndNewFile->areContentsIdentical()) {
                 $this->generateCommandReporter->reportIdenticalNewAndOldFile($oldAndNewFile);
@@ -89,7 +98,12 @@ final class GenerateCommand extends Command
             $addedPatchFilesByPackageName[$oldAndNewFile->getPackageName()][] = $patchFileRelativePath;
         }
         if ($composerExtraPatches !== []) {
-            $this->composerPatchesConfigurationUpdater->updateComposerJsonAndPrint(\getcwd() . '/composer.json', $composerExtraPatches);
+            $patchesFilePath = $input->getOption(self::PATCHES_FILE_OPTION);
+            if (\is_string($patchesFilePath)) {
+                $this->composerPatchesConfigurationUpdater->updatePatchesFileJsonAndPrint(FileSystem::joinPaths(\getcwd(), $patchesFilePath), $composerExtraPatches);
+            } else {
+                $this->composerPatchesConfigurationUpdater->updateComposerJsonAndPrint(\getcwd() . '/composer.json', $composerExtraPatches);
+            }
         }
         if ($addedPatchFilesByPackageName !== []) {
             $message = \sprintf('Great! %d new patch files added', \count($addedPatchFilesByPackageName));

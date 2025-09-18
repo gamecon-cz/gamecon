@@ -21,6 +21,7 @@ use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Sql;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice as Klic;
 use Gamecon\Uzivatel\Finance;
+use App\Kernel;
 
 class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
 {
@@ -35,6 +36,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         ?bool                   $databazoveNastaveni = null,
         ?string                 $projectRootDir = null,
         ?string                 $cacheDir = null,
+        ?Kernel                 $kernel = null,
     ): self {
         global $systemoveNastaveni;
 
@@ -52,6 +54,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             ?? try_constant('PROJECT_ROOT_DIR')
                ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
             $cacheDir ?? SPEC,
+            $kernel ?? new Kernel('dev', true),
         );
 
         if ($rocnik === ROCNIK) {
@@ -82,6 +85,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         private readonly DatabazoveNastaveni     $databazoveNastaveni,
         private readonly string                  $rootAdresarProjektu,
         private readonly string                  $cacheDir,
+        private readonly Kernel                  $kernel,
     ) {
         if ($jsmeNaLocale && $jsmeNaBete) {
             throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
@@ -1094,5 +1098,12 @@ SQL;
         }
 
         return $this->tableDataVersionsRepository;
+    }
+
+    public function kernel(): Kernel
+    {
+        $this->kernel->boot();
+
+        return $this->kernel;
     }
 }

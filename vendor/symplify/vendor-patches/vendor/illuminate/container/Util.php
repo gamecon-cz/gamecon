@@ -1,8 +1,10 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Container;
+namespace VendorPatches202507\Illuminate\Container;
 
 use Closure;
+use VendorPatches202507\Illuminate\Contracts\Container\ContextualAttribute;
+use ReflectionAttribute;
 use ReflectionNamedType;
 /**
  * @internal
@@ -61,5 +63,15 @@ class Util
             }
         }
         return $name;
+    }
+    /**
+     * Get a contextual attribute from a dependency.
+     *
+     * @param  \ReflectionParameter  $dependency
+     * @return \ReflectionAttribute|null
+     */
+    public static function getContextualAttributeFromDependency($dependency)
+    {
+        return (\method_exists($dependency, 'getAttributes') ? $dependency->getAttributes(ContextualAttribute::class, ReflectionAttribute::IS_INSTANCEOF) : [])[0] ?? null;
     }
 }

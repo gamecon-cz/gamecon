@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Encryption;
+namespace VendorPatches202507\Illuminate\Contracts\Encryption;
 
 interface StringEncrypter
 {

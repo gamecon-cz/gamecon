@@ -5,7 +5,7 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace VendorPatches202401\Nette\Utils;
+namespace VendorPatches202507\Nette\Utils;
 
 /**
  * The exception that is thrown when an image error occurs.

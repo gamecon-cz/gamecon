@@ -1,8 +1,8 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Database\Eloquent;
+namespace VendorPatches202507\Illuminate\Contracts\Database\Eloquent;
 
-use VendorPatches202401\Illuminate\Contracts\Database\Query\Builder as BaseContract;
+use VendorPatches202507\Illuminate\Contracts\Database\Query\Builder as BaseContract;
 /**
  * This interface is intentionally empty and exists to improve IDE support.
  *

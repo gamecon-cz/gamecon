@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Translation;
+namespace VendorPatches202507\Illuminate\Contracts\Translation;
 
 interface Loader
 {

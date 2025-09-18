@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\String;
+namespace VendorPatches202507\Symfony\Component\String;
 
-use VendorPatches202401\Symfony\Component\String\Exception\ExceptionInterface;
-use VendorPatches202401\Symfony\Component\String\Exception\InvalidArgumentException;
-use VendorPatches202401\Symfony\Component\String\Exception\RuntimeException;
+use VendorPatches202507\Symfony\Component\String\Exception\ExceptionInterface;
+use VendorPatches202507\Symfony\Component\String\Exception\InvalidArgumentException;
+use VendorPatches202507\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract Unicode characters.
  *
@@ -129,13 +129,19 @@ abstract class AbstractUnicodeString extends AbstractString
             } elseif (!\function_exists('iconv')) {
                 $s = \preg_replace('/[^\\x00-\\x7F]/u', '?', $s);
             } else {
-                $s = @\preg_replace_callback('/[^\\x00-\\x7F]/u', static function ($c) {
-                    $c = (string) \iconv('UTF-8', 'ASCII//TRANSLIT', $c[0]);
-                    if ('' === $c && '' === \iconv('UTF-8', 'ASCII//TRANSLIT', '²')) {
-                        throw new \LogicException(\sprintf('"%s" requires a translit-able iconv implementation, try installing "gnu-libiconv" if you\'re using Alpine Linux.', static::class));
-                    }
-                    return 1 < \strlen($c) ? \ltrim($c, '\'`"^~') : ('' !== $c ? $c : '?');
-                }, $s);
+                $previousLocale = \setlocale(\LC_CTYPE, 0);
+                try {
+                    \setlocale(\LC_CTYPE, 'C');
+                    $s = @\preg_replace_callback('/[^\\x00-\\x7F]/u', static function ($c) {
+                        $c = (string) \iconv('UTF-8', 'ASCII//TRANSLIT', $c[0]);
+                        if ('' === $c && '' === \iconv('UTF-8', 'ASCII//TRANSLIT', '²')) {
+                            throw new \LogicException(\sprintf('"%s" requires a translit-able iconv implementation, try installing "gnu-libiconv" if you\'re using Alpine Linux.', static::class));
+                        }
+                        return 1 < \strlen($c) ? \ltrim($c, '\'`"^~') : ('' !== $c ? $c : '?');
+                    }, $s);
+                } finally {
+                    \setlocale(\LC_CTYPE, $previousLocale);
+                }
             }
         }
         $str->string .= $s;
@@ -147,7 +153,7 @@ abstract class AbstractUnicodeString extends AbstractString
     public function camel()
     {
         $str = clone $this;
-        $str->string = \str_replace(' ', '', \preg_replace_callback('/\\b.(?![A-Z]{2,})/u', static function ($m) {
+        $str->string = \str_replace(' ', '', \preg_replace_callback('/\\b.(?!\\p{Lu})/u', static function ($m) {
             static $i = 0;
             return 1 === ++$i ? 'İ' === $m[0] ? 'i̇' : \mb_strtolower($m[0], 'UTF-8') : \mb_convert_case($m[0], \MB_CASE_TITLE, 'UTF-8');
         }, \preg_replace('/[^\\pL0-9]++/u', ' ', $this->string)));
@@ -176,7 +182,7 @@ abstract class AbstractUnicodeString extends AbstractString
         $str = clone $this;
         if (!$compat || !\defined('Normalizer::NFKC_CF')) {
             $str->string = \normalizer_normalize($str->string, $compat ? \Normalizer::NFKC : \Normalizer::NFC);
-            $str->string = \mb_strtolower(\str_replace(self::FOLD_FROM, self::FOLD_TO, $this->string), 'UTF-8');
+            $str->string = \mb_strtolower(\str_replace(self::FOLD_FROM, self::FOLD_TO, $str->string), 'UTF-8');
         } else {
             $str->string = \normalizer_normalize($str->string, \Normalizer::NFKC_CF);
         }
@@ -185,7 +191,7 @@ abstract class AbstractUnicodeString extends AbstractString
     /**
      * @return static
      */
-    public function join(array $strings, string $lastGlue = null)
+    public function join(array $strings, ?string $lastGlue = null)
     {
         $str = clone $this;
         $tail = null !== $lastGlue && 1 < \count($strings) ? $lastGlue . \array_pop($strings) : '';
@@ -203,6 +209,19 @@ abstract class AbstractUnicodeString extends AbstractString
         $str = clone $this;
         $str->string = \mb_strtolower(\str_replace('İ', 'i̇', $str->string), 'UTF-8');
         return $str;
+    }
+    /**
+     * @param string $locale In the format language_region (e.g. tr_TR)
+     * @return static
+     */
+    public function localeLower(string $locale)
+    {
+        if (null !== ($transliterator = $this->getLocaleTransliterator($locale, 'Lower'))) {
+            $str = clone $this;
+            $str->string = $transliterator->transliterate($str->string);
+            return $str;
+        }
+        return $this->lower();
     }
     public function match(string $regexp, int $flags = 0, int $offset = 0) : array
     {
@@ -328,7 +347,7 @@ abstract class AbstractUnicodeString extends AbstractString
     public function snake()
     {
         $str = $this->camel();
-        $str->string = \mb_strtolower(\preg_replace(['/(\\p{Lu}+)(\\p{Lu}\\p{Ll})/u', '/([\\p{Ll}0-9])(\\p{Lu})/u'], 'VendorPatches202401\\1_\\2', $str->string), 'UTF-8');
+        $str->string = \mb_strtolower(\preg_replace(['/(\\p{Lu}+)(\\p{Lu}\\p{Ll})/u', '/([\\p{Ll}0-9])(\\p{Lu})/u'], 'VendorPatches202507\\1_\\2', $str->string), 'UTF-8');
         return $str;
     }
     /**
@@ -342,6 +361,19 @@ abstract class AbstractUnicodeString extends AbstractString
             return \mb_convert_case($m[0], \MB_CASE_TITLE, 'UTF-8');
         }, $str->string, $limit);
         return $str;
+    }
+    /**
+     * @param string $locale In the format language_region (e.g. tr_TR)
+     * @return static
+     */
+    public function localeTitle(string $locale)
+    {
+        if (null !== ($transliterator = $this->getLocaleTransliterator($locale, 'Title'))) {
+            $str = clone $this;
+            $str->string = $transliterator->transliterate($str->string);
+            return $str;
+        }
+        return $this->title();
     }
     /**
      * @return static
@@ -379,7 +411,7 @@ abstract class AbstractUnicodeString extends AbstractString
         }
         $str = clone $this;
         if ($prefix instanceof \Traversable) {
-            $prefix = \iterator_to_array($prefix, \false);
+            $prefix = \iterator_to_array(\is_array($prefix) ? new \ArrayIterator($prefix) : $prefix, \false);
         } elseif ($prefix instanceof parent) {
             $prefix = $prefix->string;
         }
@@ -410,7 +442,7 @@ abstract class AbstractUnicodeString extends AbstractString
         }
         $str = clone $this;
         if ($suffix instanceof \Traversable) {
-            $suffix = \iterator_to_array($suffix, \false);
+            $suffix = \iterator_to_array(\is_array($suffix) ? new \ArrayIterator($suffix) : $suffix, \false);
         } elseif ($suffix instanceof parent) {
             $suffix = $suffix->string;
         }
@@ -426,6 +458,19 @@ abstract class AbstractUnicodeString extends AbstractString
         $str = clone $this;
         $str->string = \mb_strtoupper($str->string, 'UTF-8');
         return $str;
+    }
+    /**
+     * @param string $locale In the format language_region (e.g. tr_TR)
+     * @return static
+     */
+    public function localeUpper(string $locale)
+    {
+        if (null !== ($transliterator = $this->getLocaleTransliterator($locale, 'Upper'))) {
+            $str = clone $this;
+            $str->string = $transliterator->transliterate($str->string);
+            return $str;
+        }
+        return $this->upper();
     }
     public function width(bool $ignoreAnsiDecoration = \true) : int
     {
@@ -528,5 +573,27 @@ abstract class AbstractUnicodeString extends AbstractString
             ++$width;
         }
         return $width;
+    }
+    private function getLocaleTransliterator(string $locale, string $id) : ?\Transliterator
+    {
+        $rule = $locale . '-' . $id;
+        if (\array_key_exists($rule, self::$transliterators)) {
+            return self::$transliterators[$rule];
+        }
+        if (null !== ($transliterator = self::$transliterators[$rule] = \Transliterator::create($rule))) {
+            return $transliterator;
+        }
+        // Try to find a parent locale (nl_BE -> nl)
+        if (\false === ($i = \strpos($locale, '_'))) {
+            return null;
+        }
+        $parentRule = \substr_replace($locale, '-' . $id, $i);
+        // Parent locale was already cached, return and store as current locale
+        if (\array_key_exists($parentRule, self::$transliterators)) {
+            return self::$transliterators[$rule] = self::$transliterators[$parentRule];
+        }
+        // Create transliterator based on parent locale and cache the result on both initial and parent locale values
+        $transliterator = \Transliterator::create($parentRule);
+        return self::$transliterators[$rule] = self::$transliterators[$parentRule] = $transliterator;
     }
 }

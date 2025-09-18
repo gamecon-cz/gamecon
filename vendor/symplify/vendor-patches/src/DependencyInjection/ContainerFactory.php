@@ -3,13 +3,13 @@
 declare (strict_types=1);
 namespace Symplify\VendorPatches\DependencyInjection;
 
-use VendorPatches202401\Illuminate\Container\Container;
-use VendorPatches202401\SebastianBergmann\Diff\Differ;
-use VendorPatches202401\SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
-use VendorPatches202401\Symfony\Component\Console\Application;
-use VendorPatches202401\Symfony\Component\Console\Input\ArrayInput;
-use VendorPatches202401\Symfony\Component\Console\Output\ConsoleOutput;
-use VendorPatches202401\Symfony\Component\Console\Style\SymfonyStyle;
+use VendorPatches202507\Illuminate\Container\Container;
+use VendorPatches202507\SebastianBergmann\Diff\Differ;
+use VendorPatches202507\SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
+use VendorPatches202507\Symfony\Component\Console\Application;
+use VendorPatches202507\Symfony\Component\Console\Input\ArrayInput;
+use VendorPatches202507\Symfony\Component\Console\Output\ConsoleOutput;
+use VendorPatches202507\Symfony\Component\Console\Style\SymfonyStyle;
 use Symplify\VendorPatches\Command\GenerateCommand;
 final class ContainerFactory
 {

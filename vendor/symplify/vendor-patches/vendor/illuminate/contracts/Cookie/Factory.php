@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Cookie;
+namespace VendorPatches202507\Illuminate\Contracts\Cookie;
 
 interface Factory
 {

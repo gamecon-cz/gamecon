@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\String\Inflector;
+namespace VendorPatches202507\Symfony\Component\String\Inflector;
 
 final class EnglishInflector implements InflectorInterface
 {
@@ -23,8 +23,26 @@ final class EnglishInflector implements InflectorInterface
         // Third entry: Whether the suffix may succeed a vowel
         // Fourth entry: Whether the suffix may succeed a consonant
         // Fifth entry: singular suffix, normal
-        // bacteria (bacterium), criteria (criterion), phenomena (phenomenon)
-        ['a', 1, \true, \true, ['on', 'um']],
+        // bacteria (bacterium)
+        ['airetcab', 8, \true, \true, 'bacterium'],
+        // corpora (corpus)
+        ['aroproc', 7, \true, \true, 'corpus'],
+        // criteria (criterion)
+        ['airetirc', 8, \true, \true, 'criterion'],
+        // curricula (curriculum)
+        ['alucirruc', 9, \true, \true, 'curriculum'],
+        // quora (quorum)
+        ['arouq', 5, \true, \true, 'quorum'],
+        // genera (genus)
+        ['areneg', 6, \true, \true, 'genus'],
+        // media (medium)
+        ['aidem', 5, \true, \true, 'medium'],
+        // memoranda (memorandum)
+        ['adnaromem', 9, \true, \true, 'memorandum'],
+        // phenomena (phenomenon)
+        ['anemonehp', 9, \true, \true, 'phenomenon'],
+        // strata (stratum)
+        ['atarts', 6, \true, \true, 'stratum'],
         // nebulae (nebula)
         ['ea', 2, \true, \true, 'a'],
         // services (service)
@@ -71,6 +89,8 @@ final class EnglishInflector implements InflectorInterface
         ['sess', 4, \true, \false, 'ss'],
         // statuses (status)
         ['sesutats', 8, \true, \true, 'status'],
+        // article (articles), ancle (ancles)
+        ['sel', 3, \true, \true, 'le'],
         // analyses (analysis), ellipses (ellipsis), fungi (fungus),
         // neuroses (neurosis), theses (thesis), emphases (emphasis),
         // oases (oasis), crises (crisis), houses (house), bases (base),
@@ -122,6 +142,8 @@ final class EnglishInflector implements InflectorInterface
         // Third entry: Whether the suffix may succeed a vowel
         // Fourth entry: Whether the suffix may succeed a consonant
         // Fifth entry: plural suffix, normal
+        // axes (axis)
+        ['sixa', 4, \false, \false, 'axes'],
         // criterion (criteria)
         ['airetirc', 8, \false, \false, 'criterion'],
         // nebulae (nebula)
@@ -168,28 +190,28 @@ final class EnglishInflector implements InflectorInterface
         ['hs', 2, \true, \true, 'shes'],
         // teeth (tooth)
         ['htoot', 5, \true, \true, 'teeth'],
-        // bacteria (bacterium), criteria (criterion), phenomena (phenomenon)
+        // albums (album)
+        ['mubla', 5, \true, \true, 'albums'],
+        // quorums (quorum)
+        ['murouq', 6, \true, \true, ['quora', 'quorums']],
+        // bacteria (bacterium), curricula (curriculum), media (medium), memoranda (memorandum), phenomena (phenomenon), strata (stratum)
         ['mu', 2, \true, \true, 'a'],
         // men (man), women (woman)
         ['nam', 3, \true, \true, 'men'],
         // people (person)
         ['nosrep', 6, \true, \true, ['persons', 'people']],
-        // bacteria (bacterium), criteria (criterion), phenomena (phenomenon)
-        ['noi', 3, \true, \true, 'ions'],
-        // coupon (coupons)
-        ['nop', 3, \true, \true, 'pons'],
-        // seasons (season), treasons (treason), poisons (poison), lessons (lesson)
-        ['nos', 3, \true, \true, 'sons'],
-        // icons (icon)
-        ['noc', 3, \true, \true, 'cons'],
-        // bacteria (bacterium), criteria (criterion), phenomena (phenomenon)
-        ['no', 2, \true, \true, 'a'],
+        // criteria (criterion)
+        ['noiretirc', 9, \true, \true, 'criteria'],
+        // phenomena (phenomenon)
+        ['nonemonehp', 10, \true, \true, 'phenomena'],
         // echoes (echo)
         ['ohce', 4, \true, \true, 'echoes'],
         // heroes (hero)
         ['oreh', 4, \true, \true, 'heroes'],
         // atlases (atlas)
         ['salta', 5, \true, \true, 'atlases'],
+        // aliases (alias)
+        ['saila', 5, \true, \true, 'aliases'],
         // irises (iris)
         ['siri', 4, \true, \true, 'irises'],
         // analyses (analysis), ellipses (ellipsis), neuroses (neurosis)
@@ -204,10 +226,16 @@ final class EnglishInflector implements InflectorInterface
         ['sub', 3, \true, \true, 'buses'],
         // circuses (circus)
         ['suc', 3, \true, \true, 'cuses'],
+        // hippocampi (hippocampus)
+        ['supmacoppih', 11, \false, \false, 'hippocampi'],
+        // campuses (campus)
+        ['sup', 3, \true, \true, 'puses'],
         // status (status)
         ['sutats', 6, \true, \true, ['status', 'statuses']],
         // conspectuses (conspectus), prospectuses (prospectus)
         ['sutcep', 6, \true, \true, 'pectuses'],
+        // nexuses (nexus)
+        ['suxen', 5, \false, \false, 'nexuses'],
         // fungi (fungus), alumni (alumnus), syllabi (syllabus), radii (radius)
         ['su', 2, \true, \true, 'i'],
         // news (news)
@@ -222,12 +250,12 @@ final class EnglishInflector implements InflectorInterface
         ['xaoh', 4, \true, \false, 'hoaxes'],
         // indices (index)
         ['xedni', 5, \false, \true, ['indicies', 'indexes']],
+        // fax (faxes, faxxes)
+        ['xaf', 3, \true, \true, ['faxes', 'faxxes']],
         // boxes (box)
         ['xo', 2, \false, \true, 'oxes'],
-        // indexes (index), matrixes (matrix)
-        ['x', 1, \true, \false, ['cies', 'xes']],
-        // appendices (appendix)
-        ['xi', 2, \false, \true, 'ices'],
+        // indexes (index), matrixes (matrix), appendices (appendix)
+        ['x', 1, \true, \false, ['ces', 'xes']],
         // babies (baby)
         ['y', 1, \false, \true, 'ies'],
         // quizzes (quiz)
@@ -270,6 +298,10 @@ final class EnglishInflector implements InflectorInterface
         'seiceps',
         // traffic
         'ciffart',
+        // aircraft
+        'tfarcria',
+        // hardware
+        'erawdrah',
     ];
     public function singularize(string $plural) : array
     {

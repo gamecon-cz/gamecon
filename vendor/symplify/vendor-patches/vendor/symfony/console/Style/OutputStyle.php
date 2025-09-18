@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Style;
+namespace VendorPatches202507\Symfony\Component\Console\Style;
 
-use VendorPatches202401\Symfony\Component\Console\Formatter\OutputFormatterInterface;
-use VendorPatches202401\Symfony\Component\Console\Helper\ProgressBar;
-use VendorPatches202401\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use VendorPatches202507\Symfony\Component\Console\Helper\ProgressBar;
+use VendorPatches202507\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
 /**
  * Decorates output to add console style guide helpers.
  *

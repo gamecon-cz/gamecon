@@ -5,10 +5,10 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace VendorPatches202401\Nette\Utils;
+namespace VendorPatches202507\Nette\Utils;
 
-use VendorPatches202401\Nette;
-use VendorPatches202401\Nette\MemberAccessException;
+use VendorPatches202507\Nette;
+use VendorPatches202507\Nette\MemberAccessException;
 /**
  * Nette\SmartObject helpers.
  * @internal

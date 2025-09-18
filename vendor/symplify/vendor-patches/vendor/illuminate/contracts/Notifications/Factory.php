@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Notifications;
+namespace VendorPatches202507\Illuminate\Contracts\Notifications;
 
 interface Factory
 {

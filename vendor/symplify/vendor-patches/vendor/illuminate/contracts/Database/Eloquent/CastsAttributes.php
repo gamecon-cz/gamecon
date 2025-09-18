@@ -1,8 +1,8 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Database\Eloquent;
+namespace VendorPatches202507\Illuminate\Contracts\Database\Eloquent;
 
-use VendorPatches202401\Illuminate\Database\Eloquent\Model;
+use VendorPatches202507\Illuminate\Database\Eloquent\Model;
 /**
  * @template TGet
  * @template TSet

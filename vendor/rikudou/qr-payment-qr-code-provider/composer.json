@@ -12,11 +12,11 @@
     "rikudou/qr-payment-interface": "^1.0"
   },
   "require-dev": {
-    "endroid/qr-code": "^4.3",
+    "endroid/qr-code": "^6.0",
     "friendsofphp/php-cs-fixer": "^3.1",
     "phpstan/phpstan": "^0.12.99",
-    "bacon/bacon-qr-code": "^2.0",
-    "chillerlan/php-qrcode": "^4.3"
+    "bacon/bacon-qr-code": "^3.0",
+    "chillerlan/php-qrcode": "^5.0"
   },
   "scripts": {
     "fixer": "php-cs-fixer fix src --verbose",

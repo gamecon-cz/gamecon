@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Helper;
+namespace VendorPatches202507\Symfony\Component\Console\Helper;
 
-use VendorPatches202401\Symfony\Component\Console\Exception\InvalidArgumentException;
+use VendorPatches202507\Symfony\Component\Console\Exception\InvalidArgumentException;
 /**
  * @author Yewhen Khoptynskyi <khoptynskyi@gmail.com>
  */

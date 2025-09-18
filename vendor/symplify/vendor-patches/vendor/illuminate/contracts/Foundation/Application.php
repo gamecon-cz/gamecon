@@ -1,8 +1,8 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Foundation;
+namespace VendorPatches202507\Illuminate\Contracts\Foundation;
 
-use VendorPatches202401\Illuminate\Contracts\Container\Container;
+use VendorPatches202507\Illuminate\Contracts\Container\Container;
 interface Application extends Container
 {
     /**

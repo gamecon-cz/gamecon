@@ -1,8 +1,8 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Mail;
+namespace VendorPatches202507\Illuminate\Contracts\Mail;
 
-use VendorPatches202401\Illuminate\Contracts\Queue\Factory as Queue;
+use VendorPatches202507\Illuminate\Contracts\Queue\Factory as Queue;
 interface Mailable
 {
     /**

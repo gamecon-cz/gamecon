@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Database\Events;
+namespace VendorPatches202507\Illuminate\Contracts\Database\Events;
 
 interface MigrationEvent
 {

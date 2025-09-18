@@ -1,5 +1,5 @@
 #!/usr/bin/env php
 <?php 
-namespace VendorPatches202401;
+namespace VendorPatches202507;
 
 require __DIR__ . '/vendor-patches.php';

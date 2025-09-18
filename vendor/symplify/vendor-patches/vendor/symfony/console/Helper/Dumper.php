@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Helper;
+namespace VendorPatches202507\Symfony\Component\Console\Helper;
 
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
-use VendorPatches202401\Symfony\Component\VarDumper\Cloner\ClonerInterface;
-use VendorPatches202401\Symfony\Component\VarDumper\Cloner\VarCloner;
-use VendorPatches202401\Symfony\Component\VarDumper\Dumper\CliDumper;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\VarDumper\Cloner\ClonerInterface;
+use VendorPatches202507\Symfony\Component\VarDumper\Cloner\VarCloner;
+use VendorPatches202507\Symfony\Component\VarDumper\Dumper\CliDumper;
 /**
  * @author Roland Franssen <franssen.roland@gmail.com>
  */
@@ -35,7 +35,7 @@ final class Dumper
      * @var \Closure
      */
     private $handler;
-    public function __construct(OutputInterface $output, CliDumper $dumper = null, ClonerInterface $cloner = null)
+    public function __construct(OutputInterface $output, ?CliDumper $dumper = null, ?ClonerInterface $cloner = null)
     {
         $this->output = $output;
         $this->dumper = $dumper;

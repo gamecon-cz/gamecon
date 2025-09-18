@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace Symplify\VendorPatches\Differ;
 
-use VendorPatches202401\Nette\Utils\Strings;
-use VendorPatches202401\SebastianBergmann\Diff\Differ;
+use VendorPatches202507\Nette\Utils\Strings;
+use VendorPatches202507\SebastianBergmann\Diff\Differ;
 use Symplify\VendorPatches\Exception\ShouldNotHappenException;
 use Symplify\VendorPatches\Utils\FileSystemHelper;
 use Symplify\VendorPatches\ValueObject\OldAndNewFile;

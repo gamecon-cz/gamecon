@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Pipeline;
+namespace VendorPatches202507\Illuminate\Contracts\Pipeline;
 
 interface Hub
 {

@@ -19,7 +19,6 @@ use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
-use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\RolePodleRocniku;
 use Gamecon\Uzivatel\SqlStruktura\PravaRoleSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
@@ -1206,7 +1205,7 @@ SQL,
     /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
      * @param bool $naUvodniStranku
      */
-    public function odhlas($naUvodniStranku = true)
+    public function odhlas(bool $naUvodniStranku = true)
     {
         $a = $this->koncovkaDlePohlavi();
         $this->odhlasProTed();
@@ -1222,7 +1221,7 @@ SQL,
     /**
      * Odhlásí aktuálně přihlášeného uživatele
      */
-    private function odhlasProTed()
+    private function odhlasProTed(): void
     {
         if (!session_id()) {
             session_start();
@@ -1231,7 +1230,7 @@ SQL,
     }
 
     /** Odpojí od session uživatele na indexu $klic */
-    public static function odhlasKlic($klic)
+    public static function odhlasKlic(string $klic): void
     {
         if (!session_id()) {
             session_start();
@@ -1278,7 +1277,7 @@ SQL,
     /**
      * Otočí (znovunačte, přihlásí a odhlásí, ...) uživatele
      */
-    public function otoc()
+    public function otoc(): void
     {
         if (PHP_SAPI === 'cli') {
             $this->r = self::zId($this->id())->r;
@@ -1403,10 +1402,10 @@ SQL,
      * @return mixed objekt s uživatelem nebo null
      */
     public static function prihlas(
-        $login,
-        $heslo,
-        $klic = self::UZIVATEL,
-    ) {
+        string $login,
+        string $heslo,
+        string $klic = self::UZIVATEL,
+    ): ?Uzivatel {
         if (!$login || !$heslo) {
             return null;
         }
@@ -1464,11 +1463,10 @@ SQL,
      * @return null|Uzivatel nebo null
      */
     public static function prihlasId(
-        $idUzivatele,
-        $klic = self::UZIVATEL,
+        int | string $idUzivatele,
+                     $klic = self::UZIVATEL,
     ): ?Uzivatel {
-        $idUzivatele  = (int)$idUzivatele;
-        $uzivatelData = dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=$0', [$idUzivatele]);
+        $uzivatelData = dbOneLine("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele={$idUzivatele}", [$idUzivatele]);
         if (!$uzivatelData) {
             return null;
         }
@@ -1485,10 +1483,10 @@ SQL,
             $prava[] = (int)$r['id_prava'];
         }
         $uzivatelData['prava'] = $prava;
-        $uzivatelData          = new Uzivatel($uzivatelData);
-        $uzivatelData->klic    = $klic;
+        $uzivatel              = new Uzivatel($uzivatelData);
+        $uzivatel->klic        = $klic;
 
-        return $uzivatelData;
+        return $uzivatel;
     }
 
     /** Alias prihlas() pro trvalé přihlášení */

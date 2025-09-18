@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\String;
+namespace VendorPatches202507\Symfony\Component\String;
 
-use VendorPatches202401\Symfony\Component\String\Exception\ExceptionInterface;
-use VendorPatches202401\Symfony\Component\String\Exception\InvalidArgumentException;
-use VendorPatches202401\Symfony\Component\String\Exception\RuntimeException;
+use VendorPatches202507\Symfony\Component\String\Exception\ExceptionInterface;
+use VendorPatches202507\Symfony\Component\String\Exception\InvalidArgumentException;
+use VendorPatches202507\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract characters.
  *
@@ -340,7 +340,7 @@ abstract class AbstractString implements \JsonSerializable
     /**
      * @return static
      */
-    public abstract function join(array $strings, string $lastGlue = null);
+    public abstract function join(array $strings, ?string $lastGlue = null);
     public function jsonSerialize() : string
     {
         return $this->string;
@@ -402,7 +402,7 @@ abstract class AbstractString implements \JsonSerializable
     /**
      * @return static
      */
-    public abstract function slice(int $start = 0, int $length = null);
+    public abstract function slice(int $start = 0, ?int $length = null);
     /**
      * @return static
      */
@@ -410,11 +410,25 @@ abstract class AbstractString implements \JsonSerializable
     /**
      * @return static
      */
-    public abstract function splice(string $replacement, int $start = 0, int $length = null);
+    public function kebab()
+    {
+        return $this->snake()->replace('_', '-');
+    }
+    /**
+     * @return static
+     */
+    public function pascal()
+    {
+        return $this->camel()->title();
+    }
+    /**
+     * @return static
+     */
+    public abstract function splice(string $replacement, int $start = 0, ?int $length = null);
     /**
      * @return static[]
      */
-    public function split(string $delimiter, int $limit = null, int $flags = null) : array
+    public function split(string $delimiter, ?int $limit = null, ?int $flags = null) : array
     {
         if (null === $flags) {
             throw new \TypeError('Split behavior when $flags is null must be implemented by child classes.');
@@ -465,7 +479,7 @@ abstract class AbstractString implements \JsonSerializable
      * @return static
      */
     public abstract function title(bool $allWords = \false);
-    public function toByteString(string $toEncoding = null) : ByteString
+    public function toByteString(?string $toEncoding = null) : ByteString
     {
         $b = new ByteString();
         $toEncoding = \in_array($toEncoding, ['utf8', 'utf-8', 'UTF8'], \true) ? 'UTF-8' : $toEncoding;
@@ -562,9 +576,10 @@ abstract class AbstractString implements \JsonSerializable
         return $str;
     }
     /**
+     * @param bool|\Symfony\Component\String\TruncateMode $cut
      * @return static
      */
-    public function truncate(int $length, string $ellipsis = '', bool $cut = \true)
+    public function truncate(int $length, string $ellipsis = '', $cut = TruncateMode::Char)
     {
         $stringLength = $this->length();
         if ($stringLength <= $length) {
@@ -574,13 +589,22 @@ abstract class AbstractString implements \JsonSerializable
         if ($length < $ellipsisLength) {
             $ellipsisLength = 0;
         }
-        if (!$cut) {
+        $desiredLength = $length;
+        if (TruncateMode::WordAfter === $cut || !$cut) {
             if (null === ($length = $this->indexOf([' ', "\r", "\n", "\t"], ($length ?: 1) - 1))) {
                 return clone $this;
             }
             $length += $ellipsisLength;
+        } elseif (TruncateMode::WordBefore === $cut && null !== $this->indexOf([' ', "\r", "\n", "\t"], ($length ?: 1) - 1)) {
+            $length += $ellipsisLength;
         }
         $str = $this->slice(0, $length - $ellipsisLength);
+        if (TruncateMode::WordBefore === $cut) {
+            if (0 === $ellipsisLength && $desiredLength === $this->indexOf([' ', "\r", "\n", "\t"], $length)) {
+                return $str;
+            }
+            $str = $str->beforeLast([' ', "\r", "\n", "\t"]);
+        }
         return $ellipsisLength ? $str->trimEnd()->append($ellipsis) : $str;
     }
     /**

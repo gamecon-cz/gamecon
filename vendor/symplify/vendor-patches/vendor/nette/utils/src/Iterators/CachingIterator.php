@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace VendorPatches202401\Nette\Iterators;
+namespace VendorPatches202507\Nette\Iterators;
 
-use VendorPatches202401\Nette;
+use VendorPatches202507\Nette;
 /**
  * Smarter caching iterator.
  *

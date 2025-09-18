@@ -8,14 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Helper;
+namespace VendorPatches202507\Symfony\Component\Console\Helper;
 
-use VendorPatches202401\Symfony\Component\Console\Cursor;
-use VendorPatches202401\Symfony\Component\Console\Exception\LogicException;
-use VendorPatches202401\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use VendorPatches202401\Symfony\Component\Console\Output\ConsoleSectionOutput;
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
-use VendorPatches202401\Symfony\Component\Console\Terminal;
+use VendorPatches202507\Symfony\Component\Console\Cursor;
+use VendorPatches202507\Symfony\Component\Console\Exception\LogicException;
+use VendorPatches202507\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Output\ConsoleSectionOutput;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Terminal;
 /**
  * The ProgressBar provides helpers to display progress output.
  *
@@ -238,9 +238,9 @@ final class ProgressBar
     {
         $this->messages[$name] = $message;
     }
-    public function getMessage(string $name = 'message') : string
+    public function getMessage(string $name = 'message') : ?string
     {
-        return $this->messages[$name];
+        return $this->messages[$name] ?? null;
     }
     public function getStartTime() : int
     {
@@ -275,7 +275,7 @@ final class ProgressBar
     }
     public function getRemaining() : float
     {
-        if (!$this->step) {
+        if (0 === $this->step || $this->step === $this->startingStep) {
             return 0;
         }
         return \round((\time() - $this->startTime) / ($this->step - $this->startingStep) * ($this->max - $this->step));
@@ -345,7 +345,7 @@ final class ProgressBar
      *
      * @return iterable<TKey, TValue>
      */
-    public function iterate(iterable $iterable, int $max = null) : iterable
+    public function iterate(iterable $iterable, ?int $max = null) : iterable
     {
         $this->start($max ?? (\is_array($iterable) || $iterable instanceof \Countable ? \count($iterable) : 0));
         foreach ($iterable as $key => $value) {
@@ -360,7 +360,7 @@ final class ProgressBar
      * @param int|null $max     Number of steps to complete the bar (0 if indeterminate), null to leave unchanged
      * @param int      $startAt The starting point of the bar (useful e.g. when resuming a previously started bar)
      */
-    public function start(int $max = null, int $startAt = 0) : void
+    public function start(?int $max = null, int $startAt = 0) : void
     {
         $this->startTime = \time();
         $this->step = $startAt;
@@ -489,6 +489,11 @@ final class ProgressBar
                 if ($this->output instanceof ConsoleSectionOutput) {
                     $messageLines = \explode("\n", $this->previousMessage);
                     $lineCount = \count($messageLines);
+                    $lastLineWithoutDecoration = Helper::removeDecoration($this->output->getFormatter(), \end($messageLines) ?? '');
+                    // When the last previous line is empty (without formatting) it is already cleared by the section output, so we don't need to clear it again
+                    if ('' === $lastLineWithoutDecoration) {
+                        --$lineCount;
+                    }
                     foreach ($messageLines as $messageLine) {
                         $messageLineLength = Helper::width(Helper::removeDecoration($this->output->getFormatter(), $messageLine));
                         if ($messageLineLength > $this->terminal->getWidth()) {

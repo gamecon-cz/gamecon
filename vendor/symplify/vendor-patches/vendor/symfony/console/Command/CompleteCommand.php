@@ -8,20 +8,20 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Command;
+namespace VendorPatches202507\Symfony\Component\Console\Command;
 
-use VendorPatches202401\Symfony\Component\Console\Attribute\AsCommand;
-use VendorPatches202401\Symfony\Component\Console\Completion\CompletionInput;
-use VendorPatches202401\Symfony\Component\Console\Completion\CompletionSuggestions;
-use VendorPatches202401\Symfony\Component\Console\Completion\Output\BashCompletionOutput;
-use VendorPatches202401\Symfony\Component\Console\Completion\Output\CompletionOutputInterface;
-use VendorPatches202401\Symfony\Component\Console\Completion\Output\FishCompletionOutput;
-use VendorPatches202401\Symfony\Component\Console\Completion\Output\ZshCompletionOutput;
-use VendorPatches202401\Symfony\Component\Console\Exception\CommandNotFoundException;
-use VendorPatches202401\Symfony\Component\Console\Exception\ExceptionInterface;
-use VendorPatches202401\Symfony\Component\Console\Input\InputInterface;
-use VendorPatches202401\Symfony\Component\Console\Input\InputOption;
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Attribute\AsCommand;
+use VendorPatches202507\Symfony\Component\Console\Completion\CompletionInput;
+use VendorPatches202507\Symfony\Component\Console\Completion\CompletionSuggestions;
+use VendorPatches202507\Symfony\Component\Console\Completion\Output\BashCompletionOutput;
+use VendorPatches202507\Symfony\Component\Console\Completion\Output\CompletionOutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Completion\Output\FishCompletionOutput;
+use VendorPatches202507\Symfony\Component\Console\Completion\Output\ZshCompletionOutput;
+use VendorPatches202507\Symfony\Component\Console\Exception\CommandNotFoundException;
+use VendorPatches202507\Symfony\Component\Console\Exception\ExceptionInterface;
+use VendorPatches202507\Symfony\Component\Console\Input\InputInterface;
+use VendorPatches202507\Symfony\Component\Console\Input\InputOption;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
 /**
  * Responsible for providing the values to the shell completion.
  *

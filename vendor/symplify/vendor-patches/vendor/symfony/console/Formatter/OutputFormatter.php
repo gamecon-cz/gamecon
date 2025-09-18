@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Formatter;
+namespace VendorPatches202507\Symfony\Component\Console\Formatter;
 
-use VendorPatches202401\Symfony\Component\Console\Exception\InvalidArgumentException;
-use function VendorPatches202401\Symfony\Component\String\b;
+use VendorPatches202507\Symfony\Component\Console\Exception\InvalidArgumentException;
+use function VendorPatches202507\Symfony\Component\String\b;
 /**
  * Formatter class for console output.
  *

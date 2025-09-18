@@ -8,15 +8,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Contracts\Service\Test;
+namespace VendorPatches202507\Symfony\Contracts\Service\Test;
 
-use VendorPatches202401\PHPUnit\Framework\TestCase;
-use VendorPatches202401\Psr\Container\ContainerExceptionInterface;
-use VendorPatches202401\Psr\Container\ContainerInterface;
-use VendorPatches202401\Psr\Container\NotFoundExceptionInterface;
-use VendorPatches202401\Symfony\Contracts\Service\ServiceLocatorTrait;
+use VendorPatches202507\PHPUnit\Framework\TestCase;
+use VendorPatches202507\Psr\Container\ContainerExceptionInterface;
+use VendorPatches202507\Psr\Container\ContainerInterface;
+use VendorPatches202507\Psr\Container\NotFoundExceptionInterface;
+use VendorPatches202507\Symfony\Contracts\Service\ServiceLocatorTrait;
 abstract class ServiceLocatorTestCase extends TestCase
 {
+    /**
+     * @param array<string, callable> $factories
+     */
     protected function getServiceLocator(array $factories) : ContainerInterface
     {
         return new class($factories) implements ContainerInterface
@@ -63,10 +66,8 @@ abstract class ServiceLocatorTestCase extends TestCase
         $locator = $this->getServiceLocator(['foo' => function () use(&$locator) {
             return $locator->get('bar');
         }]);
-        if (!$this->getExpectedException()) {
-            $this->expectException(NotFoundExceptionInterface::class);
-            $this->expectExceptionMessage('The service "foo" has a dependency on a non-existent service "bar". This locator only knows about the "foo" service.');
-        }
+        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectExceptionMessage('The service "foo" has a dependency on a non-existent service "bar". This locator only knows about the "foo" service.');
         $locator->get('foo');
     }
     public function testThrowsOnCircularReference()

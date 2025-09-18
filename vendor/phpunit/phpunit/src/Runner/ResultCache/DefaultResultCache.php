@@ -36,7 +36,7 @@ final class DefaultResultCache implements ResultCache
     /**
      * @var int
      */
-    private const VERSION = 1;
+    private const VERSION = 2;
 
     /**
      * @var string
@@ -85,6 +85,17 @@ final class DefaultResultCache implements ResultCache
     public function time(string $id): float
     {
         return $this->times[$id] ?? 0.0;
+    }
+
+    public function mergeWith(self $other): void
+    {
+        foreach ($other->defects as $id => $defect) {
+            $this->defects[$id] = $defect;
+        }
+
+        foreach ($other->times as $id => $time) {
+            $this->times[$id] = $time;
+        }
     }
 
     public function load(): void

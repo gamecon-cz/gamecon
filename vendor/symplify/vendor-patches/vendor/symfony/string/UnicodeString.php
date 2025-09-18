@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\String;
+namespace VendorPatches202507\Symfony\Component\String;
 
-use VendorPatches202401\Symfony\Component\String\Exception\ExceptionInterface;
-use VendorPatches202401\Symfony\Component\String\Exception\InvalidArgumentException;
+use VendorPatches202507\Symfony\Component\String\Exception\ExceptionInterface;
+use VendorPatches202507\Symfony\Component\String\Exception\InvalidArgumentException;
 /**
  * Represents a string of Unicode grapheme clusters encoded as UTF-8.
  *
@@ -166,7 +166,7 @@ class UnicodeString extends AbstractUnicodeString
     /**
      * @return static
      */
-    public function join(array $strings, string $lastGlue = null)
+    public function join(array $strings, ?string $lastGlue = null)
     {
         $str = parent::join($strings, $lastGlue);
         \normalizer_is_normalized($str->string) ?: ($str->string = \normalizer_normalize($str->string));
@@ -248,7 +248,7 @@ class UnicodeString extends AbstractUnicodeString
     /**
      * @return static
      */
-    public function slice(int $start = 0, int $length = null)
+    public function slice(int $start = 0, ?int $length = null)
     {
         $str = clone $this;
         $str->string = (string) \grapheme_substr($this->string, $start, $length ?? 2147483647);
@@ -257,11 +257,11 @@ class UnicodeString extends AbstractUnicodeString
     /**
      * @return static
      */
-    public function splice(string $replacement, int $start = 0, int $length = null)
+    public function splice(string $replacement, int $start = 0, ?int $length = null)
     {
         $str = clone $this;
         $start = $start ? \strlen(\grapheme_substr($this->string, 0, $start)) : 0;
-        $length = $length ? \strlen(\grapheme_substr($this->string, $start, $length ?? 2147483647)) : $length;
+        $length = $length ? \strlen(\grapheme_substr($this->string, $start, $length)) : $length;
         $str->string = \substr_replace($this->string, $replacement, $start, $length ?? 2147483647);
         if (\normalizer_is_normalized($str->string)) {
             return $str;
@@ -272,7 +272,7 @@ class UnicodeString extends AbstractUnicodeString
         $str->string = $string;
         return $str;
     }
-    public function split(string $delimiter, int $limit = null, int $flags = null) : array
+    public function split(string $delimiter, ?int $limit = null, ?int $flags = null) : array
     {
         if (1 > ($limit = $limit ?? 2147483647)) {
             throw new InvalidArgumentException('Split limit must be a positive integer.');

@@ -1,8 +1,8 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\View;
+namespace VendorPatches202507\Illuminate\Contracts\View;
 
-use VendorPatches202401\Illuminate\Contracts\Support\Renderable;
+use VendorPatches202507\Illuminate\Contracts\Support\Renderable;
 interface View extends Renderable
 {
     /**

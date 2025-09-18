@@ -32,6 +32,7 @@
         "dg/mysql-dump": "^1.5",
         "egulias/email-validator": "^4.0",
         "endroid/qr-code": "^4.2",
+        "firebase/php-jwt": "^6.11",
         "google/apiclient": "^2.4",
         "granam/remove-diacritics": "^1.0",
         "granam/string": "^4.2",

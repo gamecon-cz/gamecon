@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Routing;
+namespace VendorPatches202507\Illuminate\Contracts\Routing;
 
 interface ResponseFactory
 {
@@ -102,7 +102,7 @@ interface ResponseFactory
     /**
      * Create a new redirect response to a named route.
      *
-     * @param  string  $route
+     * @param  \BackedEnum|string  $route
      * @param  mixed  $parameters
      * @param  int  $status
      * @param  array  $headers

@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Session;
+namespace VendorPatches202507\Illuminate\Contracts\Session;
 
 interface Session
 {

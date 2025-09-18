@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Database\Eloquent;
+namespace VendorPatches202507\Illuminate\Contracts\Database\Eloquent;
 
 interface DeviatesCastableAttributes
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Auth;
+namespace VendorPatches202507\Illuminate\Contracts\Auth;
 
 interface Authenticatable
 {
@@ -16,6 +16,12 @@ interface Authenticatable
      * @return mixed
      */
     public function getAuthIdentifier();
+    /**
+     * Get the name of the password attribute for the user.
+     *
+     * @return string
+     */
+    public function getAuthPasswordName();
     /**
      * Get the password for the user.
      *

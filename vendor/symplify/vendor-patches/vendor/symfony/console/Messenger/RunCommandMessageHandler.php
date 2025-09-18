@@ -8,13 +8,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Messenger;
+namespace VendorPatches202507\Symfony\Component\Console\Messenger;
 
-use VendorPatches202401\Symfony\Component\Console\Application;
-use VendorPatches202401\Symfony\Component\Console\Command\Command;
-use VendorPatches202401\Symfony\Component\Console\Exception\RunCommandFailedException;
-use VendorPatches202401\Symfony\Component\Console\Input\StringInput;
-use VendorPatches202401\Symfony\Component\Console\Output\BufferedOutput;
+use VendorPatches202507\Symfony\Component\Console\Application;
+use VendorPatches202507\Symfony\Component\Console\Command\Command;
+use VendorPatches202507\Symfony\Component\Console\Exception\RunCommandFailedException;
+use VendorPatches202507\Symfony\Component\Console\Input\StringInput;
+use VendorPatches202507\Symfony\Component\Console\Output\BufferedOutput;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */

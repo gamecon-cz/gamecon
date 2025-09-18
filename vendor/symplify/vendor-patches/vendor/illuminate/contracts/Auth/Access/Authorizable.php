@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Auth\Access;
+namespace VendorPatches202507\Illuminate\Contracts\Auth\Access;
 
 interface Authorizable
 {

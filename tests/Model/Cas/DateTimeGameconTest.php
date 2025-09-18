@@ -2,6 +2,7 @@
 
 namespace Gamecon\Tests\Model\Cas;
 
+use App\Kernel;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
@@ -460,6 +461,7 @@ class DateTimeGameconTest extends TestCase
             DatabazoveNastaveni::vytvorZGlobals(),
             PROJECT_ROOT_DIR,
             SPEC,
+            kernel: new Kernel('test', false),
         );
     }
 

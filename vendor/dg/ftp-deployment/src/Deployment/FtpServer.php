@@ -56,6 +56,17 @@ class FtpServer implements Server
 
 
 	/**
+	 * Suppresses error on closing.
+	 */
+	public function __destruct()
+	{
+		if ($this->connection) {
+			@ftp_close($this->connection); // @ may fail
+		}
+	}
+
+
+	/**
 	 * Connects to FTP server.
 	 * @throws ServerException
 	 */
@@ -95,7 +106,7 @@ class FtpServer implements Server
 	 * Uploads file to FTP server.
 	 * @throws ServerException
 	 */
-	public function writeFile(string $local, string $remote, callable $progress = null): void
+	public function writeFile(string $local, string $remote, ?callable $progress = null): void
 	{
 		$size = max(filesize($local), 1);
 		$blocks = 0;
@@ -211,7 +222,7 @@ class FtpServer implements Server
 	 * Recursive deletes content of directory or file.
 	 * @throws ServerException
 	 */
-	public function purge(string $dir, callable $progress = null): void
+	public function purge(string $dir, ?callable $progress = null): void
 	{
 		if (!$this->isDir($dir)) {
 			return;
@@ -219,7 +230,7 @@ class FtpServer implements Server
 
 		$dirs = [];
 		foreach ((array) Safe::ftp_nlist($this->connection, $dir) as $entry) {
-			if ($entry == null || $entry === $dir || preg_match('#(^|/)\\.+$#', $entry)) { // intentionally ==
+			if ($entry == null || $entry === $dir || preg_match('#(^|/)\.+$#', $entry)) { // intentionally ==
 				continue;
 			} elseif (!str_contains($entry, '/')) {
 				$entry = "$dir/$entry";

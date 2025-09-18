@@ -25,6 +25,7 @@ trait ProbihaRegistraceAktivitTrait
                     databazoveNastaveni: $original->databazoveNastaveni(),
                     rootAdresarProjektu: $original->rootAdresarProjektu(),
                     cacheDir: $original->cacheDir(),
+                    kernel: $original->kernel(),
                 );
             }
 

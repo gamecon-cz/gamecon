@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Session\Middleware;
+namespace VendorPatches202507\Illuminate\Contracts\Session\Middleware;
 
 interface AuthenticatesSessions
 {

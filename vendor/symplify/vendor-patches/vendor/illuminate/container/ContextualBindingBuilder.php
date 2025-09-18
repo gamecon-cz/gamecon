@@ -1,9 +1,9 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Container;
+namespace VendorPatches202507\Illuminate\Container;
 
-use VendorPatches202401\Illuminate\Contracts\Container\Container;
-use VendorPatches202401\Illuminate\Contracts\Container\ContextualBindingBuilder as ContextualBindingBuilderContract;
+use VendorPatches202507\Illuminate\Contracts\Container\Container;
+use VendorPatches202507\Illuminate\Contracts\Container\ContextualBindingBuilder as ContextualBindingBuilderContract;
 class ContextualBindingBuilder implements ContextualBindingBuilderContract
 {
     /**

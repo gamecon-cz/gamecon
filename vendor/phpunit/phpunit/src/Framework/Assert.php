@@ -78,7 +78,7 @@ abstract class Assert
      * @throws Exception
      * @throws ExpectationFailedException
      */
-    final public static function assertArrayHasKey(int|string $key, array|ArrayAccess $array, string $message = ''): void
+    final public static function assertArrayHasKey(mixed $key, array|ArrayAccess $array, string $message = ''): void
     {
         $constraint = new ArrayHasKey($key);
 
@@ -91,7 +91,7 @@ abstract class Assert
      * @throws Exception
      * @throws ExpectationFailedException
      */
-    final public static function assertArrayNotHasKey(int|string $key, array|ArrayAccess $array, string $message = ''): void
+    final public static function assertArrayNotHasKey(mixed $key, array|ArrayAccess $array, string $message = ''): void
     {
         $constraint = new LogicalNot(
             new ArrayHasKey($key),
@@ -969,11 +969,11 @@ abstract class Assert
      * Used on objects, it asserts that two variables reference
      * the same object.
      *
-     * @throws ExpectationFailedException
-     *
      * @psalm-template ExpectedType
      *
      * @psalm-param ExpectedType $expected
+     *
+     * @throws ExpectationFailedException
      *
      * @psalm-assert =ExpectedType $actual
      */
@@ -1011,13 +1011,13 @@ abstract class Assert
     /**
      * Asserts that a variable is of a given type.
      *
-     * @throws Exception
-     * @throws ExpectationFailedException
-     * @throws UnknownClassOrInterfaceException
-     *
      * @psalm-template ExpectedType of object
      *
      * @psalm-param class-string<ExpectedType> $expected
+     *
+     * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws UnknownClassOrInterfaceException
      *
      * @psalm-assert =ExpectedType $actual
      */
@@ -1037,12 +1037,12 @@ abstract class Assert
     /**
      * Asserts that a variable is not of a given type.
      *
-     * @throws Exception
-     * @throws ExpectationFailedException
-     *
      * @psalm-template ExpectedType of object
      *
      * @psalm-param class-string<ExpectedType> $expected
+     *
+     * @throws Exception
+     * @throws ExpectationFailedException
      *
      * @psalm-assert !ExpectedType $actual
      */
@@ -2120,7 +2120,7 @@ abstract class Assert
         return new TraversableContainsOnly($className, false);
     }
 
-    final public static function arrayHasKey(int|string $key): ArrayHasKey
+    final public static function arrayHasKey(mixed $key): ArrayHasKey
     {
         return new ArrayHasKey($key);
     }

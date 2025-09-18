@@ -1,8 +1,8 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Database\Query;
+namespace VendorPatches202507\Illuminate\Contracts\Database\Query;
 
-use VendorPatches202401\Illuminate\Database\Grammar;
+use VendorPatches202507\Illuminate\Database\Grammar;
 interface Expression
 {
     /**

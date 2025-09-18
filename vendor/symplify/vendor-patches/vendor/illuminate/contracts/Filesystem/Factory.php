@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Filesystem;
+namespace VendorPatches202507\Illuminate\Contracts\Filesystem;
 
 interface Factory
 {

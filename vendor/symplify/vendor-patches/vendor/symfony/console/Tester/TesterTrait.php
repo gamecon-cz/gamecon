@@ -8,14 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Tester;
+namespace VendorPatches202507\Symfony\Component\Console\Tester;
 
-use VendorPatches202401\PHPUnit\Framework\Assert;
-use VendorPatches202401\Symfony\Component\Console\Input\InputInterface;
-use VendorPatches202401\Symfony\Component\Console\Output\ConsoleOutput;
-use VendorPatches202401\Symfony\Component\Console\Output\OutputInterface;
-use VendorPatches202401\Symfony\Component\Console\Output\StreamOutput;
-use VendorPatches202401\Symfony\Component\Console\Tester\Constraint\CommandIsSuccessful;
+use VendorPatches202507\PHPUnit\Framework\Assert;
+use VendorPatches202507\Symfony\Component\Console\Input\InputInterface;
+use VendorPatches202507\Symfony\Component\Console\Output\ConsoleOutput;
+use VendorPatches202507\Symfony\Component\Console\Output\OutputInterface;
+use VendorPatches202507\Symfony\Component\Console\Output\StreamOutput;
+use VendorPatches202507\Symfony\Component\Console\Tester\Constraint\CommandIsSuccessful;
 /**
  * @author Amrouche Hamza <hamza.simperfit@gmail.com>
  */

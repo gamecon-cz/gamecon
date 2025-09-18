@@ -31,7 +31,8 @@ class Panel {
 		let elem = this.elem;
 
 		this.init = function () {};
-		elem.innerHTML = elem.dataset.tracyContent;
+		elem.innerHTML = elem.tracyContent = elem.dataset.tracyContent;
+		delete elem.dataset.tracyContent;
 		Tracy.Dumper.init(Debug.layer);
 		evalScripts(elem);
 
@@ -150,13 +151,13 @@ class Panel {
 
 		let doc = win.document;
 		doc.write('<!DOCTYPE html><meta charset="utf-8">'
-		+ '<script src="' + (baseUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;')) + '_tracy_bar=js&amp;XDEBUG_SESSION_STOP=1" onload="Tracy.Dumper.init()" async></script>'
-		+ '<body id="tracy-debug">',
+			+ '<script src="' + (baseUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;')) + '_tracy_bar=js&amp;XDEBUG_SESSION_STOP=1" onload="Tracy.Dumper.init()" async></script>'
+			+ '<body id="tracy-debug">',
 		);
 
 		let meta = this.elem.parentElement.lastElementChild;
 		doc.body.innerHTML = '<tracy-div itemscope>'
-		+ '<div class="tracy-panel tracy-mode-window" id="' + this.elem.id + '">' + this.elem.dataset.tracyContent + '</div>'
+		+ '<div class="tracy-panel tracy-mode-window" id="' + this.elem.id + '">' + this.elem.tracyContent + '</div>'
 		+ meta.outerHTML
 		+ '</tracy-div>';
 		evalScripts(doc.body);

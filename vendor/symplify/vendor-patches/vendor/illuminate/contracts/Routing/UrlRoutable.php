@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Routing;
+namespace VendorPatches202507\Illuminate\Contracts\Routing;
 
 interface UrlRoutable
 {

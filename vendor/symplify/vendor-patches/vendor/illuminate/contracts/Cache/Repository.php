@@ -1,9 +1,9 @@
 <?php
 
-namespace VendorPatches202401\Illuminate\Contracts\Cache;
+namespace VendorPatches202507\Illuminate\Contracts\Cache;
 
 use Closure;
-use VendorPatches202401\Psr\SimpleCache\CacheInterface;
+use VendorPatches202507\Psr\SimpleCache\CacheInterface;
 interface Repository extends CacheInterface
 {
     /**

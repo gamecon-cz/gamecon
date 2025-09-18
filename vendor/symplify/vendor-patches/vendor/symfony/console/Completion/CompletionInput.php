@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VendorPatches202401\Symfony\Component\Console\Completion;
+namespace VendorPatches202507\Symfony\Component\Console\Completion;
 
-use VendorPatches202401\Symfony\Component\Console\Exception\RuntimeException;
-use VendorPatches202401\Symfony\Component\Console\Input\ArgvInput;
-use VendorPatches202401\Symfony\Component\Console\Input\InputDefinition;
-use VendorPatches202401\Symfony\Component\Console\Input\InputOption;
+use VendorPatches202507\Symfony\Component\Console\Exception\RuntimeException;
+use VendorPatches202507\Symfony\Component\Console\Input\ArgvInput;
+use VendorPatches202507\Symfony\Component\Console\Input\InputDefinition;
+use VendorPatches202507\Symfony\Component\Console\Input\InputOption;
 /**
  * An input specialized for shell completion.
  *
@@ -62,7 +62,7 @@ final class CompletionInput extends ArgvInput
      * Create an input based on an COMP_WORDS token list.
      *
      * @param string[] $tokens       the set of split tokens (e.g. COMP_WORDS or argv)
-     * @param          $currentIndex the index of the cursor (e.g. COMP_CWORD)
+     * @param int      $currentIndex the index of the cursor (e.g. COMP_CWORD)
      */
     public static function fromTokens(array $tokens, int $currentIndex) : self
     {
@@ -113,6 +113,7 @@ final class CompletionInput extends ArgvInput
             if (\is_array($argumentValue)) {
                 \end($argumentValue);
                 $this->completionValue = $argumentValue ? $argumentValue[\key($argumentValue)] : null;
+                \reset($argumentValue);
             } else {
                 $this->completionValue = $argumentValue;
             }
