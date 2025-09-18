@@ -154,7 +154,7 @@ abstract class DbObject
             self::doCache($freshObject);
         }
 
-        return [...$cachedObjects, ...$freshObjects];
+        return array_merge($cachedObjects, $freshObjects);
     }
 
     /** Načte a vrátí všechny objekty z databáze */

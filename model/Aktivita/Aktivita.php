@@ -757,7 +757,7 @@ SQL
         $sKladnymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND (poradi > 0 OR id_typu = 0) ORDER BY poradi');
         // typy se záporným pořadím jsou technické, brigádnické a tak
         $seZapornymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND poradi < 0 AND id_typu != 0 ORDER BY poradi DESC');
-        foreach ([...$sKladnymPoradim, ...$seZapornymPoradim] as $akceTypData) {
+        foreach (array_merge($sKladnymPoradim, $seZapornymPoradim) as $akceTypData) {
             $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData[Sql::TYP]
                 ? 'selected'
                 : '');
@@ -3265,7 +3265,9 @@ SQL,
                 $dalsi = [];
                 foreach (end($urovne) as $a) {
                     if ($a->a[Sql::DITE]) {
-                        $dalsi = [...$dalsi, ...$this->parseIds($a->a[Sql::DITE] ?? '')];
+                        foreach ($this->parseIds($a->a[Sql::DITE] ?? '') as $id) {
+                            $dalsi[] = $id;
+                        }
                     }
                 }
                 if ($dalsi) {
