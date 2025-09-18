@@ -2701,7 +2701,7 @@ SQL;
     public function infopultAdminUrl(string $zakladniAdminUrl = URL_ADMIN): string
     {
         // vrátí "infopult" - máme to schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
-        return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/infopult.php', '.php');
+        return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/infopult/infopult.php', '.php');
     }
 
     /**
@@ -2718,7 +2718,7 @@ SQL;
         // URL máme schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
         if ($this->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/infopult */
-            $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/infopult.php', '.php');
+            $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/infopult/infopult.php', '.php');
 
             return ['url' => $zakladniAdminUrl . '/' . $adminUvodUrl, 'nazev' => 'do Adminu'];
         }

@@ -85,17 +85,40 @@ RUN corepack enable && yarn --version && sudo -u www-data corepack enable && sud
 
 ENV NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
 
-FROM gamecon-php-step4 AS gamecon-project-step-final
+FROM gamecon-php-step4 AS gamecon-project-step-5
+
+# avoid warning on start
+RUN echo 'ServerName inside-docker' >> /etc/apache2/apache2.conf
+
+COPY ./apache/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY ./apache/sites-available/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
+COPY ./apache/gamecon.local.crt /etc/ssl/certs/gamecon.local.crt
+COPY ./apache/gamecon.local.key /etc/ssl/private/gamecon.local.key
+
+RUN chmod 0600 /etc/ssl/certs/gamecon.local.crt
+RUN chown root:root /etc/ssl/certs/gamecon.local.crt
+RUN chmod 0600 /etc/ssl/private/gamecon.local.key
+RUN chown root:root /etc/ssl/private/gamecon.local.key
+
+RUN a2enmod rewrite
+RUN a2enmod expires
+RUN a2enmod ssl
+RUN a2enmod socache_shmcb
+RUN a2ensite 000-default
+RUN a2ensite default-ssl
+
+RUN apache2ctl configtest
+
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/gamecon
+RUN sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+FROM gamecon-project-step-5 AS gamecon-project-step-final
 
 # dot . reflects current dir, which is .docker
 COPY . /.docker
 COPY ./.bash_aliases /home/www-data/.bash_aliases
 
 RUN chmod +x /.docker/*.sh
-
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/gamecon
-RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/*.conf
-RUN sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 ENV ENV=local
 
