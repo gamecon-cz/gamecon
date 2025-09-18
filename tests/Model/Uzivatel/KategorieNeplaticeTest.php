@@ -34,14 +34,14 @@ class KategorieNeplaticeTest extends TestCase
         Finance $finance,
         ?string $kdySeRegistrovalNaLetosniGc,
         bool    $maPravoNerusitObjednavky,
-        string  $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
+        // prvni nebo druha vlna
+        string  $zacatekVlnyOdhlasovani,
         int     $rocnik,
         float   $castkaVelkyDluh,
         float   $castkaPoslalDost,
         int     $pocetDnuPredVlnouKdyJeJesteChrane,
         ?int    $ocekavanaKategorieNeplatice,
-    )
-    {
+    ) {
         $kategorieNeplatice         = new KategorieNeplatice(
             $finance,
             $kdySeRegistrovalNaLetosniGc
@@ -52,7 +52,7 @@ class KategorieNeplaticeTest extends TestCase
             $rocnik,
             $castkaVelkyDluh,
             $castkaPoslalDost,
-            $pocetDnuPredVlnouKdyJeJesteChrane
+            $pocetDnuPredVlnouKdyJeJesteChrane,
         );
         $zjistenaKategorieNeplatice = $kategorieNeplatice->ciselnaKategoriiNeplatice();
         self::assertSame(
@@ -191,11 +191,14 @@ class KategorieNeplaticeTest extends TestCase
      */
     private static function pravoNerusitObjednavkyPrebijeTemerVsechno(): array
     {
-        $ocekavanaKategorieNeplatice = static function (?string $kdySeRegistrovalNaLetosniGc, float $stav) {
+        $ocekavanaKategorieNeplatice = static function (
+            ?string $kdySeRegistrovalNaLetosniGc,
+            float   $stav,
+        ) {
             return match ($kdySeRegistrovalNaLetosniGc) {
-                null => null,
+                null    => null,
                 default => match ($stav >= 0) {
-                    true => KategorieNeplatice::NEDLUZNIK,
+                    true  => KategorieNeplatice::NEDLUZNIK,
                     false => KategorieNeplatice::MA_PRAVO_NEODHLASOVAT,
                 }
             };
@@ -280,8 +283,7 @@ class KategorieNeplaticeTest extends TestCase
                 $pocetDnuPredVlnouKdyJeJesteChranen,
         ?int    $ocekavanaKategorieNeplatice,
         int     $rocnik = ROCNIK,
-    ): array
-    {
+    ): array {
         return [
             $finance,
             $kdySeRegistrovalNaLetosniGc,
@@ -367,7 +369,7 @@ class KategorieNeplaticeTest extends TestCase
      */
     private static function vsechnyKombinaceFinanci(): array
     {
-        $platby   = [...self::letosZaplatilDost(), ...self::letosZaplatilMalo()];
+        $platby   = array_merge(self::letosZaplatilDost(), self::letosZaplatilMalo());
         $zustatky = self::kombinaceZustatku();
 
         $kombinace = [];
@@ -379,6 +381,7 @@ class KategorieNeplaticeTest extends TestCase
                 ];
             }
         }
+
         return $kombinace;
     }
 
@@ -400,6 +403,7 @@ class KategorieNeplaticeTest extends TestCase
                 ];
             }
         }
+
         return $kombinaceZustatku;
     }
 
@@ -431,16 +435,15 @@ class KategorieNeplaticeTest extends TestCase
         float $sumaPlateb = 0.0,
         float $zustatekZPredchozichRocniku = 0.0,
         float $stav = 0.0,
-    ): Finance
-    {
-        return new class($sumaPlateb, $zustatekZPredchozichRocniku, $stav) extends Finance {
+    ): Finance {
+        return new class($sumaPlateb, $zustatekZPredchozichRocniku, $stav) extends Finance
+        {
 
             public function __construct(
                 protected float $sumaPlateb,
                 protected float $zustatekZPredchozichRocniku,
                 protected float $stav,
-            )
-            {
+            ) {
             }
 
             public function obnovUdaje(): void
@@ -452,8 +455,10 @@ class KategorieNeplaticeTest extends TestCase
                 $this->sumaPlateb = $sumaPlateb;
             }
 
-            public function sumaPlateb(?int $rocnik = ROCNIK, bool $prepocti = false): float
-            {
+            public function sumaPlateb(
+                ?int $rocnik = ROCNIK,
+                bool $prepocti = false,
+            ): float {
                 return $this->sumaPlateb;
             }
 
@@ -491,7 +496,7 @@ class KategorieNeplaticeTest extends TestCase
             $rocnik,
             $castkaVelkyDluh,
             $castkaPoslalDost,
-            $pocetDnuPredVlnouKdyJeJesteChrane
+            $pocetDnuPredVlnouKdyJeJesteChrane,
         );
 
         $puvodniCiselnaKategorieNeplatice = $kategorieNeplatice->ciselnaKategoriiNeplatice();

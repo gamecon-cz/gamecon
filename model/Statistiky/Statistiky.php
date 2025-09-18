@@ -37,8 +37,11 @@ class Statistiky
         return $data;
     }
 
-    private function dataProGrafUcastiZaRok(int $rok, \DateTimeImmutable $doChvile): array
-    {
+    private function dataProGrafUcastiZaRok
+    (
+        int                $rok,
+        \DateTimeImmutable $doChvile,
+    ): array {
         /** @var \DateTimeImmutable|DateTimeGamecon $zacatekRegistraci */
         $zacatekRegistraci = min(DateTimeGamecon::spocitejPrihlasovaniUcastnikuOd($rok), $doChvile);
         /** @var \DateTimeImmutable|DateTimeGamecon $konecGc */
@@ -311,8 +314,11 @@ SQL,
         );
     }
 
-    public function pripravDataProGraf(array $prihlaseniData, array $vybraneRoky, string $zarovnaniGrafu): array
-    {
+    public function pripravDataProGraf(
+        array  $prihlaseniData,
+        array  $vybraneRoky,
+        string $zarovnaniGrafu,
+    ): array {
         $nazvyDnu         = [];
         $zacatkyRegistaci = [];
         $zacatkyGc        = [];
@@ -384,7 +390,7 @@ SQL,
             }
             array_pop($nazvyDnuJednohoRoku);
             $nazvyDnuJednohoRoku[] = 'po GC'; // všechny dny po GC smrsknute do jediného, posledního sloupce v grafu
-            $nazvyDnu              = array_unique([...$nazvyDnu, ...$nazvyDnuJednohoRoku]);
+            $nazvyDnu              = array_unique(array_merge($nazvyDnu, $nazvyDnuJednohoRoku));
             $indexZpracovavanehoRoku++;
         }
 
@@ -681,7 +687,7 @@ FROM (
     ) AS ucast_podle_roku
     GROUP BY rocnik_role
 ) AS pocty
-SQL
+SQL,
             ),
             'Registrovaní vs Dorazili',
         );
@@ -790,7 +796,7 @@ JOIN shop_predmety USING (id_predmetu)
 WHERE shop_predmety.typ = {$ubytovani}
 GROUP BY shop_nakupy.rok
 ORDER BY shop_nakupy.rok
-SQL
+SQL,
             ),
             'Ubytování',
         );

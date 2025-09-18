@@ -79,7 +79,9 @@ trait PrednacitaniTrait
             $zdrojObjekt           = $kolekce[$r[0]];
             $zdrojObjektCilIds = array_map('intval', explode(',', $r[1]));
             $zdrojObjekt->$atribut = $zdrojObjektCilIds;
-            $cilIds = [...$cilIds, ...$zdrojObjektCilIds];
+            foreach ($zdrojObjektCilIds as $id) {
+                    $cilIds[] = $id;
+            }
         }
 
         // vytvoření indexu cílů k vyhledávání podle id
