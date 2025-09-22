@@ -102,7 +102,7 @@ class Platby
         $result = dbQuery(<<<SQL
             SELECT id
             FROM platby
-            WHERE id_uzivatele IS NULL
+            WHERE (id_uzivatele IS NULL OR NOT EXISTS(SELECT 1 FROM uzivatele_hodnoty WHERE uzivatele_hodnoty.id_uzivatele = platby.id_uzivatele))
                 AND IF ($0 IS NOT NULL, rok = $0, TRUE)
             ORDER BY {$orderByDesc} DESC
             SQL,
