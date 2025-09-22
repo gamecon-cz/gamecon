@@ -2,9 +2,7 @@
 
 FROM php:8.2-apache AS gamecon-server-step1
 
-RUN a2enmod rewrite expires && \
-	# avoid warning on start
-    echo 'ServerName localhost' >> /etc/apache2/apache2.conf
+RUN a2enmod rewrite expires
 
 # Install Linux libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -26,7 +24,6 @@ FROM gamecon-server-step1 AS gamecon-tools-step2
 RUN apt-get update && apt-get install -y \
       mc \
       vim \
-      # procps to get ps, top
       procps \
       curl \
       gnupg \
