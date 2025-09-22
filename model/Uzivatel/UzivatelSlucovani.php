@@ -2,7 +2,6 @@
 
 namespace Gamecon\Uzivatel;
 
-use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
@@ -26,6 +25,12 @@ class UzivatelSlucovani
         if ($idStarehoUzivatele === $idNovehoUzivatele) {
             return;
         }
+
+        // Zachycení původních hodnot pro logování
+        $zustatekStarehoUzivatele = $staryUzivatel->finance()->zustatekZPredchozichRocniku();
+        $zustatekNovehoUzivatele = $novyUzivatel->finance()->zustatekZPredchozichRocniku();
+        $emailStarehoUzivatele = $staryUzivatel->mail();
+        $emailNovehoUzivatele = $novyUzivatel->mail();
 
         dbBegin();
         try {
@@ -62,14 +67,17 @@ class UzivatelSlucovani
         }
 
         // logování po úspěšném commitu
-        $this->zaloguj("do ID $idNovehoUzivatele sloučeno a smazáno ID $idStarehoUzivatele");
-        $this->zaloguj("  zůstatek z předchozích ročníků smazaného účtu:    " . $staryUzivatel->finance()->zustatekZPredchozichRocniku());
-        $this->zaloguj("  zůstatek z předchozích ročníků nového účtu:       " . $novyUzivatel->finance()->zustatekZPredchozichRocniku());
-        $this->zaloguj("  email smazaného účtu:                             " . $staryUzivatel->mail());
-        $this->zaloguj("  email nového účtu:                                " . $novyUzivatel->mail());
         $novyUzivatel = Uzivatel::zId($novyUzivatel->id()); // přenačtení uživatele, aby se aktualizovaly finance
-        $this->zaloguj("  aktuální nový zůstatek z předchozích ročníků:     " . $novyUzivatel->finance()->zustatekZPredchozichRocniku());
-        $this->zaloguj("  aktuální nový email:                              " . $novyUzivatel->mail() . "\n");
+        $this->zaloguj(
+            $idStarehoUzivatele,
+            $idNovehoUzivatele,
+            $zustatekStarehoUzivatele,
+            $zustatekNovehoUzivatele,
+            $emailStarehoUzivatele,
+            $emailNovehoUzivatele,
+            $novyUzivatel->finance()->zustatekZPredchozichRocniku(),
+            $novyUzivatel->mail()
+        );
     }
 
     /**
@@ -161,13 +169,40 @@ class UzivatelSlucovani
     }
 
     /**
-     * Zapíše zprávu do logu slučování uživatelů.
+     * Zapíše záznam o slučování uživatelů do databáze.
      */
-    private function zaloguj(string $zprava): void
-    {
-        (new Filesystem())->mkdir(LOGY);
-        $soubor = LOGY . '/slucovani.log';
-        $cas    = date('Y-m-d H:i:s');
-        file_put_contents($soubor, "$cas $zprava\n", FILE_APPEND);
+    private function zaloguj(
+        int    $idSmazanehoUzivatele,
+        int    $idNovehoUzivatele,
+        int    $zustatekSmazanehoPuvodne,
+        int    $zustatekNovehoPuvodne,
+        string $emailSmazaneho,
+        string $emailNovehoPuvodne,
+        int    $zustatekNovehoAktualne,
+        string $emailNovehoAktualne,
+    ): void {
+        dbQuery(<<<SQL
+INSERT INTO uzivatele_slucovani_log (
+    id_smazaneho_uzivatele,
+    id_noveho_uzivatele,
+    zustatek_smazaneho_puvodne,
+    zustatek_noveho_puvodne,
+    email_smazaneho,
+    email_noveho_puvodne,
+    zustatek_noveho_aktualne,
+    email_noveho_aktualne
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+SQL,
+            [
+                1 => $idSmazanehoUzivatele,
+                2 => $idNovehoUzivatele,
+                3 => $zustatekSmazanehoPuvodne,
+                4 => $zustatekNovehoPuvodne,
+                5 => $emailSmazaneho,
+                6 => $emailNovehoPuvodne,
+                7 => $zustatekNovehoAktualne,
+                8 => $emailNovehoAktualne,
+            ]
+        );
     }
 }
