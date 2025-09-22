@@ -8,7 +8,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Platba;
 
 /**
- * nazev: Platby
+ * nazev: Nespárované platby 💸
  * pravo: 108
  * submenu_group: 5
  */
