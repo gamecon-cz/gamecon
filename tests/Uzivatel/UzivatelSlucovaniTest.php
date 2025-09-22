@@ -68,7 +68,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         dbQuery("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ($staryId, 'test data 1')");
         dbQuery("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ($staryId, 'test data 2')");
 
-        $slucovani = new UzivatelSlucovani($this->getDatabaseName());
+        $slucovani = new UzivatelSlucovani();
         $zmeny = ['jmeno_uzivatele' => 'Sloučený'];
 
         // Act
@@ -84,7 +84,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
     {
         // Arrange
         $uzivatel = $this->createTestUser('same@test.com', 'Same', 'User');
-        $slucovani = new UzivatelSlucovani($this->getDatabaseName());
+        $slucovani = new UzivatelSlucovani();
 
         // Act & Assert - should not throw exception and should exit early
         $slucovani->sluc($uzivatel, $uzivatel, []);
@@ -106,7 +106,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         dbQuery("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ($staryId, 'conflict')");
         dbQuery("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ($novyId, 'conflict')");
 
-        $slucovani = new UzivatelSlucovani($this->getDatabaseName());
+        $slucovani = new UzivatelSlucovani();
 
         // Act - should handle conflict by deleting old user's conflicting records
         $slucovani->sluc($staryUzivatel, $novyUzivatel, []);
@@ -123,28 +123,28 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $staryUzivatel = $this->createTestUser('log1@test.com', 'Log1', 'User');
         $novyUzivatel = $this->createTestUser('log2@test.com', 'Log2', 'User');
 
-        $logFile = LOGY . '/slucovani.log';
-        flush();
-        if (file_exists($logFile)) {
-            unlink($logFile);
-        }
+        // Clear any existing log entries for these users
+        dbQuery('DELETE FROM uzivatele_slucovani_log WHERE id_smazaneho_uzivatele = $1 OR id_noveho_uzivatele = $2',
+               [$staryUzivatel->id(), $novyUzivatel->id()]);
 
-        $slucovani = new UzivatelSlucovani($this->getDatabaseName());
+        $slucovani = new UzivatelSlucovani();
 
         // Act
         $slucovani->sluc($staryUzivatel, $novyUzivatel, ['jmeno_uzivatele' => 'Logged']);
 
         // Assert
-        flush();
-        $this->assertTrue(file_exists($logFile), sprintf('Log file %s should exist', $logFile));
-        $this->assertGreaterThan(0, filesize($logFile));
+        $logEntries = dbFetchAll('SELECT * FROM uzivatele_slucovani_log WHERE id_smazaneho_uzivatele = $1 AND id_noveho_uzivatele = $2',
+                               [$staryUzivatel->id(), $novyUzivatel->id()]);
 
-        $logContent = file_get_contents($logFile);
-        $this->assertStringContainsString('sloučeno a smazáno', $logContent);
-        $this->assertStringContainsString(
-            "do ID {$novyUzivatel->id()} sloučeno a smazáno ID {$staryUzivatel->id()}",
-            $logContent
-        );
+        $this->assertCount(1, $logEntries, 'Should create exactly one log entry');
+
+        $logEntry = $logEntries[0];
+        $this->assertEquals($staryUzivatel->id(), $logEntry['id_smazaneho_uzivatele']);
+        $this->assertEquals($novyUzivatel->id(), $logEntry['id_noveho_uzivatele']);
+        $this->assertEquals('log1@test.com', $logEntry['email_smazaneho']);
+        $this->assertEquals('log2@test.com', $logEntry['email_noveho_puvodne']);
+        $this->assertEquals('log2@test.com', $logEntry['email_noveho_aktualne']); // Should remain the same since no email change
+        $this->assertNotNull($logEntry['kdy']);
     }
 
     public function test_odkazujici_tabulky_returns_correct_tables(): void
@@ -158,7 +158,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         // Add data to test table without FK (should be handled by whitelist)
         dbQuery("INSERT INTO test_no_fk_reference (id_uzivatele, some_data) VALUES ($staryId, 'no fk test')");
 
-        $slucovani = new UzivatelSlucovani($this->getDatabaseName());
+        $slucovani = new UzivatelSlucovani();
         $slucovani->sluc($staryUzivatel, $novyUzivatel, []);
 
         // Verify data was moved from table without FK
