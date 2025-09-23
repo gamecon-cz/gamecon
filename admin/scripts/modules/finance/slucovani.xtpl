@@ -132,5 +132,43 @@
 
 </form>
 
+<!-- begin:historie -->
+<hr>
+<h2>Historie slučování uživatelů</h2>
+
+<table class="seznam">
+  <thead>
+    <tr>
+      <th>Kdy</th>
+      <th>Smazaný účet ID</th>
+      <th>Nový účet ID</th>
+      <th>Zůstatek smazaného</th>
+      <th>Zůstatek nového (původní)</th>
+      <th>Zůstatek nového (aktuální)</th>
+      <th>Email smazaného</th>
+      <th>Email nového (původní)</th>
+      <th>Email nového (aktuální)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- begin:radek -->
+    <tr>
+      <td>{merge_kdy}</td>
+      <td>{merge_id_smazaneho}</td>
+      <td>
+        <!-- begin:odkazNaNoveho --><a href="{merge_odkaz_na_noveho}">{merge_id_noveho}</a><!-- end:odkazNaNoveho -->
+        <!-- begin:bezOdkazuNaNoveho --><span class="hinted">{merge_id_noveho}<span class="hint">Účet neexistuje</span> </span><!-- end:bezOdkazuNaNoveho -->
+      </td>
+      <td>{merge_zustatek_smazaneho}</td>
+      <td>{merge_zustatek_noveho_puvodne}</td>
+      <td>{merge_zustatek_noveho_aktualne}</td>
+      <td>{merge_email_smazaneho}</td>
+      <td>{merge_email_noveho_puvodne}</td>
+      <td>{merge_email_noveho_aktualne}</td>
+    </tr>
+    <!-- end:radek -->
+  </tbody>
+</table>
+<!-- end:historie -->
 
 <!-- end:slucovani -->

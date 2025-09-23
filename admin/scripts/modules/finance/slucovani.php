@@ -97,5 +97,47 @@ if (post('pripravit')) {
     $t->parse('slucovani.detaily');
 }
 
+// načíst historii slučování uživatelů
+$mergeHistory = dbFetchAll('
+    SELECT
+        id_smazaneho_uzivatele,
+        id_noveho_uzivatele,
+        EXISTS (SELECT 1 FROM uzivatele_hodnoty WHERE id_uzivatele = id_noveho_uzivatele) AS novy_existuje,
+        zustatek_smazaneho_puvodne,
+        zustatek_noveho_puvodne,
+        email_smazaneho,
+        email_noveho_puvodne,
+        zustatek_noveho_aktualne,
+        email_noveho_aktualne,
+        kdy
+    FROM uzivatele_slucovani_log
+    ORDER BY kdy DESC
+');
+
+foreach ($mergeHistory as $merge) {
+    $t->assign([
+        'merge_id_smazaneho' => $merge['id_smazaneho_uzivatele'],
+        'merge_id_noveho' => $merge['id_noveho_uzivatele'],
+        'merge_zustatek_smazaneho' => $merge['zustatek_smazaneho_puvodne'],
+        'merge_zustatek_noveho_puvodne' => $merge['zustatek_noveho_puvodne'],
+        'merge_email_smazaneho' => htmlspecialchars($merge['email_smazaneho']),
+        'merge_email_noveho_puvodne' => htmlspecialchars($merge['email_noveho_puvodne']),
+        'merge_zustatek_noveho_aktualne' => $merge['zustatek_noveho_aktualne'],
+        'merge_email_noveho_aktualne' => htmlspecialchars($merge['email_noveho_aktualne']),
+        'merge_kdy' => $merge['kdy'],
+    ]);
+    if ($merge['novy_existuje']) {
+        $t->assign('merge_odkaz_na_noveho', getCurrentUrlWithQuery(['pracovni_uzivatel' => $merge['id_noveho_uzivatele']]));
+        $t->parse('slucovani.historie.radek.odkazNaNoveho');
+    } else {
+        $t->parse('slucovani.historie.radek.bezOdkazuNaNoveho');
+    }
+    $t->parse('slucovani.historie.radek');
+}
+
+if (!empty($mergeHistory)) {
+    $t->parse('slucovani.historie');
+}
+
 $t->parse('slucovani');
 $t->out('slucovani');
