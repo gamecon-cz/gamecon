@@ -14,7 +14,7 @@ class OnlinePrezenceHtml
 {
     public static function nazevProAnchor(Aktivita $aktivita): string
     {
-        return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()]));
+        return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->popisLokaci()]));
     }
 
     private ?XTemplate                  $onlinePrezenceTemplate     = null;

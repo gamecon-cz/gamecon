@@ -120,9 +120,13 @@ class ActivitiesExporter
                 $this->exportAktivitSloupce::DEN => $zacatekDen, // Den
                 $this->exportAktivitSloupce::ZACATEK => $zacatekCas, // Začátek
                 $this->exportAktivitSloupce::KONEC => $konecCas, // Konec
-                $this->exportAktivitSloupce::MISTNOST => ($lokace = $aktivita->lokace())
-                    ? $lokace->nazev()
-                    : '', // Místnost
+                $this->exportAktivitSloupce::MISTNOST => implode(  // Místnosti
+                    '; ',
+                    array_map(
+                        static fn(Lokace $lokace) => $lokace->nazev(),
+                        $aktivita->seznamLokaci() // main location should be first
+                    )
+                ),
                 $this->exportAktivitSloupce::VYPRAVECI => implode('; ', $aktivita->orgLoginy()->getArrayCopy()), // Vypravěči
                 $this->exportAktivitSloupce::KAPACITA_UNISEX => !$aktivita->tymova()
                     ? $aktivita->getKapacitaUnisex() // Kapacita unisex

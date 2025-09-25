@@ -57,13 +57,56 @@
         </td>
     </tr>
     <tr>
+        <th><label for="vyberLokaci" class="display-block">Místnosti¹</label></th>
+        <td>
+            <select name="{aEditLokace}[]" multiple="multiple" id="vyberLokaci">
+                <!-- begin:lokace -->
+                {previous_optgroup_lokace_end}
+                {optgroup_lokace_start}
+                <option {lokace_selected} value="{id_lokace}">{nazev_lokace}</option>
+                {last_optgroup_lokace_end}
+                <!-- end:lokace -->
+            </select>
+            <script type="text/javascript">
+                const $locationsMultiselect = $('#vyberLokaci')
+                document.addEventListener('DOMContentLoaded', function () {
+                    const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
+                    let locationsMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110)
+                    if (locationsMultiselectColumns < 1) {
+                        locationsMultiselectColumns = 1
+                    }
+                    $locationsMultiselect.multiselect('settings', {columns: locationsMultiselectColumns})
+                })
+
+                $locationsMultiselect.multiselect({
+                    columns: 3,
+                    search: true,
+                    texts: {
+                        'placeholder': 'Zadej místnost',
+                        'search': 'Hledej místnost',
+                        'selectedOptions': ' vybraných místností',
+                    },
+                    maxPlaceholderOpts: 8,
+                    selectAll: false,
+                })
+            </script>
+        </td>
+    </tr>
+    <tr>
         <th>
-            <label for="lokaceAkce" class="display-block">Místnost¹</label>
+          <ul style="margin:0; padding-left: 1em; list-style: none">
+            <li>
+                <label for="hlavniLokace" class="display-block">
+                    ↳ <span class="hinted">hlavní místnost¹<span class="hint">Nepovinné - označ jednu z výše vybraných místností jako hlavní</span></span>
+              </label>
+            </li>
+          </ul>
         </th>
         <td>
-            <select id="lokaceAkce" name="{fields}[lokace]">
-                <!-- begin:lokace -->
-                <option {selected} value="{id_lokace}">{nazev}</option><!-- end:lokace -->
+            <select id="hlavniLokace" name="{aEditHlavniLokace}">
+                <!-- begin:vyberHlavniLokace -->
+                <option {selected} value="{id_lokace}">{nazev}</option>
+                <!-- end:vyberHlavniLokace -->
             </select>
         </td>
     </tr>
