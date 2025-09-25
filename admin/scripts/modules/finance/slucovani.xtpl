@@ -7,7 +7,7 @@
 </p>
 
 <p>
-  Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně duplicitními uživateli.
+  Vhodné vycházet z <a href="reporty/duplicity?format=xlsx">reportu</a> (<a href="reporty/duplicity?format=html">HTML</a>) s potenciálně duplicitními uživateli.
 </p>
 
 <form method="post">
