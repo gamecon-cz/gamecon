@@ -6,6 +6,7 @@
  *
  * nazev: Infopult
  * pravo: 100
+ * submenu_hidden: true
  */
 
 use Gamecon\Cas\DateTimeCz;
@@ -23,8 +24,8 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-require_once __DIR__ . '/_submoduly/ubytovani_tabulka.php';
-require_once __DIR__ . '/_submoduly/osobni-udaje/osobni_udaje.php';
+require_once __DIR__ . '/../_submoduly/ubytovani_tabulka.php';
+require_once __DIR__ . '/../_submoduly/osobni-udaje/osobni_udaje.php';
 
 $ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
@@ -215,6 +216,13 @@ if ($uPracovni) {
         );
     }
 
+    $x->assign(
+        'nfcCipUrl',
+        URL_ADMIN
+        . '/' . basename(__FILE__, '.php')
+        . '/' . basename(__DIR__ . '/cip.php', '.php'),
+    );
+
     if ($u->jeInfopultak() && !$u->jeSefInfopultu()) {
         $zpravyProPotvrzeni = [];
         $a                  = $uPracovni->koncovkaDlePohlavi();
@@ -323,4 +331,4 @@ if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdy
 $x->parse('infopult');
 $x->out('infopult');
 
-require __DIR__ . '/_shop.php';
+require __DIR__ . '/../_shop.php';
