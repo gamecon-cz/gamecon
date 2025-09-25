@@ -1228,6 +1228,19 @@ SQL,
             session_start();
         }
         session_destroy();
+        $this->destroyJwtToken();
+    }
+
+    private function destroyJwtToken(): void
+    {
+        deleteJwtForUser($this);
+    }
+
+    private static function generateJwtToken(
+        Uzivatel $uzivatel,
+    ): void {
+        $jwtToken = generateJwtForUser($uzivatel);
+        setJwtCookie($jwtToken, $uzivatel);
     }
 
     /** Odpojí od session uživatele na indexu $klic */
@@ -1456,7 +1469,11 @@ SQL,
         }
         $uzivatelData['prava'] = $prava;
 
-        return new Uzivatel($uzivatelData);
+        $uzivatel = new Uzivatel($uzivatelData);
+
+        self::generateJwtToken($uzivatel);
+
+        return $uzivatel;
     }
 
     /**
@@ -1486,6 +1503,10 @@ SQL,
         $uzivatelData['prava'] = $prava;
         $uzivatel              = new Uzivatel($uzivatelData);
         $uzivatel->klic        = $klic;
+
+        if ($klic === self::UZIVATEL) {
+            self::generateJwtToken($uzivatel);
+        }
 
         return $uzivatel;
     }
