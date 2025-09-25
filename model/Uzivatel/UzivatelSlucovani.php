@@ -113,6 +113,32 @@ class UzivatelSlucovani
     /**
      * Najde všechny tabulky, které mají foreign key na uzivatele_hodnoty.id_uzivatele
      * @return array<array{table_name: string, column_name: string}>
+     *
+     * Ke 22. 9. 2025 to byly tabulky:
+     * ubytovani
+     * akce_organizatori
+     * shop_nakupy
+     * uzivatele_role_podle_rocniku
+     * akce_import
+     * uzivatele_role
+     * google_api_user_tokens
+     * akce_seznam
+     * akce_prihlaseni_log
+     * uzivatele_url
+     * log_udalosti
+     * platby
+     * shop_nakupy_zrusene
+     * reporty_log_pouziti
+     * akce_prihlaseni_spec
+     * akce_prihlaseni
+     * medailonky
+     * hromadne_akce_log
+     * uzivatele_role_log
+     * mutex
+     * google_drive_dirs
+     * systemove_nastaveni_log
+     * role_texty_podle_uzivatele
+     * slevy
      */
     private function najdiOdkazujiciTabulky(): array
     {
