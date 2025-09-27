@@ -45,4 +45,5 @@ Děkujeme za spolupráci!
 
 Tvůj,
 Organizační tým GC',
+    Hlaska::NEWSLETTER_PRIHLASEN            => 'E-mail %1 přihlášen k občasným newsletterům',
 ];
