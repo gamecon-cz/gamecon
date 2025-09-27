@@ -30,7 +30,7 @@ require __DIR__ . '/scripts/prihlaseni.php';
 
 [$stranka, $podstranka] = parseRoute();
 
-include __DIR__ . '/_symfony.php';
+// include __DIR__ . '/_symfony.php';
 
 // nastavení stránky, prázdná url => přesměrování na úvod
 if (!$stranka) {
