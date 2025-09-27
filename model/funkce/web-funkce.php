@@ -27,7 +27,7 @@ function hlaska($nazev, $u = null, ...$parametry)
             '%4'  => func_num_args() > 5 ? func_get_arg(5) : '',
         ]);
     } else if (func_num_args() > 1) {
-        return strtr($HLASKY_SUBST[$nazev], [
+        return \strtr($HLASKY_SUBST[$nazev], [
             "\n" => '<br />',
             '%1' => func_num_args() > 1 ? func_get_arg(1) : '',
             '%2' => func_num_args() > 2 ? func_get_arg(2) : '',

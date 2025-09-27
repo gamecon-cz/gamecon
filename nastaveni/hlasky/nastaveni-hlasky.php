@@ -26,4 +26,5 @@ return [
     'zamcena'              => 'Aktivitu už někdo zabral',
     'nejsiBrigadnik'       => 'Nejsi brigádník',
     'neniBrigadnik'        => 'Účastník není brigádník',
+    'neplatnyEmail'        => 'E-mail není platný, ověřte ho prosím',
 ];

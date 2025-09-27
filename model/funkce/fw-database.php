@@ -902,6 +902,9 @@ function dbQv(
     if ($val instanceof DateTimeInterface) {
         return '"' . $val->format('Y-m-d H:i:s') . '"';
     }
+    if ($val instanceof BackedEnum) {
+        $val = $val->value;
+    }
 
     return '"' . mysqli_real_escape_string($mysqli ?? dbConnect(), $val) . '"';
 }
