@@ -1,0 +1,26 @@
+doctrine:
+    dbal:
+        default_connection: default
+        connections:
+            default:
+                driver: pdo_mysql
+                host: '%gamecon.db.host%'
+                port: '%gamecon.db.port%'
+                dbname: '%gamecon.db.name%'
+                user: '%gamecon.db.user%'
+                password: '%gamecon.db.password%'
+                charset: utf8mb4
+
+    orm:
+        auto_generate_proxy_classes: true
+        enable_lazy_ghost_objects: true
+        report_fields_where_declared: true
+        validate_xml_mapping: true
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        auto_mapping: true
+        mappings:
+            App:
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Entity'
+                prefix: 'App\Entity'
+                alias: App

@@ -1,3 +1,11 @@
+parameters:
+    # Database configuration from GameCon PHP constants
+    gamecon.db.host: !php/const DB_SERV
+    gamecon.db.port: !php/const DB_PORT
+    gamecon.db.name: !php/const DB_NAME
+    gamecon.db.user: !php/const DB_USER
+    gamecon.db.password: !php/const DB_PASS
+
 services:
     _defaults:
         autowire: true
