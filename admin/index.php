@@ -7,6 +7,10 @@ use Gamecon\Role\Role;
 use Gamecon\Pravo;
 use Gamecon\Uzivatel\Platby;
 use Gamecon\Cas\DateTimeCz;
+// Include Symfony kernel
+use App\Kernel;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 
@@ -25,6 +29,8 @@ require __DIR__ . '/scripts/prihlaseni.php';
  */
 
 [$stranka, $podstranka] = parseRoute();
+
+include __DIR__ . '/_symfony.php';
 
 // nastavení stránky, prázdná url => přesměrování na úvod
 if (!$stranka) {
