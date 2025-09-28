@@ -3,11 +3,12 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni)
 {
     $souborSkrytehoNastaveni = souborSkrytehoNastaveniPodleVerejneho($souborVerejnehoNastaveni);
     if (!is_file($souborSkrytehoNastaveni)) {
-        // ENV názvy a hodnoty viz například .github/workflows/deploy-jakublounek.yml
+        // ENV názvy a hodnoty viz například .github/workflows/deploy-ostra.yml
         $DB_USER                = getenv('DB_USER');
         $DB_PASS                = getenv('DB_PASS');
         $DB_NAME                = getenv('DB_NAME');
         $DB_SERV                = getenv('DB_SERV');
+        $DB_PORT                = getenv('DB_PORT') ?: '3306';
         $DBM_USER               = getenv('DBM_USER');
         $DBM_PASS               = getenv('DBM_PASS');
         $DB_ANONYM_SERV         = getenv('DB_ANONYM_SERV');
@@ -33,6 +34,7 @@ define('DB_USER', '$DB_USER');
 define('DB_PASS', '$DB_PASS');
 define('DB_NAME', '$DB_NAME');
 define('DB_SERV', '$DB_SERV');
+define('DB_PORT', '$DB_PORT');
 
 // uživatel s přístupem k změnám struktury
 define('DBM_USER', '$DBM_USER');
