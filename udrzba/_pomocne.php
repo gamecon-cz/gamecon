@@ -43,6 +43,9 @@ function nasad(array $nastaveni) {
       /admin/stamps/*
       /cache/public/*
       !/cache/public/.htaccess
+      /symfony/var/cache/*
+      !/symfony/var/cache/.htaccess
+      /symfony/var/log/*
       
       /logy
 
@@ -95,6 +98,7 @@ function nasad(array $nastaveni) {
     purge[] = cache/private/xtpl
     purge[] = cache/public/css
     purge[] = cache/public/js
+    purge[] = symfony/var/cache
   ";
 
     if (!empty($nastaveni['vetev'])) {

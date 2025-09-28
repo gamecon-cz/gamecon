@@ -93,7 +93,8 @@
         "after-change": [
             "@clear-templates-cache"
         ],
-        "clear-templates-cache": "php -r 'array_map(\"unlink\", @glob(\"cache/private/xtpl/*.php\") ?: []);'"
+        "clear-templates-cache": "php -r 'array_map(\"unlink\", @glob(\"cache/private/xtpl/*.php\") ?: []);'",
+        "clear-symfony-cache": "rm -fr symfony/var/cache"
     },
     "config": {
         "sort-packages": true,

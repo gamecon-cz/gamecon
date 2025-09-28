@@ -15,6 +15,7 @@
 /logy/*
 !/logy/.htaccess
 /symfony/var/*
+!/symfony/var/.htaccess
 
 /admin/*.sql.gz
 
