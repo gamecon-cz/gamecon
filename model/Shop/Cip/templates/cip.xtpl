@@ -1,0 +1,107 @@
+<!-- begin:cip -->
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{title}</title>
+
+  <meta property="og:title" content="{title}">
+  <meta property="og:type" content="website">
+
+  <base href="{base}">
+
+  <link rel="shortcut icon" href="files/favicon.png"/>
+
+  <link rel="stylesheet" href="files/bootstrap.5.1.3.css"/>
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css"/>
+  <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css"/>
+  <!-- begin:stylesheet -->
+  <link rel="stylesheet" href="{url}?version={version}"/>
+  <!-- end:stylesheet -->
+
+  <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
+  {jsVyjimkovac}
+  <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
+  <script type="text/javascript" src="files/bootstrap.bundle.5.1.3.js"></script>
+  <!-- begin:javascript -->
+  <!-- begin:text -->
+  <script type="text/javascript" src="{url}?version={version}"></script>
+  <!-- end:text -->
+  <!-- begin:module -->
+  <script type="module" src="{url}?version={version}"></script>
+  <!-- end:module -->
+  <!-- end:javascript -->
+</head>
+
+<body>
+
+<script type="text/javascript">
+  if (window.navigator.userAgent.indexOf("MSIE ") > -1) {
+    alert('Internet Explorer není podporován. Budeš mít potíže. Raději si stáhni novější prohlížeč.')
+  }
+</script>
+
+<main class="main">
+
+  <div class="container">
+
+    <div class="justify-content-center align-items-center text-center">
+      <div class="row">
+        <div class="col">
+          <p>
+            <button onclick="readTag()">Test NFC Read</button>
+            <button onclick="writeTag()">Test NFC Write</button>
+          </p>
+          <pre id="log"></pre>
+          <p>
+            <small>Based on the code snippets from <a href="https://w3c.github.io/web-nfc/#examples">specification
+              draft</a>.</small>
+          </p>
+
+          <h2 class="text-center">Zápis</h2>
+          <div id="write">
+            <div class="supported-nfc display-none">
+              Můžeme psát
+            </div>
+            <div class="requires-https display-none">
+              Zápis na NFC čip vyžaduje <strong>https</strong> spojení.
+            </div>
+            <div class="unsupported-nfc display-none">
+              <p>Tvůj prohlížeč bohužel neumí zapisovat na NFC čip 😔</p>
+              <p>Použij prosím Chrome v Android telefonu, vybaveném NFC.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <h2 class="text-center">Čtení</h2>
+          <div id="read">
+            <div class="supported-nfc display-none">
+              Můžeme číst
+            </div>
+            <div class="requires-https display-none">
+              Čtení NFC čipu vyžaduje <strong>https</strong> spojení.
+            </div>
+            <div class="unsupported-nfc display-none">
+              <p>Tvůj prohlížeč bohužel neumí číst z NFC čipu 😔</p>
+              <p>Použij prosím Chrome v Android telefonu, vybaveném NFC.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+</body>
+</html>
+
+<!-- end:cip -->
