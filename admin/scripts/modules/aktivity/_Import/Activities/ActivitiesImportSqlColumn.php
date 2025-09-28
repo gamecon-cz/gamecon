@@ -13,7 +13,7 @@ class ActivitiesImportSqlColumn
     public const URL_AKCE          = 'url_akce'; // varchar(64) null,
     public const ZACATEK           = 'zacatek'; // datetime null,
     public const KONEC             = 'konec'; // datetime null,
-    public const LOKACE            = 'lokace'; // int not null,
+    public const VIRTUAL_LOCATIONS = 'lokace'; // je dostupné přes vazební tabulku akce_lokace -> lokace
     public const KAPACITA          = 'kapacita'; // int not null,
     public const KAPACITA_F        = 'kapacita_f'; // int not null,
     public const KAPACITA_M        = 'kapacita_m'; // int not null,
@@ -47,7 +47,7 @@ class ActivitiesImportSqlColumn
             self::URL_AKCE,
             self::ZACATEK,
             self::KONEC,
-            self::LOKACE,
+            self::VIRTUAL_LOCATIONS,
             self::KAPACITA,
             self::KAPACITA_F,
             self::KAPACITA_M,
