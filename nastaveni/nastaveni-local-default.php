@@ -62,5 +62,7 @@ if (!defined('ZOBRAZIT_STACKTRACE_VYJIMKY')) define('ZOBRAZIT_STACKTRACE_VYJIMKY
 if (!defined('MAILER_DSN')) define('MAILER_DSN', getenv('MAILER_DSN')
     ?: '');
 if (!defined('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB')) define('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB', false);
+if (!defined('APP_SECRET')) define('APP_SECRET', getenv('APP_SECRET')
+    ?: 'someRandomStringForAppSecretThatYouShouldChange');
 
 error_reporting(E_ALL);

@@ -53,3 +53,6 @@ putenv('GAMECON_DB_PORT=' . DB_PORT);
 putenv('GAMECON_DB_USER=' . DB_USER);
 putenv('GAMECON_DB_PASSWORD=' . DB_PASS);
 putenv('DEFAULT_URI=' . URL_WEBU);
+if (!getenv('APP_SECRET')) {
+    putenv('APP_SECRET=' . APP_SECRET);
+}
