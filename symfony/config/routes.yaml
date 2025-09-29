@@ -19,7 +19,7 @@ admin_activities:
 
 # API Routes
 admin_api:
-    path: /api/{endpoint}
+    path: /api/v2/{endpoint}
     controller: App\Controller\ApiController::handle
     requirements:
         endpoint: '.*'
