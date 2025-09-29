@@ -2,11 +2,15 @@
 
 /.idea/
 /.vscode/
+/.envrc
+
 /.phpunit.result.cache
 /.phpunit.cache
 /phpunit_log
+/phpunit.xml
+/phpstan.neon
+
 /test-results
-/.envrc
 
 /cache/private/*
 !/cache/private/.htaccess
@@ -42,17 +46,6 @@
 /.env.local
 /.env.local.php
 /.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
+/symfony/config/secrets/prod/prod.decrypt.private.php
+/symfony/public/bundles/
 ###< symfony/framework-bundle ###
-
-###> phpunit/phpunit ###
-/phpunit.xml
-/.phpunit.cache/
-###< phpunit/phpunit ###
-
-###> phpstan/phpstan ###
-phpstan.neon
-###< phpstan/phpstan ###

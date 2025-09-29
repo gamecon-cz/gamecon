@@ -1,0 +1,52 @@
+parameters:
+	doctrine:
+		reportDynamicQueryBuilders: false
+		reportUnknownTypes: false
+		allowNullablePropertyForRequiredField: false
+
+parametersSchema:
+	doctrine: structure([
+		repositoryClass: schema(string(), nullable())
+		ormRepositoryClass: schema(string(), nullable())
+		odmRepositoryClass: schema(string(), nullable())
+		queryBuilderClass: schema(string(), nullable())
+		allCollectionsSelectable: bool()
+		objectManagerLoader: schema(string(), nullable())
+		reportDynamicQueryBuilders: bool()
+		reportUnknownTypes: bool()
+		allowNullablePropertyForRequiredField: bool()
+		literalString: bool()
+	])
+
+rules:
+	- PHPStan\Rules\Doctrine\ORM\DqlRule
+	- PHPStan\Rules\Doctrine\ORM\RepositoryMethodCallRule
+	- PHPStan\Rules\Doctrine\ORM\EntityConstructorNotFinalRule
+	- PHPStan\Rules\Doctrine\ORM\EntityMappingExceptionRule
+	- PHPStan\Rules\Doctrine\ORM\EntityNotFinalRule
+
+services:
+	-
+		class: PHPStan\Rules\Doctrine\ORM\QueryBuilderDqlRule
+		arguments:
+			reportDynamicQueryBuilders: %doctrine.reportDynamicQueryBuilders%
+		tags:
+			- phpstan.rules.rule
+	-
+		class: PHPStan\Rules\Doctrine\ORM\EntityColumnRule
+		arguments:
+			reportUnknownTypes: %doctrine.reportUnknownTypes%
+			allowNullablePropertyForRequiredField: %doctrine.allowNullablePropertyForRequiredField%
+			descriptorRegistry: @doctrineTypeDescriptorRegistry
+		tags:
+			- phpstan.rules.rule
+	-
+		class: PHPStan\Rules\Doctrine\ORM\EntityRelationRule
+		arguments:
+			allowNullablePropertyForRequiredField: %doctrine.allowNullablePropertyForRequiredField%
+		tags:
+			- phpstan.rules.rule
+	-
+		class: PHPStan\Classes\DoctrineProxyForbiddenClassNamesExtension
+		tags:
+			- phpstan.forbiddenClassNamesExtension

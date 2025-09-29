@@ -1,0 +1,43 @@
+{
+  "name": "granam/tools",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jaroslav Týc",
+      "homepage": "http://jaroslavtyc.com",
+      "role": "Original author"
+    }
+  ],
+  "type": "project",
+  "description": "Toolbox",
+  "keywords": [
+    "php",
+    "string",
+    "object",
+    "toolbox"
+  ],
+  "homepage": "https://github.com/granam/tools",
+  "autoload": {
+    "psr-4": {
+      "Granam\\Tools\\": "Tools"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Granam\\Tests\\Tools\\": "tests/Tools",
+      "Granam\\Tests\\ExceptionsHierarchy\\": "vendor/granam/exceptions-hierarchy/tests/ExceptionsHierarchy"
+    }
+  },
+  "require": {
+    "php": ">=7.3",
+    "granam/strict-object": ">=3.0"
+  },
+  "require-dev": {
+    "mockery/mockery": "^1.2",
+    "granam/exceptions-hierarchy": "^5.0",
+    "phpunit/phpunit": "^9.0"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

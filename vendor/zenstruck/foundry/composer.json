@@ -1,0 +1,104 @@
+{
+    "name": "zenstruck/foundry",
+    "description": "A model factory library for creating expressive, auto-completable, on-demand dev/test fixtures with Symfony and Doctrine.",
+    "homepage": "https://github.com/zenstruck/foundry",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["fixture", "factory", "test", "symfony", "faker", "doctrine", "dev"],
+    "authors": [
+        {
+            "name": "Kevin Bond",
+            "email": "kevinbond@gmail.com"
+        },
+        {
+            "name": "Nicolas PHILIPPE",
+            "email": "nikophil@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "fakerphp/faker": "^1.23",
+        "symfony/deprecation-contracts": "^2.2|^3.0",
+        "symfony/polyfill-php84": "^1.32",
+        "symfony/property-access": "^6.4|^7.0|^8.0",
+        "symfony/property-info": "^6.4|^7.0|^8.0",
+        "symfony/var-exporter": "^6.4.9|~7.0.9|^7.1.2|^8.0",
+        "zenstruck/assert": "^1.4"
+    },
+    "require-dev": {
+        "bamarni/composer-bin-plugin": "^1.8",
+        "brianium/paratest": "^6|^7",
+        "dama/doctrine-test-bundle": "^8.0",
+        "doctrine/collections": "^1.7|^2.0",
+        "doctrine/common": "^3.2.2",
+        "doctrine/doctrine-bundle": "^2.10",
+        "doctrine/doctrine-migrations-bundle": "^2.2|^3.0",
+        "doctrine/mongodb-odm": "^2.4",
+        "doctrine/mongodb-odm-bundle": "^4.6|^5.0",
+        "doctrine/orm": "^2.16|^3.0",
+        "doctrine/persistence": "^2.0|^3.0|^4.0",
+        "phpunit/phpunit": "^9.5.0 || ^10.0 || ^11.0 || ^12.0",
+        "symfony/browser-kit": "^6.4|^7.0|^8.0",
+        "symfony/console": "^6.4|^7.0|^8.0",
+        "symfony/dotenv": "^6.4|^7.0|^8.0",
+        "symfony/framework-bundle": "^6.4|^7.0|^8.0",
+        "symfony/maker-bundle": "^1.55",
+        "symfony/phpunit-bridge": "^6.4|^7.0|^8.0",
+        "symfony/routing": "^6.4|^7.0|^8.0",
+        "symfony/runtime": "^6.4|^7.0|^8.0",
+        "symfony/translation-contracts": "^3.4",
+        "symfony/uid": "^6.4|^7.0|^8.0",
+        "symfony/var-dumper": "^6.4|^7.0|^8.0",
+        "symfony/yaml": "^6.4|^7.0|^8.0",
+        "webmozart/assert": "^1.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "Zenstruck\\Foundry\\": "src/",
+            "Zenstruck\\Foundry\\Psalm\\": "utils/psalm",
+            "Zenstruck\\Foundry\\Utils\\Rector\\": "utils/rector/src/"
+        },
+        "files": [
+            "src/functions.php",
+            "src/Persistence/functions.php",
+            "src/symfony_console.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Zenstruck\\Foundry\\Tests\\": ["tests/"],
+            "App\\": "tests/Fixture/Maker/tmp/src",
+            "App\\Tests\\": "tests/Fixture/Maker/tmp/tests",
+            "Zenstruck\\Foundry\\Utils\\Rector\\Tests\\": "utils/rector/tests/"
+        },
+        "exclude-from-classmap": ["tests/Fixture/Maker/expected", "utils/rector/tests/**/Fixtures/"]
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "bamarni/composer-bin-plugin": true,
+            "symfony/flex": true,
+            "symfony/runtime": false
+        }
+    },
+    "conflict": {
+        "doctrine/persistence": "<2.0",
+        "symfony/framework-bundle": "<6.4"
+    },
+    "extra": {
+        "bamarni-bin": {
+            "target-directory": "bin/tools",
+            "bin-links": true,
+            "forward-command": false
+        },
+        "psalm": {
+            "pluginClass": "Zenstruck\\Foundry\\Psalm\\FoundryPlugin"
+        }
+    },
+    "scripts": {
+        "post-install-cmd": ["@composer bin phpstan install", "@composer bin phpbench install"]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

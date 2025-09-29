@@ -1,0 +1,38 @@
+{
+	"name": "dg/ftp-deployment",
+	"type": "project",
+	"description": "A tool for automated deployment of web applications to an FTP server.",
+	"keywords": ["deployment", "ftp", "ssh"],
+	"homepage": "https://github.com/dg/ftp-deployment",
+	"license": ["BSD-3-Clause", "GPL-2.0-only", "GPL-3.0-only"],
+	"authors": [
+		{
+			"name": "David Grudl",
+			"homepage": "https://davidgrudl.com"
+		}
+	],
+	"require": {
+		"php": ">=8.0",
+		"ext-zlib": "*",
+		"phpseclib/phpseclib": "^3.0"
+	},
+	"require-dev": {
+		"nette/tester": "^2.0",
+		"phpstan/phpstan": "^0.12"
+	},
+	"suggest": {
+		"ext-ftp": "to connect to ftp:// server",
+		"ext-openssl": "to connect to ftps:// server and preprocess CSS files",
+		"ext-ssh2": "to connect to sftp:// server",
+		"ext-json": "to preprocess CSS files via online service"
+	},
+	"autoload": {
+		"classmap": ["src/"]
+	},
+	"bin": ["deployment"],
+	"extra": {
+		"branch-alias": {
+			"dev-master": "3.6-dev"
+		}
+	}
+}

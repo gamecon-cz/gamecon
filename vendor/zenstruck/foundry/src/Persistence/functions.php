@@ -1,0 +1,250 @@
+<?php
+
+/*
+ * This file is part of the zenstruck/foundry package.
+ *
+ * (c) Kevin Bond <kevinbond@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Zenstruck\Foundry\Persistence;
+
+use Doctrine\Persistence\ObjectRepository;
+use Zenstruck\Assert;
+use Zenstruck\Foundry\AnonymousFactoryGenerator;
+use Zenstruck\Foundry\Configuration;
+
+/**
+ * @template T of object
+ *
+ * @param class-string<T> $class
+ *
+ * @return RepositoryDecorator<T,ObjectRepository<T>>
+ */
+function repository(string $class): RepositoryDecorator
+{
+    return new RepositoryDecorator($class, Configuration::instance()->isInMemoryEnabled()); // @phpstan-ignore return.type
+}
+
+/**
+ * @template T of object
+ *
+ * @param class-string<T> $class
+ *
+ * @return ProxyRepositoryDecorator<T,ObjectRepository<T>>
+ */
+function proxy_repository(string $class): ProxyRepositoryDecorator
+{
+    Configuration::triggerProxyDeprecation('Function proxy_repository() is deprecated and will be removed in Foundry 3.');
+
+    return new ProxyRepositoryDecorator($class, Configuration::instance()->isInMemoryEnabled()); // @phpstan-ignore return.type
+}
+
+/**
+ * Create an anonymous "persistent" factory for the given class.
+ *
+ * @template T of object
+ *
+ * @param class-string<T>                                       $class
+ * @param array<string,mixed>|callable(int):array<string,mixed> $attributes
+ *
+ * @return PersistentObjectFactory<T>
+ */
+function persistent_factory(string $class, array|callable $attributes = []): PersistentObjectFactory
+{
+    return AnonymousFactoryGenerator::create($class, PersistentObjectFactory::class)::new($attributes);
+}
+
+/**
+ * Create an anonymous "persistent with proxy" factory for the given class.
+ *
+ * @template T of object
+ *
+ * @param class-string<T>                                       $class
+ * @param array<string,mixed>|callable(int):array<string,mixed> $attributes
+ *
+ * @return PersistentProxyObjectFactory<T>
+ */
+function proxy_factory(string $class, array|callable $attributes = []): PersistentProxyObjectFactory
+{
+    Configuration::triggerProxyDeprecation('Function proxy_factory() is deprecated and will be removed in Foundry 3.');
+
+    return AnonymousFactoryGenerator::create($class, PersistentProxyObjectFactory::class)::new($attributes);
+}
+
+/**
+ * Instantiate and "persist" the given class.
+ *
+ * @template T of object
+ *
+ * @param class-string<T>                                       $class
+ * @param array<string,mixed>|callable(int):array<string,mixed> $attributes
+ *
+ * @return T
+ */
+function persist(string $class, array|callable $attributes = []): object
+{
+    return persistent_factory($class, $attributes)->andPersist()->create();
+}
+
+/**
+ * Create an auto-refreshable proxy for the object.
+ *
+ * @template T of object
+ *
+ * @param T $object
+ *
+ * @return T&Proxy<T>
+ */
+function proxy(object $object): object
+{
+    Configuration::triggerProxyDeprecation('Function proxy() is deprecated and will be removed in Foundry 3.');
+
+    return ProxyGenerator::wrap($object);
+}
+
+/**
+ * Recursively unwrap all proxies.
+ *
+ * @template T
+ *
+ * @param T $what
+ *
+ * @return T
+ */
+function unproxy(mixed $what, bool $withAutoRefresh = true): mixed
+{
+    Configuration::triggerProxyDeprecation('Function unproxy() is deprecated and will be removed in Foundry 3.');
+
+    return ProxyGenerator::unwrap($what, $withAutoRefresh);
+}
+
+/**
+ * @template T of object
+ *
+ * @param T $object
+ *
+ * @return T
+ */
+function save(object $object): object
+{
+    return Configuration::instance()->persistence()->save($object);
+}
+
+/**
+ * @template T of object
+ *
+ * @param T $object
+ *
+ * @return T
+ */
+function refresh(object &$object): object
+{
+    return Configuration::instance()->persistence()->refresh($object);
+}
+
+/**
+ * For refreshing all persistent objects created by Foundry, that are currently in use.
+ *
+ * @throws \BadMethodCallException if called with PHP <8.4
+ */
+function refresh_all(): void
+{
+    if (\PHP_VERSION_ID < 80400) {
+        throw new \BadMethodCallException('Cannot use refresh_all() before PHP 8.4.');
+    }
+
+    $objectsTracker = Configuration::instance()->persistedObjectsTracker;
+
+    if (null === $objectsTracker) {
+        throw new \BadMethodCallException('Cannot use refresh_all() if auto refresh with lazy objects is not enabled.');
+    }
+
+    $objectsTracker->refresh();
+}
+
+/**
+ * @template T of object
+ *
+ * @param T $object
+ *
+ * @return T
+ */
+function delete(object $object): object
+{
+    return Configuration::instance()->persistence()->delete($object);
+}
+
+/**
+ * @template T
+ *
+ * @param callable():T $callback
+ *
+ * @return T
+ */
+function flush_after(callable $callback): mixed
+{
+    return Configuration::instance()->persistence()->flushAfter($callback);
+}
+
+/**
+ * Disable persisting factories globally.
+ */
+function disable_persisting(): void
+{
+    Configuration::instance()->persistence()->disablePersisting();
+}
+
+/**
+ * Enable persisting factories globally.
+ */
+function enable_persisting(): void
+{
+    Configuration::instance()->persistence()->enablePersisting();
+}
+
+function assert_persisted(object $object, string $message = '{entity} is not persisted.'): object
+{
+    Configuration::instance()->assertPersistenceEnabled();
+
+    Assert::that(
+        Configuration::instance()->persistence()->isPersisted($object)
+    )->isTrue($message, ['entity' => $object::class]);
+
+    return $object;
+}
+
+function assert_not_persisted(object $object, string $message = '{entity} is persisted.'): object
+{
+    Configuration::instance()->assertPersistenceEnabled();
+
+    Assert::that(
+        Configuration::instance()->persistence()->isPersisted($object)
+    )->isFalse($message, ['entity' => $object::class]);
+
+    return $object;
+}
+
+/**
+ * @internal
+ */
+function initialize_proxy_object(mixed $what): void
+{
+    if (
+        \PHP_VERSION_ID >= 80400
+        && \is_object($what)
+        && ($reflector = new \ReflectionClass($what))->isUninitializedLazyObject($what)
+    ) {
+        $reflector->initializeLazyObject($what);
+
+        return;
+    }
+
+    match (true) {
+        $what instanceof Proxy => $what->_initializeLazyObject(),
+        \is_array($what) => \array_map(initialize_proxy_object(...), $what),
+        default => true, // do nothing
+    };
+}
