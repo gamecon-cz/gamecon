@@ -49,7 +49,7 @@ abstract class Descriptor implements DescriptorInterface
         }
 
         match (true) {
-            $object instanceof RouteCollection => $this->describeRouteCollection($object, $options),
+            $object instanceof RouteCollection => $this->describeRouteCollection($this->filterRoutesByHttpMethod($object, $options['method'] ?? ''), $options),
             $object instanceof Route => $this->describeRoute($object, $options),
             $object instanceof ParameterBag => $this->describeContainerParameters($object, $options),
             $object instanceof ContainerBuilder && !empty($options['env-vars']) => $this->describeContainerEnvVars($this->getContainerEnvVars($object), $options),
@@ -62,7 +62,7 @@ abstract class Descriptor implements DescriptorInterface
             $object instanceof Alias => $this->describeContainerAlias($object, $options),
             $object instanceof EventDispatcherInterface => $this->describeEventDispatcherListeners($object, $options),
             \is_callable($object) => $this->describeCallable($object, $options),
-            default => throw new \InvalidArgumentException(sprintf('Object of type "%s" is not describable.', get_debug_type($object))),
+            default => throw new \InvalidArgumentException(\sprintf('Object of type "%s" is not describable.', get_debug_type($object))),
         };
 
         if ($object instanceof ContainerBuilder) {
@@ -96,7 +96,7 @@ abstract class Descriptor implements DescriptorInterface
      *
      * @param Definition|Alias|object $service
      */
-    abstract protected function describeContainerService(object $service, array $options = [], ContainerBuilder $container = null): void;
+    abstract protected function describeContainerService(object $service, array $options = [], ?ContainerBuilder $container = null): void;
 
     /**
      * Describes container services.
@@ -108,9 +108,9 @@ abstract class Descriptor implements DescriptorInterface
 
     abstract protected function describeContainerDeprecations(ContainerBuilder $container, array $options = []): void;
 
-    abstract protected function describeContainerDefinition(Definition $definition, array $options = [], ContainerBuilder $container = null): void;
+    abstract protected function describeContainerDefinition(Definition $definition, array $options = [], ?ContainerBuilder $container = null): void;
 
-    abstract protected function describeContainerAlias(Alias $alias, array $options = [], ContainerBuilder $container = null): void;
+    abstract protected function describeContainerAlias(Alias $alias, array $options = [], ?ContainerBuilder $container = null): void;
 
     abstract protected function describeContainerParameter(mixed $parameter, ?array $deprecation, array $options = []): void;
 
@@ -133,7 +133,7 @@ abstract class Descriptor implements DescriptorInterface
         }
 
         if (\is_object($value)) {
-            return sprintf('object(%s)', $value::class);
+            return \sprintf('object(%s)', $value::class);
         }
 
         if (\is_string($value)) {
@@ -278,7 +278,7 @@ abstract class Descriptor implements DescriptorInterface
         return $reverseAliases;
     }
 
-    public static function getClassDescription(string $class, string &$resolvedClass = null): string
+    public static function getClassDescription(string $class, ?string &$resolvedClass = null): string
     {
         $resolvedClass = $class;
         try {
@@ -359,5 +359,21 @@ abstract class Descriptor implements DescriptorInterface
         } catch (InvalidArgumentException $exception) {
             return [];
         }
+    }
+
+    private function filterRoutesByHttpMethod(RouteCollection $routes, string $method): RouteCollection
+    {
+        if (!$method) {
+            return $routes;
+        }
+        $filteredRoutes = clone $routes;
+
+        foreach ($filteredRoutes as $routeName => $route) {
+            if ($route->getMethods() && !\in_array($method, $route->getMethods(), true)) {
+                $filteredRoutes->remove($routeName);
+            }
+        }
+
+        return $filteredRoutes;
     }
 }

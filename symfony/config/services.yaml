@@ -1,10 +1,10 @@
 parameters:
-    # Database configuration from GameCon PHP constants
-    gamecon.db.host: !php/const DB_SERV
-    gamecon.db.port: !php/const DB_PORT
-    gamecon.db.name: !php/const DB_NAME
-    gamecon.db.user: !php/const DB_USER
-    gamecon.db.password: !php/const DB_PASS
+    # Database configuration from GameCon environment variables
+    gamecon.db.host: '%env(GAMECON_DB_HOST)%'
+    gamecon.db.port: '%env(GAMECON_DB_PORT)%'
+    gamecon.db.name: '%env(GAMECON_DB_NAME)%'
+    gamecon.db.user: '%env(GAMECON_DB_USER)%'
+    gamecon.db.password: '%env(GAMECON_DB_PASSWORD)%'
 
 services:
     _defaults:

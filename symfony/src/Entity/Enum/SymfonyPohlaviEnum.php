@@ -25,6 +25,9 @@ enum SymfonyPohlaviEnum: string
         };
     }
 
+    /**
+     * @return array<string, string>
+     */
     public static function seznamProSelect(): array
     {
         return [

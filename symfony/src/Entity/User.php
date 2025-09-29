@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Entity\Enum\SymfonyPohlaviEnum;
-use App\Repository\SymfonyUzivatelRepository;
+use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SymfonyUzivatelRepository::class)]
+#[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'uzivatele_hodnoty')]
 #[ORM\Index(columns: ['infopult_poznamka'], name: 'infopult_poznamka_idx')]
 #[ORM\UniqueConstraint(name: 'login_uzivatele', columns: ['login_uzivatele'])]
 #[ORM\UniqueConstraint(name: 'email1_uzivatele', columns: ['email1_uzivatele'])]
-class SymfonyUzivatel
+class User
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

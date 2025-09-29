@@ -37,6 +37,9 @@ jobs:
       - name: Run tests in container
         run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
 
+      - name: Run PHPStan in container
+        run: docker compose exec --no-TTY web ./bin/phpstan.sh
+
       - name: Upload test output as artifact
         if: always()
         uses: actions/upload-artifact@v4

@@ -17,11 +17,14 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Compiler\CheckAliasValidityPass;
 use Symfony\Component\DependencyInjection\Compiler\CheckTypeDeclarationsPass;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\Compiler\ResolveFactoryClassPass;
+use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
@@ -38,6 +41,7 @@ final class ContainerLintCommand extends Command
     {
         $this
             ->setHelp('This command parses service definitions and ensures that injected values match the type declarations of each services\' class.')
+            ->addOption('resolve-env-vars', null, InputOption::VALUE_NONE, 'Resolve environment variables and fail if one is missing.')
         ;
     }
 
@@ -46,8 +50,10 @@ final class ContainerLintCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $errorIo = $io->getErrorStyle();
 
+        $resolveEnvVars = $input->getOption('resolve-env-vars');
+
         try {
-            $container = $this->getContainerBuilder();
+            $container = $this->getContainerBuilder($resolveEnvVars);
         } catch (RuntimeException $e) {
             $errorIo->error($e->getMessage());
 
@@ -57,7 +63,7 @@ final class ContainerLintCommand extends Command
         $container->setParameter('container.build_time', time());
 
         try {
-            $container->compile();
+            $container->compile($resolveEnvVars);
         } catch (InvalidArgumentException $e) {
             $errorIo->error($e->getMessage());
 
@@ -69,7 +75,7 @@ final class ContainerLintCommand extends Command
         return 0;
     }
 
-    private function getContainerBuilder(): ContainerBuilder
+    private function getContainerBuilder(bool $resolveEnvVars): ContainerBuilder
     {
         if (isset($this->container)) {
             return $this->container;
@@ -80,7 +86,7 @@ final class ContainerLintCommand extends Command
 
         if (!$kernel->isDebug() || !$kernelContainer->getParameter('debug.container.dump') || !(new ConfigCache($kernelContainer->getParameter('debug.container.dump'), true))->isFresh()) {
             if (!$kernel instanceof Kernel) {
-                throw new RuntimeException(sprintf('This command does not support the application kernel: "%s" does not extend "%s".', get_debug_type($kernel), Kernel::class));
+                throw new RuntimeException(\sprintf('This command does not support the application kernel: "%s" does not extend "%s".', get_debug_type($kernel), Kernel::class));
             }
 
             $buildContainer = \Closure::bind(function (): ContainerBuilder {
@@ -91,22 +97,29 @@ final class ContainerLintCommand extends Command
             $container = $buildContainer();
         } else {
             if (!$kernelContainer instanceof Container) {
-                throw new RuntimeException(sprintf('This command does not support the application container: "%s" does not extend "%s".', get_debug_type($kernelContainer), Container::class));
+                throw new RuntimeException(\sprintf('This command does not support the application container: "%s" does not extend "%s".', get_debug_type($kernelContainer), Container::class));
             }
 
             (new XmlFileLoader($container = new ContainerBuilder($parameterBag = new EnvPlaceholderParameterBag()), new FileLocator()))->load($kernelContainer->getParameter('debug.container.dump'));
 
-            $refl = new \ReflectionProperty($parameterBag, 'resolved');
-            $refl->setValue($parameterBag, true);
+            if ($resolveEnvVars) {
+                $container->getCompilerPassConfig()->setOptimizationPasses([new ResolveParameterPlaceHoldersPass(), new ResolveFactoryClassPass()]);
+            } else {
+                $refl = new \ReflectionProperty($parameterBag, 'resolved');
+                $refl->setValue($parameterBag, true);
+
+                $container->getCompilerPassConfig()->setOptimizationPasses([new ResolveFactoryClassPass()]);
+            }
 
             $container->getCompilerPassConfig()->setBeforeOptimizationPasses([]);
-            $container->getCompilerPassConfig()->setOptimizationPasses([new ResolveFactoryClassPass()]);
             $container->getCompilerPassConfig()->setBeforeRemovingPasses([]);
         }
 
         $container->setParameter('container.build_hash', 'lint_container');
         $container->setParameter('container.build_id', 'lint_container');
+        $container->setParameter('container.runtime_mode', 'web=0');
 
+        $container->addCompilerPass(new CheckAliasValidityPass(), PassConfig::TYPE_BEFORE_REMOVING, -100);
         $container->addCompilerPass(new CheckTypeDeclarationsPass(true), PassConfig::TYPE_AFTER_REMOVING, -100);
 
         return $this->container = $container;

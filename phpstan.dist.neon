@@ -1,0 +1,11 @@
+includes:
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - symfony/config/
+        - symfony/src/
+        - tests/Symfony/
+    scanDirectories:
+        - model

@@ -376,7 +376,7 @@ Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a
             $t->assign([
                 'typ'  => $typ,
                 'hint' => $predmet[Sql::POPIS],
-                'cena' => round($predmet[Sql::CENA_AKTUALNI]),
+                'cena' => round((float)$predmet[Sql::CENA_AKTUALNI]),
             ]);
             $t->parse($predmet['popis']
                 ? 'ubytovani.typ.hinted'

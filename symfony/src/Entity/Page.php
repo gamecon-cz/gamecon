@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Repository\PageRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\SymfonyStrankaRepository')]
+#[ORM\Entity(repositoryClass: PageRepository::class)]
 #[ORM\Table(name: 'stranky')]
-class SymfonyStranka
+class Page
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

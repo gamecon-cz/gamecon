@@ -18,3 +18,6 @@ run: init start-docker-foreground
 
 bash:
 	./bin-docker/docker-bash
+
+phpstan:
+	./bin-docker/docker-bash bin/phpstan.sh

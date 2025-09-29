@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Entity\SymfonyUzivatel;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<SymfonyUzivatel>
+ * @extends ServiceEntityRepository<User>
  *
- * @method SymfonyUzivatel|null find($id, $lockMode = null, $lockVersion = null)
- * @method SymfonyUzivatel|null findOneBy(array $criteria, array $orderBy = null)
- * @method SymfonyUzivatel[]    findAll()
- * @method SymfonyUzivatel[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method User|null find($id, $lockMode = null, $lockVersion = null)
+ * @method User|null findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
+ * @method User[]    findAll()
+ * @method User[]    findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
  */
-class SymfonyUzivatelRepository extends ServiceEntityRepository
+class UserRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, SymfonyUzivatel::class);
+        parent::__construct($registry, User::class);
     }
 
-    public function save(SymfonyUzivatel $entity, bool $flush = false): void
+    public function save(User $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -32,7 +32,7 @@ class SymfonyUzivatelRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(SymfonyUzivatel $entity, bool $flush = false): void
+    public function remove(User $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 
@@ -41,7 +41,7 @@ class SymfonyUzivatelRepository extends ServiceEntityRepository
         }
     }
 
-    public function findByLogin(string $login): ?SymfonyUzivatel
+    public function findByLogin(string $login): ?User
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.login = :login')
@@ -50,7 +50,7 @@ class SymfonyUzivatelRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findByEmail(string $email): ?SymfonyUzivatel
+    public function findByEmail(string $email): ?User
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.email = :email')
@@ -61,7 +61,7 @@ class SymfonyUzivatelRepository extends ServiceEntityRepository
 
     /**
      * Find users registered in the current year
-     * @return SymfonyUzivatel[]
+     * @return User[]
      */
     public function findRegisteredThisYear(): array
     {
@@ -78,7 +78,7 @@ class SymfonyUzivatelRepository extends ServiceEntityRepository
 
     /**
      * Find users by partial name match
-     * @return SymfonyUzivatel[]
+     * @return User[]
      */
     public function findByPartialName(string $searchTerm): array
     {

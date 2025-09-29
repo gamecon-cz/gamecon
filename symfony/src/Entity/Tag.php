@@ -29,12 +29,9 @@ class Tag
     #[ORM\Column(name: 'poznamka', type: Types::TEXT, nullable: false)]
     private string $poznamka = '';
 
-    #[ORM\Column(name: 'id_kategorie_tagu', type: Types::INTEGER, nullable: false, options: ['unsigned' => true])]
-    private int $idKategorieTagu;
-
-    #[ORM\ManyToOne(targetEntity: KategorieTag::class, inversedBy: 'tagy')]
+    #[ORM\ManyToOne(targetEntity: CategoryTag::class, inversedBy: 'tagy')]
     #[ORM\JoinColumn(name: 'id_kategorie_tagu', referencedColumnName: 'id', nullable: false)]
-    private ?KategorieTag $kategorieTag = null;
+    private ?CategoryTag $kategorieTag = null;
 
     public function getId(): ?int
     {
@@ -63,28 +60,14 @@ class Tag
         return $this;
     }
 
-    public function getIdKategorieTagu(): int
-    {
-        return $this->idKategorieTagu;
-    }
-
-    public function setIdKategorieTagu(int $idKategorieTagu): static
-    {
-        $this->idKategorieTagu = $idKategorieTagu;
-        return $this;
-    }
-
-    public function getKategorieTag(): ?KategorieTag
+    public function getKategorieTag(): ?CategoryTag
     {
         return $this->kategorieTag;
     }
 
-    public function setKategorieTag(?KategorieTag $kategorieTag): static
+    public function setKategorieTag(?CategoryTag $kategorieTag): static
     {
         $this->kategorieTag = $kategorieTag;
-        if ($kategorieTag !== null) {
-            $this->idKategorieTagu = $kategorieTag->getId();
-        }
         return $this;
     }
 }

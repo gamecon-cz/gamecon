@@ -246,7 +246,7 @@ SQL
     /**
      * Vrátí / nastaví číslo občanského průkazu.
      */
-    public function typDokladu(string $typDokladu = null): string
+    public function typDokladuTotoznosti(string $typDokladu = null): string
     {
         if ($typDokladu !== null) {
             dbQuery('

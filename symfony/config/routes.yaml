@@ -1,3 +1,9 @@
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
 # Admin Routes (paths relative to admin directory)
 admin_dashboard:
     path: /dashboard

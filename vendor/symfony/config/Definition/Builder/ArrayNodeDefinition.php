@@ -23,19 +23,19 @@ use Symfony\Component\Config\Definition\PrototypedArrayNode;
  */
 class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinitionInterface
 {
-    protected $performDeepMerging = true;
-    protected $ignoreExtraKeys = false;
-    protected $removeExtraKeys = true;
-    protected $children = [];
-    protected $prototype;
-    protected $atLeastOne = false;
-    protected $allowNewKeys = true;
-    protected $key;
-    protected $removeKeyItem;
-    protected $addDefaults = false;
-    protected $addDefaultChildren = false;
-    protected $nodeBuilder;
-    protected $normalizeKeys = true;
+    protected bool $performDeepMerging = true;
+    protected bool $ignoreExtraKeys = false;
+    protected bool $removeExtraKeys = true;
+    protected array $children = [];
+    protected NodeDefinition $prototype;
+    protected bool $atLeastOne = false;
+    protected bool $allowNewKeys = true;
+    protected ?string $key = null;
+    protected bool $removeKeyItem = false;
+    protected bool $addDefaults = false;
+    protected int|string|array|false|null $addDefaultChildren = false;
+    protected NodeBuilder $nodeBuilder;
+    protected bool $normalizeKeys = true;
 
     public function __construct(?string $name, ?NodeParentInterface $parent = null)
     {
@@ -45,10 +45,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
         $this->trueEquivalent = [];
     }
 
-    /**
-     * @return void
-     */
-    public function setBuilder(NodeBuilder $builder)
+    public function setBuilder(NodeBuilder $builder): void
     {
         $this->nodeBuilder = $builder;
     }
@@ -74,6 +71,11 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
     public function scalarPrototype(): ScalarNodeDefinition
     {
         return $this->prototype('scalar');
+    }
+
+    public function stringPrototype(): StringNodeDefinition
+    {
+        return $this->prototype('string');
     }
 
     public function booleanPrototype(): BooleanNodeDefinition
@@ -237,11 +239,13 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      * enableableArrayNode: {enabled: false, ...}  # The config is disabled
      * enableableArrayNode: false                  # The config is disabled
      *
+     * @param string|null $info A description of what happens when the node is enabled or disabled
+     *
      * @return $this
      */
-    public function canBeEnabled(): static
+    public function canBeEnabled(/* ?string $info = null */): static
     {
-        $this
+        $disabledNode = $this
             ->addDefaultsIfNotSet()
             ->treatFalseLike(['enabled' => false])
             ->treatTrueLike(['enabled' => true])
@@ -259,6 +263,11 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
                     ->defaultFalse()
         ;
 
+        $info = 1 <= \func_num_args() ? func_get_arg(0) : null;
+        if ($info) {
+            $disabledNode->info($info);
+        }
+
         return $this;
     }
 
@@ -267,11 +276,13 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      *
      * By default, the section is enabled.
      *
+     * @param string|null $info A description of what happens when the node is enabled or disabled
+     *
      * @return $this
      */
-    public function canBeDisabled(): static
+    public function canBeDisabled(/* ?string $info = null */): static
     {
-        $this
+        $enabledNode = $this
             ->addDefaultsIfNotSet()
             ->treatFalseLike(['enabled' => false])
             ->treatTrueLike(['enabled' => true])
@@ -280,6 +291,11 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
                 ->booleanNode('enabled')
                     ->defaultTrue()
         ;
+
+        $info = 1 <= \func_num_args() ? func_get_arg(0) : null;
+        if ($info) {
+            $enabledNode->info($info);
+        }
 
         return $this;
     }
@@ -425,11 +441,9 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
     /**
      * Validate the configuration of a concrete node.
      *
-     * @return void
-     *
      * @throws InvalidDefinitionException
      */
-    protected function validateConcreteNode(ArrayNode $node)
+    protected function validateConcreteNode(ArrayNode $node): void
     {
         $path = $node->getPath();
 
@@ -457,11 +471,9 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
     /**
      * Validate the configuration of a prototype node.
      *
-     * @return void
-     *
      * @throws InvalidDefinitionException
      */
-    protected function validatePrototypeNode(PrototypedArrayNode $node)
+    protected function validatePrototypeNode(PrototypedArrayNode $node): void
     {
         $path = $node->getPath();
 

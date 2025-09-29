@@ -209,4 +209,8 @@ abstract class DbObject
         throw new RuntimeException(sprintf("Více jak jeden řádek (%d) odpovídá where klauzuli '%s'", count($a), $where));
     }
 
+    public function raw(): array
+    {
+        return $this->r;
+    }
 }

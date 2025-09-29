@@ -3,10 +3,13 @@
 namespace Gamecon\Tests\Db;
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Zenstruck\Foundry\Test\Factories;
 
-abstract class AbstractTestDb extends TestCase
+abstract class AbstractTestDb extends KernelTestCase
 {
+    use Factories;
+    
     private static ?DbWrapper $connection = null;
     /** @var string[] */
     protected static array  $initQueries = [];
@@ -23,6 +26,9 @@ abstract class AbstractTestDb extends TestCase
 
     public static function setUpBeforeClass(): void
     {
+        // Boot the kernel early to ensure it uses the correct DB_NAME constant
+        static::bootKernel();
+
         try {
             if (static::keepTestClassDbChangesInTransaction()) {
                 self::$connection->begin();

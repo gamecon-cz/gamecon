@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Repository\KategorieTagRepository;
+use App\Repository\CategoryTagRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
-#[ORM\Entity(repositoryClass: KategorieTagRepository::class)]
+#[ORM\Entity(repositoryClass: CategoryTagRepository::class)]
 #[ORM\Table(name: 'kategorie_sjednocenych_tagu')]
 #[ORM\UniqueConstraint(name: 'nazev', columns: ['nazev'])]
 #[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
 #[ORM\Index(columns: ['id_hlavni_kategorie'], name: 'id_hlavni_kategorie_idx')]
-class KategorieTag
+class CategoryTag
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -28,13 +28,11 @@ class KategorieTag
     #[ORM\Column(name: 'poradi', type: Types::INTEGER, nullable: false, options: ['unsigned' => true])]
     private int $poradi = 0;
 
-    #[ORM\Column(name: 'id_hlavni_kategorie', type: Types::INTEGER, nullable: true, options: ['unsigned' => true])]
-    private ?int $idHlavniKategorie = null;
-
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(name: 'id_hlavni_kategorie', referencedColumnName: 'id', nullable: true)]
     private ?self $hlavniKategorie = null;
 
+    /** @var Collection<int, Tag> */
     #[ORM\OneToMany(mappedBy: 'kategorieTag', targetEntity: Tag::class)]
     private Collection $tagy;
 
@@ -70,17 +68,6 @@ class KategorieTag
         return $this;
     }
 
-    public function getIdHlavniKategorie(): ?int
-    {
-        return $this->idHlavniKategorie;
-    }
-
-    public function setIdHlavniKategorie(?int $idHlavniKategorie): static
-    {
-        $this->idHlavniKategorie = $idHlavniKategorie;
-        return $this;
-    }
-
     public function getHlavniKategorie(): ?self
     {
         return $this->hlavniKategorie;
@@ -89,11 +76,6 @@ class KategorieTag
     public function setHlavniKategorie(?self $hlavniKategorie): static
     {
         $this->hlavniKategorie = $hlavniKategorie;
-        if ($hlavniKategorie !== null) {
-            $this->idHlavniKategorie = $hlavniKategorie->getId();
-        } else {
-            $this->idHlavniKategorie = null;
-        }
         return $this;
     }
 

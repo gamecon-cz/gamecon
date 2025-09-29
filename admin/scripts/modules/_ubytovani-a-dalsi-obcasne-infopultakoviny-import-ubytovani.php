@@ -170,7 +170,7 @@ while ($rowIterator->valid()) {
                 ) {
                     if ($povolitMazaniOp) {
                         $ucastnik->cisloOp('');
-                        $ucastnik->typDokladu('');
+                        $ucastnik->typDokladuTotoznosti('');
                         $zapsanoZmenVTransakci++;
                     } else {
                         $a          = $u->koncovkaDlePohlavi();

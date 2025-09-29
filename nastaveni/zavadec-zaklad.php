@@ -43,3 +43,12 @@ if (defined('URL_WEBU') && URL_WEBU) {
     // rozdilne nazvy pro ruzne instance (ostra, beta...), aby si PHP session cookies nelezly do zeli
     session_name('PS0' . preg_replace('~[^a-z0-9]~i', '0', $domain));
 }
+
+
+// Set environment variables for Symfony to use the same database names as legacy
+putenv('GAMECON_DB_NAME=' . DB_NAME);
+putenv('GAMECON_DB_ANONYM_NAME=' . DB_ANONYM_NAME);
+putenv('GAMECON_DB_HOST=' . DB_SERV);
+putenv('GAMECON_DB_PORT=' . DB_PORT);
+putenv('GAMECON_DB_USER=' . DB_USER);
+putenv('GAMECON_DB_PASSWORD=' . DB_PASS);

@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Entity\KategorieTag;
+use App\Entity\CategoryTag;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<KategorieTag>
+ * @extends ServiceEntityRepository<CategoryTag>
  *
- * @method KategorieTag|null find($id, $lockMode = null, $lockVersion = null)
- * @method KategorieTag|null findOneBy(array $criteria, array $orderBy = null)
- * @method KategorieTag[]    findAll()
- * @method KategorieTag[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method CategoryTag|null find($id, $lockMode = null, $lockVersion = null)
+ * @method CategoryTag|null findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
+ * @method CategoryTag[]    findAll()
+ * @method CategoryTag[]    findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
  */
-class KategorieTagRepository extends ServiceEntityRepository
+class CategoryTagRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, KategorieTag::class);
+        parent::__construct($registry, CategoryTag::class);
     }
 
-    public function save(KategorieTag $entity, bool $flush = false): void
+    public function save(CategoryTag $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -32,7 +32,7 @@ class KategorieTagRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(KategorieTag $entity, bool $flush = false): void
+    public function remove(CategoryTag $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 
@@ -41,7 +41,7 @@ class KategorieTagRepository extends ServiceEntityRepository
         }
     }
 
-    public function findByNazev(string $nazev): ?KategorieTag
+    public function findByNazev(string $nazev): ?CategoryTag
     {
         return $this->createQueryBuilder('k')
             ->andWhere('k.nazev = :nazev')
@@ -52,7 +52,7 @@ class KategorieTagRepository extends ServiceEntityRepository
 
     /**
      * Find all categories ordered by 'poradi'
-     * @return KategorieTag[]
+     * @return CategoryTag[]
      */
     public function findAllOrdered(): array
     {
@@ -65,7 +65,7 @@ class KategorieTagRepository extends ServiceEntityRepository
 
     /**
      * Find main categories (those without parent category)
-     * @return KategorieTag[]
+     * @return CategoryTag[]
      */
     public function findMainCategories(): array
     {
@@ -79,7 +79,7 @@ class KategorieTagRepository extends ServiceEntityRepository
 
     /**
      * Find subcategories of a main category
-     * @return KategorieTag[]
+     * @return CategoryTag[]
      */
     public function findSubcategories(int $idHlavniKategorie): array
     {
@@ -94,7 +94,7 @@ class KategorieTagRepository extends ServiceEntityRepository
 
     /**
      * Get hierarchical structure of categories with their tags
-     * @return KategorieTag[]
+     * @return CategoryTag[]
      */
     public function findAllWithTagsHierarchical(): array
     {

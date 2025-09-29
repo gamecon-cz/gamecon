@@ -46,17 +46,17 @@
         "roderik/pwgen-php": "^0.1.8",
         "setasign/tfpdf": "^1.25",
         "smhg/sepa-qr-data": "^1.2",
-        "symfony/config": "^6.4",
+        "symfony/config": "^7.3",
         "symfony/console": "^7.3",
         "symfony/dependency-injection": "^7.3",
         "symfony/dotenv": "^7.3",
-        "symfony/filesystem": "^5.4",
-        "symfony/framework-bundle": "^6.4",
-        "symfony/http-foundation": "^6.2",
-        "symfony/http-kernel": "^6.4",
-        "symfony/mailer": "^6.2",
-        "symfony/mime": "^6.2",
-        "symfony/polyfill-php80": "^1.22",
+        "symfony/filesystem": "^7.3",
+        "symfony/flex": "^2.8",
+        "symfony/framework-bundle": "^7.3",
+        "symfony/http-foundation": "^7.3",
+        "symfony/http-kernel": "^7.3",
+        "symfony/mailer": "^7.3",
+        "symfony/mime": "^7.3",
         "symfony/routing": "^7.3",
         "symfony/yaml": "^7.3",
         "tracy/tracy": "~2.4",
@@ -64,10 +64,14 @@
     },
     "require-dev": {
         "dg/ftp-deployment": "~3.3",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-doctrine": "^2.0",
         "phpunit/phpunit": "^10.0",
         "roave/security-advisories": "dev-latest",
-        "symfony/process": "^6.1",
-        "symplify/vendor-patches": "^11.1"
+        "symfony/maker-bundle": "^1.64",
+        "symfony/process": "^7.3",
+        "symplify/vendor-patches": "^11.1",
+        "zenstruck/foundry": "^2.7"
     },
     "autoload-dev": {
         "psr-4": {
@@ -94,12 +98,17 @@
             "@clear-templates-cache"
         ],
         "clear-templates-cache": "php -r 'array_map(\"unlink\", @glob(\"cache/private/xtpl/*.php\") ?: []);'",
-        "clear-symfony-cache": "rm -fr symfony/var/cache"
+        "clear-symfony-cache": "rm -fr symfony/var/cache",
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+        }
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "cweagans/composer-patches": true
+            "cweagans/composer-patches": true,
+            "symfony/flex": true
         }
     }
 }
