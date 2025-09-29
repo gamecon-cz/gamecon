@@ -52,3 +52,4 @@ putenv('GAMECON_DB_HOST=' . DB_SERV);
 putenv('GAMECON_DB_PORT=' . DB_PORT);
 putenv('GAMECON_DB_USER=' . DB_USER);
 putenv('GAMECON_DB_PASSWORD=' . DB_PASS);
+putenv('DEFAULT_URI=' . URL_WEBU);
