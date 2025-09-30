@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Service\LegacySessionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends AbstractController
 {
@@ -18,7 +20,7 @@ class AdminController extends AbstractController
 
     public function dashboard(): Response
     {
-        if (!$this->legacySession->hasAdminAccess()) {
+        if (! $this->legacySession->hasAdminAccess()) {
             return new RedirectResponse('/admin/login.php');
         }
 
@@ -31,7 +33,7 @@ class AdminController extends AbstractController
 
     public function users(): Response
     {
-        if (!$this->legacySession->hasAdminAccess()) {
+        if (! $this->legacySession->hasAdminAccess()) {
             return new RedirectResponse('/admin/login.php');
         }
 
@@ -44,7 +46,7 @@ class AdminController extends AbstractController
 
     public function activities(): Response
     {
-        if (!$this->legacySession->hasAdminAccess()) {
+        if (! $this->legacySession->hasAdminAccess()) {
             return new RedirectResponse('/admin/login.php');
         }
 

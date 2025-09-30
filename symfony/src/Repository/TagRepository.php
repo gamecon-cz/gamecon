@@ -51,7 +51,8 @@ class TagRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find tags by category
+     * Find tags by category.
+     *
      * @return Tag[]
      */
     public function findByKategorie(int $idKategorie): array
@@ -65,7 +66,8 @@ class TagRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find tags by partial name match
+     * Find tags by partial name match.
+     *
      * @return Tag[]
      */
     public function findByPartialName(string $searchTerm): array
@@ -79,7 +81,8 @@ class TagRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get all tags with their categories, ordered by category and then by tag name
+     * Get all tags with their categories, ordered by category and then by tag name.
+     *
      * @return Tag[]
      */
     public function findAllWithCategories(): array

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\CategoryTagRepository;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CategoryTagRepository::class)]
 #[ORM\Table(name: 'kategorie_sjednocenych_tagu')]
@@ -19,20 +19,26 @@ class CategoryTag
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER, options: ['unsigned' => true])]
+    #[ORM\Column(name: 'id', type: Types::INTEGER, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'nazev', length: 128, nullable: false)]
     private string $nazev;
 
-    #[ORM\Column(name: 'poradi', type: Types::INTEGER, nullable: false, options: ['unsigned' => true])]
+    #[ORM\Column(name: 'poradi', type: Types::INTEGER, nullable: false, options: [
+        'unsigned' => true,
+    ])]
     private int $poradi = 0;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(name: 'id_hlavni_kategorie', referencedColumnName: 'id', nullable: true)]
     private ?self $hlavniKategorie = null;
 
-    /** @var Collection<int, Tag> */
+    /**
+     * @var Collection<int, Tag>
+     */
     #[ORM\OneToMany(mappedBy: 'kategorieTag', targetEntity: Tag::class)]
     private Collection $tagy;
 
@@ -54,6 +60,7 @@ class CategoryTag
     public function setNazev(string $nazev): static
     {
         $this->nazev = $nazev;
+
         return $this;
     }
 
@@ -65,6 +72,7 @@ class CategoryTag
     public function setPoradi(int $poradi): static
     {
         $this->poradi = $poradi;
+
         return $this;
     }
 
@@ -76,6 +84,7 @@ class CategoryTag
     public function setHlavniKategorie(?self $hlavniKategorie): static
     {
         $this->hlavniKategorie = $hlavniKategorie;
+
         return $this;
     }
 
@@ -89,7 +98,7 @@ class CategoryTag
 
     public function addTag(Tag $tag): static
     {
-        if (!$this->tagy->contains($tag)) {
+        if (! $this->tagy->contains($tag)) {
             $this->tagy->add($tag);
             $tag->setKategorieTag($this);
         }

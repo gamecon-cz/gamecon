@@ -40,6 +40,9 @@ jobs:
       - name: Run PHPStan in container
         run: docker compose exec --no-TTY web ./bin/phpstan.sh
 
+      - name: Run ECS in container
+        run: docker compose exec --no-TTY web ./bin/ecs.sh
+
       - name: Upload test output as artifact
         if: always()
         uses: actions/upload-artifact@v4

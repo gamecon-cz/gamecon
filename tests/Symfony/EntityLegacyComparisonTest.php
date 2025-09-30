@@ -4,12 +4,21 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Symfony;
 
+use App\Entity\ActivityRegistrationState;
+use App\Entity\ActivityState;
+use App\Entity\ActivityType;
 use App\Entity\CategoryTag;
 use App\Entity\Page;
 use App\Entity\Tag;
 use App\Entity\User;
+use Gamecon\Aktivita\AkcePrihlaseniStavy;
+use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Tests\Factory\ActivityRegistrationStateFactory;
+use Gamecon\Tests\Factory\ActivityStateFactory;
+use Gamecon\Tests\Factory\ActivityTypeFactory;
 use Gamecon\Tests\Factory\CategoryTagFactory;
 use Gamecon\Tests\Factory\PageFactory;
 use Gamecon\Tests\Factory\TagFactory;
@@ -64,7 +73,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertNotNull($symfonyUserId);
 
         // Fetch the same entity using legacy Uzivatel
-        $legacyUser = Uzivatel::zId($symfonyUserId);
+        $legacyUser = \Uzivatel::zId($symfonyUserId);
         $this->assertNotNull($legacyUser, 'Legacy user should be found');
 
         // Compare values using getters
@@ -77,39 +86,40 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($expectedFullName, $legacyUser->jmeno());
 
         // Test individual properties accessible through database record
-        $this->assertEquals($symfonyUser->getJmeno(), $legacyUser->raw()['jmeno_uzivatele']);
-        $this->assertEquals($symfonyUser->getPrijmeni(), $legacyUser->raw()['prijmeni_uzivatele']);
-        $this->assertEquals($symfonyUser->getUliceACp(), $legacyUser->raw()['ulice_a_cp_uzivatele']);
-        $this->assertEquals($symfonyUser->getMesto(), $legacyUser->raw()['mesto_uzivatele']);
-        $this->assertEquals($symfonyUser->getStat(), $legacyUser->raw()['stat_uzivatele']);
-        $this->assertEquals($symfonyUser->getPsc(), $legacyUser->raw()['psc_uzivatele']);
-        $this->assertEquals($symfonyUser->getTelefon(), $legacyUser->raw()['telefon_uzivatele']);
-        $this->assertEquals($symfonyUser->getHesloMd5(), $legacyUser->raw()['heslo_md5']);
-        $this->assertEquals($symfonyUser->getForumRazeni(), $legacyUser->raw()['forum_razeni']);
-        $this->assertEquals($symfonyUser->getRandom(), $legacyUser->raw()['random']);
-        $this->assertEquals($symfonyUser->getZustatek(), $legacyUser->raw()['zustatek']);
-        $this->assertEquals($symfonyUser->getPoznamka(), $legacyUser->raw()['poznamka']);
-        $this->assertEquals($symfonyUser->getPomocTyp(), $legacyUser->raw()['pomoc_typ']);
-        $this->assertEquals($symfonyUser->getPomocVice(), $legacyUser->raw()['pomoc_vice']);
-        $this->assertEquals($symfonyUser->getOp(), $legacyUser->raw()['op']);
-        $this->assertEquals($symfonyUser->getInfopultPoznamka(), $legacyUser->raw()['infopult_poznamka']);
-        $this->assertEquals($symfonyUser->getTypDokladuTotoznosti(), $legacyUser->raw()['typ_dokladu_totoznosti']);
-        $this->assertEquals($symfonyUser->getStatniObcanstvi(), $legacyUser->raw()['statni_obcanstvi']);
-        $this->assertEquals($symfonyUser->isZRychloregistrace(), (bool)$legacyUser->raw()['z_rychloregistrace']);
-        $this->assertEquals($symfonyUser->isMrtvyMail(), (bool)$legacyUser->raw()['mrtvy_mail']);
+        $legacyData = $legacyUser->raw();
+        $this->assertEquals($symfonyUser->getJmeno(), $legacyData['jmeno_uzivatele']);
+        $this->assertEquals($symfonyUser->getPrijmeni(), $legacyData['prijmeni_uzivatele']);
+        $this->assertEquals($symfonyUser->getUliceACp(), $legacyData['ulice_a_cp_uzivatele']);
+        $this->assertEquals($symfonyUser->getMesto(), $legacyData['mesto_uzivatele']);
+        $this->assertEquals($symfonyUser->getStat(), $legacyData['stat_uzivatele']);
+        $this->assertEquals($symfonyUser->getPsc(), $legacyData['psc_uzivatele']);
+        $this->assertEquals($symfonyUser->getTelefon(), $legacyData['telefon_uzivatele']);
+        $this->assertEquals($symfonyUser->getHesloMd5(), $legacyData['heslo_md5']);
+        $this->assertEquals($symfonyUser->getForumRazeni(), $legacyData['forum_razeni']);
+        $this->assertEquals($symfonyUser->getRandom(), $legacyData['random']);
+        $this->assertEquals($symfonyUser->getZustatek(), $legacyData['zustatek']);
+        $this->assertEquals($symfonyUser->getPoznamka(), $legacyData['poznamka']);
+        $this->assertEquals($symfonyUser->getPomocTyp(), $legacyData['pomoc_typ']);
+        $this->assertEquals($symfonyUser->getPomocVice(), $legacyData['pomoc_vice']);
+        $this->assertEquals($symfonyUser->getOp(), $legacyData['op']);
+        $this->assertEquals($symfonyUser->getInfopultPoznamka(), $legacyData['infopult_poznamka']);
+        $this->assertEquals($symfonyUser->getTypDokladuTotoznosti(), $legacyData['typ_dokladu_totoznosti']);
+        $this->assertEquals($symfonyUser->getStatniObcanstvi(), $legacyData['statni_obcanstvi']);
+        $this->assertEquals($symfonyUser->isZRychloregistrace(), (bool) $legacyData['z_rychloregistrace']);
+        $this->assertEquals($symfonyUser->isMrtvyMail(), (bool) $legacyData['mrtvy_mail']);
 
         // Test date fields
         $this->assertEquals(
             $symfonyUser->getDatumNarozeni()->format('Y-m-d'),
-            $legacyUser->raw()['datum_narozeni']
+            $legacyData['datum_narozeni'],
         );
         $this->assertEquals(
             $symfonyUser->getRegistrovan()->format('Y-m-d H:i:s'),
-            $legacyUser->raw()['registrovan']
+            $legacyData['registrovan'],
         );
 
         // Test enum field
-        $this->assertEquals($symfonyUser->getPohlavi()->value, $legacyUser->raw()['pohlavi']);
+        $this->assertEquals($symfonyUser->getPohlavi()->value, $legacyData['pohlavi']);
     }
 
     public function testPageEntityMatchesLegacyStranka(): void
@@ -126,7 +136,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertNotNull($symfonyPageId);
 
         // Fetch the same entity using legacy Stranka
-        $legacyPage = Stranka::zId($symfonyPageId);
+        $legacyPage = \Stranka::zId($symfonyPageId);
         $this->assertNotNull($legacyPage, 'Legacy page should be found');
 
         // Compare values using getters
@@ -246,47 +256,148 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertNotNull($symfonyUserId);
 
         // Fetch the same entity using legacy Uzivatel
-        $legacyUser = Uzivatel::zId($symfonyUserId);
+        $legacyUser = \Uzivatel::zId($symfonyUserId);
         $this->assertNotNull($legacyUser, 'Legacy user with optional fields should be found');
 
         // Test optional date fields
+        $legacyData = $legacyUser->raw();
         if ($symfonyUser->getNechceMaily()) {
             $this->assertEquals(
                 $symfonyUser->getNechceMaily()->format('Y-m-d H:i:s'),
-                $legacyUser->raw()['nechce_maily']
+                $legacyData['nechce_maily'],
             );
         }
 
-        $this->assertEquals($symfonyUser->getUbytovanS(), $legacyUser->raw()['ubytovan_s']);
+        $this->assertEquals($symfonyUser->getUbytovanS(), $legacyData['ubytovan_s']);
 
         if ($symfonyUser->getPotvrzeniZakonnehoZastupce()) {
             $this->assertEquals(
                 $symfonyUser->getPotvrzeniZakonnehoZastupce()->format('Y-m-d'),
-                $legacyUser->raw()['potvrzeni_zakonneho_zastupce']
+                $legacyData['potvrzeni_zakonneho_zastupce'],
             );
         }
 
         if ($symfonyUser->getPotvrzeniProtiCovid19PridanoKdy()) {
             $this->assertEquals(
                 $symfonyUser->getPotvrzeniProtiCovid19PridanoKdy()->format('Y-m-d H:i:s'),
-                $legacyUser->raw()['potvrzeni_proti_covid19_pridano_kdy']
+                $legacyData['potvrzeni_proti_covid19_pridano_kdy'],
             );
         }
 
         if ($symfonyUser->getPotvrzeniProtiCovid19OverenoKdy()) {
             $this->assertEquals(
                 $symfonyUser->getPotvrzeniProtiCovid19OverenoKdy()->format('Y-m-d H:i:s'),
-                $legacyUser->raw()['potvrzeni_proti_covid19_overeno_kdy']
+                $legacyData['potvrzeni_proti_covid19_overeno_kdy'],
             );
         }
 
-        $this->assertEquals($symfonyUser->getStatniObcanstvi(), $legacyUser->raw()['statni_obcanstvi']);
+        $this->assertEquals($symfonyUser->getStatniObcanstvi(), $legacyData['statni_obcanstvi']);
 
         if ($symfonyUser->getPotvrzeniZakonnehoZastupceSoubor()) {
             $this->assertEquals(
                 $symfonyUser->getPotvrzeniZakonnehoZastupceSoubor()->format('Y-m-d H:i:s'),
-                $legacyUser->raw()['potvrzeni_zakonneho_zastupce_soubor']
+                $legacyData['potvrzeni_zakonneho_zastupce_soubor'],
             );
         }
+    }
+
+    public function testActivityTypeEntityMatchesLegacyTypAktivity(): void
+    {
+        // Create Symfony entity using factory
+        /** @var ActivityType $symfonyActivityType */
+        $symfonyActivityType = ActivityTypeFactory::createOne([
+            'id' => 99,
+            'typ1p' => 'Test Type Singular',
+            'typ1pmn' => 'Test Type Plural',
+            'urlTypuMn' => 'test-type-url',
+            'strankaO' => PageFactory::createOne()->getIdStranky(),
+            'poradi' => 5,
+            'mailNeucast' => true,
+            'popisKratky' => 'Short description',
+            'aktivni' => true,
+            'zobrazitVMenu' => true,
+            'kodTypu' => 'TEST',
+        ])->_save()->_real();
+
+        $symfonyActivityTypeId = $symfonyActivityType->getId();
+        $this->assertNotNull($symfonyActivityTypeId);
+
+        // Fetch the same entity using legacy TypAktivity
+        $legacyActivityType = TypAktivity::zId($symfonyActivityTypeId);
+        $this->assertNotNull($legacyActivityType, 'Legacy activity type should be found');
+
+        // Compare values using getters
+        $this->assertEquals($symfonyActivityType->getId(), $legacyActivityType->id());
+        $this->assertEquals($symfonyActivityType->getTyp1pmn(), $legacyActivityType->nazev());
+        $this->assertEquals($symfonyActivityType->getTyp1p(), $legacyActivityType->nazevJednotnehoCisla());
+        $this->assertEquals($symfonyActivityType->getUrlTypuMn(), $legacyActivityType->url());
+        $this->assertEquals($symfonyActivityType->getPopisKratky(), $legacyActivityType->popisKratky());
+        $this->assertEquals($symfonyActivityType->getPoradi(), $legacyActivityType->poradi());
+        $this->assertEquals($symfonyActivityType->isMailNeucast(), $legacyActivityType->posilatMailyNedorazivsim());
+
+        // Test raw database values
+        $legacyData = $legacyActivityType->raw();
+        $this->assertEquals($symfonyActivityType->getTyp1p(), $legacyData['typ_1p']);
+        $this->assertEquals($symfonyActivityType->getTyp1pmn(), $legacyData['typ_1pmn']);
+        $this->assertEquals($symfonyActivityType->getUrlTypuMn(), $legacyData['url_typu_mn']);
+        $this->assertEquals($symfonyActivityType->getStrankaO(), $legacyData['stranka_o']);
+        $this->assertEquals($symfonyActivityType->getPoradi(), $legacyData['poradi']);
+        $this->assertEquals($symfonyActivityType->isMailNeucast(), (bool) $legacyData['mail_neucast']);
+        $this->assertEquals($symfonyActivityType->getPopisKratky(), $legacyData['popis_kratky']);
+        $this->assertEquals($symfonyActivityType->isAktivni(), (bool) $legacyData['aktivni']);
+        $this->assertEquals($symfonyActivityType->isZobrazitVMenu(), (bool) $legacyData['zobrazit_v_menu']);
+        $this->assertEquals($symfonyActivityType->getKodTypu(), $legacyData['kod_typu']);
+    }
+
+    public function testActivityStateEntityMatchesLegacyStavAktivity(): void
+    {
+        // Create Symfony entity using factory
+        /** @var ActivityState $symfonyActivityState */
+        $symfonyActivityState = ActivityStateFactory::createOne([
+            'nazev' => 'Test Activity State ' . uniqid(),
+        ])->_save()->_real();
+
+        $symfonyActivityStateId = $symfonyActivityState->getId();
+        $this->assertNotNull($symfonyActivityStateId);
+
+        // Fetch the same entity using legacy StavAktivity
+        $legacyActivityState = StavAktivity::zId($symfonyActivityStateId);
+        $this->assertNotNull($legacyActivityState, 'Legacy activity state should be found');
+
+        // Compare values using getters
+        $this->assertEquals($symfonyActivityState->getId(), $legacyActivityState->id());
+        $this->assertEquals($symfonyActivityState->getNazev(), $legacyActivityState->nazev());
+
+        // Test raw database values
+        $legacyData = $legacyActivityState->raw();
+        $this->assertEquals($symfonyActivityState->getNazev(), $legacyData['nazev']);
+    }
+
+    public function testActivityRegistrationStateEntityMatchesLegacyAkcePrihlaseniStavy(): void
+    {
+        // Create Symfony entity using factory
+        /** @var ActivityRegistrationState $symfonyActivityRegistrationState */
+        $symfonyActivityRegistrationState = ActivityRegistrationStateFactory::createOne([
+            'id' => 50,
+            'nazev' => 'Test Registration State ' . uniqid(),
+            'platbaProcent' => 75,
+        ])->_save()->_real();
+
+        $symfonyActivityRegistrationStateId = $symfonyActivityRegistrationState->getId();
+        $this->assertNotNull($symfonyActivityRegistrationStateId);
+
+        // Fetch the same entity using legacy AkcePrihlaseniStavy
+        $legacyActivityRegistrationState = AkcePrihlaseniStavy::zId($symfonyActivityRegistrationStateId);
+        $this->assertNotNull($legacyActivityRegistrationState, 'Legacy activity registration state should be found');
+
+        // Compare values using getters
+        $this->assertEquals($symfonyActivityRegistrationState->getId(), $legacyActivityRegistrationState->id());
+        $this->assertEquals($symfonyActivityRegistrationState->getNazev(), $legacyActivityRegistrationState->nazev());
+        $this->assertEquals($symfonyActivityRegistrationState->getPlatbaProcent(), $legacyActivityRegistrationState->platbaProcent());
+
+        // Test raw database values
+        $legacyData = $legacyActivityRegistrationState->raw();
+        $this->assertEquals($symfonyActivityRegistrationState->getNazev(), $legacyData['nazev']);
+        $this->assertEquals($symfonyActivityRegistrationState->getPlatbaProcent(), $legacyData['platba_procent']);
     }
 }

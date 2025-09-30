@@ -10,15 +10,6 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class PageFactory extends PersistentProxyObjectFactory
 {
-    /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
-     */
-    public function __construct()
-    {
-    }
-
     public static function class(): string
     {
         return Page::class;
@@ -26,14 +17,12 @@ final class PageFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
-    protected function defaults(): array|callable
+    protected function defaults(): array | callable
     {
         return [
-            'obsah' => self::faker()->text(),
-            'poradi' => self::faker()->numberBetween(1, 32767),
+            'obsah'      => self::faker()->text(),
+            'poradi'     => self::faker()->numberBetween(1, 32767),
             'urlStranky' => self::faker()->text(64),
         ];
     }
@@ -43,8 +32,7 @@ final class PageFactory extends PersistentProxyObjectFactory
      */
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Page $page): void {})
-        ;
+        return $this// ->afterInstantiate(function(Page $page): void {})
+            ;
     }
 }

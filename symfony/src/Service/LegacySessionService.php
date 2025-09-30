@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
-use Uzivatel;
 use Gamecon\Pravo;
 
 class LegacySessionService
@@ -10,7 +11,7 @@ class LegacySessionService
     public function initializeLegacyEnvironment(): void
     {
         // Initialize the legacy autoloader and environment
-        if (!defined('URL_ADMIN')) {
+        if (! defined('URL_ADMIN')) {
             require_once __DIR__ . '/../../../nastaveni/zavadec-zaklad.php';
         }
         assert(defined('URL_ADMIN'), 'Legacy environment not initialized properly.');
@@ -20,7 +21,7 @@ class LegacySessionService
     {
         $this->initializeLegacyEnvironment();
 
-        return Uzivatel::zSession();
+        return \Uzivatel::zSession();
     }
 
     public function hasAdminAccess(): bool

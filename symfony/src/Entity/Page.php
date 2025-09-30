@@ -38,6 +38,7 @@ class Page
     public function setUrlStranky(string $urlStranky): self
     {
         $this->urlStranky = $urlStranky;
+
         return $this;
     }
 
@@ -49,6 +50,7 @@ class Page
     public function setObsah(string $obsah): self
     {
         $this->obsah = $obsah;
+
         return $this;
     }
 
@@ -60,6 +62,7 @@ class Page
     public function setPoradi(int $poradi): self
     {
         $this->poradi = $poradi;
+
         return $this;
     }
 }

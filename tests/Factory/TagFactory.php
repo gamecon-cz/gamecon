@@ -10,15 +10,6 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class TagFactory extends PersistentProxyObjectFactory
 {
-    /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
-     */
-    public function __construct()
-    {
-    }
-
     public static function class(): string
     {
         return Tag::class;
@@ -26,15 +17,13 @@ final class TagFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
-    protected function defaults(): array|callable
+    protected function defaults(): array | callable
     {
         return [
             'kategorieTag' => CategoryTagFactory::new(),
-            'nazev' => self::faker()->text(128),
-            'poznamka' => self::faker()->text(),
+            'nazev'        => self::faker()->text(128),
+            'poznamka'     => self::faker()->text(),
         ];
     }
 
@@ -43,8 +32,7 @@ final class TagFactory extends PersistentProxyObjectFactory
      */
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Tag $tag): void {})
-        ;
+        return $this// ->afterInstantiate(function(Tag $tag): void {})
+            ;
     }
 }

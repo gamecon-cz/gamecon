@@ -21,3 +21,11 @@ bash:
 
 phpstan:
 	./bin-docker/docker-bash bin/phpstan.sh
+
+ecs:
+	./bin-docker/docker-bash bin/ecs.sh
+
+fix:
+	./bin-docker/docker-bash bin/ecs.sh --fix
+
+static: fix ecs phpstan

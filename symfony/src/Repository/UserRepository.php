@@ -60,7 +60,8 @@ class UserRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find users registered in the current year
+     * Find users registered in the current year.
+     *
      * @return User[]
      */
     public function findRegisteredThisYear(): array
@@ -77,7 +78,8 @@ class UserRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find users by partial name match
+     * Find users by partial name match.
+     *
      * @return User[]
      */
     public function findByPartialName(string $searchTerm): array
@@ -92,7 +94,7 @@ class UserRepository extends ServiceEntityRepository
     }
 
     /**
-     * Count active users (not dead mail)
+     * Count active users (not dead mail).
      */
     public function countActiveUsers(): int
     {

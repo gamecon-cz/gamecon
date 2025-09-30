@@ -57,7 +57,9 @@ class User
     #[ORM\Column(name: 'nechce_maily', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $nechceMaily = null;
 
-    #[ORM\Column(name: 'mrtvy_mail', type: Types::BOOLEAN, nullable: false, options: ['default' => 0])]
+    #[ORM\Column(name: 'mrtvy_mail', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => 0,
+    ])]
     private bool $mrtvyMail = false;
 
     #[ORM\Column(name: 'forum_razeni', length: 1, nullable: false)]
@@ -66,7 +68,9 @@ class User
     #[ORM\Column(name: 'random', length: 20, nullable: false)]
     private string $random;
 
-    #[ORM\Column(name: 'zustatek', type: Types::INTEGER, nullable: false, options: ['default' => 0])]
+    #[ORM\Column(name: 'zustatek', type: Types::INTEGER, nullable: false, options: [
+        'default' => 0,
+    ])]
     private int $zustatek = 0;
 
     #[ORM\Column(name: 'pohlavi', type: Types::STRING, nullable: false, enumType: SymfonyPohlaviEnum::class)]
@@ -108,7 +112,9 @@ class User
     #[ORM\Column(name: 'statni_obcanstvi', length: 64, nullable: true)]
     private ?string $statniObcanstvi = null;
 
-    #[ORM\Column(name: 'z_rychloregistrace', type: Types::BOOLEAN, nullable: true, options: ['default' => 0])]
+    #[ORM\Column(name: 'z_rychloregistrace', type: Types::BOOLEAN, nullable: true, options: [
+        'default' => 0,
+    ])]
     private bool $zRychloregistrace = false;
 
     #[ORM\Column(name: 'potvrzeni_zakonneho_zastupce_soubor', type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -129,6 +135,7 @@ class User
     public function setLogin(string $login): static
     {
         $this->login = $login;
+
         return $this;
     }
 
@@ -140,6 +147,7 @@ class User
     public function setJmeno(string $jmeno): static
     {
         $this->jmeno = $jmeno;
+
         return $this;
     }
 
@@ -151,6 +159,7 @@ class User
     public function setPrijmeni(string $prijmeni): static
     {
         $this->prijmeni = $prijmeni;
+
         return $this;
     }
 
@@ -162,6 +171,7 @@ class User
     public function setUliceACp(string $uliceACp): static
     {
         $this->uliceACp = $uliceACp;
+
         return $this;
     }
 
@@ -173,6 +183,7 @@ class User
     public function setMesto(string $mesto): static
     {
         $this->mesto = $mesto;
+
         return $this;
     }
 
@@ -184,6 +195,7 @@ class User
     public function setStat(int $stat): static
     {
         $this->stat = $stat;
+
         return $this;
     }
 
@@ -195,6 +207,7 @@ class User
     public function setPsc(string $psc): static
     {
         $this->psc = $psc;
+
         return $this;
     }
 
@@ -206,6 +219,7 @@ class User
     public function setTelefon(string $telefon): static
     {
         $this->telefon = $telefon;
+
         return $this;
     }
 
@@ -217,6 +231,7 @@ class User
     public function setDatumNarozeni(\DateTimeInterface $datumNarozeni): static
     {
         $this->datumNarozeni = $datumNarozeni;
+
         return $this;
     }
 
@@ -228,6 +243,7 @@ class User
     public function setHesloMd5(string $hesloMd5): static
     {
         $this->hesloMd5 = $hesloMd5;
+
         return $this;
     }
 
@@ -239,6 +255,7 @@ class User
     public function setEmail(string $email): static
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -250,6 +267,7 @@ class User
     public function setNechceMaily(?\DateTimeInterface $nechceMaily): static
     {
         $this->nechceMaily = $nechceMaily;
+
         return $this;
     }
 
@@ -261,6 +279,7 @@ class User
     public function setMrtvyMail(bool $mrtvyMail): static
     {
         $this->mrtvyMail = $mrtvyMail;
+
         return $this;
     }
 
@@ -272,6 +291,7 @@ class User
     public function setForumRazeni(string $forumRazeni): static
     {
         $this->forumRazeni = $forumRazeni;
+
         return $this;
     }
 
@@ -283,6 +303,7 @@ class User
     public function setRandom(string $random): static
     {
         $this->random = $random;
+
         return $this;
     }
 
@@ -294,6 +315,7 @@ class User
     public function setZustatek(int $zustatek): static
     {
         $this->zustatek = $zustatek;
+
         return $this;
     }
 
@@ -305,6 +327,7 @@ class User
     public function setPohlavi(SymfonyPohlaviEnum $pohlavi): static
     {
         $this->pohlavi = $pohlavi;
+
         return $this;
     }
 
@@ -316,6 +339,7 @@ class User
     public function setRegistrovan(\DateTimeInterface $registrovan): static
     {
         $this->registrovan = $registrovan;
+
         return $this;
     }
 
@@ -327,6 +351,7 @@ class User
     public function setUbytovanS(?string $ubytovanS): static
     {
         $this->ubytovanS = $ubytovanS;
+
         return $this;
     }
 
@@ -338,6 +363,7 @@ class User
     public function setPoznamka(string $poznamka): static
     {
         $this->poznamka = $poznamka;
+
         return $this;
     }
 
@@ -349,6 +375,7 @@ class User
     public function setPomocTyp(string $pomocTyp): static
     {
         $this->pomocTyp = $pomocTyp;
+
         return $this;
     }
 
@@ -360,6 +387,7 @@ class User
     public function setPomocVice(string $pomocVice): static
     {
         $this->pomocVice = $pomocVice;
+
         return $this;
     }
 
@@ -371,6 +399,7 @@ class User
     public function setOp(string $op): static
     {
         $this->op = $op;
+
         return $this;
     }
 
@@ -382,6 +411,7 @@ class User
     public function setPotvrzeniZakonnehoZastupce(?\DateTimeInterface $potvrzeniZakonnehoZastupce): static
     {
         $this->potvrzeniZakonnehoZastupce = $potvrzeniZakonnehoZastupce;
+
         return $this;
     }
 
@@ -393,6 +423,7 @@ class User
     public function setPotvrzeniProtiCovid19PridanoKdy(?\DateTimeInterface $potvrzeniProtiCovid19PridanoKdy): static
     {
         $this->potvrzeniProtiCovid19PridanoKdy = $potvrzeniProtiCovid19PridanoKdy;
+
         return $this;
     }
 
@@ -404,6 +435,7 @@ class User
     public function setPotvrzeniProtiCovid19OverenoKdy(?\DateTimeInterface $potvrzeniProtiCovid19OverenoKdy): static
     {
         $this->potvrzeniProtiCovid19OverenoKdy = $potvrzeniProtiCovid19OverenoKdy;
+
         return $this;
     }
 
@@ -415,6 +447,7 @@ class User
     public function setInfopultPoznamka(string $infopultPoznamka): static
     {
         $this->infopultPoznamka = $infopultPoznamka;
+
         return $this;
     }
 
@@ -426,6 +459,7 @@ class User
     public function setTypDokladuTotoznosti(string $typDokladuTotoznosti): static
     {
         $this->typDokladuTotoznosti = $typDokladuTotoznosti;
+
         return $this;
     }
 
@@ -437,6 +471,7 @@ class User
     public function setStatniObcanstvi(?string $statniObcanstvi): static
     {
         $this->statniObcanstvi = $statniObcanstvi;
+
         return $this;
     }
 
@@ -448,6 +483,7 @@ class User
     public function setZRychloregistrace(bool $zRychloregistrace): static
     {
         $this->zRychloregistrace = $zRychloregistrace;
+
         return $this;
     }
 
@@ -459,6 +495,7 @@ class User
     public function setPotvrzeniZakonnehoZastupceSoubor(?\DateTimeInterface $potvrzeniZakonnehoZastupceSoubor): static
     {
         $this->potvrzeniZakonnehoZastupceSoubor = $potvrzeniZakonnehoZastupceSoubor;
+
         return $this;
     }
 

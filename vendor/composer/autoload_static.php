@@ -27,6 +27,7 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         'a8d3953fd9959404dd22d3dfcd0a79f0' => __DIR__ . '/..' . '/google/apiclient/src/aliases.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
+        '5bf57f5eebf62cf90c3fc03a259adc34' => __DIR__ . '/..' . '/symplify/easy-coding-standard/bootstrap.php',
         'd507e002f7fce7f0c6dbf1f22edcb902' => __DIR__ . '/..' . '/tracy/tracy/src/Tracy/functions.php',
         '4f9a1929b39ff2a6c1016427077d16f5' => __DIR__ . '/..' . '/zenstruck/foundry/src/functions.php',
         '21978ed596d07828c426dc898e1f08e0' => __DIR__ . '/..' . '/zenstruck/foundry/src/Persistence/functions.php',

@@ -16,11 +16,14 @@ use Doctrine\ORM\Mapping as ORM;
 class Tag
 {
     public const MALOVANI = 12445; // Malování
+
     public const UNIKOVKA = 12444; // Únikovka
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER, options: ['unsigned' => true])]
+    #[ORM\Column(name: 'id', type: Types::INTEGER, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'nazev', length: 128, nullable: false)]
@@ -46,6 +49,7 @@ class Tag
     public function setNazev(string $nazev): static
     {
         $this->nazev = $nazev;
+
         return $this;
     }
 
@@ -57,6 +61,7 @@ class Tag
     public function setPoznamka(string $poznamka): static
     {
         $this->poznamka = $poznamka;
+
         return $this;
     }
 
@@ -68,6 +73,7 @@ class Tag
     public function setKategorieTag(?CategoryTag $kategorieTag): static
     {
         $this->kategorieTag = $kategorieTag;
+
         return $this;
     }
 }

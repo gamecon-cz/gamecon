@@ -51,7 +51,8 @@ class CategoryTagRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all categories ordered by 'poradi'
+     * Find all categories ordered by 'poradi'.
+     *
      * @return CategoryTag[]
      */
     public function findAllOrdered(): array
@@ -64,7 +65,8 @@ class CategoryTagRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find main categories (those without parent category)
+     * Find main categories (those without parent category).
+     *
      * @return CategoryTag[]
      */
     public function findMainCategories(): array
@@ -78,7 +80,8 @@ class CategoryTagRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find subcategories of a main category
+     * Find subcategories of a main category.
+     *
      * @return CategoryTag[]
      */
     public function findSubcategories(int $idHlavniKategorie): array
@@ -93,7 +96,8 @@ class CategoryTagRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get hierarchical structure of categories with their tags
+     * Get hierarchical structure of categories with their tags.
+     *
      * @return CategoryTag[]
      */
     public function findAllWithTagsHierarchical(): array
