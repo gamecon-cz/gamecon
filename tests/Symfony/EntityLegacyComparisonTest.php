@@ -523,8 +523,6 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             'pokoj'    => 'Room 123',
         ])->_save()->_real();
 
-        $this->assertNotNull($symfonyAccommodation);
-
         // The legacy table has composite primary key (id_uzivatele, den, rok)
         // Fetch using the primary key (which is just id_uzivatele for this DbObject)
         $legacyAccommodation = Ubytovani::zId($testUser->getId());
