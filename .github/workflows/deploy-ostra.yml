@@ -31,6 +31,9 @@ jobs:
           name: php-test-logs
           path: ./tests/logs
 
+      - name: Configure git safe directory
+        run: docker compose exec --no-TTY web git config --global --add safe.directory /var/www/html/gamecon
+
       - name: Deploy via FTP
         # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
         # pozor změnu CRON_KEY je nutné provést i v https://console.cron-job.org
