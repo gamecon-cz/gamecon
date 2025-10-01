@@ -20,13 +20,14 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '9d2b9fc6db0f153a0a149fefb182415e' => __DIR__ . '/..' . '/symfony/polyfill-php84/bootstrap.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
+        '9b38cf48e83f5d8f60375221cd213eee' => __DIR__ . '/..' . '/phpstan/phpstan/bootstrap.php',
         '23c18046f52bef3eea034657bafda50f' => __DIR__ . '/..' . '/symfony/polyfill-php81/bootstrap.php',
         '1f87db08236948d07391152dccb70f04' => __DIR__ . '/..' . '/google/apiclient-services/autoload.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
-        '9b38cf48e83f5d8f60375221cd213eee' => __DIR__ . '/..' . '/phpstan/phpstan/bootstrap.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         'a8d3953fd9959404dd22d3dfcd0a79f0' => __DIR__ . '/..' . '/google/apiclient/src/aliases.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
+        '38143a9afc50997d55e4815db8489d1c' => __DIR__ . '/..' . '/rector/rector/bootstrap.php',
         '5bf57f5eebf62cf90c3fc03a259adc34' => __DIR__ . '/..' . '/symplify/easy-coding-standard/bootstrap.php',
         'd507e002f7fce7f0c6dbf1f22edcb902' => __DIR__ . '/..' . '/tracy/tracy/src/Tracy/functions.php',
         '4f9a1929b39ff2a6c1016427077d16f5' => __DIR__ . '/..' . '/zenstruck/foundry/src/functions.php',
@@ -37,6 +38,7 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
     public static $prefixLengthsPsr4 = array (
         'r' => 
         array (
+            'rikudou\\SkQrPayment\\' => 20,
             'rikudou\\CzQrPayment\\' => 20,
         ),
         'p' => 
@@ -188,6 +190,10 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
     );
 
     public static $prefixDirsPsr4 = array (
+        'rikudou\\SkQrPayment\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/rikudou/skqrpayment/src',
+        ),
         'rikudou\\CzQrPayment\\' => 
         array (
             0 => __DIR__ . '/..' . '/rikudou/czqrpayment/src',

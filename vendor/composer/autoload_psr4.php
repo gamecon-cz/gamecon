@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'rikudou\\SkQrPayment\\' => array($vendorDir . '/rikudou/skqrpayment/src'),
     'rikudou\\CzQrPayment\\' => array($vendorDir . '/rikudou/czqrpayment/src'),
     'phpseclib3\\' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
     'cweagans\\Composer\\' => array($vendorDir . '/cweagans/composer-patches/src'),

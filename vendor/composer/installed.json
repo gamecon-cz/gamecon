@@ -4440,6 +4440,69 @@
             "install-path": "../ralouphie/getallheaders"
         },
         {
+            "name": "rector/rector",
+            "version": "2.1.7",
+            "version_normalized": "2.1.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rectorphp/rector.git",
+                "reference": "c34cc07c4698f007a20dc5c99ff820089ae413ce"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/c34cc07c4698f007a20dc5c99ff820089ae413ce",
+                "reference": "c34cc07c4698f007a20dc5c99ff820089ae413ce",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0",
+                "phpstan/phpstan": "^2.1.18"
+            },
+            "conflict": {
+                "rector/rector-doctrine": "*",
+                "rector/rector-downgrade-php": "*",
+                "rector/rector-phpunit": "*",
+                "rector/rector-symfony": "*"
+            },
+            "suggest": {
+                "ext-dom": "To manipulate phpunit.xml via the custom-rule command"
+            },
+            "time": "2025-09-10T11:13:58+00:00",
+            "bin": [
+                "bin/rector"
+            ],
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Instant Upgrade and Automated Refactoring of any PHP code",
+            "homepage": "https://getrector.com/",
+            "keywords": [
+                "automation",
+                "dev",
+                "migration",
+                "refactoring"
+            ],
+            "support": {
+                "issues": "https://github.com/rectorphp/rector/issues",
+                "source": "https://github.com/rectorphp/rector/tree/2.1.7"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/tomasvotruba",
+                    "type": "github"
+                }
+            ],
+            "install-path": "../rector/rector"
+        },
+        {
             "name": "rikudou/czqrpayment",
             "version": "v5.3.1",
             "version_normalized": "5.3.1.0",
@@ -4669,6 +4732,77 @@
                 "source": "https://github.com/RikudouSage/QrPaymentQrCodeProvider/tree/v1.2.0"
             },
             "install-path": "../rikudou/qr-payment-qr-code-provider"
+        },
+        {
+            "name": "rikudou/skqrpayment",
+            "version": "v4.2.2",
+            "version_normalized": "4.2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/RikudouSage/QrPaymentSK.git",
+                "reference": "777fa98caaff3f10fb43f3cf67a8464c547e0550"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/RikudouSage/QrPaymentSK/zipball/777fa98caaff3f10fb43f3cf67a8464c547e0550",
+                "reference": "777fa98caaff3f10fb43f3cf67a8464c547e0550",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.3 || ^8.0",
+                "rikudou/iban": "^1.0",
+                "rikudou/qr-payment-interface": "^1.0",
+                "rikudou/qr-payment-qr-code-provider": "^1.2"
+            },
+            "require-dev": {
+                "endroid/qr-code": "^3.9",
+                "friendsofphp/php-cs-fixer": "^2.16",
+                "phpstan/phpstan": "^0.12.32",
+                "phpunit/phpunit": "^8.5"
+            },
+            "suggest": {
+                "endroid/qr-code": "For getting QR code image",
+                "rikudou/pay-by-square-decoder": "If you want to decode Pay By Square encoded data"
+            },
+            "time": "2024-12-20T23:34:26+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "rikudou\\SkQrPayment\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dominik Chrástecký",
+                    "email": "dominik@chrastecky.cz"
+                }
+            ],
+            "description": "QR payment library for Slovak accounts",
+            "homepage": "https://github.com/RikudouSage/QrPaymentSK",
+            "keywords": [
+                "payment",
+                "qr"
+            ],
+            "support": {
+                "issues": "https://github.com/RikudouSage/QrPaymentSK/issues",
+                "source": "https://github.com/RikudouSage/QrPaymentSK/tree/v4.2.2"
+            },
+            "funding": [
+                {
+                    "url": "https://ko-fi.com/dominik_ch",
+                    "type": "ko_fi"
+                },
+                {
+                    "url": "https://liberapay.com/dominik_ch",
+                    "type": "liberapay"
+                }
+            ],
+            "install-path": "../rikudou/skqrpayment"
         },
         {
             "name": "roave/security-advisories",
@@ -10846,6 +10980,7 @@
         "phpunit/php-text-template",
         "phpunit/php-timer",
         "phpunit/phpunit",
+        "rector/rector",
         "roave/security-advisories",
         "sebastian/cli-parser",
         "sebastian/code-unit",
