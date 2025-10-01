@@ -4,7 +4,7 @@ on:
         branches: [ main ]
 jobs:
     rebase:
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-latest
         steps:
             -   uses: peter-evans/rebase@v3
                 with:

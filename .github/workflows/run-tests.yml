@@ -34,9 +34,6 @@ jobs:
       - name: Build and start containers
         run: docker compose up --build --detach
 
-      - name: Dump optimized Composer classmap
-        run: docker compose exec --no-TTY web composer dump-autoload --optimize
-
       - name: Run tests in container
         run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
 
