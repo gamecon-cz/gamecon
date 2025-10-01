@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Structure;
 
-class ActivityTypeStructure
+/**
+ * Structure for @see \App\Entity\ActivityType.
+ */
+class ActivityTypeSqlStructure
 {
     public const ID = 'id_typu';
     public const TYP1P = 'typ_1p';

@@ -30,7 +30,7 @@ class ApiController extends AbstractController
         switch ($endpoint) {
             case 'test':
                 return new JsonResponse([
-                    'message' => 'Symfony API working',
+                    'message'  => 'Symfony API working',
                     'endpoint' => $endpoint,
                 ]);
 

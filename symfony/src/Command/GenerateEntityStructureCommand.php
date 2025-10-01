@@ -32,7 +32,7 @@ class GenerateEntityStructureCommand extends Command
         $this
             ->addOption('output-dir', 'o', InputOption::VALUE_OPTIONAL, 'Output directory for generated structure classes', 'symfony/src/Structure')
             ->addOption('namespace', 'ns', InputOption::VALUE_OPTIONAL, 'Namespace for generated classes', 'App\\Structure')
-            ->addOption('suffix', 's', InputOption::VALUE_OPTIONAL, 'Suffix for generated class names', 'Structure')
+            ->addOption('suffix', 's', InputOption::VALUE_OPTIONAL, 'Suffix for generated class names', 'SqlStructure')
             ->setHelp('This command generates PHP classes with constants for entity database structure, similar to the legacy SqlStruktura pattern.');
     }
 
@@ -100,7 +100,6 @@ class GenerateEntityStructureCommand extends Command
     private function generateStructureClass(ClassMetadata $metadata, string $namespace, string $suffix): string
     {
         $entityClass = $metadata->getName();
-        $tableName = $metadata->getTableName();
         $className = $this->getClassNameFromEntity($entityClass) . $suffix;
 
         $constants = [];
@@ -129,6 +128,8 @@ class GenerateEntityStructureCommand extends Command
 
         $constantsCode = implode("\n", $constants);
 
+        $absoluteEntityClass = '\\' . ltrim($entityClass, '\\');
+
         return <<<PHP
 <?php
 
@@ -136,6 +137,9 @@ declare(strict_types=1);
 
 namespace {$namespace};
 
+/**
+ * Structure for @see {$absoluteEntityClass}
+ */
 class {$className}
 {
 {$constantsCode}

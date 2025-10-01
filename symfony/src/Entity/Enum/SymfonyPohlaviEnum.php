@@ -13,7 +13,7 @@ enum SymfonyPohlaviEnum: string
     {
         return match ($this) {
             self::ZENA => 'žena',
-            self::MUZ => 'muž',
+            self::MUZ  => 'muž',
         };
     }
 
@@ -21,7 +21,7 @@ enum SymfonyPohlaviEnum: string
     {
         return match ($this) {
             self::ZENA => $koncovkaProZeny,
-            self::MUZ => '',
+            self::MUZ  => '',
         };
     }
 
@@ -32,7 +32,7 @@ enum SymfonyPohlaviEnum: string
     {
         return [
             self::ZENA->value => self::ZENA->getLabel(),
-            self::MUZ->value => self::MUZ->getLabel(),
+            self::MUZ->value  => self::MUZ->getLabel(),
         ];
     }
 }

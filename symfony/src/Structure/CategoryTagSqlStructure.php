@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Structure;
 
-class CategoryTagStructure
+/**
+ * Structure for @see \App\Entity\CategoryTag.
+ */
+class CategoryTagSqlStructure
 {
     public const ID = 'id';
     public const NAZEV = 'nazev';

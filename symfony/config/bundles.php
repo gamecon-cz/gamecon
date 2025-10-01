@@ -13,7 +13,7 @@ return [
         'dev' => true,
     ],
     Zenstruck\Foundry\ZenstruckFoundryBundle::class => [
-        'dev' => true,
+        'dev'  => true,
         'test' => true,
     ],
 ];

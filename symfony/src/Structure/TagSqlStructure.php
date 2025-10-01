@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Structure;
 
-class TagStructure
+/**
+ * Structure for @see \App\Entity\Tag.
+ */
+class TagSqlStructure
 {
     public const ID = 'id';
     public const NAZEV = 'nazev';

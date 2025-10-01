@@ -10,6 +10,10 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Kategorie sjednocených tagů
+ * Legacy @see \Gamecon\KategorieTagu.
+ */
 #[ORM\Entity(repositoryClass: CategoryTagRepository::class)]
 #[ORM\Table(name: 'kategorie_sjednocenych_tagu')]
 #[ORM\UniqueConstraint(name: 'nazev', columns: ['nazev'])]

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Structure;
 
-class UserStructure
+/**
+ * Structure for @see \App\Entity\User.
+ */
+class UserSqlStructure
 {
     public const ID = 'id_uzivatele';
     public const LOGIN = 'login_uzivatele';

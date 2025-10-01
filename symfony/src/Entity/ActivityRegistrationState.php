@@ -7,7 +7,12 @@ namespace App\Entity;
 use App\Repository\ActivityRegistrationStateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gamecon\Aktivita\AkcePrihlaseniStavy;
 
+/**
+ * Stav přihlášení na akci
+ * Legacy @see AkcePrihlaseniStavy.
+ */
 #[ORM\Entity(repositoryClass: ActivityRegistrationStateRepository::class)]
 #[ORM\Table(name: 'akce_prihlaseni_stavy')]
 #[ORM\UniqueConstraint(name: 'id', columns: ['id_stavu_prihlaseni'])]

@@ -8,6 +8,10 @@ use App\Repository\TagRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Tagy pro akce, programy, atd.
+ * Legacy @see \Gamecon\Tag.
+ */
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 #[ORM\Table(name: 'sjednocene_tagy')]
 #[ORM\UniqueConstraint(name: 'nazev', columns: ['nazev'])]

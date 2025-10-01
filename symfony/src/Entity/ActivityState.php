@@ -8,6 +8,10 @@ use App\Repository\ActivityStateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Stav aktivity
+ * Legacy @see \Gamecon\Aktivita\AkceStavy.
+ */
 #[ORM\Entity(repositoryClass: ActivityStateRepository::class)]
 #[ORM\Table(name: 'akce_stav')]
 #[ORM\UniqueConstraint(name: 'id_stav', columns: ['id_stav'])]

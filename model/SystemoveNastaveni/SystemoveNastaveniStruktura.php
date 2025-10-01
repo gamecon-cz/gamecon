@@ -8,8 +8,8 @@ use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura;
 
 class SystemoveNastaveniStruktura extends SystemoveNastaveniSqlStruktura
 {
-    /** @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::dejSqlNaZaVsechnyZaznamyNastaveni */
+    /** @see SystemoveNastaveni::dejSqlNaZaVsechnyZaznamyNastaveni */
     public const ID_UZIVATELE = 'id_uzivatele';
-    /** @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::pridejVychoziHodnoty */
+    /** @see SystemoveNastaveni::pridejVychoziHodnoty */
     public const VYCHOZI_HODNOTA = 'vychozi_hodnota';
 }

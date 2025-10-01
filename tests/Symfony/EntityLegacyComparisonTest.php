@@ -4,25 +4,37 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Symfony;
 
+use App\Entity\Accommodation;
 use App\Entity\ActivityRegistrationState;
 use App\Entity\ActivityState;
 use App\Entity\ActivityType;
 use App\Entity\CategoryTag;
+use App\Entity\NewsletterSubscription;
 use App\Entity\Page;
+use App\Entity\Permission;
+use App\Entity\Role;
 use App\Entity\Tag;
 use App\Entity\User;
 use Gamecon\Aktivita\AkcePrihlaseniStavy;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
+use Gamecon\Newsletter\NewsletterPrihlaseni;
+use Gamecon\Pravo;
+use Gamecon\Role\Role as LegacyRole;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Tests\Factory\AccommodationFactory;
 use Gamecon\Tests\Factory\ActivityRegistrationStateFactory;
 use Gamecon\Tests\Factory\ActivityStateFactory;
 use Gamecon\Tests\Factory\ActivityTypeFactory;
 use Gamecon\Tests\Factory\CategoryTagFactory;
+use Gamecon\Tests\Factory\NewsletterSubscriptionFactory;
 use Gamecon\Tests\Factory\PageFactory;
+use Gamecon\Tests\Factory\PermissionFactory;
+use Gamecon\Tests\Factory\RoleFactory;
 use Gamecon\Tests\Factory\TagFactory;
 use Gamecon\Tests\Factory\UserFactory;
+use Gamecon\Ubytovani\Ubytovani;
 use Stranka;
 use Uzivatel;
 use Zenstruck\Foundry\Test\Factories;
@@ -43,30 +55,30 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Create Symfony entity using factory
         /** @var User $symfonyUser */
         $symfonyUser = UserFactory::createOne([
-            'login' => 'test_user_' . uniqid(),
-            'email' => 'test_' . uniqid() . '@example.com',
-            'jmeno' => 'TestJmeno',
-            'prijmeni' => 'TestPrijmeni',
-            'uliceACp' => 'Test Street 123',
-            'mesto' => 'Test City',
-            'stat' => 1,
-            'psc' => '12345',
-            'telefon' => '+420123456789',
-            'datumNarozeni' => new \DateTime('1990-01-01'),
-            'hesloMd5' => 'test_hash',
-            'forumRazeni' => 's',
-            'random' => 'test_random',
-            'zustatek' => 100,
-            'registrovan' => new \DateTime('2023-01-01 12:00:00'),
-            'poznamka' => 'Test poznamka',
-            'pomocTyp' => 'test_typ',
-            'pomocVice' => 'Test pomoc vice',
-            'op' => 'test_op',
-            'infopultPoznamka' => 'Test infopult',
+            'login'                => 'test_user_' . uniqid(),
+            'email'                => 'test_' . uniqid() . '@example.com',
+            'jmeno'                => 'TestJmeno',
+            'prijmeni'             => 'TestPrijmeni',
+            'uliceACp'             => 'Test Street 123',
+            'mesto'                => 'Test City',
+            'stat'                 => 1,
+            'psc'                  => '12345',
+            'telefon'              => '+420123456789',
+            'datumNarozeni'        => new \DateTime('1990-01-01'),
+            'hesloMd5'             => 'test_hash',
+            'forumRazeni'          => 's',
+            'random'               => 'test_random',
+            'zustatek'             => 100,
+            'registrovan'          => new \DateTime('2023-01-01 12:00:00'),
+            'poznamka'             => 'Test poznamka',
+            'pomocTyp'             => 'test_typ',
+            'pomocVice'            => 'Test pomoc vice',
+            'op'                   => 'test_op',
+            'infopultPoznamka'     => 'Test infopult',
             'typDokladuTotoznosti' => 'OP',
-            'statniObcanstvi' => 'CZ',
-            'zRychloregistrace' => false,
-            'mrtvyMail' => false,
+            'statniObcanstvi'      => 'CZ',
+            'zRychloregistrace'    => false,
+            'mrtvyMail'            => false,
         ])->_save()->_real();
 
         $symfonyUserId = $symfonyUser->getId();
@@ -128,8 +140,8 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         /** @var Page $symfonyPage */
         $symfonyPage = PageFactory::createOne([
             'urlStranky' => 'test-page-' . uniqid(),
-            'obsah' => 'Test page content',
-            'poradi' => 42,
+            'obsah'      => 'Test page content',
+            'poradi'     => 42,
         ])->_real();
 
         $symfonyPageId = $symfonyPage->getIdStranky();
@@ -151,15 +163,15 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // First create a CategoryTag for the foreign key
         /** @var CategoryTag $categoryTag */
         $categoryTag = CategoryTagFactory::createOne([
-            'nazev' => 'Test Category ' . uniqid(),
+            'nazev'  => 'Test Category ' . uniqid(),
             'poradi' => 1,
         ])->_real();
 
         // Create Symfony entity using factory
         /** @var Tag $symfonyTag */
         $symfonyTag = TagFactory::createOne([
-            'nazev' => 'Test Tag ' . uniqid(),
-            'poznamka' => 'Test tag note',
+            'nazev'        => 'Test Tag ' . uniqid(),
+            'poznamka'     => 'Test tag note',
             'kategorieTag' => $categoryTag,
         ])->_real();
 
@@ -182,8 +194,8 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Create Symfony entity using factory
         /** @var CategoryTag $symfonyCategoryTag */
         $symfonyCategoryTag = CategoryTagFactory::createOne([
-            'nazev' => 'Test Category Tag ' . uniqid(),
-            'poradi' => 10,
+            'nazev'           => 'Test Category Tag ' . uniqid(),
+            'poradi'          => 10,
             'hlavniKategorie' => null,
         ])->_real();
 
@@ -206,16 +218,16 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Create parent category
         /** @var CategoryTag $parentCategory */
         $parentCategory = CategoryTagFactory::createOne([
-            'nazev' => 'Parent Category ' . uniqid(),
-            'poradi' => 1,
+            'nazev'           => 'Parent Category ' . uniqid(),
+            'poradi'          => 1,
             'hlavniKategorie' => null,
         ])->_real();
 
         // Create child category
         /** @var CategoryTag $childCategory */
         $childCategory = CategoryTagFactory::createOne([
-            'nazev' => 'Child Category ' . uniqid(),
-            'poradi' => 2,
+            'nazev'           => 'Child Category ' . uniqid(),
+            'poradi'          => 2,
             'hlavniKategorie' => $parentCategory,
         ])->_real();
 
@@ -239,16 +251,16 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Create user with all optional fields set
         /** @var User $symfonyUser */
         $symfonyUser = UserFactory::createOne([
-            'login' => 'test_optional_' . uniqid(),
-            'email' => 'optional_' . uniqid() . '@example.com',
-            'jmeno' => 'OptionalJmeno',
-            'prijmeni' => 'OptionalPrijmeni',
-            'nechceMaily' => new \DateTime('2023-06-01 10:00:00'),
-            'ubytovanS' => 'Some Person',
-            'potvrzeniZakonnehoZastupce' => new \DateTime('2023-05-01'),
-            'potvrzeniProtiCovid19PridanoKdy' => new \DateTime('2023-07-01 14:00:00'),
-            'potvrzeniProtiCovid19OverenoKdy' => new \DateTime('2023-07-02 15:00:00'),
-            'statniObcanstvi' => 'SK',
+            'login'                            => 'test_optional_' . uniqid(),
+            'email'                            => 'optional_' . uniqid() . '@example.com',
+            'jmeno'                            => 'OptionalJmeno',
+            'prijmeni'                         => 'OptionalPrijmeni',
+            'nechceMaily'                      => new \DateTime('2023-06-01 10:00:00'),
+            'ubytovanS'                        => 'Some Person',
+            'potvrzeniZakonnehoZastupce'       => new \DateTime('2023-05-01'),
+            'potvrzeniProtiCovid19PridanoKdy'  => new \DateTime('2023-07-01 14:00:00'),
+            'potvrzeniProtiCovid19OverenoKdy'  => new \DateTime('2023-07-02 15:00:00'),
+            'statniObcanstvi'                  => 'SK',
             'potvrzeniZakonnehoZastupceSoubor' => new \DateTime('2023-05-01 10:00:00'),
         ])->_real();
 
@@ -306,17 +318,17 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Create Symfony entity using factory
         /** @var ActivityType $symfonyActivityType */
         $symfonyActivityType = ActivityTypeFactory::createOne([
-            'id' => 99,
-            'typ1p' => 'Test Type Singular',
-            'typ1pmn' => 'Test Type Plural',
-            'urlTypuMn' => 'test-type-url',
-            'strankaO' => PageFactory::createOne()->getIdStranky(),
-            'poradi' => 5,
-            'mailNeucast' => true,
-            'popisKratky' => 'Short description',
-            'aktivni' => true,
+            'id'            => 99,
+            'typ1p'         => 'Test Type Singular',
+            'typ1pmn'       => 'Test Type Plural',
+            'urlTypuMn'     => 'test-type-url',
+            'strankaO'      => PageFactory::createOne()->getIdStranky(),
+            'poradi'        => 5,
+            'mailNeucast'   => true,
+            'popisKratky'   => 'Short description',
+            'aktivni'       => true,
             'zobrazitVMenu' => true,
-            'kodTypu' => 'TEST',
+            'kodTypu'       => 'TEST',
         ])->_save()->_real();
 
         $symfonyActivityTypeId = $symfonyActivityType->getId();
@@ -378,8 +390,8 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Create Symfony entity using factory
         /** @var ActivityRegistrationState $symfonyActivityRegistrationState */
         $symfonyActivityRegistrationState = ActivityRegistrationStateFactory::createOne([
-            'id' => 50,
-            'nazev' => 'Test Registration State ' . uniqid(),
+            'id'            => 50,
+            'nazev'         => 'Test Registration State ' . uniqid(),
             'platbaProcent' => 75,
         ])->_save()->_real();
 
@@ -399,5 +411,130 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $legacyData = $legacyActivityRegistrationState->raw();
         $this->assertEquals($symfonyActivityRegistrationState->getNazev(), $legacyData['nazev']);
         $this->assertEquals($symfonyActivityRegistrationState->getPlatbaProcent(), $legacyData['platba_procent']);
+    }
+
+    public function testNewsletterSubscriptionEntityMatchesLegacyNewsletterPrihlaseni(): void
+    {
+        // Create Symfony entity using factory
+        /** @var NewsletterSubscription $symfonyNewsletterSubscription */
+        $symfonyNewsletterSubscription = NewsletterSubscriptionFactory::createOne([
+            'email' => 'newsletter_' . uniqid() . '@example.com',
+            'kdy'   => new \DateTime('2023-08-01 10:00:00'),
+        ])->_save()->_real();
+
+        $symfonyNewsletterSubscriptionId = $symfonyNewsletterSubscription->getId();
+        $this->assertNotNull($symfonyNewsletterSubscriptionId);
+
+        // Fetch the same entity using legacy NewsletterPrihlaseni
+        $legacyNewsletterSubscription = NewsletterPrihlaseni::zId($symfonyNewsletterSubscriptionId);
+        $this->assertNotNull($legacyNewsletterSubscription, 'Legacy newsletter subscription should be found');
+
+        // Compare values using getters
+        $this->assertEquals($symfonyNewsletterSubscription->getId(), $legacyNewsletterSubscription->id());
+
+        // Test raw database values
+        $legacyData = $legacyNewsletterSubscription->raw();
+        $this->assertEquals($symfonyNewsletterSubscription->getEmail(), $legacyData['email']);
+        $this->assertEquals(
+            $symfonyNewsletterSubscription->getKdy()->format('Y-m-d H:i:s'),
+            $legacyData['kdy'],
+        );
+    }
+
+    public function testRoleEntityMatchesLegacyRole(): void
+    {
+        // Create Symfony entity using factory
+        /** @var Role $symfonyRole */
+        $symfonyRole = RoleFactory::createOne([
+            'kodRole'       => 'TEST_ROLE_' . uniqid(),
+            'nazevRole'     => 'Test Role ' . uniqid(),
+            'popisRole'     => 'Test role description',
+            'rocnikRole'    => 2024,
+            'typRole'       => 'trvala',
+            'vyznamRole'    => 'TEST_VYZNAM',
+            'skryta'        => false,
+            'kategorieRole' => 1,
+        ])->_save()->_real();
+
+        $symfonyRoleId = $symfonyRole->getId();
+        $this->assertNotNull($symfonyRoleId);
+
+        // Fetch the same entity using legacy Role
+        $legacyRole = LegacyRole::zId($symfonyRoleId);
+        $this->assertNotNull($legacyRole, 'Legacy role should be found');
+
+        // Compare values using getters
+        $this->assertEquals($symfonyRole->getId(), $legacyRole->id());
+        $this->assertEquals($symfonyRole->getNazevRole(), $legacyRole->nazevRole());
+        $this->assertEquals($symfonyRole->getKategorieRole(), $legacyRole->kategorieRole());
+
+        // Test raw database values
+        $legacyData = $legacyRole->raw();
+        $this->assertEquals($symfonyRole->getKodRole(), $legacyData['kod_role']);
+        $this->assertEquals($symfonyRole->getNazevRole(), $legacyData['nazev_role']);
+        $this->assertEquals($symfonyRole->getPopisRole(), $legacyData['popis_role']);
+        $this->assertEquals($symfonyRole->getRocnikRole(), $legacyData['rocnik_role']);
+        $this->assertEquals($symfonyRole->getTypRole(), $legacyData['typ_role']);
+        $this->assertEquals($symfonyRole->getVyznamRole(), $legacyData['vyznam_role']);
+        $this->assertEquals($symfonyRole->isSkryta(), (bool) $legacyData['skryta']);
+        $this->assertEquals($symfonyRole->getKategorieRole(), $legacyData['kategorie_role']);
+    }
+
+    public function testPermissionEntityMatchesLegacyPravo(): void
+    {
+        // Create Symfony entity using factory
+        /** @var Permission $symfonyPermission */
+        $symfonyPermission = PermissionFactory::createOne([
+            'jmenoPrava' => 'Test Permission ' . uniqid(),
+            'popisPrava' => 'Test permission description',
+        ])->_save()->_real();
+
+        $symfonyPermissionId = $symfonyPermission->getId();
+        $this->assertNotNull($symfonyPermissionId);
+
+        // Fetch the same entity using legacy Pravo
+        $legacyPermission = Pravo::zId($symfonyPermissionId);
+        $this->assertNotNull($legacyPermission, 'Legacy permission should be found');
+
+        // Compare values using getters
+        $this->assertEquals($symfonyPermission->getId(), $legacyPermission->id());
+
+        // Test raw database values
+        $legacyData = $legacyPermission->raw();
+        $this->assertEquals($symfonyPermission->getJmenoPrava(), $legacyData['jmeno_prava']);
+        $this->assertEquals($symfonyPermission->getPopisPrava(), $legacyData['popis_prava']);
+    }
+
+    public function testAccommodationEntityMatchesLegacyUbytovani(): void
+    {
+        // First create a user for the foreign key
+        /** @var User $testUser */
+        $testUser = UserFactory::createOne([
+            'login' => 'accomm_user_' . uniqid(),
+            'email' => 'accomm_' . uniqid() . '@example.com',
+        ])->_real();
+
+        // Create Symfony entity using factory
+        /** @var Accommodation $symfonyAccommodation */
+        $symfonyAccommodation = AccommodationFactory::createOne([
+            'uzivatel' => $testUser,
+            'den'      => 3,
+            'rok'      => 2024,
+            'pokoj'    => 'Room 123',
+        ])->_save()->_real();
+
+        $this->assertNotNull($symfonyAccommodation);
+
+        // The legacy table has composite primary key (id_uzivatele, den, rok)
+        // Fetch using the primary key (which is just id_uzivatele for this DbObject)
+        $legacyAccommodation = Ubytovani::zId($testUser->getId());
+        $this->assertNotNull($legacyAccommodation, 'Legacy accommodation should be found');
+
+        // Test raw database values
+        $legacyData = $legacyAccommodation->raw();
+        $this->assertEquals($testUser->getId(), $legacyData['id_uzivatele']);
+        $this->assertEquals($symfonyAccommodation->getDen(), $legacyData['den']);
+        $this->assertEquals($symfonyAccommodation->getRok(), $legacyData['rok']);
+        $this->assertEquals($symfonyAccommodation->getPokoj(), $legacyData['pokoj']);
     }
 }

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Structure;
 
-class ActivityRegistrationStateStructure
+/**
+ * Structure for @see \App\Entity\ActivityRegistrationState.
+ */
+class ActivityRegistrationStateSqlStructure
 {
     public const ID = 'id_stavu_prihlaseni';
     public const NAZEV = 'nazev';

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Structure;
 
-class PageStructure
+/**
+ * Structure for @see \App\Entity\Page.
+ */
+class PageSqlStructure
 {
     public const ID_STRANKY = 'id_stranky';
     public const URL_STRANKY = 'url_stranky';

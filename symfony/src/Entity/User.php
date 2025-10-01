@@ -9,6 +9,10 @@ use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Uživatelská data
+ * Legacy @see \Gamecon\Uzivatel.
+ */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'uzivatele_hodnoty')]
 #[ORM\Index(columns: ['infopult_poznamka'], name: 'infopult_poznamka_idx')]

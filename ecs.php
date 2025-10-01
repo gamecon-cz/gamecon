@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use PhpCsFixer\Fixer\ArrayNotation\ArraySyntaxFixer;
+use PhpCsFixer\Fixer\Operator\BinaryOperatorSpacesFixer;
+use PhpCsFixer\Fixer\Whitespace\ArrayIndentationFixer;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
 
 return ECSConfig::configure()
@@ -14,13 +17,26 @@ return ECSConfig::configure()
         __DIR__ . '/symfony/var',
     ])
     ->withPreparedSets(
-        psr12: true,
-        arrays: true,
-        comments: true,
-        docblocks: true,
-        spaces: true,
-        namespaces: true,
+        psr12:             true,
+        arrays:            true,
+        comments:          true,
+        docblocks:         true,
+        spaces:            true,
+        namespaces:        true,
         controlStructures: true,
-        strict: true,
-        cleanCode: true,
-    )->withPhpCsFixerSets(symfony: true);
+        strict:            true,
+        cleanCode:         true,
+    )
+    ->withPhpCsFixerSets(symfony: true)
+    ->withConfiguredRule(ArraySyntaxFixer::class, [
+        'syntax' => 'short',
+    ])
+    ->withRules([
+        ArrayIndentationFixer::class,
+    ])
+    ->withConfiguredRule(BinaryOperatorSpacesFixer::class, [
+        'operators' => [
+            '=>' => 'align_single_space_minimal',
+        ],
+    ])
+    ->withCache(__DIR__ . '/symfony/var/ecs');
