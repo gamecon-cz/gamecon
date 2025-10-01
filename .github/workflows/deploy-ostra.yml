@@ -33,25 +33,25 @@ jobs:
 
       - name: Deploy via FTP
         # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
-        run: php ./udrzba/nasad.php --skip-tests
-        env:
-          FTP_DIR: ostra
-          FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
-          DB_USER: ${{ secrets.OSTRA_DB_USER }}
-          DB_PASS: ${{ secrets.OSTRA_DB_PASS }}
-          DB_NAME: ${{ secrets.OSTRA_DB_NAME }}
-          DB_SERV: localhost
-          DBM_USER: ${{ secrets.OSTRA_DBM_USER }}
-          DBM_PASS: ${{ secrets.OSTRA_DBM_PASS }}
-          MIGRACE_HESLO: ${{ secrets.OSTRA_MIGRACE_HESLO }}
-          SECRET_CRYPTO_KEY: ${{ secrets.OSTRA_SECRET_CRYPTO_KEY }}
-          # pozor změnu CRON_KEY je nutné provést i
-          # v https://console.cron-job.org
-          CRON_KEY: ${{ secrets.OSTRA_CRON_KEY }}
-          GOOGLE_API_CREDENTIALS: ${{ secrets.OSTRA_GOOGLE_API_CREDENTIALS }}
-          FIO_TOKEN: ${{ secrets.OSTRA_FIO_TOKEN }}
-          MAILER_DSN: ${{ secrets.MAILER_DSN }}
-          DB_ANONYM_SERV: ${{ secrets.DB_ANONYM_SERV }}
-          DB_ANONYM_USER: ${{ secrets.DB_ANONYM_USER }}
-          DB_ANONYM_PASS: ${{ secrets.DB_ANONYM_PASS }}
-          DB_ANONYM_NAME: ${{ secrets.DB_ANONYM_NAME }}
+        # pozor změnu CRON_KEY je nutné provést i v https://console.cron-job.org
+        run: |
+          docker compose exec --no-TTY \
+            -e FTP_DIR=ostra \
+            -e FTP_BASE_URL="${{ secrets.FTP_BASE_URL }}" \
+            -e DB_USER="${{ secrets.OSTRA_DB_USER }}" \
+            -e DB_PASS="${{ secrets.OSTRA_DB_PASS }}" \
+            -e DB_NAME="${{ secrets.OSTRA_DB_NAME }}" \
+            -e DB_SERV=localhost \
+            -e DBM_USER="${{ secrets.OSTRA_DBM_USER }}" \
+            -e DBM_PASS="${{ secrets.OSTRA_DBM_PASS }}" \
+            -e MIGRACE_HESLO="${{ secrets.OSTRA_MIGRACE_HESLO }}" \
+            -e SECRET_CRYPTO_KEY="${{ secrets.OSTRA_SECRET_CRYPTO_KEY }}" \
+            -e CRON_KEY="${{ secrets.OSTRA_CRON_KEY }}" \
+            -e GOOGLE_API_CREDENTIALS="${{ secrets.OSTRA_GOOGLE_API_CREDENTIALS }}" \
+            -e FIO_TOKEN="${{ secrets.OSTRA_FIO_TOKEN }}" \
+            -e MAILER_DSN="${{ secrets.MAILER_DSN }}" \
+            -e DB_ANONYM_SERV="${{ secrets.DB_ANONYM_SERV }}" \
+            -e DB_ANONYM_USER="${{ secrets.DB_ANONYM_USER }}" \
+            -e DB_ANONYM_PASS="${{ secrets.DB_ANONYM_PASS }}" \
+            -e DB_ANONYM_NAME="${{ secrets.DB_ANONYM_NAME }}" \
+            web php ./udrzba/nasad.php --skip-tests
