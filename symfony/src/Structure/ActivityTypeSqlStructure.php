@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\ActivityType.
+ * Structure for @see \App\Entity\ActivityType
+ * SQL table `akce_typy`
  */
 class ActivityTypeSqlStructure
 {

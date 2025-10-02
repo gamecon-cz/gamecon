@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\Accommodation.
+ * Structure for @see \App\Entity\Accommodation
+ * SQL table `ubytovani`
  */
 class AccommodationSqlStructure
 {

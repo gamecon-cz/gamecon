@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use PhpCsFixer\Fixer\ArrayNotation\ArraySyntaxFixer;
 use PhpCsFixer\Fixer\Operator\BinaryOperatorSpacesFixer;
+use PhpCsFixer\Fixer\Phpdoc\PhpdocSummaryFixer;
 use PhpCsFixer\Fixer\Whitespace\ArrayIndentationFixer;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
 
@@ -15,6 +16,7 @@ return ECSConfig::configure()
     ])
     ->withSkip([
         __DIR__ . '/symfony/var',
+        PhpdocSummaryFixer::class, // Disable adding dots to PHPDoc - breaks @see FQCN linking
     ])
     ->withPreparedSets(
         psr12:             true,

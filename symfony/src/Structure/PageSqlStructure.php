@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\Page.
+ * Structure for @see \App\Entity\Page
+ * SQL table `stranky`
  */
 class PageSqlStructure
 {

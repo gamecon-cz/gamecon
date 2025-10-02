@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\Tag.
+ * Structure for @see \App\Entity\Tag
+ * SQL table `sjednocene_tagy`
  */
 class TagSqlStructure
 {

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\Role.
+ * Structure for @see \App\Entity\Role
+ * SQL table `role_seznam`
  */
 class RoleSqlStructure
 {

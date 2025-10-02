@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\Permission.
+ * Structure for @see \App\Entity\Permission
+ * SQL table `r_prava_soupis`
  */
 class PermissionSqlStructure
 {

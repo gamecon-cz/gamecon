@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\User.
+ * Structure for @see \App\Entity\User
+ * SQL table `uzivatele_hodnoty`
  */
 class UserSqlStructure
 {

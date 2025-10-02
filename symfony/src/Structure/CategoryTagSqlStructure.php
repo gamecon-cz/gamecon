@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\CategoryTag.
+ * Structure for @see \App\Entity\CategoryTag
+ * SQL table `kategorie_sjednocenych_tagu`
  */
 class CategoryTagSqlStructure
 {

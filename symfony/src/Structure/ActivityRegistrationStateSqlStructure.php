@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\ActivityRegistrationState.
+ * Structure for @see \App\Entity\ActivityRegistrationState
+ * SQL table `akce_prihlaseni_stavy`
  */
 class ActivityRegistrationStateSqlStructure
 {

@@ -13,6 +13,7 @@ use App\Entity\NewsletterSubscription;
 use App\Entity\Page;
 use App\Entity\Permission;
 use App\Entity\Role;
+use App\Entity\ShopItem;
 use App\Entity\Tag;
 use App\Entity\User;
 use Gamecon\Aktivita\AkcePrihlaseniStavy;
@@ -22,6 +23,7 @@ use Gamecon\KategorieTagu;
 use Gamecon\Newsletter\NewsletterPrihlaseni;
 use Gamecon\Pravo;
 use Gamecon\Role\Role as LegacyRole;
+use Gamecon\Shop\Predmet;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Tests\Factory\AccommodationFactory;
 use Gamecon\Tests\Factory\ActivityRegistrationStateFactory;
@@ -32,6 +34,7 @@ use Gamecon\Tests\Factory\NewsletterSubscriptionFactory;
 use Gamecon\Tests\Factory\PageFactory;
 use Gamecon\Tests\Factory\PermissionFactory;
 use Gamecon\Tests\Factory\RoleFactory;
+use Gamecon\Tests\Factory\ShopItemFactory;
 use Gamecon\Tests\Factory\TagFactory;
 use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Ubytovani\Ubytovani;
@@ -534,5 +537,55 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyAccommodation->getDen(), $legacyData['den']);
         $this->assertEquals($symfonyAccommodation->getRok(), $legacyData['rok']);
         $this->assertEquals($symfonyAccommodation->getPokoj(), $legacyData['pokoj']);
+    }
+
+    public function testShopItemEntityMatchesLegacyPredmet(): void
+    {
+        // Create Symfony entity using factory
+        /** @var ShopItem $symfonyShopItem */
+        $symfonyShopItem = ShopItemFactory::createOne([
+            'nazev'           => 'Test Předmět ' . uniqid(),
+            'kodPredmetu'     => 'TEST_KOD_' . strtoupper(uniqid()),
+            'modelRok'        => 2024,
+            'cenaAktualni'    => '199.50',
+            'stav'            => 1,
+            'nabizetDo'       => new \DateTime('2024-12-31 23:59:59'),
+            'kusuVyrobeno'    => 100,
+            'typ'             => 1,
+            'ubytovaniDen'    => null,
+            'popis'           => 'Testovací popis předmětu',
+            'jeLetosniHlavni' => true,
+        ])->_save()->_real();
+
+        $symfonyShopItemId = $symfonyShopItem->getId();
+        $this->assertNotNull($symfonyShopItemId);
+
+        // Fetch the same entity using legacy Predmet
+        $legacyPredmet = Predmet::zId($symfonyShopItemId);
+        $this->assertNotNull($legacyPredmet, 'Legacy shop item (predmet) should be found');
+
+        // Compare values using getters and raw data
+        $this->assertEquals($symfonyShopItem->getId(), $legacyPredmet->id());
+
+        // Test raw database values
+        $legacyData = $legacyPredmet->raw();
+        $this->assertEquals($symfonyShopItem->getNazev(), $legacyData['nazev']);
+        $this->assertEquals($symfonyShopItem->getKodPredmetu(), $legacyData['kod_predmetu']);
+        $this->assertEquals($symfonyShopItem->getModelRok(), $legacyData['model_rok']);
+        $this->assertEquals($symfonyShopItem->getCenaAktualni(), $legacyData['cena_aktualni']);
+        $this->assertEquals($symfonyShopItem->getStav(), $legacyData['stav']);
+        $this->assertEquals($symfonyShopItem->getKusuVyrobeno(), $legacyData['kusu_vyrobeno']);
+        $this->assertEquals($symfonyShopItem->getTyp(), $legacyData['typ']);
+        $this->assertEquals($symfonyShopItem->getUbytovaniDen(), $legacyData['ubytovani_den']);
+        $this->assertEquals($symfonyShopItem->getPopis(), $legacyData['popis']);
+        $this->assertEquals($symfonyShopItem->isJeLetosniHlavni(), (bool) $legacyData['je_letosni_hlavni']);
+
+        // Test date field
+        if ($symfonyShopItem->getNabizetDo()) {
+            $this->assertEquals(
+                $symfonyShopItem->getNabizetDo()->format('Y-m-d H:i:s'),
+                $legacyData['nabizet_do'],
+            );
+        }
     }
 }

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\NewsletterSubscription.
+ * Structure for @see \App\Entity\NewsletterSubscription
+ * SQL table `newsletter_prihlaseni`
  */
 class NewsletterSubscriptionSqlStructure
 {
