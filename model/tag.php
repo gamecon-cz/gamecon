@@ -4,6 +4,9 @@ use Gamecon\KategorieTagu;
 
 /**
  * Tag aktivity
+ *
+ * For Doctrine entity equivalent @see \App\Entity\Tag
+ *
  * @method static Tag|null zId($id, bool $zCache = false)
  * @method static Tag[] zVsech(bool $zCache = false)
  */

@@ -7,6 +7,8 @@ namespace Gamecon\Aktivita;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniStavySqlStruktura as Sql;
 
 /**
+ * For Doctrine entity equivalent @see \App\Entity\ActivityRegistrationState
+ *
  * @method static AkcePrihlaseniStavy|null zId($id, bool $zCache = false)
  */
 class AkcePrihlaseniStavy extends \DbObject

@@ -2,6 +2,9 @@
 
 namespace Gamecon;
 
+/**
+ * For Doctrine entity equivalent @see \App\Entity\CategoryTag
+ */
 class KategorieTagu extends \DbObject
 {
 

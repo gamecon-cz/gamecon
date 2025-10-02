@@ -2,6 +2,9 @@
 
 use Gamecon\Aktivita\TypAktivity;
 
+/**
+ * For Doctrine entity equivalent @see \App\Entity\Page
+ */
 class Stranka extends DbObject
 {
 

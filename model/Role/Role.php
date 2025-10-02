@@ -8,6 +8,8 @@ use Gamecon\Role\Exceptions\NeznamyVyznamRole;
 use Gamecon\Role\SqlStruktura\RoleSqlStruktura;
 
 /**
+ * For Doctrine entity equivalent @see \App\Entity\Role
+ *
  * @method static Role|null zId($id, bool $zCache = false)
  */
 class Role extends \DbObject

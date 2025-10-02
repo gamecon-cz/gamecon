@@ -4,6 +4,9 @@ namespace Gamecon\Aktivita;
 
 /**
  * Typ aktivit (programová linie)
+ *
+ * For Doctrine entity equivalent @see \App\Entity\ActivityType
+ *
  * @method static TypAktivity|null zId($id, bool $zCache = false)
  * @method static TypAktivity[] zVsech(bool $zCache = false)
  */

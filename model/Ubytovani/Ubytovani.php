@@ -8,7 +8,8 @@ use App\Structure\AccommodationSqlStructure;
 use Gamecon\Ubytovani\SqlStruktura\UbytovaniSqlStruktura as Sql;
 
 /**
- * Doctrine @see Accommodation
+ * For Doctrine entity equivalent @see \App\Entity\Accommodation
+ *
  * Legacy SQL structure @see UbytovaniSqlStruktura
  * Doctrine SQL structure @see AccommodationSqlStructure
  */

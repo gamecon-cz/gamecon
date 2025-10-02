@@ -3,6 +3,8 @@
 namespace Gamecon\Aktivita;
 
 /**
+ * For Doctrine entity equivalent @see \App\Entity\ActivityState
+ *
  * @method static StavAktivity|null zId($id, bool $zCache = false)
  * @method static StavAktivity[] zVsech(bool $zCache = false)
  */

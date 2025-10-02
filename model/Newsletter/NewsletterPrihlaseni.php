@@ -7,6 +7,9 @@ namespace Gamecon\Newsletter;
 use Gamecon\Newsletter\SqlStruktura\NewsletterPrihlaseniSqlStruktura as Sql;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
+/**
+ * For Doctrine entity equivalent @see \App\Entity\NewsletterSubscription
+ */
 class NewsletterPrihlaseni extends \DbObject
 {
     protected static $tabulka = Sql::NEWSLETTER_PRIHLASENI_TABULKA;

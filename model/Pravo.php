@@ -5,6 +5,8 @@ namespace Gamecon;
 use Gamecon\Role\Role;
 
 /**
+ * For Doctrine entity equivalent @see \App\Entity\Permission
+ *
  * @method static Pravo|null zId($id, bool $zCache = false)
  */
 class Pravo extends \DbObject

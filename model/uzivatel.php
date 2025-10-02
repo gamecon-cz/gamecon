@@ -29,6 +29,9 @@ use Gamecon\Uzivatel\UzivatelSlucovani;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
+ *
+ * For Doctrine entity equivalent @see \App\Entity\User
+ *
  * @method array<Uzivatel> zIds(array | string $ids, bool $zCache = false)
  * @todo načítání separátního (nepřihlášeného uživatele) např. pro účely schi-
  *   zofrenie v adminovi (nehrozí špatný přístup při nadměrném volání např. při

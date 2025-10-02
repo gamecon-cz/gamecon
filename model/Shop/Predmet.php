@@ -6,6 +6,8 @@ namespace Gamecon\Shop;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 
 /**
+ * For Doctrine entity equivalent @see \App\Entity\ShopItem
+ *
  * @method static Predmet|null zId($id, bool $zCache = false)
  */
 class Predmet extends \DbObject
