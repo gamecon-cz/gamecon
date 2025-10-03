@@ -2,7 +2,7 @@
 
 namespace Gamecon\Tests\Factory;
 
-use App\Entity\Enum\SymfonyPohlaviEnum;
+use App\Entity\Enum\GenderEnum;
 use App\Entity\User;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -33,7 +33,7 @@ final class UserFactory extends PersistentProxyObjectFactory
             'mrtvyMail'                        => self::faker()->boolean(),
             'nechceMaily'                      => self::faker()->dateTime(),
             'op'                               => self::faker()->text(4096),
-            'pohlavi'                          => self::faker()->randomElement(SymfonyPohlaviEnum::cases()),
+            'pohlavi'                          => self::faker()->randomElement(GenderEnum::cases()),
             'pomocTyp'                         => self::faker()->text(64),
             'pomocVice'                        => self::faker()->text(),
             'potvrzeniProtiCovid19OverenoKdy'  => self::faker()->dateTime(),

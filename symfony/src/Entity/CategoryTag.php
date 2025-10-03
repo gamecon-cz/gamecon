@@ -112,10 +112,8 @@ class CategoryTag
 
     public function removeTag(Tag $tag): static
     {
-        if ($this->tagy->removeElement($tag)) {
-            if ($tag->getKategorieTag() === $this) {
-                $tag->setKategorieTag(null);
-            }
+        if ($this->tagy->removeElement($tag) && $tag->getKategorieTag() === $this) {
+            $tag->setKategorieTag(null);
         }
 
         return $this;

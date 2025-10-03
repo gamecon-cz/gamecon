@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserRoleByYearRepository::class)]
 #[ORM\Table(name: 'uzivatele_role_podle_rocniku')]
-#[ORM\Index(name: 'FK_uzivatele_role_podle_rocniku_to_uzivatele_hodnoty', columns: ['id_uzivatele'])]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_uzivatele_role_podle_rocniku_to_uzivatele_hodnoty')]
 #[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id'])]
 class UserRoleByYear
 {

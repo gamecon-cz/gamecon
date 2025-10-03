@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: RolePermissionRepository::class)]
 #[ORM\Table(name: 'prava_role')]
-#[ORM\Index(name: 'id_prava', columns: ['id_prava'])]
+#[ORM\Index(columns: ['id_prava'], name: 'id_prava')]
 class RolePermission
 {
     #[ORM\Id]

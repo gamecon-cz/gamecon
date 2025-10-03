@@ -18,6 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 class News
 {
     public const TYPE_NEWS = 1;
+
     public const TYPE_BLOG = 2;
 
     #[ORM\Id]

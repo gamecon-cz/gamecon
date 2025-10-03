@@ -1,6 +1,7 @@
 <?php
 
 use Rector\Config\RectorConfig;
+use Gamecon\Tests\Rector\Rules\ReorderAttributeArgumentsRector;
 
 return RectorConfig::configure()
                    ->withPreparedSets(
@@ -11,4 +12,7 @@ return RectorConfig::configure()
                    )
                    ->withAttributesSets()
                    ->withPhpSets()
-                   ->withImportNames(importShortClasses: false, removeUnusedImports: true);
+                   ->withImportNames(importShortClasses: false, removeUnusedImports: true)
+    ->withRules([
+        ReorderAttributeArgumentsRector::class,
+    ]);

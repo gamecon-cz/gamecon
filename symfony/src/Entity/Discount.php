@@ -13,8 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: DiscountRepository::class)]
 #[ORM\Table(name: 'slevy')]
-#[ORM\Index(name: 'id_uzivatele', columns: ['id_uzivatele'])]
-#[ORM\Index(name: 'provedl', columns: ['provedl'])]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
+#[ORM\Index(columns: ['provedl'], name: 'provedl')]
 #[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id'])]
 class Discount
 {

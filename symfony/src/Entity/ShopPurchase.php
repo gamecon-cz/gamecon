@@ -14,10 +14,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ShopPurchaseRepository::class)]
 #[ORM\Table(name: 'shop_nakupy')]
 #[ORM\UniqueConstraint(name: 'id_nakupu', columns: ['id_nakupu'])]
-#[ORM\Index(name: 'rok_id_uzivatele', columns: ['rok', 'id_uzivatele'])]
-#[ORM\Index(name: 'id_predmetu', columns: ['id_predmetu'])]
-#[ORM\Index(name: 'id_uzivatele', columns: ['id_uzivatele'])]
-#[ORM\Index(name: 'id_objednatele', columns: ['id_objednatele'])]
+#[ORM\Index(columns: ['rok', 'id_uzivatele'], name: 'rok_id_uzivatele')]
+#[ORM\Index(columns: ['id_predmetu'], name: 'id_predmetu')]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
+#[ORM\Index(columns: ['id_objednatele'], name: 'id_objednatele')]
 class ShopPurchase
 {
     #[ORM\Id]

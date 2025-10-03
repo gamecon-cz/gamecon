@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: UserUrlRepository::class)]
 #[ORM\Table(name: 'uzivatele_url')]
 #[ORM\UniqueConstraint(name: 'id_url_uzivatele', columns: ['id_url_uzivatele'])]
-#[ORM\Index(name: 'id_uzivatele', columns: ['id_uzivatele'])]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
 class UserUrl
 {
     #[ORM\GeneratedValue]

@@ -13,8 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityRegistrationSpecRepository::class)]
 #[ORM\Table(name: 'akce_prihlaseni_spec')]
-#[ORM\Index(name: 'id_uzivatele', columns: ['id_uzivatele'])]
-#[ORM\Index(name: 'id_stavu_prihlaseni', columns: ['id_stavu_prihlaseni'])]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
+#[ORM\Index(columns: ['id_stavu_prihlaseni'], name: 'id_stavu_prihlaseni')]
 class ActivityRegistrationSpec
 {
     #[ORM\Id]

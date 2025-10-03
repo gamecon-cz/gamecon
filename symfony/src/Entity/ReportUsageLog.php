@@ -14,8 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ReportUsageLogRepository::class)]
 #[ORM\Table(name: 'reporty_log_pouziti')]
 #[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
-#[ORM\Index(name: 'report_uzivatel', columns: ['id_reportu', 'id_uzivatele'])]
-#[ORM\Index(name: 'id_uzivatele', columns: ['id_uzivatele'])]
+#[ORM\Index(columns: ['id_reportu', 'id_uzivatele'], name: 'report_uzivatel')]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
 class ReportUsageLog
 {
     #[ORM\Id]

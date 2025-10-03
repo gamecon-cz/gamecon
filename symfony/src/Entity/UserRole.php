@@ -14,8 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: UserRoleRepository::class)]
 #[ORM\Table(name: 'uzivatele_role')]
 #[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
-#[ORM\Index(name: 'posadil', columns: ['posadil'])]
-#[ORM\Index(name: 'FK_uzivatele_role_role_seznam', columns: ['id_role'])]
+#[ORM\Index(columns: ['posadil'], name: 'posadil')]
+#[ORM\Index(columns: ['id_role'], name: 'FK_uzivatele_role_role_seznam')]
 class UserRole
 {
     #[ORM\GeneratedValue]

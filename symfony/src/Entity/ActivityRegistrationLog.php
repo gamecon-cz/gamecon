@@ -13,11 +13,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityRegistrationLogRepository::class)]
 #[ORM\Table(name: 'akce_prihlaseni_log')]
-#[ORM\Index(name: 'typ', columns: ['typ'])]
-#[ORM\Index(name: 'id_zmenil', columns: ['id_zmenil'])]
-#[ORM\Index(name: 'FK_akce_prihlaseni_log_to_akce_seznam', columns: ['id_akce'])]
-#[ORM\Index(name: 'FK_akce_prihlaseni_log_to_uzivatele_hodnoty', columns: ['id_uzivatele'])]
-#[ORM\Index(name: 'zdroj_zmeny', columns: ['zdroj_zmeny'])]
+#[ORM\Index(columns: ['typ'], name: 'typ')]
+#[ORM\Index(columns: ['id_zmenil'], name: 'id_zmenil')]
+#[ORM\Index(columns: ['id_akce'], name: 'FK_akce_prihlaseni_log_to_akce_seznam')]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_akce_prihlaseni_log_to_uzivatele_hodnoty')]
+#[ORM\Index(columns: ['zdroj_zmeny'], name: 'zdroj_zmeny')]
 #[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id_log'])]
 class ActivityRegistrationLog
 {

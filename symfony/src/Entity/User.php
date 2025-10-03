@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Entity\Enum\SymfonyPohlaviEnum;
+use App\Entity\Enum\GenderEnum;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -77,8 +77,8 @@ class User
     ])]
     private int $zustatek = 0;
 
-    #[ORM\Column(name: 'pohlavi', type: Types::STRING, nullable: false, enumType: SymfonyPohlaviEnum::class)]
-    private SymfonyPohlaviEnum $pohlavi;
+    #[ORM\Column(name: 'pohlavi', type: Types::STRING, nullable: false, enumType: GenderEnum::class)]
+    private GenderEnum $pohlavi;
 
     #[ORM\Column(name: 'registrovan', type: Types::DATETIME_MUTABLE, nullable: false)]
     private \DateTimeInterface $registrovan;
@@ -323,12 +323,12 @@ class User
         return $this;
     }
 
-    public function getPohlavi(): SymfonyPohlaviEnum
+    public function getPohlavi(): GenderEnum
     {
         return $this->pohlavi;
     }
 
-    public function setPohlavi(SymfonyPohlaviEnum $pohlavi): static
+    public function setPohlavi(GenderEnum $pohlavi): static
     {
         $this->pohlavi = $pohlavi;
 

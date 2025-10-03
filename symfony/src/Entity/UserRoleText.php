@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserRoleTextRepository::class)]
 #[ORM\Table(name: 'role_texty_podle_uzivatele')]
-#[ORM\Index(name: 'FK_role_texty_podle_uzivatele_to_uzivatele_hodnoty', columns: ['id_uzivatele'])]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_role_texty_podle_uzivatele_to_uzivatele_hodnoty')]
 class UserRoleText
 {
     #[ORM\Id]

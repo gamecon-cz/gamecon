@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'systemove_nastaveni')]
 #[ORM\UniqueConstraint(name: 'id_nastaveni', columns: ['id_nastaveni'])]
 #[ORM\UniqueConstraint(name: 'nazev', columns: ['nazev', 'rocnik_nastaveni'])]
-#[ORM\Index(name: 'skupina', columns: ['skupina'])]
+#[ORM\Index(columns: ['skupina'], name: 'skupina')]
 class SystemSetting
 {
     #[ORM\GeneratedValue]

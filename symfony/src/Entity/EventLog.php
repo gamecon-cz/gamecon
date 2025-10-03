@@ -14,8 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: EventLogRepository::class)]
 #[ORM\Table(name: 'log_udalosti')]
 #[ORM\UniqueConstraint(name: 'id_udalosti', columns: ['id_udalosti'])]
-#[ORM\Index(name: 'metadata', columns: ['metadata'])]
-#[ORM\Index(name: 'FK_log_udalosti_to_uzivatele_hodnoty', columns: ['id_logujiciho'])]
+#[ORM\Index(columns: ['metadata'], name: 'metadata')]
+#[ORM\Index(columns: ['id_logujiciho'], name: 'FK_log_udalosti_to_uzivatele_hodnoty')]
 class EventLog
 {
     #[ORM\Id]

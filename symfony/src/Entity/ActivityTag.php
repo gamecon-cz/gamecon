@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityTagRepository::class)]
 #[ORM\Table(name: 'akce_sjednocene_tagy')]
-#[ORM\Index(name: 'FK_akce_sjednocene_tagy_to_sjednocene_tagy', columns: ['id_tagu'])]
+#[ORM\Index(columns: ['id_tagu'], name: 'FK_akce_sjednocene_tagy_to_sjednocene_tagy')]
 class ActivityTag
 {
     #[ORM\Id]

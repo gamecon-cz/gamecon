@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: PaymentRepository::class)]
 #[ORM\Table(name: 'platby')]
-#[ORM\Index(name: 'id_uzivatele_rok', columns: ['id_uzivatele', 'rok'])]
+#[ORM\Index(columns: ['id_uzivatele', 'rok'], name: 'id_uzivatele_rok')]
 #[ORM\UniqueConstraint(name: 'fio_id', columns: ['fio_id'])]
 class Payment
 {

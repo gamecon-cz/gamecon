@@ -14,8 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: SystemSettingLogRepository::class)]
 #[ORM\Table(name: 'systemove_nastaveni_log')]
 #[ORM\UniqueConstraint(name: 'id_nastaveni_log', columns: ['id_nastaveni_log'])]
-#[ORM\Index(name: 'FK_systemove_nastaveni_log_to_systemove_nastaveni', columns: ['id_nastaveni'])]
-#[ORM\Index(name: 'FK_systemove_nastaveni_log_to_uzivatele_hodnoty', columns: ['id_uzivatele'])]
+#[ORM\Index(columns: ['id_nastaveni'], name: 'FK_systemove_nastaveni_log_to_systemove_nastaveni')]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_systemove_nastaveni_log_to_uzivatele_hodnoty')]
 class SystemSettingLog
 {
     #[ORM\Id]

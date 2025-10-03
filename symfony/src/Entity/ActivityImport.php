@@ -13,8 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityImportRepository::class)]
 #[ORM\Table(name: 'akce_import')]
-#[ORM\Index(name: 'google_sheet_id', columns: ['google_sheet_id'])]
-#[ORM\Index(name: 'FK_akce_import_to_uzivatele_hodnoty', columns: ['id_uzivatele'])]
+#[ORM\Index(columns: ['google_sheet_id'], name: 'google_sheet_id')]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_akce_import_to_uzivatele_hodnoty')]
 #[ORM\UniqueConstraint(name: 'id_akce_import', columns: ['id_akce_import'])]
 class ActivityImport
 {

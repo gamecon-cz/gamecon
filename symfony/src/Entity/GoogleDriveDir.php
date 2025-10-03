@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'google_drive_dirs')]
 #[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
 #[ORM\UniqueConstraint(name: 'user_and_name', columns: ['user_id', 'original_name'])]
-#[ORM\Index(name: 'tag', columns: ['tag'])]
+#[ORM\Index(columns: ['tag'], name: 'tag')]
 class GoogleDriveDir
 {
     #[ORM\GeneratedValue]

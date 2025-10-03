@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityInstanceRepository::class)]
 #[ORM\Table(name: 'akce_instance')]
-#[ORM\Index(name: 'FK_akce_instance_to_akce_seznam', columns: ['id_hlavni_akce'])]
+#[ORM\Index(columns: ['id_hlavni_akce'], name: 'FK_akce_instance_to_akce_seznam')]
 #[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id_instance'])]
 class ActivityInstance
 {

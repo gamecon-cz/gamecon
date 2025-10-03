@@ -14,8 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: BulkActivityLogRepository::class)]
 #[ORM\Table(name: 'hromadne_akce_log')]
 #[ORM\UniqueConstraint(name: 'id_logu', columns: ['id_logu'])]
-#[ORM\Index(name: 'akce', columns: ['akce'])]
-#[ORM\Index(name: 'FK_hromadne_akce_log_to_uzivatele_hodnoty', columns: ['provedl'])]
+#[ORM\Index(columns: ['akce'], name: 'akce')]
+#[ORM\Index(columns: ['provedl'], name: 'FK_hromadne_akce_log_to_uzivatele_hodnoty')]
 class BulkActivityLog
 {
     #[ORM\Id]

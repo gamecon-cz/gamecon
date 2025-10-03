@@ -7,7 +7,6 @@ namespace App\Entity;
 use App\Repository\ActivityRegistrationStateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Gamecon\Aktivita\AkcePrihlaseniStavy;
 
 /**
  * Stav přihlášení na akci

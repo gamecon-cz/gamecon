@@ -13,10 +13,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ShopPurchaseCancelledRepository::class)]
 #[ORM\Table(name: 'shop_nakupy_zrusene')]
-#[ORM\Index(name: 'FK_zrusene_objednavky_to_shop_predmety', columns: ['id_predmetu'])]
-#[ORM\Index(name: 'FK_zrusene_objednavky_to_uzivatele_hodnoty', columns: ['id_uzivatele'])]
-#[ORM\Index(name: 'datum_zruseni', columns: ['datum_zruseni'])]
-#[ORM\Index(name: 'zdroj_zruseni', columns: ['zdroj_zruseni'])]
+#[ORM\Index(columns: ['id_predmetu'], name: 'FK_zrusene_objednavky_to_shop_predmety')]
+#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_zrusene_objednavky_to_uzivatele_hodnoty')]
+#[ORM\Index(columns: ['datum_zruseni'], name: 'datum_zruseni')]
+#[ORM\Index(columns: ['zdroj_zruseni'], name: 'zdroj_zruseni')]
 class ShopPurchaseCancelled
 {
     #[ORM\Id]
