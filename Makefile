@@ -1,5 +1,7 @@
 .PHONY: init start-docker-foreground run bash phpstan ecs fix static ci tests
 
+MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
+
 ifndef APP_ENV
 	# for Symfony
 	APP_ENV = dev

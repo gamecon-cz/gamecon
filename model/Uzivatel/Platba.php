@@ -9,6 +9,8 @@ use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura as Sql;
 
 /**
+ * For Doctrine entity equivalent @see \App\Entity\Payment
+ *
  * @method static Platba|null zId(int $id, bool $zCache = false)
  */
 class Platba extends DbObject

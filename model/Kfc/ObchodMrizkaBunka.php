@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\Kfc;
 
 /**
+ * For Doctrine entity equivalent @see \App\Entity\ShopGridCell
+ *
  * @method static ObchodMrizkaBunka|null zId($id, bool $zCache = false)
  * @method static ObchodMrizkaBunka[] zVsech(bool $zCache = false)
  */

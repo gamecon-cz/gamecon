@@ -8,13 +8,17 @@ use App\Entity\Accommodation;
 use App\Entity\ActivityRegistrationState;
 use App\Entity\ActivityState;
 use App\Entity\ActivityType;
+use App\Entity\Badge;
 use App\Entity\CategoryTag;
 use App\Entity\Location;
 use App\Entity\News;
 use App\Entity\NewsletterSubscription;
 use App\Entity\Page;
+use App\Entity\Payment;
 use App\Entity\Permission;
 use App\Entity\Role;
+use App\Entity\ShopGrid;
+use App\Entity\ShopGridCell;
 use App\Entity\ShopItem;
 use App\Entity\Tag;
 use App\Entity\User;
@@ -22,6 +26,8 @@ use Gamecon\Aktivita\AkcePrihlaseniStavy;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
+use Gamecon\Kfc\ObchodMrizka;
+use Gamecon\Kfc\ObchodMrizkaBunka;
 use Gamecon\Newsletter\NewsletterPrihlaseni;
 use Gamecon\Pravo;
 use Gamecon\Role\Role as LegacyRole;
@@ -31,18 +37,24 @@ use Gamecon\Tests\Factory\AccommodationFactory;
 use Gamecon\Tests\Factory\ActivityRegistrationStateFactory;
 use Gamecon\Tests\Factory\ActivityStateFactory;
 use Gamecon\Tests\Factory\ActivityTypeFactory;
+use Gamecon\Tests\Factory\BadgeFactory;
 use Gamecon\Tests\Factory\CategoryTagFactory;
 use Gamecon\Tests\Factory\LocationFactory;
 use Gamecon\Tests\Factory\NewsFactory;
 use Gamecon\Tests\Factory\NewsletterSubscriptionFactory;
 use Gamecon\Tests\Factory\PageFactory;
+use Gamecon\Tests\Factory\PaymentFactory;
 use Gamecon\Tests\Factory\PermissionFactory;
 use Gamecon\Tests\Factory\RoleFactory;
+use Gamecon\Tests\Factory\ShopGridCellFactory;
+use Gamecon\Tests\Factory\ShopGridFactory;
 use Gamecon\Tests\Factory\ShopItemFactory;
 use Gamecon\Tests\Factory\TagFactory;
 use Gamecon\Tests\Factory\TextFactory;
 use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Ubytovani\Ubytovani;
+use Gamecon\Uzivatel\Medailonek;
+use Gamecon\Uzivatel\Platba;
 use Lokace;
 use Novinka;
 use Stranka;
@@ -679,5 +691,173 @@ class EntityLegacyComparisonTest extends AbstractTestDb
                 $legacyData['vydat'],
             );
         }
+    }
+
+    public function testShopGridCellEntityMatchesLegacyObchodMrizkaBunka(): void
+    {
+        // Create Symfony entity using factory
+        /** @var ShopGridCell $symfonyShopGridCell */
+        $symfonyShopGridCell = ShopGridCellFactory::createOne([
+            'typ'       => ShopGridCell::TYPE_ITEM,
+            'text'      => 'Test buňka ' . uniqid(),
+            'barva'     => '#FF5733',
+            'barvaText' => '#FFFFFF',
+            'cilId'     => 42,
+            'mrizkaId'  => null, // No FK constraint issue
+        ])->_save()->_real();
+
+        $symfonyShopGridCellId = $symfonyShopGridCell->getId();
+        $this->assertNotNull($symfonyShopGridCellId);
+
+        // Fetch the same entity using legacy ObchodMrizkaBunka
+        $legacyObchodMrizkaBunka = ObchodMrizkaBunka::zId($symfonyShopGridCellId);
+        $this->assertNotNull($legacyObchodMrizkaBunka, 'Legacy shop grid cell (obchod mrizka bunka) should be found');
+
+        // Compare values using getters and raw data
+        $this->assertEquals($symfonyShopGridCell->getId(), $legacyObchodMrizkaBunka->id());
+        $this->assertEquals($symfonyShopGridCell->getTyp(), $legacyObchodMrizkaBunka->typ());
+        $this->assertEquals($symfonyShopGridCell->getText(), $legacyObchodMrizkaBunka->text());
+        $this->assertEquals($symfonyShopGridCell->getBarva(), $legacyObchodMrizkaBunka->barva());
+        $this->assertEquals($symfonyShopGridCell->getBarvaText(), $legacyObchodMrizkaBunka->barvaText());
+        $this->assertEquals($symfonyShopGridCell->getCilId(), $legacyObchodMrizkaBunka->cilId());
+        $this->assertEquals($symfonyShopGridCell->getMrizkaId(), $legacyObchodMrizkaBunka->mrizkaId());
+
+        // Test raw database values
+        $legacyData = $legacyObchodMrizkaBunka->raw();
+        $this->assertEquals($symfonyShopGridCell->getTyp(), $legacyData['typ']);
+        $this->assertEquals($symfonyShopGridCell->getText(), $legacyData['text']);
+        $this->assertEquals($symfonyShopGridCell->getBarva(), $legacyData['barva']);
+        $this->assertEquals($symfonyShopGridCell->getBarvaText(), $legacyData['barva_text']);
+        $this->assertEquals($symfonyShopGridCell->getCilId(), $legacyData['cil_id']);
+        $this->assertEquals($symfonyShopGridCell->getMrizkaId(), $legacyData['mrizka_id']);
+    }
+
+    public function testShopGridEntityMatchesLegacyObchodMrizka(): void
+    {
+        // Create Symfony entity using factory
+        /** @var ShopGrid $symfonyShopGrid */
+        $symfonyShopGrid = ShopGridFactory::createOne([
+            'text' => 'Test mřížka ' . uniqid(),
+        ])->_save()->_real();
+
+        $symfonyShopGridId = $symfonyShopGrid->getId();
+        $this->assertNotNull($symfonyShopGridId);
+
+        // Fetch the same entity using legacy ObchodMrizka
+        $legacyObchodMrizka = ObchodMrizka::zId($symfonyShopGridId);
+        $this->assertNotNull($legacyObchodMrizka, 'Legacy shop grid (obchod mrizka) should be found');
+
+        // Compare values using getters and raw data
+        $this->assertEquals($symfonyShopGrid->getId(), $legacyObchodMrizka->id());
+        $this->assertEquals($symfonyShopGrid->getText(), $legacyObchodMrizka->text());
+
+        // Test raw database values
+        $legacyData = $legacyObchodMrizka->raw();
+        $this->assertEquals($symfonyShopGrid->getText(), $legacyData['text']);
+    }
+
+    public function testPaymentEntityMatchesLegacyPlatba(): void
+    {
+        // Create Symfony entity using factory
+        /** @var Payment $symfonyPayment */
+        $symfonyPayment = PaymentFactory::createOne([
+            'idUzivatele'         => null, // Can be null
+            'fioId'               => 123456789,
+            'vs'                  => '2024001234',
+            'castka'              => '1500.50',
+            'rok'                 => 2024,
+            'pripsanoNaUcetBanky' => new \DateTime('2024-06-15 10:30:00'),
+            'provedeno'           => new \DateTime('2024-06-15 14:00:00'),
+            'provedl'             => 1,
+            'nazevProtiuctu'      => 'Test Company s.r.o.',
+            'cisloProtiuctu'      => '1234567890/0100',
+            'kodBankyProtiuctu'   => '0100',
+            'nazevBankyProtiuctu' => 'Test Bank',
+            'poznamka'            => 'Test poznámka k platbě',
+            'skrytaPoznamka'      => 'Skrytá poznámka',
+        ])->_save()->_real();
+
+        $symfonyPaymentId = $symfonyPayment->getId();
+        $this->assertNotNull($symfonyPaymentId);
+
+        // Fetch the same entity using legacy Platba
+        $legacyPlatba = Platba::zId($symfonyPaymentId);
+        $this->assertNotNull($legacyPlatba, 'Legacy payment (platba) should be found');
+
+        // Compare values using getters
+        $this->assertEquals($symfonyPayment->getId(), $legacyPlatba->id());
+        $this->assertEquals($symfonyPayment->getIdUzivatele(), $legacyPlatba->idUzivatele());
+        $this->assertEquals($symfonyPayment->getFioId(), (int) $legacyPlatba->fioId());
+        $this->assertEquals($symfonyPayment->getVs(), $legacyPlatba->variabilniSymbol());
+        $this->assertEquals($symfonyPayment->getCastka(), $legacyPlatba->castka());
+        $this->assertEquals($symfonyPayment->getRok(), $legacyPlatba->rok());
+        $this->assertEquals($symfonyPayment->getProvedl(), $legacyPlatba->provedl());
+        $this->assertEquals($symfonyPayment->getNazevProtiuctu(), $legacyPlatba->nazevProtiuctu());
+        $this->assertEquals($symfonyPayment->getCisloProtiuctu(), $legacyPlatba->cisloProtiuctu());
+        $this->assertEquals($symfonyPayment->getKodBankyProtiuctu(), $legacyPlatba->kodBankyProtiuctu());
+        $this->assertEquals($symfonyPayment->getNazevBankyProtiuctu(), $legacyPlatba->nazevBankyProtiuctu());
+        $this->assertEquals($symfonyPayment->getPoznamka(), $legacyPlatba->poznamka());
+        $this->assertEquals($symfonyPayment->getSkrytaPoznamka(), $legacyPlatba->skrytaPoznamka());
+
+        // Test raw database values
+        $legacyData = $legacyPlatba->raw();
+        $this->assertEquals($symfonyPayment->getIdUzivatele(), $legacyData['id_uzivatele']);
+        $this->assertEquals($symfonyPayment->getFioId(), $legacyData['fio_id']);
+        $this->assertEquals($symfonyPayment->getVs(), $legacyData['vs']);
+        $this->assertEquals($symfonyPayment->getCastka(), $legacyData['castka']);
+        $this->assertEquals($symfonyPayment->getRok(), $legacyData['rok']);
+        $this->assertEquals($symfonyPayment->getProvedl(), $legacyData['provedl']);
+        $this->assertEquals($symfonyPayment->getNazevProtiuctu(), $legacyData['nazev_protiuctu']);
+        $this->assertEquals($symfonyPayment->getCisloProtiuctu(), $legacyData['cislo_protiuctu']);
+        $this->assertEquals($symfonyPayment->getKodBankyProtiuctu(), $legacyData['kod_banky_protiuctu']);
+        $this->assertEquals($symfonyPayment->getNazevBankyProtiuctu(), $legacyData['nazev_banky_protiuctu']);
+        $this->assertEquals($symfonyPayment->getPoznamka(), $legacyData['poznamka']);
+        $this->assertEquals($symfonyPayment->getSkrytaPoznamka(), $legacyData['skryta_poznamka']);
+
+        // Test date fields
+        if ($symfonyPayment->getPripsanoNaUcetBanky()) {
+            $this->assertEquals(
+                $symfonyPayment->getPripsanoNaUcetBanky()->format('Y-m-d H:i:s'),
+                $legacyData['pripsano_na_ucet_banky'],
+            );
+        }
+        // provedeno is NOT NULL, so always compare
+        $this->assertEquals(
+            $symfonyPayment->getProvedeno()->format('Y-m-d H:i:s'),
+            $legacyData['provedeno'],
+        );
+    }
+
+    public function testBadgeEntityMatchesLegacyMedailonek(): void
+    {
+        // Create a user first for the FK (id_uzivatele is primary key and FK)
+        /** @var User $testUser */
+        $testUser = UserFactory::createOne([
+            'login' => 'badge_user_' . uniqid(),
+            'email' => 'badge_' . uniqid() . '@example.com',
+        ])->_real();
+
+        // Create Symfony entity using factory
+        /** @var Badge $symfonyBadge */
+        $symfonyBadge = BadgeFactory::createOne([
+            'idUzivatele' => $testUser->getId(),
+            'oSobe'       => 'O sobě markdown text ' . uniqid(),
+            'drd'         => 'DrD profil markdown ' . uniqid(),
+        ])->_save()->_real();
+
+        $symfonyBadgeId = $symfonyBadge->getIdUzivatele();
+        $this->assertNotNull($symfonyBadgeId);
+
+        // Fetch the same entity using legacy Medailonek
+        $legacyMedailonek = Medailonek::zId($symfonyBadgeId);
+        $this->assertNotNull($legacyMedailonek, 'Legacy badge (medailonek) should be found');
+
+        // Compare values using getters
+        $this->assertEquals($symfonyBadge->getIdUzivatele(), $legacyMedailonek->idUzivatele());
+
+        // Note: legacy methods drd() and oSobe() apply markdown processing, so compare raw data
+        $legacyData = $legacyMedailonek->raw();
+        $this->assertEquals($symfonyBadge->getOSobe(), $legacyData['o_sobe']);
+        $this->assertEquals($symfonyBadge->getDrd(), $legacyData['drd']);
     }
 }

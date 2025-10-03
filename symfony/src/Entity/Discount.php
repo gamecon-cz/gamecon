@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Repository\DiscountRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Sleva udělená uživateli.
+ * Discount (manual discount applied to user)
  */
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: DiscountRepository::class)]
 #[ORM\Table(name: 'slevy')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele_idx')]
-#[ORM\Index(columns: ['provedl'], name: 'provedl_idx')]
+#[ORM\Index(name: 'id_uzivatele', columns: ['id_uzivatele'])]
+#[ORM\Index(name: 'provedl', columns: ['provedl'])]
+#[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id'])]
 class Discount
 {
     #[ORM\Id]
@@ -21,9 +23,8 @@ class Discount
     #[ORM\Column(name: 'id', type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false)]
-    private User $uzivatel;
+    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
+    private int $idUzivatele;
 
     #[ORM\Column(name: 'castka', type: Types::DECIMAL, precision: 10, scale: 2, nullable: false)]
     private string $castka;
@@ -34,7 +35,7 @@ class Discount
     #[ORM\Column(name: 'provedeno', type: Types::DATETIME_MUTABLE, nullable: false, options: [
         'default' => 'CURRENT_TIMESTAMP',
     ])]
-    private \DateTimeInterface $provedeno;
+    private \DateTime $provedeno;
 
     #[ORM\Column(name: 'provedl', type: Types::INTEGER, nullable: true)]
     private ?int $provedl = null;
@@ -47,14 +48,14 @@ class Discount
         return $this->id;
     }
 
-    public function getUzivatel(): User
+    public function getIdUzivatele(): int
     {
-        return $this->uzivatel;
+        return $this->idUzivatele;
     }
 
-    public function setUzivatel(User $uzivatel): static
+    public function setIdUzivatele(int $idUzivatele): self
     {
-        $this->uzivatel = $uzivatel;
+        $this->idUzivatele = $idUzivatele;
 
         return $this;
     }
@@ -64,7 +65,7 @@ class Discount
         return $this->castka;
     }
 
-    public function setCastka(string $castka): static
+    public function setCastka(string $castka): self
     {
         $this->castka = $castka;
 
@@ -76,19 +77,19 @@ class Discount
         return $this->rok;
     }
 
-    public function setRok(int $rok): static
+    public function setRok(int $rok): self
     {
         $this->rok = $rok;
 
         return $this;
     }
 
-    public function getProvedeno(): \DateTimeInterface
+    public function getProvedeno(): \DateTime
     {
         return $this->provedeno;
     }
 
-    public function setProvedeno(\DateTimeInterface $provedeno): static
+    public function setProvedeno(\DateTime $provedeno): self
     {
         $this->provedeno = $provedeno;
 
@@ -100,7 +101,7 @@ class Discount
         return $this->provedl;
     }
 
-    public function setProvedl(?int $provedl): static
+    public function setProvedl(?int $provedl): self
     {
         $this->provedl = $provedl;
 
@@ -112,7 +113,7 @@ class Discount
         return $this->poznamka;
     }
 
-    public function setPoznamka(?string $poznamka): static
+    public function setPoznamka(?string $poznamka): self
     {
         $this->poznamka = $poznamka;
 
