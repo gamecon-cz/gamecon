@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Práva uživatelů
- * Legacy @see \Gamecon\Prava.
+ * Legacy @see \Gamecon\Prava
  */
 #[ORM\Entity(repositoryClass: PermissionRepository::class)]
 #[ORM\Table(name: 'r_prava_soupis')]

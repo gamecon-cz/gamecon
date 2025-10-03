@@ -11,7 +11,7 @@ use Gamecon\Aktivita\AkcePrihlaseniStavy;
 
 /**
  * Stav přihlášení na akci
- * Legacy @see AkcePrihlaseniStavy.
+ * Legacy @see AkcePrihlaseniStavy
  */
 #[ORM\Entity(repositoryClass: ActivityRegistrationStateRepository::class)]
 #[ORM\Table(name: 'akce_prihlaseni_stavy')]

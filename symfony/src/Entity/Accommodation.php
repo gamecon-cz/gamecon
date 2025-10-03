@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Ubytování účastníků
- * Legacy @see \Gamecon\Ubytovani\Ubytovani.
+ * Legacy @see \Gamecon\Ubytovani\Ubytovani
  */
 #[ORM\Entity(repositoryClass: AccommodationRepository::class)]
 #[ORM\Table(name: 'ubytovani')]

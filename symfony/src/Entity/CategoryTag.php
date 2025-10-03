@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Kategorie sjednocených tagů
- * Legacy @see \Gamecon\KategorieTagu.
+ * Legacy @see \Gamecon\KategorieTagu
  */
 #[ORM\Entity(repositoryClass: CategoryTagRepository::class)]
 #[ORM\Table(name: 'kategorie_sjednocenych_tagu')]

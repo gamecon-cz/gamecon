@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Tagy pro akce, programy, atd.
- * Legacy @see \Gamecon\Tag.
+ * Legacy @see \Gamecon\Tag
  */
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 #[ORM\Table(name: 'sjednocene_tagy')]

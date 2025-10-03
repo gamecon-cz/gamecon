@@ -2,6 +2,9 @@
 
 use \Gamecon\Cas\DateTimeCz;
 
+/**
+ * For Doctrine entity equivalent @see \App\Entity\News
+ */
 class Novinka extends DbObject
 {
 

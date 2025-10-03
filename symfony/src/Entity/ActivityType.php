@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Typ aktivity
- * Legacy @see \Gamecon\Aktivita\AkceTypy.
+ * Legacy @see \Gamecon\Aktivita\AkceTypy
  */
 #[ORM\Entity(repositoryClass: ActivityTypeRepository::class)]
 #[ORM\Table(name: 'akce_typy')]

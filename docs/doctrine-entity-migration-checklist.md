@@ -36,17 +36,23 @@ compatibility testing.
 
 ## Step 2: Create Doctrine Entity
 
-### 2.1 Generate Entity Structure (Optional)
+### 2.1 Inspect Database Table Structure
 
-- [ ] Run: `bin/console app:generate-entity-structure table_name EntityName`
-- [ ] Review generated entity structure
-- [ ] Note: This generates a skeleton based on table structure
-- [ ] You may need to adjust types, nullable fields, and defaults
-- [ ] **Alternative:** Continue with manual creation below
+- [ ] Query the database to see exact column structure: `SHOW CREATE TABLE table_name;`
+- [ ] Or use phpMyAdmin to inspect table structure
+- [ ] Note down:
+  - All column names and types
+  - Which columns are nullable
+  - Default values
+  - Primary key(s)
+  - Unique constraints
+  - Indexes
+  - Foreign keys
 
-### 2.2 Create Entity File (Manual or Review Generated)
+### 2.2 Create Entity File
 
 - [ ] Create `symfony/src/Entity/[EntityName].php`
+- [ ] Use existing similar entity as a template (copy and modify)
 - [ ] Add strict types declaration: `declare(strict_types=1);`
 - [ ] Set namespace: `namespace App\Entity;`
 - [ ] Add use statements:
@@ -55,6 +61,7 @@ compatibility testing.
   use Doctrine\DBAL\Types\Types;
   use Doctrine\ORM\Mapping as ORM;
   ```
+- [ ] Map each column from database to property with correct Doctrine type
 
 ### 2.3 Add Class Annotations
 
@@ -289,7 +296,7 @@ This table tracks which legacy entities have been migrated to Doctrine entities.
 | ✅      | `\Gamecon\Shop\Predmet`                       | `\App\Entity\ShopItem`                     |
 | ❌      | `\Gamecon\Kfc\ObchodMrizkaBunka`              | -                                          |
 | ❌      | `\Gamecon\Kfc\ObchodMrizka`                   | -                                          |
-| ❌      | `Lokace`                                      | -                                          |
+| ✅      | `Lokace`                                      | `\App\Entity\Location`                     |
 | ❌      | `Novinka`                                     | -                                          |
 | ❌      | `Platba`                                      | -                                          |
 | ❌      | `Medailonek`                                  | -                                          |

@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Uživatelská data
- * Legacy @see \Gamecon\Uzivatel.
+ * Legacy @see \Gamecon\Uzivatel
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'uzivatele_hodnoty')]

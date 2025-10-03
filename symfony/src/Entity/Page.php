@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Statická stránka
- * Legacy @see \Gamecon\Stranka.
+ * Legacy @see \Gamecon\Stranka
  */
 #[ORM\Entity(repositoryClass: PageRepository::class)]
 #[ORM\Table(name: 'stranky')]

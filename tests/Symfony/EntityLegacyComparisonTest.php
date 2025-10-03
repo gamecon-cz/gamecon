@@ -9,6 +9,8 @@ use App\Entity\ActivityRegistrationState;
 use App\Entity\ActivityState;
 use App\Entity\ActivityType;
 use App\Entity\CategoryTag;
+use App\Entity\Location;
+use App\Entity\News;
 use App\Entity\NewsletterSubscription;
 use App\Entity\Page;
 use App\Entity\Permission;
@@ -30,14 +32,19 @@ use Gamecon\Tests\Factory\ActivityRegistrationStateFactory;
 use Gamecon\Tests\Factory\ActivityStateFactory;
 use Gamecon\Tests\Factory\ActivityTypeFactory;
 use Gamecon\Tests\Factory\CategoryTagFactory;
+use Gamecon\Tests\Factory\LocationFactory;
+use Gamecon\Tests\Factory\NewsFactory;
 use Gamecon\Tests\Factory\NewsletterSubscriptionFactory;
 use Gamecon\Tests\Factory\PageFactory;
 use Gamecon\Tests\Factory\PermissionFactory;
 use Gamecon\Tests\Factory\RoleFactory;
 use Gamecon\Tests\Factory\ShopItemFactory;
 use Gamecon\Tests\Factory\TagFactory;
+use Gamecon\Tests\Factory\TextFactory;
 use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Ubytovani\Ubytovani;
+use Lokace;
+use Novinka;
 use Stranka;
 use Uzivatel;
 use Zenstruck\Foundry\Test\Factories;
@@ -585,6 +592,91 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             $this->assertEquals(
                 $symfonyShopItem->getNabizetDo()->format('Y-m-d H:i:s'),
                 $legacyData['nabizet_do'],
+            );
+        }
+    }
+
+    public function testLocationEntityMatchesLegacyLokace(): void
+    {
+        // Create Symfony entity using factory
+        /** @var Location $symfonyLocation */
+        $symfonyLocation = LocationFactory::createOne([
+            'nazev'    => 'Test místnost ' . uniqid(),
+            'dvere'    => 'Budova C, dveře č. 123',
+            'poznamka' => 'Testovací poznámka k místnosti',
+            'poradi'   => 42,
+            'rok'      => 2024,
+        ])->_save()->_real();
+
+        $symfonyLocationId = $symfonyLocation->getId();
+        $this->assertNotNull($symfonyLocationId);
+
+        // Fetch the same entity using legacy Lokace
+        $legacyLokace = \Lokace::zId($symfonyLocationId);
+        $this->assertNotNull($legacyLokace, 'Legacy location (lokace) should be found');
+
+        // Compare values using getters and raw data
+        $this->assertEquals($symfonyLocation->getId(), $legacyLokace->id());
+        $this->assertEquals($symfonyLocation->getNazev(), $legacyLokace->nazev());
+        $this->assertEquals($symfonyLocation->getDvere(), $legacyLokace->dvere());
+        $this->assertEquals($symfonyLocation->getPoznamka(), $legacyLokace->poznamka());
+        $this->assertEquals($symfonyLocation->getPoradi(), $legacyLokace->poradi());
+        $this->assertEquals($symfonyLocation->getRok(), $legacyLokace->rok());
+
+        // Test raw database values
+        $legacyData = $legacyLokace->raw();
+        $this->assertEquals($symfonyLocation->getNazev(), $legacyData['nazev']);
+        $this->assertEquals($symfonyLocation->getDvere(), $legacyData['dvere']);
+        $this->assertEquals($symfonyLocation->getPoznamka(), $legacyData['poznamka']);
+        $this->assertEquals($symfonyLocation->getPoradi(), $legacyData['poradi']);
+        $this->assertEquals($symfonyLocation->getRok(), $legacyData['rok']);
+    }
+
+    public function testNewsEntityMatchesLegacyNovinka(): void
+    {
+        // First create a Text entity (FK requirement)
+        $textContent = 'Test blog post content lorem ipsum...';
+        $textEntity = TextFactory::createOne([
+            'text' => $textContent,
+        ])->_save()->_real();
+
+        // Create Symfony entity using factory
+        /** @var News $symfonyNews */
+        $symfonyNews = NewsFactory::createOne([
+            'typ'   => News::TYPE_BLOG,
+            'vydat' => new \DateTime('2024-06-15 14:30:00'),
+            'url'   => 'test-blog-post-' . uniqid(),
+            'nazev' => 'Test blog post ' . uniqid(),
+            'autor' => 'Test "Autor" Testovič',
+            'text'  => $textEntity->getId(),
+        ])->_save()->_real();
+
+        $symfonyNewsId = $symfonyNews->getId();
+        $this->assertNotNull($symfonyNewsId);
+
+        // Fetch the same entity using legacy Novinka
+        $legacyNovinka = \Novinka::zId($symfonyNewsId);
+        $this->assertNotNull($legacyNovinka, 'Legacy news (novinka) should be found');
+
+        // Compare values using getters and raw data
+        $this->assertEquals($symfonyNews->getId(), $legacyNovinka->id());
+        $this->assertEquals($symfonyNews->getTyp(), $legacyNovinka->typ());
+        $this->assertEquals($symfonyNews->getUrl(), $legacyNovinka->url());
+        $this->assertEquals($symfonyNews->getNazev(), $legacyNovinka->nazev());
+
+        // Test raw database values
+        $legacyData = $legacyNovinka->raw();
+        $this->assertEquals($symfonyNews->getTyp(), $legacyData['typ']);
+        $this->assertEquals($symfonyNews->getUrl(), $legacyData['url']);
+        $this->assertEquals($symfonyNews->getNazev(), $legacyData['nazev']);
+        $this->assertEquals($symfonyNews->getAutor(), $legacyData['autor']);
+        $this->assertEquals($symfonyNews->getText(), $legacyData['text']);
+
+        // Test date field
+        if ($symfonyNews->getVydat()) {
+            $this->assertEquals(
+                $symfonyNews->getVydat()->format('Y-m-d H:i:s'),
+                $legacyData['vydat'],
             );
         }
     }

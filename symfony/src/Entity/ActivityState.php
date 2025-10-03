@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Stav aktivity
- * Legacy @see \Gamecon\Aktivita\AkceStavy.
+ * Legacy @see \Gamecon\Aktivita\AkceStavy
  */
 #[ORM\Entity(repositoryClass: ActivityStateRepository::class)]
 #[ORM\Table(name: 'akce_stav')]

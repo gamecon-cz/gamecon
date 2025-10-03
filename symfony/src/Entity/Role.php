@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Role uživatelů
- * Legacy @see \Gamecon\Role.
+ * Legacy @see \Gamecon\Role
  */
 #[ORM\Entity(repositoryClass: RoleRepository::class)]
 #[ORM\Table(name: 'role_seznam')]
