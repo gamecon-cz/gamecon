@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Práva uživatelů
  * Legacy @see \Gamecon\Prava
  */
 #[ORM\Entity(repositoryClass: PermissionRepository::class)]

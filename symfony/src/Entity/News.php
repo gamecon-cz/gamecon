@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Novinka nebo blog post
  * Legacy @see \Novinka
  */
 #[ORM\Entity(repositoryClass: NewsRepository::class)]

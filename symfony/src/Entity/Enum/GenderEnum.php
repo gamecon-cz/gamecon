@@ -7,7 +7,7 @@ namespace App\Entity\Enum;
 enum GenderEnum: string
 {
     case FEMALE = 'f';
-    case MALE   = 'm';
+    case MALE = 'm';
 
     public function getLabel(): string
     {

@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Položka v shopu (předmět, ubytování, tričko, jídlo, vstupné, atd.)
  * Legacy @see \Gamecon\Shop\Predmet
  */
 #[ORM\Entity(repositoryClass: ShopItemRepository::class)]

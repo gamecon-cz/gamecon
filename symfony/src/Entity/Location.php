@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Lokace (místnost/místo) pro konání aktivit
  * Legacy @see \Lokace
  */
 #[ORM\Entity(repositoryClass: LocationRepository::class)]

@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Stav aktivity
  * Legacy @see \Gamecon\Aktivita\AkceStavy
  */
 #[ORM\Entity(repositoryClass: ActivityStateRepository::class)]

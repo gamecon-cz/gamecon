@@ -18,12 +18,9 @@ use Doctrine\ORM\Mapping as ORM;
 class ShopGridCell
 {
     public const TYPE_ITEM = 0;
-        // předmět
     public const TYPE_PAGE = 1;
-        // stránka
     public const TYPE_BACK = 2;
-        // zpět
-    public const TYPE_SUMMARY = 3; // shrnutí
+    public const TYPE_SUMMARY = 3;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Role uživatelů
  * Legacy @see \Gamecon\Role
  */
 #[ORM\Entity(repositoryClass: RoleRepository::class)]

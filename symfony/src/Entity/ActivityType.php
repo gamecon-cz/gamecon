@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Typ aktivity
  * Legacy @see \Gamecon\Aktivita\AkceTypy
  */
 #[ORM\Entity(repositoryClass: ActivityTypeRepository::class)]

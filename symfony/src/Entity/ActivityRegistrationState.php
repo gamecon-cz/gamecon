@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Stav přihlášení na akci
  * Legacy @see AkcePrihlaseniStavy
  */
 #[ORM\Entity(repositoryClass: ActivityRegistrationStateRepository::class)]

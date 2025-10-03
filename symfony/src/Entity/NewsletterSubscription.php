@@ -8,9 +8,6 @@ use App\Repository\NewsletterSubscriptionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Přihlášení k odběru newsletteru.
- */
 #[ORM\Entity(repositoryClass: NewsletterSubscriptionRepository::class)]
 #[ORM\Table(name: 'newsletter_prihlaseni')]
 #[ORM\UniqueConstraint(name: 'email', columns: ['email'])]

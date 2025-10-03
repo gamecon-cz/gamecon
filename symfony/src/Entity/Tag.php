@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Tagy pro akce, programy, atd.
  * Legacy @see \Gamecon\Tag
  */
 #[ORM\Entity(repositoryClass: TagRepository::class)]

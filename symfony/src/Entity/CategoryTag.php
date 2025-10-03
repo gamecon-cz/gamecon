@@ -11,7 +11,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Kategorie sjednocených tagů
  * Legacy @see \Gamecon\KategorieTagu
  */
 #[ORM\Entity(repositoryClass: CategoryTagRepository::class)]
