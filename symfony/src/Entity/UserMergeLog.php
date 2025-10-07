@@ -13,10 +13,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserMergeLogRepository::class)]
 #[ORM\Table(name: 'uzivatele_slucovani_log')]
-#[ORM\Index(columns: ['id_smazaneho_uzivatele'], name: 'idx_smazany_uzivatel')]
-#[ORM\Index(columns: ['id_noveho_uzivatele'], name: 'idx_novy_uzivatel')]
-#[ORM\Index(columns: ['kdy'], name: 'idx_kdy')]
-#[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id'])]
+#[ORM\Index(columns: ['id_smazaneho_uzivatele'], name: 'IDX_smazany_uzivatel')]
+#[ORM\Index(columns: ['id_noveho_uzivatele'], name: 'IDX_novy_uzivatel')]
+#[ORM\Index(columns: ['kdy'], name: 'IDX_kdy')]
 class UserMergeLog
 {
     #[ORM\Id]
@@ -26,10 +25,14 @@ class UserMergeLog
     ])]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'id_smazaneho_uzivatele', type: Types::INTEGER, nullable: false)]
+    #[ORM\Column(name: 'id_smazaneho_uzivatele', type: Types::BIGINT, nullable: false, options: [
+        'unsigned' => true,
+    ])]
     private int $idSmazanehoUzivatele;
 
-    #[ORM\Column(name: 'id_noveho_uzivatele', type: Types::INTEGER, nullable: false)]
+    #[ORM\Column(name: 'id_noveho_uzivatele', type: Types::BIGINT, nullable: false, options: [
+        'unsigned' => true,
+    ])]
     private int $idNovehoUzivatele;
 
     #[ORM\Column(name: 'zustatek_smazaneho_puvodne', type: Types::INTEGER, nullable: false)]

@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: NewsRepository::class)]
 #[ORM\Table(name: 'novinky')]
-#[ORM\UniqueConstraint(name: 'url', columns: ['url'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_url', columns: ['url'])]
 class News
 {
     public const TYPE_NEWS = 1;
@@ -22,7 +22,9 @@ class News
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'typ', type: Types::SMALLINT, nullable: false, options: [

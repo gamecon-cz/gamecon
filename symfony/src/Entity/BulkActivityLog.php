@@ -8,14 +8,12 @@ use App\Repository\BulkActivityLogRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
+/**     * @var string
  * Bulk activity log (history of bulk operations on activities)
  */
 #[ORM\Entity(repositoryClass: BulkActivityLogRepository::class)]
 #[ORM\Table(name: 'hromadne_akce_log')]
-#[ORM\UniqueConstraint(name: 'id_logu', columns: ['id_logu'])]
-#[ORM\Index(columns: ['akce'], name: 'akce')]
-#[ORM\Index(columns: ['provedl'], name: 'FK_hromadne_akce_log_to_uzivatele_hodnoty')]
+#[ORM\Index(columns: ['akce'], name: 'IDX_akce')]
 class BulkActivityLog
 {
     #[ORM\Id]
@@ -23,7 +21,7 @@ class BulkActivityLog
     #[ORM\Column(name: 'id_logu', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private ?int $idLogu = null;
+    private ?int $id = null;
 
     #[ORM\Column(name: 'skupina', type: Types::STRING, length: 128, nullable: true)]
     private ?string $skupina = null;
@@ -34,17 +32,20 @@ class BulkActivityLog
     #[ORM\Column(name: 'vysledek', type: Types::STRING, length: 255, nullable: true)]
     private ?string $vysledek = null;
 
-    #[ORM\Column(name: 'provedl', type: Types::INTEGER, nullable: true)]
-    private ?int $provedl = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'provedl', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ?User $madeBy = null;
 
     #[ORM\Column(name: 'kdy', type: Types::DATETIME_MUTABLE, nullable: false, options: [
         'default' => 'CURRENT_TIMESTAMP',
     ])]
     private \DateTime $kdy;
 
-    public function getIdLogu(): ?int
+    public function getId(): ?int
     {
-        return $this->idLogu;
+        return $this->id;
     }
 
     public function getSkupina(): ?string
@@ -83,14 +84,14 @@ class BulkActivityLog
         return $this;
     }
 
-    public function getProvedl(): ?int
+    public function getMadeBy(): ?User
     {
-        return $this->provedl;
+        return $this->madeBy;
     }
 
-    public function setProvedl(?int $provedl): self
+    public function setMadeBy(?int $madeBy): self
     {
-        $this->provedl = $provedl;
+        $this->madeBy = $madeBy;
 
         return $this;
     }

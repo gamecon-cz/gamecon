@@ -13,9 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: EventLogRepository::class)]
 #[ORM\Table(name: 'log_udalosti')]
-#[ORM\UniqueConstraint(name: 'id_udalosti', columns: ['id_udalosti'])]
-#[ORM\Index(columns: ['metadata'], name: 'metadata')]
-#[ORM\Index(columns: ['id_logujiciho'], name: 'FK_log_udalosti_to_uzivatele_hodnoty')]
+#[ORM\Index(columns: ['metadata'], name: 'IDX_metadata')]
 class EventLog
 {
     #[ORM\Id]
@@ -23,10 +21,13 @@ class EventLog
     #[ORM\Column(name: 'id_udalosti', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private ?int $idUdalosti = null;
+    private ?int $id = null;
 
-    #[ORM\Column(name: 'id_logujiciho', type: Types::INTEGER, nullable: false)]
-    private int $idLogujiciho;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_logujiciho', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $loggedBy;
 
     #[ORM\Column(name: 'zprava', type: Types::STRING, length: 255, nullable: true)]
     private ?string $zprava = null;
@@ -39,19 +40,19 @@ class EventLog
     ])]
     private int $rok;
 
-    public function getIdUdalosti(): ?int
+    public function getId(): ?int
     {
-        return $this->idUdalosti;
+        return $this->id;
     }
 
-    public function getIdLogujiciho(): int
+    public function getLoggedBy(): User
     {
-        return $this->idLogujiciho;
+        return $this->loggedBy;
     }
 
-    public function setIdLogujiciho(int $idLogujiciho): self
+    public function setLoggedBy(User $loggedBy): self
     {
-        $this->idLogujiciho = $idLogujiciho;
+        $this->loggedBy = $loggedBy;
 
         return $this;
     }

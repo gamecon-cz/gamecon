@@ -2,17 +2,17 @@
 
 namespace Gamecon\Tests\Factory;
 
-use App\Entity\ActivityState;
+use App\Entity\ActivityStatus;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<ActivityState>
+ * @extends PersistentProxyObjectFactory<ActivityStatus>
  */
 final class ActivityStateFactory extends PersistentProxyObjectFactory
 {
     public static function class(): string
     {
-        return ActivityState::class;
+        return ActivityStatus::class;
     }
 
     protected function defaults(): array | callable

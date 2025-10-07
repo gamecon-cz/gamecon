@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\PageRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -16,21 +17,31 @@ class Page
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_stranky', type: 'integer')]
-    private ?int $idStranky = null;
+    #[ORM\Column(name: 'id_stranky', type: Types::INTEGER, options: [
+        'unsigned' => true,
+    ])]
+    private ?int $id = null;
 
     #[ORM\Column(name: 'url_stranky', type: 'string', length: 64, unique: true)]
     private string $urlStranky;
 
-    #[ORM\Column(name: 'obsah', type: 'text')]
+    /**
+     * 'markdown' in comment is important keyword, @see \DbFormGc::fieldFromDescription
+     */
+    #[ORM\Column(name: 'obsah', type: 'text', options: [
+        'comment' => 'markdown',
+    ])]
     private string $obsah;
 
-    #[ORM\Column(name: 'poradi', type: 'smallint')]
+    #[ORM\Column(name: 'poradi', type: Types::INTEGER, options: [
+        'unsigned' => true,
+        'default'  => 0,
+    ])]
     private int $poradi;
 
-    public function getIdStranky(): ?int
+    public function getId(): ?int
     {
-        return $this->idStranky;
+        return $this->id;
     }
 
     public function getUrlStranky(): string

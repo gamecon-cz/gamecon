@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Factory;
 
-use App\Entity\Badge;
+use App\Entity\UserBadge;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Badge>
+ * @extends PersistentProxyObjectFactory<UserBadge>
  */
 final class BadgeFactory extends PersistentProxyObjectFactory
 {
     public static function class(): string
     {
-        return Badge::class;
+        return UserBadge::class;
     }
 
     /**

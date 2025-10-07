@@ -16,4 +16,7 @@ return [
         'dev'  => true,
         'test' => true,
     ],
+    Nextras\Migrations\Bridges\SymfonyBundle\NextrasMigrationsBundle::class => [
+        'all' => true,
+    ],
 ];

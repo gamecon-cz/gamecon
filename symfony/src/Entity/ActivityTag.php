@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ActivityTagRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -13,39 +12,42 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityTagRepository::class)]
 #[ORM\Table(name: 'akce_sjednocene_tagy')]
-#[ORM\Index(columns: ['id_tagu'], name: 'FK_akce_sjednocene_tagy_to_sjednocene_tagy')]
 class ActivityTag
 {
     #[ORM\Id]
-    #[ORM\Column(name: 'id_akce', type: Types::INTEGER)]
-    private int $idAkce;
+    #[ORM\ManyToOne(targetEntity: Activity::class, inversedBy: 'activityTags')]
+    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private Activity $activity;
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id_tagu', type: Types::INTEGER, options: [
-        'unsigned' => true,
+    #[ORM\ManyToOne(targetEntity: Tag::class)]
+    #[ORM\JoinColumn(name: 'id_tagu', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
     ])]
-    private int $idTagu;
+    private Tag $tag;
 
-    public function getIdAkce(): int
+    public function getActivity(): Activity
     {
-        return $this->idAkce;
+        return $this->activity;
     }
 
-    public function setIdAkce(int $idAkce): self
+    public function setActivity(Activity $activity): self
     {
-        $this->idAkce = $idAkce;
+        $this->activity = $activity;
 
         return $this;
     }
 
-    public function getIdTagu(): int
+    public function getTag(): Tag
     {
-        return $this->idTagu;
+        return $this->tag;
     }
 
-    public function setIdTagu(int $idTagu): self
+    public function setTag(Tag $tag): self
     {
-        $this->idTagu = $idTagu;
+        $this->tag = $tag;
 
         return $this;
     }

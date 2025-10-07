@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Entity\Badge;
+use App\Entity\UserBadge;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Badge>
+ * @extends ServiceEntityRepository<UserBadge>
  *
- * @method Badge|null find($id, $lockMode = null, $lockVersion = null)
- * @method Badge|null findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
- * @method Badge[]    findAll()
- * @method Badge[]    findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
+ * @method UserBadge|null find($id, $lockMode = null, $lockVersion = null)
+ * @method UserBadge|null findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
+ * @method UserBadge[]    findAll()
+ * @method UserBadge[]    findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
  */
 class BadgeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Badge::class);
+        parent::__construct($registry, UserBadge::class);
     }
 
-    public function save(Badge $entity, bool $flush = false): void
+    public function save(UserBadge $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -32,7 +32,7 @@ class BadgeRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(Badge $entity, bool $flush = false): void
+    public function remove(UserBadge $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 

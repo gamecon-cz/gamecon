@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\RolePermissionRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -13,37 +12,38 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: RolePermissionRepository::class)]
 #[ORM\Table(name: 'prava_role')]
-#[ORM\Index(columns: ['id_prava'], name: 'id_prava')]
 class RolePermission
 {
     #[ORM\Id]
-    #[ORM\Column(name: 'id_role', type: Types::INTEGER)]
-    private int $idRole;
+    #[ORM\ManyToOne(targetEntity: Role::class)]
+    #[ORM\JoinColumn(name: 'id_role', referencedColumnName: 'id_role', nullable: false, onDelete: 'CASCADE')]
+    private Role $role;
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id_prava', type: Types::INTEGER)]
-    private int $idPrava;
+    #[ORM\ManyToOne(targetEntity: Permission::class)]
+    #[ORM\JoinColumn(name: 'id_prava', referencedColumnName: 'id_prava', nullable: false, onDelete: 'CASCADE')]
+    private Permission $permission;
 
-    public function getIdRole(): int
+    public function getRole(): Role
     {
-        return $this->idRole;
+        return $this->role;
     }
 
-    public function setIdRole(int $idRole): self
+    public function setRole(Role $role): self
     {
-        $this->idRole = $idRole;
+        $this->role = $role;
 
         return $this;
     }
 
-    public function getIdPrava(): int
+    public function getPermission(): Permission
     {
-        return $this->idPrava;
+        return $this->permission;
     }
 
-    public function setIdPrava(int $idPrava): self
+    public function setPermission(Permission $permission): self
     {
-        $this->idPrava = $idPrava;
+        $this->permission = $permission;
 
         return $this;
     }

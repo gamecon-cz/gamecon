@@ -20,7 +20,9 @@ class Text
      * Hash-based ID (not auto-increment)
      */
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, unique: true, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'text', type: Types::TEXT, nullable: false)]
@@ -29,13 +31,6 @@ class Text
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function setId(int $id): self
-    {
-        $this->id = $id;
-
-        return $this;
     }
 
     public function getText(): string

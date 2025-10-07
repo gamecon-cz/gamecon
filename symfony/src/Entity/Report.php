@@ -13,16 +13,16 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ReportRepository::class)]
 #[ORM\Table(name: 'reporty')]
-#[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_skript', columns: ['skript'])]
 class Report
 {
+    #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER, options: [
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private int $id; // @phpstan-ignore-line property.onlyRead
+    private ?int $id = null;
 
-    #[ORM\Id]
     #[ORM\Column(name: 'skript', type: Types::STRING, length: 100, nullable: false)]
     private string $skript;
 

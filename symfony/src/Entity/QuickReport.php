@@ -13,12 +13,13 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: QuickReportRepository::class)]
 #[ORM\Table(name: 'reporty_quick')]
-#[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id'])]
 class QuickReport
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'nazev', type: Types::STRING, length: 100, nullable: false)]
@@ -27,12 +28,12 @@ class QuickReport
     #[ORM\Column(name: 'dotaz', type: Types::TEXT, nullable: false)]
     private string $dotaz;
 
-    #[ORM\Column(name: 'format_xlsx', type: Types::BOOLEAN, nullable: true, options: [
+    #[ORM\Column(name: 'format_xlsx', type: Types::BOOLEAN, nullable: false, options: [
         'default' => 1,
     ])]
     private ?bool $formatXlsx = true;
 
-    #[ORM\Column(name: 'format_html', type: Types::BOOLEAN, nullable: true, options: [
+    #[ORM\Column(name: 'format_html', type: Types::BOOLEAN, nullable: false, options: [
         'default' => 1,
     ])]
     private ?bool $formatHtml = true;

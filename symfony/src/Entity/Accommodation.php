@@ -9,24 +9,27 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Legacy @see \Gamecon\Ubytovani\Ubytovani
+ * Doctrine SQL structure @see AccommodationSqlStructure
+ * Legacy entity @see \Gamecon\Ubytovani\Ubytovani
  */
 #[ORM\Entity(repositoryClass: AccommodationRepository::class)]
 #[ORM\Table(name: 'ubytovani')]
 class Accommodation
 {
     #[ORM\Id]
+    #[ORM\Column(name: 'rok', type: Types::SMALLINT, nullable: false)]
+    private int $rok;
+
+    #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
     private User $uzivatel;
 
     #[ORM\Id]
     #[ORM\Column(name: 'den', type: Types::SMALLINT, nullable: false)]
     private int $den;
-
-    #[ORM\Id]
-    #[ORM\Column(name: 'rok', type: Types::SMALLINT, nullable: false)]
-    private int $rok;
 
     #[ORM\Column(name: 'pokoj', length: 255, nullable: false)]
     private string $pokoj;

@@ -13,16 +13,24 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserRoleTextRepository::class)]
 #[ORM\Table(name: 'role_texty_podle_uzivatele')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_role_texty_podle_uzivatele_to_uzivatele_hodnoty')]
+#[ORM\UniqueConstraint(name: 'UNIQ_id_uzivatele_vyznam_role', columns: ['id_uzivatele', 'vyznam_role'])]
 class UserRoleText
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
+    private ?int $id = null;
+
     #[ORM\Column(name: 'vyznam_role', type: Types::STRING, length: 48, nullable: false)]
     private string $vyznamRole;
 
-    #[ORM\Id]
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $user;
 
     #[ORM\Column(name: 'popis_role', type: Types::TEXT, nullable: true)]
     private ?string $popisRole = null;
@@ -39,14 +47,14 @@ class UserRoleText
         return $this;
     }
 
-    public function getIdUzivatele(): int
+    public function getUser(): User
     {
-        return $this->idUzivatele;
+        return $this->user;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUser(User $user): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->user = $user;
 
         return $this;
     }

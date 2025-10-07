@@ -13,53 +13,71 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityRegistrationSpecRepository::class)]
 #[ORM\Table(name: 'akce_prihlaseni_spec')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
-#[ORM\Index(columns: ['id_stavu_prihlaseni'], name: 'id_stavu_prihlaseni')]
+#[ORM\UniqueConstraint(name: 'UNIQ_id_akce_id_uzivatele', columns: ['id_akce', 'id_uzivatele'])]
 class ActivityRegistrationSpec
 {
     #[ORM\Id]
-    #[ORM\Column(name: 'id_akce', type: Types::INTEGER)]
-    private int $idAkce;
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
+    private ?int $id = null;
 
-    #[ORM\Id]
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: Activity::class)]
+    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private Activity $activity;
 
-    #[ORM\Column(name: 'id_stavu_prihlaseni', type: Types::SMALLINT, nullable: false)]
-    private int $idStavuPrihlaseni;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $registeredUser;
 
-    public function getIdAkce(): int
+    #[ORM\ManyToOne(targetEntity: ActivityRegistrationState::class)]
+    #[ORM\JoinColumn(name: 'id_stavu_prihlaseni', referencedColumnName: 'id_stavu_prihlaseni', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ActivityRegistrationState $activityRegistrationState;
+
+    public function getId(): ?int
     {
-        return $this->idAkce;
+        return $this->id;
     }
 
-    public function setIdAkce(int $idAkce): self
+    public function getActivity(): Activity
     {
-        $this->idAkce = $idAkce;
+        return $this->activity;
+    }
+
+    public function setActivity(Activity $activity): self
+    {
+        $this->activity = $activity;
 
         return $this;
     }
 
-    public function getIdUzivatele(): int
+    public function getRegisteredUser(): User
     {
-        return $this->idUzivatele;
+        return $this->registeredUser;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setRegisteredUser(User $registeredUser): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->registeredUser = $registeredUser;
 
         return $this;
     }
 
-    public function getIdStavuPrihlaseni(): int
+    public function getActivityRegistrationState(): ActivityRegistrationState
     {
-        return $this->idStavuPrihlaseni;
+        return $this->activityRegistrationState;
     }
 
-    public function setIdStavuPrihlaseni(int $idStavuPrihlaseni): self
+    public function setActivityRegistrationState(ActivityRegistrationState $activityRegistrationState): self
     {
-        $this->idStavuPrihlaseni = $idStavuPrihlaseni;
+        $this->activityRegistrationState = $activityRegistrationState;
 
         return $this;
     }

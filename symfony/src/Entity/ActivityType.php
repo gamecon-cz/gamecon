@@ -13,11 +13,13 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityTypeRepository::class)]
 #[ORM\Table(name: 'akce_typy')]
-#[ORM\UniqueConstraint(name: 'id', columns: ['id_typu'])]
 class ActivityType
 {
     #[ORM\Id]
-    #[ORM\Column(name: 'id_typu', type: Types::INTEGER)]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id_typu', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'typ_1p', length: 32, nullable: false)]
@@ -29,14 +31,19 @@ class ActivityType
     #[ORM\Column(name: 'url_typu_mn', length: 32, nullable: false)]
     private string $urlTypuMn;
 
-    #[ORM\Column(name: 'stranka_o', type: Types::INTEGER, nullable: false)]
-    private int $strankaO;
+    #[ORM\ManyToOne(targetEntity: Page::class)]
+    #[ORM\JoinColumn(name: 'stranka_o', referencedColumnName: 'id_stranky', nullable: false, onDelete: 'RESTRICT', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])
+    ]
+    private Page $pageAbout;
 
     #[ORM\Column(name: 'poradi', type: Types::INTEGER, nullable: false)]
     private int $poradi;
 
     #[ORM\Column(name: 'mail_neucast', type: Types::BOOLEAN, nullable: false, options: [
         'default' => false,
+        'comment' => 'poslat mail účastníkovi, pokud nedorazí',
     ])]
     private bool $mailNeucast = false;
 
@@ -53,19 +60,14 @@ class ActivityType
     ])]
     private ?bool $zobrazitVMenu = true;
 
-    #[ORM\Column(name: 'kod_typu', length: 20, nullable: true)]
+    #[ORM\Column(name: 'kod_typu', length: 20, nullable: true, options: [
+        'comment' => 'kód pro identifikaci například v rozpočtovém reportu',
+    ])]
     private ?string $kodTypu = null;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function setId(?int $id): static
-    {
-        $this->id = $id;
-
-        return $this;
     }
 
     public function getTyp1p(): string
@@ -104,14 +106,14 @@ class ActivityType
         return $this;
     }
 
-    public function getStrankaO(): int
+    public function getPageAbout(): Page
     {
-        return $this->strankaO;
+        return $this->pageAbout;
     }
 
-    public function setStrankaO(int $strankaO): static
+    public function setPageAbout(Page $pageAbout): static
     {
-        $this->strankaO = $strankaO;
+        $this->pageAbout = $pageAbout;
 
         return $this;
     }

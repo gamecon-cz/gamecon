@@ -13,12 +13,14 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 #[ORM\Table(name: 'akce_lokace')]
-#[ORM\UniqueConstraint(name: 'nazev_rok', columns: ['nazev', 'rok'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_nazev_rok', columns: ['nazev', 'rok'])]
 class Location
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_lokace', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id_lokace', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'nazev', type: Types::STRING, length: 255, nullable: false)]

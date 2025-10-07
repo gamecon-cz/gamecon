@@ -13,18 +13,20 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: DiscountRepository::class)]
 #[ORM\Table(name: 'slevy')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
-#[ORM\Index(columns: ['provedl'], name: 'provedl')]
-#[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id'])]
 class Discount
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $user;
 
     #[ORM\Column(name: 'castka', type: Types::DECIMAL, precision: 10, scale: 2, nullable: false)]
     private string $castka;
@@ -37,8 +39,11 @@ class Discount
     ])]
     private \DateTime $provedeno;
 
-    #[ORM\Column(name: 'provedl', type: Types::INTEGER, nullable: true)]
-    private ?int $provedl = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'provedl', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ?User $madeBy = null;
 
     #[ORM\Column(name: 'poznamka', type: Types::TEXT, nullable: true)]
     private ?string $poznamka = null;
@@ -48,14 +53,14 @@ class Discount
         return $this->id;
     }
 
-    public function getIdUzivatele(): int
+    public function getUser(): User
     {
-        return $this->idUzivatele;
+        return $this->user;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUser(User $user): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->user = $user;
 
         return $this;
     }
@@ -96,14 +101,14 @@ class Discount
         return $this;
     }
 
-    public function getProvedl(): ?int
+    public function getMadeBy(): ?User
     {
-        return $this->provedl;
+        return $this->madeBy;
     }
 
-    public function setProvedl(?int $provedl): self
+    public function setMadeBy(?User $madeBy): self
     {
-        $this->provedl = $provedl;
+        $this->madeBy = $madeBy;
 
         return $this;
     }

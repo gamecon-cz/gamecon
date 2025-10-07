@@ -17,7 +17,9 @@ class Permission
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_prava', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id_prava', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'jmeno_prava', length: 255, nullable: false)]

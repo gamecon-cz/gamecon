@@ -3,7 +3,7 @@
         'name' => 'gamecon-cz/gamecon',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '86a8d8ebf2db9a4aed2942f26eba6b85489f25da',
+        'reference' => '70e50ccccf2cb10d4665b8bdc554e986b9e460de',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -220,7 +220,7 @@
         'gamecon-cz/gamecon' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '86a8d8ebf2db9a4aed2942f26eba6b85489f25da',
+            'reference' => '70e50ccccf2cb10d4665b8bdc554e986b9e460de',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -360,6 +360,15 @@
             'install_path' => __DIR__ . '/../myclabs/deep-copy',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'nextras/migrations' => array(
+            'pretty_version' => 'v3.4.0',
+            'version' => '3.4.0.0',
+            'reference' => '20b522d39282f5cd0a239c3cadbba4cb0ec327d3',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../nextras/migrations',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'nikic/php-parser' => array(
             'pretty_version' => 'v5.6.1',

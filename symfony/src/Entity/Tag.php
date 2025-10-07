@@ -13,9 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 #[ORM\Table(name: 'sjednocene_tagy')]
-#[ORM\UniqueConstraint(name: 'nazev', columns: ['nazev'])]
-#[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
-#[ORM\Index(columns: ['id_kategorie_tagu'], name: 'id_kategorie_tagu_idx')]
+#[ORM\UniqueConstraint(name: 'UNIQ_nazev', columns: ['nazev'])]
 class Tag
 {
     public const MALOVANI = 12445; // Malování
@@ -24,7 +22,7 @@ class Tag
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER, options: [
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
     private ?int $id = null;
@@ -36,8 +34,8 @@ class Tag
     private string $poznamka = '';
 
     #[ORM\ManyToOne(targetEntity: CategoryTag::class, inversedBy: 'tagy')]
-    #[ORM\JoinColumn(name: 'id_kategorie_tagu', referencedColumnName: 'id', nullable: false)]
-    private ?CategoryTag $kategorieTag = null;
+    #[ORM\JoinColumn(name: 'id_kategorie_tagu', nullable: false)]
+    private ?CategoryTag $categoryTag = null;
 
     public function getId(): ?int
     {
@@ -68,14 +66,14 @@ class Tag
         return $this;
     }
 
-    public function getKategorieTag(): ?CategoryTag
+    public function getCategoryTag(): ?CategoryTag
     {
-        return $this->kategorieTag;
+        return $this->categoryTag;
     }
 
-    public function setKategorieTag(?CategoryTag $kategorieTag): static
+    public function setCategoryTag(?CategoryTag $categoryTag): static
     {
-        $this->kategorieTag = $kategorieTag;
+        $this->categoryTag = $categoryTag;
 
         return $this;
     }

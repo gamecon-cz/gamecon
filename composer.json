@@ -41,6 +41,7 @@
         "granam/string": "^4.2",
         "ifsnop/mysqldump-php": "^2.10",
         "michelf/php-markdown": "~1.4",
+        "nextras/migrations": "^3.4",
         "openspout/openspout": "^4.0",
         "rikudou/czqrpayment": "^5.0",
         "rikudou/skqrpayment": "^4.2",

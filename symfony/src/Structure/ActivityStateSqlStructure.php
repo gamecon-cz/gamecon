@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Structure;
 
 /**
- * Structure for @see \App\Entity\ActivityState
+ * Structure for @see \App\Entity\ActivityStatus
  * SQL table `akce_stav`
  */
 class ActivityStateSqlStructure

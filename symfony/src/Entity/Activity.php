@@ -5,32 +5,31 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ActivityRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gamecon\Aktivita\Aktivita;
 
 /**
  * Activity (main activity/event entity)
+ * Legacy @see Aktivita
  */
 #[ORM\Entity(repositoryClass: ActivityRepository::class)]
 #[ORM\Table(name: 'akce_seznam')]
-#[ORM\UniqueConstraint(name: 'url_akce_rok_typ', columns: ['url_akce', 'rok', 'typ'])]
-#[ORM\Index(columns: ['rok'], name: 'rok')]
-#[ORM\Index(columns: ['patri_pod'], name: 'patri_pod')]
-#[ORM\Index(columns: ['lokace'], name: 'lokace')]
-#[ORM\Index(columns: ['typ'], name: 'typ')]
-#[ORM\Index(columns: ['stav'], name: 'stav')]
-#[ORM\Index(columns: ['popis'], name: 'popis')]
-#[ORM\Index(columns: ['zamcel'], name: 'FK_akce_seznam_zamcel_to_uzivatele_hodnoty')]
-#[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id_akce'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_url_akce_rok_typ', columns: ['url_akce', 'rok', 'typ'])]
+#[ORM\Index(columns: ['rok'], name: 'IDX_rok')]
 class Activity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_akce', type: Types::INTEGER)]
-    private ?int $idAkce = null;
+    #[ORM\Column(name: 'id_akce', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
+    private ?int $id = null;
 
-    #[ORM\Column(name: 'patri_pod', type: Types::INTEGER, nullable: true)]
-    private ?int $patriPod = null;
+    #[ORM\ManyToOne(targetEntity: ActivityInstance::class)]
+    #[ORM\JoinColumn(name: 'patri_pod', referencedColumnName: 'id_instance', nullable: true, onDelete: 'SET NULL')]
+    private ?ActivityInstance $activityInstance = null;
 
     #[ORM\Column(name: 'nazev_akce', type: Types::STRING, length: 255, nullable: false)]
     private string $nazevAkce;
@@ -44,8 +43,9 @@ class Activity
     #[ORM\Column(name: 'konec', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTime $konec = null;
 
-    #[ORM\Column(name: 'lokace', type: Types::INTEGER, nullable: true)]
-    private ?int $lokace = null;
+    #[ORM\ManyToOne(targetEntity: Location::class)]
+    #[ORM\JoinColumn(name: 'lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
+    private ?Location $location = null;
 
     #[ORM\Column(name: 'kapacita', type: Types::INTEGER, nullable: false)]
     private int $kapacita;
@@ -69,8 +69,9 @@ class Activity
     ])]
     private bool $nedavaBonus;
 
-    #[ORM\Column(name: 'typ', type: Types::INTEGER, nullable: false)]
-    private int $typ;
+    #[ORM\ManyToOne(targetEntity: ActivityType::class)]
+    #[ORM\JoinColumn(name: 'typ', referencedColumnName: 'id_typu', nullable: false, onDelete: 'RESTRICT')]
+    private ActivityType $type;
 
     #[ORM\Column(name: 'dite', type: Types::STRING, length: 64, nullable: true, options: [
         'comment' => 'potomci oddělení čárkou',
@@ -80,10 +81,9 @@ class Activity
     #[ORM\Column(name: 'rok', type: Types::INTEGER, nullable: false)]
     private int $rok;
 
-    #[ORM\Column(name: 'stav', type: Types::INTEGER, nullable: false, options: [
-        'default' => 1,
-    ])]
-    private int $stav = 1;
+    #[ORM\ManyToOne(targetEntity: ActivityStatus::class)]
+    #[ORM\JoinColumn(name: 'stav', referencedColumnName: 'id_stav', nullable: false, onDelete: 'RESTRICT')]
+    private ActivityStatus $status;
 
     #[ORM\Column(name: 'teamova', type: Types::BOOLEAN, nullable: false)]
     private bool $teamova;
@@ -106,21 +106,23 @@ class Activity
     #[ORM\Column(name: 'team_nazev', type: Types::STRING, length: 255, nullable: true)]
     private ?string $teamNazev = null;
 
-    #[ORM\Column(name: 'zamcel', type: Types::INTEGER, nullable: true, options: [
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'zamcel', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
         'comment' => 'případně kdo zamčel aktivitu pro svůj team',
     ])]
-    private ?int $zamcel = null;
+    private ?User $forTeamLockedBy = null;
 
     #[ORM\Column(name: 'zamcel_cas', type: Types::DATETIME_MUTABLE, nullable: true, options: [
         'comment' => 'případně kdy zamčel aktivitu',
     ])]
-    private ?\DateTime $zamcelCas = null;
+    private ?\DateTime $forTeamLockedAt = null;
 
-    #[ORM\Column(name: 'popis', type: Types::INTEGER, nullable: false)]
-    private int $popis;
+    #[ORM\ManyToOne(targetEntity: Text::class)]
+    #[ORM\JoinColumn(name: 'popis', nullable: false, onDelete: 'RESTRICT')]
+    private Text $description;
 
     #[ORM\Column(name: 'popis_kratky', type: Types::STRING, length: 255, nullable: false)]
-    private string $opisKratky;
+    private string $shortDescription;
 
     #[ORM\Column(name: 'vybaveni', type: Types::TEXT, nullable: false)]
     private string $vybaveni;
@@ -135,19 +137,22 @@ class Activity
     ])]
     private bool $probehlaKorekce = false;
 
-    public function getIdAkce(): ?int
+    #[ORM\OneToMany(mappedBy: 'activity', targetEntity: ActivityTag::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $activityTags;
+
+    public function getId(): ?int
     {
-        return $this->idAkce;
+        return $this->id;
     }
 
-    public function getPatriPod(): ?int
+    public function getActivityInstance(): ?ActivityInstance
     {
-        return $this->patriPod;
+        return $this->activityInstance;
     }
 
-    public function setPatriPod(?int $patriPod): self
+    public function setActivityInstance(?ActivityInstance $activityInstance): self
     {
-        $this->patriPod = $patriPod;
+        $this->activityInstance = $activityInstance;
 
         return $this;
     }
@@ -200,14 +205,14 @@ class Activity
         return $this;
     }
 
-    public function getLokace(): ?int
+    public function getLocation(): ?Location
     {
-        return $this->lokace;
+        return $this->location;
     }
 
-    public function setLokace(?int $lokace): self
+    public function setLocation(?Location $location): self
     {
-        $this->lokace = $lokace;
+        $this->location = $location;
 
         return $this;
     }
@@ -284,14 +289,14 @@ class Activity
         return $this;
     }
 
-    public function getTyp(): int
+    public function getType(): ActivityType
     {
-        return $this->typ;
+        return $this->type;
     }
 
-    public function setTyp(int $typ): self
+    public function setType(ActivityType $type): self
     {
-        $this->typ = $typ;
+        $this->type = $type;
 
         return $this;
     }
@@ -320,14 +325,14 @@ class Activity
         return $this;
     }
 
-    public function getStav(): int
+    public function getStatus(): ActivityStatus
     {
-        return $this->stav;
+        return $this->status;
     }
 
-    public function setStav(int $stav): self
+    public function setStatus(ActivityStatus $status): self
     {
-        $this->stav = $stav;
+        $this->status = $status;
 
         return $this;
     }
@@ -392,50 +397,50 @@ class Activity
         return $this;
     }
 
-    public function getZamcel(): ?int
+    public function getForTeamLockedBy(): ?User
     {
-        return $this->zamcel;
+        return $this->forTeamLockedBy;
     }
 
-    public function setZamcel(?int $zamcel): self
+    public function setForTeamLockedBy(?User $forTeamLockedBy): self
     {
-        $this->zamcel = $zamcel;
+        $this->forTeamLockedBy = $forTeamLockedBy;
 
         return $this;
     }
 
-    public function getZamcelCas(): ?\DateTime
+    public function getForTeamLockedAt(): ?\DateTime
     {
-        return $this->zamcelCas;
+        return $this->forTeamLockedAt;
     }
 
-    public function setZamcelCas(?\DateTime $zamcelCas): self
+    public function setForTeamLockedAt(?\DateTime $forTeamLockedAt): self
     {
-        $this->zamcelCas = $zamcelCas;
+        $this->forTeamLockedAt = $forTeamLockedAt;
 
         return $this;
     }
 
-    public function getPopis(): int
+    public function getDescription(): Text
     {
-        return $this->popis;
+        return $this->description;
     }
 
-    public function setPopis(int $popis): self
+    public function setDescription(Text $description): self
     {
-        $this->popis = $popis;
+        $this->description = $description;
 
         return $this;
     }
 
     public function getPopisKratky(): string
     {
-        return $this->opisKratky;
+        return $this->shortDescription;
     }
 
     public function setPopisKratky(string $opisKratky): self
     {
-        $this->opisKratky = $opisKratky;
+        $this->shortDescription = $opisKratky;
 
         return $this;
     }
@@ -472,6 +477,31 @@ class Activity
     public function setProbehlaKorekce(bool $probehlaKorekce): self
     {
         $this->probehlaKorekce = $probehlaKorekce;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ActivityTag>
+     */
+    public function getActivityTags(): Collection
+    {
+        return $this->activityTags;
+    }
+
+    public function addActivityTag(ActivityTag $activityTag): self
+    {
+        if (!$this->activityTags->contains($activityTag)) {
+            $this->activityTags->add($activityTag);
+            $activityTag->setActivity($this);
+        }
+
+        return $this;
+    }
+
+    public function removeActivityTag(ActivityTag $activityTag): self
+    {
+        $this->activityTags->removeElement($activityTag);
 
         return $this;
     }

@@ -6,9 +6,8 @@ namespace Gamecon\Tests\Symfony;
 
 use App\Entity\Accommodation;
 use App\Entity\ActivityRegistrationState;
-use App\Entity\ActivityState;
+use App\Entity\ActivityStatus;
 use App\Entity\ActivityType;
-use App\Entity\Badge;
 use App\Entity\CategoryTag;
 use App\Entity\Location;
 use App\Entity\News;
@@ -22,6 +21,7 @@ use App\Entity\ShopGridCell;
 use App\Entity\ShopItem;
 use App\Entity\Tag;
 use App\Entity\User;
+use App\Entity\UserBadge;
 use Gamecon\Aktivita\AkcePrihlaseniStavy;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
@@ -166,7 +166,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             'poradi'     => 42,
         ])->_real();
 
-        $symfonyPageId = $symfonyPage->getIdStranky();
+        $symfonyPageId = $symfonyPage->getId();
         $this->assertNotNull($symfonyPageId);
 
         // Fetch the same entity using legacy Stranka
@@ -174,7 +174,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertNotNull($legacyPage, 'Legacy page should be found');
 
         // Compare values using getters
-        $this->assertEquals($symfonyPage->getIdStranky(), $legacyPage->id());
+        $this->assertEquals($symfonyPage->getId(), $legacyPage->id());
         $this->assertEquals($symfonyPage->getUrlStranky(), $legacyPage->url());
         $this->assertEquals($symfonyPage->getObsah(), $legacyPage->raw()['obsah']);
         $this->assertEquals($symfonyPage->getPoradi(), $legacyPage->poradi());
@@ -208,7 +208,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyTag->getId(), $legacyTag->id());
         $this->assertEquals($symfonyTag->getNazev(), $legacyTag->nazev());
         $this->assertEquals($symfonyTag->getPoznamka(), $legacyTag->poznamka());
-        $this->assertEquals($symfonyTag->getKategorieTag()->getId(), $legacyTag->raw()['id_kategorie_tagu']);
+        $this->assertEquals($symfonyTag->getCategoryTag()->getId(), $legacyTag->raw()['id_kategorie_tagu']);
     }
 
     public function testCategoryTagEntityMatchesLegacyKategorieTagu(): void
@@ -232,7 +232,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyCategoryTag->getId(), $legacyCategoryTag->id());
         $this->assertEquals($symfonyCategoryTag->getNazev(), $legacyCategoryTag->nazev());
         $this->assertEquals($symfonyCategoryTag->getPoradi(), $legacyCategoryTag->poradi());
-        $this->assertEquals($symfonyCategoryTag->getHlavniKategorie()?->getId(), $legacyCategoryTag->idHlavniKategorie());
+        $this->assertEquals($symfonyCategoryTag->getMainCategoryTag()?->getId(), $legacyCategoryTag->idHlavniKategorie());
     }
 
     public function testCategoryTagWithParentEntityMatchesLegacy(): void
@@ -264,7 +264,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($childCategory->getId(), $legacyChildCategory->id());
         $this->assertEquals($childCategory->getNazev(), $legacyChildCategory->nazev());
         $this->assertEquals($childCategory->getPoradi(), $legacyChildCategory->poradi());
-        $this->assertEquals($childCategory->getHlavniKategorie()?->getId(), $legacyChildCategory->idHlavniKategorie());
+        $this->assertEquals($childCategory->getMainCategoryTag()?->getId(), $legacyChildCategory->idHlavniKategorie());
         $this->assertEquals($parentCategory->getId(), $legacyChildCategory->idHlavniKategorie());
     }
 
@@ -344,7 +344,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             'typ1p'         => 'Test Type Singular',
             'typ1pmn'       => 'Test Type Plural',
             'urlTypuMn'     => 'test-type-url',
-            'strankaO'      => PageFactory::createOne()->getIdStranky(),
+            'strankaO'      => PageFactory::createOne()->getId(),
             'poradi'        => 5,
             'mailNeucast'   => true,
             'popisKratky'   => 'Short description',
@@ -374,7 +374,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyActivityType->getTyp1p(), $legacyData['typ_1p']);
         $this->assertEquals($symfonyActivityType->getTyp1pmn(), $legacyData['typ_1pmn']);
         $this->assertEquals($symfonyActivityType->getUrlTypuMn(), $legacyData['url_typu_mn']);
-        $this->assertEquals($symfonyActivityType->getStrankaO(), $legacyData['stranka_o']);
+        $this->assertEquals($symfonyActivityType->getPageAbout(), $legacyData['stranka_o']);
         $this->assertEquals($symfonyActivityType->getPoradi(), $legacyData['poradi']);
         $this->assertEquals($symfonyActivityType->isMailNeucast(), (bool) $legacyData['mail_neucast']);
         $this->assertEquals($symfonyActivityType->getPopisKratky(), $legacyData['popis_kratky']);
@@ -386,7 +386,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
     public function testActivityStateEntityMatchesLegacyStavAktivity(): void
     {
         // Create Symfony entity using factory
-        /** @var ActivityState $symfonyActivityState */
+        /** @var ActivityStatus $symfonyActivityState */
         $symfonyActivityState = ActivityStateFactory::createOne([
             'nazev' => 'Test Activity State ' . uniqid(),
         ])->_save()->_real();
@@ -720,7 +720,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyShopGridCell->getBarva(), $legacyObchodMrizkaBunka->barva());
         $this->assertEquals($symfonyShopGridCell->getBarvaText(), $legacyObchodMrizkaBunka->barvaText());
         $this->assertEquals($symfonyShopGridCell->getCilId(), $legacyObchodMrizkaBunka->cilId());
-        $this->assertEquals($symfonyShopGridCell->getMrizkaId(), $legacyObchodMrizkaBunka->mrizkaId());
+        $this->assertEquals($symfonyShopGridCell->getShopGrid(), $legacyObchodMrizkaBunka->mrizkaId());
 
         // Test raw database values
         $legacyData = $legacyObchodMrizkaBunka->raw();
@@ -729,7 +729,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyShopGridCell->getBarva(), $legacyData['barva']);
         $this->assertEquals($symfonyShopGridCell->getBarvaText(), $legacyData['barva_text']);
         $this->assertEquals($symfonyShopGridCell->getCilId(), $legacyData['cil_id']);
-        $this->assertEquals($symfonyShopGridCell->getMrizkaId(), $legacyData['mrizka_id']);
+        $this->assertEquals($symfonyShopGridCell->getShopGrid(), $legacyData['mrizka_id']);
     }
 
     public function testShopGridEntityMatchesLegacyObchodMrizka(): void
@@ -786,12 +786,12 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
         // Compare values using getters
         $this->assertEquals($symfonyPayment->getId(), $legacyPlatba->id());
-        $this->assertEquals($symfonyPayment->getIdUzivatele(), $legacyPlatba->idUzivatele());
+        $this->assertEquals($symfonyPayment->getBeneficiary(), $legacyPlatba->idUzivatele());
         $this->assertEquals($symfonyPayment->getFioId(), (int) $legacyPlatba->fioId());
         $this->assertEquals($symfonyPayment->getVs(), $legacyPlatba->variabilniSymbol());
         $this->assertEquals($symfonyPayment->getCastka(), $legacyPlatba->castka());
         $this->assertEquals($symfonyPayment->getRok(), $legacyPlatba->rok());
-        $this->assertEquals($symfonyPayment->getProvedl(), $legacyPlatba->provedl());
+        $this->assertEquals($symfonyPayment->getMadeBy(), $legacyPlatba->provedl());
         $this->assertEquals($symfonyPayment->getNazevProtiuctu(), $legacyPlatba->nazevProtiuctu());
         $this->assertEquals($symfonyPayment->getCisloProtiuctu(), $legacyPlatba->cisloProtiuctu());
         $this->assertEquals($symfonyPayment->getKodBankyProtiuctu(), $legacyPlatba->kodBankyProtiuctu());
@@ -801,12 +801,12 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
         // Test raw database values
         $legacyData = $legacyPlatba->raw();
-        $this->assertEquals($symfonyPayment->getIdUzivatele(), $legacyData['id_uzivatele']);
+        $this->assertEquals($symfonyPayment->getBeneficiary(), $legacyData['id_uzivatele']);
         $this->assertEquals($symfonyPayment->getFioId(), $legacyData['fio_id']);
         $this->assertEquals($symfonyPayment->getVs(), $legacyData['vs']);
         $this->assertEquals($symfonyPayment->getCastka(), $legacyData['castka']);
         $this->assertEquals($symfonyPayment->getRok(), $legacyData['rok']);
-        $this->assertEquals($symfonyPayment->getProvedl(), $legacyData['provedl']);
+        $this->assertEquals($symfonyPayment->getMadeBy(), $legacyData['provedl']);
         $this->assertEquals($symfonyPayment->getNazevProtiuctu(), $legacyData['nazev_protiuctu']);
         $this->assertEquals($symfonyPayment->getCisloProtiuctu(), $legacyData['cislo_protiuctu']);
         $this->assertEquals($symfonyPayment->getKodBankyProtiuctu(), $legacyData['kod_banky_protiuctu']);
@@ -838,14 +838,14 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         ])->_real();
 
         // Create Symfony entity using factory
-        /** @var Badge $symfonyBadge */
+        /** @var UserBadge $symfonyBadge */
         $symfonyBadge = BadgeFactory::createOne([
             'idUzivatele' => $testUser->getId(),
             'oSobe'       => 'O sobě markdown text ' . uniqid(),
             'drd'         => 'DrD profil markdown ' . uniqid(),
         ])->_save()->_real();
 
-        $symfonyBadgeId = $symfonyBadge->getIdUzivatele();
+        $symfonyBadgeId = $symfonyBadge->getUser();
         $this->assertNotNull($symfonyBadgeId);
 
         // Fetch the same entity using legacy Medailonek
@@ -853,7 +853,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertNotNull($legacyMedailonek, 'Legacy badge (medailonek) should be found');
 
         // Compare values using getters
-        $this->assertEquals($symfonyBadge->getIdUzivatele(), $legacyMedailonek->idUzivatele());
+        $this->assertEquals($symfonyBadge->getUser(), $legacyMedailonek->idUzivatele());
 
         // Note: legacy methods drd() and oSobe() apply markdown processing, so compare raw data
         $legacyData = $legacyMedailonek->raw();

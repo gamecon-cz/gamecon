@@ -13,21 +13,24 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: GoogleDriveDirRepository::class)]
 #[ORM\Table(name: 'google_drive_dirs')]
-#[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
-#[ORM\UniqueConstraint(name: 'user_and_name', columns: ['user_id', 'original_name'])]
-#[ORM\Index(columns: ['tag'], name: 'tag')]
+#[ORM\UniqueConstraint(name: 'UNIQ_dir_id', columns: ['dir_id'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_user_and_name', columns: ['user_id', 'original_name'])]
+#[ORM\Index(columns: ['tag'], name: 'IDX_tag')]
 class GoogleDriveDir
 {
+    #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER, options: [
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private int $id; // @phpstan-ignore-line property.onlyRead
+    private ?int $id = null;
 
-    #[ORM\Column(name: 'user_id', type: Types::INTEGER, nullable: false)]
-    private int $userId;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $owner;
 
-    #[ORM\Id]
     #[ORM\Column(name: 'dir_id', type: Types::STRING, length: 128, nullable: false)]
     private string $dirId;
 
@@ -44,14 +47,14 @@ class GoogleDriveDir
         return $this->id;
     }
 
-    public function getUserId(): int
+    public function getOwner(): User
     {
-        return $this->userId;
+        return $this->owner;
     }
 
-    public function setUserId(int $userId): self
+    public function setOwner(User $owner): self
     {
-        $this->userId = $userId;
+        $this->owner = $owner;
 
         return $this;
     }

@@ -13,18 +13,18 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: SystemSettingRepository::class)]
 #[ORM\Table(name: 'systemove_nastaveni')]
-#[ORM\UniqueConstraint(name: 'id_nastaveni', columns: ['id_nastaveni'])]
-#[ORM\UniqueConstraint(name: 'nazev', columns: ['nazev', 'rocnik_nastaveni'])]
-#[ORM\Index(columns: ['skupina'], name: 'skupina')]
+#[ORM\UniqueConstraint(name: 'UNIQ_klic_rocnik_nastaveni', columns: ['klic', 'rocnik_nastaveni'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_nazev_rocnik_nastaveni', columns: ['nazev', 'rocnik_nastaveni'])]
+#[ORM\Index(columns: ['skupina'], name: 'IDX_skupina')]
 class SystemSetting
 {
+    #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id_nastaveni', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private int $idNastaveni; // @phpstan-ignore-line property.onlyRead
+    private ?int $id = null;
 
-    #[ORM\Id]
     #[ORM\Column(name: 'klic', type: Types::STRING, length: 128, nullable: false)]
     private string $klic;
 
@@ -69,15 +69,14 @@ class SystemSetting
     ])]
     private ?bool $pouzeProCteni = false;
 
-    #[ORM\Id]
     #[ORM\Column(name: 'rocnik_nastaveni', type: Types::INTEGER, nullable: false, options: [
         'default' => -1,
     ])]
     private int $rocnikNastaveni = -1;
 
-    public function getIdNastaveni(): int
+    public function getId(): int
     {
-        return $this->idNastaveni;
+        return $this->id;
     }
 
     public function getKlic(): string

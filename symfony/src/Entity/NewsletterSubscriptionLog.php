@@ -13,14 +13,15 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: NewsletterSubscriptionLogRepository::class)]
 #[ORM\Table(name: 'newsletter_prihlaseni_log')]
-#[ORM\Index(columns: ['email'], name: 'email')]
-#[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id_newsletter_prihlaseni_log'])]
+#[ORM\Index(columns: ['email'], name: 'IDX_email')]
 class NewsletterSubscriptionLog
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_newsletter_prihlaseni_log', type: Types::INTEGER)]
-    private ?int $idNewsletterPrihlaseniLog = null;
+    #[ORM\Column(name: 'id_newsletter_prihlaseni_log', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
+    private ?int $id = null;
 
     #[ORM\Column(name: 'email', type: Types::STRING, length: 512, nullable: false)]
     private string $email;
@@ -33,9 +34,9 @@ class NewsletterSubscriptionLog
     #[ORM\Column(name: 'stav', type: Types::STRING, length: 127, nullable: false)]
     private string $stav;
 
-    public function getIdNewsletterPrihlaseniLog(): ?int
+    public function getId(): ?int
     {
-        return $this->idNewsletterPrihlaseniLog;
+        return $this->id;
     }
 
     public function getEmail(): string

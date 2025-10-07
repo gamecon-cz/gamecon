@@ -13,9 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityImportRepository::class)]
 #[ORM\Table(name: 'akce_import')]
-#[ORM\Index(columns: ['google_sheet_id'], name: 'google_sheet_id')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_akce_import_to_uzivatele_hodnoty')]
-#[ORM\UniqueConstraint(name: 'id_akce_import', columns: ['id_akce_import'])]
+#[ORM\Index(columns: ['google_sheet_id'], name: 'IDX_google_sheet_id')]
 class ActivityImport
 {
     #[ORM\Id]
@@ -23,30 +21,35 @@ class ActivityImport
     #[ORM\Column(name: 'id_akce_import', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private ?int $idAkceImport = null;
+    private ?int $id = null;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $user;
 
     #[ORM\Column(name: 'google_sheet_id', type: Types::STRING, length: 128, nullable: false)]
     private string $googleSheetId;
 
-    #[ORM\Column(name: 'cas', type: Types::DATETIME_MUTABLE, nullable: false)]
+    #[ORM\Column(name: 'cas', type: Types::DATETIME_MUTABLE, nullable: false, options: [
+        'default' => 'CURRENT_TIMESTAMP',
+    ])]
     private \DateTime $cas;
 
-    public function getIdAkceImport(): ?int
+    public function getId(): ?int
     {
-        return $this->idAkceImport;
+        return $this->id;
     }
 
-    public function getIdUzivatele(): int
+    public function getUser(): User
     {
-        return $this->idUzivatele;
+        return $this->user;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUser(User $user): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->user = $user;
 
         return $this;
     }

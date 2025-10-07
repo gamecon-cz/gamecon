@@ -24,7 +24,9 @@ class ShopGridCell
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'typ', type: Types::SMALLINT, nullable: false, options: [
@@ -46,8 +48,9 @@ class ShopGridCell
     ])]
     private ?int $cilId = null;
 
-    #[ORM\Column(name: 'mrizka_id', type: Types::INTEGER, nullable: true)]
-    private ?int $mrizkaId = null;
+    #[ORM\ManyToOne(targetEntity: ShopGrid::class)]
+    #[ORM\JoinColumn(name: 'mrizka_id', nullable: true, onDelete: 'CASCADE')]
+    private ?ShopGrid $shopGrid = null;
 
     public function getId(): ?int
     {
@@ -114,14 +117,14 @@ class ShopGridCell
         return $this;
     }
 
-    public function getMrizkaId(): ?int
+    public function getShopGrid(): ?ShopGrid
     {
-        return $this->mrizkaId;
+        return $this->shopGrid;
     }
 
-    public function setMrizkaId(?int $mrizkaId): self
+    public function setShopGrid(?ShopGrid $shopGrid): self
     {
-        $this->mrizkaId = $mrizkaId;
+        $this->shopGrid = $shopGrid;
 
         return $this;
     }
