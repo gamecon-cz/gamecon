@@ -13,23 +13,27 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ShopPurchaseCancelledRepository::class)]
 #[ORM\Table(name: 'shop_nakupy_zrusene')]
-#[ORM\Index(columns: ['id_predmetu'], name: 'FK_zrusene_objednavky_to_shop_predmety')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_zrusene_objednavky_to_uzivatele_hodnoty')]
-#[ORM\Index(columns: ['datum_zruseni'], name: 'datum_zruseni')]
-#[ORM\Index(columns: ['zdroj_zruseni'], name: 'zdroj_zruseni')]
+#[ORM\Index(columns: ['datum_zruseni'], name: 'IDX_datum_zruseni')]
+#[ORM\Index(columns: ['zdroj_zruseni'], name: 'IDX_zdroj_zruseni')]
 class ShopPurchaseCancelled
 {
     #[ORM\Id]
     #[ORM\Column(name: 'id_nakupu', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private int $idNakupu;
+    private int $deletedShopPurchaseId;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $customer;
 
-    #[ORM\Column(name: 'id_predmetu', type: Types::INTEGER, nullable: false)]
-    private int $idPredmetu;
+    #[ORM\ManyToOne(targetEntity: ShopItem::class)]
+    #[ORM\JoinColumn(name: 'id_predmetu', referencedColumnName: 'id_predmetu', nullable: false, onDelete: 'RESTRICT', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ShopItem $shopItem;
 
     #[ORM\Column(name: 'rocnik', type: Types::SMALLINT, nullable: false)]
     private int $rocnik;
@@ -52,38 +56,38 @@ class ShopPurchaseCancelled
     #[ORM\Column(name: 'zdroj_zruseni', type: Types::STRING, length: 255, nullable: true)]
     private ?string $zdrojZruseni = null;
 
-    public function getIdNakupu(): int
+    public function getDeletedShopPurchaseId(): int
     {
-        return $this->idNakupu;
+        return $this->deletedShopPurchaseId;
     }
 
-    public function setIdNakupu(int $idNakupu): self
+    public function setDeletedShopPurchaseId(int $deletedShopPurchaseId): self
     {
-        $this->idNakupu = $idNakupu;
+        $this->deletedShopPurchaseId = $deletedShopPurchaseId;
 
         return $this;
     }
 
-    public function getIdUzivatele(): int
+    public function getCustomer(): int
     {
-        return $this->idUzivatele;
+        return $this->customer;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setCustomer(int $customer): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->customer = $customer;
 
         return $this;
     }
 
-    public function getIdPredmetu(): int
+    public function getShopItem(): int
     {
-        return $this->idPredmetu;
+        return $this->shopItem;
     }
 
-    public function setIdPredmetu(int $idPredmetu): self
+    public function setShopItem(int $shopItem): self
     {
-        $this->idPredmetu = $idPredmetu;
+        $this->shopItem = $shopItem;
 
         return $this;
     }

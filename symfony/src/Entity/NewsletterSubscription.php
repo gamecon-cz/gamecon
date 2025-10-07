@@ -10,12 +10,14 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: NewsletterSubscriptionRepository::class)]
 #[ORM\Table(name: 'newsletter_prihlaseni')]
-#[ORM\UniqueConstraint(name: 'email', columns: ['email'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_email', columns: ['email'])]
 class NewsletterSubscription
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_newsletter_prihlaseni', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id_newsletter_prihlaseni', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'email', length: 512, nullable: false)]

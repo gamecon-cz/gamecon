@@ -6,7 +6,7 @@ use DbObject;
 use Gamecon\Uzivatel\SqlStruktura\MedailonekSqlStruktura;
 
 /**
- * For Doctrine entity equivalent @see \App\Entity\Badge
+ * For Doctrine entity equivalent @see \App\Entity\UserBadge
  *
  * @method static array<Medailonek> zVsech()
  */

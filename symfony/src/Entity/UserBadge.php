@@ -15,33 +15,39 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: BadgeRepository::class)]
 #[ORM\Table(name: 'medailonky')]
-class Badge
+class UserBadge
 {
-    /**
-     * id_uzivatele is the primary key (references user)
-     */
     #[ORM\Id]
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER)]
-    private ?int $idUzivatele = null;
+    #[ORM\OneToOne(inversedBy: 'badge', targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'comment' => 'ON UPDATE CASCADE',
+    ])]
+    private User $user;
 
+    /**
+     * 'markdown' in comment is important keyword, @see \DbFormGc::fieldFromDescription
+     */
     #[ORM\Column(name: 'o_sobe', type: Types::TEXT, nullable: false, options: [
         'comment' => 'markdown',
     ])]
     private string $oSobe;
 
+    /**
+     * 'markdown' in comment is important keyword, @see \DbFormGc::fieldFromDescription
+     */
     #[ORM\Column(name: 'drd', type: Types::TEXT, nullable: false, options: [
         'comment' => 'markdown -- profil pro DrD',
     ])]
     private string $drd;
 
-    public function getIdUzivatele(): ?int
+    public function getUser(): User
     {
-        return $this->idUzivatele;
+        return $this->user;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUser(User $user): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->user = $user;
 
         return $this;
     }

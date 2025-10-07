@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ActivityOrganizerRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -13,39 +12,43 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityOrganizerRepository::class)]
 #[ORM\Table(name: 'akce_organizatori')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
 class ActivityOrganizer
 {
     #[ORM\Id]
-    #[ORM\Column(name: 'id_akce', type: Types::INTEGER)]
-    private int $idAkce;
+    #[ORM\ManyToOne(targetEntity: Activity::class)]
+    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private Activity $activity;
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, options: [
-        'comment' => 'organizátor',
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+        'comment'   => 'organizátor',
     ])]
-    private int $idUzivatele;
+    private User $user;
 
-    public function getIdAkce(): int
+    public function getActivity(): Activity
     {
-        return $this->idAkce;
+        return $this->activity;
     }
 
-    public function setIdAkce(int $idAkce): self
+    public function setActivity(Activity $activity): self
     {
-        $this->idAkce = $idAkce;
+        $this->activity = $activity;
 
         return $this;
     }
 
-    public function getIdUzivatele(): int
+    public function getUser(): User
     {
-        return $this->idUzivatele;
+        return $this->user;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUser(User $user): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->user = $user;
 
         return $this;
     }

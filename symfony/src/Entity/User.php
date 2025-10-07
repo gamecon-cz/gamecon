@@ -14,14 +14,16 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'uzivatele_hodnoty')]
-#[ORM\Index(columns: ['infopult_poznamka'], name: 'infopult_poznamka_idx')]
-#[ORM\UniqueConstraint(name: 'login_uzivatele', columns: ['login_uzivatele'])]
-#[ORM\UniqueConstraint(name: 'email1_uzivatele', columns: ['email1_uzivatele'])]
+#[ORM\Index(columns: ['infopult_poznamka'], name: 'IDX_infopult_poznamka')]
+#[ORM\UniqueConstraint(name: 'UNIQ_login_uzivatele', columns: ['login_uzivatele'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_email1_uzivatele', columns: ['email1_uzivatele'])]
 class User
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id_uzivatele', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'login_uzivatele', length: 255, nullable: false)]
@@ -122,6 +124,9 @@ class User
 
     #[ORM\Column(name: 'potvrzeni_zakonneho_zastupce_soubor', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $potvrzeniZakonnehoZastupceSoubor = null;
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserBadge::class, cascade: ['persist', 'remove'])]
+    private UserBadge $badge;
 
     // Getters and Setters
 

@@ -14,12 +14,14 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ShopItemRepository::class)]
 #[ORM\Table(name: 'shop_predmety')]
 #[ORM\UniqueConstraint(name: 'UNIQ_nazev_model_rok', columns: ['nazev', 'model_rok'])]
-#[ORM\UniqueConstraint(name: 'kod_predmetu_model_rok', columns: ['kod_predmetu', 'model_rok'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_kod_predmetu_model_rok', columns: ['kod_predmetu', 'model_rok'])]
 class ShopItem
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_predmetu', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id_predmetu', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'nazev', type: Types::STRING, length: 255, nullable: false)]
@@ -43,7 +45,9 @@ class ShopItem
     #[ORM\Column(name: 'kusu_vyrobeno', type: Types::SMALLINT, nullable: true)]
     private ?int $kusuVyrobeno = null;
 
-    #[ORM\Column(name: 'typ', type: Types::SMALLINT, nullable: false)]
+    #[ORM\Column(name: 'typ', type: Types::SMALLINT, nullable: false, options: [
+        'comment' => '1-předmět, 2-ubytování, 3-tričko, 4-jídlo, 5-vstupné, 6-parcon, 7-vyplaceni',
+    ])]
     private int $typ;
 
     #[ORM\Column(name: 'ubytovani_den', type: Types::SMALLINT, nullable: true)]

@@ -13,11 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ShopPurchaseRepository::class)]
 #[ORM\Table(name: 'shop_nakupy')]
-#[ORM\UniqueConstraint(name: 'id_nakupu', columns: ['id_nakupu'])]
-#[ORM\Index(columns: ['rok', 'id_uzivatele'], name: 'rok_id_uzivatele')]
-#[ORM\Index(columns: ['id_predmetu'], name: 'id_predmetu')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
-#[ORM\Index(columns: ['id_objednatele'], name: 'id_objednatele')]
+#[ORM\Index(columns: ['rok', 'id_uzivatele'], name: 'IDX_rok_id_uzivatele')]
 class ShopPurchase
 {
     #[ORM\Id]
@@ -27,14 +23,23 @@ class ShopPurchase
     ])]
     private ?int $idNakupu = null;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $customer;
 
-    #[ORM\Column(name: 'id_objednatele', type: Types::INTEGER, nullable: true)]
-    private ?int $idObjednatele = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_objednatele', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ?User $orderer = null;
 
-    #[ORM\Column(name: 'id_predmetu', type: Types::INTEGER, nullable: false)]
-    private int $idPredmetu;
+    #[ORM\ManyToOne(targetEntity: ShopItem::class)]
+    #[ORM\JoinColumn(name: 'id_predmetu', referencedColumnName: 'id_predmetu', nullable: false, onDelete: 'RESTRICT', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ShopItem $shopItem;
 
     #[ORM\Column(name: 'rok', type: Types::SMALLINT, nullable: false)]
     private int $rok;
@@ -54,38 +59,38 @@ class ShopPurchase
         return $this->idNakupu;
     }
 
-    public function getIdUzivatele(): int
+    public function getCustomer(): User
     {
-        return $this->idUzivatele;
+        return $this->customer;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setCustomer(User $customer): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->customer = $customer;
 
         return $this;
     }
 
-    public function getIdObjednatele(): ?int
+    public function getOrderer(): ?User
     {
-        return $this->idObjednatele;
+        return $this->orderer;
     }
 
-    public function setIdObjednatele(?int $idObjednatele): self
+    public function setOrderer(?User $orderer): self
     {
-        $this->idObjednatele = $idObjednatele;
+        $this->orderer = $orderer;
 
         return $this;
     }
 
-    public function getIdPredmetu(): int
+    public function getShopItem(): ShopItem
     {
-        return $this->idPredmetu;
+        return $this->shopItem;
     }
 
-    public function setIdPredmetu(int $idPredmetu): self
+    public function setShopItem(ShopItem $shopItem): self
     {
-        $this->idPredmetu = $idPredmetu;
+        $this->shopItem = $shopItem;
 
         return $this;
     }

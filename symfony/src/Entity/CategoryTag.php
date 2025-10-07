@@ -15,14 +15,12 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: CategoryTagRepository::class)]
 #[ORM\Table(name: 'kategorie_sjednocenych_tagu')]
-#[ORM\UniqueConstraint(name: 'nazev', columns: ['nazev'])]
-#[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
-#[ORM\Index(columns: ['id_hlavni_kategorie'], name: 'id_hlavni_kategorie_idx')]
+#[ORM\Index(columns: ['nazev'], name: 'IDX_nazev')]
 class CategoryTag
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER, options: [
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
     private ?int $id = null;
@@ -36,18 +34,20 @@ class CategoryTag
     private int $poradi = 0;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
-    #[ORM\JoinColumn(name: 'id_hlavni_kategorie', referencedColumnName: 'id', nullable: true)]
-    private ?self $hlavniKategorie = null;
+    #[ORM\JoinColumn(name: 'id_hlavni_kategorie', nullable: true, onDelete: 'SET NULL', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ?self $mainCategoryTag = null;
 
     /**
      * @var Collection<int, Tag>
      */
-    #[ORM\OneToMany(mappedBy: 'kategorieTag', targetEntity: Tag::class)]
-    private Collection $tagy;
+    #[ORM\OneToMany(mappedBy: 'categoryTag', targetEntity: Tag::class)]
+    private Collection $tags;
 
     public function __construct()
     {
-        $this->tagy = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -79,14 +79,14 @@ class CategoryTag
         return $this;
     }
 
-    public function getHlavniKategorie(): ?self
+    public function getMainCategoryTag(): ?self
     {
-        return $this->hlavniKategorie;
+        return $this->mainCategoryTag;
     }
 
-    public function setHlavniKategorie(?self $hlavniKategorie): static
+    public function setMainCategoryTag(?self $mainCategoryTag): static
     {
-        $this->hlavniKategorie = $hlavniKategorie;
+        $this->mainCategoryTag = $mainCategoryTag;
 
         return $this;
     }
@@ -94,16 +94,16 @@ class CategoryTag
     /**
      * @return Collection<int, Tag>
      */
-    public function getTagy(): Collection
+    public function getTags(): Collection
     {
-        return $this->tagy;
+        return $this->tags;
     }
 
     public function addTag(Tag $tag): static
     {
-        if (! $this->tagy->contains($tag)) {
-            $this->tagy->add($tag);
-            $tag->setKategorieTag($this);
+        if (! $this->tags->contains($tag)) {
+            $this->tags->add($tag);
+            $tag->setCategoryTag($this);
         }
 
         return $this;
@@ -111,8 +111,8 @@ class CategoryTag
 
     public function removeTag(Tag $tag): static
     {
-        if ($this->tagy->removeElement($tag) && $tag->getKategorieTag() === $this) {
-            $tag->setKategorieTag(null);
+        if ($this->tags->removeElement($tag) && $tag->getCategoryTag() === $this) {
+            $tag->setCategoryTag(null);
         }
 
         return $this;

@@ -1,0 +1,4 @@
+nextras_migrations:
+    dir: '%kernel.project_dir%/migrations' # migrations base directory
+    driver: mysql                          # pgsql or mysql
+    dbal: doctrine                         # nextras, nette, doctrine or dibi

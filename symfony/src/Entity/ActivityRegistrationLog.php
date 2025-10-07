@@ -13,12 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityRegistrationLogRepository::class)]
 #[ORM\Table(name: 'akce_prihlaseni_log')]
-#[ORM\Index(columns: ['typ'], name: 'typ')]
-#[ORM\Index(columns: ['id_zmenil'], name: 'id_zmenil')]
-#[ORM\Index(columns: ['id_akce'], name: 'FK_akce_prihlaseni_log_to_akce_seznam')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_akce_prihlaseni_log_to_uzivatele_hodnoty')]
-#[ORM\Index(columns: ['zdroj_zmeny'], name: 'zdroj_zmeny')]
-#[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id_log'])]
+#[ORM\Index(columns: ['typ'], name: 'IDX_typ')]
+#[ORM\Index(columns: ['zdroj_zmeny'], name: 'IDX_zdroj_zmeny')]
 class ActivityRegistrationLog
 {
     #[ORM\Id]
@@ -26,13 +22,19 @@ class ActivityRegistrationLog
     #[ORM\Column(name: 'id_log', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private ?int $idLog = null;
+    private ?int $id = null;
 
-    #[ORM\Column(name: 'id_akce', type: Types::INTEGER, nullable: false)]
-    private int $idAkce;
+    #[ORM\ManyToOne(targetEntity: Activity::class)]
+    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private Activity $activity;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $registeredUser;
 
     #[ORM\Column(name: 'kdy', type: Types::DATETIME_MUTABLE, nullable: false, options: [
         'default' => 'CURRENT_TIMESTAMP',
@@ -42,8 +44,11 @@ class ActivityRegistrationLog
     #[ORM\Column(name: 'typ', type: Types::STRING, length: 64, nullable: true)]
     private ?string $typ = null;
 
-    #[ORM\Column(name: 'id_zmenil', type: Types::INTEGER, nullable: true)]
-    private ?int $idZmenil = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_zmenil', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ?User $changedBy = null;
 
     #[ORM\Column(name: 'zdroj_zmeny', type: Types::STRING, length: 128, nullable: true)]
     private ?string $zdrojZmeny = null;
@@ -53,31 +58,31 @@ class ActivityRegistrationLog
     ])]
     private ?int $rocnik = null;
 
-    public function getIdLog(): ?int
+    public function getId(): ?int
     {
-        return $this->idLog;
+        return $this->id;
     }
 
-    public function getIdAkce(): int
+    public function getActivity(): Activity
     {
-        return $this->idAkce;
+        return $this->activity;
     }
 
-    public function setIdAkce(int $idAkce): self
+    public function setActivity(Activity $activity): self
     {
-        $this->idAkce = $idAkce;
+        $this->activity = $activity;
 
         return $this;
     }
 
-    public function getIdUzivatele(): int
+    public function getRegisteredUser(): User
     {
-        return $this->idUzivatele;
+        return $this->registeredUser;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setRegisteredUser(User $registeredUser): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->registeredUser = $registeredUser;
 
         return $this;
     }
@@ -106,14 +111,14 @@ class ActivityRegistrationLog
         return $this;
     }
 
-    public function getIdZmenil(): ?int
+    public function getChangedBy(): ?int
     {
-        return $this->idZmenil;
+        return $this->changedBy;
     }
 
-    public function setIdZmenil(?int $idZmenil): self
+    public function setChangedBy(?int $changedBy): self
     {
-        $this->idZmenil = $idZmenil;
+        $this->changedBy = $changedBy;
 
         return $this;
     }

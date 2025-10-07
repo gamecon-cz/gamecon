@@ -39,10 +39,10 @@ class DbMigrations
         return (bool)$this->getUnappliedMigrations();
     }
 
-    private function handleUnappliedMigrations(bool $silently): void
+    private function handleUnappliedMigrations(bool $silent): void
     {
         foreach ($this->getUnappliedMigrations() as $migration) {
-            $this->apply($migration, $silently || $migration->isEndless());
+            $this->apply($migration, $silent || $migration->isEndless());
         }
     }
 
@@ -217,6 +217,24 @@ SQL,
                     $fileBaseName,
                     $this->connection,
                 );
+            }
+
+            // Load migrations from symfony/migrations subdirectories
+            $symfonyMigrationsDir = dirname(__DIR__, 4) . '/symfony/migrations';
+            assert(is_dir($symfonyMigrationsDir), sprintf('Dir %s does not exist', $symfonyMigrationsDir));
+            foreach (glob($symfonyMigrationsDir . '/*', GLOB_ONLYDIR) as $subDir) {
+                foreach (glob($subDir . '/*.{php,sql}', GLOB_BRACE) as $fileName) {
+                    $fileBaseName = basename($fileName, '.php');
+                    if (!preg_match('~^\d.+~', $fileBaseName)) {
+                        continue;
+                    }
+
+                    $migrations[$fileBaseName] = new Migration(
+                        $fileName,
+                        $fileBaseName,
+                        $this->connection,
+                    );
+                }
             }
 
             ksort($migrations);

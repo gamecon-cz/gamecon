@@ -13,10 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserRoleLogRepository::class)]
 #[ORM\Table(name: 'uzivatele_role_log')]
-#[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
-#[ORM\Index(columns: ['id_role'], name: 'id_zidle')]
-#[ORM\Index(columns: ['id_zmenil'], name: 'id_zmenil')]
 class UserRoleLog
 {
     #[ORM\Id]
@@ -26,14 +22,17 @@ class UserRoleLog
     ])]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE')]
+    private User $user;
 
-    #[ORM\Column(name: 'id_role', type: Types::INTEGER, nullable: false)]
-    private int $idRole;
+    #[ORM\ManyToOne(targetEntity: Role::class)]
+    #[ORM\JoinColumn(name: 'id_role', referencedColumnName: 'id_role', nullable: false, onDelete: 'CASCADE')]
+    private Role $role;
 
-    #[ORM\Column(name: 'id_zmenil', type: Types::INTEGER, nullable: true)]
-    private ?int $idZmenil = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_zmenil', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL')]
+    private ?User $changedBy = null;
 
     #[ORM\Column(name: 'zmena', type: Types::STRING, length: 128, nullable: false)]
     private string $zmena;
@@ -48,38 +47,38 @@ class UserRoleLog
         return $this->id;
     }
 
-    public function getIdUzivatele(): int
+    public function getUser(): User
     {
-        return $this->idUzivatele;
+        return $this->user;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUser(User $user): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->user = $user;
 
         return $this;
     }
 
-    public function getIdRole(): int
+    public function getRole(): Role
     {
-        return $this->idRole;
+        return $this->role;
     }
 
-    public function setIdRole(int $idRole): self
+    public function setRole(Role $role): self
     {
-        $this->idRole = $idRole;
+        $this->role = $role;
 
         return $this;
     }
 
-    public function getIdZmenil(): ?int
+    public function getChangedBy(): ?User
     {
-        return $this->idZmenil;
+        return $this->changedBy;
     }
 
-    public function setIdZmenil(?int $idZmenil): self
+    public function setChangedBy(?User $changedBy): self
     {
-        $this->idZmenil = $idZmenil;
+        $this->changedBy = $changedBy;
 
         return $this;
     }

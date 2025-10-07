@@ -13,20 +13,22 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: GoogleApiUserTokenRepository::class)]
 #[ORM\Table(name: 'google_api_user_tokens')]
-#[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_user_id_google_client_id', columns: ['user_id', 'google_client_id'])]
 class GoogleApiUserToken
 {
+    #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER, options: [
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private int $id; // @phpstan-ignore-line property.onlyRead
+    private ?int $id = null;
 
-    #[ORM\Id]
-    #[ORM\Column(name: 'user_id', type: Types::INTEGER, nullable: false)]
-    private int $userId;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $user;
 
-    #[ORM\Id]
     #[ORM\Column(name: 'google_client_id', type: Types::STRING, length: 128, nullable: false)]
     private string $googleClientId;
 
@@ -38,14 +40,14 @@ class GoogleApiUserToken
         return $this->id;
     }
 
-    public function getUserId(): int
+    public function getUser(): User
     {
-        return $this->userId;
+        return $this->user;
     }
 
-    public function setUserId(int $userId): self
+    public function setUser(User $user): self
     {
-        $this->userId = $userId;
+        $this->user = $user;
 
         return $this;
     }

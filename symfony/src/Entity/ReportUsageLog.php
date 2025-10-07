@@ -13,9 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ReportUsageLogRepository::class)]
 #[ORM\Table(name: 'reporty_log_pouziti')]
-#[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
-#[ORM\Index(columns: ['id_reportu', 'id_uzivatele'], name: 'report_uzivatel')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
+#[ORM\Index(columns: ['id_reportu', 'id_uzivatele'], name: 'IDX_id_reportu_id_uzivatele')]
 class ReportUsageLog
 {
     #[ORM\Id]
@@ -25,13 +23,15 @@ class ReportUsageLog
     ])]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'id_reportu', type: Types::INTEGER, nullable: false, options: [
-        'unsigned' => true,
-    ])]
-    private int $idReportu;
+    #[ORM\ManyToOne(targetEntity: Report::class)]
+    #[ORM\JoinColumn(name: 'id_reportu', nullable: false, onDelete: 'CASCADE')]
+    private Report $report;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $usedBy;
 
     #[ORM\Column(name: 'format', type: Types::STRING, length: 10, nullable: false)]
     private string $format;
@@ -47,26 +47,26 @@ class ReportUsageLog
         return $this->id;
     }
 
-    public function getIdReportu(): int
+    public function getReport(): Report
     {
-        return $this->idReportu;
+        return $this->report;
     }
 
-    public function setIdReportu(int $idReportu): self
+    public function setReport(Report $report): self
     {
-        $this->idReportu = $idReportu;
+        $this->report = $report;
 
         return $this;
     }
 
-    public function getIdUzivatele(): int
+    public function getUsedBy(): User
     {
-        return $this->idUzivatele;
+        return $this->usedBy;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUsedBy(User $usedBy): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->usedBy = $usedBy;
 
         return $this;
     }

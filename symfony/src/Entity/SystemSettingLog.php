@@ -13,9 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: SystemSettingLogRepository::class)]
 #[ORM\Table(name: 'systemove_nastaveni_log')]
-#[ORM\UniqueConstraint(name: 'id_nastaveni_log', columns: ['id_nastaveni_log'])]
-#[ORM\Index(columns: ['id_nastaveni'], name: 'FK_systemove_nastaveni_log_to_systemove_nastaveni')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_systemove_nastaveni_log_to_uzivatele_hodnoty')]
 class SystemSettingLog
 {
     #[ORM\Id]
@@ -23,15 +20,19 @@ class SystemSettingLog
     #[ORM\Column(name: 'id_nastaveni_log', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private ?int $idNastaveniLog = null;
+    private ?int $id = null;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: true)]
-    private ?int $idUzivatele = null;
-
-    #[ORM\Column(name: 'id_nastaveni', type: Types::BIGINT, nullable: false, options: [
-        'unsigned' => true,
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
+        'ON UPDATE' => 'CASCADE',
     ])]
-    private int $idNastaveni;
+    private ?User $changedBy = null;
+
+    #[ORM\ManyToOne(targetEntity: SystemSetting::class)]
+    #[ORM\JoinColumn(name: 'id_nastaveni', referencedColumnName: 'id_nastaveni', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private SystemSetting $systemSetting;
 
     #[ORM\Column(name: 'hodnota', type: Types::STRING, length: 256, nullable: true)]
     private ?string $hodnota = null;
@@ -44,31 +45,31 @@ class SystemSettingLog
     ])]
     private \DateTime $kdy;
 
-    public function getIdNastaveniLog(): ?int
+    public function getId(): ?int
     {
-        return $this->idNastaveniLog;
+        return $this->id;
     }
 
-    public function getIdUzivatele(): ?int
+    public function getChangedBy(): ?User
     {
-        return $this->idUzivatele;
+        return $this->changedBy;
     }
 
-    public function setIdUzivatele(?int $idUzivatele): self
+    public function setChangedBy(?User $changedBy): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->changedBy = $changedBy;
 
         return $this;
     }
 
-    public function getIdNastaveni(): int
+    public function getSystemSetting(): SystemSetting
     {
-        return $this->idNastaveni;
+        return $this->systemSetting;
     }
 
-    public function setIdNastaveni(int $idNastaveni): self
+    public function setSystemSetting(SystemSetting $systemSetting): self
     {
-        $this->idNastaveni = $idNastaveni;
+        $this->systemSetting = $systemSetting;
 
         return $this;
     }

@@ -68,6 +68,7 @@ return array(
     'PWGen\\' => array($vendorDir . '/roderik/pwgen-php/src'),
     'PHPStan\\' => array($vendorDir . '/phpstan/phpstan-doctrine/src'),
     'OpenSpout\\' => array($vendorDir . '/openspout/openspout/src'),
+    'Nextras\\Migrations\\' => array($vendorDir . '/nextras/migrations/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
     'Michelf\\' => array($vendorDir . '/michelf/php-markdown/Michelf'),
     'Ifsnop\\' => array($vendorDir . '/ifsnop/mysqldump-php/src/Ifsnop'),

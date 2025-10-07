@@ -122,6 +122,10 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         array (
             'OpenSpout\\' => 10,
         ),
+        'N' => 
+        array (
+            'Nextras\\Migrations\\' => 19,
+        ),
         'M' => 
         array (
             'Monolog\\' => 8,
@@ -439,6 +443,10 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         array (
             0 => __DIR__ . '/..' . '/openspout/openspout/src',
         ),
+        'Nextras\\Migrations\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/nextras/migrations/src',
+        ),
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
@@ -668,6 +676,12 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         'Google_Utils_UriTemplate' => __DIR__ . '/..' . '/google/apiclient/src/aliases.php',
         'MySQLDump' => __DIR__ . '/..' . '/dg/mysql-dump/src/MySQLDump.php',
         'MySQLImport' => __DIR__ . '/..' . '/dg/mysql-dump/src/MySQLImport.php',
+        'Nextras\\Migrations\\Exception' => __DIR__ . '/..' . '/nextras/migrations/src/exceptions.php',
+        'Nextras\\Migrations\\ExecutionException' => __DIR__ . '/..' . '/nextras/migrations/src/exceptions.php',
+        'Nextras\\Migrations\\IOException' => __DIR__ . '/..' . '/nextras/migrations/src/exceptions.php',
+        'Nextras\\Migrations\\LockException' => __DIR__ . '/..' . '/nextras/migrations/src/exceptions.php',
+        'Nextras\\Migrations\\LogicException' => __DIR__ . '/..' . '/nextras/migrations/src/exceptions.php',
+        'Nextras\\Migrations\\RuntimeException' => __DIR__ . '/..' . '/nextras/migrations/src/exceptions.php',
         'Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
         'Override' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/Override.php',
         'PHPUnit\\Event\\Application\\Finished' => __DIR__ . '/..' . '/phpunit/phpunit/src/Event/Events/Application/Finished.php',

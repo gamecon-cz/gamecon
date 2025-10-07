@@ -1,0 +1,62 @@
+x-php-service-base: &php-service-base
+    deploy:
+      replicas: 0
+
+    volumes:
+      - ./src:/usr/src/app/src
+      - ./tests:/usr/src/app/tests
+      - ./composer.bridgeless.json:/usr/src/app/composer.bridgeless.json
+
+    environment:
+      PHP_EXTENSION_PGSQL: 1
+      PHP_EXTENSION_PDO_PGSQL: 1
+
+services:
+  php71:
+    <<: *php-service-base
+    image: thecodingmachine/php:7.1-v3-cli
+
+  php72:
+    <<: *php-service-base
+    image: thecodingmachine/php:7.2-v4-cli
+
+  php73:
+    <<: *php-service-base
+    image: thecodingmachine/php:7.3-v4-cli
+
+  php74:
+    <<: *php-service-base
+    image: thecodingmachine/php:7.4-v4-cli
+
+  php80:
+    <<: *php-service-base
+    image: thecodingmachine/php:8.0-v4-cli
+
+  php81:
+    <<: *php-service-base
+    image: thecodingmachine/php:8.1-v4-cli
+
+  php82:
+    <<: *php-service-base
+    image: thecodingmachine/php:8.2-v4-cli
+
+  php83:
+    <<: *php-service-base
+    image: thecodingmachine/php:8.3-v4-cli
+
+  php84:
+    <<: *php-service-base
+    image: thecodingmachine/php:8.4-v4-cli
+
+  postgres:
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nextras_migrations_test
+
+  mysql:
+    image: mysql:5.6
+    environment:
+      MYSQL_DATABASE: nextras_migrations_test
+      MYSQL_ROOT_PASSWORD: root

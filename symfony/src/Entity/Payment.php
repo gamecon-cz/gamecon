@@ -15,19 +15,22 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: PaymentRepository::class)]
 #[ORM\Table(name: 'platby')]
-#[ORM\Index(columns: ['id_uzivatele', 'rok'], name: 'id_uzivatele_rok')]
-#[ORM\UniqueConstraint(name: 'fio_id', columns: ['fio_id'])]
+#[ORM\Index(columns: ['id_uzivatele', 'rok'], name: 'IDX_id_uzivatele_rok')]
+#[ORM\UniqueConstraint(name: 'UNIQ_fio_id', columns: ['fio_id'])]
 class Payment
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER, options: [
-        'comment' => 'kvůli indexu a vícenásobným platbám',
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
     ])]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: true)]
-    private ?int $idUzivatele = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ?User $beneficiary = null;
 
     #[ORM\Column(name: 'fio_id', type: Types::BIGINT, nullable: true)]
     private ?int $fioId = null;
@@ -47,8 +50,11 @@ class Payment
     #[ORM\Column(name: 'provedeno', type: Types::DATETIME_MUTABLE, nullable: false)]
     private \DateTime $provedeno;
 
-    #[ORM\Column(name: 'provedl', type: Types::INTEGER, nullable: false)]
-    private int $provedl;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'provedl', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'RESTRICT', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $madeBy;
 
     #[ORM\Column(name: 'nazev_protiuctu', type: Types::STRING, length: 255, nullable: true)]
     private ?string $nazevProtiuctu = null;
@@ -73,14 +79,14 @@ class Payment
         return $this->id;
     }
 
-    public function getIdUzivatele(): ?int
+    public function getBeneficiary(): ?User
     {
-        return $this->idUzivatele;
+        return $this->beneficiary;
     }
 
-    public function setIdUzivatele(?int $idUzivatele): self
+    public function setBeneficiary(?User $beneficiary): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->beneficiary = $beneficiary;
 
         return $this;
     }
@@ -157,14 +163,14 @@ class Payment
         return $this;
     }
 
-    public function getProvedl(): int
+    public function getMadeBy(): User
     {
-        return $this->provedl;
+        return $this->madeBy;
     }
 
-    public function setProvedl(int $provedl): self
+    public function setMadeBy(User $madeBy): self
     {
-        $this->provedl = $provedl;
+        $this->madeBy = $madeBy;
 
         return $this;
     }

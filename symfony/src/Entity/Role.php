@@ -13,15 +13,17 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: RoleRepository::class)]
 #[ORM\Table(name: 'role_seznam')]
-#[ORM\UniqueConstraint(name: 'kod_role', columns: ['kod_role'])]
-#[ORM\UniqueConstraint(name: 'nazev_role', columns: ['nazev_role'])]
-#[ORM\Index(columns: ['typ_role'], name: 'typ_role_idx')]
-#[ORM\Index(columns: ['vyznam_role'], name: 'vyznam_role_idx')]
+#[ORM\UniqueConstraint(name: 'UNIQ_kod_role', columns: ['kod_role'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_nazev_role', columns: ['nazev_role'])]
+#[ORM\Index(columns: ['typ_role'], name: 'IDX_typ_role')]
+#[ORM\Index(columns: ['vyznam_role'], name: 'IDX_vyznam_role')]
 class Role
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_role', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id_role', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'kod_role', length: 36, nullable: false)]

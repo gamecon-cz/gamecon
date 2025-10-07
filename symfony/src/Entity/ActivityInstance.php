@@ -13,31 +13,34 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityInstanceRepository::class)]
 #[ORM\Table(name: 'akce_instance')]
-#[ORM\Index(columns: ['id_hlavni_akce'], name: 'FK_akce_instance_to_akce_seznam')]
-#[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id_instance'])]
 class ActivityInstance
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_instance', type: Types::INTEGER)]
-    private ?int $idInstance = null;
+    #[ORM\Column(name: 'id_instance', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
+    private ?int $id = null;
 
-    #[ORM\Column(name: 'id_hlavni_akce', type: Types::INTEGER, nullable: false)]
-    private int $idHlavniAkce;
+    #[ORM\ManyToOne(targetEntity: Activity::class)]
+    #[ORM\JoinColumn(name: 'id_hlavni_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private Activity $mainActivity;
 
-    public function getIdInstance(): ?int
+    public function getId(): ?int
     {
-        return $this->idInstance;
+        return $this->id;
     }
 
-    public function getIdHlavniAkce(): int
+    public function getMainActivity(): Activity
     {
-        return $this->idHlavniAkce;
+        return $this->mainActivity;
     }
 
-    public function setIdHlavniAkce(int $idHlavniAkce): self
+    public function setMainActivity(Activity $mainActivity): self
     {
-        $this->idHlavniAkce = $idHlavniAkce;
+        $this->mainActivity = $mainActivity;
 
         return $this;
     }

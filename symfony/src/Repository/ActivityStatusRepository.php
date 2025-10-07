@@ -40,4 +40,13 @@ class ActivityStatusRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    public function findByName(string $name): ?ActivityStatus
+    {
+        return $this->createQueryBuilder('as')
+            ->andWhere('as.nazev = :name')
+            ->setParameter('name', $name)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

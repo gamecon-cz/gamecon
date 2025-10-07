@@ -19,7 +19,9 @@ class ShopGrid
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'text', type: Types::STRING, length: 255, nullable: true)]

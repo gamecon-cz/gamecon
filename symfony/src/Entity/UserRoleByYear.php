@@ -13,20 +13,26 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserRoleByYearRepository::class)]
 #[ORM\Table(name: 'uzivatele_role_podle_rocniku')]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'FK_uzivatele_role_podle_rocniku_to_uzivatele_hodnoty')]
-#[ORM\UniqueConstraint(name: 'PRIMARY', columns: ['id'])]
 class UserRoleByYear
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::INTEGER)]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $user;
 
-    #[ORM\Column(name: 'id_role', type: Types::INTEGER, nullable: false)]
-    private int $idRole;
+    #[ORM\ManyToOne(targetEntity: Role::class)]
+    #[ORM\JoinColumn(name: 'id_role', referencedColumnName: 'id_role', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private Role $role;
 
     #[ORM\Column(name: 'od_kdy', type: Types::DATETIME_MUTABLE, nullable: false)]
     private \DateTime $odKdy;
@@ -39,26 +45,26 @@ class UserRoleByYear
         return $this->id;
     }
 
-    public function getIdUzivatele(): int
+    public function getUser(): User
     {
-        return $this->idUzivatele;
+        return $this->user;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUser(User $user): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->user = $user;
 
         return $this;
     }
 
-    public function getIdRole(): int
+    public function getRole(): Role
     {
-        return $this->idRole;
+        return $this->role;
     }
 
-    public function setIdRole(int $idRole): self
+    public function setRole(Role $role): self
     {
-        $this->idRole = $idRole;
+        $this->role = $role;
 
         return $this;
     }

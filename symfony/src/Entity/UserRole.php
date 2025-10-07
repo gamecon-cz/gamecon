@@ -13,58 +13,63 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserRoleRepository::class)]
 #[ORM\Table(name: 'uzivatele_role')]
-#[ORM\UniqueConstraint(name: 'id', columns: ['id'])]
-#[ORM\Index(columns: ['posadil'], name: 'posadil')]
-#[ORM\Index(columns: ['id_role'], name: 'FK_uzivatele_role_role_seznam')]
+#[ORM\UniqueConstraint(name: 'UNIQ_id_uzivatele_id_role', columns: ['id_uzivatele', 'id_role'])]
 class UserRole
 {
-    #[ORM\GeneratedValue]
+    #[ORM\Id]
     #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private int $id; // @phpstan-ignore-line property.onlyRead
+    private ?int $id = null;
 
-    #[ORM\Id]
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER)]
-    private int $idUzivatele;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private User $user;
 
-    #[ORM\Id]
-    #[ORM\Column(name: 'id_role', type: Types::INTEGER)]
-    private int $idRole;
+    #[ORM\ManyToOne(targetEntity: Role::class)]
+    #[ORM\JoinColumn(name: 'id_role', referencedColumnName: 'id_role', nullable: false, onDelete: 'CASCADE', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private Role $role;
 
     #[ORM\Column(name: 'posazen', type: Types::DATETIME_MUTABLE, nullable: false, options: [
         'default' => 'CURRENT_TIMESTAMP',
     ])]
     private \DateTime $posazen;
 
-    #[ORM\Column(name: 'posadil', type: Types::INTEGER, nullable: true)]
-    private ?int $posadil = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'posadil', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
+        'ON UPDATE' => 'CASCADE',
+    ])]
+    private ?User $givenBy = null;
 
     public function getId(): int
     {
         return $this->id;
     }
 
-    public function getIdUzivatele(): int
+    public function getUser(): User
     {
-        return $this->idUzivatele;
+        return $this->user;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUser(User $user): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->user = $user;
 
         return $this;
     }
 
-    public function getIdRole(): int
+    public function getRole(): Role
     {
-        return $this->idRole;
+        return $this->role;
     }
 
-    public function setIdRole(int $idRole): self
+    public function setRole(Role $role): self
     {
-        $this->idRole = $idRole;
+        $this->role = $role;
 
         return $this;
     }
@@ -81,14 +86,14 @@ class UserRole
         return $this;
     }
 
-    public function getPosadil(): ?int
+    public function getGivenBy(): ?User
     {
-        return $this->posadil;
+        return $this->givenBy;
     }
 
-    public function setPosadil(?int $posadil): self
+    public function setGivenBy(?User $givenBy): self
     {
-        $this->posadil = $posadil;
+        $this->givenBy = $givenBy;
 
         return $this;
     }

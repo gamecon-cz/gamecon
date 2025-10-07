@@ -13,36 +13,35 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserUrlRepository::class)]
 #[ORM\Table(name: 'uzivatele_url')]
-#[ORM\UniqueConstraint(name: 'id_url_uzivatele', columns: ['id_url_uzivatele'])]
-#[ORM\Index(columns: ['id_uzivatele'], name: 'id_uzivatele')]
 class UserUrl
 {
+    #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id_url_uzivatele', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
-    private int $idUrlUzivatele; // @phpstan-ignore-line property.onlyRead
+    private ?int $id = null;
 
-    #[ORM\Column(name: 'id_uzivatele', type: Types::INTEGER, nullable: false)]
-    private int $idUzivatele;
+    #[ORM\OneToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE')]
+    private User $user;
 
-    #[ORM\Id]
-    #[ORM\Column(name: 'url', type: Types::STRING, length: 255, nullable: false)]
+    #[ORM\Column(name: 'url', type: Types::STRING, length: 255, unique: true, nullable: false)]
     private string $url;
 
-    public function getIdUrlUzivatele(): int
+    public function getId(): int
     {
-        return $this->idUrlUzivatele;
+        return $this->id;
     }
 
-    public function getIdUzivatele(): int
+    public function getUser(): User
     {
-        return $this->idUzivatele;
+        return $this->user;
     }
 
-    public function setIdUzivatele(int $idUzivatele): self
+    public function setUser(User $user): self
     {
-        $this->idUzivatele = $idUzivatele;
+        $this->user = $user;
 
         return $this;
     }
