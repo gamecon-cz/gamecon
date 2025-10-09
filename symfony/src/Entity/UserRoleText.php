@@ -35,6 +35,11 @@ class UserRoleText
     #[ORM\Column(name: 'popis_role', type: Types::TEXT, nullable: true)]
     private ?string $popisRole = null;
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
     public function getVyznamRole(): string
     {
         return $this->vyznamRole;

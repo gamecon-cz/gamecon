@@ -23,9 +23,7 @@ class ActivityStatusLog
     private Activity $activity;
 
     #[ORM\ManyToOne(targetEntity: ActivityStatus::class)]
-    #[ORM\JoinColumn(name: 'id_stav', referencedColumnName: 'id_stav', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_stav', referencedColumnName: 'id_stav', nullable: false, onDelete: 'CASCADE')]
     private ActivityStatus $status;
 
     #[ORM\Column(name: 'kdy', type: Types::DATETIME_IMMUTABLE, nullable: false, options: [

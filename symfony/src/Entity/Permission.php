@@ -16,10 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Permission
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_prava', type: Types::BIGINT, options: [
-        'unsigned' => true,
-    ])]
+    #[ORM\Column(name: 'id_prava', type: Types::BIGINT)]
     private ?int $id = null;
 
     #[ORM\Column(name: 'jmeno_prava', length: 255, nullable: false)]

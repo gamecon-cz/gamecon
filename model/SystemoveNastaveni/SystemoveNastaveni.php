@@ -443,7 +443,7 @@ SQL,
     private function vlozOstatniBonusyVypravecuDoPopisu(array $zaznamy): array
     {
         foreach ($zaznamy as &$zaznam) {
-            if ($zaznam['klic'] !== 'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU') {
+            if ($zaznam['klic'] !== Klic::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU) {
                 continue;
             }
             $bonusZaStandardni3hAz5hAktivitu = (int)$zaznam['hodnota'];

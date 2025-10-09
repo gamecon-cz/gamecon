@@ -20,10 +20,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Role
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_role', type: Types::BIGINT, options: [
-        'unsigned' => true,
-    ])]
+    #[ORM\Column(name: 'id_role', type: Types::BIGINT)]
     private ?int $id = null;
 
     #[ORM\Column(name: 'kod_role', length: 36, nullable: false)]
