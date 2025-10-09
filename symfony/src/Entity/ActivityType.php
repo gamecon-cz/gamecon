@@ -16,8 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 class ActivityType
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id_typu', type: Types::BIGINT, options: [
+    #[ORM\Column(name: 'id_typu', type: Types::INTEGER, options: [
         'unsigned' => true,
     ])]
     private ?int $id = null;
@@ -34,8 +33,7 @@ class ActivityType
     #[ORM\ManyToOne(targetEntity: Page::class)]
     #[ORM\JoinColumn(name: 'stranka_o', referencedColumnName: 'id_stranky', nullable: false, onDelete: 'RESTRICT', options: [
         'ON UPDATE' => 'CASCADE',
-    ])
-    ]
+    ])]
     private Page $pageAbout;
 
     #[ORM\Column(name: 'poradi', type: Types::INTEGER, nullable: false)]

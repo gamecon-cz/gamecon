@@ -23,7 +23,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
             // Testovací tabulka s FK na uzivatele_hodnoty
             'CREATE TABLE test_uzivatel_reference (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                id_uzivatele INT NOT NULL,
+                id_uzivatele BIGINT UNSIGNED NOT NULL,
                 test_data VARCHAR(100),
                 FOREIGN KEY (id_uzivatele) REFERENCES uzivatele_hodnoty(id_uzivatele)
             )',
@@ -31,7 +31,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
             // Testovací tabulka s unique indexem
             'CREATE TABLE test_unique_uzivatel (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                id_uzivatele INT NOT NULL,
+                id_uzivatele BIGINT UNSIGNED NOT NULL,
                 unique_field VARCHAR(50),
                 UNIQUE KEY unique_user_field (id_uzivatele, unique_field),
                 FOREIGN KEY (id_uzivatele) REFERENCES uzivatele_hodnoty(id_uzivatele)
@@ -40,7 +40,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
             // Testovací tabulka bez FK
             'CREATE TABLE test_no_fk_reference (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                id_uzivatele INT NOT NULL,
+                id_uzivatele BIGINT UNSIGNED NOT NULL,
                 some_data VARCHAR(100)
             )',
         ];
@@ -223,7 +223,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
             // Unique fields
             'login_uzivatele' => 'stary_login_unique',
             'email1_uzivatele' => 'stary_unique@test.com',
-            
+
             // All other fields
             'jmeno_uzivatele' => 'StaryJmeno',
             'prijmeni_uzivatele' => 'StaryPrijmeni',

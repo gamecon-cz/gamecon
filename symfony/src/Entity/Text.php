@@ -20,9 +20,7 @@ class Text
      * Hash-based ID (not auto-increment)
      */
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: Types::BIGINT, unique: true, options: [
-        'unsigned' => true,
-    ])]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, unique: true)]
     private ?int $id = null;
 
     #[ORM\Column(name: 'text', type: Types::TEXT, nullable: false)]

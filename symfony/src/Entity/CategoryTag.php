@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: CategoryTagRepository::class)]
 #[ORM\Table(name: 'kategorie_sjednocenych_tagu')]
-#[ORM\Index(columns: ['nazev'], name: 'IDX_nazev')]
+#[ORM\UniqueConstraint(name: 'UNIQ_nazev', columns: ['nazev'])]
 class CategoryTag
 {
     #[ORM\Id]
@@ -34,7 +34,7 @@ class CategoryTag
     private int $poradi = 0;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
-    #[ORM\JoinColumn(name: 'id_hlavni_kategorie', nullable: true, onDelete: 'SET NULL', options: [
+    #[ORM\JoinColumn(name: 'id_hlavni_kategorie', nullable: true, onDelete: 'CASCADE', options: [
         'ON UPDATE' => 'CASCADE',
     ])]
     private ?self $mainCategoryTag = null;

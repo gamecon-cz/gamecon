@@ -3,7 +3,7 @@
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
-use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as NastaveniSql;
+use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Sql;
 
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 
@@ -18,7 +18,9 @@ $letosniChteneKlice    = SystemoveNastaveniKlice::jednorocniKlice();
 $letosniChteneKliceSql = implode(
     ',',
     array_map(
-        static fn(string $klic) => '(' . dbQv($klic) . ')',
+        static fn(
+            string $klic,
+        ) => '(' . dbQv($klic) . ')',
         $letosniChteneKlice,
     ),
 );
@@ -49,11 +51,24 @@ if ($chybejiciKliceNastaveni) {
     $lonskeSystemoveNastaveni  = SystemoveNastaveni::zGlobals(rocnik: $lonskyRok);
     $lonskeZaznamy             = $lonskeSystemoveNastaveni->dejVsechnyZaznamyNastaveni();
     $letosniSystemoveNastaveni = SystemoveNastaveni::zGlobals(rocnik: $rocnik);
-    $systemUzivatelId = Uzivatel::SYSTEM;
+    $systemUzivatelId          = Uzivatel::SYSTEM;
     foreach ($chybejiciKliceNastaveni as $klicWrapped) {
         $klic = reset($klicWrapped);
         if (empty($lonskeZaznamy[$klic])) {
-            throw new LogicException("Chybí loňský záznam pro nastavení '$klic' (zřejmě se měnil ROCNIK, exportuj novou testovací databázi)");
+            if (!defined('UNIT_TESTS') || !UNIT_TESTS) {
+                throw new LogicException("Chybí loňský záznam pro nastavení '$klic'");
+            }
+            $lonskeZaznamy[$klic] = match ($klic) {
+                SystemoveNastaveniKlice::PRUMERNE_LONSKE_VSTUPNE => [
+                    Sql::KLIC       => $klic,
+                    Sql::VLASTNI    => 1,
+                    Sql::DATOVY_TYP => 'number',
+                    Sql::NAZEV      => 'Průměrné loňské vstupné',
+                    "Průměrné loňské vstupné",
+                    Sql::SKUPINA    => 'Finance',
+                ],
+                default                                          => throw new LogicException("Chybí loňský záznam pro nastavení '$klic'"),
+            };
         }
         $lonskyZaznam = $lonskeZaznamy[$klic];
         /**
@@ -63,19 +78,23 @@ if ($chybejiciKliceNastaveni) {
          */
         $letosniZaznam = array_intersect_key(
             $lonskyZaznam,
-            array_fill_keys(NastaveniSql::sloupce(), ''),
+            array_fill_keys(Sql::sloupce(), ''),
         );
-        unset($letosniZaznam[NastaveniSql::ID_NASTAVENI]); // záznam budeme ukládat jako nový, ID původního se nám nehodí
-        $letosniHodnota                                = $letosniSystemoveNastaveni->spocitejHodnotu($klic);
-        $letosniZaznam[NastaveniSql::HODNOTA]          = $letosniHodnota;
-        $letosniZaznam[NastaveniSql::POUZE_PRO_CTENI]  = 1;
-        $letosniZaznam[NastaveniSql::ROCNIK_NASTAVENI] = $rocnik;
+        unset($letosniZaznam[Sql::ID_NASTAVENI]); // záznam budeme ukládat jako nový, ID původního se nám nehodí
+        $letosniHodnota                       = $letosniSystemoveNastaveni->spocitejHodnotu($klic);
+        $letosniZaznam[Sql::HODNOTA]          = $letosniHodnota;
+        $letosniZaznam[Sql::POUZE_PRO_CTENI]  = 1;
+        $letosniZaznam[Sql::ROCNIK_NASTAVENI] = $rocnik;
 
         $setSql = implode(
             ',',
             array_map(
-                function ($klic, $hodnota) {
+                function (
+                    $klic,
+                    $hodnota,
+                ) {
                     $hodnota = $this->connection->real_escape_string($hodnota);
+
                     return "`$klic` = '$hodnota'";
                 },
                 array_keys($letosniZaznam),

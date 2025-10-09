@@ -40,7 +40,11 @@ class Migration
             if ($query === false) {
                 throw new \RuntimeException('Can not read DB migration file ' . $this->path);
             }
-            $this->q($query);
+            try {
+                $this->q($query);
+            } catch (\Exception $exception) {
+                throw new \RuntimeException('Error in DB migration file ' . $this->path . ': ' . $exception->getMessage(), previous: $exception);
+            }
 
             return;
         }

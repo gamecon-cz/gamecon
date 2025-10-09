@@ -16,7 +16,6 @@ use Doctrine\ORM\Mapping as ORM;
 class ActivityRegistrationState
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id_stavu_prihlaseni', type: Types::SMALLINT, options: [
         'unsigned' => true,
     ])]

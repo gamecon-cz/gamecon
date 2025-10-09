@@ -22,8 +22,10 @@ class UserUrl
     ])]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'unsigned' => true,
+    ])]
     private User $user;
 
     #[ORM\Column(name: 'url', type: Types::STRING, length: 255, unique: true, nullable: false)]

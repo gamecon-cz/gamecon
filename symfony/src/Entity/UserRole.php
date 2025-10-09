@@ -17,6 +17,7 @@ use Doctrine\ORM\Mapping as ORM;
 class UserRole
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
