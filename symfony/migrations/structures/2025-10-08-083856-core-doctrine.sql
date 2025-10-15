@@ -103,7 +103,7 @@ ALTER TABLE akce_seznam
     CHANGE popis popis BIGINT NOT NULL,
     CHANGE patri_pod patri_pod BIGINT UNSIGNED DEFAULT NULL,
     CHANGE typ typ INT UNSIGNED NOT NULL,
-    CHANGE stav stav INT UNSIGNED NOT NULL,
+    CHANGE stav stav INT UNSIGNED DEFAULT 1 NOT NULL,
     CHANGE zamcel zamcel BIGINT UNSIGNED DEFAULT NULL COMMENT 'případně kdo zamčel aktivitu pro svůj team',
     CHANGE lokace lokace BIGINT UNSIGNED DEFAULT NULL,
     CHANGE vybaveni vybaveni LONGTEXT NOT NULL;
@@ -168,9 +168,12 @@ ALTER TABLE akce_prihlaseni_log
     CHANGE id_zmenil id_zmenil BIGINT UNSIGNED DEFAULT NULL;
 
 ALTER TABLE akce_prihlaseni
+    ADD id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL FIRST,
     CHANGE id_akce id_akce BIGINT UNSIGNED NOT NULL,
     CHANGE id_uzivatele id_uzivatele BIGINT UNSIGNED NOT NULL,
-    CHANGE id_stavu_prihlaseni id_stavu_prihlaseni SMALLINT UNSIGNED NOT NULL;
+    CHANGE id_stavu_prihlaseni id_stavu_prihlaseni SMALLINT UNSIGNED NOT NULL,
+    DROP PRIMARY KEY,
+    ADD PRIMARY KEY (id);
 
 ALTER TABLE medailonky
     CHANGE id_uzivatele id_uzivatele BIGINT UNSIGNED NOT NULL COMMENT 'ON UPDATE CASCADE',
@@ -259,7 +262,7 @@ ALTER TABLE akce_instance
     CHANGE id_hlavni_akce id_hlavni_akce BIGINT UNSIGNED NOT NULL;
 
 ALTER TABLE akce_prihlaseni_spec
-    ADD id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
+    ADD id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL FIRST,
     CHANGE id_akce id_akce BIGINT UNSIGNED NOT NULL,
     CHANGE id_uzivatele id_uzivatele BIGINT UNSIGNED NOT NULL,
     CHANGE id_stavu_prihlaseni id_stavu_prihlaseni SMALLINT UNSIGNED NOT NULL,

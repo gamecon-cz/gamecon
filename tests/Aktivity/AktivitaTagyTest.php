@@ -2,57 +2,82 @@
 
 namespace Gamecon\Tests\Aktivity;
 
-use Gamecon\Tests\Db\AbstractTestDb;
+use App\Structure\Entity\ActivityInstanceEntityStructure;
+use App\Structure\Entity\CategoryTagEntityStructure;
+use App\Structure\Entity\ActivityEntityStructure;
+use App\Structure\Entity\TagEntityStructure;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Tests\Factory\ActivityFactory;
+use Gamecon\Tests\Factory\ActivityInstanceFactory;
+use Gamecon\Tests\Factory\CategoryTagFactory;
+use Gamecon\Tests\Factory\TagFactory;
 
 class AktivitaTagyTest extends AbstractTestDb
 {
+    // Disable legacy mysqli transaction wrapping because this test uses Doctrine factories.
+    // Doctrine uses a separate PDO connection, so legacy mysqli transactions would cause deadlocks.
+    // Foundry (via the Factories trait) handles transaction management for Doctrine.
+    protected static function keepTestClassDbChangesInTransaction(): bool
+    {
+        return false;
+    }
 
-    protected static string $initData = '
-    # akce_seznam
-    id_akce, patri_pod
-    1,       null
+    protected static function keepSingleTestMethodDbChangesInTransaction(): bool
+    {
+        return false;
+    }
 
-    # akce_instance
-    id_instance, id_hlavni_akce
-    10,          1
-    20,          1
+    protected static function resetDbAfterClass(): bool
+    {
+        return true;
+    }
 
-    # akce_seznam
-    id_akce, patri_pod
-    2,       10
-    3,       10
-    4,       20
-    5,       20
-
-    # kategorie_sjednocenych_tagu
-    id,   nazev
-    2001, Za co?
-
-    # sjednocene_tagy
-    id,   nazev, id_kategorie_tagu
-    1001, První, 2001
-    1002, druhý, 2001
-  ';
-
-    public static function setUpBeforeClass(): void {
-        static::$disableStrictTransTables = true;
-        parent::setUpBeforeClass();
+    protected static function getBeforeClassInitCallbacks(): array
+    {
+        return [
+            function () {
+                $mainActivity = ActivityFactory::createOne();
+                $activityInstances = ActivityInstanceFactory::createMany(2, [
+                    ActivityInstanceEntityStructure::mainActivity => $mainActivity,
+                ]);
+                $firstInstance = $activityInstances[0];
+                ActivityFactory::createMany(2, [
+                    ActivityEntityStructure::activityInstance => $firstInstance,
+                ]);
+                $secondInstance = $activityInstances[1];
+                ActivityFactory::createMany(2, [
+                    ActivityEntityStructure::activityInstance => $secondInstance,
+                ]);
+                $categoryTag = CategoryTagFactory::createOne([
+                    CategoryTagEntityStructure::nazev => 'Za co?',
+                ]);
+                TagFactory::createSequence([
+                    [TagEntityStructure::nazev => 'První', TagEntityStructure::categoryTag => $categoryTag],
+                    [TagEntityStructure::nazev => 'druhý', TagEntityStructure::categoryTag => $categoryTag],
+                ]);
+            },
+        ];
     }
 
     /**
      * @dataProvider provideAktivity
      */
-    public function testNastaveni(int $idNastavovaneAktivity, int $idCteneAktivity, array $nastaveneTagy) {
+    public function testNastaveni(
+        int   $idNastavovaneAktivity,
+        int   $idCteneAktivity,
+        array $nastaveneTagy,
+    ) {
         $a = Aktivita::zId($idNastavovaneAktivity);
         $a->nastavTagy($nastaveneTagy);
         $b = Aktivita::zId($idCteneAktivity);
         self::assertEquals(self::getSortedCopy($nastaveneTagy), self::getSortedCopy($b->tagy()),
-            "Tagy nastavené aktivitě $idNastavovaneAktivity musí odpovídat tagům přečteným z aktivity $idCteneAktivity."
+            "Tagy nastavené aktivitě $idNastavovaneAktivity musí odpovídat tagům přečteným z aktivity $idCteneAktivity.",
         );
     }
 
-    public static function provideAktivity(): array {
+    public static function provideAktivity(): array
+    {
         return [
             'obyčejná aktivita, nastavení více štítků'    => [1, 1, ['První', 'druhý']],
             'obyčejná aktivita, nastavení žádných štítků' => [1, 1, []],
@@ -65,23 +90,30 @@ class AktivitaTagyTest extends AbstractTestDb
     /**
      * @dataProvider provideAktivity
      */
-    public function testKopiePriInstanciaci(int $idAktivity, $_, array $tagy) {
+    public function testKopiePriInstanciaci(
+        int   $idAktivity,
+              $_,
+        array $tagy,
+    ) {
         $a = Aktivita::zId($idAktivity);
+        self::assertNotNull($a, "Aktivita pro ID $idAktivity musí existovat.");
         $a->nastavTagy($tagy);
         $b = $a->instancuj();
         self::assertEquals(
             self::getSortedCopy($tagy),
             self::getSortedCopy($b->tagy()),
-            "Tagy se musí propsat i do nově vytvořené instance"
+            "Tagy se musí propsat i do nově vytvořené instance",
         );
     }
 
     /**
      * Vrátí seřazenou kopii pole bez modifikace původního pole.
      */
-    private static function getSortedCopy(array $pole): array {
+    private static function getSortedCopy(array $pole): array
+    {
         $serazene = $pole;
         sort($serazene);
+
         return $serazene;
     }
 }

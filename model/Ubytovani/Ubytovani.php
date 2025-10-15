@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Ubytovani;
 
-use App\Structure\AccommodationSqlStructure;
+use App\Structure\Sql\AccommodationSqlStructure;
 use Gamecon\Ubytovani\SqlStruktura\UbytovaniSqlStruktura as Sql;
 
 /**

@@ -3,6 +3,7 @@
 namespace Gamecon\Vyjimkovac;
 
 use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
+use Symfony\Component\Filesystem\Filesystem;
 use Tracy\BlueScreen;
 use Tracy\Helpers;
 
@@ -103,6 +104,7 @@ class Vyjimkovac implements Logovac
     protected function db(): \EPDO
     {
         if (!$this->db) {
+            (new Filesystem())->mkdir(dirname($this->dbFile));
             $this->db = new \EPDO('sqlite:' . $this->dbFile);
         }
         return $this->db;

@@ -4,6 +4,7 @@ use \Gamecon\Cas\DateTimeCz;
 use \Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Granam\RemoveDiacritics\RemoveDiacritics;
+use Symfony\Component\Filesystem\Filesystem;
 
 $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
 
@@ -151,10 +152,13 @@ function dbText(
  */
 function dbTextHash(
     $text,
+    bool $save = true,
 ): int {
     $text = (string)$text;
     $hash = scrc32($text);
-    dbInsertIgnore('texty', ['id' => $hash, 'text' => $text]);
+    if ($save) {
+        dbInsertIgnore('texty', ['id' => $hash, 'text' => $text]);
+    }
 
     return $hash;
 }
@@ -179,19 +183,46 @@ function kvs(
     $index,
     $hodnota = null,
 ) {
-    if (!isset($GLOBALS['CACHEDB'][$nazev])) {
-        $db                         = new SQLite3(LOGY . '/' . $nazev . '.sqlite');
-        $GLOBALS['CACHEDB'][$nazev] = $db;
-        $db->exec("CREATE TABLE IF NOT EXISTS kvs (k INTEGER PRIMARY KEY, v TEXT)");
+    // Ensure LOGY directory exists
+    static $logyDirCreated = false;
+
+    if (!$logyDirCreated) {
+        (new Filesystem())->mkdir(LOGY);
+        $logyDirCreated = true;
     }
-    $db = $GLOBALS['CACHEDB'][$nazev];
-    if ($hodnota === null) {
-        // načítání
-        $o = $db->query('select v from kvs where k = ' . $index)->fetchArray(SQLITE3_NUM);
-        if ($o === false) return null;
-        else return $o[0];
-    } else {
-        $db->exec('insert into kvs values(' . $index . ',\'' . SQLite3::escapeString($hodnota) . '\')');
+
+    // Acquire file lock to prevent parallel access issues
+    $lockFile = LOGY . '/' . $nazev . '.lock';
+    $lock = fopen($lockFile, 'c+');
+    if (!$lock || !flock($lock, LOCK_EX)) {
+        throw new Exception("Cannot acquire lock for KVS: $nazev");
+    }
+
+    try {
+        if (!isset($GLOBALS['CACHEDB'][$nazev])) {
+            $db = new SQLite3(LOGY . '/' . $nazev . '.sqlite');
+            // Enable WAL (Write-Ahead Log) mode for better concurrent access, @see https://sqlite.org/wal.html
+            $db->exec('PRAGMA journal_mode=WAL');
+            // Wait up to 5 seconds if database is locked
+            $db->busyTimeout(5000);
+            $GLOBALS['CACHEDB'][$nazev] = $db;
+            $db->exec("CREATE TABLE IF NOT EXISTS kvs (k INTEGER PRIMARY KEY, v TEXT)");
+        }
+        $db = $GLOBALS['CACHEDB'][$nazev];
+
+        if ($hodnota === null) {
+            // načítání
+            $o = $db->query('select v from kvs where k = ' . $index)->fetchArray(SQLITE3_NUM);
+            return $o === false
+                ? null
+                : $o[0];
+        } else {
+            $db->exec('insert into kvs values(' . $index . ',\'' . SQLite3::escapeString($hodnota) . '\')');
+        }
+    } finally {
+        // finally block is executed even if return is called before
+        flock($lock, LOCK_UN);
+        fclose($lock);
     }
 }
 

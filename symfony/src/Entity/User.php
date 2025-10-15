@@ -507,6 +507,16 @@ class User
         return $this;
     }
 
+    public function getBadge(): UserBadge
+    {
+        return $this->badge;
+    }
+
+    public function setBadge(UserBadge $badge): void
+    {
+        $this->badge = $badge;
+    }
+
     public function getCelemeJmeno(): string
     {
         return $this->jmeno . ' ' . $this->prijmeni;

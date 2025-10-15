@@ -11,8 +11,7 @@ set -x
 # to avoid crash
 # [PHPStan\Symfony\XmlContainerNotExistsException]
 # Container /src/var/cache/dev/App_KernelDevDebugContainer.xml does not exist
-# (note: /src/var/cache/dev/srcApp_KernelDevDebugContainer.xml is legacy path)
-if [ ! -f var/cache/dev/App_KernelDevDebugContainer.xml ] && [ ! -f var/cache/dev/srcApp_KernelDevDebugContainer.xml ]; then
+if [ ! -f symfony/var/cache/dev/App_KernelDevDebugContainer.xml ]; then
   php bin/console --env=dev cache:warmup --no-optional-warmers
 fi
 

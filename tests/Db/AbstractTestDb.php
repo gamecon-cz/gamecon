@@ -9,7 +9,7 @@ use Zenstruck\Foundry\Test\Factories;
 abstract class AbstractTestDb extends KernelTestCase
 {
     use Factories;
-    
+
     private static ?DbWrapper $connection = null;
     /** @var string[] */
     protected static array  $initQueries = [];
@@ -68,7 +68,7 @@ abstract class AbstractTestDb extends KernelTestCase
                 }
             }
 
-            $initCallbacks = static::getInitCallbacks();
+            $initCallbacks = static::getBeforeClassInitCallbacks();
             foreach ($initCallbacks as $initCallback) {
                 $initCallback();
             }
@@ -91,6 +91,9 @@ abstract class AbstractTestDb extends KernelTestCase
         if (static::keepSingleTestMethodDbChangesInTransaction()) {
             self::$connection->rollback();
         }
+        if (static::resetDbAfterSingleTestMethod()) {
+            self::$connection->resetTestDb();
+        }
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
         $systemoveNastaveni->queryCache()->clear();
         $systemoveNastaveni->db()->clearPrefetchedDataVersions();
@@ -106,6 +109,16 @@ abstract class AbstractTestDb extends KernelTestCase
         return true;
     }
 
+    protected static function resetDbAfterSingleTestMethod(): bool
+    {
+        return false;
+    }
+
+    protected static function resetDbAfterClass(): bool
+    {
+        return false;
+    }
+
     protected static function getSetUpBeforeClassInitQueries(): array
     {
         return static::$initQueries;
@@ -119,7 +132,7 @@ abstract class AbstractTestDb extends KernelTestCase
     /**
      * @return array<callable>
      */
-    protected static function getInitCallbacks(): array
+    protected static function getBeforeClassInitCallbacks(): array
     {
         return [];
     }
@@ -128,6 +141,9 @@ abstract class AbstractTestDb extends KernelTestCase
     {
         if (static::keepTestClassDbChangesInTransaction()) {
             self::$connection->rollback();
+        }
+        if (static::resetDbAfterClass()) {
+            self::$connection->resetTestDb();
         }
         if (static::$disableStrictTransTables) {
             static::disableStrictTransTables();

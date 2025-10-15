@@ -11,3 +11,5 @@ UPDATE uzivatele_role SET posadil = NULL WHERE NOT EXISTS(SELECT 1 FROM uzivatel
 UPDATE akce_prihlaseni_log SET id_zmenil = NULL WHERE NOT EXISTS(SELECT 1 FROM uzivatele_hodnoty WHERE uzivatele_hodnoty.id_uzivatele = akce_prihlaseni_log.id_zmenil);
 
 DELETE FROM akce_sjednocene_tagy WHERE NOT EXISTS(SELECT 1 FROM akce_seznam WHERE akce_seznam.id_akce = akce_sjednocene_tagy.id_akce);
+
+UPDATE uzivatele_role_log SET id_zmenil = NULL WHERE NOT EXISTS(SELECT 1 FROM uzivatele_hodnoty WHERE uzivatele_hodnoty.id_uzivatele = uzivatele_role_log.id_zmenil);
