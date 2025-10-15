@@ -89,7 +89,7 @@ class BulkActivityLog
         return $this->madeBy;
     }
 
-    public function setMadeBy(?int $madeBy): self
+    public function setMadeBy(?User $madeBy): self
     {
         $this->madeBy = $madeBy;
 

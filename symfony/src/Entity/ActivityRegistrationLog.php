@@ -111,12 +111,12 @@ class ActivityRegistrationLog
         return $this;
     }
 
-    public function getChangedBy(): ?int
+    public function getChangedBy(): ?User
     {
         return $this->changedBy;
     }
 
-    public function setChangedBy(?int $changedBy): self
+    public function setChangedBy(?User $changedBy): self
     {
         $this->changedBy = $changedBy;
 

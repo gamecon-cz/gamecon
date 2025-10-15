@@ -33,7 +33,7 @@ class Tag
     #[ORM\Column(name: 'poznamka', type: Types::TEXT, nullable: false)]
     private string $poznamka = '';
 
-    #[ORM\ManyToOne(targetEntity: CategoryTag::class, inversedBy: 'tagy')]
+    #[ORM\ManyToOne(targetEntity: CategoryTag::class, inversedBy: 'tags')]
     #[ORM\JoinColumn(name: 'id_kategorie_tagu', nullable: false)]
     private ?CategoryTag $categoryTag = null;
 

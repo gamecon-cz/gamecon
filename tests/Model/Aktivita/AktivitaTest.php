@@ -40,7 +40,7 @@ VALUES
 SQL,
     ];
 
-    protected static function getInitCallbacks(): array
+    protected static function getBeforeClassInitCallbacks(): array
     {
         return [
             fn() => dbInsertUpdate(

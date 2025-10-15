@@ -26,6 +26,9 @@ class Payment
     ])]
     private ?int $id = null;
 
+    /**
+     * "Příjemce"
+     */
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
         'ON UPDATE' => 'CASCADE',
@@ -35,6 +38,9 @@ class Payment
     #[ORM\Column(name: 'fio_id', type: Types::BIGINT, nullable: true)]
     private ?int $fioId = null;
 
+    /**
+     * "Variabilní symbol, VS"
+     */
     #[ORM\Column(name: 'vs', type: Types::STRING, length: 255, nullable: true)]
     private ?string $vs = null;
 
@@ -50,6 +56,9 @@ class Payment
     #[ORM\Column(name: 'provedeno', type: Types::DATETIME_MUTABLE, nullable: false)]
     private \DateTime $provedeno;
 
+    /**
+     * "Provedl"
+     */
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'provedl', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'RESTRICT', options: [
         'ON UPDATE' => 'CASCADE',

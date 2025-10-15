@@ -43,8 +43,8 @@ class CategoryTagRepository extends ServiceEntityRepository
 
     public function findByNazev(string $nazev): ?CategoryTag
     {
-        return $this->createQueryBuilder('k')
-            ->andWhere('k.nazev = :nazev')
+        return $this->createQueryBuilder('category_tag')
+            ->andWhere('category_tag.nazev = :nazev')
             ->setParameter('nazev', $nazev)
             ->getQuery()
             ->getOneOrNullResult();
@@ -57,9 +57,9 @@ class CategoryTagRepository extends ServiceEntityRepository
      */
     public function findAllOrdered(): array
     {
-        return $this->createQueryBuilder('k')
-            ->orderBy('k.poradi', 'ASC')
-            ->addOrderBy('k.nazev', 'ASC')
+        return $this->createQueryBuilder('category_tag')
+            ->orderBy('category_tag.poradi', 'ASC')
+            ->addOrderBy('category_tag.nazev', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -71,10 +71,10 @@ class CategoryTagRepository extends ServiceEntityRepository
      */
     public function findMainCategories(): array
     {
-        return $this->createQueryBuilder('k')
-            ->andWhere('k.idHlavniKategorie IS NULL')
-            ->orderBy('k.poradi', 'ASC')
-            ->addOrderBy('k.nazev', 'ASC')
+        return $this->createQueryBuilder('category_tag')
+            ->andWhere('category_tag.idHlavniKategorie IS NULL')
+            ->orderBy('category_tag.poradi', 'ASC')
+            ->addOrderBy('category_tag.nazev', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -86,11 +86,11 @@ class CategoryTagRepository extends ServiceEntityRepository
      */
     public function findSubcategories(int $idHlavniKategorie): array
     {
-        return $this->createQueryBuilder('k')
-            ->andWhere('k.idHlavniKategorie = :hlavni')
+        return $this->createQueryBuilder('category_tag')
+            ->andWhere('category_tag.mainCategoryTag = :hlavni')
             ->setParameter('hlavni', $idHlavniKategorie)
-            ->orderBy('k.poradi', 'ASC')
-            ->addOrderBy('k.nazev', 'ASC')
+            ->orderBy('category_tag.poradi', 'ASC')
+            ->addOrderBy('category_tag.nazev', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -102,12 +102,12 @@ class CategoryTagRepository extends ServiceEntityRepository
      */
     public function findAllWithTagsHierarchical(): array
     {
-        return $this->createQueryBuilder('k')
-            ->leftJoin('k.tagy', 't')
-            ->addSelect('t')
-            ->orderBy('k.poradi', 'ASC')
-            ->addOrderBy('k.nazev', 'ASC')
-            ->addOrderBy('t.nazev', 'ASC')
+        return $this->createQueryBuilder('category_tag')
+            ->leftJoin('category_tag.tags', 'tags')
+            ->addSelect('tags')
+            ->orderBy('category_tag.poradi', 'ASC')
+            ->addOrderBy('category_tag.nazev', 'ASC')
+            ->addOrderBy('tags.nazev', 'ASC')
             ->getQuery()
             ->getResult();
     }

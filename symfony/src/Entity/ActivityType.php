@@ -68,6 +68,11 @@ class ActivityType
         return $this->id;
     }
 
+    public function setId(?int $id): void
+    {
+        $this->id = $id;
+    }
+
     public function getTyp1p(): string
     {
         return $this->typ1p;

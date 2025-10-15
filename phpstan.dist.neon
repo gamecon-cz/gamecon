@@ -6,6 +6,6 @@ parameters:
     paths:
         - symfony/config/
         - symfony/src/
-        - tests/Symfony/
-    scanDirectories:
-        - model
+
+    bootstrapFiles:
+        - nastaveni/zavadec-zaklad.php

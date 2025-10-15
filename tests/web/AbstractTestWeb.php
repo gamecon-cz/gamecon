@@ -152,15 +152,33 @@ SQL;
 
         foreach ($curlHandles as $url => $curlHandle) {
             $info = curl_getinfo($curlHandle);
+            $content = curl_multi_getcontent($curlHandle);
+
             if ($info['http_code'] >= 400 && $info['http_code'] !== 401) {
+                // Parse headers and body for diagnostic information
+                $parts = explode("\r\n\r\n", $content, 2);
+                $headers = $parts[0] ?? '';
+                $body = $parts[1] ?? '';
+
+                // Get first 10 lines of body for diagnostics
+                $bodyLines = explode("\n", $body);
+                $firstBodyLines = array_slice($bodyLines, 0, 10);
+                $bodyPreview = implode("\n", $firstBodyLines);
+                if (count($bodyLines) > 10) {
+                    $bodyPreview .= "\n... (" . (count($bodyLines) - 10) . " more lines)";
+                }
+
                 $errors[$info['url']] = sprintf(
-                    "nepodařilo se stáhnout stránku '%s', response code %d%s",
+                    "nepodařilo se stáhnout stránku '%s', response code %d%s\n\nHeaders:\n%s\n\nFirst lines of body:\n%s",
                     $url,
                     $info['http_code'],
                     $info['http_code'] === 404
                         ? ' (nenalezeno)'
                         : '',
+                    $headers,
+                    $bodyPreview
                 );
+
                 $file = TESTS_LOG_DIR . '/' . DB_NAME . '_' . parse_url($url, PHP_URL_PATH) . '.html';
                 $dir = dirname($file);
                 if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
@@ -168,13 +186,12 @@ SQL;
                 }
                 $bytes = file_put_contents(
                     $file,
-                    curl_multi_getcontent($curlHandle),
+                    $content,
                 );
                 if ($bytes === false) {
                     self::fail("Nelze uložit data do souboru '$file' pro výstup selhaného testu URL '$url'");
                 }
             } else {
-                $content = curl_multi_getcontent($curlHandle);
                 $parts   = explode("\r\n\r\n", $content);
                 $body    = $parts[1] ?? false;
                 if (!$body) {

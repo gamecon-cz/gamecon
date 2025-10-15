@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ActivityRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavAktivity;
 
 /**
  * Activity (main activity/event entity)
@@ -82,7 +84,9 @@ class Activity
     private int $rok;
 
     #[ORM\ManyToOne(targetEntity: ActivityStatus::class)]
-    #[ORM\JoinColumn(name: 'stav', referencedColumnName: 'id_stav', nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\JoinColumn(name: 'stav', referencedColumnName: 'id_stav', nullable: false, onDelete: 'RESTRICT', options: [
+        'default' => StavAktivity::NOVA,
+    ])]
     private ActivityStatus $status;
 
     #[ORM\Column(name: 'teamova', type: Types::BOOLEAN, nullable: false)]
@@ -137,8 +141,16 @@ class Activity
     ])]
     private bool $probehlaKorekce = false;
 
+    /**
+     * @var Collection<int, ActivityTag>
+     */
     #[ORM\OneToMany(mappedBy: 'activity', targetEntity: ActivityTag::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $activityTags;
+
+    public function __construct()
+    {
+        $this->activityTags = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -433,14 +445,14 @@ class Activity
         return $this;
     }
 
-    public function getPopisKratky(): string
+    public function getShortDescription(): string
     {
         return $this->shortDescription;
     }
 
-    public function setPopisKratky(string $opisKratky): self
+    public function setShortDescription(string $shortDescription): self
     {
-        $this->shortDescription = $opisKratky;
+        $this->shortDescription = $shortDescription;
 
         return $this;
     }
@@ -491,7 +503,7 @@ class Activity
 
     public function addActivityTag(ActivityTag $activityTag): self
     {
-        if (!$this->activityTags->contains($activityTag)) {
+        if (! $this->activityTags->contains($activityTag)) {
             $this->activityTags->add($activityTag);
             $activityTag->setActivity($this);
         }

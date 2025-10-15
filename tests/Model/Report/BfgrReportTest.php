@@ -13,7 +13,7 @@ class BfgrReportTest extends AbstractTestDb
 {
     private const ID_UZDLUZNIKA = 2;
 
-    protected static function getInitCallbacks(): array
+    protected static function getBeforeClassInitCallbacks(): array
     {
         return [
             function () {

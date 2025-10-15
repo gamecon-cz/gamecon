@@ -93,6 +93,7 @@ CREATE INDEX IDX_947919F2D84E9520 ON akce_prihlaseni_log (id_uzivatele);
 CREATE INDEX IDX_947919F2E2649593 ON akce_prihlaseni_log (id_zmenil);
 CREATE INDEX IDX_typ ON akce_prihlaseni_log (typ);
 CREATE INDEX IDX_zdroj_zmeny ON akce_prihlaseni_log (zdroj_zmeny);
+CREATE UNIQUE INDEX UNIQ_id_akce_id_uzivatele ON akce_prihlaseni (id_akce, id_uzivatele);
 ALTER TABLE akce_prihlaseni ADD CONSTRAINT FK_7B7E722B1E74DA0A FOREIGN KEY (id_akce) REFERENCES akce_seznam (id_akce);
 ALTER TABLE akce_prihlaseni ADD CONSTRAINT FK_7B7E722BD84E9520 FOREIGN KEY (id_uzivatele) REFERENCES uzivatele_hodnoty (id_uzivatele);
 ALTER TABLE akce_prihlaseni ADD CONSTRAINT FK_7B7E722B55D06BC9 FOREIGN KEY (id_stavu_prihlaseni) REFERENCES akce_prihlaseni_stavy (id_stavu_prihlaseni);

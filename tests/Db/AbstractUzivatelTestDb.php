@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Db;
 
 use Gamecon\Role\Role;
+use App\Structure\Sql\UserSqlStructure as UserSql;
+use App\Structure\Sql\UserRoleSqlStructure as UserRoleSql;
+use Gamecon\Uzivatel\Pohlavi;
 
 abstract class AbstractUzivatelTestDb extends AbstractTestDb
 {
@@ -12,17 +15,18 @@ abstract class AbstractUzivatelTestDb extends AbstractTestDb
      * @return \Uzivatel vrátí nového testovacího uživatele přihlášeného na GC
      */
     public static function prihlasenyUzivatel(): \Uzivatel {
-        static::zkontrolujRoliKPrihlaseniNaLetosniGc();
+        static::zkontrolujRoliProPrihlaseniNaLetosniGc();
 
         $cislo = self::unikatniCislo();
-        dbInsert('uzivatele_hodnoty', [
-            'login_uzivatele'  => 'test_' . $cislo,
-            'email1_uzivatele' => 'godric.cz+gc_test_' . $cislo . '@gmail.com',
+        dbInsert(UserSql::_table, [
+            UserSql::login_uzivatele  => 'test_' . $cislo,
+            UserSql::email1_uzivatele => 'godric.cz+gc_test_' . $cislo . '@gmail.com',
+            UserSql::pohlavi => Pohlavi::MUZ_KOD,
         ]);
         $idUzivatele = dbInsertId();
-        dbInsert('uzivatele_role', [
-            'id_uzivatele' => $idUzivatele,
-            'id_role'      => Role::PRIHLASEN_NA_LETOSNI_GC,
+        dbInsert(UserRoleSql::_table, [
+            UserRoleSql::id_uzivatele => $idUzivatele,
+            UserRoleSql::id_role      => Role::PRIHLASEN_NA_LETOSNI_GC,
         ]);
         $uzivatel = \Uzivatel::zId($idUzivatele);
         self::assertNotNull($uzivatel);
@@ -31,7 +35,7 @@ abstract class AbstractUzivatelTestDb extends AbstractTestDb
         return $uzivatel;
     }
 
-    protected static function zkontrolujRoliKPrihlaseniNaLetosniGc() {
+    protected static function zkontrolujRoliProPrihlaseniNaLetosniGc() {
         self::assertNotNull(
             Role::zId(Role::PRIHLASEN_NA_LETOSNI_GC),
             sprintf(

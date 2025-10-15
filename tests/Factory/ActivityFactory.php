@@ -6,9 +6,11 @@ namespace Gamecon\Tests\Factory;
 
 use App\Entity\Activity;
 use App\Repository\ActivityRepository;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 use Zenstruck\Foundry\Persistence\Proxy;
 use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
+use App\Structure\Entity\ActivityEntityStructure as Structure;
 
 /**
  * @extends PersistentProxyObjectFactory<Activity>
@@ -39,24 +41,24 @@ final class ActivityFactory extends PersistentProxyObjectFactory
     protected function defaults(): array
     {
         return [
-            'nazevAkce' => self::faker()->words(3, true),
-            'urlAkce' => self::faker()->slug(),
-            'zacatek' => self::faker()->dateTime(),
-            'konec' => self::faker()->dateTime(),
-            'kapacita' => self::faker()->numberBetween(5, 50),
-            'kapacitaF' => self::faker()->numberBetween(0, 25),
-            'kapacitaM' => self::faker()->numberBetween(0, 25),
-            'cena' => self::faker()->numberBetween(0, 500),
-            'bezSlevy' => self::faker()->boolean(),
-            'nedavaBonus' => self::faker()->boolean(),
-            'typ' => self::faker()->numberBetween(1, 10),
-            'rok' => self::faker()->numberBetween(2020, 2030),
-            'stav' => 1,
-            'teamova' => self::faker()->boolean(),
-            'popis' => self::faker()->numberBetween(1, 1000),
-            'opisKratky' => self::faker()->sentence(),
-            'vybaveni' => self::faker()->text(),
-            'probehlaKorekce' => false,
+            Structure::nazevAkce => self::faker()->words(3, true),
+            Structure::urlAkce => self::faker()->slug(),
+            Structure::zacatek => self::faker()->dateTime(),
+            Structure::konec => self::faker()->dateTime(),
+            Structure::kapacita => self::faker()->numberBetween(5, 50),
+            Structure::kapacitaF => self::faker()->numberBetween(0, 25),
+            Structure::kapacitaM => self::faker()->numberBetween(0, 25),
+            Structure::cena => self::faker()->numberBetween(0, 500),
+            Structure::bezSlevy => self::faker()->boolean(),
+            Structure::nedavaBonus => self::faker()->boolean(),
+            Structure::type => LazyValue::new(fn() => ActivityTypeFactory::random()),
+            Structure::rok => self::faker()->numberBetween(2020, 2030),
+            Structure::status => LazyValue::new(fn() => ActivityStatusFactory::random()),
+            Structure::teamova => self::faker()->boolean(),
+            Structure::description => LazyValue::new(fn() => TextFactory::createOne()),
+            Structure::shortDescription => self::faker()->sentence(),
+            Structure::vybaveni => self::faker()->text(),
+            Structure::probehlaKorekce => true,
         ];
     }
 }

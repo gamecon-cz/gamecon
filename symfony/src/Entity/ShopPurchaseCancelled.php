@@ -68,24 +68,24 @@ class ShopPurchaseCancelled
         return $this;
     }
 
-    public function getCustomer(): int
+    public function getCustomer(): User
     {
         return $this->customer;
     }
 
-    public function setCustomer(int $customer): self
+    public function setCustomer(User $customer): self
     {
         $this->customer = $customer;
 
         return $this;
     }
 
-    public function getShopItem(): int
+    public function getShopItem(): ShopItem
     {
         return $this->shopItem;
     }
 
-    public function setShopItem(int $shopItem): self
+    public function setShopItem(ShopItem $shopItem): self
     {
         $this->shopItem = $shopItem;
 

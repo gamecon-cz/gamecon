@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Factory;
 
 use App\Entity\ActivityInstance;
 use App\Repository\ActivityInstanceRepository;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 use Zenstruck\Foundry\Persistence\Proxy;
 use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
@@ -39,7 +40,7 @@ final class ActivityInstanceFactory extends PersistentProxyObjectFactory
     protected function defaults(): array
     {
         return [
-            'idHlavniAkce' => self::faker()->numberBetween(1, 1000),
+            'mainActivity' => LazyValue::new(fn() =>ActivityFactory::createOne()),
         ];
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use Godric\DbMigrations\DbMigrations;
+use Godric\DbMigrations\DbMigrationsConfig;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,24 +35,26 @@ class MigrationsContinueCommand extends Command
         dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
 
         // Create migrations config
-        $migrationsConfig = new \Godric\DbMigrations\DbMigrationsConfig(
+        $migrationsConfig = new DbMigrationsConfig(
             connection: $connection,
             migrationsDirectory: SQL_MIGRACE_DIR,
+            doBackups: false,
             backupsDirectory: SQL_MIGRACE_DIR . '/zalohy',
             useWebGui: false,
-            doBackups: false,
         );
 
         // Run migrations silently
-        $dbMigrations = new \Godric\DbMigrations\DbMigrations($migrationsConfig);
+        $dbMigrations = new DbMigrations($migrationsConfig);
 
         try {
             $dbMigrations->run(silent: true);
             $io->success('All migrations have been applied successfully');
+
             return Command::SUCCESS;
         } catch (\Throwable $e) {
             $io->error('Migration failed: ' . $e->getMessage());
             $io->writeln($e->getTraceAsString());
+
             return Command::FAILURE;
         }
     }
