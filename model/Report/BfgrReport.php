@@ -34,21 +34,20 @@ class BfgrReport
     }
 
     public function exportuj(
-        ?string    $format,
-        bool       $vcetneStavuNeplatice = false,
-        string     $doSouboru = null,
-        string|int $idUzivatele = null,
-    )
-    {
+        ?string      $format,
+        bool         $vcetneStavuNeplatice = false,
+        string       $doSouboru = null,
+        string | int $idUzivatele = null,
+    ) {
         $ucastPodleRoku = [];
-        $maxRok         = po($this->systemoveNastaveni->prihlasovaniUcastnikuDo())
+        $maxRok = po($this->systemoveNastaveni->prihlasovaniUcastnikuDo())
             ? $this->systemoveNastaveni->rocnik()
             : $this->systemoveNastaveni->rocnik() - 1;
         for ($rokUcasti = ARCHIV_OD; $rokUcasti <= $maxRok; $rokUcasti++) {
             $ucastPodleRoku[$rokUcasti] = 'účast ' . $rokUcasti;
         }
 
-//        $letosniPlacky = $this->letosniPlacky();
+        //        $letosniPlacky = $this->letosniPlacky();
 
         $letosniKostky = $this->letosniKostky();
 
@@ -58,10 +57,10 @@ class BfgrReport
 
         $letosniCovidTesty = $this->letosniCovidTesty();
 
-        $rocnik           = $this->systemoveNastaveni->rocnik();
+        $rocnik = $this->systemoveNastaveni->rocnik();
         $predmetUbytovani = TypPredmetu::UBYTOVANI;
-        $typUcast         = Role::TYP_UCAST;
-        $result           = dbQuery(<<<SQL
+        $typUcast = Role::TYP_UCAST;
+        $result = dbQuery(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
     prihlasen.posazen AS prihlasen_na_gc_kdy,
@@ -122,28 +121,30 @@ SQL,
                 0 => Role::PRIHLASEN_NA_LETOSNI_GC,
                 1 => Role::PRITOMEN_NA_LETOSNIM_GC,
                 2 => Role::ODJEL_Z_LETOSNIHO_GC,
-                3 => $idUzivatele ?: null,
+                3 => $idUzivatele
+                    ?: null,
             ],
         );
         if (mysqli_num_rows($result) === 0) {
             if ($doSouboru) {
                 file_put_contents($doSouboru, '');
+
                 return;
             }
             exit('V tabulce nejsou žádná data.');
         }
 
-//        $letosniPlackyKlice          = array_fill_keys($letosniPlacky, null);
-//        $letosniKostkyKlice          = array_fill_keys($letosniKostky, null);
-//        $letosniJidlaKlice           = array_fill_keys($letosniJidla, null);
-//        $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
-//        $letosniCovidTestyKlice      = array_fill_keys($letosniCovidTesty, null);
+        //        $letosniPlackyKlice          = array_fill_keys($letosniPlacky, null);
+        //        $letosniKostkyKlice          = array_fill_keys($letosniKostky, null);
+        //        $letosniJidlaKlice           = array_fill_keys($letosniJidla, null);
+        //        $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
+        //        $letosniCovidTestyKlice      = array_fill_keys($letosniCovidTesty, null);
 
         while ($r = mysqli_fetch_assoc($result)) {
             $navstevnik = new Uzivatel($r);
             $navstevnik->nactiPrava(); // sql subdotaz, zlo
-            $finance        = $navstevnik->finance();
-            $shop           = $navstevnik->shop();
+            $finance = $navstevnik->finance();
+            $shop = $navstevnik->shop();
             $ucastiHistorie = [];
             foreach ($ucastPodleRoku as $rocnik => $nazevUcasti) {
                 $ucastiHistorie[$nazevUcasti] = $navstevnik->gcPritomen($rocnik)
@@ -201,7 +202,9 @@ SQL,
                                 ? '-'
                                 : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new DateInterval("P$r[den_posledni]D"))->format('j.n.Y'),
                             'Typ'                    => $this->typUbytovani((string)$r['ubytovani_typ']),
-                            'Dorazil na GC'          => $navstevnik->gcPritomen() ? 'ano' : 'ne',
+                            'Dorazil na GC'          => $navstevnik->gcPritomen()
+                                ? 'ano'
+                                : 'ne',
                         ],
                         $ucastiHistorie,
                     ),
@@ -245,7 +248,7 @@ SQL,
                         $this->dejNazvyAPoctyKostek($navstevnik, $letosniKostky),
                         $this->dejNazvyAPoctyJidel($navstevnik, $letosniJidla),
                         $this->dejNazvyAPoctySvrsku($navstevnik),
-//                        $this->dejNazvyAPoctyTasek($navstevnik),
+                        //                        $this->dejNazvyAPoctyTasek($navstevnik),
                         $this->dejNazvyAPoctyOstatnichPredmetu($navstevnik, $letosniOstatniPredmety),
                         // $this->letosniOstatniPredmetyPocty($r, $letosniOstatniPredmetyKlice),
                         $this->dejNazvyAPoctyCovidTestu($navstevnik, $letosniCovidTesty), // "dát pls až nakonec", tak pravil Gandalf 30. 7. 2021
@@ -255,10 +258,10 @@ SQL,
         }
 
         $indexySloupcuSBydlistem = Report::dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku('Bydliště', $obsah);
-        $sirkaSloupcuSBydlistem  = array_fill_keys($indexySloupcuSBydlistem, 30);
+        $sirkaSloupcuSBydlistem = array_fill_keys($indexySloupcuSBydlistem, 30);
 
         $indexySloupcuSDatemNarozeni = Report::dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku('Datum narození', $obsah);
-        $sirkaSloupcuSDatemNarozeni  = array_fill_keys($indexySloupcuSDatemNarozeni, 10);
+        $sirkaSloupcuSDatemNarozeni = array_fill_keys($indexySloupcuSDatemNarozeni, 10);
 
         $indexSloupceSPravy = Report::dejIndexKlicePodsloupceDruhehoRadku('Práva', $obsah);
         $sirkaSloupcuSPravy = [$indexSloupceSPravy => 50];
@@ -273,11 +276,13 @@ SQL,
         }
 
         Report::zPoleSDvojitouHlavickou($obsah, Report::HLAVICKU_ZACINAT_VElKYM_PISMENEM)
-            ->tFormat($format, null, $konfiguraceReportu);
+              ->tFormat($format, null, $konfiguraceReportu);
     }
 
-    private function letosniOstatniPredmetyPocty(array $zaznam, array $letosniOstatniPredmetyKlice): array
-    {
+    private function letosniOstatniPredmetyPocty(
+        array $zaznam,
+        array $letosniOstatniPredmetyKlice,
+    ): array {
         return array_intersect_key($zaznam, $letosniOstatniPredmetyKlice);
     }
 
@@ -286,10 +291,11 @@ SQL,
         if (!$datum) {
             return null;
         }
+
         return date('j.n.Y G:i', strtotime($datum));
     }
 
-    private function excelCislo(string|int|float $cislo)
+    private function excelCislo(string | int | float $cislo)
     {
         return str_replace('.', ',', (string)$cislo);
     }
@@ -306,6 +312,7 @@ SQL,
                 return $jmenoRole;
             }
         }
+
         return 'Účastník';
     }
 
@@ -317,12 +324,15 @@ SQL,
                 $jmenaRoliProPozici[$idRole] = Role::zId($idRole)->nazevRole();
             }
         }
+
         return $jmenaRoliProPozici;
     }
 
-    private function dejPocetPolozekZdarma(Uzivatel $navstevnik, string $castNazvu)
-    {
-        $polozky            = $navstevnik->finance()->dejPolozkyProBfgr();
+    private function dejPocetPolozekZdarma(
+        Uzivatel $navstevnik,
+        string   $castNazvu,
+    ) {
+        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocetPolozekZdarma = 0;
         foreach ($polozky as $polozka) {
             ['nazev' => $nazev, 'castka' => $castka] = $polozka;
@@ -330,6 +340,7 @@ SQL,
                 $pocetPolozekZdarma++;
             }
         }
+
         return $pocetPolozekZdarma;
     }
 
@@ -356,30 +367,32 @@ SQL,
     private function dejPocetTricekSeSlevou(Uzivatel $navstevnik): int
     {
         return $this->dejPocetPolozekPlacenych($navstevnik, 'tričko modré')
-            + $this->dejPocetPolozekPlacenych($navstevnik, 'tričko červené');
+               + $this->dejPocetPolozekPlacenych($navstevnik, 'tričko červené');
     }
 
     private function dejPocetTilekSeSlevou(Uzivatel $navstevnik): int
     {
         return $this->dejPocetPolozekPlacenych($navstevnik, 'tílko modré')
-            + $this->dejPocetPolozekPlacenych($navstevnik, 'tílko červené');
+               + $this->dejPocetPolozekPlacenych($navstevnik, 'tílko červené');
     }
 
     private function dejPocetTricekPlacenych(Uzivatel $navstevnik): int
     {
         return $this->dejPocetPolozekPlacenych($navstevnik, 'tričko')
-            - $this->dejPocetTricekSeSlevou($navstevnik);
+               - $this->dejPocetTricekSeSlevou($navstevnik);
     }
 
     private function dejPocetTilekPlacenych(Uzivatel $navstevnik): int
     {
         return $this->dejPocetPolozekPlacenych($navstevnik, 'tílko')
-            - $this->dejPocetTilekSeSlevou($navstevnik);
+               - $this->dejPocetTilekSeSlevou($navstevnik);
     }
 
-    private function dejPocetPolozekPlacenych(Uzivatel $navstevnik, string $castNazvu)
-    {
-        $financniPrehled       = $navstevnik->finance()->dejPolozkyProBfgr();
+    private function dejPocetPolozekPlacenych(
+        Uzivatel $navstevnik,
+        string   $castNazvu,
+    ) {
+        $financniPrehled = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocetPolozekPlacenych = 0;
         foreach ($financniPrehled as $polozka) {
             ['nazev' => $nazev, 'castka' => $castka] = $polozka;
@@ -387,6 +400,7 @@ SQL,
                 $pocetPolozekPlacenych++;
             }
         }
+
         return $pocetPolozekPlacenych;
     }
 
@@ -395,34 +409,43 @@ SQL,
         return $this->dejPocetPolozekPlacenych($navstevnik, 'placka');
     }
 
-    private function dejNazvyAPoctyJidel(Uzivatel $navstevnik, array $moznaJidla): array
-    {
+    private function dejNazvyAPoctyJidel(
+        Uzivatel $navstevnik,
+        array    $moznaJidla,
+    ): array {
         $objednanaJidla = $this->dejNazvyAPoctyPredmetu($navstevnik, Jidlo::dejJidlaBehemDne());
-        uksort($objednanaJidla, function (string $nejakeJidloADen, string $jineJidloADen) {
+        uksort($objednanaJidla, function (
+            string $nejakeJidloADen,
+            string $jineJidloADen,
+        ) {
             $nejakeJidloBehemDne = $this->najdiJidloBehemDne($nejakeJidloADen);
-            $jineJidloBehemDne   = $this->najdiJidloBehemDne($jineJidloADen);
-            $rozdilPoradiJidel   = Jidlo::dejPoradiJidlaBehemDne($nejakeJidloBehemDne) <=> Jidlo::dejPoradiJidlaBehemDne($jineJidloBehemDne);
+            $jineJidloBehemDne = $this->najdiJidloBehemDne($jineJidloADen);
+            $rozdilPoradiJidel = Jidlo::dejPoradiJidlaBehemDne($nejakeJidloBehemDne) <=> Jidlo::dejPoradiJidlaBehemDne($jineJidloBehemDne);
             if ($rozdilPoradiJidel !== 0) {
                 return $rozdilPoradiJidel; // nejdříve chceme řadit podle typu jídla, teprve potom podle dnů
             }
             $denNejakehoJidla = $this->najdiDenVTydnu($nejakeJidloADen);
-            $denJinehoJidla   = $this->najdiDenVTydnu($jineJidloADen);
+            $denJinehoJidla = $this->najdiDenVTydnu($jineJidloADen);
+
             return DateTimeCz::poradiDne($denNejakehoJidla) <=> DateTimeCz::poradiDne($denJinehoJidla);
         });
         $vsechnaJidlaJakoNeobjednana = array_fill_keys($moznaJidla, 0);
-        $vsechnaJidla                = array_merge($vsechnaJidlaJakoNeobjednana, $objednanaJidla);
+        $vsechnaJidla = array_merge($vsechnaJidlaJakoNeobjednana, $objednanaJidla);
+
         return pridejNaZacatekPole('Celkem jídel', array_sum($vsechnaJidla), $vsechnaJidla);
     }
 
     private function najdiDenVTydnu(string $text): string
     {
         preg_match('~' . $this->dejPoleJakoRegexp(DateTimeCz::dejDnyVTydnu(), '~') . '~uiS', $text, $matches);
+
         return $matches[0];
     }
 
     private function najdiJidloBehemDne(string $text): string
     {
         preg_match('~' . $this->dejPoleJakoRegexp(Jidlo::dejJidlaBehemDne(), '~') . '~uiS', $text, $matches);
+
         return $matches[0];
     }
 
@@ -431,26 +454,36 @@ SQL,
      * @param array<int, string> $castNazvuRegexpNeboPole
      * @return array
      */
-    private function dejNazvyAPoctyPredmetu(Uzivatel $navstevnik, array $castNazvuRegexpNeboPole): array
-    {
+    private function dejNazvyAPoctyPredmetu(
+        Uzivatel $navstevnik,
+        array    $castNazvuRegexpNeboPole,
+    ): array {
         $castNazvuRegexp = $this->dejPoleJakoRegexp((array)$castNazvuRegexpNeboPole, '~');
         $financniPrehled = $navstevnik->finance()->dejPolozkyProBfgr();
-        $poctyPredmetu   = [];
+        $poctyPredmetu = [];
         foreach ($financniPrehled as $polozka) {
             ['nazev' => $nazev, 'pocet' => $pocet] = $polozka;
             if (preg_match('~' . $castNazvuRegexp . '~iuS', $nazev)) {
                 $poctyPredmetu[$nazev] = ($poctyPredmetu[$nazev] ?? 0) + $pocet;
             }
         }
+
         return $poctyPredmetu;
     }
 
-    private function dejPoleJakoRegexp(array $retezce, string $delimiter)
-    {
+    private function dejPoleJakoRegexp(
+        array  $retezce,
+        string $delimiter,
+    ) {
         return implode(
             '|',
             array_map(
-                static function (string $retezec) use ($delimiter) {
+                static function (
+                    string $retezec,
+                ) use
+                (
+                    $delimiter,
+                ) {
                     return preg_quote($retezec, $delimiter);
                 },
                 $retezce,
@@ -458,9 +491,12 @@ SQL,
         );
     }
 
-    private function dejNazvyAPoctyCovidTestu(Uzivatel $navstevnik, array $vsechnyMozneCovidTesty): array
-    {
+    private function dejNazvyAPoctyCovidTestu(
+        Uzivatel $navstevnik,
+        array    $vsechnyMozneCovidTesty,
+    ): array {
         $objednaneCovidTesty = $this->dejNazvyAPoctyPredmetu($navstevnik, ['covid']);
+
         return $this->seradADoplnNenakoupene($objednaneCovidTesty, $vsechnyMozneCovidTesty);
     }
 
@@ -474,27 +510,38 @@ SQL,
             'Účastnické tričko placené' => $this->dejPocetTricekPlacenych($navstevnik),
             'Účastnické tílko placené'  => $this->dejPocetTilekPlacenych($navstevnik),
         ];
+
         return pridejNaZacatekPole('Celkem svršků', array_sum($poctySvrsku), $poctySvrsku);
     }
 
-    private function dejNazvyAPoctyOstatnichPredmetu(Uzivatel $navstevnik, array $vsechnyMozneOstatniPredmety): array
-    {
+    private function dejNazvyAPoctyOstatnichPredmetu(
+        Uzivatel $navstevnik,
+        array    $vsechnyMozneOstatniPredmety,
+    ): array {
         $objednaneOstatniPredmety = $this->dejNazvyAPoctyPredmetu($navstevnik, $vsechnyMozneOstatniPredmety);
+
         return $this->seradADoplnNenakoupene($objednaneOstatniPredmety, $vsechnyMozneOstatniPredmety);
     }
 
-    private function seradADoplnNenakoupene(array $objednaneSPocty, array $vsechnyMozneJenNazvy): array
-    {
+    private function seradADoplnNenakoupene(
+        array $objednaneSPocty,
+        array $vsechnyMozneJenNazvy,
+    ): array {
         $vsechnyMozneJakoNeobjednane = array_fill_keys($vsechnyMozneJenNazvy, 0); // zachová pořadí
-        $objednaneANeobjednane       = array_merge( // zachová pořadí
+        $objednaneANeobjednane = array_merge( // zachová pořadí
             $vsechnyMozneJakoNeobjednane,
             $objednaneSPocty,
         );
         if (count($objednaneANeobjednane) !== count($vsechnyMozneJenNazvy)) {
             throw new \RuntimeException(
-                'Neznámé položky ' . implode(array_keys(array_diff_key($objednaneSPocty, $vsechnyMozneJakoNeobjednane))),
+                sprintf(
+                    'Neznámé položky %s, známé jsou pouze %s',
+                    implode(array_keys(array_diff_key($objednaneSPocty, $vsechnyMozneJakoNeobjednane))),
+                    implode(', ', $vsechnyMozneJenNazvy),
+                ),
             );
         }
+
         return $objednaneANeobjednane;
     }
 
@@ -504,11 +551,14 @@ SQL,
             'Placka zdarma'     => $this->dejPocetPlacekZdarma($navstevnik),
             'Placka GC placená' => $this->dejPocetPlacekPlacenych($navstevnik),
         ];
+
         return pridejNaZacatekPole('Celkem placek', array_sum($poctyPlacek), $poctyPlacek);
     }
 
-    private function dejNazvyAPoctyKostek(Uzivatel $navstevnik, array $vsechnyMozneKostky): array
-    {
+    private function dejNazvyAPoctyKostek(
+        Uzivatel $navstevnik,
+        array    $vsechnyMozneKostky,
+    ): array {
         $objednaneKostky = $this->dejNazvyAPoctyPredmetu($navstevnik, ['kostka']);
         foreach ($objednaneKostky as $objednanaKostka => $pocet) {
             if (!preg_match('~ \d{4}$~', $objednanaKostka)) {
@@ -519,6 +569,7 @@ SQL,
         $poctyKostek = $this->seradADoplnNenakoupene($objednaneKostky, $vsechnyMozneKostky);
         // pozor, kostky zdarma je počet kostek z výše uvedených objednaných (podmnožina) - nejsou to kostky navíc
         $poctyKostek['Kostka zdarma'] = $this->dejPocetKostekZdarma($navstevnik);
+
         return pridejNaZacatekPole('Celkem kostek', array_sum($objednaneKostky), $poctyKostek);
     }
 
@@ -536,7 +587,7 @@ SQL,
 
     private function letosniKostky(): array
     {
-        $poradiKostek    = [
+        $poradiKostek = [
             'kostka zdarma',
             'Kostka Cthulhu 2021',
             'Fate kostka 2021',
@@ -546,7 +597,11 @@ SQL,
         $poradiKostekSql = implode(',', $poradiKostek);
 
         return dbFetchPairs(<<<SQL
-            SELECT id_predmetu, CONCAT_WS(' ', TRIM(nazev), model_rok)
+            SELECT id_predmetu, IF(
+                TRIM(nazev) LIKE CONCAT('% ', shop_predmety.model_rok),
+                TRIM(nazev),
+                CONCAT_WS(' ', TRIM(nazev), model_rok)
+            )
             FROM shop_predmety
             WHERE nazev LIKE '%kostka%' COLLATE utf8_czech_ci
                 AND stav > $0
@@ -582,10 +637,11 @@ SQL,
             FROM shop_predmety
             WHERE typ = $0
                 AND stav > $1
-                AND (nazev = 'nicknack' COLLATE utf8_czech_ci
-                         OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci
-                         OR nazev LIKE '%lok%' COLLATE utf8_czech_ci
-                         OR nazev LIKE '%taška%' COLLATE utf8_czech_ci
+                AND (
+                        nazev LIKE '%nicknack%' COLLATE utf8_czech_ci
+                        OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci
+                        OR nazev LIKE '%lok%' COLLATE utf8_czech_ci
+                        OR nazev LIKE '%taška%' COLLATE utf8_czech_ci
                     )
             ORDER BY TRIM(nazev)
             SQL,
