@@ -536,7 +536,7 @@ SQL,
             throw new \RuntimeException(
                 sprintf(
                     'Neznámé položky %s, známé jsou pouze %s',
-                    implode(array_keys(array_diff_key($objednaneSPocty, $vsechnyMozneJakoNeobjednane))),
+                    implode(', ', array_keys(array_diff_key($objednaneSPocty, $vsechnyMozneJakoNeobjednane))),
                     implode(', ', $vsechnyMozneJenNazvy),
                 ),
             );

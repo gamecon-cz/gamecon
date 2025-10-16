@@ -7,43 +7,43 @@ use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\ErrorHandler\Debug;
 
-if (!is_dir(dirname(__DIR__).'/vendor')) {
-    throw new LogicException('Dependencies are missing. Try running "composer install".');
+if (!is_dir(dirname(__DIR__) . '/vendor')) {
+  throw new LogicException('Dependencies are missing. Try running "composer install".');
 }
 
-if (!is_file(dirname(__DIR__).'/vendor/autoload.php')) {
-    throw new LogicException('Autoloader not found. Try running "composer install".');
+if (!is_file(dirname(__DIR__) . '/vendor/autoload.php')) {
+  throw new LogicException('Autoloader not found. Try running "composer install".');
 }
 
-require dirname(__DIR__).'/vendor/autoload.php';
+require dirname(__DIR__) . '/vendor/autoload.php';
 
 if (!class_exists(Application::class) || !class_exists(Dotenv::class)) {
-    throw new LogicException('You need to add "symfony/framework-bundle" and "symfony/dotenv" as Composer dependencies.');
+  throw new LogicException('You need to add "symfony/framework-bundle" and "symfony/dotenv" as Composer dependencies.');
 }
 
 $input = new ArgvInput();
 if (null !== $env = $input->getParameterOption(['--env', '-e'], null, true)) {
-    putenv('APP_ENV='.$_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = $env);
+  putenv('APP_ENV=' . ($_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = $env));
 }
 
 if ($input->hasParameterOption('--no-debug', true)) {
-    putenv('APP_DEBUG='.$_SERVER['APP_DEBUG'] = $_ENV['APP_DEBUG'] = '0');
+  putenv('APP_DEBUG=' . ($_SERVER['APP_DEBUG'] = $_ENV['APP_DEBUG'] = '0'));
 }
 
-if (file_exists(dirname(__DIR__).'/.env')) {
-    (new Dotenv())->bootEnv(dirname(__DIR__).'/.env');
+if (file_exists(dirname(__DIR__) . '/.env')) {
+  (new Dotenv())->bootEnv(dirname(__DIR__) . '/.env');
 }
 
-if ($_SERVER['APP_DEBUG']) {
-    umask(0000);
+if ($_SERVER['APP_DEBUG'] ?? false) {
+  umask(0000);
 
-    if (class_exists(Debug::class)) {
-        Debug::enable();
-    }
+  if (class_exists(Debug::class)) {
+    Debug::enable();
+  }
 }
 
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
-$kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
+$kernel = new Kernel($_SERVER['APP_ENV'], (bool)$_SERVER['APP_DEBUG']);
 $application = new Application($kernel);
 $application->run($input);
