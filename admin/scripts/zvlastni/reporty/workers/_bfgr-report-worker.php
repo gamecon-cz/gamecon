@@ -95,7 +95,7 @@ HTML;
         $e->getTraceAsString()
     );
 
-    $logFile = __DIR__ . '/../../../../logy/bfgr-report-errors.log';
+    $logFile = LOGY . '/bfgr-report-errors.log';
     @file_put_contents($logFile, $errorMessage, FILE_APPEND);
 
     // Odeslání chybového emailu uživateli
