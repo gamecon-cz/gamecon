@@ -65,6 +65,7 @@ class Finance
     private ?KategorieNeplatice $kategorieNeplatice       = null;
     private ?array              $dobrovolneVstupnePrehled = null;
 
+    private bool $prepocitavam = false;
     /** @var array<string> */
     private array $zapocteno = [];
 
@@ -170,7 +171,11 @@ SQL,
     public function cenaAktivit(): float
     {
         if ($this->cenaAktivit === null) {
-            $this->zapoctiAktivity();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiAktivity();
+            }
         }
 
         return $this->cenaAktivit;
@@ -184,7 +189,11 @@ SQL,
     public function cenaPredmetu(): float
     {
         if ($this->cenaPredmetu === null) {
-            $this->zapoctiShop();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiShop();
+            }
         }
 
         return $this->cenaPredmetu;
@@ -193,7 +202,11 @@ SQL,
     public function cenaStravy(): float
     {
         if ($this->cenaStravy === null) {
-            $this->zapoctiShop();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiShop();
+            }
         }
 
         return $this->cenaStravy;
@@ -202,7 +215,11 @@ SQL,
     public function cenaUbytovani(): float
     {
         if ($this->cenaUbytovani === null) {
-            $this->zapoctiShop();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiShop();
+            }
         }
 
         return $this->cenaUbytovani;
@@ -240,7 +257,7 @@ SQL,
         bool  $vcetneCeny = true,
         bool  $vcetneMazani = false,
     ): string {
-        $out     = '<table class="objednavky">';
+        $out = '<table class="objednavky">';
         $prehled = $this->serazenyPrehled();
         if ($jenKategorieIds) {
             if (in_array(TypPredmetu::VSTUPNE, $jenKategorieIds) && $this->dobrovolneVstupnePrehled()) {
@@ -272,7 +289,7 @@ SQL,
             if ($vcetneMazani) {
                 if (!empty($radekPrehledu['id_polozky'])) {
                     $klicZrusNakuppolozky = self::KLIC_ZRUS_NAKUP_POLOZKY;
-                    $mazaniRow            = <<<HTML
+                    $mazaniRow = <<<HTML
                         <td xmlns="http://www.w3.org/1999/html">
                             <form method="post" onsubmit="return confirm('Opravdu zrušit objednávku {$radekPrehledu['nazev']}?')">
                                 <input type="hidden" name="$klicZrusNakuppolozky" value="{$radekPrehledu['id_polozky']}">
@@ -411,7 +428,11 @@ SQL,
     public function slevaObecna(): float
     {
         if ($this->slevaObecna === null) {
-            $this->zapoctiSlevy();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiSlevy();
+            }
         }
 
         return $this->slevaObecna;
@@ -486,7 +507,6 @@ SQL,
     public function vyuzityBonusZaAktivity(): float
     {
         if ($this->vyuzityBonusZaVedeniAktivit === null) {
-            $this->vyuzityBonusZaVedeniAktivit = 0.0;
             $this->prepocti();
         }
 
@@ -556,10 +576,10 @@ SQL,
             $sleva = 0; // v procentech
             // výpočet pravidel
             if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA, $dataSourcesCollector)) {
-                $sleva                   += self::PLNA_SLEVA_PROCENT;
+                $sleva += self::PLNA_SLEVA_PROCENT;
                 $this->slevyNaAktivity[] = 'aktivity zdarma';
             } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY, $dataSourcesCollector)) {
-                $sleva                   += self::CASTECNA_SLEVA_PROCENT;
+                $sleva += self::CASTECNA_SLEVA_PROCENT;
                 $this->slevyNaAktivity[] = 'aktivity se slevou ' . $sleva . ' %';
             }
             if ($sleva > self::MAX_SLEVA_AKTIVIT_PROCENT) {
@@ -583,7 +603,11 @@ SQL,
     public function cenaVstupne(): float
     {
         if ($this->cenaVstupne === null) {
-            $this->zapoctiShop();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiShop();
+            }
         }
 
         return $this->cenaVstupne;
@@ -592,7 +616,11 @@ SQL,
     public function cenaVstupnePozde(): float
     {
         if ($this->cenaVstupnePozde === null) {
-            $this->zapoctiShop();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiShop();
+            }
         }
 
         return $this->cenaVstupnePozde;
@@ -601,7 +629,11 @@ SQL,
     public function proplacenyBonusZaAktivity(): float
     {
         if ($this->proplacenyBonusZaVedeniAktivit === null) {
-            $this->zapoctiShop();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiShop();
+            }
         }
 
         return $this->proplacenyBonusZaVedeniAktivit;
@@ -610,7 +642,11 @@ SQL,
     public function brigadnickaOdmena(): float
     {
         if ($this->brigadnickaOdmena === null) {
-            $this->zapoctiAktivity();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiAktivity();
+            }
         }
 
         return $this->brigadnickaOdmena;
@@ -626,18 +662,18 @@ SQL,
                 sprintf('Započítání %s již proběhlo.', __FUNCTION__),
             );
         }
-        $this->cenaAktivit          = 0.0;
-        $this->brigadnickaOdmena    = 0.0;
-        $this->sumaStorna           = 0.0;
+        $this->cenaAktivit = 0.0;
+        $this->brigadnickaOdmena = 0.0;
+        $this->sumaStorna = 0.0;
         $this->bonusZaVedeniAktivit ??= 0.0;
 
-        $soucinitelAktivit     = $this->soucinitelCenyAktivit();
-        $rok                   = ROCNIK;
-        $idUcastnika           = $this->u->id();
-        $technicka             = TypAktivity::TECHNICKA; // výpomoc, jejíž cena se započítá jako bonus vypravěče, který může použít na nákup na GC
-        $brigadnicka           = TypAktivity::BRIGADNICKA; // placený "zaměstnanec"
+        $soucinitelAktivit = $this->soucinitelCenyAktivit();
+        $rok = ROCNIK;
+        $idUcastnika = $this->u->id();
+        $technicka = TypAktivity::TECHNICKA; // výpomoc, jejíž cena se započítá jako bonus vypravěče, který může použít na nákup na GC
+        $brigadnicka = TypAktivity::BRIGADNICKA; // placený "zaměstnanec"
         $prihlasenAleNedorazil = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
-        $pozdeZrusil           = StavPrihlaseni::POZDE_ZRUSIL;
+        $pozdeZrusil = StavPrihlaseni::POZDE_ZRUSIL;
 
         $sql = <<<SQL
 SELECT
@@ -718,7 +754,7 @@ SQL;
         $rocnik ??= $this->systemoveNastaveni->rocnik();
         if (!isset($this->sumyPlatebVRocich[$rocnik]) || $prepocti) {
             $uzivatelSystemId = \Uzivatel::SYSTEM;
-            $result           = dbQuery(<<<SQL
+            $result = dbQuery(<<<SQL
                 SELECT
                     IF(provedl=$uzivatelSystemId,
                       CONCAT(DATE_FORMAT(COALESCE(pripsano_na_ucet_banky, provedeno),'%e.%c.'),' Platba na účet'),
@@ -729,7 +765,7 @@ SQL;
                 WHERE id_uzivatele = {$this->u->id()} AND rok = $rocnik
                 SQL,
             );
-            $sumaPlateb       = 0.0;
+            $sumaPlateb = 0.0;
             while ($row = mysqli_fetch_assoc($result)) {
                 $sumaPlateb += (float)$row['cena'];
                 $this->log(
@@ -748,7 +784,11 @@ SQL;
     private function dobrovolneVstupnePrehled(): array
     {
         if ($this->dobrovolneVstupnePrehled === null) {
-            $this->zapoctiShop();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiShop();
+            }
         }
 
         return $this->dobrovolneVstupnePrehled;
@@ -764,13 +804,14 @@ SQL;
                 sprintf('Započítání %s již proběhlo.', __FUNCTION__),
             );
         }
-        $this->cenaUbytovani                  = 0.0;
-        $this->cenaVstupne                    = 0.0;
-        $this->cenaVstupnePozde               = 0.0;
-        $this->cenaPredmetu                   = 0.0;
-        $this->cenaStravy                     = 0.0;
+        $this->cenaUbytovani = 0.0;
+        $this->cenaVstupne = 0.0;
+        $this->cenaVstupnePozde = 0.0;
+        $this->cenaPredmetu = 0.0;
+        $this->cenaStravy = 0.0;
         $this->proplacenyBonusZaVedeniAktivit = 0.0;
-        $this->dobrovolneVstupnePrehled       = [];
+        $this->dobrovolneVstupnePrehled = [];
+        $this->polozkyProBfgr = [];
 
         $o = dbQuery('
       SELECT predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok
@@ -825,9 +866,9 @@ SQL;
             // logování do výpisu
             if (in_array($r['typ'], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
                 $soucty[$r['id_predmetu']]['nazev'] = $r['nazev'];
-                $soucty[$r['id_predmetu']]['typ']   = $r['typ'];
+                $soucty[$r['id_predmetu']]['typ'] = $r['typ'];
                 $soucty[$r['id_predmetu']]['pocet'] = ($soucty[$r['id_predmetu']]['pocet'] ?? 0) + 1;
-                $soucty[$r['id_predmetu']]['suma']  = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
+                $soucty[$r['id_predmetu']]['suma'] = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
             } elseif ($r['typ'] == TypPredmetu::VSTUPNE) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::VSTUPNE);
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
@@ -880,7 +921,7 @@ SQL;
                 sprintf('Započítání %s již proběhlo.', __FUNCTION__),
             );
         }
-        $this->slevaObecna          = 0.0;
+        $this->slevaObecna = 0.0;
         $this->bonusZaVedeniAktivit ??= 0.0;
 
         $q = dbQuery('
@@ -950,15 +991,15 @@ SQL;
 
     private function aplikujBonusZaVedeniAktivit(float $cena): float
     {
-        $puvodniBonusZaVedeniAktivit   = $this->bonusZaVedeniAktivit();
+        $puvodniBonusZaVedeniAktivit = $this->bonusZaVedeniAktivit();
         $zbyvajiciBonusZaVedeniAktivit = $puvodniBonusZaVedeniAktivit;
-        $zbyvajiciCena                 = $cena;
+        $zbyvajiciCena = $cena;
         ['sleva' => $nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu(
             cena: $zbyvajiciCena, // ovlivněno zpětně přes referenci !
             sleva: $zbyvajiciBonusZaVedeniAktivit, // ovlivněno zpětně přes referenci !
         );
         $this->nevyuzityBonusZaVedeniAktivit = $nevyuzityBonusZaVedeniAktivit;
-        $this->vyuzityBonusZaVedeniAktivit   = $zbyvajiciBonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
+        $this->vyuzityBonusZaVedeniAktivit = $zbyvajiciBonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
         /** Do výsledné ceny, respektive celkového stavu, už započítáváme celý bonus za aktivity https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
         $cena -= $this->bonusZaVedeniAktivit();
 
@@ -1057,7 +1098,11 @@ SQL;
     public function sumaStorna(): float
     {
         if ($this->sumaStorna === null) {
-            $this->zapoctiAktivity();
+            if (!$this->prepocitavam) {
+                $this->prepocti();
+            } else {
+                $this->zapoctiAktivity();
+            }
         }
 
         return $this->sumaStorna;
@@ -1078,56 +1123,62 @@ SQL;
 
     private function prepocti(): void
     {
-        if (!empty($this->zapocteno[__FUNCTION__])) {
-            throw new \RuntimeException(
-                sprintf('Započítání %s již proběhlo.', __FUNCTION__),
+        $this->prepocitavam = true;
+
+        try {
+            if (!empty($this->zapocteno[__FUNCTION__])) {
+                throw new \RuntimeException(
+                    sprintf('Započítání %s již proběhlo.', __FUNCTION__),
+                );
+            }
+            $this->zapoctiVedeniAktivit();
+            $this->zapoctiSlevy();
+
+            $this->zapoctiAktivity();
+            $this->zapoctiShop();
+            $this->zapoctiZustatekZPredchozichRocniku();
+
+            $cena =
+                $this->cenaPredmetu()
+                + $this->cenaStravy()
+                + $this->cenaUbytovani()
+                + $this->cenaAktivit();
+
+            $cena = $cena
+                    + $this->cenaVstupne()
+                    + $this->cenaVstupnePozde();
+
+            $cena = $this->aplikujObecnouSlevu($cena);
+
+            $this->logb('Celková cena', $cena, self::CELKOVA);
+
+            /** bonusy a odměny nechceme v zobrazované Celkové ceně https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
+            $cena = $this->aplikujBonusZaVedeniAktivit($cena);
+            $cena = $this->aplikujBrigadnickouOdmenu($cena);
+
+            $this->stav = self::zaokouhli(
+                -$cena
+                + $this->sumaPlateb()
+                + $this->zustatekZPredchozichRocniku,
             );
+
+            $this->logb('Aktivity', $this->cenaAktivit(), self::AKTIVITY);
+            $this->logb('Ubytování', $this->cenaUbytovani(), self::UBYTOVANI);
+            $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
+            $this->logb('Připsané platby', $this->sumaPlateb(), self::PLATBA);
+            $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
+            if ($this->kategorieNeplatice()?->melByBytOdhlasen()) {
+                $this->logb(
+                    '<span style="color: darkred">Bude odhlášen jako neplatič kategorie</span>',
+                    $this->kategorieNeplatice()->ciselnaKategoriiNeplatice(),
+                    self::KATEGORIE_NEPLATICE,
+                );
+            }
+
+            $this->zapocteno[__FUNCTION__] = true;
+        } finally {
+            $this->prepocitavam = false;
         }
-        $this->zapoctiVedeniAktivit();
-        $this->zapoctiSlevy();
-
-        $this->zapoctiAktivity();
-        $this->zapoctiShop();
-        $this->zapoctiZustatekZPredchozichRocniku();
-
-        $cena =
-            $this->cenaPredmetu()
-            + $this->cenaStravy()
-            + $this->cenaUbytovani()
-            + $this->cenaAktivit();
-
-        $cena = $cena
-                + $this->cenaVstupne()
-                + $this->cenaVstupnePozde();
-
-        $cena = $this->aplikujObecnouSlevu($cena);
-
-        $this->logb('Celková cena', $cena, self::CELKOVA);
-
-        /** bonusy a odměny nechceme v zobrazované Celkové ceně https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
-        $cena = $this->aplikujBonusZaVedeniAktivit($cena);
-        $cena = $this->aplikujBrigadnickouOdmenu($cena);
-
-        $this->stav = self::zaokouhli(
-            -$cena
-            + $this->sumaPlateb()
-            + $this->zustatekZPredchozichRocniku,
-        );
-
-        $this->logb('Aktivity', $this->cenaAktivit(), self::AKTIVITY);
-        $this->logb('Ubytování', $this->cenaUbytovani(), self::UBYTOVANI);
-        $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
-        $this->logb('Připsané platby', $this->sumaPlateb(), self::PLATBA);
-        $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
-        if ($this->kategorieNeplatice()?->melByBytOdhlasen()) {
-            $this->logb(
-                '<span style="color: darkred">Bude odhlášen jako neplatič kategorie</span>',
-                $this->kategorieNeplatice()->ciselnaKategoriiNeplatice(),
-                self::KATEGORIE_NEPLATICE,
-            );
-        }
-
-        $this->zapocteno[__FUNCTION__] = true;
     }
 
     private static function cpm_kategorie_razeni(int $kategorie): int
@@ -1192,7 +1243,7 @@ SQL;
         if (!$this->logovat) {
             return;
         }
-        $this->polozkyProBfgr   ??= [];
+        $this->polozkyProBfgr ??= [];
         $this->polozkyProBfgr[] = [
             'nazev'  => trim($nazev),
             'pocet'  => $pocet,
@@ -1210,7 +1261,7 @@ SQL;
         if (!$this->logovat) {
             return;
         }
-        $this->strukturovanyPrehled   ??= [];
+        $this->strukturovanyPrehled ??= [];
         $this->strukturovanyPrehled[] = [
             'nazev'  => trim($nazev),
             'pocet'  => $pocet,
@@ -1287,5 +1338,4 @@ SQL;
             poradiVKategorii: $poradiNadpisu,
         );
     }
-
 }
