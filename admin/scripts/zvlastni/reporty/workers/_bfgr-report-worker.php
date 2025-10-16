@@ -20,7 +20,7 @@ if (!isset($options['userEmail'])) {
     exit(1);
 }
 
-$userEmail = $options['userEmail'];
+$userEmail = trim($options['userEmail']);
 $userName = $options['userName'] ?? $userEmail;
 $includeNonPayers = isset($options['includeNonPayers']);
 

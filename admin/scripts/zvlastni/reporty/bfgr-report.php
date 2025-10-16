@@ -7,7 +7,6 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 global $systemoveNastaveni, $u;
 
-$format = get('format') ?: 'html';
 $idUzivatele = get('id');
 
 // Pokud je požadován konkrétní uživatel, použijeme synchronní zpracování
@@ -19,7 +18,7 @@ if ($idUzivatele) {
 
     $bfgrReport = new BfgrReport($systemoveNastaveni);
     $bfgrReport->exportuj(
-        format: $format,
+        format: 'xlsx',
         vcetneStavuNeplatice: true,
         idUzivatele: $idUzivatele
     );
@@ -33,10 +32,9 @@ if ($idUzivatele) {
 
     // Sestavení příkazu pro background proces
     $command = sprintf(
-        '%s %s --format=%s --userEmail=%s --userName=%s --includeNonPayers > /dev/null 2>&1 &',
+        '%s %s --userEmail=%s --userName=%s --includeNonPayers > /dev/null 2>&1 &',
         escapeshellarg($phpBinary),
         escapeshellarg($workerScript),
-        escapeshellarg($format),
         escapeshellarg($userEmail),
         escapeshellarg($userName)
     );
@@ -47,7 +45,7 @@ if ($idUzivatele) {
     // Okamžitá odpověď uživateli
     echo <<<HTML
 <!DOCTYPE html>
-<html>
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <title>BFGR Report - Generování zahájeno</title>
@@ -82,7 +80,6 @@ if ($idUzivatele) {
         <h1>✓ Generování BFGR reportu bylo zahájeno</h1>
         <p>Report je příliš velký na okamžité zobrazení, proto bude vygenerován na pozadí.</p>
         <div class="info">
-            <strong>Formát:</strong> {$format}<br>
             <strong>Email pro odeslání:</strong> {$userEmail}<br>
             <strong>Ročník:</strong> {$systemoveNastaveni->rocnik()}
         </div>
