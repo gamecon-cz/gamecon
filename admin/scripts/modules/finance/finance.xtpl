@@ -49,7 +49,6 @@
   <tr>
     <td>BFGR {rok}</td>
     <td><a href="reporty/{bfgr}">xlsx</a></td>
-    <td><a href="reporty/{bfgr}?format=html" target="_blank">html</a></td>
   </tr>
   </tbody>
 </table>
