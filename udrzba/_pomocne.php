@@ -125,6 +125,7 @@ function nasad(array $nastaveni) {
 }
 
 function runMigrationsOnRemote(string $hesloMigrace) {
+    set_time_limit(600);
     msg("spouštím migrace na vzdálené databázi");
     call_check([
         'curl',

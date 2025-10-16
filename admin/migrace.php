@@ -24,6 +24,7 @@ if (post('migraceHeslo') !== MIGRACE_HESLO) {
 ini_set('display_errors', true); // zobrazovat chyby obecně
 ini_set('error_reporting', E_ALL ^ E_STRICT); // vybrat typy chyb k zobrazení
 ini_set('html_errors', false); // chyby zobrazovat jako plaintext
+set_time_limit(600);
 
 SqlMigrace::vytvorZGlobals()->migruj();
 
