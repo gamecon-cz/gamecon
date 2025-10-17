@@ -61,8 +61,6 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             
             define('MAILER_DSN', '$MAILER_DSN');
             
-            define('SERVER_NAME', '$SERVER_NAME');
-            
             // Symfony
             define('APP_SECRET', '$APP_SECRET');
             PHP,
