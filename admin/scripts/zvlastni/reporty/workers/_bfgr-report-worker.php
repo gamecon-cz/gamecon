@@ -62,7 +62,7 @@ try {
 <html lang="cs">
 <body>
 <p>Ahoj {$userName},</p>
-<p>BFGR report byl úspěšně vygenerován a je připojen k tomuto emailu.</p>
+<p>BFGR report najdeš v příloze.</p>
 <strong>Ročník:</strong> {$rocnik}<br>
 <strong>Vygenerováno:</strong> {$timestamp}</p>
 <p>S pozdravem,<br>
