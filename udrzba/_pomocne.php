@@ -98,7 +98,6 @@ function nasad(array $nastaveni) {
     purge[] = cache/private/xtpl
     purge[] = cache/public/css
     purge[] = cache/public/js
-    purge[] = symfony/var/cache
   ";
 
     if (!empty($nastaveni['vetev'])) {
@@ -118,6 +117,9 @@ function nasad(array $nastaveni) {
         unlink($souborNastaveniDeploymentu);
     }
 
+    // smazání Symfony cache
+    clearSymfonyCacheOnRemote($nastaveni['hesloMigrace']);
+
     // migrace DB
     runMigrationsOnRemote($nastaveni['hesloMigrace']);
 
@@ -132,6 +134,17 @@ function runMigrationsOnRemote(string $hesloMigrace) {
         '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
         '--silent', // skrýt progressbar
         URL_ADMIN . '/' . basename(__DIR__ . '/../admin/migrace.php'),
+    ]);
+}
+
+function clearSymfonyCacheOnRemote(string $hesloMigrace) {
+    set_time_limit(600);
+    msg("mažu Symfony cache na vzdáleném serveru");
+    call_check([
+        'curl',
+        '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
+        '--silent', // skrýt výstup
+        URL_ADMIN . '/' . basename(__DIR__ . '/../admin/smazat-symfony-cache.php'),
     ]);
 }
 
