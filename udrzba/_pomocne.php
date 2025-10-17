@@ -57,6 +57,7 @@ function nasad(array $nastaveni) {
       !/nastaveni/db-migrace.php
       !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
+      !/nastaveni/nastaveni-server.php
       !/nastaveni/nastaveni-vychozi.php
       !/nastaveni/nastaveni-izolovane.php
       !/nastaveni/nastaveni-prava.php
@@ -105,6 +106,8 @@ function nasad(array $nastaveni) {
     }
 
     vytvorSouborSkrytehoNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
+    vytvorSouborServerNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
+
     require_once $nastaveni['souborVerejnehoNastaveni'];
 
     // nahrání souborů

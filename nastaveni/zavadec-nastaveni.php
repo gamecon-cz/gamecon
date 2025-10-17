@@ -3,6 +3,11 @@ $souborVerejnehoNastaveni = null;
 if (!empty($_COOKIE['unit_tests'])) {
     include __DIR__ . '/verejne-nastaveni-tests.php';
 }
+
+if (file_exists(__DIR__ . '/nastaveni-server.php')) {
+    include __DIR__ . '/nastaveni-server.php';
+}
+
 if (jsmeNaLocale()) {
     if (file_exists(__DIR__ . '/nastaveni-local.php')) {
         include __DIR__ . '/nastaveni-local.php'; // nepovinné lokální nastavení
