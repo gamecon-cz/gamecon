@@ -7,7 +7,7 @@ register_shutdown_function(static function () {
         return; // protože error bude zobrazen celý, tak není potřeba řešit náhradní text
     }
     $error = error_get_last();
-    if (!(error_reporting() & $error['type'])) { // tenhle typ errorů nechceme hlásit
+    if (empty($error['type']) || (!(error_reporting() & $error['type']))) { // tenhle typ errorů nechceme hlásit
         return;
     }
     if (!($error['type'] & E_ERROR
@@ -19,7 +19,7 @@ register_shutdown_function(static function () {
         return; // zřejmě nešlo o fatální error
     }
     if (!headers_sent()) {
-        header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
+        header(($_SERVER['SERVER_PROTOCOL'] ?? '') . ' 500 Internal Server Error', true, 500);
     }
     echo '500 Internal Server Error';
 });
