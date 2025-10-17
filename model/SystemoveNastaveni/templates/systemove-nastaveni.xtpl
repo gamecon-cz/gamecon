@@ -70,7 +70,7 @@
 <script type="text/javascript" src="files/systemove-nastaveni.js?version={systemoveNastavenJsVerze}"></script>
 
 <!-- begin:beta -->
-{zkopirovaniOstreDatabaze}
+{zkopirovatDatabaziZOstre}
 <!-- end:beta -->
 
 <!-- begin:exportAnonymizovaneDatabaze -->

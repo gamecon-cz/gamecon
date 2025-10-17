@@ -47,11 +47,11 @@ class SystemoveNastaveniHtml
         }
 
         if ($this->systemoveNastaveni->jsmeNaBete()) {
-            $templateZkopirovaniOstre = new XTemplate(__DIR__ . '/templates/zkopirovani-ostre-databaze.xtpl');
+            $templateZkopirovaniOstre = new XTemplate(__DIR__ . '/templates/zkopirovat-databazi-z-ostre.xtpl');
             $templateZkopirovaniOstre->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
             $templateZkopirovaniOstre->assign('zkopirovatOstrouKlic', self::ZKOPIROVAT_OSTROU_KLIC);
-            $templateZkopirovaniOstre->parse('zkopirovaniOstreDatabaze');
-            $template->assign('zkopirovaniOstreDatabaze', $templateZkopirovaniOstre->text('zkopirovaniOstreDatabaze'));
+            $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre');
+            $template->assign('zkopirovatDatabaziZOstre', $templateZkopirovaniOstre->text('zkopirovatDatabaziZOstre'));
             $template->parse('nastaveni.beta');
         }
 

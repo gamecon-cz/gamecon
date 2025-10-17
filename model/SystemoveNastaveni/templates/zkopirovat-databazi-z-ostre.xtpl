@@ -1,4 +1,4 @@
-<!-- begin:zkopirovaniOstreDatabaze -->
+<!-- begin:zkopirovatDatabaziZOstre -->
 <h1>Beta</h1>
 
 <form method="post" onsubmit="return confirm('Opravdu přemazat současná data na betě daty z ostré?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)  ">
@@ -7,4 +7,4 @@
     Zkopírovat databázi z ostré
   </button>
 </form>
-<!-- end:zkopirovaniOstreDatabaze -->
+<!-- end:zkopirovatDatabaziZOstre -->
