@@ -25,22 +25,25 @@ if ($idUzivatele) {
 } else {
     // Asynchronní zpracování - spustíme background proces
     $workerScript = __DIR__ . '/workers/_bfgr-report-worker.php';
-    $phpBinary = PHP_BINARY;
 
     $userEmail = $u->mail();
     $userName = $u->jmenoNick();
 
     // Sestavení příkazu pro background proces
     $command = sprintf(
-        '%s %s --userEmail=%s --userName=%s --includeNonPayers > /dev/null 2>&1 &',
-        escapeshellarg($phpBinary),
+        '%s --userEmail=%s --userName=%s --includeNonPayers > /dev/null 2>&1 &',
         escapeshellarg($workerScript),
         escapeshellarg($userEmail),
         escapeshellarg($userName)
     );
 
     // Spuštění background procesu
-    exec($command);
+    $result = exec($command);
+    if ($result === false) {
+        http_response_code(500);
+        echo "Chyba při spuštění generování reportu na pozadí.";
+        exit;
+    }
 
     // Okamžitá odpověď uživateli
     echo <<<HTML
