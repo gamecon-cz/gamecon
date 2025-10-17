@@ -10,12 +10,14 @@ register_shutdown_function(static function () {
     if (isset($error['type']) && !(error_reporting() & $error['type'])) { // tenhle typ errorů nechceme hlásit
         return;
     }
-    if (!($error['type'] & E_ERROR
-        || $error['type'] & E_USER_ERROR
-        || $error['type'] & E_RECOVERABLE_ERROR
-        || $error['type'] & E_COMPILE_ERROR
-        || $error['type'] & E_PARSE
-    )) {
+    if (isset($error['type'])
+        && !($error['type'] & E_ERROR
+             || $error['type'] & E_USER_ERROR
+             || $error['type'] & E_RECOVERABLE_ERROR
+             || $error['type'] & E_COMPILE_ERROR
+             || $error['type'] & E_PARSE
+        )
+    ) {
         return; // zřejmě nešlo o fatální error
     }
     if (!headers_sent()) {
