@@ -35,6 +35,9 @@ try {
 
     // Vygenerování reportu do dočasného souboru
     $tempFile = SPEC . '/bfgr-report-' . uniqid() . '.xlsx';
+    $logFile = LOGY . '/bfgr-report-' . uniqid() . '.log';
+
+    file_put_contents($logFile, date('Y-m-d H:i:s') . " Generování BFGR reportu pro uživatele {$userEmail}\n");
 
     $bfgrReport = new BfgrReport($systemoveNastaveni);
     $bfgrReport->exportuj(
@@ -42,6 +45,8 @@ try {
         vcetneStavuNeplatice: $includeNonPayers,
         doSouboru: $tempFile,
     );
+
+    file_put_contents($logFile, date('Y-m-d H:i:s') . " BFGR report vygenerován do souboru {$tempFile}\n", FILE_APPEND);
 
     // Kontrola, zda byl soubor vytvořen a není prázdný
     if (!file_exists($tempFile) || filesize($tempFile) === 0) {
