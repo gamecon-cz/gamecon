@@ -1,5 +1,8 @@
 <?php
-$host                     = $_SERVER['SERVER_NAME'] ?? 'localhost';
+$host = defined('SERVER_NAME')
+    ? constant('SERVER_NAME')
+    : ($_SERVER['SERVER_NAME'] ?? 'localhost');
+
 $souborVerejnehoNastaveni = null;
 if (!empty($_COOKIE['unit_tests'])) {
     include __DIR__ . '/verejne-nastaveni-tests.php';

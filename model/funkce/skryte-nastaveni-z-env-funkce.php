@@ -22,6 +22,7 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni)
         $FIO_TOKEN              = getenv('FIO_TOKEN');
         $MAILER_DSN             = getenv('MAILER_DSN');
         $APP_SECRET             = getenv('APP_SECRET');
+        $SERVER_NAME            = getenv('SERVER_NAME');
 
         $ted             = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
@@ -56,6 +57,8 @@ define('GOOGLE_API_CREDENTIALS', json_decode('$GOOGLE_API_CREDENTIALS', true));
 define('FIO_TOKEN', '$FIO_TOKEN'); // platnost do 11.9.2030
 
 define('MAILER_DSN', '$MAILER_DSN');
+
+define('SERVER_NAME', '$SERVER_NAME');
 
 // Symfony
 define('APP_SECRET', '$APP_SECRET');
