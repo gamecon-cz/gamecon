@@ -79,7 +79,6 @@ if ($idUzivatele) {
     </style>
 </head>
 <body>
-  <div style="font-family: monospace">{$command}</div>
     <div class="message-box">
         <h1>✓ Generování BFGR reportu bylo zahájeno</h1>
         <p>Report je příliš velký na okamžité zobrazení, proto bude vygenerován na pozadí.</p>

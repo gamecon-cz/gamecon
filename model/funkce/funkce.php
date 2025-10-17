@@ -15,12 +15,12 @@ $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
 function aktivityDiverzifikace(
     $poleTypu,
 ) {
-    $typu = count($poleTypu);
+    $typu  = count($poleTypu);
     $pocet = array_sum($poleTypu);
     if ($pocet == 0) return 0.0;
     $pocty = $poleTypu;
     rsort($pocty, SORT_NUMERIC);
-    $max = ($pocet - $pocty[0]) / ($pocet * ($typu - 1));
+    $max    = ($pocet - $pocty[0]) / ($pocet * ($typu - 1));
     $nPocty = [];
     for ($i = 1; $i < $typu; $i++) { //první počet přeskočit
         if ($pocty[$i] / $pocet > $max)
@@ -71,7 +71,7 @@ function datum3(
     $datumTimestamp = ($datum instanceof DateTimeInterface)
         ? $datum->getTimestamp()
         : strtotime($datum);
-    $mesic = [
+    $mesic          = [
         'ledna', 'února', 'března', 'dubna', 'května', 'června',
         'července', 'srpna', 'září', 'října', 'listopadu', 'prosince',
     ];
@@ -137,9 +137,9 @@ function dbText(
 
         return 0;
     } else {
-        $text = func_get_arg(1);
+        $text  = func_get_arg(1);
         $nhash = scrc32($text);
-        $nrow = ['text' => $text, 'id' => $nhash];
+        $nrow  = ['text' => $text, 'id' => $nhash];
         if ($hash) dbUpdate('texty', $nrow, ['id' => $hash]);
         else dbInsert('texty', $nrow);
 
@@ -213,7 +213,6 @@ function kvs(
         if ($hodnota === null) {
             // načítání
             $o = $db->query('select v from kvs where k = ' . $index)->fetchArray(SQLITE3_NUM);
-
             return $o === false
                 ? null
                 : $o[0];
@@ -236,7 +235,7 @@ function markdown(
     $text,
 ) {
     $hash = scrc32($text);
-    $out = kvs('markdown', $hash);
+    $out  = kvs('markdown', $hash);
     if ($out === null) {
         kvs('markdown', $hash, markdownNoCache($text));
         $out = kvs('markdown', $hash);
@@ -268,7 +267,7 @@ if (!function_exists('mb_ucfirst')) {
             $encoding = mb_internal_encoding();
         }
         $firstChar = mb_substr($string, 0, 1, $encoding);
-        $then = mb_substr($string, 1, mb_strlen($string), $encoding);
+        $then      = mb_substr($string, 1, mb_strlen($string), $encoding);
 
         return mb_strtoupper($firstChar, $encoding) . $then;
     }
@@ -312,12 +311,12 @@ function omezCsrf()
  */
 function perfectcache(/* variadic */)
 {
-    $args = perfectcacheExpandujArgumenty(func_get_args());
+    $args  = perfectcacheExpandujArgumenty(func_get_args());
     $lastf = end($args);
-    $typ = substr($lastf, -3) == '.js'
+    $typ   = substr($lastf, -3) == '.js'
         ? 'js'
         : 'css';
-    $last = 0;
+    $last  = 0;
     foreach ($args as $a) {
         if (!$a) continue;
         $m = filemtime($a);
@@ -326,7 +325,7 @@ function perfectcache(/* variadic */)
     $mind = CACHE . '/' . $typ;
     $minf = $mind . '/' . md5(implode('', $args)) . '.' . $typ;
     $minu = URL_CACHE . '/' . $typ . '/' . md5(implode('', $args)) . '.' . $typ;
-    $m = @filemtime($minf);
+    $m    = @filemtime($minf);
     // případná rekompilace
     if ($m < $last) {
         pripravCache($mind);
@@ -341,8 +340,8 @@ function perfectcache(/* variadic */)
                 if ($a) {
                     if (substr($a, -4) != '.ttf') {
                         $tmpSouborStylu = tempnam(sys_get_temp_dir(), 'perfectcacheCss');
-                        $css = file_get_contents($a);
-                        $css = pefrectcacheProcessRel($css, 1920, 1200);
+                        $css            = file_get_contents($a);
+                        $css            = pefrectcacheProcessRel($css, 1920, 1200);
                         file_put_contents($tmpSouborStylu, $css);
                         $parser->parseFile($tmpSouborStylu, URL_WEBU . '/soubory/styl/');
                         unlink($tmpSouborStylu);
@@ -589,7 +588,7 @@ function seskupenePodle(
     $out = [];
 
     foreach ($pole as $prvek) {
-        $klic = $funkce($prvek);
+        $klic         = $funkce($prvek);
         $out[$klic][] = $prvek;
     }
 
@@ -621,7 +620,7 @@ function kodZNazvu(
 function odstranDiakritiku(
     string $value,
 ): string {
-    $valueWithoutDiacritics = '';
+    $valueWithoutDiacritics    = '';
     $valueWithSpecialsReplaced = \str_replace(
         ['̱', '̤', '̩', 'Ə', 'ə', 'ʿ', 'ʾ', 'ʼ',],
         ['', '', '', 'E', 'e', "'", "'", "'",],
@@ -629,7 +628,7 @@ function odstranDiakritiku(
     );
     \preg_match_all('~(?<words>\w*)(?<nonWords>\W*)~u', $valueWithSpecialsReplaced, $matches);
     foreach ($matches['words'] as $index => $word) {
-        $wordWithoutDiacritics = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
+        $wordWithoutDiacritics  = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
         $valueWithoutDiacritics .= $wordWithoutDiacritics . $matches['nonWords'][$index];
     }
 
@@ -659,8 +658,8 @@ function hromadneStazeni(
     int    $timeout = 60,
     string $dirToSaveTo = null,
 ): array {
-    $urls = array_map('trim', $urls);
-    $urls = array_filter($urls, static function (
+    $urls   = array_map('trim', $urls);
+    $urls   = array_filter($urls, static function (
         string $url,
     ) {
         return $url !== '';
@@ -674,7 +673,7 @@ function hromadneStazeni(
     if (count($urls) === 0) {
         return $result;
     }
-    $urls = array_unique($urls);
+    $urls          = array_unique($urls);
     $sanitizedUrls = [];
     foreach ($urls as $url) {
         $sanitizedUrls[$url] = sanitizeUrlForCurl($url);
@@ -685,25 +684,25 @@ function hromadneStazeni(
     if (!mkdir($dirToSaveTo, 0777, true) && !is_dir($dirToSaveTo)) {
         throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirToSaveTo));
     }
-    $multiCurl = curl_multi_init();
+    $multiCurl   = curl_multi_init();
     $curlHandles = [];
     $fileHandles = [];
 
     // Add curl multi handles, one per file we don't already have
     foreach ($sanitizedUrls as $originalUrl => $sanitizedUrl) {
-        $path = parse_url($sanitizedUrl, PHP_URL_PATH);
-        $basename = basename($path);
-        $file = $dirToSaveTo . '/' . uniqid('image', true) . $basename;
+        $path       = parse_url($sanitizedUrl, PHP_URL_PATH);
+        $basename   = basename($path);
+        $file       = $dirToSaveTo . '/' . uniqid('image', true) . $basename;
         $curlHandle = curl_init($sanitizedUrl);
         if (!$curlHandle) {
             $result['errors'][$originalUrl] = sprintf("Nelze otevřít CURL handle pro URL '%s'", $sanitizedUrl);
-            $result['errorUrls'][] = $originalUrl;
+            $result['errorUrls'][]          = $originalUrl;
             continue;
         }
         $fileHandle = fopen($file, 'wb');
         if (!$fileHandle) {
             $result['errors'][$originalUrl] = sprintf("Nelze otevřít file handle pro soubor '%s'", $file);
-            $result['errorUrls'][] = $originalUrl;
+            $result['errorUrls'][]          = $originalUrl;
             continue;
         }
         curl_setopt($curlHandle, CURLOPT_FILE, $fileHandle);
@@ -712,8 +711,8 @@ function hromadneStazeni(
         curl_multi_add_handle($multiCurl, $curlHandle);
 
         $result['files'][$originalUrl] = $file;
-        $curlHandles[$sanitizedUrl] = $curlHandle;
-        $fileHandles[$sanitizedUrl] = $fileHandle;
+        $curlHandles[$sanitizedUrl]    = $curlHandle;
+        $fileHandles[$sanitizedUrl]    = $fileHandle;
     }
 
     // stahování souborů
@@ -748,7 +747,7 @@ function hromadneStazeni(
     foreach ($curlHandles as $sanitizedUrl => $curlHandle) {
         fclose($fileHandles[$sanitizedUrl]);
 
-        $info = curl_getinfo($curlHandle);
+        $info                                  = curl_getinfo($curlHandle);
         $result['responseCodes'][$info['url']] = $info['http_code'];
         if ($info['http_code'] >= 400) {
             $result['errors'][$info['url']] = sprintf(
@@ -759,8 +758,8 @@ function hromadneStazeni(
                     ? ' (nenalezeno)'
                     : '',
             );
-            $originalUrl = array_search($sanitizedUrl, $sanitizedUrls, true);
-            $result['errorUrls'][] = $originalUrl;
+            $originalUrl                    = array_search($sanitizedUrl, $sanitizedUrls, true);
+            $result['errorUrls'][]          = $originalUrl;
             unset($result['files'][$originalUrl]);
         }
         curl_multi_remove_handle($multiCurl, $curlHandle);
@@ -834,7 +833,7 @@ function removeDiacritics(
         \preg_match_all('~(?<words>\w*)(?<nonWords>\W*)~u', $specialsReplaced, $matches);
         foreach ($matches['words'] as $index => $word) {
             $wordWithoutDiacritics = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
-            $withoutDiacritics .= $wordWithoutDiacritics . $matches['nonWords'][$index];
+            $withoutDiacritics     .= $wordWithoutDiacritics . $matches['nonWords'][$index];
         }
         $cache[$value] = $withoutDiacritics;
     }
@@ -892,13 +891,13 @@ function aplikujModifikatory(
 function parsujModifikatory(
     string $hodnota,
 ): array {
-    $casti = explode('|', $hodnota);
+    $casti        = explode('|', $hodnota);
     $cistaHodnota = $casti[0];
     unset($casti[0]);
     $modifikatory = [];
     foreach ($casti as $cast) {
         $rozdelenaCast = explode(':', $cast);
-        $modifikator = $rozdelenaCast[0];
+        $modifikator   = $rozdelenaCast[0];
         unset($rozdelenaCast[0]);
         $modifikatory[] = [
             'modifikator' => strtolower(trim($modifikator)),
@@ -977,8 +976,8 @@ function omnibox(
     ): string {
         $labelSlozenZ = $labelSlozenZ
             ?: ['id', 'jmenoNick', 'mail'];
-        $data = $sestavData($uzivatel, $labelSlozenZ);
-        $labelCasti = [];
+        $data         = $sestavData($uzivatel, $labelSlozenZ);
+        $labelCasti   = [];
         if (isset($data['gcPritomen'])) {
             if ($labelCasti) {
                 $labelCasti[] = '; ';
@@ -1058,8 +1057,8 @@ function prevedNaFloat(
         return (float)$castka;
     }
     $original = $castka;
-    $castka = preg_replace('~[^-\d,.]~', '', $castka);
-    $castka = str_replace(',', '.', $castka);
+    $castka   = preg_replace('~[^-\d,.]~', '', $castka);
+    $castka   = str_replace(',', '.', $castka);
     if (!preg_match('~^-?\d+[.]?(\d+)?$~', $castka)) { // 1. je OK, stane se z toho 1.0
         throw new \InvalidArgumentException("Chybné číslo '$original'");
     }
@@ -1094,28 +1093,18 @@ function intvalOrNull(
 
 function jsmeNaLocale(): bool
 {
-    $definedHost = defined('SERVER_NAME')
-        ? constant('SERVER_NAME')
-        : ($_SERVER['SERVER_NAME'] ?? null);
-
-    return $definedHost === 'localhost'
-           || ($_ENV['ENV'] ?? '') === 'local'
-           || in_array(
-               parse_url(URL_WEBU, PHP_URL_HOST),
-               ['127.0.0.1', '::1', 'localhost'],
-           );
+    return PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']) || ($_ENV['ENV'] ?? '') === 'local';
 }
 
 function jsmeNaBete(): bool
 {
     return in_array(
         parse_url(URL_WEBU, PHP_URL_HOST),
-        ['beta.gamecon.cz'],
+        ['beta.gamecon.cz', 'jakublounek.gamecon.cz'],
     );
 }
 
-function quickReportPlaceholderReplace(
-    string $sql,
-): string {
+function quickReportPlaceholderReplace(string $sql): string
+{
     return str_ireplace(['{ROK}', '{ROCNIK}'], ROCNIK, $sql);
 }
