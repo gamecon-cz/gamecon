@@ -1094,55 +1094,51 @@ function intvalOrNull(
 
 function jsmeNaLocale(): bool
 {
-    $definedHost = defined('SERVER_NAME')
-        ? constant('SERVER_NAME')
-        : ($_SERVER['SERVER_NAME'] ?? null);
-
-    return $definedHost === 'localhost'
-           || ($_ENV['ENV'] ?? '') === 'local'
-           || (defined('URL_WEBU') && in_array(
-                parse_url(URL_WEBU, PHP_URL_HOST),
-                ['127.0.0.1', '::1', 'localhost'],
-            )
+    return ($_ENV['ENV'] ?? '') === 'local'
+           ||
+           in_array(
+               getDefinedHost() ?? '',
+               ['127.0.0.1', '::1', 'localhost'],
+               true,
            );
+}
+
+function getDefinedHost(): ?string
+{
+    return defined('SERVER_NAME')
+        ? constant('SERVER_NAME')
+        : ($_SERVER['SERVER_NAME']
+           ?? (defined('URL_WEBU')
+                ? parse_url(constant('URL_WEBU'), PHP_URL_HOST)
+                : null
+           )
+        );
 }
 
 function jsmeNaBete(): bool
 {
-    $definedHost = defined('SERVER_NAME')
-        ? constant('SERVER_NAME')
-        : ($_SERVER['SERVER_NAME']
-           ?? (defined('URL_WEBU')
-                ? constant('URL_WEBU')
-                : null
-           )
-        );
+    $definedHost = getDefinedHost();
 
     return $definedHost !== null
            && in_array(
-               parse_url($definedHost, PHP_URL_HOST),
+               $definedHost,
                ['beta.gamecon.cz', 'admin.beta.gamecon.cz', 'cache.beta.gamecon.cz'],
+               true,
            );
 }
 
 function jsmeNaOstre(): bool
 {
-    $definedHost = defined('SERVER_NAME')
-        ? constant('SERVER_NAME')
-        : ($_SERVER['SERVER_NAME']
-           ?? (defined('URL_WEBU')
-                ? constant('URL_WEBU')
-                : null
-           )
-        );
+    $definedHost = getDefinedHost();
 
     return $definedHost !== null
            && (
                in_array(
-                   parse_url($definedHost, PHP_URL_HOST),
+                   $definedHost,
                    ['gamecon.cz', 'admin.gamecon.cz', 'cache.gamecon.cz'],
+                   true,
                )
-               || preg_match('~(?<rocnik>[0-9]{4})[.]gamecon[.]cz$~', parse_url($definedHost, PHP_URL_HOST))
+               || preg_match('~(?<rocnik>[0-9]{4})[.]gamecon[.]cz$~', $definedHost)
            );
 }
 
