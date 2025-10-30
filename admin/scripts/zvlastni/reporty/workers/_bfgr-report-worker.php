@@ -80,8 +80,10 @@ HTML;
 
   $odeslano = $gmail->odeslat(GcMail::FORMAT_HTML);
 
-  // Smazání dočasného souboru
-  @unlink($tempFile);
+  if (jsmeNaOstre()) {
+    // Smazání dočasného souboru
+    @unlink($tempFile);
+  }
 
   if ($odeslano) {
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Report;
 
+use Gamecon\Shop\Predmet;
 use Gamecon\Shop\StavPredmetu;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -142,7 +143,7 @@ SQL,
 
         while ($r = mysqli_fetch_assoc($result)) {
             $navstevnik = new Uzivatel($r);
-            $navstevnik->nactiPrava(); // sql subdotaz, zlo
+            $navstevnik->nactiPrava();
             $finance = $navstevnik->finance();
             $shop = $navstevnik->shop();
             $ucastiHistorie = [];
@@ -356,36 +357,144 @@ SQL,
 
     private function dejPocetTricekZdarma(Uzivatel $navstevnik): int
     {
-        return $this->dejPocetPolozekZdarma($navstevnik, 'tričko');
+        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
+        $pocet = 0;
+
+        foreach ($polozky as $polozka) {
+            ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
+
+            if (!Predmet::jeToTricko($nazev, $typ)) {
+                continue;
+            }
+
+            if ((float)$castka === 0.0 && (float)$sleva > 0.0) {
+                $pocet++;
+            }
+        }
+
+        return $pocet;
     }
 
     private function dejPocetTilekZdarma(Uzivatel $navstevnik): int
     {
-        return $this->dejPocetPolozekZdarma($navstevnik, 'tílko');
+        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
+        $pocet = 0;
+
+        foreach ($polozky as $polozka) {
+            ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
+
+            if (!Predmet::jeToTilko($nazev, $typ)) {
+                continue;
+            }
+
+            /**
+             * Must NOT be generic "Tričko/tílko" item (those count as tričko only) @see dejPocetTricekZdarma
+             */
+            if (Predmet::jeToTricko($nazev, $typ)) {
+                continue;
+            }
+
+            // Must be free
+            if ((float)$castka === 0.0 && (float)$sleva > 0.0) {
+                $pocet++;
+            }
+        }
+
+        return $pocet;
     }
 
     private function dejPocetTricekSeSlevou(Uzivatel $navstevnik): int
     {
-        return $this->dejPocetPolozekPlacenych($navstevnik, 'tričko modré')
-               + $this->dejPocetPolozekPlacenych($navstevnik, 'tričko červené');
+        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
+        $pocet = 0;
+
+        foreach ($polozky as $polozka) {
+            ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
+
+            if (!Predmet::jeToTricko($nazev, $typ)) {
+                continue;
+            }
+
+            if ((float)$castka > 0.0 && (float)$sleva > 0.0) {
+                $pocet++;
+            }
+        }
+
+        return $pocet;
     }
 
     private function dejPocetTilekSeSlevou(Uzivatel $navstevnik): int
     {
-        return $this->dejPocetPolozekPlacenych($navstevnik, 'tílko modré')
-               + $this->dejPocetPolozekPlacenych($navstevnik, 'tílko červené');
+        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
+        $pocet = 0;
+
+        foreach ($polozky as $polozka) {
+            ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
+
+            if (!Predmet::jeToTilko($nazev, $typ)) {
+                continue;
+            }
+
+            /**
+             * Must NOT be generic "Tričko/tílko" item (those count as tričko only) @see dejPocetTricekSeSlevou
+             */
+            if (Predmet::jeToTricko($nazev, $typ)) {
+                continue;
+            }
+
+            if ((float)$castka > 0.0 && (float)$sleva > 0.0) {
+                $pocet++;
+            }
+        }
+
+        return $pocet;
     }
 
-    private function dejPocetTricekPlacenych(Uzivatel $navstevnik): int
+    private function dejPocetTricekPlnePlacenych(Uzivatel $navstevnik): int
     {
-        return $this->dejPocetPolozekPlacenych($navstevnik, 'tričko')
-               - $this->dejPocetTricekSeSlevou($navstevnik);
+        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
+        $pocet = 0;
+
+        foreach ($polozky as $polozka) {
+            ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
+
+            if (!Predmet::jeToTricko($nazev, $typ)) {
+                continue;
+            }
+
+            if ((float)$castka > 0.0 && (float)$sleva === 0.0) {
+                $pocet++;
+            }
+        }
+
+        return $pocet;
     }
 
-    private function dejPocetTilekPlacenych(Uzivatel $navstevnik): int
+    private function dejPocetTilekPlnePlacenych(Uzivatel $navstevnik): int
     {
-        return $this->dejPocetPolozekPlacenych($navstevnik, 'tílko')
-               - $this->dejPocetTilekSeSlevou($navstevnik);
+        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
+        $pocet = 0;
+
+        foreach ($polozky as $polozka) {
+            ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
+
+            if (!Predmet::jeToTilko($nazev, $typ)) {
+                continue;
+            }
+
+            /**
+             * Must NOT be generic "Tričko/tílko" item (those count as tričko only) @see dejPocetTricekPlnePlacenych
+             */
+            if (Predmet::jeToTricko($nazev, $typ)) {
+                continue;
+            }
+
+            if ((float)$castka > 0.0 && (float)$sleva === 0.0) {
+                $pocet++;
+            }
+        }
+
+        return $pocet;
     }
 
     private function dejPocetPolozekPlacenych(
@@ -507,8 +616,8 @@ SQL,
             'Tílko zdarma'              => $this->dejPocetTilekZdarma($navstevnik),
             'Tričko se slevou'          => $this->dejPocetTricekSeSlevou($navstevnik),
             'Tílko se slevou'           => $this->dejPocetTilekSeSlevou($navstevnik),
-            'Účastnické tričko placené' => $this->dejPocetTricekPlacenych($navstevnik),
-            'Účastnické tílko placené'  => $this->dejPocetTilekPlacenych($navstevnik),
+            'Účastnické tričko placené' => $this->dejPocetTricekPlnePlacenych($navstevnik),
+            'Účastnické tílko placené'  => $this->dejPocetTilekPlnePlacenych($navstevnik),
         ];
 
         return pridejNaZacatekPole('Celkem svršků', array_sum($poctySvrsku), $poctySvrsku);
