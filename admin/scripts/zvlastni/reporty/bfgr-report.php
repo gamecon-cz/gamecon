@@ -31,7 +31,7 @@ if ($idUzivatele) {
 
     // Sestavení příkazu pro background proces
     $command = sprintf(
-        'php %s --userEmail=%s --userName=%s --includeNonPayers > /dev/null 2>&1 &',
+        'php %s --recipientEmail=%s --recipientName=%s --includeNonPayers > /dev/null 2>&1 &',
         escapeshellarg($workerScript),
         escapeshellarg($userEmail),
         escapeshellarg($userName)

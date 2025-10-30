@@ -48,7 +48,7 @@ class BfgrReport
             $ucastPodleRoku[$rokUcasti] = 'účast ' . $rokUcasti;
         }
 
-        //        $letosniPlacky = $this->letosniPlacky();
+        // $letosniPlacky = $this->letosniPlacky();
 
         $letosniKostky = $this->letosniKostky();
 
@@ -135,16 +135,18 @@ SQL,
             exit('V tabulce nejsou žádná data.');
         }
 
-        //        $letosniPlackyKlice          = array_fill_keys($letosniPlacky, null);
-        //        $letosniKostkyKlice          = array_fill_keys($letosniKostky, null);
-        //        $letosniJidlaKlice           = array_fill_keys($letosniJidla, null);
-        //        $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
-        //        $letosniCovidTestyKlice      = array_fill_keys($letosniCovidTesty, null);
+        // $letosniPlackyKlice          = array_fill_keys($letosniPlacky, null);
+        // $letosniKostkyKlice          = array_fill_keys($letosniKostky, null);
+        // $letosniJidlaKlice           = array_fill_keys($letosniJidla, null);
+        // $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
+        // $letosniCovidTestyKlice      = array_fill_keys($letosniCovidTesty, null);
+
+        $obsah = [];
 
         while ($r = mysqli_fetch_assoc($result)) {
             $navstevnik = new Uzivatel($r);
-            $navstevnik->nactiPrava();
             $finance = $navstevnik->finance();
+            $polozkyProBfgr = $finance->dejPolozkyProBfgr();
             $shop = $navstevnik->shop();
             $ucastiHistorie = [];
             foreach ($ucastPodleRoku as $rocnik => $nazevUcasti) {
@@ -245,17 +247,33 @@ SQL,
                         [
                             'Průměrná sleva na aktivity %' => $finance->slevaZaAktivityVProcentech(),
                         ],
-                        $this->dejNazvyAPoctyPlacek($navstevnik),
-                        $this->dejNazvyAPoctyKostek($navstevnik, $letosniKostky),
-                        $this->dejNazvyAPoctyJidel($navstevnik, $letosniJidla),
-                        $this->dejNazvyAPoctySvrsku($navstevnik),
+                        $this->dejNazvyAPoctyPlacek($polozkyProBfgr),
+                        $this->dejNazvyAPoctyKostek($polozkyProBfgr, $letosniKostky),
+                        $this->dejNazvyAPoctyJidel($polozkyProBfgr, $letosniJidla),
+                        $this->dejNazvyAPoctySvrsku($polozkyProBfgr),
                         //                        $this->dejNazvyAPoctyTasek($navstevnik),
-                        $this->dejNazvyAPoctyOstatnichPredmetu($navstevnik, $letosniOstatniPredmety),
+                        $this->dejNazvyAPoctyOstatnichPredmetu($polozkyProBfgr, $letosniOstatniPredmety),
                         // $this->letosniOstatniPredmetyPocty($r, $letosniOstatniPredmetyKlice),
-                        $this->dejNazvyAPoctyCovidTestu($navstevnik, $letosniCovidTesty), // "dát pls až nakonec", tak pravil Gandalf 30. 7. 2021
+                        $this->dejNazvyAPoctyCovidTestu($polozkyProBfgr, $letosniCovidTesty), // "dát pls až nakonec", tak pravil Gandalf 30. 7. 2021
                     ),
                 ],
             );
+            $nezpracovanePolozky = array_filter(
+                $polozkyProBfgr,
+                static function (
+                    array $polozka,
+                ) {
+                    return !in_array(
+                        $polozka['typ'],
+                        [TypPredmetu::UBYTOVANI, TypPredmetu::VSTUPNE], true,
+                    );
+                },
+            );
+            if ($nezpracovanePolozky !== []) {
+                throw new \RuntimeException(
+                    "Některé položky nebyly zpracovány (uživatel {$idUzivatele}): " . var_export($nezpracovanePolozky, true),
+                );
+            }
         }
 
         $indexySloupcuSBydlistem = Report::dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku('Bydliště', $obsah);
@@ -287,7 +305,7 @@ SQL,
         return array_intersect_key($zaznam, $letosniOstatniPredmetyKlice);
     }
 
-    private function excelDatum(?string $datum)
+    private function excelDatum(?string $datum): ?string
     {
         if (!$datum) {
             return null;
@@ -296,12 +314,12 @@ SQL,
         return date('j.n.Y G:i', strtotime($datum));
     }
 
-    private function excelCislo(string | int | float $cislo)
+    private function excelCislo(string | int | float $cislo): string
     {
         return str_replace('.', ',', (string)$cislo);
     }
 
-    private function typUbytovani(string $typ)
+    private function typUbytovani(string $typ): string
     { // ubytování typ - z názvu předmětu odhadne typ
         return preg_replace('@ ?(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle) ?@iu', '', $typ);
     }
@@ -330,37 +348,36 @@ SQL,
     }
 
     private function dejPocetPolozekZdarma(
-        Uzivatel $navstevnik,
-        string   $castNazvu,
-    ) {
-        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
+        array  &$polozkyProBfgr,
+        string $castNazvu,
+    ): int {
         $pocetPolozekZdarma = 0;
-        foreach ($polozky as $polozka) {
+        foreach ($polozkyProBfgr as $indexPolozky => $polozka) {
             ['nazev' => $nazev, 'castka' => $castka] = $polozka;
             if ((float)$castka === 0.0 && mb_stripos($nazev, $castNazvu) !== false) {
                 $pocetPolozekZdarma++;
+                unset($polozkyProBfgr[$indexPolozky]);
             }
         }
 
         return $pocetPolozekZdarma;
     }
 
-    private function dejPocetPlacekZdarma(Uzivatel $navstevnik): int
+    private function dejPocetPlacekZdarma(array &$polozkyProBfg): int
     {
-        return $this->dejPocetPolozekZdarma($navstevnik, 'placka');
+        return $this->dejPocetPolozekZdarma($polozkyProBfg, 'placka');
     }
 
-    private function dejPocetKostekZdarma(Uzivatel $navstevnik): int
+    private function dejPocetKostekZdarma(array &$polozkyProBfg): int
     {
-        return $this->dejPocetPolozekZdarma($navstevnik, 'kostka');
+        return $this->dejPocetPolozekZdarma($polozkyProBfg, 'kostka');
     }
 
-    private function dejPocetTricekZdarma(Uzivatel $navstevnik): int
+    private function dejPocetTricekZdarma(array &$polozkyProBfg): int
     {
-        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocet = 0;
 
-        foreach ($polozky as $polozka) {
+        foreach ($polozkyProBfg as $indexPolozky => $polozka) {
             ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
 
             if (!Predmet::jeToTricko($nazev, $typ)) {
@@ -369,18 +386,18 @@ SQL,
 
             if ((float)$castka === 0.0 && (float)$sleva > 0.0) {
                 $pocet++;
+                unset($polozkyProBfg[$indexPolozky]);
             }
         }
 
         return $pocet;
     }
 
-    private function dejPocetTilekZdarma(Uzivatel $navstevnik): int
+    private function dejPocetTilekZdarma(array &$polozkyProBfg): int
     {
-        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocet = 0;
 
-        foreach ($polozky as $polozka) {
+        foreach ($polozkyProBfg as $indexPolozky => $polozka) {
             ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
 
             if (!Predmet::jeToTilko($nazev, $typ)) {
@@ -397,39 +414,42 @@ SQL,
             // Must be free
             if ((float)$castka === 0.0 && (float)$sleva > 0.0) {
                 $pocet++;
+                unset($polozkyProBfg[$indexPolozky]);
             }
         }
 
         return $pocet;
     }
 
-    private function dejPocetTricekSeSlevou(Uzivatel $navstevnik): int
+    private function dejPocetTricekSeSlevou(array &$polozkyProBfg): int
     {
-        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocet = 0;
 
-        foreach ($polozky as $polozka) {
-            ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
+        foreach ($polozkyProBfg as $indexPolozky => $polozka) {
+            ['nazev' => $nazev, 'castka' => $castka, 'typ' => $typ] = $polozka;
 
             if (!Predmet::jeToTricko($nazev, $typ)) {
                 continue;
             }
+            if (!Predmet::jeToModre($nazev) && !Predmet::jeToCervene($nazev)) {
+                continue;
+            }
 
-            if ((float)$castka > 0.0 && (float)$sleva > 0.0) {
+            if ((float)$castka > 0.0) {
                 $pocet++;
+                unset($polozkyProBfg[$indexPolozky]);
             }
         }
 
         return $pocet;
     }
 
-    private function dejPocetTilekSeSlevou(Uzivatel $navstevnik): int
+    private function dejPocetTilekSeSlevou(array &$polozkyProBfg): int
     {
-        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocet = 0;
 
-        foreach ($polozky as $polozka) {
-            ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
+        foreach ($polozkyProBfg as $indexPolozky => $polozka) {
+            ['nazev' => $nazev, 'castka' => $castka, 'typ' => $typ] = $polozka;
 
             if (!Predmet::jeToTilko($nazev, $typ)) {
                 continue;
@@ -442,43 +462,47 @@ SQL,
                 continue;
             }
 
-            if ((float)$castka > 0.0 && (float)$sleva > 0.0) {
+            if (!Predmet::jeToModre($nazev) && !Predmet::jeToCervene($nazev)) {
+                continue;
+            }
+
+            if ((float)$castka > 0.0) {
                 $pocet++;
+                unset($polozkyProBfg[$indexPolozky]);
             }
         }
 
         return $pocet;
     }
 
-    private function dejPocetTricekPlnePlacenych(Uzivatel $navstevnik): int
+    private function dejPocetTricekPlnePlacenych(array &$polozkyProBfg): int
     {
-        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocet = 0;
 
-        foreach ($polozky as $polozka) {
+        foreach ($polozkyProBfg as $indexPolozky => $polozka) {
             ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
 
-            if (!Predmet::jeToTricko($nazev, $typ)) {
+            if (!Predmet::jeToTricko($nazev, $typ) || Predmet::jeToModre($nazev)) {
                 continue;
             }
 
             if ((float)$castka > 0.0 && (float)$sleva === 0.0) {
                 $pocet++;
+                unset($polozkyProBfg[$indexPolozky]);
             }
         }
 
         return $pocet;
     }
 
-    private function dejPocetTilekPlnePlacenych(Uzivatel $navstevnik): int
+    private function dejPocetTilekPlnePlacenych(array &$polozkyProBfg): int
     {
-        $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocet = 0;
 
-        foreach ($polozky as $polozka) {
+        foreach ($polozkyProBfg as $indexPolozky => $polozka) {
             ['nazev' => $nazev, 'castka' => $castka, 'sleva' => $sleva, 'typ' => $typ] = $polozka;
 
-            if (!Predmet::jeToTilko($nazev, $typ)) {
+            if (!Predmet::jeToTilko($nazev, $typ) || Predmet::jeToModre($nazev)) {
                 continue;
             }
 
@@ -491,6 +515,7 @@ SQL,
 
             if ((float)$castka > 0.0 && (float)$sleva === 0.0) {
                 $pocet++;
+                unset($polozkyProBfg[$indexPolozky]);
             }
         }
 
@@ -498,31 +523,31 @@ SQL,
     }
 
     private function dejPocetPolozekPlacenych(
-        Uzivatel $navstevnik,
-        string   $castNazvu,
+        array  &$polozkyProBfg,
+        string $castNazvu,
     ) {
-        $financniPrehled = $navstevnik->finance()->dejPolozkyProBfgr();
         $pocetPolozekPlacenych = 0;
-        foreach ($financniPrehled as $polozka) {
+        foreach ($polozkyProBfg as $indexPolozky => $polozka) {
             ['nazev' => $nazev, 'castka' => $castka] = $polozka;
             if ((float)$castka > 0.0 && mb_stripos($nazev, $castNazvu) !== false) {
                 $pocetPolozekPlacenych++;
+                unset($polozkyProBfg[$indexPolozky]);
             }
         }
 
         return $pocetPolozekPlacenych;
     }
 
-    private function dejPocetPlacekPlacenych(Uzivatel $navstevnik): int
+    private function dejPocetPlacekPlacenych(array &$polozkyProBfg): int
     {
-        return $this->dejPocetPolozekPlacenych($navstevnik, 'placka');
+        return $this->dejPocetPolozekPlacenych($polozkyProBfg, 'placka');
     }
 
     private function dejNazvyAPoctyJidel(
-        Uzivatel $navstevnik,
-        array    $moznaJidla,
+        array &$polozkyProBfg,
+        array $moznaJidla,
     ): array {
-        $objednanaJidla = $this->dejNazvyAPoctyPredmetu($navstevnik, Jidlo::dejJidlaBehemDne());
+        $objednanaJidla = $this->dejNazvyAPoctyPredmetu($polozkyProBfg, Jidlo::dejJidlaBehemDne());
         uksort($objednanaJidla, function (
             string $nejakeJidloADen,
             string $jineJidloADen,
@@ -559,21 +584,20 @@ SQL,
     }
 
     /**
-     * @param Uzivatel $navstevnik
      * @param array<int, string> $castNazvuRegexpNeboPole
      * @return array
      */
     private function dejNazvyAPoctyPredmetu(
-        Uzivatel $navstevnik,
-        array    $castNazvuRegexpNeboPole,
+        array &$polozkyProBfg,
+        array $castNazvuRegexpNeboPole,
     ): array {
-        $castNazvuRegexp = $this->dejPoleJakoRegexp((array)$castNazvuRegexpNeboPole, '~');
-        $financniPrehled = $navstevnik->finance()->dejPolozkyProBfgr();
+        $castNazvuRegexp = $this->dejPoleJakoRegexp($castNazvuRegexpNeboPole, '~');
         $poctyPredmetu = [];
-        foreach ($financniPrehled as $polozka) {
+        foreach ($polozkyProBfg as $indexPolozky => $polozka) {
             ['nazev' => $nazev, 'pocet' => $pocet] = $polozka;
             if (preg_match('~' . $castNazvuRegexp . '~iuS', $nazev)) {
                 $poctyPredmetu[$nazev] = ($poctyPredmetu[$nazev] ?? 0) + $pocet;
+                unset($polozkyProBfg[$indexPolozky]);
             }
         }
 
@@ -601,33 +625,33 @@ SQL,
     }
 
     private function dejNazvyAPoctyCovidTestu(
-        Uzivatel $navstevnik,
-        array    $vsechnyMozneCovidTesty,
+        array &$polozkyProBfg,
+        array $vsechnyMozneCovidTesty,
     ): array {
-        $objednaneCovidTesty = $this->dejNazvyAPoctyPredmetu($navstevnik, ['covid']);
+        $objednaneCovidTesty = $this->dejNazvyAPoctyPredmetu($polozkyProBfg, ['covid']);
 
         return $this->seradADoplnNenakoupene($objednaneCovidTesty, $vsechnyMozneCovidTesty);
     }
 
-    private function dejNazvyAPoctySvrsku(Uzivatel $navstevnik): array
+    private function dejNazvyAPoctySvrsku(array &$polozkyProBfg): array
     {
         $poctySvrsku = [
-            'Tričko zdarma'             => $this->dejPocetTricekZdarma($navstevnik),
-            'Tílko zdarma'              => $this->dejPocetTilekZdarma($navstevnik),
-            'Tričko se slevou'          => $this->dejPocetTricekSeSlevou($navstevnik),
-            'Tílko se slevou'           => $this->dejPocetTilekSeSlevou($navstevnik),
-            'Účastnické tričko placené' => $this->dejPocetTricekPlnePlacenych($navstevnik),
-            'Účastnické tílko placené'  => $this->dejPocetTilekPlnePlacenych($navstevnik),
+            'Tričko zdarma'             => $this->dejPocetTricekZdarma($polozkyProBfg),
+            'Tílko zdarma'              => $this->dejPocetTilekZdarma($polozkyProBfg),
+            'Tričko se slevou'          => $this->dejPocetTricekSeSlevou($polozkyProBfg),
+            'Tílko se slevou'           => $this->dejPocetTilekSeSlevou($polozkyProBfg),
+            'Účastnické tričko placené' => $this->dejPocetTricekPlnePlacenych($polozkyProBfg),
+            'Účastnické tílko placené'  => $this->dejPocetTilekPlnePlacenych($polozkyProBfg),
         ];
 
         return pridejNaZacatekPole('Celkem svršků', array_sum($poctySvrsku), $poctySvrsku);
     }
 
     private function dejNazvyAPoctyOstatnichPredmetu(
-        Uzivatel $navstevnik,
-        array    $vsechnyMozneOstatniPredmety,
+        array &$polozkyProBfg,
+        array $vsechnyMozneOstatniPredmety,
     ): array {
-        $objednaneOstatniPredmety = $this->dejNazvyAPoctyPredmetu($navstevnik, $vsechnyMozneOstatniPredmety);
+        $objednaneOstatniPredmety = $this->dejNazvyAPoctyPredmetu($polozkyProBfg, $vsechnyMozneOstatniPredmety);
 
         return $this->seradADoplnNenakoupene($objednaneOstatniPredmety, $vsechnyMozneOstatniPredmety);
     }
@@ -654,21 +678,22 @@ SQL,
         return $objednaneANeobjednane;
     }
 
-    private function dejNazvyAPoctyPlacek(Uzivatel $navstevnik): array
+    private function dejNazvyAPoctyPlacek(array &$polozkyProBfg): array
     {
         $poctyPlacek = [
-            'Placka zdarma'     => $this->dejPocetPlacekZdarma($navstevnik),
-            'Placka GC placená' => $this->dejPocetPlacekPlacenych($navstevnik),
+            'Placka zdarma'     => $this->dejPocetPlacekZdarma($polozkyProBfg),
+            'Placka GC placená' => $this->dejPocetPlacekPlacenych($polozkyProBfg),
         ];
 
         return pridejNaZacatekPole('Celkem placek', array_sum($poctyPlacek), $poctyPlacek);
     }
 
     private function dejNazvyAPoctyKostek(
-        Uzivatel $navstevnik,
-        array    $vsechnyMozneKostky,
+        array &$polozkyProBfg,
+        array $vsechnyMozneKostky,
     ): array {
-        $objednaneKostky = $this->dejNazvyAPoctyPredmetu($navstevnik, ['kostka']);
+        $kopiePolozekProBfg = $polozkyProBfg; // abychom udrželi data pro kostky zdarma, které jsou podmnožinou kostek celkem
+        $objednaneKostky = $this->dejNazvyAPoctyPredmetu($polozkyProBfg, ['kostka']);
         foreach ($objednaneKostky as $objednanaKostka => $pocet) {
             if (!preg_match('~ \d{4}$~', $objednanaKostka)) {
                 unset($objednaneKostky[$objednanaKostka]);
@@ -677,7 +702,7 @@ SQL,
         }
         $poctyKostek = $this->seradADoplnNenakoupene($objednaneKostky, $vsechnyMozneKostky);
         // pozor, kostky zdarma je počet kostek z výše uvedených objednaných (podmnožina) - nejsou to kostky navíc
-        $poctyKostek['Kostka zdarma'] = $this->dejPocetKostekZdarma($navstevnik);
+        $poctyKostek['Kostka zdarma'] = $this->dejPocetKostekZdarma($kopiePolozekProBfg);
 
         return pridejNaZacatekPole('Celkem kostek', array_sum($objednaneKostky), $poctyKostek);
     }

@@ -13,16 +13,17 @@ use Gamecon\Kanaly\GcMail;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 // Zpracování argumentů z příkazové řádky
-$options = getopt('', ['format:', 'userEmail:', 'userName::', 'includeNonPayers::']);
+$options = getopt('', ['format:', 'recipientEmail:', 'recipientName::', 'includeNonPayers::', 'userId::']);
 
-if (!isset($options['userEmail'])) {
-  fwrite(STDERR, "Usage: bfgr-report-worker.php --userEmail=<email> [--userName=<name>] [--includeNonPayers]\n");
+if (!isset($options['recipientEmail'])) {
+  fwrite(STDERR, "Usage: bfgr-report-worker.php --recipientEmail=<email> [--recipientName=<name>] [--includeNonPayers] [--userId]\n");
   exit(1);
 }
 
-$userEmail = trim($options['userEmail']);
-$userName = $options['userName'] ?? $userEmail;
+$userEmail = trim($options['recipientEmail']);
+$userName = $options['recipientName'] ?? $userEmail;
 $includeNonPayers = isset($options['includeNonPayers']);
+$userId = $options['userId'] ?? null;
 
 // Načtení aplikace
 require_once __DIR__ . '/../../../../../nastaveni/zavadec.php';
@@ -44,6 +45,7 @@ try {
       format: 'xlsx',
       vcetneStavuNeplatice: $includeNonPayers,
       doSouboru: $tempFile,
+      idUzivatele: $userId,
   );
 
   file_put_contents($logFile, date('Y-m-d H:i:s') . " BFGR report vygenerován do souboru {$tempFile}\n", FILE_APPEND);
