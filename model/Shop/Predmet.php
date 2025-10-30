@@ -33,7 +33,26 @@ class Predmet extends \DbObject
 
     public static function jeToModre(string $nazev): bool
     {
-        return mb_stripos($nazev, 'modré') !== false;
+        return mb_stripos($nazev, 'modr') !== false;
+    }
+
+    public static function jeToCervene(string $nazev): bool
+    {
+        return mb_stripos($nazev, 'červen') !== false;
+    }
+
+    public static function jeToTricko(
+        string $nazev,
+        int    $typ,
+    ): bool {
+        return $typ === TypPredmetu::TRICKO && mb_stripos($nazev, 'tričko') !== false;
+    }
+
+    public static function jeToTilko(
+        string $nazev,
+        int    $typ,
+    ): bool {
+        return $typ === TypPredmetu::TRICKO && mb_stripos($nazev, 'tílko') !== false;
     }
 
     public static function letosniKostka(int $rocnik): ?static
@@ -41,13 +60,18 @@ class Predmet extends \DbObject
         return self::letosniPredmet('Kostka', $rocnik);
     }
 
+    public static function letosniPlacka(int $rocnik): ?static
+    {
+        return self::letosniPredmet('Placka', $rocnik);
+    }
+
     private static function letosniPredmet(
         string $castNazvu,
         int    $rocnik,
     ): ?static {
         if (!array_key_exists($castNazvu, self::$letosniPredmety)) {
-            $typPredmet       = TypPredmetu::PREDMET;
-            $castNazvuSql     = dbQRaw($castNazvu);
+            $typPredmet = TypPredmetu::PREDMET;
+            $castNazvuSql = dbQRaw($castNazvu);
             $letosniPredmetId = dbFetchSingle(<<<SQL
 SELECT id_predmetu
 FROM shop_predmety
@@ -60,18 +84,13 @@ ORDER BY model_rok DESC, je_letosni_hlavni DESC, cena_aktualni DESC, id_predmetu
 LIMIT 1 -- pro jistotu
 SQL,
             );
-            $letosniPredmet   = $letosniPredmetId
+            $letosniPredmet = $letosniPredmetId
                 ? static::zId((int)$letosniPredmetId, true)
                 : null;
             self::$letosniPredmety[$castNazvu] = $letosniPredmet;
         }
 
         return self::$letosniPredmety[$castNazvu];
-    }
-
-    public static function letosniPlacka(int $rocnik): ?static
-    {
-        return self::letosniPredmet('Placka', $rocnik);
     }
 
     public function kusuVyrobeno(int $kusuVyrobeno = null): int

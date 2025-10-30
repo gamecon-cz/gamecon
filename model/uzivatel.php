@@ -1148,22 +1148,25 @@ SQL,
      */
     public function nactiPrava(?DataSourcesCollector $dataSourcesCollector = null): void
     {
-        self::nactiPravaDSC($dataSourcesCollector);
-
         if (isset($this->r['prava'])) {
             return;
         }
         //načtení uživatelských práv
-        $p     = dbQuery(<<<SQL
-                SELECT prava_role.id_prava
-                FROM platne_role_uzivatelu
-                LEFT JOIN prava_role USING(id_role)
-                WHERE platne_role_uzivatelu.id_uzivatele=$0
-                SQL,
-            [0 => $this->id()],
+        $idckaPrav = $this->systemoveNastaveni->db()->dbFetchAll(
+            [
+                PravaRoleSqlStruktura::PRAVA_ROLE_TABULKA,
+                PlatneRoleUzivateluSqlStruktura::PLATNE_ROLE_UZIVATELU_TABULKA,
+            ],
+            <<<SQL
+            SELECT prava_role.id_prava
+            FROM platne_role_uzivatelu
+            LEFT JOIN prava_role USING(id_role)
+            WHERE platne_role_uzivatelu.id_uzivatele={$this->id()}
+            SQL,
+            $dataSourcesCollector,
         );
         $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p)) {
+        foreach ($idckaPrav as $r) {
             $prava[] = (int)$r['id_prava'];
         }
         $this->r['prava'] = $prava;

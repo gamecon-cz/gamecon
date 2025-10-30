@@ -889,6 +889,13 @@ SQL;
         return po($this->prihlasovaniUcastnikuDo());
     }
 
+    public function slevaOrguNaJidloCastka(): float
+    {
+        return defined('SLEVA_ORGU_NA_JIDLO_CASTKA')
+            ? SLEVA_ORGU_NA_JIDLO_CASTKA
+            : $this->dejHodnotu('SLEVA_ORGU_NA_JIDLO_CASTKA');
+    }
+
     public function neplaticCastkaVelkyDluh(): float
     {
         return defined('NEPLATIC_CASTKA_VELKY_DLUH')

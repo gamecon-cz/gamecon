@@ -13,16 +13,15 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
+use Gamecon\Finance\QrPlatba;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
 use Gamecon\Pravo;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\Dto\PriceAfterDiscountDto;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
-use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
-use Cenik;
-use Gamecon\Finance\QrPlatba;
-use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -548,7 +547,7 @@ SQL,
 
     public function maximalniPocetModrychTricekZdarma(): int
     {
-        return $this->u->maPravo(Pravo::MODRE_TRICKO_ZDARMA) && $this->bonusZaVedeniAktivit() >= MODRE_TRICKO_ZDARMA_OD
+        return $this->u->maPravo(Pravo::MODRE_TRICKO_ZDARMA) && $this->bonusZaVedeniAktivit() >= $this->systemoveNastaveni->modreTrickoZdarmaOd()
             ? 1
             : 0;
     }
@@ -823,12 +822,13 @@ SQL;
 
         $soucty = [];
         foreach ($o as $r) {
-            $cena = $this->cenik()->cena($r);
+            $priceAfterDiscountDto = $this->cenik()->cena($r);
+            $cena = $priceAfterDiscountDto->finalPrice;
             // započtení ceny
             if ($r['typ'] == TypPredmetu::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
             } elseif ($r['typ'] == TypPredmetu::VSTUPNE) {
-                if (strpos($r['nazev'], 'pozdě') === false) {
+                if (!str_contains($r['nazev'], 'pozdě')) {
                     assert($this->cenaVstupne === 0.0);
                     $this->cenaVstupne = $cena;
                 } else {
@@ -861,7 +861,7 @@ SQL;
                 $r['nazev'] = $r['nazev'] . ' ' . $r['model_rok'];
             }
 
-            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $cena, (int)$r['typ']);
+            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $priceAfterDiscountDto, (int)$r['typ']);
 
             // logování do výpisu
             if (in_array($r['typ'], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
@@ -932,7 +932,7 @@ SQL;
         );
 
         foreach ($q as $sleva) {
-            if (strpos($sleva[SlevySqlStruktura::POZNAMKA], '#kompenzace') !== false) {
+            if (str_contains($sleva[SlevySqlStruktura::POZNAMKA], '#kompenzace')) {
                 // speciální typ slevy: kompenzace
                 // započítává se stejně jako sleva za vedené aktivity
                 $this->bonusZaVedeniAktivit += $sleva[SlevySqlStruktura::CASTKA];
@@ -1235,10 +1235,10 @@ SQL;
     }
 
     private function logPolozkaProBfgr(
-        string $nazev,
-        int    $pocet,
-        float  $castka,
-        int    $typ,
+        string                $nazev,
+        int                   $pocet,
+        PriceAfterDiscountDto $priceAfterDiscountDto,
+        int                   $typ,
     ): void {
         if (!$this->logovat) {
             return;
@@ -1247,7 +1247,8 @@ SQL;
         $this->polozkyProBfgr[] = [
             'nazev'  => trim($nazev),
             'pocet'  => $pocet,
-            'castka' => $castka,
+            'castka' => $priceAfterDiscountDto->finalPrice,
+            'sleva' => $priceAfterDiscountDto->discount,
             'typ'    => $typ,
         ];
     }
