@@ -18,18 +18,6 @@ use Gamecon\Jidlo;
 // takzvaný BFGR (Big f**king Gandalf report)
 class BfgrReport
 {
-    // poradi je dulezite, udava prioritu
-    private const ID_ROLI_PRO_POZICI = [
-        Role::ORGANIZATOR,
-        Role::PUL_ORG_BONUS_UBYTKO,
-        Role::PUL_ORG_BONUS_TRICKO,
-        Role::MINI_ORG,
-        Role::LETOSNI_VYPRAVEC,
-        Role::LETOSNI_PARTNER,
-        Role::LETOSNI_BRIGADNIK,
-        Role::LETOSNI_HERMAN,
-    ];
-
     public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
     {
     }
@@ -295,7 +283,7 @@ SQL,
         }
 
         Report::zPoleSDvojitouHlavickou($obsah, Report::HLAVICKU_ZACINAT_VElKYM_PISMENEM)
-              ->tFormat($format, null, $konfiguraceReportu);
+              ->tFormat($format, 'bfgr-report', $konfiguraceReportu);
     }
 
     private function letosniOstatniPredmetyPocty(
@@ -339,12 +327,32 @@ SQL,
     {
         static $jmenaRoliProPozici = [];
         if (!$jmenaRoliProPozici) {
-            foreach (self::ID_ROLI_PRO_POZICI as $idRole) {
+            foreach ($this->idRoliProPozici() as $idRole) {
                 $jmenaRoliProPozici[$idRole] = Role::zId($idRole)->nazevRole();
             }
         }
 
         return $jmenaRoliProPozici;
+    }
+
+    /**
+     * @return array<int>
+     */
+    private function idRoliProPozici(): array
+    {
+        $rocnik = $this->systemoveNastaveni->rocnik();
+
+        // poradi je dulezite, udava prioritu
+        return [
+            Role::ORGANIZATOR,
+            Role::PUL_ORG_BONUS_UBYTKO,
+            Role::PUL_ORG_BONUS_TRICKO,
+            Role::MINI_ORG,
+            Role::LETOSNI_VYPRAVEC($rocnik),
+            Role::LETOSNI_PARTNER($rocnik),
+            Role::LETOSNI_BRIGADNIK($rocnik),
+            Role::LETOSNI_HERMAN($rocnik),
+        ];
     }
 
     private function dejPocetPolozekZdarma(

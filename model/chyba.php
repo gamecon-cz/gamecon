@@ -141,6 +141,10 @@ class Chyba extends Exception
         return static::vytvorHtmlZpravu($zpravyPodleTypu);
     }
 
+    /**
+     * @param array<string, array<string>> $zpravyPodleTypu
+     * @return string
+     */
     protected static function vytvorHtmlZpravu(array $zpravyPodleTypu): string
     {
         $zpravy                 = '';
@@ -162,7 +166,7 @@ class Chyba extends Exception
             $zpravyJednohoTypuHtml = '';
             foreach ($zpravyJednohoTypu as $zprava) {
                 $zpravyJednohoTypuHtml .= sprintf('<div class="hlaska %s">%s</div>', $tridaPodleTypu, $zprava);
-                $delkaTextu            += strlen(strip_tags($zprava));
+                $delkaTextu            += strlen(strip_tags((string)$zprava));
             }
             $zpravy .= sprintf('<div>%s</div>', $zpravyJednohoTypuHtml);
         }

@@ -8,6 +8,7 @@ use OpenSpout\Writer\XLSX\Entity\SheetView;
 use Gamecon\Report\KonfiguraceReportu;
 use OpenSpout\Common\Entity\Style\CellAlignment;
 use OpenSpout\Writer\XLSX\Options;
+use Gamecon\Cas\DateTimeCz;
 
 /**
  * Třída pro vytvoření a vypsání reportu
@@ -38,7 +39,7 @@ class Report
             ini_set('memory_limit', '1G');
 
             $options = new Options();
-            $writer  = new Writer($options);
+            $writer = new Writer($options);
 
             if ($konfiguraceReportu->getDestinationFile()) {
                 $writer->openToFile($konfiguraceReportu->getDestinationFile());
@@ -65,12 +66,12 @@ class Report
             $rows = [];
 
             $headerStyle = (new Style())->setFontBold()->setFontSize($konfiguraceReportu->getHeaderFontSize());
-            $headerRow   = Row::fromValues($this->hlavicky(), $headerStyle);
-            $rows[]      = $headerRow;
+            $headerRow = Row::fromValues($this->hlavicky(), $headerStyle);
+            $rows[] = $headerRow;
 
-            $integerStyle     = (new Style())->setFormat('0');
-            $numberStyle      = (new Style())->setFormat('0.0');
-            $moneyStyle       = (new Style())->setFormat('0.00');
+            $integerStyle = (new Style())->setFormat('0');
+            $numberStyle = (new Style())->setFormat('0.0');
+            $moneyStyle = (new Style())->setFormat('0.00');
             $genericSizeStyle = (new Style())
                 ->setFontSize($konfiguraceReportu->getBodyFontSize())
                 ->setFontName('Arial')
@@ -131,11 +132,11 @@ class Report
         KonfiguraceReportu $konfiguraceReportu,
     ): array {
         $maxGenericColumnWidth = $konfiguraceReportu->getMaxGenericColumnWidth();
-        $columnsWidths         = $konfiguraceReportu->getColumnsWidths();
-        $widths                = [];
+        $columnsWidths = $konfiguraceReportu->getColumnsWidths();
+        $widths = [];
         foreach ($rows as $row) {
             foreach ($row->getCells() as $index => $cell) {
-                $columnNumber       = $index + 1;
+                $columnNumber = $index + 1;
                 $currentColumnWidth = $columnsWidths[$index] ?? false;
                 if ($currentColumnWidth) {
                     $widths[$columnNumber] = $currentColumnWidth;
@@ -144,7 +145,7 @@ class Report
                 if ($maxGenericColumnWidth && ($widths[$columnNumber] ?? null) === $maxGenericColumnWidth) {
                     continue; // current colum already has maximal width set for current column
                 }
-                $ratio                 = $cell->getStyle()->isFontBold()
+                $ratio = $cell->getStyle()->isFontBold()
                     ? 1.5
                     : 1.3;
                 $widths[$columnNumber] = max(
@@ -168,13 +169,13 @@ class Report
             ? preg_replace('~[^[:alnum:]_-]~', '_', removeDiacritics(trim($nazevReportu)))
             : $this->nazevReportuZRequestu();
 
-        return $nazevReportu . '_' . (new \Gamecon\Cas\DateTimeCz())->formatCasSoubor() . '.' . $pripona;
+        return $nazevReportu . '_' . (new DateTimeCz())->formatCasSoubor() . '.' . $pripona;
     }
 
     public function nazevReportuZRequestu(): string
     {
         // část url za posledním lomítkem
-        $posledniCastUrl    = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
+        $posledniCastUrl = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
         $poziceZacatkuQuery = strpos($posledniCastUrl, '?');
 
         return $poziceZacatkuQuery !== false
@@ -185,17 +186,25 @@ class Report
     /**
      * Vytiskne report jako CSV
      */
-    public function tCsv(string $nazevReportu = null)
-    {
-        $fileName = $this->nazevSouboru('csv', $nazevReportu);
-        header('Content-type: application/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $fileName . '"');
-        echo(chr(0xEF) . chr(0xBB) . chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsledném souboru
-        $out = fopen('php://output', 'wb'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
+    public function tCsv(
+        string             $nazevReportu = null,
+        KonfiguraceReportu $konfiguraceReportu = null,
+    ) {
+        $doSouboru = $konfiguraceReportu?->getDestinationFile();
+        if ($doSouboru) {
+            $out = fopen($doSouboru, 'wb');
+        } else {
+            $fileName = $this->nazevSouboru('csv', $nazevReportu);
+            header('Content-type: application/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $fileName . '"');
+            echo(chr(0xEF) . chr(0xBB) . chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsledném souboru
+            $out = fopen('php://output', 'wb'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
+        }
         $this->zapisCsvRadek($out, $this->hlavicky());
         while ($radek = $this->radek()) {
             $this->zapisCsvRadek($out, $radek);
         }
+        fclose($out);
     }
 
     private function zapisCsvRadek(
@@ -207,7 +216,12 @@ class Report
 
     private function odstranTagyZPole(array $values): array
     {
-        return array_map('strip_tags', $values);
+        return array_map(
+            'strip_tags',
+            array_map(fn(
+                $value,
+            ) => (string)$value, $values),
+        );
     }
 
     /**
@@ -223,7 +237,7 @@ class Report
         if (!$format || $format === 'xlsx') {
             $this->tXlsx($nazev, $konfiguraceReportu);
         } elseif ($format === 'csv') {
-            $this->tCsv($nazev);
+            $this->tCsv($nazev, $konfiguraceReportu);
         } elseif ($format === 'html') {
             $this->tHtml();
         } else {
@@ -281,8 +295,8 @@ HTML;
         array $pole,
         int   $parametry = 0,
     ): self {
-        $hlavniHlavicka   = [];
-        $obsah            = [];
+        $hlavniHlavicka = [];
+        $obsah = [];
         $vedlejsiHlavicka = [];
         foreach (reset($pole) as $nazevHlavniHlavicky => $radekSVedlejsiHlavickou) {
             $hlavniHlavicka[] = $nazevHlavniHlavicky;
@@ -327,8 +341,8 @@ HTML;
         array $hlavicky,
         array $obsah,
     ): self {
-        $report            = new static();
-        $report->hlavicky  = $hlavicky;
+        $report = new static();
+        $report->hlavicky = $hlavicky;
         $report->poleObsah = $obsah;
 
         return $report;
@@ -344,10 +358,10 @@ HTML;
         array   $dotazParametry = null,
         ?mysqli $mysqli = null,
     ): self {
-        $report               = new static();
-        $report->sql          = $dotaz;
+        $report = new static();
+        $report->sql = $dotaz;
         $report->sqlParametry = $dotazParametry;
-        $report->mysqli       = $mysqli;
+        $report->mysqli = $mysqli;
 
         return $report;
     }
@@ -377,7 +391,7 @@ HTML;
             }
             $pocetPodsloupcuPredtim += count($dataDleHlavnihoSloupce);
         }
-        $klicePodsloupcu       = array_keys($dataSloupceDlePrvnihoRadku);
+        $klicePodsloupcu = array_keys($dataSloupceDlePrvnihoRadku);
         $indexyKlicuPodsloupcu = array_keys($klicePodsloupcu);
 
         return array_map(static function (
@@ -429,7 +443,7 @@ HTML;
         }
         $this->hlavicky = [];
         for ($i = 0, $sloupcu = mysqli_num_fields($this->o); $i < $sloupcu; $i++) {
-            $field_info       = mysqli_fetch_field($this->o);
+            $field_info = mysqli_fetch_field($this->o);
             $this->hlavicky[] = $field_info->name;
         }
 

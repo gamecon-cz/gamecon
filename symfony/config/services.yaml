@@ -5,6 +5,7 @@ parameters:
     gamecon.db.name: '%env(GAMECON_DB_NAME)%'
     gamecon.db.user: '%env(GAMECON_DB_USER)%'
     gamecon.db.password: '%env(GAMECON_DB_PASSWORD)%'
+    app.current_year: !php/const ROCNIK
 
 services:
     _defaults:
@@ -12,6 +13,7 @@ services:
         autoconfigure: true
         bind:
             $projectDir: '%kernel.project_dir%'
+            $currentYear: '%app.current_year%'
 
     App\:
         resource: '../src/'

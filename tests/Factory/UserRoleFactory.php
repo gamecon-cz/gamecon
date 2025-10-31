@@ -6,6 +6,9 @@ namespace Gamecon\Tests\Factory;
 
 use App\Entity\UserRole;
 use App\Repository\UserRoleRepository;
+use App\Structure\Entity\UserEntityStructure;
+use App\Structure\Entity\UserRoleEntityStructure;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 use Zenstruck\Foundry\Persistence\Proxy;
 use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
@@ -39,10 +42,12 @@ final class UserRoleFactory extends PersistentProxyObjectFactory
     protected function defaults(): array
     {
         return [
-            'idUzivatele' => self::faker()->numberBetween(1, 1000),
-            'idRole' => self::faker()->numberBetween(1, 100),
-            'posazen' => self::faker()->dateTime(),
-            'posadil' => self::faker()->numberBetween(1, 1000),
+            UserRoleEntityStructure::user => LazyValue::new(fn() => UserFactory::createOne()),
+            UserRoleEntityStructure::role => LazyValue::new(fn() => RoleFactory::createOne()),
+            UserRoleEntityStructure::posazen => self::faker()->dateTime(),
+            UserRoleEntityStructure::givenBy => LazyValue::new(fn() => UserFactory::find([
+                UserEntityStructure::id => \Uzivatel::SYSTEM
+            ])),
         ];
     }
 }

@@ -2,56 +2,42 @@
 
 namespace Gamecon\Tests\Model\Report;
 
+use App\Structure\Entity\RoleEntityStructure;
+use App\Structure\Entity\UserEntityStructure;
+use App\Structure\Entity\UserRoleEntityStructure;
 use Gamecon\Report\BfgrReport;
-use Gamecon\Stat;
+use Gamecon\Role\Role as LegacyRole;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Tests\Db\AbstractTestDb;
-use Gamecon\Uzivatel\Pohlavi;
-use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
+use Gamecon\Tests\Db\AbstractDoctrineTestDb;
+use Gamecon\Tests\Factory\RoleFactory;
+use Gamecon\Tests\Factory\UserFactory;
+use Gamecon\Tests\Factory\UserRoleFactory;
 
-class BfgrReportTest extends AbstractTestDb
+class BfgrReportTest extends AbstractDoctrineTestDb
 {
-    private const ID_UZDLUZNIKA = 2;
+    private const YEAR = 2025;
 
     protected static function getBeforeClassInitCallbacks(): array
     {
         return [
             function () {
-                dbInsert(UzivatelSql::UZIVATELE_HODNOTY_TABULKA,
-                    [
-                        UzivatelSql::ID_UZIVATELE                        => self::ID_UZDLUZNIKA,
-                        UzivatelSql::OP                                  => '123456789',
-                        UzivatelSql::POHLAVI                             => Pohlavi::MUZ_KOD,
-                        UzivatelSql::LOGIN_UZIVATELE                     => 'Šmajdalf',
-                        UzivatelSql::JMENO_UZIVATELE                     => 'Shmay',
-                        UzivatelSql::PRIJMENI_UZIVATELE                  => 'Dalph',
-                        UzivatelSql::ULICE_A_CP_UZIVATELE                => 'Tady a teď 1',
-                        UzivatelSql::MESTO_UZIVATELE                     => 'Hůlkovice',
-                        UzivatelSql::STAT_UZIVATELE                      => Stat::CZ_ID,
-                        UzivatelSql::PSC_UZIVATELE                       => '007',
-                        UzivatelSql::TELEFON_UZIVATELE                   => '0609 222 111',
-                        UzivatelSql::DATUM_NAROZENI                      => '1980-01-02 03:04:05',
-                        UzivatelSql::HESLO_MD5                           => '',
-                        UzivatelSql::EMAIL1_UZIVATELE                    => 'gandalf@soutechrep.gov',
-                        UzivatelSql::NECHCE_MAILY                        => '0',
-                        UzivatelSql::MRTVY_MAIL                          => '0',
-                        UzivatelSql::FORUM_RAZENI                        => '',
-                        UzivatelSql::RANDOM                              => '',
-                        UzivatelSql::ZUSTATEK                            => -999.99,
-                        UzivatelSql::REGISTROVAN                         => '2020-07-15 14:15:16',
-                        UzivatelSql::UBYTOVAN_S                          => '',
-                        UzivatelSql::POZNAMKA                            => '',
-                        UzivatelSql::POMOC_TYP                           => '',
-                        UzivatelSql::POMOC_VICE                          => '',
-                        UzivatelSql::TYP_DOKLADU_TOTOZNOSTI              => '',
-                        UzivatelSql::STATNI_OBCANSTVI                    => 'ČR',
-                        UzivatelSql::POTVRZENI_ZAKONNEHO_ZASTUPCE        => null,
-                        UzivatelSql::POTVRZENI_PROTI_COVID19_PRIDANO_KDY => null,
-                        UzivatelSql::POTVRZENI_PROTI_COVID19_OVERENO_KDY => null,
-                        UzivatelSql::INFOPULT_POZNAMKA                   => '',
-                        UzivatelSql::Z_RYCHLOREGISTRACE                  => 0,
-                    ],
-                );
+                $user = UserFactory::createOne([
+                    UserEntityStructure::zustatek => -50.00,
+                ]);
+                UserRoleFactory::createOne([
+                    UserRoleEntityStructure::user => $user,
+                    UserRoleEntityStructure::role => RoleFactory::findOrCreate([
+                        RoleEntityStructure::id => LegacyRole::prihlasenNaRocnik(self::YEAR),
+                    ]),
+                ]);
+                RoleFactory::findOrCreate([RoleEntityStructure::id => LegacyRole::ORGANIZATOR]);
+                RoleFactory::findOrCreate([RoleEntityStructure::id => LegacyRole::PUL_ORG_BONUS_UBYTKO]);
+                RoleFactory::findOrCreate([RoleEntityStructure::id => LegacyRole::PUL_ORG_BONUS_TRICKO]);
+                RoleFactory::findOrCreate([RoleEntityStructure::id => LegacyRole::MINI_ORG]);
+                RoleFactory::findOrCreate([RoleEntityStructure::id => LegacyRole::LETOSNI_VYPRAVEC(self::YEAR)]);
+                RoleFactory::findOrCreate([RoleEntityStructure::id => LegacyRole::LETOSNI_PARTNER(self::YEAR)]);
+                RoleFactory::findOrCreate([RoleEntityStructure::id => LegacyRole::LETOSNI_BRIGADNIK(self::YEAR)]);
+                RoleFactory::findOrCreate([RoleEntityStructure::id => LegacyRole::LETOSNI_HERMAN(self::YEAR)]);
             },
         ];
     }
@@ -62,12 +48,11 @@ class BfgrReportTest extends AbstractTestDb
     public function Bfgr_report_odpovida_ocekavani()
     {
         $tmpFile = sys_get_temp_dir() . '/' . uniqid('BFGR_test_', true);
-        $bfgr    = new BfgrReport(SystemoveNastaveni::zGlobals());
-        $bfgr->exportuj('csv', true, $tmpFile);
+        $bfgr = new BfgrReport(SystemoveNastaveni::zGlobals(rocnik: self::YEAR));
+        $bfgr->exportuj(format: 'csv', vcetneStavuNeplatice: true, doSouboru: $tmpFile);
         self::assertFileExists($tmpFile, 'BFGR nebyl exportován do souboru');
-        return;
         $data = file_get_contents($tmpFile);
         $data = str_getcsv($data);
-        self::assertGreaterThan(0, count($data), 'BFGR je prázdný');
+        self::assertGreaterThan(1, count($data), 'BFGR je prázdný');
     }
 }

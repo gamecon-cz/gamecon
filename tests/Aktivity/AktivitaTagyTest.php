@@ -7,32 +7,14 @@ use App\Structure\Entity\CategoryTagEntityStructure;
 use App\Structure\Entity\ActivityEntityStructure;
 use App\Structure\Entity\TagEntityStructure;
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Tests\Db\AbstractDoctrineTestDb;
 use Gamecon\Tests\Factory\ActivityFactory;
 use Gamecon\Tests\Factory\ActivityInstanceFactory;
 use Gamecon\Tests\Factory\CategoryTagFactory;
 use Gamecon\Tests\Factory\TagFactory;
 
-class AktivitaTagyTest extends AbstractTestDb
+class AktivitaTagyTest extends AbstractDoctrineTestDb
 {
-    // Disable legacy mysqli transaction wrapping because this test uses Doctrine factories.
-    // Doctrine uses a separate PDO connection, so legacy mysqli transactions would cause deadlocks.
-    // Foundry (via the Factories trait) handles transaction management for Doctrine.
-    protected static function keepTestClassDbChangesInTransaction(): bool
-    {
-        return false;
-    }
-
-    protected static function keepSingleTestMethodDbChangesInTransaction(): bool
-    {
-        return false;
-    }
-
-    protected static function resetDbAfterClass(): bool
-    {
-        return true;
-    }
-
     protected static function getBeforeClassInitCallbacks(): array
     {
         return [
