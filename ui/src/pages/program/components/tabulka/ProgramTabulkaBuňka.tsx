@@ -8,6 +8,8 @@ import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
+import { useState } from "preact/hooks";
+import { fetchAktivitaTýmKód } from "../../../../api/program";
 
 export const tabulkaBuňkaAktivitaTřídy = (
   aktivita: Aktivita,
@@ -70,6 +72,11 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   const hodinDo = new Date(aktivita.cas.do).getHours();
   const rozsah = (hodinDo - hodinOd + 24) % 24;
 
+  const [tymKod, setTymKod] = useState(0);
+  const dotáhniTýmKód = () => {
+    fetchAktivitaTýmKód(aktivita.id).then(x => setTymKod(x));
+  }
+
   return !kompaktní ? (
     <>
       <td colSpan={rozsah}>
@@ -90,6 +97,25 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             prihlasovatelna={aktivita.prihlasovatelna ?? false}
             probehnuta={aktivita.probehnuta ?? false}
           />
+          {
+            aktivita.tymova && aktivita.stavPrihlaseni === "prihlasen" ?
+              (
+                tymKod ? <div style={{ display: "inline" }}>{tymKod}</div> :
+                  <div style={{ display: "inline-block" }}>
+                    <a
+                      href="#"
+                      style={{ color: "black" }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        dotáhniTýmKód();
+                      }}
+                    >
+                      {"kód týmu"}
+                    </a>
+                  </div>
+              )
+              : undefined
+          }
           <Přihlašovátko akitivitaId={aktivita.id} />
           {(aktivita.mistnost || undefined) && (
             <div class="program_lokace">{aktivita.mistnost}</div>

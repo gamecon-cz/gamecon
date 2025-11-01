@@ -239,3 +239,9 @@ export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce
   formdata.set(typ, aktivitaId.toString(10));
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };
+
+export const fetchAktivitaTýmKód = async (aktivitaId: number, uživatelId = 0): Promise<number> => {
+  const urlUživParam = uživatelId ? `&uzivatelId=${uživatelId}` : ""
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}${urlUživParam}`;
+  return fetch(url, {method: "GET"}).then(async x => x.json()).then(x=>x.kod);
+}
