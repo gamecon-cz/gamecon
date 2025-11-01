@@ -6,6 +6,7 @@ import { PRÁZDNÉ_POLE, distinct } from "../../utils";
 import { useMemo } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
 import { Aktivita } from "./slices/programDataSlice";
+import { NastaveniTymuData } from "./slices/všeobecnéSlice";
 
 const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   const urlStav = useProgramStore((s) => s.urlStav);
@@ -139,6 +140,8 @@ export const useUživatelPohlaví = (): Pohlavi | undefined => useProgramStore((
 
 export const useFiltryOtevřené = (): boolean => useProgramStore(s => s.všeobecné.filtryOtevřené);
 export const useOdhlasitModalAktivitaId = (): number | undefined => useProgramStore(s => s.všeobecné.modalOdhlásitAktivitaId);
+export const useNastaveniTymuModalAktivitaId = (): number | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.aktivitaId);
+export const useNastaveniTymuModalData = (): NastaveniTymuData | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.data);
 
 export const useŠtítky = () => useProgramStore((s) => s.data.štítky);
 

@@ -10,6 +10,7 @@ import { OdhlasitAktivituModal } from "./components/vstupy/OdhlasitAktivituModal
 import { ChybaBox } from "./components/ChybaBox";
 
 import "./program.less";
+import { NastaveniTymuModal } from "./components/vstupy/NastaveniTymuModal";
 
 export const Program: FunctionComponent = () => {
   useEffect(inicializujProgramStore, []);
@@ -20,6 +21,7 @@ export const Program: FunctionComponent = () => {
 
   return (
     <>
+      <NastaveniTymuModal />
       <OdhlasitAktivituModal />
       <div class={"program-obal"}>
         <ProgramNáhled />

@@ -69,6 +69,16 @@ $vytvorCachovanyDotaz = function (
     callable $dotahniData,
     string $requestHash = "",
 ) use (&$tableDataDependentCache, &$jeZapnuteCachovaniApiOdpovedi) {
+    if (!$jeZapnuteCachovaniApiOdpovedi) {
+        $dataNove = $dotahniData($dataSourcesCollector);
+        return [
+            "data" => $dataNove,
+            "hash" => "",
+            "cached" => false,
+            // "tabulky" => $dataSourcesCollector->getDataSources(),
+        ];
+    }
+
     $cachedItem = $tableDataDependentCache->getItem($cacheKey);
     $cached = true;
 
@@ -76,20 +86,11 @@ $vytvorCachovanyDotaz = function (
         $dataNove = $dotahniData($dataSourcesCollector);
         $cached = false;
 
-        if ($jeZapnuteCachovaniApiOdpovedi) {
-            $cachedItem = $tableDataDependentCache->setItem(
-                $cacheKey,
-                $dataNove,
-                $dataSourcesCollector,
-            );
-        } else {
-            return [
-                "data" => $dataNove,
-                "hash" => "",
-                "cached" => $cached,
-                // "tabulky" => $dataSourcesCollector->getDataSources(),
-            ];
-        }
+        $cachedItem = $tableDataDependentCache->setItem(
+            $cacheKey,
+            $dataNove,
+            $dataSourcesCollector,
+        );
     }
 
     $vysledek = [
