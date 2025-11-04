@@ -116,7 +116,7 @@ class Cenik
 
     private function maObjednanouLetosniKostku(array $r): bool
     {
-        if (!Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
+        if (!Predmet::jeToKostka($r[PredmetySql::KOD_PREDMETU])) {
             return false;
         }
         $letosniKostka = Predmet::letosniKostka($this->systemoveNastaveni->rocnik());
@@ -158,7 +158,7 @@ class Cenik
 
     private function maObjednanouLetosniPlacku(array $r): bool
     {
-        if (!Predmet::jeToPlacka($r[PredmetySql::NAZEV])) {
+        if (!Predmet::jeToPlacka($r[PredmetySql::KOD_PREDMETU])) {
             return false;
         }
         $letosniPlacka = Predmet::letosniPlacka($this->systemoveNastaveni->rocnik());
@@ -239,7 +239,7 @@ class Cenik
         // aplikace možných slev
         if ($typ == TypPredmetu::PREDMET) {
             // hack podle názvu
-            if (Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
+            if (Predmet::jeToKostka($r[PredmetySql::KOD_PREDMETU])) {
                 $slevaKostky = $this->slevaNaKostku($r, $cena);
 
                 $cenaSeSlevou = self::aplikujSlevu($cena, $slevaKostky);
@@ -248,7 +248,7 @@ class Cenik
                     finalPrice: $cenaSeSlevou['cena'],
                     discount: $cenaSeSlevou['sleva'],
                 );
-            } elseif (Predmet::jeToPlacka($r[PredmetySql::NAZEV])) {
+            } elseif (Predmet::jeToPlacka($r[PredmetySql::KOD_PREDMETU])) {
                 $slevaPlacky = $this->slevaNaPlacku($r, $cena);
 
                 $cenaSeSlevou = self::aplikujSlevu($cena, $slevaPlacky);

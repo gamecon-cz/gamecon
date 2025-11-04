@@ -12,66 +12,109 @@ use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
  */
 class Predmet extends \DbObject
 {
-    protected static $tabulka         = Sql::SHOP_PREDMETY_TABULKA;
-    protected static $pk              = Sql::ID_PREDMETU;
+    protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
+    protected static $pk = Sql::ID_PREDMETU;
     protected static $letosniPredmety = [];
 
-    public static function jeToKostka(string $nazev): bool
+    public static function jeToKostka(string $kodPredmetu): bool
     {
-        return mb_stripos($nazev, 'Kostka') !== false;
+        return self::jeToDleCasti($kodPredmetu, 'kostka');
     }
 
-    public static function jeToPlacka(string $nazev): bool
+    public static function jeToNicknack(string $kodPredmetu): bool
     {
-        return mb_stripos($nazev, 'Placka') !== false;
+        return self::jeToDleCasti($kodPredmetu, 'nicknack');
     }
 
-    public static function jeToTaska(string $nazev): bool
+    public static function jeToBlok(string $kodPredmetu): bool
     {
-        return mb_stripos($nazev, 'Taška') !== false;
+        return self::jeToDleCasti($kodPredmetu, 'blok');
     }
 
+    public static function jeToPonozka(string $kodPredmetu): bool
+    {
+        return self::jeToDleCasti($kodPredmetu, 'ponozk');
+    }
+
+    public static function jeToPlacka(string $kodPredmetu): bool
+    {
+        return self::jeToDleCasti($kodPredmetu, 'placka');
+    }
+
+    public static function jeToTaska(string $kodPredmetu): bool
+    {
+        return self::jeToDleCasti($kodPredmetu, 'taska');
+    }
+
+    public static function jeToSnidane(string $kodPredmetu): bool
+    {
+        return self::jeToDleCasti($kodPredmetu, 'snidane');
+    }
+
+    public static function jeToObed(string $kodPredmetu): bool
+    {
+        return self::jeToDleCasti($kodPredmetu, 'obed');
+    }
+
+    public static function jeToVecere(string $kodPredmetu): bool
+    {
+        return self::jeToDleCasti($kodPredmetu, 'vecere');
+    }
+
+    /**
+     * Pozor, název, ne kód předmětu
+     */
     public static function jeToModre(string $nazev): bool
     {
-        return mb_stripos($nazev, 'modr') !== false;
+        return self::jeToDleCasti($nazev, 'modr');
     }
 
+    /**
+     * Pozor, název, ne kód předmětu
+     */
     public static function jeToCervene(string $nazev): bool
     {
-        return mb_stripos($nazev, 'červen') !== false;
+        return self::jeToDleCasti($nazev, 'červen');
     }
 
     public static function jeToTricko(
-        string $nazev,
+        string $kodPredmetu,
         int    $typ,
     ): bool {
-        return $typ === TypPredmetu::TRICKO && mb_stripos($nazev, 'tričko') !== false;
+        return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tricko');
     }
 
     public static function jeToTilko(
-        string $nazev,
+        string $kodPredmetu,
         int    $typ,
     ): bool {
-        return $typ === TypPredmetu::TRICKO && mb_stripos($nazev, 'tílko') !== false;
+        return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tilko');
     }
 
     public static function letosniKostka(int $rocnik): ?static
     {
-        return self::letosniPredmet('Kostka', $rocnik);
+        return self::letosniPredmet('kostka', $rocnik);
     }
 
     public static function letosniPlacka(int $rocnik): ?static
     {
-        return self::letosniPredmet('Placka', $rocnik);
+        return self::letosniPredmet('placka', $rocnik);
+    }
+
+    private static function jeToDleCasti(
+        string $cele,
+        string $cast,
+    ): bool {
+        return mb_stripos($cele, $cast) !== false;
     }
 
     private static function letosniPredmet(
-        string $castNazvu,
+        string $castKodu,
         int    $rocnik,
     ): ?static {
-        if (!array_key_exists($castNazvu, self::$letosniPredmety)) {
+        if (!array_key_exists($castKodu, self::$letosniPredmety)) {
             $typPredmet = TypPredmetu::PREDMET;
-            $castNazvuSql = dbQRaw($castNazvu);
+            $castKoduSql = dbQRaw($castKodu);
             $letosniPredmetId = dbFetchSingle(<<<SQL
 SELECT id_predmetu
 FROM shop_predmety
@@ -79,7 +122,7 @@ WHERE
     -- letošní je ten, která má nejnovější model a v dřívějších letech si ho nikdo neobjednal
     NOT EXISTS(SELECT * FROM shop_nakupy WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
     AND typ = {$typPredmet}
-    AND nazev COLLATE utf8_czech_ci LIKE '%{$castNazvuSql}%'
+    AND kod_predmetu COLLATE utf8_czech_ci LIKE '%{$castKoduSql}%'
 ORDER BY model_rok DESC, je_letosni_hlavni DESC, cena_aktualni DESC, id_predmetu /* dříve nahraný má přednost */
 LIMIT 1 -- pro jistotu
 SQL,
@@ -87,10 +130,10 @@ SQL,
             $letosniPredmet = $letosniPredmetId
                 ? static::zId((int)$letosniPredmetId, true)
                 : null;
-            self::$letosniPredmety[$castNazvu] = $letosniPredmet;
+            self::$letosniPredmety[$castKodu] = $letosniPredmet;
         }
 
-        return self::$letosniPredmety[$castNazvu];
+        return self::$letosniPredmety[$castKodu];
     }
 
     public function kusuVyrobeno(int $kusuVyrobeno = null): int

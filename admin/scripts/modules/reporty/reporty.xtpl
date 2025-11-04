@@ -19,7 +19,13 @@
     <th colspan="2">Formáty</th>
   </tr>
   <tr>
-    <td><a href="{baseUrl}/finance">BFGR report</a></td>
+    <td><a href="{baseUrl}/finance#bfgr">BFGR report</a></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="{baseUrl}/finance#bfsr">BFSR report</a></td>
     <td></td>
     <td></td>
     <td></td>
