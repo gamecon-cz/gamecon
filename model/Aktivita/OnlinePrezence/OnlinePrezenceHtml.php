@@ -172,7 +172,7 @@ class OnlinePrezenceHtml
             $template->assign('ucastniciPridatelniDoTimestamp', $ucastniciPridatelniDoTimestamp);
             $template->assign('ucastniciOdebratelniDoTimestamp', $ucastniciOdebratelniDoTimestamp);
             $template->assign('minutNaPosledniChvili', $this->systemoveNastaveni->prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity());
-            $template->assign('kapacita', (int)$aktivita->kapacita());
+            $template->assign('kapacita', (int)$aktivita->neteamovaKapacita());
             $template->assign('idAktivity', $aktivita->id());
             $template->assign('casPosledniZmenyStavuAktivity', $zmenaStavuAktivity ? $zmenaStavuAktivity->casZmenyProJs() : '');
             $template->assign('stavAktivity', $zmenaStavuAktivity ? $zmenaStavuAktivity->stavAktivityProJs() : '');

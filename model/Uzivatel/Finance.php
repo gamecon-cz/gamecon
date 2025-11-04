@@ -20,6 +20,7 @@ use Gamecon\Pravo;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 use Gamecon\Uzivatel\Dto\PriceAfterDiscountDto;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
 
@@ -356,6 +357,10 @@ SQL,
         return $this->strukturovanyPrehled ?? [];
     }
 
+    /**
+     * Vrátí položky pro BFGR export
+     * @return array<PolozkaProBfgr>
+     */
     public function dejPolozkyProBfgr(): array
     {
         if ($this->polozkyProBfgr === null) {
@@ -813,7 +818,7 @@ SQL;
         $this->polozkyProBfgr = [];
 
         $o = dbQuery('
-      SELECT predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok
+      SELECT predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok, predmety.kod_predmetu
       FROM shop_nakupy AS nakupy
       JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
       WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1
@@ -861,7 +866,7 @@ SQL;
                 $r['nazev'] = $r['nazev'] . ' ' . $r['model_rok'];
             }
 
-            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $priceAfterDiscountDto, (int)$r['typ']);
+            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $priceAfterDiscountDto, (int)$r['typ'], $r[PredmetSql::KOD_PREDMETU]);
 
             // logování do výpisu
             if (in_array($r['typ'], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
@@ -1239,18 +1244,20 @@ SQL;
         int                   $pocet,
         PriceAfterDiscountDto $priceAfterDiscountDto,
         int                   $typ,
+        ?string               $kodPredmetu = null,
     ): void {
         if (!$this->logovat) {
             return;
         }
         $this->polozkyProBfgr ??= [];
-        $this->polozkyProBfgr[] = [
-            'nazev'  => trim($nazev),
-            'pocet'  => $pocet,
-            'castka' => $priceAfterDiscountDto->finalPrice,
-            'sleva' => $priceAfterDiscountDto->discount,
-            'typ'    => $typ,
-        ];
+        $this->polozkyProBfgr[] = new PolozkaProBfgr(
+            nazev: trim($nazev),
+            pocet: $pocet,
+            castka: (float)$priceAfterDiscountDto->finalPrice,
+            sleva: (float)$priceAfterDiscountDto->discount,
+            typ: $typ,
+            kodPredmetu: $kodPredmetu,
+        );
     }
 
     private function logStrukturovane(
