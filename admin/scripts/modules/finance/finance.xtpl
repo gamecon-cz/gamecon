@@ -47,8 +47,12 @@
     <th colspan="2">Formáty</th>
   </tr>
   <tr>
-    <td>BFGR {rok}</td>
+    <td id="bfgr">BFGR {rok}</td>
     <td><a href="reporty/{bfgr}">xlsx</a></td>
+  </tr>
+  <tr>
+    <td id="bfsr">BFSR {rok}</td>
+    <td><a href="reporty/{bfsr}">xlsx</a></td>
   </tr>
   </tbody>
 </table>

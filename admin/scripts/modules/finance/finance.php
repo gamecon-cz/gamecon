@@ -69,6 +69,7 @@ $x->parse('finance.pripsatSlevu');
 $x->assign('rok', $systemoveNastaveni->rocnik());
 
 $x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/bfgr-report.php', '.php'));
+$x->assign('bfsr', basename(__DIR__ . '/../../zvlastni/reporty/bfsr-report.php', '.php'));
 $x->parse('finance.reporty');
 
 $x->parse('finance');

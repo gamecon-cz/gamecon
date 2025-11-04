@@ -49,9 +49,10 @@ class Aktivita
     private static array $seznamUcastnikuCache    = [];
 
     private array              $a; // databázový řádek s aktivitou
-    private array              $kolekce = []; // nadřízená kolekce, v rámci které byla aktivita načtena
+    private array              $kolekce               = []; // nadřízená kolekce, v rámci které byla aktivita načtena
     private                    $lokace;
     private                    $stav;
+    private ?int               $idHlavniAktivityCache = null;
     private bool               $nova;           // jestli jde o nově uloženou aktivitu nebo načtenou z DB
     private bool               $prednacitat;    // zda bychom měli načíst data i pro další aktivity
     private SystemoveNastaveni $systemoveNastaveni;
@@ -274,7 +275,7 @@ SQL
     }
 
     public function slevaNasobic(
-        \Uzivatel             $u = null,
+        \Uzivatel             $u,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
         self::slevaNasobicDSC($dataSourcesCollector);
@@ -397,6 +398,7 @@ SQL
             return self::zIds(
                 ids: $this->a[Sql::DITE],
                 systemoveNastaveni: $this->systemoveNastaveni,
+                prednacitat: $this->prednacitat,
             );
         }
 
@@ -427,6 +429,12 @@ SQL
         }
 
         return $this->a[Sql::DITE];
+    }
+
+    public function jeToDalsiKolo(): bool
+    {
+        return in_array($this->typId(), [TypAktivity::LKD, TypAktivity::DRD], true)
+               && empty($this->detiDbString());
     }
 
     /** Počet hodin do začátku aktivity (float) */
@@ -1206,9 +1214,14 @@ SQL
         if (!$this->a[Sql::PATRI_POD]) {
             return $this->id();
         }
+        if ($this->idHlavniAktivityCache !== null) {
+            return $this->idHlavniAktivityCache;
+        }
         $idHlavniAkce = dbOneCol('SELECT id_hlavni_akce FROM akce_instance WHERE id_instance = ' . $this->a[Sql::PATRI_POD]);
         if ($idHlavniAkce) {
-            return (int)$idHlavniAkce;
+            $this->idHlavniAktivityCache = (int)$idHlavniAkce;
+
+            return $this->idHlavniAktivityCache;
         }
         throw new \RuntimeException("Chybí záznam o hlavní aktivitě pro instanci {$this->a[Sql::PATRI_POD]}");
     }
@@ -1221,6 +1234,11 @@ SQL
     public function jeInstance(): bool
     {
         return !$this->jeHlavni();
+    }
+
+    public function jeTeamova(): bool
+    {
+        return (bool)$this->a[Sql::TEAMOVA];
     }
 
     /**
@@ -1303,10 +1321,18 @@ SQL
         return true;
     }
 
-    /** Vrací celkovou kapacitu aktivity */
-    public function kapacita()
+    /** Vrací celkovou kapacitu aktivity, která platí pokud aktivita není teamová */
+    public function neteamovaKapacita(): int
     {
-        return $this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F];
+        return (int) ($this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F]);
+    }
+
+    /** Vrací celkovou kapacitu aktivity */
+    public function finalniKapacita(): ?int
+    {
+        return $this->jeTeamova()
+            ? $this->tymovaKapacita()
+            : $this->neteamovaKapacita();
     }
 
     /**
@@ -2257,7 +2283,7 @@ SQL
      * @return array<int, array{id: int, pohlavi: string|null, stav: int|null}>
      * @see prihlaseniRaw
      */
-    private function prihlaseniRawArray(?DataSourcesCollector $dataSourcesCollector = null): array
+    public function prihlaseniRawArray(?DataSourcesCollector $dataSourcesCollector = null): array
     {
         $prihlaseniRaw = trim($this->prihlaseniRaw($dataSourcesCollector), ',');
         if (!isset(self::$prihlaseniRawArrayCache[$prihlaseniRaw])) {
@@ -2409,8 +2435,9 @@ SQL
         return $this->pocetPrihlasenehoPohlavi(Pohlavi::MUZ_KOD, $dataSourcesCollector);
     }
 
-    private function pocetPrihlasenehoPohlavi(string $pocitanePohlavi, ?DataSourcesCollector $dataSourcesCollector = null): int
-    {
+    private function pocetPrihlasenehoPohlavi(string                $pocitanePohlavi,
+                                              ?DataSourcesCollector $dataSourcesCollector = null,
+    ): int {
         return count(
             array_filter(
                 array_map(static fn(
@@ -2924,6 +2951,7 @@ HTML
     private function reset(): void
     {
         $this->a = [];
+        $this->idHlavniAktivityCache = null;
         $this->prezence = null;
         $this->seznamUcastniku = null;
         $this->organizatoriIds = null;
@@ -3382,7 +3410,7 @@ SQL,
         }
 
         // políčka pro výběr míst
-        for ($i = 0; $i < $this->kapacita() - 1; $i++) {
+        for ($i = 0; $i < $this->neteamovaKapacita() - 1; $i++) {
             $t->assign('postnameMisto', self::TEAM_KLIC . '[' . $i . ']');
             if ($i >= $this->a[Sql::TEAM_MIN] - 1) { // -1 za týmlídra
                 $t->parse('formular.misto.odebrat');
@@ -3432,7 +3460,7 @@ SQL,
             }
         }
         $clenove = Uzivatel::zIds($up);
-        $novaKapacita = $a->kapacita() - $zamceno;
+        $novaKapacita = $a->neteamovaKapacita() - $zamceno;
         $nazev = post(self::TEAM_KLIC . 'Nazev');
         $dalsiKola = array_values(array_map(function (
             $id,
@@ -3937,6 +3965,7 @@ SQL,
     public static function zIds(
         $ids,
         SystemoveNastaveni $systemoveNastaveni = null,
+        bool $prednacitat = false,
     ): array {
         if (empty($ids)) {
             return [];
@@ -3958,6 +3987,7 @@ SQL,
             systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
             dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.id_akce IN(' . dbQa($ids) . ')',
+            prednacitat: $prednacitat,
         );
     }
 
