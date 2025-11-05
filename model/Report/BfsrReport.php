@@ -853,6 +853,6 @@ SQL,
                 : 'AHry';
         }
 
-        return '';
+        return $aktivita->typ()->nazev();
     }
 }
