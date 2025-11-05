@@ -11,6 +11,7 @@ declare(strict_types=1);
 use Gamecon\Report\BfgrReport;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\BackgroundProcess\BackgroundProcessService;
 
 // Zpracování argumentů z příkazové řádky
 $options = getopt('', ['format:', 'recipientEmail:', 'recipientName::', 'includeNonPayers::', 'userId::']);
@@ -27,6 +28,12 @@ $userId = $options['userId'] ?? null;
 
 // Načtení aplikace
 require_once __DIR__ . '/../../../../../nastaveni/zavadec.php';
+
+$commandName = BackgroundProcessService::COMMAND_BFGR_REPORT;
+$backgroundProcessService = BackgroundProcessService::vytvorZGlobals();
+
+// Registruj shutdown funkci pro automatické označení dokončení
+$backgroundProcessService->registerShutdownHandler($commandName);
 
 try {
   ini_set('memory_limit', '512M');

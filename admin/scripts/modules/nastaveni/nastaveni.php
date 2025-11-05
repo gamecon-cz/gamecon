@@ -19,11 +19,17 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
 $nastaveniHtml = new SystemoveNastaveniHtml($systemoveNastaveni);
 $nastaveniAjax = new SystemoveNastaveniAjax($systemoveNastaveni, $nastaveniHtml, $u, $vyjimkovac);
 
+// AJAX endpoint pro stav kopírování databáze
+if (get('ajax') === SystemoveNastaveniHtml::AJAX_STAV_KOPIE_KLIC) {
+    $nastaveniHtml->ajaxStavKopieDatabazeZOstre();
+    exit;
+}
+
 if ($nastaveniAjax->zpracujPost()) {
     exit;
 }
 
-if ($nastaveniHtml->zpracujPost()) {
+if ($nastaveniHtml->zpracujPost($u)) {
     back();
 }
 
