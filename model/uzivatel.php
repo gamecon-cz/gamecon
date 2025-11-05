@@ -1486,7 +1486,8 @@ SQL,
         int | string $idUzivatele,
                      $klic = self::UZIVATEL,
     ): ?Uzivatel {
-        $uzivatelData = dbOneLine("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele={$idUzivatele}", [$idUzivatele]);
+        $idUzivatele = (int)$idUzivatele;
+        $uzivatelData = dbOneLine("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele={$idUzivatele}");
         if (!$uzivatelData) {
             return null;
         }
