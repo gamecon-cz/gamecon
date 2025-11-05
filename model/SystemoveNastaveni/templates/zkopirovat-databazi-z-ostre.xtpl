@@ -1,10 +1,189 @@
 <!-- begin:zkopirovatDatabaziZOstre -->
 <h1>Beta</h1>
 
-<form method="post" onsubmit="return confirm('Opravdu přemazat současná data na betě daty z ostré?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)  ">
+<!-- begin:formular -->
+<form method="post" onsubmit="return confirm('Opravdu přemazat současná data na betě daty z ostré?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
   <button type="submit" value="1" name="{synchronniPostKlic}[{zkopirovatOstrouKlic}]"
           class="disable-and-show-loading-on-click without-safety-unlock">
     Zkopírovat databázi z ostré
   </button>
 </form>
+<!-- end:formular -->
+
+<!-- begin:processBezi -->
+<style>
+  #database-copy-status {
+    transition: all 0.3s ease;
+  }
+  #database-copy-status.completed {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+  #database-copy-status.completed h3 {
+    color: #155724;
+  }
+  .hidden {
+    display: none;
+  }
+</style>
+
+<div class="alert alert-info" id="database-copy-status">
+  <!-- Running state -->
+  <div id="running-content">
+    <h3>Kopírování databáze probíhá</h3>
+    <p>
+      <strong>Uplynulo:</strong> <span id="elapsed-time">{elapsedFormatted}</span><br>
+      <strong>Zbývá cca:</strong> <span id="remaining-time">{estimatedRemainingFormatted}</span>
+    </p>
+    <div class="progress" style="height: 25px; margin-top: 10px;">
+      <div class="progress-bar progress-bar-striped progress-bar-animated"
+           role="progressbar"
+           id="progress-bar"
+           style="width: {progressPercent}%"
+           aria-valuenow="{progressPercent}"
+           aria-valuemin="0"
+           aria-valuemax="100">
+        <span id="progress-text">{progressPercent}%</span>
+      </div>
+    </div>
+    <p style="margin-top: 10px;">
+      <small>Stránka se automaticky obnoví po dokončení. O výsledku budete informováni emailem.</small>
+    </p>
+  </div>
+
+  <!-- Completed state -->
+  <div id="completed-content" class="hidden">
+    <h3>✓ Kopírování databáze dokončeno</h3>
+    <p><strong>Status:</strong> Databáze byla úspěšně zkopírována z ostré verze.</p>
+    <p>Systém je nyní připraven k použití s aktuálními daty.</p>
+    <p style="margin-top: 15px;">
+      <button type="button" class="btn btn-success" onclick="window.location.reload()">
+        Obnovit stránku
+      </button>
+    </p>
+  </div>
+</div>
+
+<script>
+(function() {
+  var pollInterval = 3000; // 3 sekundy
+  var ajaxUrl = window.location.pathname + '?' + new URLSearchParams({
+    ajax: '{ajaxStavKopieKlic}'
+  }).toString();
+
+  // Lokální čítače pro plynulý countdown
+  var elapsedSeconds = {elapsedSeconds};
+  var remainingSeconds = {estimatedRemainingSeconds} !== null ? {estimatedRemainingSeconds} : null;
+  var totalEstimated = remainingSeconds !== null ? elapsedSeconds + remainingSeconds : null;
+
+  // Formátování času
+  function formatDuration(seconds) {
+    if (seconds === null || seconds < 0) {
+      return 'neznámá';
+    }
+
+    if (seconds < 60) {
+      return seconds + ' s';
+    }
+
+    var minutes = Math.floor(seconds / 60);
+    var remainingSec = seconds % 60;
+
+    if (minutes < 60) {
+      return remainingSec > 0
+        ? minutes + ' min ' + remainingSec + ' s'
+        : minutes + ' min';
+    }
+
+    var hours = Math.floor(minutes / 60);
+    var remainingMin = minutes % 60;
+
+    return hours + ' h ' + remainingMin + ' min';
+  }
+
+  // Aktualizuj displej každou sekundu
+  function updateLocalCountdown() {
+    elapsedSeconds++;
+
+    if (remainingSeconds !== null) {
+      remainingSeconds = Math.max(0, remainingSeconds - 1);
+    }
+
+    // Aktualizuj zobrazení
+    document.getElementById('elapsed-time').textContent = formatDuration(elapsedSeconds);
+    document.getElementById('remaining-time').textContent = formatDuration(remainingSeconds);
+
+    // Aktualizuj progress bar pokud máme odhad
+    if (totalEstimated !== null && totalEstimated > 0) {
+      var progressPercent = Math.min(100, Math.round((elapsedSeconds / totalEstimated) * 100));
+      var progressBar = document.getElementById('progress-bar');
+      progressBar.style.width = progressPercent + '%';
+      progressBar.setAttribute('aria-valuenow', progressPercent);
+      document.getElementById('progress-text').textContent = progressPercent + '%';
+    }
+  }
+
+  // Spusť lokální countdown každou sekundu
+  setInterval(updateLocalCountdown, 1000);
+
+  // Zobraz dokončení
+  function showCompleted() {
+    var statusBox = document.getElementById('database-copy-status');
+    var runningContent = document.getElementById('running-content');
+    var completedContent = document.getElementById('completed-content');
+
+    // Přepni zobrazení
+    statusBox.classList.remove('alert-info');
+    statusBox.classList.add('completed');
+    runningContent.classList.add('hidden');
+    completedContent.classList.remove('hidden');
+  }
+
+  // AJAX polling pro synchronizaci se serverem
+  function updateStatus() {
+    fetch(ajaxUrl)
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        if (!data.running) {
+          // Proces skončil, zobraz dokončení
+          showCompleted();
+          return;
+        }
+
+        // Synchronizuj s daty ze serveru
+        elapsedSeconds = data.elapsedSeconds;
+        remainingSeconds = data.estimatedRemainingSeconds;
+
+        if (remainingSeconds !== null) {
+          totalEstimated = elapsedSeconds + remainingSeconds;
+        }
+
+        // Okamžitě aktualizuj zobrazení
+        document.getElementById('elapsed-time').textContent = data.elapsedFormatted;
+        document.getElementById('remaining-time').textContent = data.estimatedRemainingFormatted;
+
+        if (data.progressPercent !== null && data.progressPercent > 0) {
+          var progressBar = document.getElementById('progress-bar');
+          progressBar.style.width = data.progressPercent + '%';
+          progressBar.setAttribute('aria-valuenow', data.progressPercent);
+          document.getElementById('progress-text').textContent = data.progressPercent + '%';
+        }
+
+        // Plánuj další update
+        setTimeout(updateStatus, pollInterval);
+      })
+      .catch(function(error) {
+        console.error('Chyba při aktualizaci stavu:', error);
+        // Zkus to znovu
+        setTimeout(updateStatus, pollInterval);
+      });
+  }
+
+  // Spusť polling
+  setTimeout(updateStatus, pollInterval);
+})();
+</script>
+<!-- end:processBezi -->
+
 <!-- end:zkopirovatDatabaziZOstre -->

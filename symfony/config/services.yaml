@@ -22,3 +22,8 @@ services:
     legacy.session:
         class: 'App\Service\LegacySessionService'
         public: true
+
+    app.clock:
+        decorates: 'clock'
+        parent: 'clock'
+        public: true

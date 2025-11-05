@@ -421,9 +421,10 @@ SQL;
     private function dejSystemoveNastaveniSNejblizsiVlnou(
         DateTimeGamecon         $nejblizsiVlnaKdy,
         DateTimeImmutableStrict $prvniHromadneOdhlasovani = null,
+        DateTimeImmutableStrict $ted                      = null,
     ): SystemoveNastaveni
     {
-        return new class($nejblizsiVlnaKdy, $prvniHromadneOdhlasovani) extends SystemoveNastaveni {
+        return new class($nejblizsiVlnaKdy, $prvniHromadneOdhlasovani, $ted) extends SystemoveNastaveni {
             public function __construct(
                 private readonly DateTimeGamecon          $nejblizsiVlnaKdy,
                 private readonly ?DateTimeImmutableStrict $nejblizsiHromadneOdhlasovaniKdy,
