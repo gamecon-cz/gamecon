@@ -119,32 +119,32 @@ if (VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB && $u && $u->jeOrganizator() && empty
 
 // načtení menu
 $menuObject = new AdminMenu(__DIR__ . '/scripts/modules/');
-$menu       = $menuObject->pole();
+$menu = $menuObject->pole();
 
 // načtení submenu
-$submenu       = [];
+$submenu = [];
 $submenuObject = null;
 if (!empty($menu[$stranka]['submenu'])) {
     $submenuObject = new AdminMenu(__DIR__ . '/scripts/modules/' . $stranka . '/', true);
-    $submenu       = $submenuObject->pole();
+    $submenu = $submenuObject->pole();
 }
 
 // zjištění práv na zobrazení stránky
-$strankaExistuje    = isset($menu[$stranka]);
+$strankaExistuje = isset($menu[$stranka]);
 $podstrankaExistuje = isset($submenu[$podstranka]);
-$uzivatelMaPristup  = $strankaExistuje
-                      && (
-                          $u->maPravo($menu[$stranka]['pravo'])
-                          || ($podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
-                      );
+$uzivatelMaPristup = $strankaExistuje
+                     && (
+                         $u->maPravo($menu[$stranka]['pravo'])
+                         || ($podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
+                     );
 
 // konstrukce stránky
 if ($strankaExistuje && $uzivatelMaPristup) {
-    $_SESSION['id_admin']     = $u->id(); // součást interface starých modulů
+    $_SESSION['id_admin'] = $u->id(); // součást interface starých modulů
     $_SESSION['id_uzivatele'] = $uPracovni
         ? $uPracovni->id()
         : null; // součást interface starých modulů
-    $BEZ_DEKORACE             = false;
+    $BEZ_DEKORACE = false;
     if ($submenu) {
         $soubor = $podstranka && $podstrankaExistuje
             ? $submenu[$podstranka]['soubor']

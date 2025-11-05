@@ -40,7 +40,6 @@
         "endroid/qr-code": "^4.2",
         "firebase/php-jwt": "^6.11",
         "google/apiclient": "^2.4",
-        "granam/remove-diacritics": "^1.0",
         "granam/string": "^4.2",
         "ifsnop/mysqldump-php": "^2.10",
         "michelf/php-markdown": "~1.4",
