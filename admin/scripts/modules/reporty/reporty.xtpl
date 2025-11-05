@@ -24,12 +24,6 @@
     <td></td>
     <td></td>
   </tr>
-  <tr>
-    <td><a href="{baseUrl}/finance#bfsr">BFSR report</a></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
   <!-- begin: report -->
   <tr>
     <td>{nazev}</td>
