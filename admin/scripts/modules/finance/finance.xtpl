@@ -46,16 +46,18 @@
     <th>Report</th>
     <th colspan="2">Formáty</th>
   </tr>
-  <tr>
-    <td id="bfgr">BFGR {rok}</td>
+  <tr id="bfgr">
+    <td>BFGR {rok}</td>
     <td><a href="reporty/{bfgr}">xlsx</a></td>
   </tr>
-  <tr>
-    <td id="bfsr">BFSR {rok}</td>
+  <tr id="bfsr">
+    <td>BFSR {rok}</td>
     <td><a href="reporty/{bfsr}">xlsx</a></td>
   </tr>
   </tbody>
 </table>
 <!-- end:reporty -->
+
+<script type="text/javascript" src="files/finance.js?version={financeJsVerze}"></script>
 
 <!-- end:finance -->
