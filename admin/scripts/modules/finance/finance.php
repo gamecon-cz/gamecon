@@ -27,7 +27,7 @@ $x = new XTemplate(__DIR__ . '/finance.xtpl');
 
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
-    $o   = dbQuery(<<<SQL
+    $o = dbQuery(<<<SQL
 SELECT uzivatele_hodnoty.*
 FROM uzivatele_hodnoty
 JOIN platne_role_uzivatelu
@@ -59,9 +59,7 @@ SQL,
 }
 
 $x->assign([
-    'id'  => $uPracovni
-        ? $uPracovni->id()
-        : null,
+    'id'  => $uPracovni?->id(),
     'org' => $u->jmenoNick(),
 ]);
 $x->parse('finance.pripsatSlevu');
@@ -71,6 +69,11 @@ $x->assign('rok', $systemoveNastaveni->rocnik());
 $x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/bfgr-report.php', '.php'));
 $x->assign('bfsr', basename(__DIR__ . '/../../zvlastni/reporty/bfsr-report.php', '.php'));
 $x->parse('finance.reporty');
+
+$x->assign(
+    'financeJsVerze',
+    md5_file(__DIR__ . '/../../../files/finance.js'),
+);
 
 $x->parse('finance');
 $x->out('finance');

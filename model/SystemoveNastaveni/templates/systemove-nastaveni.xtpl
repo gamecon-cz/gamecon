@@ -67,7 +67,7 @@
   <!-- end:skupina -->
 </table>
 
-<script type="text/javascript" src="files/systemove-nastaveni.js?version={systemoveNastavenJsVerze}"></script>
+<script type="text/javascript" src="files/systemove-nastaveni.js?version={systemoveNastaveniJsVerze}"></script>
 
 <!-- begin:beta -->
 {zkopirovatDatabaziZOstre}

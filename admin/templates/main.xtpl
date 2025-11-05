@@ -70,7 +70,9 @@
       <!-- begin: zakazano -->{FILE "templates/zakazano.xtpl"}<!-- end: zakazano -->
       <!-- begin: nenalezeno -->{FILE "templates/404.xtpl"}<!-- end: nenalezeno -->
       {chyba}
-      {obsahRetezec}
+      <div id="mainContent">
+        {obsahRetezec}
+      </div>
     </div>
     {FILE "templates/paticka.xtpl"}
   </div>
