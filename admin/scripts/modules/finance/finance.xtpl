@@ -50,10 +50,6 @@
     <td>BFGR {rok}</td>
     <td><a href="reporty/{bfgr}">xlsx</a></td>
   </tr>
-  <tr id="bfsr">
-    <td>BFSR {rok}</td>
-    <td><a href="reporty/{bfsr}">xlsx</a></td>
-  </tr>
   </tbody>
 </table>
 <!-- end:reporty -->
