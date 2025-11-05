@@ -60,6 +60,10 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         array (
             'Tracy\\' => 6,
         ),
+        'T' => 
+        array (
+            'Tracy\\' => 6,
+        ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Php84\\' => 23,
@@ -149,7 +153,6 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
             'Granam\\String\\' => 14,
             'Granam\\Strict\\Object\\' => 21,
             'Granam\\Scalar\\' => 14,
-            'Granam\\RemoveDiacritics\\' => 24,
             'Google\\Service\\' => 15,
             'Google\\Auth\\' => 12,
             'Google\\' => 7,
@@ -229,6 +232,10 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         'Zenstruck\\' => 
         array (
             0 => __DIR__ . '/..' . '/zenstruck/assert/src',
+        ),
+        'Tracy\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/tracy/tracy/src',
         ),
         'Tracy\\' => 
         array (
@@ -498,10 +505,6 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         'Granam\\Scalar\\' => 
         array (
             0 => __DIR__ . '/..' . '/granam/scalar/Scalar',
-        ),
-        'Granam\\RemoveDiacritics\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/granam/remove-diacritics/src',
         ),
         'Google\\Service\\' => 
         array (
