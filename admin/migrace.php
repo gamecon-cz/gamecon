@@ -2,7 +2,7 @@
 
 use Gamecon\SystemoveNastaveni\SqlMigrace;
 
-require __DIR__ . '/../nastaveni/zavadec-zaklad.php';
+require __DIR__ . '/../nastaveni/zavadec.php';
 
 if (HTTPS_ONLY) {
     httpsOnly();

@@ -34,7 +34,7 @@ jobs:
                     docker compose exec -T web git config --global --add safe.directory "$dir"
 
             -   name: Composer libraries without dev
-                run: docker compose exec --no-TTY web composer install --no-dev --optimize-autoloader
+                run: docker compose exec --no-TTY web composer install --no-dev
 
             -   name: Deploy via FTP
                 # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý; změny nekontrolujeme, protože jsme je vytvořili přes `composer install --no-dev`
