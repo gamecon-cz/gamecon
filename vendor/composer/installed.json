@@ -11183,7 +11183,6 @@
     "dev": true,
     "dev-package-names": [
         "cweagans/composer-patches",
-        "dg/ftp-deployment",
         "fakerphp/faker",
         "myclabs/deep-copy",
         "nikic/php-parser",

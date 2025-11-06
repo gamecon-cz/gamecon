@@ -3,7 +3,7 @@
         'name' => 'gamecon-cz/gamecon',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'b3a1fb9182e9ae6c08f0f9291dfd8107713f252a',
+        'reference' => '77d120b9a241bda0ac61007758800192d3afb54e',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -53,7 +53,7 @@
             'type' => 'project',
             'install_path' => __DIR__ . '/../dg/ftp-deployment',
             'aliases' => array(),
-            'dev_requirement' => true,
+            'dev_requirement' => false,
         ),
         'dg/mysql-dump' => array(
             'pretty_version' => 'v1.6.0',
@@ -220,7 +220,7 @@
         'gamecon-cz/gamecon' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'b3a1fb9182e9ae6c08f0f9291dfd8107713f252a',
+            'reference' => '77d120b9a241bda0ac61007758800192d3afb54e',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

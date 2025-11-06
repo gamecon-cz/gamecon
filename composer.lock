@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "86d3be775785eaec97db68e16c07db3c",
+    "content-hash": "19863db16bcbfb06b4e7a222698dbc6a",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -176,6 +176,74 @@
                 "source": "https://github.com/defuse/php-encryption/tree/v2.4.0"
             },
             "time": "2023-06-19T06:10:36+00:00"
+        },
+        {
+            "name": "dg/ftp-deployment",
+            "version": "v3.6.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dg/ftp-deployment.git",
+                "reference": "249f49b40898b762ffe332402eee84e13e8dda24"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dg/ftp-deployment/zipball/249f49b40898b762ffe332402eee84e13e8dda24",
+                "reference": "249f49b40898b762ffe332402eee84e13e8dda24",
+                "shasum": ""
+            },
+            "require": {
+                "ext-zlib": "*",
+                "php": ">=8.0",
+                "phpseclib/phpseclib": "^3.0"
+            },
+            "require-dev": {
+                "nette/tester": "^2.0",
+                "phpstan/phpstan": "^0.12"
+            },
+            "suggest": {
+                "ext-ftp": "to connect to ftp:// server",
+                "ext-json": "to preprocess CSS files via online service",
+                "ext-openssl": "to connect to ftps:// server and preprocess CSS files",
+                "ext-ssh2": "to connect to sftp:// server"
+            },
+            "bin": [
+                "deployment"
+            ],
+            "type": "project",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.6-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause",
+                "GPL-2.0-only",
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "David Grudl",
+                    "homepage": "https://davidgrudl.com"
+                }
+            ],
+            "description": "A tool for automated deployment of web applications to an FTP server.",
+            "homepage": "https://github.com/dg/ftp-deployment",
+            "keywords": [
+                "deployment",
+                "ftp",
+                "ssh"
+            ],
+            "support": {
+                "issues": "https://github.com/dg/ftp-deployment/issues",
+                "source": "https://github.com/dg/ftp-deployment/tree/v3.6.2"
+            },
+            "time": "2025-03-31T00:39:04+00:00"
         },
         {
             "name": "dg/mysql-dump",
@@ -7088,74 +7156,6 @@
                 "source": "https://github.com/cweagans/composer-patches/tree/1.7.3"
             },
             "time": "2022-12-20T22:53:13+00:00"
-        },
-        {
-            "name": "dg/ftp-deployment",
-            "version": "v3.6.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dg/ftp-deployment.git",
-                "reference": "249f49b40898b762ffe332402eee84e13e8dda24"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dg/ftp-deployment/zipball/249f49b40898b762ffe332402eee84e13e8dda24",
-                "reference": "249f49b40898b762ffe332402eee84e13e8dda24",
-                "shasum": ""
-            },
-            "require": {
-                "ext-zlib": "*",
-                "php": ">=8.0",
-                "phpseclib/phpseclib": "^3.0"
-            },
-            "require-dev": {
-                "nette/tester": "^2.0",
-                "phpstan/phpstan": "^0.12"
-            },
-            "suggest": {
-                "ext-ftp": "to connect to ftp:// server",
-                "ext-json": "to preprocess CSS files via online service",
-                "ext-openssl": "to connect to ftps:// server and preprocess CSS files",
-                "ext-ssh2": "to connect to sftp:// server"
-            },
-            "bin": [
-                "deployment"
-            ],
-            "type": "project",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.6-dev"
-                }
-            },
-            "autoload": {
-                "classmap": [
-                    "src/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause",
-                "GPL-2.0-only",
-                "GPL-3.0-only"
-            ],
-            "authors": [
-                {
-                    "name": "David Grudl",
-                    "homepage": "https://davidgrudl.com"
-                }
-            ],
-            "description": "A tool for automated deployment of web applications to an FTP server.",
-            "homepage": "https://github.com/dg/ftp-deployment",
-            "keywords": [
-                "deployment",
-                "ftp",
-                "ssh"
-            ],
-            "support": {
-                "issues": "https://github.com/dg/ftp-deployment/issues",
-                "source": "https://github.com/dg/ftp-deployment/tree/v3.6.2"
-            },
-            "time": "2025-03-31T00:39:04+00:00"
         },
         {
             "name": "fakerphp/faker",

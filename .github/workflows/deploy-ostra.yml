@@ -19,7 +19,7 @@ jobs:
                 run: docker compose up --build --detach
 
             -   name: Run tests in container
-                run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
+                run: docker compose exec --no-TTY web 'git config --global --add safe.directory /var/www/html/gamecon && php ./vendor/bin/phpunit'
 
             -   name: Upload test output as artifact
                 if: always()
