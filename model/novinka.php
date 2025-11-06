@@ -8,12 +8,12 @@ use \Gamecon\Cas\DateTimeCz;
 class Novinka extends DbObject
 {
 
-    protected static    $tabulka      = 'novinky';
-    protected static    $prvniObrazek = '@<img src="([^"]+)"[^>]*>@'; // RV odpovídající prvnímu obrázku v textu
-    private ?DateTimeCz $vydat        = null;
+    protected static $tabulka = 'novinky';
+    protected static $prvniObrazek = '@<img src="([^"]+)"[^>]*>@'; // RV odpovídající prvnímu obrázku v textu
+    private ?DateTimeCz $vydat = null;
 
     const NOVINKA = 1;
-    const BLOG    = 2;
+    const BLOG = 2;
 
     function autor()
     {
@@ -63,7 +63,7 @@ class Novinka extends DbObject
     function typSlovy()
     {
         $typy = [
-            self::BLOG    => 'blog',
+            self::BLOG => 'blog',
             self::NOVINKA => 'novinka',
         ];
         return $typy[$this->r['typ']];
