@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserRoleByYearRepository::class)]
 #[ORM\Table(name: 'uzivatele_role_podle_rocniku')]
+#[ORM\Index(fields: ['rocnik'], name: 'idx_uzivatele_role_podle_rocniku_rocnik')]
 class UserRoleByYear
 {
     #[ORM\Id]

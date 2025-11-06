@@ -24,8 +24,10 @@ class BfsrReport
     {
     }
 
-    public function exportuj(?string $format)
-    {
+    public function exportuj(
+        ?string $format,
+        ?int    $userId,
+    ): void {
         $rocnik = $this->systemoveNastaveni->rocnik();
 
         // Načteme všechny přihlášené uživatele
@@ -38,10 +40,12 @@ WHERE (
     OR EXISTS(SELECT 1 FROM shop_nakupy WHERE uzivatele_hodnoty.id_uzivatele = shop_nakupy.id_uzivatele AND shop_nakupy.rok = $rocnik)
     OR EXISTS(SELECT 1 FROM platby WHERE platby.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND platby.rok = $rocnik)
 )
+    AND IF($2 IS NOT NULL, uzivatele_hodnoty.id_uzivatele = $2, TRUE)
 SQL,
             [
                 0 => Role::PRIHLASEN_NA_LETOSNI_GC,
                 1 => Role::PRITOMEN_NA_LETOSNIM_GC,
+                2 => $userId,
             ],
         );
 
@@ -103,24 +107,24 @@ SQL,
             // Dobrovolné vstupné
             $vstupneSum += $navstevnik->finance()->cenaVstupne();
 
-            $costOfFreeActivitiesForUserData = $this->getCostOfFreeActivitiesForUserData($navstevnik);
-            foreach ($costOfFreeActivitiesForUserData as $costData) {
+            $costOfFreeActivitiesForUser = $this->getCostOfFreeActivitiesForUser($navstevnik);
+            foreach ($costOfFreeActivitiesForUser as $costData) {
                 $code = $costData['code'];
                 $value = $costData['value'];
                 $costOfFreeActivities[$code] ??= 0.0;
                 $costOfFreeActivities[$code] += $value;
             }
 
-            $missedActivityFeesForUserData = $this->getMissedActivityFeesForUserData($navstevnik);
-            foreach ($missedActivityFeesForUserData as $feeData) {
+            $missedActivityFeesForUser = $this->getMissedActivityFeesForUser($navstevnik);
+            foreach ($missedActivityFeesForUser as $feeData) {
                 $code = $feeData['code'];
                 $value = $feeData['value'];
                 $missedActivityFees[$code] ??= 0.0;
                 $missedActivityFees[$code] += $value;
             }
 
-            $tooLateCanceledActivityFeesForUserData = $this->getTooLateCanceledActivityFeesForUserData($navstevnik);
-            foreach ($tooLateCanceledActivityFeesForUserData as $feeData) {
+            $tooLateCanceledActivityFeesForUser = $this->getTooLateCanceledActivityFeesForUser($navstevnik);
+            foreach ($tooLateCanceledActivityFeesForUser as $feeData) {
                 $code = $feeData['code'];
                 $value = $feeData['value'];
                 $tooLateCanceledActivityFees[$code] ??= 0.0;
@@ -276,7 +280,7 @@ SQL,
         }
 
         // Získáme statistiky účastníků
-        $participantStats = $this->getParticipantStats();
+        $participantStats = $this->getParticipantStats($userId);
 
         $data = [
             ['Ir-Timestamp', 'Timestamp reportu', $this->systemoveNastaveni->ted()->format('Y-m-d H:i:s')],
@@ -358,7 +362,7 @@ SQL,
 
         Assert::same(
             array_sum($kostkyCelkem), $kostkyZdarma + $kostkyPlacene,
-            'Součet kostek zdarma a placených musí odpovídat celkovému počtu kostek'
+            'Součet kostek zdarma a placených musí odpovídat celkovému počtu kostek',
         );
         foreach ($kostkyCelkem as $code => $value) {
             $data[] = [$code, 'kostky prodeje - včetně zdarma - kusy', $value];
@@ -366,7 +370,7 @@ SQL,
 
         Assert::same(
             array_sum($plackyCelkem), $plackyZdarma + $plackyPlacene,
-            'Součet placek zdarma a placených musí odpovídat celkovému počtu placek'
+            'Součet placek zdarma a placených musí odpovídat celkovému počtu placek',
         );
         foreach ($plackyCelkem as $code => $value) {
             $data[] = [$code, 'placky prodeje - včetně zdarma - kusy', $value];
@@ -374,7 +378,7 @@ SQL,
 
         Assert::same(
             array_sum($nicknackyCelkem), $nicknackyZdarma + $nicknackyPlacene,
-            'Součet nicknacků zdarma a placených musí odpovídat celkovému počtu nicknacků'
+            'Součet nicknacků zdarma a placených musí odpovídat celkovému počtu nicknacků',
         );
         foreach ($nicknackyCelkem as $code => $value) {
             $data[] = [$code, 'nicknacky prodeje - včetně zdarma - kusy', $value];
@@ -382,7 +386,7 @@ SQL,
 
         Assert::same(
             array_sum($blokyCelkem), $blokyZdarma + $blokyPlacene,
-            'Součet bloků zdarma a placených musí odpovídat celkovému počtu bloků'
+            'Součet bloků zdarma a placených musí odpovídat celkovému počtu bloků',
         );
         foreach ($blokyCelkem as $code => $value) {
             $data[] = [$code, 'bloky prodeje - včetně zdarma - kusy', $value];
@@ -390,7 +394,7 @@ SQL,
 
         Assert::same(
             array_sum($ponozkyCelkem), $ponozkyZdarma + $ponozkyPlacene,
-            'Součet ponožek zdarma a placených musí odpovídat celkovému počtu ponožek'
+            'Součet ponožek zdarma a placených musí odpovídat celkovému počtu ponožek',
         );
         foreach ($ponozkyCelkem as $code => $value) {
             $data[] = [$code, 'ponožky prodeje - včetně zdarma - kusy', $value];
@@ -398,7 +402,7 @@ SQL,
 
         Assert::same(
             array_sum($taskyCelkem), $taskyZdarma + $taskyPlacene,
-            'Součet tašek zdarma a placených musí odpovídat celkovému počtu tašek'
+            'Součet tašek zdarma a placených musí odpovídat celkovému počtu tašek',
         );
         foreach ($taskyCelkem as $code => $value) {
             $data[] = [$code, 'tašky prodeje - včetně zdarma - kusy', $value];
@@ -406,13 +410,13 @@ SQL,
 
         Assert::same(
             array_sum($jidlaSnidaneCelkem), $jidlaSnidaneZdarma + $jidlaSnidaneSeSlevou + $jidlaSnidanePlnePlacene,
-            'Součet snídaní zdarma, se slevou a placených musí odpovídat celkovému počtu snídaní'
+            'Součet snídaní zdarma, se slevou a placených musí odpovídat celkovému počtu snídaní',
         );
         $data[] = ['Xr-Jidla-Snidane', 'snídaně placené - kusy', $jidlaSnidanePlnePlacene];
 
         Assert::same(
             array_sum($jidlaHlavniCelkem), $jidlaHlavniZdarma + $jidlaHlavniSeSlevou + $jidlaHlavniPlnePlacena,
-            'Součet hlavních jídel zdarma, se slevou a placených musí odpovídat celkovému počtu hlavních jídel'
+            'Součet hlavních jídel zdarma, se slevou a placených musí odpovídat celkovému počtu hlavních jídel',
         );
         $data[] = ['Xr-Jidla-Hlavni', 'hlavní jídla placená - kusy', $jidlaHlavniPlnePlacena];
 
@@ -422,8 +426,6 @@ SQL,
         $data[] = ['Nr-JidlaSleva-Snidane', 'snídaně se slevou - kusy', $jidlaSnidaneSeSlevou];
         $data[] = ['Nr-JidlaSleva-Hlavni', 'hlavní jídla se slevou - kusy', $jidlaHlavniSeSlevou];
 
-        // TODO Xr-Jidla-Hlavni
-
         Report::zPoli(['kod', 'popis', 'data'], $data)->tFormat($format);
     }
 
@@ -431,7 +433,7 @@ SQL,
      * Získá statistiky účastníků podle kategorií (org0, orgU, orgT, vypravěči, partneři, atd.)
      * @return array<string, int> Mapa kod => počet
      */
-    private function getParticipantStats(): array
+    private function getParticipantStats(?int $userId): array
     {
         $rocnik = $this->systemoveNastaveni->rocnik();
         $jakykoliRocnik = Role::JAKYKOLI_ROCNIK;
@@ -483,8 +485,9 @@ FROM (
     FROM uzivatele_role
     JOIN role_seznam ON uzivatele_role.id_role = role_seznam.id_role
     WHERE typ_role = '{$typRoleUcast}'
-      AND role_seznam.vyznam_role = '{$VYZNAM_PRIHLASEN}'
-      AND rocnik_role = $rocnik
+        AND role_seznam.vyznam_role = '{$VYZNAM_PRIHLASEN}'
+        AND rocnik_role = $rocnik
+        AND IF($1 IS NOT NULL, uzivatele_role.id_uzivatele = $1, TRUE)
 ) AS registered_user
 LEFT JOIN user_role ON user_role.id_uzivatele = registered_user.id_uzivatele
 WHERE (
@@ -502,6 +505,9 @@ WHERE (
 )
 GROUP BY user_role.vyznam_role
 SQL,
+            [
+                1 => $userId,
+            ],
         );
 
         $stats = [];
@@ -517,7 +523,7 @@ SQL,
      * @param Uzivatel $navstevnik
      * @return array<int, array{code: string, value: float}>
      */
-    private function getCostOfFreeActivitiesForUserData(Uzivatel $navstevnik): array
+    private function getCostOfFreeActivitiesForUser(Uzivatel $navstevnik): array
     {
         /**
          * Poznámka: právo @see Pravo::CASTECNA_SLEVA_NA_AKTIVITY už nepoužíváme
@@ -545,7 +551,7 @@ SQL,
      * @param Uzivatel $navstevnik
      * @return array<int, array{code: string, value: float}>
      */
-    private function getMissedActivityFeesForUserData(Uzivatel $navstevnik): array
+    private function getMissedActivityFeesForUser(Uzivatel $navstevnik): array
     {
         $missedActivityFees = [];
         $rocnik = $this->systemoveNastaveni->rocnik();
@@ -570,7 +576,7 @@ SQL,
      * @param Uzivatel $navstevnik
      * @return array<int, array{code: string, value: float}>
      */
-    private function getTooLateCanceledActivityFeesForUserData(Uzivatel $navstevnik): array
+    private function getTooLateCanceledActivityFeesForUser(Uzivatel $navstevnik): array
     {
         $tooLateCanceledActivityFees = [];
         $rocnik = $this->systemoveNastaveni->rocnik();
@@ -673,7 +679,7 @@ SQL,
      */
     private function getCountOfNonFullOrgsAsStandardActivity(array $activities): array
     {
-        return $this->getCountOfFilteredOrgsWithRoleAsStandardActivityData(
+        return $this->getCountOfFilteredOrgsWithRoleAsStandardActivity(
             activities: $activities,
             callback: fn(
                 Uzivatel $u,
@@ -688,7 +694,7 @@ SQL,
      */
     private function getCountOfFullOrgsAsStandardActivity(array $activities): array
     {
-        return $this->getCountOfFilteredOrgsWithRoleAsStandardActivityData(
+        return $this->getCountOfFilteredOrgsWithRoleAsStandardActivity(
             activities: $activities,
             callback: fn(
                 Uzivatel $u,
@@ -765,27 +771,11 @@ SQL,
     }
 
     /**
-     * @return array{code: string, value: int}
-     */
-    private function getCountOfSoldDices(int $rocnik): array
-    {
-        return dbFetchPairs(<<<SQL
-            SELECT CONCAT('Vr-Kostky-', shop_predmety.kod_predmetu) AS code,
-                COUNT(*) AS `value`
-            FROM shop_nakupy
-            JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-            WHERE shop_nakupy.rok = $rocnik
-                AND shop_predmety.kod_predmetu LIKE '%kostk%' COLLATE utf8_czech_ci 
-            GROUP BY shop_predmety.id_predmetu
-            SQL);
-    }
-
-    /**
      * @param callable(Uzivatel): bool $callback
      * @param array<int, Aktivita> $activities
      * @return array{code: string, value: float}
      */
-    private function getCountOfFilteredOrgsWithRoleAsStandardActivityData(
+    private function getCountOfFilteredOrgsWithRoleAsStandardActivity(
         array    $activities,
         callable $callback,
         string   $codePrefix,
