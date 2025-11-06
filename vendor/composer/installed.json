@@ -1787,6 +1787,70 @@
             "install-path": "../google/auth"
         },
         {
+            "name": "granam/remove-diacritics",
+            "version": "1.0.0",
+            "version_normalized": "1.0.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/granam/remove-diacritics.git",
+                "reference": "d3dc7be4a6ff2810827e21867d3b7af6b328c2e7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/granam/remove-diacritics/zipball/d3dc7be4a6ff2810827e21867d3b7af6b328c2e7",
+                "reference": "d3dc7be4a6ff2810827e21867d3b7af6b328c2e7",
+                "shasum": ""
+            },
+            "require": {
+                "ext-intl": "*",
+                "ext-mbstring": "*",
+                "granam/scalar": "^5.1",
+                "granam/strict-object": ">=3.0",
+                "granam/string": "^4.1",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "granam/exceptions-hierarchy": "^5.0",
+                "mockery/mockery": ">=1.2",
+                "phpunit/phpunit": ">=9.0"
+            },
+            "time": "2022-09-05T11:22:52+00:00",
+            "type": "project",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Granam\\RemoveDiacritics\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jaroslav Týc",
+                    "homepage": "https://www.jaroslavtyc.com",
+                    "role": "Original author"
+                }
+            ],
+            "description": "Cleanse text from diacritics and special characters",
+            "homepage": "https://github.com/granam/remove-diacritics",
+            "keywords": [
+                "Plain",
+                "character",
+                "diacritics",
+                "php",
+                "special",
+                "string",
+                "text"
+            ],
+            "support": {
+                "issues": "https://github.com/granam/remove-diacritics/issues",
+                "source": "https://github.com/granam/remove-diacritics/tree/1.0.0"
+            },
+            "install-path": "../granam/remove-diacritics"
+        },
+        {
             "name": "granam/scalar",
             "version": "5.1.0",
             "version_normalized": "5.1.0.0",
