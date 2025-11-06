@@ -30,7 +30,7 @@ try {
     SqlMigrace::vytvorZGlobals()->migruj();
 
     // informovat, že skript doběhl
-    echo "admin/migrace.php: Migrace dokončeny.\n";
+    echo "admin/deploy/migrace.php: Migrace dokončeny.\n";
 } catch (\Throwable $throwable) {
     http_response_code(500);
     echo "Chyba během migrace: " . $throwable->getMessage() . "\n";

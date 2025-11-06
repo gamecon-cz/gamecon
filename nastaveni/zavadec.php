@@ -14,8 +14,8 @@ require_once __DIR__ . '/initial-fatal-error-handler.php'; // pro ten kritický 
 require_once __DIR__ . '/zavadec-zaklad.php';
 
 // nastavení cache složky pro třídy, které ji potřebují
-pripravCache(SPEC . '/xtpl');
-XTemplate::cache(SPEC . '/xtpl');
+pripravCache(XTPL_CACHE_DIR);
+XTemplate::cache(XTPL_CACHE_DIR);
 
 // zapnutí logování výjimek
 $typZobrazeni = ZOBRAZIT_STACKTRACE_VYJIMKY

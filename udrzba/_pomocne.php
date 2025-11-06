@@ -80,30 +80,12 @@ function nasad(array $nastaveni) {
       !/web/soubory/systemove/*/default.png
 
       /vendor/composer/tmp-*
-      /vendor/phpunit
-      /vendor/sebastian
-      /vendor/phpdocumentor
-      /vendor/myclabs/deep-copy
-      /vendor/nikic/php-parser
-      /vendor/phar-io
-      /vendor/phpstan/phpstan
-      /vendor/phpstan
-      /vendor/phpspec/prophecy
-      /vendor/rector
-      /vendor/roave
-      /vendor/symfony/maker-bundle
-      /vendor/symplify
-      /vendor/zenstruck
       {$nutneKvuliComposerAutoRequire}
 
       /nasad.log
     '
     preprocess = no
     allowDelete = yes
-
-    purge[] = cache/private/xtpl
-    purge[] = cache/public/css
-    purge[] = cache/public/js
   ";
 
     if (!empty($nastaveni['vetev'])) {
@@ -126,7 +108,7 @@ function nasad(array $nastaveni) {
     }
 
     // smazání Symfony cache
-    clearSymfonyCacheOnRemote($nastaveni['hesloMigrace']);
+    clearAppCacheOnRemote($nastaveni['hesloMigrace']);
 
     // migrace DB
     runMigrationsOnRemote($nastaveni['hesloMigrace']);
@@ -141,18 +123,18 @@ function runMigrationsOnRemote(string $hesloMigrace) {
         'curl',
         '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
         '--silent', // skrýt progressbar
-        URL_ADMIN . '/' . basename(__DIR__ . '/../admin/migrace.php'),
+        URL_ADMIN . '/deploy/' . basename(__DIR__ . '/../admin/deploy/migrace.php'),
     ]);
 }
 
-function clearSymfonyCacheOnRemote(string $hesloMigrace) {
+function clearAppCacheOnRemote(string $hesloMigrace) {
     set_time_limit(600);
     msg("mažu Symfony cache na vzdáleném serveru");
     call_check([
         'curl',
         '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
         '--silent', // skrýt výstup
-        URL_ADMIN . '/' . basename(__DIR__ . '/../admin/smazat-symfony-cache.php'),
+        URL_ADMIN . '/deploy/' . basename(__DIR__ . '/../admin/deploy/smazat-cache.php'),
     ]);
 }
 
