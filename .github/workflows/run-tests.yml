@@ -2,50 +2,50 @@ name: Run tests
 
 # yamllint disable-line rule:truthy
 on:
-  push:
-    branches:
-      # beta a main si pouští testy samy, před deployem,
-      # viz deploy-beta.yml a deploy-ostra.yml
-      - '!beta'
-      - '!main'
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to run tests on'
-        required: false
-        default: 'main'
-  pull_request:
-    branches:
-      - main
+    push:
+        branches:
+            # beta a main si pouští testy samy, před deployem,
+            # viz deploy-beta.yml a deploy-ostra.yml
+            - '!beta'
+            - '!main'
+    workflow_dispatch:
+        inputs:
+            branch:
+                description: 'Branch to run tests on'
+                required: false
+                default: 'main'
+    pull_request:
+        branches:
+            - main
 
 jobs:
-  run-tests:
-    strategy:
-      fail-fast: false
+    run-tests:
+        strategy:
+            fail-fast: false
 
-    name: Run tests job
-    runs-on: ubuntu-22.04
+        name: Run tests job
+        runs-on: ubuntu-24.04
 
-    steps:
+        steps:
 
-      - name: Checkout code
-        uses: actions/checkout@v4
+            -   name: Checkout code
+                uses: actions/checkout@v4
 
-      - name: Build and start containers
-        run: docker compose up --build --detach
+            -   name: Build and start containers
+                run: docker compose up --build --detach
 
-      - name: Run tests in container
-        run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
+            -   name: Run tests in container
+                run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
 
-      - name: Run PHPStan in container
-        run: docker compose exec --no-TTY web ./bin/phpstan.sh
+            -   name: Run PHPStan in container
+                run: docker compose exec --no-TTY web ./bin/phpstan.sh
 
-      - name: Run ECS in container
-        run: docker compose exec --no-TTY web ./bin/ecs.sh
+            -   name: Run ECS in container
+                run: docker compose exec --no-TTY web ./bin/ecs.sh
 
-      - name: Upload test output as artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: php-test-logs
-          path: ./tests/logs
+            -   name: Upload test output as artifact
+                if: always()
+                uses: actions/upload-artifact@v4
+                with:
+                    name: php-test-logs
+                    path: ./tests/logs
