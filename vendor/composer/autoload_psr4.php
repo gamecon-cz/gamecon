@@ -86,7 +86,7 @@ return array(
     'Google\\Service\\' => array($vendorDir . '/google/apiclient-services/src'),
     'Google\\Auth\\' => array($vendorDir . '/google/auth/src'),
     'Google\\' => array($vendorDir . '/google/apiclient/src'),
-    'Godric\\DbMigrations\\' => array($baseDir . '/migrace/pomocne/db-migrations/src'),
+    'Godric\\DbMigrations\\' => array($baseDir . '/migrace/pomocne/db-migrations/src', $baseDir . '/migrace/pomocne/db-migrations/src'),
     'Gamecon\\Tests\\' => array($baseDir . '/tests'),
     'Gamecon\\Admin\\Modules\\Aktivity\\Import\\' => array($baseDir . '/admin/scripts/modules/aktivity/_Import'),
     'Gamecon\\Admin\\Modules\\Aktivity\\GoogleSheets\\' => array($baseDir . '/admin/scripts/modules/aktivity/_GoogleSheets'),

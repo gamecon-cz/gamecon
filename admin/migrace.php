@@ -2,7 +2,7 @@
 
 use Gamecon\SystemoveNastaveni\SqlMigrace;
 
-require __DIR__ . '/../nastaveni/zavadec.php';
+require __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 if (HTTPS_ONLY) {
     httpsOnly();
@@ -26,7 +26,13 @@ ini_set('error_reporting', E_ALL ^ E_STRICT); // vybrat typy chyb k zobrazení
 ini_set('html_errors', false); // chyby zobrazovat jako plaintext
 set_time_limit(600);
 
-SqlMigrace::vytvorZGlobals()->migruj();
+try {
+    SqlMigrace::vytvorZGlobals()->migruj();
 
-// informovat, že skript doběhl
-echo "admin/migrace.php: Migrace dokončeny.\n";
+    // informovat, že skript doběhl
+    echo "admin/migrace.php: Migrace dokončeny.\n";
+} catch (\Throwable $throwable) {
+    http_response_code(500);
+    echo "Chyba během migrace: " . $throwable->getMessage() . "\n";
+    echo $throwable->getTraceAsString();
+}

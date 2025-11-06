@@ -525,6 +525,7 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         'Godric\\DbMigrations\\' => 
         array (
             0 => __DIR__ . '/../..' . '/migrace/pomocne/db-migrations/src',
+            1 => __DIR__ . '/../..' . '/migrace/pomocne/db-migrations/src',
         ),
         'Gamecon\\Tests\\' => 
         array (

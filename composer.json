@@ -5,6 +5,7 @@
     "autoload": {
         "psr-4": {
             "Gamecon\\": "model",
+            "Godric\\DbMigrations\\": "migrace/pomocne/db-migrations/src",
             "Gamecon\\Admin\\Modules\\Aktivity\\GoogleSheets\\": "admin/scripts/modules/aktivity/_GoogleSheets",
             "Gamecon\\Admin\\Modules\\Aktivity\\Export\\": "admin/scripts/modules/aktivity/_Export",
             "Gamecon\\Admin\\Modules\\Aktivity\\Import\\": "admin/scripts/modules/aktivity/_Import",
