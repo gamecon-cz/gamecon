@@ -25,8 +25,6 @@ chdir(__DIR__ . '/../');
 $skipNoChangesCheck = getopt('', ['skip-no-changes-check']);
 if (!$skipNoChangesCheck) {
     // testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
-    exec('git rev-parse --abbrev-ref HEAD', $out);
-    $vetev = $out[0];
     exec('git status', $out);
     if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
         echo "error: working directory is not clean\n";
@@ -39,6 +37,9 @@ $skipTests = getopt('', ['skip-tests']);
 if (!$skipTests) {
     call_check(['php', __DIR__ . '/testuj.php']);
 }
+
+exec('git rev-parse --abbrev-ref HEAD', $out);
+$vetev = $out[0];
 
 // nasazení
 if ($vetev === 'main') {
