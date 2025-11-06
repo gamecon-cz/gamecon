@@ -56,9 +56,9 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
             'Zenstruck\\Foundry\\' => 18,
             'Zenstruck\\' => 10,
         ),
-        'T' => 
+        'W' => 
         array (
-            'Tracy\\' => 6,
+            'Webmozart\\Assert\\' => 17,
         ),
         'T' => 
         array (
@@ -233,9 +233,9 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         array (
             0 => __DIR__ . '/..' . '/zenstruck/assert/src',
         ),
-        'Tracy\\' => 
+        'Webmozart\\Assert\\' => 
         array (
-            0 => __DIR__ . '/..' . '/tracy/tracy/src',
+            0 => __DIR__ . '/..' . '/webmozart/assert/src',
         ),
         'Tracy\\' => 
         array (
