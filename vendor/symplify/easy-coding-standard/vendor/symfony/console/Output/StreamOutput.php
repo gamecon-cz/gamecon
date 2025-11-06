@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Console\Output;
+namespace ECSPrefix202510\Symfony\Component\Console\Output;
 
-use ECSPrefix202509\Symfony\Component\Console\Exception\InvalidArgumentException;
-use ECSPrefix202509\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use ECSPrefix202510\Symfony\Component\Console\Exception\InvalidArgumentException;
+use ECSPrefix202510\Symfony\Component\Console\Formatter\OutputFormatterInterface;
 /**
  * StreamOutput writes the output to a given stream.
  *

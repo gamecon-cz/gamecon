@@ -1,10 +1,10 @@
 <?php
 
-namespace RectorPrefix202509\React\Socket;
+namespace RectorPrefix202510\React\Socket;
 
-use RectorPrefix202509\Evenement\EventEmitter;
-use RectorPrefix202509\React\EventLoop\Loop;
-use RectorPrefix202509\React\EventLoop\LoopInterface;
+use RectorPrefix202510\Evenement\EventEmitter;
+use RectorPrefix202510\React\EventLoop\Loop;
+use RectorPrefix202510\React\EventLoop\LoopInterface;
 use InvalidArgumentException;
 use RuntimeException;
 /**
@@ -143,7 +143,7 @@ final class TcpServer extends EventEmitter implements ServerInterface
         }
         // parse_url() does not accept null ports (random port assignment) => manually remove
         if (\substr($uri, -2) === ':0') {
-            $parts = \parse_url(\substr($uri, 0, -2));
+            $parts = \parse_url((string) \substr($uri, 0, -2));
             if ($parts) {
                 $parts['port'] = 0;
             }

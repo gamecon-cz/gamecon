@@ -342,7 +342,7 @@ final class TypeExpression
                 continue;
             }
             if (\strncmp($type, '?', \strlen('?')) === 0) {
-                $type = \substr($type, 1);
+                $type = (string) \substr($type, 1);
             }
             if (Preg::match('/\\[\\h*\\]$/', $type)) {
                 $type = 'array';
@@ -426,9 +426,9 @@ final class TypeExpression
         }
         $this->isCompositeType = \false;
         if ('' !== $matches['nullable'][0]) {
-            $this->innerTypeExpressions[] = ['start_index' => \strlen($matches['nullable'][0]), 'expression' => $this->inner(\substr($matches['type'][0], \strlen($matches['nullable'][0])))];
+            $this->innerTypeExpressions[] = ['start_index' => \strlen($matches['nullable'][0]), 'expression' => $this->inner((string) \substr($matches['type'][0], \strlen($matches['nullable'][0])))];
         } elseif ('' !== $matches['array'][0]) {
-            $this->innerTypeExpressions[] = ['start_index' => 0, 'expression' => $this->inner(\substr($matches['type'][0], 0, -\strlen($matches['array'][0])))];
+            $this->innerTypeExpressions[] = ['start_index' => 0, 'expression' => $this->inner((string) \substr($matches['type'][0], 0, -\strlen($matches['array'][0])))];
         } elseif ('' !== ($matches['generic'][0] ?? '') && 0 === $matches['generic'][1]) {
             $this->innerTypeExpressions[] = ['start_index' => 0, 'expression' => $this->inner($matches['generic_name'][0])];
             $this->parseCommaSeparatedInnerTypes(\strlen($matches['generic_name'][0]) + \strlen($matches['generic_start'][0]), $matches['generic_types'][0]);
@@ -553,7 +553,7 @@ final class TypeExpression
             return $matches[1];
         }
         if (\strncmp($type, '\\', \strlen('\\')) === 0) {
-            return \substr($type, 1);
+            return (string) \substr($type, 1);
         }
         foreach ($this->namespaceUses as $namespaceUse) {
             if ($namespaceUse->getShortName() === $type) {

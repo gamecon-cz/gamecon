@@ -65,7 +65,7 @@ final class PhpUnitSizeClassFixer extends AbstractPhpUnitFixer implements Whites
         if ($this->isAbstractClass($tokens, $classIndex)) {
             return;
         }
-        $this->ensureIsDocBlockWithAnnotation($tokens, $classIndex, $this->configuration['group'], self::SIZES, ['ECSPrefix202509\\phpunit\\framework\\attributes\\small', 'ECSPrefix202509\\phpunit\\framework\\attributes\\medium', 'ECSPrefix202509\\phpunit\\framework\\attributes\\large']);
+        $this->ensureIsDocBlockWithAnnotation($tokens, $classIndex, $this->configuration['group'], self::SIZES, ['ECSPrefix202510\\phpunit\\framework\\attributes\\small', 'ECSPrefix202510\\phpunit\\framework\\attributes\\medium', 'ECSPrefix202510\\phpunit\\framework\\attributes\\large']);
     }
     private function isAbstractClass(Tokens $tokens, int $i) : bool
     {

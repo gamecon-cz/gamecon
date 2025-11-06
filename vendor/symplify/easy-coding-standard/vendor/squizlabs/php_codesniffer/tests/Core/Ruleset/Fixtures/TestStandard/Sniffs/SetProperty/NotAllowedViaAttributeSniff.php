@@ -5,7 +5,7 @@
  *
  * @see \PHP_CodeSniffer\Tests\Core\Ruleset\SetSniffPropertyTest
  */
-namespace ECSPrefix202509\Fixtures\TestStandard\Sniffs\SetProperty;
+namespace ECSPrefix202510\Fixtures\TestStandard\Sniffs\SetProperty;
 
 use AllowDynamicProperties;
 use PHP_CodeSniffer\Files\File;

@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Console;
+namespace ECSPrefix202510\Illuminate\Contracts\Console;
 
 interface Kernel
 {

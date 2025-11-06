@@ -8,15 +8,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Console\Command;
+namespace ECSPrefix202510\Symfony\Component\Console\Command;
 
-use ECSPrefix202509\Symfony\Component\Console\Attribute\AsCommand;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputArgument;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputOption;
-use ECSPrefix202509\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use ECSPrefix202509\Symfony\Component\Process\Process;
+use ECSPrefix202510\Symfony\Component\Console\Attribute\AsCommand;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputArgument;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputOption;
+use ECSPrefix202510\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Process\Process;
 /**
  * Dumps the completion script for the current shell.
  *

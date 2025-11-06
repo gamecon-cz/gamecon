@@ -12,8 +12,8 @@ declare (strict_types=1);
  */
 namespace PhpCsFixer\Runner;
 
-use ECSPrefix202509\Clue\React\NDJson\Decoder;
-use ECSPrefix202509\Clue\React\NDJson\Encoder;
+use ECSPrefix202510\Clue\React\NDJson\Decoder;
+use ECSPrefix202510\Clue\React\NDJson\Encoder;
 use PhpCsFixer\AbstractFixer;
 use PhpCsFixer\Cache\CacheManagerInterface;
 use PhpCsFixer\Cache\Directory;
@@ -41,13 +41,13 @@ use PhpCsFixer\Runner\Parallel\ProcessIdentifier;
 use PhpCsFixer\Runner\Parallel\ProcessPool;
 use PhpCsFixer\Runner\Parallel\WorkerException;
 use PhpCsFixer\Tokenizer\Tokens;
-use ECSPrefix202509\React\EventLoop\StreamSelectLoop;
-use ECSPrefix202509\React\Socket\ConnectionInterface;
-use ECSPrefix202509\React\Socket\TcpServer;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use ECSPrefix202509\Symfony\Component\Filesystem\Exception\IOException;
-use ECSPrefix202509\Symfony\Contracts\EventDispatcher\Event;
+use ECSPrefix202510\React\EventLoop\StreamSelectLoop;
+use ECSPrefix202510\React\Socket\ConnectionInterface;
+use ECSPrefix202510\React\Socket\TcpServer;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use ECSPrefix202510\Symfony\Component\Filesystem\Exception\IOException;
+use ECSPrefix202510\Symfony\Contracts\EventDispatcher\Event;
 /**
  * @phpstan-type _RunResult array<string, array{appliedFixers: list<string>, diff: string}>
  *
@@ -228,7 +228,13 @@ final class Runner
                     return;
                 }
                 $identifier = ProcessIdentifier::fromRaw($data['identifier']);
-                $process = $processPool->getProcess($identifier);
+                // Avoid race condition where worker tries to establish connection,
+                // but runner already ended all processes because `stop-on-violation` mode was enabled.
+                try {
+                    $process = $processPool->getProcess($identifier);
+                } catch (ParallelisationException $e) {
+                    return;
+                }
                 $process->bindConnection($decoder, $encoder);
                 $fileChunk = $getFileChunk();
                 if (0 === \count($fileChunk)) {

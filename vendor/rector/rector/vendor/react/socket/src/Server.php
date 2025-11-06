@@ -1,10 +1,10 @@
 <?php
 
-namespace RectorPrefix202509\React\Socket;
+namespace RectorPrefix202510\React\Socket;
 
-use RectorPrefix202509\Evenement\EventEmitter;
-use RectorPrefix202509\React\EventLoop\Loop;
-use RectorPrefix202509\React\EventLoop\LoopInterface;
+use RectorPrefix202510\Evenement\EventEmitter;
+use RectorPrefix202510\React\EventLoop\Loop;
+use RectorPrefix202510\React\EventLoop\LoopInterface;
 use Exception;
 /**
  * @deprecated 1.9.0 See `SocketServer` instead
@@ -63,7 +63,7 @@ final class Server extends EventEmitter implements ServerInterface
         $scheme = 'tcp';
         $pos = \strpos($uri, '://');
         if ($pos !== \false) {
-            $scheme = \substr($uri, 0, $pos);
+            $scheme = (string) \substr($uri, 0, $pos);
         }
         if ($scheme === 'unix') {
             $server = new UnixServer($uri, $loop, $context['unix']);

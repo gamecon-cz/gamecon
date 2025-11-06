@@ -1,11 +1,11 @@
 <?php
 
-namespace RectorPrefix202509\React\Dns\Query;
+namespace RectorPrefix202510\React\Dns\Query;
 
-use RectorPrefix202509\React\Dns\Config\HostsFile;
-use RectorPrefix202509\React\Dns\Model\Message;
-use RectorPrefix202509\React\Dns\Model\Record;
-use RectorPrefix202509\React\Promise;
+use RectorPrefix202510\React\Dns\Config\HostsFile;
+use RectorPrefix202510\React\Dns\Model\Message;
+use RectorPrefix202510\React\Dns\Model\Record;
+use RectorPrefix202510\React\Promise;
 /**
  * Resolves hosts from the given HostsFile or falls back to another executor
  *
@@ -56,14 +56,14 @@ final class HostsFileExecutor implements ExecutorInterface
     {
         if (substr($host, -13) === '.in-addr.arpa') {
             // IPv4: read as IP and reverse bytes
-            $ip = @inet_pton(substr($host, 0, -13));
+            $ip = @inet_pton((string) substr($host, 0, -13));
             if ($ip === \false || isset($ip[4])) {
                 return null;
             }
             return inet_ntop(strrev($ip));
         } elseif (substr($host, -9) === '.ip6.arpa') {
             // IPv6: replace dots, reverse nibbles and interpret as hexadecimal string
-            $ip = @inet_ntop(pack('H*', strrev(str_replace('.', '', substr($host, 0, -9)))));
+            $ip = @inet_ntop(pack('H*', strrev(str_replace('.', '', (string) substr($host, 0, -9)))));
             if ($ip === \false) {
                 return null;
             }

@@ -318,7 +318,7 @@ class File
                     } else {
                         if (\strpos($commentText, '@codingStandardsChangeSetting') !== \false) {
                             $start = \strpos($commentText, '@codingStandardsChangeSetting');
-                            $comment = \substr($commentText, $start + 30);
+                            $comment = (string) \substr($commentText, $start + 30);
                             $parts = \explode(' ', $comment);
                             if (\count($parts) >= 2) {
                                 $sniffParts = \explode('.', $parts[0]);
@@ -725,7 +725,7 @@ class File
             if ($parts[0] !== $code) {
                 // The full message code has been passed in.
                 $sniffCode = $code;
-                $listenerCode = \substr($sniffCode, 0, \strrpos($sniffCode, '.'));
+                $listenerCode = (string) \substr($sniffCode, 0, \strrpos($sniffCode, '.'));
             } else {
                 $listenerCode = Common::getSniffCode($this->activeListener);
                 $sniffCode = $listenerCode . '.' . $code;

@@ -137,7 +137,7 @@ class FunctionCommentThrowTagSniff implements Sniff
                 $exception = $tokens[$tag + 2]['content'];
                 $space = \strpos($exception, ' ');
                 if ($space !== \false) {
-                    $exception = \substr($exception, 0, $space);
+                    $exception = (string) \substr($exception, 0, $space);
                 }
                 $throwTags[$exception] = \true;
             }

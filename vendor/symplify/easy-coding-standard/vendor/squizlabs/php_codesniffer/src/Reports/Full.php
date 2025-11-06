@@ -132,7 +132,7 @@ class Full implements \PHP_CodeSniffer\Reports\Report
                         $startPosLastLine = \strrpos($errorMsg, \PHP_EOL . $paddingLine2 . $beforeMsg);
                         if ($startPosLastLine !== \false) {
                             // Message is multiline. Grab the text of last line of the message, including the color codes.
-                            $lastMsg = \substr($errorMsg, $startPosLastLine + \strlen(\PHP_EOL . $paddingLine2));
+                            $lastMsg = (string) \substr($errorMsg, $startPosLastLine + \strlen(\PHP_EOL . $paddingLine2));
                         }
                         // When show sources is used, the message itself will be bolded, so we need to correct the length.
                         $sourceSuffix = '(' . $error['source'] . ')';

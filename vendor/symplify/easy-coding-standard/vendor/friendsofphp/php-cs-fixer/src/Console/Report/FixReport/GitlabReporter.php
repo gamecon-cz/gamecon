@@ -13,14 +13,19 @@ declare (strict_types=1);
 namespace PhpCsFixer\Console\Report\FixReport;
 
 use PhpCsFixer\Console\Application;
-use ECSPrefix202509\SebastianBergmann\Diff\Chunk;
-use ECSPrefix202509\SebastianBergmann\Diff\Diff;
-use ECSPrefix202509\SebastianBergmann\Diff\Parser;
-use ECSPrefix202509\Symfony\Component\Console\Formatter\OutputFormatter;
+use PhpCsFixer\Documentation\DocumentationLocator;
+use PhpCsFixer\Fixer\FixerInterface;
+use PhpCsFixer\FixerFactory;
+use ECSPrefix202510\SebastianBergmann\Diff\Chunk;
+use ECSPrefix202510\SebastianBergmann\Diff\Diff;
+use ECSPrefix202510\SebastianBergmann\Diff\Line;
+use ECSPrefix202510\SebastianBergmann\Diff\Parser;
+use ECSPrefix202510\Symfony\Component\Console\Formatter\OutputFormatter;
 /**
  * Generates a report according to gitlabs subset of codeclimate json files.
  *
  * @author Hans-Christian Otto <c.otto@suora.com>
+ * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  *
  * @see https://github.com/codeclimate/platform/blob/master/spec/analyzers/SPEC.md#data-types
  *
@@ -36,9 +41,25 @@ final class GitlabReporter implements \PhpCsFixer\Console\Report\FixReport\Repor
      * @var \SebastianBergmann\Diff\Parser
      */
     private $diffParser;
+    /**
+     * @var \PhpCsFixer\Documentation\DocumentationLocator
+     */
+    private $documentationLocator;
+    /**
+     * @var \PhpCsFixer\FixerFactory
+     */
+    private $fixerFactory;
+    /**
+     * @var array<string, FixerInterface>
+     */
+    private $fixers;
     public function __construct()
     {
         $this->diffParser = new Parser();
+        $this->documentationLocator = new DocumentationLocator();
+        $this->fixerFactory = new FixerFactory();
+        $this->fixerFactory->registerBuiltInFixers();
+        $this->fixers = $this->createFixers();
     }
     public function getFormat() : string
     {
@@ -53,7 +74,8 @@ final class GitlabReporter implements \PhpCsFixer\Console\Report\FixReport\Repor
         $report = [];
         foreach ($reportSummary->getChanged() as $fileName => $change) {
             foreach ($change['appliedFixers'] as $fixerName) {
-                $report[] = ['check_name' => 'PHP-CS-Fixer.' . $fixerName, 'description' => 'PHP-CS-Fixer.' . $fixerName . ' by ' . $about, 'categories' => ['Style'], 'fingerprint' => \md5($fileName . $fixerName), 'severity' => 'minor', 'location' => ['path' => $fileName, 'lines' => self::getLines($this->diffParser->parse($change['diff']))]];
+                $fixer = $this->fixers[$fixerName] ?? null;
+                $report[] = ['check_name' => 'PHP-CS-Fixer.' . $fixerName, 'description' => null !== $fixer ? $fixer->getDefinition()->getSummary() : 'PHP-CS-Fixer.' . $fixerName . ' (custom rule)', 'content' => ['body' => \sprintf("%s\n%s", $about, null !== $fixer ? \sprintf('Check [docs](https://cs.symfony.com/doc/rules/%s.html) for more information.', \substr($this->documentationLocator->getFixerDocumentationFileRelativePath($fixer), 0, -4)) : 'Check performed with a custom rule.')], 'categories' => ['Style'], 'fingerprint' => \md5($fileName . $fixerName), 'severity' => 'minor', 'location' => ['path' => $fileName, 'lines' => self::getLines($this->diffParser->parse($change['diff']))]];
             }
         }
         $jsonString = \json_encode($report, 0);
@@ -75,11 +97,50 @@ final class GitlabReporter implements \PhpCsFixer\Console\Report\FixReport\Repor
                 return \array_shift($diff->chunks);
             }, null, $firstDiff)($firstDiff);
             if ($firstChunk instanceof Chunk) {
-                return \Closure::bind(static function (Chunk $chunk) : array {
-                    return ['begin' => $chunk->start, 'end' => $chunk->startRange];
-                }, null, $firstChunk)($firstChunk);
+                return self::getBeginEndForDiffChunk($firstChunk);
             }
         }
         return ['begin' => 0, 'end' => 0];
+    }
+    /**
+     * @return array{begin: int, end: int}
+     */
+    private static function getBeginEndForDiffChunk(Chunk $chunk) : array
+    {
+        $start = \Closure::bind(static function (Chunk $chunk) : int {
+            return $chunk->start;
+        }, null, $chunk)($chunk);
+        $startRange = \Closure::bind(static function (Chunk $chunk) : int {
+            return $chunk->startRange;
+        }, null, $chunk)($chunk);
+        $lines = \Closure::bind(static function (Chunk $chunk) : array {
+            return $chunk->lines;
+        }, null, $chunk)($chunk);
+        \assert(\count($lines) > 0);
+        $firstModifiedLineOffset = array_find_key($lines, static function (Line $line) : bool {
+            $type = \Closure::bind(static function (Line $line) : int {
+                return $line->type;
+            }, null, $line)($line);
+            return Line::UNCHANGED !== $type;
+        });
+        \assert(\is_int($firstModifiedLineOffset));
+        return [
+            // offset the start by where the first line is actually modified
+            'begin' => $start + $firstModifiedLineOffset,
+            // it's not where last modification takes place, only where diff (with --context) ends
+            'end' => $start + $startRange,
+        ];
+    }
+    /**
+     * @return array<string, FixerInterface>
+     */
+    private function createFixers() : array
+    {
+        $fixers = [];
+        foreach ($this->fixerFactory->getFixers() as $fixer) {
+            $fixers[$fixer->getName()] = $fixer;
+        }
+        \ksort($fixers);
+        return $fixers;
     }
 }

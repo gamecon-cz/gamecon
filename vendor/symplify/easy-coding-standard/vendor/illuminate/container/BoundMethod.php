@@ -1,9 +1,9 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Container;
+namespace ECSPrefix202510\Illuminate\Container;
 
 use Closure;
-use ECSPrefix202509\Illuminate\Contracts\Container\BindingResolutionException;
+use ECSPrefix202510\Illuminate\Contracts\Container\BindingResolutionException;
 use InvalidArgumentException;
 use ReflectionFunction;
 use ReflectionMethod;

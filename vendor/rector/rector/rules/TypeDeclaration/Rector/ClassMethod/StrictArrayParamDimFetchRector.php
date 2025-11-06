@@ -14,7 +14,6 @@ use PhpParser\Node\Expr\Cast\Array_;
 use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Expr\Empty_;
 use PhpParser\Node\Expr\FuncCall;
-use PhpParser\Node\Expr\Isset_;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
@@ -27,6 +26,7 @@ use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Function_;
 use PhpParser\NodeVisitor;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
 use Rector\NodeTypeResolver\PHPStan\Type\TypeFactory;
 use Rector\NodeTypeResolver\TypeComparator\TypeComparator;
@@ -126,11 +126,11 @@ CODE_SAMPLE
         }
         $paramName = $this->getName($param);
         $isParamAccessedArrayDimFetch = \false;
-        $this->traverseNodesWithCallable($functionLike->stmts, function (Node $node) use ($param, $paramName, &$isParamAccessedArrayDimFetch): ?int {
+        $this->traverseNodesWithCallable($functionLike->stmts, function (Node $node) use ($paramName, &$isParamAccessedArrayDimFetch): ?int {
             if ($node instanceof Class_ || $node instanceof FunctionLike) {
                 return NodeVisitor::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
             }
-            if ($this->shouldStop($node, $param, $paramName)) {
+            if ($this->shouldStop($node, $paramName)) {
                 // force set to false to avoid too early replaced
                 $isParamAccessedArrayDimFetch = \false;
                 return NodeVisitor::STOP_TRAVERSAL;
@@ -164,7 +164,7 @@ CODE_SAMPLE
                 $isParamAccessedArrayDimFetch = \false;
                 return NodeVisitor::STOP_TRAVERSAL;
             }
-            if ($variableType instanceof ObjectType && $this->typeComparator->isSubtype($variableType, new ObjectType('ArrayAccess'))) {
+            if ($this->isArrayAccess($variableType)) {
                 $isParamAccessedArrayDimFetch = \false;
                 return NodeVisitor::STOP_TRAVERSAL;
             }
@@ -185,21 +185,9 @@ CODE_SAMPLE
         }
         return \false;
     }
-    private function shouldStop(Node $node, Param $param, string $paramName): bool
+    private function shouldStop(Node $node, string $paramName): bool
     {
         $nodeToCheck = null;
-        if (!$param->default instanceof Expr) {
-            if ($node instanceof Isset_) {
-                foreach ($node->vars as $var) {
-                    if ($var instanceof ArrayDimFetch && $var->var instanceof Variable && $var->var->name === $paramName) {
-                        return \true;
-                    }
-                }
-            }
-            if ($node instanceof Empty_ && $node->expr instanceof ArrayDimFetch && $node->expr->var instanceof Variable && $node->expr->var->name === $paramName) {
-                return \true;
-            }
-        }
         if ($node instanceof FuncCall && !$node->isFirstClassCallable() && $this->isNames($node, ['is_array', 'is_string', 'is_int', 'is_bool', 'is_float'])) {
             $firstArg = $node->getArgs()[0];
             $nodeToCheck = $firstArg->value;
@@ -213,7 +201,7 @@ CODE_SAMPLE
         if ($node instanceof AssignOpCoalesce) {
             $nodeToCheck = $node->var;
         }
-        if ($this->isMethodCallOrArrayDimFetch($paramName, $nodeToCheck)) {
+        if ($this->isMethodCall($paramName, $nodeToCheck)) {
             return \true;
         }
         if ($nodeToCheck instanceof Variable && $this->isName($nodeToCheck, $paramName)) {
@@ -258,14 +246,18 @@ CODE_SAMPLE
         }
         return $node instanceof Array_ && $node->expr instanceof Variable && $this->isName($node->expr, $paramName);
     }
-    private function isMethodCallOrArrayDimFetch(string $paramName, ?Node $node): bool
+    private function isMethodCall(string $paramName, ?Node $node): bool
     {
         if ($node instanceof MethodCall) {
             return $node->var instanceof Variable && $this->isName($node->var, $paramName);
         }
-        if ($node instanceof ArrayDimFetch) {
-            return $node->var instanceof Variable && $this->isName($node->var, $paramName);
-        }
         return \false;
+    }
+    private function isArrayAccess(Type $type): bool
+    {
+        if (!$type instanceof ObjectType) {
+            return \false;
+        }
+        return $this->typeComparator->isSubtype($type, new ObjectType('ArrayAccess'));
     }
 }

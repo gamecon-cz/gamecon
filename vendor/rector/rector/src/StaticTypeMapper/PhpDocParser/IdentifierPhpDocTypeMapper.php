@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\StaticTypeMapper\PhpDocParser;
 
-use RectorPrefix202509\Nette\Utils\Strings;
+use RectorPrefix202510\Nette\Utils\Strings;
 use PhpParser\Node;
 use PHPStan\Analyser\NameScope;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
@@ -101,8 +101,7 @@ final class IdentifierPhpDocTypeMapper implements PhpDocTypeMapperInterface
                 $scalarTypes = [new BooleanType(), new StringType(), new IntegerType(), new FloatType()];
                 return new UnionType($scalarTypes);
             }
-            $identifierTypeNode->name = ltrim($identifierTypeNode->name, '@');
-            $objectType = new ObjectType($identifierTypeNode->name);
+            $objectType = new ObjectType(ltrim($identifierTypeNode->name, '@'));
         }
         $scope = $node->getAttribute(AttributeKey::SCOPE);
         return $this->objectTypeSpecifier->narrowToFullyQualifiedOrAliasedObjectType($node, $objectType, $scope, $withPreslash);

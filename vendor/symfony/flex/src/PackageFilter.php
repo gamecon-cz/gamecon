@@ -30,14 +30,16 @@ class PackageFilter
     private $symfonyConstraints;
     private $downloader;
     private $io;
+    private $ignorePreleases;
 
-    public function __construct(IOInterface $io, string $symfonyRequire, Downloader $downloader)
+    public function __construct(IOInterface $io, string $symfonyRequire, Downloader $downloader, bool $ignorePreleases = false)
     {
         $this->versionParser = new VersionParser();
         $this->symfonyRequire = $symfonyRequire;
-        $this->symfonyConstraints = $this->versionParser->parseConstraints($symfonyRequire);
+        $this->symfonyConstraints = '' !== $symfonyRequire ? $this->versionParser->parseConstraints($symfonyRequire) : null;
         $this->downloader = $downloader;
         $this->io = $io;
+        $this->ignorePreleases = $ignorePreleases;
     }
 
     /**
@@ -48,6 +50,16 @@ class PackageFilter
      */
     public function removeLegacyPackages(array $data, RootPackageInterface $rootPackage, array $lockedPackages): array
     {
+        if ($this->ignorePreleases) {
+            $filteredPackages = [];
+            foreach ($data as $package) {
+                if (\in_array($package->getStability(), ['stable', 'dev'], true)) {
+                    $filteredPackages[] = $package;
+                }
+            }
+            $data = $filteredPackages;
+        }
+
         if (!$this->symfonyConstraints || !$data) {
             return $data;
         }

@@ -11,7 +11,7 @@ namespace PHP_CodeSniffer\Tests\Core\Fixer;
 use PHP_CodeSniffer\Files\LocalFile;
 use PHP_CodeSniffer\Ruleset;
 use PHP_CodeSniffer\Tests\ConfigDouble;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Tests for the Fixer::fixFile() return value.
  *

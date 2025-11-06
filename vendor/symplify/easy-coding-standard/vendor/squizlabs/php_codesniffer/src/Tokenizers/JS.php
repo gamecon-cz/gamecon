@@ -294,11 +294,11 @@ class JS extends \PHP_CodeSniffer\Tokenizers\Tokenizer
                     // No matter what token we end up using, we don't
                     // need the content in the buffer any more because we have
                     // found a valid token.
-                    $newContent = \substr(\str_replace("\n", $this->eolChar, $buffer), 0, -1);
+                    $newContent = (string) \substr(\str_replace("\n", $this->eolChar, $buffer), 0, -1);
                     if ($newContent !== '') {
                         $tokens[] = ['code' => \T_STRING, 'type' => 'T_STRING', 'content' => $newContent];
                         if (\PHP_CODESNIFFER_VERBOSITY > 1) {
-                            $content = Util\Common::prepareForOutput(\substr($buffer, 0, -1));
+                            $content = Util\Common::prepareForOutput((string) \substr($buffer, 0, -1));
                             echo "\t=> Added token T_STRING ({$content})" . \PHP_EOL;
                         }
                     }
@@ -457,8 +457,8 @@ class JS extends \PHP_CodeSniffer\Tokenizers\Tokenizer
                     if ($endContent === null && \strpos($tokenContent, $this->eolChar) !== \false) {
                         // A null end token means the comment ends at the end of
                         // the line so we look for newlines and split the token.
-                        $tokens[$stackPtr]['content'] = \substr($tokenContent, \strpos($tokenContent, $this->eolChar) + \strlen($this->eolChar));
-                        $tokenContent = \substr($tokenContent, 0, \strpos($tokenContent, $this->eolChar) + \strlen($this->eolChar));
+                        $tokens[$stackPtr]['content'] = (string) \substr($tokenContent, \strpos($tokenContent, $this->eolChar) + \strlen($this->eolChar));
+                        $tokenContent = (string) \substr($tokenContent, 0, \strpos($tokenContent, $this->eolChar) + \strlen($this->eolChar));
                         // If the substr failed, skip the token as the content
                         // will now be blank.
                         if ($tokens[$stackPtr]['content'] !== \false && $tokens[$stackPtr]['content'] !== '') {
@@ -607,7 +607,7 @@ class JS extends \PHP_CodeSniffer\Tokenizers\Tokenizer
                     }
                 }
             } else {
-                $possibleEolChar = \substr($string, $next, \strlen($this->eolChar));
+                $possibleEolChar = (string) \substr($string, $next, \strlen($this->eolChar));
                 if ($possibleEolChar === $this->eolChar) {
                     // This is the last token on the line and regular
                     // expressions need to be defined on a single line,
@@ -636,7 +636,7 @@ class JS extends \PHP_CodeSniffer\Tokenizers\Tokenizer
             if ($chars[$next] !== ' ') {
                 break;
             } else {
-                $possibleEolChar = \substr($string, $next, \strlen($this->eolChar));
+                $possibleEolChar = (string) \substr($string, $next, \strlen($this->eolChar));
                 if ($possibleEolChar === $this->eolChar) {
                     // This is the last token on the line.
                     break;

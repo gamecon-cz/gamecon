@@ -180,7 +180,7 @@ class FileHeaderSniff implements Sniff
                         break 2;
                     }
                     $end = $phpcsFile->findEndOfStatement($next);
-                    $headerLines[] = ['type' => \substr(\strtolower($tokens[$next]['type']), 2), 'start' => $next, 'end' => $end];
+                    $headerLines[] = ['type' => (string) \substr(\strtolower($tokens[$next]['type']), 2), 'start' => $next, 'end' => $end];
                     $next = $end;
                     break;
                 case \T_USE:

@@ -11,7 +11,7 @@ namespace PHP_CodeSniffer\Tests\Core\Ruleset;
 
 use PHP_CodeSniffer\Ruleset;
 use PHP_CodeSniffer\Tests\ConfigDouble;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Test the Ruleset::registerSniffs() method.
  *
@@ -121,7 +121,7 @@ final class RegisterSniffsTest extends TestCase
      */
     public function testRegisteredSniffsWithRestrictions()
     {
-        $restrictions = ['ECSPrefix202509\\psr1\\sniffs\\classes\\classdeclarationsniff' => \true, 'ECSPrefix202509\\psr1\\sniffs\\files\\sideeffectssniff' => \true, 'ECSPrefix202509\\psr1\\sniffs\\methods\\camelcapsmethodnamesniff' => \true];
+        $restrictions = ['ECSPrefix202510\\psr1\\sniffs\\classes\\classdeclarationsniff' => \true, 'ECSPrefix202510\\psr1\\sniffs\\files\\sideeffectssniff' => \true, 'ECSPrefix202510\\psr1\\sniffs\\methods\\camelcapsmethodnamesniff' => \true];
         $expected = ['PHP_CodeSniffer\\Standards\\PSR1\\Sniffs\\Classes\\ClassDeclarationSniff', 'PHP_CodeSniffer\\Standards\\PSR1\\Sniffs\\Files\\SideEffectsSniff', 'PHP_CodeSniffer\\Standards\\PSR1\\Sniffs\\Methods\\CamelCapsMethodNameSniff'];
         self::$ruleset->registerSniffs(self::$psr1SniffAbsolutePaths, $restrictions, []);
         $this->assertSame($expected, \array_keys(self::$ruleset->sniffs));
@@ -151,8 +151,8 @@ final class RegisterSniffsTest extends TestCase
      */
     public function testRegisteredSniffsBothRestrictionsAndExclusions()
     {
-        $restrictions = ['ECSPrefix202509\\generic\\sniffs\\namingconventions\\uppercaseconstantnamesniff' => \true, 'ECSPrefix202509\\generic\\sniffs\\php\\disallowalternativephptagssniff' => \true, 'ECSPrefix202509\\generic\\sniffs\\php\\disallowshortopentagsniff' => \true, 'ECSPrefix202509\\psr1\\sniffs\\classes\\classdeclarationsniff' => \true, 'ECSPrefix202509\\squiz\\sniffs\\classes\\validclassnamesniff' => \true];
-        $exclusions = ['ECSPrefix202509\\squiz\\sniffs\\classes\\validclassnamesniff' => \true, 'ECSPrefix202509\\generic\\sniffs\\php\\disallowalternativephptagssniff' => \true, 'ECSPrefix202509\\generic\\sniffs\\namingconventions\\uppercaseconstantnamesniff' => \true];
+        $restrictions = ['ECSPrefix202510\\generic\\sniffs\\namingconventions\\uppercaseconstantnamesniff' => \true, 'ECSPrefix202510\\generic\\sniffs\\php\\disallowalternativephptagssniff' => \true, 'ECSPrefix202510\\generic\\sniffs\\php\\disallowshortopentagsniff' => \true, 'ECSPrefix202510\\psr1\\sniffs\\classes\\classdeclarationsniff' => \true, 'ECSPrefix202510\\squiz\\sniffs\\classes\\validclassnamesniff' => \true];
+        $exclusions = ['ECSPrefix202510\\squiz\\sniffs\\classes\\validclassnamesniff' => \true, 'ECSPrefix202510\\generic\\sniffs\\php\\disallowalternativephptagssniff' => \true, 'ECSPrefix202510\\generic\\sniffs\\namingconventions\\uppercaseconstantnamesniff' => \true];
         $expected = ['PHP_CodeSniffer\\Standards\\Generic\\Sniffs\\PHP\\DisallowShortOpenTagSniff', 'PHP_CodeSniffer\\Standards\\PSR1\\Sniffs\\Classes\\ClassDeclarationSniff'];
         self::$ruleset->registerSniffs(self::$psr1SniffAbsolutePaths, $restrictions, $exclusions);
         $this->assertSame($expected, \array_keys(self::$ruleset->sniffs));

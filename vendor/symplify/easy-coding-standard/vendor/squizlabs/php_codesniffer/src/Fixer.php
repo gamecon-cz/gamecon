@@ -208,7 +208,7 @@ class Fixer
         }
         $cwd = \getcwd() . \DIRECTORY_SEPARATOR;
         if (\strpos($filePath, $cwd) === 0) {
-            $filename = \substr($filePath, \strlen($cwd));
+            $filename = (string) \substr($filePath, \strlen($cwd));
         } else {
             $filename = $filePath;
         }
@@ -586,9 +586,9 @@ class Fixer
     {
         $current = $this->getTokenContent($stackPtr);
         if ($length === null) {
-            $newContent = \substr($current, $start);
+            $newContent = (string) \substr($current, $start);
         } else {
-            $newContent = \substr($current, $start, $length);
+            $newContent = (string) \substr($current, $start, $length);
         }
         return $this->replaceToken($stackPtr, $newContent);
     }

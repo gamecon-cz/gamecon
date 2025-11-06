@@ -252,7 +252,7 @@ class Ruleset
             if ($i === $sniffCount) {
                 $currentStandard = null;
             } else {
-                $currentStandard = \substr($sniff, 0, \strpos($sniff, '.'));
+                $currentStandard = (string) \substr($sniff, 0, \strpos($sniff, '.'));
                 if ($lastStandard === null) {
                     $lastStandard = $currentStandard;
                 }
@@ -808,8 +808,8 @@ class Ruleset
                     // Work out the sniff path.
                     $sepPos = \strpos($ref, \DIRECTORY_SEPARATOR);
                     if ($sepPos !== \false) {
-                        $stdName = \substr($ref, 0, $sepPos);
-                        $path = \substr($ref, $sepPos);
+                        $stdName = (string) \substr($ref, 0, $sepPos);
+                        $path = (string) \substr($ref, $sepPos);
                     } else {
                         $parts = \explode('.', $ref);
                         $stdName = $parts[0];
@@ -1166,7 +1166,7 @@ class Ruleset
             if ($sniffPos === \false) {
                 continue;
             }
-            $slashPos = \strrpos(\substr($file, 0, $sniffPos), \DIRECTORY_SEPARATOR);
+            $slashPos = \strrpos((string) \substr($file, 0, $sniffPos), \DIRECTORY_SEPARATOR);
             if ($slashPos === \false) {
                 continue;
             }
@@ -1320,7 +1320,7 @@ class Ruleset
         $name = \trim($name);
         $propertyName = $name;
         if (\substr($propertyName, -2) === '[]') {
-            $propertyName = \substr($propertyName, 0, -2);
+            $propertyName = (string) \substr($propertyName, 0, -2);
         }
         /*
          * BC-compatibility layer for $settings using the pre-PHPCS 3.8.0 format.

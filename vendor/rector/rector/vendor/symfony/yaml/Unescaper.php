@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Yaml;
+namespace RectorPrefix202510\Symfony\Component\Yaml;
 
-use RectorPrefix202509\Symfony\Component\Yaml\Exception\ParseException;
+use RectorPrefix202510\Symfony\Component\Yaml\Exception\ParseException;
 /**
  * Unescaper encapsulates unescaping rules for single and double-quoted
  * YAML strings.
@@ -90,11 +90,11 @@ class Unescaper
             case 'P':
                 return " ";
             case 'x':
-                return self::utf8chr(hexdec(substr($value, 2, 2)));
+                return self::utf8chr(hexdec((string) substr($value, 2, 2)));
             case 'u':
-                return self::utf8chr(hexdec(substr($value, 2, 4)));
+                return self::utf8chr(hexdec((string) substr($value, 2, 4)));
             case 'U':
-                return self::utf8chr(hexdec(substr($value, 2, 8)));
+                return self::utf8chr(hexdec((string) substr($value, 2, 8)));
             default:
                 throw new ParseException(\sprintf('Found unknown escape character "%s".', $value));
         }

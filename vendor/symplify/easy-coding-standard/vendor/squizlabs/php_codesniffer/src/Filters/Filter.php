@@ -205,7 +205,7 @@ class Filter extends RecursiveFilterIterator
         $relativePath = $path;
         if (\strpos($path, $this->basedir) === 0) {
             // The +1 cuts off the directory separator as well.
-            $relativePath = \substr($path, \strlen($this->basedir) + 1);
+            $relativePath = (string) \substr($path, \strlen($this->basedir) + 1);
         }
         if (\is_dir($path) === \true) {
             $ignorePatterns = $this->ignoreDirPatterns;

@@ -5,7 +5,7 @@
  *
  * @see \PHP_CodeSniffer\Tests\Core\Generators\GeneratorTest
  */
-namespace ECSPrefix202509\Fixtures\StandardWithDocs\Sniffs;
+namespace ECSPrefix202510\Fixtures\StandardWithDocs\Sniffs;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;

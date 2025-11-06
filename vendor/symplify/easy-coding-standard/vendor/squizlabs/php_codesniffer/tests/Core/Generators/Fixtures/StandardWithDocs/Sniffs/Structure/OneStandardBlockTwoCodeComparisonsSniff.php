@@ -5,9 +5,9 @@
  *
  * @see \PHP_CodeSniffer\Tests\Core\Generators\GeneratorTest
  */
-namespace ECSPrefix202509\Fixtures\StandardWithDocs\Sniffs\Structure;
+namespace ECSPrefix202510\Fixtures\StandardWithDocs\Sniffs\Structure;
 
-use ECSPrefix202509\Fixtures\StandardWithDocs\Sniffs\DummySniff;
+use ECSPrefix202510\Fixtures\StandardWithDocs\Sniffs\DummySniff;
 final class OneStandardBlockTwoCodeComparisonsSniff extends DummySniff
 {
 }

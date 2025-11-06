@@ -30,13 +30,13 @@ final class SingleTraitInsertPerStatementFixer extends AbstractFixer
         return new FixerDefinition('Each trait `use` must be done as single statement.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 final class Example
 {
     use Foo, Bar;
 }
-\class_alias('ECSPrefix202509\\Example', 'Example', \false);
+\class_alias('ECSPrefix202510\\Example', 'Example', \false);
 
 PHP
 )]);

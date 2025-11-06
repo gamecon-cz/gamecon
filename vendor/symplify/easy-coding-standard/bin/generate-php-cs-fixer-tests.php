@@ -1,24 +1,24 @@
 <?php
 
 declare (strict_types=1);
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 use PhpCsFixer\RuleSet\RuleSets;
-use ECSPrefix202509\PhpParser\Modifiers;
-use ECSPrefix202509\PhpParser\Node\Expr\ArrayDimFetch;
-use ECSPrefix202509\PhpParser\Node\Expr\Assign;
-use ECSPrefix202509\PhpParser\Node\Expr\ConstFetch;
-use ECSPrefix202509\PhpParser\Node\Expr\PropertyFetch;
-use ECSPrefix202509\PhpParser\Node\Expr\Variable;
-use ECSPrefix202509\PhpParser\Node\Identifier;
-use ECSPrefix202509\PhpParser\Node\Name;
-use ECSPrefix202509\PhpParser\Node\Param;
-use ECSPrefix202509\PhpParser\Node\Scalar\String_;
-use ECSPrefix202509\PhpParser\Node\Stmt\ClassMethod;
-use ECSPrefix202509\PhpParser\Node\Stmt\Expression;
-use ECSPrefix202509\PhpParser\Node\Stmt\If_;
-use ECSPrefix202509\PhpParser\Node\Stmt\Return_;
-use ECSPrefix202509\PhpParser\PrettyPrinter\Standard;
+use ECSPrefix202510\PhpParser\Modifiers;
+use ECSPrefix202510\PhpParser\Node\Expr\ArrayDimFetch;
+use ECSPrefix202510\PhpParser\Node\Expr\Assign;
+use ECSPrefix202510\PhpParser\Node\Expr\ConstFetch;
+use ECSPrefix202510\PhpParser\Node\Expr\PropertyFetch;
+use ECSPrefix202510\PhpParser\Node\Expr\Variable;
+use ECSPrefix202510\PhpParser\Node\Identifier;
+use ECSPrefix202510\PhpParser\Node\Name;
+use ECSPrefix202510\PhpParser\Node\Param;
+use ECSPrefix202510\PhpParser\Node\Scalar\String_;
+use ECSPrefix202510\PhpParser\Node\Stmt\ClassMethod;
+use ECSPrefix202510\PhpParser\Node\Stmt\Expression;
+use ECSPrefix202510\PhpParser\Node\Stmt\If_;
+use ECSPrefix202510\PhpParser\Node\Stmt\Return_;
+use ECSPrefix202510\PhpParser\PrettyPrinter\Standard;
 // this helper script generates the withPhpCsFixerSets() method for ECSConfigBuilder class
 require __DIR__ . '/../vendor/autoload.php';
 $setsDirectory = __DIR__ . '/../vendor/friendsofphp/php-cs-fixer/src/RuleSet/Sets/';

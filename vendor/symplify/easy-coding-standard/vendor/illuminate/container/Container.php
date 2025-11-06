@@ -1,19 +1,19 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Container;
+namespace ECSPrefix202510\Illuminate\Container;
 
 use ArrayAccess;
 use Closure;
 use Exception;
-use ECSPrefix202509\Illuminate\Container\Attributes\Bind;
-use ECSPrefix202509\Illuminate\Container\Attributes\Scoped;
-use ECSPrefix202509\Illuminate\Container\Attributes\Singleton;
-use ECSPrefix202509\Illuminate\Contracts\Container\BindingResolutionException;
-use ECSPrefix202509\Illuminate\Contracts\Container\CircularDependencyException;
-use ECSPrefix202509\Illuminate\Contracts\Container\Container as ContainerContract;
-use ECSPrefix202509\Illuminate\Contracts\Container\ContextualAttribute;
-use ECSPrefix202509\Illuminate\Contracts\Container\SelfBuilding;
-use ECSPrefix202509\Illuminate\Support\Collection;
+use ECSPrefix202510\Illuminate\Container\Attributes\Bind;
+use ECSPrefix202510\Illuminate\Container\Attributes\Scoped;
+use ECSPrefix202510\Illuminate\Container\Attributes\Singleton;
+use ECSPrefix202510\Illuminate\Contracts\Container\BindingResolutionException;
+use ECSPrefix202510\Illuminate\Contracts\Container\CircularDependencyException;
+use ECSPrefix202510\Illuminate\Contracts\Container\Container as ContainerContract;
+use ECSPrefix202510\Illuminate\Contracts\Container\ContextualAttribute;
+use ECSPrefix202510\Illuminate\Contracts\Container\SelfBuilding;
+use ECSPrefix202510\Illuminate\Support\Collection;
 use LogicException;
 use ReflectionAttribute;
 use ReflectionClass;

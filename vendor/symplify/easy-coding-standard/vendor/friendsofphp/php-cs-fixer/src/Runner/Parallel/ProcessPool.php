@@ -12,7 +12,7 @@ declare (strict_types=1);
  */
 namespace PhpCsFixer\Runner\Parallel;
 
-use ECSPrefix202509\React\Socket\ServerInterface;
+use ECSPrefix202510\React\Socket\ServerInterface;
 /**
  * Represents collection of active processes that are being run in parallel.
  * Inspired by {@see https://github.com/phpstan/phpstan-src/blob/ed68345a82992775112acc2c2bd639d1bd3a1a02/src/Parallel/ProcessPool.php}.

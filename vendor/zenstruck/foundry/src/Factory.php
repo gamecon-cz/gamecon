@@ -27,7 +27,7 @@ use Zenstruck\Foundry\Exception\CannotCreateFactory;
 abstract class Factory
 {
     /** @phpstan-var Attributes[] */
-    private array $attributes;
+    private array $attributes = [];
 
     // keep an empty constructor for BC
     public function __construct()
@@ -45,7 +45,7 @@ abstract class Factory
         }
 
         try {
-            $factory ??= new static(); // @phpstan-ignore new.static
+            $factory ??= new static(); // @phpstan-ignore new.static, new.staticInAbstractClassStaticMethod
         } catch (\ArgumentCountError $e) {
             throw CannotCreateFactory::argumentCountError($e);
         }

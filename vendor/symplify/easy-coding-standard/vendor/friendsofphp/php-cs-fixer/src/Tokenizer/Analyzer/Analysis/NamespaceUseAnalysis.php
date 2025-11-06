@@ -33,12 +33,13 @@ final class NamespaceUseAnalysis
     /**
      * The fully qualified use namespace.
      *
-     * @var class-string
+     * @var non-empty-string
      */
     private $fullName;
     /**
      * The short version of use namespace or the alias name in case of aliased use statements.
-     * @var string
+     *
+     * @var non-empty-string
      */
     private $shortName;
     /**
@@ -78,8 +79,9 @@ final class NamespaceUseAnalysis
      */
     private $type;
     /**
-     * @param self::TYPE_* $type
-     * @param class-string $fullName
+     * @param self::TYPE_*     $type
+     * @param non-empty-string $fullName
+     * @param non-empty-string $shortName
      */
     public function __construct(int $type, string $fullName, string $shortName, bool $isAliased, bool $isInMulti, int $startIndex, int $endIndex, ?int $chunkStartIndex = null, ?int $chunkEndIndex = null)
     {
@@ -97,12 +99,15 @@ final class NamespaceUseAnalysis
         $this->chunkEndIndex = $chunkEndIndex;
     }
     /**
-     * @return class-string
+     * @return non-empty-string
      */
     public function getFullName() : string
     {
         return $this->fullName;
     }
+    /**
+     * @return non-empty-string
+     */
     public function getShortName() : string
     {
         return $this->shortName;

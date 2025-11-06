@@ -79,16 +79,21 @@ function nasad(array $nastaveni) {
       !/web/soubory/systemove/*/RAZENI-VZOR.csv
       !/web/soubory/systemove/*/default.png
 
+      /vendor/composer/tmp-*
       /vendor/phpunit
       /vendor/sebastian
       /vendor/phpdocumentor
-      /vendor/webmozart
       /vendor/myclabs/deep-copy
       /vendor/nikic/php-parser
+      /vendor/phar-io
+      /vendor/phpstan/phpstan
+      /vendor/phpstan
       /vendor/phpspec/prophecy
-      /vendor/phar-io/manifest
-      /vendor/phar-io/version
-      /vendor/composer/tmp-*
+      /vendor/rector
+      /vendor/roave
+      /vendor/symfony/maker-bundle
+      /vendor/symplify
+      /vendor/zenstruck
       {$nutneKvuliComposerAutoRequire}
 
       /nasad.log

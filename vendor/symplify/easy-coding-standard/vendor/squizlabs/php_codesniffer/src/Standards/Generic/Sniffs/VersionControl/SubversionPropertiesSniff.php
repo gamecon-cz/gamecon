@@ -110,13 +110,13 @@ class SubversionPropertiesSniff implements Sniff
                         break;
                     }
                     // Now read that much into a buffer.
-                    $key = \fread($handle, \substr($buffer, 2));
+                    $key = \fread($handle, (string) \substr($buffer, 2));
                     // Suck up extra newline after key data.
                     \fgetc($handle);
                     // Read a value length line.
                     $buffer = \trim(\fgets($handle));
                     // Now read that much into a buffer.
-                    $length = \substr($buffer, 2);
+                    $length = (string) \substr($buffer, 2);
                     if ($length === '0') {
                         // Length of value is ZERO characters, so
                         // value is actually empty.

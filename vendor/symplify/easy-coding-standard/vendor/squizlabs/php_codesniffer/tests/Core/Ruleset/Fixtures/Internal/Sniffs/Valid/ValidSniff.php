@@ -5,7 +5,7 @@
  *
  * @see \PHP_CodeSniffer\Tests\Core\Ruleset\ExpandRulesetReferenceInternalTest
  */
-namespace ECSPrefix202509\Fixtures\Internal\Sniffs\Valid;
+namespace ECSPrefix202510\Fixtures\Internal\Sniffs\Valid;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;

@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of the zenstruck/foundry package.
+ *
+ * (c) Kevin Bond <kevinbond@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Zenstruck\Foundry\Psalm;
 
 use Doctrine\Persistence\ObjectRepository;
@@ -16,7 +25,7 @@ final class FixProxyFactoryMethodsReturnType implements AfterMethodCallAnalysisI
 {
     public static function afterMethodCallAnalysis(AfterMethodCallAnalysisEvent $event): void
     {
-        [$class, $method] = explode('::', $event->getMethodId());
+        [$class, $method] = \explode('::', $event->getMethodId());
 
         if ($event->getCodebase()->classExtends($class, PersistentProxyObjectFactory::class)) {
             $templateType = $event->getCodebase()->classlikes->getStorageFor(
@@ -46,15 +55,15 @@ final class FixProxyFactoryMethodsReturnType implements AfterMethodCallAnalysisI
                 $event->setReturnTypeCandidate(Type::parseString("{$factoryCollectionClass}<{$proxyTypeHint}>"));
             }
 
-            if ($method === 'repository'
+            if ('repository' === $method
                 // if repository() method is overridden in userland, we should not change the return type
-                && str_starts_with($event->getReturnTypeCandidate()->getId(), ProxyRepositoryDecorator::class)
+                && \str_starts_with($event->getReturnTypeCandidate()->getId(), ProxyRepositoryDecorator::class)
             ) {
                 $repositoryDecoratorClass = ProxyRepositoryDecorator::class;
                 $doctrineRepositoryClass = ObjectRepository::class;
                 $event->setReturnTypeCandidate(
                     Type::parseString(
-                        "{$repositoryDecoratorClass}<{$templateTypeAsString}, {$doctrineRepositoryClass}<$templateTypeAsString>>"
+                        "{$repositoryDecoratorClass}<{$templateTypeAsString}, {$doctrineRepositoryClass}<{$templateTypeAsString}>>"
                     )
                 );
             }

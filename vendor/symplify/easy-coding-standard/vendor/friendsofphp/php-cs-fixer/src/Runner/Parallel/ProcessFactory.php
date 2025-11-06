@@ -13,9 +13,9 @@ declare (strict_types=1);
 namespace PhpCsFixer\Runner\Parallel;
 
 use PhpCsFixer\Runner\RunnerConfig;
-use ECSPrefix202509\React\EventLoop\LoopInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Process\PhpExecutableFinder;
+use ECSPrefix202510\React\EventLoop\LoopInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Process\PhpExecutableFinder;
 /**
  * @author Greg Korba <greg@codito.dev>
  *
@@ -50,7 +50,7 @@ final class ProcessFactory
         if (!\is_file($mainScript)) {
             throw new \PhpCsFixer\Runner\Parallel\ParallelisationException('Cannot determine Fixer executable.');
         }
-        $commandArgs = [\PhpCsFixer\Runner\Parallel\ProcessUtils::escapeArgument($phpBinary), \PhpCsFixer\Runner\Parallel\ProcessUtils::escapeArgument($mainScript), 'worker', '--port', (string) $serverPort, '--identifier', \PhpCsFixer\Runner\Parallel\ProcessUtils::escapeArgument($identifier->toString())];
+        $commandArgs = [\PhpCsFixer\Runner\Parallel\ProcessUtils::escapeArgument($phpBinary), \PhpCsFixer\Runner\Parallel\ProcessUtils::escapeArgument($mainScript), 'worker', \sprintf('--port=%s', (string) $serverPort), \sprintf('--identifier=%s', \PhpCsFixer\Runner\Parallel\ProcessUtils::escapeArgument($identifier->toString()))];
         if ($runnerConfig->isDryRun()) {
             $commandArgs[] = '--dry-run';
         }
@@ -63,8 +63,7 @@ final class ProcessFactory
         foreach (['allow-risky', 'config', 'rules', 'using-cache', 'cache-file'] as $option) {
             $optionValue = $input->getOption($option);
             if (null !== $optionValue) {
-                $commandArgs[] = "--{$option}";
-                $commandArgs[] = \PhpCsFixer\Runner\Parallel\ProcessUtils::escapeArgument($optionValue);
+                $commandArgs[] = \sprintf('--%s=%s', $option, \PhpCsFixer\Runner\Parallel\ProcessUtils::escapeArgument($optionValue));
             }
         }
         return $commandArgs;

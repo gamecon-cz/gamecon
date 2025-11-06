@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\Testing\PHPUnit\ValueObject;
 
 use Rector\Contract\Rector\RectorInterface;
+use Rector\Util\RectorClassesSorter;
 use Rector\ValueObject\ProcessResult;
 /**
  * @api used in tests
@@ -36,7 +37,6 @@ final class RectorTestResult
         foreach ($this->processResult->getFileDiffs(\false) as $fileDiff) {
             $rectorClasses = array_merge($rectorClasses, $fileDiff->getRectorClasses());
         }
-        sort($rectorClasses);
-        return array_unique($rectorClasses);
+        return RectorClassesSorter::sortAndFilterOutPostRectors($rectorClasses);
     }
 }

@@ -9,7 +9,7 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\Ternary;
 use PhpParser\Node\Name\FullyQualified;
-use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use Rector\NodeAnalyzer\ArgsAnalyzer;
@@ -17,7 +17,7 @@ use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202510\Webmozart\Assert\Assert;
 /**
  * @changelog https://www.php.net/manual/en/migration82.other-changes.php#migration82.other-changes.functions.spl
  *
@@ -64,14 +64,14 @@ CODE_SAMPLE
     }
     /**
      * @param Ternary|FuncCall $node
-     * @return null|\PhpParser\Node\Expr\FuncCall|int
+     * @return null|FuncCall|NodeVisitor::DONT_TRAVERSE_CHILDREN
      */
     public function refactor(Node $node)
     {
         if ($node instanceof Ternary) {
             $hasIsArrayCheck = (bool) $this->betterNodeFinder->findFirst($node, fn(Node $subNode): bool => $subNode instanceof FuncCall && $this->isName($subNode, 'is_array'));
             if ($hasIsArrayCheck) {
-                return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+                return NodeVisitor::DONT_TRAVERSE_CHILDREN;
             }
             return null;
         }
@@ -81,20 +81,18 @@ CODE_SAMPLE
         if ($node->isFirstClassCallable()) {
             return null;
         }
-        $args = $node->getArgs();
-        if ($this->argsAnalyzer->hasNamedArg($args)) {
+        $arg = $node->getArg('iterator', 0);
+        if (!$arg instanceof Arg) {
             return null;
         }
-        if (!isset($args[0])) {
-            return null;
-        }
-        $type = $this->nodeTypeResolver->getType($args[0]->value);
+        $type = $this->nodeTypeResolver->getType($arg->value);
         if ($this->shouldSkip($type)) {
             return null;
         }
-        Assert::isInstanceOf($node->args[0], Arg::class);
-        $firstValue = $node->args[0]->value;
-        $node->args[0]->value = new Ternary($this->nodeFactory->createFuncCall('is_array', [new Arg($firstValue)]), new New_(new FullyQualified('ArrayIterator'), [new Arg($firstValue)]), $firstValue);
+        $position = $this->argsAnalyzer->resolveArgPosition($node->getArgs(), 'iterator', 0);
+        Assert::isInstanceOf($node->args[$position], Arg::class);
+        $firstValue = $node->args[$position]->value;
+        $node->args[$position]->value = new Ternary($this->nodeFactory->createFuncCall('is_array', [new Arg($firstValue)]), new New_(new FullyQualified('ArrayIterator'), [new Arg($firstValue)]), $firstValue);
         return $node;
     }
     private function shouldSkip(Type $type): bool

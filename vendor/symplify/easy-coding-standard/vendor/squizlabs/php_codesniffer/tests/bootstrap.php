@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 /**
  * Bootstrap file for PHP_CodeSniffer unit tests.
@@ -39,17 +39,17 @@ if (\defined('PHP_CODESNIFFER_VERBOSITY') === \false) {
 require_once __DIR__ . '/../autoload.php';
 $tokens = new \PHP_CodeSniffer\Util\Tokens();
 // Compatibility for PHPUnit < 6 and PHPUnit 6+.
-if (\class_exists('ECSPrefix202509\\PHPUnit_Framework_TestSuite') === \true && \class_exists('ECSPrefix202509\\PHPUnit\\Framework\\TestSuite') === \false) {
-    \class_alias('ECSPrefix202509\\PHPUnit_Framework_TestSuite', 'PHPUnit' . '\\Framework\\TestSuite');
+if (\class_exists('ECSPrefix202510\\PHPUnit_Framework_TestSuite') === \true && \class_exists('ECSPrefix202510\\PHPUnit\\Framework\\TestSuite') === \false) {
+    \class_alias('ECSPrefix202510\\PHPUnit_Framework_TestSuite', 'PHPUnit' . '\\Framework\\TestSuite');
 }
-if (\class_exists('ECSPrefix202509\\PHPUnit_Framework_TestCase') === \true && \class_exists('ECSPrefix202509\\PHPUnit\\Framework\\TestCase') === \false) {
-    \class_alias('ECSPrefix202509\\PHPUnit_Framework_TestCase', 'PHPUnit' . '\\Framework\\TestCase');
+if (\class_exists('ECSPrefix202510\\PHPUnit_Framework_TestCase') === \true && \class_exists('ECSPrefix202510\\PHPUnit\\Framework\\TestCase') === \false) {
+    \class_alias('ECSPrefix202510\\PHPUnit_Framework_TestCase', 'PHPUnit' . '\\Framework\\TestCase');
 }
-if (\class_exists('ECSPrefix202509\\PHPUnit_TextUI_TestRunner') === \true && \class_exists('ECSPrefix202509\\PHPUnit\\TextUI\\TestRunner') === \false) {
-    \class_alias('ECSPrefix202509\\PHPUnit_TextUI_TestRunner', 'PHPUnit' . '\\TextUI\\TestRunner');
+if (\class_exists('ECSPrefix202510\\PHPUnit_TextUI_TestRunner') === \true && \class_exists('ECSPrefix202510\\PHPUnit\\TextUI\\TestRunner') === \false) {
+    \class_alias('ECSPrefix202510\\PHPUnit_TextUI_TestRunner', 'PHPUnit' . '\\TextUI\\TestRunner');
 }
-if (\class_exists('ECSPrefix202509\\PHPUnit_Framework_TestResult') === \true && \class_exists('ECSPrefix202509\\PHPUnit\\Framework\\TestResult') === \false) {
-    \class_alias('ECSPrefix202509\\PHPUnit_Framework_TestResult', 'PHPUnit' . '\\Framework\\TestResult');
+if (\class_exists('ECSPrefix202510\\PHPUnit_Framework_TestResult') === \true && \class_exists('ECSPrefix202510\\PHPUnit\\Framework\\TestResult') === \false) {
+    \class_alias('ECSPrefix202510\\PHPUnit_Framework_TestResult', 'PHPUnit' . '\\Framework\\TestResult');
 }
 /**
  * A global util function to help print unit test fixing data.
@@ -63,7 +63,7 @@ function printPHPCodeSnifferTestOutput()
     $data = [];
     $codeCount = \count($GLOBALS['PHP_CODESNIFFER_SNIFF_CODES']);
     if (empty($GLOBALS['PHP_CODESNIFFER_SNIFF_CASE_FILES']) === \false) {
-        $files = \call_user_func_array('ECSPrefix202509\\array_merge', $GLOBALS['PHP_CODESNIFFER_SNIFF_CASE_FILES']);
+        $files = \call_user_func_array('ECSPrefix202510\\array_merge', $GLOBALS['PHP_CODESNIFFER_SNIFF_CASE_FILES']);
         $files = \array_unique($files);
         $fileCount = \count($files);
         $output = '%d sniff test files';

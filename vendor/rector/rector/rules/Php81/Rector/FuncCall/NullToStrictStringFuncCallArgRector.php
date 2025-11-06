@@ -11,11 +11,10 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Reflection\Native\NativeFunctionReflection;
-use Rector\NodeAnalyzer\ArgsAnalyzer;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\NodeTypeResolver\PHPStan\ParametersAcceptorSelectorVariantsWrapper;
 use Rector\Php81\Enum\NameNullToStrictNullFunctionMap;
-use Rector\Php81\NodeManipulator\NullToStrictStringConverter;
+use Rector\Php81\NodeManipulator\NullToStrictStringIntConverter;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
 use Rector\ValueObject\PhpVersionFeature;
@@ -34,16 +33,11 @@ final class NullToStrictStringFuncCallArgRector extends AbstractRector implement
     /**
      * @readonly
      */
-    private ArgsAnalyzer $argsAnalyzer;
-    /**
-     * @readonly
-     */
-    private NullToStrictStringConverter $nullToStrictStringConverter;
-    public function __construct(ReflectionResolver $reflectionResolver, ArgsAnalyzer $argsAnalyzer, NullToStrictStringConverter $nullToStrictStringConverter)
+    private NullToStrictStringIntConverter $nullToStrictStringIntConverter;
+    public function __construct(ReflectionResolver $reflectionResolver, NullToStrictStringIntConverter $nullToStrictStringIntConverter)
     {
         $this->reflectionResolver = $reflectionResolver;
-        $this->argsAnalyzer = $argsAnalyzer;
-        $this->nullToStrictStringConverter = $nullToStrictStringConverter;
+        $this->nullToStrictStringIntConverter = $nullToStrictStringIntConverter;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -87,7 +81,7 @@ CODE_SAMPLE
             return null;
         }
         $args = $node->getArgs();
-        $positions = $this->argsAnalyzer->hasNamedArg($args) ? $this->resolveNamedPositions($node, $args) : $this->resolveOriginalPositions($node, $scope);
+        $positions = $this->resolveStringPositions($node, $args, $scope);
         if ($positions === []) {
             return null;
         }
@@ -100,7 +94,7 @@ CODE_SAMPLE
         $parametersAcceptor = ParametersAcceptorSelectorVariantsWrapper::select($functionReflection, $node, $scope);
         $isChanged = \false;
         foreach ($positions as $position) {
-            $result = $this->nullToStrictStringConverter->convertIfNull($node, $args, (int) $position, $isTrait, $scope, $parametersAcceptor);
+            $result = $this->nullToStrictStringIntConverter->convertIfNull($node, $args, (int) $position, $isTrait, $scope, $parametersAcceptor);
             if ($result instanceof Node) {
                 $node = $result;
                 $isChanged = \true;
@@ -117,13 +111,14 @@ CODE_SAMPLE
     }
     /**
      * @param Arg[] $args
-     * @return int[]|string[]
+     * @return int[]
      */
-    private function resolveNamedPositions(FuncCall $funcCall, array $args): array
+    private function resolveStringPositions(FuncCall $funcCall, array $args, Scope $scope): array
     {
-        $functionName = $this->getName($funcCall);
-        $argNames = NameNullToStrictNullFunctionMap::FUNCTION_TO_PARAM_NAMES[$functionName];
         $positions = [];
+        $functionName = $this->getName($funcCall);
+        $argNames = NameNullToStrictNullFunctionMap::FUNCTION_TO_PARAM_NAMES[$functionName] ?? [];
+        $excludedArgNames = [];
         foreach ($args as $position => $arg) {
             if (!$arg->name instanceof Identifier) {
                 continue;
@@ -131,25 +126,18 @@ CODE_SAMPLE
             if (!$this->isNames($arg->name, $argNames)) {
                 continue;
             }
+            $excludedArgNames[] = $arg->name->toString();
             $positions[] = $position;
         }
-        return $positions;
-    }
-    /**
-     * @return int[]|string[]
-     */
-    private function resolveOriginalPositions(FuncCall $funcCall, Scope $scope): array
-    {
         $functionReflection = $this->reflectionResolver->resolveFunctionLikeReflectionFromCall($funcCall);
         if (!$functionReflection instanceof NativeFunctionReflection) {
-            return [];
+            return $positions;
         }
         $parametersAcceptor = ParametersAcceptorSelectorVariantsWrapper::select($functionReflection, $funcCall, $scope);
         $functionName = $functionReflection->getName();
         $argNames = NameNullToStrictNullFunctionMap::FUNCTION_TO_PARAM_NAMES[$functionName];
-        $positions = [];
         foreach ($parametersAcceptor->getParameters() as $position => $parameterReflection) {
-            if (in_array($parameterReflection->getName(), $argNames, \true)) {
+            if (in_array($parameterReflection->getName(), $argNames, \true) && !in_array($parameterReflection->getName(), $excludedArgNames, \true)) {
                 $positions[] = $position;
             }
         }

@@ -12,8 +12,8 @@ declare (strict_types=1);
  */
 namespace PhpCsFixer\Console\Command;
 
-use ECSPrefix202509\Clue\React\NDJson\Decoder;
-use ECSPrefix202509\Clue\React\NDJson\Encoder;
+use ECSPrefix202510\Clue\React\NDJson\Decoder;
+use ECSPrefix202510\Clue\React\NDJson\Encoder;
 use PhpCsFixer\Cache\NullCacheManager;
 use PhpCsFixer\Config;
 use PhpCsFixer\Console\ConfigurationResolver;
@@ -24,17 +24,17 @@ use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 use PhpCsFixer\Runner\Parallel\ParallelisationException;
 use PhpCsFixer\Runner\Runner;
 use PhpCsFixer\ToolInfoInterface;
-use ECSPrefix202509\React\EventLoop\StreamSelectLoop;
-use ECSPrefix202509\React\Socket\ConnectionInterface;
-use ECSPrefix202509\React\Socket\TcpConnector;
-use ECSPrefix202509\Symfony\Component\Console\Attribute\AsCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\Command;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputOption;
-use ECSPrefix202509\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use ECSPrefix202509\Symfony\Component\EventDispatcher\EventDispatcher;
-use ECSPrefix202509\Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use ECSPrefix202510\React\EventLoop\StreamSelectLoop;
+use ECSPrefix202510\React\Socket\ConnectionInterface;
+use ECSPrefix202510\React\Socket\TcpConnector;
+use ECSPrefix202510\Symfony\Component\Console\Attribute\AsCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\Command;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputOption;
+use ECSPrefix202510\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\EventDispatcher\EventDispatcher;
+use ECSPrefix202510\Symfony\Component\EventDispatcher\EventDispatcherInterface;
 /**
  * @author Greg Korba <greg@codito.dev>
  *
@@ -173,7 +173,7 @@ final class WorkerCommand extends Command
                 'stop-on-violation' => $input->getOption('stop-on-violation'),
             ],
             \getcwd(),
-            // @phpstan-ignore-line
+            // @phpstan-ignore argument.type
             $this->toolInfo
         );
         return new Runner(

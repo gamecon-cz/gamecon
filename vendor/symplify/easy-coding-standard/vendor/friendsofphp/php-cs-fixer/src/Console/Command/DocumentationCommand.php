@@ -17,12 +17,12 @@ use PhpCsFixer\Documentation\FixerDocumentGenerator;
 use PhpCsFixer\Documentation\RuleSetDocumentationGenerator;
 use PhpCsFixer\FixerFactory;
 use PhpCsFixer\RuleSet\RuleSets;
-use ECSPrefix202509\Symfony\Component\Console\Attribute\AsCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\Command;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use ECSPrefix202509\Symfony\Component\Filesystem\Filesystem;
-use ECSPrefix202509\Symfony\Component\Finder\Finder;
+use ECSPrefix202510\Symfony\Component\Console\Attribute\AsCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\Command;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Filesystem\Filesystem;
+use ECSPrefix202510\Symfony\Component\Finder\Finder;
 /**
  * @internal
  *
@@ -53,7 +53,7 @@ final class DocumentationCommand extends Command
         $fixerFactory = new FixerFactory();
         $fixerFactory->registerBuiltInFixers();
         $fixers = $fixerFactory->getFixers();
-        $setDefinitions = RuleSets::getSetDefinitions();
+        $setDefinitions = RuleSets::getBuiltInSetDefinitions();
         $fixerDocumentGenerator = new FixerDocumentGenerator($locator);
         $ruleSetDocumentationGenerator = new RuleSetDocumentationGenerator($locator);
         // Array of existing fixer docs.

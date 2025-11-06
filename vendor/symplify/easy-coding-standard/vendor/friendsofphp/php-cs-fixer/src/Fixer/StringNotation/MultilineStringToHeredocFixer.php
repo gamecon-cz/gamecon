@@ -31,7 +31,7 @@ final class MultilineStringToHeredocFixer extends AbstractFixer
         return new FixerDefinition('Convert multiline string to `heredoc` or `nowdoc`.', [new CodeSample(<<<'EOD'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $a = 'line1
 line2';
@@ -39,7 +39,7 @@ EOD
  . "\n"), new CodeSample(<<<'EOD'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $a = "line1\n{$obj->getName()}";
 EOD
@@ -80,10 +80,10 @@ EOD
         if ($tokens[$stringStartIndex]->isGivenKind(\T_CONSTANT_ENCAPSED_STRING)) {
             $content = $tokens[$stringStartIndex]->getContent();
             if ('b' === \strtolower(\substr($content, 0, 1))) {
-                $content = \substr($content, 1);
+                $content = (string) \substr($content, 1);
             }
             $isSingleQuoted = \strncmp($content, '\'', \strlen('\'')) === 0;
-            $content = \substr($content, 1, -1);
+            $content = (string) \substr($content, 1, -1);
             if ($isSingleQuoted) {
                 $content = Preg::replace('~\\\\([\\\\\'])~', '$1', $content);
             } else {

@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Console\Output;
+namespace RectorPrefix202510\Symfony\Component\Console\Output;
 
-use RectorPrefix202509\Symfony\Component\Console\Formatter\OutputFormatterInterface;
-use RectorPrefix202509\Symfony\Component\Console\Helper\Helper;
-use RectorPrefix202509\Symfony\Component\Console\Terminal;
+use RectorPrefix202510\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use RectorPrefix202510\Symfony\Component\Console\Helper\Helper;
+use RectorPrefix202510\Symfony\Component\Console\Terminal;
 /**
  * @author Pierre du Plessis <pdples@gmail.com>
  * @author Gabriel Ostrolucký <gabriel.ostrolucky@gmail.com>
@@ -146,7 +146,7 @@ class ConsoleSectionOutput extends StreamOutput
     {
         // Simulate newline behavior for consistent output formatting, avoiding extra logic
         if (!$newline && substr_compare($message, \PHP_EOL, -strlen(\PHP_EOL)) === 0) {
-            $message = substr($message, 0, -\strlen(\PHP_EOL));
+            $message = (string) substr($message, 0, -\strlen(\PHP_EOL));
             $newline = \true;
         }
         if (!$this->isDecorated()) {

@@ -32,7 +32,7 @@ final class UseArrowFunctionsFixer extends AbstractFixer
         return new FixerDefinition('Anonymous functions with return as the only statement must use arrow functions.', [new CodeSample(<<<'SAMPLE'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 foo(function ($a) use($b) {
     return $a + $b;
@@ -127,7 +127,8 @@ SAMPLE
             $tokensToInsert[] = new Token([\T_WHITESPACE, ' ']);
             $tokensToInsert[] = new Token([\T_STRING, 'null']);
         }
-        $tokens->clearRange($semicolon, $braceClose);
+        $tokens->clearRange($semicolon, $braceClose - 1);
+        $tokens->clearTokenAndMergeSurroundingWhitespace($braceClose);
         $tokens->clearRange($braceOpen + 1, $return);
         $tokens->overrideRange($braceOpen, $braceOpen, $tokensToInsert);
         if (null !== $useStart) {

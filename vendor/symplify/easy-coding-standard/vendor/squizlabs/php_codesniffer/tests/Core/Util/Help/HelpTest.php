@@ -11,7 +11,7 @@ namespace PHP_CodeSniffer\Tests\Core\Util\Help;
 
 use PHP_CodeSniffer\Tests\ConfigDouble;
 use PHP_CodeSniffer\Util\Help;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use ReflectionProperty;
 /**

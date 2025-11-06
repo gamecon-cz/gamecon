@@ -130,7 +130,7 @@ class PHP extends \PHP_CodeSniffer\Tokenizers\Tokenizer
                         // so we can skip it.
                         $tokens[$stackPtr + 1] = '';
                     } else {
-                        $tokens[$stackPtr + 1][1] = \substr($tokens[$stackPtr + 1][1], 1);
+                        $tokens[$stackPtr + 1][1] = (string) \substr($tokens[$stackPtr + 1][1], 1);
                     }
                 }
             }
@@ -321,15 +321,15 @@ class PHP extends \PHP_CodeSniffer\Tokenizers\Tokenizer
                     // This may be a whitespace token consisting of multiple new lines.
                     if (\strpos($nextToken[1], "\r\n") === 0) {
                         $token[1] .= "\r\n";
-                        $tokens[$stackPtr + 1][1] = \substr($nextToken[1], 2);
+                        $tokens[$stackPtr + 1][1] = (string) \substr($nextToken[1], 2);
                     } else {
                         if (\strpos($nextToken[1], "\n\r") === 0) {
                             $token[1] .= "\n\r";
-                            $tokens[$stackPtr + 1][1] = \substr($nextToken[1], 2);
+                            $tokens[$stackPtr + 1][1] = (string) \substr($nextToken[1], 2);
                         } else {
                             if (\strpos($nextToken[1], "\n") === 0) {
                                 $token[1] .= "\n";
-                                $tokens[$stackPtr + 1][1] = \substr($nextToken[1], 1);
+                                $tokens[$stackPtr + 1][1] = (string) \substr($nextToken[1], 1);
                             }
                         }
                     }
@@ -434,7 +434,7 @@ class PHP extends \PHP_CodeSniffer\Tokenizers\Tokenizer
             if ($tokenIsArray === \true && $token[0] === \T_CONSTANT_ENCAPSED_STRING && (\substr($token[1], 0, 2) === 'b"' || \substr($token[1], 0, 2) === "b'")) {
                 $finalTokens[$newStackPtr] = ['code' => \T_BINARY_CAST, 'type' => 'T_BINARY_CAST', 'content' => 'b'];
                 $newStackPtr++;
-                $token[1] = \substr($token[1], 1);
+                $token[1] = (string) \substr($token[1], 1);
             }
             if ($tokenIsArray === \true && $token[0] === \T_STRING_CAST && \preg_match('`^\\(\\s*binary\\s*\\)$`i', $token[1]) === 1) {
                 $finalTokens[$newStackPtr] = ['code' => \T_BINARY_CAST, 'type' => 'T_BINARY_CAST', 'content' => $token[1]];
@@ -658,7 +658,7 @@ class PHP extends \PHP_CodeSniffer\Tokenizers\Tokenizer
                     $newToken['content'] = '\\';
                     $finalTokens[$newStackPtr] = $newToken;
                     ++$newStackPtr;
-                    $name = \substr($name, 10);
+                    $name = (string) \substr($name, 10);
                 }
                 // Special case keywords which can be used in fully qualified form.
                 if ($token[0] === \T_NAME_FULLY_QUALIFIED) {
@@ -917,7 +917,7 @@ class PHP extends \PHP_CodeSniffer\Tokenizers\Tokenizer
                         */
                         $finalTokens[$newStackPtr] = ['code' => \T_YIELD_FROM, 'type' => 'T_YIELD_FROM', 'content' => \substr($token[1], 0, 5)];
                         $newStackPtr++;
-                        $tokenLines = \explode($this->eolChar, \substr($token[1], 5, -4));
+                        $tokenLines = \explode($this->eolChar, (string) \substr($token[1], 5, -4));
                         $numLines = \count($tokenLines);
                         $newToken = ['type' => 'T_WHITESPACE', 'code' => \T_WHITESPACE, 'content' => ''];
                         foreach ($tokenLines as $i => $line) {
@@ -2673,7 +2673,7 @@ class PHP extends \PHP_CodeSniffer\Tokenizers\Tokenizer
     private function parsePhpAttribute(array &$tokens, $stackPtr)
     {
         $token = $tokens[$stackPtr];
-        $commentBody = \substr($token[1], 2);
+        $commentBody = (string) \substr($token[1], 2);
         $subTokens = @\token_get_all('<?php ' . $commentBody);
         foreach ($subTokens as $i => $subToken) {
             if (\is_array($subToken) === \true && $subToken[0] === \T_COMMENT && \strpos($subToken[1], '#[') === 0) {

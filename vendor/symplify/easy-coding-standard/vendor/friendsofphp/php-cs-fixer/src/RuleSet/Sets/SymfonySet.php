@@ -13,18 +13,18 @@ declare (strict_types=1);
 namespace PhpCsFixer\RuleSet\Sets;
 
 use PhpCsFixer\Fixer\Phpdoc\PhpdocSeparationFixer;
-use PhpCsFixer\RuleSet\AbstractRuleSetDescription;
+use PhpCsFixer\RuleSet\AbstractRuleSetDefinition;
 /**
  * @internal
  *
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise.
  */
-final class SymfonySet extends AbstractRuleSetDescription
+final class SymfonySet extends AbstractRuleSetDefinition
 {
     public function getRules() : array
     {
         return [
-            '@PER-CS3.0' => \true,
+            '@PER-CS3x0' => \true,
             'align_multiline_comment' => \true,
             'backtick_to_shell_exec' => \true,
             'binary_operator_spaces' => \true,
@@ -41,8 +41,10 @@ final class SymfonySet extends AbstractRuleSetDescription
             'empty_loop_body' => ['style' => 'braces'],
             'empty_loop_condition' => \true,
             'fully_qualified_strict_types' => \true,
-            'function_declaration' => \true,
-            // overrides @PER-CS2.0
+            'function_declaration' => [
+                // overrides @PER-CS2.0
+                'closure_fn_spacing' => 'one',
+            ],
             'general_phpdoc_tag_rename' => ['replacements' => ['inheritDocs' => 'inheritDoc']],
             'global_namespace_import' => ['import_classes' => \false, 'import_constants' => \false, 'import_functions' => \false],
             'include' => \true,
@@ -96,17 +98,35 @@ final class SymfonySet extends AbstractRuleSetDescription
             'phpdoc_indent' => \true,
             'phpdoc_inline_tag_normalizer' => \true,
             'phpdoc_no_access' => \true,
-            'phpdoc_no_alias_tag' => \true,
+            'phpdoc_no_alias_tag' => ['replacements' => [
+                'const' => 'var',
+                // @TODO 4.0 add to @PhpdocNoAliasTagFixer defaults
+                'link' => 'see',
+                'property-read' => 'property',
+                'property-write' => 'property',
+                'type' => 'var',
+            ]],
             'phpdoc_no_package' => \true,
             'phpdoc_no_useless_inheritdoc' => \true,
             'phpdoc_order' => ['order' => ['param', 'return', 'throws']],
             'phpdoc_return_self_reference' => \true,
-            'phpdoc_scalar' => \true,
-            'phpdoc_separation' => ['groups' => \array_merge([['Annotation', 'NamedArgumentConstructor', 'Target']], PhpdocSeparationFixer::OPTION_GROUPS_DEFAULT)],
+            'phpdoc_scalar' => ['types' => [
+                // @TODO v4 drop custom config with => true, as v4 defaults are same
+                'boolean',
+                'callback',
+                'double',
+                'integer',
+                'never-return',
+                'never-returns',
+                'no-return',
+                'real',
+                'str',
+            ]],
+            'phpdoc_separation' => ['groups' => \array_merge([['Annotation', 'NamedArgumentConstructor', 'Target']], PhpdocSeparationFixer::OPTION_GROUPS_DEFAULT), 'skip_unlisted_annotations' => \false],
             'phpdoc_single_line_var_spacing' => \true,
             'phpdoc_summary' => \true,
             'phpdoc_tag_type' => ['tags' => ['inheritDoc' => 'inline']],
-            'phpdoc_to_comment' => \true,
+            'phpdoc_to_comment' => ['allow_before_return_statement' => \false],
             'phpdoc_trim' => \true,
             'phpdoc_trim_consecutive_blank_line_separation' => \true,
             'phpdoc_types' => \true,
@@ -136,7 +156,7 @@ final class SymfonySet extends AbstractRuleSetDescription
                 'parameters',
             ]],
             'trim_array_spaces' => \true,
-            'type_declaration_spaces' => \true,
+            'type_declaration_spaces' => ['elements' => ['function', 'property']],
             'unary_operator_spaces' => \true,
             'whitespace_after_comma_in_array' => \true,
             'yoda_style' => \true,

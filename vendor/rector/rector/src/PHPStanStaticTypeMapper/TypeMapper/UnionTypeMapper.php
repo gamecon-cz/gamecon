@@ -12,17 +12,21 @@ use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\UnionType as PhpParserUnionType;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use PHPStan\Type\ArrayType;
+use PHPStan\Type\MixedType;
+use PHPStan\Type\NeverType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
 use Rector\BetterPhpDocParser\ValueObject\Type\BracketsAwareUnionTypeNode;
+use Rector\BetterPhpDocParser\ValueObject\Type\SpacingAwareArrayTypeNode;
 use Rector\NodeAnalyzer\PropertyAnalyzer;
 use Rector\Php\PhpVersionProvider;
 use Rector\PHPStanStaticTypeMapper\Contract\TypeMapperInterface;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\PHPStanStaticTypeMapper\PHPStanStaticTypeMapper;
 use Rector\ValueObject\PhpVersionFeature;
-use RectorPrefix202509\Webmozart\Assert\Assert;
-use RectorPrefix202509\Webmozart\Assert\InvalidArgumentException;
+use RectorPrefix202510\Webmozart\Assert\Assert;
+use RectorPrefix202510\Webmozart\Assert\InvalidArgumentException;
 /**
  * @implements TypeMapperInterface<UnionType>
  */
@@ -56,8 +60,26 @@ final class UnionTypeMapper implements TypeMapperInterface
     public function mapToPHPStanPhpDocTypeNode(Type $type): TypeNode
     {
         $unionTypesNodes = [];
+        $existingTypes = [];
         foreach ($type->getTypes() as $unionedType) {
-            $unionTypesNodes[] = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($unionedType);
+            if ($unionedType instanceof ArrayType && $unionedType->getItemType() instanceof NeverType) {
+                $unionedType = new ArrayType($unionedType->getKeyType(), new MixedType());
+            }
+            $unionedType = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($unionedType);
+            if ($unionedType instanceof SpacingAwareArrayTypeNode && $unionedType->type instanceof BracketsAwareUnionTypeNode) {
+                foreach ($unionedType->type->types as $key => $innerTypeNode) {
+                    $printedInnerType = (string) $innerTypeNode;
+                    if (in_array($printedInnerType, $existingTypes, \true)) {
+                        unset($unionedType->type->types[$key]);
+                        continue;
+                    }
+                    $existingTypes[] = $printedInnerType;
+                }
+                if ($unionedType->type->types === []) {
+                    continue;
+                }
+            }
+            $unionTypesNodes[] = $unionedType;
         }
         return new BracketsAwareUnionTypeNode($unionTypesNodes);
     }

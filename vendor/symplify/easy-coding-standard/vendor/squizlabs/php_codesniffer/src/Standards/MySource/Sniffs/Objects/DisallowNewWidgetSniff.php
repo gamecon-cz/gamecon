@@ -43,7 +43,7 @@ class DisallowNewWidgetSniff implements Sniff, DeprecatedSniff
             return;
         }
         if (\substr(\strtolower($tokens[$className]['content']), -10) === 'widgettype') {
-            $widgetType = \substr($tokens[$className]['content'], 0, -10);
+            $widgetType = (string) \substr($tokens[$className]['content'], 0, -10);
             $error = 'Manual creation of widget objects is banned; use Widget::getWidget(\'%s\'); instead';
             $data = [$widgetType];
             $phpcsFile->addError($error, $stackPtr, 'Found', $data);

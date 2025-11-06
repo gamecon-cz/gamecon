@@ -230,7 +230,7 @@ abstract class VersionControl implements \PHP_CodeSniffer\Reports\Report
                     $count = $sourceData['count'];
                     $srcLength = \strlen($source);
                     if ($srcLength > $maxSniffWidth) {
-                        $source = \substr($source, 0, $maxSniffWidth);
+                        $source = (string) \substr($source, 0, $maxSniffWidth);
                     }
                     $line = \str_repeat(' ', 5 - \strlen($count)) . $count;
                     echo '         ';

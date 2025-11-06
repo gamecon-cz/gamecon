@@ -23,6 +23,7 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\FixerDefinition\VersionSpecification;
 use PhpCsFixer\FixerDefinition\VersionSpecificCodeSample;
+use PhpCsFixer\Future;
 use PhpCsFixer\Preg;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\TypeAnalysis;
 use PhpCsFixer\Tokenizer\Analyzer\FunctionsAnalyzer;
@@ -59,7 +60,7 @@ final class OrderedTypesFixer extends AbstractFixer implements ConfigurableFixer
         return new FixerDefinition('Sort union types and intersection types using configured order.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 try {
     cache()->save($foo);
@@ -72,38 +73,38 @@ PHP
 ), new VersionSpecificCodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 interface Foo
 {
-    public function bar(\ECSPrefix202509\Aaa|\ECSPrefix202509\AA $foo) : string|int;
+    public function bar(\ECSPrefix202510\Aaa|\ECSPrefix202510\AA $foo) : string|int;
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , new VersionSpecification(80000), ['case_sensitive' => \true]), new VersionSpecificCodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 interface Foo
 {
     public function bar(null|string|int $foo) : string|int;
     public function foo(\Stringable&\Countable $obj) : int;
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , new VersionSpecification(80100), ['null_adjustment' => 'always_last']), new VersionSpecificCodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 interface Bar
 {
     public function bar(null|string|int $foo) : string|int;
 }
-\class_alias('ECSPrefix202509\\Bar', 'Bar', \false);
+\class_alias('ECSPrefix202510\\Bar', 'Bar', \false);
 
 PHP
 , new VersionSpecification(80000), ['sort_algorithm' => 'none', 'null_adjustment' => 'always_last'])]);
@@ -124,7 +125,11 @@ PHP
     }
     protected function createConfigurationDefinition() : FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([(new FixerOptionBuilder('sort_algorithm', 'Whether the types should be sorted alphabetically, or not sorted.'))->setAllowedValues(['alpha', 'none'])->setDefault('alpha')->getOption(), (new FixerOptionBuilder('null_adjustment', 'Forces the position of `null` (overrides `sort_algorithm`).'))->setAllowedValues(['always_first', 'always_last', 'none'])->setDefault('always_first')->getOption(), (new FixerOptionBuilder('case_sensitive', 'Whether the sorting should be case sensitive.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
+        return new FixerConfigurationResolver([(new FixerOptionBuilder('sort_algorithm', 'Whether the types should be sorted alphabetically, or not sorted.'))->setAllowedValues(['alpha', 'none'])->setDefault('alpha')->getOption(), (new FixerOptionBuilder('null_adjustment', 'Forces the position of `null` (overrides `sort_algorithm`).'))->setAllowedValues(['always_first', 'always_last', 'none'])->setDefault(Future::getV4OrV3(
+            'always_last',
+            // as recommended in https://github.com/php-fig/per-coding-style/blob/master/migration-3.0.md#section-25---keywords-and-types
+            'always_first'
+        ))->getOption(), (new FixerOptionBuilder('case_sensitive', 'Whether the sorting should be case sensitive.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
     }
     protected function applyFix(\SplFileInfo $file, Tokens $tokens) : void
     {

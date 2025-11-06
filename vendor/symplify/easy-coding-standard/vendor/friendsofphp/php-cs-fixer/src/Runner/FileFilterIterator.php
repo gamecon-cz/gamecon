@@ -15,8 +15,8 @@ namespace PhpCsFixer\Runner;
 use PhpCsFixer\Cache\CacheManagerInterface;
 use PhpCsFixer\FileReader;
 use PhpCsFixer\Runner\Event\FileProcessed;
-use ECSPrefix202509\Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use ECSPrefix202509\Symfony\Contracts\EventDispatcher\Event;
+use ECSPrefix202510\Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use ECSPrefix202510\Symfony\Contracts\EventDispatcher\Event;
 /**
  * @internal
  *

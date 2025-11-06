@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doctrine\Bundle\DoctrineBundle\Command\Proxy;
 
+use Doctrine\Deprecations\Deprecation;
 use Doctrine\ORM\Tools\Console\EntityManagerProvider;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-
-use function trigger_deprecation;
 
 /**
  * @internal
@@ -19,9 +20,9 @@ trait OrmProxyCommand
     ) {
         parent::__construct($entityManagerProvider);
 
-        trigger_deprecation(
+        Deprecation::trigger(
             'doctrine/doctrine-bundle',
-            '2.8',
+            'https://github.com/doctrine/DoctrineBundle/pull/1581',
             'Class "%s" is deprecated. Use "%s" instead.',
             self::class,
             parent::class,

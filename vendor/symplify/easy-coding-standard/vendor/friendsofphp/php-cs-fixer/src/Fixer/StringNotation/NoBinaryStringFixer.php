@@ -48,7 +48,7 @@ final class NoBinaryStringFixer extends AbstractFixer
             if ($token->isGivenKind([\T_CONSTANT_ENCAPSED_STRING, \T_START_HEREDOC])) {
                 $content = $token->getContent();
                 if ('b' === \strtolower($content[0])) {
-                    $tokens[$index] = new Token([$token->getId(), \substr($content, 1)]);
+                    $tokens[$index] = new Token([$token->getId(), (string) \substr($content, 1)]);
                 }
             } elseif ($token->equals('b"')) {
                 $tokens[$index] = new Token('"');

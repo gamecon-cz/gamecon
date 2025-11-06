@@ -14,7 +14,7 @@ namespace PhpCsFixer\Console\Output\Progress;
 
 use PhpCsFixer\Console\Output\OutputContext;
 use PhpCsFixer\Runner\Event\FileProcessed;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
 /**
  * Output writer to show the progress of a FixCommand using dots and meaningful letters.
  *

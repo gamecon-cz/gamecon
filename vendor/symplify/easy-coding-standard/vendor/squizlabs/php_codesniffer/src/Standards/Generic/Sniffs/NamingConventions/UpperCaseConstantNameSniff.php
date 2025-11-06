@@ -97,8 +97,8 @@ class UpperCaseConstantNameSniff implements Sniff
         // Strip namespace from constant like \foo\bar\CONSTANT.
         $splitPos = \strrpos($constName, '\\');
         if ($splitPos !== \false) {
-            $prefix = \substr($constName, 0, $splitPos + 1);
-            $constName = \substr($constName, $splitPos + 1);
+            $prefix = (string) \substr($constName, 0, $splitPos + 1);
+            $constName = (string) \substr($constName, $splitPos + 1);
         }
         if (\strtoupper($constName) !== $constName) {
             if (\strtolower($constName) === $constName) {

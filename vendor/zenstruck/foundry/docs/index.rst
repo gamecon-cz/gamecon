@@ -183,6 +183,21 @@ This command will generate a ``PostFactory`` class that looks like this:
 
 .. tip::
 
+    When using ``--test`` flag, we're still dealing with ``dev`` environment. And because we want the container to know about our factories,
+    we need to declare them as services even if they are in the ``tests`` directory. To do that, add the following to your configuration:
+
+    .. code-block:: yaml
+
+        # config/packages/zenstruck_foundry.yaml
+        when@dev:
+            services:
+                App\Tests\Factory\:
+                    resource: '%kernel.project_dir%/tests/Factory/'
+                    autowire: true
+                    autoconfigure: true
+
+.. tip::
+
     You can globally configure which namespace the factories will be generated in:
 
     .. configuration-block::

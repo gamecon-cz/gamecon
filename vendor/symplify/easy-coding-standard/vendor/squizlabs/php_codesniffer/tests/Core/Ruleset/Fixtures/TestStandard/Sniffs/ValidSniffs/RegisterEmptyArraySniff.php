@@ -5,7 +5,7 @@
  *
  * @see \PHP_CodeSniffer\Tests\Core\Ruleset\PopulateTokenListenersTest
  */
-namespace ECSPrefix202509\Fixtures\TestStandard\Sniffs\ValidSniffs;
+namespace ECSPrefix202510\Fixtures\TestStandard\Sniffs\ValidSniffs;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;

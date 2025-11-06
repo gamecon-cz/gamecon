@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\String\Slugger;
+namespace ECSPrefix202510\Symfony\Component\String\Slugger;
 
-use ECSPrefix202509\Symfony\Component\Emoji\EmojiTransliterator;
-use ECSPrefix202509\Symfony\Component\String\AbstractUnicodeString;
-use ECSPrefix202509\Symfony\Component\String\UnicodeString;
-use ECSPrefix202509\Symfony\Contracts\Translation\LocaleAwareInterface;
+use ECSPrefix202510\Symfony\Component\Emoji\EmojiTransliterator;
+use ECSPrefix202510\Symfony\Component\String\AbstractUnicodeString;
+use ECSPrefix202510\Symfony\Component\String\UnicodeString;
+use ECSPrefix202510\Symfony\Contracts\Translation\LocaleAwareInterface;
 if (!\interface_exists(LocaleAwareInterface::class)) {
     throw new \LogicException('You cannot use the "Symfony\\Component\\String\\Slugger\\AsciiSlugger" as the "symfony/translation-contracts" package is not installed. Try running "composer require symfony/translation-contracts".');
 }
@@ -96,8 +96,8 @@ class AsciiSlugger implements SluggerInterface, LocaleAwareInterface
         $unicodeString = (new UnicodeString($string))->ascii($transliterator);
         if (\is_array($this->symbolsMap)) {
             $map = null;
-            if (isset($this->symbolsMap[$locale])) {
-                $map = $this->symbolsMap[$locale];
+            if (isset($this->symbolsMap[$locale ?? ''])) {
+                $map = $this->symbolsMap[$locale ?? ''];
             } else {
                 $parent = self::getParentLocale($locale);
                 if ($parent && isset($this->symbolsMap[$parent])) {
@@ -156,6 +156,6 @@ class AsciiSlugger implements SluggerInterface, LocaleAwareInterface
             // no parent locale
             return null;
         }
-        return \substr($locale, 0, -\strlen($str));
+        return (string) \substr($locale, 0, -\strlen($str));
     }
 }

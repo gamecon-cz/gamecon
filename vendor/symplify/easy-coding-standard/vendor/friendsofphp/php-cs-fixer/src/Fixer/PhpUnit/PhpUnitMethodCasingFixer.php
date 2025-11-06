@@ -61,61 +61,61 @@ final class PhpUnitMethodCasingFixer extends AbstractPhpUnitFixer implements Con
         return new FixerDefinition('Enforce camel (or snake) case for PHPUnit test methods, following configuration.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-class MyTest extends \ECSPrefix202509\PhpUnit\FrameWork\TestCase
+class MyTest extends \ECSPrefix202510\PhpUnit\FrameWork\TestCase
 {
     public function test_my_code()
     {
     }
 }
-\class_alias('ECSPrefix202509\\MyTest', 'MyTest', \false);
+\class_alias('ECSPrefix202510\\MyTest', 'MyTest', \false);
 
 PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-class MyTest extends \ECSPrefix202509\PhpUnit\FrameWork\TestCase
+class MyTest extends \ECSPrefix202510\PhpUnit\FrameWork\TestCase
 {
     public function testMyCode()
     {
     }
 }
-\class_alias('ECSPrefix202509\\MyTest', 'MyTest', \false);
+\class_alias('ECSPrefix202510\\MyTest', 'MyTest', \false);
 
 PHP
 , ['case' => self::SNAKE_CASE]), new VersionSpecificCodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-use ECSPrefix202509\PHPUnit\Framework\Attributes\Test;
-class MyTest extends \ECSPrefix202509\PhpUnit\FrameWork\TestCase
+use ECSPrefix202510\PHPUnit\Framework\Attributes\Test;
+class MyTest extends \ECSPrefix202510\PhpUnit\FrameWork\TestCase
 {
     #[PHPUnit\Framework\Attributes\Test]
     public function test_my_code()
     {
     }
 }
-\class_alias('ECSPrefix202509\\MyTest', 'MyTest', \false);
+\class_alias('ECSPrefix202510\\MyTest', 'MyTest', \false);
 
 PHP
 , new VersionSpecification(80000)), new VersionSpecificCodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-use ECSPrefix202509\PHPUnit\Framework\Attributes\Test;
-class MyTest extends \ECSPrefix202509\PhpUnit\FrameWork\TestCase
+use ECSPrefix202510\PHPUnit\Framework\Attributes\Test;
+class MyTest extends \ECSPrefix202510\PhpUnit\FrameWork\TestCase
 {
     #[PHPUnit\Framework\Attributes\Test]
     public function testMyCode()
     {
     }
 }
-\class_alias('ECSPrefix202509\\MyTest', 'MyTest', \false);
+\class_alias('ECSPrefix202510\\MyTest', 'MyTest', \false);
 
 PHP
 , new VersionSpecification(80000), ['case' => self::SNAKE_CASE])]);
@@ -135,13 +135,28 @@ PHP
     }
     protected function applyPhpUnitClassFix(Tokens $tokens, int $startIndex, int $endIndex) : void
     {
+        $existingFunctionNamesLowercase = [];
+        for ($index = $endIndex - 1; $index > $startIndex; --$index) {
+            if (!$this->isMethod($tokens, $index)) {
+                continue;
+            }
+            $functionNameIndex = $tokens->getNextMeaningfulToken($index);
+            $existingFunctionNamesLowercase[\strtolower($tokens[$functionNameIndex]->getContent())] = null;
+        }
+        unset($index);
         for ($index = $endIndex - 1; $index > $startIndex; --$index) {
             if (!$this->isTestMethod($tokens, $index)) {
                 continue;
             }
             $functionNameIndex = $tokens->getNextMeaningfulToken($index);
             $functionName = $tokens[$functionNameIndex]->getContent();
+            $functionNameLowercase = \strtolower($functionName);
             $newFunctionName = $this->updateMethodCasing($functionName);
+            $newFunctionNameLowercase = \strtolower($newFunctionName);
+            if (\array_key_exists($newFunctionNameLowercase, $existingFunctionNamesLowercase) && $functionNameLowercase !== $newFunctionNameLowercase) {
+                continue;
+            }
+            $existingFunctionNamesLowercase[$newFunctionNameLowercase] = null;
             if ($newFunctionName !== $functionName) {
                 $tokens[$functionNameIndex] = new Token([\T_STRING, $newFunctionName]);
             }

@@ -23,11 +23,11 @@ use Rector\Util\MemoryLimiter;
 use Rector\ValueObject\Configuration;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\ProcessResult;
-use RectorPrefix202509\Symfony\Component\Console\Application;
-use RectorPrefix202509\Symfony\Component\Console\Command\Command;
-use RectorPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202509\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202510\Symfony\Component\Console\Application;
+use RectorPrefix202510\Symfony\Component\Console\Command\Command;
+use RectorPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202510\Symfony\Component\Console\Style\SymfonyStyle;
 final class ProcessCommand extends Command
 {
     /**
@@ -127,10 +127,6 @@ EOF
             return self::SUCCESS;
         }
         $configuration = $this->configurationFactory->createFromInput($input);
-        if ($configuration->isKaizenEnabled()) {
-            $this->symfonyStyle->writeln(sprintf('<fg=yellow>[EXPERIMENTAL] Running Kaizen mode. Only first %d rule%s will be applied</>', $configuration->getKaizenStepCount(), $configuration->getKaizenStepCount() > 1 ? 's' : ''));
-            $this->symfonyStyle->newLine(1);
-        }
         $this->memoryLimiter->adjust($configuration);
         $this->configurationRuleFilter->setConfiguration($configuration);
         // disable console output in case of json output formatter

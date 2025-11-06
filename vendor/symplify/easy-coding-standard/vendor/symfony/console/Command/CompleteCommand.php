@@ -8,20 +8,20 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Console\Command;
+namespace ECSPrefix202510\Symfony\Component\Console\Command;
 
-use ECSPrefix202509\Symfony\Component\Console\Attribute\AsCommand;
-use ECSPrefix202509\Symfony\Component\Console\Completion\CompletionInput;
-use ECSPrefix202509\Symfony\Component\Console\Completion\CompletionSuggestions;
-use ECSPrefix202509\Symfony\Component\Console\Completion\Output\BashCompletionOutput;
-use ECSPrefix202509\Symfony\Component\Console\Completion\Output\CompletionOutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Completion\Output\FishCompletionOutput;
-use ECSPrefix202509\Symfony\Component\Console\Completion\Output\ZshCompletionOutput;
-use ECSPrefix202509\Symfony\Component\Console\Exception\CommandNotFoundException;
-use ECSPrefix202509\Symfony\Component\Console\Exception\ExceptionInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputOption;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Attribute\AsCommand;
+use ECSPrefix202510\Symfony\Component\Console\Completion\CompletionInput;
+use ECSPrefix202510\Symfony\Component\Console\Completion\CompletionSuggestions;
+use ECSPrefix202510\Symfony\Component\Console\Completion\Output\BashCompletionOutput;
+use ECSPrefix202510\Symfony\Component\Console\Completion\Output\CompletionOutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Completion\Output\FishCompletionOutput;
+use ECSPrefix202510\Symfony\Component\Console\Completion\Output\ZshCompletionOutput;
+use ECSPrefix202510\Symfony\Component\Console\Exception\CommandNotFoundException;
+use ECSPrefix202510\Symfony\Component\Console\Exception\ExceptionInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputOption;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
 /**
  * Responsible for providing the values to the shell completion.
  *

@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Process;
+namespace RectorPrefix202510\Symfony\Component\Process;
 
-use RectorPrefix202509\Symfony\Component\Process\Exception\LogicException;
-use RectorPrefix202509\Symfony\Component\Process\Exception\RuntimeException;
+use RectorPrefix202510\Symfony\Component\Process\Exception\LogicException;
+use RectorPrefix202510\Symfony\Component\Process\Exception\RuntimeException;
 /**
  * PhpSubprocess runs a PHP command as a subprocess while keeping the original php.ini settings.
  *
@@ -97,7 +97,7 @@ class PhpSubprocess extends Process
             }
             // Check and remove directives after HOST and PATH sections
             if (preg_match('/^\s*\[(?:PATH|HOST)\s*=/mi', $data, $matches, \PREG_OFFSET_CAPTURE)) {
-                $data = substr($data, 0, $matches[0][1]);
+                $data = (string) substr($data, 0, $matches[0][1]);
             }
             $content .= $data . "\n";
         }

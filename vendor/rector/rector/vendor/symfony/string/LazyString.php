@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\String;
+namespace RectorPrefix202510\Symfony\Component\String;
 
 /**
  * A string whose value is computed lazily by a callback.
@@ -88,7 +88,7 @@ class LazyString implements \JsonSerializable
         } catch (\Throwable $e) {
             if (\TypeError::class === get_class($e) && __FILE__ === $e->getFile()) {
                 $type = explode(', ', $e->getMessage());
-                $type = substr(array_pop($type), 0, -\strlen(' returned'));
+                $type = (string) substr(array_pop($type), 0, -\strlen(' returned'));
                 $r = new \ReflectionFunction($this->value);
                 $callback = $r->getStaticVariables()['callback'];
                 $e = new \TypeError(\sprintf('Return value of %s() passed to %s::fromCallable() must be of the type string, %s returned.', $callback, static::class, $type));

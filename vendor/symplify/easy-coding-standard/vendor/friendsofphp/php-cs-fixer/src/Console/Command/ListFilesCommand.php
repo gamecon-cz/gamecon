@@ -16,12 +16,12 @@ use PhpCsFixer\Config;
 use PhpCsFixer\ConfigInterface;
 use PhpCsFixer\Console\ConfigurationResolver;
 use PhpCsFixer\ToolInfoInterface;
-use ECSPrefix202509\Symfony\Component\Console\Attribute\AsCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\Command;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputOption;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use ECSPrefix202509\Symfony\Component\Filesystem\Path;
+use ECSPrefix202510\Symfony\Component\Console\Attribute\AsCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\Command;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputOption;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Filesystem\Path;
 /**
  * @author Markus Staab <markus.staab@redaxo.org>
  *
@@ -57,6 +57,7 @@ final class ListFilesCommand extends Command
     {
         $passedConfig = $input->getOption('config');
         $cwd = \getcwd();
+        \assert(\false !== $cwd);
         $resolver = new ConfigurationResolver($this->defaultConfig, ['config' => $passedConfig], $cwd, $this->toolInfo);
         $finder = $resolver->getFinder();
         foreach ($finder as $file) {

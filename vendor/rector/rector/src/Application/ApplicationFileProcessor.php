@@ -3,11 +3,10 @@
 declare (strict_types=1);
 namespace Rector\Application;
 
-use RectorPrefix202509\Nette\Utils\FileSystem as UtilsFileSystem;
+use RectorPrefix202510\Nette\Utils\FileSystem as UtilsFileSystem;
 use PHPStan\Parser\ParserErrorsException;
 use Rector\Application\Provider\CurrentFileProvider;
 use Rector\Caching\Detector\ChangedFilesDetector;
-use Rector\Configuration\KaizenStepper;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\FileSystem\FilesFinder;
@@ -22,11 +21,11 @@ use Rector\ValueObject\Error\SystemError;
 use Rector\ValueObject\FileProcessResult;
 use Rector\ValueObject\ProcessResult;
 use Rector\ValueObject\Reporting\FileDiff;
-use RectorPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202509\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202509\Symplify\EasyParallel\CpuCoreCountProvider;
-use RectorPrefix202509\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
-use RectorPrefix202509\Symplify\EasyParallel\ScheduleFactory;
+use RectorPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202510\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202510\Symplify\EasyParallel\CpuCoreCountProvider;
+use RectorPrefix202510\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
+use RectorPrefix202510\Symplify\EasyParallel\ScheduleFactory;
 use Throwable;
 final class ApplicationFileProcessor
 {
@@ -71,10 +70,6 @@ final class ApplicationFileProcessor
      */
     private MissConfigurationReporter $missConfigurationReporter;
     /**
-     * @readonly
-     */
-    private KaizenStepper $kaizenStepper;
-    /**
      * @var string
      */
     private const ARGV = 'argv';
@@ -82,7 +77,7 @@ final class ApplicationFileProcessor
      * @var SystemError[]
      */
     private array $systemErrors = [];
-    public function __construct(SymfonyStyle $symfonyStyle, FilesFinder $filesFinder, ParallelFileProcessor $parallelFileProcessor, ScheduleFactory $scheduleFactory, CpuCoreCountProvider $cpuCoreCountProvider, ChangedFilesDetector $changedFilesDetector, CurrentFileProvider $currentFileProvider, \Rector\Application\FileProcessor $fileProcessor, ArrayParametersMerger $arrayParametersMerger, MissConfigurationReporter $missConfigurationReporter, KaizenStepper $kaizenStepper)
+    public function __construct(SymfonyStyle $symfonyStyle, FilesFinder $filesFinder, ParallelFileProcessor $parallelFileProcessor, ScheduleFactory $scheduleFactory, CpuCoreCountProvider $cpuCoreCountProvider, ChangedFilesDetector $changedFilesDetector, CurrentFileProvider $currentFileProvider, \Rector\Application\FileProcessor $fileProcessor, ArrayParametersMerger $arrayParametersMerger, MissConfigurationReporter $missConfigurationReporter)
     {
         $this->symfonyStyle = $symfonyStyle;
         $this->filesFinder = $filesFinder;
@@ -94,7 +89,6 @@ final class ApplicationFileProcessor
         $this->fileProcessor = $fileProcessor;
         $this->arrayParametersMerger = $arrayParametersMerger;
         $this->missConfigurationReporter = $missConfigurationReporter;
-        $this->kaizenStepper = $kaizenStepper;
     }
     public function run(Configuration $configuration, InputInterface $input): ProcessResult
     {
@@ -144,9 +138,6 @@ final class ApplicationFileProcessor
      */
     public function processFiles(array $filePaths, Configuration $configuration, ?callable $preFileCallback = null, ?callable $postFileCallback = null): ProcessResult
     {
-        if ($configuration->isKaizenEnabled()) {
-            $this->kaizenStepper->setStepCount($configuration->getKaizenStepCount());
-        }
         /** @var SystemError[] $systemErrors */
         $systemErrors = [];
         /** @var FileDiff[] $fileDiffs */

@@ -13,17 +13,15 @@ declare(strict_types=1);
 
 namespace Zenstruck\Foundry\Utils\Rector;
 
-use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\NodeFinder;
-use PHPStan\Analyser\MutatingScope;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ExtendsTagValueNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
-use PHPStan\Type\ObjectType;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTagRemover;
 use Rector\BetterPhpDocParser\ValueObject\Type\FullyQualifiedIdentifierTypeNode;
@@ -39,8 +37,7 @@ final class ChangeFactoryBaseClassRector extends AbstractRector
         private readonly PhpDocTagRemover $phpDocTagRemover,
         private readonly PhpDocInfoFactory $phpDocInfoFactory,
         private readonly DocBlockUpdater $docBlockUpdater,
-        private readonly NodeFinder  $nodeFinder,
-
+        private readonly NodeFinder $nodeFinder,
     ) {
     }
 
@@ -61,7 +58,7 @@ final class ChangeFactoryBaseClassRector extends AbstractRector
         $scope = $node->getAttribute(AttributeKey::SCOPE);
 
         if (!($reflection = $scope?->getClassReflection())
-            || $reflection->getParentClass()?->getName() !== PersistentProxyObjectFactory::class) {
+            || PersistentProxyObjectFactory::class !== $reflection->getParentClass()?->getName()) {
             return null;
         }
 
@@ -112,7 +109,7 @@ final class ChangeFactoryBaseClassRector extends AbstractRector
 
     private function extractTargetClass(Class_ $node, PhpDocNode $phpDocNode): ?TypeNode
     {
-        $extendsPhpDocNodes = array_values([
+        $extendsPhpDocNodes = \array_values([
             ...$phpDocNode->getExtendsTagValues(),
             ...$phpDocNode->getExtendsTagValues('@phpstan-extends'),
             ...$phpDocNode->getExtendsTagValues('@psalm-extends'),
@@ -126,10 +123,8 @@ final class ChangeFactoryBaseClassRector extends AbstractRector
         }
 
         /** @var Node\Stmt\ClassMethod|null $classMethod */
-        $classMethod = $this->nodeFinder->findFirst($node->stmts, function (Node $node): bool {
-            return $node instanceof Node\Stmt\ClassMethod
-                && $this->getName($node) === 'class';
-        });
+        $classMethod = $this->nodeFinder->findFirst($node->stmts, fn(Node $node): bool => $node instanceof Node\Stmt\ClassMethod
+                && 'class' === $this->getName($node));
 
         if (!$classMethod || !$classMethod->stmts) {
             return null;
@@ -143,6 +138,6 @@ final class ChangeFactoryBaseClassRector extends AbstractRector
 
         $name = $this->getName($returnStatement->expr->class);
 
-        return new FullyQualifiedIdentifierTypeNode("\\$name");
+        return new FullyQualifiedIdentifierTypeNode("\\{$name}");
     }
 }

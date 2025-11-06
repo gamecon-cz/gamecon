@@ -40,8 +40,8 @@ trait DocBlockAnnotationTrait
         return $index;
     }
     /**
-     * @param list<string>       $preventingAnnotations
-     * @param list<class-string> $preventingAttributes
+     * @param list<string>                     $preventingAnnotations
+     * @param list<non-empty-lowercase-string> $preventingAttributes
      */
     protected final function ensureIsDocBlockWithAnnotation(Tokens $tokens, int $index, string $annotation, array $preventingAnnotations, array $preventingAttributes) : void
     {
@@ -88,7 +88,7 @@ trait DocBlockAnnotationTrait
         $tokens[$docBlockIndex] = new Token([\T_DOC_COMMENT, $lines]);
     }
     /**
-     * @param list<class-string> $preventingAttributes
+     * @param list<lowercase-string> $preventingAttributes
      */
     private function isPreventedByAttribute(Tokens $tokens, int $index, array $preventingAttributes) : bool
     {

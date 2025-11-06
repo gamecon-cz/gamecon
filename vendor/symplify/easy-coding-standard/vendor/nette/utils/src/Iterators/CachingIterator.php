@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace ECSPrefix202509\Nette\Iterators;
+namespace ECSPrefix202510\Nette\Iterators;
 
-use ECSPrefix202509\Nette;
+use ECSPrefix202510\Nette;
 /**
  * Smarter caching iterator.
  *

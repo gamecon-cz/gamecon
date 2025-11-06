@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Debug;
+namespace ECSPrefix202510\Illuminate\Contracts\Debug;
 
 interface ShouldntReport
 {

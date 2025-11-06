@@ -5,7 +5,7 @@
  *
  * @see \PHP_CodeSniffer\Tests\Core\Ruleset\RegisterSniffsMissingInterfaceTest
  */
-namespace ECSPrefix202509\Fixtures\TestStandard\Sniffs\MissingInterface;
+namespace ECSPrefix202510\Fixtures\TestStandard\Sniffs\MissingInterface;
 
 use PHP_CodeSniffer\Files\File;
 final class InvalidImplementsWithoutImplementSniff

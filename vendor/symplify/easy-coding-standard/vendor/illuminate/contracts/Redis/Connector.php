@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Redis;
+namespace ECSPrefix202510\Illuminate\Contracts\Redis;
 
 interface Connector
 {

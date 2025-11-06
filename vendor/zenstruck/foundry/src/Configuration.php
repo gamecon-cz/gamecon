@@ -130,7 +130,6 @@ final class Configuration
     /** @param \Closure():self|self $configuration */
     public static function boot(\Closure|self $configuration): void
     {
-        PersistedObjectsTracker::reset();
         self::$instance = $configuration;
     }
 
@@ -141,6 +140,10 @@ final class Configuration
         self::$instance->bootedForDataProvider = true;
     }
 
+    /**
+     * /!\ Until PHPUnit 9 support is not dropped, this method MUST NOT call Configuration::instance()
+     * Otherwise, it will reboot the kernel, leading to complex bugs.
+     */
     public static function shutdown(): void
     {
         PersistedObjectsTracker::reset();

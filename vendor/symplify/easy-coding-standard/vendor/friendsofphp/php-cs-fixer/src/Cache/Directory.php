@@ -37,7 +37,7 @@ final class Directory implements \PhpCsFixer\Cache\DirectoryInterface
         if ('' === $this->directoryName || \strncmp(\strtolower($file), \strtolower($this->directoryName . \DIRECTORY_SEPARATOR), \strlen(\strtolower($this->directoryName . \DIRECTORY_SEPARATOR))) !== 0) {
             return $file;
         }
-        return \substr($file, \strlen($this->directoryName) + 1);
+        return (string) \substr($file, \strlen($this->directoryName) + 1);
     }
     private function normalizePath(string $path) : string
     {

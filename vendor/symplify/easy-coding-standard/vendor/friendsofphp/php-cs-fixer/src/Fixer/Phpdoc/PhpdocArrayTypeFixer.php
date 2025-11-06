@@ -36,7 +36,7 @@ final class PhpdocArrayTypeFixer extends AbstractPhpdocTypesFixer
         return new FixerDefinition('PHPDoc `array<T>` type must be used instead of `T[]`.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 /**
 * @param int[] $x
@@ -64,13 +64,13 @@ PHP
         $prefix = '';
         if (\strncmp($type, '?', \strlen('?')) === 0) {
             $prefix = '?';
-            $type = \substr($type, 1);
+            $type = (string) \substr($type, 1);
         }
         return $prefix . Preg::replaceCallback('/^(.+?)((?:\\h*\\[\\h*\\])+)$/', static function (array $matches) : string {
             $type = $matches[1];
             $level = \substr_count($matches[2], '[');
             if (\strncmp($type, '(', \strlen('(')) === 0 && \substr_compare($type, ')', -\strlen(')')) === 0) {
-                $type = \substr($type, 1, -1);
+                $type = (string) \substr($type, 1, -1);
             }
             return \str_repeat('array<', $level) . $type . \str_repeat('>', $level);
         }, $type);

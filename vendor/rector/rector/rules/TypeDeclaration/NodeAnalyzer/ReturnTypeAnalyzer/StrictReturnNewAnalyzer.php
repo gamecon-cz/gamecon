@@ -12,6 +12,7 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Function_;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\ObjectWithoutClassType;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 use Rector\PhpParser\Node\BetterNodeFinder;
@@ -62,7 +63,11 @@ final class StrictReturnNewAnalyzer
             if (!$return->expr instanceof Variable) {
                 return null;
             }
-            $returnType = $this->nodeTypeResolver->getType($return->expr);
+            $returnType = $this->nodeTypeResolver->getNativeType($return->expr);
+            if ($returnType instanceof ObjectWithoutClassType) {
+                $alwaysReturnedClassNames[] = 'object';
+                continue;
+            }
             if (!$returnType instanceof ObjectType) {
                 return null;
             }

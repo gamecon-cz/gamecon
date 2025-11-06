@@ -3,9 +3,9 @@
 declare (strict_types=1);
 namespace Symplify\EasyCodingStandard\Console\Command;
 
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Style\SymfonyStyle;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Style\SymfonyStyle;
 use Symplify\EasyCodingStandard\FileSystem\JsonFileSystem;
 final class ScriptsCommand extends \Symplify\EasyCodingStandard\Console\Command\AbstractCheckCommand
 {

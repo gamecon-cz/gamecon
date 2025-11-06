@@ -31,18 +31,18 @@ use PhpCsFixer\Runner\Event\FileProcessed;
 use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 use PhpCsFixer\Runner\Runner;
 use PhpCsFixer\ToolInfoInterface;
-use ECSPrefix202509\Symfony\Component\Console\Attribute\AsCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\Command;
-use ECSPrefix202509\Symfony\Component\Console\Formatter\OutputFormatter;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputArgument;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputOption;
-use ECSPrefix202509\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Terminal;
-use ECSPrefix202509\Symfony\Component\EventDispatcher\EventDispatcher;
-use ECSPrefix202509\Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use ECSPrefix202509\Symfony\Component\Stopwatch\Stopwatch;
+use ECSPrefix202510\Symfony\Component\Console\Attribute\AsCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\Command;
+use ECSPrefix202510\Symfony\Component\Console\Formatter\OutputFormatter;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputArgument;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputOption;
+use ECSPrefix202510\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Terminal;
+use ECSPrefix202510\Symfony\Component\EventDispatcher\EventDispatcher;
+use ECSPrefix202510\Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use ECSPrefix202510\Symfony\Component\Stopwatch\Stopwatch;
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
@@ -137,33 +137,21 @@ NOTE: if there is an error like "errors reported during linting after fixing", y
 * `-vv`: very verbose
 * `-vvv`: debug
 
-The <comment>--rules</comment> option limits the rules to apply to the
-project:
-
 EOF
  . <<<'EOF'
 
-<info>$ php %command.full_name% /path/to/project --rules=@PSR12</info>
+The <comment>--rules</comment> option allows to explicitly select rules to use,
+overriding the default PSR-12 or your own project config:
 
-By default the PSR-12 rules are used.
+<info>$ php %command.full_name% . --rules=line_ending,full_opening_tag,indentation_type</info>
 
-The <comment>--rules</comment> option lets you choose the exact rules to
-apply (the rule names must be separated by a comma):
+You can also exclude the rules you don't want by placing a dash in front of the rule name, like <comment>-name_of_fixer</comment>.
 
-<info>$ php %command.full_name% /path/to/dir --rules=line_ending,full_opening_tag,indentation_type</info>
+<info>$ php %command.full_name% . --rules=@Symfony,-@PSR1,-blank_line_before_statement,strict_comparison</info>
 
-You can also exclude the rules you don't want by placing a dash in front of the rule name, if this is more convenient,
-using <comment>-name_of_fixer</comment>:
+Complete configuration for rules can be supplied using a `json` formatted string as well.
 
-<info>$ php %command.full_name% /path/to/dir --rules=-full_opening_tag,-indentation_type</info>
-
-When using combinations of exact and exclude rules, applying exact rules along with above excluded results:
-
-<info>$ php %command.full_name% /path/to/project --rules=@Symfony,-@PSR1,-blank_line_before_statement,strict_comparison</info>
-
-Complete configuration for rules can be supplied using a `json` formatted string.
-
-<info>$ php %command.full_name% /path/to/project --rules='{"concat_space": {"spacing": "none"}}'</info>
+<info>$ php %command.full_name% . --rules='{"concat_space": {"spacing": "none"}}'</info>
 
 The <comment>--dry-run</comment> flag will run the fixer without making changes to your files.
 
@@ -238,7 +226,13 @@ EOF;
         if (null !== $passedConfig && null !== $passedRules) {
             throw new InvalidConfigurationException('Passing both `--config` and `--rules` options is not allowed.');
         }
-        $resolver = new ConfigurationResolver($this->defaultConfig, ['allow-risky' => $input->getOption('allow-risky'), 'config' => $passedConfig, 'dry-run' => $this->isDryRun($input), 'rules' => $passedRules, 'path' => $input->getArgument('path'), 'path-mode' => $input->getOption('path-mode'), 'using-cache' => $input->getOption('using-cache'), 'allow-unsupported-php-version' => $input->getOption('allow-unsupported-php-version'), 'cache-file' => $input->getOption('cache-file'), 'format' => $input->getOption('format'), 'diff' => $input->getOption('diff'), 'stop-on-violation' => $input->getOption('stop-on-violation'), 'verbosity' => $verbosity, 'show-progress' => $input->getOption('show-progress'), 'sequential' => $input->getOption('sequential')], \getcwd(), $this->toolInfo);
+        $resolver = new ConfigurationResolver(
+            $this->defaultConfig,
+            ['allow-risky' => $input->getOption('allow-risky'), 'config' => $passedConfig, 'dry-run' => $this->isDryRun($input), 'rules' => $passedRules, 'path' => $input->getArgument('path'), 'path-mode' => $input->getOption('path-mode'), 'using-cache' => $input->getOption('using-cache'), 'allow-unsupported-php-version' => $input->getOption('allow-unsupported-php-version'), 'cache-file' => $input->getOption('cache-file'), 'format' => $input->getOption('format'), 'diff' => $input->getOption('diff'), 'stop-on-violation' => $input->getOption('stop-on-violation'), 'verbosity' => $verbosity, 'show-progress' => $input->getOption('show-progress'), 'sequential' => $input->getOption('sequential')],
+            \getcwd(),
+            // @phpstan-ignore argument.type
+            $this->toolInfo
+        );
         $reporter = $resolver->getReporter();
         $stdErr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : ('txt' === $reporter->getFormat() ? $output : null);
         if (null !== $stdErr) {
@@ -286,7 +280,16 @@ EOF;
         $this->eventDispatcher->removeListener(FileProcessed::NAME, [$progressOutput, 'onFixerFileProcessed']);
         $progressOutput->printLegend();
         $fixEvent = $this->stopwatch->getEvent('fixFiles');
-        $reportSummary = new ReportSummary($changed, \count($finder), $fixEvent->getDuration(), $fixEvent->getMemory(), OutputInterface::VERBOSITY_VERBOSE <= $verbosity, $resolver->isDryRun(), $output->isDecorated());
+        $reportSummary = new ReportSummary(
+            $changed,
+            \count($finder),
+            (int) $fixEvent->getDuration(),
+            // ignore microseconds fraction
+            $fixEvent->getMemory(),
+            OutputInterface::VERBOSITY_VERBOSE <= $verbosity,
+            $resolver->isDryRun(),
+            $output->isDecorated()
+        );
         $output->isDecorated() ? $output->write($reporter->generate($reportSummary)) : $output->write($reporter->generate($reportSummary), \false, OutputInterface::OUTPUT_RAW);
         $invalidErrors = $this->errorsManager->getInvalidErrors();
         $exceptionErrors = $this->errorsManager->getExceptionErrors();

@@ -113,7 +113,7 @@ final class RuleSet implements \PhpCsFixer\RuleSet\RuleSetInterface
     private function resolveSubset(string $setName, bool $setValue) : array
     {
         $ruleSet = \PhpCsFixer\RuleSet\RuleSets::getSetDefinition($setName);
-        if ($ruleSet instanceof \PhpCsFixer\RuleSet\DeprecatedRuleSetDescriptionInterface) {
+        if ($ruleSet instanceof \PhpCsFixer\RuleSet\DeprecatedRuleSetDefinitionInterface) {
             $messageEnd = [] === $ruleSet->getSuccessorsNames() ? 'No replacement available' : \sprintf('Use %s instead', Utils::naturalLanguageJoin($ruleSet->getSuccessorsNames()));
             Future::triggerDeprecation(new \RuntimeException("Rule set \"{$setName}\" is deprecated. {$messageEnd}."));
         }

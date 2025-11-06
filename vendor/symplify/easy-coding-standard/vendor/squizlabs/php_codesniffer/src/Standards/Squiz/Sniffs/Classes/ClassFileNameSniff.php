@@ -43,8 +43,8 @@ class ClassFileNameSniff implements Sniff
             return $phpcsFile->numTokens;
         }
         $fileName = \basename($fullPath);
-        $fileNoExt = \substr($fileName, 0, \strrpos($fileName, '.'));
-        $extension = \substr($fileName, \strrpos($fileName, '.') + 1);
+        $fileNoExt = (string) \substr($fileName, 0, \strrpos($fileName, '.'));
+        $extension = (string) \substr($fileName, \strrpos($fileName, '.') + 1);
         $tokens = $phpcsFile->getTokens();
         $ooName = $phpcsFile->getDeclarationName($stackPtr);
         if ($ooName === null) {

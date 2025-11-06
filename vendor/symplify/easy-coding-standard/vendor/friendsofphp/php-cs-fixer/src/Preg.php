@@ -159,7 +159,7 @@ final class Preg
         $delimiter = $pattern[0];
         $endDelimiterPosition = \strrpos($pattern, $delimiter);
         \assert(\is_int($endDelimiterPosition));
-        return \substr($pattern, 0, $endDelimiterPosition) . \str_replace('u', '', \substr($pattern, $endDelimiterPosition));
+        return \substr($pattern, 0, $endDelimiterPosition) . \str_replace('u', '', (string) \substr($pattern, $endDelimiterPosition));
     }
     /**
      * Create the generic PregException message and tell more about such kind of error in the message.

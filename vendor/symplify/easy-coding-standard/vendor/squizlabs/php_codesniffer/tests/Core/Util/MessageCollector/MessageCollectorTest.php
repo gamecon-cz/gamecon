@@ -9,7 +9,7 @@
 namespace PHP_CodeSniffer\Tests\Core\Util\MessageCollector;
 
 use PHP_CodeSniffer\Util\MessageCollector;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Tests the message caching and display functionality.
  *

@@ -23,13 +23,16 @@ final class RemoveMethodCallRector extends AbstractRector implements Configurabl
     private array $removeMethodCalls = [];
 
     /** @return array<class-string<Node>> */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Node\Expr\MethodCall::class, Node\Expr\NullsafeMethodCall::class, Node\Stmt\Expression::class];
     }
 
-    /** @param Node\Expr\MethodCall|Node\Expr\NullsafeMethodCall|Node\Stmt\Expression $node */
-    public function refactor(Node $node) : Node|int|null
+    /**
+     * @param  Node\Expr\MethodCall|Node\Expr\NullsafeMethodCall|Node\Stmt\Expression $node
+     * @return Node|null|\PhpParser\NodeVisitor::REMOVE_NODE
+     */
+    public function refactor(Node $node): Node|int|null
     {
         foreach ($this->removeMethodCalls as $removeMethodCall) {
             if ($node instanceof Node\Stmt\Expression) {
@@ -53,7 +56,6 @@ final class RemoveMethodCallRector extends AbstractRector implements Configurabl
                 continue;
             }
 
-
             if (!$this->isName($node->name, $removeMethodCall->methodName)) {
                 continue;
             }
@@ -67,11 +69,11 @@ final class RemoveMethodCallRector extends AbstractRector implements Configurabl
     /**
      * @param mixed[] $configuration
      */
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
         foreach ($configuration as $configItem) {
             if (!$configItem instanceof RemoveMethodCall) {
-                throw new \InvalidArgumentException(sprintf('Expected instance of "%s", got "%s".', RemoveMethodCall::class, get_debug_type($configItem)));
+                throw new \InvalidArgumentException(\sprintf('Expected instance of "%s", got "%s".', RemoveMethodCall::class, \get_debug_type($configItem)));
             }
         }
 

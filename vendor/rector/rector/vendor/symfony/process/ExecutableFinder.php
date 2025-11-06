@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Process;
+namespace RectorPrefix202510\Symfony\Component\Process;
 
 /**
  * Generic executable finder.
@@ -76,7 +76,7 @@ class ExecutableFinder
             return $default;
         }
         $execResult = exec('command -v -- ' . escapeshellarg($name));
-        if (($executablePath = substr($execResult, 0, strpos($execResult, \PHP_EOL) ?: null)) && @is_executable($executablePath)) {
+        if (($executablePath = (string) substr($execResult, 0, strpos($execResult, \PHP_EOL) ?: null)) && @is_executable($executablePath)) {
             return $executablePath;
         }
         return $default;

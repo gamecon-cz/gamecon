@@ -11,7 +11,7 @@ namespace PHP_CodeSniffer\Tests\Core\Ruleset;
 
 use PHP_CodeSniffer\Ruleset;
 use PHP_CodeSniffer\Tests\ConfigDouble;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Test handling of sniffs not following the PHPCS naming conventions in the Ruleset::populateTokenListeners() method.
  *
@@ -34,7 +34,7 @@ final class PopulateTokenListenersNamingConventionsTest extends TestCase
         $config = new ConfigDouble(["--standard={$standard}"]);
         $ruleset = new Ruleset($config);
         // The "Generic.PHP.BacktickOperator" sniff is the only valid sniff.
-        $expectedSniffCodes = ['..NoNamespace' => 'NoNamespaceSniff', '.Sniffs.MissingCategoryDir' => 'ECSPrefix202509\\BrokenNamingConventions\\Sniffs\\MissingCategoryDirSniff', '.Sniffs.PartialNamespace' => 'ECSPrefix202509\\Sniffs\\PartialNamespaceSniff', 'BrokenNamingConventions.Category.' => 'ECSPrefix202509\\BrokenNamingConventions\\Sniffs\\Category\\Sniff', 'BrokenNamingConventions.Sniffs.CategoryCalledSniffs' => 'ECSPrefix202509\\BrokenNamingConventions\\Sniffs\\Sniffs\\CategoryCalledSniffsSniff', 'Generic.PHP.BacktickOperator' => 'PHP_CodeSniffer\\Standards\\Generic\\Sniffs\\PHP\\BacktickOperatorSniff', 'Sniffs.SubDir.TooDeeplyNested' => 'ECSPrefix202509\\BrokenNamingConventions\\Sniffs\\Category\\SubDir\\TooDeeplyNestedSniff'];
+        $expectedSniffCodes = ['..NoNamespace' => 'NoNamespaceSniff', '.Sniffs.MissingCategoryDir' => 'ECSPrefix202510\\BrokenNamingConventions\\Sniffs\\MissingCategoryDirSniff', '.Sniffs.PartialNamespace' => 'ECSPrefix202510\\Sniffs\\PartialNamespaceSniff', 'BrokenNamingConventions.Category.' => 'ECSPrefix202510\\BrokenNamingConventions\\Sniffs\\Category\\Sniff', 'BrokenNamingConventions.Sniffs.CategoryCalledSniffs' => 'ECSPrefix202510\\BrokenNamingConventions\\Sniffs\\Sniffs\\CategoryCalledSniffsSniff', 'Generic.PHP.BacktickOperator' => 'PHP_CodeSniffer\\Standards\\Generic\\Sniffs\\PHP\\BacktickOperatorSniff', 'Sniffs.SubDir.TooDeeplyNested' => 'ECSPrefix202510\\BrokenNamingConventions\\Sniffs\\Category\\SubDir\\TooDeeplyNestedSniff'];
         // Sort the value to make the tests stable as different OSes will read directories
         // in a different order and the order is not relevant for these tests. Just the values.
         $actual = $ruleset->sniffCodes;

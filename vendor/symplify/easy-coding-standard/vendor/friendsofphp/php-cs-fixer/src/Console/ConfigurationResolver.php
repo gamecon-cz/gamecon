@@ -24,6 +24,7 @@ use PhpCsFixer\ConfigurationException\InvalidConfigurationException;
 use PhpCsFixer\Console\Output\Progress\ProgressOutputType;
 use PhpCsFixer\Console\Report\FixReport\ReporterFactory;
 use PhpCsFixer\Console\Report\FixReport\ReporterInterface;
+use PhpCsFixer\CustomRulesetsAwareConfigInterface;
 use PhpCsFixer\Differ\DifferInterface;
 use PhpCsFixer\Differ\NullDiffer;
 use PhpCsFixer\Differ\UnifiedDiffer;
@@ -37,6 +38,7 @@ use PhpCsFixer\Linter\LinterInterface;
 use PhpCsFixer\ParallelAwareConfigInterface;
 use PhpCsFixer\RuleSet\RuleSet;
 use PhpCsFixer\RuleSet\RuleSetInterface;
+use PhpCsFixer\RuleSet\RuleSets;
 use PhpCsFixer\Runner\Parallel\ParallelConfig;
 use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 use PhpCsFixer\StdinFileInfo;
@@ -45,8 +47,8 @@ use PhpCsFixer\UnsupportedPhpVersionAllowedConfigInterface;
 use PhpCsFixer\Utils;
 use PhpCsFixer\WhitespacesFixerConfig;
 use PhpCsFixer\WordMatcher;
-use ECSPrefix202509\Symfony\Component\Filesystem\Filesystem;
-use ECSPrefix202509\Symfony\Component\Finder\Finder as SymfonyFinder;
+use ECSPrefix202510\Symfony\Component\Filesystem\Filesystem;
+use ECSPrefix202510\Symfony\Component\Finder\Finder as SymfonyFinder;
 /**
  * The resolver that resolves configuration to use by command line options and config.
  *
@@ -251,6 +253,11 @@ final class ConfigurationResolver
             if (null === $this->config) {
                 $this->config = $this->defaultConfig;
             }
+            if ($this->config instanceof CustomRulesetsAwareConfigInterface) {
+                foreach ($this->config->getCustomRuleSets() as $ruleSet) {
+                    RuleSets::registerCustomRuleSet($ruleSet);
+                }
+            }
         }
         return $this->config;
     }
@@ -298,9 +305,9 @@ final class ConfigurationResolver
             if (\false === $this->getRiskyAllowed()) {
                 $riskyFixers = \array_map(static function (FixerInterface $fixer) : string {
                     return $fixer->getName();
-                }, \array_filter($this->fixers, static function (FixerInterface $fixer) : bool {
+                }, \array_values(\array_filter($this->fixers, static function (FixerInterface $fixer) : bool {
                     return $fixer->isRisky();
-                }));
+                })));
                 if (\count($riskyFixers) > 0) {
                     throw new InvalidConfigurationException(\sprintf('The rules contain risky fixers (%s), but they are not allowed to run. Perhaps you forget to use --allow-risky=yes option?', Utils::naturalLanguageJoin($riskyFixers)));
                 }
@@ -669,9 +676,13 @@ final class ConfigurationResolver
             throw new InvalidConfigurationException(\sprintf('The path-mode "%s" is not defined, supported are %s.', $this->options['path-mode'], Utils::naturalLanguageJoin(self::PATH_MODE_VALUES)));
         }
         $isIntersectionPathMode = self::PATH_MODE_INTERSECTION === $this->options['path-mode'];
-        $paths = \array_map(static function (string $path) {
-            return \realpath($path);
-        }, $this->getPath());
+        $paths = \array_map(
+            static function (string $path) : string {
+                return \realpath($path);
+            },
+            // @phpstan-ignore return.type
+            $this->getPath()
+        );
         if (0 === \count($paths)) {
             if ($isIntersectionPathMode) {
                 return new \ArrayIterator([]);

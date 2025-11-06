@@ -23,21 +23,17 @@ use Rector\Rector\AbstractRector;
 
 final class MethodCallToFuncCallWithObjectAsFirstParameterRector extends AbstractRector implements ConfigurableRectorInterface
 {
-    /**
-     * @var MethodCallToFuncCallWithObjectAsFirstParameter[]
-     */
+    /** @var MethodCallToFuncCallWithObjectAsFirstParameter[] */
     private array $methodCallsToFuncCalls = [];
-    /**
-     * @return array<class-string<Node>>
-     */
-    public function getNodeTypes() : array
+
+    /** @return array<class-string<Node>> */
+    public function getNodeTypes(): array
     {
         return [MethodCall::class];
     }
-    /**
-     * @param MethodCall $node
-     */
-    public function refactor(Node $node) : ?Node
+
+    /** @param MethodCall $node */
+    public function refactor(Node $node): ?Node
     {
         if ($node->isFirstClassCallable()) {
             return null;
@@ -47,18 +43,19 @@ final class MethodCallToFuncCallWithObjectAsFirstParameterRector extends Abstrac
             if (!$this->isName($node->name, $methodCallToFuncCall->methodName)) {
                 continue;
             }
+
             return new FuncCall(new FullyQualified($methodCallToFuncCall->functionName), [new Arg($node->var), ...$node->getArgs()]);
         }
+
         return null;
     }
-    /**
-     * @param mixed[] $configuration
-     */
-    public function configure(array $configuration) : void
+
+    /** @param mixed[] $configuration */
+    public function configure(array $configuration): void
     {
         foreach ($configuration as $configItem) {
             if (!$configItem instanceof MethodCallToFuncCallWithObjectAsFirstParameter) {
-                throw new \InvalidArgumentException(sprintf('Expected instance of "%s", got "%s".', MethodCallToFuncCallWithObjectAsFirstParameter::class, get_debug_type($configItem)));
+                throw new \InvalidArgumentException(\sprintf('Expected instance of "%s", got "%s".', MethodCallToFuncCallWithObjectAsFirstParameter::class, \get_debug_type($configItem)));
             }
         }
         $this->methodCallsToFuncCalls = $configuration;

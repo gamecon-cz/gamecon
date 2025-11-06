@@ -11,8 +11,8 @@ namespace PHP_CodeSniffer\Tests\Standards;
 
 use PHP_CodeSniffer\Autoload;
 use PHP_CodeSniffer\Util\Standards;
-use ECSPrefix202509\PHPUnit\Framework\TestSuite;
-use ECSPrefix202509\PHPUnit\TextUI\TestRunner;
+use ECSPrefix202510\PHPUnit\Framework\TestSuite;
+use ECSPrefix202510\PHPUnit\TextUI\TestRunner;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 class AllSniffs

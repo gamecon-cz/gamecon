@@ -9,10 +9,10 @@
  * the LICENSE file that was distributed with this source code.
  */
 declare (strict_types=1);
-namespace ECSPrefix202509\Composer\XdebugHandler;
+namespace ECSPrefix202510\Composer\XdebugHandler;
 
-use ECSPrefix202509\Composer\Pcre\Preg;
-use ECSPrefix202509\Psr\Log\LoggerInterface;
+use ECSPrefix202510\Composer\Pcre\Preg;
+use ECSPrefix202510\Psr\Log\LoggerInterface;
 /**
  * @author John Stevenson <john-stevenson@blueyonder.co.uk>
  *
@@ -330,7 +330,7 @@ class XdebugHandler
             }
             // Check and remove directives after HOST and PATH sections
             if (Preg::isMatchWithOffsets($sectionRegex, $data, $matches)) {
-                $data = \substr($data, 0, $matches[0][1]);
+                $data = (string) \substr($data, 0, $matches[0][1]);
             }
             $content .= Preg::replace($xdebugRegex, ';$1', $data) . \PHP_EOL;
         }

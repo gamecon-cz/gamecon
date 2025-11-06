@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202509\Nette\Utils;
+namespace RectorPrefix202510\Nette\Utils;
 
-use RectorPrefix202509\Nette;
+use RectorPrefix202510\Nette;
 use function array_key_exists, class_exists, explode, gettype, interface_exists, is_callable, is_float, is_int, is_iterable, is_numeric, is_object, is_string, preg_match, str_ends_with, str_replace, str_starts_with, strlen, strtolower, substr, trait_exists, var_export;
 /**
  * Validation utilities.
@@ -103,12 +103,12 @@ class Validators
     {
         foreach (explode('|', $expected) as $item) {
             if (substr_compare($item, '[]', -strlen('[]')) === 0) {
-                if (is_iterable($value) && self::everyIs($value, substr($item, 0, -2))) {
+                if (is_iterable($value) && self::everyIs($value, (string) substr($item, 0, -2))) {
                     return \true;
                 }
                 continue;
             } elseif (strncmp($item, '?', strlen('?')) === 0) {
-                $item = substr($item, 1);
+                $item = (string) substr($item, 1);
                 if ($value === null) {
                     return \true;
                 }

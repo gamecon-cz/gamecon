@@ -1,8 +1,8 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Foundation;
+namespace ECSPrefix202510\Illuminate\Contracts\Foundation;
 
-use ECSPrefix202509\Illuminate\Contracts\Container\Container;
+use ECSPrefix202510\Illuminate\Contracts\Container\Container;
 interface Application extends Container
 {
     /**

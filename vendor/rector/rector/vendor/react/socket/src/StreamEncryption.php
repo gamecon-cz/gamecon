@@ -1,9 +1,9 @@
 <?php
 
-namespace RectorPrefix202509\React\Socket;
+namespace RectorPrefix202510\React\Socket;
 
-use RectorPrefix202509\React\EventLoop\LoopInterface;
-use RectorPrefix202509\React\Promise\Deferred;
+use RectorPrefix202510\React\EventLoop\LoopInterface;
+use RectorPrefix202510\React\Promise\Deferred;
 use RuntimeException;
 use UnexpectedValueException;
 /**
@@ -105,7 +105,7 @@ class StreamEncryption
             $error = \str_replace(array("\r", "\n"), ' ', $errstr);
             // remove useless function name from error message
             if (($pos = \strpos($error, "): ")) !== \false) {
-                $error = \substr($error, $pos + 3);
+                $error = (string) \substr($error, $pos + 3);
             }
         });
         $result = \stream_socket_enable_crypto($socket, $toggle, $method);

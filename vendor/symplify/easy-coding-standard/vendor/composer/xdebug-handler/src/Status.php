@@ -9,10 +9,10 @@
  * the LICENSE file that was distributed with this source code.
  */
 declare (strict_types=1);
-namespace ECSPrefix202509\Composer\XdebugHandler;
+namespace ECSPrefix202510\Composer\XdebugHandler;
 
-use ECSPrefix202509\Psr\Log\LoggerInterface;
-use ECSPrefix202509\Psr\Log\LogLevel;
+use ECSPrefix202510\Psr\Log\LoggerInterface;
+use ECSPrefix202510\Psr\Log\LogLevel;
 /**
  * @author John Stevenson <john-stevenson@blueyonder.co.uk>
  * @internal

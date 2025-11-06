@@ -9,7 +9,7 @@
 namespace PHP_CodeSniffer\Tests\Core\Util\Common;
 
 use PHP_CodeSniffer\Util\Common;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Tests for the \PHP_CodeSniffer\Util\Common::prepareForOutput() method.
  *
@@ -64,7 +64,7 @@ final class PrepareForOutputTest extends TestCase
      */
     public static function dataPrepareForOutput()
     {
-        return ['Special characters are replaced with their escapes' => ['content' => "\r\n\t", 'exclude' => [], 'expected' => "\x1b[30;1m\\r\x1b[0m\x1b[30;1m\\n\x1b[0m\x1b[30;1m\\t\x1b[0m", 'expectedWin' => "ECSPrefix202509\\r\\n\\t"], 'Spaces are replaced with a unique mark' => ['content' => "    ", 'exclude' => [], 'expected' => "\x1b[30;1m·\x1b[0m\x1b[30;1m·\x1b[0m\x1b[30;1m·\x1b[0m\x1b[30;1m·\x1b[0m", 'expectedWin' => "    "], 'Other characters are unaffected' => ['content' => "{echo 1;}", 'exclude' => [], 'expected' => "{echo\x1b[30;1m·\x1b[0m1;}", 'expectedWin' => "{echo 1;}"], 'No replacements' => ['content' => 'nothing-should-be-replaced', 'exclude' => [], 'expected' => 'nothing-should-be-replaced', 'expectedWin' => 'nothing-should-be-replaced'], 'Excluded whitespace characters are unaffected' => ['content' => "\r\n\t ", 'exclude' => ["\r", "\n"], 'expected' => "\r\n\x1b[30;1m\\t\x1b[0m\x1b[30;1m·\x1b[0m", 'expectedWin' => "\r\n\\t "]];
+        return ['Special characters are replaced with their escapes' => ['content' => "\r\n\t", 'exclude' => [], 'expected' => "\x1b[30;1m\\r\x1b[0m\x1b[30;1m\\n\x1b[0m\x1b[30;1m\\t\x1b[0m", 'expectedWin' => "ECSPrefix202510\\r\\n\\t"], 'Spaces are replaced with a unique mark' => ['content' => "    ", 'exclude' => [], 'expected' => "\x1b[30;1m·\x1b[0m\x1b[30;1m·\x1b[0m\x1b[30;1m·\x1b[0m\x1b[30;1m·\x1b[0m", 'expectedWin' => "    "], 'Other characters are unaffected' => ['content' => "{echo 1;}", 'exclude' => [], 'expected' => "{echo\x1b[30;1m·\x1b[0m1;}", 'expectedWin' => "{echo 1;}"], 'No replacements' => ['content' => 'nothing-should-be-replaced', 'exclude' => [], 'expected' => 'nothing-should-be-replaced', 'expectedWin' => 'nothing-should-be-replaced'], 'Excluded whitespace characters are unaffected' => ['content' => "\r\n\t ", 'exclude' => ["\r", "\n"], 'expected' => "\r\n\x1b[30;1m\\t\x1b[0m\x1b[30;1m·\x1b[0m", 'expectedWin' => "\r\n\\t "]];
     }
     //end dataPrepareForOutput()
 }

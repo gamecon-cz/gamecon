@@ -37,8 +37,8 @@ class DummyFile extends \PHP_CodeSniffer\Files\File
         if ($content !== '') {
             if (\substr($content, 0, 17) === 'phpcs_input_file:') {
                 $eolPos = \strpos($content, $this->eolChar);
-                $filename = \trim(\substr($content, 17, $eolPos - 17));
-                $content = \substr($content, $eolPos + \strlen($this->eolChar));
+                $filename = \trim((string) \substr($content, 17, $eolPos - 17));
+                $content = (string) \substr($content, $eolPos + \strlen($this->eolChar));
                 $path = $filename;
                 $this->setContent($content);
             }

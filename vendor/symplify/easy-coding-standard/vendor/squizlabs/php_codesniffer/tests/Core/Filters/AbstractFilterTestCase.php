@@ -12,7 +12,7 @@ namespace PHP_CodeSniffer\Tests\Core\Filters;
 use PHP_CodeSniffer\Filters\Filter;
 use PHP_CodeSniffer\Ruleset;
 use PHP_CodeSniffer\Tests\ConfigDouble;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 use RecursiveIteratorIterator;
 /**
  * Base functionality and utilities for testing Filter classes.

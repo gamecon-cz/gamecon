@@ -1,22 +1,22 @@
 <?php
 
 declare (strict_types=1);
-namespace ECSPrefix202509\Composer\Pcre\PHPStan;
+namespace ECSPrefix202510\Composer\Pcre\PHPStan;
 
-use ECSPrefix202509\Composer\Pcre\Preg;
-use ECSPrefix202509\Composer\Pcre\Regex;
-use ECSPrefix202509\PhpParser\Node;
-use ECSPrefix202509\PhpParser\Node\Expr\StaticCall;
-use ECSPrefix202509\PhpParser\Node\Name\FullyQualified;
-use ECSPrefix202509\PHPStan\Analyser\Scope;
-use ECSPrefix202509\PHPStan\Analyser\SpecifiedTypes;
-use ECSPrefix202509\PHPStan\Rules\Rule;
-use ECSPrefix202509\PHPStan\Rules\RuleErrorBuilder;
-use ECSPrefix202509\PHPStan\TrinaryLogic;
-use ECSPrefix202509\PHPStan\Type\ObjectType;
-use ECSPrefix202509\PHPStan\Type\Type;
-use ECSPrefix202509\PHPStan\Type\TypeCombinator;
-use ECSPrefix202509\PHPStan\Type\Php\RegexArrayShapeMatcher;
+use ECSPrefix202510\Composer\Pcre\Preg;
+use ECSPrefix202510\Composer\Pcre\Regex;
+use ECSPrefix202510\PhpParser\Node;
+use ECSPrefix202510\PhpParser\Node\Expr\StaticCall;
+use ECSPrefix202510\PhpParser\Node\Name\FullyQualified;
+use ECSPrefix202510\PHPStan\Analyser\Scope;
+use ECSPrefix202510\PHPStan\Analyser\SpecifiedTypes;
+use ECSPrefix202510\PHPStan\Rules\Rule;
+use ECSPrefix202510\PHPStan\Rules\RuleErrorBuilder;
+use ECSPrefix202510\PHPStan\TrinaryLogic;
+use ECSPrefix202510\PHPStan\Type\ObjectType;
+use ECSPrefix202510\PHPStan\Type\Type;
+use ECSPrefix202510\PHPStan\Type\TypeCombinator;
+use ECSPrefix202510\PHPStan\Type\Php\RegexArrayShapeMatcher;
 use function sprintf;
 /**
  * @implements Rule<StaticCall>

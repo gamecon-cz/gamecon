@@ -18,7 +18,7 @@ use PHPStan\Type\MixedType;
 use PHPStan\Type\NeverType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
-use RectorPrefix202509\PHPUnit\Framework\MockObject\Builder\InvocationMocker;
+use RectorPrefix202510\PHPUnit\Framework\MockObject\Builder\InvocationMocker;
 use Rector\Enum\ClassName;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\PHPUnit\CodeQuality\NodeAnalyser\SetUpAssignedMockTypesResolver;
@@ -202,7 +202,11 @@ CODE_SAMPLE
                 $hasChanged = \true;
             }
             if (!$innerClosure->returnType instanceof Node) {
-                $returnTypeNode = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($parameterTypesAndReturnType->getReturnType(), TypeKind::RETURN);
+                $returnType = $parameterTypesAndReturnType->getReturnType();
+                if (!$returnType instanceof Type) {
+                    return null;
+                }
+                $returnTypeNode = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($returnType, TypeKind::RETURN);
                 if ($returnTypeNode instanceof Node) {
                     $innerClosure->returnType = $returnTypeNode;
                     $hasChanged = \true;

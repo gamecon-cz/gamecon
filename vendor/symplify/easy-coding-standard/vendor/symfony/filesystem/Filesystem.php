@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Filesystem;
+namespace ECSPrefix202510\Symfony\Component\Filesystem;
 
-use ECSPrefix202509\Symfony\Component\Filesystem\Exception\FileNotFoundException;
-use ECSPrefix202509\Symfony\Component\Filesystem\Exception\InvalidArgumentException;
-use ECSPrefix202509\Symfony\Component\Filesystem\Exception\IOException;
+use ECSPrefix202510\Symfony\Component\Filesystem\Exception\FileNotFoundException;
+use ECSPrefix202510\Symfony\Component\Filesystem\Exception\InvalidArgumentException;
+use ECSPrefix202510\Symfony\Component\Filesystem\Exception\IOException;
 /**
  * Provides basic utility to manipulate the file system.
  *
@@ -403,7 +403,7 @@ class Filesystem
             $startPath = \str_replace('\\', '/', $startPath);
         }
         $splitDriveLetter = function ($path) {
-            return \strlen($path) > 2 && ':' === $path[1] && '/' === $path[2] && \ctype_alpha($path[0]) ? [\substr($path, 2), \strtoupper($path[0])] : [$path, null];
+            return \strlen($path) > 2 && ':' === $path[1] && '/' === $path[2] && \ctype_alpha($path[0]) ? [(string) \substr($path, 2), \strtoupper($path[0])] : [$path, null];
         };
         $splitPath = function ($path) {
             $result = [];

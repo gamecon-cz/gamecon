@@ -34,7 +34,7 @@ final class NoBlankLinesAfterPhpdocFixer extends AbstractFixer
         return new FixerDefinition('There should not be blank lines between docblock and the documented element.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 /**
 * This is the bar class.
@@ -45,7 +45,7 @@ class Bar
 /**
 * This is the bar class.
 */
-\class_alias('ECSPrefix202509\\Bar', 'Bar', \false);
+\class_alias('ECSPrefix202510\\Bar', 'Bar', \false);
 
 PHP
 )]);
@@ -83,7 +83,7 @@ PHP
         // if there is more than one new line in the whitespace, then we need to fix it
         if (\substr_count($content, "\n") > 1) {
             // the final bit of the whitespace must be the next statement's indentation
-            $tokens[$index] = new Token([\T_WHITESPACE, \substr($content, \strrpos($content, "\n"))]);
+            $tokens[$index] = new Token([\T_WHITESPACE, (string) \substr($content, \strrpos($content, "\n"))]);
         }
     }
 }

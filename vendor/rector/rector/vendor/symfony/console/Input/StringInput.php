@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Console\Input;
+namespace RectorPrefix202510\Symfony\Component\Console\Input;
 
-use RectorPrefix202509\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202510\Symfony\Component\Console\Exception\InvalidArgumentException;
 /**
  * StringInput represents an input provided as a string.
  *
@@ -59,9 +59,9 @@ class StringInput extends ArgvInput
                     $token = null;
                 }
             } elseif (preg_match('/([^="\'\s]+?)(=?)(' . self::REGEX_QUOTED_STRING . '+)/A', $input, $match, 0, $cursor)) {
-                $token .= $match[1] . $match[2] . stripcslashes(str_replace(['"\'', '\'"', '\'\'', '""'], '', substr($match[3], 1, -1)));
+                $token .= $match[1] . $match[2] . stripcslashes(str_replace(['"\'', '\'"', '\'\'', '""'], '', (string) substr($match[3], 1, -1)));
             } elseif (preg_match('/' . self::REGEX_QUOTED_STRING . '/A', $input, $match, 0, $cursor)) {
-                $token .= stripcslashes(substr($match[0], 1, -1));
+                $token .= stripcslashes((string) substr($match[0], 1, -1));
             } elseif (preg_match('/' . self::REGEX_UNQUOTED_STRING . '/A', $input, $match, 0, $cursor)) {
                 $token .= $match[1];
             } else {
