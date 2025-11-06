@@ -2,55 +2,58 @@ name: Deploy BETA on direct push or merged pull request
 
 # yamllint disable-line rule:truthy
 on:
-  push:
-    branches:
-      - 'beta'
-  workflow_dispatch:
+    push:
+        branches:
+            - 'beta'
+    workflow_dispatch:
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
+    publish:
+        runs-on: ubuntu-24.04
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v4
 
-      - name: Build and start containers
-        run: docker compose up --build --detach
+            -   name: Build and start containers
+                run: docker compose up --build --detach
 
-      - name: Run tests in container
-        run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
+            -   name: Run tests in container
+                run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
 
-      - name: Upload test output as artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: php-test-logs
-          path: ./tests/logs
+            -   name: Upload test output as artifact
+                if: always()
+                uses: actions/upload-artifact@v4
+                with:
+                    name: php-test-logs
+                    path: ./tests/logs
 
-      - name: Deploy via FTP
-        # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
-        run: php ./udrzba/nasad.php --skip-tests
-        env:
-          FTP_DIR: beta
-          FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
-          DB_USER: ${{ secrets.BETA_DB_USER }}
-          DB_PASS: ${{ secrets.BETA_DB_PASS }}
-          DB_NAME: ${{ secrets.BETA_DB_NAME }}
-          DB_SERV: localhost
-          DBM_USER: ${{ secrets.BETA_DBM_USER }}
-          DBM_PASS: ${{ secrets.BETA_DBM_PASS }}
-          MIGRACE_HESLO: ${{ secrets.BETA_MIGRACE_HESLO }}
-          SECRET_CRYPTO_KEY: ${{ secrets.BETA_SECRET_CRYPTO_KEY }}
-          # pozor změnu CRON_KEY je nutné provést i
-          # v https://console.cron-job.org
-          CRON_KEY: ${{ secrets.BETA_CRON_KEY }}
-          GOOGLE_API_CREDENTIALS: ${{ secrets.BETA_GOOGLE_API_CREDENTIALS }}
-          FIO_TOKEN: ${{ secrets.BETA_FIO_TOKEN }}
-          MAILER_DSN: ${{ secrets.MAILER_DSN }}
-          SERVER_NAME: 'beta.gamecon.cz'
-          DB_ANONYM_SERV: ${{ secrets.DB_ANONYM_SERV }}
-          DB_ANONYM_USER: ${{ secrets.DB_ANONYM_USER }}
-          DB_ANONYM_PASS: ${{ secrets.DB_ANONYM_PASS }}
-          DB_ANONYM_NAME: ${{ secrets.DB_ANONYM_NAME }}
-          APP_SECRET: ${{ secrets.BETA_APP_SECRET }}
+            -   name: Composer libraries without dev
+                run: docker compose exec --no-TTY web composer install --no-dev --optimize-autoloader
+
+            -   name: Deploy via FTP
+                # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý; změny nekontrolujeme, protože jsme je vytvořili přes `composer install --no-dev`
+                run: php ./udrzba/nasad.php --skip-tests --skip-no-changes-check
+                env:
+                    FTP_DIR: beta
+                    FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
+                    DB_USER: ${{ secrets.BETA_DB_USER }}
+                    DB_PASS: ${{ secrets.BETA_DB_PASS }}
+                    DB_NAME: ${{ secrets.BETA_DB_NAME }}
+                    DB_SERV: localhost
+                    DBM_USER: ${{ secrets.BETA_DBM_USER }}
+                    DBM_PASS: ${{ secrets.BETA_DBM_PASS }}
+                    MIGRACE_HESLO: ${{ secrets.BETA_MIGRACE_HESLO }}
+                    SECRET_CRYPTO_KEY: ${{ secrets.BETA_SECRET_CRYPTO_KEY }}
+                    # pozor změnu CRON_KEY je nutné provést i
+                    # v https://console.cron-job.org
+                    CRON_KEY: ${{ secrets.BETA_CRON_KEY }}
+                    GOOGLE_API_CREDENTIALS: ${{ secrets.BETA_GOOGLE_API_CREDENTIALS }}
+                    FIO_TOKEN: ${{ secrets.BETA_FIO_TOKEN }}
+                    MAILER_DSN: ${{ secrets.MAILER_DSN }}
+                    SERVER_NAME: 'beta.gamecon.cz'
+                    DB_ANONYM_SERV: ${{ secrets.DB_ANONYM_SERV }}
+                    DB_ANONYM_USER: ${{ secrets.DB_ANONYM_USER }}
+                    DB_ANONYM_PASS: ${{ secrets.DB_ANONYM_PASS }}
+                    DB_ANONYM_NAME: ${{ secrets.DB_ANONYM_NAME }}
+                    APP_SECRET: ${{ secrets.BETA_APP_SECRET }}
