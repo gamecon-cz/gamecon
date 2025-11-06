@@ -4,6 +4,7 @@ namespace Gamecon\Tests\Model\Aktivita;
 
 use App\Kernel;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
@@ -142,7 +143,10 @@ SQL,
         $aktivita                    = Aktivita::zId(id: 1, systemoveNastaveni: $systemoveNastaveniProStorno); // reload
 
         self::assertTrue($aktivita->prihlasen($uzivatel), 'Měl by být přihlášen');
-        self::assertFalse($aktivita->platiStorno($uzivatel), 'Zatím by neměl mít důvod platit storno');
+        self::assertFalse(
+            StavPrihlaseni::platiStorno($aktivita->stavPrihlaseni($uzivatel)),
+            'Zatím by neměl mít důvod platit storno'
+        );
 
         $aktivita->odhlas($uzivatel, $uzivatel, 'testy');
         $aktivita = Aktivita::zId(id: 1); // reload
@@ -150,7 +154,7 @@ SQL,
 
         self::assertSame(
             $maPLatitStorno,
-            $aktivita->platiStorno($uzivatel),
+            StavPrihlaseni::platiStorno($aktivita->stavPrihlaseni($uzivatel)),
             'Očekávali jsme jiný výsledek zda má platit storno za zrušení aktivity',
         );
     }

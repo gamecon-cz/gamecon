@@ -724,8 +724,11 @@ SQL;
                 }
             } else {
                 $this->cenaAktivit += $r['cena'];
-                if (StavPrihlaseni::platiStorno((int)$r['id_stavu_prihlaseni'])) {
+                $idStavuPrihlaseni = (int)$r['id_stavu_prihlaseni'];
+                if ($idStavuPrihlaseni === StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL) {
                     $this->sumaStorna += $r['cena'];
+                } elseif ($idStavuPrihlaseni === StavPrihlaseni::POZDE_ZRUSIL) {
+                    $this->sumaStorna += ($r['cena'] / 2);
                 }
             }
 
