@@ -1,4 +1,5 @@
 nextras_migrations:
     dir: '%kernel.project_dir%/migrations' # migrations base directory
+    ignored_queries_file: "%kernel.project_dir%/migrations/ignored.sql"
     driver: mysql                          # pgsql or mysql
     dbal: doctrine                         # nextras, nette, doctrine or dibi

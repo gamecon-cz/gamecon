@@ -41,3 +41,9 @@ fix:
 	./bin-docker/docker-bash bin/ecs.sh --fix
 
 static: fix phpstan
+
+migrations-diff:
+	./bin-docker/php ./bin/console --env=test migrations:continue
+	./bin-docker/php ./bin/console --env=test migrations:create structures rename-me
+	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec echo NO CHANGES, removing empty {} \;
+	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec rm {} \;
