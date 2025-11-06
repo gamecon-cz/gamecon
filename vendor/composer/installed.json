@@ -11216,8 +11216,6 @@
         "symfony/maker-bundle",
         "symfony/polyfill-php81",
         "symfony/property-access",
-        "symfony/property-info",
-        "symfony/type-info",
         "symplify/easy-coding-standard",
         "symplify/vendor-patches",
         "theseer/tokenizer",

@@ -15,7 +15,10 @@ if (!isset($_ENV['APP_SECRET'])) {
     $_ENV['APP_SECRET'] = $_SERVER['APP_SECRET'] ?? 'fallback_secret_change_in_production';
 }
 
-$kernel = new Kernel('dev', true);
+$jsmeNaLocale = jsmeNaLocale();
+$kernel = new Kernel($jsmeNaLocale
+    ? 'dev'
+    : 'prod', $jsmeNaLocale);
 $kernel->boot();
 
 /**
@@ -24,7 +27,10 @@ $kernel->boot();
  */
 // Get router and check if current path matches any Symfony route
 $router = $kernel->getContainer()->get('router');
-$currentPath = '/' . ($stranka ?: '') . ($podstranka ? '/' . $podstranka : '');
+$currentPath = '/' . ($stranka
+        ?: '') . ($podstranka
+        ? '/' . $podstranka
+        : '');
 
 // Try to match the current path against Symfony routes
 $matcher = $router->getMatcher();

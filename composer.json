@@ -64,6 +64,7 @@
         "symfony/mailer": "^7.3",
         "symfony/mime": "^7.3",
         "symfony/process": "^7.3",
+        "symfony/property-info": "^7.3",
         "symfony/routing": "^7.3",
         "symfony/yaml": "^7.3",
         "tracy/tracy": "~2.4",
