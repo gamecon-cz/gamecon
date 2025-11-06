@@ -82,6 +82,7 @@ return array(
     'Granam\\String\\' => array($vendorDir . '/granam/string/String'),
     'Granam\\Strict\\Object\\' => array($vendorDir . '/granam/strict-object/StrictObject'),
     'Granam\\Scalar\\' => array($vendorDir . '/granam/scalar/Scalar'),
+    'Granam\\RemoveDiacritics\\' => array($vendorDir . '/granam/remove-diacritics/src'),
     'Google\\Service\\' => array($vendorDir . '/google/apiclient-services/src'),
     'Google\\Auth\\' => array($vendorDir . '/google/auth/src'),
     'Google\\' => array($vendorDir . '/google/apiclient/src'),
