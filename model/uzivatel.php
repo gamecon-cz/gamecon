@@ -557,6 +557,7 @@ SQL
     public function aktivityRyzePrihlasene(int $rok = null): array
     {
         $rok ??= $this->systemoveNastaveni->rocnik();
+
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
@@ -578,6 +579,7 @@ SQL,
     public function zapsaneAktivity(int $rok = null): array
     {
         $rok ??= $this->systemoveNastaveni->rocnik();
+
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
@@ -592,10 +594,10 @@ SQL,
     }
 
     /**
-     * @param int|null $rok
+     * @param int $rok
      * @return Aktivita[]
      */
-    public function aktivityNaKtereDorazil(int $rok = null): array
+    public function aktivityNaKtereDorazil(int $rok): array
     {
         $rok ??= $this->systemoveNastaveni->rocnik();
         $ids = dbOneArray(<<<SQL
@@ -617,10 +619,10 @@ SQL,
     }
 
     /**
-     * @param int|null $rok
+     * @param int $rok
      * @return Aktivita[]
      */
-    public function aktivityNaKtereNedorazil(int $rok = null): array
+    public function aktivityNaKtereNedorazil(int $rok): array
     {
         $rok ??= $this->systemoveNastaveni->rocnik();
         $ids = dbOneArray(<<<SQL
@@ -638,10 +640,10 @@ SQL,
     }
 
     /**
-     * @param int|null $rok
+     * @param int $rok
      * @return Aktivita[]
      */
-    public function aktivityKterePozdeZrusil(int $rok = null): array
+    public function aktivityKterePozdeZrusil(int $rok): array
     {
         $rok ??= $this->systemoveNastaveni->rocnik();
         $ids = dbOneArray(<<<SQL

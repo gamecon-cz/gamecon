@@ -107,7 +107,7 @@ SQL,
             // Dobrovolné vstupné
             $vstupneSum += $navstevnik->finance()->cenaVstupne();
 
-            $costOfFreeActivitiesForUser = $this->getCostOfFreeActivitiesForUser($navstevnik);
+            $costOfFreeActivitiesForUser = $this->getCostOfFreeActivitiesForUser($navstevnik, $rocnik);
             foreach ($costOfFreeActivitiesForUser as $costData) {
                 $code = $costData['code'];
                 $value = $costData['value'];
@@ -115,7 +115,7 @@ SQL,
                 $costOfFreeActivities[$code] += $value;
             }
 
-            $missedActivityFeesForUser = $this->getMissedActivityFeesForUser($navstevnik);
+            $missedActivityFeesForUser = $this->getMissedActivityFeesForUser($navstevnik, $rocnik);
             foreach ($missedActivityFeesForUser as $feeData) {
                 $code = $feeData['code'];
                 $value = $feeData['value'];
@@ -123,7 +123,7 @@ SQL,
                 $missedActivityFees[$code] += $value;
             }
 
-            $tooLateCanceledActivityFeesForUser = $this->getTooLateCanceledActivityFeesForUser($navstevnik);
+            $tooLateCanceledActivityFeesForUser = $this->getTooLateCanceledActivityFeesForUser($navstevnik, $rocnik);
             foreach ($tooLateCanceledActivityFeesForUser as $feeData) {
                 $code = $feeData['code'];
                 $value = $feeData['value'];
@@ -313,11 +313,11 @@ SQL,
         }
 
         foreach ($missedActivityFees as $code => $value) {
-            $data[] = [$code, '100% storno za nedoražení na', $value];
+            $data[] = [$code, '100% storno za nedoražení', $value];
         }
 
         foreach ($tooLateCanceledActivityFees as $code => $value) {
-            $data[] = [$code, '50% storno za pozdní odhlášení z', $value];
+            $data[] = [$code, '50% storno za pozdní odhlášení', $value];
         }
 
         $activities = Aktivita::zFiltru(
@@ -523,23 +523,23 @@ SQL,
      * @param Uzivatel $navstevnik
      * @return array<int, array{code: string, value: float}>
      */
-    private function getCostOfFreeActivitiesForUser(Uzivatel $navstevnik): array
-    {
-        /**
-         * Poznámka: právo @see Pravo::CASTECNA_SLEVA_NA_AKTIVITY už nepoužíváme
-         */
-        if (!$navstevnik->maPravo(Pravo::AKTIVITY_ZDARMA)) {
+    private function getCostOfFreeActivitiesForUser(
+        Uzivatel $navstevnik,
+        int      $rocnik,
+    ): array {
+        $koeficientSlevyUcastnika = $navstevnik->finance()->slevaAktivity();
+        if ($koeficientSlevyUcastnika === 0.0) {
+            // účastník nemá žádnou slevu na aktivity
             return [];
         }
         $costOfFreeActivities = [];
-        $rocnik = $this->systemoveNastaveni->rocnik();
         foreach ($navstevnik->aktivityNaKtereDorazil($rocnik) as $aktivita) {
             if ($aktivita->bezSlevy()) {
                 continue;
             }
             $costOfFreeActivities[] = [
                 'code'  => 'Nr-Zdarma-' . $this->getActivityGroupCode($aktivita),
-                'value' => $aktivita->cenaZaklad(),
+                'value' => $aktivita->cenaZaklad() - ($aktivita->cenaZaklad() * $koeficientSlevyUcastnika),
             ];
         }
 
@@ -551,20 +551,18 @@ SQL,
      * @param Uzivatel $navstevnik
      * @return array<int, array{code: string, value: float}>
      */
-    private function getMissedActivityFeesForUser(Uzivatel $navstevnik): array
-    {
+    private function getMissedActivityFeesForUser(
+        Uzivatel $navstevnik,
+        int      $rocnik,
+    ): array {
+        $koeficientSlevyUcastnika = $navstevnik->finance()->slevaAktivity();
         $missedActivityFees = [];
-        $rocnik = $this->systemoveNastaveni->rocnik();
         foreach ($navstevnik->aktivityNaKtereNedorazil($rocnik) as $aktivita) {
-            /**
-             * Poznámka: právo @see Pravo::CASTECNA_SLEVA_NA_AKTIVITY už nepoužíváme
-             */
-            if (!$aktivita->bezSlevy() && $navstevnik->maPravo(Pravo::AKTIVITY_ZDARMA)) {
-                continue;
-            }
             $missedActivityFees[] = [
                 'code'  => 'Vr-Storna-100-' . $this->getActivityGroupCode($aktivita),
-                'value' => $aktivita->cenaZaklad(),
+                'value' => $aktivita->bezSlevy()
+                    ? $aktivita->cenaZaklad()
+                    : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika,
             ];
         }
 
@@ -574,22 +572,21 @@ SQL,
     /**
      * Získá data o storno poplatcích za aktivity na které daný uživatel nedorazil
      * @param Uzivatel $navstevnik
+     * @param int $rocnik
      * @return array<int, array{code: string, value: float}>
      */
-    private function getTooLateCanceledActivityFeesForUser(Uzivatel $navstevnik): array
-    {
+    private function getTooLateCanceledActivityFeesForUser(
+        Uzivatel $navstevnik,
+        int      $rocnik,
+    ): array {
+        $koeficientSlevyUcastnika = $navstevnik->finance()->slevaAktivity();
         $tooLateCanceledActivityFees = [];
-        $rocnik = $this->systemoveNastaveni->rocnik();
         foreach ($navstevnik->aktivityKterePozdeZrusil($rocnik) as $aktivita) {
-            /**
-             * Poznámka: právo @see Pravo::CASTECNA_SLEVA_NA_AKTIVITY už nepoužíváme
-             */
-            if (!$aktivita->bezSlevy() && $navstevnik->maPravo(Pravo::AKTIVITY_ZDARMA)) {
-                continue;
-            }
             $tooLateCanceledActivityFees[] = [
                 'code'  => 'Vr-Storna-50-' . $this->getActivityGroupCode($aktivita),
-                'value' => $aktivita->cenaZaklad(),
+                'value' => $aktivita->bezSlevy()
+                    ? $aktivita->cenaZaklad()
+                    : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika,
             ];
         }
 
