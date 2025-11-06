@@ -35,7 +35,7 @@
         "dg/mysql-dump": "^1.5",
         "doctrine/dbal": "^3.7",
         "doctrine/doctrine-bundle": "^2.11",
-        "doctrine/orm": "^2.17",
+        "doctrine/orm": "^3.0",
         "egulias/email-validator": "^4.0",
         "endroid/qr-code": "^4.2",
         "firebase/php-jwt": "^6.11",
