@@ -584,9 +584,9 @@ SQL,
         foreach ($navstevnik->aktivityKterePozdeZrusil($rocnik) as $aktivita) {
             $tooLateCanceledActivityFees[] = [
                 'code'  => 'Vr-Storna-50-' . $this->getActivityGroupCode($aktivita),
-                'value' => $aktivita->bezSlevy()
+                'value' => ($aktivita->bezSlevy()
                     ? $aktivita->cenaZaklad()
-                    : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika,
+                    : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika) / 2,
             ];
         }
 
