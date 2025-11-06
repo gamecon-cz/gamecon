@@ -18,9 +18,6 @@ jobs:
             -   name: Build and start containers
                 run: docker compose up --build --detach
 
-            -   name: Fix git safe directory issue
-                run: docker compose exec --no-TTY web git config --global --add safe.directory "$(pwd)"
-
             -   name: Run tests in container
                 run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
 
@@ -30,6 +27,11 @@ jobs:
                 with:
                     name: php-test-logs
                     path: ./tests/logs
+
+            -   name: Fix Composer git safe directory issue
+                run: |
+                    dir=$(docker compose exec -T web pwd)
+                    docker compose exec -T web git config --global --add safe.directory "$dir"
 
             -   name: Composer libraries without dev
                 run: docker compose exec --no-TTY web composer install --no-dev --optimize-autoloader
