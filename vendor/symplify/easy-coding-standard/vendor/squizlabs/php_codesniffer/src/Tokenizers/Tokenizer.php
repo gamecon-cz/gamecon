@@ -248,13 +248,13 @@ abstract class Tokenizer
                         // If the @phpcs: syntax is being used, strip the @ to make
                         // comparisons easier.
                         if ($commentText[0] === '@') {
-                            $commentText = \substr($commentText, 1);
+                            $commentText = (string) \substr($commentText, 1);
                             $commentTextLower = \strtolower($commentText);
                         }
                         // If there is a comment on the end, strip it off.
                         $commentStart = \strpos($commentTextLower, ' --');
                         if ($commentStart !== \false) {
-                            $commentText = \substr($commentText, 0, $commentStart);
+                            $commentText = (string) \substr($commentText, 0, $commentStart);
                             $commentTextLower = \strtolower($commentText);
                         }
                         // If this comment is the only thing on the line, it tells us
@@ -311,7 +311,7 @@ abstract class Tokenizer
                                 $this->ignoredLines[$this->tokens[$i]['line']] = ['.all' => \true];
                             }
                             // Need to maintain case here, to get the correct sniff code.
-                            $parts = \explode(' ', \substr($commentText, 10));
+                            $parts = \explode(' ', (string) \substr($commentText, 10));
                             if (\count($parts) >= 2) {
                                 $sniffParts = \explode('.', $parts[0]);
                                 if (\count($sniffParts) >= 3) {
@@ -337,7 +337,7 @@ abstract class Tokenizer
                                         $ignoring = [];
                                     }
                                     $disabledSniffs = [];
-                                    $additionalText = \substr($commentText, 14);
+                                    $additionalText = (string) \substr($commentText, 14);
                                     if (empty($additionalText) === \true) {
                                         $ignoring = ['.all' => \true];
                                     } else {
@@ -369,7 +369,7 @@ abstract class Tokenizer
                                     if (\substr($commentTextLower, 0, 12) === 'phpcs:enable') {
                                         if ($ignoring !== null) {
                                             $enabledSniffs = [];
-                                            $additionalText = \substr($commentText, 13);
+                                            $additionalText = (string) \substr($commentText, 13);
                                             if (empty($additionalText) === \true) {
                                                 $ignoring = null;
                                             } else {
@@ -423,7 +423,7 @@ abstract class Tokenizer
                                     } else {
                                         if (\substr($commentTextLower, 0, 12) === 'phpcs:ignore') {
                                             $ignoreRules = [];
-                                            $additionalText = \substr($commentText, 13);
+                                            $additionalText = (string) \substr($commentText, 13);
                                             if (empty($additionalText) === \true) {
                                                 $ignoreRules = ['.all' => \true];
                                             } else {

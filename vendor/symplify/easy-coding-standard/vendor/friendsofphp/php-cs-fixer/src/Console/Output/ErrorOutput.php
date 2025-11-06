@@ -15,9 +15,9 @@ namespace PhpCsFixer\Console\Output;
 use PhpCsFixer\Differ\DiffConsoleFormatter;
 use PhpCsFixer\Error\Error;
 use PhpCsFixer\Linter\LintingException;
-use ECSPrefix202509\Symfony\Component\Console\Command\Command;
-use ECSPrefix202509\Symfony\Component\Console\Formatter\OutputFormatter;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Command\Command;
+use ECSPrefix202510\Symfony\Component\Console\Formatter\OutputFormatter;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
 /**
  * @readonly
  *
@@ -99,7 +99,7 @@ final class ErrorOutput
      *     file?: string,
      *     class?: class-string,
      *     type?: '->'|'::',
-     *     args?: mixed[],
+     *     args?: list<mixed>,
      *     object?: object,
      * } $trace
      */
@@ -111,7 +111,7 @@ final class ErrorOutput
             $this->output->writeln(\sprintf('      <comment>%s()</comment>', $this->prepareOutput($trace['function'])));
         }
         if (isset($trace['file'])) {
-            $this->output->writeln(\sprintf('        in <info>%s</info> at line <info>%d</info>', $this->prepareOutput($trace['file']), $trace['line']));
+            $this->output->writeln(\sprintf('        in <info>%s</info>', $this->prepareOutput($trace['file'])) . (isset($trace['line']) ? \sprintf(' at line <info>%d</info>', $trace['line']) : ' at unknown line'));
         }
     }
     private function prepareOutput(string $string) : string

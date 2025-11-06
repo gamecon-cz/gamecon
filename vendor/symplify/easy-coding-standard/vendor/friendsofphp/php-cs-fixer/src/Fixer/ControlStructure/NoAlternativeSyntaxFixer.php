@@ -21,6 +21,7 @@ use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
+use PhpCsFixer\Future;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 /**
@@ -60,7 +61,7 @@ final class NoAlternativeSyntaxFixer extends AbstractFixer implements Configurab
     }
     protected function createConfigurationDefinition() : FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([(new FixerOptionBuilder('fix_non_monolithic_code', 'Whether to also fix code with inline HTML.'))->setAllowedTypes(['bool'])->setDefault(\true)->getOption()]);
+        return new FixerConfigurationResolver([(new FixerOptionBuilder('fix_non_monolithic_code', 'Whether to also fix code with inline HTML.'))->setAllowedTypes(['bool'])->setDefault(Future::getV4OrV3(\false, \true))->getOption()]);
     }
     protected function applyFix(\SplFileInfo $file, Tokens $tokens) : void
     {

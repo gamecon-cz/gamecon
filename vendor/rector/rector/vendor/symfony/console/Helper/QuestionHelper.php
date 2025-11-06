@@ -8,22 +8,22 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Console\Helper;
+namespace RectorPrefix202510\Symfony\Component\Console\Helper;
 
-use RectorPrefix202509\Symfony\Component\Console\Cursor;
-use RectorPrefix202509\Symfony\Component\Console\Exception\MissingInputException;
-use RectorPrefix202509\Symfony\Component\Console\Exception\RuntimeException;
-use RectorPrefix202509\Symfony\Component\Console\Formatter\OutputFormatter;
-use RectorPrefix202509\Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use RectorPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202509\Symfony\Component\Console\Input\StreamableInputInterface;
-use RectorPrefix202509\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use RectorPrefix202509\Symfony\Component\Console\Output\ConsoleSectionOutput;
-use RectorPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202509\Symfony\Component\Console\Question\ChoiceQuestion;
-use RectorPrefix202509\Symfony\Component\Console\Question\Question;
-use RectorPrefix202509\Symfony\Component\Console\Terminal;
-use function RectorPrefix202509\Symfony\Component\String\s;
+use RectorPrefix202510\Symfony\Component\Console\Cursor;
+use RectorPrefix202510\Symfony\Component\Console\Exception\MissingInputException;
+use RectorPrefix202510\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202510\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202510\Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use RectorPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202510\Symfony\Component\Console\Input\StreamableInputInterface;
+use RectorPrefix202510\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use RectorPrefix202510\Symfony\Component\Console\Output\ConsoleSectionOutput;
+use RectorPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202510\Symfony\Component\Console\Question\ChoiceQuestion;
+use RectorPrefix202510\Symfony\Component\Console\Question\Question;
+use RectorPrefix202510\Symfony\Component\Console\Terminal;
+use function RectorPrefix202510\Symfony\Component\String\s;
 /**
  * The QuestionHelper class provides helpers to interact with the user.
  *
@@ -215,24 +215,19 @@ class QuestionHelper extends Helper
         $ofs = -1;
         $matches = $autocomplete($ret);
         $numMatches = \count($matches);
-        $sttyMode = shell_exec('stty -g');
-        $isStdin = 'php://stdin' === (stream_get_meta_data($inputStream)['uri'] ?? null);
-        $r = [$inputStream];
-        $w = [];
+        $inputHelper = new TerminalInputHelper($inputStream);
         // Disable icanon (so we can fread each keypress) and echo (we'll do echoing here instead)
         shell_exec('stty -icanon -echo');
         // Add highlighted text style
         $output->getFormatter()->setStyle('hl', new OutputFormatterStyle('black', 'white'));
         // Read a keypress
         while (!feof($inputStream)) {
-            while ($isStdin && 0 === @stream_select($r, $w, $w, 0, 100)) {
-                // Give signal handlers a chance to run
-                $r = [$inputStream];
-            }
+            $inputHelper->waitForInput();
             $c = fread($inputStream, 1);
             // as opposed to fgets(), fread() returns an empty string when the stream content is empty, not false.
             if (\false === $c || '' === $ret && '' === $c && null === $question->getDefault()) {
-                shell_exec('stty ' . $sttyMode);
+                // Restore the terminal so it behaves normally again
+                $inputHelper->finish();
                 throw new MissingInputException('Aborted.');
             } elseif ("" === $c) {
                 // Backspace Character
@@ -264,12 +259,12 @@ class QuestionHelper extends Helper
                     $ofs += 'A' === $c[2] ? -1 : 1;
                     $ofs = ($numMatches + $ofs) % $numMatches;
                 }
-            } elseif (\ord($c) < 32) {
+            } elseif ('' === $c || \ord($c) < 32) {
                 if ("\t" === $c || "\n" === $c) {
                     if ($numMatches > 0 && -1 !== $ofs) {
                         $ret = (string) $matches[$ofs];
                         // Echo out remaining chars for current match
-                        $remainingCharacters = substr($ret, \strlen(trim($this->mostRecentlyEnteredValue($fullChoice))));
+                        $remainingCharacters = (string) substr($ret, \strlen(trim($this->mostRecentlyEnteredValue($fullChoice))));
                         $output->write($remainingCharacters);
                         $fullChoice .= $remainingCharacters;
                         $i = \false === ($encoding = mb_detect_encoding($fullChoice, null, \true)) ? \strlen($fullChoice) : mb_strlen($fullChoice, $encoding);
@@ -310,12 +305,12 @@ class QuestionHelper extends Helper
                 $cursor->savePosition();
                 // Write highlighted text, complete the partially entered response
                 $charactersEntered = \strlen(trim($this->mostRecentlyEnteredValue($fullChoice)));
-                $output->write('<hl>' . OutputFormatter::escapeTrailingBackslash(substr($matches[$ofs], $charactersEntered)) . '</hl>');
+                $output->write('<hl>' . OutputFormatter::escapeTrailingBackslash((string) substr($matches[$ofs], $charactersEntered)) . '</hl>');
                 $cursor->restorePosition();
             }
         }
-        // Reset stty so it behaves normally again
-        shell_exec('stty ' . $sttyMode);
+        // Restore the terminal so it behaves normally again
+        $inputHelper->finish();
         return $fullChoice;
     }
     private function mostRecentlyEnteredValue(string $entered): string
@@ -356,20 +351,21 @@ class QuestionHelper extends Helper
             }
             return $value;
         }
+        $inputHelper = null;
         if (self::$stty && Terminal::hasSttyAvailable()) {
-            $sttyMode = shell_exec('stty -g');
+            $inputHelper = new TerminalInputHelper($inputStream);
             shell_exec('stty -echo');
         } elseif ($this->isInteractiveInput($inputStream)) {
             throw new RuntimeException('Unable to hide the response.');
         }
+        ($nullsafeVariable1 = $inputHelper) ? $nullsafeVariable1->waitForInput() : null;
         $value = fgets($inputStream, 4096);
         if (4095 === \strlen($value)) {
             $errOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
             $errOutput->warning('The value was possibly truncated by your shell or terminal emulator');
         }
-        if (self::$stty && Terminal::hasSttyAvailable()) {
-            shell_exec('stty ' . $sttyMode);
-        }
+        // Restore the terminal so it behaves normally again
+        ($nullsafeVariable2 = $inputHelper) ? $nullsafeVariable2->finish() : null;
         if (\false === $value) {
             throw new MissingInputException('Aborted.');
         }

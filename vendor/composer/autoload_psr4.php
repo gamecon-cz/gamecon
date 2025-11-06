@@ -14,6 +14,7 @@ return array(
     'Zenstruck\\Foundry\\Psalm\\' => array($vendorDir . '/zenstruck/foundry/utils/psalm'),
     'Zenstruck\\Foundry\\' => array($vendorDir . '/zenstruck/foundry/src'),
     'Zenstruck\\' => array($vendorDir . '/zenstruck/assert/src'),
+    'Tracy\\' => array($vendorDir . '/tracy/tracy/src'),
     'Symfony\\Polyfill\\Php84\\' => array($vendorDir . '/symfony/polyfill-php84'),
     'Symfony\\Polyfill\\Php83\\' => array($vendorDir . '/symfony/polyfill-php83'),
     'Symfony\\Polyfill\\Php81\\' => array($vendorDir . '/symfony/polyfill-php81'),

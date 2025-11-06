@@ -32,17 +32,17 @@ final class RegularCallableCallFixer extends AbstractFixer
         return new FixerDefinition('Callables must be called without using `call_user_func*` when possible.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 \call_user_func("var_dump", 1, 2);
-\call_user_func("ECSPrefix202509\\Bar\\Baz::d", 1, 2);
+\call_user_func("ECSPrefix202510\\Bar\\Baz::d", 1, 2);
 \call_user_func_array($callback, [1, 2]);
 
 PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 \call_user_func(function ($a, $b) {
     \var_dump($a, $b);
@@ -193,7 +193,7 @@ PHP
         if (\strlen($name) < 3 || 'b' === $name[0] || 'B' === $name[0]) {
             return \false;
         }
-        $name = \substr($name, 1, -1);
+        $name = (string) \substr($name, 1, -1);
         if ($name !== \trim($name)) {
             return \false;
         }

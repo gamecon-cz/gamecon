@@ -26,14 +26,14 @@ use PhpCsFixer\Future;
 use PhpCsFixer\PharChecker;
 use PhpCsFixer\Runner\Parallel\WorkerException;
 use PhpCsFixer\ToolInfo;
-use ECSPrefix202509\Symfony\Component\Console\Application as BaseApplication;
-use ECSPrefix202509\Symfony\Component\Console\Command\Command;
-use ECSPrefix202509\Symfony\Component\Console\Command\CompleteCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\DumpCompletionCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\ListCommand;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Application as BaseApplication;
+use ECSPrefix202510\Symfony\Component\Console\Command\Command;
+use ECSPrefix202510\Symfony\Component\Console\Command\CompleteCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\DumpCompletionCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\ListCommand;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
@@ -45,8 +45,8 @@ use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
 final class Application extends BaseApplication
 {
     public const NAME = 'PHP CS Fixer';
-    public const VERSION = '3.87.2';
-    public const VERSION_CODENAME = 'Alexander';
+    public const VERSION = '3.89.1';
+    public const VERSION_CODENAME = 'Folding Bike';
     /**
      * @readonly
      * @var \PhpCsFixer\ToolInfo
@@ -89,6 +89,7 @@ final class Application extends BaseApplication
             $warningsDetector = new \PhpCsFixer\Console\WarningsDetector($this->toolInfo);
             $warningsDetector->detectOldVendor();
             $warningsDetector->detectOldMajor();
+            $warningsDetector->detectHigherPhpVersion();
             $warningsDetector->detectNonMonolithic();
             $warnings = $warningsDetector->getWarnings();
             if (\count($warnings) > 0) {

@@ -8,14 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Console\Tester;
+namespace ECSPrefix202510\Symfony\Component\Console\Tester;
 
-use ECSPrefix202509\PHPUnit\Framework\Assert;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\ConsoleOutput;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\StreamOutput;
-use ECSPrefix202509\Symfony\Component\Console\Tester\Constraint\CommandIsSuccessful;
+use ECSPrefix202510\PHPUnit\Framework\Assert;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\ConsoleOutput;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\StreamOutput;
+use ECSPrefix202510\Symfony\Component\Console\Tester\Constraint\CommandIsSuccessful;
 /**
  * @author Amrouche Hamza <hamza.simperfit@gmail.com>
  */
@@ -159,9 +159,9 @@ trait TesterTrait
     {
         $stream = \fopen('php://memory', 'r+', \false);
         foreach ($inputs as $input) {
-            \fwrite($stream, $input . \PHP_EOL);
-            if (\strpos($input, \PHP_EOL) !== \false) {
-                \fwrite($stream, "\x04");
+            \fwrite($stream, $input);
+            if (\substr_compare($input, "\x04", -\strlen("\x04")) !== 0) {
+                \fwrite($stream, \PHP_EOL);
             }
         }
         \rewind($stream);

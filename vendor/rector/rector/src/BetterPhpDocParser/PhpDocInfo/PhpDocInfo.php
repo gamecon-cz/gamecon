@@ -374,9 +374,21 @@ final class PhpDocInfo
         $genericTagValueNodes = $this->phpDocNodeByTypeFinder->findByType($this->phpDocNode, GenericTagValueNode::class);
         $resolvedClasses = [];
         foreach ($genericTagValueNodes as $genericTagValueNode) {
-            if ($genericTagValueNode->value !== '') {
-                $resolvedClasses[] = $genericTagValueNode->value;
+            if ($genericTagValueNode->value === '') {
+                continue;
             }
+            // add default original value
+            $resolvedClasses[] = $genericTagValueNode->value;
+            if (strpos($genericTagValueNode->value, '::') === \false) {
+                continue;
+            }
+            // add resolved class name if any
+            $resolvedClass = $genericTagValueNode->getAttribute(PhpDocAttributeKey::RESOLVED_CLASS);
+            if ($resolvedClass === null) {
+                $resolvedClasses[] = $genericTagValueNode->value;
+                continue;
+            }
+            $resolvedClasses[] = $resolvedClass;
         }
         return $resolvedClasses;
     }

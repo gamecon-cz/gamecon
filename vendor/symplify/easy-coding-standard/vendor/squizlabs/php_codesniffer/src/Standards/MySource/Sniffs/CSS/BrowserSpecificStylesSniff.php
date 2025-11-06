@@ -57,7 +57,7 @@ class BrowserSpecificStylesSniff implements Sniff, DeprecatedSniff
         $filename = $phpcsFile->getFilename();
         $breakChar = \strrpos($filename, '_');
         if ($breakChar !== \false && \substr($filename, -4) === '.css') {
-            $specific = \substr($filename, $breakChar + 1, -4);
+            $specific = (string) \substr($filename, $breakChar + 1, -4);
             if (isset($this->specificStylesheets[$specific]) === \true) {
                 return;
             }

@@ -12,7 +12,7 @@ declare (strict_types=1);
  */
 namespace PhpCsFixer\Console\Report\FixReport;
 
-use ECSPrefix202509\Symfony\Component\Finder\Finder as SymfonyFinder;
+use ECSPrefix202510\Symfony\Component\Finder\Finder as SymfonyFinder;
 /**
  * @author Boris Gorbylev <ekho@ekho.name>
  *
@@ -26,13 +26,15 @@ final class ReporterFactory
     private $reporters = [];
     public function registerBuiltInReporters() : self
     {
-        /** @var null|list<string> $builtInReporters */
+        /** @var null|list<class-string<ReporterInterface>> $builtInReporters */
         static $builtInReporters;
         if (null === $builtInReporters) {
             $builtInReporters = [];
             foreach (SymfonyFinder::create()->files()->name('*Reporter.php')->in(__DIR__) as $file) {
                 $relativeNamespace = $file->getRelativePath();
-                $builtInReporters[] = \sprintf('%s\\%s%s', __NAMESPACE__, '' !== $relativeNamespace ? $relativeNamespace . '\\' : '', $file->getBasename('.php'));
+                /** @var class-string<ReporterInterface> $class */
+                $class = \sprintf('%s\\%s%s', __NAMESPACE__, '' !== $relativeNamespace ? $relativeNamespace . '\\' : '', $file->getBasename('.php'));
+                $builtInReporters[] = $class;
             }
         }
         foreach ($builtInReporters as $reporterClass) {

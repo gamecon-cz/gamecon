@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doctrine\Bundle\DoctrineBundle\Middleware;
 
 use Symfony\Bridge\Doctrine\Middleware\Debug\DebugDataHolder;

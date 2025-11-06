@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Console\Completion;
+namespace ECSPrefix202510\Symfony\Component\Console\Completion;
 
-use ECSPrefix202509\Symfony\Component\Console\Exception\RuntimeException;
-use ECSPrefix202509\Symfony\Component\Console\Input\ArgvInput;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputDefinition;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputOption;
+use ECSPrefix202510\Symfony\Component\Console\Exception\RuntimeException;
+use ECSPrefix202510\Symfony\Component\Console\Input\ArgvInput;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputDefinition;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputOption;
 /**
  * An input specialized for shell completion.
  *
@@ -87,7 +87,7 @@ final class CompletionInput extends ArgvInput
             if (($nullsafeVariable1 = $option) ? $nullsafeVariable1->acceptValue() : null) {
                 $this->completionType = self::TYPE_OPTION_VALUE;
                 $this->completionName = $option->getName();
-                $this->completionValue = $optionValue ?: (\strncmp($optionToken, '--', \strlen('--')) !== 0 ? \substr($optionToken, 2) : '');
+                $this->completionValue = $optionValue ?: (\strncmp($optionToken, '--', \strlen('--')) !== 0 ? (string) \substr($optionToken, 2) : '');
                 return;
             }
         }

@@ -1,12 +1,12 @@
 <?php
 
 declare (strict_types=1);
-namespace ECSPrefix202509\Symplify\EasyParallel\Reflection;
+namespace ECSPrefix202510\Symplify\EasyParallel\Reflection;
 
 use ReflectionClass;
 use ReflectionMethod;
-use ECSPrefix202509\Symfony\Component\Console\Command\Command;
-use ECSPrefix202509\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
+use ECSPrefix202510\Symfony\Component\Console\Command\Command;
+use ECSPrefix202510\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
 /**
  * @api
  */

@@ -8,13 +8,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Contracts\Service\Test;
+namespace ECSPrefix202510\Symfony\Contracts\Service\Test;
 
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
-use ECSPrefix202509\Psr\Container\ContainerExceptionInterface;
-use ECSPrefix202509\Psr\Container\ContainerInterface;
-use ECSPrefix202509\Psr\Container\NotFoundExceptionInterface;
-use ECSPrefix202509\Symfony\Contracts\Service\ServiceLocatorTrait;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\Psr\Container\ContainerExceptionInterface;
+use ECSPrefix202510\Psr\Container\ContainerInterface;
+use ECSPrefix202510\Psr\Container\NotFoundExceptionInterface;
+use ECSPrefix202510\Symfony\Contracts\Service\ServiceLocatorTrait;
 abstract class ServiceLocatorTestCase extends TestCase
 {
     /**

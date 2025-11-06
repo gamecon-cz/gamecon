@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Process\Pipes;
+namespace RectorPrefix202510\Symfony\Component\Process\Pipes;
 
-use RectorPrefix202509\Symfony\Component\Process\Exception\RuntimeException;
-use RectorPrefix202509\Symfony\Component\Process\Process;
+use RectorPrefix202510\Symfony\Component\Process\Exception\RuntimeException;
+use RectorPrefix202510\Symfony\Component\Process\Process;
 /**
  * WindowsPipes implementation uses temporary files as handles.
  *
@@ -79,11 +79,11 @@ class WindowsPipes extends AbstractPipes
         }
         parent::__construct($input);
     }
-    public function __sleep(): array
+    public function __serialize(): array
     {
         throw new \BadMethodCallException('Cannot serialize ' . __CLASS__);
     }
-    public function __wakeup(): void
+    public function __unserialize(array $data): void
     {
         throw new \BadMethodCallException('Cannot unserialize ' . __CLASS__);
     }

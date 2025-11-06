@@ -55,7 +55,7 @@ final class NoAliasFunctionsFixer extends AbstractFixer implements ConfigurableF
         return new FixerDefinition('Master functions shall be used instead of aliases.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $a = \chop($b);
 close($b);
@@ -83,7 +83,7 @@ PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $a = \is_double($b);
 \mbereg_search_getregs();

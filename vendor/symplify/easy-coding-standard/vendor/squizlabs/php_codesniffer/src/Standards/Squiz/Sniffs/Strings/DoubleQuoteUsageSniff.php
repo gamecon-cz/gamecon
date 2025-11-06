@@ -84,7 +84,7 @@ class DoubleQuoteUsageSniff implements Sniff
         $fix = $phpcsFile->addFixableError($error, $stackPtr, 'NotRequired', $data);
         if ($fix === \true) {
             $phpcsFile->fixer->beginChangeset();
-            $innerContent = \substr($workingString, 1, -1);
+            $innerContent = (string) \substr($workingString, 1, -1);
             $innerContent = \str_replace('\\"', '"', $innerContent);
             $innerContent = \str_replace('\\$', '$', $innerContent);
             $phpcsFile->fixer->replaceToken($stackPtr, "'{$innerContent}'");

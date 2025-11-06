@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Console\Helper;
+namespace ECSPrefix202510\Symfony\Component\Console\Helper;
 
-use ECSPrefix202509\Symfony\Component\Console\Formatter\OutputFormatterInterface;
-use ECSPrefix202509\Symfony\Component\String\UnicodeString;
+use ECSPrefix202510\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use ECSPrefix202510\Symfony\Component\String\UnicodeString;
 /**
  * Helper is the base class for all helper classes.
  *
@@ -75,7 +75,7 @@ abstract class Helper implements HelperInterface
             return (new UnicodeString($string))->slice($from, $length);
         }
         if (\false === ($encoding = \mb_detect_encoding($string, null, \true))) {
-            return \substr($string, $from, $length);
+            return (string) \substr($string, $from, $length);
         }
         return \mb_substr($string, $from, $length, $encoding);
     }

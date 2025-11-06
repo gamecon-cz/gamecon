@@ -71,10 +71,10 @@ final class FopenFlagsFixer extends AbstractFopenFlagFixer implements Configurab
             $binPrefix = $contentQuote;
             $contentQuote = $content[1];
             // `'` or `"`
-            $mode = \substr($content, 2, -1);
+            $mode = (string) \substr($content, 2, -1);
         } else {
             $binPrefix = '';
-            $mode = \substr($content, 1, -1);
+            $mode = (string) \substr($content, 1, -1);
         }
         if (\false === $this->isValidModeString($mode)) {
             return;

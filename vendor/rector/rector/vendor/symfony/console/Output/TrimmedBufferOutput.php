@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Console\Output;
+namespace RectorPrefix202510\Symfony\Component\Console\Output;
 
-use RectorPrefix202509\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202509\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use RectorPrefix202510\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202510\Symfony\Component\Console\Formatter\OutputFormatterInterface;
 /**
  * A BufferedOutput that keeps only the last N chars.
  *
@@ -47,6 +47,6 @@ class TrimmedBufferOutput extends Output
         if ($newline) {
             $this->buffer .= \PHP_EOL;
         }
-        $this->buffer = substr($this->buffer, 0 - $this->maxLength);
+        $this->buffer = (string) substr($this->buffer, 0 - $this->maxLength);
     }
 }

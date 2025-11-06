@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the zenstruck/foundry package.
+ *
+ * (c) Kevin Bond <kevinbond@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Zenstruck\Foundry\Maker\Factory\DoctrineScalarFieldsDefaultPropertiesGuesser;
@@ -16,11 +25,11 @@ use Zenstruck\Foundry\Maker\MakeStory;
 use Zenstruck\Foundry\Maker\NamespaceGuesser;
 use Zenstruck\Foundry\ORM\DoctrineOrmVersionGuesser;
 
-return static function (ContainerConfigurator $container): void {
+return static function(ContainerConfigurator $container): void {
     $container->services()
         ->set('.zenstruck_foundry.maker.story', MakeStory::class)
             ->args([
-                service('.zenstruck_foundry.maker.namespace_guesser')
+                service('.zenstruck_foundry.maker.namespace_guesser'),
             ])
             ->tag('maker.command')
 
@@ -80,7 +89,7 @@ return static function (ContainerConfigurator $container): void {
 
         ->set('.zenstruck_foundry.maker.factory.autoCompleter', NoPersistenceObjectsAutoCompleter::class)
             ->args([
-                param('kernel.project_dir')
+                param('kernel.project_dir'),
             ])
 
         ->set('.zenstruck_foundry.maker.factory.candidate_classes_extractor', FactoryCandidatesClassesExtractor::class)

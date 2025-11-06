@@ -91,7 +91,7 @@ final class DocLexer
     {
         $type = self::T_NONE;
         if ('"' === $value[0]) {
-            $value = \str_replace('""', '"', \substr($value, 1, \strlen($value) - 2));
+            $value = \str_replace('""', '"', (string) \substr($value, 1, \strlen($value) - 2));
             return self::T_STRING;
         }
         if (isset($this->noCase[$value])) {

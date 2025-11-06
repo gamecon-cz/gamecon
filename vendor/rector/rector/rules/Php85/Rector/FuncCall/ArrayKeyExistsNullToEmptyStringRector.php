@@ -4,15 +4,14 @@ declare (strict_types=1);
 namespace Rector\Php85\Rector\FuncCall;
 
 use PhpParser\Node;
-use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\FuncCall;
-use PhpParser\Node\Identifier;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\FunctionReflection;
+use Rector\NodeAnalyzer\ArgsAnalyzer;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\NodeTypeResolver\PHPStan\ParametersAcceptorSelectorVariantsWrapper;
-use Rector\Php81\NodeManipulator\NullToStrictStringConverter;
+use Rector\Php81\NodeManipulator\NullToStrictStringIntConverter;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
 use Rector\ValueObject\PhpVersionFeature;
@@ -32,11 +31,16 @@ final class ArrayKeyExistsNullToEmptyStringRector extends AbstractRector impleme
     /**
      * @readonly
      */
-    private NullToStrictStringConverter $nullToStrictStringConverter;
-    public function __construct(ReflectionResolver $reflectionResolver, NullToStrictStringConverter $nullToStrictStringConverter)
+    private NullToStrictStringIntConverter $nullToStrictStringIntConverter;
+    /**
+     * @readonly
+     */
+    private ArgsAnalyzer $argsAnalyzer;
+    public function __construct(ReflectionResolver $reflectionResolver, NullToStrictStringIntConverter $nullToStrictStringIntConverter, ArgsAnalyzer $argsAnalyzer)
     {
         $this->reflectionResolver = $reflectionResolver;
-        $this->nullToStrictStringConverter = $nullToStrictStringConverter;
+        $this->nullToStrictStringIntConverter = $nullToStrictStringIntConverter;
+        $this->argsAnalyzer = $argsAnalyzer;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -78,7 +82,7 @@ CODE_SAMPLE
             return null;
         }
         $parametersAcceptor = ParametersAcceptorSelectorVariantsWrapper::select($functionReflection, $node, $scope);
-        $result = $this->nullToStrictStringConverter->convertIfNull($node, $args, $this->resolvePosition($args), $isTrait, $scope, $parametersAcceptor);
+        $result = $this->nullToStrictStringIntConverter->convertIfNull($node, $args, $this->argsAnalyzer->resolveArgPosition($args, 'key', 0), $isTrait, $scope, $parametersAcceptor);
         if ($result instanceof Node) {
             return $result;
         }
@@ -87,17 +91,5 @@ CODE_SAMPLE
     public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::DEPRECATE_NULL_ARG_IN_ARRAY_KEY_EXISTS_FUNCTION;
-    }
-    /**
-     * @param Arg[] $args
-     */
-    private function resolvePosition(array $args): int
-    {
-        foreach ($args as $position => $arg) {
-            if ($arg->name instanceof Identifier && $arg->name->toString() === 'key') {
-                return $position;
-            }
-        }
-        return 0;
     }
 }

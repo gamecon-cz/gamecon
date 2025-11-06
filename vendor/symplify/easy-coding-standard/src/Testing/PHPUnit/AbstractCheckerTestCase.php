@@ -4,13 +4,13 @@ declare (strict_types=1);
 namespace Symplify\EasyCodingStandard\Testing\PHPUnit;
 
 use Iterator;
-use ECSPrefix202509\Nette\Utils\FileSystem;
-use ECSPrefix202509\Nette\Utils\Strings;
+use ECSPrefix202510\Nette\Utils\FileSystem;
+use ECSPrefix202510\Nette\Utils\Strings;
 use Symplify\EasyCodingStandard\Exception\ShouldNotHappenException;
 use Symplify\EasyCodingStandard\FixerRunner\Application\FixerFileProcessor;
 use Symplify\EasyCodingStandard\SniffRunner\Application\SniffFileProcessor;
 use Symplify\EasyCodingStandard\Testing\Contract\ConfigAwareInterface;
-use ECSPrefix202509\Webmozart\Assert\Assert;
+use ECSPrefix202510\Webmozart\Assert\Assert;
 // needed for scoped version to load unprefixed classes; does not have any effect inside the class
 $scoperAutoloadFilepath = __DIR__ . '/../../../vendor/scoper-autoload.php';
 if (\file_exists($scoperAutoloadFilepath)) {

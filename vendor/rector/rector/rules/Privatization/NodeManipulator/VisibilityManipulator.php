@@ -10,7 +10,7 @@ use PhpParser\Node\Stmt\ClassConst;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use Rector\ValueObject\Visibility;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202510\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Privatization\NodeManipulator\VisibilityManipulatorTest
  */
@@ -199,7 +199,7 @@ final class VisibilityManipulator
         if ($isStatic) {
             $this->makeNonStatic($node);
         }
-        if ($visibility !== Visibility::STATIC && $visibility !== Visibility::ABSTRACT && $visibility !== Visibility::FINAL) {
+        if (!in_array($visibility, [Visibility::STATIC, Visibility::ABSTRACT, Visibility::FINAL], \true)) {
             $this->removeVisibility($node);
         }
         $this->addVisibilityFlag($node, $visibility);

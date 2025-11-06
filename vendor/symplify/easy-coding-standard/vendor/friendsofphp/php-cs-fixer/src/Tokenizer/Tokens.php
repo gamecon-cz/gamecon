@@ -367,10 +367,10 @@ class Tokens extends \SplFixedArray
             if (1 === $indexOffset && $token->isGivenKind(\T_OPEN_TAG)) {
                 if (\strncmp($whitespace, "\r\n", \strlen("\r\n")) === 0) {
                     $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([\T_OPEN_TAG, \rtrim($token->getContent()) . "\r\n"]);
-                    return \strlen($whitespace) > 2 ? \substr($whitespace, 2) : '';
+                    return \strlen($whitespace) > 2 ? (string) \substr($whitespace, 2) : '';
                 }
                 $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([\T_OPEN_TAG, \rtrim($token->getContent()) . $whitespace[0]]);
-                return \strlen($whitespace) > 1 ? \substr($whitespace, 1) : '';
+                return \strlen($whitespace) > 1 ? (string) \substr($whitespace, 1) : '';
             }
             return $whitespace;
         };
@@ -427,9 +427,9 @@ class Tokens extends \SplFixedArray
         foreach ($possibleKinds as $kind) {
             $elements[$kind] = [];
         }
-        $possibleKinds = \array_filter($possibleKinds, function ($kind) : bool {
+        $possibleKinds = \array_values(\array_filter($possibleKinds, function ($kind) : bool {
             return $this->isTokenKindFound($kind);
-        });
+        }));
         if (\count($possibleKinds) > 0) {
             for ($i = $start; $i < $end; ++$i) {
                 $token = $this[$i];

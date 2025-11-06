@@ -61,7 +61,7 @@ final class PhpUnitAttributesFixer extends AbstractPhpUnitFixer implements Confi
         $codeSample = <<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 /**
 * @covers \VendorName\Foo
@@ -83,7 +83,7 @@ final class FooTest extends TestCase
 * @covers \VendorName\Foo
 * @internal
 */
-\class_alias('ECSPrefix202509\\FooTest', 'FooTest', \false);
+\class_alias('ECSPrefix202510\\FooTest', 'FooTest', \false);
 
 PHP;
         return new FixerDefinition('PHPUnit attributes must be used over their respective PHPDoc-based annotations.', [new VersionSpecificCodeSample($codeSample, new VersionSpecification(80000)), new VersionSpecificCodeSample($codeSample, new VersionSpecification(80000), ['keep_annotations' => \true])]);
@@ -245,7 +245,7 @@ PHP;
         $matches = self::getMatches($annotation);
         \assert(isset($matches[1]));
         if (\strncmp($matches[1], '::', \strlen('::')) === 0) {
-            return self::createAttributeTokens($tokens, $index, 'CoversFunction', self::createEscapedStringToken(\substr($matches[1], 2)));
+            return self::createAttributeTokens($tokens, $index, 'CoversFunction', self::createEscapedStringToken((string) \substr($matches[1], 2)));
         }
         if (\strpos($matches[1], '::') === \false) {
             return self::createAttributeTokens($tokens, $index, 'CoversClass', ...self::toClassConstant($matches[1]));
@@ -387,7 +387,7 @@ PHP;
         }
         if (\strncmp($matches[1], '::', \strlen('::')) === 0) {
             $attributeName = 'UsesFunction';
-            $attributeTokens = [self::createEscapedStringToken(\substr($matches[1], 2))];
+            $attributeTokens = [self::createEscapedStringToken((string) \substr($matches[1], 2))];
         } elseif (Preg::match('/^[a-zA-Z\\d\\\\]+$/', $matches[1])) {
             $attributeName = 'UsesClass';
             $attributeTokens = self::toClassConstant($matches[1]);
@@ -438,7 +438,7 @@ PHP;
         return \array_merge([clone $tokens[$index + 1], new Token([\T_ATTRIBUTE, '#[']), new Token([\T_NS_SEPARATOR, '\\']), new Token([\T_STRING, 'PHPUnit']), new Token([\T_NS_SEPARATOR, '\\']), new Token([\T_STRING, 'Framework']), new Token([\T_NS_SEPARATOR, '\\']), new Token([\T_STRING, 'Attributes']), new Token([\T_NS_SEPARATOR, '\\']), new Token([\T_STRING, $className])], $attributeTokens, [new Token([CT::T_ATTRIBUTE_CLOSE, ']'])]);
     }
     /**
-     * @param class-string $name
+     * @param non-empty-string $name
      *
      * @return list<Token>
      */

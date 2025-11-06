@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodingStyle\Rector\Encapsed;
 
-use RectorPrefix202509\Nette\Utils\Strings;
+use RectorPrefix202510\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
@@ -41,6 +41,9 @@ final class EncapsedStringsToSprintfRector extends AbstractRector implements Con
      * @var Expr[]
      */
     private array $argumentVariables = [];
+    /**
+     * @param array<string, mixed> $configuration
+     */
     public function configure(array $configuration): void
     {
         $this->always = $configuration[self::ALWAYS] ?? \false;
@@ -183,11 +186,11 @@ CODE_SAMPLE
         }
         $cleanMask = Strings::replace($mask, '#\%\%#', '%');
         if (substr_compare($mask, '%s', -strlen('%s')) === 0 || substr_compare($mask, '%d', -strlen('%d')) === 0) {
-            $bareString = new String_(substr($cleanMask, 0, -2));
+            $bareString = new String_((string) substr($cleanMask, 0, -2));
             return new Concat($bareString, $argumentVariables[0]);
         }
         if (strncmp($mask, '%s', strlen('%s')) === 0 || strncmp($mask, '%d', strlen('%d')) === 0) {
-            $bareString = new String_(substr($cleanMask, 2));
+            $bareString = new String_((string) substr($cleanMask, 2));
             return new Concat($argumentVariables[0], $bareString);
         }
         return null;

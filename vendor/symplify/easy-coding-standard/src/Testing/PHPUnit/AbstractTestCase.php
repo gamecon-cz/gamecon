@@ -5,7 +5,7 @@ namespace Symplify\EasyCodingStandard\Testing\PHPUnit;
 
 use PHPUnit\Framework\TestCase;
 use Symplify\EasyCodingStandard\DependencyInjection\LazyContainerFactory;
-use ECSPrefix202509\Webmozart\Assert\Assert;
+use ECSPrefix202510\Webmozart\Assert\Assert;
 abstract class AbstractTestCase extends TestCase
 {
     /**

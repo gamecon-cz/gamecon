@@ -104,7 +104,7 @@ final class ConstructorTest extends AbstractRulesetTestCase
             // Limit this to a valid sniff to prevent running into error messages unrelated to what
             // is being tested here.
             '--sniffs=TestStandard.ValidSniffs.RegisterEmptyArray',
-        ], 'expected' => $defaultPaths + [$extraInstalledPath => 'ECSPrefix202509\\Fixtures\\TestStandard']];
+        ], 'expected' => $defaultPaths + [$extraInstalledPath => 'ECSPrefix202510\\Fixtures\\TestStandard']];
         return $data;
     }
     //end dataStandardsAreRegisteredWithAutoloader()

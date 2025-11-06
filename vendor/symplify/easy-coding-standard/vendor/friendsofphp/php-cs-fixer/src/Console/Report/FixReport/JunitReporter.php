@@ -14,7 +14,7 @@ namespace PhpCsFixer\Console\Report\FixReport;
 
 use PhpCsFixer\Console\Application;
 use PhpCsFixer\Preg;
-use ECSPrefix202509\Symfony\Component\Console\Formatter\OutputFormatter;
+use ECSPrefix202510\Symfony\Component\Console\Formatter\OutputFormatter;
 /**
  * @author Boris Gorbylev <ekho@ekho.name>
  *
@@ -37,8 +37,8 @@ final class JunitReporter implements \PhpCsFixer\Console\Report\FixReport\Report
         }
         $dom = new \DOMDocument('1.0', 'UTF-8');
         $testsuites = $dom->appendChild($dom->createElement('testsuites'));
-        /** @var \DOMElement $testsuite */
         $testsuite = $testsuites->appendChild($dom->createElement('testsuite'));
+        \assert($testsuite instanceof \DOMElement);
         $testsuite->setAttribute('name', 'PHP CS Fixer');
         $properties = $dom->createElement('properties');
         $property = $dom->createElement('property');

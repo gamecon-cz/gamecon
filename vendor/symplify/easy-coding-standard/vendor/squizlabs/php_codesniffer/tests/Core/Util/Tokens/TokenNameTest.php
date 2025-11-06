@@ -10,7 +10,7 @@
 namespace PHP_CodeSniffer\Tests\Core\Util\Tokens;
 
 use PHP_CodeSniffer\Util\Tokens;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Tests for the \PHP_CodeSniffer\Util\Tokens::tokenName() method.
  *

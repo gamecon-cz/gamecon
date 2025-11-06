@@ -15,11 +15,11 @@ namespace PhpCsFixer\Console\Command;
 use PhpCsFixer\FixerConfiguration\AllowedValueSubset;
 use PhpCsFixer\FixerConfiguration\FixerOptionInterface;
 use PhpCsFixer\Utils;
-use ECSPrefix202509\Symfony\Component\Console\Attribute\AsCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\HelpCommand as BaseHelpCommand;
-use ECSPrefix202509\Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Attribute\AsCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\HelpCommand as BaseHelpCommand;
+use ECSPrefix202510\Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>

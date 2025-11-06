@@ -5,7 +5,7 @@
  *
  * @see \PHP_CodeSniffer\Tests\Core\RulesetPopulateTokenListenersNamingConventionsTest
  */
-namespace ECSPrefix202509\BrokenNamingConventions\Sniffs;
+namespace ECSPrefix202510\BrokenNamingConventions\Sniffs;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;

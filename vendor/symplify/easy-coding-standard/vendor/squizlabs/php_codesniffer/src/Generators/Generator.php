@@ -73,7 +73,7 @@ abstract class Generator
             $lastSlash = \strrpos($fileName, '/');
             if (\is_int($lastSlash) === \true) {
                 // Get the sniff name without "Standard.xml".
-                $title = \substr($fileName, $lastSlash + 1, -12);
+                $title = (string) \substr($fileName, $lastSlash + 1, -12);
                 // Split the sniff name to individual words.
                 $title = \preg_replace('`[-._]|(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])`', '$1 $2', $title);
             }

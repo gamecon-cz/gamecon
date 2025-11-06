@@ -114,7 +114,7 @@ class NonExecutableCodeSniff implements Sniff
                         }
                         $line = $tokens[$i]['line'];
                         if ($line > $lastLine) {
-                            $type = \substr($tokens[$stackPtr]['type'], 2);
+                            $type = (string) \substr($tokens[$stackPtr]['type'], 2);
                             $warning = 'Code after the %s statement on line %s cannot be executed';
                             $data = [$type, $tokens[$stackPtr]['line']];
                             $phpcsFile->addWarning($warning, $i, 'Unreachable', $data);
@@ -220,7 +220,7 @@ class NonExecutableCodeSniff implements Sniff
             }
             $line = $tokens[$i]['line'];
             if ($line > $lastLine) {
-                $type = \substr($tokens[$stackPtr]['type'], 2);
+                $type = (string) \substr($tokens[$stackPtr]['type'], 2);
                 $warning = 'Code after the %s statement on line %s cannot be executed';
                 $data = [$type, $tokens[$stackPtr]['line']];
                 $phpcsFile->addWarning($warning, $i, 'Unreachable', $data);

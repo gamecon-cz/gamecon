@@ -59,7 +59,7 @@ abstract class AbstractFixer implements FixerInterface
     public function getName() : string
     {
         $nameParts = \explode('\\', static::class);
-        $name = \substr(\end($nameParts), 0, -\strlen('Fixer'));
+        $name = (string) \substr(\end($nameParts), 0, -\strlen('Fixer'));
         return \PhpCsFixer\Utils::camelCaseToUnderscore($name);
     }
     public function getPriority() : int

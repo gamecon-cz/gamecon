@@ -269,7 +269,7 @@ final class SetSniffPropertyTest extends AbstractRulesetTestCase
      */
     public function testDirectCallWithOldArrayFormatThrowsDeprecationNotice()
     {
-        $exceptionClass = 'ECSPrefix202509\\PHPUnit\\Framework\\Error\\Deprecated';
+        $exceptionClass = 'ECSPrefix202510\\PHPUnit\\Framework\\Error\\Deprecated';
         if (\class_exists($exceptionClass) === \false) {
             $exceptionClass = 'PHPUnit_Framework_Error_Deprecated';
         }

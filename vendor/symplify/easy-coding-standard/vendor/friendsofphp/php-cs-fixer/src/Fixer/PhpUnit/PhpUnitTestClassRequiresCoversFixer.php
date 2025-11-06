@@ -31,16 +31,16 @@ final class PhpUnitTestClassRequiresCoversFixer extends AbstractPhpUnitFixer imp
         return new FixerDefinition('Adds a default `@coversNothing` annotation to PHPUnit test classes that have no `@covers*` annotation.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-final class MyTest extends \ECSPrefix202509\PHPUnit_Framework_TestCase
+final class MyTest extends \ECSPrefix202510\PHPUnit_Framework_TestCase
 {
     public function testSomeTest()
     {
         $this->assertSame(a(), b());
     }
 }
-\class_alias('ECSPrefix202509\\MyTest', 'MyTest', \false);
+\class_alias('ECSPrefix202510\\MyTest', 'MyTest', \false);
 
 PHP
 )]);
@@ -63,6 +63,6 @@ PHP
             return;
             // don't add `@covers` annotation for abstract base classes
         }
-        $this->ensureIsDocBlockWithAnnotation($tokens, $classIndex, 'coversNothing', ['covers', 'coversDefaultClass', 'coversNothing'], ['ECSPrefix202509\\phpunit\\framework\\attributes\\coversclass', 'ECSPrefix202509\\phpunit\\framework\\attributes\\coversnothing', 'ECSPrefix202509\\phpunit\\framework\\attributes\\coversmethod', 'ECSPrefix202509\\phpunit\\framework\\attributes\\coversfunction', 'ECSPrefix202509\\phpunit\\framework\\attributes\\coverstrait']);
+        $this->ensureIsDocBlockWithAnnotation($tokens, $classIndex, 'coversNothing', ['covers', 'coversDefaultClass', 'coversNothing'], ['ECSPrefix202510\\phpunit\\framework\\attributes\\coversclass', 'ECSPrefix202510\\phpunit\\framework\\attributes\\coversnothing', 'ECSPrefix202510\\phpunit\\framework\\attributes\\coversmethod', 'ECSPrefix202510\\phpunit\\framework\\attributes\\coversfunction', 'ECSPrefix202510\\phpunit\\framework\\attributes\\coverstrait']);
     }
 }

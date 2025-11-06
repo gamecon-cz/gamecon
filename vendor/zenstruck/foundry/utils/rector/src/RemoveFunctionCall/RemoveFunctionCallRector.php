@@ -24,13 +24,13 @@ final class RemoveFunctionCallRector extends AbstractRector implements Configura
     private array $removeFunctionCalls = [];
 
     /** @return array<class-string<Node>> */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Node\Stmt\Expression::class];
     }
 
     /** @param Node\Stmt\Expression $node */
-    public function refactor(Node $node) : int|null
+    public function refactor(Node $node): ?int
     {
         foreach ($this->removeFunctionCalls as $removeFunctionCall) {
             if ($node->expr instanceof Node\Expr\FuncCall && !$node->expr->isFirstClassCallable() && $this->isName($node->expr, $removeFunctionCall->functionName)) {
@@ -64,11 +64,11 @@ final class RemoveFunctionCallRector extends AbstractRector implements Configura
     /**
      * @param mixed[] $configuration
      */
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
         foreach ($configuration as $configItem) {
             if (!$configItem instanceof RemoveFunctionCall) {
-                throw new \InvalidArgumentException(sprintf('Expected instance of "%s", got "%s".', RemoveFunctionCall::class, get_debug_type($configItem)));
+                throw new \InvalidArgumentException(\sprintf('Expected instance of "%s", got "%s".', RemoveFunctionCall::class, \get_debug_type($configItem)));
             }
         }
         $this->removeFunctionCalls = $configuration;

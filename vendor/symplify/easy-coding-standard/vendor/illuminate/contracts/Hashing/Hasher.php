@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Hashing;
+namespace ECSPrefix202510\Illuminate\Contracts\Hashing;
 
 interface Hasher
 {

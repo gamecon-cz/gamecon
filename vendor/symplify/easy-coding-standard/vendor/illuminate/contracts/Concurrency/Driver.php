@@ -1,9 +1,9 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Concurrency;
+namespace ECSPrefix202510\Illuminate\Contracts\Concurrency;
 
 use Closure;
-use ECSPrefix202509\Illuminate\Support\Defer\DeferredCallback;
+use ECSPrefix202510\Illuminate\Support\Defer\DeferredCallback;
 interface Driver
 {
     /**

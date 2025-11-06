@@ -11,7 +11,7 @@ namespace PHP_CodeSniffer\Tests\Core\Ruleset;
 
 use PHP_CodeSniffer\Ruleset;
 use PHP_CodeSniffer\Tests\ConfigDouble;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Test the Ruleset::expandSniffDirectory() method.
  *
@@ -44,7 +44,7 @@ final class ExpandSniffDirectoryTest extends TestCase
         $expectedPathToRuleset = \realpath($expectedPathToRuleset);
         $this->assertNotFalse($expectedPathToRuleset, 'Ruleset file could not be found');
         $this->assertContains($expectedPathToRuleset, $ruleset->paths, 'Ruleset file not included in the "seen ruleset paths"');
-        $expectedSniffCodes = ['MyStandard.CategoryA.FindMe' => 'ECSPrefix202509\\MyStandard\\Sniffs\\CategoryA\\FindMeSniff', 'MyStandard.CategoryB.FindMe' => 'ECSPrefix202509\\MyStandard\\Sniffs\\CategoryB\\FindMeSniff'];
+        $expectedSniffCodes = ['MyStandard.CategoryA.FindMe' => 'ECSPrefix202510\\MyStandard\\Sniffs\\CategoryA\\FindMeSniff', 'MyStandard.CategoryB.FindMe' => 'ECSPrefix202510\\MyStandard\\Sniffs\\CategoryB\\FindMeSniff'];
         // Sort the value to make the tests stable as different OSes will read directories
         // in a different order and the order is not relevant for these tests. Just the values.
         $actual = $ruleset->sniffCodes;

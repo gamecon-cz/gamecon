@@ -57,6 +57,10 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
             'Zenstruck\\Foundry\\' => 18,
             'Zenstruck\\' => 10,
         ),
+        'T' => 
+        array (
+            'Tracy\\' => 6,
+        ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Php84\\' => 23,
@@ -228,6 +232,10 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         'Zenstruck\\' => 
         array (
             0 => __DIR__ . '/..' . '/zenstruck/assert/src',
+        ),
+        'Tracy\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/tracy/tracy/src',
         ),
         'Symfony\\Polyfill\\Php84\\' => 
         array (

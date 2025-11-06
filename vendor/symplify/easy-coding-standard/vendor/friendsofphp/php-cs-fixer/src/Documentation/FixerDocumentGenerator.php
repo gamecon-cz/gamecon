@@ -25,9 +25,10 @@ use PhpCsFixer\FixerDefinition\CodeSampleInterface;
 use PhpCsFixer\FixerDefinition\FileSpecificCodeSampleInterface;
 use PhpCsFixer\FixerDefinition\VersionSpecificCodeSampleInterface;
 use PhpCsFixer\Preg;
-use PhpCsFixer\RuleSet\DeprecatedRuleSetDescriptionInterface;
+use PhpCsFixer\RuleSet\AutomaticRuleSetDefinitionInterface;
+use PhpCsFixer\RuleSet\DeprecatedRuleSetDefinitionInterface;
 use PhpCsFixer\RuleSet\RuleSet;
-use PhpCsFixer\RuleSet\RuleSetDescriptionInterface;
+use PhpCsFixer\RuleSet\RuleSetDefinitionInterface;
 use PhpCsFixer\RuleSet\RuleSets;
 use PhpCsFixer\StdinFileInfo;
 use PhpCsFixer\Tokenizer\Tokens;
@@ -49,7 +50,7 @@ final class FixerDocumentGenerator
      * @var \PhpCsFixer\Differ\FullDiffer
      */
     private $differ;
-    /** @var array<string, RuleSetDescriptionInterface> */
+    /** @var array<string, RuleSetDefinitionInterface> */
     private $ruleSetDefinitions;
     public function __construct(\PhpCsFixer\Documentation\DocumentationLocator $locator)
     {
@@ -206,10 +207,13 @@ The rule is part of the following rule set{$plural}:
 RST;
             foreach ($ruleSetConfigs as $set => $config) {
                 $ruleSetPath = $this->locator->getRuleSetsDocumentationFilePath($set);
-                $ruleSetPath = \substr($ruleSetPath, \strrpos($ruleSetPath, '/'));
+                $ruleSetPath = (string) \substr($ruleSetPath, \strrpos($ruleSetPath, '/'));
                 \assert(isset($this->ruleSetDefinitions[$set]));
-                $ruleSetDescription = $this->ruleSetDefinitions[$set];
-                $deprecatedDesc = $ruleSetDescription instanceof DeprecatedRuleSetDescriptionInterface ? ' *(deprecated)*' : '';
+                $ruleSetDefinition = $this->ruleSetDefinitions[$set];
+                if ($ruleSetDefinition instanceof AutomaticRuleSetDefinitionInterface) {
+                    continue;
+                }
+                $deprecatedDesc = $ruleSetDefinition instanceof DeprecatedRuleSetDefinitionInterface ? ' *(deprecated)*' : '';
                 $configInfo = null !== $config ? " with config:\n\n  ``" . Utils::toString($config) . "``\n" : '';
                 $doc .= <<<RST
 - `{$set} <./../../ruleSets{$ruleSetPath}>`_{$deprecatedDesc}{$configInfo}
@@ -222,7 +226,7 @@ RST;
         $className = \str_replace('\\', '\\\\', $reflectionObject->getName());
         $fileName = $reflectionObject->getFileName();
         $fileName = \str_replace('\\', '/', $fileName);
-        $fileName = \substr($fileName, \strrpos($fileName, '/src/Fixer/') + 1);
+        $fileName = (string) \substr($fileName, \strrpos($fileName, '/src/Fixer/') + 1);
         $fileName = "`{$className} <./../../../{$fileName}>`_";
         $testFileName = Preg::replace('~.*\\K/src/(?=Fixer/)~', '/tests/', $fileName);
         $testFileName = Preg::replace('~PhpCsFixer\\\\\\\\\\K(?=Fixer\\\\\\\\)~', 'Tests\\\\\\\\', $testFileName);

@@ -47,7 +47,7 @@ final class SingleQuoteFixer extends AbstractFixer implements ConfigurableFixerI
         $codeSample = <<<'EOF'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $a = "sample";
 $b = "sample with 'single-quotes'";
@@ -79,10 +79,10 @@ EOF;
             $prefix = '';
             if ('b' === \strtolower($content[0])) {
                 $prefix = $content[0];
-                $content = \substr($content, 1);
+                $content = (string) \substr($content, 1);
             }
             if ('"' === $content[0] && (\true === $this->configuration['strings_containing_single_quote_chars'] || \strpos($content, "'") === \false) && !Preg::match('/(?<!\\\\)(?:\\\\{2})*\\\\(?!["$\\\\])/', $content)) {
-                $content = \substr($content, 1, -1);
+                $content = (string) \substr($content, 1, -1);
                 $content = \str_replace(['\\"', '\\$', '\''], ['"', '$', '\\\''], $content);
                 $tokens[$index] = new Token([\T_CONSTANT_ENCAPSED_STRING, $prefix . '\'' . $content . '\'']);
             }

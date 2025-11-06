@@ -22,7 +22,6 @@ use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
-use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\Generic\GenericObjectType;
 use PHPStan\Type\ObjectType;
@@ -82,7 +81,7 @@ final class RemovePhpDocProxyTypeHintRector extends AbstractRector
             $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($node);
 
             return $node;
-        };
+        }
 
         return null;
     }
@@ -143,7 +142,7 @@ final class RemovePhpDocProxyTypeHintRector extends AbstractRector
     private function handleTag(ParamTagValueNode|ReturnTagValueNode|MethodTagValueNode|VarTagValueNode $docNode, NameScope $nameScope): bool
     {
         if ($docNode instanceof MethodTagValueNode) {
-            if ($docNode->returnType === null) {
+            if (null === $docNode->returnType) {
                 return false;
             }
 
@@ -153,16 +152,16 @@ final class RemovePhpDocProxyTypeHintRector extends AbstractRector
         }
 
         // @phpstan-ignore property.notFound,property.notFound
-        $tagType = $this->typeNodeResolver->resolve($docNode->$typeProperty, $nameScope);
+        $tagType = $this->typeNodeResolver->resolve($docNode->{$typeProperty}, $nameScope);
 
         // prevent to change something when Proxy is not part of the type found
-        if (!str_contains($tagType->describe(VerbosityLevel::value()), 'Proxy')) {
+        if (!\str_contains($tagType->describe(VerbosityLevel::value()), 'Proxy')) {
             return false;
         }
 
         if ($tagType->isArray()->yes()) {
-            $arrayType = TypeTraverser::map($tagType, function (Type $type, callable $traverse): Type {
-                if ($type instanceof GenericObjectType && $type->getClassName() === Proxy::class
+            $arrayType = TypeTraverser::map($tagType, function(Type $type, callable $traverse): Type {
+                if ($type instanceof GenericObjectType && Proxy::class === $type->getClassName()
                 ) {
                     if (!$this->reflectionProvider->hasClass($type->getTypes()[0]->getObjectClassNames()[0])) {
                         return new NonExistingObjectType($type->getTypes()[0]->getObjectClassNames()[0]);
@@ -175,7 +174,7 @@ final class RemovePhpDocProxyTypeHintRector extends AbstractRector
             });
 
             // @phpstan-ignore property.notFound,property.notFound
-            $docNode->$typeProperty = $this->staticTypeMapper->mapPHPStanTypeToPHPStanPhpDocTypeNode($arrayType);
+            $docNode->{$typeProperty} = $this->staticTypeMapper->mapPHPStanTypeToPHPStanPhpDocTypeNode($arrayType);
 
             return true;
         }
@@ -184,7 +183,7 @@ final class RemovePhpDocProxyTypeHintRector extends AbstractRector
             return false;
         }
 
-        preg_match('/<([^>]+)>/', $tagType->describe(VerbosityLevel::typeOnly()), $matches);
+        \preg_match('/<([^>]+)>/', $tagType->describe(VerbosityLevel::typeOnly()), $matches);
 
         if (!isset($matches[1])) {
             return false;
@@ -196,11 +195,11 @@ final class RemovePhpDocProxyTypeHintRector extends AbstractRector
 
         if ($typeNode instanceof IdentifierTypeNode && !$this->reflectionProvider->hasClass($typeNode->name)) {
             // if class does not exist, it's most likely a generic type, so we remove the leading backslash
-            $typeNode = new IdentifierTypeNode(ltrim($typeNode->name, '\\'));
+            $typeNode = new IdentifierTypeNode(\ltrim($typeNode->name, '\\'));
         }
 
         // @phpstan-ignore property.notFound,property.notFound
-        $docNode->$typeProperty = $typeNode;
+        $docNode->{$typeProperty} = $typeNode;
 
         return true;
     }

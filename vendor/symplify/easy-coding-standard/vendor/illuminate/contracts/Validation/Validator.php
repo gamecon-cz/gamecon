@@ -1,8 +1,8 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Validation;
+namespace ECSPrefix202510\Illuminate\Contracts\Validation;
 
-use ECSPrefix202509\Illuminate\Contracts\Support\MessageProvider;
+use ECSPrefix202510\Illuminate\Contracts\Support\MessageProvider;
 interface Validator extends MessageProvider
 {
     /**

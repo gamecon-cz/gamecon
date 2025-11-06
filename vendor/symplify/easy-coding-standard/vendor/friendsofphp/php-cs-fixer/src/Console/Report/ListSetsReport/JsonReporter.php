@@ -12,7 +12,7 @@ declare (strict_types=1);
  */
 namespace PhpCsFixer\Console\Report\ListSetsReport;
 
-use PhpCsFixer\RuleSet\RuleSetDescriptionInterface;
+use PhpCsFixer\RuleSet\RuleSetDefinitionInterface;
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  *
@@ -31,7 +31,7 @@ final class JsonReporter implements \PhpCsFixer\Console\Report\ListSetsReport\Re
     public function generate(\PhpCsFixer\Console\Report\ListSetsReport\ReportSummary $reportSummary) : string
     {
         $sets = $reportSummary->getSets();
-        \usort($sets, static function (RuleSetDescriptionInterface $a, RuleSetDescriptionInterface $b) : int {
+        \usort($sets, static function (RuleSetDefinitionInterface $a, RuleSetDefinitionInterface $b) : int {
             return $a->getName() <=> $b->getName();
         });
         $json = ['sets' => []];

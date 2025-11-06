@@ -88,24 +88,24 @@ class CommentedOutCodeSniff implements Sniff
             $break = \false;
             if ($commentStyle === 'line') {
                 if (\substr($tokenContent, 0, 2) === '//') {
-                    $tokenContent = \substr($tokenContent, 2);
+                    $tokenContent = (string) \substr($tokenContent, 2);
                 }
                 if (\substr($tokenContent, 0, 1) === '#') {
-                    $tokenContent = \substr($tokenContent, 1);
+                    $tokenContent = (string) \substr($tokenContent, 1);
                 }
             } else {
                 if (\substr($tokenContent, 0, 3) === '/**') {
-                    $tokenContent = \substr($tokenContent, 3);
+                    $tokenContent = (string) \substr($tokenContent, 3);
                 }
                 if (\substr($tokenContent, 0, 2) === '/*') {
-                    $tokenContent = \substr($tokenContent, 2);
+                    $tokenContent = (string) \substr($tokenContent, 2);
                 }
                 if (\substr($tokenContent, -2) === '*/') {
-                    $tokenContent = \substr($tokenContent, 0, -2);
+                    $tokenContent = (string) \substr($tokenContent, 0, -2);
                     $break = \true;
                 }
                 if (\substr($tokenContent, 0, 1) === '*') {
-                    $tokenContent = \substr($tokenContent, 1);
+                    $tokenContent = (string) \substr($tokenContent, 1);
                 }
             }
             //end if

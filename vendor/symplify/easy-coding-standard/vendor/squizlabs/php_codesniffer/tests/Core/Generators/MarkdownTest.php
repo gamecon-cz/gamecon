@@ -11,7 +11,7 @@ namespace PHP_CodeSniffer\Tests\Core\Generators;
 use PHP_CodeSniffer\Ruleset;
 use PHP_CodeSniffer\Tests\ConfigDouble;
 use PHP_CodeSniffer\Tests\Core\Generators\Fixtures\MarkdownDouble;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Test the Markdown documentation generation.
  *
@@ -188,7 +188,7 @@ final class MarkdownTest extends TestCase
      */
     public function testCallingDeprecatedMethodThrowsDeprecationNotice($methodName)
     {
-        $exceptionClass = 'ECSPrefix202509\\PHPUnit\\Framework\\Error\\Deprecated';
+        $exceptionClass = 'ECSPrefix202510\\PHPUnit\\Framework\\Error\\Deprecated';
         if (\class_exists($exceptionClass) === \false) {
             $exceptionClass = 'PHPUnit_Framework_Error_Deprecated';
         }

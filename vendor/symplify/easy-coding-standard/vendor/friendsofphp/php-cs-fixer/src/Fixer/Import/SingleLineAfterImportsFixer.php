@@ -40,10 +40,10 @@ final class SingleLineAfterImportsFixer extends AbstractFixer implements Whitesp
         return new FixerDefinition('Each namespace use MUST go on its own line and there MUST be one blank line after the use statements block.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509\Foo;
+namespace ECSPrefix202510\Foo;
 
-use ECSPrefix202509\Bar;
-use ECSPrefix202509\Baz;
+use ECSPrefix202510\Bar;
+use ECSPrefix202510\Baz;
 final class Example
 {
 }
@@ -52,10 +52,10 @@ PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509\Foo;
+namespace ECSPrefix202510\Foo;
 
-use ECSPrefix202509\Bar;
-use ECSPrefix202509\Baz;
+use ECSPrefix202510\Bar;
+use ECSPrefix202510\Baz;
 final class Example
 {
 }

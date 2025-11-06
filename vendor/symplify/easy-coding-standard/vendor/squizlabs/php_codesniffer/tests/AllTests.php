@@ -15,8 +15,8 @@ require_once 'Standards/AllSniffs.php';
 // older PHPUnit versions due to return type hints, so maintain
 // two different suite objects.
 $phpunit7 = \false;
-if (\class_exists('ECSPrefix202509\\PHPUnit\\Runner\\Version') === \true) {
-    $version = \ECSPrefix202509\PHPUnit\Runner\Version::id();
+if (\class_exists('ECSPrefix202510\\PHPUnit\\Runner\\Version') === \true) {
+    $version = \ECSPrefix202510\PHPUnit\Runner\Version::id();
     if (\version_compare($version, '7.0', '>=') === \true) {
         $phpunit7 = \true;
     }

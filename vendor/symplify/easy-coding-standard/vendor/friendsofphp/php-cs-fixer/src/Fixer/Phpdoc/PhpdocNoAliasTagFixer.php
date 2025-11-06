@@ -23,6 +23,7 @@ use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
+use PhpCsFixer\Future;
 use PhpCsFixer\Preg;
 /**
  * Case-sensitive tag replace fixer (does not process inline tags like {@inheritdoc}).
@@ -50,7 +51,7 @@ final class PhpdocNoAliasTagFixer extends AbstractProxyFixer implements Configur
         return new FixerDefinition('No alias PHPDoc tags should be used.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 /**
 * @property string $foo
@@ -67,13 +68,13 @@ final class Example
 *
 * @link baz
 */
-\class_alias('ECSPrefix202509\\Example', 'Example', \false);
+\class_alias('ECSPrefix202510\\Example', 'Example', \false);
 
 PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 /**
 * @property string $foo
@@ -90,7 +91,7 @@ final class Example
 *
 * @link baz
 */
-\class_alias('ECSPrefix202509\\Example', 'Example', \false);
+\class_alias('ECSPrefix202510\\Example', 'Example', \false);
 
 PHP
 , ['replacements' => ['link' => 'website']])]);
@@ -117,7 +118,7 @@ PHP
     }
     protected function createConfigurationDefinition() : FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([(new FixerOptionBuilder('replacements', 'Mapping between replaced annotations with new ones.'))->setAllowedTypes(['array<string, string>'])->setDefault(['property-read' => 'property', 'property-write' => 'property', 'type' => 'var', 'link' => 'see'])->getOption()]);
+        return new FixerConfigurationResolver([(new FixerOptionBuilder('replacements', 'Mapping between replaced annotations with new ones.'))->setAllowedTypes(['array<string, string>'])->setDefault(Future::getV4OrV3(['const' => 'var'], []) + ['property-read' => 'property', 'property-write' => 'property', 'type' => 'var', 'link' => 'see'])->getOption()]);
     }
     protected function createProxyFixers() : array
     {

@@ -353,7 +353,7 @@ class FunctionCommentSniff extends PEARFunctionCommentSniff
                 }
                 // Strip nullable operator.
                 if ($typeName[0] === '?') {
-                    $typeName = \substr($typeName, 1);
+                    $typeName = (string) \substr($typeName, 1);
                 }
                 $suggestedName = Common::suggestType($typeName);
                 $suggestedTypeNames[] = $suggestedName;
@@ -407,7 +407,7 @@ class FunctionCommentSniff extends PEARFunctionCommentSniff
                 if ($suggestedTypeHint !== '' && isset($realParams[$pos]) === \true && $param['var'] !== '') {
                     $typeHint = $realParams[$pos]['type_hint'];
                     // Remove namespace prefixes when comparing.
-                    $compareTypeHint = \substr($suggestedTypeHint, \strlen($typeHint) * -1);
+                    $compareTypeHint = (string) \substr($suggestedTypeHint, \strlen($typeHint) * -1);
                     if ($typeHint === '') {
                         $error = 'Type hint "%s" missing for %s';
                         $data = [$suggestedTypeHint, $param['var']];
@@ -479,7 +479,7 @@ class FunctionCommentSniff extends PEARFunctionCommentSniff
                 if ($param['var'][0] === '&') {
                     // Even when passed by reference, the variable name in $realParams does not have
                     // a leading '&'. This sniff will accept both '&$var' and '$var' in these cases.
-                    $paramVarName = \substr($param['var'], 1);
+                    $paramVarName = (string) \substr($param['var'], 1);
                     // This makes sure that the 'MissingParamTag' check won't throw a false positive.
                     $foundParams[\count($foundParams) - 1] = $paramVarName;
                     if ($realParams[$pos]['pass_by_reference'] !== \true && $realName === $paramVarName) {

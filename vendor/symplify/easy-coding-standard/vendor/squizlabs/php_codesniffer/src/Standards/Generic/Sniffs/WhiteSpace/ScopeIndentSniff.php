@@ -946,7 +946,7 @@ class ScopeIndentSniff implements Sniff
                 $closer = $tokens[$i]['scope_closer'];
                 if ($tokens[$i]['line'] === $tokens[$closer]['line']) {
                     if ($this->debug === \true) {
-                        $type = \str_replace('_', ' ', \strtolower(\substr($tokens[$i]['type'], 2)));
+                        $type = \str_replace('_', ' ', \strtolower((string) \substr($tokens[$i]['type'], 2)));
                         $line = $tokens[$i]['line'];
                         echo "* ignoring single-line {$type} on line {$line} *" . \PHP_EOL;
                     }
@@ -954,7 +954,7 @@ class ScopeIndentSniff implements Sniff
                     continue;
                 }
                 if ($this->debug === \true) {
-                    $type = \str_replace('_', ' ', \strtolower(\substr($tokens[$i]['type'], 2)));
+                    $type = \str_replace('_', ' ', \strtolower((string) \substr($tokens[$i]['type'], 2)));
                     $line = $tokens[$i]['line'];
                     echo "Open {$type} on line {$line}" . \PHP_EOL;
                 }
@@ -1080,7 +1080,7 @@ class ScopeIndentSniff implements Sniff
             // use return as a closer, like CASE statements.
             if (isset($tokens[$i]['scope_condition']) === \true && $tokens[$i]['scope_closer'] === $i && ($tokens[$tokens[$i]['scope_condition']]['code'] === \T_CLOSURE || $tokens[$tokens[$i]['scope_condition']]['code'] === \T_ANON_CLASS || $tokens[$tokens[$i]['scope_condition']]['code'] === \T_MATCH)) {
                 if ($this->debug === \true) {
-                    $type = \str_replace('_', ' ', \strtolower(\substr($tokens[$tokens[$i]['scope_condition']]['type'], 2)));
+                    $type = \str_replace('_', ' ', \strtolower((string) \substr($tokens[$tokens[$i]['scope_condition']]['type'], 2)));
                     $line = $tokens[$i]['line'];
                     echo "Close {$type} on line {$line}" . \PHP_EOL;
                 }

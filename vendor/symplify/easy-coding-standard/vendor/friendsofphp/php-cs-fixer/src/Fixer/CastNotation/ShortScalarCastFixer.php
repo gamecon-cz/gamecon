@@ -37,7 +37,7 @@ final class ShortScalarCastFixer extends AbstractFixer
             if (!$tokens[$index]->isCast()) {
                 continue;
             }
-            $castFrom = \trim(\substr($tokens[$index]->getContent(), 1, -1));
+            $castFrom = \trim((string) \substr($tokens[$index]->getContent(), 1, -1));
             $castFromLowered = \strtolower($castFrom);
             $castTo = ['boolean' => 'bool', 'integer' => 'int', 'double' => 'float', 'real' => 'float', 'binary' => 'string'][$castFromLowered] ?? null;
             if (null === $castTo) {

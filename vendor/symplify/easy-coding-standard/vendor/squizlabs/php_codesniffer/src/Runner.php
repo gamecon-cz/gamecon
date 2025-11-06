@@ -586,7 +586,7 @@ class Runner
                     // Sniff code could not be determined. This may be an abstract sniff class.
                 }
                 if ($sniffCode === '') {
-                    $sniffCode = \substr(\strrchr(\str_replace('\\', '/', $sniffStack['file']), '/'), 1);
+                    $sniffCode = (string) \substr(\strrchr(\str_replace('\\', '/', $sniffStack['file']), '/'), 1);
                 }
                 $error .= \sprintf(\PHP_EOL . 'The error originated in %s on line %s.', $sniffCode, $sniffStack['line']);
             }

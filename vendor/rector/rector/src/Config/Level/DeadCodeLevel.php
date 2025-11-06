@@ -25,6 +25,7 @@ use Rector\DeadCode\Rector\ClassMethod\RemoveUselessAssignFromPropertyPromotionR
 use Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnExprInConstructRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector;
+use Rector\DeadCode\Rector\Closure\RemoveUnusedClosureVariableUseRector;
 use Rector\DeadCode\Rector\Concat\RemoveConcatAutocastRector;
 use Rector\DeadCode\Rector\ConstFetch\RemovePhpVersionIdCheckRector;
 use Rector\DeadCode\Rector\Expression\RemoveDeadStmtRector;
@@ -43,6 +44,7 @@ use Rector\DeadCode\Rector\If_\RemoveTypedPropertyDeadInstanceOfRector;
 use Rector\DeadCode\Rector\If_\RemoveUnusedNonEmptyArrayBeforeForeachRector;
 use Rector\DeadCode\Rector\If_\SimplifyIfElseWithSameContentRector;
 use Rector\DeadCode\Rector\If_\UnwrapFutureCompatibleIfPhpVersionRector;
+use Rector\DeadCode\Rector\MethodCall\RemoveNullArgOnNullDefaultParamRector;
 use Rector\DeadCode\Rector\Node\RemoveNonExistingVarAnnotationRector;
 use Rector\DeadCode\Rector\Plus\RemoveDeadZeroAndOneOperationRector;
 use Rector\DeadCode\Rector\Property\RemoveUnusedPrivatePropertyRector;
@@ -51,6 +53,7 @@ use Rector\DeadCode\Rector\Property\RemoveUselessVarTagRector;
 use Rector\DeadCode\Rector\PropertyProperty\RemoveNullPropertyInitializationRector;
 use Rector\DeadCode\Rector\Return_\RemoveDeadConditionAboveReturnRector;
 use Rector\DeadCode\Rector\StaticCall\RemoveParentCallWithoutParentRector;
+use Rector\DeadCode\Rector\Stmt\RemoveConditionExactReturnRector;
 use Rector\DeadCode\Rector\Stmt\RemoveUnreachableStatementRector;
 use Rector\DeadCode\Rector\Switch_\RemoveDuplicatedCaseInSwitchRector;
 use Rector\DeadCode\Rector\Ternary\TernaryToBooleanOrFalseToBooleanAndRector;
@@ -64,7 +67,7 @@ use Rector\DeadCode\Rector\TryCatch\RemoveDeadTryCatchRector;
  *
  * From the safest rules to more changing ones.
  *
- * @experimental Since 0.19.7 This list can change in time, based on community feedback,
+ * This list can change in time, based on community feedback,
  * what rules are safer than other. The safest rules will be always in the top.
  */
 final class DeadCodeLevel
@@ -110,11 +113,13 @@ final class DeadCodeLevel
         ReduceAlwaysFalseIfOrRector::class,
         RemoveUnusedPrivateClassConstantRector::class,
         RemoveUnusedPrivatePropertyRector::class,
+        RemoveUnusedClosureVariableUseRector::class,
         RemoveDuplicatedCaseInSwitchRector::class,
         RemoveDeadInstanceOfRector::class,
         RemoveDeadCatchRector::class,
         RemoveDeadTryCatchRector::class,
         RemoveDeadIfForeachForRector::class,
+        RemoveConditionExactReturnRector::class,
         RemoveDeadStmtRector::class,
         UnwrapFutureCompatibleIfPhpVersionRector::class,
         RemoveParentCallWithoutParentRector::class,
@@ -132,6 +137,7 @@ final class DeadCodeLevel
         RemoveEmptyClassMethodRector::class,
         RemoveDeadReturnRector::class,
         RemoveArgumentFromDefaultParentCallRector::class,
+        RemoveNullArgOnNullDefaultParamRector::class,
         NarrowTooWideReturnTypeRector::class,
     ];
 }

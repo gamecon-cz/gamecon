@@ -163,7 +163,7 @@ class Source implements \PHP_CodeSniffer\Reports\Report
             }
             if ($showSources === \true) {
                 if (\strlen($source) > $maxSniffWidth) {
-                    $source = \substr($source, 0, $maxSniffWidth);
+                    $source = (string) \substr($source, 0, $maxSniffWidth);
                 }
                 echo $source;
                 if ($totalFixable > 0) {
@@ -174,17 +174,17 @@ class Source implements \PHP_CodeSniffer\Reports\Report
             } else {
                 $parts = $sourceData['parts'];
                 if (\strlen($parts[0]) > 8) {
-                    $parts[0] = \substr($parts[0], 0, (\strlen($parts[0]) - 8) * -1);
+                    $parts[0] = (string) \substr($parts[0], 0, (\strlen($parts[0]) - 8) * -1);
                 }
                 echo $parts[0] . \str_repeat(' ', 10 - \strlen($parts[0]));
                 $category = $parts[1];
                 if (\strlen($category) > 18) {
-                    $category = \substr($category, 0, (\strlen($category) - 18) * -1);
+                    $category = (string) \substr($category, 0, (\strlen($category) - 18) * -1);
                 }
                 echo $category . \str_repeat(' ', 20 - \strlen($category));
                 $sniff = $parts[2];
                 if (\strlen($sniff) > $maxSniffWidth) {
-                    $sniff = \substr($sniff, 0, $maxSniffWidth);
+                    $sniff = (string) \substr($sniff, 0, $maxSniffWidth);
                 }
                 if ($totalFixable > 0) {
                     echo $sniff . \str_repeat(' ', $width - 39 - \strlen($sniff));

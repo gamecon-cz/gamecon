@@ -51,9 +51,9 @@ final class PhpUnitDedicateAssertInternalTypeFixer extends AbstractPhpUnitFixer 
         return new FixerDefinition('PHPUnit assertions like `assertIsArray` should be used over `assertInternalType`.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-final class MyTest extends \ECSPrefix202509\PHPUnit\Framework\TestCase
+final class MyTest extends \ECSPrefix202510\PHPUnit\Framework\TestCase
 {
     public function testMe()
     {
@@ -61,15 +61,15 @@ final class MyTest extends \ECSPrefix202509\PHPUnit\Framework\TestCase
         $this->assertInternalType("boolean", $var);
     }
 }
-\class_alias('ECSPrefix202509\\MyTest', 'MyTest', \false);
+\class_alias('ECSPrefix202510\\MyTest', 'MyTest', \false);
 
 PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-final class MyTest extends \ECSPrefix202509\PHPUnit\Framework\TestCase
+final class MyTest extends \ECSPrefix202510\PHPUnit\Framework\TestCase
 {
     public function testMe()
     {
@@ -77,7 +77,7 @@ final class MyTest extends \ECSPrefix202509\PHPUnit\Framework\TestCase
         $this->assertInternalType("boolean", $var);
     }
 }
-\class_alias('ECSPrefix202509\\MyTest', 'MyTest', \false);
+\class_alias('ECSPrefix202510\\MyTest', 'MyTest', \false);
 
 PHP
 , ['target' => \PhpCsFixer\Fixer\PhpUnit\PhpUnitTargetVersion::VERSION_7_5])], null, 'Risky when PHPUnit methods are overridden or when project has PHPUnit incompatibilities.');

@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 /**
  * Test fixture.
@@ -20,4 +20,4 @@ final class NoNamespaceSniff implements Sniff
         // Do something.
     }
 }
-\class_alias('ECSPrefix202509\\NoNamespaceSniff', 'NoNamespaceSniff', \false);
+\class_alias('ECSPrefix202510\\NoNamespaceSniff', 'NoNamespaceSniff', \false);

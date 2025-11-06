@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Doctrine\Bundle\DoctrineBundle\Command\CreateDatabaseDoctrineCommand;
@@ -44,7 +46,7 @@ return static function (ContainerConfigurator $container): void {
         ->alias(ManagerRegistry::class, 'doctrine')
         ->alias(LegacyManagerRegistry::class, 'doctrine')
 
-        ->set('data_collector.doctrine', param('doctrine.data_collector.class'))
+        ->set('data_collector.doctrine', (string) param('doctrine.data_collector.class'))
             ->args([
                 service('doctrine'),
                 true,
@@ -52,9 +54,9 @@ return static function (ContainerConfigurator $container): void {
             ])
             ->tag('data_collector', ['template' => '@Doctrine/Collector/db.html.twig', 'id' => 'db', 'priority' => 250])
 
-        ->set('doctrine.dbal.connection_factory', param('doctrine.dbal.connection_factory.class'))
+        ->set('doctrine.dbal.connection_factory', (string) param('doctrine.dbal.connection_factory.class'))
             ->args([
-                param('doctrine.dbal.connection_factory.types'),
+                (string) param('doctrine.dbal.connection_factory.types'),
                 service('doctrine.dbal.connection_factory.dsn_parser'),
             ])
 
@@ -67,23 +69,23 @@ return static function (ContainerConfigurator $container): void {
             ->abstract()
             ->factory([service('doctrine.dbal.connection_factory'), 'createConnection'])
 
-        ->set('doctrine.dbal.connection.event_manager', param('doctrine.dbal.connection.event_manager.class'))
+        ->set('doctrine.dbal.connection.event_manager', (string) param('doctrine.dbal.connection.event_manager.class'))
             ->abstract()
             ->args([
                 service('service_container'),
             ])
 
-        ->set('doctrine.dbal.connection.configuration', param('doctrine.dbal.configuration.class'))
+        ->set('doctrine.dbal.connection.configuration', (string) param('doctrine.dbal.configuration.class'))
             ->abstract()
 
-        ->set('doctrine', param('doctrine.class'))
+        ->set('doctrine', (string) param('doctrine.class'))
             ->public()
             ->args([
                 service('service_container'),
-                param('doctrine.connections'),
-                param('doctrine.entity_managers'),
-                param('doctrine.default_connection'),
-                param('doctrine.default_entity_manager'),
+                (string) param('doctrine.connections'),
+                (string) param('doctrine.entity_managers'),
+                (string) param('doctrine.default_connection'),
+                (string) param('doctrine.default_entity_manager'),
             ])
             ->tag('kernel.reset', ['method' => 'reset'])
 

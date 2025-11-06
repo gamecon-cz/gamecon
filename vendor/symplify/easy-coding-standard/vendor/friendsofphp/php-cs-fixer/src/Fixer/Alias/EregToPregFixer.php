@@ -92,11 +92,11 @@ final class EregToPregFixer extends AbstractFixer
                 if ('b' === $regexTokenContent[0] || 'B' === $regexTokenContent[0]) {
                     $quote = $regexTokenContent[1];
                     $prefix = $regexTokenContent[0];
-                    $string = \substr($regexTokenContent, 2, -1);
+                    $string = (string) \substr($regexTokenContent, 2, -1);
                 } else {
                     $quote = $regexTokenContent[0];
                     $prefix = '';
-                    $string = \substr($regexTokenContent, 1, -1);
+                    $string = (string) \substr($regexTokenContent, 1, -1);
                 }
                 $delim = $this->getBestDelimiter($string);
                 $preg = $delim . \addcslashes($string, $delim) . $delim . 'D' . $map[2];

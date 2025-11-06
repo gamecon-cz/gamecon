@@ -67,7 +67,7 @@ if (\PHP_VERSION_ID < 80400) {
                 return '';
             }
 
-            return substr($this->name, 0, $slashPos);
+            return (string) substr($this->name, 0, $slashPos);
         }
 
         public function getShortName(): string
@@ -76,7 +76,7 @@ if (\PHP_VERSION_ID < 80400) {
                 return $this->name;
             }
 
-            return substr($this->name, $slashPos + 1);
+            return (string) substr($this->name, $slashPos + 1);
         }
 
         public function isDeprecated(): bool

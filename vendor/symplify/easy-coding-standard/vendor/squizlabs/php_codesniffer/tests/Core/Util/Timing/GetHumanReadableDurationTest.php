@@ -10,7 +10,7 @@
 namespace PHP_CodeSniffer\Tests\Core\Util\Timing;
 
 use PHP_CodeSniffer\Util\Timing;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Tests for the \PHP_CodeSniffer\Util\Timing::getHumanReadableDuration() method.
  *

@@ -5,7 +5,7 @@
  *
  * @see \PHP_CodeSniffer\Tests\Core\Ruleset\ExpandRulesetReferenceHomePathTest
  */
-namespace ECSPrefix202509\FakeHomePath\MyStandard\Sniffs\Category;
+namespace ECSPrefix202510\FakeHomePath\MyStandard\Sniffs\Category;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;

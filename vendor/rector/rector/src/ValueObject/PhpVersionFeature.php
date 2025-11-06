@@ -530,6 +530,11 @@ final class PhpVersionFeature
      */
     public const MIXED_TYPE = \Rector\ValueObject\PhpVersion::PHP_80;
     /**
+     * @see https://3v4l.org/OWtO5
+     * @var int
+     */
+    public const ARRAY_ON_ARRAY_MERGE = \Rector\ValueObject\PhpVersion::PHP_80;
+    /**
      * @var int
      */
     public const DEPRECATE_NULL_ARG_IN_STRING_FUNCTION = \Rector\ValueObject\PhpVersion::PHP_81;
@@ -662,8 +667,33 @@ final class PhpVersionFeature
      */
     public const DEPRECATE_OUTSIDE_INTERVEL_VAL_IN_CHR_FUNCTION = \Rector\ValueObject\PhpVersion::PHP_85;
     /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_the_sleep_and_wakeup_magic_methods
+     * @var int
+     */
+    public const DEPRECATED_METHOD_SLEEP = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_the_sleep_and_wakeup_magic_methods
+     * @var int
+     */
+    public const DEPRECATED_METHOD_WAKEUP = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
      * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_passing_string_which_are_not_one_byte_long_to_ord
      * @var int
      */
     public const DEPRECATE_ORD_WITH_MULTIBYTE_STRING = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/property-hooks
+     * @var int
+     */
+    public const PROPERTY_HOOKS = \Rector\ValueObject\PhpVersion::PHP_84;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_backticks_as_an_alias_for_shell_exec
+     * @var int
+     */
+    public const DEPRECATE_BACKTICKS = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/pipe-operator-v3
+     * @var int
+     */
+    public const PIPE_OPERATOER = \Rector\ValueObject\PhpVersion::PHP_85;
 }

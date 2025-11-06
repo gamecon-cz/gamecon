@@ -152,7 +152,7 @@ final class NoUnusedImportsFixer extends AbstractFixer
             $prevIndex = $tokens->getPrevNonWhitespace($index);
             if ($tokens[$prevIndex]->isComment()) {
                 $content = $tokens[$index]->getContent();
-                $tokens[$index] = new Token([\T_WHITESPACE, \substr($content, \strrpos($content, "\n"))]);
+                $tokens[$index] = new Token([\T_WHITESPACE, (string) \substr($content, \strrpos($content, "\n"))]);
                 // preserve indent only
             } else {
                 $tokens->clearTokenAndMergeSurroundingWhitespace($index);
@@ -185,7 +185,7 @@ final class NoUnusedImportsFixer extends AbstractFixer
             if (\strncmp($useDeclarationFullName, $namespace . '\\', \strlen($namespace . '\\')) !== 0) {
                 continue;
             }
-            $partName = \substr($useDeclarationFullName, $nsLength);
+            $partName = (string) \substr($useDeclarationFullName, $nsLength);
             if (\strpos($partName, '\\') === \false) {
                 $this->removeUseDeclaration($tokens, $useDeclaration);
             }

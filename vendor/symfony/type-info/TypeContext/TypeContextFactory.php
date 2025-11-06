@@ -56,7 +56,15 @@ final class TypeContextFactory
         $calledClassPath = explode('\\', $calledClassName);
         $declaringClassPath = explode('\\', $declaringClassName);
 
+        $calledClassNameReflection = self::$reflectionClassCache[$calledClassName] ??= new \ReflectionClass($calledClassName);
         $declaringClassReflection = self::$reflectionClassCache[$declaringClassName] ??= new \ReflectionClass($declaringClassName);
+
+        $calledClassTypeContext = new TypeContext(
+            end($calledClassPath),
+            end($declaringClassPath),
+            trim($calledClassNameReflection->getNamespaceName(), '\\'),
+            $this->collectUses($calledClassNameReflection),
+        );
 
         $typeContext = new TypeContext(
             end($calledClassPath),
@@ -65,12 +73,20 @@ final class TypeContextFactory
             $this->collectUses($declaringClassReflection),
         );
 
+        $typeContext = new TypeContext(
+            $typeContext->calledClassName,
+            $typeContext->declaringClassName,
+            $typeContext->namespace,
+            $typeContext->uses,
+            $this->collectTemplates($calledClassNameReflection, $calledClassTypeContext) + $this->collectTemplates($declaringClassReflection, $typeContext),
+        );
+
         return new TypeContext(
             $typeContext->calledClassName,
             $typeContext->declaringClassName,
             $typeContext->namespace,
             $typeContext->uses,
-            $this->collectTemplates($declaringClassReflection, $typeContext),
+            $typeContext->templates,
             $this->collectTypeAliases($declaringClassReflection, $typeContext),
         );
     }
@@ -103,12 +119,20 @@ final class TypeContextFactory
             default => $this->collectTemplates($declaringClassReflection, $typeContext),
         };
 
-        return new TypeContext(
+        $typeContext = new TypeContext(
             $typeContext->calledClassName,
             $typeContext->declaringClassName,
             $typeContext->namespace,
             $typeContext->uses,
             $templates,
+        );
+
+        return new TypeContext(
+            $typeContext->calledClassName,
+            $typeContext->declaringClassName,
+            $typeContext->namespace,
+            $typeContext->uses,
+            $typeContext->templates,
             $this->collectTypeAliases($declaringClassReflection, $typeContext),
         );
     }
@@ -123,7 +147,7 @@ final class TypeContextFactory
             return [];
         }
 
-        if (false === $lines = @file($fileName, \FILE_IGNORE_NEW_LINES)) {
+        if (false === $lines = @file($fileName, \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES)) {
             throw new RuntimeException(\sprintf('Unable to read file "%s".', $fileName));
         }
 

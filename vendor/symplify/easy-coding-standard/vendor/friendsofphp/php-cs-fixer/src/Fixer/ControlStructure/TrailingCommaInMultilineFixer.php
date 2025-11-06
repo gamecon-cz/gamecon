@@ -24,6 +24,7 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\FixerDefinition\VersionSpecification;
 use PhpCsFixer\FixerDefinition\VersionSpecificCodeSample;
+use PhpCsFixer\Future;
 use PhpCsFixer\Tokenizer\CT;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
@@ -69,7 +70,7 @@ final class TrailingCommaInMultilineFixer extends AbstractFixer implements Confi
         return new FixerDefinition('Arguments lists, array destructuring lists, arrays that are multi-line, `match`-lines and parameters lists must have a trailing comma.', [new CodeSample("<?php\narray(\n    1,\n    2\n);\n"), new CodeSample(<<<'SAMPLE'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $x = ['foo', <<<EOD
 bar
@@ -94,7 +95,7 @@ SAMPLE
     }
     protected function createConfigurationDefinition() : FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([(new FixerOptionBuilder('after_heredoc', 'Whether a trailing comma should also be placed after heredoc end.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption(), (new FixerOptionBuilder('elements', \sprintf('Where to fix multiline trailing comma (PHP >= 8.0 for `%s` and `%s`).', self::ELEMENTS_PARAMETERS, self::MATCH_EXPRESSIONS)))->setAllowedTypes(['string[]'])->setAllowedValues([new AllowedValueSubset([self::ARRAY_DESTRUCTURING, self::ELEMENTS_ARGUMENTS, self::ELEMENTS_ARRAYS, self::ELEMENTS_PARAMETERS, self::MATCH_EXPRESSIONS])])->setDefault([self::ELEMENTS_ARRAYS])->getOption()]);
+        return new FixerConfigurationResolver([(new FixerOptionBuilder('after_heredoc', 'Whether a trailing comma should also be placed after heredoc end.'))->setAllowedTypes(['bool'])->setDefault(Future::getV4OrV3(\true, \false))->getOption(), (new FixerOptionBuilder('elements', \sprintf('Where to fix multiline trailing comma (PHP >= 8.0 for `%s` and `%s`).', self::ELEMENTS_PARAMETERS, self::MATCH_EXPRESSIONS)))->setAllowedTypes(['string[]'])->setAllowedValues([new AllowedValueSubset([self::ARRAY_DESTRUCTURING, self::ELEMENTS_ARGUMENTS, self::ELEMENTS_ARRAYS, self::ELEMENTS_PARAMETERS, self::MATCH_EXPRESSIONS])])->setDefault([self::ELEMENTS_ARRAYS])->getOption()]);
     }
     protected function applyFix(\SplFileInfo $file, Tokens $tokens) : void
     {

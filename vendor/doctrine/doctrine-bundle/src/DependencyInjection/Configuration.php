@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doctrine\Bundle\DoctrineBundle\DependencyInjection;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\LegacySchemaManagerFactory;
+use Doctrine\Deprecations\Deprecation;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -40,7 +44,6 @@ use function strlen;
 use function strpos;
 use function strtoupper;
 use function substr;
-use function trigger_deprecation;
 
 /**
  * This class contains the configuration information for the bundle
@@ -213,7 +216,20 @@ class Configuration implements ConfigurationInterface
                     ->defaultValue(true)
                     ->info('Enables collecting schema errors when profiling is enabled')
                 ->end()
-                ->booleanNode('disable_type_comments')->end()
+                ->booleanNode('disable_type_comments')
+                    ->beforeNormalization()
+                        ->ifTrue(static fn ($v): bool => isset($v) && ! method_exists(Connection::class, 'getEventManager'))
+                        ->then(static function ($v) {
+                            Deprecation::trigger(
+                                'doctrine/doctrine-bundle',
+                                'https://github.com/doctrine/DoctrineBundle/pull/2048',
+                                'The "disable_type_comments" configuration key is deprecated when using DBAL 4 and will be removed in DoctrineBundle 3.0.',
+                            );
+
+                            return $v;
+                        })
+                    ->end()
+                ->end()
                 ->scalarNode('server_version')->end()
                 ->integerNode('idle_connection_ttl')->defaultValue(600)->end()
                 ->scalarNode('driver_class')->end()
@@ -292,9 +308,9 @@ class Configuration implements ConfigurationInterface
 
                 if ($urlConflictingValues) {
                     $tail = count($urlConflictingValues) > 1 ? sprintf('or "%s" options', array_pop($urlConflictingValues)) : 'option';
-                    trigger_deprecation(
+                    Deprecation::trigger(
                         'doctrine/doctrine-bundle',
-                        '2.4',
+                        'https://github.com/doctrine/DoctrineBundle/pull/1342',
                         'Setting the "doctrine.dbal.%s" %s while the "url" one is defined is deprecated',
                         implode('", "', $urlConflictingValues),
                         $tail,
@@ -373,7 +389,21 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->booleanNode('pooled')->info('True to use a pooled server with the oci8/pdo_oracle driver')->end()
                 ->booleanNode('MultipleActiveResultSets')->info('Configuring MultipleActiveResultSets for the pdo_sqlsrv driver')->end()
-                ->booleanNode('use_savepoints')->info('Use savepoints for nested transactions')->end()
+                ->booleanNode('use_savepoints')
+                    ->info('Use savepoints for nested transactions')
+                    ->beforeNormalization()
+                        ->ifTrue(static fn ($v): bool => isset($v) && ! method_exists(Connection::class, 'getEventManager'))
+                        ->then(static function ($v) {
+                            Deprecation::trigger(
+                                'doctrine/doctrine-bundle',
+                                'https://github.com/doctrine/DoctrineBundle/pull/2055',
+                                'The "use_savepoints" configuration key is deprecated when using DBAL 4 and will be removed in DoctrineBundle 3.0.',
+                            );
+
+                            return $v;
+                        })
+                    ->end()
+                ->end()
                 ->scalarNode('instancename')
                 ->info(
                     'Optional parameter, complete whether to add the INSTANCE_NAME parameter in the connection.' .
@@ -665,6 +695,18 @@ class Configuration implements ConfigurationInterface
                         ->prototype('scalar')->end()
                     ->end()
                     ->booleanNode('report_fields_where_declared')
+                        ->beforeNormalization()
+                            ->ifTrue(static fn ($v): bool => isset($v) && ! class_exists(AnnotationDriver::class))
+                            ->then(static function ($v) {
+                                Deprecation::trigger(
+                                    'doctrine/doctrine-bundle',
+                                    'https://github.com/doctrine/DoctrineBundle/pull/1962',
+                                    'The "report_fields_where_declared" configuration option is deprecated and will be removed in DoctrineBundle 3.0. When using ORM 3, report_fields_where_declared will always be true.',
+                                );
+
+                                return $v;
+                            })
+                        ->end()
                         ->defaultValue(! class_exists(AnnotationDriver::class))
                         ->info('Set to "true" to opt-in to the new mapping driver mode that was added in Doctrine ORM 2.16 and will be mandatory in ORM 3.0. See https://github.com/doctrine/orm/pull/10455.')
                         ->validate()
@@ -672,7 +714,7 @@ class Configuration implements ConfigurationInterface
                             ->thenInvalid('The setting "report_fields_where_declared" cannot be disabled for ORM 3.')
                         ->end()
                     ->end()
-                    ->booleanNode('validate_xml_mapping')->defaultFalse()->info('Set to "true" to opt-in to the new mapping driver mode that was added in Doctrine ORM 2.14 and will be mandatory in ORM 3.0. See https://github.com/doctrine/orm/pull/6728.')->end()
+                    ->booleanNode('validate_xml_mapping')->defaultFalse()->info('Set to "true" to opt-in to the new mapping driver mode that was added in Doctrine ORM 2.14. See https://github.com/doctrine/orm/pull/6728.')->end()
                 ->end()
                 ->children()
                     ->arrayNode('second_level_cache')

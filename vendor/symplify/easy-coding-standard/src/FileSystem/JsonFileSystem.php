@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace Symplify\EasyCodingStandard\FileSystem;
 
-use ECSPrefix202509\Nette\Utils\FileSystem;
-use ECSPrefix202509\Nette\Utils\Json;
+use ECSPrefix202510\Nette\Utils\FileSystem;
+use ECSPrefix202510\Nette\Utils\Json;
 final class JsonFileSystem
 {
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Process;
+namespace ECSPrefix202510\Illuminate\Contracts\Process;
 
 interface ProcessResult
 {

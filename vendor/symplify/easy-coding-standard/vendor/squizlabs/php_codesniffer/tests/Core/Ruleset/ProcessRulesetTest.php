@@ -11,7 +11,7 @@ namespace PHP_CodeSniffer\Tests\Core\Ruleset;
 
 use PHP_CodeSniffer\Ruleset;
 use PHP_CodeSniffer\Tests\ConfigDouble;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Test various aspects of the Ruleset::processRuleset() method not covered via other tests.
  *
@@ -47,7 +47,7 @@ final class ProcessRulesetTest extends TestCase
         $config = new ConfigDouble(["--standard={$standard}"]);
         $ruleset = new Ruleset($config);
         $std = 'TestStandard';
-        $sniffDir = 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs';
+        $sniffDir = 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs';
         $expected = ["{$std}.Deprecated.WithLongReplacement" => "{$sniffDir}\\Deprecated\\WithLongReplacementSniff", "{$std}.Deprecated.WithReplacement" => "{$sniffDir}\\Deprecated\\WithReplacementSniff", "{$std}.Deprecated.WithReplacementContainingLinuxNewlines" => "{$sniffDir}\\Deprecated\\WithReplacementContainingLinuxNewlinesSniff", "{$std}.Deprecated.WithReplacementContainingNewlines" => "{$sniffDir}\\Deprecated\\WithReplacementContainingNewlinesSniff", "{$std}.Deprecated.WithoutReplacement" => "{$sniffDir}\\Deprecated\\WithoutReplacementSniff", "{$std}.DeprecatedInvalid.EmptyDeprecationVersion" => "{$sniffDir}\\DeprecatedInvalid\\EmptyDeprecationVersionSniff", "{$std}.DeprecatedInvalid.EmptyRemovalVersion" => "{$sniffDir}\\DeprecatedInvalid\\EmptyRemovalVersionSniff", "{$std}.DeprecatedInvalid.InvalidDeprecationMessage" => "{$sniffDir}\\DeprecatedInvalid\\InvalidDeprecationMessageSniff", "{$std}.DeprecatedInvalid.InvalidDeprecationVersion" => "{$sniffDir}\\DeprecatedInvalid\\InvalidDeprecationVersionSniff", "{$std}.DeprecatedInvalid.InvalidRemovalVersion" => "{$sniffDir}\\DeprecatedInvalid\\InvalidRemovalVersionSniff", "{$std}.MissingInterface.ValidImplements" => "{$sniffDir}\\MissingInterface\\ValidImplementsSniff", "{$std}.MissingInterface.ValidImplementsViaAbstract" => "{$sniffDir}\\MissingInterface\\ValidImplementsViaAbstractSniff", "{$std}.SetProperty.AllowedAsDeclared" => "{$sniffDir}\\SetProperty\\AllowedAsDeclaredSniff", "{$std}.SetProperty.AllowedViaMagicMethod" => "{$sniffDir}\\SetProperty\\AllowedViaMagicMethodSniff", "{$std}.SetProperty.AllowedViaStdClass" => "{$sniffDir}\\SetProperty\\AllowedViaStdClassSniff", "{$std}.SetProperty.NotAllowedViaAttribute" => "{$sniffDir}\\SetProperty\\NotAllowedViaAttributeSniff", "{$std}.SetProperty.PropertyTypeHandling" => "{$sniffDir}\\SetProperty\\PropertyTypeHandlingSniff", "{$std}.ValidSniffs.RegisterEmptyArray" => "{$sniffDir}\\ValidSniffs\\RegisterEmptyArraySniff"];
         // Sort the value to make the tests stable as different OSes will read directories
         // in a different order and the order is not relevant for these tests. Just the values.

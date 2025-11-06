@@ -13,6 +13,7 @@ declare (strict_types=1);
 namespace PhpCsFixer;
 
 use PhpCsFixer\Fixer\FixerInterface;
+use PhpCsFixer\RuleSet\RuleSetDefinitionInterface;
 use PhpCsFixer\Runner\Parallel\ParallelConfig;
 use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 /**
@@ -22,7 +23,7 @@ use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
  *
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise.
  */
-class Config implements \PhpCsFixer\ConfigInterface, \PhpCsFixer\ParallelAwareConfigInterface, \PhpCsFixer\UnsupportedPhpVersionAllowedConfigInterface
+class Config implements \PhpCsFixer\ConfigInterface, \PhpCsFixer\ParallelAwareConfigInterface, \PhpCsFixer\UnsupportedPhpVersionAllowedConfigInterface, \PhpCsFixer\CustomRulesetsAwareConfigInterface
 {
     /**
      * @var non-empty-string
@@ -32,6 +33,10 @@ class Config implements \PhpCsFixer\ConfigInterface, \PhpCsFixer\ParallelAwareCo
      * @var list<FixerInterface>
      */
     private $customFixers = [];
+    /**
+     * @var array<string, RuleSetDefinitionInterface>
+     */
+    private $customRuleSets = [];
     /**
      * @var null|iterable<\SplFileInfo>
      */
@@ -85,16 +90,10 @@ class Config implements \PhpCsFixer\ConfigInterface, \PhpCsFixer\ParallelAwareCo
     private $isUnsupportedPhpVersionAllowed = \false;
     public function __construct(string $name = 'default')
     {
-        // @TODO 4.0 cleanup
-        if (\PhpCsFixer\Future::isFutureModeEnabled()) {
-            $this->name = $name . ' (future mode)';
-            $this->rules = ['@PER-CS' => \true];
-            $this->format = '@auto';
-        } else {
-            $this->name = $name;
-            $this->rules = ['@PSR12' => \true];
-            $this->format = 'txt';
-        }
+        $this->name = $name . (\PhpCsFixer\Future::isFutureModeEnabled() ? ' (future mode)' : '');
+        $this->rules = \PhpCsFixer\Future::getV4OrV3(['@PER-CS' => \true], ['@PSR12' => \true]);
+        // @TODO 4.0 | 3.x switch to '@auto' for v4
+        $this->format = \PhpCsFixer\Future::getV4OrV3('@auto', 'txt');
         // @TODO 4.0 cleanup
         if (\PhpCsFixer\Future::isFutureModeEnabled() || \filter_var(\getenv('PHP_CS_FIXER_PARALLEL'), \FILTER_VALIDATE_BOOL)) {
             $this->parallelConfig = ParallelConfigFactory::detect();
@@ -116,6 +115,10 @@ class Config implements \PhpCsFixer\ConfigInterface, \PhpCsFixer\ParallelAwareCo
     public function getCustomFixers() : array
     {
         return $this->customFixers;
+    }
+    public function getCustomRuleSets() : array
+    {
+        return \array_values($this->customRuleSets);
     }
     /**
      * @return Finder
@@ -173,6 +176,16 @@ class Config implements \PhpCsFixer\ConfigInterface, \PhpCsFixer\ParallelAwareCo
     {
         foreach ($fixers as $fixer) {
             $this->addCustomFixer($fixer);
+        }
+        return $this;
+    }
+    /**
+     * @param list<RuleSetDefinitionInterface> $ruleSets
+     */
+    public function registerCustomRuleSets(array $ruleSets) : \PhpCsFixer\ConfigInterface
+    {
+        foreach ($ruleSets as $ruleset) {
+            $this->customRuleSets[$ruleset->getName()] = $ruleset;
         }
         return $this;
     }

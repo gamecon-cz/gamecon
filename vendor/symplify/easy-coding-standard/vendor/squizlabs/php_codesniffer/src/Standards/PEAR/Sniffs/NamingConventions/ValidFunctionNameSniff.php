@@ -69,7 +69,7 @@ class ValidFunctionNameSniff extends AbstractScopeSniff
         $classNameLc = \strtolower($className);
         // Is this a magic method. i.e., is prefixed with "__" ?
         if (\preg_match('|^__[^_]|', $methodName) !== 0) {
-            $magicPart = \substr($methodNameLc, 2);
+            $magicPart = (string) \substr($methodNameLc, 2);
             if (isset($this->magicMethods[$magicPart]) === \true) {
                 return;
             }
@@ -144,7 +144,7 @@ class ValidFunctionNameSniff extends AbstractScopeSniff
         $errorData = [$functionName];
         // Is this a magic function. i.e., it is prefixed with "__".
         if (\preg_match('|^__[^_]|', $functionName) !== 0) {
-            $magicPart = \strtolower(\substr($functionName, 2));
+            $magicPart = \strtolower((string) \substr($functionName, 2));
             if (isset($this->magicFunctions[$magicPart]) === \true) {
                 return;
             }
@@ -158,8 +158,8 @@ class ValidFunctionNameSniff extends AbstractScopeSniff
         if ($underscorePos === \false) {
             $camelCapsPart = $functionName;
         } else {
-            $packagePart = \substr($functionName, 0, $underscorePos);
-            $camelCapsPart = \substr($functionName, $underscorePos + 1);
+            $packagePart = (string) \substr($functionName, 0, $underscorePos);
+            $camelCapsPart = (string) \substr($functionName, $underscorePos + 1);
             // We don't care about _'s on the front.
             $packagePart = \ltrim($packagePart, '_');
         }

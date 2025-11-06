@@ -21,6 +21,7 @@ use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
+use PhpCsFixer\Future;
 use PhpCsFixer\Preg;
 use PhpCsFixer\Tokenizer\Analyzer\CommentsAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
@@ -78,7 +79,7 @@ final class PhpdocToCommentFixer extends AbstractFixer implements ConfigurableFi
         return new FixerDefinition('Docblocks should only be used on structural elements.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $first = \true;
 // needed because by default first docblock is never fixed.
@@ -91,7 +92,7 @@ PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $first = \true;
 // needed because by default first docblock is never fixed.
@@ -108,7 +109,7 @@ PHP
 , ['ignored_tags' => ['todo']]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $first = \true;
 // needed because by default first docblock is never fixed.
@@ -134,7 +135,7 @@ PHP
     }
     protected function createConfigurationDefinition() : FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([(new FixerOptionBuilder('ignored_tags', 'List of ignored tags (matched case insensitively).'))->setAllowedTypes(['string[]'])->setDefault([])->getOption(), (new FixerOptionBuilder('allow_before_return_statement', 'Whether to allow PHPDoc before return statement.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
+        return new FixerConfigurationResolver([(new FixerOptionBuilder('ignored_tags', 'List of ignored tags (matched case insensitively).'))->setAllowedTypes(['string[]'])->setDefault([])->getOption(), (new FixerOptionBuilder('allow_before_return_statement', 'Whether to allow PHPDoc before return statement.'))->setAllowedTypes(['bool'])->setDefault(Future::getV4OrV3(\true, \false))->getOption()]);
     }
     protected function applyFix(\SplFileInfo $file, Tokens $tokens) : void
     {

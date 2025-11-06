@@ -75,7 +75,7 @@ final class ChangeProxyParamTypesRector extends AbstractRector
                 continue;
             }
 
-            if (!$param->var instanceof Node\Expr\Variable || !is_string($param->var->name)) {
+            if (!$param->var instanceof Node\Expr\Variable || !\is_string($param->var->name)) {
                 continue;
             }
 
@@ -84,7 +84,7 @@ final class ChangeProxyParamTypesRector extends AbstractRector
             if (
                 ($targetClassType = $this->getParamTargetClass($paramName, $phpDocNode, $nameScope)) === null
             ) {
-                if ($param->type instanceof Node\Name && $param->type->name === Proxy::class) {
+                if ($param->type instanceof Node\Name && Proxy::class === $param->type->name) {
                     $param->type = new Node\Name('object');
 
                     $changed = true;
@@ -96,7 +96,7 @@ final class ChangeProxyParamTypesRector extends AbstractRector
             $targetClassName = $targetClassType->getObjectClassNames()[0];
 
             if ($this->reflectionProvider->hasClass($targetClassName)) {
-                $targetClassName = '\\' . $targetClassName;
+                $targetClassName = '\\'.$targetClassName;
                 $param->type = new Node\Name($targetClassName);
             } else {
                 // if the target classe name does not exist, it is likely a generic type
@@ -114,7 +114,7 @@ final class ChangeProxyParamTypesRector extends AbstractRector
                     new ParamTagValueNode(
                         type: new IdentifierTypeNode($targetClassName),
                         isVariadic: false,
-                        parameterName: "\$$paramName",
+                        parameterName: "\${$paramName}",
                         description: '',
                         isReference: $param->byRef
                     )
@@ -130,7 +130,7 @@ final class ChangeProxyParamTypesRector extends AbstractRector
     {
         $paramNode = $this->getParamTagNodes($paramName, $docNode)[0] ?? null;
 
-        if ($paramNode === null) {
+        if (null === $paramNode) {
             return null;
         }
 
@@ -158,14 +158,14 @@ final class ChangeProxyParamTypesRector extends AbstractRector
             return false;
         }
 
-        return ($typeNode->type->name === Proxy::class || $typeNode->type->name === 'Proxy')
-            && count($typeNode->genericTypes) === 1
+        return (Proxy::class === $typeNode->type->name || 'Proxy' === $typeNode->type->name)
+            && 1 === \count($typeNode->genericTypes)
             && $typeNode->genericTypes[0] instanceof IdentifierTypeNode;
     }
 
     private function resolveTargetClassTypeFromTypeNode(
         TypeNode $typeNode,
-        NameScope $nameScope
+        NameScope $nameScope,
     ): ?Type {
         $type = $this->typeNodeResolver->resolve($typeNode, $nameScope);
 
@@ -181,15 +181,15 @@ final class ChangeProxyParamTypesRector extends AbstractRector
      */
     private function getParamTagNodes(string $paramName, PhpDocNode $docNode): array
     {
-        $paramPhpDocNodes = array_values([
+        $paramPhpDocNodes = \array_values([
             ...$docNode->getParamTagValues('@phpstan-param'),
             ...$docNode->getParamTagValues('@psalm-param'),
             ...$docNode->getParamTagValues(),
         ]);
 
-        return array_filter(
+        return \array_filter(
             $paramPhpDocNodes,
-            static fn(ParamTagValueNode $n) => $n->parameterName === "\$$paramName"
+            static fn(ParamTagValueNode $n) => $n->parameterName === "\${$paramName}"
         );
     }
 }

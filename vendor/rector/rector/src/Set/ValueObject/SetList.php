@@ -26,6 +26,7 @@ final class SetList
      */
     public const DEAD_CODE = __DIR__ . '/../../../config/set/dead-code.php';
     /**
+     * @deprecated As too strict and not practical. Use code quality and coding style sets instead.
      * @var string
      */
     public const STRICT_BOOLEANS = __DIR__ . '/../../../config/set/strict-booleans.php';
@@ -115,6 +116,10 @@ final class SetList
      * @var string
      */
     public const TYPE_DECLARATION = __DIR__ . '/../../../config/set/type-declaration.php';
+    /**
+     * @var string
+     */
+    public const TYPE_DECLARATION_DOCBLOCKS = __DIR__ . '/../../../config/set/type-declaration-docblocks.php';
     /**
      * @var string
      */

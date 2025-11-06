@@ -11,7 +11,7 @@ use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202510\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Removing\Rector\FuncCall\RemoveFuncCallRector\RemoveFuncCallRectorTest
  */
@@ -23,7 +23,7 @@ final class RemoveFuncCallRector extends AbstractRector implements ConfigurableR
     private array $removedFunctions = [];
     public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Remove function', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Remove defined function calls', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
 $x = 'something';
 var_dump($x);
 CODE_SAMPLE

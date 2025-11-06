@@ -12,11 +12,11 @@ declare (strict_types=1);
  */
 namespace PhpCsFixer\Runner\Parallel;
 
-use ECSPrefix202509\React\ChildProcess\Process as ReactProcess;
-use ECSPrefix202509\React\EventLoop\LoopInterface;
-use ECSPrefix202509\React\EventLoop\TimerInterface;
-use ECSPrefix202509\React\Stream\ReadableStreamInterface;
-use ECSPrefix202509\React\Stream\WritableStreamInterface;
+use ECSPrefix202510\React\ChildProcess\Process as ReactProcess;
+use ECSPrefix202510\React\EventLoop\LoopInterface;
+use ECSPrefix202510\React\EventLoop\TimerInterface;
+use ECSPrefix202510\React\Stream\ReadableStreamInterface;
+use ECSPrefix202510\React\Stream\WritableStreamInterface;
 /**
  * Represents single process that is handled within parallel run.
  * Inspired by:

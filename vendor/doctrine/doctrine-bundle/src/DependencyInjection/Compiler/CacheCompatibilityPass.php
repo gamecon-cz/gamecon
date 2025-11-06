@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler;
 
 use Doctrine\Common\Cache\Psr6\CacheAdapter;
@@ -63,11 +65,11 @@ final class CacheCompatibilityPass implements CompilerPassInterface
                     continue;
                 }
 
-                $regionDefinition = $container->getDefinition($factoryMethodCall[1][0]);
+                $regionDefinition = $container->getDefinition((string) $factoryMethodCall[1][0]);
 
                 // Get inner service for FileLock
                 if ($regionDefinition->getClass() === '%doctrine.orm.second_level_cache.filelock_region.class%') {
-                    $regionDefinition = $container->getDefinition($regionDefinition->getArgument(0));
+                    $regionDefinition = $container->getDefinition((string) $regionDefinition->getArgument(0));
                 }
 
                 // We don't know how to adjust custom region classes

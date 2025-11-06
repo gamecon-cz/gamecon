@@ -31,9 +31,9 @@ final class PhpUnitFqcnAnnotationFixer extends AbstractPhpUnitFixer
         return new FixerDefinition('PHPUnit annotations should be a FQCNs including a root namespace.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-final class MyTest extends \ECSPrefix202509\PHPUnit_Framework_TestCase
+final class MyTest extends \ECSPrefix202510\PHPUnit_Framework_TestCase
 {
     /**
     * @expectedException InvalidArgumentException
@@ -45,7 +45,7 @@ final class MyTest extends \ECSPrefix202509\PHPUnit_Framework_TestCase
     {
     }
 }
-\class_alias('ECSPrefix202509\\MyTest', 'MyTest', \false);
+\class_alias('ECSPrefix202510\\MyTest', 'MyTest', \false);
 
 PHP
 )]);

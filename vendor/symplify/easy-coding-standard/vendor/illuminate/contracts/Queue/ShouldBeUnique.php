@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Queue;
+namespace ECSPrefix202510\Illuminate\Contracts\Queue;
 
 interface ShouldBeUnique
 {

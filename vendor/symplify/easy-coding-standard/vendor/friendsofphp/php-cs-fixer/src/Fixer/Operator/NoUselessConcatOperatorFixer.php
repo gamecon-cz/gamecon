@@ -227,7 +227,7 @@ final class NoUselessConcatOperatorFixer extends AbstractFixer implements Config
     }
     private function isSimpleQuotedStringContent(string $candidate) : bool
     {
-        return !Preg::match('#[\\$"\'\\\\]#', \substr($candidate, 1, -1));
+        return !Preg::match('#[\\$"\'\\\\]#', (string) \substr($candidate, 1, -1));
     }
     private function containsLinebreak(Tokens $tokens, int $startIndex, int $endIndex) : bool
     {
@@ -259,7 +259,7 @@ final class NoUselessConcatOperatorFixer extends AbstractFixer implements Config
         // If the first operand ends with a variable, the second operand should match one of the allowed patterns.
         // Otherwise, the concatenation can break a variable in the first operand.
         foreach ($allowedPatternsForSecondOperand as $allowedPattern) {
-            $secondOperandInnerContent = \substr($tokens->generatePartialCode($secondOperand['start'], $secondOperand['end']), 1, -1);
+            $secondOperandInnerContent = (string) \substr($tokens->generatePartialCode($secondOperand['start'], $secondOperand['end']), 1, -1);
             if (Preg::match($allowedPattern, $secondOperandInnerContent)) {
                 return \false;
             }

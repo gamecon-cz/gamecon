@@ -3,14 +3,14 @@
 declare (strict_types=1);
 namespace Rector\FileSystem;
 
-use RectorPrefix202509\Nette\Utils\FileSystem;
+use RectorPrefix202510\Nette\Utils\FileSystem;
 use Rector\Caching\Detector\ChangedFilesDetector;
 use Rector\Caching\UnchangedFilesFilter;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\Skipper\Skipper\PathSkipper;
 use Rector\ValueObject\Configuration;
-use RectorPrefix202509\Symfony\Component\Finder\Finder;
+use RectorPrefix202510\Symfony\Component\Finder\Finder;
 /**
  * @see \Rector\Tests\FileSystem\FilesFinder\FilesFinderTest
  */
@@ -54,7 +54,7 @@ final class FilesFinder
      * @param string[] $suffixes
      * @return string[]
      */
-    public function findInDirectoriesAndFiles(array $source, array $suffixes = [], bool $sortByName = \true, ?string $onlySuffix = null, bool $isKaizenEnabled = \false): array
+    public function findInDirectoriesAndFiles(array $source, array $suffixes = [], bool $sortByName = \true, ?string $onlySuffix = null): array
     {
         $filesAndDirectories = $this->filesystemTweaker->resolveWithFnmatch($source);
         // filtering files in files collection
@@ -91,18 +91,7 @@ final class FilesFinder
         $directories = $this->fileAndDirectoryFilter->filterDirectories($filesAndDirectories);
         $filteredFilePathsInDirectories = $this->findInDirectories($directories, $suffixes, $hasOnlySuffix, $onlySuffix, $sortByName);
         $filePaths = array_merge($filteredFilePaths, $filteredFilePathsInDirectories);
-        $toBeChangedFiles = $this->unchangedFilesFilter->filterFilePaths($filePaths);
-        // no files to be changed, early return empty
-        if ($toBeChangedFiles === []) {
-            return [];
-        }
-        if ($isKaizenEnabled) {
-            // enforce clear cache, because there is probably another files that
-            // incrementally need to apply change on kaizen run
-            $this->changedFilesDetector->clear();
-            return array_unique($filePaths);
-        }
-        return $toBeChangedFiles;
+        return $this->unchangedFilesFilter->filterFilePaths($filePaths);
     }
     /**
      * @param string[] $paths
@@ -113,7 +102,7 @@ final class FilesFinder
         if ($configuration->shouldClearCache()) {
             $this->changedFilesDetector->clear();
         }
-        return $this->findInDirectoriesAndFiles($paths, $configuration->getFileExtensions(), \true, $configuration->getOnlySuffix(), $configuration->isKaizenEnabled());
+        return $this->findInDirectoriesAndFiles($paths, $configuration->getFileExtensions(), \true, $configuration->getOnlySuffix());
     }
     /**
      * Exclude short "<?=" tags as lead to invalid changes

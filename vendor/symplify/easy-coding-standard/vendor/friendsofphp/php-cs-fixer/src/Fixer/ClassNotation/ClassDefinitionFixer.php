@@ -70,16 +70,16 @@ final class ClassDefinitionFixer extends AbstractFixer implements ConfigurableFi
         return new FixerDefinition('Whitespace around the keywords of a class, trait, enum or interfaces definition should be one space.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo extends Bar implements Baz, BarBaz
 {
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 final class Foo extends Bar implements Baz, BarBaz
 {
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 trait Foo
 {
 }
@@ -91,40 +91,40 @@ PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo extends Bar implements Baz, BarBaz
 {
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , ['single_line' => \true]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo extends Bar implements Baz
 {
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , ['single_item_single_line' => \true]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 interface Bar extends Bar, BarBaz, FooBarBaz
 {
 }
-\class_alias('ECSPrefix202509\\Bar', 'Bar', \false);
+\class_alias('ECSPrefix202510\\Bar', 'Bar', \false);
 
 PHP
 , ['multi_line_extends_each_single_line' => \true]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $foo = new class
 {

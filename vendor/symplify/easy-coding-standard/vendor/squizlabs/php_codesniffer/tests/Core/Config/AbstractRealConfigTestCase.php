@@ -10,7 +10,7 @@
  */
 namespace PHP_CodeSniffer\Tests\Core\Config;
 
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 abstract class AbstractRealConfigTestCase extends TestCase
 {

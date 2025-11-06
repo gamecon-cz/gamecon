@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Console\Input;
+namespace ECSPrefix202510\Symfony\Component\Console\Input;
 
-use ECSPrefix202509\Symfony\Component\Console\Exception\InvalidArgumentException;
-use ECSPrefix202509\Symfony\Component\Console\Exception\InvalidOptionException;
+use ECSPrefix202510\Symfony\Component\Console\Exception\InvalidArgumentException;
+use ECSPrefix202510\Symfony\Component\Console\Exception\InvalidOptionException;
 /**
  * ArrayInput represents an input provided as an array.
  *
@@ -115,9 +115,9 @@ class ArrayInput extends Input
                 return;
             }
             if (\strncmp($key, '--', \strlen('--')) === 0) {
-                $this->addLongOption(\substr($key, 2), $value);
+                $this->addLongOption((string) \substr($key, 2), $value);
             } elseif (\strncmp($key, '-', \strlen('-')) === 0) {
-                $this->addShortOption(\substr($key, 1), $value);
+                $this->addShortOption((string) \substr($key, 1), $value);
             } else {
                 $this->addArgument($key, $value);
             }

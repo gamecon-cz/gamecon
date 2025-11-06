@@ -118,8 +118,8 @@ class Common
             return $path;
         }
         $basepathLen = \strlen($basepath);
-        if (\substr($path, 0, $basepathLen) === $basepath) {
-            $path = \substr($path, $basepathLen);
+        if ((string) \substr($path, 0, $basepathLen) === $basepath) {
+            $path = (string) \substr($path, $basepathLen);
         }
         $path = \ltrim($path, \DIRECTORY_SEPARATOR);
         if ($path === '') {
@@ -307,7 +307,7 @@ class Common
         }
         // Check that the name only contains legal characters.
         $legalChars = 'a-zA-Z0-9';
-        if (\preg_match("|[^{$legalChars}]|", \substr($string, 1)) > 0) {
+        if (\preg_match("|[^{$legalChars}]|", (string) \substr($string, 1)) > 0) {
             return \false;
         }
         if ($strict === \true) {
@@ -461,11 +461,11 @@ class Common
         $sniff = $parts[$partsCount - 1];
         if (\substr($sniff, -5) === 'Sniff') {
             // Sniff class name.
-            $sniff = \substr($sniff, 0, -5);
+            $sniff = (string) \substr($sniff, 0, -5);
         } else {
             if (\substr($sniff, -8) === 'UnitTest') {
                 // Unit test class name.
-                $sniff = \substr($sniff, 0, -8);
+                $sniff = (string) \substr($sniff, 0, -8);
             } else {
                 throw new InvalidArgumentException('The $sniffClass parameter was not passed a fully qualified sniff(test) class name. Received: ' . $sniffClass);
             }
@@ -502,7 +502,7 @@ class Common
             // Nothing needs to be cleaned.
             return $newName;
         }
-        $newName = \substr($newName, $start + 1);
+        $newName = (string) \substr($newName, $start + 1);
         return $newName;
     }
     //end cleanSniffClass()

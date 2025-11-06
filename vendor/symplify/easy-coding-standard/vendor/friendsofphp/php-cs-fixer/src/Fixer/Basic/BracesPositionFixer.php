@@ -72,12 +72,12 @@ final class BracesPositionFixer extends AbstractFixer implements ConfigurableFix
         return new FixerDefinition('Braces must be placed as configured.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 function foo()
 {
 }
@@ -94,7 +94,7 @@ PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 if (foo()) {
     bar();
@@ -104,7 +104,7 @@ PHP
 , ['control_structures_opening_brace' => self::NEXT_LINE_UNLESS_NEWLINE_AT_SIGNATURE_END]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 function foo()
 {
@@ -114,7 +114,7 @@ PHP
 , ['functions_opening_brace' => self::SAME_LINE]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $foo = function () {
 };
@@ -123,18 +123,18 @@ PHP
 , ['anonymous_functions_opening_brace' => self::NEXT_LINE_UNLESS_NEWLINE_AT_SIGNATURE_END]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , ['classes_opening_brace' => self::SAME_LINE]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $foo = new class
 {
@@ -144,7 +144,7 @@ PHP
 , ['anonymous_classes_opening_brace' => self::NEXT_LINE_UNLESS_NEWLINE_AT_SIGNATURE_END]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $foo = new class
 {
@@ -158,7 +158,7 @@ PHP
 , ['allow_single_line_empty_anonymous_classes' => \true]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $foo = function () {
     return \true;

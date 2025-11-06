@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Container;
+namespace ECSPrefix202510\Illuminate\Container;
 
 use Countable;
 use IteratorAggregate;

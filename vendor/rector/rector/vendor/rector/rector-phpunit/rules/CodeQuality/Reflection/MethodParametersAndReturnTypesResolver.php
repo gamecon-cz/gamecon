@@ -4,11 +4,14 @@ declare (strict_types=1);
 namespace Rector\PHPUnit\CodeQuality\Reflection;
 
 use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ParametersAcceptorSelector;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\IntersectionType;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\ObjectType;
@@ -24,9 +27,14 @@ final class MethodParametersAndReturnTypesResolver
      * @readonly
      */
     private NodeTypeResolver $nodeTypeResolver;
-    public function __construct(NodeTypeResolver $nodeTypeResolver)
+    /**
+     * @readonly
+     */
+    private ReflectionProvider $reflectionProvider;
+    public function __construct(NodeTypeResolver $nodeTypeResolver, ReflectionProvider $reflectionProvider)
     {
         $this->nodeTypeResolver = $nodeTypeResolver;
+        $this->reflectionProvider = $reflectionProvider;
     }
     public function resolveFromReflection(IntersectionType $intersectionType, string $methodName, ClassReflection $currentClassReflection): ?ParamTypesAndReturnType
     {
@@ -53,15 +61,29 @@ final class MethodParametersAndReturnTypesResolver
     }
     /**
      * @return null|Type[]
-     * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall $call
+     * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\New_ $callLike
      */
-    public function resolveCallParameterTypes($call): ?array
+    public function resolveCallParameterTypes($callLike): ?array
     {
-        if (!$call->name instanceof Identifier) {
+        if ($callLike instanceof New_) {
+            if (!$callLike->class instanceof Name) {
+                return null;
+            }
+            $className = $callLike->class->toString();
+            if (!$this->reflectionProvider->hasClass($className)) {
+                return null;
+            }
+            $classReflection = $this->reflectionProvider->getClass($className);
+            if (!$classReflection->hasConstructor()) {
+                return null;
+            }
+            return $this->resolveParameterTypes($classReflection->getConstructor(), $classReflection);
+        }
+        if (!$callLike->name instanceof Identifier) {
             return null;
         }
-        $methodName = $call->name->toString();
-        $callerType = $this->nodeTypeResolver->getType($call instanceof MethodCall ? $call->var : $call->class);
+        $methodName = $callLike->name->toString();
+        $callerType = $this->nodeTypeResolver->getType($callLike instanceof MethodCall ? $callLike->var : $callLike->class);
         if ($callerType instanceof ThisType) {
             $callerType = $callerType->getStaticObjectType();
         }
@@ -80,15 +102,32 @@ final class MethodParametersAndReturnTypesResolver
     }
     /**
      * @return string[]
-     * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall $call
+     * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\New_ $callLike
      */
-    public function resolveCallParameterNames($call): array
+    public function resolveCallParameterNames($callLike): array
     {
-        if (!$call->name instanceof Identifier) {
+        if ($callLike instanceof New_) {
+            if (!$callLike->class instanceof Name) {
+                return [];
+            }
+            $className = $callLike->class->toString();
+            if (!$this->reflectionProvider->hasClass($className)) {
+                return [];
+            }
+            $classReflection = $this->reflectionProvider->getClass($className);
+            if (!$classReflection->hasConstructor()) {
+                return [];
+            }
+            return $this->resolveParameterNames($classReflection->getConstructor());
+        }
+        if (!$callLike->name instanceof Identifier) {
             return [];
         }
-        $methodName = $call->name->toString();
-        $callerType = $this->nodeTypeResolver->getType($call instanceof MethodCall ? $call->var : $call->class);
+        $methodName = $callLike->name->toString();
+        $callerType = $this->nodeTypeResolver->getType($callLike instanceof MethodCall ? $callLike->var : $callLike->class);
+        if ($callerType instanceof ThisType) {
+            $callerType = $callerType->getStaticObjectType();
+        }
         if (!$callerType instanceof ObjectType) {
             return [];
         }
@@ -109,9 +148,9 @@ final class MethodParametersAndReturnTypesResolver
     {
         $extendedParametersAcceptor = ParametersAcceptorSelector::combineAcceptors($extendedMethodReflection->getVariants());
         $parameterTypes = [];
-        foreach ($extendedParametersAcceptor->getParameters() as $parameterReflection) {
-            $parameterType = $this->resolveObjectType($parameterReflection->getNativeType());
-            if ($parameterType instanceof ObjectType && $currentClassReflection->getName() !== $parameterType->getClassReflection()->getName()) {
+        foreach ($extendedParametersAcceptor->getParameters() as $extendedParameterReflection) {
+            $parameterType = $this->resolveObjectType($extendedParameterReflection->getNativeType());
+            if ($parameterType instanceof ObjectType && $currentClassReflection->getName() !== (($nullsafeVariable1 = $parameterType->getClassReflection()) ? $nullsafeVariable1->getName() : null)) {
                 $parameterTypes[] = new MixedType();
                 continue;
             }
@@ -126,8 +165,8 @@ final class MethodParametersAndReturnTypesResolver
     {
         $extendedParametersAcceptor = ParametersAcceptorSelector::combineAcceptors($extendedMethodReflection->getVariants());
         $parameterNames = [];
-        foreach ($extendedParametersAcceptor->getParameters() as $parameterReflection) {
-            $parameterNames[] = $parameterReflection->getName();
+        foreach ($extendedParametersAcceptor->getParameters() as $extendedParameterReflection) {
+            $parameterNames[] = $extendedParameterReflection->getName();
         }
         return $parameterNames;
     }
@@ -148,7 +187,7 @@ final class MethodParametersAndReturnTypesResolver
     {
         $extendedParametersAcceptor = ParametersAcceptorSelector::combineAcceptors($extendedMethodReflection->getVariants());
         $returnType = $this->resolveObjectType($extendedParametersAcceptor->getNativeReturnType());
-        if ($returnType instanceof ObjectType && $currentClassReflection->getName() !== $returnType->getClassReflection()->getName()) {
+        if ($returnType instanceof ObjectType && $currentClassReflection->getName() !== (($nullsafeVariable2 = $returnType->getClassReflection()) ? $nullsafeVariable2->getName() : null)) {
             return new MixedType();
         }
         return $returnType;

@@ -36,7 +36,7 @@ final class NoTrailingWhitespaceInStringFixer extends AbstractFixer
     }
     public function getDefinition() : FixerDefinitionInterface
     {
-        return new FixerDefinition('There must be no trailing whitespace in strings.', [new CodeSample("<?php \$a = '  \n    foo \n';\n")], null, 'Changing the whitespaces in strings might affect string comparisons and outputs.');
+        return new FixerDefinition('There must be no trailing whitespace at the end of lines in strings.', [new CodeSample("<?php \$a = '  \n    foo \n';\n")], null, 'Changing the whitespaces in strings might affect string comparisons and outputs.');
     }
     protected function applyFix(\SplFileInfo $file, Tokens $tokens) : void
     {
@@ -58,7 +58,7 @@ final class NoTrailingWhitespaceInStringFixer extends AbstractFixer
             $prev = $index - 1;
             if ($tokens[$prev]->equals([\T_CLOSE_TAG, '?>']) && Preg::match('/^\\R/', $content, $match)) {
                 $tokens[$prev] = new Token([\T_CLOSE_TAG, $tokens[$prev]->getContent() . $match[0]]);
-                $content = \substr($content, \strlen($match[0]));
+                $content = (string) \substr($content, \strlen($match[0]));
                 $content = \false === $content ? '' : $content;
                 // @phpstan-ignore-line due to https://github.com/phpstan/phpstan/issues/1215 , awaiting PHP8 as min requirement of Fixer
             }

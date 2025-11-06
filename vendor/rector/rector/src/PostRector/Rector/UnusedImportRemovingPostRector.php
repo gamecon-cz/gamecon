@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\PostRector\Rector;
 
-use RectorPrefix202509\Nette\Utils\Strings;
+use RectorPrefix202510\Nette\Utils\Strings;
 use PhpParser\Comment;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
@@ -80,6 +80,7 @@ final class UnusedImportRemovingPostRector extends \Rector\PostRector\Rector\Abs
         if ($hasChanged === \false) {
             return null;
         }
+        $this->addRectorClassWithLine($node);
         $node->stmts = array_values($node->stmts);
         return $node;
     }
@@ -201,7 +202,7 @@ final class UnusedImportRemovingPostRector extends \Rector\PostRector\Rector\Abs
             return \true;
         }
         if (strncmp($name, $namespacedPrefix, strlen($namespacedPrefix)) === 0) {
-            $subNamespace = substr($name, strlen($namespacedPrefix));
+            $subNamespace = (string) substr($name, strlen($namespacedPrefix));
             return strpos($subNamespace, '\\') === \false;
         }
         return \false;

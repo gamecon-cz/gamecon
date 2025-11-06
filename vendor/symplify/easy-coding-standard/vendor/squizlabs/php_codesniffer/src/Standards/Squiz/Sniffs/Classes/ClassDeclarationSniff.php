@@ -52,7 +52,7 @@ class ClassDeclarationSniff extends PSR2ClassDeclarationSniff
         if ($tokens[$stackPtr - 1]['code'] === \T_WHITESPACE) {
             $prevContent = $tokens[$stackPtr - 1]['content'];
             if ($prevContent !== $phpcsFile->eolChar) {
-                $blankSpace = \substr($prevContent, \strpos($prevContent, $phpcsFile->eolChar));
+                $blankSpace = (string) \substr($prevContent, \strpos($prevContent, $phpcsFile->eolChar));
                 $spaces = \strlen($blankSpace);
                 if ($tokens[$stackPtr - 2]['code'] !== \T_ABSTRACT && $tokens[$stackPtr - 2]['code'] !== \T_FINAL && $tokens[$stackPtr - 2]['code'] !== \T_READONLY) {
                     if ($spaces !== 0) {
@@ -120,7 +120,7 @@ class ClassDeclarationSniff extends PSR2ClassDeclarationSniff
             if ($tokens[$closeBrace - 1]['code'] === \T_WHITESPACE) {
                 $prevContent = $tokens[$closeBrace - 1]['content'];
                 if ($prevContent !== $phpcsFile->eolChar) {
-                    $blankSpace = \substr($prevContent, \strpos($prevContent, $phpcsFile->eolChar));
+                    $blankSpace = (string) \substr($prevContent, \strpos($prevContent, $phpcsFile->eolChar));
                     $spaces = \strlen($blankSpace);
                     if ($spaces !== 0) {
                         if ($tokens[$closeBrace - 1]['line'] !== $tokens[$closeBrace]['line']) {

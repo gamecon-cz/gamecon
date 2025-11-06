@@ -17,8 +17,8 @@ use PhpCsFixer\Fixer\ConfigurableFixerInterface;
 use PhpCsFixer\Fixer\FixerInterface;
 use PhpCsFixer\Fixer\WhitespacesAwareFixerInterface;
 use PhpCsFixer\RuleSet\RuleSetInterface;
-use ECSPrefix202509\Symfony\Component\Finder\Finder as SymfonyFinder;
-use ECSPrefix202509\Symfony\Component\Finder\SplFileInfo;
+use ECSPrefix202510\Symfony\Component\Finder\Finder as SymfonyFinder;
+use ECSPrefix202510\Symfony\Component\Finder\SplFileInfo;
 /**
  * Class provides a way to create a group of fixers.
  *
@@ -150,7 +150,7 @@ final class FixerFactory
             }
             $fixers[] = $fixer;
             $fixersByName[$name] = $fixer;
-            $conflicts = \array_intersect($this->getFixersConflicts($fixer), $fixerNames);
+            $conflicts = \array_values(\array_intersect($this->getFixersConflicts($fixer), $fixerNames));
             if (\count($conflicts) > 0) {
                 $fixerConflicts[$name] = $conflicts;
             }
@@ -185,9 +185,9 @@ final class FixerFactory
         $report = [];
         foreach ($fixerConflicts as $fixer => $fixers) {
             // filter mutual conflicts
-            $report[$fixer] = \array_filter($fixers, static function (string $candidate) use($report, $fixer) : bool {
+            $report[$fixer] = \array_values(\array_filter($fixers, static function (string $candidate) use($report, $fixer) : bool {
                 return !\array_key_exists($candidate, $report) || !\in_array($fixer, $report[$candidate], \true);
-            });
+            }));
             if (\count($report[$fixer]) > 0) {
                 $message .= \sprintf("\n- \"%s\" with %s", $fixer, \PhpCsFixer\Utils::naturalLanguageJoin($report[$fixer]));
             }

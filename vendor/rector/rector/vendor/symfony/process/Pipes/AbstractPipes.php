@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Process\Pipes;
+namespace RectorPrefix202510\Symfony\Component\Process\Pipes;
 
-use RectorPrefix202509\Symfony\Component\Process\Exception\InvalidArgumentException;
+use RectorPrefix202510\Symfony\Component\Process\Exception\InvalidArgumentException;
 /**
  * @author Romain Neutron <imprec@gmail.com>
  *
@@ -119,7 +119,7 @@ abstract class AbstractPipes implements PipesInterface
         foreach ($w as $stdin) {
             if (isset($this->inputBuffer[0])) {
                 $written = fwrite($stdin, $this->inputBuffer);
-                $this->inputBuffer = substr($this->inputBuffer, $written);
+                $this->inputBuffer = (string) substr($this->inputBuffer, $written);
                 if (isset($this->inputBuffer[0])) {
                     return [$this->pipes[0]];
                 }
@@ -131,7 +131,7 @@ abstract class AbstractPipes implements PipesInterface
                         break;
                     }
                     $written = fwrite($stdin, $data);
-                    $data = substr($data, $written);
+                    $data = (string) substr($data, $written);
                     if (isset($data[0])) {
                         $this->inputBuffer = $data;
                         return [$this->pipes[0]];

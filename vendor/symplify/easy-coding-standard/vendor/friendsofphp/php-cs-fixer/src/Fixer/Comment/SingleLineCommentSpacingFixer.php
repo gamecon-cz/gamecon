@@ -29,7 +29,7 @@ final class SingleLineCommentSpacingFixer extends AbstractFixer
         return new FixerDefinition('Single-line comments must have proper spacing.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 //comment 1
 #comment 2
@@ -71,7 +71,7 @@ PHP
                         continue;
                         // cheap check for "/**/", comment that looks like a PHPDoc, or multi line comment
                     }
-                    $newContent = \rtrim(\substr($content, 0, -2)) . ' ' . \substr($content, -2);
+                    $newContent = \rtrim((string) \substr($content, 0, -2)) . ' ' . \substr($content, -2);
                     $newContent = $this->fixCommentLeadingSpace($newContent, '/*');
                 } else {
                     // double slash comment

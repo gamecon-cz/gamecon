@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Auth;
+namespace ECSPrefix202510\Illuminate\Contracts\Auth;
 
 interface CanResetPassword
 {

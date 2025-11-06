@@ -174,10 +174,10 @@ final class CommentToPhpdocFixer extends AbstractFixer implements ConfigurableFi
     private function getMessage(string $content) : string
     {
         if (\strncmp($content, '#', \strlen('#')) === 0) {
-            return \substr($content, 1);
+            return (string) \substr($content, 1);
         }
         if (\strncmp($content, '//', \strlen('//')) === 0) {
-            return \substr($content, 2);
+            return (string) \substr($content, 2);
         }
         return \rtrim(\ltrim($content, '/*'), '*/');
     }

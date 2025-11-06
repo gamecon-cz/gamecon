@@ -24,6 +24,7 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\FixerDefinition\VersionSpecification;
 use PhpCsFixer\FixerDefinition\VersionSpecificCodeSample;
+use PhpCsFixer\Future;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\TypeAnalysis;
 use PhpCsFixer\Tokenizer\Analyzer\FunctionsAnalyzer;
 use PhpCsFixer\Tokenizer\FCT;
@@ -55,7 +56,7 @@ final class TypeDeclarationSpacesFixer extends AbstractFixer implements Configur
         return new FixerDefinition('Ensure single space between a variable and its type declaration in function arguments and properties.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Bar
 {
@@ -65,13 +66,13 @@ class Bar
     {
     }
 }
-\class_alias('ECSPrefix202509\\Bar', 'Bar', \false);
+\class_alias('ECSPrefix202510\\Bar', 'Bar', \false);
 
 PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
@@ -81,13 +82,13 @@ class Foo
         return fn(bool $c): string => (string) $c;
     }
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , ['elements' => ['function']]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
@@ -96,19 +97,19 @@ class Foo
     {
     }
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , ['elements' => ['property']]), new VersionSpecificCodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
     public const string BAR = "";
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , new VersionSpecification(80300), ['elements' => ['constant']])]);
@@ -119,7 +120,7 @@ PHP
     }
     protected function createConfigurationDefinition() : FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([(new FixerOptionBuilder('elements', 'Structural elements where the spacing after the type declaration should be fixed.'))->setAllowedTypes(['string[]'])->setAllowedValues([new AllowedValueSubset(['function', 'property', 'constant'])])->setDefault(['function', 'property'])->getOption()]);
+        return new FixerConfigurationResolver([(new FixerOptionBuilder('elements', 'Structural elements where the spacing after the type declaration should be fixed.'))->setAllowedTypes(['string[]'])->setAllowedValues([new AllowedValueSubset(['function', 'property', 'constant'])])->setDefault(Future::getV4OrV3(['function', 'property', 'constant'], ['function', 'property']))->getOption()]);
     }
     protected function applyFix(\SplFileInfo $file, Tokens $tokens) : void
     {

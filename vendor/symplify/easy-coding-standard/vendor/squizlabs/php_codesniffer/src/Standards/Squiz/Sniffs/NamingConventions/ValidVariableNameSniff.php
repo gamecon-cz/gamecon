@@ -45,7 +45,7 @@ class ValidVariableNameSniff extends AbstractVariableSniff
                     // one and just check the main part of the variable name.
                     $originalVarName = $objVarName;
                     if (\substr($objVarName, 0, 1) === '_') {
-                        $objVarName = \substr($objVarName, 1);
+                        $objVarName = (string) \substr($objVarName, 1);
                     }
                     if (Common::isCamelCaps($objVarName, \false, \true, \false) === \false) {
                         $error = 'Member variable "%s" is not in valid camel caps format';
@@ -64,7 +64,7 @@ class ValidVariableNameSniff extends AbstractVariableSniff
             // this: MyClass::$_variable, so we don't know its scope.
             $objVarName = $varName;
             if (\substr($objVarName, 0, 1) === '_') {
-                $objVarName = \substr($objVarName, 1);
+                $objVarName = (string) \substr($objVarName, 1);
             }
             if (Common::isCamelCaps($objVarName, \false, \true, \false) === \false) {
                 $error = 'Member variable "%s" is not in valid camel caps format';
@@ -80,7 +80,7 @@ class ValidVariableNameSniff extends AbstractVariableSniff
         if (\substr($varName, 0, 1) === '_') {
             $inClass = $phpcsFile->hasCondition($stackPtr, Tokens::$ooScopeTokens);
             if ($inClass === \true) {
-                $varName = \substr($varName, 1);
+                $varName = (string) \substr($varName, 1);
             }
         }
         if (Common::isCamelCaps($varName, \false, \true, \false) === \false) {

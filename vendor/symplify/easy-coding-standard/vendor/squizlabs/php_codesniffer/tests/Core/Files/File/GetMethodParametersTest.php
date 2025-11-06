@@ -344,7 +344,7 @@ final class GetMethodParametersTest extends AbstractMethodUnitTest
     {
         // Offsets are relative to the T_FUNCTION token.
         $expected = [];
-        $expected[0] = ['token' => 12, 'name' => '$a', 'content' => '\\Package\\Sub\\ClassName $a', 'has_attributes' => \false, 'pass_by_reference' => \false, 'reference_token' => \false, 'variable_length' => \false, 'variadic_token' => \false, 'type_hint' => 'ECSPrefix202509\\Package\\Sub\\ClassName', 'type_hint_token' => 5, 'type_hint_end_token' => 10, 'nullable_type' => \false, 'comma_token' => 13];
+        $expected[0] = ['token' => 12, 'name' => '$a', 'content' => '\\Package\\Sub\\ClassName $a', 'has_attributes' => \false, 'pass_by_reference' => \false, 'reference_token' => \false, 'variable_length' => \false, 'variadic_token' => \false, 'type_hint' => 'ECSPrefix202510\\Package\\Sub\\ClassName', 'type_hint_token' => 5, 'type_hint_end_token' => 10, 'nullable_type' => \false, 'comma_token' => 13];
         $expected[1] = ['token' => 20, 'name' => '$b', 'content' => '?Sub\\AnotherClass $b', 'has_attributes' => \false, 'pass_by_reference' => \false, 'reference_token' => \false, 'variable_length' => \false, 'variadic_token' => \false, 'type_hint' => '?Sub\\AnotherClass', 'type_hint_token' => 16, 'type_hint_end_token' => 18, 'nullable_type' => \true, 'comma_token' => \false];
         $this->getMethodParametersTestHelper('/* ' . __FUNCTION__ . ' */', $expected);
     }
@@ -898,7 +898,7 @@ final class GetMethodParametersTest extends AbstractMethodUnitTest
         // Offsets are relative to the T_FUNCTION token.
         $expected = [];
         $expected[0] = ['token' => 8, 'name' => '$new', 'content' => 'TypeA $new = new TypeA(self::CONST_VALUE)', 'default' => 'new TypeA(self::CONST_VALUE)', 'default_token' => 12, 'default_equal_token' => 10, 'has_attributes' => \false, 'pass_by_reference' => \false, 'reference_token' => \false, 'variable_length' => \false, 'variadic_token' => \false, 'type_hint' => 'TypeA', 'type_hint_token' => 6, 'type_hint_end_token' => 6, 'nullable_type' => \false, 'comma_token' => 20];
-        $expected[1] = ['token' => 28, 'name' => '$newToo', 'content' => '\\Package\\TypeB $newToo = new \\Package\\TypeB(10, \'string\')', 'default' => "new \\Package\\TypeB(10, 'string')", 'default_token' => 32, 'default_equal_token' => 30, 'has_attributes' => \false, 'pass_by_reference' => \false, 'reference_token' => \false, 'variable_length' => \false, 'variadic_token' => \false, 'type_hint' => 'ECSPrefix202509\\Package\\TypeB', 'type_hint_token' => 23, 'type_hint_end_token' => 26, 'nullable_type' => \false, 'comma_token' => 44];
+        $expected[1] = ['token' => 28, 'name' => '$newToo', 'content' => '\\Package\\TypeB $newToo = new \\Package\\TypeB(10, \'string\')', 'default' => "new \\Package\\TypeB(10, 'string')", 'default_token' => 32, 'default_equal_token' => 30, 'has_attributes' => \false, 'pass_by_reference' => \false, 'reference_token' => \false, 'variable_length' => \false, 'variadic_token' => \false, 'type_hint' => 'ECSPrefix202510\\Package\\TypeB', 'type_hint_token' => 23, 'type_hint_end_token' => 26, 'nullable_type' => \false, 'comma_token' => 44];
         $this->getMethodParametersTestHelper('/* ' . __FUNCTION__ . ' */', $expected);
     }
     //end testPHP81NewInInitializers()
