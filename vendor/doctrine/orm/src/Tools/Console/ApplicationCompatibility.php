@@ -16,7 +16,7 @@ use function method_exists;
  */
 trait ApplicationCompatibility
 {
-    private static function addCommandToApplication(Application $application, Command $command): ?Command
+    private static function addCommandToApplication(Application $application, Command $command): Command|null
     {
         if (method_exists(Application::class, 'addCommand')) {
             // @phpstan-ignore method.notFound (This method will be added in Symfony 7.4)
