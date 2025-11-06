@@ -5,7 +5,7 @@ Skripty, které se dají spustit z nějaké url, tzn. které může nějak vyvol
 
 - `admin/cron.php`
 - `admin/index.php`
-- `admin/migrace.php`
+- `admin/deploy/migrace.php`
 - `web/index.php`
 
 ## Struktura souborů
@@ -14,7 +14,7 @@ Struktura složek a souborů v projektu:
 
 - admin – administrační rozhraní GC webu.
 - cache – složka pro cacheování. Do podsložek `private` a `public` musí mít webserver možnost zapisovat a soubory z složky `public` jsou veřejně dostupné pomocí url.
-- migrace – skripty k upgradování struktury databáze. Pokud je v souvislosti s commitem např. nutné vytvořit nový sloupec a naplnit ho daty, v commitu je i migrační skript, který dané změny provádí. Při nasazení se pak skript provede (pomocí `admin/migrace.php`).
+- migrace – skripty k upgradování struktury databáze. Pokud je v souvislosti s commitem např. nutné vytvořit nový sloupec a naplnit ho daty, v commitu je i migrační skript, který dané změny provádí. Při nasazení se pak skript provede (pomocí `admin/deploy/migrace.php`).
 - model – třídy reprezentující základní entity na GameConu (uživatel, aktivita, …). Zbývající ne-php soubory jsou pouze doplňkové soubory k třídám.
 - nastaveni – soubory s přístupovými údaji k databázi, konstantami udávajícími začátek GameConu a další parametry.
   - zavadec.php – soubor, který se includuje v adminu a webu a zpřístupní databázi, třídy a konstanty, které potřebujeme. Uvnitř tohoto souboru se rozhoduje, které nastavení se načte (beta, produkce, lokální).
