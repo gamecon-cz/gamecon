@@ -14,7 +14,8 @@ $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
  */
 function aktivityDiverzifikace(
     $poleTypu,
-) {
+)
+{
     $typu = count($poleTypu);
     $pocet = array_sum($poleTypu);
     if ($pocet == 0) return 0.0;
@@ -45,7 +46,8 @@ function cislo(
     $jeden,
     $dva,
     $pet,
-) {
+)
+{
     if ($i == 1) return $i . $jeden;
     if (1 < $i && $i < 5) return $i . $dva;
     else return $i . $pet;
@@ -54,7 +56,8 @@ function cislo(
 /** Vrací datum ve stylu "pátek 14:00-18:00" na základě řádku db */
 function datum2(
     $dbRadek,
-) {
+)
+{
     if ($dbRadek['zacatek'])
         return (new DateTimeCz($dbRadek['zacatek']))->format('l G:i') . '–' . (new DateTimeCz($dbRadek['konec']))->format('G:i');
     else
@@ -66,8 +69,9 @@ function datum2(
  *  akceptuje vše, co žere strtotime
  */
 function datum3(
-    string | DateTimeInterface $datum,
-): string {
+    string|DateTimeInterface $datum,
+): string
+{
     $datumTimestamp = ($datum instanceof DateTimeInterface)
         ? $datum->getTimestamp()
         : strtotime($datum);
@@ -80,8 +84,9 @@ function datum3(
 }
 
 function datum4(
-    string | DateTimeInterface $datum,
-): string {
+    string|DateTimeInterface $datum,
+): string
+{
     $datumTimestamp = ($datum instanceof DateTimeInterface)
         ? $datum->getTimestamp()
         : strtotime($datum);
@@ -92,28 +97,38 @@ function datum4(
     ];
 
     return date('j. ', $datumTimestamp)
-           . $mesic[date('n', $datumTimestamp) - 1]
-           . date(' H:i', $datumTimestamp);
+        . $mesic[date('n', $datumTimestamp) - 1]
+        . date(' H:i', $datumTimestamp);
 }
 
-/** Vrátí markdown textu daného hashe (cacheované, text musí být v DB) */
-function dbMarkdown(
-    $hash,
-) {
-    if ($hash == 0) return '';
-    $out = kvs('markdown', $hash);
-    if (!$out) {
-        $text = dbOneCol('SELECT text FROM texty WHERE id = ' . (int)$hash);
-        if (!$text) {
-            throw new Exception(
-                sprintf('Text s daným ID %s se nenachází v databázi', var_export($hash, true)),
-            );
-        }
-        $out = markdown($text);
+/** Vrátí markdown HTML. Umí přímo TEXT (nový stav) i legacy ID z tabulky `texty`. */
+function dbMarkdown($textOrId)
+{
+    if ($textOrId === null || $textOrId === '' || $textOrId === 0 || $textOrId === '0') {
+        return '';
     }
 
-    return $out;
+    // NOVÝ STAV: je to text -> rovnou zpracuj a kešuj přes markdown()
+    if (!is_numeric($textOrId)) {
+        return markdown((string)$textOrId);
+    }
+
+    // LEGACY STAV: je to číselné ID -> zkus načíst z `texty` (pokud ještě existuje)
+    $id = (int)$textOrId;
+    try {
+        $text = dbOneCol('SELECT `text` FROM `texty` WHERE `id` = ' . $id);
+    } catch (\Throwable $e) {
+        // Tabulka `texty` už neexistuje – starý obsah nedohledatelný
+        return '';
+    }
+
+    if (!$text) {
+        return '';
+    }
+
+    return markdown($text);
 }
+
 
 /**
  * Vrátí / nastaví text daného hashe v DB.
@@ -129,7 +144,8 @@ function dbMarkdown(
  */
 function dbText(
     $hash,
-) {
+)
+{
     if (func_num_args() == 1) {
         return dbOneCol('SELECT text FROM texty WHERE id = ' . (int)$hash);
     } elseif (func_num_args() == 2 and !func_get_arg(1)) {
@@ -153,7 +169,8 @@ function dbText(
 function dbTextHash(
     $text,
     bool $save = true,
-): int {
+): int
+{
     $text = (string)$text;
     $hash = scrc32($text);
     if ($save) {
@@ -168,7 +185,8 @@ function dbTextHash(
  */
 function dbTextClean(
     $hash,
-) {
+)
+{
     try {
         dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
     } catch (DbException $e) {
@@ -182,7 +200,8 @@ function kvs(
     $nazev,
     $index,
     $hodnota = null,
-) {
+)
+{
     // Ensure LOGY directory exists
     static $logyDirCreated = false;
 
@@ -201,31 +220,68 @@ function kvs(
     try {
         if (!isset($GLOBALS['CACHEDB'][$nazev])) {
             $db = new SQLite3(LOGY . '/' . $nazev . '.sqlite');
-            // Enable WAL (Write-Ahead Log) mode for better concurrent access, @see https://sqlite.org/wal.html
             $db->exec('PRAGMA journal_mode=WAL');
-            // Wait up to 5 seconds if database is locked
             $db->busyTimeout(5000);
+
+            // založit tabulku s TEXT PRIMARY KEY
+            $db->exec('CREATE TABLE IF NOT EXISTS kvs (k TEXT PRIMARY KEY, v TEXT)');
+
+            // backward-compat: pokud je stará tabulka s INTEGER, shodit a vytvořit znova (je to cache)
+            $res = $db->query('PRAGMA table_info(kvs)');
+            $typeK = null;
+            if ($res instanceof SQLite3Result) {
+                while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
+                    if (strcasecmp($row['name'] ?? '', 'k') === 0) {
+                        $typeK = strtoupper($row['type'] ?? '');
+                    }
+                }
+                // DŮLEŽITÉ: uzavřít cursor, jinak DROP TABLE vyhodí "database table is locked"
+                $res->finalize();
+            }
+
+            if ($typeK !== '' && $typeK !== 'TEXT') {
+                // malé zajištění proti kolizi
+                $db->exec('BEGIN IMMEDIATE');
+                $db->exec('DROP TABLE IF EXISTS kvs');
+                $db->exec('CREATE TABLE kvs (k TEXT PRIMARY KEY, v TEXT)');
+                $db->exec('COMMIT');
+            }
+
             $GLOBALS['CACHEDB'][$nazev] = $db;
-            $db->exec("CREATE TABLE IF NOT EXISTS kvs (k INTEGER PRIMARY KEY, v TEXT)");
         }
+
         $db = $GLOBALS['CACHEDB'][$nazev];
 
-        if ($hodnota === null) {
-            // načítání
-            $o = $db->query('select v from kvs where k = ' . $index)->fetchArray(SQLITE3_NUM);
-
-            return $o === false
-                ? null
-                : $o[0];
+        // připrav klíč jako string
+        if (!is_scalar($index)) {
+            $index = sha1(json_encode($index, JSON_UNESCAPED_UNICODE));
         } else {
-            $db->exec('insert into kvs values(' . $index . ',\'' . SQLite3::escapeString($hodnota) . '\')');
+            $index = (string)$index;
+        }
+
+        if ($hodnota === null) {
+            // READ
+            $stmt = $db->prepare('SELECT v FROM kvs WHERE k = :k');
+            $stmt->bindValue(':k', $index, SQLITE3_TEXT);
+            $res = $stmt->execute();
+            $row = $res ? $res->fetchArray(SQLITE3_NUM) : false;
+
+            return $row === false ? null : $row[0];
+        } else {
+            // WRITE (UPSERT)
+            $stmt = $db->prepare('INSERT OR REPLACE INTO kvs (k, v) VALUES (:k, :v)');
+            $stmt->bindValue(':k', $index, SQLITE3_TEXT);
+            $stmt->bindValue(':v', (string)$hodnota, SQLITE3_TEXT);
+            $stmt->execute();
+
+            return $hodnota;
         }
     } finally {
-        // finally block is executed even if return is called before
         flock($lock, LOCK_UN);
         fclose($lock);
     }
 }
+
 
 /**
  * Převede text na odpovídající html pomocí markdownu
@@ -234,7 +290,8 @@ function kvs(
  */
 function markdown(
     $text,
-) {
+)
+{
     $hash = scrc32($text);
     $out = kvs('markdown', $hash);
     if ($out === null) {
@@ -248,7 +305,8 @@ function markdown(
 /** Převede text markdown na html (přímo on the fly) */
 function markdownNoCache(
     $text,
-): string {
+): string
+{
     if (!$text) {
         return '';
     }
@@ -263,7 +321,8 @@ if (!function_exists('mb_ucfirst')) {
     function mb_ucfirst(
         $string,
         $encoding = null,
-    ) {
+    )
+    {
         if (!$encoding) {
             $encoding = mb_internal_encoding();
         }
@@ -361,7 +420,8 @@ function perfectcache(/* variadic */)
 
 function perfectcacheExpandujArgumenty(
     $argumenty,
-) {
+)
+{
     $out = [];
     foreach ($argumenty as $argument) {
         if (str_contains($argument, '*')) {
@@ -376,14 +436,16 @@ function perfectcacheExpandujArgumenty(
 
 function perfectcacheFont(
     $font,
-) {
+)
+{
     // font musí pocházet ze stejné url - nelze použít cache
     return URL_WEBU . '/' . $font . '?v=' . filemtime($font);
 }
 
 function perfectcacheFontNazev(
     $font,
-) {
+)
+{
     return 'font' . preg_replace('@.*/([^/]+)\.ttf$@', '$1', $font);
 }
 
@@ -396,19 +458,18 @@ function pefrectcacheProcessRel(
     $css,
     $originalWidth,
     $minWidth,
-) {
+)
+{
     $toVw = function (
         $line,
-    ) use
-    (
+    ) use (
         $originalWidth,
     ) {
         return preg_replace_callback(
             '/(\d+)rel/',
             function (
                 $m,
-            ) use
-            (
+            ) use (
                 $originalWidth,
             ) {
                 return round($m[1] / ($originalWidth / 100), 3) . 'vw';
@@ -419,8 +480,7 @@ function pefrectcacheProcessRel(
 
     $toPx = function (
         $line,
-    ) use
-    (
+    ) use (
         $originalWidth,
         $minWidth,
     ) {
@@ -428,8 +488,7 @@ function pefrectcacheProcessRel(
             '/(\d+)rel/',
             function (
                 $m,
-            ) use
-            (
+            ) use (
                 $minWidth,
                 $originalWidth,
             ) {
@@ -448,8 +507,7 @@ function pefrectcacheProcessRel(
         '/^.*\drel.*$/m',
         function (
             $m,
-        ) use
-        (
+        ) use (
             $toVw,
             $toPx,
         ) {
@@ -460,8 +518,9 @@ function pefrectcacheProcessRel(
 }
 
 function po(
-    string | DateTimeInterface $cas,
-): bool {
+    string|DateTimeInterface $cas,
+): bool
+{
     $casTimestamp = ($cas instanceof DateTimeInterface)
         ? $cas->getTimestamp()
         : strtotime($cas);
@@ -470,8 +529,9 @@ function po(
 }
 
 function pred(
-    string | DateTimeInterface $cas,
-): bool {
+    string|DateTimeInterface $cas,
+): bool
+{
     $casTimestamp = ($cas instanceof DateTimeInterface)
         ? $cas->getTimestamp()
         : strtotime($cas);
@@ -484,9 +544,10 @@ function pred(
  * akceptují php funce (např. strtotime)
  */
 function mezi(
-    string | DateTimeInterface $od,
-    string | DateTimeInterface $do,
-) {
+    string|DateTimeInterface $od,
+    string|DateTimeInterface $do,
+)
+{
     $odTimestamp = ($od instanceof DateTimeInterface)
         ? $od->getTimestamp()
         : strtotime($od);
@@ -502,7 +563,8 @@ function mezi(
  */
 function pripravCache(
     string $slozka,
-) {
+)
+{
     if (is_writable($slozka)) {
         return;
     }
@@ -518,7 +580,8 @@ function pripravCache(
 /** Znaménkové crc32 chovající se stejně na 32bit i 64bit systémech */
 function scrc32(
     $data,
-) {
+)
+{
     $crc = crc32($data);
     if ($crc & 0x80000000) {
         $crc ^= 0xffffffff;
@@ -531,7 +594,8 @@ function scrc32(
 
 function potrebujePotvrzeni(
     DateTimeImmutable $datumNarozeni,
-): bool {
+): bool
+{
     // cilene bez hodin, minut a sekund
     return vekNaZacatkuLetosnihoGameconu($datumNarozeni) < 15;
 }
@@ -539,13 +603,13 @@ function potrebujePotvrzeni(
 function serazenePodle(
     $pole,
     $kriterium,
-) {
+)
+{
     if (is_string($kriterium)) {
         usort($pole, function (
             $a,
             $b,
-        ) use
-        (
+        ) use (
             $kriterium,
         ) {
             return $a->$kriterium() <=> $b->$kriterium();
@@ -559,8 +623,7 @@ function serazenePodle(
             usort($pole, function (
                 $a,
                 $b,
-            ) use
-            (
+            ) use (
                 $kriterium,
                 $razeni,
             ) {
@@ -570,8 +633,7 @@ function serazenePodle(
             usort($pole, function (
                 $a,
                 $b,
-            ) use
-            (
+            ) use (
                 $kriterium,
             ) {
                 return $kriterium($a) <=> $kriterium($b);
@@ -585,7 +647,8 @@ function serazenePodle(
 function seskupenePodle(
     $pole,
     $funkce,
-) {
+)
+{
     $out = [];
 
     foreach ($pole as $prvek) {
@@ -598,7 +661,8 @@ function seskupenePodle(
 
 function vekNaZacatkuLetosnihoGameconu(
     DateTimeImmutable $datumNarozeni,
-): int {
+): int
+{
     // cilene bez hodin, minut a sekund
     return vek($datumNarozeni->setTime(0, 0, 0), DateTimeGamecon::zacatekGameconu()->setTime(0, 0, 0));
 }
@@ -606,7 +670,8 @@ function vekNaZacatkuLetosnihoGameconu(
 function vek(
     DateTimeInterface  $datumNarozeni,
     ?DateTimeInterface $kDatu,
-): int {
+): int
+{
     $kDatu = $kDatu ?? new DateTimeImmutable(date('Y-m-d 00:00:00'));
 
     return $kDatu->diff($datumNarozeni)->y;
@@ -614,13 +679,15 @@ function vek(
 
 function kodZNazvu(
     string $nazev,
-): string {
+): string
+{
     return RemoveDiacritics::toSnakeCaseId($nazev);
 }
 
 function odstranDiakritiku(
     string $value,
-): string {
+): string
+{
     $valueWithoutDiacritics = '';
     $valueWithSpecialsReplaced = \str_replace(
         ['̱', '̤', '̩', 'Ə', 'ə', 'ʿ', 'ʾ', 'ʼ',],
@@ -639,7 +706,8 @@ function odstranDiakritiku(
 if (!function_exists('array_key_first')) {
     function array_key_first(
         array $values,
-    ) {
+    )
+    {
         foreach ($values as $key => $unused) {
             return $key;
         }
@@ -658,7 +726,8 @@ function hromadneStazeni(
     array  $urls,
     int    $timeout = 60,
     string $dirToSaveTo = null,
-): array {
+): array
+{
     $urls = array_map('trim', $urls);
     $urls = array_filter($urls, static function (
         string $url,
@@ -666,9 +735,9 @@ function hromadneStazeni(
         return $url !== '';
     });
     $result = [
-        'errorUrls'     => [],
-        'errors'        => [],
-        'files'         => [],
+        'errorUrls' => [],
+        'errors' => [],
+        'files' => [],
         'responseCodes' => [],
     ];
     if (count($urls) === 0) {
@@ -776,7 +845,8 @@ function hromadneStazeni(
 
 function sanitizeUrlForCurl(
     string $url,
-): string {
+): string
+{
     $urlParts = parse_url($url);
 
     $sanitizedUrl = '';
@@ -818,7 +888,8 @@ function sanitizeUrlForCurl(
 
 function removeDiacritics(
     string $value,
-): string {
+): string
+{
     if ($value === '') {
         return '';
     }
@@ -844,7 +915,8 @@ function removeDiacritics(
 
 function nahradPlaceholderyZaNastaveni(
     ?string $value,
-): ?string {
+): ?string
+{
     if (!$value) {
         return $value;
     }
@@ -876,7 +948,8 @@ function nahradPlaceholderyZaNastaveni(
 function aplikujModifikatory(
     $hodnota,
     array $modifikatory,
-) {
+)
+{
     foreach ($modifikatory as ['modifikator' => $modifikator, 'parametry' => $parametry]) {
         $hodnota = match ($modifikator) {
             'datum' => $hodnota
@@ -891,7 +964,8 @@ function aplikujModifikatory(
 
 function parsujModifikatory(
     string $hodnota,
-): array {
+): array
+{
     $casti = explode('|', $hodnota);
     $cistaHodnota = $casti[0];
     unset($casti[0]);
@@ -902,7 +976,7 @@ function parsujModifikatory(
         unset($rozdelenaCast[0]);
         $modifikatory[] = [
             'modifikator' => strtolower(trim($modifikator)),
-            'parametry'   => $rozdelenaCast,
+            'parametry' => $rozdelenaCast,
         ];
     }
 
@@ -918,15 +992,16 @@ function omnibox(
     bool   $jenPrihlaseniAPritomniNaGc = false,
     int    $minimumZnaku = 3,
     array  $jenSRolemi = null,
-): array {
+): array
+{
 
     $uzivatele = Uzivatel::zHledani(
         $term,
         [
-            'mail'                       => $hledatTakeVMailech,
+            'mail' => $hledatTakeVMailech,
             'jenPrihlaseniAPritomniNaGc' => $jenPrihlaseniAPritomniNaGc,
-            'kromeIdUzivatelu'           => $kromeIdUzivatelu,
-            'jenSRolemi'                 => $jenSRolemi,
+            'kromeIdUzivatelu' => $kromeIdUzivatelu,
+            'jenSRolemi' => $jenSRolemi,
         ],
         20,
         $minimumZnaku,
@@ -971,8 +1046,7 @@ function omnibox(
     $sestavLabel = static function (
         Uzivatel $uzivatel,
         ?array   $labelSlozenZ,
-    ) use
-    (
+    ) use (
         $sestavData,
     ): string {
         $labelSlozenZ = $labelSlozenZ
@@ -1024,8 +1098,7 @@ function omnibox(
     return array_map(
         static function (
             Uzivatel $uzivatel,
-        ) use
-        (
+        ) use (
             $sestavLabel,
             $sestavData,
             $dataVOdpovedi,
@@ -1033,7 +1106,7 @@ function omnibox(
         ) {
             return [
                 'label' => $sestavLabel($uzivatel, $labelSlozenZ),
-                'data'  => $sestavData($uzivatel, $dataVOdpovedi),
+                'data' => $sestavData($uzivatel, $dataVOdpovedi),
                 'value' => $uzivatel->id(),
             ];
         },
@@ -1045,7 +1118,8 @@ function pridejNaZacatekPole(
     string $klic,
            $hodnota,
     array  $pole,
-): array {
+): array
+{
     unset($pole[$klic]); // pro případ, že by byl klíč obsazen - potom by původní honota přepsala novou níže a to nechceme
 
     return array_merge([$klic => $hodnota], $pole);
@@ -1053,7 +1127,8 @@ function pridejNaZacatekPole(
 
 function prevedNaFloat(
     $castka,
-): float {
+): float
+{
     if (is_int($castka) || is_float($castka)) {
         return (float)$castka;
     }
@@ -1073,20 +1148,23 @@ function prevedNaFloat(
  */
 function encodeToUtf8(
     string $text,
-) {
+)
+{
     return '=?UTF-8?B?' . base64_encode($text) . '?=';
 }
 
 function requireOnceIsolated(
     string $path,
-) {
+)
+{
     // aby proměnné ze skriptu nepřepsaly jiné, něco jako local scope
     require_once $path;
 }
 
 function intvalOrNull(
     $val,
-) {
+)
+{
     return $val == null
         ? null
         : intval($val);
@@ -1095,12 +1173,12 @@ function intvalOrNull(
 function jsmeNaLocale(): bool
 {
     return ($_ENV['ENV'] ?? '') === 'local'
-           ||
-           in_array(
-               getDefinedHost() ?? '',
-               ['127.0.0.1', '::1', 'localhost'],
-               true,
-           );
+        ||
+        in_array(
+            getDefinedHost() ?? '',
+            ['127.0.0.1', '::1', 'localhost'],
+            true,
+        );
 }
 
 function getDefinedHost(): ?string
@@ -1108,10 +1186,10 @@ function getDefinedHost(): ?string
     return defined('SERVER_NAME')
         ? constant('SERVER_NAME')
         : ($_SERVER['SERVER_NAME']
-           ?? (defined('URL_WEBU')
+            ?? (defined('URL_WEBU')
                 ? parse_url(constant('URL_WEBU'), PHP_URL_HOST)
                 : null
-           )
+            )
         );
 }
 
@@ -1120,11 +1198,11 @@ function jsmeNaBete(): bool
     $definedHost = getDefinedHost();
 
     return $definedHost !== null
-           && in_array(
-               $definedHost,
-               ['beta.gamecon.cz', 'admin.beta.gamecon.cz', 'cache.beta.gamecon.cz'],
-               true,
-           );
+        && in_array(
+            $definedHost,
+            ['beta.gamecon.cz', 'admin.beta.gamecon.cz', 'cache.beta.gamecon.cz'],
+            true,
+        );
 }
 
 function jsmeNaOstre(): bool
@@ -1132,18 +1210,19 @@ function jsmeNaOstre(): bool
     $definedHost = getDefinedHost();
 
     return $definedHost !== null
-           && (
-               in_array(
-                   $definedHost,
-                   ['gamecon.cz', 'admin.gamecon.cz', 'cache.gamecon.cz'],
-                   true,
-               )
-               || preg_match('~(?<rocnik>[0-9]{4})[.]gamecon[.]cz$~', $definedHost)
-           );
+        && (
+            in_array(
+                $definedHost,
+                ['gamecon.cz', 'admin.gamecon.cz', 'cache.gamecon.cz'],
+                true,
+            )
+            || preg_match('~(?<rocnik>[0-9]{4})[.]gamecon[.]cz$~', $definedHost)
+        );
 }
 
 function quickReportPlaceholderReplace(
     string $sql,
-): string {
+): string
+{
     return str_ireplace(['{ROK}', '{ROCNIK}'], ROCNIK, $sql);
 }

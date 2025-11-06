@@ -52,7 +52,7 @@ class Novinka extends DbObject
 
     function text()
     {
-        return dbMarkdown($this->r['text']);
+        return markdown($this->r['text']);
     }
 
     function typ()
@@ -60,14 +60,17 @@ class Novinka extends DbObject
         return $this->r['typ'];
     }
 
-    function typSlovy()
+    function typSlovy(): string
     {
+        $typ = (int)($this->r['typ'] ?? null);   // ošetření i případného null / neexistence
         $typy = [
-            self::BLOG => 'blog',
+            self::BLOG    => 'blog',
             self::NOVINKA => 'novinka',
         ];
-        return $typy[$this->r['typ']];
+
+        return $typy[$typ] ?? 'neznámý typ';     // fallback místo „Undefined array key“
     }
+
 
     /** název enkódovaný do url formátu */
     function url()
