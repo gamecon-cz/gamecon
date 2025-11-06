@@ -18,6 +18,14 @@ jobs:
             -   name: Build and start containers
                 run: docker compose up --build --detach
 
+            -   name: Fix Composer git safe directory issue
+                run: |
+                    dir=$(docker compose exec -T web pwd)
+                    docker compose exec -T web git config --global --add safe.directory "$dir"
+
+            -   name: Composer libraries with dev
+                run: docker compose exec --no-TTY web composer install
+
             -   name: Run tests in container
                 run: docker compose exec --no-TTY --user www-data web php ./vendor/bin/phpunit
 
