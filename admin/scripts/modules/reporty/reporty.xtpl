@@ -2,6 +2,15 @@
 
 <h2>Univerzální reporty</h2>
 
+<form method="get" style="margin: 1em 0;">
+    <input id="omniboxUzivateleFilterReportu" class="omnibox" type="text" name="userId" placeholder="Omezit data reportů na jediného uživatele..." style="min-width: 25em">
+    <div class="tip">
+        <label for="omniboxUzivateleFilterReportu">
+            ↑ filtr reportů podle uživatele: napiš začátek přezdívky, jména, příjmení, emailu nebo ID
+        </label>
+    </div>
+</form>
+
 <style>
     #bfgr {
         margin: 1em 0;
@@ -77,5 +86,52 @@
   </tr>
   <!-- end: quick -->
 </table>
+
+<script type="text/javascript">
+(function() {
+    // Initialize omnibox for user filtering
+    var omnibox = document.getElementById('omniboxUzivateleFilterReportu');
+
+    // Configure omnibox to use ajax-omnibox endpoint
+    omnibox.setAttribute('data-omnibox-url', 'ajax-omnibox');
+
+    // Listen for autocomplete select event
+    jQuery(omnibox).on('autocompleteselect', function(event, ui) {
+        var userId = ui.item.value;
+        updateReportUrls(userId);
+    });
+
+    // Listen for input clear (when user deletes the text)
+    jQuery(omnibox).on('input', function() {
+          updateReportUrls(parseInt(this.value) || null);
+    });
+
+    function updateReportUrls(userId) {
+        // Find all report links in the universal reports table
+        var reportTable = document.querySelector('table.zvyraznovana');
+        var links = reportTable.querySelectorAll('a[href*="reporty/"]');
+
+        links.forEach(function(link) {
+            var href = link.getAttribute('href');
+
+            // Skip BFGR report link and quick-reporty edit links
+            if (href.indexOf('finance#bfgr') !== -1 || href.indexOf('quick-reporty') !== -1) {
+                return;
+            }
+
+            // Remove existing userId parameter if present
+            href = href.replace(/[&?]userId=\d+/, '');
+
+            // Add userId parameter if selected
+            if (userId) {
+                var separator = href.indexOf('?') === -1 ? '?' : '&';
+                href = href + separator + 'userId=' + userId;
+            }
+
+            link.setAttribute('href', href);
+        });
+    }
+})();
+</script>
 
 <!-- end: reporty -->
