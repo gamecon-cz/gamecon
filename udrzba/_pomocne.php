@@ -123,6 +123,8 @@ function runMigrationsOnRemote(string $hesloMigrace) {
         'curl',
         '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
         '--silent', // skrýt progressbar
+        '--include', // zobrazit HTTP hlavičky
+        '-fail-with-body', // jiný než 0 exit code při chybě
         URL_ADMIN . '/deploy/' . basename(__DIR__ . '/../admin/deploy/migrace.php'),
     ]);
 }
@@ -134,6 +136,8 @@ function clearAppCacheOnRemote(string $hesloMigrace) {
         'curl',
         '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
         '--silent', // skrýt výstup
+        '--include', // zobrazit HTTP hlavičky
+        '-fail-with-body', // jiný než 0 exit code při chybě
         URL_ADMIN . '/deploy/' . basename(__DIR__ . '/../admin/deploy/smazat-cache.php'),
     ]);
 }
