@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Report;
 
+use Gamecon\Aktivita\AkcePrihlaseniStavy;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\TypAktivity;
@@ -20,6 +21,9 @@ use Webmozart\Assert\Assert;
 // takzvaný BFSR (Big f**king Sirien report)
 class BfsrReport
 {
+    private ?float $missedPriceCoefficient = null;
+    private ?float $tooLateCanceledPriceCoefficient = null;
+
     public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
     {
     }
@@ -358,8 +362,6 @@ SQL,
             $data[] = [$code, 'Příjmy z aktivit, bez storn a bez lidí co mají účast zdarma', $value];
         }
 
-        $data[] = ['Trička jsou prozatím pouze v BFGR reportu', 'Trička jsou prozatím pouze v BFGR reportu', 'TODO'];
-
         Assert::same(
             array_sum($kostkyCelkem), $kostkyZdarma + $kostkyPlacene,
             'Součet kostek zdarma a placených musí odpovídat celkovému počtu kostek',
@@ -556,13 +558,14 @@ SQL,
         int      $rocnik,
     ): array {
         $koeficientSlevyUcastnika = $navstevnik->finance()->slevaAktivity();
+        $missedPriceCoefficient = $this->getMissedPriceCoefficient();
         $missedActivityFees = [];
         foreach ($navstevnik->aktivityNaKtereNedorazil($rocnik) as $aktivita) {
             $missedActivityFees[] = [
                 'code'  => 'Vr-Storna-100-' . $this->getActivityGroupCode($aktivita),
-                'value' => $aktivita->bezSlevy()
+                'value' => ($aktivita->bezSlevy()
                     ? $aktivita->cenaZaklad()
-                    : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika,
+                    : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika) * $missedPriceCoefficient,
             ];
         }
 
@@ -580,17 +583,38 @@ SQL,
         int      $rocnik,
     ): array {
         $koeficientSlevyUcastnika = $navstevnik->finance()->slevaAktivity();
+        $tooLateCanceledPriceCoefficient = $this->getTooLateCanceledPriceCoefficient();
         $tooLateCanceledActivityFees = [];
         foreach ($navstevnik->aktivityKterePozdeZrusil($rocnik) as $aktivita) {
             $tooLateCanceledActivityFees[] = [
                 'code'  => 'Vr-Storna-50-' . $this->getActivityGroupCode($aktivita),
                 'value' => ($aktivita->bezSlevy()
-                    ? $aktivita->cenaZaklad()
-                    : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika) / 2,
+                        ? $aktivita->cenaZaklad()
+                        : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika) * $tooLateCanceledPriceCoefficient,
             ];
         }
 
         return $tooLateCanceledActivityFees;
+    }
+
+    private function getMissedPriceCoefficient(): float
+    {
+        if ($this->missedPriceCoefficient === null) {
+            $missed = AkcePrihlaseniStavy::zId(AkcePrihlaseniStavy::NEDORAZIL_ID);
+            $this->missedPriceCoefficient = $missed->platbaProcent() / 100;
+        }
+
+        return $this->missedPriceCoefficient;
+    }
+
+    private function getTooLateCanceledPriceCoefficient(): float
+    {
+        if ($this->tooLateCanceledPriceCoefficient === null) {
+            $canceledTooLate = AkcePrihlaseniStavy::zId(AkcePrihlaseniStavy::POZDE_ZRUSIL_ID);
+            $this->tooLateCanceledPriceCoefficient = $canceledTooLate->platbaProcent() / 100;
+        }
+
+        return $this->tooLateCanceledPriceCoefficient;
     }
 
     /**
