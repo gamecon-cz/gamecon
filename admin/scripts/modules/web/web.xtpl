@@ -1,6 +1,11 @@
 <!-- begin:web -->
 
 <h1>Novinky</h1>
+
+<div style="margin: 1em 0">
+  <a href="web/novinka" class="tlacitko" style="font-size: larger">Přidat novinku</a>
+</div>
+
 <table class="zvyraznovana">
   <tr>
     <th>Vydat</th>
