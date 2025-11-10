@@ -179,7 +179,7 @@ SQL;
                     $bodyPreview
                 );
 
-                $file = TESTS_LOG_DIR . '/' . DB_NAME . '_' . parse_url($url, PHP_URL_PATH) . '.html';
+                $file = LOGY . '/' . DB_NAME . '_' . parse_url($url, PHP_URL_PATH) . '.html';
                 $dir = dirname($file);
                 if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
                     self::fail("Nelze vytvořit adresář '$dir' pro výstup selhaného testu URL '$url'");
