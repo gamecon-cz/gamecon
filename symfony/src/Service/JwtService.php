@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Service\Exception\JwtTokenException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -81,7 +82,12 @@ class JwtService
     {
         $tokenFile = $this->getTokenFilePath($userId);
         if (file_exists($tokenFile)) {
-            return file_get_contents($tokenFile);
+            $jwt = file_get_contents($tokenFile);
+            if ($jwt === false) {
+                throw new JwtTokenException(
+                    sprintf('Can not read JWT token content from file %s', var_export($tokenFile, true)),
+                );
+            }
         }
 
         return null;
@@ -94,7 +100,11 @@ class JwtService
     {
         $tokenFile = $this->getTokenFilePath($userId);
         if (file_exists($tokenFile)) {
-            unlink($tokenFile);
+            if (!unlink($tokenFile) && file_exists($tokenFile)) {
+                throw new JwtTokenException(
+                    sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)),
+                );
+            }
         }
     }
 
@@ -108,10 +118,14 @@ class JwtService
             return;
         }
 
-        $files = glob($tokenDir . '/jwt_*.token');
-        foreach ($files as $file) {
-            if (time() - filemtime($file) > $this->expiration) {
-                unlink($file);
+        $tokenFiles = glob($tokenDir . '/jwt_*.token');
+        foreach ($tokenFiles as $tokenFile) {
+            if (time() - filemtime($tokenFile) > $this->expiration) {
+                if (!unlink($tokenFile) && file_exists($tokenFile)) {
+                    throw new JwtTokenException(
+                        sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)),
+                    );
+                }
             }
         }
     }
