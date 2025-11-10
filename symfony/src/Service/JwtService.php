@@ -56,7 +56,7 @@ readonly class JwtService
      * @return array{
      *     id: int|null,
      *     login: string,
-     *     jmeno: string,
+     *     jmeno: string|null,
      *     email: string|null,
      *     logged_at: int,
      * }
@@ -144,7 +144,7 @@ readonly class JwtService
     {
         $tokenDir = $this->getTokenDirectory();
         if (! is_dir($tokenDir)) {
-            mkdir($tokenDir, 0755, true);
+            mkdir($tokenDir, 0700, true);
         }
 
         return $tokenDir . "/jwt_{$userId}.token";

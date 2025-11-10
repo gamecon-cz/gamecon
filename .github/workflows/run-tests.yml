@@ -35,13 +35,13 @@ jobs:
                 run: docker compose up --build --detach
 
             -   name: Run tests in container
-                run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
+                run: docker compose exec --no-TTY --user www-data web php ./vendor/bin/phpunit
 
             -   name: Run PHPStan in container
-                run: docker compose exec --no-TTY web ./bin/phpstan.sh
+                run: docker compose exec --no-TTY --user www-data web ./bin/phpstan.sh
 
             -   name: Run ECS in container
-                run: docker compose exec --no-TTY web ./bin/ecs.sh
+                run: docker compose exec --no-TTY --user www-data web ./bin/ecs.sh
 
             -   name: Upload test output as artifact
                 if: always()

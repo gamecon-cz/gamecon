@@ -18,7 +18,7 @@ enum KontextZobrazeni: string
             }
             throw new \LogicException('Nelze rozpoznat kontext zobrazení');
         }
-        $requestUrl = (empty($_SERVER['HTTPS'])
+        $requestUrl = (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off'
                 ? 'http'
                 : 'https') . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
         if (str_starts_with($requestUrl, URL_WEBU)) {
