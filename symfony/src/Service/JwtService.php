@@ -14,7 +14,7 @@ class JwtService
     public function __construct()
     {
         // Use the same secret as Symfony app
-        $this->secret = $_ENV['APP_SECRET'] ?? 'fallback_secret_change_in_production';
+        $this->secret = $_ENV['APP_SECRET'] ?? throw new \RuntimeException('APP_SECRET is not set in environment variables.');
     }
 
     /**
