@@ -712,7 +712,7 @@ SQL,
 
     /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
      *  organizátorů aktivit */
-    public function jmenoNick()
+    public function jmenoNick(): ?string
     {
         return self::jmenoNickZjisti($this->r);
     }
@@ -758,7 +758,7 @@ SQL,
      * samy, aby nemusely zbytečně načítat celého uživatele. Pokud je to
      * výkonnostně ok, raději se tomu vyhnout a uživatele načíst.
      */
-    public static function jmenoNickZjisti(array $r)
+    public static function jmenoNickZjisti(array $r): ?string
     {
         if (!empty($r['jmeno_uzivatele']) && !empty($r['prijmeni_uzivatele'])) {
             $celeJmeno = $r['jmeno_uzivatele'] . ' ' . $r['prijmeni_uzivatele'];
