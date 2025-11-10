@@ -108,23 +108,20 @@ function cleanupExpiredJwtTokens(): void
  * Useful if other apps need to access token via HTTP cookie
  */
 function setJwtCookie(
-    ?string   $token,
-    ?Uzivatel $uzivatel,
+    string   $token,
 ): void {
-    if ($token && $uzivatel) {
-        if (headers_sent()) {
-            throw new RuntimeException('Cannot set JWT cookie, headers already sent');
-        }
-        $result = setcookie(
-            name: 'gamecon_jwt',
-            value: $token,
-            expires_or_options: time() + 3600, // 1 hour
-            secure: isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-            path: '/',
-            httponly: true,
-        );
-        if ($result === false) {
-            throw new RuntimeException('Failed to set JWT cookie: ' . var_export(error_get_last(), true));
-        }
+    if (headers_sent()) {
+        throw new RuntimeException('Cannot set JWT cookie, headers already sent');
+    }
+    $result = setcookie(
+        name: 'gamecon_jwt',
+        value: $token,
+        expires_or_options: time() + 3600, // 1 hour
+        secure: isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        path: '/',
+        httponly: true,
+    );
+    if ($result === false) {
+        throw new RuntimeException('Failed to set JWT cookie: ' . var_export(error_get_last(), true));
     }
 }

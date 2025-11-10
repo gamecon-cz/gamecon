@@ -1259,7 +1259,7 @@ SQL,
         Uzivatel $uzivatel,
     ): void {
         $jwtToken = generateJwtForUser($uzivatel);
-        setJwtCookie($jwtToken, $uzivatel);
+        setJwtCookie($jwtToken);
     }
 
     /** Odpojí od session uživatele na indexu $klic */

@@ -80,7 +80,9 @@ readonly class JwtService
         int $userId,
     ): void {
         $tokenFile = $this->getTokenFilePath($userId);
-        file_put_contents($tokenFile, $token);
+        if (file_put_contents($tokenFile, $token) === false) {
+            throw new JwtTokenException(sprintf('Can not write to file %s', var_export($tokenFile, true)));
+        }
     }
 
     /**
