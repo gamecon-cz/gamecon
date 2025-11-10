@@ -31,13 +31,13 @@ jobs:
                     docker compose exec -T web git config --global --add safe.directory "$dir"
 
             -   name: Composer libraries with dev
-                run: docker compose exec --no-TTY web composer install
+                run: docker compose exec --no-TTY --user www-data web composer install
 
             -   name: Run tests in container
-                run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
+                run: docker compose exec --no-TTY --user www-data web php ./vendor/bin/phpunit
 
             -   name: Composer libraries without dev
-                run: docker compose exec --no-TTY web composer install --no-dev --classmap-authoritative
+                run: docker compose exec --no-TTY --user www-data web composer install --no-dev --classmap-authoritative
 
             -   name: Deploy via FTP
                 # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý; změny nekontrolujeme, protože jsme je vytvořili přes `composer install --no-dev`

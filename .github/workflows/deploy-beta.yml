@@ -19,7 +19,7 @@ jobs:
                 run: docker compose up --build --detach
 
             -   name: Run tests in container
-                run: docker compose exec --no-TTY web php ./vendor/bin/phpunit
+                run: docker compose exec --no-TTY --user www-data web php ./vendor/bin/phpunit
 
             -   name: Upload test output as artifact
                 if: always()
@@ -29,7 +29,7 @@ jobs:
                     path: ./tests/logs
 
             -   name: Composer libraries without dev
-                run: docker compose exec --no-TTY web composer install --no-dev --optimize-autoloader
+                run: docker compose exec --no-TTY --user www-data web composer install --no-dev --optimize-autoloader
 
             -   name: Deploy via FTP
                 # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý; změny nekontrolujeme, protože jsme je vytvořili přes `composer install --no-dev`
