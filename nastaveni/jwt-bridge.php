@@ -17,6 +17,11 @@ function generateJwtForUser(
     Uzivatel            $uzivatel,
     ?SystemoveNastaveni $systemoveNastaveni = null,
 ): string {
+    $userId = $uzivatel->id();
+    if ($userId === null) {
+        throw new \RuntimeException('Can not store JWT token because user ID is empty');
+    }
+
     // Use existing Symfony kernel from SystemoveNastaveni
     $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
     $kernel             = $systemoveNastaveni->kernel();
@@ -29,7 +34,7 @@ function generateJwtForUser(
     $token    = $jwtService->generateJwtToken($userData);
 
     // Store token for other apps
-    $jwtService->storeToken($token, $uzivatel->id());
+    $jwtService->storeToken($token, $userId);
 
     return $token;
 }
@@ -40,13 +45,18 @@ function generateJwtForUser(
 function getJwtForUser(
     Uzivatel $uzivatel,
 ): ?string {
+    $userId = $uzivatel->id();
+    if ($userId === null) {
+        throw new \RuntimeException('Can not get JWT token because user ID is empty');
+    }
+
     $systemoveNastaveni = SystemoveNastaveni::zGlobals();
     $kernel             = $systemoveNastaveni->kernel();
 
     /** @var JwtService $jwtService */
     $jwtService = $kernel->getContainer()->get(JwtService::class);
 
-    return $jwtService->getToken($uzivatel->id());
+    return $jwtService->getToken($userId);
 }
 
 /**
@@ -56,23 +66,28 @@ function deleteJwtForUser(
     Uzivatel $uzivatel,
 ): void {
     try {
+        $userId = $uzivatel->id();
+        if ($userId === null) {
+            throw new \RuntimeException('Can not delete JWT token because user ID is empty');
+        }
+
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
         $kernel             = $systemoveNastaveni->kernel();
 
         /** @var JwtService $jwtService */
         $jwtService = $kernel->getContainer()->get(JwtService::class);
-        $jwtService->deleteToken($uzivatel->id());
+        $jwtService->deleteToken($userId);
 
         // Also clear the cookie if it exists
         if (isset($_COOKIE['gamecon_jwt'])) {
             $result = setcookie(
-                'gamecon_jwt',
-                '',
-                time() - 3600, // Expire in the past
-                '/',
-                $_SERVER['HTTP_HOST'] ?? 'localhost',
-                isset($_SERVER['HTTPS']),
-                true,
+                name: 'gamecon_jwt',
+                value: '',
+                expires_or_options: time() - 3600, // Expire in the past
+                path: '/',
+                domain: $_SERVER['HTTP_HOST'] ?? 'localhost',
+                secure: isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                httponly: true,
             );
             if ($result === false) {
                 throw new RuntimeException(
@@ -108,16 +123,17 @@ function cleanupExpiredJwtTokens(): void
  * Useful if other apps need to access token via HTTP cookie
  */
 function setJwtCookie(
-    string   $token,
+    string $token,
 ): void {
     if (headers_sent()) {
-        throw new RuntimeException('Cannot set JWT cookie, headers already sent');
+        throw new RuntimeException('Can not set JWT cookie, headers already sent');
     }
     $result = setcookie(
         name: 'gamecon_jwt',
         value: $token,
         expires_or_options: time() + 3600, // 1 hour
         secure: isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        domain: $_SERVER['HTTP_HOST'] ?? 'localhost',
         path: '/',
         httponly: true,
     );
