@@ -6,21 +6,20 @@
  * This file provides functions to generate JWT tokens for logged-in users.
  */
 
-use App\Kernel;
 use App\Service\JwtService;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
- * Generate JWT token for current user
- * Call this function when user logs in or when needed for C# app integration
+ * Generate JWT token for the current user
+ * Call this function when the user logs in or when needed for C# app integration
  */
 function generateJwtForUser(
-    Uzivatel $uzivatel,
+    Uzivatel            $uzivatel,
     ?SystemoveNastaveni $systemoveNastaveni = null,
 ): string {
     // Use existing Symfony kernel from SystemoveNastaveni
     $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
-    $kernel = $systemoveNastaveni->kernel();
+    $kernel             = $systemoveNastaveni->kernel();
 
     /** @var JwtService $jwtService */
     $jwtService = $kernel->getContainer()->get(JwtService::class);
@@ -36,13 +35,13 @@ function generateJwtForUser(
 }
 
 /**
- * Get JWT token for user (if exists and valid)
+ * Get JWT token for the user (if exists and valid)
  */
 function getJwtForUser(
     Uzivatel $uzivatel,
-): string {
+): ?string {
     $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-    $kernel = $systemoveNastaveni->kernel();
+    $kernel             = $systemoveNastaveni->kernel();
 
     /** @var JwtService $jwtService */
     $jwtService = $kernel->getContainer()->get(JwtService::class);
@@ -51,13 +50,14 @@ function getJwtForUser(
 }
 
 /**
- * Delete JWT token for user (called on logout)
+ * Delete JWT token for the user (called on logout)
  */
-function deleteJwtForUser(Uzivatel $uzivatel): void
-{
+function deleteJwtForUser(
+    Uzivatel $uzivatel,
+): void {
     try {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $kernel = $systemoveNastaveni->kernel();
+        $kernel             = $systemoveNastaveni->kernel();
 
         /** @var JwtService $jwtService */
         $jwtService = $kernel->getContainer()->get(JwtService::class);
@@ -65,15 +65,20 @@ function deleteJwtForUser(Uzivatel $uzivatel): void
 
         // Also clear the cookie if it exists
         if (isset($_COOKIE['gamecon_jwt'])) {
-            setcookie(
+            $result = setcookie(
                 'gamecon_jwt',
                 '',
                 time() - 3600, // Expire in the past
                 '/',
                 $_SERVER['HTTP_HOST'] ?? 'localhost',
                 isset($_SERVER['HTTPS']),
-                true
+                true,
             );
+            if ($result === false) {
+                throw new RuntimeException(
+                    "Can not delete cookie 'gamecon_jwt': " . var_export(error_get_last(), true),
+                );
+            }
         }
     } catch (Exception $e) {
         error_log("JWT deletion failed: " . $e->getMessage());
@@ -81,14 +86,14 @@ function deleteJwtForUser(Uzivatel $uzivatel): void
 }
 
 /**
- * Cleanup expired JWT tokens
- * Call this periodically (e.g., in cron job)
+ * Clean-up expired JWT tokens
+ * Call this periodically (e.g., in a cron job)
  */
 function cleanupExpiredJwtTokens(): void
 {
     try {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $kernel = $systemoveNastaveni->kernel();
+        $kernel             = $systemoveNastaveni->kernel();
 
         /** @var JwtService $jwtService */
         $jwtService = $kernel->getContainer()->get(JwtService::class);
@@ -99,24 +104,27 @@ function cleanupExpiredJwtTokens(): void
 }
 
 /**
- * Set JWT token in cookie for frontend access (optional)
- * Useful if other apps needs to access token via HTTP cookie
+ * Set JWT token in the cookie for frontend access (optional)
+ * Useful if other apps need to access token via HTTP cookie
  */
 function setJwtCookie(
-    ?string $token,
+    ?string   $token,
     ?Uzivatel $uzivatel,
 ): void {
     if ($token && $uzivatel) {
         if (headers_sent()) {
             throw new RuntimeException('Cannot set JWT cookie, headers already sent');
         }
-        setcookie(
+        $result = setcookie(
             name: 'gamecon_jwt',
             value: $token,
             expires_or_options: time() + 3600, // 1 hour
             secure: isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
             path: '/',
             httponly: true,
-        ) ?: throw new RuntimeException('Failed to set JWT cookie');
+        );
+        if ($result === false) {
+            throw new RuntimeException('Failed to set JWT cookie: ' . var_export(error_get_last(), true));
+        }
     }
 }

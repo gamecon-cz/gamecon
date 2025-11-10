@@ -31,3 +31,6 @@ services:
     # JWT service for cross-app authentication
     App\Service\JwtService:
         public: true
+        arguments:
+            $secret: '%env(APP_SECRET)%' # Use the same secret as Symfony app
+            $legacyCacheDir: !php/const SPEC # Use cache directory that both apps can access
