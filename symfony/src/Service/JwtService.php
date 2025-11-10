@@ -80,7 +80,7 @@ readonly class JwtService
         int $userId,
     ): void {
         $tokenFile = $this->getTokenFilePath($userId);
-        if (file_put_contents($tokenFile, $token) === false) {
+        if (@file_put_contents($tokenFile, $token) === false) {
             throw new JwtTokenException(sprintf('Can not write to file %s', var_export($tokenFile, true)));
         }
     }
@@ -92,10 +92,12 @@ readonly class JwtService
     {
         $tokenFile = $this->getTokenFilePath($userId);
         if (file_exists($tokenFile)) {
-            $jwt = file_get_contents($tokenFile);
+            $jwt = @file_get_contents($tokenFile);
             if ($jwt === false) {
                 throw new JwtTokenException(sprintf('Can not read JWT token content from file %s', var_export($tokenFile, true)));
             }
+
+            return $jwt;
         }
 
         return null;
