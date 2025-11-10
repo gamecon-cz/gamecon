@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Service\Exception\JwtTokenException;
@@ -12,7 +14,7 @@ readonly class JwtService
         private string $secret,
         private string $legacyCacheDir,
         private string $algorithm = 'HS256',
-        private int    $expirationInSeconds = 3600,
+        private int $expirationInSeconds = 3600,
     ) {
     }
 
@@ -42,7 +44,7 @@ readonly class JwtService
         try {
             $decoded = JWT::decode($token, new Key($this->secret, $this->algorithm));
 
-            return (array)$decoded;
+            return (array) $decoded;
         } catch (\Exception $e) {
             return null;
         }
@@ -50,6 +52,14 @@ readonly class JwtService
 
     /**
      * Extract minimal user data for sharing
+     *
+     * @return array{
+     *     id: int|null,
+     *     login: string,
+     *     jmeno: string,
+     *     email: string|null,
+     *     logged_at: int,
+     * }
      */
     public function extractUserData(\Uzivatel $uzivatel): array
     {
@@ -67,7 +77,7 @@ readonly class JwtService
      */
     public function storeToken(
         string $token,
-        int    $userId,
+        int $userId,
     ): void {
         $tokenFile = $this->getTokenFilePath($userId);
         file_put_contents($tokenFile, $token);
@@ -82,9 +92,7 @@ readonly class JwtService
         if (file_exists($tokenFile)) {
             $jwt = file_get_contents($tokenFile);
             if ($jwt === false) {
-                throw new JwtTokenException(
-                    sprintf('Can not read JWT token content from file %s', var_export($tokenFile, true)),
-                );
+                throw new JwtTokenException(sprintf('Can not read JWT token content from file %s', var_export($tokenFile, true)));
             }
         }
 
@@ -98,10 +106,8 @@ readonly class JwtService
     {
         $tokenFile = $this->getTokenFilePath($userId);
         if (file_exists($tokenFile)) {
-            if (!unlink($tokenFile) && file_exists($tokenFile)) {
-                throw new JwtTokenException(
-                    sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)),
-                );
+            if (! unlink($tokenFile) && file_exists($tokenFile)) {
+                throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
             }
         }
     }
@@ -112,23 +118,19 @@ readonly class JwtService
     public function cleanupExpiredTokens(): void
     {
         $tokenDir = $this->getTokenDirectory();
-        if (!is_dir($tokenDir)) {
+        if (! is_dir($tokenDir)) {
             return;
         }
 
-        $glob       = $tokenDir . '/jwt_*.token';
+        $glob = $tokenDir . '/jwt_*.token';
         $tokenFiles = glob($glob);
         if ($tokenFiles === false) {
-            throw new JwtTokenException(
-                sprintf('Can not read JWT files by pattern %s', var_export($glob, true)),
-            );
+            throw new JwtTokenException(sprintf('Can not read JWT files by pattern %s', var_export($glob, true)));
         }
         foreach ($tokenFiles as $tokenFile) {
             if (time() - filemtime($tokenFile) > $this->expirationInSeconds) {
-                if (!unlink($tokenFile) && file_exists($tokenFile)) {
-                    throw new JwtTokenException(
-                        sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)),
-                    );
+                if (! unlink($tokenFile) && file_exists($tokenFile)) {
+                    throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
                 }
             }
         }
@@ -137,7 +139,7 @@ readonly class JwtService
     private function getTokenFilePath(int $userId): string
     {
         $tokenDir = $this->getTokenDirectory();
-        if (!is_dir($tokenDir)) {
+        if (! is_dir($tokenDir)) {
             mkdir($tokenDir, 0755, true);
         }
 

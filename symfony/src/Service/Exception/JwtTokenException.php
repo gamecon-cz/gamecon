@@ -6,5 +6,4 @@ namespace App\Service\Exception;
 
 class JwtTokenException extends \RuntimeException
 {
-
 }
