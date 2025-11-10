@@ -6,16 +6,14 @@ use App\Service\Exception\JwtTokenException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-class JwtService
+readonly class JwtService
 {
-    private string $secret;
-    private string $algorithm  = 'HS256';
-    private int    $expiration = 3600; // 1 hour
-
-    public function __construct()
-    {
-        // Use the same secret as Symfony app
-        $this->secret = $_ENV['APP_SECRET'] ?? throw new \RuntimeException('APP_SECRET is not set in environment variables.');
+    public function __construct(
+        private string $secret,
+        private string $legacyCacheDir,
+        private string $algorithm = 'HS256',
+        private int    $expirationInSeconds = 3600,
+    ) {
     }
 
     /**
@@ -27,7 +25,7 @@ class JwtService
             'iss'  => 'gamecon-php', // Issuer
             'aud'  => 'gamecon-csharp', // Audience
             'iat'  => time(), // Issued at
-            'exp'  => time() + $this->expiration, // Expiration
+            'exp'  => time() + $this->expirationInSeconds, // Expiration
             'user' => $userData,
         ];
 
@@ -118,9 +116,15 @@ class JwtService
             return;
         }
 
-        $tokenFiles = glob($tokenDir . '/jwt_*.token');
+        $glob       = $tokenDir . '/jwt_*.token';
+        $tokenFiles = glob($glob);
+        if ($tokenFiles === false) {
+            throw new JwtTokenException(
+                sprintf('Can not read JWT files by pattern %s', var_export($glob, true)),
+            );
+        }
         foreach ($tokenFiles as $tokenFile) {
-            if (time() - filemtime($tokenFile) > $this->expiration) {
+            if (time() - filemtime($tokenFile) > $this->expirationInSeconds) {
                 if (!unlink($tokenFile) && file_exists($tokenFile)) {
                     throw new JwtTokenException(
                         sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)),
@@ -142,7 +146,6 @@ class JwtService
 
     private function getTokenDirectory(): string
     {
-        // Use cache directory that both apps can access
-        return SPEC . '/jwt_tokens';
+        return $this->legacyCacheDir . '/jwt_tokens';
     }
 }
