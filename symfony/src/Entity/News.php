@@ -45,9 +45,10 @@ class News
     #[ORM\Column(name: 'autor', type: Types::STRING, length: 100, nullable: true)]
     private ?string $autor = null;
 
-    #[ORM\ManyToOne(targetEntity: Text::class)]
-    #[ORM\JoinColumn(name: 'text', nullable: false, onDelete: 'RESTRICT')]
-    private Text $text;
+    #[ORM\Column(name: 'text', type: Types::TEXT, nullable: false, options: [
+        'comment' => 'markdown',
+    ])]
+    private string $text;
 
     public function getId(): ?int
     {
@@ -114,12 +115,12 @@ class News
         return $this;
     }
 
-    public function getText(): Text
+    public function getText(): string
     {
         return $this->text;
     }
 
-    public function setText(Text $text): self
+    public function setText(string $text): self
     {
         $this->text = $text;
 

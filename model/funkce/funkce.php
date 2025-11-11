@@ -5,6 +5,7 @@ use \Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 use Symfony\Component\Filesystem\Filesystem;
+use Michelf\MarkdownExtra;
 
 $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
 
@@ -101,107 +102,12 @@ function datum4(
         . date(' H:i', $datumTimestamp);
 }
 
-/** Vrátí markdown HTML. Umí přímo TEXT (nový stav) i legacy ID z tabulky `texty`. */
-function dbMarkdown($textOrId)
-{
-    if ($textOrId === null || $textOrId === '' || $textOrId === 0 || $textOrId === '0') {
-        return '';
-    }
-
-    // NOVÝ STAV: je to text -> rovnou zpracuj a kešuj přes markdown()
-    if (!is_numeric($textOrId)) {
-        return markdown((string)$textOrId);
-    }
-
-    // LEGACY STAV: je to číselné ID -> zkus načíst z `texty` (pokud ještě existuje)
-    $id = (int)$textOrId;
-    try {
-        $text = dbOneCol('SELECT `text` FROM `texty` WHERE `id` = ' . $id);
-    } catch (\Throwable $e) {
-        // Tabulka `texty` už neexistuje – starý obsah nedohledatelný
-        return '';
-    }
-
-    if (!$text) {
-        return '';
-    }
-
-    return markdown($text);
-}
-
-
-/**
- * Vrátí / nastaví text daného hashe v DB.
- * Možné použití (místo 0 funguje všude false ekvivalent):
- *  dbText(123)         - vrátí text s ID 123
- *  dbText(0)           - vrátí 0
- *  dbText(0, 'ahoj')   - vloží text a vrátí jeho ID
- *  dbText(123, 'ahoj') - odstraní text 123 a vloží místo něj nový, vrátí nové ID
- *  dbText(123, '')     - odstraní text 123 a vrátí 0
- *  dbText(0, '')       - vrátí 0
- *  TODO vše implementovat a otestovat
- *  TODO co s duplicitami
- */
-function dbText(
-    $hash,
-)
-{
-    if (func_num_args() == 1) {
-        return dbOneCol('SELECT text FROM texty WHERE id = ' . (int)$hash);
-    } elseif (func_num_args() == 2 and !func_get_arg(1)) {
-        dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
-
-        return 0;
-    } else {
-        $text = func_get_arg(1);
-        $nhash = scrc32($text);
-        $nrow = ['text' => $text, 'id' => $nhash];
-        if ($hash) dbUpdate('texty', $nrow, ['id' => $hash]);
-        else dbInsert('texty', $nrow);
-
-        return $nhash;
-    }
-}
-
-/**
- * Uloží daný text do databáze a vrátí id (hash) kterým se na něj odkázat
- */
-function dbTextHash(
-    $text,
-    bool $save = true,
-): int
-{
-    $text = (string)$text;
-    $hash = scrc32($text);
-    if ($save) {
-        dbInsertIgnore('texty', ['id' => $hash, 'text' => $text]);
-    }
-
-    return $hash;
-}
-
-/**
- * Vymaže text s daným hashem z DB pokud je to možné
- */
-function dbTextClean(
-    $hash,
-)
-{
-    try {
-        dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
-    } catch (DbException $e) {
-        // Cannot delete or update a parent row: a foreign key constraint fails
-        // mažeme pouze texty, které nejsou nikde použité
-    }
-}
-
 /** Načte / uloží hodnotu do key-value storage s daným názvem */
 function kvs(
-    $nazev,
-    $index,
-    $hodnota = null,
-)
-{
+    string $group,
+    string $key,
+    string $value = null,
+): ?string {
     // Ensure LOGY directory exists
     static $logyDirCreated = false;
 
@@ -211,77 +117,54 @@ function kvs(
     }
 
     // Acquire file lock to prevent parallel access issues
-    $lockFile = LOGY . '/' . $nazev . '.lock';
+    $lockFile = LOGY . '/' . $group . '.lock';
     $lock = fopen($lockFile, 'c+');
     if (!$lock || !flock($lock, LOCK_EX)) {
-        throw new Exception("Cannot acquire lock for KVS: $nazev");
+        throw new Exception("Cannot acquire lock for KVS: $group");
     }
 
     try {
-        if (!isset($GLOBALS['CACHEDB'][$nazev])) {
-            $db = new SQLite3(LOGY . '/' . $nazev . '.sqlite');
+        if (!isset($GLOBALS['CACHEDB'][$group])) {
+            $db = new SQLite3(SPEC . '/' . $group . '.sqlite');
+            // Enable WAL (Write-Ahead Log) mode for better concurrent access, @see https://sqlite.org/wal.html
             $db->exec('PRAGMA journal_mode=WAL');
+            // Wait up to 5 seconds if database is locked
             $db->busyTimeout(5000);
-
-            // založit tabulku s TEXT PRIMARY KEY
-            $db->exec('CREATE TABLE IF NOT EXISTS kvs (k TEXT PRIMARY KEY, v TEXT)');
-
-            // backward-compat: pokud je stará tabulka s INTEGER, shodit a vytvořit znova (je to cache)
-            $res = $db->query('PRAGMA table_info(kvs)');
-            $typeK = null;
-            if ($res instanceof SQLite3Result) {
-                while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
-                    if (strcasecmp($row['name'] ?? '', 'k') === 0) {
-                        $typeK = strtoupper($row['type'] ?? '');
-                    }
-                }
-                // DŮLEŽITÉ: uzavřít cursor, jinak DROP TABLE vyhodí "database table is locked"
-                $res->finalize();
-            }
-
-            if ($typeK !== '' && $typeK !== 'TEXT') {
-                // malé zajištění proti kolizi
-                $db->exec('BEGIN IMMEDIATE');
-                $db->exec('DROP TABLE IF EXISTS kvs');
-                $db->exec('CREATE TABLE kvs (k TEXT PRIMARY KEY, v TEXT)');
-                $db->exec('COMMIT');
-            }
-
-            $GLOBALS['CACHEDB'][$nazev] = $db;
-        }
-
-        $db = $GLOBALS['CACHEDB'][$nazev];
-
-        // připrav klíč jako string
-        if (!is_scalar($index)) {
-            $index = sha1(json_encode($index, JSON_UNESCAPED_UNICODE));
+            $GLOBALS['CACHEDB'][$group] = $db;
+            $db->exec("CREATE TABLE IF NOT EXISTS kvs (k INTEGER PRIMARY KEY, v TEXT)");
         } else {
-            $index = (string)$index;
+            $db = $GLOBALS['CACHEDB'][$group];
+            assert($db instanceof SQLite3);
         }
 
-        if ($hodnota === null) {
-            // READ
-            $stmt = $db->prepare('SELECT v FROM kvs WHERE k = :k');
-            $stmt->bindValue(':k', $index, SQLITE3_TEXT);
-            $res = $stmt->execute();
-            $row = $res ? $res->fetchArray(SQLITE3_NUM) : false;
+        $numbericKey = scrc32($key);
 
-            return $row === false ? null : $row[0];
-        } else {
-            // WRITE (UPSERT)
-            $stmt = $db->prepare('INSERT OR REPLACE INTO kvs (k, v) VALUES (:k, :v)');
-            $stmt->bindValue(':k', $index, SQLITE3_TEXT);
-            $stmt->bindValue(':v', (string)$hodnota, SQLITE3_TEXT);
-            $stmt->execute();
+        if ($value === null) {
+            // načítání
+            $v = $db->query('SELECT v FROM kvs WHERE k = ' . $numbericKey)->fetchArray(SQLITE3_NUM);
+            if ($v === false) {
+                return null;
+            }
+            assert(count($v) === 1, sprintf('Expected single result for index %d, got %d', $numbericKey, count($v)));
 
-            return $hodnota;
+            return reset($v);
         }
+
+        // WRITE (UPSERT)
+        $stmt = $db->prepare(<<<SQLITE3
+            INSERT OR REPLACE INTO kvs (k, v) VALUES (:k, :v)
+        SQLITE3);
+        $stmt->bindValue(':k', $numbericKey, SQLITE3_INTEGER);
+        $stmt->bindValue(':v', $value, SQLITE3_TEXT);
+        $stmt->execute();
+
+        return $value;
     } finally {
+        // finally block is executed even if return is called before
         flock($lock, LOCK_UN);
         fclose($lock);
     }
 }
-
 
 /**
  * Převede text na odpovídající html pomocí markdownu
@@ -289,14 +172,21 @@ function kvs(
  *  cacheování je to jedno
  */
 function markdown(
-    $text,
-)
+    ?string $text,
+): ?string
 {
-    $hash = scrc32($text);
-    $out = kvs('markdown', $hash);
+    if ($text === null) {
+        return null;
+    }
+
+    if ($text === '') {
+        return '';
+    }
+
+    $out = kvs('markdown', $text);
     if ($out === null) {
-        kvs('markdown', $hash, markdownNoCache($text));
-        $out = kvs('markdown', $hash);
+        $out = markdownNoCache($text);
+        kvs('markdown', $text, $out);
     }
 
     return $out;
@@ -304,33 +194,17 @@ function markdown(
 
 /** Převede text markdown na html (přímo on the fly) */
 function markdownNoCache(
-    $text,
+    ?string $text,
 ): string
 {
     if (!$text) {
         return '';
     }
-    $text = \Michelf\MarkdownExtra::defaultTransform($text);
+    $text = MarkdownExtra::defaultTransform($text);
     $text = Smartyp::defaultTransform($text);
+    assert(is_string($text), sprintf('Expected string, got %s', gettype($text)));
 
     return $text;
-}
-
-if (!function_exists('mb_ucfirst')) {
-    /** Multibyte (utf-8) první písmeno velké */
-    function mb_ucfirst(
-        $string,
-        $encoding = null,
-    )
-    {
-        if (!$encoding) {
-            $encoding = mb_internal_encoding();
-        }
-        $firstChar = mb_substr($string, 0, 1, $encoding);
-        $then = mb_substr($string, 1, mb_strlen($string), $encoding);
-
-        return mb_strtoupper($firstChar, $encoding) . $then;
-    }
 }
 
 /**
@@ -339,7 +213,7 @@ if (!function_exists('mb_ucfirst')) {
  * OWASP compliance:
  * https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#identifying-source-origin-via-originreferer-header
  */
-function omezCsrf()
+function omezCsrf(): void
 {
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
         return;
@@ -579,7 +453,7 @@ function pripravCache(
 
 /** Znaménkové crc32 chovající se stejně na 32bit i 64bit systémech */
 function scrc32(
-    $data,
+    string $data,
 )
 {
     $crc = crc32($data);
@@ -1173,8 +1047,7 @@ function intvalOrNull(
 function jsmeNaLocale(): bool
 {
     return ($_ENV['ENV'] ?? '') === 'local'
-        ||
-        in_array(
+        || in_array(
             getDefinedHost() ?? '',
             ['127.0.0.1', '::1', 'localhost'],
             true,

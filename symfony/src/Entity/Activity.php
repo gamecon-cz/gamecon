@@ -121,9 +121,10 @@ class Activity
     ])]
     private ?\DateTime $forTeamLockedAt = null;
 
-    #[ORM\ManyToOne(targetEntity: Text::class)]
-    #[ORM\JoinColumn(name: 'popis', nullable: false, onDelete: 'RESTRICT')]
-    private Text $description;
+    #[ORM\Column(name: 'popis', type: Types::TEXT, nullable: false, options: [
+        'comment' => 'markdown',
+    ])]
+    private string $description;
 
     #[ORM\Column(name: 'popis_kratky', type: Types::STRING, length: 255, nullable: false)]
     private string $shortDescription;
@@ -433,12 +434,12 @@ class Activity
         return $this;
     }
 
-    public function getDescription(): Text
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function setDescription(Text $description): self
+    public function setDescription(string $description): self
     {
         $this->description = $description;
 

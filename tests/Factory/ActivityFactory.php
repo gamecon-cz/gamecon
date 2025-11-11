@@ -55,7 +55,7 @@ final class ActivityFactory extends PersistentProxyObjectFactory
             Structure::rok => self::faker()->numberBetween(2020, 2030),
             Structure::status => LazyValue::new(fn() => ActivityStatusFactory::random()),
             Structure::teamova => self::faker()->boolean(),
-            Structure::description => LazyValue::new(fn() => TextFactory::createOne()),
+            Structure::description => self::faker()->unique()->text(450),
             Structure::shortDescription => self::faker()->sentence(),
             Structure::vybaveni => self::faker()->text(),
             Structure::probehlaKorekce => true,

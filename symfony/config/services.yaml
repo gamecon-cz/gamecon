@@ -17,6 +17,8 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Kernel.php'
+            - '../src/Entity/'
+            - '../src/DependencyInjection/'
 
     # Legacy integration services
     legacy.session:

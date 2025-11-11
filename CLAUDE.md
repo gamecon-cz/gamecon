@@ -78,3 +78,16 @@ vendor/bin/phpunit
 - Run tests before committing
 - Check existing patterns in similar components
 - Use Docker for consistent development environment
+
+## SQL Coding Style
+- **No table aliases**: Use full table names in queries whenever possible
+- **No single-letter aliases**: Avoid cryptic aliases like `t`, `n`, `a`
+- **Descriptive names**: If aliases are necessary, use descriptive human-readable names
+- **Example**:
+  ```sql
+  -- ❌ BAD: Single-letter aliases
+  UPDATE `novinky` n LEFT JOIN `texty` t ON t.`id` = n.`text` SET n.`text_md` = t.`text`;
+
+  -- ✅ GOOD: Full table names or descriptive aliases
+  UPDATE `novinky` LEFT JOIN `texty` ON texty.`id` = novinky.`text` SET novinky.`text_md` = texty.`text`;
+  ```
