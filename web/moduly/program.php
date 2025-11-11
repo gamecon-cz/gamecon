@@ -2,7 +2,6 @@
 
 use Gamecon\Aktivita\Program;
 use Gamecon\Cas\DateTimeCz;
-use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 
 /** @var Modul $this */

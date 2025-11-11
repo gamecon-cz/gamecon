@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="{css}">
     <!-- begin: extraCss --><link rel="stylesheet" href="{url}"><!-- end: extraCss -->
     <!-- begin: extraJs --><script src="{url}"></script><!-- end: extraJs -->
-    {jsVyjimkovac}
     {info}
     <link rel="icon" href="soubory/blackarrow/_spolecne/favicon.png">
 </head>
