@@ -306,14 +306,10 @@ class Program
             $this->grpf    = self::SKUPINY_PODLE_LOKACE_ID;
 
             $this->skupiny['0'] = 'Ostatní';
-            $seskupeneLokace    = serazenePodle(Lokace::zVsech(), 'poradi');
+            $seskupeneLokace    = serazenePodle(\Lokace::zVsech(), 'poradi');
             foreach ($seskupeneLokace as $lokace) {
                 $this->skupiny[$lokace->id()] = ucfirst($lokace->nazev());
             }
-            $this->program = $this->rozkopirujAktivityVeViceLokacich(
-                $this->program,
-                array_keys($this->skupiny),
-            );
         } elseif ($this->nastaveni[self::OSOBNI]) {
             $this->program = new ArrayIterator(
                 Aktivita::zProgramu(
