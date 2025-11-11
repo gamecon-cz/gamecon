@@ -24,8 +24,8 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             ?: '{}';
         $FIO_TOKEN = getenv('FIO_TOKEN');
         $MAILER_DSN = getenv('MAILER_DSN');
+        $APP_ENV = getenv('APP_ENV');
         $APP_SECRET = getenv('APP_SECRET');
-        $SERVER_NAME = getenv('SERVER_NAME');
 
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
@@ -62,6 +62,7 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             define('MAILER_DSN', '$MAILER_DSN');
             
             // Symfony
+            define('APP_ENV', '$APP_ENV');
             define('APP_SECRET', '$APP_SECRET');
             PHP,
         );

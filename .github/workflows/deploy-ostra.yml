@@ -64,4 +64,5 @@ jobs:
                     DB_ANONYM_USER: ${{ secrets.DB_ANONYM_USER }}
                     DB_ANONYM_PASS: ${{ secrets.DB_ANONYM_PASS }}
                     DB_ANONYM_NAME: ${{ secrets.DB_ANONYM_NAME }}
+                    APP_ENV: prod
                     APP_SECRET: ${{ secrets.OSTRA_APP_SECRET }}
