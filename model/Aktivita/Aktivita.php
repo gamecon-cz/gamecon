@@ -531,7 +531,7 @@ SQL
         if ($aktivita) {
             $aktivitaData = $aktivita->a; // databázový řádek
             $xtpl->assign($aktivitaData);
-            $xtpl->assign(Sql::POPIS, dbText($aktivitaData[Sql::POPIS]));
+            $xtpl->assign(Sql::POPIS, $aktivitaData[Sql::POPIS]);
             $xtpl->assign('urlObrazku', $aktivita->obrazek());
             $xtpl->assign(Sql::VYBAVENI, $aktivita->vybaveni());
         }
@@ -1121,7 +1121,7 @@ SQL
                             WHERE a.nazev_akce = $0
                             AND a.popis_kratky = $2
                             AND a.probehla_korekce = 1
-                            AND EXISTS(SELECT 1 FROM texty t JOIN akce_seznam aa ON aa.popis = t.id WHERE t.text = $1 AND aa.probehla_korekce = 1)
+                            AND EXISTS(SELECT 1 FROM akce_seznam aa WHERE aa.popis = $1 AND aa.probehla_korekce = 1)
                         )',
                     [0 => $data[Sql::NAZEV_AKCE], 1 => $data[Sql::POPIS], 2 => $data[Sql::POPIS_KRATKY]],
                 );
@@ -1872,16 +1872,15 @@ SQL
         bool   $resetujKorekci = false,
     ) {
         if ($popis === null) {
-            return dbMarkdown($this->a[Sql::POPIS]);
+            return markdown($this->a[Sql::POPIS]);
         }
-        $oldId = $this->a[Sql::POPIS];
-        $id = dbTextHash($popis);
+        $oldPopis = $this->a[Sql::POPIS];
         $zmeny = [];
         // popis musíme změnit všem aktivitám, které "patří pod" jinou, i kdyby se text nezměnil, abychom ho případně rozkopírovali kde ještě není
-        if ($this->a[Sql::PATRI_POD] || $id != $oldId) {
-            $zmeny[Sql::POPIS] = $id;
+        if ($this->a[Sql::PATRI_POD] || $popis !== $oldPopis) {
+            $zmeny[Sql::POPIS] = $popis;
         }
-        if ($resetujKorekci && $id != $oldId) {
+        if ($resetujKorekci && $popis !== $oldPopis) {
             $zmeny[Sql::PROBEHLA_KOREKCE] = 0;
         }
 
@@ -1895,22 +1894,14 @@ SQL
                 ? [Sql::PATRI_POD => $this->a[Sql::PATRI_POD]]
                 : [Sql::ID_AKCE => $this->id()],
         );
-        $this->a[Sql::POPIS] = $id;
-
-        dbTextClean($oldId);
+        $this->a[Sql::POPIS] = $popis;
 
         return $popis;
     }
 
     public function getPopisRaw(): ?string
     {
-        return dbOneCol(<<<SQL
-SELECT text
-FROM texty
-WHERE id = $1
-SQL
-            , [$this->a[Sql::POPIS]],
-        );
+        return $this->a[Sql::POPIS] ?: null;
     }
 
     /**

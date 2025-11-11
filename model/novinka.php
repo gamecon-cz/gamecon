@@ -50,7 +50,7 @@ class Novinka extends DbObject
         return @$m[1]; // TODO odstranit
     }
 
-    function text()
+    function text(): ?string
     {
         return markdown($this->r['text']);
     }

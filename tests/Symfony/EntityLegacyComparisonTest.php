@@ -38,7 +38,6 @@ use App\Structure\Entity\ShopGridCellEntityStructure;
 use App\Structure\Entity\ShopGridEntityStructure;
 use App\Structure\Entity\ShopItemEntityStructure;
 use App\Structure\Entity\TagEntityStructure;
-use App\Structure\Entity\TextEntityStructure;
 use App\Structure\Entity\UserBadgeEntityStructure;
 use App\Structure\Entity\UserEntityStructure;
 use Gamecon\Aktivita\AkcePrihlaseniStavy;
@@ -68,7 +67,6 @@ use Gamecon\Tests\Factory\ShopGridCellFactory;
 use Gamecon\Tests\Factory\ShopGridFactory;
 use Gamecon\Tests\Factory\ShopItemFactory;
 use Gamecon\Tests\Factory\TagFactory;
-use Gamecon\Tests\Factory\TextFactory;
 use Gamecon\Tests\Factory\UserBadgeFactory;
 use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Ubytovani\Ubytovani;
@@ -665,11 +663,8 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testNewsEntityMatchesLegacyNovinka(): void
     {
-        // First create a Text entity (FK requirement)
+        // Text is now stored directly as a string (no longer FK to texty table)
         $textContent = 'Test blog post content lorem ipsum...';
-        $textEntity = TextFactory::createOne([
-            TextEntityStructure::text => $textContent,
-        ])->_save()->_real();
 
         // Create Symfony entity using factory
         /** @var News $symfonyNews */
@@ -679,7 +674,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             NewsEntityStructure::url   => 'test-blog-post-' . uniqid(),
             NewsEntityStructure::nazev => 'Test blog post ' . uniqid(),
             NewsEntityStructure::autor => 'Test "Autor" Testovič',
-            NewsEntityStructure::text  => $textEntity,
+            NewsEntityStructure::text  => $textContent,
         ])->_save()->_real();
 
         $symfonyNewsId = $symfonyNews->getId();
@@ -701,7 +696,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyNews->getUrl(), $legacyData['url']);
         $this->assertEquals($symfonyNews->getNazev(), $legacyData['nazev']);
         $this->assertEquals($symfonyNews->getAutor(), $legacyData['autor']);
-        $this->assertEquals($symfonyNews->getText()->getId(), $legacyData['text']);
+        $this->assertEquals($symfonyNews->getText(), $legacyData['text']);
 
         // Test date field
         if ($symfonyNews->getVydat()) {

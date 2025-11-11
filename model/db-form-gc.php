@@ -15,9 +15,6 @@ class DbFormGc extends DbForm
         if ($d['Type'] === 'tinyint(1)' && DbffSelect::commentSplit($d['Comment'])) {
             return new DbffSelect($d);
         }
-        if (in_array($d['Type'], ['int(11)', 'bigint(20)']) && $d['Field'] === 'text') {
-            return new DbffMarkdown($d);
-        }
         if (preg_match('@^markdown@', $d['Comment'])) {
             return new DbffMarkdownDirect($d);
         }

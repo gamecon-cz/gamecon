@@ -4,7 +4,6 @@ use Gamecon\XTemplate\XTemplate;
 
 class DbffMarkdownDirect extends DbFormField
 {
-
     function display()
     {
         return self::CUSTOM;
@@ -12,19 +11,19 @@ class DbffMarkdownDirect extends DbFormField
 
     function html()
     {
-        $t = new XTemplate(__DIR__ . '/dbff-markdown.xtpl');
+        $t = new XTemplate(__DIR__ . '/dbff-markdown-direct.xtpl');
         $t->assign([
             //'pnOldId' => $this->postName('oldVal'),
             //'oldId'   => $this->value(),
             'pnText' => $this->postName(),
             'text'   => htmlspecialchars($this->value()),
-            'mdText' => markdownNoCache($this->value()),
+            'mdText' => markdown($this->value()),
         ]);
         $t->parse('md');
         return $t->text('md');
     }
 
-    function loadPost()
+    function loadPost(): void
     {
         $this->value($this->postValue());
     }

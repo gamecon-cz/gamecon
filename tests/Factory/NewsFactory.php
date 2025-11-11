@@ -46,7 +46,7 @@ final class NewsFactory extends PersistentProxyObjectFactory
             'url'   => 'test-news-' . uniqid(),
             'nazev' => 'Test novinka ' . uniqid(),
             'autor' => 'Test Autor ' . self::faker()->name(),
-            'text'  => LazyValue::new(fn() => TextFactory::createOne()),
+            'text'  => self::faker()->unique()->text(450),
         ];
     }
 
