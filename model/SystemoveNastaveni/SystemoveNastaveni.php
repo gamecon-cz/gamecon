@@ -1113,7 +1113,17 @@ SQL;
 
     public function kernel(): Kernel
     {
-        $this->kernel->boot();
+        try {
+            $this->kernel->boot();
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException(
+                sprintf(
+                    'Can not boot Symfony kernel. Current APP_ENV is %s. Details: %s',
+                    $this->kernel->getEnvironment(),
+                    $exception->getMessage()
+                )
+            );
+        }
 
         return $this->kernel;
     }
