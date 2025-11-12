@@ -2,7 +2,9 @@
 
 require_once __DIR__ . '/../model/funkce/skryte-nastaveni-z-env-funkce.php';
 
-function nasad(array $nastaveni) {
+function nasad(
+    array $nastaveni,
+) {
 
     $deployment     = __DIR__ . '/ftp-deployment.php';
     $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
@@ -13,12 +15,29 @@ function nasad(array $nastaveni) {
     $alwaysAutoloadedRelative      = getFilesAlwaysRequiredByAutoloader();
     $nutneKvuliComposerAutoRequire = implode(
         "      \n",
-        array_map(static function (string $file) {
+        array_map(static function (
+            string $file,
+        ) {
             return "!$file";
-        }, $alwaysAutoloadedRelative)
+        }, $alwaysAutoloadedRelative),
     );
 
-    $logFile                        = $nastaveni['log'] ?? 'nasad.log';
+    $logFile                = $nastaveni['log'] ?? 'nasad.log';
+    $nastaveniIgnore        = '';
+    $nastaveniGitIgnoreFile = __DIR__ . '/../nastaveni/.gitignore';
+    if (file_exists($nastaveniGitIgnoreFile)) {
+        $nastaveniIgnore = array_map(
+            static fn(
+                string $row,
+            ) => '/' . ltrim($row, '/'),
+            array_filter(
+                explode("\n", file_get_contents($nastaveniGitIgnoreFile)),
+                static fn(
+                    string $line,
+                ) => trim($line) !== '',
+            ),
+        );
+    }
     $nazevSouboruVerejnehoNastaveni = basename($nastaveni['souborVerejnehoNastaveni']);
     $nazevSouboruSkrytehoNastaveni  = souborSkrytehoNastaveniPodleVerejneho($nazevSouboruVerejnehoNastaveni);
 
@@ -51,22 +70,7 @@ function nasad(array $nastaveni) {
 
       /dokumentace
 
-      /nastaveni/*
-      !/nastaveni/$nazevSouboruVerejnehoNastaveni
-      !/nastaveni/$nazevSouboruSkrytehoNastaveni
-      !/nastaveni/db-migrace.php
-      !/nastaveni/initial-fatal-error-handler.php
-      !/nastaveni/nastaveni.php
-      !/nastaveni/nastaveni-server.php
-      !/nastaveni/nastaveni-vychozi.php
-      !/nastaveni/nastaveni-izolovane.php
-      !/nastaveni/nastaveni-prava.php
-      !/nastaveni/nastaveni-role.php
-      !/nastaveni/jwt-bridge.php
-      !/nastaveni/zavadec*.php
-      !/nastaveni/google_api_client_secret_produkce.json
-      !/nastaveni/google_api_client_secret_beta.json
-      !/nastaveni/hlasky/*
+      {$nastaveniIgnore}
 
       /tests
       /udrzba
@@ -117,7 +121,9 @@ function nasad(array $nastaveni) {
     msg('nasazení dokončeno');
 }
 
-function runMigrationsOnRemote(string $hesloMigrace) {
+function runMigrationsOnRemote(
+    string $hesloMigrace,
+) {
     set_time_limit(600);
     msg("spouštím migrace na vzdálené databázi");
     call_check([
@@ -130,7 +136,9 @@ function runMigrationsOnRemote(string $hesloMigrace) {
     ]);
 }
 
-function clearAppCacheOnRemote(string $hesloMigrace) {
+function clearAppCacheOnRemote(
+    string $hesloMigrace,
+) {
     set_time_limit(600);
     msg("mažu Symfony cache na vzdáleném serveru");
     call_check([
@@ -143,27 +151,35 @@ function clearAppCacheOnRemote(string $hesloMigrace) {
     ]);
 }
 
-function getFilesAlwaysRequiredByAutoloader(): array {
+function getFilesAlwaysRequiredByAutoloader(): array
+{
     if (!file_exists(__DIR__ . '/../vendor/composer/autoload_files.php')) {
         return [];
     }
     $alwaysAutoloadedAbsolute = require __DIR__ . '/../vendor/composer/autoload_files.php';
 
     return array_map(
-        static function (string $absolutePath) {
+        static function (
+            string $absolutePath,
+        ) {
             // create path relative to project root
             $vendorPosition = strpos($absolutePath, '/vendor/');
+
             return substr($absolutePath, $vendorPosition);
         },
-        $alwaysAutoloadedAbsolute
+        $alwaysAutoloadedAbsolute,
     );
 }
 
-function msg($msg) {
+function msg(
+    $msg,
+) {
     echo date('H:i:s') . ' ' . $msg . "\n";
 }
 
-function nadpis(string $msg) {
+function nadpis(
+    string $msg,
+) {
     $length = mb_strlen($msg);
     $okraj  = str_repeat('=', $length);
     $eol    = PHP_EOL;
@@ -172,7 +188,9 @@ function nadpis(string $msg) {
     echo "  $okraj  $eol";
 }
 
-function call_check($params) {
+function call_check(
+    $params,
+) {
     $command         = escapeshellcmd($params[0]);
     $args            = array_map('escapeshellarg', array_slice($params, 1));
     $args            = implode(' ', $args);
