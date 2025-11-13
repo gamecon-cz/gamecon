@@ -57,4 +57,5 @@ jobs:
                     DB_ANONYM_PASS: ${{ secrets.DB_ANONYM_PASS }}
                     DB_ANONYM_NAME: ${{ secrets.DB_ANONYM_NAME }}
                     APP_ENV: prod
+                    APP_DEBUG: 0
                     APP_SECRET: ${{ secrets.BETA_APP_SECRET }}

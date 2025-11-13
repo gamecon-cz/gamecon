@@ -47,6 +47,13 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             }
         }
 
+        $createKernel = function(): Kernel {
+            $appEnv = try_constant('APP_ENV') ?? getenv('APP_ENV') ?: 'dev';
+            $debug  = (bool)(try_constant('APP_DEBUG') ?? getenv('APP_DEBUG') ?: $appEnv === 'dev');
+
+            return new Kernel(environment: $appEnv, debug: $debug);
+        };
+
         $noveSystemoveNastaveni = new static(
             $rocnik,
             $ted ?? new DateTimeImmutableStrict(),
@@ -57,7 +64,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             ?? try_constant('PROJECT_ROOT_DIR')
                ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
             $cacheDir ?? SPEC,
-            $kernel ?? new Kernel('dev', true),
+            $kernel ?? $createKernel(),
         );
 
         if ($rocnik === ROCNIK) {
@@ -151,7 +158,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         try {
             $jakykoliRocnik = self::JAKYKOLI_ROCNIK;
             $soucasnyRocnik = $this->rocnik();
-            $zaznamy = dbFetchAll(<<<SQL
+            $zaznamy        = dbFetchAll(<<<SQL
 SELECT klic, hodnota, datovy_typ, vlastni
 FROM systemove_nastaveni
 WHERE rocnik_nastaveni IN ($jakykoliRocnik, $soucasnyRocnik)
@@ -176,10 +183,10 @@ SQL,
         }
         foreach ($zaznamy as $zaznam) {
             $nazevKonstanty = trim(strtoupper($zaznam[SystemoveNastaveniStruktura::KLIC]));
-            $hodnota = $zaznam[SystemoveNastaveniStruktura::VLASTNI]
+            $hodnota        = $zaznam[SystemoveNastaveniStruktura::VLASTNI]
                 ? $zaznam[SystemoveNastaveniStruktura::HODNOTA]
                 : $this->dejVychoziHodnotu($nazevKonstanty);
-            $hodnota = $this->zkonvertujHodnotuNaTyp($hodnota, $zaznam[SystemoveNastaveniStruktura::DATOVY_TYP]);
+            $hodnota        = $this->zkonvertujHodnotuNaTyp($hodnota, $zaznam[SystemoveNastaveniStruktura::DATOVY_TYP]);
             if (!defined($nazevKonstanty)) {
                 define($nazevKonstanty, $hodnota);
             } elseif (constant($nazevKonstanty) !== $hodnota && $this->jsmeNaOstre()) {
@@ -265,8 +272,8 @@ SQL,
         \Uzivatel $editujici,
     ): int {
         $this->hlidejZakazaneZmeny($klic, $hodnota);
-        $hodnotaProDb = $this->formatujHodnotuProDb($hodnota, $klic);
-        $updateQuery = dbQuery(<<<SQL
+        $hodnotaProDb   = $this->formatujHodnotuProDb($hodnota, $klic);
+        $updateQuery    = dbQuery(<<<SQL
 UPDATE systemove_nastaveni
 SET hodnota = $1
 WHERE klic = $2
@@ -303,10 +310,10 @@ SQL,
             return;
         }
 
-        $puvodniZaznam = $this->vsechnyZaznamyNastaveni[$klic];
+        $puvodniZaznam        = $this->vsechnyZaznamyNastaveni[$klic];
         $zkonvertovanaHodnota = $this->zkonvertujHodnotuNaTyp($novaHodnota, $puvodniZaznam[Sql::DATOVY_TYP]);
 
-        $this->vsechnyZaznamyNastaveni[$klic][Sql::HODNOTA] = $zkonvertovanaHodnota;
+        $this->vsechnyZaznamyNastaveni[$klic][Sql::HODNOTA]   = $zkonvertovanaHodnota;
         $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
     }
 
@@ -319,7 +326,7 @@ SQL,
             return;
         }
 
-        $this->vsechnyZaznamyNastaveni[$klic][Sql::VLASTNI] = (string)(int)$vlastni;
+        $this->vsechnyZaznamyNastaveni[$klic][Sql::VLASTNI]   = (string)(int)$vlastni;
         $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
     }
 
@@ -450,15 +457,15 @@ SQL,
                 continue;
             }
             $bonusZaStandardni3hAz5hAktivitu = (int)$zaznam['hodnota'];
-            $popis = &$zaznam['popis'];
-            $popis .= '<hr><i>vypočtené bonusy</i>:<br>'
-                      . 'BONUS_ZA_1H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                      . 'BONUS_ZA_2H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                      . '•••<br>'
-                      . 'BONUS_ZA_6H_AZ_7H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                      . 'BONUS_ZA_8H_AZ_9H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                      . 'BONUS_ZA_10H_AZ_11H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                      . 'BONUS_ZA_12H_AZ_13H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>';
+            $popis                           = &$zaznam['popis'];
+            $popis                           .= '<hr><i>vypočtené bonusy</i>:<br>'
+                                                . 'BONUS_ZA_1H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                                                . 'BONUS_ZA_2H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                                                . '•••<br>'
+                                                . 'BONUS_ZA_6H_AZ_7H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                                                . 'BONUS_ZA_8H_AZ_9H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                                                . 'BONUS_ZA_10H_AZ_11H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                                                . 'BONUS_ZA_12H_AZ_13H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>';
         }
 
         return $zaznamy;
@@ -466,7 +473,7 @@ SQL,
 
     private function dejSqlNaZaznamyNastaveni(array $whereArray = ['1']): string
     {
-        $where = implode(' AND ', $whereArray);
+        $where          = implode(' AND ', $whereArray);
         $jakykoliRocnik = self::JAKYKOLI_ROCNIK;
 
         return <<<SQL
@@ -541,7 +548,7 @@ SQL;
                 array $zaznam,
             ) {
                 $zaznam['vychozi_hodnota'] = $this->dejVychoziHodnotu($zaznam[Sql::KLIC]);
-                $zaznam['popis'] .= '<hr><i>výchozí hodnota</i>: ' . (
+                $zaznam['popis']           .= '<hr><i>výchozí hodnota</i>: ' . (
                     $zaznam['vychozi_hodnota'] !== ''
                         ? htmlspecialchars($zaznam['vychozi_hodnota'], ENT_QUOTES | ENT_HTML5)
                         : '<i>' . htmlspecialchars('>>>není<<<', ENT_QUOTES | ENT_HTML5) . '</i>'
@@ -623,7 +630,7 @@ SQL;
             $tretiHromadneOdhlasovaniKdy = DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
                                                           ->modify('-1 day') // například 17. 7. 2023 00:00 -> 16. 7. 2023 myšleno včetně
                                                           ->formatDatumDb();
-            $konecGameconuKdy = DateTimeGamecon::spocitejKonecGameconu($this->rocnik())->formatDb();
+            $konecGameconuKdy            = DateTimeGamecon::spocitejKonecGameconu($this->rocnik())->formatDb();
 
             $this->vychoziHodnoty = [
                 Klic::GC_BEZI_OD                                      => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())->formatDb(),
@@ -973,7 +980,7 @@ SQL;
             throw new \RuntimeException('Nelze přečíst soubor s nastavením ostré ' . $souborNastaveniOstra);
         }
         $obsahNastaveniOstre = file_get_contents($souborNastaveniOstra);
-        $nastaveniOstre = [
+        $nastaveniOstre      = [
             'DBM_USER' => true,
             'DBM_PASS' => true,
             'DB_NAME'  => true,
@@ -1120,8 +1127,8 @@ SQL;
                 sprintf(
                     'Can not boot Symfony kernel. Current APP_ENV is %s. Details: %s',
                     $this->kernel->getEnvironment(),
-                    $exception->getMessage()
-                )
+                    $exception->getMessage(),
+                ),
             );
         }
 
