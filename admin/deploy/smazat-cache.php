@@ -48,5 +48,20 @@ foreach ($cacheDirs as $cacheDir) {
     }
 }
 
+$consoleFile         = __DIR__ . '/../../bin/console';
+$appEnv              = try_constant('APP_ENV') ?? getenv('APP_ENV')
+    ?: 'dev';
+$cacheClearAndWarmup = sprintf(
+    'php %s --env=%s cache:clear',
+    escapeshellarg($consoleFile),
+    escapeshellarg($appEnv),
+);
+exec($cacheClearAndWarmup, $output, $returnCode);
+if ($returnCode !== 0) {
+    http_response_code(500);
+    echo "Chyba: Nepodařilo se sestavit Symfony cache. Návratový kód: $returnCode\n";
+    exit(1);
+}
+
 // informovat, že skript doběhl
 echo __FILE__ . ": Cache smazána.\n";
