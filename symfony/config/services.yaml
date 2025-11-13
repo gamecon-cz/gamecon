@@ -5,6 +5,8 @@ parameters:
     gamecon.db.name: '%env(GAMECON_DB_NAME)%'
     gamecon.db.user: '%env(GAMECON_DB_USER)%'
     gamecon.db.password: '%env(GAMECON_DB_PASSWORD)%'
+    app.secret: '%env(APP_SECRET)%'
+    app.legacy_cache_dir: '%env(LEGACY_CACHE_DIR)%'
 
 services:
     _defaults:
@@ -34,5 +36,5 @@ services:
     App\Service\JwtService:
         public: true
         arguments:
-            $secret: '%env(APP_SECRET)%' # Use the same secret as Symfony app
-            $legacyCacheDir: !php/const SPEC # Use cache directory that both apps can access
+            $secret: '%app.secret%' # Use the same secret as Symfony app
+            $legacyCacheDir: '%app.legacy_cache_dir%' # Use cache directory that both apps can access
