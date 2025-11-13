@@ -26,15 +26,18 @@ function nasad(
     $nastaveniIgnore        = '';
     $nastaveniGitIgnoreFile = __DIR__ . '/../nastaveni/.gitignore';
     if (file_exists($nastaveniGitIgnoreFile)) {
-        $nastaveniIgnore = array_map(
-            static fn(
-                string $row,
-            ) => '/' . ltrim($row, '/'),
-            array_filter(
-                explode("\n", file_get_contents($nastaveniGitIgnoreFile)),
+        $nastaveniIgnore = implode(
+            PHP_EOL,
+            array_map(
                 static fn(
-                    string $line,
-                ) => trim($line) !== '',
+                    string $row,
+                ) => '/' . ltrim($row, '/'),
+                array_filter(
+                    explode("\n", file_get_contents($nastaveniGitIgnoreFile)),
+                    static fn(
+                        string $line,
+                    ) => trim($line) !== '',
+                ),
             ),
         );
     }
