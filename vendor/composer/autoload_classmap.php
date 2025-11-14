@@ -1240,7 +1240,6 @@ return array(
     'TheSeer\\Tokenizer\\NamespaceUriException' => $vendorDir . '/theseer/tokenizer/src/NamespaceUriException.php',
     'TheSeer\\Tokenizer\\Token' => $vendorDir . '/theseer/tokenizer/src/Token.php',
     'TheSeer\\Tokenizer\\TokenCollection' => $vendorDir . '/theseer/tokenizer/src/TokenCollection.php',
-    'TheSeer\\Tokenizer\\TokenCollectionException' => $vendorDir . '/theseer/tokenizer/src/TokenCollectionException.php',
     'TheSeer\\Tokenizer\\Tokenizer' => $vendorDir . '/theseer/tokenizer/src/Tokenizer.php',
     'TheSeer\\Tokenizer\\XMLSerializer' => $vendorDir . '/theseer/tokenizer/src/XMLSerializer.php',
     'Tracy\\Bar' => $vendorDir . '/tracy/tracy/src/Tracy/Bar/Bar.php',

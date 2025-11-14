@@ -21,6 +21,7 @@ use Zenstruck\Foundry\Factory;
 use Zenstruck\Foundry\FactoryCollection;
 use Zenstruck\Foundry\Object\Hydrator;
 use Zenstruck\Foundry\ObjectFactory;
+use Zenstruck\Foundry\Persistence\Event\AfterPersist;
 use Zenstruck\Foundry\Persistence\Exception\NotEnoughObjects;
 use Zenstruck\Foundry\Persistence\Exception\RefreshObjectFailed;
 use Zenstruck\Foundry\Persistence\Relationship\ManyToOneRelationship;
@@ -41,9 +42,11 @@ use function Zenstruck\Foundry\set;
  */
 abstract class PersistentObjectFactory extends ObjectFactory
 {
+    public const PRIORITY_SCHEDULE_FOR_INSERT = -10;
+
     private PersistMode $persist = PersistMode::PERSIST;
 
-    /** @phpstan-var list<callable(T, Parameters, static):void> */
+    /** @phpstan-var array<int, list<callable(T, Parameters, static):void|callable(T, Parameters, static):bool>> */
     private array $afterPersist = [];
 
     /** @var list<callable(T):void> */
@@ -320,12 +323,19 @@ abstract class PersistentObjectFactory extends ObjectFactory
     }
 
     /**
-     * @phpstan-param callable(T, Parameters, static):void $callback
+     * @phpstan-param callable(T, Parameters, static):void|callable(T, Parameters, static):bool $callback return value tells if a flush should be performed after the callback
      */
-    final public function afterPersist(callable $callback): static
+    final public function afterPersist(callable $callback, int $priority = 0): static
     {
         $clone = clone $this;
-        $clone->afterPersist[] = $callback;
+
+        $afterPersist = $clone->afterPersist;
+
+        $afterPersist[$priority] ??= [];
+        $afterPersist[$priority][] = $callback;
+        \krsort($afterPersist);
+
+        $clone->afterPersist = $afterPersist;
 
         return $clone;
     }
@@ -352,6 +362,14 @@ abstract class PersistentObjectFactory extends ObjectFactory
         $clone->isRootFactory = false;
 
         return $clone;
+    }
+
+    /**
+     * @internal
+     */
+    public function isAutorefreshEnabled(): bool
+    {
+        return $this->autorefreshEnabled ??= Configuration::autoRefreshWithLazyObjectsIsEnabled();
     }
 
     protected function normalizeParameter(string $field, mixed $value): mixed
@@ -507,40 +525,47 @@ abstract class PersistentObjectFactory extends ObjectFactory
         }
     }
 
+    /**
+     * @internal
+     */
     final protected function initializeInternal(): static
     {
         // Schedule any new object for insert right after instantiation
-        return parent::initializeInternal()
+        $factory = parent::initializeInternal()
             ->afterInstantiate(
                 static function(object $object, array $parameters, PersistentObjectFactory $factoryUsed): void {
                     if (!$factoryUsed->isPersisting()) {
                         return;
                     }
 
-                    if (
-                        $factoryUsed->isAutorefreshEnabled()
-                        && !$factoryUsed instanceof PersistentProxyObjectFactory
-                    ) {
-                        Configuration::instance()->persistedObjectsTracker?->add($object);
-                    }
-
                     $afterPersistCallbacks = [];
 
-                    foreach ($factoryUsed->afterPersist as $afterPersist) {
-                        $afterPersistCallbacks[] = static function() use ($object, $afterPersist, $parameters, $factoryUsed): void {
-                            $afterPersist($object, $parameters, $factoryUsed);
+                    foreach (\array_merge(...$factoryUsed->afterPersist) as $afterPersist) {
+                        $afterPersistCallbacks[] = static function() use ($object, $afterPersist, $parameters, $factoryUsed): bool {
+                            // this condition is needed to avoid BC breaks: only avoid flush if the callback explicitly returns false
+                            return !(false === $afterPersist($object, $parameters, $factoryUsed));
                         };
                     }
 
                     Configuration::instance()->persistence()->scheduleForInsert($object, $afterPersistCallbacks);
-                }
+                },
+                self::PRIORITY_SCHEDULE_FOR_INSERT
             )
         ;
-    }
 
-    private function isAutorefreshEnabled(): bool
-    {
-        return $this->autorefreshEnabled ??= Configuration::autoRefreshWithLazyObjectsIsEnabled();
+        if (!Configuration::isBooted() || !Configuration::instance()->hasEventDispatcher()) {
+            return $factory;
+        }
+
+        return $factory->afterPersist(
+            static function(object $object, array $parameters, self $factoryUsed): bool {
+                Configuration::instance()->eventDispatcher()->dispatch(
+                    new AfterPersist($object, $parameters, $factoryUsed)
+                );
+
+                return false; // don't perform a flush after the hook
+            }
+        );
     }
 
     private function throwIfCannotCreateObject(): void
