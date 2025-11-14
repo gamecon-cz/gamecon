@@ -10,7 +10,7 @@ use PhpParser\Node\Stmt\ClassConst;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use Rector\ValueObject\Visibility;
-use RectorPrefix202510\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Privatization\NodeManipulator\VisibilityManipulatorTest
  */
@@ -165,10 +165,6 @@ final class VisibilityManipulator
     {
         // no modifier
         if ($node->flags === 0) {
-            return;
-        }
-        if ($node instanceof Param) {
-            $node->flags = 0;
             return;
         }
         if ($node->isPublic()) {

@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [v2.8.0](https://github.com/zenstruck/foundry/releases/tag/v2.8.0)
+
+November 9th, 2025 - [v2.7.9...v2.8.0](https://github.com/zenstruck/foundry/compare/v2.7.9...v2.8.0)
+
+* 8dc0b1f feat(2.8): introduce `#[AsFoudryHook]` attribute (#986) by @nikophil
+* bf4549c feat(2.8): dispatch events (#974) by @nikophil
+* 8516af1 docs: Remove array params on function alwaysForce (#1028) by @philpichet
+* 5f3a6b1 feat: add hooks priority (#1029) by @nikophil
+
+## [v2.7.9](https://github.com/zenstruck/foundry/releases/tag/v2.7.9)
+
+November 7th, 2025 - [v2.7.8...v2.7.9](https://github.com/zenstruck/foundry/compare/v2.7.8...v2.7.9)
+
+* 41ab3ae fix: auto-refresh with Mongo after DoctrineMongoDBBundle 5.4.3 (#1030) by @nikophil
+
 ## [v2.7.8](https://github.com/zenstruck/foundry/releases/tag/v2.7.8)
 
 November 5th, 2025 - [v2.7.7...v2.7.8](https://github.com/zenstruck/foundry/compare/v2.7.7...v2.7.8)
