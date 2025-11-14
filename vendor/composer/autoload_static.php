@@ -56,6 +56,10 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
             'Zenstruck\\Foundry\\' => 18,
             'Zenstruck\\' => 10,
         ),
+        'W' => 
+        array (
+            'Webmozart\\Assert\\' => 17,
+        ),
         'T' => 
         array (
             'Tracy\\' => 6,
@@ -229,6 +233,10 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         'Zenstruck\\' => 
         array (
             0 => __DIR__ . '/..' . '/zenstruck/assert/src',
+        ),
+        'Webmozart\\Assert\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/webmozart/assert/src',
         ),
         'Tracy\\' => 
         array (
@@ -1867,7 +1875,6 @@ class ComposerStaticInit7f5eea6d6261ea0753cf2946c67d6e8e
         'TheSeer\\Tokenizer\\NamespaceUriException' => __DIR__ . '/..' . '/theseer/tokenizer/src/NamespaceUriException.php',
         'TheSeer\\Tokenizer\\Token' => __DIR__ . '/..' . '/theseer/tokenizer/src/Token.php',
         'TheSeer\\Tokenizer\\TokenCollection' => __DIR__ . '/..' . '/theseer/tokenizer/src/TokenCollection.php',
-        'TheSeer\\Tokenizer\\TokenCollectionException' => __DIR__ . '/..' . '/theseer/tokenizer/src/TokenCollectionException.php',
         'TheSeer\\Tokenizer\\Tokenizer' => __DIR__ . '/..' . '/theseer/tokenizer/src/Tokenizer.php',
         'TheSeer\\Tokenizer\\XMLSerializer' => __DIR__ . '/..' . '/theseer/tokenizer/src/XMLSerializer.php',
         'Tracy\\Bar' => __DIR__ . '/..' . '/tracy/tracy/src/Tracy/Bar/Bar.php',

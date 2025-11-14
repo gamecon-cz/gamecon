@@ -37,7 +37,7 @@ class SystemoveNastaveniHtml
         $template->assign('hodnotaKlic', SystemoveNastaveniAjax::HODNOTA_KLIC);
 
         $template->assign(
-            'systemoveNastavenJsVerze',
+            'systemoveNastaveniJsVerze',
             md5_file(__DIR__ . '/../../admin/files/systemove-nastaveni.js'),
         );
 

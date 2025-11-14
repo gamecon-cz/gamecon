@@ -119,7 +119,7 @@ foreach ($skupiny as $skupina) {
             : null, // TODO kvalita?
         'organizatori'       => $organizatori,
         'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
-        'kapacita'           => $aktivita->kapacita()
+        'kapacita'           => $aktivita->neteamovaKapacita()
             ?: 'neomezeně',
     ]);
 

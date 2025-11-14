@@ -612,7 +612,7 @@ Hooks
 ~~~~~
 
 The following hooks can be added to factories. Multiple hooks callbacks can be added, they are run in the order
-they were added.
+they were added, or by priority (higher priority hooks are executed first).
 
 ::
 
@@ -641,10 +641,15 @@ they were added.
         })
 
         // multiple events are allowed
-        ->beforeInstantiate(function($parameters) { return $parameters; })
-        ->afterInstantiate(function() {})
-        ->afterPersist(function() {})
+        // priority can be provided: all the following would be executed before the previous ones
+        ->beforeInstantiate(function($parameters) { return $parameters; }, priority: 10)
+        ->afterInstantiate(function() {}, priority: 10)
+        ->afterPersist(function() {}, priority: 10)
     ;
+
+.. versionadded::  2.8
+
+    Hook priority were added in Foundry 2.8.
 
 You can also add hooks directly in your factory class:
 
@@ -658,6 +663,63 @@ You can also add hooks directly in your factory class:
     }
 
 Read `Initialization`_ to learn more about the ``initialize()`` method.
+
+Hooks as service / global hooks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a better control of your hooks, you can define them as services, allowing to leverage dependency injection and
+to create hooks globally:
+
+::
+
+    use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+    use Zenstruck\Foundry\Object\Event\AfterInstantiate;
+    use Zenstruck\Foundry\Object\Event\BeforeInstantiate;
+    use Zenstruck\Foundry\Persistence\Event\AfterPersist;
+
+    final class FoundryHook
+    {
+        #[AsFoundryHook(Post::class)]
+        public function beforeInstantiate(BeforeInstantiate $event): void
+        {
+            // do something before the post is instantiated:
+            // $event->parameters is what will be used to instantiate the object, manipulate as required
+            // $event->objectClass is the class of the object being instantiated
+            // $event->factory is the factory instance which creates the object
+        }
+
+        #[AsFoundryHook(Post::class)]
+        public function afterInstantiate(AfterInstantiate $event): void
+        {
+            // $event->object is the instantiated Post object
+            // $event->parameters contains the attributes used to instantiate the object and any extras
+            // $event->factory is the factory instance which creates the object
+        }
+
+        #[AsFoundryHook(Post::class)]
+        public function afterPersist(AfterPersist $event): void
+        {
+            // this event is only called if the object was persisted
+            // $event->object is the persisted Post object
+            // $event->parameters contains the attributes used to instantiate the object and any extras
+            // $event->factory is the factory instance which creates the object
+        }
+
+        #[AsFoundryHook]
+        public function afterInstantiateGlobal(AfterInstantiate $event): void
+        {
+            // Omitting class defines a "global" hook which will be called for all objects
+        }
+    }
+
+.. versionadded::  2.8
+
+    The ``#[AsFoundryHook]`` attribute was added in Foundry 2.8.
+
+.. note::
+
+    If you want to save data to the database in an ``AfterPersist`` listener, Foundry won't flush automatically, and you
+    will need to explicitly call ``EntityManager::flush()`` inside the listener.
 
 Initialization
 ~~~~~~~~~~~~~~
@@ -713,7 +775,7 @@ attributes provided:
         ->instantiateWith(Instantiator::withConstructor()->allowExtra())
 
         // force set "title" and "body" when instantiating
-        ->instantiateWith(Instantiator::withConstructor()->alwaysForce(['title', 'body']))
+        ->instantiateWith(Instantiator::withConstructor()->alwaysForce('title', 'body'))
 
         // never use setters, always "force set" properties (even private/protected, does not use setter)
         ->instantiateWith(Instantiator::withConstructor()->alwaysForce())
