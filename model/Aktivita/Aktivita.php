@@ -281,7 +281,7 @@ SQL
         self::slevaNasobicDSC($dataSourcesCollector);
 
         return (!$this->a[Sql::BEZ_SLEVY] && $u && $u->gcPrihlasen($dataSourcesCollector))
-            ? $u->finance()->slevaAktivity($dataSourcesCollector)
+            ? $u->finance()->soucinitelCenyAktivit($dataSourcesCollector)
             : 1.;
     }
 
@@ -307,7 +307,7 @@ SQL
             return round($this->cenaZaklad()) . '&thinsp;Kč';
         }
         if ($u && $u->gcPrihlasen()) {
-            return round($this->cenaZaklad() * $u->finance()->slevaAktivity()) . '&thinsp;Kč';
+            return round($this->cenaZaklad() * $u->finance()->soucinitelCenyAktivit()) . '&thinsp;Kč';
         }
 
         return round($this->cenaZaklad()) . '&thinsp;Kč';
