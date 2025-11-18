@@ -2,8 +2,26 @@
 /** @var \Godric\DbMigrations\Migration $this */
 
 $this->q(<<<SQL
+/* Přidej dočasný TEXT sloupec */
 ALTER TABLE `novinky`
-    CHANGE COLUMN `text` `text` LONGTEXT NOT NULL COMMENT 'markdown';
+    ADD COLUMN `_text` LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci NULL COMMENT 'markdown' AFTER `text`;
+
+/* Naplň _popis z tabulky texty */
+UPDATE `novinky` LEFT JOIN `texty` ON texty.`id` = novinky.`text`
+SET novinky.`_text` = texty.`text`;
+
+/* Zaruč NOT NULL */
+UPDATE `novinky`
+SET `_text` = ''
+WHERE `_text` IS NULL;
+
+ALTER TABLE `novinky`
+    DROP FOREIGN KEY IF EXISTS FK_626265713B8BA7C7,
+    DROP FOREIGN KEY IF EXISTS FK_novinky_to_texty,
+    DROP COLUMN `text`;
+
+ALTER TABLE `novinky`
+    CHANGE COLUMN `_text` `text` LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci NULL COMMENT 'markdown';
 
 /* Přidej dočasný TEXT sloupec */
 ALTER TABLE `akce_seznam`
