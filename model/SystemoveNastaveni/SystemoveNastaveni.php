@@ -47,9 +47,11 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             }
         }
 
-        $createKernel = function(): Kernel {
-            $appEnv = try_constant('APP_ENV') ?? getenv('APP_ENV') ?: 'dev';
-            $debug  = (bool)(try_constant('APP_DEBUG') ?? getenv('APP_DEBUG') ?: $appEnv === 'dev');
+        $createKernel = function (): Kernel {
+            $appEnv = try_constant('APP_ENV') ?? getenv('APP_ENV')
+                ?: 'dev';
+            $debug  = (bool)(try_constant('APP_DEBUG') ?? getenv('APP_DEBUG')
+                ?: $appEnv === 'dev');
 
             return new Kernel(environment: $appEnv, debug: $debug);
         };
@@ -1069,7 +1071,8 @@ SQL;
 
     public function jeZapnuteCachovaniSqlDotazu(): bool
     {
-        return (bool)CACHOVAT_SQL_DOTAZY;
+        // may not yet be defined during SQL migrations
+        return (bool)try_constant('CACHOVAT_SQL_DOTAZY');
     }
 
     public function jeZapnuteCachovaniApiOdpovedi(): bool
