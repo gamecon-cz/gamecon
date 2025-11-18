@@ -48,51 +48,6 @@ $typRoleUcast = Role::TYP_UCAST;
 $idTaguUnikovka = Tag::UNIKOVKA;
 $idTaguMalovani = Tag::MALOVANI;
 
-$connection = dbConnectTemporary();
-
-dbQuery(<<<SQL
-DROP FUNCTION IF EXISTS delkaAktivityJakoNasobekStandardni
-SQL,
-    mysqli: $connection,
-);
-
-dbQuery(<<<SQL
-CREATE FUNCTION delkaAktivityJakoNasobekStandardni(id_akce INT) RETURNS DECIMAL(4, 2) READS SQL DATA
-    RETURN
-        CASE (SELECT HOUR(TIMEDIFF(akce_seznam.konec, akce_seznam.zacatek)) FROM akce_seznam WHERE akce_seznam.id_akce = id_akce LIMIT 1)
-            WHEN 1 THEN 0.25
-            WHEN 2 THEN 0.5
-            WHEN 3 THEN 1
-            WHEN 4 THEN 1
-            WHEN 5 THEN 1
-            WHEN 6 THEN 1.5
-            WHEN 7 THEN 1.5
-            WHEN 8 THEN 2
-            WHEN 9 THEN 2
-            WHEN 10 THEN 2.5
-            WHEN 11 THEN 2.5
-            WHEN 12 THEN 3
-            WHEN 13 THEN 3
-        END
-SQL,
-    mysqli: $connection,
-);
-
-dbQuery(<<<SQL
-DROP FUNCTION IF EXISTS maPravo;
-SQL,
-    mysqli: $connection,
-);
-dbQuery(<<<SQL
-CREATE FUNCTION maPravo(user INT, pravo INT) RETURNS TINYINT(1) READS SQL DATA
-    RETURN EXISTS(SELECT 1
-              FROM platne_role_uzivatelu
-                JOIN prava_role ON prava_role.id_role = platne_role_uzivatelu.id_role
-              WHERE platne_role_uzivatelu.id_uzivatele = user AND prava_role.id_prava = pravo)
-SQL,
-    mysqli: $connection,
-);
-
 $report = Report::zSql(<<<SQL
 SELECT export_data.kod AS kod, export_data.popis AS popis, export_data.data AS data
 FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev) AS popis, MAX(data_rows.data) AS data
@@ -1022,7 +977,6 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
       GROUP BY kod) export_data
 ORDER BY export_data.poradi
 SQL,
-    mysqli: $connection,
 );
 
 $report->tFormat(get('format'));
