@@ -529,8 +529,8 @@ SQL,
         Uzivatel $navstevnik,
         int      $rocnik,
     ): array {
-        $koeficientSlevyUcastnika = $navstevnik->finance()->slevaAktivity();
-        if ($koeficientSlevyUcastnika === 0.0) {
+        $activityPriceCoefficient = $navstevnik->finance()->soucinitelCenyAktivit();
+        if ($activityPriceCoefficient === 1.0) {
             // účastník nemá žádnou slevu na aktivity
             return [];
         }
@@ -541,7 +541,7 @@ SQL,
             }
             $costOfFreeActivities[] = [
                 'code'  => 'Nr-Zdarma-' . $this->getActivityGroupCode($aktivita),
-                'value' => $aktivita->cenaZaklad() - ($aktivita->cenaZaklad() * $koeficientSlevyUcastnika),
+                'value' => $aktivita->cenaZaklad() - ($aktivita->cenaZaklad() * $activityPriceCoefficient),
             ];
         }
 
@@ -557,15 +557,15 @@ SQL,
         Uzivatel $navstevnik,
         int      $rocnik,
     ): array {
-        $koeficientSlevyUcastnika = $navstevnik->finance()->slevaAktivity();
+        $activityPriceCoefficient = $navstevnik->finance()->soucinitelCenyAktivit();
         $missedPriceCoefficient = $this->getMissedPriceCoefficient();
         $missedActivityFees = [];
-        foreach ($navstevnik->aktivityNaKtereNedorazil($rocnik) as $aktivita) {
+        foreach ($navstevnik->aktivityNaKtereNedorazil($rocnik) as $activity) {
             $missedActivityFees[] = [
-                'code'  => 'Vr-Storna-100-' . $this->getActivityGroupCode($aktivita),
-                'value' => ($aktivita->bezSlevy()
-                    ? $aktivita->cenaZaklad()
-                    : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika) * $missedPriceCoefficient,
+                'code'  => 'Vr-Storna-100-' . $this->getActivityGroupCode($activity),
+                'value' => ($activity->bezSlevy()
+                    ? $activity->cenaZaklad()
+                    : $activity->cenaZaklad() * $activityPriceCoefficient) * $missedPriceCoefficient,
             ];
         }
 
@@ -582,7 +582,7 @@ SQL,
         Uzivatel $navstevnik,
         int      $rocnik,
     ): array {
-        $koeficientSlevyUcastnika = $navstevnik->finance()->slevaAktivity();
+        $activityPriceCoefficient = $navstevnik->finance()->soucinitelCenyAktivit();
         $tooLateCanceledPriceCoefficient = $this->getTooLateCanceledPriceCoefficient();
         $tooLateCanceledActivityFees = [];
         foreach ($navstevnik->aktivityKterePozdeZrusil($rocnik) as $aktivita) {
@@ -590,7 +590,7 @@ SQL,
                 'code'  => 'Vr-Storna-50-' . $this->getActivityGroupCode($aktivita),
                 'value' => ($aktivita->bezSlevy()
                         ? $aktivita->cenaZaklad()
-                        : $aktivita->cenaZaklad() * $koeficientSlevyUcastnika) * $tooLateCanceledPriceCoefficient,
+                        : $aktivita->cenaZaklad() * $activityPriceCoefficient) * $tooLateCanceledPriceCoefficient,
             ];
         }
 

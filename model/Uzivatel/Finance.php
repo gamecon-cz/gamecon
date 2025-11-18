@@ -38,7 +38,7 @@ class Finance
     private const CASTECNA_SLEVA_PROCENT    = 40;
 
     private ?float $stav                  = null;  // celkový výsledný stav uživatele na účtu
-    private ?float $soucinitelCenyAKtivit = null;              // součinitel ceny aktivit
+    private ?float $soucinitelCenyAktivit = null;              // součinitel ceny aktivit
     private ?Cenik $cenik                 = null;             // instance ceníku
     // tabulky s přehledy
     private ?array $prehled                        = null;   // tabulka s detaily o platbách
@@ -257,7 +257,7 @@ SQL,
         bool  $vcetneCeny = true,
         bool  $vcetneMazani = false,
     ): string {
-        $out = '<table class="objednavky">';
+        $out     = '<table class="objednavky">';
         $prehled = $this->serazenyPrehled();
         if ($jenKategorieIds) {
             if (in_array(TypPredmetu::VSTUPNE, $jenKategorieIds) && $this->dobrovolneVstupnePrehled()) {
@@ -289,7 +289,7 @@ SQL,
             if ($vcetneMazani) {
                 if (!empty($radekPrehledu['id_polozky'])) {
                     $klicZrusNakuppolozky = self::KLIC_ZRUS_NAKUP_POLOZKY;
-                    $mazaniRow = <<<HTML
+                    $mazaniRow            = <<<HTML
                         <td xmlns="http://www.w3.org/1999/html">
                             <form method="post" onsubmit="return confirm('Opravdu zrušit objednávku {$radekPrehledu['nazev']}?')">
                                 <input type="hidden" name="$klicZrusNakuppolozky" value="{$radekPrehledu['id_polozky']}">
@@ -458,15 +458,6 @@ SQL,
         return 'Kč';
     }
 
-    /**
-     * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
-     * zdarma a 1.0 pro aktivity za plnou cenu.
-     */
-    public function slevaAktivity(?DataSourcesCollector $dataSourcesCollector = null): float
-    {
-        return $this->soucinitelCenyAktivit($dataSourcesCollector); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
-    }
-
     public static function slevaAktivityDSC(?DataSourcesCollector $dataSourcesCollector): void
     {
         self::soucinitelCenyAktivitDSC($dataSourcesCollector);
@@ -567,35 +558,35 @@ SQL,
     }
 
     /**
-     * Vrátí součinitel ceny aktivit, tedy slevy uživatele vztahující se k
-     * aktivitám. Vrátí hodnotu.
+     * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
+     * zdarma a 1.0 pro aktivity za plnou cenu.
      */
-    private function soucinitelCenyAktivit(
+    public function soucinitelCenyAktivit(
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
         self::soucinitelCenyAktivitDSC($dataSourcesCollector);
 
-        if ($this->soucinitelCenyAKtivit === null) {
+        if ($this->soucinitelCenyAktivit === null) {
             // pomocné proměnné
             $sleva = 0; // v procentech
             // výpočet pravidel
             if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA, $dataSourcesCollector)) {
-                $sleva += self::PLNA_SLEVA_PROCENT;
+                $sleva                   += self::PLNA_SLEVA_PROCENT;
                 $this->slevyNaAktivity[] = 'aktivity zdarma';
             } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY, $dataSourcesCollector)) {
-                $sleva += self::CASTECNA_SLEVA_PROCENT;
+                $sleva                   += self::CASTECNA_SLEVA_PROCENT;
                 $this->slevyNaAktivity[] = 'aktivity se slevou ' . $sleva . ' %';
             }
             if ($sleva > self::MAX_SLEVA_AKTIVIT_PROCENT) {
                 // omezení výše slevy na maximální hodnotu
                 $sleva = self::MAX_SLEVA_AKTIVIT_PROCENT;
             }
-            $slevaAktivity = (100 - $sleva) / 100;
+            $soucinitelCenyAktivit = (100 - $sleva) / 100;
             // výsledek
-            $this->soucinitelCenyAKtivit = (float)$slevaAktivity;
+            $this->soucinitelCenyAktivit = (float)$soucinitelCenyAktivit;
         }
 
-        return $this->soucinitelCenyAKtivit;
+        return $this->soucinitelCenyAktivit;
     }
 
     private static function soucinitelCenyAktivitDSC(
@@ -666,18 +657,18 @@ SQL,
                 sprintf('Započítání %s již proběhlo.', __FUNCTION__),
             );
         }
-        $this->cenaAktivit = 0.0;
-        $this->brigadnickaOdmena = 0.0;
-        $this->sumaStorna = 0.0;
+        $this->cenaAktivit          = 0.0;
+        $this->brigadnickaOdmena    = 0.0;
+        $this->sumaStorna           = 0.0;
         $this->bonusZaVedeniAktivit ??= 0.0;
 
-        $soucinitelAktivit = $this->soucinitelCenyAktivit();
-        $rok = ROCNIK;
-        $idUcastnika = $this->u->id();
-        $technicka = TypAktivity::TECHNICKA; // výpomoc, jejíž cena se započítá jako bonus vypravěče, který může použít na nákup na GC
-        $brigadnicka = TypAktivity::BRIGADNICKA; // placený "zaměstnanec"
+        $soucinitelAktivit     = $this->soucinitelCenyAktivit();
+        $rok                   = ROCNIK;
+        $idUcastnika           = $this->u->id();
+        $technicka             = TypAktivity::TECHNICKA; // výpomoc, jejíž cena se započítá jako bonus vypravěče, který může použít na nákup na GC
+        $brigadnicka           = TypAktivity::BRIGADNICKA; // placený "zaměstnanec"
         $prihlasenAleNedorazil = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
-        $pozdeZrusil = StavPrihlaseni::POZDE_ZRUSIL;
+        $pozdeZrusil           = StavPrihlaseni::POZDE_ZRUSIL;
 
         $sql = <<<SQL
 SELECT
@@ -761,7 +752,7 @@ SQL;
         $rocnik ??= $this->systemoveNastaveni->rocnik();
         if (!isset($this->sumyPlatebVRocich[$rocnik]) || $prepocti) {
             $uzivatelSystemId = \Uzivatel::SYSTEM;
-            $result = dbQuery(<<<SQL
+            $result           = dbQuery(<<<SQL
                 SELECT
                     IF(provedl=$uzivatelSystemId,
                       CONCAT(DATE_FORMAT(COALESCE(pripsano_na_ucet_banky, provedeno),'%e.%c.'),' Platba na účet'),
@@ -772,7 +763,7 @@ SQL;
                 WHERE id_uzivatele = {$this->u->id()} AND rok = $rocnik
                 SQL,
             );
-            $sumaPlateb = 0.0;
+            $sumaPlateb       = 0.0;
             while ($row = mysqli_fetch_assoc($result)) {
                 $sumaPlateb += (float)$row['cena'];
                 $this->log(
@@ -811,14 +802,14 @@ SQL;
                 sprintf('Započítání %s již proběhlo.', __FUNCTION__),
             );
         }
-        $this->cenaUbytovani = 0.0;
-        $this->cenaVstupne = 0.0;
-        $this->cenaVstupnePozde = 0.0;
-        $this->cenaPredmetu = 0.0;
-        $this->cenaStravy = 0.0;
+        $this->cenaUbytovani                  = 0.0;
+        $this->cenaVstupne                    = 0.0;
+        $this->cenaVstupnePozde               = 0.0;
+        $this->cenaPredmetu                   = 0.0;
+        $this->cenaStravy                     = 0.0;
         $this->proplacenyBonusZaVedeniAktivit = 0.0;
-        $this->dobrovolneVstupnePrehled = [];
-        $this->polozkyProBfgr = [];
+        $this->dobrovolneVstupnePrehled       = [];
+        $this->polozkyProBfgr                 = [];
 
         $o = dbQuery('
       SELECT predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok, predmety.kod_predmetu
@@ -831,7 +822,7 @@ SQL;
         $soucty = [];
         foreach ($o as $r) {
             $priceAfterDiscountDto = $this->cenik()->cena($r);
-            $cena = $priceAfterDiscountDto->finalPrice;
+            $cena                  = $priceAfterDiscountDto->finalPrice;
             // započtení ceny
             if ($r['typ'] == TypPredmetu::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
@@ -874,9 +865,9 @@ SQL;
             // logování do výpisu
             if (in_array($r['typ'], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
                 $soucty[$r['id_predmetu']]['nazev'] = $r['nazev'];
-                $soucty[$r['id_predmetu']]['typ'] = $r['typ'];
+                $soucty[$r['id_predmetu']]['typ']   = $r['typ'];
                 $soucty[$r['id_predmetu']]['pocet'] = ($soucty[$r['id_predmetu']]['pocet'] ?? 0) + 1;
-                $soucty[$r['id_predmetu']]['suma'] = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
+                $soucty[$r['id_predmetu']]['suma']  = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
             } elseif ($r['typ'] == TypPredmetu::VSTUPNE) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::VSTUPNE);
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
@@ -929,7 +920,7 @@ SQL;
                 sprintf('Započítání %s již proběhlo.', __FUNCTION__),
             );
         }
-        $this->slevaObecna = 0.0;
+        $this->slevaObecna          = 0.0;
         $this->bonusZaVedeniAktivit ??= 0.0;
 
         $q = dbQuery('
@@ -999,15 +990,15 @@ SQL;
 
     private function aplikujBonusZaVedeniAktivit(float $cena): float
     {
-        $puvodniBonusZaVedeniAktivit = $this->bonusZaVedeniAktivit();
+        $puvodniBonusZaVedeniAktivit   = $this->bonusZaVedeniAktivit();
         $zbyvajiciBonusZaVedeniAktivit = $puvodniBonusZaVedeniAktivit;
-        $zbyvajiciCena = $cena;
+        $zbyvajiciCena                 = $cena;
         ['sleva' => $nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu(
             cena: $zbyvajiciCena, // ovlivněno zpětně přes referenci !
             sleva: $zbyvajiciBonusZaVedeniAktivit, // ovlivněno zpětně přes referenci !
         );
         $this->nevyuzityBonusZaVedeniAktivit = $nevyuzityBonusZaVedeniAktivit;
-        $this->vyuzityBonusZaVedeniAktivit = $zbyvajiciBonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
+        $this->vyuzityBonusZaVedeniAktivit   = $zbyvajiciBonusZaVedeniAktivit - $nevyuzityBonusZaVedeniAktivit;
         /** Do výsledné ceny, respektive celkového stavu, už započítáváme celý bonus za aktivity https://trello.com/c/8SWTdpYl/1069-zobrazen%C3%AD-financ%C3%AD-%C3%BA%C4%8Dastn%C3%ADka */
         $cena -= $this->bonusZaVedeniAktivit();
 
@@ -1037,7 +1028,7 @@ SQL;
 
     private function aplikujObecnouSlevu(float $cena): float
     {
-        $puvodniObecnaSleva = $this->slevaObecna();
+        $puvodniObecnaSleva   = $this->slevaObecna();
         $zbyvajiciObecnaSleva = $puvodniObecnaSleva;
         ['cena' => $cena, 'sleva' => $nevyuzitaObecnaSleva] = Cenik::aplikujSlevu(
             cena: $cena, // ovlivněno zpětně přes referenci !
@@ -1252,7 +1243,7 @@ SQL;
         if (!$this->logovat) {
             return;
         }
-        $this->polozkyProBfgr ??= [];
+        $this->polozkyProBfgr   ??= [];
         $this->polozkyProBfgr[] = new PolozkaProBfgr(
             nazev: trim($nazev),
             pocet: $pocet,
@@ -1272,7 +1263,7 @@ SQL;
         if (!$this->logovat) {
             return;
         }
-        $this->strukturovanyPrehled ??= [];
+        $this->strukturovanyPrehled   ??= [];
         $this->strukturovanyPrehled[] = [
             'nazev'  => trim($nazev),
             'pocet'  => $pocet,
