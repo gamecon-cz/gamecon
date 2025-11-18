@@ -7,7 +7,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 /** @var $systemoveNastaveni */
 
-$rocnik = $systemoveNastaveni->rocnik();
+$rocnik         = $systemoveNastaveni->rocnik();
 $jakykoliRocnik = Role::JAKYKOLI_ROCNIK;
 
 $kdy = $systemoveNastaveni->ted()->format('Y-m-d H:i:s');
@@ -35,24 +35,31 @@ $jidloZdarma              = Pravo::JIDLO_ZDARMA;
 $jidloSeSlevou            = Pravo::JIDLO_SE_SLEVOU;
 
 $VYZNAM_ORGANIZATOR_ZDARMA = Role::VYZNAM_ORGANIZATOR_ZDARMA;
-$VYZNAM_PUL_ORG_UBYTKO = Role::VYZNAM_PUL_ORG_UBYTKO;
-$VYZNAM_PUL_ORG_TRICKO = Role::VYZNAM_PUL_ORG_TRICKO;
-$VYZNAM_VYPRAVEC = Role::VYZNAM_VYPRAVEC;
-$VYZNAM_PARTNER = Role::VYZNAM_PARTNER;
-$VYZNAM_HERMAN = Role::VYZNAM_HERMAN;
-$VYZNAM_BRIGADNIK = Role::VYZNAM_BRIGADNIK;
-$VYZNAM_PRIHLASEN = Role::VYZNAM_PRIHLASEN;
+$VYZNAM_PUL_ORG_UBYTKO     = Role::VYZNAM_PUL_ORG_UBYTKO;
+$VYZNAM_PUL_ORG_TRICKO     = Role::VYZNAM_PUL_ORG_TRICKO;
+$VYZNAM_VYPRAVEC           = Role::VYZNAM_VYPRAVEC;
+$VYZNAM_PARTNER            = Role::VYZNAM_PARTNER;
+$VYZNAM_HERMAN             = Role::VYZNAM_HERMAN;
+$VYZNAM_BRIGADNIK          = Role::VYZNAM_BRIGADNIK;
+$VYZNAM_PRIHLASEN          = Role::VYZNAM_PRIHLASEN;
 
 $typRoleUcast = Role::TYP_UCAST;
 
 $idTaguUnikovka = Tag::UNIKOVKA;
 $idTaguMalovani = Tag::MALOVANI;
 
+$connection = dbConnectTemporary();
+
 dbQuery(<<<SQL
-DROP FUNCTION IF EXISTS delkaAktivityJakoNasobekStandardni;
-CREATE FUNCTION delkaAktivityJakoNasobekStandardni(id_akce int) RETURNS decimal(4, 2) READS SQL DATA
+DROP FUNCTION IF EXISTS delkaAktivityJakoNasobekStandardni
+SQL,
+    mysqli: $connection,
+);
+
+dbQuery(<<<SQL
+CREATE FUNCTION delkaAktivityJakoNasobekStandardni(id_akce INT) RETURNS DECIMAL(4, 2) READS SQL DATA
     RETURN
-        CASE (select hour(timediff(akce_seznam.konec, akce_seznam.zacatek)) from akce_seznam where akce_seznam.id_akce = id_akce limit 1)
+        CASE (SELECT HOUR(TIMEDIFF(akce_seznam.konec, akce_seznam.zacatek)) FROM akce_seznam WHERE akce_seznam.id_akce = id_akce LIMIT 1)
             WHEN 1 THEN 0.25
             WHEN 2 THEN 0.5
             WHEN 3 THEN 1
@@ -67,7 +74,23 @@ CREATE FUNCTION delkaAktivityJakoNasobekStandardni(id_akce int) RETURNS decimal(
             WHEN 12 THEN 3
             WHEN 13 THEN 3
         END
-SQL
+SQL,
+    mysqli: $connection,
+);
+
+dbQuery(<<<SQL
+DROP FUNCTION IF EXISTS maPravo;
+SQL,
+    mysqli: $connection,
+);
+dbQuery(<<<SQL
+CREATE FUNCTION maPravo(user INT, pravo INT) RETURNS TINYINT(1) READS SQL DATA
+    RETURN EXISTS(SELECT 1
+              FROM platne_role_uzivatelu
+                JOIN prava_role ON prava_role.id_role = platne_role_uzivatelu.id_role
+              WHERE platne_role_uzivatelu.id_uzivatele = user AND prava_role.id_prava = pravo)
+SQL,
+    mysqli: $connection,
 );
 
 $report = Report::zSql(<<<SQL
@@ -999,6 +1022,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
       GROUP BY kod) export_data
 ORDER BY export_data.poradi
 SQL,
+    mysqli: $connection,
 );
 
 $report->tFormat(get('format'));
