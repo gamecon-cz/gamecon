@@ -59,6 +59,10 @@ SQL,
         $placeneUbytovani2L = 0;
         $placeneUbytovani1L = 0;
         $placeneUbytovaniSpacak = 0;
+        $zdarmaUbytovani3L = 0;
+        $zdarmaUbytovani2L = 0;
+        $zdarmaUbytovani1L = 0;
+        $zdarmaUbytovaniSpacak = 0;
         $trickaZdarma = 0;
         $trickaSeSlevou = 0;
         $trickaPlacena = 0;
@@ -139,16 +143,34 @@ SQL,
             $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
 
             foreach ($polozky as $polozka) {
-                // Ubytování - pouze placené (castka > 0)
-                if ($polozka->typ === TypPredmetu::UBYTOVANI && $polozka->castka > 0.0 && $polozka->kodPredmetu) {
+                // Ubytování - placené i zdarma
+                if ($polozka->typ === TypPredmetu::UBYTOVANI && $polozka->kodPredmetu) {
+                    $isPaid = $polozka->castka > 0.0;
+
                     if (str_starts_with($polozka->kodPredmetu, 'spacak_')) {
-                        $placeneUbytovaniSpacak++;
+                        if ($isPaid) {
+                            $placeneUbytovaniSpacak++;
+                        } else {
+                            $zdarmaUbytovaniSpacak++;
+                        }
                     } elseif (str_starts_with($polozka->kodPredmetu, '3L_')) {
-                        $placeneUbytovani3L++;
+                        if ($isPaid) {
+                            $placeneUbytovani3L++;
+                        } else {
+                            $zdarmaUbytovani3L++;
+                        }
                     } elseif (str_starts_with($polozka->kodPredmetu, '2L_')) {
-                        $placeneUbytovani2L++;
+                        if ($isPaid) {
+                            $placeneUbytovani2L++;
+                        } else {
+                            $zdarmaUbytovani2L++;
+                        }
                     } elseif (str_starts_with($polozka->kodPredmetu, '1L_')) {
-                        $placeneUbytovani1L++;
+                        if ($isPaid) {
+                            $placeneUbytovani1L++;
+                        } else {
+                            $zdarmaUbytovani1L++;
+                        }
                     }
                 }
 
@@ -293,6 +315,10 @@ SQL,
             ['Vr-Ubytovani-2L', 'Prodané noci 2L (počet)', $placeneUbytovani2L],
             ['Vr-Ubytovani-1L', 'Prodané noci 1L (počet)', $placeneUbytovani1L],
             ['Vr-Ubytovani-spac', 'Prodané noci spacáky (počet)', $placeneUbytovaniSpacak],
+            ['Nr-UbytovaniZdarma-3L', 'Noci 3L zdarma (počet)', $zdarmaUbytovani3L],
+            ['Nr-UbytovaniZdarma-2L', 'Noci 2L zdarma (počet)', $zdarmaUbytovani2L],
+            ['Nr-UbytovaniZdarma-1L', 'Noci 1L zdarma (počet)', $zdarmaUbytovani1L],
+            ['Nr-UbytovaniZdarma-spac', 'Noci spacáky zdarma (počet)', $zdarmaUbytovaniSpacak],
             ['Ir-Ucast-Ucastnici', 'Počet letos přihlášených normálních účastníků (nespadajících do žádného z dalších Ir-Ucast-)', $participantStats['Ir-Ucast-Ucastnici'] ?? 0],
             ['Ir-Ucast-Org0', 'Počet letos přihlášených úplných orgů', $participantStats['Ir-Ucast-Org0'] ?? 0],
             ['Ir-Ucast-OrgU', 'Počet letos přihlášených orgů s ubytováním', $participantStats['Ir-Ucast-OrgU'] ?? 0],
