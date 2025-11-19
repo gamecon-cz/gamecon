@@ -817,7 +817,7 @@ SQL;
       JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
       WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1
       ORDER BY nakupy.cena_nakupni -- od nejlevnějších kvůli aplikaci slev na trička
-    ', [$this->u->id(), ROCNIK]);
+    ', [$this->u->id(), $this->systemoveNastaveni->rocnik()]);
 
         $soucty = [];
         foreach ($o as $r) {

@@ -283,7 +283,7 @@ SQL,
             }
         }
 
-        // Získáme statistiky účastníků
+        // Získáme statistiky účastníka
         $participantStats = $this->getParticipantStats($userId);
 
         $data = [
@@ -350,9 +350,15 @@ SQL,
             $data[] = [$code, 'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Orgy (kromě dalších kol LKD a mDrD)', $value];
         }
 
-        foreach ($this->getSumOfOrgBonusesAsStandardActivity($activities) as $code => $value) {
+        $sumOfOrgBonuses = $this->getSumOfOrgBonusesAsStandardActivity($activities);
+        foreach ($sumOfOrgBonuses as $code => $value) {
             $data[] = [$code, 'Suma bonusů za vedení aktivit u lidí bez práva "Bez bonusu za vedení aktivit"', $value];
         }
+
+        $data[] = ['Nr-BonusyCelkem', 'Suma všech bonusů za vedení aktivit', array_sum($sumOfOrgBonuses)];
+
+        $technicalActivityBonuses = $this->getSumOfTechnicalActivityBonuses($activities);
+        $data[] = ['Nr-BonusyTech', 'Suma všech bonusů za účast na technické aktivitě', $technicalActivityBonuses];
 
         foreach ($this->getSumOfSavedBonusesAsStandardActivity($activities) as $code => $value) {
             $data[] = [$code, 'Ušetřené bonusy sekce (full-org vedoucí aktivit bez nároku na bonus)', $value];
@@ -770,6 +776,28 @@ SQL,
         }
 
         return $savedBonuses;
+    }
+
+    /**
+     * @param array<int, Aktivita> $activities
+     * @return float
+     */
+    private function getSumOfTechnicalActivityBonuses(array $activities): float
+    {
+        $totalTechnicalBonuses = 0.0;
+        foreach ($activities as $activity) {
+            if ($activity->typId() !== TypAktivity::TECHNICKA) {
+                continue;
+            }
+            $activityPrice = $activity->cenaZaklad();
+            foreach ($activity->prihlaseni() as $participant) {
+                if ($participant->maPravoNaBonusZaVedeniAktivit()) {
+                    $totalTechnicalBonuses += $activityPrice;
+                }
+            }
+        }
+
+        return $totalTechnicalBonuses;
     }
 
     /**

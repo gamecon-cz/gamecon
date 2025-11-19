@@ -36,6 +36,10 @@ docker compose up
 # Run tests
 vendor/bin/phpunit
 
+# Database access
+./bin-docker/mysql ostra              # Connect to 'ostra' database
+./bin-docker/mysql ostra -e 'SQL'     # Execute SQL query
+
 # Access points
 # http://localhost/web - Public site
 # http://localhost/admin - Admin panel
