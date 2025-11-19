@@ -297,6 +297,7 @@ SQL,
             ['Ir-Ucast-Org0', 'Počet letos přihlášených úplných orgů', $participantStats['Ir-Ucast-Org0'] ?? 0],
             ['Ir-Ucast-OrgU', 'Počet letos přihlášených orgů s ubytováním', $participantStats['Ir-Ucast-OrgU'] ?? 0],
             ['Ir-Ucast-OrgT', 'Počet letos přihlášených orgů s tričkem', $participantStats['Ir-Ucast-OrgT'] ?? 0],
+            ['Ir-Ucast-MiniOrg', 'Počet letos přihlášených mini-orgů', $participantStats['Ir-Ucast-MiniOrg'] ?? 0],
             ['Ir-Ucast-Vypraveci', 'Počet letos přihlášených vypravěčů', $participantStats['Ir-Ucast-Vypraveci'] ?? 0],
             ['Ir-Ucast-Partneri', 'Počet letos přihlášených partnerů', $participantStats['Ir-Ucast-Partneri'] ?? 0],
             ['Ir-Ucast-Brigadnici', 'Počet letos přihlášených brigádníků', $participantStats['Ir-Ucast-Brigadnici'] ?? 0],
@@ -307,6 +308,9 @@ SQL,
             ['Xr-Tilka-Zaklad', 'Tílka placená - kusy', $tilkaPlacena],
             ['Xr-Tilka-Sleva', 'Tílka se slevou - kusy', $tilkaSeSlevou],
             ['Nr-TilkaZdarma', 'Tílka zdarma - kusy', $tilkaZdarma],
+            ['Vr-Svrsky-Celkem', 'Celkem svršků (trička + tílka) - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena + $tilkaZdarma + $tilkaSeSlevou + $tilkaPlacena],
+            ['Vr-Tricka-Celkem', 'Celkem triček - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena],
+            ['Vr-Tilka-Celkem', 'Celkem tílek - kusy', $tilkaZdarma + $tilkaSeSlevou + $tilkaPlacena],
             ['Vr-Placky', 'Placky celkem - kusy', $plackyZdarma + $plackyPlacene],
             ['Ir-Placky-Zdarma', 'Placky zdarma - kusy', $plackyZdarma],
             ['Ir-Kostky-CelkemZdarma', 'Kolik z prodaných kostek (všech typů) je zdarma - kusy', $kostkyZdarma],
@@ -371,6 +375,9 @@ SQL,
         foreach ($this->getSumOfEarnings($activities) as $code => $value) {
             $data[] = [$code, 'Příjmy z aktivit, bez storn a bez lidí co mají účast zdarma', $value];
         }
+
+        $lectureRevenue = $this->getLectureRevenue($activities);
+        $data[] = ['Vr-Prednaska-Ucast', 'Přednášky - standardní účast (pouze na placených přednáškách) - CZK', $lectureRevenue];
 
         Assert::same(
             array_sum($kostkyCelkem), $kostkyZdarma + $kostkyPlacene,
@@ -453,6 +460,7 @@ SQL,
         $VYZNAM_ORGANIZATOR_ZDARMA = Role::VYZNAM_ORGANIZATOR_ZDARMA;
         $VYZNAM_PUL_ORG_UBYTKO = Role::VYZNAM_PUL_ORG_UBYTKO;
         $VYZNAM_PUL_ORG_TRICKO = Role::VYZNAM_PUL_ORG_TRICKO;
+        $VYZNAM_MINI_ORG = Role::VYZNAM_MINI_ORG;
         $VYZNAM_VYPRAVEC = Role::VYZNAM_VYPRAVEC;
         $VYZNAM_PARTNER = Role::VYZNAM_PARTNER;
         $VYZNAM_HERMAN = Role::VYZNAM_HERMAN;
@@ -471,6 +479,7 @@ WITH user_role AS (
           '{$VYZNAM_ORGANIZATOR_ZDARMA}',
           '{$VYZNAM_PUL_ORG_UBYTKO}',
           '{$VYZNAM_PUL_ORG_TRICKO}',
+          '{$VYZNAM_MINI_ORG}',
           '{$VYZNAM_VYPRAVEC}',
           '{$VYZNAM_PARTNER}',
           '{$VYZNAM_HERMAN}',
@@ -484,6 +493,7 @@ SELECT
                 WHEN '{$VYZNAM_ORGANIZATOR_ZDARMA}' THEN 'Org0'
                 WHEN '{$VYZNAM_PUL_ORG_UBYTKO}' THEN 'OrgU'
                 WHEN '{$VYZNAM_PUL_ORG_TRICKO}' THEN 'OrgT'
+                WHEN '{$VYZNAM_MINI_ORG}' THEN 'MiniOrg'
                 WHEN '{$VYZNAM_VYPRAVEC}' THEN 'Vypraveci'
                 WHEN '{$VYZNAM_PARTNER}' THEN 'Partneri'
                 WHEN '{$VYZNAM_BRIGADNIK}' THEN 'Brigadnici'
@@ -843,6 +853,31 @@ SQL,
         }
 
         return $sumOfEarnings;
+    }
+
+    /**
+     * Získá příjmy z placených přednášek (standardní účast)
+     *
+     * @param array<int, Aktivita> $activities
+     * @return float
+     */
+    private function getLectureRevenue(array $activities): float
+    {
+        $totalRevenue = 0.0;
+        foreach ($activities as $activity) {
+            if ($activity->typId() !== TypAktivity::PREDNASKA) {
+                continue;
+            }
+            $activityPrice = $activity->cenaZaklad();
+            if ($activityPrice === 0.0) {
+                continue;
+            }
+            foreach ($activity->prihlaseni() as $participant) {
+                $totalRevenue += $activity->soucinitelCenyAktivity($participant) * $activityPrice;
+            }
+        }
+
+        return $totalRevenue;
     }
 
     /**
