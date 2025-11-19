@@ -155,17 +155,17 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         string $klic,
         ?int   $bonusZaStandardni3hAz5hAktivitu = null,
     ): int {
-        $baseBonus = $bonusZaStandardni3hAz5hAktivitu ?? $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
+        $bonusForStandardActivity = $bonusZaStandardni3hAz5hAktivitu ?? $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
         $calcCoefficient = static fn(int $length) => self::getActivityStandardLengthCoefficient($length);
 
         return match ($klic) {
-            'BONUS_ZA_1H_AKTIVITU'                  => self::zakrouhli($baseBonus * $calcCoefficient(1)),
-            'BONUS_ZA_2H_AKTIVITU'                  => self::zakrouhli($baseBonus * $calcCoefficient(2)),
-            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => $baseBonus,
-            'BONUS_ZA_6H_AZ_7H_AKTIVITU'            => self::zakrouhli($baseBonus * $calcCoefficient(7)),
-            'BONUS_ZA_8H_AZ_9H_AKTIVITU'            => self::zakrouhli($baseBonus * $calcCoefficient(9)),
-            'BONUS_ZA_10H_AZ_11H_AKTIVITU'          => self::zakrouhli($baseBonus * $calcCoefficient(11)),
-            'BONUS_ZA_12H_AZ_13H_AKTIVITU'          => self::zakrouhli($baseBonus * $calcCoefficient(13)),
+            'BONUS_ZA_1H_AKTIVITU'                  => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(1)),
+            'BONUS_ZA_2H_AKTIVITU'                  => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(2)),
+            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => $bonusForStandardActivity,
+            'BONUS_ZA_6H_AZ_7H_AKTIVITU'            => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(7)),
+            'BONUS_ZA_8H_AZ_9H_AKTIVITU'            => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(9)),
+            'BONUS_ZA_10H_AZ_11H_AKTIVITU'          => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(11)),
+            'BONUS_ZA_12H_AZ_13H_AKTIVITU'          => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(13)),
             default                                 => throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'"),
         };
     }

@@ -21,7 +21,7 @@ $bonusZa8hAz9hAktivitu   = $bonusyZaVedeniAktivity[9];
 $bonusZa10hAz11hAktivitu = $bonusyZaVedeniAktivity[11];
 $bonusZa12hAz13hAktivitu = $bonusyZaVedeniAktivity[13];
 
-$bezBonusuZaVedeniAktivit = Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT;
+$bezBonusuZaVedeniAktivit = Pravo::BEZ_BONUSU_ZA_VEDENI_AKTIVIT;
 $maAktivityZdarma         = Pravo::AKTIVITY_ZDARMA;
 $maUbytovaniZdarma        = Pravo::UBYTOVANI_ZDARMA;
 $maStredecniNocZdarma     = Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA;

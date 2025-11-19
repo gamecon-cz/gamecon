@@ -274,18 +274,18 @@ SQL
         $this->a[Sql::PROBEHLA_KOREKCE] = $stav;
     }
 
-    public function slevaNasobic(
+    public function soucinitelCenyAktivity(
         \Uzivatel             $u,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
-        self::slevaNasobicDSC($dataSourcesCollector);
+        self::soucinitelCenyAktivityDSC($dataSourcesCollector);
 
         return (!$this->a[Sql::BEZ_SLEVY] && $u && $u->gcPrihlasen($dataSourcesCollector))
             ? $u->finance()->soucinitelCenyAktivit($dataSourcesCollector)
             : 1.;
     }
 
-    public static function slevaNasobicDSC(?DataSourcesCollector $dataSourcesCollector)
+    public static function soucinitelCenyAktivityDSC(?DataSourcesCollector $dataSourcesCollector)
     {
         Finance::slevaAktivityDSC($dataSourcesCollector);
         Uzivatel::gcPrihlasenDSC($dataSourcesCollector);

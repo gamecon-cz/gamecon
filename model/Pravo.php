@@ -60,7 +60,7 @@ class Pravo extends \DbObject
     public const VYPISOVAT_V_REPORTU_NEUBYTOVANYCH           = 1025; // V reportu Nepřihlášení a neubytovaní vypravěči se lidé na této roli vypisují
     public const TITUL_ORGANIZATOR                           = 1026; // V různých výpisech se označuje jako organizátor
     public const UNIKATNI_ROLE                               = 1027; // Uživatel může mít jen jednu roli s tímto právem (další názvy "jedinečná", "výlučná", "exkluzivní", "anti-role")
-    public const BEZ_SLEVY_ZA_VEDENI_AKTIVIT                 = 1028; // Nedostává slevu za vedení aktivit ani účast na tech. aktivitách
+    public const BEZ_BONUSU_ZA_VEDENI_AKTIVIT                = 1028; // Nedostává slevu za vedení aktivit ani účast na tech. aktivitách
     public const UBYTOVANI_CTVRTECNI_NOC_ZDARMA              = 1029;
     public const UBYTOVANI_PATECNI_NOC_ZDARMA                = 1030;
     public const UBYTOVANI_SOBOTNI_NOC_ZDARMA                = 1031;

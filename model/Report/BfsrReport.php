@@ -787,14 +787,14 @@ SQL,
         $bonusForStandardActivity = (int)$this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
         $countOfOrgsOfActivitiesAsStandardActivity = [];
         foreach ($activities as $activity) {
-            $countOfNonFullOrgs = count(array_filter($activity->organizatori(), fn(
+            $countOfOrgsWithBonus = count(array_filter($activity->organizatori(), fn(
                 Uzivatel $u,
-            ) => !$u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)));
+            ) => !$u->nemaPravoNaBonusZaVedeniAktivit()));
             $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code = 'Nr-Bonusy-' . $this->getActivityGroupCode($activity);
 
             $countOfOrgsOfActivitiesAsStandardActivity[$code] ??= 0;
-            $countOfOrgsOfActivitiesAsStandardActivity[$code] += $countOfNonFullOrgs * $standardLength * $bonusForStandardActivity;
+            $countOfOrgsOfActivitiesAsStandardActivity[$code] += $countOfOrgsWithBonus * $standardLength * $bonusForStandardActivity;
         }
 
         return $countOfOrgsOfActivitiesAsStandardActivity;
@@ -811,7 +811,7 @@ SQL,
         foreach ($activities as $activity) {
             $countOfFullOrgs = count(array_filter($activity->organizatori(), fn(
                 Uzivatel $u,
-            ) => $u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)));
+            ) => $u->nemaPravoNaBonusZaVedeniAktivit()));
             $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code = 'Nr-UsetreneBonusy-' . $this->getActivityGroupCode($activity);
 
@@ -880,7 +880,7 @@ SQL,
             $sumOfEarnings[$code] += array_sum(
                 array_map(static fn(
                     Uzivatel $participant,
-                ) => $activity->slevaNasobic($participant) * $activity->cenaZaklad(),
+                ) => $activity->soucinitelCenyAktivity($participant) * $activity->cenaZaklad(),
                     $activity->prihlaseni(),
                 ),
             );

@@ -191,7 +191,7 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
 
 $dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector) use (&$aktivity, &$u) {
     Aktivita::stavPrihlaseniDSC($dataSourcesCollector);
-    Aktivita::slevaNasobicDSC($dataSourcesCollector);
+    Aktivita::soucinitelCenyAktivityDSC($dataSourcesCollector);
 
     $aktivityUzivatel = [];
     foreach ($aktivity as $aktivita) {
@@ -229,7 +229,7 @@ $dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector)
                     break;
             }
 
-            $aktivitaRes['slevaNasobic'] = $aktivita->slevaNasobic($u, $dataSourcesCollector);
+            $aktivitaRes['slevaNasobic'] = $aktivita->soucinitelCenyAktivity($u, $dataSourcesCollector);
 
             $aktivitaRes['vedu'] = $u && $aktivita->organizuje($u);
             // TODO: argumenty pro admin

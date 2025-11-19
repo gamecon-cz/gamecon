@@ -984,7 +984,7 @@ SQL,
 
     public function nemaPravoNaBonusZaVedeniAktivit(): bool
     {
-        return $this->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT);
+        return $this->maPravo(Pravo::BEZ_BONUSU_ZA_VEDENI_AKTIVIT);
     }
 
     public function maPravoNaBonusZaVedeniAktivit(): bool

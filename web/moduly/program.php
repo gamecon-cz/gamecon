@@ -51,7 +51,7 @@ $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
     : null;
 
 $legendaText   = Stranka::zUrl('program-legenda-text')?->html();
-$jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
+$jeOrganizator = isset($u) && $u && $u->maPravoNaPoradaniAktivit();
 
 ?>
 
