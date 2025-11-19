@@ -354,6 +354,10 @@ SQL,
             $data[] = [$code, 'Suma bonusů za vedení aktivit u lidí bez práva "Bez bonusu za vedení aktivit"', $value];
         }
 
+        foreach ($this->getSumOfSavedBonusesAsStandardActivity($activities) as $code => $value) {
+            $data[] = [$code, 'Ušetřené bonusy sekce (full-org vedoucí aktivit bez nároku na bonus)', $value];
+        }
+
         foreach ($this->getCountOfPlayBlocksAsStandardActivity($activities) as $code => $value) {
             $data[] = [$code, 'Počet herních bloků zabraný hráči přepočtený na standardní aktivitu (bez ohledu na kategorii hráče) (kromě dalších kol LKD a mDrD)', $value];
         }
@@ -633,7 +637,7 @@ SQL,
             $code = 'Ir-Std-' . $this->getActivityGroupCode($activity);
 
             $countOfActivitiesAsStandardActivity[$code] ??= 0;
-            $countOfActivitiesAsStandardActivity[$code] += $this->getActivityStandardLength($length);
+            $countOfActivitiesAsStandardActivity[$code] += $this->getActivityStandardLengthCoefficient($length);
         }
 
         return $countOfActivitiesAsStandardActivity;
@@ -652,7 +656,7 @@ SQL,
                 continue;
             }
             $capacity = $activity->finalniKapacita();
-            $standardLength = $this->getActivityStandardLength($activity->delka());
+            $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code = 'Ir-Kapacita-' . $this->getActivityGroupCode($activity);
 
             $capacityOfActivitiesAsStandardActivity[$code] ??= ['capacity' => 0.0, 'weight' => 0.0];
@@ -683,7 +687,7 @@ SQL,
                 continue;
             }
             $countOfNarrators = count($activity->dejOrganizatoriIds());
-            $standardLength = $this->getActivityStandardLength($activity->delka());
+            $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code = 'Ir-PrumPocVyp-' . $this->getActivityGroupCode($activity);
 
             $countOfNarratorsOfActivitiesAsStandardActivity[$code] ??= ['value' => 0.0, 'weight' => 0.0];
@@ -736,7 +740,7 @@ SQL,
             $countOfNonFullOrgs = count(array_filter($activity->organizatori(), fn(
                 Uzivatel $u,
             ) => !$u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)));
-            $standardLength = $this->getActivityStandardLength($activity->delka());
+            $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code = 'Nr-Bonusy-' . $this->getActivityGroupCode($activity);
 
             $countOfOrgsOfActivitiesAsStandardActivity[$code] ??= 0;
@@ -744,6 +748,28 @@ SQL,
         }
 
         return $countOfOrgsOfActivitiesAsStandardActivity;
+    }
+
+    /**
+     * @param array<int, Aktivita> $activities
+     * @return array{code: string, value: float}
+     */
+    private function getSumOfSavedBonusesAsStandardActivity(array $activities): array
+    {
+        $bonusForStandardActivity = (int)$this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
+        $savedBonuses = [];
+        foreach ($activities as $activity) {
+            $countOfFullOrgs = count(array_filter($activity->organizatori(), fn(
+                Uzivatel $u,
+            ) => $u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)));
+            $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
+            $code = 'Nr-UsetreneBonusy-' . $this->getActivityGroupCode($activity);
+
+            $savedBonuses[$code] ??= 0;
+            $savedBonuses[$code] += $countOfFullOrgs * $standardLength * $bonusForStandardActivity;
+        }
+
+        return $savedBonuses;
     }
 
     /**
@@ -762,7 +788,7 @@ SQL,
             $code = 'Ir-Ucast-' . $this->getActivityGroupCode($activity);
 
             $countOfPlayBlocksAsStandardActivity[$code] ??= 0;
-            $countOfPlayBlocksAsStandardActivity[$code] += $this->getActivityStandardLength($length) * count($activity->prihlaseniRawArray());
+            $countOfPlayBlocksAsStandardActivity[$code] += $this->getActivityStandardLengthCoefficient($length) * count($activity->prihlaseniRawArray());
         }
 
         return $countOfPlayBlocksAsStandardActivity;
@@ -808,7 +834,7 @@ SQL,
                 continue;
             }
             $countOfFilteredOrgs = count(array_filter($activity->organizatori(), $callback));
-            $standardLength = $this->getActivityStandardLength($activity->delka());
+            $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code = $codePrefix . $this->getActivityGroupCode($activity);
 
             $countOfOrgsOfActivitiesAsStandardActivity[$code] ??= 0;
@@ -837,18 +863,9 @@ SQL,
         return $result;
     }
 
-    private function getActivityStandardLength(float $length): float
+    private function getActivityStandardLengthCoefficient(float $length): float
     {
-        return match (true) {
-            $length <= 1  => 0.25,
-            $length <= 2  => 0.5,
-            $length <= 5  => 1.0,
-            $length <= 7  => 1.5,
-            $length <= 9  => 2.0,
-            $length <= 11 => 2.5,
-            $length <= 13 => 3.0,
-            default       => throw new \RuntimeException('Neznámá délka aktivity pro přepočet na standardní aktivitu: ' . $length),
-        };
+        return SystemoveNastaveni::getActivityStandardLengthCoefficient($length);
     }
 
     private function getActivityGroupCode(Aktivita $aktivita): string

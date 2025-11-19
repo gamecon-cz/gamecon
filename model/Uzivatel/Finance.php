@@ -99,13 +99,13 @@ class Finance
         if ($aktivita->nedavaBonus()) {
             return 0;
         }
-        $delka = $aktivita->delka();
-        if ($delka == 0) {
+        $delkaAktivity = $aktivita->delka();
+        if ($delkaAktivity == 0) {
             return 0;
         }
-        foreach ($systemoveNastaveni->bonusyZaVedeniAktivity() as $tabDelka => $tabSleva) {
-            if ($delka <= $tabDelka) {
-                return $tabSleva;
+        foreach ($systemoveNastaveni->bonusyZaVedeniAktivity() as $delka => $sleva) {
+            if ($delkaAktivity <= $delka) {
+                return $sleva;
             }
         }
 

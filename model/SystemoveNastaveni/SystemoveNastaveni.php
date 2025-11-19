@@ -76,6 +76,20 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         return $noveSystemoveNastaveni;
     }
 
+    public static function getActivityStandardLengthCoefficient(float $length): float
+    {
+        return match (true) {
+            $length <= 1  => 0.25,
+            $length <= 2  => 0.5,
+            $length <= 5  => 1.0,
+            $length <= 7  => 1.5,
+            $length <= 9  => 2.0,
+            $length <= 11 => 2.5,
+            $length <= 13 => 3.0,
+            default       => throw new \RuntimeException('Neznámá délka aktivity pro přepočet na standardní aktivitu: ' . $length),
+        };
+    }
+
     private static function zakrouhli(float $cislo): int
     {
         return (int)round($cislo, 0);
@@ -141,16 +155,17 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         string $klic,
         ?int   $bonusZaStandardni3hAz5hAktivitu = null,
     ): int {
-        $bonusZaStandardni3hAz5hAktivitu ??= $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
+        $baseBonus = $bonusZaStandardni3hAz5hAktivitu ?? $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
+        $calcCoefficient = static fn(int $length) => self::getActivityStandardLengthCoefficient($length);
 
         return match ($klic) {
-            'BONUS_ZA_1H_AKTIVITU'                  => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4),
-            'BONUS_ZA_2H_AKTIVITU'                  => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2),
-            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => $bonusZaStandardni3hAz5hAktivitu,
-            'BONUS_ZA_6H_AZ_7H_AKTIVITU'            => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5),
-            'BONUS_ZA_8H_AZ_9H_AKTIVITU'            => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2),
-            'BONUS_ZA_10H_AZ_11H_AKTIVITU'          => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5),
-            'BONUS_ZA_12H_AZ_13H_AKTIVITU'          => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3),
+            'BONUS_ZA_1H_AKTIVITU'                  => self::zakrouhli($baseBonus * $calcCoefficient(1)),
+            'BONUS_ZA_2H_AKTIVITU'                  => self::zakrouhli($baseBonus * $calcCoefficient(2)),
+            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => $baseBonus,
+            'BONUS_ZA_6H_AZ_7H_AKTIVITU'            => self::zakrouhli($baseBonus * $calcCoefficient(7)),
+            'BONUS_ZA_8H_AZ_9H_AKTIVITU'            => self::zakrouhli($baseBonus * $calcCoefficient(9)),
+            'BONUS_ZA_10H_AZ_11H_AKTIVITU'          => self::zakrouhli($baseBonus * $calcCoefficient(11)),
+            'BONUS_ZA_12H_AZ_13H_AKTIVITU'          => self::zakrouhli($baseBonus * $calcCoefficient(13)),
             default                                 => throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'"),
         };
     }
