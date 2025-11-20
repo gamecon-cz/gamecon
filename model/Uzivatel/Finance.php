@@ -17,6 +17,7 @@ use Gamecon\Finance\QrPlatba;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
 use Gamecon\Pravo;
+use Gamecon\Shop\Predmet;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -827,12 +828,12 @@ SQL;
             if ($r['typ'] == TypPredmetu::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
             } elseif ($r['typ'] == TypPredmetu::VSTUPNE) {
-                if (!str_contains($r['nazev'], 'pozdě')) {
-                    assert($this->cenaVstupne === 0.0);
-                    $this->cenaVstupne = $cena;
-                } else {
+                if (Predmet::jeToVstupnePozde((int)$r['typ'], $r['kod_predmetu'])) {
                     assert($this->cenaVstupnePozde === 0.0);
                     $this->cenaVstupnePozde = $cena;
+                } else {
+                    assert($this->cenaVstupne === 0.0);
+                    $this->cenaVstupne = $cena;
                 }
                 $this->dobrovolneVstupnePrehled = $this->formatujProLog(
                     nazev: "{$r[PredmetSql::NAZEV]} $cena.-",

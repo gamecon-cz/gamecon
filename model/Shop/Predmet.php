@@ -16,6 +16,16 @@ class Predmet extends \DbObject
     protected static $pk = Sql::ID_PREDMETU;
     protected static $letosniPredmety = [];
 
+    public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool
+    {
+        return $typPredmetu === TypPredmetu::VSTUPNE && !self::jeToDleCasti($kodPredmetu, 'pozde');
+    }
+
+    public static function jeToVstupnePozde(int $typPredmetu, string $kodPredmetu): bool
+    {
+        return $typPredmetu === TypPredmetu::VSTUPNE && self::jeToDleCasti($kodPredmetu, 'pozde');
+    }
+
     public static function jeToKostka(string $kodPredmetu): bool
     {
         return self::jeToDleCasti($kodPredmetu, 'kostka');
