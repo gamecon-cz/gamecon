@@ -66,9 +66,13 @@ SQL,
         $trickaZdarma                = 0;
         $trickaSeSlevou              = 0;
         $trickaPlacena               = 0;
+        $trickaVynosyCelkem          = 0.0;
+        $trickaSlevyCelkem           = 0.0;
         $tilkaZdarma                 = 0;
         $tilkaSeSlevou               = 0;
         $tilkaPlacena                = 0;
+        $tilkaVynosyCelkem           = 0.0;
+        $tilkaSlevyCelkem            = 0.0;
         $plackyCelkem                = [];
         $plackyZdarma                = 0;
         $plackyPlacene               = 0;
@@ -186,6 +190,10 @@ SQL,
 
                 // Tričko logika (včetně správného zpracování "Tričko/tílko")
                 if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
+                    // Započítání výnosů a slev z triček
+                    $trickaVynosyCelkem += $polozka->castka;
+                    $trickaSlevyCelkem += $polozka->sleva;
+
                     if ($jeZdarma($polozka->castka, $polozka->sleva)) {
                         $trickaZdarma++;
                     } elseif ($jeSeSlevou($polozka->castka, $polozka->sleva)) {
@@ -196,8 +204,12 @@ SQL,
                     continue;
                 }
 
-                // Tílko logika (ale ne generic "Tričko/tílko" - to počítáme jako tričko)
+                // Tílko logika (ale ne generic "Tričko/tílko" - to počítáme jako tříčko)
                 if (Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ) && !Predmet::jeToTricko($polozka->nazev, $polozka->typ)) {
+                    // Započítání výnosů a slev z tílek
+                    $tilkaVynosyCelkem += $polozka->castka;
+                    $tilkaSlevyCelkem += $polozka->sleva;
+
                     if ($jeZdarma($polozka->castka, $polozka->sleva)) {
                         $tilkaZdarma++;
                     } elseif ($jeSeSlevou($polozka->castka, $polozka->sleva)) {
@@ -383,6 +395,12 @@ SQL,
             ['Vr-Svrsky-Celkem', 'Celkem svršků (trička + tílka) - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena + $tilkaZdarma + $tilkaSeSlevou + $tilkaPlacena],
             ['Vr-Tricka-Celkem', 'Celkem triček - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena],
             ['Vr-Tilka-Celkem', 'Celkem tílek - kusy', $tilkaZdarma + $tilkaSeSlevou + $tilkaPlacena],
+            ['Vr-Vynosy-Tricka', 'Výnosy z triček (sum CZK)', $trickaVynosyCelkem],
+            ['Vr-Vynosy-Tilka', 'Výnosy z tílek (sum CZK)', $tilkaVynosyCelkem],
+            ['Vr-Vynosy-Svrsky-Celkem', 'Celkové výnosy ze svršků - trička + tílka (sum CZK)', $trickaVynosyCelkem + $tilkaVynosyCelkem],
+            ['Nr-Slevy-Tricka', 'Slevy na trička - náklad pro GameCon (sum CZK)', $trickaSlevyCelkem],
+            ['Nr-Slevy-Tilka', 'Slevy na tílka - náklad pro GameCon (sum CZK)', $tilkaSlevyCelkem],
+            ['Nr-Slevy-Svrsky-Celkem', 'Celkové slevy na svršky - trička + tílka - náklad pro GameCon (sum CZK)', $trickaSlevyCelkem + $tilkaSlevyCelkem],
             ['Vr-Placky', 'Placky celkem - kusy', $plackyZdarma + $plackyPlacene],
             ['Ir-Placky-Zdarma', 'Placky zdarma - kusy', $plackyZdarma],
             ['Ir-Kostky-CelkemZdarma', 'Kolik z prodaných kostek (všech typů) je zdarma - kusy', $kostkyZdarma],
