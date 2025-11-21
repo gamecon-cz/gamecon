@@ -95,7 +95,9 @@ SQL,
         $jidlaSnidaneZdarma          = 0;
         $jidlaSnidaneSeSlevou        = 0;
         $jidlaSnidanePlnePlacene     = 0;
-        $jidlaSnidaneVynosyCelkem    = 0.0;
+        $jidlaSnidaneVynosyPlnaCena  = 0.0;
+        $jidlaSnidaneVynosySeSlevou  = 0.0;
+        $jidlaSnidaneVynosyZdarma    = 0.0;
         $jidlaSnidaneSlevyCelkem     = 0.0;
         $jidlaObedyCelkem            = [];
         $jidlaObedyZdarma            = 0;
@@ -320,17 +322,18 @@ SQL,
                     $jidlaSnidaneCelkem[$jidlaSnidaneCelkemKod] ??= 0;
                     $jidlaSnidaneCelkem[$jidlaSnidaneCelkemKod]++;
 
-                    // Započítání výnosů z jídla (finální zaplacená částka)
-                    $jidlaSnidaneVynosyCelkem += $polozka->castka;
                     // Započítání slev poskytnutých organizací (náklad pro GameCon)
                     $jidlaSnidaneSlevyCelkem += $polozka->sleva;
 
                     if ($polozka->castka === 0.0) {
                         $jidlaSnidaneZdarma++;
+                        $jidlaSnidaneVynosyZdarma += $polozka->castka;
                     } elseif ($polozka->sleva > 0.0) {
                         $jidlaSnidaneSeSlevou++;
+                        $jidlaSnidaneVynosySeSlevou += $polozka->castka;
                     } else {
                         $jidlaSnidanePlnePlacene++;
+                        $jidlaSnidaneVynosyPlnaCena += $polozka->castka;
                     }
                     continue;
                 }
@@ -575,7 +578,10 @@ SQL,
         $data[] = ['Nr-JidlaSleva-Obedy', 'obědy se slevou - kusy', $jidlaObedySeSlevou];
         $data[] = ['Nr-JidlaSleva-Vecere', 'večeře se slevou - kusy', $jidlaVecereSeSlevou];
 
-        $data[] = ['Vr-Vynosy-Snidane', 'Výnosy ze snídaní (sum CZK)', $jidlaSnidaneVynosyCelkem];
+        $data[] = ['Vr-Vynosy-Snidane-PlnaCena', 'Výnosy ze snídaní za plnou cenu (sum CZK)', $jidlaSnidaneVynosyPlnaCena];
+        $data[] = ['Vr-Vynosy-Snidane-SeSlevou', 'Výnosy ze snídaní se slevou (sum CZK)', $jidlaSnidaneVynosySeSlevou];
+        $data[] = ['Vr-Vynosy-Snidane-Zdarma', 'Výnosy ze snídaní zdarma (sum CZK)', $jidlaSnidaneVynosyZdarma];
+        $data[] = ['Vr-Vynosy-Snidane', 'Výnosy ze snídaní celkem (sum CZK)', $jidlaSnidaneVynosyPlnaCena + $jidlaSnidaneVynosySeSlevou + $jidlaSnidaneVynosyZdarma];
         $data[] = ['Vr-Vynosy-Obedy-PlnaCena', 'Výnosy z obědů za plnou cenu (sum CZK)', $jidlaObedyVynosyPlnaCena];
         $data[] = ['Vr-Vynosy-Obedy-SeSlevou', 'Výnosy z obědů se slevou (sum CZK)', $jidlaObedyVynosySeSlevou];
         $data[] = ['Vr-Vynosy-Obedy-Zdarma', 'Výnosy z obědů zdarma (sum CZK)', $jidlaObedyVynosyZdarma];
@@ -584,7 +590,7 @@ SQL,
         $data[] = ['Vr-Vynosy-Vecere-SeSlevou', 'Výnosy z večeří se slevou (sum CZK)', $jidlaVecereVynosySeSlevou];
         $data[] = ['Vr-Vynosy-Vecere-Zdarma', 'Výnosy z večeří zdarma (sum CZK)', $jidlaVecereVynosyZdarma];
         $data[] = ['Vr-Vynosy-Vecere', 'Výnosy z večeří celkem (sum CZK)', $jidlaVecereVynosyPlnaCena + $jidlaVecereVynosySeSlevou + $jidlaVecereVynosyZdarma];
-        $data[] = ['Vr-Vynosy-Jidla-Celkem', 'Celkové výnosy z jídel (sum CZK)', $jidlaSnidaneVynosyCelkem + $jidlaObedyVynosyPlnaCena + $jidlaObedyVynosySeSlevou + $jidlaObedyVynosyZdarma + $jidlaVecereVynosyPlnaCena + $jidlaVecereVynosySeSlevou + $jidlaVecereVynosyZdarma];
+        $data[] = ['Vr-Vynosy-Jidla-Celkem', 'Celkové výnosy z jídel (sum CZK)', $jidlaSnidaneVynosyPlnaCena + $jidlaSnidaneVynosySeSlevou + $jidlaSnidaneVynosyZdarma + $jidlaObedyVynosyPlnaCena + $jidlaObedyVynosySeSlevou + $jidlaObedyVynosyZdarma + $jidlaVecereVynosyPlnaCena + $jidlaVecereVynosySeSlevou + $jidlaVecereVynosyZdarma];
 
         $data[] = ['Nr-Slevy-Snidane', 'Slevy na snídaně - náklad pro GameCon (sum CZK)', $jidlaSnidaneSlevyCelkem];
         $data[] = ['Nr-Slevy-Obedy', 'Slevy na obědy - náklad pro GameCon (sum CZK)', $jidlaObedySlevyCelkem];
