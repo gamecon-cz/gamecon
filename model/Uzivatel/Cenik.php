@@ -35,11 +35,11 @@ class Cenik
             return ['cena' => $cena, 'sleva' => $sleva];
         }
         if ($sleva <= $cena) {
-            $cena -= $sleva;
+            $cena  -= $sleva;
             $sleva = 0;
         } else { // $sleva > $cena
             $sleva -= $cena;
-            $cena = 0;
+            $cena  = 0;
         }
 
         return ['cena' => (float)$cena, 'sleva' => (float)$sleva];
@@ -63,7 +63,7 @@ class Cenik
          * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
          * ručně. V polích se případně udává, které právo daný index „přebíjí“.
          */
-        $texty = [
+        $texty                             = [
             Pravo::KOSTKA_ZDARMA                     => 'kostka zdarma',
             Pravo::PLACKA_ZDARMA                     => 'placka zdarma',
             Pravo::UBYTOVANI_ZDARMA                  => 'ubytování zdarma',
@@ -76,7 +76,7 @@ class Cenik
             Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => 'můžeš si objednat ubytování i pro jedinou noc',
             Pravo::MODRE_TRICKO_ZDARMA               => 'modré tričko zdarma za dosažení bonusu %d',
         ];
-        $bonus = $this->systemoveNastaveni->modreTrickoZdarmaOd();
+        $bonus                             = $this->systemoveNastaveni->modreTrickoZdarmaOd();
         $texty[Pravo::MODRE_TRICKO_ZDARMA] = sprintf(
             $texty[Pravo::MODRE_TRICKO_ZDARMA],
             $bonus,
@@ -87,7 +87,7 @@ class Cenik
 
     public function cenaKostky(array $r): int
     {
-        $cena = (int)$r[PredmetySql::CENA_AKTUALNI];
+        $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
         $slevaNaKostku = $this->slevaNaKostku($r, $cena, false);
 
         return $cena - $slevaNaKostku;
@@ -129,7 +129,7 @@ class Cenik
 
     public function cenaPlacky(array $r): int
     {
-        $cena = (int)$r[PredmetySql::CENA_AKTUALNI];
+        $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
         $slevaNaPlacku = $this->slevaNaPlacku($r, $cena, false);
 
         return $cena - $slevaNaPlacku;
@@ -187,7 +187,7 @@ class Cenik
      */
     public function slevySpecialni(): array
     {
-        $u = $this->u;
+        $u     = $this->u;
         $slevy = [];
         $texty = $this->getTextySlev();
 
@@ -220,6 +220,14 @@ class Cenik
             return (float)$r[NakupySql::CENA_NAKUPNI];
         }
         if (isset($r[PredmetySql::CENA_AKTUALNI])) {
+            trigger_error(
+                sprintf(
+                    "Chybí nákupní cena v záznamu nákupu předmětu s ID '%s'",
+                    $r[PredmetySql::ID_PREDMETU] ?? 'neznámé',
+                ),
+                E_USER_WARNING,
+            );
+
             return (float)$r[PredmetySql::CENA_AKTUALNI];
         }
         throw new \RuntimeException('Nelze načíst cenu předmětu s ID ' . ($r[PredmetySql::ID_PREDMETU] ?? 'neznámé'));
