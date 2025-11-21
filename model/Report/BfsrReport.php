@@ -91,10 +91,14 @@ SQL,
         $jidlaSnidaneZdarma          = 0;
         $jidlaSnidaneSeSlevou        = 0;
         $jidlaSnidanePlnePlacene     = 0;
+        $jidlaSnidaneVynosyCelkem    = 0.0;
+        $jidlaSnidaneSlevyCelkem     = 0.0;
         $jidlaHlavniCelkem           = [];
         $jidlaHlavniZdarma           = 0;
         $jidlaHlavniSeSlevou         = 0;
         $jidlaHlavniPlnePlacena      = 0;
+        $jidlaHlavniVynosyCelkem     = 0.0;
+        $jidlaHlavniSlevyCelkem      = 0.0;
         $costOfFreeActivities        = [];
         $missedActivityFees          = [];
         $tooLateCanceledActivityFees = [];
@@ -294,6 +298,11 @@ SQL,
                     $jidlaSnidaneCelkem[$jidlaSnidaneCelkemKod] ??= 0;
                     $jidlaSnidaneCelkem[$jidlaSnidaneCelkemKod]++;
 
+                    // Započítání výnosů z jídla (finální zaplacená částka)
+                    $jidlaSnidaneVynosyCelkem += $polozka->castka;
+                    // Započítání slev poskytnutých organizací (náklad pro GameCon)
+                    $jidlaSnidaneSlevyCelkem += $polozka->sleva;
+
                     if ($polozka->castka === 0.0) {
                         $jidlaSnidaneZdarma++;
                     } elseif ($polozka->sleva > 0.0) {
@@ -303,11 +312,16 @@ SQL,
                     }
                     continue;
                 }
-                // Jídla - snídaně
+                // Jídla - hlavní (oběd + večeře)
                 if (Predmet::jeToObed($polozka->kodPredmetu) || Predmet::jeToVecere($polozka->kodPredmetu)) {
                     $jidlaHlavniCelkemKod                     = 'Xr-Jidla-Hlavni';
                     $jidlaHlavniCelkem[$jidlaHlavniCelkemKod] ??= 0;
                     $jidlaHlavniCelkem[$jidlaHlavniCelkemKod]++;
+
+                    // Započítání výnosů z jídla (finální zaplacená částka)
+                    $jidlaHlavniVynosyCelkem += $polozka->castka;
+                    // Započítání slev poskytnutých organizací (náklad pro GameCon)
+                    $jidlaHlavniSlevyCelkem += $polozka->sleva;
 
                     if ($polozka->castka === 0.0) {
                         $jidlaHlavniZdarma++;
@@ -502,6 +516,14 @@ SQL,
 
         $data[] = ['Nr-JidlaSleva-Snidane', 'snídaně se slevou - kusy', $jidlaSnidaneSeSlevou];
         $data[] = ['Nr-JidlaSleva-Hlavni', 'hlavní jídla se slevou - kusy', $jidlaHlavniSeSlevou];
+
+        $data[] = ['Vr-Vynosy-Snidane', 'Výnosy ze snídaní (sum CZK)', $jidlaSnidaneVynosyCelkem];
+        $data[] = ['Vr-Vynosy-Hlavni', 'Výnosy z hlavních jídel (sum CZK)', $jidlaHlavniVynosyCelkem];
+        $data[] = ['Vr-Vynosy-Jidla-Celkem', 'Celkové výnosy z jídel (sum CZK)', $jidlaSnidaneVynosyCelkem + $jidlaHlavniVynosyCelkem];
+
+        $data[] = ['Nr-Slevy-Snidane', 'Slevy na snídaně - náklad pro GameCon (sum CZK)', $jidlaSnidaneSlevyCelkem];
+        $data[] = ['Nr-Slevy-Hlavni', 'Slevy na hlavní jídla - náklad pro GameCon (sum CZK)', $jidlaHlavniSlevyCelkem];
+        $data[] = ['Nr-Slevy-Jidla-Celkem', 'Celkové slevy na jídla - náklad pro GameCon (sum CZK)', $jidlaSnidaneSlevyCelkem + $jidlaHlavniSlevyCelkem];
 
         Report::zPoli(['kod', 'popis', 'data'], $data)->tFormat($format);
     }
