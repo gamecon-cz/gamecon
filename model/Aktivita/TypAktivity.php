@@ -57,6 +57,9 @@ class TypAktivity extends \DbObject
         return in_array((int)$idTypuAktivity, self::interniTypy());
     }
 
+    /**
+     * @return array<int>
+     */
     public static function interniTypy(): array
     {
         return [self::TECHNICKA, self::BRIGADNICKA];

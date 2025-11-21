@@ -607,6 +607,10 @@ SQL,
         $missedPriceCoefficient = $this->getMissedPriceCoefficient();
         $missedActivityFees = [];
         foreach ($navstevnik->aktivityNaKtereNedorazil($rocnik) as $activity) {
+            // Interní aktivity (technické, brigádnické) nemají storno poplatek
+            if (in_array($activity->typId(), TypAktivity::interniTypy(), true)) {
+                continue;
+            }
             $missedActivityFees[] = [
                 'code'  => 'Vr-Storna-100-' . $this->getActivityGroupCode($activity),
                 'value' => ($activity->bezSlevy()
@@ -632,6 +636,10 @@ SQL,
         $tooLateCanceledPriceCoefficient = $this->getTooLateCanceledPriceCoefficient();
         $tooLateCanceledActivityFees = [];
         foreach ($navstevnik->aktivityKterePozdeZrusil($rocnik) as $aktivita) {
+            // Interní aktivity (technické, brigádnické) nemají storno poplatek
+            if (in_array($aktivita->typId(), TypAktivity::interniTypy(), true)) {
+                continue;
+            }
             $tooLateCanceledActivityFees[] = [
                 'code'  => 'Vr-Storna-50-' . $this->getActivityGroupCode($aktivita),
                 'value' => ($aktivita->bezSlevy()
