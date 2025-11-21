@@ -9,13 +9,12 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Pravo;
-use Gamecon\Role\Role;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
-use Gamecon\Uzivatel\Finance;
 use Report;
+use Gamecon\Role\Role;
 use Uzivatel;
 use Webmozart\Assert\Assert;
 
@@ -67,18 +66,12 @@ SQL,
         $trickaZdarma                = 0;
         $trickaSeSlevou              = 0;
         $trickaPlacena               = 0;
-        $trickaVynosyCelkem          = 0.0;
-        $trickaSlevyCelkem           = 0.0;
         $tilkaZdarma                 = 0;
         $tilkaSeSlevou               = 0;
         $tilkaPlacena                = 0;
-        $tilkaVynosyCelkem           = 0.0;
-        $tilkaSlevyCelkem            = 0.0;
         $plackyCelkem                = [];
-        $plackyLetosniZdarma         = 0;
-        $plackyLetosniPlacene        = 0;
-        $plackyStareZdarma           = 0;
-        $plackyStarePlacene          = 0;
+        $plackyZdarma                = 0;
+        $plackyPlacene               = 0;
         $kostkyCelkem                = [];
         $kostkyZdarma                = 0;
         $kostkyPlacene               = 0;
@@ -98,27 +91,14 @@ SQL,
         $jidlaSnidaneZdarma          = 0;
         $jidlaSnidaneSeSlevou        = 0;
         $jidlaSnidanePlnePlacene     = 0;
-        $jidlaSnidaneVynosyPlnaCena  = 0.0;
-        $jidlaSnidaneVynosySeSlevou  = 0.0;
-        $jidlaSnidaneVynosyZdarma    = 0.0;
+        $jidlaSnidaneVynosyCelkem    = 0.0;
         $jidlaSnidaneSlevyCelkem     = 0.0;
-        $jidlaObedyCelkem            = [];
-        $jidlaObedyZdarma            = 0;
-        $jidlaObedySeSlevou          = 0;
-        $jidlaObedyPlnePlacene       = 0;
-        $jidlaObedyVynosyPlnaCena    = 0.0;
-        $jidlaObedyVynosySeSlevou    = 0.0;
-        $jidlaObedyVynosyZdarma      = 0.0;
-        $jidlaObedySlevyCelkem       = 0.0;
-        $jidlaVecereCelkem           = [];
-        $jidlaVecereZdarma           = 0;
-        $jidlaVecereSeSlevou         = 0;
-        $jidlaVecerePlnePlacene      = 0;
-        $jidlaVecereVynosyPlnaCena   = 0.0;
-        $jidlaVecereVynosySeSlevou   = 0.0;
-        $jidlaVecereVynosyZdarma     = 0.0;
-        $jidlaVecereSlevyCelkem      = 0.0;
-        $manualniSlevyCelkem         = 0.0;
+        $jidlaHlavniCelkem           = [];
+        $jidlaHlavniZdarma           = 0;
+        $jidlaHlavniSeSlevou         = 0;
+        $jidlaHlavniPlnePlacena      = 0;
+        $jidlaHlavniVynosyCelkem     = 0.0;
+        $jidlaHlavniSlevyCelkem      = 0.0;
         $costOfFreeActivities        = [];
         $missedActivityFees          = [];
         $tooLateCanceledActivityFees = [];
@@ -159,9 +139,6 @@ SQL,
                 $tooLateCanceledActivityFees[$code] ??= 0.0;
                 $tooLateCanceledActivityFees[$code] += $value;
             }
-
-            // Manuální slevy ("Připsat slevu" v adminu)
-            $manualniSlevyCelkem += $navstevnik->finance()->slevaObecna();
 
             // Použijeme Finance business logiku pro přesné výpočty
             $polozky = $navstevnik->finance()->dejPolozkyProBfgr();
@@ -209,10 +186,6 @@ SQL,
 
                 // Tričko logika (včetně správného zpracování "Tričko/tílko")
                 if (Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)) {
-                    // Započítání výnosů a slev z triček
-                    $trickaVynosyCelkem += $polozka->castka;
-                    $trickaSlevyCelkem  += $polozka->sleva;
-
                     if ($jeZdarma($polozka->castka, $polozka->sleva)) {
                         $trickaZdarma++;
                     } elseif ($jeSeSlevou($polozka->castka, $polozka->sleva)) {
@@ -223,12 +196,8 @@ SQL,
                     continue;
                 }
 
-                // Tílko logika (ale ne generic "Tričko/tílko" - to počítáme jako tříčko)
+                // Tílko logika (ale ne generic "Tričko/tílko" - to počítáme jako tričko)
                 if (Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ) && !Predmet::jeToTricko($polozka->nazev, $polozka->typ)) {
-                    // Započítání výnosů a slev z tílek
-                    $tilkaVynosyCelkem += $polozka->castka;
-                    $tilkaSlevyCelkem  += $polozka->sleva;
-
                     if ($jeZdarma($polozka->castka, $polozka->sleva)) {
                         $tilkaZdarma++;
                     } elseif ($jeSeSlevou($polozka->castka, $polozka->sleva)) {
@@ -245,20 +214,10 @@ SQL,
                     $plackyCelkem[$plackyCelkemKod] ??= 0;
                     $plackyCelkem[$plackyCelkemKod]++;
 
-                    $isOldBadge = $polozka->modelRok !== null && $polozka->modelRok < $rocnik;
-
                     if ($polozka->castka === 0.0) {
-                        if ($isOldBadge) {
-                            $plackyStareZdarma++;
-                        } else {
-                            $plackyLetosniZdarma++;
-                        }
+                        $plackyZdarma++;
                     } else {
-                        if ($isOldBadge) {
-                            $plackyStarePlacene++;
-                        } else {
-                            $plackyLetosniPlacene++;
-                        }
+                        $plackyPlacene++;
                     }
                     continue;
                 }
@@ -339,60 +298,37 @@ SQL,
                     $jidlaSnidaneCelkem[$jidlaSnidaneCelkemKod] ??= 0;
                     $jidlaSnidaneCelkem[$jidlaSnidaneCelkemKod]++;
 
+                    // Započítání výnosů z jídla (finální zaplacená částka)
+                    $jidlaSnidaneVynosyCelkem += $polozka->castka;
                     // Započítání slev poskytnutých organizací (náklad pro GameCon)
                     $jidlaSnidaneSlevyCelkem += $polozka->sleva;
 
                     if ($polozka->castka === 0.0) {
                         $jidlaSnidaneZdarma++;
-                        $jidlaSnidaneVynosyZdarma += $polozka->castka;
                     } elseif ($polozka->sleva > 0.0) {
                         $jidlaSnidaneSeSlevou++;
-                        $jidlaSnidaneVynosySeSlevou += $polozka->castka;
                     } else {
                         $jidlaSnidanePlnePlacene++;
-                        $jidlaSnidaneVynosyPlnaCena += $polozka->castka;
                     }
                     continue;
                 }
-                // Jídla - obědy
-                if (Predmet::jeToObed($polozka->kodPredmetu)) {
-                    $jidlaObedyCelkemKod                    = 'Xr-Jidla-Obedy';
-                    $jidlaObedyCelkem[$jidlaObedyCelkemKod] ??= 0;
-                    $jidlaObedyCelkem[$jidlaObedyCelkemKod]++;
+                // Jídla - hlavní (oběd + večeře)
+                if (Predmet::jeToObed($polozka->kodPredmetu) || Predmet::jeToVecere($polozka->kodPredmetu)) {
+                    $jidlaHlavniCelkemKod                     = 'Xr-Jidla-Hlavni';
+                    $jidlaHlavniCelkem[$jidlaHlavniCelkemKod] ??= 0;
+                    $jidlaHlavniCelkem[$jidlaHlavniCelkemKod]++;
 
+                    // Započítání výnosů z jídla (finální zaplacená částka)
+                    $jidlaHlavniVynosyCelkem += $polozka->castka;
                     // Započítání slev poskytnutých organizací (náklad pro GameCon)
-                    $jidlaObedySlevyCelkem += $polozka->sleva;
+                    $jidlaHlavniSlevyCelkem += $polozka->sleva;
 
                     if ($polozka->castka === 0.0) {
-                        $jidlaObedyZdarma++;
-                        $jidlaObedyVynosyZdarma += $polozka->castka;
+                        $jidlaHlavniZdarma++;
                     } elseif ($polozka->sleva > 0.0) {
-                        $jidlaObedySeSlevou++;
-                        $jidlaObedyVynosySeSlevou += $polozka->castka;
+                        $jidlaHlavniSeSlevou++;
                     } else {
-                        $jidlaObedyPlnePlacene++;
-                        $jidlaObedyVynosyPlnaCena += $polozka->castka;
-                    }
-                    continue;
-                }
-                // Jídla - večeře
-                if (Predmet::jeToVecere($polozka->kodPredmetu)) {
-                    $jidlaVecereCelkemKod                     = 'Xr-Jidla-Vecere';
-                    $jidlaVecereCelkem[$jidlaVecereCelkemKod] ??= 0;
-                    $jidlaVecereCelkem[$jidlaVecereCelkemKod]++;
-
-                    // Započítání slev poskytnutých organizací (náklad pro GameCon)
-                    $jidlaVecereSlevyCelkem += $polozka->sleva;
-
-                    if ($polozka->castka === 0.0) {
-                        $jidlaVecereZdarma++;
-                        $jidlaVecereVynosyZdarma += $polozka->castka;
-                    } elseif ($polozka->sleva > 0.0) {
-                        $jidlaVecereSeSlevou++;
-                        $jidlaVecereVynosySeSlevou += $polozka->castka;
-                    } else {
-                        $jidlaVecerePlnePlacene++;
-                        $jidlaVecereVynosyPlnaCena += $polozka->castka;
+                        $jidlaHlavniPlnePlacena++;
                     }
                     continue;
                 }
@@ -410,16 +346,13 @@ SQL,
                         var_export($polozka->kodPredmetu, true),
                         var_export($polozka->typ, true),
                         $polozka->nazev,
-                    ),
+                    )
                 );
             }
         }
 
         // Získáme statistiky účastníka
         $participantStats = $this->getParticipantStats($userId);
-
-        $plackyZdarma  = $plackyLetosniZdarma + $plackyStareZdarma;
-        $plackyPlacene = $plackyLetosniPlacene + $plackyStarePlacene;
 
         $data = [
             ['Ir-Timestamp', 'Timestamp reportu', $this->systemoveNastaveni->ted()->format('Y-m-d H:i:s')],
@@ -450,19 +383,8 @@ SQL,
             ['Vr-Svrsky-Celkem', 'Celkem svršků (trička + tílka) - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena + $tilkaZdarma + $tilkaSeSlevou + $tilkaPlacena],
             ['Vr-Tricka-Celkem', 'Celkem triček - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena],
             ['Vr-Tilka-Celkem', 'Celkem tílek - kusy', $tilkaZdarma + $tilkaSeSlevou + $tilkaPlacena],
-            ['Vr-Vynosy-Tricka', 'Výnosy z triček (sum CZK)', $trickaVynosyCelkem],
-            ['Vr-Vynosy-Tilka', 'Výnosy z tílek (sum CZK)', $tilkaVynosyCelkem],
-            ['Vr-Vynosy-Svrsky-Celkem', 'Celkové výnosy ze svršků - trička + tílka (sum CZK)', $trickaVynosyCelkem + $tilkaVynosyCelkem],
-            ['Nr-Slevy-Tricka', 'Slevy na trička (sum CZK)', $trickaSlevyCelkem],
-            ['Nr-Slevy-Tilka', 'Slevy na tílka (sum CZK)', $tilkaSlevyCelkem],
-            ['Nr-Slevy-Svrsky-Celkem', 'Celkové slevy na svršky - trička + tílka (sum CZK)', $trickaSlevyCelkem + $tilkaSlevyCelkem],
-            ['Ir-Placky-Letosni-Zdarma', 'Placky letošní zdarma - kusy', $plackyLetosniZdarma],
-            ['Ir-Placky-Stare-Zdarma', 'Placky staré zdarma - kusy', $plackyStareZdarma],
-            ['Ir-Placky-Zdarma', 'Placky zdarma - kusy', $plackyZdarma],
-            ['Ir-Placky-Letosni-Placene', 'Placky letošní placené - kusy', $plackyLetosniPlacene],
-            ['Ir-Placky-Stare-Placene', 'Placky staré placené - kusy', $plackyStarePlacene],
-            ['Ir-Placky-Placene', 'Placky placené - kusy', $plackyPlacene],
             ['Vr-Placky', 'Placky celkem - kusy', $plackyZdarma + $plackyPlacene],
+            ['Ir-Placky-Zdarma', 'Placky zdarma - kusy', $plackyZdarma],
             ['Ir-Kostky-CelkemZdarma', 'Kolik z prodaných kostek (všech typů) je zdarma - kusy', $kostkyZdarma],
         ];
 
@@ -484,8 +406,6 @@ SQL,
             prednacitat: true,
         );
 
-        $bonusForStandardActivity = (int)$this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
-
         foreach ($this->getCountOfActivitiesAsStandardActivity($activities) as $code => $value) {
             $data[] = [$code, 'Počet aktivit přepočtený na standardní aktivitu (kromě dalších kol LKD a mDrD)', $value];
         }
@@ -506,18 +426,15 @@ SQL,
             $data[] = [$code, 'Vypravěčobloky (přepočtené standardní aktivity * počet lidí) vedené Orgy (kromě dalších kol LKD a mDrD)', $value];
         }
 
-        $sumOfOrgBonuses = $this->getSumOfOrgBonusesAsStandardActivity($activities, $bonusForStandardActivity);
+        $sumOfOrgBonuses = $this->getSumOfOrgBonusesAsStandardActivity($activities);
         foreach ($sumOfOrgBonuses as $code => $value) {
             $data[] = [$code, 'Suma bonusů za vedení aktivit u lidí bez práva "Bez bonusu za vedení aktivit"', $value];
         }
 
-        $data[] = ['Nr-BonusyCelkem', 'Suma všech bonusů za vedení aktivit bez technických aktivit', array_sum($sumOfOrgBonuses)];
+        $data[] = ['Nr-BonusyCelkem', 'Suma všech bonusů za vedení aktivit', array_sum($sumOfOrgBonuses)];
 
-        $data[] = ['Nr-BonusyVedeniTech', 'Suma všech bonusů za vedení technických aktivit', $this->getSumOfTechnicalActivityLeadershipBonuses($activities, $bonusForStandardActivity)];
-        $data[] = ['Nr-BonusyUcastTech', 'Suma všech bonusů za účast na technické aktivitě', $this->getSumOfTechnicalActivityParticipationBonuses($activities)];
-
-        $brigadnickaActivityPayments = $this->getSumOfBrigadnickaActivityPayments($activities);
-        $data[]                      = ['Nr-OdmenyBrigadnicke', 'Suma všech odměn za účast na brigádnické aktivitě', $brigadnickaActivityPayments];
+        $technicalActivityBonuses = $this->getSumOfTechnicalActivityBonuses($activities);
+        $data[]                   = ['Nr-BonusyTech', 'Suma všech bonusů za účast na technické aktivitě', $technicalActivityBonuses];
 
         foreach ($this->getSumOfSavedBonusesAsStandardActivity($activities) as $code => $value) {
             $data[] = [$code, 'Ušetřené bonusy sekce (full-org vedoucí aktivit bez nároku na bonus)', $value];
@@ -589,45 +506,24 @@ SQL,
         $data[] = ['Xr-Jidla-Snidane', 'snídaně placené - kusy', $jidlaSnidanePlnePlacene];
 
         Assert::same(
-            array_sum($jidlaObedyCelkem), $jidlaObedyZdarma + $jidlaObedySeSlevou + $jidlaObedyPlnePlacene,
-            'Součet obědů zdarma, se slevou a placených musí odpovídat celkovému počtu obědů',
+            array_sum($jidlaHlavniCelkem), $jidlaHlavniZdarma + $jidlaHlavniSeSlevou + $jidlaHlavniPlnePlacena,
+            'Součet hlavních jídel zdarma, se slevou a placených musí odpovídat celkovému počtu hlavních jídel',
         );
-        $data[] = ['Xr-Jidla-Obedy', 'obědy placené - kusy', $jidlaObedyPlnePlacene];
-
-        Assert::same(
-            array_sum($jidlaVecereCelkem), $jidlaVecereZdarma + $jidlaVecereSeSlevou + $jidlaVecerePlnePlacene,
-            'Součet večeří zdarma, se slevou a placených musí odpovídat celkovému počtu večeří',
-        );
-        $data[] = ['Xr-Jidla-Vecere', 'večeře placené - kusy', $jidlaVecerePlnePlacene];
+        $data[] = ['Xr-Jidla-Hlavni', 'hlavní jídla placená - kusy', $jidlaHlavniPlnePlacena];
 
         $data[] = ['Nr-JidlaZdarma-Snidane', 'snídaně zdarma - kusy', $jidlaSnidaneZdarma];
-        $data[] = ['Nr-JidlaZdarma-Obedy', 'obědy zdarma - kusy', $jidlaObedyZdarma];
-        $data[] = ['Nr-JidlaZdarma-Vecere', 'večeře zdarma - kusy', $jidlaVecereZdarma];
+        $data[] = ['Nr-JidlaZdarma-Hlavni', 'hlavní jídla zdarma - kusy', $jidlaHlavniZdarma];
 
         $data[] = ['Nr-JidlaSleva-Snidane', 'snídaně se slevou - kusy', $jidlaSnidaneSeSlevou];
-        $data[] = ['Nr-JidlaSleva-Obedy', 'obědy se slevou - kusy', $jidlaObedySeSlevou];
-        $data[] = ['Nr-JidlaSleva-Vecere', 'večeře se slevou - kusy', $jidlaVecereSeSlevou];
+        $data[] = ['Nr-JidlaSleva-Hlavni', 'hlavní jídla se slevou - kusy', $jidlaHlavniSeSlevou];
 
-        $data[] = ['Vr-Vynosy-Snidane-PlnaCena', 'Výnosy ze snídaní za plnou cenu (sum CZK)', $jidlaSnidaneVynosyPlnaCena];
-        $data[] = ['Vr-Vynosy-Snidane-SeSlevou', 'Výnosy ze snídaní se slevou (sum CZK)', $jidlaSnidaneVynosySeSlevou];
-        $data[] = ['Vr-Vynosy-Snidane-Zdarma', 'Výnosy ze snídaní zdarma (sum CZK)', $jidlaSnidaneVynosyZdarma];
-        $data[] = ['Vr-Vynosy-Snidane', 'Výnosy ze snídaní celkem (sum CZK)', $jidlaSnidaneVynosyPlnaCena + $jidlaSnidaneVynosySeSlevou + $jidlaSnidaneVynosyZdarma];
-        $data[] = ['Vr-Vynosy-Obedy-PlnaCena', 'Výnosy z obědů za plnou cenu (sum CZK)', $jidlaObedyVynosyPlnaCena];
-        $data[] = ['Vr-Vynosy-Obedy-SeSlevou', 'Výnosy z obědů se slevou (sum CZK)', $jidlaObedyVynosySeSlevou];
-        $data[] = ['Vr-Vynosy-Obedy-Zdarma', 'Výnosy z obědů zdarma (sum CZK)', $jidlaObedyVynosyZdarma];
-        $data[] = ['Vr-Vynosy-Obedy', 'Výnosy z obědů celkem (sum CZK)', $jidlaObedyVynosyPlnaCena + $jidlaObedyVynosySeSlevou + $jidlaObedyVynosyZdarma];
-        $data[] = ['Vr-Vynosy-Vecere-PlnaCena', 'Výnosy z večeří za plnou cenu (sum CZK)', $jidlaVecereVynosyPlnaCena];
-        $data[] = ['Vr-Vynosy-Vecere-SeSlevou', 'Výnosy z večeří se slevou (sum CZK)', $jidlaVecereVynosySeSlevou];
-        $data[] = ['Vr-Vynosy-Vecere-Zdarma', 'Výnosy z večeří zdarma (sum CZK)', $jidlaVecereVynosyZdarma];
-        $data[] = ['Vr-Vynosy-Vecere', 'Výnosy z večeří celkem (sum CZK)', $jidlaVecereVynosyPlnaCena + $jidlaVecereVynosySeSlevou + $jidlaVecereVynosyZdarma];
-        $data[] = ['Vr-Vynosy-Jidla-Celkem', 'Celkové výnosy z jídel (sum CZK)', $jidlaSnidaneVynosyPlnaCena + $jidlaSnidaneVynosySeSlevou + $jidlaSnidaneVynosyZdarma + $jidlaObedyVynosyPlnaCena + $jidlaObedyVynosySeSlevou + $jidlaObedyVynosyZdarma + $jidlaVecereVynosyPlnaCena + $jidlaVecereVynosySeSlevou + $jidlaVecereVynosyZdarma];
+        $data[] = ['Vr-Vynosy-Snidane', 'Výnosy ze snídaní (sum CZK)', $jidlaSnidaneVynosyCelkem];
+        $data[] = ['Vr-Vynosy-Hlavni', 'Výnosy z hlavních jídel (sum CZK)', $jidlaHlavniVynosyCelkem];
+        $data[] = ['Vr-Vynosy-Jidla-Celkem', 'Celkové výnosy z jídel (sum CZK)', $jidlaSnidaneVynosyCelkem + $jidlaHlavniVynosyCelkem];
 
-        $data[] = ['Nr-Slevy-Snidane', 'Slevy na snídaně (sum CZK)', $jidlaSnidaneSlevyCelkem];
-        $data[] = ['Nr-Slevy-Obedy', 'Slevy na obědy (sum CZK)', $jidlaObedySlevyCelkem];
-        $data[] = ['Nr-Slevy-Vecere', 'Slevy na večeře (sum CZK)', $jidlaVecereSlevyCelkem];
-        $data[] = ['Nr-Slevy-Jidla-Celkem', 'Celkové slevy na jídla (sum CZK)', $jidlaSnidaneSlevyCelkem + $jidlaObedySlevyCelkem + $jidlaVecereSlevyCelkem];
-
-        $data[] = ['Nr-Slevy-Manualni', 'Manuální slevy (Připsaná sleva přes admin) (sum CZK)', $manualniSlevyCelkem];
+        $data[] = ['Nr-Slevy-Snidane', 'Slevy na snídaně - náklad pro GameCon (sum CZK)', $jidlaSnidaneSlevyCelkem];
+        $data[] = ['Nr-Slevy-Hlavni', 'Slevy na hlavní jídla - náklad pro GameCon (sum CZK)', $jidlaHlavniSlevyCelkem];
+        $data[] = ['Nr-Slevy-Jidla-Celkem', 'Celkové slevy na jídla - náklad pro GameCon (sum CZK)', $jidlaSnidaneSlevyCelkem + $jidlaHlavniSlevyCelkem];
 
         Report::zPoli(['kod', 'popis', 'data'], $data)->tFormat($format);
     }
@@ -940,22 +836,19 @@ SQL,
      * @param array<int, Aktivita> $activities
      * @return array{code: string, value: float}
      */
-    private function getSumOfOrgBonusesAsStandardActivity(
-        array $activities,
-        int   $bonusForStandardActivity,
-    ): array {
+    private function getSumOfOrgBonusesAsStandardActivity(array $activities): array
+    {
+        $bonusForStandardActivity                  = (int)$this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
         $countOfOrgsOfActivitiesAsStandardActivity = [];
         foreach ($activities as $activity) {
-            // Leading of internal activities (technical, part-time) are calculated separately
-            if (TypAktivity::jeInterniDleId($activity->typId())) {
-                continue;
-            }
-            $countOfOrgsWithBonus      = self::getCountOfOrganizersWithBonus($activity);
-            $standardLengthCoefficient = $this->getActivityStandardLengthCoefficient($activity->delka());
-            $code                      = 'Nr-Bonusy-' . $this->getActivityGroupCode($activity);
+            $countOfOrgsWithBonus = count(array_filter($activity->organizatori(), fn(
+                Uzivatel $u,
+            ) => !$u->nemaPravoNaBonusZaVedeniAktivit()));
+            $standardLength       = $this->getActivityStandardLengthCoefficient($activity->delka());
+            $code                 = 'Nr-Bonusy-' . $this->getActivityGroupCode($activity);
 
             $countOfOrgsOfActivitiesAsStandardActivity[$code] ??= 0;
-            $countOfOrgsOfActivitiesAsStandardActivity[$code] += $countOfOrgsWithBonus * $standardLengthCoefficient * $bonusForStandardActivity;
+            $countOfOrgsOfActivitiesAsStandardActivity[$code] += $countOfOrgsWithBonus * $standardLength * $bonusForStandardActivity;
         }
 
         return $countOfOrgsOfActivitiesAsStandardActivity;
@@ -972,7 +865,7 @@ SQL,
         foreach ($activities as $activity) {
             $countOfFullOrgs = count(array_filter($activity->organizatori(), fn(
                 Uzivatel $u,
-            ) => $u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()));
+            ) => $u->nemaPravoNaBonusZaVedeniAktivit()));
             $standardLength  = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code            = 'Nr-UsetreneBonusy-' . $this->getActivityGroupCode($activity);
 
@@ -984,79 +877,25 @@ SQL,
     }
 
     /**
-     * Bonusy za vedení technických aktivit (pro organizátory technických aktivit)
      * @param array<int, Aktivita> $activities
      * @return float
      */
-    private function getSumOfTechnicalActivityLeadershipBonuses(
-        array $activities,
-        int   $bonusForStandardActivity,
-    ): float {
-        $totalLeadershipBonuses = 0.0;
-        foreach ($activities as $activity) {
-            if ($activity->typId() !== TypAktivity::TECHNICKA) {
-                continue;
-            }
-            $countOfOrgsWithBonus      = self::getCountOfOrganizersWithBonus($activity);
-            $standardLengthCoefficient = $this->getActivityStandardLengthCoefficient($activity->delka());
-            $totalLeadershipBonuses    += $countOfOrgsWithBonus * $standardLengthCoefficient * $bonusForStandardActivity;
-        }
-
-        return $totalLeadershipBonuses;
-    }
-
-    private static function getCountOfOrganizersWithBonus(Aktivita $activity): int
+    private function getSumOfTechnicalActivityBonuses(array $activities): float
     {
-        return count(
-            array_filter($activity->organizatori(), fn(
-                Uzivatel $u,
-            ) => !$u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()),
-        );
-    }
-
-    /**
-     * Bonusy za účast na technických aktivitách (pro účastníky, kteří nejsou organizátory)
-     * @param array<int, Aktivita> $activities
-     * @return float
-     */
-    private function getSumOfTechnicalActivityParticipationBonuses(array $activities): float
-    {
-        $totalParticipationBonuses = 0.0;
+        $totalTechnicalBonuses = 0.0;
         foreach ($activities as $activity) {
             if ($activity->typId() !== TypAktivity::TECHNICKA) {
                 continue;
             }
             $activityPrice = $activity->cenaZaklad();
             foreach ($activity->prihlaseni() as $participant) {
-                if ($participant->maPravoNaBonusZaVedeniAktivitNeboUcastNaTechnicke()) {
-                    $totalParticipationBonuses += $activityPrice;
+                if ($participant->maPravoNaBonusZaVedeniAktivit()) {
+                    $totalTechnicalBonuses += $activityPrice;
                 }
             }
         }
 
-        return $totalParticipationBonuses;
-    }
-
-    /**
-     * @param array<int, Aktivita> $activities
-     * @return float
-     */
-    private function getSumOfBrigadnickaActivityPayments(array $activities): float
-    {
-        $totalBrigadnickaPayments = 0.0;
-        foreach ($activities as $activity) {
-            if ($activity->typId() !== TypAktivity::BRIGADNICKA) {
-                continue;
-            }
-            $activityPrice = $activity->cenaZaklad();
-            foreach ($activity->prihlaseni() as $participant) {
-                if ($participant->jeBrigadnik()) {
-                    $totalBrigadnickaPayments += $activityPrice;
-                }
-            }
-        }
-
-        return $totalBrigadnickaPayments;
+        return $totalTechnicalBonuses;
     }
 
     /**
