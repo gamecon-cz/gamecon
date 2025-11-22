@@ -74,8 +74,10 @@ SQL,
         $tilkaVynosyCelkem           = 0.0;
         $tilkaSlevyCelkem            = 0.0;
         $plackyCelkem                = [];
-        $plackyZdarma                = 0;
-        $plackyPlacene               = 0;
+        $plackyLetosniZdarma         = 0;
+        $plackyLetosniPlacene        = 0;
+        $plackyStareZdarma           = 0;
+        $plackyStarePlacene          = 0;
         $kostkyCelkem                = [];
         $kostkyZdarma                = 0;
         $kostkyPlacene               = 0;
@@ -242,10 +244,20 @@ SQL,
                     $plackyCelkem[$plackyCelkemKod] ??= 0;
                     $plackyCelkem[$plackyCelkemKod]++;
 
+                    $isOldBadge = $polozka->modelRok !== null && $polozka->modelRok < $rocnik;
+
                     if ($polozka->castka === 0.0) {
-                        $plackyZdarma++;
+                        if ($isOldBadge) {
+                            $plackyStareZdarma++;
+                        } else {
+                            $plackyLetosniZdarma++;
+                        }
                     } else {
-                        $plackyPlacene++;
+                        if ($isOldBadge) {
+                            $plackyStarePlacene++;
+                        } else {
+                            $plackyLetosniPlacene++;
+                        }
                     }
                     continue;
                 }
@@ -405,6 +417,9 @@ SQL,
         // Získáme statistiky účastníka
         $participantStats = $this->getParticipantStats($userId);
 
+        $plackyZdarma = $plackyLetosniZdarma + $plackyStareZdarma;
+        $plackyPlacene = $plackyLetosniPlacene + $plackyStarePlacene;
+
         $data = [
             ['Ir-Timestamp', 'Timestamp reportu', $this->systemoveNastaveni->ted()->format('Y-m-d H:i:s')],
             ['Vr-Vstupne', 'Dobrovolné vstupné (sum CZK)', $vstupneSum],
@@ -440,8 +455,13 @@ SQL,
             ['Nr-Slevy-Tricka', 'Slevy na trička (sum CZK)', $trickaSlevyCelkem],
             ['Nr-Slevy-Tilka', 'Slevy na tílka (sum CZK)', $tilkaSlevyCelkem],
             ['Nr-Slevy-Svrsky-Celkem', 'Celkové slevy na svršky - trička + tílka (sum CZK)', $trickaSlevyCelkem + $tilkaSlevyCelkem],
-            ['Vr-Placky', 'Placky celkem - kusy', $plackyZdarma + $plackyPlacene],
+            ['Ir-Placky-Letosni-Zdarma', 'Placky letošní zdarma - kusy', $plackyLetosniZdarma],
+            ['Ir-Placky-Stare-Zdarma', 'Placky staré zdarma - kusy', $plackyStareZdarma],
             ['Ir-Placky-Zdarma', 'Placky zdarma - kusy', $plackyZdarma],
+            ['Ir-Placky-Letosni-Placene', 'Placky letošní placené - kusy', $plackyLetosniPlacene],
+            ['Ir-Placky-Stare-Placene', 'Placky staré placené - kusy', $plackyStarePlacene],
+            ['Ir-Placky-Placene', 'Placky placené - kusy', $plackyPlacene],
+            ['Vr-Placky', 'Placky celkem - kusy', $plackyZdarma + $plackyPlacene],
             ['Ir-Kostky-CelkemZdarma', 'Kolik z prodaných kostek (všech typů) je zdarma - kusy', $kostkyZdarma],
         ];
 
