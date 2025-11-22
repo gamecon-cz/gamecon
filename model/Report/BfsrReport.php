@@ -531,8 +531,10 @@ SQL,
             $data[] = [$code, 'Příjmy z aktivit, bez storn a bez lidí co mají účast zdarma', $value];
         }
 
-        $lectureRevenue = $this->getLectureRevenue($activities);
-        $data[]         = ['Vr-Prednaska-Ucast', 'Přednášky - standardní účast (pouze na placených přednáškách) - CZK', $lectureRevenue];
+        $lectureRevenue           = $this->getLectureRevenue($activities);
+        $data[]                   = ['Vr-Prednaska-Vynosy', 'Výnosy z přednášek - CZK', $lectureRevenue];
+        $paidLectureParticipants  = $this->getPaidLectureParticipantCount($activities);
+        $data[]                   = ['Ir-Prednaska-Placena-Ucast', 'Počet účastníků na placených přednáškách - kusy', $paidLectureParticipants];
 
         Assert::same(
             array_sum($kostkyCelkem), $kostkyZdarma + $kostkyPlacene,
@@ -1150,6 +1152,29 @@ SQL,
         }
 
         return $totalRevenue;
+    }
+
+    /**
+     * Získá počet účastníků na placených přednáškách
+     *
+     * @param array<int, Aktivita> $activities
+     * @return int
+     */
+    private function getPaidLectureParticipantCount(array $activities): int
+    {
+        $totalCount = 0;
+        foreach ($activities as $activity) {
+            if ($activity->typId() !== TypAktivity::PREDNASKA) {
+                continue;
+            }
+            if ($activity->cenaZaklad() === 0.0) {
+                // pouze placené přednášky
+                continue;
+            }
+            $totalCount += count($activity->prihlaseni());
+        }
+
+        return $totalCount;
     }
 
     /**
