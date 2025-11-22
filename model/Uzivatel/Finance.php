@@ -123,7 +123,7 @@ class Finance
             \Uzivatel $organizator,
         ) {
             return $organizator->maPravoNaPoradaniAktivit()
-                   && $organizator->maPravoNaBonusZaVedeniAktivit();
+                   && $organizator->maPravoNaBonusZaVedeniAktivitNeboUcastNaTechnicke();
         });
     }
 
@@ -707,7 +707,7 @@ SQL;
         $a = $this->u->koncovkaDlePohlavi();
         foreach ($result as $r) {
             if ($r['typ'] == TypAktivity::TECHNICKA) {
-                if ($this->u->maPravoNaBonusZaVedeniAktivit()) {
+                if ($this->u->maPravoNaBonusZaVedeniAktivitNeboUcastNaTechnicke()) {
                     $this->bonusZaVedeniAktivit += (float)$r['cena'];
                 }
             } elseif ($r['typ'] == TypAktivity::BRIGADNICKA) {
@@ -959,7 +959,7 @@ SQL;
         if (!$this->u->maPravoNaPoradaniAktivit()) {
             return;
         }
-        if ($this->u->nemaPravoNaBonusZaVedeniAktivit()) {
+        if ($this->u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()) {
             return;
         }
         if (!$this->u->gcPrihlasen()) {
