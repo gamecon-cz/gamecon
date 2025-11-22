@@ -966,6 +966,10 @@ SQL;
             return; // pokud se například odhlásí těsně před GC
         }
         foreach (Aktivita::zOrganizatora($this->u, $this->systemoveNastaveni) as $a) {
+            // Internal activities (technical, brigadnicka) don't give leadership bonuses
+            // if (TypAktivity::jeInterniDleId($a->typId())) {
+            //     continue; // TODO needed ?
+            // }
             $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a, $this->systemoveNastaveni);
         }
         $this->zapocteno[__FUNCTION__] = true;
