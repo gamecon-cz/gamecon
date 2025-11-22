@@ -39,7 +39,7 @@ if (post('publikovat')) {
         systemoveNastaveni: $systemoveNastaveni,
     );
     if ($a) {
-        $a->publikuj();
+        Aktivita::publikuj($a);
     }
     back();
 }
@@ -50,7 +50,7 @@ if (post('pripravit')) {
         systemoveNastaveni: $systemoveNastaveni,
     );
     if ($a) {
-        $a->priprav();
+        Aktivita::priprav($a);
     }
     back();
 }
@@ -61,7 +61,7 @@ if (post('odpripravit')) {
         systemoveNastaveni: $systemoveNastaveni,
     );
     if ($a) {
-        $a->odpriprav();
+        Aktivita::odpriprav($a);
     }
     back();
 }
@@ -72,7 +72,7 @@ if (post('aktivovat')) {
         systemoveNastaveni: $systemoveNastaveni,
     );
     if ($a) {
-        $a->aktivuj();
+        Aktivita::aktivuj($a);
     }
     back();
 }
@@ -83,7 +83,7 @@ if (post('deaktivovat') && $u->maRoliSefProgramu()) {
         systemoveNastaveni: $systemoveNastaveni,
     );
     if ($a) {
-        $a->deaktivuj();
+        Aktivita::deaktivuj($a);
     }
     back();
 }
@@ -94,7 +94,7 @@ if (post('odpublikovat')) {
         systemoveNastaveni: $systemoveNastaveni,
     );
     if ($a) {
-        $a->odpublikuj();
+        Aktivita::odpublikuj($a);
     }
     back();
 }

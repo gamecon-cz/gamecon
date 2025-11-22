@@ -20,7 +20,6 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\Kanaly\GcMail;
-use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Finance;
@@ -218,37 +217,37 @@ SQL
     /**
      * Aktivuje (zpřístupní pro přihlašování) aktivitu
      */
-    public function aktivuj()
+    public static function aktivuj(Aktivita $a)
     {
-        if (!$this->zacatek()) {
+        if (!$a->zacatek()) {
             throw new \Chyba('Aktivita nemá nastavený čas');
         }
-        dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [StavAktivity::AKTIVOVANA, $this->id()]);
-        $this->refresh();
+        dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [StavAktivity::AKTIVOVANA, $a->id()]);
+        $a->refresh();
     }
 
     /**
      * POZOR: toto by se mělo dít jen výjimečně a měl by na to mít právo jen někdo.
      * Vrátí aktivovanou (přihlašovatelnou) aktivitu zpět na publikovanou (veřejnou, ale nepřihlašovatelnou)
      */
-    public function deaktivuj()
+    public static function deaktivuj(Aktivita $a)
     {
-        if ($this->stav()->jeAktivovana()) {
-            $this->priprav();
+        if ($a->stav()->jeAktivovana()) {
+            Aktivita::priprav($a);
         }
-        $this->refresh();
+        $a->refresh();
     }
 
     /**
      * POZOR: toto by se mělo dít jen výjimečně a měl by na to mít právo jen někdo.
      * Vrátí publikovanou (veřejnou, ale nepřihlašovatelnou) aktivitu zpět na novou (skrytou)
      */
-    public function odpublikuj()
+    public static function odpublikuj(Aktivita $a)
     {
-        if ($this->stav()->jePublikovana()) {
-            $this->zmenStav(StavAktivity::NOVA);
+        if ($a->stav()->jePublikovana()) {
+            $a->zmenStav(StavAktivity::NOVA);
         }
-        $this->refresh();
+        $a->refresh();
     }
 
     /**
@@ -1431,15 +1430,15 @@ SQL,
     }
 
     /** Vráti aktivitu ze stavu připravená do stavu publikovaná */
-    public function odpriprav()
+    public static function odpriprav(Aktivita $a)
     {
-        if ($this->idStavu() === StavAktivity::PUBLIKOVANA) {
+        if ($a->idStavu() === StavAktivity::PUBLIKOVANA) {
             return;
         }
-        if ($this->idStavu() !== StavAktivity::PRIPRAVENA) {
+        if ($a->idStavu() !== StavAktivity::PRIPRAVENA) {
             throw new \Chyba('Aktivita není v stavu "připravená"');
         }
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [StavAktivity::PUBLIKOVANA, $this->id()]);
+        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [StavAktivity::PUBLIKOVANA, $a->id()]);
     }
 
     /**
@@ -2569,9 +2568,9 @@ HTML
         }
     }
 
-    public function publikuj()
+    public static function publikuj(Aktivita $a)
     {
-        $this->zmenStav(StavAktivity::PUBLIKOVANA);
+        $a->zmenStav(StavAktivity::PUBLIKOVANA);
     }
 
     private function zmenStav(int $novyStav)
@@ -2583,9 +2582,9 @@ HTML
     }
 
     /** Nastaví aktivitu jako "připravena pro aktivaci" */
-    public function priprav()
+    public static function priprav(Aktivita $a)
     {
-        $this->zmenStav(StavAktivity::PRIPRAVENA);
+        $a->zmenStav(StavAktivity::PRIPRAVENA);
     }
 
     public function probehnuta(): bool
