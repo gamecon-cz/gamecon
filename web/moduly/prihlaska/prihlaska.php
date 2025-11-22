@@ -200,7 +200,7 @@ $t->assign('ka', $u->koncovkaDlePohlavi()
     : '');
 if ($u->maPravoNaUbytovaniZdarma()) {
     $t->parse('prihlaska.ubytovaniInfoOrg');
-} elseif ($u->maPravoNaPoradaniAktivit() && !$u->nemaPravoNaBonusZaVedeniAktivit()) {
+} elseif ($u->maPravoNaPoradaniAktivit() && !$u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()) {
     $t->parse('prihlaska.ubytovaniInfoVypravec');
 }
 

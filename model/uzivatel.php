@@ -982,14 +982,17 @@ SQL,
         return $this->maPravo(Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY);
     }
 
-    public function nemaPravoNaBonusZaVedeniAktivit(): bool
+    public function nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke(): bool
     {
         return $this->maPravo(Pravo::BEZ_BONUSU_ZA_VEDENI_AKTIVIT);
     }
 
-    public function maPravoNaBonusZaVedeniAktivit(): bool
+    /**
+     * Also counts for technical or part-time worker bonus for participation.
+     */
+    public function maPravoNaBonusZaVedeniAktivitNeboUcastNaTechnicke(): bool
     {
-        return !$this->nemaPravoNaBonusZaVedeniAktivit();
+        return !$this->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke();
     }
 
     public function maPravoNaPoradaniAktivit(): bool
