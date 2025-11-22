@@ -3,6 +3,7 @@
 use Gamecon\Vyjimkovac\Logovac;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Web\Urls;
+use Gamecon\Aktivita\AktivitaEditor;
 
 /**
  * Stránka pro tvorbu a editaci aktivit. Brand new.
@@ -52,7 +53,7 @@ $a = Aktivita::zId(
     systemoveNastaveni: $systemoveNastaveni,
 );  // načtení aktivity podle předaného ID
 
-$editorAktivity = Aktivita::editor($systemoveNastaveni, $a);         // načtení html editoru aktivity
+$editorAktivity = AktivitaEditor::editor($systemoveNastaveni, $a);         // načtení html editoru aktivity
 
 ?>
 
