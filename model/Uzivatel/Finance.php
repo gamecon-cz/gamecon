@@ -123,7 +123,7 @@ class Finance
             \Uzivatel $organizator,
         ) {
             return $organizator->maPravoNaPoradaniAktivit()
-                   && $organizator->maPravoNaBonusZaVedeniAktivitNeboUcastNaTechnicke();
+                   && $organizator->maPravoNaBonusZaVedeniAktivit();
         });
     }
 
@@ -707,7 +707,7 @@ SQL;
         $a = $this->u->koncovkaDlePohlavi();
         foreach ($result as $r) {
             if ($r['typ'] == TypAktivity::TECHNICKA) {
-                if ($this->u->maPravoNaBonusZaVedeniAktivitNeboUcastNaTechnicke()) {
+                if ($this->u->maPravoNaBonusZaVedeniAktivit()) {
                     $this->bonusZaVedeniAktivit += (float)$r['cena'];
                 }
             } elseif ($r['typ'] == TypAktivity::BRIGADNICKA) {
@@ -843,55 +843,55 @@ SQL;
                     poradiVPodkategorii: 0,
                     idPolozky: (int)$r[PredmetSql::ID_PREDMETU],
                 );
-            } elseif ($r[PredmetSql::TYP] == TypPredmetu::PROPLACENI_BONUSU) {
+            } elseif ($r[PredmetSql::KOD_PREDMETU] == TypPredmetu::PROPLACENI_BONUSU) {
                 $this->proplacenyBonusZaVedeniAktivit += $cena;
             } else {
-                if ($r[PredmetSql::TYP] == TypPredmetu::JIDLO) {
+                if ($r[PredmetSql::KOD_PREDMETU] == TypPredmetu::JIDLO) {
                     $this->cenaStravy += $cena;
-                } elseif (in_array($r[PredmetSql::TYP], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
+                } elseif (in_array($r[PredmetSql::KOD_PREDMETU], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
                     $this->cenaPredmetu += $cena;
-                } elseif ($r[PredmetSql::TYP] != TypPredmetu::PARCON) {
+                } elseif ($r[PredmetSql::KOD_PREDMETU] != TypPredmetu::PARCON) {
                     throw new NeznamyTypPredmetu(
-                        "Neznámý typ předmětu " . var_export($r[PredmetSql::TYP], true) . ': ' . var_export($r, true),
+                        "Neznámý typ předmětu " . var_export($r[PredmetSql::KOD_PREDMETU], true) . ': ' . var_export($r, true),
                     );
                 }
             }
             // přidání roku do názvu
-            if ($r[PredmetSql::MODEL_ROK] && $r[PredmetSql::MODEL_ROK] != $this->systemoveNastaveni->rocnik()) {
-                $r['nazev'] = $r['nazev'] . ' ' . $r[PredmetSql::MODEL_ROK];
+            if ($r[PredmetSql::MODEL_ROK] && $r[PredmetSql::MODEL_ROK] != ROCNIK) {
+                $r[PredmetSql::NAZEV] = $r[PredmetSql::NAZEV] . ' ' . $r[PredmetSql::MODEL_ROK];
             }
 
-            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $priceAfterDiscountDto, (int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU]);
+            $this->logPolozkaProBfgr((string)$r[PredmetSql::NAZEV], 1, $priceAfterDiscountDto, (int)$r[PredmetSql::KOD_PREDMETU], $r[PredmetSql::KOD_PREDMETU], $r[PredmetSql::MODEL_ROK] ? (int)$r[PredmetSql::MODEL_ROK] : null);
 
             // logování do výpisu
-            if (in_array($r[PredmetSql::TYP], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
-                $soucty[$r[PredmetSql::ID_PREDMETU]]['nazev'] = $r['nazev'];
-                $soucty[$r[PredmetSql::ID_PREDMETU]]['typ']   = $r[PredmetSql::TYP];
+            if (in_array($r[PredmetSql::KOD_PREDMETU], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
+                $soucty[$r[PredmetSql::ID_PREDMETU]]['nazev'] = $r[PredmetSql::NAZEV];
+                $soucty[$r[PredmetSql::ID_PREDMETU]]['typ']   = $r[PredmetSql::KOD_PREDMETU];
                 $soucty[$r[PredmetSql::ID_PREDMETU]]['pocet'] = ($soucty[$r[PredmetSql::ID_PREDMETU]]['pocet'] ?? 0) + 1;
                 $soucty[$r[PredmetSql::ID_PREDMETU]]['suma']  = ($soucty[$r[PredmetSql::ID_PREDMETU]]['suma'] ?? 0) + $cena;
-            } elseif ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
-                $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::VSTUPNE);
-                $this->logb($r['nazev'], $cena, self::VSTUPNE);
-            } elseif ($r[PredmetSql::TYP] == TypPredmetu::UBYTOVANI) {
-                $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r[PredmetSql::TYP]);
+            } elseif ($r[PredmetSql::KOD_PREDMETU] == TypPredmetu::VSTUPNE) {
+                $this->logStrukturovane((string)$r[PredmetSql::NAZEV], 1, $cena, self::VSTUPNE);
+                $this->logb($r[PredmetSql::NAZEV], $cena, self::VSTUPNE);
+            } elseif ($r[PredmetSql::KOD_PREDMETU] == TypPredmetu::UBYTOVANI) {
+                $this->logStrukturovane((string)$r[PredmetSql::NAZEV], 1, $cena, $r[PredmetSql::KOD_PREDMETU]);
                 $this->log(
-                    nazev: $r['nazev'],
+                    nazev: $r[PredmetSql::NAZEV],
                     castka: $cena,
-                    kategorie: $r[PredmetSql::TYP] !== null
+                    kategorie: $r[PredmetSql::KOD_PREDMETU] !== null
                         ?
-                        (int)$r[PredmetSql::TYP]
+                        (int)$r[PredmetSql::KOD_PREDMETU]
                         : null,
                     idPolozky: $r[PredmetSql::ID_PREDMETU],
                     poradiVPodkategorii: $r[PredmetSql::UBYTOVANI_DEN],
                 );
-            } elseif ($r[PredmetSql::TYP] != TypPredmetu::PROPLACENI_BONUSU) {
-                $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r[PredmetSql::TYP]);
+            } elseif ($r[PredmetSql::KOD_PREDMETU] != TypPredmetu::PROPLACENI_BONUSU) {
+                $this->logStrukturovane((string)$r[PredmetSql::NAZEV], 1, $cena, $r[PredmetSql::KOD_PREDMETU]);
                 $this->log(
-                    nazev: $r['nazev'],
+                    nazev: $r[PredmetSql::NAZEV],
                     castka: $cena,
-                    kategorie: $r[PredmetSql::TYP] !== null
+                    kategorie: $r[PredmetSql::KOD_PREDMETU] !== null
                         ?
-                        (int)$r[PredmetSql::TYP]
+                        (int)$r[PredmetSql::KOD_PREDMETU]
                         : null,
                     idPolozky: $r[PredmetSql::ID_PREDMETU],
                 );
@@ -959,7 +959,7 @@ SQL;
         if (!$this->u->maPravoNaPoradaniAktivit()) {
             return;
         }
-        if ($this->u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()) {
+        if ($this->u->nemaPravoNaBonusZaVedeniAktivit()) {
             return;
         }
         if (!$this->u->gcPrihlasen()) {
@@ -1244,6 +1244,7 @@ SQL;
         PriceAfterDiscountDto $priceAfterDiscountDto,
         int                   $typ,
         ?string               $kodPredmetu = null,
+        ?int                  $modelRok = null,
     ): void {
         if (!$this->logovat) {
             return;
@@ -1256,6 +1257,7 @@ SQL;
             sleva: (float)$priceAfterDiscountDto->discount,
             typ: $typ,
             kodPredmetu: $kodPredmetu,
+            modelRok: $modelRok,
         );
     }
 
