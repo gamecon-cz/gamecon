@@ -516,8 +516,8 @@ SQL,
         $data[] = ['Nr-BonusyVedeniTech', 'Suma všech bonusů za vedení technických aktivit', $this->getSumOfTechnicalActivityLeadershipBonuses($activities, $bonusForStandardActivity)];
         $data[] = ['Nr-BonusyUcastTech', 'Suma všech bonusů za účast na technické aktivitě', $this->getSumOfTechnicalActivityParticipationBonuses($activities)];
 
-        $brigadnickaActivityPayments = $this->getSumOfBrigadnickaActivityPayments($activities);
-        $data[]                      = ['Nr-OdmenyBrigadnicke', 'Suma všech odměn za účast na brigádnické aktivitě', $brigadnickaActivityPayments];
+        $data[] = ['Nr-OdmenyVedeniBrigadnicke', 'Suma všech odměn za vedení brigádnických aktivit', $this->getSumOfBrigadnickaActivityLeadershipPayments($activities, $bonusForStandardActivity)];
+        $data[] = ['Nr-OdmenyUcastBrigadnicke', 'Suma všech odměn za účast na brigádnické aktivitě', $this->getSumOfBrigadnickaActivityParticipationPayments($activities)];
 
         foreach ($this->getSumOfSavedBonusesAsStandardActivity($activities) as $code => $value) {
             $data[] = [$code, 'Ušetřené bonusy sekce (full-org vedoucí aktivit bez nároku na bonus)', $value];
@@ -1038,12 +1038,35 @@ SQL,
     }
 
     /**
+     * Odměny za vedení brigádnických aktivit (pro organizátory brigádnických aktivit)
      * @param array<int, Aktivita> $activities
      * @return float
      */
-    private function getSumOfBrigadnickaActivityPayments(array $activities): float
+    private function getSumOfBrigadnickaActivityLeadershipPayments(
+        array $activities,
+        int   $bonusForStandardActivity,
+    ): float {
+        $totalLeadershipPayments = 0.0;
+        foreach ($activities as $activity) {
+            if ($activity->typId() !== TypAktivity::BRIGADNICKA) {
+                continue;
+            }
+            $countOfOrgsWithBonus      = self::getCountOfOrganizersWithBonus($activity);
+            $standardLengthCoefficient = $this->getActivityStandardLengthCoefficient($activity->delka());
+            $totalLeadershipPayments   += $countOfOrgsWithBonus * $standardLengthCoefficient * $bonusForStandardActivity;
+        }
+
+        return $totalLeadershipPayments;
+    }
+
+    /**
+     * Odměny za účast na brigádnických aktivitách (pro brigádníky)
+     * @param array<int, Aktivita> $activities
+     * @return float
+     */
+    private function getSumOfBrigadnickaActivityParticipationPayments(array $activities): float
     {
-        $totalBrigadnickaPayments = 0.0;
+        $totalParticipationPayments = 0.0;
         foreach ($activities as $activity) {
             if ($activity->typId() !== TypAktivity::BRIGADNICKA) {
                 continue;
@@ -1051,12 +1074,12 @@ SQL,
             $activityPrice = $activity->cenaZaklad();
             foreach ($activity->prihlaseni() as $participant) {
                 if ($participant->jeBrigadnik()) {
-                    $totalBrigadnickaPayments += $activityPrice;
+                    $totalParticipationPayments += $activityPrice;
                 }
             }
         }
 
-        return $totalBrigadnickaPayments;
+        return $totalParticipationPayments;
     }
 
     /**
