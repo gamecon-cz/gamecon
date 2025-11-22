@@ -828,7 +828,7 @@ SQL;
             if ($r[PredmetSql::TYP] == TypPredmetu::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
             } elseif ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
-                if (Predmet::jeToVstupnePozde((int)$r[PredmetSql::TYP], $r['kod_predmetu'])) {
+                if (Predmet::jeToVstupnePozde((int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU])) {
                     assert($this->cenaVstupnePozde === 0.0);
                     $this->cenaVstupnePozde = $cena;
                 } else {
