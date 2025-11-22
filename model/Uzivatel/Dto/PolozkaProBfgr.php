@@ -13,6 +13,7 @@ readonly class PolozkaProBfgr
         public float $sleva,
         public int $typ,
         public string $kodPredmetu,
+        public ?int $modelRok = null,
     ) {
     }
 }
