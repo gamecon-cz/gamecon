@@ -30,7 +30,7 @@ final class NotOperatorWithSpaceFixer extends AbstractFixer
         return new FixerDefinition('Logical NOT operators (`!`) should have leading and trailing whitespaces.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 if (!$bar) {
     echo "Help!";

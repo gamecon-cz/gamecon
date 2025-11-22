@@ -397,7 +397,7 @@ class Config
                     continue;
                 }
                 if ($arg[1] === '-') {
-                    $this->processLongArgument(\substr($arg, 2), $i);
+                    $this->processLongArgument((string) \substr($arg, 2), $i);
                 } else {
                     $switches = \str_split($arg);
                     foreach ($switches as $switch) {
@@ -752,14 +752,14 @@ class Config
                     if (isset(self::$overriddenDefaults['sniffs']) === \true) {
                         break;
                     }
-                    $this->sniffs = $this->parseSniffCodes(\substr($arg, 7), 'sniffs');
+                    $this->sniffs = $this->parseSniffCodes((string) \substr($arg, 7), 'sniffs');
                     self::$overriddenDefaults['sniffs'] = \true;
                 } else {
                     if (\substr($arg, 0, 8) === 'exclude=') {
                         if (isset(self::$overriddenDefaults['exclude']) === \true) {
                             break;
                         }
-                        $this->exclude = $this->parseSniffCodes(\substr($arg, 8), 'exclude');
+                        $this->exclude = $this->parseSniffCodes((string) \substr($arg, 8), 'exclude');
                         self::$overriddenDefaults['exclude'] = \true;
                     } else {
                         if (\defined('PHP_CODESNIFFER_IN_TESTS') === \false && \substr($arg, 0, 6) === 'cache=') {
@@ -769,10 +769,10 @@ class Config
                             // Turn caching on.
                             $this->cache = \true;
                             self::$overriddenDefaults['cache'] = \true;
-                            $this->cacheFile = Common::realpath(\substr($arg, 6));
+                            $this->cacheFile = Common::realpath((string) \substr($arg, 6));
                             // It may not exist and return false instead.
                             if ($this->cacheFile === \false) {
-                                $this->cacheFile = \substr($arg, 6);
+                                $this->cacheFile = (string) \substr($arg, 6);
                                 $dir = \dirname($this->cacheFile);
                                 if (\is_dir($dir) === \false) {
                                     $error = 'ERROR: The specified cache file path "' . $this->cacheFile . '" points to a non-existent directory' . \PHP_EOL . \PHP_EOL;
@@ -804,7 +804,7 @@ class Config
                             }
                         } else {
                             if (\substr($arg, 0, 10) === 'bootstrap=') {
-                                $files = \explode(',', \substr($arg, 10));
+                                $files = \explode(',', (string) \substr($arg, 10));
                                 $bootstrap = [];
                                 foreach ($files as $file) {
                                     $path = Common::realpath($file);
@@ -819,7 +819,7 @@ class Config
                                 self::$overriddenDefaults['bootstrap'] = \true;
                             } else {
                                 if (\substr($arg, 0, 10) === 'file-list=') {
-                                    $fileList = \substr($arg, 10);
+                                    $fileList = (string) \substr($arg, 10);
                                     $path = Common::realpath($fileList);
                                     if ($path === \false) {
                                         $error = 'ERROR: The specified file list "' . $fileList . '" does not exist' . \PHP_EOL . \PHP_EOL;
@@ -840,10 +840,10 @@ class Config
                                         if (isset(self::$overriddenDefaults['stdinPath']) === \true) {
                                             break;
                                         }
-                                        $this->stdinPath = Common::realpath(\substr($arg, 11));
+                                        $this->stdinPath = Common::realpath((string) \substr($arg, 11));
                                         // It may not exist and return false instead, so use whatever they gave us.
                                         if ($this->stdinPath === \false) {
-                                            $this->stdinPath = \trim(\substr($arg, 11));
+                                            $this->stdinPath = \trim((string) \substr($arg, 11));
                                         }
                                         self::$overriddenDefaults['stdinPath'] = \true;
                                     } else {
@@ -851,10 +851,10 @@ class Config
                                             if (\PHP_CODESNIFFER_CBF === \true || isset(self::$overriddenDefaults['reportFile']) === \true) {
                                                 break;
                                             }
-                                            $this->reportFile = Common::realpath(\substr($arg, 12));
+                                            $this->reportFile = Common::realpath((string) \substr($arg, 12));
                                             // It may not exist and return false instead.
                                             if ($this->reportFile === \false) {
-                                                $this->reportFile = \substr($arg, 12);
+                                                $this->reportFile = (string) \substr($arg, 12);
                                                 $dir = Common::realpath(\dirname($this->reportFile));
                                                 if (\is_dir($dir) === \false) {
                                                     $error = 'ERROR: The specified report file path "' . $this->reportFile . '" points to a non-existent directory' . \PHP_EOL . \PHP_EOL;
@@ -875,7 +875,7 @@ class Config
                                                 if (isset(self::$overriddenDefaults['reportWidth']) === \true) {
                                                     break;
                                                 }
-                                                $this->reportWidth = \substr($arg, 13);
+                                                $this->reportWidth = (string) \substr($arg, 13);
                                                 self::$overriddenDefaults['reportWidth'] = \true;
                                             } else {
                                                 if (\substr($arg, 0, 9) === 'basepath=') {
@@ -883,14 +883,14 @@ class Config
                                                         break;
                                                     }
                                                     self::$overriddenDefaults['basepath'] = \true;
-                                                    if (\substr($arg, 9) === '') {
+                                                    if ((string) \substr($arg, 9) === '') {
                                                         $this->basepath = null;
                                                         break;
                                                     }
-                                                    $this->basepath = Common::realpath(\substr($arg, 9));
+                                                    $this->basepath = Common::realpath((string) \substr($arg, 9));
                                                     // It may not exist and return false instead.
                                                     if ($this->basepath === \false) {
-                                                        $this->basepath = \substr($arg, 9);
+                                                        $this->basepath = (string) \substr($arg, 9);
                                                     }
                                                     if (\is_dir($this->basepath) === \false) {
                                                         $error = 'ERROR: The specified basepath "' . $this->basepath . '" points to a non-existent directory' . \PHP_EOL . \PHP_EOL;
@@ -904,11 +904,11 @@ class Config
                                                             // This is a report with file output.
                                                             $split = \strpos($arg, '=');
                                                             if ($split === \false) {
-                                                                $report = \substr($arg, 7);
+                                                                $report = (string) \substr($arg, 7);
                                                                 $output = null;
                                                             } else {
-                                                                $report = \substr($arg, 7, $split - 7);
-                                                                $output = \substr($arg, $split + 1);
+                                                                $report = (string) \substr($arg, 7, $split - 7);
+                                                                $output = (string) \substr($arg, $split + 1);
                                                                 if ($output === \false) {
                                                                     $output = null;
                                                                 } else {
@@ -934,7 +934,7 @@ class Config
                                                             if (isset(self::$overriddenDefaults['reports']) === \true) {
                                                                 break;
                                                             }
-                                                            $reportNames = \explode(',', \substr($arg, 7));
+                                                            $reportNames = \explode(',', (string) \substr($arg, 7));
                                                             foreach ($reportNames as $report) {
                                                                 $reports[$report] = null;
                                                             }
@@ -952,11 +952,11 @@ class Config
                                                             if (isset(self::$overriddenDefaults['filter']) === \true) {
                                                                 break;
                                                             }
-                                                            $this->filter = \substr($arg, 7);
+                                                            $this->filter = (string) \substr($arg, 7);
                                                             self::$overriddenDefaults['filter'] = \true;
                                                         } else {
                                                             if (\substr($arg, 0, 9) === 'standard=') {
-                                                                $standards = \trim(\substr($arg, 9));
+                                                                $standards = \trim((string) \substr($arg, 9));
                                                                 if ($standards !== '') {
                                                                     $this->standards = \explode(',', $standards);
                                                                 }
@@ -966,7 +966,7 @@ class Config
                                                                     if (isset(self::$overriddenDefaults['extensions']) === \true) {
                                                                         break;
                                                                     }
-                                                                    $extensionsString = \substr($arg, 11);
+                                                                    $extensionsString = (string) \substr($arg, 11);
                                                                     $newExtensions = [];
                                                                     if (empty($extensionsString) === \false) {
                                                                         $extensions = \explode(',', $extensionsString);
@@ -992,7 +992,7 @@ class Config
                                                                         if (isset(self::$overriddenDefaults['suffix']) === \true) {
                                                                             break;
                                                                         }
-                                                                        $this->suffix = \substr($arg, 7);
+                                                                        $this->suffix = (string) \substr($arg, 7);
                                                                         self::$overriddenDefaults['suffix'] = \true;
                                                                     } else {
                                                                         if (\substr($arg, 0, 9) === 'parallel=') {
@@ -1032,7 +1032,7 @@ class Config
                                                                                             }
                                                                                             // Split the ignore string on commas, unless the comma is escaped
                                                                                             // using 1 or 3 slashes (\, or \\\,).
-                                                                                            $patterns = \preg_split('/(?<=(?<!\\\\)\\\\\\\\),|(?<!\\\\),/', \substr($arg, 7));
+                                                                                            $patterns = \preg_split('/(?<=(?<!\\\\)\\\\\\\\),|(?<!\\\\),/', (string) \substr($arg, 7));
                                                                                             $ignored = [];
                                                                                             foreach ($patterns as $pattern) {
                                                                                                 $pattern = \trim($pattern);
@@ -1048,7 +1048,7 @@ class Config
                                                                                                 if (isset(self::$overriddenDefaults['generator']) === \true) {
                                                                                                     break;
                                                                                                 }
-                                                                                                $generatorName = \substr($arg, 10);
+                                                                                                $generatorName = (string) \substr($arg, 10);
                                                                                                 $lowerCaseGeneratorName = \strtolower($generatorName);
                                                                                                 if (isset($this->validGenerators[$lowerCaseGeneratorName]) === \false) {
                                                                                                     $validOptions = \implode(', ', $this->validGenerators);
@@ -1064,7 +1064,7 @@ class Config
                                                                                                     if (isset(self::$overriddenDefaults['encoding']) === \true) {
                                                                                                         break;
                                                                                                     }
-                                                                                                    $this->encoding = \strtolower(\substr($arg, 9));
+                                                                                                    $this->encoding = \strtolower((string) \substr($arg, 9));
                                                                                                     self::$overriddenDefaults['encoding'] = \true;
                                                                                                 } else {
                                                                                                     if (\substr($arg, 0, 10) === 'tab-width=') {
@@ -1081,8 +1081,8 @@ class Config
                                                                                                                 if ($eqPos === \false) {
                                                                                                                     $unknown[$arg] = $arg;
                                                                                                                 } else {
-                                                                                                                    $value = \substr($arg, $eqPos + 1);
-                                                                                                                    $arg = \substr($arg, 0, $eqPos);
+                                                                                                                    $value = (string) \substr($arg, $eqPos + 1);
+                                                                                                                    $arg = (string) \substr($arg, 0, $eqPos);
                                                                                                                     $unknown[$arg] = $value;
                                                                                                                 }
                                                                                                                 $this->unknown = $unknown;
@@ -1399,7 +1399,7 @@ class Config
         }
         if ($temp === \false) {
             $path = '';
-            if (\is_callable('ECSPrefix202509\\Phar::running') === \true) {
+            if (\is_callable('ECSPrefix202510\\Phar::running') === \true) {
                 $path = Phar::running(\false);
             }
             if ($path !== '') {
@@ -1456,7 +1456,7 @@ class Config
             return self::$configData;
         }
         $path = '';
-        if (\is_callable('ECSPrefix202509\\Phar::running') === \true) {
+        if (\is_callable('ECSPrefix202510\\Phar::running') === \true) {
             $path = Phar::running(\false);
         }
         if ($path !== '') {

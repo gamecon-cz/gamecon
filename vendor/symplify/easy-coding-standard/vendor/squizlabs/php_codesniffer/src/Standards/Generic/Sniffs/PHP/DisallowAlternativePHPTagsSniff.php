@@ -150,7 +150,7 @@ class DisallowAlternativePHPTagsSniff implements Sniff
                 $startPos += \strlen($start);
             }
         }
-        $snippet = \substr($content, $startPos, $length);
+        $snippet = (string) \substr($content, $startPos, $length);
         if (\strlen($content) - $startPos > $length) {
             $snippet .= '...';
         }

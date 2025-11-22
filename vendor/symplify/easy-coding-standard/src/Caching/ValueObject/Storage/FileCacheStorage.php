@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace Symplify\EasyCodingStandard\Caching\ValueObject\Storage;
 
-use ECSPrefix202509\Nette\Utils\FileSystem as UtilsFileSystem;
-use ECSPrefix202509\Symfony\Component\Filesystem\Filesystem;
+use ECSPrefix202510\Nette\Utils\FileSystem as UtilsFileSystem;
+use ECSPrefix202510\Symfony\Component\Filesystem\Filesystem;
 use Symplify\EasyCodingStandard\Caching\ValueObject\CacheFilePaths;
 use Symplify\EasyCodingStandard\Caching\ValueObject\CacheItem;
 use Symplify\EasyCodingStandard\Exception\ShouldNotHappenException;
@@ -73,7 +73,7 @@ final class FileCacheStorage
     {
         $keyHash = \sha1($key);
         $firstDirectory = \sprintf('%s/%s', $this->directory, \substr($keyHash, 0, 2));
-        $secondDirectory = \sprintf('%s/%s', $firstDirectory, \substr($keyHash, 2, 2));
+        $secondDirectory = \sprintf('%s/%s', $firstDirectory, (string) \substr($keyHash, 2, 2));
         $filePath = \sprintf('%s/%s.php', $secondDirectory, $keyHash);
         return new CacheFilePaths($firstDirectory, $secondDirectory, $filePath);
     }

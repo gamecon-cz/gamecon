@@ -1,11 +1,11 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202509\OndraM\CiDetector\Ci;
+namespace RectorPrefix202511\OndraM\CiDetector\Ci;
 
-use RectorPrefix202509\OndraM\CiDetector\CiDetector;
-use RectorPrefix202509\OndraM\CiDetector\Env;
-use RectorPrefix202509\OndraM\CiDetector\TrinaryLogic;
+use RectorPrefix202511\OndraM\CiDetector\CiDetector;
+use RectorPrefix202511\OndraM\CiDetector\Env;
+use RectorPrefix202511\OndraM\CiDetector\TrinaryLogic;
 /**
  * @deprecated Will be removed in next major version
  */

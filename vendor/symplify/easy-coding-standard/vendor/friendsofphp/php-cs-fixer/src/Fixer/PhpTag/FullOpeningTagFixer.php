@@ -71,7 +71,7 @@ PHP
         foreach ($newTokens as $index => $token) {
             if ($token->isGivenKind(\T_OPEN_TAG)) {
                 $tokenContent = $token->getContent();
-                $possibleOpenContent = \substr($content, $tokensOldContentLength, 5);
+                $possibleOpenContent = (string) \substr($content, $tokensOldContentLength, 5);
                 if (\false === $possibleOpenContent || '<?php' !== \strtolower($possibleOpenContent)) {
                     /** @phpstan-ignore-line as pre PHP 8.0 `false` might be returned by substr @TODO clean up when PHP8+ is required */
                     $tokenContent = '<? ';
@@ -88,7 +88,7 @@ PHP
                     $tokenContent .= $part;
                     $tokenContentLength += \strlen($part);
                     if ($i !== $iLast) {
-                        $originalTokenContent = \substr($content, $tokensOldContentLength + $tokenContentLength, 5);
+                        $originalTokenContent = (string) \substr($content, $tokensOldContentLength + $tokenContentLength, 5);
                         if ('<?php' === \strtolower($originalTokenContent)) {
                             $tokenContent .= $originalTokenContent;
                             $tokenContentLength += 5;

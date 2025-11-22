@@ -5,9 +5,9 @@ namespace Rector\Console;
 
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Option;
-use RectorPrefix202509\Symfony\Component\Console\Command\Command;
-use RectorPrefix202509\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202509\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202511\Symfony\Component\Console\Command\Command;
+use RectorPrefix202511\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202511\Symfony\Component\Console\Input\InputOption;
 final class ProcessConfigureDecorator
 {
     public static function decorate(Command $command): void
@@ -21,7 +21,6 @@ final class ProcessConfigureDecorator
         // filter by rule and path
         $command->addOption(Option::ONLY, null, InputOption::VALUE_REQUIRED, 'Fully qualified rule class name');
         $command->addOption(Option::ONLY_SUFFIX, null, InputOption::VALUE_REQUIRED, 'Filter only files with specific suffix in name, e.g. "Controller"');
-        $command->addOption(Option::KAIZEN, null, InputOption::VALUE_REQUIRED, 'Improve step by step: apply only first X rules that make a change');
         $command->addOption(Option::DEBUG, null, InputOption::VALUE_NONE, 'Display debug output.');
         $command->addOption(Option::MEMORY_LIMIT, null, InputOption::VALUE_REQUIRED, 'Memory limit for process');
         $command->addOption(Option::CLEAR_CACHE, null, InputOption::VALUE_NONE, 'Clear unchanged files cache');

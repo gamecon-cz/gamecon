@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\NodeTypeResolver\PhpDocNodeVisitor;
 
-use RectorPrefix202509\Nette\Utils\Strings;
+use RectorPrefix202511\Nette\Utils\Strings;
 use PhpParser\Node as PhpParserNode;
 use PHPStan\PhpDocParser\Ast\Node;
 use PHPStan\PhpDocParser\Ast\PhpDoc\TemplateTagValueNode;
@@ -15,8 +15,6 @@ use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
 use Rector\BetterPhpDocParser\PhpDoc\SpacelessPhpDocTagNode;
 use Rector\BetterPhpDocParser\ValueObject\PhpDocAttributeKey;
 use Rector\CodingStyle\ClassNameImport\ClassNameImportSkipper;
-use Rector\Configuration\Option;
-use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\PhpDocParser\PhpDocParser\PhpDocNodeVisitor\AbstractPhpDocNodeVisitor;
 use Rector\PostRector\Collector\UseNodesToAddCollector;
@@ -87,10 +85,6 @@ final class NameImportingPhpDocNodeVisitor extends AbstractPhpDocNodeVisitor
         if (!$staticType instanceof FullyQualifiedObjectType) {
             return null;
         }
-        // Importing root namespace classes (like \DateTime) is optional
-        if ($this->shouldSkipShortClassName($staticType)) {
-            return null;
-        }
         $file = $this->currentFileProvider->getFile();
         if (!$file instanceof File) {
             return null;
@@ -135,14 +129,14 @@ final class NameImportingPhpDocNodeVisitor extends AbstractPhpDocNodeVisitor
         if ($this->useNodesToAddCollector->isShortImported($file, $fullyQualifiedObjectType) && !$this->useNodesToAddCollector->isImportShortable($file, $fullyQualifiedObjectType)) {
             return null;
         }
-        if ($this->shouldImport($newNode, $identifierTypeNode, $fullyQualifiedObjectType)) {
+        if ($this->shouldImport($file, $newNode, $identifierTypeNode, $fullyQualifiedObjectType)) {
             $this->useNodesToAddCollector->addUseImport($fullyQualifiedObjectType);
             $this->hasChanged = \true;
             return $newNode;
         }
         return null;
     }
-    private function shouldImport(IdentifierTypeNode $newNode, IdentifierTypeNode $identifierTypeNode, FullyQualifiedObjectType $fullyQualifiedObjectType): bool
+    private function shouldImport(File $file, IdentifierTypeNode $newNode, IdentifierTypeNode $identifierTypeNode, FullyQualifiedObjectType $fullyQualifiedObjectType): bool
     {
         if ($newNode->name === $identifierTypeNode->name) {
             return \false;
@@ -159,21 +153,13 @@ final class NameImportingPhpDocNodeVisitor extends AbstractPhpDocNodeVisitor
         }
         $firstPath = Strings::before($identifierTypeNode->name, '\\' . $newNode->name);
         if ($firstPath === null) {
-            return \true;
+            return !$this->useNodesToAddCollector->hasImport($file, $fullyQualifiedObjectType);
         }
         if ($firstPath === '') {
             return \true;
         }
         $namespaceParts = explode('\\', ltrim($firstPath, '\\'));
         return count($namespaceParts) > 1;
-    }
-    private function shouldSkipShortClassName(FullyQualifiedObjectType $fullyQualifiedObjectType): bool
-    {
-        $importShortClasses = SimpleParameterProvider::provideBoolParameter(Option::IMPORT_SHORT_CLASSES);
-        if ($importShortClasses) {
-            return \false;
-        }
-        return substr_count($fullyQualifiedObjectType->getClassName(), '\\') === 0;
     }
     private function processDoctrineAnnotationTagValueNode(DoctrineAnnotationTagValueNode $doctrineAnnotationTagValueNode): void
     {

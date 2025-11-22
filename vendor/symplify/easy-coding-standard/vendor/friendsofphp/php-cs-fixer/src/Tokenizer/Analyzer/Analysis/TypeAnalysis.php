@@ -54,7 +54,7 @@ final class TypeAnalysis
     public function __construct(string $name, ?int $startIndex = null, ?int $endIndex = null)
     {
         if (\strncmp($name, '?', \strlen('?')) === 0) {
-            $this->name = \substr($name, 1);
+            $this->name = (string) \substr($name, 1);
             $this->nullable = \true;
         } elseif (\PHP_VERSION_ID >= 80000) {
             $this->name = $name;

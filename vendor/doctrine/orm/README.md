@@ -3,9 +3,7 @@
 |       [![Build status][4.0 image]][4.0 workflow]       |       [![Build status][3.6 image]][3.6 workflow]       |       [![Build status][3.5 image]][3.5 workflow]       |       [![Build status][2.21 image]][2.21 workflow]       |       [![Build status][2.20 image]][2.20 workflow]       |
 | [![Coverage Status][4.0 coverage image]][4.0 coverage] | [![Coverage Status][3.6 coverage image]][3.6 coverage] | [![Coverage Status][3.5 coverage image]][3.5 coverage] | [![Coverage Status][2.21 coverage image]][2.21 coverage] | [![Coverage Status][2.20 coverage image]][2.20 coverage] |
 
-[<h1 align="center">🇺🇦 UKRAINE NEEDS YOUR HELP NOW!</h1>](https://www.doctrine-project.org/stop-war.html)
-
-Doctrine ORM is an object-relational mapper for PHP 7.1+ that provides transparent persistence
+Doctrine ORM is an object-relational mapper for PHP 8.1+ that provides transparent persistence
 for PHP objects. It sits on top of a powerful database abstraction layer (DBAL). One of its key features
 is the option to write database queries in a proprietary object oriented SQL dialect called Doctrine Query Language (DQL),
 inspired by Hibernate's HQL. This provides developers with a powerful alternative to SQL that maintains flexibility

@@ -21,8 +21,6 @@ final class FileFilter
      */
     public function filterOnlyChangedFiles(array $filePaths) : array
     {
-        return \array_filter($filePaths, function (string $filePath) : bool {
-            return $this->changedFilesDetector->hasFileChanged($filePath);
-        });
+        return \array_filter($filePaths, \Closure::fromCallable([$this->changedFilesDetector, 'hasFileChanged']));
     }
 }

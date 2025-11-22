@@ -36,10 +36,10 @@ class Comment
         $lastChars = \substr($string, -2);
         if ($char === $numChars && $lastChars === '*/') {
             // Edge case: docblock without whitespace or contents.
-            $openTag = \substr($string, 0, -2);
+            $openTag = (string) \substr($string, 0, -2);
             $string = $lastChars;
         } else {
-            $openTag = \substr($string, 0, $char);
+            $openTag = (string) \substr($string, 0, $char);
             $string = \ltrim($string, '/*');
         }
         $tokens[$stackPtr] = ['content' => $openTag, 'code' => \T_DOC_COMMENT_OPEN_TAG, 'type' => 'T_DOC_COMMENT_OPEN_TAG', 'comment_tags' => []];
@@ -54,7 +54,7 @@ class Comment
             of our comment line processing. The token will be added to the
             stack just before we return it.
         */
-        $closeTag = ['content' => \substr($string, \strlen(\rtrim($string, '/*'))), 'code' => \T_DOC_COMMENT_CLOSE_TAG, 'type' => 'T_DOC_COMMENT_CLOSE_TAG', 'comment_opener' => $openPtr];
+        $closeTag = ['content' => (string) \substr($string, \strlen(\rtrim($string, '/*'))), 'code' => \T_DOC_COMMENT_CLOSE_TAG, 'type' => 'T_DOC_COMMENT_CLOSE_TAG', 'comment_opener' => $openPtr];
         if ($closeTag['content'] === \false) {
             // In PHP < 8.0 substr() can return `false` instead of always returning a string.
             $closeTag['content'] = '';
@@ -170,10 +170,10 @@ class Comment
             $eol = $end;
         }
         if ($eol > $start) {
-            $tokens[] = ['content' => \substr($string, $start, $eol - $start), 'code' => \T_DOC_COMMENT_STRING, 'type' => 'T_DOC_COMMENT_STRING'];
+            $tokens[] = ['content' => (string) \substr($string, $start, $eol - $start), 'code' => \T_DOC_COMMENT_STRING, 'type' => 'T_DOC_COMMENT_STRING'];
         }
         if ($eol !== $end) {
-            $tokens[] = ['content' => \substr($string, $eol, \strlen($eolChar)), 'code' => \T_DOC_COMMENT_WHITESPACE, 'type' => 'T_DOC_COMMENT_WHITESPACE'];
+            $tokens[] = ['content' => (string) \substr($string, $eol, \strlen($eolChar)), 'code' => \T_DOC_COMMENT_WHITESPACE, 'type' => 'T_DOC_COMMENT_WHITESPACE'];
         }
         return $tokens;
     }

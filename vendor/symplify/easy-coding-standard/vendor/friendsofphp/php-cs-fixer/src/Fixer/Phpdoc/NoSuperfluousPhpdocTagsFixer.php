@@ -24,6 +24,7 @@ use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
+use PhpCsFixer\Future;
 use PhpCsFixer\Preg;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\TypeAnalysis;
 use PhpCsFixer\Tokenizer\Analyzer\NamespacesAnalyzer;
@@ -74,7 +75,7 @@ final class NoSuperfluousPhpdocTagsFixer extends AbstractFixer implements Config
         return new FixerDefinition('Removes `@param`, `@return` and `@var` tags that don\'t provide any useful information.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
@@ -88,13 +89,13 @@ class Foo
     {
     }
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
@@ -106,13 +107,13 @@ class Foo
     {
     }
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , ['allow_mixed' => \true]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
@@ -123,13 +124,13 @@ class Foo
     {
     }
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , ['remove_inheritdoc' => \true]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
@@ -143,13 +144,13 @@ class Foo
     {
     }
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , ['allow_hidden_params' => \true]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
@@ -163,7 +164,7 @@ class Foo
     {
     }
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 , ['allow_unused_params' => \true])]);
@@ -240,7 +241,7 @@ PHP
     }
     protected function createConfigurationDefinition() : FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([(new FixerOptionBuilder('allow_mixed', 'Whether type `mixed` without description is allowed (`true`) or considered superfluous (`false`).'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption(), (new FixerOptionBuilder('remove_inheritdoc', 'Remove `@inheritDoc` tags.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption(), (new FixerOptionBuilder('allow_hidden_params', 'Whether `param` annotation for hidden params in method signature are allowed.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption(), (new FixerOptionBuilder('allow_unused_params', 'Whether `param` annotation without actual signature is allowed (`true`) or considered superfluous (`false`).'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
+        return new FixerConfigurationResolver([(new FixerOptionBuilder('allow_mixed', 'Whether type `mixed` without description is allowed (`true`) or considered superfluous (`false`).'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption(), (new FixerOptionBuilder('remove_inheritdoc', 'Remove `@inheritDoc` tags.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption(), (new FixerOptionBuilder('allow_hidden_params', 'Whether `param` annotation for hidden params in method signature are allowed.'))->setAllowedTypes(['bool'])->setDefault(Future::getV4OrV3(\true, \false))->getOption(), (new FixerOptionBuilder('allow_unused_params', 'Whether `param` annotation without actual signature is allowed (`true`) or considered superfluous (`false`).'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
     }
     /**
      * @return null|_DocumentElement
@@ -495,7 +496,7 @@ PHP
     private function toComparableNames(array $types, ?string $namespace, ?string $currentSymbol, array $symbolShortNames) : array
     {
         if (isset($types[0][0]) && '?' === $types[0][0]) {
-            $types = [\substr($types[0], 1), 'null'];
+            $types = [(string) \substr($types[0], 1), 'null'];
         }
         $normalized = \array_map(function (string $type) use($namespace, $currentSymbol, $symbolShortNames) : string {
             if (\strpos($type, '&') !== \false) {
@@ -512,7 +513,7 @@ PHP
                 // always FQCN /wo leading backslash and in lower-case
             }
             if (\strncmp($type, '\\', \strlen('\\')) === 0) {
-                return \substr($type, 1);
+                return (string) \substr($type, 1);
             }
             if (null !== $namespace && !(new TypeAnalysis($type))->isReservedType()) {
                 $type = \strtolower($namespace) . '\\' . $type;

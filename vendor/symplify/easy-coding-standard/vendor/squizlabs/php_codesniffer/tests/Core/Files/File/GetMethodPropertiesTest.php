@@ -170,7 +170,7 @@ final class GetMethodPropertiesTest extends AbstractMethodUnitTest
     public function testReturnNamespace()
     {
         // Offsets are relative to the T_FUNCTION token.
-        $expected = ['scope' => 'public', 'scope_specified' => \false, 'return_type' => 'ECSPrefix202509\\MyNamespace\\MyClass', 'return_type_token' => 7, 'return_type_end_token' => 10, 'nullable_return_type' => \false, 'is_abstract' => \false, 'is_final' => \false, 'is_static' => \false, 'has_body' => \true];
+        $expected = ['scope' => 'public', 'scope_specified' => \false, 'return_type' => 'ECSPrefix202510\\MyNamespace\\MyClass', 'return_type_token' => 7, 'return_type_end_token' => 10, 'nullable_return_type' => \false, 'is_abstract' => \false, 'is_final' => \false, 'is_static' => \false, 'has_body' => \true];
         $this->getMethodPropertiesTestHelper('/* ' . __FUNCTION__ . ' */', $expected);
     }
     //end testReturnNamespace()
@@ -182,7 +182,7 @@ final class GetMethodPropertiesTest extends AbstractMethodUnitTest
     public function testReturnMultilineNamespace()
     {
         // Offsets are relative to the T_FUNCTION token.
-        $expected = ['scope' => 'public', 'scope_specified' => \false, 'return_type' => 'ECSPrefix202509\\MyNamespace\\MyClass\\Foo', 'return_type_token' => 7, 'return_type_end_token' => 23, 'nullable_return_type' => \false, 'is_abstract' => \false, 'is_final' => \false, 'is_static' => \false, 'has_body' => \true];
+        $expected = ['scope' => 'public', 'scope_specified' => \false, 'return_type' => 'ECSPrefix202510\\MyNamespace\\MyClass\\Foo', 'return_type_token' => 7, 'return_type_end_token' => 23, 'nullable_return_type' => \false, 'is_abstract' => \false, 'is_final' => \false, 'is_static' => \false, 'has_body' => \true];
         $this->getMethodPropertiesTestHelper('/* ' . __FUNCTION__ . ' */', $expected);
     }
     //end testReturnMultilineNamespace()
@@ -206,7 +206,7 @@ final class GetMethodPropertiesTest extends AbstractMethodUnitTest
     public function testReturnPartiallyQualifiedName()
     {
         // Offsets are relative to the T_FUNCTION token.
-        $expected = ['scope' => 'public', 'scope_specified' => \false, 'return_type' => 'ECSPrefix202509\\Sub\\Level\\MyClass', 'return_type_token' => 7, 'return_type_end_token' => 11, 'nullable_return_type' => \false, 'is_abstract' => \false, 'is_final' => \false, 'is_static' => \false, 'has_body' => \true];
+        $expected = ['scope' => 'public', 'scope_specified' => \false, 'return_type' => 'ECSPrefix202510\\Sub\\Level\\MyClass', 'return_type_token' => 7, 'return_type_end_token' => 11, 'nullable_return_type' => \false, 'is_abstract' => \false, 'is_final' => \false, 'is_static' => \false, 'has_body' => \true];
         $this->getMethodPropertiesTestHelper('/* ' . __FUNCTION__ . ' */', $expected);
     }
     //end testReturnPartiallyQualifiedName()

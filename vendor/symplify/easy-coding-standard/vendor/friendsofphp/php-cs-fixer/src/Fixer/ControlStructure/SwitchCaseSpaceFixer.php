@@ -33,7 +33,7 @@ final class SwitchCaseSpaceFixer extends AbstractFixer
         return new FixerDefinition('Removes extra spaces between colon and case value.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 switch ($a) {
     case 1:

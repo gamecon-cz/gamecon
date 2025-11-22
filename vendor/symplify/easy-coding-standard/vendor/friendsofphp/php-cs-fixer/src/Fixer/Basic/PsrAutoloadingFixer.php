@@ -173,8 +173,8 @@ PHP
         if (\strlen($configuredDir) >= \strlen($fileDir)) {
             return;
         }
-        $newNamespace = \substr(\str_replace('/', '\\', $fileDir), \strlen($configuredDir) + 1);
-        $originalNamespace = \substr($namespace, -\strlen($newNamespace));
+        $newNamespace = (string) \substr(\str_replace('/', '\\', $fileDir), \strlen($configuredDir) + 1);
+        $originalNamespace = (string) \substr($namespace, -\strlen($newNamespace));
         if ($originalNamespace !== $newNamespace && \strtolower($originalNamespace) === \strtolower($newNamespace)) {
             $tokens->clearRange($namespaceStartIndex, $namespaceEndIndex);
             $namespace = \substr($namespace, 0, -\strlen($newNamespace)) . $newNamespace;
@@ -194,7 +194,7 @@ PHP
         $namespaceParts = \array_reverse(\explode('\\', $maxNamespace));
         foreach ($namespaceParts as $namespacePart) {
             $nameCandidate = \sprintf('%s_%s', $namespacePart, $name);
-            if (\strtolower($nameCandidate) !== \strtolower(\substr($currentName, -\strlen($nameCandidate)))) {
+            if (\strtolower($nameCandidate) !== \strtolower((string) \substr($currentName, -\strlen($nameCandidate)))) {
                 break;
             }
             $name = $nameCandidate;
@@ -211,7 +211,7 @@ PHP
         } else {
             $root = \realpath($this->configuration['dir']);
         }
-        $namespaceAccordingToFileLocation = \trim(\str_replace(\DIRECTORY_SEPARATOR, '\\', \substr(\dirname($file->getRealPath()), \strlen($root))), '\\');
+        $namespaceAccordingToFileLocation = \trim(\str_replace(\DIRECTORY_SEPARATOR, '\\', (string) \substr(\dirname($file->getRealPath()), \strlen($root))), '\\');
         if (null === $namespace) {
             return $namespaceAccordingToFileLocation;
         }

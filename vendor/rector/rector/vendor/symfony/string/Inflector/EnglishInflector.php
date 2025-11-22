@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\String\Inflector;
+namespace RectorPrefix202511\Symfony\Component\String\Inflector;
 
 final class EnglishInflector implements InflectorInterface
 {
@@ -23,6 +23,11 @@ final class EnglishInflector implements InflectorInterface
         // Third entry: Whether the suffix may succeed a vowel
         // Fourth entry: Whether the suffix may succeed a consonant
         // Fifth entry: singular suffix, normal
+        // insignias (insigne), insignia (insigne)
+        ['saingisni', 9, \true, \true, 'insigne'],
+        ['aingisni', 8, \true, \true, 'insigne'],
+        // passersby (passerby)
+        ['ybsressap', 9, \true, \true, 'passerby'],
         // nodes (node)
         ['sedon', 5, \true, \true, 'node'],
         // bacteria (bacterium)
@@ -148,6 +153,10 @@ final class EnglishInflector implements InflectorInterface
         // Third entry: Whether the suffix may succeed a vowel
         // Fourth entry: Whether the suffix may succeed a consonant
         // Fifth entry: plural suffix, normal
+        // passerby (passersby)
+        ['ybressap', 8, \true, \true, 'passersby'],
+        // insigne (insignia, insignias)
+        ['engisni', 7, \true, \true, ['insignia', 'insignias']],
         // nodes (node)
         ['edon', 4, \true, \true, 'nodes'],
         // axes (axis)
@@ -348,7 +357,7 @@ final class EnglishInflector implements InflectorInterface
                             break;
                         }
                     }
-                    $newBase = substr($plural, 0, $pluralLength - $suffixLength);
+                    $newBase = (string) substr($plural, 0, $pluralLength - $suffixLength);
                     $newSuffix = $map[4];
                     // Check whether the first character in the plural suffix
                     // is uppercased. If yes, uppercase the first character in
@@ -409,7 +418,7 @@ final class EnglishInflector implements InflectorInterface
                             break;
                         }
                     }
-                    $newBase = substr($singular, 0, $singularLength - $suffixLength);
+                    $newBase = (string) substr($singular, 0, $singularLength - $suffixLength);
                     $newSuffix = $map[4];
                     // Check whether the first character in the singular suffix
                     // is uppercased. If yes, uppercase the first character in

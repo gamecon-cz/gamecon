@@ -16,7 +16,7 @@
  */
 namespace PHP_CodeSniffer;
 
-use ECSPrefix202509\Composer\Autoload\ClassLoader;
+use ECSPrefix202510\Composer\Autoload\ClassLoader;
 use Exception;
 if (\class_exists('PHP_CodeSniffer\\Autoload', \false) === \false) {
     class Autoload
@@ -107,8 +107,8 @@ if (\class_exists('PHP_CodeSniffer\\Autoload', \false) === \false) {
             if ($path === \false) {
                 foreach (self::$searchPaths as $searchPath => $nsPrefix) {
                     $className = $class;
-                    if ($nsPrefix !== '' && \substr($class, 0, \strlen($nsPrefix)) === $nsPrefix) {
-                        $className = \substr($class, \strlen($nsPrefix) + 1);
+                    if ($nsPrefix !== '' && (string) \substr($class, 0, \strlen($nsPrefix)) === $nsPrefix) {
+                        $className = (string) \substr($class, \strlen($nsPrefix) + 1);
                     }
                     $path = $searchPath . $ds . \str_replace('\\', $ds, $className) . '.php';
                     if (\is_file($path) === \true) {

@@ -141,6 +141,10 @@ final class CommentsAnalyzer
         if ($token->isClassy() || $token->isGivenKind(self::SKIP_TYPES)) {
             return \true;
         }
+        if ($token->isGivenKind(\T_STRING)) {
+            $content = \strtolower($token->getContent());
+            return 'get' === $content || 'set' === $content;
+        }
         if ($token->isGivenKind(\T_CASE)) {
             $enumParent = $tokens->getPrevTokenOfKind($index, [[FCT::T_ENUM], [\T_SWITCH]]);
             return $tokens[$enumParent]->isGivenKind(FCT::T_ENUM);

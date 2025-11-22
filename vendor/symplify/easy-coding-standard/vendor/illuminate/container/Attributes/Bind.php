@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Container\Attributes;
+namespace ECSPrefix202510\Illuminate\Container\Attributes;
 
 use Attribute;
 use BackedEnum;

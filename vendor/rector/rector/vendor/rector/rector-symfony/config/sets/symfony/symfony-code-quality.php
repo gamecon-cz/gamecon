@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202509;
+namespace RectorPrefix202511;
 
 use Rector\Config\RectorConfig;
 use Rector\Symfony\CodeQuality\Rector\AttributeGroup\SingleConditionSecurityAttributeToIsGrantedRector;
@@ -19,6 +19,7 @@ use Rector\Symfony\CodeQuality\Rector\MethodCall\AssertSameResponseCodeWithDebug
 use Rector\Symfony\CodeQuality\Rector\MethodCall\LiteralGetToRequestClassConstantRector;
 use Rector\Symfony\CodeQuality\Rector\MethodCall\ParameterBagTypedGetMethodCallRector;
 use Rector\Symfony\CodeQuality\Rector\MethodCall\StringCastDebugResponseRector;
+use Rector\Symfony\CodeQuality\Rector\Trait_\AddTraitGetterReturnTypeBasedOnSetterRequiredRector;
 use Rector\Symfony\Symfony26\Rector\MethodCall\RedirectToRouteRector;
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->rules([
@@ -43,5 +44,6 @@ return static function (RectorConfig $rectorConfig): void {
         // narrow attributes
         SingleConditionSecurityAttributeToIsGrantedRector::class,
         SplitAndSecurityAttributeToIsGrantedRector::class,
+        AddTraitGetterReturnTypeBasedOnSetterRequiredRector::class,
     ]);
 };

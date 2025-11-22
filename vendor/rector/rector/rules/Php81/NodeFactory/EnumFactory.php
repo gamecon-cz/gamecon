@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Php81\NodeFactory;
 
-use RectorPrefix202509\Nette\Utils\Strings;
+use RectorPrefix202511\Nette\Utils\Strings;
 use PhpParser\BuilderFactory;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr\Array_;
@@ -173,7 +173,7 @@ final class EnumFactory
      */
     private function getIdentifierTypeFromMappings(array $mapping): string
     {
-        $callableGetType = static fn($value): string => gettype($value);
+        $callableGetType = \Closure::fromCallable('gettype');
         $valueTypes = array_map($callableGetType, $mapping);
         $uniqueValueTypes = array_unique($valueTypes);
         if (count($uniqueValueTypes) === 1) {

@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202509\Nette\Utils;
+namespace RectorPrefix202511\Nette\Utils;
 
-use RectorPrefix202509\Nette;
+use RectorPrefix202511\Nette;
 use function array_map, array_search, array_splice, count, explode, implode, is_a, is_string, strcasecmp, strtolower, substr, trim;
 use const PHP_VERSION_ID;
 /**
@@ -53,7 +53,7 @@ final class Type
             throw new Nette\InvalidArgumentException("Invalid type '{$type}'.");
         }
         if ($type[0] === '?') {
-            return new self([substr($type, 1), 'null']);
+            return new self([(string) substr($type, 1), 'null']);
         }
         $unions = [];
         foreach (explode('|', $type) as $part) {

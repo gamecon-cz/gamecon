@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doctrine\Bundle\DoctrineBundle\Command;
 
 use Doctrine\ORM\Mapping\ClassMetadata;

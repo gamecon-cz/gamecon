@@ -31,8 +31,8 @@ use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\TokensAnalyzer;
 use PhpCsFixer\Utils;
-use ECSPrefix202509\Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
-use ECSPrefix202509\Symfony\Component\OptionsResolver\Options;
+use ECSPrefix202510\Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
+use ECSPrefix202510\Symfony\Component\OptionsResolver\Options;
 /**
  * @phpstan-type _UseImportInfo array{
  *  namespace: non-empty-string,
@@ -108,19 +108,19 @@ final class OrderedImportsFixer extends AbstractFixer implements ConfigurableFix
         return new FixerDefinition('Ordering `use` statements.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-use function ECSPrefix202509\AAC;
+use function ECSPrefix202510\AAC;
 use const AAB;
-use ECSPrefix202509\AAA;
+use ECSPrefix202510\AAA;
 
 PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-use function ECSPrefix202509\Aaa;
+use function ECSPrefix202510\Aaa;
 use const AA;
 
 PHP
@@ -135,43 +135,43 @@ PHP
 , ['sort_algorithm' => self::SORT_LENGTH]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 use const AAAA;
 use const BBB;
-use ECSPrefix202509\Bar;
-use ECSPrefix202509\AAC;
-use ECSPrefix202509\Acme;
-use function ECSPrefix202509\CCC\AA;
-use function ECSPrefix202509\DDD;
+use ECSPrefix202510\Bar;
+use ECSPrefix202510\AAC;
+use ECSPrefix202510\Acme;
+use function ECSPrefix202510\CCC\AA;
+use function ECSPrefix202510\DDD;
 
 PHP
 , ['sort_algorithm' => self::SORT_LENGTH, 'imports_order' => [self::IMPORT_TYPE_CONST, self::IMPORT_TYPE_CLASS, self::IMPORT_TYPE_FUNCTION]]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 use const BBB;
 use const AAAA;
-use ECSPrefix202509\Acme;
-use ECSPrefix202509\AAC;
-use ECSPrefix202509\Bar;
-use function ECSPrefix202509\DDD;
-use function ECSPrefix202509\CCC\AA;
+use ECSPrefix202510\Acme;
+use ECSPrefix202510\AAC;
+use ECSPrefix202510\Bar;
+use function ECSPrefix202510\DDD;
+use function ECSPrefix202510\CCC\AA;
 
 PHP
 , ['sort_algorithm' => self::SORT_ALPHA, 'imports_order' => [self::IMPORT_TYPE_CONST, self::IMPORT_TYPE_CLASS, self::IMPORT_TYPE_FUNCTION]]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 use const BBB;
 use const AAAA;
-use function ECSPrefix202509\DDD;
-use function ECSPrefix202509\CCC\AA;
-use ECSPrefix202509\Acme;
-use ECSPrefix202509\AAC;
-use ECSPrefix202509\Bar;
+use function ECSPrefix202510\DDD;
+use function ECSPrefix202510\CCC\AA;
+use ECSPrefix202510\Acme;
+use ECSPrefix202510\AAC;
+use ECSPrefix202510\Bar;
 
 PHP
 , ['sort_algorithm' => self::SORT_NONE, 'imports_order' => [self::IMPORT_TYPE_CONST, self::IMPORT_TYPE_CLASS, self::IMPORT_TYPE_FUNCTION]])]);
@@ -236,15 +236,15 @@ PHP
             if (null !== $value) {
                 $missing = \array_diff($supportedSortTypes, $value);
                 if (\count($missing) > 0) {
-                    throw new InvalidOptionsException(\sprintf('Missing sort %s %s.', 1 === \count($missing) ? 'type' : 'types', Utils::naturalLanguageJoin($missing)));
+                    throw new InvalidOptionsException(\sprintf('Missing sort %s %s.', 1 === \count($missing) ? 'type' : 'types', Utils::naturalLanguageJoin(\array_values($missing))));
                 }
                 $unknown = \array_diff($value, $supportedSortTypes);
                 if (\count($unknown) > 0) {
-                    throw new InvalidOptionsException(\sprintf('Unknown sort %s %s.', 1 === \count($unknown) ? 'type' : 'types', Utils::naturalLanguageJoin($unknown)));
+                    throw new InvalidOptionsException(\sprintf('Unknown sort %s %s.', 1 === \count($unknown) ? 'type' : 'types', Utils::naturalLanguageJoin(\array_values($unknown))));
                 }
             }
             return \true;
-        }])->setDefault(null)->getOption(), (new FixerOptionBuilder('case_sensitive', 'Whether the sorting should be case sensitive.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
+        }])->setDefault(Future::getV4OrV3(['class', 'function', 'const'], null))->getOption(), (new FixerOptionBuilder('case_sensitive', 'Whether the sorting should be case sensitive.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
     }
     /**
      * This method is used for sorting the uses in a namespace.

@@ -83,7 +83,7 @@ class CamelCapsFunctionNameSniff extends AbstractScopeSniff
         $classNameLc = \strtolower($className);
         // Is this a magic method. i.e., is prefixed with "__" ?
         if (\preg_match('|^__[^_]|', $methodName) !== 0) {
-            $magicPart = \substr($methodNameLc, 2);
+            $magicPart = (string) \substr($methodNameLc, 2);
             if (isset($this->magicMethods[$magicPart]) === \true || isset($this->methodsDoubleUnderscore[$magicPart]) === \true) {
                 return;
             }
@@ -135,7 +135,7 @@ class CamelCapsFunctionNameSniff extends AbstractScopeSniff
         $errorData = [$functionName];
         // Is this a magic function. i.e., it is prefixed with "__".
         if (\preg_match('|^__[^_]|', $functionName) !== 0) {
-            $magicPart = \strtolower(\substr($functionName, 2));
+            $magicPart = \strtolower((string) \substr($functionName, 2));
             if (isset($this->magicFunctions[$magicPart]) === \true) {
                 return;
             }

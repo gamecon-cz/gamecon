@@ -8,14 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Console\Input;
+namespace RectorPrefix202511\Symfony\Component\Console\Input;
 
-use RectorPrefix202509\Symfony\Component\Console\Command\Command;
-use RectorPrefix202509\Symfony\Component\Console\Completion\CompletionInput;
-use RectorPrefix202509\Symfony\Component\Console\Completion\CompletionSuggestions;
-use RectorPrefix202509\Symfony\Component\Console\Completion\Suggestion;
-use RectorPrefix202509\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202509\Symfony\Component\Console\Exception\LogicException;
+use RectorPrefix202511\Symfony\Component\Console\Command\Command;
+use RectorPrefix202511\Symfony\Component\Console\Completion\CompletionInput;
+use RectorPrefix202511\Symfony\Component\Console\Completion\CompletionSuggestions;
+use RectorPrefix202511\Symfony\Component\Console\Completion\Suggestion;
+use RectorPrefix202511\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202511\Symfony\Component\Console\Exception\LogicException;
 /**
  * Represents a command line option.
  *
@@ -69,7 +69,7 @@ class InputOption
     public function __construct(string $name, $shortcut = null, ?int $mode = null, string $description = '', $default = null, $suggestedValues = [])
     {
         if (strncmp($name, '--', strlen('--')) === 0) {
-            $name = substr($name, 2);
+            $name = (string) substr($name, 2);
         }
         if (empty($name)) {
             throw new InvalidArgumentException('An option name cannot be empty.');

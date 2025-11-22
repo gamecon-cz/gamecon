@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Console\Formatter;
+namespace RectorPrefix202511\Symfony\Component\Console\Formatter;
 
-use RectorPrefix202509\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202509\Symfony\Component\Console\Helper\Helper;
-use function RectorPrefix202509\Symfony\Component\String\b;
+use RectorPrefix202511\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202511\Symfony\Component\Console\Helper\Helper;
+use function RectorPrefix202511\Symfony\Component\String\b;
 /**
  * Formatter class for console output.
  *
@@ -125,7 +125,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
                 continue;
             }
             // convert byte position to character position.
-            $pos = Helper::length(substr($message, 0, $pos));
+            $pos = Helper::length((string) substr($message, 0, $pos));
             // add the text up to the next tag
             $output .= $this->applyCurrentStyle(Helper::substr($message, $offset, $pos - $offset), $output, $width, $currentLineLength);
             $offset = $pos + Helper::length($text);

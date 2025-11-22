@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\String;
+namespace RectorPrefix202511\Symfony\Component\String;
 
 use Random\Randomizer;
-use RectorPrefix202509\Symfony\Component\String\Exception\ExceptionInterface;
-use RectorPrefix202509\Symfony\Component\String\Exception\InvalidArgumentException;
-use RectorPrefix202509\Symfony\Component\String\Exception\RuntimeException;
+use RectorPrefix202511\Symfony\Component\String\Exception\ExceptionInterface;
+use RectorPrefix202511\Symfony\Component\String\Exception\InvalidArgumentException;
+use RectorPrefix202511\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a binary-safe string of bytes.
  *
@@ -325,7 +325,7 @@ class ByteString extends AbstractString
     public function slice(int $start = 0, ?int $length = null)
     {
         $str = clone $this;
-        $str->string = substr($this->string, $start, $length ?? \PHP_INT_MAX);
+        $str->string = (string) substr($this->string, $start, $length ?? \PHP_INT_MAX);
         return $str;
     }
     /**
@@ -404,7 +404,7 @@ class ByteString extends AbstractString
             try {
                 $validEncoding = \false !== mb_detect_encoding($this->string, $fromEncoding ?? 'Windows-1252', \true);
             } catch (InvalidArgumentException $e) {
-                if (!\function_exists('iconv') && !\function_exists('RectorPrefix202509\iconv')) {
+                if (!\function_exists('iconv') && !\function_exists('RectorPrefix202511\iconv')) {
                     throw $e;
                 }
                 $u->string = iconv($fromEncoding ?? 'Windows-1252', 'UTF-8', $this->string);

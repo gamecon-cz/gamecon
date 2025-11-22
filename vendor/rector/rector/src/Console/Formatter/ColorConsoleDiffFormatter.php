@@ -3,9 +3,9 @@
 declare (strict_types=1);
 namespace Rector\Console\Formatter;
 
-use RectorPrefix202509\Nette\Utils\Strings;
+use RectorPrefix202511\Nette\Utils\Strings;
 use Rector\Util\NewLineSplitter;
-use RectorPrefix202509\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202511\Symfony\Component\Console\Formatter\OutputFormatter;
 /**
  * Inspired by @see https://github.com/FriendsOfPHP/PHP-CS-Fixer/blob/master/src/Differ/DiffConsoleFormatter.php to be
  * used as standalone class, without need to require whole package by Dariusz Rumiński <dariusz.ruminski@gmail.com>
@@ -30,6 +30,11 @@ final class ColorConsoleDiffFormatter
      */
     private const AT_START_REGEX = '#^(@.*)#';
     /**
+     * @var string
+     * @see https://regex101.com/r/8MXnfa/2
+     */
+    private const AT_DIFF_LINE_REGEX = '#^\<fg=cyan\>@@ \-\d+,\d+ \+\d+,\d+ @@\<\/fg=cyan\>$#';
+    /**
      * @readonly
      */
     private string $template;
@@ -45,25 +50,36 @@ final class ColorConsoleDiffFormatter
     {
         $escapedDiff = OutputFormatter::escape(rtrim($diff));
         $escapedDiffLines = NewLineSplitter::split($escapedDiff);
-        // remove description of added + remove; obvious on diffs
+        // remove description of added + remove, obvious on diffs
+        // decorize lines
         foreach ($escapedDiffLines as $key => $escapedDiffLine) {
             if ($escapedDiffLine === '--- Original') {
                 unset($escapedDiffLines[$key]);
+                continue;
             }
             if ($escapedDiffLine === '+++ New') {
                 unset($escapedDiffLines[$key]);
+                continue;
             }
+            if ($escapedDiffLine === ' ') {
+                $escapedDiffLines[$key] = '';
+                continue;
+            }
+            $escapedDiffLine = $this->makePlusLinesGreen($escapedDiffLine);
+            $escapedDiffLine = $this->makeMinusLinesRed($escapedDiffLine);
+            $escapedDiffLine = $this->makeAtNoteCyan($escapedDiffLine);
+            $escapedDiffLine = $this->normalizeLineAtDiff($escapedDiffLine);
+            // final decorized line
+            $escapedDiffLines[$key] = $escapedDiffLine;
         }
-        $coloredLines = array_map(function (string $string): string {
-            $string = $this->makePlusLinesGreen($string);
-            $string = $this->makeMinusLinesRed($string);
-            $string = $this->makeAtNoteCyan($string);
-            if ($string === ' ') {
-                return '';
-            }
-            return $string;
-        }, $escapedDiffLines);
-        return sprintf($template, implode(\PHP_EOL, $coloredLines));
+        return sprintf($template, implode(\PHP_EOL, $escapedDiffLines));
+    }
+    /**
+     * Remove number diff, eg; @@ -67,6 +67,8 @@ to become @@ @@
+     */
+    private function normalizeLineAtDiff(string $string): string
+    {
+        return Strings::replace($string, self::AT_DIFF_LINE_REGEX, '<fg=cyan>@@ @@</fg=cyan>');
     }
     private function makePlusLinesGreen(string $string): string
     {

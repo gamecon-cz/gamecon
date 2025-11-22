@@ -56,7 +56,7 @@ class Cache
         $standardDirLen = \strlen($standardDir);
         foreach ($classes as $file) {
             if (\substr($file, 0, $standardDirLen) !== $standardDir) {
-                if (\substr($file, 0, $installDirLen) === $installDir) {
+                if ((string) \substr($file, 0, $installDirLen) === $installDir) {
                     // We are only interested in sniffs here.
                     continue;
                 }

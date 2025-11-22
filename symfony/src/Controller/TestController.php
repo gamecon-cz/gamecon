@@ -15,7 +15,7 @@ class TestController extends AbstractController
             <h1>Symfony Test Page</h1>
             <p>If you can see this, Symfony routing is working!</p>
             <p>Environment: ' . $this->getParameter('kernel.environment') . '</p>
-            <p><a href="/admin/">Back to admin</a></p>
+            <p><a href="' . URL_ADMIN . '">Back to admin</a></p>
         ');
     }
 }

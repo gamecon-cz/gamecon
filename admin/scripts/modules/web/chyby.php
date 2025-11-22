@@ -48,42 +48,55 @@ if (get(VyjimkovacChyba::VYJIMKA)) {
     } catch (Throwable $e2) {
         echo "Výjimku s rowid '" . htmlspecialchars(get(VyjimkovacChyba::VYJIMKA)) . "' nelze zobrazit.";
     }
+
     return;
 }
 
 // zobrazení přehledu všech výjimek
 $ignorovaneSql       = array_map([$db, 'quote'], $ignorovane);
 $ignorovaneSql       = implode(',', $ignorovaneSql);
-$ignorovaneSqlZpravy = array_map(function ($e) use ($db) {
+$ignorovaneSqlZpravy = array_map(function (
+    $e,
+) use
+(
+    $db,
+) {
     return $db->quote(explode('|', $e)[1] ?? '');
 }, $ignorovane);
 $ignorovaneSqlZpravy = implode(',', $ignorovaneSqlZpravy);
-$o                   = $db->query("
-  SELECT
-    *,
-    COUNT(1) as vyskytu,
-    COUNT(DISTINCT uzivatel) as uzivatelu,
-    MAX(vznikla) as posledni,
-    GROUP_CONCAT(rowid) as ids,
-    GROUP_CONCAT(uzivatel, '<br>') as uzivatele,
-    rowid
-  FROM chyby
-  WHERE
-    uzivatel IS NULL AND zprava NOT IN ($ignorovaneSqlZpravy) OR
-    uzivatel || '|' || zprava NOT IN ($ignorovaneSql)
-  GROUP BY zprava, soubor, radek, url
-  ORDER BY posledni DESC
-");
+$chybyExists         = $db->fetchSingleValue(<<<SQLITE
+SELECT 1 
+FROM sqlite_master 
+WHERE type='table' AND name='chyby'
+SQLITE,
+);
+
+$o = $chybyExists
+    ? $db->query("
+          SELECT
+            *,
+            COUNT(1) as vyskytu,
+            COUNT(DISTINCT uzivatel) as uzivatelu,
+            MAX(vznikla) as posledni,
+            GROUP_CONCAT(rowid) as ids,
+            GROUP_CONCAT(uzivatel, '<br>') as uzivatele,
+            rowid
+          FROM chyby
+          WHERE
+            uzivatel IS NULL AND zprava NOT IN ($ignorovaneSqlZpravy) OR
+            uzivatel || '|' || zprava NOT IN ($ignorovaneSql)
+          GROUP BY zprava, soubor, radek, url
+          ORDER BY posledni DESC
+        ")->fetchAll(PDO::FETCH_ASSOC)
+    : [];
 
 $t = new XTemplate(__DIR__ . '/chyby.xtpl');
-
-$o = $o->fetchAll(PDO::FETCH_ASSOC); // aby se spojení uzavřelo a necyklily se nové výjimky
 
 foreach ($o as $r) {
     // počet uživatelů česky
     if ($r['uzivatelu'] == 1) {
         $r['uzivatelu'] .= ' uživatel';
-    } else if ($r['uzivatelu'] && $r['uzivatelu'] < 5) {
+    } elseif ($r['uzivatelu'] && $r['uzivatelu'] < 5) {
         $r['uzivatelu'] .= ' uživatelé';
     } else {
         $r['uzivatelu'] .= ' uživatelů';
@@ -95,7 +108,9 @@ foreach ($o as $r) {
     // zvýraznění url
     $r['soubor'] = strtr($r['soubor'], '\\', '/');
     $r['soubor'] = strrafter($r['soubor'], '/');
-    $r['zdroj']  = $r['zdroj'] ? '&emsp;«&emsp;<a href="' . $r['zdroj'] . '">' . $r['zdroj'] . '</a>' : '';
+    $r['zdroj']  = $r['zdroj']
+        ? '&emsp;«&emsp;<a href="' . $r['zdroj'] . '">' . $r['zdroj'] . '</a>'
+        : '';
     // odkaz na detail
     if ($r['vyjimka'] && $r['jazyk'] == 'php') {
         $t->assign('detailUrl', VyjimkovacChyba::urlDetailuChyby((int)$r['rowid']));

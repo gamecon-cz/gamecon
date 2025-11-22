@@ -50,9 +50,10 @@ class Aktivita
     private static array $seznamUcastnikuCache    = [];
 
     private array              $a; // databázový řádek s aktivitou
-    private array              $kolekce = []; // nadřízená kolekce, v rámci které byla aktivita načtena
+    private array              $kolekce               = []; // nadřízená kolekce, v rámci které byla aktivita načtena
     private                    $lokace;
     private                    $stav;
+    private ?int               $idHlavniAktivityCache = null;
     private bool               $nova;           // jestli jde o nově uloženou aktivitu nebo načtenou z DB
     private bool               $prednacitat;    // zda bychom měli načíst data i pro další aktivity
     private SystemoveNastaveni $systemoveNastaveni;
@@ -274,18 +275,18 @@ SQL
         $this->a[Sql::PROBEHLA_KOREKCE] = $stav;
     }
 
-    public function slevaNasobic(
-        \Uzivatel             $u = null,
+    public function soucinitelCenyAktivity(
+        \Uzivatel             $u,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): float {
-        self::slevaNasobicDSC($dataSourcesCollector);
+        self::soucinitelCenyAktivityDSC($dataSourcesCollector);
 
         return (!$this->a[Sql::BEZ_SLEVY] && $u && $u->gcPrihlasen($dataSourcesCollector))
-            ? $u->finance()->slevaAktivity($dataSourcesCollector)
+            ? $u->finance()->soucinitelCenyAktivit($dataSourcesCollector)
             : 1.;
     }
 
-    public static function slevaNasobicDSC(?DataSourcesCollector $dataSourcesCollector)
+    public static function soucinitelCenyAktivityDSC(?DataSourcesCollector $dataSourcesCollector)
     {
         Finance::slevaAktivityDSC($dataSourcesCollector);
         Uzivatel::gcPrihlasenDSC($dataSourcesCollector);
@@ -307,7 +308,7 @@ SQL
             return round($this->cenaZaklad()) . '&thinsp;Kč';
         }
         if ($u && $u->gcPrihlasen()) {
-            return round($this->cenaZaklad() * $u->finance()->slevaAktivity()) . '&thinsp;Kč';
+            return round($this->cenaZaklad() * $u->finance()->soucinitelCenyAktivit()) . '&thinsp;Kč';
         }
 
         return round($this->cenaZaklad()) . '&thinsp;Kč';
@@ -398,6 +399,7 @@ SQL
             return self::zIds(
                 ids: $this->a[Sql::DITE],
                 systemoveNastaveni: $this->systemoveNastaveni,
+                prednacitat: $this->prednacitat,
             );
         }
 
@@ -428,6 +430,12 @@ SQL
         }
 
         return $this->a[Sql::DITE];
+    }
+
+    public function jeToDalsiKolo(): bool
+    {
+        return in_array($this->typId(), [TypAktivity::LKD, TypAktivity::DRD], true)
+               && empty($this->detiDbString());
     }
 
     /** Počet hodin do začátku aktivity (float) */
@@ -532,7 +540,7 @@ SQL
         if ($aktivita) {
             $aktivitaData = $aktivita->a; // databázový řádek
             $xtpl->assign($aktivitaData);
-            $xtpl->assign(Sql::POPIS, dbText($aktivitaData[Sql::POPIS]));
+            $xtpl->assign(Sql::POPIS, $aktivitaData[Sql::POPIS]);
             $xtpl->assign('urlObrazku', $aktivita->obrazek());
             $xtpl->assign(Sql::VYBAVENI, $aktivita->vybaveni());
         }
@@ -1122,7 +1130,7 @@ SQL
                             WHERE a.nazev_akce = $0
                             AND a.popis_kratky = $2
                             AND a.probehla_korekce = 1
-                            AND EXISTS(SELECT 1 FROM texty t JOIN akce_seznam aa ON aa.popis = t.id WHERE t.text = $1 AND aa.probehla_korekce = 1)
+                            AND EXISTS(SELECT 1 FROM akce_seznam aa WHERE aa.popis = $1 AND aa.probehla_korekce = 1)
                         )',
                     [0 => $data[Sql::NAZEV_AKCE], 1 => $data[Sql::POPIS], 2 => $data[Sql::POPIS_KRATKY]],
                 );
@@ -1207,9 +1215,14 @@ SQL
         if (!$this->a[Sql::PATRI_POD]) {
             return $this->id();
         }
+        if ($this->idHlavniAktivityCache !== null) {
+            return $this->idHlavniAktivityCache;
+        }
         $idHlavniAkce = dbOneCol('SELECT id_hlavni_akce FROM akce_instance WHERE id_instance = ' . $this->a[Sql::PATRI_POD]);
         if ($idHlavniAkce) {
-            return (int)$idHlavniAkce;
+            $this->idHlavniAktivityCache = (int)$idHlavniAkce;
+
+            return $this->idHlavniAktivityCache;
         }
         throw new \RuntimeException("Chybí záznam o hlavní aktivitě pro instanci {$this->a[Sql::PATRI_POD]}");
     }
@@ -1222,6 +1235,11 @@ SQL
     public function jeInstance(): bool
     {
         return !$this->jeHlavni();
+    }
+
+    public function jeTeamova(): bool
+    {
+        return (bool)$this->a[Sql::TEAMOVA];
     }
 
     /**
@@ -1304,10 +1322,18 @@ SQL
         return true;
     }
 
-    /** Vrací celkovou kapacitu aktivity */
-    public function kapacita()
+    /** Vrací celkovou kapacitu aktivity, která platí pokud aktivita není teamová */
+    public function neteamovaKapacita(): int
     {
-        return $this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F];
+        return (int) ($this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F]);
+    }
+
+    /** Vrací celkovou kapacitu aktivity */
+    public function finalniKapacita(): ?int
+    {
+        return $this->jeTeamova()
+            ? $this->tymovaKapacita()
+            : $this->neteamovaKapacita();
     }
 
     /**
@@ -1876,16 +1902,15 @@ SQL
         bool   $resetujKorekci = false,
     ) {
         if ($popis === null) {
-            return dbMarkdown($this->a[Sql::POPIS]);
+            return markdown($this->a[Sql::POPIS]);
         }
-        $oldId = $this->a[Sql::POPIS];
-        $id = dbTextHash($popis);
+        $oldPopis = $this->a[Sql::POPIS];
         $zmeny = [];
         // popis musíme změnit všem aktivitám, které "patří pod" jinou, i kdyby se text nezměnil, abychom ho případně rozkopírovali kde ještě není
-        if ($this->a[Sql::PATRI_POD] || $id != $oldId) {
-            $zmeny[Sql::POPIS] = $id;
+        if ($this->a[Sql::PATRI_POD] || $popis !== $oldPopis) {
+            $zmeny[Sql::POPIS] = $popis;
         }
-        if ($resetujKorekci && $id != $oldId) {
+        if ($resetujKorekci && $popis !== $oldPopis) {
             $zmeny[Sql::PROBEHLA_KOREKCE] = 0;
         }
 
@@ -1899,22 +1924,14 @@ SQL
                 ? [Sql::PATRI_POD => $this->a[Sql::PATRI_POD]]
                 : [Sql::ID_AKCE => $this->id()],
         );
-        $this->a[Sql::POPIS] = $id;
-
-        dbTextClean($oldId);
+        $this->a[Sql::POPIS] = $popis;
 
         return $popis;
     }
 
     public function getPopisRaw(): ?string
     {
-        return dbOneCol(<<<SQL
-SELECT text
-FROM texty
-WHERE id = $1
-SQL
-            , [$this->a[Sql::POPIS]],
-        );
+        return $this->a[Sql::POPIS] ?: null;
     }
 
     /**
@@ -2288,7 +2305,7 @@ SQL
      * @return array<int, array{id: int, pohlavi: string|null, stav: int|null}>
      * @see prihlaseniRaw
      */
-    private function prihlaseniRawArray(?DataSourcesCollector $dataSourcesCollector = null): array
+    public function prihlaseniRawArray(?DataSourcesCollector $dataSourcesCollector = null): array
     {
         $prihlaseniRaw = trim($this->prihlaseniRaw($dataSourcesCollector), ',');
         if (!isset(self::$prihlaseniRawArrayCache[$prihlaseniRaw])) {
@@ -2440,8 +2457,9 @@ SQL
         return $this->pocetPrihlasenehoPohlavi(Pohlavi::MUZ_KOD, $dataSourcesCollector);
     }
 
-    private function pocetPrihlasenehoPohlavi(string $pocitanePohlavi, ?DataSourcesCollector $dataSourcesCollector = null): int
-    {
+    private function pocetPrihlasenehoPohlavi(string                $pocitanePohlavi,
+                                              ?DataSourcesCollector $dataSourcesCollector = null,
+    ): int {
         return count(
             array_filter(
                 array_map(static fn(
@@ -2536,11 +2554,6 @@ SQL
         $stavPrihlaseni = $this->stavPrihlaseni($ucastnik);
 
         return StavPrihlaseni::nedorazilNeboZrusil($stavPrihlaseni);
-    }
-
-    public function platiStorno(Uzivatel $uzivatel): bool
-    {
-        return StavPrihlaseni::platiStorno($this->stavPrihlaseni($uzivatel));
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
@@ -2957,6 +2970,7 @@ HTML
     private function reset(): void
     {
         $this->a = [];
+        $this->idHlavniAktivityCache = null;
         $this->prezence = null;
         $this->seznamUcastniku = null;
         $this->organizatoriIds = null;
@@ -3415,7 +3429,7 @@ SQL,
         }
 
         // políčka pro výběr míst
-        for ($i = 0; $i < $this->kapacita() - 1; $i++) {
+        for ($i = 0; $i < $this->neteamovaKapacita() - 1; $i++) {
             $t->assign('postnameMisto', self::TEAM_KLIC . '[' . $i . ']');
             if ($i >= $this->a[Sql::TEAM_MIN] - 1) { // -1 za týmlídra
                 $t->parse('formular.misto.odebrat');
@@ -3465,7 +3479,7 @@ SQL,
             }
         }
         $clenove = Uzivatel::zIds($up);
-        $novaKapacita = $a->kapacita() - $zamceno;
+        $novaKapacita = $a->neteamovaKapacita() - $zamceno;
         $nazev = post(self::TEAM_KLIC . 'Nazev');
         $dalsiKola = array_values(array_map(function (
             $id,
@@ -3970,6 +3984,7 @@ SQL,
     public static function zIds(
         $ids,
         SystemoveNastaveni $systemoveNastaveni = null,
+        bool $prednacitat = false,
     ): array {
         if (empty($ids)) {
             return [];
@@ -3991,6 +4006,7 @@ SQL,
             systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
             dalsiPouziteSqlTabulky: [],
             where1: 'WHERE a.id_akce IN(' . dbQa($ids) . ')',
+            prednacitat: $prednacitat,
         );
     }
 

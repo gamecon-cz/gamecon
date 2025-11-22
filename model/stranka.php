@@ -15,7 +15,7 @@ class Stranka extends DbObject
     public function html()
     {
         if (!isset($this->html)) {
-            $html       = markdownNoCache($this->r['obsah']);
+            $html       = markdown($this->r['obsah']);
             $html       = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function ($m) {
                 $w = Widget::zNazvu($m[2]);
                 if ($w) {

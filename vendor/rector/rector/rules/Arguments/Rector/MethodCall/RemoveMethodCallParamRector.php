@@ -11,8 +11,9 @@ use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
+ * @note used extensively https://github.com/search?q=RemoveMethodCallParamRector%3A%3Aclass+language%3APHP&type=code&l=PHP
  * @see \Rector\Tests\Arguments\Rector\MethodCall\RemoveMethodCallParamRector\RemoveMethodCallParamRectorTest
  */
 final class RemoveMethodCallParamRector extends AbstractRector implements ConfigurableRectorInterface

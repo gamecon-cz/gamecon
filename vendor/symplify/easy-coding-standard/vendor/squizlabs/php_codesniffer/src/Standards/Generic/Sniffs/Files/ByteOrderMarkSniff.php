@@ -50,7 +50,7 @@ class ByteOrderMarkSniff implements Sniff
         $tokens = $phpcsFile->getTokens();
         foreach ($this->bomDefinitions as $bomName => $expectedBomHex) {
             $bomByteLength = \strlen($expectedBomHex) / 2;
-            $htmlBomHex = \bin2hex(\substr($tokens[$stackPtr]['content'], 0, $bomByteLength));
+            $htmlBomHex = \bin2hex((string) \substr($tokens[$stackPtr]['content'], 0, $bomByteLength));
             if ($htmlBomHex === $expectedBomHex) {
                 $errorData = [$bomName];
                 $error = 'File contains %s byte order mark, which may corrupt your application';

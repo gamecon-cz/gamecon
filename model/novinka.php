@@ -8,12 +8,12 @@ use \Gamecon\Cas\DateTimeCz;
 class Novinka extends DbObject
 {
 
-    protected static    $tabulka      = 'novinky';
-    protected static    $prvniObrazek = '@<img src="([^"]+)"[^>]*>@'; // RV odpovídající prvnímu obrázku v textu
-    private ?DateTimeCz $vydat        = null;
+    protected static $tabulka = 'novinky';
+    protected static $prvniObrazek = '@<img src="([^"]+)"[^>]*>@'; // RV odpovídající prvnímu obrázku v textu
+    private ?DateTimeCz $vydat = null;
 
     const NOVINKA = 1;
-    const BLOG    = 2;
+    const BLOG = 2;
 
     function autor()
     {
@@ -50,9 +50,9 @@ class Novinka extends DbObject
         return @$m[1]; // TODO odstranit
     }
 
-    function text()
+    function text(): ?string
     {
-        return dbMarkdown($this->r['text']);
+        return markdown($this->r['text']);
     }
 
     function typ()
@@ -60,14 +60,17 @@ class Novinka extends DbObject
         return $this->r['typ'];
     }
 
-    function typSlovy()
+    function typSlovy(): string
     {
+        $typ = (int)($this->r['typ'] ?? null);   // ošetření i případného null / neexistence
         $typy = [
             self::BLOG    => 'blog',
             self::NOVINKA => 'novinka',
         ];
-        return $typy[$this->r['typ']];
+
+        return $typy[$typ] ?? 'neznámý typ';     // fallback místo „Undefined array key“
     }
+
 
     /** název enkódovaný do url formátu */
     function url()

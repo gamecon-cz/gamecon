@@ -251,7 +251,7 @@ final class ReturnAssignmentFixer extends AbstractFixer
         if ($tokens[$returnIndex - 1]->isWhitespace()) {
             $content = $tokens[$returnIndex - 1]->getContent();
             $fistLinebreakPos = \strrpos($content, "\n");
-            $content = \false === $fistLinebreakPos ? ' ' : \substr($content, $fistLinebreakPos);
+            $content = \false === $fistLinebreakPos ? ' ' : (string) \substr($content, $fistLinebreakPos);
             $tokens[$returnIndex - 1] = new Token([\T_WHITESPACE, $content]);
         }
         // remove the variable and the assignment

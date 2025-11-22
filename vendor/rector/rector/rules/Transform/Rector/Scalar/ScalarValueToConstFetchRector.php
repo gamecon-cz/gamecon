@@ -16,11 +16,11 @@ use Rector\Rector\AbstractRector;
 use Rector\Transform\ValueObject\ScalarValueToConstFetch;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
- * @see Rector\Tests\Transform\Rector\Scalar\ScalarValueToConstFetchRector\ScalarValueToConstFetchRectorTest
+ * @see \Rector\Tests\Transform\Rector\Scalar\ScalarValueToConstFetchRector\ScalarValueToConstFetchRectorTest
  */
-class ScalarValueToConstFetchRector extends AbstractRector implements ConfigurableRectorInterface
+final class ScalarValueToConstFetchRector extends AbstractRector implements ConfigurableRectorInterface
 {
     /**
      * @var ScalarValueToConstFetch[]

@@ -5,7 +5,7 @@
  *
  * @see \PHP_CodeSniffer\Tests\Core\Ruleset\RegisterSniffsRejectsInvalidSniffTest
  */
-namespace ECSPrefix202509\Fixtures\TestStandard\Sniffs\InvalidSniffError;
+namespace ECSPrefix202510\Fixtures\TestStandard\Sniffs\InvalidSniffError;
 
 use PHP_CodeSniffer\Files\File;
 final class NoImplementsNoRegisterSniff

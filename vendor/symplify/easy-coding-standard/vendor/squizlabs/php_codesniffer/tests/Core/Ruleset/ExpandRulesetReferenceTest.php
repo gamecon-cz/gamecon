@@ -30,7 +30,7 @@ final class ExpandRulesetReferenceTest extends AbstractRulesetTestCase
         $standard = __DIR__ . '/ExpandRulesetReferenceTest.xml';
         $config = new ConfigDouble(["--standard={$standard}"]);
         $ruleset = new Ruleset($config);
-        $expected = ['ExternalA.CheckSomething.Valid' => 'ECSPrefix202509\\Fixtures\\ExternalA\\Sniffs\\CheckSomething\\ValidSniff', 'TestStandard.ValidSniffs.RegisterEmptyArray' => 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs\\ValidSniffs\\RegisterEmptyArraySniff', 'ExternalB.CheckMore.Valid' => 'ECSPrefix202509\\Fixtures\\ExternalB\\Sniffs\\CheckMore\\ValidSniff'];
+        $expected = ['ExternalA.CheckSomething.Valid' => 'ECSPrefix202510\\Fixtures\\ExternalA\\Sniffs\\CheckSomething\\ValidSniff', 'TestStandard.ValidSniffs.RegisterEmptyArray' => 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs\\ValidSniffs\\RegisterEmptyArraySniff', 'ExternalB.CheckMore.Valid' => 'ECSPrefix202510\\Fixtures\\ExternalB\\Sniffs\\CheckMore\\ValidSniff'];
         $this->assertSame($expected, $ruleset->sniffCodes);
     }
     //end testRulesetRelativePathReferences()

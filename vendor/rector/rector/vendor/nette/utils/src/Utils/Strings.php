@@ -5,10 +5,10 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202509\Nette\Utils;
+namespace RectorPrefix202511\Nette\Utils;
 
-use RectorPrefix202509\JetBrains\PhpStorm\Language;
-use RectorPrefix202509\Nette;
+use RectorPrefix202511\JetBrains\PhpStorm\Language;
+use RectorPrefix202511\Nette;
 use function array_keys, array_map, array_shift, array_values, bin2hex, class_exists, defined, extension_loaded, function_exists, htmlspecialchars, htmlspecialchars_decode, iconv, iconv_strlen, iconv_substr, implode, in_array, is_array, is_callable, is_int, is_object, is_string, key, max, mb_convert_case, mb_strlen, mb_strtolower, mb_strtoupper, mb_substr, pack, preg_last_error, preg_last_error_msg, preg_quote, preg_replace, str_contains, str_ends_with, str_repeat, str_replace, str_starts_with, strlen, strpos, strrev, strrpos, strtolower, strtoupper, strtr, substr, trim, unpack, utf8_decode;
 use const ENT_IGNORE, ENT_NOQUOTES, ICONV_IMPL, MB_CASE_TITLE, PHP_EOL, PREG_OFFSET_CAPTURE, PREG_PATTERN_ORDER, PREG_SET_ORDER, PREG_SPLIT_DELIM_CAPTURE, PREG_SPLIT_NO_EMPTY, PREG_SPLIT_OFFSET_CAPTURE, PREG_UNMATCHED_AS_NULL;
 /**
@@ -316,7 +316,7 @@ class Strings
                     while ($i && $first[$i - 1] >= "\x80" && $first[$i] >= "\x80" && $first[$i] < "\xc0") {
                         $i--;
                     }
-                    return substr($first, 0, $i);
+                    return (string) substr($first, 0, $i);
                 }
             }
         }
@@ -382,7 +382,7 @@ class Strings
     public static function before(string $haystack, string $needle, int $nth = 1): ?string
     {
         $pos = self::pos($haystack, $needle, $nth);
-        return $pos === null ? null : substr($haystack, 0, $pos);
+        return $pos === null ? null : (string) substr($haystack, 0, $pos);
     }
     /**
      * Returns part of $haystack after $nth occurence of $needle or returns null if the needle was not found.
@@ -391,7 +391,7 @@ class Strings
     public static function after(string $haystack, string $needle, int $nth = 1): ?string
     {
         $pos = self::pos($haystack, $needle, $nth);
-        return $pos === null ? null : substr($haystack, $pos + strlen($needle));
+        return $pos === null ? null : (string) substr($haystack, $pos + strlen($needle));
     }
     /**
      * Returns position in characters of $nth occurence of $needle in $haystack or null if the $needle was not found.
@@ -400,7 +400,7 @@ class Strings
     public static function indexOf(string $haystack, string $needle, int $nth = 1): ?int
     {
         $pos = self::pos($haystack, $needle, $nth);
-        return $pos === null ? null : self::length(substr($haystack, 0, $pos));
+        return $pos === null ? null : self::length((string) substr($haystack, 0, $pos));
     }
     /**
      * Returns position in characters of $nth occurence of $needle in $haystack or null if the needle was not found.
@@ -575,9 +575,9 @@ class Strings
         foreach ($groups as &$matches) {
             foreach ($matches as &$match) {
                 if ($match[1] > $lastBytes) {
-                    $lastChars += self::length(substr($s, $lastBytes, $match[1] - $lastBytes));
+                    $lastChars += self::length((string) substr($s, $lastBytes, $match[1] - $lastBytes));
                 } elseif ($match[1] < $lastBytes) {
-                    $lastChars -= self::length(substr($s, $match[1], $lastBytes - $match[1]));
+                    $lastChars -= self::length((string) substr($s, $match[1], $lastBytes - $match[1]));
                 }
                 $lastBytes = $match[1];
                 $match[1] = $lastChars;

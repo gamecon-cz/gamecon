@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\String;
+namespace RectorPrefix202511\Symfony\Component\String;
 
-use RectorPrefix202509\Symfony\Component\String\Exception\ExceptionInterface;
-use RectorPrefix202509\Symfony\Component\String\Exception\InvalidArgumentException;
-use RectorPrefix202509\Symfony\Component\String\Exception\RuntimeException;
+use RectorPrefix202511\Symfony\Component\String\Exception\ExceptionInterface;
+use RectorPrefix202511\Symfony\Component\String\Exception\InvalidArgumentException;
+use RectorPrefix202511\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract characters.
  *
@@ -484,7 +484,7 @@ abstract class AbstractString implements \JsonSerializable
         try {
             $b->string = mb_convert_encoding($this->string, $toEncoding, 'UTF-8');
         } catch (\ValueError $e) {
-            if (!\function_exists('iconv') && !\function_exists('RectorPrefix202509\iconv')) {
+            if (!\function_exists('iconv') && !\function_exists('RectorPrefix202511\iconv')) {
                 throw new InvalidArgumentException($e->getMessage(), $e->getCode(), $e);
             }
             $b->string = iconv('UTF-8', $toEncoding, $this->string);
@@ -534,7 +534,7 @@ abstract class AbstractString implements \JsonSerializable
             $prefix = (string) $prefix;
         }
         if ('' !== $prefix && \strlen($this->string) >= \strlen($prefix) && 0 === substr_compare($this->string, $prefix, 0, \strlen($prefix), $this->ignoreCase)) {
-            $str->string = substr($this->string, \strlen($prefix));
+            $str->string = (string) substr($this->string, \strlen($prefix));
         }
         return $str;
     }
@@ -565,7 +565,7 @@ abstract class AbstractString implements \JsonSerializable
             $suffix = (string) $suffix;
         }
         if ('' !== $suffix && \strlen($this->string) >= \strlen($suffix) && 0 === substr_compare($this->string, $suffix, -\strlen($suffix), null, $this->ignoreCase)) {
-            $str->string = substr($this->string, 0, -\strlen($suffix));
+            $str->string = (string) substr($this->string, 0, -\strlen($suffix));
         }
         return $str;
     }

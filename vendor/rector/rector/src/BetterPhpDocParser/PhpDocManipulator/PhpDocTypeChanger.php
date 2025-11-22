@@ -99,6 +99,30 @@ final class PhpDocTypeChanger
         $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($stmt);
         return \true;
     }
+    public function changeReturnTypeNode(FunctionLike $functionLike, PhpDocInfo $phpDocInfo, TypeNode $newTypeNode): void
+    {
+        $existingReturnTagValueNode = $phpDocInfo->getReturnTagValue();
+        if ($existingReturnTagValueNode instanceof ReturnTagValueNode) {
+            // enforce reprint of copied type node
+            $newTypeNode->setAttribute('orig_node', null);
+            $existingReturnTagValueNode->type = $newTypeNode;
+        } else {
+            $returnTagValueNode = new ReturnTagValueNode($newTypeNode, '');
+            $phpDocInfo->addTagValueNode($returnTagValueNode);
+        }
+        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($functionLike);
+    }
+    public function changeParamTypeNode(FunctionLike $functionLike, PhpDocInfo $phpDocInfo, Param $param, string $paramName, TypeNode $newTypeNode): void
+    {
+        $existingParamTagValueNode = $phpDocInfo->getParamTagValueByName($paramName);
+        if ($existingParamTagValueNode instanceof ParamTagValueNode) {
+            $existingParamTagValueNode->type = $newTypeNode;
+        } else {
+            $paramTagValueNode = $this->paramPhpDocNodeFactory->create($newTypeNode, $param);
+            $phpDocInfo->addTagValueNode($paramTagValueNode);
+        }
+        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($functionLike);
+    }
     public function changeReturnType(FunctionLike $functionLike, PhpDocInfo $phpDocInfo, Type $newType): bool
     {
         // better not touch this, can crash
@@ -181,9 +205,14 @@ final class PhpDocTypeChanger
      */
     public function changeVarTypeNode(Stmt $stmt, PhpDocInfo $phpDocInfo, TypeNode $typeNode): void
     {
-        // add completely new one
-        $varTagValueNode = new VarTagValueNode($typeNode, '', '');
-        $phpDocInfo->addTagValueNode($varTagValueNode);
+        $existingVarTagValueNode = $phpDocInfo->getVarTagValueNode();
+        if ($existingVarTagValueNode instanceof VarTagValueNode) {
+            $existingVarTagValueNode->type = $typeNode;
+        } else {
+            // add completely new one
+            $varTagValueNode = new VarTagValueNode($typeNode, '', '');
+            $phpDocInfo->addTagValueNode($varTagValueNode);
+        }
         $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($stmt);
     }
 }

@@ -38,6 +38,7 @@ use PHPStan\Type\NeverType;
 use PHPStan\Type\NullType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\ObjectWithoutClassType;
+use PHPStan\Type\StringType;
 use PHPStan\Type\ThisType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
@@ -50,13 +51,12 @@ use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Contract\NodeTypeResolverAwareInterface;
 use Rector\NodeTypeResolver\Contract\NodeTypeResolverInterface;
 use Rector\NodeTypeResolver\Node\AttributeKey;
-use Rector\NodeTypeResolver\NodeTypeCorrector\AccessoryNonEmptyArrayTypeCorrector;
-use Rector\NodeTypeResolver\NodeTypeCorrector\AccessoryNonEmptyStringTypeCorrector;
-use Rector\NodeTypeResolver\NodeTypeCorrector\GenericClassStringTypeCorrector;
 use Rector\NodeTypeResolver\PHPStan\ObjectWithoutClassTypeWithParentTypes;
+use Rector\Php\PhpVersionProvider;
 use Rector\StaticTypeMapper\ValueObject\Type\AliasedObjectType;
 use Rector\StaticTypeMapper\ValueObject\Type\ShortenedObjectType;
 use Rector\TypeDeclaration\PHPStan\ObjectTypeSpecifier;
+use Rector\ValueObject\PhpVersion;
 final class NodeTypeResolver
 {
     /**
@@ -70,19 +70,11 @@ final class NodeTypeResolver
     /**
      * @readonly
      */
-    private GenericClassStringTypeCorrector $genericClassStringTypeCorrector;
+    private \Rector\NodeTypeResolver\NodeTypeCorrector $nodeTypeCorrector;
     /**
      * @readonly
      */
     private ReflectionProvider $reflectionProvider;
-    /**
-     * @readonly
-     */
-    private AccessoryNonEmptyStringTypeCorrector $accessoryNonEmptyStringTypeCorrector;
-    /**
-     * @readonly
-     */
-    private AccessoryNonEmptyArrayTypeCorrector $accessoryNonEmptyArrayTypeCorrector;
     /**
      * @readonly
      */
@@ -91,6 +83,10 @@ final class NodeTypeResolver
      * @readonly
      */
     private NodeNameResolver $nodeNameResolver;
+    /**
+     * @readonly
+     */
+    private PhpVersionProvider $phpVersionProvider;
     /**
      * @var string
      */
@@ -102,16 +98,15 @@ final class NodeTypeResolver
     /**
      * @param NodeTypeResolverInterface[] $nodeTypeResolvers
      */
-    public function __construct(ObjectTypeSpecifier $objectTypeSpecifier, ClassAnalyzer $classAnalyzer, GenericClassStringTypeCorrector $genericClassStringTypeCorrector, ReflectionProvider $reflectionProvider, AccessoryNonEmptyStringTypeCorrector $accessoryNonEmptyStringTypeCorrector, AccessoryNonEmptyArrayTypeCorrector $accessoryNonEmptyArrayTypeCorrector, RenamedClassesDataCollector $renamedClassesDataCollector, NodeNameResolver $nodeNameResolver, iterable $nodeTypeResolvers)
+    public function __construct(ObjectTypeSpecifier $objectTypeSpecifier, ClassAnalyzer $classAnalyzer, \Rector\NodeTypeResolver\NodeTypeCorrector $nodeTypeCorrector, ReflectionProvider $reflectionProvider, RenamedClassesDataCollector $renamedClassesDataCollector, NodeNameResolver $nodeNameResolver, PhpVersionProvider $phpVersionProvider, iterable $nodeTypeResolvers)
     {
         $this->objectTypeSpecifier = $objectTypeSpecifier;
         $this->classAnalyzer = $classAnalyzer;
-        $this->genericClassStringTypeCorrector = $genericClassStringTypeCorrector;
+        $this->nodeTypeCorrector = $nodeTypeCorrector;
         $this->reflectionProvider = $reflectionProvider;
-        $this->accessoryNonEmptyStringTypeCorrector = $accessoryNonEmptyStringTypeCorrector;
-        $this->accessoryNonEmptyArrayTypeCorrector = $accessoryNonEmptyArrayTypeCorrector;
         $this->renamedClassesDataCollector = $renamedClassesDataCollector;
         $this->nodeNameResolver = $nodeNameResolver;
+        $this->phpVersionProvider = $phpVersionProvider;
         foreach ($nodeTypeResolvers as $nodeTypeResolver) {
             if ($nodeTypeResolver instanceof NodeTypeResolverAwareInterface) {
                 $nodeTypeResolver->autowire($this);
@@ -200,7 +195,7 @@ final class NodeTypeResolver
         }
         $type = $this->resolveByNodeTypeResolvers($node);
         if ($type instanceof Type) {
-            $type = $this->correctType($type);
+            $type = $this->nodeTypeCorrector->correctType($type);
             if ($type instanceof ObjectType) {
                 $scope = $node->getAttribute(AttributeKey::SCOPE);
                 $type = $this->objectTypeSpecifier->narrowToFullyQualifiedOrAliasedObjectType($node, $type, $scope, \true);
@@ -221,7 +216,7 @@ final class NodeTypeResolver
         if (!$node instanceof Expr) {
             return new MixedType();
         }
-        $type = $this->correctType($scope->getType($node));
+        $type = $this->nodeTypeCorrector->correctType($scope->getType($node));
         // hot fix for phpstan not resolving chain method calls
         if (!$node instanceof MethodCall) {
             return $type;
@@ -260,7 +255,7 @@ final class NodeTypeResolver
             if ($this->isAnonymousObjectType($type)) {
                 return new ObjectWithoutClassType();
             }
-            return $this->correctType($type);
+            return $this->nodeTypeCorrector->correctType($type);
         }
         return $this->resolveNativeUnionType($type);
     }
@@ -328,12 +323,6 @@ final class NodeTypeResolver
         }
         return $classReflection->hasTraitUse($objectType->getClassName());
     }
-    private function correctType(Type $type): Type
-    {
-        $type = $this->accessoryNonEmptyStringTypeCorrector->correct($type);
-        $type = $this->genericClassStringTypeCorrector->correct($type);
-        return $this->accessoryNonEmptyArrayTypeCorrector->correct($type);
-    }
     /**
      * Allow pull type from
      *
@@ -379,7 +368,7 @@ final class NodeTypeResolver
         }
         return $type;
     }
-    private function resolveNativeUnionType(UnionType $unionType): Type
+    private function resolveNativeUnionType(UnionType $unionType): UnionType
     {
         $hasChanged = \false;
         $types = $unionType->getTypes();
@@ -527,6 +516,9 @@ final class NodeTypeResolver
             if (!$functionReflection instanceof NativeFunctionReflection) {
                 return $scope->getNativeType($expr);
             }
+            if ($this->isSubstrOnPHP74($expr)) {
+                return new UnionType([new StringType(), new ConstantBooleanType(\false)]);
+            }
             return $scope->getType($expr);
         }
         return $scope->getNativeType($expr);
@@ -553,5 +545,18 @@ final class NodeTypeResolver
             return \false;
         }
         return $classReflection->getName() === $objectType->getClassName();
+    }
+    /**
+     * substr can return false on php 7.x and bellow
+     */
+    private function isSubstrOnPHP74(FuncCall $funcCall): bool
+    {
+        if ($funcCall->isFirstClassCallable()) {
+            return \false;
+        }
+        if (!$this->nodeNameResolver->isName($funcCall, 'substr')) {
+            return \false;
+        }
+        return !$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersion::PHP_80);
     }
 }

@@ -47,7 +47,7 @@ class EndFileNoNewlineSniff implements Sniff
             --$stackPtr;
         }
         $eolCharLen = \strlen($phpcsFile->eolChar);
-        $lastChars = \substr($tokens[$stackPtr]['content'], $eolCharLen * -1);
+        $lastChars = (string) \substr($tokens[$stackPtr]['content'], $eolCharLen * -1);
         if ($lastChars === $phpcsFile->eolChar) {
             $error = 'File must not end with a newline character';
             $fix = $phpcsFile->addFixableError($error, $stackPtr, 'Found');

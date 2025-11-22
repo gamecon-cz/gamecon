@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202509;
+namespace RectorPrefix202511;
 
 use Rector\Config\RectorConfig;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\AddParamTypeFromDependsRector;
@@ -16,9 +16,12 @@ use Rector\PHPUnit\CodeQuality\Rector\Class_\TypeWillReturnCallableArrowFunction
 use Rector\PHPUnit\CodeQuality\Rector\Class_\YieldDataProviderRector;
 use Rector\PHPUnit\CodeQuality\Rector\ClassMethod\AddInstanceofAssertForNullableInstanceRector;
 use Rector\PHPUnit\CodeQuality\Rector\ClassMethod\DataProviderArrayItemsNewLinedRector;
+use Rector\PHPUnit\CodeQuality\Rector\ClassMethod\EntityDocumentCreateMockToDirectNewRector;
 use Rector\PHPUnit\CodeQuality\Rector\ClassMethod\RemoveEmptyTestMethodRector;
 use Rector\PHPUnit\CodeQuality\Rector\ClassMethod\ReplaceTestAnnotationWithPrefixedFunctionRector;
+use Rector\PHPUnit\CodeQuality\Rector\Expression\AssertArrayCastedObjectToAssertSameRector;
 use Rector\PHPUnit\CodeQuality\Rector\Foreach_\SimplifyForeachInstanceOfRector;
+use Rector\PHPUnit\CodeQuality\Rector\FuncCall\AssertFuncCallToPHPUnitAssertRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertCompareOnCountableWithMethodToAssertCountRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertComparisonToSpecificMethodRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertEmptyNullableObjectToAssertInstanceofRector;
@@ -35,15 +38,21 @@ use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertSameTrueFalseToAssertTrue
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertTrueFalseToSpecificMethodRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\FlipAssertRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\MatchAssertSameExpectedTypeRector;
+use Rector\PHPUnit\CodeQuality\Rector\MethodCall\MergeWithCallableAndWillReturnRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\NarrowIdenticalWithConsecutiveRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\NarrowSingleWillReturnCallbackRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\RemoveExpectAnyFromMockRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\ScalarArgumentToExpectedParamTypeRector;
+use Rector\PHPUnit\CodeQuality\Rector\MethodCall\SimplerWithIsInstanceOfRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\SingleWithConsecutiveToWithRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\StringCastAssertStringContainsStringRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\UseSpecificWillMethodRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\UseSpecificWithMethodRector;
+use Rector\PHPUnit\CodeQuality\Rector\MethodCall\WithCallbackIdenticalToStandaloneAssertsRector;
+use Rector\PHPUnit\CodeQuality\Rector\StmtsAwareInterface\DeclareStrictTypesTestsRector;
 use Rector\PHPUnit\PHPUnit60\Rector\MethodCall\GetMockBuilderGetMockToCreateMockRector;
+use Rector\PHPUnit\PHPUnit90\Rector\MethodCall\ReplaceAtMethodWithDesiredMatcherRector;
+use Rector\Privatization\Rector\Class_\FinalizeTestCaseClassRector;
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->rules([
         ConstructClassMethodToSetUpTestCaseRector::class,
@@ -82,12 +91,14 @@ return static function (RectorConfig $rectorConfig): void {
         AssertInstanceOfComparisonRector::class,
         AssertPropertyExistsRector::class,
         AssertRegExpRector::class,
+        AssertFuncCallToPHPUnitAssertRector::class,
         SimplifyForeachInstanceOfRector::class,
         UseSpecificWillMethodRector::class,
         UseSpecificWithMethodRector::class,
         AssertEmptyNullableObjectToAssertInstanceofRector::class,
         // avoid call on nullable object
         AddInstanceofAssertForNullableInstanceRector::class,
+        AssertArrayCastedObjectToAssertSameRector::class,
         /**
          * Improve direct testing of your code, without mock creep. Make it simple, clear and easy to maintain:
          *
@@ -100,7 +111,14 @@ return static function (RectorConfig $rectorConfig): void {
          */
         RemoveExpectAnyFromMockRector::class,
         SingleMockPropertyTypeRector::class,
+        SimplerWithIsInstanceOfRector::class,
+        FinalizeTestCaseClassRector::class,
+        DeclareStrictTypesTestsRector::class,
+        WithCallbackIdenticalToStandaloneAssertsRector::class,
+        MergeWithCallableAndWillReturnRector::class,
         // prefer simple mocking
         GetMockBuilderGetMockToCreateMockRector::class,
+        EntityDocumentCreateMockToDirectNewRector::class,
+        ReplaceAtMethodWithDesiredMatcherRector::class,
     ]);
 };

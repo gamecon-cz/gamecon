@@ -79,7 +79,7 @@ final class ExpandRulesetReferenceHomePathTest extends AbstractRulesetTestCase
         $standard = __DIR__ . '/ExpandRulesetReferenceHomePathTest.xml';
         $config = new ConfigDouble(["--standard={$standard}"]);
         $ruleset = new Ruleset($config);
-        $expected = ['MyStandard.Category.Valid' => 'ECSPrefix202509\\FakeHomePath\\MyStandard\\Sniffs\\Category\\ValidSniff'];
+        $expected = ['MyStandard.Category.Valid' => 'ECSPrefix202510\\FakeHomePath\\MyStandard\\Sniffs\\Category\\ValidSniff'];
         $this->assertSame($expected, $ruleset->sniffCodes);
     }
     //end testHomePathRefGetsExpandedAndFindsSniff()

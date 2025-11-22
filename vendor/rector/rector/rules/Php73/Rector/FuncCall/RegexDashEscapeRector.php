@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Php73\Rector\FuncCall;
 
-use RectorPrefix202509\Nette\Utils\Strings;
+use RectorPrefix202511\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Scalar\String_;
 use Rector\NodeTypeResolver\Node\AttributeKey;
@@ -69,7 +69,7 @@ CODE_SAMPLE
             return null;
         }
         if ($node->getAttribute(AttributeKey::RAW_VALUE) !== null) {
-            $stringValue = substr($node->getAttribute(AttributeKey::RAW_VALUE), 1, -1);
+            $stringValue = (string) substr($node->getAttribute(AttributeKey::RAW_VALUE), 1, -1);
         } else {
             $stringValue = $node->value;
         }

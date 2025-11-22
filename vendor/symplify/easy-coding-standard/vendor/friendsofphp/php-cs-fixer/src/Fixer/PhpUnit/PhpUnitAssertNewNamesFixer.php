@@ -34,9 +34,9 @@ final class PhpUnitAssertNewNamesFixer extends AbstractPhpUnitFixer
         return new FixerDefinition('Rename deprecated PHPUnit assertions like `assertFileNotExists` to new methods like `assertFileDoesNotExist`.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-final class MyTest extends \ECSPrefix202509\PHPUnit_Framework_TestCase
+final class MyTest extends \ECSPrefix202510\PHPUnit_Framework_TestCase
 {
     public function testSomeTest()
     {
@@ -44,7 +44,7 @@ final class MyTest extends \ECSPrefix202509\PHPUnit_Framework_TestCase
         $this->assertNotIsWritable("path.php");
     }
 }
-\class_alias('ECSPrefix202509\\MyTest', 'MyTest', \false);
+\class_alias('ECSPrefix202510\\MyTest', 'MyTest', \false);
 
 PHP
 )], null, 'Fixer could be risky if one is overriding PHPUnit\'s native methods.');

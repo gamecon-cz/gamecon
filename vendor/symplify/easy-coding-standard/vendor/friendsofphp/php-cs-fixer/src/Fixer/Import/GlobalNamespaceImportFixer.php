@@ -70,7 +70,7 @@ final class GlobalNamespaceImportFixer extends AbstractFixer implements Configur
         return new FixerDefinition('Imports or fully qualifies global classes/functions/constants.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509\Foo;
+namespace ECSPrefix202510\Foo;
 
 $d = new \DateTimeImmutable();
 
@@ -78,7 +78,7 @@ PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509\Foo;
+namespace ECSPrefix202510\Foo;
 
 if (\count($x)) {
     /** @var \DateTimeImmutable $d */
@@ -90,7 +90,7 @@ PHP
 , ['import_classes' => \true, 'import_constants' => \true, 'import_functions' => \true]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509\Foo;
+namespace ECSPrefix202510\Foo;
 
 use DateTimeImmutable;
 use function count;
@@ -159,7 +159,7 @@ PHP
     /**
      * @param list<NamespaceUseAnalysis> $useDeclarations
      *
-     * @return array<string, class-string>
+     * @return array<non-empty-string, non-empty-string>
      */
     private function importConstants(Tokens $tokens, array $useDeclarations) : array
     {
@@ -215,7 +215,7 @@ PHP
     /**
      * @param list<NamespaceUseAnalysis> $useDeclarations
      *
-     * @return array<string, class-string>
+     * @return array<non-empty-string, non-empty-string>
      */
     private function importFunctions(Tokens $tokens, array $useDeclarations) : array
     {
@@ -255,7 +255,7 @@ PHP
     /**
      * @param list<NamespaceUseAnalysis> $useDeclarations
      *
-     * @return array<string, class-string>
+     * @return array<non-empty-string, non-empty-string>
      */
     private function importClasses(Tokens $tokens, array $useDeclarations) : array
     {
@@ -320,8 +320,8 @@ PHP
                 if ('\\' !== $type[0]) {
                     return $type;
                 }
-                /** @var class-string $name */
-                $name = \substr($type, 1);
+                /** @var non-empty-string $name */
+                $name = (string) \substr($type, 1);
                 $checkName = \strtolower($name);
                 if (\strpos($checkName, '\\') !== \false || isset($other[$checkName])) {
                     return $type;
@@ -345,13 +345,13 @@ PHP
      * @param array<string, string|true> $global
      * @param array<string, true>        $other
      *
-     * @return array<string, class-string> array keys contain the names that must be imported
+     * @return array<non-empty-string, non-empty-string> array keys contain the names that must be imported
      */
     private function prepareImports(Tokens $tokens, array $indices, array $global, array $other, bool $caseSensitive) : array
     {
         $imports = [];
         foreach ($indices as $index) {
-            /** @var class-string $name */
+            /** @var non-empty-string $name */
             $name = $tokens[$index]->getContent();
             $checkName = $caseSensitive ? $name : \strtolower($name);
             if (isset($other[$checkName])) {
@@ -547,18 +547,17 @@ PHP
         }
         $changed = \false;
         foreach ($annotations as $annotation) {
-            $types = $new = $annotation->getTypes();
-            foreach ($types as $i => $fullType) {
-                $newFullType = $fullType;
+            $types = $annotation->getTypes();
+            $new = \array_map(static function (string $fullType) use($callback) : string {
                 Preg::matchAll('/[\\\\\\w]+(?![\\\\\\w:])/', $fullType, $matches, \PREG_OFFSET_CAPTURE);
                 foreach (\array_reverse($matches[0]) as [$type, $offset]) {
                     $newType = $callback($type);
                     if (null !== $newType && $type !== $newType) {
-                        $newFullType = \substr_replace($newFullType, $newType, $offset, \strlen($type));
+                        $fullType = \substr_replace($fullType, $newType, $offset, \strlen($type));
                     }
                 }
-                $new[$i] = $newFullType;
-            }
+                return $fullType;
+            }, $types);
             if ($types !== $new) {
                 $annotation->setTypes($new);
                 $changed = \true;

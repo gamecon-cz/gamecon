@@ -22,7 +22,6 @@ use Zenstruck\Foundry\Persistence\Exception\NoPersistenceStrategy;
 use Zenstruck\Foundry\Persistence\Exception\ObjectHasUnsavedChanges;
 use Zenstruck\Foundry\Persistence\Exception\ObjectNoLongerExist;
 use Zenstruck\Foundry\Persistence\Exception\RefreshObjectFailed;
-use Zenstruck\Foundry\Persistence\Proxy\PersistedObjectsTracker;
 use Zenstruck\Foundry\Persistence\Relationship\RelationshipMetadata;
 use Zenstruck\Foundry\Persistence\ResetDatabase\ResetDatabaseManager;
 
@@ -36,7 +35,7 @@ final class PersistenceManager
     private bool $flush = true;
     private bool $persist = true;
 
-    /** @var list<callable():void> */
+    /** @var list<callable():bool> */
     private array $afterPersistCallbacks = [];
 
     /**
@@ -80,13 +79,11 @@ final class PersistenceManager
         $om->persist($object);
         $this->flush($om);
 
-        $callbacksCalled = $this->callPostPersistCallbacks();
+        $shouldFlush = $this->callPostPersistCallbacks();
 
-        if ($callbacksCalled) {
+        if ($shouldFlush) {
             $this->flush($om);
         }
-
-        PersistedObjectsTracker::updateIds();
 
         return $object;
     }
@@ -95,7 +92,7 @@ final class PersistenceManager
      * @template T of object
      *
      * @param T                     $object
-     * @param list<callable():void> $afterPersistCallbacks
+     * @param list<callable():bool> $afterPersistCallbacks
      *
      * @return T
      */
@@ -419,23 +416,6 @@ final class PersistenceManager
         })();
     }
 
-    /**
-     * @template T of object
-     *
-     * @param class-string<T>            $class
-     * @param array<string, mixed>       $criteria
-     * @param array<string, string>|null $orderBy
-     * @phpstan-param array<string, 'asc'|'desc'|'ASC'|'DESC'>|null $orderBy
-     *
-     * @return list<T>
-     */
-    public function findBy(string $class, array $criteria = [], ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
-    {
-        $class = ProxyGenerator::unwrap($class);
-
-        return $this->strategyFor($class)->findBy($class, $criteria, $orderBy, $limit, $offset);
-    }
-
     private function flushAllStrategies(): void
     {
         foreach ($this->strategies as $strategy) {
@@ -457,11 +437,15 @@ final class PersistenceManager
         $afterPersistCallbacks = $this->afterPersistCallbacks;
         $this->afterPersistCallbacks = [];
 
+        $shouldFlush = false;
+
         foreach ($afterPersistCallbacks as $afterPersistCallback) {
-            $afterPersistCallback();
+            if ($afterPersistCallback()) {
+                $shouldFlush = true;
+            }
         }
 
-        return true;
+        return $shouldFlush;
     }
 
     /**

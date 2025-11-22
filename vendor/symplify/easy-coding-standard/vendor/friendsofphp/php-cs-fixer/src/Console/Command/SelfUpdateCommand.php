@@ -17,12 +17,12 @@ use PhpCsFixer\Console\SelfUpdate\NewVersionCheckerInterface;
 use PhpCsFixer\PharCheckerInterface;
 use PhpCsFixer\Preg;
 use PhpCsFixer\ToolInfoInterface;
-use ECSPrefix202509\Symfony\Component\Console\Attribute\AsCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\Command;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputOption;
-use ECSPrefix202509\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Attribute\AsCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\Command;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputOption;
+use ECSPrefix202510\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author Igor Wiedler <igor@wiedler.ch>
  * @author Stephane PY <py.stephane1@gmail.com>

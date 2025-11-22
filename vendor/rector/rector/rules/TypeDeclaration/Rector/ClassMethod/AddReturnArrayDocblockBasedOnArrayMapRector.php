@@ -12,6 +12,7 @@ use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Function_;
 use PHPStan\Type\ArrayType;
+use PHPStan\Type\IntersectionType;
 use PHPStan\Type\MixedType;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
@@ -128,6 +129,13 @@ CODE_SAMPLE
         $returnType = $this->typeFactory->createMixedPassedOrUnionType($closureReturnTypes);
         $arrayType = new ArrayType(new MixedType(), $returnType);
         $functionLikePhpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($node);
+        $returnOriginalType = $functionLikePhpDocInfo->getReturnType();
+        if ($returnOriginalType instanceof ArrayType && !$returnOriginalType->getItemType() instanceof MixedType) {
+            return null;
+        }
+        if ($returnOriginalType instanceof IntersectionType) {
+            return null;
+        }
         $hasChanged = $this->phpDocTypeChanger->changeReturnType($node, $functionLikePhpDocInfo, $arrayType);
         if ($hasChanged) {
             return $node;

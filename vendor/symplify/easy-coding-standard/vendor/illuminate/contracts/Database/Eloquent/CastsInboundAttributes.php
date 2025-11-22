@@ -1,8 +1,8 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Database\Eloquent;
+namespace ECSPrefix202510\Illuminate\Contracts\Database\Eloquent;
 
-use ECSPrefix202509\Illuminate\Database\Eloquent\Model;
+use ECSPrefix202510\Illuminate\Database\Eloquent\Model;
 interface CastsInboundAttributes
 {
     /**

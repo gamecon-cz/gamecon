@@ -1,9 +1,9 @@
 <?php
 
-namespace ECSPrefix202509\React\Socket;
+namespace ECSPrefix202510\React\Socket;
 
-use ECSPrefix202509\Evenement\EventEmitter;
-use ECSPrefix202509\React\EventLoop\LoopInterface;
+use ECSPrefix202510\Evenement\EventEmitter;
+use ECSPrefix202510\React\EventLoop\LoopInterface;
 final class SocketServer extends EventEmitter implements ServerInterface
 {
     private $server;
@@ -40,7 +40,7 @@ final class SocketServer extends EventEmitter implements ServerInterface
         $scheme = 'tcp';
         $pos = \strpos($uri, '://');
         if ($pos !== \false) {
-            $scheme = \substr($uri, 0, $pos);
+            $scheme = (string) \substr($uri, 0, $pos);
         }
         if ($scheme === 'unix') {
             $server = new UnixServer($uri, $loop, $context['unix']);

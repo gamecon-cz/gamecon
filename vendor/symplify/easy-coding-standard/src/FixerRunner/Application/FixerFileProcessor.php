@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Symplify\EasyCodingStandard\FixerRunner\Application;
 
-use ECSPrefix202509\Nette\Utils\FileSystem;
+use ECSPrefix202510\Nette\Utils\FileSystem;
 use PhpCsFixer\Differ\DifferInterface;
 use PhpCsFixer\Fixer\FixerInterface;
 use PhpCsFixer\Tokenizer\Token;

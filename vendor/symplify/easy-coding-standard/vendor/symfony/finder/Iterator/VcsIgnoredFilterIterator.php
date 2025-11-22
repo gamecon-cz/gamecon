@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Finder\Iterator;
+namespace ECSPrefix202510\Symfony\Component\Finder\Iterator;
 
-use ECSPrefix202509\Symfony\Component\Finder\Gitignore;
+use ECSPrefix202510\Symfony\Component\Finder\Gitignore;
 /**
  * @extends \FilterIterator<string, \SplFileInfo>
  */
@@ -62,7 +62,7 @@ final class VcsIgnoredFilterIterator extends \FilterIterator
                 // rules in ignored directories are ignored, no need to check further.
                 break;
             }
-            $fileRelativePath = \substr($fileRealPath, \strlen($parentDirectory) + 1);
+            $fileRelativePath = (string) \substr($fileRealPath, \strlen($parentDirectory) + 1);
             if (null === ($regexps = $this->readGitignoreFile("{$parentDirectory}/.gitignore"))) {
                 continue;
             }

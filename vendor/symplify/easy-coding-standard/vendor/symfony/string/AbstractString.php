@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\String;
+namespace ECSPrefix202510\Symfony\Component\String;
 
-use ECSPrefix202509\Symfony\Component\String\Exception\ExceptionInterface;
-use ECSPrefix202509\Symfony\Component\String\Exception\InvalidArgumentException;
-use ECSPrefix202509\Symfony\Component\String\Exception\RuntimeException;
+use ECSPrefix202510\Symfony\Component\String\Exception\ExceptionInterface;
+use ECSPrefix202510\Symfony\Component\String\Exception\InvalidArgumentException;
+use ECSPrefix202510\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract characters.
  *
@@ -540,7 +540,7 @@ abstract class AbstractString implements \JsonSerializable
             $prefix = (string) $prefix;
         }
         if ('' !== $prefix && \strlen($this->string) >= \strlen($prefix) && 0 === \substr_compare($this->string, $prefix, 0, \strlen($prefix), $this->ignoreCase)) {
-            $str->string = \substr($this->string, \strlen($prefix));
+            $str->string = (string) \substr($this->string, \strlen($prefix));
         }
         return $str;
     }
@@ -571,7 +571,7 @@ abstract class AbstractString implements \JsonSerializable
             $suffix = (string) $suffix;
         }
         if ('' !== $suffix && \strlen($this->string) >= \strlen($suffix) && 0 === \substr_compare($this->string, $suffix, -\strlen($suffix), null, $this->ignoreCase)) {
-            $str->string = \substr($this->string, 0, -\strlen($suffix));
+            $str->string = (string) \substr($this->string, 0, -\strlen($suffix));
         }
         return $str;
     }

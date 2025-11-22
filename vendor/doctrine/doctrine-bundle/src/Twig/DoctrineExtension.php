@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doctrine\Bundle\DoctrineBundle\Twig;
 
+use Doctrine\Deprecations\Deprecation;
 use Doctrine\SqlFormatter\HtmlHighlighter;
 use Doctrine\SqlFormatter\NullHighlighter;
 use Doctrine\SqlFormatter\SqlFormatter;
@@ -12,10 +15,14 @@ use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 
 use function addslashes;
+use function array_filter;
 use function array_key_exists;
+use function array_keys;
 use function array_merge;
+use function array_values;
 use function bin2hex;
 use function class_exists;
+use function count;
 use function implode;
 use function is_array;
 use function is_bool;
@@ -25,7 +32,6 @@ use function preg_replace_callback;
 use function sprintf;
 use function strtoupper;
 use function substr;
-use function trigger_deprecation;
 
 /**
  * This class contains the needed functions in order to do the query highlighting
@@ -119,14 +125,15 @@ class DoctrineExtension extends AbstractExtension
             $parameters = $parameters->getValue(true);
         }
 
-        $i = 0;
-
-        if (! array_key_exists(0, $parameters) && array_key_exists(1, $parameters)) {
-            $i = 1;
+        $keys = array_keys($parameters);
+        if (count(array_filter($keys, 'is_int')) === count($keys)) {
+            $parameters = array_values($parameters);
         }
 
+        $i = 0;
+
         return preg_replace_callback(
-            '/\?|((?<!:):[a-z0-9_]+)/i',
+            '/(?<!\?)\?(?!\?)|(?<!:)(:[a-z0-9_]+)/i',
             static function ($matches) use ($parameters, &$i) {
                 $key = substr($matches[0], 1);
 
@@ -134,11 +141,10 @@ class DoctrineExtension extends AbstractExtension
                     return $matches[0];
                 }
 
-                $value  = array_key_exists($i, $parameters) ? $parameters[$i] : $parameters[$key];
-                $result = DoctrineExtension::escapeFunction($value);
+                $value = array_key_exists($i, $parameters) ? $parameters[$i] : $parameters[$key];
                 $i++;
 
-                return $result;
+                return DoctrineExtension::escapeFunction($value);
             },
             $query,
         );
@@ -154,9 +160,9 @@ class DoctrineExtension extends AbstractExtension
      */
     public function formatQuery($sql, $highlightOnly = false)
     {
-        trigger_deprecation(
+        Deprecation::trigger(
             'doctrine/doctrine-bundle',
-            '2.1',
+            'https://github.com/doctrine/DoctrineBundle/pull/1056',
             'The "%s()" method is deprecated and will be removed in doctrine-bundle 3.0.',
             __METHOD__,
         );

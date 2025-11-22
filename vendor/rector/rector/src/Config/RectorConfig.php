@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Config;
 
-use RectorPrefix202509\Illuminate\Container\Container;
+use RectorPrefix202511\Illuminate\Container\Container;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
@@ -20,10 +20,11 @@ use Rector\Validation\RectorConfigValidator;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
-use RectorPrefix202509\Symfony\Component\Console\Command\Command;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Symfony\Component\Console\Command\Command;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
  * @api
+ * @see \Rector\Tests\Config\RectorConfigTest
  */
 final class RectorConfig extends Container
 {
@@ -352,7 +353,7 @@ final class RectorConfig extends Container
      * @internal Used only for bridge
      * @return array<class-string<RectorInterface>>
      */
-    public function getRectorClasses(): array
+    public function getMainRectorClasses(): array
     {
         return $this->tags[RectorInterface::class] ?? [];
     }

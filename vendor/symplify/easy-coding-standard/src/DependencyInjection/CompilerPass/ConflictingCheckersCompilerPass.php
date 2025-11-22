@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Symplify\EasyCodingStandard\DependencyInjection\CompilerPass;
 
-use ECSPrefix202509\Illuminate\Container\Container;
+use ECSPrefix202510\Illuminate\Container\Container;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\EndFileNewlineSniff as GenericEndFileNewlineSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\EndFileNoNewlineSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\PHP\LowerCaseConstantSniff;
@@ -27,7 +27,7 @@ final class ConflictingCheckersCompilerPass
      *
      * @var string[][]
      */
-    private const CONFLICTING_CHECKER_GROUPS = [[StandaloneLineConstructorParamFixer::class, StandaloneLinePromotedPropertyFixer::class], ['ECSPrefix202509\\SlevomatCodingStandard\\Sniffs\\ControlStructures\\DisallowYodaComparisonSniff', YodaStyleFixer::class], [LowerCaseConstantSniff::class, UpperCaseConstantSniff::class], [ConstantCaseFixer::class, UpperCaseConstantSniff::class], ['ECSPrefix202509\\SlevomatCodingStandard\\Sniffs\\TypeHints\\DeclareStrictTypesSniff', DeclareEqualNormalizeFixer::class], ['ECSPrefix202509\\SlevomatCodingStandard\\Sniffs\\TypeHints\\DeclareStrictTypesSniff', BlankLineAfterOpeningTagFixer::class], [FileHeaderSniff::class, NoBlankLinesAfterPhpdocFixer::class], [EndFileNewlineSniff::class, EndFileNoNewlineSniff::class], [GenericEndFileNewlineSniff::class, EndFileNoNewlineSniff::class], [DisallowTabIndentSniff::class, DisallowSpaceIndentSniff::class]];
+    private const CONFLICTING_CHECKER_GROUPS = [[StandaloneLineConstructorParamFixer::class, StandaloneLinePromotedPropertyFixer::class], ['ECSPrefix202510\\SlevomatCodingStandard\\Sniffs\\ControlStructures\\DisallowYodaComparisonSniff', YodaStyleFixer::class], [LowerCaseConstantSniff::class, UpperCaseConstantSniff::class], [ConstantCaseFixer::class, UpperCaseConstantSniff::class], ['ECSPrefix202510\\SlevomatCodingStandard\\Sniffs\\TypeHints\\DeclareStrictTypesSniff', DeclareEqualNormalizeFixer::class], ['ECSPrefix202510\\SlevomatCodingStandard\\Sniffs\\TypeHints\\DeclareStrictTypesSniff', BlankLineAfterOpeningTagFixer::class], [FileHeaderSniff::class, NoBlankLinesAfterPhpdocFixer::class], [EndFileNewlineSniff::class, EndFileNoNewlineSniff::class], [GenericEndFileNewlineSniff::class, EndFileNoNewlineSniff::class], [DisallowTabIndentSniff::class, DisallowSpaceIndentSniff::class]];
     public function process(Container $container) : void
     {
         $checkerTypes = \Symplify\EasyCodingStandard\DependencyInjection\CompilerPass\CompilerPassHelper::resolveCheckerClasses($container);

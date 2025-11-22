@@ -154,6 +154,9 @@ class SomeClass
 CODE_SAMPLE
 , [self::INLINE_PUBLIC => \false, self::RENAME_PROPERTY => \true, self::ALLOW_MODEL_BASED_CLASSES => \true])]);
     }
+    /**
+     * @param array<string, mixed> $configuration
+     */
     public function configure(array $configuration): void
     {
         $this->inlinePublic = $configuration[self::INLINE_PUBLIC] ?? \false;
@@ -211,9 +214,8 @@ CODE_SAMPLE
             // remove assign in constructor
             $assignStmtPosition = $promotionCandidate->getStmtPosition();
             unset($constructClassMethod->stmts[$assignStmtPosition]);
-            /** @var string $oldName */
-            $oldName = $this->getName($param->var);
-            $this->variableRenamer->renameVariableInFunctionLike($constructClassMethod, $oldName, $propertyName, null);
+            $oldParamName = $this->getName($param);
+            $this->variableRenamer->renameVariableInFunctionLike($constructClassMethod, $oldParamName, $propertyName);
             $paramTagValueNode = $constructorPhpDocInfo->getParamTagValueByName($paramName);
             if (!$paramTagValueNode instanceof ParamTagValueNode) {
                 $this->propertyPromotionDocBlockMerger->decorateParamWithPropertyPhpDocInfo($constructClassMethod, $property, $param, $paramName);

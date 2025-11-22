@@ -9,6 +9,7 @@ if (!defined('SYMFONY_ROOT_DIR')) define('SYMFONY_ROOT_DIR', PROJECT_ROOT_DIR . 
 if (!defined('WWW')) define('WWW', __DIR__ . '/../web');
 if (!defined('ADMIN')) define('ADMIN', __DIR__ . '/../admin');
 if (!defined('SPEC')) define('SPEC', __DIR__ . '/../cache/private');
+if (!defined('XTPL_CACHE_DIR')) define('XTPL_CACHE_DIR', SPEC . '/xtpl');
 if (!defined('LOGY')) define('LOGY', __DIR__ . '/../logy');
 if (!defined('CACHE')) define('CACHE', __DIR__ . '/../cache/public');
 if (!defined('SYMFONY_CACHE_DIR')) define('SYMFONY_CACHE_DIR', SYMFONY_ROOT_DIR . '/var/cache');

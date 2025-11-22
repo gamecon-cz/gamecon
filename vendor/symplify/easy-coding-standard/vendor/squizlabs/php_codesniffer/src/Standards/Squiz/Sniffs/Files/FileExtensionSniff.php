@@ -36,7 +36,7 @@ class FileExtensionSniff implements Sniff
     {
         $tokens = $phpcsFile->getTokens();
         $fileName = $phpcsFile->getFilename();
-        $extension = \substr($fileName, \strrpos($fileName, '.'));
+        $extension = (string) \substr($fileName, \strrpos($fileName, '.'));
         $nextClass = $phpcsFile->findNext([\T_CLASS, \T_INTERFACE, \T_TRAIT, \T_ENUM], $stackPtr);
         if ($nextClass !== \false) {
             $phpcsFile->recordMetric($stackPtr, 'File extension for class files', $extension);

@@ -8,15 +8,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\OptionsResolver;
+namespace ECSPrefix202510\Symfony\Component\OptionsResolver;
 
-use ECSPrefix202509\Symfony\Component\OptionsResolver\Exception\AccessException;
-use ECSPrefix202509\Symfony\Component\OptionsResolver\Exception\InvalidArgumentException;
-use ECSPrefix202509\Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
-use ECSPrefix202509\Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
-use ECSPrefix202509\Symfony\Component\OptionsResolver\Exception\NoSuchOptionException;
-use ECSPrefix202509\Symfony\Component\OptionsResolver\Exception\OptionDefinitionException;
-use ECSPrefix202509\Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
+use ECSPrefix202510\Symfony\Component\OptionsResolver\Exception\AccessException;
+use ECSPrefix202510\Symfony\Component\OptionsResolver\Exception\InvalidArgumentException;
+use ECSPrefix202510\Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
+use ECSPrefix202510\Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
+use ECSPrefix202510\Symfony\Component\OptionsResolver\Exception\NoSuchOptionException;
+use ECSPrefix202510\Symfony\Component\OptionsResolver\Exception\OptionDefinitionException;
+use ECSPrefix202510\Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
 /**
  * Validates options and merges them with default values.
  *
@@ -1013,10 +1013,10 @@ class OptionsResolver implements Options
         }
         $type = $allowedTypes[0];
         if (\strncmp($type, '(', \strlen('(')) === 0 && \substr_compare($type, ')', -\strlen(')')) === 0) {
-            return $this->verifyTypes(\substr($type, 1, -1), $value, $invalidTypes, $level);
+            return $this->verifyTypes((string) \substr($type, 1, -1), $value, $invalidTypes, $level);
         }
         if (\is_array($value) && \substr_compare($type, '[]', -\strlen('[]')) === 0) {
-            $type = \substr($type, 0, -2);
+            $type = (string) \substr($type, 0, -2);
             $valid = \true;
             foreach ($value as $val) {
                 if (!$this->verifyTypes($type, $val, $invalidTypes, $level + 1)) {

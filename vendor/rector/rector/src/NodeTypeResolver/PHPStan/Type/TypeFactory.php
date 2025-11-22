@@ -142,6 +142,11 @@ final class TypeFactory
         if (count($types) === 1) {
             return $types[0];
         }
+        foreach ($types as $type) {
+            if ($type instanceof MixedType) {
+                return new MixedType();
+            }
+        }
         return new UnionType($types);
     }
     private function removeValueFromConstantType(Type $type): Type
@@ -173,6 +178,14 @@ final class TypeFactory
             $nestedFlattenKeyType = $flattenKeyTypes[$position] ?? null;
             if (!$nestedFlattenKeyType instanceof Type) {
                 $nestedFlattenKeyType = new MixedType();
+            }
+            if ($nestedFlattenItemType instanceof ConstantArrayType) {
+                $innerArrayTypes = $this->unwrapConstantArrayTypes($nestedFlattenItemType);
+                foreach ($innerArrayTypes as $innerArrayType) {
+                    // preserve outer array -> inner array structure: array<outerKey, innerArray>
+                    $unwrappedTypes[] = new ArrayType($nestedFlattenKeyType, $innerArrayType);
+                }
+                continue;
             }
             $unwrappedTypes[] = new ArrayType($nestedFlattenKeyType, $nestedFlattenItemType);
         }

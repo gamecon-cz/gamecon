@@ -12,9 +12,9 @@ declare (strict_types=1);
  */
 namespace PhpCsFixer\Runner\Parallel;
 
-use ECSPrefix202509\Fidry\CpuCoreCounter\CpuCoreCounter;
-use ECSPrefix202509\Fidry\CpuCoreCounter\Finder\DummyCpuCoreFinder;
-use ECSPrefix202509\Fidry\CpuCoreCounter\Finder\FinderRegistry;
+use ECSPrefix202510\Fidry\CpuCoreCounter\CpuCoreCounter;
+use ECSPrefix202510\Fidry\CpuCoreCounter\Finder\DummyCpuCoreFinder;
+use ECSPrefix202510\Fidry\CpuCoreCounter\Finder\FinderRegistry;
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  *

@@ -18,7 +18,7 @@ use Rector\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Php55\Rector\String_\StringClassNameToClassConstantRector\StringClassNameToClassConstantRectorTest
  */
@@ -84,7 +84,7 @@ CODE_SAMPLE
     }
     /**
      * @param String_|FuncCall|ClassConst $node
-     * @return \PhpParser\Node\Expr\BinaryOp\Concat|\PhpParser\Node\Expr\ClassConstFetch|null|int
+     * @return Concat|ClassConstFetch|null|NodeVisitor::DONT_TRAVERSE_CHILDREN
      */
     public function refactor(Node $node)
     {
@@ -122,7 +122,7 @@ CODE_SAMPLE
         return new ClassConstFetch($fullyQualified, 'class');
     }
     /**
-     * @param mixed[] $configuration
+     * @param array<string, mixed> $configuration
      */
     public function configure(array $configuration): void
     {

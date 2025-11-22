@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Validation;
+namespace ECSPrefix202510\Illuminate\Contracts\Validation;
 
 interface DataAwareRule
 {

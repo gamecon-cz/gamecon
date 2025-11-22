@@ -29,24 +29,36 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     public const JAKYKOLI_ROCNIK = -1;
 
     public static function zGlobals(
-        int                     $rocnik = ROCNIK,
-        DateTimeImmutableStrict $ted = new DateTimeImmutableStrict(),
-        ?bool                   $jsmeNaBete = null,
-        ?bool                   $jsmeNaLocale = null,
-        ?bool                   $databazoveNastaveni = null,
-        ?string                 $projectRootDir = null,
-        ?string                 $cacheDir = null,
-        ?Kernel                 $kernel = null,
+        int                      $rocnik = ROCNIK,
+        ?DateTimeImmutableStrict $ted = null,
+        ?bool                    $jsmeNaBete = null,
+        ?bool                    $jsmeNaLocale = null,
+        ?bool                    $databazoveNastaveni = null,
+        ?string                  $projectRootDir = null,
+        ?string                  $cacheDir = null,
+        ?Kernel                  $kernel = null,
     ): self {
         global $systemoveNastaveni;
 
         if ($systemoveNastaveni && $systemoveNastaveni->rocnik() === $rocnik) {
-            return $systemoveNastaveni;
+            $argumenty = array_values(array_filter(func_get_args()));
+            if ($argumenty === [] || $argumenty === [$rocnik]) {
+                return $systemoveNastaveni;
+            }
         }
+
+        $createKernel = function (): Kernel {
+            $appEnv = try_constant('APP_ENV') ?? getenv('APP_ENV')
+                ?: 'dev';
+            $debug  = (bool)(try_constant('APP_DEBUG') ?? getenv('APP_DEBUG')
+                ?: $appEnv === 'dev');
+
+            return new Kernel(environment: $appEnv, debug: $debug);
+        };
 
         $noveSystemoveNastaveni = new static(
             $rocnik,
-            $ted,
+            $ted ?? new DateTimeImmutableStrict(),
             $jsmeNaBete ?? jsmeNaBete(),
             $jsmeNaLocale ?? jsmeNaLocale(),
             $databazoveNastaveni ?? DatabazoveNastaveni::vytvorZGlobals(),
@@ -54,7 +66,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             ?? try_constant('PROJECT_ROOT_DIR')
                ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
             $cacheDir ?? SPEC,
-            $kernel ?? new Kernel('dev', true),
+            $kernel ?? $createKernel(),
         );
 
         if ($rocnik === ROCNIK) {
@@ -62,6 +74,20 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         }
 
         return $noveSystemoveNastaveni;
+    }
+
+    public static function getActivityStandardLengthCoefficient(float $length): float
+    {
+        return match (true) {
+            $length <= 1  => 0.25,
+            $length <= 2  => 0.5,
+            $length <= 5  => 1.0,
+            $length <= 7  => 1.5,
+            $length <= 9  => 2.0,
+            $length <= 11 => 2.5,
+            $length <= 13 => 3.0,
+            default       => throw new \RuntimeException('Neznámá délka aktivity pro přepočet na standardní aktivitu: ' . $length),
+        };
     }
 
     private static function zakrouhli(float $cislo): int
@@ -129,16 +155,17 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         string $klic,
         ?int   $bonusZaStandardni3hAz5hAktivitu = null,
     ): int {
-        $bonusZaStandardni3hAz5hAktivitu ??= $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
+        $bonusForStandardActivity = $bonusZaStandardni3hAz5hAktivitu ?? $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
+        $calcCoefficient = static fn(int $length) => self::getActivityStandardLengthCoefficient($length);
 
         return match ($klic) {
-            'BONUS_ZA_1H_AKTIVITU'                  => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4),
-            'BONUS_ZA_2H_AKTIVITU'                  => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2),
-            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => $bonusZaStandardni3hAz5hAktivitu,
-            'BONUS_ZA_6H_AZ_7H_AKTIVITU'            => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5),
-            'BONUS_ZA_8H_AZ_9H_AKTIVITU'            => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2),
-            'BONUS_ZA_10H_AZ_11H_AKTIVITU'          => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5),
-            'BONUS_ZA_12H_AZ_13H_AKTIVITU'          => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3),
+            'BONUS_ZA_1H_AKTIVITU'                  => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(1)),
+            'BONUS_ZA_2H_AKTIVITU'                  => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(2)),
+            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => $bonusForStandardActivity,
+            'BONUS_ZA_6H_AZ_7H_AKTIVITU'            => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(7)),
+            'BONUS_ZA_8H_AZ_9H_AKTIVITU'            => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(9)),
+            'BONUS_ZA_10H_AZ_11H_AKTIVITU'          => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(11)),
+            'BONUS_ZA_12H_AZ_13H_AKTIVITU'          => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(13)),
             default                                 => throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'"),
         };
     }
@@ -804,6 +831,7 @@ SQL;
     public function nejpozdejiZaplatitDo(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeImmutableStrict
     {
         $hromadneOdhlasovaniKdy = $this->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
+
         return $hromadneOdhlasovaniKdy;
     }
 
@@ -954,7 +982,7 @@ SQL;
 
     public function databaseDataDependentCacheDir(): string
     {
-        return $this->cacheDir . '/' . DB_NAME ;
+        return $this->cacheDir . '/' . DB_NAME;
     }
 
     public function tableDataDependentCacheDir(): string
@@ -1058,7 +1086,8 @@ SQL;
 
     public function jeZapnuteCachovaniSqlDotazu(): bool
     {
-        return (bool)CACHOVAT_SQL_DOTAZY;
+        // may not yet be defined during SQL migrations
+        return (bool)try_constant('CACHOVAT_SQL_DOTAZY');
     }
 
     public function jeZapnuteCachovaniApiOdpovedi(): bool
@@ -1109,7 +1138,17 @@ SQL;
 
     public function kernel(): Kernel
     {
-        $this->kernel->boot();
+        try {
+            $this->kernel->boot();
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException(
+                sprintf(
+                    'Can not boot Symfony kernel. Current APP_ENV is %s. Details: %s',
+                    $this->kernel->getEnvironment(),
+                    $exception->getMessage(),
+                ),
+            );
+        }
 
         return $this->kernel;
     }

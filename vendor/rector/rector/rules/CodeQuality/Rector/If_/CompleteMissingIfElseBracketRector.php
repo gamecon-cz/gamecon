@@ -8,6 +8,7 @@ use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\ElseIf_;
 use PhpParser\Node\Stmt\If_;
+use PhpParser\Token;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -66,7 +67,7 @@ CODE_SAMPLE
         return $node;
     }
     /**
-     * @param mixed[] $oldTokens
+     * @param Token[] $oldTokens
      * @param \PhpParser\Node\Stmt\If_|\PhpParser\Node\Stmt\ElseIf_|\PhpParser\Node\Stmt\Else_ $if
      */
     private function isIfConditionFollowedByOpeningCurlyBracket($if, array $oldTokens): bool

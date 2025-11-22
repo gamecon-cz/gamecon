@@ -626,7 +626,7 @@ abstract class AbstractPatternSniff implements \PHP_CodeSniffer\Sniffs\Sniff
             $specialPattern = \false;
             $isLastChar = $i === $length - 1;
             $oldFirstToken = $firstToken;
-            if (\substr($pattern, $i, 3) === '...') {
+            if ((string) \substr($pattern, $i, 3) === '...') {
                 // It's a skip pattern. The skip pattern requires the
                 // content of the token in the "from" position and the token
                 // to skip to.
@@ -638,13 +638,13 @@ abstract class AbstractPatternSniff implements \PHP_CodeSniffer\Sniffs\Sniff
                     $firstToken++;
                 }
             } else {
-                if (\substr($pattern, $i, 3) === 'abc') {
+                if ((string) \substr($pattern, $i, 3) === 'abc') {
                     $specialPattern = ['type' => 'string'];
                     $lastToken = $i - $firstToken;
                     $firstToken = $i + 3;
                     $i += 2;
                 } else {
-                    if (\substr($pattern, $i, 3) === 'EOL') {
+                    if ((string) \substr($pattern, $i, 3) === 'EOL') {
                         $specialPattern = ['type' => 'newline'];
                         $lastToken = $i - $firstToken;
                         $firstToken = $i + 3;
@@ -658,7 +658,7 @@ abstract class AbstractPatternSniff implements \PHP_CodeSniffer\Sniffs\Sniff
                 if ($isLastChar === \true) {
                     // Get the string from the end of the last skip pattern, if any,
                     // to the end of the pattern string.
-                    $str = \substr($pattern, $oldFirstToken);
+                    $str = (string) \substr($pattern, $oldFirstToken);
                 } else {
                     // Get the string from the end of the last special pattern,
                     // if any, to the start of this special pattern.
@@ -668,7 +668,7 @@ abstract class AbstractPatternSniff implements \PHP_CodeSniffer\Sniffs\Sniff
                         // This happens if you have something like: EOL... in your pattern.
                         $str = '';
                     } else {
-                        $str = \substr($pattern, $oldFirstToken, $lastToken);
+                        $str = (string) \substr($pattern, $oldFirstToken, $lastToken);
                     }
                 }
                 if ($str !== '') {

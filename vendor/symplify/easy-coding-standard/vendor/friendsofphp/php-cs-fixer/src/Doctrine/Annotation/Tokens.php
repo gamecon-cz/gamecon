@@ -53,7 +53,7 @@ final class Tokens extends \SplFixedArray
                 continue;
             }
             $lexer = new \PhpCsFixer\Doctrine\Annotation\DocLexer();
-            $lexer->setInput(\substr($content, $nextAtPosition));
+            $lexer->setInput((string) \substr($content, $nextAtPosition));
             $scannedTokens = [];
             $index = 0;
             $nbScannedTokensToUse = 0;
@@ -88,14 +88,14 @@ final class Tokens extends \SplFixedArray
             if (0 !== $nbScannedTokensToUse) {
                 $ignoredTextLength = $nextAtPosition - $ignoredTextPosition;
                 if (0 !== $ignoredTextLength) {
-                    $tokens[] = new \PhpCsFixer\Doctrine\Annotation\Token(\PhpCsFixer\Doctrine\Annotation\DocLexer::T_NONE, \substr($content, $ignoredTextPosition, $ignoredTextLength));
+                    $tokens[] = new \PhpCsFixer\Doctrine\Annotation\Token(\PhpCsFixer\Doctrine\Annotation\DocLexer::T_NONE, (string) \substr($content, $ignoredTextPosition, $ignoredTextLength));
                 }
                 $lastTokenEndIndex = 0;
                 foreach (\array_slice($scannedTokens, 0, $nbScannedTokensToUse) as $scannedToken) {
                     $token = $scannedToken->isType(\PhpCsFixer\Doctrine\Annotation\DocLexer::T_STRING) ? new \PhpCsFixer\Doctrine\Annotation\Token($scannedToken->getType(), '"' . \str_replace('"', '""', $scannedToken->getContent()) . '"', $scannedToken->getPosition()) : $scannedToken;
                     $missingTextLength = $token->getPosition() - $lastTokenEndIndex;
                     if ($missingTextLength > 0) {
-                        $tokens[] = new \PhpCsFixer\Doctrine\Annotation\Token(\PhpCsFixer\Doctrine\Annotation\DocLexer::T_NONE, \substr($content, $nextAtPosition + $lastTokenEndIndex, $missingTextLength));
+                        $tokens[] = new \PhpCsFixer\Doctrine\Annotation\Token(\PhpCsFixer\Doctrine\Annotation\DocLexer::T_NONE, (string) \substr($content, $nextAtPosition + $lastTokenEndIndex, $missingTextLength));
                     }
                     $tokens[] = new \PhpCsFixer\Doctrine\Annotation\Token($token->getType(), $token->getContent());
                     $lastTokenEndIndex = $token->getPosition() + \strlen($token->getContent());
@@ -106,7 +106,7 @@ final class Tokens extends \SplFixedArray
             }
         }
         if ($ignoredTextPosition < \strlen($content)) {
-            $tokens[] = new \PhpCsFixer\Doctrine\Annotation\Token(\PhpCsFixer\Doctrine\Annotation\DocLexer::T_NONE, \substr($content, $ignoredTextPosition));
+            $tokens[] = new \PhpCsFixer\Doctrine\Annotation\Token(\PhpCsFixer\Doctrine\Annotation\DocLexer::T_NONE, (string) \substr($content, $ignoredTextPosition));
         }
         return self::fromArray($tokens);
     }

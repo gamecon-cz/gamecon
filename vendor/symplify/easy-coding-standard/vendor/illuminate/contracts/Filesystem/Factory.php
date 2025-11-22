@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Filesystem;
+namespace ECSPrefix202510\Illuminate\Contracts\Filesystem;
 
 interface Factory
 {

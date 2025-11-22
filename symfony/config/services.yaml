@@ -5,6 +5,8 @@ parameters:
     gamecon.db.name: '%env(GAMECON_DB_NAME)%'
     gamecon.db.user: '%env(GAMECON_DB_USER)%'
     gamecon.db.password: '%env(GAMECON_DB_PASSWORD)%'
+    app.secret: '%env(APP_SECRET)%'
+    app.legacy_cache_dir: '%env(LEGACY_CACHE_DIR)%'
 
 services:
     _defaults:
@@ -17,8 +19,22 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Kernel.php'
+            - '../src/Entity/'
+            - '../src/DependencyInjection/'
 
     # Legacy integration services
     legacy.session:
         class: 'App\Service\LegacySessionService'
         public: true
+
+    app.clock:
+        decorates: 'clock'
+        parent: 'clock'
+        public: true
+
+    # JWT service for cross-app authentication
+    App\Service\JwtService:
+        public: true
+        arguments:
+            $secret: '%app.secret%' # Use the same secret as Symfony app
+            $legacyCacheDir: '%app.legacy_cache_dir%' # Use cache directory that both apps can access

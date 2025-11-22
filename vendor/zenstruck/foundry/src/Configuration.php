@@ -12,14 +12,15 @@
 namespace Zenstruck\Foundry;
 
 use Faker;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Zenstruck\Foundry\Exception\FactoriesTraitNotUsed;
 use Zenstruck\Foundry\Exception\FoundryNotBooted;
 use Zenstruck\Foundry\Exception\PersistenceDisabled;
 use Zenstruck\Foundry\Exception\PersistenceNotAvailable;
 use Zenstruck\Foundry\InMemory\CannotEnableInMemory;
 use Zenstruck\Foundry\InMemory\InMemoryRepositoryRegistry;
+use Zenstruck\Foundry\Persistence\PersistedObjectsTracker;
 use Zenstruck\Foundry\Persistence\PersistenceManager;
-use Zenstruck\Foundry\Persistence\Proxy\PersistedObjectsTracker;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -63,6 +64,7 @@ final class Configuration
         public readonly ?InMemoryRepositoryRegistry $inMemoryRepositoryRegistry = null,
         public readonly ?PersistedObjectsTracker $persistedObjectsTracker = null,
         private readonly bool $enableAutoRefreshWithLazyObjects = false,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
     ) {
         if (null === self::$instance) {
             $this->faker->seed(self::fakerSeed($forcedFakerSeed));
@@ -106,6 +108,16 @@ final class Configuration
         }
     }
 
+    public function hasEventDispatcher(): bool
+    {
+        return (bool) $this->eventDispatcher;
+    }
+
+    public function eventDispatcher(): EventDispatcherInterface
+    {
+        return $this->eventDispatcher ?? throw new \RuntimeException('No event dispatcher configured.');
+    }
+
     public function inADataProvider(): bool
     {
         return $this->bootedForDataProvider;
@@ -130,7 +142,6 @@ final class Configuration
     /** @param \Closure():self|self $configuration */
     public static function boot(\Closure|self $configuration): void
     {
-        PersistedObjectsTracker::reset();
         self::$instance = $configuration;
     }
 
@@ -141,6 +152,10 @@ final class Configuration
         self::$instance->bootedForDataProvider = true;
     }
 
+    /**
+     * /!\ Until PHPUnit 9 support is not dropped, this method MUST NOT call Configuration::instance()
+     * Otherwise, it will reboot the kernel, leading to complex bugs.
+     */
     public static function shutdown(): void
     {
         PersistedObjectsTracker::reset();

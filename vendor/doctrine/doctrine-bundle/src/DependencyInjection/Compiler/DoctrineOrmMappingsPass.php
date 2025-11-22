@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler;
 
+use Doctrine\Deprecations\Deprecation;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
@@ -74,6 +77,8 @@ class DoctrineOrmMappingsPass extends RegisterMappingsPass
     }
 
     /**
+     * @deprecated no replacement planned
+     *
      * @param string[]     $namespaces        Hashmap of directory path to namespace
      * @param string[]     $managerParameters List of parameters that could which object manager name
      *                                        your bundle uses. This compiler pass will automatically
@@ -88,6 +93,12 @@ class DoctrineOrmMappingsPass extends RegisterMappingsPass
      */
     public static function createYamlMappingDriver(array $namespaces, array $managerParameters = [], $enabledParameter = false, array $aliasMap = [])
     {
+        Deprecation::trigger(
+            'doctrine/doctrine-bundle',
+            'https://github.com/doctrine/DoctrineBundle/pull/2088',
+            'The "%s()" method is deprecated and will be removed in DoctrineBundle 3.0.',
+            __METHOD__,
+        );
         $locator = new Definition(SymfonyFileLocator::class, [$namespaces, '.orm.yml']);
         /* @phpstan-ignore class.notFound */
         $driver = new Definition(YamlDriver::class, [$locator]);
@@ -117,6 +128,8 @@ class DoctrineOrmMappingsPass extends RegisterMappingsPass
     }
 
     /**
+     * @deprecated no replacement planned
+     *
      * @param string[]     $namespaces                List of namespaces that are handled with annotation mapping
      * @param string[]     $directories               List of directories to look for annotated classes
      * @param string[]     $managerParameters         List of parameters that could which object manager name
@@ -133,6 +146,13 @@ class DoctrineOrmMappingsPass extends RegisterMappingsPass
      */
     public static function createAnnotationMappingDriver(array $namespaces, array $directories, array $managerParameters = [], $enabledParameter = false, array $aliasMap = [], bool $reportFieldsWhereDeclared = false)
     {
+        Deprecation::trigger(
+            'doctrine/doctrine-bundle',
+            'https://github.com/doctrine/DoctrineBundle/pull/2088',
+            'The "%s()" method is deprecated and will be removed in DoctrineBundle 3.0.',
+            __METHOD__,
+        );
+
         $reader = new Reference('annotation_reader');
         /* @phpstan-ignore class.notFound */
         $driver = new Definition(AnnotationDriver::class, [$reader, $directories, $reportFieldsWhereDeclared]);

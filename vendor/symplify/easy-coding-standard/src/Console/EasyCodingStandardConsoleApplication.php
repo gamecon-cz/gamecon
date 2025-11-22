@@ -3,14 +3,14 @@
 declare (strict_types=1);
 namespace Symplify\EasyCodingStandard\Console;
 
-use ECSPrefix202509\Composer\XdebugHandler\XdebugHandler;
+use ECSPrefix202510\Composer\XdebugHandler\XdebugHandler;
 use PHP_CodeSniffer\Config as PHP_CodeSniffer;
 use PhpCsFixer\Console\Application as PhpCsFixer;
-use ECSPrefix202509\Symfony\Component\Console\Application;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputDefinition;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputOption;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Application;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputDefinition;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputOption;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
 use Symplify\EasyCodingStandard\Application\Version\StaticVersionResolver;
 use Symplify\EasyCodingStandard\Console\Command\CheckCommand;
 use Symplify\EasyCodingStandard\Console\Command\ListCheckersCommand;

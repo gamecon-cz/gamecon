@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\String;
+namespace RectorPrefix202511\Symfony\Component\String;
 
-use RectorPrefix202509\Symfony\Component\String\Exception\ExceptionInterface;
-use RectorPrefix202509\Symfony\Component\String\Exception\InvalidArgumentException;
-use RectorPrefix202509\Symfony\Component\String\Exception\RuntimeException;
+use RectorPrefix202511\Symfony\Component\String\Exception\ExceptionInterface;
+use RectorPrefix202511\Symfony\Component\String\Exception\InvalidArgumentException;
+use RectorPrefix202511\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract Unicode characters.
  *
@@ -82,7 +82,7 @@ abstract class AbstractUnicodeString extends AbstractString
         while (\strlen($s) - 1 > $i = strspn($s, self::ASCII)) {
             if (0 < --$i) {
                 $str->string .= substr($s, 0, $i);
-                $s = substr($s, $i);
+                $s = (string) substr($s, $i);
             }
             if (!$rule = array_shift($rules)) {
                 $rules = [];

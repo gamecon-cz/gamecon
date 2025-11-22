@@ -198,9 +198,9 @@ if ($u->jeOrganizator()) {
 $t->assign('ka', $u->koncovkaDlePohlavi()
     ? 'ka'
     : '');
-if ($u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
+if ($u->maPravoNaUbytovaniZdarma()) {
     $t->parse('prihlaska.ubytovaniInfoOrg');
-} elseif ($u->maPravo(Pravo::PORADANI_AKTIVIT) && !$u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)) {
+} elseif ($u->maPravoNaPoradaniAktivit() && !$u->nemaPravoNaBonusZaVedeniAktivitAniUcastNaTechnicke()) {
     $t->parse('prihlaska.ubytovaniInfoVypravec');
 }
 

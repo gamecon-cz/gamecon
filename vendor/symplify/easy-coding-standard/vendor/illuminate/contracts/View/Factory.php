@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\View;
+namespace ECSPrefix202510\Illuminate\Contracts\View;
 
 interface Factory
 {

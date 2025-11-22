@@ -22,13 +22,14 @@ if (file_exists(__DIR__ . '/../nastaveni/nastaveni-nasazovani.php')) {
 
 chdir(__DIR__ . '/../');
 
-// testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
-exec('git rev-parse --abbrev-ref HEAD', $out);
-$vetev = $out[0];
-exec('git status', $out);
-if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
-    echo "error: working directory is not clean\n";
-    exit(1);
+$skipNoChangesCheck = getopt('', ['skip-no-changes-check']);
+if (!$skipNoChangesCheck) {
+    // testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
+    exec('git status', $out);
+    if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
+        echo "error: working directory is not clean\n";
+        exit(1);
+    }
 }
 
 // spuštění testů
@@ -37,26 +38,31 @@ if (!$skipTests) {
     call_check(['php', __DIR__ . '/testuj.php']);
 }
 
+exec('git rev-parse --abbrev-ref HEAD', $out);
+$vetev = $out[0];
+
 // nasazení
 if ($vetev === 'main') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
         'ciloveFtp'                => $nastaveni['ostra']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
-        'serverPassphrase'         => getenv('FTP_SERVER_PASSPHRASE') ?: '',
+        'serverPassphrase'         => getenv('FTP_SERVER_PASSPHRASE')
+            ?: '',
         'hesloMigrace'             => $nastaveni['ostra']['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-produkce.php',
     ]);
-} else if ($vetev === 'vpsfree') {
+} elseif ($vetev === 'vpsfree') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
         'ciloveFtp'                => $nastaveni['ostra']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
-        'serverPassphrase'         => getenv('FTP_SERVER_PASSPHRASE') ?: '',
+        'serverPassphrase'         => getenv('FTP_SERVER_PASSPHRASE')
+            ?: '',
         'hesloMigrace'             => $nastaveni['ostra']['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-vpsfree.php',
     ]);
-} else if ($vetev === 'beta') {
+} elseif ($vetev === 'beta') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
@@ -64,7 +70,7 @@ if ($vetev === 'main') {
         'hesloMigrace'             => $nastaveni['beta'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-beta.php',
     ]);
-} else if ($vetev === 'blackarrow') {
+} elseif ($vetev === 'blackarrow') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
@@ -73,7 +79,7 @@ if ($vetev === 'main') {
         'log'                      => $nastaveni['blackarrow']['log'],
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-blackarrow.php',
     ]);
-} else if ($vetev === 'jakublounek') {
+} elseif ($vetev === 'jakublounek') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
@@ -81,7 +87,7 @@ if ($vetev === 'main') {
         'hesloMigrace'             => $nastaveni['jakublounek'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-jakublounek.php',
     ]);
-} else if ($vetev === 'misahojna') {
+} elseif ($vetev === 'misahojna') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',
@@ -89,7 +95,7 @@ if ($vetev === 'main') {
         'hesloMigrace'             => $nastaveni['misahojna'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-misahojna.php',
     ]);
-} else if ($vetev === 'sciator') {
+} elseif ($vetev === 'sciator') {
     nasad([
         'vetev'                    => $vetev,
         'zdrojovaSlozka'           => __DIR__ . '/..',

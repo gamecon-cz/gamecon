@@ -186,11 +186,6 @@ class Platby
         $sparovaneFioPlatby = [];
         foreach ($fioPlatby as $fioPlatba) {
             if ($this->platbuUzMame($fioPlatba->id())) {
-                // TODO jen dočasně než postahujeme minuté KOD_BANKY_PROTIUCTU atd
-                $gcPlatba = $this->dejGcPlatbuPodleFioPlatby($fioPlatba);
-                if ($gcPlatba) {
-                    $this->doplnPlatbu($gcPlatba, $fioPlatba);
-                }
                 continue;
             }
             $vlastnik = $fioPlatba->idUcastnika()

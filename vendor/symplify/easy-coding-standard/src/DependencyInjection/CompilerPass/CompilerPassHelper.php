@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Symplify\EasyCodingStandard\DependencyInjection\CompilerPass;
 
-use ECSPrefix202509\Illuminate\Container\Container;
+use ECSPrefix202510\Illuminate\Container\Container;
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PhpCsFixer\Fixer\FixerInterface;
 use Symplify\EasyCodingStandard\Utils\PrivatesAccessorHelper;

@@ -3,9 +3,9 @@
 declare (strict_types=1);
 namespace Rector\DependencyInjection;
 
-use RectorPrefix202509\Doctrine\Inflector\Inflector;
-use RectorPrefix202509\Doctrine\Inflector\Rules\English\InflectorFactory;
-use RectorPrefix202509\Illuminate\Container\Container;
+use RectorPrefix202511\Doctrine\Inflector\Inflector;
+use RectorPrefix202511\Doctrine\Inflector\Rules\English\InflectorFactory;
+use RectorPrefix202511\Illuminate\Container\Container;
 use PhpParser\Lexer;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\ScopeFactory;
@@ -28,6 +28,7 @@ use Rector\BetterPhpDocParser\PhpDocParser\ArrayItemClassNameDecorator;
 use Rector\BetterPhpDocParser\PhpDocParser\BetterPhpDocParser;
 use Rector\BetterPhpDocParser\PhpDocParser\ConstExprClassNameDecorator;
 use Rector\BetterPhpDocParser\PhpDocParser\DoctrineAnnotationDecorator;
+use Rector\BetterPhpDocParser\PhpDocParser\PhpDocTagGenericUsesDecorator;
 use Rector\BetterPhpDocParser\PhpDocParser\StaticDoctrineAnnotationParser;
 use Rector\BetterPhpDocParser\PhpDocParser\StaticDoctrineAnnotationParser\ArrayParser;
 use Rector\BetterPhpDocParser\PhpDocParser\StaticDoctrineAnnotationParser\PlainValueParser;
@@ -43,13 +44,14 @@ use Rector\CodingStyle\ClassNameImport\ClassNameImportSkipper;
 use Rector\CodingStyle\ClassNameImport\ClassNameImportSkipVoter\AliasClassNameImportSkipVoter;
 use Rector\CodingStyle\ClassNameImport\ClassNameImportSkipVoter\ClassLikeNameClassNameImportSkipVoter;
 use Rector\CodingStyle\ClassNameImport\ClassNameImportSkipVoter\FullyQualifiedNameClassNameImportSkipVoter;
+use Rector\CodingStyle\ClassNameImport\ClassNameImportSkipVoter\OriginalNameImportSkipVoter;
 use Rector\CodingStyle\ClassNameImport\ClassNameImportSkipVoter\ReservedClassNameImportSkipVoter;
+use Rector\CodingStyle\ClassNameImport\ClassNameImportSkipVoter\ShortClassImportSkipVoter;
 use Rector\CodingStyle\ClassNameImport\ClassNameImportSkipVoter\UsesClassNameImportSkipVoter;
 use Rector\CodingStyle\Contract\ClassNameImport\ClassNameImportSkipVoterInterface;
 use Rector\Config\RectorConfig;
 use Rector\Configuration\ConfigInitializer;
 use Rector\Configuration\ConfigurationRuleFilter;
-use Rector\Configuration\KaizenStepper;
 use Rector\Configuration\OnlyRuleResolver;
 use Rector\Configuration\RenamedClassesDataCollector;
 use Rector\Console\Command\CustomRuleCommand;
@@ -180,10 +182,10 @@ use Rector\StaticTypeMapper\PhpParser\NameNodeMapper;
 use Rector\StaticTypeMapper\PhpParser\NullableTypeNodeMapper;
 use Rector\StaticTypeMapper\PhpParser\StringNodeMapper;
 use Rector\StaticTypeMapper\PhpParser\UnionTypeNodeMapper;
-use RectorPrefix202509\Symfony\Component\Console\Application;
-use RectorPrefix202509\Symfony\Component\Console\Command\Command;
-use RectorPrefix202509\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Symfony\Component\Console\Application;
+use RectorPrefix202511\Symfony\Component\Console\Command\Command;
+use RectorPrefix202511\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 final class LazyContainerFactory
 {
     /**
@@ -209,7 +211,7 @@ final class LazyContainerFactory
     /**
      * @var array<class-string<ClassNameImportSkipVoterInterface>>
      */
-    private const CLASS_NAME_IMPORT_SKIPPER_CLASSES = [AliasClassNameImportSkipVoter::class, ClassLikeNameClassNameImportSkipVoter::class, FullyQualifiedNameClassNameImportSkipVoter::class, UsesClassNameImportSkipVoter::class, ReservedClassNameImportSkipVoter::class];
+    private const CLASS_NAME_IMPORT_SKIPPER_CLASSES = [AliasClassNameImportSkipVoter::class, ClassLikeNameClassNameImportSkipVoter::class, FullyQualifiedNameClassNameImportSkipVoter::class, UsesClassNameImportSkipVoter::class, ReservedClassNameImportSkipVoter::class, ShortClassImportSkipVoter::class, OriginalNameImportSkipVoter::class];
     /**
      * @var array<class-string<TypeMapperInterface>>
      */
@@ -217,7 +219,7 @@ final class LazyContainerFactory
     /**
      * @var array<class-string<PhpDocNodeDecoratorInterface>>
      */
-    private const PHP_DOC_NODE_DECORATOR_CLASSES = [ConstExprClassNameDecorator::class, DoctrineAnnotationDecorator::class, ArrayItemClassNameDecorator::class];
+    private const PHP_DOC_NODE_DECORATOR_CLASSES = [ConstExprClassNameDecorator::class, DoctrineAnnotationDecorator::class, ArrayItemClassNameDecorator::class, PhpDocTagGenericUsesDecorator::class];
     /**
      * @var array<class-string>
      */
@@ -311,7 +313,7 @@ final class LazyContainerFactory
         $rectorConfig->when(AttributeGroupNamedArgumentManipulator::class)->needs('$converterAttributeDecorators')->giveTagged(ConverterAttributeDecoratorInterface::class);
         $this->registerTagged($rectorConfig, self::CONVERTER_ATTRIBUTE_DECORATOR_CLASSES, ConverterAttributeDecoratorInterface::class);
         $rectorConfig->afterResolving(AbstractRector::class, static function (AbstractRector $rector, Container $container): void {
-            $rector->autowire($container->get(NodeNameResolver::class), $container->get(NodeTypeResolver::class), $container->get(SimpleCallableNodeTraverser::class), $container->get(NodeFactory::class), $container->get(Skipper::class), $container->get(NodeComparator::class), $container->get(CurrentFileProvider::class), $container->get(CreatedByRuleDecorator::class), $container->get(ChangedNodeScopeRefresher::class), $container->get(KaizenStepper::class));
+            $rector->autowire($container->get(NodeNameResolver::class), $container->get(NodeTypeResolver::class), $container->get(SimpleCallableNodeTraverser::class), $container->get(NodeFactory::class), $container->get(Skipper::class), $container->get(NodeComparator::class), $container->get(CurrentFileProvider::class), $container->get(CreatedByRuleDecorator::class), $container->get(ChangedNodeScopeRefresher::class));
         });
         $this->registerTagged($rectorConfig, self::PHP_PARSER_NODE_MAPPER_CLASSES, PhpParserNodeMapperInterface::class);
         $this->registerTagged($rectorConfig, self::PHP_DOC_NODE_DECORATOR_CLASSES, PhpDocNodeDecoratorInterface::class);

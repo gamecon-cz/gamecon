@@ -12,7 +12,7 @@ namespace PHP_CodeSniffer\Tests\Core\Ruleset;
 use PHP_CodeSniffer\Files\LocalFile;
 use PHP_CodeSniffer\Ruleset;
 use PHP_CodeSniffer\Tests\ConfigDouble;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Test the handling of property value types for properties set via the ruleset and inline.
  *
@@ -32,7 +32,7 @@ final class PropertyTypeHandlingTest extends TestCase
      *
      * @var string
      */
-    const SNIFF_CLASS = 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs\\SetProperty\\PropertyTypeHandlingSniff';
+    const SNIFF_CLASS = 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs\\SetProperty\\PropertyTypeHandlingSniff';
     /**
      * Verify a deprecation notice is shown when an array property is set from the ruleset using a comma-separated string.
      *

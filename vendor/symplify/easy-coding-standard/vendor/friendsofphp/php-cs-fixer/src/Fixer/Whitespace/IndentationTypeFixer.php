@@ -101,7 +101,7 @@ final class IndentationTypeFixer extends AbstractFixer implements WhitespacesAwa
             $content
         );
         if ($previousTokenHasTrailingLinebreak) {
-            $newContent = \substr($newContent, 1);
+            $newContent = (string) \substr($newContent, 1);
         }
         return new Token([\T_WHITESPACE, $newContent]);
     }

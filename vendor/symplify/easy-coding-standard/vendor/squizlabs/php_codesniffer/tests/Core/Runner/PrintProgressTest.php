@@ -12,7 +12,7 @@ use PHP_CodeSniffer\Files\DummyFile;
 use PHP_CodeSniffer\Ruleset;
 use PHP_CodeSniffer\Runner;
 use PHP_CodeSniffer\Tests\ConfigDouble;
-use ECSPrefix202509\PHPUnit\Framework\TestCase;
+use ECSPrefix202510\PHPUnit\Framework\TestCase;
 /**
  * Tests progress reporting.
  *

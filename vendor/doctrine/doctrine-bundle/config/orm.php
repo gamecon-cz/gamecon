@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Doctrine\Bundle\DoctrineBundle\Command\ImportMappingDoctrineCommand;
@@ -142,13 +144,13 @@ return static function (ContainerConfigurator $container): void {
 
         ->alias('doctrine.orm.metadata.annotation_reader', 'annotation_reader')
 
-        ->set('doctrine.orm.proxy_cache_warmer', param('doctrine.orm.proxy_cache_warmer.class'))
+        ->set('doctrine.orm.proxy_cache_warmer', (string) param('doctrine.orm.proxy_cache_warmer.class'))
             ->tag('kernel.cache_warmer')
             ->args([
                 service('doctrine'),
             ])
 
-        ->set('form.type_guesser.doctrine', param('form.type_guesser.doctrine.class'))
+        ->set('form.type_guesser.doctrine', (string) param('form.type_guesser.doctrine.class'))
             ->tag('form.type_guesser')
             ->args([
                 service('doctrine'),
@@ -160,10 +162,10 @@ return static function (ContainerConfigurator $container): void {
                 service('doctrine'),
             ])
 
-        ->set('doctrine.orm.configuration', param('doctrine.orm.configuration.class'))
+        ->set('doctrine.orm.configuration', (string) param('doctrine.orm.configuration.class'))
             ->abstract()
 
-        ->set('doctrine.orm.entity_manager.abstract', param('doctrine.orm.entity_manager.class'))
+        ->set('doctrine.orm.entity_manager.abstract', (string) param('doctrine.orm.entity_manager.class'))
             ->abstract()
             ->lazy()
 
@@ -174,32 +176,32 @@ return static function (ContainerConfigurator $container): void {
                 ]),
             ])
 
-        ->set('doctrine.orm.manager_configurator.abstract', param('doctrine.orm.manager_configurator.class'))
+        ->set('doctrine.orm.manager_configurator.abstract', (string) param('doctrine.orm.manager_configurator.class'))
             ->abstract()
             ->args([
                 [],
                 [],
             ])
 
-        ->set('doctrine.orm.validator.unique', param('doctrine.orm.validator.unique.class'))
+        ->set('doctrine.orm.validator.unique', (string) param('doctrine.orm.validator.unique.class'))
             ->tag('validator.constraint_validator', ['alias' => 'doctrine.orm.validator.unique'])
             ->args([
                 service('doctrine'),
             ])
 
-        ->set('doctrine.orm.validator_initializer', param('doctrine.orm.validator_initializer.class'))
+        ->set('doctrine.orm.validator_initializer', (string) param('doctrine.orm.validator_initializer.class'))
             ->tag('validator.initializer')
             ->args([
                 service('doctrine'),
             ])
 
-        ->set('doctrine.orm.security.user.provider', param('doctrine.orm.security.user.provider.class'))
+        ->set('doctrine.orm.security.user.provider', (string) param('doctrine.orm.security.user.provider.class'))
             ->abstract()
             ->args([
                 service('doctrine'),
             ])
 
-        ->set('doctrine.orm.listeners.resolve_target_entity', param('doctrine.orm.listeners.resolve_target_entity.class'))
+        ->set('doctrine.orm.listeners.resolve_target_entity', (string) param('doctrine.orm.listeners.resolve_target_entity.class'))
 
         ->set('doctrine.orm.listeners.doctrine_dbal_cache_adapter_schema_listener', DoctrineDbalCacheAdapterSchemaListener::class)
             ->args([
@@ -225,21 +227,21 @@ return static function (ContainerConfigurator $container): void {
             ])
             ->tag('doctrine.event_listener', ['event' => 'postGenerateSchema'])
 
-        ->set('doctrine.orm.naming_strategy.default', param('doctrine.orm.naming_strategy.default.class'))
+        ->set('doctrine.orm.naming_strategy.default', (string) param('doctrine.orm.naming_strategy.default.class'))
 
-        ->set('doctrine.orm.naming_strategy.underscore', param('doctrine.orm.naming_strategy.underscore.class'))
+        ->set('doctrine.orm.naming_strategy.underscore', (string) param('doctrine.orm.naming_strategy.underscore.class'))
 
-        ->set('doctrine.orm.naming_strategy.underscore_number_aware', param('doctrine.orm.naming_strategy.underscore.class'))
+        ->set('doctrine.orm.naming_strategy.underscore_number_aware', (string) param('doctrine.orm.naming_strategy.underscore.class'))
             ->args([
                 CASE_LOWER,
                 true,
             ])
 
-        ->set('doctrine.orm.quote_strategy.default', param('doctrine.orm.quote_strategy.default.class'))
+        ->set('doctrine.orm.quote_strategy.default', (string) param('doctrine.orm.quote_strategy.default.class'))
 
-        ->set('doctrine.orm.quote_strategy.ansi', param('doctrine.orm.quote_strategy.ansi.class'))
+        ->set('doctrine.orm.quote_strategy.ansi', (string) param('doctrine.orm.quote_strategy.ansi.class'))
 
-        ->set('doctrine.orm.typed_field_mapper.default', param('doctrine.orm.typed_field_mapper.default.class'))
+        ->set('doctrine.orm.typed_field_mapper.default', (string) param('doctrine.orm.typed_field_mapper.default.class'))
 
         ->set('doctrine.ulid_generator', 'Symfony\\Bridge\\Doctrine\\IdGenerator\\UlidGenerator')
             ->args([
@@ -360,7 +362,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('doctrine.mapping_import_command', ImportMappingDoctrineCommand::class)
             ->args([
                 service('doctrine'),
-                param('kernel.bundles'),
+                (string) param('kernel.bundles'),
             ])
             ->tag('console.command', ['command' => 'doctrine:mapping:import']);
 };

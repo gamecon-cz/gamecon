@@ -22,7 +22,7 @@ use Rector\Rector\AbstractRector;
 use Rector\Renaming\NodeManipulator\ClassRenamer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Renaming\Rector\Name\RenameClassRector\RenameClassRectorTest
  */
@@ -94,7 +94,7 @@ CODE_SAMPLE
     }
     /**
      * @param ClassConstFetch|FunctionLike|FullyQualified|Name|ClassLike|Expression|Property|If_ $node
-     * @return int|null|\PhpParser\Node
+     * @return null|NodeVisitor::DONT_TRAVERSE_CHILDREN|Node
      */
     public function refactor(Node $node)
     {
@@ -119,6 +119,7 @@ CODE_SAMPLE
     }
     /**
      * @param array<string, string> $oldToNewClasses
+     * @return null|NodeVisitor::DONT_TRAVERSE_CHILDREN
      */
     private function processClassConstFetch(ClassConstFetch $classConstFetch, array $oldToNewClasses): ?int
     {

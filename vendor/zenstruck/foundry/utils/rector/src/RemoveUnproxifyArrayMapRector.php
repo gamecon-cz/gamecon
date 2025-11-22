@@ -16,7 +16,6 @@ namespace Zenstruck\Foundry\Utils\Rector;
 use PhpParser\Node;
 use PhpParser\Node\FunctionLike;
 use PHPStan\Type\ClosureType;
-use PHPStan\Type\ErrorType;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
@@ -86,7 +85,7 @@ final class RemoveUnproxifyArrayMapRector extends AbstractRector
             && ($return = $callable->getStmts()[0]) instanceof Node\Stmt\Return_
             && (($methodCall = $return->expr) instanceof Node\Expr\MethodCall || $methodCall instanceof Node\Expr\NullsafeMethodCall)
             && $this->getName($methodCall->var) === $this->getName($callable->getParams()[0]->var)
-            && $this->getName($methodCall->name) === '_real'
+            && '_real' === $this->getName($methodCall->name)
             && 0 === \count($methodCall->args)
         ;
     }

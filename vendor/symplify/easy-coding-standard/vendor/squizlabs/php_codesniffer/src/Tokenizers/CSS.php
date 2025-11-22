@@ -104,7 +104,7 @@ class CSS extends \PHP_CodeSniffer\Tokenizers\PHP
             if ($token['code'] === \T_GOTO_LABEL) {
                 // Convert these back to T_STRING followed by T_COLON so we can
                 // more easily process style definitions.
-                $finalTokens[$newStackPtr] = ['type' => 'T_STRING', 'code' => \T_STRING, 'content' => \substr($token['content'], 0, -1)];
+                $finalTokens[$newStackPtr] = ['type' => 'T_STRING', 'code' => \T_STRING, 'content' => (string) \substr($token['content'], 0, -1)];
                 $newStackPtr++;
                 $finalTokens[$newStackPtr] = ['type' => 'T_COLON', 'code' => \T_COLON, 'content' => ':'];
                 $newStackPtr++;
@@ -138,8 +138,8 @@ class CSS extends \PHP_CodeSniffer\Tokenizers\PHP
                     $closeTag = \array_pop($commentTokens);
                 }
                 if ($leadingZero === \true) {
-                    $commentTokens[0]['content'] = \substr($commentTokens[0]['content'], 1);
-                    $content = \substr($content, 1);
+                    $commentTokens[0]['content'] = (string) \substr($commentTokens[0]['content'], 1);
+                    $content = (string) \substr($content, 1);
                 }
                 if ($token['content'][0] === '#') {
                     // The # character is not a comment in CSS files, so
@@ -156,7 +156,7 @@ class CSS extends \PHP_CodeSniffer\Tokenizers\PHP
                     if (\preg_match('/^[ABCDEF0-9]+$/i', $firstContent) === 1 && $commentTokens[1]['content'] !== '-') {
                         \array_shift($commentTokens);
                         // Work out what we trimmed off above and remember to re-add it.
-                        $trimmed = \substr($token['content'], 0, \strlen($token['content']) - \strlen($content));
+                        $trimmed = (string) \substr($token['content'], 0, \strlen($token['content']) - \strlen($content));
                         $finalTokens[$newStackPtr] = ['type' => 'T_COLOUR', 'code' => \T_COLOUR, 'content' => $trimmed . $firstContent];
                     } else {
                         $finalTokens[$newStackPtr] = ['type' => 'T_HASH', 'code' => \T_HASH, 'content' => '#'];
@@ -383,7 +383,7 @@ class CSS extends \PHP_CodeSniffer\Tokenizers\PHP
         $finalTokens[$numTokens - 1]['content'] = '';
         if ($eolAdded === \true) {
             // Strip off the extra EOL char we added for tokenizing.
-            $finalTokens[$numTokens - 2]['content'] = \substr($finalTokens[$numTokens - 2]['content'], 0, \strlen($this->eolChar) * -1);
+            $finalTokens[$numTokens - 2]['content'] = (string) \substr($finalTokens[$numTokens - 2]['content'], 0, \strlen($this->eolChar) * -1);
             if ($finalTokens[$numTokens - 2]['content'] === '') {
                 unset($finalTokens[$numTokens - 2]);
                 $finalTokens = \array_values($finalTokens);

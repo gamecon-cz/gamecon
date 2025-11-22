@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the zenstruck/foundry package.
+ *
+ * (c) Kevin Bond <kevinbond@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
@@ -10,7 +19,7 @@ use Zenstruck\Foundry\ORM\ResetDatabase\BaseOrmResetter;
 use Zenstruck\Foundry\ORM\ResetDatabase\DamaDatabaseResetter;
 use Zenstruck\Foundry\ORM\ResetDatabase\OrmResetter;
 
-return static function (ContainerConfigurator $container): void {
+return static function(ContainerConfigurator $container): void {
     $container->services()
         ->set('.zenstruck_foundry.persistence_strategy.orm', DoctrineOrmVersionGuesser::isOrmV3() ? OrmV3PersistenceStrategy::class : OrmV2PersistenceStrategy::class)
             ->args([
@@ -24,7 +33,7 @@ return static function (ContainerConfigurator $container): void {
             ->arg('$connections', service('connections'))
             ->abstract()
 
-        ->set(OrmResetter::class, /* class to be defined thanks to the configuration */)
+        ->set(OrmResetter::class/* class to be defined thanks to the configuration */)
             ->parent('.zenstruck_foundry.persistence.database_resetter.orm.abstract')
             ->tag('.foundry.persistence.database_resetter')
             ->tag('.foundry.persistence.schema_resetter')

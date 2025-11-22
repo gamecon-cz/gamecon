@@ -51,7 +51,7 @@ final class ExpandRulesetReferenceInternalTest extends AbstractRulesetTestCase
         $standard = __DIR__ . '/ExpandRulesetReferenceInternalStandardTest.xml';
         $config = new ConfigDouble(["--standard={$standard}"]);
         $ruleset = new Ruleset($config);
-        $expected = ['Internal.Valid.Valid' => 'ECSPrefix202509\\Fixtures\\Internal\\Sniffs\\Valid\\ValidSniff'];
+        $expected = ['Internal.Valid.Valid' => 'ECSPrefix202510\\Fixtures\\Internal\\Sniffs\\Valid\\ValidSniff'];
         $this->assertSame($expected, $ruleset->sniffCodes);
     }
     //end testInternalStandardDoesGetExpanded()

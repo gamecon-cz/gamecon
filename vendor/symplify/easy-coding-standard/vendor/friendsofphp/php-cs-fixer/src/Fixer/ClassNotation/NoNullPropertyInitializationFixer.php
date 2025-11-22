@@ -29,7 +29,7 @@ final class NoNullPropertyInitializationFixer extends AbstractFixer
         return new FixerDefinition('Properties MUST not be explicitly initialized with `null` except when they have a type declaration (PHP 7.4).', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
@@ -37,19 +37,19 @@ class Foo
     public ?string $baz = null;
     public ?string $baux;
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
     public static $foo = null;
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 
 PHP
 )]);

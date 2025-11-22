@@ -423,7 +423,7 @@ final class Tokens
             // PHP-supplied token name.
             return \token_name($token);
         }
-        return \substr($token, 6);
+        return (string) \substr($token, 6);
     }
     //end tokenName()
     /**

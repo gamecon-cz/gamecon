@@ -148,7 +148,7 @@ class FileCommentSniff implements Sniff
             if ($this->tags[$name]['allow_multiple'] === \false && isset($tagTokens[$name]) === \true) {
                 $error = 'Only one %s tag is allowed in a %s comment';
                 $data = [$name, $docBlock];
-                $phpcsFile->addError($error, $tag, 'Duplicate' . \ucfirst(\substr($name, 1)) . 'Tag', $data);
+                $phpcsFile->addError($error, $tag, 'Duplicate' . \ucfirst((string) \substr($name, 1)) . 'Tag', $data);
             }
             $foundTags[] = $name;
             $tagTokens[$name][] = $tag;
@@ -156,7 +156,7 @@ class FileCommentSniff implements Sniff
             if ($string === \false || $tokens[$string]['line'] !== $tokens[$tag]['line']) {
                 $error = 'Content missing for %s tag in %s comment';
                 $data = [$name, $docBlock];
-                $phpcsFile->addError($error, $tag, 'Empty' . \ucfirst(\substr($name, 1)) . 'Tag', $data);
+                $phpcsFile->addError($error, $tag, 'Empty' . \ucfirst((string) \substr($name, 1)) . 'Tag', $data);
                 continue;
             }
         }
@@ -168,7 +168,7 @@ class FileCommentSniff implements Sniff
                 if ($tagData['required'] === \true) {
                     $error = 'Missing %s tag in %s comment';
                     $data = [$tag, $docBlock];
-                    $phpcsFile->addError($error, $commentEnd, 'Missing' . \ucfirst(\substr($tag, 1)) . 'Tag', $data);
+                    $phpcsFile->addError($error, $commentEnd, 'Missing' . \ucfirst((string) \substr($tag, 1)) . 'Tag', $data);
                 }
                 continue;
             } else {
@@ -184,7 +184,7 @@ class FileCommentSniff implements Sniff
             if ($foundTags[$pos] !== $tag) {
                 $error = 'The tag in position %s should be the %s tag';
                 $data = [$pos + 1, $tag];
-                $phpcsFile->addError($error, $tokens[$commentStart]['comment_tags'][$pos], \ucfirst(\substr($tag, 1)) . 'TagOrder', $data);
+                $phpcsFile->addError($error, $tokens[$commentStart]['comment_tags'][$pos], \ucfirst((string) \substr($tag, 1)) . 'TagOrder', $data);
             }
             // Account for multiple tags.
             $pos++;

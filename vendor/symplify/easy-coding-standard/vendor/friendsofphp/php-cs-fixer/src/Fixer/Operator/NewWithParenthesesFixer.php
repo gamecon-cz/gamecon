@@ -21,6 +21,7 @@ use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
+use PhpCsFixer\Future;
 use PhpCsFixer\Tokenizer\CT;
 use PhpCsFixer\Tokenizer\FCT;
 use PhpCsFixer\Tokenizer\Token;
@@ -63,10 +64,14 @@ final class NewWithParenthesesFixer extends AbstractFixer implements Configurabl
     {
         return $tokens->isTokenKindFound(\T_NEW);
     }
-    /** @protected */
+    /**
+     * @protected
+     *
+     * @TODO 4.0 move visibility from annotation to code when `NewWithBracesFixer` is removed
+     */
     public function createConfigurationDefinition() : FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([(new FixerOptionBuilder('named_class', 'Whether named classes should be followed by parentheses.'))->setAllowedTypes(['bool'])->setDefault(\true)->getOption(), (new FixerOptionBuilder('anonymous_class', 'Whether anonymous classes should be followed by parentheses.'))->setAllowedTypes(['bool'])->setDefault(\true)->getOption()]);
+        return new FixerConfigurationResolver([(new FixerOptionBuilder('named_class', 'Whether named classes should be followed by parentheses.'))->setAllowedTypes(['bool'])->setDefault(\true)->getOption(), (new FixerOptionBuilder('anonymous_class', 'Whether anonymous classes should be followed by parentheses.'))->setAllowedTypes(['bool'])->setDefault(Future::getV4OrV3(\false, \true))->getOption()]);
     }
     protected function applyFix(\SplFileInfo $file, Tokens $tokens) : void
     {

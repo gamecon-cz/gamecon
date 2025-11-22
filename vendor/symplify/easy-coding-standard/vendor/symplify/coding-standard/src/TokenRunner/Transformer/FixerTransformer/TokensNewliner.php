@@ -58,9 +58,9 @@ final class TokensNewliner
         $this->lineLengthCloserTransformer->insertNewlineBeforeClosingIfNeeded($tokens, $blockInfo, $kind, $currentNewlineIndentWhitespace, $this->indentResolver->resolveClosingBracketNewlineWhitespace($tokens, $blockInfo->getStart()));
         // again, from the bottom to the top
         for ($i = $blockInfo->getEnd() - 1; $i >= $blockInfo->getStart(); --$i) {
+            $i = $this->tokenSkipper->skipBlocksReversed($tokens, $i);
             /** @var Token $currentToken */
             $currentToken = $tokens[$i];
-            $i = $this->tokenSkipper->skipBlocksReversed($tokens, $i);
             // 2. new line after each comma ",", instead of just space
             if ($currentToken->getContent() === ',') {
                 if ($this->isLastItem($tokens, $i)) {

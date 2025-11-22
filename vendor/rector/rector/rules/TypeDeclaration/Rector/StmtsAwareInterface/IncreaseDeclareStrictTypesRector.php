@@ -18,7 +18,7 @@ use Rector\Rector\AbstractRector;
 use Rector\TypeDeclaration\NodeAnalyzer\DeclareStrictTypeFinder;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\StmtsAwareInterface\IncreaseDeclareStrictTypesRector\IncreaseDeclareStrictTypesRectorTest
  */
@@ -28,7 +28,7 @@ final class IncreaseDeclareStrictTypesRector extends AbstractRector implements C
      * @readonly
      */
     private DeclareStrictTypeFinder $declareStrictTypeFinder;
-    private const LIMIT = 'limit';
+    public const LIMIT = 'limit';
     private int $limit = 10;
     private int $changedItemCount = 0;
     public function __construct(DeclareStrictTypeFinder $declareStrictTypeFinder)
@@ -95,6 +95,9 @@ CODE_SAMPLE
         // workaround, as Rector now only hooks to specific nodes, not arrays
         return null;
     }
+    /**
+     * @param array<string, mixed> $configuration
+     */
     public function configure(array $configuration): void
     {
         Assert::keyExists($configuration, self::LIMIT);

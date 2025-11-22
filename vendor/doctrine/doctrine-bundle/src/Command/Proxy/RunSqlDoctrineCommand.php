@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doctrine\Bundle\DoctrineBundle\Command\Proxy;
 
 use Doctrine\DBAL\Tools\Console\Command\RunSqlCommand;
+use Doctrine\Deprecations\Deprecation;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-
-use function trigger_deprecation;
 
 /**
  * Execute a SQL query and output the results.
@@ -31,9 +32,9 @@ EOT);
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        trigger_deprecation(
+        Deprecation::trigger(
             'doctrine/doctrine-bundle',
-            '2.2',
+            'https://github.com/doctrine/DoctrineBundle/pull/1231',
             'The "%s" (doctrine:query:sql) is deprecated, use dbal:run-sql command instead.',
             self::class,
         );

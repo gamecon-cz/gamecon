@@ -5,7 +5,7 @@ namespace Rector\BetterPhpDocParser\ValueObject\PhpDoc\DoctrineAnnotation;
 
 use Rector\BetterPhpDocParser\PhpDoc\ArrayItemNode;
 use Stringable;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 final class CurlyListNode extends \Rector\BetterPhpDocParser\ValueObject\PhpDoc\DoctrineAnnotation\AbstractValuesAwareNode
 {
     /**
@@ -28,7 +28,7 @@ final class CurlyListNode extends \Rector\BetterPhpDocParser\ValueObject\PhpDoc\
         return $this->implode($this->values);
     }
     /**
-     * @param mixed[] $array
+     * @param ArrayItemNode[] $array
      */
     private function implode(array $array): string
     {

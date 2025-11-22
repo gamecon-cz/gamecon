@@ -8,14 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Console\EventListener;
+namespace ECSPrefix202510\Symfony\Component\Console\EventListener;
 
-use ECSPrefix202509\Psr\Log\LoggerInterface;
-use ECSPrefix202509\Symfony\Component\Console\ConsoleEvents;
-use ECSPrefix202509\Symfony\Component\Console\Event\ConsoleErrorEvent;
-use ECSPrefix202509\Symfony\Component\Console\Event\ConsoleEvent;
-use ECSPrefix202509\Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use ECSPrefix202509\Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use ECSPrefix202510\Psr\Log\LoggerInterface;
+use ECSPrefix202510\Symfony\Component\Console\ConsoleEvents;
+use ECSPrefix202510\Symfony\Component\Console\Event\ConsoleErrorEvent;
+use ECSPrefix202510\Symfony\Component\Console\Event\ConsoleEvent;
+use ECSPrefix202510\Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use ECSPrefix202510\Symfony\Component\EventDispatcher\EventSubscriberInterface;
 /**
  * @author James Halsall <james.t.halsall@googlemail.com>
  * @author Robin Chalas <robin.chalas@gmail.com>

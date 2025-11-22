@@ -22,7 +22,7 @@ use Rector\Rector\AbstractRector;
 use Rector\Transform\ValueObject\ArrayDimFetchToMethodCall;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Transform\Rector\ArrayDimFetch\ArrayDimFetchToMethodCallRector\ArrayDimFetchToMethodCallRectorTest
  */
@@ -105,7 +105,7 @@ CODE_SAMPLE
             $isset->vars = $issets;
             array_unshift($exprs, $isset);
         }
-        return array_reduce($exprs, fn(?Expr $carry, Expr $expr) => $carry instanceof Expr ? new BooleanAnd($carry, $expr) : $expr, null);
+        return array_reduce($exprs, fn(?Expr $carry, Expr $expr) => $carry instanceof Expr ? new BooleanAnd($carry, $expr) : $expr);
     }
     /**
      * @return Stmt[]|int

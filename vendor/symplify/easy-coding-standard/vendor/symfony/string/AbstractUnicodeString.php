@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\String;
+namespace ECSPrefix202510\Symfony\Component\String;
 
-use ECSPrefix202509\Symfony\Component\String\Exception\ExceptionInterface;
-use ECSPrefix202509\Symfony\Component\String\Exception\InvalidArgumentException;
-use ECSPrefix202509\Symfony\Component\String\Exception\RuntimeException;
+use ECSPrefix202510\Symfony\Component\String\Exception\ExceptionInterface;
+use ECSPrefix202510\Symfony\Component\String\Exception\InvalidArgumentException;
+use ECSPrefix202510\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract Unicode characters.
  *
@@ -91,7 +91,7 @@ abstract class AbstractUnicodeString extends AbstractString
         while (\strlen($s) - 1 > ($i = \strspn($s, self::ASCII))) {
             if (0 < --$i) {
                 $str->string .= \substr($s, 0, $i);
-                $s = \substr($s, $i);
+                $s = (string) \substr($s, $i);
             }
             if (!($rule = \array_shift($rules))) {
                 $rules = [];
@@ -347,7 +347,7 @@ abstract class AbstractUnicodeString extends AbstractString
     public function snake()
     {
         $str = $this->camel();
-        $str->string = \mb_strtolower(\preg_replace(['/(\\p{Lu}+)(\\p{Lu}\\p{Ll})/u', '/([\\p{Ll}0-9])(\\p{Lu})/u'], 'ECSPrefix202509\\1_\\2', $str->string), 'UTF-8');
+        $str->string = \mb_strtolower(\preg_replace(['/(\\p{Lu}+)(\\p{Lu}\\p{Ll})/u', '/([\\p{Ll}0-9])(\\p{Lu})/u'], 'ECSPrefix202510\\1_\\2', $str->string), 'UTF-8');
         return $str;
     }
     /**

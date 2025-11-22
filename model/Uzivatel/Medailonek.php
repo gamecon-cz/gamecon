@@ -17,12 +17,12 @@ class Medailonek extends DbObject
 
     public function drd(): string
     {
-        return markdownNoCache($this->r[MedailonekSqlStruktura::DRD]);
+        return markdown($this->r[MedailonekSqlStruktura::DRD]);
     }
 
     public function oSobe(): string
     {
-        return markdownNoCache($this->r[MedailonekSqlStruktura::O_SOBE]);
+        return markdown($this->r[MedailonekSqlStruktura::O_SOBE]);
     }
 
     public function idUzivatele(): int

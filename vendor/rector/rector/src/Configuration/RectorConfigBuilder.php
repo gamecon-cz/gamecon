@@ -10,6 +10,7 @@ use Rector\Composer\InstalledPackageResolver;
 use Rector\Config\Level\CodeQualityLevel;
 use Rector\Config\Level\CodingStyleLevel;
 use Rector\Config\Level\DeadCodeLevel;
+use Rector\Config\Level\TypeDeclarationDocblocksLevel;
 use Rector\Config\Level\TypeDeclarationLevel;
 use Rector\Config\RectorConfig;
 use Rector\Config\RegisteredService;
@@ -34,8 +35,11 @@ use Rector\Symfony\Set\SymfonyInternalSetList;
 use Rector\Symfony\Set\SymfonySetList;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
-use RectorPrefix202509\Symfony\Component\Finder\Finder;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202511\Symfony\Component\Console\Output\ConsoleOutput;
+use RectorPrefix202511\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202511\Symfony\Component\Finder\Finder;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
  * @api
  */
@@ -110,6 +114,7 @@ final class RectorConfigBuilder
      * as both contain same rules
      */
     private ?bool $isTypeCoverageLevelUsed = null;
+    private ?bool $isTypeCoverageDocblockLevelUsed = null;
     private ?bool $isDeadCodeLevelUsed = null;
     private ?bool $isCodeQualityLevelUsed = null;
     private ?bool $isCodingStyleLevelUsed = null;
@@ -142,7 +147,7 @@ final class RectorConfigBuilder
     public function __invoke(RectorConfig $rectorConfig): void
     {
         if ($this->setGroups !== [] || $this->setProviders !== []) {
-            $setProviderCollector = new SetProviderCollector(array_map(static fn(string $setProvider): SetProviderInterface => $rectorConfig->make($setProvider), \array_keys($this->setProviders)));
+            $setProviderCollector = new SetProviderCollector(array_map(\Closure::fromCallable([$rectorConfig, 'make']), \array_keys($this->setProviders)));
             $setManager = new SetManager($setProviderCollector, new InstalledPackageResolver(getcwd()));
             $this->groupLoadedSets = $setManager->matchBySetGroups($this->setGroups);
             SimpleParameterProvider::addParameter(\Rector\Configuration\Option::COMPOSER_BASED_SETS, $this->groupLoadedSets);
@@ -160,6 +165,9 @@ final class RectorConfigBuilder
         if (in_array(SetList::TYPE_DECLARATION, $uniqueSets, \true) && $this->isTypeCoverageLevelUsed === \true) {
             throw new InvalidConfigurationException(sprintf('Your config already enables type declarations set.%sRemove "->withTypeCoverageLevel()" as it only duplicates it, or remove type declaration set.', \PHP_EOL));
         }
+        if (in_array(SetList::TYPE_DECLARATION_DOCBLOCKS, $uniqueSets, \true) && $this->isTypeCoverageDocblockLevelUsed === \true) {
+            throw new InvalidConfigurationException(sprintf('Your config already enables type declarations set.%sRemove "->withTypeCoverageDocblockLevel()" as it only duplicates it, or remove type declaration set.', \PHP_EOL));
+        }
         if (in_array(SetList::DEAD_CODE, $uniqueSets, \true) && $this->isDeadCodeLevelUsed === \true) {
             throw new InvalidConfigurationException(sprintf('Your config already enables dead code set.%sRemove "->withDeadCodeLevel()" as it only duplicates it, or remove dead code set.', \PHP_EOL));
         }
@@ -173,7 +181,7 @@ final class RectorConfigBuilder
             $rectorConfig->sets($uniqueSets);
         }
         // log rules from sets and compare them with explicit rules
-        $setRegisteredRectorClasses = $rectorConfig->getRectorClasses();
+        $setRegisteredRectorClasses = $rectorConfig->getMainRectorClasses();
         SimpleParameterProvider::addParameter(\Rector\Configuration\Option::SET_REGISTERED_RULES, $setRegisteredRectorClasses);
         if ($this->paths !== []) {
             $rectorConfig->paths($this->paths);
@@ -518,10 +526,33 @@ final class RectorConfigBuilder
     }
     // there is no withPhp80Sets() and above,
     // as we already use PHP 8.0 and should go with withPhpSets() instead
-    public function withPreparedSets(bool $deadCode = \false, bool $codeQuality = \false, bool $codingStyle = \false, bool $typeDeclarations = \false, bool $privatization = \false, bool $naming = \false, bool $instanceOf = \false, bool $earlyReturn = \false, bool $strictBooleans = \false, bool $carbon = \false, bool $rectorPreset = \false, bool $phpunitCodeQuality = \false, bool $doctrineCodeQuality = \false, bool $symfonyCodeQuality = \false, bool $symfonyConfigs = \false): self
+    public function withPreparedSets(
+        bool $deadCode = \false,
+        bool $codeQuality = \false,
+        bool $codingStyle = \false,
+        bool $typeDeclarations = \false,
+        bool $typeDeclarationDocblocks = \false,
+        bool $privatization = \false,
+        bool $naming = \false,
+        bool $instanceOf = \false,
+        bool $earlyReturn = \false,
+        /** @deprecated */
+        bool $strictBooleans = \false,
+        bool $carbon = \false,
+        bool $rectorPreset = \false,
+        bool $phpunitCodeQuality = \false,
+        bool $doctrineCodeQuality = \false,
+        bool $symfonyCodeQuality = \false,
+        bool $symfonyConfigs = \false
+    ): self
     {
         Notifier::notifyNotSuitableMethodForPHP74(__METHOD__);
-        $setMap = [SetList::DEAD_CODE => $deadCode, SetList::CODE_QUALITY => $codeQuality, SetList::CODING_STYLE => $codingStyle, SetList::TYPE_DECLARATION => $typeDeclarations, SetList::PRIVATIZATION => $privatization, SetList::NAMING => $naming, SetList::INSTANCEOF => $instanceOf, SetList::EARLY_RETURN => $earlyReturn, SetList::STRICT_BOOLEANS => $strictBooleans, SetList::CARBON => $carbon, SetList::RECTOR_PRESET => $rectorPreset, PHPUnitSetList::PHPUNIT_CODE_QUALITY => $phpunitCodeQuality, DoctrineSetList::DOCTRINE_CODE_QUALITY => $doctrineCodeQuality, SymfonySetList::SYMFONY_CODE_QUALITY => $symfonyCodeQuality, SymfonySetList::CONFIGS => $symfonyConfigs];
+        if ($strictBooleans) {
+            $message = 'The "strictBooleans" set is deprecated as mostly risky and not practical. Remove it from withPreparedSets() method and use "codeQuality" and "codingStyle" sets instead. They already contain more granular and stable rules on same note.';
+            $symfonyStyle = new SymfonyStyle(new ArgvInput(), new ConsoleOutput());
+            $symfonyStyle->warning($message);
+        }
+        $setMap = [SetList::DEAD_CODE => $deadCode, SetList::CODE_QUALITY => $codeQuality, SetList::CODING_STYLE => $codingStyle, SetList::TYPE_DECLARATION => $typeDeclarations, SetList::TYPE_DECLARATION_DOCBLOCKS => $typeDeclarationDocblocks, SetList::PRIVATIZATION => $privatization, SetList::NAMING => $naming, SetList::INSTANCEOF => $instanceOf, SetList::EARLY_RETURN => $earlyReturn, SetList::CARBON => $carbon, SetList::RECTOR_PRESET => $rectorPreset, PHPUnitSetList::PHPUNIT_CODE_QUALITY => $phpunitCodeQuality, DoctrineSetList::DOCTRINE_CODE_QUALITY => $doctrineCodeQuality, SymfonySetList::SYMFONY_CODE_QUALITY => $symfonyCodeQuality, SymfonySetList::CONFIGS => $symfonyConfigs];
         foreach ($setMap as $setPath => $isEnabled) {
             if ($isEnabled) {
                 $this->sets[] = $setPath;
@@ -684,6 +715,23 @@ final class RectorConfigBuilder
         $levelRulesCount = count($levelRules);
         if ($levelRulesCount + self::MAX_LEVEL_GAP < $level) {
             $this->levelOverflows[] = new LevelOverflow('withTypeCoverageLevel', $level, $levelRulesCount, 'typeDeclarations', 'TYPE_DECLARATION');
+        }
+        $this->rules = array_merge($this->rules, $levelRules);
+        return $this;
+    }
+    /**
+     * Raise your type coverage docblock from the safest type rules
+     * to more affecting ones, one level at a time
+     */
+    public function withTypeCoverageDocblockLevel(int $level): self
+    {
+        Assert::natural($level);
+        $this->isTypeCoverageDocblockLevelUsed = \true;
+        $levelRules = LevelRulesResolver::resolve($level, TypeDeclarationDocblocksLevel::RULES, __METHOD__);
+        // too high
+        $levelRulesCount = count($levelRules);
+        if ($levelRulesCount + self::MAX_LEVEL_GAP < $level) {
+            $this->levelOverflows[] = new LevelOverflow(__METHOD__, $level, $levelRulesCount, 'typeDeclarationDocblocks', 'TYPE_DECLARATION_DOCBLOCKS');
         }
         $this->rules = array_merge($this->rules, $levelRules);
         return $this;

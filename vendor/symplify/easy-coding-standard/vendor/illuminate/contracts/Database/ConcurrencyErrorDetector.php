@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Database;
+namespace ECSPrefix202510\Illuminate\Contracts\Database;
 
 use Throwable;
 interface ConcurrencyErrorDetector

@@ -12,18 +12,18 @@ declare (strict_types=1);
  */
 namespace PhpCsFixer\RuleSet\Sets;
 
-use PhpCsFixer\RuleSet\AbstractRuleSetDescription;
+use PhpCsFixer\RuleSet\AbstractRuleSetDefinition;
 /**
  * @internal
  *
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise.
  */
-final class SymfonyRiskySet extends AbstractRuleSetDescription
+final class SymfonyRiskySet extends AbstractRuleSetDefinition
 {
     public function getRules() : array
     {
         return [
-            '@PHP56Migration:risky' => \true,
+            '@PHP5x6Migration:risky' => \true,
             '@PSR12:risky' => \true,
             'array_push' => \true,
             'combine_nested_dirname' => \true,

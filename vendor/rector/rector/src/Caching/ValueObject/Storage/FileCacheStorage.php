@@ -4,8 +4,8 @@ declare (strict_types=1);
 namespace Rector\Caching\ValueObject\Storage;
 
 use FilesystemIterator;
-use RectorPrefix202509\Nette\Utils\FileSystem;
-use RectorPrefix202509\Nette\Utils\Random;
+use RectorPrefix202511\Nette\Utils\FileSystem;
+use RectorPrefix202511\Nette\Utils\Random;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Caching\ValueObject\CacheFilePaths;
 use Rector\Caching\ValueObject\CacheItem;
@@ -23,8 +23,8 @@ final class FileCacheStorage implements CacheStorageInterface
     /**
      * @readonly
      */
-    private \RectorPrefix202509\Symfony\Component\Filesystem\Filesystem $filesystem;
-    public function __construct(string $directory, \RectorPrefix202509\Symfony\Component\Filesystem\Filesystem $filesystem)
+    private \RectorPrefix202511\Symfony\Component\Filesystem\Filesystem $filesystem;
+    public function __construct(string $directory, \RectorPrefix202511\Symfony\Component\Filesystem\Filesystem $filesystem)
     {
         $this->directory = $directory;
         $this->filesystem = $filesystem;
@@ -116,7 +116,7 @@ final class FileCacheStorage implements CacheStorageInterface
     {
         $keyHash = sha1($key);
         $firstDirectory = sprintf('%s/%s', $this->directory, substr($keyHash, 0, 2));
-        $secondDirectory = sprintf('%s/%s', $firstDirectory, substr($keyHash, 2, 2));
+        $secondDirectory = sprintf('%s/%s', $firstDirectory, (string) substr($keyHash, 2, 2));
         $filePath = sprintf('%s/%s.php', $secondDirectory, $keyHash);
         return new CacheFilePaths($firstDirectory, $secondDirectory, $filePath);
     }

@@ -12,7 +12,7 @@ declare (strict_types=1);
  */
 namespace PhpCsFixer\Linter;
 
-use ECSPrefix202509\Symfony\Component\Process\Process;
+use ECSPrefix202510\Symfony\Component\Process\Process;
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  *
@@ -57,7 +57,7 @@ final class ProcessLintingResult implements \PhpCsFixer\Linter\LintingResultInte
             $needle = \sprintf('in %s ', $this->path);
             $pos = \strrpos($output, $needle);
             if (\false !== $pos) {
-                $output = \sprintf('%s%s', \substr($output, 0, $pos), \substr($output, $pos + \strlen($needle)));
+                $output = \sprintf('%s%s', \substr($output, 0, $pos), (string) \substr($output, $pos + \strlen($needle)));
             }
         }
         $prefix = \substr($output, 0, 18);

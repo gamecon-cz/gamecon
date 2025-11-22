@@ -133,13 +133,7 @@ class RepositoryDecorator implements ObjectRepository, \IteratorAggregate, \Coun
      */
     public function findBy(array $criteria, ?array $orderBy = null, $limit = null, $offset = null): array
     {
-        if ($this->inMemory) {
-            $results = $this->inner()->findBy($this->normalize($criteria), $orderBy, $limit, $offset);
-        } else {
-            $results = Configuration::instance()->persistence()->findBy($this->class, $this->normalize($criteria), $orderBy, $limit, $offset);
-        }
-
-        $objects = \array_values($results);
+        $objects = \array_values($this->inner()->findBy($this->normalize($criteria), $orderBy, $limit, $offset));
 
         if (!$this instanceof ProxyRepositoryDecorator) {
             Configuration::instance()->persistedObjectsTracker?->add(...$objects);
@@ -199,7 +193,13 @@ class RepositoryDecorator implements ObjectRepository, \IteratorAggregate, \Coun
             $offset = \random_int(0, $count - 1);
         }
 
-        return $this->findBy($criteria, limit: 1, offset: $offset)[0];
+        $result = $this->findBy($criteria, limit: 1, offset: $offset);
+
+        if (!\count($result)) {
+            throw new NotEnoughObjects(\sprintf('At least %d "%s" object(s) must have been persisted (%d persisted).', 1, $this->getClassName(), 0));
+        }
+
+        return $result[0];
     }
 
     /**

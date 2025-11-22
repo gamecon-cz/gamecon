@@ -3,12 +3,12 @@
 declare (strict_types=1);
 namespace Rector\Composer;
 
-use RectorPrefix202509\Nette\Utils\FileSystem;
-use RectorPrefix202509\Nette\Utils\Json;
+use RectorPrefix202511\Nette\Utils\FileSystem;
+use RectorPrefix202511\Nette\Utils\Json;
 use Rector\Composer\ValueObject\InstalledPackage;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\Skipper\FileSystem\PathNormalizer;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Composer\InstalledPackageResolverTest
  */
@@ -40,7 +40,7 @@ final class InstalledPackageResolver
         if ($this->resolvedInstalledPackages !== null) {
             return $this->resolvedInstalledPackages;
         }
-        $installedPackagesFilePath = self::resolveVendorDir() . '/composer/installed.json';
+        $installedPackagesFilePath = $this->resolveVendorDir() . '/composer/installed.json';
         if (!file_exists($installedPackagesFilePath)) {
             throw new ShouldNotHappenException('The installed package json not found. Make sure you run `composer update` and the "vendor/composer/installed.json" file exists');
         }
@@ -49,6 +49,17 @@ final class InstalledPackageResolver
         $installedPackages = $this->createInstalledPackages($installedPackagesFilePath['packages']);
         $this->resolvedInstalledPackages = $installedPackages;
         return $installedPackages;
+    }
+    public function resolvePackageVersion(string $packageName): ?string
+    {
+        $installedPackages = $this->resolve();
+        foreach ($installedPackages as $installedPackage) {
+            if ($installedPackage->getName() !== $packageName) {
+                continue;
+            }
+            return $installedPackage->getVersion();
+        }
+        return null;
     }
     /**
      * @param mixed[] $packages

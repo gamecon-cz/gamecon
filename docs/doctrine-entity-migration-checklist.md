@@ -312,7 +312,7 @@ This table tracks which legacy entities have been migrated to Doctrine entities.
 | ✅      | `obchod_mrizky`                  | `\Gamecon\Kfc\ObchodMrizka`                   | `\App\Entity\ShopGrid`                     |
 | ✅      | `platby`                         | `\Gamecon\Uzivatel\Platba`                    | `\App\Entity\Payment`                      |
 | ✅      | `medailonky`                     | `\Gamecon\Uzivatel\Medailonek`                | `\App\Entity\Badge`                        |
-| ✅      | `texty`                          | -                                             | `\App\Entity\Text`                         |
+| ❌      | `texty`                          | -                                             | **REMOVED** (2025-11-10)                   |
 | ✅      | `akce_import`                    | -                                             | `\App\Entity\ActivityImport`               |
 | ✅      | `akce_instance`                  | -                                             | `\App\Entity\ActivityInstance`             |
 | ✅      | `akce_lokace_tmp`                | -                                             | `\App\Entity\ActivityLocationTemp`         |

@@ -1,13 +1,13 @@
 <?php
 
-namespace ECSPrefix202509\React\Dns\Query;
+namespace ECSPrefix202510\React\Dns\Query;
 
-use ECSPrefix202509\React\Dns\Model\Message;
-use ECSPrefix202509\React\Dns\Protocol\BinaryDumper;
-use ECSPrefix202509\React\Dns\Protocol\Parser;
-use ECSPrefix202509\React\EventLoop\Loop;
-use ECSPrefix202509\React\EventLoop\LoopInterface;
-use ECSPrefix202509\React\Promise\Deferred;
+use ECSPrefix202510\React\Dns\Model\Message;
+use ECSPrefix202510\React\Dns\Protocol\BinaryDumper;
+use ECSPrefix202510\React\Dns\Protocol\Parser;
+use ECSPrefix202510\React\EventLoop\Loop;
+use ECSPrefix202510\React\EventLoop\LoopInterface;
+use ECSPrefix202510\React\Promise\Deferred;
 /**
  * Send DNS queries over a TCP/IP stream transport.
  *
@@ -154,14 +154,14 @@ class TcpTransportExecutor implements ExecutorInterface
         $queryData = $this->dumper->toBinary($request);
         $length = \strlen($queryData);
         if ($length > 0xffff) {
-            return \ECSPrefix202509\React\Promise\reject(new \RuntimeException('DNS query for ' . $query->describe() . ' failed: Query too large for TCP transport'));
+            return \ECSPrefix202510\React\Promise\reject(new \RuntimeException('DNS query for ' . $query->describe() . ' failed: Query too large for TCP transport'));
         }
         $queryData = \pack('n', $length) . $queryData;
         if ($this->socket === null) {
             // create async TCP/IP connection (may take a while)
             $socket = @\stream_socket_client($this->nameserver, $errno, $errstr, 0, \STREAM_CLIENT_CONNECT | \STREAM_CLIENT_ASYNC_CONNECT);
             if ($socket === \false) {
-                return \ECSPrefix202509\React\Promise\reject(new \RuntimeException('DNS query for ' . $query->describe() . ' failed: Unable to connect to DNS server ' . $this->nameserver . ' (' . $errstr . ')', $errno));
+                return \ECSPrefix202510\React\Promise\reject(new \RuntimeException('DNS query for ' . $query->describe() . ' failed: Unable to connect to DNS server ' . $this->nameserver . ' (' . $errstr . ')', $errno));
             }
             // set socket to non-blocking and wait for it to become writable (connection success/rejected)
             \stream_set_blocking($socket, \false);
@@ -235,7 +235,7 @@ class TcpTransportExecutor implements ExecutorInterface
             return;
         }
         if (isset($this->writeBuffer[$written])) {
-            $this->writeBuffer = \substr($this->writeBuffer, $written);
+            $this->writeBuffer = (string) \substr($this->writeBuffer, $written);
         } else {
             $this->loop->removeWriteStream($this->socket);
             $this->writePending = \false;
@@ -263,7 +263,7 @@ class TcpTransportExecutor implements ExecutorInterface
             if (!isset($this->readBuffer[$length + 1])) {
                 return;
             }
-            $data = \substr($this->readBuffer, 2, $length);
+            $data = (string) \substr($this->readBuffer, 2, $length);
             $this->readBuffer = (string) \substr($this->readBuffer, $length + 2);
             try {
                 $response = $this->parser->parseMessage($data);

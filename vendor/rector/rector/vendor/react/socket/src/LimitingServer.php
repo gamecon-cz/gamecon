@@ -1,8 +1,8 @@
 <?php
 
-namespace RectorPrefix202509\React\Socket;
+namespace RectorPrefix202511\React\Socket;
 
-use RectorPrefix202509\Evenement\EventEmitter;
+use RectorPrefix202511\Evenement\EventEmitter;
 use Exception;
 use OverflowException;
 /**

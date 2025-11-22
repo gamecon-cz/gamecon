@@ -108,7 +108,7 @@ final class AttributeAnalyzer
             if ($name === $firstTokenOfName) {
                 return $namespace;
             }
-            $name = \substr((string) \strstr($name, '\\'), 1);
+            $name = (string) \substr((string) \strstr($name, '\\'), 1);
         }
         return $namespace . '\\' . $name;
     }

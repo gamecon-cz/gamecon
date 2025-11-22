@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202509;
+namespace RectorPrefix202511;
 
 use PhpParser\Node\Expr\Cast\Bool_;
 use PhpParser\Node\Expr\Cast\Double;
@@ -9,14 +9,18 @@ use PhpParser\Node\Expr\Cast\Int_;
 use PhpParser\Node\Expr\Cast\String_;
 use Rector\Config\RectorConfig;
 use Rector\Php85\Rector\ArrayDimFetch\ArrayFirstLastRector;
+use Rector\Php85\Rector\Class_\SleepToSerializeRector;
+use Rector\Php85\Rector\Class_\WakeupToUnserializeRector;
 use Rector\Php85\Rector\ClassMethod\NullDebugInfoReturnRector;
 use Rector\Php85\Rector\Const_\DeprecatedAnnotationToDeprecatedAttributeRector;
 use Rector\Php85\Rector\FuncCall\ArrayKeyExistsNullToEmptyStringRector;
 use Rector\Php85\Rector\FuncCall\ChrArgModuloRector;
 use Rector\Php85\Rector\FuncCall\OrdSingleByteRector;
 use Rector\Php85\Rector\FuncCall\RemoveFinfoBufferContextArgRector;
+use Rector\Php85\Rector\ShellExec\ShellExecFunctionCallOverBackticksRector;
 use Rector\Php85\Rector\Switch_\ColonAfterSwitchCaseRector;
 use Rector\Removing\Rector\FuncCall\RemoveFuncCallArgRector;
+use Rector\Removing\Rector\FuncCall\RemoveFuncCallRector;
 use Rector\Removing\ValueObject\RemoveFuncCallArg;
 use Rector\Renaming\Rector\Cast\RenameCastRector;
 use Rector\Renaming\Rector\ClassConstFetch\RenameClassConstFetchRector;
@@ -26,10 +30,8 @@ use Rector\Renaming\Rector\MethodCall\RenameMethodRector;
 use Rector\Renaming\ValueObject\MethodCallRename;
 use Rector\Renaming\ValueObject\RenameCast;
 use Rector\Renaming\ValueObject\RenameClassAndConstFetch;
-use Rector\Transform\Rector\FuncCall\WrapFuncCallWithPhpVersionIdCheckerRector;
-use Rector\Transform\ValueObject\WrapFuncCallWithPhpVersionIdChecker;
 return static function (RectorConfig $rectorConfig): void {
-    $rectorConfig->rules([ArrayFirstLastRector::class, RemoveFinfoBufferContextArgRector::class, NullDebugInfoReturnRector::class, DeprecatedAnnotationToDeprecatedAttributeRector::class, ColonAfterSwitchCaseRector::class, ArrayKeyExistsNullToEmptyStringRector::class, ChrArgModuloRector::class, OrdSingleByteRector::class]);
+    $rectorConfig->rules([ArrayFirstLastRector::class, RemoveFinfoBufferContextArgRector::class, NullDebugInfoReturnRector::class, DeprecatedAnnotationToDeprecatedAttributeRector::class, ColonAfterSwitchCaseRector::class, ArrayKeyExistsNullToEmptyStringRector::class, ChrArgModuloRector::class, SleepToSerializeRector::class, OrdSingleByteRector::class, WakeupToUnserializeRector::class, ShellExecFunctionCallOverBackticksRector::class]);
     $rectorConfig->ruleWithConfiguration(RemoveFuncCallArgRector::class, [
         // https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_key_length_parameter_of_openssl_pkey_derive
         new RemoveFuncCallArg('openssl_pkey_derive', 2),
@@ -66,7 +68,8 @@ return static function (RectorConfig $rectorConfig): void {
     // https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_non-standard_cast_names
     $rectorConfig->ruleWithConfiguration(RenameCastRector::class, [new RenameCast(Int_::class, Int_::KIND_INTEGER, Int_::KIND_INT), new RenameCast(Bool_::class, Bool_::KIND_BOOLEAN, Bool_::KIND_BOOL), new RenameCast(Double::class, Double::KIND_DOUBLE, Double::KIND_FLOAT), new RenameCast(String_::class, String_::KIND_BINARY, String_::KIND_STRING)]);
     // https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_no-op_functions_from_the_resource_to_object_conversion
-    $rectorConfig->ruleWithConfiguration(WrapFuncCallWithPhpVersionIdCheckerRector::class, [new WrapFuncCallWithPhpVersionIdChecker('curl_close', 80500), new WrapFuncCallWithPhpVersionIdChecker('curl_share_close', 80500), new WrapFuncCallWithPhpVersionIdChecker('finfo_close', 80500), new WrapFuncCallWithPhpVersionIdChecker('imagedestroy', 80500), new WrapFuncCallWithPhpVersionIdChecker('xml_parser_free', 80500)]);
+    // these function have no effect when use
+    $rectorConfig->ruleWithConfiguration(RemoveFuncCallRector::class, ['curl_close', 'curl_share_close', 'finfo_close', 'imagedestroy', 'xml_parser_free']);
     // https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_filter_default_constant
     $rectorConfig->ruleWithConfiguration(RenameConstantRector::class, ['FILTER_DEFAULT' => 'FILTER_UNSAFE_RAW']);
 };

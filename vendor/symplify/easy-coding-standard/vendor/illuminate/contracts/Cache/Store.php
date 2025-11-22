@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509\Illuminate\Contracts\Cache;
+namespace ECSPrefix202510\Illuminate\Contracts\Cache;
 
 interface Store
 {

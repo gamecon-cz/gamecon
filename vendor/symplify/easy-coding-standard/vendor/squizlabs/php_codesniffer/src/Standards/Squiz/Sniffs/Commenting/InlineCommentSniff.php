@@ -133,7 +133,7 @@ class InlineCommentSniff implements Sniff
         $commentText = '';
         foreach ($commentTokens as $lastCommentToken) {
             $comment = \rtrim($tokens[$lastCommentToken]['content']);
-            if (\trim(\substr($comment, 2)) === '') {
+            if (\trim((string) \substr($comment, 2)) === '') {
                 continue;
             }
             $spaceCount = 0;
@@ -152,17 +152,17 @@ class InlineCommentSniff implements Sniff
             $fix = \false;
             if ($tabFound === \true) {
                 $error = 'Tab found before comment text; expected "// %s" but found "%s"';
-                $data = [\ltrim(\substr($comment, 2)), $comment];
+                $data = [\ltrim((string) \substr($comment, 2)), $comment];
                 $fix = $phpcsFile->addFixableError($error, $lastCommentToken, 'TabBefore', $data);
             } else {
                 if ($spaceCount === 0) {
                     $error = 'No space found before comment text; expected "// %s" but found "%s"';
-                    $data = [\substr($comment, 2), $comment];
+                    $data = [(string) \substr($comment, 2), $comment];
                     $fix = $phpcsFile->addFixableError($error, $lastCommentToken, 'NoSpaceBefore', $data);
                 } else {
                     if ($spaceCount > 1) {
                         $error = 'Expected 1 space before comment text but found %s; use block comment if you need indentation';
-                        $data = [$spaceCount, \substr($comment, 2 + $spaceCount), $comment];
+                        $data = [$spaceCount, (string) \substr($comment, 2 + $spaceCount), $comment];
                         $fix = $phpcsFile->addFixableError($error, $lastCommentToken, 'SpacingBefore', $data);
                     }
                 }
@@ -172,7 +172,7 @@ class InlineCommentSniff implements Sniff
                 $newComment = '// ' . \ltrim($tokens[$lastCommentToken]['content'], "/\t ");
                 $phpcsFile->fixer->replaceToken($lastCommentToken, $newComment);
             }
-            $commentText .= \trim(\substr($tokens[$lastCommentToken]['content'], 2));
+            $commentText .= \trim((string) \substr($tokens[$lastCommentToken]['content'], 2));
         }
         //end foreach
         if ($commentText === '') {

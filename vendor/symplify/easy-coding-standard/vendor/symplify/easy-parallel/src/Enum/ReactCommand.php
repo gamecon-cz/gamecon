@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace ECSPrefix202509\Symplify\EasyParallel\Enum;
+namespace ECSPrefix202510\Symplify\EasyParallel\Enum;
 
 /**
  * @api

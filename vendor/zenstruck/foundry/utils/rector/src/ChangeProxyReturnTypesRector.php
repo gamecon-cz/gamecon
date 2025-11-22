@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Zenstruck\Foundry\Utils\Rector;
 
 use PhpParser\Node;
-use PhpParser\Node\FunctionLike;
 use PHPStan\Analyser\NameScope;
 use PHPStan\PhpDoc\TypeNodeResolver;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
@@ -50,7 +49,7 @@ final class ChangeProxyReturnTypesRector extends AbstractRector
      */
     public function getNodeTypes(): array
     {
-        return [Node\Stmt\ClassMethod::class, Node\Stmt\Function_::class, Node\Expr\Closure::class, Node\Expr\ArrowFunction::class, ];
+        return [Node\Stmt\ClassMethod::class, Node\Stmt\Function_::class, Node\Expr\Closure::class, Node\Expr\ArrowFunction::class];
     }
 
     /**
@@ -66,7 +65,7 @@ final class ChangeProxyReturnTypesRector extends AbstractRector
         if (
             ($targetClassType = $this->getTargetClass($phpDocNode, $nameScope)) === null
         ) {
-            if ($node->returnType instanceof Node\Name && $node->returnType->name === Proxy::class) {
+            if ($node->returnType instanceof Node\Name && Proxy::class === $node->returnType->name) {
                 $node->returnType = new Node\Name('object');
 
                 return $node;
@@ -78,7 +77,7 @@ final class ChangeProxyReturnTypesRector extends AbstractRector
         $targetClassName = $targetClassType->getObjectClassNames()[0];
 
         if ($this->reflectionProvider->hasClass($targetClassName)) {
-            $targetClassName = '\\' . $targetClassName;
+            $targetClassName = '\\'.$targetClassName;
             $node->returnType = new Node\Name($targetClassName);
         } else {
             // if the target classe name does not exist, it is likely a generic type
@@ -108,7 +107,7 @@ final class ChangeProxyReturnTypesRector extends AbstractRector
     {
         $returnNode = $this->getReturnTagNodes($docNode)[0] ?? null;
 
-        if ($returnNode === null) {
+        if (null === $returnNode) {
             return null;
         }
 
@@ -136,14 +135,14 @@ final class ChangeProxyReturnTypesRector extends AbstractRector
             return false;
         }
 
-        return ($typeNode->type->name === Proxy::class || $typeNode->type->name === 'Proxy')
-            && count($typeNode->genericTypes) === 1
+        return (Proxy::class === $typeNode->type->name || 'Proxy' === $typeNode->type->name)
+            && 1 === \count($typeNode->genericTypes)
             && $typeNode->genericTypes[0] instanceof IdentifierTypeNode;
     }
 
     private function resolveTargetClassTypeFromTypeNode(
         TypeNode $typeNode,
-        NameScope $nameScope
+        NameScope $nameScope,
     ): ?Type {
         $type = $this->typeNodeResolver->resolve($typeNode, $nameScope);
 
@@ -159,7 +158,7 @@ final class ChangeProxyReturnTypesRector extends AbstractRector
      */
     private function getReturnTagNodes(PhpDocNode $docNode): array
     {
-        return array_values([
+        return \array_values([
             ...$docNode->getReturnTagValues('@phpstan-return'),
             ...$docNode->getReturnTagValues('@psalm-return'),
             ...$docNode->getReturnTagValues(),

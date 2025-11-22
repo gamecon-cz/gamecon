@@ -83,7 +83,7 @@ class DisallowSelfActionsSniff implements Sniff, DeprecatedSniff
             $foundCalls[$i] = ['name' => $funcName, 'type' => \strtolower($tokens[$prevToken]['content'])];
         }
         //end for
-        $errorClassName = \substr($className, 0, -7);
+        $errorClassName = (string) \substr($className, 0, -7);
         foreach ($foundCalls as $token => $funcData) {
             if (isset($foundFunctions[$funcData['name']]) === \false) {
                 // Function was not in this class, might have come from the parent.

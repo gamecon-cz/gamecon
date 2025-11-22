@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\String;
+namespace ECSPrefix202510\Symfony\Component\String;
 
-use ECSPrefix202509\Symfony\Component\String\Exception\ExceptionInterface;
-use ECSPrefix202509\Symfony\Component\String\Exception\InvalidArgumentException;
+use ECSPrefix202510\Symfony\Component\String\Exception\ExceptionInterface;
+use ECSPrefix202510\Symfony\Component\String\Exception\InvalidArgumentException;
 /**
  * Represents a string of Unicode grapheme clusters encoded as UTF-8.
  *
@@ -222,7 +222,7 @@ class UnicodeString extends AbstractUnicodeString
             while ('' !== $tail && \false !== ($i = $indexOf($tail, $from))) {
                 $slice = \grapheme_substr($tail, 0, $i);
                 $result .= $slice . $to;
-                $tail = \substr($tail, \strlen($slice) + \strlen($from));
+                $tail = (string) \substr($tail, \strlen($slice) + \strlen($from));
             }
             $str->string = $result . $tail;
             if (\normalizer_is_normalized($str->string)) {
@@ -294,7 +294,7 @@ class UnicodeString extends AbstractUnicodeString
         while (1 < $limit && \false !== ($i = $indexOf($tail, $delimiter))) {
             $str->string = \grapheme_substr($tail, 0, $i);
             $chunks[] = clone $str;
-            $tail = \substr($tail, \strlen($str->string) + \strlen($delimiter));
+            $tail = (string) \substr($tail, \strlen($str->string) + \strlen($delimiter));
             --$limit;
         }
         $str->string = $tail;

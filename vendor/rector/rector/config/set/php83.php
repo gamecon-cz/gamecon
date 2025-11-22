@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202509;
+namespace RectorPrefix202511;
 
 use Rector\Config\RectorConfig;
 use Rector\Php83\Rector\BooleanAnd\JsonValidateRector;

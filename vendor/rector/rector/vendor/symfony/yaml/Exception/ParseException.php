@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Component\Yaml\Exception;
+namespace RectorPrefix202511\Symfony\Component\Yaml\Exception;
 
 /**
  * Exception class thrown when an error occurs during parsing.
@@ -100,7 +100,7 @@ class ParseException extends RuntimeException
         $this->message = $this->rawMessage;
         $dot = \false;
         if (substr_compare($this->message, '.', -strlen('.')) === 0) {
-            $this->message = substr($this->message, 0, -1);
+            $this->message = (string) substr($this->message, 0, -1);
             $dot = \true;
         }
         if (null !== $this->parsedFile) {

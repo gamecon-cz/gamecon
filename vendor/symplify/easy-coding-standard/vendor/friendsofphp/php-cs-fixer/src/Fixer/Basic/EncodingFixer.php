@@ -59,7 +59,7 @@ PHP
     {
         $content = $tokens[0]->getContent();
         if (\strncmp($content, $this->bom, \strlen($this->bom)) === 0) {
-            $newContent = \substr($content, 3);
+            $newContent = (string) \substr($content, 3);
             if ('' === $newContent) {
                 $tokens->clearAt(0);
             } else {

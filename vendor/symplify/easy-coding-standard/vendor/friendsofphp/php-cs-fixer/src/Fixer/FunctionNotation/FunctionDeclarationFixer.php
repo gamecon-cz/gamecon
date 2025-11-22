@@ -21,6 +21,7 @@ use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
+use PhpCsFixer\Future;
 use PhpCsFixer\Tokenizer\CT;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\TokensAnalyzer;
@@ -70,7 +71,7 @@ final class FunctionDeclarationFixer extends AbstractFixer implements Configurab
         return new FixerDefinition('Spaces should be properly placed in a function declaration.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 class Foo
 {
@@ -79,7 +80,7 @@ class Foo
         return \false;
     }
 }
-\class_alias('ECSPrefix202509\\Foo', 'Foo', \false);
+\class_alias('ECSPrefix202510\\Foo', 'Foo', \false);
 function foo($bar, $baz)
 {
     return \false;
@@ -89,7 +90,7 @@ PHP
 ), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $f = function () {
 };
@@ -98,7 +99,7 @@ PHP
 , ['closure_function_spacing' => self::SPACING_NONE]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 $f = fn() => null;
 
@@ -192,7 +193,7 @@ PHP
     }
     protected function createConfigurationDefinition() : FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([(new FixerOptionBuilder('closure_function_spacing', 'Spacing to use before open parenthesis for closures.'))->setDefault(self::SPACING_ONE)->setAllowedValues(self::SUPPORTED_SPACINGS)->getOption(), (new FixerOptionBuilder('closure_fn_spacing', 'Spacing to use before open parenthesis for short arrow functions.'))->setDefault(self::SPACING_ONE)->setAllowedValues(self::SUPPORTED_SPACINGS)->getOption(), (new FixerOptionBuilder('trailing_comma_single_line', 'Whether trailing commas are allowed in single line signatures.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
+        return new FixerConfigurationResolver([(new FixerOptionBuilder('closure_function_spacing', 'Spacing to use before open parenthesis for closures.'))->setDefault(self::SPACING_ONE)->setAllowedValues(self::SUPPORTED_SPACINGS)->getOption(), (new FixerOptionBuilder('closure_fn_spacing', 'Spacing to use before open parenthesis for short arrow functions.'))->setDefault(Future::getV4OrV3(self::SPACING_NONE, self::SPACING_ONE))->setAllowedValues(self::SUPPORTED_SPACINGS)->getOption(), (new FixerOptionBuilder('trailing_comma_single_line', 'Whether trailing commas are allowed in single line signatures.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
     }
     private function fixParenthesisInnerEdge(Tokens $tokens, int $start, int $end) : void
     {

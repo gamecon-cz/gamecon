@@ -27,8 +27,8 @@ class TypAktivity extends \DbObject
     public const DESKOHERNA          = 13;
     // interní
     public const SYSTEMOVA   = 0;
-    public const TECHNICKA   = 10; // účast na tchnické aktivitě => cena aktivity = bonus pro "vypravěče"
-    public const BRIGADNICKA = 102; // účast na brigádnícké aktivitě => cena aktivityu = výplata pro "vypravěče" (brigádníka)
+    public const TECHNICKA   = 10; // účast na technické aktivitě => cena aktivity = bonus pro "vypravěče"
+    public const BRIGADNICKA = 102; // účast na brigádnícké aktivitě => cena aktivity = výplata pro "vypravěče" (brigádníka)
 
     public static function zNazvu(string $nazev): ?TypAktivity
     {
@@ -57,6 +57,9 @@ class TypAktivity extends \DbObject
         return in_array((int)$idTypuAktivity, self::interniTypy());
     }
 
+    /**
+     * @return array<int>
+     */
     public static function interniTypy(): array
     {
         return [self::TECHNICKA, self::BRIGADNICKA];

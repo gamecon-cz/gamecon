@@ -542,9 +542,9 @@ SQL,
         foreach ($this->predmety as $predmet) {
             $cena = (float)$predmet['cena_aktualni'];
             $cenaPoSleve = $cena;
-            if (Predmet::jeToKostka($predmet[Sql::NAZEV])) {
+            if (Predmet::jeToKostka($predmet[Sql::KOD_PREDMETU])) {
                 $cenaPoSleve = (float)$cenik->cenaKostky($predmet);
-            } elseif (Predmet::jeToPlacka($predmet[Sql::NAZEV])) {
+            } elseif (Predmet::jeToPlacka($predmet[Sql::KOD_PREDMETU])) {
                 $cenaPoSleve = (float)$cenik->cenaPlacky($predmet);
             }
             $cena = round($cena);

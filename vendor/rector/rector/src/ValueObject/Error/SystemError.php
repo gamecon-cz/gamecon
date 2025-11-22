@@ -3,9 +3,12 @@
 declare (strict_types=1);
 namespace Rector\ValueObject\Error;
 
-use RectorPrefix202509\Nette\Utils\Strings;
+use RectorPrefix202511\Nette\Utils\Strings;
 use Rector\Parallel\ValueObject\BridgeItem;
-use RectorPrefix202509\Symplify\EasyParallel\Contract\SerializableInterface;
+use RectorPrefix202511\Symplify\EasyParallel\Contract\SerializableInterface;
+/**
+ * @see \Rector\Tests\ValueObject\Error\SystemErrorTest
+ */
 final class SystemError implements SerializableInterface
 {
     /**
@@ -67,7 +70,7 @@ final class SystemError implements SerializableInterface
         return [BridgeItem::MESSAGE => $this->message, BridgeItem::RELATIVE_FILE_PATH => $this->relativeFilePath, BridgeItem::ABSOLUTE_FILE_PATH => $this->getAbsoluteFilePath(), BridgeItem::LINE => $this->line, BridgeItem::RECTOR_CLASS => $this->rectorClass];
     }
     /**
-     * @param mixed[] $json
+     * @param array<string, mixed> $json
      */
     public static function decode(array $json): self
     {
@@ -80,7 +83,7 @@ final class SystemError implements SerializableInterface
     public function getRectorShortClass(): ?string
     {
         $rectorClass = $this->rectorClass;
-        if ($rectorClass !== null && $rectorClass !== '' && $rectorClass !== '0') {
+        if (!in_array($rectorClass, [null, ''], \true)) {
             return (string) Strings::after($rectorClass, '\\', -1);
         }
         return null;

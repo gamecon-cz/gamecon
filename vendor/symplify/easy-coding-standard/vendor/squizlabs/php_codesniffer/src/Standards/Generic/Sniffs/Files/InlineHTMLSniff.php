@@ -46,7 +46,7 @@ class InlineHTMLSniff implements Sniff
         $tokens = $phpcsFile->getTokens();
         foreach ($this->bomDefinitions as $expectedBomHex) {
             $bomByteLength = \strlen($expectedBomHex) / 2;
-            $htmlBomHex = \bin2hex(\substr($tokens[0]['content'], 0, $bomByteLength));
+            $htmlBomHex = \bin2hex((string) \substr($tokens[0]['content'], 0, $bomByteLength));
             if ($htmlBomHex === $expectedBomHex && \strlen($tokens[0]['content']) === $bomByteLength) {
                 return;
             }

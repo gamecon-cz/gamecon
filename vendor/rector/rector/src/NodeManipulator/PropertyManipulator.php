@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\NodeManipulator;
 
-use RectorPrefix202509\Doctrine\ORM\Mapping\Table;
+use RectorPrefix202511\Doctrine\ORM\Mapping\Table;
 use PhpParser\Node;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticPropertyFetch;
@@ -168,7 +168,7 @@ final class PropertyManipulator
     public function hasTraitWithSamePropertyOrWritten(ClassReflection $classReflection, string $propertyName): bool
     {
         foreach ($classReflection->getTraits() as $traitUse) {
-            if ($traitUse->hasProperty($propertyName)) {
+            if ($traitUse->hasInstanceProperty($propertyName) || $traitUse->hasStaticProperty($propertyName)) {
                 return \true;
             }
             $trait = $this->astResolver->resolveClassFromClassReflection($traitUse);

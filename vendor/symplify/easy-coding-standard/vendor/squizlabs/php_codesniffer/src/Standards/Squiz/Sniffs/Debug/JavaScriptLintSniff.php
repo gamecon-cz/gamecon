@@ -66,8 +66,8 @@ class JavaScriptLintSniff implements Sniff, DeprecatedSniff
         if (\is_array($output) === \true) {
             foreach ($output as $finding) {
                 $split = \strpos($finding, ':');
-                $line = \substr($finding, 0, $split);
-                $message = \substr($finding, $split + 1);
+                $line = (string) \substr($finding, 0, $split);
+                $message = (string) \substr($finding, $split + 1);
                 $phpcsFile->addWarningOnLine(\trim($message), $line, 'ExternalTool');
             }
         }

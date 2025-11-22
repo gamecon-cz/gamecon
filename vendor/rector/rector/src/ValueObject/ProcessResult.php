@@ -5,7 +5,7 @@ namespace Rector\ValueObject;
 
 use Rector\ValueObject\Error\SystemError;
 use Rector\ValueObject\Reporting\FileDiff;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 final class ProcessResult
 {
     /**
@@ -18,13 +18,18 @@ final class ProcessResult
      */
     private array $fileDiffs;
     /**
+     * @readonly
+     */
+    private int $totalChanged;
+    /**
      * @param SystemError[] $systemErrors
      * @param FileDiff[] $fileDiffs
      */
-    public function __construct(array $systemErrors, array $fileDiffs)
+    public function __construct(array $systemErrors, array $fileDiffs, int $totalChanged)
     {
         $this->systemErrors = $systemErrors;
         $this->fileDiffs = $fileDiffs;
+        $this->totalChanged = $totalChanged;
         Assert::allIsInstanceOf($systemErrors, SystemError::class);
         Assert::allIsInstanceOf($fileDiffs, FileDiff::class);
     }
@@ -52,5 +57,9 @@ final class ProcessResult
     {
         Assert::allIsInstanceOf($systemErrors, SystemError::class);
         $this->systemErrors = array_merge($this->systemErrors, $systemErrors);
+    }
+    public function getTotalChanged(): int
+    {
+        return $this->totalChanged;
     }
 }

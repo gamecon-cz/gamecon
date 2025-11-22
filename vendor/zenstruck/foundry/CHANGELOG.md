@@ -1,5 +1,75 @@
 # CHANGELOG
 
+## [v2.8.0](https://github.com/zenstruck/foundry/releases/tag/v2.8.0)
+
+November 9th, 2025 - [v2.7.9...v2.8.0](https://github.com/zenstruck/foundry/compare/v2.7.9...v2.8.0)
+
+* 8dc0b1f feat(2.8): introduce `#[AsFoudryHook]` attribute (#986) by @nikophil
+* bf4549c feat(2.8): dispatch events (#974) by @nikophil
+* 8516af1 docs: Remove array params on function alwaysForce (#1028) by @philpichet
+* 5f3a6b1 feat: add hooks priority (#1029) by @nikophil
+
+## [v2.7.9](https://github.com/zenstruck/foundry/releases/tag/v2.7.9)
+
+November 7th, 2025 - [v2.7.8...v2.7.9](https://github.com/zenstruck/foundry/compare/v2.7.8...v2.7.9)
+
+* 41ab3ae fix: auto-refresh with Mongo after DoctrineMongoDBBundle 5.4.3 (#1030) by @nikophil
+
+## [v2.7.8](https://github.com/zenstruck/foundry/releases/tag/v2.7.8)
+
+November 5th, 2025 - [v2.7.7...v2.7.8](https://github.com/zenstruck/foundry/compare/v2.7.7...v2.7.8)
+
+* 728c8f8 minor: Add default value to Factory::attributes (#1026) by @VincentLanglet
+* 0fe1017 tests: ensure Doctrine lifecycle works (#1020) by @nikophil
+* 1247b0b chore: remove paratest from dev dependencies (#1023) by @nikophil
+* 11355a9 chore: add concurrency for all workflows (#1019) by @nikophil
+* fed6e4a chore: fix rector with bamarni (#1018) by @nikophil
+* 545cf18 chore: split CIs and add concurrency (#1017) by @nikophil
+* 17796f2 chore: add bc-check to CI (#1016) by @nikophil
+* b8ced9b chore: disable sync template for cs config (#1015) by @nikophil
+* b802463 chore: some housekeeping (#1014) by @nikophil
+
+## [v2.7.7](https://github.com/zenstruck/foundry/releases/tag/v2.7.7)
+
+October 23rd, 2025 - [v2.7.6...v2.7.7](https://github.com/zenstruck/foundry/compare/v2.7.6...v2.7.7)
+
+* 7766a85 fix: only use PersistedObjectsTracker when auto-refresh is enabled (#1013) by @nikophil
+
+## [v2.7.6](https://github.com/zenstruck/foundry/releases/tag/v2.7.6)
+
+October 20th, 2025 - [v2.7.5...v2.7.6](https://github.com/zenstruck/foundry/compare/v2.7.5...v2.7.6)
+
+* 95d2a96 fix: autorefresh should work after kernel shutdown (#1011) by @nikophil
+* 0ea8430 tests: ensure OneToMany relationships are refreshed (#1010) by @nikophil
+* 3c6faff fix: RepositoryAssertion::exist() $criteria should allow mixed (#1007) by @nikophil
+* 81cc97d minor: accept as story any child of Story (#1006) by @alsciende
+* e99f3b0 chore: run rector CI with PHPUnit 12 (#1002) by @nikophil
+
+## [v2.7.5](https://github.com/zenstruck/foundry/releases/tag/v2.7.5)
+
+October 10th, 2025 - [v2.7.4...v2.7.5](https://github.com/zenstruck/foundry/compare/v2.7.4...v2.7.5)
+
+* 81eacf5 docs: add a note about using `make:factory --test` (#1000) by @ttskch
+* 660942d [Rector] Add rector to require-dev and use single autoload vendor for run PHPUnit (#1001) by @samsonasik
+* f06d58d fix: using `refresh_all()` with `flush_after()` (#999) by @HypeMC
+
+## [v2.7.4](https://github.com/zenstruck/foundry/releases/tag/v2.7.4)
+
+October 8th, 2025 - [v2.7.3...v2.7.4](https://github.com/zenstruck/foundry/compare/v2.7.3...v2.7.4)
+
+* 9489e83 fix: 🐛 use isser instead of constructor to apply autorefresh setting to Factory (#998) by @ttskch
+
+## [v2.7.3](https://github.com/zenstruck/foundry/releases/tag/v2.7.3)
+
+October 5th, 2025 - [v2.7.2...v2.7.3](https://github.com/zenstruck/foundry/compare/v2.7.2...v2.7.3)
+
+* 45214f7 fix: revert adding PersistManager::findBy() (#996) by @nikophil
+* b36b9b3 chore: upgrade PHPStan (#997) by @nikophil
+* 55f2689 fix: edge case with Doctrine Middleware & early kernel boot (#993) by @HypeMC
+* 9fa21b3 fix(repository): use IN() when an array is passed (#995) by @nikophil
+* cad1466 fix: handle readonly when refreshing from repository decorator (#989) by @nikophil
+* b4b2ffe fix: Enhanced random method with additional safety check. (#991) by @sofwar
+
 ## [v2.7.2](https://github.com/zenstruck/foundry/releases/tag/v2.7.2)
 
 September 25th, 2025 - [v2.7.1...v2.7.2](https://github.com/zenstruck/foundry/compare/v2.7.1...v2.7.2)

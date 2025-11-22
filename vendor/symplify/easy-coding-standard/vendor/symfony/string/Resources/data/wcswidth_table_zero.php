@@ -1,6 +1,6 @@
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
 /*
  * This file is part of the Symfony package.

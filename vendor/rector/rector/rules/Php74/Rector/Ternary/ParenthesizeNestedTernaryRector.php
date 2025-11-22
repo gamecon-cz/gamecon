@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\Php74\Rector\Ternary;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Ternary;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Php74\Tokenizer\ParenthesizedNestedTernaryAnalyzer;
@@ -52,6 +53,11 @@ CODE_SAMPLE
     public function refactor(Node $node): ?Node
     {
         if ($node->cond instanceof Ternary || $node->else instanceof Ternary) {
+            // Chaining of short-ternaries (elvis operator) is stable and behaves reasonably
+            $isElvis = $node->cond instanceof Ternary && !$node->cond->if instanceof Expr;
+            if ($isElvis) {
+                return null;
+            }
             if ($this->parenthesizedNestedTernaryAnalyzer->isParenthesized($this->file, $node)) {
                 return null;
             }

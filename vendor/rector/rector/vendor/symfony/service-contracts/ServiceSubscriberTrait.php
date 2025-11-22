@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202509\Symfony\Contracts\Service;
+namespace RectorPrefix202511\Symfony\Contracts\Service;
 
-use RectorPrefix202509\Psr\Container\ContainerInterface;
-use RectorPrefix202509\Symfony\Contracts\Service\Attribute\Required;
-use RectorPrefix202509\Symfony\Contracts\Service\Attribute\SubscribedService;
+use RectorPrefix202511\Psr\Container\ContainerInterface;
+use RectorPrefix202511\Symfony\Contracts\Service\Attribute\Required;
+use RectorPrefix202511\Symfony\Contracts\Service\Attribute\SubscribedService;
 trigger_deprecation('symfony/contracts', 'v3.5', '"%s" is deprecated, use "ServiceMethodsSubscriberTrait" instead.', ServiceSubscriberTrait::class);
 /**
  * Implementation of ServiceSubscriberInterface that determines subscribed services
@@ -45,7 +45,7 @@ trait ServiceSubscriberTrait
             if (!$returnType = $method->getReturnType()) {
                 throw new \LogicException(\sprintf('Cannot use "%s" on methods without a return type in "%s::%s()".', SubscribedService::class, $method->name, self::class));
             }
-            /* @var SubscribedService $attribute */
+            /** @var SubscribedService $attribute */
             $attribute = $attribute->newInstance();
             $attribute->key ??= self::class . '::' . $method->name;
             $attribute->type ??= $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string) $returnType;

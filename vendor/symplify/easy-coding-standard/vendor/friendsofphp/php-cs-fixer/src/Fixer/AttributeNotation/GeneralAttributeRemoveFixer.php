@@ -51,28 +51,28 @@ final class GeneralAttributeRemoveFixer extends AbstractFixer implements Configu
         return new FixerDefinition('Removes configured attributes by their respective FQN.', [new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-#[\ECSPrefix202509\A\B\Foo]
+#[\ECSPrefix202510\A\B\Foo]
 function foo()
 {
 }
 
 PHP
-, ['attributes' => ['ECSPrefix202509\\A\\B\\Foo']]), new CodeSample(<<<'PHP'
+, ['attributes' => ['ECSPrefix202510\\A\\B\\Foo']]), new CodeSample(<<<'PHP'
 <?php
 
-namespace ECSPrefix202509;
+namespace ECSPrefix202510;
 
-use ECSPrefix202509\A\B\Bar as BarAlias;
-#[\ECSPrefix202509\A\B\Foo]
+use ECSPrefix202510\A\B\Bar as BarAlias;
+#[\ECSPrefix202510\A\B\Foo]
 #[BarAlias]
 function foo()
 {
 }
 
 PHP
-, ['attributes' => ['ECSPrefix202509\\A\\B\\Foo', 'ECSPrefix202509\\A\\B\\Bar']])]);
+, ['attributes' => ['ECSPrefix202510\\A\\B\\Foo', 'ECSPrefix202510\\A\\B\\Bar']])]);
     }
     public function getPriority() : int
     {

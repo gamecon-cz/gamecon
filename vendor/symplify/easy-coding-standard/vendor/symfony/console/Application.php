@@ -8,51 +8,51 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace ECSPrefix202509\Symfony\Component\Console;
+namespace ECSPrefix202510\Symfony\Component\Console;
 
-use ECSPrefix202509\Symfony\Component\Console\Command\Command;
-use ECSPrefix202509\Symfony\Component\Console\Command\CompleteCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\DumpCompletionCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\HelpCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\LazyCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\ListCommand;
-use ECSPrefix202509\Symfony\Component\Console\Command\SignalableCommandInterface;
-use ECSPrefix202509\Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
-use ECSPrefix202509\Symfony\Component\Console\Completion\CompletionInput;
-use ECSPrefix202509\Symfony\Component\Console\Completion\CompletionSuggestions;
-use ECSPrefix202509\Symfony\Component\Console\Completion\Suggestion;
-use ECSPrefix202509\Symfony\Component\Console\Event\ConsoleCommandEvent;
-use ECSPrefix202509\Symfony\Component\Console\Event\ConsoleErrorEvent;
-use ECSPrefix202509\Symfony\Component\Console\Event\ConsoleSignalEvent;
-use ECSPrefix202509\Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use ECSPrefix202509\Symfony\Component\Console\Exception\CommandNotFoundException;
-use ECSPrefix202509\Symfony\Component\Console\Exception\ExceptionInterface;
-use ECSPrefix202509\Symfony\Component\Console\Exception\LogicException;
-use ECSPrefix202509\Symfony\Component\Console\Exception\NamespaceNotFoundException;
-use ECSPrefix202509\Symfony\Component\Console\Exception\RuntimeException;
-use ECSPrefix202509\Symfony\Component\Console\Formatter\OutputFormatter;
-use ECSPrefix202509\Symfony\Component\Console\Helper\DebugFormatterHelper;
-use ECSPrefix202509\Symfony\Component\Console\Helper\DescriptorHelper;
-use ECSPrefix202509\Symfony\Component\Console\Helper\FormatterHelper;
-use ECSPrefix202509\Symfony\Component\Console\Helper\Helper;
-use ECSPrefix202509\Symfony\Component\Console\Helper\HelperSet;
-use ECSPrefix202509\Symfony\Component\Console\Helper\ProcessHelper;
-use ECSPrefix202509\Symfony\Component\Console\Helper\QuestionHelper;
-use ECSPrefix202509\Symfony\Component\Console\Input\ArgvInput;
-use ECSPrefix202509\Symfony\Component\Console\Input\ArrayInput;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputArgument;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputAwareInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputDefinition;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Input\InputOption;
-use ECSPrefix202509\Symfony\Component\Console\Output\ConsoleOutput;
-use ECSPrefix202509\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\Output\OutputInterface;
-use ECSPrefix202509\Symfony\Component\Console\SignalRegistry\SignalRegistry;
-use ECSPrefix202509\Symfony\Component\Console\Style\SymfonyStyle;
-use ECSPrefix202509\Symfony\Component\ErrorHandler\ErrorHandler;
-use ECSPrefix202509\Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
-use ECSPrefix202509\Symfony\Contracts\Service\ResetInterface;
+use ECSPrefix202510\Symfony\Component\Console\Command\Command;
+use ECSPrefix202510\Symfony\Component\Console\Command\CompleteCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\DumpCompletionCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\HelpCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\LazyCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\ListCommand;
+use ECSPrefix202510\Symfony\Component\Console\Command\SignalableCommandInterface;
+use ECSPrefix202510\Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
+use ECSPrefix202510\Symfony\Component\Console\Completion\CompletionInput;
+use ECSPrefix202510\Symfony\Component\Console\Completion\CompletionSuggestions;
+use ECSPrefix202510\Symfony\Component\Console\Completion\Suggestion;
+use ECSPrefix202510\Symfony\Component\Console\Event\ConsoleCommandEvent;
+use ECSPrefix202510\Symfony\Component\Console\Event\ConsoleErrorEvent;
+use ECSPrefix202510\Symfony\Component\Console\Event\ConsoleSignalEvent;
+use ECSPrefix202510\Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use ECSPrefix202510\Symfony\Component\Console\Exception\CommandNotFoundException;
+use ECSPrefix202510\Symfony\Component\Console\Exception\ExceptionInterface;
+use ECSPrefix202510\Symfony\Component\Console\Exception\LogicException;
+use ECSPrefix202510\Symfony\Component\Console\Exception\NamespaceNotFoundException;
+use ECSPrefix202510\Symfony\Component\Console\Exception\RuntimeException;
+use ECSPrefix202510\Symfony\Component\Console\Formatter\OutputFormatter;
+use ECSPrefix202510\Symfony\Component\Console\Helper\DebugFormatterHelper;
+use ECSPrefix202510\Symfony\Component\Console\Helper\DescriptorHelper;
+use ECSPrefix202510\Symfony\Component\Console\Helper\FormatterHelper;
+use ECSPrefix202510\Symfony\Component\Console\Helper\Helper;
+use ECSPrefix202510\Symfony\Component\Console\Helper\HelperSet;
+use ECSPrefix202510\Symfony\Component\Console\Helper\ProcessHelper;
+use ECSPrefix202510\Symfony\Component\Console\Helper\QuestionHelper;
+use ECSPrefix202510\Symfony\Component\Console\Input\ArgvInput;
+use ECSPrefix202510\Symfony\Component\Console\Input\ArrayInput;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputArgument;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputAwareInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputDefinition;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Input\InputOption;
+use ECSPrefix202510\Symfony\Component\Console\Output\ConsoleOutput;
+use ECSPrefix202510\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\Output\OutputInterface;
+use ECSPrefix202510\Symfony\Component\Console\SignalRegistry\SignalRegistry;
+use ECSPrefix202510\Symfony\Component\Console\Style\SymfonyStyle;
+use ECSPrefix202510\Symfony\Component\ErrorHandler\ErrorHandler;
+use ECSPrefix202510\Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use ECSPrefix202510\Symfony\Contracts\Service\ResetInterface;
 /**
  * An Application is the container for a collection of commands.
  *
@@ -658,7 +658,7 @@ class Application implements ResetInterface
         if (empty($commands) || \count(\preg_grep('{^' . $expr . '$}i', $commands)) < 1) {
             if (\false !== ($pos = \strrpos($name, ':'))) {
                 // check if a namespace exists and contains commands
-                $this->findNamespace(\substr($name, 0, $pos));
+                $this->findNamespace((string) \substr($name, 0, $pos));
             }
             $message = \sprintf('Command "%s" is not defined.', $name);
             if ($alternatives = $this->findAlternatives($name, $allCommands)) {
@@ -760,7 +760,7 @@ class Application implements ResetInterface
         $abbrevs = [];
         foreach ($names as $name) {
             for ($len = \strlen($name); $len > 0; --$len) {
-                $abbrev = \substr($name, 0, $len);
+                $abbrev = (string) \substr($name, 0, $len);
                 $abbrevs[$abbrev][] = $name;
             }
         }
@@ -907,14 +907,6 @@ class Application implements ResetInterface
         if ($commandSignals || $this->dispatcher && $this->signalsToDispatchEvent) {
             if (!$this->signalRegistry) {
                 throw new RuntimeException('Unable to subscribe to signal events. Make sure that the "pcntl" extension is installed and that "pcntl_*" functions are not disabled by your php.ini\'s "disable_functions" directive.');
-            }
-            if (Terminal::hasSttyAvailable()) {
-                $sttyMode = \shell_exec('stty -g');
-                foreach ([\SIGINT, \SIGTERM] as $signal) {
-                    $this->signalRegistry->register($signal, static function () use($sttyMode) {
-                        return \shell_exec('stty ' . $sttyMode);
-                    });
-                }
             }
             if ($this->dispatcher) {
                 // We register application signals, so that we can dispatch the event

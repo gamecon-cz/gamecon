@@ -13,8 +13,8 @@ declare (strict_types=1);
 namespace PhpCsFixer\Differ;
 
 use PhpCsFixer\Preg;
-use ECSPrefix202509\SebastianBergmann\Diff\Differ;
-use ECSPrefix202509\SebastianBergmann\Diff\Output\StrictUnifiedDiffOutputBuilder;
+use ECSPrefix202510\SebastianBergmann\Diff\Differ;
+use ECSPrefix202510\SebastianBergmann\Diff\Output\StrictUnifiedDiffOutputBuilder;
 /**
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise.
  */

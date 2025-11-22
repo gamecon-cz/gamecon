@@ -5,7 +5,7 @@ namespace Rector\Bridge;
 
 use Rector\Config\RectorConfig;
 use Rector\Contract\Rector\RectorInterface;
-use RectorPrefix202509\Webmozart\Assert\Assert;
+use RectorPrefix202511\Webmozart\Assert\Assert;
 /**
  * @api
  * Utils class to ease building bridges by 3rd-party tools
@@ -35,7 +35,7 @@ final class SetRectorsResolver
     public function resolveFromFilePathIncludingConfiguration(string $configFilePath): array
     {
         $rectorConfig = $this->loadRectorConfigFromFilePath($configFilePath);
-        $rectorClassesWithOptionalConfiguration = $rectorConfig->getRectorClasses();
+        $rectorClassesWithOptionalConfiguration = $rectorConfig->getMainRectorClasses();
         foreach ($rectorConfig->getRuleConfigurations() as $rectorClass => $configuration) {
             // remove from non-configurable, if added again with better config
             if (in_array($rectorClass, $rectorClassesWithOptionalConfiguration)) {

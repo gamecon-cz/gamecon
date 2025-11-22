@@ -69,7 +69,7 @@ class ShorthandSizeSniff implements Sniff, DeprecatedSniff
         // Account for a !important annotation.
         $content = $origContent;
         if (\substr($content, -10) === '!important') {
-            $content = \substr($content, 0, -10);
+            $content = (string) \substr($content, 0, -10);
             $content = \trim($content);
         }
         // Check if this style value is a set of numbers with optional prefixes.

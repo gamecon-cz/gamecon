@@ -54,7 +54,7 @@ final class PopulateTokenListenersTest extends AbstractRulesetTestCase
     {
         $standard = __DIR__ . '/PopulateTokenListenersRegisterNoArrayTest.xml';
         $config = new ConfigDouble(["--standard={$standard}"]);
-        $sniffClass = 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs\\InvalidSniffs\\RegisterNoArraySniff';
+        $sniffClass = 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs\\InvalidSniffs\\RegisterNoArraySniff';
         $message = "ERROR: The sniff {$sniffClass}::register() method must return an array." . \PHP_EOL . \PHP_EOL;
         $this->expectRuntimeExceptionMessage($message);
         new Ruleset($config);
@@ -71,7 +71,7 @@ final class PopulateTokenListenersTest extends AbstractRulesetTestCase
      */
     public function testSniffWithRegisterMethodReturningEmptyArrayIsSilentlyIgnored()
     {
-        $target = 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs\\ValidSniffs\\RegisterEmptyArraySniff';
+        $target = 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs\\ValidSniffs\\RegisterEmptyArraySniff';
         foreach (self::$ruleset->tokenListeners as $token => $listeners) {
             $this->assertTrue(\is_array($listeners), 'No listeners registered for token' . Tokens::tokenName($token));
             $this->assertArrayNotHasKey($target, $listeners, \sprintf('Found the %s sniff registered for token %s', $target, Tokens::tokenName($token)));
@@ -108,7 +108,7 @@ final class PopulateTokenListenersTest extends AbstractRulesetTestCase
      */
     public static function dataSniffListensToTokenss()
     {
-        return ['TestStandard.SupportedTokenizers.ListensForPHPAndCSSAndJS' => ['sniffClass' => 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs\\SupportedTokenizers\\ListensForPHPAndCSSAndJSSniff', 'expectedCount' => 2], 'Generic.NamingConventions.UpperCaseConstantName' => ['sniffClass' => 'PHP_CodeSniffer\\Standards\\Generic\\Sniffs\\NamingConventions\\UpperCaseConstantNameSniff', 'expectedCount' => 2], 'PSR1.Files.SideEffects' => ['sniffClass' => 'PHP_CodeSniffer\\Standards\\PSR1\\Sniffs\\Files\\SideEffectsSniff', 'expectedCount' => 1], 'PSR12.ControlStructures.BooleanOperatorPlacement' => ['sniffClass' => 'PHP_CodeSniffer\\Standards\\PSR12\\Sniffs\\ControlStructures\\BooleanOperatorPlacementSniff', 'expectedCount' => 5], 'Squiz.ControlStructures.ForEachLoopDeclaration' => ['sniffClass' => 'PHP_CodeSniffer\\Standards\\Squiz\\Sniffs\\ControlStructures\\ForEachLoopDeclarationSniff', 'expectedCount' => 1], 'TestStandard.Deprecated.WithReplacement' => ['sniffClass' => 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs\\Deprecated\\WithReplacementSniff', 'expectedCount' => 1], 'TestStandard.ValidSniffs.RegisterEmptyArray' => ['sniffClass' => 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs\\ValidSniffs\\RegisterEmptyArraySniff', 'expectedCount' => 0]];
+        return ['TestStandard.SupportedTokenizers.ListensForPHPAndCSSAndJS' => ['sniffClass' => 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs\\SupportedTokenizers\\ListensForPHPAndCSSAndJSSniff', 'expectedCount' => 2], 'Generic.NamingConventions.UpperCaseConstantName' => ['sniffClass' => 'PHP_CodeSniffer\\Standards\\Generic\\Sniffs\\NamingConventions\\UpperCaseConstantNameSniff', 'expectedCount' => 2], 'PSR1.Files.SideEffects' => ['sniffClass' => 'PHP_CodeSniffer\\Standards\\PSR1\\Sniffs\\Files\\SideEffectsSniff', 'expectedCount' => 1], 'PSR12.ControlStructures.BooleanOperatorPlacement' => ['sniffClass' => 'PHP_CodeSniffer\\Standards\\PSR12\\Sniffs\\ControlStructures\\BooleanOperatorPlacementSniff', 'expectedCount' => 5], 'Squiz.ControlStructures.ForEachLoopDeclaration' => ['sniffClass' => 'PHP_CodeSniffer\\Standards\\Squiz\\Sniffs\\ControlStructures\\ForEachLoopDeclarationSniff', 'expectedCount' => 1], 'TestStandard.Deprecated.WithReplacement' => ['sniffClass' => 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs\\Deprecated\\WithReplacementSniff', 'expectedCount' => 1], 'TestStandard.ValidSniffs.RegisterEmptyArray' => ['sniffClass' => 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs\\ValidSniffs\\RegisterEmptyArraySniff', 'expectedCount' => 0]];
     }
     //end dataSniffListensToTokenss()
     /**
@@ -205,7 +205,7 @@ final class PopulateTokenListenersTest extends AbstractRulesetTestCase
      */
     public function testSetsSupportedTokenizersToPHPByDefault()
     {
-        $exclude = 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs\\SupportedTokenizers\\ListensForPHPAndCSSAndJSSniff';
+        $exclude = 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs\\SupportedTokenizers\\ListensForPHPAndCSSAndJSSniff';
         $expected = ['PHP' => 'PHP'];
         foreach (self::$ruleset->tokenListeners as $token => $listeners) {
             $this->assertTrue(\is_array($listeners), 'No listeners registered for token' . Tokens::tokenName($token));
@@ -233,7 +233,7 @@ final class PopulateTokenListenersTest extends AbstractRulesetTestCase
      */
     public function testSetsSupportedTokenizersWhenProvidedBySniff($token)
     {
-        $sniffClass = 'ECSPrefix202509\\Fixtures\\TestStandard\\Sniffs\\SupportedTokenizers\\ListensForPHPAndCSSAndJSSniff';
+        $sniffClass = 'ECSPrefix202510\\Fixtures\\TestStandard\\Sniffs\\SupportedTokenizers\\ListensForPHPAndCSSAndJSSniff';
         $expected = ['PHP' => 'PHP', 'JS' => 'JS', 'CSS' => 'CSS'];
         $this->assertArrayHasKey($token, self::$ruleset->tokenListeners, \sprintf('The token constant %s is not registered to the listeners array', Tokens::tokenName($token)));
         $this->assertArrayHasKey($sniffClass, self::$ruleset->tokenListeners[$token], \sprintf('The sniff class %s is not registered for token %s', $sniffClass, Tokens::tokenName($token)));

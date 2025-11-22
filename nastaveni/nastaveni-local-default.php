@@ -29,7 +29,7 @@ if (!defined('DB_ANONYM_PASS')) define('DB_ANONYM_PASS', getenv('DB_ANONYM_PASS'
 if (!defined('DB_ANONYM_NAME')) define('DB_ANONYM_NAME', getenv('DB_ANONYM_NAME')
     ?: 'anonymni_databaze');
 
-$baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on'
+$baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
         ? 'https'
         : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
 if (!defined('URL_WEBU')) getenv('URL_WEBU')
