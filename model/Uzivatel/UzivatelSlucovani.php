@@ -173,17 +173,15 @@ class UzivatelSlucovani
         int    $idStarehoUzivatele,
         int    $idNovehoUzivatele,
     ): void {
-        // Teď můžeme bezpečně převést zbývající data
+        // Zkusíme převést všechna data - použijeme IGNORE pro tiché přeskočení duplicit
+        // IGNORE způsobí, že duplicitní záznamy budou přeskočeny bez chyby
         dbQuery(
-            "UPDATE `$tabulka` SET `$sloupec` = $idNovehoUzivatele
-            WHERE `$sloupec` = $idStarehoUzivatele
-                AND NOT EXISTS (
-                    SELECT 1 FROM `$tabulka` t2
-                    WHERE t2.`$sloupec` = $idNovehoUzivatele
-            )",
+            "UPDATE IGNORE `$tabulka` SET `$sloupec` = $idNovehoUzivatele
+            WHERE `$sloupec` = $idStarehoUzivatele",
         );
 
-        // Smažeme co nešlo převést
+        // Smažeme záznamy, které se nepodařilo převést kvůli unique constraints
+        // (pouze ty, které skutečně kolidovaly)
         dbQuery(
             <<<SQL
             DELETE
