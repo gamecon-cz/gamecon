@@ -932,15 +932,7 @@ SQL;
         );
 
         foreach ($q as $sleva) {
-            if (str_contains($sleva[SlevySqlStruktura::POZNAMKA], '#kompenzace')) {
-                // speciální typ slevy: kompenzace
-                // započítává se stejně jako sleva za vedené aktivity
-                $this->bonusZaVedeniAktivit += $sleva[SlevySqlStruktura::CASTKA];
-            } else {
-                // normální sleva
-                // započítává se zvlášť
-                $this->slevaObecna += (float)$sleva[SlevySqlStruktura::CASTKA];
-            }
+            $this->slevaObecna += (float)$sleva[SlevySqlStruktura::CASTKA];
         }
         $this->zapocteno[__FUNCTION__] = true;
     }
