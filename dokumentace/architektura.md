@@ -26,7 +26,7 @@ Model je postaven nad relační databází a částečně využívá vzoru __Act
 $u = Uzivatel::zEmailu('shako@gamecon.cz');
 $a = Aktivita::zId(123);
 $a->prihlas($u);
-echo 'Uživatel '.$u->jmeno().' se přihlásil na aktivitu '.$a->nazev();
+echo 'Uživatel '.$u->celeJmeno().' se přihlásil na aktivitu '.$a->nazev();
 ```
 
 ### Načtení objektu (zNěčeho)
@@ -46,8 +46,8 @@ Konstruktor u těchto tříd je běžně chráněný (protected) a objekty se z 
 ### Get/set metody
 
 ```php
-echo $u->jmeno(); // vypíše 'Jan Novák'
-$u->jmeno('Karel Nejedlík'); // změní jméno uživatele a zapíše do databáze
+echo $u->celeJmeno(); // vypíše 'Jan Novák'
+$u->celeJmeno('Karel Nejedlík'); // změní jméno uživatele a zapíše do databáze
 ```
 
 Pro přístup k atributu (sloupci) se používá jedna metoda pro čtení i zápis. Bez parametru vrátí hodnotu atributu, s zadaným parametrem hodnotu nastaví (podobně jako například v [jQuery](https://jquery.com)). Obvykle má třída jeden vnitřní atribut `$r` obsahující celý databázový řádek a v metodě pro čtení stačí vrátit hodnotu z něj, např. `$this->r['jmeno']`. Většina metod záměrně podporuje jen čtení, a ty které podporují zápis ihned zapisují do databáze (tzn. příkaz `$u->mail('shako@senam.cz')` ihned vyvolá update příkaz jedné hodnoty do databáze). Okamžitý zápis ostatně platí pro všechny metody, které nějak mění stav databáze (tj. i metoda `prihlas()` z prvního příkladu).
@@ -179,7 +179,7 @@ Pokud například chceme vytisknout tabulku s jmény a příjmeními, nastavíme
 
 ```php
 $t = new XTemplate('vypis-uzivatelu.xtpl'); // načteme šablonu
-foreach($uzivatele as $u) {
+foreach($uzivateleKPromlceni as $u) {
     $t->assign(['jmeno' => $u->jmeno(), 'prijmeni' => $u->prijmeni()]); // nastavíme proměnné
     $t->parse('tabulka.radek'); // vyparsujeme řádek tabulky
 }

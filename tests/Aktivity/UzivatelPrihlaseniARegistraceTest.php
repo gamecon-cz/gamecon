@@ -98,14 +98,14 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         $id = \Uzivatel::registruj($this->uzivatel());
         $u  = \Uzivatel::zId($id);
 
-        $this->assertEquals('a b', $u->jmeno());
+        $this->assertEquals('a b', $u->celeJmeno());
 
         $u->uprav(['jmeno_uzivatele' => 'jiné']);
 
-        $this->assertEquals('jiné b', $u->jmeno());
+        $this->assertEquals('jiné b', $u->celeJmeno());
 
         $u = \Uzivatel::zId($id);
-        $this->assertEquals('jiné b', $u->jmeno());
+        $this->assertEquals('jiné b', $u->celeJmeno());
     }
 
     function testUpravNic()

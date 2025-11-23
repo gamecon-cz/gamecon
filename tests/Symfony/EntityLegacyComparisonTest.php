@@ -134,7 +134,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
         // The legacy jmeno() method returns "jmeno prijmeni", while Symfony has separate getters
         $expectedFullName = $symfonyUser->getJmeno() . ' ' . $symfonyUser->getPrijmeni();
-        $this->assertEquals($expectedFullName, $legacyUser->jmeno());
+        $this->assertEquals($expectedFullName, $legacyUser->celeJmeno());
 
         // Test individual properties accessible through database record
         $legacyData = $legacyUser->raw();
