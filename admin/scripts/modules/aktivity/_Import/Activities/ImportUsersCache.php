@@ -104,7 +104,7 @@ class ImportUsersCache
             for ($nameKeyUnifyDepth = $this->fromNameKeyUnifyDepth; $nameKeyUnifyDepth >= 0; $nameKeyUnifyDepth--) {
                 $usersPerUnifiedKey = [];
                 foreach ($this->getUsers() as $user) {
-                    $name = $user->jmeno();
+                    $name = $user->celeJmeno();
                     $addUserResult = $this->addUserWithUnifiedKey(
                         $user,
                         $name,

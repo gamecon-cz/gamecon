@@ -302,7 +302,7 @@ SQL
         }
 
         try {
-            $result = dbQuery(
+            $result          = dbQuery(
                 "INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
             VALUES ($1, $2, $3)",
                 [$this->id(), $idRole, $posadil->id()],
@@ -512,13 +512,13 @@ SQL
 
     private function mailZeBylOdhlasen(): GcMail
     {
-        $rok = $this->systemoveNastaveni->rocnik();
+        $rok                             = $this->systemoveNastaveni->rocnik();
         $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiVlnaKdy(
             $this->systemoveNastaveni,
             $this->systemoveNastaveni->ted(),
         );
-        $uvod = 'Právě jsme tě odhlásili z letošního Gameconu.';
-        $oddelovac = str_repeat('═', mb_strlen($uvod));
+        $uvod                            = 'Právě jsme tě odhlásili z letošního Gameconu.';
+        $oddelovac                       = str_repeat('═', mb_strlen($uvod));
         set_time_limit(30); // pro jistotu
         $a = $this->koncovkaDlePohlavi('a');
 
@@ -751,9 +751,9 @@ SQL,
     public function historiePrihlaseni(): array
     {
         if (!isset($this->historiePrihlaseni)) {
-            $ucast = Role::TYP_UCAST;
-            $prihlasen = Role::VYZNAM_PRIHLASEN;
-            $q = dbQuery(<<<SQL
+            $ucast                    = Role::TYP_UCAST;
+            $prihlasen                = Role::VYZNAM_PRIHLASEN;
+            $q                        = dbQuery(<<<SQL
 SELECT role.rocnik_role
 FROM uzivatele_role
 JOIN role_seznam AS role
@@ -763,8 +763,8 @@ WHERE uzivatele_role.id_uzivatele = $0
     AND role.vyznam_role = '$prihlasen'
 SQL,
                 [$this->id()]);
-            $rokyWrapped = mysqli_fetch_all($q);
-            $roky = array_map(fn(
+            $rokyWrapped              = mysqli_fetch_all($q);
+            $roky                     = array_map(fn(
                 $e,
             ) => (int)$e[0], $rokyWrapped);
             $this->historiePrihlaseni = $roky;
@@ -774,9 +774,9 @@ SQL,
     }
 
     /** Jméno a příjmení uživatele v běžném (zákonném) tvaru */
-    public function jmeno()
+    public function celeJmeno()
     {
-        return trim($this->r['jmeno_uzivatele'] . ' ' . $this->r['prijmeni_uzivatele']);
+        return trim($this->r[Sql::JMENO_UZIVATELE] . ' ' . $this->r[Sql::PRIJMENI_UZIVATELE]);
     }
 
     /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
@@ -793,9 +793,9 @@ SQL,
     public function jmenoVolitelnyNick()
     {
         if ($this->nick()) {
-            return $this->jmeno() . ' (' . $this->nick() . ')';
+            return $this->celeJmeno() . ' (' . $this->nick() . ')';
         } else {
-            return $this->jmeno();
+            return $this->celeJmeno();
         }
     }
 
@@ -810,12 +810,18 @@ SQL,
     {
         return $this->nick()
             ?: $this->krestniJmeno()
-                ?: $this->jmeno();
+                ?: $this->celeJmeno();
     }
 
     public function krestniJmeno(): string
     {
-        return trim($this->r['jmeno_uzivatele']
+        return trim($this->r[Sql::JMENO_UZIVATELE]
+            ?: '');
+    }
+
+    public function prijmeni(): string
+    {
+        return trim($this->r[Sql::PRIJMENI_UZIVATELE]
             ?: '');
     }
 
@@ -829,14 +835,14 @@ SQL,
      */
     public static function jmenoNickZjisti(array $r): ?string
     {
-        if (!empty($r['jmeno_uzivatele']) && !empty($r['prijmeni_uzivatele'])) {
-            $celeJmeno = $r['jmeno_uzivatele'] . ' ' . $r['prijmeni_uzivatele'];
-            $jeMail = str_contains($r['login_uzivatele'], '@');
+        if (!empty($r[Sql::JMENO_UZIVATELE]) && !empty($r[Sql::PRIJMENI_UZIVATELE])) {
+            $celeJmeno = $r[Sql::JMENO_UZIVATELE] . ' ' . $r[Sql::PRIJMENI_UZIVATELE];
+            $jeMail    = str_contains($r['login_uzivatele'], '@');
             if ($celeJmeno == $r['login_uzivatele'] || $jeMail) {
                 return $celeJmeno;
             }
 
-            return $r['jmeno_uzivatele'] . ' „' . $r['login_uzivatele'] . '“ ' . $r['prijmeni_uzivatele'];
+            return $r[Sql::JMENO_UZIVATELE] . ' „' . $r['login_uzivatele'] . '“ ' . $r[Sql::PRIJMENI_UZIVATELE];
         }
 
         return $r['login_uzivatele'];
@@ -856,9 +862,9 @@ SQL,
             ];
         }
 
-        $parts = explode(' ', $jmenoNick);
+        $parts    = explode(' ', $jmenoNick);
         $prijmeni = trim(array_pop($parts) ?? '');
-        $jmeno = implode(' ', array_map('trim', $parts));
+        $jmeno    = implode(' ', array_map('trim', $parts));
         if ($jmeno !== '' && $prijmeni !== '') {
             return [
                 'jmeno'    => $jmeno,
@@ -1187,7 +1193,7 @@ SQL,
     public function dejIdsRoli(): array
     {
         if (!isset($this->idsRoli)) {
-            $role = dbOneArray('SELECT id_role FROM platne_role_uzivatelu WHERE id_uzivatele = ' . $this->id());
+            $role          = dbOneArray('SELECT id_role FROM platne_role_uzivatelu WHERE id_uzivatele = ' . $this->id());
             $this->idsRoli = array_map('intval', $role);
         }
 
@@ -1237,7 +1243,7 @@ SQL,
             SQL,
             $dataSourcesCollector,
         );
-        $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+        $prava     = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
         foreach ($idckaPrav as $r) {
             $prava[] = (int)$r['id_prava'];
         }
@@ -1393,7 +1399,7 @@ SQL,
         if (!$this->klic) {
             return; // uživatel nebyl přihlášen
         }
-        $id = $this->id();
+        $id   = $this->id();
         $klic = $this->klic;
         // máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesssionObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] == $this->id());
@@ -1402,7 +1408,7 @@ SQL,
         } else { // pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
         }
-        $u = Uzivatel::prihlasId($id, $klic);
+        $u       = Uzivatel::prihlasId($id, $klic);
         $this->r = $u->r;
         if ($sesssionObnovit) {
             $_SESSION['id_uzivatele'] = $this->id();
@@ -1443,25 +1449,25 @@ SQL,
         if (!$this->gcPrihlasen()) {
             return '';
         }
-        $shop = $this->shop();
+        $shop                = $this->shop();
         $objednalNejakeJidlo = $shop->objednalNejakeJidlo();
-        $hintedParts = [];
-        $hintParts = [];
+        $hintedParts         = [];
+        $hintParts           = [];
 
         if ($this->jeBrigadnik()) {
             $hintedParts[] = 'papír na bonus ✍️';
-            $hintParts[] = 'podepsat papír na převzetí bonusu';
+            $hintParts[]   = 'podepsat papír na převzetí bonusu';
         }
 
         if (!$shop->koupilNejakouVec()) {
             if ($objednalNejakeJidlo) {
                 $hintedParts[] = 'jen stravenky 🍽️';
-                $hintParts[] = $shop->objednaneJidloPrehledHtml();
+                $hintParts[]   = $shop->objednaneJidloPrehledHtml();
             }
             if (count($hintedParts) === 0) {
                 return '';
             }
-            $hint = $this->joinHint($hintParts);
+            $hint   = $this->joinHint($hintParts);
             $hinted = $this->joinHinted($hintedParts);
 
             return <<<HTML
@@ -1472,16 +1478,16 @@ SQL,
         $velikostBalicku = $this->r['infopult_poznamka'] === 'velký balíček ' . $this->systemoveNastaveni->rocnik()
             ? 'velký balíček'
             : 'balíček';
-        $nakupy = [];
-        $nakupy[] = $shop->koupeneVeciPrehledHtml();
+        $nakupy          = [];
+        $nakupy[]        = $shop->koupeneVeciPrehledHtml();
         if ($objednalNejakeJidlo) {
             $nakupy[] = $shop->objednaneJidloPrehledHtml();
         }
-        $nakupyHtml = implode('<hr>', $nakupy);
+        $nakupyHtml    = implode('<hr>', $nakupy);
         $hintedParts[] = htmlentities($velikostBalicku) . ' ' . $this->id();
-        $hintParts[] = $nakupyHtml;
+        $hintParts[]   = $nakupyHtml;
 
-        $hint = $this->joinHint($hintParts);
+        $hint   = $this->joinHint($hintParts);
         $hinted = $this->joinHinted($hintedParts);
 
         return <<<HTML
@@ -1534,7 +1540,7 @@ SQL,
         // kontrola zastaralých algoritmů hesel a případná aktualizace hashe
         $jeMd5 = strlen($uzivatelData['heslo_md5']) == 32 && preg_match('@^[0-9a-f]+$@', $uzivatelData['heslo_md5']);
         if ((password_needs_rehash($uzivatelData['heslo_md5'], PASSWORD_DEFAULT) || $jeMd5) && !$jeMaster) {
-            $novyHash = password_hash($heslo, PASSWORD_DEFAULT);
+            $novyHash                  = password_hash($heslo, PASSWORD_DEFAULT);
             $uzivatelData['heslo_md5'] = $novyHash;
             dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $uzivatelData['id_uzivatele']]);
         }
@@ -1544,10 +1550,10 @@ SQL,
         if (!session_id() && PHP_SAPI !== 'cli') {
             session_start();
         }
-        $uzivatelData['id_uzivatele'] = $idUzivatele;
+        $uzivatelData['id_uzivatele']    = $idUzivatele;
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         // načtení uživatelských práv
-        $p = dbQuery(<<<SQL
+        $p     = dbQuery(<<<SQL
 SELECT id_prava
 FROM platne_role_uzivatelu
     LEFT JOIN prava_role ON platne_role_uzivatelu.id_role = prava_role.id_role
@@ -1575,7 +1581,7 @@ SQL,
         int | string $idUzivatele,
                      $klic = self::UZIVATEL,
     ): ?Uzivatel {
-        $idUzivatele = (int)$idUzivatele;
+        $idUzivatele  = (int)$idUzivatele;
         $uzivatelData = dbOneLine("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele={$idUzivatele}");
         if (!$uzivatelData) {
             return null;
@@ -1585,7 +1591,7 @@ SQL,
         }
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         //načtení uživatelských práv
-        $p = dbQuery(
+        $p     = dbQuery(
             'SELECT id_prava FROM platne_role_uzivatelu uz LEFT JOIN prava_role pz USING(id_role) WHERE uz.id_uzivatele=' . $idUzivatele,
         );
         $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
@@ -1593,8 +1599,8 @@ SQL,
             $prava[] = (int)$r['id_prava'];
         }
         $uzivatelData['prava'] = $prava;
-        $uzivatel = new Uzivatel($uzivatelData);
-        $uzivatel->klic = $klic;
+        $uzivatel              = new Uzivatel($uzivatelData);
+        $uzivatel->klic        = $klic;
 
         if ($klic === self::UZIVATEL) {
             self::generateJwtToken($uzivatel);
@@ -1609,7 +1615,7 @@ SQL,
         $heslo,
         $klic = self::UZIVATEL,
     ) {
-        $u = Uzivatel::prihlas($login, $heslo, $klic);
+        $u    = Uzivatel::prihlas($login, $heslo, $klic);
         $rand = randHex(20);
         if ($u) {
             dbQuery(
@@ -1710,8 +1716,8 @@ SQL,
         array     $tab,
         ?Uzivatel $u,
     ): string {
-        $dbTab = $tab;
-        $chyby = [];
+        $dbTab                  = $tab;
+        $chyby                  = [];
         $preskocitChybejiciPole = (bool)$u;
 
         // opravy
@@ -1852,7 +1858,7 @@ SQL,
             }
 
             if (is_array($validator)) {
-                $regex = $validator[0];
+                $regex      = $validator[0];
                 $popisChyby = $validator[1];
                 if (!preg_match("/$regex/u", $hodnota)) {
                     $chyby[$klic] = $popisChyby;
@@ -1881,7 +1887,7 @@ SQL,
         }
 
         if (!$u) {
-            $dbTab['random'] = randHex(20);
+            $dbTab['random']      = randHex(20);
             $dbTab['registrovan'] = (new DateTimeCz)->formatDb();
         }
 
@@ -1897,13 +1903,13 @@ SQL,
         if ($u) {
             dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [Sql::ID_UZIVATELE => $u->id()]);
             $u->otoc();
-            $idUzivatele = $u->id();
+            $idUzivatele  = $u->id();
             $urlUzivatele = self::vytvorUrl($u->r);
         } else {
             dbInsert(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab);
-            $idUzivatele = dbInsertId();
+            $idUzivatele              = dbInsertId();
             $dbTab[Sql::ID_UZIVATELE] = $idUzivatele;
-            $urlUzivatele = self::vytvorUrl($dbTab);
+            $urlUzivatele             = self::vytvorUrl($dbTab);
         }
         if ($urlUzivatele !== null) {
             dbInsertUpdate('uzivatele_url', ['id_uzivatele' => $idUzivatele, 'url' => $urlUzivatele]);
@@ -1914,7 +1920,7 @@ SQL,
 
     protected static function spojPredvolbuSTelefonem(array $data): array
     {
-        $telefon = $data[Sql::TELEFON_UZIVATELE] ?? null;
+        $telefon   = $data[Sql::TELEFON_UZIVATELE] ?? null;
         $predvolba = $data['predvolba'] ?? null;
         unset($data['predvolba']); // v dalším zpracování dat by předvolba byla považována za neznámý klíč a chybu
 
@@ -1939,21 +1945,21 @@ SQL,
         array              $tab = [],
         array              $opt = [],
     ) {
-        $tab[Sql::LOGIN_UZIVATELE] ??= uniqid('RR.', false);
-        $tab[Sql::JMENO_UZIVATELE] ??= $tab[Sql::LOGIN_UZIVATELE];
-        $tab[Sql::PRIJMENI_UZIVATELE] ??= $tab[Sql::JMENO_UZIVATELE];
-        $tab[Sql::EMAIL1_UZIVATELE] ??= $tab[Sql::LOGIN_UZIVATELE] . '@example.com';
-        $tab[Sql::Z_RYCHLOREGISTRACE] = 1;
-        $tab[Sql::DATUM_NAROZENI] ??= date('Y-m-d');
-        $tab[Sql::STAT_UZIVATELE] ??= Stat::CZ_ID;
-        $tab[Sql::RANDOM] = $rand = randHex(20);
-        $tab[Sql::REGISTROVAN] = date("Y-m-d H:i:s");
-        $tab[Sql::ID_UZIVATELE] = null;
-        $tab[Sql::NECHCE_MAILY] = null;
-        $tab[Sql::MRTVY_MAIL] = 0;
-        $tab[Sql::ZUSTATEK] = 0;
-        $tab[Sql::POHLAVI] = Pohlavi::MUZ_KOD;
-        $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE] = null;
+        $tab[Sql::LOGIN_UZIVATELE]                     ??= uniqid('RR.', false);
+        $tab[Sql::JMENO_UZIVATELE]                     ??= $tab[Sql::LOGIN_UZIVATELE];
+        $tab[Sql::PRIJMENI_UZIVATELE]                  ??= $tab[Sql::JMENO_UZIVATELE];
+        $tab[Sql::EMAIL1_UZIVATELE]                    ??= $tab[Sql::LOGIN_UZIVATELE] . '@example.com';
+        $tab[Sql::Z_RYCHLOREGISTRACE]                  = 1;
+        $tab[Sql::DATUM_NAROZENI]                      ??= date('Y-m-d');
+        $tab[Sql::STAT_UZIVATELE]                      ??= Stat::CZ_ID;
+        $tab[Sql::RANDOM]                              = $rand = randHex(20);
+        $tab[Sql::REGISTROVAN]                         = date("Y-m-d H:i:s");
+        $tab[Sql::ID_UZIVATELE]                        = null;
+        $tab[Sql::NECHCE_MAILY]                        = null;
+        $tab[Sql::MRTVY_MAIL]                          = 0;
+        $tab[Sql::ZUSTATEK]                            = 0;
+        $tab[Sql::POHLAVI]                             = Pohlavi::MUZ_KOD;
+        $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE]        = null;
         $tab[Sql::POTVRZENI_PROTI_COVID19_PRIDANO_KDY] = null;
         $tab[Sql::POTVRZENI_PROTI_COVID19_OVERENO_KDY] = null;
         foreach (Sql::sloupce() as $sloupec) {
@@ -1980,8 +1986,8 @@ SQL,
         //poslání mailu
         if ($opt['informovat']) {
             $tab[Sql::ID_UZIVATELE] = $uid;
-            $u = new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
-            $mail = new GcMail(
+            $u                      = new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
+            $mail                   = new GcMail(
                 $systemoveNastaveni,
                 hlaskaMail('rychloregMail', $u, $tab[Sql::EMAIL1_UZIVATELE], $rand),
             );
@@ -2029,7 +2035,7 @@ SQL,
     /** Vrátí html formátovaný „status“ uživatele (pro interní informaci) */
     public function statusHtml(bool $sklonovatDlePohlavi = true): string
     {
-        $ka = $sklonovatDlePohlavi
+        $ka     = $sklonovatDlePohlavi
             ? $this->koncovkaDlePohlavi('ka')
             : '';
         $status = [];
@@ -2079,7 +2085,7 @@ SQL,
         $predvolba = '';
         if (preg_match('~^(?<predvolba>[+]?\d{3})\d{9}~', $telefon, $matches)) {
             $predvolba = $matches['predvolba'];
-            $telefon = preg_replace('~^' . preg_quote($predvolba, '~') . '~', '', $telefon);
+            $telefon   = preg_replace('~^' . preg_quote($predvolba, '~') . '~', '', $telefon);
         }
 
         if (strlen($telefon) === 9) {
@@ -2090,7 +2096,7 @@ SQL,
             $cssClassSPredvolbou = $predvolba === ''
                 ? ''
                 : 's-predvolbou';
-            $htmPredvolba = $predvolba === ''
+            $htmPredvolba        = $predvolba === ''
                 ? ''
                 : "<span class='predvolba'>$predvolba</span> ";
 
@@ -2129,7 +2135,7 @@ SQL,
      */
     public function url(bool $vcetneId = false): ?string
     {
-        if (!$this->r['jmeno_uzivatele']) {
+        if (!$this->r[Sql::JMENO_UZIVATELE]) {
             return null; // nevracet url, asi vypravěčská skupina nebo podobně
         }
         if (!empty($this->r['url'])) {
@@ -2144,7 +2150,7 @@ SQL,
     private static function vytvorUrl(array $uzivatelData): ?string
     {
         $jmenoNick = self::jmenoNickZjisti($uzivatelData);
-        $url = slugify($jmenoNick);
+        $url       = slugify($jmenoNick);
 
         return Url::povolena($url)
             ? $url
@@ -2183,7 +2189,7 @@ SQL,
         int      $idRole,
         Uzivatel $editor,
     ): bool {
-        $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
+        $result           = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
         $roleNoveOdebrana = dbAffectedOrNumRows($result) > 0;
         if ($roleNoveOdebrana) {
             $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
@@ -2279,12 +2285,12 @@ SQL,
         if (!is_numeric($dotaz) && mb_strlen($dotaz) < $opt['min']) {
             return [];
         }
-        $hodnotaSql = dbQv($dotaz);
-        $hodnotaZacinaLikeSql = dbQv($dotaz . '%');        // pro LIKE dotazy
+        $hodnotaSql              = dbQv($dotaz);
+        $hodnotaZacinaLikeSql    = dbQv($dotaz . '%');        // pro LIKE dotazy
         $dalsiSlovoZacinaLikeSql = dbQv('% ' . $dotaz . '%'); // pro LIKE dotazy
-        $kromeIdUzivatelu = $opt['kromeIdUzivatelu'];
-        $kromeIdUzivateluSql = dbQv($kromeIdUzivatelu);
-        $pouzeIdsRoli = [];
+        $kromeIdUzivatelu        = $opt['kromeIdUzivatelu'];
+        $kromeIdUzivateluSql     = dbQv($kromeIdUzivatelu);
+        $pouzeIdsRoli            = [];
         if ($opt['jenSRolemi']) {
             $pouzeIdsRoli = $opt['jenSRolemi'];
         }
@@ -2476,8 +2482,8 @@ SQL,
     ) {
         if ($mod & self::FAKE) {
             $pole['email1_uzivatele'] = $pole['login_uzivatele'] . '@FAKE';
-            $pole['nechce_maily'] = null;
-            $pole['mrtvy_mail'] = 1;
+            $pole['nechce_maily']     = null;
+            $pole['mrtvy_mail']       = 1;
             dbInsert('uzivatele_hodnoty', $pole);
 
             return self::zId(dbInsertId());
@@ -2561,7 +2567,7 @@ SQL,
             return self::zId($idUzivatele);
         }
         $urlUzivatele = preg_replace('~^[^[:alnum:]]*\d*-?~', '', $aktualniUrl);
-        $u = self::nactiUzivatele("WHERE uzivatele_url.url = " . dbQv($urlUzivatele));
+        $u            = self::nactiUzivatele("WHERE uzivatele_url.url = " . dbQv($urlUzivatele));
 
         return count($u) !== 1
             ? null
@@ -2628,7 +2634,7 @@ SQL;
      */
     protected function aktualizujPrava()
     {
-        $this->idsRoli = null;
+        $this->idsRoli    = null;
         $this->r['prava'] = null;
     }
 
@@ -2642,13 +2648,13 @@ SQL;
         string                $where,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
-        $query = self::dotaz(where: $where, dataSourcesCollector: $dataSourcesCollector);
-        $o = dbQuery($query);
+        $query     = self::dotaz(where: $where, dataSourcesCollector: $dataSourcesCollector);
+        $o         = dbQuery($query);
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
-            $u = new self($r);
+            $u             = new self($r);
             $u->r['prava'] = explode(',', $u->r['prava'] ?? '');
-            $uzivatele[] = $u;
+            $uzivatele[]   = $u;
         }
 
         return $uzivatele;
