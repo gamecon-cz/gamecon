@@ -49,7 +49,7 @@ $vynutZalohuDatabaze = true;
 require __DIR__ . '/../zaloha_databaze.php';
 
 // set_time_limit(90);
-// $bfgrSoubor = sys_get_temp_dir() . '/' . uniqid('bfgr-', true) . '.xlsx';
+// $bfgrSoubor = tempnam($systemoveNastaveni->cacheDir(), 'bfgr-') . '.xlsx';
 // $bfgrReport = new BfgrReport($systemoveNastaveni);
 // $bfgrReport->exportuj('xlsx', true, $bfgrSoubor);
 

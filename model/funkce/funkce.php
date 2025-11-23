@@ -895,7 +895,7 @@ function omnibox(
                     $data['jmenoNick'] = $uzivatel->jmenoNick();
                     break;
                 case 'jmeno' :
-                    $data['jmeno'] = $uzivatel->jmeno();
+                    $data['jmeno'] = $uzivatel->celeJmeno();
                     break;
                 case 'mail' :
                     $data['mail'] = $uzivatel->mail();

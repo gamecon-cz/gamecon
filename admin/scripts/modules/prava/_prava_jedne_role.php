@@ -75,7 +75,7 @@ if ($u->maPravoNaPrirazeniRole((int)$role) && $u->maPravo(Pravo::ZMENA_PRAV)) {
 // sedící uživatelé
 foreach (Uzivatel::zRole($role) as $uz) {
     $t->assign('id', $uz->id());
-    $t->assign('jmeno', $uz->jmeno());
+    $t->assign('jmeno', $uz->celeJmeno());
     $t->assign('nick', $uz->nick());
     if ($u->maPravoNaPrirazeniRole((int)$role)) {
         $t->parse('pravaJedneRole.uzivatel.akce');
