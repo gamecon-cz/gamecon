@@ -102,9 +102,11 @@ class KonfiguraceReportu
         return $this;
     }
 
-    public function setDestinationFile(string $destinationFile)
+    public function setDestinationFile(string $destinationFile): self
     {
         $this->destinationFile = $destinationFile;
+
+        return $this;
     }
 
     public function getDestinationFile(): ?string
