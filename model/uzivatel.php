@@ -1940,7 +1940,7 @@ SQL,
             ]);
         }
 
-        return $idUzivatele;
+        return (string) $idUzivatele;
     }
 
     protected static function spojPredvolbuSTelefonem(array $data): array
@@ -2369,7 +2369,7 @@ SQL,
             }
         }
 
-        $uzivatel = self::zIds($id)[0] ?? null;
+        $uzivatel = self::zIds([$id])[0] ?? null;
 
         if ($uzivatel && $zCache) {
             self::$objekty[static::class][$id] = $uzivatel;
@@ -2398,7 +2398,7 @@ SQL,
      * @return Uzivatel[]
      */
     public static function zIds(
-        $ids,
+        string|array $ids,
         bool $zCache = false,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
