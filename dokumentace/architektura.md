@@ -194,7 +194,7 @@ $t->out('tabulka'); // pošleme blok na výstup
 
 Abychom nastavování proměnných a načítání šablon nemuseli psát pořád dokola, máme k dispozici ještě pár zjednodušení:
 
-- Místo nastavování jedné proměnné po druhé můžeme do proměnné nastavit objekt `$t->assgin(['u' => $uzivatel])` a v šabloně pak použít tečku k zavolání metody bez parametrů, tj. `{u.jmeno}` které odpovídá `$u->jmeno()`.
+- Místo nastavování jedné proměnné po druhé můžeme do proměnné nastavit objekt `$t->assgin(['u' => $uzivatel])` a v šabloně pak použít tečku k zavolání metody bez parametrů, tj. `{u.krestniJmeno}` které odpovídá `$u->krestniJmeno()`.
 - Pokud v složce `web/sablony` máme šablonu se stejným názvem jako controller, potom ji dostaneme automaticky načtenou v proměnné `$t`. Kořenový blok šablony se pak musí taky jmenovat stejně jako controller a na konci se vyrenderuje automaticky, stačí tedy zavolat `parse()` na vnořené bloky a `out()` nemusíme volat vůbec.
 
 > Jak je z příkladu vidět, k zpracování šablony je potřeba i nějaký php kód, který v tomto případě je v controlleru – dá se tedy říct, že část logiky view přechází do controlleru. Původní motivací takového návrhu bylo odstínit html kodéry od všech speciálních jazykových konstrukcí, kterými se to v běžných šablonovacích jazycích jen hemží. Ačkoli funkční, v dnešní době už je to přecejen poněkud fousatý přístup.
