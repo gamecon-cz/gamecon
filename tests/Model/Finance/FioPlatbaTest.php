@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Tests\Model;
+namespace Gamecon\Tests\Model\Finance;
 
-use FioPlatba;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Finance\FioPlatba;
 use PHPUnit\Framework\TestCase;
 
 class FioPlatbaTest extends TestCase
