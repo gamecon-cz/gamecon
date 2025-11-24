@@ -219,28 +219,6 @@ SQL,
     }
 
     /**
-     * Zjistí, zda už bylo pro daný ročník odesláno varovné upozornění (1 měsíc před)
-     */
-    public function varovaniMesicOdeslanoKdy(int $rocnik): ?\DateTimeInterface
-    {
-        return $this->posledniHromadnaAkceKdy(
-            self::SKUPINA_PROMLCENI,
-            $this->nazevAkceVarovaniMesic($rocnik),
-        );
-    }
-
-    /**
-     * Zjistí, zda už bylo pro daný ročník odesláno varovné upozornění (1 týden před)
-     */
-    public function varovaniTydenOdeslanoKdy(int $rocnik): ?\DateTimeInterface
-    {
-        return $this->posledniHromadnaAkceKdy(
-            self::SKUPINA_PROMLCENI,
-            $this->nazevAkceVarovaniTyden($rocnik),
-        );
-    }
-
-    /**
      * Zjistí, zda už bylo pro daný ročník provedeno automatické promlčení
      */
     public function automatickaPromlceniProvedenaKdy(int $rocnik): ?\DateTimeInterface
@@ -297,21 +275,6 @@ SQL,
         );
     }
 
-    private function nazevAkceVarovaniMesic(int $rocnik): string
-    {
-        return "varovani-mesic-$rocnik";
-    }
-
-    private function nazevAkceVarovaniTyden(int $rocnik): string
-    {
-        return "varovani-tyden-$rocnik";
-    }
-
-    private function nazevAkceAutomatickePromlceni(int $rocnik): string
-    {
-        return "automaticke-promlceni-$rocnik";
-    }
-
     /**
      * Odešle varovné e-maily uživatelům o promlčení zůstatků
      *
@@ -351,13 +314,7 @@ SQL,
             return -1;
         }
 
-        // Zkontroluj, jestli už nebyly e-maily odeslány
-        $jizOdeslano = match ($typVarovani) {
-            TypVarovaniPromlceni::MESIC => $this->varovaniMesicOdeslanoKdy($rocnik),
-            TypVarovaniPromlceni::TYDEN => $this->varovaniTydenOdeslanoKdy($rocnik),
-        };
-
-        if ($jizOdeslano && !$znovu) {
+        if (!$znovu && $this->jizOdeslano($typVarovani, $rocnik)) {
             $nazev = $this->dejNazevVarovani($typVarovani);
             $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): E-maily už byly odeslány pro rocnik $rocnik");
 
@@ -542,4 +499,51 @@ TEXT;
             TypVarovaniPromlceni::TYDEN => 'znovu upozorněni',
         };
     }
+
+    private function jizOdeslano(TypVarovaniPromlceni $typVarovani, int $rocnik): bool
+    {
+        return match ($typVarovani) {
+            TypVarovaniPromlceni::MESIC => $this->varovaniMesicOdeslanoKdy($rocnik),
+            TypVarovaniPromlceni::TYDEN => $this->varovaniTydenOdeslanoKdy($rocnik),
+        } !== null;
+    }
+
+
+    /**
+     * Zjistí, zda už bylo pro daný ročník odesláno varovné upozornění (1 měsíc před)
+     */
+    private function varovaniMesicOdeslanoKdy(int $rocnik): ?\DateTimeInterface
+    {
+        return $this->posledniHromadnaAkceKdy(
+            self::SKUPINA_PROMLCENI,
+            $this->nazevAkceVarovaniMesic($rocnik),
+        );
+    }
+
+    /**
+     * Zjistí, zda už bylo pro daný ročník odesláno varovné upozornění (1 týden před)
+     */
+    private function varovaniTydenOdeslanoKdy(int $rocnik): ?\DateTimeInterface
+    {
+        return $this->posledniHromadnaAkceKdy(
+            self::SKUPINA_PROMLCENI,
+            $this->nazevAkceVarovaniTyden($rocnik),
+        );
+    }
+
+    private function nazevAkceVarovaniMesic(int $rocnik): string
+    {
+        return "varovani-mesic-$rocnik";
+    }
+
+    private function nazevAkceVarovaniTyden(int $rocnik): string
+    {
+        return "varovani-tyden-$rocnik";
+    }
+
+    private function nazevAkceAutomatickePromlceni(int $rocnik): string
+    {
+        return "automaticke-promlceni-$rocnik";
+    }
+
 }
