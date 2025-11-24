@@ -9,7 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Legacy @see \Lokace
+ * Legacy @see \Gamecon\Aktivita\Lokace
  */
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 #[ORM\Table(name: 'akce_lokace')]
