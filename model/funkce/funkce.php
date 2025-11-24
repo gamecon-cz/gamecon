@@ -1027,6 +1027,14 @@ function encodeToUtf8(
     return '=?UTF-8?B?' . base64_encode($text) . '?=';
 }
 
+function requireIsolated(
+    string $path,
+)
+{
+    // aby proměnné ze skriptu nepřepsaly jiné, něco jako local scope
+    require $path;
+}
+
 function requireOnceIsolated(
     string $path,
 )
