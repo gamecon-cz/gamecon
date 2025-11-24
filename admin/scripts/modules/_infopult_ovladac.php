@@ -20,6 +20,7 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Vyjimkovac\Vyjimkovac;
+use Gamecon\Finance\FioPlatba;
 
 if (!empty($_POST['prijelADatMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
