@@ -292,64 +292,64 @@ Keep track of completed migrations:
 
 This table tracks which legacy entities have been migrated to Doctrine entities.
 
-| Status | Table Name                       | Legacy Entity (FQCN)                          | Doctrine Entity (FQCN)                     |
-|--------|----------------------------------|-----------------------------------------------|--------------------------------------------|
-| ✅      | `uzivatele_hodnoty`              | `Uzivatel`                                    | `\App\Entity\User`                         |
-| ✅      | `stranky`                        | `Stranka`                                     | `\App\Entity\Page`                         |
-| ✅      | `sjednocene_tagy`                | `Tag`                                         | `\App\Entity\Tag`                          |
-| ✅      | `kategorie_sjednocenych_tagu`    | `\Gamecon\KategorieTagu`                      | `\App\Entity\CategoryTag`                  |
-| ✅      | `akce_typy`                      | `\Gamecon\Aktivita\TypAktivity`               | `\App\Entity\ActivityType`                 |
-| ✅      | `akce_stavy_log`                 | `\Gamecon\Aktivita\StavAktivity`              | `\App\Entity\ActivityState`                |
-| ✅      | `akce_prihlaseni_stavy`          | `\Gamecon\Aktivita\AkcePrihlaseniStavy`       | `\App\Entity\ActivityRegistrationState`    |
-| ✅      | `newsletter_prihlaseni`          | `\Gamecon\Newsletter\NewsletterPrihlaseni`    | `\App\Entity\NewsletterSubscription`       |
-| ✅      | `role_seznam`                    | `\Gamecon\Role\Role`                          | `\App\Entity\Role`                         |
-| ✅      | `r_prava_soupis`                 | `\Gamecon\Pravo`                              | `\App\Entity\Permission`                   |
-| ✅      | `ubytovani`                      | `\Gamecon\Ubytovani\Ubytovani`                | `\App\Entity\Accommodation`                |
-| ✅      | `shop_predmety`                  | `\Gamecon\Shop\Predmet`                       | `\App\Entity\ShopItem`                     |
-| ✅      | `akce_lokace`                    | `Lokace`                                      | `\App\Entity\Location`                     |
-| ✅      | `novinky`                        | `Novinka`                                     | `\App\Entity\News`                         |
-| ✅      | `obchod_bunky`                   | `\Gamecon\Kfc\ObchodMrizkaBunka`              | `\App\Entity\ShopGridCell`                 |
-| ✅      | `obchod_mrizky`                  | `\Gamecon\Kfc\ObchodMrizka`                   | `\App\Entity\ShopGrid`                     |
-| ✅      | `platby`                         | `\Gamecon\Uzivatel\Platba`                    | `\App\Entity\Payment`                      |
-| ✅      | `medailonky`                     | `\Gamecon\Uzivatel\Medailonek`                | `\App\Entity\Badge`                        |
-| ❌      | `texty`                          | -                                             | **REMOVED** (2025-11-10)                   |
-| ✅      | `akce_import`                    | -                                             | `\App\Entity\ActivityImport`               |
-| ✅      | `akce_instance`                  | -                                             | `\App\Entity\ActivityInstance`             |
-| ✅      | `akce_lokace_tmp`                | -                                             | `\App\Entity\ActivityLocationTemp`         |
-| ✅      | `akce_organizatori`              | -                                             | `\App\Entity\ActivityOrganizer`            |
-| ✅      | `akce_prihlaseni`                | -                                             | `\App\Entity\ActivityRegistration`         |
-| ✅      | `akce_prihlaseni_log`            | -                                             | `\App\Entity\ActivityRegistrationLog`      |
-| ✅      | `akce_prihlaseni_spec`           | -                                             | `\App\Entity\ActivityRegistrationSpec`     |
-| ✅      | `akce_seznam`                    | -                                             | `\App\Entity\Activity`                     |
-| ✅      | `akce_sjednocene_tagy`           | -                                             | `\App\Entity\ActivityTag`                  |
-| ✅      | `akce_stav`                      | -                                             | `\App\Entity\ActivityStatus`               |
-| ✅      | `google_api_user_tokens`         | -                                             | `\App\Entity\GoogleApiUserToken`           |
-| ✅      | `google_drive_dirs`              | -                                             | `\App\Entity\GoogleDriveDir`               |
-| ✅      | `hromadne_akce_log`              | -                                             | `\App\Entity\BulkActivityLog`              |
-| ✅      | `log_udalosti`                   | -                                             | `\App\Entity\EventLog`                     |
-| ✅      | `newsletter_prihlaseni_log`      | -                                             | `\App\Entity\NewsletterSubscriptionLog`    |
-| 🚫      | `platne_role`                    | (VIEW - based on role_seznam)                 | -                                          |
-| 🚫      | `platne_role_uzivatelu`          | (VIEW - based on uzivatele_role)              | -                                          |
-| ✅      | `prava_role`                     | -                                             | `\App\Entity\RolePermission`               |
-| ✅      | `reporty`                        | -                                             | `\App\Entity\Report`                       |
-| ✅      | `reporty_log_pouziti`            | -                                             | `\App\Entity\ReportUsageLog`               |
-| ✅      | `reporty_quick`                  | -                                             | `\App\Entity\QuickReport`                  |
-| ✅      | `role_texty_podle_uzivatele`     | -                                             | `\App\Entity\UserRoleText`                 |
-| ✅      | `shop_nakupy`                    | -                                             | `\App\Entity\ShopPurchase`                 |
-| ✅      | `shop_nakupy_zrusene`            | -                                             | `\App\Entity\ShopPurchaseCancelled`        |
-| ✅      | `slevy`                          | -                                             | `\App\Entity\Discount`                     |
-| ✅      | `systemove_nastaveni`            | -                                             | `\App\Entity\SystemSetting`                |
-| ✅      | `systemove_nastaveni_log`        | -                                             | `\App\Entity\SystemSettingLog`             |
-| ✅      | `uzivatele_role`                 | -                                             | `\App\Entity\UserRole`                     |
-| ✅      | `uzivatele_role_log`             | -                                             | `\App\Entity\UserRoleLog`                  |
-| ✅      | `uzivatele_role_podle_rocniku`   | -                                             | `\App\Entity\UserRoleByYear`               |
-| ✅      | `uzivatele_slucovani_log`        | -                                             | `\App\Entity\UserMergeLog`                 |
-| ✅      | `uzivatele_url`                  | -                                             | `\App\Entity\UserUrl`                      |
-| 🚫      | `migrations`                     | (internal - migrations tracking)              | -                                          |
-| 🚫      | `mutex`                          | (internal - locking mechanism)                | -                                          |
-| 🚫      | `_table_data_versions`           | (internal - versioning)                       | -                                          |
-| 🚫      | `_tables_used_in_view_data_versions` | (internal - versioning)                   | -                                          |
-| 🚫      | `_vars`                          | (internal - variables)                        | -                                          |
+| Status | Table Name                       | Legacy Entity (FQCN)                       | Doctrine Entity (FQCN)                     |
+|--------|----------------------------------|--------------------------------------------|--------------------------------------------|
+| ✅      | `uzivatele_hodnoty`              | `Uzivatel`                                 | `\App\Entity\User`                         |
+| ✅      | `stranky`                        | `Stranka`                                  | `\App\Entity\Page`                         |
+| ✅      | `sjednocene_tagy`                | `Tag`                                      | `\App\Entity\Tag`                          |
+| ✅      | `kategorie_sjednocenych_tagu`    | `\Gamecon\KategorieTagu`                   | `\App\Entity\CategoryTag`                  |
+| ✅      | `akce_typy`                      | `\Gamecon\Aktivita\TypAktivity`            | `\App\Entity\ActivityType`                 |
+| ✅      | `akce_stavy_log`                 | `\Gamecon\Aktivita\StavAktivity`           | `\App\Entity\ActivityState`                |
+| ✅      | `akce_prihlaseni_stavy`          | `\Gamecon\Aktivita\AkcePrihlaseniStavy`    | `\App\Entity\ActivityRegistrationState`    |
+| ✅      | `newsletter_prihlaseni`          | `\Gamecon\Newsletter\NewsletterPrihlaseni` | `\App\Entity\NewsletterSubscription`       |
+| ✅      | `role_seznam`                    | `\Gamecon\Role\Role`                       | `\App\Entity\Role`                         |
+| ✅      | `r_prava_soupis`                 | `\Gamecon\Pravo`                           | `\App\Entity\Permission`                   |
+| ✅      | `ubytovani`                      | `\Gamecon\Ubytovani\Ubytovani`             | `\App\Entity\Accommodation`                |
+| ✅      | `shop_predmety`                  | `\Gamecon\Shop\Predmet`                    | `\App\Entity\ShopItem`                     |
+| ✅      | `akce_lokace`                    | `\Gamecon\Aktivita\Lokace`                 | `\App\Entity\Location`                     |
+| ✅      | `novinky`                        | `Novinka`                                  | `\App\Entity\News`                         |
+| ✅      | `obchod_bunky`                   | `\Gamecon\Kfc\ObchodMrizkaBunka`           | `\App\Entity\ShopGridCell`                 |
+| ✅      | `obchod_mrizky`                  | `\Gamecon\Kfc\ObchodMrizka`                | `\App\Entity\ShopGrid`                     |
+| ✅      | `platby`                         | `\Gamecon\Uzivatel\Platba`                 | `\App\Entity\Payment`                      |
+| ✅      | `medailonky`                     | `\Gamecon\Uzivatel\Medailonek`             | `\App\Entity\Badge`                        |
+| ❌      | `texty`                          | -                                          | **REMOVED** (2025-11-10)                   |
+| ✅      | `akce_import`                    | -                                          | `\App\Entity\ActivityImport`               |
+| ✅      | `akce_instance`                  | -                                          | `\App\Entity\ActivityInstance`             |
+| ✅      | `akce_lokace_tmp`                | -                                          | `\App\Entity\ActivityLocationTemp`         |
+| ✅      | `akce_organizatori`              | -                                          | `\App\Entity\ActivityOrganizer`            |
+| ✅      | `akce_prihlaseni`                | -                                          | `\App\Entity\ActivityRegistration`         |
+| ✅      | `akce_prihlaseni_log`            | -                                          | `\App\Entity\ActivityRegistrationLog`      |
+| ✅      | `akce_prihlaseni_spec`           | -                                          | `\App\Entity\ActivityRegistrationSpec`     |
+| ✅      | `akce_seznam`                    | -                                          | `\App\Entity\Activity`                     |
+| ✅      | `akce_sjednocene_tagy`           | -                                          | `\App\Entity\ActivityTag`                  |
+| ✅      | `akce_stav`                      | -                                          | `\App\Entity\ActivityStatus`               |
+| ✅      | `google_api_user_tokens`         | -                                          | `\App\Entity\GoogleApiUserToken`           |
+| ✅      | `google_drive_dirs`              | -                                          | `\App\Entity\GoogleDriveDir`               |
+| ✅      | `hromadne_akce_log`              | -                                          | `\App\Entity\BulkActivityLog`              |
+| ✅      | `log_udalosti`                   | -                                          | `\App\Entity\EventLog`                     |
+| ✅      | `newsletter_prihlaseni_log`      | -                                          | `\App\Entity\NewsletterSubscriptionLog`    |
+| 🚫      | `platne_role`                    | (VIEW - based on role_seznam)              | -                                          |
+| 🚫      | `platne_role_uzivatelu`          | (VIEW - based on uzivatele_role)           | -                                          |
+| ✅      | `prava_role`                     | -                                          | `\App\Entity\RolePermission`               |
+| ✅      | `reporty`                        | -                                          | `\App\Entity\Report`                       |
+| ✅      | `reporty_log_pouziti`            | -                                          | `\App\Entity\ReportUsageLog`               |
+| ✅      | `reporty_quick`                  | -                                          | `\App\Entity\QuickReport`                  |
+| ✅      | `role_texty_podle_uzivatele`     | -                                          | `\App\Entity\UserRoleText`                 |
+| ✅      | `shop_nakupy`                    | -                                          | `\App\Entity\ShopPurchase`                 |
+| ✅      | `shop_nakupy_zrusene`            | -                                          | `\App\Entity\ShopPurchaseCancelled`        |
+| ✅      | `slevy`                          | -                                          | `\App\Entity\Discount`                     |
+| ✅      | `systemove_nastaveni`            | -                                          | `\App\Entity\SystemSetting`                |
+| ✅      | `systemove_nastaveni_log`        | -                                          | `\App\Entity\SystemSettingLog`             |
+| ✅      | `uzivatele_role`                 | -                                          | `\App\Entity\UserRole`                     |
+| ✅      | `uzivatele_role_log`             | -                                          | `\App\Entity\UserRoleLog`                  |
+| ✅      | `uzivatele_role_podle_rocniku`   | -                                          | `\App\Entity\UserRoleByYear`               |
+| ✅      | `uzivatele_slucovani_log`        | -                                          | `\App\Entity\UserMergeLog`                 |
+| ✅      | `uzivatele_url`                  | -                                          | `\App\Entity\UserUrl`                      |
+| 🚫      | `migrations`                     | (internal - migrations tracking)           | -                                          |
+| 🚫      | `mutex`                          | (internal - locking mechanism)             | -                                          |
+| 🚫      | `_table_data_versions`           | (internal - versioning)                    | -                                          |
+| 🚫      | `_tables_used_in_view_data_versions` | (internal - versioning)                    | -                                          |
+| 🚫      | `_vars`                          | (internal - variables)                     | -                                          |
 
 **Legend:**
 - ✅ = Migrated and tested

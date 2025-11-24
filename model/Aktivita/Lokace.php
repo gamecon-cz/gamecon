@@ -1,5 +1,9 @@
 <?php
 
+namespace Gamecon\Aktivita;
+
+use DbObject;
+
 /**
  * @method static Lokace|null zId($id, bool $zCache = false)
  * @method static Lokace[] zVsech(bool $zCache = false)
@@ -13,6 +17,7 @@ class Lokace extends DbObject
     public function __toString()
     {
         $casti = array_filter([$this->r['nazev'], $this->r['dvere']]);
+
         return implode(', ', $casti);
     }
 
