@@ -59,8 +59,8 @@
     </tr>
     <tr>
       <td>Jméno a příjmení</td>
-      <td><label><input type="radio" name="jmeno" value="{uaid}" checked> {ua.jmeno}</label></td>
-      <td><label><input type="radio" name="jmeno" value="{ubid}"> {ub.jmeno}</label></td>
+      <td><label><input type="radio" name="jmeno" value="{uaid}" checked> {ua.krestniJmeno}</label></td>
+      <td><label><input type="radio" name="jmeno" value="{ubid}"> {ub.krestniJmeno}</label></td>
     </tr>
     <tr>
       <td>Adresa</td>

@@ -26,7 +26,7 @@
             <h3>{uPracovni.prezdivka}</h3>
         </div>
         <div>
-            {uPracovni.jmeno}
+            {uPracovni.krestniJmeno}
         </div>
         <div>
             ID {uPracovni.id}
