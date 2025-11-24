@@ -134,16 +134,18 @@ class UpominaniDluzniku
             TypUpominky::MESIC => '+1 month',
         };
         $ocekavanyTermin = (clone $konecGc)->modify($casovyOffset);
+        $ocekavanyTerminMax = (clone $ocekavanyTermin)->modify('+23 hours');
         $ted             = $this->systemoveNastaveni->ted();
 
         // Spustit pouze pokud jsme v rozmezí (s tolerancí 23 hodin)
-        if ($ted < $ocekavanyTermin || $ted > (clone $ocekavanyTermin)->modify('+23 hours')) {
+        if ($ted < $ocekavanyTermin || $ted > $ocekavanyTerminMax) {
             $nazev = $this->dejNazevUpominky($typUpominky);
             $this->jobResultLogger->logs(
                 sprintf(
-                    'Upomínání dlužníků (%s): Není správný čas. Očekáváno: %s, ted: %s',
+                    'Upomínání dlužníků (%s): Není správný čas. Očekáváno od %s do %s, teď: %s',
                     $nazev,
                     $ocekavanyTermin->format('Y-m-d H:i:s'),
+                    $ocekavanyTerminMax->format('Y-m-d H:i:s'),
                     $ted->format('Y-m-d H:i:s'),
                 ),
             );

@@ -31,7 +31,7 @@ $output   = new JobResultLogger();
 if ($ted < $denPoGc) {
     $output->logs(
         sprintf(
-            'Automatické promlčení zůstatků: Ještě je brzy. Očekáváno: %s, ted: %s',
+            'Automatické promlčení zůstatků: Ještě je brzy. Očekáváno: %s, teď: %s',
             $denPoGc->format('Y-m-d H:i:s'),
             $ted->format('Y-m-d H:i:s'),
         ),
@@ -44,8 +44,14 @@ $rocnik            = $systemoveNastaveni->rocnik();
 $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, new JobResultLogger());
 
 // Zkontroluj, jestli už nebylo promlčení provedeno
-if ($promlceniZustatku->automatickaPromlceniProvedenaKdy($rocnik) && !$znovu) {
-    $output->logs('Automatické promlčení zůstatků: Promlčení už bylo provedeno pro rocnik ' . $rocnik);
+if (!$znovu && ($promlcenoKdy = $promlceniZustatku->automatickaPromlceniProvedenaKdy($rocnik))) {
+    $output->logs(
+        sprintf(
+            'Automatické promlčení zůstatků: Promlčení po ročníku %d už bylo provedeno v %s',
+            $rocnik,
+            $promlcenoKdy->format('Y-m-d H:i:s'),
+        ),
+    );
 
     return;
 }
