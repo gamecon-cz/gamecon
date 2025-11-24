@@ -6,6 +6,7 @@ use Gamecon\Uzivatel\PromlceniZustatku;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Report\KonfiguraceReportu;
 use Gamecon\Uzivatel\UzivatelKPromlceni;
+use Gamecon\Logger\JobResultLogger;
 
 /** @var bool $znovu */
 
@@ -22,21 +23,30 @@ global $systemoveNastaveni;
 
 // Zkontroluj, jestli je správný čas (1 den po skončení GameConu)
 $gcBeziDo = $systemoveNastaveni->gcBeziDo();
-$denPoGc = $gcBeziDo->modify('+1 day');
-$ted = $systemoveNastaveni->ted();
+$denPoGc  = $gcBeziDo->modify('+1 day');
+$ted      = $systemoveNastaveni->ted();
+$output   = new JobResultLogger();
 
 // Spustit pouze pokud jsme v rozmezí 1 den po GC (s tolerancí 23 hodin)
 if ($ted < $denPoGc) {
-    logs('Automatické promlčení zůstatků: Ještě je brzy. Očekáváno: ' . $denPoGc->format('Y-m-d H:i:s') . ', ted: ' . $ted->format('Y-m-d H:i:s'));
+    $output->logs(
+        sprintf(
+            'Automatické promlčení zůstatků: Ještě je brzy. Očekáváno: %s, ted: %s',
+            $denPoGc->format('Y-m-d H:i:s'),
+            $ted->format('Y-m-d H:i:s'),
+        ),
+    );
+
     return;
 }
 
-$rocnik = $systemoveNastaveni->rocnik();
-$promlceniZustatku = new PromlceniZustatku($systemoveNastaveni);
+$rocnik            = $systemoveNastaveni->rocnik();
+$promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, new JobResultLogger());
 
 // Zkontroluj, jestli už nebylo promlčení provedeno
 if ($promlceniZustatku->automatickaPromlceniProvedenaKdy($rocnik) && !$znovu) {
-    logs('Automatické promlčení zůstatků: Promlčení už bylo provedeno pro rocnik ' . $rocnik);
+    $output->logs('Automatické promlčení zůstatků: Promlčení už bylo provedeno pro rocnik ' . $rocnik);
+
     return;
 }
 
@@ -44,12 +54,13 @@ if ($promlceniZustatku->automatickaPromlceniProvedenaKdy($rocnik) && !$znovu) {
 $uzivateleKPromlceni = $promlceniZustatku->najdiUzivateleKPromlceni();
 
 if (count($uzivateleKPromlceni) === 0) {
-    logs('Automatické promlčení zůstatků: Žádní uživatelé k promlčení');
+    $output->logs('Automatické promlčení zůstatků: Žádní uživatelé k promlčení');
 
     // Pošli CFO informaci, že nikdo nebyl promlčen
     $cfosEmaily = Uzivatel::cfosEmaily();
     (new GcMail($systemoveNastaveni))
-        ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
+        ->adresati($cfosEmaily
+            ?: ['info@gamecon.cz'])
         ->predmet("Automatické promlčení zůstatků GC $rocnik: 0 promlčených")
         ->text(<<<TEXT
 Automatické promlčení zůstatků po skončení GameConu $rocnik bylo provedeno.
@@ -57,7 +68,7 @@ Automatické promlčení zůstatků po skončení GameConu $rocnik bylo proveden
 Výsledek: Žádní uživatelé nesplňovali kritéria pro promlčení zůstatků.
 
 GameCon skončil: {$gcBeziDo->format('d.m.Y H:i')}
-TEXT
+TEXT,
         )
         ->odeslat(GcMail::FORMAT_TEXT);
 
@@ -66,11 +77,11 @@ TEXT
 
 // 2. Pošli CFO report před promlčením
 $reportPredPromlcenim = $promlceniZustatku->vytvorCfoReport($uzivateleKPromlceni);
-$pocetUzivatelu = count($reportPredPromlcenim);
-$celkovaSuma = array_sum(array_column($reportPredPromlcenim, 'promlcena_castka'));
+$pocetUzivatelu       = count($reportPredPromlcenim);
+$celkovaSuma          = array_sum(array_column($reportPredPromlcenim, 'promlcena_castka'));
 
 // Vytvoř dočasný XLSX soubor s reportem
-$tempFile = tempnam($systemoveNastaveni->cacheDir(), 'promlceni_report_') . '.xlsx';
+$tempFile           = tempnam($systemoveNastaveni->cacheDir(), 'promlceni_report_') . '.xlsx';
 $konfiguraceReportu = (new KonfiguraceReportu())
     ->setRowToFreeze(1)
     ->setColumnsToFreezeUpTo('E')
@@ -82,7 +93,8 @@ Report::zPole($reportPredPromlcenim)->tFormat('xlsx', null, $konfiguraceReportu)
 // Pošli CFO report o uživatelích, kteří budou promlčeni
 $cfosEmaily = Uzivatel::cfosEmaily();
 (new GcMail($systemoveNastaveni))
-    ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
+    ->adresati($cfosEmaily
+        ?: ['info@gamecon.cz'])
     ->predmet("Automatické promlčení zůstatků GC $rocnik: Report před promlčením")
     ->prilohaSoubor($tempFile)
     ->prilohaNazev("promlceni-zustatku-gc-$rocnik-pred.xlsx")
@@ -96,16 +108,20 @@ Přehled před promlčením:
 V příloze najdete detailní report se všemi uživateli, jejich účastí na GC a částkami k promlčení.
 
 GameCon skončil: {$gcBeziDo->format('d.m.Y H:i')}
-TEXT
+TEXT,
     )
     ->odeslat(GcMail::FORMAT_HTML);
 
-@unlink($tempFile);
+if (isset($tempFile) && file_exists($tempFile)) {
+    @unlink($tempFile);
+}
 unset($tempFile);
 
 // 3. Promlč zůstatky
-$idsUzivatelu = array_map(fn(UzivatelKPromlceni $u) => $u->uzivatel->id(), $uzivateleKPromlceni);
-$vysledek = $promlceniZustatku->promlcZustatky($idsUzivatelu, Uzivatel::SYSTEM);
+$idsUzivatelu = array_map(fn(
+    UzivatelKPromlceni $u,
+) => $u->uzivatel->id(), $uzivateleKPromlceni);
+$vysledek     = $promlceniZustatku->promlcZustatky($idsUzivatelu, Uzivatel::SYSTEM);
 
 // 4. Zaloguj automatické promlčení do databáze
 $promlceniZustatku->zalogujAutomatickePromlceni($rocnik, $vysledek['pocet'], $vysledek['suma']);
@@ -120,11 +136,11 @@ SELECT
     uzivatele_hodnoty.email1_uzivatele AS email,
     uzivatele_hodnoty.zustatek AS aktualni_zustatek
 FROM uzivatele_hodnoty
-SQL
+SQL,
 );
 
 // Vytvoř XLSX s aktuálním stavem všech uživatelů
-$tempFileAktualni = tempnam($systemoveNastaveni->cacheDir(), 'promlceni_report_aktualni_') . '.xlsx';
+$tempFileAktualni           = tempnam($systemoveNastaveni->cacheDir(), 'promlceni_report_aktualni_') . '.xlsx';
 $konfiguraceReportuAktualni = (new KonfiguraceReportu())
     ->setRowToFreeze(1)
     ->setColumnsToFreezeUpTo('C')
@@ -135,7 +151,8 @@ Report::zPole($reportPoPromlceni)->tFormat('xlsx', null, $konfiguraceReportuAktu
 
 // 6. Pošli CFO finální report po promlčení
 (new GcMail($systemoveNastaveni))
-    ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
+    ->adresati($cfosEmaily
+        ?: ['info@gamecon.cz'])
     ->predmet("Automatické promlčení zůstatků GC $rocnik: DOKONČENO")
     ->prilohaSoubor($tempFileAktualni)
     ->prilohaNazev("zustatky-vsech-uzivatelu-po-promlceni-gc-$rocnik.xlsx")
@@ -149,12 +166,12 @@ Výsledek promlčení:
 V příloze najdete aktuální report zůstatků všech uživatelů v databázi po promlčení.
 
 GameCon skončil: {$gcBeziDo->format('d.m.Y H:i')}
-TEXT
+TEXT,
     )
     ->odeslat(GcMail::FORMAT_HTML);
 
-// Vyčisti dočasné soubory
-@unlink($tempFileAktualni);
-unset($tempFileAktualni);
+if (isset($tempFileAktualni) && file_exists($tempFileAktualni)) {
+    @unlink($tempFileAktualni);
+}
 
-logs("Automatické promlčení zůstatků: Dokončeno. Promlčeno {$vysledek['pocet']} uživatelů, celkem {$vysledek['suma']} Kč");
+$output->logs("Automatické promlčení zůstatků: Dokončeno. Promlčeno {$vysledek['pocet']} uživatelů, celkem {$vysledek['suma']} Kč");
