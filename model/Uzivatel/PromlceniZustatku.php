@@ -19,12 +19,12 @@ class PromlceniZustatku
 {
     use LogHomadnychAkciTrait;
 
-    private const ROK_NEPLATNOST = 3; // Počet let bez účasti, po kterých se zůstatek promlčí
+    private const ROK_NEPLATNOST    = 3; // Počet let bez účasti, po kterých se zůstatek promlčí
     private const SKUPINA_PROMLCENI = 'promlceni-zustatku';
 
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
-        private readonly JobResultLogger $jobResultLogger,
+        private readonly JobResultLogger    $jobResultLogger,
     ) {
     }
 
@@ -100,9 +100,15 @@ SQL,
             $uzivatele[] = new UzivatelKPromlceni(
                 uzivatel: $uzivatel,
                 prihlaseniNaRocniky: $r['prihlaseniNaRocniky'] ?? '',
-                rokPosledniPlatby: isset($r['rokPosledniPlatby']) ? (int)$r['rokPosledniPlatby'] : null,
-                mesicPosledniPlatby: isset($r['mesicPosledniPlatby']) ? (int)$r['mesicPosledniPlatby'] : null,
-                denPosledniPlatby: isset($r['denPosledniPlatby']) ? (int)$r['denPosledniPlatby'] : null,
+                rokPosledniPlatby: isset($r['rokPosledniPlatby'])
+                    ? (int)$r['rokPosledniPlatby']
+                    : null,
+                mesicPosledniPlatby: isset($r['mesicPosledniPlatby'])
+                    ? (int)$r['mesicPosledniPlatby']
+                    : null,
+                denPosledniPlatby: isset($r['denPosledniPlatby'])
+                    ? (int)$r['denPosledniPlatby']
+                    : null,
             );
         }
 
@@ -116,8 +122,10 @@ SQL,
      * @param int $idAdmina ID administrátora provádějícího promlčení (nebo Uzivatel::SYSTEM pro automatické)
      * @return array ['pocet' => int, 'suma' => float] Počet promlčených uživatelů a celková suma
      */
-    public function promlcZustatky(array $idsUzivatelu, int $idAdmina): array
-    {
+    public function promlcZustatky(
+        array $idsUzivatelu,
+        int   $idAdmina,
+    ): array {
         $pocet = 0;
         $suma  = 0;
 
@@ -173,13 +181,13 @@ SQL,
 
         $obsah = [];
         foreach ($uzivatele as $uzivatelKPromlceni) {
-            $ucastiHistorie = [];
+            $ucastiHistorie   = [];
             $idsRoliUcastnika = $uzivatelKPromlceni->prihlaseniNaRocniky
                 ? explode(';', $uzivatelKPromlceni->prihlaseniNaRocniky)
                 : [];
 
             foreach ($ucastPodleRoku as $nazevUcasti) {
-                $rocnik = (int)str_replace('účast ', '', $nazevUcasti);
+                $rocnik                       = (int)str_replace('účast ', '', $nazevUcasti);
                 $ucastiHistorie[$nazevUcasti] = in_array((string)$rocnik, $idsRoliUcastnika, true)
                     ? 'ano'
                     : 'ne';
@@ -246,8 +254,10 @@ SQL,
     /**
      * Zaloguje odeslání varovného e-mailu (1 měsíc před)
      */
-    public function zalogujVarovaniMesic(int $rocnik, int $pocetEmailu): void
-    {
+    public function zalogujVarovaniMesic(
+        int $rocnik,
+        int $pocetEmailu,
+    ): void {
         $this->zalogujHromadnouAkci(
             self::SKUPINA_PROMLCENI,
             $this->nazevAkceVarovaniMesic($rocnik),
@@ -259,8 +269,10 @@ SQL,
     /**
      * Zaloguje odeslání varovného e-mailu (1 týden před)
      */
-    public function zalogujVarovaniTyden(int $rocnik, int $pocetEmailu): void
-    {
+    public function zalogujVarovaniTyden(
+        int $rocnik,
+        int $pocetEmailu,
+    ): void {
         $this->zalogujHromadnouAkci(
             self::SKUPINA_PROMLCENI,
             $this->nazevAkceVarovaniTyden($rocnik),
@@ -272,8 +284,11 @@ SQL,
     /**
      * Zaloguje provedení automatického promlčení
      */
-    public function zalogujAutomatickePromlceni(int $rocnik, int $pocetUzivatelu, float $celkovaSuma): void
-    {
+    public function zalogujAutomatickePromlceni(
+        int   $rocnik,
+        int   $pocetUzivatelu,
+        float $celkovaSuma,
+    ): void {
         $this->zalogujHromadnouAkci(
             self::SKUPINA_PROMLCENI,
             $this->nazevAkceAutomatickePromlceni($rocnik),
@@ -304,30 +319,35 @@ SQL,
      * @param bool $znovu Zda má být varovný e-mail odeslán znovu i když už byl odeslán
      * @return int Počet odeslaných e-mailů, nebo -1 pokud se odeslání nespustilo
      */
-    public function odesliVarovneEmaily(TypVarovaniPromlceni $typVarovani, bool $znovu = false): int
-    {
-        $rocnik = $this->systemoveNastaveni->rocnik();
+    public function odesliVarovneEmaily(
+        TypVarovaniPromlceni $typVarovani,
+        bool                 $znovu = false,
+    ): int {
+        $rocnik  = $this->systemoveNastaveni->rocnik();
         $regGcOd = $this->systemoveNastaveni->prihlasovaniUcastnikuOd($rocnik);
 
         // Zkontroluj, jestli je správný čas
-        $casovyOffset = match ($typVarovani) {
+        $casovyOffset       = match ($typVarovani) {
             TypVarovaniPromlceni::MESIC => '-1 month',
             TypVarovaniPromlceni::TYDEN => '-1 week',
         };
-        $ocekavanyTermin = (clone $regGcOd)->modify($casovyOffset);
-        $ted = $this->systemoveNastaveni->ted();
+        $ocekavanyTermin    = (clone $regGcOd)->modify($casovyOffset);
+        $ocekavanyTerminMax = (clone $ocekavanyTermin)->modify('+23 hours');
+        $ted                = $this->systemoveNastaveni->ted();
 
         // Spustit pouze pokud jsme v rozmezí (s tolerancí 23 hodin)
-        $jeSpravnyCas = match ($typVarovani) {
-            // Pro měsíc: příliš brzy NEBO příliš pozdě
-            TypVarovaniPromlceni::MESIC => $ted <= (clone $ocekavanyTermin)->modify('+23 hours') && $ted >= $ocekavanyTermin,
-            // Pro týden: standardní rozmezí
-            TypVarovaniPromlceni::TYDEN => $ted >= $ocekavanyTermin && $ted <= (clone $ocekavanyTermin)->modify('+23 hours'),
-        };
-
-        if (!$jeSpravnyCas) {
+        if ($ted < $ocekavanyTermin || $ted > $ocekavanyTerminMax) {
             $nazev = $this->dejNazevVarovani($typVarovani);
-            $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): Není správný čas. Očekáváno: " . $ocekavanyTermin->format('Y-m-d H:i:s') . ', ted: ' . $ted->format('Y-m-d H:i:s'));
+            $this->jobResultLogger->logs(
+                sprintf(
+                    'Varovné e-maily o promlčení (%s): Není správný čas. Očekáváno od %s do %s, teď je %s',
+                    $nazev,
+                    $ocekavanyTermin->format('Y-m-d H:i:s'),
+                    $ocekavanyTerminMax->format('Y-m-d H:i:s'),
+                    $ted->format('Y-m-d H:i:s'),
+                ),
+            );
+
             return -1;
         }
 
@@ -340,6 +360,7 @@ SQL,
         if ($jizOdeslano && !$znovu) {
             $nazev = $this->dejNazevVarovani($typVarovani);
             $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): E-maily už byly odeslány pro rocnik $rocnik");
+
             return -1;
         }
 
@@ -348,10 +369,11 @@ SQL,
         if (count($uzivatele) === 0) {
             $nazev = $this->dejNazevVarovani($typVarovani);
             $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): Žádní uživatelé k varování");
+
             return -1;
         }
 
-        $pocetLet = self::ROK_NEPLATNOST;
+        $pocetLet              = self::ROK_NEPLATNOST;
         $pocetOdeslanychEmailu = 0;
 
         foreach ($uzivatele as $uzivatelKPromlceni) {
@@ -361,10 +383,10 @@ SQL,
             }
 
             $zustatek = (int)$uzivatel->finance()->stav();
-            $jmeno = $uzivatel->jmenoNick();
+            $jmeno    = $uzivatel->jmenoNick();
 
             $predmet = $this->dejEmailPredmet($typVarovani, $rocnik, $zustatek);
-            $zprava = $this->dejEmailZpravu($typVarovani, $rocnik, $jmeno, $zustatek, $pocetLet, $regGcOd, $uzivatel);
+            $zprava  = $this->dejEmailZpravu($typVarovani, $rocnik, $jmeno, $zustatek, $pocetLet, $regGcOd, $uzivatel);
 
             (new GcMail($this->systemoveNastaveni))
                 ->adresat($uzivatel->mail())
@@ -399,8 +421,11 @@ SQL,
         };
     }
 
-    private function dejEmailPredmet(TypVarovaniPromlceni $typVarovani, int $rocnik, int $zustatek): string
-    {
+    private function dejEmailPredmet(
+        TypVarovaniPromlceni $typVarovani,
+        int                  $rocnik,
+        int                  $zustatek,
+    ): string {
         return match ($typVarovani) {
             TypVarovaniPromlceni::MESIC => "GameCon $rocnik - Tvůj zůstatek {$zustatek} Kč bude promlčen",
             TypVarovaniPromlceni::TYDEN => "PŘIPOMÍNKA: GameCon $rocnik - Tvůj zůstatek {$zustatek} Kč bude promlčen",
@@ -409,24 +434,24 @@ SQL,
 
     private function dejEmailZpravu(
         TypVarovaniPromlceni $typVarovani,
-        int $rocnik,
-        string $jmeno,
-        int $zustatek,
-        int $pocetLet,
-        \DateTimeInterface $regGcOd,
-        \Uzivatel $uzivatel,
+        int                  $rocnik,
+        string               $jmeno,
+        int                  $zustatek,
+        int                  $pocetLet,
+        \DateTimeInterface   $regGcOd,
+        \Uzivatel            $uzivatel,
     ): string {
         // Formátování počtu let
-        $pattern = <<<ICU
+        $pattern      = <<<ICU
         {pocetLet, plural,
             one {poslední # rok}
             few {poslední # roky}
             other {posledních # let}
         }
         ICU;
-        $formatter = new \MessageFormatter('cs_CZ', $pattern);
+        $formatter    = new \MessageFormatter('cs_CZ', $pattern);
         $posledniRoky = trim($formatter->format(['pocetLet' => $pocetLet]));
-        $a = $uzivatel->koncovkaDlePohlavi();
+        $a            = $uzivatel->koncovkaDlePohlavi();
 
         return match ($typVarovani) {
             TypVarovaniPromlceni::MESIC => <<<TEXT
@@ -473,10 +498,10 @@ TEXT,
 
     private function odesliInfoCfo(
         TypVarovaniPromlceni $typVarovani,
-        int $rocnik,
-        int $pocetEmailu,
-        int $pocetLet,
-        \DateTimeInterface $regGcOd,
+        int                  $rocnik,
+        int                  $pocetEmailu,
+        int                  $pocetLet,
+        \DateTimeInterface   $regGcOd,
     ): void {
         $cfosEmaily = Uzivatel::cfosEmaily();
 
@@ -503,7 +528,8 @@ Uživatelé byli {$this->varovani($typVarovani)}, že jejich zůstatky budou pro
 TEXT;
 
         (new GcMail($this->systemoveNastaveni))
-            ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
+            ->adresati($cfosEmaily
+                ?: ['info@gamecon.cz'])
             ->predmet($predmet)
             ->text($zprava)
             ->odeslat(GcMail::FORMAT_TEXT);
