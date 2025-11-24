@@ -55,28 +55,6 @@ class UpominaniDluzniku
     }
 
     /**
-     * Zjistí, zda už bylo pro daný ročník odesláno první upomínkové upozornění (1 týden po)
-     */
-    public function upominaniTydenOdeslanoKdy(int $rocnik): ?\DateTimeInterface
-    {
-        return $this->posledniHromadnaAkceKdy(
-            self::SKUPINA_UPOMINANI,
-            $this->nazevAkceUpominaniTyden($rocnik),
-        );
-    }
-
-    /**
-     * Zjistí, zda už bylo pro daný ročník odesláno druhé upomínkové upozornění (1 měsíc po)
-     */
-    public function upominaniMesicOdeslanoKdy(int $rocnik): ?\DateTimeInterface
-    {
-        return $this->posledniHromadnaAkceKdy(
-            self::SKUPINA_UPOMINANI,
-            $this->nazevAkceUpominaniMesic($rocnik),
-        );
-    }
-
-    /**
      * Zaloguje odeslání upomínkového e-mailu (1 týden po)
      */
     public function zalogujUpominaniTyden(
@@ -128,14 +106,14 @@ class UpominaniDluzniku
         bool        $znovu = false,
     ): int {
         // Zkontroluj, jestli je správný čas
-        $konecGc         = $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
-        $casovyOffset    = match ($typUpominky) {
+        $konecGc            = $this->systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
+        $casovyOffset       = match ($typUpominky) {
             TypUpominky::TYDEN => '+1 week',
             TypUpominky::MESIC => '+1 month',
         };
-        $ocekavanyTermin = (clone $konecGc)->modify($casovyOffset);
+        $ocekavanyTermin    = (clone $konecGc)->modify($casovyOffset);
         $ocekavanyTerminMax = (clone $ocekavanyTermin)->modify('+23 hours');
-        $ted             = $this->systemoveNastaveni->ted();
+        $ted                = $this->systemoveNastaveni->ted();
 
         // Spustit pouze pokud jsme v rozmezí (s tolerancí 23 hodin)
         if ($ted < $ocekavanyTermin || $ted > $ocekavanyTerminMax) {
@@ -154,13 +132,9 @@ class UpominaniDluzniku
         }
 
         // Zkontroluj, jestli už nebyly e-maily odeslány
-        $rocnik      = $this->systemoveNastaveni->rocnik();
-        $jizOdeslano = match ($typUpominky) {
-            TypUpominky::TYDEN => $this->upominaniTydenOdeslanoKdy($rocnik),
-            TypUpominky::MESIC => $this->upominaniMesicOdeslanoKdy($rocnik),
-        };
+        $rocnik = $this->systemoveNastaveni->rocnik();
 
-        if ($jizOdeslano && !$znovu) {
+        if (!$znovu && $this->jizOdeslano($typUpominky, $rocnik)) {
             $nazev = $this->dejNazevUpominky($typUpominky);
             $this->jobResultLogger->logs(
                 sprintf(
@@ -342,5 +316,37 @@ TEXT;
             ->predmet($predmet)
             ->text($zprava)
             ->odeslat(GcMail::FORMAT_TEXT);
+    }
+
+    private function jizOdeslano(
+        TypUpominky $typUpominky,
+        int         $rocnik,
+    ): bool {
+        return match ($typUpominky) {
+                   TypUpominky::TYDEN => $this->upominaniTydenOdeslanoKdy($rocnik),
+                   TypUpominky::MESIC => $this->upominaniMesicOdeslanoKdy($rocnik),
+               } !== null;
+    }
+
+    /**
+     * Zjistí, zda už bylo pro daný ročník odesláno první upomínkové upozornění (1 týden po)
+     */
+    private function upominaniTydenOdeslanoKdy(int $rocnik): ?\DateTimeInterface
+    {
+        return $this->posledniHromadnaAkceKdy(
+            self::SKUPINA_UPOMINANI,
+            $this->nazevAkceUpominaniTyden($rocnik),
+        );
+    }
+
+    /**
+     * Zjistí, zda už bylo pro daný ročník odesláno druhé upomínkové upozornění (1 měsíc po)
+     */
+    private function upominaniMesicOdeslanoKdy(int $rocnik): ?\DateTimeInterface
+    {
+        return $this->posledniHromadnaAkceKdy(
+            self::SKUPINA_UPOMINANI,
+            $this->nazevAkceUpominaniMesic($rocnik),
+        );
     }
 }
