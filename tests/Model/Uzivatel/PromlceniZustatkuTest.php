@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Uzivatel;
 
+use Gamecon\Logger\JobResultLogger;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\PromlceniZustatku;
 use Gamecon\Uzivatel\UzivatelKPromlceni;
 use PHPUnit\Framework\TestCase;
 use Uzivatel;
+use Gamecon\Uzivatel\Finance;
 
-class PromlceniZustatukTest extends TestCase
+class PromlceniZustatkuTest extends TestCase
 {
     /**
      * @test
@@ -29,7 +31,9 @@ class PromlceniZustatukTest extends TestCase
         $systemoveNastaveni->method('rocnik')->willReturn(2025);
         $systemoveNastaveni->method('poPrihlasovaniUcastniku')->willReturn(false);
 
-        $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni);
+        $jobResultLogger = $this->createMock(JobResultLogger::class);
+
+        $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, $jobResultLogger);
         $report            = $promlceniZustatku->vytvorCfoReport([]);
 
         self::assertSame([], $report);
@@ -44,7 +48,9 @@ class PromlceniZustatukTest extends TestCase
         $systemoveNastaveni->method('rocnik')->willReturn(2025);
         $systemoveNastaveni->method('poPrihlasovaniUcastniku')->willReturn(false);
 
-        $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni);
+        $jobResultLogger = $this->createMock(JobResultLogger::class);
+
+        $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, $jobResultLogger);
 
         // Mock Uzivatel
         $uzivatel = $this->createMock(Uzivatel::class);
@@ -54,7 +60,7 @@ class PromlceniZustatukTest extends TestCase
         $uzivatel->method('login')->willReturn('jan123');
         $uzivatel->method('mail')->willReturn('jan@example.com');
 
-        $finance = $this->createMock(\Gamecon\Uzivatel\Finance::class);
+        $finance = $this->createMock(Finance::class);
         $finance->method('stav')->willReturn(500.0);
         $uzivatel->method('finance')->willReturn($finance);
 
@@ -62,7 +68,6 @@ class PromlceniZustatukTest extends TestCase
             new UzivatelKPromlceni(
                 uzivatel: $uzivatel,
                 prihlaseniNaRocniky: '2020;2021',
-                kladnyPohyb: '2021-06-15 12:00:00',
                 rokPosledniPlatby: 2021,
                 mesicPosledniPlatby: 6,
                 denPosledniPlatby: 15,
@@ -91,7 +96,9 @@ class PromlceniZustatukTest extends TestCase
         $systemoveNastaveni->method('rocnik')->willReturn(2025);
         $systemoveNastaveni->method('poPrihlasovaniUcastniku')->willReturn(false);
 
-        $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni);
+        $jobResultLogger = $this->createMock(JobResultLogger::class);
+
+        $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, $jobResultLogger);
 
         // Mock Uzivatel
         $uzivatel = $this->createMock(Uzivatel::class);
@@ -100,7 +107,7 @@ class PromlceniZustatukTest extends TestCase
         $uzivatel->method('krestniJmeno')->willReturn('Petra');
         $uzivatel->method('mail')->willReturn('petra@example.com');
 
-        $finance = $this->createMock(\Gamecon\Uzivatel\Finance::class);
+        $finance = $this->createMock(Finance::class);
         $finance->method('stav')->willReturn(1000.0);
         $uzivatel->method('finance')->willReturn($finance);
 
@@ -108,7 +115,6 @@ class PromlceniZustatukTest extends TestCase
             new UzivatelKPromlceni(
                 uzivatel: $uzivatel,
                 prihlaseniNaRocniky: '', // Žádná účast
-                kladnyPohyb: null,
                 rokPosledniPlatby: null,
                 mesicPosledniPlatby: null,
                 denPosledniPlatby: null,

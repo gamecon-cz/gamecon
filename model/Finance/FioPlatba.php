@@ -1,5 +1,7 @@
 <?php
 
+namespace Gamecon\Finance;
+
 /**
  * Platba načtená z fio api (bez DB reprezentace)
  */
@@ -50,20 +52,20 @@ class FioPlatba
     public static function zPoslednichDni(int $pocetDniZpet): array
     {
         return self::zRozmezi(
-            new DateTimeImmutable("-{$pocetDniZpet} days"),
-            new DateTimeImmutable(),
+            new \DateTimeImmutable("-{$pocetDniZpet} days"),
+            new \DateTimeImmutable(),
         );
     }
 
     /**
      * Max 90 dní zpět (protože nemáme silnou autorizaci)
-     * @param DateTimeInterface $od
-     * @param DateTimeInterface $do
+     * @param \DateTimeInterface $od
+     * @param \DateTimeInterface $do
      * @return FioPlatba[]
      */
     public static function zRozmezi(
-        DateTimeInterface $od,
-        DateTimeInterface $do,
+        \DateTimeInterface $od,
+        \DateTimeInterface $do,
     ): array {
         $odString = $od->format('Y-m-d');
         $doString = $do->format('Y-m-d');
@@ -163,7 +165,7 @@ class FioPlatba
     }
 
     /** Vrátí platbu načtenou z předaného elementu z jsonového pole ...->transaction */
-    private static function zFioZaznamu(stdClass $platba): FioPlatba
+    private static function zFioZaznamu(\stdClass $platba): FioPlatba
     {
         $pole = [];
         foreach ($platba as $sloupec) {
@@ -209,7 +211,7 @@ SQL,
     {
         // '2021-06-10+0200' for example (despite documentation where timezone format mentioned is with colon as +02:00)
         return \DateTimeImmutable::createFromFormat('Y-m-dO', $this->data[self::DATUM])
-            ->setTime(0, 0, 0);
+                                 ->setTime(0, 0, 0);
     }
 
     /** Objem platby (kladný pro příchozí, záporný pro odchozí) */
@@ -390,8 +392,8 @@ SQL,
         static $gettery = null;
         if ($gettery === null) {
             $gettery         = [];
-            $reflectionClass = new ReflectionClass($this);
-            $publicMethods   = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
+            $reflectionClass = new \ReflectionClass($this);
+            $publicMethods   = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
             $soucasnaMetoda  = explode('::', __METHOD__)[1];
             $gettery         = [];
             foreach ($publicMethods as $method) {

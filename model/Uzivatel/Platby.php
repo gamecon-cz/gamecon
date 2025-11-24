@@ -4,7 +4,7 @@ namespace Gamecon\Uzivatel;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use FioPlatba;
+use Gamecon\Finance\FioPlatba;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -26,7 +26,7 @@ class Platby
 
     /**
      * Načte a uloží nové platby z FIO, vrátí zaúčtované platby
-     * @return \FioPlatba[]
+     * @return FioPlatba[]
      */
     public function nactiZPoslednichDni(
         int  $pocetDni = null,

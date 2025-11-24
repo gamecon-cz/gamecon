@@ -34,7 +34,7 @@ use Gamecon\Uzivatel\UzivatelSlucovani;
  *
  * For Doctrine entity equivalent @see \App\Entity\User
  *
- * @method array<Uzivatel> zIds(array | string $ids, bool $zCache = false)
+ * @method static array<Uzivatel> zVsech(bool $zCache = false)
  *
  * @todo načítání separátního (nepřihlášeného uživatele) např. pro účely schi-
  *   zofrenie v adminovi (nehrozí špatný přístup při nadměrném volání např. při
@@ -365,7 +365,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         if (! $this->finance) {
             $this->finance = new Finance(
                 $this,
-                (float) $this->r['zustatek'],
+                (float) $this->r[Sql::ZUSTATEK],
                 $this->systemoveNastaveni,
             );
         }

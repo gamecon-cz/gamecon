@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Vyjimkovac\Vyjimkovac;
+use Gamecon\Logger\JobResultLogger;
 
 require_once __DIR__ . '/../../nastaveni/zavadec.php';
 
@@ -8,26 +9,38 @@ require_once __DIR__ . '/../../nastaveni/zavadec.php';
 /** @var Vyjimkovac $vyjimkovac */
 $vyjimkovac->zobrazeni(Vyjimkovac::PLAIN);
 
+$jobOutputLogger = new JobResultLogger();
+
 /**
  * Výstup do logu
  */
-function logs($s, bool $zalogovatCas = true): void
-{
-    writeMessage(($zalogovatCas ? date('Y-m-d H:i:s ') : '') . "<pre>$s</pre><br>");
+function logs(
+    $s,
+    bool $zalogovatCas = true,
+): void {
+    global $jobOutputLogger;
+
+    $jobOutputLogger->logs($s, $zalogovatCas);
 }
 
 /**
  * Výstup do logu
  */
-function logsText(string $s): void
-{
-    writeMessage("<pre>$s</pre>");
+function logsText(
+    string $s,
+): void {
+    global $jobOutputLogger;
+
+    $jobOutputLogger->writeMessage("<pre>$s</pre>");
 }
 
-function writeMessage(string $message, string $newLineAfter = "\n"): void
-{
-    echo $message . $newLineAfter;
-    flush();
+function writeMessage(
+    string $message,
+    string $newLineAfter = "\n",
+): void {
+    global $jobOutputLogger;
+
+    $jobOutputLogger->writeMessage($message . $newLineAfter);
 }
 
 if (defined('TESTING') && TESTING && !defined('MAILY_DO_SOUBORU')) {
