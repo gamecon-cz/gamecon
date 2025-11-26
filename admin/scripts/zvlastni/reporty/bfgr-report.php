@@ -26,6 +26,20 @@ if (get('ajax') === 'checkBfgrStatus') {
 
 $idUzivatele = get('id');
 
+// Příprava poznámky pro lokální prostředí (používá se ve všech HTML výstupech)
+$localEmailNote = '';
+if (defined('MAILY_DO_SOUBORU') && MAILY_DO_SOUBORU && !jsmeNaOstre()) {
+    $specDirEscaped = htmlspecialchars(
+        ltrim(str_replace(realpath(PROJECT_ROOT_DIR), '', realpath(SPEC)), '\\/',
+    ));
+    $localEmailNote = <<<HTML
+        <div class="info" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
+            <strong>ℹ️ Poznámka pro lokální prostředí:</strong><br>
+            Email nebude odeslán, ale bude uložen do souboru v adresáři <code>$specDirEscaped</code>.
+        </div>
+HTML;
+}
+
 // Pokud je požadován konkrétní uživatel, použijeme synchronní zpracování
 // Pro export všech uživatelů použijeme asynchronní zpracování s emailem
 if ($idUzivatele) {
@@ -109,6 +123,12 @@ if ($backgroundProcessService->isProcessRunning($commandName)) {
         .hidden {
             display: none;
         }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -121,6 +141,7 @@ if ($backgroundProcessService->isProcessRunning($commandName)) {
                 <strong>Běží:</strong> <span id="elapsed-time">{$elapsedFormatted}</span><br>
                 <strong>Zbývá cca:</strong> <span id="remaining-time">{$remainingFormatted}</span>
             </div>
+            {$localEmailNote}
             <p>Počkejte prosím na dokončení aktuálního procesu. O výsledku budete informováni emailem.</p>
             <p>Tuto stránku můžete bezpečně zavřít.</p>
         </div>
@@ -133,6 +154,7 @@ if ($backgroundProcessService->isProcessRunning($commandName)) {
                 <strong>Status:</strong> Dokončeno<br>
                 <strong>Report:</strong> Odeslán na váš email
             </div>
+            {$localEmailNote}
             <p>Zkontrolujte prosím svou emailovou schránku.</p>
             <p><a href="">Spustit nový BFGR report</a></p>
         </div>
@@ -278,6 +300,12 @@ echo <<<HTML
             background-color: #f9f9f9;
             border-radius: 4px;
         }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -288,6 +316,7 @@ echo <<<HTML
             <strong>Email pro odeslání:</strong> {$userEmail}<br>
             <strong>Ročník:</strong> {$systemoveNastaveni->rocnik()}
         </div>
+        {$localEmailNote}
         <p><strong>Co se bude dít dál?</strong></p>
         <ul>
             <li>Report se právě generuje na pozadí</li>
