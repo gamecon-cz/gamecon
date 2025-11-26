@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Gamecon\Shop;
 
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
+use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 
 /**
  * For Doctrine entity equivalent @see \App\Entity\ShopItem
@@ -74,16 +75,22 @@ class Predmet extends \DbObject
     /**
      * Pozor, název, ne kód předmětu
      */
-    public static function jeToModre(string $nazev): bool
+    public static function jeToModre(string|PolozkaProBfgr $nazev): bool
     {
+        if ($nazev instanceof PolozkaProBfgr) {
+            $nazev = $nazev->nazev;
+        }
         return self::jeToDleCasti($nazev, 'modr');
     }
 
     /**
      * Pozor, název, ne kód předmětu
      */
-    public static function jeToCervene(string $nazev): bool
+    public static function jeToCervene(string|PolozkaProBfgr $nazev): bool
     {
+        if ($nazev instanceof PolozkaProBfgr) {
+            $nazev = $nazev->nazev;
+        }
         return self::jeToDleCasti($nazev, 'červen');
     }
 
