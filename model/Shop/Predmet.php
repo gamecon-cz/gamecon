@@ -12,63 +12,67 @@ use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
  */
 class Predmet extends \DbObject
 {
-    protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
-    protected static $pk = Sql::ID_PREDMETU;
+    protected static $tabulka         = Sql::SHOP_PREDMETY_TABULKA;
+    protected static $pk              = Sql::ID_PREDMETU;
     protected static $letosniPredmety = [];
 
-    public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool
-    {
-        return $typPredmetu === TypPredmetu::VSTUPNE && !self::jeToDleCasti($kodPredmetu, 'pozde');
+    public static function jeToVstupneVcas(
+        int    $typPredmetu,
+        string $kodPredmetu,
+    ): bool {
+        return $typPredmetu === TypPredmetu::VSTUPNE && !self::jeToDleCastiKodu($kodPredmetu, 'pozde');
     }
 
-    public static function jeToVstupnePozde(int $typPredmetu, string $kodPredmetu): bool
-    {
-        return $typPredmetu === TypPredmetu::VSTUPNE && self::jeToDleCasti($kodPredmetu, 'pozde');
+    public static function jeToVstupnePozde(
+        int    $typPredmetu,
+        string $kodPredmetu,
+    ): bool {
+        return $typPredmetu === TypPredmetu::VSTUPNE && self::jeToDleCastiKodu($kodPredmetu, 'pozde');
     }
 
     public static function jeToKostka(string $kodPredmetu): bool
     {
-        return self::jeToDleCasti($kodPredmetu, 'kostka');
+        return self::jeToDleCastiKodu($kodPredmetu, 'kostka');
     }
 
     public static function jeToNicknack(string $kodPredmetu): bool
     {
-        return self::jeToDleCasti($kodPredmetu, 'nicknack');
+        return self::jeToDleCastiKodu($kodPredmetu, 'nicknack');
     }
 
     public static function jeToBlok(string $kodPredmetu): bool
     {
-        return self::jeToDleCasti($kodPredmetu, 'blok');
+        return self::jeToDleCastiKodu($kodPredmetu, 'blok');
     }
 
     public static function jeToPonozka(string $kodPredmetu): bool
     {
-        return self::jeToDleCasti($kodPredmetu, 'ponozk');
+        return self::jeToDleCastiKodu($kodPredmetu, 'ponozk');
     }
 
     public static function jeToPlacka(string $kodPredmetu): bool
     {
-        return self::jeToDleCasti($kodPredmetu, 'placka');
+        return self::jeToDleCastiKodu($kodPredmetu, 'placka');
     }
 
     public static function jeToTaska(string $kodPredmetu): bool
     {
-        return self::jeToDleCasti($kodPredmetu, 'taska');
+        return self::jeToDleCastiKodu($kodPredmetu, 'taska');
     }
 
     public static function jeToSnidane(string $kodPredmetu): bool
     {
-        return self::jeToDleCasti($kodPredmetu, 'snidane');
+        return self::jeToDleCastiKodu($kodPredmetu, 'snidane');
     }
 
     public static function jeToObed(string $kodPredmetu): bool
     {
-        return self::jeToDleCasti($kodPredmetu, 'obed');
+        return self::jeToDleCastiKodu($kodPredmetu, 'obed');
     }
 
     public static function jeToVecere(string $kodPredmetu): bool
     {
-        return self::jeToDleCasti($kodPredmetu, 'vecere');
+        return self::jeToDleCastiKodu($kodPredmetu, 'vecere');
     }
 
     /**
@@ -91,14 +95,14 @@ class Predmet extends \DbObject
         string $kodPredmetu,
         int    $typ,
     ): bool {
-        return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tricko');
+        return $typ === TypPredmetu::TRICKO && self::jeToDleCastiKodu($kodPredmetu, 'tricko');
     }
 
     public static function jeToTilko(
         string $kodPredmetu,
         int    $typ,
     ): bool {
-        return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tilko');
+        return $typ === TypPredmetu::TRICKO && self::jeToDleCastiKodu($kodPredmetu, 'tilko');
     }
 
     public static function letosniKostka(int $rocnik): ?static
@@ -109,6 +113,16 @@ class Predmet extends \DbObject
     public static function letosniPlacka(int $rocnik): ?static
     {
         return self::letosniPredmet('placka', $rocnik);
+    }
+
+    private static function jeToDleCastiKodu(
+        string $cele,
+        string $cast,
+    ): bool {
+        assert(preg_match('~^[a-zA-Z0-9_-]+$~', $cele), sprintf("Kód není validní: '%s'", $cele));
+        assert(preg_match('~^[a-zA-Z0-9_-]+$~', $cast), sprintf("Hledaná část není validní kód: '%s'", $cast));
+
+        return self::jeToDleCasti($cele, $cast);
     }
 
     private static function jeToDleCasti(
@@ -123,9 +137,9 @@ class Predmet extends \DbObject
         int    $rocnik,
     ): ?static {
         if (!array_key_exists($castKodu, self::$letosniPredmety)) {
-            $typPredmet = TypPredmetu::PREDMET;
-            $castKoduSql = dbQRaw($castKodu);
-            $letosniPredmetId = dbFetchSingle(<<<SQL
+            $typPredmet                       = TypPredmetu::PREDMET;
+            $castKoduSql                      = dbQRaw($castKodu);
+            $letosniPredmetId                 = dbFetchSingle(<<<SQL
 SELECT id_predmetu
 FROM shop_predmety
 WHERE
@@ -137,7 +151,7 @@ ORDER BY model_rok DESC, je_letosni_hlavni DESC, cena_aktualni DESC, id_predmetu
 LIMIT 1 -- pro jistotu
 SQL,
             );
-            $letosniPredmet = $letosniPredmetId
+            $letosniPredmet                   = $letosniPredmetId
                 ? static::zId((int)$letosniPredmetId, true)
                 : null;
             self::$letosniPredmety[$castKodu] = $letosniPredmet;
