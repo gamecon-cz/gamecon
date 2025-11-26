@@ -14,7 +14,7 @@ use Gamecon\Shop\Predmet;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
-use Gamecon\Uzivatel\Finance;
+use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 use Report;
 use Uzivatel;
 use Webmozart\Assert\Assert;
@@ -64,12 +64,16 @@ SQL,
         $zdarmaUbytovani2L           = 0;
         $zdarmaUbytovani1L           = 0;
         $zdarmaUbytovaniSpacak       = 0;
-        $trickaZdarma                = 0;
+        $trickaOrgovskaZdarma        = 0;
+        $trickaVypravecskaZdarma     = 0;
+        $trickaUcastnickaZdarma      = 0;
         $trickaSeSlevou              = 0;
         $trickaPlacena               = 0;
         $trickaVynosyCelkem          = 0.0;
         $trickaSlevyCelkem           = 0.0;
-        $tilkaZdarma                 = 0;
+        $tilkaOrgovskaZdarma         = 0;
+        $tilkaVypravecskaZdarma      = 0;
+        $tilkaUcastnickaZdarma       = 0;
         $tilkaSeSlevou               = 0;
         $tilkaPlacena                = 0;
         $tilkaVynosyCelkem           = 0.0;
@@ -122,15 +126,6 @@ SQL,
         $costOfFreeActivities        = [];
         $missedActivityFees          = [];
         $tooLateCanceledActivityFees = [];
-
-        $jeZdarma   = fn(
-            float $castka,
-            float $sleva,
-        ): bool => $castka === 0.0 && $sleva > 0.0;
-        $jeSeSlevou = fn(
-            float $castka,
-            float $sleva,
-        ): bool => $castka > 0.0 && $sleva > 0.0;
 
         // Projdeme všechny uživatele a agregujeme data
         while ($r = mysqli_fetch_assoc($result)) {
@@ -213,29 +208,44 @@ SQL,
                     $trickaVynosyCelkem += $polozka->castka;
                     $trickaSlevyCelkem  += $polozka->sleva;
 
-                    if ($jeZdarma($polozka->castka, $polozka->sleva)) {
-                        $trickaZdarma++;
-                    } elseif ($jeSeSlevou($polozka->castka, $polozka->sleva)) {
+                    if ($this->jeZdarma($polozka)) {
+                        if (Predmet::jeToCervene($polozka)) {
+                            $trickaOrgovskaZdarma++;
+                            continue;
+                        }
+                        if (Predmet::jeToModre($polozka)) {
+                            $trickaVypravecskaZdarma++;
+                            continue;
+                        }
+                        $trickaUcastnickaZdarma++;
+                    } elseif ($this->jeSeSlevou($polozka)) {
                         $trickaSeSlevou++;
-                    } else {
-                        $trickaPlacena++;
+                        continue;
                     }
                     continue;
                 }
 
-                // Tílko logika (ale ne generic "Tričko/tílko" - to počítáme jako tříčko)
-                if (Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ) && !Predmet::jeToTricko($polozka->nazev, $polozka->typ)) {
+                // Tílko logika (ale ne generic "Tričko/tílko" - to počítáme jako třičko)
+                if (Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)) {
                     // Započítání výnosů a slev z tílek
                     $tilkaVynosyCelkem += $polozka->castka;
                     $tilkaSlevyCelkem  += $polozka->sleva;
 
-                    if ($jeZdarma($polozka->castka, $polozka->sleva)) {
-                        $tilkaZdarma++;
-                    } elseif ($jeSeSlevou($polozka->castka, $polozka->sleva)) {
+                    if ($this->jeZdarma($polozka)) {
+                        if (Predmet::jeToCervene($polozka)) {
+                            $tilkaOrgovskaZdarma++;
+                            continue;
+                        }
+                        if (Predmet::jeToModre($polozka)) {
+                            $tilkaVypravecskaZdarma++;
+                            continue;
+                        }
+                        $tilkaUcastnickaZdarma++;
+                    } elseif ($this->jeSeSlevou($polozka)) {
                         $tilkaSeSlevou++;
-                    } else {
-                        $tilkaPlacena++;
+                        continue;
                     }
+                    $tilkaPlacena++;
                     continue;
                 }
 
@@ -420,6 +430,8 @@ SQL,
 
         $plackyZdarma  = $plackyLetosniZdarma + $plackyStareZdarma;
         $plackyPlacene = $plackyLetosniPlacene + $plackyStarePlacene;
+        $tilkaZdarma   = $tilkaOrgovskaZdarma + $tilkaVypravecskaZdarma + $tilkaUcastnickaZdarma;
+        $trickaZdarma  = $trickaOrgovskaZdarma + $trickaVypravecskaZdarma + $trickaUcastnickaZdarma;
 
         $data = [
             ['Ir-Timestamp', 'Timestamp reportu', $this->systemoveNastaveni->ted()->format('Y-m-d H:i:s')],
@@ -443,9 +455,15 @@ SQL,
             ['Ir-Ucast-Hermani', 'Počet letos přihlášených hermanů, kteří souběžně nejsou partneři ani vypravěči', $participantStats['Ir-Ucast-Hermani'] ?? 0],
             ['Xr-Tricka-Zaklad', 'Trička placená - kusy', $trickaPlacena],
             ['Xr-Tricka-Sleva', 'Trička se slevou - kusy', $trickaSeSlevou],
+            ['Nr-TrickaOrgovskaZdarma', 'Trička zdarma - kusy', $trickaOrgovskaZdarma],
+            ['Nr-TrickaVypravecskaZdarma', 'Trička zdarma - kusy', $trickaVypravecskaZdarma],
+            ['Nr-TrickaUcastnickaZdarma', 'Trička zdarma - kusy', $trickaUcastnickaZdarma],
             ['Nr-TrickaZdarma', 'Trička zdarma - kusy', $trickaZdarma],
             ['Xr-Tilka-Zaklad', 'Tílka placená - kusy', $tilkaPlacena],
             ['Xr-Tilka-Sleva', 'Tílka se slevou - kusy', $tilkaSeSlevou],
+            ['Nr-TilkaOrgovskaZdarma', 'Tílka zdarma - kusy', $tilkaOrgovskaZdarma],
+            ['Nr-TilkaVypravecskaZdarma', 'Tílka zdarma - kusy', $tilkaVypravecskaZdarma],
+            ['Nr-TilkaUcastnickaZdarma', 'Tílka zdarma - kusy', $tilkaUcastnickaZdarma],
             ['Nr-TilkaZdarma', 'Tílka zdarma - kusy', $tilkaZdarma],
             ['Vr-Svrsky-Celkem', 'Celkem svršků (trička + tílka) - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena + $tilkaZdarma + $tilkaSeSlevou + $tilkaPlacena],
             ['Vr-Tricka-Celkem', 'Celkem triček - kusy', $trickaZdarma + $trickaSeSlevou + $trickaPlacena],
@@ -531,10 +549,10 @@ SQL,
             $data[] = [$code, 'Příjmy z aktivit, bez storn a bez lidí co mají účast zdarma', $value];
         }
 
-        $lectureRevenue           = $this->getLectureRevenue($activities);
-        $data[]                   = ['Vr-Prednaska-Vynosy', 'Výnosy z přednášek - CZK', $lectureRevenue];
-        $paidLectureParticipants  = $this->getPaidLectureParticipantCount($activities);
-        $data[]                   = ['Ir-Prednaska-Placena-Ucast', 'Počet účastníků na placených přednáškách - kusy', $paidLectureParticipants];
+        $lectureRevenue          = $this->getLectureRevenue($activities);
+        $data[]                  = ['Vr-Prednaska-Vynosy', 'Výnosy z přednášek - CZK', $lectureRevenue];
+        $paidLectureParticipants = $this->getPaidLectureParticipantCount($activities);
+        $data[]                  = ['Ir-Prednaska-Placena-Ucast', 'Počet účastníků na placených přednáškách - kusy', $paidLectureParticipants];
 
         Assert::same(
             array_sum($kostkyCelkem), $kostkyZdarma + $kostkyPlacene,
@@ -1242,5 +1260,27 @@ SQL,
         }
 
         return $aktivita->typ()->nazev();
+    }
+
+    private function jeZdarma(
+        PolozkaProBfgr $polozka,
+    ): bool {
+        return $polozka->castka === 0.0 && $polozka->sleva > 0.0;
+    }
+
+    private function jeSeSlevou(
+        PolozkaProBfgr $polozka,
+    ): bool {
+        return $polozka->castka > 0.0
+               && (
+                   $polozka->sleva > 0.0
+                   || (
+                       (
+                           Predmet::jeToTricko($polozka->kodPredmetu, $polozka->typ)
+                           || Predmet::jeToTilko($polozka->kodPredmetu, $polozka->typ)
+                       )
+                       && (Predmet::jeToModre($polozka->nazev) || Predmet::jeToCervene($polozka->nazev))
+                   )
+               );
     }
 }
