@@ -66,7 +66,8 @@ class BackgroundProcessService
         // Vytvoř příkazovou řádku
         $cmdLine = 'php ' . escapeshellarg($scriptPath);
         foreach ($args as $key => $value) {
-            $cmdLine .= ' --' . escapeshellarg($key) . '=' . escapeshellarg($value);
+            // klíče jsou definované v kódu, hodnotu ale escapujeme
+            $cmdLine .= ' --' . $key . '=' . escapeshellarg((string)$value);
         }
         $cmdLine .= ' > /dev/null 2>&1 & echo $!';
 
