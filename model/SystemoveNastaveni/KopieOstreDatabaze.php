@@ -28,7 +28,8 @@ class KopieOstreDatabaze
 
         $zdrojovaDbName = trim($zdrojovaDbName);
         $jeTestovaciDb = defined('DB_TEST_PREFIX') && str_starts_with($zdrojovaDbName, DB_TEST_PREFIX);
-        if (!preg_match('~^gamecon(_\d{4})?$~', $zdrojovaDbName) && !$jeTestovaciDb) {
+        $jeOstraDb     = $zdrojovaDbName === $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze()['DB_NAME'];
+        if (!preg_match('~^gamecon(_\d{4})?$~', $zdrojovaDbName) && !$jeTestovaciDb && !$jeOstraDb) {
             throw new \RuntimeException("Nepovolený název databáze: {$zdrojovaDbName}");
         }
 
@@ -39,8 +40,17 @@ class KopieOstreDatabaze
         $this->vyjimkovac->zobrazeni($this->vyjimkovac::TRACY);
 
         try {
-            $nastaveniZdroj = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
+            $nastaveniZdroj           = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
             $nastaveniZdroj['DB_NAME'] = $zdrojovaDbName;
+
+            // pro speciální archivy na stejném serveru použijeme lokální DB účet
+            if ($zdrojovaDbName === 'gamecon_2024') {
+                $lokalni = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
+                $nastaveniZdroj['DBM_USER'] = $lokalni['DBM_USER'];
+                $nastaveniZdroj['DBM_PASS'] = $lokalni['DBM_PASS'];
+                $nastaveniZdroj['DB_SERV']  = $lokalni['DB_SERV'];
+                $nastaveniZdroj['DB_PORT']  = $lokalni['DB_PORT'];
+            }
 
             if ($nastaveniZdroj['DB_SERV'] === DB_SERV && $nastaveniZdroj['DB_NAME'] === DB_NAME) {
                 throw new \RuntimeException('Kopírovat sebe sama nemá smysl');
