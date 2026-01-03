@@ -8,6 +8,12 @@
     Zkopírovat databázi z ostré
   </button>
 </form>
+<form method="post" style="margin-top: 8px" onsubmit="return confirm('Opravdu přemazat současná data na betě daty z databáze gamecon_2024?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
+  <button type="submit" value="1" name="{synchronniPostKlic}[{zkopirovat2024Klic}]"
+          class="disable-and-show-loading-on-click without-safety-unlock">
+    Zkopírovat databázi 2024 (gamecon_2024)
+  </button>
+</form>
 <!-- end:formular -->
 
 <!-- begin:processBezi -->

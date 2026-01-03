@@ -16,60 +16,77 @@ class KopieOstreDatabaze
     }
 
     public function __construct(
-        private readonly NastrojeDatabaze   $nastrojeDatabaze,
+        private readonly NastrojeDatabaze $nastrojeDatabaze,
         private readonly SystemoveNastaveni $systemoveNastaveni,
-        private readonly Vyjimkovac         $vyjimkovac,
-    )
-    {
+        private readonly Vyjimkovac $vyjimkovac,
+    ) {
     }
 
-    public function zkopirujOstrouDatabazi(): void
+    public function zkopirujDatabazi(string $zdrojovaDbName, bool $migrovat = true): void
     {
         set_time_limit(120);
 
-        $puvodniPriZalogovaniOdeslatMailem = $this->vyjimkovac->priZalogovaniOdeslatMailem();
-        // protože migrace mohou padnout, zkopírovaná ostrá databáze nemusí ještě mít nové tabulky a pak odeslání taky padne
-        $this->vyjimkovac->priZalogovaniOdeslatMailem(false);
-        $puvodniZobrazeniChyb = $this->vyjimkovac->zobrazeni();
-        $this->vyjimkovac->zobrazeni($this->vyjimkovac::TRACY);
-
-        $nastaveniOstre = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
-        if ($nastaveniOstre['DB_SERV'] === DB_SERV && $nastaveniOstre['DB_NAME'] === DB_NAME) {
-            throw new \RuntimeException('Kopírovat sebe sama nemá smysl');
+        $zdrojovaDbName = trim($zdrojovaDbName);
+        $jeTestovaciDb = defined('DB_TEST_PREFIX') && str_starts_with($zdrojovaDbName, DB_TEST_PREFIX);
+        if (!preg_match('~^gamecon(_\d{4})?$~', $zdrojovaDbName) && !$jeTestovaciDb) {
+            throw new \RuntimeException("Nepovolený název databáze: {$zdrojovaDbName}");
         }
 
-        $tempFile  = tempnam(sys_get_temp_dir(), 'kopie_ostre_databaze_');
-        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpOstreDatabaze();
-        $mysqldump->start($tempFile);
-        NastrojeDatabaze::removeDefiners($tempFile);
+        $puvodniPriZalogovaniOdeslatMailem = $this->vyjimkovac->priZalogovaniOdeslatMailem();
+        $puvodniZobrazeniChyb = $this->vyjimkovac->zobrazeni();
 
-        [
-            'DB_SERV'  => $dbServ,
-            'DBM_USER' => $dbmUser,
-            'DBM_PASS' => $dbmPass,
-            'DB_NAME'  => $dbName,
-            'DB_PORT'  => $dbPort,
-        ] = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
+        $this->vyjimkovac->priZalogovaniOdeslatMailem(false);
+        $this->vyjimkovac->zobrazeni($this->vyjimkovac::TRACY);
 
-        $localConnection = _dbConnect(
-            dbServer: $dbServ,
-            dbUser: $dbmUser,
-            dbPass: $dbmPass,
-            dbPort: $dbPort,
-            dbName: $dbName,
-            persistent: false,
-        );
+        try {
+            $nastaveniZdroj = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
+            $nastaveniZdroj['DB_NAME'] = $zdrojovaDbName;
 
-        // aby nám nezůstaly viset tabulky, views a functions z novějších SQL migrací, než má zdroj
-        $this->nastrojeDatabaze->vymazVseZHlavniDatabaze($localConnection);
+            if ($nastaveniZdroj['DB_SERV'] === DB_SERV && $nastaveniZdroj['DB_NAME'] === DB_NAME) {
+                throw new \RuntimeException('Kopírovat sebe sama nemá smysl');
+            }
 
-        (new \MySQLImport($localConnection))->load($tempFile);
+            $tempFile = tempnam(sys_get_temp_dir(), 'kopie_databaze_');
+            if ($tempFile === false) {
+                throw new \RuntimeException('Nepodařilo se vytvořit dočasný soubor');
+            }
 
-        unlink($tempFile);
+            [
+                'DB_SERV' => $dbServ,
+                'DBM_USER' => $dbmUser,
+                'DBM_PASS' => $dbmPass,
+                'DB_NAME' => $dbName,
+                'DB_PORT' => $dbPort,
+            ] = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
 
-        (new SqlMigrace($this->systemoveNastaveni))->migruj();
+            $localConnection = _dbConnect(
+                dbServer: $dbServ,
+                dbUser: $dbmUser,
+                dbPass: $dbmPass,
+                dbPort: $dbPort,
+                dbName: $dbName,
+                persistent: false,
+            );
 
-        $this->vyjimkovac->priZalogovaniOdeslatMailem($puvodniPriZalogovaniOdeslatMailem);
-        $this->vyjimkovac->zobrazeni($puvodniZobrazeniChyb);
+            try {
+                $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpDatabaze($nastaveniZdroj);
+                $mysqldump->start($tempFile);
+                NastrojeDatabaze::removeDefiners($tempFile);
+
+                $this->nastrojeDatabaze->vymazVseZHlavniDatabaze($localConnection);
+                (new \MySQLImport($localConnection))->load($tempFile);
+
+                if ($migrovat) {
+                    (new SqlMigrace($this->systemoveNastaveni))->migruj();
+                }
+            } finally {
+                if (is_file($tempFile)) {
+                    @unlink($tempFile);
+                }
+            }
+        } finally {
+            $this->vyjimkovac->priZalogovaniOdeslatMailem($puvodniPriZalogovaniOdeslatMailem);
+            $this->vyjimkovac->zobrazeni($puvodniZobrazeniChyb);
+        }
     }
 }

@@ -146,7 +146,8 @@ class KopieOstreDatabazeTest extends TestCase
 
         $nastrojeDatabaze   = new NastrojeDatabaze($systemoveNastaveni);
         $kopieOstreDatabaze = new KopieOstreDatabaze($nastrojeDatabaze, $systemoveNastaveni, Vyjimkovac::vytvorZGlobals());
-        $kopieOstreDatabaze->zkopirujOstrouDatabazi();
+        $nastaveniOstre = $systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
+        $kopieOstreDatabaze->zkopirujDatabazi($nastaveniOstre['DB_NAME']);
 
         $tablesAfter = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetch_all();
         self::assertGreaterThan(count($tablesBefore), $tablesAfter, 'Nějaké tabulky měly přibýt migracemi');
