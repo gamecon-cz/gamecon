@@ -10,10 +10,22 @@ declare(strict_types=1);
  *   php _database-copy-worker.php
  */
 
+$options = getopt('', ['sourceDb::']);
+$zdrojovaDb = $options['sourceDb'] ?? null;
+
+// Před načtením konfigurace můžeme vynutit ročník podle zdrojové DB
+if (!defined('ROCNIK')) {
+    $vynucenyRocnik = $zdrojovaDb === 'gamecon_2024'
+        ? 2024
+        : 2025;
+    define('ROCNIK', $vynucenyRocnik);
+}
+
 require_once __DIR__ . '/../../../../../nastaveni/zavadec.php';
 
 use Gamecon\BackgroundProcess\BackgroundProcessService;
 use Gamecon\SystemoveNastaveni\KopieOstreDatabaze;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 // Nastavení pro dlouhotrvající proces
 ini_set('memory_limit', '512M');
@@ -41,7 +53,9 @@ try {
     logMessage("Začátek kopírování databáze z ostré");
 
     $kopieOstreDatabaze = KopieOstreDatabaze::createFromGlobals();
-    $kopieOstreDatabaze->zkopirujOstrouDatabazi();
+    $nastaveniOstre = SystemoveNastaveni::zGlobals()->prihlasovaciUdajeOstreDatabaze();
+    $kopirovanaDb = $zdrojovaDb ?? $nastaveniOstre['DB_NAME'];
+    $kopieOstreDatabaze->zkopirujDatabazi($kopirovanaDb);
 
     $endTime = microtime(true);
     $duration = round($endTime - $startTime, 2);

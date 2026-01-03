@@ -13,6 +13,7 @@ class SystemoveNastaveniHtml
 {
     public const SYNCHRONNI_POST_KLIC           = 'nastaveni';
     public const ZKOPIROVAT_OSTROU_KLIC         = 'zkopirovat_ostrou';
+    public const ZKOPIROVAT_2024_KLIC           = 'zkopirovat_2024';
     public const EXPORTOVAT_ANONYMIZOVANOU_KLIC = 'exportovat_anonymizovanou';
     public const ZVYRAZNI                       = 'zvyrazni';
     public const AJAX_STAV_KOPIE_KLIC           = 'stavKopieDatabazeZOstre';
@@ -53,6 +54,7 @@ class SystemoveNastaveniHtml
             $templateZkopirovaniOstre = new XTemplate(__DIR__ . '/templates/zkopirovat-databazi-z-ostre.xtpl');
             $templateZkopirovaniOstre->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
             $templateZkopirovaniOstre->assign('zkopirovatOstrouKlic', self::ZKOPIROVAT_OSTROU_KLIC);
+            $templateZkopirovaniOstre->assign('zkopirovat2024Klic', self::ZKOPIROVAT_2024_KLIC);
             $templateZkopirovaniOstre->assign('ajaxStavKopieKlic', self::AJAX_STAV_KOPIE_KLIC);
 
             // Zkontroluj, jestli proces běží
@@ -244,8 +246,18 @@ class SystemoveNastaveniHtml
         }
         if (!empty($pozadavky[self::ZKOPIROVAT_OSTROU_KLIC])) {
             try {
-                $this->zkopirujOstrouDatabazi($uzivatel);
+                $this->zkopirujDatabazi($uzivatel);
                 oznameni('Kopírování databáze bylo spuštěno na pozadí. Proces může trvat několik minut. Sledujte jeho průběh níže.');
+            } catch (\RuntimeException $e) {
+                chyba($e->getMessage());
+            }
+
+            return true;
+        }
+        if (!empty($pozadavky[self::ZKOPIROVAT_2024_KLIC])) {
+            try {
+                $this->zkopirujDatabazi($uzivatel, 'gamecon_2024');
+                oznameni('Kopírování databáze 2024 bylo spuštěno na pozadí. Proces může trvat několik minut. Sledujte jeho průběh níže.');
             } catch (\RuntimeException $e) {
                 chyba($e->getMessage());
             }
@@ -260,7 +272,7 @@ class SystemoveNastaveniHtml
         return false;
     }
 
-    private function zkopirujOstrouDatabazi(?\Uzivatel $requestedBy)
+    private function zkopirujDatabazi(?\Uzivatel $requestedBy, ?string $zdrojovaDbName = null)
     {
         $backgroundProcessService = BackgroundProcessService::vytvorZGlobals();
         $commandName = BackgroundProcessService::COMMAND_DB_COPY;
@@ -276,7 +288,7 @@ class SystemoveNastaveniHtml
         $backgroundProcessService->startBackgroundProcess(
             $commandName,
             $workerScript,
-            [],
+            $zdrojovaDbName ? ['sourceDb' => $zdrojovaDbName] : [],
             ['started_by' => $requestedBy->id()],
         );
     }

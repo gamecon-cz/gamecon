@@ -13,6 +13,11 @@ define('REACT_V_PROHLIZECI', true);
 define('AUTOMATICKE_SESTAVENI', true);
 define('BABEL_BINARKA', null);
 
+/** aktuální ročník -- při změně roku viz Překlápění ročníku @link PREKLOPENI_ROCNIKU_NAVOD.md */
+if (!defined('ROCNIK')) {
+    define('ROCNIK', 2025);
+}
+
 /**
  * Pozor! Při vypnutí na betě to ovlivní i posílání mailů z CRONu, pokud není výslovně nastavená konstanta MAILY_DO_SOUBORU
  * @see admin/cron.php

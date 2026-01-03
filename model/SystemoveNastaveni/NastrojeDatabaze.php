@@ -36,6 +36,24 @@ class NastrojeDatabaze
         );
     }
 
+    /**
+     * Obecný mysqldump pro libovolnou databázi dle předaných přihlašovacích údajů.
+     * Očekává klíče: DB_SERV, DBM_USER, DBM_PASS, DB_NAME
+     */
+    public function vytvorMysqldumpDatabaze(
+        array $nastaveniDb,
+        array $mysqldumpSettings = ['skip-definer' => true],
+    ): Mysqldump
+    {
+        return $this->vytvorMysqldump(
+            $nastaveniDb['DB_SERV'],
+            $nastaveniDb['DBM_USER'], // dbm účet kvůli SHOW VIEW
+            $nastaveniDb['DBM_PASS'],
+            $nastaveniDb['DB_NAME'],
+            $mysqldumpSettings,
+        );
+    }
+
     public function vytvorMysqldumpHlavniDatabaze(array $mysqldumpSettings = ['skip-definer' => true]): Mysqldump
     {
         return $this->vytvorMysqldump(
