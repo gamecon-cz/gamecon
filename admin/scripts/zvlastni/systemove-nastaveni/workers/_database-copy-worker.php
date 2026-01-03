@@ -10,8 +10,17 @@ declare(strict_types=1);
  *   php _database-copy-worker.php
  */
 
+// Zkusíme načíst zdrojovou DB z CLI argumentů, nejdřív standardním getopt, pak fallbackem na $argv
 $options = getopt('', ['sourceDb::']);
 $zdrojovaDb = $options['sourceDb'] ?? null;
+if (!$zdrojovaDb && isset($argv)) {
+    foreach ($argv as $arg) {
+        if (str_starts_with($arg, '--sourceDb=')) {
+            $zdrojovaDb = substr($arg, strlen('--sourceDb='));
+            break;
+        }
+    }
+}
 
 // Před načtením konfigurace můžeme vynutit ročník podle zdrojové DB
 if (!defined('ROCNIK')) {
@@ -55,6 +64,7 @@ try {
     $kopieOstreDatabaze = KopieOstreDatabaze::createFromGlobals();
     $nastaveniOstre = SystemoveNastaveni::zGlobals()->prihlasovaciUdajeOstreDatabaze();
     $kopirovanaDb = $zdrojovaDb ?? $nastaveniOstre['DB_NAME'];
+    logMessage("Kopíruji databázi '{$kopirovanaDb}' (ROCNIK=" . ROCNIK . ")");
     $kopieOstreDatabaze->zkopirujDatabazi($kopirovanaDb);
 
     $endTime = microtime(true);
