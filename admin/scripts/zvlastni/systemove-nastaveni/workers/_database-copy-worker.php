@@ -29,6 +29,7 @@ if (!defined('ROCNIK')) {
         : 2025;
     define('ROCNIK', $vynucenyRocnik);
 }
+$rocnikOverrideFile = __DIR__ . '/../../../../../cache/private/rocnik_override';
 
 require_once __DIR__ . '/../../../../../nastaveni/zavadec.php';
 
@@ -60,6 +61,12 @@ function logMessage(string $message): void
 
 try {
     logMessage("Začátek kopírování databáze z ostré");
+
+    // uložit ročník pro další requesty na betě
+    if (isset($vynucenyRocnik)) {
+        @mkdir(dirname($rocnikOverrideFile), 0775, true);
+        file_put_contents($rocnikOverrideFile, (string)$vynucenyRocnik);
+    }
 
     $kopieOstreDatabaze = KopieOstreDatabaze::createFromGlobals();
     $nastaveniOstre = SystemoveNastaveni::zGlobals()->prihlasovaciUdajeOstreDatabaze();
