@@ -48,8 +48,8 @@ if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
     $t->parse('titulka.odpocetPrihlasit');
 }
 
-$zacatekGameconu = DateTimeGamecon::zacatekGameconu();
-$konecGameconu   = DateTimeGamecon::konecGameconu();
+$zacatekGameconu = DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2026-07-23 07:00:00'); // napevno pro titulku 2026
+$konecGameconu   = DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2026-07-26 21:00:00');
 
 if (date('Y-m-d') === '2025-04-01' && !isset($_SESSION['april2025Modal'])) {
     $t->parse(block: 'titulka.april2025');
