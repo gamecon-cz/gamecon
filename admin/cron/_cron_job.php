@@ -43,14 +43,29 @@ if (in_array($job, ['mail_cfo_nesparovane_platby', 'aktivity_hromadne'])) {
     }
 }
 
-if (in_array($job, ['materializace_roli_podle_rocniku'])) {
+if ($job === 'materializace_roli_podle_rocniku') {
     require __DIR__ . '/jobs/materializace_roli_podle_rocniku.php';
 
     return;
 }
 
-if (in_array($job, ['synchronizace_historickych_plateb'])) {
+if ($job === 'synchronizace_historickych_plateb') {
     require __DIR__ . '/jobs/synchronizace_historickych_plateb.php';
+
+    return;
+}
+
+if ($job === 'dluznici') {
+    require __DIR__ . '/jobs/mail_dluzniku_mesic.php';
+    require __DIR__ . '/jobs/mail_dluzniku_tyden.php';
+
+    return;
+}
+
+if ($job === 'promlceni') {
+    require __DIR__ . '/jobs/mail_promlceni_varovani_mesic.php';
+    require __DIR__ . '/jobs/mail_promlceni_varovani_tyden.php';
+    require __DIR__ . '/jobs/promlceni_automaticke.php';
 
     return;
 }

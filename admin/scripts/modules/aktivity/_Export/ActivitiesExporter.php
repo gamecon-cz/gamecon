@@ -323,7 +323,7 @@ class ActivitiesExporter
     }
 
     private function getUserForDir(): string {
-        $userName = $this->uzivatel->nick() ?: $this->uzivatel->jmeno();
+        $userName = $this->uzivatel->nick() ?: $this->uzivatel->celeJmeno();
         return preg_replace('~[^a-zA-Z]+~', '_', odstranDiakritiku($userName));
     }
 }

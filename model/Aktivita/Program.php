@@ -306,7 +306,7 @@ class Program
             $this->grpf    = self::SKUPINY_PODLE_LOKACE_ID;
 
             $this->skupiny['0'] = 'Ostatní';
-            $seskupeneLokace    = serazenePodle(\Lokace::zVsech(), 'poradi');
+            $seskupeneLokace    = serazenePodle(Lokace::zVsech(), 'poradi');
             foreach ($seskupeneLokace as $lokace) {
                 $this->skupiny[$lokace->id()] = ucfirst($lokace->nazev());
             }

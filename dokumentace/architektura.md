@@ -26,7 +26,7 @@ Model je postaven nad relační databází a částečně využívá vzoru __Act
 $u = Uzivatel::zEmailu('shako@gamecon.cz');
 $a = Aktivita::zId(123);
 $a->prihlas($u);
-echo 'Uživatel '.$u->jmeno().' se přihlásil na aktivitu '.$a->nazev();
+echo 'Uživatel '.$u->celeJmeno().' se přihlásil na aktivitu '.$a->nazev();
 ```
 
 ### Načtení objektu (zNěčeho)
@@ -46,8 +46,8 @@ Konstruktor u těchto tříd je běžně chráněný (protected) a objekty se z 
 ### Get/set metody
 
 ```php
-echo $u->jmeno(); // vypíše 'Jan Novák'
-$u->jmeno('Karel Nejedlík'); // změní jméno uživatele a zapíše do databáze
+echo $u->celeJmeno(); // vypíše 'Jan Novák'
+$u->celeJmeno('Karel Nejedlík'); // změní jméno uživatele a zapíše do databáze
 ```
 
 Pro přístup k atributu (sloupci) se používá jedna metoda pro čtení i zápis. Bez parametru vrátí hodnotu atributu, s zadaným parametrem hodnotu nastaví (podobně jako například v [jQuery](https://jquery.com)). Obvykle má třída jeden vnitřní atribut `$r` obsahující celý databázový řádek a v metodě pro čtení stačí vrátit hodnotu z něj, např. `$this->r['jmeno']`. Většina metod záměrně podporuje jen čtení, a ty které podporují zápis ihned zapisují do databáze (tzn. příkaz `$u->mail('shako@senam.cz')` ihned vyvolá update příkaz jedné hodnoty do databáze). Okamžitý zápis ostatně platí pro všechny metody, které nějak mění stav databáze (tj. i metoda `prihlas()` z prvního příkladu).
@@ -179,7 +179,7 @@ Pokud například chceme vytisknout tabulku s jmény a příjmeními, nastavíme
 
 ```php
 $t = new XTemplate('vypis-uzivatelu.xtpl'); // načteme šablonu
-foreach($uzivatele as $u) {
+foreach($uzivateleKPromlceni as $u) {
     $t->assign(['jmeno' => $u->jmeno(), 'prijmeni' => $u->prijmeni()]); // nastavíme proměnné
     $t->parse('tabulka.radek'); // vyparsujeme řádek tabulky
 }
@@ -194,7 +194,7 @@ $t->out('tabulka'); // pošleme blok na výstup
 
 Abychom nastavování proměnných a načítání šablon nemuseli psát pořád dokola, máme k dispozici ještě pár zjednodušení:
 
-- Místo nastavování jedné proměnné po druhé můžeme do proměnné nastavit objekt `$t->assgin(['u' => $uzivatel])` a v šabloně pak použít tečku k zavolání metody bez parametrů, tj. `{u.jmeno}` které odpovídá `$u->jmeno()`.
+- Místo nastavování jedné proměnné po druhé můžeme do proměnné nastavit objekt `$t->assgin(['u' => $uzivatel])` a v šabloně pak použít tečku k zavolání metody bez parametrů, tj. `{u.krestniJmeno}` které odpovídá `$u->krestniJmeno()`.
 - Pokud v složce `web/sablony` máme šablonu se stejným názvem jako controller, potom ji dostaneme automaticky načtenou v proměnné `$t`. Kořenový blok šablony se pak musí taky jmenovat stejně jako controller a na konci se vyrenderuje automaticky, stačí tedy zavolat `parse()` na vnořené bloky a `out()` nemusíme volat vůbec.
 
 > Jak je z příkladu vidět, k zpracování šablony je potřeba i nějaký php kód, který v tomto případě je v controlleru – dá se tedy říct, že část logiky view přechází do controlleru. Původní motivací takového návrhu bylo odstínit html kodéry od všech speciálních jazykových konstrukcí, kterými se to v běžných šablonovacích jazycích jen hemží. Ačkoli funkční, v dnešní době už je to přecejen poněkud fousatý přístup.

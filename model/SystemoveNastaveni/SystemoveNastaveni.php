@@ -892,29 +892,29 @@ SQL;
         return mezi($this->gcBeziOd(), $this->gcBeziDo());
     }
 
-    public function prihlasovaniUcastnikuOd(): DateTimeGamecon
+    public function prihlasovaniUcastnikuOd(int $rocnik = null): DateTimeGamecon
     {
-        return DateTimeGamecon::prihlasovaniUcastnikuOd($this->rocnik());
+        return DateTimeGamecon::prihlasovaniUcastnikuOd($rocnik ?? $this->rocnik());
     }
 
-    public function prihlasovaniUcastnikuDo(): DateTimeGamecon
+    public function prihlasovaniUcastnikuDo(int $rocnik = null): DateTimeGamecon
     {
-        return DateTimeGamecon::prihlasovaniUcastnikuDo($this->rocnik());
+        return DateTimeGamecon::prihlasovaniUcastnikuDo($rocnik ?? $this->rocnik());
     }
 
-    public function prihlasovaniUcastnikuSpusteno(): bool
+    public function prihlasovaniUcastnikuSpusteno(int $rocnik = null): bool
     {
-        return mezi($this->prihlasovaniUcastnikuOd(), $this->prihlasovaniUcastnikuDo());
+        return mezi($this->prihlasovaniUcastnikuOd($rocnik), $this->prihlasovaniUcastnikuDo($rocnik));
     }
 
-    public function predPrihlasovanimUcastniku(): bool
+    public function predPrihlasovanimUcastniku(int $rocnik = null): bool
     {
-        return pred($this->prihlasovaniUcastnikuOd());
+        return pred($this->prihlasovaniUcastnikuOd($rocnik));
     }
 
-    public function poPrihlasovaniUcastniku(): bool
+    public function poPrihlasovaniUcastniku(int $rocnik = null): bool
     {
-        return po($this->prihlasovaniUcastnikuDo());
+        return po($this->prihlasovaniUcastnikuDo($rocnik));
     }
 
     public function slevaOrguNaJidloCastka(): float

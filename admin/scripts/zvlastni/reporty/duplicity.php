@@ -17,8 +17,8 @@ foreach ($data as $a => $b) {
     $u1 = Uzivatel::zId($a, true);
     $u2 = Uzivatel::zId($b, true);
     $completeData[] = [
-        $u1->id(), $u1->login(), $u1->jmeno(), $u1->mail(), $u1->telefon(), $u1->cisloOp(), $u1->datumNarozeni()->formatDatumStandard(), $u1->uliceACp(),
-        $u2->id(), $u2->login(), $u2->jmeno(), $u2->mail(), $u2->telefon(), $u2->cisloOp(), $u2->datumNarozeni()->formatDatumStandard(), $u2->uliceACp(),
+        $u1->id(), $u1->login(), $u1->celeJmeno(), $u1->mail(), $u1->telefon(), $u1->cisloOp(), $u1->datumNarozeni()->formatDatumStandard(), $u1->uliceACp(),
+        $u2->id(), $u2->login(), $u2->celeJmeno(), $u2->mail(), $u2->telefon(), $u2->cisloOp(), $u2->datumNarozeni()->formatDatumStandard(), $u2->uliceACp(),
         ];
 }
 $r = Report::zPoli(['id', 'login', 'jméno', 'mail', 'telefon', 'op', 'narození', 'ulice', 'id', 'login', 'jméno', 'mail', 'telefon', 'op', 'narození', 'ulice',], $completeData);

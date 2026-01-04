@@ -548,7 +548,7 @@ SQL;
             $testovaciUzivatelPoOdhlaseni = \Uzivatel::zIdUrcite($idUzivatele);
             self::assertTrue(
                 $testovaciUzivatelPoOdhlaseni->gcPrihlasen(),
-                "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl být přihlášen",
+                "Uživatel '{$testovaciUzivatelPoOdhlaseni->celeJmeno()}' by měl být přihlášen",
             );
         }
         $velkyDluhDamMaloOdhlasteUbytovani = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI);
@@ -556,7 +556,7 @@ SQL;
         self::assertCount(
             2,
             $strukturovanyPrehled,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->jmeno()}' by měl mít dvě objednávky",
+            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->celeJmeno()}' by měl mít dvě objednávky",
         );
 
         $velkyDluhDamMaloOdhlasteAktivity = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
@@ -564,13 +564,13 @@ SQL;
         self::assertCount(
             1,
             $strukturovanyPrehled,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít před odhlášením objednaný jeden předmět",
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->celeJmeno()}' by měl mít před odhlášením objednaný jeden předmět",
         );
         $idPrihlasenychAktivit = $this->idckaPrihlasenychAktivit($velkyDluhDamMaloOdhlasteAktivity);
         self::assertSame(
             [self::ID_LARP_AKTIVITY, self::ID_RPG_AKTIVITY, self::ID_JINE_AKTIVITY],
             $idPrihlasenychAktivit,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít před odhlášením přihlášené jiné aktivity",
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->celeJmeno()}' by měl mít před odhlášením přihlášené jiné aktivity",
         );
 
         $zdrojOdhlaseniZaklad = basename(__CLASS__, '.php');
@@ -608,7 +608,7 @@ SQL;
         self::assertCount(
             1,
             $strukturovanyPrehled,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->jmeno()}' by měl mít po odhlášení jednu objednávku",
+            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->celeJmeno()}' by měl mít po odhlášení jednu objednávku",
         );
 
         $velkyDluhDamMaloOdhlasteAktivity = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
@@ -616,13 +616,13 @@ SQL;
         self::assertCount(
             1,
             $strukturovanyPrehled,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít po odhlášení jiný počet objednaných předmětů",
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->celeJmeno()}' by měl mít po odhlášení jiný počet objednaných předmětů",
         );
         $idPrihlasenychAktivit = $this->idckaPrihlasenychAktivit($velkyDluhDamMaloOdhlasteAktivity);
         self::assertSame(
             [self::ID_JINE_AKTIVITY],
             $idPrihlasenychAktivit,
-            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít po odhlášení přihlášené jiné aktivity",
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->celeJmeno()}' by měl mít po odhlášení přihlášené jiné aktivity",
         );
 
         foreach (self::LETOS_PRIHLASENI_UZIVATELE as $idUzivatele) {
@@ -630,12 +630,12 @@ SQL;
             if (in_array($idUzivatele, [self::VELKY_DLUH_NIC_NEDAM, self::VELKY_DLUH_DAM_MALO], true)) {
                 self::assertFalse(
                     $testovaciUzivatelPoOdhlaseni->gcPrihlasen(),
-                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl být odhlášen",
+                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->celeJmeno()}' by měl být odhlášen",
                 );
             } else {
                 self::assertTrue(
                     $testovaciUzivatelPoOdhlaseni->gcPrihlasen(),
-                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl zůstat přihlášen",
+                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->celeJmeno()}' by měl zůstat přihlášen",
                 );
             }
         }
@@ -656,7 +656,7 @@ SQL;
         assertCount(
             2,
             $zruseneAktivityUzivatele,
-            "Po odhlášení Uživatele '{$testovaciUzivatelPoOdhlaseni->jmeno()}' čekáme jiný počet odhlášených aktivit",
+            "Po odhlášení Uživatele '{$testovaciUzivatelPoOdhlaseni->celeJmeno()}' čekáme jiný počet odhlášených aktivit",
         );
         $idckaZrusenychAktivitUzivatele = array_map(
             static fn(Aktivita $aktivita) => $aktivita->id(),
@@ -669,7 +669,7 @@ SQL;
                 self::ID_RPG_AKTIVITY,
             ],
             $idckaZrusenychAktivitUzivatele,
-            "Očeáváme jiné odhlášené aktivity u uživatele '{$testovaciUzivatelPoOdhlaseni->jmeno()}'",
+            "Očeáváme jiné odhlášené aktivity u uživatele '{$testovaciUzivatelPoOdhlaseni->celeJmeno()}'",
         );
     }
 

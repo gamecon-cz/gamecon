@@ -41,6 +41,7 @@ use App\Structure\Entity\TagEntityStructure;
 use App\Structure\Entity\UserBadgeEntityStructure;
 use App\Structure\Entity\UserEntityStructure;
 use Gamecon\Aktivita\AkcePrihlaseniStavy;
+use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
@@ -72,10 +73,6 @@ use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Ubytovani\Ubytovani;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Platba;
-use Lokace;
-use Novinka;
-use Stranka;
-use Uzivatel;
 use Zenstruck\Foundry\Test\Factories;
 
 class EntityLegacyComparisonTest extends AbstractTestDb
@@ -134,7 +131,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
         // The legacy jmeno() method returns "jmeno prijmeni", while Symfony has separate getters
         $expectedFullName = $symfonyUser->getJmeno() . ' ' . $symfonyUser->getPrijmeni();
-        $this->assertEquals($expectedFullName, $legacyUser->jmeno());
+        $this->assertEquals($expectedFullName, $legacyUser->celeJmeno());
 
         // Test individual properties accessible through database record
         $legacyData = $legacyUser->raw();
@@ -641,7 +638,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertNotNull($symfonyLocationId);
 
         // Fetch the same entity using legacy Lokace
-        $legacyLokace = \Lokace::zId($symfonyLocationId);
+        $legacyLokace = Lokace::zId($symfonyLocationId);
         $this->assertNotNull($legacyLokace, 'Legacy location (lokace) should be found');
 
         // Compare values using getters and raw data

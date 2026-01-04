@@ -895,7 +895,7 @@ function omnibox(
                     $data['jmenoNick'] = $uzivatel->jmenoNick();
                     break;
                 case 'jmeno' :
-                    $data['jmeno'] = $uzivatel->jmeno();
+                    $data['jmeno'] = $uzivatel->celeJmeno();
                     break;
                 case 'mail' :
                     $data['mail'] = $uzivatel->mail();
@@ -1025,6 +1025,14 @@ function encodeToUtf8(
 )
 {
     return '=?UTF-8?B?' . base64_encode($text) . '?=';
+}
+
+function requireIsolated(
+    string $path,
+)
+{
+    // aby proměnné ze skriptu nepřepsaly jiné, něco jako local scope
+    require $path;
 }
 
 function requireOnceIsolated(

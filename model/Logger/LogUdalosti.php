@@ -4,7 +4,7 @@ namespace Gamecon\Logger;
 
 class LogUdalosti
 {
-    public function zalogovatUdalost(\Uzivatel $logujici, string $zprava, array $metadata, int $rok = ROCNIK)
+    public function zalogovatUdalost(\Uzivatel $logujici, string $zprava, array $metadata, int $rok = ROCNIK): void
     {
         dbQuery(<<<SQL
 INSERT INTO log_udalosti
