@@ -7,6 +7,7 @@
  * pravo: 101
  */
 
+use Gamecon\Accounting;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 
@@ -107,7 +108,7 @@ if ($uPracovni) {
         ? $pokoj->ubytovani()
         : [];
     $x->assign([
-        'prehled'       => $up->finance()->prehledHtml(),
+        'prehled'       => Accounting::getPersonalFinance($up)->formatForHtml(),
         'slevyAktivity' => ($akt = $up->finance()->slevyNaAktivity())
             ?
             '<li>' . implode('<li>', $akt)

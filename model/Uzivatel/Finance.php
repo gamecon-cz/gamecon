@@ -73,21 +73,21 @@ class Finance
     private const PORADI_NADPISU = 1;
     private const PORADI_POLOZKY = 2;
     // idčka typů, podle kterých se řadí výstupní tabulka $prehled
-    private const AKTIVITY        = -1;
-    private const PREDMETY_STRAVA = 1;
-    private const UBYTOVANI       = 2;
+    public const AKTIVITY        = -1;
+    public const PREDMETY_STRAVA = 1;
+    public const UBYTOVANI       = 2;
     // mezera na typy předmětů (1-4? viz db)
     /** čísla konstant určují pořadí zobrazení v Infopultu */
-    private const VSTUPNE                    = 10;
-    private const PRIPSANE_SLEVY             = 11;
-    private const CELKOVA                    = 12;
-    private const ZUSTATEK_Z_PREDCHOZICH_LET = 13;
-    private const ORGSLEVA                   = 14; // Bonus za aktivity
-    private const BRIGADNICKA_ODMENA         = 15;
-    private const PLATBY_NADPIS              = 16;
-    private const PLATBA                     = 17;
-    private const VYSLEDNY                   = 18;
-    private const KATEGORIE_NEPLATICE        = 19;
+    public const VSTUPNE                    = 10;
+    public const PRIPSANE_SLEVY             = 11;
+    public const CELKOVA                    = 12;
+    public const ZUSTATEK_Z_PREDCHOZICH_LET = 13;
+    public const ORGSLEVA                   = 14; // Bonus za aktivity
+    public const BRIGADNICKA_ODMENA         = 15;
+    public const PLATBY_NADPIS              = 16;
+    public const PLATBA                     = 17;
+    public const VYSLEDNY                   = 18;
+    public const KATEGORIE_NEPLATICE        = 19;
 
     /**
      * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity

@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Accounting;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Stat;
 
@@ -26,7 +27,7 @@ HTML;
     return; // přehled vidí jen přihlášení na GC (a jen po začátku letošních registrací)
 }
 
-$veci      = $u->finance()->prehledHtml();
+$veci      = Accounting::getPersonalFinance($u);
 $slevyA    = array_flat('<li>', $u->finance()->slevyNaAktivity(), '</li>');
 $slevyV    = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
 $zaplaceno = $u->finance()->stav() >= 0;
@@ -72,7 +73,7 @@ if (!$zaplaceno) {
     </style>
     <div style="float:left;width:250px;margin-bottom:24px; margin-right: 50px" class="tabVeci">
         <h2>Objednané věci</h2>
-        <?= $veci ?>
+        <?= $veci->formatForHtml(true) ?>
     </div>
 
     <?php if ($slevyA || $slevyV) { ?>
