@@ -45,7 +45,7 @@
     <div class="gchlavicka_datum"
         data-aos="fade-top"
         data-aos-delay="200">{gcOd} &ndash; {gcDo} <span class="gchlavicka_rok">{gcRok}</span></div>
-    <div class="gchlavicka_misto" data-aos="zoom-out">P A R D U B I C E</div>
+    <div class="gchlavicka_misto" data-aos="zoom-out">O S T R A V A</div>
     <a class="gchlavicka_video" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank" data-aos="zoom-out" data-aos-offset="-200">přehrát video</a>
 </div>
 
