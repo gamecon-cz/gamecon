@@ -10,14 +10,19 @@ namespace App\Structure\Entity;
 class ActivityRegistrationEntityStructure
 {
     /**
+     * @see ActivityRegistration::$id
+     */
+    public const id = 'id';
+
+    /**
      * @see ActivityRegistration::$activity
      */
     public const activity = 'activity';
 
     /**
-     * @see ActivityRegistration::$user
+     * @see ActivityRegistration::$registeredUser
      */
-    public const user = 'user';
+    public const registeredUser = 'registeredUser';
 
     /**
      * @see ActivityRegistration::$activityRegistrationState
