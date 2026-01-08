@@ -72,10 +72,7 @@ use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Ubytovani\Ubytovani;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Platba;
-use Lokace;
-use Novinka;
-use Stranka;
-use Uzivatel;
+use Gamecon\Aktivita\Lokace;
 use Zenstruck\Foundry\Test\Factories;
 
 class EntityLegacyComparisonTest extends AbstractTestDb
@@ -91,7 +88,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testUserEntityMatchesLegacyUzivatel(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var User $symfonyUser */
         $symfonyUser = UserFactory::createOne([
             UserEntityStructure::login                => 'test_user_' . uniqid(),
@@ -175,7 +172,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testPageEntityMatchesLegacyStranka(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var Page $symfonyPage */
         $symfonyPage = PageFactory::createOne([
             PageEntityStructure::urlStranky => 'test-page-' . uniqid(),
@@ -206,7 +203,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             CategoryTagEntityStructure::poradi => 1,
         ])->_real();
 
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var Tag $symfonyTag */
         $symfonyTag = TagFactory::createOne([
             TagEntityStructure::nazev       => 'Test Tag ' . uniqid(),
@@ -230,7 +227,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testCategoryTagEntityMatchesLegacyKategorieTagu(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var CategoryTag $symfonyCategoryTag */
         $symfonyCategoryTag = CategoryTagFactory::createOne([
             CategoryTagEntityStructure::nazev           => 'Test Category Tag ' . uniqid(),
@@ -354,7 +351,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testActivityTypeEntityMatchesLegacyTypAktivity(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var ActivityType $symfonyActivityType */
         $symfonyActivityType = ActivityTypeFactory::createOne([
             ActivityTypeEntityStructure::id            => 99,
@@ -402,7 +399,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testActivityStateEntityMatchesLegacyStavAktivity(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var ActivityStatus $symfonyActivityState */
         $symfonyActivityState = ActivityStateFactory::createOne([
             ActivityStatusEntityStructure::nazev => 'Test Activity State ' . uniqid(),
@@ -426,7 +423,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testActivityRegistrationStateEntityMatchesLegacyAkcePrihlaseniStavy(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var ActivityRegistrationState $symfonyActivityRegistrationState */
         $symfonyActivityRegistrationState = ActivityRegistrationStateFactory::createOne([
             ActivityRegistrationStateEntityStructure::id            => 50,
@@ -454,7 +451,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testNewsletterSubscriptionEntityMatchesLegacyNewsletterPrihlaseni(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var NewsletterSubscription $symfonyNewsletterSubscription */
         $symfonyNewsletterSubscription = NewsletterSubscriptionFactory::createOne([
             NewsletterSubscriptionEntityStructure::email => 'newsletter_' . uniqid() . '@example.com',
@@ -482,7 +479,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testRoleEntityMatchesLegacyRole(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var Role $symfonyRole */
         $symfonyRole = RoleFactory::createOne([
             RoleEntityStructure::kodRole       => 'TEST_ROLE_' . uniqid(),
@@ -521,7 +518,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testPermissionEntityMatchesLegacyPravo(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var Permission $symfonyPermission */
         $symfonyPermission = PermissionFactory::createOne([
             PermissionEntityStructure::jmenoPrava => 'Test Permission ' . uniqid(),
@@ -553,7 +550,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             UserEntityStructure::email => 'accomm_' . uniqid() . '@example.com',
         ])->_real();
 
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var Accommodation $symfonyAccommodation */
         $symfonyAccommodation = AccommodationFactory::createOne([
             AccommodationEntityStructure::uzivatel => $testUser,
@@ -577,7 +574,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testShopItemEntityMatchesLegacyPredmet(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var ShopItem $symfonyShopItem */
         $symfonyShopItem = ShopItemFactory::createOne([
             ShopItemEntityStructure::nazev           => 'Test Předmět ' . uniqid(),
@@ -627,7 +624,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testLocationEntityMatchesLegacyLokace(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var Location $symfonyLocation */
         $symfonyLocation = LocationFactory::createOne([
             LocationEntityStructure::nazev    => 'Test místnost ' . uniqid(),
@@ -641,7 +638,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertNotNull($symfonyLocationId);
 
         // Fetch the same entity using legacy Lokace
-        $legacyLokace = \Lokace::zId($symfonyLocationId);
+        $legacyLokace = Lokace::zId($symfonyLocationId);
         $this->assertNotNull($legacyLokace, 'Legacy location (lokace) should be found');
 
         // Compare values using getters and raw data
@@ -666,7 +663,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Text is now stored directly as a string (no longer FK to texty table)
         $textContent = 'Test blog post content lorem ipsum...';
 
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var News $symfonyNews */
         $symfonyNews = NewsFactory::createOne([
             NewsEntityStructure::typ   => News::TYPE_BLOG,
@@ -709,7 +706,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testShopGridCellEntityMatchesLegacyObchodMrizkaBunka(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var ShopGridCell $symfonyShopGridCell */
         $symfonyShopGridCell = ShopGridCellFactory::createOne([
             ShopGridCellEntityStructure::typ       => ShopGridCell::TYPE_ITEM,
@@ -748,7 +745,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testShopGridEntityMatchesLegacyObchodMrizka(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var ShopGrid $symfonyShopGrid */
         $symfonyShopGrid = ShopGridFactory::createOne([
             ShopGridEntityStructure::text => 'Test mřížka ' . uniqid(),
@@ -772,7 +769,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testPaymentEntityMatchesLegacyPlatba(): void
     {
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var Payment $symfonyPayment */
         $symfonyPayment = PaymentFactory::createOne([
             PaymentEntityStructure::fioId               => 123456789,
@@ -843,14 +840,14 @@ class EntityLegacyComparisonTest extends AbstractTestDb
 
     public function testBadgeEntityMatchesLegacyMedailonek(): void
     {
-        // Create a user first for the FK (id_uzivatele is primary key and FK)
+        // Create a user first for the FK (id_uzivatele is the primary key and FK)
         /** @var User $testUser */
         $testUser = UserFactory::createOne([
             UserEntityStructure::login => 'badge_user_' . uniqid(),
             UserEntityStructure::email => 'badge_' . uniqid() . '@example.com',
         ])->_real();
 
-        // Create Symfony entity using factory
+        // Create a Symfony entity using factory
         /** @var UserBadge $symfonyUserBadge */
         $symfonyUserBadge = UserBadgeFactory::createOne([
             UserBadgeEntityStructure::user  => $testUser,
