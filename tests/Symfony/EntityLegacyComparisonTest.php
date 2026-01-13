@@ -41,6 +41,7 @@ use App\Structure\Entity\TagEntityStructure;
 use App\Structure\Entity\UserBadgeEntityStructure;
 use App\Structure\Entity\UserEntityStructure;
 use Gamecon\Aktivita\AkcePrihlaseniStavy;
+use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
@@ -72,7 +73,6 @@ use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Ubytovani\Ubytovani;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Platba;
-use Gamecon\Aktivita\Lokace;
 use Zenstruck\Foundry\Test\Factories;
 
 class EntityLegacyComparisonTest extends AbstractTestDb
