@@ -230,7 +230,7 @@ class Activity
 
     public function addLocation(Location $location): self
     {
-        if (!$this->locations->contains($location)) {
+        if (! $this->locations->contains($location)) {
             $this->locations->add($location);
         }
 
@@ -528,7 +528,7 @@ class Activity
 
     public function addActivityTag(ActivityTag $activityTag): self
     {
-        if (!$this->activityTags->contains($activityTag)) {
+        if (! $this->activityTags->contains($activityTag)) {
             $this->activityTags->add($activityTag);
             $activityTag->setActivity($this);
         }

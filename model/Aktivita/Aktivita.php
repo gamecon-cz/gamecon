@@ -1574,13 +1574,23 @@ SQL
         array $idckaLokaci,
         ?int  $hlavniLokaceId,
     ): void {
-        dbQuery(<<<SQL
-                DELETE FROM akce_lokace
-                WHERE id_akce = {$this->id()}
-                AND id_lokace NOT IN ($1)
-                SQL,
-            [1 => $idckaLokaci],
-        );
+        if ($idckaLokaci === []) {
+            // Empty array means delete all locations
+            dbQuery(<<<SQL
+                    DELETE FROM akce_lokace
+                    WHERE id_akce = {$this->id()}
+                    SQL,
+            );
+        } else {
+            // Non-empty array: delete locations NOT in the list
+            dbQuery(<<<SQL
+                    DELETE FROM akce_lokace
+                    WHERE id_akce = {$this->id()}
+                    AND id_lokace NOT IN ($1)
+                    SQL,
+                [1 => $idckaLokaci],
+            );
+        }
         if ($idckaLokaci !== []) {
             $values    = array_map(
                 function (

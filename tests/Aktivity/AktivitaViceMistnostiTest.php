@@ -122,13 +122,13 @@ SQL,
         $lokace = $aktivita->seznamLokaci();
         self::assertCount(3, $lokace);
 
-        // Main location should be first
-        self::assertSame(1, $lokace[0]->id(), 'První by měla být hlavní místnost');
+        // The main location should be first
+        self::assertSame(1001, $lokace[0]->id(), 'První by měla být hlavní místnost');
         self::assertSame(1001, $aktivita->hlavniLokace()->id());
 
         // Others sorted by poradi
-        self::assertSame(2, $lokace[2001]->id());
-        self::assertSame(3, $lokace[2002]->id());
+        self::assertSame(1002, $lokace[1]->id());
+        self::assertSame(1003, $lokace[2]->id());
 
         self::assertSame([1001, 1002, 1003], $aktivita->seznamLokaciIdcka());
     }
@@ -190,13 +190,13 @@ SQL,
         self::assertCount(3, $aktivita->seznamLokaci());
 
         // Keep only location 1
-        $aktivita->nastavLokacePodleIds([2001], 1);
+        $aktivita->nastavLokacePodleIds([1001], 1001);
 
         $aktivita = Aktivita::zId(2002);
         self::assertCount(1, $aktivita->seznamLokaci());
         self::assertSame(1001, $aktivita->seznamLokaci()[0]->id());
 
-        // Verify deleted from junction table
+        // Verify deleted from the junction table
         $count = dbFetchSingle('SELECT COUNT(*) FROM akce_lokace WHERE id_akce = ?', [2002]);
         self::assertSame('1', $count);
     }
@@ -215,7 +215,7 @@ SQL,
         $aktivita = Aktivita::zId(2005);
         self::assertSame(1006, $aktivita->hlavniLokace()->id(), 'Nově je hlavní místnost 6');
 
-        // Main location should be first in list
+        // The main location should be first in the list
         self::assertSame(1006, $aktivita->seznamLokaci()[0]->id());
 
         // Verify je_hlavni flag in database
@@ -239,7 +239,7 @@ SQL,
         $aktivita = Aktivita::zId(2003);
 
         // First location (by id_lokace ASC) should become main
-        self::assertSame(2, $aktivita->idHlavniLokace(), 'První místnost by měla být automaticky hlavní');
+        self::assertSame(1002, $aktivita->idHlavniLokace(), 'První místnost by měla být automaticky hlavní');
 
         // Verify no location has je_hlavni = 1
         $hlavniCount = dbFetchSingle(
@@ -331,7 +331,7 @@ SQL,
         // Same instance should reflect changes
         $nove = $aktivita->seznamLokaci();
         self::assertCount(3, $nove, 'Cache by se měla zneplatnit');
-        self::assertSame(2, $aktivita->hlavniLokace()->id());
+        self::assertSame(1002, $aktivita->hlavniLokace()->id());
     }
 
     // ========================================================================
@@ -355,19 +355,13 @@ SQL,
      */
     public function testJunctionTableCompositeKey()
     {
-        // Try to insert duplicate entry directly
+        // Try to insert duplicate entry directly - should fail due to PRIMARY KEY constraint
+        $this->expectException(\Exception::class);
         dbInsert(JunctionSql::AKCE_LOKACE_TABULKA, [
-            JunctionSql::ID_AKCE => 1,
-            JunctionSql::ID_LOKACE => 1,
+            JunctionSql::ID_AKCE => 2001,
+            JunctionSql::ID_LOKACE => 1001,
             JunctionSql::JE_HLAVNI => 0,
         ]);
-
-        // Should only have one entry (REPLACE INTO behavior or duplicate key error)
-        $count = dbFetchSingle(
-            'SELECT COUNT(*) FROM akce_lokace WHERE id_akce = ? AND id_lokace = ?',
-            [1, 1]
-        );
-        self::assertSame('1', $count);
     }
 
     // ========================================================================
@@ -429,13 +423,14 @@ SQL,
             AktivitaSql::ROK => 2024,
             AktivitaSql::ZACATEK => '2024-07-15 09:00:00',
             AktivitaSql::KONEC => '2024-07-15 11:00:00',
+            AktivitaSql::POPIS_KRATKY => 'Krátký popis',
         ];
 
         $aktivita1 = Aktivita::uloz(
             data: $data1,
             markdownPopis: null,
             organizatoriIds: [],
-            lokaceIds: [2001],
+            lokaceIds: [1001],
             hlavniLokaceId: 1001,
             tagIds: [],
         );
@@ -447,6 +442,7 @@ SQL,
             AktivitaSql::ROK => 2024,
             AktivitaSql::ZACATEK => '2024-07-15 10:00:00',
             AktivitaSql::KONEC => '2024-07-15 12:00:00',
+            AktivitaSql::POPIS_KRATKY => 'Krátký popis',
         ];
 
         // Try to assign to same location - should succeed at model level
@@ -455,14 +451,14 @@ SQL,
             data: $data2,
             markdownPopis: null,
             organizatoriIds: [],
-            lokaceIds: [2001],
+            lokaceIds: [1001],
             hlavniLokaceId: 1001,
             tagIds: [],
         );
 
         // Both activities exist with same location
-        self::assertSame([2001], $aktivita1->seznamLokaciIdcka());
-        self::assertSame([2001], $aktivita2->seznamLokaciIdcka());
+        self::assertSame([1001], $aktivita1->seznamLokaciIdcka());
+        self::assertSame([1001], $aktivita2->seznamLokaciIdcka());
 
         // Document: This test shows conflicts are NOT enforced at model layer.
         // For actual conflict prevention, see ImportSqlMappedValuesChecker
@@ -482,6 +478,7 @@ SQL,
             AktivitaSql::NAZEV_AKCE => 'Nová aktivita s místnostmi',
             AktivitaSql::TYP => TypAktivity::DESKOHERNA,
             AktivitaSql::ROK => 2024,
+            AktivitaSql::POPIS_KRATKY => 'Krátký popis',
         ];
 
         $aktivita = Aktivita::uloz(
@@ -495,7 +492,7 @@ SQL,
 
         self::assertNotNull($aktivita->id());
         self::assertCount(3, $aktivita->seznamLokaci());
-        self::assertSame(2, $aktivita->hlavniLokace()->id());
+        self::assertSame(1002, $aktivita->hlavniLokace()->id());
 
         // Verify in database
         $junctionCount = dbFetchSingle(
@@ -512,9 +509,12 @@ SQL,
     {
         $aktivita = Aktivita::zId(2001);
         $puvodni = $aktivita->seznamLokaciIdcka();
-        self::assertSame([2001], $puvodni);
+        self::assertSame([1001], $puvodni);
 
-        $data = $aktivita->rawDb();
+        // Build minimal data for update - include only the ID to update existing activity
+        $data = [
+            AktivitaSql::ID_AKCE => 2001,
+        ];
 
         $aktivita = Aktivita::uloz(
             data: $data,
@@ -526,6 +526,6 @@ SQL,
         );
 
         self::assertCount(2, $aktivita->seznamLokaci());
-        self::assertSame(3, $aktivita->hlavniLokace()->id());
+        self::assertSame(1003, $aktivita->hlavniLokace()->id());
     }
 }

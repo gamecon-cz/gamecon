@@ -268,7 +268,7 @@ class JwtServiceTest extends TestCase
         $tokenFile = $this->testCacheDir . '/jwt_tokens/jwt_' . self::TEST_USER_ID . '.token';
         self::assertFileExists($tokenFile);
 
-        // Make the file appear old by touching it with old timestamp
+        // Make the file appear old by touching it with an old timestamp
         touch($tokenFile, time() - 10);
 
         // Run cleanup
@@ -321,7 +321,7 @@ class JwtServiceTest extends TestCase
             legacyCacheDir: $readOnlyDir,
         );
 
-        // Make directory read-only
+        // Make the directory read-only
         self::assertTrue(chmod($tokenDir, 0555), 'Can not change permissions to dir ' . $tokenDir);
 
         try {
@@ -331,7 +331,23 @@ class JwtServiceTest extends TestCase
             $token = $readOnlyService->generateJwtToken([
                 'id' => 1,
             ]);
-            $readOnlyService->storeToken($token, self::TEST_USER_ID);
+
+            // Use a custom error handler to suppress the expected warning
+            $errorHandler = static function (int $errno, string $errstr) {
+                // Suppress only file_put_contents permission denied warnings
+                if ($errno === E_WARNING && str_contains($errstr, 'file_put_contents') && str_contains($errstr, 'Permission denied')) {
+                    return true; // Suppress the warning
+                }
+
+                return false; // Let other errors through
+            };
+
+            set_error_handler($errorHandler);
+            try {
+                $readOnlyService->storeToken($token, self::TEST_USER_ID);
+            } finally {
+                restore_error_handler();
+            }
         } finally {
             // Cleanup
             chmod($tokenDir, 0755);
