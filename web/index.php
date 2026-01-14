@@ -73,34 +73,6 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
 
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
 
-    $typy[] = new VlastniTypAktivity([
-        'id_typu'      => -1,
-        'typ_1pmn'     => 'Celohra',
-        'url_typu_mn'  => '/celohra',
-    ]);
-
-    foreach ($typy as $typ) {
-        if ($typ->id() === TypAktivity::BONUS) {
-            $typ->nastavNazev('akční hry a bonusy');
-        }
-        $puvodniNazev = $typ->nazev();
-        $malyNazev = mb_strtolower($puvodniNazev, 'UTF-8');
-        $typ->nastavNazev($malyNazev);
-    }
-
-    usort($typy, function($a, $b) {
-        return strcoll($a->nazev(), $b->nazev());
-    });
-
-    foreach ($typy as $typ) {
-        if ($typ->id() === TypAktivity::RPG) {
-            $typ->nastavNazev('RPG');
-        }
-        else if ($typ->id() === TypAktivity::DRD){
-            $typ->nastavNazev('Mistrovství v DrD');
-        }
-    }
-
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
     // položky uživatelského menu
