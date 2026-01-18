@@ -1007,7 +1007,7 @@ HTML;
                 return ImportStepResult::success($sourceActivity->seznamLokaciIdcka());
             }
 
-            return ImportStepResult::success(null);
+            return ImportStepResult::success([]);
         }
         $locations              = $this->importObjectsContainer->getLocationsFromValue((string)$locationsValue);
         $foundLocations         = array_filter($locations, fn(
