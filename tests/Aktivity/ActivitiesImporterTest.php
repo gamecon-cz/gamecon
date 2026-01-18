@@ -23,6 +23,16 @@ class ActivitiesImporterTest extends AbstractTestDb
 {
     protected static bool $disableStrictTransTables = true;
 
+    protected static function keepTestClassDbChangesInTransaction(): bool
+    {
+        return false;
+    }
+
+    protected static function resetDbAfterClass(): bool
+    {
+        return true;
+    }
+
     protected static function getBeforeClassInitCallbacks(): array
     {
         return [
