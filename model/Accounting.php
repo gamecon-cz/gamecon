@@ -8,6 +8,7 @@ use Gamecon\Accounting\TransactionCategory;
 use Gamecon\Accounting\TransactionSplit;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
+use Gamecon\Shop\Predmet;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\Uzivatel\Finance;
 use Uzivatel;
@@ -31,12 +32,14 @@ class Accounting
                     break;
                 case TypPredmetu::PROPLACENI_BONUSU:
                 case Finance::PRIPSANE_SLEVY:
-                case TypPredmetu::VSTUPNE:
-                case Finance::VSTUPNE:
                 case Finance::PLATBA:
                 case Finance::ORGSLEVA:
                 case Finance::BRIGADNICKA_ODMENA:
                     $category = TransactionCategory::MANUAL_MOVEMENTS;
+                    break;
+                case Finance::VSTUPNE:
+                case TypPredmetu::VSTUPNE:
+                    $category = TransactionCategory::VOLUNTARY_DONATION;
                     break;
                 case TypPredmetu::TRICKO:
                 case TypPredmetu::PREDMET:
@@ -63,8 +66,19 @@ class Accounting
             if ($category == null) {
                 continue;
             }
-            $transactions[] = new Transaction($category, DateTimeGamecon::zacatekGameconu(), $polozkaProBfgr->nazev, $splits);
+            $transactions[] = new Transaction(
+                category: $category,
+                date: DateTimeGamecon::zacatekGameconu(),
+                description: $polozkaProBfgr->nazev,
+                splits: $splits,
+                id: "#U[" . $u->id() . "]#P[" . $polozkaProBfgr->idPredmetu . "]");
         }
         return new PersonalAccount($transactions);
+    }
+
+    public static function cancelTransaction(string $transactionId): bool
+    {
+        preg_match('/#U\[(\d+)\]#P\[(\d+)\]/', $transactionId, $matches);
+        return Uzivatel::zId(intval($matches[1]))->shop()->zrusNakupPredmetu(intval($matches[2]), 1) > 0;
     }
 }

@@ -12,7 +12,9 @@
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
+use Gamecon\Accounting;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
@@ -82,9 +84,9 @@ if (post('platba') && $uPracovni) {
     back();
 }
 
-if ($uPracovni && ($idPolozky = post(Finance::KLIC_ZRUS_NAKUP_POLOZKY)) &&
-    ($u->jeSpravceFinanci() || $u->jeSefInfopultu())) {
-    if ($uPracovni->shop()->zrusNakupPredmetu($idPolozky, -1 /* vsechny */)) {
+if (($idTransakce = post(OPERATION_CANCEL_TRANSACTION)) &&
+    $u->maPravo(Pravo::MUZE_RUSIT_NAKUPY)) {
+    if (Accounting::cancelTransaction($idTransakce)) {
         oznameni('Nákup položky zrušen');
     }
 }

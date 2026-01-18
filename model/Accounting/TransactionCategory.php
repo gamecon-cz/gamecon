@@ -10,4 +10,5 @@ enum TransactionCategory
     case ACCOMMODATION;
     case LEFTOVER_FROM_LAST_YEAR;
     case MANUAL_MOVEMENTS;
+    case VOLUNTARY_DONATION;
 }

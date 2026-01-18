@@ -12,8 +12,14 @@ class Transaction
     private string $description;
     /** @var TransactionSplit[] $splits */
     private array $splits;
+    private string $id;
 
     //region getters
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
     public function getCategory(): TransactionCategory
     {
         return $this->category;
@@ -29,9 +35,18 @@ class Transaction
         return $this->description;
     }
 
+    /**
+     * @return TransactionSplit[]
+     */
     public function getSplits(): array
     {
         return $this->splits;
+    }
+
+    public function getTotalAmount(): int
+    {
+        return array_sum(array_map(fn(TransactionSplit $split) => $split->getAmount(), $this->splits));
+
     }
     //endregion
 
@@ -41,12 +56,13 @@ class Transaction
      * @param string $description
      * @param TransactionSplit[] $splits
      */
-    public function __construct(TransactionCategory $category, DateTimeGamecon $date, string $description, array $splits)
+    public function __construct(TransactionCategory $category, DateTimeGamecon $date, string $description, array $splits, string $id)
     {
         $this->category = $category;
         $this->date = $date;
         $this->description = $description;
         $this->splits = $splits;
+        $this->id = $id;
     }
 
 }

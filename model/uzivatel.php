@@ -943,11 +943,6 @@ SQL,
         };
     }
 
-    public function maPravoNaZmenuPrav(): bool
-    {
-        return $this->maPravo(Pravo::ZMENA_PRAV);
-    }
-
     public function maPravoNaPristupDoPrezence(): bool
     {
         return $this->maPravo(Pravo::ADMINISTRACE_PREZENCE);
@@ -998,11 +993,6 @@ SQL,
     public function maPravoNaPoradaniAktivit(): bool
     {
         return $this->maPravo(Pravo::PORADANI_AKTIVIT);
-    }
-
-    public function maPravoNaStrankuFinance(): bool
-    {
-        return $this->maPravo(Pravo::ADMINISTRACE_FINANCE);
     }
 
     public function maPravoNaZmenuHistorieAktivit(): bool

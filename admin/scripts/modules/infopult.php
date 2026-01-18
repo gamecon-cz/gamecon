@@ -8,7 +8,11 @@
  * pravo: 100
  */
 
+use Gamecon\Accounting;
+use Gamecon\Accounting\TransactionCategory;
+use Gamecon\Accounting\Transaction;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\TypPredmetu;
@@ -26,12 +30,14 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 require_once __DIR__ . '/_submoduly/ubytovani_tabulka.php';
 require_once __DIR__ . '/_submoduly/osobni-udaje/osobni_udaje.php';
 
-$ok   = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
+$ok = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
-$err  = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
+$err = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
-$shop      = $uPracovni ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni) : null;
+$shop = $uPracovni ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni) : null;
+
+const OPERATION_CANCEL_TRANSACTION = 'cancelTransaction';
 
 include __DIR__ . '/_infopult_ovladac.php';
 
@@ -40,29 +46,29 @@ $x = new XTemplate(__DIR__ . '/infopult.xtpl');
 $x->assign(['ok' => $ok, 'warn' => $warn, 'err' => $err, 'rok' => ROCNIK]);
 if ($uPracovni) {
     $x->assign([
-        'a'  => $uPracovni->koncovkaDlePohlavi(),
+        'a' => $uPracovni->koncovkaDlePohlavi(),
         'ka' => $uPracovni->koncovkaDlePohlavi() ? 'ka' : '',
     ]);
 }
 
 $x->assign([
-    'prihlasDisabled'             => "disabled",
+    'prihlasDisabled' => "disabled",
     'prijelADatMaterialyDisabled' => "disabled",
-    'gcOdjedDisabled'             => "disabled",
-    'odhlasDisabled'              => "disabled",
+    'gcOdjedDisabled' => "disabled",
+    'odhlasDisabled' => "disabled",
 ]);
 
 // ubytovani vypis
-$pokojVypis     = Pokoj::zCisla(get('pokoj'));
+$pokojVypis = Pokoj::zCisla(get('pokoj'));
 $ubytovaniVypis = $pokojVypis ? $pokojVypis->ubytovani() : [];
 
 if (get('pokoj')) {
     $x->assign('pokojVypis', get('pokoj'));
     if ($pokojVypis) {
         $x->assign('ubytovaniVypis', array_uprint($ubytovaniVypis, function ($e) {
-            $ne    = $e->gcPritomen() ? '' : 'ne';
+            $ne = $e->gcPritomen() ? '' : 'ne';
             $color = $ne ? '#f00' : '#0a0';
-            $a     = $e->koncA();
+            $a = $e->koncA();
             return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
         }, '<br>'));
     } else
@@ -84,19 +90,19 @@ if ($uPracovni) {
         }
         $x->parse('infopult.neprihlasen');
     }
-    $pokoj          = Pokoj::zUzivatele($uPracovni);
-    $spolubydlici   = $pokoj
+    $pokoj = Pokoj::zUzivatele($uPracovni);
+    $spolubydlici = $pokoj
         ? $pokoj->ubytovani()
         : [];
     $typyProPrehled = [
         TypPredmetu::PREDMET,
         TypPredmetu::TRICKO,
     ];
-    if ($u->jeSpravceFinanci()) {
+    if ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY)) {
         $typyProPrehled[] = TypPredmetu::VSTUPNE;
     }
     $x->assign([
-        'stavUctu'        => sprintf(
+        'stavUctu' => sprintf(
             '%s <span class="stav-uctu-castka">%d</span> %s',
             $uPracovni->finance()->stav() < 0
                 ? $err
@@ -104,25 +110,30 @@ if ($uPracovni) {
             $uPracovni->finance()->stav(),
             $uPracovni->finance()->mena()
         ),
-        'stavStyle'       => ($uPracovni->finance()->stav() < 0 ? 'color: #f22; font-weight: bolder;' : ''),
-        'pokoj'           => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
-        'spolubydlici'    => array_uprint($spolubydlici, static function (Uzivatel $spolubydla) {
+        'stavStyle' => ($uPracovni->finance()->stav() < 0 ? 'color: #f22; font-weight: bolder;' : ''),
+        'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
+        'spolubydlici' => array_uprint($spolubydlici, static function (Uzivatel $spolubydla) {
             return "<li> {$spolubydla->jmenoNick()} ({$spolubydla->id()}) {$spolubydla->telefon()} </li>";
         }),
-        'org'             => $u->jmenoNick(),
-        'orgA'            => $u->koncovkaDlePohlavi(),
-        'poznamka'        => $uPracovni->poznamka(),
-        'ubytovani'       => $uPracovni->shop()->dejPopisUbytovani(),
-        'balicek'         => $uPracovni->balicekHtml(),
-        'prehledPredmetu' => $uPracovni->finance()->prehledHtml(
-            $typyProPrehled,
-            false,
-            $u->jeSpravceFinanci() || $u->jeSefInfopultu(),
-        ),
+        'org' => $u->jmenoNick(),
+        'orgA' => $u->koncovkaDlePohlavi(),
+        'poznamka' => $uPracovni->poznamka(),
+        'ubytovani' => $uPracovni->shop()->dejPopisUbytovani(),
+        'balicek' => $uPracovni->balicekHtml(),
+        'prehledPredmetu' => implode("", array_map(fn(Transaction $t) => "<tr>" . "<td>" . $t->getDescription() . "</td>" .
+            ($u?->maPravo(Pravo::MUZE_RUSIT_NAKUPY) ?
+                "<td><form method='post' onsubmit=\"return confirm('Opravdu zrušit objednávku " . $t->getDescription() . "');\">" .
+                "<input type='hidden' name='" . OPERATION_CANCEL_TRANSACTION . "' value='" . $t->getId() . "'>" .
+                "<button type='submit'><i class='fa fa-trash' aria-hidden='true'/></button>" .
+                "</form></td>" :
+            "<td></td>") .
+            "</tr>", array_filter(Accounting::getPersonalFinance($uPracovni)->getTransactions(),
+        fn(Transaction $t) => $t->getCategory() == TransactionCategory::SHOP_ITEMS ||
+            ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY) && $t->getCategory() == TransactionCategory::VOLUNTARY_DONATION))))
     ]);
 
-    $maObjednaneUbytovani           = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
-    $chybejiciUdaje                 = $uPracovni->chybejiciUdaje(
+    $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    $chybejiciUdaje = $uPracovni->chybejiciUdaje(
         Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani),
     );
     $udajePovinneAleNezkontrolovane = $maObjednaneUbytovani && !$uPracovni->maZkontrolovaneUdaje();
@@ -159,12 +170,12 @@ if ($uPracovni) {
         $x->parse('infopult.odhlasitZGc');
     }
 
-    $datumNarozeni                 = DateTimeImmutable::createFromMutable($uPracovni->datumNarozeni());
-    $potrebujePotvrzeniKvuliVeku   = potrebujePotvrzeni($datumNarozeni);
-    $potvrzeniOd                   = $uPracovni->potvrzeniZakonnehoZastupceOd();
+    $datumNarozeni = DateTimeImmutable::createFromMutable($uPracovni->datumNarozeni());
+    $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
+    $potvrzeniOd = $uPracovni->potvrzeniZakonnehoZastupceOd();
     $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('Y') == ROCNIK;
-    $nahranePotvrzeni              = $uPracovni->potvrzeniZakonnehoZastupceSouborOd();
-    $mameLetosniNahranePotvrzeni   = $nahranePotvrzeni && $nahranePotvrzeni->format('Y') == ROCNIK;
+    $nahranePotvrzeni = $uPracovni->potvrzeniZakonnehoZastupceSouborOd();
+    $mameLetosniNahranePotvrzeni = $nahranePotvrzeni && $nahranePotvrzeni->format('Y') == ROCNIK;
 
     if ($potrebujePotvrzeniKvuliVeku) {
         if ($mameLetosniPotvrzeniKvuliVeku) {
@@ -180,7 +191,7 @@ if ($uPracovni) {
     }
 
     if (VYZADOVANO_COVID_POTVRZENI) {
-        $mameNahranyLetosniDokladProtiCovidu   = $uPracovni->maNahranyDokladProtiCoviduProRok((int)date('Y'));
+        $mameNahranyLetosniDokladProtiCovidu = $uPracovni->maNahranyDokladProtiCoviduProRok((int)date('Y'));
         $mameOverenePotvrzeniProtiCoviduProRok = $uPracovni->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
         if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok) {
             /* muze byt overeno rucne bez nahraneho dokladu */
@@ -217,11 +228,11 @@ if ($uPracovni) {
 
     if ($u->jeInfopultak() && !$u->jeSefInfopultu()) {
         $zpravyProPotvrzeni = [];
-        $a                  = $uPracovni->koncovkaDlePohlavi();
+        $a = $uPracovni->koncovkaDlePohlavi();
         if (!$uPracovni->gcPritomen()) {
             $zpravyProPotvrzeni['materialy'] = "nemá potvrzeno že přijel{$a} a že dostal{$a} materiály";
         }
-        if ($uPracovni->finance()->stav() < 0) {
+        if (Accounting::getPersonalFinance($uPracovni)->getTotal() < 0) {
             $zpravyProPotvrzeni[] = 'má nedoplatek';
         }
         if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
@@ -234,7 +245,7 @@ if ($uPracovni) {
             $zpravyProPotvrzeni[] = 'nemá zkontrolované osobní údaje';
         }
         if ($zpravyProPotvrzeni !== []) {
-            $zpravyProPotvrzeni                 = array_map(static fn(string $zprava) => "- $zprava", $zpravyProPotvrzeni);
+            $zpravyProPotvrzeni = array_map(static fn(string $zprava) => "- $zprava", $zpravyProPotvrzeni);
             $zpravyProPotvrzeniZruseniPraceText = implode("\n", $zpravyProPotvrzeni);
 
             $ucastnikNazev = $uPracovni->jeMuz()
@@ -282,11 +293,6 @@ if ($uPracovni) {
         $x->parse('infopult.uzivatel.idFioPohybu');
     }
 
-    if ($u?->jeSpravceFinanci()) {
-        $x->parse('infopult.uzivatel.objednavky.nadpisVse');
-    } else {
-        $x->parse('infopult.uzivatel.objednavky.nadpisJenPredmety');
-    }
     $x->parse('infopult.uzivatel.objednavky');
     $x->parse('infopult.uzivatel');
 } else {
@@ -294,7 +300,7 @@ if ($uPracovni) {
 }
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
-$o        = dbQuery(
+$o = dbQuery(
     <<<SQL
   SELECT
     CONCAT(nazev,' ',model_rok) as nazev,
@@ -310,7 +316,7 @@ SQL,
 );
 $moznosti = '<option value="">(vyber)</option>';
 while ($r = mysqli_fetch_assoc($o)) {
-    $zbyva    = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
+    $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
     $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
 }
 $x->assign('predmety', $moznosti);

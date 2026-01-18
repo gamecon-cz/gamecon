@@ -16,9 +16,18 @@ class PersonalAccount
         $this->transactions = $transactions;
     }
 
+    /** @return array<Transaction> */
     public function getTransactions(): array
     {
         return $this->transactions;
+    }
+
+    /**
+     * Returns total monetary sum of all transactions.
+     */
+    public function getTotal(): int
+    {
+        return array_sum(array_map(fn(Transaction $transaction) => $transaction->getTotalAmount(), $this->transactions));
     }
 
     /**
@@ -57,6 +66,7 @@ class PersonalAccount
         $result = $result . categoryToHtml($this, TransactionCategory::FOOD, "Strava", $positivePrices);
         $result = $result . categoryToHtml($this, TransactionCategory::SHOP_ITEMS, "Předměty", $positivePrices);
         $result = $result . categoryToHtml($this, TransactionCategory::ACCOMMODATION, "Ubytování", $positivePrices);
+        $result = $result . categoryToHtml($this, TransactionCategory::VOLUNTARY_DONATION, "Dobrovolné vstupné", $positivePrices);
 
         $result = $result . '<tr><td><b>Celková cena</b></td><td><b>' . -array_reduce(
                 array_filter($this->getTransactions(), fn($a) => (
