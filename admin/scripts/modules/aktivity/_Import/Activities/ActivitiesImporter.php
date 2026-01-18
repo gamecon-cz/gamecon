@@ -263,12 +263,26 @@ HTML
             return PHP_INT_MAX; // invalid date name
         }
         if (!empty($activityValues[$this->exportAktivitSloupce::ZACATEK])) {
-            return $dayTimeForSort + $activityValues[$this->exportAktivitSloupce::ZACATEK];
+            return $dayTimeForSort + $this->parseTimeToHour($activityValues[$this->exportAktivitSloupce::ZACATEK]);
         }
         if (!empty($activityValues[$this->exportAktivitSloupce::KONEC])) {
-            return $dayTimeForSort + $activityValues[$this->exportAktivitSloupce::KONEC];
+            return $dayTimeForSort + $this->parseTimeToHour($activityValues[$this->exportAktivitSloupce::KONEC]);
         }
         return $dayTimeForSort;
+    }
+
+    /**
+     * Parse a time string like "10:00" or "14:30" to an hour integer (10, 14).
+     * Also handles numeric values (already an hour).
+     */
+    private function parseTimeToHour(mixed $timeValue): int {
+        if (is_numeric($timeValue)) {
+            return (int)$timeValue;
+        }
+        if (is_string($timeValue) && preg_match('/^(\d{1,2}):/', $timeValue, $matches)) {
+            return (int)$matches[1];
+        }
+        return 0;
     }
 
     public function __destruct() {
