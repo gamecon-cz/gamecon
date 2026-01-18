@@ -46,7 +46,7 @@ class Activity
     private ?\DateTime $konec = null;
 
     /**
-     * @var Collection<Location>
+     * @var Collection<int, Location>
      */
     #[ORM\ManyToMany(targetEntity: Location::class)]
     private Collection $locations;
@@ -221,7 +221,7 @@ class Activity
     }
 
     /**
-     * @return Collection<Location>
+     * @return Collection<int, Location>
      */
     public function getLocations(): Collection
     {
@@ -245,7 +245,7 @@ class Activity
     }
 
     /**
-     * @param Collection<Location> $locations
+     * @param Collection<int, Location> $locations
      */
     public function setLocations(Collection $locations): self
     {
