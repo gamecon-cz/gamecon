@@ -8,10 +8,8 @@ class AkceLokaceSqlStruktura
 {
     public const AKCE_LOKACE_TABULKA = 'akce_lokace';
 
+    public const ID_AKCE_LOKACE = 'id_akce_lokace';
     public const ID_LOKACE      = 'id_lokace';
-    public const NAZEV     = 'nazev';
-    public const DVERE     = 'dvere';
-    public const POZNAMKA  = 'poznamka';
-    public const PORADI    = 'poradi';
-    public const ROK       = 'rok';
+    public const ID_AKCE        = 'id_akce';
+    public const JE_HLAVNI      = 'je_hlavni';
 }

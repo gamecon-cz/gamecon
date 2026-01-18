@@ -19,7 +19,7 @@ use Gamecon\Aktivita\StavAktivity;
 #[ORM\Entity(repositoryClass: ActivityRepository::class)]
 #[ORM\Table(name: 'akce_seznam')]
 #[ORM\UniqueConstraint(name: 'UNIQ_url_akce_rok_typ', columns: ['url_akce', 'rok', 'typ'])]
-#[ORM\Index(columns: ['rok'], name: 'IDX_rok')]
+#[ORM\Index(name: 'IDX_rok', columns: ['rok'])]
 class Activity
 {
     #[ORM\Id]
@@ -45,9 +45,11 @@ class Activity
     #[ORM\Column(name: 'konec', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTime $konec = null;
 
-    #[ORM\ManyToOne(targetEntity: Location::class)]
-    #[ORM\JoinColumn(name: 'lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
-    private ?Location $location = null;
+    /**
+     * @var Collection<Location>
+     */
+    #[ORM\ManyToMany(targetEntity: Location::class)]
+    private Collection $locations;
 
     #[ORM\Column(name: 'kapacita', type: Types::INTEGER, nullable: false)]
     private int $kapacita;
@@ -218,14 +220,36 @@ class Activity
         return $this;
     }
 
-    public function getLocation(): ?Location
+    /**
+     * @return Collection<Location>
+     */
+    public function getLocations(): Collection
     {
-        return $this->location;
+        return $this->locations;
     }
 
-    public function setLocation(?Location $location): self
+    public function addLocation(Location $location): self
     {
-        $this->location = $location;
+        if (! $this->locations->contains($location)) {
+            $this->locations->add($location);
+        }
+
+        return $this;
+    }
+
+    public function removeLocation(Location $location): self
+    {
+        $this->locations->removeElement($location);
+
+        return $this;
+    }
+
+    /**
+     * @param Collection<Location> $locations
+     */
+    public function setLocations(Collection $locations): self
+    {
+        $this->locations = $locations;
 
         return $this;
     }

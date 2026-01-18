@@ -7,12 +7,13 @@ namespace App\Entity;
 use App\Repository\LocationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gamecon\Aktivita\Lokace;
 
 /**
- * Legacy @see \Lokace
+ * Legacy @see Lokace
  */
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
-#[ORM\Table(name: 'akce_lokace')]
+#[ORM\Table(name: 'lokace')]
 #[ORM\UniqueConstraint(name: 'UNIQ_nazev_rok', columns: ['nazev', 'rok'])]
 class Location
 {
