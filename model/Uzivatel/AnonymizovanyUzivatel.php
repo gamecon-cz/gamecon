@@ -35,8 +35,6 @@ class AnonymizovanyUzivatel
             UzivatelSql::POMOC_VICE                          => '',
             UzivatelSql::OP                                  => '',
             UzivatelSql::POTVRZENI_ZAKONNEHO_ZASTUPCE        => null,
-            UzivatelSql::POTVRZENI_PROTI_COVID19_PRIDANO_KDY => null,
-            UzivatelSql::POTVRZENI_PROTI_COVID19_OVERENO_KDY => null,
             UzivatelSql::INFOPULT_POZNAMKA                   => '',
             UzivatelSql::TYP_DOKLADU_TOTOZNOSTI              => '',
             UzivatelSql::STATNI_OBCANSTVI                    => null,

@@ -319,40 +319,11 @@ SQL,
                $this->uzivatel()->jeZazemi();
     }
 
-    private function omluvaZaNedostupneUbytovani(): string
-    {
-        /*
-         *
-         * Omluvný text pro běžné účastníky kváli omezení na čistě spacýky
-         * řízená proměnnou $omezitNaSpacáky
-         *
-         * výpadek budovy C v roce 2024
-         * */
-
-        return $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky() && !$this->maPravoNaPostel()
-            ? self::omluvaZaNedostupneUbytovaniText()
-            : '';
-    }
-
-    private static function omluvaZaNedostupneUbytovaniText(): string
-    {
-        return 'Vzhledem k rekonstrukci budovy C jsme museli letos zrušit možnost ubytování na postelích. Jako částečnou kompenzaci nabízíme větší počet míst pro spaní ve spacácích v tělocvičnách.
-Situace nás mrzí, přesto věříme, že tě od účasti na letošním GC neodradí a v létě se spolu uvidíme. Děkujeme za tvou podporu.
-Více informací najdeš <a href="https://gamecon.cz/blog/ubytovani-2024">zde</a>.';
-    }
-
     public function ubytovaniHtml(
         bool $muzeEditovatUkoncenyProdej = false,
         bool $muzeUbytovatPresKapacitu = false,
     ) {
         $t                           = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
-        $omluvaZaNedostupneUbytovani = $this->omluvaZaNedostupneUbytovani();
-        if ($omluvaZaNedostupneUbytovani !== '') {
-            $t->assign([
-                'omluvaZaNedostupneUbytovani' => $omluvaZaNedostupneUbytovani,
-            ]);
-            $t->parse('ubytovani.omluvaZaNedostupneUbytovani');
-        }
         $t->assign([
             'shopUbytovaniJs'      => URL_WEBU . '/soubory/blackarrow/shop/shop-ubytovani.js?version='
                                       . md5_file(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),

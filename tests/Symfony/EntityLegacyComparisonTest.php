@@ -297,8 +297,6 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             UserEntityStructure::nechceMaily                      => new \DateTime('2023-06-01 10:00:00'),
             UserEntityStructure::ubytovanS                        => 'Some Person',
             UserEntityStructure::potvrzeniZakonnehoZastupce       => new \DateTime('2023-05-01'),
-            UserEntityStructure::potvrzeniProtiCovid19PridanoKdy  => new \DateTime('2023-07-01 14:00:00'),
-            UserEntityStructure::potvrzeniProtiCovid19OverenoKdy  => new \DateTime('2023-07-02 15:00:00'),
             UserEntityStructure::statniObcanstvi                  => 'SK',
             UserEntityStructure::potvrzeniZakonnehoZastupceSoubor => new \DateTime('2023-05-01 10:00:00'),
         ])->_real();
@@ -325,20 +323,6 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             $this->assertEquals(
                 $symfonyUser->getPotvrzeniZakonnehoZastupce()->format('Y-m-d'),
                 $legacyData['potvrzeni_zakonneho_zastupce'],
-            );
-        }
-
-        if ($symfonyUser->getPotvrzeniProtiCovid19PridanoKdy()) {
-            $this->assertEquals(
-                $symfonyUser->getPotvrzeniProtiCovid19PridanoKdy()->format('Y-m-d H:i:s'),
-                $legacyData['potvrzeni_proti_covid19_pridano_kdy'],
-            );
-        }
-
-        if ($symfonyUser->getPotvrzeniProtiCovid19OverenoKdy()) {
-            $this->assertEquals(
-                $symfonyUser->getPotvrzeniProtiCovid19OverenoKdy()->format('Y-m-d H:i:s'),
-                $legacyData['potvrzeni_proti_covid19_overeno_kdy'],
             );
         }
 

@@ -179,8 +179,6 @@ INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
         pomoc_vice= '',
         op ='',
         potvrzeni_zakonneho_zastupce = NULL,
-        potvrzeni_proti_covid19_pridano_kdy = NULL,
-        potvrzeni_proti_covid19_overeno_kdy = NULL,
         infopult_poznamka= ''
 SQL,
         );

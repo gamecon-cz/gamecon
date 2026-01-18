@@ -2252,8 +2252,6 @@ CREATE TABLE `uzivatele_hodnoty` (
   `nechce_maily` datetime DEFAULT NULL COMMENT 'kdy se odhlásil z odebírání mail(er)u',
   `poznamka` varchar(4096) NOT NULL,
   `potvrzeni_zakonneho_zastupce` date DEFAULT NULL,
-  `potvrzeni_proti_covid19_pridano_kdy` datetime DEFAULT NULL,
-  `potvrzeni_proti_covid19_overeno_kdy` datetime DEFAULT NULL,
   `infopult_poznamka` varchar(128) NOT NULL DEFAULT '',
   `typ_dokladu_totoznosti` varchar(16) NOT NULL DEFAULT '',
   `statni_obcanstvi` varchar(64) DEFAULT NULL,

@@ -1,0 +1,2 @@
+ALTER TABLE uzivatele_hodnoty drop column potvrzeni_proti_covid19_overeno_kdy;
+ALTER TABLE uzivatele_hodnoty drop column potvrzeni_proti_covid19_pridano_kdy;

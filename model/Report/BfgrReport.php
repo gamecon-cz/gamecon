@@ -56,8 +56,6 @@ class BfgrReport
 
         $letosniOstatniPredmety = $this->letosniOstatniPredmety();
 
-        $letosniCovidTesty = $this->letosniCovidTesty();
-
         $rocnik = $this->systemoveNastaveni->rocnik();
         $predmetUbytovani = TypPredmetu::UBYTOVANI;
         $typUcast = Role::TYP_UCAST;
@@ -139,7 +137,6 @@ SQL,
         // $letosniKostkyKlice          = array_fill_keys($letosniKostky, null);
         // $letosniJidlaKlice           = array_fill_keys($letosniJidla, null);
         // $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
-        // $letosniCovidTestyKlice      = array_fill_keys($letosniCovidTesty, null);
 
         $obsah = [];
 
@@ -253,7 +250,6 @@ SQL,
                         //                        $this->dejNazvyAPoctyTasek($navstevnik),
                         $this->dejNazvyAPoctyOstatnichPredmetu($navstevnik, $letosniOstatniPredmety),
                         // $this->letosniOstatniPredmetyPocty($r, $letosniOstatniPredmetyKlice),
-                        $this->dejNazvyAPoctyCovidTestu($navstevnik, $letosniCovidTesty), // "dát pls až nakonec", tak pravil Gandalf 30. 7. 2021
                     ),
                 ],
             );
@@ -593,15 +589,6 @@ SQL,
         );
     }
 
-    private function dejNazvyAPoctyCovidTestu(
-        Uzivatel $navstevnik,
-        array    $vsechnyMozneCovidTesty,
-    ): array {
-        $objednaneCovidTesty = $this->dejNazvyAPoctyPredmetu($navstevnik, ['covid']);
-
-        return $this->seradADoplnNenakoupene($objednaneCovidTesty, $vsechnyMozneCovidTesty);
-    }
-
     private function dejNazvyAPoctySvrsku(Uzivatel $navstevnik): array
     {
         $poctySvrsku = [
@@ -745,20 +732,6 @@ SQL,
                         OR nazev LIKE '%lok%' COLLATE utf8_czech_ci
                         OR nazev LIKE '%taška%' COLLATE utf8_czech_ci
                     )
-            ORDER BY TRIM(nazev)
-            SQL,
-            [0 => TypPredmetu::PREDMET, 1 => StavPredmetu::MIMO],
-        );
-    }
-
-    private function letosniCovidTesty(): array
-    {
-        return dbFetchPairs(<<<SQL
-            SELECT id_predmetu, TRIM(nazev)
-            FROM shop_predmety
-            WHERE typ = $0
-                AND stav > $1
-                AND TRIM(nazev) LIKE '%COVID%' COLLATE utf8_czech_ci
             ORDER BY TRIM(nazev)
             SQL,
             [0 => TypPredmetu::PREDMET, 1 => StavPredmetu::MIMO],

@@ -12,7 +12,9 @@
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
+use Gamecon\Accounting;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
@@ -82,9 +84,9 @@ if (post('platba') && $uPracovni) {
     back();
 }
 
-if ($uPracovni && ($idPolozky = post(Finance::KLIC_ZRUS_NAKUP_POLOZKY)) &&
-    ($u->jeSpravceFinanci() || $u->jeSefInfopultu())) {
-    if ($uPracovni->shop()->zrusNakupPredmetu($idPolozky, -1 /* vsechny */)) {
+if (($idTransakce = post(OPERATION_CANCEL_TRANSACTION)) &&
+    $u->maPravo(Pravo::MUZE_RUSIT_NAKUPY)) {
+    if (Accounting::cancelTransaction($idTransakce)) {
         oznameni('Nákup položky zrušen');
     }
 }
@@ -131,7 +133,7 @@ function updateUzivatelHodnoty(array $udaje, int $uPracovniId, Vyjimkovac $vyjim
 
 /* Editace v kartě Pŕehled */
 if ($uPracovni && $udaje = post('udaje')) {
-    foreach (['potvrzeni_zakonneho_zastupce', 'potvrzeni_proti_covid19_overeno_kdy'] as $klic) {
+    foreach (['potvrzeni_zakonneho_zastupce'] as $klic) {
         if (isset($udaje[$klic])) {
             // pokud je hodnota "" tak to znamená že nedošlo ke změně
             if ($udaje[$klic] == "")

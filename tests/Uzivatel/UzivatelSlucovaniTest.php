@@ -198,8 +198,6 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
             'pomoc_vice' => 'Detaily pomoci starého',
             'op' => 'encrypted_op_old',
             'potvrzeni_zakonneho_zastupce' => '2022-06-01',
-            'potvrzeni_proti_covid19_pridano_kdy' => '2022-07-01 14:00:00',
-            'potvrzeni_proti_covid19_overeno_kdy' => '2022-07-02 15:00:00',
             'infopult_poznamka' => 'Stará infopult poznámka',
             'typ_dokladu_totoznosti' => 'OP',
             'statni_obcanstvi' => 'CZ',
@@ -247,8 +245,6 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
             'pomoc_vice' => 'Detaily pomoci starého',
             'op' => 'encrypted_op_old',
             'potvrzeni_zakonneho_zastupce' => '2022-06-01',
-            'potvrzeni_proti_covid19_pridano_kdy' => '2022-07-01 14:00:00',
-            'potvrzeni_proti_covid19_overeno_kdy' => '2022-07-02 15:00:00',
             'infopult_poznamka' => 'Stará infopult poznámka',
             'typ_dokladu_totoznosti' => 'OP',
             'statni_obcanstvi' => 'CZ',
@@ -290,8 +286,6 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $this->assertEquals('Detaily pomoci starého', $user['pomoc_vice']);
         $this->assertEquals('encrypted_op_old', $user['op']);
         $this->assertEquals('2022-06-01', $user['potvrzeni_zakonneho_zastupce']);
-        $this->assertEquals('2022-07-01 14:00:00', $user['potvrzeni_proti_covid19_pridano_kdy']);
-        $this->assertEquals('2022-07-02 15:00:00', $user['potvrzeni_proti_covid19_overeno_kdy']);
         $this->assertEquals('Stará infopult poznámka', $user['infopult_poznamka']);
         $this->assertEquals('OP', $user['typ_dokladu_totoznosti']);
         $this->assertEquals('CZ', $user['statni_obcanstvi']);

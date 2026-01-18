@@ -73,21 +73,21 @@ class Finance
     private const PORADI_NADPISU = 1;
     private const PORADI_POLOZKY = 2;
     // idčka typů, podle kterých se řadí výstupní tabulka $prehled
-    private const AKTIVITY        = -1;
-    private const PREDMETY_STRAVA = 1;
-    private const UBYTOVANI       = 2;
+    public const AKTIVITY        = -1;
+    public const PREDMETY_STRAVA = 1;
+    public const UBYTOVANI       = 2;
     // mezera na typy předmětů (1-4? viz db)
     /** čísla konstant určují pořadí zobrazení v Infopultu */
-    private const VSTUPNE                    = 10;
-    private const PRIPSANE_SLEVY             = 11;
-    private const CELKOVA                    = 12;
-    private const ZUSTATEK_Z_PREDCHOZICH_LET = 13;
-    private const ORGSLEVA                   = 14; // Bonus za aktivity
-    private const BRIGADNICKA_ODMENA         = 15;
-    private const PLATBY_NADPIS              = 16;
-    private const PLATBA                     = 17;
-    private const VYSLEDNY                   = 18;
-    private const KATEGORIE_NEPLATICE        = 19;
+    public const VSTUPNE                    = 10;
+    public const PRIPSANE_SLEVY             = 11;
+    public const CELKOVA                    = 12;
+    public const ZUSTATEK_Z_PREDCHOZICH_LET = 13;
+    public const ORGSLEVA                   = 14; // Bonus za aktivity
+    public const BRIGADNICKA_ODMENA         = 15;
+    public const PLATBY_NADPIS              = 16;
+    public const PLATBA                     = 17;
+    public const VYSLEDNY                   = 18;
+    public const KATEGORIE_NEPLATICE        = 19;
 
     /**
      * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity
@@ -247,76 +247,6 @@ SQL,
             : null;
     }
 
-    /**
-     * Vrátí html formátovaný přehled financí
-     * @param null|int[] $jenKategorieIds
-     * @param boolean $vcetneCeny
-     * @param boolean $vcetneMazani
-     */
-    public function prehledHtml(
-        array $jenKategorieIds = null,
-        bool  $vcetneCeny = true,
-        bool  $vcetneMazani = false,
-    ): string {
-        $out     = '<table class="objednavky">';
-        $prehled = $this->serazenyPrehled();
-        if ($jenKategorieIds) {
-            if (in_array(TypPredmetu::VSTUPNE, $jenKategorieIds) && $this->dobrovolneVstupnePrehled()) {
-                $prehled[] = $this->dobrovolneVstupnePrehled();
-            }
-            $prehled = array_filter($prehled, static function (
-                $radekPrehledu,
-            ) use
-            (
-                $jenKategorieIds,
-            ) {
-                return in_array($radekPrehledu['kategorie'], $jenKategorieIds);
-            });
-            // Infopult nechce mikronadpisy, pokud je přehled omezen jen na pár kategorií
-            $prehled = array_filter($prehled, static function (
-                $radekPrehledu,
-            ) {
-                // našli jsme nadpis, jediný je tučně
-                return !str_contains($radekPrehledu['nazev'], '<b>');
-            });
-        }
-
-        foreach ($prehled as $radekPrehledu) {
-            $castkaRow = '';
-            if ($vcetneCeny) {
-                $castkaRow = "<td>{$radekPrehledu['castka']}</td>";
-            }
-            $mazaniRow = '';
-            if ($vcetneMazani) {
-                if (!empty($radekPrehledu['id_polozky'])) {
-                    $klicZrusNakuppolozky = self::KLIC_ZRUS_NAKUP_POLOZKY;
-                    $mazaniRow            = <<<HTML
-                        <td xmlns="http://www.w3.org/1999/html">
-                            <form method="post" onsubmit="return confirm('Opravdu zrušit objednávku {$radekPrehledu['nazev']}?')">
-                                <input type="hidden" name="$klicZrusNakuppolozky" value="{$radekPrehledu['id_polozky']}">
-                                <button type="submit">
-                                    <i class='fa fa-trash' aria-hidden='true'></i>
-                                </button>
-                            </form>
-                        </td>
-                    HTML;
-                } else {
-                    $mazaniRow = '<td></td>';
-                }
-            }
-            $out .= <<<HTML
-              <tr>
-                <td>{$radekPrehledu['nazev']}</td>
-                $castkaRow
-                $mazaniRow
-              </tr>
-              HTML;
-        }
-        $out .= '</table>';
-
-        return $out;
-    }
-
     public function prehledPopis(): string
     {
         $out = [];
@@ -451,12 +381,7 @@ SQL,
             // thin space
             : ' ';
 
-        return $this->stav() . $mezera . $this->mena();
-    }
-
-    public function mena(): string
-    {
-        return 'Kč';
+        return $this->stav() . $mezera . 'Kč';
     }
 
     public static function slevaAktivityDSC(?DataSourcesCollector $dataSourcesCollector): void
@@ -861,7 +786,7 @@ SQL;
                 $r['nazev'] = $r['nazev'] . ' ' . $r[PredmetSql::MODEL_ROK];
             }
 
-            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $priceAfterDiscountDto, (int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU]);
+            $this->logPolozkaProBfgr((string)$r['nazev'], 1, $priceAfterDiscountDto, (int)$r[PredmetSql::TYP], $r[PredmetSql::KOD_PREDMETU], $r[PredmetSql::ID_PREDMETU]);
 
             // logování do výpisu
             if (in_array($r[PredmetSql::TYP], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
@@ -1235,7 +1160,8 @@ SQL;
         int                   $pocet,
         PriceAfterDiscountDto $priceAfterDiscountDto,
         int                   $typ,
-        ?string               $kodPredmetu = null,
+        string               $kodPredmetu,
+        string               $idPredmetu,
     ): void {
         if (!$this->logovat) {
             return;
@@ -1248,6 +1174,7 @@ SQL;
             sleva: (float)$priceAfterDiscountDto->discount,
             typ: $typ,
             kodPredmetu: $kodPredmetu,
+            idPredmetu: $idPredmetu,
         );
     }
 
