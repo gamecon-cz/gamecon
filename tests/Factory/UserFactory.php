@@ -55,8 +55,6 @@ final class UserFactory extends PersistentProxyObjectFactory
             'pohlavi'                          => self::faker()->randomElement(GenderEnum::cases()),
             'pomocTyp'                         => self::faker()->text(64),
             'pomocVice'                        => self::faker()->text(),
-            'potvrzeniProtiCovid19OverenoKdy'  => self::faker()->dateTime(),
-            'potvrzeniProtiCovid19PridanoKdy'  => self::faker()->dateTime(),
             'potvrzeniZakonnehoZastupce'       => self::faker()->dateTime(),
             'potvrzeniZakonnehoZastupceSoubor' => self::faker()->dateTime(),
             'poznamka'                         => self::faker()->text(4096),
