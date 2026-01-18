@@ -381,12 +381,7 @@ SQL,
             // thin space
             : ' ';
 
-        return $this->stav() . $mezera . $this->mena();
-    }
-
-    public function mena(): string
-    {
-        return 'Kč';
+        return $this->stav() . $mezera . 'Kč';
     }
 
     public static function slevaAktivityDSC(?DataSourcesCollector $dataSourcesCollector): void

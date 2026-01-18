@@ -702,11 +702,6 @@ SQL,
         return $this->systemoveNastaveni->prodejUbytovaniDo()->format('j. n.');
     }
 
-    public function covidFreePotrvzeniHtml(int $rok): string
-    {
-        return $this->zakaznik->covidFreePotvrzeniHtml($rok);
-    }
-
     /** Vrátí html formuláře se vstupným */
     public function vstupneHtml()
     {

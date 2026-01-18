@@ -1025,11 +1025,6 @@ SQL,
         return $this->maRoli(Role::LETOSNI_VYPRAVEC);
     }
 
-    public function jeVypravecskaSkupina(): bool
-    {
-        return $this->maRoli(Role::VYPRAVECSKA_SKUPINA);
-    }
-
     public function jeOrganizator(): bool
     {
         return Role::obsahujiOrganizatora($this->dejIdsRoli());
@@ -1048,16 +1043,6 @@ SQL,
     public function jeHerman(): bool
     {
         return $this->maRoli(Role::LETOSNI_HERMAN);
-    }
-
-    public function jeSpravceFinanci(): bool
-    {
-        return $this->maRoli(Role::CFO);
-    }
-
-    public function jeCestnyOrg(): bool
-    {
-        return $this->maRoli(Role::CESTNY_ORGANIZATOR);
     }
 
     public function jeSuperAdmin(): bool
@@ -1201,7 +1186,7 @@ SQL,
      */
     public function mrtvyMail()
     {
-        return $this->r['mrtvy_mail'];
+        return $this->r[Sql::MRTVY_MAIL];
     }
 
     /**
@@ -1944,8 +1929,6 @@ SQL,
         $tab[Sql::ZUSTATEK] = 0;
         $tab[Sql::POHLAVI] = Pohlavi::MUZ_KOD;
         $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE] = null;
-        $tab[Sql::POTVRZENI_PROTI_COVID19_PRIDANO_KDY] = null;
-        $tab[Sql::POTVRZENI_PROTI_COVID19_OVERENO_KDY] = null;
         foreach (Sql::sloupce() as $sloupec) {
             if (!array_key_exists($sloupec, $tab)) {
                 $tab[$sloupec] = '';
@@ -2029,10 +2012,10 @@ SQL,
         if ($this->jeVypravec()) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
-        if ($this->jeVypravecskaSkupina()) {
+        if ($this->maRoli(Role::VYPRAVECSKA_SKUPINA)) {
             $status[] = '<span style="color:rgba(0,0,255,0.57)">Vypravěčská skupina</span>';
         }
-        if ($this->jeCestnyOrg()) {
+        if ($this->maRoli(Role::CESTNY_ORGANIZATOR)) {
             $status[] = '<span style="color:#a80f84">Čestný organizátor' . $ka . '</span>';
         }
         if ($this->jePartner()) {
@@ -2662,61 +2645,6 @@ SQL;
         return $this->shop;
     }
 
-    public function maNahranyDokladProtiCoviduProRok(int $rok): bool
-    {
-        $potvrzeniProtiCovid19PridanoKdy = $this->potvrzeniProtiCoviduPridanoKdy();
-
-        return $potvrzeniProtiCovid19PridanoKdy
-               && $potvrzeniProtiCovid19PridanoKdy->format('Y') === (string)$rok;
-    }
-
-    public function maOverenePotvrzeniProtiCoviduProRok(
-        int  $rok,
-        bool $musiMitNahranyDokument = false,
-    ): bool {
-        if ($musiMitNahranyDokument && !$this->maNahranyDokladProtiCoviduProRok($rok)) {
-            return false;
-        }
-        $potvrzeniProtiCovid19OverenoKdy = $this->potvrzeniProtiCoviduOverenoKdy();
-
-        return $potvrzeniProtiCovid19OverenoKdy
-               && $potvrzeniProtiCovid19OverenoKdy->format('Y') === (string)$rok;
-    }
-
-    public function covidFreePotvrzeniHtml(int $rok): string
-    {
-        return UserController::covidFreePotvrzeniHtml($this, $rok);
-    }
-
-    public function zpracujPotvrzeniProtiCovidu(): bool
-    {
-        return UserController::zpracujPotvrzeniProtiCovidu($this);
-    }
-
-    public function ulozPotvrzeniProtiCoviduPridanyKdy(?\DateTimeInterface $kdy)
-    {
-        dbUpdate('uzivatele_hodnoty', [
-            'potvrzeni_proti_covid19_pridano_kdy' => $kdy,
-        ], [
-            'id_uzivatele' => $this->id(),
-        ]);
-        $this->r['potvrzeni_proti_covid19_pridano_kdy'] = $kdy
-            ? $kdy->format(DateTimeCz::FORMAT_DB)
-            : null;
-    }
-
-    private function ulozPotvrzeniProtiCoviduOverenoKdy(?\DateTimeInterface $kdy)
-    {
-        dbUpdate('uzivatele_hodnoty', [
-            'potvrzeni_proti_covid19_overeno_kdy' => $kdy,
-        ], [
-            'id_uzivatele' => $this->id(),
-        ]);
-        $this->r['potvrzeni_proti_covid19_overeno_kdy'] = $kdy
-            ? $kdy->format(DateTimeCz::FORMAT_DB)
-            : null;
-    }
-
     public function ulozPotvrzeniRodicuPridanoKdy(?\DateTimeInterface $kdy)
     {
         dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
@@ -2726,56 +2654,6 @@ SQL;
         ]);
         $this->r[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR] = $kdy
             ? $kdy->format(DateTimeCz::FORMAT_DB)
-            : null;
-    }
-
-    public function urlNaPotvrzeniProtiCoviduProAdmin(): string
-    {
-        // admin/scripts/zvlastni/infopult/potvrzeni-proti-covidu.php
-        return URL_ADMIN . '/infopult/potvrzeni-proti-covidu?id=' . $this->id();
-    }
-
-    public function urlNaPotvrzeniProtiCoviduProVlastnika(): string
-    {
-        // admin/scripts/zvlastni/uvod/potvrzeni-proti-covidu.php
-        return URL_WEBU . '/prihlaska/potvrzeni-proti-covidu?id=' . $this->id();
-    }
-
-    public function urlNaSmazaniPotrvrzeniVlastnikem(): string
-    {
-        // admin/scripts/zvlastni/uvod/potvrzeni-proti-covidu.php
-        return URL_WEBU . '/prihlaska/potvrzeni-proti-covidu?id=' . $this->id() . '&smazat=1';
-    }
-
-    public function cestaKSouboruSPotvrzenimProtiCovidu(): string
-    {
-        return WWW . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png';
-    }
-
-    public function smazPotvrzeniProtiCovidu()
-    {
-        if (is_file($this->cestaKSouboruSPotvrzenimProtiCovidu())) {
-            unlink($this->cestaKSouboruSPotvrzenimProtiCovidu());
-        }
-        $this->ulozPotvrzeniProtiCoviduPridanyKdy(null);
-        $this->ulozPotvrzeniProtiCoviduOverenoKdy(null);
-    }
-
-    public function potvrzeniProtiCoviduPridanoKdy(): ?\DateTimeInterface
-    {
-        $potvrzeniProtiCovid19PridanoKdy = $this->r['potvrzeni_proti_covid19_pridano_kdy'] ?? null;
-
-        return $potvrzeniProtiCovid19PridanoKdy
-            ? new DateTimeImmutable($potvrzeniProtiCovid19PridanoKdy)
-            : null;
-    }
-
-    public function potvrzeniProtiCoviduOverenoKdy(): ?\DateTimeInterface
-    {
-        $potvrzeniProtiCovid19OverenoKdy = $this->r['potvrzeni_proti_covid19_overeno_kdy'] ?? null;
-
-        return $potvrzeniProtiCovid19OverenoKdy
-            ? new DateTimeImmutable($potvrzeniProtiCovid19OverenoKdy)
             : null;
     }
 

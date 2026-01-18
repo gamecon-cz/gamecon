@@ -2,7 +2,6 @@
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
-use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 
 /**
@@ -12,12 +11,9 @@ use Gamecon\Pravo;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-$this->pridejJsSoubor('soubory/blackarrow/prihlaska/prihlaska.js');
 $this->blackarrowStyl(true);
 $this->bezPaticky(true);
 $this->info()->nazev('Přihláška');
-
-$covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
 
 function cestaKObrazkuEshopPredmetu(string $soubor): string
 {
@@ -52,22 +48,6 @@ function nahledPredmetu(string $cestaKObrazku): string
         ->url();
 }
 
-if (post('pridatPotvrzeniProtiCovidu')) {
-    if (!$u->zpracujPotvrzeniProtiCovidu()) {
-        if (is_ajax()) {
-            echo json_encode(['chyba' => 'Potvrzení se nezdařilo nahrát.']);
-            exit;
-        }
-        chyba('Nejdříve vlož potvrzení.');
-    } else {
-        if (is_ajax()) {
-            echo json_encode(['covidSekce' => $covidSekceFunkce($u->shop())]);
-            exit;
-        }
-        oznameni('Potvrzení bylo uloženo.');
-    }
-}
-
 if (post('pridatPotvrzeniRodicu')) {
     if (!$u->zpracujPotvrzeniRodicu()) {
         chyba('Nejdříve vlož potvrzení.');
@@ -87,16 +67,6 @@ if (po(GC_BEZI_DO)) {
     $t->parse('prihlaskaPoGc');
 
     return;
-}
-
-if (VYZADOVANO_COVID_POTVRZENI && $u && ($systemoveNastaveni->gcBezi() || $u->gcPritomen())) {
-    $t->assign('covidSekce', $covidSekceFunkce(new Shop($u, $u, $systemoveNastaveni)));
-    $t->parse('prihlaskaUzavrena.covidSekce.doklad');
-    $letosniRok = (int)date('Y');
-    if (!$u->maNahranyDokladProtiCoviduProRok($letosniRok) && !$u->maOverenePotvrzeniProtiCoviduProRok($letosniRok)) {
-        $t->parse('prihlaskaUzavrena.covidSekce.submit');
-    }
-    $t->parse('prihlaskaUzavrena.covidSekce');
 }
 
 if (!$u?->gcPrihlasen() && po($systemoveNastaveni->prihlasovaniUcastnikuDo())) {
@@ -164,7 +134,6 @@ if (post('prihlasitNeboUpravit')) {
     $shop->zpracujUbytovani();
     $shop->zpracujJidlo();
     $shop->zpracujVstupne();
-    $u->zpracujPotvrzeniProtiCovidu();
     $pomoc->zpracuj();
     if ($prihlasovani) {
         oznameni(hlaska('prihlaseniNaGc', $u));
@@ -267,9 +236,6 @@ $t->assign([
     'rok'                             => ROCNIK,
     'ubytovani'                       => $shop->ubytovaniHtml(),
     'ubytovaniObjednatelneDo'         => $shop->ubytovaniObjednatelneDoHtml(),
-    'covidSekce'                      => VYZADOVANO_COVID_POTVRZENI
-        ? $covidSekceFunkce($shop)
-        : '',
     'ulozitNeboPrihlasit'             => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',

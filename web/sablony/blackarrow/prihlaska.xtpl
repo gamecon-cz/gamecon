@@ -156,12 +156,6 @@
 
     <!----------------------------------------------------------------------------->
 
-    <!----------------------------------------------------------------------------->
-
-    {covidSekce}
-
-    <!----------------------------------------------------------------------------->
-
     <div class="prihlaska_sekceObal prihlaska_sekceObal-vstupne">
         <div class="prihlaska_sekce">
             <div class="prihlaska_infoPruh">
@@ -274,18 +268,5 @@
         <!-- end: neproselInfopultem -->
     </div>
 </div>
-
-<!-- begin: covidSekce -->
-<form method="post" class="prihlaska" enctype="multipart/form-data">
-    <!-- begin: doklad -->
-    {covidSekce}
-    <!-- end: doklad -->
-    <!-- begin: submit -->
-    <div class="prihlaska_sekce">
-        <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení">
-    </div>
-    <!-- end: submit -->
-</form>
-<!-- end: covidSekce -->
 
 <!-- end: prihlaskaUzavrena -->

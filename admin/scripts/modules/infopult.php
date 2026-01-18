@@ -103,12 +103,11 @@ if ($uPracovni) {
     }
     $x->assign([
         'stavUctu' => sprintf(
-            '%s <span class="stav-uctu-castka">%d</span> %s',
+            '%s <span class="stav-uctu-castka">%d</span> Kč',
             $uPracovni->finance()->stav() < 0
                 ? $err
                 : $ok,
             $uPracovni->finance()->stav(),
-            $uPracovni->finance()->mena()
         ),
         'stavStyle' => ($uPracovni->finance()->stav() < 0 ? 'color: #f22; font-weight: bolder;' : ''),
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
@@ -188,29 +187,6 @@ if ($uPracovni) {
             $x->assign("potvrzeniOdkaz", '<a href="infopult/potvrzeni-rodicu?id=' . $uPracovni->id() . '">odkaz na potvrzení</a>');
         }
         $x->parse('infopult.uzivatel.potvrzeni');
-    }
-
-    if (VYZADOVANO_COVID_POTVRZENI) {
-        $mameNahranyLetosniDokladProtiCovidu = $uPracovni->maNahranyDokladProtiCoviduProRok((int)date('Y'));
-        $mameOverenePotvrzeniProtiCoviduProRok = $uPracovni->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
-        if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok) {
-            /* muze byt overeno rucne bez nahraneho dokladu */
-            $x->assign("covidPotvrzeniText", $err . " požádej o doplnění");
-        } else if (!$mameNahranyLetosniDokladProtiCovidu) {
-            /* potvrzeno rucne na infopultu, bez nahraneho dokladu */
-            $x->assign("covidPotvrzeniAttr", 'checked value=""');
-            $x->assign("covidPotvrzeniText", $ok . " ověřeno bez dokladu");
-        } else {
-            $datumNahraniPotvrzeniProtiCovid = (new DateTimeCz($uPracovni->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni();
-            $x->assign('covidPotvrzeniOdkazAttr', "href=\n" . $uPracovni->urlNaPotvrzeniProtiCoviduProAdmin() . "\"");
-            if ($mameOverenePotvrzeniProtiCoviduProRok) {
-                $x->assign("covidPotvrzeniAttr", 'checked value=""');
-                $x->assign("covidPotvrzeniText", $ok . " ověřeno dokladem $datumNahraniPotvrzeniProtiCovid");
-            } else {
-                $x->assign("covidPotvrzeniText", $warn . " neověřený doklad $datumNahraniPotvrzeniProtiCovid");
-            }
-        }
-        $x->parse('infopult.uzivatel.covidSekce');
     }
 
     $x->assign("telefon", $uPracovni->telefon());

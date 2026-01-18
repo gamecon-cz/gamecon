@@ -157,20 +157,6 @@
         </tr>
         <!-- end:potvrzeni -->
 
-        <!-- begin:covidSekce -->
-        <tr>
-          <td>Covid-19:</td>
-          <td>
-            <input type="checkbox" name="udaje[potvrzeni_proti_covid19_overeno_kdy]"
-                   style="margin-left: -3px;" id="udaj_covid19" {covidPotvrzeniAttr}>
-            <a target="_blank" {covidPotvrzeniOdkazAttr}>
-              {covidPotvrzeniText}
-            </a>
-            </input>
-          </td>
-        </tr>
-        <!-- end:covidSekce -->
-
         <tr>
           <td colspan="2" class="clearfix">
             <button style="margin: 0" type="submit" name="kontrolaOsobnichUdajuSubmit" value="1"

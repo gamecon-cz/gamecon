@@ -133,7 +133,7 @@ function updateUzivatelHodnoty(array $udaje, int $uPracovniId, Vyjimkovac $vyjim
 
 /* Editace v kartě Pŕehled */
 if ($uPracovni && $udaje = post('udaje')) {
-    foreach (['potvrzeni_zakonneho_zastupce', 'potvrzeni_proti_covid19_overeno_kdy'] as $klic) {
+    foreach (['potvrzeni_zakonneho_zastupce'] as $klic) {
         if (isset($udaje[$klic])) {
             // pokud je hodnota "" tak to znamená že nedošlo ke změně
             if ($udaje[$klic] == "")
