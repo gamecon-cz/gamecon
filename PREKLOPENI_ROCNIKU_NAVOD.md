@@ -29,7 +29,7 @@ Nahraj zálohu databáze
 na [Gamecon Gdrive](https://drive.google.com/drive/folders/1QZIzXCrOQ2JMYi0EjI5EMbri0KHTJ9Nv?usp=drive_link) do složky
 _Záloha {STARY_ROCNIK}_
 
-```
+---
 
 Přidej novou databázi `gamecon_STARY_ROCNIK` a subdoménu `STARY_ROCNIK.gamecon.cz` do [Gamecon Ansible](https://github.com/gamecon-cz/ansible)
 ```bash
@@ -78,6 +78,12 @@ define('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB', false);
 define('CRON_KEY', '');
 define('GOOGLE_API_CREDENTIALS', '');
 ```
+Vygeneruj si certifikáty pro starý ročník
+```bash
+certbot certonly --webroot
+```
+, domény `STARY_ROCNIK.gamecon.cz admin.STARY_ROCNIK.gamecon.cz cache.STARY_ROCNIK.gamecon.cz`,
+cesta na serveru `/run/certbot`
 
 Ověř, že záloha webu funguje na adrese [https://{STARY\_ROCNIK}.gamecon.cz/](https://stary_rocnik.gamecon.cz/)
 a [https://admin.{STARY\_ROCNIK}.gamecon.cz/](https://admin.stary_rocnik.gamecon.cz/)
@@ -91,7 +97,7 @@ a [https://admin.{STARY\_ROCNIK}.gamecon.cz/](https://admin.stary_rocnik.gamecon
         - _Tato stránka pouze vygeneruje kód, kterým později upravíš zůstatky peněz u všech lidí. Tento kód je potřeba
           si zkopírovat a uložit. V posledním kroku po nasazení webu tento skript pustíme na ostré databázi._
     - Skript zkopíruj a ručně spusť na ostré databázi
-      - Pozor ⚠️, poté už negeneruj a hlavně nespouštěj nový skript, do zůstatků by se znovu započetly už započtené změny! 
+      - Pozor ⚠️, poté už negeneruj a hlavně nespouštěj nový skript, do zůstatků by se znovu započetly už započtené změny!
 
 - Z gitu si stáhni aktuální repozitář projektu Gamecon a vytvoř novou větev, do které budeš commitovat změny.
 

@@ -839,11 +839,52 @@ function dbQueryS(
     );
 }
 
+/**
+ * Assembles a database query by replacing placeholders with escaped values.
+ *
+ * Supports two types of placeholders:
+ * - ? (question mark): Sequential placeholders, replaced in order (0, 1, 2, ...)
+ * - $N (dollar-sign numeric): Explicit index placeholders ($0, $1, $2, ...)
+ *
+ * Examples:
+ *   dbQueryAssemble('SELECT * FROM users WHERE id = ?', [123])
+ *   dbQueryAssemble('SELECT * FROM users WHERE id = ? AND name = ?', [123, 'John'])
+ *   dbQueryAssemble('SELECT * FROM users WHERE id = $0', [123])
+ *   dbQueryAssemble('UPDATE users SET name = $1 WHERE id = $0', [123, 'John'])
+ *
+ * Mixing placeholders:
+ *   dbQueryAssemble('SELECT * FROM users WHERE id = ? AND status = $1', [123, 'active'])
+ *   // ? consumes index 0, $1 refers to index 1
+ *
+ * @param string $q Query with placeholders
+ * @param array $pole Parameter values
+ * @param mysqli|null $mysqli Database connection for escaping
+ * @return string Assembled query with values escaped
+ * @throws DbException If not enough parameters provided
+ */
 function dbQueryAssemble(
     string $q,
     array  $pole,
     mysqli $mysqli = null,
 ): string {
+    // Phase 1: Replace ? placeholders sequentially
+    $consumedParams = 0;
+    $q = preg_replace_callback(
+        '~\?~',
+        function($matches) use ($pole, &$consumedParams, $mysqli) {
+            if ($consumedParams >= count($pole)) {
+                throw new DbException(
+                    "Not enough parameters: query has more ? placeholders than provided parameters"
+                );
+            }
+            $value = dbQv($pole[$consumedParams], $mysqli);
+            $consumedParams++;
+            return $value;
+        },
+        $q
+    );
+
+    // Phase 2: Replace $N placeholders (existing logic)
     $delta = array_key_exists(0, $pole) && !str_contains($q, '$0')
         ? -1
         : 0; // povolení číslování $1, $2, $3...
@@ -857,8 +898,21 @@ function dbQueryAssemble(
             $pole,
             $delta,
             $mysqli,
+            $consumedParams,
         ) {
-            return dbQv($pole[$matches['cislo_parametru'] + $delta], $mysqli);
+            $paramIndex = $matches['cislo_parametru'] + $delta;
+
+            // When mixing placeholders, $N refers to params AFTER consumed ones
+            if ($consumedParams > 0) {
+                $paramIndex += $consumedParams;
+            }
+
+            if (!array_key_exists($paramIndex, $pole)) {
+                throw new DbException(
+                    "Parameter \${$matches['cislo_parametru']} (index $paramIndex) not found in provided parameters"
+                );
+            }
+            return dbQv($pole[$paramIndex], $mysqli);
         },
         $q,
     );

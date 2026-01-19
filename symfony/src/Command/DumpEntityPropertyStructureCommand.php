@@ -108,7 +108,11 @@ class DumpEntityPropertyStructureCommand extends Command
         // Get all field mappings (regular fields)
         $fieldMappings = $metadata->fieldMappings;
         foreach ($fieldMappings as $fieldName => $mapping) {
-            $constants[] = "    /** @see {$shortEntityName}::\${$fieldName} */";
+            $constants[] = <<<PHPDOC
+    /**
+     * @see {$shortEntityName}::\${$fieldName}
+     */
+PHPDOC;
             $constants[] = "    public const {$fieldName} = '{$fieldName}';";
             $constants[] = '';
         }
@@ -116,7 +120,11 @@ class DumpEntityPropertyStructureCommand extends Command
         // Get all association mappings (relationships)
         $associationMappings = $metadata->associationMappings;
         foreach ($associationMappings as $fieldName => $mapping) {
-            $constants[] = "    /** @see {$shortEntityName}::\${$fieldName} */";
+            $constants[] = <<<PHPDOC
+    /**
+     * @see {$shortEntityName}::\${$fieldName}
+     */
+PHPDOC;
             $constants[] = "    public const {$fieldName} = '{$fieldName}';";
             $constants[] = '';
         }

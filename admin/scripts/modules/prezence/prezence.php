@@ -115,7 +115,7 @@ foreach ($aktivity as $aktivita) {
     }
     $t->assign(
         'nadpis',
-        implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace(), $aktivita->zacatek()?->format('l H:i')]))
+        implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->popisLokaci(), $aktivita->zacatek()?->format('l H:i')]))
         . ($aktivita->zamcena()
             ? ' <span class="hinted">🔒<span class="hint">Zamčená pro přihlašování</span></span> '
             : '')

@@ -8,6 +8,7 @@ use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportSqlColumn;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportSqlMappedValuesChecker;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesDescriber;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
+use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceOrganizatoriSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
@@ -48,9 +49,11 @@ class Aktivita
     private static       $prihlaseniRawArrayCache = [];
     private static array $seznamUcastnikuCache    = [];
 
-    private array              $a; // databázový řádek s aktivitou
-    private array              $kolekce               = []; // nadřízená kolekce, v rámci které byla aktivita načtena
-    private                    $lokace;
+    private array $a; // databázový řádek s aktivitou
+    private array $kolekce = []; // nadřízená kolekce, v rámci které byla aktivita načtena
+    /** @var array<Lokace>|null */
+    private ?array             $seznamLokaci;
+    private null | int | false $idHlavniLokace = null;
     private                    $stav;
     private ?int               $idHlavniAktivityCache = null;
     private bool               $nova;           // jestli jde o nově uloženou aktivitu nebo načtenou z DB
@@ -72,6 +75,8 @@ class Aktivita
     const OBRAZEK_KLIC          = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
     const ODMENA_ZA_HODINU_KLIC = 'odmena_za_hodinu';
     const TAGY_KLIC             = 'aEditTag'; // název proměnné; v které jdou tagy
+    const LOKACE_KLIC           = 'aEditLokace'; // název proměnné; v které jdou lokace
+    const HLAVNI_LOKACE_KLIC    = 'aEditHlavniLokace'; // název proměnné; v které jdou lokace
     const POST_KLIC             = 'aEditForm'; // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
     const TEAM_KLIC             = 'aTeamForm'; // název post proměnné s formulářem pro výběr teamu
     const TEAM_KLIC_KOLA        = 'aTeamFormKolo'; // název post proměnné s výběrem kol pro team
@@ -532,6 +537,8 @@ SQL
         $xtpl->assign('ajaxKlic', self::AJAX_KLIC);
         $xtpl->assign('obrKlic', self::OBRAZEK_KLIC);
         $xtpl->assign('obrKlicUrl', self::OBRAZEK_KLIC . 'Url');
+        $xtpl->assign('aEditLokace', self::LOKACE_KLIC);
+        $xtpl->assign('aEditHlavniLokace', self::HLAVNI_LOKACE_KLIC);
         $xtpl->assign('aEditTag', self::TAGY_KLIC);
         $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
         $xtpl->assign('typBrigadnicka', TypAktivity::BRIGADNICKA);
@@ -575,16 +582,86 @@ SQL
         ?Aktivita $aktivita,
         XTemplate $xtpl,
     ): void {
-        $aktivitaData = $aktivita?->a; // databázový řádek
+        $vsechnyLokace = Lokace::zVsech();
+        usort($vsechnyLokace, static function (
+            Lokace $a,
+            Lokace $b,
+        ) {
+            return $a->poradi() <=> $b->poradi();
+        });
+
+        /** @var array<string, array<int, Lokace>> $vsechnyLokacePodlePoznamky */
+        $vsechnyLokacePodlePoznamky = [];
+        foreach ($vsechnyLokace as $lokace) {
+            $vsechnyLokacePodlePoznamky[trim((string)$lokace->poznamka())][] = $lokace;
+        }
+
+        $pocetVsechLokaci        = count($vsechnyLokace);
+        $nazevPredchoziKategorie = null;
+
+        $encodeForHtml = function (
+            ?string $value,
+        ) {
+            return htmlspecialchars((string)$value, ENT_QUOTES | ENT_HTML5);
+        };
+
+        $vybraneLokace = $aktivita?->seznamLokaciIdcka() ?? [];
+
+        $indexLokace = 0;
+        foreach ($vsechnyLokacePodlePoznamky as $poznamka => $lokaceSeStejnouPoznamkou) {
+            $jeNovaKategorie = $nazevPredchoziKategorie !== null
+                               && $nazevPredchoziKategorie !== $poznamka;
+            foreach ($lokaceSeStejnouPoznamkou as $lokace) {
+                assert($lokace instanceof Lokace);
+                $xtpl->assign('id_lokace', $lokace->id());
+                $xtpl->assign('nazev_lokace', $encodeForHtml($lokace->nazev()));
+                $xtpl->assign('lokace_selected', in_array($lokace->id(), $vybraneLokace, true)
+                    ? 'selected'
+                    : '');
+                $xtpl->assign(
+                    'previous_optgroup_lokace_end',
+                    $jeNovaKategorie && $nazevPredchoziKategorie !== null
+                        ? '</optgroup>'
+                        : '',
+                );
+                $xtpl->assign(
+                    'optgroup_lokace_start',
+                    $jeNovaKategorie
+                        ? '<optgroup label="' . $encodeForHtml(mb_ucfirst($poznamka)) . '">'
+                        : '',
+                );
+                $xtpl->assign(
+                    'last_optgroup_lokace_end',
+                    $indexLokace + 1 === $pocetVsechLokaci
+                        ? '</optgroup>'
+                        : '',
+                );
+                $xtpl->parse('upravy.tabulka.lokace');
+                $nazevPredchoziKategorie = $poznamka;
+            }
+            $indexLokace++;
+        }
+        self::parseUpravyTabulkaHlavniLokace($aktivita, $vsechnyLokace, $xtpl);
+    }
+
+    /**
+     * @param array<Lokace> $vsechnyLokace
+     */
+    private static function parseUpravyTabulkaHlavniLokace(
+        ?Aktivita $aktivita,
+        array     $vsechnyLokace,
+        XTemplate $xtpl,
+    ): void {
         $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)', 'selected' => '']);
-        $xtpl->parse('upravy.tabulka.lokace');
-        $q = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
-        while ($lokaceData = mysqli_fetch_assoc($q)) {
-            $xtpl->assign('selected', $aktivita && $aktivitaData[Sql::LOKACE] == $lokaceData['id_lokace']
+        $xtpl->parse('upravy.tabulka.vyberHlavniLokace');
+
+        $hlavniLokace = $aktivita?->hlavniLokace();
+        foreach ($vsechnyLokace as $lokace) {
+            $xtpl->assign('selected', $lokace->id() === $hlavniLokace?->id()
                 ? 'selected'
                 : '');
-            $xtpl->assign($lokaceData);
-            $xtpl->parse('upravy.tabulka.lokace');
+            $xtpl->assign(['id_lokace' => $lokace->id(), 'nazev' => htmlspecialchars($lokace->nazev(), ENT_QUOTES | ENT_HTML5)]);
+            $xtpl->parse('upravy.tabulka.vyberHlavniLokace');
         }
     }
 
@@ -938,6 +1015,26 @@ SQL
             }
         }
 
+        $lokaceIds = [];
+        foreach ((array)post(self::LOKACE_KLIC) as $lokaceId) {
+            $lokaceId = (int)$lokaceId;
+            if ($lokaceId > 0) {
+                $lokaceIds[$lokaceId] = $lokaceId;
+            }
+        }
+        $hlavniLokaceId = post(self::HLAVNI_LOKACE_KLIC);
+        $hlavniLokaceId = $hlavniLokaceId
+            ? (int)$hlavniLokaceId
+            : null;
+        if ($hlavniLokaceId !== null) {
+            $lokaceIds[$hlavniLokaceId] = $hlavniLokaceId; // automaticky přidáme zvolenou hlavní lokaci do seznamu lokací
+        }
+        if ($hlavniLokaceId === null && count($lokaceIds) === 1) {
+            // pokud je vybrána pouze jedna lokace, nastavíme ji jako hlavní
+            $hlavniLokaceId = reset($lokaceIds);
+        }
+        self::chybaNebylaLiHlavniLokaceNastavena($lokaceIds, $hlavniLokaceId);
+
         $obrazekSoubor = postFile(self::OBRAZEK_KLIC);
         $obrazekUrl = post(self::OBRAZEK_KLIC . 'Url');
 
@@ -947,6 +1044,8 @@ SQL
             data: $a,
             markdownPopis: $popis,
             organizatoriIds: $organizatori,
+            lokaceIds: $lokaceIds,
+            hlavniLokaceId: $hlavniLokaceId,
             tagIds: $tagIds,
             obrazekSoubor: $obrazekSoubor,
             obrazekUrl: $obrazekUrl,
@@ -984,37 +1083,57 @@ SQL
 
     private static function varujBylaLiNejakaLokaceObsazena(Aktivita $aktivita): void
     {
-        $lokaceId = $aktivita->lokaceId();
-        if (!$lokaceId) {
+        $seznamLokaci = $aktivita->seznamLokaci();
+        if ($seznamLokaci === []) {
             return;
         }
-        $result = ImportSqlMappedValuesChecker::checkLocationByAccessibility(
-            $lokaceId,
-            $aktivita->zacatek()?->format(DateTimeCz::FORMAT_DB),
-            $aktivita->konec()?->format(DateTimeCz::FORMAT_DB),
-            $aktivita,
-            $aktivita->typ(),
-            new ImportValuesDescriber(Urls::urlAdminDetailAktivity(null)),
+        foreach ($seznamLokaci as $lokace) {
+            $result = ImportSqlMappedValuesChecker::checkLocationByAccessibility(
+                $lokace->id(),
+                $aktivita->zacatek()?->format(DateTimeCz::FORMAT_DB),
+                $aktivita->konec()?->format(DateTimeCz::FORMAT_DB),
+                $aktivita,
+                $aktivita->typ(),
+                new ImportValuesDescriber(Urls::urlAdminDetailAktivity(null)),
+            );
+            if ($result->hasWarnings()) {
+                foreach ($result->getWarnings() as $warning) {
+                    varovani($warning, false);
+                }
+            }
+            if ($result->hasErrorLikeWarnings()) {
+                foreach ($result->getErrorLikeWarnings() as $errorLikeWarning) {
+                    chyba($errorLikeWarning, false);
+                }
+            }
+            if ($result->hasError()) {
+                chyba($result->getError(), false);
+            }
+        }
+    }
+
+    private static function chybaNebylaLiHlavniLokaceNastavena(
+        array $lokaceIds,
+        ?int  $hlavniLokaceId,
+    ): void {
+        if ($lokaceIds === [] && $hlavniLokaceId === null) {
+            return;
+        }
+        if (in_array($hlavniLokaceId, $lokaceIds, true)) {
+            return;
+        }
+        chyba(
+            'Hlavní místnost musí být jednou z vybraných místností.',
+            true,
         );
-        if ($result->hasWarnings()) {
-            foreach ($result->getWarnings() as $warning) {
-                varovani($warning, false);
-            }
-        }
-        if ($result->hasErrorLikeWarnings()) {
-            foreach ($result->getErrorLikeWarnings() as $errorLikeWarning) {
-                chyba($errorLikeWarning, false);
-            }
-        }
-        if ($result->hasError()) {
-            chyba($result->getError(), false);
-        }
     }
 
     public static function uloz(
         array   $data,
         ?string $markdownPopis,
         array   $organizatoriIds,
+        array   $lokaceIds,
+        ?int    $hlavniLokaceId,
         array   $tagIds,
         string  $obrazekSoubor = null,
         string  $obrazekUrl = null,
@@ -1068,9 +1187,6 @@ SQL
         $data[Sql::PATRI_POD] = !empty($data[Sql::PATRI_POD])
             ? $data[Sql::PATRI_POD]
             : null;
-        $data[Sql::LOKACE] = !empty($data[Sql::LOKACE])
-            ? $data[Sql::LOKACE]
-            : null;
 
         if (!empty($data[Sql::TYP]) && (int)$data[Sql::TYP] === TypAktivity::BRIGADNICKA && $odmenaZaHodinu
             && !empty($data[Sql::ZACATEK]) && !empty($data[Sql::KONEC])
@@ -1084,20 +1200,23 @@ SQL
             }
         }
 
+        $problemy = [];
         // uložení změn do akce_seznam
         if (empty($data[Sql::PATRI_POD]) && !empty($data[Sql::ID_AKCE])) {
             // editace jediné aktivity
             dbInsertUpdate('akce_seznam', $data);
             $aktivita = self::zId($data[Sql::ID_AKCE]);
+            $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
         } elseif (!empty($data[Sql::PATRI_POD])) {
             // editace aktivity z rodiny instancí
-            $doHlavni = [Sql::URL_AKCE, Sql::POPIS, Sql::VYBAVENI];    // věci, které se mají změnit jen u hlavní (main) `instance
-            $doAktualni = [Sql::LOKACE, Sql::ZACATEK, Sql::KONEC];       // věci, které se mají změnit jen u aktuální instance
-            $aktivita = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
+            $doHlavni   = [Sql::URL_AKCE, Sql::POPIS, Sql::VYBAVENI];    // věci, které se mají změnit jen u hlavní (main) `instance
+            $doAktualni = [Sql::ZACATEK, Sql::KONEC];       // věci, které se mají změnit jen u aktuální instance
+            $aktivita   = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
                 $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
                 unset($data[ActivitiesImportSqlColumn::STAV]); // stav se může měnit jenom u jedné instance
             }
+            $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
             // (zbytek se změní v obou)
             // určení hlavní aktivity
             $idHlavni = $aktivita->idHlavniAktivity();
@@ -1137,7 +1256,8 @@ SQL
             // vložení
             dbInsertUpdate(Sql::AKCE_SEZNAM_TABULKA, $data);
             $data[Sql::ID_AKCE] = dbInsertId();
-            $aktivita = self::zId($data[Sql::ID_AKCE]);
+            $aktivita           = self::zId($data[Sql::ID_AKCE]);
+            $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
             $aktivita->nova = true;
         }
 
@@ -1362,25 +1482,171 @@ SQL
         return $this->a['popis_kratky'];
     }
 
-    /** Vrátí lokaci (ndef. formát, ale musí podporovat __toString) */
-    public function lokace(): ?\Lokace
+    /**
+     * @return array<Lokace>
+     */
+    public function seznamLokaci(): array
     {
-        if (is_numeric($this->lokace)) {
-            $this->prednactiN1([
-                'atribut' => Sql::LOKACE,
-                'cil'     => \Lokace::class,
-            ]);
+        if (!isset($this->seznamLokaci)) {
+            $this->prednactiMN(
+                [
+                    'atribut'      => 'seznamLokaci',
+                    'cil'          => Lokace::class,
+                    'tabulka'      => AkceLokaceSqlStruktura::AKCE_LOKACE_TABULKA,
+                    'zdrojSloupec' => AkceLokaceSqlStruktura::ID_AKCE,
+                    'cilSloupec'   => AkceLokaceSqlStruktura::ID_LOKACE,
+                ],
+                true,
+            );
         }
 
-        return $this->lokace
+        if (count($this->seznamLokaci) > 1) {
+            $idHlavniLokace = $this->idHlavniLokace();
+            usort(
+                $this->seznamLokaci,
+                static function (
+                    Lokace $a,
+                    Lokace $b,
+                ) use
+                (
+                    $idHlavniLokace,
+                ) {
+                    if ($a->id() === $b->id()) {
+                        return 0; // stejná lokace
+                    }
+                    if ($idHlavniLokace !== null) {
+                        // hlavní nejdřív, pak podle pořadí
+                        if ($a->id() === $idHlavniLokace) {
+                            return -1; // a je hlavní lokace
+                        }
+                        if ($b->id() === $idHlavniLokace) {
+                            return 1; // b je hlavní lokace
+                        }
+                    }
+
+                    return $a->poradi() <=> $b->poradi();
+                },
+            );
+        }
+
+        return $this->seznamLokaci;
+    }
+
+    public function hlavniLokace(): ?Lokace
+    {
+        $idHlavniLokace = $this->idHlavniLokace();
+        if ($idHlavniLokace === null) {
+            return null;
+        }
+        foreach ($this->seznamLokaci() as $lokace) {
+            if ($lokace->id() === $idHlavniLokace) {
+                return $lokace;
+            }
+        }
+        throw new \LogicException(sprintf(
+            'Hlavní lokace s ID %d nebyla nalezena v seznamu lokací aktivity %d.',
+            $idHlavniLokace,
+            $this->id(),
+        ));
+    }
+
+    public function idHlavniLokace(): ?int
+    {
+        if (!isset($this->idHlavniLokace)) {
+            $idHlavniLokace       = dbFetchSingle(<<<SQL
+                SELECT id_lokace
+                FROM akce_lokace
+                WHERE id_akce = {$this->id()}
+                ORDER BY je_hlavni DESC, id_lokace ASC
+                LIMIT 1
+                SQL,
+            );
+            $this->idHlavniLokace = $idHlavniLokace
+                ? (int)$idHlavniLokace
+                : false;
+        }
+
+        return $this->idHlavniLokace
             ?: null;
     }
 
-    public function lokaceId(): ?int
+    public function nastavLokacePodleIds(
+        array $idckaLokaci,
+        ?int  $hlavniLokaceId,
+    ): void {
+        if ($idckaLokaci === []) {
+            // Empty array means delete all locations
+            dbQuery(<<<SQL
+                    DELETE FROM akce_lokace
+                    WHERE id_akce = {$this->id()}
+                    SQL,
+            );
+        } else {
+            // Non-empty array: delete locations NOT in the list
+            dbQuery(<<<SQL
+                    DELETE FROM akce_lokace
+                    WHERE id_akce = {$this->id()}
+                    AND id_lokace NOT IN ($1)
+                    SQL,
+                [1 => $idckaLokaci],
+            );
+        }
+        if ($idckaLokaci !== []) {
+            $values    = array_map(
+                function (
+                    int $idLokace,
+                ) use
+                (
+                    $hlavniLokaceId,
+                ) {
+                    $jeHlavni = $hlavniLokaceId !== null && $idLokace === $hlavniLokaceId
+                        ? 1
+                        : 0;
+
+                    return "({$this->id()}, $idLokace, $jeHlavni)";
+                },
+                array_map('intval', $idckaLokaci),
+            );
+            $valuesSql = implode(',', $values);
+            dbQuery(<<<SQL
+                REPLACE INTO akce_lokace(id_akce, id_lokace, je_hlavni)
+                VALUES {$valuesSql}
+                SQL,
+            );
+        }
+        $this->seznamLokaci = null;
+    }
+
+    public function popisLokaci(): string
     {
-        return $this->a[Sql::LOKACE] !== null
-            ? (int)$this->a[Sql::LOKACE]
-            : null;
+        return implode(', ', array_map(static function (
+            Lokace $lokace,
+        ) {
+            return $lokace->__toString();
+        }, $this->seznamLokaci()));
+    }
+
+    public function nazevLokaci(): string
+    {
+        return implode(', ', array_map(static function (
+            Lokace $lokace,
+        ) {
+            return $lokace->nazev();
+        }, $this->seznamLokaci()));
+    }
+
+    /**
+     * Vrátí pole ID lokací, které jsou přiřazeny k aktivitě.
+     * @return int[]
+     */
+    public function seznamLokaciIdcka(): array
+    {
+        return array_map(
+            static fn(
+                Lokace $lokace,
+            ) => $lokace->id(),
+            $this->seznamLokaci(),
+        );
     }
 
     /**
@@ -2930,8 +3196,12 @@ HTML
     /**
      * Vrací surový databázový řádek, nepoužívat (pouze pro debug a zpětnou kompatibilitu, postupně odstranit).
      */
-    public function rawDb(): array
+    public function rawDb(array $values = null): array
     {
+        if ($values !== null) {
+            $this->a = [...$this->a, ...$values];
+        }
+
         return $this->a;
     }
 

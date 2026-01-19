@@ -105,6 +105,11 @@ class ActivityEntityStructure
     public const forTeamLockedAt = 'forTeamLockedAt';
 
     /**
+     * @see Activity::$description
+     */
+    public const description = 'description';
+
+    /**
      * @see Activity::$shortDescription
      */
     public const shortDescription = 'shortDescription';
@@ -148,11 +153,6 @@ class ActivityEntityStructure
      * @see Activity::$forTeamLockedBy
      */
     public const forTeamLockedBy = 'forTeamLockedBy';
-
-    /**
-     * @see Activity::$description
-     */
-    public const description = 'description';
 
     /**
      * @see Activity::$activityTags
