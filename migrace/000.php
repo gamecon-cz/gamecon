@@ -955,7 +955,7 @@ VALUES (1, 'KURZ_EURO', '23.8', 1, 'number', 'Kurz Eura', 'Kolik kč je pro nás
         'Do kolika dní po GC lze přidat účastníka',
         'Kolik dní po konci GC lze ještě přidávat účastníky na Neuzavřenou aktivitu', '2023-05-11 18:28:12', 'Časy', 18,
         0, -1),
-       (32, 'ROCNIK', '2025', 1, 'integer', 'Ročník', 'Který ročník GC je aktivní', '2024-12-03 11:03:07', 'Časy', 19,
+       (32, 'ROCNIK', '2026', 1, 'integer', 'Ročník', 'Který ročník GC je aktivní', '2024-12-03 11:03:07', 'Časy', 19,
         1, -1),
        (34, 'DRUHA_VLNA_KDY', '2025-06-05 20:25:00', 1, 'datetime', 'Začátek druhé vlny aktivit',
         'Kdy se podruhé hromadně změní aktivity Připravené k aktivaci na Aktivované', '2024-12-29 11:53:29', 'Časy', 21,

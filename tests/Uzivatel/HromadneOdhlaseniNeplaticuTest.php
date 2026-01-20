@@ -9,6 +9,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Logger\Zaznamnik;
+use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -542,6 +543,9 @@ SQL;
                 'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
             ],
         ];
+        $testovaciNicNedamNeodhlasovat = \Uzivatel::zIdUrcite(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT);
+        self::assertTrue($testovaciNicNedamNeodhlasovat->maRoli(Role::LETOSNI_NEODHLASOVAT), "Uživatel Nic Neodhlašovat by měl mít roli Neodhlašovat");
+        self::assertTrue($testovaciNicNedamNeodhlasovat->maPravo(Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY), "Uživatel Nic Neodhlašovat by měl mít právo Nerušit Objednávky");
         self::assertSame($ocekavaniNeplaticiPredOdhlasenim, $neplaticiAKategoriePredOdhlasenim);
 
         foreach (self::LETOS_PRIHLASENI_UZIVATELE as $idUzivatele) {
