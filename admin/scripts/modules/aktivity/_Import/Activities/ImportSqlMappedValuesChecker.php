@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
@@ -21,6 +22,7 @@ readonly class ImportSqlMappedValuesChecker
     public function checkBeforeSave(
         array       $sqlMappedValues,
         ?string     $longAnnotation,
+        array       $locationIds,
         array       $tagIds,
         array       $storytellersIds,
         TypAktivity $singleProgramLine,
@@ -66,6 +68,7 @@ readonly class ImportSqlMappedValuesChecker
         $requiredValuesForStateResult = $this->checkRequiredValuesForState(
             sqlMappedValues: $sqlMappedValues,
             longAnnotation: $longAnnotation,
+            locationIds: $locationIds,
             tagIds: $tagIds,
             potentialImageUrls: $potentialImageUrls,
         );
@@ -89,19 +92,21 @@ readonly class ImportSqlMappedValuesChecker
         $checkResults[]          = $storytellersAccessibilityResult;
         unset($storytellersAccessibilityResult);
 
-        $locationAccessibilityResult = self::checkLocationByAccessibility(
-            $sqlMappedValues[ActivitiesImportSqlColumn::LOKACE],
-            $sqlMappedValues[ActivitiesImportSqlColumn::ZACATEK],
-            $sqlMappedValues[ActivitiesImportSqlColumn::KONEC],
-            $originalActivity,
-            $singleProgramLine,
-            $this->importValuesDescriber,
-        );
-        if ($locationAccessibilityResult->isError()) {
-            return ImportStepResult::error($locationAccessibilityResult->getError());
+        foreach ($locationIds as $locationId) {
+            $locationAccessibilityResult = self::checkLocationByAccessibility(
+                $locationId,
+                $sqlMappedValues[ActivitiesImportSqlColumn::ZACATEK],
+                $sqlMappedValues[ActivitiesImportSqlColumn::KONEC],
+                $originalActivity,
+                $singleProgramLine,
+                $this->importValuesDescriber,
+            );
+            if ($locationAccessibilityResult->isError()) {
+                return ImportStepResult::error($locationAccessibilityResult->getError());
+            }
+            $checkResults[] = $locationAccessibilityResult;
+            unset($locationAccessibilityResult);
         }
-        $checkResults[] = $locationAccessibilityResult;
-        unset($locationAccessibilityResult);
 
         $teamCapacityRangeResult = $this->checkTeamCapacityRange(
             (bool)$sqlMappedValues[ActivitiesImportSqlColumn::TEAMOVA],
@@ -370,6 +375,7 @@ SQL
     private function checkRequiredValuesForState(
         array   $sqlMappedValues,
         ?string $longAnnotation,
+        array   $locationIds,
         array   $tagIds,
         array   $potentialImageUrls,
     ): ImportStepResult {
@@ -382,6 +388,7 @@ SQL
             $requiredFieldsForPublishingResult = $this->checkRequiredFieldsForPublishing(
                 sqlMappedValues: $sqlMappedValues,
                 longAnnotation: $longAnnotation,
+                locationIds: $locationIds,
                 tagIds: $tagIds,
                 potentialImageUrls: $potentialImageUrls,
             );
@@ -392,6 +399,7 @@ SQL
             $requiredFieldsForReadyForActivationResult = $this->checkRequiredFieldsForReadyToActivation(
                 sqlMappedValues: $sqlMappedValues,
                 longAnnotation: $longAnnotation,
+                locationIds: $locationIds,
                 tagIds: $tagIds,
                 potentialImageUrls: $potentialImageUrls,
             );
@@ -419,12 +427,14 @@ SQL
     private function checkRequiredFieldsForReadyToActivation(
         array   $sqlMappedValues,
         ?string $longAnnotation,
+        array   $locationIds,
         array   $tagIds,
         array   $potentialImageUrls,
     ): ImportStepResult {
         $sqlMappedValues = $this->extendValuesByVirtualColumns(
             sqlMappedValues: $sqlMappedValues,
             longAnnotation: $longAnnotation,
+            locationIds: $locationIds,
             tagIds: $tagIds,
             potentialImageUrls: $potentialImageUrls,
         );
@@ -434,7 +444,7 @@ SQL
             ActivitiesImportSqlColumn::URL_AKCE,
             ActivitiesImportSqlColumn::ZACATEK,
             ActivitiesImportSqlColumn::KONEC,
-            ActivitiesImportSqlColumn::LOKACE,
+            ActivitiesImportSqlColumn::VIRTUAL_LOCATIONS,
             ActivitiesImportSqlColumn::POPIS_KRATKY,
             ActivitiesImportSqlColumn::POPIS,
             ActivitiesImportSqlColumn::VYBAVENI,
@@ -469,12 +479,14 @@ SQL
     private function extendValuesByVirtualColumns(
         array   $sqlMappedValues,
         ?string $longAnnotation,
+        array   $locationIds,
         array   $tagIds,
         array   $potentialImageUrls,
     ): array {
-        $sqlMappedValues[ActivitiesImportSqlColumn::VIRTUAL_IMAGE] = implode(',', array_filter($potentialImageUrls));
-        $sqlMappedValues[ActivitiesImportSqlColumn::VIRTUAL_TAGS]  = implode(',', array_filter($tagIds));
-        $sqlMappedValues[ActivitiesImportSqlColumn::POPIS]         = $longAnnotation; // popis is a texts.id in fact, but we will use it as final text content here
+        $sqlMappedValues[ActivitiesImportSqlColumn::VIRTUAL_IMAGE]     = implode(',', array_filter($potentialImageUrls));
+        $sqlMappedValues[ActivitiesImportSqlColumn::VIRTUAL_LOCATIONS] = implode(',', array_filter($locationIds));
+        $sqlMappedValues[ActivitiesImportSqlColumn::VIRTUAL_TAGS]      = implode(',', array_filter($tagIds));
+        $sqlMappedValues[ActivitiesImportSqlColumn::POPIS]             = $longAnnotation; // popis is a texts.id in fact, but we will use it as final text content here
 
         return $sqlMappedValues;
     }
@@ -482,12 +494,14 @@ SQL
     private function checkRequiredFieldsForPublishing(
         array   $sqlMappedValues,
         ?string $longAnnotation,
+        array   $locationIds,
         array   $tagIds,
         array   $potentialImageUrls,
     ): ImportStepResult {
         $sqlMappedValues = $this->extendValuesByVirtualColumns(
             sqlMappedValues: $sqlMappedValues,
             longAnnotation: $longAnnotation,
+            locationIds: $locationIds,
             tagIds: $tagIds,
             potentialImageUrls: $potentialImageUrls,
         );
@@ -539,12 +553,13 @@ SQL
     private static function getFieldsToNames(): array
     {
         return [
-            ActivitiesImportSqlColumn::NAZEV_AKCE    => ExportAktivitSloupce::NAZEV,
-            ActivitiesImportSqlColumn::URL_AKCE      => ExportAktivitSloupce::URL,
-            ActivitiesImportSqlColumn::POPIS_KRATKY  => ExportAktivitSloupce::KRATKA_ANOTACE,
-            ActivitiesImportSqlColumn::POPIS         => ExportAktivitSloupce::DLOUHA_ANOTACE,
-            ActivitiesImportSqlColumn::VIRTUAL_TAGS  => ExportAktivitSloupce::TAGY,
-            ActivitiesImportSqlColumn::VIRTUAL_IMAGE => ExportAktivitSloupce::OBRAZEK,
+            ActivitiesImportSqlColumn::NAZEV_AKCE        => ExportAktivitSloupce::NAZEV,
+            ActivitiesImportSqlColumn::URL_AKCE          => ExportAktivitSloupce::URL,
+            ActivitiesImportSqlColumn::POPIS_KRATKY      => ExportAktivitSloupce::KRATKA_ANOTACE,
+            ActivitiesImportSqlColumn::POPIS             => ExportAktivitSloupce::DLOUHA_ANOTACE,
+            ActivitiesImportSqlColumn::VIRTUAL_LOCATIONS => ExportAktivitSloupce::MISTNOST,
+            ActivitiesImportSqlColumn::VIRTUAL_TAGS      => ExportAktivitSloupce::TAGY,
+            ActivitiesImportSqlColumn::VIRTUAL_IMAGE     => ExportAktivitSloupce::OBRAZEK,
         ];
     }
 
@@ -569,7 +584,7 @@ SQL
         $locationOccupyingActivityIds = dbOneArray(<<<SQL
 SELECT id_akce
 FROM akce_seznam
-WHERE akce_seznam.lokace = $0
+WHERE EXISTS(SELECT 1 FROM akce_lokace WHERE akce_lokace.id_lokace = {$idLokace} AND akce_lokace.id_akce = akce_seznam.id_akce)
 AND akce_seznam.zacatek <= $1 -- jina zacala na konci nebo pred koncem nove
 AND akce_seznam.konec >= $2 -- jina skoncila na zacatku nebo po zacatku nove
 AND akce_seznam.typ NOT IN ($3) -- jen aktivity kterym vadi, ze by sdilely mistnost
@@ -577,7 +592,6 @@ AND IF ($4 IS NULL, TRUE, akce_seznam.typ != $4) -- jen ostatni typy aktivit, po
 AND IF ($5 IS NULL, TRUE, akce_seznam.id_akce != $5) -- jen jine aktivity
 SQL,
             [
-                0 => $idLokace,
                 1 => $konec->formatDb(),
                 2 => $zacatek->formatDb(),
                 3 => $soucasnyTypAktivity::typyKterymNevadiSdileniMistnostiSZadnymiTypy(),

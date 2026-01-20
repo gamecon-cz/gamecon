@@ -95,3 +95,30 @@ vendor/bin/phpunit
   -- ✅ GOOD: Full table names or descriptive aliases
   UPDATE `novinky` LEFT JOIN `texty` ON texty.`id` = novinky.`text` SET novinky.`text_md` = texty.`text`;
   ```
+
+## SQL Query Parameter Preprocessing
+
+The GameCon project has a custom SQL preprocessing system (see `model/funkce/fw-database.php`):
+
+**Parameter Placeholders:**
+- `$0, $1, $2...` - Indexed parameters in queries
+- `?` - Sequential placeholders (can be mixed with `$N`)
+- Parameters passed as second argument to `dbQuery()`
+
+**Automatic Array Handling:**
+- When an array is passed as a parameter, `dbQv()` automatically calls `dbQa()`
+- `dbQa()` handles empty arrays by returning `'NULL'` (line 929-930)
+- Example: `dbQuery("SELECT * FROM table WHERE id NOT IN ($1)", [1 => []])` becomes `... NOT IN (NULL)`
+- This means you **don't need** to manually check for empty arrays before using `IN` or `NOT IN` clauses
+
+**Example:**
+```php
+// This works correctly even when $ids is an empty array
+dbQuery("DELETE FROM table WHERE id NOT IN ($1)", [1 => $ids]);
+// Empty array → NOT IN (NULL) → matches nothing (correct behavior)
+```
+
+**When to Use Explicit Checks:**
+- For code clarity and explicit intent
+- To avoid different SQL execution paths
+- To optimize query execution (avoiding query with NULL when you can skip it entirely)
