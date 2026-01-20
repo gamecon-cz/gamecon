@@ -1,41 +1,40 @@
 <?php
 
-use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
-$t = new XTemplate(__DIR__ . '/stravenky-bianco.xtpl');
+$t = new XTemplate(__DIR__ . '/stravenky.xtpl');
 
-$systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
-$rocnik             = $systemoveNastaveni->rocnik();
-$typJidlo           = Shop::JIDLO;
+$res = [
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '1'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '2'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '3'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně pátek', 'poradi_dne' => '3', 'poradi_jidla' => '1'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd pátek', 'poradi_dne' => '3', 'poradi_jidla' => '2'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře pátek', 'poradi_dne' => '3', 'poradi_jidla' => '3'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně sobota', 'poradi_dne' => '4', 'poradi_jidla' => '1'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd sobota', 'poradi_dne' => '4', 'poradi_jidla' => '2'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře sobota', 'poradi_dne' => '4', 'poradi_jidla' => '3'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně neděle', 'poradi_dne' => '5', 'poradi_jidla' => '1'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd neděle', 'poradi_dne' => '5', 'poradi_jidla' => '2'],
+    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře neděle', 'poradi_dne' => '5', 'poradi_jidla' => '3'],
 
-$o = dbQuery(<<<SQL
-SELECT nazev,
-       FIELD(SUBSTRING(TRIM(nazev), POSITION(' ' IN TRIM(nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
-       FIELD(SUBSTRING(TRIM(nazev), 1, POSITION(' ' IN TRIM(nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
-FROM shop_predmety
-WHERE model_rok = {$rocnik}
-  AND typ = {$typJidlo}
-ORDER BY poradi_dne DESC,
-         poradi_jidla DESC
-SQL,
-);
-while ($r = mysqli_fetch_assoc($o)) {
-    $jidla[] = $r['nazev'];
-}
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '1'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '2'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '3'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně pátek', 'poradi_dne' => '3', 'poradi_jidla' => '1'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd pátek', 'poradi_dne' => '3', 'poradi_jidla' => '2'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře pátek', 'poradi_dne' => '3', 'poradi_jidla' => '3'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně sobota', 'poradi_dne' => '4', 'poradi_jidla' => '1'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd sobota', 'poradi_dne' => '4', 'poradi_jidla' => '2'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře sobota', 'poradi_dne' => '4', 'poradi_jidla' => '3'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně neděle', 'poradi_dne' => '5', 'poradi_jidla' => '1'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd neděle', 'poradi_dne' => '5', 'poradi_jidla' => '2'],
+    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře neděle', 'poradi_dne' => '5', 'poradi_jidla' => '3'],
+];
 
-for ($i = 0; $i < 24; $i++) {
-    foreach ($jidla as $jidlo) {
-        $t->assign('nazev', $jidlo);
-        $t->parse('stravenky.uzivatel.jidlo');
-    }
-    $t->parse('stravenky.uzivatel');
-}
-
-// Netisknout upozornění, protože se tiskne 1 list. Zabíralo by místo.
-
+$config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+$t->assign("data", json_encode($res, $config));
 $t->parse('stravenky');
 $t->out('stravenky');
