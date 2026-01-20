@@ -6,7 +6,7 @@
  */
 
 $this->q(<<<SQL
-CREATE TABLE akce_lokace
+CREATE TABLE lokace
 (
     id_lokace bigint(20) unsigned NOT NULL AUTO_INCREMENT,
     nazev     varchar(255)        NOT NULL,
@@ -1086,7 +1086,7 @@ CREATE TABLE _table_data_versions
 INSERT INTO _table_data_versions
 VALUES ('akce_import', 28, '2025-07-18 12:12:25'),
        ('akce_instance', 35, '2025-07-13 10:34:44'),
-       ('akce_lokace', 3, '2025-07-13 15:54:18'),
+       ('lokace', 3, '2025-07-13 15:54:18'),
        ('akce_organizatori', 2459, '2025-09-18 16:52:46'),
        ('akce_prihlaseni', 9343, '2025-09-18 17:53:47'),
        ('akce_prihlaseni_log', 88445, '2025-10-16 12:34:44'),
@@ -1250,7 +1250,6 @@ CREATE TABLE akce_seznam
     url_akce         varchar(64)                  DEFAULT NULL,
     zacatek          datetime                     DEFAULT NULL,
     konec            datetime                     DEFAULT NULL,
-    lokace           bigint(20) unsigned          DEFAULT NULL,
     kapacita         int(11)             NOT NULL,
     kapacita_f       int(11)             NOT NULL,
     kapacita_m       int(11)             NOT NULL,
@@ -1276,19 +1275,29 @@ CREATE TABLE akce_seznam
     PRIMARY KEY (id_akce),
     UNIQUE KEY (url_akce, rok, typ),
     KEY (patri_pod),
-    KEY (lokace),
     KEY (typ),
     KEY (stav),
     KEY (zamcel),
     KEY (rok),
     FOREIGN KEY (typ) REFERENCES akce_typy (id_typu),
-    FOREIGN KEY (lokace) REFERENCES akce_lokace (id_lokace) ON DELETE SET NULL,
     FOREIGN KEY (zamcel) REFERENCES uzivatele_hodnoty (id_uzivatele) ON DELETE SET NULL,
     FOREIGN KEY (patri_pod) REFERENCES akce_instance (id_instance) ON DELETE SET NULL,
     FOREIGN KEY (stav) REFERENCES akce_stav (id_stav)
 );
 
 ALTER TABLE akce_instance ADD CONSTRAINT FOREIGN KEY (id_hlavni_akce) REFERENCES akce_seznam (id_akce) ON DELETE CASCADE;
+
+CREATE TABLE akce_lokace
+(
+    id_akce_lokace SERIAL,
+    id_akce        BIGINT UNSIGNED      NOT NULL,
+    id_lokace      BIGINT UNSIGNED      NOT NULL,
+    je_hlavni      TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT FK_akce_lokace_akce_seznam FOREIGN KEY (id_akce) REFERENCES akce_seznam (id_akce),
+    CONSTRAINT FK_akce_lokace_lokace FOREIGN KEY (id_lokace) REFERENCES lokace (id_lokace),
+    PRIMARY KEY (id_akce, id_lokace)
+);
+
 
 CREATE TABLE akce_prihlaseni
 (
