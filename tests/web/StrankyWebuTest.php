@@ -60,6 +60,7 @@ class StrankyWebuTest extends AbstractTestWeb
             'stranka',
             'programold',
             'program-nahled-api',
+            'info-po-gc'
         ];
         $modulyWebuBaseUrls = array_diff($modulyWebuBaseUrls, $blocklist);
         $webBaseUrl         = basename(__DIR__ . '/../../web');
