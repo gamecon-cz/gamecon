@@ -11,7 +11,6 @@ use App\Entity\ActivityType;
 use App\Entity\CategoryTag;
 use App\Entity\Location;
 use App\Entity\News;
-use App\Entity\NewsletterSubscription;
 use App\Entity\Page;
 use App\Entity\Payment;
 use App\Entity\Permission;
@@ -29,7 +28,6 @@ use App\Structure\Entity\ActivityTypeEntityStructure;
 use App\Structure\Entity\CategoryTagEntityStructure;
 use App\Structure\Entity\LocationEntityStructure;
 use App\Structure\Entity\NewsEntityStructure;
-use App\Structure\Entity\NewsletterSubscriptionEntityStructure;
 use App\Structure\Entity\PageEntityStructure;
 use App\Structure\Entity\PaymentEntityStructure;
 use App\Structure\Entity\PermissionEntityStructure;
@@ -47,7 +45,6 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\KategorieTagu;
 use Gamecon\Kfc\ObchodMrizka;
 use Gamecon\Kfc\ObchodMrizkaBunka;
-use Gamecon\Newsletter\NewsletterPrihlaseni;
 use Gamecon\Pravo;
 use Gamecon\Role\Role as LegacyRole;
 use Gamecon\Shop\Predmet;
@@ -59,7 +56,6 @@ use Gamecon\Tests\Factory\ActivityTypeFactory;
 use Gamecon\Tests\Factory\CategoryTagFactory;
 use Gamecon\Tests\Factory\LocationFactory;
 use Gamecon\Tests\Factory\NewsFactory;
-use Gamecon\Tests\Factory\NewsletterSubscriptionFactory;
 use Gamecon\Tests\Factory\PageFactory;
 use Gamecon\Tests\Factory\PaymentFactory;
 use Gamecon\Tests\Factory\PermissionFactory;
@@ -447,34 +443,6 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $legacyData = $legacyActivityRegistrationState->raw();
         $this->assertEquals($symfonyActivityRegistrationState->getNazev(), $legacyData['nazev']);
         $this->assertEquals($symfonyActivityRegistrationState->getPlatbaProcent(), $legacyData['platba_procent']);
-    }
-
-    public function testNewsletterSubscriptionEntityMatchesLegacyNewsletterPrihlaseni(): void
-    {
-        // Create a Symfony entity using factory
-        /** @var NewsletterSubscription $symfonyNewsletterSubscription */
-        $symfonyNewsletterSubscription = NewsletterSubscriptionFactory::createOne([
-            NewsletterSubscriptionEntityStructure::email => 'newsletter_' . uniqid() . '@example.com',
-            NewsletterSubscriptionEntityStructure::kdy   => new \DateTime('2023-08-01 10:00:00'),
-        ])->_save()->_real();
-
-        $symfonyNewsletterSubscriptionId = $symfonyNewsletterSubscription->getId();
-        $this->assertNotNull($symfonyNewsletterSubscriptionId);
-
-        // Fetch the same entity using legacy NewsletterPrihlaseni
-        $legacyNewsletterSubscription = NewsletterPrihlaseni::zId($symfonyNewsletterSubscriptionId);
-        $this->assertNotNull($legacyNewsletterSubscription, 'Legacy newsletter subscription should be found');
-
-        // Compare values using getters
-        $this->assertEquals($symfonyNewsletterSubscription->getId(), $legacyNewsletterSubscription->id());
-
-        // Test raw database values
-        $legacyData = $legacyNewsletterSubscription->raw();
-        $this->assertEquals($symfonyNewsletterSubscription->getEmail(), $legacyData['email']);
-        $this->assertEquals(
-            $symfonyNewsletterSubscription->getKdy()->format('Y-m-d H:i:s'),
-            $legacyData['kdy'],
-        );
     }
 
     public function testRoleEntityMatchesLegacyRole(): void
