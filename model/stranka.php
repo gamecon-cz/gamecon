@@ -57,7 +57,7 @@ class Stranka extends DbObject
 
     public function isRedirect(): bool
     {
-        return $this->r['redirect'] ?? false;
+        return boolval($this->r['redirect']);
     }
 
     public function redirectUrl(): string
