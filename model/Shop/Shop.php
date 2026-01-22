@@ -344,9 +344,12 @@ SQL,
 
     private function seradJidla(array $jidla): array
     {
+
         uksort($jidla['druhy'], [$this, 'seradDruhyJidel']);
-        foreach ($jidla['jidla'] as &$jidlaJedenDen) {
-            uksort($jidlaJedenDen, [$this, 'seradDruhyJidel']);
+        if (array_key_exists("jidla", $jidla) && $jidla['jidla'] != null) {
+            foreach ($jidla['jidla'] as &$jidlaJedenDen) {
+                uksort($jidlaJedenDen, [$this, 'seradDruhyJidel']);
+            }
         }
 
         return $jidla;

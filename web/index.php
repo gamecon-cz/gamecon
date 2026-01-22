@@ -34,6 +34,11 @@ $m = $url
     ? Modul::zUrl(null, $systemoveNastaveni)
     : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
 if (!$m && ($stranka = Stranka::zUrl())) {
+    if ($stranka->isRedirect())
+    {
+        header('Location: ' . $stranka->redirectUrl(), true, 301);
+        exit;
+    }
     $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
     $m->param('stranka', $stranka);
 }

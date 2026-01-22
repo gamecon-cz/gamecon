@@ -1,3 +1,0 @@
-DROP INDEX id_uzivatele ON uzivatele_role_podle_rocniku;
-
-ALTER TABLE uzivatele_role_podle_rocniku RENAME INDEX rocnik TO idx_uzivatele_role_podle_rocniku_rocnik;

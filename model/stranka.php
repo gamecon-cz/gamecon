@@ -55,6 +55,16 @@ class Stranka extends DbObject
         return $this->r['poradi'];
     }
 
+    public function isRedirect(): bool
+    {
+        return boolval($this->r['redirect']);
+    }
+
+    public function redirectUrl(): string
+    {
+        return $this->r['obsah'];
+    }
+
     /** Vrátí typ aktivit (linii) pokud stránka patří pod nějakou linii */
     public function typ()
     {
