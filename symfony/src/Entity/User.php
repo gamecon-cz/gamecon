@@ -102,12 +102,6 @@ class User
     #[ORM\Column(name: 'potvrzeni_zakonneho_zastupce', type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $potvrzeniZakonnehoZastupce = null;
 
-    #[ORM\Column(name: 'potvrzeni_proti_covid19_pridano_kdy', type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $potvrzeniProtiCovid19PridanoKdy = null;
-
-    #[ORM\Column(name: 'potvrzeni_proti_covid19_overeno_kdy', type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $potvrzeniProtiCovid19OverenoKdy = null;
-
     #[ORM\Column(name: 'infopult_poznamka', length: 128, nullable: false)]
     private string $infopultPoznamka = '';
 
@@ -419,30 +413,6 @@ class User
     public function setPotvrzeniZakonnehoZastupce(?\DateTimeInterface $potvrzeniZakonnehoZastupce): static
     {
         $this->potvrzeniZakonnehoZastupce = $potvrzeniZakonnehoZastupce;
-
-        return $this;
-    }
-
-    public function getPotvrzeniProtiCovid19PridanoKdy(): ?\DateTimeInterface
-    {
-        return $this->potvrzeniProtiCovid19PridanoKdy;
-    }
-
-    public function setPotvrzeniProtiCovid19PridanoKdy(?\DateTimeInterface $potvrzeniProtiCovid19PridanoKdy): static
-    {
-        $this->potvrzeniProtiCovid19PridanoKdy = $potvrzeniProtiCovid19PridanoKdy;
-
-        return $this;
-    }
-
-    public function getPotvrzeniProtiCovid19OverenoKdy(): ?\DateTimeInterface
-    {
-        return $this->potvrzeniProtiCovid19OverenoKdy;
-    }
-
-    public function setPotvrzeniProtiCovid19OverenoKdy(?\DateTimeInterface $potvrzeniProtiCovid19OverenoKdy): static
-    {
-        $this->potvrzeniProtiCovid19OverenoKdy = $potvrzeniProtiCovid19OverenoKdy;
 
         return $this;
     }

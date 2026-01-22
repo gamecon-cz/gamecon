@@ -135,16 +135,6 @@ class UserEntityStructure
     public const potvrzeniZakonnehoZastupce = 'potvrzeniZakonnehoZastupce';
 
     /**
-     * @see User::$potvrzeniProtiCovid19PridanoKdy
-     */
-    public const potvrzeniProtiCovid19PridanoKdy = 'potvrzeniProtiCovid19PridanoKdy';
-
-    /**
-     * @see User::$potvrzeniProtiCovid19OverenoKdy
-     */
-    public const potvrzeniProtiCovid19OverenoKdy = 'potvrzeniProtiCovid19OverenoKdy';
-
-    /**
      * @see User::$infopultPoznamka
      */
     public const infopultPoznamka = 'infopultPoznamka';
