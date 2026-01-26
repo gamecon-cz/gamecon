@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Uzivatel;
 
 use Gamecon\Kanaly\GcMail;
-use Gamecon\Logger\JobResultLogger;
+use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -23,8 +23,8 @@ class PromlceniZustatku
     private const SKUPINA_PROMLCENI = 'promlceni-zustatku';
 
     public function __construct(
-        private readonly SystemoveNastaveni $systemoveNastaveni,
-        private readonly JobResultLogger    $jobResultLogger,
+        private readonly SystemoveNastaveni       $systemoveNastaveni,
+        private readonly JobResultLoggerInterface $jobResultLogger,
     ) {
     }
 

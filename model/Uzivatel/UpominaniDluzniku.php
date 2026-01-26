@@ -6,7 +6,7 @@ namespace Gamecon\Uzivatel;
 
 use Gamecon\Command\FioStazeniNovychPlateb;
 use Gamecon\Kanaly\GcMail;
-use Gamecon\Logger\JobResultLogger;
+use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\Dluznik;
@@ -23,9 +23,9 @@ class UpominaniDluzniku
     private const SKUPINA_UPOMINANI = 'upominani-dluzniku';
 
     public function __construct(
-        private readonly SystemoveNastaveni     $systemoveNastaveni,
-        private readonly JobResultLogger        $jobResultLogger,
-        private readonly FioStazeniNovychPlateb $fioStazeniNovychPlateb,
+        private readonly SystemoveNastaveni        $systemoveNastaveni,
+        private readonly JobResultLoggerInterface  $jobResultLogger,
+        private readonly FioStazeniNovychPlateb    $fioStazeniNovychPlateb,
     ) {
     }
 
@@ -209,7 +209,7 @@ class UpominaniDluzniku
         $this->odeslInfoCfo($typUpominky, $rocnik, $pocetOdeslanychEmailu, $konecGc, $posledniGcMail);
 
         $nazev = $this->dejNazevUpominky($typUpominky);
-        logs("Upomínání dlužníků ($nazev): Odesláno $pocetOdeslanychEmailu e-mailů");
+        $this->jobResultLogger->logs("Upomínání dlužníků ($nazev): Odesláno $pocetOdeslanychEmailu e-mailů");
 
         return $pocetOdeslanychEmailu;
     }

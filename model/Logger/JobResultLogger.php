@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Logger;
 
-class JobResultLogger
+class JobResultLogger implements JobResultLoggerInterface
 {
 
     /**
