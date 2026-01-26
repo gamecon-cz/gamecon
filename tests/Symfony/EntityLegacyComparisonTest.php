@@ -69,12 +69,9 @@ use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Ubytovani\Ubytovani;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Platba;
-use Zenstruck\Foundry\Test\Factories;
 
 class EntityLegacyComparisonTest extends AbstractTestDb
 {
-    use Factories;
-
     protected static bool $disableStrictTransTables = true;
 
     protected static function keepTestClassDbChangesInTransaction(): bool
