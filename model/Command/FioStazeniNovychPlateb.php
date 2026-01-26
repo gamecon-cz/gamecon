@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Gamecon\Command;
 
-use Gamecon\Logger\JobResultLogger;
+use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Platby;
 
 class FioStazeniNovychPlateb
 {
     public function __construct(
-        private readonly SystemoveNastaveni $systemoveNastaveni,
-        private readonly JobResultLogger    $jobResultLogger,
+        private readonly SystemoveNastaveni       $systemoveNastaveni,
+        private readonly JobResultLoggerInterface $jobResultLogger,
     ) {
     }
 
