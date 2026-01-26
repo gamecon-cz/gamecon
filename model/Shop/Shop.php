@@ -1108,7 +1108,19 @@ SQL
         int  $kusu = 1,
         bool $vcetneOznamemi = false,
     ) {
-        $cenaAktualni = dbOneCol("SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu={$idPredmetu}");
+        $predmet = dbOneLine("SELECT cena_aktualni, kusu_vyrobeno, nazev FROM shop_predmety WHERE id_predmetu=$0", [0 => $idPredmetu]);
+        $cenaAktualni = $predmet['cena_aktualni'];
+
+        if ($predmet['kusu_vyrobeno'] !== null) {
+            $prodanoKusu = (int) dbOneCol(
+                "SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1",
+                [0 => $idPredmetu, 1 => $this->systemoveNastaveni->rocnik()],
+            );
+            $zbyvajiciKusu = (int) $predmet['kusu_vyrobeno'] - $prodanoKusu;
+            if ($kusu > $zbyvajiciKusu) {
+                throw new \Chyba("Nelze prodat {$kusu} kusů '{$predmet['nazev']}', zbývá pouze {$zbyvajiciKusu} kusů.");
+            }
+        }
 
         for ($i = 1; $i <= $kusu; $i++) {
             dbQuery(<<<SQL
@@ -1126,18 +1138,12 @@ SQL,
             return;
         }
 
-        $nazevPredmetu = dbOneCol(
-            <<<SQL
-            SELECT nazev FROM shop_predmety
-            WHERE id_predmetu = $idPredmetu
-            SQL,
-        );
         $yu = '';
         if ($kusu >= 5) {
             $yu = 'ů';
         } elseif ($kusu > 1) {
             $yu = 'y';
         }
-        oznameni("Prodáno $kusu kus$yu $nazevPredmetu");
+        oznameni("Prodáno $kusu kus$yu {$predmet['nazev']}");
     }
 }
