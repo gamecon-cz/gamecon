@@ -45,7 +45,7 @@ $row           = $rowIterator->current();
 $hlavickaKlice = array_map('trim', $row->toArray());
 $hlavicka      = array_flip($hlavickaKlice);
 
-$pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'je_letosni_hlavni', 'ubytovani_den', 'popis'];
+$pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'je_letosni_hlavni', 'ubytovani_den', 'popis', 'vedlejsi'];
 if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
     throw new Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
 }
@@ -61,6 +61,7 @@ $indexTyp             = $hlavicka['typ'];
 $indexJeLetosniHlavni = $hlavicka['je_letosni_hlavni'];
 $indexUbytovaniDen    = $hlavicka['ubytovani_den'];
 $indexPopis           = $hlavicka['popis'];
+$indexVedlejsi        = $hlavicka['vedlejsi'];
 
 $rowIterator->next();
 
@@ -141,6 +142,7 @@ while ($rowIterator->valid()) {
                 $celeCislo($radek[$indexJeLetosniHlavni]),
                 $cisloNeboNull($radek[$indexUbytovaniDen]),
                 $radek[$indexPopis],
+                $celeCislo($radek[$indexVedlejsi] ?? 0),
             ]) . ')';
     }
 }
@@ -167,7 +169,7 @@ SQL,
     $sqlValues = implode(",\n", $sqlValuesArray);
 
     dbQuery(<<<SQL
-INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `je_letosni_hlavni`, `ubytovani_den`, `popis`)
+INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `je_letosni_hlavni`, `ubytovani_den`, `popis`, `vedlejsi`)
     VALUES
 $sqlValues
 SQL,
@@ -187,14 +189,15 @@ SET
     shop_predmety.typ = import.typ,
     shop_predmety.je_letosni_hlavni = import.je_letosni_hlavni,
     shop_predmety.ubytovani_den = import.ubytovani_den,
-    shop_predmety.popis = import.popis
+    shop_predmety.popis = import.popis,
+    shop_predmety.vedlejsi = import.vedlejsi
 WHERE TRUE -- už vyřešeno přes INNER JOIN a unique key
 SQL,
     );
     $pocetZmenenych = dbAffectedOrNumRows($mysqliResult);
 
     $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `typ`, `je_letosni_hlavni`, `ubytovani_den`, `popis`)
+INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `typ`, `je_letosni_hlavni`, `ubytovani_den`, `popis`, `vedlejsi`)
 SELECT import.`model_rok`,
     import.`nazev`,
     import.`kod_predmetu`,
@@ -205,7 +208,8 @@ SELECT import.`model_rok`,
     import.`typ`,
     import.`je_letosni_hlavni`,
     import.`ubytovani_den`,
-    import.`popis`
+    import.`popis`,
+    import.`vedlejsi`
 FROM `$temporaryTable` AS import
 LEFT JOIN shop_predmety AS uz_zname
     ON uz_zname.kod_predmetu = import.kod_predmetu

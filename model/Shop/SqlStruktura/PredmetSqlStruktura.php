@@ -20,4 +20,5 @@ class PredmetSqlStruktura
     public const JE_LETOSNI_HLAVNI = 'je_letosni_hlavni';
     public const UBYTOVANI_DEN     = 'ubytovani_den';
     public const POPIS             = 'popis';
+    public const VEDLEJSI          = 'vedlejsi';
 }

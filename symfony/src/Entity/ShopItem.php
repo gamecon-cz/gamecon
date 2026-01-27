@@ -61,6 +61,11 @@ class ShopItem
     ])]
     private bool $jeLetosniHlavni = false;
 
+    #[ORM\Column(name: 'vedlejsi', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => false,
+    ])]
+    private bool $vedlejsi = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -194,6 +199,18 @@ class ShopItem
     public function setJeLetosniHlavni(bool $jeLetosniHlavni): self
     {
         $this->jeLetosniHlavni = $jeLetosniHlavni;
+
+        return $this;
+    }
+
+    public function isVedlejsi(): bool
+    {
+        return $this->vedlejsi;
+    }
+
+    public function setVedlejsi(bool $vedlejsi): self
+    {
+        $this->vedlejsi = $vedlejsi;
 
         return $this;
     }
