@@ -77,3 +77,25 @@
     opacity: 0.5;
     cursor: default;
 }
+
+// Další merch - collapsible section for secondary items
+details.shopPredmety_dalsiMerch,
+details.shopPredmety_dalsiMerch > article,
+details.shopPredmety_dalsiMerch[open] > article {
+    transition: none;
+    animation: none;
+}
+
+details.shopPredmety_dalsiMerch > article,
+details.shopPredmety_dalsiMerch[open] > article {
+    margin-top: 1em;
+    opacity: 1;
+    height: auto;
+    translate: none;
+    scale: none;
+    border: none;
+}
+
+details.shopPredmety_dalsiMerch:not([open]) > article {
+    display: none;
+}

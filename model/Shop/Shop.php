@@ -9,7 +9,6 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Jidlo;
 use Gamecon\Pravo;
 use Gamecon\Shop\SqlStruktura\NakupySqlStruktura;
-use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Cenik;
@@ -191,9 +190,11 @@ SQL,
     ];
     public array          $ubytovaniPole = [];
     public ?ShopUbytovani $ubytovani     = null;
-    private               $tricka        = [];
-    private               $predmety      = [];
-    private               $jidlo         = [];
+    private               $tricka           = [];
+    private               $predmety         = [];
+    private               $predmetyHlavni   = [];
+    private               $predmetyVedlejsi = [];
+    private               $jidlo            = [];
     private               $ubytovaniOd;
     private               $ubytovaniDo;
     private               $ubytovaniTypy = [];
@@ -224,7 +225,7 @@ SQL,
         // vybrat všechny předměty pro tento rok + předměty v nabídce + předměty, které si koupil
         $results = $this->systemoveNastaveni->db()->dbFetchAll(
             [
-                PredmetSqlStruktura::SHOP_PREDMETY_TABULKA,
+                Sql::SHOP_PREDMETY_TABULKA,
                 NakupySqlStruktura::SHOP_NAKUPY_TABULKA,
             ],
             <<<SQL
@@ -232,7 +233,7 @@ SQL,
             FROM (
                   SELECT
                     predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav,
-                    predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.kod_predmetu, predmety.ubytovani_den, predmety.popis,
+                    predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis, predmety.vedlejsi, predmety.kod_predmetu,
                     IF(predmety.model_rok = {$rocnik} OR COALESCE(predmety.popis, '') = '', predmety.nazev, CONCAT(predmety.nazev, ' (', predmety.popis, ')')) AS nazev,
                     COUNT(IF(nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_prodano,
                     COUNT(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_uzivatele,
@@ -319,6 +320,15 @@ SQL,
         }
 
         $this->jidlo = $this->seradJidla($this->jidlo);
+
+        // Rozdělení předmětů na hlavní a vedlejší
+        foreach ($this->predmety as $predmet) {
+            if ($predmet[Sql::VEDLEJSI]) {
+                $this->predmetyVedlejsi[] = $predmet;
+            } else {
+                $this->predmetyHlavni[] = $predmet;
+            }
+        }
 
         $this->ubytovani = new ShopUbytovani(
             $this->ubytovaniPole,
@@ -542,35 +552,21 @@ SQL,
         }
 
         $cenik = $this->cenik();
-        foreach ($this->predmety as $predmet) {
-            $cena = (float)$predmet['cena_aktualni'];
-            $cenaPoSleve = $cena;
-            if (Predmet::jeToKostka($predmet[Sql::KOD_PREDMETU])) {
-                $cenaPoSleve = (float)$cenik->cenaKostky($predmet);
-            } elseif (Predmet::jeToPlacka($predmet[Sql::KOD_PREDMETU])) {
-                $cenaPoSleve = (float)$cenik->cenaPlacky($predmet);
-            }
-            $cena = round($cena);
-            $cenaPoSleve = round($cenaPoSleve);
-            $menaText = '&thinsp;Kč';
-            $cenaText = ($cenaPoSleve !== $cena
-                    ? "$cenaPoSleve$menaText/"
-                    : '') . $cena . $menaText;
-            $t->assign([
-                'nazev'          => $predmet['nazev'],
-                'cena'           => $cenaText,
-                'kusu_uzivatele' => $predmet['kusu_uzivatele'],
-                'postName'       => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
-            ]);
 
-            if ($predmet['nabizet'] && !$predmetyZamceny) {
-                $t->parse('predmety.predmet.nakup');
-                $t->parse('predmety.predmet');
-            } elseif ($predmet['kusu_uzivatele']) {
-                $t->parse('predmety.predmet.fixniPocet');
-                $t->parse('predmety.predmet');
+        // Hlavní předměty (vždy viditelné)
+        foreach ($this->predmetyHlavni as $predmet) {
+            $this->renderPredmet($t, $predmet, $cenik, $predmetyZamceny, 'predmety.predmet');
+        }
+
+        // Vedlejší předměty (ve skrytém detailu "Další merch")
+        $maVedlejsiPredmety = false;
+        foreach ($this->predmetyVedlejsi as $predmet) {
+            if ($this->renderPredmet($t, $predmet, $cenik, $predmetyZamceny, 'predmety.dalsiMerch.dalsiMerchPredmet')) {
+                $maVedlejsiPredmety = true;
             }
-            // else přeskočit
+        }
+        if ($maVedlejsiPredmety) {
+            $t->parse('predmety.dalsiMerch');
         }
 
         // TRIČKA
@@ -648,6 +644,49 @@ SQL,
         }
 
         return true;
+    }
+
+    /**
+     * Renderuje předmět do šablony a vrací true pokud byl předmět vykreslen
+     */
+    private function renderPredmet(
+        XTemplate $t,
+        array     $predmet,
+        Cenik     $cenik,
+        bool      $predmetyZamceny,
+        string    $templateBlock,
+    ): bool {
+        $cena = (float)$predmet[Sql::CENA_AKTUALNI];
+        $cenaPoSleve = $cena;
+        if (Predmet::jeToKostka($predmet[Sql::KOD_PREDMETU])) {
+            $cenaPoSleve = (float)$cenik->cenaKostky($predmet);
+        } elseif (Predmet::jeToPlacka($predmet[Sql::KOD_PREDMETU])) {
+            $cenaPoSleve = (float)$cenik->cenaPlacky($predmet);
+        }
+        $cena = round($cena);
+        $cenaPoSleve = round($cenaPoSleve);
+        $menaText = '&thinsp;Kč';
+        $cenaText = ($cenaPoSleve !== $cena
+                ? "$cenaPoSleve$menaText/"
+                : '') . $cena . $menaText;
+        $t->assign([
+            'nazev'          => $predmet['nazev'],
+            'cena'           => $cenaText,
+            'kusu_uzivatele' => $predmet['kusu_uzivatele'],
+            'postName'       => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
+        ]);
+
+        if ($predmet['nabizet'] && !$predmetyZamceny) {
+            $t->parse($templateBlock . '.nakup');
+            $t->parse($templateBlock);
+            return true;
+        } elseif ($predmet['kusu_uzivatele']) {
+            $t->parse($templateBlock . '.fixniPocet');
+            $t->parse($templateBlock);
+            return true;
+        }
+
+        return false;
     }
 
     public function koupeneVeciPrehledHtml()

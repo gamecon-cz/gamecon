@@ -68,4 +68,9 @@ class ShopItemEntityStructure
      * @see ShopItem::$jeLetosniHlavni
      */
     public const jeLetosniHlavni = 'jeLetosniHlavni';
+
+    /**
+     * @see ShopItem::$vedlejsi
+     */
+    public const vedlejsi = 'vedlejsi';
 }

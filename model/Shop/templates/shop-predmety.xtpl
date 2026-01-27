@@ -33,6 +33,42 @@
     <!-- end: predmet -->
 </div>
 
+<!-- begin: dalsiMerch -->
+<details class="shopPredmety_dalsiMerch">
+    <summary>Další merch</summary>
+    <article>
+        <div class="shopPredmety_predmety">
+            <!-- begin: dalsiMerchPredmet -->
+            <div class="shopPredmety_predmet">
+                <div class="shop_popis">
+                    {nazev}
+                    <div class="shop_popisCena">{cena}</div>
+                </div>
+
+                <!-- begin: fixniPocet -->
+                <div class="shopPredmety_plusminus">
+                    <div class="shopPredmety_minus shopPredmety_minus-neaktivni">-</div>
+                    <div class="shopPredmety_kusu">{kusu_uzivatele}</div>
+                    <div class="shopPredmety_plus shopPredmety_plus-neaktivni">+</div>
+                    <input type="hidden" name="{postName}" value="{kusu_uzivatele}">
+                </div>
+                <!-- end: fixniPocet -->
+
+                <!-- begin: nakup -->
+                <div class="shopPredmety_plusminus">
+                    <a href="#" class="shopPredmety_minus shopPredmety_minus-povoleno">-</a>
+                    <div class="shopPredmety_kusu">?</div>
+                    <a href="#" class="shopPredmety_plus shopPredmety_plus-povoleno">+</a>
+                    <input type="hidden" name="{postName}" value="{kusu_uzivatele}">
+                </div>
+                <!-- end: nakup -->
+            </div>
+            <!-- end: dalsiMerchPredmet -->
+        </div>
+    </article>
+</details>
+<!-- end: dalsiMerch -->
+
 <!-- begin: trickaPozastavena -->
 <p>Možnost nákupu triček už skončila.</p>
 <!-- end: trickaPozastavena -->
