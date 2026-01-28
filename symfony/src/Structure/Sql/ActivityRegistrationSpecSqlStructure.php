@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivityRegistrationSpecSqlStructure
 {
-    /**
-     * @see ActivityRegistrationSpec
-     */
     public const _table = 'akce_prihlaseni_spec';
 
     /**

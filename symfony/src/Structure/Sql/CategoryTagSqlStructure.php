@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class CategoryTagSqlStructure
 {
-    /**
-     * @see CategoryTag
-     */
     public const _table = 'kategorie_sjednocenych_tagu';
 
     /**

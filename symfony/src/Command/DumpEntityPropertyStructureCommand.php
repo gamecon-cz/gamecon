@@ -34,6 +34,7 @@ class DumpEntityPropertyStructureCommand extends Command
             ->addOption('output-dir', 'o', InputOption::VALUE_OPTIONAL, 'Output directory for generated structure classes', $this->projectDir . '/src/Structure/Entity')
             ->addOption('namespace', 'ns', InputOption::VALUE_OPTIONAL, 'Namespace for generated classes', 'App\\Structure\\Entity')
             ->addOption('suffix', 's', InputOption::VALUE_OPTIONAL, 'Suffix for generated class names', 'EntityStructure')
+            ->addOption('check', null, InputOption::VALUE_NONE, 'Check if generated files are up-to-date instead of writing them')
             ->setHelp('This command generates PHP classes with constants for entity property names.');
     }
 
@@ -44,9 +45,17 @@ class DumpEntityPropertyStructureCommand extends Command
         $outputDir = $input->getOption('output-dir');
         $namespace = $input->getOption('namespace');
         $suffix = $input->getOption('suffix');
+        $checkMode = $input->getOption('check');
 
-        $io->title('Generating Entity Property Structure Classes');
+        if ($checkMode) {
+            return $this->executeCheck($io, $outputDir, $namespace, $suffix);
+        }
 
+        return $this->executeWrite($io, $outputDir, $namespace, $suffix);
+    }
+
+    private function executeWrite(SymfonyStyle $io, string $outputDir, string $namespace, string $suffix): int
+    {
         // Create output directory if it doesn't exist
         if (! $this->filesystem->exists($outputDir)) {
             $this->filesystem->mkdir($outputDir);
@@ -56,42 +65,142 @@ class DumpEntityPropertyStructureCommand extends Command
         $metadataFactory = $this->entityManager->getMetadataFactory();
         $allMetadata = $metadataFactory->getAllMetadata();
 
-        $generatedFiles = [];
+        $newFiles = [];
+        $updatedFiles = [];
+        $unchangedCount = 0;
         $errors = [];
 
         foreach ($allMetadata as $classMetadata) {
             /** @var ClassMetadata<object> $classMetadata */
             $entityClass = $classMetadata->getName();
 
-            // Skip non-App entities (like Doctrine migrations, etc.)
-            if (! str_starts_with($entityClass, 'App\\')) {
+            if ($this->shouldSkipEntity($classMetadata)) {
                 continue;
             }
 
-            $structureClass = $this->generateStructureClass($classMetadata, $namespace, $suffix);
+            $newContent = $this->generateStructureClass($classMetadata, $namespace, $suffix);
             $fileName = $this->getClassNameFromEntity($entityClass) . $suffix . '.php';
             $filePath = $outputDir . '/' . $fileName;
 
-            $bytesWritten = file_put_contents($filePath, $structureClass);
+            $isNew = ! file_exists($filePath);
+            $existingContent = $isNew ? null : file_get_contents($filePath);
+            $hasChanged = $isNew || $existingContent !== $newContent;
+
+            if (! $hasChanged) {
+                ++$unchangedCount;
+                continue;
+            }
+
+            $bytesWritten = file_put_contents($filePath, $newContent);
 
             if ($bytesWritten === false) {
-                $errors[] = "Failed to write file: {$fileName}";
+                $errors[] = $fileName;
                 $io->error("Failed to write file: {$fileName}");
+            } elseif ($isNew) {
+                $newFiles[] = $fileName;
             } else {
-                $generatedFiles[] = $fileName;
-                $io->text("Generated: {$fileName} for entity {$entityClass} - {$bytesWritten} bytes");
+                $updatedFiles[] = $fileName;
+            }
+        }
+
+        if (! empty($newFiles)) {
+            $io->section(sprintf('New files (%d):', count($newFiles)));
+            foreach ($newFiles as $file) {
+                $io->text(" - {$file}");
+            }
+        }
+
+        if (! empty($updatedFiles)) {
+            $io->section(sprintf('Updated files (%d):', count($updatedFiles)));
+            foreach ($updatedFiles as $file) {
+                $io->text(" - {$file}");
             }
         }
 
         if (! empty($errors)) {
-            $io->warning(sprintf('Generated %d files with %d errors', count($generatedFiles), count($errors)));
+            $io->error(sprintf('Failed to write %d file(s)', count($errors)));
 
             return Command::FAILURE;
         }
 
-        $io->success(sprintf('Generated %d structure classes in %s', count($generatedFiles), $outputDir));
+        $totalFiles = count($newFiles) + count($updatedFiles) + $unchangedCount;
+        $io->success(sprintf(
+            '%d new, %d updated, %d unchanged (total %d files)',
+            count($newFiles),
+            count($updatedFiles),
+            $unchangedCount,
+            $totalFiles
+        ));
 
         return Command::SUCCESS;
+    }
+
+    private function executeCheck(SymfonyStyle $io, string $outputDir, string $namespace, string $suffix): int
+    {
+        $io->title('Checking Entity Property Structure Classes');
+
+        $metadataFactory = $this->entityManager->getMetadataFactory();
+        $allMetadata = $metadataFactory->getAllMetadata();
+
+        $missing = [];
+        $outdated = [];
+        $checked = 0;
+
+        foreach ($allMetadata as $classMetadata) {
+            /** @var ClassMetadata<object> $classMetadata */
+            $entityClass = $classMetadata->getName();
+
+            if ($this->shouldSkipEntity($classMetadata)) {
+                continue;
+            }
+
+            $expectedContent = $this->generateStructureClass($classMetadata, $namespace, $suffix);
+            $fileName = $this->getClassNameFromEntity($entityClass) . $suffix . '.php';
+            $filePath = $outputDir . '/' . $fileName;
+
+            if (! file_exists($filePath)) {
+                $missing[] = [
+                    'file'   => $fileName,
+                    'entity' => $entityClass,
+                ];
+                continue;
+            }
+
+            $actualContent = file_get_contents($filePath);
+            if ($expectedContent !== $actualContent) {
+                $outdated[] = [
+                    'file'   => $fileName,
+                    'entity' => $entityClass,
+                ];
+            }
+
+            ++$checked;
+        }
+
+        if (empty($missing) && empty($outdated)) {
+            $io->success(sprintf('All %d structure files are up-to-date', $checked));
+
+            return Command::SUCCESS;
+        }
+
+        if (! empty($missing)) {
+            $io->section(sprintf('Missing structure files (%d):', count($missing)));
+            foreach ($missing as $item) {
+                $io->text(sprintf(' - %s (for %s)', $item['file'], $item['entity']));
+            }
+        }
+
+        if (! empty($outdated)) {
+            $io->section(sprintf('Outdated structure files (%d):', count($outdated)));
+            foreach ($outdated as $item) {
+                $io->text(sprintf(' - %s (for %s)', $item['file'], $item['entity']));
+            }
+        }
+
+        $totalProblems = count($missing) + count($outdated);
+        $io->error(sprintf('%d structure file(s) need to be regenerated. Run without --check to update.', $totalProblems));
+
+        return Command::FAILURE;
     }
 
     /**
@@ -163,5 +272,25 @@ PHP;
         $parts = explode('\\', $entityClass);
 
         return end($parts);
+    }
+
+    /**
+     * @param ClassMetadata<object> $classMetadata
+     */
+    private function shouldSkipEntity(ClassMetadata $classMetadata): bool
+    {
+        $entityClass = $classMetadata->getName();
+
+        // Skip non-App entities (like Doctrine migrations, etc.)
+        if (! str_starts_with($entityClass, 'App\\')) {
+            return true;
+        }
+
+        // Skip mapped superclasses (abstract parent entities)
+        if ($classMetadata->isMappedSuperclass) {
+            return true;
+        }
+
+        return false;
     }
 }

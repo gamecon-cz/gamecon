@@ -9,10 +9,7 @@ namespace App\Structure\Sql;
  */
 class LocationSqlStructure
 {
-    /**
-     * @see Location
-     */
-    public const _table = 'akce_lokace';
+    public const _table = 'lokace';
 
     /**
      * @see Location::$id
