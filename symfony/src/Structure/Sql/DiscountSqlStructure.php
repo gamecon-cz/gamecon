@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class DiscountSqlStructure
 {
-    /**
-     * @see Discount
-     */
     public const _table = 'slevy';
 
     /**

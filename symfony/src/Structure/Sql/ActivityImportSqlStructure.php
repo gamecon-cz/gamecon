@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivityImportSqlStructure
 {
-    /**
-     * @see ActivityImport
-     */
     public const _table = 'akce_import';
 
     /**

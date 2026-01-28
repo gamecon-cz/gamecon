@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class TagSqlStructure
 {
-    /**
-     * @see Tag
-     */
     public const _table = 'sjednocene_tagy';
 
     /**
