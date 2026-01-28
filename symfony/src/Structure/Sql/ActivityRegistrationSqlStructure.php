@@ -9,10 +9,12 @@ namespace App\Structure\Sql;
  */
 class ActivityRegistrationSqlStructure
 {
-    /**
-     * @see ActivityRegistration
-     */
     public const _table = 'akce_prihlaseni';
+
+    /**
+     * @see ActivityRegistration::$id
+     */
+    public const id = 'id';
 
     /**
      * @see ActivityRegistration::$activity
@@ -20,7 +22,7 @@ class ActivityRegistrationSqlStructure
     public const id_akce = 'id_akce';
 
     /**
-     * @see ActivityRegistration::$user
+     * @see ActivityRegistration::$registeredUser
      */
     public const id_uzivatele = 'id_uzivatele';
 

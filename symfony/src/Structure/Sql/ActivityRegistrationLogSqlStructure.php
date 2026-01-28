@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivityRegistrationLogSqlStructure
 {
-    /**
-     * @see ActivityRegistrationLog
-     */
     public const _table = 'akce_prihlaseni_log';
 
     /**

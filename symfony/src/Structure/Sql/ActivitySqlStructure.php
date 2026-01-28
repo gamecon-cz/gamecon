@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivitySqlStructure
 {
-    /**
-     * @see Activity
-     */
     public const _table = 'akce_seznam';
 
     /**
@@ -95,6 +92,16 @@ class ActivitySqlStructure
     public const team_kapacita = 'team_kapacita';
 
     /**
+     * @see Activity::$teamNazev
+     */
+    public const team_nazev = 'team_nazev';
+
+    /**
+     * @see Activity::$forTeamLockedAt
+     */
+    public const zamcel_cas = 'zamcel_cas';
+
+    /**
      * @see Activity::$shortDescription
      */
     public const popis_kratky = 'popis_kratky';
@@ -115,11 +122,6 @@ class ActivitySqlStructure
     public const patri_pod = 'patri_pod';
 
     /**
-     * @see Activity::$location
-     */
-    public const lokace = 'lokace';
-
-    /**
      * @see Activity::$type
      */
     public const typ = 'typ';
@@ -133,4 +135,9 @@ class ActivitySqlStructure
      * @see Activity::$description
      */
     public const popis = 'popis';
+
+    /**
+     * @see Activity::$forTeamLockedBy
+     */
+    public const zamcel = 'zamcel';
 }
