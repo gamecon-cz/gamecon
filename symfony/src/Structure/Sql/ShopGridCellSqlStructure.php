@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ShopGridCellSqlStructure
 {
-    /**
-     * @see ShopGridCell
-     */
     public const _table = 'obchod_bunky';
 
     /**

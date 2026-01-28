@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class UserSqlStructure
 {
-    /**
-     * @see User
-     */
     public const _table = 'uzivatele_hodnoty';
 
     /**
@@ -138,16 +135,6 @@ class UserSqlStructure
      * @see User::$potvrzeniZakonnehoZastupce
      */
     public const potvrzeni_zakonneho_zastupce = 'potvrzeni_zakonneho_zastupce';
-
-    /**
-     * @see User::$potvrzeniProtiCovid19PridanoKdy
-     */
-    public const potvrzeni_proti_covid19_pridano_kdy = 'potvrzeni_proti_covid19_pridano_kdy';
-
-    /**
-     * @see User::$potvrzeniProtiCovid19OverenoKdy
-     */
-    public const potvrzeni_proti_covid19_overeno_kdy = 'potvrzeni_proti_covid19_overeno_kdy';
 
     /**
      * @see User::$infopultPoznamka

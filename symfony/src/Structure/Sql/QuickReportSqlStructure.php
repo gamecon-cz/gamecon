@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class QuickReportSqlStructure
 {
-    /**
-     * @see QuickReport
-     */
     public const _table = 'reporty_quick';
 
     /**
