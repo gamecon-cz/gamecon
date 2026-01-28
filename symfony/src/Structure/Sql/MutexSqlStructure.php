@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class MutexSqlStructure
 {
-    /**
-     * @see Mutex
-     */
     public const _table = 'mutex';
 
     /**
