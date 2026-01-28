@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class PermissionSqlStructure
 {
-    /**
-     * @see Permission
-     */
     public const _table = 'r_prava_soupis';
 
     /**

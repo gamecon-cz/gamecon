@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivityInstanceSqlStructure
 {
-    /**
-     * @see ActivityInstance
-     */
     public const _table = 'akce_instance';
 
     /**

@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class SystemSettingSqlStructure
 {
-    /**
-     * @see SystemSetting
-     */
     public const _table = 'systemove_nastaveni';
 
     /**
