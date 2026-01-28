@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ShopPurchaseSqlStructure
 {
-    /**
-     * @see ShopPurchase
-     */
     public const _table = 'shop_nakupy';
 
     /**

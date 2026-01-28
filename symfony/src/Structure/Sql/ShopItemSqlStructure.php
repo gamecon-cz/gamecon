@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ShopItemSqlStructure
 {
-    /**
-     * @see ShopItem
-     */
     public const _table = 'shop_predmety';
 
     /**

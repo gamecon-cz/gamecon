@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class UserRoleTextSqlStructure
 {
-    /**
-     * @see UserRoleText
-     */
     public const _table = 'role_texty_podle_uzivatele';
 
     /**

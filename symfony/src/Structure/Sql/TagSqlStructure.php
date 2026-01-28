@@ -11,9 +11,6 @@ use Gamecon\Aktivita\Tag;
  */
 class TagSqlStructure
 {
-    /**
-     * @see Tag
-     */
     public const _table = 'sjednocene_tagy';
 
     /**

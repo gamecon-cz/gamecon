@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class PageSqlStructure
 {
-    /**
-     * @see Page
-     */
     public const _table = 'stranky';
 
     /**
