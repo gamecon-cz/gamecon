@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class SystemSettingLogSqlStructure
 {
-    /**
-     * @see SystemSettingLog
-     */
     public const _table = 'systemove_nastaveni_log';
 
     /**
