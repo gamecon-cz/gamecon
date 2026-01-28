@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivityRegistrationStateSqlStructure
 {
-    /**
-     * @see ActivityRegistrationState
-     */
     public const _table = 'akce_prihlaseni_stavy';
 
     /**

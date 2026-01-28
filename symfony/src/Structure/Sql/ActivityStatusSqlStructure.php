@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ActivityStatusSqlStructure
 {
-    /**
-     * @see ActivityStatus
-     */
     public const _table = 'akce_stav';
 
     /**
