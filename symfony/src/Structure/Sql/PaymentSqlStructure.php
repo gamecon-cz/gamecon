@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class PaymentSqlStructure
 {
-    /**
-     * @see Payment
-     */
     public const _table = 'platby';
 
     /**
