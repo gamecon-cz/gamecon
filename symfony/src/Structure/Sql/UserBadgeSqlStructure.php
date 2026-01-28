@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class UserBadgeSqlStructure
 {
-    /**
-     * @see UserBadge
-     */
     public const _table = 'medailonky';
 
     /**

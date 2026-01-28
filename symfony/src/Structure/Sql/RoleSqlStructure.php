@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class RoleSqlStructure
 {
-    /**
-     * @see Role
-     */
     public const _table = 'role_seznam';
 
     /**

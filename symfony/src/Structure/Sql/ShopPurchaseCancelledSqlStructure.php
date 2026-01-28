@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class ShopPurchaseCancelledSqlStructure
 {
-    /**
-     * @see ShopPurchaseCancelled
-     */
     public const _table = 'shop_nakupy_zrusene';
 
     /**

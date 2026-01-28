@@ -9,9 +9,6 @@ namespace App\Structure\Sql;
  */
 class GoogleDriveDirSqlStructure
 {
-    /**
-     * @see GoogleDriveDir
-     */
     public const _table = 'google_drive_dirs';
 
     /**
