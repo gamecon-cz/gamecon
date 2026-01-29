@@ -51,11 +51,6 @@ if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
 $zacatekGameconu = DateTimeGamecon::zacatekGameconu();
 $konecGameconu   = DateTimeGamecon::konecGameconu();
 
-if (date('Y-m-d') === '2025-04-01' && !isset($_SESSION['april2025Modal'])) {
-    $t->parse(block: 'titulka.april2025');
-    $_SESSION['april2025Modal'] = true;
-}
-
 $stovkySpokojenychUcastniku = dbFetchSingle(<<<SQL
 SELECT FLOOR(COUNT(*) / 100) * 100
 FROM uzivatele_role

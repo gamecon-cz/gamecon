@@ -71,7 +71,7 @@
 
 <div class="popisbox">
     <div class="popisbox_obsah" data-aos="fade-up">
-        <a href="deskoherna">Deskové</a> hry, <a href="rpg">RPG</a> a <a href="larpy">Larpy</a>, <a href="bonusy">akční hry</a>, <a href="wargaming">wargaming</a>, Mistrovství v <a href="drd">Dračím doupěti</a>, pohybové <a href="bonusy">workshopy</a>, koncert a párty. To všechno a mnohem víc je festival nepočítačových her GameCon.
+        <a href="deskoherna">Deskové</a> hry, <a href="rpg">RPG</a> a <a href="larpy">Larpy</a>, <a href="bonusy">akční hry</a>, <a href="wargaming">wargaming</a>, <a href="dnd">Turnaj</a> v D&amp;D/JaD, pohybové <a href="bonusy">workshopy</a>, koncert a párty. To všechno a mnohem víc je festival nepočítačových her GameCon.
     </div>
     <script>
         document.querySelectorAll('.popisbox_obsah a').forEach(e => {
@@ -220,19 +220,5 @@
         disableMutationObserver: true,
     });
 </script>
-
-<!-- begin: april2025 -->
-<link rel="stylesheet" href="soubory/blackarrow/april2025/april2025.css">
-
-<div id="april2025Modal" class="modal--april2025">
-    <div class="modal-content--april2025">
-        <h2>Děkujeme za tvou účast na GameConu 2025!</h2>
-        <p>Budeme moc rádi za jakoukoliv zpětnou vazbu, abychom si vzpomněli, co jsme zlepšili, případně co určitě nevynechat ani v předchozích letech. Budeme se těšit zase před rokem, od té doby nás můžeš sledovat na Facebooku, Instagramu nebo na Discordu.</p>
-        <button onclick="closeModal()">Otevřít</button>
-    </div>
-</div>
-
-<script src="soubory/blackarrow/april2025/april2025.js"></script>
-<!-- end: april2025 -->
 
 <!-- end: titulka -->
