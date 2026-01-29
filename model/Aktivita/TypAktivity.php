@@ -25,6 +25,7 @@ class TypAktivity extends \DbObject
     public const EPIC                = 11;
     public const DOPROVODNY_PROGRAM  = 12;
     public const DESKOHERNA          = 13;
+    public const DND                 = 14; // turnaj D&D / JaD
     // interní
     public const SYSTEMOVA   = 0;
     public const TECHNICKA   = 10; // účast na technické aktivitě => cena aktivity = bonus pro "vypravěče"

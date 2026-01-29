@@ -65,7 +65,7 @@ foreach ($skupiny as $skupina) {
         }
 
         $tym = $aktivita->tym();
-        if ($tym && in_array($aktivita->typId(), [TypAktivity::DRD, TypAktivity::LKD])) {
+        if ($tym && in_array($aktivita->typId(), [TypAktivity::DRD, TypAktivity::LKD, TypAktivity::DND])) {
             $t->assign('tym', $tym);
             $t->parse('aktivity.aktivita.termin.tym');
         }
