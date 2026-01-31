@@ -50,6 +50,8 @@ class SystemoveNastaveniKlice
     public const MODRE_TRICKO_ZDARMA_OD     = 'MODRE_TRICKO_ZDARMA_OD';
     public const SLEVA_ORGU_NA_JIDLO_CASTKA = 'SLEVA_ORGU_NA_JIDLO_CASTKA';
 
+    public const PODEZRELE_VYSOKA_PLATBA_UCASTNIKA = 'PODEZRELE_VYSOKA_PLATBA_UCASTNIKA';
+
     /**
      * @return array{string}
      */

@@ -37,8 +37,8 @@ docker compose up
 vendor/bin/phpunit
 
 # Database access
-./bin-docker/mysql ostra              # Connect to 'ostra' database
-./bin-docker/mysql ostra -e 'SQL'     # Execute SQL query
+./bin-docker/mysql gamecon              # Connect to 'gamecon' database
+./bin-docker/mysql gamecon -e 'SQL'     # Execute SQL query
 
 # Access points
 # http://localhost/web - Public site
@@ -75,6 +75,12 @@ vendor/bin/phpunit
 - Database migrations run automatically
 - Test data in `/tests/Db/data/`
 - Bootstrap: `tests/_zavadec.php`
+- **Test logs location**: `logy/tests/{PID}` (process-specific)
+  - Each test run creates a separate log directory based on process ID
+  - FIO payment cache files stored in `logy/tests/{PID}/fio/`
+  - SQLite logs in `logy/tests/{PID}/platby.sqlite`
+  - LOGY constant in tests: `/var/www/html/gamecon/logy/tests/{PID}` (inside Docker)
+  - These are NOT in `/tmp` - they're in the project's `logy/tests/` directory
 
 ## Best Practices
 - Follow existing code conventions
