@@ -150,14 +150,34 @@ function profilInfo()
     <style>
       .profilInfo img { vertical-align: bottom; }
       @media (max-width: 480px) { .profilInfo { display: none; } }
+      .profilInfo-queries-trigger { position: relative; cursor: default; }
+      .profilInfo-queries-popup {
+        display: none;
+        position: fixed;
+        bottom: 2em;
+        left: 0;
+        width: 90vw;
+        max-width: 90vw;
+        background-color: rgba(51, 51, 51, 0.95);
+        border: solid 1px #000;
+        z-index: 10000;
+        font-size: 11px;
+        color: #fff;
+        padding: 10px;
+        white-space: normal;
+        text-align: left;
+      }
+      .profilInfo-queries-trigger:hover .profilInfo-queries-popup {
+        display: block;
+      }
     </style>
     <img src="' . $iHodiny . '" alt="délka skriptu včetně DB">
     <span style="' . $barva . '">' . round($delka * 1000) . '&thinsp;ms</span>
     &ensp;
-    <div class="hinted">
+    <div class="profilInfo-queries-trigger">
       <img src="' . $iDb . '" alt="délka odbavení DB/počet dotazů">
     ' . round(dbExecTime() * 1000) . '&thinsp;ms (' . dbNumQ() . ' dotazů)
-      <div class="hint" style="position: absolute; bottom: 2em; left: 0; width: 90vw; max-width: 90vw;">
+      <div class="profilInfo-queries-popup">
         ' . implode('<br>', $queries) . '
       </div>
     </div>
