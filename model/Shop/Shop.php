@@ -232,7 +232,7 @@ SQL,
             FROM (
                   SELECT
                     predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav,
-                    predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis,
+                    predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.kod_predmetu, predmety.ubytovani_den, predmety.popis,
                     IF(predmety.model_rok = {$rocnik} OR COALESCE(predmety.popis, '') = '', predmety.nazev, CONCAT(predmety.nazev, ' (', predmety.popis, ')')) AS nazev,
                     COUNT(IF(nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_prodano,
                     COUNT(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_uzivatele,
