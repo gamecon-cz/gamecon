@@ -167,7 +167,7 @@ SQL,
     $sqlValues = implode(",\n", $sqlValuesArray);
 
     dbQuery(<<<SQL
-INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
+INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `je_letosni_hlavni`, `ubytovani_den`, `popis`)
     VALUES
 $sqlValues
 SQL,
@@ -185,6 +185,7 @@ SET
     shop_predmety.nabizet_do = import.nabizet_do,
     shop_predmety.kusu_vyrobeno = import.kusu_vyrobeno,
     shop_predmety.typ = import.typ,
+    shop_predmety.je_letosni_hlavni = import.je_letosni_hlavni,
     shop_predmety.ubytovani_den = import.ubytovani_den,
     shop_predmety.popis = import.popis
 WHERE TRUE -- už vyřešeno přes INNER JOIN a unique key
@@ -193,7 +194,7 @@ SQL,
     $pocetZmenenych = dbAffectedOrNumRows($mysqliResult);
 
     $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
+INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `typ`, `je_letosni_hlavni`, `ubytovani_den`, `popis`)
 SELECT import.`model_rok`,
     import.`nazev`,
     import.`kod_predmetu`,
@@ -202,6 +203,7 @@ SELECT import.`model_rok`,
     import.`nabizet_do`,
     import.`kusu_vyrobeno`,
     import.`typ`,
+    import.`je_letosni_hlavni`,
     import.`ubytovani_den`,
     import.`popis`
 FROM `$temporaryTable` AS import
