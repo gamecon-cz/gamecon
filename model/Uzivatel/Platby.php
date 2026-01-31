@@ -6,8 +6,11 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Gamecon\Finance\FioPlatba;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Kanaly\GcMail;
 use Gamecon\Logger\LogHomadnychAkciTrait;
+use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura as Sql;
 use Uzivatel;
 
@@ -191,6 +194,21 @@ class Platby
             $vlastnik = $fioPlatba->idUcastnika()
                 ? Uzivatel::zId($fioPlatba->idUcastnika())
                 : null;
+
+            // Check for suspiciously high payment
+            if ($vlastnik !== null && $fioPlatba->castka() > 0) {
+                $podezreleVysokaCastka = $this->systemoveNastaveni->dejHodnotu(
+                    SystemoveNastaveniKlice::PODEZRELE_VYSOKA_PLATBA_UCASTNIKA
+                );
+
+                if ($podezreleVysokaCastka !== null && $fioPlatba->castka() >= $podezreleVysokaCastka) {
+                    $this->odesliUpozorneniOPodezreleVysokePlatbe(
+                        $fioPlatba,
+                        $vlastnik
+                    );
+                }
+            }
+
             dbInsert(
                 Sql::PLATBY_TABULKA,
                 [
@@ -348,5 +366,56 @@ class Platby
     private function platbuUzMame(string $idFioPlatby): bool
     {
         return (bool)dbOneCol('SELECT 1 FROM platby WHERE fio_id = $1', [$idFioPlatby]);
+    }
+
+    private function odesliUpozorneniOPodezreleVysokePlatbe(
+        FioPlatba $fioPlatba,
+        Uzivatel $uzivatel,
+    ): void {
+        $castka = number_format($fioPlatba->castka(), 2, ',', ' ');
+        $vs = $fioPlatba->variabilniSymbol() ?: '(bez VS)';
+        $datum = $fioPlatba->datum()->format('d.m.Y H:i');
+        $nazevProtiuctu = $fioPlatba->nazevProtiuctu() ?: '(neznámý)';
+
+        $odkazUzivatel = URL_ADMIN . '/uzivatel?pracovni_uzivatel=' . $uzivatel->id();
+        $odkazNesparovane = URL_ADMIN . '/finance/nesparovane-platby';
+
+        $mail = new GcMail($this->systemoveNastaveni);
+        $mail->predmet('Podezřele vysoká platba automaticky spárována s účastníkem');
+        $mail->text(<<<TEXT
+Byla automaticky spárována podezřele vysoká platba s účastníkem.
+
+Detaily platby:
+- Částka: {$castka} Kč
+- Variabilní symbol: {$vs}
+- Datum: {$datum}
+- Název protiúčtu: {$nazevProtiuctu}
+
+Spárováno s účastníkem:
+- ID: {$uzivatel->id()}
+- Jméno: {$uzivatel->jmenoNick()}
+- Email: {$uzivatel->mail()}
+
+Zkontrolujte prosím správnost spárování v administraci:
+{$odkazUzivatel}
+
+Pokud se jedná o chybné spárování (např. institucionální platbu), odpojte platbu od účastníka na stránce nesparovaných plateb:
+{$odkazNesparovane}
+TEXT
+        );
+
+        $cfosEmaily = Uzivatel::cfosEmaily();
+        foreach ($cfosEmaily as $cfoEmail) {
+            $mail->adresat($cfoEmail);
+        }
+
+        try {
+            $mail->odeslat();
+        } catch (\Throwable $e) {
+            // Log error but don't break payment processing
+            error_log(
+                'Failed to send suspicious payment alert: ' . $e->getMessage()
+            );
+        }
     }
 }
