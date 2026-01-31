@@ -113,18 +113,18 @@ Tento dokument obsahuje rozhodnutí o funkcích pro nový e-shop GameCon.
 ### Správa objednávek
 - ✅ **Vytváření a sledování objednávek** - kompletní správa objednávek
 - ✅ **Unikátní čísla objednávek** - každá objednávka má své číslo (např. GC2025-001234)
-- ✅ **Stavy objednávek** - košík, nová, zpracovává se, dokončená, zrušená (lifecycle objednávky)
-- ✅ **Historie a časová osa objednávky** - záznam všech změn (vytvořeno, zaplaceno, vyexpedováno...)
+- ✅ **Historie a časová osa objednávky** - záznam všech změn (vytvořeno, změněno...)
 - ✅ **Zobrazení detailu objednávky** - kompletní detail pro zákazníka i admina
-- ✅ **Filtrování a vyhledávání objednávek** - podle zákazníka, data, stavu, platby... (admin rozhraní)
+- ✅ **Filtrování a vyhledávání objednávek** - podle zákazníka, data... (admin rozhraní)
 - ✅ **Poznámky a komentáře k objednávkám** - interní poznámky adminů
 
+**Poznámka:** Máme pouze "letošní objednávku" která je editovatelná do překlopení ročníku. Žádné stavy objednávky (košík→nová→zpracovává se→dokončená). Stav platby řeší Finance systém (zůstatek účastníka), ne e-shop. Objednávku můžeme vydat i při dluhu.
+
 ### Zpracování objednávek
-- ❌ **Obsluha plateb objednávek** - zpracování přes platební bránu (používáme stávající systém)
-- ❌ **Sledování zásilek** - tracking čísla zásilek
-- ✅ **Zrušení objednávky** - možnost zrušit objednávku
-- ✅ **Dokončení objednávky** - označení objednávky jako dokončené
-- ✅ **Úprava objednávky (omezené scénáře)** - admin může upravit objednávku
+- ❌ **Obsluha plateb objednávek** - zpracování přes platební bránu (používáme stávající systém Finance)
+- ✅ **Zrušení objednávky** - možnost zrušit objednávku (přesun do `shop_nakupy_zrusene`)
+- ❌ **Dokončení objednávky** - objednávka je "uzavřena" až překlopením ročníku
+- ✅ **Úprava objednávky** - admin i uživatel může upravit objednávku do překlopení ročníku
 
 ### Položky objednávky
 - ✅ **Položky objednávky s množstvím** - seznam položek a jejich počty
@@ -223,16 +223,27 @@ Tento dokument obsahuje rozhodnutí o funkcích pro nový e-shop GameCon.
 
 ## 10. Nákupní košík
 
-### Funkce košíku
-- ✅ **Přidat do košíku** - základní operace přidání produktu
-- ✅ **Aktualizovat množství** - změna počtu kusů
-- ✅ **Odebrat položky** - smazání z košíku
-- ✅ **Shrnutí košíku s celkovými částkami** - přehled ceny
-- ✅ **Zobrazení aplikovaných akcí** - viditelné slevy
-- ❌ **Aplikace kódu kupónu** - zadání slevového kódu
-- ✅ **Perzistence košíku** - uložení košíku do DB pro přihlášené uživatele
-- ❌ **Widget mini-košíku** - ikona košíku v hlavičce
-- ❌ **Sledování opuštěných košíků** - tracking neúspěšných nákupů
+**DŮLEŽITÉ:** Současný systém už má perzistentní košík - tabulka `shop_nakupy` funguje jako:
+1. **Košík/Objednávka** (editovatelné záznamy dokud neskončí GameCon = "letošní" objednávka)
+2. **Historie nákupů** (archiv po překlopení ročníku)
+
+### Co současný košík (`shop_nakupy`) UMÍ
+- ✅ Perzistence v DB - záznamy uložené pro přihlášené uživatele
+- ✅ Přidání položky - vytvoření záznamu v `shop_nakupy`
+- ✅ Odebrání položky - smazání/přesun do `shop_nakupy_zrusene`
+- ✅ Aktualizace množství - diff-based porovnání starých vs nových nákupů
+- ✅ Historická cena - ukládá `cena_nakupni` v okamžiku nákupu
+- ✅ Rozlišení zákazníka a objednatele - pole `id_uzivatele` vs `id_objednatele`
+
+### Co současnému košíku CHYBÍ a co potřebujeme přidat
+- ❌ **Entita Order/Objednávka** - seskupení nákupů s unikátným číslem objednávky
+- ❌ **Uložený součet objednávky** - nyní se počítá za běhu
+- ❌ **CRUD API místo diff-based update** - současný systém porovnává formulářové hodnoty
+- ❌ **Validace zásob při přidání do košíku** - chybí prevence přeprodání
+- ❌ **Zobrazení aplikovaných slev v košíku** - slevy se počítají dynamicky, ale nejsou uložené
+- ❌ **Widget mini-košíku** - ikona košíku v hlavičce (nice-to-have)
+
+**Poznámka o stavech:** Nepotřebujeme rozlišení "nepotvrzená vs potvrzená objednávka". Máme pouze "letošní objednávku" která je editovatelná do překlopení ročníku. Jediný relevantní stav je "zaplaceno/nezaplaceno".
 
 ---
 
