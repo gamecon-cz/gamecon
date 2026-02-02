@@ -9,7 +9,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavAktivity;
 
 /**
@@ -44,6 +43,10 @@ class Activity
 
     #[ORM\Column(name: 'konec', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTime $konec = null;
+
+    #[ORM\ManyToOne(targetEntity: Location::class)]
+    #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
+    private ?Location $mainLocation = null;
 
     /**
      * @var Collection<int, Location>
@@ -123,9 +126,17 @@ class Activity
     ])]
     private bool $tymSmazatPoExpiraci = true;
 
-    #[ORM\ManyToOne(targetEntity: Location::class)]
-    #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
-    private ?Location $mainLocation = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'zamcel', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
+        'comment'  => 'případně kdo zamčel aktivitu pro svůj team',
+        'onUpdate' => 'CASCADE',
+    ])]
+    private ?User $forTeamLockedBy = null;
+
+    #[ORM\Column(name: 'zamcel_cas', type: Types::DATETIME_MUTABLE, nullable: true, options: [
+        'comment' => 'případně kdy zamčel aktivitu',
+    ])]
+    private ?\DateTime $forTeamLockedAt = null;
 
     #[ORM\Column(name: 'popis', type: Types::TEXT, nullable: false, options: [
         'comment' => 'markdown',
@@ -240,6 +251,28 @@ class Activity
     public function removeLocation(Location $location): self
     {
         $this->locations->removeElement($location);
+
+        return $this;
+    }
+
+    /**
+     * @param Collection<int, Location> $locations
+     */
+    public function setLocations(Collection $locations): self
+    {
+        $this->locations = $locations;
+
+        return $this;
+    }
+
+    public function getMainLocation(): ?Location
+    {
+        return $this->mainLocation;
+    }
+
+    public function setMainLocation(?Location $mainLocation): self
+    {
+        $this->mainLocation = $mainLocation;
 
         return $this;
     }
@@ -432,18 +465,6 @@ class Activity
     public function setTymSmazatPoExpiraci(bool $tymSmazatPoExpiraci): self
     {
         $this->tymSmazatPoExpiraci = $tymSmazatPoExpiraci;
-
-        return $this;
-    }
-
-    public function getMainLocation(): ?Location
-    {
-        return $this->mainLocation;
-    }
-
-    public function setMainLocation(?Location $mainLocation): self
-    {
-        $this->mainLocation = $mainLocation;
 
         return $this;
     }
