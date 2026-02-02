@@ -59,7 +59,7 @@ class DumpEntitySqlStructureCommand extends Command
         // Create output directory if it doesn't exist
         if (! $this->filesystem->exists($outputDir)) {
             $this->filesystem->mkdir($outputDir);
-            $io->info("Created output directory: {$outputDir}");
+            $io->info('Created output directory: ' . $outputDir);
         }
 
         $metadataFactory = $this->entityManager->getMetadataFactory();
@@ -95,7 +95,7 @@ class DumpEntitySqlStructureCommand extends Command
 
             if ($bytesWritten === false) {
                 $errors[] = $fileName;
-                $io->error("Failed to write file: {$fileName}");
+                $io->error('Failed to write file: ' . $fileName);
             } elseif ($isNew) {
                 $newFiles[] = $fileName;
             } else {
@@ -103,21 +103,21 @@ class DumpEntitySqlStructureCommand extends Command
             }
         }
 
-        if (! empty($newFiles)) {
+        if ($newFiles !== []) {
             $io->section(sprintf('New files (%d):', count($newFiles)));
             foreach ($newFiles as $file) {
-                $io->text(" - {$file}");
+                $io->text(' - ' . $file);
             }
         }
 
-        if (! empty($updatedFiles)) {
+        if ($updatedFiles !== []) {
             $io->section(sprintf('Updated files (%d):', count($updatedFiles)));
             foreach ($updatedFiles as $file) {
-                $io->text(" - {$file}");
+                $io->text(' - ' . $file);
             }
         }
 
-        if (! empty($errors)) {
+        if ($errors !== []) {
             $io->error(sprintf('Failed to write %d file(s)', count($errors)));
 
             return Command::FAILURE;
@@ -177,20 +177,20 @@ class DumpEntitySqlStructureCommand extends Command
             ++$checked;
         }
 
-        if (empty($missing) && empty($outdated)) {
+        if ($missing === [] && $outdated === []) {
             $io->success(sprintf('All %d structure files are up-to-date', $checked));
 
             return Command::SUCCESS;
         }
 
-        if (! empty($missing)) {
+        if ($missing !== []) {
             $io->section(sprintf('Missing structure files (%d):', count($missing)));
             foreach ($missing as $item) {
                 $io->text(sprintf(' - %s (for %s)', $item['file'], $item['entity']));
             }
         }
 
-        if (! empty($outdated)) {
+        if ($outdated !== []) {
             $io->section(sprintf('Outdated structure files (%d):', count($outdated)));
             foreach ($outdated as $item) {
                 $io->text(sprintf(' - %s (for %s)', $item['file'], $item['entity']));
@@ -214,7 +214,7 @@ class DumpEntitySqlStructureCommand extends Command
         $shortEntityName = $this->getClassNameFromEntity($entityClass);
 
         $constants = [
-            "    public const _table = '{$tableName}';",
+            sprintf("    public const _table = '%s';", $tableName),
             '',
         ];
 
@@ -230,7 +230,7 @@ class DumpEntitySqlStructureCommand extends Command
      * @see {$shortEntityName}::\${$fieldName}
      */
 PHPDOC;
-            $constants[] = "    public const {$columnName} = '{$columnName}';";
+            $constants[] = sprintf("    public const %s = '%s';", $columnName, $columnName);
             $constants[] = '';
         }
 
@@ -244,7 +244,7 @@ PHPDOC;
      * @see {$shortEntityName}::\${$fieldName}
      */
 PHPDOC;
-                    $constants[] = "    public const {$columnName} = '{$columnName}';";
+                    $constants[] = sprintf("    public const %s = '%s';", $columnName, $columnName);
                     $constants[] = '';
                 }
             }
@@ -299,10 +299,6 @@ PHP;
         }
 
         // Skip mapped superclasses (abstract parent entities)
-        if ($classMetadata->isMappedSuperclass) {
-            return true;
-        }
-
-        return false;
+        return $classMetadata->isMappedSuperclass;
     }
 }

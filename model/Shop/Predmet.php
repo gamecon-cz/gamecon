@@ -15,7 +15,6 @@ class Predmet extends \DbObject
 {
     protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
     protected static $pk = Sql::ID_PREDMETU;
-    protected static $letosniPredmety = [];
 
     public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool
     {
@@ -108,49 +107,11 @@ class Predmet extends \DbObject
         return $typ === TypPredmetu::TRICKO && self::jeToDleCasti($kodPredmetu, 'tilko');
     }
 
-    public static function letosniKostka(int $rocnik): ?static
-    {
-        return self::letosniPredmet('kostka', $rocnik);
-    }
-
-    public static function letosniPlacka(int $rocnik): ?static
-    {
-        return self::letosniPredmet('placka', $rocnik);
-    }
-
     private static function jeToDleCasti(
         string $cele,
         string $cast,
     ): bool {
         return mb_stripos($cele, $cast) !== false;
-    }
-
-    private static function letosniPredmet(
-        string $castKodu,
-        int    $rocnik,
-    ): ?static {
-        if (!array_key_exists($castKodu, self::$letosniPredmety)) {
-            $typPredmet = TypPredmetu::PREDMET;
-            $castKoduSql = dbQRaw($castKodu);
-            $letosniPredmetId = dbFetchSingle(<<<SQL
-SELECT id_predmetu
-FROM shop_predmety
-WHERE
-    -- letošní je ten, která má nejnovější model a v dřívějších letech si ho nikdo neobjednal
-    NOT EXISTS(SELECT * FROM shop_nakupy WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
-    AND typ = {$typPredmet}
-    AND kod_predmetu COLLATE utf8_czech_ci LIKE '%{$castKoduSql}%'
-ORDER BY model_rok DESC, je_letosni_hlavni DESC, cena_aktualni DESC, id_predmetu /* dříve nahraný má přednost */
-LIMIT 1 -- pro jistotu
-SQL,
-            );
-            $letosniPredmet = $letosniPredmetId
-                ? static::zId((int)$letosniPredmetId, true)
-                : null;
-            self::$letosniPredmety[$castKodu] = $letosniPredmet;
-        }
-
-        return self::$letosniPredmety[$castKodu];
     }
 
     public function kusuVyrobeno(?int $kusuVyrobeno = null, bool $nastavit = false): ?int
@@ -165,11 +126,6 @@ SQL,
     public function nazev(): string
     {
         return (string)$this->r[Sql::NAZEV];
-    }
-
-    public function cenaAktualni(): float
-    {
-        return (float)$this->r[Sql::CENA_AKTUALNI];
     }
 
     public function stav(int $stav = null): int

@@ -22,7 +22,7 @@ class AnonymizovanaDatabaze
 
         return new static(
             DB_NAME,
-            \DB_ANONYM_NAME,
+            DB_ANONYM_NAME,
             $systemoveNastaveni,
             new NastrojeDatabaze($systemoveNastaveni),
         );
