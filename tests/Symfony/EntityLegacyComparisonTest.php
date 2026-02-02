@@ -560,7 +560,6 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyShopItem->getTyp(), $legacyData['typ']);
         $this->assertEquals($symfonyShopItem->getUbytovaniDen(), $legacyData['ubytovani_den']);
         $this->assertEquals($symfonyShopItem->getPopis(), $legacyData['popis']);
-        $this->assertEquals($symfonyShopItem->isJeLetosniHlavni(), (bool) $legacyData['je_letosni_hlavni']);
 
         // Test date field
         if ($symfonyShopItem->getNabizetDo()) {

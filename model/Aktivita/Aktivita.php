@@ -53,7 +53,7 @@ class Aktivita
     private array $kolekce = []; // nadřízená kolekce, v rámci které byla aktivita načtena
     /** @var array<Lokace>|null */
     private ?array             $seznamLokaci;
-    private null | int | false $idHlavniLokace = null;
+    private null | int | false $idHlavniLokace        = null;
     private                    $stav;
     private ?int               $idHlavniAktivityCache = null;
     private bool               $nova;           // jestli jde o nově uloženou aktivitu nebo načtenou z DB
@@ -596,7 +596,7 @@ SQL
             $vsechnyLokacePodlePoznamky[trim((string)$lokace->poznamka())][] = $lokace;
         }
 
-        $pocetVsechLokaci        = count($vsechnyLokace);
+        $pocetVsechLokaci = count($vsechnyLokace);
         $nazevPredchoziKategorie = null;
 
         $encodeForHtml = function (
@@ -1209,9 +1209,9 @@ SQL
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
         } elseif (!empty($data[Sql::PATRI_POD])) {
             // editace aktivity z rodiny instancí
-            $doHlavni   = [Sql::URL_AKCE, Sql::POPIS, Sql::VYBAVENI];    // věci, které se mají změnit jen u hlavní (main) `instance
+            $doHlavni = [Sql::URL_AKCE, Sql::POPIS, Sql::VYBAVENI];    // věci, které se mají změnit jen u hlavní (main) `instance
             $doAktualni = [Sql::ZACATEK, Sql::KONEC];       // věci, které se mají změnit jen u aktuální instance
-            $aktivita   = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
+            $aktivita = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
                 $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
                 unset($data[ActivitiesImportSqlColumn::STAV]); // stav se může měnit jenom u jedné instance
@@ -1256,7 +1256,7 @@ SQL
             // vložení
             dbInsertUpdate(Sql::AKCE_SEZNAM_TABULKA, $data);
             $data[Sql::ID_AKCE] = dbInsertId();
-            $aktivita           = self::zId($data[Sql::ID_AKCE]);
+            $aktivita = self::zId($data[Sql::ID_AKCE]);
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
             $aktivita->nova = true;
         }
@@ -1444,7 +1444,7 @@ SQL
     /** Vrací celkovou kapacitu aktivity, která platí pokud aktivita není teamová */
     public function neteamovaKapacita(): int
     {
-        return (int) ($this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F]);
+        return (int)($this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F]);
     }
 
     /** Vrací celkovou kapacitu aktivity */
@@ -1477,9 +1477,9 @@ SQL
     /**
      * @return string krátký popis aktivity (plaintext)
      */
-    public function kratkyPopis()
+    public function kratkyPopis(): ?string
     {
-        return $this->a['popis_kratky'];
+        return $this->a[Sql::POPIS_KRATKY];
     }
 
     /**
@@ -1553,7 +1553,7 @@ SQL
     public function idHlavniLokace(): ?int
     {
         if (!isset($this->idHlavniLokace)) {
-            $idHlavniLokace       = dbFetchSingle(<<<SQL
+            $idHlavniLokace = $this->a[Sql::ID_HLAVNI_LOKACE] ?? dbFetchSingle(<<<SQL
                 SELECT COALESCE(
                     akce_seznam.id_hlavni_lokace,
                     (SELECT id_lokace FROM akce_lokace WHERE id_akce = {$this->id()} ORDER BY id_lokace ASC LIMIT 1)
@@ -1591,10 +1591,10 @@ SQL
             );
         }
         if ($idckaLokaci !== []) {
-            $values    = array_map(
-                function (int $idLokace) {
-                    return "({$this->id()}, $idLokace)";
-                },
+            $values = array_map(
+                fn(
+                    int $idLokace,
+                ) => "({$this->id()}, $idLokace)",
                 array_map('intval', $idckaLokaci),
             );
             $valuesSql = implode(',', $values);
@@ -1608,17 +1608,21 @@ SQL
             throw new \LogicException(
                 sprintf(
                     'Given ID of main location %d is not in given list of locations %s.',
-                    $hlavniLokaceId, implode(', ', $idckaLokaci)
-                )
+                    $hlavniLokaceId, implode(', ', $idckaLokaci),
+                ),
             );
         }
+        // Update id_hlavni_lokace in akce_seznam for Doctrine compatibility
+        $idHlavniLokaceSql = $hlavniLokaceId !== null
+            ? $hlavniLokaceId
+            : 'NULL';
         dbQuery(<<<SQL
             UPDATE akce_seznam
-            SET id_hlavni_lokace = $1
+            SET id_hlavni_lokace = {$idHlavniLokaceSql}
             WHERE id_akce = {$this->id()}
             SQL,
-            [1 => $hlavniLokaceId],
         );
+        $this->a[Sql::ID_HLAVNI_LOKACE] = $hlavniLokaceId;
         $this->idHlavniLokace = null;
         $this->seznamLokaci = null;
     }
@@ -2199,7 +2203,8 @@ SQL
 
     public function getPopisRaw(): ?string
     {
-        return $this->a[Sql::POPIS] ?: null;
+        return $this->a[Sql::POPIS]
+            ?: null;
     }
 
     /**
@@ -2707,8 +2712,9 @@ SQL
         return $this->pocetPrihlasenehoPohlavi(Pohlavi::MUZ_KOD, $dataSourcesCollector);
     }
 
-    private function pocetPrihlasenehoPohlavi(string                $pocitanePohlavi,
-                                              ?DataSourcesCollector $dataSourcesCollector = null,
+    private function pocetPrihlasenehoPohlavi(
+        string                $pocitanePohlavi,
+        ?DataSourcesCollector $dataSourcesCollector = null,
     ): int {
         return count(
             array_filter(

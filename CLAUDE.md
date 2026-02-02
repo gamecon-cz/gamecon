@@ -40,6 +40,12 @@ vendor/bin/phpunit
 # Database access (use dbal:run-sql to ensure correct DB)
 ./bin-docker/php ./bin/console dbal:run-sql 'SELECT 1'  # Execute SQL query in current DB
 
+# Symfony console (from project root)
+bin/console <command>                    # Run Symfony console commands
+bin/console doctrine:mapping:info        # Check entity mappings
+bin/console doctrine:schema:validate     # Validate database schema
+bin/console cache:clear                  # Clear cache
+
 # Access points
 # http://localhost/web - Public site
 # http://localhost/admin - Admin panel
@@ -89,7 +95,109 @@ vendor/bin/phpunit
 - Check existing patterns in similar components
 - Use Docker for consistent development environment
 
+## Doctrine Entity Guidelines
+
+### Timestamp Columns
+- **New timestamp columns** (created_at, updated_at, etc.) should ALWAYS use `DateTimeImmutable`
+- **Legacy timestamp columns** may use `DateTime` for backward compatibility, but new code should prefer `DateTimeImmutable`
+- **Rationale**: `DateTimeImmutable` prevents accidental mutations and is safer for value objects
+
+**Example:**
+```php
+// ✅ GOOD: New timestamp columns
+#[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE, nullable: false)]
+private \DateTimeImmutable $createdAt;
+
+#[ORM\Column(name: 'updated_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+private ?\DateTimeImmutable $updatedAt = null;
+
+public function __construct()
+{
+    $this->createdAt = new \DateTimeImmutable();
+}
+
+// ❌ BAD: Using mutable DateTime for new columns
+#[ORM\Column(name: 'created_at', type: Types::DATETIME_MUTABLE)]
+private \DateTime $createdAt;
+```
+
+### Timestamp Injection (Testability)
+- **Entities MUST NOT create timestamps internally** in business logic methods (except constructors for auto-set fields like `created_at`)
+- **Always accept timestamps as parameters** from outside (e.g., from Clock service, application service, or controller)
+- **Rationale**: Internal timestamp creation (`new \DateTimeImmutable()`) makes testing difficult because you can't control the time
+- **Exception**: Constructors MAY auto-set `created_at` timestamps since they represent object creation time
+
+**Examples:**
+```php
+// ✅ GOOD: Accept timestamp from outside
+public function archive(\DateTimeImmutable $archivedAt): self
+{
+    $this->archivedAt = $archivedAt;
+    return $this;
+}
+
+// Usage with Clock service
+$product->archive($clock->now());
+
+// Testing is easy - inject any timestamp
+$product->archive(new \DateTimeImmutable('2024-01-15 10:00:00'));
+
+// ❌ BAD: Creating timestamp inside entity method
+public function archive(): self
+{
+    $this->archivedAt = new \DateTimeImmutable(); // Hard to test!
+    return $this;
+}
+
+// ✅ GOOD: Constructor auto-set for creation timestamp
+public function __construct()
+{
+    $this->createdAt = new \DateTimeImmutable(); // OK - represents object creation
+}
+```
+
+**Clock Service Pattern:**
+Use Symfony's Clock component for timestamp generation in services:
+```php
+use Symfony\Component\Clock\ClockInterface;
+
+class ProductService
+{
+    public function __construct(
+        private ClockInterface $clock,
+    ) {}
+
+    public function archiveProduct(Product $product): void
+    {
+        $product->archive($this->clock->now());
+        // ... persist
+    }
+}
+```
+
 ## SQL Coding Style
+
+### Table Naming Convention
+- **New tables use SINGULAR names**: `product_tag`, `product_discount`, `shop_order` (NOT plurals)
+- **Legacy tables may use plural/Czech names**: `shop_predmety`, `uzivatele_hodnoty`, `akce_seznam` (keep as-is for backward compatibility)
+- **Rationale**: Singular names are clearer, match entity class names better, and avoid confusion about what "one row" represents
+- **Examples**:
+  ```sql
+  -- ✅ GOOD: New tables with singular English names
+  CREATE TABLE product_tag (...)
+  CREATE TABLE product_discount (...)
+  CREATE TABLE shop_order (...)
+
+  -- ❌ BAD: New tables with plural English names
+  CREATE TABLE product_tags (...)      -- NO
+  CREATE TABLE product_discount (...) -- NO
+  CREATE TABLE shop_order (...)       -- NO
+
+  -- ✅ ACCEPTABLE: Legacy tables (don't rename)
+  shop_predmety, uzivatele_hodnoty, akce_seznam
+  ```
+
+### Query Style
 - **No table aliases**: Use full table names in queries whenever possible
 - **No single-letter aliases**: Avoid cryptic aliases like `t`, `n`, `a`
 - **Descriptive names**: If aliases are necessary, use descriptive human-readable names

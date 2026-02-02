@@ -211,7 +211,7 @@ Komplexní logika slev založená na uživatelských právech a bonusech organiz
 
 #### Obsluha zrušení
 - Metody hromadného zrušení:
-  - Zrušit vše ubytování
+  - Zrušit všechno ubytování
   - Zrušit všechny nákupy určitého typu
   - Zrušit všechny nákupy za rok
   - Zrušit registrace aktivit (oddělené od shopu)

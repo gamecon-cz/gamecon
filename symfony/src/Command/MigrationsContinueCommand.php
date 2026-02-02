@@ -9,6 +9,7 @@ use Godric\DbMigrations\DbMigrationsConfig;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -18,19 +19,24 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class MigrationsContinueCommand extends Command
 {
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function configure(): void
     {
+        $this
+            ->addOption('force', 'f', InputOption::VALUE_REQUIRED);
+    }
+
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output,
+    ): int {
         $io = new SymfonyStyle($input, $output);
 
-        $io->title('Running Database Migrations');
+        $io->title(sprintf('Running Database Migrations On %s', DB_NAME));
 
-        // Load legacy bootstrap
-        require_once __DIR__ . '/../../../nastaveni/zavadec-zaklad.php';
-
-        // Create database connection for migrations (from db-migrace.php)
+        // Create a database connection for migrations (from db-migrace.php)
         $connection = dbConnectTemporary(selectDb: false);
 
-        // Ensure database exists and is selected
+        // Ensure a database exists and is selected
         dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', DB_NAME), null, $connection);
         dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
 
@@ -51,9 +57,9 @@ class MigrationsContinueCommand extends Command
             $io->success('All migrations have been applied successfully');
 
             return Command::SUCCESS;
-        } catch (\Throwable $e) {
-            $io->error('Migration failed: ' . $e->getMessage());
-            $io->writeln($e->getTraceAsString());
+        } catch (\Throwable $throwable) {
+            $io->error('Migration failed: ' . $throwable->getMessage());
+            $io->writeln($throwable->getTraceAsString());
 
             return Command::FAILURE;
         }

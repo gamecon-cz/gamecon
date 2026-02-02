@@ -6,6 +6,8 @@ namespace App\Entity;
 
 use App\Entity\Enum\GenderEnum;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -121,6 +123,17 @@ class User
 
     #[ORM\OneToOne(targetEntity: UserBadge::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private UserBadge $badge;
+
+    /**
+     * @var Collection<int, CancelledOrderItem>
+     */
+    #[ORM\OneToMany(targetEntity: CancelledOrderItem::class, mappedBy: 'customer', cascade: ['remove'])]
+    private Collection $cancelledOrderItems;
+
+    public function __construct()
+    {
+        $this->cancelledOrderItems = new ArrayCollection();
+    }
 
     // Getters and Setters
 
@@ -485,6 +498,14 @@ class User
     public function setBadge(UserBadge $badge): void
     {
         $this->badge = $badge;
+    }
+
+    /**
+     * @return Collection<int, CancelledOrderItem>
+     */
+    public function getCancelledOrderItems(): Collection
+    {
+        return $this->cancelledOrderItems;
     }
 
     public function getCelemeJmeno(): string
