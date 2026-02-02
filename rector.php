@@ -1,7 +1,7 @@
 <?php
 
 use Rector\Config\RectorConfig;
-use Gamecon\Tests\Rector\Rules\ReorderAttributeArgumentsRector;
+use App\Rector\ReorderAttributeArgumentsRector;
 
 return RectorConfig::configure()
                    ->withPreparedSets(
@@ -15,4 +15,9 @@ return RectorConfig::configure()
                    ->withImportNames(importShortClasses: false, removeUnusedImports: true)
     ->withRules([
         ReorderAttributeArgumentsRector::class,
-    ]);
+    ])
+    ->withPaths([
+        __DIR__ . '/symfony',
+    ])
+    ->withSkipPath(__DIR__ . '/symfony/var')
+    ->withSymfonyContainerXml(__DIR__ . '/symfony/var/cache/dev/App_KernelDevDebugContainer.xml');

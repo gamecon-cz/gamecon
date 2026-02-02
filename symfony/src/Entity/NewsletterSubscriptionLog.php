@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: NewsletterSubscriptionLogRepository::class)]
 #[ORM\Table(name: 'newsletter_prihlaseni_log')]
-#[ORM\Index(columns: ['email'], name: 'IDX_email')]
+#[ORM\Index(name: 'IDX_email', columns: ['email'])]
 class NewsletterSubscriptionLog
 {
     #[ORM\Id]

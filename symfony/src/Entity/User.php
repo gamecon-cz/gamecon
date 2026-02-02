@@ -6,6 +6,8 @@ namespace App\Entity;
 
 use App\Entity\Enum\GenderEnum;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -14,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'uzivatele_hodnoty')]
-#[ORM\Index(columns: ['infopult_poznamka'], name: 'IDX_infopult_poznamka')]
+#[ORM\Index(name: 'IDX_infopult_poznamka', columns: ['infopult_poznamka'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_login_uzivatele', columns: ['login_uzivatele'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_email1_uzivatele', columns: ['email1_uzivatele'])]
 class User
@@ -119,8 +121,19 @@ class User
     #[ORM\Column(name: 'potvrzeni_zakonneho_zastupce_soubor', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $potvrzeniZakonnehoZastupceSoubor = null;
 
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserBadge::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: UserBadge::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private UserBadge $badge;
+
+    /**
+     * @var Collection<int, CancelledOrderItem>
+     */
+    #[ORM\OneToMany(targetEntity: CancelledOrderItem::class, mappedBy: 'customer', cascade: ['remove'])]
+    private Collection $cancelledOrderItems;
+
+    public function __construct()
+    {
+        $this->cancelledOrderItems = new ArrayCollection();
+    }
 
     // Getters and Setters
 
@@ -485,6 +498,14 @@ class User
     public function setBadge(UserBadge $badge): void
     {
         $this->badge = $badge;
+    }
+
+    /**
+     * @return Collection<int, CancelledOrderItem>
+     */
+    public function getCancelledOrderItems(): Collection
+    {
+        return $this->cancelledOrderItems;
     }
 
     public function getCelemeJmeno(): string

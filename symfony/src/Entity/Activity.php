@@ -9,7 +9,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavAktivity;
 
 /**
@@ -45,10 +44,19 @@ class Activity
     #[ORM\Column(name: 'konec', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTime $konec = null;
 
+    #[ORM\ManyToOne(targetEntity: Location::class)]
+    #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
+    private ?Location $mainLocation = null;
+
     /**
      * @var Collection<int, Location>
      */
     #[ORM\ManyToMany(targetEntity: Location::class)]
+    #[ORM\JoinTable(
+        name: 'akce_lokace',
+        joinColumns: [new ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce')],
+        inverseJoinColumns: [new ORM\JoinColumn(name: 'id_lokace', referencedColumnName: 'id_lokace')]
+    )]
     private Collection $locations;
 
     #[ORM\Column(name: 'kapacita', type: Types::INTEGER, nullable: false)]
@@ -147,12 +155,13 @@ class Activity
     /**
      * @var Collection<int, ActivityTag>
      */
-    #[ORM\OneToMany(mappedBy: 'activity', targetEntity: ActivityTag::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: ActivityTag::class, mappedBy: 'activity', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $activityTags;
 
     public function __construct()
     {
         $this->activityTags = new ArrayCollection();
+        $this->locations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -250,6 +259,18 @@ class Activity
     public function setLocations(Collection $locations): self
     {
         $this->locations = $locations;
+
+        return $this;
+    }
+
+    public function getMainLocation(): ?Location
+    {
+        return $this->mainLocation;
+    }
+
+    public function setMainLocation(?Location $mainLocation): self
+    {
+        $this->mainLocation = $mainLocation;
 
         return $this;
     }

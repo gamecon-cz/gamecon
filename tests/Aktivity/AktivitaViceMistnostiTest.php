@@ -360,7 +360,6 @@ SQL,
         dbInsert(JunctionSql::AKCE_LOKACE_TABULKA, [
             JunctionSql::ID_AKCE => 2001,
             JunctionSql::ID_LOKACE => 1001,
-            JunctionSql::JE_HLAVNI => 0,
         ]);
     }
 

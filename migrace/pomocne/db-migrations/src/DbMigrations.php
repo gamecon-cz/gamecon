@@ -36,7 +36,12 @@ class DbMigrations
 
     public function hasUnappliedMigrations(): bool
     {
-        return (bool)$this->getUnappliedMigrations();
+        return !$this->doesMigrationsTableExists() || $this->getUnappliedMigrations() !== [];
+    }
+
+    private function doesMigrationsTableExists(): bool
+    {
+        return $this->hasTableMigrationsForV2();
     }
 
     private function handleUnappliedMigrations(bool $silent): void
@@ -311,7 +316,8 @@ SQL,
             if (!$migration->isEndless()) {
                 if ($this->hasTableMigrationsForV2()) {
                     $this->connection->query(<<<SQL
-INSERT IGNORE INTO migrations(migration_code, applied_at) VALUES ('{$migration->getCode()}', NOW())
+                        INSERT IGNORE INTO migrations(migration_code, applied_at)
+                        VALUES ('{$migration->getCode()}', NOW())
 SQL,
                     );
                 }

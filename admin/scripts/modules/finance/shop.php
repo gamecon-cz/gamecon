@@ -83,9 +83,6 @@ foreach (Shop::letosniPolozky() as $polozka) {
             : '');
         $template->parse('shop.typ.polozka.stav');
     }
-    if ($polozka->jeLetosniHlavni()) {
-        $template->parse('shop.typ.polozka.jeLetosniHlavni');
-    }
     $template->parse('shop.typ.polozka');
 }
 $template->parse('shop.typ');

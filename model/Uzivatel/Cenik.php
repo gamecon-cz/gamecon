@@ -104,7 +104,7 @@ class Cenik
         if (!$this->u->maPravoNaKostkuZdarma()) {
             return 0;
         }
-        if (!$this->maObjednanouLetosniKostku($r)) {
+        if (!$this->maObjednanouKostku($r)) {
             return 0;
         }
         if ($omezPocet) {
@@ -114,17 +114,9 @@ class Cenik
         return (int)$cena;
     }
 
-    private function maObjednanouLetosniKostku(array $r): bool
+    private function maObjednanouKostku(array $r): bool
     {
-        if (!Predmet::jeToKostka($r[PredmetySql::KOD_PREDMETU])) {
-            return false;
-        }
-        $letosniKostka = Predmet::letosniKostka($this->systemoveNastaveni->rocnik());
-        if (!$letosniKostka) {
-            return false;
-        }
-
-        return (int)$letosniKostka->id() === (int)$r[PredmetySql::ID_PREDMETU];
+        return Predmet::jeToKostka($r[PredmetySql::KOD_PREDMETU]);
     }
 
     public function cenaPlacky(array $r): int
@@ -146,7 +138,7 @@ class Cenik
         if (!$this->u->maPravoNaPlackuZdarma()) {
             return 0;
         }
-        if (!$this->maObjednanouLetosniPlacku($r)) {
+        if (!$this->maObjednanouPlacku($r)) {
             return 0;
         }
         if ($omezPocet) {
@@ -156,17 +148,9 @@ class Cenik
         return (int)$cena;
     }
 
-    private function maObjednanouLetosniPlacku(array $r): bool
+    private function maObjednanouPlacku(array $r): bool
     {
-        if (!Predmet::jeToPlacka($r[PredmetySql::KOD_PREDMETU])) {
-            return false;
-        }
-        $letosniPlacka = Predmet::letosniPlacka($this->systemoveNastaveni->rocnik());
-        if (!$letosniPlacka) {
-            return false;
-        }
-
-        return (int)$letosniPlacka->id() === (int)$r[PredmetySql::ID_PREDMETU];
+        return Predmet::jeToPlacka($r[PredmetySql::KOD_PREDMETU]);
     }
 
     /**

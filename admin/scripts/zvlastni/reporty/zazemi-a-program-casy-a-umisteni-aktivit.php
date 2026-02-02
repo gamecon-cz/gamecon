@@ -11,10 +11,10 @@ SELECT akce_seznam.nazev_akce,
         FROM akce_lokace
         JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
         WHERE akce_lokace.id_akce = akce_seznam.id_akce
-        ORDER BY akce_lokace.je_hlavni DESC,
+        ORDER BY IF(akce_seznam.id_hlavni_lokace = akce_lokace.id_akce, 1, 0) DESC,
                  akce_lokace.id_akce_lokace
         LIMIT 1) AS mistnost, -- hlavní místnost
-       (SELECT GROUP_CONCAT(lokace.nazev ORDER BY akce_lokace.je_hlavni DESC, akce_lokace.id_akce_lokace SEPARATOR '; ')
+       (SELECT GROUP_CONCAT(lokace.nazev ORDER BY IF(akce_seznam.id_hlavni_lokace = akce_lokace.id_akce, 1, 0) DESC, akce_lokace.id_akce_lokace SEPARATOR '; ')
         FROM akce_lokace
         JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
         WHERE akce_lokace.id_akce = akce_seznam.id_akce

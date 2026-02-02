@@ -45,7 +45,7 @@ $row           = $rowIterator->current();
 $hlavickaKlice = array_map('trim', $row->toArray());
 $hlavicka      = array_flip($hlavickaKlice);
 
-$pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'je_letosni_hlavni', 'ubytovani_den', 'popis'];
+$pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'ubytovani_den', 'popis'];
 if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
     throw new Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
 }
@@ -58,7 +58,6 @@ $indexStav            = $hlavicka['stav'];
 $indexNabizetDo       = $hlavicka['nabizet_do'];
 $indexKusuVyrobeno    = $hlavicka['kusu_vyrobeno'];
 $indexTyp             = $hlavicka['typ'];
-$indexJeLetosniHlavni = $hlavicka['je_letosni_hlavni'];
 $indexUbytovaniDen    = $hlavicka['ubytovani_den'];
 $indexPopis           = $hlavicka['popis'];
 
@@ -138,7 +137,6 @@ while ($rowIterator->valid()) {
                 $radek[$indexNabizetDo],
                 $cisloNeboNull($radek[$indexKusuVyrobeno]),
                 $cisloNeboNull($radek[$indexTyp]),
-                $celeCislo($radek[$indexJeLetosniHlavni]),
                 $cisloNeboNull($radek[$indexUbytovaniDen]),
                 $radek[$indexPopis],
             ]) . ')';

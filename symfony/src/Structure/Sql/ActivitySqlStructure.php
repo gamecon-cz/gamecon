@@ -137,6 +137,11 @@ class ActivitySqlStructure
     public const patri_pod = 'patri_pod';
 
     /**
+     * @see Activity::$mainLocation
+     */
+    public const id_hlavni_lokace = 'id_hlavni_lokace';
+
+    /**
      * @see Activity::$type
      */
     public const typ = 'typ';
