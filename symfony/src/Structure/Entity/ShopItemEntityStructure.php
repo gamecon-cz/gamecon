@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Structure\Entity;
 
 /**
- * Property structure for @see \App\Entity\ShopItem
+ * Property structure for @see \App\Entity\Product
  */
 class ShopItemEntityStructure
 {

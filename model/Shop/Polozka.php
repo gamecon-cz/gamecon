@@ -21,7 +21,6 @@ class Polozka
     private int                      $idTypu;
     private ?string                  $podtyp;
     private int                      $stav;
-    private bool                     $jeLetosniHlavni;
 
     public function __construct(array $hodnoty)
     {
@@ -42,7 +41,6 @@ class Polozka
         $this->idTypu              = (int)$hodnoty['typ'];
         $this->podtyp              = $hodnoty['podtyp'] !== null ? (string)$hodnoty['podtyp'] : null;
         $this->stav                = (int)$hodnoty['stav'];
-        $this->jeLetosniHlavni     = (bool)$hodnoty['je_letosni_hlavni'];
     }
 
     public function idPredmetu(): ?int
@@ -103,11 +101,6 @@ class Polozka
     public function stav(): int
     {
         return $this->stav;
-    }
-
-    public function jeLetosniHlavni(): bool
-    {
-        return $this->jeLetosniHlavni;
     }
 
     public function doKdyNabizetDleNastaveni(SystemoveNastaveni $systemoveNastaveni): ?DateTimeImmutableStrict

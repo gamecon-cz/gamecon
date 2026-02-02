@@ -2,21 +2,27 @@
 
 declare(strict_types=1);
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Nextras\Migrations\Bridges\SymfonyBundle\NextrasMigrationsBundle;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Bundle\MakerBundle\MakerBundle;
+use Zenstruck\Foundry\ZenstruckFoundryBundle;
+
 return [
-    Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => [
+    FrameworkBundle::class => [
         'all' => true,
     ],
-    Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => [
+    DoctrineBundle::class => [
         'all' => true,
     ],
-    Symfony\Bundle\MakerBundle\MakerBundle::class => [
+    MakerBundle::class => [
         'dev' => true,
     ],
-    Zenstruck\Foundry\ZenstruckFoundryBundle::class => [
+    ZenstruckFoundryBundle::class => [
         'dev'  => true,
         'test' => true,
     ],
-    Nextras\Migrations\Bridges\SymfonyBundle\NextrasMigrationsBundle::class => [
+    NextrasMigrationsBundle::class => [
         'all' => true,
     ],
 ];

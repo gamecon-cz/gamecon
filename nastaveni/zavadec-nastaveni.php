@@ -2,7 +2,7 @@
 
 use Gamecon\Prostredi\Prostredi;
 
-if (!empty($_COOKIE['unit_tests'])) {
+if (!empty($_COOKIE['unit_tests']) || ($_ENV['APP_ENV'] ?? '') === 'test') {
     include __DIR__ . '/verejne-nastaveni-tests.php';
 }
 

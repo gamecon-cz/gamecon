@@ -99,7 +99,7 @@ class GoogleDriveService
     public function saveDirReferenceLocally(\Google_Service_Drive_DriveFile $dir, int $userId, string $tag) {
         try {
             dbQuery(<<<SQL
-REPLACE INTO google_drive_dirs(dir_id, original_name, user_id, tag)
+REPLACE INTO google_drive_dir(dir_id, original_name, user_id, tag)
 VALUES ($1, $2, $3, $4)
 SQL
                 , [$dir->getId(), $dir->getName(), $userId, $tag]
@@ -120,7 +120,7 @@ SQL
      */
     public function getLocalDirsReferencesByUserIdAndTag(int $userId, string $tag): array {
         $dirValues = dbFetchAll(<<<SQL
-SELECT id, user_id, dir_id, original_name, tag FROM google_drive_dirs
+SELECT id, user_id, dir_id, original_name, tag FROM google_drive_dir
 WHERE user_id = $1 AND tag = $2
 SQL
             , [$userId, $tag]
@@ -138,7 +138,7 @@ SQL
 
     public function deleteLocalDirReferenceByDirId(string $dirId): void {
         dbQuery(<<<SQL
-DELETE FROM google_drive_dirs
+DELETE FROM google_drive_dir
 WHERE dir_id = $1
 SQL
             , [$dirId]

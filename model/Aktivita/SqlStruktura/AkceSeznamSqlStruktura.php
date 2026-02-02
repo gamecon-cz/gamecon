@@ -14,6 +14,7 @@ class AkceSeznamSqlStruktura
     public const URL_AKCE         = 'url_akce';
     public const ZACATEK          = 'zacatek';
     public const KONEC            = 'konec';
+    public const ID_HLAVNI_LOKACE = 'id_hlavni_lokace';
     public const KAPACITA         = 'kapacita';
     public const KAPACITA_F       = 'kapacita_f';
     public const KAPACITA_M       = 'kapacita_m';
