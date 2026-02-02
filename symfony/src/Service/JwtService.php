@@ -46,7 +46,7 @@ readonly class JwtService
             $decoded = JWT::decode($token, new Key($this->secret, $this->algorithm));
 
             return (array) $decoded;
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return null;
         }
     }
@@ -110,10 +110,8 @@ readonly class JwtService
     public function deleteToken(int $userId): void
     {
         $tokenFile = $this->getTokenFilePath($userId);
-        if (file_exists($tokenFile)) {
-            if (! unlink($tokenFile) && file_exists($tokenFile)) {
-                throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
-            }
+        if (file_exists($tokenFile) && (! unlink($tokenFile) && file_exists($tokenFile))) {
+            throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
         }
     }
 
@@ -132,11 +130,10 @@ readonly class JwtService
         if ($tokenFiles === false) {
             throw new JwtTokenException(sprintf('Can not read JWT files by pattern %s', var_export($glob, true)));
         }
+
         foreach ($tokenFiles as $tokenFile) {
-            if (time() - filemtime($tokenFile) > $this->expirationInSeconds) {
-                if (! unlink($tokenFile) && file_exists($tokenFile)) {
-                    throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
-                }
+            if (time() - filemtime($tokenFile) > $this->expirationInSeconds && (! unlink($tokenFile) && file_exists($tokenFile))) {
+                throw new JwtTokenException(sprintf('Can not delete JWT token file %s', var_export($tokenFile, true)));
             }
         }
     }
@@ -146,7 +143,7 @@ readonly class JwtService
         $tokenDir = $this->getTokenDirectory();
         (new Filesystem())->mkdir($tokenDir, 0700);
 
-        return $tokenDir . "/jwt_{$userId}.token";
+        return $tokenDir . sprintf('/jwt_%d.token', $userId);
     }
 
     private function getTokenDirectory(): string

@@ -2,6 +2,7 @@
 
 namespace Gamecon\Shop;
 
+// TODO REMOVE
 class TypPredmetu
 {
     public const PREDMET           = 1;

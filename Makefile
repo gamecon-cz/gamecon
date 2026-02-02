@@ -50,7 +50,16 @@ fix:
 	./bin-docker/php vendor/bin/rector process --config rector-ci.php
 	./bin-docker/docker-bash bin/ecs.sh --fix
 
-static: fix phpstan
+static: fix phpstan symfony-lint doctrine-lint composer-lint
+
+symfony-lint:
+	./bin-docker/docker-bash bin/symfony-lint.sh
+
+doctrine-lint:
+	./bin-docker/docker-bash bin/doctrine-lint.sh
+
+composer-lint:
+	./bin-docker/composer validate --no-check-lock
 
 migrations-run:
 	./bin-docker/php ./bin/console migrations:continue
@@ -60,7 +69,7 @@ migrations-run:
 	./bin-docker/php ./bin/console doctrine:cache:clear-result
 
 migrations-diff:
-	./bin-docker/php ./bin/console --env=test migrations:continue
+	./bin-docker/php ./bin/console --env=test migrations:reset
 	./bin-docker/php ./bin/console --env=test migrations:create structures rename-me
 	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec echo NO CHANGES, removing empty {} \;
 	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec rm {} \;

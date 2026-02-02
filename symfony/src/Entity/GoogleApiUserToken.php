@@ -9,10 +9,10 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Google API user tokens for OAuth integration
+ * Google’s API user tokens for OAuth integration
  */
 #[ORM\Entity(repositoryClass: GoogleApiUserTokenRepository::class)]
-#[ORM\Table(name: 'google_api_user_tokens')]
+#[ORM\Table(name: 'google_api_user_token')]
 #[ORM\UniqueConstraint(name: 'UNIQ_user_id_google_client_id', columns: ['user_id', 'google_client_id'])]
 class GoogleApiUserToken
 {
