@@ -12,6 +12,7 @@ doctrine:
                 charset: utf8mb4
                 profiling_collect_backtrace: '%kernel.debug%'
                 use_savepoints: true
+                schema_filter: ~^(?!akce_lokace$)~ # Ignore akce_lokace (managed by legacy code)
 
     orm:
         auto_generate_proxy_classes: true
@@ -36,7 +37,7 @@ when@test:
     doctrine:
         dbal:
             # "TEST_TOKEN" is typically set by ParaTest
-#            dbname_suffix: '_test%env(default::TEST_TOKEN)%' # currently not need because test DB name is solved in nastaveni/verejne-nastaveni-tests.php
+#            dbname_suffix: '_test%env(default::TEST_TOKEN)%' # currently not needed because the test DB name is solved in nastaveni/verejne-nastaveni-tests.php
 
 when@prod:
     doctrine:

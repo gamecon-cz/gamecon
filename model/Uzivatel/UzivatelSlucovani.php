@@ -121,7 +121,7 @@ class UzivatelSlucovani
      * uzivatele_role_podle_rocniku
      * akce_import
      * uzivatele_role
-     * google_api_user_tokens
+     * google_api_user_token
      * akce_seznam
      * akce_prihlaseni_log
      * uzivatele_url
@@ -135,7 +135,7 @@ class UzivatelSlucovani
      * hromadne_akce_log
      * uzivatele_role_log
      * mutex
-     * google_drive_dirs
+     * google_drive_dir
      * systemove_nastaveni_log
      * role_texty_podle_uzivatele
      * slevy

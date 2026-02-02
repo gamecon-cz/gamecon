@@ -45,7 +45,7 @@ JOIN (
     FROM akce_typy a
     JOIN (SELECT @rn := 0) vars
     WHERE a.poradi >= 0
-    ORDER BY a.typ_1pmn COLLATE utf8mb3_czech_ci
+    ORDER BY a.typ_1pmn COLLATE utf8mb4_czech_ci
 ) s ON s.id_typu = t.id_typu
 SET t.poradi = s.new_poradi
 WHERE t.poradi >= 0;

@@ -30,4 +30,9 @@ class PageSqlStructure
      * @see Page::$poradi
      */
     public const poradi = 'poradi';
+
+    /**
+     * @see Page::$redirect
+     */
+    public const redirect = 'redirect';
 }
