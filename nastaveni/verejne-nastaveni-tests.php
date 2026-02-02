@@ -8,8 +8,15 @@ define('DB_TEST_PREFIX', 'gamecon_test_');
 // bězích od databází, které někdo právě používá. `uniqid()` zůstává kvůli jedinečnosti:
 // PID se po havárii recykluje a nový běh by jinak zdědil cizí zbytek.
 // Web requesty dostanou jméno cookie z `AbstractTestWeb`, takže míří do téže databáze.
-define('DB_NAME', $_COOKIE['gamecon_test_db'] ?? uniqid(DB_TEST_PREFIX, true) . '_' . getmypid());
-define('DB_ANONYM_NAME', $_COOKIE['gamecon_test_anonym_db'] ?? uniqid(DB_TEST_PREFIX . 'anonym_', true) . '_' . getmypid());
+//
+// `if (!defined(...))` kvůli cestování časem: harness si jméno předdefinuje přes
+// auto_prepend_file, aby se dva scénáře nepraly o tutéž databázi.
+if (!defined('DB_NAME')) {
+    define('DB_NAME', $_COOKIE['gamecon_test_db'] ?? uniqid(DB_TEST_PREFIX, true) . '_' . getmypid());
+}
+if (!defined('DB_ANONYM_NAME')) {
+    define('DB_ANONYM_NAME', $_COOKIE['gamecon_test_anonym_db'] ?? uniqid(DB_TEST_PREFIX . 'anonym_', true) . '_' . getmypid());
+}
 if (!defined('SPEC')) define('SPEC', __DIR__ . '/../cache/private/tests/' . getmypid());
 define('TESTS_LOG_DIR', __DIR__ . '/../logy/tests');
 define('LOGY', TESTS_LOG_DIR . '/' . getmypid());
@@ -22,4 +29,3 @@ define('PRVNI_VLNA_KDY', '2000-01-01 00:00:00');
 define('MAILY_DO_SOUBORU', '/dev/null'); // TODO přidat speciální nastavení pro CI
 
 if (!defined('UNIVERZALNI_HESLO')) define('UNIVERZALNI_HESLO', 'Testuj testuj vykrúcaj!');
-
