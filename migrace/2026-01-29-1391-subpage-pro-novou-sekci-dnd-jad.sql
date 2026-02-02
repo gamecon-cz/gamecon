@@ -55,7 +55,7 @@ JOIN (
         FROM akce_typy
         WHERE aktivni = 1
           AND zobrazit_v_menu = 1
-        ORDER BY typ_1pmn COLLATE utf8mb3_czech_ci, id_typu
+        ORDER BY typ_1pmn COLLATE utf8mb4_czech_ci, id_typu
     ) o
     CROSS JOIN (SELECT @poradi := 0) init
 ) s ON s.id_typu = t.id_typu

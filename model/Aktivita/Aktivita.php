@@ -1516,9 +1516,9 @@ SQL
     /**
      * @return string krátký popis aktivity (plaintext)
      */
-    public function kratkyPopis()
+    public function kratkyPopis(): ?string
     {
-        return $this->a['popis_kratky'];
+        return $this->a[Sql::POPIS_KRATKY];
     }
 
     /**
@@ -1592,7 +1592,7 @@ SQL
     public function idHlavniLokace(): ?int
     {
         if (!isset($this->idHlavniLokace)) {
-            $idHlavniLokace = dbFetchSingle(<<<SQL
+            $idHlavniLokace = $this->a[Sql::ID_HLAVNI_LOKACE] ?? dbFetchSingle(<<<SQL
                 SELECT COALESCE(
                     akce_seznam.id_hlavni_lokace,
                     (SELECT id_lokace FROM akce_lokace WHERE id_akce = {$this->id()} ORDER BY id_lokace ASC LIMIT 1)
@@ -1631,11 +1631,9 @@ SQL
         }
         if ($idckaLokaci !== []) {
             $values = array_map(
-                function (
+                fn(
                     int $idLokace,
-                ) {
-                    return "({$this->id()}, $idLokace)";
-                },
+                ) => "({$this->id()}, $idLokace)",
                 array_map('intval', $idckaLokaci),
             );
             $valuesSql = implode(',', $values);
@@ -1653,13 +1651,17 @@ SQL
                 ),
             );
         }
+        // Update id_hlavni_lokace in akce_seznam for Doctrine compatibility
+        $idHlavniLokaceSql = $hlavniLokaceId !== null
+            ? $hlavniLokaceId
+            : 'NULL';
         dbQuery(<<<SQL
             UPDATE akce_seznam
-            SET id_hlavni_lokace = $1
+            SET id_hlavni_lokace = {$idHlavniLokaceSql}
             WHERE id_akce = {$this->id()}
             SQL,
-            [1 => $hlavniLokaceId],
         );
+        $this->a[Sql::ID_HLAVNI_LOKACE] = $hlavniLokaceId;
         $this->idHlavniLokace = null;
         $this->seznamLokaci = null;
     }

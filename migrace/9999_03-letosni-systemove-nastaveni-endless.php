@@ -35,7 +35,7 @@ $rocnik                  = rocnik_z_promenne_mysql();
 $chybejiciKliceNastaveni = $this->q(<<<SQL
 SELECT tmp.klic
 FROM systemove_nastaveni_letosni_chtene_tmp AS tmp
-LEFT JOIN systemove_nastaveni ON tmp.klic = systemove_nastaveni.klic COLLATE utf8_bin
+LEFT JOIN systemove_nastaveni ON tmp.klic = systemove_nastaveni.klic COLLATE utf8mb4_bin
     AND systemove_nastaveni.rocnik_nastaveni = $rocnik
 WHERE systemove_nastaveni.id_nastaveni IS NULL
 SQL,

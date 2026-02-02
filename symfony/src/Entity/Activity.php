@@ -9,7 +9,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavAktivity;
 
 /**
@@ -44,6 +43,10 @@ class Activity
 
     #[ORM\Column(name: 'konec', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTime $konec = null;
+
+    #[ORM\ManyToOne(targetEntity: Location::class)]
+    #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
+    private ?Location $mainLocation = null;
 
     /**
      * @var Collection<int, Location>
@@ -114,10 +117,6 @@ class Activity
 
     #[ORM\Column(name: 'team_nazev', type: Types::STRING, length: 255, nullable: true)]
     private ?string $teamNazev = null;
-
-    #[ORM\ManyToOne(targetEntity: Location::class)]
-    #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
-    private ?Location $mainLocation = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'zamcel', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
@@ -249,6 +248,28 @@ class Activity
     public function removeLocation(Location $location): self
     {
         $this->locations->removeElement($location);
+
+        return $this;
+    }
+
+    /**
+     * @param Collection<int, Location> $locations
+     */
+    public function setLocations(Collection $locations): self
+    {
+        $this->locations = $locations;
+
+        return $this;
+    }
+
+    public function getMainLocation(): ?Location
+    {
+        return $this->mainLocation;
+    }
+
+    public function setMainLocation(?Location $mainLocation): self
+    {
+        $this->mainLocation = $mainLocation;
 
         return $this;
     }
@@ -453,18 +474,6 @@ class Activity
     public function setForTeamLockedAt(?\DateTime $forTeamLockedAt): self
     {
         $this->forTeamLockedAt = $forTeamLockedAt;
-
-        return $this;
-    }
-
-    public function getMainLocation(): ?Location
-    {
-        return $this->mainLocation;
-    }
-
-    public function setMainLocation(?Location $mainLocation): self
-    {
-        $this->mainLocation = $mainLocation;
 
         return $this;
     }
