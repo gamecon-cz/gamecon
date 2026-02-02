@@ -9,7 +9,7 @@ namespace App\Structure\Sql;
  */
 class GoogleApiUserTokenSqlStructure
 {
-    public const _table = 'google_api_user_tokens';
+    public const _table = 'google_api_user_token';
 
     /**
      * @see GoogleApiUserToken::$id

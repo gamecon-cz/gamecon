@@ -14,6 +14,7 @@ class LegacySessionService
         if (! defined('URL_ADMIN')) {
             require_once __DIR__ . '/../../../nastaveni/zavadec-zaklad.php';
         }
+
         assert(defined('URL_ADMIN'), 'Legacy environment not initialized properly.');
     }
 
