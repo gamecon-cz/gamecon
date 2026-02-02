@@ -56,10 +56,10 @@ class DumpEntityPropertyStructureCommand extends Command
 
     private function executeWrite(SymfonyStyle $io, string $outputDir, string $namespace, string $suffix): int
     {
-        // Create output directory if it doesn't exist
+        // Create an output directory if it doesn't exist
         if (! $this->filesystem->exists($outputDir)) {
             $this->filesystem->mkdir($outputDir);
-            $io->info("Created output directory: {$outputDir}");
+            $io->info('Created output directory: ' . $outputDir);
         }
 
         $metadataFactory = $this->entityManager->getMetadataFactory();
@@ -95,7 +95,7 @@ class DumpEntityPropertyStructureCommand extends Command
 
             if ($bytesWritten === false) {
                 $errors[] = $fileName;
-                $io->error("Failed to write file: {$fileName}");
+                $io->error('Failed to write file: ' . $fileName);
             } elseif ($isNew) {
                 $newFiles[] = $fileName;
             } else {
@@ -103,21 +103,21 @@ class DumpEntityPropertyStructureCommand extends Command
             }
         }
 
-        if (! empty($newFiles)) {
+        if ($newFiles !== []) {
             $io->section(sprintf('New files (%d):', count($newFiles)));
             foreach ($newFiles as $file) {
-                $io->text(" - {$file}");
+                $io->text(' - ' . $file);
             }
         }
 
-        if (! empty($updatedFiles)) {
+        if ($updatedFiles !== []) {
             $io->section(sprintf('Updated files (%d):', count($updatedFiles)));
             foreach ($updatedFiles as $file) {
-                $io->text(" - {$file}");
+                $io->text(' - ' . $file);
             }
         }
 
-        if (! empty($errors)) {
+        if ($errors !== []) {
             $io->error(sprintf('Failed to write %d file(s)', count($errors)));
 
             return Command::FAILURE;
@@ -177,20 +177,20 @@ class DumpEntityPropertyStructureCommand extends Command
             ++$checked;
         }
 
-        if (empty($missing) && empty($outdated)) {
+        if ($missing === [] && $outdated === []) {
             $io->success(sprintf('All %d structure files are up-to-date', $checked));
 
             return Command::SUCCESS;
         }
 
-        if (! empty($missing)) {
+        if ($missing !== []) {
             $io->section(sprintf('Missing structure files (%d):', count($missing)));
             foreach ($missing as $item) {
                 $io->text(sprintf(' - %s (for %s)', $item['file'], $item['entity']));
             }
         }
 
-        if (! empty($outdated)) {
+        if ($outdated !== []) {
             $io->section(sprintf('Outdated structure files (%d):', count($outdated)));
             foreach ($outdated as $item) {
                 $io->text(sprintf(' - %s (for %s)', $item['file'], $item['entity']));
@@ -216,25 +216,25 @@ class DumpEntityPropertyStructureCommand extends Command
 
         // Get all field mappings (regular fields)
         $fieldMappings = $metadata->fieldMappings;
-        foreach ($fieldMappings as $fieldName => $mapping) {
+        foreach (array_keys($fieldMappings) as $fieldName) {
             $constants[] = <<<PHPDOC
     /**
      * @see {$shortEntityName}::\${$fieldName}
      */
 PHPDOC;
-            $constants[] = "    public const {$fieldName} = '{$fieldName}';";
+            $constants[] = sprintf("    public const %s = '%s';", $fieldName, $fieldName);
             $constants[] = '';
         }
 
         // Get all association mappings (relationships)
         $associationMappings = $metadata->associationMappings;
-        foreach ($associationMappings as $fieldName => $mapping) {
+        foreach (array_keys($associationMappings) as $fieldName) {
             $constants[] = <<<PHPDOC
     /**
      * @see {$shortEntityName}::\${$fieldName}
      */
 PHPDOC;
-            $constants[] = "    public const {$fieldName} = '{$fieldName}';";
+            $constants[] = sprintf("    public const %s = '%s';", $fieldName, $fieldName);
             $constants[] = '';
         }
 
@@ -287,10 +287,6 @@ PHP;
         }
 
         // Skip mapped superclasses (abstract parent entities)
-        if ($classMetadata->isMappedSuperclass) {
-            return true;
-        }
-
-        return false;
+        return $classMetadata->isMappedSuperclass;
     }
 }
