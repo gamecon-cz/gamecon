@@ -2353,7 +2353,14 @@ SQL,
                 : ''
                 ) . '
       )
-    ', null, 'LIMIT ' . $limit);
+    ', null, <<<SQL
+        ORDER BY
+            u.id_uzivatele={$hodnotaSql} DESC,
+            email1_uzivatele={$hodnotaSql} DESC,
+            login_uzivatele={$hodnotaSql} DESC,
+            u.id_uzivatele ASC
+        LIMIT {$limit}
+        SQL);
     }
 
     public static function zId(
