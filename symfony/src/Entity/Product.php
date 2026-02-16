@@ -4,11 +4,25 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -27,6 +41,39 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'shop_predmety')]
 #[ORM\UniqueConstraint(name: 'UNIQ_kod_predmetu', columns: ['kod_predmetu'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_nazev', columns: ['nazev'])]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            security: "is_granted('PUBLIC_ACCESS')",
+            normalizationContext: ['groups' => ['product:list']],
+        ),
+        new Get(
+            security: "is_granted('PUBLIC_ACCESS')",
+            normalizationContext: ['groups' => ['product:read']],
+        ),
+        new Post(
+            security: "is_granted('ROLE_ADMIN')",
+            denormalizationContext: ['groups' => ['product:write']],
+        ),
+        new Put(
+            security: "is_granted('ROLE_ADMIN')",
+            denormalizationContext: ['groups' => ['product:write']],
+        ),
+        new Patch(
+            security: "is_granted('ROLE_ADMIN')",
+            denormalizationContext: ['groups' => ['product:write']],
+        ),
+        new Delete(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+    ],
+    normalizationContext: ['groups' => ['product:read']],
+    denormalizationContext: ['groups' => ['product:write']],
+    paginationItemsPerPage: 30,
+)]
+#[ApiFilter(SearchFilter::class, properties: ['code' => 'exact', 'name' => 'partial', 'state' => 'exact'])]
+#[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'currentPrice', 'state'])]
+#[ApiFilter(RangeFilter::class, properties: ['currentPrice', 'producedQuantity'])]
 class Product
 {
     #[ORM\Id]
@@ -34,21 +81,26 @@ class Product
     #[ORM\Column(name: 'id_predmetu', type: Types::BIGINT, options: [
         'unsigned' => true,
     ])]
+    #[Groups(['product:list', 'product:read'])]
+    #[ApiProperty(identifier: true)]
     private ?int $id = null;
 
     #[ORM\Column(name: 'nazev', type: Types::STRING, length: 255, nullable: false)]
     #[Assert\NotBlank(message: 'Název produktu nesmí být prázdný')]
     #[Assert\Length(max: 255, maxMessage: 'Název může mít maximálně {{ limit }} znaků')]
+    #[Groups(['product:list', 'product:read', 'product:write'])]
     private string $name;
 
     #[ORM\Column(name: 'kod_predmetu', type: Types::STRING, length: 255, nullable: false)]
     #[Assert\NotBlank(message: 'Kód produktu nesmí být prázdný')]
     #[Assert\Length(max: 255, maxMessage: 'Kód může mít maximálně {{ limit }} znaků')]
+    #[Groups(['product:list', 'product:read', 'product:write'])]
     private string $code;
 
     #[ORM\Column(name: 'cena_aktualni', type: Types::DECIMAL, precision: 6, scale: 2, nullable: false)]
     #[Assert\NotBlank(message: 'Cena musí být vyplněna')]
     #[Assert\PositiveOrZero(message: 'Cena musí být kladné číslo nebo nula')]
+    #[Groups(['product:list', 'product:read', 'product:write'])]
     private string $currentPrice;
 
     #[ORM\Column(name: 'stav', type: Types::SMALLINT, nullable: false)]
@@ -56,32 +108,40 @@ class Product
         choices: [0, 1, 2, 3],
         message: 'Neplatný stav (0=MIMO, 1=VEŘEJNÝ, 2=PODPULTOVÝ, 3=POZASTAVENÝ)'
     )]
+    #[Groups(['product:list', 'product:read', 'product:write'])]
     private int $state;
 
     #[ORM\Column(name: 'nabizet_do', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[Groups(['product:read', 'product:write'])]
     private ?\DateTimeImmutable $availableUntil = null;
 
     #[ORM\Column(name: 'kusu_vyrobeno', type: Types::SMALLINT, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Počet vyrobených kusů musí být kladné číslo nebo nula')]
+    #[Groups(['product:list', 'product:read', 'product:write'])]
     private ?int $producedQuantity = null;
 
     #[ORM\Column(name: 'ubytovani_den', type: Types::SMALLINT, nullable: true)]
     #[Assert\Range(notInRangeMessage: 'Den ubytování musí být 0-4 (St-Ne)', min: 0, max: 4)]
+    #[Groups(['product:read', 'product:write'])]
     private ?int $accommodationDay = null;
 
     #[ORM\Column(name: 'popis', type: Types::STRING, length: 2000, nullable: false)]
     #[Assert\Length(max: 2000, maxMessage: 'Popis může mít maximálně {{ limit }} znaků')]
+    #[Groups(['product:read', 'product:write'])]
     private string $description = '';
 
     #[ORM\Column(name: 'archived_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[Groups(['product:read'])]
     private ?\DateTimeImmutable $archivedAt = null;
 
     #[ORM\Column(name: 'amount_organizers', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Množství pro organizátory musí být kladné číslo nebo nula')]
+    #[Groups(['product:read', 'product:write'])]
     private ?int $amountOrganizers = null;
 
     #[ORM\Column(name: 'amount_participants', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Množství pro účastníky musí být kladné číslo nebo nula')]
+    #[Groups(['product:read', 'product:write'])]
     private ?int $amountParticipants = null;
 
     /**
@@ -91,12 +151,14 @@ class Product
     #[ORM\JoinTable(name: 'product_product_tag')]
     #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id_predmetu')]
     #[ORM\InverseJoinColumn(name: 'tag_id', referencedColumnName: 'id')]
+    #[Groups(['product:read', 'product:write'])]
     private Collection $tags;
 
     /**
      * @var Collection<int, ProductBundle>
      */
     #[ORM\ManyToMany(targetEntity: ProductBundle::class, mappedBy: 'products')]
+    #[Groups(['product:read'])]
     private Collection $bundles;
 
     /**
