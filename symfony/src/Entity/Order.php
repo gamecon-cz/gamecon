@@ -40,7 +40,7 @@ class Order
     ])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'orders')]
     #[ORM\JoinColumn(name: 'customer_id', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull(message: 'Zákazník musí být vyplněn')]
     private ?User $customer = null;
