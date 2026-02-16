@@ -1,0 +1,93 @@
+{
+    "name": "api-platform/graphql",
+    "description": "Build GraphQL API endpoints",
+    "type": "library",
+    "keywords": [
+        "GraphQL",
+        "API"
+    ],
+    "homepage": "https://api-platform.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kévin Dunglas",
+            "email": "kevin@dunglas.fr",
+            "homepage": "https://dunglas.fr"
+        },
+        {
+            "name": "API Platform Community",
+            "homepage": "https://api-platform.com/community/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "api-platform/metadata": "^4.2",
+        "api-platform/state": "^4.2.4",
+        "api-platform/serializer": "^4.2.4",
+        "symfony/property-info": "^7.1",
+        "symfony/serializer": "^6.4 || ^7.1",
+        "symfony/type-info": "^7.3",
+        "webonyx/graphql-php": "^15.0",
+        "willdurand/negotiation": "^3.1"
+    },
+    "require-dev": {
+        "phpspec/prophecy-phpunit": "^2.2",
+        "api-platform/validator": "^4.2.4",
+        "twig/twig": "^1.42.3 || ^2.12 || ^3.0",
+        "symfony/mercure-bundle": "*",
+        "symfony/routing": "^6.4 || ^7.0",
+        "phpunit/phpunit": "11.5.x-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "ApiPlatform\\GraphQl\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "suggest": {
+        "api-platform/doctrine-odm": "To support doctrine ODM state options.",
+        "api-platform/doctrine-orm": "To support doctrine ORM state options.",
+        "api-platform/validator": "To support validation."
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "phpstan/extension-installer": true,
+            "php-http/discovery": false
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "4.3.x-dev",
+            "dev-4.2": "4.2.x-dev",
+            "dev-3.4": "3.4.x-dev",
+            "dev-4.1": "4.1.x-dev"
+        },
+        "symfony": {
+            "require": "^6.4 || ^7.0"
+        },
+        "thanks": {
+            "name": "api-platform/api-platform",
+            "url": "https://github.com/api-platform/api-platform"
+        }
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit"
+    },
+    "conflict": {
+        "symfony/http-client": "<6.4",
+        "doctrine/inflector": "<2.0"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/soyuka/phpunit"
+        }
+    ]
+}
