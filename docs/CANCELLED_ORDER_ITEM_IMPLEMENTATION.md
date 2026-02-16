@@ -125,4 +125,4 @@ When migrating cancellation logic to Doctrine:
 - Test database bootstrap has pre-existing issues with `shop_predmety.typ` column (removed in new e-shop design)
 - This is unrelated to the CancelledOrderItem implementation
 - All entity unit tests pass when run without full database bootstrap
-- Migration file `2026-02-01-convert-utf8mb3-to-utf8mb4.sql` updated to skip charset conversion for this table (uses database default)
+- Migration file `2026-01-13-convert-utf8mb3-to-utf8mb4.sql` updated to skip charset conversion for this table (uses database default)

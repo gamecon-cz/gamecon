@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use ApiPlatform\Symfony\Bundle\ApiPlatformBundle;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Nextras\Migrations\Bridges\SymfonyBundle\NextrasMigrationsBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\MakerBundle\MakerBundle;
+use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Zenstruck\Foundry\ZenstruckFoundryBundle;
 
 return [
@@ -13,6 +15,12 @@ return [
         'all' => true,
     ],
     DoctrineBundle::class => [
+        'all' => true,
+    ],
+    ApiPlatformBundle::class => [
+        'all' => true,
+    ],
+    SecurityBundle::class => [
         'all' => true,
     ],
     MakerBundle::class => [
