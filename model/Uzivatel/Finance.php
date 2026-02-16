@@ -326,7 +326,7 @@ SQL,
                 PlatbySqlStruktura::PROVEDL      => $provedl->id(),
                 PlatbySqlStruktura::POZNAMKA     => $poznamka
                     ?: null,
-                PlatbySqlStruktura::PROVEDENO    => $kdy?->format(DateTimeCz::FORMAT_DB),
+                PlatbySqlStruktura::PROVEDENO    => ($kdy ?? $this->systemoveNastaveni->ted())->format(DateTimeCz::FORMAT_DB),
             ],
         );
     }
