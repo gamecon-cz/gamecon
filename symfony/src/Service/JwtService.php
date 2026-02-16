@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\User;
 use App\Service\Exception\JwtTokenException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -51,7 +52,7 @@ readonly class JwtService
     }
 
     /**
-     * Extract minimal user data for sharing
+     * Extract minimal user data for sharing (from legacy Uzivatel)
      *
      * @return array{
      *     id: int|null,
@@ -61,8 +62,19 @@ readonly class JwtService
      *     logged_at: int,
      * }
      */
-    public function extractUserData(\Uzivatel $uzivatel): array
+    public function extractUserData(\Uzivatel|User $uzivatel): array
     {
+        if ($uzivatel instanceof User) {
+            return [
+                'id'        => $uzivatel->getId(),
+                'login'     => $uzivatel->getLogin(),
+                'jmeno'     => $uzivatel->getName(),
+                'email'     => $uzivatel->getEmail(),
+                'logged_at' => time(),
+            ];
+        }
+
+        // Legacy Uzivatel
         return [
             'id'        => $uzivatel->id(),
             'login'     => $uzivatel->login(),

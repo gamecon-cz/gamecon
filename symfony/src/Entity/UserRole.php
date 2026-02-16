@@ -23,7 +23,7 @@ class UserRole
     ])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userRoles')]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
         'ON UPDATE' => 'CASCADE',
     ])]
@@ -59,6 +59,7 @@ class UserRole
     public function setUser(User $user): self
     {
         $this->user = $user;
+        $user->addUserRole($this);
 
         return $this;
     }

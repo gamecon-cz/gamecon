@@ -43,8 +43,7 @@ bin/console doctrine:schema:validate     # Validate database schema
 bin/console cache:clear                  # Clear cache
 
 # Database access
-./bin-docker/mysql gamecon              # Connect to 'gamecon' database
-./bin-docker/mysql gamecon -e 'SQL'     # Execute SQL query
+bin/console --env=dev doctrine:query:sql 'SQL' # Execute SQL in env-related database
 
 # Access points
 # http://localhost/web - Public site

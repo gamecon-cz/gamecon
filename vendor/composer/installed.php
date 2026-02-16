@@ -3,13 +3,148 @@
         'name' => 'gamecon-cz/gamecon',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '570a4c1614020fc592d0cf8e4c7d97589cacc9e7',
+        'reference' => '7e31e9175941824cc356cc60c9149183b2f14ba6',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
+        'api-platform/core' => array(
+            'pretty_version' => 'v4.2.6',
+            'version' => '4.2.6.0',
+            'reference' => 'bad923f4ced6e62fc3918d501619c9138418f161',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../api-platform/core',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'api-platform/doctrine-common' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/doctrine-odm' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/doctrine-orm' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/documentation' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/elasticsearch' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/graphql' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/http-cache' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/hydra' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/json-api' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/json-hal' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/json-schema' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/jsonld' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/laravel' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/metadata' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/openapi' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/parameter-validator' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/ramsey-uuid' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/serializer' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/state' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/symfony' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
+        'api-platform/validator' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.2.6',
+            ),
+        ),
         'bacon/bacon-qr-code' => array(
             'pretty_version' => '2.0.8',
             'version' => '2.0.8.0',
@@ -202,7 +337,7 @@
         'gamecon-cz/gamecon' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '570a4c1614020fc592d0cf8e4c7d97589cacc9e7',
+            'reference' => '7e31e9175941824cc356cc60c9149183b2f14ba6',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -592,6 +727,21 @@
                 0 => '1.0',
             ),
         ),
+        'psr/link' => array(
+            'pretty_version' => '2.0.1',
+            'version' => '2.0.1.0',
+            'reference' => '84b159194ecfd7eaa472280213976e96415433f7',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../psr/link',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'psr/link-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '1.0|2.0',
+            ),
+        ),
         'psr/log' => array(
             'pretty_version' => '3.0.2',
             'version' => '3.0.2.0',
@@ -970,6 +1120,15 @@
                 0 => '2.0|3.0',
             ),
         ),
+        'symfony/expression-language' => array(
+            'pretty_version' => 'v7.4.4',
+            'version' => '7.4.4.0',
+            'reference' => 'f3a6497eb6573e185f2ec41cd3b3f0cd68ddf667',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/expression-language',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'symfony/filesystem' => array(
             'pretty_version' => 'v7.3.6',
             'version' => '7.3.6.0',
@@ -1048,6 +1207,15 @@
             'reference' => 'b1b828f69cbaf887fa835a091869e55df91d0e35',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/mime',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/password-hasher' => array(
+            'pretty_version' => 'v7.4.4',
+            'version' => '7.4.4.0',
+            'reference' => 'ab8e0ef42483f31c417c82ecfcf7be7b91d784fe',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/password-hasher',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -1139,7 +1307,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/property-access',
             'aliases' => array(),
-            'dev_requirement' => true,
+            'dev_requirement' => false,
         ),
         'symfony/property-info' => array(
             'pretty_version' => 'v7.3.5',
@@ -1156,6 +1324,51 @@
             'reference' => 'c97abe725f2a1a858deca629a6488c8fc20c3091',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/routing',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/security-bundle' => array(
+            'pretty_version' => 'v7.3.10',
+            'version' => '7.3.10.0',
+            'reference' => '03d6ba1eb048843b0b20a06eec69a681692cdd53',
+            'type' => 'symfony-bundle',
+            'install_path' => __DIR__ . '/../symfony/security-bundle',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/security-core' => array(
+            'pretty_version' => 'v7.4.4',
+            'version' => '7.4.4.0',
+            'reference' => '958a70725a8d669bec6721f4cd318d209712e944',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/security-core',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/security-csrf' => array(
+            'pretty_version' => 'v7.4.4',
+            'version' => '7.4.4.0',
+            'reference' => '06a2a2f90f355b8b4ec23685fa6ceff8d5dc41cc',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/security-csrf',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/security-http' => array(
+            'pretty_version' => 'v7.4.4',
+            'version' => '7.4.4.0',
+            'reference' => '9d41a473637bf5d074c5f5a73177fd9d769407fd',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/security-http',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/serializer' => array(
+            'pretty_version' => 'v7.4.5',
+            'version' => '7.4.5.0',
+            'reference' => '480cd1237c98ab1219c20945b92c9d4480a44f47',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/serializer',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -1228,6 +1441,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'symfony/web-link' => array(
+            'pretty_version' => 'v7.4.4',
+            'version' => '7.4.4.0',
+            'reference' => '9ff1f19069e3d2d341d60729392a4a6dfc45052a',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/web-link',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'symfony/yaml' => array(
             'pretty_version' => 'v7.3.5',
             'version' => '7.3.5.0',
@@ -1288,6 +1510,15 @@
             'reference' => '0d5b30ba792bdbf8991a646fc9c30561b38a5559',
             'type' => 'library',
             'install_path' => __DIR__ . '/../wikimedia/less.php',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'willdurand/negotiation' => array(
+            'pretty_version' => '3.1.0',
+            'version' => '3.1.0.0',
+            'reference' => '68e9ea0553ef6e2ee8db5c1d98829f111e623ec2',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../willdurand/negotiation',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

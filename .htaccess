@@ -1,4 +1,11 @@
 RewriteEngine on
 
+# Route Symfony API requests to Symfony public directory
+RewriteCond %{REQUEST_URI} ^/symfony/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^symfony/(.*)$ symfony/public/index.php [QSA,L]
+
+# Route everything else to legacy web directory
+RewriteCond %{REQUEST_URI} !^/symfony/
 RewriteRule .* web/$0 [L]
-RewriteRule .* - [F,L]
