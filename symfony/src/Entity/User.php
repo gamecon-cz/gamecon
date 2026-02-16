@@ -11,6 +11,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * Legacy @see \Gamecon\Uzivatel
@@ -20,7 +22,7 @@ use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 #[ORM\Index(name: 'IDX_infopult_poznamka', columns: ['infopult_poznamka'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_login_uzivatele', columns: ['login_uzivatele'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_email1_uzivatele', columns: ['email1_uzivatele'])]
-class User
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -136,9 +138,23 @@ class User
     #[ORM\OneToMany(targetEntity: CancelledOrderItem::class, mappedBy: 'customer', cascade: ['remove'])]
     private Collection $cancelledOrderItems;
 
+    /**
+     * @var Collection<int, UserRole>
+     */
+    #[ORM\OneToMany(targetEntity: UserRole::class, mappedBy: 'user')]
+    private Collection $userRoles;
+
+    /**
+     * @var Collection<int, Order>
+     */
+    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'customer')]
+    private Collection $orders;
+
     public function __construct()
     {
         $this->cancelledOrderItems = new ArrayCollection();
+        $this->userRoles = new ArrayCollection();
+        $this->orders = new ArrayCollection();
     }
 
     // Getters and Setters
@@ -526,8 +542,110 @@ class User
         return $this->cancelledOrderItems;
     }
 
+    /**
+     * @return Collection<int, UserRole>
+     */
+    public function getUserRoles(): Collection
+    {
+        return $this->userRoles;
+    }
+
+    public function addUserRole(UserRole $userRole): static
+    {
+        if (! $this->userRoles->contains($userRole)) {
+            $this->userRoles->add($userRole);
+        }
+
+        return $this;
+    }
+
+    public function removeUserRole(UserRole $userRole): static
+    {
+        $this->userRoles->removeElement($userRole);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Order>
+     */
+    public function getOrders(): Collection
+    {
+        return $this->orders;
+    }
+
+    /**
+     * Get role codes (e.g., ['organizator', 'vypravěč'])
+     *
+     * @return string[]
+     */
+    public function getRoleCodes(): array
+    {
+        return $this->userRoles
+            ->map(fn (UserRole $ur) => $ur->getRole()->getKodRole())
+            ->toArray();
+    }
+
     public function getCelemeJmeno(): string
     {
         return $this->jmeno . ' ' . $this->prijmeni;
+    }
+
+    // UserInterface implementation for Symfony Security
+
+    /**
+     * Returns the roles granted to the user.
+     *
+     * Maps role codes to Symfony roles (e.g., 'organizator' -> ROLE_ORGANIZATOR)
+     * All users get ROLE_USER by default.
+     * Also adds ROLE_ADMIN for specific role codes.
+     */
+    public function getRoles(): array
+    {
+        $roles = ['ROLE_USER'];
+
+        // Map role codes to Symfony roles
+        $roleCodes = $this->getRoleCodes();
+        foreach ($roleCodes as $roleCode) {
+            $roles[] = 'ROLE_' . strtoupper($roleCode);
+        }
+
+        // Map specific roles to ROLE_ADMIN
+        $adminRoles = ['organizator', 'admin', 'infopult'];
+        foreach ($adminRoles as $adminRole) {
+            if (in_array($adminRole, $roleCodes, true)) {
+                $roles[] = 'ROLE_ADMIN';
+                break;
+            }
+        }
+
+        return array_unique($roles);
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->login;
+    }
+
+    /**
+     * Returns the password used to authenticate the user.
+     * This is the hashed password stored in heslo_md5 column.
+     */
+    public function getPassword(): ?string
+    {
+        return $this->hesloMd5;
+    }
+
+    /**
+     * Returns the name to display (first + last name)
+     */
+    public function getName(): string
+    {
+        return $this->getCelemeJmeno();
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Nothing to erase (no plain password stored)
     }
 }
