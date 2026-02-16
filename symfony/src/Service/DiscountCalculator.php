@@ -40,8 +40,8 @@ class DiscountCalculator
     {
         $originalPrice = $product->getCurrentPrice();
 
-        // Get user roles (simplified - in real code, get from User entity)
-        $userRoles = $this->getUserRoles();
+        // Get user roles
+        $userRoles = $this->getUserRoles($user);
 
         if ($userRoles === []) {
             return [
@@ -128,7 +128,7 @@ class DiscountCalculator
      */
     public function getRemainingQuota(Product $product, User $user, int $year): ?int
     {
-        $userRoles = $this->getUserRoles();
+        $userRoles = $this->getUserRoles($user);
 
         if ($userRoles === []) {
             return null;
@@ -147,18 +147,12 @@ class DiscountCalculator
     }
 
     /**
-     * Get user roles (helper method)
-     *
-     * TODO: Implement proper role extraction from User entity
-     * For now, returns placeholder roles
+     * Get user role codes for discount matching
      *
      * @return string[]
      */
-    private function getUserRoles(): array
+    private function getUserRoles(User $user): array
     {
-        // This is a placeholder implementation
-        // In real code, extract roles from User entity
-        // Example: $user->getRoles() or $user->getUserRoles()->map(fn($ur) => $ur->getRole()->getName())
-        return [];
+        return $user->getRoleCodes();
     }
 }
