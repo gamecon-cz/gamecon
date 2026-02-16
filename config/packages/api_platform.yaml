@@ -1,0 +1,33 @@
+api_platform:
+    title: 'GameCon E-shop API'
+    description: 'REST API for GameCon e-shop - products, orders, cart, and reporting'
+    version: '1.0.0'
+
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']
+
+    # Entity mapping
+    mapping:
+        paths:
+            - '%kernel.project_dir%/src/Entity'
+
+    # JSON-LD format (disable if you prefer plain JSON)
+    formats:
+        jsonld: ['application/ld+json']
+        json: ['application/json']
+        html: ['text/html']
+
+    # Pagination defaults
+    collection:
+        pagination:
+            enabled: true
+            items_per_page: 30
+            maximum_items_per_page: 100
+            page_parameter_name: 'page'
+
+    # Error handling
+    exception_to_status:
+        Symfony\Component\Serializer\Exception\ExceptionInterface: 400
+        ApiPlatform\Exception\InvalidArgumentException: 400

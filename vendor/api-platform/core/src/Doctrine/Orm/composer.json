@@ -1,0 +1,86 @@
+{
+    "name": "api-platform/doctrine-orm",
+    "description": "Doctrine ORM bridge",
+    "type": "library",
+    "keywords": [
+        "Doctrine",
+        "ORM",
+        "API",
+        "REST",
+        "GraphQL"
+    ],
+    "homepage": "https://api-platform.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kévin Dunglas",
+            "email": "kevin@dunglas.fr",
+            "homepage": "https://dunglas.fr"
+        },
+        {
+            "name": "API Platform Community",
+            "homepage": "https://api-platform.com/community/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "api-platform/doctrine-common": "^4.2.0-alpha.3@alpha",
+        "api-platform/metadata": "^4.2",
+        "api-platform/state": "^4.2.4",
+        "doctrine/orm": "^2.17 || ^3.0",
+        "symfony/type-info": "^7.3"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^2.11",
+        "phpspec/prophecy-phpunit": "^2.2",
+        "phpunit/phpunit": "11.5.x-dev",
+        "ramsey/uuid": "^4.7",
+        "ramsey/uuid-doctrine": "^2.0",
+        "symfony/cache": "^6.4 || ^7.0",
+        "symfony/framework-bundle": "^6.4 || ^7.0",
+        "symfony/property-access": "^6.4 || ^7.0",
+        "symfony/serializer": "^6.4 || ^7.0",
+        "symfony/property-info": "^6.4 || ^7.1",
+        "symfony/uid": "^6.4 || ^7.0",
+        "symfony/validator": "^6.4.11 || ^7.0",
+        "symfony/yaml": "^6.4 || ^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ApiPlatform\\Doctrine\\Orm\\": ""
+        }
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "4.3.x-dev",
+            "dev-4.2": "4.2.x-dev",
+            "dev-3.4": "3.4.x-dev",
+            "dev-4.1": "4.1.x-dev"
+        },
+        "symfony": {
+            "require": "^6.4 || ^7.0"
+        },
+        "thanks": {
+            "name": "api-platform/api-platform",
+            "url": "https://github.com/api-platform/api-platform"
+        }
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/soyuka/phpunit"
+        }
+    ]
+}

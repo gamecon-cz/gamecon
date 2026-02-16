@@ -1,0 +1,59 @@
+security:
+    # Password hasher for User entity - uses standard PHP password_hash/password_verify
+    # Compatible with legacy \Uzivatel::heslo() which also uses PASSWORD_DEFAULT
+    password_hashers:
+        App\Entity\User:
+            algorithm: auto
+            migrate_from:
+                - bcrypt # Support old hashes
+                - md5    # Support very old hashes (if any remain)
+
+    # User provider - load users from database
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: login
+
+    # Firewalls
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        # API authentication with JWT
+        api:
+            pattern: ^/symfony/api
+            stateless: true
+            custom_authenticators:
+                - App\Security\JwtAuthenticator
+
+        # Main firewall (for admin/web)
+        main:
+            lazy: true
+            provider: app_user_provider
+
+    # Access control
+    access_control:
+        # Public product listing
+        - { path: ^/symfony/api/products$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/symfony/api/products/\d+$, roles: PUBLIC_ACCESS, methods: [GET] }
+
+        # Admin-only product operations
+        - { path: ^/symfony/api/products, roles: ROLE_ADMIN, methods: [POST, PUT, PATCH, DELETE] }
+
+        # Orders require authentication
+        - { path: ^/symfony/api/orders, roles: ROLE_USER }
+
+        # Cart requires authentication
+        - { path: ^/symfony/api/cart, roles: ROLE_USER }
+
+        # Reports - admin only
+        - { path: ^/symfony/api/reports, roles: ROLE_ADMIN }
+
+        # Admin bulk operations
+        - { path: ^/symfony/api/admin, roles: ROLE_ADMIN }
+
+    # Role hierarchy
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_USER]
