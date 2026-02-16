@@ -7,7 +7,7 @@ $data = omnibox(
     get('labelSlozenZ'),
     [],
     false,
-    3,
+    2,
     get('jenSRolemi') ?: []
 );
 
