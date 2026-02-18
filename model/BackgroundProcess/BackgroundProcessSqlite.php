@@ -172,6 +172,22 @@ class BackgroundProcessSqlite
     }
 
     /**
+     * Získá poslední záznam z logu pro daný příkaz
+     */
+    public function getLastLogEntry(string $command): ?array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM background_process_log
+            WHERE command = ?
+            ORDER BY finished_at DESC
+            LIMIT 1
+        ');
+        $stmt->execute([$command]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    /**
      * Získá průměrnou dobu trvání pro daný příkaz
      */
     public function getAverageDuration(string $command): ?int

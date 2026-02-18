@@ -13,7 +13,8 @@ class SystemoveNastaveniHtml
 {
     public const SYNCHRONNI_POST_KLIC           = 'nastaveni';
     public const ZKOPIROVAT_OSTROU_KLIC         = 'zkopirovat_ostrou';
-    public const ZKOPIROVAT_2024_KLIC           = 'zkopirovat_2024';
+    public const ZKOPIROVAT_ARCHIVNI_KLIC        = 'zkopirovat_archivni';
+    public const ZKOPIROVAT_ZE_ZALOHY_KLIC      = 'zkopirovat_ze_zalohy';
     public const EXPORTOVAT_ANONYMIZOVANOU_KLIC = 'exportovat_anonymizovanou';
     public const ZVYRAZNI                       = 'zvyrazni';
     public const AJAX_STAV_KOPIE_KLIC           = 'stavKopieDatabazeZOstre';
@@ -50,12 +51,31 @@ class SystemoveNastaveniHtml
             $this->vypisSkupinu($skupina, $zaznamyJedneSkupiny, $template, $klicKeZvyrazneni);
         }
 
-        if ($this->systemoveNastaveni->jsmeNaBete()) {
+        if ($this->systemoveNastaveni->jsmeNaBete() || $this->systemoveNastaveni->jsmeNaLocale()) {
             $templateZkopirovaniOstre = new XTemplate(__DIR__ . '/templates/zkopirovat-databazi-z-ostre.xtpl');
             $templateZkopirovaniOstre->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
             $templateZkopirovaniOstre->assign('zkopirovatOstrouKlic', self::ZKOPIROVAT_OSTROU_KLIC);
-            $templateZkopirovaniOstre->assign('zkopirovat2024Klic', self::ZKOPIROVAT_2024_KLIC);
+            $templateZkopirovaniOstre->assign('zkopirovatArchivniKlic', self::ZKOPIROVAT_ARCHIVNI_KLIC);
             $templateZkopirovaniOstre->assign('ajaxStavKopieKlic', self::AJAX_STAV_KOPIE_KLIC);
+
+            $archivniRoky = range(2024, (int)(new \DateTimeImmutable())->format('Y') - 1);
+            $archivniRokyOptions = implode(
+                '',
+                array_map(
+                    static fn(int $rok) => "<option value=\"{$rok}\">{$rok}</option>",
+                    $archivniRoky,
+                ),
+            );
+            $templateZkopirovaniOstre->assign('archivniRokyOptions', $archivniRokyOptions);
+
+            $souboruZaloh = $this->dejSouboruZaloh();
+            $souboruZalohOptions = implode('', array_map(
+                static fn(string $soubor) => "<option value=\"{$soubor}\">{$soubor}</option>",
+                $souboruZaloh,
+            ));
+            $templateZkopirovaniOstre->assign('zkopirovatZeZalohyKlic', self::ZKOPIROVAT_ZE_ZALOHY_KLIC);
+            $templateZkopirovaniOstre->assign('souboruZalohOptions', $souboruZalohOptions);
+            $templateZkopirovaniOstre->assign('maSouboruZaloh', !empty($souboruZaloh));
 
             // Zkontroluj, jestli proces běží
             $backgroundProcessService = BackgroundProcessService::vytvorZGlobals();
@@ -76,6 +96,9 @@ class SystemoveNastaveniHtml
                 $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.processBezi');
             } else {
                 $templateZkopirovaniOstre->assign('processRunning', false);
+                if (!empty($souboruZaloh)) {
+                    $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.formular.zalohaForm');
+                }
                 $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.formular');
             }
 
@@ -254,10 +277,24 @@ class SystemoveNastaveniHtml
 
             return true;
         }
-        if (!empty($pozadavky[self::ZKOPIROVAT_2024_KLIC])) {
+        if (!empty($pozadavky[self::ZKOPIROVAT_ARCHIVNI_KLIC])) {
+            $rok = (int)($pozadavky[self::ZKOPIROVAT_ARCHIVNI_KLIC]);
+            $zdrojovaDb = 'gamecon_' . $rok;
             try {
-                $this->zkopirujDatabazi($uzivatel, 'gamecon_2024');
-                oznameni('Kopírování databáze 2024 bylo spuštěno na pozadí. Proces může trvat několik minut. Sledujte jeho průběh níže.');
+                $this->zkopirujDatabazi($uzivatel, $zdrojovaDb);
+                oznameni("Kopírování databáze {$rok} bylo spuštěno na pozadí. Proces může trvat několik minut. Sledujte jeho průběh níže.");
+            } catch (\RuntimeException $e) {
+                chyba($e->getMessage());
+            }
+
+            return true;
+        }
+        if (!empty($pozadavky[self::ZKOPIROVAT_ZE_ZALOHY_KLIC])) {
+            $soubor = basename((string)$pozadavky[self::ZKOPIROVAT_ZE_ZALOHY_KLIC]);
+            $backupDir = $this->systemoveNastaveni->rootAdresarProjektu() . '/../ostra/backup/db';
+            try {
+                $this->zkopirujZeSouboruZalohy($uzivatel, $backupDir . '/' . $soubor);
+                oznameni("Kopírování ze zálohy {$soubor} bylo spuštěno na pozadí. Sledujte průběh níže.");
             } catch (\RuntimeException $e) {
                 chyba($e->getMessage());
             }
@@ -272,6 +309,36 @@ class SystemoveNastaveniHtml
         return false;
     }
 
+    private function zkopirujZeSouboruZalohy(?\Uzivatel $requestedBy, string $backupFilePath): void
+    {
+        $backgroundProcessService = BackgroundProcessService::vytvorZGlobals();
+        $commandName = BackgroundProcessService::COMMAND_DB_COPY;
+        if ($backgroundProcessService->isProcessRunning($commandName)) {
+            throw new \RuntimeException('Kopírování databáze již běží');
+        }
+        $workerScript = $this->systemoveNastaveni->rootAdresarProjektu()  . '/admin/scripts/zvlastni/systemove-nastaveni/workers/_database-copy-worker.php';
+        $backgroundProcessService->startBackgroundProcess(
+            $commandName,
+            $workerScript,
+            ['backupFile' => $backupFilePath],
+            ['started_by' => $requestedBy->id()],
+        );
+    }
+
+    private function dejSouboruZaloh(): array
+    {
+        $backupDir = $this->systemoveNastaveni->rootAdresarProjektu() . '/../ostra/backup/db';
+        if (!is_dir($backupDir)) {
+            return [];
+        }
+        $soubory = glob($backupDir . '/export_*.sql.gz');
+        if (!$soubory) {
+            return [];
+        }
+        rsort($soubory); // newest first
+        return array_map('basename', $soubory);
+    }
+
     private function zkopirujDatabazi(?\Uzivatel $requestedBy, ?string $zdrojovaDbName = null)
     {
         $backgroundProcessService = BackgroundProcessService::vytvorZGlobals();
@@ -283,7 +350,7 @@ class SystemoveNastaveniHtml
         }
 
         // Spusť worker script na pozadí
-        $workerScript = __DIR__ . '/../../admin/scripts/zvlastni/systemove-nastaveni/workers/_database-copy-worker.php';
+        $workerScript = $this->systemoveNastaveni->rootAdresarProjektu() . '/admin/scripts/zvlastni/systemove-nastaveni/workers/_database-copy-worker.php';
 
         $backgroundProcessService->startBackgroundProcess(
             $commandName,
@@ -329,8 +396,11 @@ class SystemoveNastaveniHtml
             return;
         }
 
+        $lastInfo = $backgroundProcessService->getLastCompletedProcessInfo($commandName);
         echo json_encode([
-            'running' => false,
+            'running'      => false,
+            'failed'       => $lastInfo && $lastInfo['status'] === 'failed',
+            'errorMessage' => $lastInfo ? $lastInfo['error_message'] : null,
         ], JSON_UNESCAPED_UNICODE);
     }
 }

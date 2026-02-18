@@ -10,26 +10,31 @@ declare(strict_types=1);
  *   php _database-copy-worker.php
  */
 
-// Zkusíme načíst zdrojovou DB z CLI argumentů, nejdřív standardním getopt, pak fallbackem na $argv
-$options = getopt('', ['sourceDb::']);
+// Zkusíme načíst zdrojovou DB a backupFile z CLI argumentů, nejdřív standardním getopt, pak fallbackem na $argv
+$options = getopt('', ['sourceDb::', 'backupFile::']);
 $zdrojovaDb = $options['sourceDb'] ?? null;
-if (!$zdrojovaDb && isset($argv)) {
+$backupFile = $options['backupFile'] ?? null;
+if (isset($argv)) {
     foreach ($argv as $arg) {
-        if (str_starts_with($arg, '--sourceDb=')) {
+        if (!$zdrojovaDb && str_starts_with($arg, '--sourceDb=')) {
             $zdrojovaDb = substr($arg, strlen('--sourceDb='));
-            break;
+        }
+        if (!$backupFile && str_starts_with($arg, '--backupFile=')) {
+            $backupFile = substr($arg, strlen('--backupFile='));
         }
     }
 }
 
-// Před načtením konfigurace můžeme vynutit ročník podle zdrojové DB
+// Před načtením konfigurace můžeme vynutit ročník podle zdrojové DB nebo názvu souboru zálohy
 if (!defined('ROCNIK')) {
-    $vynucenyRocnik = $zdrojovaDb === 'gamecon_2024'
-        ? 2024
-        : 2025;
+    $vynucenyRocnik = (int)date('Y'); // default
+    if ($backupFile && preg_match('~export_(\d{4})-~', basename($backupFile), $m)) {
+        $vynucenyRocnik = (int)$m[1];
+    } elseif (preg_match('~gamecon_(\d{4})-~', $zdrojovaDb, $m)) {
+        $vynucenyRocnik = (int)$m[1];
+    }
     define('ROCNIK', $vynucenyRocnik);
 }
-$rocnikOverrideFile = __DIR__ . '/../../../../../cache/private/rocnik_override';
 
 require_once __DIR__ . '/../../../../../nastaveni/zavadec.php';
 
@@ -64,15 +69,22 @@ try {
 
     // uložit ročník pro další requesty na betě
     if (isset($vynucenyRocnik)) {
+        $rocnikOverrideFile = __DIR__ . '/../../../../../cache/private/rocnik_override';
         @mkdir(dirname($rocnikOverrideFile), 0775, true);
         file_put_contents($rocnikOverrideFile, (string)$vynucenyRocnik);
     }
 
     $kopieOstreDatabaze = KopieOstreDatabaze::createFromGlobals();
-    $nastaveniOstre = SystemoveNastaveni::zGlobals()->prihlasovaciUdajeOstreDatabaze();
-    $kopirovanaDb = $zdrojovaDb ?? $nastaveniOstre['DB_NAME'];
-    logMessage("Kopíruji databázi '{$kopirovanaDb}' (ROCNIK=" . ROCNIK . ")");
-    $kopieOstreDatabaze->zkopirujDatabazi($kopirovanaDb);
+
+    if ($backupFile) {
+        logMessage("Kopíruji ze souboru zálohy '{$backupFile}' (ROCNIK=" . ROCNIK . ")");
+        $kopieOstreDatabaze->zkopirujZeSouboruZalohy($backupFile);
+    } else {
+        $nastaveniOstre = SystemoveNastaveni::zGlobals()->prihlasovaciUdajeOstreDatabaze();
+        $kopirovanaDb = $zdrojovaDb ?? $nastaveniOstre['DB_NAME'];
+        logMessage("Kopíruji databázi '{$kopirovanaDb}' (ROCNIK=" . ROCNIK . ")");
+        $kopieOstreDatabaze->zkopirujDatabazi($kopirovanaDb);
+    }
 
     $endTime = microtime(true);
     $duration = round($endTime - $startTime, 2);
@@ -95,6 +107,8 @@ try {
 
     logMessage($errorMessage);
     logMessage("Stack trace:\n" . $e->getTraceAsString());
+
+    $backgroundProcessService->markProcessCompleted($commandName, false, $e->getMessage());
 
     exit(1);
 }

@@ -4,9 +4,9 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Vyjimkovac\Vyjimkovac;
 
-class KopieOstreDatabaze
+readonly class KopieOstreDatabaze
 {
-    public static function createFromGlobals()
+    public static function createFromGlobals(): static
     {
         return new static(
             NastrojeDatabaze::vytvorZGlobals(),
@@ -16,13 +16,94 @@ class KopieOstreDatabaze
     }
 
     public function __construct(
-        private readonly NastrojeDatabaze $nastrojeDatabaze,
-        private readonly SystemoveNastaveni $systemoveNastaveni,
-        private readonly Vyjimkovac $vyjimkovac,
+        private NastrojeDatabaze   $nastrojeDatabaze,
+        private SystemoveNastaveni $systemoveNastaveni,
+        private Vyjimkovac         $vyjimkovac,
     ) {
     }
 
-    public function zkopirujDatabazi(string $zdrojovaDbName, bool $migrovat = true): void
+    public function zkopirujZeSouboruZalohy(string $gzipSouborZalohy): void
+    {
+        set_time_limit(120);
+
+        // Security: verify the file is inside the expected backup directory and is an export_ file
+        $backupDir = realpath($this->systemoveNastaveni->rootAdresarProjektu() . '/../ostra/backup/db');
+        $realFile  = realpath($gzipSouborZalohy);
+        if (
+            $backupDir === false
+            || $realFile === false
+            || !str_starts_with($realFile, $backupDir . '/')
+            || !preg_match('~^export_.*\.sql\.gz$~', basename($realFile))
+        ) {
+            throw new \RuntimeException("Nepovolený soubor zálohy: {$gzipSouborZalohy}");
+        }
+
+        $puvodniPriZalogovaniOdeslatMailem = $this->vyjimkovac->priZalogovaniOdeslatMailem();
+        $puvodniZobrazeniChyb              = $this->vyjimkovac->zobrazeni();
+        $this->vyjimkovac->priZalogovaniOdeslatMailem(false);
+        $this->vyjimkovac->zobrazeni($this->vyjimkovac::TRACY);
+
+        try {
+            // Decompress .gz to a temp plain SQL file (removeDefiners needs plain text)
+            $tempFile = tempnam($this->systemoveNastaveni->cacheDir(), 'kopie_databaze_');
+            if ($tempFile === false) {
+                throw new \RuntimeException('Nepodařilo se vytvořit dočasný soubor');
+            }
+
+            try {
+                // Decompress gzip to plain SQL
+                $gz = gzopen($realFile, 'rb');
+                if ($gz === false) {
+                    throw new \RuntimeException("Nepodařilo se otevřít soubor zálohy: {$realFile}");
+                }
+                $fp = fopen($tempFile, 'wb');
+                if ($fp === false) {
+                    gzclose($gz);
+                    throw new \RuntimeException('Nepodařilo se otevřít dočasný soubor pro zápis');
+                }
+                while (!gzeof($gz)) {
+                    fwrite($fp, gzread($gz, 524288)); // 512 KB chunks
+                }
+                gzclose($gz);
+                fclose($fp);
+
+                // Strip DEFINERs from the plain SQL
+                NastrojeDatabaze::removeDefiners($tempFile);
+
+                // Connect to local (beta) DB
+                [
+                    'DB_SERV'  => $dbServ,
+                    'DBM_USER' => $dbmUser,
+                    'DBM_PASS' => $dbmPass,
+                    'DB_NAME'  => $dbName,
+                    'DB_PORT'  => $dbPort,
+                ] = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
+
+                $localConnection = _dbConnect(
+                    dbServer: $dbServ,
+                    dbUser: $dbmUser,
+                    dbPass: $dbmPass,
+                    dbPort: $dbPort,
+                    dbName: $dbName,
+                    persistent: false,
+                );
+
+                $this->nastrojeDatabaze->vymazVseZHlavniDatabaze($localConnection);
+                (new \MySQLImport($localConnection))->load($tempFile);
+
+                (new SqlMigrace($this->systemoveNastaveni))->migruj();
+            } finally {
+                if (is_file($tempFile)) {
+                    @unlink($tempFile);
+                }
+            }
+        } finally {
+            $this->vyjimkovac->priZalogovaniOdeslatMailem($puvodniPriZalogovaniOdeslatMailem);
+            $this->vyjimkovac->zobrazeni($puvodniZobrazeniChyb);
+        }
+    }
+
+    public function zkopirujDatabazi(string $zdrojovaDbName): void
     {
         set_time_limit(120);
 
@@ -56,7 +137,7 @@ class KopieOstreDatabaze
                 throw new \RuntimeException('Kopírovat sebe sama nemá smysl');
             }
 
-            $tempFile = tempnam(sys_get_temp_dir(), 'kopie_databaze_');
+            $tempFile = tempnam($this->systemoveNastaveni->cacheDir(), 'kopie_databaze_');
             if ($tempFile === false) {
                 throw new \RuntimeException('Nepodařilo se vytvořit dočasný soubor');
             }
@@ -86,9 +167,7 @@ class KopieOstreDatabaze
                 $this->nastrojeDatabaze->vymazVseZHlavniDatabaze($localConnection);
                 (new \MySQLImport($localConnection))->load($tempFile);
 
-                if ($migrovat) {
-                    (new SqlMigrace($this->systemoveNastaveni))->migruj();
-                }
+                (new SqlMigrace($this->systemoveNastaveni))->migruj();
             } finally {
                 if (is_file($tempFile)) {
                     @unlink($tempFile);
