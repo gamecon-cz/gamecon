@@ -233,6 +233,22 @@ class BackgroundProcessService
     }
 
     /**
+     * Získá výsledek posledního dokončeného procesu (status + případná chybová zpráva)
+     * @return array{status: string, error_message: ?string}|null
+     */
+    public function getLastCompletedProcessInfo(string $command): ?array
+    {
+        $entry = $this->getSqlite()->getLastLogEntry($command);
+        if (!$entry) {
+            return null;
+        }
+        return [
+            'status'        => $entry['status'],
+            'error_message' => $entry['error_message'] ?: null,
+        ];
+    }
+
+    /**
      * Formátuje čas v sekundách na lidsky čitelný formát
      */
     public static function formatDuration(int $seconds): string
