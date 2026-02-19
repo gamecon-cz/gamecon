@@ -349,6 +349,38 @@ trait DateTimeCzTrait
         return $rozdilDni;
     }
 
+    /** Vrací věk – jak dávno se něco stalo, bez předpony „před" (např. „5 minut", „včera") */
+    public function stari(\DateTimeInterface $ted = null): string
+    {
+        $rozdil = ($ted?->getTimestamp() ?? time()) - $this->getTimestamp();
+        if ($rozdil < 2) {
+            return 'okamžik';
+        }
+        if ($rozdil < 60) {
+            return "$rozdil sekund";
+        }
+        if (round($rozdil / 60) === 1.0) {
+            return 'minuta';
+        }
+        if ($rozdil < 60 * 60) {
+            return round($rozdil / 60) . ' minut';
+        }
+        $ted     = $ted ?? new static('now', $this->getTimezone());
+        $tedDen  = (clone $ted)->setTime(0, 0);
+        $tentoDen = (clone $this)->setTime(0, 0);
+        $diffDni = (int)$tedDen->diff($tentoDen)->format('%r%a');
+        if ($diffDni === 0) {
+            return $this->format('G:i');
+        }
+        if ($diffDni === -1) {
+            return 'včera';
+        }
+        if ($diffDni === -2) {
+            return 'předevčírem';
+        }
+        return (-$diffDni) . ' dní';
+    }
+
     public function relativniVBudoucnu(\DateTimeInterface $ted = null, bool $dnesUHodin = false): string
     {
         $rozdil = $this->getTimestamp() - ($ted?->getTimestamp() ?? time());

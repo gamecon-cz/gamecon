@@ -70,7 +70,12 @@ class SystemoveNastaveniHtml
 
             $souboruZaloh = $this->dejSouboruZaloh();
             $souboruZalohOptions = implode('', array_map(
-                static fn(string $soubor) => "<option value=\"{$soubor}\">{$soubor}</option>",
+                static function (string $soubor): string {
+                    $basename = basename($soubor);
+                    $datum = new \Gamecon\Cas\DateTimeCz('@' . filemtime($soubor));
+                    $popisek = $datum->format('Y-m-d H:i:s') . ' (' . $datum->stari() . ')';
+                    return "<option value=\"{$basename}\">{$popisek}</option>";
+                },
                 $souboruZaloh,
             ));
             $templateZkopirovaniOstre->assign('zkopirovatZeZalohyKlic', self::ZKOPIROVAT_ZE_ZALOHY_KLIC);
@@ -336,7 +341,7 @@ class SystemoveNastaveniHtml
             return [];
         }
         rsort($soubory); // newest first
-        return array_map('basename', $soubory);
+        return $soubory; // return full paths
     }
 
     private function zkopirujDatabazi(?\Uzivatel $requestedBy, ?string $zdrojovaDbName = null)
