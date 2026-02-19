@@ -370,7 +370,17 @@ trait DateTimeCzTrait
         $tentoDen = (clone $this)->setTime(0, 0);
         $diffDni = (int)$tedDen->diff($tentoDen)->format('%r%a');
         if ($diffDni === 0) {
-            return $this->format('G:i');
+            $hodiny = (int)floor($rozdil / 3600);
+            $minuty = (int)round(($rozdil % 3600) / 60);
+            if ($hodiny > 0 && $minuty > 0) {
+                return "{$hodiny} " . ($hodiny === 1 ? 'hodina' : ($hodiny < 5 ? 'hodiny' : 'hodin'))
+                    . " {$minuty} " . ($minuty === 1 ? 'minuta' : ($minuty < 5 ? 'minuty' : 'minut'));
+            }
+            if ($hodiny > 0) {
+                return "{$hodiny} " . ($hodiny === 1 ? 'hodina' : ($hodiny < 5 ? 'hodiny' : 'hodin'));
+            }
+            $minuty = max(1, $minuty);
+            return "{$minuty} " . ($minuty === 1 ? 'minuta' : ($minuty < 5 ? 'minuty' : 'minut'));
         }
         if ($diffDni === -1) {
             return 'včera';
@@ -378,7 +388,14 @@ trait DateTimeCzTrait
         if ($diffDni === -2) {
             return 'předevčírem';
         }
-        return (-$diffDni) . ' dní';
+        $dni = -$diffDni;
+        if ($dni === 1) {
+            return '1 den';
+        }
+        if ($dni < 5) {
+            return "{$dni} dny";
+        }
+        return "{$dni} dní";
     }
 
     public function relativniVBudoucnu(\DateTimeInterface $ted = null, bool $dnesUHodin = false): string
