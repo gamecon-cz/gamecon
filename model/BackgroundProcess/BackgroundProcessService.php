@@ -159,9 +159,8 @@ class BackgroundProcessService
             return null;
         }
 
-        $startedAt = new \DateTime($process['started_at']);
-        $now = new \DateTime('now');
-        $elapsedSeconds = $now->getTimestamp() - $startedAt->getTimestamp();
+        $startedAt = new \DateTimeImmutable($process['started_at']);
+        $elapsedSeconds = $this->clock->now()->getTimestamp() - $startedAt->getTimestamp();
 
         // Získej odhadovanou dobu trvání
         $avgDuration = $this->getSqlite()->getAverageDuration($command);

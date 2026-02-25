@@ -30,7 +30,9 @@ if (!defined('ROCNIK')) {
     $vynucenyRocnik = (int)date('Y'); // default
     if ($backupFile && preg_match('~export_(\d{4})-~', basename($backupFile), $m)) {
         $vynucenyRocnik = (int)$m[1];
-    } elseif (preg_match('~gamecon_(\d{4})-~', $zdrojovaDb, $m)) {
+    } elseif ($backupFile && preg_match('~/(\d{4})/backup/db/~', $backupFile, $m)) {
+        $vynucenyRocnik = (int)$m[1];
+    } elseif (preg_match('~gamecon_(\d{4})~', $zdrojovaDb ?? '', $m)) {
         $vynucenyRocnik = (int)$m[1];
     }
     define('ROCNIK', $vynucenyRocnik);

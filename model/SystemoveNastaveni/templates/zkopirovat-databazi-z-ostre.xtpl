@@ -8,6 +8,7 @@
     Zkopírovat databázi z ostré
   </button>
 </form>
+<!-- begin:archivniForm -->
 <form method="post" style="margin-top: 8px" onsubmit="return confirm('Opravdu přemazat současná data na betě daty z archivní databáze gamecon_' + this.querySelector('select').value + '?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
   <select name="{synchronniPostKlic}[{zkopirovatArchivniKlic}]" style="margin-right: 6px">
     {archivniRokyOptions}
@@ -16,6 +17,7 @@
     Zkopírovat archivní databázi
   </button>
 </form>
+<!-- end:archivniForm -->
 <!-- begin:zalohaForm -->
 <form method="post" style="margin-top: 8px" onsubmit="return confirm('Opravdu přemazat současná data na betě daty ze souboru zálohy ' + this.querySelector('select').value + '?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
   <select name="{synchronniPostKlic}[{zkopirovatZeZalohyKlic}]" style="margin-right: 6px">

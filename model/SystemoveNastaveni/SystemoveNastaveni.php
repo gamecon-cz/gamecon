@@ -982,7 +982,7 @@ SQL;
 
     public function databaseDataDependentCacheDir(): string
     {
-        return $this->cacheDir . '/' . DB_NAME;
+        return $this->cacheDir . '/database/' . DB_NAME;
     }
 
     public function tableDataDependentCacheDir(): string
@@ -992,6 +992,11 @@ SQL;
 
     public function prihlasovaciUdajeOstreDatabaze(): array
     {
+        if ($this->jsmeNaLocale()) {
+            // Na lokálním prostředí není produkční konfigurace dostupná – použijeme aktuální DB
+            return $this->prihlasovaciUdajeSoucasneDatabaze();
+        }
+
         $souborNastaveniOstra = $this->rootAdresarProjektu . '/../ostra/nastaveni/nastaveni-produkce.php';
         if (!is_readable($souborNastaveniOstra)) {
             throw new \RuntimeException('Nelze přečíst soubor s nastavením ostré ' . $souborNastaveniOstra);

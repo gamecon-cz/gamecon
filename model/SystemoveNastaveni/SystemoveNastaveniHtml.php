@@ -104,6 +104,9 @@ class SystemoveNastaveniHtml
                 if (!empty($souboruZaloh)) {
                     $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.formular.zalohaForm');
                 }
+                if (!$this->systemoveNastaveni->jsmeNaLocale()) {
+                    $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.formular.archivniForm');
+                }
                 $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.formular');
             }
 
@@ -284,10 +287,10 @@ class SystemoveNastaveniHtml
         }
         if (!empty($pozadavky[self::ZKOPIROVAT_ARCHIVNI_KLIC])) {
             $rok = (int)($pozadavky[self::ZKOPIROVAT_ARCHIVNI_KLIC]);
-            $zdrojovaDb = 'gamecon_' . $rok;
+            $backupFile = $this->systemoveNastaveni->rootAdresarProjektu() . '/../' . $rok . '/backup/db/export_latest.sql.gz';
             try {
-                $this->zkopirujDatabazi($uzivatel, $zdrojovaDb);
-                oznameni("Kopírování databáze {$rok} bylo spuštěno na pozadí. Proces může trvat několik minut. Sledujte jeho průběh níže.");
+                $this->zkopirujZeSouboruZalohy($uzivatel, $backupFile);
+                oznameni("Kopírování databáze {$rok} bylo spuštěno na pozadí...");
             } catch (\RuntimeException $e) {
                 chyba($e->getMessage());
             }
@@ -296,9 +299,8 @@ class SystemoveNastaveniHtml
         }
         if (!empty($pozadavky[self::ZKOPIROVAT_ZE_ZALOHY_KLIC])) {
             $soubor = basename((string)$pozadavky[self::ZKOPIROVAT_ZE_ZALOHY_KLIC]);
-            $backupDir = $this->systemoveNastaveni->rootAdresarProjektu() . '/../ostra/backup/db';
             try {
-                $this->zkopirujZeSouboruZalohy($uzivatel, $backupDir . '/' . $soubor);
+                $this->zkopirujZeSouboruZalohy($uzivatel, $this->backupDir() . '/' . $soubor);
                 oznameni("Kopírování ze zálohy {$soubor} bylo spuštěno na pozadí. Sledujte průběh níže.");
             } catch (\RuntimeException $e) {
                 chyba($e->getMessage());
@@ -330,9 +332,17 @@ class SystemoveNastaveniHtml
         );
     }
 
+    private function backupDir(): string
+    {
+        if ($this->systemoveNastaveni->jsmeNaLocale()) {
+            return $this->systemoveNastaveni->rootAdresarProjektu() . '/backup/db';
+        }
+        return $this->systemoveNastaveni->rootAdresarProjektu() . '/../ostra/backup/db';
+    }
+
     private function dejSouboruZaloh(): array
     {
-        $backupDir = $this->systemoveNastaveni->rootAdresarProjektu() . '/../ostra/backup/db';
+        $backupDir = $this->backupDir();
         if (!is_dir($backupDir)) {
             return [];
         }
