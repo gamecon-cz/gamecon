@@ -70,6 +70,7 @@ abstract class Factory
      * @phpstan-param Attributes $attributes
      *
      * @return list<T>
+     * @phpstan-return ($number is positive-int ? non-empty-list<T> : list<T>)
      */
     final public static function createMany(int $number, array|callable $attributes = []): array
     {
@@ -80,6 +81,7 @@ abstract class Factory
      * @phpstan-param Attributes $attributes
      *
      * @return list<T>
+     * @phpstan-return ($min is positive-int ? non-empty-list<T> : list<T>)
      */
     final public static function createRange(int $min, int $max, array|callable $attributes = []): array
     {
@@ -140,7 +142,7 @@ abstract class Factory
     final public function distribute(string $field, array $values): FactoryCollection
     {
         return $this->sequence(
-            \array_map(fn($value) => [$field => $value], $values)
+            \array_map(static fn($value) => [$field => $value], $values)
         );
     }
 
@@ -160,7 +162,7 @@ abstract class Factory
 
     final protected static function faker(): Faker\Generator
     {
-        return Configuration::instance()->faker;
+        return Configuration::instance()->faker();
     }
 
     /**

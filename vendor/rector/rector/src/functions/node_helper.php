@@ -1,14 +1,15 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202511;
+namespace RectorPrefix202602;
 
-use RectorPrefix202511\Illuminate\Container\Container;
+use RectorPrefix202602\Illuminate\Container\Container;
 use PhpParser\Node;
 use PhpParser\PrettyPrinter\Standard;
 use Rector\Console\Style\SymfonyStyleFactory;
+use Rector\PhpParser\Node\FileNode;
 use Rector\Util\NodePrinter;
-use RectorPrefix202511\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Output\OutputInterface;
 if (!\function_exists('print_node')) {
     /**
      * @param Node|Node[] $node
@@ -17,6 +18,9 @@ if (!\function_exists('print_node')) {
     {
         $standard = new Standard();
         $nodes = \is_array($node) ? $node : [$node];
+        if ($nodes[0] instanceof FileNode) {
+            $nodes = $nodes[0]->stmts;
+        }
         foreach ($nodes as $node) {
             $printedContent = $standard->prettyPrint([$node]);
             \var_dump($printedContent);

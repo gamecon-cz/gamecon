@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Util;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use Rector\Exception\Configuration\InvalidConfigurationException;
 use Rector\ValueObject\Configuration;
 /**
@@ -12,8 +12,8 @@ use Rector\ValueObject\Configuration;
 final class MemoryLimiter
 {
     /**
-     * @var string
      * @see https://regex101.com/r/pmiGUM/1
+     * @var string
      */
     private const VALID_MEMORY_LIMIT_REGEX = '#^-?\d+[kMG]?$#i';
     public function adjust(Configuration $configuration): void

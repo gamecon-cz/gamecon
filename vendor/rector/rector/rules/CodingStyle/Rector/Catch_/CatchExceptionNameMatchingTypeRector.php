@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodingStyle\Rector\Catch_;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\Closure;
@@ -20,7 +20,7 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Type\ObjectType;
 use Rector\Naming\Naming\PropertyNaming;
 use Rector\NodeTypeResolver\Node\AttributeKey;
-use Rector\PhpParser\Node\CustomNode\FileWithoutNamespace;
+use Rector\PhpParser\Node\FileNode;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -34,8 +34,8 @@ final class CatchExceptionNameMatchingTypeRector extends AbstractRector
      */
     private PropertyNaming $propertyNaming;
     /**
-     * @var string
      * @see https://regex101.com/r/xmfMAX/1
+     * @var string
      */
     private const STARTS_WITH_ABBREVIATION_REGEX = '#^([A-Za-z]+?)([A-Z]{1}[a-z]{1})([A-Za-z]*)#';
     public function __construct(PropertyNaming $propertyNaming)
@@ -65,14 +65,18 @@ CODE_SAMPLE
      */
     public function getNodeTypes(): array
     {
-        return [ClassMethod::class, Function_::class, Closure::class, FileWithoutNamespace::class, Namespace_::class];
+        return [ClassMethod::class, Function_::class, Closure::class, FileNode::class, Namespace_::class];
     }
     /**
-     * @param ClassMethod|Function_|Closure|FileWithoutNamespace|Namespace_ $node
+     * @param ClassMethod|Function_|Closure|FileNode|Namespace_ $node
      */
     public function refactor(Node $node): ?Node
     {
         if ($node->stmts === null) {
+            return null;
+        }
+        if ($node instanceof FileNode && $node->isNamespaced()) {
+            // handled in Namespace_ node
             return null;
         }
         $hasChanged = \false;
@@ -89,7 +93,6 @@ CODE_SAMPLE
             $catch = $stmt->catches[0];
             /** @var Variable $catchVar */
             $catchVar = $catch->var;
-            /** @var string $oldVariableName */
             $oldVariableName = (string) $this->getName($catchVar);
             $typeShortName = $this->resolveVariableName($catch->types[0]);
             $newVariableName = $this->resolveNewVariableName($typeShortName);

@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\Symfony\Component\String;
+namespace RectorPrefix202602\Symfony\Component\String;
 
-use RectorPrefix202511\Symfony\Component\String\Exception\ExceptionInterface;
-use RectorPrefix202511\Symfony\Component\String\Exception\InvalidArgumentException;
-use RectorPrefix202511\Symfony\Component\String\Exception\RuntimeException;
+use RectorPrefix202602\Symfony\Component\String\Exception\ExceptionInterface;
+use RectorPrefix202602\Symfony\Component\String\Exception\InvalidArgumentException;
+use RectorPrefix202602\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract characters.
  *
@@ -484,7 +484,7 @@ abstract class AbstractString implements \JsonSerializable
         try {
             $b->string = mb_convert_encoding($this->string, $toEncoding, 'UTF-8');
         } catch (\ValueError $e) {
-            if (!\function_exists('iconv') && !\function_exists('RectorPrefix202511\iconv')) {
+            if (!\function_exists('iconv') && !\function_exists('RectorPrefix202602\iconv')) {
                 throw new InvalidArgumentException($e->getMessage(), $e->getCode(), $e);
             }
             $b->string = iconv('UTF-8', $toEncoding, $this->string);
@@ -648,8 +648,30 @@ abstract class AbstractString implements \JsonSerializable
         $str->string = $string . implode('', $chars);
         return $str;
     }
+    public function __serialize(): array
+    {
+        if (self::class === (new \ReflectionMethod($this, '__sleep'))->class || self::class !== (new \ReflectionMethod($this, '__serialize'))->class) {
+            return ['string' => $this->string];
+        }
+        trigger_deprecation('symfony/string', '7.4', 'Implementing "%s::__sleep()" is deprecated, use "__serialize()" instead.', get_debug_type($this));
+        $data = [];
+        foreach ($this->__sleep() as $key) {
+            try {
+                if (($r = new \ReflectionProperty($this, $key))->isInitialized($this)) {
+                    $data[$key] = $r->getValue($this);
+                }
+            } catch (\ReflectionException $exception) {
+                $data[$key] = $this->{$key};
+            }
+        }
+        return $data;
+    }
+    /**
+     * @deprecated since Symfony 7.4, will be replaced by `__unserialize()` in 8.0
+     */
     public function __sleep(): array
     {
+        trigger_deprecation('symfony/string', '7.4', 'Calling "%s::__sleep()" is deprecated, use "__serialize()" instead.', get_debug_type($this));
         return ['string'];
     }
     public function __clone()

@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202511\Nette\Utils;
+namespace RectorPrefix202602\Nette\Utils;
 
-use RectorPrefix202511\Nette;
+use RectorPrefix202602\Nette;
 use const DIRECTORY_SEPARATOR;
 /**
  * Represents the file or directory returned by the Finder.
@@ -15,12 +15,15 @@ use const DIRECTORY_SEPARATOR;
  */
 final class FileInfo extends \SplFileInfo
 {
-    private string $relativePath;
+    /**
+     * @readonly
+     */
+    private string $relativePath = '';
     public function __construct(string $file, string $relativePath = '')
     {
-        parent::__construct($file);
-        $this->setInfoClass(static::class);
         $this->relativePath = $relativePath;
+        parent::__construct($file);
+        $this->setInfoClass(self::class);
     }
     /**
      * Returns the relative directory path.

@@ -15,7 +15,7 @@ use Rector\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Php82\Rector\Param\AddSensitiveParameterAttributeRector\AddSensitiveParameterAttributeRectorTest
  */
@@ -25,6 +25,9 @@ final class AddSensitiveParameterAttributeRector extends AbstractRector implemen
      * @readonly
      */
     private PhpAttributeAnalyzer $phpAttributeAnalyzer;
+    /**
+     * @var string
+     */
     public const SENSITIVE_PARAMETERS = 'sensitive_parameters';
     /**
      * @var string[]

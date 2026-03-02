@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodingStyle\NodeAnalyzer;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\GroupUse;
@@ -25,10 +25,9 @@ final class UseImportNameMatcher
      */
     private UseImportsResolver $useImportsResolver;
     /**
-     * @var string
-     *
      * @see https://regex101.com/r/ZxFSlc/1 for last name, eg: Entity and UniqueEntity
      * @see https://regex101.com/r/OLO0Un/1 for inside namespace, eg: ORM for ORM\Id or ORM\Column
+     * @var string
      */
     private const SHORT_NAME_REGEX = '#^%s(\\\\[\w]+)?$#i';
     public function __construct(BetterNodeFinder $betterNodeFinder, UseImportsResolver $useImportsResolver)

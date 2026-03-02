@@ -12,20 +12,44 @@ use DOMElement;
 use Rector\ChangesReporting\Contract\Output\OutputFormatterInterface;
 use Rector\ValueObject\Configuration;
 use Rector\ValueObject\ProcessResult;
-use RectorPrefix202511\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202602\Symfony\Component\Console\Style\SymfonyStyle;
 final class JUnitOutputFormatter implements OutputFormatterInterface
 {
     /**
      * @readonly
      */
     private SymfonyStyle $symfonyStyle;
-    public const NAME = 'junit';
+    /**
+     * @var string
+     */
+    private const NAME = 'junit';
+    /**
+     * @var string
+     */
     private const XML_ATTRIBUTE_FILE = 'file';
+    /**
+     * @var string
+     */
     private const XML_ATTRIBUTE_NAME = 'name';
+    /**
+     * @var string
+     */
     private const XML_ATTRIBUTE_TYPE = 'type';
+    /**
+     * @var string
+     */
     private const XML_ELEMENT_TESTSUITES = 'testsuites';
+    /**
+     * @var string
+     */
     private const XML_ELEMENT_TESTSUITE = 'testsuite';
+    /**
+     * @var string
+     */
     private const XML_ELEMENT_TESTCASE = 'testcase';
+    /**
+     * @var string
+     */
     private const XML_ELEMENT_ERROR = 'error';
     public function __construct(SymfonyStyle $symfonyStyle)
     {

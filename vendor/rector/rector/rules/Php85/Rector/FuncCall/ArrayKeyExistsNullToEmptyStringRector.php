@@ -8,6 +8,8 @@ use PhpParser\Node\Expr\FuncCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\FunctionReflection;
+use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\UnionType;
 use Rector\NodeAnalyzer\ArgsAnalyzer;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\NodeTypeResolver\PHPStan\ParametersAcceptorSelectorVariantsWrapper;
@@ -81,8 +83,16 @@ CODE_SAMPLE
         if (!$functionReflection instanceof FunctionReflection) {
             return null;
         }
+        $argPosition = $this->argsAnalyzer->resolveArgPosition($args, 'key', 0);
+        $originalType = $this->getType($args[$argPosition]->value);
+        if ($originalType instanceof UnionType) {
+            $withoutNullParameterType = TypeCombinator::removeNull($originalType);
+            if ($withoutNullParameterType->equals($originalType)) {
+                return null;
+            }
+        }
         $parametersAcceptor = ParametersAcceptorSelectorVariantsWrapper::select($functionReflection, $node, $scope);
-        $result = $this->nullToStrictStringIntConverter->convertIfNull($node, $args, $this->argsAnalyzer->resolveArgPosition($args, 'key', 0), $isTrait, $scope, $parametersAcceptor);
+        $result = $this->nullToStrictStringIntConverter->convertIfNull($node, $args, $argPosition, $isTrait, $scope, $parametersAcceptor);
         if ($result instanceof Node) {
             return $result;
         }

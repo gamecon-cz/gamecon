@@ -64,10 +64,10 @@ CODE_SAMPLE
         if (!is_string($className)) {
             return null;
         }
-        if (strncmp($className, 'Symfony\Component\Validator\Constraints\\', strlen('Symfony\Component\Validator\Constraints\\')) !== 0) {
+        if (strncmp($className, 'Symfony\Component\Validator\Constraints\\', strlen('Symfony\Component\Validator\Constraints\\')) !== 0 && strncmp($className, 'Symfony\Bridge\Doctrine\Validator\Constraints\\', strlen('Symfony\Bridge\Doctrine\Validator\Constraints\\')) !== 0) {
             return null;
         }
-        if (count($node->args) === 0 || !$node->args[0] instanceof Arg || !$node->args[0]->value instanceof Array_) {
+        if ($node->args === [] || !$node->args[0] instanceof Arg || !$node->args[0]->value instanceof Array_) {
             return null;
         }
         $argName = $node->args[0]->name;
@@ -84,6 +84,7 @@ CODE_SAMPLE
         }
         $array = $node->args[0]->value;
         $namedArgs = [];
+        $oldTokens = $this->file->getOldTokens();
         foreach ($array->items as $item) {
             if (!$item instanceof ArrayItem) {
                 continue;
@@ -98,6 +99,18 @@ CODE_SAMPLE
             $keyValue = $this->valueResolver->getValue($item->key);
             if (!is_string($keyValue)) {
                 continue;
+            }
+            $lastTokenKey = $item->key->getEndTokenPos();
+            $startTokenValue = $item->value->getStartTokenPos();
+            while ($lastTokenKey < $startTokenValue) {
+                ++$lastTokenKey;
+                if (!isset($oldTokens[$lastTokenKey])) {
+                    break;
+                }
+                $token = $oldTokens[$lastTokenKey];
+                if ($token->is([\T_DOC_COMMENT, \T_COMMENT])) {
+                    return null;
+                }
             }
             $arg = new Arg($item->value);
             $arg->name = new Identifier($keyValue);

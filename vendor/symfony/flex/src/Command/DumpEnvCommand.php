@@ -55,6 +55,7 @@ class DumpEnvCommand extends BaseCommand
         }
 
         $path = $this->options->get('root-dir').'/'.($runtime['dotenv_path'] ?? '.env');
+        $GLOBALS['SYMFONY_DOTENV_VARS'] = [];
 
         if (!$env || !$input->getOption('empty')) {
             $vars = $this->loadEnv($path, $env, $runtime);
@@ -66,6 +67,18 @@ class DumpEnvCommand extends BaseCommand
         }
 
         $vars = var_export($vars, true);
+
+        foreach ($GLOBALS['SYMFONY_DOTENV_VARS'] as $k => $v) {
+            $k = var_export($k, true);
+            $vars = str_replace($v, "'.(\$_ENV[{$k}] ?? ".(str_starts_with($k, "'HTTP_") ? '' : "\$_SERVER[{$k}] ?? ")."'').'", $vars);
+        }
+        unset($GLOBALS['SYMFONY_DOTENV_VARS']);
+        $vars = strtr($vars, [
+            "''.(" => '(',
+            ").''.(" => ').(',
+            ").''" => ')',
+        ]);
+
         $vars = <<<EOF
             <?php
 
@@ -101,11 +114,7 @@ class DumpEnvCommand extends BaseCommand
         putenv('SYMFONY_DOTENV_VARS='.$_SERVER['SYMFONY_DOTENV_VARS']);
 
         try {
-            if (method_exists(Dotenv::class, 'usePutenv')) {
-                $dotenv = new Dotenv();
-            } else {
-                $dotenv = new Dotenv(false);
-            }
+            $dotenv = new Dotenv();
 
             if (!$env && file_exists($p = "$path.local")) {
                 $env = $_ENV[$envKey] = $dotenv->parse(file_get_contents($p), $p)[$envKey] ?? null;
@@ -117,31 +126,25 @@ class DumpEnvCommand extends BaseCommand
 
             $testEnvs = $runtime['test_envs'] ?? ['test'];
 
-            if (method_exists($dotenv, 'loadEnv')) {
-                $dotenv->loadEnv($path, $envKey, 'dev', $testEnvs);
-            } else {
-                // fallback code in case your Dotenv component is not 4.2 or higher (when loadEnv() was added)
-                $dotenv->load(file_exists($path) || !file_exists($p = "$path.dist") ? $path : $p);
-
-                if (!\in_array($env, $testEnvs, true) && file_exists($p = "$path.local")) {
-                    $dotenv->load($p);
-                }
-
-                if (file_exists($p = "$path.$env")) {
-                    $dotenv->load($p);
-                }
-
-                if (file_exists($p = "$path.$env.local")) {
-                    $dotenv->load($p);
-                }
-            }
+            $dotenv->loadEnv($path, $envKey, 'dev', $testEnvs);
 
             unset($_ENV['SYMFONY_DOTENV_VARS'], $_ENV['SYMFONY_DOTENV_PATH']);
             $env = $_ENV;
         } finally {
-            list($_SERVER, $_ENV) = $globalsBackup;
+            [$_SERVER, $_ENV] = $globalsBackup;
         }
 
         return $env;
     }
+}
+
+namespace Symfony\Component\Dotenv;
+
+function getenv(?string $name = null, bool $local_only = false): string|array|false
+{
+    if (null === $name) {
+        return \getenv($name, $local_only);
+    }
+
+    return $GLOBALS['SYMFONY_DOTENV_VARS'][$name] ??= md5(random_bytes(10));
 }

@@ -3,7 +3,8 @@
 declare (strict_types=1);
 namespace Rector\Naming\Naming;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
+use PhpParser\Node\Name;
 use PHPStan\Type\Generic\GenericObjectType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\StaticType;
@@ -39,8 +40,8 @@ final class PropertyNaming
      */
     private const INTERFACE = 'Interface';
     /**
-     * @var string
      * @see https://regex101.com/r/U78rUF/1
+     * @var string
      */
     private const I_PREFIX_REGEX = '#^I[A-Z]#';
     /**
@@ -98,10 +99,13 @@ final class PropertyNaming
         return new ExpectedName($originalName, $this->rectorNamingInflector->singularize($originalName));
     }
     /**
-     * @param \PHPStan\Type\ThisType|\PHPStan\Type\ObjectType|string $objectType
+     * @param \PHPStan\Type\ThisType|\PHPStan\Type\ObjectType|\PhpParser\Node\Name|string $objectType
      */
     public function fqnToVariableName($objectType): string
     {
+        if ($objectType instanceof Name) {
+            $objectType = $objectType->toString();
+        }
         if ($objectType instanceof ThisType) {
             $objectType = $objectType->getStaticObjectType();
         }

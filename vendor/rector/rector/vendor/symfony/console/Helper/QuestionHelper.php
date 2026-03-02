@@ -8,22 +8,22 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\Symfony\Component\Console\Helper;
+namespace RectorPrefix202602\Symfony\Component\Console\Helper;
 
-use RectorPrefix202511\Symfony\Component\Console\Cursor;
-use RectorPrefix202511\Symfony\Component\Console\Exception\MissingInputException;
-use RectorPrefix202511\Symfony\Component\Console\Exception\RuntimeException;
-use RectorPrefix202511\Symfony\Component\Console\Formatter\OutputFormatter;
-use RectorPrefix202511\Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use RectorPrefix202511\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202511\Symfony\Component\Console\Input\StreamableInputInterface;
-use RectorPrefix202511\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use RectorPrefix202511\Symfony\Component\Console\Output\ConsoleSectionOutput;
-use RectorPrefix202511\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202511\Symfony\Component\Console\Question\ChoiceQuestion;
-use RectorPrefix202511\Symfony\Component\Console\Question\Question;
-use RectorPrefix202511\Symfony\Component\Console\Terminal;
-use function RectorPrefix202511\Symfony\Component\String\s;
+use RectorPrefix202602\Symfony\Component\Console\Cursor;
+use RectorPrefix202602\Symfony\Component\Console\Exception\MissingInputException;
+use RectorPrefix202602\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202602\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202602\Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use RectorPrefix202602\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Input\StreamableInputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Output\ConsoleSectionOutput;
+use RectorPrefix202602\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Question\ChoiceQuestion;
+use RectorPrefix202602\Symfony\Component\Console\Question\Question;
+use RectorPrefix202602\Symfony\Component\Console\Terminal;
+use function RectorPrefix202602\Symfony\Component\String\s;
 /**
  * The QuestionHelper class provides helpers to interact with the user.
  *
@@ -264,7 +264,7 @@ class QuestionHelper extends Helper
                     if ($numMatches > 0 && -1 !== $ofs) {
                         $ret = (string) $matches[$ofs];
                         // Echo out remaining chars for current match
-                        $remainingCharacters = (string) substr($ret, \strlen(trim($this->mostRecentlyEnteredValue($fullChoice))));
+                        $remainingCharacters = (string) substr($ret, \strlen($this->mostRecentlyEnteredValue($fullChoice)));
                         $output->write($remainingCharacters);
                         $fullChoice .= $remainingCharacters;
                         $i = \false === ($encoding = mb_detect_encoding($fullChoice, null, \true)) ? \strlen($fullChoice) : mb_strlen($fullChoice, $encoding);
@@ -304,7 +304,7 @@ class QuestionHelper extends Helper
             if ($numMatches > 0 && -1 !== $ofs) {
                 $cursor->savePosition();
                 // Write highlighted text, complete the partially entered response
-                $charactersEntered = \strlen(trim($this->mostRecentlyEnteredValue($fullChoice)));
+                $charactersEntered = \strlen($this->mostRecentlyEnteredValue($fullChoice));
                 $output->write('<hl>' . OutputFormatter::escapeTrailingBackslash((string) substr($matches[$ofs], $charactersEntered)) . '</hl>');
                 $cursor->restorePosition();
             }
@@ -358,17 +358,13 @@ class QuestionHelper extends Helper
         } elseif ($this->isInteractiveInput($inputStream)) {
             throw new RuntimeException('Unable to hide the response.');
         }
-        ($nullsafeVariable1 = $inputHelper) ? $nullsafeVariable1->waitForInput() : null;
-        $value = fgets($inputStream, 4096);
+        $value = $this->doReadInput($inputStream, null, $inputHelper);
         if (4095 === \strlen($value)) {
             $errOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
             $errOutput->warning('The value was possibly truncated by your shell or terminal emulator');
         }
         // Restore the terminal so it behaves normally again
-        ($nullsafeVariable2 = $inputHelper) ? $nullsafeVariable2->finish() : null;
-        if (\false === $value) {
-            throw new MissingInputException('Aborted.');
-        }
+        ($nullsafeVariable1 = $inputHelper) ? $nullsafeVariable1->finish() : null;
         if ($trimmable) {
             $value = trim($value);
         }
@@ -421,21 +417,15 @@ class QuestionHelper extends Helper
     {
         if (!$question->isMultiline()) {
             $cp = $this->setIOCodepage();
-            $ret = fgets($inputStream, 4096);
+            $ret = $this->doReadInput($inputStream);
             return $this->resetIOCodepage($cp, $ret);
         }
         $multiLineStreamReader = $this->cloneInputStream($inputStream);
         if (null === $multiLineStreamReader) {
             return \false;
         }
-        $ret = '';
         $cp = $this->setIOCodepage();
-        while (\false !== $char = fgetc($multiLineStreamReader)) {
-            if ("\x04" === $char || \PHP_EOL === "{$ret}{$char}") {
-                break;
-            }
-            $ret .= $char;
-        }
+        $ret = $this->doReadInput($multiLineStreamReader, "\x04");
         if (stream_get_meta_data($inputStream)['seekable']) {
             fseek($inputStream, ftell($multiLineStreamReader));
         }
@@ -493,5 +483,29 @@ class QuestionHelper extends Helper
             fseek($cloneStream, $offset);
         }
         return $cloneStream;
+    }
+    /**
+     * @param resource $inputStream
+     */
+    private function doReadInput($inputStream, ?string $exitChar = null, ?TerminalInputHelper $helper = null): string
+    {
+        $ret = '';
+        $helper ??= new TerminalInputHelper($inputStream, \false);
+        while (!feof($inputStream)) {
+            $helper->waitForInput();
+            $char = fread($inputStream, 1);
+            // as opposed to fgets(), fread() returns an empty string when the stream content is empty, not false.
+            if (\false === $char || '' === $ret && '' === $char) {
+                throw new MissingInputException('Aborted.');
+            }
+            if (\PHP_EOL === "{$ret}{$char}" || $exitChar === $char) {
+                break;
+            }
+            $ret .= $char;
+            if (null === $exitChar && "\n" === $char) {
+                break;
+            }
+        }
+        return $ret;
     }
 }

@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\Reflection;
 
 use PhpParser\Node;
+use PhpParser\Node\Attribute;
 use PhpParser\Node\Expr\CallLike;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
@@ -16,7 +17,6 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Function_;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\FunctionReflection;
@@ -79,11 +79,8 @@ final class ReflectionResolver
         $className = (string) $this->nodeNameResolver->getName($classLike);
         return $this->reflectionProvider->getClass($className);
     }
-    public function resolveClassReflection(?Node $node): ?ClassReflection
+    public function resolveClassReflection(Node $node): ?ClassReflection
     {
-        if (!$node instanceof Node) {
-            return null;
-        }
         $scope = $node->getAttribute(AttributeKey::SCOPE);
         if (!$scope instanceof Scope) {
             return null;
@@ -198,6 +195,9 @@ final class ReflectionResolver
         // todo: support NullsafeMethodCall
         return null;
     }
+    /**
+     * @api used in rector-laravel
+     */
     public function resolveMethodReflectionFromClassMethod(ClassMethod $classMethod, Scope $scope): ?MethodReflection
     {
         $classReflection = $scope->getClassReflection();
@@ -208,18 +208,6 @@ final class ReflectionResolver
         $methodName = $this->nodeNameResolver->getName($classMethod);
         return $this->resolveMethodReflection($className, $methodName, $scope);
     }
-    public function resolveFunctionReflectionFromFunction(Function_ $function): ?FunctionReflection
-    {
-        $name = $this->nodeNameResolver->getName($function);
-        if ($name === null) {
-            return null;
-        }
-        $functionName = new Name($name);
-        if ($this->reflectionProvider->hasFunction($functionName, null)) {
-            return $this->reflectionProvider->getFunction($functionName, null);
-        }
-        return null;
-    }
     public function resolveMethodReflectionFromNew(New_ $new): ?MethodReflection
     {
         $newClassType = $this->nodeTypeResolver->getType($new->class);
@@ -228,6 +216,16 @@ final class ReflectionResolver
             return null;
         }
         $scope = $new->getAttribute(AttributeKey::SCOPE);
+        return $this->resolveMethodReflection($className, MethodName::CONSTRUCT, $scope);
+    }
+    public function resolveConstructorReflectionFromAttribute(Attribute $attribute): ?MethodReflection
+    {
+        $attributeClassType = $this->nodeTypeResolver->getType($attribute->name);
+        $className = ClassNameFromObjectTypeResolver::resolve($attributeClassType);
+        if ($className === null) {
+            return null;
+        }
+        $scope = $attribute->getAttribute(AttributeKey::SCOPE);
         return $this->resolveMethodReflection($className, MethodName::CONSTRUCT, $scope);
     }
     /**

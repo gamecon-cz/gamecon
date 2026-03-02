@@ -14,7 +14,6 @@ namespace Symfony\Bundle\MakerBundle\Test;
 use Composer\Semver\Semver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\MakerBundle\MakerInterface;
-use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
 
@@ -100,10 +99,7 @@ abstract class MakerTestCase extends TestCase
             $this->kernel->boot();
         }
 
-        // a cheap way to guess the service id
-        $serviceId ??= \sprintf('maker.maker.%s', Str::asSnakeCase((new \ReflectionClass($makerClass))->getShortName()));
-
-        return $this->kernel->getContainer()->get($serviceId);
+        return $this->kernel->getContainer()->get('maker_locator_for_tests')->get($makerClass);
     }
 
     protected function createKernel(): KernelInterface

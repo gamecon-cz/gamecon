@@ -5,7 +5,7 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202511\Nette\Utils;
+namespace RectorPrefix202602\Nette\Utils;
 
 use function explode, is_string, str_contains;
 /**
@@ -14,10 +14,10 @@ use function explode, is_string, str_contains;
  */
 final class ReflectionMethod extends \ReflectionMethod
 {
+    /** @var \ReflectionClass<object>
+     * @readonly */
     private \ReflectionClass $originalClass;
-    /**
-     * @param object|string $objectOrMethod
-     */
+    /** @param  class-string|object  $objectOrMethod */
     public function __construct($objectOrMethod, ?string $method = null)
     {
         if (is_string($objectOrMethod) && strpos($objectOrMethod, '::') !== \false) {
@@ -26,6 +26,7 @@ final class ReflectionMethod extends \ReflectionMethod
         parent::__construct($objectOrMethod, $method);
         $this->originalClass = new \ReflectionClass($objectOrMethod);
     }
+    /** @return \ReflectionClass<object> */
     public function getOriginalClass(): \ReflectionClass
     {
         return $this->originalClass;

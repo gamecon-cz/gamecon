@@ -43,6 +43,9 @@ final class GetMethodToAsTwigAttributeTransformer
      * @readonly
      */
     private VisibilityManipulator $visibilityManipulator;
+    /**
+     * @var mixed[]
+     */
     private const OPTION_TO_NAMED_ARG = ['is_safe' => 'isSafe', 'needs_environment' => 'needsEnvironment', 'needs_context' => 'needsContext', 'needs_charset' => 'needsCharset', 'is_safe_callback' => 'isSafeCallback', 'deprecation_info' => 'deprecationInfo'];
     public function __construct(LocalArrayMethodCallableMatcher $localArrayMethodCallableMatcher, ReturnEmptyArrayMethodRemover $returnEmptyArrayMethodRemover, ReflectionProvider $reflectionProvider, VisibilityManipulator $visibilityManipulator)
     {
@@ -111,6 +114,7 @@ final class GetMethodToAsTwigAttributeTransformer
                     $this->visibilityManipulator->makePublic($localMethod);
                     // remove old new function instance
                     unset($returnArray->items[$key]);
+                    $nameArg->name = new Identifier('name');
                     $hasChanged = \true;
                 }
             }
@@ -155,10 +159,8 @@ final class GetMethodToAsTwigAttributeTransformer
             if ($mappedName === null) {
                 continue;
             }
-            if ($mappedName === 'isSafeCallback') {
-                if ($item->value instanceof MethodCall && $item->value->isFirstClassCallable()) {
-                    continue;
-                }
+            if ($mappedName === 'isSafeCallback' && ($item->value instanceof MethodCall && $item->value->isFirstClassCallable())) {
+                continue;
             }
             $arg = new Arg($item->value);
             $arg->name = new Identifier($mappedName);

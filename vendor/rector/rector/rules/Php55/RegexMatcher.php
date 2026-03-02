@@ -3,20 +3,20 @@
 declare (strict_types=1);
 namespace Rector\Php55;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Scalar\String_;
 final class RegexMatcher
 {
     /**
-     * @var string
      * @see https://regex101.com/r/Ok4wuE/1
+     * @var string
      */
     private const LAST_E_REGEX = '#(\w+)?e(\w+)?$#';
     /**
-     * @var string
      * @see https://regex101.com/r/2NWVwT/1
+     * @var string
      */
     private const LETTER_SUFFIX_REGEX = '#(?<modifiers>\w+)$#';
     /**
@@ -49,7 +49,6 @@ final class RegexMatcher
                     $delimiter = $delimiter;
                     break;
             }
-            /** @var string $modifiers */
             $modifiers = $this->resolveModifiers((string) Strings::after($pattern, $delimiter, -1));
             if (strpos($modifiers, 'e') === \false) {
                 return null;
@@ -93,7 +92,7 @@ final class RegexMatcher
         if (!isset($matches['modifiers'])) {
             return null;
         }
-        if (strpos((string) $matches['modifiers'], 'e') === \false) {
+        if (strpos($matches['modifiers'], 'e') === \false) {
             return null;
         }
         // replace last "e" in the code

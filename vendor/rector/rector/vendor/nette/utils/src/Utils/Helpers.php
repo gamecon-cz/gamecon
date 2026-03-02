@@ -5,16 +5,20 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202511\Nette\Utils;
+namespace RectorPrefix202602\Nette\Utils;
 
-use RectorPrefix202511\Nette;
+use RectorPrefix202602\Nette;
 use function array_unique, ini_get, levenshtein, max, min, ob_end_clean, ob_get_clean, ob_start, preg_replace, strlen;
 use const PHP_OS_FAMILY;
+/**
+ * Miscellaneous utilities.
+ */
 class Helpers
 {
     public const IsWindows = PHP_OS_FAMILY === 'Windows';
     /**
      * Executes a callback and returns the captured output as a string.
+     * @param  callable(): void  $func
      */
     public static function capture(callable $func): string
     {
@@ -29,7 +33,7 @@ class Helpers
     }
     /**
      * Returns the last occurred PHP error or an empty string if no error occurred. Unlike error_get_last(),
-     * it is nit affected by the PHP directive html_errors and always returns text, not HTML.
+     * it is not affected by the PHP directive html_errors and always returns text, not HTML.
      */
     public static function getLastError(): string
     {
@@ -49,10 +53,10 @@ class Helpers
     }
     /**
      * Returns value clamped to the inclusive range of min and max.
+     * @return ($value is float ? float : ($min is float ? float : ($max is float ? float : int)))
      * @param int|float $value
      * @param int|float $min
      * @param int|float $max
-     * @return float|int
      */
     public static function clamp($value, $min, $max)
     {
@@ -79,6 +83,7 @@ class Helpers
     }
     /**
      * Compares two values in the same way that PHP does. Recognizes operators: >, >=, <, <=, =, ==, ===, !=, !==, <>
+     * @param  '>'|'>='|'<'|'<='|'='|'=='|'==='|'!='|'!=='|'<>'  $operator
      * @param mixed $left
      * @param mixed $right
      */
@@ -106,5 +111,13 @@ class Helpers
             default:
                 throw new Nette\InvalidArgumentException("Unknown operator '{$operator}'");
         }
+    }
+    /**
+     * Splits a class name into namespace and short class name.
+     * @return array{string, string}
+     */
+    public static function splitClassName(string $name): array
+    {
+        return ($pos = strrpos($name, '\\')) === \false ? ['', $name] : [(string) substr($name, 0, $pos), (string) substr($name, $pos + 1)];
     }
 }

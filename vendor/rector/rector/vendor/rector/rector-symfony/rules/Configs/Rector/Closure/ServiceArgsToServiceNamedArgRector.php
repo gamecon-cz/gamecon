@@ -10,6 +10,7 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\Closure;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Scalar\String_;
 use PHPStan\Reflection\ParametersAcceptorSelector;
@@ -18,6 +19,7 @@ use PHPStan\Type\ObjectType;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\SymfonyClass;
+use Rector\Symfony\Enum\SymfonyFunctionName;
 use Rector\Symfony\NodeAnalyzer\SymfonyPhpClosureDetector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -162,7 +164,7 @@ CODE_SAMPLE
     /**
      * @param string[] $constructorParameterNames
      */
-    private function createMainArgMethodCall(MethodCall $methodCall, array $constructorParameterNames): ?MethodCall
+    private function createMainArgMethodCall(MethodCall $methodCall, array $constructorParameterNames): ?Expr
     {
         if ($constructorParameterNames === []) {
             return null;
@@ -179,6 +181,12 @@ CODE_SAMPLE
                 }
                 $arrayItemValue = $arrayItem->value;
                 $parameterPosition = $this->resolveParameterPosition($arrayItem, $key);
+                if ($this->isExprAutowired($arrayItemValue)) {
+                    if (!$argMethodCall instanceof Expr) {
+                        $argMethodCall = $methodCall->var;
+                    }
+                    continue;
+                }
                 $argMethodCall = $this->createArgMethodCall($constructorParameterNames[$parameterPosition], $arrayItemValue, $argMethodCall, $methodCall);
             }
         }
@@ -191,5 +199,19 @@ CODE_SAMPLE
         }
         // fallback in case of empty array item
         return $key;
+    }
+    private function isExprAutowired(Expr $expr): bool
+    {
+        if (!$expr instanceof FuncCall) {
+            return \false;
+        }
+        if (!$this->isNames($expr->name, [SymfonyFunctionName::SERVICE, SymfonyFunctionName::REF])) {
+            return \false;
+        }
+        $firstArg = $expr->getArgs()[0];
+        if (!$firstArg->value instanceof String_) {
+            return \false;
+        }
+        return $this->valueResolver->isValue($firstArg->value, 'request_stack');
     }
 }

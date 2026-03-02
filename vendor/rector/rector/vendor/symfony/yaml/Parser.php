@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\Symfony\Component\Yaml;
+namespace RectorPrefix202602\Symfony\Component\Yaml;
 
-use RectorPrefix202511\Symfony\Component\Yaml\Exception\ParseException;
-use RectorPrefix202511\Symfony\Component\Yaml\Tag\TaggedValue;
+use RectorPrefix202602\Symfony\Component\Yaml\Exception\ParseException;
+use RectorPrefix202602\Symfony\Component\Yaml\Tag\TaggedValue;
 /**
  * Parser parses YAML strings to convert them to PHP arrays.
  *
@@ -164,7 +164,7 @@ class Parser
                     $this->refs[$isRef] = end($data);
                     array_pop($this->refsBeingParsed);
                 }
-            } elseif (self::preg_match('#^(?P<key>(?:![^\s]++\s++)?(?:' . Inline::REGEX_QUOTED_STRING . '|[^ \'"\[\{!].*?)) *\:(( |\t)++(?P<value>.+))?$#u', rtrim($this->currentLine), $values) && (strpos($values['key'], ' #') === \false || \in_array($values['key'][0], ['"', "'"]))) {
+            } elseif (self::preg_match('#^(?P<key>(?:![^\s]++\s++)?(?:' . Inline::REGEX_QUOTED_STRING . '|[^ \'"\[\{!].*?)) *\:(( |\t)++(?P<value>.+))?$#u', rtrim($this->currentLine), $values) && (strpos($values['key'], ' #') === \false || \in_array($values['key'][0], ['"', "'"], \true))) {
                 if ($context && 'sequence' == $context) {
                     throw new ParseException('You cannot define a mapping item when in a sequence.', $this->currentLineNb + 1, $this->currentLine, $this->filename);
                 }
@@ -641,6 +641,12 @@ class Parser
                         if (0 === $this->getCurrentLineIndentation()) {
                             $this->moveToPreviousLine();
                             break;
+                        }
+                        if ($this->isCurrentLineComment()) {
+                            break;
+                        }
+                        if ('mapping' === $context && strpos($this->currentLine, ': ') !== \false && !$this->isCurrentLineComment()) {
+                            throw new ParseException('A colon cannot be used in an unquoted mapping value.', $this->getRealCurrentLineNb() + 1, $this->currentLine, $this->filename);
                         }
                         $lines[] = trim($this->currentLine);
                     }

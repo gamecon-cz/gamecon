@@ -60,9 +60,8 @@ abstract class ObjectFactory extends Factory
         }
 
         $parameters = $this->normalizeParameters($parameters);
-        $instantiator = $this->instantiator ?? Configuration::instance()->instantiator;
         /** @var T $object */
-        $object = $instantiator($parameters, static::class());
+        $object = ($this->instantiator())($parameters, static::class());
 
         foreach (\array_merge(...$this->afterInstantiate) as $hook) {
             $hook($object, $parameters, $this);
@@ -83,6 +82,15 @@ abstract class ObjectFactory extends Factory
         $clone->instantiator = $instantiator;
 
         return $clone;
+    }
+
+    /**
+     * @internal
+     * @phpstan-return InstantiatorCallable
+     */
+    final public function instantiator(): callable
+    {
+        return $this->instantiator ?? Configuration::instance()->instantiator;
     }
 
     /**

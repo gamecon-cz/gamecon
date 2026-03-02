@@ -71,7 +71,9 @@ final class FieldMapping implements ArrayAccess
     public string|null $declaredField = null;
     public array|null $options        = null;
     public bool|null $version         = null;
-    public string|int|null $default   = null;
+
+    /** @deprecated Use options with 'default' key instead */
+    public string|int|null $default = null;
 
     /**
      * @param string $type       The type name of the mapped field. Can be one of
@@ -140,7 +142,7 @@ final class FieldMapping implements ArrayAccess
     {
         $serialized = ['type', 'fieldName', 'columnName'];
 
-        foreach (['nullable', 'notInsertable', 'notUpdatable', 'id', 'unique', 'version', 'quoted'] as $boolKey) {
+        foreach (['nullable', 'notInsertable', 'notUpdatable', 'id', 'unique', 'version', 'quoted', 'index'] as $boolKey) {
             if ($this->$boolKey) {
                 $serialized[] = $boolKey;
             }

@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\Symfony\Component\Process\Exception;
+namespace RectorPrefix202602\Symfony\Component\Process\Exception;
 
-use RectorPrefix202511\Symfony\Component\Process\Process;
+use RectorPrefix202602\Symfony\Component\Process\Process;
 /**
  * Exception for failed processes.
  *
@@ -21,6 +21,7 @@ class ProcessFailedException extends RuntimeException
     private Process $process;
     public function __construct(Process $process)
     {
+        $this->process = $process;
         if ($process->isSuccessful()) {
             throw new InvalidArgumentException('Expected a failed process, but the given process was successful.');
         }
@@ -31,10 +32,7 @@ class ProcessFailedException extends RuntimeException
         parent::__construct($error);
         $this->process = $process;
     }
-    /**
-     * @return Process
-     */
-    public function getProcess()
+    public function getProcess(): Process
     {
         return $this->process;
     }

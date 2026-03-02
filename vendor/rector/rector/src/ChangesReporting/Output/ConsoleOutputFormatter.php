@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\ChangesReporting\Output;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use Rector\ChangesReporting\Contract\Output\OutputFormatterInterface;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
@@ -11,8 +11,8 @@ use Rector\ValueObject\Configuration;
 use Rector\ValueObject\Error\SystemError;
 use Rector\ValueObject\ProcessResult;
 use Rector\ValueObject\Reporting\FileDiff;
-use RectorPrefix202511\Symfony\Component\Console\Formatter\OutputFormatter;
-use RectorPrefix202511\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202602\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202602\Symfony\Component\Console\Style\SymfonyStyle;
 final class ConsoleOutputFormatter implements OutputFormatterInterface
 {
     /**
@@ -24,8 +24,8 @@ final class ConsoleOutputFormatter implements OutputFormatterInterface
      */
     public const NAME = 'console';
     /**
-     * @var string
      * @see https://regex101.com/r/q8I66g/1
+     * @var string
      */
     private const ON_LINE_REGEX = '# on line #';
     public function __construct(SymfonyStyle $symfonyStyle)

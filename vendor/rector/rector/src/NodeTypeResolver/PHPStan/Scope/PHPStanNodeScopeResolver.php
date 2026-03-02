@@ -84,6 +84,7 @@ use PhpParser\Node\Stmt\Unset_;
 use PhpParser\Node\Stmt\While_;
 use PhpParser\Node\UnionType;
 use PhpParser\NodeTraverser;
+use PHPStan\Analyser\Fiber\FiberScope;
 use PHPStan\Analyser\MutatingScope;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\ScopeContext;
@@ -101,13 +102,13 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\TypeCombinator;
+use Rector\Contract\PhpParser\DecoratingNodeVisitorInterface;
 use Rector\NodeAnalyzer\ClassAnalyzer;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Node\AttributeKey;
-use Rector\NodeTypeResolver\PHPStan\Scope\Contract\NodeVisitor\ScopeResolverNodeVisitorInterface;
-use Rector\PhpParser\Node\CustomNode\FileWithoutNamespace;
+use Rector\PhpParser\Node\FileNode;
 use Rector\Util\Reflection\PrivatesAccessor;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 /**
  * @inspired by https://github.com/silverstripe/silverstripe-upgrader/blob/532182b23e854d02e0b27e68ebc394f436de0682/src/UpgradeRule/PHP/Visitor/PHPStanScopeVisitor.php
  * - https://github.com/silverstripe/silverstripe-upgrader/pull/57/commits/e5c7cfa166ad940d9d4ff69537d9f7608e992359#diff-5e0807bb3dc03d6a8d8b6ad049abd774
@@ -147,9 +148,9 @@ final class PHPStanNodeScopeResolver
      */
     private NodeTraverser $nodeTraverser;
     /**
-     * @param ScopeResolverNodeVisitorInterface[] $nodeVisitors
+     * @param DecoratingNodeVisitorInterface[] $decoratingNodeVisitors
      */
-    public function __construct(NodeScopeResolver $nodeScopeResolver, ReflectionProvider $reflectionProvider, iterable $nodeVisitors, \Rector\NodeTypeResolver\PHPStan\Scope\ScopeFactory $scopeFactory, PrivatesAccessor $privatesAccessor, NodeNameResolver $nodeNameResolver, ClassAnalyzer $classAnalyzer)
+    public function __construct(NodeScopeResolver $nodeScopeResolver, ReflectionProvider $reflectionProvider, iterable $decoratingNodeVisitors, \Rector\NodeTypeResolver\PHPStan\Scope\ScopeFactory $scopeFactory, PrivatesAccessor $privatesAccessor, NodeNameResolver $nodeNameResolver, ClassAnalyzer $classAnalyzer)
     {
         $this->nodeScopeResolver = $nodeScopeResolver;
         $this->reflectionProvider = $reflectionProvider;
@@ -157,7 +158,8 @@ final class PHPStanNodeScopeResolver
         $this->privatesAccessor = $privatesAccessor;
         $this->nodeNameResolver = $nodeNameResolver;
         $this->classAnalyzer = $classAnalyzer;
-        $this->nodeTraverser = new NodeTraverser(...$nodeVisitors);
+        // @todo make use of immutable, to avoid tedious traversing
+        $this->nodeTraverser = new NodeTraverser(...$decoratingNodeVisitors);
     }
     /**
      * @param Stmt[] $stmts
@@ -170,9 +172,11 @@ final class PHPStanNodeScopeResolver
          * @see vendor/phpstan/phpstan/phpstan.phar/src/Analyser/NodeScopeResolver.php:282
          */
         Assert::allIsInstanceOf($stmts, Stmt::class);
-        $this->nodeTraverser->traverse($stmts);
         $scope = $formerMutatingScope ?? $this->scopeFactory->createFromFile($filePath);
         $nodeCallback = function (Node $node, MutatingScope $mutatingScope) use (&$nodeCallback, $filePath): void {
+            if ($mutatingScope instanceof FiberScope) {
+                $mutatingScope = $mutatingScope->toMutatingScope();
+            }
             // the class reflection is resolved AFTER entering to class node
             // so we need to get it from the first after this one
             if ($node instanceof Class_ || $node instanceof Interface_ || $node instanceof Enum_) {
@@ -206,7 +210,8 @@ final class PHPStanNodeScopeResolver
             if (!$node instanceof VirtualNode) {
                 $node->setAttribute(AttributeKey::SCOPE, $mutatingScope);
             }
-            if ($node instanceof FileWithoutNamespace) {
+            // handle unwrapped stmts
+            if ($node instanceof FileNode) {
                 $this->nodeScopeResolverProcessNodes($node->stmts, $mutatingScope, $nodeCallback);
                 return;
             }
@@ -285,10 +290,6 @@ final class PHPStanNodeScopeResolver
                 $this->processCatch($node, $filePath, $mutatingScope);
                 return;
             }
-            if ($node instanceof ArrayItem) {
-                $this->processArrayItem($node, $mutatingScope);
-                return;
-            }
             if ($node instanceof NullableType) {
                 $node->type->setAttribute(AttributeKey::SCOPE, $mutatingScope);
                 return;
@@ -354,6 +355,9 @@ final class PHPStanNodeScopeResolver
             // fallback to fill by found scope
             \Rector\NodeTypeResolver\PHPStan\Scope\RectorNodeScopeResolver::processNodes($stmts, $scope);
         }
+        // use after scope filling so DecoratingNodeVisitorInterface instance can fetch the scope of target node
+        // @see https://github.com/rectorphp/rector-src/pull/7721#discussion_r2595932460
+        $this->nodeTraverser->traverse($stmts);
         return $stmts;
     }
     private function processYield(Yield_ $yield, MutatingScope $mutatingScope): void
@@ -435,17 +439,22 @@ final class PHPStanNodeScopeResolver
     private function processArray($array, MutatingScope $mutatingScope): void
     {
         foreach ($array->items as $arrayItem) {
-            if ($arrayItem instanceof ArrayItem) {
-                $this->processArrayItem($arrayItem, $mutatingScope);
+            if (!$arrayItem instanceof ArrayItem) {
+                continue;
             }
+            $this->processArrayItem($arrayItem, $mutatingScope);
         }
     }
     private function processArrayItem(ArrayItem $arrayItem, MutatingScope $mutatingScope): void
     {
+        $arrayItem->setAttribute(AttributeKey::SCOPE, $mutatingScope);
         if ($arrayItem->key instanceof Expr) {
             $arrayItem->key->setAttribute(AttributeKey::SCOPE, $mutatingScope);
         }
         $arrayItem->value->setAttribute(AttributeKey::SCOPE, $mutatingScope);
+        if ($arrayItem->value instanceof List_) {
+            $this->processArray($arrayItem->value, $mutatingScope);
+        }
     }
     /**
      * @param callable(Node $trait, MutatingScope $scope): void $nodeCallback

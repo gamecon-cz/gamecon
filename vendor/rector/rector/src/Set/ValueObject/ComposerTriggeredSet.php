@@ -3,10 +3,10 @@
 declare (strict_types=1);
 namespace Rector\Set\ValueObject;
 
-use RectorPrefix202511\Composer\Semver\Semver;
+use RectorPrefix202602\Composer\Semver\Semver;
 use Rector\Composer\ValueObject\InstalledPackage;
 use Rector\Set\Contract\SetInterface;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 /**
  * @api used by extensions
  */
@@ -29,8 +29,8 @@ final class ComposerTriggeredSet implements SetInterface
      */
     private string $setFilePath;
     /**
-     * @var string
      * @see https://regex101.com/r/ioYomu/1
+     * @var string
      */
     private const PACKAGE_REGEX = '#^[a-z0-9-]+\/([a-z0-9-_]+|\*)$#';
     public function __construct(string $groupName, string $packageName, string $version, string $setFilePath)

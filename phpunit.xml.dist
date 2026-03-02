@@ -7,6 +7,9 @@
         <env name="KERNEL_CLASS" value="App\Kernel"/>
     </php>
     <coverage includeUncoveredFiles="true"/>
+    <extensions>
+        <bootstrap class="Zenstruck\Foundry\PHPUnit\FoundryExtension"/>
+    </extensions>
     <testsuites>
         <testsuite name="all">
             <directory>./tests</directory>

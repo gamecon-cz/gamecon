@@ -3,7 +3,8 @@
 declare (strict_types=1);
 namespace Rector\BetterPhpDocParser\PhpDocParser;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
+use Override;
 use PhpParser\Node;
 use PHPStan\PhpDocParser\Ast\PhpDoc\GenericTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode;
@@ -44,13 +45,13 @@ final class BetterPhpDocParser extends PhpDocParser
      */
     private PrivatesAccessor $privatesAccessor;
     /**
-     * @var string
      * @see https://regex101.com/r/JDzr0c/1
+     * @var string
      */
     private const NEW_LINE_REGEX = "#(?<new_line>\r\n|\n)#";
     /**
-     * @var string
      * @see https://regex101.com/r/JOKSmr/5
+     * @var string
      */
     private const MULTI_NEW_LINES_REGEX = '#(?<new_line>\r\n|\n){2,}#';
     /**
@@ -89,6 +90,7 @@ final class BetterPhpDocParser extends PhpDocParser
         }
         return $phpDocNode;
     }
+    #[Override]
     public function parseTag(TokenIterator $tokenIterator): PhpDocTagNode
     {
         // replace generic nodes with DoctrineAnnotations
@@ -102,6 +104,7 @@ final class BetterPhpDocParser extends PhpDocParser
     /**
      * @param BetterTokenIterator $tokenIterator
      */
+    #[Override]
     public function parseTagValue(TokenIterator $tokenIterator, string $tag): PhpDocTagValueNode
     {
         $isPrecededByHorizontalWhitespace = $tokenIterator->isPrecededByHorizontalWhitespace();
@@ -114,7 +117,7 @@ final class BetterPhpDocParser extends PhpDocParser
         $startAndEnd = new StartAndEnd($startPosition, $endPosition);
         $phpDocTagValueNode->setAttribute(PhpDocAttributeKey::START_AND_END, $startAndEnd);
         if ($phpDocTagValueNode instanceof GenericTagValueNode) {
-            $phpDocTagValueNode->value = Strings::replace($phpDocTagValueNode->value, self::MULTI_NEW_LINES_REGEX, static fn(array $match) => $match['new_line']);
+            $phpDocTagValueNode->value = Strings::replace($phpDocTagValueNode->value, self::MULTI_NEW_LINES_REGEX, static fn(array $match): string => (string) $match['new_line']);
         }
         return $phpDocTagValueNode;
     }

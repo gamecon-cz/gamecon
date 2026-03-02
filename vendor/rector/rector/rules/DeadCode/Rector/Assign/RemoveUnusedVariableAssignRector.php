@@ -18,12 +18,16 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Function_;
 use PhpParser\NodeVisitor;
+use PHPStan\Reflection\ClassReflection;
+use PHPStan\Type\ObjectType;
 use Rector\DeadCode\SideEffect\SideEffectNodeDetector;
 use Rector\NodeAnalyzer\VariableAnalyzer;
 use Rector\NodeManipulator\StmtsManipulator;
 use Rector\Php\ReservedKeywordAnalyzer;
+use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
+use Rector\ValueObject\MethodName;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -111,6 +115,9 @@ CODE_SAMPLE
             $currentStmt = $stmts[$stmtPosition];
             /** @var Assign $assign */
             $assign = $currentStmt->expr;
+            if ($this->isObjectWithDestructMethod($assign->expr)) {
+                continue;
+            }
             if ($this->hasCallLikeInAssignExpr($assign)) {
                 // clean safely
                 $cleanAssignedExpr = $this->cleanCastedExpr($assign->expr);
@@ -126,6 +133,18 @@ CODE_SAMPLE
             return $node;
         }
         return null;
+    }
+    private function isObjectWithDestructMethod(Expr $expr): bool
+    {
+        $exprType = $this->getType($expr);
+        if (!$exprType instanceof ObjectType) {
+            return \false;
+        }
+        $classReflection = $exprType->getClassReflection();
+        if (!$classReflection instanceof ClassReflection) {
+            return \false;
+        }
+        return $classReflection->hasNativeMethod(MethodName::DESTRUCT);
     }
     private function cleanCastedExpr(Expr $expr): Expr
     {
@@ -154,6 +173,21 @@ CODE_SAMPLE
         });
     }
     /**
+     * @param string[] $refVariableNames
+     */
+    private function collectAssignRefVariableNames(Stmt $stmt, array &$refVariableNames): void
+    {
+        if (!NodeGroup::isStmtAwareNode($stmt)) {
+            return;
+        }
+        $this->traverseNodesWithCallable($stmt, function (Node $subNode) use (&$refVariableNames): Node {
+            if ($subNode instanceof AssignRef && $subNode->var instanceof Variable) {
+                $refVariableNames[] = (string) $this->getName($subNode->var);
+            }
+            return $subNode;
+        });
+    }
+    /**
      * @param array<int, Stmt> $stmts
      * @return array<int, string>
      */
@@ -163,6 +197,7 @@ CODE_SAMPLE
         $refVariableNames = [];
         foreach ($stmts as $key => $stmt) {
             if (!$stmt instanceof Expression) {
+                $this->collectAssignRefVariableNames($stmt, $refVariableNames);
                 continue;
             }
             if ($stmt->expr instanceof AssignRef && $stmt->expr->var instanceof Variable) {

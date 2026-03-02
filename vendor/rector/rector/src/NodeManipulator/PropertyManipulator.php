@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\NodeManipulator;
 
-use RectorPrefix202511\Doctrine\ORM\Mapping\Table;
+use RectorPrefix202602\Doctrine\ORM\Mapping\Table;
 use PhpParser\Node;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticPropertyFetch;
@@ -83,7 +83,20 @@ final class PropertyManipulator
     /**
      * @var string[]|class-string<Table>[]
      */
-    private const ALLOWED_NOT_READONLY_CLASS_ANNOTATIONS = ['ApiPlatform\Core\Annotation\ApiResource', 'ApiPlatform\Metadata\ApiResource', 'Doctrine\ORM\Mapping\Entity', 'Doctrine\ORM\Mapping\Table', 'Doctrine\ORM\Mapping\MappedSuperclass', 'Doctrine\ORM\Mapping\Embeddable', 'Doctrine\ODM\MongoDB\Mapping\Annotations\Document', 'Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument'];
+    private const ALLOWED_NOT_READONLY_CLASS_ANNOTATIONS = [
+        'ApiPlatform\Core\Annotation\ApiResource',
+        'ApiPlatform\Metadata\ApiResource',
+        'Doctrine\ORM\Mapping\Entity',
+        'Doctrine\ORM\Mapping\Table',
+        'Doctrine\ORM\Mapping\MappedSuperclass',
+        'Doctrine\ORM\Mapping\Embeddable',
+        // Deprecated in ODM 2.16
+        'Doctrine\ODM\MongoDB\Mapping\Annotations\Document',
+        'Doctrine\ODM\MongoDB\Mapping\Annotations\EmbeddedDocument',
+        // New in ODM 2.16
+        'Doctrine\ODM\MongoDB\Mapping\Attribute\Document',
+        'Doctrine\ODM\MongoDB\Mapping\Attribute\EmbeddedDocument',
+    ];
     public function __construct(BetterNodeFinder $betterNodeFinder, PhpDocInfoFactory $phpDocInfoFactory, PropertyFetchFinder $propertyFetchFinder, NodeNameResolver $nodeNameResolver, PhpAttributeAnalyzer $phpAttributeAnalyzer, NodeTypeResolver $nodeTypeResolver, PromotedPropertyResolver $promotedPropertyResolver, ConstructorAssignDetector $constructorAssignDetector, AstResolver $astResolver, PropertyFetchAnalyzer $propertyFetchAnalyzer, ContextAnalyzer $contextAnalyzer)
     {
         $this->betterNodeFinder = $betterNodeFinder;

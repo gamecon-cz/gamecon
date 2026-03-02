@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Php70;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use Rector\Php70\Exception\InvalidEregException;
 /**
  * @changelog https://gist.github.com/lifthrasiir/704754/7e486f43e62fd1c9d3669330c251f8ca4a59a3f8
@@ -35,8 +35,8 @@ final class EregToPcreTransformer
         ':xdigit:' => '[:xdigit:]',
     ];
     /**
-     * @var string
      * @see https://regex101.com/r/htpXFg/1
+     * @var string
      */
     private const BOUND_REGEX = '/^(?<' . self::MINIMAL_NUMBER_PART . '>\d|[1-9]\d|1\d\d|
                                 2[0-4]\d|25[0-5])

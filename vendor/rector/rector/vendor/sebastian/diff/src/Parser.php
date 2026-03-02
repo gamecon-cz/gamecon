@@ -9,8 +9,9 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\SebastianBergmann\Diff;
+namespace RectorPrefix202602\SebastianBergmann\Diff;
 
+use const PREG_UNMATCHED_AS_NULL;
 use function array_pop;
 use function assert;
 use function count;
@@ -59,13 +60,16 @@ final class Parser
         }
         return $diffs;
     }
+    /**
+     * @param string[] $lines
+     */
     private function parseFileDiff(Diff $diff, array $lines): void
     {
         $chunks = [];
         $chunk = null;
         $diffLines = [];
         foreach ($lines as $line) {
-            if (preg_match('/^@@\s+-(?P<start>\d+)(?:,\s*(?P<startrange>\d+))?\s+\+(?P<end>\d+)(?:,\s*(?P<endrange>\d+))?\s+@@/', $line, $match, \PREG_UNMATCHED_AS_NULL)) {
+            if (preg_match('/^@@\s+-(?P<start>\d+)(?:,\s*(?P<startrange>\d+))?\s+\+(?P<end>\d+)(?:,\s*(?P<endrange>\d+))?\s+@@/', $line, $match, PREG_UNMATCHED_AS_NULL)) {
                 $chunk = new Chunk((int) $match['start'], isset($match['startrange']) ? max(0, (int) $match['startrange']) : 1, (int) $match['end'], isset($match['endrange']) ? max(0, (int) $match['endrange']) : 1);
                 $chunks[] = $chunk;
                 $diffLines = [];

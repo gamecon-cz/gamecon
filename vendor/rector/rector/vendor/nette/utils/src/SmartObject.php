@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202511\Nette;
+namespace RectorPrefix202602\Nette;
 
-use RectorPrefix202511\Nette\Utils\ObjectHelpers;
+use RectorPrefix202602\Nette\Utils\ObjectHelpers;
 /**
  * Strict class for better experience.
  * - 'did you mean' hints
@@ -18,6 +18,7 @@ use RectorPrefix202511\Nette\Utils\ObjectHelpers;
 trait SmartObject
 {
     /**
+     * @param  mixed[]  $args
      * @return mixed
      * @throws MemberAccessException
      */
@@ -39,6 +40,8 @@ trait SmartObject
         ObjectHelpers::strictCall($class, $name);
     }
     /**
+     * @param  mixed[]  $args
+     * @return never
      * @throws MemberAccessException
      */
     public static function __callStatic(string $name, array $args)

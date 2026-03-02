@@ -7,7 +7,7 @@
 declare (strict_types=1);
 namespace Rector\ChangesReporting\Output;
 
-use RectorPrefix202511\Nette\Utils\Json;
+use RectorPrefix202602\Nette\Utils\Json;
 use Rector\ChangesReporting\Contract\Output\OutputFormatterInterface;
 use Rector\Util\FileHasher;
 use Rector\ValueObject\Configuration;
@@ -21,11 +21,26 @@ final class GitlabOutputFormatter implements OutputFormatterInterface
     /**
      * @var string
      */
-    public const NAME = 'gitlab';
+    private const NAME = 'gitlab';
+    /**
+     * @var string
+     */
     private const ERROR_TYPE_ISSUE = 'issue';
+    /**
+     * @var string
+     */
     private const ERROR_CATEGORY_BUG_RISK = 'Bug Risk';
+    /**
+     * @var string
+     */
     private const ERROR_CATEGORY_STYLE = 'Style';
+    /**
+     * @var string
+     */
     private const ERROR_SEVERITY_BLOCKER = 'blocker';
+    /**
+     * @var string
+     */
     private const ERROR_SEVERITY_MINOR = 'minor';
     public function __construct(Filehasher $filehasher)
     {

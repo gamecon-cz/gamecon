@@ -98,7 +98,7 @@ class OtherMethodQueryBuilderParser
 				return;
 			}
 
-			$exprType = $scope->getType($node->expr);
+			$exprType = $scope->toMutatingScope()->getType($node->expr);
 
 			TypeTraverser::map($exprType, static function (Type $type, callable $traverse) use (&$queryBuilderTypes): Type {
 				if ($type instanceof UnionType || $type instanceof IntersectionType) {

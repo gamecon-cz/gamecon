@@ -103,7 +103,7 @@ final class PhpDocInfo
         return $this->originalPhpDocNode;
     }
     /**
-     * @return mixed[]
+     * @return list<array{string, int, int}>
      */
     public function getTokens(): array
     {
@@ -232,6 +232,9 @@ final class PhpDocInfo
     public function removeByType(string $typeToRemove, ?string $name = null): bool
     {
         $hasChanged = \false;
+        if ($name === '') {
+            $name = null;
+        }
         $phpDocNodeTraverser = new PhpDocNodeTraverser();
         $phpDocNodeTraverser->traverseWithCallable($this->phpDocNode, '', static function (Node $node) use ($typeToRemove, &$hasChanged, $name): ?int {
             if ($node instanceof PhpDocTagNode && $node->value instanceof $typeToRemove) {

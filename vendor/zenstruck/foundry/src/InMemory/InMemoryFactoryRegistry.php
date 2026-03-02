@@ -51,7 +51,7 @@ final class InMemoryFactoryRegistry implements FactoryRegistryInterface
 
         return $factory // @phpstan-ignore argument.templateType
             ->afterInstantiate(
-                function(object $object) use ($factory) {
+                static function(object $object) use ($factory) {
                     Configuration::instance()->inMemoryRepositoryRegistry?->get($factory::class())->_save($object);
                 }
             );

@@ -2,6 +2,7 @@
 
 use Rector\Config\RectorConfig;
 use Gamecon\Tests\Rector\Rules\ReorderAttributeArgumentsRector;
+use Rector\Php83\Rector\ClassConst\AddTypeToConstRector;
 
 return RectorConfig::configure()
                    ->withPreparedSets(
@@ -15,4 +16,5 @@ return RectorConfig::configure()
                    ->withImportNames(importShortClasses: false, removeUnusedImports: true)
     ->withRules([
         ReorderAttributeArgumentsRector::class,
+        AddTypeToConstRector::class,
     ]);

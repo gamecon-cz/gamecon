@@ -8,9 +8,10 @@ use PhpParser\Node\Identifier;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
-use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\Type\Generic\GenericObjectType;
 use PHPStan\Type\ObjectType;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
@@ -25,7 +26,7 @@ use Rector\StaticTypeMapper\StaticTypeMapper;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
- * Narrows return type from generic object to specific class in final classes/methods.
+ * Narrows return type from generic object or parent class to specific class in final classes/methods.
  *
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\NarrowObjectReturnTypeRector\NarrowObjectReturnTypeRectorTest
  */
@@ -59,7 +60,11 @@ final class NarrowObjectReturnTypeRector extends AbstractRector
      * @readonly
      */
     private DocBlockUpdater $docBlockUpdater;
-    public function __construct(BetterNodeFinder $betterNodeFinder, ReflectionResolver $reflectionResolver, AstResolver $astResolver, StaticTypeMapper $staticTypeMapper, TypeComparator $typeComparator, PhpDocInfoFactory $phpDocInfoFactory, DocBlockUpdater $docBlockUpdater)
+    /**
+     * @readonly
+     */
+    private ReflectionProvider $reflectionProvider;
+    public function __construct(BetterNodeFinder $betterNodeFinder, ReflectionResolver $reflectionResolver, AstResolver $astResolver, StaticTypeMapper $staticTypeMapper, TypeComparator $typeComparator, PhpDocInfoFactory $phpDocInfoFactory, DocBlockUpdater $docBlockUpdater, ReflectionProvider $reflectionProvider)
     {
         $this->betterNodeFinder = $betterNodeFinder;
         $this->reflectionResolver = $reflectionResolver;
@@ -68,10 +73,11 @@ final class NarrowObjectReturnTypeRector extends AbstractRector
         $this->typeComparator = $typeComparator;
         $this->phpDocInfoFactory = $phpDocInfoFactory;
         $this->docBlockUpdater = $docBlockUpdater;
+        $this->reflectionProvider = $reflectionProvider;
     }
     public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Narrows return type from generic object to specific class in final classes/methods', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Narrows return type from generic `object` or parent class to specific class in final classes/methods', [new CodeSample(<<<'CODE_SAMPLE'
 final class TalkFactory extends AbstractFactory
 {
     protected function build(): object
@@ -132,24 +138,34 @@ CODE_SAMPLE
         if (!$classReflection->isFinalByKeyword() && !$node->isFinal()) {
             return null;
         }
-        if ($this->hasParentMethodWithNonObjectReturn($node)) {
-            return null;
-        }
-        $actualReturnClass = $this->getActualReturnClass($node);
+        $actualReturnClass = $this->getActualReturnedClass($node);
         if ($actualReturnClass === null) {
             return null;
         }
         $declaredType = $returnType->toString();
+        // already most narrow type
         if ($declaredType === $actualReturnClass) {
             return null;
         }
-        if ($this->isDeclaredTypeFinal($declaredType)) {
+        // non-existing class
+        if ($declaredType !== 'object') {
+            if (!$this->reflectionProvider->hasClass($declaredType)) {
+                return null;
+            }
+            $declaredTypeClassReflection = $this->reflectionProvider->getClass($declaredType);
+            // already last final object
+            if ($declaredTypeClassReflection->isFinalByKeyword()) {
+                return null;
+            }
+            // this rule narrows only object or class types, not interfaces
+            if (!$declaredTypeClassReflection->isClass()) {
+                return null;
+            }
+        }
+        if (!$this->isNarrowingValid($node, $declaredType, $actualReturnClass)) {
             return null;
         }
-        if ($this->isActualTypeAnonymous($actualReturnClass)) {
-            return null;
-        }
-        if (!$this->isNarrowingValid($declaredType, $actualReturnClass)) {
+        if (!$this->isNarrowingValidFromParent($node, $actualReturnClass)) {
             return null;
         }
         $node->returnType = new FullyQualified($actualReturnClass);
@@ -168,8 +184,6 @@ CODE_SAMPLE
         }
         if ($returnTagValueNode->type instanceof IdentifierTypeNode) {
             $oldType = $this->staticTypeMapper->mapPHPStanPhpDocTypeNodeToPHPStanType($returnTagValueNode->type, $classMethod);
-        } elseif ($returnTagValueNode->type instanceof GenericTypeNode) {
-            $oldType = $this->staticTypeMapper->mapPHPStanPhpDocTypeNodeToPHPStanType($returnTagValueNode->type->type, $classMethod);
         } else {
             return;
         }
@@ -179,51 +193,34 @@ CODE_SAMPLE
                 return;
             }
         }
-        if ($returnTagValueNode->type instanceof IdentifierTypeNode) {
-            $returnTagValueNode->type = new FullyQualifiedIdentifierTypeNode($actualReturnClass);
-        } else {
-            $returnTagValueNode->type->type = new FullyQualifiedIdentifierTypeNode($actualReturnClass);
-        }
+        $returnTagValueNode->type = new FullyQualifiedIdentifierTypeNode($actualReturnClass);
         $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($classMethod);
     }
-    private function isDeclaredTypeFinal(string $declaredType): bool
-    {
-        if ($declaredType === 'object') {
-            return \false;
-        }
-        $declaredObjectType = new ObjectType($declaredType);
-        $classReflection = $declaredObjectType->getClassReflection();
-        if (!$classReflection instanceof ClassReflection) {
-            return \false;
-        }
-        return $classReflection->isFinalByKeyword();
-    }
-    private function isActualTypeAnonymous(string $actualType): bool
-    {
-        $actualObjectType = new ObjectType($actualType);
-        $classReflection = $actualObjectType->getClassReflection();
-        if (!$classReflection instanceof ClassReflection) {
-            return \false;
-        }
-        return $classReflection->isAnonymous();
-    }
-    private function isNarrowingValid(string $declaredType, string $actualType): bool
+    private function isNarrowingValid(ClassMethod $classMethod, string $declaredType, string $actualType): bool
     {
         if ($declaredType === 'object') {
             return \true;
         }
         $actualObjectType = new ObjectType($actualType);
         $declaredObjectType = new ObjectType($declaredType);
-        return $declaredObjectType->isSuperTypeOf($actualObjectType)->yes();
+        if (!$declaredObjectType->isSuperTypeOf($actualObjectType)->yes()) {
+            return \false;
+        }
+        $phpDocInfo = $this->phpDocInfoFactory->createFromNode($classMethod);
+        if (!$phpDocInfo instanceof PhpDocInfo) {
+            return \true;
+        }
+        $returnType = $phpDocInfo->getReturnType();
+        return !$returnType instanceof GenericObjectType;
     }
-    private function hasParentMethodWithNonObjectReturn(ClassMethod $classMethod): bool
+    private function isNarrowingValidFromParent(ClassMethod $classMethod, string $actualReturnClass): bool
     {
         if ($classMethod->isPrivate()) {
-            return \false;
+            return \true;
         }
         $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
         if (!$classReflection instanceof ClassReflection) {
-            return \false;
+            return \true;
         }
         $ancestors = array_filter($classReflection->getAncestors(), fn(ClassReflection $ancestorClassReflection): bool => $classReflection->getName() !== $ancestorClassReflection->getName());
         $methodName = $this->getName($classMethod);
@@ -239,17 +236,17 @@ CODE_SAMPLE
                 continue;
             }
             $parentReturnType = $parentClassMethod->returnType;
-            if (!$parentReturnType instanceof Node) {
+            if (!$parentReturnType instanceof Identifier && !$parentReturnType instanceof FullyQualified) {
                 continue;
             }
-            if ($parentReturnType instanceof Identifier && $parentReturnType->name === 'object') {
-                continue;
+            $parentReturnTypeName = $parentReturnType->toString();
+            if (!$this->isNarrowingValid($parentClassMethod, $parentReturnTypeName, $actualReturnClass)) {
+                return \false;
             }
-            return \true;
         }
-        return \false;
+        return \true;
     }
-    private function getActualReturnClass(ClassMethod $classMethod): ?string
+    private function getActualReturnedClass(ClassMethod $classMethod): ?string
     {
         $returnStatements = $this->betterNodeFinder->findReturnsScoped($classMethod);
         if ($returnStatements === []) {

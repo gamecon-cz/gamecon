@@ -1,5 +1,6 @@
 <?php
 
+declare (strict_types=1);
 /*
  * This file is part of the webmozart/assert package.
  *
@@ -8,7 +9,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\Webmozart\Assert;
+namespace RectorPrefix202602\Webmozart\Assert;
 
 class InvalidArgumentException extends \InvalidArgumentException
 {

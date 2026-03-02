@@ -32,7 +32,13 @@ class MakerBundle extends AbstractBundle
     {
         $definition->rootNode()
             ->children()
-                ->scalarNode('root_namespace')->defaultValue('App')->end()
+                ->scalarNode('root_namespace')
+                    ->defaultValue('App')
+                    ->validate()
+                        ->ifString()
+                        ->then(Validator::validateClassName(...))
+                    ->end()
+                ->end()
                 ->booleanNode('generate_final_classes')->defaultTrue()->end()
                 ->booleanNode('generate_final_entities')->defaultFalse()->end()
             ->end()
@@ -41,8 +47,8 @@ class MakerBundle extends AbstractBundle
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $container->import('../config/services.xml');
-        $container->import('../config/makers.xml');
+        $container->import('../config/services.php');
+        $container->import('../config/makers.php');
 
         $rootNamespace = trim($config['root_namespace'], '\\');
 

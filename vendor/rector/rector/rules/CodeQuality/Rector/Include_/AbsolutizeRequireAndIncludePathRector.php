@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\Include_;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Expr\Include_;
@@ -24,8 +24,8 @@ final class AbsolutizeRequireAndIncludePathRector extends AbstractRector
      */
     private ValueResolver $valueResolver;
     /**
-     * @var string
      * @see https://regex101.com/r/N8oLqv/1
+     * @var string
      */
     private const WINDOWS_DRIVE_REGEX = '#^[a-zA-z]\:[\/\\\\]#';
     public function __construct(ValueResolver $valueResolver)

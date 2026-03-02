@@ -1,12 +1,12 @@
 <?php
 
-namespace RectorPrefix202511\React\EventLoop;
+namespace RectorPrefix202602\React\EventLoop;
 
 use Ev;
 use EvIo;
 use EvLoop;
-use RectorPrefix202511\React\EventLoop\Tick\FutureTickQueue;
-use RectorPrefix202511\React\EventLoop\Timer\Timer;
+use RectorPrefix202602\React\EventLoop\Tick\FutureTickQueue;
+use RectorPrefix202602\React\EventLoop\Timer\Timer;
 use SplObjectStorage;
 /**
  * An `ext-ev` based event loop.
@@ -118,12 +118,12 @@ class ExtEvLoop implements LoopInterface
         $timers = $this->timers;
         $callback = function () use ($timer, $timers, $that) {
             \call_user_func($timer->getCallback(), $timer);
-            if ($timers->contains($timer)) {
+            if ($timers->offsetExists($timer)) {
                 $that->cancelTimer($timer);
             }
         };
         $event = $this->loop->timer($timer->getInterval(), 0.0, $callback);
-        $this->timers->attach($timer, $event);
+        $this->timers->offsetSet($timer, $event);
         return $timer;
     }
     public function addPeriodicTimer($interval, $callback)
@@ -133,7 +133,7 @@ class ExtEvLoop implements LoopInterface
             \call_user_func($timer->getCallback(), $timer);
         };
         $event = $this->loop->timer($timer->getInterval(), $timer->getInterval(), $callback);
-        $this->timers->attach($timer, $event);
+        $this->timers->offsetSet($timer, $event);
         return $timer;
     }
     public function cancelTimer(TimerInterface $timer)
@@ -143,7 +143,7 @@ class ExtEvLoop implements LoopInterface
         }
         $event = $this->timers[$timer];
         $event->stop();
-        $this->timers->detach($timer);
+        $this->timers->offsetUnset($timer);
     }
     public function futureTick($listener)
     {

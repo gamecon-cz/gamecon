@@ -38,7 +38,7 @@
         "doctrine/orm": "^3.0",
         "egulias/email-validator": "^4.0",
         "endroid/qr-code": "^4.2",
-        "firebase/php-jwt": "^6.11",
+        "firebase/php-jwt": "^7.0",
         "google/apiclient": "^2.4",
         "granam/remove-diacritics": "^1.0",
         "granam/string": "^4.2",

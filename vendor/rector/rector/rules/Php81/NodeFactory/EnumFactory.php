@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Php81\NodeFactory;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\BuilderFactory;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr\Array_;
@@ -45,16 +45,16 @@ final class EnumFactory
      */
     private BetterNodeFinder $betterNodeFinder;
     /**
-     * @var string
      * @see https://stackoverflow.com/a/2560017
      * @see https://regex101.com/r/2xEQVj/1 for changing iso9001 to iso_9001
      * @see https://regex101.com/r/Ykm6ub/1 for changing XMLParser to XML_Parser
      * @see https://regex101.com/r/Zv4JhD/1 for changing needsReview to needs_Review
+     * @var string
      */
     private const PASCAL_CASE_TO_UNDERSCORE_REGEX = '/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/';
     /**
-     * @var string
      * @see https://regex101.com/r/FneU33/1
+     * @var string
      */
     private const MULTI_UNDERSCORES_REGEX = '#_{2,}#';
     public function __construct(NodeNameResolver $nodeNameResolver, PhpDocInfoFactory $phpDocInfoFactory, BuilderFactory $builderFactory, ValueResolver $valueResolver, BetterNodeFinder $betterNodeFinder)

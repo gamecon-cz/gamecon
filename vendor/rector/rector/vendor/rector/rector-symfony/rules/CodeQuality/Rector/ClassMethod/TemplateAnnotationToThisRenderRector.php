@@ -26,8 +26,8 @@ use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTagRemover;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
 use Rector\Doctrine\NodeAnalyzer\AttrinationFinder;
+use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Annotation\AnnotationAnalyzer;
@@ -199,7 +199,8 @@ CODE_SAMPLE
             if ($node instanceof Closure || $node instanceof Function_) {
                 return NodeVisitor::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
             }
-            if (!$node instanceof StmtsAwareInterface) {
+            // has stmts
+            if (!NodeGroup::isStmtAwareNode($node)) {
                 return null;
             }
             $hasChangedNode = $this->refactorStmtsAwareNode($node, $templateTagValueNodeOrAttribute, $hasThisRenderOrReturnsResponse, $classMethod);
@@ -308,9 +309,10 @@ CODE_SAMPLE
         }
     }
     /**
+     * @param StmtsAware $stmtsAware
      * @param \Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode|\PhpParser\Node\Attribute $templateTagValueNodeOrAttribute
      */
-    private function refactorStmtsAwareNode(StmtsAwareInterface $stmtsAware, $templateTagValueNodeOrAttribute, bool $hasThisRenderOrReturnsResponse, ClassMethod $classMethod): bool
+    private function refactorStmtsAwareNode(Node $stmtsAware, $templateTagValueNodeOrAttribute, bool $hasThisRenderOrReturnsResponse, ClassMethod $classMethod): bool
     {
         if ($stmtsAware->stmts === null) {
             return \false;

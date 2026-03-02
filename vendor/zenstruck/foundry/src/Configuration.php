@@ -21,6 +21,7 @@ use Zenstruck\Foundry\InMemory\CannotEnableInMemory;
 use Zenstruck\Foundry\InMemory\InMemoryRepositoryRegistry;
 use Zenstruck\Foundry\Persistence\PersistedObjectsTracker;
 use Zenstruck\Foundry\Persistence\PersistenceManager;
+use Zenstruck\Foundry\PHPUnit\FoundryExtension;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -46,8 +47,6 @@ final class Configuration
     /** @var \Closure():self|self|null */
     private static \Closure|self|null $instance = null;
 
-    private static ?int $fakerSeed = null;
-
     private bool $inMemory = false;
 
     /**
@@ -55,32 +54,22 @@ final class Configuration
      */
     public function __construct(
         public readonly FactoryRegistryInterface $factories,
-        public readonly Faker\Generator $faker,
+        public readonly FakerAdapter $fakerAdapter,
         callable $instantiator,
         public readonly StoryRegistry $stories,
         private readonly ?PersistenceManager $persistence = null,
         public readonly bool $flushOnce = false,
-        ?int $forcedFakerSeed = null,
         public readonly ?InMemoryRepositoryRegistry $inMemoryRepositoryRegistry = null,
         public readonly ?PersistedObjectsTracker $persistedObjectsTracker = null,
         private readonly bool $enableAutoRefreshWithLazyObjects = false,
         private readonly ?EventDispatcherInterface $eventDispatcher = null,
     ) {
-        if (null === self::$instance) {
-            $this->faker->seed(self::fakerSeed($forcedFakerSeed));
-        }
-
         $this->instantiator = $instantiator;
     }
 
-    public static function fakerSeed(?int $forcedFakerSeed = null): int
+    public function faker(): Faker\Generator
     {
-        return self::$fakerSeed ??= ($forcedFakerSeed ?? \random_int(0, 1000000));
-    }
-
-    public static function resetFakerSeed(): void
-    {
-        self::$fakerSeed = null;
+        return $this->fakerAdapter->faker();
     }
 
     /**
@@ -129,7 +118,9 @@ final class Configuration
             throw new FoundryNotBooted();
         }
 
-        FactoriesTraitNotUsed::throwIfComingFromKernelTestCaseWithoutFactoriesTrait();
+        if (!FoundryExtension::isEnabled()) {
+            FactoriesTraitNotUsed::throwIfComingFromKernelTestCaseWithoutFactoriesTrait();
+        }
 
         return \is_callable(self::$instance) ? (self::$instance)() : self::$instance;
     }
@@ -160,6 +151,7 @@ final class Configuration
     {
         PersistedObjectsTracker::reset();
         StoryRegistry::reset();
+        FakerAdapter::reset();
         self::$instance = null;
     }
 
@@ -191,6 +183,11 @@ final class Configuration
     public static function triggerProxyDeprecation(?string $additionalMessage = null): void
     {
         if (\PHP_VERSION_ID < 80400) {
+            return;
+        }
+
+        if (!\trait_exists(\Symfony\Component\VarExporter\LazyProxyTrait::class)) {
+            // Deprecation is not needed: PersistentProxyObjectFactory will actually throw when create() is called.
             return;
         }
 

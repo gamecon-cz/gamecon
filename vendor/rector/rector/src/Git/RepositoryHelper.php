@@ -3,13 +3,13 @@
 declare (strict_types=1);
 namespace Rector\Git;
 
-use RectorPrefix202511\Nette\Utils\Strings;
-use RectorPrefix202511\Symfony\Component\Process\Process;
+use RectorPrefix202602\Nette\Utils\Strings;
+use RectorPrefix202602\Symfony\Component\Process\Process;
 final class RepositoryHelper
 {
     /**
-     * @var string
      * @see https://regex101.com/r/etcmog/2
+     * @var string
      */
     private const GITHUB_REPOSITORY_REGEX = '#github\.com[:\/](?<repository_name>.*?)\.git#';
     public static function resolveGithubRepositoryName(string $currentDirectory): ?string

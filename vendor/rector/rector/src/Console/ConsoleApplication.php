@@ -3,18 +3,19 @@
 declare (strict_types=1);
 namespace Rector\Console;
 
-use RectorPrefix202511\Composer\XdebugHandler\XdebugHandler;
+use RectorPrefix202602\Composer\XdebugHandler\XdebugHandler;
+use Override;
 use Rector\Application\VersionResolver;
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Option;
 use Rector\Util\Reflection\PrivatesAccessor;
-use RectorPrefix202511\Symfony\Component\Console\Application;
-use RectorPrefix202511\Symfony\Component\Console\Command\Command;
-use RectorPrefix202511\Symfony\Component\Console\Input\InputDefinition;
-use RectorPrefix202511\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202511\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202511\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use RectorPrefix202602\Symfony\Component\Console\Application;
+use RectorPrefix202602\Symfony\Component\Console\Command\Command;
+use RectorPrefix202602\Symfony\Component\Console\Input\InputDefinition;
+use RectorPrefix202602\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202602\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 final class ConsoleApplication extends Application
 {
     /**
@@ -33,6 +34,7 @@ final class ConsoleApplication extends Application
         // run this command, if no command name is provided
         $this->setDefaultCommand('process');
     }
+    #[Override]
     public function doRun(InputInterface $input, OutputInterface $output): int
     {
         $this->enableXdebug($input);
@@ -59,6 +61,7 @@ final class ConsoleApplication extends Application
         }
         return parent::doRun($input, $output);
     }
+    #[Override]
     protected function getDefaultInputDefinition(): InputDefinition
     {
         $defaultInputDefinition = parent::getDefaultInputDefinition();
@@ -87,14 +90,10 @@ final class ConsoleApplication extends Application
     }
     private function addCustomOptions(InputDefinition $inputDefinition): void
     {
-        $inputDefinition->addOption(new InputOption(Option::CONFIG, 'c', InputOption::VALUE_REQUIRED, 'Path to config file', $this->getDefaultConfigPath()));
+        $inputDefinition->addOption(new InputOption(Option::CONFIG, 'c', InputOption::VALUE_REQUIRED, 'Path to config file'));
         $inputDefinition->addOption(new InputOption(Option::DEBUG, null, InputOption::VALUE_NONE, 'Enable debug verbosity'));
         $inputDefinition->addOption(new InputOption(Option::XDEBUG, null, InputOption::VALUE_NONE, 'Allow running xdebug'));
-        $inputDefinition->addOption(new InputOption(Option::CLEAR_CACHE, null, InputOption::VALUE_NONE, 'Clear cache'));
-    }
-    private function getDefaultConfigPath(): string
-    {
-        return getcwd() . '/rector.php';
+        $inputDefinition->addOption(new InputOption(Option::CLEAR_CACHE, null, InputOption::VALUE_NONE, 'Clear cache before starting the execution of the command'));
     }
     private function enableXdebug(InputInterface $input): void
     {

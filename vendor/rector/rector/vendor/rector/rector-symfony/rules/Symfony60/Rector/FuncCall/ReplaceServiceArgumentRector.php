@@ -10,11 +10,11 @@ use PhpParser\Node\Scalar\String_;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
-use Rector\Symfony\Enum\SymfonyFunction;
+use Rector\Symfony\Enum\SymfonyFunctionName;
 use Rector\Symfony\ValueObject\ReplaceServiceArgument;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Symfony\Tests\Symfony60\Rector\FuncCall\ReplaceServiceArgumentRector\ReplaceServiceArgumentRectorTest
  */
@@ -58,7 +58,7 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?FuncCall
     {
-        if (!$this->isName($node->name, SymfonyFunction::SERVICE)) {
+        if (!$this->isName($node->name, SymfonyFunctionName::SERVICE)) {
             return null;
         }
         $firstArg = $node->args[0];

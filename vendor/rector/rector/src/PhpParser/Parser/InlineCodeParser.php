@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace Rector\PhpParser\Parser;
 
-use RectorPrefix202511\Nette\Utils\FileSystem;
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\FileSystem;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Scalar\InterpolatedString;
@@ -28,40 +28,45 @@ final class InlineCodeParser
      */
     private ValueResolver $valueResolver;
     /**
-     * @var string
      * @see https://regex101.com/r/dwe4OW/1
+     * @var string
      */
     private const PRESLASHED_DOLLAR_REGEX = '#\\\\\\$#';
     /**
-     * @var string
      * @see https://regex101.com/r/tvwhWq/1
+     * @var string
      */
     private const CURLY_BRACKET_WRAPPER_REGEX = "#'{(\\\$.*?)}'#";
     /**
-     * @var string
      * @see https://regex101.com/r/TBlhoR/1
+     * @var string
      */
     private const OPEN_PHP_TAG_REGEX = '#^\<\?php\s+#';
     /**
-     * @var string
      * @see https://regex101.com/r/TUWwKw/1/
+     * @var string
      */
     private const ENDING_SEMI_COLON_REGEX = '#;(\s+)?$#';
     /**
-     * @var string
      * @see https://regex101.com/r/8fDjnR/1
+     * @var string
      */
     private const VARIABLE_IN_SINGLE_QUOTED_REGEX = '#\'(?<variable>\$.*)\'#U';
     /**
-     * @var string
      * @see https://regex101.com/r/1lzQZv/1
+     * @var string
      */
     private const BACKREFERENCE_NO_QUOTE_REGEX = '#(?<!")(?<backreference>\\\\\\d+)(?!")#';
     /**
-     * @var string
      * @see https://regex101.com/r/nSO3Eq/1
+     * @var string
      */
     private const BACKREFERENCE_NO_DOUBLE_QUOTE_START_REGEX = '#(?<!")(?<backreference>\$\d+)#';
+    /**
+     * @see https://regex101.com/r/13mVVg/1
+     * @var string
+     */
+    private const HEX_BACKREFERENCE_REGEX = '#0x(?<backreference>\$\d+)#';
     public function __construct(BetterStandardPrinter $betterStandardPrinter, \Rector\PhpParser\Parser\SimplePhpParser $simplePhpParser, ValueResolver $valueResolver)
     {
         $this->betterStandardPrinter = $betterStandardPrinter;
@@ -88,6 +93,12 @@ final class InlineCodeParser
     public function stringify(Expr $expr): string
     {
         if ($expr instanceof String_) {
+            if (strpos($expr->value, "'") === \false && strpos($expr->value, '"') === \false && StringUtils::isMatch($expr->value, self::HEX_BACKREFERENCE_REGEX)) {
+                return Strings::replace($expr->value, self::HEX_BACKREFERENCE_REGEX, static function (array $match): string {
+                    $number = ltrim((string) $match['backreference'], '\$');
+                    return 'hexdec($matches[' . $number . '])';
+                });
+            }
             if (!StringUtils::isMatch($expr->value, self::BACKREFERENCE_NO_QUOTE_REGEX)) {
                 return Strings::replace($expr->value, self::BACKREFERENCE_NO_DOUBLE_QUOTE_START_REGEX, static fn(array $match): string => '"' . $match['backreference'] . '"');
             }
@@ -140,6 +151,6 @@ final class InlineCodeParser
             $concat->right->value .= '.';
         }
         $string = $this->stringify($concat->left) . $this->stringify($concat->right);
-        return Strings::replace($string, self::VARIABLE_IN_SINGLE_QUOTED_REGEX, static fn(array $match) => $match['variable']);
+        return Strings::replace($string, self::VARIABLE_IN_SINGLE_QUOTED_REGEX, static fn(array $match): string => (string) $match['variable']);
     }
 }

@@ -1,10 +1,10 @@
 <?php
 
-namespace RectorPrefix202511\React\Socket;
+namespace RectorPrefix202602\React\Socket;
 
-use RectorPrefix202511\React\EventLoop\Loop;
-use RectorPrefix202511\React\EventLoop\LoopInterface;
-use RectorPrefix202511\React\Promise;
+use RectorPrefix202602\React\EventLoop\Loop;
+use RectorPrefix202602\React\EventLoop\LoopInterface;
+use RectorPrefix202602\React\Promise;
 use BadMethodCallException;
 use InvalidArgumentException;
 use UnexpectedValueException;
@@ -30,7 +30,7 @@ final class SecureConnector implements ConnectorInterface
     }
     public function connect($uri)
     {
-        if (!\function_exists('stream_socket_enable_crypto') && !\function_exists('RectorPrefix202511\stream_socket_enable_crypto')) {
+        if (!\function_exists('stream_socket_enable_crypto') && !\function_exists('RectorPrefix202602\stream_socket_enable_crypto')) {
             return Promise\reject(new \BadMethodCallException('Encryption not supported on your platform (HHVM < 3.8?)'));
             // @codeCoverageIgnore
         }
@@ -69,7 +69,9 @@ final class SecureConnector implements ConnectorInterface
                 // avoid garbage references by replacing all closures in call stack.
                 // what a lovely piece of code!
                 $r = new \ReflectionProperty('Exception', 'trace');
-                $r->setAccessible(\true);
+                if (\PHP_VERSION_ID < 80100) {
+                    $r->setAccessible(\true);
+                }
                 $trace = $r->getValue($e);
                 // Exception trace arguments are not available on some PHP 7.4 installs
                 // @codeCoverageIgnoreStart
@@ -87,7 +89,7 @@ final class SecureConnector implements ConnectorInterface
             }
             throw $e;
         });
-        return new \RectorPrefix202511\React\Promise\Promise(function ($resolve, $reject) use ($promise) {
+        return new \RectorPrefix202602\React\Promise\Promise(function ($resolve, $reject) use ($promise) {
             $promise->then($resolve, $reject);
         }, function ($_, $reject) use (&$promise, $uri, &$connected) {
             if ($connected) {

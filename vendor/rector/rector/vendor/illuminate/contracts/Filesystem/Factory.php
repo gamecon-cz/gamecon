@@ -1,13 +1,13 @@
 <?php
 
-namespace RectorPrefix202511\Illuminate\Contracts\Filesystem;
+namespace RectorPrefix202602\Illuminate\Contracts\Filesystem;
 
 interface Factory
 {
     /**
      * Get a filesystem implementation.
      *
-     * @param  string|null  $name
+     * @param  \UnitEnum|string|null  $name
      * @return \Illuminate\Contracts\Filesystem\Filesystem
      */
     public function disk($name = null);

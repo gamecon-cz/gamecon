@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\Symfony\Component\Process\Pipes;
+namespace RectorPrefix202602\Symfony\Component\Process\Pipes;
 
-use RectorPrefix202511\Symfony\Component\Process\Exception\RuntimeException;
-use RectorPrefix202511\Symfony\Component\Process\Process;
+use RectorPrefix202602\Symfony\Component\Process\Exception\RuntimeException;
+use RectorPrefix202602\Symfony\Component\Process\Process;
 /**
  * WindowsPipes implementation uses temporary files as handles.
  *
@@ -24,11 +24,11 @@ use RectorPrefix202511\Symfony\Component\Process\Process;
  */
 class WindowsPipes extends AbstractPipes
 {
+    private bool $haveReadSupport;
     private array $files = [];
     private array $fileHandles = [];
     private array $lockHandles = [];
     private array $readBytes = [Process::STDOUT => 0, Process::STDERR => 0];
-    private bool $haveReadSupport;
     /**
      * @param mixed $input
      */

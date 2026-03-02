@@ -20,7 +20,10 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassConst;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
+use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
+use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Configuration\Parameter\FeatureFlags;
+use Rector\DeadCode\PhpDoc\TagRemover\VarTagRemover;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\StaticTypeMapper\StaticTypeMapper;
@@ -41,10 +44,20 @@ final class AddTypeToConstRector extends AbstractRector implements MinPhpVersion
      * @readonly
      */
     private StaticTypeMapper $staticTypeMapper;
-    public function __construct(ReflectionProvider $reflectionProvider, StaticTypeMapper $staticTypeMapper)
+    /**
+     * @readonly
+     */
+    private VarTagRemover $varTagRemover;
+    /**
+     * @readonly
+     */
+    private PhpDocInfoFactory $phpDocInfoFactory;
+    public function __construct(ReflectionProvider $reflectionProvider, StaticTypeMapper $staticTypeMapper, VarTagRemover $varTagRemover, PhpDocInfoFactory $phpDocInfoFactory)
     {
         $this->reflectionProvider = $reflectionProvider;
         $this->staticTypeMapper = $staticTypeMapper;
+        $this->varTagRemover = $varTagRemover;
+        $this->phpDocInfoFactory = $phpDocInfoFactory;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -75,9 +88,6 @@ CODE_SAMPLE
         if (!is_string($className)) {
             return null;
         }
-        if ($node->isAbstract()) {
-            return null;
-        }
         $classConsts = $node->getConstants();
         if ($classConsts === []) {
             return null;
@@ -91,6 +101,9 @@ CODE_SAMPLE
                 continue;
             }
             foreach ($classConst->consts as $constNode) {
+                if ($node->isAbstract() && !$classConst->isPrivate()) {
+                    continue;
+                }
                 if ($this->isConstGuardedByParents($constNode, $parentClassReflections)) {
                     continue;
                 }
@@ -115,6 +128,10 @@ CODE_SAMPLE
             }
             $classConst->type = $valueType;
             $hasChanged = \true;
+            $classConstPhpDocInfo = $this->phpDocInfoFactory->createFromNode($classConst);
+            if ($classConstPhpDocInfo instanceof PhpDocInfo) {
+                $this->varTagRemover->removeVarTagIfUseless($classConstPhpDocInfo, $classConst);
+            }
         }
         if (!$hasChanged) {
             return null;

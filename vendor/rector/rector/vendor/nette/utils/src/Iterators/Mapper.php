@@ -5,19 +5,18 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202511\Nette\Iterators;
+namespace RectorPrefix202602\Nette\Iterators;
 
 /**
  * @deprecated use Nette\Utils\Iterables::map()
  */
 class Mapper extends \IteratorIterator
 {
-    /** @var callable */
-    private $callback;
+    private \Closure $callback;
     public function __construct(\Traversable $iterator, callable $callback)
     {
         parent::__construct($iterator);
-        $this->callback = $callback;
+        $this->callback = \Closure::fromCallable($callback);
     }
     /**
      * @return mixed
