@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Symfony\Symfony43\Rector\MethodCall;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
@@ -92,6 +92,9 @@ CODE_SAMPLE
         }
         $matches = Strings::match($tplName, '/:/', \PREG_OFFSET_CAPTURE);
         if ($matches === null) {
+            return null;
+        }
+        if (!isset($matches[0])) {
             return null;
         }
         $newValue = '@' . Strings::replace((string) substr((string) $tplName, 0, $matches[0][1]), '/Bundle/', '') . Strings::replace((string) substr((string) $tplName, $matches[0][1]), '/:/', '/');

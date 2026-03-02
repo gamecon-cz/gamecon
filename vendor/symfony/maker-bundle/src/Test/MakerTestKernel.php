@@ -18,6 +18,8 @@ use Symfony\Bundle\MakerBundle\MakerBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
@@ -75,15 +77,17 @@ class MakerTestKernel extends Kernel implements CompilerPassInterface
         return $this->testRootDir;
     }
 
-    /**
-     * @return void
-     */
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
-        // makes all makers public to help the tests
+        // Add a service locator to find makers by class name
+        $makers = [];
         foreach ($container->findTaggedServiceIds(MakeCommandRegistrationPass::MAKER_TAG) as $id => $tags) {
-            $defn = $container->getDefinition($id);
-            $defn->setPublic(true);
+            $makers[$container->getDefinition($id)->getClass()] = new Reference($id);
         }
+
+        $container->register('maker_locator_for_tests', ServiceLocator::class)
+            ->setPublic(true)
+            ->addArgument($makers)
+            ->addTag('container.service_locator');
     }
 }

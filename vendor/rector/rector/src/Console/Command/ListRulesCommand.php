@@ -3,17 +3,17 @@
 declare (strict_types=1);
 namespace Rector\Console\Command;
 
-use RectorPrefix202511\Nette\Utils\Json;
+use RectorPrefix202602\Nette\Utils\Json;
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Option;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\PostRector\Contract\Rector\PostRectorInterface;
 use Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver;
-use RectorPrefix202511\Symfony\Component\Console\Command\Command;
-use RectorPrefix202511\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202511\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202511\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202511\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202602\Symfony\Component\Console\Command\Command;
+use RectorPrefix202602\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202602\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Style\SymfonyStyle;
 final class ListRulesCommand extends Command
 {
     /**
@@ -50,7 +50,7 @@ final class ListRulesCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $rectorClasses = $this->resolveRectorClasses();
-        $skippedClasses = $this->getSkippedCheckers();
+        $skippedClasses = $this->getSkippedRectorClasses();
         $outputFormat = $input->getOption(Option::OUTPUT_FORMAT);
         if ($outputFormat === 'json') {
             $data = ['rectors' => $rectorClasses, 'skipped-rectors' => $skippedClasses];
@@ -78,18 +78,18 @@ final class ListRulesCommand extends Command
         return array_unique($rectorClasses);
     }
     /**
-     * @return string[]
+     * @return array<class-string>
      */
-    private function getSkippedCheckers(): array
+    private function getSkippedRectorClasses(): array
     {
-        $skippedCheckers = [];
-        foreach ($this->skippedClassResolver->resolve() as $checkerClass => $fileList) {
+        $skippedRectorClasses = [];
+        foreach ($this->skippedClassResolver->resolve() as $rectorClass => $fileList) {
             // ignore specific skips
             if ($fileList !== null) {
                 continue;
             }
-            $skippedCheckers[] = $checkerClass;
+            $skippedRectorClasses[] = $rectorClass;
         }
-        return $skippedCheckers;
+        return $skippedRectorClasses;
     }
 }

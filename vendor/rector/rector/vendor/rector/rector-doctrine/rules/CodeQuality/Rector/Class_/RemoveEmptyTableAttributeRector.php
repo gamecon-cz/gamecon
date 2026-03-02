@@ -5,6 +5,7 @@ namespace Rector\Doctrine\CodeQuality\Rector\Class_;
 
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
+use Rector\Doctrine\Enum\MappingClass;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
@@ -20,9 +21,9 @@ final class RemoveEmptyTableAttributeRector extends AbstractRector implements Mi
         return new RuleDefinition("Remove empty Table attribute on entities because it's useless", [new CodeSample(<<<'CODE_SAMPLE'
 <?php
 
-namespace RectorPrefix202511;
+namespace RectorPrefix202602;
 
-use RectorPrefix202511\Doctrine\ORM\Mapping as ORM;
+use RectorPrefix202602\Doctrine\ORM\Mapping as ORM;
 #[ORM\Table]
 #[ORM\Entity]
 class Product
@@ -33,9 +34,9 @@ CODE_SAMPLE
 , <<<'CODE_SAMPLE'
 <?php
 
-namespace RectorPrefix202511;
+namespace RectorPrefix202602;
 
-use RectorPrefix202511\Doctrine\ORM\Mapping as ORM;
+use RectorPrefix202602\Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 class Product
 {
@@ -59,7 +60,7 @@ CODE_SAMPLE
         $hasChanged = \false;
         foreach ($node->attrGroups as $attrGroupKey => $attrGroup) {
             foreach ($attrGroup->attrs as $key => $attribute) {
-                if (!$this->isName($attribute, 'Doctrine\ORM\Mapping\Table')) {
+                if (!$this->isName($attribute, MappingClass::TABLE)) {
                     continue;
                 }
                 if ($attribute->args !== []) {

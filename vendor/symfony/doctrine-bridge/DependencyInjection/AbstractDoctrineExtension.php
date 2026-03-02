@@ -17,10 +17,14 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
+trigger_deprecation('symfony/doctrine-bridge', '7.4', 'The "%s" class is deprecated, the code is incorporated into the extension classes of Doctrine bundles.', AbstractDoctrineExtension::class);
+
 /**
  * This abstract classes groups common code that Doctrine Object Manager extensions (ORM, MongoDB, CouchDB) need.
  *
  * @author Benjamin Eberlei <kontakt@beberlei.de>
+ *
+ * @deprecated since Symfony 7.4, the code is incorporated into the extension classes of Doctrine bundles
  */
 abstract class AbstractDoctrineExtension extends Extension
 {
@@ -153,7 +157,7 @@ abstract class AbstractDoctrineExtension extends Extension
         }
 
         if (!$bundleConfig['dir']) {
-            if (\in_array($bundleConfig['type'], ['staticphp', 'attribute'])) {
+            if (\in_array($bundleConfig['type'], ['staticphp', 'attribute'], true)) {
                 $bundleConfig['dir'] = $bundleClassDir.'/'.$this->getMappingObjectDefaultName();
             } else {
                 $bundleConfig['dir'] = $bundleDir.'/'.$this->getMappingResourceConfigDirectory($bundleDir);
@@ -225,7 +229,7 @@ abstract class AbstractDoctrineExtension extends Extension
             throw new \InvalidArgumentException(\sprintf('Specified non-existing directory "%s" as Doctrine mapping source.', $mappingConfig['dir']));
         }
 
-        if (!\in_array($mappingConfig['type'], ['xml', 'yml', 'php', 'staticphp', 'attribute'])) {
+        if (!\in_array($mappingConfig['type'], ['xml', 'yml', 'php', 'staticphp', 'attribute'], true)) {
             throw new \InvalidArgumentException(\sprintf('Can only configure "xml", "yml", "php", "staticphp" or "attribute" through the DoctrineBundle. Use your own bundle to configure other metadata drivers. You can register them by adding a new driver to the "%s" service definition.', $this->getObjectManagerElementName($objectManagerName.'_metadata_driver')));
         }
     }

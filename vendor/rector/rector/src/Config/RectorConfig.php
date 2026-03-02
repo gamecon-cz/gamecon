@@ -3,13 +3,14 @@
 declare (strict_types=1);
 namespace Rector\Config;
 
-use RectorPrefix202511\Illuminate\Container\Container;
+use RectorPrefix202602\Illuminate\Container\Container;
+use Override;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\Configuration\RectorConfigBuilder;
 use Rector\Contract\DependencyInjection\RelatedConfigInterface;
-use Rector\Contract\DependencyInjection\ResetableInterface;
+use Rector\Contract\DependencyInjection\ResettableInterface;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\DependencyInjection\Laravel\ContainerMemento;
@@ -20,8 +21,8 @@ use Rector\Validation\RectorConfigValidator;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
-use RectorPrefix202511\Symfony\Component\Console\Command\Command;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use RectorPrefix202602\Symfony\Component\Console\Command\Command;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 /**
  * @api
  * @see \Rector\Tests\Config\RectorConfigTest
@@ -35,7 +36,7 @@ final class RectorConfig extends Container
     /**
      * @var string[]
      */
-    private array $autotagInterfaces = [Command::class, ResetableInterface::class];
+    private array $autotagInterfaces = [Command::class, ResettableInterface::class];
     private static ?bool $recreated = null;
     public static function configure(): RectorConfigBuilder
     {
@@ -214,6 +215,8 @@ final class RectorConfig extends Container
         SimpleParameterProvider::setParameter(Option::PHP_VERSION_FEATURES, $phpVersion);
     }
     /**
+     * @internal
+     *
      * @api only for testing. It is parsed from composer.json "require" packages by default
      * @param array<PolyfillPackage::*> $polyfillPackages
      */
@@ -323,6 +326,7 @@ final class RectorConfig extends Container
      * @param string $abstract
      * @param mixed $concrete
      */
+    #[Override]
     public function singleton($abstract, $concrete = null): void
     {
         parent::singleton($abstract, $concrete);
@@ -358,6 +362,7 @@ final class RectorConfig extends Container
         return $this->tags[RectorInterface::class] ?? [];
     }
     /**
+     * @internal used to report level overflows in configuration
      * @param LevelOverflow[] $levelOverflows
      */
     public function setOverflowLevels(array $levelOverflows): void

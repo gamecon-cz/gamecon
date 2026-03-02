@@ -13,7 +13,7 @@ class JwtServiceTest extends TestCase
 {
     private string $testCacheDir;
     private JwtService $jwtService;
-    private const TEST_SECRET = 'test-secret-key-for-jwt';
+    private const TEST_SECRET = 'test-secret-key-for-jwt-that-is-long-enough-for-hs256';
     private const TEST_USER_ID = 42;
 
     protected function setUp(): void
@@ -108,7 +108,7 @@ class JwtServiceTest extends TestCase
     {
         // Create token with different service
         $differentService = new JwtService(
-            secret: 'different-secret',
+            secret: 'different-secret-that-is-long-enough-for-hs256-algorithm',
             legacyCacheDir: $this->testCacheDir,
         );
         $token = $differentService->generateJwtToken([

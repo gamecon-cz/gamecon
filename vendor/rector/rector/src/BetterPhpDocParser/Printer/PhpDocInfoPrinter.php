@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\BetterPhpDocParser\Printer;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Comment;
 use PhpParser\Node\Stmt\InlineHTML;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
@@ -44,13 +44,13 @@ final class PhpDocInfoPrinter
      */
     private ChangedPhpDocNodeVisitor $changedPhpDocNodeVisitor;
     /**
-     * @var string
      * @see https://regex101.com/r/Ab0Vey/1
+     * @var string
      */
     private const CLOSING_DOCBLOCK_REGEX = '#\*\/(\s+)?$#';
     /**
-     * @var string
      * @see https://regex101.com/r/5fJyws/1
+     * @var string
      */
     private const CALLABLE_REGEX = '#callable(\s+)\(#';
     /**
@@ -62,8 +62,8 @@ final class PhpDocInfoPrinter
      */
     private const NEWLINE_WITH_ASTERISK = "\n" . ' *';
     /**
-     * @var string
      * @see https://regex101.com/r/ME5Fcn/1
+     * @var string
      */
     private const NEW_LINE_WITH_SPACE_REGEX = "# (?<new_line>\r\n|\n)#";
     private int $tokenCount = 0;
@@ -165,7 +165,7 @@ final class PhpDocInfoPrinter
         if (strncmp($output, '/**', strlen('/**')) === 0 && !StringUtils::isMatch($output, self::CLOSING_DOCBLOCK_REGEX)) {
             $output .= ' */';
         }
-        return Strings::replace($output, self::NEW_LINE_WITH_SPACE_REGEX, static fn(array $match) => $match['new_line']);
+        return Strings::replace($output, self::NEW_LINE_WITH_SPACE_REGEX, static fn(array $match): string => (string) $match['new_line']);
     }
     private function hasDocblockStart(string $output): bool
     {

@@ -7,6 +7,7 @@ use PhpParser\Node;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\ClassMethod;
 use Rector\BetterPhpDocParser\PhpDoc\ArrayItemNode;
 use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
 use Rector\BetterPhpDocParser\PhpDoc\StringNode;
@@ -14,6 +15,7 @@ use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTagRemover;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Doctrine\NodeAnalyzer\AttrinationFinder;
+use Rector\NodeAnalyzer\MagicClassMethodAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\FosAnnotation;
 use Rector\Symfony\Enum\SymfonyAnnotation;
@@ -47,6 +49,10 @@ final class InlineClassRoutePrefixRector extends AbstractRector
      */
     private AttrinationFinder $attrinationFinder;
     /**
+     * @readonly
+     */
+    private MagicClassMethodAnalyzer $magicClassMethodAnalyzer;
+    /**
      * @var string[]
      */
     private const FOS_REST_ANNOTATIONS = [FosAnnotation::REST_POST, FosAnnotation::REST_GET, FosAnnotation::REST_ROUTE];
@@ -54,13 +60,14 @@ final class InlineClassRoutePrefixRector extends AbstractRector
      * @var string
      */
     private const PATH = 'path';
-    public function __construct(PhpDocInfoFactory $phpDocInfoFactory, PhpDocTagRemover $phpDocTagRemover, DocBlockUpdater $docBlockUpdater, ControllerAnalyzer $controllerAnalyzer, AttrinationFinder $attrinationFinder)
+    public function __construct(PhpDocInfoFactory $phpDocInfoFactory, PhpDocTagRemover $phpDocTagRemover, DocBlockUpdater $docBlockUpdater, ControllerAnalyzer $controllerAnalyzer, AttrinationFinder $attrinationFinder, MagicClassMethodAnalyzer $magicClassMethodAnalyzer)
     {
         $this->phpDocInfoFactory = $phpDocInfoFactory;
         $this->phpDocTagRemover = $phpDocTagRemover;
         $this->docBlockUpdater = $docBlockUpdater;
         $this->controllerAnalyzer = $controllerAnalyzer;
         $this->attrinationFinder = $attrinationFinder;
+        $this->magicClassMethodAnalyzer = $magicClassMethodAnalyzer;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -127,7 +134,7 @@ CODE_SAMPLE
         // 2. inline prefix to all method routes
         $hasChanged = \false;
         foreach ($node->getMethods() as $classMethod) {
-            if (!$classMethod->isPublic() || $classMethod->isMagic()) {
+            if ($this->shouldSkipMethod($classMethod)) {
                 continue;
             }
             // can be route method
@@ -210,13 +217,17 @@ CODE_SAMPLE
         }
         return $node;
     }
+    private function shouldSkipMethod(ClassMethod $classMethod): bool
+    {
+        return !$classMethod->isPublic() || $this->magicClassMethodAnalyzer->isUnsafeOverridden($classMethod);
+    }
     private function shouldSkipClass(Class_ $class): bool
     {
         if (!$this->controllerAnalyzer->isController($class)) {
             return \true;
         }
         foreach ($class->getMethods() as $classMethod) {
-            if (!$classMethod->isPublic() || $classMethod->isMagic()) {
+            if ($this->shouldSkipMethod($classMethod)) {
                 continue;
             }
             // special cases for FOS rest that should be skipped

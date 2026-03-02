@@ -13,7 +13,7 @@ use Rector\PhpAttribute\AnnotationToAttributeMapper;
 use Rector\PhpAttribute\Contract\AnnotationToAttributeMapperInterface;
 use Rector\PhpAttribute\Enum\DocTagNodeState;
 use Rector\PhpParser\Node\Value\ValueResolver;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 /**
  * @implements AnnotationToAttributeMapperInterface<mixed[]>
  */
@@ -42,7 +42,7 @@ final class ArrayAnnotationToAttributeMapper implements AnnotationToAttributeMap
     /**
      * @param mixed[] $value
      */
-    public function map($value): Expr
+    public function map($value): Array_
     {
         $arrayItems = [];
         foreach ($value as $key => $singleValue) {

@@ -1,13 +1,13 @@
 <?php
 
-namespace RectorPrefix202511\Illuminate\Contracts\Notifications;
+namespace RectorPrefix202602\Illuminate\Contracts\Notifications;
 
 interface Dispatcher
 {
     /**
      * Send the given notification to the given notifiable entities.
      *
-     * @param  \Illuminate\Support\Collection|array|mixed  $notifiables
+     * @param  \Illuminate\Support\Collection|mixed  $notifiables
      * @param  mixed  $notification
      * @return void
      */
@@ -15,7 +15,7 @@ interface Dispatcher
     /**
      * Send the given notification immediately.
      *
-     * @param  \Illuminate\Support\Collection|array|mixed  $notifiables
+     * @param  \Illuminate\Support\Collection|mixed  $notifiables
      * @param  mixed  $notification
      * @param  array|null  $channels
      * @return void

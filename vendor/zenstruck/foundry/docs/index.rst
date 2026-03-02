@@ -262,7 +262,7 @@ component will be used to call the ``setTitle()`` method or directly set the pub
 
 .. note::
 
-    ``defaults()`` is called everytime a factory is instantiated (even if you don't end up
+    ``defaults()`` is called every time a factory is instantiated (even if you don't end up
     creating it). `Lazy Values`_ allows you to ensure the value is only calculated when/if it's needed.
 
 Using your Factory
@@ -607,6 +607,18 @@ You can also freeze the seed, by using the environment variable ``FOUNDRY_FAKER_
 
     Support for ``FOUNDRY_FAKER_SEED`` was added in 2.4.
 
+.. note::
+
+    By default, Foundry generates a seed for Faker and automatically resets it before each test.
+    You can disable this with the configuration ``manage_seed: false``. You can still use ``FOUNDRY_FAKER_SEED``
+    to set an explicit seed.
+
+    .. code-block:: yaml
+
+        # config/packages/zenstruck_foundry.yaml
+        zenstruck_foundry:
+            faker:
+                manage_seed: false
 
 Hooks
 ~~~~~
@@ -1033,7 +1045,7 @@ all ``ManyToOne`` and ``OneToOne`` relationships using the class of this object:
 Lazy Values
 ~~~~~~~~~~~
 
-The ``defaults()`` method is called everytime a factory is instantiated (even if you don't end up
+The ``defaults()`` method is called every time a factory is instantiated (even if you don't end up
 creating it). Sometimes, you might not want your value calculated every time. For example, if you have a value for one
 of your attributes that:
 
@@ -1629,7 +1641,7 @@ You can also load stories by group, by using the ``groups`` option:
 
 .. tip::
 
-    It is possible to call a story inside another story, by using `OtherStory::load();`. Because the stories are only
+    It is possible to call a story inside another story, by using ``OtherStory::load();``. Because the stories are only
     loaded once, it will work regardless of the order of the stories.
 
 Using in your Tests
@@ -1683,59 +1695,119 @@ Let's look at an example:
 
 .. _enable-foundry-in-your-testcase:
 
-Enable Foundry in your TestCase
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Globally Enable Foundry In PHPUnit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Add the ``Factories`` trait for tests using factories:
+Add Foundry's `PHPUnit Extension`_ in your `phpunit.xml` file:
 
-::
+.. configuration-block::
 
-    use App\Factory\PostFactory;
-    use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-    use Zenstruck\Foundry\Test\Factories;
+    .. code-block:: xml
 
-    class MyTest extends WebTestCase
-    {
-        use Factories;
+        <phpunit>
+            <extensions>
+                <bootstrap class="Zenstruck\Foundry\PHPUnit\FoundryExtension"/>
+            </extensions>
+        </phpunit>
 
-        public function test_1(): void
+.. versionadded::  2.9
+
+    The ability to globally enable Foundry with PHPUnit extension was introduced in Foundry 2.9 and requires at least
+    PHPUnit 10.
+
+.. note::
+
+    If you're still using PHPUnit 9, Foundry can be enabled by adding the trait ``Zenstruck\Foundry\Test\Factories``
+    in each test::
+
+        use App\Factory\PostFactory;
+        use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+        use Zenstruck\Foundry\Test\Factories;
+
+        class MyTest extends WebTestCase
         {
-            $post = PostFactory::createOne();
+            use Factories;
 
-            // ...
+            public function test_something(): void
+            {
+                $post = PostFactory::createOne();
+
+                // ...
+            }
         }
-    }
 
 Database Reset
 ~~~~~~~~~~~~~~
 
-This library requires that your database be reset before each test. The packaged ``ResetDatabase`` trait handles
+This library requires that your database be reset before each test. The packaged ``ResetDatabase`` attribute handles
 this for you.
 
 ::
 
     use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-    use Zenstruck\Foundry\Test\Factories;
-    use Zenstruck\Foundry\Test\ResetDatabase;
+    use Zenstruck\Foundry\Attribute\ResetDatabase;
 
+    #[ResetDatabase]
     class MyTest extends WebTestCase
     {
-        use ResetDatabase, Factories;
-
         // ...
     }
 
-Before the first test using the ``ResetDatabase`` trait, it drops (if exists) and creates the test database.
+Before the first test using the ``ResetDatabase`` attribute, it drops (if exists) and creates the test database.
 Then, by default, before each test, it resets the schema using ``doctrine:schema:drop``/``doctrine:schema:create``.
+
+.. versionadded::  2.9
+
+    ``#[ResetDatabase]`` attribute was added in Foundry 2.9 and requires at least PHPUnit 10.
+
+.. note::
+
+    If you're still using PHPUnit 9, the database can be reset by adding the trait ``Zenstruck\Foundry\Test\ResetDatabase``::
+
+        use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+        use Zenstruck\Foundry\Test\Factories;
+        use Zenstruck\Foundry\Test\ResetDatabase;
+
+        class MyTest extends WebTestCase
+        {
+            use Factories, ResetDatabase;
+
+            // ...
+        }
 
 .. tip::
 
-    Create a base TestCase for tests using factories to avoid adding the traits to every TestCase.
+    Create a base ``TestCase`` for tests using factories to avoid adding the attributes to every ``TestCase``.
 
 .. tip::
 
     If your tests :ref:`are not persisting <without-persisting>` the objects they create, the ``ResetDatabase``
-    trait is not required.
+    attribute is not required.
+
+.. _automatic-database-reset:
+
+Automatic Database Reset
+........................
+
+Instead of adding the ``#[ResetDatabase]`` attribute to every test class, you can configure Foundry to
+automatically reset the database for all tests extending ``Symfony\Bundle\FrameworkBundle\Test\KernelTestCase``.
+
+.. configuration-block::
+
+    .. code-block:: xml
+
+        <!-- phpunit.xml -->
+        <phpunit>
+            <extensions>
+                <bootstrap class="Zenstruck\Foundry\PHPUnit\FoundryExtension">
+                    <parameter name="enabled-auto-reset" value="true"/>
+                </bootstrap>
+            </extensions>
+        </phpunit>
+
+.. versionadded::  2.9
+
+    Automatic database reset for base test classes was added in Foundry 2.9 and requires at least PHPUnit 10.
 
 By default, ``ResetDatabase`` resets the default configured connection's database and default configured object manager's
 schema. To customize the connection's and object manager's to be reset (or reset multiple connections/managers), use the
@@ -1852,13 +1924,11 @@ Foundry provides a mechanism to automatically refresh inside a functional test t
 ::
 
     use App\Factory\PostFactory;
-    use Zenstruck\Foundry\Test\Factories;
-    use Zenstruck\Foundry\Test\ResetDatabase;
+    use Zenstruck\Foundry\Attribute\ResetDatabase;
 
+    #[ResetDatabase]
     class MyTest extends WebTestCase
     {
-        use Factories, ResetDatabase;
-
         public function test_with_autorefresh(): void
         {
             $post = PostFactory::createOne(['title' => 'My Title']);
@@ -1940,7 +2010,7 @@ Auto-Refresh
 
 Object proxies have the option to enable *auto refreshing* that removes the need to call ``->_refresh()`` before calling
 methods on the underlying object. When auto-refresh is enabled, most calls to proxy objects first refresh the wrapped
-object from the database. This is mainly useful with "integration" test which interacts with your database and Symfony's
+object from the database. This is mainly useful with "integration" tests that interact with your database and Symfony's
 kernel.
 
 ::
@@ -1962,9 +2032,7 @@ Without auto-refreshing enabled, the above call to ``$post->getTitle()`` would r
 
     A situation you need to be aware of when using auto-refresh is that all methods refresh the object first. If
     changing the object's state via multiple methods (or multiple force-sets), an "unsaved changes" exception will be
-    thrown:
-
-::
+    thrown::
 
         use App\Factory\PostFactory;
 
@@ -2008,7 +2076,7 @@ To overcome this, you need to first disable auto-refreshing, then re-enable afte
 Proxy objects pitfalls
 ......................
 
-Proxified objects may have some pitfalls when dealing with Doctrine's entity manager. You may encounter this error:
+Proxied objects may have some pitfalls when dealing with Doctrine's entity manager. You may encounter this error:
 
 .. code-block:: text
 
@@ -2030,7 +2098,7 @@ the "real" object, which won't be wrapped by ``Proxy`` class.
 
 .. warning::
 
-    Be aware that your object won't refresh automatically if they are not wrapped with a proxy.
+    Be aware that your objects won't refresh automatically if they are not wrapped with a proxy.
 
 Repository Decorator
 ~~~~~~~~~~~~~~~~~~~~
@@ -2107,7 +2175,7 @@ Global State
 
 If you have an initial database state you want for all tests, you can set this in the config of the bundle. Accepted
 values are: stories as service, "global" stories and invokable services. Global state is loaded before each test using
-the ``ResetDatabase`` trait. If you are using `DamaDoctrineTestBundle`_, it is only loaded once for the entire
+the ``ResetDatabase`` attribute. If you are using `DamaDoctrineTestBundle`_, it is only loaded once for the entire
 test suite.
 
 .. configuration-block::
@@ -2130,7 +2198,7 @@ test suite.
 
 .. note::
 
-    The :ref:`ResetDatabase <enable-foundry-in-your-testcase>` trait is required when using global state.
+    The :ref:`ResetDatabase <enable-foundry-in-your-testcase>` attribute is required when using global state.
 
 .. warning::
 
@@ -2141,7 +2209,7 @@ PHPUnit Data Providers
 
 It is possible to use factories in
 `PHPUnit data providers <https://docs.phpunit.de/en/11.5/writing-tests-for-phpunit.html#data-providers>`_.
-Their usage depends on whether you're using Foundry's `PHPUnit Extension`_ or not.:
+Their usage depends on whether you're using Foundry's `PHPUnit Extension`_ or not:
 
 With PHPUnit Extension
 ......................
@@ -2177,7 +2245,7 @@ you're using them in tests. Thanks to it, you can:
     {
         yield [PostFactory::createOne()];
         yield [PostWithServiceFactory::createOne()];
-        yield [PostFactory::createOne(['body' => faker()->sentence()];
+        yield [PostFactory::createOne(['body' => faker()->sentence()])];
     }
 
 .. warning::
@@ -2326,7 +2394,7 @@ This library integrates seamlessly with `DAMADoctrineTestBundle <https://github.
 wrap each test in a transaction which dramatically reduces test time. This library's test suite runs 5x faster with
 this bundle enabled.
 
-Follow its documentation to install. Foundry's ``ResetDatabase`` trait detects when using the bundle and adjusts
+Follow its documentation to install. Foundry's ``ResetDatabase`` attribute detects when using the bundle and adjusts
 accordingly. Your database is still reset before running your test suite but the schema isn't reset before each test
 (just the first).
 
@@ -2384,7 +2452,7 @@ Disable Debug Mode
 ..................
 
 In your ``.env.test`` file, you can set ``APP_DEBUG=0`` to have your tests run without debug mode. This can speed up
-your tests considerably. You will need to ensure you cache is cleared before running the test suite. The best place to
+your tests considerably. You will need to ensure your cache is cleared before running the test suite. The best place to
 do this is in your ``tests/bootstrap.php``:
 
 ::
@@ -2442,10 +2510,10 @@ Non-Kernel Tests
 ~~~~~~~~~~~~~~~~
 
 Foundry can be used in standard PHPUnit unit tests (TestCase's that just extend ``PHPUnit\Framework\TestCase`` and not
-``Symfony\Bundle\FrameworkBundle\Test\KernelTestCase``). These tests still require using the ``Factories`` trait to boot
-Foundry but will not have doctrine available. Factories created in these tests will not be persisted (calling
-``->withoutPersisting()`` is not necessary). Because the bundle is not available in these tests,
-any bundle configuration you have will not be picked up.
+``Symfony\Bundle\FrameworkBundle\Test\KernelTestCase``). These tests still require enabling Foundry with the PHPUnit extension
+(or using the ``Factories`` trait if you still use PHPUnit 9) to boot Foundry but will not have doctrine available.
+Factories created in these tests will not be persisted (calling ``->withoutPersisting()`` is not necessary). Because
+the bundle is not available in these tests, any bundle configuration you have will not be picked up.
 
 ::
 
@@ -2455,8 +2523,6 @@ any bundle configuration you have will not be picked up.
 
     class MyUnitTest extends TestCase
     {
-        use Factories;
-
         public function some_test(): void
         {
             $post = PostFactory::createOne();
@@ -2492,7 +2558,7 @@ In-memory Behavior
 ~~~~~~~~~~~~~~~~~~
 
 Foundry allows to use "in-memory" repositories in your factories. This is mainly useful for `DDD <https://en.wikipedia.org/wiki/Domain-driven_design>`_
-applications or with `hexagonal architecture <https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)>_`, where
+applications or with `hexagonal architecture <https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)>`_, where
 repositories in the domain are usually interfaces for which main implementations are Doctrine ones. You can tell Foundry to
 use the "in-memory" version of these repositories.
 
@@ -2609,6 +2675,8 @@ Foundry is shipped with an extension for PHPUnit. You can install it by modifyin
 
 This extension provides the following features:
 
+* :ref:`globally boot Foundry <enable-foundry-in-your-testcase>` (and remove the needs of `Factories` trait)
+* possibility to :ref:`automate the reset database mechanism <automatic-database-reset>`
 * support for the `#[WithStory] Attribute`_
 * ability to use ``Factory::create()`` in `PHPUnit Data Providers`_ (along with PHPUnit ^11.4)
 
@@ -2653,6 +2721,9 @@ Full Default Bundle Configuration
             # Change the default faker locale.
             locale:               null # Example: fr_FR
 
+            # Automatically manage faker seed to ensure consistent data between test runs.
+            manage_seed:          true
+
             # Customize the faker service.
             service:              null # Example: my_faker
 
@@ -2673,19 +2744,19 @@ Full Default Bundle Configuration
         orm:
             reset:
 
-                # DBAL connections to reset with ResetDatabase trait
+                # DBAL connections to reset with the reset database mechanism
                 connections:
 
                     # Default:
                     - default
 
-                # Entity Managers to reset with ResetDatabase trait
+                # Entity Managers to reset with the reset database mechanism
                 entity_managers:
 
                     # Default:
                     - default
 
-                # Reset mode to use with ResetDatabase trait
+                # Reset mode to use with the reset database mechanism
                 mode:                 schema # One of "schema"; "migrate"
                 migrations:
 
@@ -2695,7 +2766,7 @@ Full Default Bundle Configuration
         mongo:
             reset:
 
-                # Document Managers to reset with ResetDatabase trait
+                # Document Managers to reset with the reset database mechanism
                 document_managers:
 
                     # Default:

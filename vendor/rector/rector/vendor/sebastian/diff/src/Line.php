@@ -9,12 +9,21 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\SebastianBergmann\Diff;
+namespace RectorPrefix202602\SebastianBergmann\Diff;
 
 final class Line
 {
+    /**
+     * @var int
+     */
     public const ADDED = 1;
+    /**
+     * @var int
+     */
     public const REMOVED = 2;
+    /**
+     * @var int
+     */
     public const UNCHANGED = 3;
     private int $type;
     private string $content;

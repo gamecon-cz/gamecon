@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202511\Nette\Utils;
+namespace RectorPrefix202602\Nette\Utils;
 
-use RectorPrefix202511\Nette;
+use RectorPrefix202602\Nette;
 use function explode, func_get_args, ini_get, is_array, is_callable, is_object, is_string, preg_replace, restore_error_handler, set_error_handler, sprintf, str_contains, str_ends_with;
 /**
  * PHP callable tools.
@@ -17,19 +17,22 @@ final class Callback
     use Nette\StaticClass;
     /**
      * Invokes internal PHP function with own error handler.
+     * @param  callable-string  $function
+     * @param  list<mixed>  $args
+     * @param  callable(string, int): (bool|void|null)  $onError
      * @return mixed
      */
     public static function invokeSafe(string $function, array $args, callable $onError)
     {
-        $prev = set_error_handler(function ($severity, $message, $file) use ($onError, &$prev, $function): ?bool {
+        $prev = set_error_handler(function (int $severity, string $message, string $file, int $line) use ($onError, &$prev, $function): bool {
             if ($file === __FILE__) {
                 $msg = ini_get('html_errors') ? Html::htmlToText($message) : $message;
-                $msg = preg_replace("#^{$function}\\(.*?\\): #", '', $msg);
+                $msg = (string) preg_replace("#^{$function}\\(.*?\\): #", '', $msg);
                 if ($onError($msg, $severity) !== \false) {
-                    return null;
+                    return \true;
                 }
             }
-            return $prev ? $prev(...func_get_args()) : \false;
+            return $prev ? $prev(...func_get_args()) !== \false : \false;
         });
         try {
             return $function(...$args);
@@ -67,7 +70,7 @@ final class Callback
     }
     /**
      * Returns reflection for method or function used in PHP callback.
-     * @param  callable  $callable  type check is escalated to ReflectionException
+     * @param mixed $callable type check is escalated to ReflectionException
      * @throws \ReflectionException  if callback is not valid
      * @return \ReflectionMethod|\ReflectionFunction
      */
@@ -83,6 +86,7 @@ final class Callback
         } elseif (is_object($callable) && !$callable instanceof \Closure) {
             return new ReflectionMethod($callable, '__invoke');
         } else {
+            assert($callable instanceof \Closure || is_string($callable));
             return new \ReflectionFunction($callable);
         }
     }
@@ -95,7 +99,7 @@ final class Callback
     }
     /**
      * Unwraps closure created by Closure::fromCallable().
-     * @return mixed[]|callable
+     * @return callable|array{object|class-string, string}|string
      */
     public static function unwrap(\Closure $closure)
     {

@@ -18,16 +18,17 @@ use Rector\Console\ProcessConfigureDecorator;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\Reporting\DeprecatedRulesReporter;
 use Rector\Reporting\MissConfigurationReporter;
+use Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver;
 use Rector\StaticReflection\DynamicSourceLocatorDecorator;
 use Rector\Util\MemoryLimiter;
 use Rector\ValueObject\Configuration;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\ProcessResult;
-use RectorPrefix202511\Symfony\Component\Console\Application;
-use RectorPrefix202511\Symfony\Component\Console\Command\Command;
-use RectorPrefix202511\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202511\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202511\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202602\Symfony\Component\Console\Application;
+use RectorPrefix202602\Symfony\Component\Console\Command\Command;
+use RectorPrefix202602\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202602\Symfony\Component\Console\Style\SymfonyStyle;
 final class ProcessCommand extends Command
 {
     /**
@@ -78,7 +79,11 @@ final class ProcessCommand extends Command
      * @readonly
      */
     private ConfigurationRuleFilter $configurationRuleFilter;
-    public function __construct(AdditionalAutoloader $additionalAutoloader, ChangedFilesDetector $changedFilesDetector, ConfigInitializer $configInitializer, ApplicationFileProcessor $applicationFileProcessor, DynamicSourceLocatorDecorator $dynamicSourceLocatorDecorator, OutputFormatterCollector $outputFormatterCollector, SymfonyStyle $symfonyStyle, MemoryLimiter $memoryLimiter, ConfigurationFactory $configurationFactory, DeprecatedRulesReporter $deprecatedRulesReporter, MissConfigurationReporter $missConfigurationReporter, ConfigurationRuleFilter $configurationRuleFilter)
+    /**
+     * @readonly
+     */
+    private SkippedClassResolver $skippedClassResolver;
+    public function __construct(AdditionalAutoloader $additionalAutoloader, ChangedFilesDetector $changedFilesDetector, ConfigInitializer $configInitializer, ApplicationFileProcessor $applicationFileProcessor, DynamicSourceLocatorDecorator $dynamicSourceLocatorDecorator, OutputFormatterCollector $outputFormatterCollector, SymfonyStyle $symfonyStyle, MemoryLimiter $memoryLimiter, ConfigurationFactory $configurationFactory, DeprecatedRulesReporter $deprecatedRulesReporter, MissConfigurationReporter $missConfigurationReporter, ConfigurationRuleFilter $configurationRuleFilter, SkippedClassResolver $skippedClassResolver)
     {
         $this->additionalAutoloader = $additionalAutoloader;
         $this->changedFilesDetector = $changedFilesDetector;
@@ -92,6 +97,7 @@ final class ProcessCommand extends Command
         $this->deprecatedRulesReporter = $deprecatedRulesReporter;
         $this->missConfigurationReporter = $missConfigurationReporter;
         $this->configurationRuleFilter = $configurationRuleFilter;
+        $this->skippedClassResolver = $skippedClassResolver;
         parent::__construct();
     }
     protected function configure(): void
@@ -139,6 +145,10 @@ EOF
         foreach ($configuration->getLevelOverflows() as $levelOverflow) {
             $this->reportLevelOverflow($levelOverflow);
         }
+        // 0. warn about skipped rules that are deprecated
+        if ($this->skippedClassResolver->resolveDeprecatedSkippedClasses() !== []) {
+            $this->symfonyStyle->warning(sprintf('These rules are skipped, but are deprecated. Most likely you do not need to skip them anymore as not part of any set and remove them: %s* %s', "\n\n", implode(' * ', $this->skippedClassResolver->resolveDeprecatedSkippedClasses()) . "\n"));
+        }
         // 1. warn about rules registered in both withRules() and sets to avoid bloated rector.php configs
         $setAndRulesDuplicatedRegistrations = $configuration->getBothSetAndRulesDuplicatedRegistrations();
         if ($setAndRulesDuplicatedRegistrations !== []) {
@@ -176,8 +186,11 @@ EOF
         $outputFormat = $configuration->getOutputFormat();
         $outputFormatter = $this->outputFormatterCollector->getByName($outputFormat);
         $outputFormatter->report($processResult, $configuration);
+        // 4. Deprecations reporter
         $this->deprecatedRulesReporter->reportDeprecatedRules();
         $this->deprecatedRulesReporter->reportDeprecatedSkippedRules();
+        $this->deprecatedRulesReporter->reportDeprecatedNodeTypes();
+        $this->deprecatedRulesReporter->reportDeprecatedRectorUnsupportedMethods();
         $this->missConfigurationReporter->reportSkippedNeverRegisteredRules();
         return $this->resolveReturnCode($processResult, $configuration);
     }

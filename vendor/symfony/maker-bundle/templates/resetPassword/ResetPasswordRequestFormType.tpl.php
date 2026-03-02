@@ -12,9 +12,9 @@ class <?= $class_name ?> extends AbstractType
             ->add('<?= $email_field ?>', EmailType::class, [
                 'attr' => ['autocomplete' => 'email'],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Please enter your email',
-                    ]),
+                    new NotBlank(
+                        message: 'Please enter your email',
+                    ),
                 ],
             ])
         ;

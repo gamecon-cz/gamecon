@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\ChangesReporting\Output;
 
-use RectorPrefix202511\Nette\Utils\Json;
+use RectorPrefix202602\Nette\Utils\Json;
 use Rector\ChangesReporting\Contract\Output\OutputFormatterInterface;
 use Rector\Parallel\ValueObject\Bridge;
 use Rector\ValueObject\Configuration;
@@ -21,7 +21,7 @@ final class JsonOutputFormatter implements OutputFormatterInterface
     }
     public function report(ProcessResult $processResult, Configuration $configuration): void
     {
-        $errorsJson = ['totals' => ['changed_files' => count($processResult->getFileDiffs())]];
+        $errorsJson = ['totals' => ['changed_files' => $processResult->getTotalChanged()]];
         $fileDiffs = $processResult->getFileDiffs();
         ksort($fileDiffs);
         foreach ($fileDiffs as $fileDiff) {

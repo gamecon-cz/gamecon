@@ -40,9 +40,8 @@ abstract class PersistentProxyObjectFactory extends PersistentObjectFactory
      */
     final public function create(callable|array $attributes = []): object
     {
-        $configuration = Configuration::instance();
-        if ($configuration->inADataProvider() && $this->isPersisting()) {
-            return ProxyGenerator::wrapFactory($this, $attributes);
+        if (!\trait_exists(\Symfony\Component\VarExporter\LazyProxyTrait::class)) {
+            throw new \LogicException('PersistentProxyObjectFactory can no longer be used with Symfony 8. See https://github.com/zenstruck/foundry/blob/2.x/UPGRADE-2.7.md to get rid of Foundry\'s proxy mechanism, and upgrade to Symfony 8.');
         }
 
         return proxy(parent::create($attributes)); // @phpstan-ignore function.unresolvableReturnType
@@ -85,7 +84,7 @@ abstract class PersistentProxyObjectFactory extends PersistentObjectFactory
     }
 
     /**
-     * @return list<T&Proxy<T>>
+     * @return non-empty-list<T&Proxy<T>>
      */
     final public static function randomSet(int $count, array $criteria = []): array
     {
@@ -94,6 +93,7 @@ abstract class PersistentProxyObjectFactory extends PersistentObjectFactory
 
     /**
      * @return list<T&Proxy<T>>
+     * @phpstan-return ($min is positive-int ? non-empty-list<T&Proxy<T>> : list<T&Proxy<T>>)
      */
     final public static function randomRange(int $min, int $max, array $criteria = []): array
     {
@@ -102,6 +102,7 @@ abstract class PersistentProxyObjectFactory extends PersistentObjectFactory
 
     /**
      * @return list<T&Proxy<T>>
+     * @phpstan-return ($min is positive-int ? non-empty-list<T&Proxy<T>> : list<T&Proxy<T>>)
      */
     public static function randomRangeOrCreate(int $min, int $max, array $criteria = []): array
     {

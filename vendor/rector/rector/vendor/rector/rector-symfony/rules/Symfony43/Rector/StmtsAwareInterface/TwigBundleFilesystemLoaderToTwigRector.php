@@ -11,7 +11,7 @@ use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Expression;
 use PHPStan\Type\ObjectType;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
+use Rector\PhpParser\Enum\NodeGroup;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -42,10 +42,10 @@ CODE_SAMPLE
      */
     public function getNodeTypes(): array
     {
-        return [StmtsAwareInterface::class];
+        return NodeGroup::STMTS_AWARE;
     }
     /**
-     * @param StmtsAwareInterface $node
+     * @param StmtsAware $node
      */
     public function refactor(Node $node): ?Node
     {
@@ -73,7 +73,10 @@ CODE_SAMPLE
         $filesystemLoaderNew->args = [new Arg($array)];
         return $node;
     }
-    private function resolveFileSystemLoaderNew(StmtsAwareInterface $stmtsAware): ?New_
+    /**
+     * @param StmtsAware $stmtsAware
+     */
+    private function resolveFileSystemLoaderNew(Node $stmtsAware): ?New_
     {
         foreach ((array) $stmtsAware->stmts as $stmt) {
             if (!$stmt instanceof Expression) {

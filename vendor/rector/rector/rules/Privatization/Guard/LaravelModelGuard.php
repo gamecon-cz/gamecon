@@ -7,6 +7,7 @@ use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\ObjectType;
+use Rector\Enum\LaravelClassName;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 use Rector\Php80\NodeAnalyzer\PhpAttributeAnalyzer;
@@ -29,13 +30,13 @@ final class LaravelModelGuard
      */
     private NodeTypeResolver $nodeTypeResolver;
     /**
-     * @var string
      * @see https://regex101.com/r/Dx0WN5/2
+     * @var string
      */
     private const LARAVEL_MODEL_ATTRIBUTE_REGEX = '#^[gs]et.+Attribute$#';
     /**
-     * @var string
      * @see https://regex101.com/r/hxOGeN/2
+     * @var string
      */
     private const LARAVEL_MODEL_SCOPE_REGEX = '#^scope.+$#';
     public function __construct(PhpAttributeAnalyzer $phpAttributeAnalyzer, NodeNameResolver $nodeNameResolver, NodeTypeResolver $nodeTypeResolver)
@@ -46,7 +47,7 @@ final class LaravelModelGuard
     }
     public function isProtectedMethod(ClassReflection $classReflection, ClassMethod $classMethod): bool
     {
-        if (!$classReflection->is('Illuminate\Database\Eloquent\Model')) {
+        if (!$classReflection->is(LaravelClassName::MODEL)) {
             return \false;
         }
         $name = (string) $this->nodeNameResolver->getName($classMethod->name);
@@ -63,13 +64,13 @@ final class LaravelModelGuard
         if (!$classMethod->returnType instanceof Node) {
             return \false;
         }
-        return $this->nodeTypeResolver->isObjectType($classMethod->returnType, new ObjectType('Illuminate\Database\Eloquent\Casts\Attribute'));
+        return $this->nodeTypeResolver->isObjectType($classMethod->returnType, new ObjectType(LaravelClassName::CAST_ATTRIBUTE));
     }
     private function isScopeMethod(string $name, ClassMethod $classMethod): bool
     {
         if (StringUtils::isMatch($name, self::LARAVEL_MODEL_SCOPE_REGEX)) {
             return \true;
         }
-        return $this->phpAttributeAnalyzer->hasPhpAttribute($classMethod, 'Illuminate\Database\Eloquent\Attributes\Scope');
+        return $this->phpAttributeAnalyzer->hasPhpAttribute($classMethod, LaravelClassName::ATTRIBUTES_SCOPE);
     }
 }

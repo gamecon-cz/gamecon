@@ -107,7 +107,7 @@ final class MakeListener extends AbstractMaker
         $event = $input->getArgument('event');
         if (null === $this->getEventConstant($event) && null === $this->eventRegistry->getEventClassName($event)) {
             $eventList = $this->eventRegistry->getAllActiveEvents();
-            $eventFQCNList = array_filter(array_map($this->eventRegistry->getEventClassName(...), $eventList), fn ($eventFQCN) => \is_string($eventFQCN));
+            $eventFQCNList = array_filter(array_map($this->eventRegistry->getEventClassName(...), $eventList), static fn ($eventFQCN) => \is_string($eventFQCN));
             $eventIdAndFQCNList = array_unique(array_merge($eventList, $eventFQCNList));
             $suggestionList = [];
 

@@ -12,38 +12,19 @@ use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\NullsafeMethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\FunctionLike;
-use PhpParser\Node\Stmt\Block;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Declare_;
 use PhpParser\Node\Stmt\Function_;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Switch_;
 use PhpParser\Node\Stmt\TryCatch;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
-use Rector\NodeTypeResolver\Node\AttributeKey;
+use Rector\PhpParser\Enum\NodeGroup;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 final class NodeAttributeReIndexer
 {
-    public static function reIndexStmtKeyNodeAttributes(Node $node): ?Node
+    public static function reIndexNodeAttributes(Node $node): ?Node
     {
-        if (!$node instanceof StmtsAwareInterface && !$node instanceof ClassLike && !$node instanceof Declare_ && !$node instanceof Block) {
-            return null;
-        }
-        if ($node->stmts === null) {
-            return null;
-        }
-        $node->stmts = array_values($node->stmts);
-        // re-index stmt key under current node
-        foreach ($node->stmts as $key => $childStmt) {
-            $childStmt->setAttribute(AttributeKey::STMT_KEY, $key);
-        }
-        return $node;
-    }
-    public static function reIndexNodeAttributes(Node $node, bool $reIndexStmtKey = \true): ?Node
-    {
-        if ($reIndexStmtKey) {
-            self::reIndexStmtKeyNodeAttributes($node);
-        }
+        self::reIndexStmtsKeys($node);
         if ($node instanceof If_) {
             $node->elseifs = array_values($node->elseifs);
             return $node;
@@ -70,5 +51,17 @@ final class NodeAttributeReIndexer
             return $node;
         }
         return null;
+    }
+    private static function reIndexStmtsKeys(Node $node): ?Node
+    {
+        if (!NodeGroup::isStmtAwareNode($node) && !$node instanceof ClassLike) {
+            return null;
+        }
+        Assert::propertyExists($node, 'stmts');
+        if ($node->stmts === null) {
+            return null;
+        }
+        $node->stmts = array_values($node->stmts);
+        return $node;
     }
 }

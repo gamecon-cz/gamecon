@@ -138,7 +138,13 @@ final class MakerTestEnvironment
         }
 
         if (!$this->fs->exists($this->flexPath)) {
-            $this->buildFlexSkeleton();
+            try {
+                $this->buildFlexSkeleton();
+            } catch (\Exception $e) {
+                $this->fs->remove($this->flexPath);
+
+                throw $e;
+            }
         }
 
         if (!$this->fs->exists($this->path)) {
@@ -168,7 +174,7 @@ final class MakerTestEnvironment
                     ;
 
                     if (!$composerProcess->isSuccessful()) {
-                        throw new \Exception(\sprintf('Error running command: composer require %s -v. Output: "%s". Error: "%s"', implode(' ', $dependencies), $composerProcess->getOutput(), $composerProcess->getErrorOutput()));
+                        throw new \Exception(\sprintf('Error running command: composer require "%s" -v. Output: "%s". Error: "%s"', implode(' ', $dependencies), $composerProcess->getOutput(), $composerProcess->getErrorOutput()));
                     }
                 }
 
@@ -246,7 +252,7 @@ final class MakerTestEnvironment
         $flexProjectDir = \sprintf('flex_project%s', $targetVersion);
 
         MakerTestProcess::create(
-            \sprintf('composer create-project symfony/skeleton%s %s --prefer-dist --no-progress', $versionString, $flexProjectDir),
+            \sprintf('composer create-project symfony/skeleton%s %s --prefer-dist --no-progress --keep-vcs', $versionString, $flexProjectDir),
             $this->cachePath
         )->run();
 
@@ -260,7 +266,7 @@ final class MakerTestEnvironment
         }
 
         // fetch a few packages needed for testing
-        MakerTestProcess::create('composer require phpunit browser-kit symfony/css-selector --prefer-dist --no-progress --no-suggest', $this->flexPath)
+        MakerTestProcess::create('composer require phpunit:1.1.* browser-kit symfony/css-selector --prefer-dist --no-progress --no-suggest', $this->flexPath)
                         ->run();
 
         if ('\\' !== \DIRECTORY_SEPARATOR) {
@@ -275,12 +281,14 @@ final class MakerTestEnvironment
                 'filename' => '.env.test',
                 'find' => 'SYMFONY_DEPRECATIONS_HELPER=999999',
                 'replace' => 'SYMFONY_DEPRECATIONS_HELPER=max[self]=0',
+                'allow_not_found' => true, // Not present in PHPUnit 11+ recipe
             ],
             // do not explicitly set the PHPUnit version
             [
                 'filename' => 'phpunit.xml.dist',
                 'find' => '<server name="SYMFONY_PHPUNIT_VERSION" value="9.6" />',
                 'replace' => '',
+                'allow_not_found' => true, // Not present in PHPUnit 10+ recipe
             ],
         ];
         $this->processReplacements($replacements, $this->flexPath);
@@ -297,7 +305,7 @@ final class MakerTestEnvironment
     private function processReplacements(array $replacements, string $rootDir): void
     {
         foreach ($replacements as $replacement) {
-            $this->processReplacement($rootDir, $replacement['filename'], $replacement['find'], $replacement['replace']);
+            $this->processReplacement($rootDir, $replacement['filename'], $replacement['find'], $replacement['replace'], $replacement['allow_not_found'] ?? false);
         }
     }
 
@@ -343,7 +351,7 @@ final class MakerTestEnvironment
             // start the command with some input
             $inputStream->write(current($userInputs)."\n");
 
-            $inputStream->onEmpty(function () use ($inputStream, &$userInputs) {
+            $inputStream->onEmpty(static function () use ($inputStream, &$userInputs) {
                 $nextInput = next($userInputs);
                 if (false === $nextInput) {
                     $inputStream->close();

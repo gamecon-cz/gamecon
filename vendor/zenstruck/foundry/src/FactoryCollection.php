@@ -242,7 +242,7 @@ final class FactoryCollection implements \IteratorAggregate
      */
     public function applyStateMethod(string $stateMethodName, ?callable $attributes = null): static
     {
-        $attributes ??= fn(int $index) => [];
+        $attributes ??= static fn(int $index) => [];
 
         try {
             $refectionMethod = new \ReflectionMethod($this->factory, $stateMethodName);

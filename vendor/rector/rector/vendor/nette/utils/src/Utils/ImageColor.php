@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202511\Nette\Utils;
+namespace RectorPrefix202602\Nette\Utils;
 
-use RectorPrefix202511\Nette;
+use RectorPrefix202602\Nette;
 use function hexdec, ltrim, max, min, round, strlen;
 /**
  * Represent RGB color (0..255) with opacity (0..1).
@@ -48,6 +48,10 @@ class ImageColor
         $this->blue = max(0, min(255, $blue));
         $this->opacity = max(0, min(1, $opacity));
     }
+    /**
+     * Returns GD-compatible color array [R, G, B, alpha].
+     * @return array{int<0, 255>, int<0, 255>, int<0, 255>, int<0, 127>}
+     */
     public function toRGBA(): array
     {
         return [max(0, min(255, $this->red)), max(0, min(255, $this->green)), max(0, min(255, $this->blue)), max(0, min(127, (int) round(127 - $this->opacity * 127)))];

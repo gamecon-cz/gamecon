@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Symfony\Symfony28\Rector\StaticCall;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\StaticCall;
@@ -26,18 +26,18 @@ final class ParseFileRector extends AbstractRector
      */
     private BetterStandardPrinter $betterStandardPrinter;
     /**
-     * @var string
      * @changelog https://regex101.com/r/ZaY42i/1
+     * @var string
      */
     private const YAML_SUFFIX_IN_QUOTE_REGEX = '#\.(yml|yaml)(\'|\")$#';
     /**
-     * @var string
      * @changelog https://regex101.com/r/YHA05g/1
+     * @var string
      */
     private const FILE_SUFFIX_REGEX = '#File$#';
     /**
-     * @var string
      * @changelog https://regex101.com/r/JmNhZj/1
+     * @var string
      */
     private const YAML_SUFFIX_REGEX = '#\.(yml|yaml)$#';
     public function __construct(BetterStandardPrinter $betterStandardPrinter)

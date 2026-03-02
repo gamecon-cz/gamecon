@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Carbon\NodeFactory;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
@@ -14,13 +14,13 @@ use PhpParser\Node\Scalar\String_;
 final class CarbonCallFactory
 {
     /**
-     * @var string
      * @see https://regex101.com/r/LLMrFw/1
+     * @var string
      */
     private const PLUS_MINUS_COUNT_REGEX = '#(?<operator>\+|-)(\s+)?(?<count>\d+)(\s+)?(?<unit>seconds|second|sec|minutes|minute|min|hours|hour|days|day|weeks|week|months|month|years|year)#';
     /**
-     * @var string
      * @see https://regex101.com/r/IhxHTO/1
+     * @var string
      */
     private const STATIC_DATE_REGEX = '#now|yesterday|today|tomorrow#';
     /**

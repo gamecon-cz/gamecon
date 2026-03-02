@@ -4,19 +4,15 @@ declare (strict_types=1);
 namespace Rector\PHPUnit\CodeQuality\Rector\ClassMethod;
 
 use PhpParser\Node;
-use PhpParser\Node\Arg;
-use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
-use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Foreach_;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\UnionType;
+use PhpParser\NodeVisitor;
 use Rector\PHPUnit\CodeQuality\NodeAnalyser\NullableObjectAssignCollector;
+use Rector\PHPUnit\CodeQuality\NodeFactory\AssertMethodCallFactory;
+use Rector\PHPUnit\CodeQuality\TypeAnalyzer\SimpleTypeAnalyzer;
 use Rector\PHPUnit\CodeQuality\ValueObject\VariableNameToType;
 use Rector\PHPUnit\CodeQuality\ValueObject\VariableNameToTypeCollection;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
@@ -36,10 +32,15 @@ final class AddInstanceofAssertForNullableInstanceRector extends AbstractRector
      * @readonly
      */
     private NullableObjectAssignCollector $nullableObjectAssignCollector;
-    public function __construct(TestsNodeAnalyzer $testsNodeAnalyzer, NullableObjectAssignCollector $nullableObjectAssignCollector)
+    /**
+     * @readonly
+     */
+    private AssertMethodCallFactory $assertMethodCallFactory;
+    public function __construct(TestsNodeAnalyzer $testsNodeAnalyzer, NullableObjectAssignCollector $nullableObjectAssignCollector, AssertMethodCallFactory $assertMethodCallFactory)
     {
         $this->testsNodeAnalyzer = $testsNodeAnalyzer;
         $this->nullableObjectAssignCollector = $nullableObjectAssignCollector;
+        $this->assertMethodCallFactory = $assertMethodCallFactory;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -118,7 +119,7 @@ CODE_SAMPLE
                 continue;
             }
             // adding type here + popping the variable name out
-            $assertInstanceOfExpression = $this->createAssertInstanceOf($matchedNullableVariableNameToType);
+            $assertInstanceOfExpression = $this->assertMethodCallFactory->createAssertInstanceOf($matchedNullableVariableNameToType);
             array_splice($node->stmts, $key + $next, 0, [$assertInstanceOfExpression]);
             // remove variable name from nullable ones
             $hasChanged = \true;
@@ -131,26 +132,10 @@ CODE_SAMPLE
         }
         return $node;
     }
-    private function isNullableType(Type $type): bool
-    {
-        if (!$type instanceof UnionType) {
-            return \false;
-        }
-        if (!TypeCombinator::containsNull($type)) {
-            return \false;
-        }
-        return count($type->getTypes()) === 2;
-    }
-    private function createAssertInstanceOf(VariableNameToType $variableNameToType): Expression
-    {
-        $args = [new Arg(new ClassConstFetch(new FullyQualified($variableNameToType->getObjectType()), 'class')), new Arg(new Variable($variableNameToType->getVariableName()))];
-        $methodCall = new MethodCall(new Variable('this'), 'assertInstanceOf', $args);
-        return new Expression($methodCall);
-    }
     private function matchedNullableVariableNameToType(Stmt $stmt, VariableNameToTypeCollection $variableNameToTypeCollection): ?VariableNameToType
     {
         $matchedNullableVariableNameToType = null;
-        $this->traverseNodesWithCallable($stmt, function (Node $node) use ($variableNameToTypeCollection, &$matchedNullableVariableNameToType) {
+        $this->traverseNodesWithCallable($stmt, function (Node $node) use ($variableNameToTypeCollection, &$matchedNullableVariableNameToType): ?int {
             if (!$node instanceof MethodCall) {
                 return null;
             }
@@ -158,7 +143,7 @@ CODE_SAMPLE
                 return null;
             }
             $variableType = $this->getType($node->var);
-            if (!$this->isNullableType($variableType)) {
+            if (!SimpleTypeAnalyzer::isNullableType($variableType)) {
                 return null;
             }
             $variableName = $this->getName($node->var);
@@ -167,7 +152,7 @@ CODE_SAMPLE
             }
             $matchedNullableVariableNameToType = $variableNameToTypeCollection->matchByVariableName($variableName);
             // is the variable we're interested in?
-            return null;
+            return NodeVisitor::STOP_TRAVERSAL;
         });
         return $matchedNullableVariableNameToType;
     }

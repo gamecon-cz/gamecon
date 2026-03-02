@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202511\Illuminate\Contracts\Queue;
+namespace RectorPrefix202602\Illuminate\Contracts\Queue;
 
 use InvalidArgumentException;
 class EntityNotFoundException extends InvalidArgumentException
@@ -10,7 +10,6 @@ class EntityNotFoundException extends InvalidArgumentException
      *
      * @param  string  $type
      * @param  mixed  $id
-     * @return void
      */
     public function __construct($type, $id)
     {

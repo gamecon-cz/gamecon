@@ -5,10 +5,10 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202511\Nette;
+namespace RectorPrefix202602\Nette;
 
 /**
- * Static class.
+ * Prevents instantiation.
  */
 trait StaticClass
 {
@@ -17,14 +17,5 @@ trait StaticClass
      */
     private function __construct()
     {
-    }
-    /**
-     * Call to undefined static method.
-     * @throws MemberAccessException
-     * @return mixed
-     */
-    public static function __callStatic(string $name, array $args)
-    {
-        Utils\ObjectHelpers::strictStaticCall(static::class, $name);
     }
 }

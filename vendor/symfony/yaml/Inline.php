@@ -392,11 +392,33 @@ class Inline
                     // the value can be an array if a reference has been resolved to an array var
                     if (\is_string($value) && !$isQuoted && str_contains($value, ': ')) {
                         // embedded mapping?
-                        try {
-                            $pos = 0;
-                            $value = self::parseMapping('{'.$value.'}', $flags, $pos, $references);
-                        } catch (\InvalidArgumentException) {
-                            // no, it's not
+                        $j = $i;
+                        $mappingValue = $value;
+                        $mappingException = null;
+                        do {
+                            try {
+                                $pos = 0;
+                                $value = self::parseMapping('{'.$mappingValue.'}', $flags, $pos, $references);
+                                $i = $j;
+                                $mappingException = null;
+                                break;
+                            } catch (ParseException $exception) {
+                                $mappingException = $exception;
+                                if ($j >= $len) {
+                                    break;
+                                }
+
+                                $mappingValue .= $sequence[$j++];
+                                if ($j >= $len) {
+                                    break;
+                                }
+
+                                $mappingValue .= self::parseScalar($sequence, $flags, [',', ']'], $j, null === $tag, $references);
+                            }
+                        } while ($j < $len);
+
+                        if ($mappingException) {
+                            throw $mappingException;
                         }
                     }
 
@@ -833,19 +855,19 @@ class Inline
     private static function getTimestampRegex(): string
     {
         return <<<EOF
-        ~^
-        (?P<year>[0-9][0-9][0-9][0-9])
-        -(?P<month>[0-9][0-9]?)
-        -(?P<day>[0-9][0-9]?)
-        (?:(?:[Tt]|[ \t]+)
-        (?P<hour>[0-9][0-9]?)
-        :(?P<minute>[0-9][0-9])
-        :(?P<second>[0-9][0-9])
-        (?:\.(?P<fraction>[0-9]*))?
-        (?:[ \t]*(?P<tz>Z|(?P<tz_sign>[-+])(?P<tz_hour>[0-9][0-9]?)
-        (?::(?P<tz_minute>[0-9][0-9]))?))?)?
-        $~x
-EOF;
+                    ~^
+                    (?P<year>[0-9][0-9][0-9][0-9])
+                    -(?P<month>[0-9][0-9]?)
+                    -(?P<day>[0-9][0-9]?)
+                    (?:(?:[Tt]|[ \t]+)
+                    (?P<hour>[0-9][0-9]?)
+                    :(?P<minute>[0-9][0-9])
+                    :(?P<second>[0-9][0-9])
+                    (?:\.(?P<fraction>[0-9]*))?
+                    (?:[ \t]*(?P<tz>Z|(?P<tz_sign>[-+])(?P<tz_hour>[0-9][0-9]?)
+                    (?::(?P<tz_minute>[0-9][0-9]))?))?)?
+                    $~x
+            EOF;
     }
 
     /**

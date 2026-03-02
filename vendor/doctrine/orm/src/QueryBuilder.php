@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\ParameterType;
+use Doctrine\Deprecations\Deprecation;
 use Doctrine\ORM\Internal\NoUnknownNamedArguments;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Parameter;
@@ -117,6 +118,13 @@ class QueryBuilder implements Stringable
     private int $boundCounter = 0;
 
     /**
+     * The hints to set on the query.
+     *
+     * @var array<string, string|int|bool|iterable<mixed>|object>
+     */
+    private array $hints = [];
+
+    /**
      * Initializes a new <tt>QueryBuilder</tt> that uses the given <tt>EntityManager</tt>.
      *
      * @param EntityManagerInterface $em The EntityManager to use.
@@ -207,6 +215,39 @@ class QueryBuilder implements Stringable
         return $this;
     }
 
+    /** @return array<string, string|int|bool|iterable<mixed>|object> */
+    public function getHints(): array
+    {
+        return $this->hints;
+    }
+
+    /**
+     * Gets the value of a query hint. If the hint name is not recognized, FALSE is returned.
+     *
+     * @return mixed The value of the hint or FALSE, if the hint name is not recognized.
+     */
+    public function getHint(string $name): mixed
+    {
+        return $this->hints[$name] ?? false;
+    }
+
+    public function hasHint(string $name): bool
+    {
+        return isset($this->hints[$name]);
+    }
+
+    /**
+     * Adds hints for the query.
+     *
+     * @return $this
+     */
+    public function setHint(string $name, mixed $value): static
+    {
+        $this->hints[$name] = $value;
+
+        return $this;
+    }
+
     /** @phpstan-return Cache::MODE_*|null */
     public function getCacheMode(): int|null
     {
@@ -287,6 +328,10 @@ class QueryBuilder implements Stringable
             $query->setCacheRegion($this->cacheRegion);
         }
 
+        foreach ($this->hints as $name => $value) {
+            $query->setHint($name, $value);
+        }
+
         return $query;
     }
 
@@ -305,8 +350,13 @@ class QueryBuilder implements Stringable
         } else {
             // Should never happen with correct joining order. Might be
             // thoughtful to throw exception instead.
-            // @phpstan-ignore method.deprecated
-            $rootAlias = $this->getRootAlias();
+            $aliases = $this->getRootAliases();
+
+            if (! isset($aliases[0])) {
+                throw new RuntimeException('No alias was set before invoking getRootAlias().');
+            }
+
+            $rootAlias = $aliases[0];
         }
 
         $this->joinRootAliases[$alias] = $rootAlias;
@@ -541,6 +591,10 @@ class QueryBuilder implements Stringable
      */
     public function setMaxResults(int|null $maxResults): static
     {
+        if ($this->type === QueryType::Delete || $this->type === QueryType::Update) {
+            throw new RuntimeException('Setting a limit is not supported for delete or update queries.');
+        }
+
         $this->maxResults = $maxResults;
 
         return $this;
@@ -582,14 +636,25 @@ class QueryBuilder implements Stringable
             $dqlPart = reset($dqlPart);
         }
 
-        // This is introduced for backwards compatibility reasons.
-        // TODO: Remove for 3.0
         if ($dqlPartName === 'join') {
             $newDqlPart = [];
 
             foreach ($dqlPart as $k => $v) {
-                // @phpstan-ignore method.deprecated
-                $k = is_numeric($k) ? $this->getRootAlias() : $k;
+                if (is_numeric($k)) {
+                    Deprecation::trigger(
+                        'doctrine/orm',
+                        'https://github.com/doctrine/orm/pull/12051',
+                        'Using numeric keys in %s for join parts is deprecated and will not be supported in 4.0. Use an associative array with the root alias as key instead.',
+                        __METHOD__,
+                    );
+                    $aliases = $this->getRootAliases();
+
+                    if (! isset($aliases[0])) {
+                        throw new RuntimeException('No alias was set before invoking add().');
+                    }
+
+                    $k = $aliases[0];
+                }
 
                 $newDqlPart[$k] = $v;
             }

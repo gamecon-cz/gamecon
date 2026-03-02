@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\FuncCall;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
@@ -17,8 +17,8 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 final class SimplifyStrposLowerRector extends AbstractRector
 {
     /**
-     * @var string
      * @see https://regex101.com/r/Jokjt8/1
+     * @var string
      */
     private const UPPERCASE_REGEX = '#[A-Z]#';
     public function getRuleDefinition(): RuleDefinition

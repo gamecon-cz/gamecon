@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\Symfony\Component\Filesystem;
+namespace RectorPrefix202602\Symfony\Component\Filesystem;
 
-use RectorPrefix202511\Symfony\Component\Filesystem\Exception\InvalidArgumentException;
-use RectorPrefix202511\Symfony\Component\Filesystem\Exception\RuntimeException;
+use RectorPrefix202602\Symfony\Component\Filesystem\Exception\InvalidArgumentException;
+use RectorPrefix202602\Symfony\Component\Filesystem\Exception\RuntimeException;
 /**
  * Contains utility methods for handling path strings.
  *
@@ -296,41 +296,21 @@ final class Path
         $actualExtension = self::getExtension($path);
         $extension = ltrim($extension, '.');
         // No extension for paths
-        if ('/' === substr($path, -1)) {
+        if (substr_compare($path, '/', -strlen('/')) === 0) {
             return $path;
         }
         // No actual extension in path
-        if (empty($actualExtension)) {
-            return $path . ('.' === substr($path, -1) ? '' : '.') . $extension;
+        if (!$actualExtension) {
+            return $path . (substr_compare($path, '.', -strlen('.')) === 0 ? '' : '.') . $extension;
         }
         return substr($path, 0, -\strlen($actualExtension)) . $extension;
     }
+    /**
+     * Returns whether the given path is absolute.
+     */
     public static function isAbsolute(string $path): bool
     {
-        if ('' === $path) {
-            return \false;
-        }
-        // Strip scheme
-        if (\false !== ($schemeSeparatorPosition = strpos($path, '://')) && 1 !== $schemeSeparatorPosition) {
-            $path = (string) substr($path, $schemeSeparatorPosition + 3);
-        }
-        $firstCharacter = $path[0];
-        // UNIX root "/" or "\" (Windows style)
-        if ('/' === $firstCharacter || '\\' === $firstCharacter) {
-            return \true;
-        }
-        // Windows root
-        if (\strlen($path) > 1 && ctype_alpha($firstCharacter) && ':' === $path[1]) {
-            // Special case: "C:"
-            if (2 === \strlen($path)) {
-                return \true;
-            }
-            // Normal case: "C:/ or "C:\"
-            if ('/' === $path[2] || '\\' === $path[2]) {
-                return \true;
-            }
-        }
-        return \false;
+        return '' !== $path && (strspn($path, '/\\', 0, 1) || \strlen($path) > 3 && ctype_alpha($path[0]) && ':' === $path[1] && strspn($path, '/\\', 2, 1) || null !== parse_url($path, \PHP_URL_SCHEME));
     }
     public static function isRelative(string $path): bool
     {
@@ -577,7 +557,7 @@ final class Path
                 continue;
             }
             // Only add slash if previous part didn't end with '/' or '\'
-            if (!\in_array(substr($finalPath, -1), ['/', '\\'])) {
+            if (!\in_array(substr($finalPath, -1), ['/', '\\'], \true)) {
                 $finalPath .= '/';
             }
             // If first part included a scheme like 'phar://' we allow \current part to start with '/', otherwise trim

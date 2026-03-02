@@ -4,12 +4,9 @@ namespace Gamecon\Tests\Db;
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Zenstruck\Foundry\Test\Factories;
 
 abstract class AbstractTestDb extends KernelTestCase
 {
-    use Factories;
-
     private static ?DbWrapper $connection = null;
     /** @var string[] */
     protected static array  $initQueries = [];

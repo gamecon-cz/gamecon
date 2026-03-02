@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Symfony\CodeQuality\Rector\Class_;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name\FullyQualified;
@@ -46,8 +46,8 @@ final class EventListenerToEventSubscriberRector extends AbstractRector
      */
     private ClassNaming $classNaming;
     /**
-     * @var string
      * @changelog https://regex101.com/r/qiHZ4T/1
+     * @var string
      */
     private const LISTENER_MATCH_REGEX = '#^(.*?)(Listener)?$#';
     /**

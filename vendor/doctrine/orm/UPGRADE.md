@@ -27,6 +27,148 @@ At this point, we recommend upgrading to PHP 8.4 first and then directly from
 ORM 2.19 to 3.5 and up so that you can skip the lazy ghost proxy generation
 and directly start using native lazy objects.
 
+# Upgrade to 3.6
+
+## Deprecate using string expression for default values in mappings
+
+Using a string expression for default values in field mappings is deprecated.
+Use `Doctrine\DBAL\Schema\DefaultExpression` instances instead.
+
+Here is how to address this deprecation when mapping entities using PHP attributes:
+
+```diff
+ use DateTime;
++use Doctrine\DBAL\Schema\DefaultExpression\CurrentDate;
++use Doctrine\DBAL\Schema\DefaultExpression\CurrentTime;
++use Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp;
+ use Doctrine\ORM\Mapping as ORM;
+
+ #[ORM\Entity]
+ final class TimeEntity
+ {
+     #[ORM\Id]
+     #[ORM\Column]
+     public int $id;
+
+-    #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'], insertable: false, updatable: false)]
++    #[ORM\Column(options: ['default' => new CurrentTimestamp()], insertable: false, updatable: false)]
+     public DateTime $createdAt;
+
+-    #[ORM\Column(options: ['default' => 'CURRENT_TIME'], insertable: false, updatable: false)]
++    #[ORM\Column(options: ['default' => new CurrentTime()], insertable: false, updatable: false)]
+     public DateTime $createdTime;
+
+-    #[ORM\Column(options: ['default' => 'CURRENT_DATE'], insertable: false, updatable: false)]
++    #[ORM\Column(options: ['default' => new CurrentDate()], insertable: false, updatable: false)]
+     public DateTime $createdDate;
+ }
+```
+
+Here is how to do the same when mapping entities using XML:
+
+```diff
+ <?xml version="1.0" encoding="UTF-8"?>
+
+ <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                           https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+     <entity name="Doctrine\Tests\ORM\Functional\XmlTimeEntity">
+         <id name="id" type="integer" column="id">
+             <generator strategy="AUTO"/>
+         </id>
+
+         <field name="createdAt" type="datetime" insertable="false" updatable="false">
+             <options>
+-                <option name="default">CURRENT_TIMESTAMP</option>
++                <option name="default">
++                    <object class="Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp"/>
++                </option>
+             </options>
+         </field>
+
+         <field name="createdAtImmutable" type="datetime_immutable" insertable="false" updatable="false">
+             <options>
+-                <option name="default">CURRENT_TIMESTAMP</option>
++                <option name="default">
++                    <object class="Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp"/>
++                </option>
+             </options>
+         </field>
+
+         <field name="createdTime" type="time" insertable="false" updatable="false">
+             <options>
+-                <option name="default">CURRENT_TIME</option>
++                <option name="default">
++                    <object class="Doctrine\DBAL\Schema\DefaultExpression\CurrentTime"/>
++                </option>
+             </options>
+         </field>
+         <field name="createdDate" type="date" insertable="false" updatable="false">
+             <options>
+-                <option name="default">CURRENT_DATE</option>
++                <option name="default">
++                    <object class="Doctrine\DBAL\Schema\DefaultExpression\CurrentDate"/>
++                </option>
+             </options>
+         </field>
+     </entity>
+ </doctrine-mapping>
+```
+
+
+## Deprecate `FieldMapping::$default`
+
+The `default` property of `Doctrine\ORM\Mapping\FieldMapping` is deprecated and
+will be removed in 4.0. Instead, use `FieldMapping::$options['default']`.
+
+## Deprecate specifying `nullable` on columns that end up being used in a primary key
+
+Specifying `nullable` on join columns that are part of a primary key is
+deprecated and will be an error in 4.0.
+
+This can happen when using a join column mapping together with an id mapping,
+or when using a join column mapping or an inverse join column mapping on a
+many-to-many relationship.
+
+```diff
+ class User
+ {
+     #[ORM\Id]
+     #[ORM\Column(type: 'integer')]
+     private int $id;
+
+     #[ORM\Id]
+     #[ORM\ManyToOne(targetEntity: Family::class, inversedBy: 'users')]
+-    #[ORM\JoinColumn(name: 'family_id', referencedColumnName: 'id', nullable: true)]
++    #[ORM\JoinColumn(name: 'family_id', referencedColumnName: 'id')]
+     private ?Family $family;
+
+     #[ORM\ManyToMany(targetEntity: Group::class)]
+     #[ORM\JoinTable(name: 'user_group')]
+-    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: true)]
+-    #[ORM\InverseJoinColumn(name: 'group_id', referencedColumnName: 'id', nullable: true)]
++    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
++    #[ORM\InverseJoinColumn(name: 'group_id', referencedColumnName: 'id')]
+     private Collection $groups;
+ }
+```
+
+## Deprecate `Doctrine\ORM\QueryBuilder::add('join', ...)` with a list of join parts
+
+Using `Doctrine\ORM\QueryBuilder::add('join', ...)` with a list of join parts
+is deprecated in favor of using an associative array of join parts with the
+root alias as key.
+
+## Deprecate using the `WITH` keyword for arbitrary DQL joins
+
+Using the `WITH` keyword to specify the condition for an arbitrary DQL join is
+deprecated in favor of using the `ON` keyword (similar to the SQL syntax for
+joins).
+The `WITH` keyword is now meant to be used only for filtering conditions in
+association joins.
+
 # Upgrade to 3.5
 
 See the General notes to upgrading to 3.x versions above.
@@ -2159,7 +2301,7 @@ from 2.0 have to configure the annotation driver if they don't use `Configuratio
 
 ## Scalar mappings can now be omitted from DQL result
 
-You are now allowed to mark scalar SELECT expressions as HIDDEN an they are not hydrated anymore.
+You are now allowed to mark scalar SELECT expressions as HIDDEN and they are not hydrated anymore.
 Example:
 
 SELECT u, SUM(a.id) AS HIDDEN numArticles FROM User u LEFT JOIN u.Articles a ORDER BY numArticles DESC HAVING numArticles > 10

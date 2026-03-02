@@ -50,7 +50,7 @@ abstract class PersistentObjectFactory extends ObjectFactory
     private array $afterPersist = [];
 
     /** @var list<callable(T):void> */
-    private array $tempAfterInstantiate = [];
+    private array $inverseRelationshipCallbacks = [];
 
     private bool $isRootFactory = true;
 
@@ -100,9 +100,9 @@ abstract class PersistentObjectFactory extends ObjectFactory
 
     /**
      * @param positive-int $count
-     * @phpstan-param Parameters   $criteria
+     * @phpstan-param Parameters $criteria
      *
-     * @return list<T>
+     * @return non-empty-list<T>
      */
     public static function randomSet(int $count, array $criteria = []): array
     {
@@ -112,9 +112,10 @@ abstract class PersistentObjectFactory extends ObjectFactory
     /**
      * @param int<0, max> $min
      * @param int<0, max> $max
-     * @phpstan-param Parameters  $criteria
+     * @phpstan-param Parameters $criteria
      *
      * @return list<T>
+     * @phpstan-return ($min is positive-int ? non-empty-list<T> : list<T>)
      */
     public static function randomRange(int $min, int $max, array $criteria = []): array
     {
@@ -124,9 +125,10 @@ abstract class PersistentObjectFactory extends ObjectFactory
     /**
      * @param int<0, max> $min
      * @param int<0, max> $max
-     * @phpstan-param Parameters  $criteria
+     * @phpstan-param Parameters $criteria
      *
      * @return list<T>
+     * @phpstan-return ($min is positive-int ? non-empty-list<T> : list<T>)
      */
     public static function randomRangeOrCreate(int $min, int $max, array $criteria = []): array
     {
@@ -237,20 +239,13 @@ abstract class PersistentObjectFactory extends ObjectFactory
         $configuration = Configuration::instance();
 
         if ($configuration->inADataProvider()
-            && \PHP_VERSION_ID >= 80400
-            && $this->isPersisting()
-            && !$this instanceof PersistentProxyObjectFactory
+            && (\PHP_VERSION_ID >= 80400 || $this instanceof PersistentProxyObjectFactory)
+            && ($this->isPersisting() || $configuration->isInMemoryEnabled())
         ) {
-            return ProxyGenerator::wrapFactoryNativeProxy($this, $attributes);
+            return ProxyGenerator::wrapFactory($this->with($attributes));
         }
 
         $object = parent::create($attributes);
-
-        foreach ($this->tempAfterInstantiate as $callback) {
-            $callback($object);
-        }
-
-        $this->tempAfterInstantiate = [];
 
         $this->throwIfCannotCreateObject();
 
@@ -399,7 +394,7 @@ abstract class PersistentObjectFactory extends ObjectFactory
                 ;
 
                 if (($fieldType = (new \ReflectionClass(static::class()))->getProperty($field)->getType())?->allowsNull()) {
-                    $this->tempAfterInstantiate[] = static function(object $object) use ($value, $inverseField, $field) {
+                    $this->inverseRelationshipCallbacks[] = static function(object $object) use ($value, $inverseField, $field) {
                         $inverseObject = $value->create([$inverseField => $object]);
 
                         set($object, $field, ProxyGenerator::unwrap($inverseObject, withAutoRefresh: false));
@@ -414,16 +409,15 @@ abstract class PersistentObjectFactory extends ObjectFactory
                         withAutoRefresh: false
                     );
 
-                    $this->tempAfterInstantiate[] = static function(object $object) use ($inverseObject, $inverseField) {
+                    $this->inverseRelationshipCallbacks[] = static function(object $object) use ($inverseObject, $inverseField) {
                         set($inverseObject, $inverseField, $object);
                     };
 
                     return $inverseObject;
                 } elseif (null === $fieldType || null === $inverseFieldType) {
                     throw new \InvalidArgumentException(\sprintf("Cannot handle inverse OneToOne relationship: cannot determine types of \"%s::\${$field}\" and \"%s::\${$inverseField}\", please and type to the properties.", static::class(), $value::class()));
-                } else {
-                    throw new \InvalidArgumentException(\sprintf("Cannot handle inverse OneToOne relationship: both \"%s::\${$field}\" and \"%s::\${$inverseField}\" are not nullable, which will result in a circular dependency.", static::class(), $value::class()));
                 }
+                throw new \InvalidArgumentException(\sprintf("Cannot handle inverse OneToOne relationship: both \"%s::\${$field}\" and \"%s::\${$inverseField}\" are not nullable, which will result in a circular dependency.", static::class(), $value::class()));
             }
         }
 
@@ -443,7 +437,7 @@ abstract class PersistentObjectFactory extends ObjectFactory
         $collection = $collection->notRootFactory();
 
         if ($inverseRelationshipMetadata instanceof OneToManyRelationship) {
-            $this->tempAfterInstantiate[] = function(object $object) use ($collection, $inverseRelationshipMetadata, $field) {
+            $this->inverseRelationshipCallbacks[] = function(object $object) use ($collection, $inverseRelationshipMetadata, $field) {
                 $inverseField = $inverseRelationshipMetadata->inverseField();
 
                 $inverseObjects = $collection
@@ -495,13 +489,13 @@ abstract class PersistentObjectFactory extends ObjectFactory
         $inverseRelationship = $persistenceManager->bidirectionalRelationshipMetadata(static::class(), $object::class, $field);
 
         if ($inverseRelationship instanceof OneToOneRelationship) {
-            $this->tempAfterInstantiate[] = static function(object $newObject) use ($object, $inverseRelationship) {
+            $this->inverseRelationshipCallbacks[] = static function(object $newObject) use ($object, $inverseRelationship) {
                 Hydrator::set($object, $inverseRelationship->inverseField(), $newObject, catchErrors: true);
             };
         }
 
         if ($inverseRelationship instanceof ManyToOneRelationship) {
-            $this->tempAfterInstantiate[] = static function(object $newObject) use ($object, $inverseRelationship) {
+            $this->inverseRelationshipCallbacks[] = static function(object $newObject) use ($object, $inverseRelationship) {
                 Hydrator::add($object, $inverseRelationship->inverseField(), $newObject);
             };
         }
@@ -550,6 +544,20 @@ abstract class PersistentObjectFactory extends ObjectFactory
                     Configuration::instance()->persistence()->scheduleForInsert($object, $afterPersistCallbacks);
                 },
                 self::PRIORITY_SCHEDULE_FOR_INSERT
+            )
+
+            // Always register the callback that executes inverse relationship callbacks.
+            // This is needed even when Foundry is not booted (e.g., when factories are created in data providers
+            // without the PHPUnit extension), because the callbacks are populated later during create().
+            ->afterInstantiate(
+                static function(object $object, array $parameters, self $factoryUsed): void {
+                    $tempAfterInstantiateCallbacks = $factoryUsed->inverseRelationshipCallbacks;
+                    $factoryUsed->inverseRelationshipCallbacks = [];
+                    foreach ($tempAfterInstantiateCallbacks as $tempAfterInstantiateCallback) {
+                        $tempAfterInstantiateCallback($object);
+                    }
+                },
+                priority: 1000
             )
         ;
 

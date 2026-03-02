@@ -3,13 +3,13 @@
 declare (strict_types=1);
 namespace Rector\PhpParser\Parser;
 
-use RectorPrefix202511\Nette\Utils\FileSystem;
+use RectorPrefix202602\Nette\Utils\FileSystem;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
-use Rector\NodeTypeResolver\PHPStan\Scope\NodeVisitor\AssignedToNodeVisitor;
+use Rector\PhpParser\NodeVisitor\AssignedToNodeVisitor;
 use Throwable;
 final class SimplePhpParser
 {

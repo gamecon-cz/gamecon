@@ -4,19 +4,21 @@ declare (strict_types=1);
 namespace Rector\PhpParser\Node;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Expr\Yield_;
 use PhpParser\Node\Expr\YieldFrom;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeFinder;
 use PhpParser\NodeVisitor;
 use Rector\NodeAnalyzer\ClassAnalyzer;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\PhpDocParser\NodeTraverser\SimpleCallableNodeTraverser;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\PhpParser\Node\BetterNodeFinder\BetterNodeFinderTest
  */
@@ -215,7 +217,7 @@ final class BetterNodeFinder
         /** @var T[] $foundNodes */
         $foundNodes = [];
         $this->simpleCallableNodeTraverser->traverseNodesWithCallable($nodes, static function (Node $subNode) use ($types, &$foundNodes): ?int {
-            if ($subNode instanceof Class_ || $subNode instanceof FunctionLike) {
+            if ($subNode instanceof Class_ || $subNode instanceof FunctionLike && !$subNode instanceof ClassMethod && !$subNode instanceof ArrowFunction) {
                 return NodeVisitor::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
             }
             foreach ($types as $type) {

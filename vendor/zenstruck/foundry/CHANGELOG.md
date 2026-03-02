@@ -1,5 +1,96 @@
 # CHANGELOG
 
+## [v2.9.2](https://github.com/zenstruck/foundry/releases/tag/v2.9.2)
+
+February 17th, 2026 - [v2.9.1...v2.9.2](https://github.com/zenstruck/foundry/compare/v2.9.1...v2.9.2)
+
+* 5e70129 fix: arrange compatibility with PHPUnit 10 (#1103) by @nikophil
+
+## [v2.9.1](https://github.com/zenstruck/foundry/releases/tag/v2.9.1)
+
+February 8th, 2026 - [v2.9.0...v2.9.1](https://github.com/zenstruck/foundry/compare/v2.9.0...v2.9.1)
+
+* 47a431c chore(ci): use-dama => no-dama (#1090) by @nikophil
+* d8ce94b fix: ensure in WebTestCase with kernel already boot does not occur (#1088) by @nikophil
+* 4820f3c chore: fix bug report template by @nikophil
+* 516b786 chore: test using PHPunit 13 (#1086) by @nikophil
+* 692f74c docs: minor docs fixes (#1082) by @nikophil
+
+## [v2.9.0](https://github.com/zenstruck/foundry/releases/tag/v2.9.0)
+
+February 4th, 2026 - [v2.8.7...v2.9.0](https://github.com/zenstruck/foundry/compare/v2.8.7...v2.9.0)
+
+* 5e11589 minor: fix last bits before release (#1080) by @nikophil
+* 4f97e89 fix(in-memory): trigger in memory on PreparationStarted (#1077) (#1080) by @nikophil
+* e539491 fix: handle reset DB mechanism along with "before hooks" methods (#1070) (#1080) by @nikophil
+* 2d59700 feat: automatic DB reset (#1068) (#1080) by @nikophil
+* 9aaf683 minor: remove useless `Factories` trait (#1067) (#1080) by @nikophil
+* 78b95d1 feat(2.9): deprecate `ResetDatabase` trait (#985) (#1080) by @nikophil
+* 11b4b03 fix permutations in .github/workflows/phpunit.yml (#1080) by @nikophil
+* 3025311 remove useless import (#1080) by @nikophil
+* f91c2fa fix: fixes after deprecating `Factories` trait (#1066) (#1080) by @nikophil
+* deb7637 feat(2.9): deprecate `Factories` trait and force PHPUnit extension usage (#968) (#1080) by @nikophil
+* e57d750 refactor: harmonize how factories are proxified in data providers (#1065) (#1080) by @nikophil
+* 9cbf3c7 minor: some house keeping (#1064) (#1080) by @nikophil
+
+## [v2.8.7](https://github.com/zenstruck/foundry/releases/tag/v2.8.7)
+
+February 3rd, 2026 - [v2.8.6...v2.8.7](https://github.com/zenstruck/foundry/compare/v2.8.6...v2.8.7)
+
+* c45e03c fix: allow deleting ghost object (#1076) by @nikophil
+* 86a2036 minor: provide a way to skip faker's seed management (#1075) by @nikophil
+* 32542a6 chore: use APP_ENV=test for benchmark (#1074) by @nikophil
+* 4b6324e minor: add priorities for PHPUnit hooks (#1073) by @nikophil
+* 63c3cac minor: use test environment (#1072) by @nikophil
+* 5dccced Update issue templates (#1064) by @nikophil
+
+## [v2.8.6](https://github.com/zenstruck/foundry/releases/tag/v2.8.6)
+
+January 20th, 2026 - [v2.8.5...v2.8.6](https://github.com/zenstruck/foundry/compare/v2.8.5...v2.8.6)
+
+* 4d81bbe fix: always register "inverseRelationshipCallbacks" even if Foundry is not booted (#1063) by @nikophil
+* f43a735 fix(faker): change how FOUNDRY_FAKER_SEED is read (#1061) by @nikophil
+
+## [v2.8.5](https://github.com/zenstruck/foundry/releases/tag/v2.8.5)
+
+January 20th, 2026 - [v2.8.4...v2.8.5](https://github.com/zenstruck/foundry/compare/v2.8.4...v2.8.5)
+
+* f6e35e5 fix(autorefresh): prevent weird autorefresh recursion (#1060) by @nikophil
+* 377c6d4 fix: handle derived entities in autorefresh mechanism (#1058) by @nikophil
+* 8701b45 mnior: reboot kernel in database resetter instead of shutdown (#1059) by @nikophil
+* 965fe3c refactor: simplify ResetDatabaseManager (#1054) by @nikophil
+* 473559c chore: add PHP 8.5 to test matrix (#1043) by @nikophil
+* 6c3a127 refactor: explicitly boot Foundry in ResetDatabase (#1049) by @nikophil
+* 368e686 chore: skip legacy proxy tests using #[RequiresMethod] (#1048) by @nikophil
+* d7add25 chore: require symfony/flex as dev dependency (#1047) by @nikophil
+
+## [v2.8.4](https://github.com/zenstruck/foundry/releases/tag/v2.8.4)
+
+December 23rd, 2025 - [v2.8.3...v2.8.4](https://github.com/zenstruck/foundry/compare/v2.8.3...v2.8.4)
+
+* 45b6e21 fix: remove problematic "conflict" in composer.json (#1046) by @nikophil
+
+## [v2.8.3](https://github.com/zenstruck/foundry/releases/tag/v2.8.3)
+
+December 22nd, 2025 - [v2.8.2...v2.8.3](https://github.com/zenstruck/foundry/compare/v2.8.2...v2.8.3)
+
+* a102c0a fix: Allow PersistManager::refresh() to not throw in specific cases (#1044) by @nikophil
+* d4f9997 fix: auto-refresh problem with doctrine/orm 2 (#1042) by @nikophil
+* cace455 Update issue templates by @nikophil
+* b0a5703 fix: call inverse relatoinship callback before afterInstantiate() (#1041) by @nikophil
+
+## [v2.8.2](https://github.com/zenstruck/foundry/releases/tag/v2.8.2)
+
+December 9th, 2025 - [v2.8.1...v2.8.2](https://github.com/zenstruck/foundry/compare/v2.8.1...v2.8.2)
+
+* 9621dae Improve phpdoc for non empty list (#1037) by @VincentLanglet
+
+## [v2.8.1](https://github.com/zenstruck/foundry/releases/tag/v2.8.1)
+
+December 2nd, 2025 - [v2.8.0...v2.8.1](https://github.com/zenstruck/foundry/compare/v2.8.0...v2.8.1)
+
+* 7b9dc07 chore: actually suport Symfony 8 (#1022) by @nikophil
+
 ## [v2.8.0](https://github.com/zenstruck/foundry/releases/tag/v2.8.0)
 
 November 9th, 2025 - [v2.7.9...v2.8.0](https://github.com/zenstruck/foundry/compare/v2.7.9...v2.8.0)

@@ -17,8 +17,10 @@ use PhpParser\Node\Expr\BinaryOp\Mul;
 use PhpParser\Node\Expr\BinaryOp\Plus;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\UnaryMinus;
-use Rector\PhpParser\Node\Value\ValueResolver;
+use PhpParser\Node\Scalar\Int_;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
+use Rector\ValueObject\Application\File;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -26,14 +28,6 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  */
 final class RemoveDeadZeroAndOneOperationRector extends AbstractRector
 {
-    /**
-     * @readonly
-     */
-    private ValueResolver $valueResolver;
-    public function __construct(ValueResolver $valueResolver)
-    {
-        $this->valueResolver = $valueResolver;
-    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Remove operation with 1 and 0, that have no effect on the value', [new CodeSample(<<<'CODE_SAMPLE'
@@ -80,7 +74,7 @@ CODE_SAMPLE
     {
         // +=, -=
         if ($assignOp instanceof AssignPlus || $assignOp instanceof AssignMinus) {
-            if (!$this->valueResolver->isValue($assignOp->expr, 0)) {
+            if (!$this->isLiteralZero($assignOp->expr)) {
                 return null;
             }
             if ($this->nodeTypeResolver->isNumberType($assignOp->var)) {
@@ -89,7 +83,7 @@ CODE_SAMPLE
         }
         // *, /
         if ($assignOp instanceof AssignMul || $assignOp instanceof AssignDiv) {
-            if (!$this->valueResolver->isValue($assignOp->expr, 1)) {
+            if (!$this->isLiteralOne($assignOp->expr)) {
                 return null;
             }
             if ($this->nodeTypeResolver->isNumberType($assignOp->var)) {
@@ -127,16 +121,41 @@ CODE_SAMPLE
         if (!$this->areNumberType($binaryOp)) {
             return null;
         }
-        if ($this->valueResolver->isValue($binaryOp->left, 0) && $this->nodeTypeResolver->isNumberType($binaryOp->right)) {
+        if ($this->isLiteralZero($binaryOp->left) && $this->nodeTypeResolver->isNumberType($binaryOp->right)) {
             if ($binaryOp instanceof Minus) {
                 return new UnaryMinus($binaryOp->right);
             }
             return $binaryOp->right;
         }
-        if (!$this->valueResolver->isValue($binaryOp->right, 0)) {
+        if (!$this->isLiteralZero($binaryOp->right)) {
             return null;
         }
         return $binaryOp->left;
+    }
+    private function isMulParenthesized(File $file, Mul $mul): bool
+    {
+        if (!$mul->right instanceof BinaryOp) {
+            return \false;
+        }
+        $oldTokens = $file->getOldTokens();
+        $endTokenPost = $mul->getEndTokenPos();
+        if (isset($oldTokens[$endTokenPost]) && (string) $oldTokens[$endTokenPost] === ')') {
+            $startTokenPos = $mul->right->getStartTokenPos();
+            $previousEndTokenPost = $mul->left->getEndTokenPos();
+            while ($startTokenPos > $previousEndTokenPost) {
+                --$startTokenPos;
+                if (!isset($oldTokens[$startTokenPos])) {
+                    return \false;
+                }
+                // handle space before open parentheses
+                if (trim((string) $oldTokens[$startTokenPos]) === '') {
+                    continue;
+                }
+                return (string) $oldTokens[$startTokenPos] === '(';
+            }
+            return \false;
+        }
+        return \false;
     }
     /**
      * @param \PhpParser\Node\Expr\BinaryOp\Mul|\PhpParser\Node\Expr\BinaryOp\Div $binaryOp
@@ -149,12 +168,23 @@ CODE_SAMPLE
         if (!$this->areNumberType($binaryOp)) {
             return null;
         }
-        if ($binaryOp instanceof Mul && $this->valueResolver->isValue($binaryOp->left, 1) && $this->nodeTypeResolver->isNumberType($binaryOp->right)) {
+        if ($binaryOp instanceof Mul && $this->isLiteralOne($binaryOp->left) && $this->nodeTypeResolver->isNumberType($binaryOp->right)) {
+            if ($this->isMulParenthesized($this->file, $binaryOp)) {
+                $binaryOp->right->setAttribute(AttributeKey::WRAPPED_IN_PARENTHESES, \true);
+            }
             return $binaryOp->right;
         }
-        if (!$this->valueResolver->isValue($binaryOp->right, 1)) {
+        if (!$this->isLiteralOne($binaryOp->right)) {
             return null;
         }
         return $binaryOp->left;
+    }
+    private function isLiteralOne(Expr $expr): bool
+    {
+        return $expr instanceof Int_ && $expr->value === 1;
+    }
+    private function isLiteralZero(Expr $expr): bool
+    {
+        return $expr instanceof Int_ && $expr->value === 0;
     }
 }

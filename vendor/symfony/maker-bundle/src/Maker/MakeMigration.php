@@ -74,6 +74,7 @@ final class MakeMigration extends AbstractMaker implements ApplicationAwareMaker
 
         $command
             ->addOption('formatted', null, InputOption::VALUE_NONE, 'Format the generated SQL')
+            ->addOption('nowdoc', null, InputOption::VALUE_NONE, 'Use nowdoc format for generated SQL')
             ->addOption('configuration', null, InputOption::VALUE_OPTIONAL, 'The path of doctrine configuration file')
         ;
     }
@@ -99,6 +100,10 @@ final class MakeMigration extends AbstractMaker implements ApplicationAwareMaker
             $options[] = '--formatted';
         }
 
+        if ($input->getOption('nowdoc')) {
+            $options[] = '--nowdoc';
+        }
+
         if (null !== $configuration = $input->getOption('configuration')) {
             $options[] = '--configuration='.$configuration;
         }
@@ -114,7 +119,7 @@ final class MakeMigration extends AbstractMaker implements ApplicationAwareMaker
         try {
             $returnCode = $generateMigrationCommand->run($generateMigrationCommandInput, $commandOutput);
 
-            // non-zero code would ideally mean the internal command has already printed an errror
+            // non-zero code would ideally mean the internal command has already printed an error
             // this happens if you "decline" generating a migration when you already
             // have some available
             if (0 !== $returnCode) {

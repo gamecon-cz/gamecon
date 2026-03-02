@@ -15,6 +15,7 @@ use Doctrine\Persistence\ObjectRepository;
 use Zenstruck\Assert;
 use Zenstruck\Foundry\AnonymousFactoryGenerator;
 use Zenstruck\Foundry\Configuration;
+use Zenstruck\Foundry\Persistence\Exception\RefreshObjectFailed;
 
 /**
  * @template T of object
@@ -139,6 +140,8 @@ function save(object $object): object
  * @param T $object
  *
  * @return T
+ *
+ * @throws RefreshObjectFailed
  */
 function refresh(object &$object): object
 {
@@ -225,26 +228,4 @@ function assert_not_persisted(object $object, string $message = '{entity} is per
     )->isFalse($message, ['entity' => $object::class]);
 
     return $object;
-}
-
-/**
- * @internal
- */
-function initialize_proxy_object(mixed $what): void
-{
-    if (
-        \PHP_VERSION_ID >= 80400
-        && \is_object($what)
-        && ($reflector = new \ReflectionClass($what))->isUninitializedLazyObject($what)
-    ) {
-        $reflector->initializeLazyObject($what);
-
-        return;
-    }
-
-    match (true) {
-        $what instanceof Proxy => $what->_initializeLazyObject(),
-        \is_array($what) => \array_map(initialize_proxy_object(...), $what),
-        default => true, // do nothing
-    };
 }

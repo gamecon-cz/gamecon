@@ -9,7 +9,7 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\SebastianBergmann\Diff\Output;
+namespace RectorPrefix202602\SebastianBergmann\Diff\Output;
 
 use function count;
 abstract class AbstractChunkOutputBuilder implements DiffOutputBuilderInterface
@@ -17,6 +17,8 @@ abstract class AbstractChunkOutputBuilder implements DiffOutputBuilderInterface
     /**
      * Takes input of the diff array and returns the common parts.
      * Iterates through diff line by line.
+     *
+     * @return array<int, positive-int>
      */
     protected function getCommonChunks(array $diff, int $lineThreshold = 5): array
     {

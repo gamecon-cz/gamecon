@@ -5,31 +5,32 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202511\Nette\Iterators;
+namespace RectorPrefix202602\Nette\Iterators;
 
-use RectorPrefix202511\Nette;
+use RectorPrefix202602\Nette;
 /**
- * Smarter caching iterator.
+ * Enhanced caching iterator with first/last/counter tracking.
  *
+ * @template TKey
+ * @template TValue
+ * @extends \CachingIterator<TKey, TValue, \Iterator<TKey, TValue>>
  * @property-read bool $first
  * @property-read bool $last
  * @property-read bool $empty
  * @property-read bool $odd
  * @property-read bool $even
  * @property-read int $counter
- * @property-read mixed $nextKey
- * @property-read mixed $nextValue
+ * @property-read TKey $nextKey
+ * @property-read TValue $nextValue
  */
 class CachingIterator extends \CachingIterator implements \Countable
 {
     use Nette\SmartObject;
     private int $counter = 0;
-    /**
-     * @param iterable|\stdClass $iterable
-     */
+    /** @param  iterable<TKey, TValue>|\stdClass  $iterable */
     public function __construct($iterable)
     {
-        $iterable = $iterable instanceof \stdClass ? new \ArrayIterator($iterable) : Nette\Utils\Iterables::toIterator($iterable);
+        $iterable = $iterable instanceof \stdClass ? new \ArrayIterator((array) $iterable) : Nette\Utils\Iterables::toIterator($iterable);
         parent::__construct($iterable, 0);
     }
     /**
@@ -46,37 +47,22 @@ class CachingIterator extends \CachingIterator implements \Countable
     {
         return !$this->hasNext() || $gridWidth && $this->counter % $gridWidth === 0;
     }
-    /**
-     * Is the iterator empty?
-     */
     public function isEmpty(): bool
     {
         return $this->counter === 0;
     }
-    /**
-     * Is the counter odd?
-     */
     public function isOdd(): bool
     {
         return $this->counter % 2 === 1;
     }
-    /**
-     * Is the counter even?
-     */
     public function isEven(): bool
     {
         return $this->counter % 2 === 0;
     }
-    /**
-     * Returns the counter.
-     */
     public function getCounter(): int
     {
         return $this->counter;
     }
-    /**
-     * Returns the count of elements.
-     */
     public function count(): int
     {
         $inner = $this->getInnerIterator();
@@ -104,18 +90,12 @@ class CachingIterator extends \CachingIterator implements \Countable
         parent::rewind();
         $this->counter = parent::valid() ? 1 : 0;
     }
-    /**
-     * Returns the next key.
-     * @return mixed
-     */
+    /** @return TKey */
     public function getNextKey()
     {
         return $this->getInnerIterator()->key();
     }
-    /**
-     * Returns the next element.
-     * @return mixed
-     */
+    /** @return TValue */
     public function getNextValue()
     {
         return $this->getInnerIterator()->current();

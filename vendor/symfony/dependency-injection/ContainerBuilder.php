@@ -360,16 +360,10 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             if (\is_object($object)) {
                 $object = $object::class;
             }
-            if (!isset($this->classReflectors[$object])) {
-                $this->classReflectors[$object] = new \ReflectionClass($object);
-            }
-            $class = $this->classReflectors[$object];
+            $class = $this->classReflectors[$object] ??= new \ReflectionClass($object);
 
             foreach ($class->getInterfaceNames() as $name) {
-                if (null === $interface = &$this->classReflectors[$name]) {
-                    $interface = new \ReflectionClass($name);
-                }
-                $file = $interface->getFileName();
+                $file = ($this->classReflectors[$name] ??= new \ReflectionClass($name))->getFileName();
                 if (false !== $file && file_exists($file)) {
                     $this->fileExists($file);
                 }
@@ -847,7 +841,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             if ('.' === ($id[0] ?? '-')) {
                 continue;
             }
-            if (!$definition->isPublic() || $definition->isPrivate()) {
+            if ($definition->isPrivate()) {
                 $this->removedIds[$id] = true;
             }
         }
@@ -1184,14 +1178,14 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             $service = $factory(...$arguments);
 
             if (!$definition->isDeprecated() && \is_array($factory) && \is_string($factory[0])) {
-                $r = new \ReflectionClass($factory[0]);
+                $r = $this->classReflectors[$factory[0]] ??= new \ReflectionClass($factory[0]);
 
-                if (0 < strpos($r->getDocComment() ?: '', "\n * @deprecated ")) {
+                if (str_contains($r->getDocComment() ?: '', "\n * @deprecated ")) {
                     trigger_deprecation('', '', 'The "%s" service relies on the deprecated "%s" factory class. It should either be deprecated or its factory upgraded.', $id, $r->name);
                 }
             }
         } else {
-            $r = new \ReflectionClass($class);
+            $r = $this->classReflectors[$class] ??= new \ReflectionClass($class);
 
             if (\is_object($tryProxy)) {
                 if ($r->getConstructor()) {
@@ -1203,7 +1197,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
                 $service = $r->getConstructor() ? $r->newInstanceArgs($arguments) : $r->newInstance();
             }
 
-            if (!$definition->isDeprecated() && 0 < strpos($r->getDocComment() ?: '', "\n * @deprecated ")) {
+            if (!$definition->isDeprecated() && str_contains($r->getDocComment() ?: '', "\n * @deprecated ")) {
                 trigger_deprecation('', '', 'The "%s" service relies on the deprecated "%s" class. It should either be deprecated or its implementation upgraded.', $id, $r->name);
             }
         }
@@ -1378,19 +1372,30 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      *          }
      *      }
      *
+     * @param bool $throwOnAbstract
+     *
      * @return array<string, array> An array of tags with the tagged service as key, holding a list of attribute arrays
      */
-    public function findTaggedResourceIds(string $tagName): array
+    public function findTaggedResourceIds(string $tagName/* , bool $throwOnAbstract = true */): array
     {
+        $throwOnAbstract = \func_num_args() > 1 ? func_get_arg(1) : true;
         $this->usedTags[] = $tagName;
         $tags = [];
         foreach ($this->getDefinitions() as $id => $definition) {
-            if ($definition->hasTag($tagName)) {
-                if (!$definition->hasTag('container.excluded')) {
-                    throw new InvalidArgumentException(\sprintf('The resource "%s" tagged "%s" is missing the "container.excluded" tag.', $id, $tagName));
-                }
-                $tags[$id] = $definition->getTag($tagName);
+            if (!$definition->hasTag($tagName)) {
+                continue;
             }
+            if (!$definition->hasTag('container.excluded')) {
+                throw new InvalidArgumentException(\sprintf('The resource "%s" tagged "%s" is missing the "container.excluded" tag.', $id, $tagName));
+            }
+            $class = $this->parameterBag->resolveValue($definition->getClass());
+            if (!$class || $throwOnAbstract && $definition->isAbstract()) {
+                throw new InvalidArgumentException(\sprintf('The resource "%s" tagged "%s" must have a class and not be abstract.', $id, $tagName));
+            }
+            if ($definition->getClass() !== $class) {
+                $definition->setClass($class);
+            }
+            $tags[$id] = $definition->getTag($tagName);
         }
 
         return $tags;
@@ -1471,10 +1476,13 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      * using camel case: "foo.bar" or "foo_bar" creates an alias bound to
      * "$fooBar"-named arguments with $type as type-hint. Such arguments will
      * receive the service $id when autowiring is used.
+     *
+     * @param ?string $target
      */
-    public function registerAliasForArgument(string $id, string $type, ?string $name = null): Alias
+    public function registerAliasForArgument(string $id, string $type, ?string $name = null/* , ?string $target = null */): Alias
     {
         $parsedName = (new Target($name ??= $id))->getParsedName();
+        $target = (\func_num_args() > 3 ? func_get_arg(3) : null) ?? $name;
 
         if (!preg_match('/^[a-zA-Z_\x7f-\xff]/', $parsedName)) {
             if ($id !== $name) {
@@ -1484,8 +1492,8 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             throw new InvalidArgumentException(\sprintf('Invalid argument name "%s"'.$id.': the first character must be a letter.', $name));
         }
 
-        if ($parsedName !== $name) {
-            $this->setAlias('.'.$type.' $'.$name, $type.' $'.$parsedName);
+        if ($parsedName !== $target) {
+            $this->setAlias('.'.$type.' $'.$target, $type.' $'.$parsedName);
         }
 
         return $this->setAlias($type.' $'.$parsedName, $id);

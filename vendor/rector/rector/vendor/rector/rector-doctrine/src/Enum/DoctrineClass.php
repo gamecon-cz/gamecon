@@ -17,6 +17,9 @@ final class DoctrineClass
      * @var string
      */
     public const EVENT_SUBSCRIBER = 'Doctrine\Common\EventSubscriber';
+    /**
+     * @var string
+     */
     public const EVENT_SUBSCRIBER_INTERFACE = 'Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface';
     /**
      * @var string
@@ -46,4 +49,52 @@ final class DoctrineClass
      * @var string
      */
     public const ARRAY_RESULT = 'Doctrine\DBAL\Cache\ArrayResult';
+    /**
+     * @var string
+     */
+    public const CONNECTION = 'Doctrine\DBAL\Connection';
+    /**
+     * @var string
+     */
+    public const RESULT_STATEMENT = 'Doctrine\DBAL\Driver\ResultStatement';
+    /**
+     * @var string
+     */
+    public const DBAL_QUERY_BUILDER = 'Doctrine\DBAL\Query\QueryBuilder';
+    /**
+     * @var string
+     */
+    public const QUERY_EXPR = 'Doctrine\ORM\Query\Expr';
+    /**
+     * @var string
+     */
+    public const QUERY_PARAMETER = 'Doctrine\ORM\Query\Parameter';
+    /**
+     * @var string
+     */
+    public const DBAL_STATEMENT = 'Doctrine\DBAL\Statement';
+    /**
+     * @var string
+     */
+    public const COMPOSITE_EXPRESSION = 'Doctrine\DBAL\Query\Expression\CompositeExpression';
+    /**
+     * @var string
+     */
+    public const ABSTRACT_QUERY = 'Doctrine\ORM\AbstractQuery';
+    /**
+     * @var string
+     */
+    public const LIFECYCLE_EVENT_ARGS = 'Doctrine\ORM\Event\LifecycleEventArgs';
+    /**
+     * @var string
+     */
+    public const COLLECTIONS_CRITERIA = 'Doctrine\Common\Collections\Criteria';
+    /**
+     * @var string
+     */
+    public const QUERY_BUILDER = 'Doctrine\ORM\QueryBuilder';
+    /**
+     * @var string
+     */
+    public const ORDER = 'Doctrine\Common\Collections\Order';
 }

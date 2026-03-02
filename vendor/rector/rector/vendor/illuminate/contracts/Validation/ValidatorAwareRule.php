@@ -1,8 +1,8 @@
 <?php
 
-namespace RectorPrefix202511\Illuminate\Contracts\Validation;
+namespace RectorPrefix202602\Illuminate\Contracts\Validation;
 
-use RectorPrefix202511\Illuminate\Validation\Validator;
+use RectorPrefix202602\Illuminate\Validation\Validator;
 interface ValidatorAwareRule
 {
     /**

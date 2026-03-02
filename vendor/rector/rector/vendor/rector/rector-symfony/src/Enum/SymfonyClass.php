@@ -128,6 +128,14 @@ final class SymfonyClass
     /**
      * @var string
      */
+    public const LOGOUT_EVENT = 'Symfony\Component\Security\Http\Event\LogoutEvent';
+    /**
+     * @var string
+     */
+    public const LOGOUT_HANDLER_INTERFACE = 'Symfony\Component\Security\Http\Logout\LogoutHandlerInterface';
+    /**
+     * @var string
+     */
     public const LOGOUT_SUCCESS_HANDLER = 'Symfony\Component\Security\Http\Logout\LogoutSuccessHandlerInterface';
     /**
      * @var string
@@ -149,4 +157,52 @@ final class SymfonyClass
      * @var string
      */
     public const VALUE_RESOLVER_INTERFACE = 'Symfony\Component\HttpKernel\Controller\ValueResolverInterface';
+    /**
+     * @var string
+     */
+    public const VOTER_INTERFACE = 'Symfony\Component\Security\Core\Authorization\Voter\VoterInterface';
+    /**
+     * @var string
+     */
+    public const VOTER_CLASS = 'Symfony\Component\Security\Core\Authorization\Voter\Voter';
+    /**
+     * @var string
+     */
+    public const VOTE_CLASS = 'Symfony\Component\Security\Core\Authorization\Voter\Vote';
+    /**
+     * @var string
+     */
+    public const USER_INTERFACE = 'Symfony\Component\Security\Core\User\UserInterface';
+    /**
+     * @var string
+     */
+    public const ACCESS_DECISION_MANAGER_INTERFACE = 'Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface';
+    /**
+     * @var string
+     */
+    public const UUID = 'Symfony\Component\Uid\AbstractUid';
+    /**
+     * @var string
+     */
+    public const ROUTE_COLLECTION_BUILDER = 'Symfony\Component\Routing\RouteCollectionBuilder';
+    /**
+     * @var string
+     */
+    public const ROUTING_CONFIGURATOR = 'Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator';
+    /**
+     * @var string
+     */
+    public const KERNEL = 'Symfony\Component\HttpKernel\Kernel';
+    /**
+     * @var string
+     */
+    public const CONTAINER = 'Symfony\Component\DependencyInjection\Container';
+    /**
+     * @var string
+     */
+    public const ABSTRACT_TYPE_EXTENSION = 'Symfony\Component\Form\AbstractTypeExtension';
+    /**
+     * @var string
+     */
+    public const ABSTRACT_TYPE = 'Symfony\Component\Form\AbstractType';
 }

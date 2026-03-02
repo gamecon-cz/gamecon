@@ -9,6 +9,7 @@ use PhpParser\Node\Expr\BinaryOp\Equal;
 use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BinaryOp\NotEqual;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
+use PhpParser\Node\Expr\Ternary;
 use PHPStan\Type\BooleanType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
@@ -16,6 +17,7 @@ use PHPStan\Type\MixedType;
 use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeTraverser;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -26,7 +28,7 @@ final class UseIdenticalOverEqualWithSameTypeRector extends AbstractRector
 {
     public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Use ===/!== over ==/!=, it values have the same type', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Use ===/!== over ==/!=, if values have the same type', [new CodeSample(<<<'CODE_SAMPLE'
 class SomeClass
 {
     public function run(int $firstValue, int $secondValue)
@@ -81,15 +83,15 @@ CODE_SAMPLE
     }
     private function hasObjectType(Type $type): bool
     {
-        $hasObjecType = \false;
-        TypeTraverser::map($type, function (Type $type, callable $traverseCallback) use (&$hasObjecType): Type {
+        $hasObjectType = \false;
+        TypeTraverser::map($type, function (Type $type, callable $traverseCallback) use (&$hasObjectType): Type {
             // maybe has object type? mark as object type
             if (!$type->isObject()->no()) {
-                $hasObjecType = \true;
+                $hasObjectType = \true;
             }
             return $traverseCallback($type);
         });
-        return $hasObjecType;
+        return $hasObjectType;
     }
     private function normalizeScalarType(Type $type): Type
     {
@@ -113,6 +115,12 @@ CODE_SAMPLE
      */
     private function processIdenticalOrNotIdentical($node)
     {
+        if ($node->left instanceof Ternary) {
+            $node->left->setAttribute(AttributeKey::WRAPPED_IN_PARENTHESES, \true);
+        }
+        if ($node->right instanceof Ternary) {
+            $node->right->setAttribute(AttributeKey::WRAPPED_IN_PARENTHESES, \true);
+        }
         if ($node instanceof Equal) {
             return new Identical($node->left, $node->right);
         }

@@ -24,8 +24,8 @@ use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
 use Rector\NodeManipulator\StmtsManipulator;
+use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
@@ -96,10 +96,10 @@ CODE_SAMPLE
      */
     public function getNodeTypes(): array
     {
-        return [StmtsAwareInterface::class];
+        return NodeGroup::STMTS_AWARE;
     }
     /**
-     * @param StmtsAwareInterface $node
+     * @param StmtsAware $node
      */
     public function refactor(Node $node): ?Node
     {
@@ -109,6 +109,7 @@ CODE_SAMPLE
         $hasChanged = \false;
         $extractValues = [];
         foreach ($node->stmts as $key => $stmt) {
+            $hasChangedStmt = \false;
             if ($stmt instanceof Expression && $stmt->expr instanceof FuncCall && $this->isName($stmt->expr, 'extract') && !$stmt->expr->isFirstClassCallable()) {
                 $appendExtractValues = $this->valueResolver->getValue($stmt->expr->getArgs()[0]->value);
                 if (!is_array($appendExtractValues)) {
@@ -131,31 +132,37 @@ CODE_SAMPLE
                 continue;
             }
             $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($stmt);
-            $varTagValueNode = $phpDocInfo->getVarTagValueNode();
-            if (!$varTagValueNode instanceof VarTagValueNode) {
-                continue;
+            $varTagValueNodes = $phpDocInfo->getPhpDocNode()->getVarTagValues();
+            foreach ($varTagValueNodes as $varTagValueNode) {
+                if ($this->isObjectShapePseudoType($varTagValueNode)) {
+                    continue;
+                }
+                $variableName = ltrim($varTagValueNode->variableName, '$');
+                if ($variableName === '' && $this->isAllowedEmptyVariableName($stmt)) {
+                    continue;
+                }
+                if ($this->hasVariableName($stmt, $variableName)) {
+                    continue;
+                }
+                $comments = $node->getComments();
+                if (isset($comments[1])) {
+                    // skip edge case with double comment, as impossible to resolve by PHPStan doc parser
+                    continue;
+                }
+                if ($this->stmtsManipulator->isVariableUsedInNextStmt($node, $key + 1, $variableName)) {
+                    continue;
+                }
+                if ($variableName === '') {
+                    $phpDocInfo->removeByType(VarTagValueNode::class);
+                } else {
+                    $phpDocInfo->removeByType(VarTagValueNode::class, $variableName);
+                }
+                $hasChangedStmt = \true;
             }
-            if ($this->isObjectShapePseudoType($varTagValueNode)) {
-                continue;
+            if ($hasChangedStmt) {
+                $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($stmt);
+                $hasChanged = \true;
             }
-            $variableName = ltrim($varTagValueNode->variableName, '$');
-            if ($variableName === '' && $this->isAllowedEmptyVariableName($stmt)) {
-                continue;
-            }
-            if ($this->hasVariableName($stmt, $variableName)) {
-                continue;
-            }
-            $comments = $node->getComments();
-            if (isset($comments[1])) {
-                // skip edge case with double comment, as impossible to resolve by PHPStan doc parser
-                continue;
-            }
-            if ($this->stmtsManipulator->isVariableUsedInNextStmt($node, $key + 1, $variableName)) {
-                continue;
-            }
-            $phpDocInfo->removeByType(VarTagValueNode::class);
-            $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($stmt);
-            $hasChanged = \true;
         }
         if ($hasChanged) {
             return $node;
@@ -163,9 +170,10 @@ CODE_SAMPLE
         return null;
     }
     /**
+     * @param StmtsAware $stmtsAware
      * @param string[] $extractValues
      */
-    private function shouldSkip(StmtsAwareInterface $stmtsAware, int $key, Stmt $stmt, array $extractValues): bool
+    private function shouldSkip(Node $stmtsAware, int $key, Stmt $stmt, array $extractValues): bool
     {
         if (!in_array(get_class($stmt), self::NODE_TYPES, \true)) {
             return \true;

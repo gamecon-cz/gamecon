@@ -3,10 +3,10 @@
 declare (strict_types=1);
 namespace Rector\Testing\PHPUnit;
 
-use RectorPrefix202511\Illuminate\Container\RewindableGenerator;
+use RectorPrefix202602\Illuminate\Container\RewindableGenerator;
 use Iterator;
-use RectorPrefix202511\Nette\Utils\FileSystem;
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\FileSystem;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PHPUnit\Framework\ExpectationFailedException;
 use Rector\Application\ApplicationFileProcessor;
 use Rector\Autoloading\AdditionalAutoloader;
@@ -14,7 +14,7 @@ use Rector\Autoloading\BootstrapFilesIncluder;
 use Rector\Configuration\ConfigurationFactory;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
-use Rector\Contract\DependencyInjection\ResetableInterface;
+use Rector\Contract\DependencyInjection\ResettableInterface;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\DependencyInjection\Laravel\ContainerMemento;
 use Rector\Exception\ShouldNotHappenException;
@@ -64,11 +64,11 @@ abstract class AbstractRectorTestCase extends \Rector\Testing\PHPUnit\AbstractLa
         $cacheKey = sha1($configFile . static::class);
         if (!isset(self::$cacheByRuleAndConfig[$cacheKey])) {
             // reset
-            /** @var RewindableGenerator<int, ResetableInterface> $resetables */
-            $resetables = $rectorConfig->tagged(ResetableInterface::class);
-            foreach ($resetables as $resetable) {
-                /** @var ResetableInterface $resetable */
-                $resetable->reset();
+            /** @var RewindableGenerator<int, ResettableInterface> $resettables */
+            $resettables = $rectorConfig->tagged(ResettableInterface::class);
+            foreach ($resettables as $resettable) {
+                /** @var ResettableInterface $resettable */
+                $resettable->reset();
             }
             $this->forgetRectorsRules();
             $rectorConfig->resetRuleConfigurations();

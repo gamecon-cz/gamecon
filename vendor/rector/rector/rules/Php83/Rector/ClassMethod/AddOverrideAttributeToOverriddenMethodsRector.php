@@ -15,9 +15,11 @@ use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Return_;
+use PhpParser\Node\Stmt\Trait_;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
+use Rector\DeadCode\NodeAnalyzer\ParentClassAnalyzer;
 use Rector\NodeAnalyzer\ClassAnalyzer;
 use Rector\Php80\NodeAnalyzer\PhpAttributeAnalyzer;
 use Rector\PhpParser\AstResolver;
@@ -56,6 +58,10 @@ final class AddOverrideAttributeToOverriddenMethodsRector extends AbstractRector
      */
     private ValueResolver $valueResolver;
     /**
+     * @readonly
+     */
+    private ParentClassAnalyzer $parentClassAnalyzer;
+    /**
      * @api
      * @var string
      */
@@ -66,13 +72,14 @@ final class AddOverrideAttributeToOverriddenMethodsRector extends AbstractRector
     private const OVERRIDE_CLASS = 'Override';
     private bool $allowOverrideEmptyMethod = \false;
     private bool $hasChanged = \false;
-    public function __construct(ReflectionProvider $reflectionProvider, ClassAnalyzer $classAnalyzer, PhpAttributeAnalyzer $phpAttributeAnalyzer, AstResolver $astResolver, ValueResolver $valueResolver)
+    public function __construct(ReflectionProvider $reflectionProvider, ClassAnalyzer $classAnalyzer, PhpAttributeAnalyzer $phpAttributeAnalyzer, AstResolver $astResolver, ValueResolver $valueResolver, ParentClassAnalyzer $parentClassAnalyzer)
     {
         $this->reflectionProvider = $reflectionProvider;
         $this->classAnalyzer = $classAnalyzer;
         $this->phpAttributeAnalyzer = $phpAttributeAnalyzer;
         $this->astResolver = $astResolver;
         $this->valueResolver = $valueResolver;
+        $this->parentClassAnalyzer = $parentClassAnalyzer;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -134,6 +141,10 @@ CODE_SAMPLE
     {
         $this->hasChanged = \false;
         if ($this->classAnalyzer->isAnonymousClass($node)) {
+            return null;
+        }
+        // skip if no parents, nor traits, nor strinables are involved
+        if ($node->extends === null && $node->getTraitUses() === [] && !$this->implementsStringable($node)) {
             return null;
         }
         $className = (string) $this->getName($node);
@@ -209,11 +220,16 @@ CODE_SAMPLE
         if ($this->isName($classMethod->name, MethodName::CONSTRUCT)) {
             return \true;
         }
+        // nothing to override
         if ($classMethod->isPrivate()) {
             return \true;
         }
         // ignore if it already uses the attribute
-        return $this->phpAttributeAnalyzer->hasPhpAttribute($classMethod, self::OVERRIDE_CLASS);
+        if ($this->phpAttributeAnalyzer->hasPhpAttribute($classMethod, self::OVERRIDE_CLASS)) {
+            return \true;
+        }
+        // skip test setup method override, as rather clutters the code than helps
+        return $this->isNames($classMethod, ['setUp', 'tearDown']) && $this->parentClassAnalyzer->hasParentCall($classMethod);
     }
     private function shouldSkipParentClassMethod(ClassReflection $parentClassReflection, ClassMethod $classMethod): bool
     {
@@ -226,6 +242,9 @@ CODE_SAMPLE
             return \true;
         }
         $parentClassMethod = $parentClass->getMethod($classMethod->name->toString());
+        if (!$parentClassMethod instanceof ClassMethod) {
+            $parentClassMethod = $this->resolveClassMethodFromTraitUse($parentClass, $classMethod->name->toString());
+        }
         if (!$parentClassMethod instanceof ClassMethod) {
             return \true;
         }
@@ -249,6 +268,31 @@ CODE_SAMPLE
                 return \true;
             }
             if ($soleStmt instanceof Expression && $soleStmt->expr instanceof Throw_) {
+                return \true;
+            }
+        }
+        return \false;
+    }
+    private function resolveClassMethodFromTraitUse(ClassLike $classLike, string $methodName): ?ClassMethod
+    {
+        foreach ($classLike->getTraitUses() as $traitUse) {
+            foreach ($traitUse->traits as $traitName) {
+                $traitClass = $this->astResolver->resolveClassFromName($traitName->__toString());
+                if (!$traitClass instanceof Trait_) {
+                    continue;
+                }
+                $traitClassMethod = $traitClass->getMethod($methodName);
+                if ($traitClassMethod instanceof ClassMethod) {
+                    return $traitClassMethod;
+                }
+            }
+        }
+        return null;
+    }
+    private function implementsStringable(Class_ $class): bool
+    {
+        foreach ($class->implements as $implement) {
+            if ($this->isName($implement, 'Stringable')) {
                 return \true;
             }
         }

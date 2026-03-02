@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Application;
 
-use RectorPrefix202511\Nette\Utils\FileSystem;
+use RectorPrefix202602\Nette\Utils\FileSystem;
 use PHPStan\AnalysedCodeException;
 use PHPStan\Parser\ParserErrorsException;
 use Rector\Caching\Detector\ChangedFilesDetector;
@@ -12,6 +12,7 @@ use Rector\ChangesReporting\ValueObjectFactory\FileDiffFactory;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\FileSystem\FilePathHelper;
 use Rector\NodeTypeResolver\NodeScopeAndMetadataDecorator;
+use Rector\PhpParser\Node\FileNode;
 use Rector\PhpParser\NodeTraverser\RectorNodeTraverser;
 use Rector\PhpParser\Parser\ParserErrors;
 use Rector\PhpParser\Parser\RectorParser;
@@ -22,7 +23,7 @@ use Rector\ValueObject\Application\File;
 use Rector\ValueObject\Configuration;
 use Rector\ValueObject\Error\SystemError;
 use Rector\ValueObject\FileProcessResult;
-use RectorPrefix202511\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202602\Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
 final class FileProcessor
 {
@@ -152,22 +153,24 @@ final class FileProcessor
     private function printFile(File $file, Configuration $configuration, string $filePath): void
     {
         // only save to string first, no need to print to file when not needed
-        $newContent = $this->betterStandardPrinter->printFormatPreserving($file->getNewStmts(), $file->getOldStmts(), $file->getOldTokens());
+        $newFileContent = $this->betterStandardPrinter->printFormatPreserving($file->getNewStmts(), $file->getOldStmts(), $file->getOldTokens());
         // change file content early to make $file->hasChanged() based on new content
-        $file->changeFileContent($newContent);
+        $file->changeFileContent($newFileContent);
         if ($configuration->isDryRun()) {
             return;
         }
         if (!$file->hasChanged()) {
             return;
         }
-        FileSystem::write($filePath, $newContent, null);
+        FileSystem::write($filePath, $newFileContent, null);
     }
     private function parseFileNodes(File $file, bool $forNewestSupportedVersion = \true): void
     {
         // store tokens by original file content, so we don't have to print them right now
         $stmtsAndTokens = $this->rectorParser->parseFileContentToStmtsAndTokens($file->getOriginalFileContent(), $forNewestSupportedVersion);
         $oldStmts = $stmtsAndTokens->getStmts();
+        // wrap in FileNode to allow file-level rules
+        $oldStmts = [new FileNode($oldStmts)];
         $oldTokens = $stmtsAndTokens->getTokens();
         $newStmts = $this->nodeScopeAndMetadataDecorator->decorateNodesFromFile($file->getFilePath(), $oldStmts);
         $file->hydrateStmtsAndTokens($newStmts, $oldStmts, $oldTokens);

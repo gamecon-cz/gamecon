@@ -3,7 +3,8 @@
 declare (strict_types=1);
 namespace Rector\PhpParser\Printer;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
+use Override;
 use PhpParser\Comment;
 use PhpParser\Internal\TokenStream;
 use PhpParser\Node;
@@ -16,9 +17,7 @@ use PhpParser\Node\Expr\BinaryOp;
 use PhpParser\Node\Expr\BinaryOp\Pipe;
 use PhpParser\Node\Expr\CallLike;
 use PhpParser\Node\Expr\Instanceof_;
-use PhpParser\Node\Expr\Match_;
 use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\Ternary;
 use PhpParser\Node\Expr\Yield_;
 use PhpParser\Node\InterpolatedStringPart;
@@ -29,16 +28,13 @@ use PhpParser\Node\Stmt\InlineHTML;
 use PhpParser\Node\Stmt\Nop;
 use PhpParser\PrettyPrinter\Standard;
 use PhpParser\Token;
-use PHPStan\Node\AnonymousClassNode;
-use PHPStan\Node\Expr\AlwaysRememberedExpr;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\NodeAnalyzer\ExprAnalyzer;
 use Rector\NodeTypeResolver\Node\AttributeKey;
-use Rector\PhpParser\Node\CustomNode\FileWithoutNamespace;
+use Rector\PhpParser\Node\FileNode;
 use Rector\Util\NewLineSplitter;
 use Rector\Util\Reflection\PrivatesAccessor;
-use Rector\Util\StringUtils;
 /**
  * @see \Rector\Tests\PhpParser\Printer\BetterStandardPrinterTest
  *
@@ -60,11 +56,6 @@ final class BetterStandardPrinter extends Standard
      * @var string
      */
     private const EXTRA_SPACE_BEFORE_NOP_REGEX = '#^[ \t]+$#m';
-    /**
-     * @see https://regex101.com/r/UluSYL/1
-     * @var string
-     */
-    private const SPACED_NEW_START_REGEX = '#^new\s+#';
     public function __construct(ExprAnalyzer $exprAnalyzer, PrivatesAccessor $privatesAccessor)
     {
         $this->exprAnalyzer = $exprAnalyzer;
@@ -76,9 +67,11 @@ final class BetterStandardPrinter extends Standard
      * @param Node[] $origStmts
      * @param mixed[] $origTokens
      */
+    #[Override]
     public function printFormatPreserving(array $stmts, array $origStmts, array $origTokens): string
     {
-        $newStmts = $this->resolveNewStmts($stmts);
+        $newStmts = $this->unwrapFileNode($stmts);
+        $origStmts = $this->unwrapFileNode($origStmts);
         $content = parent::printFormatPreserving($newStmts, $origStmts, $origTokens);
         // add new line in case of added stmts
         if (count($newStmts) !== count($origStmts) && substr_compare($content, "\n", -strlen("\n")) !== 0) {
@@ -97,11 +90,13 @@ final class BetterStandardPrinter extends Standard
         if (!is_array($node)) {
             $node = [$node];
         }
+        $node = $this->unwrapFileNode($node);
         return $this->prettyPrint($node);
     }
     /**
      * @param Node[] $stmts
      */
+    #[Override]
     public function prettyPrintFile(array $stmts): string
     {
         // to keep indexes from 0
@@ -109,51 +104,35 @@ final class BetterStandardPrinter extends Standard
         return parent::prettyPrintFile($stmts) . \PHP_EOL;
     }
     /**
-     * @api magic method in parent
+     * Use for standalone InterpolatedStringPart printing, that is not support by php-parser natively.
+     * Used e.g. in \Rector\PhpParser\Comparing\NodeComparator::printWithoutComments
      */
-    public function pFileWithoutNamespace(FileWithoutNamespace $fileWithoutNamespace): string
-    {
-        return $this->pStmts($fileWithoutNamespace->stmts);
-    }
-    /**
-     * @api magic method in parent
-     */
-    public function pInterpolatedStringPart(InterpolatedStringPart $interpolatedStringPart): string
+    protected function pInterpolatedStringPart(InterpolatedStringPart $interpolatedStringPart): string
     {
         return $interpolatedStringPart->value;
     }
+    #[Override]
     protected function p(Node $node, int $precedence = self::MAX_PRECEDENCE, int $lhsPrecedence = self::MAX_PRECEDENCE, bool $parentFormatPreserved = \false): string
     {
-        // handle already AlwaysRememberedExpr
-        // @see https://github.com/rectorphp/rector/issues/8815#issuecomment-2503453191
-        while ($node instanceof AlwaysRememberedExpr) {
-            $node = $node->getExpr();
-        }
-        // handle overlapped origNode is Match_
-        // and its subnodes still have AlwaysRememberedExpr
-        $originalNode = $node->getAttribute(AttributeKey::ORIGINAL_NODE);
-        if ($originalNode instanceof Match_) {
-            $subNodeNames = $node->getSubNodeNames();
-            foreach ($subNodeNames as $subNodeName) {
-                while ($originalNode->{$subNodeName} instanceof AlwaysRememberedExpr) {
-                    $originalNode->{$subNodeName} = $originalNode->{$subNodeName}->getExpr();
-                }
-            }
-        }
-        $this->wrapBinaryOp($node);
+        $this->wrapBinaryOpWithBrackets($node);
         $content = parent::p($node, $precedence, $lhsPrecedence, $parentFormatPreserved);
-        /** @todo remove once fix https://github.com/nikic/PHP-Parser/commit/232169fd7972e018e3d7adbcaa235a2eaa2440c4 is released */
-        if ($node instanceof New_ && $node->class instanceof AnonymousClassNode && !StringUtils::isMatch($content, self::SPACED_NEW_START_REGEX)) {
-            $content = 'new ' . $content;
-        }
+        // remove once its fixed in php-parser, https://github.com/nikic/PHP-Parser/pull/1126
         if ($node instanceof CallLike) {
             $this->cleanVariadicPlaceHolderTrailingComma($node);
         }
-        return $node->getAttribute(AttributeKey::WRAPPED_IN_PARENTHESES) === \true ? '(' . $content . ')' : $content;
+        if ($node->getAttribute(AttributeKey::WRAPPED_IN_PARENTHESES)) {
+            return '(' . $content . ')';
+        }
+        return $content;
     }
+    protected function pStmt_FileNode(FileNode $fileNode): string
+    {
+        return $this->pStmts($fileNode->stmts);
+    }
+    #[Override]
     protected function pExpr_ArrowFunction(ArrowFunction $arrowFunction, int $precedence, int $lhsPrecedence): string
     {
-        if (!$arrowFunction->hasAttribute(AttributeKey::COMMENT_CLOSURE_RETURN_MIRRORED)) {
+        if (!$arrowFunction->hasAttribute(AttributeKey::COMMENTS)) {
             return parent::pExpr_ArrowFunction($arrowFunction, $precedence, $lhsPrecedence);
         }
         $expr = $arrowFunction->expr;
@@ -162,17 +141,24 @@ final class BetterStandardPrinter extends Standard
         if ($comments === []) {
             return parent::pExpr_ArrowFunction($arrowFunction, $precedence, $lhsPrecedence);
         }
-        $indent = $this->resolveIndentSpaces();
-        $text = "\n" . $indent;
+        $isMaxPrecedence = $precedence === self::MAX_PRECEDENCE;
+        $isNewLineAndIndent = $arrowFunction->getAttribute(AttributeKey::IS_ARG_VALUE) === \true;
+        $indent = $this->resolveIndentSpaces($isMaxPrecedence);
+        $text = $isMaxPrecedence ? '' : "\n" . $indent;
+        if ($isNewLineAndIndent) {
+            $indent = $this->resolveIndentSpaces();
+            $text = "\n" . $indent;
+        }
         foreach ($comments as $key => $comment) {
             $commentText = $key > 0 ? $indent . $comment->getText() : $comment->getText();
             $text .= $commentText . "\n";
         }
-        return $this->pPrefixOp(ArrowFunction::class, $this->pAttrGroups($arrowFunction->attrGroups, \true) . $this->pStatic($arrowFunction->static) . 'fn' . ($arrowFunction->byRef ? '&' : '') . '(' . $this->pMaybeMultiline($arrowFunction->params, $this->phpVersion->supportsTrailingCommaInParamList()) . ')' . ($arrowFunction->returnType instanceof Node ? ': ' . $this->p($arrowFunction->returnType) : '') . ' =>' . $text . $indent, $arrowFunction->expr, $precedence, $lhsPrecedence);
+        return $text . $indent . parent::pExpr_ArrowFunction($arrowFunction, $precedence, $lhsPrecedence);
     }
     /**
      * This allows to use both spaces and tabs vs. original space-only
      */
+    #[Override]
     protected function setIndentLevel(int $level): void
     {
         $level = max($level, 0);
@@ -182,6 +168,7 @@ final class BetterStandardPrinter extends Standard
     /**
      * This allows to use both spaces and tabs vs. original space-only
      */
+    #[Override]
     protected function indent(): void
     {
         $indentSize = SimpleParameterProvider::provideIntParameter(Option::INDENT_SIZE);
@@ -191,6 +178,7 @@ final class BetterStandardPrinter extends Standard
     /**
      * This allows to use both spaces and tabs vs. original space-only
      */
+    #[Override]
     protected function outdent(): void
     {
         if ($this->getIndentCharacter() === ' ') {
@@ -208,6 +196,7 @@ final class BetterStandardPrinter extends Standard
      * @param mixed[] $nodes
      * @param mixed[] $origNodes
      */
+    #[Override]
     protected function pArray(array $nodes, array $origNodes, int &$pos, int $indentAdjustment, string $parentNodeClass, string $subNodeName, ?int $fixup): ?string
     {
         // reindex positions for printer
@@ -225,6 +214,7 @@ final class BetterStandardPrinter extends Standard
      * Do not add "()" on Expressions
      * @see https://github.com/rectorphp/rector/pull/401#discussion_r181487199
      */
+    #[Override]
     protected function pExpr_Yield(Yield_ $yield, int $precedence, int $lhsPrecedence): string
     {
         if (!$yield->value instanceof Expr) {
@@ -237,6 +227,7 @@ final class BetterStandardPrinter extends Standard
     /**
      * Print new lined array items when newlined_array_print is set to true
      */
+    #[Override]
     protected function pExpr_Array(Array_ $array): string
     {
         if ($array->getAttribute(AttributeKey::NEWLINED_ARRAY_PRINT) === \true) {
@@ -246,6 +237,7 @@ final class BetterStandardPrinter extends Standard
         }
         return parent::pExpr_Array($array);
     }
+    #[Override]
     protected function pExpr_BinaryOp_Pipe(Pipe $node, int $precedence, int $lhsPrecedence): string
     {
         return $this->pInfixOp(Pipe::class, $node->left, "\n" . $this->resolveIndentSpaces() . '|> ', $node->right, $precedence, $lhsPrecedence);
@@ -253,6 +245,7 @@ final class BetterStandardPrinter extends Standard
     /**
      * Fixes escaping of regular patterns
      */
+    #[Override]
     protected function pScalar_String(String_ $string): string
     {
         if ($string->getAttribute(AttributeKey::DOC_INDENTATION) === '__REMOVED__') {
@@ -275,11 +268,13 @@ final class BetterStandardPrinter extends Standard
     /**
      * It remove all spaces extra to parent
      */
+    #[Override]
     protected function pStmt_Declare(Declare_ $declare): string
     {
         $declareString = parent::pStmt_Declare($declare);
         return Strings::replace($declareString, '#\s+#');
     }
+    #[Override]
     protected function pExpr_Ternary(Ternary $ternary, int $precedence, int $lhsPrecedence): string
     {
         $kind = $ternary->getAttribute(AttributeKey::KIND);
@@ -292,6 +287,7 @@ final class BetterStandardPrinter extends Standard
     /**
      * Used in rector-downgrade-php
      */
+    #[Override]
     protected function pScalar_InterpolatedString(InterpolatedString $interpolatedString): string
     {
         $content = parent::pScalar_InterpolatedString($interpolatedString);
@@ -300,6 +296,7 @@ final class BetterStandardPrinter extends Standard
         }
         return $content;
     }
+    #[Override]
     protected function pExpr_MethodCall(MethodCall $methodCall): string
     {
         if (!$methodCall->var instanceof CallLike) {
@@ -316,11 +313,13 @@ final class BetterStandardPrinter extends Standard
         }
         return $this->pDereferenceLhs($methodCall->var) . "\n" . $this->resolveIndentSpaces() . '->' . $this->pObjectProperty($methodCall->name) . '(' . $this->pMaybeMultiline($methodCall->args) . ')';
     }
+    #[Override]
     protected function pInfixOp(string $class, Node $leftNode, string $operatorString, Node $rightNode, int $precedence, int $lhsPrecedence): string
     {
         $this->wrapAssign($leftNode, $rightNode);
         return parent::pInfixOp($class, $leftNode, $operatorString, $rightNode, $precedence, $lhsPrecedence);
     }
+    #[Override]
     protected function pExpr_Instanceof(Instanceof_ $instanceof, int $precedence, int $lhsPrecedence): string
     {
         $this->wrapAssign($instanceof->expr, $instanceof->class);
@@ -359,7 +358,7 @@ final class BetterStandardPrinter extends Standard
             break;
         }
     }
-    private function wrapBinaryOp(Node $node): void
+    private function wrapBinaryOpWithBrackets(Node $node): void
     {
         if ($this->exprAnalyzer->isExprWithExprPropertyWrappable($node)) {
             $node->expr->setAttribute(AttributeKey::ORIGINAL_NODE, null);
@@ -399,9 +398,12 @@ final class BetterStandardPrinter extends Standard
         $trimmedLines = array_map(\Closure::fromCallable('ltrim'), $lines);
         return implode("\n", $trimmedLines);
     }
-    private function resolveIndentSpaces(): string
+    private function resolveIndentSpaces(bool $onlyLevel = \false): string
     {
         $indentSize = SimpleParameterProvider::provideIntParameter(Option::INDENT_SIZE);
+        if ($onlyLevel) {
+            return str_repeat($this->getIndentCharacter(), $this->indentLevel);
+        }
         return str_repeat($this->getIndentCharacter(), $this->indentLevel) . str_repeat($this->getIndentCharacter(), $indentSize);
     }
     /**
@@ -415,10 +417,9 @@ final class BetterStandardPrinter extends Standard
      * @param Node[] $stmts
      * @return Node[]|mixed[]
      */
-    private function resolveNewStmts(array $stmts): array
+    private function unwrapFileNode(array $stmts): array
     {
-        $stmts = array_values($stmts);
-        if (count($stmts) === 1 && $stmts[0] instanceof FileWithoutNamespace) {
+        if (count($stmts) === 1 && $stmts[0] instanceof FileNode) {
             return array_values($stmts[0]->stmts);
         }
         return $stmts;

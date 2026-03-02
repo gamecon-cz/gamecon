@@ -10,6 +10,7 @@ use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\FuncCall;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use Rector\NodeManipulator\BinaryOpManipulator;
 use Rector\Php71\ValueObject\TwoNodeMatch;
@@ -34,7 +35,9 @@ final class JsonValidateRector extends AbstractRector implements MinPhpVersionIn
      * @readonly
      */
     private ValueResolver $valueResolver;
-    protected const ARG_NAMES = ['json', 'associative', 'depth', 'flags'];
+    /**
+     * @var int
+     */
     private const JSON_MAX_DEPTH = 0x7fffffff;
     public function __construct(BinaryOpManipulator $binaryOpManipulator, ValueResolver $valueResolver)
     {
@@ -84,8 +87,14 @@ CODE_SAMPLE
         if (!$this->validateArgs($funcCall)) {
             return null;
         }
+        // Remove associative argument (position 1 or named) - json_validate does not have this param
+        foreach ($args as $index => $arg) {
+            if ($arg instanceof Arg && ($arg->name instanceof Identifier && $arg->name->toString() === 'associative' || !$arg->name instanceof Identifier && $index === 1)) {
+                unset($funcCall->args[$index]);
+                break;
+            }
+        }
         $funcCall->name = new Name('json_validate');
-        $funcCall->args = $args;
         return $funcCall;
     }
     public function providePolyfillPackage(): string

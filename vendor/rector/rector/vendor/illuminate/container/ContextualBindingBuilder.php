@@ -1,9 +1,9 @@
 <?php
 
-namespace RectorPrefix202511\Illuminate\Container;
+namespace RectorPrefix202602\Illuminate\Container;
 
-use RectorPrefix202511\Illuminate\Contracts\Container\Container;
-use RectorPrefix202511\Illuminate\Contracts\Container\ContextualBindingBuilder as ContextualBindingBuilderContract;
+use RectorPrefix202602\Illuminate\Contracts\Container\Container;
+use RectorPrefix202602\Illuminate\Contracts\Container\ContextualBindingBuilder as ContextualBindingBuilderContract;
 class ContextualBindingBuilder implements ContextualBindingBuilderContract
 {
     /**
@@ -29,7 +29,6 @@ class ContextualBindingBuilder implements ContextualBindingBuilderContract
      *
      * @param  \Illuminate\Contracts\Container\Container  $container
      * @param  string|array  $concrete
-     * @return void
      */
     public function __construct(Container $container, $concrete)
     {
@@ -51,25 +50,26 @@ class ContextualBindingBuilder implements ContextualBindingBuilderContract
      * Define the implementation for the contextual binding.
      *
      * @param  \Closure|string|array  $implementation
-     * @return void
+     * @return $this
      */
     public function give($implementation)
     {
         foreach (Util::arrayWrap($this->concrete) as $concrete) {
             $this->container->addContextualBinding($concrete, $this->needs, $implementation);
         }
+        return $this;
     }
     /**
      * Define tagged services to be used as the implementation for the contextual binding.
      *
      * @param  string  $tag
-     * @return void
+     * @return $this
      */
     public function giveTagged($tag)
     {
-        $this->give(function ($container) use ($tag) {
+        return $this->give(function ($container) use ($tag) {
             $taggedServices = $container->tagged($tag);
-            return is_array($taggedServices) ? $taggedServices : iterator_to_array($taggedServices);
+            return is_array($taggedServices) ? $taggedServices : iterator_to_array(is_array($taggedServices) ? new \ArrayIterator($taggedServices) : $taggedServices);
         });
     }
     /**
@@ -77,10 +77,10 @@ class ContextualBindingBuilder implements ContextualBindingBuilderContract
      *
      * @param  string  $key
      * @param  mixed  $default
-     * @return void
+     * @return $this
      */
     public function giveConfig($key, $default = null)
     {
-        $this->give(fn($container) => $container->get('config')->get($key, $default));
+        return $this->give(fn($container) => $container->get('config')->get($key, $default));
     }
 }

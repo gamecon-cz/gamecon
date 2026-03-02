@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202511\Illuminate\Contracts\Session;
+namespace RectorPrefix202602\Illuminate\Contracts\Session;
 
 interface Session
 {
@@ -86,6 +86,14 @@ interface Session
      * @return void
      */
     public function put($key, $value = null);
+    /**
+     * Flash a key / value pair to the session.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function flash(string $key, $value = \true);
     /**
      * Get the CSRF token value.
      *

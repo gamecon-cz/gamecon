@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202511\Illuminate\Contracts\Http;
+namespace RectorPrefix202602\Illuminate\Contracts\Http;
 
 interface Kernel
 {

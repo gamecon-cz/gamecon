@@ -11,7 +11,6 @@
 
 namespace Symfony\Bundle\MakerBundle\Util;
 
-use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
 use Symfony\Component\Yaml\Dumper;
 
 /**
@@ -38,8 +37,6 @@ class ComposeFileManipulator
         } else {
             $this->manipulator = new YamlSourceManipulator($contents);
         }
-
-        $this->checkComposeFileVersion();
     }
 
     public function getComposeData(): array
@@ -115,18 +112,5 @@ class ComposeFileManipulator
             'version' => $version,
             'services' => [],
         ];
-    }
-
-    private function checkComposeFileVersion(): void
-    {
-        $data = $this->manipulator->getData();
-
-        if (empty($data['version'])) {
-            throw new RuntimeCommandException('compose.yaml file version is not set.');
-        }
-
-        if (2.0 > (float) $data['version']) {
-            throw new RuntimeCommandException(\sprintf('compose.yaml version %s is not supported. Please update your compose.yaml file to the latest version.', $data['version']));
-        }
     }
 }

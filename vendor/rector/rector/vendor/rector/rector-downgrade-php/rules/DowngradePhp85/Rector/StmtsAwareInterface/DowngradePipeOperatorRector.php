@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\DowngradePhp85\Rector\StmtsAwareInterface;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\BinaryOp\Pipe;
@@ -13,14 +14,14 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Stmt\Expression;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
 use Rector\NodeFactory\NamedVariableFactory;
+use Rector\PhpParser\Enum\NodeGroup;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
- * @see https://wiki.php.net/rfc/pipe-operator-v3
  * @see \Rector\Tests\DowngradePhp85\Rector\StmtsAwareInterface\DowngradePipeOperatorRector\DowngradePipeOperatorRectorTest
+ * @see https://wiki.php.net/rfc/pipe-operator-v3
  */
 final class DowngradePipeOperatorRector extends AbstractRector
 {
@@ -57,10 +58,10 @@ CODE_SAMPLE
     }
     public function getNodeTypes(): array
     {
-        return [StmtsAwareInterface::class];
+        return NodeGroup::STMTS_AWARE;
     }
     /**
-     * @param StmtsAwareInterface $node
+     * @param StmtsAware $node
      */
     public function refactor(Node $node): ?Node
     {
@@ -86,13 +87,13 @@ CODE_SAMPLE
         }
         return $hasChanged ? $node : null;
     }
-    private function findPipeNode(Node $node): ?Pipe
+    private function findPipeNode(Expr $expr): ?Pipe
     {
-        if ($node instanceof Pipe) {
-            return $node;
+        if ($expr instanceof Pipe) {
+            return $expr;
         }
-        if ($node instanceof Assign && $node->expr instanceof Pipe) {
-            return $node->expr;
+        if ($expr instanceof Assign && $expr->expr instanceof Pipe) {
+            return $expr->expr;
         }
         return null;
     }

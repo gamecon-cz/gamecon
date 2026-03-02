@@ -23,7 +23,10 @@ final class GitHubOutputFormatter implements OutputFormatterInterface
     /**
      * @var string
      */
-    public const NAME = 'github';
+    private const NAME = 'github';
+    /**
+     * @var string
+     */
     private const GROUP_NAME = 'Rector report';
     public function getName(): string
     {

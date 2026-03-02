@@ -5,11 +5,14 @@ namespace Rector\PHPUnit\CodeQuality\Rector\Class_;
 
 use PhpParser\Node;
 use PhpParser\Node\Attribute;
+use PhpParser\Node\ComplexType;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
-use RectorPrefix202511\PHPUnit\Framework\Attributes\Depends;
+use RectorPrefix202602\PHPUnit\Framework\Attributes\Depends;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Doctrine\NodeAnalyzer\AttrinationFinder;
@@ -120,7 +123,10 @@ CODE_SAMPLE
         }
         return $node;
     }
-    private function resolveReturnTypeOfDependsMethod(ClassMethod $classMethod, Class_ $class): ?Node
+    /**
+     * @return \PhpParser\Node\ComplexType|\PhpParser\Node\Identifier|\PhpParser\Node\Name|null
+     */
+    private function resolveReturnTypeOfDependsMethod(ClassMethod $classMethod, Class_ $class)
     {
         $dependsMethodName = $this->resolveDependsAnnotationOrAttributeMethod($classMethod);
         if ($dependsMethodName === null || $dependsMethodName === '') {

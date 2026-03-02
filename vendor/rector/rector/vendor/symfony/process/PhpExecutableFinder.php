@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\Symfony\Component\Process;
+namespace RectorPrefix202602\Symfony\Component\Process;
 
 /**
  * An executable finder specifically designed for the PHP executable.
@@ -62,10 +62,15 @@ class PhpExecutableFinder
         if ('\\' === \DIRECTORY_SEPARATOR) {
             $dirs[] = 'C:\xampp\php\\';
         }
+        if ($herdPath = getenv('HERD_HOME')) {
+            $dirs[] = $herdPath . \DIRECTORY_SEPARATOR . 'bin';
+        }
         return $this->executableFinder->find('php', \false, $dirs);
     }
     /**
      * Finds the PHP executable arguments.
+     *
+     * @return list<non-empty-string>
      */
     public function findArguments(): array
     {

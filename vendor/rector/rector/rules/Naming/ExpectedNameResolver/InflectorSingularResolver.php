@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace Rector\Naming\ExpectedNameResolver;
 
-use RectorPrefix202511\Doctrine\Inflector\Inflector;
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Doctrine\Inflector\Inflector;
+use RectorPrefix202602\Nette\Utils\Strings;
 use Rector\Util\StringUtils;
 /**
  * @see \Rector\Tests\Naming\ExpectedNameResolver\InflectorSingularResolverTest
@@ -20,13 +20,13 @@ final class InflectorSingularResolver
      */
     private const SINGULARIZE_MAP = ['news' => 'new'];
     /**
-     * @var string
      * @see https://regex101.com/r/lbQaGC/3
+     * @var string
      */
     private const CAMELCASE_REGEX = '#(?<camelcase>([a-z\d]+|[A-Z\d]{1,}[a-z\d]+|_))#';
     /**
-     * @var string
      * @see https://regex101.com/r/2aGdkZ/2
+     * @var string
      */
     private const BY_MIDDLE_REGEX = '#(?<by>By[A-Z][a-zA-Z]+)#';
     /**
@@ -82,7 +82,7 @@ final class InflectorSingularResolver
             if (in_array($camelCase[self::CAMELCASE], ['is', 'has', 'cms', 'this'], \true)) {
                 $value = $camelCase[self::CAMELCASE];
             } else {
-                $value = $this->inflector->singularize($camelCase[self::CAMELCASE]);
+                $value = $this->inflector->singularize((string) $camelCase[self::CAMELCASE]);
             }
             $resolvedName .= $value;
         }

@@ -25,7 +25,6 @@ use Symfony\Component\DependencyInjection\Compiler\CheckTypeDeclarationsPass;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\Compiler\ResolveFactoryClassPass;
 use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
-use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
@@ -82,9 +81,10 @@ final class ContainerLintCommand extends Command
         }
 
         $kernel = $this->getApplication()->getKernel();
-        $kernelContainer = $kernel->getContainer();
+        $container = $kernel->getContainer();
+        $file = $kernel->isDebug() ? $container->getParameter('debug.container.dump') : false;
 
-        if (!$kernel->isDebug() || !$kernelContainer->getParameter('debug.container.dump') || !(new ConfigCache($kernelContainer->getParameter('debug.container.dump'), true))->isFresh()) {
+        if (!$file || !(new ConfigCache($file, true))->isFresh()) {
             if (!$kernel instanceof Kernel) {
                 throw new RuntimeException(\sprintf('This command does not support the application kernel: "%s" does not extend "%s".', get_debug_type($kernel), Kernel::class));
             }
@@ -96,15 +96,20 @@ final class ContainerLintCommand extends Command
             }, $kernel, $kernel::class);
             $container = $buildContainer();
         } else {
-            if (!$kernelContainer instanceof Container) {
-                throw new RuntimeException(\sprintf('This command does not support the application container: "%s" does not extend "%s".', get_debug_type($kernelContainer), Container::class));
+            if (str_ends_with($file, '.xml') && is_file(substr_replace($file, '.ser', -4))) {
+                $container = unserialize(file_get_contents(substr_replace($file, '.ser', -4)));
+            } else {
+                (new XmlFileLoader($container = new ContainerBuilder(new EnvPlaceholderParameterBag()), new FileLocator()))->load($file);
             }
 
-            (new XmlFileLoader($container = new ContainerBuilder($parameterBag = new EnvPlaceholderParameterBag()), new FileLocator()))->load($kernelContainer->getParameter('debug.container.dump'));
+            if (!$container instanceof ContainerBuilder) {
+                throw new RuntimeException(\sprintf('This command does not support the application container: "%s" is not a "%s".', get_debug_type($container), ContainerBuilder::class));
+            }
 
             if ($resolveEnvVars) {
                 $container->getCompilerPassConfig()->setOptimizationPasses([new ResolveParameterPlaceHoldersPass(), new ResolveFactoryClassPass()]);
             } else {
+                $parameterBag = $container->getParameterBag();
                 $refl = new \ReflectionProperty($parameterBag, 'resolved');
                 $refl->setValue($parameterBag, true);
 

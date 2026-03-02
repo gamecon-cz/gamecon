@@ -17,9 +17,10 @@
     ],
     "require": {
         "php": ">=8.1",
-        "fakerphp/faker": "^1.23",
+        "fakerphp/faker": "^1.24",
         "symfony/deprecation-contracts": "^2.2|^3.0",
         "symfony/polyfill-php84": "^1.32",
+        "symfony/polyfill-php85": "^1.33",
         "symfony/property-access": "^6.4|^7.0|^8.0",
         "symfony/property-info": "^6.4|^7.0|^8.0",
         "symfony/var-exporter": "^6.4.9|~7.0.9|^7.1.2|^8.0",
@@ -30,20 +31,21 @@
         "dama/doctrine-test-bundle": "^8.0",
         "doctrine/collections": "^1.7|^2.0",
         "doctrine/common": "^3.2.2",
-        "doctrine/doctrine-bundle": "^2.10",
+        "doctrine/doctrine-bundle": "^2.10|^3.0",
         "doctrine/doctrine-migrations-bundle": "^2.2|^3.0",
         "doctrine/mongodb-odm": "^2.4",
         "doctrine/mongodb-odm-bundle": "^4.6|^5.0",
         "doctrine/orm": "^2.16|^3.0",
         "doctrine/persistence": "^2.0|^3.0|^4.0",
-        "phpunit/phpunit": "^9.5.0 || ^10.0 || ^11.0 || ^12.0",
+        "phpunit/phpunit": "^9.5.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0",
         "symfony/browser-kit": "^6.4|^7.0|^8.0",
         "symfony/console": "^6.4|^7.0|^8.0",
         "symfony/dotenv": "^6.4|^7.0|^8.0",
-        "symfony/event-dispatcher": "^6.4|^7.0",
+        "symfony/event-dispatcher": "^6.4|^7.0|^8.0",
+        "symfony/flex": "^2.10",
         "symfony/framework-bundle": "^6.4|^7.0|^8.0",
         "symfony/maker-bundle": "^1.55",
-        "symfony/phpunit-bridge": "^6.4|^7.0|^8.0",
+        "symfony/phpunit-bridge": "^6.4.26|^7.0|^8.0",
         "symfony/routing": "^6.4|^7.0|^8.0",
         "symfony/runtime": "^6.4|^7.0|^8.0",
         "symfony/translation-contracts": "^3.4",
@@ -84,8 +86,7 @@
     },
     "conflict": {
         "doctrine/persistence": "<2.0",
-        "symfony/event-dispatcher": "<6.4",
-        "symfony/framework-bundle": "<6.4"
+        "doctrine/cache": "<1.12.1"
     },
     "extra": {
         "bamarni-bin": {
@@ -95,6 +96,9 @@
         },
         "psalm": {
             "pluginClass": "Zenstruck\\Foundry\\Psalm\\FoundryPlugin"
+        },
+        "symfony": {
+            "allow-contrib": false
         }
     },
     "scripts": {

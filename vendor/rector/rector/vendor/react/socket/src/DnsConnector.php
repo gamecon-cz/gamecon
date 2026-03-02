@@ -1,10 +1,10 @@
 <?php
 
-namespace RectorPrefix202511\React\Socket;
+namespace RectorPrefix202602\React\Socket;
 
-use RectorPrefix202511\React\Dns\Resolver\ResolverInterface;
-use RectorPrefix202511\React\Promise;
-use RectorPrefix202511\React\Promise\PromiseInterface;
+use RectorPrefix202602\React\Dns\Resolver\ResolverInterface;
+use RectorPrefix202602\React\Promise;
+use RectorPrefix202602\React\Promise\PromiseInterface;
 final class DnsConnector implements ConnectorInterface
 {
     private $connector;
@@ -48,7 +48,9 @@ final class DnsConnector implements ConnectorInterface
                         // avoid garbage references by replacing all closures in call stack.
                         // what a lovely piece of code!
                         $r = new \ReflectionProperty('Exception', 'trace');
-                        $r->setAccessible(\true);
+                        if (\PHP_VERSION_ID < 80100) {
+                            $r->setAccessible(\true);
+                        }
                         $trace = $r->getValue($e);
                         // Exception trace arguments are not available on some PHP 7.4 installs
                         // @codeCoverageIgnoreStart

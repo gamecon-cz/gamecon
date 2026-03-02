@@ -109,8 +109,8 @@ final class DoctrineScalarFieldsDefaultPropertiesGuesser extends AbstractDoctrin
     {
         if ($fieldMapping instanceof FieldMapping) {
             return $fieldMapping->{$field};
-        } else {
-            return $fieldMapping[$field] ?? $default;
         }
+
+        return $fieldMapping[$field] ?? $default;
     }
 }

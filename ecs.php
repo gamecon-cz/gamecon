@@ -16,6 +16,7 @@ return ECSConfig::configure()
     ])
     ->withSkip([
         __DIR__ . '/symfony/var',
+        __DIR__ . '/symfony/config/reference.php',
         PhpdocSummaryFixer::class, // Disable adding dots to PHPDoc - breaks @see FQCN linking
     ])
     ->withPreparedSets(

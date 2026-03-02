@@ -17,6 +17,7 @@ use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\NodeVisitor;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\IntersectionType;
 use Rector\DeadCode\NodeAnalyzer\SafeLeftTypeBooleanAndOrAnalyzer;
 use Rector\NodeAnalyzer\ExprAnalyzer;
@@ -114,15 +115,22 @@ CODE_SAMPLE
         if ($hasAssign) {
             return null;
         }
-        $type = ScopeFetcher::fetch($node)->getNativeType($node->cond);
+        $scope = ScopeFetcher::fetch($node);
+        $type = $scope->getNativeType($node->cond);
         if (!$type->isTrue()->yes()) {
+            return null;
+        }
+        $classReflection = $scope->getClassReflection();
+        if ($classReflection instanceof ClassReflection && $classReflection->isTrait()) {
             return null;
         }
         if ($node->stmts === []) {
             return NodeVisitor::REMOVE_NODE;
         }
-        $node->stmts[0]->setAttribute(AttributeKey::COMMENTS, array_merge($node->getComments(), $node->stmts[0]->getComments()));
-        $node->stmts[0]->setAttribute(AttributeKey::HAS_MERGED_COMMENTS, \true);
+        // keep original comments
+        if ($node->getComments() !== []) {
+            $node->stmts[0]->setAttribute(AttributeKey::COMMENTS, array_merge($node->getComments(), $node->stmts[0]->getComments()));
+        }
         return $node->stmts;
     }
     private function shouldSkipFromVariable(Expr $expr): bool

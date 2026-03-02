@@ -18,7 +18,7 @@ final class ObjectHasUnsavedChanges extends RefreshObjectFailed
     public function __construct(string $objectClass)
     {
         parent::__construct(
-            "Cannot auto refresh \"{$objectClass}\" as there are unsaved changes. Be sure to call ->_save() or disable auto refreshing (see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#auto-refresh for details)."
+            "Cannot auto refresh \"{$objectClass}\" as there are unsaved changes. Be sure to to save your changes or disable auto refreshing (see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#auto-refresh for details)."
         );
     }
 }

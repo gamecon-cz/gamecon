@@ -3,13 +3,13 @@
 declare (strict_types=1);
 namespace Rector\ValueObject\Reporting;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use Rector\ChangesReporting\ValueObject\RectorWithLineChange;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\Parallel\ValueObject\BridgeItem;
 use Rector\Util\RectorClassesSorter;
-use RectorPrefix202511\Symplify\EasyParallel\Contract\SerializableInterface;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use RectorPrefix202602\Symplify\EasyParallel\Contract\SerializableInterface;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\ValueObject\Reporting\FileDiffTest
  */
@@ -33,15 +33,18 @@ final class FileDiff implements SerializableInterface
      */
     private array $rectorsWithLineChanges = [];
     /**
-     * @var string
      * @see https://en.wikipedia.org/wiki/Diff#Unified_format
      * @see https://regex101.com/r/AUPIX4/2
+     * @var string
      */
     private const DIFF_HUNK_HEADER_REGEX = '#@@(.*?)(?<' . self::FIRST_LINE_KEY . '>\d+)(,(?<' . self::LINE_RANGE_KEY . '>\d+))?(.*?)@@#';
     /**
      * @var string
      */
     private const FIRST_LINE_KEY = 'first_line';
+    /**
+     * @var string
+     */
     private const LINE_RANGE_KEY = 'line_range';
     /**
      * @param RectorWithLineChange[] $rectorsWithLineChanges

@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202511\Illuminate\Contracts\Pipeline;
+namespace RectorPrefix202602\Illuminate\Contracts\Pipeline;
 
 use Closure;
 interface Pipeline
@@ -15,7 +15,7 @@ interface Pipeline
     /**
      * Set the array of pipes.
      *
-     * @param  array|mixed  $pipes
+     * @param  mixed  $pipes
      * @return $this
      */
     public function through($pipes);

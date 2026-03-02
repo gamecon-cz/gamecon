@@ -16,6 +16,7 @@ use Rector\DeadCode\Rector\ClassLike\RemoveTypedPropertyNonMockDocblockRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveArgumentFromDefaultParentCallRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveNullTagValueNodeRector;
+use Rector\DeadCode\Rector\ClassMethod\RemoveParentDelegatingConstructorRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedConstructorParamRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPrivateMethodParameterRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPrivateMethodRector;
@@ -25,6 +26,7 @@ use Rector\DeadCode\Rector\ClassMethod\RemoveUselessAssignFromPropertyPromotionR
 use Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnExprInConstructRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector;
+use Rector\DeadCode\Rector\ClassMethod\RemoveVoidDocblockFromMagicMethodRector;
 use Rector\DeadCode\Rector\Closure\RemoveUnusedClosureVariableUseRector;
 use Rector\DeadCode\Rector\Concat\RemoveConcatAutocastRector;
 use Rector\DeadCode\Rector\ConstFetch\RemovePhpVersionIdCheckRector;
@@ -39,6 +41,7 @@ use Rector\DeadCode\Rector\FunctionLike\NarrowWideUnionReturnTypeRector;
 use Rector\DeadCode\Rector\FunctionLike\RemoveDeadReturnRector;
 use Rector\DeadCode\Rector\If_\ReduceAlwaysFalseIfOrRector;
 use Rector\DeadCode\Rector\If_\RemoveAlwaysTrueIfConditionRector;
+use Rector\DeadCode\Rector\If_\RemoveDeadIfBlockRector;
 use Rector\DeadCode\Rector\If_\RemoveDeadInstanceOfRector;
 use Rector\DeadCode\Rector\If_\RemoveTypedPropertyDeadInstanceOfRector;
 use Rector\DeadCode\Rector\If_\RemoveUnusedNonEmptyArrayBeforeForeachRector;
@@ -54,6 +57,7 @@ use Rector\DeadCode\Rector\PropertyProperty\RemoveNullPropertyInitializationRect
 use Rector\DeadCode\Rector\Return_\RemoveDeadConditionAboveReturnRector;
 use Rector\DeadCode\Rector\StaticCall\RemoveParentCallWithoutParentRector;
 use Rector\DeadCode\Rector\Stmt\RemoveConditionExactReturnRector;
+use Rector\DeadCode\Rector\Stmt\RemoveNextSameValueConditionRector;
 use Rector\DeadCode\Rector\Stmt\RemoveUnreachableStatementRector;
 use Rector\DeadCode\Rector\Switch_\RemoveDuplicatedCaseInSwitchRector;
 use Rector\DeadCode\Rector\Ternary\TernaryToBooleanOrFalseToBooleanAndRector;
@@ -97,9 +101,11 @@ final class DeadCodeLevel
         RemoveUselessAssignFromPropertyPromotionRector::class,
         RemoveConcatAutocastRector::class,
         SimplifyIfElseWithSameContentRector::class,
+        RemoveNextSameValueConditionRector::class,
         SimplifyUselessVariableRector::class,
         RemoveDeadZeroAndOneOperationRector::class,
         // docblock
+        RemoveVoidDocblockFromMagicMethodRector::class,
         RemoveUselessParamTagRector::class,
         RemoveUselessReturnTagRector::class,
         RemoveUselessReadOnlyTagRector::class,
@@ -118,11 +124,13 @@ final class DeadCodeLevel
         RemoveDeadInstanceOfRector::class,
         RemoveDeadCatchRector::class,
         RemoveDeadTryCatchRector::class,
+        RemoveDeadIfBlockRector::class,
         RemoveDeadIfForeachForRector::class,
         RemoveConditionExactReturnRector::class,
         RemoveDeadStmtRector::class,
         UnwrapFutureCompatibleIfPhpVersionRector::class,
         RemoveParentCallWithoutParentRector::class,
+        RemoveParentDelegatingConstructorRector::class,
         RemoveDeadConditionAboveReturnRector::class,
         RemoveDeadLoopRector::class,
         // removing methods could be risky if there is some magic loading them

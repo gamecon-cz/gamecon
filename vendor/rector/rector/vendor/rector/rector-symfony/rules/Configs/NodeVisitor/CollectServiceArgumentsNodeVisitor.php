@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Symfony\Configs\NodeVisitor;
 
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
@@ -152,11 +152,11 @@ final class CollectServiceArgumentsNodeVisitor extends NodeVisitorAbstract
     {
         $match = Strings::match($argumentValue, '#%env\((?<env>[A-Z_]+)\)#');
         if (isset($match['env'])) {
-            $this->servicesArgumentsByClass[$serviceClassName][self::ENVS][$argumentLocation] = (string) $match['env'];
+            $this->servicesArgumentsByClass[$serviceClassName][self::ENVS][$argumentLocation] = $match['env'];
         }
         $match = Strings::match($argumentValue, '#%(?<parameter>[\w]+)%#');
         if (isset($match['parameter'])) {
-            $this->servicesArgumentsByClass[$serviceClassName][self::PARAMETERS][$argumentLocation] = (string) $match['parameter'];
+            $this->servicesArgumentsByClass[$serviceClassName][self::PARAMETERS][$argumentLocation] = $match['parameter'];
         }
     }
     private function processArgsMethodCall(MethodCall $argsMethodCall): void

@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202511\Symfony\Component\String;
+namespace RectorPrefix202602\Symfony\Component\String;
 
-use RectorPrefix202511\Symfony\Component\String\Exception\ExceptionInterface;
-use RectorPrefix202511\Symfony\Component\String\Exception\InvalidArgumentException;
-use RectorPrefix202511\Symfony\Component\String\Exception\RuntimeException;
+use RectorPrefix202602\Symfony\Component\String\Exception\ExceptionInterface;
+use RectorPrefix202602\Symfony\Component\String\Exception\InvalidArgumentException;
+use RectorPrefix202602\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract Unicode characters.
  *
@@ -237,7 +237,7 @@ abstract class AbstractUnicodeString extends AbstractString
      */
     public function normalize(int $form = self::NFC)
     {
-        if (!\in_array($form, [self::NFC, self::NFD, self::NFKC, self::NFKD])) {
+        if (!\in_array($form, [self::NFC, self::NFD, self::NFKC, self::NFKD], \true)) {
             throw new InvalidArgumentException('Unsupported normalization form.');
         }
         $str = clone $this;
@@ -329,7 +329,7 @@ abstract class AbstractUnicodeString extends AbstractString
     public function reverse()
     {
         $str = clone $this;
-        $str->string = implode('', array_reverse(preg_split('/(\X)/u', $str->string, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY)));
+        $str->string = implode('', array_reverse(grapheme_str_split($str->string)));
         return $str;
     }
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202511\Illuminate\Container;
+namespace RectorPrefix202602\Illuminate\Container;
 
 use Countable;
 use IteratorAggregate;
@@ -24,7 +24,6 @@ class RewindableGenerator implements Countable, IteratorAggregate
      *
      * @param  callable  $generator
      * @param  callable|int  $count
-     * @return void
      */
     public function __construct(callable $generator, $count)
     {

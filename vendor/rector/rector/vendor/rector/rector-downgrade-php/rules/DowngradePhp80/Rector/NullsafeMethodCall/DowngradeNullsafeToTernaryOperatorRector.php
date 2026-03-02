@@ -11,6 +11,7 @@ use PhpParser\Node\Expr\NullsafePropertyFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Ternary;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Stmt\Expression;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -20,17 +21,6 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 final class DowngradeNullsafeToTernaryOperatorRector extends AbstractRector
 {
     private int $counter = 0;
-    /**
-     * Hack-ish way to reset counter for a new file, to avoid rising counter for each file
-     *
-     * @param Node[] $nodes
-     * @return array|Node[]|null
-     */
-    public function beforeTraverse(array $nodes): ?array
-    {
-        $this->counter = 0;
-        return parent::beforeTraverse($nodes);
-    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change nullsafe operator to ternary operator rector', [new CodeSample(<<<'CODE_SAMPLE'
@@ -46,13 +36,32 @@ CODE_SAMPLE
      */
     public function getNodeTypes(): array
     {
-        return [MethodCall::class, PropertyFetch::class, NullsafeMethodCall::class, NullsafePropertyFetch::class];
+        return [Expression::class, MethodCall::class, PropertyFetch::class, NullsafeMethodCall::class, NullsafePropertyFetch::class];
     }
     /**
-     * @param MethodCall|NullsafeMethodCall|NullsafePropertyFetch $node
+     * @param Expression|MethodCall|NullsafeMethodCall|NullsafePropertyFetch $node
+     * @return null|\PhpParser\Node\Expr\Ternary|\PhpParser\Node\Stmt\Expression
      */
-    public function refactor(Node $node): ?Ternary
+    public function refactor(Node $node)
     {
+        static $currentFile = null;
+        if ($currentFile !== $this->file->getFilePath()) {
+            // the counter need start from 0 when visit new file to avoid random increment
+            // across files
+            // due to run on parallel
+            $this->counter = 0;
+            $currentFile = $this->file->getFilePath();
+        }
+        if ($node instanceof Expression) {
+            if ($node->expr instanceof Assign && ($node->expr->expr instanceof NullsafeMethodCall || $node->expr->expr instanceof NullsafePropertyFetch)) {
+                $refactorAssignExpr = $this->refactor($node->expr->expr);
+                if ($refactorAssignExpr instanceof Ternary) {
+                    $node->expr->expr = $refactorAssignExpr;
+                    return $node;
+                }
+            }
+            return null;
+        }
         if ($node instanceof MethodCall || $node instanceof PropertyFetch) {
             if ($node->var instanceof NullsafeMethodCall || $node->var instanceof NullsafePropertyFetch) {
                 $nullsafeVariable = $this->createNullsafeVariable();

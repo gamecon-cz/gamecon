@@ -3,9 +3,9 @@
 declare (strict_types=1);
 namespace Rector\Symfony\ValueObjectFactory;
 
-use RectorPrefix202511\Nette\Utils\FileSystem;
-use RectorPrefix202511\Nette\Utils\Json;
-use RectorPrefix202511\Nette\Utils\Strings;
+use RectorPrefix202602\Nette\Utils\FileSystem;
+use RectorPrefix202602\Nette\Utils\Json;
+use RectorPrefix202602\Nette\Utils\Strings;
 use Rector\Symfony\Exception\XmlContainerNotExistsException;
 use Rector\Symfony\ValueObject\ServiceDefinition;
 use Rector\Symfony\ValueObject\ServiceMap\ServiceMap;
@@ -56,7 +56,7 @@ final class ServiceMapFactory
         return new ServiceMap([]);
     }
     /**
-     * @param mixed[] $def
+     * @param array<string, mixed> $def
      * @return mixed[]
      */
     private function createTagFromXmlElement(array $def): array
@@ -78,7 +78,7 @@ final class ServiceMapFactory
     private function createServiceFromXmlAndTagsData(SimpleXMLElement $attrs, array $tags): ServiceDefinition
     {
         $tags = $this->createTagsFromData($tags);
-        return new ServiceDefinition(strncmp((string) $attrs->id, '.', strlen('.')) === 0 ? Strings::substring((string) $attrs->id, 1) : (string) $attrs->id, property_exists($attrs, 'class') && $attrs->class instanceof SimpleXMLElement ? (string) $attrs->class : null, !(property_exists($attrs, 'public') && $attrs->public instanceof SimpleXMLElement) || (string) $attrs->public !== 'false', property_exists($attrs, 'synthetic') && $attrs->synthetic instanceof SimpleXMLElement && (string) $attrs->synthetic === 'true', property_exists($attrs, 'alias') && $attrs->alias instanceof SimpleXMLElement ? (string) $attrs->alias : null, $tags);
+        return new ServiceDefinition(strncmp((string) $attrs->id, '.', strlen('.')) === 0 ? Strings::substring((string) $attrs->id, 1) : (string) $attrs->id, property_exists($attrs, 'class') && $attrs->class instanceof SimpleXMLElement ? (string) $attrs->class : null, !(property_exists($attrs, 'public') && $attrs->public instanceof SimpleXMLElement) || (string) $attrs->public !== 'false', property_exists($attrs, 'synthetic') && $attrs->synthetic instanceof SimpleXMLElement && (string) $attrs->synthetic === 'true', !(property_exists($attrs, 'shared') && $attrs->shared instanceof SimpleXMLElement) || (string) $attrs->shared !== 'false', property_exists($attrs, 'alias') && $attrs->alias instanceof SimpleXMLElement ? (string) $attrs->alias : null, $tags);
     }
     /**
      * @param ServiceDefinition[] $aliases
@@ -96,7 +96,7 @@ final class ServiceMapFactory
                 continue;
             }
             $id = $service->getId();
-            $services[$id] = new ServiceDefinition($id, $services[$alias]->getClass(), $service->isPublic(), $service->isSynthetic(), $alias, []);
+            $services[$id] = new ServiceDefinition($id, $services[$alias]->getClass(), $service->isPublic(), $service->isSynthetic(), $service->isShared(), $alias, []);
         }
         return $services;
     }
@@ -128,7 +128,7 @@ final class ServiceMapFactory
      */
     private function convertXmlToArray(SimpleXMLElement $simpleXMLElement): array
     {
-        $data = Json::decode(Json::encode((array) $simpleXMLElement), Json::FORCE_ARRAY);
+        $data = Json::decode(Json::encode((array) $simpleXMLElement), \true);
         $data = $this->unWrapAttributes($data);
         foreach ($data as $key => $value) {
             if (is_array($value)) {

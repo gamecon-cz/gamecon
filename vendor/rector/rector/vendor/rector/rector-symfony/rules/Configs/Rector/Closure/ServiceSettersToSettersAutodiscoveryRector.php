@@ -24,7 +24,7 @@ use Rector\Symfony\Enum\SymfonyClass;
 use Rector\Symfony\MinimalSharedStringSolver;
 use Rector\Symfony\NodeAnalyzer\SymfonyPhpClosureDetector;
 use Rector\Symfony\ValueObject\ClassNameAndFilePath;
-use RectorPrefix202511\Symfony\Component\Filesystem\Filesystem;
+use RectorPrefix202602\Symfony\Component\Filesystem\Filesystem;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -112,6 +112,9 @@ CODE_SAMPLE
         }
         $classNamesAndFilesPaths = $this->createClassNamesAndFilePaths($bareServicesSetMethodCallExpressions);
         $classNames = array_map(static fn(ClassNameAndFilePath $classNameAndFilePath): string => $classNameAndFilePath->getClassName(), $classNamesAndFilesPaths);
+        if (count($classNames) < 2) {
+            return null;
+        }
         $sharedNamespace = $this->minimalSharedStringSolver->solve(...$classNames);
         $firstClassNameAndFilePath = $classNamesAndFilesPaths[0];
         $classFilePath = $firstClassNameAndFilePath->getFilePath();

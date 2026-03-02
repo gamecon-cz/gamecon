@@ -6,8 +6,9 @@ namespace Rector\Symfony\Bridge\Symfony;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\Exception\ShouldNotHappenException;
-use RectorPrefix202511\Symfony\Component\DependencyInjection\Container;
-use RectorPrefix202511\Webmozart\Assert\Assert;
+use Rector\Symfony\Enum\SymfonyClass;
+use RectorPrefix202602\Symfony\Component\DependencyInjection\Container;
+use RectorPrefix202602\Webmozart\Assert\Assert;
 final class ContainerServiceProvider
 {
     private ?object $container = null;
@@ -28,7 +29,7 @@ final class ContainerServiceProvider
             Assert::fileExists($symfonyContainerPhp);
             $container = require $symfonyContainerPhp;
             // this allows older Symfony versions, e.g. 2.8 did not have the PSR yet
-            Assert::isInstanceOf($container, 'Symfony\Component\DependencyInjection\Container');
+            Assert::isInstanceOf($container, SymfonyClass::CONTAINER);
             $this->container = $container;
         }
         return $this->container;

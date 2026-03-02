@@ -41,14 +41,14 @@ final class ZenstruckFoundryBundle extends AbstractBundle implements CompilerPas
 {
     public function boot(): void
     {
-        if ($this->container) {
+        if ($this->container && !Configuration::isBooted()) {
             Configuration::boot($this->container->get('.zenstruck_foundry.configuration')); // @phpstan-ignore argument.type
         }
     }
 
     public function configure(DefinitionConfigurator $definition): void
     {
-        $definition->rootNode() // @phpstan-ignore method.notFound
+        $definition->rootNode()
             ->children()
                 ->booleanNode('auto_refresh_proxies')
                     ->info('Whether to auto-refresh proxies by default (https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#auto-refresh)')
@@ -59,7 +59,7 @@ final class ZenstruckFoundryBundle extends AbstractBundle implements CompilerPas
                     ->info('Enable auto-refresh using PHP 8.4 lazy objects (cannot be enabled if PHP < 8.4).')
                     ->defaultNull()
                     ->validate()
-                        ->ifTrue(fn(?bool $enableAutoRefreshWithLazyObjects): bool => $enableAutoRefreshWithLazyObjects && \PHP_VERSION_ID < 80400)
+                        ->ifTrue(static fn(?bool $enableAutoRefreshWithLazyObjects): bool => $enableAutoRefreshWithLazyObjects && \PHP_VERSION_ID < 80400)
                         ->thenInvalid('Cannot enable auto-refresh with lazy objects if not using at least PHP 8.4.')
                     ->end()
                 ->end()
@@ -75,8 +75,12 @@ final class ZenstruckFoundryBundle extends AbstractBundle implements CompilerPas
                         ->scalarNode('seed')
                             ->setDeprecated('zenstruck/foundry', '2.4', 'The "faker.seed" configuration is deprecated and will be removed in 3.0. Use environment variable "FOUNDRY_FAKER_SEED" instead.')
                             ->info('Random number generator seed to produce the same fake values every run.')
-                            ->example(1234)
+                            ->example('1234')
                             ->defaultNull()
+                        ->end()
+                        ->booleanNode('manage_seed')
+                            ->info('Automatically manage faker seed to ensure consistent data between test runs.')
+                            ->defaultTrue()
                         ->end()
                         ->scalarNode('service')
                             ->info('Service id for custom faker instance.')
@@ -159,7 +163,7 @@ final class ZenstruckFoundryBundle extends AbstractBundle implements CompilerPas
                                             ->defaultValue([])
                                             ->scalarPrototype()->end()
                                             ->validate()
-                                                ->ifTrue(function(array $configurationFiles): bool {
+                                                ->ifTrue(static function(array $configurationFiles): bool {
                                                     foreach ($configurationFiles as $configurationFile) {
                                                         if (!\is_file($configurationFile)) {
                                                             return true;
@@ -349,6 +353,7 @@ final class ZenstruckFoundryBundle extends AbstractBundle implements CompilerPas
     private function configureFaker(array $config, ContainerBuilder $container): void
     {
         $container->setParameter('zenstruck_foundry.faker.seed', $config['seed']);
+        $container->setParameter('zenstruck_foundry.faker.manage_seed', $config['manage_seed']);
 
         if ($config['service']) {
             $container->setAlias('.zenstruck_foundry.faker', $config['service']);

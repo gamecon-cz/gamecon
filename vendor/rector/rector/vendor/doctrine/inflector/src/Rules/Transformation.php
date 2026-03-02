@@ -1,9 +1,9 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202511\Doctrine\Inflector\Rules;
+namespace RectorPrefix202602\Doctrine\Inflector\Rules;
 
-use RectorPrefix202511\Doctrine\Inflector\WordInflector;
+use RectorPrefix202602\Doctrine\Inflector\WordInflector;
 use function preg_replace;
 final class Transformation implements WordInflector
 {

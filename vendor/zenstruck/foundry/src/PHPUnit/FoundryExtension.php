@@ -13,39 +13,96 @@ declare(strict_types=1);
 
 namespace Zenstruck\Foundry\PHPUnit;
 
+use PHPUnit\Event;
 use PHPUnit\Metadata\Version\ConstraintRequirement;
 use PHPUnit\Runner;
 use PHPUnit\TextUI;
 use Zenstruck\Foundry\Configuration;
+use Zenstruck\Foundry\PHPUnit\DataProvider\BootFoundryOnDataProviderMethodCalled;
+use Zenstruck\Foundry\PHPUnit\DataProvider\DataProviderSubscriberInterface;
+use Zenstruck\Foundry\PHPUnit\DataProvider\ShutdownFoundryOnDataProviderMethodFinished;
+use Zenstruck\Foundry\PHPUnit\DataProvider\TriggerDataProviderPersistenceOnTestPrepared;
+use Zenstruck\Foundry\PHPUnit\ResetDatabase\ResetDatabaseOnPreparationStarted;
+use Zenstruck\Foundry\PHPUnit\ResetDatabase\ResetDatabaseOnTestSuiteStarted;
 
 /**
  * @internal
  * @author Nicolas PHILIPPE <nikophil@gmail.com>
  */
-final class FoundryExtension implements Runner\Extension\Extension
-{
-    public function bootstrap(
-        TextUI\Configuration\Configuration $configuration,
-        Runner\Extension\Facade $facade,
-        Runner\Extension\ParameterCollection $parameters,
-    ): void {
-        // shutdown Foundry if for some reason it has been booted before
-        if (Configuration::isBooted()) {
-            Configuration::shutdown();
+if (\interface_exists(Runner\Extension\Extension::class)) {
+    final class FoundryExtension implements Runner\Extension\Extension
+    {
+        public const PARAMETER_AUTO_RESET_DATABASE_CLASS = 'enabled-auto-reset';
+
+        private static bool $enabled = false;
+
+        public function bootstrap(
+            TextUI\Configuration\Configuration $configuration,
+            Runner\Extension\Facade $facade,
+            Runner\Extension\ParameterCollection $parameters,
+        ): void {
+            // shutdown Foundry if for some reason it has been booted before
+            if (Configuration::isBooted()) {
+                Configuration::shutdown();
+            }
+
+            $autoResetEnabled = $parameters->has(self::PARAMETER_AUTO_RESET_DATABASE_CLASS)
+                && 'true' === $parameters->get(self::PARAMETER_AUTO_RESET_DATABASE_CLASS);
+
+            // ⚠️ order matters within each event
+            $subscribers = [
+                Event\TestSuite\Started::class => [new ResetDatabaseOnTestSuiteStarted($autoResetEnabled)],
+                Event\Test\DataProviderMethodCalled::class => [new BootFoundryOnDataProviderMethodCalled()],
+                Event\Test\DataProviderMethodFinished::class => [new ShutdownFoundryOnDataProviderMethodFinished()],
+                Event\Test\PreparationStarted::class => [
+                    new BootFoundryOnPreparationStarted(),
+                    new ResetDatabaseOnPreparationStarted($autoResetEnabled),
+                    new EnableInMemoryOnPreparationStarted(),
+                ],
+                Event\Test\Prepared::class => [
+                    new BuildStoryOnTestPrepared(),
+                    new TriggerDataProviderPersistenceOnTestPrepared(),
+                ],
+                Event\Test\Finished::class => [new ShutdownFoundryOnTestFinished()],
+                Event\TestRunner\Finished::class => [new DisplayFakerSeedOnApplicationFinished()],
+            ];
+
+            $subscribers = \array_merge(...\array_values($subscribers));
+
+            // Foundry can only handle data provider since PHPUnit 11.4
+            if (!ConstraintRequirement::from('>=11.4')->isSatisfiedBy(Runner\Version::id())) {
+                $subscribers = \array_filter(
+                    $subscribers,
+                    static fn($subscriber) => !$subscriber instanceof DataProviderSubscriberInterface
+                );
+            }
+
+            $facade->registerSubscribers(...$subscribers);
+
+            self::$enabled = true;
         }
 
-        $subscribers = [
-            new BuildStoryOnTestPrepared(),
-            new EnableInMemoryBeforeTest(),
-            new DisplayFakerSeedOnTestSuiteFinished(),
-        ];
-
-        if (ConstraintRequirement::from('>=11.4')->isSatisfiedBy(Runner\Version::id())) {
-            // those deal with data provider events which can be useful only if PHPUnit >=11.4 is used
-            $subscribers[] = new BootFoundryOnDataProviderMethodCalled();
-            $subscribers[] = new ShutdownFoundryOnDataProviderMethodFinished();
+        public static function shouldBeEnabled(): bool
+        {
+            return \defined('PHPUNIT_COMPOSER_INSTALL') && !self::isEnabled() && ConstraintRequirement::from('>=10')->isSatisfiedBy(Runner\Version::id());
         }
 
-        $facade->registerSubscribers(...$subscribers);
+        public static function isEnabled(): bool
+        {
+            return self::$enabled;
+        }
+    }
+} else {
+    final class FoundryExtension
+    {
+        public static function shouldBeEnabled(): bool
+        {
+            return false;
+        }
+
+        public static function isEnabled(): bool
+        {
+            return false;
+        }
     }
 }
