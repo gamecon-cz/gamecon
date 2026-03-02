@@ -93,6 +93,9 @@ abstract class AbstractTestDb extends KernelTestCase
         }
         if (static::resetDbAfterSingleTestMethod()) {
             self::$connection->resetTestDb();
+            // Po resetu DB se auto_increment vrátí na 1 - vyčistíme Doctrine identity map,
+            // aby v dalším testu nevznikaly EntityIdentityCollisionException
+            $this->getContainer()->get('doctrine')->getManager()->clear();
         }
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
         $systemoveNastaveni->queryCache()->clear();
