@@ -54,6 +54,20 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
     {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
 
+        // Cleanup: remove any stale rows with our hardcoded IDs (committed by Foundry
+        // or left over from a test isolation failure in a previous class)
+        $allTestUserIds = implode(', ', [
+            self::VELKY_DLUH_NIC_NEDAM,
+            self::VELKY_DLUH_DAM_MALO,
+            self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI,
+            self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY,
+            self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT,
+            self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT,
+            self::VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM,
+            self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM,
+        ]);
+        $queries[] = "DELETE FROM uzivatele_hodnoty WHERE id_uzivatele IN ($allTestUserIds)";
+
         $queries[] = self::nejakyPredmetQuery($systemoveNastaveni);
         $queries[] = self::predmetUbytovaniQuery($systemoveNastaveni);
         $queries[] = self::aktivitaLarpQuery($systemoveNastaveni, $cenaLarpu = 11.1);
