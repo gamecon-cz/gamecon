@@ -310,6 +310,10 @@ class JwtServiceTest extends TestCase
 
     public function testStoreTokenThrowsExceptionWhenCannotWriteFile(): void
     {
+        if (function_exists('posix_getuid') && posix_getuid() === 0) {
+            $this->markTestSkipped('Cannot test write permission failures when running as root');
+        }
+
         // Create a read-only directory to force write failure
         $readOnlyDir = SPEC . '/jwt_readonly_test_' . uniqid();
         mkdir($readOnlyDir, 0755, true);
