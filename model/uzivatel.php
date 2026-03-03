@@ -1827,8 +1827,6 @@ SQL,
             return '';
         };
 
-        $dbTab = self::spojPredvolbuSTelefonem($dbTab);
-
         $validace = [
             // Osobní
             Sql::EMAIL1_UZIVATELE   => $validaceMailu,
@@ -1941,21 +1939,6 @@ SQL,
         }
 
         return (string) $idUzivatele;
-    }
-
-    protected static function spojPredvolbuSTelefonem(array $data): array
-    {
-        $telefon = $data[Sql::TELEFON_UZIVATELE] ?? null;
-        $predvolba = $data['predvolba'] ?? null;
-        unset($data['predvolba']); // v dalším zpracování dat by předvolba byla považována za neznámý klíč a chybu
-
-        if (empty($telefon) || empty($predvolba)) {
-            return $data;
-        }
-
-        $data[Sql::TELEFON_UZIVATELE] = $predvolba . ' ' . $telefon;
-
-        return $data;
     }
 
     /**
