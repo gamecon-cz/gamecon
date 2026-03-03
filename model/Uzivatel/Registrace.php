@@ -227,9 +227,7 @@ class Registrace
         </div>
           <?= $this->input('E-mailová adresa', 'email', Sql::EMAIL1_UZIVATELE) ?>
 
-        <div class="formular_sloupce">
-            <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, true, 'width: 70%; float:right', $this->telefonniPredvolbaInput('predvolba', 'float: left; width: 29%')) ?>
-        </div>
+          <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, true, '', '', 'např. +420 789 123 456') ?>
 
           <?= $this->povinneUdajeProUbytovaniHtml() ?>
 
@@ -325,31 +323,6 @@ HTML
         <div style="height: 30px"></div>
       </form>
 
-      <script type="text/javascript">
-        // pozor 'telefon_uzivatele' pochází z názvu sloupce SQL, pokud ho pejmenujeme, musíme změnit i tento název
-        const telefonInput = document.getElementById('input_telefon_uzivatele')
-        const predvolbaInput = document.getElementById('input_predvolba')
-        const moznePredvolby = Array.from(predvolbaInput.getElementsByTagName('option'))
-          .map((optionElement) => optionElement.value)
-          .filter((value) => value !== '')
-
-        telefonInput.addEventListener('change', function () {
-          const hodnota = this.value
-          if (hodnota.match(/^\s*[+]/)) {
-            predvolbaInput.value = '' // reset výběru předvolby na "žádná"
-          }
-        })
-        predvolbaInput.addEventListener('change', function () {
-          const predvolba = this.value.trim()
-          if (predvolba === '') {
-            return
-          }
-          moznePredvolby.forEach(function (moznaPredvolba) {
-            // účastník vybral předvolbu a přitom už nějakou má napsanou v telefonu, smažeme ji z telefonu
-            telefonInput.value = telefonInput.value.replace(moznaPredvolba, '')
-          })
-        })
-      </script>
         <?php
     }
 
@@ -403,28 +376,6 @@ HTML
                 {$chybaHtml}
             </label>
         HTML;
-    }
-
-    private function telefonniPredvolbaInput(string $klic, string $inputCss = ''): string
-    {
-        $options     = [
-            '',
-            '+421',
-            '+420',
-        ];
-        $optionsHtml = implode(
-            "\n",
-            array_map(
-                static fn(string $predvolba) => "<option value='$predvolba'>$predvolba</option>",
-                $options,
-            ),
-        );
-
-        return <<<HTML
-    <select name="{$this->inputName()}[{$klic}]" style="{$inputCss}" id="input_{$klic}">
-      {$optionsHtml}
-    </select>
-    HTML;
     }
 
     public function povinneUdajeProUbytovaniHtml(string $nadpis = '', string $tooltip = ''): string
