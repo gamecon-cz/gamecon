@@ -20,8 +20,7 @@ init:
 
 run: init
 	@PORT=$$(docker compose port web 80 2>/dev/null | cut -d: -f2); \
-	echo "Web runs on http://localhost:$${PORT}"
-	echo "Admin runs on http://localhost:$${PORT}/admin"
+	echo "App runs on http://localhost:$${PORT} http://localhost:$${PORT}/admin"
 
 bash:
 	./bin-docker/docker-bash
