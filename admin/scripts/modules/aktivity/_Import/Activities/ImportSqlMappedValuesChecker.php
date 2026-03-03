@@ -439,18 +439,22 @@ SQL
             potentialImageUrls: $potentialImageUrls,
         );
 
+        $isInternalActivity = TypAktivity::jeInterniDleId($sqlMappedValues[ActivitiesImportSqlColumn::TYP]);
+
         $requiredNonEmptyFields = [
             ActivitiesImportSqlColumn::NAZEV_AKCE,
             ActivitiesImportSqlColumn::URL_AKCE,
             ActivitiesImportSqlColumn::ZACATEK,
             ActivitiesImportSqlColumn::KONEC,
-            ActivitiesImportSqlColumn::VIRTUAL_LOCATIONS,
-            ActivitiesImportSqlColumn::POPIS_KRATKY,
-            ActivitiesImportSqlColumn::POPIS,
             ActivitiesImportSqlColumn::VYBAVENI,
-            ActivitiesImportSqlColumn::VIRTUAL_IMAGE,
-            ActivitiesImportSqlColumn::VIRTUAL_TAGS,
         ];
+        if (!$isInternalActivity) {
+            $requiredNonEmptyFields[] = ActivitiesImportSqlColumn::VIRTUAL_LOCATIONS;
+            $requiredNonEmptyFields[] = ActivitiesImportSqlColumn::POPIS_KRATKY;
+            $requiredNonEmptyFields[] = ActivitiesImportSqlColumn::POPIS;
+            $requiredNonEmptyFields[] = ActivitiesImportSqlColumn::VIRTUAL_IMAGE;
+            $requiredNonEmptyFields[] = ActivitiesImportSqlColumn::VIRTUAL_TAGS;
+        }
 
         $requiredFieldsAcceptingZero = [
             ActivitiesImportSqlColumn::CENA,
@@ -506,14 +510,18 @@ SQL
             potentialImageUrls: $potentialImageUrls,
         );
 
+        $isInternalActivity = TypAktivity::jeInterniDleId($sqlMappedValues[ActivitiesImportSqlColumn::TYP]);
+
         $requiredNonEmptyFields = [
             ActivitiesImportSqlColumn::NAZEV_AKCE,
             ActivitiesImportSqlColumn::URL_AKCE,
-            ActivitiesImportSqlColumn::POPIS_KRATKY,
-            ActivitiesImportSqlColumn::POPIS,
-            ActivitiesImportSqlColumn::VIRTUAL_IMAGE,
-            ActivitiesImportSqlColumn::VIRTUAL_TAGS,
         ];
+        if (!$isInternalActivity) {
+            $requiredNonEmptyFields[] = ActivitiesImportSqlColumn::POPIS_KRATKY;
+            $requiredNonEmptyFields[] = ActivitiesImportSqlColumn::POPIS;
+            $requiredNonEmptyFields[] = ActivitiesImportSqlColumn::VIRTUAL_IMAGE;
+            $requiredNonEmptyFields[] = ActivitiesImportSqlColumn::VIRTUAL_TAGS;
+        }
 
         $missingNames = $this->getMissingRequiredFieldsForState($sqlMappedValues, $requiredNonEmptyFields, []);
         if ($missingNames) {
