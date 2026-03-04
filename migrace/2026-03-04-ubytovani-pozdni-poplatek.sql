@@ -7,4 +7,4 @@ INSERT INTO systemove_nastaveni
 VALUES ('UBYTOVANI_POZDNI_POPLATEK_ZA_NOC', '0', 1, 'number',
         'Pozdní poplatek za ubytování (Kč/noc)',
         'Příplatek za noc ubytování objednaného na místě (po uzavření veřejného prodeje ubytování). Infopult vidí tento poplatek při přidělování ubytování.',
-        'Ubytování');
+        'Finance');

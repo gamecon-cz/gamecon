@@ -7,7 +7,6 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Gamecon\Pravo;
-use Gamecon\Uzivatel\Cenik;
 use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
@@ -193,9 +192,6 @@ SQL,
             $poplatek    = array_key_exists($denPredmetu, $poplatkyObjednanychDni)
                 ? (float)$poplatkyObjednanychDni[$denPredmetu]
                 : $pozdniPoplatekZaNoc;
-            if ($poplatek > 0.0 && Cenik::maUbytovaniZdarmaProDen($ucastnik, $denPredmetu)) {
-                $poplatek = 0.0;
-            }
             $sqlValuesArray[] = <<<SQL
 ({$ucastnik->id()}, $idPredmetuUbytovani, $rok,
  (SELECT cena_aktualni + $poplatek FROM shop_predmety WHERE id_predmetu=$idPredmetuUbytovani),
