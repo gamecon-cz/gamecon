@@ -154,7 +154,10 @@ if ($uPracovni && $udaje = post('udaje')) {
 }
 
 if (post('zpracujUbytovani')) {
-    $shop->zpracujUbytovani(false, false);
+    $pozdniPoplatek = $systemoveNastaveni->prodejUbytovaniUkoncen()
+        ? $systemoveNastaveni->ubytovaniPozdniPoplatekZaNoc()
+        : 0.0;
+    $shop->zpracujUbytovani(false, false, $pozdniPoplatek);
     oznameni('Ubytování uloženo');
 }
 

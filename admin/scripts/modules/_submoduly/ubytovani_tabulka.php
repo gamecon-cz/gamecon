@@ -87,6 +87,15 @@ class UbytovaniTabulka
             $t->parse('ubytovani.konec');
         }
 
+        if ($muzeEditovatUkoncenyProdej && $systemoveNastaveni->prodejUbytovaniUkoncen()) {
+            $pozdniPoplatek = $systemoveNastaveni->ubytovaniPozdniPoplatekZaNoc();
+            if ($pozdniPoplatek > 0) {
+                $t->assign('pozdniPoplatek', $systemoveNastaveni->prodejUbytovaniDo()->formatDatumStandard());
+                $t->assign('pozdniPoplatek', round($pozdniPoplatek));
+                $t->parse('ubytovani.pozdniPoplatek');
+            }
+        }
+
         $t->parse('ubytovani');
         return $t->text('ubytovani');
     }
