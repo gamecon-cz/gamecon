@@ -52,6 +52,8 @@ class SystemoveNastaveniKlice
 
     public const PODEZRELE_VYSOKA_PLATBA_UCASTNIKA = 'PODEZRELE_VYSOKA_PLATBA_UCASTNIKA';
 
+    public const UBYTOVANI_POZDNI_POPLATEK_ZA_NOC = 'UBYTOVANI_POZDNI_POPLATEK_ZA_NOC';
+
     /**
      * @return array{string}
      */
