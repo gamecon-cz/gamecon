@@ -1,8 +1,7 @@
 <!-- begin:ubytovani -->
 
 <!-- begin:konec -->
-<p>Možnost objednávek ubytování přes web už skončila. Zbylé postele lze zarezervovat přes e-mail <a
-        href="mailto:info@gamecon.cz">info@gamecon.cz</a>.</p>
+<p>Možnost objednávek ubytování přes web už skončila. Zbylé postele lze zarezervovat přes e-mail <a href="mailto:info@gamecon.cz">info@gamecon.cz</a> nebo osobně na infopultu<!-- begin:pozdniPoplatek -->, za příplatek +{pozdniPoplatek} Kč/noc<!-- end:pozdniPoplatek -->.</p>
 <!-- end:konec -->
 
 <div class="shopUbytovani_tabulka">
@@ -60,6 +59,12 @@
                placeholder="jména oddělená čárkou, nebo nech prázdné">
     </label>
 </div>
+
+<!-- begin:pozdniPoplatek -->
+<div class="warning">
+    Prodej ubytování je uzavřen. Bude účtován pozdní poplatek +{pozdniPoplatek}&thinsp;Kč/noc.
+</div>
+<!-- end:pozdniPoplatek -->
 
 <!-- begin:ubytovaniPresKapacitu -->
     <div>
