@@ -329,6 +329,9 @@
       <table class="objednavky">
           {prehledPredmetu}
       </table>
+    <!-- begin:odkazStravenky -->
+    <a href="{urlStravenky}" target="_blank">Tisk stravenek</a>
+    <!-- end:odkazStravenky -->
   </div>
   <!-- end:objednavky -->
 

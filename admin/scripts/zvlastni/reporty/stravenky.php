@@ -15,6 +15,11 @@ $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 $rolePrihlasenNaLetosniGc = Role::PRIHLASEN_NA_LETOSNI_GC;
 $rocnik                   = $systemoveNastaveni->rocnik();
 $typJidlo                 = Shop::JIDLO;
+$idUzivatele              = (int)get('id_uzivatele')
+    ?: null;
+$uzivatelFiltrSql         = $idUzivatele
+    ? "AND uzivatele.id_uzivatele = {$idUzivatele}"
+    : '';
 $o                        = dbQuery(<<<SQL
     SELECT
       uzivatele.id_uzivatele, uzivatele.login_uzivatele, predmety.nazev,
@@ -27,6 +32,7 @@ $o                        = dbQuery(<<<SQL
         ON nakupy.id_uzivatele = uzivatele.id_uzivatele AND nakupy.rok = {$rocnik}
     JOIN shop_predmety AS predmety
         ON predmety.id_predmetu = nakupy.id_predmetu AND predmety.typ = {$typJidlo}
+    WHERE TRUE {$uzivatelFiltrSql}
     ORDER BY uzivatele.id_uzivatele,
              -- "bylo lepší, jak vedly zprava doleva, tj. naopak. Nalevo je totiž ID člověka a jak si stravenky postupně odtrhává, je lepší, když začne na druhé straně, aby měl pořád balíček stravenek se svým ID a jménem" Gandalf 10. červenec 2023 20:57
              poradi_dne DESC,
@@ -40,7 +46,16 @@ while ($r = mysqli_fetch_assoc($o)) {
     $res[] = $r;
 }
 
-$config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-$t->assign("data", json_encode($res, $config));
+if ($idUzivatele && !Uzivatel::zId($idUzivatele)) {
+    $t->assign('idUzivatele', $idUzivatele);
+    $t->parse('stravenky.nenalezen');
+} elseif ($idUzivatele && $res === []) {
+    $t->assign('idUzivatele', $idUzivatele);
+    $t->parse('stravenky.zadnaJidla');
+} else {
+    $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    $t->assign("data", json_encode($res, $config));
+    $t->parse('stravenky.obsah');
+}
 $t->parse('stravenky');
 $t->out('stravenky');
