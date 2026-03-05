@@ -45,6 +45,24 @@ class Cenik
         return ['cena' => (float)$cena, 'sleva' => (float)$sleva];
     }
 
+    public static function maUbytovaniZdarmaProDen(
+        Uzivatel $ucastnik,
+        int      $denUbytovani,
+    ): bool {
+        if ($ucastnik->maPravoNaUbytovaniZdarma()) {
+            return true;
+        }
+
+        return match ($denUbytovani) {
+            DateTimeGamecon::PORADI_HERNIHO_DNE_STREDA  => $ucastnik->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA),
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK => $ucastnik->maPravo(Pravo::UBYTOVANI_CTVRTECNI_NOC_ZDARMA),
+            DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK   => $ucastnik->maPravo(Pravo::UBYTOVANI_PATECNI_NOC_ZDARMA),
+            DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA  => $ucastnik->maPravo(Pravo::UBYTOVANI_SOBOTNI_NOC_ZDARMA),
+            DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE  => $ucastnik->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA),
+            default                                     => false,
+        };
+    }
+
     /**
      * Konstruktor
      * @param Uzivatel $u pro kterého uživatele se cena počítá
@@ -281,13 +299,7 @@ class Cenik
                 discount: $cena,
             );
         } elseif ($typ == TypPredmetu::UBYTOVANI) {
-            if ($this->u->maPravoNaUbytovaniZdarma()
-                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_STREDA && $this->u->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA))
-                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK && $this->u->maPravo(Pravo::UBYTOVANI_CTVRTECNI_NOC_ZDARMA))
-                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK && $this->u->maPravo(Pravo::UBYTOVANI_PATECNI_NOC_ZDARMA))
-                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA && $this->u->maPravo(Pravo::UBYTOVANI_SOBOTNI_NOC_ZDARMA))
-                || ($r[PredmetySql::UBYTOVANI_DEN] == DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE && $this->u->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA))
-            ) {
+            if (self::maUbytovaniZdarmaProDen($this->u, (int) $r[PredmetySql::UBYTOVANI_DEN])) {
                 return new PriceAfterDiscountDto(
                     finalPrice: 0.0,
                     discount: $cena,
