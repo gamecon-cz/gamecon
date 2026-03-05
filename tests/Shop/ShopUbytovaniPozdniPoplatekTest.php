@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Shop;
 use App\Entity\ShopItem;
 use App\Structure\Entity\ShopItemEntityStructure;
 use App\Structure\Entity\UserEntityStructure;
+use Gamecon\Pravo;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\Shop\StavPredmetu;
 use Gamecon\Shop\TypPredmetu;
@@ -200,5 +201,66 @@ SQL,
         $patek = $nakupyPodleId[$spacakPatek->getId()];
         self::assertSame('200.00', $patek['poplatek'], 'Pátek jako nový den dostane aktuální poplatek 200 Kč');
         self::assertSame('300.00', $patek['cena_nakupni'], 'Cena pátku = základní cena + aktuální poplatek 200 Kč');
+    }
+
+    /**
+     * @test
+     */
+    public function Organizator_s_ubytovanim_zdarma_neplati_pozdni_poplatek(): void
+    {
+        $user = UserFactory::createOne([
+            UserEntityStructure::login    => 'test_ubyt_org_' . uniqid(),
+            UserEntityStructure::email    => 'test.ubyt.org.' . uniqid() . '@example.org',
+            UserEntityStructure::jmeno    => 'Test',
+            UserEntityStructure::prijmeni => 'Organizator',
+        ])->_real();
+
+        $idUzivatele = $user->getId();
+
+        // Vytvořit roli s právem UBYTOVANI_ZDARMA a přiřadit ji uživateli.
+        // role_seznam nemá AUTO_INCREMENT, takže ID volíme ručně jako záporné číslo, abychom se nepřekrývali s reálnými daty.
+        $idPrava = Pravo::UBYTOVANI_ZDARMA;
+        $idRole  = -999999;
+        $kodRole = 'TEST_UBYT_ZDARMA_' . uniqid();
+        dbQuery(<<<SQL
+INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
+VALUES ($idPrava, 'UBYTOVANI_ZDARMA', 'Má zdarma ubytování po celou dobu')
+SQL,
+        );
+        dbQuery(
+            "INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role) VALUES ($idRole, '$kodRole', 'Test ubytování zdarma', '', -1, 'trvala', 'TEST_UBYT_ZDARMA')",
+        );
+        dbQuery(<<<SQL
+INSERT INTO prava_role(id_role, id_prava) VALUES ($idRole, $idPrava)
+SQL,
+        );
+        dbQuery(<<<SQL
+INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
+VALUES ($idUzivatele, $idRole, $idUzivatele)
+SQL,
+        );
+
+        $predmet  = $this->vytvorUbytovaniPredmet(1);
+        $ucastnik = \Uzivatel::zIdUrcite($idUzivatele);
+
+        ShopUbytovani::ulozObjednaneUbytovaniUcastnika(
+            [$predmet->getId()],
+            $ucastnik,
+            false,
+            ROCNIK,
+            200.0,
+        );
+
+        $radek = dbOneLine(<<<SQL
+SELECT cena_nakupni, poplatek, puvodni_cena
+FROM shop_nakupy
+WHERE id_uzivatele = $0 AND id_predmetu = $1 AND rok = $2
+SQL,
+            [$ucastnik->id(), $predmet->getId(), ROCNIK],
+        );
+
+        self::assertSame('0.00', $radek['poplatek'], 'Organizátor s ubytováním zdarma nesmí platit pozdní poplatek');
+        self::assertSame('100.00', $radek['puvodni_cena'], 'Původní cena předmětu se zachová');
+        self::assertSame('100.00', $radek['cena_nakupni'], 'Celková cena nákupu bez poplatku');
     }
 }
