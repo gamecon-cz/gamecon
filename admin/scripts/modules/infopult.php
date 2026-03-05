@@ -128,6 +128,7 @@ if ($uPracovni) {
             "<td></td>") .
             "</tr>", array_filter(Accounting::getPersonalFinance($uPracovni, showDiscounts: false)->getTransactions(),
         fn(Transaction $t) => $t->getCategory() == TransactionCategory::SHOP_ITEMS ||
+            $t->getCategory() == TransactionCategory::FOOD ||
             ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY) && $t->getCategory() == TransactionCategory::VOLUNTARY_DONATION))))
     ]);
 
@@ -269,6 +270,10 @@ if ($uPracovni) {
         $x->parse('infopult.uzivatel.idFioPohybu');
     }
 
+    if ($shop->objednalNejakeJidlo()) {
+        $x->assign('urlStravenky', URL_ADMIN . '/reporty/stravenky?format=html&id_uzivatele=' . $uPracovni->id());
+        $x->parse('infopult.uzivatel.objednavky.odkazStravenky');
+    }
     $x->parse('infopult.uzivatel.objednavky');
     $x->parse('infopult.uzivatel');
 } else {
