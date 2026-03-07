@@ -31,9 +31,7 @@ class ActivityType
     private string $urlTypuMn;
 
     #[ORM\ManyToOne(targetEntity: Page::class)]
-    #[ORM\JoinColumn(name: 'stranka_o', referencedColumnName: 'id_stranky', nullable: false, onDelete: 'RESTRICT', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'stranka_o', referencedColumnName: 'id_stranky', nullable: false, onDelete: 'RESTRICT')]
     private Page $pageAbout;
 
     #[ORM\Column(name: 'poradi', type: Types::INTEGER, nullable: false)]

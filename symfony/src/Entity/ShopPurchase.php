@@ -25,20 +25,18 @@ class ShopPurchase
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private User $customer;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_objednatele', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private ?User $orderer = null;
 
     #[ORM\ManyToOne(targetEntity: ShopItem::class)]
-    #[ORM\JoinColumn(name: 'id_predmetu', referencedColumnName: 'id_predmetu', nullable: false, onDelete: 'RESTRICT', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_predmetu', referencedColumnName: 'id_predmetu', nullable: false, onDelete: 'RESTRICT')]
     private ShopItem $shopItem;
 
     #[ORM\Column(name: 'rok', type: Types::SMALLINT, nullable: false)]
@@ -48,6 +46,14 @@ class ShopPurchase
         'comment' => 'aktuální cena v okamžiku nákupu (bez slev)',
     ])]
     private string $cenaNakupni;
+
+    #[ORM\Column(name: 'poplatek', type: Types::DECIMAL, precision: 6, scale: 2, nullable: false, options: [
+        'default' => '0.00',
+    ])]
+    private string $poplatek = '0.00';
+
+    #[ORM\Column(name: 'puvodni_cena', type: Types::DECIMAL, precision: 6, scale: 2, nullable: true)]
+    private ?string $puvodniCena = null;
 
     #[ORM\Column(name: 'datum', type: Types::DATETIME_MUTABLE, nullable: false, options: [
         'default' => 'CURRENT_TIMESTAMP',
@@ -115,6 +121,30 @@ class ShopPurchase
     public function setCenaNakupni(string $cenaNakupni): self
     {
         $this->cenaNakupni = $cenaNakupni;
+
+        return $this;
+    }
+
+    public function getPoplatek(): string
+    {
+        return $this->poplatek;
+    }
+
+    public function setPoplatek(string $poplatek): self
+    {
+        $this->poplatek = $poplatek;
+
+        return $this;
+    }
+
+    public function getPuvodniCena(): ?string
+    {
+        return $this->puvodniCena;
+    }
+
+    public function setPuvodniCena(?string $puvodniCena): self
+    {
+        $this->puvodniCena = $puvodniCena;
 
         return $this;
     }

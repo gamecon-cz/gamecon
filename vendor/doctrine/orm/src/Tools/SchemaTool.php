@@ -797,6 +797,10 @@ class SchemaTool
             if (isset($joinColumn->deferrable)) {
                 $fkOptions['deferrable'] = $joinColumn->deferrable;
             }
+
+            if (isset($joinColumn->options['onUpdate'])) {
+                $fkOptions['onUpdate'] = $joinColumn->options['onUpdate'];
+            }
         }
 
         // Prefer unique constraints over implicit simple indexes created for foreign keys.

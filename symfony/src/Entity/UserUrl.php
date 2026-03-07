@@ -25,6 +25,7 @@ class UserUrl
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
         'unsigned' => true,
+        'onUpdate' => 'CASCADE',
     ])]
     private User $user;
 

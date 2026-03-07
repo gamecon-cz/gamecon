@@ -16,16 +16,12 @@ class ActivityTag
 {
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Activity::class, inversedBy: 'activityTags')]
-    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', onDelete: 'CASCADE')]
     private Activity $activity;
 
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Tag::class)]
-    #[ORM\JoinColumn(name: 'id_tagu', onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_tagu', onDelete: 'CASCADE')]
     private Tag $tag;
 
     public function getActivity(): Activity

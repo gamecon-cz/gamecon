@@ -18,6 +18,7 @@ GameCon is a Czech PHP web application for managing the largest Czechoslovak non
 /model/         - Business logic (27+ directories)
 /tests/         - PHPUnit tests (55+ files)
 /migrace/       - Database migrations
+                  Migration files should be prefixed with `date +"%Y-%m-%d-%H%M%S"` (e.g., `2026-03-07-161642_some-description.php`)
 /nastaveni/     - Configuration files
 /vendor/        - Composer dependencies
 ```
@@ -36,9 +37,8 @@ docker compose up
 # Run tests
 vendor/bin/phpunit
 
-# Database access
-./bin-docker/mysql gamecon              # Connect to 'gamecon' database
-./bin-docker/mysql gamecon -e 'SQL'     # Execute SQL query
+# Database access (use dbal:run-sql to ensure correct DB)
+./bin-docker/php ./bin/console dbal:run-sql 'SELECT 1'  # Execute SQL query in current DB
 
 # Access points
 # http://localhost/web - Public site

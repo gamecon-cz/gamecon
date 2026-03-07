@@ -34,9 +34,7 @@ class CategoryTag
     private int $poradi = 0;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
-    #[ORM\JoinColumn(name: 'id_hlavni_kategorie', nullable: true, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_hlavni_kategorie', nullable: true, onDelete: 'CASCADE')]
     private ?self $mainCategoryTag = null;
 
     /**

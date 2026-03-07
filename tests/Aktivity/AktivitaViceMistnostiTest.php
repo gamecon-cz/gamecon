@@ -33,42 +33,43 @@ VALUES
     (1006, 'Testovací místnost', 'Test dvere', '', 6, 0)
 SQL,
         // Insert 5 test activities (some with locations, some without)
+        // id_hlavni_lokace is set on akce_seznam for activities with a main location
         <<<SQL
-INSERT INTO akce_seznam(id_akce, nazev_akce, typ, rok, stav)
+INSERT INTO akce_seznam(id_akce, nazev_akce, typ, rok, stav, id_hlavni_lokace)
 VALUES
-    (2001, 'Aktivita s jednou místností', 1, 2024, 2),
-    (2002, 'Aktivita s více místnostmi', 1, 2024, 2),
-    (2003, 'Aktivita bez místnosti', 1, 2024, 2),
-    (2004, 'Aktivita pro přesun', 1, 2024, 2),
-    (2005, 'Aktivita pro změnu hlavní', 1, 2024, 2)
+    (2001, 'Aktivita s jednou místností', 1, 2024, 2, 1001),
+    (2002, 'Aktivita s více místnostmi', 1, 2024, 2, 1001),
+    (2003, 'Aktivita bez místnosti', 1, 2024, 2, NULL),
+    (2004, 'Aktivita pro přesun', 1, 2024, 2, 1004),
+    (2005, 'Aktivita pro změnu hlavní', 1, 2024, 2, 1005)
 SQL,
         // Setup junction table - activity 1 has location 1
         <<<SQL
-INSERT INTO akce_lokace(id_akce, id_lokace, je_hlavni)
+INSERT INTO akce_lokace(id_akce, id_lokace)
 VALUES
-    (2001, 1001, 1)
+    (2001, 1001)
 SQL,
-        // Setup junction table - activity 2 has locations 1, 2, 3 (1 is main)
+        // Setup junction table - activity 2 has locations 1, 2, 3
         <<<SQL
-INSERT INTO akce_lokace(id_akce, id_lokace, je_hlavni)
+INSERT INTO akce_lokace(id_akce, id_lokace)
 VALUES
-    (2002, 1001, 1),
-    (2002, 1002, 0),
-    (2002, 1003, 0)
+    (2002, 1001),
+    (2002, 1002),
+    (2002, 1003)
 SQL,
         // Activity 3 has no locations
         // Activity 4 has location 4
         <<<SQL
-INSERT INTO akce_lokace(id_akce, id_lokace, je_hlavni)
+INSERT INTO akce_lokace(id_akce, id_lokace)
 VALUES
-    (2004, 1004, 1)
+    (2004, 1004)
 SQL,
-        // Activity 5 has locations 5, 6 (5 is main)
+        // Activity 5 has locations 5, 6
         <<<SQL
-INSERT INTO akce_lokace(id_akce, id_lokace, je_hlavni)
+INSERT INTO akce_lokace(id_akce, id_lokace)
 VALUES
-    (2005, 1005, 1),
-    (2005, 1006, 0)
+    (2005, 1005),
+    (2005, 1006)
 SQL,
     ];
 
@@ -171,14 +172,19 @@ SQL,
 
         // Verify junction table
         $junctionRows = dbFetchAll(
-            'SELECT id_lokace, je_hlavni FROM akce_lokace WHERE id_akce = ? ORDER BY id_lokace',
+            'SELECT id_lokace FROM akce_lokace WHERE id_akce = ? ORDER BY id_lokace',
             [2003]
         );
         self::assertCount(2, $junctionRows);
         self::assertSame('1001', $junctionRows[0]['id_lokace']);
-        self::assertSame('1', $junctionRows[0]['je_hlavni']);
         self::assertSame('1002', $junctionRows[1]['id_lokace']);
-        self::assertSame('0', $junctionRows[1]['je_hlavni']);
+
+        // Verify id_hlavni_lokace in akce_seznam
+        $hlavniLokace = dbFetchSingle(
+            'SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?',
+            [2003]
+        );
+        self::assertSame('1001', $hlavniLokace);
     }
 
     /**
@@ -218,12 +224,12 @@ SQL,
         // The main location should be first in the list
         self::assertSame(1006, $aktivita->seznamLokaci()[0]->id());
 
-        // Verify je_hlavni flag in database
-        $hlavniFlag = dbFetchSingle(
-            'SELECT je_hlavni FROM akce_lokace WHERE id_akce = ? AND id_lokace = ?',
-            [2005, 1006]
+        // Verify id_hlavni_lokace in akce_seznam
+        $hlavniLokace = dbFetchSingle(
+            'SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?',
+            [2005]
         );
-        self::assertSame('1', $hlavniFlag);
+        self::assertSame('1006', $hlavniLokace);
     }
 
     /**
@@ -238,15 +244,15 @@ SQL,
 
         $aktivita = Aktivita::zId(2003);
 
-        // First location (by id_lokace ASC) should become main
+        // First location (by id_lokace ASC) should become main via COALESCE fallback
         self::assertSame(1002, $aktivita->idHlavniLokace(), 'První místnost by měla být automaticky hlavní');
 
-        // Verify no location has je_hlavni = 1
-        $hlavniCount = dbFetchSingle(
-            'SELECT COUNT(*) FROM akce_lokace WHERE id_akce = ? AND je_hlavni = 1',
+        // Verify id_hlavni_lokace is NULL in akce_seznam
+        $hlavniLokace = dbFetchSingle(
+            'SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?',
             [2003]
         );
-        self::assertSame('0', $hlavniCount, 'Žádná místnost nemá explicitně nastavenou je_hlavni');
+        self::assertNull($hlavniLokace, 'id_hlavni_lokace by mělo být NULL');
     }
 
     // ========================================================================
@@ -277,21 +283,9 @@ SQL,
     {
         $aktivita = Aktivita::zId(2001);
 
-        // Try to set location 99 as main, but only add locations 1, 2
+        // Try to set location 9999 as main, but only add locations 1, 2 — should throw
+        $this->expectException(\LogicException::class);
         $aktivita->nastavLokacePodleIds([1001, 1002], 9999);
-
-        // Reload and check - 99 is not in list, so no location should be marked as main
-        $aktivita = Aktivita::zId(2001);
-
-        // Should fallback to first location by ORDER BY
-        self::assertSame(1001, $aktivita->idHlavniLokace());
-
-        // Verify no je_hlavni = 1 in database (since 99 wasn't in the list)
-        $hlavniCount = dbFetchSingle(
-            'SELECT COUNT(*) FROM akce_lokace WHERE id_akce = ? AND je_hlavni = 1',
-            [2001]
-        );
-        self::assertSame('0', $hlavniCount);
     }
 
     /**
@@ -360,7 +354,6 @@ SQL,
         dbInsert(JunctionSql::AKCE_LOKACE_TABULKA, [
             JunctionSql::ID_AKCE   => 2001,
             JunctionSql::ID_LOKACE => 1001,
-            JunctionSql::JE_HLAVNI => 0,
         ]);
     }
 

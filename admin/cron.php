@@ -117,6 +117,7 @@ logs("Odesláno $pocetUpozorneni mailů.");
 
 if (date('G') >= 5) { // 5 hodin ráno či později
     include __DIR__ . '/cron/zaloha_databaze.php';
+    include __DIR__ . '/cron/anonymizace_databaze.php';
 }
 
 logs('...cron skript dokončen.');
