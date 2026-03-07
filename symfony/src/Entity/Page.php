@@ -33,6 +33,11 @@ class Page
     ])]
     private string $obsah;
 
+    #[ORM\Column(name: 'redirect', type: Types::BOOLEAN, options: [
+        'default' => false,
+    ])]
+    private bool $redirect = false;
+
     #[ORM\Column(name: 'poradi', type: Types::INTEGER, options: [
         'unsigned' => true,
         'default'  => 0,
@@ -64,6 +69,18 @@ class Page
     public function setObsah(string $obsah): self
     {
         $this->obsah = $obsah;
+
+        return $this;
+    }
+
+    public function isRedirect(): bool
+    {
+        return $this->redirect;
+    }
+
+    public function setRedirect(bool $redirect): self
+    {
+        $this->redirect = $redirect;
 
         return $this;
     }

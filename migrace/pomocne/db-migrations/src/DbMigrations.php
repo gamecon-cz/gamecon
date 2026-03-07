@@ -14,9 +14,10 @@ class DbMigrations
     private \mysqli            $connection;
     private                    $migrations;
     private readonly ?WebGui   $webGui;
-    private                    $hasTableMigrationsV2 = null;
-    private                    $hasTableMigrationsV1 = null;
-    private ?array             $unappliedMigrations  = null;
+    private                    $hasTableMigrationsV2    = null;
+    private                    $hasTableMigrationsV1    = null;
+    private ?bool              $hasMigrationPathColumn  = null;
+    private ?array             $unappliedMigrations     = null;
 
     public function __construct(DbMigrationsConfig $conf)
     {
@@ -75,47 +76,91 @@ class DbMigrations
                 return array_merge($unappliedMigrationsV1, $migrationsV2);
             }
 
-            $migrationCodes = array_map(static function (
-                Migration $migration,
-            ) {
-                return $migration->getCode();
-            }, $migrations);
+            if ($this->hasMigrationPathColumn()) {
+                $migrationPaths = array_map(static function (
+                    Migration $migration,
+                ) {
+                    return $migration->getRelativePath();
+                }, $migrations);
 
-            $this->connection->query("CREATE TEMPORARY TABLE known_migration_codes_tmp (migration_code VARCHAR(128) PRIMARY KEY)");
-            $migrationCodesSql = implode(
-                ',',
-                array_map(
-                    static function (
-                        $migrationCode,
-                    ) {
-                        $escapedCode = dbQv($migrationCode);
+                $this->connection->query("CREATE TEMPORARY TABLE known_migration_paths_tmp (migration_path VARCHAR(256) PRIMARY KEY)");
+                $migrationPathsSql = implode(
+                    ',',
+                    array_map(
+                        static function (
+                            $migrationPath,
+                        ) {
+                            $escapedPath = dbQv($migrationPath);
 
-                        return "($escapedCode)";
-                    },
-                    $migrationCodes,
-                ),
-            );
-            $this->connection->query("INSERT INTO known_migration_codes_tmp (migration_code) VALUES $migrationCodesSql");
+                            return "($escapedPath)";
+                        },
+                        $migrationPaths,
+                    ),
+                );
+                $this->connection->query("INSERT INTO known_migration_paths_tmp (migration_path) VALUES $migrationPathsSql");
 
-            $query = $this->connection->query(
-                "SELECT known_migration_codes_tmp.migration_code
+                $query = $this->connection->query(
+                    "SELECT known_migration_paths_tmp.migration_path
+FROM known_migration_paths_tmp
+LEFT JOIN migrations ON migrations.migration_path = known_migration_paths_tmp.migration_path
+WHERE migrations.migration_id IS NULL",
+                );
+
+                $wrappedUnappliedPaths = $query->fetch_all();
+
+                $this->connection->query("DROP TEMPORARY TABLE known_migration_paths_tmp");
+
+                $unappliedPaths = array_column($wrappedUnappliedPaths, 0);
+
+                $this->unappliedMigrations = array_filter(
+                    $migrations,
+                    static fn(
+                        Migration $migration,
+                    ) => in_array($migration->getRelativePath(), $unappliedPaths, true),
+                );
+            } else {
+                // Fallback for old schema without migration_path column
+                $migrationCodes = array_map(static function (
+                    Migration $migration,
+                ) {
+                    return $migration->getCode();
+                }, $migrations);
+
+                $this->connection->query("CREATE TEMPORARY TABLE known_migration_codes_tmp (migration_code VARCHAR(128) PRIMARY KEY)");
+                $migrationCodesSql = implode(
+                    ',',
+                    array_map(
+                        static function (
+                            $migrationCode,
+                        ) {
+                            return "(" . dbQv($migrationCode) . ")";
+                        },
+                        $migrationCodes,
+                    ),
+                );
+                $this->connection->query("INSERT INTO known_migration_codes_tmp (migration_code) VALUES $migrationCodesSql");
+
+                $query = $this->connection->query(
+                    "SELECT known_migration_codes_tmp.migration_code
 FROM known_migration_codes_tmp
 LEFT JOIN migrations ON migrations.migration_code = known_migration_codes_tmp.migration_code
+    OR CONCAT(migrations.migration_code, '.php') = known_migration_codes_tmp.migration_code
 WHERE migrations.migration_id IS NULL",
-            );
+                );
 
-            $wrappedUnappliedMigrationCodes = $query->fetch_all();
+                $wrappedUnappliedCodes = $query->fetch_all();
 
-            $this->connection->query("DROP TEMPORARY TABLE known_migration_codes_tmp");
+                $this->connection->query("DROP TEMPORARY TABLE known_migration_codes_tmp");
 
-            $unappliedMigrationCodes = array_column($wrappedUnappliedMigrationCodes, 0);
+                $unappliedCodes = array_column($wrappedUnappliedCodes, 0);
 
-            $this->unappliedMigrations = array_filter(
-                $migrations,
-                static fn(
-                    Migration $migration,
-                ) => in_array($migration->getCode(), $unappliedMigrationCodes, false),
-            );
+                $this->unappliedMigrations = array_filter(
+                    $migrations,
+                    static fn(
+                        Migration $migration,
+                    ) => in_array($migration->getCode(), $unappliedCodes, false),
+                );
+            }
         }
 
         return $this->unappliedMigrations;
@@ -198,6 +243,16 @@ SQL,
         return $this->hasTableMigrationsV1;
     }
 
+    private function hasMigrationPathColumn(): bool
+    {
+        if ($this->hasMigrationPathColumn === null) {
+            $this->hasMigrationPathColumn = $this->hasTableMigrationsForV2()
+                && count($this->connection->query("SHOW COLUMNS FROM migrations LIKE 'migration_path'")->fetch_all()) > 0;
+        }
+
+        return $this->hasMigrationPathColumn;
+    }
+
     /**
      * @return Migration[]
      */
@@ -206,16 +261,17 @@ SQL,
         if (!is_array($this->migrations)) {
             $migrations = [];
             foreach (glob($this->config->getMigrationsDirectory() . '/*.{php,sql}', GLOB_BRACE) as $fileName) {
-                // intentionally remove only .php suffix for backwards compatibility, other extensions need to be used as a migration key to avoid conflicts, like old 'foo.php' vs new 'foo.sql'
-                $fileBaseName = basename($fileName, '.php');
+                $fileBaseName = basename($fileName);
                 if (!preg_match('~^\d.+~', $fileBaseName)) {
                     continue;
                 }
 
-                $migrations[$fileBaseName] = new Migration(
+                $relativePath             = $fileBaseName;
+                $migrations[$relativePath] = new Migration(
                     $fileName,
                     $fileBaseName,
                     $this->connection,
+                    $relativePath,
                 );
             }
 
@@ -223,21 +279,27 @@ SQL,
             $symfonyMigrationsDir = dirname(__DIR__, 4) . '/symfony/migrations';
             assert(is_dir($symfonyMigrationsDir), sprintf('Dir %s does not exist', $symfonyMigrationsDir));
             foreach (glob($symfonyMigrationsDir . '/*', GLOB_ONLYDIR) as $subDir) {
+                $subDirName = basename($subDir);
                 foreach (glob($subDir . '/*.{php,sql}', GLOB_BRACE) as $fileName) {
-                    $fileBaseName = basename($fileName, '.php');
+                    $fileBaseName = basename($fileName);
                     if (!preg_match('~^\d.+~', $fileBaseName)) {
                         continue;
                     }
 
-                    $migrations[$fileBaseName] = new Migration(
+                    $relativePath             = 'symfony/' . $subDirName . '/' . $fileBaseName;
+                    $migrations[$relativePath] = new Migration(
                         $fileName,
                         $fileBaseName,
                         $this->connection,
+                        $relativePath,
                     );
                 }
             }
 
-            ksort($migrations);
+            uasort($migrations, static fn(
+                Migration $a,
+                Migration $b,
+            ) => strcmp($a->getCode(), $b->getCode()));
 
             $this->migrations = array_values($migrations);
         }
@@ -308,12 +370,22 @@ SQL,
         $this->connection->query('BEGIN');
         try {
             $migration->apply();
+            // Reset cache — the migration itself may have altered the schema
+            $this->hasMigrationPathColumn = null;
             if (!$migration->isEndless()) {
                 if ($this->hasTableMigrationsForV2()) {
-                    $this->connection->query(<<<SQL
+                    $escapedPath = $this->connection->real_escape_string($migration->getRelativePath());
+                    if ($this->hasMigrationPathColumn()) {
+                        $this->connection->query(<<<SQL
+INSERT IGNORE INTO migrations(migration_path, applied_at) VALUES ('{$escapedPath}', NOW())
+SQL,
+                        );
+                    } else {
+                        $this->connection->query(<<<SQL
 INSERT IGNORE INTO migrations(migration_code, applied_at) VALUES ('{$migration->getCode()}', NOW())
 SQL,
-                    );
+                        );
+                    }
                 }
             }
             $this->connection->query('COMMIT');

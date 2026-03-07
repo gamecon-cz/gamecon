@@ -8,16 +8,19 @@ class Migration
     private \mysqli $connection;
     private string  $code;
     private string  $path;
+    private string  $relativePath;
     private bool    $endless = false;
 
     public function __construct(
         string  $path,
         string  $code,
         \mysqli $connection,
+        string  $relativePath = '',
     ) {
-        $this->path       = $path;
-        $this->code       = removeDiacritics($code);
-        $this->connection = $connection;
+        $this->path         = $path;
+        $this->code         = removeDiacritics($code);
+        $this->connection   = $connection;
+        $this->relativePath = removeDiacritics($relativePath);
         // jen malý, neškodný hack, aby se migrace pouštěla pořád
         $this->setEndless(str_ends_with(basename($path, '.php'), 'endless'));
     }
@@ -73,9 +76,16 @@ class Migration
         return $this->code;
     }
 
+    public function getRelativePath(): string
+    {
+        return $this->relativePath;
+    }
+
     public function getVersion(): int
     {
-        return is_numeric($this->code)
+        $codeWithoutExtension = preg_replace('~\.(php|sql)$~', '', $this->code);
+
+        return is_numeric($codeWithoutExtension)
             ? 1
             : 2;
     }

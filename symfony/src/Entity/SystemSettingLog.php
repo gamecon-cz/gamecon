@@ -24,14 +24,12 @@ class SystemSettingLog
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private ?User $changedBy = null;
 
     #[ORM\ManyToOne(targetEntity: SystemSetting::class)]
-    #[ORM\JoinColumn(name: 'id_nastaveni', referencedColumnName: 'id_nastaveni', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_nastaveni', referencedColumnName: 'id_nastaveni', nullable: false, onDelete: 'CASCADE')]
     private SystemSetting $systemSetting;
 
     #[ORM\Column(name: 'hodnota', type: Types::STRING, length: 256, nullable: true)]

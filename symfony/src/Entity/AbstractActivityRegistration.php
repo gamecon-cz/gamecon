@@ -19,21 +19,17 @@ abstract class AbstractActivityRegistration
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Activity::class)]
-    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', nullable: false, options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', nullable: false)]
     private Activity $activity;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private User $registeredUser;
 
     #[ORM\ManyToOne(targetEntity: ActivityRegistrationState::class)]
-    #[ORM\JoinColumn(name: 'id_stavu_prihlaseni', referencedColumnName: 'id_stavu_prihlaseni', nullable: false, options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_stavu_prihlaseni', referencedColumnName: 'id_stavu_prihlaseni', nullable: false)]
     private ActivityRegistrationState $activityRegistrationState;
 
     public function getId(): ?int

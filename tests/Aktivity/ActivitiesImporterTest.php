@@ -104,9 +104,12 @@ class ActivitiesImporterTest extends AbstractTestDb
         self::assertCount(1, $locationIds);
 
         // Verify database
-        $rows = dbFetchAll('SELECT id_lokace, je_hlavni FROM akce_lokace WHERE id_akce = ? ORDER BY id_lokace', [$aktivita->id()]);
+        $rows = dbFetchAll('SELECT id_lokace FROM akce_lokace WHERE id_akce = ? ORDER BY id_lokace', [$aktivita->id()]);
         self::assertCount(1, $rows);
-        self::assertSame('1', $rows[0]['je_hlavni']);
+
+        // Verify id_hlavni_lokace in akce_seznam
+        $hlavniLokace = dbFetchSingle('SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?', [$aktivita->id()]);
+        self::assertNotNull($hlavniLokace);
     }
 
     /**
@@ -132,21 +135,16 @@ class ActivitiesImporterTest extends AbstractTestDb
         $locationIds = $aktivita->seznamLokaciIdcka();
         self::assertCount(3, $locationIds);
 
-        // Verify database - main location flagged
+        // Verify database
         $rows = dbFetchAll(
-            'SELECT id_lokace, je_hlavni FROM akce_lokace WHERE id_akce = ? ORDER BY id_lokace',
+            'SELECT id_lokace FROM akce_lokace WHERE id_akce = ? ORDER BY id_lokace',
             [$aktivita->id()]
         );
         self::assertCount(3, $rows);
 
-        // First location should be main
-        $mainCount = 0;
-        foreach ($rows as $row) {
-            if ($row['je_hlavni'] === '1') {
-                ++$mainCount;
-            }
-        }
-        self::assertSame(1, $mainCount, 'Exactly one location should be marked as main');
+        // Verify main location is set in akce_seznam
+        $hlavniLokace = dbFetchSingle('SELECT id_hlavni_lokace FROM akce_seznam WHERE id_akce = ?', [$aktivita->id()]);
+        self::assertNotNull($hlavniLokace, 'Main location should be set in akce_seznam');
     }
 
     /**
@@ -203,7 +201,7 @@ class ActivitiesImporterTest extends AbstractTestDb
             'aktivita2_locations' => $aktivita2->seznamLokaciIdcka(),
             'aktivita3_locations' => $aktivita3->seznamLokaciIdcka(),
             'akce_lokace_count'   => dbFetchSingle('SELECT COUNT(*) FROM akce_lokace WHERE id_akce IN (?, ?, ?)', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
-            'akce_lokace_rows'    => dbFetchAll('SELECT id_akce, id_lokace, je_hlavni FROM akce_lokace WHERE id_akce IN (?, ?, ?) ORDER BY id_akce, id_lokace', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
+            'akce_lokace_rows'    => dbFetchAll('SELECT id_akce, id_lokace FROM akce_lokace WHERE id_akce IN (?, ?, ?) ORDER BY id_akce, id_lokace', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
         ];
 
         // Second import - with activity IDs this time (update existing)
@@ -229,7 +227,7 @@ class ActivitiesImporterTest extends AbstractTestDb
             'aktivita2_locations' => $aktivita2->seznamLokaciIdcka(),
             'aktivita3_locations' => $aktivita3->seznamLokaciIdcka(),
             'akce_lokace_count'   => dbFetchSingle('SELECT COUNT(*) FROM akce_lokace WHERE id_akce IN (?, ?, ?)', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
-            'akce_lokace_rows'    => dbFetchAll('SELECT id_akce, id_lokace, je_hlavni FROM akce_lokace WHERE id_akce IN (?, ?, ?) ORDER BY id_akce, id_lokace', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
+            'akce_lokace_rows'    => dbFetchAll('SELECT id_akce, id_lokace FROM akce_lokace WHERE id_akce IN (?, ?, ?) ORDER BY id_akce, id_lokace', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
         ];
 
         // Verify nothing changed

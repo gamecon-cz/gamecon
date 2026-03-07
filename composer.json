@@ -30,6 +30,7 @@
         "ext-sqlite3": "*",
         "ext-xml": "*",
         "ext-zip": "*",
+        "ext-zlib": "*",
         "defuse/php-encryption": "^2.1",
         "dg/ftp-deployment": "^3.6",
         "dg/mysql-dump": "^1.5",
@@ -90,6 +91,9 @@
     },
     "extra": {
         "patches": {
+            "doctrine/orm": [
+                "patches/doctrine-orm-src-tools-schematool-php.patch"
+            ],
             "dg/mysql-dump": [
                 "patches/dg-mysql-dump-src-mysqlimport-php.patch"
             ]

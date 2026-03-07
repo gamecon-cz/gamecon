@@ -32,17 +32,21 @@ SELECT  akce_seznam.nazev_akce AS nazevAktivity, akce_seznam.id_akce AS id,
         akce_seznam.zacatek, akce_seznam.konec, akce_seznam.team_nazev,
         ucastnik.login_uzivatele AS nick, ucastnik.jmeno_uzivatele AS jmeno, ucastnik.id_uzivatele,
         ucastnik.prijmeni_uzivatele AS prijmeni, ucastnik.email1_uzivatele AS mail, ucastnik.telefon_uzivatele AS telefon,
-        GROUP_CONCAT(organizator.login_uzivatele) AS orgove,
-        GROUP_CONCAT(lokace.nazev, ', ', lokace.dvere SEPARATOR '; ') AS mistnost,
+        (SELECT GROUP_CONCAT(organizator.login_uzivatele)
+            FROM akce_organizatori
+            JOIN uzivatele_hodnoty AS organizator ON organizator.id_uzivatele = akce_organizatori.id_uzivatele
+            WHERE akce_organizatori.id_akce = akce_seznam.id_akce
+        ) AS orgove,
+        (SELECT GROUP_CONCAT(lokace.nazev, ', ', lokace.dvere SEPARATOR '; ')
+            FROM akce_lokace
+            JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
+            WHERE akce_lokace.id_akce = akce_seznam.id_akce
+        ) AS mistnost,
         MAX(log.kdy) AS datum_prihlaseni
 FROM akce_seznam
 LEFT JOIN akce_prihlaseni ON akce_seznam.id_akce = akce_prihlaseni.id_akce
 LEFT JOIN uzivatele_hodnoty AS ucastnik ON akce_prihlaseni.id_uzivatele = ucastnik.id_uzivatele
 LEFT JOIN akce_prihlaseni_log AS log ON log.id_akce = akce_seznam.id_akce AND log.id_uzivatele = ucastnik.id_uzivatele
-LEFT JOIN akce_organizatori ON akce_organizatori.id_akce = akce_seznam.id_akce
-LEFT JOIN uzivatele_hodnoty AS organizator ON organizator.id_uzivatele = akce_organizatori.id_uzivatele
-LEFT JOIN akce_lokace ON akce_lokace.id_akce = akce_seznam.id_akce
-LEFT JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
 WHERE akce_seznam.rok = $0
     AND akce_seznam.zacatek
     AND akce_seznam.typ = $1

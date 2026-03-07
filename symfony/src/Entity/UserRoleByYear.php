@@ -25,14 +25,12 @@ class UserRoleByYear
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private User $user;
 
     #[ORM\ManyToOne(targetEntity: Role::class)]
-    #[ORM\JoinColumn(name: 'id_role', referencedColumnName: 'id_role', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_role', referencedColumnName: 'id_role', nullable: false, onDelete: 'CASCADE')]
     private Role $role;
 
     #[ORM\Column(name: 'od_kdy', type: Types::DATETIME_MUTABLE, nullable: false)]

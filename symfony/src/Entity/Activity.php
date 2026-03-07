@@ -49,6 +49,9 @@ class Activity
      * @var Collection<int, Location>
      */
     #[ORM\ManyToMany(targetEntity: Location::class)]
+    #[ORM\JoinTable(name: 'akce_lokace')]
+    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(name: 'id_lokace', referencedColumnName: 'id_lokace', onDelete: 'CASCADE')]
     private Collection $locations;
 
     #[ORM\Column(name: 'kapacita', type: Types::INTEGER, nullable: false)]
@@ -112,9 +115,14 @@ class Activity
     #[ORM\Column(name: 'team_nazev', type: Types::STRING, length: 255, nullable: true)]
     private ?string $teamNazev = null;
 
+    #[ORM\ManyToOne(targetEntity: Location::class)]
+    #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
+    private ?Location $mainLocation = null;
+
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'zamcel', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
-        'comment' => 'případně kdo zamčel aktivitu pro svůj team',
+        'comment'  => 'případně kdo zamčel aktivitu pro svůj team',
+        'onUpdate' => 'CASCADE',
     ])]
     private ?User $forTeamLockedBy = null;
 
@@ -152,6 +160,7 @@ class Activity
 
     public function __construct()
     {
+        $this->locations = new ArrayCollection();
         $this->activityTags = new ArrayCollection();
     }
 
@@ -240,16 +249,6 @@ class Activity
     public function removeLocation(Location $location): self
     {
         $this->locations->removeElement($location);
-
-        return $this;
-    }
-
-    /**
-     * @param Collection<int, Location> $locations
-     */
-    public function setLocations(Collection $locations): self
-    {
-        $this->locations = $locations;
 
         return $this;
     }
@@ -454,6 +453,18 @@ class Activity
     public function setForTeamLockedAt(?\DateTime $forTeamLockedAt): self
     {
         $this->forTeamLockedAt = $forTeamLockedAt;
+
+        return $this;
+    }
+
+    public function getMainLocation(): ?Location
+    {
+        return $this->mainLocation;
+    }
+
+    public function setMainLocation(?Location $mainLocation): self
+    {
+        $this->mainLocation = $mainLocation;
 
         return $this;
     }

@@ -27,7 +27,7 @@ class Mutex
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'zamknul', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private ?User $lockedBy = null;
 

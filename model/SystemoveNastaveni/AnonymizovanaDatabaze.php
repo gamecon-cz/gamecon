@@ -41,9 +41,9 @@ class AnonymizovanaDatabaze
         }
     }
 
-    public function obnov(): void
+    public function obnov(?\mysqli $dbConnectionAnonymDb = null): void
     {
-        $dbConnectionAnonymDb = dbConnectionAnonymDb();
+        $dbConnectionAnonymDb = $dbConnectionAnonymDb ?? dbConnectionAnonymDb();
 
         $this->obnovAnonymniDatabazi($dbConnectionAnonymDb);
 
@@ -51,56 +51,50 @@ class AnonymizovanaDatabaze
 
         $this->anonymizujData($dbConnectionAnonymDb);
 
-        $dbConnectionAnonymDb = dbConnectionAnonymDb(); // nevím proč, ale pokud použiju předchozí connection, tak se admin uživatel přidá někam do voidu
+        if (func_num_args() === 0) {
+            $dbConnectionAnonymDb = dbConnectionAnonymDb(); // nevím proč, ale pokud použiju předchozí connection, tak se admin uživatel přidá někam do voidu
+        }
         $this->pridejAdminUzivatele($dbConnectionAnonymDb);
     }
 
     private function anonymizujData(\mysqli $dbConnectionAnonymDb)
     {
-        ini_set('max_execution_time', '300');
-        $result              = mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
-                SELECT COALESCE(MAX(id_uzivatele), 0) FROM `{$this->anonymniDatabaze}`.uzivatele_hodnoty
-            SQL,
-        );
-        $maxId               = mysqli_fetch_column($result);
+        $db = $this->anonymniDatabaze;
         $systemovyUzivatelId = \Uzivatel::SYSTEM;
 
-        // Anonymizace ID uživatele
-        $remainingAttempts = 20;
-        do {
-            $dbException = null;
-            try {
-                do {
-                    $updateIdUzivateleResult = mysqli_query(
-                        $dbConnectionAnonymDb,
-                        <<<SQL
-                            UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
-                            SET id_uzivatele = (SELECT $maxId + CAST(FLOOR(RAND() * 10000000) AS UNSIGNED))
-                            WHERE id_uzivatele != $systemovyUzivatelId && id_uzivatele <= $maxId
-                            LIMIT 100 -- nutno dávkovat, jinak to způsobí Duplicate entry 'X' for key 'PRIMARY'
-                        SQL,
-                    );
-                } while ($updateIdUzivateleResult && mysqli_affected_rows($dbConnectionAnonymDb) > 0);
-            } catch (\mysqli_sql_exception $dbException) {
-                $remainingAttempts--;
-            }
-        } while ($dbException && $remainingAttempts > 0);
-        if ($dbException && $remainingAttempts <= 0) {
-            throw new \RuntimeException(
-                "Ani po několika pokusech se nepodařilo změnit všechna ID uživatelů: " . $dbException->getMessage(),
-                $dbException->getCode(),
-                $dbException,
+        // Anonymizace ID uživatele — deterministický posun místo náhodného, aby nedocházelo ke kolizím
+        $offset = random_int(1_000_000, 9_000_000);
+        mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 0");
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                UPDATE `{$db}`.uzivatele_hodnoty
+                SET id_uzivatele = id_uzivatele + $offset
+                WHERE id_uzivatele != $systemovyUzivatelId
+            SQL,
+        );
+        mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 1");
+
+        // Kaskádní aktualizace ID ve všech závislých tabulkách
+        $fkResult = mysqli_query($dbConnectionAnonymDb, <<<SQL
+            SELECT TABLE_NAME, COLUMN_NAME
+            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = '{$db}'
+                AND REFERENCED_TABLE_NAME = 'uzivatele_hodnoty'
+                AND REFERENCED_COLUMN_NAME = 'id_uzivatele'
+        SQL);
+        while ($fk = mysqli_fetch_assoc($fkResult)) {
+            mysqli_query(
+                $dbConnectionAnonymDb,
+                "UPDATE `{$db}`.`{$fk['TABLE_NAME']}` SET `{$fk['COLUMN_NAME']}` = `{$fk['COLUMN_NAME']}` + $offset WHERE `{$fk['COLUMN_NAME']}` != $systemovyUzivatelId",
             );
         }
 
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
-                UPDATE `{$this->anonymniDatabaze}`.stranky
-                SET
-                    obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
+                UPDATE `{$db}`.stranky
+                SET obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
                 WHERE TRUE
             SQL,
         );
@@ -108,41 +102,22 @@ class AnonymizovanaDatabaze
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
-                UPDATE `{$this->anonymniDatabaze}`.texty
-                SET
-                    `text` = REGEXP_REPLACE(`text`, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
-                WHERE TRUE
-            SQL,
-        );
-
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
-                UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
-                SET
-                    {$this->sqlSetProAnonymizaciUzivatele()}
+                UPDATE `{$db}`.uzivatele_hodnoty
+                SET {$this->sqlSetProAnonymizaciUzivatele()}
                 WHERE TRUE
             SQL,
         );
 
         $medailonkyData = AnonymizovanyUzivatel::vytvorAnonymniMedailonkoveDaje();
         $medailonkySet  = implode(', ', array_map(
-            fn(
-                $key,
-                $value,
-            ) => "$key = '$value'",
+            fn($key, $value) => "$key = '$value'",
             array_keys($medailonkyData),
             array_values($medailonkyData),
         ));
+        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.`medailonky` SET $medailonkySet WHERE TRUE");
 
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            "UPDATE `$databaze`.`medailonky` SET $medailonkySet WHERE TRUE",
-        );
-
-        mysqli_query($dbConnectionAnonymDb, "ALTER TABLE `$databaze`.uzivatele_role MODIFY COLUMN `posazen` TIMESTAMP NULL");
-        mysqli_query($dbConnectionAnonymDb, "ALTER TABLE `$databaze`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL");
-        mysqli_query($dbConnectionAnonymDb, "UPDATE `$databaze`.uzivatele_role SET `posazen` = NULL, `kdy` = NULL WHERE TRUE");
+        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.uzivatele_role SET `posazen` = '1970-01-01 01:01:01' WHERE TRUE");
+        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.akce_prihlaseni_log SET `kdy` = '1970-01-01 01:01:01' WHERE TRUE");
     }
 
     private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb)
@@ -250,39 +225,62 @@ SQL,
 
         (new \MySQLImport($dbConnectionAnonymDb))->load($tempFile);
 
+        mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 0");
         foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $prilisCitlivaTabulka) {
-            mysqli_query(
-                $dbConnectionAnonymDb,
-                <<<SQL
-                    DELETE FROM $prilisCitlivaTabulka
-                    WHERE TRUE
-                SQL,
-            );
+            mysqli_query($dbConnectionAnonymDb, "TRUNCATE TABLE `{$this->anonymniDatabaze}`.`$prilisCitlivaTabulka`");
         }
+        mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 1");
     }
 
-    public function exportuj(): void
+    public static function cestaExportu(): string
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
-        /*
-        * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
-        * ale nás definer nezajímá, tak ho zahodíme
-        */
+        return ZALOHA_DB_SLOZKA . '/gc_anonymizovana_databaze.sql.gz';
+    }
+
+    public static function datumPoslednihoExportu(): ?\DateTimeImmutable
+    {
+        $cesta = self::cestaExportu();
+        if (!file_exists($cesta)) {
+            return null;
+        }
+        return (new \DateTimeImmutable())->setTimestamp(filemtime($cesta));
+    }
+
+    public function exportujDoSouboru(): void
+    {
+        $cesta = self::cestaExportu();
+        if (!is_dir(dirname($cesta))) {
+            mkdir(dirname($cesta), 0750, true);
+        }
+        $tempSqlFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
         $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpAnonymniDatabaze([
             'skip-definer'     => true,
             'add-drop-table'   => true,
             'add-drop-trigger' => true,
         ]);
-        $mysqldump->start($tempFile);
-        NastrojeDatabaze::removeDefiners($tempFile);
+        $mysqldump->start($tempSqlFile);
+        NastrojeDatabaze::removeDefiners($tempSqlFile);
+
+        $tempGzFile = $cesta . '.tmp';
+        $sqlContent = file_get_contents($tempSqlFile);
+        file_put_contents($tempGzFile, gzencode($sqlContent, 9));
+        unlink($tempSqlFile);
+        rename($tempGzFile, $cesta);
+    }
+
+    public function exportuj(): void
+    {
+        $cesta = self::cestaExportu();
+        if (!file_exists($cesta)) {
+            throw new \RuntimeException('Anonymizovaná databáze ještě nebyla vygenerována');
+        }
         $request  = new Request();
-        $response = (new BinaryFileResponse($tempFile));
-        $response->headers->set('Content-Type', 'application/sql');
-        $response->deleteFileAfterSend()
-                 ->setContentDisposition(
-                     ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-                     'gc_anonymizovana_databaze_' . date('Y-m-d_h-i-s') . '.sql',
-                 )
+        $response = (new BinaryFileResponse($cesta));
+        $response->headers->set('Content-Type', 'application/gzip');
+        $response->setContentDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            'gc_anonymizovana_databaze.sql.gz',
+        )
                  ->prepare($request)
                  ->send();
     }

@@ -25,14 +25,12 @@ class ActivityRegistrationLog
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Activity::class)]
-    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE')]
     private Activity $activity;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private User $registeredUser;
 
@@ -46,7 +44,7 @@ class ActivityRegistrationLog
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_zmenil', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private ?User $changedBy = null;
 

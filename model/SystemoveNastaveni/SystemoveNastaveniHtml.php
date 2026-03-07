@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Gamecon\SystemoveNastaveni;
 
+use DateTimeInterface;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
@@ -70,10 +71,10 @@ class SystemoveNastaveniHtml
 
             $souboruZaloh = $this->dejSouboruZaloh();
             $souboruZalohOptions = implode('', array_map(
-                static function (string $soubor): string {
+                function (string $soubor): string {
                     $basename = basename($soubor);
-                    $datum = new \Gamecon\Cas\DateTimeCz('@' . filemtime($soubor));
-                    $popisek = $datum->format('Y-m-d H:i:s') . ' (' . $datum->stari() . ')';
+                    $datum = new DateTimeCz('@' . filemtime($soubor));
+                    $popisek = $this->formatujDatumSeStarim($datum);
                     return "<option value=\"{$basename}\">{$popisek}</option>";
                 },
                 $souboruZaloh,
@@ -118,12 +119,24 @@ class SystemoveNastaveniHtml
         $templateAnonymniDatabaze = new XTemplate(__DIR__ . '/templates/export-anonymizovane-databaze.xtpl');
         $templateAnonymniDatabaze->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
         $templateAnonymniDatabaze->assign('exportovatAnonymizovanouKlic', self::EXPORTOVAT_ANONYMIZOVANOU_KLIC);
+        $datumExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
+        if ($datumExportu) {
+            $templateAnonymniDatabaze->assign('datumExportu', $this->formatujDatumSeStarim($datumExportu));
+            $templateAnonymniDatabaze->parse('exportAnonymizovaneDatabaze.existuje');
+        } else {
+            $templateAnonymniDatabaze->parse('exportAnonymizovaneDatabaze.neexistuje');
+        }
         $templateAnonymniDatabaze->parse('exportAnonymizovaneDatabaze');
         $template->assign('exportAnonymizovaneDatabaze', $templateAnonymniDatabaze->text('exportAnonymizovaneDatabaze'));
         $template->parse('nastaveni.exportAnonymizovaneDatabaze');
 
         $template->parse('nastaveni');
         $template->out('nastaveni');
+    }
+
+    private function formatujDatumSeStarim(DateTimeInterface $datum): string
+    {
+        return $datum->format(DateTimeCz::FORMAT_DB) . ' (' . DateTimeCz::createFromInterface($datum)->stari() . ')';
     }
 
     private function seskupPodleSkupin(array $zaznamy): array
@@ -309,8 +322,14 @@ class SystemoveNastaveniHtml
             return true;
         }
         if (!empty($pozadavky[self::EXPORTOVAT_ANONYMIZOVANOU_KLIC])) {
-            $this->exportujAnonymizovanouDatabazi();
-            exit;
+            try {
+                $this->exportujAnonymizovanouDatabazi();
+                exit;
+            } catch (\RuntimeException $e) {
+                chyba($e->getMessage());
+            }
+
+            return true;
         }
 
         return false;
@@ -377,10 +396,7 @@ class SystemoveNastaveniHtml
 
     private function exportujAnonymizovanouDatabazi(): void
     {
-        ini_set('memory_limit', '512M');
-        set_time_limit(300);
         $anonymizovanaDatabaze = AnonymizovanaDatabaze::vytvorZGlobals();
-        $anonymizovanaDatabaze->obnov();
         $anonymizovanaDatabaze->exportuj();
     }
 

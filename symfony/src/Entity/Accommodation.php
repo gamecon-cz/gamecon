@@ -23,8 +23,8 @@ class Accommodation
 
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'onUpdate' => 'CASCADE',
     ])]
     private User $uzivatel;
 

@@ -25,7 +25,7 @@ class EventLog
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_logujiciho', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private User $loggedBy;
 

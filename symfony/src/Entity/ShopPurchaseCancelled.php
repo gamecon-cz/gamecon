@@ -25,14 +25,12 @@ class ShopPurchaseCancelled
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private User $customer;
 
     #[ORM\ManyToOne(targetEntity: ShopItem::class)]
-    #[ORM\JoinColumn(name: 'id_predmetu', referencedColumnName: 'id_predmetu', nullable: false, onDelete: 'RESTRICT', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_predmetu', referencedColumnName: 'id_predmetu', nullable: false, onDelete: 'RESTRICT')]
     private ShopItem $shopItem;
 
     #[ORM\Column(name: 'rocnik', type: Types::SMALLINT, nullable: false)]

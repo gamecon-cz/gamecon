@@ -42,6 +42,10 @@ fix:
 
 static: fix phpstan
 
+migrations-run:
+	./bin-docker/php ./bin/console migrations:continue
+	./bin-docker/php ./bin/console app:cache:doctrine:invalidate
+
 migrations-diff:
 	./bin-docker/php ./bin/console --env=test migrations:continue
 	./bin-docker/php ./bin/console --env=test migrations:create structures rename-me

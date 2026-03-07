@@ -23,9 +23,7 @@ class ActivityInstance
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Activity::class)]
-    #[ORM\JoinColumn(name: 'id_hlavni_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE', options: [
-        'ON UPDATE' => 'CASCADE',
-    ])]
+    #[ORM\JoinColumn(name: 'id_hlavni_akce', referencedColumnName: 'id_akce', nullable: false, onDelete: 'CASCADE')]
     private Activity $mainActivity;
 
     public function getId(): ?int
