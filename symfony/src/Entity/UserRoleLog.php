@@ -23,7 +23,9 @@ class UserRoleLog
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+        'onUpdate' => 'CASCADE',
+    ])]
     private User $user;
 
     #[ORM\ManyToOne(targetEntity: Role::class)]
@@ -31,7 +33,9 @@ class UserRoleLog
     private Role $role;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'id_zmenil', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(name: 'id_zmenil', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
+        'onUpdate' => 'CASCADE',
+    ])]
     private ?User $changedBy = null;
 
     #[ORM\Column(name: 'zmena', type: Types::STRING, length: 128, nullable: false)]

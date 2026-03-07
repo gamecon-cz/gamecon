@@ -1,0 +1,13 @@
+--- /dev/null
++++ ../src/Tools/SchemaTool.php
+@@ -797,6 +797,10 @@
+             if (isset($joinColumn->deferrable)) {
+                 $fkOptions['deferrable'] = $joinColumn->deferrable;
+             }
++
++            if (isset($joinColumn->options['onUpdate'])) {
++                $fkOptions['onUpdate'] = $joinColumn->options['onUpdate'];
++            }
+         }
+ 
+         // Prefer unique constraints over implicit simple indexes created for foreign keys.

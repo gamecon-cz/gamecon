@@ -291,11 +291,11 @@ class Program
                     razeni: '_razeni_tmp',
                     select: '
                         (SELECT lokace.poradi
-                            FROM akce_lokace
-                            JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
-                            WHERE akce_lokace.id_akce = a.id_akce
-                            ORDER BY akce_lokace.je_hlavni, lokace.poradi
-                            LIMIT 1
+                            FROM lokace
+                            WHERE lokace.id_lokace = COALESCE(
+                                a.id_hlavni_lokace,
+                                (SELECT akce_lokace.id_lokace FROM akce_lokace WHERE akce_lokace.id_akce = a.id_akce ORDER BY akce_lokace.id_lokace LIMIT 1)
+                            )
                         ) AS _razeni_tmp
                     ',
                     dalsiPouziteSqlTabulky: [

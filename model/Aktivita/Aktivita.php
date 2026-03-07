@@ -1554,11 +1554,12 @@ SQL
     {
         if (!isset($this->idHlavniLokace)) {
             $idHlavniLokace       = dbFetchSingle(<<<SQL
-                SELECT id_lokace
-                FROM akce_lokace
+                SELECT COALESCE(
+                    akce_seznam.id_hlavni_lokace,
+                    (SELECT id_lokace FROM akce_lokace WHERE id_akce = {$this->id()} ORDER BY id_lokace ASC LIMIT 1)
+                )
+                FROM akce_seznam
                 WHERE id_akce = {$this->id()}
-                ORDER BY je_hlavni DESC, id_lokace ASC
-                LIMIT 1
                 SQL,
             );
             $this->idHlavniLokace = $idHlavniLokace
@@ -1575,14 +1576,12 @@ SQL
         ?int  $hlavniLokaceId,
     ): void {
         if ($idckaLokaci === []) {
-            // Empty array means delete all locations
             dbQuery(<<<SQL
                     DELETE FROM akce_lokace
                     WHERE id_akce = {$this->id()}
                     SQL,
             );
         } else {
-            // Non-empty array: delete locations NOT in the list
             dbQuery(<<<SQL
                     DELETE FROM akce_lokace
                     WHERE id_akce = {$this->id()}
@@ -1593,27 +1592,34 @@ SQL
         }
         if ($idckaLokaci !== []) {
             $values    = array_map(
-                function (
-                    int $idLokace,
-                ) use
-                (
-                    $hlavniLokaceId,
-                ) {
-                    $jeHlavni = $hlavniLokaceId !== null && $idLokace === $hlavniLokaceId
-                        ? 1
-                        : 0;
-
-                    return "({$this->id()}, $idLokace, $jeHlavni)";
+                function (int $idLokace) {
+                    return "({$this->id()}, $idLokace)";
                 },
                 array_map('intval', $idckaLokaci),
             );
             $valuesSql = implode(',', $values);
             dbQuery(<<<SQL
-                REPLACE INTO akce_lokace(id_akce, id_lokace, je_hlavni)
+                REPLACE INTO akce_lokace(id_akce, id_lokace)
                 VALUES {$valuesSql}
                 SQL,
             );
         }
+        if ($hlavniLokaceId !== null && !in_array($hlavniLokaceId, array_map('intval', $idckaLokaci), true)) {
+            throw new \LogicException(
+                sprintf(
+                    'Given ID of main location %d is not in given list of locations %s.',
+                    $hlavniLokaceId, implode(', ', $idckaLokaci)
+                )
+            );
+        }
+        dbQuery(<<<SQL
+            UPDATE akce_seznam
+            SET id_hlavni_lokace = $1
+            WHERE id_akce = {$this->id()}
+            SQL,
+            [1 => $hlavniLokaceId],
+        );
+        $this->idHlavniLokace = null;
         $this->seznamLokaci = null;
     }
 

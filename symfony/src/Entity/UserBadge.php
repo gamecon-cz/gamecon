@@ -20,7 +20,7 @@ class UserBadge
     #[ORM\Id]
     #[ORM\OneToOne(targetEntity: User::class, inversedBy: 'badge')]
     #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', onDelete: 'CASCADE', options: [
-        'comment' => 'ON UPDATE CASCADE',
+        'onUpdate' => 'CASCADE',
     ])]
     private User $user;
 

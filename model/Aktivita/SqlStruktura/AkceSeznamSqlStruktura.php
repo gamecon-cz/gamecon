@@ -35,5 +35,6 @@ class AkceSeznamSqlStruktura
     public const POPIS            = 'popis';
     public const POPIS_KRATKY     = 'popis_kratky';
     public const VYBAVENI         = 'vybaveni';
-    public const PROBEHLA_KOREKCE = 'probehla_korekce';
+    public const PROBEHLA_KOREKCE    = 'probehla_korekce';
+    public const ID_HLAVNI_LOKACE   = 'id_hlavni_lokace';
 }
