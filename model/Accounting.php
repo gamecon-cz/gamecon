@@ -78,7 +78,7 @@ class Accounting
 
     public static function cancelTransaction(string $transactionId): bool
     {
-        preg_match('/#U\[(\d+)\]#P\[(\d+)\]/', $transactionId, $matches);
+        preg_match('/#U\[(\d+)]#P\[(\d+)]/', $transactionId, $matches);
         return Uzivatel::zId(intval($matches[1]))->shop()->zrusNakupPredmetu(intval($matches[2]), 1) > 0;
     }
 }

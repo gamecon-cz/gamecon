@@ -3,6 +3,7 @@
 /.idea/
 /.vscode/
 /.envrc
+/.mcp.json
 
 /.phpunit.result.cache
 /.phpunit.cache
