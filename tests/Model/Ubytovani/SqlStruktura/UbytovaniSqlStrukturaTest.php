@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Model\Ubytovani\SqlStruktura;
 
 use Gamecon\Tests\Model\AbstractTestSqlStruktura;
@@ -11,5 +13,4 @@ class UbytovaniSqlStrukturaTest extends AbstractTestSqlStruktura
     {
         return UbytovaniSqlStruktura::class;
     }
-
 }

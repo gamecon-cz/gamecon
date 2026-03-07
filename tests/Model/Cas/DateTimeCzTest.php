@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Model\Cas;
 
 use Gamecon\Cas\DateTimeCz;
@@ -7,7 +9,6 @@ use PHPUnit\Framework\TestCase;
 
 class DateTimeCzTest extends TestCase
 {
-
     /**
      * @dataProvider provideDenNaPrelom
      */

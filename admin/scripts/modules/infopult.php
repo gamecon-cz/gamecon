@@ -126,7 +126,7 @@ if ($uPracovni) {
                 "<button type='submit'><i class='fa fa-trash' aria-hidden='true'/></button>" .
                 "</form></td>" :
             "<td></td>") .
-            "</tr>", array_filter(Accounting::getPersonalFinance($uPracovni)->getTransactions(),
+            "</tr>", array_filter(Accounting::getPersonalFinance($uPracovni, showDiscounts: false)->getTransactions(),
         fn(Transaction $t) => $t->getCategory() == TransactionCategory::SHOP_ITEMS ||
             ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY) && $t->getCategory() == TransactionCategory::VOLUNTARY_DONATION))))
     ]);
@@ -208,7 +208,7 @@ if ($uPracovni) {
         if (!$uPracovni->gcPritomen()) {
             $zpravyProPotvrzeni['materialy'] = "nemá potvrzeno že přijel{$a} a že dostal{$a} materiály";
         }
-        if (Accounting::getPersonalFinance($uPracovni)->getTotal() < 0) {
+        if (Accounting::getPersonalFinance($uPracovni, showDiscounts: false)->getTotal() < 0) {
             $zpravyProPotvrzeni[] = 'má nedoplatek';
         }
         if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {

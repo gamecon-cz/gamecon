@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Model\Aktivita\SqlStruktura;
 
-use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
 use Gamecon\Tests\Model\AbstractTestSqlStruktura;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Model\Report\SqlStruktura;
 
 use Gamecon\Report\SqlStruktura\ReportyQuickSqlStruktura;
@@ -11,5 +13,4 @@ class ReportyQuickSqlStrukturaTest extends AbstractTestSqlStruktura
     {
         return ReportyQuickSqlStruktura::class;
     }
-
 }

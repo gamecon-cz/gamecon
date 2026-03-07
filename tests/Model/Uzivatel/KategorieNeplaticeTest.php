@@ -11,11 +11,10 @@ use PHPUnit\Framework\TestCase;
 
 class KategorieNeplaticeTest extends TestCase
 {
-
     /**
      * @test
      */
-    public function Mame_srozumitelnou_konstantu_pro_kazde_cislo_kategorie()
+    public function mameSrozumitelnouKonstantuProKazdeCisloKategorie()
     {
         self::assertSame(1, KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH);
         self::assertSame(2, KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH);
@@ -28,21 +27,22 @@ class KategorieNeplaticeTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider provideDataNeplatice
      */
-    public function Muzu_ziskat_ciselnou_kategorii_neplatice_a_zjistit_zda_ma_byt_odhlasen(
+    public function muzuZiskatCiselnouKategoriiNeplaticeAZjistitZdaMaBytOdhlasen(
         Finance $finance,
         ?string $kdySeRegistrovalNaLetosniGc,
-        bool    $maPravoNerusitObjednavky,
+        bool $maPravoNerusitObjednavky,
         // prvni nebo druha vlna
-        string  $zacatekVlnyOdhlasovani,
-        int     $rocnik,
-        float   $castkaVelkyDluh,
-        float   $castkaPoslalDost,
-        int     $pocetDnuPredVlnouKdyJeJesteChrane,
-        ?int    $ocekavanaKategorieNeplatice,
+        string $zacatekVlnyOdhlasovani,
+        int $rocnik,
+        float $castkaVelkyDluh,
+        float $castkaPoslalDost,
+        int $pocetDnuPredVlnouKdyJeJesteChrane,
+        ?int $ocekavanaKategorieNeplatice,
     ) {
-        $kategorieNeplatice         = new KategorieNeplatice(
+        $kategorieNeplatice = new KategorieNeplatice(
             $finance,
             $kdySeRegistrovalNaLetosniGc
                 ? new \DateTimeImmutable($kdySeRegistrovalNaLetosniGc)
@@ -59,7 +59,7 @@ class KategorieNeplaticeTest extends TestCase
             $ocekavanaKategorieNeplatice,
             $zjistenaKategorieNeplatice,
             sprintf(
-                "Očekávána kategorie %s, zjištěna %s",
+                'Očekávána kategorie %s, zjištěna %s',
                 var_export($ocekavanaKategorieNeplatice, true),
                 var_export($zjistenaKategorieNeplatice, true),
             ),
@@ -79,10 +79,10 @@ class KategorieNeplaticeTest extends TestCase
 
     public static function provideDataNeplatice(): array
     {
-        $ted         = 'now';
-        $predChvili  = '-1 second';
+        $ted = 'now';
+        $predChvili = '-1 second';
         $predMesicem = '-1 month';
-        $zitra       = '+1 day';
+        $zitra = '+1 day';
 
         $dataNeplatice = [];
         foreach (self::pravoNerusitObjednavkyPrebijeTemerVsechno() as $index => $pravoNerusitObjednavkyPrebijeVsechnoKromeNedluznika) {
@@ -92,7 +92,7 @@ class KategorieNeplaticeTest extends TestCase
         return array_merge(
             $dataNeplatice,
             [
-                'neznámé přihlášení na GC nemá kategorii'                                                  => self::fixture(
+                'neznámé přihlášení na GC nemá kategorii' => self::fixture(
                     finance: self::finance(),
                     kdySeRegistrovalNaLetosniGc: null,
                     maPravoNerusitObjednavky: false,
@@ -102,7 +102,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: null,
                 ),
-                'přihlášení po vlně odhlašování na GC znamená chráněný i s mínusem'                        => self::fixture(
+                'přihlášení po vlně odhlašování na GC znamená chráněný i s mínusem' => self::fixture(
                     finance: self::finance(stav: -999),
                     kdySeRegistrovalNaLetosniGc: $ted,
                     maPravoNerusitObjednavky: false,
@@ -122,7 +122,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 10 /* chráněn tolik dní před odhlašováním */,
                     ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY,
                 ),
-                'letos poslal málo a má velký dluh'                                                        => self::fixture(
+                'letos poslal málo a má velký dluh' => self::fixture(
                     finance: self::finance(sumaPlateb: 0.1, stav: -999),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -132,7 +132,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
                 ),
-                'letos nic, z loňska něco málo a má malý dluh'                                             => self::fixture(
+                'letos nic, z loňska něco málo a má malý dluh' => self::fixture(
                     finance: self::finance(zustatekZPredchozichRocniku: 0.1, stav: -0.1),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -142,7 +142,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_NEMA_VELKY_DLUH,
                 ),
-                'letos poslal dost'                                                                        => self::fixture(
+                'letos poslal dost' => self::fixture(
                     finance: self::finance(sumaPlateb: 100.0, stav: -PHP_INT_MAX),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -152,7 +152,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY,
                 ),
-                'letos nic, z loňska nic a nemá velký dluh'                                                => self::fixture(
+                'letos nic, z loňska nic a nemá velký dluh' => self::fixture(
                     finance: self::finance(stav: -0.1),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -162,7 +162,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
                 ),
-                'letos nic, z loňska nic a má velký dluh'                                                  => self::fixture(
+                'letos nic, z loňska nic a má velký dluh' => self::fixture(
                     finance: self::finance(stav: -0.1),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -172,7 +172,7 @@ class KategorieNeplaticeTest extends TestCase
                     pocetDnuPredVlnouKdyJeJesteChranen: 0,
                     ocekavanaKategorieNeplatice: KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
                 ),
-                'letos nic, z loňska nic a má malý dluh situace 2023'                                      => self::fixture(
+                'letos nic, z loňska nic a má malý dluh situace 2023' => self::fixture(
                     finance: self::finance(stav: -137),
                     kdySeRegistrovalNaLetosniGc: $predMesicem,
                     maPravoNerusitObjednavky: false,
@@ -193,14 +193,14 @@ class KategorieNeplaticeTest extends TestCase
     {
         $ocekavanaKategorieNeplatice = static function (
             ?string $kdySeRegistrovalNaLetosniGc,
-            float   $stav,
+            float $stav,
         ) {
             return match ($kdySeRegistrovalNaLetosniGc) {
                 null    => null,
                 default => match ($stav >= 0) {
                     true  => KategorieNeplatice::NEDLUZNIK,
                     false => KategorieNeplatice::MA_PRAVO_NEODHLASOVAT,
-                }
+                },
             };
         };
 
@@ -275,14 +275,14 @@ class KategorieNeplaticeTest extends TestCase
 
     private static function fixture(
         Finance $finance,
-                $kdySeRegistrovalNaLetosniGc,
-        bool    $maPravoNerusitObjednavky,
-                $zacatekVlnyOdhlasovani,
-                $castkaVelkyDluh,
-                $castkaPoslalDost,
-                $pocetDnuPredVlnouKdyJeJesteChranen,
-        ?int    $ocekavanaKategorieNeplatice,
-        int     $rocnik = ROCNIK,
+        $kdySeRegistrovalNaLetosniGc,
+        bool $maPravoNerusitObjednavky,
+        $zacatekVlnyOdhlasovani,
+        $castkaVelkyDluh,
+        $castkaPoslalDost,
+        $pocetDnuPredVlnouKdyJeJesteChranen,
+        ?int $ocekavanaKategorieNeplatice,
+        int $rocnik = ROCNIK,
     ): array {
         return [
             $finance,
@@ -303,14 +303,14 @@ class KategorieNeplaticeTest extends TestCase
     private static function kombinaceProKategorii3VelkyDluh(): array
     {
         return [
-            'nic letos neposlal'                                                   => [
+            'nic letos neposlal' => [
                 'sumaPlateb'                  => 0.0,
                 'zustatekZPredchozichRocniku' => 0.0,
                 'stav'                        => 0.0,
                 'castka_velky_dluh'           => 0.0,
                 'castkaPoslalDost'            => 0.0,
             ],
-            'letos poslal, ale nemá zůstatek z předchozích ročníků'                => [
+            'letos poslal, ale nemá zůstatek z předchozích ročníků' => [
                 'sumaPlateb'                  => 0.1,
                 'zustatekZPredchozichRocniku' => 0.0,
                 'stav'                        => 0.0,
@@ -324,7 +324,7 @@ class KategorieNeplaticeTest extends TestCase
                 'castka_velky_dluh'           => -0.123,
                 'castkaPoslalDost'            => 0.0,
             ],
-            'letos poslal, má zůstatek z předchozích ročníků a má velký dluh'      => [
+            'letos poslal, má zůstatek z předchozích ročníků a má velký dluh' => [
                 'sumaPlateb'                  => 0.1,
                 'zustatekZPredchozichRocniku' => 0.1,
                 'stav'                        => -0.3456,
@@ -336,17 +336,18 @@ class KategorieNeplaticeTest extends TestCase
 
     /**
      * Kategorie neplatiče null (nevíme) a
+     *
      * @see KategorieNeplatice::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU
      */
     private static function registrovalSeAzPoVlneOdhlasovaniNeboPredNiNeboNevime(): array
     {
         return [
-            'neznáme registraci na GC'                   => [
+            'neznáme registraci na GC' => [
                 'kdySeRegistrovalNaLetosniGc'        => null,
                 'zacatekVlnyOdhlasovani'             => $ted = 'now',
                 'pocetDnuPredVlnouKdyJeJesteChranen' => 10,
             ],
-            'registroval se před vlnou odhlašování'      => [
+            'registroval se před vlnou odhlašování' => [
                 'kdySeRegistrovalNaLetosniGc'        => '-9 days -23 hours -59 seconds',
                 'zacatekVlnyOdhlasovani'             => $ted,
                 'pocetDnuPredVlnouKdyJeJesteChranen' => 10,
@@ -356,7 +357,7 @@ class KategorieNeplaticeTest extends TestCase
                 'zacatekVlnyOdhlasovani'             => $ted,
                 'pocetDnuPredVlnouKdyJeJesteChranen' => 10,
             ],
-            'registroval se až po vlně odhlašování'      => [
+            'registroval se až po vlně odhlašování' => [
                 'kdySeRegistrovalNaLetosniGc'        => $ted,
                 'zacatekVlnyOdhlasovani'             => '+2 seconds',
                 'pocetDnuPredVlnouKdyJeJesteChranen' => 10,
@@ -369,7 +370,7 @@ class KategorieNeplaticeTest extends TestCase
      */
     private static function vsechnyKombinaceFinanci(): array
     {
-        $platby   = array_merge(self::letosZaplatilDost(), self::letosZaplatilMalo());
+        $platby = array_merge(self::letosZaplatilDost(), self::letosZaplatilMalo());
         $zustatky = self::kombinaceZustatku();
 
         $kombinace = [];
@@ -387,8 +388,8 @@ class KategorieNeplaticeTest extends TestCase
 
     private static function kombinaceZustatku(): array
     {
-        $cisla             = [[1, 0], [1, 1]];
-        $znamenka          = [[1, 1], [-1, -1], [-1, 1], [1, -1]];
+        $cisla = [[1, 0], [1, 1]];
+        $znamenka = [[1, 1], [-1, -1], [-1, 1], [1, -1]];
         $kombinaceZustatku = [
             [
                 'stav'                        => 0,
@@ -410,7 +411,7 @@ class KategorieNeplaticeTest extends TestCase
     private static function letosZaplatilDost(): array
     {
         return [
-            'víc'    => [
+            'víc' => [
                 'sumaPlateb'       => 9999.1,
                 'castkaPoslalDost' => 9999,
             ],
@@ -436,9 +437,7 @@ class KategorieNeplaticeTest extends TestCase
         float $zustatekZPredchozichRocniku = 0.0,
         float $stav = 0.0,
     ): Finance {
-        return new class($sumaPlateb, $zustatekZPredchozichRocniku, $stav) extends Finance
-        {
-
+        return new class($sumaPlateb, $zustatekZPredchozichRocniku, $stav) extends Finance {
             public function __construct(
                 protected float $sumaPlateb,
                 protected float $zustatekZPredchozichRocniku,
@@ -477,15 +476,15 @@ class KategorieNeplaticeTest extends TestCase
     /**
      * @test
      */
-    public function Muzu_resetovat_vnitrni_cache()
+    public function muzuResetovatVnitrniCache()
     {
-        $finance                           = self::finance(sumaPlateb: 123.456, stav: -0.1);
-        $kdySeRegistrovalNaLetosniGc       = new DateTimeImmutableStrict('-1 month');
-        $maPravoNerusitObjednavky          = false;
-        $zacatekVlnyOdhlasovani            = new DateTimeImmutableStrict();
-        $rocnik                            = (int)$kdySeRegistrovalNaLetosniGc->format('y');
-        $castkaVelkyDluh                   = 123456;
-        $castkaPoslalDost                  = 654321;
+        $finance = self::finance(sumaPlateb: 123.456, stav: -0.1);
+        $kdySeRegistrovalNaLetosniGc = new DateTimeImmutableStrict('-1 month');
+        $maPravoNerusitObjednavky = false;
+        $zacatekVlnyOdhlasovani = new DateTimeImmutableStrict();
+        $rocnik = (int) $kdySeRegistrovalNaLetosniGc->format('y');
+        $castkaVelkyDluh = 123456;
+        $castkaPoslalDost = 654321;
         $pocetDnuPredVlnouKdyJeJesteChrane = 0;
 
         $kategorieNeplatice = new KategorieNeplatice(

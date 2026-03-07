@@ -26,7 +26,7 @@ class ShopProdejPrekroceniZasobTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Prodej_neprekroci_skladovou_zasobu(): void
+    public function prodejNeprekrociSkladovouZasobu(): void
     {
         $uniqueId = uniqid();
 
@@ -51,7 +51,7 @@ class ShopProdejPrekroceniZasobTest extends AbstractTestDb
         ])->_real();
 
         $uzivatel = \Uzivatel::zIdUrcite($user->getId());
-        $shop     = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
 
         // Item has only 2 pieces available (kusuVyrobeno = 2)
         // Try to sell 3 pieces - should fail
@@ -63,7 +63,7 @@ class ShopProdejPrekroceniZasobTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Prodej_povoli_nakup_az_do_limitu_zasob(): void
+    public function prodejPovoliNakupAzDoLimituZasob(): void
     {
         $uniqueId = uniqid();
 
@@ -88,7 +88,7 @@ class ShopProdejPrekroceniZasobTest extends AbstractTestDb
         ])->_real();
 
         $uzivatel = \Uzivatel::zIdUrcite($user->getId());
-        $shop     = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
 
         // Item has 2 pieces available
         // Selling exactly 2 should succeed
@@ -97,7 +97,10 @@ class ShopProdejPrekroceniZasobTest extends AbstractTestDb
         $pocetNakupu = (int) dbOneCol(<<<SQL
 SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1
 SQL,
-            [0 => $shopItem->getId(), 1 => ROCNIK],
+            [
+                0 => $shopItem->getId(),
+                1 => ROCNIK,
+            ],
         );
 
         self::assertSame(2, $pocetNakupu);
@@ -106,7 +109,7 @@ SQL,
     /**
      * @test
      */
-    public function Prodej_povoli_neomezeny_nakup_pri_null_zasobach(): void
+    public function prodejPovoliNeomezenyNakupPriNullZasobach(): void
     {
         $uniqueId = uniqid();
 
@@ -131,7 +134,7 @@ SQL,
         ])->_real();
 
         $uzivatel = \Uzivatel::zIdUrcite($user->getId());
-        $shop     = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
 
         // Item has unlimited stock (kusuVyrobeno = null)
         // Selling any amount should succeed
@@ -140,7 +143,10 @@ SQL,
         $pocetNakupu = (int) dbOneCol(<<<SQL
 SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1
 SQL,
-            [0 => $shopItem->getId(), 1 => ROCNIK],
+            [
+                0 => $shopItem->getId(),
+                1 => ROCNIK,
+            ],
         );
 
         self::assertSame(100, $pocetNakupu);

@@ -13,5 +13,4 @@ class PredmetSqlStrukturaTest extends AbstractTestSqlStruktura
     {
         return PredmetSqlStruktura::class;
     }
-
 }

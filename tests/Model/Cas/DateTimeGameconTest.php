@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Model\Cas;
 
 use App\Kernel;
@@ -7,7 +9,6 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use PHPUnit\Event\Telemetry\System;
 use PHPUnit\Framework\TestCase;
 
 class DateTimeGameconTest extends TestCase
@@ -15,7 +16,7 @@ class DateTimeGameconTest extends TestCase
     /**
      * @test
      */
-    public function Muzu_zjistit_kdy_je_zacatek_gameconu()
+    public function muzuZjistitKdyJeZacatekGameconu()
     {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(GC_BEZI_OD),
@@ -57,7 +58,7 @@ class DateTimeGameconTest extends TestCase
     /**
      * @test
      */
-    public function Muzu_zjistit_kdy_je_konec_gameconu()
+    public function muzuZjistitKdyJeKonecGameconu()
     {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(GC_BEZI_DO),
@@ -165,13 +166,13 @@ class DateTimeGameconTest extends TestCase
         self::assertEquals(
             DateTimeGamecon::createFromMysql($ocekavanyZacatek),
             DateTimeGamecon::spoctejKdyJePrvniVlna($rocnik),
-            "Očekáván jiný spočítaný začátek první vlny pro rok $rocnik",
+            "Očekáván jiný spočítaný začátek první vlny pro rok {$rocnik}",
         );
         if ($rocnik !== ROCNIK) {
             self::assertEquals(
                 DateTimeGamecon::createFromMysql($ocekavanyZacatek),
                 DateTimeGamecon::prvniVlnaKdy($rocnik),
-                "Očekáván jiný začátek první vlny pro rok $rocnik",
+                "Očekáván jiný začátek první vlny pro rok {$rocnik}",
             );
         }
     }
@@ -179,12 +180,12 @@ class DateTimeGameconTest extends TestCase
     public static function provideZacatekPrvniVlnyOd(): array
     {
         return [
-//            'současný ročník' => [ROCNIK, PRVNI_VLNA_KDY],
-'2023' => [2023, '2023-05-18 20:23:00'],
-'2022' => [2022, '2022-05-19 20:22:00'],
-'2021' => [2021, '2021-05-20 20:21:00'],
-'2019' => [2019, '2019-05-21 20:19:00'],
-'2016' => [2016, '2016-05-10 20:16:00'],
+            //            'současný ročník' => [ROCNIK, PRVNI_VLNA_KDY],
+            '2023' => [2023, '2023-05-18 20:23:00'],
+            '2022' => [2022, '2022-05-19 20:22:00'],
+            '2021' => [2021, '2021-05-20 20:21:00'],
+            '2019' => [2019, '2019-05-21 20:19:00'],
+            '2016' => [2016, '2016-05-10 20:16:00'],
         ];
     }
 
@@ -196,13 +197,13 @@ class DateTimeGameconTest extends TestCase
         self::assertEquals(
             DateTimeGamecon::createFromMysql($ocekavanyZacatek),
             DateTimeGamecon::spocitejKdyJeDruhaVlna($rocnik),
-            "Očekáván jiný spočítaný začátek druhé vlny pro rok $rocnik",
+            "Očekáván jiný spočítaný začátek druhé vlny pro rok {$rocnik}",
         );
         if ($rocnik !== ROCNIK) {
             self::assertEquals(
                 DateTimeGamecon::createFromMysql($ocekavanyZacatek),
                 DateTimeGamecon::druhaVlnaKdy($rocnik),
-                "Očekáván jiný začátek druhé vlny pro rok $rocnik",
+                "Očekáván jiný začátek druhé vlny pro rok {$rocnik}",
             );
         }
     }
@@ -227,13 +228,13 @@ class DateTimeGameconTest extends TestCase
         self::assertEquals(
             DateTimeGamecon::createFromMysql($ocekavanyZacatek),
             DateTimeGamecon::spocitejKdyJeTretiVlna($rocnik),
-            "Očekáván jiný spočítaný začátek třetí vlny pro rok $rocnik",
+            "Očekáván jiný spočítaný začátek třetí vlny pro rok {$rocnik}",
         );
         if ($rocnik !== ROCNIK) {
             self::assertEquals(
                 DateTimeGamecon::createFromMysql($ocekavanyZacatek),
                 DateTimeGamecon::tretiVlnaKdy($rocnik),
-                "Očekáván jiný začátek třetí vlny pro rok $rocnik",
+                "Očekáván jiný začátek třetí vlny pro rok {$rocnik}",
             );
         }
     }
@@ -250,9 +251,9 @@ class DateTimeGameconTest extends TestCase
 
     public function testPrvniHromadneOdhlasovani()
     {
-        $ted                = new DateTimeImmutableStrict();
+        $ted = new DateTimeImmutableStrict();
         $systemoveNastaveni = $this->dejSystemoveNastaveni($ted);
-        $tretiVlnaKdy       = $systemoveNastaveni->tretiVlnaKdy();
+        $tretiVlnaKdy = $systemoveNastaveni->tretiVlnaKdy();
         self::assertEquals(
             $tretiVlnaKdy->modify('-10 minutes'),
             DateTimeGamecon::prvniHromadneOdhlasovani(),
@@ -260,7 +261,7 @@ class DateTimeGameconTest extends TestCase
         );
 
         $systemoveNastaveni2023 = $this->dejSystemoveNastaveni($ted, 2023);
-        $tretiVlna2023          = $systemoveNastaveni2023->tretiVlnaKdy();
+        $tretiVlna2023 = $systemoveNastaveni2023->tretiVlnaKdy();
         self::assertEquals(
             $tretiVlna2023->modify('-10 minutes'),
             DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2023),
@@ -275,8 +276,8 @@ class DateTimeGameconTest extends TestCase
 
     public function testDruheHromadneOdhlasovani()
     {
-        $ted                      = new DateTimeImmutableStrict();
-        $systemoveNastaveni       = $this->dejSystemoveNastaveni($ted);
+        $ted = new DateTimeImmutableStrict();
+        $systemoveNastaveni = $this->dejSystemoveNastaveni($ted);
         $prvniHromadneOdhlasovani = $systemoveNastaveni->prvniHromadneOdhlasovani();
         self::assertEquals(
             $prvniHromadneOdhlasovani->modify('+9 days')->setTime(0, 0, 0),
@@ -284,7 +285,7 @@ class DateTimeGameconTest extends TestCase
             'Očekáváno jiné datum druhého hromadného ohlašování',
         );
 
-        $systemoveNastaveni2023       = $this->dejSystemoveNastaveni($ted, 2023);
+        $systemoveNastaveni2023 = $this->dejSystemoveNastaveni($ted, 2023);
         $prvniHromadneOdhlasovani2023 = $systemoveNastaveni2023->prvniHromadneOdhlasovani();
         self::assertEquals(
             $prvniHromadneOdhlasovani2023->modify('+9 days')->setTime(0, 0, 0),
@@ -300,8 +301,8 @@ class DateTimeGameconTest extends TestCase
 
     public function testTretiHromadneOdhlasovani()
     {
-        $ted                      = new DateTimeImmutableStrict();
-        $systemoveNastaveni       = $this->dejSystemoveNastaveni($ted);
+        $ted = new DateTimeImmutableStrict();
+        $systemoveNastaveni = $this->dejSystemoveNastaveni($ted);
         $druheHromadneOdhlasovani = $systemoveNastaveni->druheHromadneOdhlasovani();
         self::assertEquals(
             $druheHromadneOdhlasovani->modify('+7 days'),
@@ -309,7 +310,7 @@ class DateTimeGameconTest extends TestCase
             'Očekáváno jiné datum třetího hromadného ohlašování',
         );
 
-        $systemoveNastaveni2023   = $this->dejSystemoveNastaveni($ted, 2023);
+        $systemoveNastaveni2023 = $this->dejSystemoveNastaveni($ted, 2023);
         $druheHromadneOdhlasovani = $systemoveNastaveni2023->druheHromadneOdhlasovani();
         self::assertEquals(
             $druheHromadneOdhlasovani->modify('+7 days'),
@@ -347,7 +348,7 @@ class DateTimeGameconTest extends TestCase
             'Zjišťování nejbližší (první) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny',
         );
 
-        $presneDenPoPrvni         = $casPrvnihoHromadnehoOdhlasovani->modify('+1 day');
+        $presneDenPoPrvni = $casPrvnihoHromadnehoOdhlasovani->modify('+1 day');
         $nastveniPresneDenPoPrvni = $this->dejSystemoveNastaveni($presneDenPoPrvni);
         self::assertEquals(
             $casPrvnihoHromadnehoOdhlasovani,
@@ -359,30 +360,28 @@ class DateTimeGameconTest extends TestCase
 
     private function testHromadnehoOdhlasovaniJakoNejblizsiho(
         DateTimeImmutableStrict $casHromadnehoOdhlasovani,
-        int                     $poradiOdhlasovani,
-    )
-    {
+        int $poradiOdhlasovani,
+    ) {
         $nastaveniCasPrvnihoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casHromadnehoOdhlasovani);
         self::assertEquals(
             $casHromadnehoOdhlasovani,
             DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniCasPrvnihoHromadnehoOdhlasovani),
-            "Zjišťování nejbližšího ($poradiOdhlasovani) odhlašování ve stejný čas jako nějaké odhlašování začíná by mělo vrátit začátek právě toho odhlašování",
+            "Zjišťování nejbližšího ({$poradiOdhlasovani}) odhlašování ve stejný čas jako nějaké odhlašování začíná by mělo vrátit začátek právě toho odhlašování",
         );
 
-        $presneDenPo              = $casHromadnehoOdhlasovani->modify('+1 day');
+        $presneDenPo = $casHromadnehoOdhlasovani->modify('+1 day');
         $nastaveniSTedPresneDenPo = $this->dejSystemoveNastaveni($presneDenPo);
         self::assertEquals(
             $casHromadnehoOdhlasovani,
             DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniSTedPresneDenPo),
-            "Zjišťování nejbližšího ($poradiOdhlasovani) odhlašování ještě den poté, co začíná, by mělo vrátit začátek toho den starého odhlašování",
+            "Zjišťování nejbližšího ({$poradiOdhlasovani}) odhlašování ještě den poté, co začíná, by mělo vrátit začátek toho den starého odhlašování",
         );
     }
 
     private function testDruhehoHromadnehoOdhlasovaniJakoNejblizsiho(
         DateTimeImmutableStrict $casPrvnihoHromadnehoOdhlasovani,
         DateTimeImmutableStrict $casDruhehoHromadnehoOdhlasovani,
-    )
-    {
+    ) {
         $this->testDalsihoHromadnehoOdhlasovaniJakoNejblizsiho(
             $casPrvnihoHromadnehoOdhlasovani,
             $casDruhehoHromadnehoOdhlasovani,
@@ -393,9 +392,8 @@ class DateTimeGameconTest extends TestCase
     private function testDalsihoHromadnehoOdhlasovaniJakoNejblizsiho(
         DateTimeImmutableStrict $casPredchozihoHromadnehoOdhlasovani,
         DateTimeImmutableStrict $casSoucasnehoHromadnehoOdhlasovani,
-        int                     $poradiSoucasneho,
-    )
-    {
+        int $poradiSoucasneho,
+    ) {
         $poradiPrechoziho = $poradiSoucasneho - 1;
 
         self::assertGreaterThan(
@@ -404,7 +402,7 @@ class DateTimeGameconTest extends TestCase
             "Předchozí ({$poradiPrechoziho}.) a současné ({$poradiSoucasneho}.) odhlašování od sebe musí být nejméně den a kousek",
         );
 
-        $denAKousekPoPrvni          = $casPredchozihoHromadnehoOdhlasovani->modify('+1 day +1 second');
+        $denAKousekPoPrvni = $casPredchozihoHromadnehoOdhlasovani->modify('+1 day +1 second');
         $nastaveniDenAKousekPoPrvni = $this->dejSystemoveNastaveni($denAKousekPoPrvni);
         self::assertEquals(
             $casSoucasnehoHromadnehoOdhlasovani,
@@ -418,8 +416,7 @@ class DateTimeGameconTest extends TestCase
     private function testTretihoHromadnehoOdhlasovaniJakoNejblizsiho(
         DateTimeImmutableStrict $casDruhehoHromadnehoOdhlasovani,
         DateTimeImmutableStrict $casTretihoHromadnehoOdhlasovani,
-    )
-    {
+    ) {
         $this->testPoslednihoHromadnehoOdhlasovaniJakoNejblizsiho(
             $casDruhehoHromadnehoOdhlasovani,
             $casTretihoHromadnehoOdhlasovani,
@@ -430,16 +427,15 @@ class DateTimeGameconTest extends TestCase
     private function testPoslednihoHromadnehoOdhlasovaniJakoNejblizsiho(
         DateTimeImmutableStrict $casPrechozihoHromadnehoOdhlasovani,
         DateTimeImmutableStrict $casPoslednihoHromadnehoOdhlasovani,
-        int                     $poradiSoucasneho,
-    )
-    {
+        int $poradiSoucasneho,
+    ) {
         $this->testDalsihoHromadnehoOdhlasovaniJakoNejblizsiho(
             $casPrechozihoHromadnehoOdhlasovani,
             $casPoslednihoHromadnehoOdhlasovani,
             $poradiSoucasneho,
         );
 
-        $denAKousekPoPoslednim              = $casPoslednihoHromadnehoOdhlasovani->modify('+1 day +1 second');
+        $denAKousekPoPoslednim = $casPoslednihoHromadnehoOdhlasovani->modify('+1 day +1 second');
         $nastaveniSTedDenAKousekPoPoslednim = $this->dejSystemoveNastaveni($denAKousekPoPoslednim);
         self::assertEquals(
             $casPoslednihoHromadnehoOdhlasovani,
@@ -450,9 +446,8 @@ class DateTimeGameconTest extends TestCase
 
     private function dejSystemoveNastaveni(
         DateTimeImmutableStrict $ted,
-        int                     $rocnik = ROCNIK,
-    ): SystemoveNastaveni
-    {
+        int $rocnik = ROCNIK,
+    ): SystemoveNastaveni {
         return new SystemoveNastaveni(
             $rocnik,
             $ted,
@@ -518,32 +513,32 @@ class DateTimeGameconTest extends TestCase
     /**
      * @test
      */
-    public function Konec_prihlasovani_ucastniku_je_stejny_jako_konec_gameconu()
+    public function konecPrihlasovaniUcastnikuJeStejnyJakoKonecGameconu()
     {
-        foreach (range(2020, (int)date('Y') + 1) as $rocnik) {
+        foreach (range(2020, (int) date('Y') + 1) as $rocnik) {
             self::assertEquals(
                 DateTimeGamecon::spocitejKonecGameconu($rocnik),
                 DateTimeGamecon::spocitejPrihlasovaniUcastnikuDo($rocnik),
-                "Očekáván jiný spočítaný konec registací účastníků pro ročník $rocnik",
+                "Očekáván jiný spočítaný konec registací účastníků pro ročník {$rocnik}",
             );
         }
         self::assertEquals(
             DateTimeGamecon::konecGameconu(),
             DateTimeGamecon::prihlasovaniUcastnikuDo(),
-            "Očekáván jiný konec registací účastníků pro současný ročník",
+            'Očekáván jiný konec registací účastníků pro současný ročník',
         );
     }
 
     /**
      * @dataProvider provideCasAPoradiHromadnehoOdhlasovani
+     *
      * @test
      */
-    public function Muzu_ziskat_poradi_hromadneho_odhlasovani(
-        int                $ocekavanePoradi,
+    public function muzuZiskatPoradiHromadnehoOdhlasovani(
+        int $ocekavanePoradi,
         \DateTimeInterface $casHromadnehoOdhlasovani,
-        int                $rocnik = ROCNIK,
-    )
-    {
+        int $rocnik = ROCNIK,
+    ) {
         self::assertSame(
             $ocekavanePoradi,
             DateTimeGamecon::poradiHromadnehoOdhlasovani(
@@ -560,13 +555,13 @@ class DateTimeGameconTest extends TestCase
             'druhé; současný ročník' => [2, DateTimeGamecon::druheHromadneOdhlasovani()],
             'třetí; současný ročník' => [3, DateTimeGamecon::tretiHromadneOdhlasovani()],
             // 2024
-            'první; 2024'            => [1, DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2024), 2024],
-            'druhé; 2024'            => [2, DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2024), 2024],
-            'třetí; 2024'            => [3, DateTimeGamecon::spocitejTretiHromadneOdhlasovani(2024), 2024],
+            'první; 2024' => [1, DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2024), 2024],
+            'druhé; 2024' => [2, DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2024), 2024],
+            'třetí; 2024' => [3, DateTimeGamecon::spocitejTretiHromadneOdhlasovani(2024), 2024],
             // 2023
-            'první; 2023'            => [1, DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2023), 2023],
-            'druhé; 2023'            => [2, DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2023), 2023],
-            'třetí; 2023'            => [3, DateTimeGamecon::spocitejTretiHromadneOdhlasovani(2023), 2023],
+            'první; 2023' => [1, DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2023), 2023],
+            'druhé; 2023' => [2, DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2023), 2023],
+            'třetí; 2023' => [3, DateTimeGamecon::spocitejTretiHromadneOdhlasovani(2023), 2023],
         ];
     }
 }

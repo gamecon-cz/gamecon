@@ -358,7 +358,7 @@ SQL,
         // Try to insert duplicate entry directly - should fail due to PRIMARY KEY constraint
         $this->expectException(\Exception::class);
         dbInsert(JunctionSql::AKCE_LOKACE_TABULKA, [
-            JunctionSql::ID_AKCE => 2001,
+            JunctionSql::ID_AKCE   => 2001,
             JunctionSql::ID_LOKACE => 1001,
             JunctionSql::JE_HLAVNI => 0,
         ]);
@@ -418,11 +418,11 @@ SQL,
     {
         // Create two activities with time overlap
         $data1 = [
-            AktivitaSql::NAZEV_AKCE => 'Ranní aktivita',
-            AktivitaSql::TYP => TypAktivity::DESKOHERNA,
-            AktivitaSql::ROK => 2024,
-            AktivitaSql::ZACATEK => '2024-07-15 09:00:00',
-            AktivitaSql::KONEC => '2024-07-15 11:00:00',
+            AktivitaSql::NAZEV_AKCE   => 'Ranní aktivita',
+            AktivitaSql::TYP          => TypAktivity::DESKOHERNA,
+            AktivitaSql::ROK          => 2024,
+            AktivitaSql::ZACATEK      => '2024-07-15 09:00:00',
+            AktivitaSql::KONEC        => '2024-07-15 11:00:00',
             AktivitaSql::POPIS_KRATKY => 'Krátký popis',
         ];
 
@@ -437,11 +437,11 @@ SQL,
 
         // Create overlapping activity
         $data2 = [
-            AktivitaSql::NAZEV_AKCE => 'Překrývající aktivita',
-            AktivitaSql::TYP => TypAktivity::DESKOHERNA,
-            AktivitaSql::ROK => 2024,
-            AktivitaSql::ZACATEK => '2024-07-15 10:00:00',
-            AktivitaSql::KONEC => '2024-07-15 12:00:00',
+            AktivitaSql::NAZEV_AKCE   => 'Překrývající aktivita',
+            AktivitaSql::TYP          => TypAktivity::DESKOHERNA,
+            AktivitaSql::ROK          => 2024,
+            AktivitaSql::ZACATEK      => '2024-07-15 10:00:00',
+            AktivitaSql::KONEC        => '2024-07-15 12:00:00',
             AktivitaSql::POPIS_KRATKY => 'Krátký popis',
         ];
 
@@ -475,9 +475,9 @@ SQL,
     public function testUlozeniAktivitySLokacemi()
     {
         $data = [
-            AktivitaSql::NAZEV_AKCE => 'Nová aktivita s místnostmi',
-            AktivitaSql::TYP => TypAktivity::DESKOHERNA,
-            AktivitaSql::ROK => 2024,
+            AktivitaSql::NAZEV_AKCE   => 'Nová aktivita s místnostmi',
+            AktivitaSql::TYP          => TypAktivity::DESKOHERNA,
+            AktivitaSql::ROK          => 2024,
             AktivitaSql::POPIS_KRATKY => 'Krátký popis',
         ];
 

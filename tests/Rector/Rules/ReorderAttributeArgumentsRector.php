@@ -26,7 +26,7 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
 
     public function refactor(Node $node): ?Node
     {
-        if (!$node instanceof Attribute) {
+        if (! $node instanceof Attribute) {
             return null;
         }
 
@@ -37,11 +37,11 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
 
         // resolve fully qualified class name of attribute
         $fqcn = $this->nodeNameResolver->getName($node->name);
-        if (!class_exists($fqcn)) {
+        if (! class_exists($fqcn)) {
             return null;
         }
 
-        $reflection  = new \ReflectionClass($fqcn);
+        $reflection = new \ReflectionClass($fqcn);
         $constructor = $reflection->getConstructor();
         if ($constructor === null) {
             return null;
@@ -57,7 +57,7 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
             return null;
         }
 
-        $namedArgs      = [];
+        $namedArgs = [];
         $positionalArgs = [];
 
         foreach ($node->args as $arg) {
@@ -111,7 +111,7 @@ final class ReorderAttributeArgumentsRector extends AbstractRector
             return false;
         }
         foreach ($a as $i => $arg) {
-            if ($arg != $b[$i]) {
+            if ($arg !== $b[$i]) {
                 return false;
             }
         }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Db;
 
 use Godric\DbMigrations\DbMigrations;
@@ -14,7 +16,6 @@ use Godric\DbMigrations\DbMigrationsConfig;
  */
 class DbWrapper
 {
-
     public function begin()
     {
         dbBegin();
@@ -25,9 +26,9 @@ class DbWrapper
         return dbQv($value);
     }
 
-    function query(
+    public function query(
         string $sql,
-        array  $params = null,
+        ?array $params = null,
     ) {
         return dbQuery($sql, $params);
     }
@@ -48,11 +49,11 @@ class DbWrapper
             $tableName = $table->getName();
             $columnNames = implode(',', $table->getColumns());
 
-            $sql = "INSERT INTO $tableName ($columnNames) VALUES";
+            $sql = "INSERT INTO {$tableName} ({$columnNames}) VALUES";
             foreach ($table->getRows() as $row) {
                 $escapedValues = array_map([$this, 'escape'], $row);
                 $escapedValues = implode(',', $escapedValues);
-                $sql .= "\n($escapedValues),";
+                $sql .= "\n({$escapedValues}),";
             }
             $sql[strlen($sql) - 1] = ';';
 
@@ -69,11 +70,10 @@ class DbWrapper
         dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
 
         /*$testDumps = scandir(__DIR__ . '/data', SCANDIR_SORT_DESCENDING);
-        assert($testDumps !== false, 'Nepodařilo se načíst testovací SQL');
-        $latestDump = __DIR__ . '/data/' . reset($testDumps);
-
-        // naimportujeme databázi s už proběhnutými staršími migracemi
-        (new \MySQLImport($connection))->load($latestDump);*/
+         * assert($testDumps !== false, 'Nepodařilo se načíst testovací SQL');
+         * $latestDump = __DIR__ . '/data/' . reset($testDumps);
+         * // naimportujeme databázi s už proběhnutými staršími migracemi
+         * (new \MySQLImport($connection))->load($latestDump);*/
 
         (new DbMigrations(new DbMigrationsConfig(
             connection: $connection, // předpokládá se, že spojení pro testy má administrativní práva

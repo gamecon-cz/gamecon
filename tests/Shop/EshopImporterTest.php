@@ -69,18 +69,18 @@ class EshopImporterTest extends AbstractTestDb
     private function defaultniRadek(array $prepisVrednosti = []): array
     {
         $radek = [
-            'model_rok'        => 2025,
-            'nazev'            => 'Testovací předmět',
-            'kod_predmetu'     => 'TEST_KOD',
-            'cena_aktualni'    => '199.00',
-            'stav'             => StavPredmetu::VEREJNY,
-            'nabizet_do'       => '2025-12-31',
-            'kusu_vyrobeno'    => 100,
-            'typ'              => TypPredmetu::PREDMET,
+            'model_rok'         => 2025,
+            'nazev'             => 'Testovací předmět',
+            'kod_predmetu'      => 'TEST_KOD',
+            'cena_aktualni'     => '199.00',
+            'stav'              => StavPredmetu::VEREJNY,
+            'nabizet_do'        => '2025-12-31',
+            'kusu_vyrobeno'     => 100,
+            'typ'               => TypPredmetu::PREDMET,
             'je_letosni_hlavni' => 0,
-            'ubytovani_den'    => '',
-            'popis'            => 'Popis předmětu',
-            'vedlejsi'         => 0,
+            'ubytovani_den'     => '',
+            'popis'             => 'Popis předmětu',
+            'vedlejsi'          => 0,
         ];
 
         return array_merge($radek, $prepisVrednosti);
@@ -89,11 +89,17 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Import_vlozi_nove_polozky(): void
+    public function importVloziNovePolozky(): void
     {
         $soubor = $this->createXlsxSoubor([
-            $this->defaultniRadek(['kod_predmetu' => 'POLOZKA_A', 'nazev' => 'Předmět A']),
-            $this->defaultniRadek(['kod_predmetu' => 'POLOZKA_B', 'nazev' => 'Předmět B']),
+            $this->defaultniRadek([
+                'kod_predmetu' => 'POLOZKA_A',
+                'nazev'        => 'Předmět A',
+            ]),
+            $this->defaultniRadek([
+                'kod_predmetu' => 'POLOZKA_B',
+                'nazev'        => 'Předmět B',
+            ]),
         ]);
 
         $importer = new EshopImporter($soubor);
@@ -104,7 +110,10 @@ class EshopImporterTest extends AbstractTestDb
 
         $pocet = (int) dbOneCol(
             'SELECT COUNT(*) FROM shop_predmety WHERE model_rok = $0 AND kod_predmetu IN ($1)',
-            [0 => 2025, 1 => ['POLOZKA_A', 'POLOZKA_B']],
+            [
+                0 => 2025,
+                1 => ['POLOZKA_A', 'POLOZKA_B'],
+            ],
         );
         self::assertSame(2, $pocet);
     }
@@ -112,7 +121,7 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Import_aktualizuje_existujici_polozky(): void
+    public function importAktualizujeExistujiciPolozky(): void
     {
         $uniqueId = uniqid();
         ShopItemFactory::createOne([
@@ -140,7 +149,10 @@ class EshopImporterTest extends AbstractTestDb
 
         $cena = dbOneCol(
             'SELECT cena_aktualni FROM shop_predmety WHERE kod_predmetu = $0 AND model_rok = $1',
-            [0 => 'UPDATE_' . $uniqueId, 1 => 2025],
+            [
+                0 => 'UPDATE_' . $uniqueId,
+                1 => 2025,
+            ],
         );
         self::assertSame('250.00', $cena);
     }
@@ -148,7 +160,7 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Import_vyradi_polozky_co_nejsou_v_souboru(): void
+    public function importVyradiPolozkyCoNejsouVSouboru(): void
     {
         $uniqueId = uniqid();
         ShopItemFactory::createOne([
@@ -178,7 +190,10 @@ class EshopImporterTest extends AbstractTestDb
 
         $stavVyrazene = (int) dbOneCol(
             'SELECT stav FROM shop_predmety WHERE kod_predmetu = $0 AND model_rok = $1',
-            [0 => 'VYRADIT_' . $uniqueId, 1 => 2025],
+            [
+                0 => 'VYRADIT_' . $uniqueId,
+                1 => 2025,
+            ],
         );
         self::assertSame(StavPredmetu::MIMO, $stavVyrazene);
     }
@@ -186,7 +201,7 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Import_vygeneruje_kod_z_nazvu_kdyz_chybi(): void
+    public function importVygenerujeKodZNazvuKdyzChybi(): void
     {
         $soubor = $this->createXlsxSoubor([
             $this->defaultniRadek([
@@ -203,7 +218,10 @@ class EshopImporterTest extends AbstractTestDb
 
         $pocet = (int) dbOneCol(
             'SELECT COUNT(*) FROM shop_predmety WHERE kod_predmetu = $0 AND model_rok = $1',
-            [0 => 'moje_kostka', 1 => 2025],
+            [
+                0 => 'moje_kostka',
+                1 => 2025,
+            ],
         );
         self::assertSame(1, $pocet);
     }
@@ -211,7 +229,7 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Import_chyba_kdyz_chybi_povinne_sloupce(): void
+    public function importChybaKdyzChybiPovinneSloupce(): void
     {
         $soubor = tempnam(sys_get_temp_dir(), 'eshop_import_test_') . '.xlsx';
         $writer = new XLSXWriter();
@@ -230,10 +248,12 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Import_chyba_kdyz_chybi_model_rok(): void
+    public function importChybaKdyzChybiModelRok(): void
     {
         $soubor = $this->createXlsxSoubor([
-            $this->defaultniRadek(['model_rok' => '']),
+            $this->defaultniRadek([
+                'model_rok' => '',
+            ]),
         ]);
 
         $this->expectException(\Chyba::class);
@@ -246,7 +266,7 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Import_zpracuje_null_hodnoty(): void
+    public function importZpracujeNullHodnoty(): void
     {
         $soubor = $this->createXlsxSoubor([
             $this->defaultniRadek([
@@ -263,7 +283,10 @@ class EshopImporterTest extends AbstractTestDb
 
         $kusuVyrobeno = dbOneCol(
             'SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = $0 AND model_rok = $1',
-            [0 => 'NULL_TEST', 1 => 2025],
+            [
+                0 => 'NULL_TEST',
+                1 => 2025,
+            ],
         );
         self::assertNull($kusuVyrobeno);
     }
@@ -271,11 +294,19 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Import_je_idempotentni(): void
+    public function importJeIdempotentni(): void
     {
         $soubor = $this->createXlsxSoubor([
-            $this->defaultniRadek(['nazev' => 'Idempotentní A', 'kod_predmetu' => 'IDEMPOT_A', 'model_rok' => 2025]),
-            $this->defaultniRadek(['nazev' => 'Idempotentní B', 'kod_predmetu' => 'IDEMPOT_B', 'model_rok' => 2025]),
+            $this->defaultniRadek([
+                'nazev'        => 'Idempotentní A',
+                'kod_predmetu' => 'IDEMPOT_A',
+                'model_rok'    => 2025,
+            ]),
+            $this->defaultniRadek([
+                'nazev'        => 'Idempotentní B',
+                'kod_predmetu' => 'IDEMPOT_B',
+                'model_rok'    => 2025,
+            ]),
         ]);
 
         $importer = new EshopImporter($soubor);
@@ -290,7 +321,10 @@ class EshopImporterTest extends AbstractTestDb
 
         $pocet = (int) dbOneCol(
             'SELECT COUNT(*) FROM shop_predmety WHERE kod_predmetu IN ($0) AND model_rok = $1',
-            [0 => ['IDEMPOT_A', 'IDEMPOT_B'], 1 => 2025],
+            [
+                0 => ['IDEMPOT_A', 'IDEMPOT_B'],
+                1 => 2025,
+            ],
         );
         self::assertSame(2, $pocet);
     }

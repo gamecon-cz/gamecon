@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Factory;
 
 use App\Entity\Accommodation;
@@ -11,21 +13,21 @@ use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
 /**
  * @extends PersistentProxyObjectFactory<Accommodation>
  *
- * @method        Accommodation|Proxy create(array|callable $attributes = [])
- * @method static Accommodation|Proxy createOne(array $attributes = [])
- * @method static Accommodation|Proxy find(object|array|mixed $criteria)
- * @method static Accommodation|Proxy findOrCreate(array $attributes)
- * @method static Accommodation|Proxy first(string $sortedField = 'id')
- * @method static Accommodation|Proxy last(string $sortedField = 'id')
- * @method static Accommodation|Proxy random(array $attributes = [])
- * @method static Accommodation|Proxy randomOrCreate(array $attributes = [])
+ * @method        Accommodation|Proxy                              create(array|callable $attributes = [])
+ * @method static Accommodation|Proxy                              createOne(array $attributes = [])
+ * @method static Accommodation|Proxy                              find(object|array|mixed $criteria)
+ * @method static Accommodation|Proxy                              findOrCreate(array $attributes)
+ * @method static Accommodation|Proxy                              first(string $sortedField = 'id')
+ * @method static Accommodation|Proxy                              last(string $sortedField = 'id')
+ * @method static Accommodation|Proxy                              random(array $attributes = [])
+ * @method static Accommodation|Proxy                              randomOrCreate(array $attributes = [])
  * @method static AccommodationRepository|ProxyRepositoryDecorator repository()
- * @method static Accommodation[]|Proxy[] all()
- * @method static Accommodation[]|Proxy[] createMany(int $number, array|callable $attributes = [])
- * @method static Accommodation[]|Proxy[] createSequence(iterable|callable $sequence)
- * @method static Accommodation[]|Proxy[] findBy(array $attributes)
- * @method static Accommodation[]|Proxy[] randomRange(int $min, int $max, array $attributes = [])
- * @method static Accommodation[]|Proxy[] randomSet(int $number, array $attributes = [])
+ * @method static Accommodation[]|Proxy[]                          all()
+ * @method static Accommodation[]|Proxy[]                          createMany(int $number, array|callable $attributes = [])
+ * @method static Accommodation[]|Proxy[]                          createSequence(iterable|callable $sequence)
+ * @method static Accommodation[]|Proxy[]                          findBy(array $attributes)
+ * @method static Accommodation[]|Proxy[]                          randomRange(int $min, int $max, array $attributes = [])
+ * @method static Accommodation[]|Proxy[]                          randomSet(int $number, array $attributes = [])
  */
 final class AccommodationFactory extends PersistentProxyObjectFactory
 {
@@ -37,7 +39,7 @@ final class AccommodationFactory extends PersistentProxyObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
      */
-    protected function defaults(): array | callable
+    protected function defaults(): array|callable
     {
         return [
             'uzivatel' => UserFactory::new(),
@@ -53,6 +55,6 @@ final class AccommodationFactory extends PersistentProxyObjectFactory
     protected function initialize(): static
     {
         return $this// ->afterInstantiate(function(Accommodation $accommodation): void {})
-            ;
+        ;
     }
 }

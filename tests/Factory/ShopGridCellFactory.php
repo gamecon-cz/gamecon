@@ -14,21 +14,21 @@ use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
 /**
  * @extends PersistentProxyObjectFactory<ShopGridCell>
  *
- * @method        ShopGridCell|Proxy create(array|callable $attributes = [])
- * @method static ShopGridCell|Proxy createOne(array $attributes = [])
- * @method static ShopGridCell|Proxy find(object|array|mixed $criteria)
- * @method static ShopGridCell|Proxy findOrCreate(array $attributes)
- * @method static ShopGridCell|Proxy first(string $sortedField = 'id')
- * @method static ShopGridCell|Proxy last(string $sortedField = 'id')
- * @method static ShopGridCell|Proxy random(array $attributes = [])
- * @method static ShopGridCell|Proxy randomOrCreate(array $attributes = [])
+ * @method        ShopGridCell|Proxy                              create(array|callable $attributes = [])
+ * @method static ShopGridCell|Proxy                              createOne(array $attributes = [])
+ * @method static ShopGridCell|Proxy                              find(object|array|mixed $criteria)
+ * @method static ShopGridCell|Proxy                              findOrCreate(array $attributes)
+ * @method static ShopGridCell|Proxy                              first(string $sortedField = 'id')
+ * @method static ShopGridCell|Proxy                              last(string $sortedField = 'id')
+ * @method static ShopGridCell|Proxy                              random(array $attributes = [])
+ * @method static ShopGridCell|Proxy                              randomOrCreate(array $attributes = [])
  * @method static ShopGridCellRepository|ProxyRepositoryDecorator repository()
- * @method static ShopGridCell[]|Proxy[] all()
- * @method static ShopGridCell[]|Proxy[] createMany(int $number, array|callable $attributes = [])
- * @method static ShopGridCell[]|Proxy[] createSequence(iterable|callable $sequence)
- * @method static ShopGridCell[]|Proxy[] findBy(array $attributes)
- * @method static ShopGridCell[]|Proxy[] randomRange(int $min, int $max, array $attributes = [])
- * @method static ShopGridCell[]|Proxy[] randomSet(int $number, array $attributes = [])
+ * @method static ShopGridCell[]|Proxy[]                          all()
+ * @method static ShopGridCell[]|Proxy[]                          createMany(int $number, array|callable $attributes = [])
+ * @method static ShopGridCell[]|Proxy[]                          createSequence(iterable|callable $sequence)
+ * @method static ShopGridCell[]|Proxy[]                          findBy(array $attributes)
+ * @method static ShopGridCell[]|Proxy[]                          randomRange(int $min, int $max, array $attributes = [])
+ * @method static ShopGridCell[]|Proxy[]                          randomSet(int $number, array $attributes = [])
  */
 final class ShopGridCellFactory extends PersistentProxyObjectFactory
 {

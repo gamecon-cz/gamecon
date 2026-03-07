@@ -13,5 +13,4 @@ class NakupySqlStrukturaTest extends AbstractTestSqlStruktura
     {
         return NakupySqlStruktura::class;
     }
-
 }
