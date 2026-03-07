@@ -237,7 +237,8 @@ SQL,
                     IF(predmety.model_rok = {$rocnik} OR COALESCE(predmety.popis, '') = '', predmety.nazev, CONCAT(predmety.nazev, ' (', predmety.popis, ')')) AS nazev,
                     COUNT(IF(nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_prodano,
                     COUNT(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_uzivatele,
-                    SUM(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, nakupy.cena_nakupni, 0)) AS sum_cena_nakupni
+                    SUM(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, nakupy.cena_nakupni, 0)) AS sum_cena_nakupni,
+                    MAX(nakupy.cena_nakupni) AS cena_nakupni
                   FROM shop_predmety predmety
                   LEFT JOIN shop_nakupy AS nakupy
                     ON predmety.id_predmetu = nakupy.id_predmetu
@@ -400,7 +401,7 @@ SQL,
         $cenik = $this->cenik();
         // vykreslení
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
-        if (!defined('PRODEJ_JIDLA_POZASTAVEN') || !PRODEJ_JIDLA_POZASTAVEN) {
+        if (!$this->systemoveNastaveni->jeProdejJidlaPozastaven()) {
             foreach (array_keys($druhy) as $druh) {
                 foreach (array_keys($dny) as $den) {
                     $jidlo = $jidla[$den][$druh] ?? null;
