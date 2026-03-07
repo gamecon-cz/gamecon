@@ -766,13 +766,6 @@ SQL;
         return $this->prodejUbytovaniDo() < $this->ted();
     }
 
-    public function ubytovaniPozdniPoplatekZaNoc(): float
-    {
-        return defined('UBYTOVANI_POZDNI_POPLATEK_ZA_NOC')
-            ? (float)UBYTOVANI_POZDNI_POPLATEK_ZA_NOC
-            : (float)$this->dejHodnotu(Klic::UBYTOVANI_POZDNI_POPLATEK_ZA_NOC);
-    }
-
     public function prodejJidlaDo(): DateTimeImmutableStrict
     {
         return (new DateTimeImmutableStrict(JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE))
