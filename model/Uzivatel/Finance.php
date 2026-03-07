@@ -795,7 +795,7 @@ SQL;
                 $soucty[$r[PredmetSql::ID_PREDMETU]]['pocet'] = ($soucty[$r[PredmetSql::ID_PREDMETU]]['pocet'] ?? 0) + 1;
                 $soucty[$r[PredmetSql::ID_PREDMETU]]['suma']  = ($soucty[$r[PredmetSql::ID_PREDMETU]]['suma'] ?? 0) + $cena;
             } elseif ($r[PredmetSql::TYP] == TypPredmetu::VSTUPNE) {
-                $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::VSTUPNE);
+                $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r[PredmetSql::TYP]);
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
             } elseif ($r[PredmetSql::TYP] == TypPredmetu::UBYTOVANI) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r[PredmetSql::TYP]);
