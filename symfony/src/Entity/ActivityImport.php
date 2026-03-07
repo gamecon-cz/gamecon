@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ActivityImportRepository::class)]
 #[ORM\Table(name: 'akce_import')]
-#[ORM\Index(columns: ['google_sheet_id'], name: 'IDX_google_sheet_id')]
+#[ORM\Index(name: 'IDX_google_sheet_id', columns: ['google_sheet_id'])]
 class ActivityImport
 {
     #[ORM\Id]

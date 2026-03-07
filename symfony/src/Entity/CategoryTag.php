@@ -42,7 +42,7 @@ class CategoryTag
     /**
      * @var Collection<int, Tag>
      */
-    #[ORM\OneToMany(mappedBy: 'categoryTag', targetEntity: Tag::class)]
+    #[ORM\OneToMany(targetEntity: Tag::class, mappedBy: 'categoryTag')]
     private Collection $tags;
 
     public function __construct()

@@ -15,8 +15,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'role_seznam')]
 #[ORM\UniqueConstraint(name: 'UNIQ_kod_role', columns: ['kod_role'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_nazev_role', columns: ['nazev_role'])]
-#[ORM\Index(columns: ['typ_role'], name: 'IDX_typ_role')]
-#[ORM\Index(columns: ['vyznam_role'], name: 'IDX_vyznam_role')]
+#[ORM\Index(name: 'IDX_typ_role', columns: ['typ_role'])]
+#[ORM\Index(name: 'IDX_vyznam_role', columns: ['vyznam_role'])]
 class Role
 {
     #[ORM\Id]

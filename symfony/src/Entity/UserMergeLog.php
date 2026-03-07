@@ -13,9 +13,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: UserMergeLogRepository::class)]
 #[ORM\Table(name: 'uzivatele_slucovani_log')]
-#[ORM\Index(columns: ['id_smazaneho_uzivatele'], name: 'IDX_smazany_uzivatel')]
-#[ORM\Index(columns: ['id_noveho_uzivatele'], name: 'IDX_novy_uzivatel')]
-#[ORM\Index(columns: ['kdy'], name: 'IDX_kdy')]
+#[ORM\Index(name: 'IDX_smazany_uzivatel', columns: ['id_smazaneho_uzivatele'])]
+#[ORM\Index(name: 'IDX_novy_uzivatel', columns: ['id_noveho_uzivatele'])]
+#[ORM\Index(name: 'IDX_kdy', columns: ['kdy'])]
 class UserMergeLog
 {
     #[ORM\Id]
