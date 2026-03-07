@@ -7,7 +7,6 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Gamecon\Pravo;
-use Gamecon\Uzivatel\Cenik;
 use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
@@ -159,25 +158,10 @@ SQL,
         Uzivatel $ucastnik,
         bool     $hlidatKapacituUbytovani = true,
         int      $rok = ROCNIK,
-        float    $pozdniPoplatekZaNoc = 0.0,
     ): int {
         // vložit jeho zaklikané věci - note: není zabezpečeno
         $sqlValuesArray          = [];
         $idsPredmetuUbytovaniInt = [];
-
-        // Načíst poplatky již objednaných dnů – při změně typu ubytování v daný den
-        // se zachovává původně účtovaný poplatek (ne aktuální sazba).
-        $poplatkyObjednanychDni = dbFetchPairs(<<<SQL
-SELECT shop_predmety.ubytovani_den, shop_nakupy.poplatek
-FROM shop_nakupy
-JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
-WHERE shop_nakupy.id_uzivatele = $0
-  AND shop_nakupy.rok = $1
-  AND shop_predmety.typ = $2
-SQL,
-            [$ucastnik->id(), $rok, TypPredmetu::UBYTOVANI],
-        );
-
         foreach ($idsPredmetuUbytovani as $idPredmetuUbytovani) {
             if (!$idPredmetuUbytovani) {
                 continue;
@@ -187,21 +171,8 @@ SQL,
             if ($hlidatKapacituUbytovani && self::ubytovaniPresKapacitu($idPredmetuUbytovani, $ucastnik->shop()->ubytovani()->mozneDny())) {
                 throw new Chyba('Vybrané ubytování je už bohužel zabrané. Vyber si prosím jiné.');
             }
-            // Při změně typu ubytování v již objednaný den se zachovává původní poplatek.
-            // Pro nový den se použije aktuální sazba.
-            $denPredmetu = (int)dbOneCol('SELECT ubytovani_den FROM shop_predmety WHERE id_predmetu=$0', [$idPredmetuUbytovani]);
-            $poplatek    = array_key_exists($denPredmetu, $poplatkyObjednanychDni)
-                ? (float)$poplatkyObjednanychDni[$denPredmetu]
-                : $pozdniPoplatekZaNoc;
-            if ($poplatek > 0.0 && Cenik::maUbytovaniZdarmaProDen($ucastnik, $denPredmetu)) {
-                $poplatek = 0.0;
-            }
             $sqlValuesArray[] = <<<SQL
-({$ucastnik->id()}, $idPredmetuUbytovani, $rok,
- (SELECT cena_aktualni + $poplatek FROM shop_predmety WHERE id_predmetu=$idPredmetuUbytovani),
- NOW(),
- $poplatek,
- (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=$idPredmetuUbytovani))
+({$ucastnik->id()}, $idPredmetuUbytovani, $rok, (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=$idPredmetuUbytovani), NOW())
 SQL;
         }
 
@@ -221,14 +192,12 @@ CREATE TEMPORARY TABLE `$tmpTable`
     rok SMALLINT NOT NULL,
     cena_nakupni DECIMAL(6, 2),
     datum DATETIME NOT NULL,
-    poplatek DECIMAL(6, 2) NOT NULL DEFAULT 0.00,
-    puvodni_cena DECIMAL(6, 2) NULL DEFAULT NULL,
     PRIMARY KEY (id_uzivatele, id_predmetu, rok)
 )
 SQL,
         );
         dbQuery(<<<SQL
-INSERT IGNORE INTO `$tmpTable`(id_uzivatele,id_predmetu,rok,cena_nakupni,datum,poplatek,puvodni_cena) VALUES $sqlValues
+INSERT IGNORE INTO `$tmpTable`(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES $sqlValues
 SQL,
         );
 
@@ -264,8 +233,8 @@ SQL,
 
         // konečně vložíme pouze nové nebo změněné ubytování
         $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum, poplatek, puvodni_cena)
-SELECT tmp.id_uzivatele, tmp.id_predmetu, tmp.rok, tmp.cena_nakupni, tmp.datum, tmp.poplatek, tmp.puvodni_cena
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
+SELECT tmp.id_uzivatele, tmp.id_predmetu, tmp.rok, tmp.cena_nakupni, tmp.datum
 FROM `$tmpTable` AS tmp
 SQL,
         );
@@ -391,20 +360,7 @@ SQL,
             || !$this->mozneTypy
             || $this->vsechnPozastaveno()
         ) {
-            $pozdniPoplatek = $this->systemoveNastaveni->ubytovaniPozdniPoplatekZaNoc();
-            if ($pozdniPoplatek > 0) {
-                $t->assign('pozdniPoplatek', round($pozdniPoplatek));
-                $t->parse('ubytovani.konec.pozdniPoplatek');
-            }
             $t->parse('ubytovani.konec');
-        }
-
-        if ($muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen()) {
-            $pozdniPoplatek = $this->systemoveNastaveni->ubytovaniPozdniPoplatekZaNoc();
-            if ($pozdniPoplatek > 0) {
-                $t->assign('pozdniPoplatek', round($pozdniPoplatek));
-                $t->parse('ubytovani.pozdniPoplatek');
-            }
         }
 
         if ($muzeUbytovatPresKapacitu) {
@@ -519,9 +475,8 @@ SQL,
     }
 
     public function zpracuj(
-        bool  $vcetneSpolubydliciho = true,
-        bool  $hlidatKapacituUbytovani = true,
-        float $pozdniPoplatekZaNoc = 0.0,
+        bool $vcetneSpolubydliciho = true,
+        bool $hlidatKapacituUbytovani = true,
     ): bool {
         if (!isset($_POST[$this->pnDny])) {
             return false;
@@ -555,7 +510,7 @@ SQL,
             $dny = $_POST[$this->pnDny];
         }
 
-        self::ulozObjednaneUbytovaniUcastnika($dny, $this->ubytovany, $hlidatKapacituUbytovani, pozdniPoplatekZaNoc: $pozdniPoplatekZaNoc);
+        self::ulozObjednaneUbytovaniUcastnika($dny, $this->ubytovany, $hlidatKapacituUbytovani);
 
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji

@@ -895,11 +895,10 @@ SQL,
      * @return bool jestli došlo k zpracování dat
      */
     public function zpracujUbytovani(
-        bool  $vcetneSpolubydliciho = true,
-        bool  $hlidatKapacituUbytovani = true,
-        float $pozdniPoplatekZaNoc = 0.0,
+        bool $vcetneSpolubydliciho = true,
+        bool $hlidatKapacituUbytovani = true,
     ): bool {
-        return $this->ubytovani->zpracuj($vcetneSpolubydliciho, $hlidatKapacituUbytovani, $pozdniPoplatekZaNoc);
+        return $this->ubytovani->zpracuj($vcetneSpolubydliciho, $hlidatKapacituUbytovani);
     }
 
     /**
