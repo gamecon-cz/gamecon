@@ -9,7 +9,7 @@
     // 2) Pokud tam hodnota je, použij ji, jinak NENASTAVUJ nic do sessionStorage
     let presKapacituBtn = stored !== null ? JSON.parse(stored) : null;
 
-    // Po načtení stránky aplikuj stav (pokud byl zapnutý)
+    // Po načtení stránky aplikuj stav (pokud byl zapnutý z předchozího načtení)
     window.addEventListener('DOMContentLoaded', () => {
         if (presKapacituBtn) {
             zobrazPovinnePolozky();
@@ -61,10 +61,16 @@
         });
     }
 
+    /**
+     * @param {string} inputName
+     * @param {string} typUbytovani
+     * @return {HTMLInputElement}
+     */
     function ubytovaniInput(inputName, typUbytovani) {
         return document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + inputName + '"][data-typ="' + typUbytovani + '"]');
     }
 
+    /** @param {string} inputName */
     function vyberZadneUbytovani(inputName) {
         var zadneUbytovaniInput = ubytovaniInput(inputName, 'Žádné');
         zadneUbytovaniInput.checked = true;
@@ -102,6 +108,7 @@
         prepniPovinnePolozky(true);
     }
 
+    /** @param {boolean} show */
     function prepniPovinnePolozky(show) {
         Array.from(document.getElementsByClassName('shopUbytovani_povinne'))
             .forEach(function (povinnyElement) {
@@ -164,19 +171,28 @@
     function aplikujPresKapacitu() {
         document.querySelectorAll('input.shopUbytovani_radio').forEach(el => {
             if (el.disabled) {
-                // zapamatujeme si, že byl původně disabled
                 el.dataset.disabledPuvodne = "1";
                 el.removeAttribute('disabled');
             }
         });
+        aktualizujTlacitkoPresKapacitu(true);
     }
 
     function obnovKapacituPoPresKapacite() {
         document.querySelectorAll('input.shopUbytovani_radio').forEach(el => {
             if (el.dataset.disabledPuvodne === "1") {
                 el.disabled = true;
+                delete el.dataset.disabledPuvodne;
             }
         });
+        aktualizujTlacitkoPresKapacitu(false);
+    }
+
+    function aktualizujTlacitkoPresKapacitu(aktivni) {
+        var btn = document.querySelector('input[onClick="presKapacitu()"]');
+        if (btn) {
+            btn.value = aktivni ? 'zrušit přes kapacitu' : 'přes kapacitu';
+        }
     }
 
     obnovPovinnePolozky();
