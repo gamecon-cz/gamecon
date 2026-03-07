@@ -156,7 +156,9 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         ?int   $bonusZaStandardni3hAz5hAktivitu = null,
     ): int {
         $bonusForStandardActivity = $bonusZaStandardni3hAz5hAktivitu ?? $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
-        $calcCoefficient = static fn(int $length) => self::getActivityStandardLengthCoefficient($length);
+        $calcCoefficient          = static fn(
+            int $length,
+        ) => self::getActivityStandardLengthCoefficient($length);
 
         return match ($klic) {
             'BONUS_ZA_1H_AKTIVITU'                  => self::zakrouhli($bonusForStandardActivity * $calcCoefficient(1)),
@@ -1093,6 +1095,11 @@ SQL;
     {
         // may not yet be defined during SQL migrations
         return (bool)try_constant('CACHOVAT_SQL_DOTAZY');
+    }
+
+    public function jeProdejJidlaPozastaven(): bool
+    {
+        return (bool)PRODEJ_JIDLA_POZASTAVEN;
     }
 
     public function jeZapnuteCachovaniApiOdpovedi(): bool
