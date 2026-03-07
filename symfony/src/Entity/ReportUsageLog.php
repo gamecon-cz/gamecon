@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ReportUsageLogRepository::class)]
 #[ORM\Table(name: 'reporty_log_pouziti')]
-#[ORM\Index(columns: ['id_reportu', 'id_uzivatele'], name: 'IDX_id_reportu_id_uzivatele')]
+#[ORM\Index(name: 'IDX_id_reportu_id_uzivatele', columns: ['id_reportu', 'id_uzivatele'])]
 class ReportUsageLog
 {
     #[ORM\Id]

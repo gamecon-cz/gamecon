@@ -18,8 +18,8 @@ use Doctrine\ORM\Mapping as ORM;
 class UserBadge
 {
     #[ORM\Id]
-    #[ORM\OneToOne(inversedBy: 'badge', targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', nullable: false, onDelete: 'CASCADE', options: [
+    #[ORM\OneToOne(targetEntity: User::class, inversedBy: 'badge')]
+    #[ORM\JoinColumn(name: 'id_uzivatele', referencedColumnName: 'id_uzivatele', onDelete: 'CASCADE', options: [
         'comment' => 'ON UPDATE CASCADE',
     ])]
     private User $user;

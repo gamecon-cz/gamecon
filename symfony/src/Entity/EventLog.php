@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: EventLogRepository::class)]
 #[ORM\Table(name: 'log_udalosti')]
-#[ORM\Index(columns: ['metadata'], name: 'IDX_metadata')]
+#[ORM\Index(name: 'IDX_metadata', columns: ['metadata'])]
 class EventLog
 {
     #[ORM\Id]

@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: BulkActivityLogRepository::class)]
 #[ORM\Table(name: 'hromadne_akce_log')]
-#[ORM\Index(columns: ['akce'], name: 'IDX_akce')]
+#[ORM\Index(name: 'IDX_akce', columns: ['akce'])]
 class BulkActivityLog
 {
     #[ORM\Id]

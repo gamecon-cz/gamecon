@@ -147,7 +147,7 @@ class Activity
     /**
      * @var Collection<int, ActivityTag>
      */
-    #[ORM\OneToMany(mappedBy: 'activity', targetEntity: ActivityTag::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: ActivityTag::class, mappedBy: 'activity', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $activityTags;
 
     public function __construct()
