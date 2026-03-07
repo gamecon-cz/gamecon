@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
-use Gamecon\Role\Role;
-use Gamecon\Tests\Db\AbstractTestDb;
-use Uzivatel;
 use Gamecon\Login\Login;
 use Gamecon\Pravo;
+use Gamecon\Role\Role;
+use Gamecon\Tests\Db\AbstractTestDb;
 
 abstract class AbstractTestWeb extends AbstractTestDb
 {
@@ -32,16 +31,16 @@ SQL,
             [Role::VYZNAM_ADMIN, Role::TYP_TRVALA],
         ];
 
-        $idsPrav       = Pravo::dejIdsVsechPrav();
+        $idsPrav = Pravo::dejIdsVsechPrav();
         $pravaSqlArray = [];
         foreach ($idsPrav as $nazevKonstanty => $idPrava) {
-            $pravaSqlArray[] = "($idPrava, '$nazevKonstanty', '$nazevKonstanty')";
+            $pravaSqlArray[] = "({$idPrava}, '{$nazevKonstanty}', '{$nazevKonstanty}')";
         }
-        $pravaSql  = implode(',', $pravaSqlArray);
+        $pravaSql = implode(',', $pravaSqlArray);
         $queries[] = <<<SQL
 INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
     VALUES
-$pravaSql
+{$pravaSql}
 SQL;
 
         $queries[] = <<<SQL
@@ -50,10 +49,10 @@ SELECT 1, id_prava
 FROM r_prava_soupis
 SQL;
 
-        $idUzivateleSystem = Uzivatel::SYSTEM;
-        $queries[]         = <<<SQL
+        $idUzivateleSystem = \Uzivatel::SYSTEM;
+        $queries[] = <<<SQL
 INSERT INTO uzivatele_role(id_uzivatele, id_role)
-VALUES ($idUzivateleSystem, 1)
+VALUES ({$idUzivateleSystem}, 1)
 SQL;
 
         return $queries;
@@ -64,20 +63,20 @@ SQL;
         // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
         get_headers(URL_ADMIN);
 
-        $this->testPagesAccessibility($urls, Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO);
+        $this->testPagesAccessibility($urls, \Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO);
     }
 
     /**
      * @param string[] $urls
      */
     protected function testPagesAccessibility(
-        array  $urls,
-        string $username = null,
-        string $password = null,
+        array $urls,
+        ?string $username = null,
+        ?string $password = null,
     ): void {
-        $multiCurl   = curl_multi_init();
+        $multiCurl = curl_multi_init();
         $curlHandles = [];
-        $errors      = [];
+        $errors = [];
 
         foreach ($urls as $url) {
             $cookieFile = tempnam(sys_get_temp_dir(), 'cookie');
@@ -85,8 +84,8 @@ SQL;
                 $this->loginToAdmin($cookieFile, $username, $password);
             }
             $absoluteUrl = 'http://localhost/' . $url;
-            $curlHandle  = curl_init($absoluteUrl);
-            if (!$curlHandle) {
+            $curlHandle = curl_init($absoluteUrl);
+            if (! $curlHandle) {
                 $errors[] = sprintf("Nelze otevřít CURL handle pro URL '%s'", $absoluteUrl);
                 continue;
             }
@@ -107,7 +106,7 @@ SQL;
         self::assertCount(
             0,
             $errors ?? [],
-            sprintf("Potíže s CURL: %s", implode(',', $errors)),
+            sprintf('Potíže s CURL: %s', implode(',', $errors)),
         );
 
         do {
@@ -118,7 +117,7 @@ SQL;
         while ($running > 0 && $totalResultCode === CURLM_OK) {
             ob_start();
             $totalResultCode = curl_multi_exec($multiCurl, $running);
-            $outputs[]       = ob_get_clean();
+            $outputs[] = ob_get_clean();
             // Wait for activity on any curl-connection
             if ($running > 0 && curl_multi_select($multiCurl) === -1) {
                 usleep(100000);
@@ -137,7 +136,7 @@ SQL;
         self::assertCount(
             0,
             $errors ?? [],
-            sprintf("Chyby během stahování stránek: %s", implode(',', $errors)),
+            sprintf('Chyby během stahování stránek: %s', implode(',', $errors)),
         );
 
         do {
@@ -165,7 +164,7 @@ SQL;
                 $firstBodyLines = array_slice($bodyLines, 0, 10);
                 $bodyPreview = implode("\n", $firstBodyLines);
                 if (count($bodyLines) > 10) {
-                    $bodyPreview .= "\n... (" . (count($bodyLines) - 10) . " more lines)";
+                    $bodyPreview .= "\n... (" . (count($bodyLines) - 10) . ' more lines)';
                 }
 
                 $errors[$info['url']] = sprintf(
@@ -181,20 +180,20 @@ SQL;
 
                 $file = LOGY . '/' . DB_NAME . '_' . parse_url($url, PHP_URL_PATH) . '.html';
                 $dir = dirname($file);
-                if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
-                    self::fail("Nelze vytvořit adresář '$dir' pro výstup selhaného testu URL '$url'");
+                if (! is_dir($dir) && ! @mkdir($dir, 0755, true) && ! is_dir($dir)) {
+                    self::fail("Nelze vytvořit adresář '{$dir}' pro výstup selhaného testu URL '{$url}'");
                 }
                 $bytes = file_put_contents(
                     $file,
                     $content,
                 );
                 if ($bytes === false) {
-                    self::fail("Nelze uložit data do souboru '$file' pro výstup selhaného testu URL '$url'");
+                    self::fail("Nelze uložit data do souboru '{$file}' pro výstup selhaného testu URL '{$url}'");
                 }
             } else {
-                $parts   = explode("\r\n\r\n", $content);
-                $body    = $parts[1] ?? false;
-                if (!$body) {
+                $parts = explode("\r\n\r\n", $content);
+                $body = $parts[1] ?? false;
+                if (! $body) {
                     $errors[$info['url']] = sprintf("stránka '%s' je prázdná", $url);
                 }
             }
@@ -208,7 +207,7 @@ SQL;
         self::assertCount(
             0,
             $errors ?? [],
-            sprintf("Chyby během stahování stránek: %s", implode('; ', $errors)),
+            sprintf('Chyby během stahování stránek: %s', implode('; ', $errors)),
         );
     }
 
@@ -217,9 +216,9 @@ SQL;
         string $username,
         string $password,
     ): void {
-        $adminUrl         = basename(__DIR__ . '/../../admin');
+        $adminUrl = basename(__DIR__ . '/../../admin');
         $adminAbsoluteUrl = 'http://localhost/' . $adminUrl;
-        $curlHandle       = curl_init($adminAbsoluteUrl);
+        $curlHandle = curl_init($adminAbsoluteUrl);
 
         curl_setopt($curlHandle, CURLOPT_HEADER, true);
         curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
@@ -232,9 +231,12 @@ SQL;
         curl_setopt(
             $curlHandle,
             CURLOPT_POSTFIELDS,
-            [Login::LOGIN_INPUT_NAME => $username, Login::PASSWORD_INPUT_NAME => $password],
+            [
+                Login::LOGIN_INPUT_NAME    => $username,
+                Login::PASSWORD_INPUT_NAME => $password,
+            ],
         );
-        $output      = curl_exec($curlHandle);
+        $output = curl_exec($curlHandle);
         $errorNumber = curl_errno($curlHandle);
         if ($errorNumber !== 0) {
             self::fail(

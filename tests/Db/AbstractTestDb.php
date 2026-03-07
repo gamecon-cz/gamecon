@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Db;
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -8,9 +10,11 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 abstract class AbstractTestDb extends KernelTestCase
 {
     private static ?DbWrapper $connection = null;
-    /** @var string[] */
-    protected static array  $initQueries = [];
-    protected static string $initData    = '';
+    /**
+     * @var string[]
+     */
+    protected static array $initQueries = [];
+    protected static string $initData = '';
     // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
     protected static bool $disableStrictTransTables = false;
 
@@ -37,10 +41,10 @@ abstract class AbstractTestDb extends KernelTestCase
 
             foreach (static::getSetUpBeforeClassInitQueries() as $initQuery) {
                 $initQuerySql = $initQuery;
-                $params       = null;
+                $params = null;
                 if (is_array($initQuery)) {
                     $initQuerySql = reset($initQuery);
-                    $params       = count($initQuery) > 1
+                    $params = count($initQuery) > 1
                         ? end($initQuery)
                         : null;
                 }
@@ -54,7 +58,7 @@ abstract class AbstractTestDb extends KernelTestCase
 
             $initData = static::getInitData();
             if ($initData) {
-                $dataset = new Dataset;
+                $dataset = new Dataset();
                 $dataset->addCsv($initData);
                 try {
                     self::$connection->import($dataset);
@@ -126,7 +130,7 @@ abstract class AbstractTestDb extends KernelTestCase
 
     protected static function getInitData(): string
     {
-        return (string)static::$initData;
+        return (string) static::$initData;
     }
 
     /**
@@ -172,16 +176,15 @@ SQL,
     protected function nazvySloupcuTabulky(string $tabulka): array
     {
         $result = self::$connection->query(<<<SQL
-SHOW COLUMNS FROM $tabulka
+SHOW COLUMNS FROM {$tabulka}
 SQL,
         );
 
         return array_map(
-            fn(
+            fn (
                 array $row,
             ) => reset($row),
             mysqli_fetch_all($result),
         );
     }
-
 }

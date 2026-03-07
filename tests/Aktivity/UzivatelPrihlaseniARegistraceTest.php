@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Aktivity;
 
 use Gamecon\Tests\Db\AbstractTestDb;
-
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 
 /**
@@ -46,7 +47,7 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         return array_merge(self::$uzivatelTab, $prepis);
     }
 
-    function testRegistrujAPrihlas()
+    public function testRegistrujAPrihlas()
     {
         \Uzivatel::registruj($this->uzivatel());
 
@@ -68,7 +69,7 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
     /**
      * @dataProvider provideRegistrujDuplicity
      */
-    function testRegistrujDuplicity($login, $email, $klicChyby, $chyba)
+    public function testRegistrujDuplicity($login, $email, $klicChyby, $chyba)
     {
         $e = null;
         try {
@@ -83,24 +84,28 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         $this->assertMatchesRegularExpression($chyba, $e->klic($klicChyby));
     }
 
-    function testNelzeZadatId()
+    public function testNelzeZadatId()
     {
         try {
-            \Uzivatel::registruj($this->uzivatel(['id_uzivatele' => 5]));
+            \Uzivatel::registruj($this->uzivatel([
+                'id_uzivatele' => 5,
+            ]));
             self::fail();
         } catch (\Exception $e) {
-            $this->assertMatchesRegularExpression('/ nepovolené /', $e);
+            $this->assertMatchesRegularExpression('/ nepovolené /', $e->getMessage());
         }
     }
 
-    function testUprav()
+    public function testUprav()
     {
         $id = \Uzivatel::registruj($this->uzivatel());
-        $u  = \Uzivatel::zId($id);
+        $u = \Uzivatel::zId($id);
 
         $this->assertEquals('a b', $u->celeJmeno());
 
-        $u->uprav(['jmeno_uzivatele' => 'jiné']);
+        $u->uprav([
+            'jmeno_uzivatele' => 'jiné',
+        ]);
 
         $this->assertEquals('jiné b', $u->celeJmeno());
 
@@ -108,15 +113,19 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         $this->assertEquals('jiné b', $u->celeJmeno());
     }
 
-    function testUpravNic()
+    public function testUpravNic()
     {
-        $id     = \Uzivatel::registruj($this->uzivatel());
+        $id = \Uzivatel::registruj($this->uzivatel());
         $uData1 = \Uzivatel::zId($id)->rawDb();
 
         \Uzivatel::zId($id)->uprav([]);
         $uData2 = \Uzivatel::zId($id)->rawDb();
 
-        $nemenitHesloADoklad = ['heslo' => null, 'heslo_kontrola' => null, Sql::OP => null];
+        $nemenitHesloADoklad = [
+            'heslo'          => null,
+            'heslo_kontrola' => null,
+            Sql::OP          => null,
+        ];
         \Uzivatel::zId($id)->uprav($this->uzivatel($nemenitHesloADoklad));
         $uData3 = \Uzivatel::zId($id)->rawDb();
 

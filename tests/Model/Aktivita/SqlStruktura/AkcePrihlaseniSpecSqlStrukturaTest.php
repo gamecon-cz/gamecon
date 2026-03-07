@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Model\Aktivita\SqlStruktura;
 
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
@@ -11,5 +13,4 @@ class AkcePrihlaseniSpecSqlStrukturaTest extends AbstractTestSqlStruktura
     {
         return AkcePrihlaseniSpecSqlStruktura::class;
     }
-
 }

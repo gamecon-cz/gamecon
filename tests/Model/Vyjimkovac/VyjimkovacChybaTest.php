@@ -12,7 +12,8 @@ class VyjimkovacChybaTest extends TestCase
     /**
      * @test
      */
-    public function Muzu_ziskat_url_detailu_chyby() {
+    public function muzuZiskatUrlDetailuChyby()
+    {
         self::assertFileExists(
             __DIR__ . '/../../../admin/scripts/modules/web/chyby.php',
             'Cesta ke skriptu pro zpracování chyb se změnila, URL pro detail chyby už neplatí a je nutné ho změnit'

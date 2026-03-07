@@ -15,14 +15,18 @@ use Uzivatel;
 
 class Accounting
 {
-    public static function getPersonalFinance(Uzivatel $u): PersonalAccount
+    public static function getPersonalFinance(Uzivatel $u, bool $showDiscounts): PersonalAccount
     {
         $transactions = [];
         foreach ($u->finance()->dejPolozkyProBfgr() as $polozkaProBfgr) {
             $splits = [];
-            $splits[] = new TransactionSplit(-($polozkaProBfgr->castka + $polozkaProBfgr->sleva), $polozkaProBfgr->nazev);
-            if ($polozkaProBfgr->sleva != 0) {
-                $splits[] = new TransactionSplit($polozkaProBfgr->sleva, 'Sleva z ' . $polozkaProBfgr->nazev);
+            if ($showDiscounts) {
+                $splits[] = new TransactionSplit(-($polozkaProBfgr->castka + $polozkaProBfgr->sleva), $polozkaProBfgr->nazev);
+                if ($polozkaProBfgr->sleva != 0) {
+                    $splits[] = new TransactionSplit($polozkaProBfgr->sleva, 'Sleva z ' . $polozkaProBfgr->nazev);
+                }
+            } else {
+                $splits[] = new TransactionSplit(-$polozkaProBfgr->castka, $polozkaProBfgr->nazev);
             }
             /** @var TransactionCategory $category */
             $category = null;
@@ -52,8 +56,7 @@ class Accounting
                     $category = TransactionCategory::FOOD;
                     break;
                 case TypPredmetu::PARCON:
-                    throw new NeznamyTypPredmetu;
-                    break;
+                    throw new NeznamyTypPredmetu(sprintf('Unknown item type %s', $polozkaProBfgr->typ));
                 case Finance::ZUSTATEK_Z_PREDCHOZICH_LET:
                     $category = TransactionCategory::LEFTOVER_FROM_LAST_YEAR;
                     break;

@@ -39,27 +39,27 @@ class ActivitiesImporterTest extends AbstractTestDb
             static function () {
                 // Create 3 test locations using LocationFactory
                 LocationFactory::createOne([
-                    'nazev' => 'Velká místnost',
-                    'dvere' => 'Budova A, dveře 101',
+                    'nazev'    => 'Velká místnost',
+                    'dvere'    => 'Budova A, dveře 101',
                     'poznamka' => '',
-                    'poradi' => 1,
-                    'rok' => 0,
+                    'poradi'   => 1,
+                    'rok'      => 0,
                 ]);
 
                 LocationFactory::createOne([
-                    'nazev' => 'Malá místnost',
-                    'dvere' => 'Budova A, dveře 102',
+                    'nazev'    => 'Malá místnost',
+                    'dvere'    => 'Budova A, dveře 102',
                     'poznamka' => '',
-                    'poradi' => 2,
-                    'rok' => 0,
+                    'poradi'   => 2,
+                    'rok'      => 0,
                 ]);
 
                 LocationFactory::createOne([
-                    'nazev' => 'Klubovna',
-                    'dvere' => 'Budova B, dveře 201',
+                    'nazev'    => 'Klubovna',
+                    'dvere'    => 'Budova B, dveře 201',
                     'poznamka' => '',
-                    'poradi' => 3,
-                    'rok' => 0,
+                    'poradi'   => 3,
+                    'rok'      => 0,
                 ]);
 
                 // Program line (Deskoherna) already exists in base schema
@@ -143,7 +143,7 @@ class ActivitiesImporterTest extends AbstractTestDb
         $mainCount = 0;
         foreach ($rows as $row) {
             if ($row['je_hlavni'] === '1') {
-                $mainCount++;
+                ++$mainCount;
             }
         }
         self::assertSame(1, $mainCount, 'Exactly one location should be marked as main');
@@ -202,16 +202,16 @@ class ActivitiesImporterTest extends AbstractTestDb
             'aktivita1_locations' => $aktivita1->seznamLokaciIdcka(),
             'aktivita2_locations' => $aktivita2->seznamLokaciIdcka(),
             'aktivita3_locations' => $aktivita3->seznamLokaciIdcka(),
-            'akce_lokace_count' => dbFetchSingle('SELECT COUNT(*) FROM akce_lokace WHERE id_akce IN (?, ?, ?)', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
-            'akce_lokace_rows' => dbFetchAll('SELECT id_akce, id_lokace, je_hlavni FROM akce_lokace WHERE id_akce IN (?, ?, ?) ORDER BY id_akce, id_lokace', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
+            'akce_lokace_count'   => dbFetchSingle('SELECT COUNT(*) FROM akce_lokace WHERE id_akce IN (?, ?, ?)', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
+            'akce_lokace_rows'    => dbFetchAll('SELECT id_akce, id_lokace, je_hlavni FROM akce_lokace WHERE id_akce IN (?, ?, ?) ORDER BY id_akce, id_lokace', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
         ];
 
         // Second import - with activity IDs this time (update existing)
         // Note: IDs must be strings since Google Sheets returns strings
         $mockDataUpdate = $this->createMockSheetData([
-            [(string)$aktivita1->id(), 'Deskoherna', 'Aktivita Reimport 1', 'url-reimport-1', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
-            [(string)$aktivita2->id(), 'Deskoherna', 'Aktivita Reimport 2', 'url-reimport-2', 'Popis', '', '', 'Pátek', '13:00', '15:00', 'Velká místnost; Malá místnost; Klubovna', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
-            [(string)$aktivita3->id(), 'Deskoherna', 'Aktivita Reimport 3', 'url-reimport-3', 'Popis', '', '', 'Pátek', '16:00', '18:00', '', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+            [(string) $aktivita1->id(), 'Deskoherna', 'Aktivita Reimport 1', 'url-reimport-1', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+            [(string) $aktivita2->id(), 'Deskoherna', 'Aktivita Reimport 2', 'url-reimport-2', 'Popis', '', '', 'Pátek', '13:00', '15:00', 'Velká místnost; Malá místnost; Klubovna', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+            [(string) $aktivita3->id(), 'Deskoherna', 'Aktivita Reimport 3', 'url-reimport-3', 'Popis', '', '', 'Pátek', '16:00', '18:00', '', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
         ]);
 
         $importer2 = $this->createImporter($mockDataUpdate);
@@ -228,8 +228,8 @@ class ActivitiesImporterTest extends AbstractTestDb
             'aktivita1_locations' => $aktivita1->seznamLokaciIdcka(),
             'aktivita2_locations' => $aktivita2->seznamLokaciIdcka(),
             'aktivita3_locations' => $aktivita3->seznamLokaciIdcka(),
-            'akce_lokace_count' => dbFetchSingle('SELECT COUNT(*) FROM akce_lokace WHERE id_akce IN (?, ?, ?)', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
-            'akce_lokace_rows' => dbFetchAll('SELECT id_akce, id_lokace, je_hlavni FROM akce_lokace WHERE id_akce IN (?, ?, ?) ORDER BY id_akce, id_lokace', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
+            'akce_lokace_count'   => dbFetchSingle('SELECT COUNT(*) FROM akce_lokace WHERE id_akce IN (?, ?, ?)', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
+            'akce_lokace_rows'    => dbFetchAll('SELECT id_akce, id_lokace, je_hlavni FROM akce_lokace WHERE id_akce IN (?, ?, ?) ORDER BY id_akce, id_lokace', [$aktivita1->id(), $aktivita2->id(), $aktivita3->id()]),
         ];
 
         // Verify nothing changed
@@ -277,7 +277,8 @@ class ActivitiesImporterTest extends AbstractTestDb
     private function fetchActivityByUrl(string $url, int $rok): ?Aktivita
     {
         $id = dbFetchSingle('SELECT id_akce FROM akce_seznam WHERE url_akce = ? AND rok = ?', [$url, $rok]);
-        return $id ? Aktivita::zId((int)$id) : null;
+
+        return $id ? Aktivita::zId((int) $id) : null;
     }
 
     /**

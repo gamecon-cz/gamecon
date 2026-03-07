@@ -27,7 +27,7 @@ HTML;
     return; // přehled vidí jen přihlášení na GC (a jen po začátku letošních registrací)
 }
 
-$veci      = Accounting::getPersonalFinance($u);
+$veci      = Accounting::getPersonalFinance($u, showDiscounts: true);
 $slevyA    = array_flat('<li>', $u->finance()->slevyNaAktivity(), '</li>');
 $slevyV    = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
 $zaplaceno = $u->finance()->stav() >= 0;
@@ -73,7 +73,7 @@ if (!$zaplaceno) {
     </style>
     <div style="float:left;width:250px;margin-bottom:24px; margin-right: 50px" class="tabVeci">
         <h2>Objednané věci</h2>
-        <?= $veci->formatForHtml(true) ?>
+        <?= $veci->formatForHtml(positivePrices: true) ?>
     </div>
 
     <?php if ($slevyA || $slevyV) { ?>

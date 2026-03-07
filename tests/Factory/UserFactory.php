@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Factory;
 
 use App\Entity\Enum\GenderEnum;
@@ -12,21 +14,21 @@ use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
 /**
  * @extends PersistentProxyObjectFactory<User>
  *
- * @method        User|Proxy create(array|callable $attributes = [])
- * @method static User|Proxy createOne(array $attributes = [])
- * @method static User|Proxy find(object|array|mixed $criteria)
- * @method static User|Proxy findOrCreate(array $attributes)
- * @method static User|Proxy first(string $sortedField = 'id')
- * @method static User|Proxy last(string $sortedField = 'id')
- * @method static User|Proxy random(array $attributes = [])
- * @method static User|Proxy randomOrCreate(array $attributes = [])
+ * @method        User|Proxy                              create(array|callable $attributes = [])
+ * @method static User|Proxy                              createOne(array $attributes = [])
+ * @method static User|Proxy                              find(object|array|mixed $criteria)
+ * @method static User|Proxy                              findOrCreate(array $attributes)
+ * @method static User|Proxy                              first(string $sortedField = 'id')
+ * @method static User|Proxy                              last(string $sortedField = 'id')
+ * @method static User|Proxy                              random(array $attributes = [])
+ * @method static User|Proxy                              randomOrCreate(array $attributes = [])
  * @method static UserRepository|ProxyRepositoryDecorator repository()
- * @method static User[]|Proxy[] all()
- * @method static User[]|Proxy[] createMany(int $number, array|callable $attributes = [])
- * @method static User[]|Proxy[] createSequence(iterable|callable $sequence)
- * @method static User[]|Proxy[] findBy(array $attributes)
- * @method static User[]|Proxy[] randomRange(int $min, int $max, array $attributes = [])
- * @method static User[]|Proxy[] randomSet(int $number, array $attributes = [])
+ * @method static User[]|Proxy[]                          all()
+ * @method static User[]|Proxy[]                          createMany(int $number, array|callable $attributes = [])
+ * @method static User[]|Proxy[]                          createSequence(iterable|callable $sequence)
+ * @method static User[]|Proxy[]                          findBy(array $attributes)
+ * @method static User[]|Proxy[]                          randomRange(int $min, int $max, array $attributes = [])
+ * @method static User[]|Proxy[]                          randomSet(int $number, array $attributes = [])
  */
 final class UserFactory extends PersistentProxyObjectFactory
 {
@@ -38,7 +40,7 @@ final class UserFactory extends PersistentProxyObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
      */
-    protected function defaults(): array | callable
+    protected function defaults(): array|callable
     {
         return [
             'datumNarozeni'                    => self::faker()->dateTime(),
@@ -79,6 +81,6 @@ final class UserFactory extends PersistentProxyObjectFactory
     protected function initialize(): static
     {
         return $this// ->afterInstantiate(function(User $user): void {})
-            ;
+        ;
     }
 }

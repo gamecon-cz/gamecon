@@ -12,7 +12,8 @@ return ECSConfig::configure()
     ->withPaths([
         __DIR__ . '/symfony/src',
         __DIR__ . '/symfony/config',
-        __DIR__ . '/tests/Symfony',
+        __DIR__ . '/tests',
+        __DIR__ . '/model/Accounting',
     ])
     ->withSkip([
         __DIR__ . '/symfony/var',

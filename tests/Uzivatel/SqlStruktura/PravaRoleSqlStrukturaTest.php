@@ -13,5 +13,4 @@ class PravaRoleSqlStrukturaTest extends AbstractTestSqlStruktura
     {
         return PravaRoleSqlStruktura::class;
     }
-
 }

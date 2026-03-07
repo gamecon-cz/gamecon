@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Factory;
 
 use App\Entity\Page;
@@ -10,21 +12,22 @@ use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
 
 /**
  * @extends PersistentProxyObjectFactory<Page>
- * @method        Page|Proxy create(array|callable $attributes = [])
- * @method static Page|Proxy createOne(array $attributes = [])
- * @method static Page|Proxy find(object|array|mixed $criteria)
- * @method static Page|Proxy findOrCreate(array $attributes)
- * @method static Page|Proxy first(string $sortedField = 'id')
- * @method static Page|Proxy last(string $sortedField = 'id')
- * @method static Page|Proxy random(array $attributes = [])
- * @method static Page|Proxy randomOrCreate(array $attributes = [])
+ *
+ * @method        Page|Proxy                              create(array|callable $attributes = [])
+ * @method static Page|Proxy                              createOne(array $attributes = [])
+ * @method static Page|Proxy                              find(object|array|mixed $criteria)
+ * @method static Page|Proxy                              findOrCreate(array $attributes)
+ * @method static Page|Proxy                              first(string $sortedField = 'id')
+ * @method static Page|Proxy                              last(string $sortedField = 'id')
+ * @method static Page|Proxy                              random(array $attributes = [])
+ * @method static Page|Proxy                              randomOrCreate(array $attributes = [])
  * @method static PageRepository|ProxyRepositoryDecorator repository()
- * @method static Page[]|Proxy[] all()
- * @method static Page[]|Proxy[] createMany(int $number, array|callable $attributes = [])
- * @method static Page[]|Proxy[] createSequence(iterable|callable $sequence)
- * @method static Page[]|Proxy[] findBy(array $attributes)
- * @method static Page[]|Proxy[] randomRange(int $min, int $max, array $attributes = [])
- * @method static Page[]|Proxy[] randomSet(int $number, array $attributes = [])
+ * @method static Page[]|Proxy[]                          all()
+ * @method static Page[]|Proxy[]                          createMany(int $number, array|callable $attributes = [])
+ * @method static Page[]|Proxy[]                          createSequence(iterable|callable $sequence)
+ * @method static Page[]|Proxy[]                          findBy(array $attributes)
+ * @method static Page[]|Proxy[]                          randomRange(int $min, int $max, array $attributes = [])
+ * @method static Page[]|Proxy[]                          randomSet(int $number, array $attributes = [])
  */
 final class PageFactory extends PersistentProxyObjectFactory
 {
@@ -36,7 +39,7 @@ final class PageFactory extends PersistentProxyObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
      */
-    protected function defaults(): array | callable
+    protected function defaults(): array|callable
     {
         return [
             'obsah'      => self::faker()->text(),
@@ -51,6 +54,6 @@ final class PageFactory extends PersistentProxyObjectFactory
     protected function initialize(): static
     {
         return $this// ->afterInstantiate(function(Page $page): void {})
-            ;
+        ;
     }
 }

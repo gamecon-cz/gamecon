@@ -14,21 +14,21 @@ use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
 /**
  * @extends PersistentProxyObjectFactory<UserBadge>
  *
- * @method        UserBadge|Proxy create(array|callable $attributes = [])
- * @method static UserBadge|Proxy createOne(array $attributes = [])
- * @method static UserBadge|Proxy find(object|array|mixed $criteria)
- * @method static UserBadge|Proxy findOrCreate(array $attributes)
- * @method static UserBadge|Proxy first(string $sortedField = 'id')
- * @method static UserBadge|Proxy last(string $sortedField = 'id')
- * @method static UserBadge|Proxy random(array $attributes = [])
- * @method static UserBadge|Proxy randomOrCreate(array $attributes = [])
+ * @method        UserBadge|Proxy                          create(array|callable $attributes = [])
+ * @method static UserBadge|Proxy                          createOne(array $attributes = [])
+ * @method static UserBadge|Proxy                          find(object|array|mixed $criteria)
+ * @method static UserBadge|Proxy                          findOrCreate(array $attributes)
+ * @method static UserBadge|Proxy                          first(string $sortedField = 'id')
+ * @method static UserBadge|Proxy                          last(string $sortedField = 'id')
+ * @method static UserBadge|Proxy                          random(array $attributes = [])
+ * @method static UserBadge|Proxy                          randomOrCreate(array $attributes = [])
  * @method static BadgeRepository|ProxyRepositoryDecorator repository()
- * @method static UserBadge[]|Proxy[] all()
- * @method static UserBadge[]|Proxy[] createMany(int $number, array|callable $attributes = [])
- * @method static UserBadge[]|Proxy[] createSequence(iterable|callable $sequence)
- * @method static UserBadge[]|Proxy[] findBy(array $attributes)
- * @method static UserBadge[]|Proxy[] randomRange(int $min, int $max, array $attributes = [])
- * @method static UserBadge[]|Proxy[] randomSet(int $number, array $attributes = [])
+ * @method static UserBadge[]|Proxy[]                      all()
+ * @method static UserBadge[]|Proxy[]                      createMany(int $number, array|callable $attributes = [])
+ * @method static UserBadge[]|Proxy[]                      createSequence(iterable|callable $sequence)
+ * @method static UserBadge[]|Proxy[]                      findBy(array $attributes)
+ * @method static UserBadge[]|Proxy[]                      randomRange(int $min, int $max, array $attributes = [])
+ * @method static UserBadge[]|Proxy[]                      randomSet(int $number, array $attributes = [])
  */
 final class UserBadgeFactory extends PersistentProxyObjectFactory
 {
@@ -40,7 +40,7 @@ final class UserBadgeFactory extends PersistentProxyObjectFactory
     /**
      * @return array<string, mixed>
      */
-    protected function defaults(): array | callable
+    protected function defaults(): array|callable
     {
         return [
             UserBadgeEntityStructure::oSobe => self::faker()->paragraph(3),

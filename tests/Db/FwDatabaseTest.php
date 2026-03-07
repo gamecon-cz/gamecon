@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Db;
 
 use PHPUnit\Framework\TestCase;

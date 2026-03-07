@@ -25,13 +25,14 @@ class ShopUbytovaniPozdniPoplatekTest extends AbstractTestDb
     private function vytvorUbytovaniPredmet(int $den): ShopItem
     {
         $uniqueId = uniqid();
+
         return ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev        => 'Spacák ' . match ($den) {
-                    0 => 'středa',
-                    1 => 'čtvrtek',
-                    2 => 'pátek',
-                    3 => 'sobota',
-                } . ' ' . $uniqueId,
+            ShopItemEntityStructure::nazev => 'Spacák ' . match ($den) {
+                0 => 'středa',
+                1 => 'čtvrtek',
+                2 => 'pátek',
+                3 => 'sobota',
+            } . ' ' . $uniqueId,
             ShopItemEntityStructure::kodPredmetu  => 'UBYT_DEN' . $den . '_' . strtoupper($uniqueId),
             ShopItemEntityStructure::modelRok     => ROCNIK,
             ShopItemEntityStructure::cenaAktualni => '100',
@@ -45,7 +46,7 @@ class ShopUbytovaniPozdniPoplatekTest extends AbstractTestDb
     /**
      * @test
      */
-    public function Pozdni_poplatek_se_ulozi_k_novemu_nakupu(): void
+    public function pozdniPoplatekSeUloziKNovemuNakupu(): void
     {
         $user = UserFactory::createOne([
             UserEntityStructure::login    => 'test_ubyt_' . uniqid(),
@@ -81,7 +82,7 @@ SQL,
     /**
      * @test
      */
-    public function Poplatek_se_neulozi_ke_stávajicimu_nakupu_jen_k_novemu(): void
+    public function poplatekSeNeuloziKeStávajicimuNakupuJenKNovemu(): void
     {
         $user = UserFactory::createOne([
             UserEntityStructure::login    => 'test_ubyt_' . uniqid(),
@@ -91,9 +92,9 @@ SQL,
         ])->_real();
 
         $predmetCtvrtek = $this->vytvorUbytovaniPredmet(1);
-        $predmetPatek   = $this->vytvorUbytovaniPredmet(2);
-        $predmetSobota  = $this->vytvorUbytovaniPredmet(3);
-        $ucastnik       = \Uzivatel::zIdUrcite($user->getId());
+        $predmetPatek = $this->vytvorUbytovaniPredmet(2);
+        $predmetSobota = $this->vytvorUbytovaniPredmet(3);
+        $ucastnik = \Uzivatel::zIdUrcite($user->getId());
 
         // Nejdřív objednat čtvrtek a pátek bez poplatku
         ShopUbytovani::ulozObjednaneUbytovaniUcastnika(
@@ -146,7 +147,7 @@ SQL,
     /**
      * @test
      */
-    public function Zmena_typu_ubytovani_zachova_puvodni_poplatek(): void
+    public function zmenaTypuUbytovaniZachovaPuvodniPoplatek(): void
     {
         $user = UserFactory::createOne([
             UserEntityStructure::login    => 'test_ubyt_' . uniqid(),
@@ -157,8 +158,8 @@ SQL,
 
         $dvojluzakCtvrtek = $this->vytvorUbytovaniPredmet(1);
         $trojluzakCtvrtek = $this->vytvorUbytovaniPredmet(1);
-        $spacakPatek      = $this->vytvorUbytovaniPredmet(2);
-        $ucastnik         = \Uzivatel::zIdUrcite($user->getId());
+        $spacakPatek = $this->vytvorUbytovaniPredmet(2);
+        $ucastnik = \Uzivatel::zIdUrcite($user->getId());
 
         // Původní objednávka čtvrtku s poplatkem 100 Kč
         ShopUbytovani::ulozObjednaneUbytovaniUcastnika(
@@ -206,7 +207,7 @@ SQL,
     /**
      * @test
      */
-    public function Organizator_s_ubytovanim_zdarma_neplati_pozdni_poplatek(): void
+    public function organizatorSUbytovanimZdarmaNeplatiPozdniPoplatek(): void
     {
         $user = UserFactory::createOne([
             UserEntityStructure::login    => 'test_ubyt_org_' . uniqid(),
@@ -220,27 +221,27 @@ SQL,
         // Vytvořit roli s právem UBYTOVANI_ZDARMA a přiřadit ji uživateli.
         // role_seznam nemá AUTO_INCREMENT, takže ID volíme ručně jako záporné číslo, abychom se nepřekrývali s reálnými daty.
         $idPrava = Pravo::UBYTOVANI_ZDARMA;
-        $idRole  = -999999;
+        $idRole = -999999;
         $kodRole = 'TEST_UBYT_ZDARMA_' . uniqid();
         dbQuery(<<<SQL
 INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
-VALUES ($idPrava, 'UBYTOVANI_ZDARMA', 'Má zdarma ubytování po celou dobu')
+VALUES ({$idPrava}, 'UBYTOVANI_ZDARMA', 'Má zdarma ubytování po celou dobu')
 SQL,
         );
         dbQuery(
-            "INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role) VALUES ($idRole, '$kodRole', 'Test ubytování zdarma', '', -1, 'trvala', 'TEST_UBYT_ZDARMA')",
+            "INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role) VALUES ({$idRole}, '{$kodRole}', 'Test ubytování zdarma', '', -1, 'trvala', 'TEST_UBYT_ZDARMA')",
         );
         dbQuery(<<<SQL
-INSERT INTO prava_role(id_role, id_prava) VALUES ($idRole, $idPrava)
+INSERT INTO prava_role(id_role, id_prava) VALUES ({$idRole}, {$idPrava})
 SQL,
         );
         dbQuery(<<<SQL
 INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
-VALUES ($idUzivatele, $idRole, $idUzivatele)
+VALUES ({$idUzivatele}, {$idRole}, {$idUzivatele})
 SQL,
         );
 
-        $predmet  = $this->vytvorUbytovaniPredmet(1);
+        $predmet = $this->vytvorUbytovaniPredmet(1);
         $ucastnik = \Uzivatel::zIdUrcite($idUzivatele);
 
         ShopUbytovani::ulozObjednaneUbytovaniUcastnika(

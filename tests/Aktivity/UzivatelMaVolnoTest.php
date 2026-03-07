@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Aktivity;
 
-use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 
 class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
 {
@@ -18,12 +20,12 @@ class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
 
     private static $uzivatel;
 
-    static function setUpBeforeClass(): void
+    public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
         try {
             $systemoveNastaveni = self::vytvorSystemoveNastaveni();
-            self::$uzivatel     = self::prihlasenyUzivatel();
+            self::$uzivatel = self::prihlasenyUzivatel();
             Aktivita::zId(1, false, $systemoveNastaveni)->prihlas(self::$uzivatel, self::$uzivatel, Aktivita::UKAZAT_DETAILY_CHYBY);
             Aktivita::zId(2, false, $systemoveNastaveni)->prihlas(self::$uzivatel, self::$uzivatel, Aktivita::UKAZAT_DETAILY_CHYBY);
         } catch (\Throwable $throwable) {
@@ -32,7 +34,7 @@ class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
         }
     }
 
-    function testZadneAktivity()
+    public function testZadneAktivity()
     {
         self::assertNull(
             self::prihlasenyUzivatel()->maKoliziSJinouAktivitou(
@@ -48,8 +50,8 @@ class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
     public function testRuzneVarianty(
         string $od,
         string $do,
-        ?int   $aktivitaId,
-        bool   $nemaKolizi,
+        ?int $aktivitaId,
+        bool $nemaKolizi,
     ) {
         $kolizniAktivita = self::$uzivatel->maKoliziSJinouAktivitou(
             new \DateTime('2000-01-01 ' . $od),
