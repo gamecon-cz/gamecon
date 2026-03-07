@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Model\Finance;
 
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
@@ -11,5 +13,4 @@ class SlevySqlStrukturaTest extends AbstractTestSqlStruktura
     {
         return SlevySqlStruktura::class;
     }
-
 }

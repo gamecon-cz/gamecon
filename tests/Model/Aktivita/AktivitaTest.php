@@ -1,18 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Model\Aktivita;
 
 use App\Kernel;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
+use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
-use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
-use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
-use Uzivatel;
 
 class AktivitaTest extends AbstractTestDb
 {
@@ -44,9 +45,12 @@ SQL,
     protected static function getBeforeClassInitCallbacks(): array
     {
         return [
-            fn() => dbInsertUpdate(
+            fn () => dbInsertUpdate(
                 TypSql::TYP_AKTIVITY_TABULKA,
-                [TypSql::ID_TYPU => TypAktivity::DESKOHERNA, TypSql::STRANKA_O => dbFetchSingle('SELECT id_stranky FROM stranky LIMIT 1')],
+                [
+                    TypSql::ID_TYPU   => TypAktivity::DESKOHERNA,
+                    TypSql::STRANKA_O => dbFetchSingle('SELECT id_stranky FROM stranky LIMIT 1'),
+                ],
             ),
         ];
     }
@@ -56,16 +60,17 @@ SQL,
     private static function ted(): DateTimeImmutableStrict
     {
         static $ted;
-        if (!$ted) {
+        if (! $ted) {
             $ted = new DateTimeImmutableStrict();
         }
+
         return $ted;
     }
 
     /**
      * @test
      */
-    public function Nedostanu_zadnou_zmenu_stavu_aktivit_kdyz_nedam_aktivity()
+    public function nedostanuZadnouZmenuStavuAktivitKdyzNedamAktivity()
     {
         self::assertNull(Aktivita::posledniZmenaStavuAktivit([]));
     }
@@ -73,7 +78,7 @@ SQL,
     /**
      * @test
      */
-    public function Nedostanu_zadne_posledni_zmeny_stavu_aktivit_kdyz_nedam_zname_stavy()
+    public function nedostanuZadnePosledniZmenyStavuAktivitKdyzNedamZnameStavy()
     {
         $posledniZmenyStavuAktivit = Aktivita::dejPosledniZmenyStavuAktivit([]);
         self::assertSame([], $posledniZmenyStavuAktivit->zmenyStavuAktivit());
@@ -81,21 +86,21 @@ SQL,
 
     /**
      * @test
+     *
      * @dataProvider provideZdrojOdhlaseni
      */
-    public function Muzu_ziskat_nazvy_zrusenych_aktivit_uzivatele(
-        int    $idUzivatele,
+    public function muzuZiskatNazvyZrusenychAktivitUzivatele(
+        int $idUzivatele,
         string $zdrojOdhlaseni,
-        int    $rocnik,
-        array  $ocekavaneNazvy,
-    )
-    {
+        int $rocnik,
+        array $ocekavaneNazvy,
+    ) {
         $zruseneAktivityUzivatele = Aktivita::dejZruseneAktivityUzivatele(
-            Uzivatel::zIdUrcite($idUzivatele),
+            \Uzivatel::zIdUrcite($idUzivatele),
             $zdrojOdhlaseni,
             $rocnik,
         );
-        $nazvyZrusenychAktivit    = array_map(static fn(Aktivita $aktivita) => $aktivita->nazev(), $zruseneAktivityUzivatele);
+        $nazvyZrusenychAktivit = array_map(static fn (Aktivita $aktivita) => $aktivita->nazev(), $zruseneAktivityUzivatele);
         self::assertSame($ocekavaneNazvy, $nazvyZrusenychAktivit);
     }
 
@@ -112,35 +117,45 @@ SQL,
 
     /**
      * @test
+     *
      * @dataProvider provideCasyPrihlaseniAOdhlaseni
      */
-    public function Storno_se_zapocita_pro_dele_prihlasene(
+    public function stornoSeZapocitaProDelePrihlasene(
         DateTimeImmutableStrict $prihlasilSeKdy,
-        bool                    $maPLatitStorno,
-    )
-    {
+        bool $maPLatitStorno,
+    ) {
         dbUpdate(
             Sql::AKCE_SEZNAM_TABULKA,
-            /** začátek "teď" je kvůli @see \Gamecon\Aktivita\Aktivita::zbyvaHodinDoZacatku */
-            [Sql::ZACATEK => new DateTimeImmutableStrict(), Sql::TYP => TypAktivity::DESKOHERNA],
-            [Sql::ID_AKCE => 1],
+            /* začátek "teď" je kvůli @see \Gamecon\Aktivita\Aktivita::zbyvaHodinDoZacatku */
+            [
+                Sql::ZACATEK => new DateTimeImmutableStrict(),
+                Sql::TYP     => TypAktivity::DESKOHERNA,
+            ],
+            [
+                Sql::ID_AKCE => 1,
+            ],
         );
 
         $aktivita = Aktivita::zId(id: 1);
 
-        $uzivatel = Uzivatel::zId(1);
+        $uzivatel = \Uzivatel::zId(1);
         $uzivatel->gcPrihlas($uzivatel);
         self::assertTrue($uzivatel->gcPrihlasen());
 
         $aktivita->prihlas($uzivatel, $uzivatel, 0b111111111111);
         dbUpdate(
             'akce_prihlaseni_log',
-            ['kdy' => $prihlasilSeKdy], // jenom malý hack
-            ['id_uzivatele' => $uzivatel->id(), 'id_akce' => $aktivita->id()],
+            [
+                'kdy' => $prihlasilSeKdy,
+            ], // jenom malý hack
+            [
+                'id_uzivatele' => $uzivatel->id(),
+                'id_akce'      => $aktivita->id(),
+            ],
         );
 
         $systemoveNastaveniProStorno = $this->systemoveNastaveniProStorno();
-        $aktivita                    = Aktivita::zId(id: 1, systemoveNastaveni: $systemoveNastaveniProStorno); // reload
+        $aktivita = Aktivita::zId(id: 1, systemoveNastaveni: $systemoveNastaveniProStorno); // reload
 
         self::assertTrue($aktivita->prihlasen($uzivatel), 'Měl by být přihlášen');
         self::assertFalse(
@@ -163,10 +178,9 @@ SQL,
     {
         return new class($kolikMinutJeOdhlaseniBezPokuty, self::ted()) extends SystemoveNastaveni {
             public function __construct(
-                private readonly int    $kolikMinutJeOdhlaseniBezPokuty,
+                private readonly int $kolikMinutJeOdhlaseniBezPokuty,
                 DateTimeImmutableStrict $ted,
-            )
-            {
+            ) {
                 parent::__construct(
                     ROCNIK,
                     $ted,
@@ -209,7 +223,7 @@ SQL,
     /**
      * @test
      */
-    public function Muzu_zkusit_ziskat_aktivitu_podle_id_pomoci_null()
+    public function muzuZkusitZiskatAktivituPodleIdPomociNull()
     {
         self::assertSame(null, Aktivita::zId(null));
     }

@@ -1,24 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Aktivity;
 
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
-use Gamecon\Aktivita\Aktivita;
-use Uzivatel;
 
 class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 {
     use ProbihaRegistraceAktivitTrait;
 
     private ?SystemoveNastaveni $systemoveNastaveni = null;
-    private ?Aktivita           $ctvrtfinale        = null;
-    private ?Aktivita           $semifinaleA        = null;
-    private ?Aktivita           $semifinaleB        = null;
-    private ?Aktivita           $finale             = null;
-    private ?Uzivatel           $tymlidr            = null;
-    private ?Uzivatel           $clen1              = null;
-    private ?Uzivatel           $clen2              = null;
+    private ?Aktivita $ctvrtfinale = null;
+    private ?Aktivita $semifinaleA = null;
+    private ?Aktivita $semifinaleB = null;
+    private ?Aktivita $finale = null;
+    private ?\Uzivatel $tymlidr = null;
+    private ?\Uzivatel $clen1 = null;
+    private ?\Uzivatel $clen2 = null;
 
     protected static bool $disableStrictTransTables = true;
 
@@ -33,14 +34,14 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 
         try {
             $this->systemoveNastaveni = self::vytvorSystemoveNastaveni();
-            $this->ctvrtfinale        = Aktivita::zId(1, false, $this->systemoveNastaveni);
-            $this->semifinaleA        = Aktivita::zId(2, false, $this->systemoveNastaveni);
-            $this->semifinaleB        = Aktivita::zId(3, false, $this->systemoveNastaveni);
-            $this->finale             = Aktivita::zId(4, false, $this->systemoveNastaveni);
+            $this->ctvrtfinale = Aktivita::zId(1, false, $this->systemoveNastaveni);
+            $this->semifinaleA = Aktivita::zId(2, false, $this->systemoveNastaveni);
+            $this->semifinaleB = Aktivita::zId(3, false, $this->systemoveNastaveni);
+            $this->finale = Aktivita::zId(4, false, $this->systemoveNastaveni);
 
             $this->tymlidr = self::prihlasenyUzivatel();
-            $this->clen1   = self::prihlasenyUzivatel();
-            $this->clen2   = self::prihlasenyUzivatel();
+            $this->clen1 = self::prihlasenyUzivatel();
+            $this->clen2 = self::prihlasenyUzivatel();
         } catch (\Throwable $throwable) {
             $this->tearDown();
             throw $throwable;
@@ -209,10 +210,8 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
         ];
     }
 
-
     // TODO další scénáře:
     //  nevalidní ne-první člen
     //    všechno se rollbackne
     //    (že přihlášení jednoho člověka háže výjimku např. při překrytí tady netřeba testovat)
-
 }

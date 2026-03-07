@@ -1,18 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Db;
 
 class Dataset
 {
-
-    private bool  $replaceNull = true;
-    private array $tables      = [];
+    private bool $replaceNull = true;
+    private array $tables = [];
 
     public function addCsv(string $csvString)
     {
         foreach (explode("\n", $csvString) as $line) {
-            $line      = trim($line);
-            $values    = array_map('trim', array_map(static fn($value) => (string)$value, str_getcsv($line)));
+            $line = trim($line);
+            $values = array_map('trim', array_map(static fn ($value) => (string) $value, str_getcsv($line)));
             $lastTable = $this->tables[count($this->tables) - 1] ?? null;
 
             if (empty($line)) {
@@ -21,11 +22,11 @@ class Dataset
             $firstValue = reset($values);
             if (str_starts_with($firstValue, '#')) {
                 // table name
-                $name           = trim(str_replace('#', '', $firstValue));
+                $name = trim(str_replace('#', '', $firstValue));
                 $this->tables[] = new DatasetTable($name);
                 continue;
             }
-            if (!empty($lastTable->getColumns())) {
+            if (! empty($lastTable->getColumns())) {
                 // data line
                 $lastTable->addRow(array_map([$this, 'replaceValues'], $values));
                 continue;
@@ -51,5 +52,4 @@ class Dataset
 
         return $value;
     }
-
 }

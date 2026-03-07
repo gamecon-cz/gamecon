@@ -13,7 +13,6 @@ use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Dto\Dluznik;
 use Gamecon\Uzivatel\Enum\TypUpominky;
 use Gamecon\Uzivatel\UpominaniDluzniku;
-use Uzivatel;
 
 /**
  * Database integration tests for UpominaniDluzniku
@@ -34,7 +33,7 @@ class UpominaniDluznikuTest extends AbstractTestDb
     protected static function getSetUpBeforeClassInitQueries(): array
     {
         $queries = [];
-        $rocnik  = ROCNIK;
+        $rocnik = ROCNIK;
 
         // Dlužník s malým dluhem (-50 Kč)
         $queries[] = self::uzivatelQuery(
@@ -90,22 +89,22 @@ class UpominaniDluznikuTest extends AbstractTestDb
     }
 
     private static function uzivatelQuery(
-        int    $idUzivatele,
+        int $idUzivatele,
         string $jmeno,
         string $prijmeni,
-        float  $zustatek,
+        float $zustatek,
         string $email,
     ): string {
         $login = strtolower(str_replace(' ', '_', $jmeno . '_' . $prijmeni));
 
         return <<<SQL
 INSERT INTO uzivatele_hodnoty
-SET id_uzivatele = $idUzivatele,
-    login_uzivatele = '$login',
-    jmeno_uzivatele = '$jmeno',
-    prijmeni_uzivatele = '$prijmeni',
-    email1_uzivatele = '$email',
-    zustatek = $zustatek
+SET id_uzivatele = {$idUzivatele},
+    login_uzivatele = '{$login}',
+    jmeno_uzivatele = '{$jmeno}',
+    prijmeni_uzivatele = '{$prijmeni}',
+    email1_uzivatele = '{$email}',
+    zustatek = {$zustatek}
 SQL;
     }
 
@@ -115,7 +114,7 @@ SQL;
 
         return <<<SQL
 INSERT INTO platne_role_uzivatelu(id_uzivatele, id_role, posadil)
-VALUES ($idUzivatele, $idRole, 1)
+VALUES ({$idUzivatele}, {$idRole}, 1)
 SQL;
     }
 
@@ -124,13 +123,13 @@ SQL;
     /**
      * @test
      */
-    public function Najde_dluzniky_se_zapornym_zustatkem()
+    public function najdeDluznikySeZapornymZustatkem()
     {
         $upominaniDluzniku = $this->dejUpominaniDluzniku();
-        $dluznici          = $upominaniDluzniku->najdiDluzniky();
+        $dluznici = $upominaniDluzniku->najdiDluzniky();
 
         $idsDluzniku = array_map(
-            fn(Dluznik $d) => $d->uzivatel->id(),
+            fn (Dluznik $d) => $d->uzivatel->id(),
             $dluznici,
         );
 
@@ -150,10 +149,10 @@ SQL;
     /**
      * @test
      */
-    public function Dluznik_ma_kladnou_hodnotu_dluhu()
+    public function dluznikMaKladnouHodnotuDluhu()
     {
         $upominaniDluzniku = $this->dejUpominaniDluzniku();
-        $dluznici          = $upominaniDluzniku->najdiDluzniky();
+        $dluznici = $upominaniDluzniku->najdiDluzniky();
 
         $dluznikMaly = null;
         $dluznikVelky = null;
@@ -176,13 +175,13 @@ SQL;
     /**
      * @test
      */
-    public function Nenajde_uzivatele_s_kladnym_zustatkem()
+    public function nenajdeUzivateleSKladnymZustatkem()
     {
         $upominaniDluzniku = $this->dejUpominaniDluzniku();
-        $dluznici          = $upominaniDluzniku->najdiDluzniky();
+        $dluznici = $upominaniDluzniku->najdiDluzniky();
 
         $idsDluzniku = array_map(
-            fn(Dluznik $d) => $d->uzivatel->id(),
+            fn (Dluznik $d) => $d->uzivatel->id(),
             $dluznici,
         );
 
@@ -196,13 +195,13 @@ SQL;
     /**
      * @test
      */
-    public function Nenajde_uzivatele_s_nulovym_zustatkem()
+    public function nenajdeUzivateleSNulovymZustatkem()
     {
         $upominaniDluzniku = $this->dejUpominaniDluzniku();
-        $dluznici          = $upominaniDluzniku->najdiDluzniky();
+        $dluznici = $upominaniDluzniku->najdiDluzniky();
 
         $idsDluzniku = array_map(
-            fn(Dluznik $d) => $d->uzivatel->id(),
+            fn (Dluznik $d) => $d->uzivatel->id(),
             $dluznici,
         );
 
@@ -218,10 +217,10 @@ SQL;
     /**
      * @test
      */
-    public function Upominky_se_neodesli_kdyz_je_prilis_brzy()
+    public function upominkySeNeodesliKdyzJePrilisBrzy()
     {
         // Nastavíme čas na den po konci GC - příliš brzy (potřebujeme týden)
-        $ted               = $this->dejCasKonecGcPlus('1 day');
+        $ted = $this->dejCasKonecGcPlus('1 day');
         $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
 
         $vysledek = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
@@ -232,10 +231,10 @@ SQL;
     /**
      * @test
      */
-    public function Upominky_se_neodesli_kdyz_je_prilis_pozde()
+    public function upominkySeNeodesliKdyzJePrilisPozde()
     {
         // Nastavíme čas na 2 měsíce po konci GC - příliš pozdě
-        $ted               = $this->dejCasKonecGcPlus('2 months');
+        $ted = $this->dejCasKonecGcPlus('2 months');
         $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
 
         $vysledek = $upominaniDluzniku->odesliUpominkyDluznikum(TypUpominky::TYDEN);
@@ -246,10 +245,10 @@ SQL;
     /**
      * @test
      */
-    public function Upominky_tyden_se_odesli_ve_spravny_cas()
+    public function upominkyTydenSeOdesliVeSpravnyCas()
     {
         // Nastavíme přesný čas - 1 týden po konci GC
-        $ted               = $this->dejCasKonecGcPlus('1 week');
+        $ted = $this->dejCasKonecGcPlus('1 week');
         $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
 
         // Ujistíme se, že existují dlužníci
@@ -266,10 +265,10 @@ SQL;
     /**
      * @test
      */
-    public function Upominky_mesic_se_odesli_ve_spravny_cas()
+    public function upominkyMesicSeOdesliVeSpravnyCas()
     {
         // Nastavíme přesný čas - 1 měsíc po konci GC
-        $ted               = $this->dejCasKonecGcPlus('1 month');
+        $ted = $this->dejCasKonecGcPlus('1 month');
         $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
 
         // Ujistíme se, že existují dlužníci
@@ -284,9 +283,9 @@ SQL;
     /**
      * @test
      */
-    public function Upominky_se_neodesli_podruhe_bez_parametru_znovu()
+    public function upominkySeNeodesliPodruheBezParametruZnovu()
     {
-        $ted               = $this->dejCasKonecGcPlus('1 week');
+        $ted = $this->dejCasKonecGcPlus('1 week');
         $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
 
         // První odeslání
@@ -301,9 +300,9 @@ SQL;
     /**
      * @test
      */
-    public function Upominky_se_odesli_podruhe_s_parametrem_znovu()
+    public function upominkySeOdesliPodruheSParametremZnovu()
     {
-        $ted               = $this->dejCasKonecGcPlus('1 week');
+        $ted = $this->dejCasKonecGcPlus('1 week');
         $upominaniDluzniku = $this->dejUpominaniDluznikuSCasem($ted);
 
         // První odeslání
@@ -320,7 +319,7 @@ SQL;
     /**
      * @test
      */
-    public function Zaloguje_upominani_tyden_a_lze_ho_zpetne_precist()
+    public function zalogujeUpominaniTydenALzeHoZpetnePrecist()
     {
         $upominaniDluzniku = $this->dejUpominaniDluzniku();
 
@@ -344,7 +343,7 @@ SQL,
     /**
      * @test
      */
-    public function Zaloguje_upominani_mesic_a_lze_ho_zpetne_precist()
+    public function zalogujeUpominaniMesicALzeHoZpetnePrecist()
     {
         $upominaniDluzniku = $this->dejUpominaniDluzniku();
 
@@ -370,7 +369,7 @@ SQL,
     private function dejUpominaniDluzniku(): UpominaniDluzniku
     {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $jobResultLogger    = $this->createMock(JobResultLoggerInterface::class);
+        $jobResultLogger = $this->createMock(JobResultLoggerInterface::class);
 
         // Mock FioStazeniNovychPlateb, aby se nevolalo skutečné API
         $fioStazeniNovychPlateb = $this->createMock(FioStazeniNovychPlateb::class);
@@ -386,7 +385,7 @@ SQL,
     private function dejUpominaniDluznikuSCasem(DateTimeImmutableStrict $ted): UpominaniDluzniku
     {
         $systemoveNastaveni = $this->dejSystemoveNastaveniSCasem($ted);
-        $jobResultLogger    = $this->createMock(JobResultLoggerInterface::class);
+        $jobResultLogger = $this->createMock(JobResultLoggerInterface::class);
 
         // Mock FioStazeniNovychPlateb, aby se nevolalo skutečné API
         $fioStazeniNovychPlateb = $this->createMock(FioStazeniNovychPlateb::class);
@@ -410,8 +409,8 @@ SQL,
     private function dejCasKonecGcPlus(string $offset): DateTimeImmutableStrict
     {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $konecGc            = $systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
+        $konecGc = $systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
 
-        return $konecGc->modify("+$offset");
+        return $konecGc->modify("+{$offset}");
     }
 }

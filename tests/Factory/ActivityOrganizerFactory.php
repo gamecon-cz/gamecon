@@ -13,21 +13,21 @@ use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
 /**
  * @extends PersistentProxyObjectFactory<ActivityOrganizer>
  *
- * @method        ActivityOrganizer|Proxy create(array|callable $attributes = [])
- * @method static ActivityOrganizer|Proxy createOne(array $attributes = [])
- * @method static ActivityOrganizer|Proxy find(object|array|mixed $criteria)
- * @method static ActivityOrganizer|Proxy findOrCreate(array $attributes)
- * @method static ActivityOrganizer|Proxy first(string $sortedField = 'id')
- * @method static ActivityOrganizer|Proxy last(string $sortedField = 'id')
- * @method static ActivityOrganizer|Proxy random(array $attributes = [])
- * @method static ActivityOrganizer|Proxy randomOrCreate(array $attributes = [])
+ * @method        ActivityOrganizer|Proxy                              create(array|callable $attributes = [])
+ * @method static ActivityOrganizer|Proxy                              createOne(array $attributes = [])
+ * @method static ActivityOrganizer|Proxy                              find(object|array|mixed $criteria)
+ * @method static ActivityOrganizer|Proxy                              findOrCreate(array $attributes)
+ * @method static ActivityOrganizer|Proxy                              first(string $sortedField = 'id')
+ * @method static ActivityOrganizer|Proxy                              last(string $sortedField = 'id')
+ * @method static ActivityOrganizer|Proxy                              random(array $attributes = [])
+ * @method static ActivityOrganizer|Proxy                              randomOrCreate(array $attributes = [])
  * @method static ActivityOrganizerRepository|ProxyRepositoryDecorator repository()
- * @method static ActivityOrganizer[]|Proxy[] all()
- * @method static ActivityOrganizer[]|Proxy[] createMany(int $number, array|callable $attributes = [])
- * @method static ActivityOrganizer[]|Proxy[] createSequence(iterable|callable $sequence)
- * @method static ActivityOrganizer[]|Proxy[] findBy(array $attributes)
- * @method static ActivityOrganizer[]|Proxy[] randomRange(int $min, int $max, array $attributes = [])
- * @method static ActivityOrganizer[]|Proxy[] randomSet(int $number, array $attributes = [])
+ * @method static ActivityOrganizer[]|Proxy[]                          all()
+ * @method static ActivityOrganizer[]|Proxy[]                          createMany(int $number, array|callable $attributes = [])
+ * @method static ActivityOrganizer[]|Proxy[]                          createSequence(iterable|callable $sequence)
+ * @method static ActivityOrganizer[]|Proxy[]                          findBy(array $attributes)
+ * @method static ActivityOrganizer[]|Proxy[]                          randomRange(int $min, int $max, array $attributes = [])
+ * @method static ActivityOrganizer[]|Proxy[]                          randomSet(int $number, array $attributes = [])
  */
 final class ActivityOrganizerFactory extends PersistentProxyObjectFactory
 {
@@ -39,7 +39,7 @@ final class ActivityOrganizerFactory extends PersistentProxyObjectFactory
     protected function defaults(): array
     {
         return [
-            'idAkce' => self::faker()->numberBetween(1, 1000),
+            'idAkce'      => self::faker()->numberBetween(1, 1000),
             'idUzivatele' => self::faker()->numberBetween(1, 1000),
         ];
     }

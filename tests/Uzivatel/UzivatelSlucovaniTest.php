@@ -6,7 +6,6 @@ namespace Gamecon\Tests\Uzivatel;
 
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Uzivatel\UzivatelSlucovani;
-use Uzivatel;
 
 class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
 {
@@ -55,21 +54,23 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         parent::tearDownAfterClass();
     }
 
-    public function test_sluc_merges_users_successfully(): void
+    public function testSlucMergesUsersSuccessfully(): void
     {
         // Arrange
         $staryUzivatel = $this->createTestUser('stary@test.com', 'Stary', 'Uzivatel');
         $novyUzivatel = $this->createTestUser('novy@test.com', 'Novy', 'Uzivatel');
 
-        $staryId = (int)$staryUzivatel->id();
-        $novyId = (int)$novyUzivatel->id();
+        $staryId = (int) $staryUzivatel->id();
+        $novyId = (int) $novyUzivatel->id();
 
         // Add test data for old user
-        dbQuery("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ($staryId, 'test data 1')");
-        dbQuery("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ($staryId, 'test data 2')");
+        dbQuery("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ({$staryId}, 'test data 1')");
+        dbQuery("INSERT INTO test_uzivatel_reference (id_uzivatele, test_data) VALUES ({$staryId}, 'test data 2')");
 
         $slucovani = new UzivatelSlucovani();
-        $zmeny = ['jmeno_uzivatele' => 'Sloučený'];
+        $zmeny = [
+            'jmeno_uzivatele' => 'Sloučený',
+        ];
 
         // Act
         $slucovani->sluc($staryUzivatel, $novyUzivatel, $zmeny);
@@ -80,7 +81,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $this->assertNewUserUpdated($novyId, $zmeny);
     }
 
-    public function test_sluc_handles_same_user_ids(): void
+    public function testSlucHandlesSameUserIds(): void
     {
         // Arrange
         $uzivatel = $this->createTestUser('same@test.com', 'Same', 'User');
@@ -90,21 +91,21 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $slucovani->sluc($uzivatel, $uzivatel, []);
 
         // Verify user still exists
-        $this->assertNotNull(Uzivatel::zId($uzivatel->id()));
+        $this->assertNotNull(\Uzivatel::zId($uzivatel->id()));
     }
 
-    public function test_sluc_handles_unique_constraint_conflicts(): void
+    public function testSlucHandlesUniqueConstraintConflicts(): void
     {
         // Arrange
         $staryUzivatel = $this->createTestUser('stary2@test.com', 'Stary2', 'Uzivatel');
         $novyUzivatel = $this->createTestUser('novy2@test.com', 'Novy2', 'Uzivatel');
 
-        $staryId = (int)$staryUzivatel->id();
-        $novyId = (int)$novyUzivatel->id();
+        $staryId = (int) $staryUzivatel->id();
+        $novyId = (int) $novyUzivatel->id();
 
         // Create conflicting unique data
-        dbQuery("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ($staryId, 'conflict')");
-        dbQuery("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ($novyId, 'conflict')");
+        dbQuery("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ({$staryId}, 'conflict')");
+        dbQuery("INSERT INTO test_unique_uzivatel (id_uzivatele, unique_field) VALUES ({$novyId}, 'conflict')");
 
         $slucovani = new UzivatelSlucovani();
 
@@ -117,7 +118,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $this->assertEquals($novyId, $remainingRecords[0]['id_uzivatele']);
     }
 
-    public function test_sluc_creates_log_entries(): void
+    public function testSlucCreatesLogEntries(): void
     {
         // Arrange
         $staryUzivatel = $this->createTestUser('log1@test.com', 'Log1', 'User');
@@ -125,16 +126,18 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
 
         // Clear any existing log entries for these users
         dbQuery('DELETE FROM uzivatele_slucovani_log WHERE id_smazaneho_uzivatele = $1 OR id_noveho_uzivatele = $2',
-               [$staryUzivatel->id(), $novyUzivatel->id()]);
+            [$staryUzivatel->id(), $novyUzivatel->id()]);
 
         $slucovani = new UzivatelSlucovani();
 
         // Act
-        $slucovani->sluc($staryUzivatel, $novyUzivatel, ['jmeno_uzivatele' => 'Logged']);
+        $slucovani->sluc($staryUzivatel, $novyUzivatel, [
+            'jmeno_uzivatele' => 'Logged',
+        ]);
 
         // Assert
         $logEntries = dbFetchAll('SELECT * FROM uzivatele_slucovani_log WHERE id_smazaneho_uzivatele = $1 AND id_noveho_uzivatele = $2',
-                               [$staryUzivatel->id(), $novyUzivatel->id()]);
+            [$staryUzivatel->id(), $novyUzivatel->id()]);
 
         $this->assertCount(1, $logEntries, 'Should create exactly one log entry');
 
@@ -147,108 +150,112 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $this->assertNotNull($logEntry['kdy']);
     }
 
-    public function test_odkazujici_tabulky_returns_correct_tables(): void
+    public function testOdkazujiciTabulkyReturnsCorrectTables(): void
     {
         // This tests the private method indirectly through sluc()
         $staryUzivatel = $this->createTestUser('ref1@test.com', 'Ref1', 'User');
         $novyUzivatel = $this->createTestUser('ref2@test.com', 'Ref2', 'User');
 
-        $staryId = (int)$staryUzivatel->id();
+        $staryId = (int) $staryUzivatel->id();
 
         // Add data to test table without FK (should be handled by whitelist)
-        dbQuery("INSERT INTO test_no_fk_reference (id_uzivatele, some_data) VALUES ($staryId, 'no fk test')");
+        dbQuery("INSERT INTO test_no_fk_reference (id_uzivatele, some_data) VALUES ({$staryId}, 'no fk test')");
 
         $slucovani = new UzivatelSlucovani();
         $slucovani->sluc($staryUzivatel, $novyUzivatel, []);
 
         // Verify data was moved from table without FK
-        $newRecords = dbFetchAll("SELECT * FROM test_no_fk_reference WHERE id_uzivatele = " . $novyUzivatel->id());
+        $newRecords = dbFetchAll('SELECT * FROM test_no_fk_reference WHERE id_uzivatele = ' . $novyUzivatel->id());
         $this->assertEmpty($newRecords); // This table is not in the whitelist for this test
     }
 
-    public function test_sluc_copies_all_uzivatele_hodnoty_fields(): void
+    public function testSlucCopiesAllUzivateleHodnotyFields(): void
     {
         $staryUzivatel = $this->createTestUser('stary_complete@test.com', 'StaryJmeno', 'StaryPrijmeni');
         $novyUzivatel = $this->createTestUser('novy_complete@test.com', 'NovyJmeno', 'NovyPrijmeni');
 
-        $staryId = (int)$staryUzivatel->id();
-        $novyId = (int)$novyUzivatel->id();
+        $staryId = (int) $staryUzivatel->id();
+        $novyId = (int) $novyUzivatel->id();
 
         // Update old user with comprehensive data
         dbUpdate('uzivatele_hodnoty', [
-            'login_uzivatele' => 'stary_login_unique',
-            'email1_uzivatele' => 'stary_unique@test.com',
-            'ulice_a_cp_uzivatele' => 'Stará ulice 123',
-            'mesto_uzivatele' => 'Staré Město',
-            'stat_uzivatele' => 1,
-            'psc_uzivatele' => '12345',
-            'telefon_uzivatele' => '+420111222333',
-            'datum_narozeni' => '1990-05-15',
-            'heslo_md5' => 'old_hash_value',
-            'nechce_maily' => '2023-01-15 10:30:00',
-            'mrtvy_mail' => 1,
-            'forum_razeni' => 'A',
-            'random' => 'old_random_123',
-            'zustatek' => 500,
-            'pohlavi' => 'm',
-            'registrovan' => '2020-01-01 12:00:00',
-            'ubytovan_s' => 'Někdo Jiný',
-            'poznamka' => 'Poznámka starého uživatele',
-            'pomoc_typ' => 'vypravec',
-            'pomoc_vice' => 'Detaily pomoci starého',
-            'op' => 'encrypted_op_old',
-            'potvrzeni_zakonneho_zastupce' => '2022-06-01',
-            'infopult_poznamka' => 'Stará infopult poznámka',
-            'typ_dokladu_totoznosti' => 'OP',
-            'statni_obcanstvi' => 'CZ',
-            'z_rychloregistrace' => 1,
+            'login_uzivatele'                     => 'stary_login_unique',
+            'email1_uzivatele'                    => 'stary_unique@test.com',
+            'ulice_a_cp_uzivatele'                => 'Stará ulice 123',
+            'mesto_uzivatele'                     => 'Staré Město',
+            'stat_uzivatele'                      => 1,
+            'psc_uzivatele'                       => '12345',
+            'telefon_uzivatele'                   => '+420111222333',
+            'datum_narozeni'                      => '1990-05-15',
+            'heslo_md5'                           => 'old_hash_value',
+            'nechce_maily'                        => '2023-01-15 10:30:00',
+            'mrtvy_mail'                          => 1,
+            'forum_razeni'                        => 'A',
+            'random'                              => 'old_random_123',
+            'zustatek'                            => 500,
+            'pohlavi'                             => 'm',
+            'registrovan'                         => '2020-01-01 12:00:00',
+            'ubytovan_s'                          => 'Někdo Jiný',
+            'poznamka'                            => 'Poznámka starého uživatele',
+            'pomoc_typ'                           => 'vypravec',
+            'pomoc_vice'                          => 'Detaily pomoci starého',
+            'op'                                  => 'encrypted_op_old',
+            'potvrzeni_zakonneho_zastupce'        => '2022-06-01',
+            'infopult_poznamka'                   => 'Stará infopult poznámka',
+            'typ_dokladu_totoznosti'              => 'OP',
+            'statni_obcanstvi'                    => 'CZ',
+            'z_rychloregistrace'                  => 1,
             'potvrzeni_zakonneho_zastupce_soubor' => '2022-06-01 10:00:00',
-        ], ['id_uzivatele' => $staryId]);
+        ], [
+            'id_uzivatele' => $staryId,
+        ]);
 
         // Update new user with some existing data
         dbUpdate('uzivatele_hodnoty', [
-            'login_uzivatele' => 'novy_login_unique',
-            'email1_uzivatele' => 'novy_unique@test.com',
+            'login_uzivatele'      => 'novy_login_unique',
+            'email1_uzivatele'     => 'novy_unique@test.com',
             'ulice_a_cp_uzivatele' => 'Nová ulice 456',
-            'mesto_uzivatele' => '',  // Empty field
-            'zustatek' => 200,
-            'poznamka' => 'Původní poznámka nového',
-        ], ['id_uzivatele' => $novyId]);
+            'mesto_uzivatele'      => '',  // Empty field
+            'zustatek'             => 200,
+            'poznamka'             => 'Původní poznámka nového',
+        ], [
+            'id_uzivatele' => $novyId,
+        ]);
 
         $slucovani = new UzivatelSlucovani();
 
         $zmeny = [
             // Unique fields
-            'login_uzivatele' => 'stary_login_unique',
+            'login_uzivatele'  => 'stary_login_unique',
             'email1_uzivatele' => 'stary_unique@test.com',
 
             // All other fields
-            'jmeno_uzivatele' => 'StaryJmeno',
-            'prijmeni_uzivatele' => 'StaryPrijmeni',
+            'jmeno_uzivatele'      => 'StaryJmeno',
+            'prijmeni_uzivatele'   => 'StaryPrijmeni',
             'ulice_a_cp_uzivatele' => 'Stará ulice 123',
-            'mesto_uzivatele' => 'Staré Město',
-            'stat_uzivatele' => 1,
-            'psc_uzivatele' => '12345',
-            'telefon_uzivatele' => '+420111222333',
-            'datum_narozeni' => '1990-05-15',
-            'heslo_md5' => 'old_hash_value',
-            'nechce_maily' => '2023-01-15 10:30:00',
-            'mrtvy_mail' => 1,
-            'forum_razeni' => 'A',
-            'random' => 'old_random_123',
+            'mesto_uzivatele'      => 'Staré Město',
+            'stat_uzivatele'       => 1,
+            'psc_uzivatele'        => '12345',
+            'telefon_uzivatele'    => '+420111222333',
+            'datum_narozeni'       => '1990-05-15',
+            'heslo_md5'            => 'old_hash_value',
+            'nechce_maily'         => '2023-01-15 10:30:00',
+            'mrtvy_mail'           => 1,
+            'forum_razeni'         => 'A',
+            'random'               => 'old_random_123',
             // 'zustatek' => 500,  // Zustatek is handled separately by merge logic
-            'pohlavi' => 'm',
-            'registrovan' => '2020-01-01 12:00:00',
-            'ubytovan_s' => 'Někdo Jiný',
-            'poznamka' => 'Poznámka starého uživatele',
-            'pomoc_typ' => 'vypravec',
-            'pomoc_vice' => 'Detaily pomoci starého',
-            'op' => 'encrypted_op_old',
-            'potvrzeni_zakonneho_zastupce' => '2022-06-01',
-            'infopult_poznamka' => 'Stará infopult poznámka',
-            'typ_dokladu_totoznosti' => 'OP',
-            'statni_obcanstvi' => 'CZ',
-            'z_rychloregistrace' => 1,
+            'pohlavi'                             => 'm',
+            'registrovan'                         => '2020-01-01 12:00:00',
+            'ubytovan_s'                          => 'Někdo Jiný',
+            'poznamka'                            => 'Poznámka starého uživatele',
+            'pomoc_typ'                           => 'vypravec',
+            'pomoc_vice'                          => 'Detaily pomoci starého',
+            'op'                                  => 'encrypted_op_old',
+            'potvrzeni_zakonneho_zastupce'        => '2022-06-01',
+            'infopult_poznamka'                   => 'Stará infopult poznámka',
+            'typ_dokladu_totoznosti'              => 'OP',
+            'statni_obcanstvi'                    => 'CZ',
+            'z_rychloregistrace'                  => 1,
             'potvrzeni_zakonneho_zastupce_soubor' => '2022-06-01 10:00:00',
         ];
 
@@ -256,7 +263,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $slucovani->sluc($staryUzivatel, $novyUzivatel, $zmeny);
 
         // Assert
-        $mergedUser = dbFetchAll("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele = $novyId");
+        $mergedUser = dbFetchAll("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele = {$novyId}");
         $this->assertCount(1, $mergedUser);
         $user = $mergedUser[0];
 
@@ -293,27 +300,28 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $this->assertEquals('2022-06-01 10:00:00', $user['potvrzeni_zakonneho_zastupce_soubor']);
 
         // Check that balance was merged (200 + 500 = 700)
-        $this->assertEquals(700, (int)$user['zustatek'], 'Balance should be sum of both users');
+        $this->assertEquals(700, (int) $user['zustatek'], 'Balance should be sum of both users');
 
         // Old user should be deleted
         $this->assertOldUserDeleted($staryId);
     }
 
-    private function createTestUser(string $email, string $jmeno, string $prijmeni): Uzivatel
+    private function createTestUser(string $email, string $jmeno, string $prijmeni): \Uzivatel
     {
         $login = strtolower(str_replace('@', '_', str_replace('.', '_', $email)));
 
         dbInsert('uzivatele_hodnoty', [
-            'login_uzivatele' => $login,
-            'email1_uzivatele' => $email,
-            'jmeno_uzivatele' => $jmeno,
+            'login_uzivatele'    => $login,
+            'email1_uzivatele'   => $email,
+            'jmeno_uzivatele'    => $jmeno,
             'prijmeni_uzivatele' => $prijmeni,
         ]);
 
         $idUzivatele = dbInsertId();
-        $uzivatel = Uzivatel::zId($idUzivatele);
+        $uzivatel = \Uzivatel::zId($idUzivatele);
 
         $this->assertNotNull($uzivatel, 'Failed to create test user');
+
         return $uzivatel;
     }
 
@@ -321,32 +329,33 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
     {
         $result = dbQuery('SELECT DATABASE() as db_name');
         $row = $result->fetch_assoc();
+
         return $row['db_name'];
     }
 
     private function assertUserDataMerged(int $staryId, int $novyId): void
     {
         // Check that references were moved to new user
-        $oldReferences = dbFetchAll("SELECT * FROM test_uzivatel_reference WHERE id_uzivatele = $staryId");
+        $oldReferences = dbFetchAll("SELECT * FROM test_uzivatel_reference WHERE id_uzivatele = {$staryId}");
         $this->assertEmpty($oldReferences, 'Old user should have no references');
 
-        $newReferences = dbFetchAll("SELECT * FROM test_uzivatel_reference WHERE id_uzivatele = $novyId");
+        $newReferences = dbFetchAll("SELECT * FROM test_uzivatel_reference WHERE id_uzivatele = {$novyId}");
         $this->assertCount(2, $newReferences, 'New user should have merged references');
     }
 
     private function assertOldUserDeleted(int $staryId): void
     {
-        $oldUser = dbFetchAll("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele = $staryId");
+        $oldUser = dbFetchAll("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele = {$staryId}");
         $this->assertEmpty($oldUser, 'Old user record should be deleted');
     }
 
     private function assertNewUserUpdated(int $novyId, array $expectedChanges): void
     {
-        $newUser = dbFetchAll("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele = $novyId");
+        $newUser = dbFetchAll("SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele = {$novyId}");
         $this->assertCount(1, $newUser, 'New user should exist');
 
         foreach ($expectedChanges as $column => $expectedValue) {
-            $this->assertEquals($expectedValue, $newUser[0][$column], "Column $column was not updated correctly");
+            $this->assertEquals($expectedValue, $newUser[0][$column], "Column {$column} was not updated correctly");
         }
     }
 }

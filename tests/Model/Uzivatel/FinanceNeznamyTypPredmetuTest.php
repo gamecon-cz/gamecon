@@ -28,14 +28,16 @@ SQL,
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
 SELECT 334, id_predmetu, $0, 0 FROM shop_predmety WHERE id_predmetu IN (33313)
 SQL,
-            [0 => ROCNIK],
+            [
+                0 => ROCNIK,
+            ],
         ],
     ];
 
     /**
      * @test
      */
-    public function Neznamy_typ_predmetu_hodi_excepton()
+    public function neznamyTypPredmetuHodiExcepton()
     {
         $this->expectException(NeznamyTypPredmetu::class);
         $finance = new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0, SystemoveNastaveni::zGlobals());

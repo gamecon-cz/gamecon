@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Aktivity;
 
+use App\Structure\Entity\ActivityEntityStructure;
 use App\Structure\Entity\ActivityInstanceEntityStructure;
 use App\Structure\Entity\CategoryTagEntityStructure;
-use App\Structure\Entity\ActivityEntityStructure;
 use App\Structure\Entity\TagEntityStructure;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -53,8 +55,14 @@ class AktivitaTagyTest extends AbstractTestDb
                     CategoryTagEntityStructure::nazev => 'Za co?',
                 ]);
                 TagFactory::createSequence([
-                    [TagEntityStructure::nazev => 'První', TagEntityStructure::categoryTag => $categoryTag],
-                    [TagEntityStructure::nazev => 'druhý', TagEntityStructure::categoryTag => $categoryTag],
+                    [
+                        TagEntityStructure::nazev       => 'První',
+                        TagEntityStructure::categoryTag => $categoryTag,
+                    ],
+                    [
+                        TagEntityStructure::nazev       => 'druhý',
+                        TagEntityStructure::categoryTag => $categoryTag,
+                    ],
                 ]);
             },
         ];
@@ -64,15 +72,15 @@ class AktivitaTagyTest extends AbstractTestDb
      * @dataProvider provideAktivity
      */
     public function testNastaveni(
-        int   $idNastavovaneAktivity,
-        int   $idCteneAktivity,
+        int $idNastavovaneAktivity,
+        int $idCteneAktivity,
         array $nastaveneTagy,
     ) {
         $a = Aktivita::zId($idNastavovaneAktivity);
         $a->nastavTagy($nastaveneTagy);
         $b = Aktivita::zId($idCteneAktivity);
         self::assertEquals(self::getSortedCopy($nastaveneTagy), self::getSortedCopy($b->tagy()),
-            "Tagy nastavené aktivitě $idNastavovaneAktivity musí odpovídat tagům přečteným z aktivity $idCteneAktivity.",
+            "Tagy nastavené aktivitě {$idNastavovaneAktivity} musí odpovídat tagům přečteným z aktivity {$idCteneAktivity}.",
         );
     }
 
@@ -91,18 +99,18 @@ class AktivitaTagyTest extends AbstractTestDb
      * @dataProvider provideAktivity
      */
     public function testKopiePriInstanciaci(
-        int   $idAktivity,
-              $_,
+        int $idAktivity,
+        $_,
         array $tagy,
     ) {
         $a = Aktivita::zId($idAktivity);
-        self::assertNotNull($a, "Aktivita pro ID $idAktivity musí existovat.");
+        self::assertNotNull($a, "Aktivita pro ID {$idAktivity} musí existovat.");
         $a->nastavTagy($tagy);
         $b = $a->instancuj();
         self::assertEquals(
             self::getSortedCopy($tagy),
             self::getSortedCopy($b->tagy()),
-            "Tagy se musí propsat i do nově vytvořené instance",
+            'Tagy se musí propsat i do nově vytvořené instance',
         );
     }
 

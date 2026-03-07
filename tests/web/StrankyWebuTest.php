@@ -8,10 +8,12 @@ class StrankyWebuTest extends AbstractTestWeb
 {
     /**
      * @test
+     *
      * @dataProvider provideWebUrls
+     *
      * @param string[] $urls
      */
-    public function Muzu_si_zobrazit_kazdou_stranku_na_webu(...$urls)
+    public function muzuSiZobrazitKazdouStrankuNaWebu(...$urls)
     {
         // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
         get_headers(URL_WEBU);
@@ -21,10 +23,12 @@ class StrankyWebuTest extends AbstractTestWeb
 
     /**
      * @test
+     *
      * @dataProvider provideAdminUrls
+     *
      * @param string[] $urls
      */
-    public function Muzu_si_zobrazit_kazdou_stranku_v_adminu(...$urls)
+    public function muzuSiZobrazitKazdouStrankuVAdminu(...$urls)
     {
         $this->testAdminPagesAccessibility($urls);
     }
@@ -45,30 +49,29 @@ class StrankyWebuTest extends AbstractTestWeb
 
     protected static function getUrlsModuluWebu(): array
     {
-        $modulyWebu         = scandir(__DIR__ . '/../../web/moduly');
+        $modulyWebu = scandir(__DIR__ . '/../../web/moduly');
         $modulyWebuBaseUrls = [];
         foreach ($modulyWebu as $modulWebu) {
-            if (!preg_match('~[.]php$~', $modulWebu)) {
+            if (! preg_match('~[.]php$~', $modulWebu)) {
                 continue;
             }
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
         }
-        $blocklist          = [
+        $blocklist = [
             'ajax-vyjimkovac',
             'mail',
             'nenalezeno',
             'stranka',
             'programold',
             'program-nahled-api',
-            'info-po-gc'
+            'info-po-gc',
         ];
         $modulyWebuBaseUrls = array_diff($modulyWebuBaseUrls, $blocklist);
-        $webBaseUrl         = basename(__DIR__ . '/../../web');
+        $webBaseUrl = basename(__DIR__ . '/../../web');
 
         return array_map(static function (
             string $modulWebuUrl,
-        ) use
-        (
+        ) use (
             $webBaseUrl,
         ) {
             return $webBaseUrl . '/' . $modulWebuUrl;
@@ -77,10 +80,10 @@ class StrankyWebuTest extends AbstractTestWeb
 
     protected static function getUrlsModuluAdminu(): array
     {
-        $modulyWebu         = scandir(__DIR__ . '/../../admin/scripts/modules');
+        $modulyWebu = scandir(__DIR__ . '/../../admin/scripts/modules');
         $modulyWebuBaseUrls = [];
         foreach ($modulyWebu as $modulWebu) {
-            if (!preg_match('~(^[^_].*[.]php$|^[a-z-]+$)~', $modulWebu)) {
+            if (! preg_match('~(^[^_].*[.]php$|^[a-z-]+$)~', $modulWebu)) {
                 continue;
             }
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
@@ -89,8 +92,7 @@ class StrankyWebuTest extends AbstractTestWeb
 
         return array_map(static function (
             string $modulAdminuUrl,
-        ) use
-        (
+        ) use (
             $adminBaseUrl,
         ) {
             return $adminBaseUrl . '/' . $modulAdminuUrl;

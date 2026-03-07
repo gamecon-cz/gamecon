@@ -92,17 +92,20 @@ SQL,
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
 SELECT 333, id_predmetu, $0, (id_predmetu / 100) AS cena_nakupni FROM shop_predmety WHERE id_predmetu BETWEEN 33311 AND 33318
 SQL,
-            [0 => ROCNIK],
+            [
+                0 => ROCNIK,
+            ],
         ],
     ];
 
     /**
      * @test
      */
-    public function Cena_nakupu_odpovida() {
+    public function cenaNakupuOdpovida()
+    {
         $cenaPredmetuBezTricek = 333.11 + 333.12;
-        $cenaTricek            = 333.17 + 333.18;
-        $cenaVsechPredmetu     = $cenaPredmetuBezTricek + $cenaTricek;
+        $cenaTricek = 333.17 + 333.18;
+        $cenaVsechPredmetu = $cenaPredmetuBezTricek + $cenaTricek;
         define('MODRE_TRICKO_ZDARMA_OD', 0);
         $finance = new Finance($this->dejUzivateleSNakupy(), 0, SystemoveNastaveni::zGlobals());
         self::assertSame(
@@ -123,8 +126,8 @@ SQL,
         );
     }
 
-    private function dejUzivateleSNakupy(): \Uzivatel {
+    private function dejUzivateleSNakupy(): \Uzivatel
+    {
         return \Uzivatel::zIdUrcite(333);
     }
-
 }

@@ -108,7 +108,7 @@ if ($uPracovni) {
         ? $pokoj->ubytovani()
         : [];
     $x->assign([
-        'prehled'       => Accounting::getPersonalFinance($up)->formatForHtml(),
+        'prehled'       => Accounting::getPersonalFinance($up, showDiscounts: false)->formatForHtml(),
         'slevyAktivity' => ($akt = $up->finance()->slevyNaAktivity())
             ?
             '<li>' . implode('<li>', $akt)

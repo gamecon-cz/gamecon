@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
 use App\Kernel;
@@ -15,8 +17,8 @@ use PHPUnit\Framework\TestCase;
 class KopieOstreDatabazeTest extends TestCase
 {
     private static ?string $soucasnaDbName = null;
-    private static ?string $ostraDbName    = null;
-    private ?\Throwable    $setUpError     = null;
+    private static ?string $ostraDbName = null;
+    private ?\Throwable $setUpError = null;
 
     private ?SystemoveNastaveni $systemoveNastaveni = null;
 
@@ -24,7 +26,7 @@ class KopieOstreDatabazeTest extends TestCase
     {
         parent::setUpBeforeClass();
         self::$soucasnaDbName = uniqid(DB_TEST_PREFIX . 'soucasna_', true);
-        self::$ostraDbName    = uniqid(DB_TEST_PREFIX . 'ostra_', true);
+        self::$ostraDbName = uniqid(DB_TEST_PREFIX . 'ostra_', true);
     }
 
     protected function setUp(): void
@@ -35,7 +37,7 @@ class KopieOstreDatabazeTest extends TestCase
             $this->systemoveNastaveni = $this->vytvorSystemoveNastaveni();
 
             $docasneSpojeniSoucasna = $this->docasneSpojeniSoucasna($this->systemoveNastaveni, true);
-            $testDumps              = scandir(__DIR__ . '/../../Db/data', SCANDIR_SORT_DESCENDING);
+            $testDumps = scandir(__DIR__ . '/../../Db/data', SCANDIR_SORT_DESCENDING);
             assert($testDumps !== false, 'Nepodařilo se načíst testovací SQL');
             $latestDump = __DIR__ . '/../../Db/data/' . reset($testDumps);
 
@@ -53,7 +55,9 @@ class KopieOstreDatabazeTest extends TestCase
         }
     }
 
-    /** Protože @see setUp errors jsou PHPUnitem zahozeny a jinak bychom detail neměli */
+    /**
+     * Protože @see setUp errors jsou PHPUnitem zahozeny a jinak bychom detail neměli
+     */
     public function testSetUpProbehl()
     {
         if ($this->setUpError) {
@@ -64,7 +68,7 @@ class KopieOstreDatabazeTest extends TestCase
 
     private function docasneSpojeniSoucasna(
         SystemoveNastaveni $systemoveNastaveni,
-        bool               $resetDatabaze,
+        bool $resetDatabaze,
     ): \mysqli {
         [
             'DBM_USER' => $dbmUser,
@@ -87,7 +91,7 @@ class KopieOstreDatabazeTest extends TestCase
 
     private function docasneSpojeniOstra(
         SystemoveNastaveni $systemoveNastaveni,
-        bool               $resetDatabaze,
+        bool $resetDatabaze,
     ): \mysqli {
         [
             'DBM_USER' => $dbmUser,
@@ -109,13 +113,13 @@ class KopieOstreDatabazeTest extends TestCase
     }
 
     private function docasneSpojeni(
-        string              $dbServer,
-        string              $dbmUser,
-        string              $dbmPass,
-        string | int | null $dbPort,
-        string              $dbName,
-        int                 $rocnik,
-        bool                $resetDatabaze,
+        string $dbServer,
+        string $dbmUser,
+        string $dbmPass,
+        string|int|null $dbPort,
+        string $dbName,
+        int $rocnik,
+        bool $resetDatabaze,
     ) {
         $spojeni = _dbConnect(
             $dbServer,
@@ -142,9 +146,9 @@ class KopieOstreDatabazeTest extends TestCase
         $systemoveNastaveni = $this->vytvorSystemoveNastaveni();
 
         $spojeniSoucasna = $this->docasneSpojeniSoucasna($systemoveNastaveni, false);
-        $tablesBefore    = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetch_all();
+        $tablesBefore = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetch_all();
 
-        $nastrojeDatabaze   = new NastrojeDatabaze($systemoveNastaveni);
+        $nastrojeDatabaze = new NastrojeDatabaze($systemoveNastaveni);
         $kopieOstreDatabaze = new KopieOstreDatabaze($nastrojeDatabaze, $systemoveNastaveni, Vyjimkovac::vytvorZGlobals());
         $nastaveniOstre = $systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
         $kopieOstreDatabaze->zkopirujDatabazi($nastaveniOstre['DB_NAME']);
@@ -155,9 +159,7 @@ class KopieOstreDatabazeTest extends TestCase
 
     private function vytvorSystemoveNastaveni(): SystemoveNastaveni
     {
-        return new class(self::$soucasnaDbName, self::$ostraDbName) extends SystemoveNastaveni
-        {
-
+        return new class(self::$soucasnaDbName, self::$ostraDbName) extends SystemoveNastaveni {
             public function __construct(
                 private readonly string $soucasnaDbName,
                 private readonly string $ostraDbName,
@@ -197,5 +199,4 @@ class KopieOstreDatabazeTest extends TestCase
             }
         };
     }
-
 }

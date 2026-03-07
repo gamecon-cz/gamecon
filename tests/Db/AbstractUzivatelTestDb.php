@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Db;
 
-use Gamecon\Role\Role;
-use App\Structure\Sql\UserSqlStructure as UserSql;
 use App\Structure\Sql\UserRoleSqlStructure as UserRoleSql;
+use App\Structure\Sql\UserSqlStructure as UserSql;
+use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Pohlavi;
 
 abstract class AbstractUzivatelTestDb extends AbstractTestDb
@@ -14,14 +14,15 @@ abstract class AbstractUzivatelTestDb extends AbstractTestDb
     /**
      * @return \Uzivatel vrátí nového testovacího uživatele přihlášeného na GC
      */
-    public static function prihlasenyUzivatel(): \Uzivatel {
+    public static function prihlasenyUzivatel(): \Uzivatel
+    {
         static::zkontrolujRoliProPrihlaseniNaLetosniGc();
 
         $cislo = self::unikatniCislo();
         dbInsert(UserSql::_table, [
             UserSql::login_uzivatele  => 'test_' . $cislo,
             UserSql::email1_uzivatele => 'godric.cz+gc_test_' . $cislo . '@gmail.com',
-            UserSql::pohlavi => Pohlavi::MUZ_KOD,
+            UserSql::pohlavi          => Pohlavi::MUZ_KOD,
         ]);
         $idUzivatele = dbInsertId();
         dbInsert(UserRoleSql::_table, [
@@ -35,7 +36,8 @@ abstract class AbstractUzivatelTestDb extends AbstractTestDb
         return $uzivatel;
     }
 
-    protected static function zkontrolujRoliProPrihlaseniNaLetosniGc() {
+    protected static function zkontrolujRoliProPrihlaseniNaLetosniGc()
+    {
         self::assertNotNull(
             Role::zId(Role::PRIHLASEN_NA_LETOSNI_GC),
             sprintf(
@@ -46,12 +48,14 @@ abstract class AbstractUzivatelTestDb extends AbstractTestDb
         );
     }
 
-    private static function unikatniCislo(): int {
+    private static function unikatniCislo(): int
+    {
         static $pouzitaCisla = [];
         do {
             $cislo = rand(1000, 9999);
-        } while (in_array($cislo, $pouzitaCisla));
+        } while (in_array($cislo, $pouzitaCisla, true));
         $pouzitaCisla[] = $cislo;
+
         return $cislo;
     }
 }

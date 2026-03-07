@@ -1,20 +1,25 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Gamecon\Accounting;
 
 use Gamecon\Cas\DateTimeGamecon;
 
-class Transaction
+readonly class Transaction
 {
-    private TransactionCategory $category;
-    private DateTimeGamecon $date;
-    private string $description;
-    /** @var TransactionSplit[] $splits */
-    private array $splits;
-    private string $id;
+    /**
+     * @param TransactionSplit[] $splits
+     */
+    public function __construct(
+        private TransactionCategory $category,
+        private DateTimeGamecon $date,
+        private string $description,
+        private array $splits,
+        private string $id,
+    ) {
+    }
 
-    //region getters
     public function getId(): string
     {
         return $this->id;
@@ -45,24 +50,6 @@ class Transaction
 
     public function getTotalAmount(): int
     {
-        return array_sum(array_map(fn(TransactionSplit $split) => $split->getAmount(), $this->splits));
-
+        return array_sum(array_map(fn (TransactionSplit $split) => $split->getAmount(), $this->splits));
     }
-    //endregion
-
-    /**
-     * @param TransactionCategory $category
-     * @param DateTimeGamecon $date
-     * @param string $description
-     * @param TransactionSplit[] $splits
-     */
-    public function __construct(TransactionCategory $category, DateTimeGamecon $date, string $description, array $splits, string $id)
-    {
-        $this->category = $category;
-        $this->date = $date;
-        $this->description = $description;
-        $this->splits = $splits;
-        $this->id = $id;
-    }
-
 }

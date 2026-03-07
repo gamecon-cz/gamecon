@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Uzivatel;
 
-use Gamecon\Cas\DateTimeCz;
-use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Role\Role;
@@ -15,7 +13,6 @@ use Gamecon\Uzivatel\Enum\TypVarovaniPromlceni;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\PromlceniZustatku;
 use Gamecon\Uzivatel\UzivatelKPromlceni;
-use PHPUnit\Framework\TestCase;
 use Uzivatel;
 
 /**
@@ -37,8 +34,8 @@ class PromlceniZustatkuTest extends AbstractTestDb
 
     protected static function getSetUpBeforeClassInitQueries(): array
     {
-        $queries   = [];
-        $rocnik    = ROCNIK;
+        $queries = [];
+        $rocnik = ROCNIK;
         $staryRocnik = $rocnik - PromlceniZustatku::getPocetLetNeplatnosti() - 1; // Více než 3 roky zpět
         $nedavnyRocnik = $rocnik - 1; // Pouze 1 rok zpět
 
@@ -107,36 +104,36 @@ class PromlceniZustatkuTest extends AbstractTestDb
     }
 
     private static function uzivatelQuery(
-        int    $idUzivatele,
+        int $idUzivatele,
         string $jmeno,
         string $prijmeni,
-        float  $zustatek,
+        float $zustatek,
     ): string {
         $login = strtolower(str_replace(' ', '_', $jmeno . '_' . $prijmeni));
         $email = $login . '@test.cz';
 
         return <<<SQL
 INSERT INTO uzivatele_hodnoty
-SET id_uzivatele = $idUzivatele,
-    login_uzivatele = '$login',
-    jmeno_uzivatele = '$jmeno',
-    prijmeni_uzivatele = '$prijmeni',
-    email1_uzivatele = '$email',
-    zustatek = $zustatek
+SET id_uzivatele = {$idUzivatele},
+    login_uzivatele = '{$login}',
+    jmeno_uzivatele = '{$jmeno}',
+    prijmeni_uzivatele = '{$prijmeni}',
+    email1_uzivatele = '{$email}',
+    zustatek = {$zustatek}
 SQL;
     }
 
     private static function roleUcastiQuery(int $rocnik): string
     {
-        $idRole    = Role::prihlasenNaRocnik($rocnik);
-        $kodRole   = "GC{$rocnik}_PRIHLASEN";
-        $nazevRole = "Přihlášen $rocnik";
-        $typRole   = Role::TYP_UCAST;
-        $vyznam    = Role::VYZNAM_PRIHLASEN;
+        $idRole = Role::prihlasenNaRocnik($rocnik);
+        $kodRole = "GC{$rocnik}_PRIHLASEN";
+        $nazevRole = "Přihlášen {$rocnik}";
+        $typRole = Role::TYP_UCAST;
+        $vyznam = Role::VYZNAM_PRIHLASEN;
 
         return <<<SQL
 INSERT IGNORE INTO role_seznam (id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
-VALUES ($idRole, '$kodRole', '$nazevRole', '$nazevRole', $rocnik, '$typRole', '$vyznam')
+VALUES ({$idRole}, '{$kodRole}', '{$nazevRole}', '{$nazevRole}', {$rocnik}, '{$typRole}', '{$vyznam}')
 SQL;
     }
 
@@ -146,22 +143,22 @@ SQL;
 
         return <<<SQL
 INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
-VALUES ($idUzivatele, $idRole, 1)
+VALUES ({$idUzivatele}, {$idRole}, 1)
 SQL;
     }
 
     private static function platbaQuery(
-        int   $idUzivatele,
+        int $idUzivatele,
         float $castka,
-        int   $rok,
-        int   $mesic = 6,
-        int   $den = 15,
+        int $rok,
+        int $mesic = 6,
+        int $den = 15,
     ): string {
         $datum = sprintf('%04d-%02d-%02d 12:00:00', $rok, $mesic, $den);
 
         return <<<SQL
 INSERT INTO platby(id_uzivatele, castka, rok, provedl, provedeno)
-VALUES ($idUzivatele, $castka, $rok, 1, '$datum')
+VALUES ({$idUzivatele}, {$castka}, {$rok}, 1, '{$datum}')
 SQL;
     }
 
@@ -170,7 +167,7 @@ SQL;
     /**
      * @test
      */
-    public function Pocet_let_neplatnosti_je_definovan()
+    public function pocetLetNeplatnostiJeDefinovan()
     {
         self::assertSame(3, PromlceniZustatku::getPocetLetNeplatnosti());
     }
@@ -178,7 +175,7 @@ SQL;
     /**
      * @test
      */
-    public function Vytvorim_CFO_report_s_prazdnym_seznamem_uzivatelu()
+    public function vytvorimCFOReportSPrazdnymSeznamemUzivatelu()
     {
         $systemoveNastaveni = $this->createMock(SystemoveNastaveni::class);
         $systemoveNastaveni->method('rocnik')->willReturn(2025);
@@ -187,7 +184,7 @@ SQL;
         $jobResultLogger = $this->createMock(JobResultLoggerInterface::class);
 
         $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, $jobResultLogger);
-        $report            = $promlceniZustatku->vytvorCfoReport([]);
+        $report = $promlceniZustatku->vytvorCfoReport([]);
 
         self::assertSame([], $report);
     }
@@ -195,7 +192,7 @@ SQL;
     /**
      * @test
      */
-    public function Vytvorim_CFO_report_s_jednim_uzivatelem()
+    public function vytvorimCFOReportSJednimUzivatelem()
     {
         $systemoveNastaveni = $this->createMock(SystemoveNastaveni::class);
         $systemoveNastaveni->method('rocnik')->willReturn(2025);
@@ -206,7 +203,7 @@ SQL;
         $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, $jobResultLogger);
 
         // Mock Uzivatel
-        $uzivatel = $this->createMock(Uzivatel::class);
+        $uzivatel = $this->createMock(\Uzivatel::class);
         $uzivatel->method('id')->willReturn(123);
         $uzivatel->method('krestniJmeno')->willReturn('Jan');
         $uzivatel->method('prijmeni')->willReturn('Novák');
@@ -243,7 +240,7 @@ SQL;
     /**
      * @test
      */
-    public function Vytvorim_CFO_report_s_uzivatelem_bez_ucasti()
+    public function vytvorimCFOReportSUzivatelemBezUcasti()
     {
         $systemoveNastaveni = $this->createMock(SystemoveNastaveni::class);
         $systemoveNastaveni->method('rocnik')->willReturn(2025);
@@ -254,7 +251,7 @@ SQL;
         $promlceniZustatku = new PromlceniZustatku($systemoveNastaveni, $jobResultLogger);
 
         // Mock Uzivatel
-        $uzivatel = $this->createMock(Uzivatel::class);
+        $uzivatel = $this->createMock(\Uzivatel::class);
         $uzivatel->method('id')->willReturn(456);
         $uzivatel->method('login')->willReturn('petra456');
         $uzivatel->method('krestniJmeno')->willReturn('Petra');
@@ -285,10 +282,10 @@ SQL;
         self::assertNull($report[0]['den_posledni_platby']);
 
         // Zkontroluj, že všechny roky účasti jsou "ne"
-        for ($rok = 2009; $rok <= 2024; $rok++) {
+        for ($rok = 2009; $rok <= 2024; ++$rok) {
             $klic = 'účast ' . $rok;
             if (isset($report[0][$klic])) {
-                self::assertSame('ne', $report[0][$klic], "Očekáváno 'ne' pro $klic");
+                self::assertSame('ne', $report[0][$klic], "Očekáváno 'ne' pro {$klic}");
             }
         }
     }
@@ -298,13 +295,13 @@ SQL;
     /**
      * @test
      */
-    public function Najde_uzivatele_s_kladnym_zustatkem_a_starou_ucasti_k_promlceni()
+    public function najdeUzivateleSKladnymZustatkemAStarouUcastiKPromlceni()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
-        $uzivatele         = $promlceniZustatku->najdiUzivateleKPromlceni();
+        $uzivatele = $promlceniZustatku->najdiUzivateleKPromlceni();
 
         $idsUzivatelu = array_map(
-            fn(UzivatelKPromlceni $u) => $u->uzivatel->id(),
+            fn (UzivatelKPromlceni $u) => $u->uzivatel->id(),
             $uzivatele,
         );
 
@@ -318,13 +315,13 @@ SQL;
     /**
      * @test
      */
-    public function Najde_uzivatele_s_kladnym_zustatkem_bez_ucasti_k_promlceni()
+    public function najdeUzivateleSKladnymZustatkemBezUcastiKPromlceni()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
-        $uzivatele         = $promlceniZustatku->najdiUzivateleKPromlceni();
+        $uzivatele = $promlceniZustatku->najdiUzivateleKPromlceni();
 
         $idsUzivatelu = array_map(
-            fn(UzivatelKPromlceni $u) => $u->uzivatel->id(),
+            fn (UzivatelKPromlceni $u) => $u->uzivatel->id(),
             $uzivatele,
         );
 
@@ -338,13 +335,13 @@ SQL;
     /**
      * @test
      */
-    public function Nenajde_uzivatele_s_nedavnou_ucasti()
+    public function nenajdeUzivateleSNedavnouUcasti()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
-        $uzivatele         = $promlceniZustatku->najdiUzivateleKPromlceni();
+        $uzivatele = $promlceniZustatku->najdiUzivateleKPromlceni();
 
         $idsUzivatelu = array_map(
-            fn(UzivatelKPromlceni $u) => $u->uzivatel->id(),
+            fn (UzivatelKPromlceni $u) => $u->uzivatel->id(),
             $uzivatele,
         );
 
@@ -358,13 +355,13 @@ SQL;
     /**
      * @test
      */
-    public function Nenajde_uzivatele_s_nulovym_zustatkem()
+    public function nenajdeUzivateleSNulovymZustatkem()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
-        $uzivatele         = $promlceniZustatku->najdiUzivateleKPromlceni();
+        $uzivatele = $promlceniZustatku->najdiUzivateleKPromlceni();
 
         $idsUzivatelu = array_map(
-            fn(UzivatelKPromlceni $u) => $u->uzivatel->id(),
+            fn (UzivatelKPromlceni $u) => $u->uzivatel->id(),
             $uzivatele,
         );
 
@@ -378,13 +375,13 @@ SQL;
     /**
      * @test
      */
-    public function Nenajde_uzivatele_se_zapornym_zustatkem()
+    public function nenajdeUzivateleSeZapornymZustatkem()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
-        $uzivatele         = $promlceniZustatku->najdiUzivateleKPromlceni();
+        $uzivatele = $promlceniZustatku->najdiUzivateleKPromlceni();
 
         $idsUzivatelu = array_map(
-            fn(UzivatelKPromlceni $u) => $u->uzivatel->id(),
+            fn (UzivatelKPromlceni $u) => $u->uzivatel->id(),
             $uzivatele,
         );
 
@@ -398,10 +395,10 @@ SQL;
     /**
      * @test
      */
-    public function Uzivatel_k_promlceni_obsahuje_spravna_metadata()
+    public function uzivatelKPromlceniObsahujeSpravnaMetadata()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
-        $uzivatele         = $promlceniZustatku->najdiUzivateleKPromlceni();
+        $uzivatele = $promlceniZustatku->najdiUzivateleKPromlceni();
 
         $uzivatelDto = null;
         foreach ($uzivatele as $u) {
@@ -421,13 +418,13 @@ SQL;
         self::assertSame(15, $uzivatelDto->denPosledniPlatby);
 
         // Zkontrolujeme informaci o účasti
-        self::assertStringContainsString((string)$staryRocnik, $uzivatelDto->prihlaseniNaRocniky);
+        self::assertStringContainsString((string) $staryRocnik, $uzivatelDto->prihlaseniNaRocniky);
     }
 
     /**
      * @test
      */
-    public function Promlci_zustatky_a_vrati_spravny_pocet_a_sumu()
+    public function promlciZustatkyAVratiSpravnyPocetASumu()
     {
         // Ujistíme se, že adresář pro logy existuje
         $this->zajistiLogyAdresar();
@@ -435,7 +432,7 @@ SQL;
         $promlceniZustatku = $this->dejPromlceniZustatku();
 
         // Před promlčením zkontrolujeme zůstatek
-        $uzivatel = Uzivatel::zId(self::ID_KLADNY_ZUSTATEK_STARA_UCAST);
+        $uzivatel = \Uzivatel::zId(self::ID_KLADNY_ZUSTATEK_STARA_UCAST);
         self::assertNotNull($uzivatel);
 
         $puvodniZustatek = dbFetchSingle(
@@ -446,11 +443,11 @@ SQL;
 
         $vysledek = $promlceniZustatku->promlcZustatky(
             [self::ID_KLADNY_ZUSTATEK_STARA_UCAST],
-            Uzivatel::SYSTEM,
+            \Uzivatel::SYSTEM,
         );
 
         self::assertSame(1, $vysledek['pocet']);
-        self::assertEquals(500.0, (float)$vysledek['suma']);
+        self::assertEquals(500.0, (float) $vysledek['suma']);
 
         // Zkontrolujeme, že zůstatek byl nastaven na 0
         $novyZustatek = dbFetchSingle(
@@ -463,7 +460,7 @@ SQL;
     /**
      * @test
      */
-    public function Promlci_zustatky_zapise_log_soubor()
+    public function promlciZustatkyZapiseLogSoubor()
     {
         // Ujistíme se, že adresář pro logy existuje
         $this->zajistiLogyAdresar();
@@ -478,7 +475,7 @@ SQL;
 
         $promlceniZustatku->promlcZustatky(
             [self::ID_KLADNY_ZUSTATEK_NIKDY_NEMEL_UCAST],
-            Uzivatel::SYSTEM,
+            \Uzivatel::SYSTEM,
         );
 
         // Najdeme dnešní log soubor
@@ -488,20 +485,20 @@ SQL;
 
         // Zkontrolujeme obsah nejnovějšího logu
         $nejnovejsiLog = end($dnesniLogy);
-        $obsahLogu     = file_get_contents($nejnovejsiLog);
+        $obsahLogu = file_get_contents($nejnovejsiLog);
 
-        self::assertStringContainsString((string)self::ID_KLADNY_ZUSTATEK_NIKDY_NEMEL_UCAST, $obsahLogu);
+        self::assertStringContainsString((string) self::ID_KLADNY_ZUSTATEK_NIKDY_NEMEL_UCAST, $obsahLogu);
         self::assertStringContainsString('250', $obsahLogu); // Částka
     }
 
     /**
      * @test
      */
-    public function Promlceni_prazdneho_seznamu_neudela_nic()
+    public function promlceniPrazdnehoSeznamuNeudelaNic()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
 
-        $vysledek = $promlceniZustatku->promlcZustatky([], Uzivatel::SYSTEM);
+        $vysledek = $promlceniZustatku->promlcZustatky([], \Uzivatel::SYSTEM);
 
         self::assertSame(0, $vysledek['pocet']);
         self::assertEquals(0, $vysledek['suma']); // Note: empty list returns int 0, not float 0.0
@@ -510,10 +507,10 @@ SQL;
     /**
      * @test
      */
-    public function Varovne_emaily_se_neodesli_kdyz_je_prilis_brzy()
+    public function varovneEmailySeNeodesliKdyzJePrilisBrzy()
     {
         // Nastavíme čas na příliš brzy - 2 měsíce před registrací
-        $ted               = $this->dejCasRegistraceMinus('2 months');
+        $ted = $this->dejCasRegistraceMinus('2 months');
         $promlceniZustatku = $this->dejPromlceniZustatkuSCasem($ted);
 
         $vysledek = $promlceniZustatku->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);
@@ -524,10 +521,10 @@ SQL;
     /**
      * @test
      */
-    public function Varovne_emaily_se_neodesli_kdyz_je_prilis_pozde()
+    public function varovneEmailySeNeodesliKdyzJePrilisPozde()
     {
         // Nastavíme čas na příliš pozdě - den před registrací
-        $ted               = $this->dejCasRegistraceMinus('1 day');
+        $ted = $this->dejCasRegistraceMinus('1 day');
         $promlceniZustatku = $this->dejPromlceniZustatkuSCasem($ted);
 
         $vysledek = $promlceniZustatku->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);
@@ -538,10 +535,10 @@ SQL;
     /**
      * @test
      */
-    public function Varovne_emaily_mesic_se_odesli_ve_spravny_cas()
+    public function varovneEmailyMesicSeOdesliVeSpravnyCas()
     {
         // Nastavíme přesný čas - 1 měsíc před registrací
-        $ted               = $this->dejCasRegistraceMinus('1 month');
+        $ted = $this->dejCasRegistraceMinus('1 month');
         $promlceniZustatku = $this->dejPromlceniZustatkuSCasem($ted);
 
         // Ujistíme se, že existují uživatelé k promlčení
@@ -556,10 +553,10 @@ SQL;
     /**
      * @test
      */
-    public function Varovne_emaily_tyden_se_odesli_ve_spravny_cas()
+    public function varovneEmailyTydenSeOdesliVeSpravnyCas()
     {
         // Nastavíme přesný čas - 1 týden před registrací
-        $ted               = $this->dejCasRegistraceMinus('1 week');
+        $ted = $this->dejCasRegistraceMinus('1 week');
         $promlceniZustatku = $this->dejPromlceniZustatkuSCasem($ted);
 
         // Ujistíme se, že existují uživatelé k promlčení
@@ -574,9 +571,9 @@ SQL;
     /**
      * @test
      */
-    public function Varovne_emaily_se_neodesli_podruhe_bez_parametru_znovu()
+    public function varovneEmailySeNeodesliPodruheBezParametruZnovu()
     {
-        $ted               = $this->dejCasRegistraceMinus('1 month');
+        $ted = $this->dejCasRegistraceMinus('1 month');
         $promlceniZustatku = $this->dejPromlceniZustatkuSCasem($ted);
 
         // První odeslání
@@ -591,9 +588,9 @@ SQL;
     /**
      * @test
      */
-    public function Varovne_emaily_se_odesli_podruhe_s_parametrem_znovu()
+    public function varovneEmailySeOdesliPodruheSParametremZnovu()
     {
-        $ted               = $this->dejCasRegistraceMinus('1 month');
+        $ted = $this->dejCasRegistraceMinus('1 month');
         $promlceniZustatku = $this->dejPromlceniZustatkuSCasem($ted);
 
         // První odeslání
@@ -608,13 +605,13 @@ SQL;
     /**
      * @test
      */
-    public function Automaticka_promlceni_vrati_null_kdyz_nebyla_provedena()
+    public function automatickaPromlceniVratiNullKdyzNebylaProvedena()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
 
         // Použijeme neexistující ročník pro test
         $neexistujiciRocnik = ROCNIK + 100;
-        $kdy                = $promlceniZustatku->automatickaPromlceniProvedenaKdy($neexistujiciRocnik);
+        $kdy = $promlceniZustatku->automatickaPromlceniProvedenaKdy($neexistujiciRocnik);
 
         self::assertNull($kdy, 'Pro neexistující ročník by mělo vrátit null');
     }
@@ -622,7 +619,7 @@ SQL;
     /**
      * @test
      */
-    public function Automaticka_promlceni_vrati_datum_kdyz_byla_provedena()
+    public function automatickaPromlceniVratiDatumKdyzBylaProvedena()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();
 
@@ -667,14 +664,14 @@ SQL;
     private function dejCasRegistraceMinus(string $offset): DateTimeImmutableStrict
     {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $registraceOd       = $systemoveNastaveni->prihlasovaniUcastnikuOd(ROCNIK);
+        $registraceOd = $systemoveNastaveni->prihlasovaniUcastnikuOd(ROCNIK);
 
-        return DateTimeImmutableStrict::createFromInterface($registraceOd)->modify("-$offset");
+        return DateTimeImmutableStrict::createFromInterface($registraceOd)->modify("-{$offset}");
     }
 
     private function zajistiLogyAdresar(): void
     {
-        if (!is_dir(LOGY) && !@mkdir(LOGY, 0777, true)) {
+        if (! is_dir(LOGY) && ! @mkdir(LOGY, 0777, true)) {
             self::markTestSkipped('Nelze vytvořit adresář pro logy: ' . LOGY);
         }
     }

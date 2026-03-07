@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Accounting;
 
 class TransactionSplit
@@ -10,17 +12,12 @@ class TransactionSplit
     private int $amount;
     private string $description;
 
-    /**
-     * @param int $amount
-     * @param string $description
-     */
     public function __construct(int $amount, string $description)
     {
         $this->amount = $amount;
         $this->description = $description;
     }
 
-    //region Getters
     public function getAmount(): int
     {
         return $this->amount;
@@ -30,5 +27,4 @@ class TransactionSplit
     {
         return $this->description;
     }
-    //endregion
 }
