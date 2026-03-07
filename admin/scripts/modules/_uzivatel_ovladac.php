@@ -24,10 +24,7 @@ if (post('pridelitPokoj') && post('uid')) {
 
 if ($shop !== null) {
     if (post('zpracujUbytovani')) {
-        $pozdniPoplatek = $systemoveNastaveni->prodejUbytovaniUkoncen()
-            ? $systemoveNastaveni->ubytovaniPozdniPoplatekZaNoc()
-            : 0.0;
-        $shop->zpracujUbytovani(true, false, $pozdniPoplatek);
+        $shop->zpracujUbytovani(true, false);
         oznameni('Ubytování uloženo');
     }
 
