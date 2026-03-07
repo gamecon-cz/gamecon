@@ -37,6 +37,7 @@ ecs:
 	./bin-docker/docker-bash bin/ecs.sh
 
 fix:
+	./bin-docker/php vendor/bin/rector process --config rector-ci.php
 	./bin-docker/docker-bash bin/ecs.sh --fix
 
 static: fix phpstan

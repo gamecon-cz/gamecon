@@ -13,8 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ShopPurchaseCancelledRepository::class)]
 #[ORM\Table(name: 'shop_nakupy_zrusene')]
-#[ORM\Index(columns: ['datum_zruseni'], name: 'IDX_datum_zruseni')]
-#[ORM\Index(columns: ['zdroj_zruseni'], name: 'IDX_zdroj_zruseni')]
+#[ORM\Index(name: 'IDX_datum_zruseni', columns: ['datum_zruseni'])]
+#[ORM\Index(name: 'IDX_zdroj_zruseni', columns: ['zdroj_zruseni'])]
 class ShopPurchaseCancelled
 {
     #[ORM\Id]
