@@ -15,7 +15,5 @@ class NakupySqlStruktura
     public const ROK          = 'rok';
     public const CENA_NAKUPNI = 'cena_nakupni';
     public const DATUM        = 'datum';
-    public const POPLATEK     = 'poplatek';
-    public const PUVODNI_CENA = 'puvodni_cena';
 
 }
