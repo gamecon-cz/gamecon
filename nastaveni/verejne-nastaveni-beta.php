@@ -36,6 +36,7 @@ if (!defined('ROCNIK')) {
 @define('MAILY_ROLIM', [\Gamecon\Role\Role::ORGANIZATOR]);
 
 @define('SUPERADMINI', [
+    102 /* Sirien */,
     4032 /* Jaroslav "Kostřivec" Týc */,
     1112 /* Lenka "Cemi" Zavadilová */,
     4275 /* Roman "Sciator" Wehmhoner */,
