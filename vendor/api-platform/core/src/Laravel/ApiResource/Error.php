@@ -22,9 +22,9 @@ use ApiPlatform\Metadata\Exception\HttpExceptionInterface;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use ApiPlatform\State\ErrorProvider;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface as SymfonyHttpExceptionInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\Ignore;
-use Symfony\Component\Serializer\Annotation\SerializedName;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Component\WebLink\Link;
 
 #[ErrorResource(
@@ -135,6 +135,10 @@ class Error extends \Exception implements ProblemExceptionInterface, HttpExcepti
     public static function createFromException(\Exception|\Throwable $exception, int $status): self
     {
         $headers = ($exception instanceof SymfonyHttpExceptionInterface || $exception instanceof HttpExceptionInterface) ? $exception->getHeaders() : [];
+
+        if ($exception instanceof ProblemExceptionInterface) {
+            return new self($exception->getTitle(), $exception->getDetail(), $exception->getStatus(), $exception->getTrace(), $exception->getInstance(), $exception->getType(), $headers);
+        }
 
         return new self('An error occurred', $exception->getMessage(), $status, $exception->getTrace(), type: '/errors/'.$status, headers: $headers);
     }

@@ -334,6 +334,10 @@ class ClassMetadata extends GenericMetadata implements ClassMetadataInterface
             $this->setGroupSequenceProvider(true);
         }
 
+        if (TraversalStrategy::IMPLICIT === $this->traversalStrategy) {
+            $this->traversalStrategy = $source->getTraversalStrategy();
+        }
+
         foreach ($source->getConstraints() as $constraint) {
             $this->addConstraint(clone $constraint);
         }
@@ -359,6 +363,34 @@ class ClassMetadata extends GenericMetadata implements ClassMetadataInterface
                 } else {
                     $this->addPropertyMetadata($member);
                 }
+            }
+        }
+    }
+
+    /**
+     * Drops the auto-mapping placeholders the loaders left untouched, and moves
+     * the remaining ones last, where merging the parent's metadata would have put them.
+     *
+     * @param array<string, array{PropertyMetadata, int}> $placeholders
+     *
+     * @internal
+     */
+    public function removeUnusedAutoMappingPlaceholders(array $placeholders): void
+    {
+        foreach ($placeholders as $property => [$placeholder, $strategy]) {
+            if (!$placeholder->getConstraints() && $strategy === $placeholder->getAutoMappingStrategy() && CascadingStrategy::NONE === $placeholder->getCascadingStrategy()) {
+                $this->members[$property] = array_values(array_filter($this->members[$property], static fn (MemberMetadata $member) => $member !== $placeholder));
+
+                if ($placeholder === ($this->properties[$property] ?? null)) {
+                    unset($this->properties[$property]);
+                }
+            }
+
+            $members = $this->members[$property];
+            unset($this->members[$property]);
+
+            if ($members) {
+                $this->members[$property] = $members;
             }
         }
     }
@@ -412,7 +444,7 @@ class ClassMetadata extends GenericMetadata implements ClassMetadataInterface
 
     public function hasGroupSequence(): bool
     {
-        return isset($this->groupSequence) && \count($this->groupSequence->groups) > 0;
+        return isset($this->groupSequence) && $this->groupSequence->groups;
     }
 
     public function getGroupSequence(): ?GroupSequence

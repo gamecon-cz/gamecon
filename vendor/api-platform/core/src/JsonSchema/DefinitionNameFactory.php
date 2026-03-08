@@ -36,7 +36,7 @@ final class DefinitionNameFactory implements DefinitionNameFactoryInterface
     public function create(string $className, string $format = 'json', ?string $inputOrOutputClass = null, ?Operation $operation = null, array $serializerContext = []): string
     {
         if ($operation) {
-            $prefix = $operation->getShortName();
+            $prefix = $this->createPrefixFromOperation($operation);
         }
 
         if (!isset($prefix)) {
@@ -44,9 +44,10 @@ final class DefinitionNameFactory implements DefinitionNameFactoryInterface
         }
 
         if (null !== $inputOrOutputClass && $className !== $inputOrOutputClass) {
-            $parts = explode('\\', $inputOrOutputClass);
-            $shortName = end($parts);
-            $prefix .= self::GLUE.$shortName;
+            // Use createPrefixFromClass so DTOs with identical short names but different
+            // FQCNs (e.g. App\...\Input\ThingCreate and App\...\Output\ThingCreate) get
+            // disambiguated suffixes instead of overwriting each other in the schema map.
+            $prefix .= self::GLUE.$this->createPrefixFromClass($inputOrOutputClass);
         }
 
         // TODO: remove in 5.0
@@ -63,7 +64,19 @@ final class DefinitionNameFactory implements DefinitionNameFactoryInterface
             $name = \sprintf('%s%s', $prefix, $definitionName ? '-'.$definitionName : $definitionName);
         } else {
             $groups = (array) ($serializerContext[AbstractNormalizer::GROUPS] ?? []);
-            $name = $groups ? \sprintf('%s-%s', $prefix, implode('_', $groups)) : $prefix;
+            $attributes = (array) ($serializerContext[AbstractNormalizer::ATTRIBUTES] ?? []);
+
+            $parts = [];
+
+            if ($groups) {
+                $parts[] = implode('_', $groups);
+            }
+
+            if ($attributes) {
+                $parts[] = $this->getAttributesAsString($attributes);
+            }
+
+            $name = $parts ? \sprintf('%s-%s', $prefix, implode('_', $parts)) : $prefix;
         }
 
         if (false === ($serializerContext['gen_id'] ?? true)) {
@@ -82,6 +95,28 @@ final class DefinitionNameFactory implements DefinitionNameFactoryInterface
         return preg_replace('/[^a-zA-Z0-9.\-_]/', '.', $name);
     }
 
+    private function createPrefixFromOperation(Operation $operation): ?string
+    {
+        $name = $operation->getShortName();
+
+        if (null === $name) {
+            return null;
+        }
+
+        if (!isset($this->prefixCache[$name])) {
+            $this->prefixCache[$name] = $operation->getClass();
+
+            return $name;
+        }
+
+        if ($this->prefixCache[$name] === $operation->getClass()) {
+            return $name;
+        }
+
+        // This will fallback to using `createPrefixFromClass`
+        return null;
+    }
+
     private function createPrefixFromClass(string $fullyQualifiedClassName, int $namespaceParts = 1): string
     {
         $parts = explode('\\', $fullyQualifiedClassName);
@@ -98,5 +133,27 @@ final class DefinitionNameFactory implements DefinitionNameFactoryInterface
         }
 
         return $name;
+    }
+
+    private function getAttributesAsString(array $attributes): string
+    {
+        $parts = [];
+
+        foreach ($attributes as $key => $value) {
+            if (\is_array($value)) {
+                $childString = $this->getAttributesAsString($value);
+                $children = explode('_', $childString);
+
+                foreach ($children as $child) {
+                    $parts[] = $key.'.'.$child;
+                }
+            } elseif (\is_string($key)) {
+                $parts[] = $key;
+            } else {
+                $parts[] = $value;
+            }
+        }
+
+        return implode('_', $parts);
     }
 }

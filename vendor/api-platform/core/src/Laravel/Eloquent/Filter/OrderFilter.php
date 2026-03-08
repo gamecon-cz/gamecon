@@ -19,6 +19,8 @@ use ApiPlatform\Metadata\Parameter;
 use ApiPlatform\OpenApi\Model\Parameter as OpenApiParameter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 
 final class OrderFilter implements FilterInterface, JsonSchemaFilterInterface, OpenApiParameterFilterInterface
 {
@@ -31,7 +33,7 @@ final class OrderFilter implements FilterInterface, JsonSchemaFilterInterface, O
     public function apply(Builder $builder, mixed $values, Parameter $parameter, array $context = []): Builder
     {
         if (!\is_string($values)) {
-            $properties = $parameter->getExtraProperties()['_properties'] ?? [];
+            $properties = $parameter->getProperties() ?? [];
 
             foreach ($values as $key => $value) {
                 if (!isset($properties[$key])) {
@@ -43,7 +45,57 @@ final class OrderFilter implements FilterInterface, JsonSchemaFilterInterface, O
             return $builder;
         }
 
-        return $builder->orderBy($this->getQueryProperty($parameter), $values);
+        $direction = strtolower($values);
+        if (!\in_array($direction, ['asc', 'desc'], true)) {
+            return $builder;
+        }
+
+        $nestedPropertiesInfo = $parameter->getExtraProperties()['nested_properties_info'] ?? [];
+        $nestedInfo = $nestedPropertiesInfo ? reset($nestedPropertiesInfo) : null;
+
+        if (!$nestedInfo || 0 === \count($nestedInfo['relation_segments'])) {
+            return $builder->orderBy($this->getQueryProperty($parameter), $direction);
+        }
+
+        $relationSegments = $nestedInfo['relation_segments'];
+        $relationClasses = $nestedInfo['relation_classes'];
+        $leafProperty = $nestedInfo['leaf_property'];
+
+        $currentModel = $builder->getModel();
+        foreach ($relationSegments as $i => $segment) {
+            if (!method_exists($currentModel, $segment)) {
+                return $builder;
+            }
+
+            $relation = $currentModel->{$segment}();
+            $relatedTable = $relation->getRelated()->getTable();
+
+            if ($relation instanceof BelongsTo) {
+                $builder->leftJoin(
+                    $relatedTable,
+                    $currentModel->getTable().'.'.$relation->getForeignKeyName(),
+                    '=',
+                    $relatedTable.'.'.$relation->getOwnerKeyName()
+                );
+            } elseif ($relation instanceof HasOneOrMany) {
+                $builder->leftJoin(
+                    $relatedTable,
+                    $currentModel->getTable().'.'.$relation->getLocalKeyName(),
+                    '=',
+                    $relatedTable.'.'.$relation->getForeignKeyName()
+                );
+            } else {
+                return $builder;
+            }
+
+            $nextClass = $relationClasses[$i + 1] ?? null;
+            /** @var Model $currentModel */
+            $currentModel = $nextClass ? new $nextClass() : $relation->getRelated();
+        }
+
+        $builder->select($builder->getModel()->getTable().'.*');
+
+        return $builder->orderBy($currentModel->getTable().'.'.$leafProperty, $direction);
     }
 
     /**
@@ -51,24 +103,14 @@ final class OrderFilter implements FilterInterface, JsonSchemaFilterInterface, O
      */
     public function getSchema(Parameter $parameter): array
     {
-        return ['type' => 'string', 'enum' => ['asc', 'desc']];
+        return ['type' => 'string', 'enum' => ['asc', 'desc', 'ASC', 'DESC']];
     }
 
     /**
-     * @return OpenApiParameter[]|null
+     * @return OpenApiParameter[]
      */
-    public function getOpenApiParameters(Parameter $parameter): ?array
+    public function getOpenApiParameters(Parameter $parameter): array
     {
-        if (str_contains($parameter->getKey(), ':property')) {
-            $parameters = [];
-            $key = str_replace('[:property]', '', $parameter->getKey());
-            foreach (array_keys($parameter->getExtraProperties()['_properties'] ?? []) as $property) {
-                $parameters[] = new OpenApiParameter(name: \sprintf('%s[%s]', $key, $property), in: 'query');
-            }
-
-            return $parameters;
-        }
-
-        return null;
+        return [new OpenApiParameter(name: $parameter->getKey(), in: 'query')];
     }
 }

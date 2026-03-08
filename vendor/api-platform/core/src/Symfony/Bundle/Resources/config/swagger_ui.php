@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-return function (ContainerConfigurator $container) {
+use ApiPlatform\Symfony\Bundle\SwaggerUi\SwaggerUiContext;
+use ApiPlatform\Symfony\Bundle\SwaggerUi\SwaggerUiProcessor;
+
+return static function (ContainerConfigurator $container) {
     $services = $container->services();
 
-    $services->set('api_platform.swagger_ui.context', 'ApiPlatform\Symfony\Bundle\SwaggerUi\SwaggerUiContext')
+    $services->set('api_platform.swagger_ui.context', SwaggerUiContext::class)
         ->args([
             '%api_platform.enable_swagger_ui%',
             '%api_platform.show_webby%',
@@ -25,9 +28,11 @@ return function (ContainerConfigurator $container) {
             '%api_platform.graphql.graphiql.enabled%',
             '%api_platform.asset_package%',
             '%api_platform.swagger_ui.extra_configuration%',
+            '%api_platform.enable_scalar%',
+            '%api_platform.scalar.extra_configuration%',
         ]);
 
-    $services->set('api_platform.swagger_ui.processor', 'ApiPlatform\Symfony\Bundle\SwaggerUi\SwaggerUiProcessor')
+    $services->set('api_platform.swagger_ui.processor', SwaggerUiProcessor::class)
         ->args([
             service('twig')->nullOnInvalid(),
             service('router'),

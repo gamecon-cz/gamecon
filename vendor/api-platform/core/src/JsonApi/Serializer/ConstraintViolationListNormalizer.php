@@ -37,10 +37,10 @@ final class ConstraintViolationListNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize(mixed $object, ?string $format = null, array $context = []): array
+    public function normalize(mixed $data, ?string $format = null, array $context = []): array
     {
         $violations = [];
-        foreach ($object as $violation) {
+        foreach ($data as $violation) {
             $violations[] = [
                 'detail' => $violation->getMessage(),
                 'source' => [
@@ -61,9 +61,9 @@ final class ConstraintViolationListNormalizer implements NormalizerInterface
     }
 
     /**
-     * @param string|null $format
+     * {@inheritdoc}
      */
-    public function getSupportedTypes($format): array
+    public function getSupportedTypes(?string $format): array
     {
         return self::FORMAT === $format ? [ConstraintViolationListInterface::class => true] : [];
     }
@@ -100,7 +100,7 @@ final class ConstraintViolationListNormalizer implements NormalizerInterface
                 return "data/relationships/$fieldName";
             }
         } else {
-            if ($propertyMetadata->getNativeType()?->isSatisfiedBy(fn ($t) => $t instanceof ObjectType)) {
+            if ($propertyMetadata->getNativeType()?->isSatisfiedBy(static fn ($t) => $t instanceof ObjectType)) {
                 return "data/relationships/$fieldName";
             }
         }

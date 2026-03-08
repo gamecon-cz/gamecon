@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Laravel\Eloquent\Metadata;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Str;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
@@ -26,16 +27,6 @@ use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
  */
 final class ModelMetadata
 {
-    /**
-     * @var array<class-string, array<string, mixed>>
-     */
-    private $attributesLocalCache = [];
-
-    /**
-     * @var array<class-string, array<string, mixed>>
-     */
-    private $relationsLocalCache = [];
-
     /**
      * The methods that can be called in a model to indicate a relation.
      *
@@ -55,8 +46,15 @@ final class ModelMetadata
         'morphedByMany',
     ];
 
-    public function __construct(private NameConverterInterface $relationNameConverter = new CamelCaseToSnakeCaseNameConverter())
-    {
+    /**
+     * @param array<class-string, array<string, mixed>> $attributes seeds the attribute cache, e.g. from a dump produced by api-platform:metadata:dump, so the app can boot without a database
+     * @param array<class-string, array<string, mixed>> $relations  seeds the relation cache for the same reason
+     */
+    public function __construct(
+        private NameConverterInterface $relationNameConverter = new CamelCaseToSnakeCaseNameConverter(),
+        private array $attributes = [],
+        private array $relations = [],
+    ) {
     }
 
     /**
@@ -66,8 +64,8 @@ final class ModelMetadata
      */
     public function getAttributes(Model $model): array
     {
-        if (isset($this->attributesLocalCache[$model::class])) {
-            return $this->attributesLocalCache[$model::class];
+        if (isset($this->attributes[$model::class])) {
+            return $this->attributes[$model::class];
         }
 
         $connection = $model->getConnection();
@@ -77,7 +75,10 @@ final class ModelMetadata
         $indexes = $schema->getIndexes($table);
         $relations = $this->getRelations($model);
 
-        $foreignKeys = array_flip(array_column($relations, 'foreign_key'));
+        // Only exclude BelongsTo foreign keys — those are local columns on this model's table.
+        // HasMany/HasOne foreign keys reference the related table and should not be excluded.
+        $belongsToRelations = array_filter($relations, static fn ($r) => is_a($r['type'], BelongsTo::class, true));
+        $foreignKeys = array_flip(array_filter(array_column($belongsToRelations, 'foreign_key')));
         $attributes = [];
 
         foreach ($columns as $column) {
@@ -100,7 +101,15 @@ final class ModelMetadata
             ];
         }
 
-        return $this->attributesLocalCache[$model::class] = array_merge($attributes, $this->getVirtualAttributes($model, $columns));
+        $result = array_merge($attributes, $this->getVirtualAttributes($model, $columns));
+
+        // Don't cache an empty result for a missing table: the table may be created later
+        // (e.g. by RefreshDatabase between MCP boot-time discovery and the actual request).
+        if ([] === $result && !$schema->hasTable($table)) {
+            return $result;
+        }
+
+        return $this->attributes[$model::class] = $result;
     }
 
     /**
@@ -120,7 +129,7 @@ final class ModelMetadata
     /**
      * Get the virtual (non-column) attributes for the given model.
      *
-     * @param array<string, mixed> $columns
+     * @param list<array<string, mixed>> $columns
      *
      * @return array<string, mixed>
      */
@@ -182,8 +191,8 @@ final class ModelMetadata
      */
     public function getRelations(Model $model): array
     {
-        if (isset($this->relationsLocalCache[$model::class])) {
-            return $this->relationsLocalCache[$model::class];
+        if (isset($this->relations[$model::class])) {
+            return $this->relations[$model::class];
         }
 
         $relations = [];
@@ -242,7 +251,7 @@ final class ModelMetadata
             ];
         }
 
-        return $this->relationsLocalCache[$model::class] = $relations;
+        return $this->relations[$model::class] = $relations;
     }
 
     /**
@@ -264,6 +273,13 @@ final class ModelMetadata
     /**
      * Gets the model casts, including any date casts.
      *
+     * In Laravel 11+, casts can be defined via the protected casts() method
+     * in addition to the $casts property. Since models may be instantiated
+     * without calling the constructor (newInstanceWithoutConstructor),
+     * initializeHasAttributes() is never called and the casts() method
+     * results are not merged into $casts. We call casts() via reflection
+     * to ensure both sources are included.
+     *
      * @return array<string, mixed>
      */
     private function getCastsWithDates(Model $model): array
@@ -276,7 +292,15 @@ final class ModelMetadata
             }
         }
 
-        return array_merge($dateCasts, $model->getCasts());
+        $casts = $model->getCasts();
+
+        try {
+            $castsMethod = new \ReflectionMethod($model, 'casts');
+            $casts = array_merge($casts, $castsMethod->invoke($model));
+        } catch (\ReflectionException) {
+        }
+
+        return array_merge($dateCasts, $casts);
     }
 
     /**
@@ -316,6 +340,31 @@ final class ModelMetadata
     }
 
     /**
+     * Gets the related model class for a given relationship property.
+     *
+     * @param class-string<Model> $modelClass The current model class
+     * @param string              $property   The property/relationship name
+     *
+     * @return class-string<Model>|null The related model class, or null if not a relationship
+     */
+    public function getRelatedModelClass(string $modelClass, string $property): ?string
+    {
+        if (!class_exists($modelClass)) {
+            return null;
+        }
+
+        $relations = $this->getRelations(new $modelClass());
+
+        foreach ($relations as $relation) {
+            if ($relation['method_name'] === $property || $relation['name'] === $property) {
+                return $relation['related'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Determines if the given attribute is unique.
      *
      * @param array<int, array{columns: string[], unique: bool}> $indexes
@@ -323,7 +372,7 @@ final class ModelMetadata
     private function columnIsUnique(string $column, array $indexes): bool
     {
         return collect($indexes)->contains(
-            fn ($index) => 1 === \count($index['columns']) && $index['columns'][0] === $column && $index['unique']
+            static fn ($index) => 1 === \count($index['columns']) && $index['columns'][0] === $column && $index['unique']
         );
     }
 }

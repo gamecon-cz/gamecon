@@ -24,7 +24,6 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\Util\ClassInfoTrait;
-use ApiPlatform\Serializer\CacheKeyTrait;
 use ApiPlatform\Serializer\ItemNormalizer as BaseItemNormalizer;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -40,14 +39,11 @@ use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
  */
 final class ItemNormalizer extends BaseItemNormalizer
 {
-    use CacheKeyTrait;
     use ClassInfoTrait;
 
     public const FORMAT = 'graphql';
     public const ITEM_RESOURCE_CLASS_KEY = '#itemResourceClass';
     public const ITEM_IDENTIFIERS_KEY = '#itemIdentifiers';
-
-    private array $safeCacheKeysCache = [];
 
     public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, IriConverterInterface $iriConverter, private readonly IdentifiersExtractorInterface $identifiersExtractor, ResourceClassResolverInterface $resourceClassResolver, ?PropertyAccessorInterface $propertyAccessor = null, ?NameConverterInterface $nameConverter = null, ?ClassMetadataFactoryInterface $classMetadataFactory = null, ?LoggerInterface $logger = null, ?ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory = null, ?ResourceAccessCheckerInterface $resourceAccessChecker = null)
     {
@@ -63,9 +59,9 @@ final class ItemNormalizer extends BaseItemNormalizer
     }
 
     /**
-     * @param string|null $format
+     * {@inheritdoc}
      */
-    public function getSupportedTypes($format): array
+    public function getSupportedTypes(?string $format): array
     {
         return self::FORMAT === $format ? parent::getSupportedTypes($format) : [];
     }
@@ -77,39 +73,44 @@ final class ItemNormalizer extends BaseItemNormalizer
      *
      * @throws UnexpectedValueException
      */
-    public function normalize(mixed $object, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
+    public function normalize(mixed $data, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
     {
-        $resourceClass = $this->getObjectClass($object);
+        $resourceClass = $this->getObjectClass($data);
 
         if ($this->getOutputClass($context)) {
             $context['graphql_identifiers'] = [
                 self::ITEM_RESOURCE_CLASS_KEY => $context['operation']->getClass(),
-                self::ITEM_IDENTIFIERS_KEY => $this->identifiersExtractor->getIdentifiersFromItem($object, $context['operation'] ?? null),
+                self::ITEM_IDENTIFIERS_KEY => $this->identifiersExtractor->getIdentifiersFromItem($data, $context['operation'] ?? null),
             ];
 
-            return parent::normalize($object, $format, $context);
-        }
-
-        if ($this->isCacheKeySafe($context)) {
-            $context['cache_key'] = $this->getCacheKey($format, $context);
-        } else {
-            $context['cache_key'] = false;
+            return parent::normalize($data, $format, $context);
         }
 
         unset($context['operation_name'], $context['operation']); // Remove operation and operation_name only when cache key has been created
-        $data = parent::normalize($object, $format, $context);
-        if (!\is_array($data)) {
+        $normalizedData = parent::normalize($data, $format, $context);
+
+        // The default circular_reference_handler returns the visited object's IRI
+        // as a string; return an identifier-only node so the GraphQL field shape
+        // is preserved instead of crashing.
+        if (\is_string($normalizedData)) {
+            return [
+                self::ITEM_RESOURCE_CLASS_KEY => $resourceClass,
+                self::ITEM_IDENTIFIERS_KEY => $this->identifiersExtractor->getIdentifiersFromItem($data),
+            ];
+        }
+
+        if (!\is_array($normalizedData)) {
             throw new UnexpectedValueException('Expected data to be an array.');
         }
 
         if (isset($context['graphql_identifiers'])) {
-            $data += $context['graphql_identifiers'];
+            $normalizedData += $context['graphql_identifiers'];
         } elseif (!($context['no_resolver_data'] ?? false)) {
-            $data[self::ITEM_RESOURCE_CLASS_KEY] = $resourceClass;
-            $data[self::ITEM_IDENTIFIERS_KEY] = $this->identifiersExtractor->getIdentifiersFromItem($object, $context['operation'] ?? null);
+            $normalizedData[self::ITEM_RESOURCE_CLASS_KEY] = $resourceClass;
+            $normalizedData[self::ITEM_IDENTIFIERS_KEY] = $this->identifiersExtractor->getIdentifiersFromItem($data, $context['operation'] ?? null);
         }
 
-        return $data;
+        return $normalizedData;
     }
 
     /**
@@ -152,45 +153,13 @@ final class ItemNormalizer extends BaseItemNormalizer
 
     /**
      * {@inheritdoc}
-     *
-     * @param object      $object
-     * @param string      $attribute
-     * @param string|null $format
      */
-    protected function setAttributeValue($object, $attribute, mixed $value, $format = null, array $context = []): void
+    protected function setAttributeValue(object $object, string $attribute, mixed $value, ?string $format = null, array $context = []): void
     {
         if ('_id' === $attribute) {
             $attribute = 'id';
         }
 
         parent::setAttributeValue($object, $attribute, $value, $format, $context);
-    }
-
-    /**
-     * Check if any property contains a security grants, which makes the cache key not safe,
-     * as allowed_properties can differ for 2 instances of the same object.
-     */
-    private function isCacheKeySafe(array $context): bool
-    {
-        if (!isset($context['resource_class']) || !$this->resourceClassResolver->isResourceClass($context['resource_class'])) {
-            return false;
-        }
-        $resourceClass = $this->resourceClassResolver->getResourceClass(null, $context['resource_class']);
-        if (isset($this->safeCacheKeysCache[$resourceClass])) {
-            return $this->safeCacheKeysCache[$resourceClass];
-        }
-        $options = $this->getFactoryOptions($context);
-        $propertyNames = $this->propertyNameCollectionFactory->create($resourceClass, $options);
-
-        $this->safeCacheKeysCache[$resourceClass] = true;
-        foreach ($propertyNames as $propertyName) {
-            $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $propertyName, $options);
-            if (null !== $propertyMetadata->getSecurity()) {
-                $this->safeCacheKeysCache[$resourceClass] = false;
-                break;
-            }
-        }
-
-        return $this->safeCacheKeysCache[$resourceClass];
     }
 }

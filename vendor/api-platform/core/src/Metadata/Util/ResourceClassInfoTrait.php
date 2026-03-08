@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata\Util;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use Symfony\Component\TypeInfo\Type;
 
 /**
  * Retrieves information about a resource class.
@@ -60,7 +62,32 @@ trait ResourceClassInfoTrait
             return \count($this->resourceMetadataFactory->create($class)) > 0;
         }
 
-        // assume that it's a resource class
-        return true;
+        return false;
+    }
+
+    private function getTypeFromProperty(ApiProperty $propertyMetadata): ?Type
+    {
+        return $propertyMetadata->getNativeType();
+    }
+
+    private function extractClassNameFromType(Type $type): ?string
+    {
+        return TypeHelper::getClassName(TypeHelper::getCollectionValueType($type) ?? $type);
+    }
+
+    /**
+     * Gets the class name referenced by a property's type, if any.
+     *
+     * Returns the underlying class for object types (including the inner type of collections);
+     * returns null for scalar/builtin types or untyped properties. The returned class is not
+     * required to be an API resource — callers that need that constraint must check explicitly.
+     */
+    protected function getClassNameFromProperty(ApiProperty $propertyMetadata): ?string
+    {
+        if (!($type = $this->getTypeFromProperty($propertyMetadata))) {
+            return null;
+        }
+
+        return $this->extractClassNameFromType($type);
     }
 }
