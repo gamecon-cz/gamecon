@@ -23,6 +23,13 @@ trait OpenApiFilterTrait
 {
     public function getOpenApiParameters(Parameter $parameter): OpenApiParameter|array|null
     {
-        return new OpenApiParameter(name: $parameter->getKey().'[]', in: 'query', style: 'deepObject', explode: true);
+        $schema = $parameter->getSchema();
+        if (false === $parameter->getCastToArray() || (isset($schema['type']) && 'array' !== $schema['type'])) {
+            return new OpenApiParameter(name: $parameter->getKey(), in: 'query');
+        }
+
+        $arraySchema = ['type' => 'array', 'items' => $schema ?? ['type' => 'string']];
+
+        return new OpenApiParameter(name: $parameter->getKey().'[]', in: 'query', style: 'deepObject', explode: true, schema: $arraySchema);
     }
 }

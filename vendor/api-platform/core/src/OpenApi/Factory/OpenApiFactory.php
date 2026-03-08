@@ -494,9 +494,9 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     /**
      * @param array<Response> $existingResponses
      */
-    private function buildOpenApiResponse(array $existingResponses, int|string $status, string $description, Operation $openapiOperation, ?HttpOperation $operation = null, ?array $responseMimeTypes = null, ?array $operationOutputSchemas = null, ?ResourceMetadataCollection $resourceMetadataCollection = null): Operation
+    private function buildOpenApiResponse(array $existingResponses, int|string $status, string $description, Operation $openapiOperation, ?HttpOperation $operation = null, ?array $responseMimeTypes = null, ?array $operationOutputSchemas = null, ?ResourceMetadataCollection $resourceMetadataCollection = null, bool $isErrorResponse = false): Operation
     {
-        $noOutput = \is_array($operation?->getOutput()) && null === $operation->getOutput()['class'];
+        $noOutput = !$isErrorResponse && \is_array($operation?->getOutput()) && null === $operation->getOutput()['class'];
 
         $response = $existingResponses[$status] ?? new Response($description);
         if (null === $response->getDescription()) {
@@ -726,13 +726,14 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $arrayValueType = method_exists(PropertyInfoExtractor::class, 'getType') ? TypeIdentifier::ARRAY->value : LegacyType::BUILTIN_TYPE_ARRAY;
             $objectValueType = method_exists(PropertyInfoExtractor::class, 'getType') ? TypeIdentifier::OBJECT->value : LegacyType::BUILTIN_TYPE_OBJECT;
 
-            $style = 'array' === ($schema['type'] ?? null) && \in_array(
+            $isArraySchema = 'array' === ($schema['type'] ?? null);
+            $style = $isArraySchema && \in_array(
                 $description['type'],
                 [$arrayValueType, $objectValueType],
                 true
             ) ? 'deepObject' : 'form';
 
-            $parameter = isset($description['openapi']) && $description['openapi'] instanceof Parameter ? $description['openapi'] : new Parameter(in: 'query', name: $name, style: $style, explode: $description['is_collection'] ?? false);
+            $parameter = isset($description['openapi']) && $description['openapi'] instanceof Parameter ? $description['openapi'] : new Parameter(in: 'query', name: $name, style: $style, explode: $isArraySchema ? ($description['is_collection'] ?? false) : false);
 
             if ('' === $parameter->getDescription() && ($str = $description['description'] ?? '')) {
                 $parameter = $parameter->withDescription($str);
@@ -771,6 +772,8 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $arrayValueType = method_exists(PropertyInfoExtractor::class, 'getType') ? TypeIdentifier::ARRAY->value : LegacyType::BUILTIN_TYPE_ARRAY;
         $objectValueType = method_exists(PropertyInfoExtractor::class, 'getType') ? TypeIdentifier::OBJECT->value : LegacyType::BUILTIN_TYPE_OBJECT;
 
+        $isArraySchema = 'array' === $schema['type'];
+
         return new Parameter(
             $name,
             'query',
@@ -779,12 +782,12 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $description['openapi']['deprecated'] ?? false,
             $description['openapi']['allowEmptyValue'] ?? null,
             $schema,
-            'array' === $schema['type'] && \in_array(
+            $isArraySchema && \in_array(
                 $description['type'],
                 [$arrayValueType, $objectValueType],
                 true
             ) ? 'deepObject' : 'form',
-            $description['openapi']['explode'] ?? ('array' === $schema['type']),
+            $description['openapi']['explode'] ?? $isArraySchema,
             $description['openapi']['allowReserved'] ?? null,
             $description['openapi']['example'] ?? null,
             isset(
@@ -795,10 +798,6 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
     private function getPaginationParameters(CollectionOperationInterface|HttpOperation $operation): array
     {
-        if (!$this->paginationOptions->isPaginationEnabled()) {
-            return [];
-        }
-
         $parameters = [];
 
         if ($operation->getPaginationEnabled() ?? $this->paginationOptions->isPaginationEnabled()) {
@@ -933,11 +932,16 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
     private function mergeParameter(Parameter $actual, Parameter $defined): Parameter
     {
+        // Handle description separately: only override if the new value is non-empty
+        $newDescription = $defined->getDescription();
+        if ('' !== $newDescription && $actual->getDescription() !== $newDescription) {
+            $actual = $actual->withDescription($newDescription);
+        }
+
         foreach (
             [
                 'name',
                 'in',
-                'description',
                 'required',
                 'deprecated',
                 'allowEmptyValue',
@@ -1003,7 +1007,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 throw new RuntimeException(\sprintf('The error class "%s" has no status defined, please either implement ProblemExceptionInterface, or make it an ErrorResource with a status', $errorResource->getClass()));
             }
 
-            $operation = $this->buildOpenApiResponse($operation->getResponses() ?: [], $status, $errorResource->getDescription() ?? '', $operation, $originalOperation, $responseMimeTypes, $operationErrorSchemas, $resourceMetadataCollection);
+            $operation = $this->buildOpenApiResponse($operation->getResponses() ?: [], $status, $errorResource->getDescription() ?? '', $operation, $originalOperation, $responseMimeTypes, $operationErrorSchemas, $resourceMetadataCollection, true);
         }
 
         return $operation;
@@ -1034,7 +1038,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
         try {
             $errorResource = $this->resourceMetadataFactory->create($error)[0] ?? new ErrorResource(status: $status, description: $description, class: $defaultErrorResourceClass);
-            if (!($errorResource instanceof ErrorResource)) {
+            if (!$errorResource instanceof ErrorResource) {
                 throw new RuntimeException(\sprintf('The error class %s is not an ErrorResource', $error));
             }
 

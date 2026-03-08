@@ -97,7 +97,7 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
             $isJsonMergePatch => 'merge-patch+json',
         };
 
-        $definitionName = $this->definitionNameFactory->create($className, $definitionFormat, $inputOrOutputClass, $operation, $serializerContext);
+        $definitionName = $this->definitionNameFactory->create($className, $definitionFormat, $inputOrOutputClass, $operation, $serializerContext + ['schema_type' => $type]);
 
         if (!isset($schema['$ref']) && !isset($schema['type'])) {
             $ref = $this->getSchemaUriPrefix($version).$definitionName;
@@ -360,9 +360,11 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
 
                 if ($valueType instanceof ObjectType) {
                     $className = $valueType->getClassName();
-                } else {
+                } elseif (($wrappedType = $valueType->getWrappedType()) instanceof ObjectType) {
                     // GenericType
-                    $className = $valueType->getWrappedType()->getClassName();
+                    $className = $wrappedType->getClassName();
+                } else {
+                    continue;
                 }
 
                 $subSchemaInstance = new Schema($version);

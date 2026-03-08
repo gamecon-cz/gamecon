@@ -15,6 +15,7 @@ namespace ApiPlatform\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\ObjectMapper\ObjectMapperInterface;
 
 /**
@@ -36,7 +37,8 @@ final class ObjectMapperProcessor implements ProcessorInterface
         $class = $operation->getInput()['class'] ?? $operation->getClass();
 
         if (
-            !$this->objectMapper
+            $data instanceof Response
+            || !$this->objectMapper
             || !$operation->canWrite()
             || null === $data
             || !is_a($data, $class, true)
@@ -53,6 +55,11 @@ final class ObjectMapperProcessor implements ProcessorInterface
             $uriVariables,
             $context,
         );
+
+        // in some cases (delete operation), the decoration may return a null object
+        if (null === $persisted) {
+            return $persisted;
+        }
 
         $request?->attributes->set('persisted_data', $persisted);
 

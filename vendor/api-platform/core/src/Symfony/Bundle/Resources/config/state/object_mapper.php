@@ -13,24 +13,24 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-return function (ContainerConfigurator $container) {
+use ApiPlatform\Metadata\Resource\Factory\ObjectMapperMetadataCollectionFactory;
+use ApiPlatform\State\ObjectMapper\ObjectMapper;
+use ApiPlatform\State\Processor\ObjectMapperProcessor;
+use ApiPlatform\State\Provider\ObjectMapperProvider;
+use Symfony\Component\ObjectMapper\Metadata\ReflectionObjectMapperMetadataFactory;
+
+return static function (ContainerConfigurator $container) {
     $services = $container->services();
 
-    $services->set('api_platform.object_mapper.metadata_factory', 'Symfony\Component\ObjectMapper\Metadata\ReflectionObjectMapperMetadataFactory');
+    $services->set('api_platform.object_mapper.metadata_factory', ReflectionObjectMapperMetadataFactory::class);
 
-    $services->set('api_platform.object_mapper', 'Symfony\Component\ObjectMapper\ObjectMapper')
-        ->args([
-            service('api_platform.object_mapper.metadata_factory'),
-            service('property_accessor')->nullOnInvalid(),
-            tagged_locator('object_mapper.transform_callable'),
-            tagged_locator('object_mapper.condition_callable'),
-        ]);
+    $services->alias('api_platform.object_mapper', 'object_mapper');
 
-    $services->set('api_platform.object_mapper.relation', 'ApiPlatform\State\ObjectMapper\ObjectMapper')
+    $services->set('api_platform.object_mapper.relation', ObjectMapper::class)
         ->decorate('api_platform.object_mapper', null, -255)
         ->args([service('api_platform.object_mapper.relation.inner')]);
 
-    $services->set('api_platform.state_provider.object_mapper', 'ApiPlatform\State\Provider\ObjectMapperProvider')
+    $services->set('api_platform.state_provider.object_mapper', ObjectMapperProvider::class)
         ->decorate('api_platform.state_provider.locator', null, 0)
         ->args([
             service('api_platform.object_mapper')->nullOnInvalid(),
@@ -38,7 +38,7 @@ return function (ContainerConfigurator $container) {
             service('api_platform.object_mapper.metadata_factory'),
         ]);
 
-    $services->set('api_platform.state_processor.object_mapper', 'ApiPlatform\State\Processor\ObjectMapperProcessor')
+    $services->set('api_platform.state_processor.object_mapper', ObjectMapperProcessor::class)
         ->decorate('api_platform.state_processor.locator', null, 0)
         ->args([
             service('api_platform.object_mapper')->nullOnInvalid(),
@@ -46,7 +46,7 @@ return function (ContainerConfigurator $container) {
             service('api_platform.object_mapper.metadata_factory'),
         ]);
 
-    $services->set('api_platform.metadata.resource.metadata_collection_factory.object_mapper', 'ApiPlatform\Metadata\Resource\Factory\ObjectMapperMetadataCollectionFactory')
+    $services->set('api_platform.metadata.resource.metadata_collection_factory.object_mapper', ObjectMapperMetadataCollectionFactory::class)
         ->decorate('api_platform.metadata.resource.metadata_collection_factory', null, 100)
         ->args([
             service('api_platform.metadata.resource.metadata_collection_factory.object_mapper.inner'),
