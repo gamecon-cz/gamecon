@@ -21,7 +21,6 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\AtLeastOneOf;
 use Symfony\Component\Validator\Constraints\Choice;
-use Symfony\Component\Validator\Constraints\Collection;
 use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Component\Validator\Constraints\DivisibleBy;
 use Symfony\Component\Validator\Constraints\GreaterThan;
@@ -35,7 +34,9 @@ use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\Constraints\Sequentially;
 use Symfony\Component\Validator\Constraints\Type;
+use Symfony\Component\Validator\Constraints\Ulid;
 use Symfony\Component\Validator\Constraints\Unique;
+use Symfony\Component\Validator\Constraints\Uuid;
 
 /**
  * Helper to get a set of validation constraints for a given Parameter.
@@ -101,16 +102,7 @@ trait ParameterValidationConstraints
             $assertions[] = new Choice(choices: $schema['enum']);
         }
 
-        if ($properties = $parameter->getExtraProperties()['_properties'] ?? []) {
-            $fields = [];
-            foreach ($properties as $propertyName) {
-                $fields[$propertyName] = $assertions;
-            }
-
-            return [new Collection(fields: $fields, allowMissingFields: true)];
-        }
-
-        $isCollectionType = fn ($t) => $t instanceof CollectionType;
+        $isCollectionType = static fn ($t) => $t instanceof CollectionType;
         $isCollection = $parameter->getNativeType()?->isSatisfiedBy($isCollectionType) ?? false;
 
         // type-info 7.2
@@ -155,6 +147,37 @@ trait ParameterValidationConstraints
 
             if ($assertion) {
                 $assertions[] = $assertion;
+            }
+        }
+
+        if (isset($schema['type'], $schema['format']) && 'string' === $schema['type'] && 'uuid' === $schema['format']) {
+            $assertions[] = new Uuid();
+        }
+
+        if (isset($schema['type'], $schema['format']) && 'string' === $schema['type'] && 'ulid' === $schema['format']) {
+            $assertions[] = new Ulid();
+        }
+
+        if (isset($schema['oneOf']) && 2 === \count($schema['oneOf'])) {
+            $oneOfIndexByType = array_column($schema['oneOf'], null, 'type');
+            if (
+                'uuid' === ($oneOfIndexByType['string']['format'] ?? '')
+                && 'uuid' === ($oneOfIndexByType['array']['items']['format'] ?? '')
+            ) {
+                $assertions[] = new AtLeastOneOf([
+                    new Uuid(),
+                    new All([new Uuid()]),
+                ]);
+            }
+
+            if (
+                'ulid' === ($oneOfIndexByType['string']['format'] ?? '')
+                && 'ulid' === ($oneOfIndexByType['array']['items']['format'] ?? '')
+            ) {
+                $assertions[] = new AtLeastOneOf([
+                    new Ulid(),
+                    new All([new Ulid()]),
+                ]);
             }
         }
 

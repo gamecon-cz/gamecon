@@ -149,17 +149,23 @@ final class ValidatorPropertyMetadataFactory implements PropertyMetadataFactoryI
 
     /**
      * Returns the list of validation groups.
+     *
+     * @return array<string>
      */
     private function getValidationGroups(ValidatorClassMetadataInterface $classMetadata, array $options): array
     {
         if (isset($options['validation_groups'])) {
             if ($options['validation_groups'] instanceof GroupSequence) {
-                return $options['validation_groups']->groups;
+                return $this->flattenValidationGroups($options['validation_groups']->groups);
             }
 
-            if (!\is_callable($options['validation_groups'])) {
-                return $options['validation_groups'];
+            if (\is_array($options['validation_groups']) && !\is_callable($options['validation_groups'])) {
+                return $this->flattenValidationGroups($options['validation_groups']);
             }
+        }
+
+        if ($classMetadata->hasGroupSequence()) {
+            return $this->flattenValidationGroups($classMetadata->getGroupSequence()->groups);
         }
 
         if (!method_exists($classMetadata, 'getDefaultGroup')) {
@@ -167,6 +173,27 @@ final class ValidatorPropertyMetadataFactory implements PropertyMetadataFactoryI
         }
 
         return [$classMetadata->getDefaultGroup()];
+    }
+
+    /**
+     * @param array<string|string[]|GroupSequence> $groups
+     *
+     * @return string[]
+     */
+    private function flattenValidationGroups(array $groups): array
+    {
+        $flattenGroups = [];
+        foreach ($groups as $group) {
+            if (\is_array($group)) {
+                $flattenGroups[] = $this->flattenValidationGroups($group);
+            } elseif ($group instanceof GroupSequence) {
+                $flattenGroups[] = $this->flattenValidationGroups($group->groups);
+            } else {
+                $flattenGroups[] = [$group];
+            }
+        }
+
+        return array_merge([], ...$flattenGroups);
     }
 
     /**
@@ -185,7 +212,11 @@ final class ValidatorPropertyMetadataFactory implements PropertyMetadataFactoryI
 
             foreach ($validatorPropertyMetadata->findConstraints($validationGroup) as $propertyConstraint) {
                 if ($propertyConstraint instanceof Sequentially || $propertyConstraint instanceof Compound) {
-                    $constraints[] = $propertyConstraint->getNestedConstraints();
+                    foreach ($propertyConstraint->getNestedConstraints() as $nestedConstraint) {
+                        if (\in_array($validationGroup, $nestedConstraint->groups, true)) {
+                            $constraints[] = [$nestedConstraint];
+                        }
+                    }
                 } else {
                     $constraints[] = [$propertyConstraint];
                 }

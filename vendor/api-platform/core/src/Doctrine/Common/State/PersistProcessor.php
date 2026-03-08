@@ -81,60 +81,51 @@ final class PersistProcessor implements ProcessorInterface
             // We create a new entity through PUT
             } else {
                 foreach (array_reverse($links) as $link) {
-                    if ($link->getExpandedValue() || !$link->getFromClass()) {
+                    if ($link->getExpandedValue() || !($fromClass = $link->getFromClass())) {
                         continue;
                     }
 
                     $identifierProperties = $link->getIdentifiers();
                     $hasCompositeIdentifiers = 1 < \count($identifierProperties);
+                    $toProperty = $link->getToProperty();
+                    $parentManager = $toProperty ? $this->managerRegistry->getManagerForClass($fromClass) : null;
+
+                    if ($toProperty && $parentManager && isset($reflectionProperties[$toProperty]) && method_exists($parentManager, 'getReference')) {
+                        if ($hasCompositeIdentifiers) {
+                            $referenceIdentifier = [];
+                            foreach ($identifierProperties as $identifierProperty) {
+                                $referenceIdentifier[$identifierProperty] = $this->getIdentifierValue($identifiers, $identifierProperty);
+                            }
+                        } else {
+                            $referenceIdentifier = $this->getIdentifierValue($identifiers);
+                        }
+
+                        $reflectionProperties[$toProperty]->setValue($newData, $parentManager->getReference($fromClass, $referenceIdentifier));
+
+                        continue;
+                    }
 
                     foreach ($identifierProperties as $identifierProperty) {
-                        $reflectionProperty = $reflectionProperties[$identifierProperty];
-                        $reflectionProperty->setValue($newData, $this->getIdentifierValue($identifiers, $hasCompositeIdentifiers ? $identifierProperty : null));
-                    }
-                }
-
-                $classMetadata = $manager->getClassMetadata($class);
-                foreach ($reflectionProperties as $propertyName => $reflectionProperty) {
-                    if ($classMetadata->isIdentifier($propertyName)) {
-                        continue;
-                    }
-
-                    $value = $reflectionProperty->getValue($newData);
-
-                    if (!\is_object($value)) {
-                        continue;
-                    }
-
-                    if (
-                        !($relManager = $this->managerRegistry->getManagerForClass($class = $this->getObjectClass($value)))
-                        || $relManager->contains($value)
-                    ) {
-                        continue;
-                    }
-
-                    if (\PHP_VERSION_ID > 80400) {
-                        $r = new \ReflectionClass($value);
-                        if ($r->isUninitializedLazyObject($value)) {
-                            $r->initializeLazyObject($value);
+                        if (!isset($reflectionProperties[$identifierProperty])) {
+                            $this->getIdentifierValue($identifiers, $hasCompositeIdentifiers ? $identifierProperty : null);
+                            continue;
                         }
+
+                        $reflectionProperties[$identifierProperty]->setValue($newData, $this->getIdentifierValue($identifiers, $hasCompositeIdentifiers ? $identifierProperty : null));
                     }
-
-                    $metadata = $manager->getClassMetadata($class);
-                    $identifiers = $metadata->getIdentifierValues($value);
-
-                    // Do not get reference for partial objects or objects with null identifiers
-                    if (!$identifiers || \count($identifiers) !== \count(array_filter($identifiers, static fn ($v) => null !== $v))) {
-                        continue;
-                    }
-
-                    \assert(method_exists($relManager, 'getReference'));
-
-                    $reflectionProperty->setValue($newData, $relManager->getReference($class, $identifiers));
                 }
+
+                $this->handleLazyObjectRelations($newData, $manager, $reflectionProperties);
             }
 
             $data = $newData;
+        }
+
+        // Handle lazy objects in relations for all operations (POST, PATCH, etc.)
+        // This is needed when using object mapper with entities that have relations
+        // Only apply when using ObjectMapper to avoid breaking cascade persist for plain entities
+        if ($operation->canMap()) {
+            $this->handleLazyObjectRelations($data, $manager);
         }
 
         if (!$manager->contains($data) || $this->isDeferredExplicit($manager, $data)) {
@@ -179,5 +170,60 @@ final class PersistProcessor implements ProcessorInterface
         } while ($r = $r->getParentClass());
 
         return $ret;
+    }
+
+    /**
+     * Handle lazy objects in relations by replacing them with Doctrine references.
+     * This is needed when using object mapper with entities that have relations.
+     *
+     * @param array<string, \ReflectionProperty>|null $reflectionProperties
+     */
+    private function handleLazyObjectRelations(object $data, DoctrineObjectManager $manager, ?array $reflectionProperties = null): void
+    {
+        $reflectionProperties ??= $this->getReflectionProperties($data);
+        $class = $this->getObjectClass($data);
+        $classMetadata = $manager->getClassMetadata($class);
+
+        foreach ($reflectionProperties as $propertyName => $reflectionProperty) {
+            if ($classMetadata->isIdentifier($propertyName)) {
+                continue;
+            }
+
+            if (!$reflectionProperty->isInitialized($data)) {
+                continue;
+            }
+
+            $value = $reflectionProperty->getValue($data);
+
+            if (!\is_object($value)) {
+                continue;
+            }
+
+            if (
+                !($relManager = $this->managerRegistry->getManagerForClass($relClass = $this->getObjectClass($value)))
+                || $relManager->contains($value)
+            ) {
+                continue;
+            }
+
+            if (\PHP_VERSION_ID > 80400) {
+                $r = new \ReflectionClass($value);
+                if ($r->isUninitializedLazyObject($value)) {
+                    $r->initializeLazyObject($value);
+                }
+            }
+
+            $metadata = $relManager->getClassMetadata($relClass);
+            $identifiers = $metadata->getIdentifierValues($value);
+
+            // Do not get reference for partial objects or objects with null identifiers
+            if (!$identifiers || \count($identifiers) !== \count(array_filter($identifiers, static fn ($v) => null !== $v))) {
+                continue;
+            }
+
+            \assert(method_exists($relManager, 'getReference'));
+
+            $reflectionProperty->setValue($data, $relManager->getReference($relClass, $identifiers));
+        }
     }
 }

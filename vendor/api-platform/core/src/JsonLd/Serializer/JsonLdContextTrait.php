@@ -16,6 +16,8 @@ namespace ApiPlatform\JsonLd\Serializer;
 use ApiPlatform\JsonLd\AnonymousContextBuilderInterface;
 use ApiPlatform\JsonLd\ContextBuilder;
 use ApiPlatform\JsonLd\ContextBuilderInterface;
+use ApiPlatform\JsonLd\OperationContextBuilderInterface;
+use ApiPlatform\Metadata\HttpOperation;
 
 /**
  * Creates and manipulates the Serializer context.
@@ -37,20 +39,37 @@ trait JsonLdContextTrait
 
         $context['jsonld_has_context'] = true;
 
+        $operation = $context['operation'] ?? null;
+        $useOperationAware = $operation instanceof HttpOperation && $contextBuilder instanceof OperationContextBuilderInterface;
+
         if (isset($context['jsonld_embed_context'])) {
-            $data['@context'] = $contextBuilder->getResourceContext($resourceClass);
+            $data['@context'] = $useOperationAware
+                ? $contextBuilder->getResourceContextFromOperation($operation, $resourceClass)
+                : $contextBuilder->getResourceContext($resourceClass);
 
             return $data;
         }
 
-        $data['@context'] = $contextBuilder->getResourceContextUri($resourceClass);
+        $data['@context'] = $useOperationAware
+            ? $contextBuilder->getResourceContextUriFromOperation($operation)
+            : $contextBuilder->getResourceContextUri($resourceClass);
 
         return $data;
     }
 
     private function createJsonLdContext(AnonymousContextBuilderInterface $contextBuilder, object $object, array &$context): array
     {
-        $anonymousContext = ($context['output'] ?? []) + ['api_resource' => $context['api_resource'] ?? null];
+        $anonymousContext = ($context['output'] ?? []) + [
+            'api_resource' => $context['api_resource'] ?? null,
+        ];
+
+        if (isset($context['item_uri_template'])) {
+            $anonymousContext['item_uri_template'] = $context['item_uri_template'];
+        }
+
+        if (isset($context['types'])) {
+            $anonymousContext['types'] = $context['types'];
+        }
 
         if (isset($context[ContextBuilder::HYDRA_CONTEXT_HAS_PREFIX])) {
             $anonymousContext[ContextBuilder::HYDRA_CONTEXT_HAS_PREFIX] = $context[ContextBuilder::HYDRA_CONTEXT_HAS_PREFIX];

@@ -48,7 +48,7 @@ class UrlValidator extends ConstraintValidator
             (:[0-9]+)?                              # a port (optional)
             (?:/ (?:[\pL\pN\pS\pM\-._~!$&'()*+,;=:@]|%%[0-9A-Fa-f]{2})* )*  # a path
             (?:\? (?:[\pL\pN\-._~!$&'()*+,;=:@/?[\]]|%%[0-9A-Fa-f]{2})* )?  # a query (optional)
-            (?:\# (?:[\pL\pN\-._~!$&'()*+,;=:@/?]|%%[0-9A-Fa-f]{2})* )?     # a fragment (optional)
+            (?:\# (?:[\pL\pN\-._~!$&'()*+,;=:@/?\#]|%%[0-9A-Fa-f]{2})* )?   # a fragment (optional)
         $}ixuD
         REGEX;
 
@@ -83,7 +83,7 @@ class UrlValidator extends ConstraintValidator
         }
 
         $pattern = $constraint->relativeProtocol ? str_replace('(%s):', '(?:(%s):)?', static::PATTERN) : static::PATTERN;
-        $pattern = sprintf($pattern, $protocols);
+        $pattern = \sprintf($pattern, $protocols);
 
         if (!preg_match($pattern, $value)) {
             $this->context->buildViolation($constraint->message)

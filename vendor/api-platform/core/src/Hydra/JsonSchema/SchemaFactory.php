@@ -82,11 +82,6 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
     ];
 
     /**
-     * @var array<string, true>
-     */
-    private array $transformed = [];
-
-    /**
      * @param array<string, mixed> $defaultContext
      */
     public function __construct(
@@ -169,6 +164,8 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
                     break;
             }
 
+            $nullableIriDefinition = $nullableStringDefinition + ['format' => 'iri-reference'];
+
             $definitions[self::COLLECTION_BASE_SCHEMA_NAME_NO_PAGINATION] = [
                 'type' => 'object',
                 'properties' => [
@@ -215,26 +212,14 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
                                     '@type' => [
                                         'type' => 'string',
                                     ],
-                                    $hydraPrefix.'first' => [
-                                        'type' => 'string',
-                                        'format' => 'iri-reference',
-                                    ],
-                                    $hydraPrefix.'last' => [
-                                        'type' => 'string',
-                                        'format' => 'iri-reference',
-                                    ],
-                                    $hydraPrefix.'previous' => [
-                                        'type' => 'string',
-                                        'format' => 'iri-reference',
-                                    ],
-                                    $hydraPrefix.'next' => [
-                                        'type' => 'string',
-                                        'format' => 'iri-reference',
-                                    ],
+                                    $hydraPrefix.'first' => $nullableIriDefinition,
+                                    $hydraPrefix.'last' => $nullableIriDefinition,
+                                    $hydraPrefix.'previous' => $nullableIriDefinition,
+                                    $hydraPrefix.'next' => $nullableIriDefinition,
                                 ],
                                 'example' => [
                                     '@id' => 'string',
-                                    'type' => 'string',
+                                    '@type' => 'string',
                                     $hydraPrefix.'first' => 'string',
                                     $hydraPrefix.'last' => 'string',
                                     $hydraPrefix.'previous' => 'string',
@@ -247,7 +232,7 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
             ];
         }
 
-        $definitionName = $this->definitionNameFactory->create($className, $format, $inputOrOutputClass, $operation, $serializerContext);
+        $definitionName = $this->definitionNameFactory->create($className, $format, $inputOrOutputClass, $operation, $serializerContext + ['schema_type' => $type]);
         $schema['type'] = 'object';
         $schema['description'] = "$definitionName collection.";
         $schema['allOf'] = [
@@ -284,7 +269,7 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
 
     private function decorateItemDefinition(string $definitionName, \ArrayObject $definitions, string $prefix, string $type, ?array $serializerContext): void
     {
-        if (!isset($definitions[$definitionName]) || ($this->transformed[$definitionName] ?? false)) {
+        if (!isset($definitions[$definitionName])) {
             return;
         }
 
@@ -292,6 +277,12 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
         $baseName = self::ITEM_BASE_SCHEMA_NAME;
         if ($hasNoId) {
             $baseName = self::ITEM_WITHOUT_ID_BASE_SCHEMA_NAME;
+        }
+
+        // Check if the definition is already decorated to prevent double wrapping (recursion or cache)
+        $currentDef = $definitions[$definitionName];
+        if (($currentDef['allOf'][0]['$ref'] ?? null) === $prefix.$baseName) {
+            return;
         }
 
         if (!isset($definitions[$baseName])) {
@@ -309,7 +300,5 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
 
         $definitions[$definitionName] = $allOf;
         unset($definitions[$definitionName]['allOf'][1]['description']);
-
-        $this->transformed[$definitionName] = true;
     }
 }
