@@ -69,7 +69,33 @@ final class SchemaPropertyMetadataFactory implements PropertyMetadataFactoryInte
             return $propertyMetadata;
         }
 
-        $link = (($options['schema_type'] ?? null) === Schema::TYPE_INPUT) ? $propertyMetadata->isWritableLink() : $propertyMetadata->isReadableLink();
+        $isInput = ($options['schema_type'] ?? null) === Schema::TYPE_INPUT;
+        // on output the serializer embeds the relation as soon as gen_id is false, even when it is not a readable link (see AbstractItemNormalizer::normalizeRelation())
+        $link = $isInput ? $propertyMetadata->isWritableLink() : ($propertyMetadata->isReadableLink() || false === $propertyMetadata->getGenId());
+
+        // on output a non-resource object is serialized by the standard object normalizer, which embeds non-resource properties regardless of readableLink (see AbstractItemNormalizer::supportsNormalization())
+        // For resource-typed properties however, the circular reference handler (see AbstractItemNormalizer::$defaultContext) may produce an IRI, so isReadableLink should determine the schema
+        if (!$isInput && !$this->isResourceClass($resourceClass)) {
+            if (method_exists(PropertyInfoExtractor::class, 'getType')) {
+                if (!$propertyMetadata->getNativeType()?->isSatisfiedBy(fn (Type $t) => $t instanceof ObjectType && $this->resourceClassResolver->isResourceClass($t->getClassName()))) {
+                    $link = true;
+                }
+            } else {
+                $propertyTypeIsResource = false;
+                foreach ($propertyMetadata->getBuiltinTypes() ?? [] as $builtinType) {
+                    $className = $builtinType->isCollection() ? ($builtinType->getCollectionValueTypes()[0] ?? null)?->getClassName() : $builtinType->getClassName();
+                    if ($className && $this->resourceClassResolver->isResourceClass($className)) {
+                        $propertyTypeIsResource = true;
+                        break;
+                    }
+                }
+
+                if (!$propertyTypeIsResource) {
+                    $link = true;
+                }
+            }
+        }
+
         $propertySchema = $propertyMetadata->getSchema() ?? [];
 
         if (null !== $propertyMetadata->getUriTemplate() || (!\array_key_exists('readOnly', $propertySchema) && false === $propertyMetadata->isWritable() && !$propertyMetadata->isInitializable())) {
@@ -201,7 +227,7 @@ final class SchemaPropertyMetadataFactory implements PropertyMetadataFactoryInte
         $isNullable = $type->isNullable();
 
         if ($type instanceof UnionType) {
-            $subTypes = array_filter($type->getTypes(), fn ($t) => !($t instanceof BuiltinType && $t->isIdentifiedBy(TypeIdentifier::NULL)));
+            $subTypes = array_filter($type->getTypes(), static fn ($t) => !($t instanceof BuiltinType && $t->isIdentifiedBy(TypeIdentifier::NULL)));
 
             foreach ($subTypes as $t) {
                 $s = $this->getJsonSchemaFromType($t, $readableLink);
@@ -246,7 +272,7 @@ final class SchemaPropertyMetadataFactory implements PropertyMetadataFactoryInte
             $keyType = $type->getCollectionKeyType();
 
             // Associative array (string keys)
-            if ($keyType->isSatisfiedBy(fn (Type $t) => $t instanceof BuiltinType && $t->isIdentifiedBy(TypeIdentifier::INT))) {
+            if ($keyType->isSatisfiedBy(static fn (Type $t) => $t instanceof BuiltinType && $t->isIdentifiedBy(TypeIdentifier::INT))) {
                 $schema = [
                     'type' => 'array',
                     'items' => $valueSchema,
@@ -317,6 +343,10 @@ final class SchemaPropertyMetadataFactory implements PropertyMetadataFactoryInte
 
         if (is_a($className, \SplFileInfo::class, true)) {
             return ['type' => 'string', 'format' => 'binary'];
+        }
+
+        if (is_a($className, \BcMath\Number::class, true)) {
+            return ['type' => 'string', 'format' => 'string'];
         }
 
         $isResourceClass = $this->isResourceClass($className);
@@ -506,6 +536,13 @@ final class SchemaPropertyMetadataFactory implements PropertyMetadataFactoryInte
             return [
                 'type' => 'string',
                 'format' => 'binary',
+            ];
+        }
+
+        if (is_a($className, \BcMath\Number::class, true)) {
+            return [
+                'type' => 'string',
+                'format' => 'string',
             ];
         }
 
