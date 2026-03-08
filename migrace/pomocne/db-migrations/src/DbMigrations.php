@@ -358,7 +358,7 @@ SQL,
         }
 
         if (!$silent) {
-            $this->webGui?->writeMessage("Applying migration {$migration->getCode()}.");
+            $this->webGui?->writeMessage("Applying migration {$migration->getCode()}");
         }
 
         // backup db

@@ -32,12 +32,16 @@ SELECT  akce_seznam.nazev_akce AS nazevAktivity, akce_seznam.id_akce AS id,
         akce_seznam.zacatek, akce_seznam.konec, akce_seznam.team_nazev,
         ucastnik.login_uzivatele AS nick, ucastnik.jmeno_uzivatele AS jmeno, ucastnik.id_uzivatele,
         ucastnik.prijmeni_uzivatele AS prijmeni, ucastnik.email1_uzivatele AS mail, ucastnik.telefon_uzivatele AS telefon,
-        (SELECT GROUP_CONCAT(organizator.login_uzivatele)
+        (SELECT GROUP_CONCAT(organizator.login_uzivatele SEPARATOR ', ')
             FROM akce_organizatori
             JOIN uzivatele_hodnoty AS organizator ON organizator.id_uzivatele = akce_organizatori.id_uzivatele
             WHERE akce_organizatori.id_akce = akce_seznam.id_akce
         ) AS orgove,
-        (SELECT GROUP_CONCAT(lokace.nazev, ', ', lokace.dvere SEPARATOR '; ')
+        (SELECT GROUP_CONCAT(
+                lokace.nazev,
+                IF (TRIM(lokace.dvere) != '', CONCAT(', ', lokace.dvere), '')
+                SEPARATOR '; '
+            )
             FROM akce_lokace
             JOIN lokace ON akce_lokace.id_lokace = lokace.id_lokace
             WHERE akce_lokace.id_akce = akce_seznam.id_akce
@@ -67,8 +71,11 @@ while ($totoPrihlaseni) {
         $hrac  = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
         $datum = new DateTimeCz($totoPrihlaseni['zacatek']);
         $vek   = $hrac->vekKDatu($datum);
-        if ($vek === null) $vek = "Nevyplnil";
-        elseif ($vek >= 18) $vek = "18+";
+        if ($vek === null) {
+            $vek = "Nevyplnil";
+        } elseif ($vek >= 18) {
+            $vek = "18+";
+        }
 
         if ($totoPrihlaseni['datum_prihlaseni'] != null) {
             $prihlasen = new DateTimeCz($totoPrihlaseni['datum_prihlaseni']);
@@ -87,8 +94,9 @@ while ($totoPrihlaseni) {
         $xtpl2->assign('obsazenost', $obsazenost .
             ($totoPrihlaseni['kapacita'] ? '/' . $totoPrihlaseni['kapacita'] : ''));
         $xtpl2->assign('druzina', $totoPrihlaseni['team_nazev'] ? ($totoPrihlaseni['team_nazev'] . ' - ') : '');
-        if ($obsazenost)
+        if ($obsazenost) {
             $xtpl2->parse('prihlaseni.aktivita.lide');
+        }
         $xtpl2->parse('prihlaseni.aktivita');
         $obsazenost = 0;
         $odd        = 0;
