@@ -23,8 +23,8 @@ use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Util\ClassInfoTrait;
 use ApiPlatform\Metadata\Util\TypeHelper;
 use ApiPlatform\Serializer\AbstractItemNormalizer;
-use ApiPlatform\Serializer\CacheKeyTrait;
 use ApiPlatform\Serializer\ContextTrait;
+use ApiPlatform\Serializer\OperationResourceClassResolverInterface;
 use ApiPlatform\Serializer\TagCollectorInterface;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
@@ -48,7 +48,6 @@ use Symfony\Component\TypeInfo\Type\ObjectType;
  */
 final class ItemNormalizer extends AbstractItemNormalizer
 {
-    use CacheKeyTrait;
     use ClassInfoTrait;
     use ContextTrait;
 
@@ -59,7 +58,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
     private array $componentsCache = [];
     private array $attributesMetadataCache = [];
 
-    public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ?PropertyAccessorInterface $propertyAccessor = null, ?NameConverterInterface $nameConverter = null, ?ClassMetadataFactoryInterface $classMetadataFactory = null, array $defaultContext = [], ?ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory = null, ?ResourceAccessCheckerInterface $resourceAccessChecker = null, ?TagCollectorInterface $tagCollector = null)
+    public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ?PropertyAccessorInterface $propertyAccessor = null, ?NameConverterInterface $nameConverter = null, ?ClassMetadataFactoryInterface $classMetadataFactory = null, array $defaultContext = [], ?ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory = null, ?ResourceAccessCheckerInterface $resourceAccessChecker = null, ?TagCollectorInterface $tagCollector = null, ?OperationResourceClassResolverInterface $operationResourceResolver = null)
     {
         $defaultContext[AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER] = function ($object): ?array {
             $iri = $this->iriConverter->getIriFromResource($object);
@@ -70,7 +69,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
             return ['_links' => ['self' => ['href' => $iri]]];
         };
 
-        parent::__construct($propertyNameCollectionFactory, $propertyMetadataFactory, $iriConverter, $resourceClassResolver, $propertyAccessor, $nameConverter, $classMetadataFactory, $defaultContext, $resourceMetadataCollectionFactory, $resourceAccessChecker, $tagCollector);
+        parent::__construct($propertyNameCollectionFactory, $propertyMetadataFactory, $iriConverter, $resourceClassResolver, $propertyAccessor, $nameConverter, $classMetadataFactory, $defaultContext, $resourceMetadataCollectionFactory, $resourceAccessChecker, $tagCollector, $operationResourceResolver);
     }
 
     /**
@@ -82,9 +81,9 @@ final class ItemNormalizer extends AbstractItemNormalizer
     }
 
     /**
-     * @param string|null $format
+     * {@inheritdoc}
      */
-    public function getSupportedTypes($format): array
+    public function getSupportedTypes(?string $format): array
     {
         return self::FORMAT === $format ? parent::getSupportedTypes($format) : [];
     }
@@ -92,33 +91,33 @@ final class ItemNormalizer extends AbstractItemNormalizer
     /**
      * {@inheritdoc}
      */
-    public function normalize(mixed $object, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
+    public function normalize(mixed $data, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
     {
-        $resourceClass = $this->getObjectClass($object);
+        $resourceClass = $this->getObjectClass($data);
         if ($this->getOutputClass($context)) {
-            return parent::normalize($object, $format, $context);
+            return parent::normalize($data, $format, $context);
         }
 
         $previousResourceClass = $context['resource_class'] ?? null;
         if ($this->resourceClassResolver->isResourceClass($resourceClass) && (null === $previousResourceClass || $this->resourceClassResolver->isResourceClass($previousResourceClass))) {
-            $resourceClass = $this->resourceClassResolver->getResourceClass($object, $previousResourceClass);
+            $resourceClass = $this->resourceClassResolver->getResourceClass($data, $previousResourceClass);
         }
 
         $context = $this->initContext($resourceClass, $context);
 
-        $iri = $context['iri'] ??= $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_PATH, $context['operation'] ?? null, $context);
-        $context['object'] = $object;
+        $iri = $context['iri'] ??= $this->iriConverter->getIriFromResource($data, UrlGeneratorInterface::ABS_PATH, $context['operation'] ?? null, $context);
+        $context['object'] = $data;
         $context['format'] = $format;
         $context['api_normalize'] = true;
 
         if (!isset($context['cache_key'])) {
-            $context['cache_key'] = $this->getCacheKey($format, $context);
+            $context['cache_key'] = $this->isCacheKeySafe($context) ? $this->getCacheKey($format, $context) : false;
         }
 
-        $data = parent::normalize($object, $format, $context);
+        $normalizedData = parent::normalize($data, $format, $context);
 
-        if (!\is_array($data)) {
-            return $data;
+        if (!\is_array($normalizedData)) {
+            return $normalizedData;
         }
 
         $metadata = [
@@ -128,11 +127,11 @@ final class ItemNormalizer extends AbstractItemNormalizer
                 ],
             ],
         ];
-        $components = $this->getComponents($object, $format, $context);
-        $metadata = $this->populateRelation($metadata, $object, $format, $context, $components, 'links');
-        $metadata = $this->populateRelation($metadata, $object, $format, $context, $components, 'embedded');
+        $components = $this->getComponents($data, $format, $context);
+        $metadata = $this->populateRelation($metadata, $data, $format, $context, $components, 'links');
+        $metadata = $this->populateRelation($metadata, $data, $format, $context, $components, 'embedded');
 
-        return $metadata + $data;
+        return $metadata + $normalizedData;
     }
 
     /**
@@ -215,7 +214,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
                         $isOne = $className && $this->resourceClassResolver->isResourceClass($className);
                     }
                 } elseif ($type instanceof Type) {
-                    if ($type->isSatisfiedBy(fn ($t) => $t instanceof CollectionType)) {
+                    if ($type->isSatisfiedBy(static fn ($t) => $t instanceof CollectionType)) {
                         $isMany = TypeHelper::getCollectionValueType($type)?->isSatisfiedBy($typeIsResourceClass);
                     } else {
                         $isOne = $type->isSatisfiedBy($typeIsResourceClass);

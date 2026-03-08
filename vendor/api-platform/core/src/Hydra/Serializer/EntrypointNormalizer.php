@@ -38,7 +38,7 @@ final class EntrypointNormalizer implements NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize(mixed $object, ?string $format = null, array $context = []): array
+    public function normalize(mixed $data, ?string $format = null, array $context = []): array
     {
         $entrypoint = [
             '@context' => $this->urlGenerator->generate('api_jsonld_context', ['shortName' => 'Entrypoint']),
@@ -46,14 +46,10 @@ final class EntrypointNormalizer implements NormalizerInterface
             '@type' => 'Entrypoint',
         ];
 
-        foreach ($object->getResourceNameCollection() as $resourceClass) {
+        foreach ($data->getResourceNameCollection() as $resourceClass) {
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
             foreach ($resourceMetadata as $resource) {
-                if ($resource->getExtraProperties()['is_alternate_resource_metadata'] ?? false) {
-                    continue;
-                }
-
                 foreach ($resource->getOperations() as $operation) {
                     $key = lcfirst($resource->getShortName());
                     if (true === $operation->getHideHydraOperation() || !$operation instanceof CollectionOperationInterface || isset($entrypoint[$key])) {
@@ -83,9 +79,9 @@ final class EntrypointNormalizer implements NormalizerInterface
     }
 
     /**
-     * @param string|null $format
+     * {@inheritdoc}
      */
-    public function getSupportedTypes($format): array
+    public function getSupportedTypes(?string $format): array
     {
         return self::FORMAT === $format ? [Entrypoint::class => true] : [];
     }

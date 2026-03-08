@@ -58,8 +58,8 @@ final class BackedEnumNormalizer implements NormalizerInterface, DenormalizerInt
 
         $allowInvalidValues = $context[self::ALLOW_INVALID_VALUES] ?? false;
 
-        if (null === $data || (!\is_int($data) && !\is_string($data))) {
-            if ($allowInvalidValues && !isset($context['not_normalizable_value_exceptions'])) {
+        if (!\is_int($data) && !\is_string($data)) {
+            if ($allowInvalidValues) {
                 return null;
             }
 
@@ -69,11 +69,7 @@ final class BackedEnumNormalizer implements NormalizerInterface, DenormalizerInt
         try {
             return $type::from($data);
         } catch (\ValueError|\TypeError $e) {
-            if (isset($context['has_constructor'])) {
-                throw new InvalidArgumentException('The data must belong to a backed enumeration of type '.$type, 0, $e);
-            }
-
-            if ($allowInvalidValues && !isset($context['not_normalizable_value_exceptions'])) {
+            if ($allowInvalidValues) {
                 return null;
             }
 

@@ -50,21 +50,21 @@ final class PartialCollectionViewNormalizer implements NormalizerInterface, Norm
     /**
      * {@inheritdoc}
      */
-    public function normalize(mixed $object, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
+    public function normalize(mixed $data, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
     {
-        $data = $this->collectionNormalizer->normalize($object, $format, $context);
+        $normalizedData = $this->collectionNormalizer->normalize($data, $format, $context);
 
         if (isset($context['api_sub_level'])) {
-            return $data;
+            return $normalizedData;
         }
 
-        if (!\is_array($data)) {
+        if (!\is_array($normalizedData)) {
             throw new UnexpectedValueException('Expected data to be an array');
         }
 
-        $paginated = $object instanceof PartialPaginatorInterface;
-        if ($paginated && $object instanceof PaginatorInterface) {
-            $paginated = 1. !== $object->getLastPage();
+        $paginated = $data instanceof PartialPaginatorInterface;
+        if ($paginated && $data instanceof PaginatorInterface) {
+            $paginated = 1. !== $data->getLastPage();
         }
 
         $parsed = IriHelper::parseIri($context['uri'] ?? $context['request_uri'] ?? '/', $this->pageParameterName);
@@ -72,7 +72,7 @@ final class PartialCollectionViewNormalizer implements NormalizerInterface, Norm
         unset($appliedFilters[$this->enabledParameterName]);
 
         if (!$appliedFilters && !$paginated) {
-            return $data;
+            return $normalizedData;
         }
 
         $isPaginatedWithCursor = false;
@@ -88,12 +88,12 @@ final class PartialCollectionViewNormalizer implements NormalizerInterface, Norm
         $hydraPrefix = $this->getHydraPrefix($context + $this->defaultContext);
 
         if ($isPaginatedWithCursor) {
-            $data[$hydraPrefix.'view'] = ['@id' => null, '@type' => $hydraPrefix.'PartialCollectionView'];
+            $normalizedData[$hydraPrefix.'view'] = ['@id' => null, '@type' => $hydraPrefix.'PartialCollectionView'];
 
-            return $this->populateDataWithCursorBasedPagination($data, $parsed, $object, $cursorPaginationAttribute, $operation?->getUrlGenerationStrategy() ?? $this->urlGenerationStrategy, $hydraPrefix);
+            return $this->populateDataWithCursorBasedPagination($normalizedData, $parsed, $data, $cursorPaginationAttribute, $operation->getUrlGenerationStrategy() ?? $this->urlGenerationStrategy, $hydraPrefix);
         }
 
-        $partialCollectionView = $this->getPartialCollectionView($object, $context['uri'] ?? $context['request_uri'] ?? '/', $this->pageParameterName, $this->enabledParameterName, $operation?->getUrlGenerationStrategy() ?? $this->urlGenerationStrategy);
+        $partialCollectionView = $this->getPartialCollectionView($data, $context['uri'] ?? $context['request_uri'] ?? '/', $this->pageParameterName, $this->enabledParameterName, $operation?->getUrlGenerationStrategy() ?? $this->urlGenerationStrategy);
 
         $view = [
             '@id' => $partialCollectionView->id,
@@ -113,9 +113,9 @@ final class PartialCollectionViewNormalizer implements NormalizerInterface, Norm
             $view[$hydraPrefix.'next'] = $partialCollectionView->next;
         }
 
-        $data[$hydraPrefix.'view'] = $view;
+        $normalizedData[$hydraPrefix.'view'] = $view;
 
-        return $data;
+        return $normalizedData;
     }
 
     /**
@@ -127,9 +127,9 @@ final class PartialCollectionViewNormalizer implements NormalizerInterface, Norm
     }
 
     /**
-     * @param string|null $format
+     * {@inheritdoc}
      */
-    public function getSupportedTypes($format): array
+    public function getSupportedTypes(?string $format): array
     {
         return $this->collectionNormalizer->getSupportedTypes($format);
     }
@@ -157,8 +157,13 @@ final class PartialCollectionViewNormalizer implements NormalizerInterface, Norm
 
             $operator = $direction > 0 ? $forwardRangeOperator : $backwardRangeOperator;
 
+            $value = $this->propertyAccessor->getValue($object, $field['field']);
+            if ($value instanceof \DateTimeInterface) {
+                $value = $value->format(\DateTimeInterface::ATOM);
+            }
+
             $paginationFilters[$field['field']] = [
-                $operator => (string) $this->propertyAccessor->getValue($object, $field['field']),
+                $operator => (string) $value,
             ];
         }
 
@@ -181,6 +186,59 @@ final class PartialCollectionViewNormalizer implements NormalizerInterface, Norm
             $data[$hydraPrefix.'view'][$hydraPrefix.'previous'] = IriHelper::createIri($parsed['parts'], array_merge($parsed['parameters'], $this->cursorPaginationFields($cursorPaginationAttribute, -1, $firstObject)), urlGenerationStrategy: $urlGenerationStrategy);
         }
 
+        if (false === $firstObject && \is_array($cursorPaginationAttribute) && $object instanceof PartialPaginatorInterface) {
+            $itemsPerPage = $object->getItemsPerPage();
+            $nextFilters = $this->cursorPaginationFieldsFromUrl($cursorPaginationAttribute, $parsed['parameters'], $itemsPerPage, 1);
+            $previousFilters = $this->cursorPaginationFieldsFromUrl($cursorPaginationAttribute, $parsed['parameters'], $itemsPerPage, -1);
+
+            if (null !== $nextFilters) {
+                $data[$hydraPrefix.'view'][$hydraPrefix.'next'] = IriHelper::createIri($parsed['parts'], array_merge($parsed['parameters'], $nextFilters), urlGenerationStrategy: $urlGenerationStrategy);
+            }
+
+            if (null !== $previousFilters) {
+                $data[$hydraPrefix.'view'][$hydraPrefix.'previous'] = IriHelper::createIri($parsed['parts'], array_merge($parsed['parameters'], $previousFilters), urlGenerationStrategy: $urlGenerationStrategy);
+            }
+        }
+
         return $data;
+    }
+
+    private function cursorPaginationFieldsFromUrl(array $fields, array $parameters, float $itemsPerPage, int $direction): ?array
+    {
+        $paginationFilters = [];
+
+        foreach ($fields as $field) {
+            $forwardOperator = 'desc' === strtolower($field['direction']) ? 'lt' : 'gt';
+            $backwardOperator = 'gt' === $forwardOperator ? 'lt' : 'gt';
+
+            if (!\is_array($parameters[$field['field']] ?? null)) {
+                return null;
+            }
+
+            $currentOperator = (string) array_key_first($parameters[$field['field']]);
+            if (!\in_array($currentOperator, ['gt', 'lt'], true)) {
+                return null;
+            }
+
+            $currentValue = (float) current($parameters[$field['field']]);
+
+            if ($direction > 0) {
+                if ($currentOperator === $forwardOperator) {
+                    $newValue = 'gt' === $currentOperator ? $currentValue + $itemsPerPage : $currentValue - $itemsPerPage;
+                    $paginationFilters[$field['field']] = [$currentOperator => (string) $newValue];
+                } else {
+                    $paginationFilters[$field['field']] = [$forwardOperator => (string) $currentValue];
+                }
+            } else {
+                if ($currentOperator === $backwardOperator) {
+                    $newValue = 'gt' === $currentOperator ? $currentValue + $itemsPerPage : $currentValue - $itemsPerPage;
+                    $paginationFilters[$field['field']] = [$currentOperator => (string) $newValue];
+                } else {
+                    $paginationFilters[$field['field']] = [$backwardOperator => (string) $currentValue];
+                }
+            }
+        }
+
+        return $paginationFilters;
     }
 }

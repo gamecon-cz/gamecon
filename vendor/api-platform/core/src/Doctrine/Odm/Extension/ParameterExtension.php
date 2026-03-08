@@ -13,17 +13,16 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\Odm\Extension;
 
-use ApiPlatform\Doctrine\Common\Filter\LoggerAwareInterface;
-use ApiPlatform\Doctrine\Common\Filter\ManagerRegistryAwareInterface;
-use ApiPlatform\Doctrine\Common\ParameterValueExtractorTrait;
-use ApiPlatform\Doctrine\Odm\Filter\AbstractFilter;
-use ApiPlatform\Doctrine\Odm\Filter\FilterInterface;
+use ApiPlatform\Doctrine\Common\Filter\PropertyAwareFilterInterface;
+use ApiPlatform\Doctrine\Common\ParameterExtensionTrait;
+use ApiPlatform\Doctrine\Odm\Filter\FilterInterface; // Explicitly import PropertyAwareFilterInterface
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ParameterNotFound;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 use Doctrine\ODM\MongoDB\Aggregation\Builder;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
 /**
  * Reads operation parameters and execute its filter.
@@ -32,13 +31,18 @@ use Psr\Log\LoggerInterface;
  */
 final class ParameterExtension implements AggregationCollectionExtensionInterface, AggregationItemExtensionInterface
 {
-    use ParameterValueExtractorTrait;
+    use ParameterExtensionTrait;
 
     public function __construct(
-        private readonly ContainerInterface $filterLocator,
-        private readonly ?ManagerRegistry $managerRegistry = null,
-        private readonly ?LoggerInterface $logger = null,
+        ContainerInterface $filterLocator,
+        ?ManagerRegistry $managerRegistry = null,
+        ?LoggerInterface $logger = null,
+        ?NameConverterInterface $nameConverter = null,
     ) {
+        $this->filterLocator = $filterLocator;
+        $this->managerRegistry = $managerRegistry;
+        $this->logger = $logger;
+        $this->nameConverter = $nameConverter;
     }
 
     /**
@@ -66,35 +70,20 @@ final class ParameterExtension implements AggregationCollectionExtensionInterfac
                 continue;
             }
 
-            if ($this->managerRegistry && $filter instanceof ManagerRegistryAwareInterface && !$filter->hasManagerRegistry()) {
-                $filter->setManagerRegistry($this->managerRegistry);
-            }
+            $this->configureFilter($filter, $parameter);
 
-            if ($this->logger && $filter instanceof LoggerAwareInterface && !$filter->hasLogger()) {
-                $filter->setLogger($this->logger);
-            }
-
-            if ($filter instanceof AbstractFilter && !$filter->getProperties()) {
-                $propertyKey = $parameter->getProperty() ?? $parameter->getKey();
-
-                if (str_contains($propertyKey, ':property')) {
-                    $extraProperties = $parameter->getExtraProperties()['_properties'] ?? [];
-                    foreach (array_keys($extraProperties) as $property) {
-                        $properties[$property] = $parameter->getFilterContext();
-                    }
-                } else {
-                    $properties = [$propertyKey => $parameter->getFilterContext()];
-                }
-
-                $filter->setProperties($properties ?? []);
-            }
-
+            $previousFilters = $context['filters'] ?? null;
             $context['filters'] = $values;
             $context['parameter'] = $parameter;
 
             $filter->apply($aggregationBuilder, $resourceClass, $operation, $context);
 
-            unset($context['filters'], $context['parameter']);
+            unset($context['parameter']);
+            if (null !== $previousFilters) {
+                $context['filters'] = $previousFilters;
+            } else {
+                unset($context['filters']);
+            }
         }
 
         if (isset($context['match'])) {

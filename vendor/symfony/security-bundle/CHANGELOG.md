@@ -1,6 +1,32 @@
 CHANGELOG
 =========
 
+7.4
+---
+
+ * Add `debug:security:role-hierarchy` command to dump role hierarchy graphs in the Mermaid.js flowchart format
+ * Add `Security::getAccessDecision()` and `getAccessDecisionForUser()` helpers
+ * Add options to configure a cache pool and storage service for login throttling rate limiters
+ * Register alias for argument for password hasher when its key is not a class name:
+
+    With the following configuration:
+    ```yaml
+    security:
+      password_hashers:
+          recovery_code: auto
+    ```
+
+    It is possible to inject the `recovery_code` password hasher in a service:
+
+    ```php
+    public function __construct(
+        #[Target('recovery_code')]
+        private readonly PasswordHasherInterface $passwordHasher,
+    ) {
+    }
+    ```
+ * Deprecate `LazyFirewallContext::__invoke()`
+
 7.3
 ---
 

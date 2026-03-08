@@ -23,14 +23,18 @@ use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\OpenApi\Attributes\Webhook;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\AI\McpBundle\Controller\McpController;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 $globalMiddlewares = config()->get('api-platform.routes.middleware', []);
 $domain = config()->get('api-platform.routes.domain', '');
 
-Route::domain($domain)->middleware($globalMiddlewares)->group(function (): void {
-    $resourceNameCollectionFactory = app()->make(ResourceNameCollectionFactoryInterface::class);
-    $resourceMetadataFactory = app()->make(ResourceMetadataCollectionFactoryInterface::class);
+Route::domain($domain)->middleware($globalMiddlewares)->group(static function (): void {
+    $app = app();
+    $resourceNameCollectionFactory = $app->make(ResourceNameCollectionFactoryInterface::class);
+    $resourceMetadataFactory = $app->make(ResourceMetadataCollectionFactoryInterface::class);
 
     foreach ($resourceNameCollectionFactory->create() as $resourceClass) {
         foreach ($resourceMetadataFactory->create($resourceClass) as $resourceMetadata) {
@@ -46,7 +50,17 @@ Route::domain($domain)->middleware($globalMiddlewares)->group(function (): void 
                 $uriTemplate = str_replace('{._format}', '{_format?}', $operation->getUriTemplate());
 
                 /* @var HttpOperation $operation */
-                $route = Route::addRoute($operation->getMethod(), $uriTemplate, ['uses' => ApiPlatformController::class, 'prefix' => $operation->getRoutePrefix() ?? ''])
+                $controller = $operation->getController() ?? ApiPlatformController::class;
+
+                if (!class_exists($controller)) {
+                    $controller = $app->make($controller);
+
+                    if (is_callable([$controller, '__invoke'])) {
+                        $controller = '\\'.$controller::class.'@__invoke'; // see Illuminate\Routing\RouteAction
+                    }
+                }
+
+                $route = Route::addRoute($operation->getMethod(), $uriTemplate, ['uses' => $controller, 'prefix' => $operation->getRoutePrefix() ?? ''])
                     ->where([
                         '_format' => '^\.[a-zA-Z]+',
                     ] + ($operation->getRequirements() ?? []))
@@ -64,30 +78,11 @@ Route::domain($domain)->middleware($globalMiddlewares)->group(function (): void 
 
     $prefix = config()->get('api-platform.defaults.route_prefix', '');
 
-    Route::group(['prefix' => $prefix], function (): void {
-        Route::group(['middleware' => ApiPlatformMiddleware::class], function (): void {
-            Route::get('/contexts/{shortName?}{_format?}', ContextAction::class)
-                ->name('api_jsonld_context');
-
-            Route::get('/validation_errors/{id}', fn () => throw new NotExposedHttpException('Not exposed.'))
-                ->name('api_validation_errors')
-                ->middleware(ApiPlatformMiddleware::class);
-
-            Route::get('/docs{_format?}', DocumentationController::class)
-                ->name('api_doc');
-
-            Route::get('/.well-known/genid/{id}', fn () => throw new NotExposedHttpException('This route is not exposed on purpose. It generates an IRI for a collection resource without identifier nor item operation.'))
-                ->name('api_genid');
-
-            Route::get('/{index?}{_format?}', EntrypointController::class)
-                ->where('index', 'index')
-                ->name('api_entrypoint');
-        });
-
+    Route::group(['prefix' => $prefix], static function (): void {
         if (config()->get('api-platform.graphql.enabled')) {
             Route::group([
                 'middleware' => config()->get('api-platform.graphql.middleware', []),
-            ], function (): void {
+            ], static function (): void {
                 Route::addRoute(['POST', 'GET'], '/graphql', GraphQlEntrypointController::class)
                     ->name('api_graphql');
             });
@@ -96,11 +91,48 @@ Route::domain($domain)->middleware($globalMiddlewares)->group(function (): void 
                 Route::group([
                     'middleware' => config()->get('api-platform.graphiql.middleware', []),
                     'domain' => config()->get('api-platform.graphiql.domain', ''),
-                ], function (): void {
+                ], static function (): void {
                     Route::get('/graphiql', GraphiQlController::class)
                         ->name('api_graphiql');
                 });
             }
         }
+
+        Route::group(['middleware' => ApiPlatformMiddleware::class], static function (): void {
+            Route::get('/contexts/{shortName?}{_format?}', static function (Request $request, ContextAction $contextAction, string $shortName = 'Entrypoint') {
+                return $contextAction($shortName, $request);
+            })->name('api_jsonld_context');
+
+            Route::get('/validation_errors/{id}', static fn () => throw new NotExposedHttpException('Not exposed.'))
+                ->name('api_validation_errors')
+                ->middleware(ApiPlatformMiddleware::class);
+
+            Route::get('/docs{_format?}', DocumentationController::class)
+                ->name('api_doc');
+
+            Route::get('/.well-known/genid/{id}', static fn () => throw new NotExposedHttpException('This route is not exposed on purpose. It generates an IRI for a collection resource without identifier nor item operation.'))
+                ->name('api_genid');
+
+            Route::get('/{index?}{_format?}', EntrypointController::class)
+                ->where('index', 'index')
+                ->name('api_entrypoint');
+        });
     });
 });
+
+// MCP endpoint (outside the API prefix)
+if (class_exists(McpController::class)) {
+    Route::match(['GET', 'POST', 'DELETE', 'OPTIONS'], '/mcp', static function (Request $request) {
+        $requestStack = app(RequestStack::class);
+        $mcpController = app(McpController::class);
+
+        // Push Laravel request onto Symfony RequestStack
+        $requestStack->push($request);
+
+        try {
+            return $mcpController->handle($request);
+        } finally {
+            $requestStack->pop();
+        }
+    })->name('api_mcp');
+}
