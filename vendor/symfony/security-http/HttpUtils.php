@@ -13,6 +13,7 @@ namespace Symfony\Component\Security\Http;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Exception\ExceptionInterface;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -69,9 +70,17 @@ class HttpUtils
             Request::setTrustedProxies([], Request::getTrustedHeaderSet());
         }
 
+        // Trusted proxies are disabled above, so getBaseUrl() now returns only the
+        // webserver-derived portion of the base URL (e.g. an Apache "Alias /myapp …"
+        // sub-directory install). That portion must remain in the generated sub-request
+        // URI so it can re-detect its own base URL from SCRIPT_NAME/REQUEST_URI; only
+        // the trusted-proxy prefix is dropped from the URL generator's context here,
+        // otherwise it would be doubled once the sub-request is processed.
         $context = $this->urlGenerator?->getContext();
-        if ($baseUrl = $context?->getBaseUrl()) {
-            $context->setBaseUrl('');
+        $contextBaseUrl = $context?->getBaseUrl();
+        $realBaseUrl = null !== $context ? $request->getBaseUrl() : null;
+        if ($resetBaseUrl = $contextBaseUrl !== $realBaseUrl) {
+            $context->setBaseUrl($realBaseUrl);
         }
 
         try {
@@ -80,8 +89,8 @@ class HttpUtils
             if ($trustedProxies) {
                 Request::setTrustedProxies($trustedProxies, Request::getTrustedHeaderSet());
             }
-            if ($baseUrl) {
-                $context->setBaseUrl($baseUrl);
+            if ($resetBaseUrl) {
+                $context->setBaseUrl($contextBaseUrl);
             }
         }
 
@@ -122,7 +131,7 @@ class HttpUtils
         if ('/' !== $path[0]) {
             // Shortcut if request has already been matched before
             if ($request->attributes->has('_route')) {
-                return $path === $request->attributes->get('_route');
+                return $path === $request->attributes->get('_route') || $this->generatesRequestPath($request, $path, $request->attributes->get('_route_params', []));
             }
 
             try {
@@ -133,7 +142,7 @@ class HttpUtils
                     $parameters = $this->urlMatcher->match($request->getPathInfo());
                 }
 
-                return isset($parameters['_route']) && $path === $parameters['_route'];
+                return isset($parameters['_route']) && ($path === $parameters['_route'] || $this->generatesRequestPath($request, $path, $parameters));
             } catch (MethodNotAllowedException|ResourceNotFoundException) {
                 return false;
             }
@@ -181,5 +190,27 @@ class HttpUtils
         }
 
         return $url;
+    }
+
+    /**
+     * Tells whether generating the given route leads to the path of the current request.
+     *
+     * This makes route aliases work, since matching a request always yields the canonical route name.
+     */
+    private function generatesRequestPath(Request $request, string $route, array $parameters): bool
+    {
+        if (null === $this->urlGenerator) {
+            return false;
+        }
+
+        unset($parameters['_route'], $parameters['_controller']);
+
+        try {
+            $url = $this->urlGenerator->generate($route, $parameters);
+        } catch (ExceptionInterface) {
+            return false;
+        }
+
+        return $url === $request->getBaseUrl().$request->getPathInfo();
     }
 }

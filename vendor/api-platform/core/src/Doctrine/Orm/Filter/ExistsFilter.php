@@ -135,8 +135,9 @@ final class ExistsFilter extends AbstractFilter implements ExistsFilterInterface
     public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         $parameter = $context['parameter'] ?? null;
+        $propertyKey = $parameter?->getProperty();
 
-        if (null !== ($value = $context['filters'][$parameter?->getProperty()] ?? null)) {
+        if (null !== $propertyKey && null !== ($value = $context['filters'][$propertyKey] ?? null)) {
             $this->filterProperty($this->denormalizePropertyName($parameter->getProperty()), $value, $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
 
             return;
@@ -215,7 +216,7 @@ final class ExistsFilter extends AbstractFilter implements ExistsFilterInterface
 
         if ($metadata->hasAssociation($field)) {
             if ($metadata->isSingleValuedAssociation($field)) {
-                if (!($metadata instanceof ClassMetadata)) {
+                if (!$metadata instanceof ClassMetadata) {
                     return false;
                 }
 

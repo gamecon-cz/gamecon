@@ -30,7 +30,7 @@ use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-final class ContextBuilder implements AnonymousContextBuilderInterface
+final class ContextBuilder implements AnonymousContextBuilderInterface, OperationContextBuilderInterface
 {
     use ClassInfoTrait;
     use HydraPrefixTrait;
@@ -62,13 +62,14 @@ final class ContextBuilder implements AnonymousContextBuilderInterface
         $context = $this->getBaseContext($referenceType);
 
         foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
-            $shortName = $this->resourceMetadataFactory->create($resourceClass)[0]->getShortName();
-            $resourceName = lcfirst($shortName);
+            foreach ($this->resourceMetadataFactory->create($resourceClass) as $resource) {
+                $resourceName = lcfirst($resource->getShortName());
 
-            $context[$resourceName] = [
-                '@id' => 'Entrypoint/'.$resourceName,
-                '@type' => '@id',
-            ];
+                $context[$resourceName] = [
+                    '@id' => 'Entrypoint/'.$resourceName,
+                    '@type' => '@id',
+                ];
+            }
         }
 
         return $context;
@@ -125,6 +126,13 @@ final class ContextBuilder implements AnonymousContextBuilderInterface
                 'groups' => [],
             ]
         );
+
+        $types = $context['types'] ?? null;
+
+        if (\is_array($types) && 1 === \count($types)) {
+            $types = $types[0];
+        }
+
         $shortName = $operation->getShortName();
 
         $jsonLdContext = [
@@ -134,12 +142,12 @@ final class ContextBuilder implements AnonymousContextBuilderInterface
                 $shortName,
                 $operation
             ),
-            '@type' => $shortName,
+            '@type' => $types ?? $shortName,
         ];
 
         if (isset($context['iri'])) {
             $jsonLdContext['@id'] = $context['iri'];
-        } elseif (true === ($context['gen_id'] ?? true) && $this->iriConverter) {
+        } elseif (true === ($context['gen_id'] ?? true) && $this->iriConverter && !isset($context['item_uri_template'])) {
             $jsonLdContext['@id'] = $this->iriConverter->getIriFromResource($object);
         }
 
@@ -154,6 +162,38 @@ final class ContextBuilder implements AnonymousContextBuilderInterface
         }
 
         return $jsonLdContext;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getResourceContextUriFromOperation(HttpOperation $operation, ?int $referenceType = null): string
+    {
+        if (null === $referenceType) {
+            $referenceType = $operation->getUrlGenerationStrategy();
+        }
+
+        return $this->urlGenerator->generate('api_jsonld_context', ['shortName' => $operation->getShortName()], $referenceType ?? UrlGeneratorInterface::ABS_PATH);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getResourceContextFromOperation(HttpOperation $operation, string $resourceClass, int $referenceType = UrlGeneratorInterface::ABS_PATH): array
+    {
+        if (null === $shortName = $operation->getShortName()) {
+            return [];
+        }
+
+        $context = $operation->getNormalizationContext();
+        if ($context['iri_only'] ?? false) {
+            $context = $this->getBaseContext($referenceType);
+            $context[$this->getHydraPrefix($context).'member']['@type'] = '@id';
+
+            return $context;
+        }
+
+        return $this->getResourceContextWithShortname($resourceClass, $referenceType, $shortName, $operation);
     }
 
     private function getResourceContextWithShortname(string $resourceClass, int $referenceType, string $shortName, ?HttpOperation $operation = null): array

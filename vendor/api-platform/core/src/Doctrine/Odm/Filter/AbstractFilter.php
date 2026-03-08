@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Doctrine\Odm\Filter;
 
 use ApiPlatform\Doctrine\Common\Filter\ManagerRegistryAwareInterface;
+use ApiPlatform\Doctrine\Common\Filter\NameConverterAwareInterface;
 use ApiPlatform\Doctrine\Common\Filter\PropertyAwareFilterInterface;
 use ApiPlatform\Doctrine\Common\PropertyHelperTrait;
 use ApiPlatform\Doctrine\Odm\PropertyHelperTrait as MongoDbOdmPropertyHelperTrait;
@@ -32,7 +33,7 @@ use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
  *
  * @author Alan Poulain <contact@alanpoulain.eu>
  */
-abstract class AbstractFilter implements FilterInterface, PropertyAwareFilterInterface, ManagerRegistryAwareInterface
+abstract class AbstractFilter implements FilterInterface, PropertyAwareFilterInterface, ManagerRegistryAwareInterface, NameConverterAwareInterface
 {
     use MongoDbOdmPropertyHelperTrait;
     use PropertyHelperTrait;
@@ -59,6 +60,10 @@ abstract class AbstractFilter implements FilterInterface, PropertyAwareFilterInt
 
     /**
      * Passes a property through the filter.
+     *
+     * @param array<string, mixed> $context
+     *
+     * @param-out array<string, mixed> $context
      */
     abstract protected function filterProperty(string $property, mixed $value, Builder $aggregationBuilder, string $resourceClass, ?Operation $operation = null, array &$context = []): void;
 
@@ -79,6 +84,21 @@ abstract class AbstractFilter implements FilterInterface, PropertyAwareFilterInt
     public function setManagerRegistry(ManagerRegistry $managerRegistry): void
     {
         $this->managerRegistry = $managerRegistry;
+    }
+
+    public function hasNameConverter(): bool
+    {
+        return $this->nameConverter instanceof NameConverterInterface;
+    }
+
+    public function getNameConverter(): ?NameConverterInterface
+    {
+        return $this->nameConverter;
+    }
+
+    public function setNameConverter(NameConverterInterface $nameConverter): void
+    {
+        $this->nameConverter = $nameConverter;
     }
 
     /**

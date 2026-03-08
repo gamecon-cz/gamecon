@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\State\Util;
 
+use ApiPlatform\Metadata\Error;
 use ApiPlatform\Metadata\Exception\HttpExceptionInterface;
 use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\Exception\ItemNotFoundException;
@@ -20,6 +21,8 @@ use ApiPlatform\Metadata\Exception\RuntimeException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Operation\Factory\OperationMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Util\ClassInfoTrait;
 use ApiPlatform\Metadata\Util\CloneTrait;
@@ -38,6 +41,8 @@ trait HttpResponseHeadersTrait
     use CloneTrait;
     private ?IriConverterInterface $iriConverter;
     private ?OperationMetadataFactoryInterface $operationMetadataFactory;
+    private ?ResourceClassResolverInterface $resourceClassResolver;
+    private ?ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory;
 
     /**
      * @param array<string, mixed> $context
@@ -47,12 +52,25 @@ trait HttpResponseHeadersTrait
     private function getHeaders(Request $request, HttpOperation $operation, array $context): array
     {
         $status = $this->getStatus($request, $operation, $context);
+        $method = $request->getMethod();
+        $output = $operation->getOutput();
+        $outputMetadata = $output ?? ['class' => $operation->getClass()];
+        $hasOutput = \is_array($outputMetadata) && \array_key_exists('class', $outputMetadata) && null !== $outputMetadata['class'];
+        $outputExplicitlyDisabled = \is_array($output) && \array_key_exists('class', $output) && null === $output['class'];
+        // RFC 7230 §3.3.2 / §3.3.3: 204, 205 and 304 responses MUST NOT include a payload body,
+        // and a sender MUST NOT generate a Content-Type field for a message without a body.
+        $isBodylessStatus = \in_array($status, [Response::HTTP_NO_CONTENT, Response::HTTP_RESET_CONTENT, Response::HTTP_NOT_MODIFIED], true);
+        $hasBody = !$outputExplicitlyDisabled && !$isBodylessStatus;
+
         $headers = [
-            'Content-Type' => \sprintf('%s; charset=utf-8', $request->getMimeType($request->getRequestFormat())),
             'Vary' => 'Accept',
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'deny',
         ];
+
+        if ($hasBody) {
+            $headers['Content-Type'] = \sprintf('%s; charset=utf-8', $request->getMimeType($request->getRequestFormat()));
+        }
 
         $exception = $request->attributes->get('exception');
         if (($exception instanceof HttpExceptionInterface || $exception instanceof SymfonyHttpExceptionInterface) && $exceptionHeaders = $exception->getHeaders()) {
@@ -71,10 +89,7 @@ trait HttpResponseHeadersTrait
             $headers['Accept-Patch'] = $acceptPatch;
         }
 
-        $method = $request->getMethod();
         $originalData = $context['original_data'] ?? null;
-        $outputMetadata = $operation->getOutput() ?? ['class' => $operation->getClass()];
-        $hasOutput = \is_array($outputMetadata) && \array_key_exists('class', $outputMetadata) && null !== $outputMetadata['class'];
         $hasData = !$hasOutput ? false : ($this->resourceClassResolver && $originalData && \is_object($originalData) && $this->resourceClassResolver->isResourceClass($this->getObjectClass($originalData)));
 
         if ($hasData) {
@@ -122,6 +137,41 @@ trait HttpResponseHeadersTrait
             }
         }
 
+        if (
+            !$operation instanceof Error
+            && $operation->getUriTemplate()
+            && $this->resourceClassResolver?->isResourceClass($operation->getClass())
+        ) {
+            $this->addLinkedDataPlatformHeaders($headers, $operation);
+        }
+
         return $headers;
+    }
+
+    private function addLinkedDataPlatformHeaders(array &$headers, HttpOperation $operation): void
+    {
+        if (!$this->resourceMetadataCollectionFactory) {
+            return;
+        }
+
+        $acceptPost = null;
+        $allowedMethods = ['OPTIONS', 'HEAD'];
+        $resourceCollection = $this->resourceMetadataCollectionFactory->create($operation->getClass());
+        foreach ($resourceCollection as $resource) {
+            foreach ($resource->getOperations() as $op) {
+                if ($op->getUriTemplate() === $operation->getUriTemplate()) {
+                    $allowedMethods[] = $method = $op->getMethod();
+                    if ('POST' === $method && \is_array($outputFormats = $op->getOutputFormats())) {
+                        $acceptPost = implode(', ', array_merge(...array_values($outputFormats)));
+                    }
+                }
+            }
+        }
+
+        if ($acceptPost) {
+            $headers['Accept-Post'] = $acceptPost;
+        }
+
+        $headers['Allow'] = implode(', ', $allowedMethods);
     }
 }

@@ -22,7 +22,6 @@ use ApiPlatform\Metadata\GraphQl\Operation;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\Subscription;
 use ApiPlatform\Metadata\InflectorInterface;
-use ApiPlatform\Metadata\OpenApiParameterFilterInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
@@ -41,8 +40,6 @@ use GraphQL\Type\Definition\WrappingType;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Type as LegacyType;
-use Symfony\Component\Serializer\NameConverter\AdvancedNameConverterInterface;
-use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\TypeInfo\Type\CollectionType;
@@ -358,6 +355,8 @@ final class FieldsBuilder implements FieldsBuilderEnumInterface
             if (isset($fields[$key])) {
                 if ($type instanceof ListOfType) {
                     $key .= '_list';
+                } elseif ($fields[$key]['type'] instanceof InputObjectType && !$type instanceof InputObjectType) {
+                    continue;
                 }
             }
 
@@ -407,7 +406,7 @@ final class FieldsBuilder implements FieldsBuilderEnumInterface
         }
 
         try {
-            $isCollectionType = $type->isSatisfiedBy(fn ($t) => $t instanceof CollectionType) && ($v = TypeHelper::getCollectionValueType($type)) && TypeHelper::getClassName($v);
+            $isCollectionType = $type->isSatisfiedBy(static fn ($t) => $t instanceof CollectionType) && ($v = TypeHelper::getCollectionValueType($type)) && TypeHelper::getClassName($v);
 
             $valueType = $type;
             if ($isCollectionType) {
@@ -436,11 +435,7 @@ final class FieldsBuilder implements FieldsBuilderEnumInterface
 
             $graphqlWrappedType = $graphqlType;
             if ($graphqlType instanceof WrappingType) {
-                if (method_exists($graphqlType, 'getInnermostType')) {
-                    $graphqlWrappedType = $graphqlType->getInnermostType();
-                } else {
-                    $graphqlWrappedType = $graphqlType->getWrappedType(true);
-                }
+                $graphqlWrappedType = $graphqlType->getInnermostType();
             }
             $isStandardGraphqlType = \in_array($graphqlWrappedType, GraphQLType::getStandardTypes(), true);
             if ($isStandardGraphqlType) {
@@ -499,56 +494,60 @@ final class FieldsBuilder implements FieldsBuilderEnumInterface
      */
     private function getParameterArgs(Operation $operation, array $args = []): array
     {
+        $groups = [];
+
         foreach ($operation->getParameters() ?? [] as $parameter) {
             $key = $parameter->getKey();
 
-            if (!str_contains($key, ':property')) {
-                $args[$key] = ['type' => GraphQLType::string()];
+            if (str_contains($key, '[')) {
+                $key = str_replace('.', $this->nestingSeparator, $key);
+                parse_str($key, $values);
+                $rootKey = key($values);
 
-                if ($parameter->getRequired()) {
-                    $args[$key]['type'] = GraphQLType::nonNull($args[$key]['type']);
+                $leafs = $values[$rootKey];
+                $name = key($leafs);
+
+                $filterLeafs = [];
+                if ($filter = $this->resolveFilter($parameter->getFilter())) {
+                    $property = $parameter->getProperty() ?? $name;
+                    $property = str_replace('.', $this->nestingSeparator, $property);
+                    $description = $filter->getDescription($operation->getClass());
+
+                    foreach ($description as $descKey => $descValue) {
+                        $descKey = str_replace('.', $this->nestingSeparator, $descKey);
+                        parse_str($descKey, $descValues);
+                        if (isset($descValues[$property]) && \is_array($descValues[$property])) {
+                            $filterLeafs = array_merge($filterLeafs, $descValues[$property]);
+                        }
+                    }
                 }
 
+                if ($filterLeafs) {
+                    $leafs[$name] = $filterLeafs;
+                }
+
+                $groups[$rootKey][] = [
+                    'name' => $name,
+                    'leafs' => $leafs[$name],
+                    'required' => $parameter->getRequired(),
+                    'description' => $parameter->getDescription(),
+                    'type' => 'string',
+                ];
                 continue;
             }
 
-            if (!($filterId = $parameter->getFilter()) || !$this->filterLocator->has($filterId)) {
-                continue;
+            $args[$key] = ['type' => GraphQLType::string()];
+
+            if ($parameter->getRequired()) {
+                $args[$key]['type'] = GraphQLType::nonNull($args[$key]['type']);
             }
+        }
 
-            $filter = $this->filterLocator->get($filterId);
-            $parsedKey = explode('[:property]', $key);
-            $flattenFields = [];
-
-            if ($filter instanceof FilterInterface) {
-                foreach ($filter->getDescription($operation->getClass()) as $name => $value) {
-                    $values = [];
-                    parse_str($name, $values);
-                    if (isset($values[$parsedKey[0]])) {
-                        $values = $values[$parsedKey[0]];
-                    }
-
-                    $name = key($values);
-                    $flattenFields[] = ['name' => $name, 'required' => $value['required'] ?? null, 'description' => $value['description'] ?? null, 'leafs' => $values[$name], 'type' => $value['type'] ?? 'string'];
-                }
-
-                $args[$parsedKey[0]] = $this->parameterToObjectType($flattenFields, $parsedKey[0]);
-            }
-
-            if ($filter instanceof OpenApiParameterFilterInterface) {
-                foreach ($filter->getOpenApiParameters($parameter) as $value) {
-                    $values = [];
-                    parse_str($value->getName(), $values);
-                    if (isset($values[$parsedKey[0]])) {
-                        $values = $values[$parsedKey[0]];
-                    }
-
-                    $name = key($values);
-                    $flattenFields[] = ['name' => $name, 'required' => $value->getRequired(), 'description' => $value->getDescription(), 'leafs' => $values[$name], 'type' => $value->getSchema()['type'] ?? 'string'];
-                }
-
-                $args[$parsedKey[0]] = $this->parameterToObjectType($flattenFields, $parsedKey[0].$operation->getShortName().$operation->getName());
-            }
+        foreach ($groups as $key => $flattenFields) {
+            $name = $key.$operation->getShortName().$operation->getName();
+            $inputObject = $this->parameterToObjectType($flattenFields, $name);
+            $this->typesContainer->set($name, $inputObject);
+            $args[$key] = $inputObject;
         }
 
         return $args;
@@ -605,12 +604,12 @@ final class FieldsBuilder implements FieldsBuilderEnumInterface
         }
 
         foreach ($resourceOperation->getFilters() ?? [] as $filterId) {
-            if (!$this->filterLocator->has($filterId)) {
+            if (!($filter = $this->resolveFilter($filterId))) {
                 continue;
             }
 
             $entityClass = $this->getStateOptionsClass($resourceOperation, $resourceOperation->getClass());
-            foreach ($this->filterLocator->get($filterId)->getDescription($entityClass) as $key => $description) {
+            foreach ($filter->getDescription($entityClass) as $key => $description) {
                 $filterType = \in_array($description['type'], TypeIdentifier::values(), true) ? Type::builtin($description['type']) : Type::object($description['type']);
                 if (!($description['required'] ?? false)) {
                     $filterType = Type::nullable($filterType);
@@ -723,7 +722,7 @@ final class FieldsBuilder implements FieldsBuilderEnumInterface
             $graphqlType = $this->typesContainer->get($graphqlType);
         }
 
-        if ($type->isSatisfiedBy(fn ($t) => $t instanceof CollectionType) && ($collectionValueType = TypeHelper::getCollectionValueType($type)) && TypeHelper::getClassName($collectionValueType)) {
+        if ($type->isSatisfiedBy(static fn ($t) => $t instanceof CollectionType) && ($collectionValueType = TypeHelper::getCollectionValueType($type)) && TypeHelper::getClassName($collectionValueType)) {
             if (!$input && !$this->isEnumClass($resourceClass) && $this->pagination->isGraphQlEnabled($resourceOperation)) {
                 return $this->typeBuilder->getPaginatedCollectionType($graphqlType, $resourceOperation);
             }
@@ -741,10 +740,27 @@ final class FieldsBuilder implements FieldsBuilderEnumInterface
         if (null === $this->nameConverter) {
             return $property;
         }
-        if ($this->nameConverter instanceof AdvancedNameConverterInterface || $this->nameConverter instanceof MetadataAwareNameConverter) {
-            return $this->nameConverter->normalize($property, $resourceClass);
+
+        return $this->nameConverter->normalize($property, $resourceClass);
+    }
+
+    /**
+     * Resolves a filter reference to a {@see FilterInterface} instance, supporting
+     * both a string service id (legacy/locator path) and an object form
+     * (`new QueryParameter(filter: new SortFilter())`).
+     */
+    private function resolveFilter(mixed $filter): ?FilterInterface
+    {
+        if ($filter instanceof FilterInterface) {
+            return $filter;
         }
 
-        return $this->nameConverter->normalize($property);
+        if (\is_string($filter) && $this->filterLocator->has($filter)) {
+            $resolved = $this->filterLocator->get($filter);
+
+            return $resolved instanceof FilterInterface ? $resolved : null;
+        }
+
+        return null;
     }
 }

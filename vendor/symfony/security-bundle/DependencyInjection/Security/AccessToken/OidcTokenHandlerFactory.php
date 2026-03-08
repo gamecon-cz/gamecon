@@ -18,6 +18,7 @@ use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Security\Http\Command\OidcTokenGenerateCommand;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -31,6 +32,7 @@ class OidcTokenHandlerFactory implements TokenHandlerFactoryInterface
             ->replaceArgument(2, $config['audience'])
             ->replaceArgument(3, $config['issuers'])
             ->replaceArgument(4, $config['claim'])
+            ->addTag('container.reversible')
         );
 
         if (!ContainerBuilder::willBeAvailable('web-token/jwt-library', Algorithm::class, ['symfony/security-bundle'])) {
@@ -47,16 +49,18 @@ class OidcTokenHandlerFactory implements TokenHandlerFactoryInterface
 
             // disable JWKSet argument
             $tokenHandlerDefinition->replaceArgument(1, null);
-            $tokenHandlerDefinition->addMethodCall(
-                'enableDiscovery',
-                [
-                    new Reference($config['discovery']['cache']['id']),
-                    (new ChildDefinition('security.access_token_handler.oidc_discovery.http_client'))
-                        ->replaceArgument(0, ['base_uri' => $config['discovery']['base_uri']]),
-                    "$id.oidc_configuration",
-                    "$id.oidc_jwk_set",
-                ]
-            );
+
+            $clients = [];
+            foreach ($config['discovery']['base_uri'] as $uri) {
+                $clients[] = (new ChildDefinition('security.access_token_handler.oidc_discovery.http_client'))
+                    ->replaceArgument(0, ['base_uri' => $uri]);
+            }
+
+            $tokenHandlerDefinition->addMethodCall('enableDiscovery', [
+                new Reference($config['discovery']['cache']['id']),
+                $clients,
+                "$id.oidc_configuration",
+            ]);
 
             return;
         }
@@ -79,6 +83,33 @@ class OidcTokenHandlerFactory implements TokenHandlerFactoryInterface
                 ]
             );
         }
+
+        // Generate command
+        if (!class_exists(OidcTokenGenerateCommand::class)) {
+            return;
+        }
+
+        if (!$container->hasDefinition('security.access_token_handler.oidc.command.generate')) {
+            $container
+                ->register('security.access_token_handler.oidc.command.generate', OidcTokenGenerateCommand::class)
+                ->addTag('console.command')
+            ;
+        }
+
+        $firewall = substr($id, \strlen('security.access_token_handler.'));
+        $container->getDefinition('security.access_token_handler.oidc.command.generate')
+            ->addMethodCall('addGenerator', [
+                $firewall,
+                (new ChildDefinition('security.access_token_handler.oidc.generator'))
+                    ->replaceArgument(0, (new ChildDefinition('security.access_token_handler.oidc.signature'))->replaceArgument(0, $config['algorithms']))
+                    ->replaceArgument(1, (new ChildDefinition('security.access_token_handler.oidc.jwkset'))->replaceArgument(0, $config['keyset']))
+                    ->replaceArgument(2, $config['audience'])
+                    ->replaceArgument(3, $config['issuers'])
+                    ->replaceArgument(4, $config['claim']),
+                $config['algorithms'],
+                $config['issuers'],
+            ])
+        ;
     }
 
     public function getKey(): string
@@ -90,8 +121,6 @@ class OidcTokenHandlerFactory implements TokenHandlerFactoryInterface
     {
         $node
             ->arrayNode($this->getKey())
-                ->fixXmlConfig('issuer')
-                ->fixXmlConfig('algorithm')
                 ->validate()
                     ->ifTrue(static fn ($v) => !isset($v['algorithm']) && !isset($v['algorithms']))
                     ->thenInvalid('You must set either "algorithm" or "algorithms".')
@@ -101,24 +130,28 @@ class OidcTokenHandlerFactory implements TokenHandlerFactoryInterface
                     ->thenInvalid('You must set either "discovery" or "key" or "keyset".')
                 ->end()
                 ->beforeNormalization()
-                    ->ifTrue(static fn ($v) => isset($v['algorithm']) && \is_string($v['algorithm']))
+                    ->ifArray()
                     ->then(static function ($v) {
-                        if (isset($v['algorithms'])) {
+                        if (isset($v['algorithms']) && isset($v['algorithm'])) {
                             throw new InvalidConfigurationException('You cannot use both "algorithm" and "algorithms" at the same time.');
                         }
-                        $v['algorithms'] = [$v['algorithm']];
-                        unset($v['algorithm']);
+                        if (\is_string($v['algorithm'] ?? null)) {
+                            $v['algorithms'] = [$v['algorithm']];
+                            unset($v['algorithm']);
+                        }
 
                         return $v;
                     })
                 ->end()
                 ->beforeNormalization()
-                    ->ifTrue(static fn ($v) => isset($v['key']) && \is_string($v['key']))
+                    ->ifArray()
                     ->then(static function ($v) {
-                        if (isset($v['keyset'])) {
+                        if (isset($v['keyset']) && isset($v['key'])) {
                             throw new InvalidConfigurationException('You cannot use both "key" and "keyset" at the same time.');
                         }
-                        $v['keyset'] = \sprintf('{"keys":[%s]}', $v['key']);
+                        if (\is_string($v['key'] ?? null)) {
+                            $v['keyset'] = \sprintf('{"keys":[%s]}', $v['key']);
+                        }
 
                         return $v;
                     })
@@ -127,10 +160,11 @@ class OidcTokenHandlerFactory implements TokenHandlerFactoryInterface
                     ->arrayNode('discovery')
                         ->info('Enable the OIDC discovery.')
                         ->children()
-                            ->scalarNode('base_uri')
+                            ->arrayNode('base_uri')
+                                ->acceptAndWrap(['string'])
                                 ->info('Base URI of the OIDC server.')
                                 ->isRequired()
-                                ->cannotBeEmpty()
+                                ->scalarPrototype()->end()
                             ->end()
                             ->arrayNode('cache')
                                 ->children()
@@ -151,7 +185,7 @@ class OidcTokenHandlerFactory implements TokenHandlerFactoryInterface
                         ->info('Audience set in the token, for validation purpose.')
                         ->isRequired()
                     ->end()
-                    ->arrayNode('issuers')
+                    ->arrayNode('issuers', 'issuer')
                         ->info('Issuers allowed to generate the token, for validation purpose.')
                         ->isRequired()
                         ->scalarPrototype()->end()
@@ -160,7 +194,7 @@ class OidcTokenHandlerFactory implements TokenHandlerFactoryInterface
                         ->info('Algorithm used to sign the token.')
                         ->setDeprecated('symfony/security-bundle', '7.1', 'The "%node%" option is deprecated and will be removed in 8.0. Use the "algorithms" option instead.')
                     ->end()
-                    ->arrayNode('algorithms')
+                    ->arrayNode('algorithms', 'algorithm')
                         ->info('Algorithms used to sign the token.')
                         ->isRequired()
                         ->scalarPrototype()->end()
@@ -173,14 +207,13 @@ class OidcTokenHandlerFactory implements TokenHandlerFactoryInterface
                         ->info('JSON-encoded JWKSet used to sign the token (must contain a list of valid public keys).')
                     ->end()
                     ->arrayNode('encryption')
-                        ->fixXmlConfig('algorithm')
                         ->canBeEnabled()
                         ->children()
                             ->booleanNode('enforce')
                                 ->info('When enabled, the token shall be encrypted.')
                                 ->defaultFalse()
                             ->end()
-                            ->arrayNode('algorithms')
+                            ->arrayNode('algorithms', 'algorithm')
                                 ->info('Algorithms used to decrypt the token.')
                                 ->isRequired()
                                 ->requiresAtLeastOneElement()

@@ -31,6 +31,7 @@ use Symfony\Component\TypeInfo\Type\CollectionType;
 use Symfony\Component\TypeInfo\Type\CompositeTypeInterface;
 use Symfony\Component\TypeInfo\Type\GenericType;
 use Symfony\Component\TypeInfo\Type\ObjectType;
+use Symfony\Component\TypeInfo\Type\UnionType;
 use Symfony\Component\TypeInfo\TypeIdentifier;
 
 /**
@@ -63,6 +64,8 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
     public function buildSchema(string $className, string $format = 'json', string $type = Schema::TYPE_OUTPUT, ?Operation $operation = null, ?Schema $schema = null, ?array $serializerContext = null, bool $forceCollection = false): Schema
     {
         $schema = $schema ? clone $schema : new Schema();
+
+        $operationWasProvided = null !== $operation;
 
         if (!$this->isResourceClass($className)) {
             $operation = null;
@@ -97,7 +100,7 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
             $isJsonMergePatch => 'merge-patch+json',
         };
 
-        $definitionName = $this->definitionNameFactory->create($className, $definitionFormat, $inputOrOutputClass, $operation, $serializerContext);
+        $definitionName = $this->definitionNameFactory->create($className, $definitionFormat, $inputOrOutputClass, $operation, $serializerContext + ['schema_type' => $type]);
 
         if (!isset($schema['$ref']) && !isset($schema['type'])) {
             $ref = $this->getSchemaUriPrefix($version).$definitionName;
@@ -129,7 +132,10 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
         }
 
         // see https://github.com/json-schema-org/json-schema-spec/pull/737
-        if (Schema::VERSION_SWAGGER !== $version && $operation && $operation->getDeprecationReason()) {
+        // deprecation belongs to the operation/path, not to a resource shape embedded in another schema:
+        // a guessed operation under FORCE_SUBSCHEMA must not leak `deprecated` onto the sub-schema (see #7064)
+        if (Schema::VERSION_SWAGGER !== $version && $operation && $operation->getDeprecationReason()
+            && ($operationWasProvided || !($serializerContext[self::FORCE_SUBSCHEMA] ?? false))) {
             $definition['deprecated'] = true;
         }
 
@@ -244,6 +250,16 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
                 continue;
             }
 
+            $childSerializerContext = $serializerContext + [self::FORCE_SUBSCHEMA => true, 'gen_id' => $propertyMetadata->getGenId() ?? true];
+            if (isset($serializerContext[AbstractNormalizer::ATTRIBUTES])) {
+                $attributes = $serializerContext[AbstractNormalizer::ATTRIBUTES];
+                if (\is_array($attributes) && \array_key_exists($normalizedPropertyName, $attributes) && \is_array($attributes[$normalizedPropertyName])) {
+                    $childSerializerContext[AbstractNormalizer::ATTRIBUTES] = $attributes[$normalizedPropertyName];
+                } else {
+                    unset($childSerializerContext[AbstractNormalizer::ATTRIBUTES]);
+                }
+            }
+
             $subSchemaFactory = $this->schemaFactory ?: $this;
             $subSchema = $subSchemaFactory->buildSchema(
                 $className,
@@ -251,7 +267,7 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
                 $parentType,
                 null,
                 $subSchema,
-                $serializerContext + [self::FORCE_SUBSCHEMA => true, 'gen_id' => $propertyMetadata->getGenId() ?? true],
+                $childSerializerContext,
                 false,
             );
 
@@ -354,15 +370,86 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
                     $valueType = TypeHelper::getCollectionValueType($t);
                 }
 
+                if ($valueType instanceof UnionType) {
+                    $unionRefs = [];
+
+                    foreach ($valueType->getTypes() as $subtype) {
+                        if ($subtype instanceof BuiltinType && TypeIdentifier::NULL === $subtype->getTypeIdentifier()) {
+                            continue;
+                        }
+
+                        if ($subtype instanceof ObjectType) {
+                            $className = $subtype->getClassName();
+                        } elseif ($subtype instanceof BuiltinType && $subtype->getTypeIdentifier()->isScalar()) {
+                            $unionRefs[] = match ($subtype->getTypeIdentifier()) {
+                                TypeIdentifier::INT => ['type' => 'integer'],
+                                TypeIdentifier::FLOAT => ['type' => 'number'],
+                                TypeIdentifier::BOOL => ['type' => 'boolean'],
+                                TypeIdentifier::TRUE => ['type' => 'boolean', 'const' => true],
+                                TypeIdentifier::FALSE => ['type' => 'boolean', 'const' => false],
+                                TypeIdentifier::STRING => ['type' => 'string'],
+                                default => ['type' => 'null'],
+                            };
+
+                            continue;
+                        } else {
+                            continue;
+                        }
+
+                        $subSchema = new Schema($version);
+                        $subSchema->setDefinitions($schema->getDefinitions());
+
+                        $result = ($this->schemaFactory ?: $this)->buildSchema(
+                            $className,
+                            $format,
+                            $parentType,
+                            null,
+                            $subSchema,
+                            $serializerContext + [self::FORCE_SUBSCHEMA => true],
+                        );
+
+                        if (isset($result['$ref'])) {
+                            $unionRefs[] = ['$ref' => $result['$ref']];
+                        }
+                    }
+
+                    if ($unionRefs) {
+                        if ($isCollection) {
+                            $propertySchema['type'] = 'array';
+                            $propertySchema['items'] = 1 === \count($unionRefs)
+                                ? $unionRefs[0]
+                                : ['anyOf' => $unionRefs];
+                        } else {
+                            $refs = 1 === \count($unionRefs)
+                                ? [$unionRefs[0]]
+                                : $unionRefs;
+                        }
+                    }
+
+                    continue;
+                }
+
                 if (!$valueType instanceof ObjectType && !$valueType instanceof GenericType) {
                     continue;
                 }
 
                 if ($valueType instanceof ObjectType) {
                     $className = $valueType->getClassName();
-                } else {
+                } elseif (($wrappedType = $valueType->getWrappedType()) instanceof ObjectType) {
                     // GenericType
-                    $className = $valueType->getWrappedType()->getClassName();
+                    $className = $wrappedType->getClassName();
+                } else {
+                    continue;
+                }
+
+                $childSerializerContext = $serializerContext + [self::FORCE_SUBSCHEMA => true, 'gen_id' => $propertyMetadata->getGenId() ?? true];
+                if (isset($serializerContext[AbstractNormalizer::ATTRIBUTES])) {
+                    $attributes = $serializerContext[AbstractNormalizer::ATTRIBUTES];
+                    if (\is_array($attributes) && \array_key_exists($normalizedPropertyName, $attributes) && \is_array($attributes[$normalizedPropertyName])) {
+                        $childSerializerContext[AbstractNormalizer::ATTRIBUTES] = $attributes[$normalizedPropertyName];
+                    } else {
+                        unset($childSerializerContext[AbstractNormalizer::ATTRIBUTES]);
+                    }
                 }
 
                 $subSchemaInstance = new Schema($version);
@@ -374,7 +461,7 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
                     $parentType,
                     null,
                     $subSchemaInstance,
-                    $serializerContext + [self::FORCE_SUBSCHEMA => true, 'gen_id' => $propertyMetadata->getGenId() ?? true],
+                    $childSerializerContext,
                     false,
                 );
                 if (!isset($subSchemaResult['$ref'])) {
@@ -446,6 +533,18 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
 
         if ($operation && ($denormalizationGroups = $operation->getDenormalizationContext()['groups'] ?? null)) {
             $options['denormalization_groups'] = $denormalizationGroups;
+        }
+
+        if (isset($serializerContext[AbstractNormalizer::ATTRIBUTES])) {
+            $options['serializer_attributes'] = (array) $serializerContext[AbstractNormalizer::ATTRIBUTES];
+        }
+
+        if ($operation && ($normalizationAttributes = $operation->getNormalizationContext()['attributes'] ?? null)) {
+            $options['normalization_attributes'] = $normalizationAttributes;
+        }
+
+        if ($operation && ($denormalizationAttributes = $operation->getDenormalizationContext()['attributes'] ?? null)) {
+            $options['denormalization_attributes'] = $denormalizationAttributes;
         }
 
         if ($validationGroups) {

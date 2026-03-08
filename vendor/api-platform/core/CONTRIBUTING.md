@@ -57,7 +57,12 @@ APP_DEBUG=1 tests/Fixtures/app/console debug:config
 The API Platform project follows [Symfony coding standards](https://symfony.com/doc/current/contributing/code/standards.html).
 But don't worry, you can fix CS issues automatically using the [PHP CS Fixer](https://cs.symfony.com) tool:
 
-    php-cs-fixer.phar fix
+```shell
+    vendor/bin/php-cs-fixer fix --diff
+```
+
+> [!NOTE]
+> The first run may take some time, then the following runs will be faster because the cache will be used.
 
 And then, add the fixed file to your commit before pushing.
 Be sure to add only **your modified files**. If any other file is fixed by cs tools, just revert it before committing.
@@ -82,7 +87,7 @@ See also the [related documentation for Symfony](https://symfony.com/doc/current
 
 When you send a PR, just make sure that:
 
-* You add valid test cases (Behat and PHPUnit).
+* You add valid test cases (PHPUnit).
 * Tests are green.
 * You make a PR on the related documentation in the [api-platform/docs](https://github.com/api-platform/docs) repository.
 * You make the PR on the same branch you based your changes on. If you see commits
@@ -118,11 +123,11 @@ Only the first commit on a Pull Request need to use a conventional commit, other
 
 ### Tests
 
-On `api-platform/core` there are two kinds of tests: unit (`phpunit`) and integration tests (`behat`).
+On `api-platform/core` tests are written with `phpunit` (unit tests and functional tests under `tests/Functional`).
 
 Note that we stopped using `prophesize` for new tests since 3.2, use `phpunit` stub system.
 
-Both `phpunit` and `behat` are development dependencies and should be available in the `vendor` directory.
+`phpunit` is a development dependency and should be available in the `vendor` directory.
 
 Recommendations:
 
@@ -152,20 +157,11 @@ Sometimes there might be an error with too many open files when generating cover
 
 Coverage will be available in `coverage/index.html`.
 
-#### Behat
+To run functional tests for MongoDB:
 
-> [!WARNING]  
-> Please **do not add new Behat tests**, use a functional test (for example: [ComputedFieldTest](https://github.com/api-platform/core/blob/04d5cff1b28b494ac2e90257a79ce6c045ba82ae/tests/Functional/Doctrine/ComputedFieldTest.php)).
+    MONGODB_URL=mongodb://localhost:27017 APP_ENV=mongodb vendor/bin/phpunit --group mongodb
 
-The command to launch Behat tests is:
-
-    php -d memory_limit=-1 ./vendor/bin/behat --profile=default --stop-on-failure --format=progress
-
-If you want to launch Behat tests for MongoDB, the command is:
-
-    MONGODB_URL=mongodb://localhost:27017 APP_ENV=mongodb php -d memory_limit=-1 ./vendor/bin/behat --profile=mongodb --stop-on-failure --format=progress
-
-To get more details about an error, replace `--format=progress` by `-vvv`. You may run a mongo instance using docker:
+You may run a mongo instance using docker:
 
 	docker run -p 27017:27017 mongo:latest
 
@@ -230,7 +226,7 @@ exit 0
 
 ## Changing a version constraint
 
-Preferably change the version inside the root `composer.json`, then use `composer blend --all` to re-map the depedency accross each sub-project automatically. 
+Preferably change the version inside the root `composer.json`, then use `composer blend --all` to re-map the dependency across each sub-project automatically. 
 
 # License and Copyright Attribution
 
@@ -265,3 +261,10 @@ This will update all the sub-components `composer.json`.
 6. `gh release create --generate-notes vX.Y.Z`
 7. Create a new release of `api-platform/api-platform`
 
+## PHPStan MongoDB issue
+
+When running PHPStan locally you'll need to require mongodb: 
+
+```bash
+composer require --dev doctrine/mongodb-odm-bundle doctrine/mongodb-odm
+```
