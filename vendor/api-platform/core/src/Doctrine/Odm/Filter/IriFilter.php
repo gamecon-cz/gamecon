@@ -16,13 +16,16 @@ namespace ApiPlatform\Doctrine\Odm\Filter;
 use ApiPlatform\Doctrine\Common\Filter\ManagerRegistryAwareInterface;
 use ApiPlatform\Doctrine\Common\Filter\ManagerRegistryAwareTrait;
 use ApiPlatform\Doctrine\Common\Filter\OpenApiFilterTrait;
+use ApiPlatform\Doctrine\Odm\NestedPropertyHelperTrait;
 use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
+use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\OpenApiParameterFilterInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\ParameterProviderFilterInterface;
 use ApiPlatform\State\ParameterProvider\IriConverterParameterProvider;
 use Doctrine\ODM\MongoDB\Aggregation\Builder;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ODM\MongoDB\Mapping\MappingException;
 
 /**
@@ -32,6 +35,7 @@ final class IriFilter implements FilterInterface, OpenApiParameterFilterInterfac
 {
     use BackwardCompatibleFilterDescriptionTrait;
     use ManagerRegistryAwareTrait;
+    use NestedPropertyHelperTrait;
     use OpenApiFilterTrait;
 
     /**
@@ -40,6 +44,11 @@ final class IriFilter implements FilterInterface, OpenApiParameterFilterInterfac
     public function apply(Builder $aggregationBuilder, string $resourceClass, ?Operation $operation = null, array &$context = []): void
     {
         $parameter = $context['parameter'];
+
+        if (null === $parameter->getProperty()) {
+            throw new InvalidArgumentException(\sprintf('The filter parameter with key "%s" must specify a property. Please provide the property explicitly.', $parameter->getKey()));
+        }
+
         $value = $parameter->getValue();
         $operator = $context['operator'] ?? 'addAnd';
         $match = $context['match'] = $context['match'] ??
@@ -51,22 +60,59 @@ final class IriFilter implements FilterInterface, OpenApiParameterFilterInterfac
             return;
         }
 
-        $classMetadata = $documentManager->getClassMetadata($resourceClass);
         $property = $parameter->getProperty();
-        if (!$classMetadata->hasReference($property)) {
+        $matchField = $this->addNestedParameterLookups($property, $aggregationBuilder, $parameter, false, $context);
+
+        $nestedPropertiesInfo = $parameter->getExtraProperties()['nested_properties_info'] ?? [];
+        $nestedInfo = $nestedPropertiesInfo ? reset($nestedPropertiesInfo) : null;
+        $leafClass = $nestedInfo['leaf_class'] ?? $resourceClass;
+        $leafProperty = $nestedInfo['leaf_property'] ?? $property;
+        $classMetadata = $documentManager->getClassMetadata($leafClass);
+
+        // Backed enum exposed as a resource: match the scalar field against the resolved enum.
+        if (!$classMetadata->hasReference($leafProperty)) {
+            if (!$this->isEnumField($classMetadata, $leafProperty)) {
+                return;
+            }
+
+            $normalize = static fn (mixed $v): mixed => $v instanceof \BackedEnum ? $v->value : $v;
+
+            if (is_iterable($value)) {
+                $values = \is_array($value) ? $value : iterator_to_array($value);
+                $match->{$operator}($aggregationBuilder->matchExpr()->field($matchField)->in(array_map($normalize, $values)));
+
+                return;
+            }
+
+            $match->{$operator}($aggregationBuilder->matchExpr()->field($matchField)->equals($normalize($value)));
+
             return;
         }
 
-        $method = $classMetadata->isSingleValuedAssociation($property) ? 'references' : 'includesReferenceTo';
+        $method = $classMetadata->isSingleValuedAssociation($leafProperty) ? 'references' : 'includesReferenceTo';
 
         if (is_iterable($value)) {
             $or = $aggregationBuilder->matchExpr();
 
             foreach ($value as $v) {
-                $or->addOr($aggregationBuilder->matchExpr()->field($property)->{$method}($v));
+                if (!\is_object($v)) {
+                    continue;
+                }
+
+                $or->addOr($aggregationBuilder->matchExpr()->field($matchField)->{$method}($v));
             }
 
             $match->{$operator}($or);
+
+            return;
+        }
+
+        // The IRI did not resolve to a resource: emit an always-false clause so the query
+        // returns no result rather than attempting to match against a raw IRI string.
+        if (!\is_object($value)) {
+            $match->{$operator}(
+                $aggregationBuilder->matchExpr()->field($matchField)->in([])
+            );
 
             return;
         }
@@ -75,7 +121,7 @@ final class IriFilter implements FilterInterface, OpenApiParameterFilterInterfac
             ->{$operator}(
                 $aggregationBuilder
                     ->matchExpr()
-                    ->field($property)
+                    ->field($matchField)
                     ->{$method}($value)
             );
     }
@@ -83,5 +129,10 @@ final class IriFilter implements FilterInterface, OpenApiParameterFilterInterfac
     public static function getParameterProvider(): string
     {
         return IriConverterParameterProvider::class;
+    }
+
+    private function isEnumField(ClassMetadata $classMetadata, string $field): bool
+    {
+        return $classMetadata->hasField($field) && null !== ($classMetadata->getFieldMapping($field)['enumType'] ?? null);
     }
 }

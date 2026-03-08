@@ -160,16 +160,13 @@ final class OidcTokenHandler implements AccessTokenHandlerInterface
             $jwkSetResponses = [];
 
             foreach ($clients as $client) {
-                $configResponses[] = [$client, $client->request('GET', '.well-known/openid-configuration')];
+                $configResponses[] = [$client, $client->request('GET', '.well-known/openid-configuration', ['max_redirects' => 0])];
             }
 
             foreach ($configResponses as [$client, $response]) {
                 $config = $response->toArray();
 
-                $jwksUri = $config['jwks_uri'] ?? null;
-                if (!\is_string($jwksUri) || '' === $jwksUri) {
-                    throw new \RuntimeException('The "jwks_uri" is missing from the OIDC discovery document.');
-                }
+                $jwksUri = self::checkDiscoveredEndpoint($config['jwks_uri'] ?? null, 'jwks_uri', $response->getInfo('url'));
 
                 $jwkSetResponses[] = $client->request('GET', $jwksUri);
             }
@@ -218,7 +215,12 @@ final class OidcTokenHandler implements AccessTokenHandlerInterface
         $jws = $serializerManager->unserialize($accessToken);
 
         // Verify the signature
-        if (!$jwsVerifier->verifyWithKeySet($jws, $jwkset, 0)) {
+        if (method_exists($jwsVerifier, 'verify')) { // web-token/jwt-library >= 4.3
+            $verified = $jwsVerifier->verify($jws, $jwkset, 0)->isVerified();
+        } else {
+            $verified = $jwsVerifier->verifyWithKeySet($jws, $jwkset, 0);
+        }
+        if (!$verified) {
             throw new InvalidSignatureException();
         }
 
@@ -237,16 +239,16 @@ final class OidcTokenHandler implements AccessTokenHandlerInterface
     {
         // Verify the claims
         $checkers = [
-            new Checker\IssuedAtChecker(clock: $this->clock, allowedTimeDrift: 0, protectedHeaderOnly: true),
-            new Checker\NotBeforeChecker(clock: $this->clock, allowedTimeDrift: 0, protectedHeaderOnly: true),
-            new Checker\ExpirationTimeChecker(clock: $this->clock, allowedTimeDrift: 0, protectedHeaderOnly: true),
+            new Checker\IssuedAtChecker(clock: $this->clock, allowedTimeDrift: 0),
+            new Checker\NotBeforeChecker(clock: $this->clock, allowedTimeDrift: 0),
+            new Checker\ExpirationTimeChecker(clock: $this->clock, allowedTimeDrift: 0),
             new Checker\AudienceChecker($this->audience),
             new Checker\IssuerChecker($this->issuers),
         ];
         $claimCheckerManager = new ClaimCheckerManager($checkers);
 
         // if this check fails, an InvalidClaimException is thrown
-        return $claimCheckerManager->check($claims);
+        return $claimCheckerManager->check($claims, ['iat', 'exp', 'aud', 'iss']);
     }
 
     private function decryptIfNeeded(string $accessToken): string
@@ -261,7 +263,7 @@ final class OidcTokenHandler implements AccessTokenHandlerInterface
             [
                 new Checker\AlgorithmChecker($this->decryptionAlgorithms->list()),
                 new Checker\CallableChecker('enc', fn ($value) => \in_array($value, $this->decryptionAlgorithms->list())),
-                new Checker\CallableChecker('cty', fn ($value) => 'JWT' === $value),
+                new Checker\CallableChecker('cty', static fn ($value) => 'JWT' === $value),
                 new Checker\IssuedAtChecker(clock: $this->clock, allowedTimeDrift: 0, protectedHeaderOnly: true),
                 new Checker\NotBeforeChecker(clock: $this->clock, allowedTimeDrift: 0, protectedHeaderOnly: true),
                 new Checker\ExpirationTimeChecker(clock: $this->clock, allowedTimeDrift: 0, protectedHeaderOnly: true),
@@ -273,8 +275,14 @@ final class OidcTokenHandler implements AccessTokenHandlerInterface
         try {
             $jwe = $serializerManager->unserialize($accessToken);
             $jweHeaderChecker->check($jwe, 0);
-            $result = $jweDecrypter->decryptUsingKeySet($jwe, $this->decryptionKeyset, 0);
-            if (false === $result) {
+            if (method_exists($jweDecrypter, 'decrypt')) { // web-token/jwt-library >= 4.3
+                $result = $jweDecrypter->decrypt($jwe, $this->decryptionKeyset, 0);
+                $jwe = $result->getJwe();
+                $result = $result->isDecrypted();
+            } else {
+                $result = $jweDecrypter->decryptUsingKeySet($jwe, $this->decryptionKeyset, 0);
+            }
+            if (!$result) {
                 throw new \RuntimeException('The JWE could not be decrypted.');
             }
 
