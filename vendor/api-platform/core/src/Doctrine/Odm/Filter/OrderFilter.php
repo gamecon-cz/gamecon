@@ -239,7 +239,7 @@ final class OrderFilter extends AbstractFilter implements OrderFilterInterface, 
         }
 
         $parameter = $context['parameter'] ?? null;
-        if (null !== ($value = $context['filters'][$parameter?->getProperty()] ?? null)) {
+        if (null !== ($value = $context['filters'][$parameter?->getProperty() ?? ''] ?? null)) {
             $this->filterProperty($this->denormalizePropertyName($parameter->getProperty()), $value, $aggregationBuilder, $resourceClass, $operation, $context);
 
             return;
@@ -280,6 +280,6 @@ final class OrderFilter extends AbstractFilter implements OrderFilterInterface, 
      */
     public function getSchema(Parameter $parameter): array
     {
-        return ['type' => 'string', 'enum' => ['asc', 'desc']];
+        return ['type' => 'string', 'enum' => ['asc', 'desc', 'ASC', 'DESC']];
     }
 }

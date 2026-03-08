@@ -34,7 +34,7 @@ trait AccessorCollisionResolverTrait
         };
 
         // ctype_lower check to find out if method looks like accessor but actually is not, e.g. hash, cancel
-        if (null === $i || ctype_lower($methodName[$i] ?? 'a') || $method->isStatic()) {
+        if (null === $i || ctype_lower($methodName[$i] ?? 'a') || (!$andMutator && $method->isStatic())) {
             return null;
         }
 
@@ -60,6 +60,11 @@ trait AccessorCollisionResolverTrait
         } while ($class = $class->getParentClass());
 
         return false;
+    }
+
+    private function hasPublicPropertyForAccessor(\ReflectionClass $class, string $propName): bool
+    {
+        return $class->hasProperty($propName) && $class->getProperty($propName)->isPublic();
     }
 
     private function hasAttributeNameCollision(\ReflectionClass $class, string $attributeName, string $methodName): bool

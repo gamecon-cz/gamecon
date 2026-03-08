@@ -75,16 +75,20 @@ final class EloquentPropertyMetadataFactory implements PropertyMetadataFactoryIn
 
             // see https://laravel.com/docs/11.x/eloquent-mutators#attribute-casting
             $builtinType = $p['cast'] ?? $p['type'];
+            // Normalize decimal types with precision/scale (e.g., "decimal(8,2)" -> "decimal")
+            if (str_starts_with($builtinType, 'decimal')) {
+                $builtinType = 'decimal';
+            }
             $type = match ($builtinType) {
                 'integer' => Type::int(),
-                'double', 'real' => Type::float(),
+                'double', 'real', 'float', 'decimal', 'numeric' => Type::float(),
                 'boolean', 'bool' => Type::bool(),
                 'datetime', 'date', 'timestamp' => Type::object(\DateTime::class),
                 'immutable_datetime', 'immutable_date' => Type::object(\DateTimeImmutable::class),
                 'collection', 'encrypted:collection' => Type::collection(Type::object(Collection::class)),
                 'encrypted:array' => Type::builtin(TypeIdentifier::ARRAY),
                 'encrypted:object' => Type::object(),
-                default => \in_array($builtinType, TypeIdentifier::values(), true) ? Type::builtin($builtinType) : Type::string(),
+                default => $this->resolveDefaultType($builtinType),
             };
 
             if ($p['nullable']) {
@@ -122,5 +126,20 @@ final class EloquentPropertyMetadataFactory implements PropertyMetadataFactoryIn
         }
 
         return $propertyMetadata;
+    }
+
+    private function resolveDefaultType(string $builtinType): Type
+    {
+        if (\in_array($builtinType, TypeIdentifier::values(), true)) {
+            return Type::builtin($builtinType);
+        }
+
+        // Laravel allows passing parameters to class casts via "Class:param" syntax (e.g. AsEnumCollection).
+        $castClass = explode(':', $builtinType, 2)[0];
+        if (enum_exists($castClass)) {
+            return Type::enum($castClass);
+        }
+
+        return Type::string();
     }
 }

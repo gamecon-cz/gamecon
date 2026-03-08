@@ -17,8 +17,6 @@ use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\GraphQl\Operation;
 use ApiPlatform\Metadata\GraphQl\Subscription;
 use GraphQL\Type\Definition\ResolveInfo;
-use Symfony\Component\Serializer\NameConverter\AdvancedNameConverterInterface;
-use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
@@ -101,7 +99,13 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
                 continue;
             }
 
-            $denormalizedFields[$this->denormalizePropertyName((string) $key, $resourceClass, $context)] = \is_array($value) ? $this->replaceIdKeys($value, $resourceClass, $context) : $value;
+            if (\is_array($value)) {
+                // Unwrap nested pagination structures so the attribute tree mirrors the resource shape.
+                $value = $value['edges']['node'] ?? $value['collection'] ?? $value;
+                $value = \is_array($value) ? $this->replaceIdKeys($value, $resourceClass, $context) : $value;
+            }
+
+            $denormalizedFields[$this->denormalizePropertyName((string) $key, $resourceClass, $context)] = $value;
         }
 
         return $denormalizedFields;
@@ -112,10 +116,7 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
         if (null === $this->nameConverter) {
             return $property;
         }
-        if ($this->nameConverter instanceof AdvancedNameConverterInterface || $this->nameConverter instanceof MetadataAwareNameConverter) {
-            return $this->nameConverter->denormalize($property, $resourceClass, null, $context);
-        }
 
-        return $this->nameConverter->denormalize($property);
+        return $this->nameConverter->denormalize($property, $resourceClass, null, $context);
     }
 }
