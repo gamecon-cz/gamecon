@@ -86,9 +86,7 @@ foreach ($skupiny as $skupina) {
 
         $t->assign([
             'aktivita'   => $aktivita,
-            'obsazenost' => $aktivita->obsazenost()
-                ? '(' . trim($aktivita->obsazenost()) . ')'
-                : '',
+            'obsazenost' => $aktivita->obsazenost() ?: '',
             'prihlasit'  => $aktivita->prihlasovatko($u),
         ]);
 
