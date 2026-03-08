@@ -34,6 +34,7 @@ final class SwaggerUiProcessor implements ProcessorInterface
 
     /**
      * @param array<string, string[]> $formats
+     * @param array<string, mixed>    $scalarExtraConfiguration
      */
     public function __construct(
         private readonly UrlGeneratorInterface $urlGenerator,
@@ -43,6 +44,12 @@ final class SwaggerUiProcessor implements ProcessorInterface
         private readonly ?string $oauthClientId = null,
         private readonly ?string $oauthClientSecret = null,
         private readonly bool $oauthPkce = false,
+        private readonly bool $swaggerEnabled = false,
+        private readonly bool $scalarEnabled = false,
+        private readonly array $scalarExtraConfiguration = [],
+        private readonly bool $redocEnabled = false,
+        private readonly bool $graphQlEnabled = false,
+        private readonly bool $graphiQlEnabled = false,
     ) {
     }
 
@@ -57,8 +64,8 @@ final class SwaggerUiProcessor implements ProcessorInterface
             'formats' => $this->formats,
             'title' => $openApi->getInfo()->getTitle(),
             'description' => $openApi->getInfo()->getDescription(),
-            'originalRoute' => $request->attributes->get('_api_original_route', $request->attributes->get('_route')),
-            'originalRouteParams' => $request->attributes->get('_api_original_route_params', $request->attributes->get('_route_params', [])),
+            'originalRoute' => $request->attributes->get('_api_original_route') ?? $request->route()?->getName(),
+            'originalRouteParams' => $request->attributes->get('_api_original_route_params') ?? $request->route()?->parameters() ?? [],
         ];
 
         $swaggerData = [
@@ -92,7 +99,17 @@ final class SwaggerUiProcessor implements ProcessorInterface
             $status = $requestedOperation->getStatus() ?? $status;
         }
 
-        return new Response(view('api-platform::swagger-ui', $swaggerContext + ['swagger_data' => $swaggerData]), 200);
+        $swaggerData['scalarExtraConfiguration'] = $this->scalarExtraConfiguration;
+
+        return new Response(view('api-platform::swagger-ui', $swaggerContext + [
+            'swagger_data' => $swaggerData,
+            'ui' => $this->getUi(),
+            'swaggerUiEnabled' => $this->swaggerEnabled,
+            'redocEnabled' => $this->redocEnabled,
+            'scalarEnabled' => $this->scalarEnabled,
+            'graphQlEnabled' => $this->graphQlEnabled,
+            'graphiQlEnabled' => $this->graphiQlEnabled,
+        ]), 200);
     }
 
     /**
@@ -111,5 +128,26 @@ final class SwaggerUiProcessor implements ProcessorInterface
         }
 
         throw new RuntimeException(\sprintf('The operation "%s" cannot be found in the Swagger specification.', $swaggerData['operationId']));
+    }
+
+    private function getUi(): string
+    {
+        $requested = request()->query('ui');
+
+        $available = array_keys(array_filter([
+            'swagger' => $this->swaggerEnabled,
+            'redoc' => $this->redocEnabled,
+            'scalar' => $this->scalarEnabled,
+        ]));
+
+        if ([] === $available) {
+            throw new RuntimeException('No documentation UI is enabled.');
+        }
+
+        if (\in_array($requested, $available, true)) {
+            return $requested;
+        }
+
+        return $available[0];
     }
 }

@@ -22,8 +22,8 @@ use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use ApiPlatform\Metadata\Exception\RuntimeException;
 use ApiPlatform\Metadata\Util\CompositeIdentifierParser;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface as SymfonyHttpExceptionInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\SerializedName;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\WebLink\Link;
@@ -111,6 +111,7 @@ class ValidationException extends RuntimeException implements ConstraintViolatio
         if ($message instanceof ConstraintViolationListInterface) {
             $this->constraintViolationList = $message;
             parent::__construct($this->__toString(), $code ?? 0, $previous);
+            $this->detail = $this->getMessage();
 
             return;
         }
@@ -119,6 +120,7 @@ class ValidationException extends RuntimeException implements ConstraintViolatio
 
         trigger_deprecation('api_platform/core', '5.0', \sprintf('The "%s" exception will have a "%s" first argument in 5.x.', self::class, ConstraintViolationListInterface::class));
         parent::__construct($message ?: $this->__toString(), $code ?? 0, $previous);
+        $this->detail = $this->getMessage();
     }
 
     public function getId(): string
@@ -201,7 +203,11 @@ class ValidationException extends RuntimeException implements ConstraintViolatio
                 'properties' => [
                     'propertyPath' => ['type' => 'string', 'description' => 'The property path of the violation'],
                     'message' => ['type' => 'string', 'description' => 'The message associated with the violation'],
+                    'code' => ['type' => 'string', 'description' => 'The code of the violation'],
+                    'hint' => ['type' => 'string', 'description' => 'An extra hint to understand the violation'],
+                    'payload' => ['type' => 'object', 'additionalProperties' => true, 'description' => 'The serialized payload of the violation'],
                 ],
+                'required' => ['propertyPath', 'message'],
             ],
         ]
     )]

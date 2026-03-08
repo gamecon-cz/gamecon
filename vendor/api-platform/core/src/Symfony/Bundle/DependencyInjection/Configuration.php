@@ -16,6 +16,7 @@ namespace ApiPlatform\Symfony\Bundle\DependencyInjection;
 use ApiPlatform\Doctrine\Common\Filter\OrderFilterInterface;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\Parameter;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Symfony\Controller\MainController;
@@ -99,6 +100,20 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                // TODO 4.4: deprecate use_iri_as_id defaulting to true
+                ->arrayNode('jsonapi')
+                    ->addDefaultsIfNotSet()
+                        ->children()
+                        ->booleanNode('use_iri_as_id')
+                            ->defaultTrue()
+                            ->info('Set to false to use entity identifiers instead of IRIs as the "id" field in JSON:API responses.')
+                        ->end()
+                        ->booleanNode('allow_client_generated_id')
+                            ->defaultFalse()
+                            ->info('Allow client-generated IDs on JSON:API POST per https://jsonapi.org/format/#crud-creating-client-ids. Off by default to prevent id spoofing on public endpoints.')
+                        ->end()
+                    ->end()
+                ->end()
                 ->arrayNode('eager_loading')
                     ->canBeDisabled()
                     ->addDefaultsIfNotSet()
@@ -113,11 +128,16 @@ final class Configuration implements ConfigurationInterface
                 ->booleanNode('enable_json_streamer')->defaultValue(class_exists(ControllerHelper::class) && class_exists(JsonStreamWriter::class))->info('Enable json streamer.')->end()
                 ->booleanNode('enable_swagger_ui')->defaultValue(class_exists(TwigBundle::class))->info('Enable Swagger UI')->end()
                 ->booleanNode('enable_re_doc')->defaultValue(class_exists(TwigBundle::class))->info('Enable ReDoc')->end()
+                ->booleanNode('enable_scalar')->defaultValue(class_exists(TwigBundle::class))->info('Enable Scalar API Reference')->end()
                 ->booleanNode('enable_entrypoint')->defaultTrue()->info('Enable the entrypoint')->end()
                 ->booleanNode('enable_docs')->defaultTrue()->info('Enable the docs')->end()
                 ->booleanNode('enable_profiler')->defaultTrue()->info('Enable the data collector and the WebProfilerBundle integration.')->end()
                 ->booleanNode('enable_phpdoc_parser')->defaultTrue()->info('Enable resource metadata collector using PHPStan PhpDocParser.')->end()
-                ->booleanNode('enable_link_security')->defaultFalse()->info('Enable security for Links (sub resources)')->end()
+                ->booleanNode('enable_link_security')
+                    ->defaultTrue()
+                    ->info('Enable security for Links (sub resources).')
+                    ->setDeprecated('api-platform/symfony', '4.2', 'This option is always enabled and will be removed in API Platform 5.0.')
+                ->end()
                 ->arrayNode('collection')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -171,6 +191,7 @@ final class Configuration implements ConfigurationInterface
         $this->addElasticsearchSection($rootNode);
         $this->addOpenApiSection($rootNode);
         $this->addMakerSection($rootNode);
+        $this->addMcpSection($rootNode);
 
         $this->addExceptionToStatusSection($rootNode);
 
@@ -252,6 +273,7 @@ final class Configuration implements ConfigurationInterface
                         ->scalarNode('authorizationUrl')->defaultValue('')->info('The oauth authentication url.')->end()
                         ->scalarNode('refreshUrl')->defaultValue('')->info('The oauth refresh url.')->end()
                         ->arrayNode('scopes')
+                            ->normalizeKeys(false)
                             ->prototype('scalar')->end()
                         ->end()
                     ->end()
@@ -277,7 +299,8 @@ final class Configuration implements ConfigurationInterface
                         ->integerNode('max_query_depth')->defaultValue(20)
                         ->end()
                         ->arrayNode('graphql_playground')
-                            ->setDeprecated('api-platform/core', '4.0')
+                            ->setDeprecated('api-platform/core', '4.0', 'The "graphql_playground" configuration is deprecated and will be ignored.')
+                            ->canBeEnabled()
                         ->end()
                         ->integerNode('max_query_complexity')->defaultValue(500)
                         ->end()
@@ -421,7 +444,7 @@ final class Configuration implements ConfigurationInterface
                                     ->info('Specify a purger to use (available values: "api_platform.http_cache.purger.varnish.ban", "api_platform.http_cache.purger.varnish.xkey", "api_platform.http_cache.purger.souin").')
                                 ->end()
                                 ->arrayNode('xkey')
-                                    ->setDeprecated('api-platform/core', '3.0', 'The "xkey" configuration is deprecated, use your own purger to customize surrogate keys or the appropriate paramters.')
+                                    ->setDeprecated('api-platform/core', '3.0', 'The "xkey" configuration is deprecated, use your own purger to customize surrogate keys or the appropriate parameters.')
                                     ->addDefaultsIfNotSet()
                                     ->children()
                                         ->scalarNode('glue')
@@ -474,6 +497,10 @@ final class Configuration implements ConfigurationInterface
                 ->arrayNode('elasticsearch')
                     ->canBeEnabled()
                     ->addDefaultsIfNotSet()
+                    ->validate()
+                        ->ifTrue(static fn (array $v): bool => null !== ($v['ssl_ca_bundle'] ?? null) && false === ($v['ssl_verification'] ?? true))
+                        ->thenInvalid('The "ssl_ca_bundle" and "ssl_verification: false" options cannot be used together. Either provide a CA bundle path or disable SSL verification, not both.')
+                    ->end()
                     ->children()
                         ->booleanNode('enabled')
                             ->defaultFalse()
@@ -485,8 +512,10 @@ final class Configuration implements ConfigurationInterface
                                         !class_exists(\Elasticsearch\Client::class)
                                         // ES v8 and up
                                         && !class_exists(\Elastic\Elasticsearch\Client::class)
+                                        // OpenSearch
+                                        && !class_exists(\OpenSearch\Client::class)
                                     ) {
-                                        throw new InvalidConfigurationException('The elasticsearch/elasticsearch package is required for Elasticsearch support.');
+                                        throw new InvalidConfigurationException('The elasticsearch/elasticsearch or opensearch-project/opensearch-php package is required for Elasticsearch support.');
                                     }
 
                                     return $v;
@@ -497,6 +526,29 @@ final class Configuration implements ConfigurationInterface
                             ->beforeNormalization()->castToArray()->end()
                             ->defaultValue([])
                             ->prototype('scalar')->end()
+                        ->end()
+                        ->scalarNode('ssl_ca_bundle')
+                            ->defaultNull()
+                            ->info('Path to the SSL CA bundle file for Elasticsearch SSL verification.')
+                        ->end()
+                        ->booleanNode('ssl_verification')
+                            ->defaultTrue()
+                            ->info('Enable or disable SSL verification for Elasticsearch connections.')
+                        ->end()
+                        ->enumNode('client')
+                            ->values(['elasticsearch', 'opensearch'])
+                            ->defaultValue('elasticsearch')
+                            ->info('The search engine client to use: "elasticsearch" or "opensearch".')
+                            ->validate()
+                                ->ifString()
+                                ->then(static function (string $v): string {
+                                    if ('opensearch' === $v && !class_exists(\OpenSearch\Client::class)) {
+                                        throw new InvalidConfigurationException('Setting api_platform.elasticsearch.client to "opensearch" requires the opensearch-project/opensearch-php package. Try running "composer require opensearch-project/opensearch-php".');
+                                    }
+
+                                    return $v;
+                                })
+                            ->end()
                         ->end()
                     ->end()
                 ->end()
@@ -543,6 +595,14 @@ final class Configuration implements ConfigurationInterface
                                 ->thenInvalid('The swagger_ui_extra_configuration parameter must be an array.')
                             ->end()
                             ->info('To pass extra configuration to Swagger UI, like docExpansion or filter.')
+                        ->end()
+                        ->variableNode('scalar_extra_configuration')
+                            ->defaultValue([])
+                            ->validate()
+                                ->ifTrue(static fn ($v): bool => false === \is_array($v))
+                                ->thenInvalid('The scalar_extra_configuration parameter must be an array.')
+                            ->end()
+                            ->info('To pass extra configuration to Scalar API Reference, like theme or darkMode.')
                         ->end()
                         ->booleanNode('overrideResponses')->defaultTrue()->info('Whether API Platform adds automatic responses to the OpenAPI documentation.')->end()
                         ->scalarNode('error_resource_class')->defaultNull()->info('The class used to represent errors in the OpenAPI documentation.')->end()
@@ -638,6 +698,18 @@ final class Configuration implements ConfigurationInterface
         $this->defineDefault($defaultsNode, new \ReflectionClass(ApiResource::class), $nameConverter);
         $this->defineDefault($defaultsNode, new \ReflectionClass(Put::class), $nameConverter);
         $this->defineDefault($defaultsNode, new \ReflectionClass(Post::class), $nameConverter);
+
+        $parametersNode = $defaultsNode
+            ->children()
+                ->arrayNode('parameters')
+                    ->info('Global parameters applied to all resources and operations.')
+                    ->useAttributeAsKey('parameter_class')
+                    ->prototype('array')
+                        ->ignoreExtraKeys(false);
+
+        $this->defineDefault($parametersNode, new \ReflectionClass(Parameter::class), $nameConverter);
+
+        $parametersNode->end()->end()->end();
     }
 
     private function addMakerSection(ArrayNodeDefinition $rootNode): void
@@ -646,6 +718,25 @@ final class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('maker')
                     ->{class_exists(MakerBundle::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                    ->children()
+                        ->scalarNode('namespace_prefix')->defaultValue('')->info('Add a prefix to all maker generated classes. e.g set it to "Api" to set the maker namespace to "App\\Api\\" (if the maker.root_namespace config is App). e.g. App\\Api\\State\\MyStateProcessor')->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addMcpSection(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('mcp')
+                    ->canBeDisabled()
+                    ->children()
+                        ->scalarNode('format')
+                            ->defaultValue('jsonld')
+                            ->info('The serialization format used for MCP tool input/output. Must be a format registered in api_platform.formats (e.g. "jsonld", "json", "jsonapi").')
+                        ->end()
+                    ->end()
                 ->end()
             ->end();
     }

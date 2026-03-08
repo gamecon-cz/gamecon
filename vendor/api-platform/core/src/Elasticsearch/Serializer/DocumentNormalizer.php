@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Elasticsearch\Serializer;
 
 use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
@@ -26,6 +27,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\TypeInfo\TypeIdentifier;
 
 /**
  * Document denormalizer for Elasticsearch.
@@ -49,6 +51,7 @@ final class DocumentNormalizer implements NormalizerInterface, DenormalizerInter
         ?ClassDiscriminatorResolverInterface $classDiscriminatorResolver = null,
         ?callable $objectClassResolver = null,
         array $defaultContext = [],
+        private readonly ?PropertyMetadataFactoryInterface $propertyMetadataFactory = null,
     ) {
         $this->decoratedNormalizer = new ObjectNormalizer($classMetadataFactory, $nameConverter, $propertyAccessor, $propertyTypeExtractor, $classDiscriminatorResolver, $objectClassResolver, $defaultContext);
     }
@@ -64,13 +67,13 @@ final class DocumentNormalizer implements NormalizerInterface, DenormalizerInter
     /**
      * {@inheritdoc}
      */
-    public function denormalize(mixed $data, string $class, ?string $format = null, array $context = []): mixed
+    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
         if (\is_string($data['_id'] ?? null) && \is_array($data['_source'] ?? null)) {
-            $data = $this->populateIdentifier($data, $class)['_source'];
+            $data = $this->populateIdentifier($data, $type)['_source'];
         }
 
-        return $this->decoratedNormalizer->denormalize($data, $class, $format, $context);
+        return $this->decoratedNormalizer->denormalize($data, $type, $format, $context);
     }
 
     /**
@@ -87,7 +90,7 @@ final class DocumentNormalizer implements NormalizerInterface, DenormalizerInter
      *
      * @throws LogicException
      */
-    public function normalize(mixed $object, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
+    public function normalize(mixed $data, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
     {
         throw new LogicException(\sprintf('%s is a write-only format.', self::FORMAT));
     }
@@ -109,13 +112,33 @@ final class DocumentNormalizer implements NormalizerInterface, DenormalizerInter
             }
         }
 
-        $identifier = null === $this->nameConverter ? $identifier : $this->nameConverter->normalize($identifier, $class, self::FORMAT);
+        $sourceKey = null === $this->nameConverter ? $identifier : $this->nameConverter->normalize($identifier, $class, self::FORMAT);
 
-        if (!isset($data['_source'][$identifier])) {
-            $data['_source'][$identifier] = $data['_id'];
+        if (!isset($data['_source'][$sourceKey])) {
+            $data['_source'][$sourceKey] = $this->coerceIdentifier($class, $identifier, $data['_id']);
         }
 
         return $data;
+    }
+
+    /**
+     * Elasticsearch always exposes the document identifier (`_id`) as a string. When the resource
+     * identifier is declared as an int, casting it back avoids a type mismatch in the inner
+     * ObjectNormalizer. String identifiers (e.g. UUIDs) are left untouched.
+     */
+    private function coerceIdentifier(string $class, string $identifier, string $value): int|string
+    {
+        if (null === $this->propertyMetadataFactory || !is_numeric($value)) {
+            return $value;
+        }
+
+        $nativeType = $this->propertyMetadataFactory->create($class, $identifier)->getNativeType();
+
+        if ($nativeType?->isIdentifiedBy(TypeIdentifier::INT) && !$nativeType->isIdentifiedBy(TypeIdentifier::STRING)) {
+            return (int) $value;
+        }
+
+        return $value;
     }
 
     /**

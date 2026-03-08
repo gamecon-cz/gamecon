@@ -15,8 +15,10 @@ namespace ApiPlatform\State\Provider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Util\CloneTrait;
-use ApiPlatform\State\Pagination\ArrayPaginator;
+use ApiPlatform\State\Pagination\MappedObjectPaginator;
+use ApiPlatform\State\Pagination\MappedObjectPartialPaginator;
 use ApiPlatform\State\Pagination\PaginatorInterface;
+use ApiPlatform\State\Pagination\PartialPaginatorInterface;
 use ApiPlatform\State\ProviderInterface;
 use Symfony\Component\ObjectMapper\ObjectMapperInterface;
 
@@ -39,8 +41,13 @@ final class ObjectMapperProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         $data = $this->decorated->provide($operation, $uriVariables, $context);
+        $class = $operation->getOutput()['class'] ?? $operation->getClass();
 
-        if (!$this->objectMapper || !\is_object($data) || !$operation->canMap()) {
+        if (!$this->objectMapper || !$operation->canMap()) {
+            return $data;
+        }
+
+        if (!\is_object($data) && !\is_array($data)) {
             return $data;
         }
 
@@ -48,9 +55,32 @@ final class ObjectMapperProvider implements ProviderInterface
         $request?->attributes->set('mapped_data', $data);
 
         if ($data instanceof PaginatorInterface) {
-            $data = new ArrayPaginator(array_map(fn ($v) => $this->objectMapper->map($v, $operation->getClass()), iterator_to_array($data)), 0, \count($data));
+            $data = new MappedObjectPaginator(
+                iterator_to_array($data),
+                $this->objectMapper,
+                $class,
+                $data->getTotalItems(),
+                $data->getCurrentPage(),
+                $data->getLastPage(),
+                $data->getItemsPerPage(),
+            );
+        } elseif ($data instanceof PartialPaginatorInterface) {
+            $data = new MappedObjectPartialPaginator(
+                $data,
+                $this->objectMapper,
+                $class,
+                $data->getCurrentPage(),
+                $data->getItemsPerPage(),
+                \count($data),
+            );
+        } elseif (\is_array($data)) {
+            foreach ($data as &$v) {
+                if (\is_object($v)) {
+                    $v = $this->objectMapper->map($v, $class);
+                }
+            }
         } else {
-            $data = $this->objectMapper->map($data, $operation->getClass());
+            $data = $this->objectMapper->map($data, $class);
         }
 
         $request?->attributes->set('data', $data);
