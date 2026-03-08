@@ -31,8 +31,8 @@
         "api-platform/jsonld": "^4.2",
         "api-platform/json-schema": "^4.2",
         "api-platform/serializer": "^4.2.4",
-        "symfony/web-link": "^6.4 || ^7.1",
-        "symfony/type-info": "^7.3"
+        "symfony/web-link": "^6.4 || ^7.1 || ^8.0",
+        "symfony/type-info": "^7.3 || ^8.0"
     },
     "require-dev": {
         "api-platform/doctrine-odm": "^4.2",
@@ -40,7 +40,7 @@
         "api-platform/doctrine-common": "^4.2",
         "phpspec/prophecy": "^1.19",
         "phpspec/prophecy-phpunit": "^2.2",
-        "phpunit/phpunit": "11.5.x-dev"
+        "phpunit/phpunit": "^12.2"
     },
     "autoload": {
         "psr-4": {
@@ -68,7 +68,7 @@
             "dev-4.1": "4.1.x-dev"
         },
         "symfony": {
-            "require": "^6.4 || ^7.0"
+            "require": "^6.4 || ^7.0 || ^8.0"
         },
         "thanks": {
             "name": "api-platform/api-platform",
@@ -77,11 +77,5 @@
     },
     "scripts": {
         "test": "./vendor/bin/phpunit"
-    },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/soyuka/phpunit"
-        }
-    ]
+    }
 }

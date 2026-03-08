@@ -28,6 +28,7 @@ use ApiPlatform\State\ProviderInterface;
 use Negotiation\Negotiator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Generates the API documentation.
@@ -48,6 +49,9 @@ final class DocumentationAction
         private readonly ?ProcessorInterface $processor = null,
         ?Negotiator $negotiator = null,
         private readonly array $documentationFormats = [OpenApiNormalizer::JSON_FORMAT => ['application/vnd.openapi+json'], OpenApiNormalizer::FORMAT => ['application/json']],
+        private readonly bool $swaggerUiEnabled = true,
+        private readonly bool $docsEnabled = true,
+        private readonly bool $reDocEnabled = true,
     ) {
         $this->negotiator = $negotiator ?? new Negotiator();
     }
@@ -57,6 +61,10 @@ final class DocumentationAction
      */
     public function __invoke(?Request $request = null)
     {
+        if (false === $this->docsEnabled) {
+            throw new NotFoundHttpException();
+        }
+
         if (null === $request) {
             return new Documentation($this->resourceNameCollectionFactory->create(), $this->title, $this->description, $this->version);
         }
@@ -83,6 +91,10 @@ final class DocumentationAction
      */
     private function getOpenApiDocumentation(array $context, string $format, Request $request): OpenApi|Response
     {
+        if ('html' === $format && !$this->swaggerUiEnabled && !$this->reDocEnabled) {
+            throw new NotFoundHttpException('Swagger UI and ReDoc are disabled.');
+        }
+
         if ($this->provider && $this->processor) {
             $context['request'] = $request;
             $operation = new Get(
@@ -93,7 +105,7 @@ final class DocumentationAction
                 outputFormats: $this->documentationFormats
             );
 
-            if ('html' === $format) {
+            if ('html' === $format && ($this->swaggerUiEnabled || $this->reDocEnabled)) {
                 $operation = $operation->withProcessor('api_platform.swagger_ui.processor')->withWrite(true);
             }
 

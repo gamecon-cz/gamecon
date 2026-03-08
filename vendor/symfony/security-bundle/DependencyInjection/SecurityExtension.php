@@ -49,6 +49,7 @@ use Symfony\Component\PasswordHasher\Hasher\NativePasswordHasher;
 use Symfony\Component\PasswordHasher\Hasher\Pbkdf2PasswordHasher;
 use Symfony\Component\PasswordHasher\Hasher\PlaintextPasswordHasher;
 use Symfony\Component\PasswordHasher\Hasher\SodiumPasswordHasher;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use Symfony\Component\Routing\Loader\ContainerLoader;
 use Symfony\Component\Security\Core\Authorization\Strategy\AffirmativeStrategy;
 use Symfony\Component\Security\Core\Authorization\Strategy\ConsensusStrategy;
@@ -156,6 +157,8 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         }
 
         $container->setParameter('security.authentication.hide_user_not_found', ExposeSecurityLevel::All !== $config['expose_security_errors']);
+        $container->deprecateParameter('security.authentication.hide_user_not_found', 'symfony/security-bundle', '7.4');
+
         $container->setParameter('.security.authentication.expose_security_errors', $config['expose_security_errors']);
 
         if (class_exists(Application::class)) {
@@ -181,6 +184,10 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
             $loader->load('console.php');
 
             $container->getDefinition('security.command.user_password_hash')->replaceArgument(1, array_keys($config['password_hashers']));
+        }
+
+        if ($container->hasDefinition('security.role_hierarchy')) {
+            $loader->load('security_role_hierarchy_dump_command.php');
         }
 
         $container->registerForAutoconfiguration(VoterInterface::class)
@@ -706,6 +713,17 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         $hasherMap = [];
         foreach ($hashers as $class => $hasher) {
             $hasherMap[$class] = $this->createHasher($hasher);
+            // The key is not a class, so we register an alias for argument to
+            // ease getting the hasher
+            if (!class_exists($class) && !interface_exists($class)) {
+                $id = 'security.password_hasher.'.$class;
+                $container
+                    ->register($id, PasswordHasherInterface::class)
+                    ->setFactory([new Reference('security.password_hasher_factory'), 'getPasswordHasher'])
+                    ->setArgument(0, $class)
+                ;
+                $container->registerAliasForArgument($id, PasswordHasherInterface::class, $class);
+            }
         }
 
         $container
@@ -1023,11 +1041,17 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         $this->userProviderFactories[] = $factory;
     }
 
+    /**
+     * @deprecated since Symfony 7.4, to be removed in Symfony 8.0 together with XML support.
+     */
     public function getXsdValidationBasePath(): string|false
     {
         return __DIR__.'/../Resources/config/schema';
     }
 
+    /**
+     * @deprecated since Symfony 7.4, to be removed in Symfony 8.0 together with XML support.
+     */
     public function getNamespace(): string
     {
         return 'http://symfony.com/schema/dic/security';

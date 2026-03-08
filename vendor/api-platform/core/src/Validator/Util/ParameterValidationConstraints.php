@@ -21,7 +21,6 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\AtLeastOneOf;
 use Symfony\Component\Validator\Constraints\Choice;
-use Symfony\Component\Validator\Constraints\Collection;
 use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Component\Validator\Constraints\DivisibleBy;
 use Symfony\Component\Validator\Constraints\GreaterThan;
@@ -101,16 +100,7 @@ trait ParameterValidationConstraints
             $assertions[] = new Choice(choices: $schema['enum']);
         }
 
-        if ($properties = $parameter->getExtraProperties()['_properties'] ?? []) {
-            $fields = [];
-            foreach ($properties as $propertyName) {
-                $fields[$propertyName] = $assertions;
-            }
-
-            return [new Collection(fields: $fields, allowMissingFields: true)];
-        }
-
-        $isCollectionType = fn ($t) => $t instanceof CollectionType;
+        $isCollectionType = static fn ($t) => $t instanceof CollectionType;
         $isCollection = $parameter->getNativeType()?->isSatisfiedBy($isCollectionType) ?? false;
 
         // type-info 7.2

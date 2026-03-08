@@ -88,7 +88,11 @@ final class TraceableFirewallListener extends FirewallListener implements ResetI
         }
 
         foreach ($requestListeners as $listener) {
-            $listener($event);
+            if (!$listener instanceof FirewallListenerInterface) {
+                $listener($event);
+            } elseif (false !== $listener->supports($event->getRequest())) {
+                $listener->authenticate($event);
+            }
 
             if ($event->hasResponse()) {
                 break;

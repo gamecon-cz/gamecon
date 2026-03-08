@@ -47,9 +47,11 @@ use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Symfony\Validator\Metadata\Property\Restriction\PropertySchemaRestrictionMetadataInterface;
 use ApiPlatform\Symfony\Validator\ValidationGroupsGeneratorInterface;
 use ApiPlatform\Validator\Exception\ValidationException;
+use Composer\InstalledVersions;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use Ramsey\Uuid\Uuid;
+use Symfony\Bundle\FrameworkBundle\Command\TranslationExtractCommand;
 use Symfony\Bundle\FrameworkBundle\Controller\ControllerHelper;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Resource\DirectoryResource;
@@ -66,6 +68,7 @@ use Symfony\Component\HttpClient\ScopingHttpClient;
 use Symfony\Component\JsonStreamer\JsonStreamWriter;
 use Symfony\Component\ObjectMapper\ObjectMapper;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
+use Symfony\Component\Serializer\Normalizer\NumberNormalizer;
 use Symfony\Component\Uid\AbstractUid;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Yaml\Yaml;
@@ -127,6 +130,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             if (!isset($config['defaults']['hideHydraOperation']) && !isset($config['defaults']['hide_hydra_operation'])) {
                 $config['defaults']['hideHydraOperation'] = true;
             }
+            // Disabling docs is a master switch: also disable Swagger UI and ReDoc
+            // to prevent HTML documentation from being served on resource endpoints.
+            $config['enable_swagger_ui'] = false;
+            $config['enable_re_doc'] = false;
         }
         $jsonSchemaFormats = $config['jsonschema_formats'];
 
@@ -176,7 +183,8 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $this->registerLinkSecurityConfiguration($loader, $config);
         $this->registerJsonStreamerConfiguration($container, $loader, $formats, $config);
 
-        if (class_exists(ObjectMapper::class)) {
+        // TranslationExtractCommand was introduced in framework-bundle/7.3 with the object mapper service
+        if (class_exists(ObjectMapper::class) && class_exists(TranslationExtractCommand::class)) {
             $loader->load('state/object_mapper.php');
         }
         $container->registerForAutoconfiguration(FilterInterface::class)
@@ -267,6 +275,15 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             $loader->load('symfony/uid.php');
         }
 
+        // symfony/serializer:7.3 added the NumberNormalizer
+        // symfony/framework-bundle:7.3 added the serializer.normalizer.number` service
+        // if symfony/serializer >= 7.3 and symfony/framework-bundle < 7.3, the service is registred
+        if (class_exists(NumberNormalizer::class) && !$container->has('serializer.normalizer.number')) {
+            $numberNormalizerDefinition = new Definition(NumberNormalizer::class);
+            $numberNormalizerDefinition->addTag('serializer.normalizer', ['built_in' => true, 'priority' => -915]);
+            $container->setDefinition('serializer.normalizer.number', $numberNormalizerDefinition);
+        }
+
         $defaultContext = ['hydra_prefix' => $config['serializer']['hydra_prefix']] + ($container->hasParameter('serializer.default_context') ? $container->getParameter('serializer.default_context') : []);
 
         $container->setParameter('api_platform.serializer.default_context', $defaultContext);
@@ -309,7 +326,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $container->setParameter('api_platform.collection.pagination.client_items_per_page', $config['defaults']['pagination_client_items_per_page'] ?? false);
         $container->setParameter('api_platform.collection.pagination.client_partial', $config['defaults']['pagination_client_partial'] ?? false);
         $container->setParameter('api_platform.collection.pagination.items_per_page', $config['defaults']['pagination_items_per_page'] ?? 30);
-        $container->setParameter('api_platform.collection.pagination.maximum_items_per_page', $config['defaults']['pagination_maximum_items_per_page'] ?? null);
+        $container->setParameter('api_platform.collection.pagination.maximum_items_per_page', \array_key_exists('pagination_maximum_items_per_page', $config['defaults'] ?? []) ? $config['defaults']['pagination_maximum_items_per_page'] : 30);
         $container->setParameter('api_platform.collection.pagination.page_parameter_name', $config['defaults']['pagination_page_parameter_name'] ?? $config['collection']['pagination']['page_parameter_name']);
         $container->setParameter('api_platform.collection.pagination.enabled_parameter_name', $config['defaults']['pagination_enabled_parameter_name'] ?? $config['collection']['pagination']['enabled_parameter_name']);
         $container->setParameter('api_platform.collection.pagination.items_per_page_parameter_name', $config['defaults']['pagination_items_per_page_parameter_name'] ?? $config['collection']['pagination']['items_per_page_parameter_name']);
@@ -321,6 +338,8 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $container->setParameter('api_platform.http_cache.shared_max_age', $config['defaults']['cache_headers']['shared_max_age'] ?? null);
         $container->setParameter('api_platform.http_cache.vary', $config['defaults']['cache_headers']['vary'] ?? ['Accept']);
         $container->setParameter('api_platform.http_cache.public', $config['defaults']['cache_headers']['public'] ?? $config['http_cache']['public']);
+        $container->setParameter('api_platform.http_cache.stale_while_revalidate', $config['defaults']['cache_headers']['stale_while_revalidate'] ?? null);
+        $container->setParameter('api_platform.http_cache.stale_if_error', $config['defaults']['cache_headers']['stale_if_error'] ?? null);
         $container->setParameter('api_platform.http_cache.invalidation.max_header_length', $config['defaults']['cache_headers']['invalidation']['max_header_length'] ?? $config['http_cache']['invalidation']['max_header_length']);
         $container->setParameter('api_platform.http_cache.invalidation.xkey.glue', $config['defaults']['cache_headers']['invalidation']['xkey']['glue'] ?? $config['http_cache']['invalidation']['xkey']['glue']);
 
@@ -577,6 +596,9 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         }
 
         if (!$config['enable_swagger']) {
+            $container->setParameter('api_platform.enable_swagger_ui', false);
+            $container->setParameter('api_platform.enable_re_doc', false);
+
             return;
         }
 
@@ -586,13 +608,13 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             $loader->load('openapi/yaml.php');
         }
 
-        $loader->load('swagger_ui.php');
+        if ($config['enable_swagger_ui'] || $config['enable_re_doc']) {
+            $loader->load('swagger_ui.php');
 
-        if ($config['use_symfony_listeners']) {
-            $loader->load('symfony/swagger_ui.php');
-        }
+            if ($config['use_symfony_listeners']) {
+                $loader->load('symfony/swagger_ui.php');
+            }
 
-        if ($config['enable_swagger_ui']) {
             $loader->load('state/swagger_ui.php');
         }
 
@@ -616,6 +638,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
     {
         if (!isset($formats['jsonapi'])) {
             return;
+        }
+
+        if (!InstalledVersions::isInstalled('api-platform/json-api')) {
+            throw new \LogicException('JSON-API support cannot be enabled as the JSON-API component is not installed. Try running "composer require api-platform/json-api".');
         }
 
         $loader->load('jsonapi.php');
@@ -647,6 +673,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
     {
         if (!isset($formats['jsonhal'])) {
             return;
+        }
+
+        if (!InstalledVersions::isInstalled('api-platform/hal')) {
+            throw new \LogicException('HAL support cannot be enabled as the HAL component is not installed. Try running "composer require api-platform/hal".');
         }
 
         $loader->load('hal.php');
@@ -721,6 +751,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             return;
         }
 
+        if (!InstalledVersions::isInstalled('api-platform/doctrine-orm')) {
+            throw new \LogicException('Doctrine support cannot be enabled as the doctrine ORM component is not installed. Try running "composer require api-platform/doctrine-orm".');
+        }
+
         // For older versions of doctrine bridge this allows autoconfiguration for filters
         if (!$container->has(ManagerRegistry::class)) {
             $container->setAlias(ManagerRegistry::class, 'doctrine');
@@ -751,6 +785,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
     {
         if (!$this->isConfigEnabled($container, $config['doctrine_mongodb_odm'])) {
             return;
+        }
+
+        if (!InstalledVersions::isInstalled('api-platform/doctrine-odm')) {
+            throw new \LogicException('Doctrine MongoDB ODM support cannot be enabled as the doctrine ODM component is not installed. Try running "composer require api-platform/doctrine-odm".');
         }
 
         $container->registerForAutoconfiguration(AggregationItemExtensionInterface::class)
@@ -862,6 +900,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             return;
         }
 
+        if (!InstalledVersions::isInstalled('symfony/mercure-bundle')) {
+            throw new \LogicException('Mercure support cannot be enabled as the Symfony Mercure Bundle is not installed. Try running "composer require symfony/mercure-bundle".');
+        }
+
         $container->setParameter('api_platform.mercure.include_type', $config['mercure']['include_type']);
         $loader->load('state/mercure.php');
 
@@ -883,6 +925,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             return;
         }
 
+        if (!InstalledVersions::isInstalled('symfony/messenger')) {
+            throw new \LogicException('Messenger support cannot be enabled as the Symfony Messenger component is not installed. Try running "composer require symfony/messenger".');
+        }
+
         $loader->load('messenger.php');
     }
 
@@ -894,6 +940,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
 
         if (!$enabled) {
             return;
+        }
+
+        if (!InstalledVersions::isInstalled('api-platform/elasticsearch')) {
+            throw new \LogicException('Elasticsearch support cannot be enabled as the Elasticsearch component is not installed. Try running "composer require api-platform/elasticsearch".');
         }
 
         $clientClass = !class_exists(\Elasticsearch\Client::class)

@@ -27,6 +27,7 @@ use ApiPlatform\Metadata\Util\TypeHelper;
 use ApiPlatform\Serializer\AbstractItemNormalizer;
 use ApiPlatform\Serializer\CacheKeyTrait;
 use ApiPlatform\Serializer\ContextTrait;
+use ApiPlatform\Serializer\OperationResourceClassResolverInterface;
 use ApiPlatform\Serializer\TagCollectorInterface;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
@@ -59,9 +60,9 @@ final class ItemNormalizer extends AbstractItemNormalizer
 
     private array $componentsCache = [];
 
-    public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ?PropertyAccessorInterface $propertyAccessor = null, ?NameConverterInterface $nameConverter = null, ?ClassMetadataFactoryInterface $classMetadataFactory = null, array $defaultContext = [], ?ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory = null, ?ResourceAccessCheckerInterface $resourceAccessChecker = null, protected ?TagCollectorInterface $tagCollector = null)
+    public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ?PropertyAccessorInterface $propertyAccessor = null, ?NameConverterInterface $nameConverter = null, ?ClassMetadataFactoryInterface $classMetadataFactory = null, array $defaultContext = [], ?ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory = null, ?ResourceAccessCheckerInterface $resourceAccessChecker = null, protected ?TagCollectorInterface $tagCollector = null, ?OperationResourceClassResolverInterface $operationResourceResolver = null)
     {
-        parent::__construct($propertyNameCollectionFactory, $propertyMetadataFactory, $iriConverter, $resourceClassResolver, $propertyAccessor, $nameConverter, $classMetadataFactory, $defaultContext, $resourceMetadataCollectionFactory, $resourceAccessChecker, $tagCollector);
+        parent::__construct($propertyNameCollectionFactory, $propertyMetadataFactory, $iriConverter, $resourceClassResolver, $propertyAccessor, $nameConverter, $classMetadataFactory, $defaultContext, $resourceMetadataCollectionFactory, $resourceAccessChecker, $tagCollector, $operationResourceResolver);
     }
 
     /**
@@ -168,6 +169,12 @@ final class ItemNormalizer extends AbstractItemNormalizer
      */
     public function denormalize(mixed $data, string $class, ?string $format = null, array $context = []): mixed
     {
+        // When re-entering for input DTO denormalization, data has already been
+        // unwrapped from the JSON:API structure by the first pass. Skip extraction.
+        if (isset($context['api_platform_input'])) {
+            return parent::denormalize($data, $class, $format, $context);
+        }
+
         // Avoid issues with proxies if we populated the object
         if (!isset($context[self::OBJECT_TO_POPULATE]) && isset($data['data']['id'])) {
             if (true !== ($context['api_allow_update'] ?? true)) {
@@ -460,6 +467,23 @@ final class ItemNormalizer extends AbstractItemNormalizer
                 $relationshipName = $this->nameConverter->normalize($relationshipName, $context['resource_class'], self::FORMAT, $context);
             }
 
+            // Many to one relationship
+            if ('one' === $relationshipDataArray['cardinality']) {
+                $data[$relationshipName] = [
+                    'data' => null,
+                ];
+
+                if (!$attributeValue) {
+                    continue;
+                }
+
+                unset($attributeValue['data']['attributes']);
+                $data[$relationshipName] = $attributeValue;
+
+                continue;
+            }
+
+            // Many to many relationship
             $data[$relationshipName] = [
                 'data' => [],
             ];
@@ -468,15 +492,6 @@ final class ItemNormalizer extends AbstractItemNormalizer
                 continue;
             }
 
-            // Many to one relationship
-            if ('one' === $relationshipDataArray['cardinality']) {
-                unset($attributeValue['data']['attributes']);
-                $data[$relationshipName] = $attributeValue;
-
-                continue;
-            }
-
-            // Many to many relationship
             foreach ($attributeValue as $attributeValueElement) {
                 if (!isset($attributeValueElement['data'])) {
                     throw new UnexpectedValueException(\sprintf('The JSON API attribute \'%s\' must contain a "data" key.', $relationshipName));
