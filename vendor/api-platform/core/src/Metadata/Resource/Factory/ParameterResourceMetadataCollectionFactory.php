@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata\Resource\Factory;
 
+use ApiPlatform\Doctrine\Common\Filter\PropertyAwareFilterInterface;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\Exception\RuntimeException;
 use ApiPlatform\Metadata\FilterInterface;
@@ -26,6 +27,8 @@ use ApiPlatform\Metadata\PropertiesAwareInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\Util\ResourceClassInfoTrait;
 use ApiPlatform\OpenApi\Model\Parameter as OpenApiParameter;
 use ApiPlatform\Serializer\Filter\FilterInterface as SerializerFilterInterface;
 use ApiPlatform\State\Parameter\ValueCaster;
@@ -41,9 +44,10 @@ use Symfony\Component\TypeInfo\TypeIdentifier;
  */
 final class ParameterResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
+    use ResourceClassInfoTrait;
     use StateOptionsTrait;
 
-    private array $localPropertyCache;
+    private array $localPropertyCache = [];
 
     public function __construct(
         private readonly PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory,
@@ -52,7 +56,10 @@ final class ParameterResourceMetadataCollectionFactory implements ResourceMetada
         private readonly ?ContainerInterface $filterLocator = null,
         private readonly ?NameConverterInterface $nameConverter = null,
         private readonly ?LoggerInterface $logger = null,
+        ?ResourceClassResolverInterface $resourceClassResolver = null,
     ) {
+        $this->resourceClassResolver = $resourceClassResolver;
+        $this->resourceMetadataFactory = $this->decorated;
     }
 
     public function create(string $resourceClass): ResourceMetadataCollection
@@ -93,20 +100,130 @@ final class ParameterResourceMetadataCollectionFactory implements ResourceMetada
     /**
      * @return array{propertyNames: string[], properties: array<string, ApiProperty>}
      */
-    private function getProperties(string $resourceClass, ?Parameter $parameter = null): array
+    private function getProperties(string $resourceClass, ?Parameter $parameter = null, ?Operation $operation = null): array
     {
-        $k = $resourceClass.($parameter?->getProperties() ? ($parameter->getKey() ?? '') : '');
+        $filterClass = $parameter?->getFilterClass();
+        if (null === $filterClass && null !== $operation) {
+            $filterClass = $this->getStateOptionsClass($operation, $resourceClass);
+        }
+        $filterClass ??= $resourceClass;
+
+        // Build cache key including the parameter's key or property to avoid collisions
+        $paramKey = '';
+        if ($parameter) {
+            $paramKey = $parameter->getProperties() ? ($parameter->getKey() ?? '') : ($parameter->getProperty() ?? $parameter->getKey() ?? '');
+        }
+        // Include properties list so repeated `:property` templates with disjoint properties get distinct cache entries.
+        $paramProperties = $parameter?->getProperties() ? '['.implode(',', $parameter->getProperties()).']' : '';
+        $k = $resourceClass.$paramKey.$paramProperties.(\is_string($parameter->getFilter()) ? $parameter->getFilter() : '').$filterClass;
         if (isset($this->localPropertyCache[$k])) {
             return $this->localPropertyCache[$k];
         }
 
         $propertyNames = [];
         $properties = [];
-        foreach ($parameter?->getProperties() ?? $this->propertyNameCollectionFactory->create($resourceClass) as $property) {
-            $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $property);
+
+        // Get the list of properties to process
+        $propertiesToProcess = $parameter?->getProperties();
+        if (null === $propertiesToProcess && null !== $parameter && null !== $parameter->getProperty()) {
+            // If plural properties not set but singular property is, use that
+            $propertiesToProcess = [$parameter->getProperty()];
+        }
+        $propertiesToProcess ??= $this->propertyNameCollectionFactory->create($filterClass);
+
+        foreach ($propertiesToProcess as $property) {
+            if (str_contains($property, '.')) {
+                $parts = explode('.', $property);
+                $currentClass = $filterClass;
+                $relationSegments = [];
+                $convertedRelationSegments = [];
+                $relationClasses = [];
+                $traversalSuccessful = true;
+
+                foreach ($parts as $i => $part) {
+                    $isLastPart = ($i === \count($parts) - 1);
+
+                    try {
+                        $propertyMetadata = $this->propertyMetadataFactory->create($currentClass, $part);
+                    } catch (\Exception $e) {
+                        $traversalSuccessful = false;
+                        break;
+                    }
+
+                    if (!$isLastPart) {
+                        // Store relation information
+                        $relationSegments[] = $part;
+                        $relationClasses[] = $currentClass;
+
+                        // Apply name conversion to relation segment
+                        $convertedPart = $this->nameConverter?->normalize($part) ?? $part;
+                        $convertedRelationSegments[] = $convertedPart;
+
+                        // Try to get the class name from property type
+                        $nextClass = $this->getClassNameFromProperty($propertyMetadata);
+
+                        if (!$nextClass) {
+                            $traversalSuccessful = false;
+                            break;
+                        }
+
+                        $currentClass = $nextClass;
+                    }
+
+                    if ($propertyMetadata->isReadable()) {
+                        // For leaf property, apply name conversion and store full metadata
+                        if ($isLastPart) {
+                            $propertyNames[] = $property;
+                            $leafProperty = $this->nameConverter?->normalize($part) ?? $part;
+
+                            $properties[$property] = $propertyMetadata->withExtraProperties([
+                                ...$propertyMetadata->getExtraProperties(),
+                                'nested_property_info' => [
+                                    'relation_segments' => $relationSegments,
+                                    'converted_relation_segments' => $convertedRelationSegments,
+                                    'relation_classes' => $relationClasses,
+                                    'leaf_property' => $leafProperty,
+                                    'leaf_class' => $currentClass,
+                                ],
+                            ]);
+                        } else {
+                            $properties[$property] = $propertyMetadata;
+                        }
+                    }
+
+                    continue;
+                }
+
+                // If traversal wasn't fully successful but the property was explicitly listed
+                // (e.g., in parameter's properties array for placeholder expansion), still include it
+                if (!$traversalSuccessful && !\in_array($property, $propertyNames, true)) {
+                    $propertyNames[] = $property;
+                }
+
+                // Skip the simple property processing below for nested properties
+                continue;
+            }
+
+            $propertyMetadata = $this->propertyMetadataFactory->create($filterClass, $property);
             if ($propertyMetadata->isReadable()) {
                 $propertyNames[] = $property;
                 $properties[$property] = $propertyMetadata;
+            }
+        }
+
+        if (($filter = $this->getFilterInstance($parameter->getFilter())) && $filter instanceof PropertyAwareFilterInterface) {
+            if (!method_exists($filter, 'getProperties')) { // todo 5.x remove this check
+                trigger_deprecation('api-platform/core', 'In API Platform 5.0 "%s" will implement a method named "getProperties"', PropertyAwareFilterInterface::class);
+                $refl = new \ReflectionClass($filter);
+                $filterProperties = $refl->hasProperty('properties') ? $refl->getProperty('properties')->getValue($filter) : [];
+            } else {
+                $filterProperties = array_keys($filter->getProperties() ?? []);
+            }
+
+            foreach ($filterProperties as $prop) {
+                if (!\in_array($prop, $propertyNames, true)) {
+                    $propertyNames[] = $this->nameConverter?->denormalize($prop) ?? $prop;
+                }
             }
         }
 
@@ -119,40 +236,57 @@ final class ParameterResourceMetadataCollectionFactory implements ResourceMetada
     {
         $propertyNames = $properties = [];
         $parameters = $operation->getParameters() ?? new Parameters();
+
+        // First loop we look for the :property placeholder and replace its key
+        foreach ($parameters as $key => $parameter) {
+            if (!str_contains($key, ':property')) {
+                continue;
+            }
+
+            if (!$parameter->getKey()) {
+                $parameter = $parameter->withKey($key);
+            }
+
+            ['propertyNames' => $propertyNames, 'properties' => $properties] = $this->getProperties($resourceClass, $parameter, $operation);
+            $parameter = $parameter->withProperties($propertyNames);
+
+            foreach ($propertyNames as $property) {
+                if (str_contains($property, '.')) {
+                    $converted = $property;
+                } else {
+                    $converted = $this->nameConverter?->denormalize($property) ?? $property;
+                }
+                $finalKey = str_replace(':property', $converted, $key);
+                $parameters->add(
+                    $finalKey,
+                    $parameter->withProperty($converted)->withKey($finalKey)
+                );
+            }
+
+            $parameters->remove($key, $parameter::class);
+        }
+
         foreach ($parameters as $key => $parameter) {
             if (!$parameter->getKey()) {
                 $parameter = $parameter->withKey($key);
             }
 
-            ['propertyNames' => $propertyNames, 'properties' => $properties] = $this->getProperties($resourceClass, $parameter);
+            $filter = $this->getFilterInstance($parameter->getFilter());
+
+            // The filter has a parameter provider
             if (null === $parameter->getProvider() && (($f = $parameter->getFilter()) && $f instanceof ParameterProviderFilterInterface)) {
-                $parameters->add($key, $parameter->withProvider($f->getParameterProvider()));
+                $parameter = $parameter->withProvider($f->getParameterProvider());
             }
 
-            if (':property' === $key) {
-                foreach ($propertyNames as $property) {
-                    $converted = $this->nameConverter?->denormalize($property) ?? $property;
-                    $propertyParameter = $this->setDefaults($converted, $parameter, $resourceClass, $properties, $operation);
-                    $priority = $propertyParameter->getPriority() ?? $internalPriority--;
-                    $parameters->add($converted, $propertyParameter->withPriority($priority)->withKey($converted));
-                }
+            $key = $parameter->getKey();
 
-                $parameters->remove($key, $parameter::class);
-                continue;
+            ['propertyNames' => $propertyNames, 'properties' => $properties] = $this->getProperties($resourceClass, $parameter, $operation);
+
+            if ($filter instanceof PropertiesAwareInterface) {
+                $parameter = $parameter->withProperties($propertyNames);
             }
 
-            $key = $parameter->getKey() ?? $key;
-
-            if (str_contains($key, ':property') || ((($f = $parameter->getFilter()) && is_a($f, PropertiesAwareInterface::class, true)) || $parameter instanceof PropertiesAwareInterface)) {
-                $p = [];
-                foreach ($propertyNames as $prop) {
-                    $p[$this->nameConverter?->denormalize($prop) ?? $prop] = $prop;
-                }
-
-                $parameter = $parameter->withExtraProperties($parameter->getExtraProperties() + ['_properties' => $p]);
-            }
-
-            $parameter = $this->setDefaults($key, $parameter, $resourceClass, $properties, $operation);
+            $parameter = $this->setDefaults($key, $parameter, $filter, $properties, $operation);
             // We don't do any type cast yet, a query parameter or an header is always a string or a list of strings
             if (null === $parameter->getNativeType()) {
                 // this forces the type to be only a list
@@ -183,31 +317,31 @@ final class ParameterResourceMetadataCollectionFactory implements ResourceMetada
                 }
             }
 
+            if ($parameter->getCastToNativeType() && null === $parameter->getCastFn()) {
+                $propertyKey = $parameter->getProperty() ?? $key;
+                $propNativeType = ($properties[$propertyKey] ?? null)?->getNativeType();
+                if ($propNativeType && $propNativeType->isIdentifiedBy(\DateTimeInterface::class)) {
+                    $parameter = $parameter->withCastFn([ValueCaster::class, 'toDateTime']);
+                }
+            }
+
             $priority = $parameter->getPriority() ?? $internalPriority--;
             $parameters->add($key, $parameter->withPriority($priority));
         }
+
+        $parameters->sort();
 
         return $parameters;
     }
 
     private function addFilterMetadata(Parameter $parameter): Parameter
     {
-        if (!($filterId = $parameter->getFilter())) {
+        if (!$filter = $this->getFilterInstance($parameter->getFilter())) {
             return $parameter;
         }
-
-        if (!\is_object($filterId) && !$this->filterLocator->has($filterId)) {
-            return $parameter;
-        }
-
-        $filter = \is_object($filterId) ? $filterId : $this->filterLocator->get($filterId);
 
         if ($filter instanceof ParameterProviderFilterInterface) {
             $parameter = $parameter->withProvider($filter::getParameterProvider());
-        }
-
-        if (!$filter) {
-            return $parameter;
         }
 
         if (null === $parameter->getSchema() && $filter instanceof JsonSchemaFilterInterface && $schema = $filter->getSchema($parameter)) {
@@ -224,36 +358,62 @@ final class ParameterResourceMetadataCollectionFactory implements ResourceMetada
     /**
      * @param array<string, ApiProperty> $properties
      */
-    private function setDefaults(string $key, Parameter $parameter, string $resourceClass, array $properties, Operation $operation): Parameter
+    private function setDefaults(string $key, Parameter $parameter, ?object $filter, array $properties, Operation $operation): Parameter
     {
         if (null === $parameter->getKey()) {
             $parameter = $parameter->withKey($key);
         }
 
-        $filter = $parameter->getFilter();
-        if (\is_string($filter) && $this->filterLocator->has($filter)) {
-            $filter = $this->filterLocator->get($filter);
-        }
-
         if ($filter instanceof SerializerFilterInterface && null === $parameter->getProvider()) {
             $parameter = $parameter->withProvider('api_platform.serializer.filter_parameter_provider');
         }
-        $currentKey = $key;
+
         if (null === $parameter->getProperty() && isset($properties[$key])) {
             $parameter = $parameter->withProperty($key);
         }
 
-        if (null === $parameter->getProperty() && $this->nameConverter && ($nameConvertedKey = $this->nameConverter->normalize($key)) && isset($properties[$nameConvertedKey])) {
-            $parameter = $parameter->withProperty($key)->withExtraProperties(['_query_property' => $nameConvertedKey] + $parameter->getExtraProperties());
-            $currentKey = $nameConvertedKey;
+        // Transfer nested property metadata from ApiProperty to Parameter
+        // Always use nested_properties_info (plural) as a map keyed by original property path
+        $propertyKey = $parameter->getProperty() ?? $key;
+        $nestedPropertiesInfo = [];
+        if (isset($properties[$propertyKey])) {
+            $apiPropertyExtraProps = $properties[$propertyKey]->getExtraProperties();
+            if (isset($apiPropertyExtraProps['nested_property_info'])) {
+                $nestedInfo = $apiPropertyExtraProps['nested_property_info'];
+                $nestedPropertiesInfo[$propertyKey] = $nestedInfo;
+
+                $fullPath = implode('.', [...$nestedInfo['converted_relation_segments'], $nestedInfo['leaf_property']]);
+                $parameter = $parameter->withProperty($fullPath);
+            }
+        } else {
+            foreach ($properties as $propPath => $apiProperty) {
+                $apiPropExtra = $apiProperty->getExtraProperties();
+                if (isset($apiPropExtra['nested_property_info'])) {
+                    $nestedPropertiesInfo[$propPath] = $apiPropExtra['nested_property_info'];
+                }
+            }
+        }
+
+        if ($nestedPropertiesInfo) {
+            $parameter = $parameter->withExtraProperties([
+                ...$parameter->getExtraProperties(),
+                'nested_properties_info' => $nestedPropertiesInfo,
+            ]);
         }
 
         if ($this->nameConverter && $property = $parameter->getProperty()) {
-            $parameter = $parameter->withProperty($this->nameConverter->normalize($property));
+            // Skip name conversion if we already have nested property info
+            $paramExtraProps = $parameter->getExtraProperties();
+            if (!isset($paramExtraProps['nested_properties_info'])) {
+                // Keep the original (non name-converted) property to build the query while the public property matches the API naming convention.
+                $parameter = $parameter
+                    ->withExtraProperties([...$paramExtraProps, 'query_property' => $property])
+                    ->withProperty($this->nameConverter->normalize($property));
+            }
         }
 
-        if (isset($properties[$currentKey]) && ($eloquentRelation = ($properties[$currentKey]->getExtraProperties()['eloquent_relation'] ?? null)) && isset($eloquentRelation['foreign_key'])) {
-            $parameter = $parameter->withExtraProperties(['_query_property' => $eloquentRelation['foreign_key']] + $parameter->getExtraProperties());
+        if (isset($properties[$propertyKey]) && ($eloquentRelation = ($properties[$propertyKey]->getExtraProperties()['eloquent_relation'] ?? null)) && isset($eloquentRelation['foreign_key'])) {
+            $parameter = $parameter->withProperty($eloquentRelation['foreign_key']);
         }
 
         $parameter = $this->addFilterMetadata($parameter);
@@ -292,5 +452,27 @@ final class ParameterResourceMetadataCollectionFactory implements ResourceMetada
         }
 
         return $parameter;
+    }
+
+    /**
+     * TODO: 5.x use FilterInterface on Laravel eloquent filters.
+     *
+     * @return FilterInterface|object
+     */
+    private function getFilterInstance(object|string|null $filter): ?object
+    {
+        if (!$filter) {
+            return null;
+        }
+
+        if (\is_object($filter)) {
+            return $filter;
+        }
+
+        if (!$this->filterLocator || !$this->filterLocator->has($filter)) {
+            return null;
+        }
+
+        return $this->filterLocator->get($filter);
     }
 }

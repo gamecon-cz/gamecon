@@ -124,8 +124,9 @@ return array(
     'Defuse\\Crypto\\' => array($vendorDir . '/defuse/php-encryption/src'),
     'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
     'DASPRiD\\Enum\\' => array($vendorDir . '/dasprid/enum/src'),
+    'Composer\\Semver\\' => array($vendorDir . '/composer/semver/src'),
     'BaconQrCode\\' => array($vendorDir . '/bacon/bacon-qr-code/src'),
     'App\\' => array($baseDir . '/symfony/src'),
-    'AltchaOrg\\Altcha\\' => array($vendorDir . '/altcha-org/altcha/src'),
     'ApiPlatform\\' => array($vendorDir . '/api-platform/core/src'),
+    'AltchaOrg\\Altcha\\' => array($vendorDir . '/altcha-org/altcha/src'),
 );

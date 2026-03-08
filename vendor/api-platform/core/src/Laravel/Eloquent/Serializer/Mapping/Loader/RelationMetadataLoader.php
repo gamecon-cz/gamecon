@@ -42,6 +42,10 @@ final class RelationMetadataLoader implements LoaderInterface
         }
 
         $refl = $classMetadata->getReflectionClass();
+        if ($refl->isAbstract()) {
+            return false;
+        }
+
         /** @var Model */
         $model = $refl->newInstanceWithoutConstructor();
         $attributesMetadata = $classMetadata->getAttributesMetadata();
@@ -66,10 +70,10 @@ final class RelationMetadataLoader implements LoaderInterface
                 $attribute = $a->newInstance();
 
                 match (true) {
-                    $attribute instanceof Groups => array_map([$attributeMetadata, 'addGroup'], $attribute->getGroups()),
-                    $attribute instanceof MaxDepth => $attributeMetadata->setMaxDepth($attribute->getMaxDepth()),
-                    $attribute instanceof SerializedName => $attributeMetadata->setSerializedName($attribute->getSerializedName()),
-                    $attribute instanceof SerializedPath => $attributeMetadata->setSerializedPath($attribute->getSerializedPath()),
+                    $attribute instanceof Groups => array_map([$attributeMetadata, 'addGroup'], $attribute->groups),
+                    $attribute instanceof MaxDepth => $attributeMetadata->setMaxDepth($attribute->maxDepth),
+                    $attribute instanceof SerializedName => $attributeMetadata->setSerializedName($attribute->serializedName),
+                    $attribute instanceof SerializedPath => $attributeMetadata->setSerializedPath($attribute->serializedPath),
                     $attribute instanceof Ignore => $attributeMetadata->setIgnore(true),
                     $attribute instanceof Context => $this->setAttributeContextsForGroups($attribute, $attributeMetadata),
                     default => null,
@@ -82,10 +86,11 @@ final class RelationMetadataLoader implements LoaderInterface
 
     private function setAttributeContextsForGroups(Context $annotation, AttributeMetadataInterface $attributeMetadata): void
     {
-        $context = $annotation->getContext();
-        $groups = $annotation->getGroups();
-        $normalizationContext = $annotation->getNormalizationContext();
-        $denormalizationContext = $annotation->getDenormalizationContext();
+        $context = $annotation->context;
+        $groups = $annotation->groups;
+        $normalizationContext = $annotation->normalizationContext;
+        $denormalizationContext = $annotation->denormalizationContext;
+
         if ($normalizationContext || $context) {
             $attributeMetadata->setNormalizationContextForGroups($normalizationContext ?: $context, $groups);
         }

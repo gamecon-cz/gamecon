@@ -15,6 +15,7 @@ namespace ApiPlatform\JsonApi\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use ApiPlatform\State\Util\RequestParser;
 
 final class JsonApiProvider implements ProviderInterface
 {
@@ -70,6 +71,12 @@ final class JsonApiProvider implements ProviderInterface
             $filters = array_merge($pageParameter, $filters);
         }
 
+        foreach (['page', 'itemsPerPage', 'pagination', 'partial'] as $paginationParameter) {
+            if (isset($queryParameters[$paginationParameter]) && !\is_array($queryParameters[$paginationParameter]) && !isset($filters[$paginationParameter])) {
+                $filters[$paginationParameter] = $queryParameters[$paginationParameter];
+            }
+        }
+
         [$included, $properties] = $this->transformFieldsetsParameters($queryParameters, $operation->getShortName() ?? '');
 
         if ($properties) {
@@ -81,6 +88,18 @@ final class JsonApiProvider implements ProviderInterface
         }
 
         if ($filters) {
+            // ReadProvider skips its raw-query fallback when _api_filters is set,
+            // so preserve flat custom params here too. JSON:API transforms win.
+            $rawParams = $request->attributes->get('_api_query_parameters');
+            if (null === $rawParams) {
+                $queryString = RequestParser::getQueryString($request);
+                $rawParams = $queryString ? RequestParser::parseRequestParams($queryString) : [];
+                $request->attributes->set('_api_query_parameters', $rawParams);
+            }
+            // Drop keys already consumed above so the raw bracket variants don't override the hoisted values.
+            $consumed = array_diff_key($rawParams, array_flip(['filter', 'page', 'itemsPerPage', 'pagination', 'partial', 'include', 'fields']));
+            $filters = array_replace($consumed, $filters);
+
             $request->attributes->set('_api_filters', $filters);
         }
 
