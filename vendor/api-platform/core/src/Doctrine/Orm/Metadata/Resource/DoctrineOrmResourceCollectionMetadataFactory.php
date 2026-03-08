@@ -19,6 +19,8 @@ use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\State\Util\StateOptionsTrait;
@@ -44,14 +46,25 @@ final class DoctrineOrmResourceCollectionMetadataFactory implements ResourceMeta
             $operations = $resourceMetadata->getOperations();
 
             if ($operations) {
-                foreach ($resourceMetadata->getOperations() as $operationName => $operation) {
+                foreach ($operations as $operationName => $operation) {
                     $entityClass = $this->getStateOptionsClass($operation, $operation->getClass(), Options::class);
 
-                    if (!$this->managerRegistry->getManagerForClass($entityClass) instanceof EntityManagerInterface) {
+                    $manager = $this->managerRegistry->getManagerForClass($entityClass);
+                    if (!$manager instanceof EntityManagerInterface) {
                         continue;
                     }
 
-                    $operations->add($operationName, $this->addDefaults($operation));
+                    $classMetadata = $manager->getClassMetadata($entityClass);
+                    // @see https://www.doctrine-project.org/projects/doctrine-orm/en/3.5/reference/improving-performance.html#read-only-entities
+                    // Read-Only allows to persist new entities of a kind and remove existing ones, they are just not considered for updates.
+                    if ($classMetadata->isReadOnly && ($operation instanceof Put || $operation instanceof Patch)) {
+                        $operations->remove($operationName);
+                        continue;
+                    }
+
+                    $operation = $this->addDefaults($operation);
+                    $operation = $this->setParametersFilterClass($operation, $entityClass);
+                    $operations->add($operationName, $operation);
                 }
 
                 $resourceMetadata = $resourceMetadata->withOperations($operations);
@@ -67,7 +80,9 @@ final class DoctrineOrmResourceCollectionMetadataFactory implements ResourceMeta
                         continue;
                     }
 
-                    $graphQlOperations[$operationName] = $this->addDefaults($graphQlOperation);
+                    $graphQlOperation = $this->addDefaults($graphQlOperation);
+                    $graphQlOperation = $this->setParametersFilterClass($graphQlOperation, $entityClass);
+                    $graphQlOperations[$operationName] = $graphQlOperation;
                 }
 
                 $resourceMetadata = $resourceMetadata->withGraphQlOperations($graphQlOperations);
@@ -114,5 +129,21 @@ final class DoctrineOrmResourceCollectionMetadataFactory implements ResourceMeta
         }
 
         return 'api_platform.doctrine.orm.state.persist_processor';
+    }
+
+    private function setParametersFilterClass(Operation $operation, string $entityClass): Operation
+    {
+        $parameters = $operation->getParameters();
+        if (!$parameters) {
+            return $operation;
+        }
+
+        foreach ($parameters as $key => $parameter) {
+            if (null === $parameter->getFilterClass()) {
+                $parameters->add($key, $parameter->withFilterClass($entityClass));
+            }
+        }
+
+        return $operation->withParameters($parameters);
     }
 }

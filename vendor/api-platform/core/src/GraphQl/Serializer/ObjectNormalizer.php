@@ -44,9 +44,9 @@ final class ObjectNormalizer implements NormalizerInterface
     }
 
     /**
-     * @param string|null $format
+     * {@inheritdoc}
      */
-    public function getSupportedTypes($format): array
+    public function getSupportedTypes(?string $format): array
     {
         return self::FORMAT === $format ? $this->decorated->getSupportedTypes($format) : [];
     }
@@ -56,32 +56,43 @@ final class ObjectNormalizer implements NormalizerInterface
      *
      * @throws UnexpectedValueException
      */
-    public function normalize(mixed $object, ?string $format = null, array $context = []): array
+    public function normalize(mixed $data, ?string $format = null, array $context = []): array
     {
         if (isset($context['api_resource'])) {
             $originalResource = $context['api_resource'];
             unset($context['api_resource']);
         }
 
-        $data = $this->decorated->normalize($object, $format, $context);
-        if (!\is_array($data)) {
+        $normalizedData = $this->decorated->normalize($data, $format, $context);
+
+        // The default circular_reference_handler returns the visited object's IRI
+        // as a string; return an identifier-only node so the GraphQL field shape
+        // is preserved instead of crashing.
+        if (\is_string($normalizedData) && isset($originalResource)) {
+            return [
+                self::ITEM_RESOURCE_CLASS_KEY => $this->getObjectClass($originalResource),
+                self::ITEM_IDENTIFIERS_KEY => $this->identifiersExtractor->getIdentifiersFromItem($originalResource),
+            ];
+        }
+
+        if (!\is_array($normalizedData)) {
             throw new UnexpectedValueException('Expected data to be an array.');
         }
 
         if (!isset($originalResource)) {
-            return $data;
+            return $normalizedData;
         }
 
-        if (isset($data['id'])) {
-            $data['_id'] = $data['id'];
-            $data['id'] = $this->iriConverter->getIriFromResource($originalResource);
+        if (isset($normalizedData['id'])) {
+            $normalizedData['_id'] = $normalizedData['id'];
+            $normalizedData['id'] = $this->iriConverter->getIriFromResource($originalResource);
         }
 
         if (!($context['no_resolver_data'] ?? false)) {
-            $data[self::ITEM_RESOURCE_CLASS_KEY] = $this->getObjectClass($originalResource);
-            $data[self::ITEM_IDENTIFIERS_KEY] = $this->identifiersExtractor->getIdentifiersFromItem($originalResource);
+            $normalizedData[self::ITEM_RESOURCE_CLASS_KEY] = $this->getObjectClass($originalResource);
+            $normalizedData[self::ITEM_IDENTIFIERS_KEY] = $this->identifiersExtractor->getIdentifiersFromItem($originalResource);
         }
 
-        return $data;
+        return $normalizedData;
     }
 }

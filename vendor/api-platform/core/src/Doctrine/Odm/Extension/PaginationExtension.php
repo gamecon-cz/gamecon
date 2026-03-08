@@ -67,6 +67,11 @@ final class PaginationExtension implements AggregationResultCollectionExtensionI
          */
         $repository = $manager->getRepository($resourceClass);
 
+        // Limit the documents entering $facet to avoid buffering the whole result set
+        if (!$doesCount && $limit > 0) {
+            $aggregationBuilder->limit($offset + $limit);
+        }
+
         $facet = $aggregationBuilder->facet();
         $addFields = $aggregationBuilder->addFields();
 
@@ -125,6 +130,11 @@ final class PaginationExtension implements AggregationResultCollectionExtensionI
         return new Paginator($iterator, $manager->getUnitOfWork(), $resourceClass);
     }
 
+    /**
+     * @param array<string, mixed> $context
+     *
+     * @return array<string, mixed>
+     */
     private function addCountToContext(Builder $aggregationBuilder, array $context): array
     {
         if (!($context['graphql_operation_name'] ?? false)) {

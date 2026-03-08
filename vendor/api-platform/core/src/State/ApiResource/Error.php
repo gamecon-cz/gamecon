@@ -21,9 +21,9 @@ use ApiPlatform\Metadata\ErrorResourceInterface;
 use ApiPlatform\Metadata\Exception\HttpExceptionInterface;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface as SymfonyHttpExceptionInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\Ignore;
-use Symfony\Component\Serializer\Annotation\SerializedName;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Component\WebLink\Link;
 
 #[ErrorResource(
@@ -120,15 +120,15 @@ class Error extends \Exception implements ProblemExceptionInterface, HttpExcepti
     private ?string $id = null;
 
     public function __construct(
-        private string $title,
-        private string $detail,
+        private ?string $title,
+        private ?string $detail,
         #[ApiProperty(
             description: 'The HTTP status code applicable to this problem.',
             identifier: true,
             writable: false,
             initializable: false,
-            schema: ['type' => 'number', 'examples' => [404], 'default' => 400]
-        )] private int $status,
+            schema: ['type' => ['integer', 'null'], 'examples' => [404], 'default' => 400]
+        )] private ?int $status,
         ?array $originalTrace = null,
         private ?string $instance = null,
         private string $type = 'about:blank',
@@ -198,6 +198,10 @@ class Error extends \Exception implements ProblemExceptionInterface, HttpExcepti
     public static function createFromException(\Exception|\Throwable $exception, int $status): self
     {
         $headers = ($exception instanceof SymfonyHttpExceptionInterface || $exception instanceof HttpExceptionInterface) ? $exception->getHeaders() : [];
+
+        if ($exception instanceof ProblemExceptionInterface) {
+            return new self($exception->getTitle(), $exception->getDetail(), $exception->getStatus(), $exception->getTrace(), $exception->getInstance(), $exception->getType(), $headers);
+        }
 
         return new self('An error occurred', $exception->getMessage(), $status, $exception->getTrace(), type: "/errors/$status", headers: $headers, previous: $exception->getPrevious());
     }

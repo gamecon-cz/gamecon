@@ -45,8 +45,8 @@ final class OidcTokenGenerateCommand extends Command
     }
 
     /**
-     * @params array<string, list<string>> $algorithms
-     * @params array<string, list<string>> $issuers
+     * @param list<string> $algorithms
+     * @param list<string> $issuers
      */
     public function addGenerator(string $firewall, OidcTokenGenerator $oidcTokenGenerator, array $algorithms, array $issuers): void
     {
@@ -79,7 +79,7 @@ final class OidcTokenGenerateCommand extends Command
 
     private function getGenerator(?string $firewall): OidcTokenGenerator
     {
-        if (0 === \count($this->generators)) {
+        if (!$this->generators) {
             throw new \InvalidArgumentException('No OIDC token generator configured.');
         }
 
