@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-return function (ContainerConfigurator $container) {
+use ApiPlatform\Hydra\State\JsonStreamerProcessor;
+use ApiPlatform\Hydra\State\JsonStreamerProvider;
+
+return static function (ContainerConfigurator $container) {
     $services = $container->services();
 
-    $services->set('api_platform.jsonld.state_processor.json_streamer', 'ApiPlatform\Hydra\State\JsonStreamerProcessor')
+    $services->set('api_platform.jsonld.state_processor.json_streamer', JsonStreamerProcessor::class)
         ->decorate('api_platform.state_processor.main', null, 190)
         ->args([
             service('api_platform.jsonld.state_processor.json_streamer.inner'),
@@ -27,9 +30,10 @@ return function (ContainerConfigurator $container) {
             '%api_platform.collection.pagination.page_parameter_name%',
             '%api_platform.collection.pagination.enabled_parameter_name%',
             '%api_platform.url_generation_strategy%',
+            service('api_platform.metadata.resource.metadata_collection_factory'),
         ]);
 
-    $services->set('api_platform.jsonld.state_provider.json_streamer', 'ApiPlatform\Hydra\State\JsonStreamerProvider')
+    $services->set('api_platform.jsonld.state_provider.json_streamer', JsonStreamerProvider::class)
         ->decorate('api_platform.state_provider.main', null, 310)
         ->args([
             service('api_platform.jsonld.state_provider.json_streamer.inner'),
