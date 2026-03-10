@@ -97,10 +97,10 @@ const nastavStavAkce = (stav: DataApiStav) => {
 
 export const useStavAkce = () => useProgramStore(s=>s.dataStatus.akce);
 
-export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAkce) => {
+export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAkce, kódTýmu?: number) => {
   try {
     nastavStavAkce("načítání");
-    const { chyba } = await fetchAktivitaAkce(aktivitaId, typ);
+    const { chyba } = await fetchAktivitaAkce(aktivitaId, typ, kódTýmu);
 
     if (chyba?.hláška){
       nastavStavAkce("chyba");

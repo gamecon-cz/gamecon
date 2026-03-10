@@ -1944,6 +1944,9 @@ SQL,
         if ($this->a[Sql::ZAMCEL] == $idUzivatele) {
             dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$idAktivity");
         }
+        if ($this->a[Sql::TEAMOVA]) {
+            AktivitaTym::odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
+        }
         if ($this->a[Sql::TEAMOVA] && $this->pocetPrihlasenych() === 1) { // odhlašuje se poslední hráč
             dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$idAktivity");
         }
@@ -2421,6 +2424,13 @@ SQL
                 }
             }
         }
+        if ($this->tymova()) {
+            // todo: pokud nový tým (nemá kod tymu nebo je 0) zkontrolovat max poč týmů
+            // todo: pokud existující tým, zkontrolovat jestli tým existuje a má volné místo
+            // todo: tohle funguje jak ? $this->rodice() as $rodic
+        }
+
+        /*
         $teamKapacita = $this->tymovaKapacita();
         if ($teamKapacita !== null) {
             $jeNovyTym = false; // jestli se uživatel přihlašuje jako první z nového/dalšího týmu
@@ -2434,6 +2444,7 @@ SQL
                 throw new \Chyba('Na aktivitu ' . $this->nazev() . ': ' . $this->denCasSkutecny() . ' je už přihlášen maximální počet týmů');
             }
         }
+        */
 
         if ($this->jeBrigadnicka() && !$uzivatel->jeBrigadnik()) {
             throw new \Chyba(
@@ -2444,10 +2455,6 @@ SQL
             );
         }
 
-        // potlačitelné kontroly
-        if ($this->a[Sql::ZAMCEL] && !($parametry & self::ZAMEK)) {
-            throw new \Chyba(hlaska('zamcena')); // zamčena pro tým, nikoli zamčena / uzavřena
-        }
         if ($this->probehnuta() && $this->lzeJestePridavatUcastniky($prihlasujici)) {
             $parametry |= self::ZPETNE; // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
         }
@@ -3012,8 +3019,10 @@ HTML
             $prihlasujici = $prihlasujici ?? $u;
             if (post('prihlasit')) {
                 $aktivita = self::zId(post('prihlasit'));
+                // todo: validace
+                $tymKod = +post("tymKod");
                 if ($aktivita) {
-                    $aktivita->prihlas($u, $prihlasujici, $parametry);
+                    $aktivita->prihlas($u, $prihlasujici, $parametry, kodTymu: $tymKod);
                 }
 
                 return true;

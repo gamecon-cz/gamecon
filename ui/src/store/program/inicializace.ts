@@ -1,5 +1,6 @@
 import { useProgramStore } from ".";
 import { GAMECON_KONSTANTY } from "../../env";
+import { registrujDotahováníNastaveníTýmu } from "../../pages/program/components/vstupy/NastaveniTymuModal";
 import { distinct } from "../../utils";
 import { LOCAL_STORAGE_KLÍČE } from "../localStorageKlíče";
 import { urlStavProgramTabulkaMožnostíDnyMůj } from "./logic/url";
@@ -109,4 +110,6 @@ export const inicializujProgramStore = () => {
   ) {
     nastavFiltryOtevřené(true);
   }
+
+  registrujDotahováníNastaveníTýmu();
 };
