@@ -7,6 +7,7 @@ namespace Gamecon\Aktivita;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportSqlColumn;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportSqlMappedValuesChecker;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesDescriber;
+use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceOrganizatoriSqlStruktura;
@@ -2314,6 +2315,7 @@ SQL
                  $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
+        $kodTymu = 0,
     ): bool {
         if ($this->prihlasen($uzivatel)) {
             return false;
@@ -2325,16 +2327,25 @@ SQL
             $parametry,
             $jenPritomen,
             $hlaskyVeTretiOsobe,
-        ); // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
+            $kodTymu,
+        );
+        // todo:
+        // dbBegin();
+        // odhlášení náhradnictví v kolidujících aktivitách
+        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici);
+        // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
         $idUzivatele = $uzivatel->id();
         if ($this->a[Sql::TEAMOVA]
             && $this->pocetPrihlasenych() === 0
             && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
         ) {
-            $this->zamknoutProTeam($uzivatel);
+           // $this->zamknoutProTeam($uzivatel);
         }
+        if ($this->a[Sql::TEAMOVA]) {
+            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu);
+        }
+
         dbQuery(
             'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
             [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
@@ -2342,6 +2353,9 @@ SQL
         $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
         // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
         $this->zrusPredchoziStornoPoplatek($uzivatel);
+        // todo:
+        // dbRollback();
+        // dbCommit();
 
         $this->refresh();
 
@@ -2362,6 +2376,7 @@ SQL
         int      $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
+        int      $kodTymu = 0,
     ): void {
         if ($jenPritomen) {
             if ($this->dorazilJakoCokoliv($uzivatel)) {
