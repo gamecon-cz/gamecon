@@ -1,4 +1,11 @@
 import { ProgramStateCreator, useProgramStore } from "..";
+import { fetchAktivitaTýmKód } from "../../../api/program";
+
+export type NastaveniTymuData = {
+  nazev: string,
+  kod: number,
+  muzeZalozitNovy: boolean,
+};
 
 export type VšeobecnéSlice = {
   všeobecné: {
@@ -7,6 +14,10 @@ export type VšeobecnéSlice = {
     zvětšeno: boolean,
     kompaktní: boolean,
     modalOdhlásitAktivitaId?: number,
+    nastaveniTymu?: {
+      aktivitaId: number,
+      data?: NastaveniTymuData,
+    },
   }
 }
 
@@ -17,6 +28,38 @@ export const createVšeobecnéSlice: ProgramStateCreator<VšeobecnéSlice> = (_s
     kompaktní: false,
   },
 });
+
+export const nastavModalNastaveníTýmu = (aktivitaId?: number) => {
+  useProgramStore.setState(s => {
+    if (aktivitaId)
+      s.všeobecné.nastaveniTymu = {
+        aktivitaId
+      };
+    else
+      delete s.všeobecné.nastaveniTymu;
+  }, undefined, "nastav modal nastaveni tymu");
+}
+
+export const dotáhniNastaveníTýmuProModal = async () => {
+  const aktivitaId = useProgramStore.getState().všeobecné.nastaveniTymu?.aktivitaId;
+  if (!aktivitaId) {
+    // todo:
+    console.warn("");
+    return;
+  }
+  const data = await fetchAktivitaTýmKód(aktivitaId);
+  useProgramStore.setState(s => {
+    s.všeobecné.nastaveniTymu = {
+      aktivitaId,
+      data: {
+        // todo: data
+        kod: data,
+        muzeZalozitNovy: true,
+        nazev: "",
+      }
+    };
+  }, undefined, "dotáhni nastavení týmu");
+}
 
 export const nastavFiltryOtevřené = (hodnota: boolean) => {
   useProgramStore.setState(s => {

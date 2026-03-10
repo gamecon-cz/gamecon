@@ -233,10 +233,12 @@ type ApiAktivitaAkceResponse = {
   chyba?: {hláška:string},
 }
 
-export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce): Promise<ApiAktivitaAkceResponse> => {
+export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce, kódTýmu?: number): Promise<ApiAktivitaAkceResponse> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaAkce`;
   const formdata = new FormData();
   formdata.set(typ, aktivitaId.toString(10));
+  if (kódTýmu)
+    formdata.set("tymKod", kódTýmu.toString(10))
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };
 

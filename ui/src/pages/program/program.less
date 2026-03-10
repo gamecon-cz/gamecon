@@ -498,7 +498,7 @@
   }
 }
 
-.modalOdhlasit {
+.modal {
   &_obal {
     position: fixed;
     z-index: 21;
@@ -513,7 +513,9 @@
   }
 
   button {
-    float: right;
+    &.vpravo {
+      float: right;
+    }
     text-transform: uppercase;
     font-size: 12px;
     font-weight: 700;
@@ -528,7 +530,6 @@
     background-color: #e22630;
     border: none;
     cursor: pointer;
-    margin-left: 8px;
   }
 
   button.zpet {
