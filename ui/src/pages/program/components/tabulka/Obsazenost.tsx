@@ -24,7 +24,7 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
       if (!prihlasovatelna && !probehnuta) {
         aktivitaObsazenost = (
           <span class="neprihlasovatelna">
-            {`(${celkem}/${kapacitaCelkem})`}
+            {`${celkem}/${kapacitaCelkem}`}
           </span>
         );
       }
@@ -32,28 +32,30 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
       switch (volnoTyp) {
         case "u":
         case "x":
-          aktivitaObsazenost = <>{`(${celkem}/${kapacitaCelkem})`}</>;
+          aktivitaObsazenost = <>{`${celkem}/${kapacitaCelkem}`}</>;
           break;
         case "f":
         case "m":
           aktivitaObsazenost = (
             <>
-              <span class="f">{`(${f}/${
+              <span class="f">{`${f}/${
                 kf + (volnoTyp === "m" ? ku : 0)
-              })`}</span>
-              <span class="m">{`(${m}/${
+              }`}</span>
+              <span class="m">{`${m}/${
                 km + (volnoTyp === "f" ? ku : 0)
-              })`}</span>
+              }`}</span>
             </>
           );
           break;
         default:
-          aktivitaObsazenost = <>{` (${f + m}/${ku})`}</>;
+          aktivitaObsazenost = <>{` ${f + m}/${ku}`}</>;
           break;
       }
+      // todo(tym): nadrátovat konkrétní velikosti
       if (aktivitaObsazenost && !bezObalu) {
         aktivitaObsazenost = (
           <>
+            <span class="program_obsazenost_tym">4/5</span>
             <span class="program_obsazenost">{aktivitaObsazenost}</span>
             {` `}
           </>
