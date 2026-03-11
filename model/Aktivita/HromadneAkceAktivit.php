@@ -111,13 +111,14 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
     }
 
     /**
-     * Odemče hromadně zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
+     * Hromadně odemče zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
      * Vrací počet odemčených teamů (=>uvolněných míst)
      */
     public function odemciTeamoveHromadne(\Uzivatel $odemykajici): int
     {
         $odemcenoTymovychAktivit = 0;
 
+        // todo(tym): tohle bude per tým
         $zamcene = dbFetchAll('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . Aktivita::HAJENI_TEAMU_HODIN . ' HOUR');
         foreach ($zamcene as [Sql::ID_AKCE => $aid, Sql::ZAMCEL => $uid]) {
             // uvolnění zámku je součástí odhlášení, pokud je sám -> done
