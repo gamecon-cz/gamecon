@@ -7,7 +7,6 @@ namespace Gamecon\Aktivita;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportSqlColumn;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportSqlMappedValuesChecker;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesDescriber;
-use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceOrganizatoriSqlStruktura;
@@ -90,7 +89,6 @@ class Aktivita
     const PLUSMINUS                          = 0b0000000000001; // plus/mínus zkratky pro měnění míst v team. aktivitě
     const PLUSMINUS_KAZDY                    = 0b0000000000010; // plus/mínus zkratky pro každého
     const STAV                               = 0b0000000000100; // ignorování stavu
-    const ZAMEK                              = 0b0000000001000; // ignorování zamčení pro tým
     const BEZ_POKUT                          = 0b0000000010000; // odhlášení bez pokut
     const ZPETNE                             = 0b0000000100000; // možnost zpětně měnit přihlášení
     const INTERNI                            = 0b0000001000000; // přihlašovat i skryté technické a brigádnické aktivity
@@ -1180,7 +1178,6 @@ SQL
         if ($teamova) {
             // Vedoucí týmu může ručně nastavit kapacitu nižší, dokud je větší rovna team_min. V takovém
             // případě se NESMÍ kapacita změnit při např. úpravě popisu aktivity z adminu. DB trigger
-            // trigger_check_and_apply_team_limit toto zajišťuje s pomocí sloupce team_limit
             $data[Sql::KAPACITA] = $data[Sql::TEAM_MAX] ?? 0;
             $data[Sql::KAPACITA_F] = 0;
             $data[Sql::KAPACITA_M] = 0;
@@ -1941,6 +1938,7 @@ SQL,
                 [StavPrihlaseni::POZDE_ZRUSIL],
             );
         }
+        // todo(tym): při odhlášení aktivity bude předán kapitán. Tohle bude asi handlované v odhlasUzivateleOdTymu
         if ($this->a[Sql::ZAMCEL] == $idUzivatele) {
             dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$idAktivity");
         }
@@ -2331,19 +2329,15 @@ SQL
             $jenPritomen,
             $hlaskyVeTretiOsobe,
             $kodTymu,
-        );
-        // todo:
-        // dbBegin();
-        // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici);
-        // přihlášení na samu aktivitu (uložení věcí do DB)
+        ); // odhlášení náhradnictví v kolidujících aktivitách
+        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
         $idUzivatele = $uzivatel->id();
         if ($this->a[Sql::TEAMOVA]
             && $this->pocetPrihlasenych() === 0
             && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
         ) {
-           // $this->zamknoutProTeam($uzivatel);
+            $this->zamknoutProTeam($uzivatel);
         }
         if ($this->a[Sql::TEAMOVA]) {
             AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu);
@@ -2356,9 +2350,6 @@ SQL
         $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
         // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
         $this->zrusPredchoziStornoPoplatek($uzivatel);
-        // todo:
-        // dbRollback();
-        // dbCommit();
 
         $this->refresh();
 
@@ -2425,12 +2416,12 @@ SQL
             }
         }
         if ($this->tymova()) {
-            // todo: pokud nový tým (nemá kod tymu nebo je 0) zkontrolovat max poč týmů
-            // todo: pokud existující tým, zkontrolovat jestli tým existuje a má volné místo
-            // todo: tohle funguje jak ? $this->rodice() as $rodic
+            // todo(tym): pokud nový tým (nemá kod tymu nebo je 0) zkontrolovat max poč týmů
+            // todo(tym): pokud existující tým, zkontrolovat jestli tým existuje a má volné místo
+            // todo(tym): tohle funguje jak ? $this->rodice() as $rodic
+            // todo(tym): jak řešit týmy v db pro aktivity s více instancemi ?
         }
 
-        /*
         $teamKapacita = $this->tymovaKapacita();
         if ($teamKapacita !== null) {
             $jeNovyTym = false; // jestli se uživatel přihlašuje jako první z nového/dalšího týmu
@@ -2444,7 +2435,6 @@ SQL
                 throw new \Chyba('Na aktivitu ' . $this->nazev() . ': ' . $this->denCasSkutecny() . ' je už přihlášen maximální počet týmů');
             }
         }
-        */
 
         if ($this->jeBrigadnicka() && !$uzivatel->jeBrigadnik()) {
             throw new \Chyba(
@@ -2540,6 +2530,7 @@ SQL
         }
     }
 
+    // todo(tym): tohle řeší veřejné neveřejné aktivity
     /**
      * Není zamknout jako zamknout. Tohle pouze zamkne aktivitu pro účastníky mimo tým.
      * Pokud hledáš opravdové zamknutí, @param Uzivatel $zamykajici
@@ -2947,6 +2938,7 @@ SQL
                 }
             } elseif ($u->organizuje($this)) {
                 $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ');
+                // todo(tym): tohle je asi nahrazeno zámečkem a "zatím nejsou dostupné žádné týmy k přihlašování" s tím že pokud budou všechny týmy hotové tak bude ukazovat plnou aktivitu ať nedělá zbytečné naděje
             } elseif ($this->a[Sql::ZAMCEL]) {
                 $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
                 $out = <<<HTML
@@ -3102,6 +3094,7 @@ HTML
         $this->refresh();
     }
 
+    // todo(tym): tohle se děje kdy ? jaký přesně to má význam v novém systému ?
     /**
      * Přihlásí na aktivitu vybrané uživatele jako tým vč. přihlášení na vybraná
      * navazující kola a úpravy počtu míst v týmu.
@@ -3144,7 +3137,7 @@ HTML
             // přihlášení členů týmu
             foreach ($uzivatele as $clen) {
                 try {
-                    $this->prihlas($clen, $prihlasujici, self::ZAMEK | ($parametry & self::UKAZAT_DETAILY_CHYBY));
+                    $this->prihlas($clen, $prihlasujici, ($parametry & self::UKAZAT_DETAILY_CHYBY));
                 } catch (\Exception $e) {
                     $chybnyClen = $clen;
                     throw $e;
@@ -3407,6 +3400,7 @@ SQL,
         $this->otoc();
     }
 
+    // todo(tym): k čemu se využívá ?
     public function tym()
     {
         if ($this->tymova() && $this->pocetPrihlasenych() > 0 && !$this->a[Sql::ZAMCEL]) {
@@ -3438,6 +3432,7 @@ SQL,
         return (bool)$this->a[Sql::TEAMOVA];
     }
 
+    // todo(tym): tady bude asi nějaká logika na
     /**
      * @return DateTimeCz|null jestli a do kdy je týmová aktivita zamčená
      */
@@ -3453,6 +3448,7 @@ SQL,
         return null;
     }
 
+    // todo(tym): kde se využívá a k čemu ?
     /**
      * @return DateTimeCz|null jestli je týmová aktivita zamčená tímto uživatelem
      */
@@ -3484,7 +3480,7 @@ SQL,
 
     public function typId(): int
     {
-        // todo: tohle je trochu naruby. Víme typId bez vytvoření dotazu do db, takže bychom neměli potřebovat celý typ abychom zjistili jeho id které dávno známe
+        // todo(tym): tohle je trochu naruby. Víme typId bez vytvoření dotazu do db, takže bychom neměli potřebovat celý typ abychom zjistili jeho id které dávno známe
         return $this->typ()->id();
     }
 
@@ -3662,6 +3658,7 @@ SQL,
         return dbOneCol('SELECT vybaveni FROM akce_seznam WHERE id_akce = $1', [$this->id()]);
     }
 
+    // todo(tym): generovani formulare pro vyber tymu. Bude nějak sjednoceno s programem
     /**
      * Vrátí formulář pro výběr teamu na aktivitu. Pokud není zadán uživatel,
      * vrací nějakou false ekvivalentní hodnotu.
@@ -3741,6 +3738,7 @@ SQL,
         return $t->text('formular');
     }
 
+    // todo(tym): o tohle zpracování se postará API
     /**
      * Zpracuje data formuláře pro výběr teamu a vrátí případné chyby jako json.
      * Ukončuje skript.
