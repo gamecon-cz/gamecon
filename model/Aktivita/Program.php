@@ -441,7 +441,9 @@ class Program
         $serazeneRozkopirovane = [];
         foreach ($aktivityPodleDnuALokaci as $aktivityPodleLokaci) {
             foreach ($serazenaIdsLokaci as $idLokace) {
-                $serazeneRozkopirovane = [...$serazeneRozkopirovane, ...$aktivityPodleLokaci[$idLokace] ?? []];
+                foreach ($aktivityPodleLokaci[$idLokace] ?? [] as $aktivita) {
+                    $serazeneRozkopirovane[] = ['aktivita' => $aktivita, 'lokaceId' => $idLokace];
+                }
             }
         }
 
@@ -683,10 +685,18 @@ HTML;
         if (!$iterator->valid()) {
             return null;
         }
-        /** @var Aktivita $aktivita */
-        $aktivita = $iterator->current();
-        $zac      = (int)$aktivita->zacatek()->format('G');
-        $kon      = (int)$aktivita->konec()->format('G');
+        $current = $iterator->current();
+        if (is_array($current) && array_key_exists('lokaceId', $current)) {
+            /** @var Aktivita $aktivita */
+            $aktivita      = $current['aktivita'];
+            $forcedLokaceId = $current['lokaceId'];
+        } else {
+            /** @var Aktivita $aktivita */
+            $aktivita      = $current;
+            $forcedLokaceId = null;
+        }
+        $zac = (int)$aktivita->zacatek()->format('G');
+        $kon = (int)$aktivita->konec()->format('G');
         if ($kon == 0) {
             $kon = 24;
         }
@@ -696,9 +706,7 @@ HTML;
                 $grps = [$aktivita->typId()];
                 break;
             case self::SKUPINY_PODLE_LOKACE_ID :
-                // pokud nemá žádnou lokaci, tak ji zařadíme do skupiny 0 (ostatní)
-                $grps = $aktivita->seznamLokaciIdcka()
-                    ?: [0];
+                $grps = [$forcedLokaceId];
                 break;
             case self::SKUPINY_PODLE_DEN :
                 $grps = [(int)$aktivita->denProgramu()->format('z')];
