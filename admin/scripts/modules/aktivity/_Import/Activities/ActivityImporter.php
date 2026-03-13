@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Vyjimkovac\Logovac;
 
 readonly class ActivityImporter
@@ -14,6 +16,7 @@ readonly class ActivityImporter
         private ActivityImagesImporter       $imagesImporter,
         private int                          $currentYear,
         private Logovac                      $logovac,
+        private SystemoveNastaveni           $systemoveNastaveni,
     ) {
     }
 
@@ -35,7 +38,7 @@ readonly class ActivityImporter
             storytellersIds: $storytellersIds,
             singleProgramLine: $singleProgramLine,
             potentialImageUrls: $potentialImageUrls,
-            originalActivity: $originalActivity
+            originalActivity: $originalActivity,
         );
         if ($checkBeforeSaveResult->isError()) {
             return ImportStepResult::error($checkBeforeSaveResult->getError());
@@ -51,9 +54,9 @@ readonly class ActivityImporter
             locationIds: $locationIds,
             tagIds: $tagIds,
             potentialImageUrls: $potentialImageUrls,
-            singleProgramLine: $singleProgramLine
+            singleProgramLine: $singleProgramLine,
         );
-        $importedActivity    = $savedActivityResult->getSuccess();
+        $importedActivity = $savedActivityResult->getSuccess();
 
         if ($savedActivityResult->isError()) {
             return ImportStepResult::error($savedActivityResult->getError());
@@ -115,8 +118,8 @@ readonly class ActivityImporter
             if (empty($sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE])) {
                 $newInstanceParentActivityId = $this->findParentActivityId($sqlMappedValues[ActivitiesImportSqlColumn::URL_AKCE], $singleProgramLine);
                 if ($newInstanceParentActivityId) {
-                    $newInstance                                           = $this->createInstanceForParentActivity($newInstanceParentActivityId);
-                    $sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE]   = $newInstance->id();
+                    $newInstance = $this->createInstanceForParentActivity($newInstanceParentActivityId);
+                    $sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE] = $newInstance->id();
                     $sqlMappedValues[ActivitiesImportSqlColumn::PATRI_POD] = $newInstance->patriPod();
                 }
             }
@@ -125,8 +128,10 @@ readonly class ActivityImporter
                 markdownPopis: $longAnnotation,
                 organizatoriIds: $storytellersIds,
                 lokaceIds: $locationIds,
-                hlavniLokaceId: reset($locationIds) ?: null,
+                hlavniLokaceId: reset($locationIds)
+                    ?: null,
                 tagIds: $tagIds,
+                systemoveNastaveni: $this->systemoveNastaveni,
             );
             $addImageResult = $this->imagesImporter->addImage($potentialImageUrls, $savedActivity);
 

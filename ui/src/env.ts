@@ -4,6 +4,7 @@
  */
 
 import { PřihlášenýUživatel } from "./api/přihlášenýUživatel";
+import { ProgramManifest } from "./api/program";
 import { range } from "./utils";
 
 
@@ -44,6 +45,11 @@ define('FORCE_REDUX_DEVTOOLS', true);
    */
   PROGRAM_ZACATEK: number;
   PROGRAM_KONEC: number;
+
+  /** URL to cache/public/program directory with static JSON files */
+  URL_PROGRAM_CACHE: string;
+  /** Pre-embedded manifest from server, null if static files not yet generated */
+  programManifest: ProgramManifest | null;
 }
 
 type GameconPřednačtení = {
@@ -84,6 +90,8 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   ],
   PROGRAM_ZACATEK: 8,
   PROGRAM_KONEC: 6,
+  URL_PROGRAM_CACHE: "/cache/public/program",
+  programManifest: null,
 };
 
 export const GAMECON_KONSTANTY = {
