@@ -15,8 +15,9 @@ class ProgramStaticFileGenerator
     private readonly string $outputDir;
     private readonly string $dirtyFlagsDir;
 
-    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
-    {
+    public function __construct(
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    ) {
         $this->outputDir = $systemoveNastaveni->publicCacheDir() . '/program';
         $this->dirtyFlagsDir = $systemoveNastaveni->privateCacheDir() . '/program';
     }
@@ -33,12 +34,12 @@ class ProgramStaticFileGenerator
             $zacatekAktivity = $aktivita->zacatek();
             $konecAktivity = $aktivita->konec();
 
-            if (!$zacatekAktivity || !$konecAktivity || !$aktivita->viditelnaPro(null)) {
+            if (! $zacatekAktivity || ! $konecAktivity || ! $aktivita->viditelnaPro(null)) {
                 continue;
             }
 
             $vypraveci = array_map(
-                fn(
+                fn (
                     \Uzivatel $organizator,
                 ) => $organizator->jmenoNick(),
                 $aktivita->organizatori(dataSourcesCollector: $dataSourcesCollector),
@@ -47,18 +48,18 @@ class ProgramStaticFileGenerator
             $stitkyId = $aktivita->tagyId();
 
             $aktivitaRes = [
-                'id'            => $aktivita->id(),
-                'nazev'         => $aktivita->nazev(),
-                'kratkyPopis'   => $aktivita->kratkyPopis(),
-                'popisId'       => $aktivita->popisId(),
-                'obrazek'       => (string)$aktivita->obrazek(),
-                'vypraveci'     => $vypraveci,
-                'stitkyId'      => $stitkyId,
-                'cenaZaklad'    => intval($aktivita->cenaZaklad()),
-                'casText'       => $zacatekAktivity
+                'id'          => $aktivita->id(),
+                'nazev'       => $aktivita->nazev(),
+                'kratkyPopis' => $aktivita->kratkyPopis(),
+                'popisId'     => $aktivita->popisId(),
+                'obrazek'     => (string) $aktivita->obrazek(),
+                'vypraveci'   => $vypraveci,
+                'stitkyId'    => $stitkyId,
+                'cenaZaklad'  => intval($aktivita->cenaZaklad()),
+                'casText'     => $zacatekAktivity
                     ? $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00'
                     : '',
-                'cas'           => [
+                'cas' => [
                     'od' => $zacatekAktivity->getTimestamp() * 1000,
                     'do' => $konecAktivity->getTimestamp() * 1000,
                 ],
@@ -120,7 +121,7 @@ class ProgramStaticFileGenerator
     public function updateManifest(int $rok): void
     {
         $outputDir = $this->outputDir;
-        $manifestPath = "$outputDir/manifest-$rok.json";
+        $manifestPath = "{$outputDir}/manifest-{$rok}.json";
 
         // Read existing manifest to preserve unchanged filenames
         $manifest = [];
@@ -131,11 +132,11 @@ class ProgramStaticFileGenerator
 
         // Find current files for each type
         foreach (ProgramStaticFileType::cases() as $type) {
-            $pattern = "$outputDir/{$type->value}-$rok-*.json";
+            $pattern = "{$outputDir}/{$type->value}-{$rok}-*.json";
             $files = glob($pattern);
             if ($files) {
                 // Use the most recently modified file
-                usort($files, fn(
+                usort($files, fn (
                     $a,
                     $b,
                 ) => filemtime($b) - filemtime($a));
@@ -143,7 +144,7 @@ class ProgramStaticFileGenerator
             }
         }
 
-        $tmpPath = "$outputDir/.tmp-manifest-$rok.json";
+        $tmpPath = "{$outputDir}/.tmp-manifest-{$rok}.json";
         file_put_contents($tmpPath, json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
         rename($tmpPath, $manifestPath);
     }
@@ -159,9 +160,9 @@ class ProgramStaticFileGenerator
     public function cleanup(int $rok): void
     {
         $outputDir = $this->outputDir;
-        $manifestPath = "$outputDir/manifest-$rok.json";
+        $manifestPath = "{$outputDir}/manifest-{$rok}.json";
 
-        if (!file_exists($manifestPath)) {
+        if (! file_exists($manifestPath)) {
             return;
         }
 
@@ -172,9 +173,9 @@ class ProgramStaticFileGenerator
 
         $oneHourAgo = time() - 3600;
 
-        foreach (glob("$outputDir/*-$rok*.json") as $file) {
+        foreach (glob("{$outputDir}/*-{$rok}*.json") as $file) {
             $filename = basename($file);
-            if (!in_array($filename, $referencedFiles, true) && filemtime($file) < $oneHourAgo) {
+            if (! in_array($filename, $referencedFiles, true) && filemtime($file) < $oneHourAgo) {
                 unlink($file);
             }
         }
@@ -186,7 +187,7 @@ class ProgramStaticFileGenerator
     public function readManifest(): ?array
     {
         $manifestPath = $this->outputDir . "/manifest-{$this->systemoveNastaveni->rocnik()}.json";
-        if (!file_exists($manifestPath)) {
+        if (! file_exists($manifestPath)) {
             return null;
         }
 
@@ -202,7 +203,7 @@ class ProgramStaticFileGenerator
 
         $rocnik = $this->systemoveNastaveni->rocnik();
 
-        touch("{$this->dirtyFlagsDir}/dirty-{$type->value}-$rocnik");
+        touch("{$this->dirtyFlagsDir}/dirty-{$type->value}-{$rocnik}");
 
         if ($tryStartWorker) {
             $this->tryStartWorker();
@@ -214,14 +215,14 @@ class ProgramStaticFileGenerator
     ): bool {
         $rocnik = $this->systemoveNastaveni->rocnik();
 
-        return file_exists($this->dirtyFlagsDir . "/dirty-{$type->value}-$rocnik");
+        return file_exists($this->dirtyFlagsDir . "/dirty-{$type->value}-{$rocnik}");
     }
 
     public function deleteDirtyFlag(
         ProgramStaticFileType $type,
     ): void {
         $rocnik = $this->systemoveNastaveni->rocnik();
-        $path = $this->dirtyFlagsDir. "/dirty-{$type->value}-$rocnik";
+        $path = $this->dirtyFlagsDir . "/dirty-{$type->value}-{$rocnik}";
         if (file_exists($path)) {
             (new Filesystem())->remove($path);
         }
@@ -235,13 +236,15 @@ class ProgramStaticFileGenerator
     {
         try {
             $backgroundProcessService = BackgroundProcessService::vytvorZGlobals();
-            if (!$backgroundProcessService->isProcessRunning(BackgroundProcessService::COMMAND_PROGRAM_STATIC_FILES)) {
+            if (! $backgroundProcessService->isProcessRunning(BackgroundProcessService::COMMAND_PROGRAM_STATIC_FILES)) {
                 $workerPath = __DIR__ . '/../../admin/scripts/zvlastni/program/_program-static-files-worker.php';
                 $rocnik = $this->systemoveNastaveni->rocnik();
                 $backgroundProcessService->startBackgroundProcess(
                     BackgroundProcessService::COMMAND_PROGRAM_STATIC_FILES,
                     $workerPath,
-                    ['rok' => (string)$rocnik],
+                    [
+                        'rok' => (string) $rocnik,
+                    ],
                 );
             }
         } catch (\Throwable $e) {
@@ -249,35 +252,39 @@ class ProgramStaticFileGenerator
         }
     }
 
-    /** @return Aktivita[] */
+    /**
+     * @return Aktivita[]
+     */
     private function loadAktivity(int $rok): array
     {
         return Aktivita::zFiltru(
             systemoveNastaveni: $this->systemoveNastaveni,
-            filtr: [FiltrAktivity::ROK => $rok],
+            filtr: [
+                FiltrAktivity::ROK => $rok,
+            ],
             prednacitat: true,
         );
     }
 
     private function writeJsonFile(
         string $type,
-        int    $rok,
-        array  $data,
+        int $rok,
+        array $data,
     ): string {
         $outputDir = $this->outputDir;
-        (new Filesystem)->mkdir($outputDir, 0775);
+        (new Filesystem())->mkdir($outputDir, 0775);
 
         $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
         $hash = md5($json);
-        $filename = "$type-$rok-$hash.json";
-        $filepath = "$outputDir/$filename";
+        $filename = "{$type}-{$rok}-{$hash}.json";
+        $filepath = "{$outputDir}/{$filename}";
 
         // Skip write if file with same hash already exists
         if (file_exists($filepath)) {
             return $filename;
         }
 
-        $tmpPath = "$outputDir/.tmp-$filename";
+        $tmpPath = "{$outputDir}/.tmp-{$filename}";
         file_put_contents($tmpPath, $json);
         rename($tmpPath, $filepath);
 

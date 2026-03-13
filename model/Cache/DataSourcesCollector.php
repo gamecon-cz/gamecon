@@ -38,10 +38,11 @@ class DataSourcesCollector implements TagsCollectionInterface
         return $this->getDataSources();
     }
 
-    public function copy(): DataSourcesCollector
+    public function copy(): self
     {
-        $dsc = new DataSourcesCollector();
+        $dsc = new self();
         $dsc->addDataSources($this->getDataSources());
+
         return $dsc;
     }
 }
