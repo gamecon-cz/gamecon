@@ -182,7 +182,7 @@ class UpominaniDluzniku
             $qrKod = $uzivatel->finance()->dejQrKodProPlatbu();
             if ($qrKod) {
                 // Uložit QR kód do dočasného souboru
-                $qrSoubor = tempnam($this->systemoveNastaveni->cacheDir(), 'upominani_qr_') . '.png';
+                $qrSoubor = tempnam($this->systemoveNastaveni->privateCacheDir(), 'upominani_qr_') . '.png';
                 file_put_contents($qrSoubor, $qrKod->getString());
                 $gcMail->prilohaSoubor($qrSoubor)->prilohaNazev('qr-platba.png');
             }

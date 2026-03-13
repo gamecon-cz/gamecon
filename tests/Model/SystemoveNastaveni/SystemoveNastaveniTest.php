@@ -67,6 +67,7 @@ class SystemoveNastaveniTest extends AbstractTestDb
             PROJECT_ROOT_DIR,
             SPEC,
             new Kernel('test', false),
+            publicCacheDir: CACHE,
         );
     }
 

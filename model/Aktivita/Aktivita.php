@@ -17,6 +17,8 @@ use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\AkceSjednoceneTagySqlStruktura;
 use Gamecon\Cache\DataSourcesCollector;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
@@ -43,8 +45,8 @@ class Aktivita
 
     use PrednacitaniTrait;
 
-    private static $objekty            = [];
-    private static $prihlaseniRawCache = [];
+    private static array $objekty            = [];
+    private static array $prihlaseniRawCache = [];
     /** @var array<string, array> */
     private static       $prihlaseniRawArrayCache = [];
     private static array $seznamUcastnikuCache    = [];
@@ -1139,6 +1141,7 @@ SQL
         string  $obrazekUrl = null,
         int     $odmenaZaHodinu = null,
         ?bool   $maPravoNaProvadeniKorekci = null,
+        SystemoveNastaveni $systemoveNastaveni = null,
     ): Aktivita {
         $data[Sql::BEZ_SLEVY] = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
         $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
@@ -1269,6 +1272,11 @@ SQL
         $aktivita->organizatori($organizatoriIds);
         $aktivita->popis($markdownPopis, resetujKorekci: !$nastavujeKorekci);
         $aktivita->nastavTagyPodleIds($tagIds);
+
+        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
+        $programStaticFilesGenerator = new ProgramStaticFileGenerator($systemoveNastaveni);
+        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::POPISY);
 
         return $aktivita;
     }
@@ -1938,6 +1946,14 @@ SQL,
             $this->poslatMailSledujicim();
         }
         $this->refresh();
+
+        $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
+    }
+
+    private function touchDirtyFlag(ProgramStaticFileType $flag): void
+    {
+        (new ProgramStaticFileGenerator($this->systemoveNastaveni))
+            ->touchDirtyFlag($flag);
     }
 
     private function nestihlRychleOdhlaseniBezPokuty(
@@ -2330,6 +2346,8 @@ SQL
         $this->zrusPredchoziStornoPoplatek($uzivatel);
 
         $this->refresh();
+
+        $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
 
         return true;
     }
@@ -3302,6 +3320,10 @@ HTML
             throw $e;
         }
 
+        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        $this->touchDirtyFlag(ProgramStaticFileType::POPISY);
+        $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
+
         // invalidace aktuální instance
         $this->reset();
     }
@@ -3919,6 +3941,8 @@ SQL,
     {
         dbQuery('INSERT INTO akce_stavy_log(id_akce, id_stav, kdy) VALUES ($0, $1, NOW())', [$this->id(), $novyStav]);
         RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this, $this->dejFilesystem());
+
+        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
     }
 
     /** Označí aktivitu jako uzavřenou, s vyplněnou prezencí */

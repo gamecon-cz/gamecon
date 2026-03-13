@@ -1,0 +1,481 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Gamecon\Tests\Cache;
+
+use App\Kernel;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
+use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
+use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Tests\Db\AbstractTestDb;
+use Symfony\Component\Filesystem\Filesystem;
+
+class ProgramStaticFileGeneratorTest extends AbstractTestDb
+{
+    private const ROK = ROCNIK;
+
+    protected static bool $disableStrictTransTables = true;
+
+    private string $publicCacheDir;
+    private string $privateCacheDir;
+    private Filesystem $filesystem;
+
+    protected static function getBeforeClassInitCallbacks(): array
+    {
+        return [
+            fn () => dbInsertUpdate(
+                TypSql::TYP_AKTIVITY_TABULKA,
+                [
+                    TypSql::ID_TYPU   => TypAktivity::DESKOHERNA,
+                    TypSql::STRANKA_O => dbFetchSingle('SELECT id_stranky FROM stranky LIMIT 1'),
+                ],
+            ),
+        ];
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->filesystem = new Filesystem();
+        $this->publicCacheDir = sys_get_temp_dir() . '/gamecon-test-public-cache-' . getmypid() . '-' . mt_rand();
+        $this->privateCacheDir = sys_get_temp_dir() . '/gamecon-test-private-cache-' . getmypid() . '-' . mt_rand();
+        $this->filesystem->mkdir($this->publicCacheDir);
+        $this->filesystem->mkdir($this->privateCacheDir);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->filesystem->remove($this->publicCacheDir);
+        $this->filesystem->remove($this->privateCacheDir);
+
+        parent::tearDown();
+    }
+
+    private function createSystemoveNastaveni(): SystemoveNastaveni
+    {
+        return new SystemoveNastaveni(
+            self::ROK,
+            new DateTimeImmutableStrict(),
+            false,
+            false,
+            DatabazoveNastaveni::vytvorZGlobals(),
+            '',
+            $this->privateCacheDir,
+            new Kernel('test', false),
+            $this->publicCacheDir,
+        );
+    }
+
+    private function createGenerator(?SystemoveNastaveni $systemoveNastaveni = null): ProgramStaticFileGenerator
+    {
+        return new ProgramStaticFileGenerator($systemoveNastaveni ?? $this->createSystemoveNastaveni());
+    }
+
+    private function insertAktivita(array $data): int
+    {
+        $defaults = [
+            Sql::NAZEV_AKCE   => 'Test aktivita',
+            Sql::POPIS_KRATKY => 'Krátký popis',
+            Sql::POPIS        => 1,
+            Sql::ROK          => self::ROK,
+            Sql::STAV         => StavAktivity::AKTIVOVANA,
+            Sql::TYP          => TypAktivity::DESKOHERNA,
+            Sql::ZACATEK      => date('Y-m-d 10:00:00'),
+            Sql::KONEC        => date('Y-m-d 13:00:00'),
+            Sql::KAPACITA     => 5,
+            Sql::KAPACITA_F   => 0,
+            Sql::KAPACITA_M   => 0,
+            Sql::CENA         => 100,
+            Sql::TEAMOVA      => 0,
+        ];
+
+        $merged = array_merge($defaults, $data);
+        dbInsertUpdate(Sql::AKCE_SEZNAM_TABULKA, $merged);
+
+        return (int) dbInsertId();
+    }
+
+    /**
+     * @test
+     */
+    public function generateAktivityCreatesJsonFile(): void
+    {
+        $idAktivity = $this->insertAktivita([
+            Sql::NAZEV_AKCE   => 'RPG Dračí Doupě',
+            Sql::POPIS_KRATKY => 'Krátký RPG popis',
+            Sql::POPIS        => 'Popis testovací aktivity',
+            Sql::CENA         => 150,
+            Sql::STAV         => StavAktivity::AKTIVOVANA,
+        ]);
+
+        $generator = $this->createGenerator();
+        $filename = $generator->generateAktivity(self::ROK);
+
+        $filepath = $this->publicCacheDir . '/program/' . $filename;
+        self::assertFileExists($filepath);
+        self::assertStringEndsWith('.json', $filename);
+        self::assertStringStartsWith('aktivity-' . self::ROK . '-', $filename);
+
+        $data = json_decode(file_get_contents($filepath), true);
+        self::assertIsArray($data);
+        self::assertNotEmpty($data);
+
+        $found = null;
+        foreach ($data as $item) {
+            if ($item['id'] === $idAktivity) {
+                $found = $item;
+                break;
+            }
+        }
+
+        self::assertNotNull($found, "Aktivita {$idAktivity} not found in JSON output");
+        self::assertSame('RPG Dračí Doupě', $found['nazev']);
+        self::assertSame('Krátký RPG popis', $found['kratkyPopis']);
+        self::assertSame(150, $found['cenaZaklad']);
+        self::assertArrayHasKey('cas', $found);
+        self::assertArrayHasKey('od', $found['cas']);
+        self::assertArrayHasKey('do', $found['cas']);
+        self::assertNotEmpty($found['linie']);
+    }
+
+    /**
+     * @test
+     */
+    public function generatePopisyCreatesJsonFile(): void
+    {
+        $popisText = 'Popis testovací aktivity pro JSON';
+
+        $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita s popisem',
+            Sql::POPIS      => $popisText,
+        ]);
+
+        $generator = $this->createGenerator();
+        $filename = $generator->generatePopisy(self::ROK);
+
+        $filepath = $this->publicCacheDir . '/program/' . $filename;
+        self::assertFileExists($filepath);
+        self::assertStringStartsWith('popisy-' . self::ROK . '-', $filename);
+
+        $data = json_decode(file_get_contents($filepath), true);
+        self::assertIsArray($data);
+        self::assertNotEmpty($data);
+
+        $popisTexts = array_column($data, 'popis');
+        $containsExpectedText = false;
+        foreach ($popisTexts as $popis) {
+            if (str_contains($popis, $popisText)) {
+                $containsExpectedText = true;
+                break;
+            }
+        }
+        self::assertTrue($containsExpectedText, "Expected popis text '{$popisText}' not found in generated JSON");
+    }
+
+    /**
+     * @test
+     */
+    public function generateObsazenostiCreatesJsonFile(): void
+    {
+        $idAktivity = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita pro obsazenosti',
+            Sql::KAPACITA   => 10,
+        ]);
+
+        $generator = $this->createGenerator();
+        $filename = $generator->generateObsazenosti(self::ROK);
+
+        $filepath = $this->publicCacheDir . '/program/' . $filename;
+        self::assertFileExists($filepath);
+        self::assertStringStartsWith('obsazenosti-' . self::ROK . '-', $filename);
+
+        $data = json_decode(file_get_contents($filepath), true);
+        self::assertIsArray($data);
+
+        $found = null;
+        foreach ($data as $item) {
+            if ($item['idAktivity'] === $idAktivity) {
+                $found = $item;
+                break;
+            }
+        }
+
+        self::assertNotNull($found, "Obsazenost for activity {$idAktivity} not found");
+        self::assertArrayHasKey('obsazenost', $found);
+    }
+
+    /**
+     * @test
+     */
+    public function regenerateAllCreatesManifest(): void
+    {
+        $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita pro manifest',
+        ]);
+
+        $generator = $this->createGenerator();
+        $generator->regenerateAll(self::ROK);
+
+        $manifestPath = $this->publicCacheDir . '/program/manifest-' . self::ROK . '.json';
+        self::assertFileExists($manifestPath);
+
+        $manifest = json_decode(file_get_contents($manifestPath), true);
+        self::assertIsArray($manifest);
+        self::assertArrayHasKey('aktivity', $manifest);
+        self::assertArrayHasKey('popisy', $manifest);
+        self::assertArrayHasKey('obsazenosti', $manifest);
+
+        foreach ($manifest as $type => $filename) {
+            $file = $this->publicCacheDir . '/program/' . $filename;
+            self::assertFileExists($file, "Manifest references non-existing file: {$filename}");
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function dirtyFlagsAreCreatedAndDeleted(): void
+    {
+        $systemoveNastaveni = $this->createSystemoveNastaveni();
+        $generator = new ProgramStaticFileGenerator($systemoveNastaveni);
+
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY));
+
+        $generator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        self::assertTrue($generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY));
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::POPISY));
+
+        $generator->deleteDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY));
+    }
+
+    /**
+     * @test
+     */
+    public function activityChangeTriggersJsonRegeneration(): void
+    {
+        $idAktivity = $this->insertAktivita([
+            Sql::NAZEV_AKCE   => 'Měnící se aktivita',
+            Sql::POPIS_KRATKY => 'Krátký popis originálu',
+            Sql::POPIS        => 'Původní popis',
+            Sql::CENA         => 200,
+        ]);
+
+        $generator = $this->createGenerator();
+
+        $filenameV1 = $generator->generateAktivity(self::ROK);
+        $filepathV1 = $this->publicCacheDir . '/program/' . $filenameV1;
+        $dataV1 = json_decode(file_get_contents($filepathV1), true);
+
+        $foundV1 = null;
+        foreach ($dataV1 as $item) {
+            if ($item['id'] === $idAktivity) {
+                $foundV1 = $item;
+                break;
+            }
+        }
+        self::assertNotNull($foundV1);
+        self::assertSame('Měnící se aktivita', $foundV1['nazev']);
+        self::assertSame(200, $foundV1['cenaZaklad']);
+
+        // Now change the activity name and price in DB
+        dbUpdate(
+            Sql::AKCE_SEZNAM_TABULKA,
+            [
+                Sql::NAZEV_AKCE => 'Změněná aktivita',
+                Sql::CENA       => 300,
+            ],
+            [
+                Sql::ID_AKCE => $idAktivity,
+            ],
+        );
+
+        // Create a fresh generator to avoid query cache
+        $generator = $this->createGenerator();
+
+        $filenameV2 = $generator->generateAktivity(self::ROK);
+        self::assertNotSame($filenameV1, $filenameV2, 'Changed data should produce different filename (hash)');
+
+        $filepathV2 = $this->publicCacheDir . '/program/' . $filenameV2;
+        $dataV2 = json_decode(file_get_contents($filepathV2), true);
+
+        $foundV2 = null;
+        foreach ($dataV2 as $item) {
+            if ($item['id'] === $idAktivity) {
+                $foundV2 = $item;
+                break;
+            }
+        }
+        self::assertNotNull($foundV2);
+        self::assertSame('Změněná aktivita', $foundV2['nazev']);
+        self::assertSame(300, $foundV2['cenaZaklad']);
+    }
+
+    /**
+     * @test
+     */
+    public function invisibleActivityIsNotInGeneratedJson(): void
+    {
+        $idVisible = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Viditelná aktivita',
+            Sql::STAV       => StavAktivity::AKTIVOVANA,
+        ]);
+
+        $idInvisible = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Neviditelná aktivita',
+            Sql::STAV       => StavAktivity::NOVA,
+        ]);
+
+        $generator = $this->createGenerator();
+        $filename = $generator->generateAktivity(self::ROK);
+        $data = json_decode(file_get_contents($this->publicCacheDir . '/program/' . $filename), true);
+
+        $ids = array_column($data, 'id');
+        self::assertContains($idVisible, $ids);
+        self::assertNotContains($idInvisible, $ids);
+    }
+
+    /**
+     * @test
+     * Simulates the worker loop: dirty flags are deleted before generation starts,
+     * so a concurrent activity change during generation creates new dirty flags
+     * that trigger another regeneration iteration with fresh data.
+     */
+    public function dirtyFlagDuringGenerationTriggersAnotherIteration(): void
+    {
+        $systemoveNastaveni = $this->createSystemoveNastaveni();
+        $generator = new ProgramStaticFileGenerator($systemoveNastaveni);
+
+        $idOriginal = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Původní aktivita',
+            Sql::CENA       => 100,
+        ]);
+
+        // Simulate: activity change marks cache as dirty
+        $generator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        $generator->touchDirtyFlag(ProgramStaticFileType::POPISY);
+
+        // === Worker iteration 1 ===
+        // Worker checks dirty flags
+        self::assertTrue($generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY));
+        self::assertTrue($generator->hasDirtyFlag(ProgramStaticFileType::POPISY));
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::OBSAZENOSTI));
+
+        // Worker deletes flags BEFORE regeneration (as the real worker does)
+        $generator->deleteDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        $generator->deleteDirtyFlag(ProgramStaticFileType::POPISY);
+
+        // Generation is now in progress...
+        $filenameV1 = $generator->generateAktivity(self::ROK);
+        $generator->generatePopisy(self::ROK);
+        $generator->updateManifest(self::ROK);
+
+        // Verify V1 content
+        $dataV1 = json_decode(file_get_contents($this->publicCacheDir . '/program/' . $filenameV1), true);
+        $foundV1 = null;
+        foreach ($dataV1 as $item) {
+            if ($item['id'] === $idOriginal) {
+                $foundV1 = $item;
+                break;
+            }
+        }
+        self::assertNotNull($foundV1);
+        self::assertSame('Původní aktivita', $foundV1['nazev']);
+
+        // Meanwhile, DURING generation, another activity change occurs
+        // This simulates a concurrent request modifying data + touching dirty flags
+        dbUpdate(
+            Sql::AKCE_SEZNAM_TABULKA,
+            [
+                Sql::NAZEV_AKCE => 'Změněná aktivita',
+                Sql::CENA       => 999,
+            ],
+            [
+                Sql::ID_AKCE => $idOriginal,
+            ],
+        );
+        $generator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+
+        // === Worker iteration 2 (loop continues) ===
+        // Worker checks again — the new dirty flag from concurrent change is detected
+        self::assertTrue(
+            $generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY),
+            'Dirty flag set during generation must be visible for the next worker iteration',
+        );
+        self::assertFalse(
+            $generator->hasDirtyFlag(ProgramStaticFileType::POPISY),
+            'Popisy flag should not be dirty — only aktivity was changed concurrently',
+        );
+
+        // Worker deletes the new flag and regenerates
+        $generator->deleteDirtyFlag(ProgramStaticFileType::AKTIVITY);
+
+        // Clear query cache so the next SQL fetch picks up DB changes
+        // (the real worker keeps running within the same process but the SQL is not cached across iterations)
+        $systemoveNastaveni->queryCache()->clear();
+
+        $filenameV2 = $generator->generateAktivity(self::ROK);
+        $generator->updateManifest(self::ROK);
+
+        self::assertNotSame($filenameV1, $filenameV2, 'Second generation must produce a different file with updated data');
+
+        // Verify V2 has the updated data
+        $dataV2 = json_decode(file_get_contents($this->publicCacheDir . '/program/' . $filenameV2), true);
+        $foundV2 = null;
+        foreach ($dataV2 as $item) {
+            if ($item['id'] === $idOriginal) {
+                $foundV2 = $item;
+                break;
+            }
+        }
+        self::assertNotNull($foundV2);
+        self::assertSame('Změněná aktivita', $foundV2['nazev']);
+        self::assertSame(999, $foundV2['cenaZaklad']);
+
+        // === Worker iteration 3 (loop should stop) ===
+        // No more dirty flags — worker exits
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY));
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::POPISY));
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::OBSAZENOSTI));
+    }
+
+    /**
+     * @test
+     */
+    public function cleanupRemovesOldFiles(): void
+    {
+        $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita pro cleanup',
+        ]);
+
+        $generator = $this->createGenerator();
+        $generator->regenerateAll(self::ROK);
+
+        $programDir = $this->publicCacheDir . '/program';
+
+        // Create an old stale file (not in manifest)
+        $staleFile = $programDir . '/aktivity-' . self::ROK . '-oldhash123.json';
+        file_put_contents($staleFile, '[]');
+        touch($staleFile, time() - 7200); // 2 hours ago
+
+        self::assertFileExists($staleFile);
+
+        $generator->cleanup(self::ROK);
+
+        self::assertFileDoesNotExist($staleFile);
+
+        // Manifest-referenced files should still exist
+        $manifest = json_decode(file_get_contents($programDir . '/manifest-' . self::ROK . '.json'), true);
+        foreach ($manifest as $filename) {
+            self::assertFileExists($programDir . '/' . $filename);
+        }
+    }
+}
