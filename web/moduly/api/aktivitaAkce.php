@@ -1,6 +1,7 @@
 <?php
 
 /** @var Uzivatel $u */
+
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 use Gamecon\Aktivita\Aktivita;
@@ -16,11 +17,15 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
 }
 
 if (!$u) {
-    return ;
+    return;
 }
 
 // Determine which activity is being acted on
-$aktivitaId = (int)(post('prihlasit') ?: post('odhlasit') ?: post('prihlasSledujiciho') ?: post('odhlasSledujiciho') ?: 0);
+$aktivitaId = post('prihlasit')
+    ?: post('odhlasit')
+        ?: post('prihlasSledujiciho')
+            ?: post('odhlasSledujiciho')
+                ?: null;
 
 try {
     Aktivita::prihlasovatkoZpracujBezBack($u, $u);
@@ -32,6 +37,7 @@ try {
 
 // Enrich response with updated data for the affected activity
 if ($aktivitaId) {
+    $aktivitaId = (int)$aktivitaId;
     $aktivita = Aktivita::zId($aktivitaId);
     if ($aktivita) {
         $response['obsazenost'] = [

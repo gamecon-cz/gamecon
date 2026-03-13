@@ -5,7 +5,6 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 $systemoveNastaveni->queryCache()->clear();
-$systemoveNastaveni->tableDataDependentCache()->clear();
 
 $tableNamesResult = $this->q(<<<SQL
 SHOW TABLES

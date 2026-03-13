@@ -38,10 +38,6 @@ export type OdDo = {
   do: number,
 };
 
-export type ApiCachovanaOdpověď<Data, kompletni = true> = {
-  hash: string,
-} & ( kompletni extends true ? {data: Data,} : {data?:Data});
-
 /**
  * Data nezávislé na tom jestli je uživatel přihlášený
  */
@@ -100,24 +96,6 @@ export type ApiAktivitaObsazenost = {
   idAktivity: number;
   obsazenost: Obsazenost,
 };
-
-// --- Legacy types (kept for backward compatibility with old API) ---
-
-type ApiAktivityProgramResponse<kompletni = true> = {
-  aktivityNeprihlasen: ApiCachovanaOdpověď<ApiAktivitaNepřihlášen[], kompletni>;
-  aktivitySkryte: ApiCachovanaOdpověď<ApiAktivitaNepřihlášen[], kompletni>;
-  aktivityUživatel: ApiCachovanaOdpověď<ApiAktivitaUživatel[], kompletni>;
-  popisy: ApiCachovanaOdpověď<ApiAktivitaPopis[], kompletni>;
-  obsazenosti: ApiCachovanaOdpověď<ApiAktivitaObsazenost[], kompletni>;
-};
-
-type ApiAktivityProgramResponseHashe = {
-  aktivityNeprihlasen: string,
-  aktivitySkryte: string,
-  aktivityUživatel: string,
-  popisy: string,
-  obsazenosti: string,
-}
 
 export type ApiŠtítek = {
   id: number,
@@ -195,78 +173,6 @@ export const fetchUserData = async (rok: number): Promise<UserDataResponse> => {
   }
 
   return response;
-};
-
-// --- Legacy API (still used as fallback when static files are not available) ---
-
-const vytvořLocalStorageKlíč = (ročník: number) => `_cache_fetchRocnikAktivity_${ročník}`;
-
-const vraťDataZCache = (ročník: number): ApiAktivityProgramResponse | undefined =>{
-  const localStorageKlíč = vytvořLocalStorageKlíč(ročník);
-  try {
-    const cachovanéDataStr = localStorage.getItem(localStorageKlíč);
-    if (!cachovanéDataStr) return undefined;
-    const cachovanéData = JSON.parse(cachovanéDataStr);
-    return cachovanéData;
-  }catch(e) {
-    console.log("nepodařilo se rozparsovat data z cache");
-    return undefined;
-  }
-}
-
-const zapišCache = (ročník: number, data: ApiAktivityProgramResponse): void =>{
-  const localStorageKlíč = vytvořLocalStorageKlíč(ročník);
-  try {
-    localStorage.setItem(localStorageKlíč, JSON.stringify(data));
-  }catch(e) {
-    console.log("nepodařilo se zapsat cache");
-  }
-}
-
-const vytvořNovéDataZCacheADat = <T,>(cache: ApiCachovanaOdpověď<T, false> | undefined, newData: ApiCachovanaOdpověď<T, false>): ApiCachovanaOdpověď<T, true> =>{
-  if (!cache || newData.data) return newData as any;
-  console.log(`využívám cache ${cache.hash}`)
-  return cache as any;
-}
-
-const aplikujCacheNaOdpověď = (cacheData :ApiAktivityProgramResponse<true> | undefined, ročník: number, data: ApiAktivityProgramResponse<false>) => {
-  const spojenéData: ApiAktivityProgramResponse = {
-    aktivityNeprihlasen: vytvořNovéDataZCacheADat(cacheData?.aktivityNeprihlasen, data?.aktivityNeprihlasen),
-    aktivitySkryte: vytvořNovéDataZCacheADat(cacheData?.aktivitySkryte, data?.aktivitySkryte),
-    aktivityUživatel: vytvořNovéDataZCacheADat(cacheData?.aktivityUživatel, data?.aktivityUživatel),
-    popisy: vytvořNovéDataZCacheADat(cacheData?.popisy, data?.popisy),
-    obsazenosti: vytvořNovéDataZCacheADat(cacheData?.obsazenosti, data?.obsazenosti),
-  };
-  zapišCache(ročník, spojenéData);
-
-  return spojenéData;
-};
-
-const vraťAktuálníHasheZCache = (cacheData: ApiAktivityProgramResponse<true> | undefined): ApiAktivityProgramResponseHashe | undefined =>{
-  if (!cacheData) return undefined;
-  return {
-    aktivityNeprihlasen: cacheData.aktivityNeprihlasen.hash,
-    aktivitySkryte: cacheData.aktivitySkryte.hash,
-    aktivityUživatel: cacheData.aktivityUživatel.hash,
-    popisy: cacheData.popisy.hash,
-    obsazenosti: cacheData.obsazenosti.hash,
-  };
-}
-
-export const fetchRocnikAktivity = async (ročník: number): Promise<ApiAktivityProgramResponse> => {
-  const cacheData = vraťDataZCache(ročník);
-  const hashe = vraťAktuálníHasheZCache(cacheData);
-
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityProgram?${ročník ? `rok=${ročník}` : ""}`;
-  const body = JSON.stringify({ hashe });
-  const odpověď: ApiAktivityProgramResponse<false> = await fetch(url, { method: "POST", body,
-    headers: {
-    'Content-Type': 'application/json'
-  }, })
-  .then(async x => x.json())
-  ;
-  const kompletníOdpověď = aplikujCacheNaOdpověď(cacheData, ročník, odpověď);
-  return kompletníOdpověď;
 };
 
 export const fetchŠtítky = async (): Promise<ApiŠtítek[]> =>{

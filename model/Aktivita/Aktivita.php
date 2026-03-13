@@ -1286,7 +1286,7 @@ SQL
 
         $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
         $programStaticFilesGenerator = new ProgramStaticFileGenerator($systemoveNastaveni);
-        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY, tryStartWorker: false);
         $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::POPISY);
 
         return $aktivita;
