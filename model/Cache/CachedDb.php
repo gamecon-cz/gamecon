@@ -20,11 +20,12 @@ class CachedDb implements DbInterface
 
     /**
      * @param array<string> $relatedTables
+     *
      * @return array<array<string, mixed>>
      */
     public function dbFetchAll(
-        array                 $relatedTables,
-        string                $sql,
+        array $relatedTables,
+        string $sql,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): array {
         $relatedTables = array_unique($relatedTables);
@@ -34,7 +35,7 @@ class CachedDb implements DbInterface
         $dataSourcesCollector?->addDataSources($relatedTables);
 
         $tableDataVersions = $this->getTableDataVersions($relatedTables);
-        $queryHash         = $this->getHash($sql);
+        $queryHash = $this->getHash($sql);
 
         $cacheKey = $this->getCacheKey($tableDataVersions, $queryHash);
 
@@ -51,17 +52,11 @@ class CachedDb implements DbInterface
     }
 
     private function getCacheKey(
-        array  $tableDataVersions,
+        array $tableDataVersions,
         string $queryHash,
     ): string {
         $tableDataVersionsString = json_encode($tableDataVersions)
-            ?: throw new \RuntimeException(
-                sprintf(
-                    'Failed to encode tables data versions to JSON. '
-                    . 'Tables data versions: %s',
-                    var_export($tableDataVersions, true),
-                ),
-            );
+            ?: throw new \RuntimeException(sprintf('Failed to encode tables data versions to JSON. Tables data versions: %s', var_export($tableDataVersions, true)));
 
         $tableDataVersionsHash = $this->getHash($tableDataVersionsString);
 
@@ -73,21 +68,14 @@ class CachedDb implements DbInterface
     }
 
     private function checkUsedTables(
-        array  $relatedTables,
+        array $relatedTables,
         string $sql,
     ): void {
         $usedTables = $this->parseUsedTables($sql);
         sort($usedTables);
         sort($relatedTables);
         if ($usedTables !== $relatedTables) {
-            throw new \RuntimeException(
-                sprintf(
-                    'Used tables in SQL do not match the related tables. '
-                    . 'Really used tables: %s, given related tables: %s',
-                    var_export($usedTables, true),
-                    var_export($relatedTables, true),
-                ),
-            );
+            throw new \RuntimeException(sprintf('Used tables in SQL do not match the related tables. Really used tables: %s, given related tables: %s', var_export($usedTables, true), var_export($relatedTables, true)));
         }
     }
 
@@ -101,6 +89,7 @@ class CachedDb implements DbInterface
 
     /**
      * @param array<string> $relatedTables
+     *
      * @return array<array<string, int>>
      */
     private function getTableDataVersions(
@@ -117,7 +106,9 @@ class CachedDb implements DbInterface
             FROM _table_data_versions
             WHERE table_name IN ($0)
             SQL,
-                [0 => $relatedTables],
+                [
+                    0 => $relatedTables,
+                ],
             );
         } catch (\DbException $dbException) {
             if (str_ends_with($dbException->getMessage(), "._table_data_versions' doesn't exist")) {
@@ -128,14 +119,7 @@ class CachedDb implements DbInterface
         if (count($tableVersions) !== count($relatedTables)) {
             sort($relatedTables);
             ksort($tableVersions);
-            throw new \RuntimeException(
-                sprintf(
-                    'Not all tables have a version in the cache. '
-                    . 'Please check the _table_data_versions table. For tables: %s fetched versions: %s',
-                    var_export($relatedTables, true),
-                    var_export($tableVersions, true),
-                ),
-            );
+            throw new \RuntimeException(sprintf('Not all tables have a version in the cache. Please check the _table_data_versions table. For tables: %s fetched versions: %s', var_export($relatedTables, true), var_export($tableVersions, true)));
         }
 
         foreach ($tableVersions as $tableName => $dataVersion) {
