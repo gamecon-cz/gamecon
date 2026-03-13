@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Cache;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\EditorTagu;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\BackgroundProcess\BackgroundProcessService;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -100,6 +101,25 @@ class ProgramStaticFileGenerator
         return $this->writeJsonFile('popisy', $rok, $popisy);
     }
 
+    public function generateStitky(int $rok): string
+    {
+        $editorTagu = new EditorTagu($this->systemoveNastaveni->db());
+        $tagy = $editorTagu->getTagy();
+
+        $tagyProJson = array_map(
+            static function ($tag) {
+                return [
+                    'id'             => (int) $tag['id'],
+                    'nazev'          => $tag['nazev'],
+                    'nazevKategorie' => $tag['nazev_kategorie'],
+                ];
+            },
+            $tagy,
+        );
+
+        return $this->writeJsonFile('tagy', $rok, $tagyProJson);
+    }
+
     public function generateObsazenosti(int $rok): string
     {
         $aktivity = $this->loadAktivity($rok);
@@ -154,6 +174,7 @@ class ProgramStaticFileGenerator
         $this->generateAktivity($rok);
         $this->generatePopisy($rok);
         $this->generateObsazenosti($rok);
+        $this->generateStitky($rok);
         $this->updateManifest($rok);
     }
 
