@@ -22,8 +22,9 @@ trait ProbihaRegistraceAktivitTrait
                     jsmeNaLocale: $original->jsmeNaLocale(),
                     databazoveNastaveni: $original->databazoveNastaveni(),
                     rootAdresarProjektu: $original->rootAdresarProjektu(),
-                    cacheDir: $original->cacheDir(),
+                    privateCacheDir: $original->privateCacheDir(),
                     kernel: $original->kernel(),
+                    publicCacheDir: $original->publicCacheDir(),
                 );
             }
 

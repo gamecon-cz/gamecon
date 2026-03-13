@@ -57,7 +57,7 @@ readonly class KopieOstreDatabaze
 
         try {
             // Decompress .gz to a temp plain SQL file (removeDefiners needs plain text)
-            $tempFile = tempnam($this->systemoveNastaveni->cacheDir(), 'kopie_databaze_');
+            $tempFile = tempnam($this->systemoveNastaveni->privateCacheDir(), 'kopie_databaze_');
             if ($tempFile === false) {
                 throw new \RuntimeException('Nepodařilo se vytvořit dočasný soubor');
             }
@@ -153,7 +153,7 @@ readonly class KopieOstreDatabaze
                 throw new \RuntimeException('Kopírovat sebe sama nemá smysl');
             }
 
-            $tempFile = tempnam($this->systemoveNastaveni->cacheDir(), 'kopie_databaze_');
+            $tempFile = tempnam($this->systemoveNastaveni->privateCacheDir(), 'kopie_databaze_');
             if ($tempFile === false) {
                 throw new \RuntimeException('Nepodařilo se vytvořit dočasný soubor');
             }

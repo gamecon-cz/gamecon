@@ -87,10 +87,10 @@ export const nastavFiltrLinií = (vybranéLinie: string[]) => {
   }, undefined, "nastav filtr linie");
 };
 
-export const nastavFiltrŠtítků = (vybranéTagy: number[]) => {
+export const nastavFiltrTagů = (vybranéTagy: number[]) => {
   useProgramStore.setState((s) => {
     s.urlStav.filtrTagy = vybranéTagy;
-  }, undefined, "nastav filtr štítků");
+  }, undefined, "nastav filtr tagů");
 };
 
 export const nastavFiltrStavů = (vybranéStavy: AktivitaStav[]) => {

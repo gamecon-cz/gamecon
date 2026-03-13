@@ -1,5 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { ApiAktivitaAkce, ApiAktivitaNepřihlášen, ApiAktivitaUživatel, ApiŠtítek, fetchAktivitaAkce, fetchRocnikAktivity, fetchŠtítky, Obsazenost } from "../../../api/program";
+import { ApiAktivitaAkce, ApiAktivitaNepřihlášen, ApiAktivitaObsazenost, ApiAktivitaPopis, ApiAktivitaUživatel, ApiTag, fetchAktivitaAkce, fetchManifestFresh, fetchStaticProgramData, fetchUserData, Obsazenost } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { nastavChyba } from "./všeobecnéSlice";
 
@@ -18,7 +18,7 @@ export type ProgramDataSlice = {
         aktivityPodleId: { [id: number]: Aktivita },
       }
     },
-    štítky: ApiŠtítek[],
+    tagy: ApiTag[],
   },
   dataStatus: {
     podleRoku: {
@@ -31,7 +31,7 @@ export type ProgramDataSlice = {
 export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () => ({
   data: {
     podleRočníku: {},
-    štítky: [],
+    tagy: [],
   },
   dataStatus: {
     podleRoku: {},
@@ -55,38 +55,89 @@ const vytvořObsazenostPrázdnéSUpozorněním = (aktivitaId: number):Obsazenost
   };
 }
 
+/** Build Map for O(1) lookups instead of O(n) .find() */
+function buildPopisyMap(popisy: ApiAktivitaPopis[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const p of popisy) {
+    map.set(p.id, p.popis);
+  }
+  return map;
+}
+
+function buildObsazenostiMap(obsazenosti: ApiAktivitaObsazenost[]): Map<number, Obsazenost> {
+  const map = new Map<number, Obsazenost>();
+  for (const o of obsazenosti) {
+    map.set(o.idAktivity, o.obsazenost);
+  }
+  return map;
+}
+
+function buildUzivatelMap(uzivatelData: ApiAktivitaUživatel[]): Map<number, ApiAktivitaUživatel> {
+  const map = new Map<number, ApiAktivitaUživatel>();
+  for (const u of uzivatelData) {
+    map.set(u.id, u);
+  }
+  return map;
+}
+
 export const načtiRok = async (ročník: number) => {
   const nastavStav = nastavStavProRok.bind(undefined, ročník);
 
   try {
     nastavStav("načítání");
-    const rocnikData = await fetchRocnikAktivity(ročník);
+
+    const [staticData, userData] = await Promise.all([
+      fetchStaticProgramData(ročník),
+      fetchUserData(ročník),
+    ]);
+
     nastavStav("dotaženo");
+
+    const popisyMap = buildPopisyMap(staticData.popisy);
+    const obsazenostiMap = buildObsazenostiMap(staticData.obsazenosti);
+    const uzivatelMap = userData.data
+      ? buildUzivatelMap(userData.data.aktivityUzivatel)
+      : new Map<number, ApiAktivitaUživatel>();
+    const skryteAktivity = userData.data?.aktivitySkryte ?? [];
 
     useProgramStore.setState(s => {
       s.data.podleRočníku[ročník] = {
         aktivityPodleId: {},
       };
+      s.data.tagy = staticData.tagy;
       const ročníkData = s.data.podleRočníku[ročník];
-      for (const aktivita of rocnikData.aktivityNeprihlasen.data.concat(rocnikData.aktivitySkryte.data)) {
-        const popis = rocnikData.popisy.data.find(x=>x.id === aktivita.popisId)?.popis ?? "";
-        const aktivitaUživatel = rocnikData.aktivityUživatel.data.find(x=>x.id === aktivita.id)!;
-        const obsazenost = rocnikData.obsazenosti.data.find(x=>x.idAktivity === aktivita.id)?.obsazenost
+
+      // Process publicly visible activities from static files
+      for (const aktivita of staticData.aktivity) {
+        const popis = popisyMap.get(aktivita.popisId) ?? "";
+        const obsazenost = obsazenostiMap.get(aktivita.id)
           ?? vytvořObsazenostPrázdnéSUpozorněním(aktivita.id);
-        ročníkData.aktivityPodleId[aktivita.id] = {...aktivita, ...aktivitaUživatel, popis, obsazenost};
+        const aktivitaUživatel = uzivatelMap.get(aktivita.id);
+        ročníkData.aktivityPodleId[aktivita.id] = {
+          ...aktivita,
+          ...aktivitaUživatel,
+          popis,
+          obsazenost,
+        } as Aktivita;
+      }
+
+      // Process hidden activities visible only to this user
+      for (const aktivita of skryteAktivity) {
+        const popis = popisyMap.get(aktivita.popisId) ?? "";
+        const obsazenost = obsazenostiMap.get(aktivita.id)
+          ?? vytvořObsazenostPrázdnéSUpozorněním(aktivita.id);
+        const aktivitaUživatel = uzivatelMap.get(aktivita.id);
+        ročníkData.aktivityPodleId[aktivita.id] = {
+          ...aktivita,
+          ...aktivitaUživatel,
+          popis,
+          obsazenost,
+        } as Aktivita;
       }
     }, undefined, "dotažení aktivit");
   } catch(e) {
     nastavStav("chyba");
   }
-};
-
-export const načtiŠtítky = async () => {
-  const štítky = await fetchŠtítky();
-
-  useProgramStore.setState(s => {
-    s.data.štítky = štítky;
-  }, undefined, "dotažení štítků");
 };
 
 const nastavStavAkce = (stav: DataApiStav) => {
@@ -100,16 +151,98 @@ export const useStavAkce = () => useProgramStore(s=>s.dataStatus.akce);
 export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAkce) => {
   try {
     nastavStavAkce("načítání");
-    const { chyba } = await fetchAktivitaAkce(aktivitaId, typ);
+    const response = await fetchAktivitaAkce(aktivitaId, typ);
 
-    if (chyba?.hláška){
+    if (response.chyba?.hláška){
       nastavStavAkce("chyba");
-      nastavChyba(chyba.hláška);
+      nastavChyba(response.chyba.hláška);
     } else {
       nastavStavAkce("dotaženo");
     }
 
-    await načtiRok(GAMECON_KONSTANTY.ROCNIK);
+    // Apply immediate update from enriched response
+    if (response.obsazenost || response.aktivitaUzivatel) {
+      useProgramStore.setState(s => {
+        const ročník = GAMECON_KONSTANTY.ROCNIK;
+        const ročníkData = s.data.podleRočníku[ročník];
+        if (!ročníkData) return;
+
+        if (response.obsazenost) {
+          const aktivita = ročníkData.aktivityPodleId[response.obsazenost.idAktivity];
+          if (aktivita) {
+            aktivita.obsazenost = response.obsazenost.obsazenost;
+          }
+        }
+
+        if (response.aktivitaUzivatel) {
+          const aktivita = ročníkData.aktivityPodleId[response.aktivitaUzivatel.id];
+          if (aktivita) {
+            if (response.aktivitaUzivatel.stavPrihlaseni !== undefined) {
+              aktivita.stavPrihlaseni = response.aktivitaUzivatel.stavPrihlaseni;
+            }
+            if (response.aktivitaUzivatel.slevaNasobic !== undefined) {
+              aktivita.slevaNasobic = response.aktivitaUzivatel.slevaNasobic;
+            }
+            if (response.aktivitaUzivatel.zamcenaDo !== undefined) {
+              aktivita.zamcenaDo = response.aktivitaUzivatel.zamcenaDo;
+            }
+            if (response.aktivitaUzivatel.zamcenaMnou !== undefined) {
+              aktivita.zamcenaMnou = response.aktivitaUzivatel.zamcenaMnou;
+            }
+          }
+        }
+      }, undefined, "okamžitá aktualizace z akce");
+    }
+
+    // Delayed re-fetch to pick up regenerated static files + user data changes
+    setTimeout(async () => {
+      try {
+        const rok = GAMECON_KONSTANTY.ROCNIK;
+        const [manifest, userData] = await Promise.all([
+          fetchManifestFresh(rok),
+          fetchUserData(rok),
+        ]);
+
+        // Re-fetch obsazenosti if manifest changed
+        const currentManifest = GAMECON_KONSTANTY.programManifest;
+        if (!currentManifest || manifest.obsazenosti !== currentManifest.obsazenosti) {
+          const url = `${GAMECON_KONSTANTY.URL_PROGRAM_CACHE}/${manifest.obsazenosti}`;
+          const obsazenosti: ApiAktivitaObsazenost[] = await fetch(url).then(r => r.json());
+          const obsazenostiMap = buildObsazenostiMap(obsazenosti);
+
+          useProgramStore.setState(s => {
+            const ročníkData = s.data.podleRočníku[rok];
+            if (!ročníkData) return;
+            for (const [id, obsazenost] of obsazenostiMap) {
+              const aktivita = ročníkData.aktivityPodleId[id];
+              if (aktivita) {
+                aktivita.obsazenost = obsazenost;
+              }
+            }
+          }, undefined, "aktualizace obsazeností ze statických souborů");
+
+          // Update stored manifest reference
+          GAMECON_KONSTANTY.programManifest = manifest;
+        }
+
+        // Apply user data updates
+        if (userData.data) {
+          const uzivatelMap = buildUzivatelMap(userData.data.aktivityUzivatel);
+          useProgramStore.setState(s => {
+            const ročníkData = s.data.podleRočníku[rok];
+            if (!ročníkData) return;
+            for (const [id, uzivatel] of uzivatelMap) {
+              const aktivita = ročníkData.aktivityPodleId[id];
+              if (aktivita) {
+                Object.assign(aktivita, uzivatel);
+              }
+            }
+          }, undefined, "aktualizace uživatelských dat po akci");
+        }
+      } catch (e) {
+        console.warn("Nepodařilo se aktualizovat data po akci:", e);
+      }
+    }, 2500);
   } catch (e) {
     console.error(e);
   }

@@ -87,7 +87,7 @@ $pocetUzivatelu       = count($reportPredPromlcenim);
 $celkovaSuma          = array_sum(array_column($reportPredPromlcenim, 'promlcena_castka'));
 
 // Vytvoř dočasný XLSX soubor s reportem
-$tempFile           = tempnam($systemoveNastaveni->cacheDir(), 'promlceni_report_') . '.xlsx';
+$tempFile           = tempnam($systemoveNastaveni->privateCacheDir(), 'promlceni_report_') . '.xlsx';
 $konfiguraceReportu = (new KonfiguraceReportu())
     ->setRowToFreeze(1)
     ->setColumnsToFreezeUpTo('E')
@@ -146,7 +146,7 @@ SQL,
 );
 
 // Vytvoř XLSX s aktuálním stavem všech uživatelů
-$tempFileAktualni           = tempnam($systemoveNastaveni->cacheDir(), 'promlceni_report_aktualni_') . '.xlsx';
+$tempFileAktualni           = tempnam($systemoveNastaveni->privateCacheDir(), 'promlceni_report_aktualni_') . '.xlsx';
 $konfiguraceReportuAktualni = (new KonfiguraceReportu())
     ->setRowToFreeze(1)
     ->setColumnsToFreezeUpTo('C')
