@@ -196,12 +196,17 @@ class ProgramStaticFileGenerator
 
     public function touchDirtyFlag(
         ProgramStaticFileType $type,
+        bool $tryStartWorker = true,
     ): void {
         (new Filesystem())->mkdir($this->dirtyFlagsDir);
 
         $rocnik = $this->systemoveNastaveni->rocnik();
 
         touch("{$this->dirtyFlagsDir}/dirty-{$type->value}-$rocnik");
+
+        if ($tryStartWorker) {
+            $this->tryStartWorker();
+        }
     }
 
     public function hasDirtyFlag(
