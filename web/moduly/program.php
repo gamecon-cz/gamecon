@@ -1,8 +1,8 @@
 <?php
 
 use Gamecon\Aktivita\Program;
+use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cas\DateTimeCz;
-use Gamecon\Pravo;
 
 /** @var Modul $this */
 /** @var \Gamecon\XTemplate\XTemplate $t */
@@ -53,6 +53,8 @@ $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
 $legendaText   = Stranka::zUrl('program-legenda-text')?->html();
 $jeOrganizator = isset($u) && $u && $u->maPravoNaPoradaniAktivit();
 
+$programStaticFileGenerator = new ProgramStaticFileGenerator($systemoveNastaveni);
+
 ?>
 
 <style>
@@ -80,6 +82,7 @@ function zabalWebSoubor(string $cestaKSouboru): string
     window.GAMECON_KONSTANTY = {
         BASE_PATH_API: "<?= URL_WEBU . "/api/" ?>",
         BASE_PATH_PAGE: "<?= URL_WEBU . "/program/" ?>",
+        URL_PROGRAM_CACHE: "<?= URL_CACHE ?>/program",
         ROCNIK: <?= ROCNIK ?>,
         LEGENDA: <?= json_encode($legendaText) ?>,
         FORCE_REDUX_DEVTOOLS: <?= defined("FORCE_REDUX_DEVTOOLS") ? "true" : "false" ?>,
@@ -87,6 +90,7 @@ function zabalWebSoubor(string $cestaKSouboru): string
         PROGRAM_DO: <?= (new DateTimeCz(PROGRAM_DO))->getTimestamp() ?>000,
         PROGRAM_ZACATEK: <?= PROGRAM_ZACATEK ?>,
         PROGRAM_KONEC: <?= PROGRAM_KONEC ?>,
+        programManifest: <?= json_encode($programStaticFileGenerator->readManifest()) ?>,
     }
 
     window.gameconPřednačtení =

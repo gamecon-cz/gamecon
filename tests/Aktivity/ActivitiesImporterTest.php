@@ -12,6 +12,7 @@ use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportLogger;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Mutex\Mutex;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Tests\Factory\LocationFactory;
 use Gamecon\Vyjimkovac\Logovac;
@@ -314,7 +315,8 @@ class ActivitiesImporterTest extends AbstractTestDb
             errorsListUrl: '/errors',
             activitiesImportLogger: $mockImportLogger,
             exportAktivitSloupce: new ExportAktivitSloupce(),
-            dateTimeCz: new DateTimeCz()
+            dateTimeCz: new DateTimeCz(),
+            systemoveNastaveni: SystemoveNastaveni::zGlobals(),
         );
     }
 }

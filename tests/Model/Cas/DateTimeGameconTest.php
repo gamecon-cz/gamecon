@@ -457,6 +457,7 @@ class DateTimeGameconTest extends TestCase
             PROJECT_ROOT_DIR,
             SPEC,
             kernel: new Kernel('test', false),
+            publicCacheDir: CACHE,
         );
     }
 

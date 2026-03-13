@@ -1,5 +1,4 @@
 import { GAMECON_KONSTANTY } from "../../env";
-import { fetchTestovacíAktivity, fetchTestovacíAktivityPřihlášen } from "../../testing/fakeAPI";
 
 
 export const AktivitaStavyVšechny = [
@@ -43,18 +42,6 @@ export type ApiCachovanaOdpověď<Data, kompletni = true> = {
   hash: string,
 } & ( kompletni extends true ? {data: Data,} : {data?:Data});
 
-/* todo:
-  první kolekce bez uživatele viditelnaPro (pohlídat ať to nemění datasourceColector)
-  druhá kolekce s uživatelem
-  upravit viditelnaPro ať vrací jen aktivity které jsou viditelné jen pro konkrétního uživatele ALE ne normálně viditelná (bez přihlášení)
- */
-// todo: datasourceColector pro viditelnaPro a organizuje a prihlasen
-/* todo:
-každý sub dotaz bude mít vlastní datasourceColector
-pohlídat aby datasource collector obsahoval vždy všechny relevantní data
-(např aktivity viditelné pouze pro přihlášeného uživatele budou mít stejný datasourceColector jako )
- */
-
 /**
  * Data nezávislé na tom jestli je uživatel přihlášený
  */
@@ -74,8 +61,6 @@ export type ApiAktivitaNepřihlášen = {
   vdalsiVlne?: boolean,
   probehnuta?: boolean,
   jeBrigadnicka?: boolean,
-  // todo: přida kapacita bez obsazenosti
-  // todo: změnit na boolean jestli má dítě, více nepotřebujeme prozatím
   /** idčka */
   dite?: number[],
   tymova?: boolean,
@@ -92,16 +77,14 @@ export type ApiAktivitaUživatel = {
   stavPrihlaseni?: StavPřihlášení,
   /** uživatelská vlastnost */
   slevaNasobic?: number,
-  // nahradnik?: boolean,
   /** orgovská vlastnost */
   mistnost?: string,
-  // todo: tohle je taky možný stav přihlášení (odebrat tady a přidat do stavPrihlaseni)
   vedu?: boolean,
   /** pokud je aktivita zamčená, tak do kdy */
   zamcenaDo?: number,
   /** aktivita zamčená přihlášeným užviatelem */
   zamcenaMnou?: boolean,
-  /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusím aby tam bylo */
+  /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusí aby tam bylo */
   __TS_STRUKTURALNI_KONTROLA__: true,
 }
 
@@ -115,9 +98,10 @@ export type ApiAktivitaPopis = {
 
 export type ApiAktivitaObsazenost = {
   idAktivity: number;
-  //todo: obsazenost rozdělit na kapacitu a obsazenost kapacita se bude posílat s aktivitou základ
   obsazenost: Obsazenost,
 };
+
+// --- Legacy types (kept for backward compatibility with old API) ---
 
 type ApiAktivityProgramResponse<kompletni = true> = {
   aktivityNeprihlasen: ApiCachovanaOdpověď<ApiAktivitaNepřihlášen[], kompletni>;
@@ -139,10 +123,81 @@ export type ApiŠtítek = {
   id: number,
   nazev: string,
   nazevKategorie: string,
-  // nazevHlavniKategorie: string,
-  // idKategorieTagu: string,
-  // poznamka: string,
 };
+
+// --- Static file manifest ---
+
+export type ProgramManifest = {
+  aktivity: string,
+  popisy: string,
+  obsazenosti: string,
+};
+
+// --- Static file fetching ---
+
+export type StaticProgramData = {
+  aktivity: ApiAktivitaNepřihlášen[],
+  popisy: ApiAktivitaPopis[],
+  obsazenosti: ApiAktivitaObsazenost[],
+};
+
+async function fetchManifest(rok: number): Promise<ProgramManifest> {
+  // Cache-bust manifest requests — manifest has no content hash in filename
+  const url = `${GAMECON_KONSTANTY.URL_PROGRAM_CACHE}/manifest-${rok}.json?t=${Date.now()}`;
+  return fetch(url).then(r => r.json());
+}
+
+async function fetchJsonFile<T>(filename: string): Promise<T> {
+  const url = `${GAMECON_KONSTANTY.URL_PROGRAM_CACHE}/${filename}`;
+  return fetch(url).then(r => r.json());
+}
+
+export const fetchStaticProgramData = async (rok: number): Promise<StaticProgramData> => {
+  const manifest: ProgramManifest = GAMECON_KONSTANTY.programManifest
+    ?? await fetchManifest(rok);
+
+  const [aktivity, popisy, obsazenosti] = await Promise.all([
+    fetchJsonFile<ApiAktivitaNepřihlášen[]>(manifest.aktivity),
+    fetchJsonFile<ApiAktivitaPopis[]>(manifest.popisy),
+    fetchJsonFile<ApiAktivitaObsazenost[]>(manifest.obsazenosti),
+  ]);
+
+  return { aktivity, popisy, obsazenosti };
+};
+
+export const fetchManifestFresh = async (rok: number): Promise<ProgramManifest> => {
+  return fetchManifest(rok);
+};
+
+// --- User data API ---
+
+export type UserDataResponse = {
+  hash: string,
+  data?: {
+    aktivityUzivatel: ApiAktivitaUživatel[],
+    aktivitySkryte: ApiAktivitaNepřihlášen[],
+  },
+};
+
+let lastUserDataHash = '';
+
+export const fetchUserData = async (rok: number): Promise<UserDataResponse> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityUzivatel?rok=${rok}`;
+  const body = JSON.stringify({ hash: lastUserDataHash });
+  const response: UserDataResponse = await fetch(url, {
+    method: "POST",
+    body,
+    headers: { 'Content-Type': 'application/json' },
+  }).then(r => r.json());
+
+  if (response.hash) {
+    lastUserDataHash = response.hash;
+  }
+
+  return response;
+};
+
+// --- Legacy API (still used as fallback when static files are not available) ---
 
 const vytvořLocalStorageKlíč = (ročník: number) => `_cache_fetchRocnikAktivity_${ročník}`;
 
@@ -174,9 +229,6 @@ const vytvořNovéDataZCacheADat = <T,>(cache: ApiCachovanaOdpověď<T, false> |
   return cache as any;
 }
 
-/**
- * spojí cachované data s dotaženými a uloží novou cache
- */
 const aplikujCacheNaOdpověď = (cacheData :ApiAktivityProgramResponse<true> | undefined, ročník: number, data: ApiAktivityProgramResponse<false>) => {
   const spojenéData: ApiAktivityProgramResponse = {
     aktivityNeprihlasen: vytvořNovéDataZCacheADat(cacheData?.aktivityNeprihlasen, data?.aktivityNeprihlasen),
@@ -231,6 +283,8 @@ export type ApiAktivitaAkce =
 type ApiAktivitaAkceResponse = {
   úspěch: boolean,
   chyba?: {hláška:string},
+  obsazenost?: ApiAktivitaObsazenost,
+  aktivitaUzivatel?: ApiAktivitaUživatel,
 }
 
 export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce): Promise<ApiAktivitaAkceResponse> => {

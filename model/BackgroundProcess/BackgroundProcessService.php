@@ -12,9 +12,10 @@ use Symfony\Component\Clock\ClockInterface;
  */
 class BackgroundProcessService
 {
-    public const COMMAND_DB_COPY      = 'database-copy';
-    public const COMMAND_BFGR_REPORT  = 'bfgr-report';
-    public const COMMAND_ANONYMIZE_DB = 'anonymize-db';
+    public const COMMAND_DB_COPY               = 'database-copy';
+    public const COMMAND_BFGR_REPORT           = 'bfgr-report';
+    public const COMMAND_ANONYMIZE_DB          = 'anonymize-db';
+    public const COMMAND_PROGRAM_STATIC_FILES  = 'program-static-files';
 
     public static function vytvorZGlobals(): self
     {

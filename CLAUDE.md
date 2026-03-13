@@ -88,6 +88,9 @@ vendor/bin/phpunit
 - Run tests before committing
 - Check existing patterns in similar components
 - Use Docker for consistent development environment
+- **Directory creation**: Use Symfony's `(new Filesystem)->mkdir($dir, 0775)` instead of `@mkdir()` or `is_dir()` + `mkdir()` checks
+- **Hashing**: Always use the complete result of a hashing function — never truncate it (e.g. `substr(md5(...), 0, 12)`) as this increases collision risk
+- **Cache directories**: Use `SPEC` constant for private cache files and `CACHE` constant for public cache files (web-accessible)
 
 ## SQL Coding Style
 - **No table aliases**: Use full table names in queries whenever possible
