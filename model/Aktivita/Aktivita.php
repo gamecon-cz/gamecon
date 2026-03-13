@@ -2331,19 +2331,41 @@ SQL
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
         $idUzivatele = $uzivatel->id();
-        if ($this->a[Sql::TEAMOVA]
-            && $this->pocetPrihlasenych() === 0
-            && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
-        ) {
-            $this->zamknoutProTeam($uzivatel);
+
+        dbBegin();
+        try {
+            // Lock the activity row to prevent race conditions on capacity check
+            dbQuery(
+                'SELECT id_akce FROM akce_seznam WHERE id_akce=$0 FOR UPDATE',
+                [$idAktivity],
+            );
+
+            // Re-check capacity with fresh data inside the lock
+            $this->refresh();
+            if (!(self::IGNOROVAT_LIMIT & $parametry) && $this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()) {
+                dbCommit();
+                throw new \Chyba(hlaska('plno'));
+            }
+
+            if ($this->a[Sql::TEAMOVA]
+                && $this->pocetPrihlasenych() === 0
+                && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
+            ) {
+                $this->zamknoutProTeam($uzivatel);
+            }
+            dbQuery(
+                'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
+                [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
+            );
+            $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
+            // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
+            $this->zrusPredchoziStornoPoplatek($uzivatel);
+
+            dbCommit();
+        } catch (\Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
         }
-        dbQuery(
-            'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
-            [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
-        );
-        $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
-        // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
-        $this->zrusPredchoziStornoPoplatek($uzivatel);
 
         $this->refresh();
 
