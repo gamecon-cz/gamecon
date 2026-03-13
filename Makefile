@@ -2,11 +2,6 @@
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
-ifndef APP_ENV
-	# for Symfony
-	APP_ENV = dev
-endif
-
 init:
 	which docker > /dev/null || (echo "Please install docker binary" && exit 1)
 	if command -v direnv &> /dev/null; then \
@@ -16,11 +11,24 @@ init:
 	docker compose up -d
 	# has to explicitly use direnv exec to use the freshly allowed .envrc in current prompt instance
 	direnv exec bin-docker/composer install
+	npm --prefix ui run build
+	@make cache
 	@echo 'Gamecon initialized ✅'
 
 run: init
 	@PORT=$$(docker compose port web 80 2>/dev/null | cut -d: -f2); \
 	echo "App runs on http://localhost:$${PORT} http://localhost:$${PORT}/admin"
+
+cache: var
+	./bin-docker/php ./bin/console cache:clear --no-optional-warmers
+
+var:
+	docker compose run --rm --user=root --entrypoint=sh web -c 'find cache -mindepth 2 -maxdepth 2 ! -name ".htaccess" -exec rm -fr {} +'
+	docker compose run --rm --user=root --entrypoint=sh web -c 'find symfony/var -mindepth 1 -maxdepth 1 ! -name ".htaccess" -exec rm -fr {} +'
+	mkdir -p symfony/var/log
+	touch symfony/var/log/test.log
+	touch symfony/var/log/dev.log
+	chmod -R 0777 symfony/var
 
 bash:
 	./bin-docker/docker-bash

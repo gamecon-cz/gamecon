@@ -1,11 +1,11 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import {
-  useAktivitaNáhled, useŠtítky,
+  useAktivitaNáhled, useTagy,
 } from "../../../store/program/selektory";
 import { skryjAktivitaNáhledId } from "../../../store/program/slices/urlSlice";
 import { Obsazenost } from "./tabulka/Obsazenost";
-import { štítkyZId } from "../../../utils";
+import { tagyZId } from "../../../utils";
 
 type ProgramNáhledProps = {};
 
@@ -13,7 +13,7 @@ type ProgramNáhledProps = {};
 export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) => {
   const {} = props;
   const aktivita = useAktivitaNáhled();
-  const štítky = useŠtítky();
+  const tagy = useTagy();
 
   const programNáhledTextRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +49,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               }}
             ></div>
             <div class="programNahled_stitky">
-              {štítkyZId(aktivita?.stitkyId, štítky).map((x) => (
+              {tagyZId(aktivita?.stitkyId, tagy).map((x) => (
                 <div class="programNahled_stitek">{x}</div>
               ))}
             </div>

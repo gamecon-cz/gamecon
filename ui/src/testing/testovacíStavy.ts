@@ -18,7 +18,7 @@ const resetStav = {
             aktivityPodleId: {},
           }
         },
-        štítky: [],
+        tagy: [],
       };
 
       s.přihlášenýUživatel.data = {
