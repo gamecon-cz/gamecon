@@ -10,7 +10,7 @@ use Gamecon\Aktivita\FiltrAktivity;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+if ($_SERVER["REQUEST_METHOD"] !== "GET") {
     return;
 }
 
@@ -18,14 +18,7 @@ $rok = array_key_exists('rok', $_GET)
     ? (int)$_GET['rok']
     : $systemoveNastaveni->rocnik();
 
-$body = null;
-try {
-    $bodyStr = file_get_contents("php://input");
-    $body = json_decode($bodyStr);
-} catch (Chyba $chyba) {
-}
-
-$requestHash = $body?->hash ?? '';
+$requestHash = $_GET['hash'] ?? '';
 
 $dataSourcesCollector = new DataSourcesCollector();
 

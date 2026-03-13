@@ -15,7 +15,7 @@ import {
 
 import "./ReactSelect.less";
 import "./Filtry.less";
-import { FiltrŠtítků } from "./FiltrŠtítků";
+import { FiltrTagů } from "./FiltrŠtítků";
 import { asValueLabel } from "../../../../utils";
 import { useProgramStore } from "../../../../store/program";
 import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
@@ -83,7 +83,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
             />
           </div>
           <div style={{ flex: "1" }}>
-            <FiltrŠtítků />
+            <FiltrTagů />
           </div>
           <div style={{ minWidth: "300px" }} class="formular_polozka">
             <input style={{ marginTop: 0, height: "38px" }} placeholder="Hledej v textu"

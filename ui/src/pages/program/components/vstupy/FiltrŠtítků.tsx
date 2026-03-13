@@ -1,11 +1,11 @@
 import React from "react";
 import { useMemo } from "preact/hooks";
 import Select, { GroupBase, GroupProps, MultiValueProps, OptionsOrGroups, components } from "react-select";
-import { useAktivityFiltrované, useŠtítkyPodleKategorie, useŠtítkyPočetAktivit, useŠtítkyVybranéPodleKategorie } from "../../../../store/program/selektory";
-import { nastavFiltrŠtítků } from "../../../../store/program/slices/urlSlice";
+import { useAktivityFiltrované, useTagyPodleKategorie, useTagyPočetAktivit, useTagyVybranéPodleKategorie } from "../../../../store/program/selektory";
+import { nastavFiltrTagů } from "../../../../store/program/slices/urlSlice";
 import { asValueLabel } from "../../../../utils";
 
-type ŠttítekValueLabel = {
+type TagValueLabel = {
   value: number;
   label: string;
   početMožností?: number;
@@ -14,7 +14,7 @@ type ŠttítekValueLabel = {
   jeNázevKategorie?: boolean;
 }
 
-const formatOptionLabel = (data: ŠttítekValueLabel): React.ReactNode =>
+const formatOptionLabel = (data: TagValueLabel): React.ReactNode =>
   (
     <div class="react_select_option--container">
       <span>{data.label}</span>
@@ -30,7 +30,7 @@ const formatOptionLabel = (data: ŠttítekValueLabel): React.ReactNode =>
   ) as any;
 
 const MultiValueDefault = components.MultiValue;
-const MultiValueŠtítky = (props: MultiValueProps<ŠttítekValueLabel, true, GroupBase<ŠttítekValueLabel>>) => {
+const MultiValueTagy = (props: MultiValueProps<TagValueLabel, true, GroupBase<TagValueLabel>>) => {
   const { data } = props;
   if (data?.jeNázevKategorie) {
     return (<div>{data?.label}:</div>);
@@ -40,7 +40,7 @@ const MultiValueŠtítky = (props: MultiValueProps<ŠttítekValueLabel, true, Gr
 };
 
 const GroupDefault = components.Group;
-const GroupFlex: React.ComponentType<GroupProps<ŠttítekValueLabel, true, GroupBase<ŠttítekValueLabel>>> = (props) => {
+const GroupFlex: React.ComponentType<GroupProps<TagValueLabel, true, GroupBase<TagValueLabel>>> = (props) => {
   // TODO: použít class name a css
   props.children = <div style={{ display: "flex", flexWrap: "wrap" }}>
     {props.children}
@@ -48,32 +48,32 @@ const GroupFlex: React.ComponentType<GroupProps<ŠttítekValueLabel, true, Group
   return <GroupDefault {...props} />;
 };
 
-type TFiltrŠtítkůProps = {
+type TFiltrTagůProps = {
 
 };
 
-export const FiltrŠtítků: React.FC<TFiltrŠtítkůProps> = (props) => {
+export const FiltrTagů: React.FC<TFiltrTagůProps> = (props) => {
   const { } = props;
 
-  const štítkyPodleKategorie = useŠtítkyPodleKategorie();
-  const vybranéŠtítkyPodleKategorie = useŠtítkyVybranéPodleKategorie();
-  const štítkySPočtemAktivit = useŠtítkyPočetAktivit();
+  const tagyPodleKategorie = useTagyPodleKategorie();
+  const vybranéTagyPodleKategorie = useTagyVybranéPodleKategorie();
+  const tagySPočtemAktivit = useTagyPočetAktivit();
   const početAktivit = useAktivityFiltrované().length;
 
-  const štítkyMožnosti: OptionsOrGroups<ŠttítekValueLabel, GroupBase<ŠttítekValueLabel>> =
-    štítkyPodleKategorie.map(({ kategorie, štítky }) => ({
+  const tagyMožnosti: OptionsOrGroups<TagValueLabel, GroupBase<TagValueLabel>> =
+    tagyPodleKategorie.map(({ kategorie, tagy }) => ({
       label: kategorie,
-      options: štítky
-        .map(((štítek) => {
-          const valueLabel: ŠttítekValueLabel = {
-            value: štítek.id,
-            label: štítek.nazev,
+      options: tagy
+        .map(((tag) => {
+          const valueLabel: TagValueLabel = {
+            value: tag.id,
+            label: tag.nazev,
           };
-          const početAktivitŠtítku = štítkySPočtemAktivit.find(x => x.štítekId === štítek.id)?.počet ?? -1;
-          if (početAktivitŠtítku >= 0) {
-            valueLabel.početMožností = početAktivitŠtítku;
-            if (početAktivitŠtítku >= početAktivit) {
-              valueLabel.početMožností = početAktivitŠtítku - početAktivit;
+          const početAktivitTagu = tagySPočtemAktivit.find(x => x.tagId === tag.id)?.počet ?? -1;
+          if (početAktivitTagu >= 0) {
+            valueLabel.početMožností = početAktivitTagu;
+            if (početAktivitTagu >= početAktivit) {
+              valueLabel.početMožností = početAktivitTagu - početAktivit;
               valueLabel.početMožnostíNavíc = true;
             }
           }
@@ -81,33 +81,33 @@ export const FiltrŠtítků: React.FC<TFiltrŠtítkůProps> = (props) => {
         }))
     }));
 
-  const vybranéŠtítkySKategorií = useMemo(
+  const vybranéTagySKategorií = useMemo(
     () => {
-      return vybranéŠtítkyPodleKategorie.flatMap(({ kategorie, štítky }) => {
+      return vybranéTagyPodleKategorie.flatMap(({ kategorie, tagy }) => {
         // TODO: opravit typování
-        const kat: ŠttítekValueLabel = asValueLabel(kategorie) as any;
+        const kat: TagValueLabel = asValueLabel(kategorie) as any;
         kat.jeNázevKategorie = true;
-        return [kat].concat(štítky.map(štítek => ({
-          value: štítek.id,
-          label: štítek.nazev,
+        return [kat].concat(tagy.map(tag => ({
+          value: tag.id,
+          label: tag.nazev,
         }))
         );
       });
-    }, [vybranéŠtítkyPodleKategorie]);
+    }, [vybranéTagyPodleKategorie]);
 
   return <>
-    <Select<ŠttítekValueLabel, true>
+    <Select<TagValueLabel, true>
       placeholder="Tagy"
-      options={štítkyMožnosti}
+      options={tagyMožnosti}
       isMulti
       closeMenuOnSelect={false}
-      value={vybranéŠtítkySKategorií}
+      value={vybranéTagySKategorií}
       onChange={(e) => {
         console.log(e);
-        nastavFiltrŠtítků(e.filter(x => !x?.jeNázevKategorie).map((x) => x.value));
+        nastavFiltrTagů(e.filter(x => !x?.jeNázevKategorie).map((x) => x.value));
       }}
       components={{
-        MultiValue: MultiValueŠtítky,
+        MultiValue: MultiValueTagy,
         Group: GroupFlex,
       }}
       formatOptionLabel={formatOptionLabel}
@@ -125,4 +125,4 @@ export const FiltrŠtítků: React.FC<TFiltrŠtítkůProps> = (props) => {
   </>;
 };
 
-FiltrŠtítků.displayName = "FiltrŠtítků";
+FiltrTagů.displayName = "FiltrTagů";

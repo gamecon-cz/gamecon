@@ -9,4 +9,5 @@ enum ProgramStaticFileType: string
     case AKTIVITY = 'aktivity';
     case POPISY = 'popisy';
     case OBSAZENOSTI = 'obsazenosti';
+    case TAGY = 'tagy';
 }
