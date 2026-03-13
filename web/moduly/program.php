@@ -54,6 +54,9 @@ $legendaText   = Stranka::zUrl('program-legenda-text')?->html();
 $jeOrganizator = isset($u) && $u && $u->maPravoNaPoradaniAktivit();
 
 $programStaticFileGenerator = new ProgramStaticFileGenerator($systemoveNastaveni);
+if (!$programStaticFileGenerator->readManifest()) {
+    $programStaticFileGenerator->regenerateAll($systemoveNastaveni->rocnik());
+}
 
 ?>
 

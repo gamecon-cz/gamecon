@@ -260,6 +260,29 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
     /**
      * @test
      */
+    public function touchDirtyFlagWithoutStartingWorker(): void
+    {
+        $generator = $this->createGenerator();
+
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY));
+
+        // tryStartWorker: false should still create the flag
+        $generator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY, tryStartWorker: false);
+        self::assertTrue($generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY));
+
+        // Second call with tryStartWorker: true (default) should also work
+        $generator->touchDirtyFlag(ProgramStaticFileType::POPISY);
+        self::assertTrue($generator->hasDirtyFlag(ProgramStaticFileType::POPISY));
+
+        $generator->deleteDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        $generator->deleteDirtyFlag(ProgramStaticFileType::POPISY);
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY));
+        self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::POPISY));
+    }
+
+    /**
+     * @test
+     */
     public function activityChangeTriggersJsonRegeneration(): void
     {
         $idAktivity = $this->insertAktivita([
@@ -445,6 +468,64 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY));
         self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::POPISY));
         self::assertFalse($generator->hasDirtyFlag(ProgramStaticFileType::OBSAZENOSTI));
+    }
+
+    /**
+     * @test
+     */
+    public function readManifestReturnsNullWhenNoManifestExists(): void
+    {
+        $generator = $this->createGenerator();
+
+        self::assertNull($generator->readManifest());
+    }
+
+    /**
+     * @test
+     */
+    public function lazyInitRegeneratesWhenManifestIsMissing(): void
+    {
+        $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Lazy init aktivita',
+            Sql::CENA       => 42,
+        ]);
+
+        $generator = $this->createGenerator();
+
+        // Simulate the lazy init logic from program.php
+        self::assertNull($generator->readManifest());
+        $generator->regenerateAll(self::ROK);
+        $manifest = $generator->readManifest();
+
+        self::assertNotNull($manifest, 'Manifest must exist after regenerateAll');
+        self::assertArrayHasKey('aktivity', $manifest);
+        self::assertArrayHasKey('popisy', $manifest);
+        self::assertArrayHasKey('obsazenosti', $manifest);
+
+        // Verify files have real content (not empty arrays)
+        $aktivityFile = $this->publicCacheDir . '/program/' . $manifest['aktivity'];
+        $data = json_decode(file_get_contents($aktivityFile), true);
+        self::assertNotEmpty($data, 'Lazy init must produce non-empty activity data');
+    }
+
+    /**
+     * @test
+     */
+    public function secondCallToReadManifestSkipsRegeneration(): void
+    {
+        $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita pro double check',
+        ]);
+
+        $generator = $this->createGenerator();
+        $generator->regenerateAll(self::ROK);
+
+        $manifest1 = $generator->readManifest();
+        self::assertNotNull($manifest1);
+
+        // Second call should return the same manifest without regeneration
+        $manifest2 = $generator->readManifest();
+        self::assertSame($manifest1, $manifest2);
     }
 
     /**

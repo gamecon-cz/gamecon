@@ -82,6 +82,10 @@ vendor/bin/phpunit
   - LOGY constant in tests: `/var/www/html/gamecon/logy/tests/{PID}` (inside Docker)
   - These are NOT in `/tmp` - they're in the project's `logy/tests/` directory
 
+## Temporary Scripts for Research/Debugging
+- When running multi-step research or debugging inside Docker (grepping vendor files, reading multiple files, testing PHP snippets, etc.), use the `Write` tool to create a temporary script in `symfony/var/`, then execute it with `./bin-docker/php symfony/var/script.php` (or `bash symfony/var/script.sh`). Delete the script after use.
+- Do NOT use inline PHP (`./bin-docker/php -r "..."`) or heredocs — those trigger permission prompts.
+
 ## Best Practices
 - Follow existing code conventions
 - Use strict typing (`declare(strict_types=1)`)
