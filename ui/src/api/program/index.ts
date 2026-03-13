@@ -97,7 +97,7 @@ export type ApiAktivitaObsazenost = {
   obsazenost: Obsazenost,
 };
 
-export type ApiŠtítek = {
+export type ApiTag = {
   id: number,
   nazev: string,
   nazevKategorie: string,
@@ -109,6 +109,7 @@ export type ProgramManifest = {
   aktivity: string,
   popisy: string,
   obsazenosti: string,
+  tagy: string,
 };
 
 // --- Static file fetching ---
@@ -117,6 +118,7 @@ export type StaticProgramData = {
   aktivity: ApiAktivitaNepřihlášen[],
   popisy: ApiAktivitaPopis[],
   obsazenosti: ApiAktivitaObsazenost[],
+  tagy: ApiTag[],
 };
 
 async function fetchManifest(rok: number): Promise<ProgramManifest> {
@@ -134,13 +136,14 @@ export const fetchStaticProgramData = async (rok: number): Promise<StaticProgram
   const manifest: ProgramManifest = GAMECON_KONSTANTY.programManifest
     ?? await fetchManifest(rok);
 
-  const [aktivity, popisy, obsazenosti] = await Promise.all([
+  const [aktivity, popisy, obsazenosti, tagy] = await Promise.all([
     fetchJsonFile<ApiAktivitaNepřihlášen[]>(manifest.aktivity),
     fetchJsonFile<ApiAktivitaPopis[]>(manifest.popisy),
     fetchJsonFile<ApiAktivitaObsazenost[]>(manifest.obsazenosti),
+    fetchJsonFile<ApiTag[]>(manifest.tagy),
   ]);
 
-  return { aktivity, popisy, obsazenosti };
+  return { aktivity, popisy, obsazenosti, tagy };
 };
 
 export const fetchManifestFresh = async (rok: number): Promise<ProgramManifest> => {
@@ -160,24 +163,15 @@ export type UserDataResponse = {
 let lastUserDataHash = '';
 
 export const fetchUserData = async (rok: number): Promise<UserDataResponse> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityUzivatel?rok=${rok}`;
-  const body = JSON.stringify({ hash: lastUserDataHash });
-  const response: UserDataResponse = await fetch(url, {
-    method: "POST",
-    body,
-    headers: { 'Content-Type': 'application/json' },
-  }).then(r => r.json());
+  const hashParam = lastUserDataHash ? `&hash=${encodeURIComponent(lastUserDataHash)}` : '';
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityUzivatel?rok=${rok}${hashParam}`;
+  const response: UserDataResponse = await fetch(url).then(r => r.json());
 
   if (response.hash) {
     lastUserDataHash = response.hash;
   }
 
   return response;
-};
-
-export const fetchŠtítky = async (): Promise<ApiŠtítek[]> =>{
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}stitky`;
-  return fetch(url, { method: "GET" }).then(async x => x.json());
 };
 
 export type ApiAktivitaAkce =

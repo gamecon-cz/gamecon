@@ -63,13 +63,14 @@ try {
         $dirtyObsazenosti = $generator->hasDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
         $dirtyAktivity = $generator->hasDirtyFlag(ProgramStaticFileType::AKTIVITY);
         $dirtyPopisy = $generator->hasDirtyFlag(ProgramStaticFileType::POPISY);
+        $dirtyStitky = $generator->hasDirtyFlag(ProgramStaticFileType::TAGY);
 
-        if (!$dirtyObsazenosti && !$dirtyAktivity && !$dirtyPopisy) {
+        if (!$dirtyObsazenosti && !$dirtyAktivity && !$dirtyPopisy && !$dirtyStitky) {
             logMessage("Žádné dirty flagy, ukončuji po $iteration iteracích");
             break;
         }
 
-        logMessage("Iterace $iteration: dirty aktivity=$dirtyAktivity, popisy=$dirtyPopisy, obsazenosti=$dirtyObsazenosti");
+        logMessage("Iterace $iteration: dirty aktivity=$dirtyAktivity, popisy=$dirtyPopisy, obsazenosti=$dirtyObsazenosti, stitky=$dirtyStitky");
 
         // Smazat flagy PŘED regenerací — nové změny během regenerace vytvoří nové flagy
         if ($dirtyObsazenosti) {
@@ -80,6 +81,9 @@ try {
         }
         if ($dirtyPopisy) {
             $generator->deleteDirtyFlag(ProgramStaticFileType::POPISY);
+        }
+        if ($dirtyStitky) {
+            $generator->deleteDirtyFlag(ProgramStaticFileType::TAGY);
         }
 
         if ($dirtyAktivity) {
@@ -92,6 +96,10 @@ try {
         }
         if ($dirtyObsazenosti) {
             $file = $generator->generateObsazenosti($rocnik);
+            logMessage("Vygenerováno: $file");
+        }
+        if ($dirtyStitky) {
+            $file = $generator->generateStitky($rocnik);
             logMessage("Vygenerováno: $file");
         }
 

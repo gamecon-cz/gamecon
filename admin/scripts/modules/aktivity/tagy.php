@@ -15,6 +15,8 @@
 
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Aktivita\EditorTagu;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 
 $editorTagu = new EditorTagu($systemoveNastaveni->db());
 
@@ -23,6 +25,8 @@ if (!$zpracovanyTag) {
     $zpracovanyTag = $editorTagu->editujTag();
 }
 if ($zpracovanyTag) {
+    (new ProgramStaticFileGenerator($systemoveNastaveni))
+        ->touchDirtyFlag(ProgramStaticFileType::TAGY);
     header('Content-Type: application/json');
     echo json_encode([
         'tag'         => $zpracovanyTag['tag'] ?? [],

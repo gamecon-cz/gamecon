@@ -1,5 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { ApiAktivitaAkce, ApiAktivitaNepřihlášen, ApiAktivitaObsazenost, ApiAktivitaPopis, ApiAktivitaUživatel, ApiŠtítek, fetchAktivitaAkce, fetchManifestFresh, fetchStaticProgramData, fetchUserData, fetchŠtítky, Obsazenost } from "../../../api/program";
+import { ApiAktivitaAkce, ApiAktivitaNepřihlášen, ApiAktivitaObsazenost, ApiAktivitaPopis, ApiAktivitaUživatel, ApiTag, fetchAktivitaAkce, fetchManifestFresh, fetchStaticProgramData, fetchUserData, Obsazenost } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { nastavChyba } from "./všeobecnéSlice";
 
@@ -18,7 +18,7 @@ export type ProgramDataSlice = {
         aktivityPodleId: { [id: number]: Aktivita },
       }
     },
-    štítky: ApiŠtítek[],
+    tagy: ApiTag[],
   },
   dataStatus: {
     podleRoku: {
@@ -31,7 +31,7 @@ export type ProgramDataSlice = {
 export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () => ({
   data: {
     podleRočníku: {},
-    štítky: [],
+    tagy: [],
   },
   dataStatus: {
     podleRoku: {},
@@ -104,6 +104,7 @@ export const načtiRok = async (ročník: number) => {
       s.data.podleRočníku[ročník] = {
         aktivityPodleId: {},
       };
+      s.data.tagy = staticData.tagy;
       const ročníkData = s.data.podleRočníku[ročník];
 
       // Process publicly visible activities from static files
@@ -137,14 +138,6 @@ export const načtiRok = async (ročník: number) => {
   } catch(e) {
     nastavStav("chyba");
   }
-};
-
-export const načtiŠtítky = async () => {
-  const štítky = await fetchŠtítky();
-
-  useProgramStore.setState(s => {
-    s.data.štítky = štítky;
-  }, undefined, "dotažení štítků");
 };
 
 const nastavStavAkce = (stav: DataApiStav) => {
