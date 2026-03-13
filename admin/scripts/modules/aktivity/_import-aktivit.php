@@ -7,16 +7,18 @@ use Gamecon\Mutex\Mutex;
 use Gamecon\Role\Role;
 use Gamecon\Vyjimkovac\Logovac;
 use Gamecon\Web\Urls;
+use Gamecon\Cas\DateTimeCz;
 
 /** @var \Gamecon\XTemplate\XTemplate $template */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService $googleDriveService */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService $googleSheetsService */
 /** @var int $currentUserId */
+/** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $activitiesImportLogger = new ActivitiesImportLogger();
 $now                    = new \DateTimeImmutable();
 if (defined('TESTING') && TESTING && (int)$now->format('Y') !== (int)ROCNIK) {
-    $now = DateTimeImmutable::createFromFormat(\Gamecon\Cas\DateTimeCz::FORMAT_DB, GC_BEZI_OD);
+    $now = DateTimeImmutable::createFromFormat(DateTimeCz::FORMAT_DB, GC_BEZI_OD);
 }
 $urlNaEditaciAktivity = Urls::urlAdminDetailAktivity(null);
 
@@ -42,7 +44,8 @@ if (!empty($_POST['googleSheetId'])) {
         URL_ADMIN . '/web/chyby',
         $activitiesImportLogger,
         new ExportAktivitSloupce(),
-        new \Gamecon\Cas\DateTimeCz()
+        new DateTimeCz(),
+        $systemoveNastaveni,
     );
     $vysledekImportuAktivit = $activitiesImporter->importActivities($googleSheetId);
     $importOznameni         = include __DIR__ . '/_import-oznameni.php';

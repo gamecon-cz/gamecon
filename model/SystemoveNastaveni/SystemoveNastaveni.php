@@ -35,8 +35,9 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         ?bool                    $jsmeNaLocale = null,
         ?bool                    $databazoveNastaveni = null,
         ?string                  $projectRootDir = null,
-        ?string                  $cacheDir = null,
+        ?string                  $privateCacheDir = null,
         ?Kernel                  $kernel = null,
+        ?string                  $publicCacheDir = null,
     ): self {
         global $systemoveNastaveni;
 
@@ -65,8 +66,9 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             $projectRootDir
             ?? try_constant('PROJECT_ROOT_DIR')
                ?? dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
-            $cacheDir ?? SPEC,
+            $privateCacheDir ?? SPEC,
             $kernel ?? $createKernel(),
+            $publicCacheDir ?? CACHE,
         );
 
         if ($rocnik === ROCNIK) {
@@ -110,14 +112,18 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         private readonly bool                    $jsmeNaLocale,
         private readonly DatabazoveNastaveni     $databazoveNastaveni,
         private readonly string                  $rootAdresarProjektu,
-        private readonly string                  $cacheDir,
+        private readonly string                  $privateCacheDir,
         private readonly Kernel                  $kernel,
+        private readonly string                  $publicCacheDir,
     ) {
         if ($jsmeNaLocale && $jsmeNaBete) {
             throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
         }
-        if (!$cacheDir) {
-            throw new \LogicException('Cache dir musí být nastaven');
+        if (!$privateCacheDir) {
+            throw new \LogicException('Private cache dir musí být nastaven');
+        }
+        if (!$publicCacheDir) {
+            throw new \LogicException('Public cache dir musí být nastaven');
         }
     }
 
@@ -977,14 +983,19 @@ SQL;
         return $this->rootAdresarProjektu;
     }
 
-    public function cacheDir(): string
+    public function privateCacheDir(): string
     {
-        return $this->cacheDir;
+        return $this->privateCacheDir;
+    }
+
+    public function publicCacheDir(): string
+    {
+        return $this->publicCacheDir;
     }
 
     public function databaseDataDependentCacheDir(): string
     {
-        return $this->cacheDir . '/database/' . DB_NAME;
+        return $this->privateCacheDir . '/database/' . DB_NAME;
     }
 
     public function tableDataDependentCacheDir(): string

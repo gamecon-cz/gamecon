@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
@@ -11,6 +12,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Mutex\Mutex;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Vyjimkovac\Logovac;
 
 class ActivitiesImporter
@@ -89,7 +91,8 @@ class ActivitiesImporter
         string                 $errorsListUrl,
         ActivitiesImportLogger $activitiesImportLogger,
         ExportAktivitSloupce   $exportAktivitSloupce,
-        DateTimeCz             $dateTimeCz
+        DateTimeCz             $dateTimeCz,
+        SystemoveNastaveni     $systemoveNastaveni,
     ) {
         $this->userId = $userId;
         $this->googleDriveService = $googleDriveService;
@@ -107,19 +110,28 @@ class ActivitiesImporter
         $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $currentYear, $storytellersPermissionsUrl);
         $this->importRequirementsGuardian = new ImportRequirementsGuardian($importObjectsContainer);
         $imagesImporter = new ActivityImagesImporter($importValuesDescriber, $this->logovac);
-        $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $imagesImporter, $currentYear, $logovac);
+        $this->activityImporter = new ActivityImporter(
+            $importValuesDescriber,
+            $importAccessibilityChecker,
+            $imagesImporter,
+            $currentYear,
+            $logovac,
+            $systemoveNastaveni,
+        );
         $this->errorsListUrl = $errorsListUrl;
         $this->activitiesImportLogger = $activitiesImportLogger;
         $this->exportAktivitSloupce = $exportAktivitSloupce;
         $this->dateTimeCz = $dateTimeCz;
     }
 
-    public function importActivities(string $spreadsheetId): ActivitiesImportResult {
+    public function importActivities(string $spreadsheetId): ActivitiesImportResult
+    {
         $result = new ActivitiesImportResult();
         try {
             $processedFileNameResult = $this->getProcessedFileName($spreadsheetId);
             if ($processedFileNameResult->isError()) {
                 $result->addErrorMessage($processedFileNameResult->getError(), null);
+
                 return $result;
             }
             $processedFileName = $processedFileNameResult->getSuccess();
@@ -129,6 +141,7 @@ class ActivitiesImporter
             $activitiesValuesResult = $this->importValuesReader->getIndexedValues($spreadsheetId);
             if ($activitiesValuesResult->isError()) {
                 $result->addErrorMessage($activitiesValuesResult->getError(), null);
+
                 return $result;
             }
             $activitiesValues = $activitiesValuesResult->getSuccess();
@@ -139,6 +152,7 @@ class ActivitiesImporter
             $typAktivityResult = $this->importRequirementsGuardian->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
             if ($typAktivityResult->isError()) {
                 $result->addErrorMessage($typAktivityResult->getError(), null);
+
                 return $result;
             }
             /** @var TypAktivity $typAktivity */
@@ -149,10 +163,11 @@ class ActivitiesImporter
                 $result->addErrorMessage(
                     sprintf(
                         "Právě probíhá jiný import aktivit z programové linie '%s'. Zkus to za chvíli znovu.",
-                        mb_ucfirst($typAktivity->nazev())
+                        mb_ucfirst($typAktivity->nazev()),
                     ),
-                    null
+                    null,
                 );
+
                 return $result;
             }
 
@@ -168,19 +183,19 @@ class ActivitiesImporter
                 if ($validatedValuesResult->isError()) {
                     $result->addErrorMessage($validatedValuesResult->getError(), $activityGuid);
                     $activityFinalDescription = $validatedValuesResult->getLastActivityDescription()
-                        ?? $this->importValuesDescriber->describeActivityByInputValues($activityValues, null);
+                                                ?? $this->importValuesDescriber->describeActivityByInputValues($activityValues, null);
                     $result->solveActivityDescription($activityGuid, $activityFinalDescription);
                     continue;
                 }
                 $validatedValues = $validatedValuesResult->getSuccess();
                 unset($validatedValuesResult);
                 [
-                    'values' => $sqlMappedValues,
-                    'originalActivity' => $originalActivity,
-                    'longAnnotation' => $longAnnotation,
-                    'storytellersIds' => $storytellersIds,
-                    'locationIds' => $locationIds,
-                    'tagIds' => $tagIds,
+                    'values'             => $sqlMappedValues,
+                    'originalActivity'   => $originalActivity,
+                    'longAnnotation'     => $longAnnotation,
+                    'storytellersIds'    => $storytellersIds,
+                    'locationIds'        => $locationIds,
+                    'tagIds'             => $tagIds,
                     'potentialImageUrls' => $potentialImageUrls,
                 ] = $validatedValues;
 
@@ -192,7 +207,7 @@ class ActivitiesImporter
                     tagIds: $tagIds,
                     singleProgramLine: $typAktivity,
                     potentialImageUrls: $potentialImageUrls,
-                    originalActivity: $originalActivity
+                    originalActivity: $originalActivity,
                 );
                 $result->addWarnings($importActivityResult, $activityGuid);
                 $result->addErrorLikeWarnings($importActivityResult, $activityGuid);
@@ -220,14 +235,15 @@ class ActivitiesImporter
             $result->addErrorMessage(<<<HTML
 Něco se <a href="{$this->errorsListUrl}" target="_blank">nepovedlo</a>. Zkus to za chvíli znovu.
 HTML
-                , null
+                , null,
             );
             $this->logovac->zaloguj($exception);
             $this->releaseExclusiveLock();
+
             return $result;
         }
         if ((!defined('POVOLEN_OPAKOVANY_IMPORT_AKTIVIT_ZE_STEJNEHO_SOUBORU')
-                || !POVOLEN_OPAKOVANY_IMPORT_AKTIVIT_ZE_STEJNEHO_SOUBORU)
+             || !POVOLEN_OPAKOVANY_IMPORT_AKTIVIT_ZE_STEJNEHO_SOUBORU)
             && $result->getImportedCount() > 0
         ) {
             $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
@@ -243,17 +259,23 @@ HTML
      * @param array $activitiesValues
      * @return array $activitiesValues
      */
-    private function sortActivitiesToHaveLatestFirst(array $activitiesValues): array {
-        usort($activitiesValues, function (array $someActivityValues, array $anotherActivityValues) {
+    private function sortActivitiesToHaveLatestFirst(array $activitiesValues): array
+    {
+        usort($activitiesValues, function (
+            array $someActivityValues,
+            array $anotherActivityValues,
+        ) {
             $someActivityTime = $this->getActivityTimeForSort($someActivityValues);
             $anotherActivityTime = $this->getActivityTimeForSort($anotherActivityValues);
+
             return $anotherActivityTime <=> $someActivityTime; // latest top, earlier bottom
         });
 
         return $activitiesValues;
     }
 
-    private function getActivityTimeForSort(array $activityValues): int {
+    private function getActivityTimeForSort(array $activityValues): int
+    {
         if (empty($activityValues[$this->exportAktivitSloupce::DEN])) {
             return PHP_INT_MAX;
         }
@@ -268,6 +290,7 @@ HTML
         if (!empty($activityValues[$this->exportAktivitSloupce::KONEC])) {
             return $dayTimeForSort + $this->parseTimeToHour($activityValues[$this->exportAktivitSloupce::KONEC]);
         }
+
         return $dayTimeForSort;
     }
 
@@ -275,76 +298,94 @@ HTML
      * Parse a time string like "10:00" or "14:30" to an hour integer (10, 14).
      * Also handles numeric values (already an hour).
      */
-    private function parseTimeToHour(mixed $timeValue): int {
+    private function parseTimeToHour(mixed $timeValue): int
+    {
         if (is_numeric($timeValue)) {
             return (int)$timeValue;
         }
         if (is_string($timeValue) && preg_match('/^(\d{1,2}):/', $timeValue, $matches)) {
             return (int)$matches[1];
         }
+
         return 0;
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
         if (defined('IMPOR_AKTIVIT_JENOM_JAKO') && IMPOR_AKTIVIT_JENOM_JAKO) {
             dbRollback();
         }
     }
 
-    private function getProcessedFileName(string $spreadsheetId): ImportStepResult {
+    private function getProcessedFileName(string $spreadsheetId): ImportStepResult
+    {
         try {
             $filename = $this->googleDriveService->getFileName($spreadsheetId);
-        } catch (GoogleConnectionException|\Google_Service_Exception $connectionException) {
+        } catch (GoogleConnectionException | \Google_Service_Exception $connectionException) {
             $this->logovac->zaloguj($connectionException);
+
             return ImportStepResult::error('Google Sheets API je dočasně nedostupné. Zkus to za chvíli znovu.');
         }
         if ($filename === null) {
             return ImportStepResult::error(sprintf("Žádný soubor nebyl na Google API nalezen pod ID '$spreadsheetId'."));
         }
+
         return ImportStepResult::success($filename);
     }
 
-    private function getExclusiveLock(string $identifier): bool {
+    private function getExclusiveLock(string $identifier): bool
+    {
         $mutex = $this->createMutexForProgramLine($identifier);
+
         return $mutex->cekejAZamkni(3500 /* milliseconds */, new \DateTimeImmutable('+1 minute'), $this->createMutexKey($identifier), $this->userId);
     }
 
-    private function createMutexForProgramLine(string $identifier): Mutex {
+    private function createMutexForProgramLine(string $identifier): Mutex
+    {
         if (!$this->mutexForProgramLine) {
             $this->mutexForProgramLine = $this->mutexPattern->dejProPodAkci($identifier);
         }
+
         return $this->mutexForProgramLine;
     }
 
-    private function releaseExclusiveLock() {
+    private function releaseExclusiveLock()
+    {
         if (!$this->hasMutexForProgramLine()) {
             return;
         }
         $this->getMutexForProgramLine()->odemkni($this->getMutexKey());
     }
 
-    private function hasMutexForProgramLine() {
+    private function hasMutexForProgramLine()
+    {
         return $this->mutexForProgramLine && $this->mutexForProgramLine->zamceno();
     }
 
-    private function getMutexForProgramLine(): Mutex {
+    private function getMutexForProgramLine(): Mutex
+    {
         if (!$this->mutexForProgramLine) {
             throw new ActivitiesImportException('Mutex for imported program line does not exists yet');
         }
+
         return $this->mutexForProgramLine;
     }
 
-    private function createMutexKey(string $programLine): string {
+    private function createMutexKey(string $programLine): string
+    {
         if ($this->mutexKey === null) {
             $this->mutexKey = uniqid($programLine . '-', true);
         }
+
         return $this->mutexKey;
     }
 
-    private function getMutexKey(): string {
+    private function getMutexKey(): string
+    {
         if (!$this->mutexKey) {
             throw new ActivitiesImportException('Mutex key is empty');
         }
+
         return $this->mutexKey;
     }
 }
