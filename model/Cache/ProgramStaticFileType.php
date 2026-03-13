@@ -6,7 +6,7 @@ namespace Gamecon\Cache;
 
 enum ProgramStaticFileType: string
 {
-    case AKTIVITY    = 'aktivity';
-    case POPISY      = 'popisy';
+    case AKTIVITY = 'aktivity';
+    case POPISY = 'popisy';
     case OBSAZENOSTI = 'obsazenosti';
 }
