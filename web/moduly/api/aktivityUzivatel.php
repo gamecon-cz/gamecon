@@ -27,10 +27,6 @@ try {
 
 $requestHash = $body?->hash ?? '';
 
-$jeZapnuteCachovaniApiOdpovedi = $systemoveNastaveni->jeZapnuteCachovaniApiOdpovedi();
-$tableDataDependentCache = $systemoveNastaveni->tableDataDependentCache();
-$tableDataDependentCache->preloadTableDataVersions();
-
 $dataSourcesCollector = new DataSourcesCollector();
 
 $aktivity = Aktivita::zFiltru(

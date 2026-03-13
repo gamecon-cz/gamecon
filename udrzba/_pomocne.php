@@ -121,6 +121,9 @@ function nasad(
     // migrace DB
     runMigrationsOnRemote($nastaveni['hesloMigrace']);
 
+    // regenerace statických souborů programu
+    regenerateProgramCacheOnRemote($nastaveni['hesloMigrace']);
+
     msg('nasazení dokončeno');
 }
 
@@ -151,6 +154,21 @@ function clearAppCacheOnRemote(
         '--include', // zobrazit HTTP hlavičky
         '--fail-with-body', // jiný než 0 exit code při chybě
         URL_ADMIN . '/deploy/' . basename(__DIR__ . '/../admin/deploy/smazat-cache.php'),
+    ]);
+}
+
+function regenerateProgramCacheOnRemote(
+    string $hesloMigrace,
+) {
+    set_time_limit(600);
+    msg("regeneruji program cache na vzdáleném serveru");
+    call_check([
+        'curl',
+        '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
+        '--silent',
+        '--include',
+        '--fail-with-body',
+        URL_ADMIN . '/deploy/' . basename(__DIR__ . '/../admin/deploy/regeneruj-program-cache.php'),
     ]);
 }
 

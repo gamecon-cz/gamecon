@@ -9,8 +9,6 @@ use Gamecon\Cache\CachedDb;
 use Gamecon\Cache\DbInterface;
 use Gamecon\Cache\QueryCache;
 use Gamecon\Cache\RawDb;
-use Gamecon\Cache\TableDataDependentCache;
-use Gamecon\Cache\TableDataVersionsRepository;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -102,8 +100,6 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     private ?array                       $vychoziHodnoty              = null;
     private ?DbInterface                 $db                          = null;
     private ?QueryCache                  $queryCache                  = null;
-    private ?TableDataDependentCache     $tableDataDependentCache     = null;
-    private ?TableDataVersionsRepository $tableDataVersionsRepository = null;
 
     public function __construct(
         private readonly int                     $rocnik,
@@ -998,10 +994,6 @@ SQL;
         return $this->privateCacheDir . '/database/' . DB_NAME;
     }
 
-    public function tableDataDependentCacheDir(): string
-    {
-        return $this->databaseDataDependentCacheDir() . '/table_data_dependent';
-    }
 
     public function prihlasovaciUdajeOstreDatabaze(): array
     {
@@ -1136,27 +1128,6 @@ SQL;
         }
 
         return $this->queryCache;
-    }
-
-    public function tableDataDependentCache(): TableDataDependentCache
-    {
-        if (!$this->tableDataDependentCache) {
-            $this->tableDataDependentCache = new TableDataDependentCache(
-                $this->tableDataDependentCacheDir(),
-                $this->tableDataVersionsRepository(),
-            );
-        }
-
-        return $this->tableDataDependentCache;
-    }
-
-    public function tableDataVersionsRepository(): TableDataVersionsRepository
-    {
-        if (!$this->tableDataVersionsRepository) {
-            $this->tableDataVersionsRepository = new TableDataVersionsRepository();
-        }
-
-        return $this->tableDataVersionsRepository;
     }
 
     public function kernel(): Kernel
