@@ -124,7 +124,11 @@ export type StaticProgramData = {
 async function fetchManifest(rok: number): Promise<ProgramManifest> {
   // Cache-bust manifest requests — manifest has no content hash in filename
   const url = `${GAMECON_KONSTANTY.URL_PROGRAM_CACHE}/manifest-${rok}.json?t=${Date.now()}`;
-  return fetch(url).then(r => r.json());
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Manifest pro rok ${rok} není dostupný (HTTP ${response.status}). Zkuste stránku načíst znovu.`);
+  }
+  return response.json();
 }
 
 async function fetchJsonFile<T>(filename: string): Promise<T> {
@@ -133,8 +137,9 @@ async function fetchJsonFile<T>(filename: string): Promise<T> {
 }
 
 export const fetchStaticProgramData = async (rok: number): Promise<StaticProgramData> => {
-  const manifest: ProgramManifest = GAMECON_KONSTANTY.programManifest
-    ?? await fetchManifest(rok);
+  const manifest: ProgramManifest = rok === GAMECON_KONSTANTY.ROCNIK
+    ? (GAMECON_KONSTANTY.programManifest ?? await fetchManifest(rok))
+    : await fetchManifest(rok);
 
   const [aktivity, popisy, obsazenosti, tagy] = await Promise.all([
     fetchJsonFile<ApiAktivitaNepřihlášen[]>(manifest.aktivity),

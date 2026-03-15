@@ -107,7 +107,9 @@ class ProgramStaticFileGenerator
         $tagy = $editorTagu->getTagy();
 
         $tagyProJson = array_map(
-            static function ($tag) {
+            static function (
+                $tag,
+            ) {
                 return [
                     'id'             => (int) $tag['id'],
                     'nazev'          => $tag['nazev'],
@@ -141,7 +143,7 @@ class ProgramStaticFileGenerator
     public function updateManifest(int $rok): void
     {
         $outputDir = $this->outputDir;
-        $manifestPath = "{$outputDir}/manifest-{$rok}.json";
+        $manifestPath = $this->getManifestPath($rok);
 
         // Read existing manifest to preserve unchanged filenames
         $manifest = [];
@@ -171,17 +173,27 @@ class ProgramStaticFileGenerator
 
     public function regenerateAll(int $rok): void
     {
-        $this->generateAktivity($rok);
-        $this->generatePopisy($rok);
-        $this->generateObsazenosti($rok);
-        $this->generateStitky($rok);
-        $this->updateManifest($rok);
+        $fileLock = new FileLock($this->systemoveNastaveni);
+        $fileLock->lock("program-static-{$rok}");
+        try {
+            // Double-check: another process may have generated while we waited
+            if ($this->readManifest($rok) !== null) {
+                return;
+            }
+            $this->generateAktivity($rok);
+            $this->generatePopisy($rok);
+            $this->generateObsazenosti($rok);
+            $this->generateStitky($rok);
+            $this->updateManifest($rok);
+        } finally {
+            $fileLock->unlock("program-static-{$rok}");
+        }
     }
 
     public function cleanup(int $rok): void
     {
         $outputDir = $this->outputDir;
-        $manifestPath = "{$outputDir}/manifest-{$rok}.json";
+        $manifestPath = $this->getManifestPath($rok);
 
         if (! file_exists($manifestPath)) {
             return;
@@ -202,12 +214,18 @@ class ProgramStaticFileGenerator
         }
     }
 
+    private function getManifestPath(int $rok): string
+    {
+        return $this->outputDir . "/manifest-{$rok}.json";
+    }
+
     /**
      * @return array{string: string}|null Current manifest or null if not found
      */
-    public function readManifest(): ?array
+    public function readManifest(?int $rok = null): ?array
     {
-        $manifestPath = $this->outputDir . "/manifest-{$this->systemoveNastaveni->rocnik()}.json";
+        $rok = $rok ?? $this->systemoveNastaveni->rocnik();
+        $manifestPath = $this->getManifestPath($rok);
         if (! file_exists($manifestPath)) {
             return null;
         }

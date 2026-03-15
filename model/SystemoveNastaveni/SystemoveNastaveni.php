@@ -21,7 +21,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice as Klic;
 use Gamecon\Uzivatel\Finance;
 use App\Kernel;
 
-class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
+class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, ZdrojPrivateCacheDir
 {
 
     public const JAKYKOLI_ROCNIK = -1;
