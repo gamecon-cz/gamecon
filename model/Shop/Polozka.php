@@ -15,9 +15,9 @@ class Polozka
     private int                      $modelRok;
     private ?DateTimeImmutableStrict $naposledyKoupenoKdy;
     private float                    $prodanoKusu;
-    private float                    $vyrobenoKusu;
+    private ?float                   $vyrobenoKusu;
     private ?DateTimeImmutableStrict $nabizetDo;
-    private float                    $zbyvaKusu;
+    private ?float                   $zbyvaKusu;
     private int                      $idTypu;
     private int                      $stav;
     private bool                     $jeLetosniHlavni;
@@ -33,11 +33,11 @@ class Polozka
             ? new DateTimeImmutableStrict($hodnoty['naposledy_koupeno_kdy'])
             : null;
         $this->prodanoKusu         = (float)$hodnoty['prodano_kusu'];
-        $this->vyrobenoKusu        = (float)$hodnoty['kusu_vyrobeno'];
+        $this->vyrobenoKusu        = $hodnoty['kusu_vyrobeno'] !== null ? (float)$hodnoty['kusu_vyrobeno'] : null;
         $this->nabizetDo           = $hodnoty['nabizet_do']
             ? new DateTimeImmutableStrict($hodnoty['nabizet_do'])
             : null;
-        $this->zbyvaKusu           = $this->vyrobenoKusu - $this->prodanoKusu;
+        $this->zbyvaKusu           = $this->vyrobenoKusu !== null ? $this->vyrobenoKusu - $this->prodanoKusu : null;
         $this->idTypu              = (int)$hodnoty['typ'];
         $this->stav                = (int)$hodnoty['stav'];
         $this->jeLetosniHlavni     = (bool)$hodnoty['je_letosni_hlavni'];
@@ -78,12 +78,12 @@ class Polozka
         return $this->naposledyKoupenoKdy;
     }
 
-    public function zbyvaKusu(): float
+    public function zbyvaKusu(): ?float
     {
         return $this->zbyvaKusu;
     }
 
-    public function vyrobenoKusu()
+    public function vyrobenoKusu(): ?float
     {
         return $this->vyrobenoKusu;
     }
