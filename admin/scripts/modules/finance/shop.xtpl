@@ -56,7 +56,7 @@
         <td>{zbyvaKusu}</td>
         <td>
           <input name="polozky[{idPredmetu}][kusu_celkem]" type="number" step="1" min="0" value="{kusuCelkem}"
-                 style="width: 5em">
+                 style="width: 5em" placeholder="∞">
           <input name="polozky_original[{idPredmetu}][kusu_celkem]" type="hidden" value="{kusuCelkem}">
         </td>
         <td>

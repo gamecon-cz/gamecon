@@ -25,7 +25,8 @@ if (($polozkyKUlozeni = post('polozky')) !== null) {
         if (!$predmet) {
             chyba("Nenzámé ID předmětu $idPredmetu");
         }
-        $predmet->kusuVyrobeno((int)$polozkaKUlozeni['kusu_celkem']);
+        $kusuCelkem = $polozkaKUlozeni['kusu_celkem'] !== '' ? (int)$polozkaKUlozeni['kusu_celkem'] : null;
+        $predmet->kusuVyrobeno($kusuCelkem, nastavit: true);
         $predmet->stav((int)$polozkaKUlozeni['stav']);
         $zmenenoZaznamu += $predmet->uloz();
     }
@@ -65,8 +66,8 @@ foreach (Shop::letosniPolozky() as $polozka) {
             : '',
     );
     $template->assign('letosProdanoKusu', $polozka->prodanoKusu());
-    $template->assign('zbyvaKusu', $polozka->zbyvaKusu());
-    $template->assign('kusuCelkem', $polozka->vyrobenoKusu());
+    $template->assign('zbyvaKusu', $polozka->zbyvaKusu() !== null ? $polozka->zbyvaKusu() : '∞');
+    $template->assign('kusuCelkem', $polozka->vyrobenoKusu() !== null ? $polozka->vyrobenoKusu() : '');
     $template->assign('stav', $polozka->stav());
 
     foreach ((new ReflectionClass(StavPredmetu::class))->getConstants() as $constantName => $constantValue) {
