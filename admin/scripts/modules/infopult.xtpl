@@ -205,14 +205,14 @@
 
   <div class="infopult-grid--item infopult-grid--item-platba aBox">
     <h3>Připsat platbu</h3>
-    <form method="post" class="clearfix">
+    <form id="pripisPlatbyForm" method="post" class="clearfix">
       <table>
         <tr>
           <td>Částka:</td>
           <td><input required type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
         </tr>
         <tr>
-          <td>Poznámka:</td>
+          <td>Poznámka:<span id="poznamkaPlatbyVyzadovana" class="vyzadovane" style="display:none">*</span></td>
           <td><input type="text" name="poznamka"></td>
         </tr>
         <!-- begin:idFioPohybu -->
@@ -244,6 +244,32 @@
       </table>
       <input type="submit" value="Připsat" class="submit-btn">
     </form>
+    <script>
+      (function() {
+        var form = document.getElementById('pripisPlatbyForm');
+        var platbaInput = form.querySelector('[name="platba"]');
+        var poznamkaInput = form.querySelector('[name="poznamka"]');
+
+        form.addEventListener('submit', function(e) {
+          var castka = parseFloat(platbaInput.value);
+          if (castka < 0 && !poznamkaInput.value.trim()) {
+            e.preventDefault();
+            poznamkaInput.style.borderColor = 'red';
+            poznamkaInput.focus();
+            alert('Pro zápornou platbu je poznámka povinná');
+          }
+        });
+
+        var poznamkaVyzadovana = document.getElementById('poznamkaPlatbyVyzadovana');
+
+        platbaInput.addEventListener('input', function() {
+          var castka = parseFloat(platbaInput.value);
+          var jeZaporna = castka < 0;
+          poznamkaInput.required = jeZaporna;
+          poznamkaVyzadovana.style.display = jeZaporna ? '' : 'none';
+        });
+      })();
+    </script>
   </div>
 
   <div class="infopult=grid--item aBox">
