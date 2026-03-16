@@ -117,7 +117,7 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         ]);
 
         $generator = $this->createGenerator();
-        $filename = $generator->generateAktivity(self::ROK);
+        $filename = $generator->generateActivities(self::ROK);
 
         $filepath = $this->publicCacheDir . '/program/' . $filename;
         self::assertFileExists($filepath);
@@ -294,7 +294,7 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
 
         $generator = $this->createGenerator();
 
-        $filenameV1 = $generator->generateAktivity(self::ROK);
+        $filenameV1 = $generator->generateActivities(self::ROK);
         $filepathV1 = $this->publicCacheDir . '/program/' . $filenameV1;
         $dataV1 = json_decode(file_get_contents($filepathV1), true);
 
@@ -324,7 +324,7 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         // Create a fresh generator to avoid query cache
         $generator = $this->createGenerator();
 
-        $filenameV2 = $generator->generateAktivity(self::ROK);
+        $filenameV2 = $generator->generateActivities(self::ROK);
         self::assertNotSame($filenameV1, $filenameV2, 'Changed data should produce different filename (hash)');
 
         $filepathV2 = $this->publicCacheDir . '/program/' . $filenameV2;
@@ -358,7 +358,7 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         ]);
 
         $generator = $this->createGenerator();
-        $filename = $generator->generateAktivity(self::ROK);
+        $filename = $generator->generateActivities(self::ROK);
         $data = json_decode(file_get_contents($this->publicCacheDir . '/program/' . $filename), true);
 
         $ids = array_column($data, 'id');
@@ -397,7 +397,7 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         $generator->deleteDirtyFlag(ProgramStaticFileType::POPISY);
 
         // Generation is now in progress...
-        $filenameV1 = $generator->generateAktivity(self::ROK);
+        $filenameV1 = $generator->generateActivities(self::ROK);
         $generator->generatePopisy(self::ROK);
         $generator->updateManifest(self::ROK);
 
@@ -441,11 +441,12 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         // Worker deletes the new flag and regenerates
         $generator->deleteDirtyFlag(ProgramStaticFileType::AKTIVITY);
 
-        // Clear query cache so the next SQL fetch picks up DB changes
+        // Clear caches so the next SQL fetch picks up DB changes
         // (the real worker keeps running within the same process but the SQL is not cached across iterations)
         $systemoveNastaveni->queryCache()->clear();
+        $generator->reset();
 
-        $filenameV2 = $generator->generateAktivity(self::ROK);
+        $filenameV2 = $generator->generateActivities(self::ROK);
         $generator->updateManifest(self::ROK);
 
         self::assertNotSame($filenameV1, $filenameV2, 'Second generation must produce a different file with updated data');
