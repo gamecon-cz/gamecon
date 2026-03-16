@@ -64,6 +64,11 @@ if (post('platba') && $uPracovni) {
             chyba(sprintf("Neplatný formát data platby. Má být '%s'", DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD));
         }
 
+        if ((float)$castka < 0 && empty(trim($poznamka))) {
+            chyba('Pro zápornou platbu je poznámka povinná');
+            back();
+        }
+
         $uPracovni->finance()->pripis(
             $castka,
             $u,
