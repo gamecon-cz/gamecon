@@ -2,7 +2,7 @@
 
 FROM php:8.2-apache AS gamecon-server-step1
 
-RUN a2enmod rewrite expires && \
+RUN a2enmod rewrite expires headers && \
 	# avoid warning on start
     echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
