@@ -1,5 +1,8 @@
 Allow from all
 
+# CORS — cache subdomain serves static files cross-origin to the main domain
+Header always set Access-Control-Allow-Origin "*"
+
 # bez tohoto nefunguje kořenová url na wedosu
 RewriteEngine On
 
