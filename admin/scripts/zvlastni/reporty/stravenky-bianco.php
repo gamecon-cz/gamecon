@@ -1,40 +1,59 @@
 <?php
 
+use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Shop\Shop;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
 $t = new XTemplate(__DIR__ . '/stravenky.xtpl');
 
-$res = [
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '1'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '2'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '3'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně pátek', 'poradi_dne' => '3', 'poradi_jidla' => '1'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd pátek', 'poradi_dne' => '3', 'poradi_jidla' => '2'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře pátek', 'poradi_dne' => '3', 'poradi_jidla' => '3'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně sobota', 'poradi_dne' => '4', 'poradi_jidla' => '1'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd sobota', 'poradi_dne' => '4', 'poradi_jidla' => '2'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře sobota', 'poradi_dne' => '4', 'poradi_jidla' => '3'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně neděle', 'poradi_dne' => '5', 'poradi_jidla' => '1'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd neděle', 'poradi_dne' => '5', 'poradi_jidla' => '2'],
-    ['id_uzivatele' => '1', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře neděle', 'poradi_dne' => '5', 'poradi_jidla' => '3'],
+$systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '1'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '2'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře čtvrtek', 'poradi_dne' => '2', 'poradi_jidla' => '3'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně pátek', 'poradi_dne' => '3', 'poradi_jidla' => '1'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd pátek', 'poradi_dne' => '3', 'poradi_jidla' => '2'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře pátek', 'poradi_dne' => '3', 'poradi_jidla' => '3'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně sobota', 'poradi_dne' => '4', 'poradi_jidla' => '1'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd sobota', 'poradi_dne' => '4', 'poradi_jidla' => '2'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře sobota', 'poradi_dne' => '4', 'poradi_jidla' => '3'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Snídaně neděle', 'poradi_dne' => '5', 'poradi_jidla' => '1'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Oběd neděle', 'poradi_dne' => '5', 'poradi_jidla' => '2'],
-    ['id_uzivatele' => '0', 'login_uzivatele' => 'Bianco stravenka', 'nazev' => 'Večeře neděle', 'poradi_dne' => '5', 'poradi_jidla' => '3'],
-];
+$rocnik   = $systemoveNastaveni->rocnik();
+$typJidlo = Shop::JIDLO;
+$prvniDen = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK;
+
+$o = dbQuery(<<<SQL
+    SELECT
+      shop_predmety.nazev,
+      FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
+      FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
+    FROM shop_predmety
+    WHERE shop_predmety.model_rok = {$rocnik}
+      AND shop_predmety.typ = {$typJidlo}
+      AND shop_predmety.ubytovani_den >= {$prvniDen}
+    ORDER BY poradi_dne DESC, poradi_jidla DESC
+SQL,
+);
+
+$jidla = [];
+while ($r = mysqli_fetch_assoc($o)) {
+    $jidla[] = $r;
+}
+
+$pocetJidel   = count($jidla);
+$pocetBunek   = 24; // 3×8 grid = one page
+$pocetOpakovani = $pocetJidel > 0 ? (int)ceil($pocetBunek / $pocetJidel) : 0;
+
+$res = [];
+for ($i = 0; $i < $pocetOpakovani; $i++) {
+    foreach ($jidla as $jidlo) {
+        $res[] = [
+            'id_uzivatele'    => (string)$i,
+            'login_uzivatele' => 'Bianco stravenka',
+            'nazev'           => $jidlo['nazev'],
+            'poradi_dne'      => $jidlo['poradi_dne'],
+            'poradi_jidla'    => $jidlo['poradi_jidla'],
+        ];
+    }
+}
+
+$res = array_slice($res, 0, $pocetBunek);
 
 $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 $t->assign("data", json_encode($res, $config));
+$t->parse('stravenky.obsah');
 $t->parse('stravenky');
 $t->out('stravenky');
