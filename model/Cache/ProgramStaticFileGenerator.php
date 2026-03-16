@@ -10,11 +10,17 @@ use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\BackgroundProcess\BackgroundProcessService;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Contracts\Service\ResetInterface;
 
-class ProgramStaticFileGenerator
+class ProgramStaticFileGenerator implements ResetInterface
 {
     private readonly string $outputDir;
     private readonly string $dirtyFlagsDir;
+
+    /**
+     * @var array<int, Aktivita[]>
+     */
+    private array $activitiesCache = [];
 
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
@@ -23,19 +29,19 @@ class ProgramStaticFileGenerator
         $this->dirtyFlagsDir = $systemoveNastaveni->privateCacheDir() . '/program';
     }
 
-    public function generateAktivity(int $rok): string
+    public function generateActivities(int $rok): string
     {
-        $aktivity = $this->loadAktivity($rok);
+        $activities = $this->loadActivities($rok);
 
         $dataSourcesCollector = new DataSourcesCollector();
         Aktivita::organizatoriDSC($dataSourcesCollector);
 
         $aktivityNeprihlasen = [];
-        foreach ($aktivity as $aktivita) {
-            $zacatekAktivity = $aktivita->zacatek();
-            $konecAktivity = $aktivita->konec();
+        foreach ($activities as $activity) {
+            $zacatekAktivity = $activity->zacatek();
+            $konecAktivity = $activity->konec();
 
-            if (! $zacatekAktivity || ! $konecAktivity || ! $aktivita->viditelnaPro(null)) {
+            if (! $zacatekAktivity || ! $konecAktivity || ! $activity->viditelnaPro(null)) {
                 continue;
             }
 
@@ -43,20 +49,20 @@ class ProgramStaticFileGenerator
                 fn (
                     \Uzivatel $organizator,
                 ) => $organizator->jmenoNick(),
-                $aktivita->organizatori(dataSourcesCollector: $dataSourcesCollector),
+                $activity->organizatori(dataSourcesCollector: $dataSourcesCollector),
             );
 
-            $stitkyId = $aktivita->tagyId();
+            $stitkyId = $activity->tagyId();
 
             $aktivitaRes = [
-                'id'          => $aktivita->id(),
-                'nazev'       => $aktivita->nazev(),
-                'kratkyPopis' => $aktivita->kratkyPopis(),
-                'popisId'     => $aktivita->popisId(),
-                'obrazek'     => (string) $aktivita->obrazek(),
+                'id'          => $activity->id(),
+                'nazev'       => $activity->nazev(),
+                'kratkyPopis' => $activity->kratkyPopis(),
+                'popisId'     => $activity->popisId(),
+                'obrazek'     => (string) $activity->obrazek(),
                 'vypraveci'   => $vypraveci,
                 'stitkyId'    => $stitkyId,
-                'cenaZaklad'  => intval($aktivita->cenaZaklad()),
+                'cenaZaklad'  => intval($activity->cenaZaklad()),
                 'casText'     => $zacatekAktivity
                     ? $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00'
                     : '',
@@ -64,17 +70,17 @@ class ProgramStaticFileGenerator
                     'od' => $zacatekAktivity->getTimestamp() * 1000,
                     'do' => $konecAktivity->getTimestamp() * 1000,
                 ],
-                'linie'         => $aktivita->typ()->nazev(),
-                'vBudoucnu'     => $aktivita->vBudoucnu(),
-                'vdalsiVlne'    => $aktivita->vDalsiVlne(),
-                'probehnuta'    => $aktivita->probehnuta(),
-                'jeBrigadnicka' => $aktivita->jeBrigadnicka(),
+                'linie'         => $activity->typ()->nazev(),
+                'vBudoucnu'     => $activity->vBudoucnu(),
+                'vdalsiVlne'    => $activity->vDalsiVlne(),
+                'probehnuta'    => $activity->probehnuta(),
+                'jeBrigadnicka' => $activity->jeBrigadnicka(),
             ];
 
-            $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
-            $aktivitaRes['tymova'] = $aktivita->tymova();
+            $aktivitaRes['prihlasovatelna'] = $activity->prihlasovatelna();
+            $aktivitaRes['tymova'] = $activity->tymova();
 
-            $dite = $aktivita->detiIds();
+            $dite = $activity->detiIds();
             if ($dite && count($dite)) {
                 $aktivitaRes['dite'] = $dite;
             }
@@ -88,7 +94,7 @@ class ProgramStaticFileGenerator
 
     public function generatePopisy(int $rok): string
     {
-        $aktivity = $this->loadAktivity($rok);
+        $aktivity = $this->loadActivities($rok);
 
         $popisy = [];
         foreach ($aktivity as $aktivita) {
@@ -124,7 +130,7 @@ class ProgramStaticFileGenerator
 
     public function generateObsazenosti(int $rok): string
     {
-        $aktivity = $this->loadAktivity($rok);
+        $aktivity = $this->loadActivities($rok);
 
         $dataSourcesCollector = new DataSourcesCollector();
         Aktivita::obsazenostObjDSC($dataSourcesCollector);
@@ -180,7 +186,7 @@ class ProgramStaticFileGenerator
             if ($this->readManifest($rok) !== null) {
                 return;
             }
-            $this->generateAktivity($rok);
+            $this->generateActivities($rok);
             $this->generatePopisy($rok);
             $this->generateObsazenosti($rok);
             $this->generateStitky($rok);
@@ -294,15 +300,24 @@ class ProgramStaticFileGenerator
     /**
      * @return Aktivita[]
      */
-    private function loadAktivity(int $rok): array
+    private function loadActivities(int $rok): array
     {
-        return Aktivita::zFiltru(
-            systemoveNastaveni: $this->systemoveNastaveni,
-            filtr: [
-                FiltrAktivity::ROK => $rok,
-            ],
-            prednacitat: true,
-        );
+        if (! array_key_exists($rok, $this->activitiesCache)) {
+            $this->activitiesCache[$rok] = Aktivita::zFiltru(
+                systemoveNastaveni: $this->systemoveNastaveni,
+                filtr: [
+                    FiltrAktivity::ROK => $rok,
+                ],
+                prednacitat: true,
+            );
+        }
+
+        return $this->activitiesCache[$rok];
+    }
+
+    public function reset(): void
+    {
+        $this->activitiesCache = [];
     }
 
     private function writeJsonFile(

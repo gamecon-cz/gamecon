@@ -72,6 +72,9 @@ try {
 
         logMessage("Iterace $iteration: dirty aktivity=$dirtyAktivity, popisy=$dirtyPopisy, obsazenosti=$dirtyObsazenosti, stitky=$dirtyStitky");
 
+        // Vyčistit in-memory cache aktivity z předchozí iterace (data se mohla změnit)
+        $generator->reset();
+
         // Smazat flagy PŘED regenerací — nové změny během regenerace vytvoří nové flagy
         if ($dirtyObsazenosti) {
             $generator->deleteDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
@@ -87,7 +90,7 @@ try {
         }
 
         if ($dirtyAktivity) {
-            $file = $generator->generateAktivity($rocnik);
+            $file = $generator->generateActivities($rocnik);
             logMessage("Vygenerováno: $file");
         }
         if ($dirtyPopisy) {
