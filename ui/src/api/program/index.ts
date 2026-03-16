@@ -125,10 +125,21 @@ async function fetchManifest(rok: number): Promise<ProgramManifest> {
   // Cache-bust manifest requests — manifest has no content hash in filename
   const url = `${GAMECON_KONSTANTY.URL_PROGRAM_CACHE}/manifest-${rok}.json?t=${Date.now()}`;
   const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Manifest pro rok ${rok} není dostupný (HTTP ${response.status}). Zkuste stránku načíst znovu.`);
+  if (response.ok) {
+    return response.json();
   }
-  return response.json();
+
+  if (response.status === 404) {
+    // Manifest doesn't exist yet — ask PHP to regenerate it
+    const apiUrl = `${GAMECON_KONSTANTY.BASE_PATH_API}programManifest?rok=${rok}`;
+    const apiResponse = await fetch(apiUrl);
+    if (!apiResponse.ok) {
+      throw new Error(`Nepodařilo se vygenerovat manifest pro rok ${rok} (HTTP ${apiResponse.status}).`);
+    }
+    return apiResponse.json();
+  }
+
+  throw new Error(`Manifest pro rok ${rok} není dostupný (HTTP ${response.status}). Zkuste stránku načíst znovu.`);
 }
 
 async function fetchJsonFile<T>(filename: string): Promise<T> {
