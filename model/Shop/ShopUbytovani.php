@@ -4,6 +4,7 @@ namespace Gamecon\Shop;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Jidlo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Gamecon\Pravo;
@@ -116,6 +117,39 @@ WHERE nakupy.id_uzivatele=$0
   AND nakupy.rok=$2
 SQL,
             [$ucastnik->id(), TypPredmetu::UBYTOVANI, $rok],
+        );
+
+        return dbAffectedOrNumRows($mysqliResult);
+    }
+
+    public static function zrusSnidaneProHotelovePokoje(
+        Uzivatel $ucastnik,
+        int      $rok = ROCNIK,
+    ): int {
+        $typJidlo     = TypPredmetu::JIDLO;
+        $typUbytovani = TypPredmetu::UBYTOVANI;
+
+        $mysqliResult = dbQuery(<<<SQL
+DELETE shop_nakupy_snidane.*
+FROM shop_nakupy AS shop_nakupy_snidane
+JOIN shop_predmety AS predmety_snidane
+    ON predmety_snidane.id_predmetu = shop_nakupy_snidane.id_predmetu
+    AND predmety_snidane.typ = {$typJidlo}
+    AND TRIM(predmety_snidane.nazev) LIKE 'Snídaně%'
+WHERE shop_nakupy_snidane.id_uzivatele = $0
+    AND shop_nakupy_snidane.rok = $1
+    AND predmety_snidane.ubytovani_den IN (
+        SELECT predmety_ubytovani.ubytovani_den
+        FROM shop_nakupy AS nakupy_ubytovani
+        JOIN shop_predmety AS predmety_ubytovani
+            ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
+            AND predmety_ubytovani.typ = {$typUbytovani}
+            AND predmety_ubytovani.podtyp = $2
+        WHERE nakupy_ubytovani.id_uzivatele = $0
+            AND nakupy_ubytovani.rok = $1
+    )
+SQL,
+            [0 => $ucastnik->id(), 1 => $rok, 2 => PodtypPredmetu::HOTEL],
         );
 
         return dbAffectedOrNumRows($mysqliResult);
@@ -512,6 +546,10 @@ SQL,
 
         self::ulozObjednaneUbytovaniUcastnika($dny, $this->ubytovany, $hlidatKapacituUbytovani);
 
+        $this->aktualizujUbytovanPoDnech(array_filter($dny));
+
+        self::zrusSnidaneProHotelovePokoje($this->ubytovany);
+
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji
             self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->ubytovany);
@@ -520,6 +558,17 @@ SQL,
         $this->registrace->ulozZmeny(); // povinné údaje pro ubytování
 
         return true;
+    }
+
+    private function aktualizujUbytovanPoDnech(array $ulozeneIdsPredmetu): void
+    {
+        $ulozeneIdsPredmetu = array_map('intval', $ulozeneIdsPredmetu);
+        foreach ($this->ubytovanPoDnech as $den => $typy) {
+            foreach ($typy as $typ => $detail) {
+                $this->ubytovanPoDnech[$den][$typ]['kusu_uzivatele'] =
+                    in_array((int)$detail['id_predmetu'], $ulozeneIdsPredmetu, true) ? 1 : 0;
+            }
+        }
     }
 
     private function muzeObjednatJednuNoc(): bool
@@ -620,6 +669,33 @@ SQL,
     public function maObjednaneUbytovani(): bool
     {
         return count($this->veKterychDnechJeUbytovan()) > 0;
+    }
+
+    public function maHoteloveUbytovaniVDen(int $den): bool
+    {
+        if (!isset($this->ubytovanPoDnech[$den])) {
+            return false;
+        }
+        foreach ($this->ubytovanPoDnech[$den] as $detail) {
+            if ($detail['kusu_uzivatele'] > 0 && ($detail[Sql::PODTYP] ?? null) === PodtypPredmetu::HOTEL) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @return int[] */
+    public function dnyHotelovychPokoju(): array
+    {
+        $dny = [];
+        foreach (array_keys($this->ubytovanPoDnech) as $den) {
+            if ($this->maHoteloveUbytovaniVDen((int)$den)) {
+                $dny[] = (int)$den;
+            }
+        }
+
+        return $dny;
     }
 
     /** Vrátí počet volných míst */

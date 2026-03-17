@@ -403,7 +403,12 @@ SQL,
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!$this->systemoveNastaveni->jeProdejJidlaPozastaven()) {
             foreach (array_keys($druhy) as $druh) {
+                $jeSnidane = Jidlo::jeToSnidane($druh);
                 foreach (array_keys($dny) as $den) {
+                    if ($jeSnidane && $this->ubytovani->maHoteloveUbytovaniVDen((int)$den)) {
+                        $t->parse('jidlo.druh.den');
+                        continue;
+                    }
                     $jidlo = $jidla[$den][$druh] ?? null;
                     if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
                         $t->assign('selected', $jidlo['kusu_uzivatele'] > 0
@@ -955,6 +960,25 @@ SQL,
         $ma = array_keys($this->jidlo['jidloObednano'] ?? []);
         $chce = array_keys(post(self::PN_JIDLO)
             ?: []);
+
+        $dnyHotelovychPokoju = $this->ubytovani->dnyHotelovychPokoju();
+        if ($dnyHotelovychPokoju) {
+            $chce = array_filter($chce, function ($idPredmetu) use ($dnyHotelovychPokoju) {
+                $jidla = $this->jidlo['jidla'] ?? [];
+                foreach ($jidla as $den => $druhy) {
+                    foreach ($druhy as $druh => $jidlo) {
+                        if ((int)$jidlo['id_predmetu'] === (int)$idPredmetu
+                            && Jidlo::jeToSnidane($druh)
+                            && in_array((int)$den, $dnyHotelovychPokoju, true)
+                        ) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            });
+        }
+
         $this->zmenObjednavku($ma, $chce);
     }
 
