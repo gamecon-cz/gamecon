@@ -7,9 +7,10 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionExcep
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\Aktivita\StavAktivity;
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\Lokace;
+use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Aktivita\Tag;
+use Gamecon\Cas\DateTimeCz;
 
 class ActivitiesExporter
 {
@@ -189,7 +190,7 @@ class ActivitiesExporter
 
     private function getAllTagsData(): array {
         $data[] = $this->exportTaguSloupce::vsechnySloupceTagu();
-        foreach (\Tag::zVsech() as $tag) {
+        foreach (Tag::zVsech() as $tag) {
             $data[] = [
                 $tag->id(),
                 $tag->nazev(),

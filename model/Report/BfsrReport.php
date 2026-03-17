@@ -7,8 +7,8 @@ namespace Gamecon\Report;
 use Gamecon\Aktivita\AkcePrihlaseniStavy;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
-use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\TypPredmetu;
@@ -1249,12 +1249,12 @@ SQL,
     private function getActivityGroupCode(Aktivita $aktivita): string
     {
         if ($aktivita->typId() === TypAktivity::WARGAMING) {
-            return in_array(\Tag::MALOVANI, $aktivita->tagyId(), false)
+            return in_array(Tag::MALOVANI, $aktivita->tagyId(), false)
                 ? 'WGmal'
                 : 'WGhry';
         }
         if ($aktivita->typId() === TypAktivity::BONUS) {
-            return in_array(\Tag::UNIKOVKA, $aktivita->tagyId(), false)
+            return in_array(Tag::UNIKOVKA, $aktivita->tagyId(), false)
                 ? 'AHEsc'
                 : 'AHry';
         }

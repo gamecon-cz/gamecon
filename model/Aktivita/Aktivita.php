@@ -34,7 +34,6 @@ use Gamecon\Web\Urls;
 use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 use Symfony\Component\Filesystem\Filesystem;
-use Tag;
 use Uzivatel;
 
 /**
