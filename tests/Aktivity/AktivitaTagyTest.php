@@ -115,6 +115,70 @@ class AktivitaTagyTest extends AbstractTestDb
     }
 
     /**
+     * Tags must be ordered by category poradi, then alphabetically by tag name.
+     */
+    public function testRazeniTagu()
+    {
+        $kategorieC = CategoryTagFactory::createOne([
+            CategoryTagEntityStructure::nazev  => 'Kategorie C',
+            CategoryTagEntityStructure::poradi => 30,
+        ]);
+        $kategorieA = CategoryTagFactory::createOne([
+            CategoryTagEntityStructure::nazev  => 'Kategorie A',
+            CategoryTagEntityStructure::poradi => 10,
+        ]);
+        $kategorieB = CategoryTagFactory::createOne([
+            CategoryTagEntityStructure::nazev  => 'Kategorie B',
+            CategoryTagEntityStructure::poradi => 20,
+        ]);
+
+        $tagC2 = TagFactory::createOne([
+            TagEntityStructure::nazev       => 'Zebra',
+            TagEntityStructure::categoryTag => $kategorieC,
+        ]);
+        $tagA2 = TagFactory::createOne([
+            TagEntityStructure::nazev       => 'Mango',
+            TagEntityStructure::categoryTag => $kategorieA,
+        ]);
+        $tagB1 = TagFactory::createOne([
+            TagEntityStructure::nazev       => 'Alfa',
+            TagEntityStructure::categoryTag => $kategorieB,
+        ]);
+        $tagA1 = TagFactory::createOne([
+            TagEntityStructure::nazev       => 'Banán',
+            TagEntityStructure::categoryTag => $kategorieA,
+        ]);
+        $tagC1 = TagFactory::createOne([
+            TagEntityStructure::nazev       => 'Citron',
+            TagEntityStructure::categoryTag => $kategorieC,
+        ]);
+
+        $aktivita = Aktivita::zId(1);
+        self::assertNotNull($aktivita);
+
+        $aktivita->nastavTagy(['Zebra', 'Mango', 'Alfa', 'Banán', 'Citron']);
+
+        $ocekavaneRazeni = ['Banán', 'Mango', 'Alfa', 'Citron', 'Zebra'];
+
+        $tagy = $aktivita->tagy();
+        self::assertSame($ocekavaneRazeni, $tagy, 'Tagy z tagy() musí být seřazené podle pořadí kategorie a pak podle názvu');
+
+        $tagyIds = $aktivita->tagyId();
+        $ocekavaneIds = [
+            $tagA1->getId(),
+            $tagA2->getId(),
+            $tagB1->getId(),
+            $tagC1->getId(),
+            $tagC2->getId(),
+        ];
+        self::assertSame($ocekavaneIds, $tagyIds, 'ID tagů z tagyId() musí být seřazené podle pořadí kategorie a pak podle názvu');
+
+        $tagyZeZIds = \Tag::zIds($tagyIds);
+        $nazvyZeZIds = array_map(static fn (\Tag $tag) => $tag->nazev(), $tagyZeZIds);
+        self::assertSame($ocekavaneRazeni, $nazvyZeZIds, 'Tag::zIds() musí vracet tagy seřazené podle pořadí kategorie a pak podle názvu');
+    }
+
+    /**
      * Vrátí seřazenou kopii pole bez modifikace původního pole.
      */
     private static function getSortedCopy(array $pole): array
