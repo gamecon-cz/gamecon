@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Shop\TypPredmetu;
+
 /**
  * Počítáme s tím, že uživatel bydlí jen na jednom pokoji, jinak se to rozsype.
  * Také nerozlišuje mezi stavy pokoj neexistuje vs nikdo na něm nebydlí
@@ -41,7 +43,7 @@ class Pokoj
       FROM shop_nakupy n
       JOIN shop_predmety p USING(id_predmetu)
       WHERE n.id_uzivatele = $0 AND n.rok = $1 AND p.typ = $2
-    ', [0 => $u->id(), 1 => ROCNIK, 2 => \Gamecon\Shop\TypPredmetu::UBYTOVANI]);
+    ', [0 => $u->id(), 1 => ROCNIK, 2 => TypPredmetu::UBYTOVANI]);
         if (mysqli_num_rows($o) == 0) {
             throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
         }

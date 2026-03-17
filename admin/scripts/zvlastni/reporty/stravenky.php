@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Role\Role;
+use Gamecon\Shop\PodtypPredmetu;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -20,6 +21,7 @@ $idUzivatele              = (int)get('id_uzivatele')
 $uzivatelFiltrSql         = $idUzivatele
     ? "AND uzivatele.id_uzivatele = {$idUzivatele}"
     : '';
+$typUbytovani             = Shop::UBYTOVANI;
 $o                        = dbQuery(<<<SQL
     SELECT
       uzivatele.id_uzivatele, uzivatele.login_uzivatele, predmety.nazev,
@@ -32,12 +34,25 @@ $o                        = dbQuery(<<<SQL
         ON nakupy.id_uzivatele = uzivatele.id_uzivatele AND nakupy.rok = {$rocnik}
     JOIN shop_predmety AS predmety
         ON predmety.id_predmetu = nakupy.id_predmetu AND predmety.typ = {$typJidlo}
+    LEFT JOIN shop_nakupy AS nakupy_ubytovani
+        ON nakupy_ubytovani.id_uzivatele = uzivatele.id_uzivatele
+        AND nakupy_ubytovani.rok = {$rocnik}
+    LEFT JOIN shop_predmety AS predmety_ubytovani
+        ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
+        AND predmety_ubytovani.typ = {$typUbytovani}
+        AND predmety_ubytovani.podtyp = $0
+        AND predmety_ubytovani.ubytovani_den = predmety.ubytovani_den
     WHERE TRUE {$uzivatelFiltrSql}
+      AND NOT (
+        TRIM(predmety.nazev) LIKE 'Snídaně%'
+        AND predmety_ubytovani.id_predmetu IS NOT NULL
+      )
     ORDER BY uzivatele.id_uzivatele,
              -- "bylo lepší, jak vedly zprava doleva, tj. naopak. Nalevo je totiž ID člověka a jak si stravenky postupně odtrhává, je lepší, když začne na druhé straně, aby měl pořád balíček stravenek se svým ID a jménem" Gandalf 10. červenec 2023 20:57
              poradi_dne DESC,
              poradi_jidla DESC
 SQL,
+    [0 => PodtypPredmetu::HOTEL],
 );
 
 $res = [];

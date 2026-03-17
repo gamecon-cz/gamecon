@@ -17,6 +17,7 @@ class PredmetSqlStruktura
     public const NABIZET_DO        = 'nabizet_do';
     public const KUSU_VYROBENO     = 'kusu_vyrobeno';
     public const TYP               = 'typ';
+    public const PODTYP            = 'podtyp';
     public const JE_LETOSNI_HLAVNI = 'je_letosni_hlavni';
     public const UBYTOVANI_DEN     = 'ubytovani_den';
     public const POPIS             = 'popis';
