@@ -16,6 +16,8 @@ use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\AkceSjednoceneTagySqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
 use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
@@ -4447,8 +4449,10 @@ SQL,
             q: <<<SQL
                 SELECT
                     $select,
-                    (SELECT GROUP_CONCAT(akce_sjednocene_tagy.id_tagu)
+                    (SELECT GROUP_CONCAT(akce_sjednocene_tagy.id_tagu ORDER BY kategorie_sjednocenych_tagu.poradi, sjednocene_tagy.nazev)
                         FROM akce_sjednocene_tagy
+                        JOIN sjednocene_tagy ON sjednocene_tagy.id = akce_sjednocene_tagy.id_tagu
+                        JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.id = sjednocene_tagy.id_kategorie_tagu
                         WHERE akce_sjednocene_tagy.id_akce = a.id_akce
                     ) AS ids_tagu,
                     (SELECT COALESCE(GROUP_CONCAT(akce_organizatori.id_uzivatele SEPARATOR ','), '')
@@ -4469,6 +4473,8 @@ SQL,
             relatedTables: [
                 ...[
                     AkceSjednoceneTagySqlStruktura::AKCE_SJEDNOCENE_TAGY_TABULKA,
+                    SjednoceneTagySqlStruktura::SJEDNOCENE_TAGY_TABULKA,
+                    KategorieSjednocenychTaguSqlStruktura::KATEGORIE_SJEDNOCENYCH_TAGU_TABULKA,
                     AkceOrganizatoriSqlStruktura::AKCE_ORGANIZATORI_TABULKA,
                     AkceSeznamSqlStruktura::AKCE_SEZNAM_TABULKA,
                 ],
