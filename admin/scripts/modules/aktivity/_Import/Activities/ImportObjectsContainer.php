@@ -3,9 +3,10 @@ declare(strict_types=1);
 
 namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
-use Gamecon\Aktivita\StavAktivity;
-use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Lokace;
+use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Aktivita\Tag;
+use Gamecon\Aktivita\TypAktivity;
 
 class ImportObjectsContainer
 {
@@ -19,7 +20,7 @@ class ImportObjectsContainer
      */
     private $programLocationsCache;
     /**
-     * @var array|\Tag[][]
+     * @var array|Tag[][]
      */
     private $tagsCache;
     /**
@@ -122,13 +123,13 @@ class ImportObjectsContainer
                      ?? $this->importUserCache->getUserByNick($userValue);
     }
 
-    public function getTagFromValue(string $tagValue): ?\Tag
+    public function getTagFromValue(string $tagValue): ?Tag
     {
         /* intentionally no tag by ID, because there are tags named like "2400", also there is no need to import tags by IDs */
         return $this->getTagByName($tagValue);
     }
 
-    private function getTagByName(string $name): ?\Tag
+    private function getTagByName(string $name): ?Tag
     {
         return $this->getTagsCache()['keyFromName'][ImportKeyUnifier::toUnifiedKey($name, [])] ?? null;
     }
@@ -137,7 +138,7 @@ class ImportObjectsContainer
     {
         if (!$this->tagsCache) {
             $this->tagsCache = ['id' => [], 'keyFromName' => []];
-            foreach (\Tag::zVsech() as $tag) {
+            foreach (Tag::zVsech() as $tag) {
                 $this->tagsCache['id'][$tag->id()]            = $tag;
                 $keyFromName                                  = ImportKeyUnifier::toUnifiedKey($tag->nazev(), array_keys($this->tagsCache['keyFromName']));
                 $this->tagsCache['keyFromName'][$keyFromName] = $tag;

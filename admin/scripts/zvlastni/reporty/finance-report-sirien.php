@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Aktivita\Tag;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
 

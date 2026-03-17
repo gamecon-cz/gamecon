@@ -1,5 +1,8 @@
 <?php
 
+namespace Gamecon\Aktivita;
+
+use DbObject;
 use Gamecon\KategorieTagu;
 
 /**
@@ -12,7 +15,6 @@ use Gamecon\KategorieTagu;
  */
 class Tag extends DbObject
 {
-
     public const MALOVANI = 12445; // Malování
     public const UNIKOVKA = 12444; // Únikovka
 
@@ -24,9 +26,9 @@ class Tag extends DbObject
         $where = preg_replace('~\bid\b~', 'sjednocene_tagy.id', $where);
 
         return 'SELECT sjednocene_tagy.* FROM sjednocene_tagy '
-            . 'JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.id = sjednocene_tagy.id_kategorie_tagu '
-            . $where
-            . ' ORDER BY kategorie_sjednocenych_tagu.poradi, sjednocene_tagy.nazev';
+               . 'JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.id = sjednocene_tagy.id_kategorie_tagu '
+               . $where
+               . ' ORDER BY kategorie_sjednocenych_tagu.poradi, sjednocene_tagy.nazev';
     }
 
     public static function zNazvu(string $nazev): ?Tag

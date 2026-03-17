@@ -208,7 +208,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertNotNull($symfonyTagId);
 
         // Fetch the same entity using legacy Tag (assuming it follows the same pattern)
-        $legacyTag = \Tag::zId($symfonyTagId);
+        $legacyTag = \Gamecon\Aktivita\Tag::zId($symfonyTagId);
         $this->assertNotNull($legacyTag, 'Legacy tag should be found');
 
         // Compare values using getters

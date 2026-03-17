@@ -9,6 +9,7 @@ use App\Structure\Entity\ActivityInstanceEntityStructure;
 use App\Structure\Entity\CategoryTagEntityStructure;
 use App\Structure\Entity\TagEntityStructure;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\Tag;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Tests\Factory\ActivityFactory;
 use Gamecon\Tests\Factory\ActivityInstanceFactory;
@@ -173,8 +174,9 @@ class AktivitaTagyTest extends AbstractTestDb
         ];
         self::assertSame($ocekavaneIds, $tagyIds, 'ID tagů z tagyId() musí být seřazené podle pořadí kategorie a pak podle názvu');
 
-        $tagyZeZIds = \Tag::zIds($tagyIds);
-        $nazvyZeZIds = array_map(static fn (\Tag $tag) => $tag->nazev(), $tagyZeZIds);
+        $tagyZeZIds = Tag::zIds($tagyIds);
+        $nazvyZeZIds = array_map(static fn (
+            Tag $tag) => $tag->nazev(), $tagyZeZIds);
         self::assertSame($ocekavaneRazeni, $nazvyZeZIds, 'Tag::zIds() musí vracet tagy seřazené podle pořadí kategorie a pak podle názvu');
     }
 
