@@ -1,11 +1,17 @@
 <?php
 
+/**
+ * @var \Gamecon\XTemplate\XTemplate $t
+ */
+
 $this->blackarrowStyl(true);
 
 $start = (int)get('start') ?: 0;
-$stranka = 20;
+$naStranku = 20;
 
-foreach(Novinka::zNejnovejsich($start, $stranka) as $n) {
+$novinky = Novinka::zNejnovejsich($start, $naStranku);
+
+foreach($novinky as $n) {
   $t->assign([
     'novinka' =>  $n,
     'text'    =>  $n->typ() == Novinka::BLOG ?
@@ -18,11 +24,13 @@ foreach(Novinka::zNejnovejsich($start, $stranka) as $n) {
   $t->parse('novinky.novinka');
 }
 
-$t->assign('url', 'novinky?start='.($start + $stranka));
-$t->parse('novinky.starsi');
+if(count($novinky) >= $naStranku) {
+  $t->assign('url', 'novinky?start='.($start + $naStranku));
+  $t->parse('novinky.starsi');
+}
 
 if($start > 0) {
-  $novejsi = $start - $stranka;
+  $novejsi = $start - $naStranku;
   $t->assign('url', $novejsi <= 0 ? 'novinky' : 'novinky?start='.$novejsi);
   $t->parse('novinky.novejsi');
 }
