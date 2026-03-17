@@ -800,7 +800,7 @@ HTML;
      * Den ve kterém se odehrává aktivita (např. po půlnoci je stále v předchozím dni) bráno z času zahájení
      * @param array $a
      */
-    public static function denAktivityDleZacatku($a)
+    public static function denAktivityDleZacatku($a): ?DateTimeCz
     {
         if (!isset($a['den']) || !isset($a['zacatek'])) {
             return null;

@@ -54,7 +54,7 @@ class Aktivita
     private array $kolekce = []; // nadřízená kolekce, v rámci které byla aktivita načtena
     /** @var array<Lokace>|null */
     private ?array             $seznamLokaci;
-    private null | int | false $idHlavniLokace = null;
+    private null | int | false $idHlavniLokace        = null;
     private                    $stav;
     private ?int               $idHlavniAktivityCache = null;
     private bool               $nova;           // jestli jde o nově uloženou aktivitu nebo načtenou z DB
@@ -484,6 +484,9 @@ SQL
 
             $zacatek = (Program::denAktivityDleZacatku($a))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
             $konec = (Program::denAktivityDleKonce($a))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
+            if ($zacatek >= $konec) {
+                $chyby[] = 'Konec aktivity musí být po jejím začátku.';
+            }
             $ignorovatAktivitu = isset($a[Sql::ID_AKCE])
                 ? self::zId($a[Sql::ID_AKCE])
                 : null;
@@ -597,7 +600,7 @@ SQL
             $vsechnyLokacePodlePoznamky[trim((string)$lokace->poznamka())][] = $lokace;
         }
 
-        $pocetVsechLokaci        = count($vsechnyLokace);
+        $pocetVsechLokaci = count($vsechnyLokace);
         $nazevPredchoziKategorie = null;
 
         $encodeForHtml = function (
@@ -956,12 +959,19 @@ SQL
             $a[Sql::ZACATEK] = null;
             $a[Sql::KONEC] = null;
         } else {
-            $zacatekDen = Program::denAktivityDleZacatku($a);
-            $a[Sql::ZACATEK] = ($zacatekDen)->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'))->formatDb();
+            $zacatekCas = Program::denAktivityDleZacatku($a)
+                                 ->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
 
-            $konecDen = Program::denAktivityDleKonce($a);
+            $konecCas = Program::denAktivityDleKonce($a)
+                               ->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
 
-            $a[Sql::KONEC] = ($konecDen)->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'))->formatDb();
+            if ($zacatekCas >= $konecCas) {
+                chyba('Konec aktivity musí být po jejím začátku. Čas byl zrušen.', false);
+                unset($a[Sql::ZACATEK], $a[Sql::KONEC]);
+            } else {
+                $a[Sql::ZACATEK] = $zacatekCas->formatDb();
+                $a[Sql::KONEC] = $konecCas->formatDb();
+            }
         }
         unset($a['den']);
         // extra položky kvůli sep. tabulkám
@@ -1210,9 +1220,9 @@ SQL
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
         } elseif (!empty($data[Sql::PATRI_POD])) {
             // editace aktivity z rodiny instancí
-            $doHlavni   = [Sql::URL_AKCE, Sql::POPIS, Sql::VYBAVENI];    // věci, které se mají změnit jen u hlavní (main) `instance
+            $doHlavni = [Sql::URL_AKCE, Sql::POPIS, Sql::VYBAVENI];    // věci, které se mají změnit jen u hlavní (main) `instance
             $doAktualni = [Sql::ZACATEK, Sql::KONEC];       // věci, které se mají změnit jen u aktuální instance
-            $aktivita   = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
+            $aktivita = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
                 $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
                 unset($data[ActivitiesImportSqlColumn::STAV]); // stav se může měnit jenom u jedné instance
@@ -1257,7 +1267,7 @@ SQL
             // vložení
             dbInsertUpdate(Sql::AKCE_SEZNAM_TABULKA, $data);
             $data[Sql::ID_AKCE] = dbInsertId();
-            $aktivita           = self::zId($data[Sql::ID_AKCE]);
+            $aktivita = self::zId($data[Sql::ID_AKCE]);
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
             $aktivita->nova = true;
         }
@@ -1445,7 +1455,7 @@ SQL
     /** Vrací celkovou kapacitu aktivity, která platí pokud aktivita není teamová */
     public function neteamovaKapacita(): int
     {
-        return (int) ($this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F]);
+        return (int)($this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F]);
     }
 
     /** Vrací celkovou kapacitu aktivity */
@@ -1554,7 +1564,7 @@ SQL
     public function idHlavniLokace(): ?int
     {
         if (!isset($this->idHlavniLokace)) {
-            $idHlavniLokace       = dbFetchSingle(<<<SQL
+            $idHlavniLokace = dbFetchSingle(<<<SQL
                 SELECT COALESCE(
                     akce_seznam.id_hlavni_lokace,
                     (SELECT id_lokace FROM akce_lokace WHERE id_akce = {$this->id()} ORDER BY id_lokace ASC LIMIT 1)
@@ -1592,8 +1602,10 @@ SQL
             );
         }
         if ($idckaLokaci !== []) {
-            $values    = array_map(
-                function (int $idLokace) {
+            $values = array_map(
+                function (
+                    int $idLokace,
+                ) {
                     return "({$this->id()}, $idLokace)";
                 },
                 array_map('intval', $idckaLokaci),
@@ -1609,8 +1621,8 @@ SQL
             throw new \LogicException(
                 sprintf(
                     'Given ID of main location %d is not in given list of locations %s.',
-                    $hlavniLokaceId, implode(', ', $idckaLokaci)
-                )
+                    $hlavniLokaceId, implode(', ', $idckaLokaci),
+                ),
             );
         }
         dbQuery(<<<SQL
@@ -2200,7 +2212,8 @@ SQL
 
     public function getPopisRaw(): ?string
     {
-        return $this->a[Sql::POPIS] ?: null;
+        return $this->a[Sql::POPIS]
+            ?: null;
     }
 
     /**
@@ -2335,7 +2348,7 @@ SQL
         return true;
     }
 
-    private function zrusPredchoziStornoPoplatek(Uzivatel $uzivatel)
+    private function zrusPredchoziStornoPoplatek(Uzivatel $uzivatel): void
     {
         dbQuery(
             'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
@@ -2708,8 +2721,9 @@ SQL
         return $this->pocetPrihlasenehoPohlavi(Pohlavi::MUZ_KOD, $dataSourcesCollector);
     }
 
-    private function pocetPrihlasenehoPohlavi(string                $pocitanePohlavi,
-                                              ?DataSourcesCollector $dataSourcesCollector = null,
+    private function pocetPrihlasenehoPohlavi(
+        string                $pocitanePohlavi,
+        ?DataSourcesCollector $dataSourcesCollector = null,
     ): int {
         return count(
             array_filter(
