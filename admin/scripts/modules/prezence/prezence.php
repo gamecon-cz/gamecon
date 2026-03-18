@@ -21,9 +21,11 @@ use Gamecon\XTemplate\XTemplate;
 
 $t = new XTemplate(__DIR__ . '/prezence.xtpl');
 
-$jenZamceneNeuzavrene  = !empty($_GET['zamcene_neuzavrene']);
-$jenUzavreneNevyplnene = !empty($_GET['uzavrene_nevyplnene']);
-$ignorovatCas          = !empty($_GET['ignorovat_cas']);
+$filtrAktivit = $_GET['filtr_aktivit'] ?? '';
+$jenZamceneNeuzavrene = $filtrAktivit === 'zamcene_neuzavrene';
+$jenUzavreneNevyplnene = $filtrAktivit === 'uzavrene_nevyplnene';
+$jenBezPrihlasenych = $filtrAktivit === 'bez_prihlasenych';
+$ignorovatCas = !empty($_GET['ignorovat_cas']);
 
 $zacatek = null; // bude nastaven přes referenci ve funkci _casy
 
@@ -38,12 +40,10 @@ if (!$ignorovatCas) {
     $t->assign('casy', $filtrMoznosti->dejProTemplate());
 }
 
-$t->assign('checkedNeuzavrene', $jenZamceneNeuzavrene
-    ? 'checked'
-    : '');
-$t->assign('checkedNevyplnene', $jenUzavreneNevyplnene
-    ? 'checked'
-    : '');
+$t->assign('checkedZadny', $filtrAktivit === '' ? 'checked' : '');
+$t->assign('checkedNeuzavrene', $jenZamceneNeuzavrene ? 'checked' : '');
+$t->assign('checkedNevyplnene', $jenUzavreneNevyplnene ? 'checked' : '');
+$t->assign('checkedBezPrihlasenych', $jenBezPrihlasenych ? 'checked' : '');
 $t->assign('checkedCas', $ignorovatCas
     ? 'checked'
     : '');
@@ -51,20 +51,24 @@ $t->assign('urlAkce', getCurrentUrlWithQuery());
 $t->parse('prezence.filtrAktivit');
 
 $aktivity = [];
-$filtr    = $filtrMoznosti->dejFiltr()[0];
+$filtr = $filtrMoznosti->dejFiltr()[0];
 if ($ignorovatCas) {
-    $filtr['rok'] = ROCNIK;
+    $filtr['rok'] = $systemoveNastaveni->rocnik();
 } elseif ($zacatek) {
     $filtr['od'] = $zacatek->format(DateTimeGamecon::FORMAT_DB);
     $filtr['do'] = $zacatek->format(DateTimeGamecon::FORMAT_DB);
 }
 if ($jenZamceneNeuzavrene) {
-    $filtr['jenZamcene']    = true;
+    $filtr['jenZamcene'] = true;
     $filtr['jenNeuzavrene'] = true;
 }
 if ($jenUzavreneNevyplnene) {
-    $filtr[FiltrAktivity::STAV]           = StavAktivity::UZAVRENA;
+    $filtr[FiltrAktivity::STAV] = StavAktivity::UZAVRENA;
     $filtr[FiltrAktivity::JEN_NEVYPLNENE] = true;
+}
+if ($jenBezPrihlasenych) {
+    $filtr[FiltrAktivity::JEN_BEZ_PRIHLASENYCH] = true;
+    $filtr['rok'] = $systemoveNastaveni->rocnik();
 }
 $aktivity = Aktivita::zFiltru(
     systemoveNastaveni: $systemoveNastaveni,
@@ -77,7 +81,7 @@ if (count($aktivity) === 0) {
 
 foreach ($aktivity as $aktivita) {
     $vyplnena = $aktivita->nekdoUzDorazil();
-    $zamcena  = $aktivita->zamcena();
+    $zamcena = $aktivita->zamcena();
     $uzavrena = $aktivita->uzavrena();
     $t->assign('a', $aktivita);
     foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
