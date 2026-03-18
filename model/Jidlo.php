@@ -22,7 +22,7 @@ class Jidlo
 
     public static function dejJidlaBehemDne(): array
     {
-        return [self::SNIDANE, self::OBED, self::VECERE];
+        return [self::PORADI_SNIDANE => self::SNIDANE, self::PORADI_OBED => self::OBED, self::PORADI_VECERE => self::VECERE];
     }
 
     public static function jeToSnidane(string $jidlo): bool

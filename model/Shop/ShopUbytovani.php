@@ -139,14 +139,17 @@ JOIN shop_predmety AS predmety_snidane
 WHERE shop_nakupy_snidane.id_uzivatele = $0
     AND shop_nakupy_snidane.rok = $1
     AND predmety_snidane.ubytovani_den IN (
-        SELECT predmety_ubytovani.ubytovani_den
-        FROM shop_nakupy AS nakupy_ubytovani
-        JOIN shop_predmety AS predmety_ubytovani
-            ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
-            AND predmety_ubytovani.typ = {$typUbytovani}
-            AND predmety_ubytovani.podtyp = $2
-        WHERE nakupy_ubytovani.id_uzivatele = $0
-            AND nakupy_ubytovani.rok = $1
+        /* ubytování den N (noc) → snídaně den N+1 (ráno) */
+        SELECT dny_hotelu.ubytovani_den + 1 FROM (
+            SELECT predmety_ubytovani.ubytovani_den
+            FROM shop_nakupy AS nakupy_ubytovani
+            JOIN shop_predmety AS predmety_ubytovani
+                ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
+                AND predmety_ubytovani.typ = {$typUbytovani}
+                AND predmety_ubytovani.podtyp = $2
+            WHERE nakupy_ubytovani.id_uzivatele = $0
+                AND nakupy_ubytovani.rok = $1
+        ) AS dny_hotelu
     )
 SQL,
             [0 => $ucastnik->id(), 1 => $rok, 2 => PodtypPredmetu::HOTEL],
@@ -450,6 +453,9 @@ SQL,
                     'idPredmetu' => isset($this->mozneDny[$den][$typ])
                         ? $this->mozneDny[$den][$typ]['id_predmetu']
                         : null,
+                    'podtyp'     => isset($this->mozneDny[$den][$typ])
+                        ? ($this->mozneDny[$den][$typ][Sql::PODTYP] ?? '')
+                        : '',
                     'checked'    => $checked,
                     'disabled'   => $this->totoUbytovaniVyrazeno(
                         $checked,

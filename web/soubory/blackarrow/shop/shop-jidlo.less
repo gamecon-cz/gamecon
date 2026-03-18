@@ -23,7 +23,7 @@
     border-radius: 4px;
     cursor: pointer;
     margin: 0;
-    background: #F6F1EA url('../blackarrow/shop/krizek.svg') no-repeat center;
+    background: #F6F1EA url('../blackarrow/shop/checkbox.svg') no-repeat center;
 
     &:checked {
         background: #10111A url('../blackarrow/shop/fajfka.svg') no-repeat center;
@@ -39,9 +39,34 @@
 
     &:disabled {
         cursor: not-allowed;
+        opacity: 0.4;
+    }
+
+    &--hotel:checked:disabled {
+        background: #8a8d9a url('../blackarrow/shop/fajfka.svg') no-repeat center;
+        cursor: default;
+        opacity: 1;
     }
 
     @media (max-width: 600px) {
         width: 50px;
+    }
+}
+
+.shopJidlo_hotelTooltip {
+    position: relative;
+
+    .tooltip_obsah {
+        right: auto;
+        left: 50%;
+        transform: translateX(-32%);
+        width: max-content;
+        padding: 10px 16px;
+        white-space: nowrap;
+    }
+
+    .tooltip_obsah::before {
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
     }
 }

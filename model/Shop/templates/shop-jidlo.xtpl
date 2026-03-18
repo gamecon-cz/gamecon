@@ -24,9 +24,15 @@
             </div>
         </td>
         <!-- begin:den -->
-        <td>
+        <td data-den="{den}" data-druh="{druhAttr}">
             <!-- begin:checkbox -->
             <input type="checkbox" class="shopJidlo_checkbox" name="{pnName}" {selected}>
+            <!-- begin:snidane -->
+            <span class="gc_tooltip shopJidlo_hotelTooltip" style="display:none">
+                <input type="checkbox" class="shopJidlo_checkbox shopJidlo_checkbox--hotel" checked disabled>
+                <span class="tooltip_obsah">Snídaně v ceně ubytování v hotelu</span>
+<!--            </span>-->
+            <!-- end:snidane -->
             <!-- end:checkbox -->
             <!-- begin:locked -->
             <!-- unchecked checkbox s visibility: hidden se odesílá ve formuláři, takže drží vybrané hodnoty při ukládání -->
@@ -39,4 +45,5 @@
     <!-- end:druh -->
 </table>
 <input type="hidden" name="{pnJidloZmen}" value="1">
+<script type="text/javascript" src="{shopJidloJs}"></script>
 <!-- end:jidlo -->
