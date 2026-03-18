@@ -54,6 +54,44 @@
   .hidden {
     display: none;
   }
+  .progress {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    height: 25px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-bar {
+    background-color: #007bff;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    transition: width 0.4s ease;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .progress-bar-striped {
+    background-image: linear-gradient(
+      45deg,
+      rgba(255,255,255,.15) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255,255,255,.15) 50%,
+      rgba(255,255,255,.15) 75%,
+      transparent 75%,
+      transparent
+    );
+    background-size: 1rem 1rem;
+  }
+  .progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite;
+  }
+  @keyframes progress-bar-stripes {
+    from { background-position: 1rem 0; }
+    to { background-position: 0 0; }
+  }
 </style>
 
 <div class="alert alert-info" id="database-copy-status">
