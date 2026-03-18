@@ -35,9 +35,17 @@
   </tr>
   <!-- begin: report -->
   <tr id="{skript}">
-    <td>{nazev} <a href="#{skript}" class="lokalni-odkaz float-right">#</a></td>
     <td>
-      <span class="hinted">i
+      {nazev}
+      <!-- begin: pravo -->
+      <span class="hinted">🫥
+        <span class="hint">Viditelné pouze pro uživatele s právem <i>{nazev_prava}</i></span>
+      </span>
+      <!-- end: pravo -->
+      <a href="#{skript}" class="lokalni-odkaz float-right">#</a>
+    </td>
+    <td>
+      <span class="hinted">📊
         <span class="hint">
             poslední použití {jmeno_posledniho_uzivatele} {cas_posledniho_pouziti}<br>
             celkem použito {pocet_pouziti}✕
@@ -65,7 +73,7 @@
   <tr id="quick-{id}">
     <td>{nazev} <a href="#quick-{id}" class="lokalni-odkaz float-right">#</a></td>
     <td>
-      <span class="hinted">i
+      <span class="hinted">📊
         <span class="hint">
             poslední použití {jmeno_posledniho_uzivatele} {cas_posledniho_pouziti}<br>
             celkem použito {pocet_pouziti}✕

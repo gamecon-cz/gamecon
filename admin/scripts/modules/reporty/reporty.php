@@ -11,6 +11,8 @@ use Gamecon\Report\SqlStruktura\ReportyQuickSqlStruktura as QuickSql;
  *
  * nazev: Reporty
  * pravo: 104
+ *
+ * @var Uzivatel $u
  */
 
 $pouzitiReportu = static function (array $r): array {
@@ -28,6 +30,15 @@ $pouzitiReportu = static function (array $r): array {
 $t = new XTemplate(__DIR__ . '/reporty.xtpl');
 $t->assign('baseUrl', URL_ADMIN);
 
+$pravaReportu = dbFetchAll("
+    SELECT reporty.skript, GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ') AS nazvy_prav
+    FROM reporty_prava
+    JOIN reporty ON reporty.id = reporty_prava.id_reportu
+    JOIN r_prava_soupis ON r_prava_soupis.id_prava = reporty_prava.id_prava
+    GROUP BY reporty.skript
+");
+$pravaReportuPodleSkriptu = array_column($pravaReportu, 'nazvy_prav', 'skript');
+
 $univerzalniReporty = dbFetchAll(<<<SQL
 SELECT reporty.*,
        reporty_log_pouziti.id_uzivatele AS id_posledniho_uzivatele,
@@ -41,11 +52,20 @@ FROM (
   LEFT JOIN reporty_log_pouziti ON reporty.id = reporty_log_pouziti.id_reportu
   LEFT JOIN uzivatele_hodnoty ON reporty_log_pouziti.id_uzivatele = uzivatele_hodnoty.id_uzivatele
   WHERE reporty.viditelny
+  AND (
+      NOT EXISTS (SELECT 1 FROM reporty_prava WHERE reporty_prava.id_reportu = reporty.id)
+      OR EXISTS (
+          SELECT 1 FROM reporty_prava
+          WHERE reporty_prava.id_reportu = reporty.id
+          AND reporty_prava.id_prava IN ($1)
+      )
+  )
   GROUP BY reporty.id
 ) AS reporty
 LEFT JOIN reporty_log_pouziti ON reporty_log_pouziti.id = id_posledniho_logu
 ORDER BY reporty.nazev
 SQL,
+    [1 => $u->prava()],
 );
 
 foreach ($univerzalniReporty as $r) {
@@ -64,6 +84,10 @@ foreach ($univerzalniReporty as $r) {
         'pocet_pouziti'              => $pouziti['pocet_pouziti'],
     ];
     $t->assign($kontext);
+    if (isset($pravaReportuPodleSkriptu[$r['skript']])) {
+        $t->assign('nazev_prava', $pravaReportuPodleSkriptu[$r['skript']]);
+        $t->parse('reporty.report.pravo');
+    }
     $t->parse('reporty.report');
 }
 
