@@ -51,6 +51,7 @@ SQL,
 foreach ($univerzalniReporty as $r) {
     $pouziti = $pouzitiReportu($r);
     $kontext = [
+        'skript'                     => $r['skript'],
         'nazev'                      => str_ireplace(['{ROK}', '{ROCNIK}'], ROCNIK, $r['nazev']),
         'html'                       => $r['format_html']
             ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=html" target="_blank">html</a>'
