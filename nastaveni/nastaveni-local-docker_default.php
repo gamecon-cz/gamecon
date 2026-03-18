@@ -4,8 +4,8 @@ ini_set('display_errors', true); // zobrazovat chyby při lokálním vývoji (po
 // uživatel s základním přístupem
 define('DB_USER', 'root');
 define('DB_PASS', 'root');
-define('DB_NAME', 'gamecon');
-define('DB_SERV', 'sql.gamecon');
+if (!defined('DB_NAME')) define('DB_NAME', 'gamecon');
+if (!defined('DB_SERV')) define('DB_SERV', 'sql.gamecon');
 
 // uživatel s přístupem k změnám struktury
 define('DBM_USER', 'root');
