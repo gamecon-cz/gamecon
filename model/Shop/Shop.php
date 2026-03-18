@@ -233,7 +233,7 @@ SQL,
             FROM (
                   SELECT
                     predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav,
-                    predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis, predmety.vedlejsi, predmety.kod_predmetu,
+                    predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.podtyp, predmety.ubytovani_den, predmety.popis, predmety.vedlejsi, predmety.kod_predmetu,
                     IF(predmety.model_rok = {$rocnik} OR COALESCE(predmety.popis, '') = '', predmety.nazev, CONCAT(predmety.nazev, ' (', predmety.popis, ')')) AS nazev,
                     COUNT(IF(nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_prodano,
                     COUNT(IF(nakupy.id_uzivatele = {$zakaznikId} AND nakupy.rok = {$rocnik}, 1, NULL)) AS kusu_uzivatele,
@@ -403,22 +403,28 @@ SQL,
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!$this->systemoveNastaveni->jeProdejJidlaPozastaven()) {
             foreach (array_keys($druhy) as $druh) {
+                $jidlo = null;
+                $vec = null;
                 $jeSnidane = Jidlo::jeToSnidane($druh);
                 foreach (array_keys($dny) as $den) {
-                    if ($jeSnidane && $this->ubytovani->maHoteloveUbytovaniVDen((int)$den)) {
-                        $t->parse('jidlo.druh.den');
-                        continue;
-                    }
+                    $t->assign([
+                        'den'      => $den,
+                        'druhAttr' => $druh,
+                    ]);
                     $jidlo = $jidla[$den][$druh] ?? null;
                     if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
                         $t->assign('selected', $jidlo['kusu_uzivatele'] > 0
                             ? 'checked'
                             : '');
                         $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-                        $t->parse($prodejJidlaUkoncen || ($jidlo['stav'] == self::STAV_POZASTAVENY && !$this->nastaveni['jidloBezZamku'])
-                            ? 'jidlo.druh.den.locked'
-                            : 'jidlo.druh.den.checkbox',
-                        );
+                        if ($prodejJidlaUkoncen || ($jidlo['stav'] == self::STAV_POZASTAVENY && !$this->nastaveni['jidloBezZamku'])) {
+                            $t->parse('jidlo.druh.den.locked');
+                        } else {
+                            if ($jeSnidane) {
+                                $t->parse('jidlo.druh.den.checkbox.snidane');
+                            }
+                            $t->parse('jidlo.druh.den.checkbox');
+                        }
                     }
                     $t->parse('jidlo.druh.den');
                 }
@@ -447,6 +453,8 @@ SQL,
             $t->parse('jidlo.potize');
         }
         $t->assign('pnJidloZmen', self::PN_JIDLO_ZMEN);
+        $t->assign('shopJidloJs', URL_WEBU . '/soubory/blackarrow/shop/shop-jidlo.js?version='
+            . md5_file(WWW . '/soubory/blackarrow/shop/shop-jidlo.js'));
         $t->parse('jidlo');
 
         return $t->text('jidlo');
@@ -963,13 +971,15 @@ SQL,
 
         $dnyHotelovychPokoju = $this->ubytovani->dnyHotelovychPokoju();
         if ($dnyHotelovychPokoju) {
-            $chce = array_filter($chce, function ($idPredmetu) use ($dnyHotelovychPokoju) {
+            // ubytování den N (noc) → snídaně den N+1 (ráno)
+            $dnySnidaniHotelu = array_map(fn(int $den) => $den + 1, $dnyHotelovychPokoju);
+            $chce = array_filter($chce, function ($idPredmetu) use ($dnySnidaniHotelu) {
                 $jidla = $this->jidlo['jidla'] ?? [];
                 foreach ($jidla as $den => $druhy) {
                     foreach ($druhy as $druh => $jidlo) {
                         if ((int)$jidlo['id_predmetu'] === (int)$idPredmetu
                             && Jidlo::jeToSnidane($druh)
-                            && in_array((int)$den, $dnyHotelovychPokoju, true)
+                            && in_array((int)$den, $dnySnidaniHotelu, true)
                         ) {
                             return false;
                         }
@@ -980,6 +990,10 @@ SQL,
         }
 
         $this->zmenObjednavku($ma, $chce);
+
+        // pojistka: smazat snídaně v ceně hotelu i po zpracování jídla,
+        // pro případ že by se nějaká proklouzla (JS selhání, obejití formuláře apod.)
+        ShopUbytovani::zrusSnidaneProHotelovePokoje($this->zakaznik);
     }
 
     private function cenaTricka(): ?float
