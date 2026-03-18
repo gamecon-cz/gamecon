@@ -9,26 +9,42 @@
   <div style="margin-bottom: 1em">
     <!-- begin:filtrAktivit -->
     <form id="filtr-aktivit">
+      <div>
+        <label style="cursor:pointer">
+          Ignorovat výběr času
+          <input type="checkbox" name="ignorovat_cas" value="1"
+                 {checkedCas}
+                 onchange="document.getElementById('filtr-aktivit').submit()"
+                 style="cursor:pointer;">
+        </label>
+      </div>
       <label style="cursor:pointer">
-        Ignorovat výběr času
-        <input type="checkbox" name="ignorovat_cas" value="1"
-               {checkedCas}
+        <input type="radio" name="filtr_aktivit" value=""
+               {checkedZadny}
                onchange="document.getElementById('filtr-aktivit').submit()"
                style="cursor:pointer;">
+        Všechny
       </label>
       <label style="cursor:pointer">
-        Jen zamčené, ale dosud neuzavřené
-        <input type="checkbox" name="zamcene_neuzavrene" id="zamcene_neuzavrene" value="1"
+        <input type="radio" name="filtr_aktivit" value="zamcene_neuzavrene"
                {checkedNeuzavrene}
-               onchange="document.getElementById('uzavrene_nevyplnene').checked = false; document.getElementById('filtr-aktivit').submit()"
+               onchange="document.getElementById('filtr-aktivit').submit()"
                style="cursor:pointer;">
+        Jen zamčené, ale dosud neuzavřené
       </label>
       <label style="cursor:pointer">
-        Jen uzavřené, ale nevyplněné
-        <input type="checkbox" name="uzavrene_nevyplnene" id="uzavrene_nevyplnene" value="1"
+        <input type="radio" name="filtr_aktivit" value="uzavrene_nevyplnene"
                {checkedNevyplnene}
-               onchange="document.getElementById('zamcene_neuzavrene').checked = false; document.getElementById('filtr-aktivit').submit()"
+               onchange="document.getElementById('filtr-aktivit').submit()"
                style="cursor:pointer;">
+        Jen uzavřené, ale nevyplněné
+      </label>
+      <label style="cursor:pointer">
+        <input type="radio" name="filtr_aktivit" value="bez_prihlasenych"
+               {checkedBezPrihlasenych}
+               onchange="document.getElementById('filtr-aktivit').submit()"
+               style="cursor:pointer;">
+        Jen bez přihlášených účastníků
       </label>
     </form>
     <!-- end:filtrAktivit -->

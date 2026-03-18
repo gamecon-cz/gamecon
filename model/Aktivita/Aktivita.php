@@ -4107,6 +4107,10 @@ SQL,
             $wheres1[] = 'NOT EXISTS(SELECT 1 FROM akce_prihlaseni ap WHERE ap.id_akce = a.id_akce AND ap.id_stavu_prihlaseni IN (' . StavPrihlaseni::PRIHLASEN_A_DORAZIL . ', ' . StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK . '))';
             $wheres1[] = 'EXISTS(SELECT 1 FROM akce_prihlaseni_spec aps WHERE aps.id_akce = a.id_akce AND aps.id_stavu_prihlaseni = ' . StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL . ')';
         }
+        if (!empty($filtr[FiltrAktivity::JEN_BEZ_PRIHLASENYCH])) {
+            $dalsiPouziteSqlTabulky[] = AkcePrihlaseniSqlStruktura::AKCE_PRIHLASENI_TABULKA;
+            $wheres1[] = 'NOT EXISTS(SELECT 1 FROM akce_prihlaseni WHERE akce_prihlaseni.id_akce = a.id_akce)';
+        }
         if (!empty($filtr[FiltrAktivity::OD])) {
             $wheres1[] = dbQv($filtr[FiltrAktivity::OD]) . ' <= a.zacatek';
         }

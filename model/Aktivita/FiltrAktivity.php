@@ -14,6 +14,7 @@ class FiltrAktivity
     public const JEN_ZAMCENE = 'jenZamcene';
     public const JEN_NEUZAVRENE = 'jenNeuzavrene';
     public const JEN_NEVYPLNENE = 'jenNevyplnene';
+    public const JEN_BEZ_PRIHLASENYCH = 'jenBezPrihlasenych';
     public const OD = 'od'; // datum (a čas) v SQL formátu YYYY-MM-DD HH:mm:ss
     public const DO = 'do'; // datum (a čas) v SQL formátu YYYY-MM-DD HH:mm:ss
     public const STAV = 'stav'; // id stavu, array nebo int
