@@ -10,31 +10,88 @@ class AktivitaTym extends \DbObject
     protected static $tabulka = AkceTymSqlStruktura::AKCE_TYM_TABULKA;
 
     public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu) {
+        self::zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
+
         if ($kodTymu === 0) {
-            $idTymu = (int)dbOneCol(
-                'SELECT id FROM akce_tym WHERE id_akce = $0',
-                [$idAktivity],
-            );
-            if (!$idTymu) {
-                // kapitán zakládá nový tým
-                $kod = rand(1000, 9999);
-                dbQuery(
-                    'INSERT INTO akce_tym (id_akce, kod, id_kapitan, zalozen) VALUES ($0, $1, $2, NOW())',
-                    [$idAktivity, $kod, $idUzivatele],
-                );
-                $idTymu = (int)dbInsertId();
-            }
+            $idTymu = self::vytvorNovyTym($idUzivatele, $idAktivity);
         } else {
-            $idTymu = (int)dbOneCol(
-                'SELECT id FROM akce_tym WHERE id_akce = $0 AND kod = $1',
-                [$idAktivity, $kodTymu],
-            );
+            $idTymu = self::najdiTymPodleKodu($idAktivity, $kodTymu);
+            self::zkontrolujKapacituTymu($idTymu, $idAktivity);
         }
 
         dbInsertUpdate(AkceTymSqlStruktura::AKCE_TYM_PRIHLASENI_TABULKA, [
             AkceTymSqlStruktura::PRIHLASENI_ID_UZIVATELE => $idUzivatele,
             AkceTymSqlStruktura::PRIHLASENI_ID_TYMU      => $idTymu,
         ]);
+    }
+
+    private static function zkontrolujZeNeniVJinemTymu(int $idUzivatele, int $idAktivity): void {
+        $existujiciTym = (int)dbOneCol(
+            'SELECT akce_tym_prihlaseni.id_tymu FROM akce_tym_prihlaseni
+             JOIN akce_tym ON akce_tym.id = akce_tym_prihlaseni.id_tymu
+             WHERE akce_tym_prihlaseni.id_uzivatele = $0 AND akce_tym.id_akce = $1',
+            [$idUzivatele, $idAktivity],
+        );
+        if ($existujiciTym) {
+            throw new \Chyba('Už jsi přihlášen v týmu na této aktivitě');
+        }
+    }
+
+    private static function vytvorNovyTym(int $idUzivatele, int $idAktivity): int {
+        self::zkontrolujMaxPocetTymu($idAktivity);
+
+        $kod = rand(1000, 9999);
+        dbQuery(
+            'INSERT INTO akce_tym (id_akce, kod, id_kapitan, zalozen) VALUES ($0, $1, $2, NOW())',
+            [$idAktivity, $kod, $idUzivatele],
+        );
+        return (int)dbInsertId();
+    }
+
+    private static function zkontrolujMaxPocetTymu(int $idAktivity): void {
+        $teamKapacita = dbOneCol(
+            'SELECT team_kapacita FROM akce_seznam WHERE id_akce = $0',
+            [$idAktivity],
+        );
+        if ($teamKapacita === null) {
+            return; // bez limitu počtu týmů
+        }
+        $pocetTymu = (int)dbOneCol(
+            'SELECT COUNT(*) FROM akce_tym WHERE id_akce = $0',
+            [$idAktivity],
+        );
+        if ($pocetTymu >= (int)$teamKapacita) {
+            throw new \Chyba('Na aktivitě je už maximální počet týmů');
+        }
+    }
+
+    private static function najdiTymPodleKodu(int $idAktivity, int $kodTymu): int {
+        $idTymu = (int)dbOneCol(
+            'SELECT id FROM akce_tym WHERE id_akce = $0 AND kod = $1',
+            [$idAktivity, $kodTymu],
+        );
+        if (!$idTymu) {
+            throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
+        }
+        return $idTymu;
+    }
+
+    private static function zkontrolujKapacituTymu(int $idTymu, int $idAktivity): void {
+        $pocetClenu = (int)dbOneCol(
+            'SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE id_tymu = $0',
+            [$idTymu],
+        );
+        // limit nastavený kapitánem na týmu, jinak team_max z aktivity
+        $limit = dbOneCol(
+            'SELECT COALESCE(akce_tym.`limit`, akce_seznam.team_max)
+             FROM akce_tym
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym.id_akce
+             WHERE akce_tym.id = $0',
+            [$idTymu],
+        );
+        if ($limit !== null && $pocetClenu >= (int)$limit) {
+            throw new \Chyba('Tým je už plný');
+        }
     }
 
     public static function odhlasUzivateleOdTymu(int $idUzivatele, int $idAktivity) {

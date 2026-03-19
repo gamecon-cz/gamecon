@@ -72,7 +72,6 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
                 obsazenost={aktivita?.obsazenost}
                 prihlasovatelna={aktivita?.prihlasovatelna ?? false}
                 probehnuta={aktivita?.probehnuta ?? false}
-                bezObalu
               />
             </div>
             <div

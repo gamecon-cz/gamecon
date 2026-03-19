@@ -2416,24 +2416,7 @@ SQL
             }
         }
         if ($this->tymova()) {
-            // todo(tym): pokud nový tým (nemá kod tymu nebo je 0) zkontrolovat max poč týmů
-            // todo(tym): pokud existující tým, zkontrolovat jestli tým existuje a má volné místo
-            // todo(tym): tohle funguje jak ? $this->rodice() as $rodic
-            // todo(tym): jak řešit týmy v db pro aktivity s více instancemi ?
-        }
-
-        $teamKapacita = $this->tymovaKapacita();
-        if ($teamKapacita !== null) {
-            $jeNovyTym = false; // jestli se uživatel přihlašuje jako první z nového/dalšího týmu
-            foreach ($this->rodice() as $rodic) {
-                if ($rodic->prihlasen($uzivatel) && $rodic->pocetPrihlasenych() === 1) {
-                    $jeNovyTym = true;
-                    break;
-                }
-            }
-            if ($jeNovyTym && $this->pocetTeamu() >= $teamKapacita) {
-                throw new \Chyba('Na aktivitu ' . $this->nazev() . ': ' . $this->denCasSkutecny() . ' je už přihlášen maximální počet týmů');
-            }
+            // validace týmu (max počet týmů, kapacita týmu, duplicita) probíhá v AktivitaTym::prihlasUzivateleDoTymu()
         }
 
         if ($this->jeBrigadnicka() && !$uzivatel->jeBrigadnik()) {
