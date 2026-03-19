@@ -116,6 +116,13 @@
   </div>
   <!-- end:udaje -->
 
+  <!-- begin:historieUcasti -->
+  <div class="uzivatel-grid--item uzivatel-grid--item-historie-ucasti aBox">
+    <h3>Historie účasti</h3>
+    {historieUcastiHtml}
+  </div>
+  <!-- end:historieUcasti -->
+
   <div class="uzivatel-grid--item  uzivatel-grid--item-prodej aBox">
     <h3>Prodej předmětů</h3>
     Zbývající počty předmětů jsou uvedeny v závorce<br>

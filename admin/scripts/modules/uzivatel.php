@@ -135,6 +135,28 @@ if ($uPracovni) {
     $x->parse('uzivatel.udaje');
 }
 
+// historie účasti
+if ($uPracovni) {
+    $roky = dbFetchColumn(
+        'SELECT DISTINCT rocnik FROM uzivatele_role_podle_rocniku WHERE id_uzivatele = $1 ORDER BY rocnik',
+        [$uPracovni->id()],
+    );
+    if ($roky) {
+        $odkazy = [];
+        foreach ($roky as $rok) {
+            if ((int)$rok === (int)ROCNIK) {
+                $odkazy[] = (string)$rok;
+            } else {
+                $odkazy[] = "<a href=\"https://admin.{$rok}.gamecon.cz/uzivatel?pracovni_uzivatel={$uPracovni->id()}\" target=\"_blank\">{$rok}</a>";
+            }
+        }
+        $x->assign('historieUcastiHtml', implode(', ', $odkazy));
+    } else {
+        $x->assign('historieUcastiHtml', '(žádná)');
+    }
+    $x->parse('uzivatel.historieUcasti');
+}
+
 // načtení předmětů a form s rychloprodejem předmětů, fixme
 $o        = dbQuery(
     <<<SQL
