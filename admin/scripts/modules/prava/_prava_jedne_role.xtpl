@@ -46,8 +46,9 @@ Seznam uživatelů na této roli:
     <td>{nick}</td>
     <td>{jmeno}</td>
     <td>
+      <a href="uzivatel?pracovni_uzivatel={id}">otevřít uživatele</a>
       <!-- begin:akce -->
-      <a href="prava/{id_role}?sesadUzivatele={id}">sesadit uživatele</a>
+      | <a href="prava/{id_role}?sesadUzivatele={id}">sesadit uživatele</a>
       <!-- end:akce -->
     </td>
   </tr>
