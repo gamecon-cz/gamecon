@@ -1938,7 +1938,7 @@ SQL,
                 [StavPrihlaseni::POZDE_ZRUSIL],
             );
         }
-        // todo(tym): při odhlášení aktivity bude předán kapitán. Tohle bude asi handlované v odhlasUzivateleOdTymu
+        // legacy: předání kapitánství je nově v AktivitaTym::odhlasUzivateleOdTymu(), tohle zůstává pro zpětnou kompatibilitu
         if ($this->a[Sql::ZAMCEL] == $idUzivatele) {
             dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$idAktivity");
         }
@@ -2340,7 +2340,7 @@ SQL
             $this->zamknoutProTeam($uzivatel);
         }
         if ($this->a[Sql::TEAMOVA]) {
-            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu);
+            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, (bool)(self::IGNOROVAT_LIMIT & $parametry));
         }
 
         dbQuery(

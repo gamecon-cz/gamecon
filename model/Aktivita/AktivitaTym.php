@@ -9,14 +9,16 @@ class AktivitaTym extends \DbObject
 {
     protected static $tabulka = AkceTymSqlStruktura::AKCE_TYM_TABULKA;
 
-    public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu) {
+    public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu, bool $ignorovatLimity = false) {
         self::zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
 
         if ($kodTymu === 0) {
-            $idTymu = self::vytvorNovyTym($idUzivatele, $idAktivity);
+            $idTymu = self::vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity);
         } else {
             $idTymu = self::najdiTymPodleKodu($idAktivity, $kodTymu);
-            self::zkontrolujKapacituTymu($idTymu, $idAktivity);
+            if (!$ignorovatLimity) {
+                self::zkontrolujKapacituTymu($idTymu);
+            }
         }
 
         dbInsertUpdate(AkceTymSqlStruktura::AKCE_TYM_PRIHLASENI_TABULKA, [
@@ -37,8 +39,10 @@ class AktivitaTym extends \DbObject
         }
     }
 
-    private static function vytvorNovyTym(int $idUzivatele, int $idAktivity): int {
-        self::zkontrolujMaxPocetTymu($idAktivity);
+    private static function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): int {
+        if (!$ignorovatLimity) {
+            self::zkontrolujMaxPocetTymu($idAktivity);
+        }
 
         $kod = rand(1000, 9999);
         dbQuery(
@@ -76,7 +80,7 @@ class AktivitaTym extends \DbObject
         return $idTymu;
     }
 
-    private static function zkontrolujKapacituTymu(int $idTymu, int $idAktivity): void {
+    private static function zkontrolujKapacituTymu(int $idTymu): void {
         $pocetClenu = (int)dbOneCol(
             'SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE id_tymu = $0',
             [$idTymu],
@@ -95,12 +99,50 @@ class AktivitaTym extends \DbObject
     }
 
     public static function odhlasUzivateleOdTymu(int $idUzivatele, int $idAktivity) {
-        dbQuery(
-            'DELETE akce_tym_prihlaseni FROM akce_tym_prihlaseni
-             JOIN akce_tym ON akce_tym.id = akce_tym_prihlaseni.id_tymu
+        $tym = dbOneLine(
+            'SELECT akce_tym.id, akce_tym.id_kapitan FROM akce_tym
+             JOIN akce_tym_prihlaseni ON akce_tym_prihlaseni.id_tymu = akce_tym.id
              WHERE akce_tym_prihlaseni.id_uzivatele = $0 AND akce_tym.id_akce = $1',
             [$idUzivatele, $idAktivity],
         );
+        if (!$tym) {
+            return; // uživatel není v žádném týmu na této aktivitě
+        }
+        $idTymu = (int)$tym['id'];
+        $idKapitan = (int)$tym['id_kapitan'];
+
+        dbBegin();
+        try {
+            // smazat uživatele z týmu
+            dbQuery(
+                'DELETE FROM akce_tym_prihlaseni WHERE id_uzivatele = $0 AND id_tymu = $1',
+                [$idUzivatele, $idTymu],
+            );
+
+            $zbyvajiciClen = dbOneCol(
+                'SELECT akce_tym_prihlaseni.id_uzivatele FROM akce_tym_prihlaseni
+                 WHERE akce_tym_prihlaseni.id_tymu = $0
+                 ORDER BY akce_tym_prihlaseni.id ASC
+                 LIMIT 1',
+                [$idTymu],
+            );
+
+            if (!$zbyvajiciClen) {
+                // tým je prázdný → smazat
+                dbQuery('DELETE FROM akce_tym WHERE id = $0', [$idTymu]);
+            } elseif ($idUzivatele === $idKapitan) {
+                // odcházel kapitán → předat kapitánství nejstaršímu členovi
+                dbQuery(
+                    'UPDATE akce_tym SET id_kapitan = $0 WHERE id = $1',
+                    [(int)$zbyvajiciClen, $idTymu],
+                );
+            }
+
+            dbCommit();
+        } catch (\Exception $e) {
+            dbRollback();
+            throw $e;
+        }
     }
 
     public static function vratKodTymuProUzivatele(int $idUzivatele, int $idAktivity) {
