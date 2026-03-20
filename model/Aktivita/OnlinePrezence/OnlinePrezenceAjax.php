@@ -389,14 +389,16 @@ class OnlinePrezenceAjax
         }
         $vypravec = $this->dejVypravecePodleTestu($aktivita, $vypravec);
 
+        $prezence = $aktivita->dejPrezenci();
+
         if ($dorazil) {
             try {
-                $ignorovat = Aktivita::IGNOROVAT_LIMIT | Aktivita::IGNOROVAT_PRIHLASENI_NA_SOUROZENCE;
+                $ignorovat = Aktivita::IGNOROVAT_LIMIT | Aktivita::IGNOROVAT_PRIHLASENI_NA_SOUROZENCE | Aktivita::STAV;
                 $aktivita->zkontrolujZdaSeMuzePrihlasit(
                     $ucastnik,
                     $vypravec,
                     $this->testujeme
-                        ? $ignorovat | Aktivita::DOPREDNE | Aktivita::ZPETNE | Aktivita::STAV
+                        ? $ignorovat | Aktivita::DOPREDNE | Aktivita::ZPETNE
                         : $ignorovat,
                     true,
                     true,
@@ -405,30 +407,31 @@ class OnlinePrezenceAjax
                 $this->echoErrorJson($chyba->getMessage());
                 return;
             }
-            $aktivita->dejPrezenci()->ulozZeDorazil($ucastnik, $vypravec);
+            $posledniZmenaPrihlaseni = $prezence->ulozZeDorazil($ucastnik, $vypravec);
         } else {
             try {
                 $aktivita->zkontrolujZdaSeMuzeOdhlasit($ucastnik, $vypravec);
-                $aktivita->dejPrezenci()->zrusZeDorazil($ucastnik, $vypravec);
+                $posledniZmenaPrihlaseni = $prezence->zrusZeDorazil($ucastnik, $vypravec);
             } catch (\Chyba $chyba) {
                 $this->echoErrorJson($chyba->getMessage());
                 return;
             }
         }
 
-        /** Abychom mměli nová data pro @see Aktivita::dorazilJakoCokoliv */
-        $aktivita->refresh();
+        if (!$posledniZmenaPrihlaseni) {
+            $posledniZmenaPrihlaseni = $prezence->posledniZmenaPrihlaseni($ucastnik);
+        }
 
-        $posledniZmenaPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaPrihlaseni($ucastnik);
+        $jeNynidorazivsi = StavPrihlaseni::dorazilJakoCokoliv($posledniZmenaPrihlaseni->stavPrihlaseni());
 
         $this->echoJson([
-            self::PRIHLASEN                     => $aktivita->dorazilJakoCokoliv($ucastnik),
+            self::PRIHLASEN                     => $jeNynidorazivsi,
             self::CAS_POSLEDNI_ZMENY_PRIHLASENI => $posledniZmenaPrihlaseni->casZmenyProJs(),
             self::STAV_PRIHLASENI               => $posledniZmenaPrihlaseni->typPrezenceProJs(),
             self::ID_LOGU                       => $posledniZmenaPrihlaseni->idLogu(),
             self::RAZITKO_POSLEDNI_ZMENY        => $this->dejPotvrzeneRazitkoPosledniZmeny(
                 $vypravec,
-                Aktivita::posledniZmenaStavuAktivit([$aktivita]), // jenom jedna aktivita v online prezenci asi nebude, ale pro razítko to stačí (než se někdo přihlásí o změny a pak se přepočte se všemi aktivitami)
+                null, // změna prezence nemění stav aktivity
                 $posledniZmenaPrihlaseni,
                 false, // kdyby se mezi uložením změn a zjišťováním razítka objevila jiná změna, tak nechceme razítko přepisovat
             ),
