@@ -1,0 +1,14 @@
+<!-- begin:updateZustatku -->
+<h2>SQL update pro uzavření financí (překlápění ročníku)</h2>
+<!-- begin:formular -->
+<form method="post">
+    <button type="submit" value="1" name="{synchronniPostKlic}[{updateZustatkuKlic}]">
+        Vygenerovat SQL příkazy pro uzavření financí ročníku {rocnik}
+    </button>
+</form>
+<!-- end:formular -->
+<!-- begin:vysledek -->
+<p>SQL příkazy pro uzavření ročníku {rocnik}. Po provedení na DB všechny výsledky výpočtu peněz <strong>už nebudou platit</strong> až do překlopení ROCNIK na další ročník.</p>
+<textarea style="width:100%;height:400px">{sqlPrikazy}</textarea>
+<!-- end:vysledek -->
+<!-- end:updateZustatku -->

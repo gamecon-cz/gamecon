@@ -112,6 +112,11 @@ abstract class DbObject
         self::$objekty[static::class][$object->id()] = $object;
     }
 
+    public static function smazCache(): void
+    {
+        unset(self::$objekty[static::class], self::$objektyZVsech[static::class]);
+    }
+
     /**
      * Načte a vrátí pole objektů s danými ID (může být prázdné)
      * @param array<int|string>|string $ids pole čísel nebo řetězec čísel oddělených čárkami

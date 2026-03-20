@@ -77,4 +77,8 @@
 {exportAnonymizovaneDatabaze}
 <!-- end:exportAnonymizovaneDatabaze -->
 
+<!-- begin:updateZustatku -->
+{updateZustatku}
+<!-- end:updateZustatku -->
+
 <!-- end:nastaveni -->
