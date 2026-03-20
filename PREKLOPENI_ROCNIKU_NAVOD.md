@@ -92,8 +92,8 @@ a [https://admin.{STARY\_ROCNIK}.gamecon.cz/](https://admin.stary_rocnik.gamecon
 
 - Znovu si zkontroluj, že máš aktuální zálohu databáze s ostré a případně si stáhni novou, viz začátek tohoto README.
 
-    - A pak pusť
-      stránku [https://admin.gamecon.cz/reporty/update-zustatku](https://admin.gamecon.cz/reporty/update-zustatku)
+    - A pak jdi na stránku [https://admin.gamecon.cz/nastaveni](https://admin.gamecon.cz/nastaveni), dole najdi sekci
+      „SQL update pro uzavření financí" a klikni na tlačítko pro vygenerování SQL příkazů
         - _Tato stránka pouze vygeneruje kód, kterým později upravíš zůstatky peněz u všech lidí. Tento kód je potřeba
           si zkopírovat a uložit. V posledním kroku po nasazení webu tento skript pustíme na ostré databázi._
     - Skript zkopíruj a ručně spusť na ostré databázi
@@ -114,7 +114,7 @@ a [https://admin.{STARY\_ROCNIK}.gamecon.cz/](https://admin.stary_rocnik.gamecon
   *💡 Tím se spustí automatický deploy na ostrou*
     1. Pozor ⚠️, tím přestaly platit netrvalé (ročníkové) role, například “letošní vypravěč” a tím se změní zůstatky
        uživatelů, negeneruj už nový skript
-       z [https://admin.gamecon.cz/reporty/update-zustatku](https://admin.gamecon.cz/reporty/update-zustatku), musíš
+       z [https://admin.gamecon.cz/nastaveni](https://admin.gamecon.cz/nastaveni), musíš
        použít ten z předchozího ročníku, viz některý z předchozích kroků
 
 - Otevři si oficiální stránku [gamecon.cz](https://gamecon.cz/) a zkontroluj, zda vše funguje jak má.
