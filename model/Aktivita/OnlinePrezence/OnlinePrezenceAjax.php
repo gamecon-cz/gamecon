@@ -16,6 +16,7 @@ class OnlinePrezenceAjax
     public const AJAX           = 'ajax';
     public const KEEP_ALIVE     = 'keep-alive';
     public const POSLEDNI_ZMENY = 'posledni-zmeny';
+    public const POCATECNI_STAV = 'pocatecni-stav';
 
     public const POSLEDNI_LOGY_AKTIVIT_AJAX_KLIC    = 'posledni_logy_aktivit_ajax_klic';
     public const POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC  = 'posledni_logy_ucastniku_ajax_klic';
@@ -45,6 +46,11 @@ class OnlinePrezenceAjax
     public static function dejUrlAkceKeepAlive(): string
     {
         return getCurrentUrlWithQuery([self::AJAX => 1, 'akce' => self::KEEP_ALIVE]);
+    }
+
+    public static function dejUrlAkcePocatecniStav(): string
+    {
+        return getCurrentUrlWithQuery([self::AJAX => 1, 'akce' => self::POCATECNI_STAV]);
     }
 
     /**
@@ -85,6 +91,11 @@ class OnlinePrezenceAjax
 
         if (get('akce') === self::KEEP_ALIVE) {
             $this->echoJson([]);
+            return true;
+        }
+
+        if (get('akce') === self::POCATECNI_STAV) {
+            $this->ajaxDejPocatecniStav($vypravec);
             return true;
         }
 
@@ -138,6 +149,104 @@ class OnlinePrezenceAjax
 
         $this->echoErrorJson('Neznámý AJAX požadavek');
         return true;
+    }
+
+    private function ajaxDejPocatecniStav(\Uzivatel $vypravec): void
+    {
+        $idAktivit = (array)post('id_aktivit');
+
+        $aktivitProJson = [];
+        foreach ($idAktivit as $idAktivity) {
+            $aktivita = Aktivita::zId((int)$idAktivity, true);
+            if (!$aktivita) {
+                continue;
+            }
+
+            $konec                  = $aktivita->konec();
+            $zmenaStavuAktivity     = $aktivita->posledniZmenaStavuAktivity();
+            $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
+
+            $ucastniciHtml  = [];
+            $emaily         = [];
+            $prihlaseni     = $aktivita->prihlaseni();
+            $sledujici      = $aktivita->seznamSledujicich();
+            $vsichniUcastnici = array_merge($prihlaseni, $sledujici);
+
+            foreach ($vsichniUcastnici as $ucastnik) {
+                $ucastniciHtml[] = [
+                    self::ID_UZIVATELE    => (int)$ucastnik->id(),
+                    self::HTML_UCASTNIKA  => $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
+                        $ucastnik,
+                        $aktivita,
+                        $vypravec,
+                        $aktivita->stavPrihlaseni($ucastnik),
+                    ),
+                    self::STAV_PRIHLASENI => $this->dejStavPrihlaseniProJs($aktivita, $ucastnik),
+                ];
+            }
+
+            foreach ($prihlaseni as $ucastnik) {
+                $email = trim((string)$ucastnik->mail());
+                if ($email !== '') {
+                    $emaily[] = $email;
+                }
+            }
+
+            $aktivitProJson[] = [
+                self::ID_AKTIVITY                        => (int)$idAktivity,
+                'editovatelna_od_timestamp'              => $editovatelnaOdTimestamp,
+                'konec_aktivity_v_timestamp'             => $konec ? $konec->getTimestamp() : null,
+                self::UCASTNICI_PRIDATELNI_DO_TIMESTAMP  => $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita),
+                self::UCASTNICI_ODEBRATELNI_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($vypravec, $aktivita),
+                'cas_posledni_zmeny_stavu_aktivity'      => $zmenaStavuAktivity ? $zmenaStavuAktivity->casZmenyProJs() : '',
+                self::STAV_AKTIVITY                      => $zmenaStavuAktivity ? $zmenaStavuAktivity->stavAktivityProJs() : '',
+                self::ID_LOGU                            => $zmenaStavuAktivity ? $zmenaStavuAktivity->idLogu() : 0,
+                'ucastnici'                              => $ucastniciHtml,
+                'emaily'                                 => $emaily,
+            ];
+        }
+
+        $organizovaneAktivity = array_filter(
+            array_map(
+                static fn($idAktivity) => Aktivita::zId((int)$idAktivity, true),
+                $idAktivit,
+            ),
+        );
+
+        $razitkoPosledniZmeny = new RazitkoPosledniZmenyPrihlaseni(
+            $vypravec,
+            Aktivita::posledniZmenaStavuAktivit($organizovaneAktivity),
+            AktivitaPrezence::posledniZmenaPrihlaseniAktivit(
+                null,
+                $organizovaneAktivity,
+            ),
+            $this->filesystem,
+            self::RAZITKO_POSLEDNI_ZMENY,
+        );
+
+        $this->echoJson([
+            'aktivity'                   => $aktivitProJson,
+            self::RAZITKO_POSLEDNI_ZMENY => $razitkoPosledniZmeny->dejPotvrzeneRazitkoPosledniZmeny(),
+        ]);
+    }
+
+    private function dejStavPrihlaseniProJs(Aktivita $aktivita, \Uzivatel $ucastnik): string
+    {
+        $zmenaPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaPrihlaseni($ucastnik);
+        return $zmenaPrihlaseni ? $zmenaPrihlaseni->typPrezenceProJs() : '';
+    }
+
+    private function dejEditovatelnaOdTimestamp(Aktivita $aktivita): int
+    {
+        $zacatek = $aktivita->zacatek();
+        if (!$zacatek) {
+            return 0;
+        }
+        $hnedEditovatelnaSeZacatkemDo = (clone $zacatek)
+            ->modify("-{$this->systemoveNastaveni->aktivitaEditovatelnaXMinutPredJejimZacatkem()} minutes");
+        return $hnedEditovatelnaSeZacatkemDo <= $this->systemoveNastaveni->ted()
+            ? 0
+            : time() + ($hnedEditovatelnaSeZacatkemDo->getTimestamp() - $this->systemoveNastaveni->ted()->getTimestamp());
     }
 
     /**

@@ -6,17 +6,6 @@ import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
   $(function () {
     const akceAktivity = new AkceAktivity()
 
-    /*
-    Ve Firefoxu je zvláštní chyba, kdy pokud se checkbox změní na checked pomocí JS, poté se stránka přenačte, backend stránku
-    pošle bez checked (což obvykle znamená "nezaškrtnuto"), tak Firefox ponechá zaškrtnutí z předchozí akce JS.
-    Toto je workaround.
-     */
-    $('input.dorazil[type=checkbox]').each(function (index, checkbox) {
-      if (!checkbox.dataset.initialChecked) {
-        checkbox.checked = false
-      }
-    })
-
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (tooltipElement) {
       bootstrap.Tooltip.getOrCreateInstance(tooltipElement).update()
     })
@@ -62,11 +51,6 @@ import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
       aktivitaNode.dataset.ucastniciPridatelniDoTimestamp = metadata.ucastniciPridatelniDoTimestamp.toString()
       aktivitaNode.dataset.ucastniciOdebratelniDoTimestamp = metadata.ucastniciOdebratelniDoTimestamp.toString()
     }
-
-    $('.ucastnik').each(function (index, ucastnikNode) {
-      akceAktivity.hlidejZmenyMetadatUcastnika(ucastnikNode)
-      aktivujTooltipUcastnika(ucastnikNode.dataset.id, ucastnikNode.dataset.idAktivity)
-    })
 
     /**
      * @param {number|string} idUzivatele
@@ -117,13 +101,113 @@ import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
     omnibox.inicializujOmnibox()
 
     // ⏳ ČEKÁNÍ NA EDITACI ⏳
+    // Nastavení odpočtů a hlídání časů se spouští až po načtení počátečního stavu přes AJAX (event aktivitaVyrenderovana)
 
-    $aktivity.each(function () {
-      const aktivitaNode = this
+    document.addEventListener('aktivitaVyrenderovana', function (event) {
+      const aktivitaNode = event.detail
+
+      // inicializace účastníků přidaných přes AJAX
+      aktivitaNode.querySelectorAll('.ucastnik').forEach(function (ucastnikNode) {
+        akceAktivity.hlidejZmenyMetadatUcastnika(ucastnikNode)
+        aktivujTooltipUcastnika(ucastnikNode.dataset.id, ucastnikNode.dataset.idAktivity)
+      })
+
+      /*
+      Ve Firefoxu je zvláštní chyba, kdy pokud se checkbox změní na checked pomocí JS, poté se stránka přenačte, backend stránku
+      pošle bez checked (což obvykle znamená "nezaškrtnuto"), tak Firefox ponechá zaškrtnutí z předchozí akce JS.
+      Toto je workaround.
+       */
+      $(aktivitaNode).find('input.dorazil[type=checkbox]').each(function (index, checkbox) {
+        if (!checkbox.dataset.initialChecked) {
+          checkbox.checked = false
+        }
+      })
+
       if (aktivitaNode.dataset.editovatelnaOdTimestamp > 0) {
         zablokovatAktivituProEditaciSOdpoctem(aktivitaNode)
       }
+
+      if (aktivitaNode.dataset.ucastniciOdebratelniDoTimestamp > 0) {
+        hlidatDoKdyJeMoznePridavatUcastniky(aktivitaNode)
+        hlidatDoKdyJeMozneOdebiratUcastniky(aktivitaNode)
+      }
+
+      // ✋ AKTIVITA UŽ SKONČILA, POZOR NA ÚPRAVY ✋
+      aktivitaNode.querySelectorAll('.text-skoncila').forEach(function (textSkoncilaNode) {
+        const $textSkoncilaNode = $(textSkoncilaNode)
+        hlidatUpozorneniNaSkoncenouAktivitu(aktivitaNode, $textSkoncilaNode)
+      })
+
+      // zobrazení stavu aktivity (zamčena, uzavřena, ...)
+      zobrazStavAktivity(aktivitaNode)
     })
+
+    /**
+     * @param {HTMLElement} aktivitaNode
+     */
+    function zobrazStavAktivity(aktivitaNode) {
+      const idAktivity = aktivitaNode.dataset.id
+      const stavAktivity = aktivitaNode.dataset.stavAktivity
+      const editovatelnaOdTimestamp = Number.parseInt(aktivitaNode.dataset.editovatelnaOdTimestamp) || 0
+      const ucastniciPridatelniDoTimestamp = Number.parseInt(aktivitaNode.dataset.ucastniciPridatelniDoTimestamp) || 0
+      const ucastniciOdebratelniDoTimestamp = Number.parseInt(aktivitaNode.dataset.ucastniciOdebratelniDoTimestamp) || 0
+      const pridatelniHned = editovatelnaOdTimestamp <= 0 && ucastniciPridatelniDoTimestamp > 0
+      const odebratelniHned = editovatelnaOdTimestamp <= 0 && ucastniciOdebratelniDoTimestamp > 0
+      const nejdouAlePujdouPridat = !pridatelniHned && ucastniciPridatelniDoTimestamp > 0
+      const nejdouAlePujdouOdebrat = !odebratelniHned && ucastniciOdebratelniDoTimestamp > 0
+      const uzNepujdePridat = ucastniciPridatelniDoTimestamp <= 0
+      const uzNepujdeOdebrat = ucastniciOdebratelniDoTimestamp <= 0
+      const zamcena = stavAktivity === 'zamcena'
+      const uzavrena = stavAktivity === 'uzavrena'
+      const neuzavrena = !uzavrena
+      const muzePridatUcastnikyHned = pridatelniHned
+      const muzeOdebratUcastnikyHned = odebratelniHned
+
+      // ⏳ Můžeš ji editovat za ⏳
+      zobrazitKdyz(aktivitaNode, '.text-ceka', nejdouAlePujdouPridat && nejdouAlePujdouOdebrat)
+      // 🔒 Zamčena 🔒
+      zobrazitKdyz(aktivitaNode, `#zamcena-${idAktivity}`, zamcena)
+      // Uzavřít 📕
+      zobrazitKdyz(aktivitaNode, '.tlacitko-uzavrit-aktivitu', neuzavrena && !nejdouAlePujdouPridat)
+      // 🧊 Už ji nelze editovat 🧊
+      zobrazitKdyz(aktivitaNode, '.zobrazit-pokud-aktivitu-nelze-editovat', neuzavrena && uzNepujdePridat && uzNepujdeOdebrat)
+      // 📕 Uzavřena 📕
+      zobrazitKdyz(aktivitaNode, `#uzavrena-${idAktivity}`, uzavrena)
+      // ✋ Aktivita už skončila ✋
+      zobrazitKdyz(
+        aktivitaNode,
+        '.skryt-pokud-aktivitu-nelze-editovat',
+        (muzePridatUcastnikyHned && !pridatelniHned) || (muzeOdebratUcastnikyHned && !odebratelniHned),
+      )
+      // ⚠️ Pozor, uzavřená! ⚠️
+      zobrazitKdyz(
+        aktivitaNode,
+        `#pozor-zamcena-${idAktivity}`,
+        uzavrena && (muzePridatUcastnikyHned || muzeOdebratUcastnikyHned),
+      )
+
+      // odblokování omniboxu
+      if (muzePridatUcastnikyHned) {
+        $(aktivitaNode).find('input.omnibox').prop('disabled', false)
+      }
+    }
+
+    /**
+     * @param {HTMLElement} parentNode
+     * @param {string} selector
+     * @param {boolean} zobrazit
+     */
+    function zobrazitKdyz(parentNode, selector, zobrazit) {
+      const element = parentNode.querySelector(selector)
+      if (!element) {
+        return
+      }
+      if (zobrazit) {
+        element.classList.remove('display-none')
+      } else {
+        element.classList.add('display-none')
+      }
+    }
 
     /**
      * @param {HTMLElement} aktivitaNode
@@ -155,14 +239,6 @@ import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
         }
       }, interval)
     }
-
-    $aktivity.each(function () {
-      const aktivitaNode = this
-      if (aktivitaNode.dataset.ucastniciOdebratelniDoTimestamp > 0) {
-        hlidatDoKdyJeMoznePridavatUcastniky(aktivitaNode)
-        hlidatDoKdyJeMozneOdebiratUcastniky(aktivitaNode)
-      }
-    })
 
     /**
      * @param {HTMLElement} aktivitaNode
@@ -262,18 +338,6 @@ import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
       return lidskyCas
     }
 
-    // ✋ AKTIVITA UŽ SKONČILA, POZOR NA ÚPRAVY ✋
-    $aktivity.each(function () {
-      const aktivitaNode = this
-      aktivitaNode.querySelectorAll('.text-skoncila').forEach(function (textSkoncilaNode) {
-        if (textSkoncilaNode.classList.contains('display-none')) {
-          return
-        }
-        const $textSkoncilaNode = $(textSkoncilaNode)
-        hlidatUpozorneniNaSkoncenouAktivitu(aktivitaNode, $textSkoncilaNode)
-      })
-    })
-
     function hlidatUpozorneniNaSkoncenouAktivitu(aktivitaNode, $textSkoncilaNode) {
       const konecAktivityVTimestamp = Number.parseInt(aktivitaNode.dataset.konecAktivityVTimestamp)
       if (!konecAktivityVTimestamp) {
@@ -306,13 +370,6 @@ import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
     }
   })
 })(jQuery)
-
-document.addEventListener('aktivitaVyrenderovana', function (event) {
-  const aktivitaNode = event.detail
-  if (aktivitaNode.dataset.editovatelnaOdTimestamp > 0) {
-    zablokovatAktivituProEditaciSOdpoctem(aktivitaNode)
-  }
-})
 
 const onlinePrezence = document.getElementById('online-prezence')
 
