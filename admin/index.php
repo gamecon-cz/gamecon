@@ -207,6 +207,27 @@ if ($u && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
     } else {
         $xtpl->parse('all.uzivatel.omnibox');
     }
+    $historiePredchozich = $_SESSION['pracovni_uzivatel_predchozi'] ?? [];
+    if (!is_array($historiePredchozich)) {
+        $historiePredchozich = $historiePredchozich ? [$historiePredchozich] : [];
+    }
+    $idPracovnihoUzivatele = $uPracovni ? $uPracovni->id() : null;
+    $idPredchoziho = null;
+    foreach ($historiePredchozich as $idZHistorie) {
+        if ($idZHistorie !== $idPracovnihoUzivatele) {
+            $idPredchoziho = $idZHistorie;
+            break;
+        }
+    }
+    if ($idPredchoziho) {
+        $predchozi = Uzivatel::zId($idPredchoziho);
+        if ($predchozi) {
+            $xtpl->assign('adminUrl', URL_ADMIN);
+            $xtpl->assign('predchoziId', $predchozi->id());
+            $xtpl->assign('predchoziJmenoNick', $predchozi->jmenoNick());
+            $xtpl->parse('all.uzivatel.predchozi');
+        }
+    }
     $xtpl->parse('all.uzivatel');
 }
 

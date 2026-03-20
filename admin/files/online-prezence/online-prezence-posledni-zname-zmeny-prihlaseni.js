@@ -41,45 +41,141 @@ import {AkceAktivity} from "./online-prezence-akce-aktivity-class.js"
       return onlinePrezence.dataset.razitkoPosledniZmeny
     }
 
-    let jePozastavenaKontrolaZmen = false
-    setInterval(function () {
-      if (onlinePrezence.dataset.probihajiZmeny === 'true') {
-        return // něco se mění, necháme to na příští interval
-      }
-
-      const request = new XMLHttpRequest()
-
-      request.addEventListener('loadstart', function () {
-        jePozastavenaKontrolaZmen = true
-      })
-
-      request.addEventListener('load', function () {
-        if (this.status === 404) {
-          nahratZmenyPrihlaseni()
-        } else if (this.status === 200 && this.responseText) {
-          const json = JSON.parse(this.responseText.trim())
-          if (json.razitko_posledni_zmeny !== dejZnameRazitkoPosledniZmeny()) {
-            nahratZmenyPrihlaseni()
-          }
-        }
-      })
-
-      request.addEventListener('loadend', function () {
-        jePozastavenaKontrolaZmen = false
-      })
-
-      request.open('GET', dejUrlRazitkaPosledniZmeny()) // asynchronous
-      if (jePozastavenaKontrolaZmen) {
-        return
-      }
-      request.send()
-    }, 3000) // každé tři sekundy kontrolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
-
     const urlAkcePosledniZmeny = onlinePrezence.dataset.urlAkcePosledniZmeny // bez domény - jQuery to nevadí
+    const urlAkcePocatecniStav = onlinePrezence.dataset.urlAkcePocatecniStav
     const posledniLogyAktivitAjaxKlic = onlinePrezence.dataset.posledniLogyAktivitAjaxKlic
     const posledniLogyUcastnikuAjaxKlic = onlinePrezence.dataset.posledniLogyUcastnikuAjaxKlic
 
     const $aktivity = $(onlinePrezence).find('.aktivita')
+
+    // POČÁTEČNÍ STAV - načtení dat pro všechny aktivity přes AJAX
+    nahratPocatecniStav()
+
+    function nahratPocatecniStav() {
+      const idAktivit = []
+      $aktivity.each(function (indexAktivity, aktivita) {
+        idAktivit.push(aktivita.dataset.id)
+      })
+
+      $.post(urlAkcePocatecniStav, {
+        id_aktivit: idAktivit,
+      }).done(function (data) {
+        if (data.aktivity) {
+          data.aktivity.forEach(function (aktivitaData) {
+            zpracujPocatecniStavAktivity(aktivitaData)
+          })
+        }
+
+        if (data.razitko_posledni_zmeny) {
+          const zmenaMetadatPrezence = ZmenaMetadatPrezence.vytvor(data.razitko_posledni_zmeny)
+          onlinePrezence.dispatchEvent(zmenaMetadatPrezence)
+        }
+
+        zobrazElementyPodlePosledniVolby()
+
+        // teprve po načtení počátečního stavu spustíme polling
+        spustitPolling()
+      }).fail(function () {
+        $aktivity.each(function (indexAktivity, aktivita) {
+          const nacitani = aktivita.querySelector('.nacitani')
+          if (nacitani) {
+            nacitani.innerHTML = '<td colspan="6"><em>Chyba při načítání</em> 😢</td>'
+          }
+        })
+      })
+    }
+
+    /**
+     * @param {{id_aktivity: number, editovatelna_od_timestamp: number, konec_aktivity_v_timestamp: number|null, ucastnici_pridatelni_do_timestamp: number, ucastnici_odebratelni_do_timestamp: number, cas_posledni_zmeny_stavu_aktivity: string, stav_aktivity: string, id_logu: number, ucastnici: Array, emaily: string[]}} aktivitaData
+     */
+    function zpracujPocatecniStavAktivity(aktivitaData) {
+      const aktivitaNode = akceAktivity.dejNodeAktivity(aktivitaData.id_aktivity)
+      if (!aktivitaNode) {
+        return
+      }
+
+      // nastavíme data-* atributy
+      aktivitaNode.dataset.casPosledniZmenyStavuAktivity = aktivitaData.cas_posledni_zmeny_stavu_aktivity
+      aktivitaNode.dataset.stavAktivity = aktivitaData.stav_aktivity
+      aktivitaNode.dataset.idPoslednihoLogu = aktivitaData.id_logu.toString()
+      aktivitaNode.dataset.konecAktivityVTimestamp = (aktivitaData.konec_aktivity_v_timestamp || '').toString()
+      aktivitaNode.dataset.editovatelnaOdTimestamp = aktivitaData.editovatelna_od_timestamp.toString()
+      aktivitaNode.dataset.ucastniciPridatelniDoTimestamp = aktivitaData.ucastnici_pridatelni_do_timestamp.toString()
+      aktivitaNode.dataset.ucastniciOdebratelniDoTimestamp = aktivitaData.ucastnici_odebratelni_do_timestamp.toString()
+
+      // odstraníme loading indikátor
+      const nacitani = aktivitaNode.querySelector('.nacitani')
+      if (nacitani) {
+        nacitani.remove()
+      }
+
+      // vložíme účastníky
+      const ucastniciSeznam = aktivitaNode.querySelector('.ucastnici-seznam')
+      if (aktivitaData.ucastnici) {
+        aktivitaData.ucastnici.forEach(function (ucastnikData) {
+          const htmlUcastnika = ucastnikData.html_ucastnika.trim()
+          if (htmlUcastnika === '') {
+            return
+          }
+          const template = document.createElement('template')
+          template.innerHTML = htmlUcastnika
+          ucastniciSeznam.appendChild(template.content.firstChild)
+        })
+      }
+
+      // naplníme emaily
+      const emailyNode = document.getElementById(`emaily-${aktivitaData.id_aktivity}`)
+      if (emailyNode && aktivitaData.emaily) {
+        const emailyAnchor = emailyNode.querySelector('a')
+        emailyAnchor.href = 'mailto:?bcc=' + aktivitaData.emaily.join(',')
+        emailyAnchor.innerText = aktivitaData.emaily.join(', ')
+      }
+
+      // dispathneme event aktivitaVyrenderovana pro každou aktivitu
+      const aktivitaVyrenderovana = new CustomEvent(
+        'aktivitaVyrenderovana',
+        {
+          detail: aktivitaNode,
+        },
+      )
+      document.dispatchEvent(aktivitaVyrenderovana)
+    }
+
+    function spustitPolling() {
+      let jePozastavenaKontrolaZmen = false
+      setInterval(function () {
+        if (onlinePrezence.dataset.probihajiZmeny === 'true') {
+          return // něco se mění, necháme to na příští interval
+        }
+
+        const request = new XMLHttpRequest()
+
+        request.addEventListener('loadstart', function () {
+          jePozastavenaKontrolaZmen = true
+        })
+
+        request.addEventListener('load', function () {
+          if (this.status === 404) {
+            nahratZmenyPrihlaseni()
+          } else if (this.status === 200 && this.responseText) {
+            const json = JSON.parse(this.responseText.trim())
+            if (json.razitko_posledni_zmeny !== dejZnameRazitkoPosledniZmeny()) {
+              nahratZmenyPrihlaseni()
+            }
+          }
+        })
+
+        request.addEventListener('loadend', function () {
+          jePozastavenaKontrolaZmen = false
+        })
+
+        request.open('GET', dejUrlRazitkaPosledniZmeny()) // asynchronous
+        if (jePozastavenaKontrolaZmen) {
+          return
+        }
+        request.send()
+      }, 3000)
+    }
 
     function nahratZmenyPrihlaseni() {
       const aktivityPosledniZnameLogy = {}

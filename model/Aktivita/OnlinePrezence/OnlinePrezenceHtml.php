@@ -4,7 +4,6 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
-use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Info;
@@ -147,116 +146,17 @@ class OnlinePrezenceHtml
     )
     {
         foreach ($organizovaneAktivity as $aktivita) {
-            $editovatelnaOdTimestamp         = $this->dejEditovatelnaOdTimestamp($aktivita);
-            $ucastniciPridatelniDoTimestamp  = $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita);
-            $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($vypravec, $aktivita);
-            $pridatelniHned                  = $editovatelnaOdTimestamp <= 0 && $ucastniciPridatelniDoTimestamp > 0;
-            $odebratelniHned                 = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
-            $nejdouAlePujdouPridat           = !$pridatelniHned && $ucastniciPridatelniDoTimestamp > 0;
-            $nejdouAlePujdouOdebrat          = !$odebratelniHned && $ucastniciOdebratelniDoTimestamp > 0;
-            $uzNepujdePridat                 = $ucastniciPridatelniDoTimestamp <= 0;
-            $uzNepujdeOdebrat                = $ucastniciOdebratelniDoTimestamp <= 0;
-            $zamcena                         = $aktivita->zamcena();
-            $uzavrena                        = $aktivita->uzavrena();
-            $neuzavrena                      = !$uzavrena;
-            $muzePridatUcastnikyHned         = $pridatelniHned; // TODO připraveno pro právo na změnu historie aktivit
-            $muzeOdebratUcastnikyHned        = $odebratelniHned; // TODO připraveno pro právo na změnu historie aktivit
-            $zmenaStavuAktivity              = $aktivita->posledniZmenaStavuAktivity();
-            $konec                           = $aktivita->konec();
-
             $template->assign(
                 'omniboxUrl',
                 getCurrentUrlWithQuery(['ajax' => 1, 'omnibox' => 1, 'idAktivity' => $aktivita->id()]),
             );
-            $template->assign('konecAktivityVTimestamp', $konec ? $konec->getTimestamp() : null);
-            $template->assign('editovatelnaOdTimestamp', $editovatelnaOdTimestamp);
-            $template->assign('ucastniciPridatelniDoTimestamp', $ucastniciPridatelniDoTimestamp);
-            $template->assign('ucastniciOdebratelniDoTimestamp', $ucastniciOdebratelniDoTimestamp);
             $template->assign('minutNaPosledniChvili', $this->systemoveNastaveni->prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity());
             $template->assign('kapacita', (int)$aktivita->neteamovaKapacita());
-            $template->assign('idAktivity', $aktivita->id());
-            $template->assign('casPosledniZmenyStavuAktivity', $zmenaStavuAktivity ? $zmenaStavuAktivity->casZmenyProJs() : '');
-            $template->assign('stavAktivity', $zmenaStavuAktivity ? $zmenaStavuAktivity->stavAktivityProJs() : '');
-            $template->assign('idPoslednihoLogu', $zmenaStavuAktivity ? $zmenaStavuAktivity->idLogu() : 0);
-
-            // ⏳ Můžeš ji editovat za ⏳
-            $template->assign(
-                'showCeka',
-                $this->cssZobrazitKdyz($nejdouAlePujdouPridat && $nejdouAlePujdouOdebrat),
-            );
-            // 🔒 Zamčena pro online přihlašování 🔒
-            $template->assign(
-                'showZamcena',
-                $this->cssZobrazitKdyz($zamcena),
-            );
-            // Uzavřít 📕
-            $template->assign(
-                'showUzavrit',
-                $this->cssZobrazitKdyz($neuzavrena && !$nejdouAlePujdouPridat),
-            );
-            // 🧊 ️Už ji nelze editovat ani zpětně 🧊️
-            $template->assign(
-                'showUzNeeditovatelna',
-                $this->cssZobrazitKdyz($neuzavrena && $uzNepujdePridat && $uzNepujdeOdebrat),
-            );
-            // 📕 Uzavřena 📕
-            $template->assign(
-                'showUzavrena',
-                $this->cssZobrazitKdyz($uzavrena),
-            );
-            // ✋ Aktivita už skončila, pozor na úpravy ✋
-            $template->assign(
-                'showAktivitaSkoncila',
-                // zobrazíme pouze v případě, že aktivitu lze editovat i po skončení (není tedy ještě uzavřená, nebo má editující zvláštní právo)
-                $this->cssZobrazitKdyz(
-                    ($muzePridatUcastnikyHned && !$pridatelniHned)
-                    || ($muzeOdebratUcastnikyHned && !$odebratelniHned),
-                ),
-            );
-            // ⚠️Pozor, aktivita je už uzavřená! ⚠️
-            $template->assign( // určeno pro zvláštní admin právo
-                'showPozorUzavrena',
-                $this->cssZobrazitKdyz($uzavrena && ($muzePridatUcastnikyHned || $muzeOdebratUcastnikyHned)),
-            );
-
-            // případnou změnu je nutné promítnout i do online-prezence.js pridejEmailUcastnikaDoSeznamu()
-            $emaily = $this->emailyUcastniku($aktivita);
-            $template->assign('emailyHref', implode(',', $emaily));
-            $template->assign('emailyText', implode(', ', $emaily));
-
-            $prihlaseni = $this->seradDleStavuPrihlaseni($aktivita->prihlaseni(), $aktivita);
-            foreach ($prihlaseni as $ucastnik) {
-                $ucastnikHtml = $this->dejOnlinePrezenceUcastnikHtml()->sestavHmlUcastnikaAktivity(
-                    $ucastnik,
-                    $aktivita,
-                    $aktivita->stavPrihlaseni($ucastnik),
-                    $muzePridatUcastnikyHned,
-                    $muzeOdebratUcastnikyHned,
-                );
-                $template->assign('ucastnikHtml', $ucastnikHtml);
-                $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
-            }
-
-            $seznamSledujicich = $this->seradDleStavuPrihlaseni($aktivita->seznamSledujicich(), $aktivita);
-            foreach ($seznamSledujicich as $sledujici) {
-                $sledujiciHtml = $this->dejOnlinePrezenceUcastnikHtml()->sestavHmlUcastnikaAktivity(
-                    $sledujici,
-                    $aktivita,
-                    $aktivita->stavPrihlaseni($sledujici),
-                    $muzePridatUcastnikyHned,
-                    $muzeOdebratUcastnikyHned,
-                );
-                $template->assign('ucastnikHtml', $sledujiciHtml);
-                $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
-            }
-
-            $template->assign('disabledPridatUcastnika', $muzePridatUcastnikyHned ? '' : 'disabled');
             $template->assign('idAktivity', $aktivita->id());
             $template->assign('urlAktivity', $aktivita->url());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
             $template->assign('nadpis', self::nazevProAnchor($aktivita));
-            $template->assign('pocetPrihlasenych', $aktivita->pocetPrihlasenych());
             $template->assign('zacatek', $aktivita->zacatek() ? $aktivita->zacatek()->format('l H:i') : '-nevíme-');
             $template->assign('konec', $aktivita->konec() ? $aktivita->konec()->format('l H:i') : '-nevíme-');
 
@@ -282,6 +182,7 @@ class OnlinePrezenceHtml
         $template->assign('urlRazitkaPosledniZmeny', $razitkoPosledniZmeny->dejUrlRazitkaPosledniZmeny());
         $template->assign('urlAkcePosledniZmeny', OnlinePrezenceAjax::dejUrlAkcePosledniZmeny());
         $template->assign('urlAkceKeepAlive', OnlinePrezenceAjax::dejUrlAkceKeepAlive());
+        $template->assign('urlAkcePocatecniStav', OnlinePrezenceAjax::dejUrlAkcePocatecniStav());
         $template->assign('posledniLogyAktivitAjaxKlic', OnlinePrezenceAjax::POSLEDNI_LOGY_AKTIVIT_AJAX_KLIC);
         $template->assign('posledniLogyUcastnikuAjaxKlic', OnlinePrezenceAjax::POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC);
 
@@ -294,42 +195,11 @@ class OnlinePrezenceHtml
             || !$aktivita->uzavrena();
     }
 
-    /**
-     * @param Aktivita $aktivita
-     * @return string[]
-     */
-    private function emailyUcastniku(Aktivita $aktivita): array
+    private function cssZobrazitKdyz(bool $zobrazit): string
     {
-        return array_map(
-            static function (\Uzivatel $ucastnik) {
-                return trim((string)$ucastnik->mail());
-            },
-            $aktivita->prihlaseni(),
-        );
-    }
-
-    /**
-     * @param \Uzivatel[] $prihlaseni
-     * @return \Uzivatel[]
-     */
-    private function seradDleStavuPrihlaseni(array $prihlaseni, Aktivita $aktivita): array
-    {
-        usort($prihlaseni, function (\Uzivatel $nejakyPrihlaseny, $jinyPrihlaseny) use ($aktivita) {
-            // běžní účastníci první, náhradníci druzí, sledující poslední
-            $porovnaniStavuPrihlaseni = $aktivita->stavPrihlaseni($nejakyPrihlaseny) <=> $aktivita->stavPrihlaseni($jinyPrihlaseny);
-            if ($porovnaniStavuPrihlaseni !== 0) {
-                return $porovnaniStavuPrihlaseni;
-            }
-            $prezence = $aktivita->dejPrezenci();
-            // později přidaný / změněný nakonec
-            $nejakaPosledniZmena = $prezence->posledniZmenaPrihlaseni($nejakyPrihlaseny);
-            $jinaPosledniZmena   = $prezence->posledniZmenaPrihlaseni($jinyPrihlaseny);
-            if ($nejakaPosledniZmena === null || $jinaPosledniZmena === null) {
-                return $nejakaPosledniZmena <=> $jinaPosledniZmena;
-            }
-            return $nejakaPosledniZmena->idLogu() <=> $jinaPosledniZmena->idLogu();
-        });
-        return $prihlaseni;
+        return $zobrazit
+            ? ''
+            : 'display-none';
     }
 
     private function dejEditovatelnaOdTimestamp(Aktivita $aktivita): int
@@ -341,8 +211,7 @@ class OnlinePrezenceHtml
         $hnedEditovatelnaSeZacatkemDo = (clone $zacatek)
             ->modify("-{$this->systemoveNastaveni->aktivitaEditovatelnaXMinutPredJejimZacatkem()} minutes");
         return $hnedEditovatelnaSeZacatkemDo <= $this->systemoveNastaveni->ted()
-            ? 0 // aktivitu může editovat hned
-            // pokud je editovatelná například od 12:10, ale "teď" je 12:00, tak musíme počkat oněch rozdílových 10 minut
+            ? 0
             : time() + ($hnedEditovatelnaSeZacatkemDo->getTimestamp() - $this->systemoveNastaveni->ted()->getTimestamp());
     }
 
@@ -350,23 +219,16 @@ class OnlinePrezenceHtml
     {
         $ucastniciOdebratelniDo = $aktivita->ucastniciOdebratelniDo($odhlasujici);
         return $ucastniciOdebratelniDo <= $this->systemoveNastaveni->ted()
-            ? 0 // už je nelze odebrat
+            ? 0
             : $ucastniciOdebratelniDo->getTimestamp();
     }
 
     private function ucastniciPridatelniDoTimestamp(\Uzivatel $prihlasujici, Aktivita $aktivita): int
     {
-        $ucastniciPridatelniDo = $aktivita->ucastniciPridatelniDo($prihlasujici, $this->systemoveNastaveni);
+        $ucastniciPridatelniDo = $aktivita->ucastniciPridatelniDo($prihlasujici);
         return $ucastniciPridatelniDo <= $this->systemoveNastaveni->ted()
-            ? 0 // už je nelze přidat
+            ? 0
             : $ucastniciPridatelniDo->getTimestamp();
-    }
-
-    private function cssZobrazitKdyz(bool $zobrazit): string
-    {
-        return $zobrazit
-            ? ''
-            : 'display-none';
     }
 
     private function dejOnlinePrezenceUcastnikHtml(): OnlinePrezenceUcastnikHtml

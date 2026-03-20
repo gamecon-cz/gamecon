@@ -238,14 +238,6 @@ class Cenik
             return (float)$r[NakupySql::CENA_NAKUPNI];
         }
         if (isset($r[PredmetySql::CENA_AKTUALNI])) {
-            trigger_error(
-                sprintf(
-                    "Chybí nákupní cena v záznamu nákupu předmětu s ID '%s'",
-                    $r[PredmetySql::ID_PREDMETU] ?? 'neznámé',
-                ),
-                E_USER_WARNING,
-            );
-
             return (float)$r[PredmetySql::CENA_AKTUALNI];
         }
         throw new \RuntimeException('Nelze načíst cenu předmětu s ID ' . ($r[PredmetySql::ID_PREDMETU] ?? 'neznámé'));
