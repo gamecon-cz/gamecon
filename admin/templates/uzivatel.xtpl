@@ -60,5 +60,10 @@
 
     <div style="clear:both"></div>
     <!-- end:vybrany -->
+    <!-- begin:predchozi -->
+    <div class="tip" style="position: relative">
+        <a href="{adminUrl}/uzivatel?pracovni_uzivatel={predchoziId}">↻ {predchoziJmenoNick}</a>
+    </div>
+    <!-- end:predchozi -->
 </div>
 <!-- end:uzivatel -->
