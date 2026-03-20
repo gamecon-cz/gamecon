@@ -101,6 +101,10 @@ export type ApiAktivitaUživatel = {
   zamcenaDo?: number,
   /** aktivita zamčená přihlášeným užviatelem */
   zamcenaMnou?: boolean,
+  /** počet členů týmu, ve kterém je uživatel přihlášen */
+  tymPocetClenu?: number,
+  /** limit členů týmu */
+  tymLimit?: number | null,
   /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusím aby tam bylo */
   __TS_STRUKTURALNI_KONTROLA__: true,
 }

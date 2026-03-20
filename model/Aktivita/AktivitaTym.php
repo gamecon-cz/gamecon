@@ -145,6 +145,29 @@ class AktivitaTym extends \DbObject
         }
     }
 
+    /**
+     * @return array{pocetClenu: int, limit: int|null}|null
+     */
+    public static function infoOTymuUzivatele(int $idUzivatele, int $idAktivity): ?array {
+        $row = dbOneLine(
+            'SELECT
+                (SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE akce_tym_prihlaseni.id_tymu = akce_tym.id) AS pocet_clenu,
+                COALESCE(akce_tym.`limit`, akce_seznam.team_max) AS team_limit
+             FROM akce_tym
+             JOIN akce_tym_prihlaseni ON akce_tym_prihlaseni.id_tymu = akce_tym.id
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym.id_akce
+             WHERE akce_tym_prihlaseni.id_uzivatele = $0 AND akce_tym.id_akce = $1',
+            [$idUzivatele, $idAktivity],
+        );
+        if (!$row) {
+            return null;
+        }
+        return [
+            'pocetClenu' => (int)$row['pocet_clenu'],
+            'limit'      => $row['team_limit'] !== null ? (int)$row['team_limit'] : null,
+        ];
+    }
+
     public static function vratKodTymuProUzivatele(int $idUzivatele, int $idAktivity) {
         return (int)dbOneCol(
             'SELECT akce_tym.kod FROM akce_tym

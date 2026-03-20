@@ -91,6 +91,8 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             obsazenost={aktivita.obsazenost}
             prihlasovatelna={aktivita.prihlasovatelna ?? false}
             probehnuta={aktivita.probehnuta ?? false}
+            tymPocetClenu={aktivita.tymPocetClenu}
+            tymLimit={aktivita.tymLimit}
           />
           <Přihlašovátko akitivitaId={aktivita.id} />
           {(aktivita.mistnost || undefined) && (

@@ -4,6 +4,7 @@
 // TODO: udělat REST api definice
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Aktivita\FiltrAktivity;
@@ -235,6 +236,14 @@ $dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector)
             $aktivitaRes['vedu'] = $u && $aktivita->organizuje($u);
             // TODO: argumenty pro admin
             $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
+
+            if ($aktivita->jeTeamova()) {
+                $tymInfo = AktivitaTym::infoOTymuUzivatele($u->id(), $aktivita->id());
+                if ($tymInfo) {
+                    $aktivitaRes['tymPocetClenu'] = $tymInfo['pocetClenu'];
+                    $aktivitaRes['tymLimit'] = $tymInfo['limit'];
+                }
+            }
         }
         $aktivitaRes['zamcenaDo']       = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
 

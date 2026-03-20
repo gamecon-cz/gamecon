@@ -6,10 +6,12 @@ type TObsazenostProps = {
   obsazenost: ObsazenostTyp | undefined;
   prihlasovatelna: boolean;
   probehnuta: boolean;
+  tymPocetClenu?: number;
+  tymLimit?: number | null;
 };
 
 export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
-  const { obsazenost, prihlasovatelna, probehnuta } = props;
+  const { obsazenost, prihlasovatelna, probehnuta, tymPocetClenu, tymLimit } = props;
   if (!obsazenost) return null;
 
   const { m, f, km, kf, ku } = obsazenost;
@@ -53,14 +55,26 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
       aktivitaObsazenost = <>{` ${f + m}/${ku}`}</>;
       break;
   }
-  // todo(tym): nadrátovat konkrétní velikosti
-  aktivitaObsazenost = (
-    <>
-      <span class="program_obsazenost_tym">4/5</span>
-      <span class="program_obsazenost">{aktivitaObsazenost}</span>
-      {` `}
-    </>
-  );
+
+  if (tymPocetClenu !== undefined) {
+    const tymText = tymLimit != null
+      ? `${tymPocetClenu}/${tymLimit}`
+      : `${tymPocetClenu}`;
+    aktivitaObsazenost = (
+      <>
+        <span class="program_obsazenost_tym">{tymText}</span>
+        <span class="program_obsazenost">{aktivitaObsazenost}</span>
+        {` `}
+      </>
+    );
+  } else {
+      aktivitaObsazenost = (
+      <>
+        <span class="program_obsazenost">{aktivitaObsazenost}</span>
+        {` `}
+      </>
+    );
+  }
 
   return <>{aktivitaObsazenost}</>;
 };

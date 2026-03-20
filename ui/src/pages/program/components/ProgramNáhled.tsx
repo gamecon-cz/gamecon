@@ -72,6 +72,8 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
                 obsazenost={aktivita?.obsazenost}
                 prihlasovatelna={aktivita?.prihlasovatelna ?? false}
                 probehnuta={aktivita?.probehnuta ?? false}
+                tymPocetClenu={aktivita?.tymPocetClenu}
+                tymLimit={aktivita?.tymLimit}
               />
             </div>
             <div
