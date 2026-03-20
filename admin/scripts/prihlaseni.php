@@ -30,13 +30,33 @@ if (post('odhlasNAdm')) {
 
 // Výběr uživatele pro práci
 $uPracovni = null;
+
+$ulozPredchozihoUzivatele = function (int $id) {
+    $historie = $_SESSION['pracovni_uzivatel_predchozi'] ?? [];
+    if (!is_array($historie)) {
+        $historie = $historie ? [$historie] : [];
+    }
+    if (($historie[0] ?? null) !== $id) {
+        array_unshift($historie, $id);
+        $_SESSION['pracovni_uzivatel_predchozi'] = array_slice($historie, 0, 2);
+    }
+};
+
 if (post('vybratUzivateleProPraci')) {
+    $idAktualniho = $_SESSION[Uzivatel::UZIVATEL_PRACOVNI]['id_uzivatele'] ?? null;
+    if ($idAktualniho && $idAktualniho != (int)post('id')) {
+        $ulozPredchozihoUzivatele($idAktualniho);
+    }
     $uPracovni = Uzivatel::prihlasId(post('id'), Uzivatel::UZIVATEL_PRACOVNI);
     back();
 }
 
 if ($idPracovnihoUzivatele = get('pracovni_uzivatel')) {
     if (!$uPracovni || $uPracovni->id() != $idPracovnihoUzivatele) {
+        $idAktualniho = $_SESSION[Uzivatel::UZIVATEL_PRACOVNI]['id_uzivatele'] ?? null;
+        if ($idAktualniho && $idAktualniho != (int)$idPracovnihoUzivatele) {
+            $ulozPredchozihoUzivatele($idAktualniho);
+        }
         $uPracovni = Uzivatel::prihlasId($idPracovnihoUzivatele, Uzivatel::UZIVATEL_PRACOVNI);
         back(getCurrentUrlWithQuery(['pracovni_uzivatel' => null]));
     }
@@ -44,6 +64,9 @@ if ($idPracovnihoUzivatele = get('pracovni_uzivatel')) {
 
 $uPracovni = Uzivatel::zSession(Uzivatel::UZIVATEL_PRACOVNI);
 if (post('zrusitUzivateleProPraci')) {
+    if ($uPracovni) {
+        $ulozPredchozihoUzivatele($uPracovni->id());
+    }
     Uzivatel::odhlasKlic(Uzivatel::UZIVATEL_PRACOVNI);
     back();
 }
