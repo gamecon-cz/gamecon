@@ -130,11 +130,22 @@ class AktivitaTym extends \DbObject
             if (!$zbyvajiciClen) {
                 // tým je prázdný → smazat
                 dbQuery('DELETE FROM akce_tym WHERE id = $0', [$idTymu]);
+                // dual-write: vyčistit legacy sloupce
+                dbQuery(
+                    'UPDATE akce_seznam SET zamcel = NULL, zamcel_cas = NULL, team_nazev = NULL WHERE id_akce = $0',
+                    [$idAktivity],
+                );
             } elseif ($idUzivatele === $idKapitan) {
                 // odcházel kapitán → předat kapitánství nejstaršímu členovi
+                $novyKapitan = (int)$zbyvajiciClen;
                 dbQuery(
                     'UPDATE akce_tym SET id_kapitan = $0 WHERE id = $1',
-                    [(int)$zbyvajiciClen, $idTymu],
+                    [$novyKapitan, $idTymu],
+                );
+                // dual-write: aktualizovat legacy sloupec
+                dbQuery(
+                    'UPDATE akce_seznam SET zamcel = $0 WHERE id_akce = $1',
+                    [$novyKapitan, $idAktivity],
                 );
             }
 
@@ -174,6 +185,36 @@ class AktivitaTym extends \DbObject
              JOIN akce_tym_prihlaseni ON akce_tym_prihlaseni.id_tymu = akce_tym.id
              WHERE akce_tym_prihlaseni.id_uzivatele = $0 AND akce_tym.id_akce = $1',
             [$idUzivatele, $idAktivity],
+        );
+    }
+
+    public static function jeKapitanem(int $idUzivatele, int $idAktivity): bool {
+        return (bool)dbOneCol(
+            'SELECT 1 FROM akce_tym WHERE id_akce = $0 AND id_kapitan = $1 LIMIT 1',
+            [$idAktivity, $idUzivatele],
+        );
+    }
+
+    public static function casZalozeniNejstarsihoTymu(int $idAktivity): ?string {
+        return dbOneCol(
+            'SELECT MIN(zalozen) FROM akce_tym WHERE id_akce = $0',
+            [$idAktivity],
+        ) ?: null;
+    }
+
+    public static function maAktivitaTym(int $idAktivity): bool {
+        return (bool)dbOneCol(
+            'SELECT 1 FROM akce_tym WHERE id_akce = $0 LIMIT 1',
+            [$idAktivity],
+        );
+    }
+
+    public static function expirovaneTymyIds(int $hajeniHodin): array {
+        return dbOneArray(
+            'SELECT akce_tym.id FROM akce_tym
+             WHERE akce_tym.zalozen < NOW() - INTERVAL $0 HOUR
+               AND akce_tym.verejny = 0',
+            [$hajeniHodin],
         );
     }
 }

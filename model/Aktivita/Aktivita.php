@@ -1938,11 +1938,8 @@ SQL,
                 [StavPrihlaseni::POZDE_ZRUSIL],
             );
         }
-        // legacy: předání kapitánství je nově v AktivitaTym::odhlasUzivateleOdTymu(), tohle zůstává pro zpětnou kompatibilitu
-        if ($this->a[Sql::ZAMCEL] == $idUzivatele) {
-            dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$idAktivity");
-        }
         if ($this->a[Sql::TEAMOVA]) {
+            // dual-write: odhlášení z týmu + sync legacy sloupců (zamcel, team_nazev) je v AktivitaTym
             AktivitaTym::odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
         }
         if ($this->a[Sql::TEAMOVA] && $this->pocetPrihlasenych() === 1) { // odhlašuje se poslední hráč
@@ -2415,6 +2412,7 @@ SQL
                 }
             }
         }
+        // todo(tym): tady by mělo taky dojít ke kontrole.
         if ($this->tymova()) {
             // validace týmu (max počet týmů, kapacita týmu, duplicita) probíhá v AktivitaTym::prihlasUzivateleDoTymu()
         }
@@ -2921,8 +2919,7 @@ SQL
                 }
             } elseif ($u->organizuje($this)) {
                 $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ');
-                // todo(tym): tohle je asi nahrazeno zámečkem a "zatím nejsou dostupné žádné týmy k přihlašování" s tím že pokud budou všechny týmy hotové tak bude ukazovat plnou aktivitu ať nedělá zbytečné naděje
-            } elseif ($this->a[Sql::ZAMCEL]) {
+            } elseif (AktivitaTym::maAktivitaTym($this->id()) || $this->a[Sql::ZAMCEL]) {
                 $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
                 $out = <<<HTML
 <span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
@@ -3415,29 +3412,39 @@ SQL,
         return (bool)$this->a[Sql::TEAMOVA];
     }
 
-    // todo(tym): tady bude asi nějaká logika na
     /**
      * @return DateTimeCz|null jestli a do kdy je týmová aktivita zamčená
      */
     public function tymZamcenyDo(): ?\DateTimeInterface
     {
+        $casZalozeni = AktivitaTym::casZalozeniNejstarsihoTymu($this->id());
+        if ($casZalozeni) {
+            $dateTime = new DateTimeCz($casZalozeni);
+            $dateTime->add(new \DateInterval('PT' . self::HAJENI_TEAMU_HODIN . 'H'));
+            return $dateTime;
+        }
+        // fallback na legacy sloupec
         if ($this->a[Sql::ZAMCEL_CAS]) {
             $dateTime = new DateTimeCz($this->a[Sql::ZAMCEL_CAS]);
             $dateTime->add(new \DateInterval('PT' . self::HAJENI_TEAMU_HODIN . 'H'));
-
             return $dateTime;
         }
-
         return null;
     }
 
-    // todo(tym): kde se využívá a k čemu ?
     /**
-     * @return DateTimeCz|null jestli je týmová aktivita zamčená tímto uživatelem
+     * @return bool jestli je týmová aktivita zamčená tímto uživatelem (je kapitán)
      */
     public function zamcenoUzivatelem(\Uzivatel $u = null): bool
     {
-        return !!$u && $this->a[Sql::ZAMCEL] == $u->id();
+        if (!$u) {
+            return false;
+        }
+        if (AktivitaTym::jeKapitanem($u->id(), $this->id())) {
+            return true;
+        }
+        // fallback na legacy sloupec
+        return $this->a[Sql::ZAMCEL] == $u->id();
     }
 
     public function typ(): TypAktivity

@@ -118,10 +118,21 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
     {
         $odemcenoTymovychAktivit = 0;
 
-        // todo(tym): tohle bude per tým
+        $expirovaneTymyIds = AktivitaTym::expirovaneTymyIds(Aktivita::HAJENI_TEAMU_HODIN);
+        foreach ($expirovaneTymyIds as $idTymu) {
+            $tym = dbOneLine('SELECT id_akce, id_kapitan FROM akce_tym WHERE id = $0', [$idTymu]);
+            if ($tym) {
+                Aktivita::zId($tym['id_akce'])->odhlas(
+                    \Uzivatel::zId($tym['id_kapitan']),
+                    $odemykajici,
+                    'hromadne-odemceni-teamovych',
+                );
+                $odemcenoTymovychAktivit++;
+            }
+        }
+
         $zamcene = dbFetchAll('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . Aktivita::HAJENI_TEAMU_HODIN . ' HOUR');
         foreach ($zamcene as [Sql::ID_AKCE => $aid, Sql::ZAMCEL => $uid]) {
-            // uvolnění zámku je součástí odhlášení, pokud je sám -> done
             Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici, 'hromadne-odemceni-teamovych');
             $odemcenoTymovychAktivit++;
         }
