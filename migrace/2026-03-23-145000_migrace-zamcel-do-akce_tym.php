@@ -41,6 +41,12 @@ $this->q(<<<SQL
 SQL,
 );
 
+// Smazeme trigger na team_limit
+$this->q(<<<SQL
+    DROP TRIGGER IF EXISTS `trigger_check_and_apply_team_limit`
+SQL,
+);
+
 // Smazeme všechny foreign key constrainty na sloupci zamcel
 $dbName = DB_NAME;
 $result = $this->q(<<<SQL
