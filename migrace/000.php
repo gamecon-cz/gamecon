@@ -1263,7 +1263,7 @@ CREATE TABLE akce_seznam
     teamova          tinyint(1)          NOT NULL,
     team_min         int(11)                      DEFAULT NULL COMMENT 'minimální velikost teamu',
     team_max         int(11)                      DEFAULT NULL COMMENT 'maximální velikost teamu',
-    team_kapacita    int(11)                      DEFAULT NULL COMMENT 'max. počet týmů, pokud jde o další kolo týmové aktivity',
+    team_kapacita    int(11)                      DEFAULT NULL COMMENT 'max. počet týmů na aktivitě',
     team_nazev       varchar(255)                 DEFAULT NULL,
     zamcel           bigint(20) unsigned          DEFAULT NULL COMMENT 'případně kdo zamčel aktivitu pro svůj team',
     zamcel_cas       datetime                     DEFAULT NULL COMMENT 'případně kdy zamčel aktivitu',

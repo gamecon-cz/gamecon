@@ -4,7 +4,8 @@ namespace Gamecon\Aktivita;
 
 use Gamecon\Aktivita\SqlStruktura\AkceTymSqlStruktura;
 
-// todo: ORM styl
+// todo(tym): zrevidovat že se zde nenachází nějaké metody co nedávájí smysl (např. kapitán aktivity)
+// todo(tym): ORM styl
 class AktivitaTym extends \DbObject
 {
     protected static $tabulka = AkceTymSqlStruktura::AKCE_TYM_TABULKA;
@@ -44,6 +45,7 @@ class AktivitaTym extends \DbObject
             self::zkontrolujMaxPocetTymu($idAktivity);
         }
 
+        // todo(tym): nějaký zábavný generátor na název týmů
         $kod = rand(1000, 9999);
         dbQuery(
             'INSERT INTO akce_tym (id_akce, kod, id_kapitan, zalozen) VALUES ($0, $1, $2, NOW())',
@@ -52,6 +54,9 @@ class AktivitaTym extends \DbObject
         return (int)dbInsertId();
     }
 
+    /**
+     * Ověří že počet týmů na aktivitě nepřekročil team_kapacita limit.
+     */
     private static function zkontrolujMaxPocetTymu(int $idAktivity): void {
         $teamKapacita = dbOneCol(
             'SELECT team_kapacita FROM akce_seznam WHERE id_akce = $0',
@@ -130,22 +135,12 @@ class AktivitaTym extends \DbObject
             if (!$zbyvajiciClen) {
                 // tým je prázdný → smazat
                 dbQuery('DELETE FROM akce_tym WHERE id = $0', [$idTymu]);
-                // dual-write: vyčistit legacy sloupce
-                dbQuery(
-                    'UPDATE akce_seznam SET zamcel = NULL, zamcel_cas = NULL, team_nazev = NULL WHERE id_akce = $0',
-                    [$idAktivity],
-                );
             } elseif ($idUzivatele === $idKapitan) {
                 // odcházel kapitán → předat kapitánství nejstaršímu členovi
                 $novyKapitan = (int)$zbyvajiciClen;
                 dbQuery(
                     'UPDATE akce_tym SET id_kapitan = $0 WHERE id = $1',
                     [$novyKapitan, $idTymu],
-                );
-                // dual-write: aktualizovat legacy sloupec
-                dbQuery(
-                    'UPDATE akce_seznam SET zamcel = $0 WHERE id_akce = $1',
-                    [$novyKapitan, $idAktivity],
                 );
             }
 
@@ -192,11 +187,13 @@ class AktivitaTym extends \DbObject
         );
     }
 
-    public static function casZalozeniNejstarsihoTymu(int $idAktivity): ?string {
-        return dbOneCol(
-            'SELECT MIN(zalozen) FROM akce_tym WHERE id_akce = $0',
+    // todo(tym): nedává smysl aktivita nemá přesně jednoho kapitána
+    public static function idKapitanaProAktivitu(int $idAktivity): ?int {
+        $id = dbOneCol(
+            'SELECT id_kapitan FROM akce_tym WHERE id_akce = $0 ORDER BY zalozen ASC LIMIT 1',
             [$idAktivity],
-        ) ?: null;
+        );
+        return $id !== null ? (int)$id : null;
     }
 
     public static function maAktivitaTym(int $idAktivity): bool {

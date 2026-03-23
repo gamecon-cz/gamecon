@@ -3,6 +3,7 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\XTemplate\XTemplate;
 
+// todo(tym): stara abstrakce, nahradit / odstranit
 /**
  * Abstrakce týmu na aktivitě
  */

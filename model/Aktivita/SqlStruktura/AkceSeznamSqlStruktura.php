@@ -33,13 +33,4 @@ class AkceSeznamSqlStruktura
     public const VYBAVENI         = 'vybaveni';
     public const PROBEHLA_KOREKCE    = 'probehla_korekce';
     public const ID_HLAVNI_LOKACE   = 'id_hlavni_lokace';
-
-    // todo(tym): přesunout na tým, kolik chce konkrétní tým max kapacitu
-    public const TEAM_LIMIT       = 'team_limit';
-    // todo(tym): přesunout na tým, tohle je název na týmu
-    public const TEAM_NAZEV       = 'team_nazev';
-    // todo(tym): přesunout na tým, tohle bude kapitán na týmu
-    public const ZAMCEL           = 'zamcel';
-    // todo(tym): přesunout na tým, tohle bude čas na týmu
-    public const ZAMCEL_CAS       = 'zamcel_cas';
 }

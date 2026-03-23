@@ -108,7 +108,7 @@ class Activity
     private ?int $teamMax = null;
 
     #[ORM\Column(name: 'team_kapacita', type: Types::INTEGER, nullable: true, options: [
-        'comment' => 'max. počet týmů, pokud jde o další kolo týmové aktivity',
+        'comment' => 'max. počet týmů na aktivitě',
     ])]
     private ?int $teamKapacita = null;
 
@@ -118,18 +118,6 @@ class Activity
     #[ORM\ManyToOne(targetEntity: Location::class)]
     #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
     private ?Location $mainLocation = null;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'zamcel', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
-        'comment'  => 'případně kdo zamčel aktivitu pro svůj team',
-        'onUpdate' => 'CASCADE',
-    ])]
-    private ?User $forTeamLockedBy = null;
-
-    #[ORM\Column(name: 'zamcel_cas', type: Types::DATETIME_MUTABLE, nullable: true, options: [
-        'comment' => 'případně kdy zamčel aktivitu',
-    ])]
-    private ?\DateTime $forTeamLockedAt = null;
 
     #[ORM\Column(name: 'popis', type: Types::TEXT, nullable: false, options: [
         'comment' => 'markdown',
@@ -141,11 +129,6 @@ class Activity
 
     #[ORM\Column(name: 'vybaveni', type: Types::TEXT, nullable: false)]
     private string $vybaveni;
-
-    #[ORM\Column(name: 'team_limit', type: Types::INTEGER, nullable: true, options: [
-        'comment' => 'uživatelem (vedoucím týmu) nastavený limit kapacity menší roven team_max, ale větší roven team_min. Prostřednictvím on update triggeru kontrolována tato vlastnost a je-li non-null, tak je tato kapacita nastavena do sloupce `kapacita`',
-    ])]
-    private ?int $teamLimit = null;
 
     #[ORM\Column(name: 'probehla_korekce', type: Types::BOOLEAN, nullable: false, options: [
         'default' => 0,
@@ -429,30 +412,6 @@ class Activity
     public function setTeamNazev(?string $teamNazev): self
     {
         $this->teamNazev = $teamNazev;
-
-        return $this;
-    }
-
-    public function getForTeamLockedBy(): ?User
-    {
-        return $this->forTeamLockedBy;
-    }
-
-    public function setForTeamLockedBy(?User $forTeamLockedBy): self
-    {
-        $this->forTeamLockedBy = $forTeamLockedBy;
-
-        return $this;
-    }
-
-    public function getForTeamLockedAt(): ?\DateTime
-    {
-        return $this->forTeamLockedAt;
-    }
-
-    public function setForTeamLockedAt(?\DateTime $forTeamLockedAt): self
-    {
-        $this->forTeamLockedAt = $forTeamLockedAt;
 
         return $this;
     }

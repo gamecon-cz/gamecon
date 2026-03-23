@@ -97,10 +97,9 @@ export type ApiAktivitaUživatel = {
   mistnost?: string,
   // todo: tohle je taky možný stav přihlášení (odebrat tady a přidat do stavPrihlaseni)
   vedu?: boolean,
-  /** pokud je aktivita zamčená, tak do kdy */
-  zamcenaDo?: number,
-  /** aktivita zamčená přihlášeným užviatelem */
-  zamcenaMnou?: boolean,
+  // todo(tym): členové týmu (pak není potřeba tymPocetClenu)
+  // todo(tym): kapitán týmu
+  // todo(tym): název týmu
   /** počet členů týmu, ve kterém je uživatel přihlášen */
   tymPocetClenu?: number,
   /** limit členů týmu */

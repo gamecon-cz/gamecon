@@ -1379,7 +1379,7 @@ SQL
         $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce=' . $this->id());
         //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
         //stav se vloží implicitní hodnota v DB
-        unset($akt[Sql::ID_AKCE], $akt[Sql::URL_AKCE], $akt[Sql::ZAMCEL]);
+        unset($akt[Sql::ID_AKCE], $akt[Sql::URL_AKCE]);
         $akt[Sql::STAV] = StavAktivity::NOVA;
         $akt[Sql::VYBAVENI] = '';
         if ($akt[Sql::TEAMOVA]) {
@@ -1939,7 +1939,6 @@ SQL,
             );
         }
         if ($this->a[Sql::TEAMOVA]) {
-            // dual-write: odhlášení z týmu + sync legacy sloupců (zamcel, team_nazev) je v AktivitaTym
             AktivitaTym::odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
         }
         if ($this->a[Sql::TEAMOVA] && $this->pocetPrihlasenych() === 1) { // odhlašuje se poslední hráč
@@ -2330,12 +2329,6 @@ SQL
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
         $idUzivatele = $uzivatel->id();
-        if ($this->a[Sql::TEAMOVA]
-            && $this->pocetPrihlasenych() === 0
-            && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
-        ) {
-            $this->zamknoutProTeam($uzivatel);
-        }
         if ($this->a[Sql::TEAMOVA]) {
             AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, (bool)(self::IGNOROVAT_LIMIT & $parametry));
         }
@@ -2509,24 +2502,6 @@ SQL
         ) {
             throw new \Chyba('Aktivita už je uzavřena a nelze z ní odhlašovat.');
         }
-    }
-
-    // todo(tym): tohle řeší veřejné neveřejné aktivity
-    /**
-     * Není zamknout jako zamknout. Tohle pouze zamkne aktivitu pro účastníky mimo tým.
-     * Pokud hledáš opravdové zamknutí, @param Uzivatel $zamykajici
-     * @return void
-     * @see zamkni
-     *
-     */
-    public function zamknoutProTeam(Uzivatel $zamykajici)
-    {
-        dbUpdate(
-            'akce_seznam',
-            ['zamcel' => $zamykajici->id(), 'zamcel_cas' => dbNow()],
-            [Sql::ID_AKCE => $this->id()],
-        );
-        $this->a[Sql::ZAMCEL] = (string)$zamykajici->id();
     }
 
     /** Jestli je uživatel  přihlášen na tuto aktivitu */
@@ -2919,7 +2894,7 @@ SQL
                 }
             } elseif ($u->organizuje($this)) {
                 $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ');
-            } elseif (AktivitaTym::maAktivitaTym($this->id()) || $this->a[Sql::ZAMCEL]) {
+            } elseif (AktivitaTym::maAktivitaTym($this->id())) {
                 $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
                 $out = <<<HTML
 <span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
@@ -3075,6 +3050,7 @@ HTML
     }
 
     // todo(tym): tohle se děje kdy ? jaký přesně to má význam v novém systému ?
+    // todo(tym): pokud se zachová kód, tak co má dělat ?
     /**
      * Přihlásí na aktivitu vybrané uživatele jako tým vč. přihlášení na vybraná
      * navazující kola a úpravy počtu míst v týmu.
@@ -3095,14 +3071,15 @@ HTML
         if (!$this->tymova()) {
             throw new \Exception('Nelze přihlásit tým na netýmovou aktivitu.');
         }
-        if (!$this->a[Sql::ZAMCEL]) {
+        $idKapitana = AktivitaTym::idKapitanaProAktivitu($this->id());
+        if (!$idKapitana) {
             throw new \Exception('Pro přihlášení týmu musí být aktivita zamčená.');
         }
         if (!$this->jsouDalsiKola($dalsiKola)) {
             throw new \Exception('Nepovolený výběr dalších kol.');
         }
 
-        $lidr = Uzivatel::zId($this->a[Sql::ZAMCEL]);
+        $lidr = Uzivatel::zId($idKapitana);
         $chybnyClen = null; // nastavíme v případě, že u daného člena týmu nastala při přihlášení chyba
 
         dbBegin();
@@ -3123,18 +3100,6 @@ HTML
                     throw $e;
                 }
             }
-
-            // doplňující úpravy aktivity
-            dbUpdate('akce_seznam', [
-                Sql::ZAMCEL     => null,
-                Sql::ZAMCEL_CAS => null,
-                Sql::TEAM_NAZEV => $nazevTymu
-                    ?: null,
-                Sql::KAPACITA   => $pocetMist
-                    ?: dbNoChange(),
-            ], [
-                Sql::ID_AKCE => $this->id(),
-            ]);
 
             $this->refresh();
         } catch (\Exception $e) {
@@ -3383,7 +3348,7 @@ SQL,
     // todo(tym): k čemu se využívá ?
     public function tym()
     {
-        if ($this->tymova() && $this->pocetPrihlasenych() > 0 && !$this->a[Sql::ZAMCEL]) {
+        if ($this->tymova() && $this->pocetPrihlasenych() > 0) {
             return new \Tym($this, $this->a);
         }
 
@@ -3410,41 +3375,6 @@ SQL,
     public function tymova(): bool
     {
         return (bool)$this->a[Sql::TEAMOVA];
-    }
-
-    /**
-     * @return DateTimeCz|null jestli a do kdy je týmová aktivita zamčená
-     */
-    public function tymZamcenyDo(): ?\DateTimeInterface
-    {
-        $casZalozeni = AktivitaTym::casZalozeniNejstarsihoTymu($this->id());
-        if ($casZalozeni) {
-            $dateTime = new DateTimeCz($casZalozeni);
-            $dateTime->add(new \DateInterval('PT' . self::HAJENI_TEAMU_HODIN . 'H'));
-            return $dateTime;
-        }
-        // fallback na legacy sloupec
-        if ($this->a[Sql::ZAMCEL_CAS]) {
-            $dateTime = new DateTimeCz($this->a[Sql::ZAMCEL_CAS]);
-            $dateTime->add(new \DateInterval('PT' . self::HAJENI_TEAMU_HODIN . 'H'));
-            return $dateTime;
-        }
-        return null;
-    }
-
-    /**
-     * @return bool jestli je týmová aktivita zamčená tímto uživatelem (je kapitán)
-     */
-    public function zamcenoUzivatelem(\Uzivatel $u = null): bool
-    {
-        if (!$u) {
-            return false;
-        }
-        if (AktivitaTym::jeKapitanem($u->id(), $this->id())) {
-            return true;
-        }
-        // fallback na legacy sloupec
-        return $this->a[Sql::ZAMCEL] == $u->id();
     }
 
     public function typ(): TypAktivity
@@ -3656,12 +3586,12 @@ SQL,
      */
     public function vyberTeamu(Uzivatel $u = null)
     {
-        if (!$u || $this->a[Sql::ZAMCEL] != $u->id() || !$this->prihlasovatelna()) {
+        if (!$u || !AktivitaTym::jeKapitanem($u->id(), $this->id()) || !$this->prihlasovatelna()) {
             return null;
         }
 
         $t = new XTemplate(__DIR__ . '/templates/tym-formular.xtpl'); // obecné proměnné šablony
-        $zbyva = strtotime($this->a[Sql::ZAMCEL_CAS]) + self::HAJENI_TEAMU_HODIN * 60 * 60 - time();
+        $zbyva = strtotime('now') + self::HAJENI_TEAMU_HODIN * 60 * 60 - time();
         $t->assign([
             'zbyva'                => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
             'postname'             => self::TEAM_KLIC,
@@ -3734,16 +3664,16 @@ SQL,
      * Ukončuje skript.
      */
     public static function vyberTeamuZpracuj(
-        ?Uzivatel $leader,
+        ?Uzivatel $kapitan,
         ?Uzivatel $prihlasujici,
     ) {
-        if (!$leader || !post(self::TEAM_KLIC . 'Aktivita')) {
+        if (!$kapitan || !post(self::TEAM_KLIC . 'Aktivita')) {
             return;
         }
 
         $a = Aktivita::zId(post(self::TEAM_KLIC . 'Aktivita'));
-        if ($leader->id() != $a->a[Sql::ZAMCEL]) {
-            throw new \Chyba('Nejsi teamleader.');
+        if (!AktivitaTym::jeKapitanem($kapitan->id(), $a->id())) {
+            throw new \Chyba('Nejsi kapitán týmu.');
         }
 
         // načtení zvolených parametrů z formuláře (spoluhráči, kola, ...)

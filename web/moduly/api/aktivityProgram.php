@@ -234,8 +234,6 @@ $dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector)
             $aktivitaRes['slevaNasobic'] = $aktivita->soucinitelCenyAktivity($u, $dataSourcesCollector);
 
             $aktivitaRes['vedu'] = $u && $aktivita->organizuje($u);
-            // TODO: argumenty pro admin
-            $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
 
             if ($aktivita->jeTeamova()) {
                 $tymInfo = AktivitaTym::infoOTymuUzivatele($u->id(), $aktivita->id());
@@ -245,7 +243,6 @@ $dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector)
                 }
             }
         }
-        $aktivitaRes['zamcenaDo']       = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
 
         $aktivitaRes = array_filter($aktivitaRes);
         $aktivityUzivatel[]  = $aktivitaRes;

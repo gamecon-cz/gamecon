@@ -100,11 +100,6 @@ class ActivityEntityStructure
     public const teamNazev = 'teamNazev';
 
     /**
-     * @see Activity::$forTeamLockedAt
-     */
-    public const forTeamLockedAt = 'forTeamLockedAt';
-
-    /**
      * @see Activity::$description
      */
     public const description = 'description';
@@ -148,11 +143,6 @@ class ActivityEntityStructure
      * @see Activity::$status
      */
     public const status = 'status';
-
-    /**
-     * @see Activity::$forTeamLockedBy
-     */
-    public const forTeamLockedBy = 'forTeamLockedBy';
 
     /**
      * @see Activity::$activityTags

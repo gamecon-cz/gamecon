@@ -17,35 +17,35 @@ type FormTlačítkoTyp =
   | "prihlasSledujiciho"
   | "odhlasSledujiciho"
   | "tym"
+  // todo(tym) co znamená zamčeno ?
   | "zamceno"
   ;
 
 type FormTlačítkoProps = {
   akitivitaId: number;
   typ: FormTlačítkoTyp;
-  zamčenaDo?: number;
   tymova?: boolean;
 };
 
 const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
   akitivitaId,
   typ,
-  zamčenaDo,
   tymova,
 }) => {
+  // todo(tym): nějaký handling na zbývající čas ??
+  /*
   const [zbýváText, setZbýváText] = useState("666 hodin");
   const spočítejZbýváText = () => {
-    if (!zamčenaDo) return;
-    const zbýváMinut = Math.floor((zamčenaDo - Date.now()) / (1_000 * 60));
-    const zbýváHodin = Math.floor(zbýváMinut / 60);
-    setZbýváText(zbýváHodin >= 1
-      ? `${zbýváHodin} hodin${zbýváHodin === 1 ? "a" : ""}`
-      : zbýváMinut >= 1
-        ? `${zbýváMinut} minut${zbýváMinut === 1 ? "a" : ""}`
-        : zbýváMinut >= 0
-          ? `méně než minuta`
-          : `žádný čas (načti znova stránku)`
-    );
+      const zbýváMinut = Math.floor((zamčenaDo - Date.now()) / (1_000 * 60));
+      const zbýváHodin = Math.floor(zbýváMinut / 60);
+      setZbýváText(zbýváHodin >= 1
+        ? `${zbýváHodin} hodin${zbýváHodin === 1 ? "a" : ""}`
+        : zbýváMinut >= 1
+          ? `${zbýváMinut} minut${zbýváMinut === 1 ? "a" : ""}`
+          : zbýváMinut >= 0
+            ? `méně než minuta`
+            : `žádný čas (načti znova stránku)`
+      );
   };
   // schov zámeček pokud je zamčenaDo 5 minut v minulosti (výpočet rerenderu komponenty)
   const zámečekViditelný = zamčenaDo && (((zamčenaDo - (Date.now() - 5 * 1_000 * 60)) / (1_000 * 60)) > 0);
@@ -55,6 +55,7 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
     spočítejZbýváText();
     return () => { clearInterval(interval); };
   }, []);
+    */
 
   const text =
     typ === "prihlasit"
@@ -88,9 +89,13 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
           }}
         >
           {text}
-          {zámečekViditelný ?
-            <span class="hinted">{zámeček}<span class="hint">Kapitánovi týmu zbývá {zbýváText} na vyplnění svého týmu</span></span>
-            : undefined}
+          {
+            // todo(tym): co se bude zorbazovat když nejsou žádné volné veřejné týmy ?
+            /*
+              zámečekViditelný ?
+              <span class="hinted">{zámeček}<span class="hint">Kapitánovi týmu zbývá {zbýváText} na vyplnění svého týmu</span></span>
+              : undefined
+            */}
         </a>
       </form>
     </>
@@ -140,7 +145,6 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
       return <FormTlačítko
         akitivitaId={akitivitaId}
         typ={aktivita.tymova ? "tym" : "odhlasit"}
-        zamčenaDo={aktivita.zamcenaDo}
         tymova={aktivita.tymova}
         />;
     else if (aktivita.stavPrihlaseni === "prihlasenADorazil")
@@ -155,8 +159,7 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
 
   if (aktivita.vedu) return <></>;
 
-  if (aktivita.zamcenaDo && (aktivita.zamcenaDo > Date.now()) && !aktivita.zamcenaMnou)
-    return <FormTlačítko akitivitaId={akitivitaId} typ={"zamceno"} zamčenaDo={aktivita.zamcenaDo} tymova={aktivita.tymova} />;
+  // todo(tym) nějaký indikator pro to že všechny týmy nejsou ještě hotové - nějak vymyslet co napsat ? třeba aktivita možná bude mít volné místa pro tým za 12h ... (existuje takový tým který není plný takže bude eventuelně věřený)
 
   if (aktivita.obsazenost) {
     const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
