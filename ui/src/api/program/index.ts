@@ -246,8 +246,34 @@ export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };
 
-export const fetchAktivitaTýmKód = async (aktivitaId: number, uživatelId = 0): Promise<number> => {
+export type VerejnyTym = {
+  kod: number,
+  nazev: string | null,
+  pocetClenu: number,
+  limit: number | null,
+};
+
+export type AktivitaTymResponse = {
+  kod: number,
+  verejny?: boolean,
+  verejneTymy?: VerejnyTym[],
+};
+
+export const fetchAktivitaTým = async (aktivitaId: number, uživatelId = 0): Promise<AktivitaTymResponse> => {
   const urlUživParam = uživatelId ? `&uzivatelId=${uživatelId}` : ""
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}${urlUživParam}`;
-  return fetch(url, {method: "GET"}).then(async x => x.json()).then(x=>x.kod);
-}
+  return fetch(url, {method: "GET"}).then(async x => x.json());
+};
+
+export const fetchAktivitaTýmKód = async (aktivitaId: number, uživatelId = 0): Promise<number> => {
+  return fetchAktivitaTým(aktivitaId, uživatelId).then(x => x.kod);
+};
+
+export const fetchNastavVerejnostTymu = async (aktivitaId: number, kodTymu: number, verejny: boolean): Promise<{úspěch: boolean}> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
+  const formdata = new FormData();
+  formdata.set("akce", "nastavVerejnost");
+  formdata.set("kodTymu", kodTymu.toString(10));
+  formdata.set("verejny", verejny ? "1" : "0");
+  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
+};

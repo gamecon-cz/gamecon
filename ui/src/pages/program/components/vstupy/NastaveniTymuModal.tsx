@@ -4,6 +4,7 @@ import { dotáhniNastaveníTýmuProModal, nastavModalNastaveníTýmu, nastavModa
 import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
 import { useProgramStore } from "../../../../store/program";
 import { useState } from "preact/hooks";
+import { fetchNastavVerejnostTymu } from "../../../../api/program";
 
 
 
@@ -41,6 +42,13 @@ export const NastaveniTymuModal: FunctionComponent<{}> = (props) => {
   const můžeZaložitNovýTým = true;
 
   const zavřítModal = () => nastavModalNastaveníTýmu();
+
+  const přepniVerejnost = async () => {
+    if (!data || data.verejny === undefined || !data.kod) return;
+    const nováHodnota = !data.verejny;
+    await fetchNastavVerejnostTymu(aktivitaId, data.kod, nováHodnota);
+    void dotáhniNastaveníTýmuProModal();
+  };
 
 
   return (
@@ -84,6 +92,33 @@ export const NastaveniTymuModal: FunctionComponent<{}> = (props) => {
                   }}
                   >Připoj se do týmu</button>
                 </div>
+
+                {data?.verejneTymy && data.verejneTymy.length > 0 && (
+                  <div style={{ marginTop: "8px" }}>
+                    <strong>Veřejné týmy:</strong>
+                    <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
+                      {data.verejneTymy.map(tym => {
+                        const plny = tym.limit !== null && tym.pocetClenu >= tym.limit;
+                        return (
+                          <li key={tym.kod} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}>
+                            <span>{tym.nazev || `Tým ${tym.kod}`}</span>
+                            <span style={{ color: "#888" }}>
+                              {tym.pocetClenu}{tym.limit !== null ? `/${tym.limit}` : ""}
+                            </span>
+                            <button
+                              disabled={plny}
+                              style={{ width: "unset" }}
+                              onClick={() => {
+                                void proveďAkciAktivity(aktivitaId, "prihlasit", tym.kod)
+                                  .then(zavřítModal);
+                              }}
+                            >{plny ? "Plný" : "Připojit se"}</button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
               </>
             }
 
@@ -96,6 +131,16 @@ export const NastaveniTymuModal: FunctionComponent<{}> = (props) => {
                 </label>
                 <button>Pojmenuj tým</button>
 
+                {data?.verejny !== undefined && (
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "8px" }}>
+                    <input
+                      type="checkbox"
+                      checked={data.verejny}
+                      onChange={přepniVerejnost}
+                    />
+                    Veřejný tým (kdokoliv se může přihlásit bez kódu)
+                  </label>
+                )}
               </>
             }
           </div>

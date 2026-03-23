@@ -240,8 +240,8 @@ $dotahniAktivityUzivatel = function (DataSourcesCollector $dataSourcesCollector)
             if ($aktivita->jeTeamova()) {
                 $tymInfo = AktivitaTym::infoOTymuUzivatele($u->id(), $aktivita->id());
                 if ($tymInfo) {
-                    $aktivitaRes['tymPocetClenu'] = $tymInfo['pocetClenu'];
-                    $aktivitaRes['tymLimit'] = $tymInfo['limit'];
+                    $aktivitaRes['tymPocetClenu'] = $tymInfo->pocetClenu;
+                    $aktivitaRes['tymLimit'] = $tymInfo->limit;
                 }
             }
         }

@@ -156,10 +156,7 @@ class AktivitaTym extends \DbObject
         }
     }
 
-    /**
-     * @return array{pocetClenu: int, limit: int|null}|null
-     */
-    public static function infoOTymuUzivatele(int $idUzivatele, int $idAktivity): ?array {
+    public static function infoOTymuUzivatele(int $idUzivatele, int $idAktivity): ?InfoOTymu {
         $row = dbOneLine(
             'SELECT
                 (SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE akce_tym_prihlaseni.id_tymu = akce_tym.id) AS pocet_clenu,
@@ -173,10 +170,10 @@ class AktivitaTym extends \DbObject
         if (!$row) {
             return null;
         }
-        return [
-            'pocetClenu' => (int)$row['pocet_clenu'],
-            'limit'      => $row['team_limit'] !== null ? (int)$row['team_limit'] : null,
-        ];
+        return new InfoOTymu(
+            pocetClenu: (int)$row['pocet_clenu'],
+            limit: $row['team_limit'] !== null ? (int)$row['team_limit'] : null,
+        );
     }
 
     public static function vratKodTymuProUzivatele(int $idUzivatele, int $idAktivity) {
@@ -207,6 +204,56 @@ class AktivitaTym extends \DbObject
             'SELECT 1 FROM akce_tym WHERE id_akce = $0 LIMIT 1',
             [$idAktivity],
         );
+    }
+
+    /** @return VerejnyTym[] */
+    public static function verejneTymy(int $idAktivity): array {
+        $rows = dbFetchAll(
+            'SELECT akce_tym.kod, akce_tym.nazev,
+                    COALESCE(akce_tym.`limit`, akce_seznam.team_max) AS team_limit,
+                    (SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE akce_tym_prihlaseni.id_tymu = akce_tym.id) AS pocet_clenu
+             FROM akce_tym
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym.id_akce
+             WHERE akce_tym.id_akce = $0 AND akce_tym.verejny = 1',
+            [$idAktivity],
+        );
+        return array_map(
+            fn(array $row) => new VerejnyTym(
+                kod: (int)$row['kod'],
+                nazev: $row['nazev'],
+                pocetClenu: (int)$row['pocet_clenu'],
+                limit: $row['team_limit'] !== null ? (int)$row['team_limit'] : null,
+            ),
+            $rows,
+        );
+    }
+
+    public static function nastavVerejnostTymu(int $kodTymu, int $idAktivity, bool $verejny): void {
+        dbQuery(
+            'UPDATE akce_tym SET verejny = $0 WHERE id_akce = $1 AND kod = $2',
+            [(int)$verejny, $idAktivity, $kodTymu],
+        );
+    }
+
+    public static function zkontrolujZeJeKapitan(int $kodTymu, int $idAktivity, int $idUzivatele): void {
+        $kapitan = dbOneCol(
+            'SELECT id_kapitan FROM akce_tym WHERE id_akce = $0 AND kod = $1',
+            [$idAktivity, $kodTymu],
+        );
+        if ($kapitan === null) {
+            throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
+        }
+        if ((int)$kapitan !== $idUzivatele) {
+            throw new \Chyba('Tuto akci může provést pouze kapitán týmu');
+        }
+    }
+
+    public static function verejnostTymuPodleKodu(int $kodTymu, int $idAktivity): ?bool {
+        $verejny = dbOneCol(
+            'SELECT verejny FROM akce_tym WHERE id_akce = $0 AND kod = $1',
+            [$idAktivity, $kodTymu],
+        );
+        return $verejny !== null ? (bool)(int)$verejny : null;
     }
 
     public static function expirovaneTymyIds(int $hajeniHodin): array {

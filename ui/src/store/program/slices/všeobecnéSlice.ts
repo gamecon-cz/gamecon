@@ -1,10 +1,12 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { fetchAktivitaTýmKód } from "../../../api/program";
+import { fetchAktivitaTým, VerejnyTym } from "../../../api/program";
 
 export type NastaveniTymuData = {
   nazev: string,
   kod: number,
   muzeZalozitNovy: boolean,
+  verejny?: boolean,
+  verejneTymy?: VerejnyTym[],
 };
 
 export type VšeobecnéSlice = {
@@ -47,15 +49,16 @@ export const dotáhniNastaveníTýmuProModal = async () => {
     console.warn("");
     return;
   }
-  const data = await fetchAktivitaTýmKód(aktivitaId);
+  const data = await fetchAktivitaTým(aktivitaId);
   useProgramStore.setState(s => {
     s.všeobecné.nastaveniTymu = {
       aktivitaId,
       data: {
-        // todo: data
-        kod: data,
+        kod: data.kod,
         muzeZalozitNovy: true,
         nazev: "",
+        verejny: data.verejny,
+        verejneTymy: data.verejneTymy,
       }
     };
   }, undefined, "dotáhni nastavení týmu");
