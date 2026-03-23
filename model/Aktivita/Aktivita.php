@@ -2256,32 +2256,6 @@ SQL
     }
 
     /**
-     * @return int počet týmů přihlášených na tuto aktivitu
-     */
-    protected function pocetTeamu(): int
-    {
-        $id = $this->id();
-        $idRegex = '(^|,)' . $this->id() . '(,|$)'; // reg. výraz odpovídající id aktivity v seznamu odděleném čárkami
-
-        return (int)dbOneCol('
-      SELECT COUNT(id_akce)
-      FROM (
-        -- vybereme aktivity základního kola, z kterých se dá dostat do této aktivity (viz WHERE)
-        SELECT a.id_akce
-        FROM akce_seznam a
-        -- připojíme k každé aktivitě přihlášené účastníky
-        LEFT JOIN akce_prihlaseni prihlaseni_zaklad ON prihlaseni_zaklad.id_akce = a.id_akce
-        -- připojíme k každému účastníkovi, jestli je přihlášen i na tuto semifinálovou aktivitu
-        LEFT JOIN akce_prihlaseni prihlaseni_toto ON prihlaseni_toto.id_uzivatele = prihlaseni_zaklad.id_uzivatele AND prihlaseni_toto.id_akce = $0
-        WHERE a.dite RLIKE $1
-        GROUP BY a.id_akce
-        -- vybereme jenom aktivity, z který je víc jak 0 přihlášeno i na toto semifinále
-        HAVING COUNT(prihlaseni_toto.id_uzivatele) > 0
-      ) poddotaz
-    ', [$id, $idRegex]);
-    }
-
-    /**
      * Pošle mail potenciálním náhradníkům o volném místě na aktivitě.
      */
     private function poslatMailSledujicim(): void
@@ -2405,9 +2379,22 @@ SQL
                 }
             }
         }
-        // todo(tym): tady by mělo taky dojít ke kontrole.
+
         if ($this->tymova()) {
-            // validace týmu (max počet týmů, kapacita týmu, duplicita) probíhá v AktivitaTym::prihlasUzivateleDoTymu()
+            if (!$kodTymu) {
+                if (!(self::IGNOROVAT_LIMIT & $parametry)
+                    && (AktivitaTym::pocetVolnychMistVVerejnychTymech($this->id()) === 0)) {
+                    AktivitaTym::zkontrolujMuzeZalozitTym($this->id());
+                }
+            } else {
+                $tymId = AktivitaTym::najdiTymPodleKodu($this->id(), $kodTymu);
+                if (!$tymId) {
+                    throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
+                }
+                if (!(self::IGNOROVAT_LIMIT & $parametry)) {
+                    AktivitaTym::zkontrolujVolnouKapacituVTymu($tymId);
+                }
+            }
         }
 
         if ($this->jeBrigadnicka() && !$uzivatel->jeBrigadnik()) {

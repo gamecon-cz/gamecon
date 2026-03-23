@@ -10,6 +10,7 @@ class AktivitaTym extends \DbObject
 {
     protected static $tabulka = AkceTymSqlStruktura::AKCE_TYM_TABULKA;
 
+    // todo(tym): dochází ke zdvojené kontrole na kapacitu
     public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu, bool $ignorovatLimity = false) {
         self::zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
 
@@ -18,7 +19,7 @@ class AktivitaTym extends \DbObject
         } else {
             $idTymu = self::najdiTymPodleKodu($idAktivity, $kodTymu);
             if (!$ignorovatLimity) {
-                self::zkontrolujKapacituTymu($idTymu);
+                self::zkontrolujVolnouKapacituVTymu($idTymu);
             }
         }
 
@@ -42,7 +43,7 @@ class AktivitaTym extends \DbObject
 
     private static function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): int {
         if (!$ignorovatLimity) {
-            self::zkontrolujMaxPocetTymu($idAktivity);
+            self::zkontrolujMuzeZalozitTym($idAktivity);
         }
 
         // todo(tym): nějaký zábavný generátor na název týmů
@@ -54,27 +55,40 @@ class AktivitaTym extends \DbObject
         return (int)dbInsertId();
     }
 
-    /**
-     * Ověří že počet týmů na aktivitě nepřekročil team_kapacita limit.
-     */
-    private static function zkontrolujMaxPocetTymu(int $idAktivity): void {
-        $teamKapacita = dbOneCol(
-            'SELECT team_kapacita FROM akce_seznam WHERE id_akce = $0',
-            [$idAktivity],
-        );
-        if ($teamKapacita === null) {
-            return; // bez limitu počtu týmů
-        }
-        $pocetTymu = (int)dbOneCol(
-            'SELECT COUNT(*) FROM akce_tym WHERE id_akce = $0',
-            [$idAktivity],
-        );
-        if ($pocetTymu >= (int)$teamKapacita) {
+    public static function zkontrolujMuzeZalozitTym(int $idAktivity) {
+        if (!self::muzePridatDalsiTym($idAktivity)) {
             throw new \Chyba('Na aktivitě je už maximální počet týmů');
         }
     }
 
-    private static function najdiTymPodleKodu(int $idAktivity, int $kodTymu): int {
+
+    /** @return [int|null, int] [$team_kapacita, $pocetAktualnych] nebo null pokud team_kapacita není nastaven */
+    public static function tymAktivitaKapacity(int $idAktivity): ?array {
+        $limit = dbOneCol(
+            'SELECT team_kapacita FROM akce_seznam WHERE id_akce = $0',
+            [$idAktivity],
+        );
+        $pocetAktualnych = (int)dbOneCol(
+            'SELECT COUNT(*) FROM akce_tym WHERE id_akce = $0',
+            [$idAktivity],
+        );
+        return $limit !== null ? [(int)$limit, $pocetAktualnych] : null;
+    }
+
+    /**
+     * Ověří zda se může založit další tým (je místo v kapacitě).
+     * @return bool true pokud se může založit, false pokud je kapacita plná
+     */
+    public static function muzePridatDalsiTym(int $idAktivity): bool {
+        $info = self::tymAktivitaKapacity($idAktivity);
+        if ($info === null) {
+            return true; // bez limitu - může se vždycky založit
+        }
+        [$limit, $pocet] = $info;
+        return $pocet < $limit;
+    }
+
+    public static function najdiTymPodleKodu(int $idAktivity, int $kodTymu): int {
         $idTymu = (int)dbOneCol(
             'SELECT id FROM akce_tym WHERE id_akce = $0 AND kod = $1',
             [$idAktivity, $kodTymu],
@@ -85,7 +99,7 @@ class AktivitaTym extends \DbObject
         return $idTymu;
     }
 
-    private static function zkontrolujKapacituTymu(int $idTymu): void {
+    public static function zkontrolujVolnouKapacituVTymu(int $idTymu): void {
         $pocetClenu = (int)dbOneCol(
             'SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE id_tymu = $0',
             [$idTymu],
@@ -251,6 +265,21 @@ class AktivitaTym extends \DbObject
             [$idAktivity, $kodTymu],
         );
         return $verejny !== null ? (bool)(int)$verejny : null;
+    }
+
+    /**
+     * Vrátí počet volných míst ve všech veřejných týmech na aktivitě.
+     * @return int Součet volných míst (limit - počet členů) ve všech veřejných týmech
+     */
+    public static function pocetVolnychMistVVerejnychTymech(int $idAktivity): int {
+        $tymy = self::verejneTymy($idAktivity);
+        $volnaMista = 0;
+        foreach ($tymy as $tym) {
+            if ($tym->limit !== null) {
+                $volnaMista += max(0, $tym->limit - $tym->pocetClenu);
+            }
+        }
+        return $volnaMista;
     }
 
     public static function expirovaneTymyIds(int $hajeniHodin): array {
