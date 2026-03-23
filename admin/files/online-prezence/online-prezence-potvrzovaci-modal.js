@@ -1,7 +1,18 @@
 /* logika k situaci, že není zaškrtnutý ani jeden účastník k aktivitě  */
 function zadnyUcastnikNeniPotvrzen() {
-  const checkboxy = document.querySelectorAll(`#ucastniciAktivity${posledneKliknutaAktivitaId} input.dorazil:checked`)
-  return checkboxy.length === 0
+  const tabulka = document.getElementById(`ucastniciAktivity${posledneKliknutaAktivitaId}`)
+  if (!tabulka) {
+    return true
+  }
+  const vsechnyCheckboxy = tabulka.querySelectorAll('input.dorazil')
+  if (vsechnyCheckboxy.length === 0) {
+    const nacitani = tabulka.querySelector('.nacitani')
+    if (nacitani) {
+      return false // ještě se načítá, nevarovat
+    }
+    return true // opravdu žádní účastníci
+  }
+  return tabulka.querySelectorAll('input.dorazil:checked').length === 0
 }
 
 function potvrdModal() {

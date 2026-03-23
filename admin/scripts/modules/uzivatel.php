@@ -137,14 +137,12 @@ if ($uPracovni) {
 
 // historie účasti
 if ($uPracovni) {
-    $roky = dbFetchColumn(
-        'SELECT DISTINCT rocnik FROM uzivatele_role_podle_rocniku WHERE id_uzivatele = $1 ORDER BY rocnik',
-        [$uPracovni->id()],
-    );
+    $roky = $uPracovni->historiePrihlaseni();
+    sort($roky);
     if ($roky) {
         $odkazy = [];
         foreach ($roky as $rok) {
-            if ((int)$rok === (int)ROCNIK) {
+            if ((int)$rok === $systemoveNastaveni->rocnik()) {
                 $odkazy[] = (string)$rok;
             } else {
                 $odkazy[] = "<a href=\"https://admin.{$rok}.gamecon.cz/uzivatel?pracovni_uzivatel={$uPracovni->id()}\" target=\"_blank\">{$rok}</a>";
