@@ -1270,7 +1270,6 @@ CREATE TABLE akce_seznam
     popis            longtext            NOT NULL COMMENT 'markdown',
     popis_kratky     varchar(255)        NOT NULL,
     vybaveni         longtext            NOT NULL,
-    team_limit       int(11)                      DEFAULT NULL COMMENT 'uživatelem (vedoucím týmu) nastavený limit kapacity menší roven team_max, ale větší roven team_min. Prostřednictvím on update triggeru kontrolována tato vlastnost a je-li non-null, tak je tato kapacita nastavena do sloupce kapacita',
     probehla_korekce tinyint(1)          NOT NULL DEFAULT 0,
     PRIMARY KEY (id_akce),
     UNIQUE KEY (url_akce, rok, typ),

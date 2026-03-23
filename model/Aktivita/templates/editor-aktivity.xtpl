@@ -176,47 +176,6 @@
         </td>
     </tr>
     <tr>
-        <th class="hinted">
-      <span class="hint">Univerzálně použitelná místa / místa vyhrazená pro holky / místa vyhrazená pro kluky<br/>
-          <br/>
-          Kapacita 0/0/0 znamená bez omezení
-        </span>
-            <label for="kapacitaStd" class="hinted">Kapacita</label>
-        </th>
-        <td>
-            <div id="kapacitaStd">
-                <input type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
-                <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}"> /
-                <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}">
-            </div>
-            <div id="teamVelikost">
-                <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">–<input
-                    type="text" style="width:25px" name="{fields}[team_max]" value="{team_max}">
-                <span class="hinted">(velikost teamu)<div class="hint"> Kolik je minimální až maximální velikost teamu (družiny). Místa jsou jen univerzální.</div></span>
-            </div>
-        </td>
-    </tr>
-    <tr>
-        <th>
-            <label for="cenaAktivityCelkem" class="display-block">Cena</label>
-            <label for="odmenaZaHodinu" class="display-none">Odměna za hodinu</label>
-        </th>
-        <td>
-            <input id="cenaAktivityCelkem" type="text" style="width:4em" name="{fields}[cena]" value="{cena}">
-            <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
-                   value="{odmenaZaHodinu}">
-            <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span
-                    class="hint">Musíš správně vyplnit čas od - do</span></span>
-            <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
-            <script>if ('{bez_slevy}') {
-                $('[name="{fields}[bez_slevy]"]').attr('checked', '{bez_slevy}' === '1')
-            }</script>
-            <div class="hinted" style="float:right;margin-top:2px"><label for="bezSlev">bez slev</label>
-                <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
-            </div>
-        </td>
-    </tr>
-    <tr>
         <th><label class="display-block" for="typAktivity">Typ</label></th>
         <td>
             <select name="{fields}[typ]" id="typAktivity">
@@ -299,6 +258,58 @@
                 document.getElementById('konecAkce').addEventListener('change', pripravCenu)
             }
         </script>
+    </tr>
+    <tr>
+        <th class="hinted">
+            <label for="kapacitaInput" class="hinted">Kapacita</label>
+        </th>
+        <td>
+            <div id="kapacitaStd">
+                <input id="kapacitaInput" type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
+                <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}"> /
+                <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}">
+                <span class="hinted"><div class="hint">Univerzálně / holky / kluky<br/>Kapacita 0/0/0 znamená bez omezení</div></span>
+            </div>
+            <div id="teamVelikost" style="display:none">
+                min: <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">
+                max: <input type="text" style="width:25px" name="{fields}[team_max]" value="{team_max}">
+                týmů: <input type="text" style="width:25px" name="{fields}[team_kapacita]" value="{team_kapacita}">
+                <span class="hinted"><div class="hint">Minimální a maximální velikost teamu (družiny) + maximální počet týmů na aktivitě.<br/>Čísla bez omezení zanechejte prázdná.</div></span>
+            </div>
+            <script>
+                // Inicializace viditelnosti kapacity (musí být POTÉ, co jsou divy v DOM)
+                $(document).ready(function() {
+                    var box = $('[name="{fields}[teamova]"]')
+                    box.change(function () {
+                        $('#teamVelikost').toggle(this.checked)
+                        $('#kapacitaStd').toggle(!this.checked)
+                    })
+                    // Počáteční nastavení
+                    $('#teamVelikost').toggle(box.is(':checked'))
+                    $('#kapacitaStd').toggle(!box.is(':checked'))
+                })
+            </script>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            <label for="cenaAktivityCelkem" class="display-block">Cena</label>
+            <label for="odmenaZaHodinu" class="display-none">Odměna za hodinu</label>
+        </th>
+        <td>
+            <input id="cenaAktivityCelkem" type="text" style="width:4em" name="{fields}[cena]" value="{cena}">
+            <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
+                   value="{odmenaZaHodinu}">
+            <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span
+                    class="hint">Musíš správně vyplnit čas od - do</span></span>
+            <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
+            <script>if ('{bez_slevy}') {
+                $('[name="{fields}[bez_slevy]"]').attr('checked', '{bez_slevy}' === '1')
+            }</script>
+            <div class="hinted" style="float:right;margin-top:2px"><label for="bezSlev">bez slev</label>
+                <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
+            </div>
+        </td>
     </tr>
     <tr>
         <th><label for="vyberTagu" class="display-block">Tagy</label></th>

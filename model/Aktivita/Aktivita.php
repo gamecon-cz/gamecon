@@ -1174,11 +1174,14 @@ SQL
         $data[Sql::TEAM_MAX] = $teamova
             ? (int)$data[Sql::TEAM_MAX]
             : null;
+        $data[Sql::TEAM_KAPACITA] = $teamova
+            ? (!empty($data[Sql::TEAM_KAPACITA]) ? (int)$data[Sql::TEAM_KAPACITA] : null)
+            : null;
 
         if ($teamova) {
             // Vedoucí týmu může ručně nastavit kapacitu nižší, dokud je větší rovna team_min. V takovém
             // případě se NESMÍ kapacita změnit při např. úpravě popisu aktivity z adminu. DB trigger
-            $data[Sql::KAPACITA] = $data[Sql::TEAM_MAX] ?? 0;
+            $data[Sql::KAPACITA] = ($data[Sql::TEAM_MAX] ?? 0) * ($data[Sql::TEAM_KAPACITA] ?? 1);
             $data[Sql::KAPACITA_F] = 0;
             $data[Sql::KAPACITA_M] = 0;
         } else {
