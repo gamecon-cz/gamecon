@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Structure\Entity;
 
 /**
- * Property structure for @see \App\Entity\Product
+ * Property structure for @see \App\Entity\ShopItem
  */
 class ShopItemEntityStructure
 {
@@ -23,11 +23,6 @@ class ShopItemEntityStructure
      * @see ShopItem::$kodPredmetu
      */
     public const kodPredmetu = 'kodPredmetu';
-
-    /**
-     * @see ShopItem::$modelRok
-     */
-    public const modelRok = 'modelRok';
 
     /**
      * @see ShopItem::$cenaAktualni
@@ -50,11 +45,6 @@ class ShopItemEntityStructure
     public const kusuVyrobeno = 'kusuVyrobeno';
 
     /**
-     * @see ShopItem::$typ
-     */
-    public const typ = 'typ';
-
-    /**
      * @see ShopItem::$ubytovaniDen
      */
     public const ubytovaniDen = 'ubytovaniDen';
@@ -65,9 +55,19 @@ class ShopItemEntityStructure
     public const popis = 'popis';
 
     /**
-     * @see ShopItem::$jeLetosniHlavni
+     * @see ShopItem::$archivedAt
      */
-    public const jeLetosniHlavni = 'jeLetosniHlavni';
+    public const archivedAt = 'archivedAt';
+
+    /**
+     * @see ShopItem::$amountOrganizers
+     */
+    public const amountOrganizers = 'amountOrganizers';
+
+    /**
+     * @see ShopItem::$amountParticipants
+     */
+    public const amountParticipants = 'amountParticipants';
 
     /**
      * @see ShopItem::$vedlejsi

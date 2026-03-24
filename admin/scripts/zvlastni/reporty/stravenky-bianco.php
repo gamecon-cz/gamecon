@@ -20,7 +20,7 @@ $o = dbQuery(<<<SQL
       shop_predmety.nazev,
       FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
       FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
-    FROM shop_predmety
+    FROM shop_predmety_s_typem AS shop_predmety
     WHERE shop_predmety.model_rok = {$rocnik}
       AND shop_predmety.typ = {$typJidlo}
       AND shop_predmety.ubytovani_den >= {$prvniDen}

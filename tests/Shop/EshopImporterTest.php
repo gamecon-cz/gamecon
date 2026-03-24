@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
-use App\Structure\Entity\ShopItemEntityStructure;
 use Gamecon\Shop\EshopImporter;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Tests\Db\AbstractTestDb;
-use Gamecon\Tests\Factory\ShopItemFactory;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\XLSX\Writer as XLSXWriter;
 
@@ -38,16 +35,13 @@ class EshopImporterTest extends AbstractTestDb
     }
 
     private static array $hlavicka = [
-        'model_rok',
         'nazev',
         'kod_predmetu',
         'cena_aktualni',
         'stav',
         'nabizet_do',
         'kusu_vyrobeno',
-        'typ',
-        'podtyp',
-        'je_letosni_hlavni',
+        'tag',
         'ubytovani_den',
         'popis',
         'vedlejsi',
@@ -70,19 +64,16 @@ class EshopImporterTest extends AbstractTestDb
     private function defaultniRadek(array $prepisVrednosti = []): array
     {
         $radek = [
-            'model_rok'         => 2025,
-            'nazev'             => 'Testovací předmět',
-            'kod_predmetu'      => 'TEST_KOD',
-            'cena_aktualni'     => '199.00',
-            'stav'              => StavPredmetu::VEREJNY,
-            'nabizet_do'        => '2025-12-31',
-            'kusu_vyrobeno'     => 100,
-            'typ'               => TypPredmetu::PREDMET,
-            'podtyp'            => '',
-            'je_letosni_hlavni' => 0,
-            'ubytovani_den'     => '',
-            'popis'             => 'Popis předmětu',
-            'vedlejsi'          => 0,
+            'nazev'         => 'Testovací předmět',
+            'kod_predmetu'  => 'TEST_KOD',
+            'cena_aktualni' => '199.00',
+            'stav'          => StavPredmetu::VEREJNY,
+            'nabizet_do'    => '2025-12-31',
+            'kusu_vyrobeno' => 100,
+            'tag'           => 'predmet',
+            'ubytovani_den' => '',
+            'popis'         => 'Popis předmětu',
+            'vedlejsi'      => 0,
         ];
 
         return array_merge($radek, $prepisVrednosti);
@@ -111,13 +102,26 @@ class EshopImporterTest extends AbstractTestDb
         self::assertSame(0, $vysledek->pocetZmenenych);
 
         $pocet = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_predmety WHERE model_rok = $0 AND kod_predmetu IN ($1)',
+            'SELECT COUNT(*) FROM shop_predmety WHERE kod_predmetu IN ($0)',
             [
-                0 => 2025,
-                1 => ['POLOZKA_A', 'POLOZKA_B'],
+                0 => ['POLOZKA_A', 'POLOZKA_B'],
             ],
         );
         self::assertSame(2, $pocet);
+
+        // Verify tags were assigned
+        $pocetTagu = (int) dbOneCol(<<<SQL
+SELECT COUNT(*)
+FROM product_product_tag ppt
+JOIN product_tag pt ON ppt.tag_id = pt.id
+JOIN shop_predmety sp ON ppt.product_id = sp.id_predmetu
+WHERE sp.kod_predmetu IN ($0) AND pt.code = 'predmet'
+SQL,
+            [
+                0 => ['POLOZKA_A', 'POLOZKA_B'],
+            ],
+        );
+        self::assertSame(2, $pocetTagu);
     }
 
     /**
@@ -126,21 +130,23 @@ class EshopImporterTest extends AbstractTestDb
     public function importAktualizujeExistujiciPolozky(): void
     {
         $uniqueId = uniqid();
-        ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev        => 'Původní název',
-            ShopItemEntityStructure::kodPredmetu  => 'UPDATE_' . $uniqueId,
-            ShopItemEntityStructure::modelRok     => 2025,
-            ShopItemEntityStructure::cenaAktualni => '100.00',
-            ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
-            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
-        ]);
+
+        // Create existing product via raw SQL
+        dbQuery("INSERT INTO shop_predmety SET
+            nazev = 'Původní název',
+            kod_predmetu = 'UPDATE_{$uniqueId}',
+            cena_aktualni = 100.00,
+            stav = " . StavPredmetu::VEREJNY . ",
+            popis = ''");
+        $idPredmetu = dbInsertId();
+        dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+            SELECT {$idPredmetu}, id FROM product_tag WHERE code = 'predmet'");
 
         $soubor = $this->createXlsxSoubor([
             $this->defaultniRadek([
                 'kod_predmetu'  => 'UPDATE_' . $uniqueId,
                 'nazev'         => 'Nový název',
                 'cena_aktualni' => '250.00',
-                'model_rok'     => 2025,
             ]),
         ]);
 
@@ -150,10 +156,9 @@ class EshopImporterTest extends AbstractTestDb
         self::assertSame(0, $vysledek->pocetNovych);
 
         $cena = dbOneCol(
-            'SELECT cena_aktualni FROM shop_predmety WHERE kod_predmetu = $0 AND model_rok = $1',
+            'SELECT cena_aktualni FROM shop_predmety WHERE kod_predmetu = $0',
             [
                 0 => 'UPDATE_' . $uniqueId,
-                1 => 2025,
             ],
         );
         self::assertSame('250.00', $cena);
@@ -162,42 +167,58 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function importVyradiPolozkyCoNejsouVSouboru(): void
+    public function importArchivujePolozkyCoNejsouVSouboru(): void
     {
         $uniqueId = uniqid();
-        ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev       => 'Zachovat ' . $uniqueId,
-            ShopItemEntityStructure::kodPredmetu => 'ZACHOVAT_' . $uniqueId,
-            ShopItemEntityStructure::modelRok    => 2025,
-            ShopItemEntityStructure::stav        => StavPredmetu::VEREJNY,
-            ShopItemEntityStructure::typ         => TypPredmetu::PREDMET,
-        ]);
-        ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev       => 'Vyradit ' . $uniqueId,
-            ShopItemEntityStructure::kodPredmetu => 'VYRADIT_' . $uniqueId,
-            ShopItemEntityStructure::modelRok    => 2025,
-            ShopItemEntityStructure::stav        => StavPredmetu::VEREJNY,
-            ShopItemEntityStructure::typ         => TypPredmetu::PREDMET,
-        ]);
 
+        // Create two existing products
+        dbQuery("INSERT INTO shop_predmety SET
+            nazev = 'Zachovat {$uniqueId}',
+            kod_predmetu = 'ZACHOVAT_{$uniqueId}',
+            cena_aktualni = 100.00,
+            stav = " . StavPredmetu::VEREJNY . ",
+            popis = ''");
+        $id1 = dbInsertId();
+        dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+            SELECT {$id1}, id FROM product_tag WHERE code = 'predmet'");
+
+        dbQuery("INSERT INTO shop_predmety SET
+            nazev = 'Archivovat {$uniqueId}',
+            kod_predmetu = 'ARCHIVOVAT_{$uniqueId}',
+            cena_aktualni = 100.00,
+            stav = " . StavPredmetu::VEREJNY . ",
+            popis = ''");
+        $id2 = dbInsertId();
+        dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+            SELECT {$id2}, id FROM product_tag WHERE code = 'predmet'");
+
+        // Import file only has the first product
         $soubor = $this->createXlsxSoubor([
             $this->defaultniRadek([
                 'kod_predmetu' => 'ZACHOVAT_' . $uniqueId,
-                'model_rok'    => 2025,
             ]),
         ]);
 
         $importer = new EshopImporter($soubor);
         $importer->importuj();
 
-        $stavVyrazene = (int) dbOneCol(
-            'SELECT stav FROM shop_predmety WHERE kod_predmetu = $0 AND model_rok = $1',
+        // The missing product should be archived
+        $archivedAt = dbOneCol(
+            'SELECT archived_at FROM shop_predmety WHERE kod_predmetu = $0',
             [
-                0 => 'VYRADIT_' . $uniqueId,
-                1 => 2025,
+                0 => 'ARCHIVOVAT_' . $uniqueId,
             ],
         );
-        self::assertSame(StavPredmetu::MIMO, $stavVyrazene);
+        self::assertNotNull($archivedAt, 'Chybějící položka by měla být archivována');
+
+        // The present product should NOT be archived
+        $archivedAtZachovat = dbOneCol(
+            'SELECT archived_at FROM shop_predmety WHERE kod_predmetu = $0',
+            [
+                0 => 'ZACHOVAT_' . $uniqueId,
+            ],
+        );
+        self::assertNull($archivedAtZachovat, 'Přítomná položka nesmí být archivována');
     }
 
     /**
@@ -209,7 +230,6 @@ class EshopImporterTest extends AbstractTestDb
             $this->defaultniRadek([
                 'kod_predmetu' => '',
                 'nazev'        => 'Moje Kostka',
-                'model_rok'    => 2025,
             ]),
         ]);
 
@@ -219,10 +239,9 @@ class EshopImporterTest extends AbstractTestDb
         self::assertSame(1, $vysledek->pocetNovych);
 
         $pocet = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_predmety WHERE kod_predmetu = $0 AND model_rok = $1',
+            'SELECT COUNT(*) FROM shop_predmety WHERE kod_predmetu = $0',
             [
                 0 => 'moje_kostka',
-                1 => 2025,
             ],
         );
         self::assertSame(1, $pocet);
@@ -236,8 +255,8 @@ class EshopImporterTest extends AbstractTestDb
         $soubor = tempnam(sys_get_temp_dir(), 'eshop_import_test_') . '.xlsx';
         $writer = new XLSXWriter();
         $writer->openToFile($soubor);
-        $writer->addRow(Row::fromValues(['model_rok', 'nazev'])); // chybí ostatní sloupce
-        $writer->addRow(Row::fromValues([2025, 'Předmět']));
+        $writer->addRow(Row::fromValues(['nazev', 'kod_predmetu'])); // chybí ostatní sloupce
+        $writer->addRow(Row::fromValues(['Předmět', 'KOD']));
         $writer->close();
 
         $this->expectException(\Chyba::class);
@@ -250,11 +269,11 @@ class EshopImporterTest extends AbstractTestDb
     /**
      * @test
      */
-    public function importChybaKdyzChybiModelRok(): void
+    public function importChybaKdyzChybiTag(): void
     {
         $soubor = $this->createXlsxSoubor([
             $this->defaultniRadek([
-                'model_rok' => '',
+                'tag' => '',
             ]),
         ]);
 
@@ -274,7 +293,6 @@ class EshopImporterTest extends AbstractTestDb
             $this->defaultniRadek([
                 'kod_predmetu'  => 'NULL_TEST',
                 'kusu_vyrobeno' => 'NULL',
-                'model_rok'     => 2025,
             ]),
         ]);
 
@@ -284,10 +302,9 @@ class EshopImporterTest extends AbstractTestDb
         self::assertSame(1, $vysledek->pocetNovych);
 
         $kusuVyrobeno = dbOneCol(
-            'SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = $0 AND model_rok = $1',
+            'SELECT kusu_vyrobeno FROM shop_predmety WHERE kod_predmetu = $0',
             [
                 0 => 'NULL_TEST',
-                1 => 2025,
             ],
         );
         self::assertNull($kusuVyrobeno);
@@ -302,12 +319,10 @@ class EshopImporterTest extends AbstractTestDb
             $this->defaultniRadek([
                 'nazev'        => 'Idempotentní A',
                 'kod_predmetu' => 'IDEMPOT_A',
-                'model_rok'    => 2025,
             ]),
             $this->defaultniRadek([
                 'nazev'        => 'Idempotentní B',
                 'kod_predmetu' => 'IDEMPOT_B',
-                'model_rok'    => 2025,
             ]),
         ]);
 
@@ -322,10 +337,9 @@ class EshopImporterTest extends AbstractTestDb
         self::assertSame(0, $vysledek2->pocetNovych);
 
         $pocet = (int) dbOneCol(
-            'SELECT COUNT(*) FROM shop_predmety WHERE kod_predmetu IN ($0) AND model_rok = $1',
+            'SELECT COUNT(*) FROM shop_predmety WHERE kod_predmetu IN ($0)',
             [
                 0 => ['IDEMPOT_A', 'IDEMPOT_B'],
-                1 => 2025,
             ],
         );
         self::assertSame(2, $pocet);

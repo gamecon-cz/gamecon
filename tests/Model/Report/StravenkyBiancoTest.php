@@ -13,133 +13,224 @@ class StravenkyBiancoTest extends AbstractTestDb
     protected static array $initQueries = [
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Snídaně čtvrtek', model_rok = $0, kod_predmetu = CONCAT('snidane_ct_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO shop_predmety SET nazev = 'Snídaně čtvrtek', kod_predmetu = CONCAT('snidane_ct_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Oběd čtvrtek', model_rok = $0, kod_predmetu = CONCAT('obed_ct_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('snidane_ct_test_', $0)
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Večeře čtvrtek', model_rok = $0, kod_predmetu = CONCAT('vecere_ct_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO shop_predmety SET nazev = 'Oběd čtvrtek', kod_predmetu = CONCAT('obed_ct_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Snídaně pátek', model_rok = $0, kod_predmetu = CONCAT('snidane_pa_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('obed_ct_test_', $0)
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Oběd pátek', model_rok = $0, kod_predmetu = CONCAT('obed_pa_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO shop_predmety SET nazev = 'Večeře čtvrtek', kod_predmetu = CONCAT('vecere_ct_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Večeře pátek', model_rok = $0, kod_predmetu = CONCAT('vecere_pa_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('vecere_ct_test_', $0)
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Snídaně sobota', model_rok = $0, kod_predmetu = CONCAT('snidane_so_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO shop_predmety SET nazev = 'Snídaně pátek', kod_predmetu = CONCAT('snidane_pa_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Oběd sobota', model_rok = $0, kod_predmetu = CONCAT('obed_so_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('snidane_pa_test_', $0)
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Večeře sobota', model_rok = $0, kod_predmetu = CONCAT('vecere_so_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO shop_predmety SET nazev = 'Oběd pátek', kod_predmetu = CONCAT('obed_pa_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Snídaně neděle', model_rok = $0, kod_predmetu = CONCAT('snidane_ne_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('obed_pa_test_', $0)
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Oběd neděle', model_rok = $0, kod_predmetu = CONCAT('obed_ne_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO shop_predmety SET nazev = 'Večeře pátek', kod_predmetu = CONCAT('vecere_pa_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
             ],
         ],
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Večeře neděle', model_rok = $0, kod_predmetu = CONCAT('vecere_ne_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('vecere_pa_test_', $0)
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO shop_predmety SET nazev = 'Snídaně sobota', kod_predmetu = CONCAT('snidane_so_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
+SQL,
+            [
+                0 => ROCNIK,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('snidane_so_test_', $0)
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO shop_predmety SET nazev = 'Oběd sobota', kod_predmetu = CONCAT('obed_so_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
+SQL,
+            [
+                0 => ROCNIK,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('obed_so_test_', $0)
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO shop_predmety SET nazev = 'Večeře sobota', kod_predmetu = CONCAT('vecere_so_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
+SQL,
+            [
+                0 => ROCNIK,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('vecere_so_test_', $0)
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO shop_predmety SET nazev = 'Snídaně neděle', kod_predmetu = CONCAT('snidane_ne_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
+SQL,
+            [
+                0 => ROCNIK,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('snidane_ne_test_', $0)
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO shop_predmety SET nazev = 'Oběd neděle', kod_predmetu = CONCAT('obed_ne_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
+SQL,
+            [
+                0 => ROCNIK,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('obed_ne_test_', $0)
+SQL,
+            [
+                0 => ROCNIK,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO shop_predmety SET nazev = 'Večeře neděle', kod_predmetu = CONCAT('vecere_ne_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
+SQL,
+            [
+                0 => ROCNIK,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('vecere_ne_test_', $0)
+SQL,
+            [
+                0 => ROCNIK,
             ],
         ],
         // středa meal should be excluded
         [
             <<<SQL
-INSERT INTO shop_predmety SET nazev = 'Oběd středa', model_rok = $0, kod_predmetu = CONCAT('obed_st_test_', $0), cena_aktualni = 90, stav = 1, typ = $1, ubytovani_den = $2
+INSERT INTO shop_predmety SET nazev = 'Oběd středa', kod_predmetu = CONCAT('obed_st_test_', $0), cena_aktualni = 90, stav = 1, ubytovani_den = $1
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
-                2 => DateTimeGamecon::PORADI_HERNIHO_DNE_STREDA,
+                1 => DateTimeGamecon::PORADI_HERNIHO_DNE_STREDA,
+            ],
+        ],
+        [
+            <<<SQL
+INSERT INTO product_product_tag (product_id, tag_id) SELECT id_predmetu, (SELECT id FROM product_tag WHERE code = 'jidlo') FROM shop_predmety WHERE kod_predmetu = CONCAT('obed_st_test_', $0)
+SQL,
+            [
+                0 => ROCNIK,
             ],
         ],
     ];
@@ -158,7 +249,7 @@ SQL,
               shop_predmety.nazev,
               FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
               FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
-            FROM shop_predmety
+            FROM shop_predmety_s_typem AS shop_predmety
             WHERE shop_predmety.model_rok = {$rocnik}
               AND shop_predmety.typ = {$typJidlo}
               AND shop_predmety.ubytovani_den >= {$prvniDen}
@@ -198,7 +289,7 @@ SQL,
               shop_predmety.nazev,
               FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle') AS poradi_dne,
               FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře') AS poradi_jidla
-            FROM shop_predmety
+            FROM shop_predmety_s_typem AS shop_predmety
             WHERE shop_predmety.model_rok = {$rocnik}
               AND shop_predmety.typ = {$typJidlo}
               AND shop_predmety.ubytovani_den >= {$prvniDen}

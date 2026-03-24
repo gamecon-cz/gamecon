@@ -42,17 +42,15 @@ final class ShopItemFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'nazev'           => 'Test Předmět ' . uniqid(),
-            'kodPredmetu'     => 'TEST_' . strtoupper(uniqid()),
-            'modelRok'        => self::faker()->numberBetween(2020, 2030),
-            'cenaAktualni'    => (string) self::faker()->randomFloat(2, 0, 9999),
-            'stav'            => self::faker()->numberBetween(0, 3),
-            'nabizetDo'       => null,
-            'kusuVyrobeno'    => self::faker()->numberBetween(0, 1000),
-            'typ'             => self::faker()->numberBetween(1, 7),
-            'ubytovaniDen'    => null,
-            'popis'           => self::faker()->text(200),
-            'jeLetosniHlavni' => false,
+            'nazev'        => 'Test Předmět ' . uniqid(),
+            'kodPredmetu'  => 'TEST_' . strtoupper(uniqid()),
+            'cenaAktualni' => (string) self::faker()->randomFloat(2, 0, 9999),
+            'stav'         => self::faker()->numberBetween(0, 3),
+            'nabizetDo'    => null,
+            'kusuVyrobeno' => self::faker()->numberBetween(0, 1000),
+            'ubytovaniDen' => null,
+            'popis'        => self::faker()->text(200),
+            'archivedAt'   => null,
         ];
     }
 
