@@ -125,6 +125,11 @@ class ActivityEntityStructure
     public const activityInstance = 'activityInstance';
 
     /**
+     * @see Activity::$mainLocation
+     */
+    public const mainLocation = 'mainLocation';
+
+    /**
      * @see Activity::$locations
      */
     public const locations = 'locations';

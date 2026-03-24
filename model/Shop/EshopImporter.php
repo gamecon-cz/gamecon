@@ -32,7 +32,7 @@ class EshopImporter
         $hlavickaKlice = array_map('trim', $row->toArray());
         $hlavicka      = array_flip($hlavickaKlice);
 
-        $pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'podtyp', 'je_letosni_hlavni', 'ubytovani_den', 'popis', 'vedlejsi'];
+        $pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'tag', 'ubytovani_den', 'popis', 'vedlejsi'];
         if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
             throw new \Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
         }
@@ -44,8 +44,7 @@ class EshopImporter
         $indexStav            = $hlavicka['stav'];
         $indexNabizetDo       = $hlavicka['nabizet_do'];
         $indexKusuVyrobeno    = $hlavicka['kusu_vyrobeno'];
-        $indexTyp             = $hlavicka['typ'];
-        $indexPodtyp          = $hlavicka['podtyp'];
+        $indexTag          = $hlavicka['tag'];
         $indexJeLetosniHlavni = $hlavicka['je_letosni_hlavni'];
         $indexUbytovaniDen    = $hlavicka['ubytovani_den'];
         $indexPopis           = $hlavicka['popis'];
@@ -55,18 +54,18 @@ class EshopImporter
 
         $cisloNeboNull = static fn(
             $hodnota,
-        ) => trim((string)$hodnota) !== ''
+        ) => trim((string) $hodnota) !== ''
             ? $hodnota
             : null;
 
         $celeCislo = static fn(
             $hodnota,
-        ) => (int)((string)$hodnota);
+        ) => (int) ((string) $hodnota);
 
         $hodnotaNeboKodZNazvu = static fn(
             $hodnota,
             string $nazev,
-        ) => trim((string)$hodnota) !== ''
+        ) => trim((string) $hodnota) !== ''
             ? $hodnota
             : kodZNazvu($nazev);
 
@@ -92,9 +91,10 @@ class EshopImporter
             $radek,
         );
 
-        $chyby          = [];
-        $sqlValuesArray = [];
-        $poradiRadku    = 1;
+        $chyby             = [];
+        $sqlValuesArray     = [];
+        $tagsByKodPredmetu  = [];
+        $poradiRadku        = 1;
         /** @var \OpenSpout\Common\Entity\Row|null $row */
         while ($rowIterator->valid()) {
             $radek = $rowIterator->current()->toArray();
@@ -102,30 +102,30 @@ class EshopImporter
             $rowIterator->next();
 
             if ($radek) {
-                $radek    = $trimRadek($radek);
-                $radek    = $stringNullJakoNullRadek($radek);
-                $modelRok = (int)($radek[$indexModelRok] ?? null);
-                if (!$modelRok) {
+                $radek       = $trimRadek($radek);
+                $radek       = $stringNullJakoNullRadek($radek);
+                $kodPredmetu = $hodnotaNeboKodZNazvu(
+                    $radek[$indexKodPredmetu],
+                    (string) $radek[$indexNazev],
+                );
+                $tag = trim((string) ($radek[$indexTag] ?? ''));
+                if ($tag === '') {
                     $chyby[] = sprintf(
-                        'Na řádku %d chybí rok v %d. sloupci',
+                        'Na řádku %d chybí tag v %d. sloupci',
                         $poradiRadku,
-                        $indexModelRok + 1,
+                        $indexTag + 1,
                     );
                     continue;
                 }
+                $tagsByKodPredmetu[$kodPredmetu] = $tag;
+
                 $sqlValuesArray[] = '(' . dbQa([
-                        $radek[$indexModelRok],
                         $radek[$indexNazev],
-                        $hodnotaNeboKodZNazvu(
-                            $radek[$indexKodPredmetu],
-                            (string)$radek[$indexNazev],
-                        ),
+                        $kodPredmetu,
                         $radek[$indexCenaAktualni],
                         $radek[$indexStav],
                         $radek[$indexNabizetDo],
                         $cisloNeboNull($radek[$indexKusuVyrobeno]),
-                        $cisloNeboNull($radek[$indexTyp]),
-                        $cisloNeboNull($radek[$indexPodtyp]),
                         $celeCislo($radek[$indexJeLetosniHlavni]),
                         $cisloNeboNull($radek[$indexUbytovaniDen]),
                         $radek[$indexPopis],
@@ -146,75 +146,106 @@ class EshopImporter
         if ($sqlValuesArray) {
             $temporaryTable = uniqid('import_eshopu_tmp_', true);
             dbQuery(<<<SQL
-CREATE TEMPORARY TABLE `$temporaryTable`
-LIKE shop_predmety
+CREATE TEMPORARY TABLE `$temporaryTable` (
+    `nazev` VARCHAR(255) NOT NULL,
+    `kod_predmetu` VARCHAR(255) NOT NULL,
+    `cena_aktualni` DECIMAL(6,2) NOT NULL DEFAULT 0,
+    `stav` SMALLINT NOT NULL DEFAULT 0,
+    `nabizet_do` DATETIME DEFAULT NULL,
+    `kusu_vyrobeno` SMALLINT DEFAULT NULL,
+    `ubytovani_den` SMALLINT DEFAULT NULL,
+    `popis` VARCHAR(2000) NOT NULL DEFAULT '',
+    `vedlejsi` TINYINT(1) NOT NULL DEFAULT 0,
+    UNIQUE KEY (`kod_predmetu`)
+)
 SQL,
             );
 
             $sqlValues = implode(",\n", $sqlValuesArray);
 
             dbQuery(<<<SQL
-INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `podtyp`, `je_letosni_hlavni`, `ubytovani_den`, `popis`, `vedlejsi`)
+INSERT INTO `$temporaryTable` (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `popis`, `vedlejsi`)
     VALUES
 $sqlValues
 SQL,
             );
 
-            $mysqliResult   = dbQuery(<<<SQL
+            // Update existing products (matched by kod_predmetu)
+            $mysqliResult = dbQuery(<<<SQL
 UPDATE shop_predmety
 JOIN `$temporaryTable` AS import
     ON shop_predmety.kod_predmetu = import.kod_predmetu
-    AND shop_predmety.model_rok = import.model_rok
 SET
     shop_predmety.nazev = import.nazev,
     shop_predmety.cena_aktualni = import.cena_aktualni,
     shop_predmety.stav = import.stav,
     shop_predmety.nabizet_do = import.nabizet_do,
     shop_predmety.kusu_vyrobeno = import.kusu_vyrobeno,
-    shop_predmety.typ = import.typ,
-    shop_predmety.podtyp = import.podtyp,
-    shop_predmety.je_letosni_hlavni = import.je_letosni_hlavni,
     shop_predmety.ubytovani_den = import.ubytovani_den,
     shop_predmety.popis = import.popis,
-    shop_predmety.vedlejsi = import.vedlejsi
-WHERE TRUE -- už vyřešeno přes INNER JOIN a unique key
+    shop_predmety.vedlejsi = import.vedlejsi,
+    shop_predmety.archived_at = NULL
+WHERE TRUE
 SQL,
             );
             $pocetZmenenych = dbAffectedOrNumRows($mysqliResult);
 
+            // Insert new products
             $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `typ`, `podtyp`, `je_letosni_hlavni`, `ubytovani_den`, `popis`, `vedlejsi`)
-SELECT import.`model_rok`,
+INSERT INTO shop_predmety (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `ubytovani_den`, `popis`, `vedlejsi`)
+SELECT
     import.`nazev`,
     import.`kod_predmetu`,
     import.`cena_aktualni`,
     import.`stav`,
     import.`nabizet_do`,
     import.`kusu_vyrobeno`,
-    import.`typ`,
-    import.`podtyp`,
-    import.`je_letosni_hlavni`,
     import.`ubytovani_den`,
     import.`popis`,
     import.`vedlejsi`
 FROM `$temporaryTable` AS import
 LEFT JOIN shop_predmety AS uz_zname
     ON uz_zname.kod_predmetu = import.kod_predmetu
-        AND uz_zname.model_rok = import.model_rok
-WHERE uz_zname.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme záznam přes ON podmínky nenašli
+WHERE uz_zname.id_predmetu IS NULL
 SQL,
             );
-            $pocetNovych  = dbAffectedOrNumRows($mysqliResult);
+            $pocetNovych = dbAffectedOrNumRows($mysqliResult);
 
+            // Sync tags for all imported products (new and updated)
+            foreach ($tagsByKodPredmetu as $kodPredmetu => $tagCode) {
+                $idPredmetu = dbOneCol(
+                    'SELECT id_predmetu FROM shop_predmety WHERE kod_predmetu = $0',
+                    [0 => $kodPredmetu],
+                );
+                if ($idPredmetu === null) {
+                    continue;
+                }
+                // Remove old category tags and set the new one
+                dbQuery(<<<SQL
+DELETE product_product_tag FROM product_product_tag
+JOIN product_tag ON product_product_tag.tag_id = product_tag.id
+WHERE product_product_tag.product_id = $0
+  AND product_tag.code IN ('predmet','ubytovani','tricko','jidlo','vstupne','parcon','proplaceni-bonusu')
+SQL,
+                    [0 => $idPredmetu],
+                );
+                dbQuery(<<<SQL
+INSERT INTO product_product_tag (product_id, tag_id)
+SELECT $0, id FROM product_tag WHERE code = $1
+SQL,
+                    [0 => $idPredmetu, 1 => $tagCode],
+                );
+            }
+
+            // Archive products not in the import file
             $mysqliResult = dbQuery(<<<SQL
 UPDATE shop_predmety AS stare
 LEFT JOIN `$temporaryTable` AS import
     ON stare.kod_predmetu = import.kod_predmetu
-    AND stare.model_rok = import.model_rok
-SET stare.stav = $0
-WHERE import.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme záznam přes ON podmínky nenašli
+SET stare.archived_at = NOW()
+WHERE import.kod_predmetu IS NULL
+  AND stare.archived_at IS NULL
 SQL,
-                [0 => StavPredmetu::MIMO],
             );
             $pocetVyrazenych = dbAffectedOrNumRows($mysqliResult);
 
