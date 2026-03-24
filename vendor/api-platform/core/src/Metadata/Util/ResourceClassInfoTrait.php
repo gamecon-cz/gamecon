@@ -90,4 +90,28 @@ trait ResourceClassInfoTrait
 
         return $this->extractClassNameFromType($type);
     }
+
+    private function getTypeFromProperty(ApiProperty $propertyMetadata): ?Type
+    {
+        return $propertyMetadata->getNativeType();
+    }
+
+    private function extractClassNameFromType(Type $type): ?string
+    {
+        return TypeHelper::getClassName(TypeHelper::getCollectionValueType($type) ?? $type);
+    }
+
+    /**
+     * Gets the class name from a property metadata if it's a resource class.
+     */
+    protected function getClassNameFromProperty(ApiProperty $propertyMetadata): ?string
+    {
+        if (!($type = $this->getTypeFromProperty($propertyMetadata))) {
+            return null;
+        }
+
+        $className = $this->extractClassNameFromType($type);
+
+        return $className && $this->isResourceClass($className) ? $className : null;
+    }
 }

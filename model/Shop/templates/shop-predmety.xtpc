@@ -1,0 +1,475 @@
+<?php
+  class Shoppredmety841401Tpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function predmety() {
+      if($this->current == "predmety") {
+        if(!empty($this->buffer["predmety"])) {
+          $out = $this->buffer["predmety"] . ob_get_clean();
+          $this->buffer["predmety"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety"] ?? "";
+        $this->buffer["predmety"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety() {
+      if($this->current != "predmety") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety";
+      }
+      ?>
+
+<?=$this->predmety_predmetyPozastaveny()?>
+
+<div class="shopPredmety_predmety">
+    <?=$this->predmety_predmet()?>
+</div>
+
+<?=$this->predmety_dalsiMerch()?>
+
+<?=$this->predmety_trickaPozastavena()?>
+
+<div class="shopPredmety_tricka">
+    <?=$this->predmety_tricko()?>
+</div>
+
+<script type="text/javascript" src="<?=isset($this->context["shopTrickaJs"])?$this->context["shopTrickaJs"]:''?>"></script>
+
+<script>
+    shopPlusminus(
+        document.querySelectorAll('.shopPredmety_minus-povoleno'),
+        document.querySelectorAll('.shopPredmety_plus-povoleno')
+    )
+
+    function shopPlusminus(minusy, plusy) {
+        minusy.forEach((e) => clickZmena(e, -1))
+
+        plusy.forEach((e) => clickZmena(e, +1))
+
+        minusy.forEach((e) => prekresli(e.parentNode))
+
+        function clickZmena(e, delta) {
+            let p = e.parentNode
+            e.onclick = () => {
+                let pocet = Number(p.querySelector('input').value)
+                p.querySelector('input').value = Math.max(pocet + delta, 0)
+                prekresli(p)
+                return false
+            }
+        }
+
+        function prekresli(p) {
+            let pocet = Number(p.querySelector('input').value)
+            let minus = p.querySelector('.shopPredmety_minus')
+
+            p.querySelector('.shopPredmety_kusu').innerHTML = pocet
+
+            if (pocet <= 0) {
+                minus.classList.add('shopPredmety_minus-neaktivni')
+            } else {
+                minus.classList.remove('shopPredmety_minus-neaktivni')
+            }
+        }
+    }
+</script>
+<?php
+    }
+  
+    function predmety_predmetyPozastaveny() {
+      if($this->current == "predmety_predmetyPozastaveny") {
+        if(!empty($this->buffer["predmety_predmetyPozastaveny"])) {
+          $out = $this->buffer["predmety_predmetyPozastaveny"] . ob_get_clean();
+          $this->buffer["predmety_predmetyPozastaveny"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_predmetyPozastaveny"] ?? "";
+        $this->buffer["predmety_predmetyPozastaveny"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_predmetyPozastaveny() {
+      if($this->current != "predmety_predmetyPozastaveny") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_predmetyPozastaveny";
+      }
+      ?>
+<p>Možnost nákupu předmětů už skončila.</p>
+<?php
+    }
+  
+    function predmety_predmet() {
+      if($this->current == "predmety_predmet") {
+        if(!empty($this->buffer["predmety_predmet"])) {
+          $out = $this->buffer["predmety_predmet"] . ob_get_clean();
+          $this->buffer["predmety_predmet"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_predmet"] ?? "";
+        $this->buffer["predmety_predmet"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_predmet() {
+      if($this->current != "predmety_predmet") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_predmet";
+      }
+      ?>
+    <div class="shopPredmety_predmet">
+        <div class="shop_popis">
+            <?=isset($this->context["nazev"])?$this->context["nazev"]:''?>
+            <div class="shop_popisCena"><?=isset($this->context["cena"])?$this->context["cena"]:''?></div>
+        </div>
+
+        <?=$this->predmety_predmet_fixniPocet()?>
+
+        <?=$this->predmety_predmet_nakup()?>
+    </div>
+    <?php
+    }
+  
+    function predmety_predmet_fixniPocet() {
+      if($this->current == "predmety_predmet_fixniPocet") {
+        if(!empty($this->buffer["predmety_predmet_fixniPocet"])) {
+          $out = $this->buffer["predmety_predmet_fixniPocet"] . ob_get_clean();
+          $this->buffer["predmety_predmet_fixniPocet"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_predmet_fixniPocet"] ?? "";
+        $this->buffer["predmety_predmet_fixniPocet"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_predmet_fixniPocet() {
+      if($this->current != "predmety_predmet_fixniPocet") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_predmet_fixniPocet";
+      }
+      ?>
+        <div class="shopPredmety_plusminus">
+            <div class="shopPredmety_minus shopPredmety_minus-neaktivni">-</div>
+            <div class="shopPredmety_kusu"><?=isset($this->context["kusu_uzivatele"])?$this->context["kusu_uzivatele"]:''?></div>
+            <div class="shopPredmety_plus shopPredmety_plus-neaktivni">+</div>
+            <input type="hidden" name="<?=isset($this->context["postName"])?$this->context["postName"]:''?>" value="<?=isset($this->context["kusu_uzivatele"])?$this->context["kusu_uzivatele"]:''?>">
+        </div>
+        <?php
+    }
+  
+    function predmety_predmet_nakup() {
+      if($this->current == "predmety_predmet_nakup") {
+        if(!empty($this->buffer["predmety_predmet_nakup"])) {
+          $out = $this->buffer["predmety_predmet_nakup"] . ob_get_clean();
+          $this->buffer["predmety_predmet_nakup"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_predmet_nakup"] ?? "";
+        $this->buffer["predmety_predmet_nakup"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_predmet_nakup() {
+      if($this->current != "predmety_predmet_nakup") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_predmet_nakup";
+      }
+      ?>
+        <div class="shopPredmety_plusminus">
+            <a href="#" class="shopPredmety_minus shopPredmety_minus-povoleno">-</a>
+            <div class="shopPredmety_kusu">?</div>
+            <a href="#" class="shopPredmety_plus shopPredmety_plus-povoleno">+</a>
+            <input type="hidden" name="<?=isset($this->context["postName"])?$this->context["postName"]:''?>" value="<?=isset($this->context["kusu_uzivatele"])?$this->context["kusu_uzivatele"]:''?>">
+        </div>
+        <?php
+    }
+  
+    function predmety_dalsiMerch() {
+      if($this->current == "predmety_dalsiMerch") {
+        if(!empty($this->buffer["predmety_dalsiMerch"])) {
+          $out = $this->buffer["predmety_dalsiMerch"] . ob_get_clean();
+          $this->buffer["predmety_dalsiMerch"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_dalsiMerch"] ?? "";
+        $this->buffer["predmety_dalsiMerch"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_dalsiMerch() {
+      if($this->current != "predmety_dalsiMerch") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_dalsiMerch";
+      }
+      ?>
+<details class="shopPredmety_dalsiMerch">
+    <summary>Další merch</summary>
+    <article>
+        <div class="shopPredmety_predmety">
+            <?=$this->predmety_dalsiMerch_dalsiMerchPredmet()?>
+        </div>
+    </article>
+</details>
+<?php
+    }
+  
+    function predmety_dalsiMerch_dalsiMerchPredmet() {
+      if($this->current == "predmety_dalsiMerch_dalsiMerchPredmet") {
+        if(!empty($this->buffer["predmety_dalsiMerch_dalsiMerchPredmet"])) {
+          $out = $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet"] . ob_get_clean();
+          $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet"] ?? "";
+        $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_dalsiMerch_dalsiMerchPredmet() {
+      if($this->current != "predmety_dalsiMerch_dalsiMerchPredmet") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_dalsiMerch_dalsiMerchPredmet";
+      }
+      ?>
+            <div class="shopPredmety_predmet">
+                <div class="shop_popis">
+                    <?=isset($this->context["nazev"])?$this->context["nazev"]:''?>
+                    <div class="shop_popisCena"><?=isset($this->context["cena"])?$this->context["cena"]:''?></div>
+                </div>
+
+                <?=$this->predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet()?>
+
+                <?=$this->predmety_dalsiMerch_dalsiMerchPredmet_nakup()?>
+            </div>
+            <?php
+    }
+  
+    function predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet() {
+      if($this->current == "predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet") {
+        if(!empty($this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet"])) {
+          $out = $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet"] . ob_get_clean();
+          $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet"] ?? "";
+        $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet() {
+      if($this->current != "predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_dalsiMerch_dalsiMerchPredmet_fixniPocet";
+      }
+      ?>
+                <div class="shopPredmety_plusminus">
+                    <div class="shopPredmety_minus shopPredmety_minus-neaktivni">-</div>
+                    <div class="shopPredmety_kusu"><?=isset($this->context["kusu_uzivatele"])?$this->context["kusu_uzivatele"]:''?></div>
+                    <div class="shopPredmety_plus shopPredmety_plus-neaktivni">+</div>
+                    <input type="hidden" name="<?=isset($this->context["postName"])?$this->context["postName"]:''?>" value="<?=isset($this->context["kusu_uzivatele"])?$this->context["kusu_uzivatele"]:''?>">
+                </div>
+                <?php
+    }
+  
+    function predmety_dalsiMerch_dalsiMerchPredmet_nakup() {
+      if($this->current == "predmety_dalsiMerch_dalsiMerchPredmet_nakup") {
+        if(!empty($this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_nakup"])) {
+          $out = $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_nakup"] . ob_get_clean();
+          $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_nakup"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_nakup"] ?? "";
+        $this->buffer["predmety_dalsiMerch_dalsiMerchPredmet_nakup"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_dalsiMerch_dalsiMerchPredmet_nakup() {
+      if($this->current != "predmety_dalsiMerch_dalsiMerchPredmet_nakup") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_dalsiMerch_dalsiMerchPredmet_nakup";
+      }
+      ?>
+                <div class="shopPredmety_plusminus">
+                    <a href="#" class="shopPredmety_minus shopPredmety_minus-povoleno">-</a>
+                    <div class="shopPredmety_kusu">?</div>
+                    <a href="#" class="shopPredmety_plus shopPredmety_plus-povoleno">+</a>
+                    <input type="hidden" name="<?=isset($this->context["postName"])?$this->context["postName"]:''?>" value="<?=isset($this->context["kusu_uzivatele"])?$this->context["kusu_uzivatele"]:''?>">
+                </div>
+                <?php
+    }
+  
+    function predmety_trickaPozastavena() {
+      if($this->current == "predmety_trickaPozastavena") {
+        if(!empty($this->buffer["predmety_trickaPozastavena"])) {
+          $out = $this->buffer["predmety_trickaPozastavena"] . ob_get_clean();
+          $this->buffer["predmety_trickaPozastavena"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_trickaPozastavena"] ?? "";
+        $this->buffer["predmety_trickaPozastavena"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_trickaPozastavena() {
+      if($this->current != "predmety_trickaPozastavena") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_trickaPozastavena";
+      }
+      ?>
+<p>Možnost nákupu triček už skončila.</p>
+<?php
+    }
+  
+    function predmety_tricko() {
+      if($this->current == "predmety_tricko") {
+        if(!empty($this->buffer["predmety_tricko"])) {
+          $out = $this->buffer["predmety_tricko"] . ob_get_clean();
+          $this->buffer["predmety_tricko"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_tricko"] ?? "";
+        $this->buffer["predmety_tricko"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_tricko() {
+      if($this->current != "predmety_tricko") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_tricko";
+      }
+      ?>
+    <div class="shopPredmety_tricko">
+        <div class="shop_popis">
+            <label for="vyberTricek">Tričko GameCon <?=isset($this->context["rok"])?$this->context["rok"]:''?></label>
+            <div class="shop_popisCena"><?=isset($this->context["cena"])?$this->context["cena"]:''?></div>
+        </div>
+        <select id="vyberTricek" name="<?=isset($this->context["postName"])?$this->context["postName"]:''?>" class="formular_select shopPredmety_trickoSelect">
+            <?=$this->predmety_tricko_moznost()?>
+        </select>
+    </div>
+    <?php
+    }
+  
+    function predmety_tricko_moznost() {
+      if($this->current == "predmety_tricko_moznost") {
+        if(!empty($this->buffer["predmety_tricko_moznost"])) {
+          $out = $this->buffer["predmety_tricko_moznost"] . ob_get_clean();
+          $this->buffer["predmety_tricko_moznost"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["predmety_tricko_moznost"] ?? "";
+        $this->buffer["predmety_tricko_moznost"] = "";
+        return $out;
+      }
+    }
+
+    function parse_predmety_tricko_moznost() {
+      if($this->current != "predmety_tricko_moznost") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "predmety_tricko_moznost";
+      }
+      ?>
+            <option value="<?=isset($this->context["id_predmetu"])?$this->context["id_predmetu"]:''?>" <?=isset($this->context["selected"])?$this->context["selected"]:''?>><?=isset($this->context["nazev"])?$this->context["nazev"]:''?></option>
+            <?php
+    }
+  
+  }
+  

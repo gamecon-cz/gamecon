@@ -71,6 +71,26 @@ class ProductTagRepository extends ServiceEntityRepository
     }
 
     /**
+     * Replace all tags for a product
+     *
+     * @param string[] $tagNames
+     */
+    public function replaceProductTags(\App\Entity\Product $product, array $tagNames): void
+    {
+        // Remove all existing tags
+        foreach ($product->getTags()->toArray() as $existingTag) {
+            $product->removeTag($existingTag);
+        }
+
+        // Add new tags
+        foreach ($tagNames as $tagName) {
+            $product->addTag($this->findOrCreate($tagName));
+        }
+
+        $this->getEntityManager()->flush();
+    }
+
+    /**
      * Get tags with product counts
      *
      * @return array<array{tag: ProductTag, productCount: int}>

@@ -101,7 +101,7 @@ class DiscountCalculator
      *
      * @param Product[] $products
      *
-     * @return array<int, array>
+     * @return array<int, array{discount: ProductDiscount|null, discountAmount: string, finalPrice: string, reason: string|null}>
      */
     public function calculateDiscountsForProducts(array $products, User $user, int $year): array
     {
