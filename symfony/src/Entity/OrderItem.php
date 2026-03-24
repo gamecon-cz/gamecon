@@ -71,6 +71,9 @@ class OrderItem
     #[ORM\Column(name: 'product_description', type: Types::TEXT, nullable: true)]
     private ?string $productDescription = null;
 
+    /**
+     * @var string[]
+     */
     #[ORM\Column(name: 'product_tags', type: Types::JSON, nullable: true, options: [
         'default' => '[]',
     ])]

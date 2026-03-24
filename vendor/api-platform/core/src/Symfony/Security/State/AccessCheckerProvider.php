@@ -97,6 +97,10 @@ final class AccessCheckerProvider implements ProviderInterface
             return $this->decorated->provide($operation, $uriVariables, $context);
         }
 
+        if ('pre_read' === $this->event && $this->resourceAccessChecker instanceof ObjectVariableCheckerInterface && $this->resourceAccessChecker->usesObjectVariable($isGranted, $resourceAccessCheckerContext)) {
+            return $this->decorated->provide($operation, $uriVariables, $context);
+        }
+
         if (!$this->resourceAccessChecker->isGranted($operation->getClass(), $isGranted, $resourceAccessCheckerContext)) {
             $operation instanceof GraphQlOperation ? throw new AccessDeniedHttpException($message ?? 'Access Denied.') : throw new AccessDeniedException($message ?? 'Access Denied.');
         }
