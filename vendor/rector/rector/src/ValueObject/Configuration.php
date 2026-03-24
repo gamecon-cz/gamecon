@@ -7,7 +7,7 @@ use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\ValueObject\Configuration\LevelOverflow;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202603\Webmozart\Assert\Assert;
 final class Configuration
 {
     /**
@@ -81,15 +81,11 @@ final class Configuration
      */
     private array $levelOverflows = [];
     /**
-     * @readonly
-     */
-    private bool $showRulesSummary = \false;
-    /**
      * @param string[] $fileExtensions
      * @param string[] $paths
      * @param LevelOverflow[] $levelOverflows
      */
-    public function __construct(bool $isDryRun = \false, bool $showProgressBar = \true, bool $shouldClearCache = \false, string $outputFormat = ConsoleOutputFormatter::NAME, array $fileExtensions = ['php'], array $paths = [], bool $showDiffs = \true, ?string $parallelPort = null, ?string $parallelIdentifier = null, bool $isParallel = \false, ?string $memoryLimit = null, bool $isDebug = \false, bool $reportingWithRealPath = \false, ?string $onlyRule = null, ?string $onlySuffix = null, array $levelOverflows = [], bool $showRulesSummary = \false)
+    public function __construct(bool $isDryRun = \false, bool $showProgressBar = \true, bool $shouldClearCache = \false, string $outputFormat = ConsoleOutputFormatter::NAME, array $fileExtensions = ['php'], array $paths = [], bool $showDiffs = \true, ?string $parallelPort = null, ?string $parallelIdentifier = null, bool $isParallel = \false, ?string $memoryLimit = null, bool $isDebug = \false, bool $reportingWithRealPath = \false, ?string $onlyRule = null, ?string $onlySuffix = null, array $levelOverflows = [])
     {
         $this->isDryRun = $isDryRun;
         $this->showProgressBar = $showProgressBar;
@@ -107,7 +103,6 @@ final class Configuration
         $this->onlyRule = $onlyRule;
         $this->onlySuffix = $onlySuffix;
         $this->levelOverflows = $levelOverflows;
-        $this->showRulesSummary = $showRulesSummary;
     }
     public function isDryRun(): bool
     {
@@ -192,9 +187,5 @@ final class Configuration
         $setRegisteredRules = SimpleParameterProvider::provideArrayParameter(Option::SET_REGISTERED_RULES);
         $ruleDuplicatedRegistrations = array_intersect($rootStandaloneRegisteredRules, $setRegisteredRules);
         return array_unique($ruleDuplicatedRegistrations);
-    }
-    public function shouldShowRulesSummary(): bool
-    {
-        return $this->showRulesSummary;
     }
 }

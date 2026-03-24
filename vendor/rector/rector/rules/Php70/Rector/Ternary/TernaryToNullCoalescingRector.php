@@ -67,6 +67,7 @@ final class TernaryToNullCoalescingRector extends AbstractRector implements MinP
         if (!$fallbackNode instanceof Expr) {
             return null;
         }
+        /** @var Identical|NotIdentical $ternaryCompareNode */
         $ternaryCompareNode = $node->cond;
         if ($this->isNullMatch($ternaryCompareNode->left, $ternaryCompareNode->right, $checkedNode)) {
             return new Coalesce($checkedNode, $fallbackNode);
@@ -95,7 +96,7 @@ final class TernaryToNullCoalescingRector extends AbstractRector implements MinP
         if (!$this->nodeComparator->areNodesEqual($ternary->if, $isset->vars[0])) {
             return null;
         }
-        if (($ternary->else instanceof Ternary || $ternary->else instanceof BinaryOp) && $this->isTernaryParenthesized($this->getFile(), $ternary->cond, $ternary)) {
+        if (($ternary->else instanceof Ternary || $ternary->else instanceof BinaryOp) && $this->isTernaryParenthesized($this->file, $ternary->cond, $ternary)) {
             $ternary->else->setAttribute(AttributeKey::WRAPPED_IN_PARENTHESES, \true);
         }
         return new Coalesce($ternary->if, $ternary->else);

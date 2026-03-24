@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\FuncCall;
 
-use RectorPrefix202604\Nette\Utils\Strings;
+use RectorPrefix202603\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
@@ -51,6 +51,7 @@ final class SimplifyStrposLowerRector extends AbstractRector
         if (!$firstArg->value instanceof FuncCall) {
             return null;
         }
+        /** @var FuncCall $innerFuncCall */
         $innerFuncCall = $firstArg->value;
         if (!$this->isName($innerFuncCall, 'strtolower')) {
             return null;

@@ -40,4 +40,12 @@ return static function (ContainerConfigurator $container) {
             service('api_platform.state_provider.security_parameter.inner'),
             service('api_platform.security.resource_access_checker'),
         ]);
+
+    $services->set('api_platform.state_provider.access_checker.pre_read', AccessCheckerProvider::class)
+        ->decorate('api_platform.state_provider.read', null, 10)
+        ->args([
+            service('api_platform.state_provider.access_checker.pre_read.inner'),
+            service('api_platform.security.resource_access_checker'),
+            'pre_read',
+        ]);
 };

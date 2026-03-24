@@ -17,6 +17,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Exception\RuntimeException;
 use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
 use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\McpResource;
+use ApiPlatform\Metadata\McpTool;
 use ApiPlatform\Metadata\Metadata;
 use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Parameter;
@@ -46,7 +48,7 @@ trait MetadataCollectionFactoryTrait
 
     private function isResourceMetadata(string $name): bool
     {
-        return is_a($name, ApiResource::class, true) || is_subclass_of($name, HttpOperation::class) || is_subclass_of($name, GraphQlOperation::class) || is_a($name, Parameter::class, true);
+        return is_a($name, ApiResource::class, true) || is_subclass_of($name, HttpOperation::class) || is_subclass_of($name, GraphQlOperation::class) || is_a($name, Parameter::class, true) || is_a($name, McpTool::class, true) || is_a($name, McpResource::class, true);
     }
 
     /**
@@ -90,19 +92,47 @@ trait MetadataCollectionFactoryTrait
                 if ($operations) {
                     $resource = $resource->withOperations(new Operations($operations));
                 }
+
+                if ($mcp = $resource->getMcp()) {
+                    $processedMcp = [];
+                    foreach ($mcp as $key => $mcpOperation) {
+                        if (null === $mcpOperation->getName()) {
+                            $mcpOperation = $mcpOperation->withName($key);
+                        }
+
+                        [, $mcpOperation] = $this->getOperationWithDefaults($resource, $mcpOperation);
+                        $processedMcp[$key] = $mcpOperation;
+                    }
+                    $resource = $resource->withMcp($processedMcp);
+                }
+
                 $resources[++$index] = $resource;
                 continue;
             }
 
-            if (!is_subclass_of($metadata, HttpOperation::class) && !is_subclass_of($metadata, GraphQlOperation::class)) {
-                continue;
-            }
-
             if ($metadata instanceof GraphQlOperation) {
+                if (-1 === $index) {
+                    $resources[++$index] = $this->getResourceWithDefaults($resourceClass, $shortName, new ApiResource());
+                }
                 [$key, $operation] = $this->getOperationWithDefaults($resources[$index], $metadata);
                 $graphQlOperations = $resources[$index]->getGraphQlOperations();
                 $graphQlOperations[$key] = $operation;
                 $resources[$index] = $resources[$index]->withGraphQlOperations($graphQlOperations);
+                continue;
+            }
+
+            if ($metadata instanceof McpTool || $metadata instanceof McpResource) {
+                if (-1 === $index) {
+                    $resources[++$index] = $this->getResourceWithDefaults($resourceClass, $shortName, new ApiResource());
+                }
+                [$key, $operation] = $this->getOperationWithDefaults($resources[$index], $metadata);
+                $mcp = $resources[$index]->getMcp() ?? [];
+                $mcp[$key] = $operation;
+                $resources[$index] = $resources[$index]->withMcp($mcp);
+                continue;
+            }
+
+            if (!is_subclass_of($metadata, HttpOperation::class) && !is_subclass_of($metadata, GraphQlOperation::class)) {
                 continue;
             }
 
@@ -175,7 +205,7 @@ trait MetadataCollectionFactoryTrait
             $resources[$index] = $resources[$index]->withGraphQlOperations($graphQlOperationsWithDefaults);
         }
 
-        return $resources;
+        return $this->deduplicateShortNames($resources);
     }
 
     /**
@@ -195,6 +225,52 @@ trait MetadataCollectionFactoryTrait
         }
 
         return false;
+    }
+
+    /**
+     * When multiple ApiResource declarations on the same class share the same shortName,
+     * suffix duplicates with an incrementing number (e.g. Book, Book2, Book3).
+     *
+     * @param ApiResource[] $resources
+     *
+     * @return ApiResource[]
+     */
+    private function deduplicateShortNames(array $resources): array
+    {
+        $enabled = $this->defaults['extra_properties']['deduplicate_resource_short_names'] ?? false;
+        $shortNameCounts = [];
+
+        foreach ($resources as $index => $resource) {
+            $shortName = $resource->getShortName();
+            if (!isset($shortNameCounts[$shortName])) {
+                $shortNameCounts[$shortName] = 1;
+                continue;
+            }
+
+            if (!$enabled) {
+                if (1 === $shortNameCounts[$shortName]) {
+                    trigger_deprecation('api-platform/core', '4.2', 'Having multiple "#[ApiResource]" attributes with the same "shortName" "%s" on class "%s" is deprecated and will result in automatic short name deduplication in API Platform 5.x. Set "defaults.extra_properties.deduplicate_resource_short_names" to "true" in the API Platform configuration to enable it now.', $shortName, $resource->getClass());
+                }
+                ++$shortNameCounts[$shortName];
+                continue;
+            }
+
+            $newShortName = $shortName.(++$shortNameCounts[$shortName]);
+            $resource = $resource->withShortName($newShortName);
+
+            // Update operations to reflect the new shortName
+            if ($operations = $resource->getOperations()) {
+                $updatedOperations = [];
+                foreach ($operations as $key => $operation) {
+                    $updatedOperations[$key] = $operation->withShortName($newShortName);
+                }
+                $resource = $resource->withOperations(new Operations($updatedOperations));
+            }
+
+            $resources[$index] = $resource;
+        }
+
+        return $resources;
     }
 
     /**

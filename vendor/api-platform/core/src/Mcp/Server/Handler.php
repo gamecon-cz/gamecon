@@ -1,0 +1,153 @@
+<?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace ApiPlatform\Mcp\Server;
+
+use ApiPlatform\Mcp\State\ToolProvider;
+use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Operation\Factory\OperationMetadataFactoryInterface;
+use ApiPlatform\State\ProcessorInterface;
+use ApiPlatform\State\ProviderInterface;
+use Mcp\Schema\JsonRpc\Error;
+use Mcp\Schema\JsonRpc\Request;
+use Mcp\Schema\JsonRpc\Response;
+use Mcp\Schema\Request\CallToolRequest;
+use Mcp\Schema\Request\ReadResourceRequest;
+use Mcp\Schema\Result\CallToolResult;
+use Mcp\Schema\Result\ReadResourceResult;
+use Mcp\Server\Handler\Request\RequestHandlerInterface;
+use Mcp\Server\Session\SessionInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Symfony\Component\HttpFoundation\RequestStack;
+
+/**
+ * @experimental
+ *
+ * @implements RequestHandlerInterface<CallToolResult|ReadResourceResult>
+ */
+final class Handler implements RequestHandlerInterface
+{
+    public function __construct(
+        private readonly OperationMetadataFactoryInterface $operationMetadataFactory,
+        private readonly ProviderInterface $provider,
+        private readonly ProcessorInterface $processor,
+        private readonly RequestStack $requestStack,
+        private readonly LoggerInterface $logger = new NullLogger(),
+    ) {
+    }
+
+    public function supports(Request $request): bool
+    {
+        if ($request instanceof CallToolRequest) {
+            return null !== $this->operationMetadataFactory->create($request->name);
+        }
+
+        if ($request instanceof ReadResourceRequest) {
+            return null !== $this->operationMetadataFactory->create($request->uri);
+        }
+
+        return false;
+    }
+
+    /**
+     * @return Response<CallToolResult|ReadResourceResult>|Error
+     */
+    public function handle(Request $request, SessionInterface $session): Response|Error
+    {
+        $isResource = $request instanceof ReadResourceRequest;
+
+        if ($isResource) {
+            $operationNameOrUri = $request->uri;
+            $arguments = [];
+            $this->logger->debug('Reading resource', ['uri' => $operationNameOrUri]);
+        } else {
+            \assert($request instanceof CallToolRequest);
+            $operationNameOrUri = $request->name;
+            $arguments = $request->arguments ?? [];
+            $this->logger->debug('Executing tool', ['name' => $operationNameOrUri, 'arguments' => $arguments]);
+        }
+
+        /** @var HttpOperation|null $operation */
+        $operation = $this->operationMetadataFactory->create($operationNameOrUri);
+
+        if (null === $operation) {
+            return Error::forMethodNotFound(\sprintf('MCP operation "%s" not found.', $operationNameOrUri), $request->getId());
+        }
+
+        $uriVariables = [];
+        if (!$isResource) {
+            foreach ($operation->getUriVariables() ?? [] as $key => $link) {
+                if (isset($arguments[$key])) {
+                    $uriVariables[$key] = $arguments[$key];
+                }
+            }
+        }
+
+        $context = [
+            'request' => $this->requestStack->getCurrentRequest(),
+            'mcp_request' => $request,
+            'mcp_session' => $session,
+            'uri_variables' => $uriVariables,
+            'resource_class' => $operation->getClass(),
+        ];
+
+        if (!$isResource) {
+            $context['mcp_data'] = $arguments;
+        }
+
+        $operation = $operation->withExtraProperties(
+            array_merge($operation->getExtraProperties(), ['_api_disable_swagger_provider' => true])
+        );
+
+        // MCP has its own transport (JSON-RPC) — HTTP content negotiation is irrelevant.
+        if (null === $operation->canNegotiateContent()) {
+            $operation = $operation->withContentNegotiation(false);
+        }
+
+        if (null === $operation->canValidate()) {
+            $operation = $operation->withValidate(false);
+        }
+
+        if (null === $operation->canRead()) {
+            $operation = $operation->withRead(true);
+        }
+
+        if (null === $operation->getProvider()) {
+            $operation = $operation->withProvider(ToolProvider::class);
+        }
+
+        if (null === $operation->canDeserialize()) {
+            $operation = $operation->withDeserialize(false);
+        }
+
+        $body = $this->provider->provide($operation, $uriVariables, $context);
+
+        if (!$isResource && null !== ($httpRequest = $context['request'] ?? null)) {
+            $context['previous_data'] = $httpRequest->attributes->get('previous_data');
+            $context['data'] = $httpRequest->attributes->get('data');
+            $context['read_data'] = $httpRequest->attributes->get('read_data');
+            $context['mapped_data'] = $httpRequest->attributes->get('mapped_data');
+        }
+
+        if (null === $operation->canWrite()) {
+            $operation = $operation->withWrite(true);
+        }
+
+        if (null === $operation->canSerialize()) {
+            $operation = $operation->withSerialize(false);
+        }
+
+        return $this->processor->process($body, $operation, $uriVariables, $context);
+    }
+}

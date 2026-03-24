@@ -3,30 +3,29 @@
 declare (strict_types=1);
 namespace Rector\Console\Command;
 
-use RectorPrefix202604\Clue\React\NDJson\Decoder;
-use RectorPrefix202604\Clue\React\NDJson\Encoder;
-use RectorPrefix202604\React\EventLoop\StreamSelectLoop;
-use RectorPrefix202604\React\Socket\ConnectionInterface;
-use RectorPrefix202604\React\Socket\TcpConnector;
+use RectorPrefix202603\Clue\React\NDJson\Decoder;
+use RectorPrefix202603\Clue\React\NDJson\Encoder;
+use RectorPrefix202603\React\EventLoop\StreamSelectLoop;
+use RectorPrefix202603\React\Socket\ConnectionInterface;
+use RectorPrefix202603\React\Socket\TcpConnector;
 use Rector\Application\ApplicationFileProcessor;
 use Rector\Autoloading\AdditionalAutoloader;
 use Rector\Configuration\ConfigurationFactory;
 use Rector\Configuration\ConfigurationRuleFilter;
-use Rector\Configuration\Option;
 use Rector\Console\ProcessConfigureDecorator;
 use Rector\Parallel\ValueObject\Bridge;
 use Rector\StaticReflection\DynamicSourceLocatorDecorator;
 use Rector\Util\MemoryLimiter;
 use Rector\ValueObject\Configuration;
 use Rector\ValueObject\Error\SystemError;
-use RectorPrefix202604\Symfony\Component\Console\Command\Command;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202604\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202604\Symplify\EasyParallel\Enum\Action;
-use RectorPrefix202604\Symplify\EasyParallel\Enum\ReactCommand;
-use RectorPrefix202604\Symplify\EasyParallel\Enum\ReactEvent;
+use RectorPrefix202603\Symfony\Component\Console\Command\Command;
+use RectorPrefix202603\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202603\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202603\Symplify\EasyParallel\Enum\Action;
+use RectorPrefix202603\Symplify\EasyParallel\Enum\ReactCommand;
+use RectorPrefix202603\Symplify\EasyParallel\Enum\ReactEvent;
 use Throwable;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202603\Webmozart\Assert\Assert;
 /**
  * Inspired at: https://github.com/phpstan/phpstan-src/commit/9124c66dcc55a222e21b1717ba5f60771f7dda92
  * https://github.com/phpstan/phpstan-src/blob/c471c7b050e0929daf432288770de673b394a983/src/Command/WorkerCommand.php
@@ -90,16 +89,16 @@ final class WorkerCommand extends Command
         $parallelIdentifier = $configuration->getParallelIdentifier();
         $tcpConnector = new TcpConnector($streamSelectLoop);
         $promise = $tcpConnector->connect('127.0.0.1:' . $configuration->getParallelPort());
-        $promise->then(function (ConnectionInterface $connection) use ($parallelIdentifier, $configuration, $input, $output): void {
+        $promise->then(function (ConnectionInterface $connection) use ($parallelIdentifier, $configuration, $output): void {
             $inDecoder = new Decoder($connection, \true, 512, \JSON_INVALID_UTF8_IGNORE);
             $outEncoder = new Encoder($connection, \JSON_INVALID_UTF8_IGNORE);
             $outEncoder->write([ReactCommand::ACTION => Action::HELLO, ReactCommand::IDENTIFIER => $parallelIdentifier]);
-            $this->runWorker($outEncoder, $inDecoder, $configuration, $input, $output);
+            $this->runWorker($outEncoder, $inDecoder, $configuration, $output);
         });
         $streamSelectLoop->run();
         return self::SUCCESS;
     }
-    private function runWorker(Encoder $encoder, Decoder $decoder, Configuration $configuration, InputInterface $input, OutputInterface $output): void
+    private function runWorker(Encoder $encoder, Decoder $decoder, Configuration $configuration, OutputInterface $output): void
     {
         $this->additionalAutoloader->autoloadPaths();
         $this->dynamicSourceLocatorDecorator->addPaths($configuration->getPaths());
@@ -118,7 +117,7 @@ final class WorkerCommand extends Command
         };
         $encoder->on(ReactEvent::ERROR, $handleErrorCallback);
         // 2. collect diffs + errors from file processor
-        $decoder->on(ReactEvent::DATA, function (array $json) use ($preFileCallback, $encoder, $configuration, $input): void {
+        $decoder->on(ReactEvent::DATA, function (array $json) use ($preFileCallback, $encoder, $configuration): void {
             $action = $json[ReactCommand::ACTION];
             if ($action !== Action::MAIN) {
                 return;
@@ -130,7 +129,7 @@ final class WorkerCommand extends Command
             /**
              * this invokes all listeners listening $decoder->on(...) @see \Symplify\EasyParallel\Enum\ReactEvent::DATA
              */
-            $encoder->write([ReactCommand::ACTION => Action::RESULT, self::RESULT => [Bridge::FILE_DIFFS => $processResult->getFileDiffs($input->getOption(Option::OUTPUT_FORMAT) !== 'json'), Bridge::FILES_COUNT => count($filePaths), Bridge::SYSTEM_ERRORS => $processResult->getSystemErrors(), Bridge::SYSTEM_ERRORS_COUNT => count($processResult->getSystemErrors()), Bridge::TOTAL_CHANGED => $processResult->getTotalChanged()]]);
+            $encoder->write([ReactCommand::ACTION => Action::RESULT, self::RESULT => [Bridge::FILE_DIFFS => $processResult->getFileDiffs(), Bridge::FILES_COUNT => count($filePaths), Bridge::SYSTEM_ERRORS => $processResult->getSystemErrors(), Bridge::SYSTEM_ERRORS_COUNT => count($processResult->getSystemErrors()), Bridge::TOTAL_CHANGED => $processResult->getTotalChanged()]]);
         });
         $decoder->on(ReactEvent::ERROR, $handleErrorCallback);
     }

@@ -35,7 +35,7 @@
     "conflict": {
         "doctrine/common": "<3.2.2",
         "doctrine/dbal": "<2.10",
-        "doctrine/orm": "<2.14.0",
+        "doctrine/orm": "<2.14.0 || 3.0.0",
         "doctrine/mongodb-odm": "<2.4",
         "doctrine/persistence": "<1.3",
         "symfony/framework-bundle": "6.4.6 || 7.0.6",
@@ -50,7 +50,7 @@
             "dev-3.4": "3.4.x-dev",
             "dev-4.1": "4.1.x-dev",
             "dev-4.2": "4.2.x-dev",
-            "dev-main": "4.3.x-dev"
+            "dev-main": "4.4.x-dev"
         },
         "symfony": {
             "require": "^6.4 || ^7.1 || ^8.0"
@@ -89,13 +89,14 @@
         "api-platform/documentation": "self.version",
         "api-platform/elasticsearch": "self.version",
         "api-platform/graphql": "self.version",
+        "api-platform/hal": "self.version",
         "api-platform/http-cache": "self.version",
         "api-platform/hydra": "self.version",
         "api-platform/json-api": "self.version",
-        "api-platform/hal": "self.version",
         "api-platform/json-schema": "self.version",
         "api-platform/jsonld": "self.version",
         "api-platform/laravel": "self.version",
+        "api-platform/mcp": "self.version",
         "api-platform/metadata": "self.version",
         "api-platform/openapi": "self.version",
         "api-platform/parameter-validator": "self.version",
@@ -107,6 +108,7 @@
     },
     "require": {
         "php": ">=8.2",
+        "composer/semver": "^3.4",
         "doctrine/inflector": "^2.0",
         "psr/cache": "^1.0 || ^2.0 || ^3.0",
         "psr/container": "^1.0 || ^2.0",
@@ -144,6 +146,7 @@
         "illuminate/support": "^11.0 || ^12.0",
         "jangregor/phpstan-prophecy": "^2.1.11",
         "justinrainbow/json-schema": "^6.5.2",
+        "mcp/sdk": "^0.4.0",
         "laravel/framework": "^11.0 || ^12.0",
         "orchestra/testbench": "^10.9",
         "phpspec/prophecy-phpunit": "^2.2",
@@ -179,6 +182,7 @@
         "symfony/intl": "^6.4 || ^7.0 || ^8.0",
         "symfony/json-streamer": "^7.4 || ^8.0",
         "symfony/maker-bundle": "^1.24",
+        "symfony/mcp-bundle": "dev-main",
         "symfony/mercure-bundle": "*",
         "symfony/messenger": "^6.4 || ^7.0 || ^8.0",
         "symfony/object-mapper": "^7.4 || ^8.0",
@@ -198,6 +202,7 @@
     "suggest": {
         "doctrine/mongodb-odm-bundle": "To support MongoDB. Only versions 4.0 and later are supported.",
         "elasticsearch/elasticsearch": "To support Elasticsearch.",
+        "opensearch-project/opensearch-php": "To support OpenSearch (^2.5).",
         "phpstan/phpdoc-parser": "To support extracting metadata from PHPDoc.",
         "psr/cache-implementation": "To use metadata caching.",
         "ramsey/uuid": "To support Ramsey's UUID identifiers.",

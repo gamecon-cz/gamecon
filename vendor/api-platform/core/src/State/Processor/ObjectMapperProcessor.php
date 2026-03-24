@@ -15,14 +15,19 @@ namespace ApiPlatform\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use ApiPlatform\State\Util\StateOptionsTrait;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\ObjectMapper\ObjectMapperInterface;
 
 /**
+ * @deprecated since API Platform 4.3, use {@see ObjectMapperInputProcessor} and {@see ObjectMapperOutputProcessor} instead
+ *
  * @implements ProcessorInterface<mixed,mixed>
  */
 final class ObjectMapperProcessor implements ProcessorInterface
 {
+    use StateOptionsTrait;
+
     /**
      * @param ProcessorInterface<mixed,mixed> $decorated
      */
@@ -30,6 +35,7 @@ final class ObjectMapperProcessor implements ProcessorInterface
         private readonly ?ObjectMapperInterface $objectMapper,
         private readonly ProcessorInterface $decorated,
     ) {
+        trigger_deprecation('api-platform/core', '4.3', 'The "%s" class is deprecated, use "%s" and "%s" instead.', self::class, ObjectMapperInputProcessor::class, ObjectMapperOutputProcessor::class);
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): object|array|null
@@ -48,9 +54,17 @@ final class ObjectMapperProcessor implements ProcessorInterface
         }
 
         $request = $context['request'] ?? null;
+
+        // maps the Resource to an Entity
+        if ($request?->attributes->get('mapped_data')) {
+            $mappedData = $this->objectMapper->map($data, $request->attributes->get('mapped_data'));
+        } else {
+            $mappedData = $this->objectMapper->map($data, $this->getStateOptionsClass($operation, $operation->getClass()));
+        }
+        $request?->attributes->set('mapped_data', $mappedData);
+
         $persisted = $this->decorated->process(
-            // maps the Resource to an Entity
-            $this->objectMapper->map($data, $request?->attributes->get('mapped_data')),
+            $mappedData,
             $operation,
             $uriVariables,
             $context,

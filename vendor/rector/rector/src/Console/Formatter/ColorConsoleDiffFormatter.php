@@ -3,9 +3,9 @@
 declare (strict_types=1);
 namespace Rector\Console\Formatter;
 
-use RectorPrefix202604\Nette\Utils\Strings;
+use RectorPrefix202603\Nette\Utils\Strings;
 use Rector\Util\NewLineSplitter;
-use RectorPrefix202604\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202603\Symfony\Component\Console\Formatter\OutputFormatter;
 /**
  * Inspired by @see https://github.com/FriendsOfPHP/PHP-CS-Fixer/blob/master/src/Differ/DiffConsoleFormatter.php to be
  * used as standalone class, without need to require whole package by Dariusz Rumiński <dariusz.ruminski@gmail.com>
@@ -33,7 +33,7 @@ final class ColorConsoleDiffFormatter
      * @see https://regex101.com/r/8MXnfa/2
      * @var string
      */
-    private const AT_DIFF_LINE_REGEX = '#^\<fg=cyan\>@@ \-(\d+),\d+ \+\d+,\d+ @@\<\/fg=cyan\>$#';
+    private const AT_DIFF_LINE_REGEX = '#^\<fg=cyan\>@@ \-\d+,\d+ \+\d+,\d+ @@\<\/fg=cyan\>$#';
     /**
      * @readonly
      */
@@ -75,11 +75,11 @@ final class ColorConsoleDiffFormatter
         return sprintf($template, implode(\PHP_EOL, $escapedDiffLines));
     }
     /**
-     * Simplify diff line info, eg; @@ -67,6 +67,8 @@ to become @@ Line 67 @@
+     * Remove number diff, eg; @@ -67,6 +67,8 @@ to become @@ @@
      */
     private function normalizeLineAtDiff(string $string): string
     {
-        return Strings::replace($string, self::AT_DIFF_LINE_REGEX, '<fg=cyan>@@ Line $1 @@</fg=cyan>');
+        return Strings::replace($string, self::AT_DIFF_LINE_REGEX, '<fg=cyan>@@ @@</fg=cyan>');
     }
     private function makePlusLinesGreen(string $string): string
     {

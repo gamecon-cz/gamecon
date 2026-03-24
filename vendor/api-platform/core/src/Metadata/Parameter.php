@@ -21,8 +21,19 @@ use Symfony\Component\TypeInfo\Type;
 abstract class Parameter
 {
     /**
+     * @phpstan-type NestedPropertyInfo array{
+     *     relation_segments: list<string>,
+     *     converted_relation_segments: list<string>,
+     *     relation_classes: list<class-string>,
+     *     leaf_property: string,
+     *     leaf_class: class-string,
+     * }
+     *
+     * @param array{
+     *     nested_properties_info?: array<string, NestedPropertyInfo>,
+     *     ...
+     * }|array<string, mixed> $extraProperties
      * @param array<string, mixed>|null                       $schema
-     * @param array<string, mixed>                            $extraProperties
      * @param ParameterProviderInterface|callable|string|null $provider
      * @param list<string>                                    $properties       a list of properties this parameter applies to (works with the :property placeholder)
      * @param FilterInterface|string|null                     $filter
@@ -57,6 +68,7 @@ abstract class Parameter
         protected ?bool $castToArray = null,
         protected ?bool $castToNativeType = null,
         protected mixed $castFn = null,
+        protected mixed $default = null,
         protected ?string $filterClass = null,
     ) {
     }
@@ -141,7 +153,7 @@ abstract class Parameter
      */
     public function getValue(mixed $default = new ParameterNotFound()): mixed
     {
-        return $this->extraProperties['_api_values'] ?? $default;
+        return $this->extraProperties['_api_values'] ?? $this->default ?? $default;
     }
 
     /**
@@ -369,6 +381,19 @@ abstract class Parameter
     {
         $self = clone $this;
         $self->castFn = $castFn;
+
+        return $self;
+    }
+
+    public function getDefault(): mixed
+    {
+        return $this->default;
+    }
+
+    public function withDefault(mixed $default): self
+    {
+        $self = clone $this;
+        $self->default = $default;
 
         return $self;
     }

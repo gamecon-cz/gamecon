@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202604;
+namespace RectorPrefix202603;
 
 use Rector\CodingStyle\Rector\ArrowFunction\ArrowFunctionDelegatingCallToFirstClassCallableRector;
 use Rector\CodingStyle\Rector\Closure\ClosureDelegatingCallToFirstClassCallableRector;
@@ -11,6 +11,7 @@ use Rector\Config\RectorConfig;
 use Rector\Php81\Rector\Array_\ArrayToFirstClassCallableRector;
 use Rector\Php81\Rector\Class_\MyCLabsClassToEnumRector;
 use Rector\Php81\Rector\Class_\SpatieEnumClassToEnumRector;
+use Rector\Php81\Rector\ClassMethod\NewInInitializerRector;
 use Rector\Php81\Rector\FuncCall\NullToStrictIntPregSlitFuncCallLimitArgRector;
 use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
 use Rector\Php81\Rector\MethodCall\MyCLabsMethodCallToEnumConstRector;
@@ -37,5 +38,6 @@ return static function (RectorConfig $rectorConfig): void {
         ClosureFromCallableToFirstClassCallableRector::class,
         FunctionFirstClassCallableRector::class,
         RemoveReflectionSetAccessibleCallsRector::class,
+        NewInInitializerRector::class,
     ]);
 };

@@ -26,8 +26,10 @@
         "php": ">=8.2",
         "api-platform/doctrine-common": "^4.2.9",
         "api-platform/metadata": "^4.2",
+        "api-platform/serializer": "^4.2.16",
         "api-platform/state": "^4.2.4",
-        "doctrine/orm": "^2.17 || ^3.0"
+        "composer/semver": "^3.4",
+        "doctrine/orm": "^2.17 || ^3.0.1"
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^2.11 || ^3.1",
@@ -61,7 +63,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "4.3.x-dev",
+            "dev-main": "4.4.x-dev",
             "dev-4.2": "4.2.x-dev",
             "dev-3.4": "3.4.x-dev",
             "dev-4.1": "4.1.x-dev"
@@ -76,5 +78,7 @@
     },
     "scripts": {
         "test": "./vendor/bin/phpunit"
-    }
+    },
+    "minimum-stability": "beta",
+    "prefer-stable": true
 }

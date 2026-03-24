@@ -3,9 +3,9 @@
 declare (strict_types=1);
 namespace Rector\DependencyInjection;
 
-use RectorPrefix202604\Doctrine\Inflector\Inflector;
-use RectorPrefix202604\Doctrine\Inflector\Rules\English\InflectorFactory;
-use RectorPrefix202604\Illuminate\Container\Container;
+use RectorPrefix202603\Doctrine\Inflector\Inflector;
+use RectorPrefix202603\Doctrine\Inflector\Rules\English\InflectorFactory;
+use RectorPrefix202603\Illuminate\Container\Container;
 use PhpParser\Lexer;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\ScopeFactory;
@@ -35,8 +35,6 @@ use Rector\BetterPhpDocParser\PhpDocParser\StaticDoctrineAnnotationParser\ArrayP
 use Rector\BetterPhpDocParser\PhpDocParser\StaticDoctrineAnnotationParser\PlainValueParser;
 use Rector\Caching\Cache;
 use Rector\Caching\CacheFactory;
-use Rector\Caching\Config\FileHashComputer;
-use Rector\Caching\Contract\CacheMetaExtensionInterface;
 use Rector\ChangesReporting\Contract\Output\OutputFormatterInterface;
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\ChangesReporting\Output\GitHubOutputFormatter;
@@ -192,10 +190,10 @@ use Rector\StaticTypeMapper\PhpParser\NameNodeMapper;
 use Rector\StaticTypeMapper\PhpParser\NullableTypeNodeMapper;
 use Rector\StaticTypeMapper\PhpParser\StringNodeMapper;
 use Rector\StaticTypeMapper\PhpParser\UnionTypeNodeMapper;
-use RectorPrefix202604\Symfony\Component\Console\Application;
-use RectorPrefix202604\Symfony\Component\Console\Command\Command;
-use RectorPrefix202604\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202603\Symfony\Component\Console\Application;
+use RectorPrefix202603\Symfony\Component\Console\Command\Command;
+use RectorPrefix202603\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202603\Webmozart\Assert\Assert;
 final class LazyContainerFactory
 {
     /**
@@ -298,7 +296,6 @@ final class LazyContainerFactory
             $cacheFactory = $container->make(CacheFactory::class);
             return $cacheFactory->create();
         });
-        $rectorConfig->when(FileHashComputer::class)->needs('$cacheMetaExtensions')->giveTagged(CacheMetaExtensionInterface::class);
         // tagged services
         $rectorConfig->when(BetterPhpDocParser::class)->needs('$phpDocNodeDecorators')->giveTagged(PhpDocNodeDecoratorInterface::class);
         $rectorConfig->afterResolving(ArrayTypeMapper::class, static function (ArrayTypeMapper $arrayTypeMapper, Container $container): void {

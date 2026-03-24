@@ -3,7 +3,7 @@
         'name' => 'gamecon-cz/gamecon',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'f09ff4ff976e232a3c95761bce7baa14f5c84b4c',
+        'reference' => 'a7dbeb0af39b886799a16395810e2ce43f866ee6',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'api-platform/core' => array(
-            'pretty_version' => 'v4.2.20',
-            'version' => '4.2.20.0',
-            'reference' => '344f91a8d7165af9a3f7c62180389df4b72140f3',
+            'pretty_version' => 'v4.3.1',
+            'version' => '4.3.1.0',
+            'reference' => 'bb36677b9e948661f2afe3d6a9a9721b541b2b5d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../api-platform/core',
             'aliases' => array(),
@@ -22,127 +22,133 @@
         'api-platform/doctrine-common' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/doctrine-odm' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/doctrine-orm' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/documentation' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/elasticsearch' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/graphql' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/hal' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/http-cache' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/hydra' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/json-api' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/json-schema' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/jsonld' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/laravel' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
+            ),
+        ),
+        'api-platform/mcp' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/metadata' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/openapi' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/parameter-validator' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/ramsey-uuid' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/serializer' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/state' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/symfony' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'api-platform/validator' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => 'v4.2.20',
+                0 => 'v4.3.1',
             ),
         ),
         'bacon/bacon-qr-code' => array(
@@ -151,6 +157,15 @@
             'reference' => '8674e51bb65af933a5ffaf1c308a660387c35c22',
             'type' => 'library',
             'install_path' => __DIR__ . '/../bacon/bacon-qr-code',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'composer/semver' => array(
+            'pretty_version' => '3.4.4',
+            'version' => '3.4.4.0',
+            'reference' => '198166618906cb2de69b95d7d47e5fa8aa1b2b95',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/./semver',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -337,7 +352,7 @@
         'gamecon-cz/gamecon' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'f09ff4ff976e232a3c95761bce7baa14f5c84b4c',
+            'reference' => 'a7dbeb0af39b886799a16395810e2ce43f866ee6',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -362,9 +377,9 @@
             'dev_requirement' => false,
         ),
         'google/auth' => array(
-            'pretty_version' => 'v1.50.0',
-            'version' => '1.50.0.0',
-            'reference' => 'e1c26a718198e16d8a3c69b1cae136b73f959b0f',
+            'pretty_version' => 'v1.50.1',
+            'version' => '1.50.1.0',
+            'reference' => '870c17ee3a1d73338d39a9ffa77a700ba77f5a83',
             'type' => 'library',
             'install_path' => __DIR__ . '/../google/auth',
             'aliases' => array(),
@@ -434,9 +449,9 @@
             'dev_requirement' => false,
         ),
         'guzzlehttp/psr7' => array(
-            'pretty_version' => '2.8.0',
-            'version' => '2.8.0.0',
-            'reference' => '21dc724a0583619cd1652f673303492272778051',
+            'pretty_version' => '2.9.0',
+            'version' => '2.9.0.0',
+            'reference' => '7d0ed42f28e42d61352a7a79de682e5e67fec884',
             'type' => 'library',
             'install_path' => __DIR__ . '/../guzzlehttp/psr7',
             'aliases' => array(),
@@ -542,27 +557,27 @@
             'dev_requirement' => true,
         ),
         'phpseclib/phpseclib' => array(
-            'pretty_version' => '3.0.49',
-            'version' => '3.0.49.0',
-            'reference' => '6233a1e12584754e6b5daa69fe1289b47775c1b9',
+            'pretty_version' => '3.0.50',
+            'version' => '3.0.50.0',
+            'reference' => 'aa6ad8321ed103dc3624fb600a25b66ebf78ec7b',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpseclib/phpseclib',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
         'phpstan/phpstan' => array(
-            'pretty_version' => '2.1.40',
-            'version' => '2.1.40.0',
-            'reference' => '9b2c7aeb83a75d8680ea5e7c9b7fca88052b766b',
+            'pretty_version' => '2.1.42',
+            'version' => '2.1.42.0',
+            'reference' => '1279e1ce86ba768f0780c9d889852b4e02ff40d0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpstan/phpstan',
             'aliases' => array(),
             'dev_requirement' => true,
         ),
         'phpstan/phpstan-doctrine' => array(
-            'pretty_version' => '2.0.18',
-            'version' => '2.0.18.0',
-            'reference' => '44a216a5cd9fe52be489dcf1e2d565c473daa1ca',
+            'pretty_version' => '2.0.20',
+            'version' => '2.0.20.0',
+            'reference' => '72f4f7a02d6c98d9101e8616e0488bc0a785196d',
             'type' => 'phpstan-extension',
             'install_path' => __DIR__ . '/../phpstan/phpstan-doctrine',
             'aliases' => array(),
@@ -774,9 +789,9 @@
             'dev_requirement' => false,
         ),
         'rector/rector' => array(
-            'pretty_version' => '2.3.8',
-            'version' => '2.3.8.0',
-            'reference' => 'bbd37aedd8df749916cffa2a947cfc4714d1ba2c',
+            'pretty_version' => '2.3.9',
+            'version' => '2.3.9.0',
+            'reference' => '917842143fd9f5331a2adefc214b8d7143bd32c4',
             'type' => 'library',
             'install_path' => __DIR__ . '/../rector/rector',
             'aliases' => array(),
@@ -830,7 +845,7 @@
         'roave/security-advisories' => array(
             'pretty_version' => 'dev-latest',
             'version' => 'dev-latest',
-            'reference' => '68e4c6721ef8cd2c366bd5e2290baf007d3f0e6d',
+            'reference' => '5b2dfdf2eaba4663778f776fe9b906ba425c03d4',
             'type' => 'metapackage',
             'install_path' => null,
             'aliases' => array(
@@ -1193,9 +1208,9 @@
             'dev_requirement' => false,
         ),
         'symfony/maker-bundle' => array(
-            'pretty_version' => 'v1.66.0',
-            'version' => '1.66.0.0',
-            'reference' => 'b5b4afa2a570b926682e9f34615a6766dd560ff4',
+            'pretty_version' => 'v1.67.0',
+            'version' => '1.67.0.0',
+            'reference' => '6ce8b313845f16bcf385ee3cb31d8b24e30d5516',
             'type' => 'symfony-bundle',
             'install_path' => __DIR__ . '/../symfony/maker-bundle',
             'aliases' => array(),
@@ -1405,12 +1420,45 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'symfony/translation' => array(
+            'pretty_version' => 'v7.4.6',
+            'version' => '7.4.6.0',
+            'reference' => '1888cf064399868af3784b9e043240f1d89d25ce',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/translation',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'symfony/translation-contracts' => array(
             'pretty_version' => 'v3.6.1',
             'version' => '3.6.1.0',
             'reference' => '65a8bc82080447fae78373aa10f8d13b38338977',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/translation-contracts',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/translation-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '2.3|3.0',
+            ),
+        ),
+        'symfony/twig-bridge' => array(
+            'pretty_version' => 'v7.4.7',
+            'version' => '7.4.7.0',
+            'reference' => 'c67219ca6b79a57b64e36bbb2cd8ba741286587e',
+            'type' => 'symfony-bridge',
+            'install_path' => __DIR__ . '/../symfony/twig-bridge',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/twig-bundle' => array(
+            'pretty_version' => 'v7.4.4',
+            'version' => '7.4.4.0',
+            'reference' => 'e8829e02ff96a391ed0703bac9e7ff0537480b6b',
+            'type' => 'symfony-bundle',
+            'install_path' => __DIR__ . '/../symfony/twig-bundle',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -1501,6 +1549,15 @@
             'reference' => 'a41a2774c24abbcb0ba31f00a822eb372cf2ac96',
             'type' => 'library',
             'install_path' => __DIR__ . '/../tracy/tracy',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'twig/twig' => array(
+            'pretty_version' => 'v3.24.0',
+            'version' => '3.24.0.0',
+            'reference' => 'a6769aefb305efef849dc25c9fd1653358c148f0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../twig/twig',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

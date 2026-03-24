@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\TypeDeclaration\PHPStan;
 
-use RectorPrefix202604\Nette\Utils\Strings;
+use RectorPrefix202603\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt\GroupUse;
@@ -57,15 +57,13 @@ final class ObjectTypeSpecifier
             return new FullyQualifiedObjectType($className);
         }
         $uses = $this->useImportsResolver->resolve();
-        if (!$withPreslash) {
-            $aliasedObjectType = $this->matchAliasedObjectType($objectType, $uses);
-            if ($aliasedObjectType instanceof AliasedObjectType) {
-                return $aliasedObjectType;
-            }
-            $shortenedObjectType = $this->matchShortenedObjectType($objectType, $uses);
-            if ($shortenedObjectType !== null) {
-                return $shortenedObjectType;
-            }
+        $aliasedObjectType = $this->matchAliasedObjectType($objectType, $uses);
+        if ($aliasedObjectType instanceof AliasedObjectType) {
+            return $aliasedObjectType;
+        }
+        $shortenedObjectType = $this->matchShortenedObjectType($objectType, $uses);
+        if ($shortenedObjectType !== null) {
+            return $shortenedObjectType;
         }
         if ($this->reflectionProvider->hasClass($className)) {
             return new FullyQualifiedObjectType($className);

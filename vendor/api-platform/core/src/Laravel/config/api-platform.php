@@ -30,10 +30,12 @@ return [
 
     'resources' => [
         app_path('Models'),
+        app_path('ApiResource'),
     ],
 
     'formats' => [
         'jsonld' => ['application/ld+json'],
+        'json' => ['application/json'],
         // 'jsonapi' => ['application/vnd.api+json'],
         // 'csv' => ['text/csv'],
     ],
@@ -95,6 +97,15 @@ return [
         AuthorizationException::class => 403,
     ],
 
+    'redoc' => [
+        'enabled' => true,
+    ],
+
+    'scalar' => [
+        'enabled' => true,
+        'extra_configuration' => [],
+    ],
+
     'swagger_ui' => [
         'enabled' => true,
         // 'apiKeys' => [
@@ -132,7 +143,7 @@ return [
 
     // 'openapi' => [
     //     'tags' => [],
-    // ],
+        // ],
 
     'url_generation_strategy' => UrlGeneratorInterface::ABS_PATH,
 
@@ -143,6 +154,11 @@ return [
 
     // we recommend using "file" or "acpu"
     'cache' => 'file',
+
+    // MCP (Model Context Protocol) configuration
+    'mcp' => [
+        'enabled' => true,
+    ],
 
     // install `api-platform/http-cache`
     // 'http_cache' => [
@@ -161,4 +177,8 @@ return [
     //         'purger' => ApiPlatform\HttpCache\SouinPurger::class,
     //     ],
     // ],
+
+    'error_handler' => [
+        'extend_laravel_handler' => true,
+    ],
 ];

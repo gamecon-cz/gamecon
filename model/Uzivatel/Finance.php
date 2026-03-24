@@ -130,12 +130,14 @@ class Finance
 
     public static function prumerneVstupneRoku(int $rocnik): float
     {
+        $typVstupne = TypPredmetu::VSTUPNE;
+
         return round(
             (float)dbOneCol(<<<SQL
 SELECT SUM(cena_nakupni) / COUNT(*)
 FROM shop_nakupy
 JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-WHERE JSON_CONTAINS(shop_nakupy.product_tags, JSON_QUOTE('vstupne'))
+WHERE shop_predmety.typ = {$typVstupne}
     AND shop_nakupy.rok = {$rocnik}
     AND shop_nakupy.cena_nakupni > 0
 SQL,

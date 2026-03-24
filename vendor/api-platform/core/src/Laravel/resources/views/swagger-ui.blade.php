@@ -213,8 +213,16 @@
         @endif
 
         <div id="swagger-ui" class="api-platform"></div>
-        <script src="/vendor/api-platform/swagger-ui/swagger-ui-bundle.js"></script>
-        <script src="/vendor/api-platform/swagger-ui/swagger-ui-standalone-preset.js"></script>
-        <script src="/vendor/api-platform/init-swagger-ui.js"></script>
+        @if ($ui === 'scalar')
+            <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+            <script src="/vendor/api-platform/init-scalar-ui.js"></script>
+        @elseif ($ui === 'redoc')
+            <script src="/vendor/api-platform/redoc/redoc.standalone.js"></script>
+            <script src="/vendor/api-platform/init-redoc-ui.js"></script>
+        @else
+            <script src="/vendor/api-platform/swagger-ui/swagger-ui-bundle.js"></script>
+            <script src="/vendor/api-platform/swagger-ui/swagger-ui-standalone-preset.js"></script>
+            <script src="/vendor/api-platform/init-swagger-ui.js"></script>
+        @endif
     </body>
 </html>

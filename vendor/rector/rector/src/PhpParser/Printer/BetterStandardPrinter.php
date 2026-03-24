@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\PhpParser\Printer;
 
-use RectorPrefix202604\Nette\Utils\Strings;
+use RectorPrefix202603\Nette\Utils\Strings;
 use Override;
 use PhpParser\Comment;
 use PhpParser\Internal\TokenStream;
@@ -302,9 +302,7 @@ final class BetterStandardPrinter extends Standard
         if (!$methodCall->var instanceof CallLike) {
             return parent::pExpr_MethodCall($methodCall);
         }
-        $globalFlag = SimpleParameterProvider::provideBoolParameter(Option::NEW_LINE_ON_FLUENT_CALL);
-        $perNodeFlag = (bool) $methodCall->getAttribute(AttributeKey::NEWLINE_ON_FLUENT_CALL, \false);
-        if ($globalFlag === \false && $perNodeFlag === \false) {
+        if (SimpleParameterProvider::provideBoolParameter(Option::NEW_LINE_ON_FLUENT_CALL) === \false) {
             return parent::pExpr_MethodCall($methodCall);
         }
         foreach ($methodCall->args as $arg) {

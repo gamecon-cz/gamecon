@@ -3,12 +3,12 @@
 declare (strict_types=1);
 namespace Rector\Composer;
 
-use RectorPrefix202604\Nette\Utils\FileSystem;
-use RectorPrefix202604\Nette\Utils\Json;
+use RectorPrefix202603\Nette\Utils\FileSystem;
+use RectorPrefix202603\Nette\Utils\Json;
 use Rector\Composer\ValueObject\InstalledPackage;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\Skipper\FileSystem\PathNormalizer;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202603\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Composer\InstalledPackageResolverTest
  */
@@ -19,7 +19,7 @@ final class InstalledPackageResolver
      */
     private ?string $projectDirectory = null;
     /**
-     * @var null|array<string, InstalledPackage>
+     * @var null|InstalledPackage[]
      */
     private ?array $resolvedInstalledPackages = null;
     public function __construct(?string $projectDirectory = null)
@@ -32,7 +32,7 @@ final class InstalledPackageResolver
         Assert::directory($projectDirectory);
     }
     /**
-     * @return array<string, InstalledPackage>
+     * @return InstalledPackage[]
      */
     public function resolve(): array
     {
@@ -52,22 +52,24 @@ final class InstalledPackageResolver
     }
     public function resolvePackageVersion(string $packageName): ?string
     {
-        $package = $this->resolve()[$packageName] ?? null;
-        if (!$package instanceof InstalledPackage) {
-            return null;
+        $installedPackages = $this->resolve();
+        foreach ($installedPackages as $installedPackage) {
+            if ($installedPackage->getName() !== $packageName) {
+                continue;
+            }
+            return $installedPackage->getVersion();
         }
-        return $package->getVersion();
+        return null;
     }
     /**
      * @param mixed[] $packages
-     * @return array<string, InstalledPackage>
+     * @return InstalledPackage[]
      */
     private function createInstalledPackages(array $packages): array
     {
         $installedPackages = [];
         foreach ($packages as $package) {
-            $name = $package['name'];
-            $installedPackages[$name] = new InstalledPackage($name, $package['version_normalized']);
+            $installedPackages[] = new InstalledPackage($package['name'], $package['version_normalized']);
         }
         return $installedPackages;
     }

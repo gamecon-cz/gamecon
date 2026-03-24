@@ -103,6 +103,7 @@ return static function (ContainerConfigurator $container) {
             service('api_platform.iri_converter'),
             service('api_platform.resource_class_resolver'),
             service('api_platform.metadata.operation.metadata_factory'),
+            service('api_platform.metadata.resource.metadata_collection_factory'),
         ]);
 
     $services->set('api_platform.state_processor.add_link_header', AddLinkHeaderProcessor::class)
@@ -201,6 +202,7 @@ return static function (ContainerConfigurator $container) {
             '%api_platform.enable_swagger_ui%',
             '%api_platform.enable_docs%',
             '%api_platform.enable_re_doc%',
+            '%api_platform.enable_scalar%',
         ]);
 
     $services->set('api_platform.action.placeholder', PlaceholderAction::class)

@@ -47,6 +47,9 @@ class ProductBundle
     ])]
     private bool $forced = false;
 
+    /**
+     * @var string[]
+     */
     #[ORM\Column(type: Types::JSON, nullable: false, options: [
         'comment' => 'Array of role names for which bundle is mandatory (e.g., ["ucastnik"])',
     ])]

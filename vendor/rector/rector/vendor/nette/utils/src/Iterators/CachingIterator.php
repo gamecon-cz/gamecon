@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202604\Nette\Iterators;
+namespace RectorPrefix202603\Nette\Iterators;
 
-use RectorPrefix202604\Nette;
+use RectorPrefix202603\Nette;
 /**
  * Enhanced caching iterator with first/last/counter tracking.
  *

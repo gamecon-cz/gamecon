@@ -5,9 +5,9 @@ namespace Rector\Console;
 
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Option;
-use RectorPrefix202604\Symfony\Component\Console\Command\Command;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202604\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202603\Symfony\Component\Console\Command\Command;
+use RectorPrefix202603\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202603\Symfony\Component\Console\Input\InputOption;
 final class ProcessConfigureDecorator
 {
     public static function decorate(Command $command): void
@@ -27,6 +27,5 @@ final class ProcessConfigureDecorator
         $command->addOption(Option::PARALLEL_PORT, null, InputOption::VALUE_REQUIRED);
         $command->addOption(Option::PARALLEL_IDENTIFIER, null, InputOption::VALUE_REQUIRED);
         $command->addOption(Option::XDEBUG, null, InputOption::VALUE_NONE, 'Display xdebug output.');
-        $command->addOption(Option::RULES_SUMMARY, null, InputOption::VALUE_NONE, 'Show summary of rules applied during the run.');
     }
 }

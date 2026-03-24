@@ -6,7 +6,6 @@ namespace Rector\Configuration;
 use PhpParser\NodeVisitor;
 use Rector\Bridge\SetProviderCollector;
 use Rector\Bridge\SetRectorsResolver;
-use Rector\Caching\Contract\CacheMetaExtensionInterface;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Composer\InstalledPackageResolver;
 use Rector\Config\Level\CodeQualityLevel;
@@ -39,11 +38,11 @@ use Rector\Symfony\Set\SymfonyInternalSetList;
 use Rector\Symfony\Set\SymfonySetList;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
-use RectorPrefix202604\Symfony\Component\Console\Input\ArgvInput;
-use RectorPrefix202604\Symfony\Component\Console\Output\ConsoleOutput;
-use RectorPrefix202604\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202604\Symfony\Component\Finder\Finder;
-use RectorPrefix202604\Webmozart\Assert\Assert;
+use RectorPrefix202603\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202603\Symfony\Component\Console\Output\ConsoleOutput;
+use RectorPrefix202603\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202603\Symfony\Component\Finder\Finder;
+use RectorPrefix202603\Webmozart\Assert\Assert;
 /**
  * @api
  */
@@ -83,10 +82,6 @@ final class RectorConfigBuilder
     private ?string $cacheClass = null;
     private ?string $cacheDirectory = null;
     private ?string $containerCacheDirectory = null;
-    /**
-     * @var array<class-string<CacheMetaExtensionInterface>>
-     */
-    private array $cacheMetaExtensions = [];
     private ?bool $parallel = null;
     private int $parallelTimeoutSeconds = 120;
     private int $parallelMaxNumberOfProcess = Defaults::PARALLEL_MAX_NUMBER_OF_PROCESS;
@@ -226,9 +221,6 @@ final class RectorConfigBuilder
         }
         if ($this->containerCacheDirectory !== null) {
             $rectorConfig->containerCacheDirectory($this->containerCacheDirectory);
-        }
-        foreach ($this->cacheMetaExtensions as $cacheMetumExtension) {
-            $rectorConfig->cacheMetaExtension($cacheMetumExtension);
         }
         if ($this->importNames || $this->importDocBlockNames) {
             $rectorConfig->importNames($this->importNames, $this->importDocBlockNames);
@@ -402,8 +394,7 @@ final class RectorConfigBuilder
         bool $php53 = \false,
         // place on later as BC break when used in php 7.x without named arg
         bool $php84 = \false,
-        bool $php85 = \false,
-        bool $php86 = \false
+        bool $php85 = \false
     ): self
     {
         if ($this->isWithPhpSetsUsed === \true) {
@@ -471,8 +462,6 @@ final class RectorConfigBuilder
             $targetPhpVersion = PhpVersion::PHP_84;
         } elseif ($php85) {
             $targetPhpVersion = PhpVersion::PHP_85;
-        } elseif ($php86) {
-            $targetPhpVersion = PhpVersion::PHP_86;
         } else {
             throw new InvalidConfigurationException('Invalid PHP version set');
         }
@@ -614,14 +603,6 @@ final class RectorConfigBuilder
         $this->cacheDirectory = $cacheDirectory;
         $this->cacheClass = $cacheClass;
         $this->containerCacheDirectory = $containerCacheDirectory;
-        return $this;
-    }
-    /**
-     * @param class-string<CacheMetaExtensionInterface> $cacheMetaExtensionClass
-     */
-    public function withCacheMetaExtension(string $cacheMetaExtensionClass): self
-    {
-        $this->cacheMetaExtensions[] = $cacheMetaExtensionClass;
         return $this;
     }
     /**

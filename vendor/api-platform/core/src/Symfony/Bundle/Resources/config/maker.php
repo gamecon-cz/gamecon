@@ -21,14 +21,14 @@ return static function (ContainerConfigurator $container) {
     $services = $container->services();
 
     $services->set('api_platform.maker.command.state_processor', MakeStateProcessor::class)
-        ->args([service('api_platform.metadata.resource.name_collection_factory')])
+        ->args([param('api_platform.maker.namespace_prefix')])
         ->tag('maker.command');
 
     $services->set('api_platform.maker.command.state_provider', MakeStateProvider::class)
-        ->args([service('api_platform.metadata.resource.name_collection_factory')])
+        ->args([param('api_platform.maker.namespace_prefix')])
         ->tag('maker.command');
 
     $services->set('api_platform.maker.command.filter', MakeFilter::class)
-        ->args([service('api_platform.metadata.resource.name_collection_factory')])
+        ->args([param('api_platform.maker.namespace_prefix')])
         ->tag('maker.command');
 };

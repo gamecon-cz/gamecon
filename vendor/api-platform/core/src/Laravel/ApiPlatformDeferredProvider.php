@@ -44,13 +44,16 @@ use ApiPlatform\Laravel\Eloquent\State\LinksHandlerInterface;
 use ApiPlatform\Laravel\Eloquent\State\PersistProcessor;
 use ApiPlatform\Laravel\Eloquent\State\RemoveProcessor;
 use ApiPlatform\Laravel\Exception\ErrorHandler;
+use ApiPlatform\Laravel\Exception\ErrorRenderer;
 use ApiPlatform\Laravel\Metadata\CacheResourceCollectionMetadataFactory;
 use ApiPlatform\Laravel\Metadata\ParameterValidationResourceMetadataCollectionFactory;
 use ApiPlatform\Laravel\State\ParameterValidatorProvider;
 use ApiPlatform\Laravel\State\SwaggerUiProcessor;
 use ApiPlatform\Laravel\State\ValidateProvider;
+use ApiPlatform\Mcp\State\ToolProvider;
 use ApiPlatform\Metadata\IdentifiersExtractorInterface;
 use ApiPlatform\Metadata\InflectorInterface;
+use ApiPlatform\Metadata\Laravel\SkipAutoconfigure;
 use ApiPlatform\Metadata\Operation\PathSegmentNameGeneratorInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
@@ -89,6 +92,7 @@ use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
 use Negotiation\Negotiator;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\ObjectMapper\ObjectMapper;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
@@ -101,6 +105,15 @@ class ApiPlatformDeferredProvider extends ServiceProvider implements DeferrableP
     {
         $directory = app_path();
         $classes = ReflectionClassRecursiveIterator::getReflectionClassesFromDirectories([$directory], '(?!.*(?:Test|\.blade)\.php$)');
+
+        foreach ($classes as $className => $refl) {
+            foreach ($refl->getAttributes() as $attribute) {
+                if (SkipAutoconfigure::class === $attribute->getName()) {
+                    unset($classes[$className]);
+                    break;
+                }
+            }
+        }
 
         $this->autoconfigure($classes, QueryExtensionInterface::class, [FilterQueryExtension::class]);
         $this->app->singleton(ItemProvider::class, static function (Application $app) {
@@ -172,7 +185,7 @@ class ApiPlatformDeferredProvider extends ServiceProvider implements DeferrableP
             $config = $app['config'];
             $tagged = iterator_to_array($app->tagged(ProcessorInterface::class));
 
-            if ($config->get('api-platform.swagger_ui.enabled', false)) {
+            if ($config->get('api-platform.swagger_ui.enabled', false) || $config->get('api-platform.redoc.enabled', false) || $config->get('api-platform.scalar.enabled', false)) {
                 // TODO: tag SwaggerUiProcessor instead?
                 $tagged['api_platform.swagger_ui.processor'] = $app->make(SwaggerUiProcessor::class);
             }
@@ -188,14 +201,25 @@ class ApiPlatformDeferredProvider extends ServiceProvider implements DeferrableP
             return new CallableProvider(new ServiceLocator($tagged));
         });
 
-        $this->autoconfigure($classes, ProviderInterface::class, [ItemProvider::class, CollectionProvider::class, ErrorProvider::class]);
+        $providers = [ItemProvider::class, CollectionProvider::class, ErrorProvider::class];
+
+        if (class_exists(ToolProvider::class)) {
+            $this->app->singleton(ToolProvider::class, static function (Application $app) {
+                return new ToolProvider(
+                    $app->make(ObjectMapper::class)
+                );
+            });
+            $providers[] = ToolProvider::class;
+        }
+
+        $this->autoconfigure($classes, ProviderInterface::class, $providers);
 
         $this->app->singleton(ResourceMetadataCollectionFactoryInterface::class, function (Application $app) {
             /** @var ConfigRepository $config */
             $config = $app['config'];
             $formats = $config->get('api-platform.formats');
 
-            if ($config->get('api-platform.swagger_ui.enabled', false) && !isset($formats['html'])) {
+            if (($config->get('api-platform.swagger_ui.enabled', false) || $config->get('api-platform.redoc.enabled', false) || $config->get('api-platform.scalar.enabled', false)) && !isset($formats['html'])) {
                 $formats['html'] = ['text/html'];
             }
 
@@ -252,22 +276,35 @@ class ApiPlatformDeferredProvider extends ServiceProvider implements DeferrableP
             );
         });
 
+        $this->app->singleton(ErrorRenderer::class, static function (Application $app) {
+            /** @var ConfigRepository */
+            $config = $app['config'];
+
+            return new ErrorRenderer(
+                $app->make(ResourceMetadataCollectionFactoryInterface::class),
+                $app->make(ApiPlatformController::class),
+                $app->make(IdentifiersExtractorInterface::class),
+                $app->make(ResourceClassResolverInterface::class),
+                $app->make(Negotiator::class),
+                $config->get('api-platform.exception_to_status'),
+                $config->get('app.debug'),
+                $config->get('api-platform.error_formats'),
+            );
+        });
+
         $this->app->extend(
             ExceptionHandler::class,
             static function (ExceptionHandler $decorated, Application $app) {
                 /** @var ConfigRepository */
                 $config = $app['config'];
 
+                if (!$config->get('api-platform.error_handler.extend_laravel_handler', true)) {
+                    return $decorated;
+                }
+
                 return new ErrorHandler(
                     $app,
-                    $app->make(ResourceMetadataCollectionFactoryInterface::class),
-                    $app->make(ApiPlatformController::class),
-                    $app->make(IdentifiersExtractorInterface::class),
-                    $app->make(ResourceClassResolverInterface::class),
-                    $app->make(Negotiator::class),
-                    $config->get('api-platform.exception_to_status'),
-                    $config->get('app.debug'),
-                    $config->get('api-platform.error_formats'),
+                    $app->make(ErrorRenderer::class),
                     $decorated
                 );
             }
@@ -343,7 +380,7 @@ class ApiPlatformDeferredProvider extends ServiceProvider implements DeferrableP
      */
     public function provides(): array
     {
-        return [
+        $provides = [
             CallableProvider::class,
             CallableProcessor::class,
             ItemProvider::class,
@@ -357,5 +394,11 @@ class ApiPlatformDeferredProvider extends ServiceProvider implements DeferrableP
             FieldsBuilderEnumInterface::class,
             ExceptionHandlerInterface::class,
         ];
+
+        if (class_exists(ToolProvider::class)) {
+            $provides[] = ToolProvider::class;
+        }
+
+        return $provides;
     }
 }

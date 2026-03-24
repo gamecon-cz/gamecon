@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202604;
+namespace RectorPrefix202603;
 
 use PhpParser\Node\Expr\Cast\Double;
 use Rector\Config\RectorConfig;

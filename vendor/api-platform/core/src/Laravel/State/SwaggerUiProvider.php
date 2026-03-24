@@ -38,6 +38,8 @@ final class SwaggerUiProvider implements ProviderInterface
         private readonly ProviderInterface $decorated,
         private readonly OpenApiFactoryInterface $openApiFactory,
         private readonly bool $swaggerUiEnabled = true,
+        private readonly bool $scalarEnabled = false,
+        private readonly bool $redocEnabled = false,
     ) {
     }
 
@@ -52,7 +54,7 @@ final class SwaggerUiProvider implements ProviderInterface
             !($operation instanceof HttpOperation)
             || !($request = $context['request'] ?? null)
             || 'html' !== $request->getRequestFormat()
-            || !$this->swaggerUiEnabled
+            || (!$this->swaggerUiEnabled && !$this->scalarEnabled && !$this->redocEnabled)
             || true === ($operation->getExtraProperties()['_api_disable_swagger_provider'] ?? false)
         ) {
             return $this->decorated->provide($operation, $uriVariables, $context);

@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202604;
+namespace RectorPrefix202603;
 
 use Rector\Config\RectorConfig;
 use Rector\PHPUnit\CodeQuality\Rector\CallLike\DirectInstanceOverMockArgRector;
@@ -38,6 +38,7 @@ use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertFalseStrposToContainsRect
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertInstanceOfComparisonRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertIssetToSpecificMethodRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertNotOperatorRector;
+use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertRegExpRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertSameBoolNullToSpecificMethodRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertSameTrueFalseToAssertTrueFalseRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertTrueFalseToSpecificMethodRector;
@@ -95,6 +96,7 @@ return static function (RectorConfig $rectorConfig): void {
         AssertFalseStrposToContainsRector::class,
         AssertIssetToSpecificMethodRector::class,
         AssertInstanceOfComparisonRector::class,
+        AssertRegExpRector::class,
         AssertFuncCallToPHPUnitAssertRector::class,
         SimplifyForeachInstanceOfRector::class,
         UseSpecificWillMethodRector::class,
