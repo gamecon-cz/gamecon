@@ -8,6 +8,7 @@ use Nextras\Migrations\Bridges\SymfonyBundle\NextrasMigrationsBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\MakerBundle\MakerBundle;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Zenstruck\Foundry\ZenstruckFoundryBundle;
 
 return [
@@ -21,6 +22,9 @@ return [
         'all' => true,
     ],
     SecurityBundle::class => [
+        'all' => true,
+    ],
+    TwigBundle::class => [
         'all' => true,
     ],
     MakerBundle::class => [

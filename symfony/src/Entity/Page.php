@@ -44,11 +44,6 @@ class Page
     ])]
     private int $poradi;
 
-    #[ORM\Column(name: 'redirect', type: Types::BOOLEAN, options: [
-        'default' => 0,
-    ])]
-    private bool $redirect = false;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -98,18 +93,6 @@ class Page
     public function setPoradi(int $poradi): self
     {
         $this->poradi = $poradi;
-
-        return $this;
-    }
-
-    public function isRedirect(): bool
-    {
-        return $this->redirect;
-    }
-
-    public function setRedirect(bool $redirect): self
-    {
-        $this->redirect = $redirect;
 
         return $this;
     }
