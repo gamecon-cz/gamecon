@@ -37,7 +37,7 @@ class JwtAuthenticator implements AuthenticatorInterface
     {
         // Extract token from header
         $authorizationHeader = $request->headers->get('Authorization');
-        if (!$authorizationHeader || !str_starts_with($authorizationHeader, 'Bearer ')) {
+        if (! $authorizationHeader || ! str_starts_with($authorizationHeader, 'Bearer ')) {
             throw new AuthenticationException('Missing or invalid Authorization header');
         }
 
@@ -45,25 +45,25 @@ class JwtAuthenticator implements AuthenticatorInterface
 
         // Decode using existing JwtService
         $payload = $this->jwtService->decodeJwtToken($token);
-        if (!$payload) {
+        if (! $payload) {
             throw new AuthenticationException('Invalid JWT token');
         }
 
         // Load user from database
         $userId = $payload['user']['id'] ?? null;
-        if (!$userId) {
+        if (! $userId) {
             throw new AuthenticationException('JWT token missing user ID');
         }
 
         $user = $this->userRepository->find($userId);
 
-        if (!$user) {
+        if (! $user) {
             throw new UserNotFoundException(sprintf('User with ID %d not found', $userId));
         }
 
         // Return passport with user badge
         return new SelfValidatingPassport(
-            new UserBadge($user->getLogin(), fn() => $user)
+            new UserBadge($user->getLogin(), fn () => $user)
         );
     }
 
@@ -85,7 +85,7 @@ class JwtAuthenticator implements AuthenticatorInterface
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         return new JsonResponse([
-            'error' => 'Authentication failed',
+            'error'   => 'Authentication failed',
             'message' => $exception->getMessage(),
         ], Response::HTTP_UNAUTHORIZED);
     }
