@@ -44,6 +44,47 @@ INSERT INTO uzivatele_hodnoty SET
 SQL,
     ];
 
+    /**
+     * Helper: insert product into shop_predmety (post-migration schema without typ/model_rok)
+     * and assign a tag via product_product_tag.
+     */
+    private static function vlozProdukt(
+        int $id,
+        string $nazev,
+        string $kodPredmetu,
+        string $tagCode,
+        float $cena,
+        int $stav,
+        string $nabizetDo,
+        ?int $kusuVyrobeno,
+        ?int $ubytovaniDen = null,
+        bool $vedlejsi = false,
+        string $popis = '',
+        ?string $archivedAt = null,
+    ): void {
+        $vedlejsiInt = $vedlejsi ? 1 : 0;
+        $kusuVyrobenoSql = $kusuVyrobeno === null ? 'NULL' : $kusuVyrobeno;
+        $ubytovaniDenSql = $ubytovaniDen === null ? 'NULL' : $ubytovaniDen;
+        $archivedAtSql = $archivedAt === null ? 'NULL' : "'{$archivedAt}'";
+
+        dbQuery("INSERT INTO shop_predmety SET
+            id_predmetu = {$id},
+            nazev = '{$nazev}',
+            kod_predmetu = '{$kodPredmetu}',
+            cena_aktualni = {$cena},
+            stav = {$stav},
+            nabizet_do = '{$nabizetDo}',
+            kusu_vyrobeno = {$kusuVyrobenoSql},
+            ubytovani_den = {$ubytovaniDenSql},
+            vedlejsi = {$vedlejsiInt},
+            popis = '{$popis}',
+            archived_at = {$archivedAtSql}");
+
+        // Assign tag
+        dbQuery("INSERT INTO product_product_tag (product_id, tag_id)
+            SELECT {$id}, id FROM product_tag WHERE code = '{$tagCode}'");
+    }
+
     protected static function getBeforeClassInitCallbacks(): array
     {
         return [
@@ -51,66 +92,45 @@ SQL,
                 $rocnik = ROCNIK;
                 $budouci = date('Y-m-d H:i:s', strtotime('+1 year'));
 
-                // PREDMET (typ=1): hlavní
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77711, nazev = 'Kostka GameCon', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('kostka_gc_', {$rocnik}), cena_aktualni = 50, stav = 1,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = 100, typ = 1, vedlejsi = 0, popis = ''");
+                // PREDMET: hlavní
+                self::vlozProdukt(77711, 'Kostka GameCon', "kostka_gc_{$rocnik}", 'predmet',
+                    50, 1, $budouci, 100);
 
-                // PREDMET (typ=1): vedlejší
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77712, nazev = 'Zápisník', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('zapisnik_', {$rocnik}), cena_aktualni = 30, stav = 1,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = 50, typ = 1, vedlejsi = 1, popis = ''");
+                // PREDMET: vedlejší
+                self::vlozProdukt(77712, 'Zápisník', "zapisnik_{$rocnik}", 'predmet',
+                    30, 1, $budouci, 50, vedlejsi: true);
 
-                // UBYTOVANI (typ=2): two days
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77713, nazev = 'Spacák pátek', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('spacak_pa_', {$rocnik}), cena_aktualni = 100, stav = 1,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = 200, typ = 2, ubytovani_den = 1, popis = ''");
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77714, nazev = 'Spacák sobota', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('spacak_so_', {$rocnik}), cena_aktualni = 100, stav = 1,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = 200, typ = 2, ubytovani_den = 2, popis = ''");
+                // UBYTOVANI: two days
+                self::vlozProdukt(77713, 'Spacák pátek', "spacak_pa_{$rocnik}", 'ubytovani',
+                    100, 1, $budouci, 200, ubytovaniDen: 1);
+                self::vlozProdukt(77714, 'Spacák sobota', "spacak_so_{$rocnik}", 'ubytovani',
+                    100, 1, $budouci, 200, ubytovaniDen: 2);
 
-                // TRICKO (typ=3)
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77715, nazev = 'Tričko modré L', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('tricko_modre_l_', {$rocnik}), cena_aktualni = 250, stav = 1,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = 100, typ = 3, popis = ''");
+                // TRICKO
+                self::vlozProdukt(77715, 'Tričko modré L', "tricko_modre_l_{$rocnik}", 'tricko',
+                    250, 1, $budouci, 100);
 
-                // JIDLO (typ=4): two different days, need ubytovani_den!
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77716, nazev = 'Oběd pátek', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('obed_pa_', {$rocnik}), cena_aktualni = 120, stav = 1,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = 500, typ = 4, ubytovani_den = 1, popis = ''");
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77717, nazev = 'Večeře sobota', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('vecere_so_', {$rocnik}), cena_aktualni = 130, stav = 1,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = 500, typ = 4, ubytovani_den = 2, popis = ''");
+                // JIDLO: two different days
+                self::vlozProdukt(77716, 'Oběd pátek', "obed_pa_{$rocnik}", 'jidlo',
+                    120, 1, $budouci, 500, ubytovaniDen: 1);
+                self::vlozProdukt(77717, 'Večeře sobota', "vecere_so_{$rocnik}", 'jidlo',
+                    130, 1, $budouci, 500, ubytovaniDen: 2);
 
-                // VSTUPNE (typ=5): early + late
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77718, nazev = 'Dobrovolné vstupné', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('vstupne_', {$rocnik}), cena_aktualni = 0, stav = 2,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = NULL, typ = 5, popis = ''");
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77719, nazev = 'Dobrovolné vstupné pozdě', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('vstupne_pozde_', {$rocnik}), cena_aktualni = 0, stav = 2,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = NULL, typ = 5, popis = ''");
+                // VSTUPNE: early + late
+                self::vlozProdukt(77718, 'Dobrovolné vstupné', "vstupne_{$rocnik}", 'vstupne',
+                    0, 2, $budouci, null);
+                self::vlozProdukt(77719, 'Dobrovolné vstupné pozdě', "vstupne_pozde_{$rocnik}", 'vstupne',
+                    0, 2, $budouci, null);
 
-                // PROPLACENI_BONUSU (typ=7) — should be skipped by constructor
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77720, nazev = 'Proplacení bonusu', model_rok = {$rocnik},
-                    kod_predmetu = CONCAT('bonus_', {$rocnik}), cena_aktualni = 0, stav = 1,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = NULL, typ = 7, popis = ''");
+                // PROPLACENI_BONUSU — should be skipped by constructor
+                self::vlozProdukt(77720, 'Proplacení bonusu', "bonus_{$rocnik}", 'proplaceni-bonusu',
+                    0, 1, $budouci, null);
 
-                // Product from previous year (for letosniPolozky year filter test)
+                // Product from previous year — archived (for letosniPolozky year filter test)
                 $minulyRocnik = $rocnik - 1;
-                dbQuery("INSERT INTO shop_predmety SET
-                    id_predmetu = 77721, nazev = 'Loňská kostka', model_rok = {$minulyRocnik},
-                    kod_predmetu = CONCAT('kostka_gc_', {$minulyRocnik}), cena_aktualni = 40, stav = 1,
-                    nabizet_do = '{$budouci}', kusu_vyrobeno = 100, typ = 1, popis = 'stará edice'");
+                self::vlozProdukt(77721, 'Loňská kostka', "kostka_gc_{$minulyRocnik}", 'predmet',
+                    40, 1, $budouci, 100, popis: 'stará edice',
+                    archivedAt: "{$minulyRocnik}-12-31 23:59:59");
 
                 // Purchases for user 77701 — one of each relevant type
                 dbQuery("INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
