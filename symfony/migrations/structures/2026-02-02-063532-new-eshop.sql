@@ -252,6 +252,28 @@ ALTER TABLE shop_predmety
     ADD amount_participants INT      DEFAULT NULL,
     CHANGE nabizet_do nabizet_do DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)';
 
+-- Migrate existing typ values to product_product_tag (before dropping typ column)
+INSERT INTO product_product_tag (product_id, tag_id)
+SELECT sp.id_predmetu, pt.id
+FROM shop_predmety sp
+JOIN product_tag pt ON pt.code = CASE sp.typ
+    WHEN 1 THEN 'predmet'
+    WHEN 2 THEN 'ubytovani'
+    WHEN 3 THEN 'tricko'
+    WHEN 4 THEN 'jidlo'
+    WHEN 5 THEN 'vstupne'
+    WHEN 6 THEN 'parcon'
+    WHEN 7 THEN 'proplaceni-bonusu'
+END
+WHERE sp.typ IS NOT NULL
+ON DUPLICATE KEY UPDATE product_id = product_id;
+
+-- Archive products from previous years (before dropping model_rok column)
+UPDATE shop_predmety
+SET archived_at = CONCAT(model_rok, '-12-31 23:59:59')
+WHERE model_rok < (SELECT hodnota FROM systemove_nastaveni WHERE klic = 'ROCNIK' LIMIT 1)
+  AND archived_at IS NULL;
+
 DROP INDEX nazev ON shop_predmety;
 DROP INDEX kod_predmetu ON shop_predmety;
 
@@ -295,3 +317,28 @@ ALTER TABLE akce_organizatori RENAME INDEX id_uzivatele TO IDX_F44FC74ED84E9520;
 ALTER TABLE product_tag
     ADD updated_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)',
     CHANGE created_at created_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)';
+
+-- Backward-compatible view providing virtual typ, model_rok, je_letosni_hlavni columns
+CREATE OR REPLACE VIEW shop_predmety_s_typem AS
+SELECT
+    sp.*,
+    (SELECT CASE pt.code
+        WHEN 'predmet' THEN 1
+        WHEN 'ubytovani' THEN 2
+        WHEN 'tricko' THEN 3
+        WHEN 'jidlo' THEN 4
+        WHEN 'vstupne' THEN 5
+        WHEN 'parcon' THEN 6
+        WHEN 'proplaceni-bonusu' THEN 7
+    END
+    FROM product_product_tag ppt
+    JOIN product_tag pt ON ppt.tag_id = pt.id
+    WHERE ppt.product_id = sp.id_predmetu
+      AND pt.code IN ('predmet','ubytovani','tricko','jidlo','vstupne','parcon','proplaceni-bonusu')
+    LIMIT 1) AS typ,
+    CASE WHEN sp.archived_at IS NULL
+         THEN (SELECT CAST(hodnota AS UNSIGNED) FROM systemove_nastaveni WHERE klic = 'ROCNIK' LIMIT 1)
+         ELSE YEAR(sp.archived_at)
+    END AS model_rok,
+    CASE WHEN sp.archived_at IS NULL THEN 1 ELSE 0 END AS je_letosni_hlavni
+FROM shop_predmety sp;

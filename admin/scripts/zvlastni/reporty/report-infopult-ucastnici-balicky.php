@@ -18,7 +18,7 @@ $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuP
 (SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR '</li><li>')
     FROM (SELECT CONCAT_WS('× ', COUNT(*), shop_predmety.nazev) AS pocet_a_nazev, shop_nakupy.id_uzivatele
         FROM shop_nakupy
-            JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+            JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
             WHERE shop_predmety.id_predmetu = shop_nakupy.id_predmetu
                 AND shop_predmety.typ = {$idTypuPredmetu}
                 AND IF ('$klicoveSlovo' = '', TRUE, shop_predmety.nazev LIKE '%{$klicoveSlovo}%')
@@ -37,7 +37,7 @@ $poddotazOstatnichKoupeneychPredmetu = static function (array $mimoKlicovaSlova,
 (SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR '</li><li>')
     FROM (SELECT CONCAT_WS('× ', COUNT(*), shop_predmety.nazev) AS pocet_a_nazev, shop_nakupy.id_uzivatele
         FROM shop_nakupy
-            JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+            JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
             WHERE shop_predmety.id_predmetu = shop_nakupy.id_predmetu
                 AND shop_predmety.typ = {$idTypuPredmetu}
                 AND ($mimoKlicovaSlovaSql)
@@ -53,7 +53,7 @@ $kopilNecoSql = static function (array $typyPredmetu, int $rok) {
     return <<<SQL
 EXISTS(
     SELECT 1
-    FROM shop_predmety
+    FROM shop_predmety_s_typem AS shop_predmety
         JOIN shop_nakupy ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
     WHERE shop_nakupy.id_uzivatele = uzivatele_hodnoty.id_uzivatele
         AND shop_nakupy.rok = $rok
@@ -67,7 +67,7 @@ $kolikTypuNakoupil = static function (array $typyPredmetu, int $rok) {
     return <<<SQL
     (
         SELECT count(distinct(shop_nakupy.id_predmetu))
-        FROM shop_predmety
+        FROM shop_predmety_s_typem AS shop_predmety
             JOIN shop_nakupy ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
         WHERE shop_nakupy.id_uzivatele = uzivatele_hodnoty.id_uzivatele
             AND shop_nakupy.rok = $rok
@@ -98,7 +98,7 @@ LEFT JOIN platne_role_uzivatelu AS role_organizatoru
 WHERE uzivatele_hodnoty.id_uzivatele IN (
     SELECT DISTINCT(sn.id_uzivatele)
     FROM shop_nakupy AS sn
-    JOIN shop_predmety AS sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ IN ({$typTricko}, {$typPredmet})
+    JOIN shop_predmety_s_typem AS sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ IN ({$typTricko}, {$typPredmet})
     WHERE sn.rok = $rok
 )
 GROUP BY uzivatele_hodnoty.id_uzivatele
