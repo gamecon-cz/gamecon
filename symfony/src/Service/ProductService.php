@@ -34,6 +34,8 @@ class ProductService
 
     /**
      * Create new product
+     *
+     * @param string[] $tags
      */
     public function createProduct(
         string $name,
@@ -52,7 +54,7 @@ class ProductService
 
         // Add tags
         foreach ($tags as $tag) {
-            $product->addTag($tag);
+            $product->addTag($this->productTagRepository->findOrCreate($tag));
         }
 
         $this->entityManager->persist($product);
@@ -101,7 +103,7 @@ class ProductService
      */
     public function addTag(Product $product, string $tag): void
     {
-        $product->addTag($tag);
+        $product->addTag($this->productTagRepository->findOrCreate($tag));
         $this->entityManager->flush();
     }
 
@@ -110,8 +112,11 @@ class ProductService
      */
     public function removeTag(Product $product, string $tag): void
     {
-        $product->removeTag($tag);
-        $this->entityManager->flush();
+        $tagEntity = $this->productTagRepository->findByName($tag);
+        if ($tagEntity !== null) {
+            $product->removeTag($tagEntity);
+            $this->entityManager->flush();
+        }
     }
 
     /**
@@ -153,7 +158,7 @@ class ProductService
      *
      * @param Product[] $products
      *
-     * @return array<int, array>
+     * @return array<int, array{product: Product, originalPrice: string, finalPrice: string, discountAmount: string, discountReason: string|null}>
      */
     public function getProductsWithPrices(array $products, User $user, int $year): array
     {
@@ -185,7 +190,7 @@ class ProductService
      * @return array{
      *     available: bool,
      *     reason: string|null,
-     *     capacity: array|null
+     *     capacity: array{total: int, sold: int, available: int, percentSold: float}|null
      * }
      */
     public function getAvailabilityInfo(Product $product, User $user, int $year, string $userRole = 'ucastnik'): array
@@ -229,7 +234,7 @@ class ProductService
      */
     public function findProducts(array $criteria): array
     {
-        if (isset($criteria['tags']) && (isset($criteria['tags']) && $criteria['tags'] !== [])) {
+        if (isset($criteria['tags']) && $criteria['tags'] !== []) {
             return $this->productRepository->findByAnyTag($criteria['tags']);
         }
 
