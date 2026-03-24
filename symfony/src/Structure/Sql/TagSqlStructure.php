@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Structure\Sql;
 
-use Gamecon\Aktivita\Tag;
-
 /**
  * Structure for @see \App\Entity\Tag
  */

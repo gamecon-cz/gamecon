@@ -6,48 +6,46 @@ namespace App\Structure\Entity;
 
 /**
  * Property structure for @see \App\Entity\CancelledOrderItem
- *
- * Maps legacy camelCase property names to entity properties
  */
 class CancelledOrderItemEntityStructure
 {
     /**
      * @see CancelledOrderItem::$id
      */
-    public const idNakupu = 'id';
-
-    /**
-     * @see CancelledOrderItem::$customer
-     */
-    public const idUzivatele = 'customer';
-
-    /**
-     * @see CancelledOrderItem::$product
-     */
-    public const idPredmetu = 'product';
+    public const id = 'id';
 
     /**
      * @see CancelledOrderItem::$year
      */
-    public const rocnik = 'year';
+    public const year = 'year';
 
     /**
      * @see CancelledOrderItem::$purchasePrice
      */
-    public const cenaNakupni = 'purchasePrice';
+    public const purchasePrice = 'purchasePrice';
 
     /**
      * @see CancelledOrderItem::$purchasedAt
      */
-    public const datumNakupu = 'purchasedAt';
+    public const purchasedAt = 'purchasedAt';
 
     /**
      * @see CancelledOrderItem::$cancelledAt
      */
-    public const datumZruseni = 'cancelledAt';
+    public const cancelledAt = 'cancelledAt';
 
     /**
      * @see CancelledOrderItem::$cancellationReason
      */
-    public const zdrojZruseni = 'cancellationReason';
+    public const cancellationReason = 'cancellationReason';
+
+    /**
+     * @see CancelledOrderItem::$customer
+     */
+    public const customer = 'customer';
+
+    /**
+     * @see CancelledOrderItem::$product
+     */
+    public const product = 'product';
 }

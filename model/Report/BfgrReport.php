@@ -66,9 +66,9 @@ SELECT
     prihlasen.posazen AS prihlasen_na_gc_kdy,
     pritomen.posazen as prosel_infopultem_kdy,
     odjel.posazen as odjel_kdy,
-    ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_prvni,
-    ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_posledni,
-    ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS ubytovani_typ,
+    ( SELECT MIN(shop_predmety_s_typem.ubytovani_den) FROM shop_nakupy JOIN shop_predmety_s_typem USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety_s_typem.typ=$predmetUbytovani ) AS den_prvni,
+    ( SELECT MAX(shop_predmety_s_typem.ubytovani_den) FROM shop_nakupy JOIN shop_predmety_s_typem USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety_s_typem.typ=$predmetUbytovani ) AS den_posledni,
+    ( SELECT MAX(shop_predmety_s_typem.nazev) FROM shop_nakupy JOIN shop_predmety_s_typem USING(id_predmetu) WHERE shop_nakupy.rok=$rocnik AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety_s_typem.typ=$predmetUbytovani ) AS ubytovani_typ,
     ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
       FROM platne_role_uzivatelu
       JOIN prava_role
@@ -667,7 +667,7 @@ SQL,
     {
         return dbFetchPairs(<<<SQL
             SELECT id_predmetu, CONCAT_WS(' ', TRIM(nazev), model_rok)
-            FROM shop_predmety
+            FROM shop_predmety_s_typem
             WHERE nazev LIKE '%placka%' COLLATE utf8_czech_ci
                 AND stav > $0
             SQL,
@@ -688,11 +688,11 @@ SQL,
 
         return dbFetchPairs(<<<SQL
             SELECT id_predmetu, IF(
-                TRIM(nazev) LIKE CONCAT('% ', shop_predmety.model_rok),
+                TRIM(nazev) LIKE CONCAT('% ', shop_predmety_s_typem.model_rok),
                 TRIM(nazev),
                 CONCAT_WS(' ', TRIM(nazev), model_rok)
             )
-            FROM shop_predmety
+            FROM shop_predmety_s_typem
             WHERE nazev LIKE '%kostka%' COLLATE utf8_czech_ci
                 AND stav > $0
                 AND typ = $1
@@ -706,7 +706,7 @@ SQL,
     {
         return dbFetchPairs(<<<SQL
             SELECT id_predmetu, TRIM(nazev)
-            FROM shop_predmety
+            FROM shop_predmety_s_typem
             WHERE typ = $0
                 AND model_rok = {$this->systemoveNastaveni->rocnik()}
             ORDER BY FIELD(SUBSTRING(TRIM(nazev), 1, POSITION(' ' IN TRIM(nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře'),
@@ -724,7 +724,7 @@ SQL,
                        CONCAT_WS(' ', TRIM(nazev), model_rok),
                        nazev
                    ) AS nazev
-            FROM shop_predmety
+            FROM shop_predmety_s_typem
             WHERE typ = $0
                 AND stav > $1
                 AND (
