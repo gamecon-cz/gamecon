@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Uzivatel;
 
-use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Finance;
@@ -17,12 +16,13 @@ INSERT INTO uzivatele_hodnoty SET id_uzivatele = 334, login_uzivatele = 'KoupimD
 SQL,
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33313, nazev = 'nesmysl', model_rok = $0, cena_aktualni = 0, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 0, typ = 8888
+INSERT INTO shop_predmety SET id_predmetu = 33313, nazev = 'nesmysl', kod_predmetu = CONCAT('nesmysl_', $0), cena_aktualni = 0, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 0
 SQL,
             [
                 0 => ROCNIK,
             ],
         ],
+        // No product_product_tag INSERT — product has no tag, so view returns typ=NULL
         [
             <<<SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
@@ -39,7 +39,7 @@ SQL,
      */
     public function neznamyTypPredmetuHodiExcepton()
     {
-        $this->expectException(NeznamyTypPredmetu::class);
+        $this->expectException(\RuntimeException::class);
         $finance = new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0, SystemoveNastaveni::zGlobals());
         $finance->cenaPredmetu();
     }

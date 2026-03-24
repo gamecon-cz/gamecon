@@ -13,4 +13,13 @@ class PredmetSqlStrukturaTest extends AbstractTestSqlStruktura
     {
         return PredmetSqlStruktura::class;
     }
+
+    protected function virtualniSloupce(): array
+    {
+        return [
+            PredmetSqlStruktura::MODEL_ROK,
+            PredmetSqlStruktura::TYP,
+            PredmetSqlStruktura::JE_LETOSNI_HLAVNI,
+        ];
+    }
 }

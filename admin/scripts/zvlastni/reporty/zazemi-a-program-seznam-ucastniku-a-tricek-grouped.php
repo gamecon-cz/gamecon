@@ -17,7 +17,7 @@ $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuP
     FROM (SELECT CONCAT_WS('× ', COUNT(*), shop_predmety.nazev) AS pocet_a_nazev,
                  shop_nakupy.id_uzivatele
         FROM shop_nakupy
-            JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+            JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
             WHERE shop_predmety.id_predmetu = shop_nakupy.id_predmetu
                 AND shop_predmety.typ = {$idTypuPredmetu}
                 AND shop_nakupy.rok = {$rok}

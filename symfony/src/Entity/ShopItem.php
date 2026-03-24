@@ -13,8 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: ShopItemRepository::class)]
 #[ORM\Table(name: 'shop_predmety')]
-#[ORM\UniqueConstraint(name: 'UNIQ_nazev_model_rok', columns: ['nazev', 'model_rok'])]
-#[ORM\UniqueConstraint(name: 'UNIQ_kod_predmetu_model_rok', columns: ['kod_predmetu', 'model_rok'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_nazev', columns: ['nazev'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_kod_predmetu', columns: ['kod_predmetu'])]
 class ShopItem
 {
     #[ORM\Id]
@@ -30,9 +30,6 @@ class ShopItem
     #[ORM\Column(name: 'kod_predmetu', type: Types::STRING, length: 255, nullable: false)]
     private string $kodPredmetu;
 
-    #[ORM\Column(name: 'model_rok', type: Types::SMALLINT, nullable: false)]
-    private int $modelRok;
-
     #[ORM\Column(name: 'cena_aktualni', type: Types::DECIMAL, precision: 6, scale: 2, nullable: false)]
     private string $cenaAktualni;
 
@@ -45,21 +42,20 @@ class ShopItem
     #[ORM\Column(name: 'kusu_vyrobeno', type: Types::SMALLINT, nullable: true)]
     private ?int $kusuVyrobeno = null;
 
-    #[ORM\Column(name: 'typ', type: Types::SMALLINT, nullable: false, options: [
-        'comment' => '1-předmět, 2-ubytování, 3-tričko, 4-jídlo, 5-vstupné, 6-parcon, 7-vyplaceni',
-    ])]
-    private int $typ;
-
     #[ORM\Column(name: 'ubytovani_den', type: Types::SMALLINT, nullable: true)]
     private ?int $ubytovaniDen = null;
 
     #[ORM\Column(name: 'popis', type: Types::STRING, length: 2000, nullable: false)]
     private string $popis;
 
-    #[ORM\Column(name: 'je_letosni_hlavni', type: Types::BOOLEAN, nullable: false, options: [
-        'default' => false,
-    ])]
-    private bool $jeLetosniHlavni = false;
+    #[ORM\Column(name: 'archived_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
+    #[ORM\Column(name: 'amount_organizers', type: Types::INTEGER, nullable: true)]
+    private ?int $amountOrganizers = null;
+
+    #[ORM\Column(name: 'amount_participants', type: Types::INTEGER, nullable: true)]
+    private ?int $amountParticipants = null;
 
     #[ORM\Column(name: 'vedlejsi', type: Types::BOOLEAN, nullable: false, options: [
         'default' => false,
@@ -91,18 +87,6 @@ class ShopItem
     public function setKodPredmetu(string $kodPredmetu): self
     {
         $this->kodPredmetu = $kodPredmetu;
-
-        return $this;
-    }
-
-    public function getModelRok(): int
-    {
-        return $this->modelRok;
-    }
-
-    public function setModelRok(int $modelRok): self
-    {
-        $this->modelRok = $modelRok;
 
         return $this;
     }
@@ -155,18 +139,6 @@ class ShopItem
         return $this;
     }
 
-    public function getTyp(): int
-    {
-        return $this->typ;
-    }
-
-    public function setTyp(int $typ): self
-    {
-        $this->typ = $typ;
-
-        return $this;
-    }
-
     public function getUbytovaniDen(): ?int
     {
         return $this->ubytovaniDen;
@@ -191,14 +163,38 @@ class ShopItem
         return $this;
     }
 
-    public function isJeLetosniHlavni(): bool
+    public function getArchivedAt(): ?\DateTimeImmutable
     {
-        return $this->jeLetosniHlavni;
+        return $this->archivedAt;
     }
 
-    public function setJeLetosniHlavni(bool $jeLetosniHlavni): self
+    public function setArchivedAt(?\DateTimeImmutable $archivedAt): self
     {
-        $this->jeLetosniHlavni = $jeLetosniHlavni;
+        $this->archivedAt = $archivedAt;
+
+        return $this;
+    }
+
+    public function getAmountOrganizers(): ?int
+    {
+        return $this->amountOrganizers;
+    }
+
+    public function setAmountOrganizers(?int $amountOrganizers): self
+    {
+        $this->amountOrganizers = $amountOrganizers;
+
+        return $this;
+    }
+
+    public function getAmountParticipants(): ?int
+    {
+        return $this->amountParticipants;
+    }
+
+    public function setAmountParticipants(?int $amountParticipants): self
+    {
+        $this->amountParticipants = $amountParticipants;
 
         return $this;
     }
