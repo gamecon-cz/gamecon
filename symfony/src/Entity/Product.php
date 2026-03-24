@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
@@ -13,10 +16,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
-use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -45,33 +44,51 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(
             security: "is_granted('PUBLIC_ACCESS')",
-            normalizationContext: ['groups' => ['product:list']],
+            normalizationContext: [
+                'groups' => ['product:list'],
+            ],
         ),
         new Get(
             security: "is_granted('PUBLIC_ACCESS')",
-            normalizationContext: ['groups' => ['product:read']],
+            normalizationContext: [
+                'groups' => ['product:read'],
+            ],
         ),
         new Post(
             security: "is_granted('ROLE_ADMIN')",
-            denormalizationContext: ['groups' => ['product:write']],
+            denormalizationContext: [
+                'groups' => ['product:write'],
+            ],
         ),
         new Put(
             security: "is_granted('ROLE_ADMIN')",
-            denormalizationContext: ['groups' => ['product:write']],
+            denormalizationContext: [
+                'groups' => ['product:write'],
+            ],
         ),
         new Patch(
             security: "is_granted('ROLE_ADMIN')",
-            denormalizationContext: ['groups' => ['product:write']],
+            denormalizationContext: [
+                'groups' => ['product:write'],
+            ],
         ),
         new Delete(
             security: "is_granted('ROLE_ADMIN')",
         ),
     ],
-    normalizationContext: ['groups' => ['product:read']],
-    denormalizationContext: ['groups' => ['product:write']],
+    normalizationContext: [
+        'groups' => ['product:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['product:write'],
+    ],
     paginationItemsPerPage: 30,
 )]
-#[ApiFilter(SearchFilter::class, properties: ['code' => 'exact', 'name' => 'partial', 'state' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: [
+    'code'  => 'exact',
+    'name'  => 'partial',
+    'state' => 'exact',
+])]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'currentPrice', 'state'])]
 #[ApiFilter(RangeFilter::class, properties: ['currentPrice', 'producedQuantity'])]
 class Product
