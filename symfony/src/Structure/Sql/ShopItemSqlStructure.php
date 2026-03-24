@@ -2,17 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Structure\Entity;
+namespace App\Structure\Sql;
 
 /**
- * Property structure for @see \App\Entity\ShopItem
+ * Structure for @see \App\Entity\ShopItem
  */
-class ShopItemEntityStructure
+class ShopItemSqlStructure
 {
+    public const _table = 'shop_predmety';
+
     /**
      * @see ShopItem::$id
      */
-    public const id = 'id';
+    public const id_predmetu = 'id_predmetu';
 
     /**
      * @see ShopItem::$nazev
@@ -22,12 +24,12 @@ class ShopItemEntityStructure
     /**
      * @see ShopItem::$kodPredmetu
      */
-    public const kodPredmetu = 'kodPredmetu';
+    public const kod_predmetu = 'kod_predmetu';
 
     /**
      * @see ShopItem::$cenaAktualni
      */
-    public const cenaAktualni = 'cenaAktualni';
+    public const cena_aktualni = 'cena_aktualni';
 
     /**
      * @see ShopItem::$stav
@@ -37,17 +39,17 @@ class ShopItemEntityStructure
     /**
      * @see ShopItem::$nabizetDo
      */
-    public const nabizetDo = 'nabizetDo';
+    public const nabizet_do = 'nabizet_do';
 
     /**
      * @see ShopItem::$kusuVyrobeno
      */
-    public const kusuVyrobeno = 'kusuVyrobeno';
+    public const kusu_vyrobeno = 'kusu_vyrobeno';
 
     /**
      * @see ShopItem::$ubytovaniDen
      */
-    public const ubytovaniDen = 'ubytovaniDen';
+    public const ubytovani_den = 'ubytovani_den';
 
     /**
      * @see ShopItem::$popis
@@ -57,17 +59,17 @@ class ShopItemEntityStructure
     /**
      * @see ShopItem::$archivedAt
      */
-    public const archivedAt = 'archivedAt';
+    public const archived_at = 'archived_at';
 
     /**
      * @see ShopItem::$amountOrganizers
      */
-    public const amountOrganizers = 'amountOrganizers';
+    public const amount_organizers = 'amount_organizers';
 
     /**
      * @see ShopItem::$amountParticipants
      */
-    public const amountParticipants = 'amountParticipants';
+    public const amount_participants = 'amount_participants';
 
     /**
      * @see ShopItem::$vedlejsi
