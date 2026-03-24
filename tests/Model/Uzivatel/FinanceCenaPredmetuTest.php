@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Uzivatel;
 
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Finance;
@@ -17,76 +16,76 @@ INSERT INTO uzivatele_hodnoty SET id_uzivatele = 333, login_uzivatele = 'LeiNo',
 SQL,
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33311, nazev = 'nějaký předmět', model_rok = $0, kod_predmetu = CONCAT('nejaky_predmet_', $0), cena_aktualni = 123, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33311, nazev = 'nějaký předmět', kod_predmetu = CONCAT('nejaky_predmet_', $0), cena_aktualni = 123, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PREDMET,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33311, id FROM product_tag WHERE code = 'predmet'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33312, nazev = 'další předmět', model_rok = $0, kod_predmetu = CONCAT('dalsi_predmet_', $0), cena_aktualni = 234, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33312, nazev = 'další předmět', kod_predmetu = CONCAT('dalsi_predmet_', $0), cena_aktualni = 234, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::PREDMET,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33312, id FROM product_tag WHERE code = 'predmet'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33313, nazev = 'nějaké ubytování', model_rok = $0, kod_predmetu = CONCAT('nejake_ubytovani_', $0), cena_aktualni = 345, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33313, nazev = 'nějaké ubytování', kod_predmetu = CONCAT('nejake_ubytovani_', $0), cena_aktualni = 345, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::UBYTOVANI,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33313, id FROM product_tag WHERE code = 'ubytovani'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33314, nazev = 'další ubytování', model_rok = $0, kod_predmetu = CONCAT('dalsi_ubytovani_', $0), cena_aktualni = 456, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33314, nazev = 'další ubytování', kod_predmetu = CONCAT('dalsi_ubytovani_', $0), cena_aktualni = 456, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::UBYTOVANI,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33314, id FROM product_tag WHERE code = 'ubytovani'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33315, nazev = 'nějaké jídlo', model_rok = $0, kod_predmetu = CONCAT('nejake_jidlo_', $0), cena_aktualni = 567, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33315, nazev = 'nějaké jídlo', kod_predmetu = CONCAT('nejake_jidlo_', $0), cena_aktualni = 567, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33315, id FROM product_tag WHERE code = 'jidlo'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33316, nazev = 'další jídlo', model_rok = $0, kod_predmetu = CONCAT('dalsi_jidlo_', $0), cena_aktualni = 567, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33316, nazev = 'další jídlo', kod_predmetu = CONCAT('dalsi_jidlo_', $0), cena_aktualni = 567, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::JIDLO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33316, id FROM product_tag WHERE code = 'jidlo'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33317, nazev = 'nějaké tričko', model_rok = $0, kod_predmetu = CONCAT('nejake_tricko_', $0), cena_aktualni = 678, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33317, nazev = 'nějaké tričko', kod_predmetu = CONCAT('nejake_tricko_', $0), cena_aktualni = 678, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33317, id FROM product_tag WHERE code = 'tricko'",
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 33318, nazev = 'další tričko', model_rok = $0, kod_predmetu = CONCAT('dalsi_tricko_', $0), cena_aktualni = 890, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 33318, nazev = 'další tričko', kod_predmetu = CONCAT('dalsi_tricko_', $0), cena_aktualni = 890, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::TRICKO,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 33318, id FROM product_tag WHERE code = 'tricko'",
         [
             <<<SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)

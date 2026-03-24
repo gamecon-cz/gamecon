@@ -32,7 +32,7 @@ $o                        = dbQuery(<<<SQL
         ON role.id_uzivatele = uzivatele.id_uzivatele AND role.id_role = {$rolePrihlasenNaLetosniGc}
     JOIN shop_nakupy AS nakupy
         ON nakupy.id_uzivatele = uzivatele.id_uzivatele AND nakupy.rok = {$rocnik}
-    JOIN shop_predmety AS predmety
+    JOIN shop_predmety_s_typem AS predmety
         ON predmety.id_predmetu = nakupy.id_predmetu AND predmety.typ = {$typJidlo}
     LEFT JOIN shop_nakupy AS nakupy_ubytovani
         ON nakupy_ubytovani.id_uzivatele = uzivatele.id_uzivatele

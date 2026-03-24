@@ -40,7 +40,7 @@ JOIN platne_role_uzivatelu
     ON uzivatele.id_uzivatele=platne_role_uzivatelu.id_uzivatele AND platne_role_uzivatelu.id_role=$0 -- přihlášení na gc
 JOIN shop_nakupy nakupy
     ON nakupy.id_uzivatele=uzivatele.id_uzivatele AND nakupy.rok=$1 -- nákupy tento rok
-JOIN shop_predmety predmety
+JOIN shop_predmety_s_typem predmety
     ON predmety.id_predmetu=nakupy.id_predmetu AND predmety.typ=$2 -- info o předmětech k nákupům
 LEFT JOIN ubytovani
     ON ubytovani.id_uzivatele=uzivatele.id_uzivatele  -- info o číslech pokoje

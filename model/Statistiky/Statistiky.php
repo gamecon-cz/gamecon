@@ -161,7 +161,7 @@ SELECT
     shop_predmety.model_rok AS Model,
     COUNT(shop_nakupy.id_predmetu) AS Počet
 FROM shop_nakupy
-JOIN shop_predmety
+JOIN shop_predmety_s_typem AS shop_predmety
     ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
 WHERE shop_nakupy.rok = $0
     AND shop_predmety.typ IN ($1)
@@ -195,7 +195,7 @@ FROM (
     ) AS ubytovani_sort_nazev,
     predmety.ubytovani_den
   FROM shop_nakupy AS nakupy
-  JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+  JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
   WHERE nakupy.rok = $0 AND predmety.typ = $1
   GROUP BY nakupy.id_predmetu
 ) AS seskupeno
@@ -222,7 +222,7 @@ SELECT Den, Počet FROM (
         COUNT(nakupy.id_predmetu) AS Počet,
         predmety.ubytovani_den
     FROM shop_nakupy AS nakupy
-    JOIN shop_predmety AS predmety
+    JOIN shop_predmety_s_typem AS predmety
         ON nakupy.id_predmetu=predmety.id_predmetu
     WHERE nakupy.rok=$0
         AND predmety.typ=$1
@@ -235,7 +235,7 @@ UNION ALL
     LEFT JOIN(
         SELECT nakupy.id_uzivatele
         FROM shop_nakupy AS nakupy
-        JOIN shop_predmety AS predmety
+        JOIN shop_predmety_s_typem AS predmety
             ON nakupy.id_predmetu=predmety.id_predmetu
                 AND predmety.typ=$1
         WHERE nakupy.rok=$0
@@ -270,7 +270,7 @@ SELECT Název,Cena,Počet,Slev FROM (
     predmety.ubytovani_den,
     nakupy.id_predmetu
   FROM shop_nakupy AS nakupy
-  JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+  JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
   LEFT JOIN (
     SELECT uz.id_uzivatele -- id uživatelů s právy uvedenými níž
     FROM uzivatele_role uz
@@ -747,7 +747,7 @@ SELECT
     SUM(shop_predmety.nazev LIKE 'Kostka%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodané kostky',
     SUM(shop_predmety.nazev LIKE 'Tričko%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodaná trička'
 FROM shop_nakupy
-JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+JOIN shop_predmety_s_typem AS shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
 WHERE shop_nakupy.rok >= 2014 /* starší data z DB nesedí, jsou vložena fixně */
     AND shop_nakupy.rok != 2020 /* Call of covid */
 GROUP BY shop_nakupy.rok
@@ -792,7 +792,7 @@ SELECT
     SUM(nazev LIKE 'chata%' AND ubytovani_den=3) AS '&emsp;sobota   ',
     SUM(nazev LIKE 'chata%' AND ubytovani_den=4) AS '&emsp;neděle   '
 FROM shop_nakupy
-JOIN shop_predmety USING (id_predmetu)
+JOIN shop_predmety_s_typem AS shop_predmety USING (id_predmetu)
 WHERE shop_predmety.typ = {$ubytovani}
 GROUP BY shop_nakupy.rok
 ORDER BY shop_nakupy.rok

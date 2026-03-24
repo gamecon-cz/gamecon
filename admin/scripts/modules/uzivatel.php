@@ -163,7 +163,7 @@ $o        = dbQuery(
     kusu_vyrobeno-COUNT(n.id_predmetu) AS zbyva,
     p.id_predmetu,
     ROUND(p.cena_aktualni) AS cena
-  FROM shop_predmety p
+  FROM shop_predmety_s_typem p
   LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
   WHERE p.stav > 0
   GROUP BY p.id_predmetu, model_rok

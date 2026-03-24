@@ -529,17 +529,14 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Create a Symfony entity using factory
         /** @var ShopItem $symfonyShopItem */
         $symfonyShopItem = ShopItemFactory::createOne([
-            ShopItemEntityStructure::nazev           => 'Test Předmět ' . uniqid(),
-            ShopItemEntityStructure::kodPredmetu     => 'TEST_KOD_' . strtoupper(uniqid()),
-            ShopItemEntityStructure::modelRok        => 2024,
-            ShopItemEntityStructure::cenaAktualni    => '199.50',
-            ShopItemEntityStructure::stav            => 1,
-            ShopItemEntityStructure::nabizetDo       => new \DateTime('2024-12-31 23:59:59'),
-            ShopItemEntityStructure::kusuVyrobeno    => 100,
-            ShopItemEntityStructure::typ             => 1,
-            ShopItemEntityStructure::ubytovaniDen    => null,
-            ShopItemEntityStructure::popis           => 'Testovací popis předmětu',
-            ShopItemEntityStructure::jeLetosniHlavni => true,
+            ShopItemEntityStructure::nazev        => 'Test Předmět ' . uniqid(),
+            ShopItemEntityStructure::kodPredmetu  => 'TEST_KOD_' . strtoupper(uniqid()),
+            ShopItemEntityStructure::cenaAktualni => '199.50',
+            ShopItemEntityStructure::stav         => 1,
+            ShopItemEntityStructure::nabizetDo    => new \DateTime('2024-12-31 23:59:59'),
+            ShopItemEntityStructure::kusuVyrobeno => 100,
+            ShopItemEntityStructure::ubytovaniDen => null,
+            ShopItemEntityStructure::popis        => 'Testovací popis předmětu',
         ])->_save()->_real();
 
         $symfonyShopItemId = $symfonyShopItem->getId();
@@ -556,11 +553,9 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $legacyData = $legacyPredmet->raw();
         $this->assertEquals($symfonyShopItem->getNazev(), $legacyData['nazev']);
         $this->assertEquals($symfonyShopItem->getKodPredmetu(), $legacyData['kod_predmetu']);
-        $this->assertEquals($symfonyShopItem->getModelRok(), $legacyData['model_rok']);
         $this->assertEquals($symfonyShopItem->getCenaAktualni(), $legacyData['cena_aktualni']);
         $this->assertEquals($symfonyShopItem->getStav(), $legacyData['stav']);
         $this->assertEquals($symfonyShopItem->getKusuVyrobeno(), $legacyData['kusu_vyrobeno']);
-        $this->assertEquals($symfonyShopItem->getTyp(), $legacyData['typ']);
         $this->assertEquals($symfonyShopItem->getUbytovaniDen(), $legacyData['ubytovani_den']);
         $this->assertEquals($symfonyShopItem->getPopis(), $legacyData['popis']);
 

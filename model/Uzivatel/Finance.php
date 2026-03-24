@@ -136,8 +136,8 @@ class Finance
             (float)dbOneCol(<<<SQL
 SELECT SUM(cena_nakupni) / COUNT(*)
 FROM shop_nakupy
-JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-WHERE shop_predmety.typ = {$typVstupne}
+JOIN shop_predmety_s_typem ON shop_nakupy.id_predmetu = shop_predmety_s_typem.id_predmetu
+WHERE shop_predmety_s_typem.typ = {$typVstupne}
     AND shop_nakupy.rok = {$rocnik}
     AND shop_nakupy.cena_nakupni > 0
 SQL,
@@ -752,7 +752,7 @@ SQL;
         $o = dbQuery('
       SELECT predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok, predmety.kod_predmetu
       FROM shop_nakupy AS nakupy
-      JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+      JOIN shop_predmety_s_typem AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
       WHERE nakupy.id_uzivatele = $0 AND nakupy.rok = $1
       ORDER BY nakupy.cena_nakupni -- od nejlevnějších kvůli aplikaci slev na trička
     ', [$this->u->id(), $this->systemoveNastaveni->rocnik()]);

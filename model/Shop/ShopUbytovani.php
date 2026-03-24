@@ -28,7 +28,7 @@ class ShopUbytovani
     ): array {
         $idsPredmetuUbytovani = array_map('intval', dbOneArray(<<<SQL
 SELECT id_predmetu
-FROM shop_predmety
+FROM shop_predmety_s_typem
 WHERE TRIM(nazev) IN ($0 COLLATE utf8_czech_ci)
 AND model_rok = $rok
 SQL,
@@ -111,7 +111,7 @@ SQL,
         $mysqliResult = dbQuery(<<<SQL
 DELETE nakupy.*
 FROM shop_nakupy AS nakupy
-    JOIN shop_predmety AS predmety USING(id_predmetu)
+    JOIN shop_predmety_s_typem AS predmety USING(id_predmetu)
 WHERE nakupy.id_uzivatele=$0
   AND predmety.typ=$1
   AND nakupy.rok=$2
@@ -242,11 +242,11 @@ SQL,
         $mysqliResult = dbQuery(<<<SQL
 DELETE shop_nakupy.*
 FROM shop_nakupy
-JOIN shop_predmety on shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+JOIN shop_predmety_s_typem on shop_predmety_s_typem.id_predmetu = shop_nakupy.id_predmetu
 WHERE shop_nakupy.id_uzivatele = {$ucastnik->id()}
     AND shop_nakupy.rok = $rok
     AND shop_nakupy.id_predmetu NOT IN ($0) -- není to hodnota kterou chceme mít uloženu
-    AND shop_predmety.typ = $1
+    AND shop_predmety_s_typem.typ = $1
 SQL,
             [$idsPredmetuUbytovaniInt, TypPredmetu::UBYTOVANI],
         );
@@ -536,7 +536,7 @@ SQL,
                 $jedenZeDnu = Predmet::zId($id);
                 $druhUbytka = preg_split('~\s+~', $jedenZeDnu->nazev())[0];
                 $vsechnyDny = dbOneArray(<<<SQL
-                    SELECT id_predmetu FROM shop_predmety WHERE model_rok = $0 AND typ = $1 AND nazev LIKE $2
+                    SELECT id_predmetu FROM shop_predmety_s_typem WHERE model_rok = $0 AND typ = $1 AND nazev LIKE $2
                     AND ubytovani_den IN (1, 2, 3)
                 SQL,
                     [$jedenZeDnu->modelRok(), $jedenZeDnu->typ(), $druhUbytka . '%'],
