@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
-use PHPUnit\Framework\MockObject\MockObject;
 use App\Entity\Product;
 use App\Entity\ProductDiscount;
 use App\Entity\Role;
 use App\Entity\User;
 use App\Entity\UserRole;
+use App\Enum\RoleMeaning;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductDiscountRepository;
 use App\Service\DiscountCalculator;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class DiscountCalculatorTest extends TestCase
@@ -29,14 +30,14 @@ class DiscountCalculatorTest extends TestCase
         $this->orderItemRepository = $this->createMock(OrderItemRepository::class);
         $this->calculator = new DiscountCalculator(
             $this->discountRepository,
-            $this->orderItemRepository
+            $this->orderItemRepository,
         );
     }
 
     public function testCalculateDiscountWithNoUserRoles(): void
     {
         $product = $this->createProduct('100.00');
-        $user = new User(); // Real user with no roles
+        $user = new User();
 
         $result = $this->calculator->calculateDiscount($product, $user, 2025);
 
@@ -49,12 +50,11 @@ class DiscountCalculatorTest extends TestCase
     public function testCalculateDiscountWithNoDiscount(): void
     {
         $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles(['organizator']);
+        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA]);
 
         $this->discountRepository
             ->expects($this->once())
             ->method('findBestDiscountForProduct')
-            ->with($product, ['organizator'])
             ->willReturn(null);
 
         $result = $this->calculator->calculateDiscount($product, $user, 2025);
@@ -67,9 +67,8 @@ class DiscountCalculatorTest extends TestCase
     public function testIsEligibleForDiscount(): void
     {
         $product = $this->createProduct('100.00');
-        $user = new User(); // No roles
+        $user = new User();
 
-        // With no roles/discount
         $eligible = $this->calculator->isEligibleForDiscount($product, $user, 2025);
         $this->assertFalse($eligible);
     }
@@ -77,17 +76,16 @@ class DiscountCalculatorTest extends TestCase
     public function testCalculateDiscountWithPercentageDiscount(): void
     {
         $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles(['vypravec']);
+        $user = $this->createUserWithRoles([RoleMeaning::VYPRAVEC]);
 
         $discount = new ProductDiscount();
         $discount->setProduct($product);
-        $discount->setRole('vypravec');
+        $discount->setRole(RoleMeaning::VYPRAVEC);
         $discount->setDiscountPercent('20.00');
 
         $this->discountRepository
             ->expects($this->once())
             ->method('findBestDiscountForProduct')
-            ->with($product, ['vypravec'])
             ->willReturn($discount);
 
         $result = $this->calculator->calculateDiscount($product, $user, 2025);
@@ -101,17 +99,16 @@ class DiscountCalculatorTest extends TestCase
     public function testCalculateDiscountWithMultipleRoles(): void
     {
         $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles(['organizator', 'vypravec']);
+        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA, RoleMeaning::VYPRAVEC]);
 
         $discount = new ProductDiscount();
         $discount->setProduct($product);
-        $discount->setRole('organizator');
+        $discount->setRole(RoleMeaning::ORGANIZATOR_ZDARMA);
         $discount->setDiscountPercent('30.00');
 
         $this->discountRepository
             ->expects($this->once())
             ->method('findBestDiscountForProduct')
-            ->with($product, ['organizator', 'vypravec'])
             ->willReturn($discount);
 
         $result = $this->calculator->calculateDiscount($product, $user, 2025);
@@ -124,18 +121,17 @@ class DiscountCalculatorTest extends TestCase
     public function testCalculateDiscountWithQuantityLimit(): void
     {
         $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles(['organizator']);
+        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA]);
 
         $discount = new ProductDiscount();
         $discount->setProduct($product);
-        $discount->setRole('organizator');
+        $discount->setRole(RoleMeaning::ORGANIZATOR_ZDARMA);
         $discount->setDiscountPercent('25.00');
         $discount->setMaxQuantity(2);
 
         $this->discountRepository
             ->expects($this->once())
             ->method('findBestDiscountForProduct')
-            ->with($product, ['organizator'])
             ->willReturn($discount);
 
         $this->orderItemRepository
@@ -153,25 +149,24 @@ class DiscountCalculatorTest extends TestCase
     public function testCalculateDiscountWithExceededQuantityLimit(): void
     {
         $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles(['organizator']);
+        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA]);
 
         $discount = new ProductDiscount();
         $discount->setProduct($product);
-        $discount->setRole('organizator');
+        $discount->setRole(RoleMeaning::ORGANIZATOR_ZDARMA);
         $discount->setDiscountPercent('25.00');
         $discount->setMaxQuantity(2);
 
         $this->discountRepository
             ->expects($this->once())
             ->method('findBestDiscountForProduct')
-            ->with($product, ['organizator'])
             ->willReturn($discount);
 
         $this->orderItemRepository
             ->expects($this->once())
             ->method('countCustomerPurchases')
             ->with($user, $product, 2025)
-            ->willReturn(2); // Already purchased 2
+            ->willReturn(2);
 
         $result = $this->calculator->calculateDiscount($product, $user, 2025);
 
@@ -184,18 +179,17 @@ class DiscountCalculatorTest extends TestCase
     public function testGetRemainingQuota(): void
     {
         $product = $this->createProduct('100.00');
-        $user = $this->createUserWithRoles(['organizator']);
+        $user = $this->createUserWithRoles([RoleMeaning::ORGANIZATOR_ZDARMA]);
 
         $discount = new ProductDiscount();
         $discount->setProduct($product);
-        $discount->setRole('organizator');
+        $discount->setRole(RoleMeaning::ORGANIZATOR_ZDARMA);
         $discount->setDiscountPercent('25.00');
         $discount->setMaxQuantity(3);
 
         $this->discountRepository
             ->expects($this->once())
             ->method('findBestDiscountForProduct')
-            ->with($product, ['organizator'])
             ->willReturn($discount);
 
         $this->orderItemRepository
@@ -231,28 +225,24 @@ class DiscountCalculatorTest extends TestCase
     }
 
     /**
-     * Create user with specified role codes
-     *
-     * @param string[] $roleCodes
+     * @param RoleMeaning[] $meanings
      */
-    private function createUserWithRoles(array $roleCodes): User
+    private function createUserWithRoles(array $meanings): User
     {
         $user = new User();
 
-        foreach ($roleCodes as $roleCode) {
+        foreach ($meanings as $meaning) {
             $role = new Role();
-            $role->setKodRole($roleCode);
+            $role->setKodRole($meaning->value);
+            $role->setNazevRole($meaning->value);
+            $role->setPopisRole('');
+            $role->setRocnikRole(-1);
+            $role->setTypRole('trvala');
+            $role->setVyznamRole($meaning);
 
             $userRole = new UserRole();
             $userRole->setUser($user);
             $userRole->setRole($role);
-
-            // Use reflection to add UserRole to collection
-            $reflection = new \ReflectionClass($user);
-            $property = $reflection->getProperty('userRoles');
-            $property->setAccessible(true);
-            $collection = $property->getValue($user);
-            $collection->add($userRole);
         }
 
         return $user;

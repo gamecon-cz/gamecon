@@ -62,12 +62,7 @@ class ProductSqlStructure
     public const archived_at = 'archived_at';
 
     /**
-     * @see Product::$amountOrganizers
+     * @see Product::$reservedForOrganizers
      */
-    public const amount_organizers = 'amount_organizers';
-
-    /**
-     * @see Product::$amountParticipants
-     */
-    public const amount_participants = 'amount_participants';
+    public const reserved_for_organizers = 'reserved_for_organizers';
 }

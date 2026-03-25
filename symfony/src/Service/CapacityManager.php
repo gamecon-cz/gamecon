@@ -4,165 +4,160 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\Product;
-use App\Entity\User;
-use App\Repository\OrderItemRepository;
-use App\Repository\ProductRepository;
+use App\Entity\ProductVariant;
+use App\Enum\RoleMeaning;
+use Doctrine\DBAL\Connection;
 
 /**
- * CapacityManager - manages product capacities
+ * CapacityManager - manages variant stock with atomic DB operations
  *
- * Handles:
- * - Accommodation-specific logic (reducing all days when one is purchased)
- * - Organizer vs participant capacity separation
- * - Availability checking before purchase
+ * Uses atomic UPDATE with WHERE condition to prevent overselling.
+ * No need for explicit locks — the UPDATE itself is atomic in InnoDB.
+ *
+ * Stock (remaining_quantity) lives on ProductVariant only.
+ * reserved_for_organizers on variant inherits from parent Product if null.
  */
 class CapacityManager
 {
     public function __construct(
-        private readonly ProductRepository $productRepository,
-        private readonly OrderItemRepository $orderItemRepository,
+        private readonly Connection $connection,
     ) {
     }
 
     /**
-     * Check if product has available capacity for user
-     */
-    public function hasAvailableCapacity(Product $product, User $user, int $year, string $userRole = 'ucastnik'): bool
-    {
-        $availableCapacity = $this->getAvailableCapacity($product, $year, $userRole);
-
-        return $availableCapacity > 0;
-    }
-
-    /**
-     * Get available capacity for product
-     */
-    public function getAvailableCapacity(Product $product, int $year, string $userRole = 'ucastnik'): int
-    {
-        // Check if product uses separate organizer/participant amounts
-        if ($product->hasSeparateOrganizerAmount()) {
-            return $this->getSeparateAmount($product, $year, $userRole);
-        }
-
-        // Use producedQuantity as total capacity
-        $totalCapacity = $product->getProducedQuantity();
-
-        if ($totalCapacity === null) {
-            // Unlimited capacity
-            return PHP_INT_MAX;
-        }
-
-        $soldCount = $this->orderItemRepository->countByProductAndYear($product, $year);
-
-        return max(0, $totalCapacity - $soldCount);
-    }
-
-    /**
-     * Get separate amount for organizers/participants
-     */
-    private function getSeparateAmount(Product $product, int $year, string $userRole): int
-    {
-        $isOrganizer = in_array($userRole, ['organizator', 'vypravec'], true);
-
-        $amount = $isOrganizer ? $product->getAmountOrganizers() ?? 0 : $product->getAmountParticipants() ?? 0;
-
-        $soldCount = $this->orderItemRepository->countByProductAndYear($product, $year);
-
-        return max(0, $amount - $soldCount);
-    }
-
-    /**
-     * Reduce capacity for accommodation products
+     * Check if variant has available capacity for given roles
      *
-     * When user purchases accommodation for one day (e.g., Friday),
-     * we need to reduce capacity for ALL accommodation days (SHOULD requirement)
-     *
-     * This ensures that if someone books Friday, the same bed is reserved
-     * for Thursday, Saturday, etc.
+     * @param RoleMeaning[] $roleMeanings
      */
-    public function reduceAccommodationCapacity(Product $product, int $year): void
+    public function hasAvailableCapacity(ProductVariant $variant, array $roleMeanings = []): bool
     {
-        if (! $product->isAccommodation()) {
-            return;
-        }
+        $available = $variant->getAvailableQuantity($roleMeanings);
 
-        // Find all accommodation products for this year
-        $this->productRepository->findByTag('ubytovani');
-
-        // This is a conceptual implementation
-        // In reality, you might need to track capacity in a separate table
-        // or implement a more sophisticated system
-
-        // For now, we just mark that this method would reduce capacity
-        // across all related accommodation days
+        return $available === null || $available > 0;
     }
 
     /**
-     * Validate capacity before adding to cart
+     * Atomically purchase variant — decrements remaining_quantity.
      *
-     * @throws \RuntimeException if capacity exceeded
+     * @param RoleMeaning[] $roleMeanings
+     *
+     * @throws \RuntimeException if not enough stock
      */
-    public function validateCapacity(Product $product, User $user, int $year, int $quantity = 1, string $userRole = 'ucastnik'): void
+    public function purchase(ProductVariant $variant, int $quantity = 1, array $roleMeanings = []): void
     {
-        $available = $this->getAvailableCapacity($product, $year, $userRole);
-
-        if ($available < $quantity) {
-            throw new \RuntimeException(sprintf('Nedostatečná kapacita pro produkt "%s". Dostupné: %d, požadované: %d', $product->getName(), $available, $quantity));
+        if ($variant->getRemainingQuantity() === null) {
+            return; // unlimited capacity, nothing to decrement
         }
+
+        $isOrganizer = RoleMeaning::anyIsOrganizer($roleMeanings);
+
+        if ($isOrganizer) {
+            $affectedRows = $this->connection->executeStatement(
+                'UPDATE product_variant
+                SET remaining_quantity = remaining_quantity - :qty
+                WHERE id = :id
+                AND remaining_quantity >= :qty',
+                [
+                    'qty' => $quantity,
+                    'id'  => $variant->getId(),
+                ],
+            );
+        } else {
+            // Participants cannot buy into organizer-reserved stock.
+            // reserved_for_organizers may be on variant or inherited from product (via subquery).
+            $affectedRows = $this->connection->executeStatement(
+                'UPDATE product_variant
+                SET remaining_quantity = remaining_quantity - :qty
+                WHERE id = :id
+                AND remaining_quantity - COALESCE(
+                    reserved_for_organizers,
+                    (SELECT reserved_for_organizers FROM shop_predmety WHERE id_predmetu = product_id),
+                    0
+                ) >= :qty',
+                [
+                    'qty' => $quantity,
+                    'id'  => $variant->getId(),
+                ],
+            );
+        }
+
+        if ($affectedRows === 0) {
+            throw new \RuntimeException(sprintf('Nedostatečná kapacita pro produkt "%s". Požadované: %d', $variant->getFullName(), $quantity));
+        }
+
+        // Sync entity state with DB
+        $variant->setRemainingQuantity($variant->getRemainingQuantity() - $quantity);
+    }
+
+    /**
+     * Atomically return stock when a purchase is cancelled.
+     */
+    public function cancelPurchase(ProductVariant $variant, int $quantity = 1): void
+    {
+        if ($variant->getRemainingQuantity() === null) {
+            return; // unlimited capacity
+        }
+
+        $this->connection->executeStatement(
+            'UPDATE product_variant
+            SET remaining_quantity = remaining_quantity + :qty
+            WHERE id = :id',
+            [
+                'qty' => $quantity,
+                'id'  => $variant->getId(),
+            ],
+        );
+
+        // Sync entity state
+        $variant->setRemainingQuantity($variant->getRemainingQuantity() + $quantity);
+    }
+
+    /**
+     * Check if variant is sold out for given roles
+     *
+     * @param RoleMeaning[] $roleMeanings
+     */
+    public function isSoldOut(ProductVariant $variant, array $roleMeanings = []): bool
+    {
+        return ! $this->hasAvailableCapacity($variant, $roleMeanings);
+    }
+
+    /**
+     * Check if variant is low on stock
+     *
+     * @param RoleMeaning[] $roleMeanings
+     */
+    public function isLowStock(ProductVariant $variant, int $threshold = 10, array $roleMeanings = []): bool
+    {
+        $available = $variant->getAvailableQuantity($roleMeanings);
+
+        if ($available === null) {
+            return false; // unlimited
+        }
+
+        return $available > 0 && $available <= $threshold;
     }
 
     /**
      * Get capacity info for display
      *
      * @return array{
-     *     total: int|null,
-     *     sold: int,
-     *     available: int,
-     *     percentSold: float
+     *     remaining: int|null,
+     *     reserved: int,
+     *     availableForParticipants: int|null,
+     *     unlimited: bool
      * }
      */
-    public function getCapacityInfo(Product $product, int $year, string $userRole = 'ucastnik'): array
+    public function getCapacityInfo(ProductVariant $variant): array
     {
-        $soldCount = $this->orderItemRepository->countByProductAndYear($product, $year);
-
-        if ($product->hasSeparateOrganizerAmount()) {
-            $isOrganizer = in_array($userRole, ['organizator', 'vypravec'], true);
-            $totalCapacity = $isOrganizer
-                ? $product->getAmountOrganizers()
-                : $product->getAmountParticipants();
-        } else {
-            $totalCapacity = $product->getProducedQuantity();
-        }
-
-        $available = $totalCapacity !== null ? max(0, $totalCapacity - $soldCount) : PHP_INT_MAX;
-        $percentSold = $totalCapacity !== null && $totalCapacity > 0
-            ? ($soldCount / $totalCapacity) * 100
-            : 0.0;
+        $remaining = $variant->getRemainingQuantity();
+        $reserved = $variant->getEffectiveReservedForOrganizers() ?? 0;
 
         return [
-            'total'       => $totalCapacity,
-            'sold'        => $soldCount,
-            'available'   => $available,
-            'percentSold' => $percentSold,
+            'remaining'                => $remaining,
+            'reserved'                 => $reserved,
+            'availableForParticipants' => $remaining !== null ? max(0, $remaining - $reserved) : null,
+            'unlimited'                => $remaining === null,
         ];
-    }
-
-    /**
-     * Check if product is sold out
-     */
-    public function isSoldOut(Product $product, int $year, string $userRole = 'ucastnik'): bool
-    {
-        return $this->getAvailableCapacity($product, $year, $userRole) <= 0;
-    }
-
-    /**
-     * Get low stock threshold status
-     */
-    public function isLowStock(Product $product, int $year, int $threshold = 10, string $userRole = 'ucastnik'): bool
-    {
-        $available = $this->getAvailableCapacity($product, $year, $userRole);
-
-        return $available > 0 && $available <= $threshold;
     }
 }
