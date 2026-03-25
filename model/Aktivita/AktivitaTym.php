@@ -10,6 +10,7 @@ class AktivitaTym extends \DbObject
 {
     protected static $tabulka = AkceTymSqlStruktura::AKCE_TYM_TABULKA;
 
+    // todo(tym): Je potřeba zajistit že před přidáním účastníka do týmu je přihlášený na všechny aktivity týmu
     // todo(tym): dochází ke zdvojené kontrole na kapacitu
     public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu, bool $ignorovatLimity = false) {
         self::zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
@@ -42,6 +43,10 @@ class AktivitaTym extends \DbObject
         }
     }
 
+    // todo(tym): Je potřeba zajistit že před přidáním účastníka do týmu je přihlášený na všechny aktivity týmu
+    /**
+     * Před přidáním do týmu musí být uživatel přihlášen na všechny aktivty
+     */
     private static function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): int {
         if (!$ignorovatLimity) {
             self::zkontrolujMuzeZalozitTym($idAktivity);
@@ -211,17 +216,6 @@ class AktivitaTym extends \DbObject
              WHERE akce_tym.id_kapitan = $1 LIMIT 1',
             [$idAktivity, $idUzivatele],
         );
-    }
-
-    // todo(tym): nedává smysl aktivita nemá přesně jednoho kapitána
-    public static function idKapitanaProAktivitu(int $idAktivity): ?int {
-        $id = dbOneCol(
-            'SELECT akce_tym.id_kapitan FROM akce_tym
-             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0
-             ORDER BY akce_tym.zalozen ASC LIMIT 1',
-            [$idAktivity],
-        );
-        return $id !== null ? (int)$id : null;
     }
 
     public static function maAktivitaTym(int $idAktivity): bool {

@@ -8,6 +8,7 @@ use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportSqlColumn;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportSqlMappedValuesChecker;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesDescriber;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
+use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceOrganizatoriSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura;
@@ -2276,6 +2277,7 @@ SQL
         }
     }
 
+    // todo(tym): dochází ke kontrole a přihláśení na děti aktivity ?
     /**
      * Přihlásí uživatele na aktivitu
      *
@@ -3065,90 +3067,6 @@ HTML
         dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI]);
         $this->dejPrezenci()->zalogujZeSePrihlasilJakoSledujici($u, $prihlasujici);
         $this->refresh();
-    }
-
-    // todo(tym): tohle se děje kdy ? jaký přesně to má význam v novém systému ?
-    // todo(tym): pokud se zachová kód, tak co má dělat ?
-    /**
-     * Přihlásí na aktivitu vybrané uživatele jako tým vč. přihlášení na vybraná
-     * navazující kola a úpravy počtu míst v týmu.
-     * @param Uzivatel[] $uzivatele
-     * @param string $nazevTymu
-     * @param int $pocetMist požadovaný počet míst v týmu
-     * @param self[] $dalsiKola - pořadí musí odpovídat návaznosti kol
-     * @param int $parametry
-     */
-    public function prihlasTym(
-        array    $uzivatele,
-        Uzivatel $prihlasujici,
-        ?string  $nazevTymu = null,
-        ?int     $pocetMist = null,
-        ?array   $dalsiKola = [],
-                 $parametry = 0,
-    ) {
-        if (!$this->tymova()) {
-            throw new \Exception('Nelze přihlásit tým na netýmovou aktivitu.');
-        }
-        $idKapitana = AktivitaTym::idKapitanaProAktivitu($this->id());
-        if (!$idKapitana) {
-            throw new \Exception('Pro přihlášení týmu musí být aktivita zamčená.');
-        }
-        if (!$this->jsouDalsiKola($dalsiKola)) {
-            throw new \Exception('Nepovolený výběr dalších kol.');
-        }
-
-        $lidr = Uzivatel::zId($idKapitana);
-        $idTymuLidra = AktivitaTym::idTymuUzivatele($idKapitana, $this->id());
-        $kodTymuLidra = $idTymuLidra !== null
-            ? AktivitaTym::vratKodTymuProUzivatele($idKapitana, $this->id())
-            : 0;
-        $chybnyClen = null; // nastavíme v případě, že u daného člena týmu nastala při přihlášení chyba
-
-        dbBegin();
-        try {
-            // přihlášení týmlídra na zvolená další kola (pokud jsou)
-            // nutno jít od konce, jinak vazby na potomky můžou vyvolat chyby kvůli
-            // duplicitním pokusům o přihlášení
-            foreach (array_reverse($dalsiKola) as $kolo) {
-                if ($idTymuLidra !== null) {
-                    AktivitaTym::pridejTymNaAktivitu($idTymuLidra, $kolo->id());
-                }
-                $kolo->prihlas($lidr, $prihlasujici, self::STAV | $parametry, kodTymu: $kodTymuLidra);
-            }
-
-            // přihlášení členů týmu
-            foreach ($uzivatele as $clen) {
-                try {
-                    $this->prihlas($clen, $prihlasujici, ($parametry & self::UKAZAT_DETAILY_CHYBY));
-                } catch (\Exception $e) {
-                    $chybnyClen = $clen;
-                    throw $e;
-                }
-            }
-
-            $this->refresh();
-        } catch (\Exception $e) {
-            dbRollback();
-            if ($chybnyClen) {
-                throw new \Chyba(hlaska('chybaClenaTymu', $chybnyClen->jmenoNick(), $chybnyClen->id(), $e->getMessage()));
-            }
-            throw $e;
-        }
-        dbCommit(); // maily přihlášeným
-        $mail = GcMail::vytvorZGlobals(
-            hlaskaMail(
-                'prihlaseniTeamMail',
-                $lidr,
-                $lidr->jmenoNick(),
-                $this->nazev(),
-                $this->denCasSkutecny(),
-            ),
-        );
-        $mail->predmet('Přihláška na ' . $this->nazev());
-        foreach ($uzivatele as $clen) {
-            $mail->adresat($clen->mail());
-            $mail->odeslat();
-        }
     }
 
     public function publikuj()
