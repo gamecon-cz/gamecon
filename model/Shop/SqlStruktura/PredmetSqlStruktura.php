@@ -19,8 +19,7 @@ class PredmetSqlStruktura
     public const POPIS              = 'popis';
     public const VEDLEJSI           = 'vedlejsi';
     public const ARCHIVED_AT        = 'archived_at';
-    public const AMOUNT_ORGANIZERS  = 'amount_organizers';
-    public const AMOUNT_PARTICIPANTS = 'amount_participants';
+    public const RESERVED_FOR_ORGANIZERS = 'reserved_for_organizers';
 
     // Virtual columns from shop_predmety_s_typem view (not on the base table, but used by legacy code)
     public const MODEL_ROK         = 'model_rok';

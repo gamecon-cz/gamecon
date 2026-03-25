@@ -51,11 +51,8 @@ class ShopItem
     #[ORM\Column(name: 'archived_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
 
-    #[ORM\Column(name: 'amount_organizers', type: Types::INTEGER, nullable: true)]
-    private ?int $amountOrganizers = null;
-
-    #[ORM\Column(name: 'amount_participants', type: Types::INTEGER, nullable: true)]
-    private ?int $amountParticipants = null;
+    #[ORM\Column(name: 'reserved_for_organizers', type: Types::INTEGER, nullable: true)]
+    private ?int $reservedForOrganizers = null;
 
     #[ORM\Column(name: 'vedlejsi', type: Types::BOOLEAN, nullable: false, options: [
         'default' => false,
@@ -175,26 +172,14 @@ class ShopItem
         return $this;
     }
 
-    public function getAmountOrganizers(): ?int
+    public function getReservedForOrganizers(): ?int
     {
-        return $this->amountOrganizers;
+        return $this->reservedForOrganizers;
     }
 
-    public function setAmountOrganizers(?int $amountOrganizers): self
+    public function setReservedForOrganizers(?int $reservedForOrganizers): self
     {
-        $this->amountOrganizers = $amountOrganizers;
-
-        return $this;
-    }
-
-    public function getAmountParticipants(): ?int
-    {
-        return $this->amountParticipants;
-    }
-
-    public function setAmountParticipants(?int $amountParticipants): self
-    {
-        $this->amountParticipants = $amountParticipants;
+        $this->reservedForOrganizers = $reservedForOrganizers;
 
         return $this;
     }
