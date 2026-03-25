@@ -40,6 +40,16 @@ class OrderItemEntityStructure
     public const productTags = 'productTags';
 
     /**
+     * @see OrderItem::$variantName
+     */
+    public const variantName = 'variantName';
+
+    /**
+     * @see OrderItem::$variantCode
+     */
+    public const variantCode = 'variantCode';
+
+    /**
      * @see OrderItem::$purchasePrice
      */
     public const purchasePrice = 'purchasePrice';
@@ -83,4 +93,9 @@ class OrderItemEntityStructure
      * @see OrderItem::$product
      */
     public const product = 'product';
+
+    /**
+     * @see OrderItem::$variant
+     */
+    public const variant = 'variant';
 }

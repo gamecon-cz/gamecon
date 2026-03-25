@@ -275,7 +275,7 @@ SQL,
         }
 
         Report::zPoleSDvojitouHlavickou($obsah, Report::HLAVICKU_ZACINAT_VElKYM_PISMENEM)
-              ->tFormat($format, null, $konfiguraceReportu);
+              ->tFormat($format, 'BFGR', $konfiguraceReportu);
     }
 
     private function letosniOstatniPredmetyPocty(

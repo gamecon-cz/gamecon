@@ -42,6 +42,16 @@ class OrderItemSqlStructure
     public const product_tags = 'product_tags';
 
     /**
+     * @see OrderItem::$variantName
+     */
+    public const variant_name = 'variant_name';
+
+    /**
+     * @see OrderItem::$variantCode
+     */
+    public const variant_code = 'variant_code';
+
+    /**
      * @see OrderItem::$purchasePrice
      */
     public const cena_nakupni = 'cena_nakupni';
@@ -85,4 +95,9 @@ class OrderItemSqlStructure
      * @see OrderItem::$product
      */
     public const id_predmetu = 'id_predmetu';
+
+    /**
+     * @see OrderItem::$variant
+     */
+    public const variant_id = 'variant_id';
 }

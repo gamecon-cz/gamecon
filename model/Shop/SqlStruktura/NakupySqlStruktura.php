@@ -23,5 +23,8 @@ class NakupySqlStruktura
     public const ORIGINAL_PRICE     = 'original_price';
     public const DISCOUNT_AMOUNT    = 'discount_amount';
     public const DISCOUNT_REASON    = 'discount_reason';
+    public const VARIANT_ID         = 'variant_id';
+    public const VARIANT_NAME       = 'variant_name';
+    public const VARIANT_CODE       = 'variant_code';
 
 }
