@@ -58,6 +58,10 @@ class OrderItem
     ])]
     private ?Product $product = null;
 
+    #[ORM\ManyToOne(targetEntity: ProductVariant::class, inversedBy: 'orderItems')]
+    #[ORM\JoinColumn(name: 'variant_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?ProductVariant $variant = null;
+
     #[ORM\Column(name: 'rok', type: Types::SMALLINT, nullable: false)]
     #[Assert\Positive(message: 'Rok musí být kladné číslo')]
     private int $year;
@@ -78,6 +82,12 @@ class OrderItem
         'default' => '[]',
     ])]
     private array $productTags = [];
+
+    #[ORM\Column(name: 'variant_name', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $variantName = null;
+
+    #[ORM\Column(name: 'variant_code', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $variantCode = null;
 
     #[ORM\Column(name: 'cena_nakupni', type: Types::DECIMAL, precision: 6, scale: 2, nullable: false, options: [
         'comment' => 'Final purchase price (after discounts)',
@@ -160,6 +170,42 @@ class OrderItem
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
+        return $this;
+    }
+
+    public function getVariant(): ?ProductVariant
+    {
+        return $this->variant;
+    }
+
+    public function setVariant(?ProductVariant $variant): self
+    {
+        $this->variant = $variant;
+
+        return $this;
+    }
+
+    public function getVariantName(): ?string
+    {
+        return $this->variantName;
+    }
+
+    public function setVariantName(?string $variantName): self
+    {
+        $this->variantName = $variantName;
+
+        return $this;
+    }
+
+    public function getVariantCode(): ?string
+    {
+        return $this->variantCode;
+    }
+
+    public function setVariantCode(?string $variantCode): self
+    {
+        $this->variantCode = $variantCode;
 
         return $this;
     }
@@ -293,36 +339,46 @@ class OrderItem
     // ==================== Helper Methods ====================
 
     /**
-     * Create snapshot from product
+     * Create snapshot from product (and optionally variant)
      */
-    public function snapshotProduct(Product $product): self
+    public function snapshotProduct(Product $product, ?ProductVariant $variant = null): self
     {
         $this->productName = $product->getName();
         $this->productCode = $product->getCode();
         $this->productDescription = $product->getDescription();
 
-        // If original price not set, use current price
+        if ($variant !== null) {
+            $this->variantName = $variant->getName();
+            $this->variantCode = $variant->getCode();
+        }
+
+        // If original price not set, use effective price (variant price or product price)
         if ($this->originalPrice === null) {
-            $this->originalPrice = $product->getCurrentPrice();
+            $this->originalPrice = $variant !== null
+                ? $variant->getEffectivePrice()
+                : $product->getCurrentPrice();
         }
 
         return $this;
     }
 
     /**
-     * Get display name (prefer snapshot, fallback to product)
+     * Get display name (prefer snapshot, fallback to product). Includes variant name if present.
      */
     public function getDisplayName(): string
     {
-        if ($this->productName !== null) {
-            return $this->productName;
+        $name = $this->productName
+            ?? ($this->product instanceof Product ? $this->product->getName() : null)
+            ?? 'Neznámý produkt';
+
+        $variantLabel = $this->variantName
+            ?? ($this->variant instanceof ProductVariant ? $this->variant->getName() : null);
+
+        if ($variantLabel !== null) {
+            return $name . ' — ' . $variantLabel;
         }
 
-        if ($this->product instanceof Product) {
-            return $this->product->getName();
-        }
-
-        return 'Neznámý produkt';
+        return $name;
     }
 
     /**

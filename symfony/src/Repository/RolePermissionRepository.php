@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Role;
 use App\Entity\RolePermission;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,5 +40,20 @@ class RolePermissionRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    /**
+     * Check if a role has a specific permission
+     */
+    public function roleHasPermission(Role $role, int $permissionId): bool
+    {
+        return $this->createQueryBuilder('rp')
+            ->select('COUNT(rp.role)')
+            ->where('rp.role = :role')
+            ->andWhere('rp.permission = :permissionId')
+            ->setParameter('role', $role)
+            ->setParameter('permissionId', $permissionId)
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
     }
 }

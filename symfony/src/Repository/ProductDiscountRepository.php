@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Product;
 use App\Entity\ProductDiscount;
+use App\Enum\RoleMeaning;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -120,13 +121,13 @@ class ProductDiscountRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get best discount for product among user's roles
+     * Get best discount for product among user's role meanings
      *
-     * @param string[] $userRoles
+     * @param RoleMeaning[] $roleMeanings
      */
-    public function findBestDiscountForProduct(Product $product, array $userRoles): ?ProductDiscount
+    public function findBestDiscountForProduct(Product $product, array $roleMeanings): ?ProductDiscount
     {
-        if ($userRoles === []) {
+        if ($roleMeanings === []) {
             return null;
         }
 
@@ -134,7 +135,7 @@ class ProductDiscountRepository extends ServiceEntityRepository
             ->where('pd.product = :product')
             ->andWhere('pd.role IN (:roles)')
             ->setParameter('product', $product)
-            ->setParameter('roles', $userRoles)
+            ->setParameter('roles', $roleMeanings)
             ->orderBy('pd.discountPercent', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
@@ -146,7 +147,7 @@ class ProductDiscountRepository extends ServiceEntityRepository
      *
      * @return Product[]
      */
-    public function findProductsWithDiscountForRole(string $role): array
+    public function findProductsWithDiscountForRole(RoleMeaning $role): array
     {
         $result = $this->createQueryBuilder('pd')
             ->select('IDENTITY(pd.product)')

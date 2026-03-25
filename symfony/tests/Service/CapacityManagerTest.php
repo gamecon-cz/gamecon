@@ -4,210 +4,223 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
-use PHPUnit\Framework\MockObject\MockObject;
 use App\Entity\Product;
-use App\Entity\User;
-use App\Repository\OrderItemRepository;
-use App\Repository\ProductRepository;
+use App\Entity\ProductVariant;
+use App\Enum\RoleMeaning;
 use App\Service\CapacityManager;
+use Doctrine\DBAL\Connection;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class CapacityManagerTest extends TestCase
 {
-    private MockObject $productRepository;
-
-    private MockObject $orderItemRepository;
+    private MockObject $connection;
 
     private CapacityManager $capacityManager;
 
     protected function setUp(): void
     {
-        $this->productRepository = $this->createMock(ProductRepository::class);
-        $this->orderItemRepository = $this->createMock(OrderItemRepository::class);
-        $this->capacityManager = new CapacityManager(
-            $this->productRepository,
-            $this->orderItemRepository
-        );
+        $this->connection = $this->createMock(Connection::class);
+        $this->capacityManager = new CapacityManager($this->connection);
     }
 
-    public function testGetAvailableCapacityWithUnlimitedCapacity(): void
+    public function testUnlimitedCapacityIsAlwaysAvailable(): void
     {
-        $product = $this->createProduct(null);
+        $variant = $this->createVariant(null);
 
-        $available = $this->capacityManager->getAvailableCapacity($product, 2025);
-
-        $this->assertSame(PHP_INT_MAX, $available);
+        $this->assertTrue($this->capacityManager->hasAvailableCapacity($variant));
+        $this->assertFalse($this->capacityManager->isSoldOut($variant));
+        $this->assertFalse($this->capacityManager->isLowStock($variant, 10));
     }
 
-    public function testGetAvailableCapacityWithProducedQuantity(): void
+    public function testHasAvailableCapacityWithStock(): void
     {
-        $product = $this->createProduct(100);
+        $variant = $this->createVariant(10);
 
-        $this->orderItemRepository
-            ->expects($this->once())
-            ->method('countByProductAndYear')
-            ->with($product, 2025)
-            ->willReturn(30);
-
-        $available = $this->capacityManager->getAvailableCapacity($product, 2025);
-
-        $this->assertSame(70, $available); // 100 - 30 = 70
+        $this->assertTrue($this->capacityManager->hasAvailableCapacity($variant));
     }
 
-    public function testGetAvailableCapacityWhenSoldOut(): void
+    public function testSoldOutWhenRemainingIsZero(): void
     {
-        $product = $this->createProduct(50);
+        $variant = $this->createVariant(0);
 
-        $this->orderItemRepository
-            ->expects($this->once())
-            ->method('countByProductAndYear')
-            ->willReturn(50);
-
-        $available = $this->capacityManager->getAvailableCapacity($product, 2025);
-
-        $this->assertSame(0, $available);
+        $this->assertFalse($this->capacityManager->hasAvailableCapacity($variant));
+        $this->assertTrue($this->capacityManager->isSoldOut($variant));
     }
 
-    public function testGetAvailableCapacityWhenOversold(): void
+    public function testLowStockDetection(): void
     {
-        $product = $this->createProduct(50);
+        $variant = $this->createVariant(5);
 
-        $this->orderItemRepository
-            ->expects($this->once())
-            ->method('countByProductAndYear')
-            ->willReturn(60); // Oversold
-
-        $available = $this->capacityManager->getAvailableCapacity($product, 2025);
-
-        $this->assertSame(0, $available); // Should return 0, not negative
+        $this->assertTrue($this->capacityManager->isLowStock($variant, 10));
+        $this->assertFalse($this->capacityManager->isLowStock($variant, 3));
     }
 
-    public function testHasAvailableCapacity(): void
+    public function testLowStockFalseWhenSoldOut(): void
     {
-        $product = $this->createProduct(50);
-        $user = $this->createMock(User::class);
+        $variant = $this->createVariant(0);
 
-        $this->orderItemRepository
-            ->method('countByProductAndYear')
-            ->willReturn(30);
-
-        $hasCapacity = $this->capacityManager->hasAvailableCapacity($product, $user, 2025);
-
-        $this->assertTrue($hasCapacity);
+        $this->assertFalse($this->capacityManager->isLowStock($variant, 10));
     }
 
-    public function testIsSoldOut(): void
+    public function testOrganizerReservationReducesParticipantAvailability(): void
     {
-        $product = $this->createProduct(50);
+        $variant = $this->createVariant(10, 3);
 
-        $this->orderItemRepository
-            ->method('countByProductAndYear')
-            ->willReturn(50);
+        // Participant sees 10 - 3 = 7
+        $this->assertTrue($this->capacityManager->hasAvailableCapacity($variant));
+        $this->assertSame(7, $variant->getAvailableQuantity([]));
 
-        $soldOut = $this->capacityManager->isSoldOut($product, 2025);
-
-        $this->assertTrue($soldOut);
+        // Organizer sees all 10
+        $orgRoles = [RoleMeaning::ORGANIZATOR_ZDARMA];
+        $this->assertTrue($this->capacityManager->hasAvailableCapacity($variant, $orgRoles));
+        $this->assertSame(10, $variant->getAvailableQuantity($orgRoles));
     }
 
-    public function testIsLowStock(): void
+    public function testParticipantSoldOutWithReservation(): void
     {
-        $product = $this->createProduct(50);
+        // 3 remaining, all reserved for organizers
+        $variant = $this->createVariant(3, 3);
 
-        // 5 items remaining (threshold = 10)
-        $this->orderItemRepository
-            ->method('countByProductAndYear')
-            ->willReturn(45);
-
-        $lowStock = $this->capacityManager->isLowStock($product, 2025, 10);
-
-        $this->assertTrue($lowStock);
+        $this->assertTrue($this->capacityManager->isSoldOut($variant, []));
+        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::VYPRAVEC]));
     }
 
-    public function testIsNotLowStockWithEnoughCapacity(): void
+    public function testPurchaseDecrementsRemainingQuantity(): void
     {
-        $product = $this->createProduct(50);
+        $variant = $this->createVariant(10);
 
-        // 30 items remaining (threshold = 10)
-        $this->orderItemRepository
-            ->method('countByProductAndYear')
-            ->willReturn(20);
+        $this->connection->expects($this->once())
+            ->method('executeStatement')
+            ->willReturn(1);
 
-        $lowStock = $this->capacityManager->isLowStock($product, 2025, 10);
+        $this->capacityManager->purchase($variant, 1);
 
-        $this->assertFalse($lowStock);
+        $this->assertSame(9, $variant->getRemainingQuantity());
     }
 
-    public function testValidateCapacityThrowsExceptionWhenExceeded(): void
+    public function testPurchaseSkipsForUnlimitedCapacity(): void
     {
-        $product = $this->createProduct(50);
-        $user = $this->createMock(User::class);
+        $variant = $this->createVariant(null);
 
-        $this->orderItemRepository
-            ->method('countByProductAndYear')
-            ->willReturn(48); // Only 2 remaining
+        $this->connection->expects($this->never())
+            ->method('executeStatement');
+
+        $this->capacityManager->purchase($variant, 1);
+    }
+
+    public function testPurchaseThrowsWhenSoldOut(): void
+    {
+        $variant = $this->createVariant(1);
+
+        $this->connection->expects($this->once())
+            ->method('executeStatement')
+            ->willReturn(0);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Nedostatečná kapacita');
 
-        $this->capacityManager->validateCapacity($product, $user, 2025, 5); // Want 5, only 2 available
+        $this->capacityManager->purchase($variant, 2);
     }
 
-    public function testValidateCapacitySucceedsWhenEnoughAvailable(): void
+    public function testCancelPurchaseIncrementsRemainingQuantity(): void
     {
-        $product = $this->createProduct(50);
-        $user = $this->createMock(User::class);
+        $variant = $this->createVariant(5);
 
-        $this->orderItemRepository
-            ->method('countByProductAndYear')
-            ->willReturn(30); // 20 remaining
+        $this->connection->expects($this->once())
+            ->method('executeStatement')
+            ->willReturn(1);
 
-        // Should not throw
-        $this->capacityManager->validateCapacity($product, $user, 2025, 10);
+        $this->capacityManager->cancelPurchase($variant, 1);
 
-        $this->assertTrue(true); // If we reach here, validation passed
+        $this->assertSame(6, $variant->getRemainingQuantity());
+    }
+
+    public function testCancelPurchaseSkipsForUnlimitedCapacity(): void
+    {
+        $variant = $this->createVariant(null);
+
+        $this->connection->expects($this->never())
+            ->method('executeStatement');
+
+        $this->capacityManager->cancelPurchase($variant, 1);
     }
 
     public function testGetCapacityInfo(): void
     {
-        $product = $this->createProduct(100);
+        $variant = $this->createVariant(20, 5);
 
-        $this->orderItemRepository
-            ->method('countByProductAndYear')
-            ->willReturn(30);
+        $info = $this->capacityManager->getCapacityInfo($variant);
 
-        $info = $this->capacityManager->getCapacityInfo($product, 2025);
-
-        $this->assertSame(100, $info['total']);
-        $this->assertSame(30, $info['sold']);
-        $this->assertSame(70, $info['available']);
-        $this->assertSame(30.0, $info['percentSold']);
+        $this->assertSame(20, $info['remaining']);
+        $this->assertSame(5, $info['reserved']);
+        $this->assertSame(15, $info['availableForParticipants']);
+        $this->assertFalse($info['unlimited']);
     }
 
-    public function testGetCapacityInfoWithUnlimitedCapacity(): void
+    public function testGetCapacityInfoUnlimited(): void
     {
-        $product = $this->createProduct(null);
+        $variant = $this->createVariant(null);
 
-        $this->orderItemRepository
-            ->method('countByProductAndYear')
-            ->willReturn(50);
+        $info = $this->capacityManager->getCapacityInfo($variant);
 
-        $info = $this->capacityManager->getCapacityInfo($product, 2025);
-
-        $this->assertNull($info['total']);
-        $this->assertSame(50, $info['sold']);
-        $this->assertSame(PHP_INT_MAX, $info['available']);
-        $this->assertSame(0.0, $info['percentSold']);
+        $this->assertNull($info['remaining']);
+        $this->assertSame(0, $info['reserved']);
+        $this->assertNull($info['availableForParticipants']);
+        $this->assertTrue($info['unlimited']);
     }
 
-    private function createProduct(?int $producedQuantity): Product
+    public function testVariousOrganizerRolesHaveAccess(): void
+    {
+        $variant = $this->createVariant(5, 5);
+
+        // All these should have organizer access
+        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::ORGANIZATOR_ZDARMA]));
+        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::VYPRAVEC]));
+        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::BRIGADNIK]));
+        $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::ZAZEMI]));
+
+        // Participant (no org role) should be sold out
+        $this->assertTrue($this->capacityManager->isSoldOut($variant, []));
+        $this->assertTrue($this->capacityManager->isSoldOut($variant, [RoleMeaning::PRIHLASEN]));
+    }
+
+    public function testInheritsReservationFromProduct(): void
+    {
+        $product = $this->createProduct(10);
+        $variant = new ProductVariant();
+        $variant->setProduct($product);
+        $variant->setName('M');
+        $variant->setCode('V-M');
+        $variant->setRemainingQuantity(20);
+        // reservedForOrganizers = null → inherits 10 from product
+
+        $this->assertSame(10, $variant->getAvailableQuantity([]));
+        $this->assertSame(20, $variant->getAvailableQuantity([RoleMeaning::ORGANIZATOR_ZDARMA]));
+    }
+
+    private function createProduct(?int $reservedForOrganizers = null): Product
     {
         $product = new Product();
         $product->setName('Test Product');
         $product->setCode('TEST-001');
         $product->setCurrentPrice('100.00');
         $product->setState(1);
-        $product->setProducedQuantity($producedQuantity);
+        $product->setReservedForOrganizers($reservedForOrganizers);
 
         return $product;
+    }
+
+    private function createVariant(?int $remainingQuantity, ?int $reservedForOrganizers = null): ProductVariant
+    {
+        $product = $this->createProduct();
+        $variant = new ProductVariant();
+        $variant->setProduct($product);
+        $variant->setName('Test Variant');
+        $variant->setCode('TEST-VAR-001');
+        $variant->setRemainingQuantity($remainingQuantity);
+        $variant->setReservedForOrganizers($reservedForOrganizers);
+
+        return $variant;
     }
 }

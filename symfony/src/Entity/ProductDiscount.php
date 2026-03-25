@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\RoleMeaning;
 use App\Repository\ProductDiscountRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -41,15 +42,11 @@ class ProductDiscount
     #[Assert\NotNull(message: 'Produkt musí být vyplněn')]
     private ?Product $product = null;
 
-    #[ORM\Column(type: Types::STRING, length: 50, nullable: false, options: [
-        'comment' => 'Role name: organizator, vypravec, ucastnik',
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: false, enumType: RoleMeaning::class, options: [
+        'comment' => 'Role meaning (vyznam_role) this discount applies to',
     ])]
-    #[Assert\NotBlank(message: 'Role nesmí být prázdná')]
-    #[Assert\Choice(
-        choices: ['organizator', 'vypravec', 'ucastnik', 'host'],
-        message: 'Neplatná role'
-    )]
-    private string $role;
+    #[Assert\NotNull(message: 'Role nesmí být prázdná')]
+    private RoleMeaning $role;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: false, options: [
         'comment' => 'Discount percent 0-100 (100 = free)',
@@ -96,12 +93,12 @@ class ProductDiscount
         return $this;
     }
 
-    public function getRole(): string
+    public function getRole(): RoleMeaning
     {
         return $this->role;
     }
 
-    public function setRole(string $role): self
+    public function setRole(RoleMeaning $role): self
     {
         $this->role = $role;
 
@@ -201,17 +198,9 @@ class ProductDiscount
      */
     public function getDescription(): string
     {
-        $roleName = match ($this->role) {
-            'organizator' => 'organizátoři',
-            'vypravec'    => 'vypravěči',
-            'ucastnik'    => 'účastníci',
-            'host'        => 'hosté',
-            default       => $this->role,
-        };
-
         $discount = rtrim(rtrim($this->discountPercent, '0'), '.');
 
-        $desc = sprintf('%s: %s%% sleva', $roleName, $discount);
+        $desc = sprintf('%s: %s%% sleva', $this->role->label(), $discount);
 
         if ($this->hasQuantityLimit()) {
             $desc .= sprintf(' (max %s× na osobu)', $this->maxQuantity);

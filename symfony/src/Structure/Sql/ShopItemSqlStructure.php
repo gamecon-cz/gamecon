@@ -62,14 +62,9 @@ class ShopItemSqlStructure
     public const archived_at = 'archived_at';
 
     /**
-     * @see ShopItem::$amountOrganizers
+     * @see ShopItem::$reservedForOrganizers
      */
-    public const amount_organizers = 'amount_organizers';
-
-    /**
-     * @see ShopItem::$amountParticipants
-     */
-    public const amount_participants = 'amount_participants';
+    public const reserved_for_organizers = 'reserved_for_organizers';
 
     /**
      * @see ShopItem::$vedlejsi

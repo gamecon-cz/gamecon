@@ -251,19 +251,20 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find products with low stock (produced quantity)
+     * Find products that have at least one variant with low remaining stock
      *
      * @return Product[]
      */
-    public function findLowStock(int $threshold = 10): array
+    public function findWithLowStockVariants(int $threshold = 10): array
     {
         return $this->createQueryBuilder('p')
-            ->where('p.producedQuantity IS NOT NULL')
-            ->andWhere('p.producedQuantity <= :threshold')
-            ->andWhere('p.producedQuantity > 0')
+            ->innerJoin('p.variants', 'v')
+            ->where('v.remainingQuantity IS NOT NULL')
+            ->andWhere('v.remainingQuantity <= :threshold')
+            ->andWhere('v.remainingQuantity > 0')
             ->andWhere('p.archivedAt IS NULL')
             ->setParameter('threshold', $threshold)
-            ->orderBy('p.producedQuantity', 'ASC')
+            ->groupBy('p.id')
             ->getQuery()
             ->getResult();
     }

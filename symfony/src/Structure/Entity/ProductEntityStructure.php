@@ -60,19 +60,19 @@ class ProductEntityStructure
     public const archivedAt = 'archivedAt';
 
     /**
-     * @see Product::$amountOrganizers
+     * @see Product::$reservedForOrganizers
      */
-    public const amountOrganizers = 'amountOrganizers';
-
-    /**
-     * @see Product::$amountParticipants
-     */
-    public const amountParticipants = 'amountParticipants';
+    public const reservedForOrganizers = 'reservedForOrganizers';
 
     /**
      * @see Product::$tags
      */
     public const tags = 'tags';
+
+    /**
+     * @see Product::$variants
+     */
+    public const variants = 'variants';
 
     /**
      * @see Product::$bundles
