@@ -18,6 +18,7 @@ export type VšeobecnéSlice = {
     modalOdhlásitAktivitaId?: number,
     nastaveniTymu?: {
       aktivitaId: number,
+      nazevAktivity?: string,
       data?: NastaveniTymuData,
     },
   }
@@ -31,12 +32,10 @@ export const createVšeobecnéSlice: ProgramStateCreator<VšeobecnéSlice> = (_s
   },
 });
 
-export const nastavModalNastaveníTýmu = (aktivitaId?: number) => {
+export const nastavModalNastaveníTýmu = (aktivitaId?: number, nazevAktivity?: string) => {
   useProgramStore.setState(s => {
     if (aktivitaId)
-      s.všeobecné.nastaveniTymu = {
-        aktivitaId
-      };
+      s.všeobecné.nastaveniTymu = { aktivitaId, nazevAktivity };
     else
       delete s.všeobecné.nastaveniTymu;
   }, undefined, "nastav modal nastaveni tymu");

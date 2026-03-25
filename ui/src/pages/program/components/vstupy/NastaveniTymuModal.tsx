@@ -1,11 +1,19 @@
 import { FunctionComponent } from "preact";
-import { useAktivita, useNastaveniTymuModalAktivitaId, useNastaveniTymuModalData, useOdhlasitModalAktivitaId } from "../../../../store/program/selektory";
-import { dotáhniNastaveníTýmuProModal, nastavModalNastaveníTýmu, nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
+import {
+  useAktivita,
+  useNastaveniTymuModalAktivitaId,
+  useNastaveniTymuModalData,
+  useNastaveniTymuModalNazevAktivity,
+} from "../../../../store/program/selektory";
+import {
+  dotáhniNastaveníTýmuProModal,
+  nastavModalNastaveníTýmu,
+  nastavModalOdhlásit,
+} from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
 import { useProgramStore } from "../../../../store/program";
-import { useState } from "preact/hooks";
 import { fetchNastavVerejnostTymu } from "../../../../api/program";
-
+import { NastaveniTymuView } from "../../../../components/NastaveniTymuView/NastaveniTymuView";
 
 
 export const registrujDotahováníNastaveníTýmu = () => {
@@ -16,143 +24,46 @@ export const registrujDotahováníNastaveníTýmu = () => {
 }
 
 
-export const NastaveniTymuModal: FunctionComponent<{}> = (props) => {
+export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   const aktivitaId = useNastaveniTymuModalAktivitaId();
   const aktivita = useAktivita(aktivitaId ?? -1);
+  const storeNazevAktivity = useNastaveniTymuModalNazevAktivity();
   const data = useNastaveniTymuModalData();
-  const [kódPřipojeníDoTýmu, setKódPřipojeníDoTýmu] = useState("");
 
   if (!aktivitaId) return <></>;
 
-  const přihlášen = aktivita?.stavPrihlaseni === "prihlasen"
+  const přihlášenZAktivity = aktivita?.stavPrihlaseni === "prihlasen"
     || aktivita?.stavPrihlaseni === "dorazilJakoNahradnik"
     || aktivita?.stavPrihlaseni === "pozdeZrusil"
     || aktivita?.stavPrihlaseni === "prihlasenADorazil"
     || aktivita?.stavPrihlaseni === "prihlasenAleNedorazil"
     ;
 
+  // Pokud aktivita není v store (stránka bez programu), odvodíme přihlášení z dat týmu
+  const přihlášen = aktivita ? přihlášenZAktivity : (data?.kod ?? 0) > 0;
 
-  // todo: loading
-  if (přihlášen && !data) return <></>;
+  // Program page: skryj modal dokud se data nenačtou
+  if (aktivita && přihlášen && !data) return <></>;
 
-
-  const sleduji = aktivita?.stavPrihlaseni === "sledujici";
-
-  // todo:
-  const můžeZaložitNovýTým = true;
-
-  const zavřítModal = () => nastavModalNastaveníTýmu();
+  const zavřít = () => nastavModalNastaveníTýmu();
 
   const přepniVerejnost = async () => {
     if (!data || data.verejny === undefined || !data.kod) return;
-    const nováHodnota = !data.verejny;
-    await fetchNastavVerejnostTymu(aktivitaId, data.kod, nováHodnota);
+    await fetchNastavVerejnostTymu(aktivitaId, data.kod, !data.verejny);
     void dotáhniNastaveníTýmuProModal();
   };
 
-
-  // todo(tym): nastavení týmu bude zobrazené editovatelné pouze pro kapitána týmu
-  // todo(tym): tým bude mít zobrazené všechny spoluhráče
-  // todo(tym): vytvořit tým bude povolené jen pokud není dost týmů
-  // todo(tym): vidět budou všechny týmy vč. kolik je hráčů ale hráči ne
-
   return (
-    <>
-      <div className="modal_obal" onClick={(e) => {
-        if (e.target === e.currentTarget)
-          nastavModalOdhlásit();
-      }}>
-        <div className="modal clearfix">
-          <div className="clearfix">
-            <h3 style={{ float: "left" }}>Nastavení týmu aktivity {aktivita?.nazev}</h3>
-            {
-              přihlášen &&
-              <button class="vpravo" onClick={() => {
-                nastavModalOdhlásit(aktivitaId);
-              }}>Odhlásit!</button>
-            }
-          </div>
-          <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
-            {
-              !přihlášen && <>
-                <button disabled={!můžeZaložitNovýTým}
-                  onClick={() => {
-                    void proveďAkciAktivity(aktivitaId, "prihlasit")
-                      .then(zavřítModal)
-                      ;
-                  }}
-                >Založ tým</button>
-                <div style={{ gap: "4px", display: "flex", flexDirection: "column", alignItems: "start" }}>
-                  <label>
-                    kód:
-                    <input placeholder="XXXX" onChange={x=>setKódPřipojeníDoTýmu(x.currentTarget.value)} value={kódPřipojeníDoTýmu}/>
-                  </label>
-                  <button style={{ width: "unset" }}
-                   onClick={() => {
-                    // todo: validace
-                    const kód = +kódPřipojeníDoTýmu;
-                    void proveďAkciAktivity(aktivitaId, "prihlasit", kód)
-                      .then(zavřítModal)
-                      ;
-                  }}
-                  >Připoj se do týmu</button>
-                </div>
-
-                {data?.verejneTymy && data.verejneTymy.length > 0 && (
-                  <div style={{ marginTop: "8px" }}>
-                    <strong>Veřejné týmy:</strong>
-                    <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
-                      {data.verejneTymy.map(tym => {
-                        const plny = tym.limit !== null && tym.pocetClenu >= tym.limit;
-                        return (
-                          <li key={tym.kod} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}>
-                            <span>{tym.nazev || `Tým ${tym.kod}`}</span>
-                            <span style={{ color: "#888" }}>
-                              {tym.pocetClenu}{tym.limit !== null ? `/${tym.limit}` : ""}
-                            </span>
-                            <button
-                              disabled={plny}
-                              style={{ width: "unset" }}
-                              onClick={() => {
-                                void proveďAkciAktivity(aktivitaId, "prihlasit", tym.kod)
-                                  .then(zavřítModal);
-                              }}
-                            >{plny ? "Plný" : "Připojit se"}</button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
-              </>
-            }
-
-            {
-              přihlášen &&
-              <>
-                <div style={{ fontSize: "1.3em" }}>kód týmu: {data?.kod}</div>
-                <label>
-                  jméno týmu: <input>pojmenuj</input>
-                </label>
-                <button>Pojmenuj tým</button>
-
-                {data?.verejny !== undefined && (
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "8px" }}>
-                    <input
-                      type="checkbox"
-                      checked={data.verejny}
-                      onChange={přepniVerejnost}
-                    />
-                    Veřejný tým (kdokoliv se může přihlásit bez kódu)
-                  </label>
-                )}
-              </>
-            }
-          </div>
-
-          <button class="vpravo zpet" onClick={zavřítModal}>Zavřít</button>
-        </div>
-      </div>
-    </>
+    <NastaveniTymuView
+      nazevAktivity={aktivita?.nazev ?? storeNazevAktivity}
+      data={data ?? null}
+      přihlášen={přihlášen}
+      načítá={!aktivita && !data}
+      onZavřít={zavřít}
+      onZaložitTým={() => void proveďAkciAktivity(aktivitaId, "prihlasit").then(zavřít)}
+      onPřipojitSe={(kód) => void proveďAkciAktivity(aktivitaId, "prihlasit", kód).then(zavřít)}
+      onPřepniVerejnost={() => void přepniVerejnost()}
+      onOdhlásit={() => nastavModalOdhlásit(aktivitaId)}
+    />
   );
 };

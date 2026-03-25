@@ -60,7 +60,10 @@ declare global {
     preactMost: {
       obchod: {
         show?: (() => void) | undefined,
-      }
+      },
+      prihlaseniTymu: {
+        otevri?: ((aktivitaId: number, nazev?: string) => void) | undefined,
+      },
     }
   }
 }
@@ -100,6 +103,8 @@ export const ROKY = range(2009, GAMECON_KONSTANTY.ROCNIK).filter(x => x !== 2020
 export const initEnv = () => {
   window.preactMost = {
     obchod: {
-    }
+    },
+    prihlaseniTymu: {
+    },
   };
 };

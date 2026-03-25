@@ -15,6 +15,13 @@ use Gamecon\Aktivita\TypAktivity;
 $this->blackarrowStyl(true);
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
+if (!function_exists('zabalWebSoubor')) {
+    function zabalWebSoubor(string $cestaKSouboru): string
+    {
+        return $cestaKSouboru . '?version=' . md5_file(WWW . '/' . $cestaKSouboru);
+    }
+}
+
 $typ = $this->param('typ');
 
 // zpracování POST požadavků
@@ -83,10 +90,19 @@ foreach ($skupiny as $skupina) {
             $t->parse('aktivity.aktivita.termin.vypravec');
         }
 
+        if ($aktivita->tymova() && $u && $u->gcPrihlasen() && $aktivita->prihlasovatelna()) {
+            $aktivitaId    = (int)$aktivita->id();
+            $aktivitaNazev = addslashes($aktivita->nazev());
+            $label         = $aktivita->prihlasen($u) ? 'Nastavení týmu' : 'Přihlásit tým';
+            $prihlasit     = "<button onclick=\"window.preactMost.prihlaseniTymu.otevri({$aktivitaId}, '{$aktivitaNazev}')\">{$label}</button>";
+        } else {
+            $prihlasit = $aktivita->prihlasovatko($u);
+        }
+
         $t->assign([
             'aktivita'   => $aktivita,
             'obsazenost' => $aktivita->obsazenost() ?: '',
-            'prihlasit'  => $aktivita->prihlasovatko($u),
+            'prihlasit'  => $prihlasit,
         ]);
 
         $t->parse('aktivity.nahled.termin');
@@ -177,3 +193,14 @@ if (!empty($org)) {
         $t->parse('aktivity.strankaNavod');
     }
 }
+
+?>
+
+<link rel="stylesheet" href="<?= zabalWebSoubor('soubory/ui/style.css') ?>">
+<div id="preact-aktivity-modal"></div>
+<script>
+    window.GAMECON_KONSTANTY = {
+        BASE_PATH_API: "<?= URL_WEBU . '/api/' ?>",
+    };
+</script>
+<script type="module" src="<?= zabalWebSoubor('soubory/ui/bundle.js') ?>"></script>

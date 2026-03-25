@@ -1,6 +1,7 @@
 import { Program } from "./program";
 import { Obchod } from "./obchod";
 import { ObchodNastaveni } from "./obchodNastaveni";
+import { AktivityApp } from "./aktivity";
 import { Fragment, FunctionComponent, JSX, render } from "preact";
 import { GAMECON_KONSTANTY } from "../env";
 import { ProgramWrapper } from "../testing/ProgramWrapper";
@@ -30,4 +31,5 @@ export const renderPages = () => {
   renderComponent("preact-obchod-nastaveni", ObchodNastaveni);
   renderComponent("preact-program", Program, ProgramWrapper);
   renderComponent("preact-obchod", Obchod);
+  renderComponent("preact-aktivity-modal", AktivityApp);
 };

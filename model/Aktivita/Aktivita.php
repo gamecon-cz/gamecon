@@ -3343,7 +3343,7 @@ SQL,
 
     public function typId(): int
     {
-        // todo(tym): tohle je trochu naruby. Víme typId bez vytvoření dotazu do db, takže bychom neměli potřebovat celý typ abychom zjistili jeho id které dávno známe
+        // todo: tohle je trochu naruby. Víme typId bez vytvoření dotazu do db, takže bychom neměli potřebovat celý typ abychom zjistili jeho id které dávno známe
         return $this->typ()->id();
     }
 
@@ -3537,7 +3537,7 @@ SQL,
         $zbyva = strtotime('now') + self::HAJENI_TEAMU_HODIN * 60 * 60 - time();
         $t->assign([
             'zbyva'                => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
-            'postname'             => 'aTeamForm', // todo(tym): bude odebrano a nahrazeno
+            'postname'             => 'aTeamForm',
             'prihlasenyUzivatelId' => $u->id(),
             'aktivitaId'           => $this->id(),
             'cssUrlAutocomplete'   => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
