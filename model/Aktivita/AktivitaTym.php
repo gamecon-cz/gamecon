@@ -33,7 +33,8 @@ class AktivitaTym extends \DbObject
         $existujiciTym = (int)dbOneCol(
             'SELECT akce_tym_prihlaseni.id_tymu FROM akce_tym_prihlaseni
              JOIN akce_tym ON akce_tym.id = akce_tym_prihlaseni.id_tymu
-             WHERE akce_tym_prihlaseni.id_uzivatele = $0 AND akce_tym.id_akce = $1',
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+             WHERE akce_tym_prihlaseni.id_uzivatele = $0',
             [$idUzivatele, $idAktivity],
         );
         if ($existujiciTym) {
@@ -49,10 +50,12 @@ class AktivitaTym extends \DbObject
         // todo(tym): nějaký zábavný generátor na název týmů
         $kod = rand(1000, 9999);
         dbQuery(
-            'INSERT INTO akce_tym (id_akce, kod, id_kapitan, zalozen) VALUES ($0, $1, $2, NOW())',
-            [$idAktivity, $kod, $idUzivatele],
+            'INSERT INTO akce_tym (kod, id_kapitan, zalozen) VALUES ($0, $1, NOW())',
+            [$kod, $idUzivatele],
         );
-        return (int)dbInsertId();
+        $idTymu = (int)dbInsertId();
+        self::pridejTymNaAktivitu($idTymu, $idAktivity);
+        return $idTymu;
     }
 
     public static function zkontrolujMuzeZalozitTym(int $idAktivity) {
@@ -69,7 +72,7 @@ class AktivitaTym extends \DbObject
             [$idAktivity],
         );
         $pocetAktualnych = (int)dbOneCol(
-            'SELECT COUNT(*) FROM akce_tym WHERE id_akce = $0',
+            'SELECT COUNT(*) FROM akce_tym_akce WHERE id_akce = $0',
             [$idAktivity],
         );
         return $limit !== null ? [(int)$limit, $pocetAktualnych] : null;
@@ -90,7 +93,9 @@ class AktivitaTym extends \DbObject
 
     public static function najdiTymPodleKodu(int $idAktivity, int $kodTymu): int {
         $idTymu = (int)dbOneCol(
-            'SELECT id FROM akce_tym WHERE id_akce = $0 AND kod = $1',
+            'SELECT akce_tym.id FROM akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0
+             WHERE akce_tym.kod = $1',
             [$idAktivity, $kodTymu],
         );
         if (!$idTymu) {
@@ -108,8 +113,10 @@ class AktivitaTym extends \DbObject
         $limit = dbOneCol(
             'SELECT COALESCE(akce_tym.`limit`, akce_seznam.team_max)
              FROM akce_tym
-             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym.id_akce
-             WHERE akce_tym.id = $0',
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce
+             WHERE akce_tym.id = $0
+             LIMIT 1',
             [$idTymu],
         );
         if ($limit !== null && $pocetClenu >= (int)$limit) {
@@ -121,7 +128,8 @@ class AktivitaTym extends \DbObject
         $tym = dbOneLine(
             'SELECT akce_tym.id, akce_tym.id_kapitan FROM akce_tym
              JOIN akce_tym_prihlaseni ON akce_tym_prihlaseni.id_tymu = akce_tym.id
-             WHERE akce_tym_prihlaseni.id_uzivatele = $0 AND akce_tym.id_akce = $1',
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+             WHERE akce_tym_prihlaseni.id_uzivatele = $0',
             [$idUzivatele, $idAktivity],
         );
         if (!$tym) {
@@ -172,8 +180,9 @@ class AktivitaTym extends \DbObject
                 COALESCE(akce_tym.`limit`, akce_seznam.team_max) AS team_limit
              FROM akce_tym
              JOIN akce_tym_prihlaseni ON akce_tym_prihlaseni.id_tymu = akce_tym.id
-             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym.id_akce
-             WHERE akce_tym_prihlaseni.id_uzivatele = $0 AND akce_tym.id_akce = $1',
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce
+             WHERE akce_tym_prihlaseni.id_uzivatele = $0',
             [$idUzivatele, $idAktivity],
         );
         if (!$row) {
@@ -189,14 +198,17 @@ class AktivitaTym extends \DbObject
         return (int)dbOneCol(
             'SELECT akce_tym.kod FROM akce_tym
              JOIN akce_tym_prihlaseni ON akce_tym_prihlaseni.id_tymu = akce_tym.id
-             WHERE akce_tym_prihlaseni.id_uzivatele = $0 AND akce_tym.id_akce = $1',
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+             WHERE akce_tym_prihlaseni.id_uzivatele = $0',
             [$idUzivatele, $idAktivity],
         );
     }
 
     public static function jeKapitanem(int $idUzivatele, int $idAktivity): bool {
         return (bool)dbOneCol(
-            'SELECT 1 FROM akce_tym WHERE id_akce = $0 AND id_kapitan = $1 LIMIT 1',
+            'SELECT 1 FROM akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0
+             WHERE akce_tym.id_kapitan = $1 LIMIT 1',
             [$idAktivity, $idUzivatele],
         );
     }
@@ -204,7 +216,9 @@ class AktivitaTym extends \DbObject
     // todo(tym): nedává smysl aktivita nemá přesně jednoho kapitána
     public static function idKapitanaProAktivitu(int $idAktivity): ?int {
         $id = dbOneCol(
-            'SELECT id_kapitan FROM akce_tym WHERE id_akce = $0 ORDER BY zalozen ASC LIMIT 1',
+            'SELECT akce_tym.id_kapitan FROM akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0
+             ORDER BY akce_tym.zalozen ASC LIMIT 1',
             [$idAktivity],
         );
         return $id !== null ? (int)$id : null;
@@ -212,7 +226,7 @@ class AktivitaTym extends \DbObject
 
     public static function maAktivitaTym(int $idAktivity): bool {
         return (bool)dbOneCol(
-            'SELECT 1 FROM akce_tym WHERE id_akce = $0 LIMIT 1',
+            'SELECT 1 FROM akce_tym_akce WHERE id_akce = $0 LIMIT 1',
             [$idAktivity],
         );
     }
@@ -224,8 +238,9 @@ class AktivitaTym extends \DbObject
                     COALESCE(akce_tym.`limit`, akce_seznam.team_max) AS team_limit,
                     (SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE akce_tym_prihlaseni.id_tymu = akce_tym.id) AS pocet_clenu
              FROM akce_tym
-             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym.id_akce
-             WHERE akce_tym.id_akce = $0 AND akce_tym.verejny = 1',
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce
+             WHERE akce_tym.verejny = 1',
             [$idAktivity],
         );
         return array_map(
@@ -241,14 +256,19 @@ class AktivitaTym extends \DbObject
 
     public static function nastavVerejnostTymu(int $kodTymu, int $idAktivity, bool $verejny): void {
         dbQuery(
-            'UPDATE akce_tym SET verejny = $0 WHERE id_akce = $1 AND kod = $2',
+            'UPDATE akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+             SET akce_tym.verejny = $0
+             WHERE akce_tym.kod = $2',
             [(int)$verejny, $idAktivity, $kodTymu],
         );
     }
 
     public static function zkontrolujZeJeKapitan(int $kodTymu, int $idAktivity, int $idUzivatele): void {
         $kapitan = dbOneCol(
-            'SELECT id_kapitan FROM akce_tym WHERE id_akce = $0 AND kod = $1',
+            'SELECT akce_tym.id_kapitan FROM akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0
+             WHERE akce_tym.kod = $1',
             [$idAktivity, $kodTymu],
         );
         if ($kapitan === null) {
@@ -261,7 +281,9 @@ class AktivitaTym extends \DbObject
 
     public static function verejnostTymuPodleKodu(int $kodTymu, int $idAktivity): ?bool {
         $verejny = dbOneCol(
-            'SELECT verejny FROM akce_tym WHERE id_akce = $0 AND kod = $1',
+            'SELECT akce_tym.verejny FROM akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0
+             WHERE akce_tym.kod = $1',
             [$idAktivity, $kodTymu],
         );
         return $verejny !== null ? (bool)(int)$verejny : null;
@@ -288,6 +310,45 @@ class AktivitaTym extends \DbObject
              WHERE akce_tym.zalozen < NOW() - INTERVAL $0 HOUR
                AND akce_tym.verejny = 0',
             [$hajeniHodin],
+        );
+    }
+
+    /**
+     * Přidá tým na aktivitu (záznam do akce_tym_akce).
+     * Pokud tým na aktivitě už je, nic se nestane.
+     */
+    public static function pridejTymNaAktivitu(int $idTymu, int $idAktivity): void {
+        dbQuery(
+            'INSERT IGNORE INTO akce_tym_akce (id_tymu, id_akce) VALUES ($0, $1)',
+            [$idTymu, $idAktivity],
+        );
+    }
+
+    /**
+     * Vrátí ID týmu, ve kterém je uživatel na dané aktivitě, nebo null.
+     */
+    public static function idTymuUzivatele(int $idUzivatele, int $idAktivity): ?int {
+        $id = dbOneCol(
+            'SELECT akce_tym.id FROM akce_tym
+             JOIN akce_tym_prihlaseni ON akce_tym_prihlaseni.id_tymu = akce_tym.id
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+             WHERE akce_tym_prihlaseni.id_uzivatele = $0',
+            [$idUzivatele, $idAktivity],
+        );
+        return $id !== null ? (int)$id : null;
+    }
+
+    /**
+     * Vrátí ID aktivit, na které je tým přihlášen, kromě zadané výjimky.
+     * @return int[]
+     */
+    public static function idDalsichAktivitTymu(int $idTymu, int $vyjmaIdAktivity): array {
+        return array_map(
+            'intval',
+            dbOneArray(
+                'SELECT id_akce FROM akce_tym_akce WHERE id_tymu = $0 AND id_akce != $1',
+                [$idTymu, $vyjmaIdAktivity],
+            ),
         );
     }
 }

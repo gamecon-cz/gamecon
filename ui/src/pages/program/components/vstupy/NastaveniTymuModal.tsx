@@ -51,6 +51,11 @@ export const NastaveniTymuModal: FunctionComponent<{}> = (props) => {
   };
 
 
+  // todo(tym): nastavení týmu bude zobrazené editovatelné pouze pro kapitána týmu
+  // todo(tym): tým bude mít zobrazené všechny spoluhráče
+  // todo(tym): vytvořit tým bude povolené jen pokud není dost týmů
+  // todo(tym): vidět budou všechny týmy vč. kolik je hráčů ale hráči ne
+
   return (
     <>
       <div className="modal_obal" onClick={(e) => {

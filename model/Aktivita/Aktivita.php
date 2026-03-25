@@ -2314,6 +2314,10 @@ SQL
             'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
             [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
         );
+
+        if ($this->a[Sql::TEAMOVA]) {
+            $this->prihlasUzivateleNaDalsiAktivityTymu($uzivatel, $prihlasujici, $idAktivity, $idUzivatele);
+        }
         $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
         // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
         $this->zrusPredchoziStornoPoplatek($uzivatel);
@@ -2321,6 +2325,31 @@ SQL
         $this->refresh();
 
         return true;
+    }
+
+    private function prihlasUzivateleNaDalsiAktivityTymu(
+        Uzivatel $uzivatel,
+        Uzivatel $prihlasujici,
+        int      $idAktivity,
+        int      $idUzivatele,
+    ): void {
+        $idTymu = AktivitaTym::idTymuUzivatele($idUzivatele, $idAktivity);
+        if ($idTymu === null) {
+            return;
+        }
+        foreach (AktivitaTym::idDalsichAktivitTymu($idTymu, $idAktivity) as $idDalsiAktivity) {
+            if (dbOneCol('SELECT 1 FROM akce_prihlaseni WHERE id_uzivatele=$0 AND id_akce=$1', [$idUzivatele, $idDalsiAktivity])) {
+                continue;
+            }
+            dbQuery(
+                'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
+                [$idUzivatele, $idDalsiAktivity, StavPrihlaseni::PRIHLASEN],
+            );
+            $dalsiAktivita = self::zId($idDalsiAktivity, false, $this->systemoveNastaveni);
+            if ($dalsiAktivita) {
+                $dalsiAktivita->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
+            }
+        }
     }
 
     private function zrusPredchoziStornoPoplatek(Uzivatel $uzivatel): void
@@ -2886,6 +2915,7 @@ SQL
                 $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ');
             } elseif (AktivitaTym::maAktivitaTym($this->id())) {
                 $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
+                // todo(tym): tady se nedá přihlašovat pomocí nového způsobu
                 $out = <<<HTML
 <span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
 HTML
@@ -3070,6 +3100,10 @@ HTML
         }
 
         $lidr = Uzivatel::zId($idKapitana);
+        $idTymuLidra = AktivitaTym::idTymuUzivatele($idKapitana, $this->id());
+        $kodTymuLidra = $idTymuLidra !== null
+            ? AktivitaTym::vratKodTymuProUzivatele($idKapitana, $this->id())
+            : 0;
         $chybnyClen = null; // nastavíme v případě, že u daného člena týmu nastala při přihlášení chyba
 
         dbBegin();
@@ -3078,7 +3112,10 @@ HTML
             // nutno jít od konce, jinak vazby na potomky můžou vyvolat chyby kvůli
             // duplicitním pokusům o přihlášení
             foreach (array_reverse($dalsiKola) as $kolo) {
-                $kolo->prihlas($lidr, $prihlasujici, self::STAV | $parametry);
+                if ($idTymuLidra !== null) {
+                    AktivitaTym::pridejTymNaAktivitu($idTymuLidra, $kolo->id());
+                }
+                $kolo->prihlas($lidr, $prihlasujici, self::STAV | $parametry, kodTymu: $kodTymuLidra);
             }
 
             // přihlášení členů týmu

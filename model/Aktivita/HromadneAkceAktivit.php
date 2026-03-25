@@ -119,15 +119,16 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
 
         $expirovaneTymyIds = AktivitaTym::expirovaneTymyIds(Aktivita::HAJENI_TEAMU_HODIN);
         foreach ($expirovaneTymyIds as $idTymu) {
-            $tym = dbOneLine('SELECT id_akce, id_kapitan FROM akce_tym WHERE id = $0', [$idTymu]);
-            if ($tym) {
-                Aktivita::zId($tym['id_akce'])->odhlas(
-                    \Uzivatel::zId($tym['id_kapitan']),
-                    $odemykajici,
-                    'hromadne-odemceni-teamovych',
-                );
-                $odemcenoTymovychAktivit++;
+            $tym = dbOneLine('SELECT id_kapitan FROM akce_tym WHERE id = $0', [$idTymu]);
+            if (!$tym) {
+                continue;
             }
+            $kapitan = \Uzivatel::zId($tym['id_kapitan']);
+            $idAkci = dbOneArray('SELECT id_akce FROM akce_tym_akce WHERE id_tymu = $0', [$idTymu]);
+            foreach ($idAkci as $idAkce) {
+                Aktivita::zId($idAkce)->odhlas($kapitan, $odemykajici, 'hromadne-odemceni-teamovych');
+            }
+            $odemcenoTymovychAktivit++;
         }
 
         if ($odemcenoTymovychAktivit > 0) {

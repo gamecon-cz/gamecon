@@ -3,7 +3,6 @@
 $this->q(<<<SQL
 CREATE TABLE `akce_tym` (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `id_akce` bigint(20) UNSIGNED NOT NULL,
   `kod` int(6) UNSIGNED NOT NULL,
   `nazev` varchar(255) COLLATE utf8_czech_ci DEFAULT NULL,
   `limit` int(11) DEFAULT NULL COMMENT 'uživatelem (vedoucím týmu) nastavený limit kapacity menší roven team_max, ale větší roven team_min. ',
@@ -11,9 +10,7 @@ CREATE TABLE `akce_tym` (
   `zalozen` datetime DEFAULT NULL COMMENT 'používané pro automatické uveřejnění',
   `verejny` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  KEY (`id_akce`),
   KEY (`kod`),
-  FOREIGN KEY (`id_akce`) REFERENCES `akce_seznam` (`id_akce`),
   FOREIGN KEY (`id_kapitan`) REFERENCES `uzivatele_hodnoty` (`id_uzivatele`)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb3
