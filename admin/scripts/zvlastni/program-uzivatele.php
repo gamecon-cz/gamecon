@@ -37,7 +37,6 @@ if ($uPracovni) {
         | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0)
         | Aktivita::INTERNI,
     );
-    Aktivita::vyberTeamuZpracuj($uPracovni, $u);
 }
 
 $chyba = Chyba::vyzvedniHtml();

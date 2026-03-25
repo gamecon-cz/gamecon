@@ -79,8 +79,6 @@ class Aktivita
     const LOKACE_KLIC           = 'aEditLokace'; // název proměnné; v které jdou lokace
     const HLAVNI_LOKACE_KLIC    = 'aEditHlavniLokace'; // název proměnné; v které jdou lokace
     const POST_KLIC             = 'aEditForm'; // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
-    const TEAM_KLIC             = 'aTeamForm'; // název post proměnné s formulářem pro výběr teamu
-    const TEAM_KLIC_KOLA        = 'aTeamFormKolo'; // název post proměnné s výběrem kol pro team
     const PN_PLUSMINUSP         = 'cAktivitaPlusminusp'; // název post proměnné pro úpravy typu plus
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
     const HAJENI_TEAMU_HODIN    = 72; // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
@@ -3605,7 +3603,7 @@ SQL,
         return dbOneCol('SELECT vybaveni FROM akce_seznam WHERE id_akce = $1', [$this->id()]);
     }
 
-    // todo(tym): generovani formulare pro vyber tymu. Bude nějak sjednoceno s programem
+    // todo(tym): preact generovani formulare pro vyber tymu. Bude nějak sjednoceno s programem
     /**
      * Vrátí formulář pro výběr teamu na aktivitu. Pokud není zadán uživatel,
      * vrací nějakou false ekvivalentní hodnotu.
@@ -3621,7 +3619,7 @@ SQL,
         $zbyva = strtotime('now') + self::HAJENI_TEAMU_HODIN * 60 * 60 - time();
         $t->assign([
             'zbyva'                => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
-            'postname'             => self::TEAM_KLIC,
+            'postname'             => 'aTeamForm', // todo(tym): bude odebrano a nahrazeno
             'prihlasenyUzivatelId' => $u->id(),
             'aktivitaId'           => $this->id(),
             'cssUrlAutocomplete'   => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
@@ -3649,7 +3647,7 @@ SQL,
 
             // vybírací formy dle "kol"
             foreach ($urovne as $i => $uroven) {
-                $t->assign('postnameKolo', self::TEAM_KLIC_KOLA . '[' . $i . ']');
+                $t->assign('postnameKolo', 'aTeamFormKolo' . '[' . $i . ']'); // todo(tym): bude odebrano a nahrazeno
                 foreach ($uroven as $varianta) {
                     $t->assign([
                         'koloId' => $varianta->id(),
@@ -3665,7 +3663,7 @@ SQL,
 
         // políčka pro výběr míst
         for ($i = 0; $i < $this->neteamovaKapacita() - 1; $i++) {
-            $t->assign('postnameMisto', self::TEAM_KLIC . '[' . $i . ']');
+            $t->assign('postnameMisto', 'aTeamForm' . '[' . $i . ']'); // todo(tym): bude odebrano a nahrazeno
             if ($i >= $this->a[Sql::TEAM_MIN] - 1) { // -1 za týmlídra
                 $t->parse('formular.misto.odebrat');
             }
@@ -3683,55 +3681,6 @@ SQL,
         $t->parse('formular');
 
         return $t->text('formular');
-    }
-
-    // todo(tym): o tohle zpracování se postará API
-    /**
-     * Zpracuje data formuláře pro výběr teamu a vrátí případné chyby jako json.
-     * Ukončuje skript.
-     */
-    public static function vyberTeamuZpracuj(
-        ?Uzivatel $kapitan,
-        ?Uzivatel $prihlasujici,
-    ) {
-        if (!$kapitan || !post(self::TEAM_KLIC . 'Aktivita')) {
-            return;
-        }
-
-        $a = Aktivita::zId(post(self::TEAM_KLIC . 'Aktivita'));
-        if (!AktivitaTym::jeKapitanem($kapitan->id(), $a->id())) {
-            throw new \Chyba('Nejsi kapitán týmu.');
-        }
-
-        // načtení zvolených parametrů z formuláře (spoluhráči, kola, ...)
-        $up = post(self::TEAM_KLIC) ?? [];
-        $zamceno = 0;
-        foreach ($up as $i => $uid) {
-            if ($uid == -1 || !$uid) {
-                unset($up[$i]);
-            }
-            if ($uid == -1) {
-                $zamceno++;
-            }
-        }
-        $clenove = Uzivatel::zIds($up);
-        $novaKapacita = $a->neteamovaKapacita() - $zamceno;
-        $nazev = post(self::TEAM_KLIC . 'Nazev');
-        $dalsiKola = array_values(array_map(function (
-            $id,
-        ) { // array_map kvůli nutnosti zachovat pořadí
-            return self::zId($id);
-        }, post(self::TEAM_KLIC_KOLA)
-            ?: [])); // přihlášení týmu
-        try {
-            $a->prihlasTym($clenove, $prihlasujici, $nazev, $novaKapacita, $dalsiKola);
-            $chyby = [];
-        } catch (\Chyba $ch) {
-            $chyby = [$ch->getMessage()];
-        }
-
-        echo json_encode(['chyby' => $chyby]);
-        exit();
     }
 
     /**

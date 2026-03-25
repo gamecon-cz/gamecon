@@ -255,7 +255,6 @@ class Program
         }
 
         Aktivita::prihlasovatkoZpracuj($this->u, $prihlasujici);
-        Aktivita::vyberTeamuZpracuj($this->u, $prihlasujici);
     }
 
     ////////////////////

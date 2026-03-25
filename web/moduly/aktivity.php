@@ -20,7 +20,6 @@ $typ = $this->param('typ');
 // zpracování POST požadavků
 
 Aktivita::prihlasovatkoZpracuj($u, $u);
-Aktivita::vyberTeamuZpracuj($u, $u);
 Tym::vypisZpracuj($u);
 
 // aktivity
