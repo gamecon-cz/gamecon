@@ -78,34 +78,13 @@ class ProductTest extends TestCase
         $this->assertTrue($this->product->isAccommodation());
     }
 
-    public function testAmountFields(): void
+    public function testReservedForOrganizers(): void
     {
-        $this->assertNull($this->product->getAmountOrganizers());
-        $this->assertNull($this->product->getAmountParticipants());
-        $this->assertFalse($this->product->hasSeparateOrganizerAmount());
+        $this->assertNull($this->product->getReservedForOrganizers());
 
-        $this->product->setAmountOrganizers(10);
-        $this->product->setAmountParticipants(50);
+        $this->product->setReservedForOrganizers(10);
 
-        $this->assertSame(10, $this->product->getAmountOrganizers());
-        $this->assertSame(50, $this->product->getAmountParticipants());
-        $this->assertTrue($this->product->hasSeparateOrganizerAmount());
-    }
-
-    public function testGetTotalAmount(): void
-    {
-        // Using producedQuantity
-        $this->product->setProducedQuantity(100);
-        $this->assertSame(100, $this->product->getTotalAmount());
-
-        // Using separate amounts (overrides producedQuantity)
-        $this->product->setAmountOrganizers(10);
-        $this->product->setAmountParticipants(50);
-        $this->assertSame(60, $this->product->getTotalAmount());
-
-        // Only organizers amount set
-        $this->product->setAmountParticipants(null);
-        $this->assertSame(10, $this->product->getTotalAmount());
+        $this->assertSame(10, $this->product->getReservedForOrganizers());
     }
 
     public function testIsAvailable(): void
