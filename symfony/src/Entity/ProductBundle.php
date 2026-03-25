@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\RoleMeaning;
 use App\Repository\ProductBundleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -180,11 +181,11 @@ class ProductBundle
     // ==================== Helper Methods ====================
 
     /**
-     * Check if bundle applies to a specific role
+     * Check if bundle applies to a specific role meaning
      */
-    public function appliesToRole(string $role): bool
+    public function appliesToRole(RoleMeaning $role): bool
     {
-        return in_array($role, $this->applicableToRoles, true);
+        return in_array($role->value, $this->applicableToRoles, true);
     }
 
     /**
@@ -227,18 +228,18 @@ class ProductBundle
     }
 
     /**
-     * Check if user with given roles must purchase this bundle
+     * Check if user with given role meanings must purchase this bundle
      *
-     * @param string[] $userRoles
+     * @param RoleMeaning[] $roleMeanings
      */
-    public function isMandatoryForUser(array $userRoles): bool
+    public function isMandatoryForUser(array $roleMeanings): bool
     {
         if (! $this->forced) {
             return false;
         }
 
-        foreach ($userRoles as $userRole) {
-            if ($this->appliesToRole($userRole)) {
+        foreach ($roleMeanings as $meaning) {
+            if ($this->appliesToRole($meaning)) {
                 return true;
             }
         }

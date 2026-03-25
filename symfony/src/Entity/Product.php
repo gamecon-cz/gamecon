@@ -151,15 +151,10 @@ class Product
     #[Groups(['product:read'])]
     private ?\DateTimeImmutable $archivedAt = null;
 
-    #[ORM\Column(name: 'amount_organizers', type: Types::INTEGER, nullable: true)]
-    #[Assert\PositiveOrZero(message: 'Množství pro organizátory musí být kladné číslo nebo nula')]
+    #[ORM\Column(name: 'reserved_for_organizers', type: Types::INTEGER, nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Rezervace pro organizátory musí být kladné číslo nebo nula')]
     #[Groups(['product:read', 'product:write'])]
-    private ?int $amountOrganizers = null;
-
-    #[ORM\Column(name: 'amount_participants', type: Types::INTEGER, nullable: true)]
-    #[Assert\PositiveOrZero(message: 'Množství pro účastníky musí být kladné číslo nebo nula')]
-    #[Groups(['product:read', 'product:write'])]
-    private ?int $amountParticipants = null;
+    private ?int $reservedForOrganizers = null;
 
     /**
      * @var Collection<int, ProductTag>
@@ -170,6 +165,16 @@ class Product
     #[ORM\InverseJoinColumn(name: 'tag_id', referencedColumnName: 'id')]
     #[Groups(['product:read', 'product:write'])]
     private Collection $tags;
+
+    /**
+     * @var Collection<int, ProductVariant>
+     */
+    #[ORM\OneToMany(targetEntity: ProductVariant::class, mappedBy: 'product', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy([
+        'position' => 'ASC',
+    ])]
+    #[Groups(['product:read'])]
+    private Collection $variants;
 
     /**
      * @var Collection<int, ProductBundle>
@@ -199,6 +204,7 @@ class Product
     public function __construct()
     {
         $this->tags = new ArrayCollection();
+        $this->variants = new ArrayCollection();
         $this->bundles = new ArrayCollection();
         $this->discounts = new ArrayCollection();
         $this->orderItems = new ArrayCollection();
@@ -320,26 +326,14 @@ class Product
         return $this;
     }
 
-    public function getAmountOrganizers(): ?int
+    public function getReservedForOrganizers(): ?int
     {
-        return $this->amountOrganizers;
+        return $this->reservedForOrganizers;
     }
 
-    public function setAmountOrganizers(?int $amountOrganizers): self
+    public function setReservedForOrganizers(?int $reservedForOrganizers): self
     {
-        $this->amountOrganizers = $amountOrganizers;
-
-        return $this;
-    }
-
-    public function getAmountParticipants(): ?int
-    {
-        return $this->amountParticipants;
-    }
-
-    public function setAmountParticipants(?int $amountParticipants): self
-    {
-        $this->amountParticipants = $amountParticipants;
+        $this->reservedForOrganizers = $reservedForOrganizers;
 
         return $this;
     }
@@ -350,6 +344,36 @@ class Product
     public function getTags(): Collection
     {
         return $this->tags;
+    }
+
+    /**
+     * @return Collection<int, ProductVariant>
+     */
+    public function getVariants(): Collection
+    {
+        return $this->variants;
+    }
+
+    public function addVariant(ProductVariant $variant): self
+    {
+        if (! $this->variants->contains($variant)) {
+            $this->variants->add($variant);
+            $variant->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVariant(ProductVariant $variant): self
+    {
+        $this->variants->removeElement($variant);
+
+        return $this;
+    }
+
+    public function hasVariants(): bool
+    {
+        return ! $this->variants->isEmpty();
     }
 
     /**
@@ -479,29 +503,6 @@ class Product
     public function isAccommodation(): bool
     {
         return $this->hasTag('ubytovani');
-    }
-
-    /**
-     * Check if product has separate amount for organizers
-     */
-    public function hasSeparateOrganizerAmount(): bool
-    {
-        return $this->amountOrganizers !== null && $this->amountOrganizers > 0;
-    }
-
-    /**
-     * Get total amount (organizers + participants)
-     */
-    public function getTotalAmount(): ?int
-    {
-        if ($this->amountOrganizers === null && $this->amountParticipants === null) {
-            return $this->producedQuantity;
-        }
-
-        $orgAmount = $this->amountOrganizers ?? 0;
-        $participantAmount = $this->amountParticipants ?? 0;
-
-        return $orgAmount + $participantAmount;
     }
 
     /**

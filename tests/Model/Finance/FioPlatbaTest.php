@@ -17,6 +17,10 @@ class FioPlatbaTest extends TestCase
      */
     public function muzemeNacistVariabilniSymbolZeZpravyNeboPoznamky(array $transaction, string $expectedVs, ?int $ocekavaneIdUcastnika)
     {
+        if (!defined('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY')) {
+            define('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY', 'Příliš žluťoučký kůň úpěl ďábelské ódy');
+        }
+
         $adresar = LOGY . '/fio';
         if (! is_dir($adresar)) {
             mkdir($adresar, 0777, true);
@@ -506,10 +510,7 @@ class FioPlatbaTest extends TestCase
                     ],
                     [
                         'name'  => 'Komentář',
-                        'value' => (define('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY', 'Příliš žluťoučký kůň úpěl ďábelské ódy')
-                                ? 'PrIl  is Zluťouč kY kúŇ upěl ďabelskéOdy     '
-                                : ''
-                        ) . '90909090',
+                        'value' => 'PrIl  is Zluťouč kY kúŇ upěl ďabelskéOdy     90909090',
                     ],
                 ],
                 '7654321',

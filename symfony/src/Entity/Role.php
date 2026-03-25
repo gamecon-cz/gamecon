@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\RoleMeaning;
 use App\Repository\RoleRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -38,8 +39,8 @@ class Role
     #[ORM\Column(name: 'typ_role', length: 24, nullable: false)]
     private string $typRole;
 
-    #[ORM\Column(name: 'vyznam_role', length: 48, nullable: false)]
-    private string $vyznamRole;
+    #[ORM\Column(name: 'vyznam_role', length: 48, nullable: false, enumType: RoleMeaning::class)]
+    private RoleMeaning $vyznamRole;
 
     #[ORM\Column(name: 'skryta', type: Types::BOOLEAN, nullable: true, options: [
         'default' => 0,
@@ -122,12 +123,12 @@ class Role
         return $this;
     }
 
-    public function getVyznamRole(): string
+    public function getVyznamRole(): RoleMeaning
     {
         return $this->vyznamRole;
     }
 
-    public function setVyznamRole(string $vyznamRole): static
+    public function setVyznamRole(RoleMeaning $vyznamRole): static
     {
         $this->vyznamRole = $vyznamRole;
 

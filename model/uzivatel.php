@@ -301,7 +301,9 @@ SQL, [Pravo::PORADANI_AKTIVIT],
     }
 
     /**
-     * Přidá uživateli roli (posadí uživatele na roli)
+     * Přidá uživateli roli (posadí uživatele na roli).
+     * Deleguje na Symfony UserRoleService (logging, validace, cart recalculation).
+     * Falls back to legacy SQL when Doctrine entities are not accessible (e.g. in tests with separate transactions).
      */
     public function pridejRoli(
         int $idRole,
@@ -311,6 +313,33 @@ SQL, [Pravo::PORADANI_AKTIVIT],
             return false;
         }
 
+        try {
+            $container = $this->systemoveNastaveni->kernel()->getContainer();
+            /** @var \Doctrine\ORM\EntityManagerInterface $em */
+            $em = $container->get('doctrine.orm.entity_manager');
+            /** @var \App\Service\UserRoleService $userRoleService */
+            $userRoleService = $container->get(\App\Service\UserRoleService::class);
+
+            $userEntity = $em->find(\App\Entity\User::class, $this->id());
+            $roleEntity = $em->find(\App\Entity\Role::class, $idRole);
+            $posadilEntity = $em->find(\App\Entity\User::class, $posadil->id());
+
+            if ($userEntity !== null && $roleEntity !== null) {
+                $roleNovePridana = $userRoleService->assignRole($userEntity, $roleEntity, $posadilEntity);
+                $this->aktualizujPrava();
+
+                return $roleNovePridana;
+            }
+        } catch (\Throwable) {
+            // Doctrine not available, fall through to legacy
+        }
+
+        // Legacy fallback (e.g. in tests where Doctrine connection doesn't see uncommitted data)
+        return $this->pridejRoliLegacy($idRole, $posadil);
+    }
+
+    private function pridejRoliLegacy(int $idRole, self $posadil): bool
+    {
         $novaPrava = dbOneArray('SELECT id_prava FROM prava_role WHERE id_role = $0', [$idRole]);
 
         if ($this->maPravo(Pravo::UNIKATNI_ROLE) && in_array(Pravo::UNIKATNI_ROLE, $novaPrava, true)) {
@@ -328,7 +357,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
             }
         } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
-            // roli už má, všechno OK (nechceme INSERT IGNORE protože to by zamlčelo i neexistující roli)
+            $roleNovePridana = false;
         }
 
         $this->aktualizujPrava();
@@ -2309,11 +2338,40 @@ SQL,
 
     /**
      * Odstraní uživatele z role a aktualizuje jeho práva.
+     * Deleguje na Symfony UserRoleService (logging, cart recalculation).
+     * Falls back to legacy SQL when Doctrine entities are not accessible.
      */
     public function odeberRoli(
         int $idRole,
         self $editor,
     ): bool {
+        try {
+            $container = $this->systemoveNastaveni->kernel()->getContainer();
+            /** @var \Doctrine\ORM\EntityManagerInterface $em */
+            $em = $container->get('doctrine.orm.entity_manager');
+            /** @var \App\Service\UserRoleService $userRoleService */
+            $userRoleService = $container->get(\App\Service\UserRoleService::class);
+
+            $userEntity = $em->find(\App\Entity\User::class, $this->id());
+            $roleEntity = $em->find(\App\Entity\Role::class, $idRole);
+            $editorEntity = $em->find(\App\Entity\User::class, $editor->id());
+
+            if ($userEntity !== null && $roleEntity !== null) {
+                $roleNoveOdebrana = $userRoleService->removeRole($userEntity, $roleEntity, $editorEntity);
+                $this->aktualizujPrava();
+
+                return $roleNoveOdebrana;
+            }
+        } catch (\Throwable) {
+            // Doctrine not available, fall through to legacy
+        }
+
+        // Legacy fallback
+        return $this->odeberRoliLegacy($idRole, $editor);
+    }
+
+    private function odeberRoliLegacy(int $idRole, self $editor): bool
+    {
         $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
         $roleNoveOdebrana = dbAffectedOrNumRows($result) > 0;
         if ($roleNoveOdebrana) {

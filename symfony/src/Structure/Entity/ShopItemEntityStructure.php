@@ -60,14 +60,9 @@ class ShopItemEntityStructure
     public const archivedAt = 'archivedAt';
 
     /**
-     * @see ShopItem::$amountOrganizers
+     * @see ShopItem::$reservedForOrganizers
      */
-    public const amountOrganizers = 'amountOrganizers';
-
-    /**
-     * @see ShopItem::$amountParticipants
-     */
-    public const amountParticipants = 'amountParticipants';
+    public const reservedForOrganizers = 'reservedForOrganizers';
 
     /**
      * @see ShopItem::$vedlejsi

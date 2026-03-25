@@ -34,7 +34,9 @@ bash:
 
 ci: init static tests
 
-tests:
+tests: phpunit
+
+phpunit:
 	./bin-docker/docker-bash bin/phpunit.sh
 
 phpstan:
@@ -67,6 +69,3 @@ migrations-diff:
 	./bin-docker/php ./bin/console --env=test migrations:create structures rename-me
 	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec echo NO CHANGES, removing empty {} \;
 	@find ./symfony/migrations/structures -type f -name '*-rename-me.sql' -empty -exec rm {} \;
-
-migrations-run:
-	./bin-docker/php ./bin/console migrations:continue

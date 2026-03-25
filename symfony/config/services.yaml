@@ -32,6 +32,14 @@ services:
         parent: 'clock'
         public: true
 
+    # UserRoleService - accessed from legacy code via container
+    App\Service\UserRoleService:
+        public: true
+
+    # CurrentYearProvider
+    App\Service\CurrentYearProviderInterface:
+        class: App\Service\CurrentYearProvider
+
     # JWT service for cross-app authentication
     App\Service\JwtService:
         public: true

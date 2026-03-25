@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Product;
 use App\Entity\ProductDiscount;
 use App\Entity\User;
+use App\Enum\RoleMeaning;
 use App\Repository\OrderItemRepository;
 use App\Repository\ProductDiscountRepository;
 
@@ -147,12 +148,12 @@ class DiscountCalculator
     }
 
     /**
-     * Get user role codes for discount matching
+     * Get user role meanings for discount matching
      *
-     * @return string[]
+     * @return RoleMeaning[]
      */
     private function getUserRoles(User $user): array
     {
-        return $user->getRoleCodes();
+        return $user->getRoleMeanings();
     }
 }

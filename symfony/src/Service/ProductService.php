@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\RoleMeaning;
 use App\Repository\ProductRepository;
 use App\Repository\ProductTagRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -172,28 +174,30 @@ class ProductService
 
     /**
      * Check if product can be purchased by user
+     *
+     * @param RoleMeaning[] $roleMeanings
      */
-    public function canPurchase(Product $product, User $user, int $year, string $userRole = 'ucastnik'): bool
+    public function canPurchase(Product $product, ProductVariant $variant, array $roleMeanings = []): bool
     {
-        // Check if product is available
         if (! $product->isAvailable()) {
             return false;
         }
 
-        // Check capacity
-        return $this->capacityManager->hasAvailableCapacity($product, $user, $year, $userRole);
+        return $this->capacityManager->hasAvailableCapacity($variant, $roleMeanings);
     }
 
     /**
      * Get product availability info
      *
+     * @param RoleMeaning[] $roleMeanings
+     *
      * @return array{
      *     available: bool,
      *     reason: string|null,
-     *     capacity: array{total: int, sold: int, available: int, percentSold: float}|null
+     *     capacity: array{remaining: int|null, reserved: int, availableForParticipants: int|null, unlimited: bool}|null
      * }
      */
-    public function getAvailabilityInfo(Product $product, User $user, int $year, string $userRole = 'ucastnik'): array
+    public function getAvailabilityInfo(Product $product, ProductVariant $variant, array $roleMeanings = []): array
     {
         if (! $product->isAvailable()) {
             return [
@@ -203,9 +207,9 @@ class ProductService
             ];
         }
 
-        $capacityInfo = $this->capacityManager->getCapacityInfo($product, $year, $userRole);
+        $capacityInfo = $this->capacityManager->getCapacityInfo($variant);
 
-        if ($capacityInfo['available'] <= 0) {
+        if ($capacityInfo['remaining'] !== null && $variant->getAvailableQuantity($roleMeanings) <= 0) {
             return [
                 'available' => false,
                 'reason'    => 'Vyprodáno',
