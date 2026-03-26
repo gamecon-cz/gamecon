@@ -100,4 +100,9 @@ class OrderItemSqlStructure
      * @see OrderItem::$variant
      */
     public const variant_id = 'variant_id';
+
+    /**
+     * @see OrderItem::$bundle
+     */
+    public const bundle_id = 'bundle_id';
 }

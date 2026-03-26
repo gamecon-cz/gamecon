@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\ProductVariant;
 use App\Enum\RoleMeaning;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * CapacityManager - manages variant stock with atomic DB operations
@@ -21,6 +22,7 @@ class CapacityManager
 {
     public function __construct(
         private readonly Connection $connection,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -85,8 +87,7 @@ class CapacityManager
             throw new \RuntimeException(sprintf('Nedostatečná kapacita pro produkt "%s". Požadované: %d', $variant->getFullName(), $quantity));
         }
 
-        // Sync entity state with DB
-        $variant->setRemainingQuantity($variant->getRemainingQuantity() - $quantity);
+        $this->entityManager->refresh($variant);
     }
 
     /**
@@ -108,8 +109,7 @@ class CapacityManager
             ],
         );
 
-        // Sync entity state
-        $variant->setRemainingQuantity($variant->getRemainingQuantity() + $quantity);
+        $this->entityManager->refresh($variant);
     }
 
     /**

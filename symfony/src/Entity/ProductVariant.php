@@ -81,9 +81,16 @@ class ProductVariant
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'variant')]
     private Collection $orderItems;
 
+    /**
+     * @var Collection<int, ProductBundle>
+     */
+    #[ORM\ManyToMany(targetEntity: ProductBundle::class, mappedBy: 'variants')]
+    private Collection $bundles;
+
     public function __construct()
     {
         $this->orderItems = new ArrayCollection();
+        $this->bundles = new ArrayCollection();
     }
 
     // ==================== Getters and Setters ====================
@@ -195,6 +202,14 @@ class ProductVariant
     public function getOrderItems(): Collection
     {
         return $this->orderItems;
+    }
+
+    /**
+     * @return Collection<int, ProductBundle>
+     */
+    public function getBundles(): Collection
+    {
+        return $this->bundles;
     }
 
     // ==================== Inherited/Effective Values ====================

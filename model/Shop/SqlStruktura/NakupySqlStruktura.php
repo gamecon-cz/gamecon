@@ -26,5 +26,6 @@ class NakupySqlStruktura
     public const VARIANT_ID         = 'variant_id';
     public const VARIANT_NAME       = 'variant_name';
     public const VARIANT_CODE       = 'variant_code';
+    public const BUNDLE_ID          = 'bundle_id';
 
 }

@@ -75,11 +75,6 @@ class ProductEntityStructure
     public const variants = 'variants';
 
     /**
-     * @see Product::$bundles
-     */
-    public const bundles = 'bundles';
-
-    /**
      * @see Product::$discounts
      */
     public const discounts = 'discounts';

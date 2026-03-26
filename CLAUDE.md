@@ -21,7 +21,10 @@ GameCon is a Czech PHP web application for managing the largest Czechoslovak non
                   Migration files should be prefixed with `date +"%Y-%m-%d-%H%M%S"` (e.g., `2026-03-07-161642_some-description.php`)
 /nastaveni/     - Configuration files
 /vendor/        - Composer dependencies
+/symfony/var/   - Symfony cache, logs, temporary files (NOT /var/)
 ```
+
+**Important:** This project does NOT have a `/var/` directory. Use `/symfony/var/` for temporary scripts and files.
 
 ## Key Model Components
 - `Uzivatel/` - User management, roles, payments

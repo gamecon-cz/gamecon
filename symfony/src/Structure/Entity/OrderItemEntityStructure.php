@@ -98,4 +98,9 @@ class OrderItemEntityStructure
      * @see OrderItem::$variant
      */
     public const variant = 'variant';
+
+    /**
+     * @see OrderItem::$bundle
+     */
+    public const bundle = 'bundle';
 }

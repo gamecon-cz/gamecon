@@ -17,7 +17,7 @@ class FioPlatbaTest extends TestCase
      */
     public function muzemeNacistVariabilniSymbolZeZpravyNeboPoznamky(array $transaction, string $expectedVs, ?int $ocekavaneIdUcastnika)
     {
-        if (!defined('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY')) {
+        if (! defined('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY')) {
             define('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY', 'Příliš žluťoučký kůň úpěl ďábelské ódy');
         }
 

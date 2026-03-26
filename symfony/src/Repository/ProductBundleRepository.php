@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Entity\Product;
 use App\Entity\ProductBundle;
+use App\Entity\ProductVariant;
+use App\Enum\RoleMeaning;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -90,33 +91,33 @@ class ProductBundleRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find bundles containing a specific product
+     * Find bundles containing a specific variant
      *
      * @return ProductBundle[]
      */
-    public function findByProduct(Product $product): array
+    public function findByVariant(ProductVariant $variant): array
     {
         return $this->createQueryBuilder('pb')
-            ->innerJoin('pb.products', 'p')
-            ->where('p = :product')
-            ->setParameter('product', $product)
+            ->innerJoin('pb.variants', 'v')
+            ->where('v = :variant')
+            ->setParameter('variant', $variant)
             ->orderBy('pb.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * Find forced bundles containing a specific product
+     * Find forced bundles containing a specific variant
      *
      * @return ProductBundle[]
      */
-    public function findForcedByProduct(Product $product): array
+    public function findForcedByVariant(ProductVariant $variant): array
     {
         return $this->createQueryBuilder('pb')
-            ->innerJoin('pb.products', 'p')
-            ->where('p = :product')
+            ->innerJoin('pb.variants', 'v')
+            ->where('v = :variant')
             ->andWhere('pb.forced = :forced')
-            ->setParameter('product', $product)
+            ->setParameter('variant', $variant)
             ->setParameter('forced', true)
             ->orderBy('pb.name', 'ASC')
             ->getQuery()
@@ -124,17 +125,17 @@ class ProductBundleRepository extends ServiceEntityRepository
     }
 
     /**
-     * Check if product is part of a forced bundle for given role
+     * Check if variant is part of a forced bundle for given role
      */
-    public function isProductInForcedBundleForRole(Product $product, string $role): bool
+    public function isVariantInForcedBundleForRole(ProductVariant $variant, string $role): bool
     {
         $count = $this->createQueryBuilder('pb')
             ->select('COUNT(pb.id)')
-            ->innerJoin('pb.products', 'p')
-            ->where('p = :product')
+            ->innerJoin('pb.variants', 'v')
+            ->where('v = :variant')
             ->andWhere('pb.forced = :forced')
             ->andWhere('JSON_CONTAINS(pb.applicableToRoles, :role) = 1')
-            ->setParameter('product', $product)
+            ->setParameter('variant', $variant)
             ->setParameter('forced', true)
             ->setParameter('role', json_encode($role))
             ->getQuery()
@@ -171,5 +172,36 @@ class ProductBundleRepository extends ServiceEntityRepository
         $qb->orderBy('pb.name', 'ASC');
 
         return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Find the forced bundle a variant belongs to for the given roles.
+     * Returns null if the variant can be purchased individually.
+     *
+     * @param RoleMeaning[] $roleMeanings
+     */
+    public function findMandatoryBundleForVariant(ProductVariant $variant, array $roleMeanings): ?ProductBundle
+    {
+        if ($roleMeanings === []) {
+            return null;
+        }
+
+        $qb = $this->createQueryBuilder('pb')
+            ->innerJoin('pb.variants', 'v')
+            ->where('v = :variant')
+            ->andWhere('pb.forced = :forced')
+            ->setParameter('variant', $variant)
+            ->setParameter('forced', true);
+
+        $orX = $qb->expr()->orX();
+        foreach ($roleMeanings as $index => $meaning) {
+            $orX->add(sprintf('JSON_CONTAINS(pb.applicableToRoles, :role%s) = 1', $index));
+            $qb->setParameter('role' . $index, json_encode($meaning->value));
+        }
+
+        $qb->andWhere($orX);
+        $qb->setMaxResults(1);
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 }
