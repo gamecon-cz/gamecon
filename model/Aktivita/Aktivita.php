@@ -852,7 +852,7 @@ SQL
         );
 
         $vsichniOrg = [];
-        while ($uzivatelData = mysqli_fetch_assoc($q)) {
+        while ($uzivatelData = $q->fetch(\PDO::FETCH_ASSOC)) {
             $vsichniOrg[$uzivatelData['id_uzivatele']] = Uzivatel::jmenoNickZjisti($uzivatelData);
         }
         $aktOrg = $aktivita
@@ -3601,7 +3601,7 @@ SQL,
         static $typy;
         if (!$typy) {
             $o = dbQuery('SELECT id_typu, url_typu_mn FROM akce_typy');
-            while ($r = mysqli_fetch_row($o)) {
+            while ($r = $o->fetch(\PDO::FETCH_NUM)) {
                 $typy[$r[0]] = $r[1];
             }
         }

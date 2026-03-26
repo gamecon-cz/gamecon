@@ -39,8 +39,8 @@ if (post('novaMistnost')) {
 $tpl = new XTemplate(__DIR__ . '/mistnosti.xtpl');
 
 $o = dbQuery('SELECT * FROM lokace ORDER BY poradi');
-$l = mysqli_num_rows($o);
-for ($i = 0; $r = mysqli_fetch_assoc($o); $i++) {
+$l = $o->rowCount();
+for ($i = 0; $r = $o->fetch(PDO::FETCH_ASSOC); $i++) {
     $tpl->assign($r);
     if ($i > 0)
         $tpl->parse('mistnosti.mistnost.nahoru');

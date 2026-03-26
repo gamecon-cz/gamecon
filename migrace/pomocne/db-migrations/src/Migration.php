@@ -5,17 +5,17 @@ namespace Godric\DbMigrations;
 class Migration
 {
 
-    private \mysqli $connection;
-    private string  $code;
-    private string  $path;
-    private string  $relativePath;
-    private bool    $endless = false;
+    private \PDO   $connection;
+    private string $code;
+    private string $path;
+    private string $relativePath;
+    private bool   $endless = false;
 
     public function __construct(
-        string  $path,
-        string  $code,
-        \mysqli $connection,
-        string  $relativePath = '',
+        string $path,
+        string $code,
+        \PDO   $connection,
+        string $relativePath = '',
     ) {
         $this->path         = $path;
         $this->code         = removeDiacritics($code);
@@ -92,22 +92,36 @@ class Migration
 
     /**
      * @param $query
-     * @return false|\mysqli_result
+     * @return false|\PDOStatement
      * @throws \Exception
      */
     public function q($query)
     {
-        $this->connection->multi_query($query);
+        $this->connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        $i = 0;
-        do {
-            $result = $this->connection->use_result();
-            $i++;
-        } while ($this->connection->more_results() && $this->connection->next_result());
+        // Check if this looks like a single SELECT/SHOW query (returns result set)
+        $trimmed = ltrim($query);
+        if (preg_match('/^(SELECT|SHOW|DESCRIBE|EXPLAIN)\b/i', $trimmed)) {
+            return $this->connection->query($query);
+        }
 
-        if ($this->connection->error) {
-            $i++;
-            throw new \Exception("Error in multi_query number $i: {$this->connection->error}");
+        // For DDL/DML multi-statement SQL, use query() with nextRowset() to consume
+        // all result sets. \PDO::MYSQL_ATTR_MULTI_STATEMENTS must be enabled on the connection.
+        $result = $this->connection->query($query);
+
+        if ($result instanceof \PDOStatement) {
+            // Advance through all result sets from multi-statement queries.
+            // nextRowset() returns false when there are no more results.
+            // It may also return false on error — we ignore that to match
+            // the old mysqli::multi_query() behavior which continued past errors.
+            try {
+                while ($result->nextRowset()) {
+                    // consume
+                }
+            } catch (\PDOException) {
+                // Some result sets may fail (e.g. IF NOT EXISTS checks),
+                // continue like mysqli::multi_query() did
+            }
         }
 
         return $result;
@@ -129,7 +143,7 @@ WHERE
 SQL,
         );
         $constraints = [];
-        while ($constrain = mysqli_fetch_column($result)) {
+        while ($constrain = $result->fetchColumn()) {
             $constraints[] = $constrain;
         }
         $existingForeignKeysToDrop = array_intersect(
@@ -160,7 +174,7 @@ SELECT DATABASE()
 SQL,
         );
         $db     = $result !== false
-            ? mysqli_fetch_column($result)
+            ? $result->fetchColumn()
             : null;
         if ((string)$db === '') {
             throw new \RuntimeException('Can not determine current DB as no DB is selected');

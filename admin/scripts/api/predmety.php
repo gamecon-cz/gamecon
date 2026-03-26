@@ -50,7 +50,7 @@ $o = dbQuery('
   GROUP BY p.id_predmetu
   ORDER BY nazev');
 
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $res[] = [
         'nazev' => $r['nazev'],
         'zbyva' => intvalOrNull($r['zbyva']),

@@ -34,7 +34,9 @@ if (!defined('UNIT_TESTS') || !UNIT_TESTS) {
             dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
             $dbMigrations->getWebGui()?->writeMessage(' vytvořena.');
             $dbMigrations->getWebGui()?->writeMessage('Nahrávám anonymizovanou databázi...', '');
-            (new \MySQLImport($connection))->load(__DIR__ . '/../migrace/pomocne/gc_anonymizovana_databaze.sql');
+            $mysqliConn = dbConnectMysqli();
+            (new \MySQLImport($mysqliConn))->load(__DIR__ . '/../migrace/pomocne/gc_anonymizovana_databaze.sql');
+            mysqli_close($mysqliConn);
             $dbMigrations->getWebGui()?->writeMessage(' nahrána.');
             $dbMigrations->getWebGui()?->writeMessage(
                 sprintf(

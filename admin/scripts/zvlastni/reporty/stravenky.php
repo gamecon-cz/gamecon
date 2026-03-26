@@ -78,7 +78,7 @@ SQL,
 
 $res = [];
 
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $res[] = $r;
 }
 
