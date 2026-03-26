@@ -30,7 +30,7 @@ $columnExists = $this->q(<<<SQL
         AND TABLE_NAME = 'migrations'
         AND COLUMN_NAME = 'migration_path'
     SQL,
-)->fetch_assoc()['cnt'];
+)->fetch(PDO::FETCH_ASSOC)['cnt'];
 
 if ($columnExists > 0) {
     // Column already exists, but migration_code might still need dropping
@@ -41,7 +41,7 @@ if ($columnExists > 0) {
             AND TABLE_NAME = 'migrations'
             AND COLUMN_NAME = 'migration_code'
         SQL,
-    )->fetch_assoc()['cnt'];
+    )->fetch(PDO::FETCH_ASSOC)['cnt'];
 
     if ($codeColumnExists == 0) {
         return;
