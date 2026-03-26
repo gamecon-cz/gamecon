@@ -40,7 +40,7 @@ class ProductBundleEntityStructure
     public const updatedAt = 'updatedAt';
 
     /**
-     * @see ProductBundle::$products
+     * @see ProductBundle::$variants
      */
-    public const products = 'products';
+    public const variants = 'variants';
 }

@@ -62,6 +62,10 @@ class OrderItem
     #[ORM\JoinColumn(name: 'variant_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?ProductVariant $variant = null;
 
+    #[ORM\ManyToOne(targetEntity: ProductBundle::class)]
+    #[ORM\JoinColumn(name: 'bundle_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?ProductBundle $bundle = null;
+
     #[ORM\Column(name: 'rok', type: Types::SMALLINT, nullable: false)]
     #[Assert\Positive(message: 'Rok musí být kladné číslo')]
     private int $year;
@@ -182,6 +186,18 @@ class OrderItem
     public function setVariant(?ProductVariant $variant): self
     {
         $this->variant = $variant;
+
+        return $this;
+    }
+
+    public function getBundle(): ?ProductBundle
+    {
+        return $this->bundle;
+    }
+
+    public function setBundle(?ProductBundle $bundle): self
+    {
+        $this->bundle = $bundle;
 
         return $this;
     }
