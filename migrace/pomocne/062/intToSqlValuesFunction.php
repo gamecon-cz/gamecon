@@ -1,5 +1,5 @@
 <?php
-return static function(array $values, \mysqli $db): string {
+return static function(array $values, \PDO $db): string {
   return implode(
     ",\n", // ('foo','bar'),('baz','quz')
     array_map(
@@ -16,7 +16,7 @@ return static function(array $values, \mysqli $db): string {
                 if (preg_match('~^[(].+[)]$~', $value)) {
                   return $value; // some sub-select
                 }
-                return sprintf("'%s'", mysqli_real_escape_string($db, $value));
+                return sprintf("'%s'", substr($db->quote($value), 1, -1));
               },
               $row
             )
