@@ -177,13 +177,6 @@ class Product
     private Collection $variants;
 
     /**
-     * @var Collection<int, ProductBundle>
-     */
-    #[ORM\ManyToMany(targetEntity: ProductBundle::class, mappedBy: 'products')]
-    #[Groups(['product:read'])]
-    private Collection $bundles;
-
-    /**
      * @var Collection<int, ProductDiscount>
      */
     #[ORM\OneToMany(targetEntity: ProductDiscount::class, mappedBy: 'product', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -205,7 +198,6 @@ class Product
     {
         $this->tags = new ArrayCollection();
         $this->variants = new ArrayCollection();
-        $this->bundles = new ArrayCollection();
         $this->discounts = new ArrayCollection();
         $this->orderItems = new ArrayCollection();
         $this->cancelledOrderItems = new ArrayCollection();
@@ -374,14 +366,6 @@ class Product
     public function hasVariants(): bool
     {
         return ! $this->variants->isEmpty();
-    }
-
-    /**
-     * @return Collection<int, ProductBundle>
-     */
-    public function getBundles(): Collection
-    {
-        return $this->bundles;
     }
 
     /**

@@ -58,4 +58,9 @@ class ProductVariantEntityStructure
      * @see ProductVariant::$orderItems
      */
     public const orderItems = 'orderItems';
+
+    /**
+     * @see ProductVariant::$bundles
+     */
+    public const bundles = 'bundles';
 }
