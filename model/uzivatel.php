@@ -1023,7 +1023,7 @@ WHERE uzivatele_role.id_uzivatele = $0
     AND role.vyznam_role = '{$prihlasen}'
 SQL,
                 [$this->id()]);
-            $rokyWrapped = mysqli_fetch_all($q);
+            $rokyWrapped = $q->fetchAll();
             $roky = array_map(fn (
                 $e,
             ) => (int) $e[0], $rokyWrapped);
@@ -1856,7 +1856,7 @@ WHERE platne_role_uzivatelu.id_uzivatele={$idUzivatele}
 SQL,
         );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p)) {
+        while ($r = $p->fetch(PDO::FETCH_ASSOC)) {
             $prava[] = (int) $r['id_prava'];
         }
         $uzivatelData['prava'] = $prava;
@@ -1891,7 +1891,7 @@ SQL,
             'SELECT id_prava FROM platne_role_uzivatelu uz LEFT JOIN prava_role pz USING(id_role) WHERE uz.id_uzivatele=' . $idUzivatele,
         );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p)) {
+        while ($r = $p->fetch(PDO::FETCH_ASSOC)) {
             $prava[] = (int) $r['id_prava'];
         }
         $uzivatelData['prava'] = $prava;
@@ -3155,7 +3155,7 @@ SQL;
         $query = self::dotaz(where: $where);
         $o = dbQuery($query);
         $uzivatele = [];
-        while ($r = mysqli_fetch_assoc($o)) {
+        while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
             $u = new self($r);
             $u->r['prava'] = explode(',', $u->r['prava'] ?? '');
             $uzivatele[] = $u;

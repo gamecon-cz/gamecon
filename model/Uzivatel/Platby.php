@@ -112,7 +112,7 @@ class Platby
             [0 => $rocnik],
             dbConnectTemporary(),
         );
-        while ($id = mysqli_fetch_column($result)) {
+        while ($id = $result->fetchColumn()) {
             yield Platba::zId($id, true);
         }
     }
