@@ -14,6 +14,7 @@ use App\Entity\UserRole;
 use App\Enum\RoleMeaning;
 use App\Repository\OrderRepository;
 use App\Repository\ProductBundleRepository;
+use App\Service\BulkCancelService;
 use App\Service\CapacityManager;
 use App\Service\CartService;
 use App\Service\CurrentYearProvider;
@@ -330,7 +331,163 @@ class EshopIntegrationTest extends AbstractTestDb
         $this->assertTrue(true);
     }
 
+    // ==================== 7. BulkCancelService with real DB ====================
+
+    public function testBulkCancelAllForUserArchivesAndReturnsStock(): void
+    {
+        $cartService = $this->createCartService();
+        $bulkCancelService = $this->createBulkCancelService();
+        $user = $this->em->find(User::class, 89901);
+        $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
+
+        $stockBefore = (int) $this->connection->fetchOne(
+            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
+            ['id' => self::$variantM->getId()],
+        );
+
+        // Add 2 items to cart
+        $cart = $cartService->getOrCreateCart($user);
+        $item1 = $cartService->addItem($cart, $variant);
+        $this->em->clear();
+
+        $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
+        $cart = $this->em->find(Order::class, $cart->getId());
+        $item2 = $cartService->addItem($cart, $variant);
+
+        $stockAfterPurchase = (int) $this->connection->fetchOne(
+            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
+            ['id' => self::$variantM->getId()],
+        );
+        $this->assertSame($stockBefore - 2, $stockAfterPurchase);
+
+        // Bulk cancel all
+        $this->em->clear();
+        $user = $this->em->find(User::class, 89901);
+        $cancelled = $bulkCancelService->cancelAllForUser(
+            $user,
+            'hromadne-odhlaseni-test',
+            new \DateTimeImmutable('2026-07-15 10:00:00'),
+        );
+
+        $this->assertSame(2, $cancelled);
+
+        // Stock restored
+        $stockAfterCancel = (int) $this->connection->fetchOne(
+            'SELECT remaining_quantity FROM product_variant WHERE id = :id',
+            ['id' => self::$variantM->getId()],
+        );
+        $this->assertSame($stockBefore, $stockAfterCancel);
+
+        // Archive records exist
+        $archiveCount = (int) $this->connection->fetchOne(
+            "SELECT COUNT(*) FROM shop_nakupy_zrusene WHERE id_uzivatele = 89901 AND zdroj_zruseni = 'hromadne-odhlaseni-test'",
+        );
+        $this->assertSame(2, $archiveCount);
+
+        // Original items removed
+        $itemCount = (int) $this->connection->fetchOne(
+            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 89901 AND rok = :rok',
+            ['rok' => ROCNIK],
+        );
+        $this->assertSame(0, $itemCount);
+    }
+
+    public function testBulkCancelByTagCancelsOnlyMatchingItems(): void
+    {
+        $bulkCancelService = $this->createBulkCancelService();
+        $user = $this->em->find(User::class, 89901);
+        $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
+        $product = $variant->getProduct();
+
+        // Insert items with different tags directly via DBAL for speed
+        $this->connection->executeStatement(
+            "INSERT INTO shop_nakupy (id_uzivatele, id_predmetu, rok, cena_nakupni, datum, product_tags, variant_id)
+             VALUES (89901, :productId, :rok, '100.00', NOW(), :tagsUbyt, :variantId),
+                    (89901, :productId, :rok, '50.00', NOW(), :tagsJidlo, NULL)",
+            [
+                'productId' => $product->getId(),
+                'rok' => ROCNIK,
+                'tagsUbyt' => json_encode(['ubytovani']),
+                'tagsJidlo' => json_encode(['jidlo']),
+                'variantId' => $variant->getId(),
+            ],
+        );
+
+        $this->em->clear();
+        $user = $this->em->find(User::class, 89901);
+
+        // Cancel only 'ubytovani' items
+        $cancelled = $bulkCancelService->cancelByTagForUser(
+            $user,
+            'ubytovani',
+            'zruseni-ubytovani',
+            new \DateTimeImmutable(),
+        );
+
+        $this->assertSame(1, $cancelled);
+
+        // 'jidlo' item still exists
+        $remainingCount = (int) $this->connection->fetchOne(
+            "SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 89901 AND rok = :rok",
+            ['rok' => ROCNIK],
+        );
+        $this->assertSame(1, $remainingCount);
+
+        // Clean up remaining jidlo item
+        $this->connection->executeStatement(
+            'DELETE FROM shop_nakupy WHERE id_uzivatele = 89901 AND rok = :rok',
+            ['rok' => ROCNIK],
+        );
+    }
+
+    public function testBulkCancelOrderSetsStatusAndArchives(): void
+    {
+        $cartService = $this->createCartService();
+        $bulkCancelService = $this->createBulkCancelService();
+        $user = $this->em->find(User::class, 89901);
+        $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
+
+        // Add item to cart
+        $cart = $cartService->getOrCreateCart($user);
+        $cartService->addItem($cart, $variant);
+
+        $this->assertFalse($cart->isCancelled());
+        $this->assertSame(1, $cart->getItemCount());
+
+        // Cancel entire order
+        $cancelled = $bulkCancelService->cancelOrder(
+            $cart,
+            'storno-objednavky-test',
+            new \DateTimeImmutable(),
+        );
+
+        $this->assertSame(1, $cancelled);
+        $this->assertTrue($cart->isCancelled());
+        $this->assertTrue($cart->isEmpty());
+
+        // Archive exists
+        $archiveCount = (int) $this->connection->fetchOne(
+            "SELECT COUNT(*) FROM shop_nakupy_zrusene WHERE id_uzivatele = 89901 AND zdroj_zruseni = 'storno-objednavky-test'",
+        );
+        $this->assertSame(1, $archiveCount);
+    }
+
     // ==================== Helpers ====================
+
+    private function createBulkCancelService(): BulkCancelService
+    {
+        /** @var \App\Repository\OrderItemRepository $orderItemRepo */
+        $orderItemRepo = $this->em->getRepository(\App\Entity\OrderItem::class);
+        $capacityManager = new CapacityManager($this->connection, $this->em);
+        $yearProvider = new CurrentYearProvider();
+
+        return new BulkCancelService(
+            $this->em,
+            $orderItemRepo,
+            $capacityManager,
+            $yearProvider,
+        );
+    }
 
     private function createCartService(): CartService
     {
