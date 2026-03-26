@@ -183,7 +183,7 @@ SQL,
             fn (
                 array $row,
             ) => reset($row),
-            mysqli_fetch_all($result),
+            $result->fetchAll(\PDO::FETCH_NUM),
         );
     }
 }

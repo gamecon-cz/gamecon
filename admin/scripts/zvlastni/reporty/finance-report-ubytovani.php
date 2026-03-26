@@ -56,7 +56,7 @@ SQL,
 );
 
 $vystup = [];
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $u                   = Uzivatel::zId($r['id_uzivatele']);
     $r['pozice']         = $u->status(false);
     $r['datum_narozeni'] = $u->datumNarozeni()->format(DateTimeCz::FORMAT_DATUM_STANDARD);
