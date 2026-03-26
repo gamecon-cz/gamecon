@@ -49,7 +49,7 @@ SQL
 );
 
 $data = [];
-while ($row = mysqli_fetch_assoc($mysqliResult)) {
+while ($row = $mysqliResult->fetch(PDO::FETCH_ASSOC)) {
     $row[UzivateleHodnotySqlStruktura::OP] = (string)$row[UzivateleHodnotySqlStruktura::OP] !== ''
         ? Sifrovatko::desifruj($row[UzivateleHodnotySqlStruktura::OP])
         : '';

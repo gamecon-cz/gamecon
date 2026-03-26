@@ -14,7 +14,7 @@ SQL
     );
     $numberFormatter       = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
     $organizatorAkciData   = [];
-    while ($organizatorAkciRadek = mysqli_fetch_assoc($organizatoriAkciQuery)) {
+    while ($organizatorAkciRadek = $organizatoriAkciQuery->fetch(PDO::FETCH_ASSOC)) {
         $organizatorAkci          = new Uzivatel($organizatorAkciRadek);
         $nevyuzityBonusZaAktivity = $organizatorAkci->finance()->nevyuzityBonusZaAktivity();
         if (!$nevyuzityBonusZaAktivity) {

@@ -258,7 +258,7 @@ SQL,
         );
 
         $jidla = [];
-        while ($r = mysqli_fetch_assoc($o)) {
+        while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
             $jidla[] = $r;
         }
 
@@ -298,7 +298,7 @@ SQL,
         );
 
         $jidla = [];
-        while ($r = mysqli_fetch_assoc($o)) {
+        while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
             $jidla[] = $r;
         }
 

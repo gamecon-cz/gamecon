@@ -144,7 +144,7 @@ SQL,
     );
 
     if (post('exportovat')) {
-        $data = mysqli_fetch_all($o, MYSQLI_ASSOC);
+        $data = $o->fetchAll(PDO::FETCH_ASSOC);
         if ($data !== []) {
             $report = Report::zPole($data);
             $report->tXlsx('Promlčení zůstatků');
@@ -155,7 +155,7 @@ SQL,
     $maxInputVars = (int)ini_get('max_input_vars'); // omezuje například POST
     $maxUzivatelu = $maxInputVars - 100;
     $poradi       = 1;
-    while ($r = mysqli_fetch_assoc($o)) {
+    while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
         $p->assign([
             'id'                  => $r['uzivatel'],
             'jmeno'               => $r['jmeno'],

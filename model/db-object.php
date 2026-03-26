@@ -188,7 +188,7 @@ abstract class DbObject
     ): array {
         $o = dbQuery(static::dotaz("WHERE $where") . ' ' . $extra, $params); // static aby odděděná třída mohla přepsat dotaz na něco složitějšího
         $a = [];
-        while ($r = mysqli_fetch_assoc($o)) {
+        while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
             $a[] = new static($r); // static aby vznikaly objekty správné třídy
         }
 
