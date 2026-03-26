@@ -13,6 +13,7 @@ use App\Entity\User;
 use App\Entity\UserRole;
 use App\Enum\RoleMeaning;
 use App\Repository\OrderRepository;
+use App\Repository\ProductBundleRepository;
 use App\Service\CapacityManager;
 use App\Service\CartService;
 use App\Service\CurrentYearProvider;
@@ -133,7 +134,7 @@ class EshopIntegrationTest extends AbstractTestDb
 
     public function testCapacityManagerAtomicPurchaseDecrementsStock(): void
     {
-        $capacityManager = new CapacityManager($this->connection);
+        $capacityManager = new CapacityManager($this->connection, $this->em);
         $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
         $this->assertNotNull($variant);
 
@@ -151,7 +152,7 @@ class EshopIntegrationTest extends AbstractTestDb
 
     public function testCapacityManagerPurchaseThrowsWhenSoldOut(): void
     {
-        $capacityManager = new CapacityManager($this->connection);
+        $capacityManager = new CapacityManager($this->connection, $this->em);
         $variant = $this->em->find(ProductVariant::class, self::$variantL->getId());
         $this->assertNotNull($variant);
 
@@ -161,7 +162,7 @@ class EshopIntegrationTest extends AbstractTestDb
 
     public function testCapacityManagerCancelPurchaseIncrementsStock(): void
     {
-        $capacityManager = new CapacityManager($this->connection);
+        $capacityManager = new CapacityManager($this->connection, $this->em);
         $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
         $initialStock = $variant->getRemainingQuantity();
 
@@ -178,7 +179,7 @@ class EshopIntegrationTest extends AbstractTestDb
 
     public function testCapacityManagerReservedForOrganizersInheritsFromProduct(): void
     {
-        $capacityManager = new CapacityManager($this->connection);
+        $capacityManager = new CapacityManager($this->connection, $this->em);
         $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
 
         $this->assertNull($variant->getReservedForOrganizers());
@@ -335,13 +336,16 @@ class EshopIntegrationTest extends AbstractTestDb
     {
         /** @var OrderRepository $orderRepo */
         $orderRepo = $this->em->getRepository(Order::class);
-        $capacityManager = new CapacityManager($this->connection);
+        /** @var ProductBundleRepository $bundleRepo */
+        $bundleRepo = $this->em->getRepository(ProductBundle::class);
+        $capacityManager = new CapacityManager($this->connection, $this->em);
         $discountCalculator = self::getContainer()->get(DiscountCalculator::class);
         $yearProvider = new CurrentYearProvider();
 
         return new CartService(
             $this->em,
             $orderRepo,
+            $bundleRepo,
             $capacityManager,
             $discountCalculator,
             $yearProvider,
