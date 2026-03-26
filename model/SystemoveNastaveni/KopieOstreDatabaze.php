@@ -106,7 +106,9 @@ readonly class KopieOstreDatabaze
                 );
 
                 $this->nastrojeDatabaze->vymazVseZHlavniDatabaze($localConnection);
-                (new \MySQLImport($localConnection))->load($tempFile);
+                $mysqliConn = dbConnectMysqli();
+                (new \MySQLImport($mysqliConn))->load($tempFile);
+                mysqli_close($mysqliConn);
 
                 (new SqlMigrace($this->systemoveNastaveni))->migruj();
                 // Importovaná DB má jinou množinu dat než JSON program cache na betě;
@@ -191,7 +193,9 @@ readonly class KopieOstreDatabaze
                 NastrojeDatabaze::removeDefiners($tempFile);
 
                 $this->nastrojeDatabaze->vymazVseZHlavniDatabaze($localConnection);
-                (new \MySQLImport($localConnection))->load($tempFile);
+                $mysqliConn = dbConnectMysqli();
+                (new \MySQLImport($mysqliConn))->load($tempFile);
+                mysqli_close($mysqliConn);
 
                 (new SqlMigrace($this->systemoveNastaveni))->migruj();
                 // Importovaná DB má jinou množinu dat než JSON program cache na betě;

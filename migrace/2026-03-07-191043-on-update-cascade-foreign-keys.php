@@ -29,7 +29,7 @@ $result = $this->q(<<<SQL
 
 // Group by constraint name (for composite FKs)
 $constraints = [];
-while ($row = $result->fetch_assoc()) {
+while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
     $key = $row['TABLE_NAME'] . '.' . $row['CONSTRAINT_NAME'];
     if (!isset($constraints[$key])) {
         $constraints[$key] = [

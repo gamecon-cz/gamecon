@@ -43,13 +43,13 @@ class Pokoj
       FROM shop_nakupy n
       JOIN shop_predmety_s_typem p USING(id_predmetu)
       WHERE n.id_uzivatele = $0 AND n.rok = $1 AND p.typ = $2
-    ', [0 => $u->id(), 1 => ROCNIK, 2 => TypPredmetu::UBYTOVANI]);
-        if (mysqli_num_rows($o) == 0) {
+    ', [0 => $u->id(), 1 => ROCNIK, 2 => \Gamecon\Shop\TypPredmetu::UBYTOVANI]);
+        if ($o->rowCount() == 0) {
             throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
         }
         dbQueryS('DELETE FROM ubytovani WHERE rok = $2 AND id_uzivatele = $1', [$u->id(), ROCNIK]);
         $valuesSqlArray = [];
-        while ($r = mysqli_fetch_assoc($o)) {
+        while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
             $valuesSqlArray[] = '(' . $u->id() . ',' . $r['ubytovani_den'] . ',' . dbQv($pokoj) . ',' . ROCNIK . ')';
         }
         $valuesSql = implode(",\n", $valuesSqlArray);
