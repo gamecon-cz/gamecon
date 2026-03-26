@@ -16,12 +16,12 @@ class RolePermission
 {
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Role::class)]
-    #[ORM\JoinColumn(name: 'id_role', referencedColumnName: 'id_role', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'id_role', referencedColumnName: 'id_role', onDelete: 'CASCADE')]
     private Role $role;
 
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Permission::class)]
-    #[ORM\JoinColumn(name: 'id_prava', referencedColumnName: 'id_prava', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'id_prava', referencedColumnName: 'id_prava', onDelete: 'CASCADE')]
     private Permission $permission;
 
     public function getRole(): Role

@@ -72,7 +72,7 @@ class FunkceTest extends TestCase
     public function veVychozimNastaveniDostanuExistujiciSqlPripojeni()
     {
         $nejakeSpojeni = dbConnect();
-        self::assertInstanceOf(\mysqli::class, $nejakeSpojeni);
+        self::assertInstanceOf(\PDO::class, $nejakeSpojeni);
         $dalsiSpojeni = dbConnect();
         self::assertSame($nejakeSpojeni, $dalsiSpojeni);
     }
@@ -83,9 +83,9 @@ class FunkceTest extends TestCase
     public function muzuVyzadatNoveSqlPripojeni()
     {
         $nejakeSpojeni = dbConnect();
-        self::assertInstanceOf(\mysqli::class, $nejakeSpojeni);
+        self::assertInstanceOf(\PDO::class, $nejakeSpojeni);
         $dalsiSpojeni = dbConnect(true, true);
-        self::assertInstanceOf(\mysqli::class, $dalsiSpojeni);
+        self::assertInstanceOf(\PDO::class, $dalsiSpojeni);
         self::assertNotSame($nejakeSpojeni, $dalsiSpojeni);
     }
 
