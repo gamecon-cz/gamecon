@@ -1021,7 +1021,7 @@ SQL,
       FROM uzivatele_hodnoty
       WHERE jmeno_uzivatele != '' AND prijmeni_uzivatele != '' AND id_uzivatele != $1
     ", [$this->ubytovany->id()]);
-        while ($u = mysqli_fetch_row($o)) {
+        while ($u = $o->fetch(\PDO::FETCH_NUM)) {
             $a[] = $u[0];
         }
 

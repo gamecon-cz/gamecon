@@ -75,7 +75,7 @@ trait PrednacitaniTrait
 
         // načtení ids cílů plus jejich vložení do zdrojových objektů
         $cilIds = [];
-        while ($r = mysqli_fetch_row($q)) {
+        while ($r = $q->fetch(\PDO::FETCH_NUM)) {
             $zdrojObjekt           = $kolekce[$r[0]];
             $zdrojObjektCilIds = array_map('intval', explode(',', $r[1]));
             $zdrojObjekt->$atribut = $zdrojObjektCilIds;

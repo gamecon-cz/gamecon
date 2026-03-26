@@ -126,7 +126,7 @@ SQL,
                     ?: null,
             ],
         );
-        if (mysqli_num_rows($result) === 0) {
+        if ($result->rowCount() === 0) {
             if ($doSouboru) {
                 file_put_contents($doSouboru, '');
 
@@ -142,7 +142,7 @@ SQL,
 
         $obsah = [];
 
-        while ($r = mysqli_fetch_assoc($result)) {
+        while ($r = $result->fetch(\PDO::FETCH_ASSOC)) {
             $navstevnik = new Uzivatel($r);
             $finance = $navstevnik->finance();
             $shop = $navstevnik->shop();
