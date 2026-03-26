@@ -82,7 +82,7 @@ SQL,
     );
     $predchoziTyp    = null;
     $vidiRoleBezPrav = false;
-    while ($r = mysqli_fetch_assoc($o)) {
+    while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
         $t->assign($r);
         if ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_UCAST) {

@@ -16,7 +16,7 @@ class Report
 {
     private         $sql;                     // text dotazu, z kterého se report generuje
     private         $sqlParametry;            // parametry dotazu, z kterého se report generuje
-    private ?mysqli $mysqli       = null;
+    private ?PDO    $pdo          = null;
     private         $o;                       // odpověď dotazu
     private ?array  $hlavicky     = null;  // hlavičky (názvy sloupců) výsledku
     private ?array  $poleObsah    = null; // obsah ve formě pole
@@ -353,12 +353,12 @@ HTML;
     public static function zSql(
         string  $dotaz,
         array   $dotazParametry = null,
-        ?mysqli $mysqli = null,
+        ?PDO $pdo = null,
     ): self {
         $report               = new static();
         $report->sql          = $dotaz;
         $report->sqlParametry = $dotazParametry;
-        $report->mysqli       = $mysqli;
+        $report->pdo          = $pdo;
 
         return $report;
     }
@@ -436,12 +436,12 @@ HTML;
             return $this->hlavicky;
         }
         if (!$this->o) {
-            $this->o = dbQuery($this->sql, $this->sqlParametry, $this->mysqli);
+            $this->o = dbQuery($this->sql, $this->sqlParametry, $this->pdo);
         }
         $this->hlavicky = [];
-        for ($i = 0, $sloupcu = mysqli_num_fields($this->o); $i < $sloupcu; $i++) {
-            $field_info       = mysqli_fetch_field($this->o);
-            $this->hlavicky[] = $field_info->name;
+        for ($i = 0, $sloupcu = $this->o->columnCount(); $i < $sloupcu; $i++) {
+            $meta             = $this->o->getColumnMeta($i);
+            $this->hlavicky[] = $meta['name'];
         }
 
         return $this->hlavicky;
@@ -459,7 +459,7 @@ HTML;
             $this->o = dbQuery($this->sql, $this->sqlParametry);
         }
 
-        return mysqli_fetch_row($this->o);
+        return $this->o->fetch(\PDO::FETCH_NUM);
     }
 
 }

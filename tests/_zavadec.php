@@ -17,7 +17,7 @@ $dbWrapper->resetTestDb();
  * pokud chceš vyřadit STRICT_TRANS_TABLES (potlačit "Field 'nazev_akce' doesn't have a default value"), použij @see \Gamecon\Tests\Db\DbTest::$disableStrictTransTables
  * Inspirace @see \Gamecon\Tests\Aktivity\AktivitaTagyTest::setUpBeforeClass
  */
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+// PDO error mode is set in _dbConnect() via \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
 AbstractTestDb::setConnection($dbWrapper);
 
 /* vynutíme reconnect, hlavně kvůli nastavení ROCNIK v databázi, @see \dbConnect */
