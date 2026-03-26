@@ -687,7 +687,7 @@ SQL
         $detiIds = $aktivita
             ? $aktivita->detiIds()
             : [];
-        while ($mozneDiteData = mysqli_fetch_assoc($q)) {
+        while ($mozneDiteData = $q->fetch(\PDO::FETCH_ASSOC)) {
             $mozneDiteId = $mozneDiteData[Sql::ID_AKCE];
             $xtpl->assign(
                 'selected',
@@ -733,7 +733,7 @@ SQL
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
             [1 => $aktivita?->id(), 2 => ROCNIK],
         );
-        while ($moznyRodicData = mysqli_fetch_assoc($q)) {
+        while ($moznyRodicData = $q->fetch(\PDO::FETCH_ASSOC)) {
             $moznyRodicId = $moznyRodicData[Sql::ID_AKCE];
             $moznyRodic = Aktivita::zId(id: $moznyRodicId, zCache: true, systemoveNastaveni: $systemoveNastaveni);
             $xtpl->assign(
@@ -835,7 +835,7 @@ SQL
         );
 
         $vsichniOrg = [];
-        while ($uzivatelData = mysqli_fetch_assoc($q)) {
+        while ($uzivatelData = $q->fetch(\PDO::FETCH_ASSOC)) {
             $vsichniOrg[$uzivatelData['id_uzivatele']] = Uzivatel::jmenoNickZjisti($uzivatelData);
         }
         $aktOrg = $aktivita
@@ -3620,7 +3620,7 @@ SQL,
         static $typy;
         if (!$typy) {
             $o = dbQuery('SELECT id_typu, url_typu_mn FROM akce_typy');
-            while ($r = mysqli_fetch_row($o)) {
+            while ($r = $o->fetch(\PDO::FETCH_NUM)) {
                 $typy[$r[0]] = $r[1];
             }
         }

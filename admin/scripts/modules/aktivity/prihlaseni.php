@@ -15,7 +15,7 @@ use Gamecon\XTemplate\XTemplate;
 $xtpl2 = new XTemplate(__DIR__ . '/prihlaseni.xtpl');
 
 $o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy ORDER BY poradi, typ_1pmn');
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $xtpl2->assign($r);
     $xtpl2->parse('prihlaseni.vyber');
 }
@@ -60,8 +60,8 @@ SQL,
     [0 => ROCNIK, 1 => get('typ')]
 );
 
-$totoPrihlaseni  = mysqli_fetch_assoc($odpoved) ?: [];
-$dalsiPrihlaseni = mysqli_fetch_assoc($odpoved) ?: [];
+$totoPrihlaseni  = $odpoved->fetch(PDO::FETCH_ASSOC) ?: [];
+$dalsiPrihlaseni = $odpoved->fetch(PDO::FETCH_ASSOC) ?: [];
 $obsazenost      = 0;
 $odd             = 0;
 $maily           = [];
@@ -103,7 +103,7 @@ while ($totoPrihlaseni) {
         $maily      = [];
     }
     $totoPrihlaseni  = $dalsiPrihlaseni;
-    $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
+    $dalsiPrihlaseni = $odpoved->fetch(PDO::FETCH_ASSOC);
 }
 
 $xtpl2->parse('prihlaseni');

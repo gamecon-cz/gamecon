@@ -41,7 +41,7 @@ class AnonymizovanaDatabaze
         }
     }
 
-    public function obnov(?\mysqli $dbConnectionAnonymDb = null): void
+    public function obnov(?\PDO $dbConnectionAnonymDb = null): void
     {
         $dbConnectionAnonymDb = $dbConnectionAnonymDb ?? dbConnectionAnonymDb();
 
@@ -57,51 +57,44 @@ class AnonymizovanaDatabaze
         $this->pridejAdminUzivatele($dbConnectionAnonymDb);
     }
 
-    private function anonymizujData(\mysqli $dbConnectionAnonymDb)
+    private function anonymizujData(\PDO $dbConnectionAnonymDb)
     {
         $db = $this->anonymniDatabaze;
         $systemovyUzivatelId = \Uzivatel::SYSTEM;
 
         // Anonymizace ID uživatele — deterministický posun místo náhodného, aby nedocházelo ke kolizím
         $offset = random_int(1_000_000, 9_000_000);
-        mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 0");
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
+        $dbConnectionAnonymDb->query("SET FOREIGN_KEY_CHECKS = 0");
+        $dbConnectionAnonymDb->query(<<<SQL
                 UPDATE `{$db}`.uzivatele_hodnoty
                 SET id_uzivatele = id_uzivatele + $offset
                 WHERE id_uzivatele != $systemovyUzivatelId
             SQL,
         );
-        mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 1");
+        $dbConnectionAnonymDb->query("SET FOREIGN_KEY_CHECKS = 1");
 
         // Kaskádní aktualizace ID ve všech závislých tabulkách
-        $fkResult = mysqli_query($dbConnectionAnonymDb, <<<SQL
+        $fkResult = $dbConnectionAnonymDb->query(<<<SQL
             SELECT TABLE_NAME, COLUMN_NAME
             FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
             WHERE TABLE_SCHEMA = '{$db}'
                 AND REFERENCED_TABLE_NAME = 'uzivatele_hodnoty'
                 AND REFERENCED_COLUMN_NAME = 'id_uzivatele'
         SQL);
-        while ($fk = mysqli_fetch_assoc($fkResult)) {
-            mysqli_query(
-                $dbConnectionAnonymDb,
+        while ($fk = $fkResult->fetch(\PDO::FETCH_ASSOC)) {
+            $dbConnectionAnonymDb->query(
                 "UPDATE `{$db}`.`{$fk['TABLE_NAME']}` SET `{$fk['COLUMN_NAME']}` = `{$fk['COLUMN_NAME']}` + $offset WHERE `{$fk['COLUMN_NAME']}` != $systemovyUzivatelId",
             );
         }
 
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
+        $dbConnectionAnonymDb->query(<<<SQL
                 UPDATE `{$db}`.stranky
                 SET obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
                 WHERE TRUE
             SQL,
         );
 
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
+        $dbConnectionAnonymDb->query(<<<SQL
                 UPDATE `{$db}`.uzivatele_hodnoty
                 SET {$this->sqlSetProAnonymizaciUzivatele()}
                 WHERE TRUE
@@ -114,20 +107,18 @@ class AnonymizovanaDatabaze
             array_keys($medailonkyData),
             array_values($medailonkyData),
         ));
-        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.`medailonky` SET $medailonkySet WHERE TRUE");
+        $dbConnectionAnonymDb->query("UPDATE `{$db}`.`medailonky` SET $medailonkySet WHERE TRUE");
 
-        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.uzivatele_role SET `posazen` = '1970-01-01 01:01:01' WHERE TRUE");
-        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.akce_prihlaseni_log SET `kdy` = '1970-01-01 01:01:01' WHERE TRUE");
+        $dbConnectionAnonymDb->query("UPDATE `{$db}`.uzivatele_role SET `posazen` = '1970-01-01 01:01:01' WHERE TRUE");
+        $dbConnectionAnonymDb->query("UPDATE `{$db}`.akce_prihlaseni_log SET `kdy` = '1970-01-01 01:01:01' WHERE TRUE");
     }
 
-    private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb)
+    private function pridejAdminUzivatele(\PDO $dbConnectionAnonymDb)
     {
         // na toto heslo nespoléhat - raději použít konstantu UNIVERZALNI_HESLO
         $passwordHash = password_hash(self::ADMIN_PASSWORD, PASSWORD_DEFAULT);
         $adminLogin   = self::ADMIN_LOGIN;
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
+        $dbConnectionAnonymDb->query(<<<SQL
 INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
     SET id_uzivatele = null,
         login_uzivatele = '{$adminLogin}',
@@ -158,12 +149,11 @@ INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
 SQL,
         );
 
-        $id = mysqli_insert_id($dbConnectionAnonymDb);
+        $id = $dbConnectionAnonymDb->lastInsertId();
 
         $idRoleOrganizator    = Role::ORGANIZATOR;
         $idRoleSpravceFinanci = Role::CFO;
-        mysqli_query(
-            $dbConnectionAnonymDb,
+        $dbConnectionAnonymDb->query(
             "INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_role (id_uzivatele, id_role, posazen, posadil) VALUES ($id, $idRoleOrganizator, NOW(), null), ($id, $idRoleSpravceFinanci, NOW(), null)",
         );
     }
@@ -173,7 +163,7 @@ SQL,
         return AnonymizovanyUzivatel::sqlSetProAnonymizaci();
     }
 
-    private function obnovAnonymniDatabazi(\mysqli $dbConnectionAnonymDb): void
+    private function obnovAnonymniDatabazi(\PDO $dbConnectionAnonymDb): void
     {
         if ($this->jsmeNaLocale) {
             $this->smazVytvorAnonymniDatabazi($dbConnectionAnonymDb);
@@ -182,35 +172,29 @@ SQL,
         }
     }
 
-    private function smazVytvorAnonymniDatabazi(\mysqli $dbConnectionAnonymDb): void
+    private function smazVytvorAnonymniDatabazi(\PDO $dbConnectionAnonymDb): void
     {
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
+        $dbConnectionAnonymDb->query(<<<SQL
                 DROP DATABASE IF EXISTS `{$this->anonymniDatabaze}`
             SQL,
         );
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
-                CREATE DATABASE `{$this->anonymniDatabaze}` DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci
+        $dbConnectionAnonymDb->query(<<<SQL
+                CREATE DATABASE `{$this->anonymniDatabaze}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci
             SQL,
         );
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
+        $dbConnectionAnonymDb->query(<<<SQL
                 USE `{$this->anonymniDatabaze}`
             SQL,
         );
     }
 
-    private function vycistiAnonymniDatabazi(\mysqli $dbConnectionAnonymDb): void
+    private function vycistiAnonymniDatabazi(\PDO $dbConnectionAnonymDb): void
     {
         $this->nastrojeDatabaze->vymazVseZDatabaze($this->anonymniDatabaze, $dbConnectionAnonymDb);
     }
 
     private function zkopirujData(
-        \mysqli $dbConnectionAnonymDb,
+        \PDO $dbConnectionAnonymDb,
     ): void {
         $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
         /*
@@ -223,13 +207,15 @@ SQL,
         $mysqldump->start($tempFile);
         NastrojeDatabaze::removeDefiners($tempFile);
 
-        (new \MySQLImport($dbConnectionAnonymDb))->load($tempFile);
+        $mysqliConnection = dbConnectMysqli(DB_ANONYM_SERV, DB_ANONYM_USER, DB_ANONYM_PASS, null, $this->anonymniDatabaze);
+        (new \MySQLImport($mysqliConnection))->load($tempFile);
+        mysqli_close($mysqliConnection);
 
-        mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 0");
+        $dbConnectionAnonymDb->query("SET FOREIGN_KEY_CHECKS = 0");
         foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $prilisCitlivaTabulka) {
-            mysqli_query($dbConnectionAnonymDb, "TRUNCATE TABLE `{$this->anonymniDatabaze}`.`$prilisCitlivaTabulka`");
+            $dbConnectionAnonymDb->query("TRUNCATE TABLE `{$this->anonymniDatabaze}`.`$prilisCitlivaTabulka`");
         }
-        mysqli_query($dbConnectionAnonymDb, "SET FOREIGN_KEY_CHECKS = 1");
+        $dbConnectionAnonymDb->query("SET FOREIGN_KEY_CHECKS = 1");
     }
 
     public static function cestaExportu(): string

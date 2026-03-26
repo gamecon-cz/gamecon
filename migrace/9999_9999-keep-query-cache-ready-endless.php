@@ -9,7 +9,7 @@ $systemoveNastaveni->queryCache()->clear();
 $tableNamesResult = $this->q(<<<SQL
 SHOW TABLES
 SQL,
-)->fetch_all();
+)->fetchAll();
 $tableNames       = array_map(static fn(
     array $row,
 ) => reset($row), $tableNamesResult);
@@ -22,7 +22,7 @@ foreach ($tableNames as $tableName) {
     $showCreateTable  = $this->q(<<<SQL
 SHOW CREATE TABLE $tableName
 SQL,
-    )->fetch_assoc();
+    )->fetch(PDO::FETCH_ASSOC);
     $tablesUsedInView = [];
     $tableMetadata    = ['is_view' => false, 'view_tables' => []];
     if (!empty($showCreateTable['Create View'])) {
@@ -75,7 +75,7 @@ $getRealUsedTables = static function (
 };
 
 foreach ($tablesMetadata as $tableName => $tableMetadata) {
-    $tableEscaped = $this->connection->real_escape_string($tableName);
+    $tableEscaped = substr($this->connection->quote($tableName), 1, -1);
     $this->q(<<<SQL
 INSERT IGNORE INTO _table_data_versions (table_name, version)
 VALUES ('{$tableEscaped}', 0)
@@ -98,7 +98,7 @@ WHERE view_name = '{$tableEscaped}'
 SQL,
         );
         foreach ($tablesUsedInView as $tableUsedInView) {
-            $tableUsedInViewEscaped = $this->connection->real_escape_string($tableUsedInView);
+            $tableUsedInViewEscaped = substr($this->connection->quote($tableUsedInView), 1, -1);
             $this->q(<<<SQL
 INSERT IGNORE INTO _tables_used_in_view_data_versions (view_name, table_used_in_view)
 VALUES ('{$tableEscaped}', '{$tableUsedInViewEscaped}')

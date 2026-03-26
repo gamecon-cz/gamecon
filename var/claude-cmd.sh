@@ -1,0 +1,1 @@
+cd /home/jaroslav/customers/gamecon/gamecon && bash bin/phpunit.sh 2>&1 | grep -E "^Tests:|OK \(|FAILURES!|ERRORS!" | head -5

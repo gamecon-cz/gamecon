@@ -194,7 +194,7 @@ WHERE EXISTS(SELECT * FROM platne_role_uzivatelu AS role
 SQL,
             dbConnectTemporary(), // abychom nevyblokovali globální sdílené connection při postupném zpracovávání tohoto generátoru
         );
-        while ($idUzivatele = mysqli_fetch_column($result)) {
+        while ($idUzivatele = $result->fetchColumn()) {
             yield \Uzivatel::zId($idUzivatele, true);
         }
     }

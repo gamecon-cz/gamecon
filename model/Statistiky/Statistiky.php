@@ -82,7 +82,7 @@ SQL,
         );
         $prihlasenychCelkem  = 0;
         $prihlasenychPoDnech = [];
-        while ($row = mysqli_fetch_assoc($ucastResult)) {
+        while ($row = $ucastResult->fetch(\PDO::FETCH_ASSOC)) {
             $prihlasenychCelkem               += $row['prihlasenych'];
             $prihlasenychPoDnech[$row['den']] = $prihlasenychCelkem;
         }

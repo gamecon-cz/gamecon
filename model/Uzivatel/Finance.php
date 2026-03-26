@@ -691,7 +691,7 @@ SQL;
                 SQL,
             );
             $sumaPlateb       = 0.0;
-            while ($row = mysqli_fetch_assoc($result)) {
+            while ($row = $result->fetch(\PDO::FETCH_ASSOC)) {
                 $sumaPlateb += (float)$row['cena'];
                 $this->log(
                     nazev: $row['nazev'],

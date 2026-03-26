@@ -297,7 +297,7 @@ $o = dbQuery(
 SQL,
 );
 $moznosti = '<option value="">(vyber)</option>';
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
     $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
 }

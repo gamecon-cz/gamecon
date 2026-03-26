@@ -36,7 +36,7 @@ SQL,
         [Role::PRIHLASEN_NA_LETOSNI_GC],
     );
     $ids = '';
-    while ($r = mysqli_fetch_assoc($o)) {
+    while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
         $un = new Uzivatel($r);
         $un->nactiPrava();
         if (($stav = $un->finance()->stav()) >= $min) {

@@ -103,7 +103,7 @@ class UzivatelSlucovani
 
         $unikatniPole = [];
 
-        while ($row = $result->fetch_assoc()) {
+        while ($row = $result->fetch(\PDO::FETCH_ASSOC)) {
             $unikatniPole[] = $row['COLUMN_NAME'];
         }
 
@@ -157,7 +157,7 @@ class UzivatelSlucovani
 
         $tabulky = [];
 
-        while ($row = $result->fetch_assoc()) {
+        while ($row = $result->fetch(\PDO::FETCH_ASSOC)) {
             $tabulky[] = $row;
         }
 

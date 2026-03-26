@@ -94,7 +94,7 @@ SQL,
         );
 
         $uzivatele = [];
-        while ($r = mysqli_fetch_assoc($result)) {
+        while ($r = $result->fetch(\PDO::FETCH_ASSOC)) {
             $uzivatel = Uzivatel::zId($r['id_uzivatele']);
 
             $uzivatele[] = new UzivatelKPromlceni(

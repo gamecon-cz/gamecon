@@ -41,15 +41,17 @@ class KopieOstreDatabazeTest extends TestCase
             assert($testDumps !== false, 'Nepodařilo se načíst testovací SQL');
             $latestDump = __DIR__ . '/../../Db/data/' . reset($testDumps);
 
-            (new \MySQLImport($docasneSpojeniSoucasna))
-                ->load($latestDump);
+            $mysqliSoucasna = dbConnectMysqli();
+            (new \MySQLImport($mysqliSoucasna))->load($latestDump);
+            mysqli_close($mysqliSoucasna);
             // potřebujeme co největší rozdíl SQL migrací abychom vyzkoušeli že nějaká co není na betě a pustí se to nerozbije (stalo se)
             (new SqlMigrace($this->systemoveNastaveni))->migruj(false);
 
             $docasneSpojeniOstra = $this->docasneSpojeniOstra($this->systemoveNastaveni, true);
             // naplníme "jakoby ostrou" staršími daty, abychom vyzkoušeli nejen zkopírování, ale i migrace
-            (new \MySQLImport($docasneSpojeniOstra))
-                ->load($latestDump);
+            $mysqliOstra = dbConnectMysqli();
+            (new \MySQLImport($mysqliOstra))->load($latestDump);
+            mysqli_close($mysqliOstra);
         } catch (\Throwable $throwable) {
             $this->setUpError = $throwable;
         }
@@ -69,7 +71,7 @@ class KopieOstreDatabazeTest extends TestCase
     private function docasneSpojeniSoucasna(
         SystemoveNastaveni $systemoveNastaveni,
         bool $resetDatabaze,
-    ): \mysqli {
+    ): \PDO {
         [
             'DBM_USER' => $dbmUser,
             'DBM_PASS' => $dbmPass,
@@ -92,7 +94,7 @@ class KopieOstreDatabazeTest extends TestCase
     private function docasneSpojeniOstra(
         SystemoveNastaveni $systemoveNastaveni,
         bool $resetDatabaze,
-    ): \mysqli {
+    ): \PDO {
         [
             'DBM_USER' => $dbmUser,
             'DBM_PASS' => $dbmPass,
@@ -146,14 +148,14 @@ class KopieOstreDatabazeTest extends TestCase
         $systemoveNastaveni = $this->vytvorSystemoveNastaveni();
 
         $spojeniSoucasna = $this->docasneSpojeniSoucasna($systemoveNastaveni, false);
-        $tablesBefore = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetch_all();
+        $tablesBefore = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetchAll();
 
         $nastrojeDatabaze = new NastrojeDatabaze($systemoveNastaveni);
         $kopieOstreDatabaze = new KopieOstreDatabaze($nastrojeDatabaze, $systemoveNastaveni, Vyjimkovac::vytvorZGlobals());
         $nastaveniOstre = $systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
         $kopieOstreDatabaze->zkopirujDatabazi($nastaveniOstre['DB_NAME']);
 
-        $tablesAfter = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetch_all();
+        $tablesAfter = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetchAll();
         self::assertGreaterThan(count($tablesBefore), $tablesAfter, 'Nějaké tabulky měly přibýt migracemi');
     }
 

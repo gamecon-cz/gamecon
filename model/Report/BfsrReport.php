@@ -128,7 +128,7 @@ SQL,
         $tooLateCanceledActivityFees = [];
 
         // Projdeme všechny uživatele a agregujeme data
-        while ($r = mysqli_fetch_assoc($result)) {
+        while ($r = $result->fetch(\PDO::FETCH_ASSOC)) {
             $navstevnik = new Uzivatel($r);
 
             $costOfFreeActivitiesForUser = $this->getCostOfFreeActivitiesForUser($navstevnik, $rocnik);
@@ -737,7 +737,7 @@ SQL,
         );
 
         $stats = [];
-        while ($row = mysqli_fetch_assoc($result)) {
+        while ($row = $result->fetch(\PDO::FETCH_ASSOC)) {
             $stats[$row['kod']] = (int)$row['pocet'];
         }
 

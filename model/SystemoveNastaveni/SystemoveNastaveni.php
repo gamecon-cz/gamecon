@@ -185,18 +185,20 @@ FROM systemove_nastaveni
 WHERE rocnik_nastaveni IN ($jakykoliRocnik, $soucasnyRocnik)
 SQL,
             );
-        } catch (\mysqli_sql_exception $exception) {
-            if ($exception->getCode() === 1049) { // Unknown database
-                return;
-            }
-            throw $exception;
         } catch (\ConnectionException $connectionException) {
             // testy nebo úplně prázdný Gamecon na začátku nemají ještě databázi
             return;
         } catch (\DbException $dbException) {
+            if ($dbException->getCode() === 1049) {
+                return; // unknown database — fresh install or tests
+            }
             if (in_array($dbException->getCode(), [1146 /* table does not exist */, 1054 /* new column does not exist */])) {
-                if ((new SqlMigrace($this))->nejakeMigraceKeSpusteni()) {
-                    return; // tabulka či sloupec musí vzniknout SQL migrací
+                try {
+                    if ((new SqlMigrace($this))->nejakeMigraceKeSpusteni()) {
+                        return; // tabulka či sloupec musí vzniknout SQL migrací
+                    }
+                } catch (\Throwable) {
+                    return; // migration check itself failed — DB is not ready yet
                 }
                 // else například jsme si na lokál stáhli příliš novou databázi
             }
@@ -221,7 +223,14 @@ SQL,
                 );
             }
         }
-        $this->definujOdvozeneKonstanty();
+        try {
+            $this->definujOdvozeneKonstanty();
+        } catch (\DbException $dbException) {
+            if (in_array($dbException->getCode(), [1049, 1146, 1054])) {
+                return; // DB not ready — table/column missing, will be created by migration
+            }
+            throw $dbException;
+        }
     }
 
     private function definujOdvozeneKonstanty()

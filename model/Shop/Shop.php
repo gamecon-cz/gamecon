@@ -848,7 +848,7 @@ SQL,
             // pole s předměty, které už má objednané dříve (bez ubytování)
             $stare = [];
             $o = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety_s_typem USING(id_predmetu) WHERE id_uzivatele=' . $this->zakaznik->id() . ' AND rok=' . ROCNIK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
-            while ($r = mysqli_fetch_assoc($o)) {
+            while ($r = $o->fetch(\PDO::FETCH_ASSOC)) {
                 $stare[] = (int)$r['id_predmetu'];
             }
             // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)

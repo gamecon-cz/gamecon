@@ -16,7 +16,7 @@ SELECT
     uzivatele.jmeno_uzivatele,
     uzivatele.prijmeni_uzivatele,
     GROUP_CONCAT(DISTINCT IF(
-        predmety.nazev LIKE CONVERT('Spacák%' USING utf8) COLLATE utf8_czech_ci,
+        predmety.nazev LIKE CONVERT('Spacák%' USING utf8mb4) COLLATE utf8mb4_czech_ci,
         'Spacák',
         SUBSTR(predmety.nazev,1, LOCATE(' ', predmety.nazev))
     )) as typ,
@@ -57,7 +57,7 @@ SQL,
 );
 
 $vystup = [];
-while ($r = mysqli_fetch_assoc($o)) {
+while ($r = $o->fetch(PDO::FETCH_ASSOC)) {
     $u                   = Uzivatel::zId($r['id_uzivatele']);
     $r['pozice']         = $u->status(false);
     $r['datum_narozeni'] = $u->datumNarozeni()->format(DateTimeCz::FORMAT_DATUM_STANDARD);

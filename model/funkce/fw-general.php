@@ -286,7 +286,7 @@ function tabHtml(array $tab, string $title = ''): string
 }
 
 /**
- * @param mysqli_result $a
+ * @param PDOStatement $a
  * @param string $title
  * @return string
  * Returns HTML formatted table from db answer
@@ -297,12 +297,12 @@ function tabMysql($a, string $title = ''): string
     if ($title !== '') {
         $tabOut .= "<caption>$title</caption>";
     }
-    if (!$r = mysqli_fetch_assoc($a)) {
+    if (!$r = $a->fetch(PDO::FETCH_ASSOC)) {
         return '';
     }
     $tabOut .= "  <tr>\n    <th>" . implode("</th>\n    <th>", array_keys($r)) . "</th>\n  </tr>\n";
     $tabOut .= "  <tr>\n    <td>" . implode("</td>\n    <td>", $r) . "</td>\n  </tr>\n";
-    while ($r = mysqli_fetch_row($a)) {
+    while ($r = $a->fetch(PDO::FETCH_NUM)) {
         $tabOut .= "  <tr>\n    <td>" . implode("</td>\n    <td>", $r) . "</td>\n  </tr>\n";
     }
     $tabOut .= "</table>\n\n";
@@ -311,15 +311,15 @@ function tabMysql($a, string $title = ''): string
 }
 
 /**
- * @param mysqli_result $result
+ * @param PDOStatement $result
  * Returns table array from mysql answer
  */
-function tabMysqlArray(mysqli_result $result): array
+function tabMysqlArray(PDOStatement $result): array
 {
-    $header = mysqli_fetch_assoc($result) ?? [];
+    $header = $result->fetch(PDO::FETCH_ASSOC) ?? [];
     $oa[]   = array_keys($header);
     $oa[]   = array_values($header);
-    while ($values = mysqli_fetch_row($result)) {
+    while ($values = $result->fetch(PDO::FETCH_NUM)) {
         $oa[] = $values;
     }
 
@@ -329,7 +329,7 @@ function tabMysqlArray(mysqli_result $result): array
 /**
  * Returns HTML formatted table from db answer, mirrored
  */
-function tabMysqlR(mysqli_result $result, string $title = ''): string
+function tabMysqlR(PDOStatement $result, string $title = ''): string
 {
     return tabHtml(tabArrayR(tabMysqlArray($result)), $title);
 }

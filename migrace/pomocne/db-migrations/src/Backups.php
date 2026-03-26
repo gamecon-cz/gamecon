@@ -24,8 +24,10 @@ class Backups
             return;
         }
 
-        $dump = new MySQLDump($this->db);
+        $mysqliConn = \dbConnectMysqli();
+        $dump = new MySQLDump($mysqliConn);
         $dump->save("{$this->directory}/pre-migration-{$migration->getCode()}.sql.gz");
+        \mysqli_close($mysqliConn);
     }
 
     public function clearDatabase() {
@@ -39,7 +41,7 @@ class Backups
     }
 
     private function getTableNames() {
-        $dbName = $this->db->query('SELECT DATABASE()')->fetch_row()[0];
+        $dbName = $this->db->query('SELECT DATABASE()')->fetch(\PDO::FETCH_NUM)[0];
         if (!$dbName) {
             throw new \Exception('Could not read DB name.');
         }
@@ -48,7 +50,7 @@ class Backups
           SELECT table_name
           FROM information_schema.tables
           WHERE table_schema = '$dbName';
-        ")->fetch_all();
+        ")->fetchAll();
 
         return array_map(static function (array $row) {
             return $row[0];

@@ -29,7 +29,7 @@ class ShopUbytovani
         $idsPredmetuUbytovani = array_map('intval', dbOneArray(<<<SQL
 SELECT id_predmetu
 FROM shop_predmety_s_typem
-WHERE TRIM(nazev) IN ($0 COLLATE utf8_czech_ci)
+WHERE TRIM(nazev) IN ($0 COLLATE utf8mb4_czech_ci)
 AND model_rok = $rok
 SQL,
             [$nazvyUbytovani],
@@ -730,7 +730,7 @@ SQL,
       FROM uzivatele_hodnoty
       WHERE jmeno_uzivatele != '' AND prijmeni_uzivatele != '' AND id_uzivatele != $1
     ", [$this->ubytovany->id()]);
-        while ($u = mysqli_fetch_row($o)) {
+        while ($u = $o->fetch(\PDO::FETCH_NUM)) {
             $a[] = $u[0];
         }
 

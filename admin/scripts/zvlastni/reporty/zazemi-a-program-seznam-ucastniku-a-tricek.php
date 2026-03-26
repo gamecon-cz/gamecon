@@ -12,7 +12,7 @@ FROM uzivatele_hodnoty u
 LEFT JOIN shop_nakupy n ON (n.id_uzivatele = u.id_uzivatele)
 LEFT JOIN shop_predmety_s_typem p ON (p.id_predmetu = n.id_predmetu)
 WHERE (n.rok = $0)
-  AND (p.typ = $tricko OR (p.typ = $predmet AND p.nazev LIKE '%taška%' COLLATE utf8_czech_ci))
+  AND (p.typ = $tricko OR (p.typ = $predmet AND p.nazev LIKE '%taška%' COLLATE utf8mb4_czech_ci))
 SQL
     , [0 => ROCNIK],
 );
