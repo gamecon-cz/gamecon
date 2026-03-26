@@ -490,7 +490,7 @@ SQL
                 : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = Uzivatel::zId($orgId);
-                if ($kolizniAktivita = $org->maKoliziSJinouAktivitou($zacatek, $konec, $ignorovatAktivitu)) {
+                if ($kolizniAktivita = $org->maKoliziSJinouAktivitouVCase($zacatek, $konec, $ignorovatAktivitu)) {
                     $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu: ' . $kolizniAktivita->nazev();
                 }
             }
@@ -2302,7 +2302,8 @@ SQL
             $jenPritomen,
             $hlaskyVeTretiOsobe,
             $kodTymu,
-        ); // odhlášení náhradnictví v kolidujících aktivitách
+        );
+        // odhlášení náhradnictví v kolidujících aktivitách
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
         $idUzivatele = $uzivatel->id();
@@ -2360,22 +2361,13 @@ SQL
         );
     }
 
-    public function zkontrolujZdaSeMuzePrihlasit(
+    private function zkontrolujKolidujeSAktivitouUzivatele(
         Uzivatel $uzivatel,
-        Uzivatel $prihlasujici,
-        int      $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
-        int      $kodTymu = 0,
-    ): void {
-        if ($jenPritomen) {
-            if ($this->dorazilJakoCokoliv($uzivatel)) {
-                return; // na současnou aktivitu už dorazil, takže se vlastně na ní může přihlásit
-            }
-        } elseif ($this->prihlasen($uzivatel)) {
-            return;
-        }
-        if ($this->zacatek() && $this->konec() && $kolizniAktivita = $uzivatel->maKoliziSJinouAktivitou($this->zacatek(), $this->konec(), null, $jenPritomen)) {
+    ) {
+        $kolizniAktivita = $uzivatel->maKoliziSJinouAktivitou($this, null, $jenPritomen);
+        if ($kolizniAktivita) {
             throw new \Chyba(
                 ($hlaskyVeTretiOsobe
                     ? 'Uživatel ' . $uzivatel->jmenoVolitelnyNick() . ' '
@@ -2386,24 +2378,27 @@ SQL
                     : 'masKoliziAktivit') . ': ' . $kolizniAktivita->nazev(),
             );
         }
-        if (!$uzivatel->gcPrihlasen()) {
-            throw new \Chyba(
-                ($hlaskyVeTretiOsobe
-                    ? 'Uživatel ' . $uzivatel->jmenoVolitelnyNick() . ' '
-                    : ''
-                ) .
-                hlaska($hlaskyVeTretiOsobe
-                    ? 'neniPrihlasenNaGc'
-                    : 'nejsiPrihlasenNaGc'),
-            );
-        }
-        if (!(self::IGNOROVAT_LIMIT & $parametry) && $this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()) {
+    }
+
+    private function zkontrolujKapacitu(
+        string $pohlavi = "",
+        int $parametry = 0,
+    ) {
+        if (!(self::IGNOROVAT_LIMIT & $parametry) && $this->volno() !== 'u' && $this->volno() !== $pohlavi) {
             throw new \Chyba(hlaska('plno'));
         }
+    }
+
+    private function zkontrolujPrihlaseniNaSourozence(
+        Uzivatel $uzivatel,
+        int      $parametry = 0,
+        bool     $hlaskyVeTretiOsobe = false,
+    ) {
+        // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu se stejnými potomky
         if (!(self::IGNOROVAT_PRIHLASENI_NA_SOUROZENCE & $parametry)) {
-            foreach ($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu se stejnými potomky
+            foreach ($this->deti() as $dite) {
                 foreach ($dite->rodice() as $rodic) {
-                    if ($rodic->prihlasen($uzivatel)) {
+                    if ($rodic !== $this && $rodic->prihlasen($uzivatel)) {
                         throw new \Chyba(hlaska($hlaskyVeTretiOsobe
                             ? 'uzJePrihlasen'
                             : 'uzJsiPrihlasen'));
@@ -2411,7 +2406,12 @@ SQL
                 }
             }
         }
+    }
 
+    public function zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite(
+        int      $parametry = 0,
+        int      $kodTymu = 0,
+    ) {
         if ($this->tymova()) {
             if (!$kodTymu) {
                 if (!(self::IGNOROVAT_LIMIT & $parametry)
@@ -2428,7 +2428,12 @@ SQL
                 }
             }
         }
+    }
 
+    private function zkontrolujBrigadnickePrihlaseni(
+        Uzivatel $uzivatel,
+        bool     $hlaskyVeTretiOsobe = false,
+    ) {
         if ($this->jeBrigadnicka() && !$uzivatel->jeBrigadnik()) {
             throw new \Chyba(
                 'Na tuto aktivitu se může přihlásit pouze brigádník. '
@@ -2437,16 +2442,45 @@ SQL
                     : hlaska('nejsiBrigadnik')),
             );
         }
+    }
 
+    public function zkontrolujZdaSeMuzePrihlasit(
+        Uzivatel $uzivatel,
+        Uzivatel $prihlasujici,
+        int      $parametry = 0,
+        bool     $jenPritomen = false,
+        bool     $hlaskyVeTretiOsobe = false,
+        int      $kodTymu = 0,
+    ): void {
+        if ($jenPritomen && $this->dorazilJakoCokoliv($uzivatel)) {
+            // na současnou aktivitu už dorazil, takže se vlastně na ní může přihlásit
+            return;
+        }
+
+        if (!$jenPritomen && $this->prihlasen($uzivatel)) {
+            return;
+        }
+
+        $this->zkontrolujKolidujeSAktivitouUzivatele($uzivatel, $jenPritomen, $hlaskyVeTretiOsobe);
+        $uzivatel->zkontrolujGcPrihlasen($hlaskyVeTretiOsobe);
+        $this->zkontrolujKapacitu($uzivatel->pohlavi(), $parametry);
+        $this->zkontrolujPrihlaseniNaSourozence($uzivatel, $parametry, $hlaskyVeTretiOsobe);
+        $this->zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite($parametry,$kodTymu);
+        $this->zkontrolujBrigadnickePrihlaseni($uzivatel, $hlaskyVeTretiOsobe);
+
+        // todo: Dává to smysl tak tady upravovat parametry ? kdyžuž tak je upravit na začátku funkce pokud možno nebo je odvodit až jsou reálně potřeba. Očekávané chování bych předpokládal, že je takové že jsou aplikované pouze parametry které předám ale tady je upravuju.
         if ($this->probehnuta() && $this->lzeJestePridavatUcastniky($prihlasujici)) {
-            $parametry |= self::ZPETNE; // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
+            // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
+            $parametry |= self::ZPETNE;
         }
         if ($prihlasujici->maPravoNaPrihlasovaniNaDosudNeotevrene()) {
             $parametry |= self::NEOTEVRENE;
             $parametry |= self::DOPREDNE;
         }
 
-        if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
+        // todo(tym): wat ? tohle nejde moc číst.
+        $prihlasovatelna = $this->prihlasovatelna($parametry);
+        if (!$prihlasovatelna) {
             if ($parametry & self::STAV) {
                 // hack na ignorování stavu
                 $puvodniStav = $this->a[Sql::STAV];
@@ -3055,7 +3089,7 @@ HTML
             return;
         }
         // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
-        if ($kolizniAktivita = $u->maKoliziSJinouAktivitou($this->zacatek(), $this->konec())) {
+        if ($kolizniAktivita = $u->maKoliziSJinouAktivitouVCase($this->zacatek(), $this->konec())) {
             throw new ChybaKolizeAktivit(hlaska('masKoliziAktivit') . ': ' . $kolizniAktivita->nazev());
         }
         // Uživatel musí být přihlášen na GameCon

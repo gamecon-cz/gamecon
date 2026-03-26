@@ -722,6 +722,22 @@ SQL,
         return $this->maRoli(Role::PRIHLASEN_NA_LETOSNI_GC);
     }
 
+    public function zkontrolujGcPrihlasen(
+        bool $hlaskyVeTretiOsobe = false,
+        ?DataSourcesCollector $dataSourcesCollector = null) {
+        if (!$this->gcPrihlasen($dataSourcesCollector)) {
+            throw new \Chyba(
+                ($hlaskyVeTretiOsobe
+                    ? 'Uživatel ' . $this->jmenoVolitelnyNick() . ' '
+                    : ''
+                ) .
+                hlaska($hlaskyVeTretiOsobe
+                    ? 'neniPrihlasenNaGc'
+                    : 'nejsiPrihlasenNaGc'),
+            );
+        }
+    }
+
     public static function gcPrihlasenDSC(?DataSourcesCollector $dataSourcesCollector)
     {
         $dataSourcesCollector?->addDataSource(Sql::UZIVATELE_HODNOTY_TABULKA);
@@ -1101,6 +1117,21 @@ SQL,
      *                       žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
      */
     public function maKoliziSJinouAktivitou(
+        Aktivita $aktivita,
+        ?Aktivita $ignorovanaAktivita = null,
+        bool $jenPritomen = false,
+    ): ?Aktivita {
+        if (!$aktivita->zacatek() || !$aktivita->konec()) {
+            return null;
+        }
+        return $this->maKoliziSJinouAktivitouVCase($aktivita->zacatek(), $aktivita->konec(), $ignorovanaAktivita, $jenPritomen);
+    }
+
+    /**
+     * @return Aktivita|null jestli se uživatel v daném čase neúčastní / neorganizuje
+     *                       žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
+     */
+    public function maKoliziSJinouAktivitouVCase(
         DateTimeInterface $od,
         DateTimeInterface $do,
         ?Aktivita $ignorovanaAktivita = null,
@@ -2232,6 +2263,7 @@ SQL,
             : null;
     }
 
+    // todo: enum ?
     /**
      * Vrátí pohlaví ve tvaru 'm' nebo 'f'
      */
