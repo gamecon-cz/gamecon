@@ -9,6 +9,7 @@ use App\Entity\ProductVariant;
 use App\Enum\RoleMeaning;
 use App\Service\CapacityManager;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -16,12 +17,15 @@ class CapacityManagerTest extends TestCase
 {
     private MockObject $connection;
 
+    private MockObject $entityManager;
+
     private CapacityManager $capacityManager;
 
     protected function setUp(): void
     {
         $this->connection = $this->createMock(Connection::class);
-        $this->capacityManager = new CapacityManager($this->connection);
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->capacityManager = new CapacityManager($this->connection, $this->entityManager);
     }
 
     public function testUnlimitedCapacityIsAlwaysAvailable(): void
@@ -86,7 +90,7 @@ class CapacityManagerTest extends TestCase
         $this->assertFalse($this->capacityManager->isSoldOut($variant, [RoleMeaning::VYPRAVEC]));
     }
 
-    public function testPurchaseDecrementsRemainingQuantity(): void
+    public function testPurchaseRefreshesEntity(): void
     {
         $variant = $this->createVariant(10);
 
@@ -94,9 +98,11 @@ class CapacityManagerTest extends TestCase
             ->method('executeStatement')
             ->willReturn(1);
 
-        $this->capacityManager->purchase($variant, 1);
+        $this->entityManager->expects($this->once())
+            ->method('refresh')
+            ->with($variant);
 
-        $this->assertSame(9, $variant->getRemainingQuantity());
+        $this->capacityManager->purchase($variant, 1);
     }
 
     public function testPurchaseSkipsForUnlimitedCapacity(): void
@@ -123,7 +129,7 @@ class CapacityManagerTest extends TestCase
         $this->capacityManager->purchase($variant, 2);
     }
 
-    public function testCancelPurchaseIncrementsRemainingQuantity(): void
+    public function testCancelPurchaseRefreshesEntity(): void
     {
         $variant = $this->createVariant(5);
 
@@ -131,9 +137,11 @@ class CapacityManagerTest extends TestCase
             ->method('executeStatement')
             ->willReturn(1);
 
-        $this->capacityManager->cancelPurchase($variant, 1);
+        $this->entityManager->expects($this->once())
+            ->method('refresh')
+            ->with($variant);
 
-        $this->assertSame(6, $variant->getRemainingQuantity());
+        $this->capacityManager->cancelPurchase($variant, 1);
     }
 
     public function testCancelPurchaseSkipsForUnlimitedCapacity(): void
