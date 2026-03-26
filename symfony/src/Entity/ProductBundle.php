@@ -13,21 +13,18 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * ProductBundle - forced bundling of products (MUST requirement from CFO)
+ * ProductBundle - forced bundling of product variants
  *
  * Use case: Weekend accommodation package
- * - Bundle contains: [Thursday, Friday, Saturday accommodation]
- * - forced = true → users with 'ucastnik' role MUST buy all together
- * - Organizers can buy individual days (not in applicableToRoles)
+ * - Bundle contains: [Dvojlůžko Thu, Dvojlůžko Fri, Dvojlůžko Sat] (variants of one product)
+ * - forced = true → users with applicable roles MUST buy all together
+ * - Organizers can buy individual variants (not in applicableToRoles)
  *
- * Example:
- * - Name: "Víkendový balíček ubytování"
- * - Products: [Ubytování Čt, Ubytování Pá, Ubytování So]
- * - forced: true
- * - applicableToRoles: ['ucastnik']
+ * Can also bundle variants from different products (e.g. accommodation + breakfast).
  */
 #[ORM\Entity(repositoryClass: ProductBundleRepository::class)]
 #[ORM\Table(name: 'product_bundle')]
+#[ORM\HasLifecycleCallbacks]
 class ProductBundle
 {
     #[ORM\Id]
@@ -44,7 +41,7 @@ class ProductBundle
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: [
         'default' => false,
-        'comment' => 'If true, products cannot be purchased individually',
+        'comment' => 'If true, variants cannot be purchased individually',
     ])]
     private bool $forced = false;
 
@@ -52,20 +49,20 @@ class ProductBundle
      * @var string[]
      */
     #[ORM\Column(type: Types::JSON, nullable: false, options: [
-        'comment' => 'Array of role names for which bundle is mandatory (e.g., ["ucastnik"])',
+        'comment' => 'Array of role meaning values for which bundle is mandatory',
     ])]
     #[Assert\Type('array')]
     private array $applicableToRoles = [];
 
     /**
-     * @var Collection<int, Product>
+     * @var Collection<int, ProductVariant>
      */
-    #[ORM\ManyToMany(targetEntity: Product::class, inversedBy: 'bundles')]
-    #[ORM\JoinTable(name: 'product_bundle_items')]
+    #[ORM\ManyToMany(targetEntity: ProductVariant::class, inversedBy: 'bundles')]
+    #[ORM\JoinTable(name: 'product_bundle_variant')]
     #[ORM\JoinColumn(name: 'bundle_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    #[ORM\InverseJoinColumn(name: 'product_id', referencedColumnName: 'id_predmetu', onDelete: 'CASCADE')]
-    #[Assert\Count(min: 2, minMessage: 'Balíček musí obsahovat alespoň {{ limit }} produkty')]
-    private Collection $products;
+    #[ORM\InverseJoinColumn(name: 'variant_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[Assert\Count(min: 2, minMessage: 'Balíček musí obsahovat alespoň {{ limit }} varianty')]
+    private Collection $variants;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false, options: [
         'default' => 'CURRENT_TIMESTAMP',
@@ -77,7 +74,7 @@ class ProductBundle
 
     public function __construct()
     {
-        $this->products = new ArrayCollection();
+        $this->variants = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -131,25 +128,25 @@ class ProductBundle
     }
 
     /**
-     * @return Collection<int, Product>
+     * @return Collection<int, ProductVariant>
      */
-    public function getProducts(): Collection
+    public function getVariants(): Collection
     {
-        return $this->products;
+        return $this->variants;
     }
 
-    public function addProduct(Product $product): self
+    public function addVariant(ProductVariant $variant): self
     {
-        if (! $this->products->contains($product)) {
-            $this->products->add($product);
+        if (! $this->variants->contains($variant)) {
+            $this->variants->add($variant);
         }
 
         return $this;
     }
 
-    public function removeProduct(Product $product): self
+    public function removeVariant(ProductVariant $variant): self
     {
-        $this->products->removeElement($product);
+        $this->variants->removeElement($variant);
 
         return $this;
     }
@@ -189,42 +186,59 @@ class ProductBundle
     }
 
     /**
-     * Check if bundle contains a specific product
+     * Check if bundle contains a specific variant
      */
-    public function containsProduct(Product $product): bool
+    public function containsVariant(ProductVariant $variant): bool
     {
-        return $this->products->contains($product);
+        return $this->variants->contains($variant);
     }
 
     /**
-     * Get product IDs in this bundle
-     *
      * @return int[]
      */
-    public function getProductIds(): array
+    public function getVariantIds(): array
     {
-        return $this->products->map(fn (Product $p): ?int => $p->getId())->toArray();
+        return $this->variants->map(fn (ProductVariant $v): ?int => $v->getId())->toArray();
     }
 
     /**
-     * Get total price of all products in bundle
+     * Get unique products represented by the bundled variants (for display)
+     *
+     * @return Product[]
+     */
+    public function getProducts(): array
+    {
+        $products = [];
+        foreach ($this->variants as $variant) {
+            $product = $variant->getProduct();
+            $id = $product->getId();
+            if ($id !== null && ! isset($products[$id])) {
+                $products[$id] = $product;
+            }
+        }
+
+        return array_values($products);
+    }
+
+    /**
+     * Get total price of all variants in bundle
      */
     public function getTotalPrice(): string
     {
         $total = '0.00';
-        foreach ($this->products as $product) {
-            $total = bcadd($total, $product->getCurrentPrice(), 2);
+        foreach ($this->variants as $variant) {
+            $total = bcadd($total, $variant->getEffectivePrice(), 2);
         }
 
         return $total;
     }
 
     /**
-     * Count products in bundle
+     * Count variants in bundle
      */
-    public function getProductCount(): int
+    public function getVariantCount(): int
     {
-        return $this->products->count();
+        return $this->variants->count();
     }
 
     /**
