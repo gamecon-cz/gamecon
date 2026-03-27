@@ -92,12 +92,21 @@ abstract class AbstractTestDb extends KernelTestCase
     {
         if (static::keepSingleTestMethodDbChangesInTransaction()) {
             self::$connection->rollback();
+            // Clear Doctrine identity map after rollback — entities may reference
+            // rolled-back data. Both legacy and Doctrine share the same PDO connection.
+            try {
+                static::getContainer()->get('doctrine')->getManager()->clear();
+            } catch (\Throwable) {
+                // Doctrine not booted yet
+            }
         }
         if (static::resetDbAfterSingleTestMethod()) {
             self::$connection->resetTestDb();
-            // Po resetu DB se auto_increment vrátí na 1 - vyčistíme Doctrine identity map,
-            // aby v dalším testu nevznikaly EntityIdentityCollisionException
-            $this->getContainer()->get('doctrine')->getManager()->clear();
+            // Clear Doctrine identity map after DB reset
+            try {
+                static::getContainer()->get('doctrine')->getManager()->clear();
+            } catch (\Throwable) {
+            }
         }
         Aktivita::smazCache();
         \Uzivatel::smazCache();
