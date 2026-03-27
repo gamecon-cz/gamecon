@@ -1,1 +1,0 @@
-cd /home/jaroslav/customers/gamecon/gamecon && make phpstan 2>&1 | tail -5
