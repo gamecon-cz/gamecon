@@ -342,7 +342,9 @@ class EshopIntegrationTest extends AbstractTestDb
 
         $stockBefore = (int) $this->connection->fetchOne(
             'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            ['id' => self::$variantM->getId()],
+            [
+                'id' => self::$variantM->getId(),
+            ],
         );
 
         // Add 2 items to cart
@@ -356,7 +358,9 @@ class EshopIntegrationTest extends AbstractTestDb
 
         $stockAfterPurchase = (int) $this->connection->fetchOne(
             'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            ['id' => self::$variantM->getId()],
+            [
+                'id' => self::$variantM->getId(),
+            ],
         );
         $this->assertSame($stockBefore - 2, $stockAfterPurchase);
 
@@ -374,7 +378,9 @@ class EshopIntegrationTest extends AbstractTestDb
         // Stock restored
         $stockAfterCancel = (int) $this->connection->fetchOne(
             'SELECT remaining_quantity FROM product_variant WHERE id = :id',
-            ['id' => self::$variantM->getId()],
+            [
+                'id' => self::$variantM->getId(),
+            ],
         );
         $this->assertSame($stockBefore, $stockAfterCancel);
 
@@ -387,7 +393,9 @@ class EshopIntegrationTest extends AbstractTestDb
         // Original items removed
         $itemCount = (int) $this->connection->fetchOne(
             'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 89901 AND rok = :rok',
-            ['rok' => ROCNIK],
+            [
+                'rok' => ROCNIK,
+            ],
         );
         $this->assertSame(0, $itemCount);
     }
@@ -406,8 +414,8 @@ class EshopIntegrationTest extends AbstractTestDb
                     (89901, :productId, :rok, '50.00', NOW(), :tagsJidlo, NULL)",
             [
                 'productId' => $product->getId(),
-                'rok' => ROCNIK,
-                'tagsUbyt' => json_encode(['ubytovani']),
+                'rok'       => ROCNIK,
+                'tagsUbyt'  => json_encode(['ubytovani']),
                 'tagsJidlo' => json_encode(['jidlo']),
                 'variantId' => $variant->getId(),
             ],
@@ -428,15 +436,19 @@ class EshopIntegrationTest extends AbstractTestDb
 
         // 'jidlo' item still exists
         $remainingCount = (int) $this->connection->fetchOne(
-            "SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 89901 AND rok = :rok",
-            ['rok' => ROCNIK],
+            'SELECT COUNT(*) FROM shop_nakupy WHERE id_uzivatele = 89901 AND rok = :rok',
+            [
+                'rok' => ROCNIK,
+            ],
         );
         $this->assertSame(1, $remainingCount);
 
         // Clean up remaining jidlo item
         $this->connection->executeStatement(
             'DELETE FROM shop_nakupy WHERE id_uzivatele = 89901 AND rok = :rok',
-            ['rok' => ROCNIK],
+            [
+                'rok' => ROCNIK,
+            ],
         );
     }
 
