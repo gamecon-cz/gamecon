@@ -128,7 +128,7 @@ class BulkCancelService
             $this->removeFromOrder($item);
 
             $this->entityManager->remove($item);
-            $count++;
+            ++$count;
         }
 
         if ($count > 0) {
