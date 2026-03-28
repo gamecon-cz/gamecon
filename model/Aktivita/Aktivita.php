@@ -37,6 +37,7 @@ use Granam\RemoveDiacritics\RemoveDiacritics;
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
 
+// todo: s chybami se těžko pracuje, funkce zkontroluj by měli spíš vracet string nebo objekt s detaily o chybě nebo nic pokud nedojde k chybě
 /**
  * Třída aktivity
  */
@@ -84,22 +85,40 @@ class Aktivita
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
     const HAJENI_TEAMU_HODIN    = 72; // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     const LIMIT_POPIS_KRATKY    = 180; // max počet znaků v krátkém popisku
-    // ignore a parametry kolem přihlašovátka
-    const PLUSMINUS                          = 0b0000000000001; // plus/mínus zkratky pro měnění míst v team. aktivitě
-    const PLUSMINUS_KAZDY                    = 0b0000000000010; // plus/mínus zkratky pro každého
-    const STAV                               = 0b0000000000100; // ignorování stavu
-    const BEZ_POKUT                          = 0b0000000010000; // odhlášení bez pokut
-    const ZPETNE                             = 0b0000000100000; // možnost zpětně měnit přihlášení
-    const INTERNI                            = 0b0000001000000; // přihlašovat i skryté technické a brigádnické aktivity
-    const NEPOSILAT_MAILY_SLEDUJICIM         = 0b0000010000000; // odhlášení bez mailů náhradníkům
-    const DOPREDNE                           = 0b0000100000000; // možnost přihlásit před otevřením registrací na aktivity
-    const IGNOROVAT_LIMIT                    = 0b0001000000000;
-    const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b0010000000000;
-    const NEOTEVRENE                         = 0b0100000000000; // přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity
-    const UKAZAT_DETAILY_CHYBY               = 0b1000000000000;
-    // parametry kolem továrních metod
-    const JEN_VOLNE  = 0b00000001; // jen volné aktivity
-    const VEREJNE    = 0b00000010; // jen veřejně viditelné aktivity
+
+    // todo: tym asi lepší commenty k parametrům by bodly :)
+    /* ignore a parametry kolem přihlašovátka */
+    /** plus/mínus zkratky pro měnění míst v team. aktivitě */
+    const PLUSMINUS                          = 0b00000000_00000001;
+    /** plus/mínus zkratky pro každého */
+    const PLUSMINUS_KAZDY                    = 0b00000000_00000010;
+    /** ignorování stavu */
+    const STAV                               = 0b00000000_00000100;
+    /** odhlášení bez pokut */
+    const BEZ_POKUT                          = 0b00000000_00010000;
+    /** možnost zpětně měnit přihlášení */
+    const ZPETNE                             = 0b00000000_00100000;
+    /** přihlašovat i skryté technické a brigádnické aktivity */
+    const INTERNI                            = 0b00000000_01000000;
+    /** odhlášení bez mailů náhradníkům */
+    const NEPOSILAT_MAILY_SLEDUJICIM         = 0b00000000_10000000;
+    /** možnost přihlásit před otevřením registrací na aktivity */
+    const DOPREDNE                           = 0b00000001_00000000;
+    const IGNOROVAT_LIMIT                    = 0b00000010_00000000;
+    const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b00000100_00000000;
+    /** přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity */
+    const NEOTEVRENE                         = 0b00001000_00000000;
+    const UKAZAT_DETAILY_CHYBY               = 0b00010000_00000000;
+    /** nepřihlašuje děti aktivity */
+    const IGNOROVAT_DETI                     = 0b00100000_00000000;
+    /** ignoruje kontroly přihlašování, nejčastěji protože už předtím proběhly, tak netřeba je pouštět znovu */
+    const IGNOROVAT_KONTROLY                 = 0b00100000_00000000;
+
+    /* parametry kolem továrních metod */
+    /** jen volné aktivity */
+    const JEN_VOLNE  = 0b00000001;
+    /** jen veřejně viditelné aktivity */
+    const VEREJNE    = 0b00000010;
     const ZAMCENE    = 0b00000100;
     const NEUZAVRENE = 0b00001000;
 
@@ -2277,7 +2296,47 @@ SQL
         }
     }
 
-    // todo(tym): dochází ke kontrole a přihláśení na děti aktivity ?
+    // todo(tym): nějaká cache? (nezávisle na referenční identitě na idDeti)
+    /**
+     * Vrátí řetězec detí z této aktivity. řetězec musí být jasně definovaný, pokud má nějaká aktivita více dětí, pak musí být alespoň jedno z nich $idDeti aby bylo vybráno jinak funkce spadne.
+     */
+    public function ziskejRetezecDeti(?array $idDeti): array {
+        $idDeti = $idDeti ?? [];
+
+        $retezec = [];
+        $aktualniAktivita = $this;
+
+        while (true) {
+            $detiIds = $aktualniAktivita->detiIds();
+            if (empty($detiIds)) {
+                break;
+            }
+            if (count($detiIds) === 1) {
+                $vybraneDiteId = $detiIds[0];
+            } else {
+                $vybraneDiteId = null;
+                foreach ($detiIds as $childId) {
+                    if (in_array($childId, $idDeti, true)) {
+                        $vybraneDiteId = $childId;
+                        break;
+                    }
+                }
+                if ($vybraneDiteId === null) {
+                    $id = $aktualniAktivita->id();
+                    throw new \LogicException("Aktivita ID $id má více dětí a výběr není jednoznačný. Předejte ID zvoleného dítěte v parametru idDeti.");
+                }
+            }
+            $dite = self::zId($vybraneDiteId, systemoveNastaveni: $this->systemoveNastaveni);
+            if (!$dite) {
+                throw new \LogicException("Dítě s ID $vybraneDiteId nenalezeno");
+            }
+            $retezec[] = $dite;
+            $aktualniAktivita = $dite;
+        }
+
+        return $retezec;
+    }
+
     /**
      * Přihlásí uživatele na aktivitu
      *
@@ -2294,6 +2353,8 @@ SQL
         if ($this->prihlasen($uzivatel)) {
             return false;
         }
+        $idAktivity = $this->id();
+        $idUzivatele = $uzivatel->id();
 
         $this->zkontrolujZdaSeMuzePrihlasit(
             $uzivatel,
@@ -2303,22 +2364,34 @@ SQL
             $hlaskyVeTretiOsobe,
             $kodTymu,
         );
-        // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
-        $idAktivity = $this->id();
-        $idUzivatele = $uzivatel->id();
+
+        if (!($parametry & self::IGNOROVAT_DETI)) {
+            $deti = [];
+            $idPreferovanychDeti = [];
+            if ($this->tymova() && $kodTymu) {
+                $tymId = AktivitaTym::najdiTymPodleKodu($this->id(), $kodTymu);
+                $idPreferovanychDeti = AktivitaTym::idDalsichAktivitTymu($tymId);
+            }
+            $deti = $this->ziskejRetezecDeti($idPreferovanychDeti);
+
+            $parametryDeti = self::IGNOROVAT_DETI | self::IGNOROVAT_KONTROLY | $parametry;
+            foreach ($deti as $dite) {
+                $dite->prihlas($uzivatel, $prihlasujici, $parametryDeti);
+            }
+        }
+
         if ($this->a[Sql::TEAMOVA]) {
             AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, (bool)(self::IGNOROVAT_LIMIT & $parametry));
         }
+
+        // odhlášení náhradnictví v kolidujících aktivitách
+        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
 
         dbQuery(
             'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
             [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
         );
 
-        if ($this->a[Sql::TEAMOVA]) {
-            $this->prihlasUzivateleNaDalsiAktivityTymu($uzivatel, $prihlasujici, $idAktivity, $idUzivatele);
-        }
         $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
         // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
         $this->zrusPredchoziStornoPoplatek($uzivatel);
@@ -2326,31 +2399,6 @@ SQL
         $this->refresh();
 
         return true;
-    }
-
-    private function prihlasUzivateleNaDalsiAktivityTymu(
-        Uzivatel $uzivatel,
-        Uzivatel $prihlasujici,
-        int      $idAktivity,
-        int      $idUzivatele,
-    ): void {
-        $idTymu = AktivitaTym::idTymuUzivatele($idUzivatele, $idAktivity);
-        if ($idTymu === null) {
-            return;
-        }
-        foreach (AktivitaTym::idDalsichAktivitTymu($idTymu, $idAktivity) as $idDalsiAktivity) {
-            if (dbOneCol('SELECT 1 FROM akce_prihlaseni WHERE id_uzivatele=$0 AND id_akce=$1', [$idUzivatele, $idDalsiAktivity])) {
-                continue;
-            }
-            dbQuery(
-                'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
-                [$idUzivatele, $idDalsiAktivity, StavPrihlaseni::PRIHLASEN],
-            );
-            $dalsiAktivita = self::zId($idDalsiAktivity, false, $this->systemoveNastaveni);
-            if ($dalsiAktivita) {
-                $dalsiAktivita->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
-            }
-        }
     }
 
     private function zrusPredchoziStornoPoplatek(Uzivatel $uzivatel): void
@@ -2444,6 +2492,53 @@ SQL
         }
     }
 
+    private function zkontrolujPrihlaseniNavazujicichAktivit(
+        Uzivatel $uzivatel,
+        Uzivatel $prihlasujici,
+        int      $parametry = 0,
+        bool     $jenPritomen = false,
+        bool     $hlaskyVeTretiOsobe = false,
+        int      $kodTymu = 0,
+    ) {
+        if ($parametry & self::IGNOROVAT_DETI) {
+            return;
+        }
+
+        // z této aktivity kontrolujeme celý řetězec dolů
+        $parametry |= self::IGNOROVAT_DETI;
+        // navázané aktivity nejsou nikdy přihlašovatelné
+        $parametry |= self::STAV;
+
+        if ($this->tymova()) {
+            // pokud je tymova, pak má tým už zajištěné místa tím že je na aktivitu zapsaný
+            // todo(tym): tohle má být parametr co říká že se neřeší kapacita aktivity ?
+            $parametry |= self::IGNOROVAT_LIMIT;
+        }
+
+        $deti = [];
+        if ($this->tymova() && $kodTymu) {
+            $tymId = AktivitaTym::najdiTymPodleKodu($this->id(), $kodTymu);
+            $idDeti = AktivitaTym::idDalsichAktivitTymu($tymId);
+            $deti = $this->ziskejRetezecDeti($idDeti);
+        }
+
+        foreach ($deti as $dite) {
+            try {
+                $dite->zkontrolujZdaSeMuzePrihlasit(
+                    $uzivatel,
+                    $prihlasujici,
+                    $parametry,
+                    $jenPritomen,
+                    $hlaskyVeTretiOsobe,
+                    $kodTymu,
+                );
+            } catch (\Chyba $chyba) {
+                // zaobalit hlášku aby bylo jasné že se jedná o navazující aktivitu a předejít tak zmatení že se člověk nepřihlašuje na tuhle aktivitu
+                throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu s chybou: ' . $chyba->getMessage());
+            }
+        }
+    }
+
     public function zkontrolujZdaSeMuzePrihlasit(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
@@ -2452,6 +2547,10 @@ SQL
         bool     $hlaskyVeTretiOsobe = false,
         int      $kodTymu = 0,
     ): void {
+        if ($parametry & self::IGNOROVAT_KONTROLY) {
+            return;
+        }
+
         if ($jenPritomen && $this->dorazilJakoCokoliv($uzivatel)) {
             // na současnou aktivitu už dorazil, takže se vlastně na ní může přihlásit
             return;
@@ -2497,43 +2596,34 @@ SQL
             }
         }
 
-        // přihlášení na navázané aktivity
-        if ($this->a[Sql::DITE]) {
-            $deti = $this->deti();
-            if (count($deti) === 1) {
-                try {
-                    reset($deti)->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
-                } catch (\Chyba $chyba) {
-                    throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu s chybou: ' . $chyba->getMessage());
-                } catch (\Throwable $throwable) {
-                    Vyjimkovac::vytvorZGlobals()->zaloguj($throwable);
-                    throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu. Interní chyba systému.');
-                }
-            } elseif ($this->pocetPrihlasenych() > 0) { // (není teamleader)
-                $prihlaseniRawArray = $this->prihlaseniRawArray();
-                reset($prihlaseniRawArray);
-                $vzorId = key($prihlaseniRawArray);
-                // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
-                $vzorUzivatele = Uzivatel::zId($vzorId);
-                if (!$vzorUzivatele) {
-                    $debu = dbFetchAll('SELECT * FROM uzivatele_hodnoty');
-                    trigger_error("Uživatel s ID '$vzorId', který je přihlášen na aktivitu '{$this->id()}' neexistuje.", E_USER_WARNING);
-                    throw new \Chyba('Nepodařilo se určit výběr dalšího kola.');
-                }
-                $uspech = false;
-                foreach ($deti as $dite) {
-                    // přihlášení na navázané aktivity podle vzoru vybraného uživatele
-                    if ($dite->prihlasen($vzorUzivatele)) {
-                        $dite->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
-                        $uspech = true;
-                        break;
-                    }
-                }
-                if (!$uspech) {
-                    throw new \Exception('Nepodařilo se určit výběr dalšího kola.');
+        $this->zkontrolujPrihlaseniNavazujicichAktivit($uzivatel,$prihlasujici,$parametry,$jenPritomen,$hlaskyVeTretiOsobe,$kodTymu,);
+
+        /*
+                    // (není teamleader)
+            $prihlaseniRawArray = $this->prihlaseniRawArray();
+            reset($prihlaseniRawArray);
+            $vzorId = key($prihlaseniRawArray);
+            // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
+            $vzorUzivatele = Uzivatel::zId($vzorId);
+            if (!$vzorUzivatele) {
+                $debu = dbFetchAll('SELECT * FROM uzivatele_hodnoty');
+                trigger_error("Uživatel s ID '$vzorId', který je přihlášen na aktivitu '{$this->id()}' neexistuje.", E_USER_WARNING);
+                throw new \Chyba('Nepodařilo se určit výběr dalšího kola.');
+            }
+            $uspech = false;
+            foreach ($deti as $dite) {
+                // přihlášení na navázané aktivity podle vzoru vybraného uživatele
+                if ($dite->prihlasen($vzorUzivatele)) {
+                    $dite->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
+                    $uspech = true;
+                    break;
                 }
             }
-        }
+            if (!$uspech) {
+                throw new \Exception('Nepodařilo se určit výběr dalšího kola.');
+            }
+            }
+            */
     }
 
     private function tymovaKapacita(): ?int

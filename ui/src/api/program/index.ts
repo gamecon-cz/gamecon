@@ -100,6 +100,7 @@ export type ApiAktivitaUživatel = {
   // todo(tym): členové týmu (pak není potřeba tymPocetClenu)
   // todo(tym): kapitán týmu
   // todo(tym): název týmu
+  // todo(tym): navazujici aktivity ať se může vypsat v modalu
   /** počet členů týmu, ve kterém je uživatel přihlášen */
   tymPocetClenu?: number,
   /** limit členů týmu */

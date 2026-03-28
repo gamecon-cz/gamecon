@@ -17,7 +17,6 @@ type FormTlačítkoTyp =
   | "prihlasSledujiciho"
   | "odhlasSledujiciho"
   | "tym"
-  // todo(tym) co znamená zamčeno ?
   | "zamceno"
   ;
 

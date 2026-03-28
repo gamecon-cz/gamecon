@@ -336,13 +336,23 @@ class AktivitaTym extends \DbObject
      * Vrátí ID aktivit, na které je tým přihlášen, kromě zadané výjimky.
      * @return int[]
      */
-    public static function idDalsichAktivitTymu(int $idTymu, int $vyjmaIdAktivity): array {
+    public static function idDalsichAktivitTymu(int $idTymu, int $vyjmaIdAktivity = -1): array {
+        if ($vyjmaIdAktivity >= 0) {
+            return array_map(
+                    'intval',
+                    dbOneArray(
+                        'SELECT id_akce FROM akce_tym_akce WHERE id_tymu = $0 AND id_akce != $1',
+                        [$idTymu, $vyjmaIdAktivity],
+                    ),
+                );
+        } else {
         return array_map(
-            'intval',
-            dbOneArray(
-                'SELECT id_akce FROM akce_tym_akce WHERE id_tymu = $0 AND id_akce != $1',
-                [$idTymu, $vyjmaIdAktivity],
-            ),
-        );
+                'intval',
+                dbOneArray(
+                    'SELECT id_akce FROM akce_tym_akce WHERE id_tymu = $0',
+                    [$idTymu],
+                ),
+            );
+        }
     }
 }
