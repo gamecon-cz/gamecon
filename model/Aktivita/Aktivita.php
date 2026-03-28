@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita;
 
+use Chyba;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportSqlColumn;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportSqlMappedValuesChecker;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesDescriber;
@@ -112,7 +113,7 @@ class Aktivita
     /** nepřihlašuje děti aktivity */
     const IGNOROVAT_DETI                     = 0b00100000_00000000;
     /** ignoruje kontroly přihlašování, nejčastěji protože už předtím proběhly, tak netřeba je pouštět znovu */
-    const IGNOROVAT_KONTROLY                 = 0b00100000_00000000;
+    const IGNOROVAT_KONTROLY                 = 0b01000000_00000000;
 
     /* parametry kolem továrních metod */
     /** jen volné aktivity */
@@ -2369,6 +2370,7 @@ SQL
             $deti = [];
             $idPreferovanychDeti = [];
             if ($this->tymova() && $kodTymu) {
+                // todo(tym): najdiTymPodleKodu se volá podruhé (poprvé v zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite) - zbytečný DB dotaz
                 $tymId = AktivitaTym::najdiTymPodleKodu($this->id(), $kodTymu);
                 $idPreferovanychDeti = AktivitaTym::idDalsichAktivitTymu($tymId);
             }
@@ -2380,7 +2382,7 @@ SQL
             }
         }
 
-        if ($this->a[Sql::TEAMOVA]) {
+        if ($this->tymova()) {
             AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, (bool)(self::IGNOROVAT_LIMIT & $parametry));
         }
 
@@ -2467,8 +2469,9 @@ SQL
                     AktivitaTym::zkontrolujMuzeZalozitTym($this->id());
                 }
             } else {
-                $tymId = AktivitaTym::najdiTymPodleKodu($this->id(), $kodTymu);
-                if (!$tymId) {
+                try {
+                    $tymId = AktivitaTym::najdiTymPodleKodu($this->id(), $kodTymu);
+                } catch(\Chyba $e) {
                     throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
                 }
                 if (!(self::IGNOROVAT_LIMIT & $parametry)) {
@@ -2521,6 +2524,7 @@ SQL
             $idDeti = AktivitaTym::idDalsichAktivitTymu($tymId);
             $deti = $this->ziskejRetezecDeti($idDeti);
         }
+        // todo(tym): existuje situace kdy mají netýmové aktivity taky děti ?
 
         foreach ($deti as $dite) {
             try {
@@ -2598,32 +2602,6 @@ SQL
 
         $this->zkontrolujPrihlaseniNavazujicichAktivit($uzivatel,$prihlasujici,$parametry,$jenPritomen,$hlaskyVeTretiOsobe,$kodTymu,);
 
-        /*
-                    // (není teamleader)
-            $prihlaseniRawArray = $this->prihlaseniRawArray();
-            reset($prihlaseniRawArray);
-            $vzorId = key($prihlaseniRawArray);
-            // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
-            $vzorUzivatele = Uzivatel::zId($vzorId);
-            if (!$vzorUzivatele) {
-                $debu = dbFetchAll('SELECT * FROM uzivatele_hodnoty');
-                trigger_error("Uživatel s ID '$vzorId', který je přihlášen na aktivitu '{$this->id()}' neexistuje.", E_USER_WARNING);
-                throw new \Chyba('Nepodařilo se určit výběr dalšího kola.');
-            }
-            $uspech = false;
-            foreach ($deti as $dite) {
-                // přihlášení na navázané aktivity podle vzoru vybraného uživatele
-                if ($dite->prihlasen($vzorUzivatele)) {
-                    $dite->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
-                    $uspech = true;
-                    break;
-                }
-            }
-            if (!$uspech) {
-                throw new \Exception('Nepodařilo se určit výběr dalšího kola.');
-            }
-            }
-            */
     }
 
     private function tymovaKapacita(): ?int
@@ -3651,14 +3629,17 @@ SQL,
      * vrací nějakou false ekvivalentní hodnotu.
      * @todo ideálně převést na nějaké statické metody týmu nebo samostatnou třídu
      */
-    public function vyberTeamu(Uzivatel $u = null)
+    public function vyberTeamu(?Uzivatel $u = null)
     {
         if (!$u || !AktivitaTym::jeKapitanem($u->id(), $this->id()) || !$this->prihlasovatelna()) {
             return null;
         }
 
         $t = new XTemplate(__DIR__ . '/templates/tym-formular.xtpl'); // obecné proměnné šablony
-        $zbyva = strtotime('now') + self::HAJENI_TEAMU_HODIN * 60 * 60 - time();
+        $casZalozeni = AktivitaTym::casZalozeniTymuUzivatele($u->id(), $this->id());
+        $zbyva = $casZalozeni !== null
+            ? $casZalozeni + self::HAJENI_TEAMU_HODIN * 3600 - time()
+            : self::HAJENI_TEAMU_HODIN * 3600;
         $t->assign([
             'zbyva'                => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
             'postname'             => 'aTeamForm',

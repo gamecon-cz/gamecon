@@ -52,8 +52,17 @@ class AktivitaTym extends \DbObject
             self::zkontrolujMuzeZalozitTym($idAktivity);
         }
 
-        // todo(tym): nějaký zábavný generátor na název týmů
-        $kod = rand(1000, 9999);
+        $existujiciKody = array_map(
+            'intval',
+            dbOneArray(
+                'SELECT akce_tym.kod FROM akce_tym
+                 JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0',
+                [$idAktivity],
+            ),
+        );
+        do {
+            $kod = rand(1000, 9999);
+        } while (in_array($kod, $existujiciKody, true));
         dbQuery(
             'INSERT INTO akce_tym (kod, id_kapitan, zalozen) VALUES ($0, $1, NOW())',
             [$kod, $idUzivatele],
@@ -287,6 +296,7 @@ class AktivitaTym extends \DbObject
      * Vrátí počet volných míst ve všech veřejných týmech na aktivitě.
      * @return int Součet volných míst (limit - počet členů) ve všech veřejných týmech
      */
+    // todo(tym): tým bez limitu (limit === null) se počítá jako 0 volných míst - pokud tým nemá limit, měl by se asi počítat jako neomezený
     public static function pocetVolnychMistVVerejnychTymech(int $idAktivity): int {
         $tymy = self::verejneTymy($idAktivity);
         $volnaMista = 0;
@@ -330,6 +340,18 @@ class AktivitaTym extends \DbObject
             [$idUzivatele, $idAktivity],
         );
         return $id !== null ? (int)$id : null;
+    }
+
+    /** Vrátí timestamp založení týmu uživatele na dané aktivitě, nebo null */
+    public static function casZalozeniTymuUzivatele(int $idUzivatele, int $idAktivity): ?int {
+        $zalozen = dbOneCol(
+            'SELECT UNIX_TIMESTAMP(akce_tym.zalozen) FROM akce_tym
+             JOIN akce_tym_prihlaseni ON akce_tym_prihlaseni.id_tymu = akce_tym.id
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+             WHERE akce_tym_prihlaseni.id_uzivatele = $0',
+            [$idUzivatele, $idAktivity],
+        );
+        return $zalozen !== null ? (int)$zalozen : null;
     }
 
     /**
