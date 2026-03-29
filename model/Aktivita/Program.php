@@ -24,7 +24,6 @@ class Program
     public const PLUS_MINUS      = 'plus_minus';
     public const OSOBNI          = 'osobni';
     public const TABLE_CSS_CLASS = 'table_class';
-    public const TEAM_VYBER      = 'team_vyber';
     public const INTERNI         = 'interni';
     public const SKUPINY         = 'skupiny';
     public const PRAZDNE         = 'prazdne';
@@ -43,10 +42,10 @@ class Program
     private                 $nastaveni      = [
         self::DRD_PJ          => false, // u DrD explicitně zobrazit jména PJů
         self::DRD_PRIHLAS     => false, // jestli se zobrazují přihlašovátka pro DrD
+        // todo(tym): ??
         self::PLUS_MINUS      => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
         self::OSOBNI          => false, // jestli se zobrazuje osobní program (jinak se zobrazuje full)
         self::TABLE_CSS_CLASS => 'program', //todo edit
-        self::TEAM_VYBER      => true, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
         self::INTERNI         => false, // jestli jdou vidět i skryté technické a brigádnické aktivity
         self::SKUPINY         => self::SKUPINY_LINIE, // seskupování programu - po místnostech nebo po liniích
         self::PRAZDNE         => false, // zobrazovat prázdné skupiny?
@@ -560,11 +559,6 @@ HTML;
 
         if ($this->nastaveni[self::OSOBNI]) {
             echo '<span class="program_osobniTyp">' . mb_ucfirst($aktivitaObjekt->typ()->nazev()) . '</span>';
-        }
-
-        // případný formulář pro výběr týmu
-        if ($this->nastaveni[self::TEAM_VYBER]) {
-            echo $aktivitaObjekt->vyberTeamu($this->u);
         }
 
         // Místnost v programu pro orgy

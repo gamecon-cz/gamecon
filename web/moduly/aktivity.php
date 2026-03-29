@@ -63,26 +63,6 @@ foreach ($skupiny as $skupina) {
 
     /** @var Aktivita $aktivita */
     foreach ($skupina as $aktivita) {
-        $vyberTymu = $aktivita->vyberTeamu($u);
-        if ($vyberTymu) {
-            $t->assign('vyberTymu', $vyberTymu);
-            $t->parse('aktivity.aktivita.termin.vyberTymu');
-        }
-
-        $tym = $aktivita->tym();
-        if ($tym && in_array($aktivita->typId(), [TypAktivity::DRD, TypAktivity::LKD, TypAktivity::DND])) {
-            $t->assign('tym', $tym);
-            $t->parse('aktivity.aktivita.termin.tym');
-        }
-
-        $vypisTymu = $tym && $u && $aktivita->prihlasen($u)
-            ? $tym->vypis()
-            : null;
-        if ($vypisTymu && !$vyberTymu) {
-            $t->assign('vypisTymu', $vypisTymu);
-            $t->parse('aktivity.aktivita.termin.vypisTymu');
-        }
-
         $vypravec = current($aktivita->organizatori());
         if ($vypravec && ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0)) {
             $t->assign('vypravec', $vypravec->jmenoNick());

@@ -117,7 +117,7 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
     {
         $odemcenoTymovychAktivit = 0;
 
-        $expirovaneTymyIds = AktivitaTym::expirovaneTymyIds(Aktivita::HAJENI_TEAMU_HODIN);
+        $expirovaneTymyIds = AktivitaTym::expirovaneTymyIds();
         foreach ($expirovaneTymyIds as $idTymu) {
             $tym = dbOneLine('SELECT id_kapitan FROM akce_tym WHERE id = $0', [$idTymu]);
             if (!$tym) {

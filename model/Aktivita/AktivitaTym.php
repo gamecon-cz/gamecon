@@ -8,6 +8,8 @@ use Gamecon\Aktivita\SqlStruktura\AkceTymSqlStruktura;
 // todo(tym): ORM styl
 class AktivitaTym extends \DbObject
 {
+    public const HAJENI_TEAMU_HODIN    = 72; // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
+
     protected static $tabulka = AkceTymSqlStruktura::AKCE_TYM_TABULKA;
 
     // todo(tym): Je potřeba zajistit že před přidáním účastníka do týmu je přihlášený na všechny aktivity týmu
@@ -308,7 +310,8 @@ class AktivitaTym extends \DbObject
         return $volnaMista;
     }
 
-    public static function expirovaneTymyIds(int $hajeniHodin): array {
+    public static function expirovaneTymyIds(?int $hajeniHodin = null): array {
+        $hajeniHodin = $hajeniHodin ?? self::HAJENI_TEAMU_HODIN;
         return dbOneArray(
             'SELECT akce_tym.id FROM akce_tym
              WHERE akce_tym.zalozen < NOW() - INTERVAL $0 HOUR

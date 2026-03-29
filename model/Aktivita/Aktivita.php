@@ -84,7 +84,6 @@ class Aktivita
     const POST_KLIC             = 'aEditForm'; // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
     const PN_PLUSMINUSP         = 'cAktivitaPlusminusp'; // název post proměnné pro úpravy typu plus
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
-    const HAJENI_TEAMU_HODIN    = 72; // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     const LIMIT_POPIS_KRATKY    = 180; // max počet znaků v krátkém popisku
 
     // todo: tym asi lepší commenty k parametrům by bodly :)
@@ -1472,6 +1471,7 @@ SQL
         return true;
     }
 
+    // todo(tym): revidovat kapacity jak fungují a názvosloví
     /** Vrací celkovou kapacitu aktivity, která platí pokud aktivita není teamová */
     public function neteamovaKapacita(): int
     {
@@ -2581,29 +2581,19 @@ SQL
             $parametry |= self::DOPREDNE;
         }
 
-        // todo(tym): wat ? tohle nejde moc číst.
         $prihlasovatelna = $this->prihlasovatelna($parametry);
         if (!$prihlasovatelna) {
-            if ($parametry & self::STAV) {
-                // hack na ignorování stavu
-                $puvodniStav = $this->a[Sql::STAV];
-                $this->a[Sql::STAV] = StavAktivity::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
-                $prihlasovatelna = $this->prihlasovatelna($parametry);
-                $this->a[Sql::STAV] = $puvodniStav;
+            $duvod = '';
+            if (self::UKAZAT_DETAILY_CHYBY & $parametry) {
+                $duvod = ': ' . $this->procNeniPrihlasovatelna($parametry);
             }
-            if (!$prihlasovatelna) {
-                $duvod = '';
-                if (self::UKAZAT_DETAILY_CHYBY & $parametry) {
-                    $duvod = ': ' . $this->procNeniPrihlasovatelna($parametry);
-                }
-                throw new \Chyba('Aktivita není otevřena pro přihlašování' . $duvod);
-            }
+            throw new \Chyba('Aktivita není otevřena pro přihlašování' . $duvod);
         }
 
         $this->zkontrolujPrihlaseniNavazujicichAktivit($uzivatel,$prihlasujici,$parametry,$jenPritomen,$hlaskyVeTretiOsobe,$kodTymu,);
-
     }
 
+    // todo(tym): tohle je asi nesmysl v nové tymove implementaci. Tymova kapacita teď znamená kapacita týmů
     private function tymovaKapacita(): ?int
     {
         if (isset($this->a[Sql::TEAM_KAPACITA])) {
@@ -2925,6 +2915,7 @@ SQL
         $zpetne = $parametry & self::ZPETNE;
         $neotevrene = $parametry & self::NEOTEVRENE;
         $interni = $parametry & self::INTERNI;
+        $ignorovatStav = $parametry & self::STAV;
 
         if (!( // ← inverze ↓
             $this->systemoveNastaveni->probihaRegistraceAktivit()
@@ -2937,12 +2928,13 @@ SQL
                 $this->systemoveNastaveni->prihlasovaniUcastnikuDo()->formatCasStandard(),
             );
         }
-        if (!( // ← inverze ↓
-            $this->idStavu() === StavAktivity::AKTIVOVANA
-            || ($neotevrene && in_array($this->idStavu(), [StavAktivity::PRIPRAVENA, StavAktivity::PUBLIKOVANA]))
-            || ($interni && $this->idStavu() == StavAktivity::NOVA && $this->typ()->jeInterni())
-            || ($zpetne && $this->probehnuta())
-        )) {
+        if (
+            !$ignorovatStav
+            && $this->idStavu() !== StavAktivity::AKTIVOVANA
+            && !($neotevrene && in_array($this->idStavu(), [StavAktivity::PRIPRAVENA, StavAktivity::PUBLIKOVANA]))
+            && !($interni && $this->idStavu() == StavAktivity::NOVA && $this->typ()->jeInterni())
+            && !($zpetne && $this->probehnuta())
+        ) {
             return sprintf(
                 'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu "%s" (%d). Povoleno: technické %s, zpětně %s',
                 StavAktivity::dejNazev((int)$this->a[Sql::STAV]),
@@ -3016,7 +3008,7 @@ SQL
             } elseif ($u->organizuje($this)) {
                 $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ');
             } elseif (AktivitaTym::maAktivitaTym($this->id())) {
-                $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
+                $hajeniTymuHodin = AktivitaTym::HAJENI_TEAMU_HODIN;
                 // todo(tym): tady se nedá přihlašovat pomocí nového způsobu
                 $out = <<<HTML
 <span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
@@ -3390,16 +3382,6 @@ SQL,
         $this->otoc();
     }
 
-    // todo(tym): k čemu se využívá ?
-    public function tym()
-    {
-        if ($this->tymova() && $this->pocetPrihlasenych() > 0) {
-            return new \Tym($this, $this->a);
-        }
-
-        return null;
-    }
-
     public function tymMaxKapacita(): ?int
     {
         return (string)$this->a[Sql::TEAM_MAX] !== ''
@@ -3621,89 +3603,6 @@ SQL,
         }
 
         return dbOneCol('SELECT vybaveni FROM akce_seznam WHERE id_akce = $1', [$this->id()]);
-    }
-
-    // todo(tym): preact generovani formulare pro vyber tymu. Bude nějak sjednoceno s programem
-    /**
-     * Vrátí formulář pro výběr teamu na aktivitu. Pokud není zadán uživatel,
-     * vrací nějakou false ekvivalentní hodnotu.
-     * @todo ideálně převést na nějaké statické metody týmu nebo samostatnou třídu
-     */
-    public function vyberTeamu(?Uzivatel $u = null)
-    {
-        if (!$u || !AktivitaTym::jeKapitanem($u->id(), $this->id()) || !$this->prihlasovatelna()) {
-            return null;
-        }
-
-        $t = new XTemplate(__DIR__ . '/templates/tym-formular.xtpl'); // obecné proměnné šablony
-        $casZalozeni = AktivitaTym::casZalozeniTymuUzivatele($u->id(), $this->id());
-        $zbyva = $casZalozeni !== null
-            ? $casZalozeni + self::HAJENI_TEAMU_HODIN * 3600 - time()
-            : self::HAJENI_TEAMU_HODIN * 3600;
-        $t->assign([
-            'zbyva'                => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
-            'postname'             => 'aTeamForm',
-            'prihlasenyUzivatelId' => $u->id(),
-            'aktivitaId'           => $this->id(),
-            'cssUrlAutocomplete'   => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
-            'jsUrlAutocomplete'    => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.min.js',
-            'jsUrl'                => URL_WEBU . '/soubory/blackarrow/tym-formular/tym-formular.js',
-        ]); // výběr instancí, pokud to aktivita vyžaduje
-        if ($this->a[Sql::DITE]) {
-
-            // načtení "kol" (podle hloubky zanoření v grafu instancí)
-            $urovne[] = [$this];
-            do {
-                $dalsi = [];
-                foreach (end($urovne) as $a) {
-                    if ($a->a[Sql::DITE]) {
-                        foreach ($this->parseIds($a->a[Sql::DITE] ?? '') as $id) {
-                            $dalsi[] = $id;
-                        }
-                    }
-                }
-                if ($dalsi) {
-                    $urovne[] = self::zIds($dalsi);
-                }
-            } while ($dalsi);
-            unset($urovne[0]); // aktuální aktivitu už má přihlášenu - ignorovat
-
-            // vybírací formy dle "kol"
-            foreach ($urovne as $i => $uroven) {
-                $t->assign('postnameKolo', 'aTeamFormKolo' . '[' . $i . ']'); // todo(tym): bude odebrano a nahrazeno
-                foreach ($uroven as $varianta) {
-                    $t->assign([
-                        'koloId' => $varianta->id(),
-                        'nazev'  => $varianta->nazev() . ': ' . $varianta->denCasSkutecny(),
-                    ]);
-                    $t->parse('formular.kola.uroven.varianta');
-                }
-                $t->parse('formular.kola.uroven');
-            }
-            $t->parse('formular.kola');
-
-        }
-
-        // políčka pro výběr míst
-        for ($i = 0; $i < $this->neteamovaKapacita() - 1; $i++) {
-            $t->assign('postnameMisto', 'aTeamForm' . '[' . $i . ']'); // todo(tym): bude odebrano a nahrazeno
-            if ($i >= $this->a[Sql::TEAM_MIN] - 1) { // -1 za týmlídra
-                $t->parse('formular.misto.odebrat');
-            }
-            $t->parse('formular.misto');
-        }
-
-        // název (povinný pro DrD)
-        if ($this->a[Sql::TYP] == TypAktivity::DRD) {
-            $t->parse('formular.nazevPovinny');
-        } else {
-            $t->parse('formular.nazevVolitelny');
-        }
-
-        // výpis celého formuláře
-        $t->parse('formular');
-
-        return $t->text('formular');
     }
 
     /**
