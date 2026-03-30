@@ -1,6 +1,6 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { fetchAktivitaTým, fetchAktivitaAkce, fetchNastavVerejnostTymu } from "../../api/program";
+import { fetchAktivitaTým, fetchAktivitaAkce, fetchNastavVerejnostTymu, fetchPregenerujKodTymu, fetchOdhlasClena } from "../../api/program";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
 import { NastaveniTymuView } from "../../components/NastaveniTymuView/NastaveniTymuView";
 
@@ -27,7 +27,17 @@ export const PrihlaseniTymuWidget: FunctionComponent = () => {
     if (!aktivitaId) return;
     setNačítá(true);
     fetchAktivitaTým(aktivitaId)
-      .then((response) => setData({ kod: response.kod, nazev: "", muzeZalozitNovy: true, verejny: response.verejny, verejneTymy: response.verejneTymy }))
+      .then((response) => setData({
+        kod: response.kod,
+        nazev: "",
+        muzeZalozitNovy: true,
+        jeKapitan: response.jeKapitan,
+        verejny: response.verejny,
+        casText: response.casText,
+        clenove: response.clenove,
+        vsechnyTymy: response.vsechnyTymy,
+        verejneTymy: response.verejneTymy,
+      }))
       .finally(() => setNačítá(false));
   }, [aktivitaId]);
 
@@ -54,7 +64,35 @@ export const PrihlaseniTymuWidget: FunctionComponent = () => {
     if (!data || data.verejny === undefined || !data.kod || !aktivitaId) return;
     await fetchNastavVerejnostTymu(aktivitaId, data.kod, !data.verejny);
     const response = await fetchAktivitaTým(aktivitaId);
-    setData((prev) => prev && { ...prev, verejny: response.verejny, verejneTymy: response.verejneTymy });
+    setData((prev) => prev && { ...prev, verejny: response.verejny, vsechnyTymy: response.vsechnyTymy, verejneTymy: response.verejneTymy });
+  };
+
+  const načtiZnovu = async () => {
+    if (!aktivitaId) return;
+    const response = await fetchAktivitaTým(aktivitaId);
+    setData({
+      kod: response.kod,
+      nazev: "",
+      muzeZalozitNovy: true,
+      jeKapitan: response.jeKapitan,
+      verejny: response.verejny,
+      casText: response.casText,
+      clenove: response.clenove,
+      vsechnyTymy: response.vsechnyTymy,
+      verejneTymy: response.verejneTymy,
+    });
+  };
+
+  const přegenerujKód = async () => {
+    if (!data?.kod || !aktivitaId) return;
+    await fetchPregenerujKodTymu(aktivitaId, data.kod);
+    await načtiZnovu();
+  };
+
+  const odhlásitČlena = async (idČlena: number) => {
+    if (!data?.kod || !aktivitaId) return;
+    await fetchOdhlasClena(aktivitaId, data.kod, idČlena);
+    await načtiZnovu();
   };
 
   return (
@@ -68,6 +106,8 @@ export const PrihlaseniTymuWidget: FunctionComponent = () => {
       onZaložitTým={() => void přihlásit()}
       onPřipojitSe={(kód) => void přihlásit(kód)}
       onPřepniVerejnost={() => void přepniVerejnost()}
+      onPregenerujKód={() => void přegenerujKód()}
+      onOdhlásitČlena={(id) => void odhlásitČlena(id)}
     />
   );
 };

@@ -253,9 +253,27 @@ export type VerejnyTym = {
   limit: number | null,
 };
 
+export type ClenTymu = {
+  id: number,
+  jmeno: string,
+  jeKapitan: boolean,
+};
+
+export type TymVSeznamu = {
+  kod: number,
+  nazev: string | null,
+  pocetClenu: number,
+  limit: number | null,
+  verejny: boolean,
+};
+
 export type AktivitaTymResponse = {
   kod: number,
   verejny?: boolean,
+  jeKapitan?: boolean,
+  casText?: string,
+  clenove?: ClenTymu[],
+  vsechnyTymy?: TymVSeznamu[],
   verejneTymy?: VerejnyTym[],
 };
 
@@ -275,5 +293,22 @@ export const fetchNastavVerejnostTymu = async (aktivitaId: number, kodTymu: numb
   formdata.set("akce", "nastavVerejnost");
   formdata.set("kodTymu", kodTymu.toString(10));
   formdata.set("verejny", verejny ? "1" : "0");
+  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
+};
+
+export const fetchPregenerujKodTymu = async (aktivitaId: number, kodTymu: number): Promise<{úspěch: boolean, novyKod?: number}> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
+  const formdata = new FormData();
+  formdata.set("akce", "pregenerujKod");
+  formdata.set("kodTymu", kodTymu.toString(10));
+  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
+};
+
+export const fetchOdhlasClena = async (aktivitaId: number, kodTymu: number, idClena: number): Promise<{úspěch: boolean}> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
+  const formdata = new FormData();
+  formdata.set("akce", "odhlasClena");
+  formdata.set("kodTymu", kodTymu.toString(10));
+  formdata.set("idClena", idClena.toString(10));
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };

@@ -1711,7 +1711,7 @@ SQL
     }
 
     /**
-     * @return array<\Uzivatel>
+     * @return array<int, Uzivatel[]>
      */
     private function seznamUcastniku(?DataSourcesCollector $dataSourcesCollector = null): array
     {

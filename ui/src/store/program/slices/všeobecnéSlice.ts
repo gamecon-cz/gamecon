@@ -1,11 +1,15 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { fetchAktivitaTým, VerejnyTym } from "../../../api/program";
+import { fetchAktivitaTým, VerejnyTym, ClenTymu, TymVSeznamu } from "../../../api/program";
 
 export type NastaveniTymuData = {
   nazev: string,
   kod: number,
   muzeZalozitNovy: boolean,
+  jeKapitan?: boolean,
   verejny?: boolean,
+  casText?: string,
+  clenove?: ClenTymu[],
+  vsechnyTymy?: TymVSeznamu[],
   verejneTymy?: VerejnyTym[],
 };
 
@@ -56,7 +60,11 @@ export const dotáhniNastaveníTýmuProModal = async () => {
         kod: data.kod,
         muzeZalozitNovy: true,
         nazev: "",
+        jeKapitan: data.jeKapitan,
         verejny: data.verejny,
+        casText: data.casText,
+        clenove: data.clenove,
+        vsechnyTymy: data.vsechnyTymy,
         verejneTymy: data.verejneTymy,
       }
     };

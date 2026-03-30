@@ -320,6 +320,81 @@ class AktivitaTym extends \DbObject
         );
     }
 
+    // todo(tym): používat id a ne kód týmu
+    /** @return \Uzivatel[] seřazení: kapitán první, pak ostatní podle pořadí přihlášení */
+    public static function clenoveTymu(int $kodTymu, int $idAktivity): array {
+        $idKapitana = self::idKapitanaTymu($kodTymu, $idAktivity);
+        $ids = array_map(
+            'intval',
+            dbOneArray(
+                'SELECT akce_tym_prihlaseni.id_uzivatele
+                 FROM akce_tym_prihlaseni
+                 JOIN akce_tym ON akce_tym.id = akce_tym_prihlaseni.id_tymu
+                 JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+                 WHERE akce_tym.kod = $0
+                 ORDER BY (akce_tym_prihlaseni.id_uzivatele = $2) DESC, akce_tym_prihlaseni.id ASC',
+                [$kodTymu, $idAktivity, $idKapitana],
+            ),
+        );
+        return \Uzivatel::zIds($ids);
+    }
+
+    public static function idKapitanaTymu(int $kodTymu, int $idAktivity): ?int {
+        $id = dbOneCol(
+            'SELECT akce_tym.id_kapitan FROM akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+             WHERE akce_tym.kod = $0',
+            [$kodTymu, $idAktivity],
+        );
+        return $id !== null ? (int)$id : null;
+    }
+
+    /** @return TymVSeznamu[] */
+    public static function vsechnyTymy(int $idAktivity): array {
+        $rows = dbFetchAll(
+            'SELECT akce_tym.kod, akce_tym.nazev, akce_tym.verejny,
+                    COALESCE(akce_tym.`limit`, akce_seznam.team_max) AS team_limit,
+                    (SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE akce_tym_prihlaseni.id_tymu = akce_tym.id) AS pocet_clenu
+             FROM akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce',
+            [$idAktivity],
+        );
+        return array_map(
+            fn(array $row) => new TymVSeznamu(
+                kod: (int)$row['kod'],
+                nazev: $row['nazev'],
+                pocetClenu: (int)$row['pocet_clenu'],
+                limit: $row['team_limit'] !== null ? (int)$row['team_limit'] : null,
+                verejny: (bool)(int)$row['verejny'],
+            ),
+            $rows,
+        );
+    }
+
+    public static function pregenerujKodTymu(int $kodTymu, int $idAktivity): int {
+        $existujiciKody = array_map(
+            'intval',
+            dbOneArray(
+                'SELECT akce_tym.kod FROM akce_tym
+                 JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $0',
+                [$idAktivity],
+            ),
+        );
+        do {
+            $novyKod = rand(1000, 9999);
+        } while (in_array($novyKod, $existujiciKody, true));
+
+        dbQuery(
+            'UPDATE akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = $1
+             SET akce_tym.kod = $2
+             WHERE akce_tym.kod = $0',
+            [$kodTymu, $idAktivity, $novyKod],
+        );
+        return $novyKod;
+    }
+
     /**
      * Přidá tým na aktivitu (záznam do akce_tym_akce).
      * Pokud tým na aktivitě už je, nic se nestane.

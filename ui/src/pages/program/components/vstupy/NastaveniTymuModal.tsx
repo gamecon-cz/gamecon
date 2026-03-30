@@ -12,7 +12,7 @@ import {
 } from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
 import { useProgramStore } from "../../../../store/program";
-import { fetchNastavVerejnostTymu } from "../../../../api/program";
+import { fetchNastavVerejnostTymu, fetchPregenerujKodTymu, fetchOdhlasClena } from "../../../../api/program";
 import { NastaveniTymuView } from "../../../../components/NastaveniTymuView/NastaveniTymuView";
 
 
@@ -53,6 +53,18 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
     void dotáhniNastaveníTýmuProModal();
   };
 
+  const přegenerujKód = async () => {
+    if (!data?.kod) return;
+    await fetchPregenerujKodTymu(aktivitaId, data.kod);
+    void dotáhniNastaveníTýmuProModal();
+  };
+
+  const odhlásitČlena = async (idČlena: number) => {
+    if (!data?.kod) return;
+    await fetchOdhlasClena(aktivitaId, data.kod, idČlena);
+    void dotáhniNastaveníTýmuProModal();
+  };
+
   return (
     <NastaveniTymuView
       nazevAktivity={aktivita?.nazev ?? storeNazevAktivity}
@@ -64,6 +76,8 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       onPřipojitSe={(kód) => void proveďAkciAktivity(aktivitaId, "prihlasit", kód).then(zavřít)}
       onPřepniVerejnost={() => void přepniVerejnost()}
       onOdhlásit={() => nastavModalOdhlásit(aktivitaId)}
+      onPregenerujKód={() => void přegenerujKód()}
+      onOdhlásitČlena={(id) => void odhlásitČlena(id)}
     />
   );
 };
