@@ -2339,7 +2339,7 @@ SQL
     }
 
     /**
-     * Přihlásí uživatele na aktivitu
+     * Přihlásí uživatele na aktivitu. Pokud tým neexistuje a jedná se o týmovou aktivitu tak se pokusí nejdříve tým založit
      *
      * @throws \Chyba
      */
@@ -2349,7 +2349,7 @@ SQL
                  $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
-        $kodTymu = 0,
+        ?AktivitaTym $tym = null,
     ): bool {
         if ($this->prihlasen($uzivatel)) {
             return false;
@@ -2363,15 +2363,16 @@ SQL
             $parametry,
             $jenPritomen,
             $hlaskyVeTretiOsobe,
-            $kodTymu,
+            $tym,
         );
 
         if (!($parametry & self::IGNOROVAT_DETI)) {
             $deti = [];
             $idPreferovanychDeti = [];
-            if ($this->tymova() && $kodTymu) {
+            if ($this->tymova() && $tym) {
                 // todo(tym): najdi se volá podruhé (poprvé v zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite) - zbytečný DB dotaz
-                $idPreferovanychDeti = AktivitaTym::najdiPodleKodu($this->id(), $kodTymu)->idDalsichAktivit();
+                // todo(tym): idDalsichAktivit -> divný název funkce
+                $idPreferovanychDeti = $tym->idDalsichAktivit();
             }
             $deti = $this->ziskejRetezecDeti($idPreferovanychDeti);
 
@@ -2382,6 +2383,8 @@ SQL
         }
 
         if ($this->tymova()) {
+            // todo(tym): tady se používá statická metoda protože tým nemusí existovat a automaticky se založí když neexistuje
+            $kodTymu = $tym->getKod();
             AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, (bool)(self::IGNOROVAT_LIMIT & $parametry));
         }
 
@@ -2459,21 +2462,17 @@ SQL
 
     public function zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite(
         int      $parametry = 0,
-        int      $kodTymu = 0,
+        ?AktivitaTym $tym = null,
     ) {
-        if ($this->tymova()) {
-            if (!$kodTymu) {
-                if (!(self::IGNOROVAT_LIMIT & $parametry)
-                    && (AktivitaTym::pocetVolnychMistVVerejnychTymech($this->id()) === 0)) {
-                    AktivitaTym::zkontrolujMuzeZalozitTym($this->id());
-                }
-            } else {
-                // sletí pokud neexistuje tým, očekáváné chování, ať už ignorujeme nebo ne limity, tak tým stejně musí existovat
-                $tym = AktivitaTym::najdiPodleKodu($this->id(), $kodTymu);
-                if (!(self::IGNOROVAT_LIMIT & $parametry)) {
-                    $tym->zkontrolujVolnouKapacitu();
-                }
-            }
+        if (!$this->tymova()
+            || (self::IGNOROVAT_LIMIT & $parametry)) {
+            return;
+        }
+
+        if ($tym) {
+            $tym->zkontrolujVolnouKapacitu();
+        } elseif (!AktivitaTym::pocetVolnychMistVVerejnychTymech($this->id())) {
+            AktivitaTym::zkontrolujMuzeZalozitTym($this->id());
         }
     }
 
@@ -2497,7 +2496,7 @@ SQL
         int      $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
-        int      $kodTymu = 0,
+        ?AktivitaTym $tym = null,
     ) {
         if ($parametry & self::IGNOROVAT_DETI) {
             return;
@@ -2515,8 +2514,8 @@ SQL
         }
 
         $deti = [];
-        if ($this->tymova() && $kodTymu) {
-            $idDeti = AktivitaTym::najdiPodleKodu($this->id(), $kodTymu)->idDalsichAktivit();
+        if ($this->tymova() && $tym) {
+            $idDeti = $tym->idDalsichAktivit();
             $deti   = $this->ziskejRetezecDeti($idDeti);
         }
         // todo(tym): existuje situace kdy mají netýmové aktivity taky děti ?
@@ -2529,7 +2528,7 @@ SQL
                     $parametry,
                     $jenPritomen,
                     $hlaskyVeTretiOsobe,
-                    $kodTymu,
+                    $tym,
                 );
             } catch (\Chyba $chyba) {
                 // zaobalit hlášku aby bylo jasné že se jedná o navazující aktivitu a předejít tak zmatení že se člověk nepřihlašuje na tuhle aktivitu
@@ -2544,7 +2543,7 @@ SQL
         int      $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
-        int      $kodTymu = 0,
+        ?AktivitaTym $tym = null,
     ): void {
         if ($parametry & self::IGNOROVAT_KONTROLY) {
             return;
@@ -2563,7 +2562,7 @@ SQL
         $uzivatel->zkontrolujGcPrihlasen($hlaskyVeTretiOsobe);
         $this->zkontrolujKapacitu($uzivatel->pohlavi(), $parametry);
         $this->zkontrolujPrihlaseniNaSourozence($uzivatel, $parametry, $hlaskyVeTretiOsobe);
-        $this->zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite($parametry,$kodTymu);
+        $this->zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite($parametry, $tym);
         $this->zkontrolujBrigadnickePrihlaseni($uzivatel, $hlaskyVeTretiOsobe);
 
         // todo: Dává to smysl tak tady upravovat parametry ? kdyžuž tak je upravit na začátku funkce pokud možno nebo je odvodit až jsou reálně potřeba. Očekávané chování bych předpokládal, že je takové že jsou aplikované pouze parametry které předám ale tady je upravuju.
@@ -2585,7 +2584,7 @@ SQL
             throw new \Chyba('Aktivita není otevřena pro přihlašování' . $duvod);
         }
 
-        $this->zkontrolujPrihlaseniNavazujicichAktivit($uzivatel,$prihlasujici,$parametry,$jenPritomen,$hlaskyVeTretiOsobe,$kodTymu,);
+        $this->zkontrolujPrihlaseniNavazujicichAktivit($uzivatel,$prihlasujici,$parametry,$jenPritomen,$hlaskyVeTretiOsobe,$tym);
     }
 
     // todo(tym): tohle je asi nesmysl v nové tymove implementaci. Tymova kapacita teď znamená kapacita týmů
@@ -3077,8 +3076,14 @@ HTML
                 $aktivita = self::zId(post('prihlasit'));
                 // todo: validace
                 $tymKod = +post("tymKod");
+                $tym = null;
+                if ($tymKod) {
+                    // pokud je tymKod a kód nenáleží žádnému týmu na aktivitě, tak ihned sletí
+                    $tym = AktivitaTym::najdiPodleKodu($aktivita->id(), $tymKod);
+                }
+
                 if ($aktivita) {
-                    $aktivita->prihlas($u, $prihlasujici, $parametry, kodTymu: $tymKod);
+                    $aktivita->prihlas($u, $prihlasujici, $parametry, tym: $tym);
                 }
 
                 return true;
