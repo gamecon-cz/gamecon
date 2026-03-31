@@ -23,26 +23,27 @@ $aktivitaId = array_key_exists('aktivitaId', $_GET)
 // POST akce
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $akce = $_POST['akce'] ?? '';
+        $akce    = $_POST['akce'] ?? '';
         $kodTymu = (int)($_POST['kodTymu'] ?? 0);
         if ($akce === 'nastavVerejnost') {
-            AktivitaTym::zkontrolujZeJeKapitan($kodTymu, $aktivitaId, $u->id());
-            $verejny = (bool)(int)($_POST['verejny'] ?? 0);
-            AktivitaTym::nastavVerejnostTymu($kodTymu, $aktivitaId, $verejny);
+            $tym = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
+            $tym->zkontrolujZeJeKapitan($u->id());
+            $tym->nastavVerejnost((bool)(int)($_POST['verejny'] ?? 0));
             $response['úspěch'] = true;
         } elseif ($akce === 'pregenerujKod') {
-            AktivitaTym::zkontrolujZeJeKapitan($kodTymu, $aktivitaId, $u->id());
-            $novyKod = AktivitaTym::pregenerujKodTymu($kodTymu, $aktivitaId);
+            $tym = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
+            $tym->zkontrolujZeJeKapitan($u->id());
             $response['úspěch'] = true;
-            $response['novyKod'] = $novyKod;
+            $response['novyKod'] = $tym->pregenerujKod();
         } elseif ($akce === 'odhlasClena') {
-            AktivitaTym::zkontrolujZeJeKapitan($kodTymu, $aktivitaId, $u->id());
+            $tym     = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
             $idClena = (int)($_POST['idClena'] ?? 0);
+            $tym->zkontrolujZeJeKapitan($u->id());
             if ($idClena === $u->id()) {
                 throw new Chyba('Kapitán nemůže odebrat sám sebe — použij tlačítko Odhlásit');
             }
             $aktivita = Aktivita::zId($aktivitaId);
-            $clen = Uzivatel::zId($idClena);
+            $clen     = Uzivatel::zId($idClena);
             if (!$aktivita || !$clen) {
                 throw new Chyba('Aktivita nebo uživatel neexistuje');
             }
@@ -50,11 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $response['úspěch'] = true;
         } else {
             $response['úspěch'] = false;
-            $response['chyba'] = ['hláška' => 'Neznámá akce'];
+            $response['chyba']  = ['hláška' => 'Neznámá akce'];
         }
     } catch (Chyba $chyba) {
         $response['úspěch'] = false;
-        $response['chyba'] = ['hláška' => $chyba->getMessage()];
+        $response['chyba']  = ['hláška' => $chyba->getMessage()];
     }
     echo json_encode($response, $jsonConfig);
     return;
@@ -71,8 +72,8 @@ $response['kod'] = $kod;
 // čas aktivity
 $aktivita = Aktivita::zId($aktivitaId);
 if ($aktivita) {
-    $zacatek = $aktivita->zacatek();
-    $konec = $aktivita->konec();
+    $zacatek           = $aktivita->zacatek();
+    $konec             = $aktivita->konec();
     $response['casText'] = $zacatek && $konec
         ? $zacatek->format('G') . ':00–' . $konec->format('G') . ':00'
         : '';
@@ -80,30 +81,27 @@ if ($aktivita) {
 
 // info o týmu uživatele
 if ($kod) {
-    $verejny = AktivitaTym::verejnostTymuPodleKodu($kod, $aktivitaId);
-    if ($verejny !== null) {
-        $response['verejny'] = $verejny;
-    }
-    $response['jeKapitan'] = AktivitaTym::jeKapitanem($uzivatelId, $aktivitaId);
-    $idKapitana = AktivitaTym::idKapitanaTymu($kod, $aktivitaId);
+    $tym               = AktivitaTym::najdiPodleKodu($aktivitaId, $kod);
+    $response['verejny']  = $tym->isVerejny();
+    $response['jeKapitan'] = $tym->jeKapitanem($uzivatelId);
     $response['clenove'] = array_map(
         fn(\Uzivatel $clen) => [
             'id'        => $clen->id(),
             'jmeno'     => $clen->jmenoNick() ?? '?',
-            'jeKapitan' => $clen->id() === $idKapitana,
+            'jeKapitan' => $clen->id() === $tym->idKapitana(),
         ],
-        AktivitaTym::clenoveTymu($kod, $aktivitaId),
+        $tym->clenoveTymu(),
     );
 }
 
 // seznam všech týmů
-$vsechnyTymy = AktivitaTym::vsechnyTymy($aktivitaId);
-$response['vsechnyTymy'] = array_map(fn(\Gamecon\Aktivita\TymVSeznamu $tym) => [
-    'kod' => $tym->kod,
-    'nazev' => $tym->nazev,
-    'pocetClenu' => $tym->pocetClenu,
-    'limit' => $tym->limit,
-    'verejny' => $tym->verejny,
+$vsechnyTymy       = AktivitaTym::vsechnyTymy($aktivitaId);
+$response['vsechnyTymy'] = array_map(fn(\Gamecon\Aktivita\TymVSeznamu $t) => [
+    'kod'       => $t->kod,
+    'nazev'     => $t->nazev,
+    'pocetClenu' => $t->pocetClenu,
+    'limit'     => $t->limit,
+    'verejny'   => $t->verejny,
 ], $vsechnyTymy);
 
 echo json_encode($response, $jsonConfig);

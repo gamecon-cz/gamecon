@@ -2,32 +2,142 @@
 
 namespace Gamecon\Aktivita;
 
+use App\Entity\Team;
+use App\Repository\TeamRepository;
 use App\Service\AktivitaTymService;
 use Gamecon\Aktivita\SqlStruktura\AkceTymSqlStruktura;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
+/**
+ * Nastaveno v services.yaml že se dá získat AktivitaTymService
+ */
 class AktivitaTym extends \DbObject
 {
     public const HAJENI_TEAMU_HODIN = 72;
 
     protected static $tabulka = AkceTymSqlStruktura::AKCE_TYM_TABULKA;
 
-    /**
-     * Nastaveno v services.yaml že se dá získat AktivitaTymService
-     */
-    private static function service(): AktivitaTymService
+    private function __construct(
+        private readonly Team $team,
+        private readonly int $idAktivity,
+    ) {}
+
+    // ====== FACTORY ======
+
+    /** Najde tým podle ID. */
+    public static function najdi(int $idTymu, int $idAktivity): self
     {
-        return SystemoveNastaveni::zGlobals()
-            ->kernel()
-            ->getContainer()
-            ->get(AktivitaTymService::class);
+        $team = self::teamRepository()->find($idTymu)
+            ?? throw new \Chyba('Tým ' . $idTymu . ' neexistuje');
+
+        return new self($team, $idAktivity);
     }
+
+    /** Najde tým podle kódu (4místný kód platný v rámci aktivity). */
+    public static function najdiPodleKodu(int $idAktivity, int $kodTymu): self
+    {
+        $team = self::teamRepository()->findByKodNaAktivite($idAktivity, $kodTymu)
+            ?? throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
+
+        return new self($team, $idAktivity);
+    }
+
+    /** Vrátí tým uživatele na aktivitě, nebo null pokud v žádném týmu není. */
+    public static function proUzivatele(int $idUzivatele, int $idAktivity): ?self
+    {
+        $idTymu = self::service()->idTymuUzivatele($idUzivatele, $idAktivity);
+        if ($idTymu === null) {
+            return null;
+        }
+        $team = self::teamRepository()->find($idTymu)
+            ?? throw new \Chyba('Tým ' . $idTymu . ' neexistuje');
+
+        return new self($team, $idAktivity);
+    }
+
+    // ====== INSTANCE GETTERY ======
+
+    public function getId(): int
+    {
+        return (int)$this->team->getId();
+    }
+
+    public function getKod(): int
+    {
+        return $this->team->getKod();
+    }
+
+    public function isVerejny(): bool
+    {
+        return $this->team->isVerejny();
+    }
+
+    public function idKapitana(): ?int
+    {
+        return (int)$this->team->getKapitan()->getId() ?: null;
+    }
+
+    public function jeKapitanem(int $idUzivatele): bool
+    {
+        return $this->idKapitana() === $idUzivatele;
+    }
+
+    // ====== INSTANCE OPERACE ======
+
+    public function zkontrolujVolnouKapacitu(): void
+    {
+        self::service()->zkontrolujVolnouKapacituVTymu($this->getId());
+    }
+
+    public function zkontrolujZeJeKapitan(int $idUzivatele): void
+    {
+        if (!$this->jeKapitanem($idUzivatele)) {
+            throw new \Chyba('Tuto akci může provést pouze kapitán týmu');
+        }
+    }
+
+    public function nastavVerejnost(bool $verejny): void
+    {
+        self::service()->nastavVerejnostTymu($this->getKod(), $this->idAktivity, $verejny);
+    }
+
+    public function pregenerujKod(): int
+    {
+        return self::service()->pregenerujKodTymu($this->getKod(), $this->idAktivity);
+    }
+
+    /** @return \Uzivatel[] seřazení: kapitán první, pak ostatní podle pořadí přihlášení */
+    public function clenoveTymu(): array
+    {
+        return self::service()->clenoveTymu($this->getKod(), $this->idAktivity);
+    }
+
+    /**
+     * Vrátí ID aktivit, na které je tým přihlášen, kromě zadané výjimky.
+     * @return int[]
+     */
+    public function idDalsichAktivit(int $vyjmaIdAktivity = -1): array
+    {
+        return self::service()->idDalsichAktivitTymu($this->getId(), $vyjmaIdAktivity);
+    }
+
+    public function pridejNaAktivitu(int $idAktivity): void
+    {
+        self::service()->pridejTymNaAktivitu($this->getId(), $idAktivity);
+    }
+
+    // ====== STATICKÉ — OPERACE NA ÚROVNI AKTIVITY ======
 
     // todo(tym): Je potřeba zajistit že před přidáním účastníka do týmu je přihlášený na všechny aktivity týmu
     // todo(tym): dochází ke zdvojené kontrole na kapacitu
     public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu, bool $ignorovatLimity = false): void
     {
         self::service()->prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, $ignorovatLimity);
+    }
+
+    public static function odhlasUzivateleOdTymu(int $idUzivatele, int $idAktivity): void
+    {
+        self::service()->odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
     }
 
     public static function zkontrolujMuzeZalozitTym(int $idAktivity): void
@@ -50,36 +160,6 @@ class AktivitaTym extends \DbObject
         return self::service()->muzePridatDalsiTym($idAktivity);
     }
 
-    public static function najdiTymPodleKodu(int $idAktivity, int $kodTymu): int
-    {
-        return self::service()->najdiTymPodleKodu($idAktivity, $kodTymu);
-    }
-
-    public static function zkontrolujVolnouKapacituVTymu(int $idTymu): void
-    {
-        self::service()->zkontrolujVolnouKapacituVTymu($idTymu);
-    }
-
-    public static function odhlasUzivateleOdTymu(int $idUzivatele, int $idAktivity): void
-    {
-        self::service()->odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
-    }
-
-    public static function infoOTymuUzivatele(int $idUzivatele, int $idAktivity): ?InfoOTymu
-    {
-        return self::service()->infoOTymuUzivatele($idUzivatele, $idAktivity);
-    }
-
-    public static function vratKodTymuProUzivatele(int $idUzivatele, int $idAktivity): int
-    {
-        return self::service()->vratKodTymuProUzivatele($idUzivatele, $idAktivity);
-    }
-
-    public static function jeKapitanem(int $idUzivatele, int $idAktivity): bool
-    {
-        return self::service()->jeKapitanem($idUzivatele, $idAktivity);
-    }
-
     public static function maAktivitaTym(int $idAktivity): bool
     {
         return self::service()->maAktivitaTym($idAktivity);
@@ -91,19 +171,10 @@ class AktivitaTym extends \DbObject
         return self::service()->verejneTymy($idAktivity);
     }
 
-    public static function nastavVerejnostTymu(int $kodTymu, int $idAktivity, bool $verejny): void
+    /** @return TymVSeznamu[] */
+    public static function vsechnyTymy(int $idAktivity): array
     {
-        self::service()->nastavVerejnostTymu($kodTymu, $idAktivity, $verejny);
-    }
-
-    public static function zkontrolujZeJeKapitan(int $kodTymu, int $idAktivity, int $idUzivatele): void
-    {
-        self::service()->zkontrolujZeJeKapitan($kodTymu, $idAktivity, $idUzivatele);
-    }
-
-    public static function verejnostTymuPodleKodu(int $kodTymu, int $idAktivity): ?bool
-    {
-        return self::service()->verejnostTymuPodleKodu($kodTymu, $idAktivity);
+        return self::service()->vsechnyTymy($idAktivity);
     }
 
     /**
@@ -122,58 +193,39 @@ class AktivitaTym extends \DbObject
         return self::service()->expirovaneTymyIds($hajeniHodin);
     }
 
-    // todo(tym): používat id a ne kód týmu
-    /** @return \Uzivatel[] seřazení: kapitán první, pak ostatní podle pořadí přihlášení */
-    public static function clenoveTymu(int $kodTymu, int $idAktivity): array
+    public static function infoOTymuUzivatele(int $idUzivatele, int $idAktivity): ?InfoOTymu
     {
-        return self::service()->clenoveTymu($kodTymu, $idAktivity);
+        return self::service()->infoOTymuUzivatele($idUzivatele, $idAktivity);
     }
 
-    public static function idKapitanaTymu(int $kodTymu, int $idAktivity): ?int
-    {
-        return self::service()->idKapitanaTymu($kodTymu, $idAktivity);
-    }
-
-    /** @return TymVSeznamu[] */
-    public static function vsechnyTymy(int $idAktivity): array
-    {
-        return self::service()->vsechnyTymy($idAktivity);
-    }
-
-    public static function pregenerujKodTymu(int $kodTymu, int $idAktivity): int
-    {
-        return self::service()->pregenerujKodTymu($kodTymu, $idAktivity);
-    }
-
-    /**
-     * Přidá tým na aktivitu (záznam do akce_tym_akce).
-     * Pokud tým na aktivitě už je, nic se nestane.
-     */
-    public static function pridejTymNaAktivitu(int $idTymu, int $idAktivity): void
-    {
-        self::service()->pridejTymNaAktivitu($idTymu, $idAktivity);
-    }
-
-    /**
-     * Vrátí ID týmu, ve kterém je uživatel na dané aktivitě, nebo null.
-     */
     public static function idTymuUzivatele(int $idUzivatele, int $idAktivity): ?int
     {
         return self::service()->idTymuUzivatele($idUzivatele, $idAktivity);
     }
 
-    /** Vrátí timestamp založení týmu uživatele na dané aktivitě, nebo null */
     public static function casZalozeniTymuUzivatele(int $idUzivatele, int $idAktivity): ?int
     {
         return self::service()->casZalozeniTymuUzivatele($idUzivatele, $idAktivity);
     }
 
-    /**
-     * Vrátí ID aktivit, na které je tým přihlášen, kromě zadané výjimky.
-     * @return int[]
-     */
-    public static function idDalsichAktivitTymu(int $idTymu, int $vyjmaIdAktivity = -1): array
+    public static function vratKodTymuProUzivatele(int $idUzivatele, int $idAktivity): int
     {
-        return self::service()->idDalsichAktivitTymu($idTymu, $vyjmaIdAktivity);
+        return self::service()->vratKodTymuProUzivatele($idUzivatele, $idAktivity);
+    }
+
+    private static function service(): AktivitaTymService
+    {
+        return SystemoveNastaveni::zGlobals()
+            ->kernel()
+            ->getContainer()
+            ->get(AktivitaTymService::class);
+    }
+
+    private static function teamRepository(): TeamRepository
+    {
+        return SystemoveNastaveni::zGlobals()
+            ->kernel()
+            ->getContainer()
+            ->get(TeamRepository::class);
     }
 }

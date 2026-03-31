@@ -36,6 +36,9 @@ services:
     App\Service\AktivitaTymService:
         public: true
 
+    App\Repository\TeamRepository:
+        public: true
+
     # JWT service for cross-app authentication
     App\Service\JwtService:
         public: true

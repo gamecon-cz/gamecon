@@ -36,11 +36,9 @@ class AktivitaTymService
         if ($kodTymu === 0) {
             $team = $this->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity);
         } else {
-            $idTymu = $this->najdiTymPodleKodu($idAktivity, $kodTymu);
-            $team   = $this->teamRepository->find($idTymu)
-                ?? throw new \Chyba('Tým nenalezen');
+            $team = $this->najdiTeamPodleKodu($idAktivity, $kodTymu);
             if (!$ignorovatLimity) {
-                $this->zkontrolujVolnouKapacituVTymu($idTymu);
+                $this->zkontrolujVolnouKapacituVTymu((int)$team->getId());
             }
         }
 
@@ -87,16 +85,6 @@ class AktivitaTymService
         [$limit, $pocet] = $info;
 
         return $pocet < $limit;
-    }
-
-    public function najdiTymPodleKodu(int $idAktivity, int $kodTymu): int
-    {
-        $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
-        if (!$team) {
-            throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
-        }
-
-        return (int)$team->getId();
     }
 
     public function zkontrolujVolnouKapacituVTymu(int $idTymu): void
@@ -369,6 +357,16 @@ class AktivitaTymService
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
 
         return $team ? (int)$team->getKapitan()->getId() : null;
+    }
+
+    private function najdiTeamPodleKodu(int $idAktivity, int $kodTymu): Team
+    {
+        $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
+        if (!$team) {
+            throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
+        }
+
+        return $team;
     }
 
     private function zkontrolujZeNeniVJinemTymu(int $idUzivatele, int $idAktivity): void

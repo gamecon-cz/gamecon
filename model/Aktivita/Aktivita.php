@@ -2370,9 +2370,8 @@ SQL
             $deti = [];
             $idPreferovanychDeti = [];
             if ($this->tymova() && $kodTymu) {
-                // todo(tym): najdiTymPodleKodu se volá podruhé (poprvé v zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite) - zbytečný DB dotaz
-                $tymId = AktivitaTym::najdiTymPodleKodu($this->id(), $kodTymu);
-                $idPreferovanychDeti = AktivitaTym::idDalsichAktivitTymu($tymId);
+                // todo(tym): najdi se volá podruhé (poprvé v zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite) - zbytečný DB dotaz
+                $idPreferovanychDeti = AktivitaTym::najdiPodleKodu($this->id(), $kodTymu)->idDalsichAktivit();
             }
             $deti = $this->ziskejRetezecDeti($idPreferovanychDeti);
 
@@ -2469,13 +2468,10 @@ SQL
                     AktivitaTym::zkontrolujMuzeZalozitTym($this->id());
                 }
             } else {
-                try {
-                    $tymId = AktivitaTym::najdiTymPodleKodu($this->id(), $kodTymu);
-                } catch(\Chyba $e) {
-                    throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
-                }
+                // sletí pokud neexistuje tým, očekáváné chování, ať už ignorujeme nebo ne limity, tak tým stejně musí existovat
+                $tym = AktivitaTym::najdiPodleKodu($this->id(), $kodTymu);
                 if (!(self::IGNOROVAT_LIMIT & $parametry)) {
-                    AktivitaTym::zkontrolujVolnouKapacituVTymu($tymId);
+                    $tym->zkontrolujVolnouKapacitu();
                 }
             }
         }
@@ -2520,9 +2516,8 @@ SQL
 
         $deti = [];
         if ($this->tymova() && $kodTymu) {
-            $tymId = AktivitaTym::najdiTymPodleKodu($this->id(), $kodTymu);
-            $idDeti = AktivitaTym::idDalsichAktivitTymu($tymId);
-            $deti = $this->ziskejRetezecDeti($idDeti);
+            $idDeti = AktivitaTym::najdiPodleKodu($this->id(), $kodTymu)->idDalsichAktivit();
+            $deti   = $this->ziskejRetezecDeti($idDeti);
         }
         // todo(tym): existuje situace kdy mají netýmové aktivity taky děti ?
 
