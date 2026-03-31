@@ -8,11 +8,13 @@ namespace Gamecon\Aktivita;
 class TymVSeznamu
 {
     public function __construct(
-        public readonly int     $kod,
-        public readonly ?string $nazev,
-        public readonly int     $pocetClenu,
-        public readonly ?int    $limit,
-        public readonly bool    $verejny,
+        public readonly int                  $kod,
+        public readonly ?string              $nazev,
+        public readonly int                  $pocetClenu,
+        public readonly ?int                 $limit,
+        public readonly bool                 $verejny,
+        public readonly int                  $idKapitana,
+        public readonly ?\DateTimeImmutable  $zalozen,
     ) {
     }
 }

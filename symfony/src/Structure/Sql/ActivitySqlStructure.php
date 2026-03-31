@@ -100,11 +100,6 @@ class ActivitySqlStructure
     public const team_kapacita = 'team_kapacita';
 
     /**
-     * @see Activity::$teamNazev
-     */
-    public const team_nazev = 'team_nazev';
-
-    /**
      * @see Activity::$shortDescription
      */
     public const popis_kratky = 'popis_kratky';

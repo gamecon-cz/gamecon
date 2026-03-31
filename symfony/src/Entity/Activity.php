@@ -112,9 +112,6 @@ class Activity
     ])]
     private ?int $teamKapacita = null;
 
-    #[ORM\Column(name: 'team_nazev', type: Types::STRING, length: 255, nullable: true)]
-    private ?string $teamNazev = null;
-
     #[ORM\ManyToOne(targetEntity: Location::class)]
     #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
     private ?Location $mainLocation = null;
@@ -400,18 +397,6 @@ class Activity
     public function setTeamKapacita(?int $teamKapacita): self
     {
         $this->teamKapacita = $teamKapacita;
-
-        return $this;
-    }
-
-    public function getTeamNazev(): ?string
-    {
-        return $this->teamNazev;
-    }
-
-    public function setTeamNazev(?string $teamNazev): self
-    {
-        $this->teamNazev = $teamNazev;
 
         return $this;
     }

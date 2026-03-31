@@ -270,12 +270,13 @@ class AktivitaTymService
     public function vsechnyTymy(int $idAktivity): array
     {
         $rows = $this->em->getConnection()->fetchAllAssociative(
-            'SELECT akce_tym.kod, akce_tym.nazev, akce_tym.verejny,
+            'SELECT akce_tym.kod, akce_tym.nazev, akce_tym.verejny, akce_tym.id_kapitan, akce_tym.zalozen,
                     COALESCE(akce_tym.`limit`, akce_seznam.team_max) AS team_limit,
                     (SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE akce_tym_prihlaseni.id_tymu = akce_tym.id) AS pocet_clenu
              FROM akce_tym
              JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = ?
-             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce',
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce
+             ORDER BY akce_tym.zalozen, akce_tym.id',
             [$idAktivity],
         );
 
@@ -286,9 +287,21 @@ class AktivitaTymService
                 pocetClenu: (int)$row['pocet_clenu'],
                 limit: $row['team_limit'] !== null ? (int)$row['team_limit'] : null,
                 verejny: (bool)(int)$row['verejny'],
+                idKapitana: (int)$row['id_kapitan'],
+                zalozen: $row['zalozen'] !== null ? new \DateTimeImmutable($row['zalozen']) : null,
             ),
             $rows,
         );
+    }
+
+    public function rozebratTym(int $kodTymu, int $idAktivity): void
+    {
+        $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
+        if (!$team) {
+            return;
+        }
+        $this->em->remove($team);
+        $this->em->flush();
     }
 
     public function pregenerujKodTymu(int $kodTymu, int $idAktivity): int

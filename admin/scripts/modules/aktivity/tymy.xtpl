@@ -1,0 +1,56 @@
+<!-- begin:tymy -->
+
+<!-- begin:aktivita -->
+<h1>{nazevAktivity}</h1>
+<p>
+    Týmy: <strong>{kapacitaTymu}</strong>
+    &nbsp;|&nbsp;
+    Celkem přihlášeno: <strong>{pocetClenuvCelkem}</strong>
+    {minMaxClenu}
+</p>
+
+<!-- begin:zadneTymy -->
+<p><em>Žádné týmy na této aktivitě.</em></p>
+<!-- end:zadneTymy -->
+
+<!-- begin:tym -->
+<div class="tym-detail">
+    <h3>
+        Kód: <strong>{kod}</strong>
+        &nbsp;|&nbsp; {nazev}
+        &nbsp;–&nbsp; kapitán: {kapitan}
+        &nbsp;|&nbsp; {obsazenost}
+        &nbsp;|&nbsp; <span class="tym-verejnost">{verejny}</span>
+        &nbsp;|&nbsp; <span class="tym-zalozen">{zalozen}</span>
+        <form method="post" action="aktivity/tymy" class="tymy-rozebrat-form">
+            <input type="hidden" name="kodTymu" value="{kod}"/>
+            <input type="hidden" name="idAkce" value="{id_akce}"/>
+            <button type="submit" name="rozebratTym" value="1"
+                    onclick="return window.confirm('Opravdu rozebrat tým #{kod} ({nazev})?')">
+                Rozebrat tým
+            </button>
+        </form>
+    </h3>
+    <!-- begin:clenove -->
+    <table class="vypis tymy-clenove">
+        <tr>
+            <th>Nick</th>
+            <th>Jméno</th>
+            <th>E-mail</th>
+        </tr>
+        <!-- begin:clen -->
+        <tr{trida}>
+            <td>{nick}{je_kapitan}</td>
+            <td>{jmeno}</td>
+            <td><a href="mailto:{mail}">{mail}</a></td>
+        </tr>
+        <!-- end:clen -->
+    </table>
+    <p><a href="mailto:?subject={nazevAktivity} – tým {nazev}&amp;bcc={maily}">E-mail všem členům</a></p>
+    <!-- end:clenove -->
+</div>
+<!-- end:tym -->
+
+<!-- end:aktivita -->
+
+<!-- end:tymy -->

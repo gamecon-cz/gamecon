@@ -187,6 +187,11 @@ class AktivitaTym extends \DbObject
         return self::service()->pocetVolnychMistVVerejnychTymech($idAktivity);
     }
 
+    public static function rozebratTym(int $kodTymu, int $idAktivity): void
+    {
+        self::service()->rozebratTym($kodTymu, $idAktivity);
+    }
+
     /** @return int[] */
     public static function expirovaneTymyIds(?int $hajeniHodin = null): array
     {
