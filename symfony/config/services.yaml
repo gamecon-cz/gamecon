@@ -32,6 +32,10 @@ services:
         parent: 'clock'
         public: true
 
+    # Accessible from legacy model/ layer via kernel container
+    App\Service\AktivitaTymService:
+        public: true
+
     # JWT service for cross-app authentication
     App\Service\JwtService:
         public: true
