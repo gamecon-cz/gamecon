@@ -118,4 +118,20 @@ class TeamRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Vrátí týmy bez členů (žádný záznam v akce_tym_prihlaseni), založené před více než $minut minutami.
+     *
+     * @return Team[]
+     */
+    public function findRozpracovane(int $minut): array
+    {
+        return $this->createQueryBuilder('team')
+            ->leftJoin('team.clenove', 'clen')
+            ->andWhere('clen.id IS NULL')
+            ->andWhere('team.zalozen < :expirace')
+            ->setParameter('expirace', new \DateTime("-{$minut} minutes"))
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -2339,7 +2339,32 @@ SQL
     }
 
     /**
-     * Přihlásí uživatele na aktivitu. Pokud tým neexistuje a jedná se o týmovou aktivitu tak se pokusí nejdříve tým založit
+     * Je řetězec dětí jednoznačný ? Každá aktivita musí mí max jedno dítě jinak je odpověď ne.
+     */
+    public function jeJednoznacnyRetezecDeti(): bool {
+        $aktualniAktivita = $this;
+
+        while ($aktualniAktivita) {
+            $deti = $aktualniAktivita->deti();
+            if (count($deti) > 1) {
+                return false;
+            }
+            $aktualniAktivita = $deti[0];
+        }
+
+        return true;
+    }
+
+    /**
+     * Jestli tahle aktivita vyžaduje nejdřív vytvořit tým před přihlašováním a nebo jde vytvořit zároveň s ní.
+     */
+    public function jeTrebaPredpripravitTym(): bool {
+        return !$this->jeJednoznacnyRetezecDeti();
+    }
+
+    /**
+     *  Přihlásí uživatele na aktivitu. Pokud tým neexistuje a jedná se o týmovou aktivitu tak se pokusí nejdříve tým založit
+     *  Při přihlašování týmu z přípravou (výběrem aktivit) dojde nejdříve k vytvoření týmu ve kterém nikdo přihlášený není (pouze kapitán je nastaven ale ani ten není v týmu). Potom
      *
      * @throws \Chyba
      */

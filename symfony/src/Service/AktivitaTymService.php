@@ -19,6 +19,7 @@ use Gamecon\Aktivita\VerejnyTym;
 class AktivitaTymService
 {
     private const HAJENI_TEAMU_HODIN = 72;
+    public const CAS_NA_PRIPRAVENI_TYMU_MINUT = 30;
 
     public function __construct(
         private readonly TeamRepository $teamRepository,
@@ -233,6 +234,44 @@ class AktivitaTymService
         }
 
         return $volnaMista;
+    }
+
+    public function jeRozpracovany(int $idTymu): bool
+    {
+        $team = $this->teamRepository->find($idTymu);
+        if (!$team) {
+            return false;
+        }
+
+        return $team->getClenove()->count() === 0;
+    }
+
+    /** @return int[] */
+    public function rozpracovaneTymyIds(?int $casNaPripraveniMinut = null): array
+    {
+        $minut = $casNaPripraveniMinut ?? self::CAS_NA_PRIPRAVENI_TYMU_MINUT;
+
+        return array_map(
+            fn(Team $team) => (int)$team->getId(),
+            $this->teamRepository->findRozpracovane($minut),
+        );
+    }
+
+    public function smazRozpracovaneTymy(?int $casNaPripraveniMinut = null): int
+    {
+        $rozpracovane = $this->teamRepository->findRozpracovane(
+            $casNaPripraveniMinut ?? self::CAS_NA_PRIPRAVENI_TYMU_MINUT,
+        );
+
+        foreach ($rozpracovane as $team) {
+            $this->em->remove($team);
+        }
+
+        if ($rozpracovane) {
+            $this->em->flush();
+        }
+
+        return count($rozpracovane);
     }
 
     /** @return int[] */

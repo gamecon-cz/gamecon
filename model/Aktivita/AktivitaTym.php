@@ -14,6 +14,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 class AktivitaTym extends \DbObject
 {
     public const HAJENI_TEAMU_HODIN = 72;
+    public const CAS_NA_PRIPRAVENI_TYMU_MINUT = 30;
 
     protected static $tabulka = AkceTymSqlStruktura::AKCE_TYM_TABULKA;
 
@@ -190,6 +191,22 @@ class AktivitaTym extends \DbObject
     public static function rozebratTym(int $kodTymu, int $idAktivity): void
     {
         self::service()->rozebratTym($kodTymu, $idAktivity);
+    }
+
+    public function jeRozpracovany(): bool
+    {
+        return self::service()->jeRozpracovany($this->getId());
+    }
+
+    /** @return int[] */
+    public static function rozpracovaneTymyIds(?int $casNaPripraveniMinut = null): array
+    {
+        return self::service()->rozpracovaneTymyIds($casNaPripraveniMinut);
+    }
+
+    public static function smazRozpracovaneTymy(?int $casNaPripraveniMinut = null): int
+    {
+        return self::service()->smazRozpracovaneTymy($casNaPripraveniMinut);
     }
 
     /** @return int[] */

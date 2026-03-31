@@ -61,6 +61,7 @@ const SeznamTymu: FunctionComponent<{
   );
 };
 
+// todo(tym): pro rozpracovaný tým bude ukazovat kolik zbývá do smazání týmu pokud dojde k výběru aktivity
 export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (props) => {
   const {
     nazevAktivity,

@@ -98,6 +98,10 @@ $odemcenoTymovychAktivit = (new HromadneAkceAktivit($systemoveNastaveni))
     ->odemciTeamoveHromadne(Uzivatel::zId(Uzivatel::SYSTEM, true));
 logs("odemčeno $odemcenoTymovychAktivit týmových aktivit.");
 
+logs('Mažu rozpracované týmy (bez účastníků)...');
+$smazanoRozpracovanychTymu = \Gamecon\Aktivita\AktivitaTym::smazRozpracovaneTymy();
+logs("smazáno $smazanoRozpracovanychTymu rozpracovaných týmů.");
+
 logs('Zamykám před veřejností už běžící, dosud nezamčené aktivity...');
 $idsZamcenmych  = Aktivita::zamkniZacinajiciDo(
     new DateTimeImmutable('-' . AUTOMATICKY_UZAMKNOUT_AKTIVITU_X_MINUT_PO_ZACATKU . ' minutes'),
