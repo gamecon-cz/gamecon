@@ -43,34 +43,19 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(
-            security: "is_granted('PUBLIC_ACCESS')",
-            normalizationContext: [
-                'groups' => ['product:list'],
-            ],
+            security: "is_granted('ROLE_ADMIN')",
         ),
         new Get(
-            security: "is_granted('PUBLIC_ACCESS')",
-            normalizationContext: [
-                'groups' => ['product:read'],
-            ],
+            security: "is_granted('ROLE_ADMIN')",
         ),
         new Post(
             security: "is_granted('ROLE_ADMIN')",
-            denormalizationContext: [
-                'groups' => ['product:write'],
-            ],
         ),
         new Put(
             security: "is_granted('ROLE_ADMIN')",
-            denormalizationContext: [
-                'groups' => ['product:write'],
-            ],
         ),
         new Patch(
             security: "is_granted('ROLE_ADMIN')",
-            denormalizationContext: [
-                'groups' => ['product:write'],
-            ],
         ),
         new Delete(
             security: "is_granted('ROLE_ADMIN')",
@@ -85,9 +70,10 @@ use Symfony\Component\Validator\Constraints as Assert;
     paginationItemsPerPage: 30,
 )]
 #[ApiFilter(SearchFilter::class, properties: [
-    'code'  => 'exact',
-    'name'  => 'partial',
-    'state' => 'exact',
+    'code'      => 'exact',
+    'name'      => 'partial',
+    'state'     => 'exact',
+    'tags.code' => 'exact',
 ])]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'currentPrice', 'state'])]
 #[ApiFilter(RangeFilter::class, properties: ['currentPrice', 'producedQuantity'])]

@@ -2,9 +2,11 @@ import { Program } from "./program";
 import { Obchod } from "./obchod";
 import { ObchodNastaveni } from "./obchodNastaveni";
 import { AktivityApp } from "./aktivity";
+import { JídloMatice } from "./jidlo/JídloMatice";
 import { FunctionComponent, render } from "preact";
 
 import "./index.less";
+import "./jidlo/JídloMatice.less";
 
 const renderComponent = (
   rootId: string,
@@ -22,4 +24,5 @@ export const renderPages = () => {
   renderComponent("preact-program", Program);
   renderComponent("preact-obchod", Obchod);
   renderComponent("preact-aktivity-modal", AktivityApp);
+  renderComponent("preact-jidlo", JídloMatice);
 };
