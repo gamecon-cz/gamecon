@@ -48,26 +48,26 @@ class ProductRepository extends ServiceEntityRepository
      */
     public function findActive(): array
     {
-        return $this->createQueryBuilder('p')
-            ->where('p.archivedAt IS NULL')
-            ->orderBy('p.name', 'ASC')
+        return $this->createQueryBuilder('product')
+            ->where('product.archivedAt IS NULL')
+            ->orderBy('product.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * Find products by tag
+     * Find products by tag code
      *
      * @return Product[]
      */
-    public function findByTag(string $tag): array
+    public function findByTag(string $tagCode): array
     {
-        return $this->createQueryBuilder('p')
-            ->innerJoin('p.tags', 't')
-            ->where('t.tag = :tag')
-            ->andWhere('p.archivedAt IS NULL')
-            ->setParameter('tag', $tag)
-            ->orderBy('p.name', 'ASC')
+        return $this->createQueryBuilder('product')
+            ->innerJoin('product.tags', 'tag')
+            ->where('tag.code = :tagCode')
+            ->andWhere('product.archivedAt IS NULL')
+            ->setParameter('tagCode', $tagCode)
+            ->orderBy('product.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -75,25 +75,25 @@ class ProductRepository extends ServiceEntityRepository
     /**
      * Find products that have ALL specified tags
      *
-     * @param string[] $tags
+     * @param string[] $tagCodes
      *
      * @return Product[]
      */
-    public function findByTags(array $tags): array
+    public function findByTags(array $tagCodes): array
     {
-        if ($tags === []) {
+        if ($tagCodes === []) {
             return [];
         }
 
-        $qb = $this->createQueryBuilder('p')
-            ->innerJoin('p.tags', 't')
-            ->where('t.tag IN (:tags)')
-            ->andWhere('p.archivedAt IS NULL')
-            ->setParameter('tags', $tags)
-            ->groupBy('p.id')
-            ->having('COUNT(DISTINCT t.tag) = :tagCount')
-            ->setParameter('tagCount', count($tags))
-            ->orderBy('p.name', 'ASC');
+        $qb = $this->createQueryBuilder('product')
+            ->innerJoin('product.tags', 'tag')
+            ->where('tag.code IN (:tagCodes)')
+            ->andWhere('product.archivedAt IS NULL')
+            ->setParameter('tagCodes', $tagCodes)
+            ->groupBy('product.id')
+            ->having('COUNT(DISTINCT tag.code) = :tagCount')
+            ->setParameter('tagCount', count($tagCodes))
+            ->orderBy('product.name', 'ASC');
 
         return $qb->getQuery()->getResult();
     }
@@ -101,23 +101,23 @@ class ProductRepository extends ServiceEntityRepository
     /**
      * Find products that have ANY of the specified tags
      *
-     * @param string[] $tags
+     * @param string[] $tagCodes
      *
      * @return Product[]
      */
-    public function findByAnyTag(array $tags): array
+    public function findByAnyTag(array $tagCodes): array
     {
-        if ($tags === []) {
+        if ($tagCodes === []) {
             return [];
         }
 
-        return $this->createQueryBuilder('p')
-            ->innerJoin('p.tags', 't')
-            ->where('t.tag IN (:tags)')
-            ->andWhere('p.archivedAt IS NULL')
-            ->setParameter('tags', $tags)
-            ->groupBy('p.id')
-            ->orderBy('p.name', 'ASC')
+        return $this->createQueryBuilder('product')
+            ->innerJoin('product.tags', 'tag')
+            ->where('tag.code IN (:tagCodes)')
+            ->andWhere('product.archivedAt IS NULL')
+            ->setParameter('tagCodes', $tagCodes)
+            ->groupBy('product.id')
+            ->orderBy('product.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -129,11 +129,11 @@ class ProductRepository extends ServiceEntityRepository
      */
     public function findByState(int $state): array
     {
-        return $this->createQueryBuilder('p')
-            ->where('p.state = :state')
-            ->andWhere('p.archivedAt IS NULL')
+        return $this->createQueryBuilder('product')
+            ->where('product.state = :state')
+            ->andWhere('product.archivedAt IS NULL')
             ->setParameter('state', $state)
-            ->orderBy('p.name', 'ASC')
+            ->orderBy('product.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -147,12 +147,12 @@ class ProductRepository extends ServiceEntityRepository
     {
         $now = new \DateTime();
 
-        return $this->createQueryBuilder('p')
-            ->where('p.state = 1')
-            ->andWhere('p.archivedAt IS NULL')
-            ->andWhere('p.availableUntil IS NULL OR p.availableUntil > :now')
+        return $this->createQueryBuilder('product')
+            ->where('product.state = 1')
+            ->andWhere('product.archivedAt IS NULL')
+            ->andWhere('product.availableUntil IS NULL OR product.availableUntil > :now')
             ->setParameter('now', $now)
-            ->orderBy('p.name', 'ASC')
+            ->orderBy('product.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -162,9 +162,9 @@ class ProductRepository extends ServiceEntityRepository
      */
     public function findByCode(string $code): ?Product
     {
-        return $this->createQueryBuilder('p')
-            ->where('p.code = :code')
-            ->andWhere('p.archivedAt IS NULL')
+        return $this->createQueryBuilder('product')
+            ->where('product.code = :code')
+            ->andWhere('product.archivedAt IS NULL')
             ->setParameter('code', $code)
             ->getQuery()
             ->getOneOrNullResult();
@@ -177,9 +177,9 @@ class ProductRepository extends ServiceEntityRepository
      */
     public function findArchived(): array
     {
-        return $this->createQueryBuilder('p')
-            ->where('p.archivedAt IS NOT NULL')
-            ->orderBy('p.archivedAt', 'DESC')
+        return $this->createQueryBuilder('product')
+            ->where('product.archivedAt IS NOT NULL')
+            ->orderBy('product.archivedAt', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -197,11 +197,11 @@ class ProductRepository extends ServiceEntityRepository
 
         $now = new \DateTime();
 
-        return $this->createQueryBuilder('p')
+        return $this->createQueryBuilder('product')
             ->update()
-            ->set('p.archivedAt', ':now')
-            ->where('p.id IN (:ids)')
-            ->andWhere('p.archivedAt IS NULL')
+            ->set('product.archivedAt', ':now')
+            ->where('product.id IN (:ids)')
+            ->andWhere('product.archivedAt IS NULL')
             ->setParameter('now', $now)
             ->setParameter('ids', $ids)
             ->getQuery()
@@ -219,11 +219,11 @@ class ProductRepository extends ServiceEntityRepository
             return 0;
         }
 
-        return $this->createQueryBuilder('p')
+        return $this->createQueryBuilder('product')
             ->update()
-            ->set('p.archivedAt', 'NULL')
-            ->where('p.id IN (:ids)')
-            ->andWhere('p.archivedAt IS NOT NULL')
+            ->set('product.archivedAt', 'NULL')
+            ->where('product.id IN (:ids)')
+            ->andWhere('product.archivedAt IS NOT NULL')
             ->setParameter('ids', $ids)
             ->getQuery()
             ->execute();
@@ -239,13 +239,13 @@ class ProductRepository extends ServiceEntityRepository
         $now = new \DateTime();
         $future = (new \DateTime())->modify(sprintf('+%d days', $days));
 
-        return $this->createQueryBuilder('p')
-            ->where('p.availableUntil IS NOT NULL')
-            ->andWhere('p.availableUntil BETWEEN :now AND :future')
-            ->andWhere('p.archivedAt IS NULL')
+        return $this->createQueryBuilder('product')
+            ->where('product.availableUntil IS NOT NULL')
+            ->andWhere('product.availableUntil BETWEEN :now AND :future')
+            ->andWhere('product.archivedAt IS NULL')
             ->setParameter('now', $now)
             ->setParameter('future', $future)
-            ->orderBy('p.availableUntil', 'ASC')
+            ->orderBy('product.availableUntil', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -257,14 +257,14 @@ class ProductRepository extends ServiceEntityRepository
      */
     public function findWithLowStockVariants(int $threshold = 10): array
     {
-        return $this->createQueryBuilder('p')
-            ->innerJoin('p.variants', 'v')
-            ->where('v.remainingQuantity IS NOT NULL')
-            ->andWhere('v.remainingQuantity <= :threshold')
-            ->andWhere('v.remainingQuantity > 0')
-            ->andWhere('p.archivedAt IS NULL')
+        return $this->createQueryBuilder('product')
+            ->innerJoin('product.variants', 'variant')
+            ->where('variant.remainingQuantity IS NOT NULL')
+            ->andWhere('variant.remainingQuantity <= :threshold')
+            ->andWhere('variant.remainingQuantity > 0')
+            ->andWhere('product.archivedAt IS NULL')
             ->setParameter('threshold', $threshold)
-            ->groupBy('p.id')
+            ->groupBy('product.id')
             ->getQuery()
             ->getResult();
     }

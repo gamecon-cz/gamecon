@@ -484,6 +484,91 @@ class EshopIntegrationTest extends AbstractTestDb
         $this->assertSame(1, $archiveCount);
     }
 
+    // ==================== 8. ProductRepository findByTag with real DB ====================
+
+    public function testProductRepositoryFindByTagReturnsMatchingProducts(): void
+    {
+        /** @var \App\Repository\ProductRepository $productRepo */
+        $productRepo = $this->em->getRepository(Product::class);
+
+        // Our test product has 'tricko' tag (set in getBeforeClassInitCallbacks)
+        $trickoProducts = $productRepo->findByTag('tricko');
+
+        $this->assertNotEmpty($trickoProducts, 'Should find products with tricko tag');
+        $found = false;
+        foreach ($trickoProducts as $product) {
+            if ($product->getCode() === 'eshoptest-tricko-modre') {
+                $found = true;
+                break;
+            }
+        }
+        $this->assertTrue($found, 'Test product should be in tricko results');
+
+        // Non-existent tag returns empty
+        $noResults = $productRepo->findByTag('nonexistent-tag');
+        $this->assertEmpty($noResults);
+    }
+
+    public function testProductRepositoryFindByAnyTagReturnsMatchingProducts(): void
+    {
+        /** @var \App\Repository\ProductRepository $productRepo */
+        $productRepo = $this->em->getRepository(Product::class);
+
+        $products = $productRepo->findByAnyTag(['tricko', 'nonexistent']);
+
+        $found = false;
+        foreach ($products as $product) {
+            if ($product->getCode() === 'eshoptest-tricko-modre') {
+                $found = true;
+                break;
+            }
+        }
+        $this->assertTrue($found, 'Test product should be found via findByAnyTag');
+    }
+
+    // ==================== 9. CartItemOutputDto includes variantId ====================
+
+    public function testCartItemOutputDtoIncludesVariantId(): void
+    {
+        $cartService = $this->createCartService();
+        $user = $this->em->find(User::class, 89901);
+        $variant = $this->em->find(ProductVariant::class, self::$variantM->getId());
+
+        $cart = $cartService->getOrCreateCart($user);
+        $item = $cartService->addItem($cart, $variant);
+
+        $dto = \App\Dto\Cart\CartItemOutputDto::fromOrderItem($item);
+
+        $this->assertSame($variant->getId(), $dto->variantId);
+        $this->assertSame('M', $dto->variantName);
+        $this->assertSame('eshoptest-tricko-modre-m', $dto->variantCode);
+
+        // Clean up
+        $cartService->removeItem($cart, $item);
+    }
+
+    // ==================== 10. ProductTag serialization groups ====================
+
+    public function testProductTagExposesCodeAndNameInSerialization(): void
+    {
+        $product = $this->em->find(Product::class, self::$product->getId());
+        $tags = $product->getTags();
+
+        $this->assertNotEmpty($tags, 'Product should have tags');
+        $tag = $tags->first();
+        $this->assertNotNull($tag->getCode());
+        $this->assertNotNull($tag->getName());
+
+        // Verify the tag has Groups annotation by checking reflection
+        $reflection = new \ReflectionProperty(\App\Entity\ProductTag::class, 'code');
+        $attributes = $reflection->getAttributes(\Symfony\Component\Serializer\Annotation\Groups::class);
+        $this->assertNotEmpty($attributes, 'ProductTag::code should have #[Groups] attribute');
+
+        $groups = $attributes[0]->newInstance()->getGroups();
+        $this->assertContains('product:read', $groups);
+        $this->assertContains('product:list', $groups);
+    }
+
     // ==================== Helpers ====================
 
     private function createBulkCancelService(): BulkCancelService
