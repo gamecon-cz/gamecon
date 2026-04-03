@@ -407,6 +407,7 @@ SQL,
         // vykreslení
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!$this->systemoveNastaveni->jeProdejJidlaPozastaven()) {
+            $vec = '';
             foreach (array_keys($druhy) as $druh) {
                 $jidloProCenu = null;
                 $jeSnidane = Jidlo::jeToSnidane($druh);

@@ -1,0 +1,79 @@
+.jidlo-matice {
+  margin: 1em 0;
+
+  &--table {
+    border-collapse: collapse;
+    width: 100%;
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+    }
+  }
+
+  &--druh {
+    text-align: left !important;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
+  &--cell {
+    cursor: pointer;
+
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+  }
+
+  &--selected {
+    background-color: #e8f5e9;
+  }
+
+  &--sold-out {
+    background-color: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+
+    label {
+      cursor: not-allowed;
+    }
+  }
+
+  &--busy {
+    opacity: 0.5;
+  }
+
+  &--price {
+    font-size: 0.9em;
+    color: #666;
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+    min-width: 5.5em;
+    text-align: right;
+  }
+
+  &--total {
+    margin-top: 1em;
+    font-weight: bold;
+    text-align: right;
+  }
+
+  &--loading, &--error, &--empty {
+    padding: 1em;
+    text-align: center;
+  }
+
+  &--error {
+    color: #c62828;
+  }
+}
