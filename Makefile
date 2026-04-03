@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs fix static ci tests migrations-run migrations-diff
+.PHONY: init start-docker-foreground run cache bash phpstan ecs fix static ci tests migrations-run migrations-diff ui-build
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -17,6 +17,9 @@ init:
 	direnv exec bin-docker/yarn build
 	@make cache
 	@echo 'Gamecon initialized ✅'
+
+ui-build:
+	cd ui && yarn install --frozen-lockfile && yarn build
 
 run: init
 	@PORT=$$(docker compose port web 80 2>/dev/null | cut -d: -f2); \
