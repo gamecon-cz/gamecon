@@ -12,6 +12,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -65,9 +66,11 @@ class ProductTag implements WithTimestampsInterface
         pattern: '/^[a-z0-9\-]+$/',
         message: 'Kód tagu může obsahovat pouze malá písmena, číslice a pomlčky'
     )]
+    #[Groups(['product:read', 'product:list'])]
     private string $code;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
+    #[Groups(['product:read', 'product:list'])]
     private ?string $name;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]

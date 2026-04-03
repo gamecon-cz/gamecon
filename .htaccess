@@ -1,10 +1,13 @@
 RewriteEngine on
 
+# Pass Authorization header to PHP (Apache strips it by default for CGI/FPM)
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
 # Route Symfony API requests to Symfony public directory
 RewriteCond %{REQUEST_URI} ^/symfony/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^symfony/(.*)$ symfony/public/index.php [QSA,L]
+RewriteRule ^symfony/(.*)$ symfony/public/index.php [QSA,L,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
 # Route everything else to legacy web directory
 RewriteCond %{REQUEST_URI} !^/symfony/

@@ -49,8 +49,9 @@ class JwtAuthenticator implements AuthenticatorInterface
             throw new AuthenticationException('Invalid JWT token');
         }
 
-        // Load user from database
-        $userId = $payload['user']['id'] ?? null;
+        // Load user from database (Firebase JWT returns stdClass, not array)
+        $userData = $payload['user'] ?? null;
+        $userId = is_array($userData) ? ($userData['id'] ?? null) : ($userData->id ?? null);
         if (! $userId) {
             throw new AuthenticationException('JWT token missing user ID');
         }
