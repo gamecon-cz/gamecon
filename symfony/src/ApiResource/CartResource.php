@@ -7,18 +7,31 @@ namespace App\ApiResource;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
 use App\Dto\Cart\AddToCartInputDto;
 use App\Dto\Cart\CartOutputDto;
 use App\Dto\Cart\CheckoutInputDto;
+use App\Dto\Cart\MealProductOutputDto;
 use App\State\Cart\AddToCartProcessor;
 use App\State\Cart\CartProvider;
 use App\State\Cart\CheckoutProcessor;
+use App\State\Cart\MealProductsProvider;
 use App\State\Cart\RemoveFromCartProcessor;
 
 #[ApiResource(
     operations: [
+        new GetCollection(
+            uriTemplate: '/cart/meals',
+            output: MealProductOutputDto::class,
+            provider: MealProductsProvider::class,
+            security: "is_granted('ROLE_USER')",
+            openapi: new Operation(
+                summary: 'List available meals',
+                description: 'Returns flat list of meal products with variant info for the meal matrix UI.',
+            ),
+        ),
         new Get(
             uriTemplate: '/cart',
             output: CartOutputDto::class,
@@ -43,6 +56,7 @@ use App\State\Cart\RemoveFromCartProcessor;
         new Delete(
             uriTemplate: '/cart/items/{itemId}',
             output: CartOutputDto::class,
+            read: false,
             processor: RemoveFromCartProcessor::class,
             security: "is_granted('ROLE_USER')",
             openapi: new Operation(

@@ -105,6 +105,48 @@ bin/console cache:clear                  # Clear cache
 - **Hashing**: Always use the complete result of a hashing function — never truncate it (e.g. `substr(md5(...), 0, 12)`) as this increases collision risk
 - **Cache directories**: Use `SPEC` constant for private cache files and `CACHE` constant for public cache files (web-accessible)
 
+## API Platform: Entities vs DTOs
+
+**Rule: Bare entities with `#[ApiResource]` are for admin CRUD only.** All other API endpoints — public listings, specialized admin endpoints (e.g. online prezence), user-facing features (e.g. meal matrix, cart) — must use dedicated **DTOs** with custom providers/processors.
+
+**Why:** Serialization groups on entities create cascading complexity (public vs admin vs edge cases). DTOs are explicit about what data they expose and decouple the API contract from the entity structure.
+
+**Pattern:**
+```php
+// ✅ GOOD: Entity has only admin CRUD operations
+#[ApiResource(
+    operations: [
+        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new Get(security: "is_granted('ROLE_ADMIN')"),
+        new Post(security: "is_granted('ROLE_ADMIN')"),
+        // ...
+    ],
+)]
+class Product { }
+
+// ✅ GOOD: Public/specialized endpoints use DTOs + providers
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/cart/meals',
+            output: MealProductOutputDto::class,
+            provider: MealProductsProvider::class,
+            security: "is_granted('PUBLIC_ACCESS')",
+        ),
+    ],
+)]
+class CartResource { }
+
+// ❌ BAD: Entity exposed publicly with serialization groups
+#[ApiResource(
+    operations: [
+        new GetCollection(security: "is_granted('PUBLIC_ACCESS')"),
+    ],
+    normalizationContext: ['groups' => ['product:list']],
+)]
+class Product { }
+```
+
 ## Doctrine Entity Guidelines
 
 ### Timestamp Columns
@@ -211,6 +253,7 @@ class ProductService
 - **No table aliases**: Use full table names in queries whenever possible
 - **No single-letter aliases**: Avoid cryptic aliases like `t`, `n`, `a`
 - **Descriptive names**: If aliases are necessary, use descriptive human-readable names
+- **Applies to both raw SQL AND Doctrine DQL/QueryBuilder** — use `product`, `tag`, `variant` instead of `p`, `t`, `v`
 - **Example**:
   ```sql
   -- ❌ BAD: Single-letter aliases
@@ -218,6 +261,13 @@ class ProductService
 
   -- ✅ GOOD: Full table names or descriptive aliases
   UPDATE `novinky` LEFT JOIN `texty` ON texty.`id` = novinky.`text` SET novinky.`text_md` = texty.`text`;
+  ```
+  ```php
+  // ❌ BAD: Doctrine QueryBuilder
+  $this->createQueryBuilder('p')->innerJoin('p.tags', 't')->where('t.code = :tag')
+
+  // ✅ GOOD: Doctrine QueryBuilder
+  $this->createQueryBuilder('product')->innerJoin('product.tags', 'tag')->where('tag.code = :tag')
   ```
 
 ## SQL Query Parameter Preprocessing

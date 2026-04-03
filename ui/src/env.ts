@@ -14,14 +14,14 @@ type GameconKonstanty = {
    */
   IS_DEV_SERVER: boolean,
   /**
-   * Chrome redux devtools. Zapnout v php nastavení serveru pomocí 
+   * Chrome redux devtools. Zapnout v php nastavení serveru pomocí
 define('FORCE_REDUX_DEVTOOLS', true);
    */
   FORCE_REDUX_DEVTOOLS: boolean,
   /**
    * cesta k této stráce v rámci které se preact využívá.
    * například /web/program/
-   * preact by měl mít ve zprávě pouze část url 
+   * preact by měl mít ve zprávě pouze část url
    *   následující za touto cestou
    */
   BASE_PATH_PAGE: string,
@@ -50,6 +50,16 @@ define('FORCE_REDUX_DEVTOOLS', true);
   URL_PROGRAM_CACHE: string;
   /** Pre-embedded manifest from server, null if static files not yet generated */
   programManifest: ProgramManifest | null;
+
+  /**
+   * JWT token for authenticated Symfony API calls.
+   * Generated server-side and passed via PHP.
+   */
+  JWT: string;
+  /**
+   * Base path for Symfony API (e.g. /symfony/api/)
+   */
+  BASE_PATH_SYMFONY_API: string;
 }
 
 type GameconPřednačtení = {
@@ -57,7 +67,7 @@ type GameconPřednačtení = {
 };
 
 declare global {
-  // interface se automaticky propojí s existujícím 
+  // interface se automaticky propojí s existujícím
   //   proto je nutné použít interface a né type
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
@@ -92,6 +102,8 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   PROGRAM_KONEC: 6,
   URL_PROGRAM_CACHE: "/cache/public/program",
   programManifest: null,
+  JWT: "",
+  BASE_PATH_SYMFONY_API: "/symfony/api/",
 };
 
 export const GAMECON_KONSTANTY = {

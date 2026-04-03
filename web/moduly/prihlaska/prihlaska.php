@@ -48,6 +48,47 @@ function nahledPredmetu(string $cestaKObrazku): string
         ->url();
 }
 
+function prihlaskaJidloHtml(
+    Shop $shop,
+    Uzivatel $u,
+    \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni,
+): string {
+    $legacyHtml = $shop->jidloHtml();
+
+    try {
+        $kernel = $systemoveNastaveni->kernel();
+        $container = $kernel->getContainer();
+        /** @var \App\Service\JwtService $jwtService */
+        $jwtService = $container->get(\App\Service\JwtService::class);
+        $userEntity = $container->get('doctrine.orm.entity_manager')->find(\App\Entity\User::class, $u->id());
+        if ($userEntity === null) {
+            return $legacyHtml;
+        }
+        $jwt = $jwtService->generateJwtToken($jwtService->extractUserData($userEntity));
+    } catch (\Throwable) {
+        return $legacyHtml;
+    }
+
+    // URL_WEBU = http://localhost:85/web — strip /web to get site root for Symfony API
+    $siteRoot = preg_replace('#/web$#', '', URL_WEBU);
+    $symfonyApiBase = $siteRoot . '/symfony/api/';
+    $bundleUrl = URL_WEBU . '/soubory/ui/bundle.js';
+    $styleUrl = URL_WEBU . '/soubory/ui/style.css';
+
+    return <<<HTML
+        <div id="preact-jidlo">
+            <noscript>{$legacyHtml}</noscript>
+        </div>
+        <link rel="stylesheet" href="{$styleUrl}">
+        <script>
+            window.GAMECON_KONSTANTY = window.GAMECON_KONSTANTY || {};
+            window.GAMECON_KONSTANTY.JWT = "{$jwt}";
+            window.GAMECON_KONSTANTY.BASE_PATH_SYMFONY_API = "{$symfonyApiBase}";
+        </script>
+        <script type="module" src="{$bundleUrl}"></script>
+    HTML;
+}
+
 if (post('pridatPotvrzeniRodicu')) {
     if (!$u->zpracujPotvrzeniRodicu()) {
         chyba('Nejdříve vlož potvrzení.');
@@ -228,7 +269,7 @@ if (is_dir($adresarKObrazkuPredmetu)) {
 
 $t->assign([
     'a'                               => $u->koncovkaDlePohlavi(),
-    'jidlo'                           => $shop->jidloHtml(),
+    'jidlo'                           => prihlaskaJidloHtml($shop, $u, $systemoveNastaveni),
     'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
     'predmety'                        => $shop->predmetyHtml(),
     'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),

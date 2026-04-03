@@ -1,11 +1,13 @@
 import { Program } from "./program";
 import { Obchod } from "./obchod";
 import { ObchodNastaveni } from "./obchodNastaveni";
+import { JídloMatice } from "./jidlo/JídloMatice";
 import { Fragment, FunctionComponent, JSX, render } from "preact";
 import { GAMECON_KONSTANTY } from "../env";
 import { ProgramWrapper } from "../testing/ProgramWrapper";
 
 import "./index.less";
+import "./jidlo/JídloMatice.less";
 
 const renderComponent = (
   rootId: string,
@@ -30,4 +32,5 @@ export const renderPages = () => {
   renderComponent("preact-obchod-nastaveni", ObchodNastaveni);
   renderComponent("preact-program", Program, ProgramWrapper);
   renderComponent("preact-obchod", Obchod);
+  renderComponent("preact-jidlo", JídloMatice);
 };

@@ -11,6 +11,7 @@ class CartItemOutputDto
     public ?int $id;
     public string $productName;
     public ?string $productCode;
+    public ?int $variantId;
     public ?string $variantName;
     public ?string $variantCode;
     public string $purchasePrice;
@@ -25,6 +26,7 @@ class CartItemOutputDto
         $dto->id = $item->getId();
         $dto->productName = $item->getDisplayName();
         $dto->productCode = $item->getDisplayCode();
+        $dto->variantId = $item->getVariant()?->getId();
         $dto->variantName = $item->getVariantName();
         $dto->variantCode = $item->getVariantCode();
         $dto->purchasePrice = $item->getPurchasePrice();
