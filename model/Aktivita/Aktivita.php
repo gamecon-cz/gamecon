@@ -2371,7 +2371,7 @@ SQL
     public function prihlas(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
-                 $parametry = 0,
+        int      $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
         ?AktivitaTym $tym = null,

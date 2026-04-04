@@ -429,7 +429,7 @@ class AktivitaTymService
         }
     }
 
-    private function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): Team
+    public function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): Team
     {
         if (!$ignorovatLimity) {
             $this->zkontrolujMuzeZalozitTym($idAktivity);

@@ -49,6 +49,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $aktivita->odhlas($clen, $u, 'kapitán týmu');
             $response['úspěch'] = true;
+        } elseif ($akce === 'zalozPrazdnyTym') {
+            $aktivita = Aktivita::zId($aktivitaId);
+            if (!$aktivita) {
+                throw new Chyba('Aktivita nenalezena');
+            }
+            $tym                       = AktivitaTym::zalozPrazdnyTym($u->id(), $aktivitaId);
+            $response['úspěch']        = true;
+            $response['kodTymu']       = $tym->getKod();
+            $response['aktivityKVyberu'] = array_values(array_map(
+                static fn(Aktivita $a) => [
+                    'id'      => $a->id(),
+                    'nazev'   => $a->nazev(),
+                    'casText' => ($a->zacatek()?->format('G:i') ?? '') . '–' . ($a->konec()?->format('G:i') ?? ''),
+                ],
+                $aktivita->deti(),
+            ));
+        } elseif ($akce === 'potvrdVyberAktivit') {
+            $tym = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
+            $tym->zkontrolujZeJeKapitan($u->id());
+            $idVybranychAktivit = array_map('intval', (array)($_POST['idVybranychAktivit'] ?? []));
+            foreach ($idVybranychAktivit as $idVybraneAktivity) {
+                $tym->pridejNaAktivitu($idVybraneAktivity);
+            }
+            $aktivita = Aktivita::zId($aktivitaId);
+            if (!$aktivita) {
+                throw new Chyba('Aktivita nenalezena');
+            }
+            // todo(tym): tady musí stoprocentně dojít k přihlášení uživatele jinak není úspěch a pořád hrozí smazání týmu
+            $aktivita->prihlas($u, $u, tym: $tym);
+            $response['úspěch'] = true;
         } else {
             $response['úspěch'] = false;
             $response['chyba']  = ['hláška' => 'Neznámá akce'];
@@ -69,9 +99,10 @@ $uzivatelId = array_key_exists('uzivatelId', $_GET)
 $kod = AktivitaTym::vratKodTymuProUzivatele($uzivatelId, $aktivitaId);
 $response['kod'] = $kod;
 
-// čas aktivity
+// čas aktivity + příznak předpřípravy
 $aktivita = Aktivita::zId($aktivitaId);
 if ($aktivita) {
+    $response['jeTrebaPredpripravit'] = $aktivita->tymova() && $aktivita->jeTrebaPredpripravitTym();
     $zacatek           = $aktivita->zacatek();
     $konec             = $aktivita->konec();
     $response['casText'] = $zacatek && $konec

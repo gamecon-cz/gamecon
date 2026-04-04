@@ -131,6 +131,7 @@ class AktivitaTym extends \DbObject
 
     // todo(tym): Je potřeba zajistit že před přidáním účastníka do týmu je přihlášený na všechny aktivity týmu
     // todo(tym): dochází ke zdvojené kontrole na kapacitu
+    // todo(tym): předávat tým a ne kód týmu
     public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu, bool $ignorovatLimity = false): void
     {
         self::service()->prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, $ignorovatLimity);
@@ -139,6 +140,16 @@ class AktivitaTym extends \DbObject
     public static function odhlasUzivateleOdTymu(int $idUzivatele, int $idAktivity): void
     {
         self::service()->odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
+    }
+
+    /**
+     * Tým musí mít kapitána proto je třeba dát id uživatele
+     */
+    public static function zalozPrazdnyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity = false): self
+    {
+        $team = self::service()->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity);
+
+        return new self($team, $idAktivity);
     }
 
     public static function zkontrolujMuzeZalozitTym(int $idAktivity): void

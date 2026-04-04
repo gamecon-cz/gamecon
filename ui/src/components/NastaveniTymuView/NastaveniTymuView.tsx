@@ -1,7 +1,13 @@
 import { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
-import { TymVSeznamu } from "../../api/program";
+import { AktivitaKVyberu, TymVSeznamu } from "../../api/program";
+
+type VyberAktivitState = {
+  kodTymu: number;
+  aktivity: AktivitaKVyberu[];
+  vybrane: Set<number>;
+};
 
 type NastaveniTymuViewProps = {
   nazevAktivity?: string;
@@ -9,6 +15,7 @@ type NastaveniTymuViewProps = {
   přihlášen: boolean;
   načítá?: boolean;
   chyba?: string | null;
+  vyberAktivit?: VyberAktivitState | null;
   onZavřít: () => void;
   onZaložitTým: () => void;
   onPřipojitSe: (kód: number) => void;
@@ -16,6 +23,8 @@ type NastaveniTymuViewProps = {
   onOdhlásit?: () => void;
   onPregenerujKód?: () => void;
   onOdhlásitČlena?: (idČlena: number) => void;
+  onPřepniVybranou?: (idAktivity: number) => void;
+  onPotvrdVyber?: () => void;
 };
 
 // todo(tym): dodělat potvrzovaci modaly
@@ -69,6 +78,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     přihlášen,
     načítá,
     chyba,
+    vyberAktivit,
     onZavřít,
     onZaložitTým,
     onPřipojitSe,
@@ -76,6 +86,8 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     onOdhlásit,
     onPregenerujKód,
     onOdhlásitČlena,
+    onPřepniVybranou,
+    onPotvrdVyber,
   } = props;
 
   const [kódPřipojeníDoTýmu, setKódPřipojeníDoTýmu] = useState("");
@@ -116,7 +128,40 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
 
           {chyba && <div style={{ color: "red" }}>{chyba}</div>}
 
-          {!načítá && (
+          {/* //todo(tym): aktivity se budou vybírat podle kol */}
+          {/* === Výběr aktivit pro nový tým === */}
+          {vyberAktivit && (
+            <div style={{ gap: "12px", display: "flex", flexDirection: "column", alignItems: "start" }}>
+              <div>Kód týmu: <strong>{vyberAktivit.kodTymu}</strong></div>
+              <div>Vyberte aktivity, na které chcete tým přihlásit:</div>
+              {vyberAktivit.aktivity.length === 0 && (
+                <div style={{ color: "#888" }}>Žádné aktivity k výběru</div>
+              )}
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {vyberAktivit.aktivity.map((a) => (
+                  <li key={a.id} style={{ padding: "4px 0" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={vyberAktivit.vybrane.has(a.id)}
+                        onChange={() => onPřepniVybranou?.(a.id)}
+                      />
+                      <span>{a.nazev}</span>
+                      {a.casText && <span style={{ color: "#888", fontSize: "0.85em" }}>{a.casText}</span>}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              <button
+                disabled={vyberAktivit.aktivity.length > 0 && vyberAktivit.vybrane.size === 0}
+                onClick={onPotvrdVyber}
+              >
+                Přihlásit tým na vybrané aktivity
+              </button>
+            </div>
+          )}
+
+          {!načítá && !vyberAktivit && (
             <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
 
               {/* === Nepřihlášený === */}
