@@ -180,6 +180,7 @@ if (!empty($org)) {
 <script>
     window.GAMECON_KONSTANTY = {
         BASE_PATH_API: "<?= URL_WEBU . '/api/' ?>",
+        HAJENI_TEAMU_HODIN: <?= \Gamecon\Aktivita\AktivitaTym::HAJENI_TEAMU_HODIN ?>,
     };
 </script>
 <script type="module" src="<?= zabalWebSoubor('soubory/ui/bundle.js') ?>"></script>

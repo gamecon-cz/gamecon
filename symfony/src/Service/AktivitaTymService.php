@@ -16,6 +16,7 @@ use Gamecon\Aktivita\InfoOTymu;
 use Gamecon\Aktivita\TymVSeznamu;
 use Gamecon\Aktivita\VerejnyTym;
 
+// todo(tym): nahradit hledani kodu a používat místo toho id tymu
 class AktivitaTymService
 {
     private const HAJENI_TEAMU_HODIN = 72;
@@ -427,6 +428,29 @@ class AktivitaTymService
         if ($existing) {
             throw new \Chyba('Už jsi přihlášen v týmu na této aktivitě');
         }
+    }
+
+    public function casZalozeniMs(int $kodTymu, int $idAktivity): ?int
+    {
+        $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
+        return $team?->getZalozen() !== null ? $team->getZalozen()->getTimestamp() * 1000 : null;
+    }
+
+    public function limitTymu(int $kodTymu, int $idAktivity): ?int
+    {
+        $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
+        if (!$team) {
+            return null;
+        }
+        return $team->getLimit() ?? $team->getAktivity()->first()?->getTeamMax();
+    }
+
+    public function nastavLimitTymu(int $kodTymu, int $idAktivity, int $limit): void
+    {
+        $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu)
+            ?? throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
+        $team->setLimit($limit);
+        $this->em->flush();
     }
 
     public function nastavKapitana(int $kodTymu, int $idAktivity, int $idNovehoKapitana): void

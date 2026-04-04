@@ -112,6 +112,21 @@ class AktivitaTym extends \DbObject
         self::service()->nastavKapitana($this->getKod(), $this->idAktivity, $idNovehoKapitana);
     }
 
+    public function casZalozeniMs(): ?int
+    {
+        return self::service()->casZalozeniMs($this->getKod(), $this->idAktivity);
+    }
+
+    public function limitTymu(): ?int
+    {
+        return self::service()->limitTymu($this->getKod(), $this->idAktivity);
+    }
+
+    public function nastavLimit(int $limit): void
+    {
+        self::service()->nastavLimitTymu($this->getKod(), $this->idAktivity, $limit);
+    }
+
     /** @return \Uzivatel[] seřazení: kapitán první, pak ostatní podle pořadí přihlášení */
     public function clenoveTymu(): array
     {

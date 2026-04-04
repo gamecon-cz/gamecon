@@ -44,6 +44,7 @@ define('FORCE_REDUX_DEVTOOLS', true);
    */
   PROGRAM_ZACATEK: number;
   PROGRAM_KONEC: number;
+  HAJENI_TEAMU_HODIN: number;
 }
 
 type GameconPřednačtení = {
@@ -87,6 +88,7 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   ],
   PROGRAM_ZACATEK: 8,
   PROGRAM_KONEC: 6,
+  HAJENI_TEAMU_HODIN: 72,
 };
 
 export const GAMECON_KONSTANTY = {

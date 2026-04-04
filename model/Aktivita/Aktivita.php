@@ -2410,8 +2410,7 @@ SQL
         }
 
         if ($this->tymova()) {
-            // todo(tym): tady se používá statická metoda protože tým nemusí existovat a automaticky se založí když neexistuje
-            $kodTymu = $tym->getKod();
+            $kodTymu = $tym ? $tym->getKod() : 0;
             AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, (bool)(self::IGNOROVAT_LIMIT & $parametry));
         }
 

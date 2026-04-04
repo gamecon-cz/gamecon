@@ -13,7 +13,7 @@ import {
 } from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
 import { useProgramStore } from "../../../../store/program";
-import { fetchNastavVerejnostTymu, fetchPregenerujKodTymu, fetchOdhlasClena, fetchZalozPrazdnyTym, fetchPotvrdVyberAktivit, fetchPredejKapitana, AktivitaKVyberu } from "../../../../api/program";
+import { fetchNastavVerejnostTymu, fetchPregenerujKodTymu, fetchOdhlasClena, fetchZalozPrazdnyTym, fetchPotvrdVyberAktivit, fetchPredejKapitana, fetchNastavLimitTymu, AktivitaKVyberu } from "../../../../api/program";
 import { NastaveniTymuView } from "../../../../components/NastaveniTymuView/NastaveniTymuView";
 
 type VyberAktivitState = {
@@ -94,6 +94,16 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
     void dotáhniNastaveníTýmuProModal();
   };
 
+  const nastavLimit = async (limit: number) => {
+    if (!data?.kod) return;
+    const result = await fetchNastavLimitTymu(aktivitaId, data.kod, limit);
+    if (!result.úspěch) {
+      setChyba(result.chyba?.hláška ?? "Nepodařilo se nastavit limit");
+      return;
+    }
+    void dotáhniNastaveníTýmuProModal();
+  };
+
   const predejKapitana = async (idNovehoKapitana: number) => {
     if (!data?.kod) return;
     const result = await fetchPredejKapitana(aktivitaId, data.kod, idNovehoKapitana);
@@ -161,6 +171,7 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       onPregenerujKód={() => void sNačítáním(přegenerujKód, true)()}
       onOdhlásitČlena={(id) => void sNačítáním(() => odhlásitČlena(id), true)()}
       onPredejKapitana={(id) => void sNačítáním(() => predejKapitana(id), true)()}
+      onNastavLimit={(limit) => void sNačítáním(() => nastavLimit(limit), true)()}
       onPřepniVybranou={přepniVybranou}
       onPotvrdVyber={() => void sNačítáním(potvrdVyber, true)()}
     />

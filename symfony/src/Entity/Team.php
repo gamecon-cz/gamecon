@@ -28,7 +28,7 @@ class Team
     #[ORM\Column(name: 'nazev', type: Types::STRING, length: 255, nullable: true)]
     private ?string $nazev = null;
 
-    #[ORM\Column(name: 'limit', type: Types::INTEGER, nullable: true)]
+    #[ORM\Column(name: '`limit`', type: Types::INTEGER, nullable: true)]
     private ?int $limit = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

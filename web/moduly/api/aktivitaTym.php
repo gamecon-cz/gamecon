@@ -79,6 +79,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // todo(tym): tady musí stoprocentně dojít k přihlášení uživatele jinak není úspěch a pořád hrozí smazání týmu
             $aktivita->prihlas($u, $u, tym: $tym);
             $response['úspěch'] = true;
+        } elseif ($akce === 'nastavLimit') {
+            $tym   = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
+            $tym->zkontrolujZeJeKapitan($u->id());
+            $limit = (int)($_POST['limit'] ?? 0);
+            if ($limit < 1) {
+                throw new Chyba('Neplatný limit');
+            }
+            $tym->nastavLimit($limit);
+            $response['úspěch'] = true;
         } elseif ($akce === 'predejKapitana') {
             $tym             = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
             $tym->zkontrolujZeJeKapitan($u->id());
@@ -125,8 +134,11 @@ if ($aktivita) {
 // info o týmu uživatele
 if ($kod) {
     $tym               = AktivitaTym::najdiPodleKodu($aktivitaId, $kod);
-    $response['verejny']  = $tym->isVerejny();
-    $response['jeKapitan'] = $tym->jeKapitanem($uzivatelId);
+    $response['verejny']    = $tym->isVerejny();
+    $response['jeKapitan']  = $tym->jeKapitanem($uzivatelId);
+    $response['casZalozeniMs'] = $tym->casZalozeniMs();
+    $response['limitTymu']  = $tym->limitTymu();
+    $response['minKapacita'] = $aktivita?->tymMinKapacita();
     $response['clenove'] = array_map(
         fn(\Uzivatel $clen) => [
             'id'        => $clen->id(),

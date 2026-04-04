@@ -1,5 +1,6 @@
 import { FunctionComponent } from "preact";
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
+import { GAMECON_KONSTANTY } from "../../env";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
 import { AktivitaKVyberu, TymVSeznamu } from "../../api/program";
 
@@ -25,6 +26,7 @@ type NastaveniTymuViewProps = {
   onPregenerujKód?: () => void;
   onOdhlásitČlena?: (idČlena: number) => void;
   onPredejKapitana?: (idČlena: number) => void;
+  onNastavLimit?: (limit: number) => void;
   onPřepniVybranou?: (idAktivity: number) => void;
   onPotvrdVyber?: () => void;
 };
@@ -70,7 +72,28 @@ const SeznamTymu: FunctionComponent<{
   );
 };
 
-// todo(tym): pro rozpracovaný tým bude ukazovat kolik zbývá do smazání týmu pokud dojde k výběru aktivity
+const formatZbývá = (ms: number): string => {
+  if (ms <= 0) return "0:00";
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return `${h}:${m.toString().padStart(2, "0")}`;
+};
+
+const useOdpočet = (casZalozeniMs: number | undefined): number | null => {
+  const [zbývá, setZbývá] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!casZalozeniMs) return;
+    const zamceniMs = casZalozeniMs + GAMECON_KONSTANTY.HAJENI_TEAMU_HODIN * 3600 * 1000;
+    const update = () => setZbývá(Math.max(0, zamceniMs - Date.now()));
+    update();
+    const id = setInterval(update, 60000);
+    return () => clearInterval(id);
+  }, [casZalozeniMs]);
+
+  return zbývá;
+};
+
 export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (props) => {
   const {
     nazevAktivity,
@@ -88,6 +111,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     onPregenerujKód,
     onOdhlásitČlena,
     onPredejKapitana,
+    onNastavLimit,
     onPřepniVybranou,
     onPotvrdVyber,
   } = props;
@@ -106,6 +130,10 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const sPotvrzením = (text: string, akce: () => void) => () => setPotvrzení({ text, akce });
 
   const jeKapitán = přihlášen && data?.jeKapitan;
+  const pocetClenu = data?.clenove?.length ?? 0;
+  const minKapacita = data?.minKapacita ?? 0;
+  const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
+  const odpočet = useOdpočet(přihlášen && !tymJePlny ? data?.casZalozeniMs : undefined);
 
   if (potvrzení) {
     return (
@@ -141,6 +169,12 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
 
           {data?.casText && (
             <div style={{ color: "#666", marginBottom: "8px" }}>{data.casText}</div>
+          )}
+
+          {přihlášen && odpočet !== null && odpočet > 0 && (
+            <div style={{ color: "#b80", marginBottom: "8px" }}>
+              Tým bude zveřejněn za {formatZbývá(odpočet)} h — doplňte členy nebo odeberte volná místa.
+            </div>
           )}
 
           {(načítá || načítáAkci) && <div>Načítám...</div>}
@@ -240,6 +274,19 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                         </button>
                       )}
                     </div>
+                  )}
+
+                  {/* Odebrat volná místa — jen kapitán, jen pokud je míst nad počet členů */}
+                  {jeKapitán && onNastavLimit && data?.limitTymu !== null && data?.limitTymu !== undefined && data.limitTymu > pocetClenu && (
+                    <button
+                      style={{ width: "unset" }}
+                      onClick={sPotvrzením(
+                        `Opravdu chcete odebrat volná místa a uzavřít tým na ${pocetClenu} ${pocetClenu === 1 ? "hráče" : pocetClenu < 5 ? "hráče" : "hráčů"}?`,
+                        () => onNastavLimit(pocetClenu),
+                      )}
+                    >
+                      Odebrat volná místa
+                    </button>
                   )}
 
                   {/* Veřejnost — jen kapitán */}
