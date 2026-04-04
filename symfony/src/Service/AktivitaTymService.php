@@ -449,6 +449,14 @@ class AktivitaTymService
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu)
             ?? throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
+        $pocetClenu = $this->teamMemberRegistrationRepository->pocetClenu((int)$team->getId());
+        if ($limit < $pocetClenu) {
+            throw new \Chyba('Limit nemůže být nižší než aktuální počet členů');
+        }
+        $minKapacita = $team->getAktivity()->first()?->getTeamMin();
+        if ($minKapacita !== null && $limit < $minKapacita) {
+            throw new \Chyba('Limit nemůže být nižší než minimální kapacita (' . $minKapacita . ')');
+        }
         $team->setLimit($limit);
         $this->em->flush();
     }

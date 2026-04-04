@@ -509,7 +509,10 @@
     overflow: auto;
     background-color: rgb(0,0,0);
     background-color: rgba(0,0,0,0.4);
-    padding-top: 40vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
   }
 
   button {
@@ -530,6 +533,10 @@
     background-color: #e22630;
     border: none;
     cursor: pointer;
+    &:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
   }
 
   button.zpet {

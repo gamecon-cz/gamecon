@@ -94,6 +94,7 @@ const useOdpočet = (casZalozeniMs: number | undefined): number | null => {
   return zbývá;
 };
 
+// todo(tym): optimisticky update na funkce.
 export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (props) => {
   const {
     nazevAktivity,
@@ -132,6 +133,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const jeKapitán = přihlášen && data?.jeKapitan;
   const pocetClenu = data?.clenove?.length ?? 0;
   const minKapacita = data?.minKapacita ?? 0;
+  const maxKapacita = data?.maxKapacita ?? null;
   const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
   const odpočet = useOdpočet(přihlášen && !tymJePlny ? data?.casZalozeniMs : undefined);
 
@@ -276,19 +278,6 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                     </div>
                   )}
 
-                  {/* Odebrat volná místa — jen kapitán, jen pokud je míst nad počet členů */}
-                  {jeKapitán && onNastavLimit && data?.limitTymu !== null && data?.limitTymu !== undefined && data.limitTymu > pocetClenu && (
-                    <button
-                      style={{ width: "unset" }}
-                      onClick={sPotvrzením(
-                        `Opravdu chcete odebrat volná místa a uzavřít tým na ${pocetClenu} ${pocetClenu === 1 ? "hráče" : pocetClenu < 5 ? "hráče" : "hráčů"}?`,
-                        () => onNastavLimit(pocetClenu),
-                      )}
-                    >
-                      Odebrat volná místa
-                    </button>
-                  )}
-
                   {/* Veřejnost — jen kapitán */}
                   {jeKapitán && data?.verejny !== undefined && (
                     <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -304,7 +293,12 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                   {/* Seznam členů */}
                   {data?.clenove && data.clenove.length > 0 && (
                     <div style={{ width: "100%" }}>
-                      <strong>Členové týmu:</strong>
+                      <strong>Členové týmu</strong>
+                      {data.limitTymu !== null && data.limitTymu !== undefined && (
+                        <span style={{ color: "#666", marginLeft: "6px" }}>
+                          ({pocetClenu}/{data.limitTymu}{data.minKapacita ? `, min. ${data.minKapacita}${maxKapacita !== null && data.limitTymu < maxKapacita ? ` max. ${maxKapacita}` : ""}` : ""})
+                        </span>
+                      )}
                       <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
                         {data.clenove.map((clen) => (
                           <li
@@ -337,7 +331,36 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                             )}
                           </li>
                         ))}
+                        {data.limitTymu !== null && data.limitTymu !== undefined && Array.from({ length: data.limitTymu - pocetClenu }).map((_, i) => (
+                          <li
+                            key={`volne-${i}`}
+                            style={{ padding: "4px 0", color: "#888", fontStyle: "italic" }}
+                          >
+                            volné místo
+                          </li>
+                        ))}
                       </ul>
+
+                      {/* Úprava limitu po jednom — jen kapitán */}
+                      {jeKapitán && onNastavLimit && data.limitTymu !== null && data.limitTymu !== undefined && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+                          <button
+                            style={{ width: "unset", padding: "2px 10px" }}
+                            disabled={data.limitTymu <= Math.max(pocetClenu, minKapacita)}
+                            onClick={() => onNastavLimit(data.limitTymu! - 1)}
+                          >
+                            −
+                          </button>
+                          <span style={{ color: "#666" }}>volná místa</span>
+                          <button
+                            style={{ width: "unset", padding: "2px 10px" }}
+                            disabled={maxKapacita !== null && data.limitTymu >= maxKapacita}
+                            onClick={() => onNastavLimit(data.limitTymu! + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 

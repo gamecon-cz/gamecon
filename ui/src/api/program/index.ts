@@ -282,6 +282,7 @@ export type AktivitaTymResponse = {
   casZalozeniMs?: number,
   limitTymu?: number | null,
   minKapacita?: number | null,
+  maxKapacita?: number | null,
   clenove?: ClenTymu[],
   vsechnyTymy?: TymVSeznamu[],
   verejneTymy?: VerejnyTym[],

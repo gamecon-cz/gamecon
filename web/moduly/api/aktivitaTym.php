@@ -139,6 +139,7 @@ if ($kod) {
     $response['casZalozeniMs'] = $tym->casZalozeniMs();
     $response['limitTymu']  = $tym->limitTymu();
     $response['minKapacita'] = $aktivita?->tymMinKapacita();
+    $response['maxKapacita'] = $aktivita?->tymMaxKapacita();
     $response['clenove'] = array_map(
         fn(\Uzivatel $clen) => [
             'id'        => $clen->id(),
