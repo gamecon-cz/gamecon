@@ -57,6 +57,7 @@ export const dotáhniNastaveníTýmuProModal = async () => {
   useProgramStore.setState(s => {
     s.všeobecné.nastaveniTymu = {
       aktivitaId,
+      nazevAktivity: s.všeobecné.nastaveniTymu?.nazevAktivity,
       data: {
         kod: data.kod,
         muzeZalozitNovy: true,

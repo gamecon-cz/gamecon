@@ -92,6 +92,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
 
   const [kódPřipojeníDoTýmu, setKódPřipojeníDoTýmu] = useState("");
   const [zkopírováno, setZkopírováno] = useState(false);
+  const [potvrzení, setPotvrzení] = useState<{ text: string; akce: () => void } | null>(null);
 
   const zkopírujKód = (kód: number) => {
     void navigator.clipboard.writeText(String(kód)).then(() => {
@@ -100,7 +101,23 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     });
   };
 
+  const sPotvrzením = (text: string, akce: () => void) => () => setPotvrzení({ text, akce });
+
   const jeKapitán = přihlášen && data?.jeKapitan;
+
+  if (potvrzení) {
+    return (
+      <div className="modal_obal">
+        <div className="modal clearfix">
+          <p>{potvrzení.text}</p>
+          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+            <button style={{ width: "unset" }} onClick={() => setPotvrzení(null)}>Zrušit</button>
+            <button style={{ width: "unset" }} onClick={() => { potvrzení.akce(); setPotvrzení(null); }}>Potvrdit</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -116,7 +133,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               Nastavení týmu{nazevAktivity ? ` aktivity ${nazevAktivity}` : ""}
             </h3>
             {přihlášen && onOdhlásit && (
-              <button class="vpravo" onClick={onOdhlásit}>Odhlásit!</button>
+              <button class="vpravo" onClick={sPotvrzením(`Opravdu se chcete odhlásit z aktivity${nazevAktivity ? ` ${nazevAktivity}` : ""} a opustit tým?`, onOdhlásit)}>Odhlásit!</button>
             )}
           </div>
 
@@ -216,7 +233,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                         {zkopírováno && <span style={{ color: "#4a4", marginLeft: "6px", fontSize: "0.8em" }}>zkopírováno!</span>}
                       </span>
                       {jeKapitán && onPregenerujKód && (
-                        <button style={{ width: "unset" }} onClick={onPregenerujKód}>
+                        <button style={{ width: "unset" }} onClick={sPotvrzením("Opravdu chcete přegenerovat kód týmu? Starý kód přestane fungovat.", onPregenerujKód)}>
                           Přegenerovat kód
                         </button>
                       )}
@@ -252,7 +269,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                             {jeKapitán && !clen.jeKapitan && onOdhlásitČlena && (
                               <button
                                 style={{ width: "unset", padding: "2px 8px" }}
-                                onClick={() => onOdhlásitČlena(clen.id)}
+                                onClick={sPotvrzením(`Opravdu chcete odebrat hráče ${clen.jmeno} z týmu${data?.nazev ? ` ${data.nazev}` : ""}${nazevAktivity ? ` na aktivitě ${nazevAktivity}` : ""}?`, () => onOdhlásitČlena(clen.id))}
                               >
                                 Odebrat
                               </button>

@@ -2348,6 +2348,8 @@ SQL
             $deti = $aktualniAktivita->deti();
             if (count($deti) > 1) {
                 return false;
+            } if (count($deti) === 0) {
+                return true;
             }
             $aktualniAktivita = $deti[0];
         }
