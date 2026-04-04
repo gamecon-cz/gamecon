@@ -24,6 +24,7 @@ type NastaveniTymuViewProps = {
   onOdhlásit?: () => void;
   onPregenerujKód?: () => void;
   onOdhlásitČlena?: (idČlena: number) => void;
+  onPredejKapitana?: (idČlena: number) => void;
   onPřepniVybranou?: (idAktivity: number) => void;
   onPotvrdVyber?: () => void;
 };
@@ -86,6 +87,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     onOdhlásit,
     onPregenerujKód,
     onOdhlásitČlena,
+    onPredejKapitana,
     onPřepniVybranou,
     onPotvrdVyber,
   } = props;
@@ -266,13 +268,25 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                               {clen.jmeno}
                               {clen.jeKapitan && <span style={{ color: "#888", marginLeft: "4px" }}>(kapitán)</span>}
                             </span>
-                            {jeKapitán && !clen.jeKapitan && onOdhlásitČlena && (
-                              <button
-                                style={{ width: "unset", padding: "2px 8px" }}
-                                onClick={sPotvrzením(`Opravdu chcete odebrat hráče ${clen.jmeno} z týmu${data?.nazev ? ` ${data.nazev}` : ""}${nazevAktivity ? ` na aktivitě ${nazevAktivity}` : ""}?`, () => onOdhlásitČlena(clen.id))}
-                              >
-                                Odebrat
-                              </button>
+                            {jeKapitán && !clen.jeKapitan && (
+                              <div style={{ display: "flex", gap: "4px" }}>
+                                {onPredejKapitana && (
+                                  <button
+                                    style={{ width: "unset", padding: "2px 8px" }}
+                                    onClick={sPotvrzením(`Opravdu chcete předat kapitána hráči ${clen.jmeno}?`, () => onPredejKapitana(clen.id))}
+                                  >
+                                    Předat kapitána
+                                  </button>
+                                )}
+                                {onOdhlásitČlena && (
+                                  <button
+                                    style={{ width: "unset", padding: "2px 8px" }}
+                                    onClick={sPotvrzením(`Opravdu chcete odebrat hráče ${clen.jmeno} z týmu${data?.nazev ? ` ${data.nazev}` : ""}${nazevAktivity ? ` na aktivitě ${nazevAktivity}` : ""}?`, () => onOdhlásitČlena(clen.id))}
+                                  >
+                                    Odebrat
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </li>
                         ))}

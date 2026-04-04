@@ -107,6 +107,11 @@ class AktivitaTym extends \DbObject
         return self::service()->pregenerujKodTymu($this->getKod(), $this->idAktivity);
     }
 
+    public function nastavKapitana(int $idNovehoKapitana): void
+    {
+        self::service()->nastavKapitana($this->getKod(), $this->idAktivity, $idNovehoKapitana);
+    }
+
     /** @return \Uzivatel[] seřazení: kapitán první, pak ostatní podle pořadí přihlášení */
     public function clenoveTymu(): array
     {

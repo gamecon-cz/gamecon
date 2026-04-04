@@ -429,6 +429,20 @@ class AktivitaTymService
         }
     }
 
+    public function nastavKapitana(int $kodTymu, int $idAktivity, int $idNovehoKapitana): void
+    {
+        $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu)
+            ?? throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
+        $novyKapitan = $this->userRepository->find($idNovehoKapitana)
+            ?? throw new \Chyba('Uživatel nenalezen');
+        $registrace = $this->teamMemberRegistrationRepository->findByUzivatelAndAktivita($idNovehoKapitana, $idAktivity);
+        if (!$registrace || (int)$registrace->getTeam()->getId() !== (int)$team->getId()) {
+            throw new \Chyba('Uživatel není členem tohoto týmu');
+        }
+        $team->setKapitan($novyKapitan);
+        $this->em->flush();
+    }
+
     public function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): Team
     {
         if (!$ignorovatLimity) {

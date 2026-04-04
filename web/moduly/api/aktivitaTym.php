@@ -79,6 +79,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // todo(tym): tady musí stoprocentně dojít k přihlášení uživatele jinak není úspěch a pořád hrozí smazání týmu
             $aktivita->prihlas($u, $u, tym: $tym);
             $response['úspěch'] = true;
+        } elseif ($akce === 'predejKapitana') {
+            $tym             = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
+            $tym->zkontrolujZeJeKapitan($u->id());
+            $idNovehoKapitana = (int)($_POST['idNovehoKapitana'] ?? 0);
+            if (!$idNovehoKapitana) {
+                throw new Chyba('Chybí ID nového kapitána');
+            }
+            if ($idNovehoKapitana === $u->id()) {
+                throw new Chyba('Nemůžeš předat kapitána sám sobě');
+            }
+            $tym->nastavKapitana($idNovehoKapitana);
+            $response['úspěch'] = true;
         } else {
             $response['úspěch'] = false;
             $response['chyba']  = ['hláška' => 'Neznámá akce'];
