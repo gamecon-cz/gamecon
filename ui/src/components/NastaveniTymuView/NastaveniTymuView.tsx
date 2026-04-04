@@ -14,6 +14,7 @@ type NastaveniTymuViewProps = {
   data: NastaveniTymuData | null;
   přihlášen: boolean;
   načítá?: boolean;
+  načítáAkci?: boolean;
   chyba?: string | null;
   vyberAktivit?: VyberAktivitState | null;
   onZavřít: () => void;
@@ -27,9 +28,7 @@ type NastaveniTymuViewProps = {
   onPotvrdVyber?: () => void;
 };
 
-// todo(tym): dodělat potvrzovaci modaly
 // todo(tym): manuální předání kapitána
-// todo(tym): loading animace
 const SeznamTymu: FunctionComponent<{
   tymy: TymVSeznamu[];
   zobrazitPřipojení: boolean;
@@ -77,6 +76,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     data,
     přihlášen,
     načítá,
+    načítáAkci,
     chyba,
     vyberAktivit,
     onZavřít,
@@ -141,7 +141,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
             <div style={{ color: "#666", marginBottom: "8px" }}>{data.casText}</div>
           )}
 
-          {načítá && <div>Načítám...</div>}
+          {(načítá || načítáAkci) && <div>Načítám...</div>}
 
           {chyba && <div style={{ color: "red" }}>{chyba}</div>}
 
@@ -178,7 +178,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
             </div>
           )}
 
-          {!načítá && !vyberAktivit && (
+          {!načítá && !načítáAkci && !vyberAktivit && (
             <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
 
               {/* === Nepřihlášený === */}

@@ -38,6 +38,18 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   const data = useNastaveniTymuModalData();
   const [vyberAktivit, setVyberAktivit] = useState<VyberAktivitState | null>(null);
   const [chyba, setChyba] = useState<string | null>(null);
+  const [načítáAkci, setNačítáAkci] = useState(false);
+  const [bylaZměna, setBylaZměna] = useState(false);
+
+  const sNačítáním = (fn: () => Promise<void>, jeZměna = false) => async () => {
+    setNačítáAkci(true);
+    try {
+      await fn();
+      if (jeZměna) setBylaZměna(true);
+    } finally {
+      setNačítáAkci(false);
+    }
+  };
 
   if (!aktivitaId) return <></>;
 
@@ -55,6 +67,10 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   if (aktivita && přihlášen && !data) return <></>;
 
   const zavřít = () => {
+    if (!aktivita && bylaZměna) {
+      window.location.reload();
+      return;
+    }
     setVyberAktivit(null);
     setChyba(null);
     nastavModalNastaveníTýmu();
@@ -124,17 +140,18 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       data={data ?? null}
       přihlášen={přihlášen}
       načítá={!aktivita && !data}
+      načítáAkci={načítáAkci}
       chyba={chyba}
       vyberAktivit={vyberAktivit}
       onZavřít={zavřít}
-      onZaložitTým={() => void založitTým()}
-      onPřipojitSe={(kód) => void proveďAkciAktivity(aktivitaId, "prihlasit", kód).then(zavřít)}
-      onPřepniVerejnost={() => void přepniVerejnost()}
+      onZaložitTým={() => void sNačítáním(založitTým, true)()}
+      onPřipojitSe={(kód) => void sNačítáním(() => proveďAkciAktivity(aktivitaId, "prihlasit", kód).then(zavřít), true)()}
+      onPřepniVerejnost={() => void sNačítáním(přepniVerejnost, true)()}
       onOdhlásit={() => nastavModalOdhlásit(aktivitaId)}
-      onPregenerujKód={() => void přegenerujKód()}
-      onOdhlásitČlena={(id) => void odhlásitČlena(id)}
+      onPregenerujKód={() => void sNačítáním(přegenerujKód, true)()}
+      onOdhlásitČlena={(id) => void sNačítáním(() => odhlásitČlena(id), true)()}
       onPřepniVybranou={přepniVybranou}
-      onPotvrdVyber={() => void potvrdVyber()}
+      onPotvrdVyber={() => void sNačítáním(potvrdVyber, true)()}
     />
   );
 };
