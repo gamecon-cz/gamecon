@@ -698,6 +698,17 @@ SQL;
                     kategorie: self::PLATBA,
                     idPolozky: null,
                 );
+                $this->logPolozkaProBfgr(
+                    nazev: $row['nazev'],
+                    pocet: 1,
+                    priceAfterDiscountDto: new PriceAfterDiscountDto(
+                        finalPrice: -(float)$row['cena'],
+                        discount: 0,
+                    ),
+                    typ: self::PLATBA,
+                    kodPredmetu: '',
+                    idPredmetu: '',
+                );
             }
             $this->sumyPlatebVRocich[$rocnik] = self::zaokouhli($sumaPlateb);
         }

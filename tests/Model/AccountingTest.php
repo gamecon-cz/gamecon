@@ -90,6 +90,20 @@ SQL,
         ],
     ];
 
+    private function vlozPlatbu(float $castka, string $poznamka = 'Test platba'): void
+    {
+        dbQuery(
+            'INSERT INTO platby(id_uzivatele, castka, rok, provedeno, poznamka, provedl) VALUES($0, $1, $2, NOW(), $3, $4)',
+            [
+                0 => 555,
+                1 => $castka,
+                2 => ROCNIK,
+                3 => $poznamka,
+                4 => 555,
+            ],
+        );
+    }
+
     private function vlozNakup(int $idPredmetu, float $cenaNakupni): void
     {
         dbQuery(
@@ -285,6 +299,26 @@ SQL,
         self::assertMatchesRegularExpression('/^#U\[\d+]#P\[\d+]$/', $transactions[0]->getId());
         self::assertStringContainsString('#U[555]', $transactions[0]->getId());
         self::assertStringContainsString('#P[55501]', $transactions[0]->getId());
+    }
+
+    /**
+     * @test
+     */
+    public function testPlatbaJeVidetVPripsanychPlatbach(): void
+    {
+        $this->vlozPlatbu(215, 'srovnání nějakého loňského bordelu');
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $transactions = $account->getTransactions();
+
+        $manualMovements = array_filter(
+            $transactions,
+            fn ($transaction) => $transaction->getCategory() === TransactionCategory::MANUAL_MOVEMENTS,
+        );
+
+        self::assertNotEmpty($manualMovements, 'Připsaná platba musí být vidět v objednávkách a platbách');
+        $total = array_sum(array_map(fn ($transaction) => $transaction->getTotalAmount(), $manualMovements));
+        self::assertSame(215, $total);
     }
 
     /**
