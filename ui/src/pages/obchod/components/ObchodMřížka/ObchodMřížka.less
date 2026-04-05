@@ -17,6 +17,7 @@
     height: 100%;
 
     position: relative;
+    cursor: pointer;
 
     &-text {
       position: absolute;
@@ -24,6 +25,11 @@
       left: 50%;
       transform: translate(-50%, -50%);
       font-size: 2em;
+    }
+
+    &-sold-out {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
   }
 }
