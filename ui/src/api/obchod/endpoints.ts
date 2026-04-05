@@ -1,136 +1,133 @@
 import { GAMECON_KONSTANTY } from "../../env";
+import { symfonyFetch } from "../symfony/fetch";
+import { ApiHydraCollection } from "../symfony/types";
 import { DefiniceObchod, DefiniceObchodMřížka, DefiniceObchodMřížkaBuňka, DefiniceObchodMřížkaBuňkaPředmět, DefiniceObchodMřížkaBuňkaStránka, DefiniceObchodMřížkaBuňkaTyp, ObjednávkaPředmět, Předmět } from "./types";
 
 /**
- * Typ pro zápis a čtení pro api
+ * API types matching Symfony KFC DTOs
  */
-type ApiMřížka = {
-  id?: number,
-  text?: string,
-  bunky?: {
-    id?: number,
-    typ: number,
-    text?: string,
-    barva?: string,
-    barvaText?: string,
-    cilId?: number,
-  }[],
-}[];
-
-type ApiPředměty = {
-  nazev: string,
-  zbyva: number | undefined,
+type ApiKfcProduct = {
   id: number,
-  cena: number,
-}[];
+  name: string,
+  price: number,
+  remaining: number | null,
+};
+
+type ApiKfcGrid = {
+  id: number,
+  text: string | null,
+  bunky: {
+    id: number | null,
+    typ: number,
+    text: string | null,
+    barva: string | null,
+    barvaText: string | null,
+    cilId: number | null,
+  }[],
+};
 
 export const fetchMřížky = async (): Promise<DefiniceObchod | null> => {
   try {
-    const res = await fetch(GAMECON_KONSTANTY.BASE_PATH_API + "obchod-mrizky-view");
-    const mřížkyApi = await res.json() as ApiMřížka;
+    const response = await symfonyFetch("kfc/grids");
+    if (!response.ok) throw new Error(`Failed to fetch grids: ${response.status}`);
+    const data = await response.json() as ApiHydraCollection<ApiKfcGrid>;
+    const grids = data["hydra:member"] ?? data["member"] ?? [];
 
-    const obj: DefiniceObchod = {
-      mřížky: mřížkyApi.map(mřížkaRaw => ({
-        id: mřížkaRaw.id!,
-        text: mřížkaRaw.text,
-        buňky: mřížkaRaw.bunky?.map(
-          (buňka) => ({
-            typ: DefiniceObchodMřížkaBuňkaTyp[buňka.typ] as string,
-            cilId: buňka.cilId,
-            text: buňka.text,
-            barvaPozadí: buňka.barva,
-            barvaText: buňka.barvaText,
-            id: buňka.id,
+    const obchod: DefiniceObchod = {
+      mřížky: grids.map(grid => ({
+        id: grid.id,
+        text: grid.text ?? undefined,
+        buňky: grid.bunky.map(
+          (cell) => ({
+            typ: DefiniceObchodMřížkaBuňkaTyp[cell.typ] as string,
+            cilId: cell.cilId ?? undefined,
+            text: cell.text ?? undefined,
+            barvaPozadí: cell.barva ?? undefined,
+            barvaText: cell.barvaText ?? undefined,
+            id: cell.id ?? undefined,
           } as DefiniceObchodMřížkaBuňka)
-        ) ?? [],
+        ),
       }))
     }
 
-    return obj;
-  } catch (e) {
-    console.error(e);
+    return obchod;
+  } catch (error) {
+    console.error(error);
   }
   return null;
 };
 
-export const fetchNastavMřížky = async (obj: DefiniceObchod) => {
+export const fetchNastavMřížky = async (obchod: DefiniceObchod) => {
   try {
-    const body = JSON.stringify(obj.mřížky.map(mřížka => ({
-      id: mřížka.id,
-      text: mřížka?.text,
-      bunky: mřížka.buňky.map(buňka => ({
-        id: buňka.id,
-        barva: buňka.barvaPozadí,
-        barvaText: buňka.barvaText,
-        cilId: (buňka as (
+    const grids = obchod.mřížky.map(grid => ({
+      id: grid.id,
+      text: grid.text,
+      bunky: grid.buňky.map(cell => ({
+        id: cell.id,
+        barva: cell.barvaPozadí,
+        barvaText: cell.barvaText,
+        cilId: (cell as (
           DefiniceObchodMřížkaBuňkaPředmět | DefiniceObchodMřížkaBuňkaStránka
         ))?.cilId,
-        text: buňka.text,
-        typ: DefiniceObchodMřížkaBuňkaTyp[buňka.typ],
-      } as (Required<ApiMřížka[0]>["bunky"][0])))
-    } as ApiMřížka[0])) as ApiMřížka);
+        text: cell.text,
+        typ: DefiniceObchodMřížkaBuňkaTyp[cell.typ],
+      }))
+    }));
 
-    const res = await fetch(GAMECON_KONSTANTY.BASE_PATH_API + "obchod-mrizky-view", {
+    const response = await symfonyFetch("kfc/grids", {
       method: "POST",
-      body,
+      body: JSON.stringify({ grids }),
     });
 
-    if (res.status >= 200 && res.status < 300)
+    if (response.status >= 200 && response.status < 300)
       return true;
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(error);
   }
   return false;
 };
 
 export const fetchPředměty = async (): Promise<Předmět[] | null> => {
   try {
-    const res = await fetch(GAMECON_KONSTANTY.BASE_PATH_API + "predmety");
-    const předmětyApi = await res.json() as ApiPředměty;
-    const předměty = předmětyApi.map(předmět => ({
-      název: předmět.nazev,
-      cena: předmět.cena,
-      id: předmět.id,
-      zbývá: předmět.zbyva,
+    const response = await symfonyFetch("kfc/products");
+    if (!response.ok) throw new Error(`Failed to fetch products: ${response.status}`);
+    const data = await response.json() as ApiHydraCollection<ApiKfcProduct>;
+    const products = data["hydra:member"] ?? data["member"] ?? [];
+
+    return products.map(product => ({
+      název: product.name,
+      cena: product.price,
+      id: product.id,
+      zbývá: product.remaining,
     } as Předmět));
-    return předměty;
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(error);
   }
   return null;
 }
 
-// TODO: využívá formuláře pro poslání postu do adminu - nahradit pomocí admin api
-const fakeFetchProdej = (objednávky: ObjednávkaPředmět[]) => {
-  const formElement = document.querySelector("#prodej-mrizka-form") as HTMLFormElement;
-  formElement.innerHTML = "";
-
-  objednávky.forEach((objednávka, i) => {
-    const idInput = document.createElement("input");
-    idInput.setAttribute("value", objednávka.předmět.id.toString());
-    idInput.setAttribute("name", `prodej-mrizka[${i}][id_predmetu]`);
-    formElement.appendChild(idInput)
-
-    const kusuInput = document.createElement("input");
-    kusuInput.setAttribute("value", objednávka.množství.toString());
-    kusuInput.setAttribute("name", `prodej-mrizka[${i}][kusu]`);
-    formElement.appendChild(kusuInput)
-  });
-
-  formElement.submit();
-}
-
 /**
- * TODO: aktuálně refreshne stránku!!
+ * Submit KFC sale via Symfony API (replaces legacy form hack).
+ * No page reload — returns sale confirmation.
  */
-// eslint-disable-next-line @typescript-eslint/require-await
 export const fetchProdej = async (objednávky: ObjednávkaPředmět[]): Promise<void> => {
   try {
-    fakeFetchProdej(objednávky);
-  } catch (e) {
-    console.error(e);
+    const items = objednávky.map(objednávka => ({
+      productId: objednávka.předmět.id,
+      quantity: objednávka.množství,
+    }));
+
+    const response = await symfonyFetch("kfc/sale", {
+      method: "POST",
+      body: JSON.stringify({ items }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail ?? `Sale failed: ${response.status}`);
+    }
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 }
-
-
-

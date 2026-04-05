@@ -120,6 +120,10 @@ export const ROKY = range(2009, GAMECON_KONSTANTY.ROCNIK).filter(x => x !== 2020
 export const initEnv = () => {
   window.preactMost = {
     obchod: {
+      show: () => {
+        // No-op until the Obchod component mounts and replaces this.
+        // Prevents "is not a function" error when called before Preact loads.
+      },
     }
   };
 };

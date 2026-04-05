@@ -635,9 +635,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         // Map specific roles to ROLE_ADMIN
-        $adminRoles = ['organizator', 'admin', 'infopult'];
+        $roleCodesLower = array_map('strtolower', $roleCodes);
+        $adminRoles = ['organizator', 'admin', 'infopult', 'cfo'];
         foreach ($adminRoles as $adminRole) {
-            if (in_array($adminRole, $roleCodes, true)) {
+            if (in_array($adminRole, $roleCodesLower, true)) {
                 $roles[] = 'ROLE_ADMIN';
                 break;
             }

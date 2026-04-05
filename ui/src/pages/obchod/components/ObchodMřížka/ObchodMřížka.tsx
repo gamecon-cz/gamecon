@@ -28,12 +28,15 @@ export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props)
 
           const text = !buňka.text && předmět ? předmět.název : buňka.text;
           const cena = předmět?.cena ? předmět.cena + "Kč" : "";
-          const kusů = předmět?.zbývá ? `(${předmět.zbývá})` : "";
+          const soldOut = předmět !== undefined && předmět.zbývá !== null && předmět.zbývá <= 0;
+          const kusů = předmět?.zbývá != null
+            ? (soldOut ? "(vyprodáno)" : `(${předmět.zbývá})`)
+            : "";
 
           return (
             <div
-              onClick={() => onBuňkaClicked?.(buňka)}
-              class={`shop-grid--item shop-grid--item-${i}`}
+              onClick={() => !soldOut && onBuňkaClicked?.(buňka)}
+              class={`shop-grid--item shop-grid--item-${i} ${soldOut ? "shop-grid--item-sold-out" : ""}`}
               style={buňka.barvaPozadí ? { backgroundColor: buňka.barvaPozadí } : ""}
             >
               <div style={{color:buňka.barvaText ?? "#000000"}} class="shop-grid--item-text">

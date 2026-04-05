@@ -51,6 +51,7 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'p' => 
         array (
             'phpseclib3\\' => 11,
+            'phpDocumentor\\Reflection\\' => 25,
         ),
         'c' => 
         array (
@@ -148,6 +149,7 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
             'PhpParser\\' => 10,
             'ParagonIE\\ConstantTime\\' => 23,
             'PWGen\\' => 6,
+            'PHPStan\\PhpDocParser\\' => 21,
             'PHPStan\\' => 8,
         ),
         'O' => 
@@ -242,6 +244,12 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'phpseclib3\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
+        ),
+        'phpDocumentor\\Reflection\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpdocumentor/reflection-docblock/src',
+            1 => __DIR__ . '/..' . '/phpdocumentor/type-resolver/src',
+            2 => __DIR__ . '/..' . '/phpdocumentor/reflection-common/src',
         ),
         'cweagans\\Composer\\' => 
         array (
@@ -547,6 +555,10 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'PWGen\\' => 
         array (
             0 => __DIR__ . '/..' . '/roderik/pwgen-php/src',
+        ),
+        'PHPStan\\PhpDocParser\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpstan/phpdoc-parser/src',
         ),
         'PHPStan\\' => 
         array (

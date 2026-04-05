@@ -48,6 +48,7 @@
         "michelf/php-markdown": "~1.4",
         "nextras/migrations": "^3.4",
         "openspout/openspout": "^4.0",
+        "phpdocumentor/reflection-docblock": "^6.0",
         "rikudou/czqrpayment": "^5.0",
         "rikudou/skqrpayment": "^4.2",
         "roderik/pwgen-php": "^0.1.8",
