@@ -9,10 +9,10 @@
   <div id="preact-obchod-nastaveni">Nastavení mřížek obchodu se načítá ...</div>
 
   <script>
-    // Konstanty předáváné do Preactu (env.ts)
     window.GAMECON_KONSTANTY = {
       BASE_PATH_API: "{basePathApi}",
       ROCNIK: "{rocnik}",
+      {jwtKonstanty}
     }
   </script>
 
