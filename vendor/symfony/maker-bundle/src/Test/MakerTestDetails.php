@@ -37,8 +37,11 @@ final class MakerTestDetails
     private string $skipTestMessage = '';
 
     public function __construct(
-        private MakerInterface $maker,
+        private ?MakerInterface $maker = null,
     ) {
+        if (null !== $this->maker) {
+            trigger_deprecation('symfony/maker-bundle', 'v1.66.0', 'Passing a MakerInterface to the %s constructor is deprecated.', __CLASS__);
+        }
     }
 
     public function run(\Closure $callback): self
@@ -79,7 +82,7 @@ final class MakerTestDetails
 
     public function setRequiredPhpVersion(int $version): self
     {
-        @trigger_deprecation('symfony/maker-bundle', 'v1.44.0', 'setRequiredPhpVersion() is no longer used and will be removed in a future version.');
+        trigger_deprecation('symfony/maker-bundle', 'v1.44.0', 'setRequiredPhpVersion() is no longer used and will be removed in a future version.');
 
         $this->requiredPhpVersion = $version;
 
@@ -116,8 +119,20 @@ final class MakerTestDetails
         return 'maker_'.strtolower($this->getRootNamespace()).'_'.md5(serialize($this->getDependencies()));
     }
 
+    /**
+     * @internal
+     */
+    public function setMaker(MakerInterface $maker): void
+    {
+        $this->maker = $maker;
+    }
+
     public function getMaker(): MakerInterface
     {
+        if (!$this->maker) {
+            throw new \LogicException('The maker has not been set.');
+        }
+
         return $this->maker;
     }
 
@@ -140,7 +155,7 @@ final class MakerTestDetails
     public function getDependencyBuilder(): DependencyBuilder
     {
         $depBuilder = new DependencyBuilder();
-        $this->maker->configureDependencies($depBuilder);
+        $this->getMaker()->configureDependencies($depBuilder);
 
         return $depBuilder;
     }
@@ -173,7 +188,7 @@ final class MakerTestDetails
     public function getRunCallback(): \Closure
     {
         if (!$this->runCallback) {
-            throw new \Exception('Don\'t forget to call ->run()');
+            throw new \Exception('Don\'t forget to call ->run().');
         }
 
         return $this->runCallback;

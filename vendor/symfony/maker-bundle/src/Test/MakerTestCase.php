@@ -12,11 +12,15 @@
 namespace Symfony\Bundle\MakerBundle\Test;
 
 use Composer\Semver\Semver;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\MakerBundle\MakerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
 
+/**
+ * @method static iterable<array{0: MakerTestDetails}> getTestDetails()
+ */
 abstract class MakerTestCase extends TestCase
 {
     private ?KernelInterface $kernel = null;
@@ -26,18 +30,27 @@ abstract class MakerTestCase extends TestCase
      *
      * @return void
      */
+    #[DataProvider('getTestDetails')]
     public function testExecute(MakerTestDetails $makerTestDetails)
     {
         $this->executeMakerCommand($makerTestDetails);
     }
 
-    abstract public function getTestDetails();
-
     abstract protected function getMakerClass(): string;
 
+    /**
+     * @deprecated Since 1.66.0, use static::buildMakerTest() instead
+     */
     protected function createMakerTest(): MakerTestDetails
     {
+        trigger_deprecation('symfony/maker-bundle', '1.66.0', 'The "%s()" method is deprecated. Use "self::buildMakerTest()" instead.', __METHOD__, self::class);
+
         return new MakerTestDetails($this->getMakerInstance($this->getMakerClass()));
+    }
+
+    protected static function buildMakerTest(): MakerTestDetails
+    {
+        return new MakerTestDetails();
     }
 
     /**
@@ -53,6 +66,7 @@ abstract class MakerTestCase extends TestCase
             $this->markTestSkipped($testDetails->getSkippedTestMessage());
         }
 
+        $testDetails->setMaker($this->getMakerInstance($this->getMakerClass()));
         $testEnv = MakerTestEnvironment::create($testDetails);
 
         // prepare environment to test
@@ -86,10 +100,14 @@ abstract class MakerTestCase extends TestCase
 
     /**
      * @return void
+     *
+     * @deprecated since symfony/maker-bundle 1.66.0
      */
     protected function assertContainsCount(string $needle, string $haystack, int $count)
     {
-        $this->assertEquals(1, substr_count($haystack, $needle), \sprintf('Found more than %d occurrences of "%s" in "%s"', $count, $needle, $haystack));
+        trigger_deprecation('symfony/maker-bundle', '1.66.0', 'The "%s()" method is deprecated.', __METHOD__, TestCase::class);
+
+        self::assertEquals(1, substr_count($haystack, $needle), \sprintf('Found more than %d occurrences of "%s" in "%s"', $count, $needle, $haystack));
     }
 
     private function getMakerInstance(string $makerClass): MakerInterface

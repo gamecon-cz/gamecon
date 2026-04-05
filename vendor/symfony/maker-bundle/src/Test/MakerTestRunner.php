@@ -52,7 +52,7 @@ class MakerTestRunner
      */
     public function copy(string $source, string $destination)
     {
-        $path = __DIR__.'/../../tests/fixtures/'.$source;
+        $path = $this->environment->getFixturesPath($source);
 
         if (!file_exists($path)) {
             throw new \Exception(\sprintf('Cannot find file "%s"', $path));
@@ -76,7 +76,7 @@ class MakerTestRunner
     public function renderTemplateFile(string $source, string $destination, array $variables): void
     {
         $twig = new Environment(
-            new FilesystemLoader(__DIR__.'/../../tests/fixtures')
+            new FilesystemLoader($this->environment->getFixturesPath())
         );
 
         $rendered = $twig->render($source, $variables);

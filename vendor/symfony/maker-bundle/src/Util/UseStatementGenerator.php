@@ -23,7 +23,7 @@ final class UseStatementGenerator implements \Stringable
     /**
      * For use statements that contain aliases, the $classesToBeImported array
      * may contain an array(s) like [\Some\Class::class => 'ZYX']. The generated
-     * use statement would appear as "use Some\Class::class as 'ZXY'". It is ok
+     * use statement would appear as "use Some\Class::class as 'ZYX'". It is ok
      * to mix non-aliases classes with aliases.
      *
      * @param string[]|array<string, string> $classesToBeImported

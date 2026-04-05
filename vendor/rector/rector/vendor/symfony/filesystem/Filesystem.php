@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202602\Symfony\Component\Filesystem;
+namespace RectorPrefix202604\Symfony\Component\Filesystem;
 
-use RectorPrefix202602\Symfony\Component\Filesystem\Exception\FileNotFoundException;
-use RectorPrefix202602\Symfony\Component\Filesystem\Exception\InvalidArgumentException;
-use RectorPrefix202602\Symfony\Component\Filesystem\Exception\IOException;
+use RectorPrefix202604\Symfony\Component\Filesystem\Exception\FileNotFoundException;
+use RectorPrefix202604\Symfony\Component\Filesystem\Exception\InvalidArgumentException;
+use RectorPrefix202604\Symfony\Component\Filesystem\Exception\IOException;
 /**
  * Provides basic utility to manipulate the file system.
  *
@@ -390,6 +390,7 @@ class Filesystem
         if (!$this->isAbsolutePath($endPath)) {
             throw new InvalidArgumentException(\sprintf('The end path "%s" is not absolute.', $endPath));
         }
+        $originalEndPath = $endPath;
         // Normalize separators on Windows
         if ('\\' === \DIRECTORY_SEPARATOR) {
             $endPath = str_replace('\\', '/', $endPath);
@@ -431,6 +432,10 @@ class Filesystem
         $endPathRemainder = implode('/', \array_slice($endPathArr, $index));
         // Construct $endPath from traversing to the common path, then to the remaining $endPath
         $relativePath = $traverser . ('' !== $endPathRemainder ? $endPathRemainder . '/' : '');
+        // Remove ending "/" if $endPath points to an existing file
+        if (substr_compare($relativePath, '/', -strlen('/')) === 0 && is_file($originalEndPath)) {
+            $relativePath = (string) substr($relativePath, 0, -1);
+        }
         return '' === $relativePath ? './' : $relativePath;
     }
     /**

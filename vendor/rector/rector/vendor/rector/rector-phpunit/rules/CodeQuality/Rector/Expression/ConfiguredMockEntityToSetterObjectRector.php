@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\PHPUnit\CodeQuality\Rector\Expression;
 
-use RectorPrefix202602\Nette\Utils\Strings;
+use RectorPrefix202604\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
@@ -25,7 +25,6 @@ use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202602\Webmozart\Assert\Assert;
 /**
  * @see \Rector\PHPUnit\Tests\CodeQuality\Rector\Expression\ConfiguredMockEntityToSetterObjectRector\ConfiguredMockEntityToSetterObjectRectorTest
  */
@@ -138,7 +137,6 @@ CODE_SAMPLE
             return null;
         }
         if ($node instanceof Expression) {
-            Assert::isInstanceOf($assign, Assign::class);
             return $this->createForAssign($doctrineClass, $assign, $definedGettersArg->value, $node);
         }
         return $this->createForReturn($doctrineClass, $definedGettersArg->value, $node);

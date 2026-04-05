@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202602\Symfony\Component\Yaml;
+namespace RectorPrefix202604\Symfony\Component\Yaml;
 
-use RectorPrefix202602\Symfony\Component\Yaml\Exception\DumpException;
-use RectorPrefix202602\Symfony\Component\Yaml\Exception\ParseException;
-use RectorPrefix202602\Symfony\Component\Yaml\Tag\TaggedValue;
+use RectorPrefix202604\Symfony\Component\Yaml\Exception\DumpException;
+use RectorPrefix202604\Symfony\Component\Yaml\Exception\ParseException;
+use RectorPrefix202604\Symfony\Component\Yaml\Tag\TaggedValue;
 /**
  * Inline implements a YAML parser/dumper for the YAML inline syntax.
  *
@@ -348,11 +348,30 @@ class Inline
                     // the value can be an array if a reference has been resolved to an array var
                     if (\is_string($value) && !$isQuoted && strpos($value, ': ') !== \false) {
                         // embedded mapping?
-                        try {
-                            $pos = 0;
-                            $value = self::parseMapping('{' . $value . '}', $flags, $pos, $references);
-                        } catch (\InvalidArgumentException $exception) {
-                            // no, it's not
+                        $j = $i;
+                        $mappingValue = $value;
+                        $mappingException = null;
+                        do {
+                            try {
+                                $pos = 0;
+                                $value = self::parseMapping('{' . $mappingValue . '}', $flags, $pos, $references);
+                                $i = $j;
+                                $mappingException = null;
+                                break;
+                            } catch (ParseException $exception) {
+                                $mappingException = $exception;
+                                if ($j >= $len) {
+                                    break;
+                                }
+                                $mappingValue .= $sequence[$j++];
+                                if ($j >= $len) {
+                                    break;
+                                }
+                                $mappingValue .= self::parseScalar($sequence, $flags, [',', ']'], $j, null === $tag, $references);
+                            }
+                        } while ($j < $len);
+                        if ($mappingException) {
+                            throw $mappingException;
                         }
                     }
                     if (!$isQuoted && \is_string($value) && '' !== $value && '&' === $value[0] && Parser::preg_match(Parser::REFERENCE_PATTERN, $value, $matches)) {

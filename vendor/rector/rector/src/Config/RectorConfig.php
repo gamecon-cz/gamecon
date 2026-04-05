@@ -3,8 +3,9 @@
 declare (strict_types=1);
 namespace Rector\Config;
 
-use RectorPrefix202602\Illuminate\Container\Container;
+use RectorPrefix202604\Illuminate\Container\Container;
 use Override;
+use Rector\Caching\Contract\CacheMetaExtensionInterface;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
@@ -21,8 +22,8 @@ use Rector\Validation\RectorConfigValidator;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
-use RectorPrefix202602\Symfony\Component\Console\Command\Command;
-use RectorPrefix202602\Webmozart\Assert\Assert;
+use RectorPrefix202604\Symfony\Component\Console\Command\Command;
+use RectorPrefix202604\Webmozart\Assert\Assert;
 /**
  * @api
  * @see \Rector\Tests\Config\RectorConfigTest
@@ -283,6 +284,15 @@ final class RectorConfig extends Container
     {
         Assert::isAOf($cacheClass, CacheStorageInterface::class);
         SimpleParameterProvider::setParameter(Option::CACHE_CLASS, $cacheClass);
+    }
+    /**
+     * @param class-string<CacheMetaExtensionInterface> $cacheMetaExtensionClass
+     */
+    public function cacheMetaExtension(string $cacheMetaExtensionClass): void
+    {
+        Assert::isAOf($cacheMetaExtensionClass, CacheMetaExtensionInterface::class);
+        $this->singleton($cacheMetaExtensionClass);
+        $this->tag($cacheMetaExtensionClass, CacheMetaExtensionInterface::class);
     }
     /**
      * @see https://github.com/nikic/PHP-Parser/issues/723#issuecomment-712401963

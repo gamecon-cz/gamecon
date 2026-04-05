@@ -8,27 +8,27 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202602\Symfony\Component\Console\Style;
+namespace RectorPrefix202604\Symfony\Component\Console\Style;
 
-use RectorPrefix202602\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202602\Symfony\Component\Console\Exception\RuntimeException;
-use RectorPrefix202602\Symfony\Component\Console\Formatter\OutputFormatter;
-use RectorPrefix202602\Symfony\Component\Console\Helper\Helper;
-use RectorPrefix202602\Symfony\Component\Console\Helper\OutputWrapper;
-use RectorPrefix202602\Symfony\Component\Console\Helper\ProgressBar;
-use RectorPrefix202602\Symfony\Component\Console\Helper\SymfonyQuestionHelper;
-use RectorPrefix202602\Symfony\Component\Console\Helper\Table;
-use RectorPrefix202602\Symfony\Component\Console\Helper\TableCell;
-use RectorPrefix202602\Symfony\Component\Console\Helper\TableSeparator;
-use RectorPrefix202602\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202602\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use RectorPrefix202602\Symfony\Component\Console\Output\ConsoleSectionOutput;
-use RectorPrefix202602\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202602\Symfony\Component\Console\Output\TrimmedBufferOutput;
-use RectorPrefix202602\Symfony\Component\Console\Question\ChoiceQuestion;
-use RectorPrefix202602\Symfony\Component\Console\Question\ConfirmationQuestion;
-use RectorPrefix202602\Symfony\Component\Console\Question\Question;
-use RectorPrefix202602\Symfony\Component\Console\Terminal;
+use RectorPrefix202604\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202604\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202604\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202604\Symfony\Component\Console\Helper\Helper;
+use RectorPrefix202604\Symfony\Component\Console\Helper\OutputWrapper;
+use RectorPrefix202604\Symfony\Component\Console\Helper\ProgressBar;
+use RectorPrefix202604\Symfony\Component\Console\Helper\SymfonyQuestionHelper;
+use RectorPrefix202604\Symfony\Component\Console\Helper\Table;
+use RectorPrefix202604\Symfony\Component\Console\Helper\TableCell;
+use RectorPrefix202604\Symfony\Component\Console\Helper\TableSeparator;
+use RectorPrefix202604\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202604\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use RectorPrefix202604\Symfony\Component\Console\Output\ConsoleSectionOutput;
+use RectorPrefix202604\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202604\Symfony\Component\Console\Output\TrimmedBufferOutput;
+use RectorPrefix202604\Symfony\Component\Console\Question\ChoiceQuestion;
+use RectorPrefix202604\Symfony\Component\Console\Question\ConfirmationQuestion;
+use RectorPrefix202604\Symfony\Component\Console\Question\Question;
+use RectorPrefix202604\Symfony\Component\Console\Terminal;
 /**
  * Output decorator helpers for the Symfony Style Guide.
  *
@@ -89,7 +89,7 @@ class SymfonyStyle extends OutputStyle
     public function listing(array $elements)
     {
         $this->autoPrependText();
-        $elements = array_map(fn($element) => \sprintf(' * %s', $element), $elements);
+        $elements = array_map(static fn($element) => \sprintf(' * %s', $element), $elements);
         $this->writeln($elements);
         $this->newLine();
     }
@@ -424,7 +424,8 @@ class SymfonyStyle extends OutputStyle
             if ($escape) {
                 $message = OutputFormatter::escape($message);
             }
-            $lines = array_merge($lines, explode(\PHP_EOL, $outputWrapper->wrap($message, $this->lineLength - $prefixLength - $indentLength, \PHP_EOL)));
+            $message = str_replace("\r\n", "\n", $message);
+            $lines = array_merge($lines, explode("\n", $outputWrapper->wrap($message, $this->lineLength - $prefixLength - $indentLength, "\n")));
             if (\count($messages) > 1 && $key < \count($messages) - 1) {
                 $lines[] = '';
             }

@@ -9,7 +9,7 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202602\Webmozart\Assert;
+namespace RectorPrefix202604\Webmozart\Assert;
 
 use ArrayAccess;
 use Closure;
@@ -1577,11 +1577,9 @@ class Assert
     /**
      * @psalm-pure
      *
-     * @psalm-assert list<T> $array
+     * @psalm-assert list<mixed> $array
      *
-     * @psalm-return list<T>
-     *
-     * @template T
+     * @psalm-return list<mixed>
      *
      * @throws InvalidArgumentException
      * @param mixed $array
@@ -1612,11 +1610,9 @@ class Assert
     /**
      * @psalm-pure
      *
-     * @psalm-assert non-empty-list<T> $array
+     * @psalm-assert non-empty-list<mixed> $array
      *
-     * @psalm-return non-empty-list<T>
-     *
-     * @template T
+     * @psalm-return non-empty-list<mixed>
      *
      * @throws InvalidArgumentException
      * @param mixed $array
@@ -1827,7 +1823,7 @@ class Assert
     }
     protected static function strlen(string $value): int
     {
-        if (!\function_exists('mb_detect_encoding') && !\function_exists('RectorPrefix202602\mb_detect_encoding')) {
+        if (!\function_exists('mb_detect_encoding') && !\function_exists('RectorPrefix202604\mb_detect_encoding')) {
             return \strlen($value);
         }
         if (\false === $encoding = \mb_detect_encoding($value)) {

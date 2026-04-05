@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202602\Webmozart\Assert;
+namespace RectorPrefix202604\Webmozart\Assert;
 
 use ArrayAccess;
 use Countable;
@@ -4402,10 +4402,9 @@ trait Mixin
     /**
      * @psalm-pure
      *
-     * @psalm-assert list<T>|null $array
+     * @psalm-assert list<mixed>|null $array
      *
-     * @template T
-     * @return list<T>|null
+     * @return list<mixed>|null
      *
      * @throws InvalidArgumentException
      * @param mixed $array
@@ -4418,10 +4417,9 @@ trait Mixin
     /**
      * @psalm-pure
      *
-     * @psalm-assert iterable<list<T>> $array
+     * @psalm-assert iterable<list<mixed>> $array
      *
-     * @template T
-     * @return iterable<list<T>>
+     * @return iterable<list<mixed>>
      *
      * @throws InvalidArgumentException
      * @param mixed $array
@@ -4437,10 +4435,9 @@ trait Mixin
     /**
      * @psalm-pure
      *
-     * @psalm-assert iterable<list<T>|null> $array
+     * @psalm-assert iterable<list<mixed>|null> $array
      *
-     * @template T
-     * @return iterable<list<T>|null>
+     * @return iterable<list<mixed>|null>
      *
      * @throws InvalidArgumentException
      * @param mixed $array
@@ -4456,10 +4453,9 @@ trait Mixin
     /**
      * @psalm-pure
      *
-     * @psalm-assert non-empty-list<T>|null $array
+     * @psalm-assert non-empty-list<mixed>|null $array
      *
-     * @template T
-     * @return non-empty-list<T>|null
+     * @return non-empty-list<mixed>|null
      *
      * @throws InvalidArgumentException
      * @param mixed $array
@@ -4472,10 +4468,9 @@ trait Mixin
     /**
      * @psalm-pure
      *
-     * @psalm-assert iterable<non-empty-list<T>> $array
+     * @psalm-assert iterable<non-empty-list<mixed>> $array
      *
-     * @template T
-     * @return iterable<non-empty-list<T>>
+     * @return iterable<non-empty-list<mixed>>
      *
      * @throws InvalidArgumentException
      * @param mixed $array
@@ -4491,10 +4486,9 @@ trait Mixin
     /**
      * @psalm-pure
      *
-     * @psalm-assert iterable<non-empty-list<T>|null> $array
+     * @psalm-assert iterable<non-empty-list<mixed>|null> $array
      *
-     * @template T
-     * @return iterable<non-empty-list<T>|null>
+     * @return iterable<non-empty-list<mixed>|null>
      *
      * @throws InvalidArgumentException
      * @param mixed $array

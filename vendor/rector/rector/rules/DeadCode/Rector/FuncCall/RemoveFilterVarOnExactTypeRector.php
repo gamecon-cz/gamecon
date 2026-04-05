@@ -60,7 +60,7 @@ CODE_SAMPLE
         if ($constantFilterName === 'FILTER_VALIDATE_FLOAT' && $valueType->isFloat()->yes()) {
             return $firstArgValue;
         }
-        if (in_array($constantFilterName, ['FILTER_VALIDATE_BOOLEAN', 'FILTER_VALIDATE_BOOL']) && $valueType->isBoolean()->yes()) {
+        if (in_array($constantFilterName, ['FILTER_VALIDATE_BOOLEAN', 'FILTER_VALIDATE_BOOL'], \true) && $valueType->isBoolean()->yes()) {
             return $firstArgValue;
         }
         return null;

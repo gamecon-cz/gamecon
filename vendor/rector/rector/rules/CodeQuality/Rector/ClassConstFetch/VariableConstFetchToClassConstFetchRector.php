@@ -94,7 +94,7 @@ CODE_SAMPLE
                 return null;
             }
             $constant = $classReflection->getConstant($constantName);
-            if (!$constant->isFinal()) {
+            if (!$constant->isFinalByKeyword()) {
                 return null;
             }
         }

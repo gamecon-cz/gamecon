@@ -10,6 +10,7 @@ namespace <?= $namespace ?>;
 {
     private KernelBrowser $client;
     private EntityManagerInterface $manager;
+    /** @var EntityRepository<<?= $entity_class_name; ?>> $<?= lcfirst($entity_var_singular); ?>Repository */
     private EntityRepository $<?= lcfirst($entity_var_singular); ?>Repository;
     private string $path = '<?= $route_path; ?>/';
 

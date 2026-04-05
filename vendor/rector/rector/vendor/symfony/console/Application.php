@@ -8,51 +8,51 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202602\Symfony\Component\Console;
+namespace RectorPrefix202604\Symfony\Component\Console;
 
-use RectorPrefix202602\Symfony\Component\Console\Command\Command;
-use RectorPrefix202602\Symfony\Component\Console\Command\CompleteCommand;
-use RectorPrefix202602\Symfony\Component\Console\Command\DumpCompletionCommand;
-use RectorPrefix202602\Symfony\Component\Console\Command\HelpCommand;
-use RectorPrefix202602\Symfony\Component\Console\Command\LazyCommand;
-use RectorPrefix202602\Symfony\Component\Console\Command\ListCommand;
-use RectorPrefix202602\Symfony\Component\Console\Command\SignalableCommandInterface;
-use RectorPrefix202602\Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
-use RectorPrefix202602\Symfony\Component\Console\Completion\CompletionInput;
-use RectorPrefix202602\Symfony\Component\Console\Completion\CompletionSuggestions;
-use RectorPrefix202602\Symfony\Component\Console\Completion\Suggestion;
-use RectorPrefix202602\Symfony\Component\Console\Event\ConsoleCommandEvent;
-use RectorPrefix202602\Symfony\Component\Console\Event\ConsoleErrorEvent;
-use RectorPrefix202602\Symfony\Component\Console\Event\ConsoleSignalEvent;
-use RectorPrefix202602\Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use RectorPrefix202602\Symfony\Component\Console\Exception\CommandNotFoundException;
-use RectorPrefix202602\Symfony\Component\Console\Exception\ExceptionInterface;
-use RectorPrefix202602\Symfony\Component\Console\Exception\LogicException;
-use RectorPrefix202602\Symfony\Component\Console\Exception\NamespaceNotFoundException;
-use RectorPrefix202602\Symfony\Component\Console\Exception\RuntimeException;
-use RectorPrefix202602\Symfony\Component\Console\Formatter\OutputFormatter;
-use RectorPrefix202602\Symfony\Component\Console\Helper\DebugFormatterHelper;
-use RectorPrefix202602\Symfony\Component\Console\Helper\DescriptorHelper;
-use RectorPrefix202602\Symfony\Component\Console\Helper\FormatterHelper;
-use RectorPrefix202602\Symfony\Component\Console\Helper\Helper;
-use RectorPrefix202602\Symfony\Component\Console\Helper\HelperSet;
-use RectorPrefix202602\Symfony\Component\Console\Helper\ProcessHelper;
-use RectorPrefix202602\Symfony\Component\Console\Helper\QuestionHelper;
-use RectorPrefix202602\Symfony\Component\Console\Input\ArgvInput;
-use RectorPrefix202602\Symfony\Component\Console\Input\ArrayInput;
-use RectorPrefix202602\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202602\Symfony\Component\Console\Input\InputAwareInterface;
-use RectorPrefix202602\Symfony\Component\Console\Input\InputDefinition;
-use RectorPrefix202602\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202602\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202602\Symfony\Component\Console\Output\ConsoleOutput;
-use RectorPrefix202602\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use RectorPrefix202602\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202602\Symfony\Component\Console\SignalRegistry\SignalRegistry;
-use RectorPrefix202602\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202602\Symfony\Component\ErrorHandler\ErrorHandler;
-use RectorPrefix202602\Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
-use RectorPrefix202602\Symfony\Contracts\Service\ResetInterface;
+use RectorPrefix202604\Symfony\Component\Console\Command\Command;
+use RectorPrefix202604\Symfony\Component\Console\Command\CompleteCommand;
+use RectorPrefix202604\Symfony\Component\Console\Command\DumpCompletionCommand;
+use RectorPrefix202604\Symfony\Component\Console\Command\HelpCommand;
+use RectorPrefix202604\Symfony\Component\Console\Command\LazyCommand;
+use RectorPrefix202604\Symfony\Component\Console\Command\ListCommand;
+use RectorPrefix202604\Symfony\Component\Console\Command\SignalableCommandInterface;
+use RectorPrefix202604\Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
+use RectorPrefix202604\Symfony\Component\Console\Completion\CompletionInput;
+use RectorPrefix202604\Symfony\Component\Console\Completion\CompletionSuggestions;
+use RectorPrefix202604\Symfony\Component\Console\Completion\Suggestion;
+use RectorPrefix202604\Symfony\Component\Console\Event\ConsoleCommandEvent;
+use RectorPrefix202604\Symfony\Component\Console\Event\ConsoleErrorEvent;
+use RectorPrefix202604\Symfony\Component\Console\Event\ConsoleSignalEvent;
+use RectorPrefix202604\Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use RectorPrefix202604\Symfony\Component\Console\Exception\CommandNotFoundException;
+use RectorPrefix202604\Symfony\Component\Console\Exception\ExceptionInterface;
+use RectorPrefix202604\Symfony\Component\Console\Exception\LogicException;
+use RectorPrefix202604\Symfony\Component\Console\Exception\NamespaceNotFoundException;
+use RectorPrefix202604\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202604\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202604\Symfony\Component\Console\Helper\DebugFormatterHelper;
+use RectorPrefix202604\Symfony\Component\Console\Helper\DescriptorHelper;
+use RectorPrefix202604\Symfony\Component\Console\Helper\FormatterHelper;
+use RectorPrefix202604\Symfony\Component\Console\Helper\Helper;
+use RectorPrefix202604\Symfony\Component\Console\Helper\HelperSet;
+use RectorPrefix202604\Symfony\Component\Console\Helper\ProcessHelper;
+use RectorPrefix202604\Symfony\Component\Console\Helper\QuestionHelper;
+use RectorPrefix202604\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202604\Symfony\Component\Console\Input\ArrayInput;
+use RectorPrefix202604\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202604\Symfony\Component\Console\Input\InputAwareInterface;
+use RectorPrefix202604\Symfony\Component\Console\Input\InputDefinition;
+use RectorPrefix202604\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202604\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202604\Symfony\Component\Console\Output\ConsoleOutput;
+use RectorPrefix202604\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use RectorPrefix202604\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202604\Symfony\Component\Console\SignalRegistry\SignalRegistry;
+use RectorPrefix202604\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202604\Symfony\Component\ErrorHandler\ErrorHandler;
+use RectorPrefix202604\Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use RectorPrefix202604\Symfony\Contracts\Service\ResetInterface;
 /**
  * An Application is the container for a collection of commands.
  *
@@ -633,6 +633,18 @@ class Application implements ResetInterface
                 $aliases[$nameOrAlias] = $commandName;
                 return $commandName === $nameOrAlias || !\in_array($commandName, $commands);
             }));
+        }
+        // check whether all commands left are aliases to the same one
+        if (\count($commands) > 1) {
+            $uniqueCommands = array_unique(array_map(function ($nameOrAlias) use (&$commandList) {
+                if (!$commandList[$nameOrAlias] instanceof Command) {
+                    $commandList[$nameOrAlias] = $this->commandLoader->get($nameOrAlias);
+                }
+                return $commandList[$nameOrAlias]->getName();
+            }, $commands));
+            if (1 === \count($uniqueCommands)) {
+                $commands = [reset($uniqueCommands)];
+            }
         }
         if (\count($commands) > 1) {
             $usableWidth = $this->terminal->getWidth() - 10;

@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202602\Symfony\Component\String;
+namespace RectorPrefix202604\Symfony\Component\String;
 
-use RectorPrefix202602\Symfony\Component\String\Exception\ExceptionInterface;
-use RectorPrefix202602\Symfony\Component\String\Exception\InvalidArgumentException;
-use RectorPrefix202602\Symfony\Component\String\Exception\RuntimeException;
+use RectorPrefix202604\Symfony\Component\String\Exception\ExceptionInterface;
+use RectorPrefix202604\Symfony\Component\String\Exception\InvalidArgumentException;
+use RectorPrefix202604\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract Unicode characters.
  *
@@ -521,6 +521,8 @@ abstract class AbstractUnicodeString extends AbstractString
     private function wcswidth(string $string): int
     {
         $width = 0;
+        $lastChar = null;
+        $lastWidth = null;
         foreach (preg_split('//u', $string, -1, \PREG_SPLIT_NO_EMPTY) as $c) {
             $codePoint = mb_ord($c, 'UTF-8');
             if (0 === $codePoint || 0x34f === $codePoint || 0x200b <= $codePoint && 0x200f >= $codePoint || 0x2028 === $codePoint || 0x2029 === $codePoint || 0x202a <= $codePoint && 0x202e >= $codePoint || 0x2060 <= $codePoint && 0x2063 >= $codePoint) {
@@ -529,6 +531,18 @@ abstract class AbstractUnicodeString extends AbstractString
             // Non printable characters
             if (32 > $codePoint || 0x7f <= $codePoint && 0xa0 > $codePoint) {
                 return -1;
+            }
+            if (0xfe0f === $codePoint) {
+                if (\PCRE_VERSION_MAJOR < 10 || \PCRE_VERSION_MAJOR === 10 && \PCRE_VERSION_MINOR < 40) {
+                    $regex = '/\p{So}/u';
+                } else {
+                    $regex = '/\p{Emoji}/u';
+                }
+                if (null !== $lastChar && 1 === $lastWidth && preg_match($regex, $lastChar)) {
+                    ++$width;
+                    $lastWidth = 2;
+                }
+                continue;
             }
             self::$tableZero ??= require __DIR__ . '/Resources/data/wcswidth_table_zero.php';
             if ($codePoint >= self::$tableZero[0][0] && $codePoint <= self::$tableZero[$ubound = \count(self::$tableZero) - 1][1]) {
@@ -555,11 +569,15 @@ abstract class AbstractUnicodeString extends AbstractString
                         $ubound = $mid - 1;
                     } else {
                         $width += 2;
+                        $lastChar = $c;
+                        $lastWidth = 2;
                         continue 2;
                     }
                 }
             }
             ++$width;
+            $lastChar = $c;
+            $lastWidth = 1;
         }
         return $width;
     }

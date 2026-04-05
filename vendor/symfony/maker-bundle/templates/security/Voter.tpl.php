@@ -18,11 +18,13 @@ namespace <?= $class_data->getNamespace(); ?>;
             && $subject instanceof \App\Entity\<?= str_replace('Voter', null, $class_data->getClassName()) ?>;
     }
 
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
         $user = $token->getUser();
         // if the user is anonymous, do not grant access
         if (!$user instanceof UserInterface) {
+            $vote?->addReason('The user must be logged in to access this resource.');
+
             return false;
         }
 

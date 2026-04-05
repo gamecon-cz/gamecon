@@ -1,8 +1,8 @@
 <?php
 
-namespace RectorPrefix202602\Illuminate\Contracts\Database;
+namespace RectorPrefix202604\Illuminate\Contracts\Database;
 
-use RectorPrefix202602\Illuminate\Database\Eloquent\Relations\Relation;
+use RectorPrefix202604\Illuminate\Database\Eloquent\Relations\Relation;
 class ModelIdentifier
 {
     /**
@@ -77,10 +77,10 @@ class ModelIdentifier
      */
     public function getClass(): ?string
     {
-        if ($this->class === null) {
-            return null;
+        if (self::$useMorphMap && $this->class !== null) {
+            return Relation::getMorphedModel($this->class) ?? $this->class;
         }
-        return Relation::getMorphedModel($this->class) ?? $this->class;
+        return $this->class;
     }
     /**
      * Indicate whether to use the relational morph-map when serializing Models.

@@ -11,6 +11,7 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\NodeVisitor;
 use PHPStan\Type\ObjectType;
 use Rector\NodeManipulator\ClassDependencyManipulator;
 use Rector\NodeTypeResolver\Node\AttributeKey;
@@ -59,7 +60,7 @@ final class ControllerMethodInjectionToConstructorRector extends AbstractRector
     /**
      * @var string[]
      */
-    private const COMMON_ENTITY_CONTAINS_SUBNAMESPACES = ["\\Entity", "\\Document", "\\Model"];
+    private const COMMON_ENTITY_CONTAINS_SUBNAMESPACES = ["\\Entity\\", "\\Document", "\\Model"];
     public function __construct(ControllerAnalyzer $controllerAnalyzer, ControllerMethodAnalyzer $controllerMethodAnalyzer, ClassDependencyManipulator $classDependencyManipulator, StaticTypeMapper $staticTypeMapper, ParamConverterClassesResolver $paramConverterClassesResolver, ParentClassMethodTypeOverrideGuard $parentClassMethodTypeOverrideGuard)
     {
         $this->controllerAnalyzer = $controllerAnalyzer;
@@ -137,6 +138,10 @@ CODE_SAMPLE
                 }
             }
         }
+        /** @var array<array{ClassMethod, int}> $paramsToRemove */
+        $paramsToRemove = [];
+        /** @var array<string, string[]> $methodParamNamesToReplace */
+        $methodParamNamesToReplace = [];
         foreach ($node->getMethods() as $classMethod) {
             if ($this->shouldSkipClassMethod($classMethod)) {
                 continue;
@@ -173,17 +178,25 @@ CODE_SAMPLE
                 if ($constructParamVariables !== [] && in_array($this->getName($param->var), $constructParamVariables, \true) && !in_array($this->getName($param->type), array_keys($constructParamVariables), \true)) {
                     continue;
                 }
-                unset($classMethod->params[$key]);
-                $propertyMetadatas[] = new PropertyMetadata($this->getName($param->var), $paramType);
+                if ($this->hasConflictedParamName($node, $classMethod->name->toString(), $this->getName($param->var), $this->getName($param->type))) {
+                    continue;
+                }
+                if ($this->isUsedInStaticClosureUse($classMethod, $this->getName($param->var))) {
+                    continue;
+                }
+                $paramName = $this->getName($param->var);
+                $paramsToRemove[] = [$classMethod, $key];
+                $propertyMetadatas[$paramName] = new PropertyMetadata($paramName, $paramType);
+                $methodParamNamesToReplace[$classMethod->name->toString()][] = $paramName;
             }
         }
         // nothing to move
         if ($propertyMetadatas === []) {
             return null;
         }
-        $paramNamesToReplace = [];
-        foreach ($propertyMetadatas as $propertyMetadata) {
-            $paramNamesToReplace[] = $propertyMetadata->getName();
+        // defer param removal to after collection to avoid mutation during iteration
+        foreach ($paramsToRemove as [$methodToModify, $paramKey]) {
+            unset($methodToModify->params[$paramKey]);
         }
         // 1. update constructor
         foreach ($propertyMetadatas as $propertyMetadata) {
@@ -193,7 +206,11 @@ CODE_SAMPLE
             if ($this->shouldSkipClassMethod($classMethod)) {
                 continue;
             }
-            $this->replaceParamUseWithPropertyFetch($classMethod, $paramNamesToReplace);
+            $methodName = $classMethod->name->toString();
+            if (!isset($methodParamNamesToReplace[$methodName])) {
+                continue;
+            }
+            $this->replaceParamUseWithPropertyFetch($classMethod, $methodParamNamesToReplace[$methodName]);
         }
         return $node;
     }
@@ -206,6 +223,47 @@ CODE_SAMPLE
             return \true;
         }
         return $this->parentClassMethodTypeOverrideGuard->hasParentClassMethod($classMethod);
+    }
+    private function hasConflictedParamName(Class_ $class, string $currentClassMethodName, string $paramName, string $paramType): bool
+    {
+        foreach ($class->getMethods() as $classMethod) {
+            if ($this->isName($classMethod, $currentClassMethodName)) {
+                continue;
+            }
+            foreach ($classMethod->getParams() as $param) {
+                if (!$param->var instanceof Variable) {
+                    continue;
+                }
+                if (!$this->isName($param->var, $paramName)) {
+                    continue;
+                }
+                return $param->type instanceof FullyQualified && !$this->isName($param->type, $paramType);
+            }
+        }
+        return \false;
+    }
+    private function isUsedInStaticClosureUse(ClassMethod $classMethod, string $paramName): bool
+    {
+        if ($classMethod->stmts === null) {
+            return \false;
+        }
+        $found = \false;
+        $this->traverseNodesWithCallable($classMethod->stmts, function (Node $node) use ($paramName, &$found): ?int {
+            if (!$node instanceof Closure) {
+                return null;
+            }
+            if (!$node->static) {
+                return null;
+            }
+            foreach ($node->uses as $closureUse) {
+                if ($this->isName($closureUse->var, $paramName)) {
+                    $found = \true;
+                    return NodeVisitor::STOP_TRAVERSAL;
+                }
+            }
+            return null;
+        });
+        return $found;
     }
     /**
      * @param string[] $paramNamesToReplace

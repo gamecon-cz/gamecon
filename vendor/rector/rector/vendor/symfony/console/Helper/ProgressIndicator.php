@@ -8,11 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202602\Symfony\Component\Console\Helper;
+namespace RectorPrefix202604\Symfony\Component\Console\Helper;
 
-use RectorPrefix202602\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202602\Symfony\Component\Console\Exception\LogicException;
-use RectorPrefix202602\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202604\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202604\Symfony\Component\Console\Exception\LogicException;
+use RectorPrefix202604\Symfony\Component\Console\Output\ConsoleSectionOutput;
+use RectorPrefix202604\Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
@@ -110,7 +111,9 @@ class ProgressIndicator
         }
         $this->message = $message;
         $this->display();
-        $this->output->writeln('');
+        if (!$this->output instanceof ConsoleSectionOutput) {
+            $this->output->writeln('');
+        }
         $this->started = \false;
     }
     /**
@@ -169,7 +172,9 @@ class ProgressIndicator
      */
     private function overwrite(string $message): void
     {
-        if ($this->output->isDecorated()) {
+        if ($this->output instanceof ConsoleSectionOutput) {
+            $this->output->overwrite($message);
+        } elseif ($this->output->isDecorated()) {
             $this->output->write("\r\x1b[2K");
             $this->output->write($message);
         } else {
