@@ -8,29 +8,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 require dirname(__DIR__, 2).'/vendor/autoload.php';
 
-// Load legacy configuration constants and set GAMECON_DB_* env vars via putenv().
-// Only load the minimal config — don't boot SystemoveNastaveni (which creates another kernel).
-require_once dirname(__DIR__, 2).'/nastaveni/zavadec-autoloader.php';
-require_once dirname(__DIR__, 2).'/model/funkce/funkce.php';
-require_once dirname(__DIR__, 2).'/model/funkce/skryte-nastaveni-z-env-funkce.php';
-require_once dirname(__DIR__, 2).'/nastaveni/zavadec-nastaveni.php';
-
-// Set DB env vars from legacy constants for Symfony services.yaml
-putenv('GAMECON_DB_NAME=' . DB_NAME);
-putenv('GAMECON_DB_ANONYM_NAME=' . (defined('DB_ANONYM_NAME') ? DB_ANONYM_NAME : ''));
-putenv('GAMECON_DB_HOST=' . DB_SERV);
-putenv('GAMECON_DB_PORT=' . DB_PORT);
-putenv('GAMECON_DB_USER=' . DB_USER);
-putenv('GAMECON_DB_PASSWORD=' . DB_PASS);
-if (defined('URL_WEBU') && URL_WEBU) {
-    putenv('DEFAULT_URI=' . URL_WEBU);
-}
-if (defined('SPEC')) {
-    putenv('LEGACY_CACHE_DIR=' . SPEC);
-}
-if (defined('APP_SECRET') && !getenv('APP_SECRET')) {
-    putenv('APP_SECRET=' . APP_SECRET);
-}
+// Load full legacy configuration — sets constants, DB env vars, and APP_SECRET.
+// This is the same loader used by admin and web pages, ensuring the JWT secret matches.
+require_once dirname(__DIR__, 2).'/nastaveni/zavadec-zaklad.php';
 
 // Load environment variables from root .env file (for non-legacy vars)
 $envFile = dirname(__DIR__, 2).'/.env';
