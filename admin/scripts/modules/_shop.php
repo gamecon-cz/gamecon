@@ -48,11 +48,12 @@ if (!empty($_POST['prodej-mrizka'])) {
 
 <div id="preact-obchod">Obchod se načítá ...</div>
 
+<?php require_once __DIR__ . '/_jwt-konstanty.php'; ?>
 <script>
-    // Konstanty předáváné do Preactu (env.ts)
     window.GAMECON_KONSTANTY = {
         BASE_PATH_API: "<?= URL_ADMIN . "/api/" ?>",
         ROCNIK: <?= ROCNIK ?>,
+        <?= jwtKonstantyJs($u, $systemoveNastaveni) ?>
     }
 </script>
 
