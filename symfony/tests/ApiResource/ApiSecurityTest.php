@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\ApiResource\BulkCancelResource;
 use App\ApiResource\CartResource;
+use App\ApiResource\KfcResource;
 use App\Entity\Product;
 use PHPUnit\Framework\TestCase;
 
@@ -118,6 +119,43 @@ class ApiSecurityTest extends TestCase
                 ),
             );
         }
+    }
+
+    /**
+     * All KFC operations must require ROLE_ADMIN.
+     *
+     * @dataProvider kfcOperationUris
+     */
+    public function testKfcOperationsRequireAdmin(string $uriTemplate): void
+    {
+        $operations = $this->getOperations(KfcResource::class);
+
+        $found = false;
+        foreach ($operations as $operation) {
+            if ($operation->getUriTemplate() === $uriTemplate) {
+                $found = true;
+                $this->assertStringContainsString(
+                    'ROLE_ADMIN',
+                    $operation->getSecurity() ?? '',
+                    sprintf(
+                        'KFC operation %s must require ROLE_ADMIN, got: %s',
+                        $uriTemplate,
+                        $operation->getSecurity() ?? 'null',
+                    ),
+                );
+            }
+        }
+        $this->assertTrue($found, "KFC must have operation for {$uriTemplate}");
+    }
+
+    public static function kfcOperationUris(): array
+    {
+        return [
+            'GET /kfc/products' => ['/kfc/products'],
+            'GET /kfc/grids' => ['/kfc/grids'],
+            'POST /kfc/grids' => ['/kfc/grids'],
+            'POST /kfc/sale' => ['/kfc/sale'],
+        ];
     }
 
     /**
