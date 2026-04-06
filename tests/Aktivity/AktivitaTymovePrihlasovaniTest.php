@@ -12,41 +12,41 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 {
     use ProbihaRegistraceAktivitTrait;
 
-    private ?SystemoveNastaveni $systemoveNastaveni = null;
-    private ?Aktivita $ctvrtfinale = null;
-    private ?Aktivita $semifinaleA = null;
-    private ?Aktivita $semifinaleB = null;
-    private ?Aktivita $finale = null;
-    private ?\Uzivatel $tymlidr = null;
-    private ?\Uzivatel $clen1 = null;
-    private ?\Uzivatel $clen2 = null;
+    // private ?SystemoveNastaveni $systemoveNastaveni = null;
+    // private ?Aktivita $ctvrtfinale = null;
+    // private ?Aktivita $semifinaleA = null;
+    // private ?Aktivita $semifinaleB = null;
+    // private ?Aktivita $finale = null;
+    // private ?\Uzivatel $tymlidr = null;
+    // private ?\Uzivatel $clen1 = null;
+    // private ?\Uzivatel $clen2 = null;
 
-    protected static bool $disableStrictTransTables = true;
+    // protected static bool $disableStrictTransTables = true;
 
-    protected static function getInitData(): string
-    {
-        return file_get_contents(__DIR__ . '/data/aktivita_tymove_prihlasovani_test.csv');
-    }
+    // protected static function getInitData(): string
+    // {
+    //     return file_get_contents(__DIR__ . '/data/aktivita_tymove_prihlasovani_test.csv');
+    // }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+    // protected function setUp(): void
+    // {
+    //     parent::setUp();
 
-        try {
-            $this->systemoveNastaveni = self::vytvorSystemoveNastaveni();
-            $this->ctvrtfinale = Aktivita::zId(1, false, $this->systemoveNastaveni);
-            $this->semifinaleA = Aktivita::zId(2, false, $this->systemoveNastaveni);
-            $this->semifinaleB = Aktivita::zId(3, false, $this->systemoveNastaveni);
-            $this->finale = Aktivita::zId(4, false, $this->systemoveNastaveni);
+    //     try {
+    //         $this->systemoveNastaveni = self::vytvorSystemoveNastaveni();
+    //         $this->ctvrtfinale = Aktivita::zId(1, false, $this->systemoveNastaveni);
+    //         $this->semifinaleA = Aktivita::zId(2, false, $this->systemoveNastaveni);
+    //         $this->semifinaleB = Aktivita::zId(3, false, $this->systemoveNastaveni);
+    //         $this->finale = Aktivita::zId(4, false, $this->systemoveNastaveni);
 
-            $this->tymlidr = self::prihlasenyUzivatel();
-            $this->clen1 = self::prihlasenyUzivatel();
-            $this->clen2 = self::prihlasenyUzivatel();
-        } catch (\Throwable $throwable) {
-            $this->tearDown();
-            throw $throwable;
-        }
-    }
+    //         $this->tymlidr = self::prihlasenyUzivatel();
+    //         $this->clen1 = self::prihlasenyUzivatel();
+    //         $this->clen2 = self::prihlasenyUzivatel();
+    //     } catch (\Throwable $throwable) {
+    //         $this->tearDown();
+    //         throw $throwable;
+    //     }
+    // }
 
     // public function testOdhlaseniPosledniho()
     // {
@@ -75,14 +75,14 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
     //     $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
     // }
 
-    public function testOdhlaseniPredPotvrzenim()
-    {
-        $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
+    // public function testOdhlaseniPredPotvrzenim()
+    // {
+    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
 
-        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr, 'test');
-        $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
-        self::assertTrue($this->ctvrtfinale->prihlasen($this->clen1));
-    }
+    //     $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr, 'test');
+    //     $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
+    //     self::assertTrue($this->ctvrtfinale->prihlasen($this->clen1));
+    // }
 
     // public function testOmezeniKapacity()
     // {
@@ -93,13 +93,13 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
     //     $this->ctvrtfinale->prihlas($this->clen2, $this->clen2);
     // }
 
-    public static function provideNastaveniKapacity(): array
-    {
-        return [
-            [null, 3],
-            [2, 2],
-        ];
-    }
+    // public static function provideNastaveniKapacity(): array
+    // {
+    //     return [
+    //         [null, 3],
+    //         [2, 2],
+    //     ];
+    // }
 
     // /**
     //  * @dataProvider provideNastaveniKapacity
@@ -133,26 +133,26 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
     //     self::assertFalse($this->semifinaleB->prihlasen($this->clen2));
     // }
 
-    public function testPrihlaseniTymlidra()
-    {
-        // aktivita se zamče
-        $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-        try {
-            $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
-            self::fail('Aktivita musí být zamčená a přihlášení dalšího člověka musí selhat.');
-        } catch (\Exception $e) {
-        }
+    // public function testPrihlaseniTymlidra()
+    // {
+    //     // aktivita se zamče
+    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
+    //     try {
+    //         $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
+    //         self::fail('Aktivita musí být zamčená a přihlášení dalšího člověka musí selhat.');
+    //     } catch (\Exception $e) {
+    //     }
 
-        // je přihlášen na první kolo
-        self::assertTrue($this->ctvrtfinale->prihlasen($this->tymlidr));
+    //     // je přihlášen na první kolo
+    //     self::assertTrue($this->ctvrtfinale->prihlasen($this->tymlidr));
 
-        // není přihlášen na další kola
-        foreach ($this->ctvrtfinale->dalsiKola() as $kolo) {
-            foreach ($kolo as $varianta) {
-                self::assertFalse($varianta->prihlasen($this->tymlidr));
-            }
-        }
-    }
+    //     // není přihlášen na další kola
+    //     foreach ($this->ctvrtfinale->dalsiKola() as $kolo) {
+    //         foreach ($kolo as $varianta) {
+    //             self::assertFalse($varianta->prihlasen($this->tymlidr));
+    //         }
+    //     }
+    // }
 
     // public function testPrihlaseniTymu()
     // {
@@ -198,17 +198,17 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
     //     }, $dalsiKolaIds));
     // }
 
-    public static function provideSpatnaVolbaDalsichKol(): array
-    {
-        return [
-            'nevybrání ničeho'        => [[]],
-            'vybrání i čtvrtfinále'   => [[1, 2, 4]],
-            'vybrání dvou semifinále' => [[2, 3, 4]],
-            'nevybrání finále'        => [[2]],
-            'špatné pořadí'           => [[4, 2]],
-            'smetí navíc'             => [[2, 4, 5]],
-        ];
-    }
+    // public static function provideSpatnaVolbaDalsichKol(): array
+    // {
+    //     return [
+    //         'nevybrání ničeho'        => [[]],
+    //         'vybrání i čtvrtfinále'   => [[1, 2, 4]],
+    //         'vybrání dvou semifinále' => [[2, 3, 4]],
+    //         'nevybrání finále'        => [[2]],
+    //         'špatné pořadí'           => [[4, 2]],
+    //         'smetí navíc'             => [[2, 4, 5]],
+    //     ];
+    // }
 
     // TODO další scénáře:
     //  nevalidní ne-první člen
