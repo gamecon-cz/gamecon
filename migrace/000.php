@@ -1265,6 +1265,7 @@ CREATE TABLE akce_seznam
     team_max         int(11)                      DEFAULT NULL COMMENT 'maximální velikost teamu',
     team_kapacita    int(11)                      DEFAULT NULL COMMENT 'max. počet týmů na aktivitě',
     team_nazev       varchar(255)                 DEFAULT NULL,
+    team_limit       int(11)                      DEFAULT NULL COMMENT 'uživatelem (vedoucím týmu) nastavený limit kapacity',
     zamcel           bigint(20) unsigned          DEFAULT NULL COMMENT 'případně kdo zamčel aktivitu pro svůj team',
     zamcel_cas       datetime                     DEFAULT NULL COMMENT 'případně kdy zamčel aktivitu',
     popis            longtext            NOT NULL COMMENT 'markdown',
