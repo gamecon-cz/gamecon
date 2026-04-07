@@ -15,7 +15,9 @@ class TeamMemberRegistration
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::BIGINT, options: ['unsigned' => true])]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

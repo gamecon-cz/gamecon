@@ -19,7 +19,9 @@ class Team
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: Types::BIGINT, options: ['unsigned' => true])]
+    #[ORM\Column(name: 'id', type: Types::BIGINT, options: [
+        'unsigned' => true,
+    ])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'kod', type: Types::INTEGER, nullable: false)]
@@ -38,7 +40,9 @@ class Team
     #[ORM\Column(name: 'zalozen', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $zalozen = null;
 
-    #[ORM\Column(name: 'verejny', type: Types::BOOLEAN, nullable: false, options: ['default' => 0])]
+    #[ORM\Column(name: 'verejny', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => 0,
+    ])]
     private bool $verejny = false;
 
     /**
@@ -59,7 +63,7 @@ class Team
     public function __construct()
     {
         $this->aktivity = new ArrayCollection();
-        $this->clenove  = new ArrayCollection();
+        $this->clenove = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -149,7 +153,7 @@ class Team
 
     public function addAktivita(Activity $aktivita): self
     {
-        if (!$this->aktivity->contains($aktivita)) {
+        if (! $this->aktivity->contains($aktivita)) {
             $this->aktivity->add($aktivita);
         }
 

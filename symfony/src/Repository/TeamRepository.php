@@ -82,7 +82,7 @@ class TeamRepository extends ServiceEntityRepository
 
     public function pocetTymuNaAktivite(int $idAktivity): int
     {
-        return (int)$this->createQueryBuilder('team')
+        return (int) $this->createQueryBuilder('team')
             ->select('COUNT(team.id)')
             ->join('team.aktivity', 'aktivita')
             ->andWhere('aktivita.id = :idAktivity')
@@ -93,7 +93,7 @@ class TeamRepository extends ServiceEntityRepository
 
     public function isKapitanNaAktivite(int $idUzivatele, int $idAktivity): bool
     {
-        return null !== $this->createQueryBuilder('team')
+        return $this->createQueryBuilder('team')
             ->join('team.aktivity', 'aktivita')
             ->andWhere('aktivita.id = :idAktivity')
             ->andWhere('team.kapitan = :idUzivatele')
@@ -101,7 +101,7 @@ class TeamRepository extends ServiceEntityRepository
             ->setParameter('idUzivatele', $idUzivatele)
             ->setMaxResults(1)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult() !== null;
     }
 
     /**

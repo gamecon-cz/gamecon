@@ -449,18 +449,6 @@ class Activity
         return $this;
     }
 
-    public function getTeamLimit(): ?int
-    {
-        return $this->teamLimit;
-    }
-
-    public function setTeamLimit(?int $teamLimit): self
-    {
-        $this->teamLimit = $teamLimit;
-
-        return $this;
-    }
-
     public function getProbehlaKorekce(): bool
     {
         return $this->probehlaKorekce;

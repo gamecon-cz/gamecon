@@ -39,8 +39,8 @@ class AktivitaTymService
             $team = $this->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity);
         } else {
             $team = $this->najdiTeamPodleKodu($idAktivity, $kodTymu);
-            if (!$ignorovatLimity) {
-                $this->zkontrolujVolnouKapacituVTymu((int)$team->getId());
+            if (! $ignorovatLimity) {
+                $this->zkontrolujVolnouKapacituVTymu((int) $team->getId());
             }
         }
 
@@ -57,16 +57,18 @@ class AktivitaTymService
 
     public function zkontrolujMuzeZalozitTym(int $idAktivity): void
     {
-        if (!$this->muzePridatDalsiTym($idAktivity)) {
+        if (! $this->muzePridatDalsiTym($idAktivity)) {
             throw new \Chyba('Na aktivitě je už maximální počet týmů');
         }
     }
 
-    /** @return [int|null, int] [$team_kapacita, $pocetAktualnych] nebo null pokud team_kapacita není nastaven */
+    /**
+     * @return array{int, int}|null [$team_kapacita, $pocetAktualnych] nebo null pokud team_kapacita není nastaven
+     */
     public function tymAktivitaKapacity(int $idAktivity): ?array
     {
         $activity = $this->activityRepository->find($idAktivity);
-        if (!$activity) {
+        if (! $activity) {
             return null;
         }
         $limit = $activity->getTeamKapacita();
@@ -92,12 +94,13 @@ class AktivitaTymService
     public function zkontrolujVolnouKapacituVTymu(int $idTymu): void
     {
         $team = $this->teamRepository->find($idTymu);
-        if (!$team) {
+        if (! $team) {
             return;
         }
         $pocetClenu = $this->teamMemberRegistrationRepository->pocetClenu($idTymu);
         // limit nastavený kapitánem, jinak team_max z první aktivity
-        $limit = $team->getLimit() ?? $team->getAktivity()->first()?->getTeamMax();
+        $prvniAktivita = $team->getAktivity()->first() ?: null;
+        $limit = $team->getLimit() ?? $prvniAktivita?->getTeamMax();
 
         if ($limit !== null && $pocetClenu >= $limit) {
             throw new \Chyba('Tým je už plný');
@@ -107,13 +110,13 @@ class AktivitaTymService
     public function odhlasUzivateleOdTymu(int $idUzivatele, int $idAktivity): void
     {
         $registration = $this->teamMemberRegistrationRepository->findByUzivatelAndAktivita($idUzivatele, $idAktivity);
-        if (!$registration) {
+        if (! $registration) {
             return;
         }
 
-        $team      = $registration->getTeam();
-        $idKapitan = (int)$team->getKapitan()->getId();
-        $idTymu    = (int)$team->getId();
+        $team = $registration->getTeam();
+        $idKapitan = (int) $team->getKapitan()->getId();
+        $idTymu = (int) $team->getId();
 
         $this->em->wrapInTransaction(function () use ($registration, $team, $idUzivatele, $idKapitan, $idTymu) {
             $this->em->remove($registration);
@@ -121,7 +124,7 @@ class AktivitaTymService
 
             $zbyvajiciClen = $this->teamMemberRegistrationRepository->findOldestClen($idTymu);
 
-            if (!$zbyvajiciClen) {
+            if (! $zbyvajiciClen) {
                 $this->em->remove($team);
             } elseif ($idUzivatele === $idKapitan) {
                 $team->setKapitan($zbyvajiciClen->getUzivatel());
@@ -144,13 +147,13 @@ class AktivitaTymService
              WHERE akce_tym_prihlaseni.id_uzivatele = ?',
             [$idAktivity, $idUzivatele],
         );
-        if (!$row) {
+        if (! $row) {
             return null;
         }
 
         return new InfoOTymu(
-            pocetClenu: (int)$row['pocet_clenu'],
-            limit: $row['team_limit'] !== null ? (int)$row['team_limit'] : null,
+            pocetClenu: (int) $row['pocet_clenu'],
+            limit: $row['team_limit'] !== null ? (int) $row['team_limit'] : null,
         );
     }
 
@@ -171,7 +174,9 @@ class AktivitaTymService
         return $this->teamRepository->pocetTymuNaAktivite($idAktivity) > 0;
     }
 
-    /** @return VerejnyTym[] */
+    /**
+     * @return VerejnyTym[]
+     */
     public function verejneTymy(int $idAktivity): array
     {
         $rows = $this->em->getConnection()->fetchAllAssociative(
@@ -186,11 +191,11 @@ class AktivitaTymService
         );
 
         return array_map(
-            fn(array $row) => new VerejnyTym(
-                kod: (int)$row['kod'],
+            fn (array $row) => new VerejnyTym(
+                kod: (int) $row['kod'],
                 nazev: $row['nazev'],
-                pocetClenu: (int)$row['pocet_clenu'],
-                limit: $row['team_limit'] !== null ? (int)$row['team_limit'] : null,
+                pocetClenu: (int) $row['pocet_clenu'],
+                limit: $row['team_limit'] !== null ? (int) $row['team_limit'] : null,
             ),
             $rows,
         );
@@ -199,7 +204,7 @@ class AktivitaTymService
     public function nastavVerejnostTymu(int $kodTymu, int $idAktivity, bool $verejny): void
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
-        if (!$team) {
+        if (! $team) {
             return;
         }
         $team->setVerejny($verejny);
@@ -209,10 +214,10 @@ class AktivitaTymService
     public function zkontrolujZeJeKapitan(int $kodTymu, int $idAktivity, int $idUzivatele): void
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
-        if (!$team) {
+        if (! $team) {
             throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
         }
-        if ((int)$team->getKapitan()->getId() !== $idUzivatele) {
+        if ((int) $team->getKapitan()->getId() !== $idUzivatele) {
             throw new \Chyba('Tuto akci může provést pouze kapitán týmu');
         }
     }
@@ -226,7 +231,7 @@ class AktivitaTymService
 
     public function pocetVolnychMistVVerejnychTymech(int $idAktivity): int
     {
-        $tymy      = $this->verejneTymy($idAktivity);
+        $tymy = $this->verejneTymy($idAktivity);
         $volnaMista = 0;
         foreach ($tymy as $tym) {
             if ($tym->limit !== null) {
@@ -240,20 +245,22 @@ class AktivitaTymService
     public function jeRozpracovany(int $idTymu): bool
     {
         $team = $this->teamRepository->find($idTymu);
-        if (!$team) {
+        if (! $team) {
             return false;
         }
 
         return $team->getClenove()->count() === 0;
     }
 
-    /** @return int[] */
+    /**
+     * @return int[]
+     */
     public function rozpracovaneTymyIds(?int $casNaPripraveniMinut = null): array
     {
         $minut = $casNaPripraveniMinut ?? self::CAS_NA_PRIPRAVENI_TYMU_MINUT;
 
         return array_map(
-            fn(Team $team) => (int)$team->getId(),
+            fn (Team $team) => (int) $team->getId(),
             $this->teamRepository->findRozpracovane($minut),
         );
     }
@@ -275,22 +282,26 @@ class AktivitaTymService
         return count($rozpracovane);
     }
 
-    /** @return int[] */
+    /**
+     * @return int[]
+     */
     public function expirovaneTymyIds(?int $hajeniHodin = null): array
     {
         $hodin = $hajeniHodin ?? self::HAJENI_TEAMU_HODIN;
 
         return array_map(
-            fn(Team $team) => (int)$team->getId(),
+            fn (Team $team) => (int) $team->getId(),
             $this->teamRepository->findExpired($hodin),
         );
     }
 
-    /** @return \Uzivatel[] seřazení: kapitán první, pak ostatní podle pořadí přihlášení */
+    /**
+     * @return \Uzivatel[] seřazení: kapitán první, pak ostatní podle pořadí přihlášení
+     */
     public function clenoveTymu(int $kodTymu, int $idAktivity): array
     {
         $idKapitana = $this->idKapitanaTymu($kodTymu, $idAktivity);
-        $ids        = array_column(
+        $ids = array_column(
             $this->em->getConnection()->fetchAllAssociative(
                 'SELECT akce_tym_prihlaseni.id_uzivatele
                  FROM akce_tym_prihlaseni
@@ -306,7 +317,9 @@ class AktivitaTymService
         return \Uzivatel::zIds(array_map('intval', $ids));
     }
 
-    /** @return TymVSeznamu[] */
+    /**
+     * @return TymVSeznamu[]
+     */
     public function vsechnyTymy(int $idAktivity): array
     {
         $rows = $this->em->getConnection()->fetchAllAssociative(
@@ -321,13 +334,13 @@ class AktivitaTymService
         );
 
         return array_map(
-            fn(array $row) => new TymVSeznamu(
-                kod: (int)$row['kod'],
+            fn (array $row) => new TymVSeznamu(
+                kod: (int) $row['kod'],
                 nazev: $row['nazev'],
-                pocetClenu: (int)$row['pocet_clenu'],
-                limit: $row['team_limit'] !== null ? (int)$row['team_limit'] : null,
-                verejny: (bool)(int)$row['verejny'],
-                idKapitana: (int)$row['id_kapitan'],
+                pocetClenu: (int) $row['pocet_clenu'],
+                limit: $row['team_limit'] !== null ? (int) $row['team_limit'] : null,
+                verejny: (bool) (int) $row['verejny'],
+                idKapitana: (int) $row['id_kapitan'],
                 zalozen: $row['zalozen'] !== null ? new \DateTimeImmutable($row['zalozen']) : null,
             ),
             $rows,
@@ -337,7 +350,7 @@ class AktivitaTymService
     public function rozebratTym(int $kodTymu, int $idAktivity): void
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
-        if (!$team) {
+        if (! $team) {
             return;
         }
         $this->em->remove($team);
@@ -347,12 +360,12 @@ class AktivitaTymService
     public function pregenerujKodTymu(int $kodTymu, int $idAktivity): int
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
-        if (!$team) {
+        if (! $team) {
             throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
         }
 
         $existujiciKody = array_map(
-            fn(Team $t) => $t->getKod(),
+            fn (Team $t) => $t->getKod(),
             $this->teamRepository->findAllByAktivita($idAktivity),
         );
         do {
@@ -367,9 +380,9 @@ class AktivitaTymService
 
     public function pridejTymNaAktivitu(int $idTymu, int $idAktivity): void
     {
-        $team     = $this->teamRepository->find($idTymu);
+        $team = $this->teamRepository->find($idTymu);
         $activity = $this->activityRepository->find($idAktivity);
-        if (!$team || !$activity) {
+        if (! $team || ! $activity) {
             return;
         }
         $team->addAktivita($activity);
@@ -380,7 +393,7 @@ class AktivitaTymService
     {
         $registration = $this->teamMemberRegistrationRepository->findByUzivatelAndAktivita($idUzivatele, $idAktivity);
 
-        return $registration ? (int)$registration->getTeam()->getId() : null;
+        return $registration ? (int) $registration->getTeam()->getId() : null;
     }
 
     public function casZalozeniTymuUzivatele(int $idUzivatele, int $idAktivity): ?int
@@ -390,32 +403,34 @@ class AktivitaTymService
         return $registration?->getTeam()->getZalozen()?->getTimestamp();
     }
 
-    /** @return int[] */
+    /**
+     * @return int[]
+     */
     public function idDalsichAktivitTymu(int $idTymu, int $vyjmaIdAktivity = -1): array
     {
         $team = $this->teamRepository->find($idTymu);
-        if (!$team) {
+        if (! $team) {
             return [];
         }
         $aktivity = $team->getAktivity();
         if ($vyjmaIdAktivity >= 0) {
-            $aktivity = $aktivity->filter(fn(Activity $a) => $a->getId() !== $vyjmaIdAktivity);
+            $aktivity = $aktivity->filter(fn (Activity $a) => $a->getId() !== $vyjmaIdAktivity);
         }
 
-        return array_map(fn(Activity $a) => (int)$a->getId(), $aktivity->toArray());
+        return array_map(fn (Activity $a) => (int) $a->getId(), $aktivity->toArray());
     }
 
     public function idKapitanaTymu(int $kodTymu, int $idAktivity): ?int
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
 
-        return $team ? (int)$team->getKapitan()->getId() : null;
+        return $team ? (int) $team->getKapitan()->getId() : null;
     }
 
     private function najdiTeamPodleKodu(int $idAktivity, int $kodTymu): Team
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
-        if (!$team) {
+        if (! $team) {
             throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
         }
 
@@ -433,27 +448,32 @@ class AktivitaTymService
     public function casZalozeniMs(int $kodTymu, int $idAktivity): ?int
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
+
         return $team?->getZalozen() !== null ? $team->getZalozen()->getTimestamp() * 1000 : null;
     }
 
     public function limitTymu(int $kodTymu, int $idAktivity): ?int
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
-        if (!$team) {
+        if (! $team) {
             return null;
         }
-        return $team->getLimit() ?? $team->getAktivity()->first()?->getTeamMax();
+
+        $prvniAktivita = $team->getAktivity()->first() ?: null;
+
+        return $team->getLimit() ?? $prvniAktivita?->getTeamMax();
     }
 
     public function nastavLimitTymu(int $kodTymu, int $idAktivity, int $limit): void
     {
         $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu)
             ?? throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
-        $pocetClenu = $this->teamMemberRegistrationRepository->pocetClenu((int)$team->getId());
+        $pocetClenu = $this->teamMemberRegistrationRepository->pocetClenu((int) $team->getId());
         if ($limit < $pocetClenu) {
             throw new \Chyba('Limit nemůže být nižší než aktuální počet členů');
         }
-        $minKapacita = $team->getAktivity()->first()?->getTeamMin();
+        $prvniAktivita = $team->getAktivity()->first() ?: null;
+        $minKapacita = $prvniAktivita?->getTeamMin();
         if ($minKapacita !== null && $limit < $minKapacita) {
             throw new \Chyba('Limit nemůže být nižší než minimální kapacita (' . $minKapacita . ')');
         }
@@ -468,7 +488,7 @@ class AktivitaTymService
         $novyKapitan = $this->userRepository->find($idNovehoKapitana)
             ?? throw new \Chyba('Uživatel nenalezen');
         $registrace = $this->teamMemberRegistrationRepository->findByUzivatelAndAktivita($idNovehoKapitana, $idAktivity);
-        if (!$registrace || (int)$registrace->getTeam()->getId() !== (int)$team->getId()) {
+        if (! $registrace || (int) $registrace->getTeam()->getId() !== (int) $team->getId()) {
             throw new \Chyba('Uživatel není členem tohoto týmu');
         }
         $team->setKapitan($novyKapitan);
@@ -477,19 +497,19 @@ class AktivitaTymService
 
     public function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): Team
     {
-        if (!$ignorovatLimity) {
+        if (! $ignorovatLimity) {
             $this->zkontrolujMuzeZalozitTym($idAktivity);
         }
 
         $existujiciKody = array_map(
-            fn(Team $t) => $t->getKod(),
+            fn (Team $t) => $t->getKod(),
             $this->teamRepository->findAllByAktivita($idAktivity),
         );
         do {
             $kod = rand(1000, 9999);
         } while (in_array($kod, $existujiciKody, true));
 
-        $kapitan  = $this->userRepository->find($idUzivatele)
+        $kapitan = $this->userRepository->find($idUzivatele)
             ?? throw new \Chyba('Uživatel nenalezen');
         $aktivita = $this->activityRepository->find($idAktivity)
             ?? throw new \Chyba('Aktivita nenalezena');

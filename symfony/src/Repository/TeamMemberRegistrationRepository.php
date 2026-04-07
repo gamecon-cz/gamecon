@@ -56,7 +56,7 @@ class TeamMemberRegistrationRepository extends ServiceEntityRepository
 
     public function pocetClenu(int $idTymu): int
     {
-        return (int)$this->createQueryBuilder('reg')
+        return (int) $this->createQueryBuilder('reg')
             ->select('COUNT(reg.id)')
             ->andWhere('reg.team = :idTymu')
             ->setParameter('idTymu', $idTymu)
@@ -64,7 +64,9 @@ class TeamMemberRegistrationRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    /** Vrátí nejstarší přihlášení v týmu (nejnižší ID), nebo null pokud je tým prázdný. */
+    /**
+     * Vrátí nejstarší přihlášení v týmu (nejnižší ID), nebo null pokud je tým prázdný.
+     */
     public function findOldestClen(int $idTymu): ?TeamMemberRegistration
     {
         return $this->createQueryBuilder('reg')
