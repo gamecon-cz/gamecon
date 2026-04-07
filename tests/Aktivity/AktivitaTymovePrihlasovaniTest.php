@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Aktivity;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 
@@ -12,203 +13,183 @@ class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 {
     use ProbihaRegistraceAktivitTrait;
 
-    // private ?SystemoveNastaveni $systemoveNastaveni = null;
-    // private ?Aktivita $ctvrtfinale = null;
-    // private ?Aktivita $semifinaleA = null;
-    // private ?Aktivita $semifinaleB = null;
-    // private ?Aktivita $finale = null;
-    // private ?\Uzivatel $tymlidr = null;
-    // private ?\Uzivatel $clen1 = null;
-    // private ?\Uzivatel $clen2 = null;
+    private ?SystemoveNastaveni $systemoveNastaveni = null;
+    private ?Aktivita $ctvrtfinale = null;
+    private ?Aktivita $semifinaleA = null;
+    private ?Aktivita $semifinaleB = null;
+    private ?Aktivita $finale = null;
+    private ?\Uzivatel $tymlidr = null;
+    private ?\Uzivatel $clen1 = null;
+    private ?\Uzivatel $clen2 = null;
 
-    // protected static bool $disableStrictTransTables = true;
+    protected static bool $disableStrictTransTables = true;
 
-    // protected static function getInitData(): string
-    // {
-    //     return file_get_contents(__DIR__ . '/data/aktivita_tymove_prihlasovani_test.csv');
-    // }
+    // Doctrine uses a separate PDO connection, so legacy mysqli transactions
+    // would prevent Doctrine from seeing data inserted via legacy dbInsert.
+    protected static function keepTestClassDbChangesInTransaction(): bool
+    {
+        return false;
+    }
 
-    // protected function setUp(): void
-    // {
-    //     parent::setUp();
+    protected static function keepSingleTestMethodDbChangesInTransaction(): bool
+    {
+        return false;
+    }
 
-    //     try {
-    //         $this->systemoveNastaveni = self::vytvorSystemoveNastaveni();
-    //         $this->ctvrtfinale = Aktivita::zId(1, false, $this->systemoveNastaveni);
-    //         $this->semifinaleA = Aktivita::zId(2, false, $this->systemoveNastaveni);
-    //         $this->semifinaleB = Aktivita::zId(3, false, $this->systemoveNastaveni);
-    //         $this->finale = Aktivita::zId(4, false, $this->systemoveNastaveni);
+    protected static function resetDbAfterClass(): bool
+    {
+        return true;
+    }
 
-    //         $this->tymlidr = self::prihlasenyUzivatel();
-    //         $this->clen1 = self::prihlasenyUzivatel();
-    //         $this->clen2 = self::prihlasenyUzivatel();
-    //     } catch (\Throwable $throwable) {
-    //         $this->tearDown();
-    //         throw $throwable;
-    //     }
-    // }
+    protected static function getInitData(): string
+    {
+        return file_get_contents(__DIR__ . '/data/aktivita_tymove_prihlasovani_test.csv');
+    }
 
-    // public function testOdhlaseniPosledniho()
-    // {
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr, Aktivita::UKAZAT_DETAILY_CHYBY);
-    //     $this->ctvrtfinale->prihlasTym(
-    //         [$this->clen1],
-    //         $this->tymlidr,
-    //         'Miiistřiii světááá',
-    //         2,
-    //         [$this->semifinaleA, $this->finale],
-    //         Aktivita::UKAZAT_DETAILY_CHYBY,
-    //     );
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-    //     self::assertEquals(2, $this->ctvrtfinale->rawDb()['kapacita']);
+        try {
+            // Vyčistit registrace a týmy z minulého testu — data persistují
+            // protože transakce jsou vypnuté (Doctrine potřebuje committnutá data).
+            dbQuery('DELETE FROM akce_prihlaseni WHERE id_akce IN (1, 2, 3, 4, 5)');
+            dbQuery('DELETE FROM akce_tym_prihlaseni');
+            dbQuery('DELETE FROM akce_tym_akce');
+            dbQuery('DELETE FROM akce_tym');
 
-    //     // počet míst se obnoví
-    //     $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr, 'test');
-    //     $this->ctvrtfinale->odhlas($this->clen1, $this->clen1, 'test');
-    //     self::assertEquals(3, $this->ctvrtfinale->rawDb()['kapacita']);
+            $this->systemoveNastaveni = self::vytvorSystemoveNastaveni();
+            $this->systemoveNastaveni->queryCache()->clear();
+            $this->ctvrtfinale = Aktivita::zId(1, false, $this->systemoveNastaveni);
+            $this->semifinaleA = Aktivita::zId(2, false, $this->systemoveNastaveni);
+            $this->semifinaleB = Aktivita::zId(3, false, $this->systemoveNastaveni);
+            $this->finale = Aktivita::zId(4, false, $this->systemoveNastaveni);
 
-    //     // opětovné přihlášení se chová jako u týmovky, tj. jako přihlášení týmlídra
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
+            $this->tymlidr = self::prihlasenyUzivatel();
+            $this->clen1 = self::prihlasenyUzivatel();
+            $this->clen2 = self::prihlasenyUzivatel();
 
-    //     self::expectException(\Chyba::class);
-    //     self::expectExceptionMessage('Aktivitu už někdo zabral');
-    //     $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
-    // }
+            // Clear Doctrine identity map to avoid stale entities from previous test
+            $this->systemoveNastaveni->kernel()->getContainer()
+                ->get('doctrine.orm.entity_manager')->clear();
+        } catch (\Throwable $throwable) {
+            $this->tearDown();
+            throw $throwable;
+        }
+    }
 
-    // public function testOdhlaseniPredPotvrzenim()
-    // {
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
+    /**
+     * Založí tým na čtvrtfinále a přidá cestu semifinále A → finále.
+     * Simuluje dvě API volání: zalozPrazdnyTym + potvrdVyberAktivit.
+     */
+    private function zalozTymSCestou(\Uzivatel $kapitan): AktivitaTym
+    {
+        $entityManager = $this->systemoveNastaveni->kernel()->getContainer()->get('doctrine.orm.entity_manager');
+        $activityRepo = $entityManager->getRepository(\App\Entity\Activity::class);
 
-    //     $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr, 'test');
-    //     $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
-    //     self::assertTrue($this->ctvrtfinale->prihlasen($this->clen1));
-    // }
+        $tym = AktivitaTym::zalozPrazdnyTym($kapitan->id(), $this->ctvrtfinale->id(), true);
+        $kodTymu = $tym->getKod();
 
-    // public function testOmezeniKapacity()
-    // {
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-    //     $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, 2, [$this->semifinaleA, $this->finale]);
-    //     $this->expectException(\Chyba::class);
-    //     $this->expectExceptionMessage('Místa jsou už plná');
-    //     $this->ctvrtfinale->prihlas($this->clen2, $this->clen2);
-    // }
+        // Přidáme cestu semifinále A → finále přímo na Team entitu ještě před flush
+        $scheduledInsertions = $entityManager->getUnitOfWork()->getScheduledEntityInsertions();
+        $teamEntity = null;
+        foreach ($scheduledInsertions as $entity) {
+            if ($entity instanceof \App\Entity\Team && $entity->getKod() === $kodTymu) {
+                $teamEntity = $entity;
+                break;
+            }
+        }
+        self::assertNotNull($teamEntity, 'Team entita musí být ve scheduled insertions');
 
-    // public static function provideNastaveniKapacity(): array
-    // {
-    //     return [
-    //         [null, 3],
-    //         [2, 2],
-    //     ];
-    // }
+        $teamEntity->addAktivita($activityRepo->find($this->semifinaleA->id()));
+        $teamEntity->addAktivita($activityRepo->find($this->finale->id()));
 
-    // /**
-    //  * @dataProvider provideNastaveniKapacity
-    //  */
-    // public function testZmenaKapacity(
-    //     $nastaveno,
-    //     $ocekavano,
-    // ) {
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-    //     $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, $nastaveno, [$this->semifinaleA, $this->finale]);
-    //     $this->ctvrtfinale->refresh();
-    //     $this->assertEquals($ocekavano, $this->ctvrtfinale->rawDb()['kapacita']);
-    // }
+        $entityManager->flush();
+        $entityManager->clear();
 
-    // public function testPrihlaseniDalsiho()
-    // {
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-    //     $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, 3, [$this->semifinaleA, $this->finale]);
-    //     $this->ctvrtfinale->prihlas($this->clen2, $this->clen2);
+        return AktivitaTym::najdiPodleKodu($this->ctvrtfinale->id(), $kodTymu);
+    }
 
-    //     // TODO nutnost refreshování vyplývá z chybějících identity map, spravit
-    //     $this->ctvrtfinale->refresh();
-    //     $this->semifinaleA->refresh();
-    //     $this->semifinaleB->refresh();
-    //     $this->finale->refresh();
+    public function testOdhlaseniPredPotvrzenim()
+    {
+        $tym = $this->zalozTymSCestou($this->tymlidr);
+        $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr, tym: $tym);
 
-    //     self::assertTrue($this->ctvrtfinale->prihlasen($this->clen2));
-    //     self::assertTrue($this->semifinaleA->prihlasen($this->clen2));
-    //     self::assertTrue($this->finale->prihlasen($this->clen2));
+        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr, 'test');
 
-    //     self::assertFalse($this->semifinaleB->prihlasen($this->clen2));
-    // }
+        $tymClen1 = $this->zalozTymSCestou($this->clen1);
+        $this->ctvrtfinale->prihlas($this->clen1, $this->clen1, tym: $tymClen1);
+        self::assertTrue($this->ctvrtfinale->prihlasen($this->clen1));
+    }
 
-    // public function testPrihlaseniTymlidra()
-    // {
-    //     // aktivita se zamče
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-    //     try {
-    //         $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
-    //         self::fail('Aktivita musí být zamčená a přihlášení dalšího člověka musí selhat.');
-    //     } catch (\Exception $e) {
-    //     }
+    public function testPrihlaseniTymlidra()
+    {
+        $tym = $this->zalozTymSCestou($this->tymlidr);
+        $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr, tym: $tym);
 
-    //     // je přihlášen na první kolo
-    //     self::assertTrue($this->ctvrtfinale->prihlasen($this->tymlidr));
+        // je přihlášen na první kolo
+        self::assertTrue($this->ctvrtfinale->prihlasen($this->tymlidr));
 
-    //     // není přihlášen na další kola
-    //     foreach ($this->ctvrtfinale->dalsiKola() as $kolo) {
-    //         foreach ($kolo as $varianta) {
-    //             self::assertFalse($varianta->prihlasen($this->tymlidr));
-    //         }
-    //     }
-    // }
+        // je přihlášen i na vybraná další kola (semifinále A + finále)
+        $this->semifinaleA->refresh();
+        $this->finale->refresh();
+        self::assertTrue($this->semifinaleA->prihlasen($this->tymlidr));
+        self::assertTrue($this->finale->prihlasen($this->tymlidr));
 
-    // public function testPrihlaseniTymu()
-    // {
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-    //     $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, null, [$this->semifinaleA, $this->finale]);
+        // ale není přihlášen na nevybrané semifinále B
+        $this->semifinaleB->refresh();
+        self::assertFalse($this->semifinaleB->prihlasen($this->tymlidr));
+    }
 
-    //     // TODO nutnost refreshování vyplývá z chybějících identity map, spravit
-    //     $this->ctvrtfinale->refresh();
-    //     $this->semifinaleA->refresh();
-    //     $this->semifinaleB->refresh();
-    //     $this->finale->refresh();
+    public function testPrihlaseniTymu()
+    {
+        $tym = $this->zalozTymSCestou($this->tymlidr);
+        $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr, tym: $tym);
+        $this->ctvrtfinale->prihlas($this->clen1, $this->clen1, tym: $tym);
 
-    //     foreach ([$this->tymlidr, $this->clen1] as $hrac) {
-    //         self::assertTrue($this->ctvrtfinale->prihlasen($hrac));
-    //         self::assertTrue($this->semifinaleA->prihlasen($hrac));
-    //         self::assertTrue($this->finale->prihlasen($hrac));
+        $this->ctvrtfinale->refresh();
+        $this->semifinaleA->refresh();
+        $this->semifinaleB->refresh();
+        $this->finale->refresh();
 
-    //         self::assertFalse($this->semifinaleB->prihlasen($hrac));
-    //     }
-    // }
+        foreach ([$this->tymlidr, $this->clen1] as $hrac) {
+            self::assertTrue($this->ctvrtfinale->prihlasen($hrac));
+            self::assertTrue($this->semifinaleA->prihlasen($hrac));
+            self::assertTrue($this->finale->prihlasen($hrac));
 
-    // public function testPrihlaseniTymuOpakovaneNelze()
-    // {
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-    //     $this->ctvrtfinale->prihlasTym([], $this->tymlidr, null, null, [$this->semifinaleA, $this->finale]);
-    //     // TODO co když by se přihlašoval na jiné čtvrtfinále?
-    //     $this->expectException(\Exception::class);
-    //     $this->ctvrtfinale->prihlasTym([], $this->tymlidr, null, null, [$this->semifinaleB, $this->finale]);
-    // }
+            self::assertFalse($this->semifinaleB->prihlasen($hrac));
+        }
+    }
 
-    // /**
-    //  * @dataProvider provideSpatnaVolbaDalsichKol
-    //  */
-    // public function testSpatnaVolbaDalsichKolNelze(array $dalsiKolaIds)
-    // {
-    //     $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-    //     $this->expectException(\Exception::class);
-    //     $this->expectExceptionMessage('Nepovolený výběr dalších kol.');
-    //     $this->ctvrtfinale->prihlasTym([], $this->tymlidr, null, null, array_map(function (
-    //         $id,
-    //     ) {
-    //         return Aktivita::zId($id);
-    //     }, $dalsiKolaIds));
-    // }
+    public function testPrihlaseniDalsiho()
+    {
+        $tym = $this->zalozTymSCestou($this->tymlidr);
+        $tym->nastavLimit(3);
+        $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr, tym: $tym);
+        $this->ctvrtfinale->prihlas($this->clen1, $this->clen1, tym: $tym);
+        $this->ctvrtfinale->prihlas($this->clen2, $this->clen2, tym: $tym);
 
-    // public static function provideSpatnaVolbaDalsichKol(): array
-    // {
-    //     return [
-    //         'nevybrání ničeho'        => [[]],
-    //         'vybrání i čtvrtfinále'   => [[1, 2, 4]],
-    //         'vybrání dvou semifinále' => [[2, 3, 4]],
-    //         'nevybrání finále'        => [[2]],
-    //         'špatné pořadí'           => [[4, 2]],
-    //         'smetí navíc'             => [[2, 4, 5]],
-    //     ];
-    // }
+        $this->ctvrtfinale->refresh();
+        $this->semifinaleA->refresh();
+        $this->semifinaleB->refresh();
+        $this->finale->refresh();
+
+        self::assertTrue($this->ctvrtfinale->prihlasen($this->clen2));
+        self::assertTrue($this->semifinaleA->prihlasen($this->clen2));
+        self::assertTrue($this->finale->prihlasen($this->clen2));
+
+        self::assertFalse($this->semifinaleB->prihlasen($this->clen2));
+    }
+
+    public function testOmezeniKapacity()
+    {
+        $tym = $this->zalozTymSCestou($this->tymlidr);
+        $tym->nastavLimit(2);
+        $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr, tym: $tym);
+        $this->ctvrtfinale->prihlas($this->clen1, $this->clen1, tym: $tym);
+        $this->expectException(\Chyba::class);
+        $this->ctvrtfinale->prihlas($this->clen2, $this->clen2, tym: $tym);
+    }
 
     // TODO další scénáře:
     //  nevalidní ne-první člen

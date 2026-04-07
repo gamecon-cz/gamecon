@@ -34,40 +34,39 @@ class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
         }
     }
 
-    // todo:
-    // public function testZadneAktivity()
-    // {
-    //     self::assertNull(
-    //         self::prihlasenyUzivatel()->maKoliziSJinouAktivitou(
-    //             new \DateTime('2000-01-01 00:00'),
-    //             new \DateTime('2000-01-01 24:00'),
-    //         ),
-    //     );
-    // }
+    public function testZadneAktivity()
+    {
+        self::assertNull(
+            self::prihlasenyUzivatel()->maKoliziSJinouAktivitouVCase(
+                new \DateTime('2000-01-01 00:00'),
+                new \DateTime('2000-01-01 24:00'),
+            ),
+        );
+    }
 
     /**
      * @dataProvider provideRuzneVarianty
      */
-    // public function testRuzneVarianty(
-    //     string $od,
-    //     string $do,
-    //     ?int $aktivitaId,
-    //     bool $nemaKolizi,
-    // ) {
-    //     $kolizniAktivita = self::$uzivatel->maKoliziSJinouAktivitou(
-    //         new \DateTime('2000-01-01 ' . $od),
-    //         new \DateTime('2000-01-01 ' . $do),
-    //         $aktivitaId
-    //             ? Aktivita::zId($aktivitaId)
-    //             : null,
-    //     );
-    //     if ($nemaKolizi) {
-    //         self::assertNull($kolizniAktivita);
+    public function testRuzneVarianty(
+        string $od,
+        string $do,
+        ?int $aktivitaId,
+        bool $nemaKolizi,
+    ) {
+        $kolizniAktivita = self::$uzivatel->maKoliziSJinouAktivitouVCase(
+            new \DateTime('2000-01-01 ' . $od),
+            new \DateTime('2000-01-01 ' . $do),
+            $aktivitaId
+                ? Aktivita::zId($aktivitaId)
+                : null,
+        );
+        if ($nemaKolizi) {
+            self::assertNull($kolizniAktivita);
 
-    //         return;
-    //     }
-    //     self::assertInstanceOf(Aktivita::class, $kolizniAktivita);
-    // }
+            return;
+        }
+        self::assertInstanceOf(Aktivita::class, $kolizniAktivita);
+    }
 
     public static function provideRuzneVarianty(): array
     {
