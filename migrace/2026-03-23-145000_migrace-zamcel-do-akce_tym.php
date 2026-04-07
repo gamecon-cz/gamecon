@@ -212,7 +212,7 @@ SQL,
 );
 
 // Smazeme všechny foreign key constrainty na sloupci zamcel
-$dbName = DB_NAME;
+$dbName = $this->getCurrentDb();
 $result = $this->q(<<<SQL
     SELECT kcu.CONSTRAINT_NAME
     FROM information_schema.KEY_COLUMN_USAGE kcu
