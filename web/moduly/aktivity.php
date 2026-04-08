@@ -144,11 +144,10 @@ if (!empty($org)) {
 } elseif ($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
 
-    $descriptionFile = 'soubory/systemove/linie-ikony/' . $typ->id() . '.txt';
-
-    $lines = is_file($descriptionFile)
-        ? @file($descriptionFile, FILE_IGNORE_NEW_LINES)
-        : false;
+    $hlavickaLinie = dbOneLine(
+        'SELECT sekce, jmeno, email FROM akce_typy_hlavicky WHERE id_typu = $1',
+        [$typ->id()],
+    );
 
     $picture_path = 'soubory/systemove/linie-ikony/org_' . $typ->id() . '.jpg';
 
@@ -160,9 +159,9 @@ if (!empty($org)) {
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
         'ikonaLinie'      => $picture_path,
-        'ikonaLinieSekce' => $lines[0] ?? 'Sekce',
-        'ikonaLinieJmeno' => $lines[1] ?? 'Jmeno "Prezdivka" Prijmeni',
-        'ikonaLinieEmail' => $lines[2] ?? 'info@gamecon.cz',
+        'ikonaLinieSekce' => !empty($hlavickaLinie['sekce']) ? $hlavickaLinie['sekce'] : 'Sekce',
+        'ikonaLinieJmeno' => !empty($hlavickaLinie['jmeno']) ? $hlavickaLinie['jmeno'] : 'Jmeno "Prezdivka" Prijmeni',
+        'ikonaLinieEmail' => !empty($hlavickaLinie['email']) ? $hlavickaLinie['email'] : 'info@gamecon.cz',
         'specTridy'       => $typ->id() == TypAktivity::DRD
             ? 'aktivity_aktivity-drd'
             : null,
