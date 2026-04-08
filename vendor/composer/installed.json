@@ -1682,17 +1682,17 @@
         },
         {
             "name": "google/apiclient-services",
-            "version": "v0.435.0",
-            "version_normalized": "0.435.0.0",
+            "version": "v0.436.0",
+            "version_normalized": "0.436.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-api-php-client-services.git",
-                "reference": "1edf0f5f2876945c372366107b4d7a387b17a6b9"
+                "reference": "42493f9565963a0456b1edace1eb5f1cc53f2f73"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/1edf0f5f2876945c372366107b4d7a387b17a6b9",
-                "reference": "1edf0f5f2876945c372366107b4d7a387b17a6b9",
+                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/42493f9565963a0456b1edace1eb5f1cc53f2f73",
+                "reference": "42493f9565963a0456b1edace1eb5f1cc53f2f73",
                 "shasum": ""
             },
             "require": {
@@ -1701,7 +1701,7 @@
             "require-dev": {
                 "phpunit/phpunit": "^9.6"
             },
-            "time": "2026-03-01T01:14:26+00:00",
+            "time": "2026-04-06T01:28:26+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -1723,7 +1723,7 @@
             ],
             "support": {
                 "issues": "https://github.com/googleapis/google-api-php-client-services/issues",
-                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.435.0"
+                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.436.0"
             },
             "install-path": "../google/apiclient-services"
         },
@@ -4366,17 +4366,17 @@
         },
         {
             "name": "rector/rector",
-            "version": "2.4.0",
-            "version_normalized": "2.4.0.0",
+            "version": "2.4.1",
+            "version_normalized": "2.4.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rectorphp/rector.git",
-                "reference": "a51dfddbf6a29ed9fbf6e8410fc90c1608df1b5d"
+                "reference": "000b7050b9e4fe98db2192971e56eb0b302b3feb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rectorphp/rector/zipball/a51dfddbf6a29ed9fbf6e8410fc90c1608df1b5d",
-                "reference": "a51dfddbf6a29ed9fbf6e8410fc90c1608df1b5d",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/000b7050b9e4fe98db2192971e56eb0b302b3feb",
+                "reference": "000b7050b9e4fe98db2192971e56eb0b302b3feb",
                 "shasum": ""
             },
             "require": {
@@ -4392,7 +4392,7 @@
             "suggest": {
                 "ext-dom": "To manipulate phpunit.xml via the custom-rule command"
             },
-            "time": "2026-04-04T07:37:45+00:00",
+            "time": "2026-04-08T08:43:56+00:00",
             "bin": [
                 "bin/rector"
             ],
@@ -4417,7 +4417,7 @@
             ],
             "support": {
                 "issues": "https://github.com/rectorphp/rector/issues",
-                "source": "https://github.com/rectorphp/rector/tree/2.4.0"
+                "source": "https://github.com/rectorphp/rector/tree/2.4.1"
             },
             "funding": [
                 {
@@ -4736,12 +4736,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "db78064456eb735e368677828095fb7fe5aeda6f"
+                "reference": "7c570124dcf5c6834d78348d6817f32cd6b537d7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/db78064456eb735e368677828095fb7fe5aeda6f",
-                "reference": "db78064456eb735e368677828095fb7fe5aeda6f",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/7c570124dcf5c6834d78348d6817f32cd6b537d7",
+                "reference": "7c570124dcf5c6834d78348d6817f32cd6b537d7",
                 "shasum": ""
             },
             "conflict": {
@@ -4856,7 +4856,7 @@
                 "cesnet/simplesamlphp-module-proxystatistics": "<3.1",
                 "chriskacerguis/codeigniter-restserver": "<=2.7.1",
                 "chrome-php/chrome": "<1.14",
-                "ci4-cms-erp/ci4ms": "<=0.28.6",
+                "ci4-cms-erp/ci4ms": "<=0.31.1",
                 "civicrm/civicrm-core": ">=4.2,<4.2.9|>=4.3,<4.3.3",
                 "ckeditor/ckeditor": "<4.25",
                 "clickstorm/cs-seo": ">=6,<6.8|>=7,<7.5|>=8,<8.4|>=9,<9.3",
@@ -5376,7 +5376,7 @@
                 "pixelfed/pixelfed": "<0.12.5",
                 "plotly/plotly.js": "<2.25.2",
                 "pocketmine/bedrock-protocol": "<8.0.2",
-                "pocketmine/pocketmine-mp": "<5.32.1",
+                "pocketmine/pocketmine-mp": "<5.41.1",
                 "pocketmine/raklib": ">=0.14,<0.14.6|>=0.15,<0.15.1",
                 "pressbooks/pressbooks": "<5.18",
                 "prestashop/autoupgrade": ">=4,<4.10.1",
@@ -5742,7 +5742,7 @@
                 "zoujingli/thinkadmin": "<=6.1.53",
                 "zumba/json-serializer": "<3.2.3"
             },
-            "time": "2026-04-04T07:24:55+00:00",
+            "time": "2026-04-06T23:13:58+00:00",
             "default-branch": true,
             "type": "metapackage",
             "notification-url": "https://packagist.org/downloads/",
