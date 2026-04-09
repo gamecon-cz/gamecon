@@ -13,6 +13,75 @@
   .tooltip_obsah {
     display: none;
   }
+
+  .qr-platby {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  .qr-platby__uvod {
+    margin: 0 0 12px;
+    color: #4f5b67;
+  }
+
+  .qr-platby-sekce {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid #d7dde4;
+  }
+
+  .qr-platba-karta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #d7dde4;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7f9fb 100%);
+  }
+
+  .qr-platba-karta__typ {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #e8eef5;
+    color: #334155;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .qr-platba-karta h4 {
+    margin: 0 0 4px;
+  }
+
+  .qr-platba-karta__popis {
+    margin: 0;
+    min-height: 2.8em;
+    color: #4f5b67;
+    line-height: 1.4;
+  }
+
+  .qr-platba-karta__obrazek {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 220px;
+    padding: 12px;
+    border: 1px solid #e7ecf1;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .qr-platba-karta__obrazek img {
+    display: block;
+    width: min(100%, 220px);
+    height: auto;
+  }
 </style>
 
 
@@ -270,11 +339,44 @@
         });
       })();
     </script>
-  </div>
-
-  <div class="infopult=grid--item aBox">
-      <h3>Pouze pro tuzemskou (českou) platbu</h3>
-      <img src="{qrKodPlatba}" alt="qrPlatba">
+    <!-- begin:qrKodyPlateb -->
+    <div class="qr-platby-sekce">
+      <h3>QR platby</h3>
+      <p class="qr-platby__uvod">Vyber variantu podle banky a typu převodu.</p>
+      <div class="qr-platby">
+          <div class="qr-platba-karta">
+              <div>
+                  <span class="qr-platba-karta__typ">CZ</span>
+                  <h4>Platba (CZ)</h4>
+                  <p class="qr-platba-karta__popis">Domácí převod v CZK pro české banky.</p>
+              </div>
+              <div class="qr-platba-karta__obrazek">
+                  <img src="{qrKodPlatbaCeska}" alt="qrPlatbaCeska">
+              </div>
+          </div>
+          <div class="qr-platba-karta">
+              <div>
+                  <span class="qr-platba-karta__typ">SK</span>
+                  <h4>Platba (SK)</h4>
+                  <p class="qr-platba-karta__popis">Pay by Square pro slovenské banky.</p>
+              </div>
+              <div class="qr-platba-karta__obrazek">
+                  <img src="{qrKodPlatbaSlovenska}" alt="qrPlatbaSlovenska">
+              </div>
+          </div>
+          <div class="qr-platba-karta">
+              <div>
+                  <span class="qr-platba-karta__typ">SEPA</span>
+                  <h4>Platba (SEPA)</h4>
+                  <p class="qr-platba-karta__popis">EUR převod pro zahraniční nebo SEPA platby.</p>
+              </div>
+              <div class="qr-platba-karta__obrazek">
+                  <img src="{qrKodPlatbaSepa}" alt="qrPlatbaSepa">
+              </div>
+          </div>
+      </div>
+    </div>
+    <!-- end:qrKodyPlateb -->
   </div>
 
   <div class="infopult-grid--item infopult-grid--item-ubytování aBox">

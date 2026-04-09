@@ -179,7 +179,7 @@ class UpominaniDluzniku
                 ->predmet($predmet)
                 ->text($zprava);
 
-            $qrKod = $uzivatel->finance()->dejQrKodProPlatbu();
+            $qrKod = $uzivatel->finance()->dejQrKodProCeskouPlatbu();
             if ($qrKod) {
                 // Uložit QR kód do dočasného souboru
                 $qrSoubor = tempnam($this->systemoveNastaveni->privateCacheDir(), 'upominani_qr_') . '.png';
