@@ -20,6 +20,7 @@ use Gamecon\Pravo;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
 use Gamecon\Shop\TypPredmetu;
+use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 use Gamecon\Uzivatel\Dto\PriceAfterDiscountDto;
@@ -1010,21 +1011,60 @@ SQL;
         return $this->kategorieNeplatice;
     }
 
-    public function dejQrKodProPlatbu(): ?ResultInterface
+    public function dejQrKodProCeskouPlatbu(): ResultInterface
     {
-        $castkaCzk = $this->stav() >= 0
-            ? 0.1
-            // nulová, respektive dobrovolná platba
-            : -$this->stav();
-
         $qrPlatba = QrPlatba::dejQrProTuzemskouPlatbu(
-            $castkaCzk,
+            $this->dejCastkuProQrPlatbuVCzk(),
             $this->u->id(),
         );
 
-        // SEPA platbu přes QR kód neumí zřejmě žádná slovenská banka, takže pro mimočeské nezobrazíme nic
+        return $qrPlatba->dejQrObrazek();
+    }
+
+    public function dejQrKodProSlovenskouPlatbu(): ResultInterface
+    {
+        $qrPlatba = QrPlatba::dejQrProSlovenskouPlatbu(
+            $this->dejCastkuProQrPlatbuVEurech(),
+            $this->u->id(),
+            IBAN,
+        );
 
         return $qrPlatba->dejQrObrazek();
+    }
+
+    public function dejQrKodProSepaPlatbu(): ResultInterface
+    {
+        $qrPlatba = QrPlatba::dejQrProSepaPlatbu(
+            $this->dejCastkuProQrPlatbuVEurech(),
+            $this->u->id(),
+        );
+
+        return $qrPlatba->dejQrObrazek();
+    }
+
+    public function dejQrKodProPlatbu(): ?ResultInterface
+    {
+        return match ($this->u->stat()) {
+            Stat::CZ => $this->dejQrKodProCeskouPlatbu(),
+            Stat::SK => $this->dejQrKodProSlovenskouPlatbu(),
+            default => null,
+        };
+    }
+
+    private function dejCastkuProQrPlatbuVCzk(): float
+    {
+        return $this->stav() >= 0
+            ? 0.1
+            // nulová, respektive dobrovolná platba
+            : -$this->stav();
+    }
+
+    private function dejCastkuProQrPlatbuVEurech(): float
+    {
+        return $this->stav() >= 0
+            ? 0.1
+            // nulová, respektive dobrovolná platba
+            : -$this->stav() / KURZ_EURO;
     }
 
     public function sumaStorna(): float

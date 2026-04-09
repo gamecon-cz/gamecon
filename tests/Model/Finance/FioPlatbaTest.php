@@ -176,6 +176,138 @@ class FioPlatbaTest extends TestCase
                 '',
                 null,
             ],
+            'VS v reference plátce jako čisté číslo' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 12.34,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775800',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Reference plátce',
+                        'value' => '24680',
+                    ],
+                ],
+                '24680',
+                24680,
+            ],
+            'VS v reference plátce ve formátu /VS/' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 56.78,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775799',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Reference plátce',
+                        'value' => '/VS/13579',
+                    ],
+                ],
+                '13579',
+                13579,
+            ],
+            'VS v reference plátce bez lomítek' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 43.21,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775798',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Reference plátce',
+                        'value' => 'VS97531',
+                    ],
+                ],
+                '97531',
+                97531,
+            ],
+            'VS ve zprávě bez lomítek' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 65.43,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775797',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Zpráva pro příjemce',
+                        'value' => 'VS86420',
+                    ],
+                ],
+                '86420',
+                86420,
+            ],
+            'VS ve zprávě s dvojtečkou' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 54.32,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775796',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Zpráva pro příjemce',
+                        'value' => 'Platba VS:75319 za vstup',
+                    ],
+                ],
+                '75319',
+                75319,
+            ],
+            'VS v reference plátce s dvojtečkou' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 34.56,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775795',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Reference plátce',
+                        'value' => 'VS:64208',
+                    ],
+                ],
+                '64208',
+                64208,
+            ],
             'Sice s VS ale s nulovou částkou' => [
                 [
                     [

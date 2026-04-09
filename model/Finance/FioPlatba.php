@@ -255,7 +255,8 @@ SQL,
         $vs = $this->data[self::VS] ?? '';
 
         return $vs
-            ?: $this->nactiVsZTextu($this->zpravaProPrijemce());
+            ?: $this->nactiVsZTextu($this->zpravaProPrijemce())
+                ?: $this->nactiVsZReferencePlatce($this->referencePlatce());
     }
 
     public function specifickySymbol(): string
@@ -344,11 +345,28 @@ SQL,
 
     private function nactiVsZTextu(string $text): string
     {
-        if (!preg_match('~(^|/)vs/(?<vs>\d+)~i', $text, $matches)) {
-            return '';
+        if (preg_match('~(^|/)vs/(?<vs>\d+)~i', $text, $matches)) {
+            return $matches['vs'];
         }
 
-        return $matches['vs'];
+        if (preg_match('~(?:^|[^[:alnum:]])vs[\s:_-]?(?<vs>\d+)(?:$|[^[:alnum:]])~i', $text, $matches)) {
+            return $matches['vs'];
+        }
+
+        return '';
+    }
+
+    private function nactiVsZReferencePlatce(?string $referencePlatce): string
+    {
+        $referencePlatce = trim((string)$referencePlatce);
+        if ($referencePlatce === '') {
+            return '';
+        }
+        if (preg_match('~^\d+$~', $referencePlatce) === 1) {
+            return $referencePlatce;
+        }
+
+        return $this->nactiVsZTextu($referencePlatce);
     }
 
     private function nactiIdUcastnikaZeZkrytePoznamky(): ?int
