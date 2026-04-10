@@ -41,6 +41,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * - 'vecere' (dinner)
  * - 'tilko' (tank top)
  *
+ * Accommodation subtypes:
+ * - 'hotel' (hotel accommodation - breakfast included)
+ *
  * Special tags:
  * - 'org-merch' (organizer merchandise - special pricing)
  */
@@ -51,6 +54,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 class ProductTag implements WithTimestampsInterface
 {
     use WithTimestampsTrait;
+
+    public const HOTEL = 'hotel';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
