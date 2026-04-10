@@ -1,7 +1,7 @@
 <?php
 
 use Gamecon\Role\Role;
-use Gamecon\Shop\PodtypPredmetu;
+use App\Entity\ProductTag;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -58,7 +58,7 @@ $o                        = dbQuery(<<<SQL
         AND EXISTS (
             SELECT 1
             FROM shop_nakupy AS nakupy_ubytovani
-            JOIN shop_predmety AS predmety_ubytovani
+            JOIN shop_predmety_s_typem AS predmety_ubytovani
                 ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
                 AND predmety_ubytovani.typ = {$typUbytovani}
                 AND predmety_ubytovani.podtyp = $0
@@ -73,7 +73,7 @@ $o                        = dbQuery(<<<SQL
              poradi_dne DESC,
              poradi_jidla DESC
 SQL,
-    [0 => PodtypPredmetu::HOTEL, 1 => $dnyFiltr, 2 => $jidlaFiltr],
+    [0 => ProductTag::HOTEL, 1 => $dnyFiltr, 2 => $jidlaFiltr],
 );
 
 $res = [];
