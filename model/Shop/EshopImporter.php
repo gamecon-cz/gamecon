@@ -32,23 +32,21 @@ class EshopImporter
         $hlavickaKlice = array_map('trim', $row->toArray());
         $hlavicka      = array_flip($hlavickaKlice);
 
-        $pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'tag', 'ubytovani_den', 'popis', 'vedlejsi'];
+        $pozadovaneSloupce = ['nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'tag', 'ubytovani_den', 'popis', 'vedlejsi'];
         if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
             throw new \Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
         }
 
-        $indexModelRok        = $hlavicka['model_rok'];
-        $indexNazev           = $hlavicka['nazev'];
-        $indexKodPredmetu     = $hlavicka['kod_predmetu'];
-        $indexCenaAktualni    = $hlavicka['cena_aktualni'];
-        $indexStav            = $hlavicka['stav'];
-        $indexNabizetDo       = $hlavicka['nabizet_do'];
-        $indexKusuVyrobeno    = $hlavicka['kusu_vyrobeno'];
+        $indexNazev        = $hlavicka['nazev'];
+        $indexKodPredmetu  = $hlavicka['kod_predmetu'];
+        $indexCenaAktualni = $hlavicka['cena_aktualni'];
+        $indexStav         = $hlavicka['stav'];
+        $indexNabizetDo    = $hlavicka['nabizet_do'];
+        $indexKusuVyrobeno = $hlavicka['kusu_vyrobeno'];
         $indexTag          = $hlavicka['tag'];
-        $indexJeLetosniHlavni = $hlavicka['je_letosni_hlavni'];
-        $indexUbytovaniDen    = $hlavicka['ubytovani_den'];
-        $indexPopis           = $hlavicka['popis'];
-        $indexVedlejsi        = $hlavicka['vedlejsi'];
+        $indexUbytovaniDen = $hlavicka['ubytovani_den'];
+        $indexPopis        = $hlavicka['popis'];
+        $indexVedlejsi     = $hlavicka['vedlejsi'];
 
         $rowIterator->next();
 
@@ -57,10 +55,6 @@ class EshopImporter
         ) => trim((string) $hodnota) !== ''
             ? $hodnota
             : null;
-
-        $celeCislo = static fn(
-            $hodnota,
-        ) => (int) ((string) $hodnota);
 
         $hodnotaNeboKodZNazvu = static fn(
             $hodnota,
@@ -126,10 +120,9 @@ class EshopImporter
                         $radek[$indexStav],
                         $radek[$indexNabizetDo],
                         $cisloNeboNull($radek[$indexKusuVyrobeno]),
-                        $celeCislo($radek[$indexJeLetosniHlavni]),
                         $cisloNeboNull($radek[$indexUbytovaniDen]),
                         $radek[$indexPopis],
-                        $celeCislo($radek[$indexVedlejsi] ?? 0),
+                        (int) ((string) ($radek[$indexVedlejsi] ?? 0)),
                     ]) . ')';
             }
         }
@@ -164,7 +157,7 @@ SQL,
             $sqlValues = implode(",\n", $sqlValuesArray);
 
             dbQuery(<<<SQL
-INSERT INTO `$temporaryTable` (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `popis`, `vedlejsi`)
+INSERT INTO `$temporaryTable` (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `ubytovani_den`, `popis`, `vedlejsi`)
     VALUES
 $sqlValues
 SQL,
