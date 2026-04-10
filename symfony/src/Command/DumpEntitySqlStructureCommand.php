@@ -224,7 +224,7 @@ class DumpEntitySqlStructureCommand extends Command
 
         // Regular fields
         foreach ($fieldMappings as $fieldName => $mapping) {
-            $columnName = $mapping['columnName'];
+            $columnName = $mapping->columnName;
             $constants[] = <<<PHPDOC
     /**
      * @see {$shortEntityName}::\${$fieldName}
@@ -236,8 +236,8 @@ PHPDOC;
 
         // Association fields (foreign keys)
         foreach ($associationMappings as $fieldName => $mapping) {
-            if (isset($mapping['joinColumns'])) {
-                foreach ($mapping['joinColumns'] as $joinColumn) {
+            if (isset($mapping->joinColumns)) {
+                foreach ($mapping->joinColumns as $joinColumn) {
                     $columnName = $joinColumn['name'];
                     $constants[] = <<<PHPDOC
     /**
