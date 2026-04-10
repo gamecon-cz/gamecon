@@ -319,6 +319,7 @@ ALTER TABLE product_tag
     CHANGE created_at created_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)';
 
 -- Backward-compatible view providing virtual typ, model_rok, je_letosni_hlavni columns
+-- Note: podtyp still exists as a real column at this point (dropped later by podtyp-to-hotel-tag migration)
 CREATE OR REPLACE VIEW shop_predmety_s_typem AS
 SELECT
     sp.*,
