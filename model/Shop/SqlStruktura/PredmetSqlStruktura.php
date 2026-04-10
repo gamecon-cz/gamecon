@@ -24,7 +24,6 @@ class PredmetSqlStruktura
     // Virtual columns from shop_predmety_s_typem view (not on the base table, but used by legacy code)
     public const MODEL_ROK         = 'model_rok';
     public const TYP               = 'typ';
-    public const PODTYP            = 'podtyp';
     public const JE_LETOSNI_HLAVNI = 'je_letosni_hlavni';
 
     public const SHOP_PREDMETY_S_TYPEM_TABULKA = 'shop_predmety_s_typem';
