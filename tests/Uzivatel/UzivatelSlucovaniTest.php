@@ -328,7 +328,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
     private function getDatabaseName(): string
     {
         $result = dbQuery('SELECT DATABASE() as db_name');
-        $row = $result->fetch_assoc();
+        $row = $result->fetch(PDO::FETCH_ASSOC);
 
         return $row['db_name'];
     }

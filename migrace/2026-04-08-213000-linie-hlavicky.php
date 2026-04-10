@@ -29,10 +29,10 @@ if (is_dir($sourceDir)) {
     $idTypy = [];
     $result = $this->q('SELECT id_typu FROM akce_typy');
     if ($result) {
-        while ($row = $result->fetch_assoc()) {
+        while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
             $idTypy[] = (int)$row['id_typu'];
         }
-        $result->close();
+        $result->closeCursor();
     }
 
     foreach ($idTypy as $idTypu) {
@@ -78,8 +78,8 @@ SELECT id_typu FROM akce_typy WHERE url_typu_mn = 'dnd' LIMIT 1
 SQL,
 );
 if ($dndResult) {
-    $dndRow = $dndResult->fetch_assoc();
-    $dndResult->close();
+    $dndRow = $dndResult->fetch(PDO::FETCH_ASSOC);
+    $dndResult->closeCursor();
 }
 
 $bonusRow = null;
@@ -88,8 +88,8 @@ SELECT id_typu FROM akce_typy WHERE url_typu_mn = 'bonusy' LIMIT 1
 SQL,
 );
 if ($bonusResult) {
-    $bonusRow = $bonusResult->fetch_assoc();
-    $bonusResult->close();
+    $bonusRow = $bonusResult->fetch(PDO::FETCH_ASSOC);
+    $bonusResult->closeCursor();
 }
 
 if ($dndRow) {

@@ -11,6 +11,7 @@ use Gamecon\Pravo;
 use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
+use App\Entity\ProductTag;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 
 class ShopUbytovani
@@ -132,7 +133,7 @@ SQL,
         $mysqliResult = dbQuery(<<<SQL
 DELETE shop_nakupy_snidane.*
 FROM shop_nakupy AS shop_nakupy_snidane
-JOIN shop_predmety AS predmety_snidane
+JOIN shop_predmety_s_typem AS predmety_snidane
     ON predmety_snidane.id_predmetu = shop_nakupy_snidane.id_predmetu
     AND predmety_snidane.typ = {$typJidlo}
     AND TRIM(predmety_snidane.nazev) LIKE 'Snídaně%'
@@ -143,7 +144,7 @@ WHERE shop_nakupy_snidane.id_uzivatele = $0
         SELECT dny_hotelu.ubytovani_den + 1 FROM (
             SELECT predmety_ubytovani.ubytovani_den
             FROM shop_nakupy AS nakupy_ubytovani
-            JOIN shop_predmety AS predmety_ubytovani
+            JOIN shop_predmety_s_typem AS predmety_ubytovani
                 ON predmety_ubytovani.id_predmetu = nakupy_ubytovani.id_predmetu
                 AND predmety_ubytovani.typ = {$typUbytovani}
                 AND predmety_ubytovani.podtyp = $2
@@ -152,7 +153,7 @@ WHERE shop_nakupy_snidane.id_uzivatele = $0
         ) AS dny_hotelu
     )
 SQL,
-            [0 => $ucastnik->id(), 1 => $rok, 2 => PodtypPredmetu::HOTEL],
+            [0 => $ucastnik->id(), 1 => $rok, 2 => ProductTag::HOTEL],
         );
 
         return dbAffectedOrNumRows($mysqliResult);
@@ -454,7 +455,7 @@ SQL,
                         ? $this->mozneDny[$den][$typ]['id_predmetu']
                         : null,
                     'podtyp'     => isset($this->mozneDny[$den][$typ])
-                        ? ($this->mozneDny[$den][$typ][Sql::PODTYP] ?? '')
+                        ? ($this->mozneDny[$den][$typ]['podtyp'] ?? '')
                         : '',
                     'checked'    => $checked,
                     'disabled'   => $this->totoUbytovaniVyrazeno(
@@ -683,7 +684,7 @@ SQL,
             return false;
         }
         foreach ($this->ubytovanPoDnech[$den] as $detail) {
-            if ($detail['kusu_uzivatele'] > 0 && ($detail[Sql::PODTYP] ?? null) === PodtypPredmetu::HOTEL) {
+            if ($detail['kusu_uzivatele'] > 0 && ($detail['podtyp'] ?? null) === ProductTag::HOTEL) {
                 return true;
             }
         }
