@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Aktivity;
 
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 /**
  * Testy pokrývající metody na přihlášení a registraci.
@@ -49,11 +50,15 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
 
     public function testRegistrujAPrihlas()
     {
-        \Uzivatel::registruj($this->uzivatel());
+        $id = \Uzivatel::registruj($this->uzivatel());
 
         $this->assertNotNull(\Uzivatel::prihlas('a', 'a'), 'přihlášení loginem');
         $this->assertNotNull(\Uzivatel::prihlas('a@b.c', 'a'), 'přihlášení heslem');
         $this->assertNull(\Uzivatel::prihlas('a', 'b'), 'nepřihlášení špatnými údaji');
+        $this->assertSame(
+            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+            (int) \Uzivatel::zId($id)->rawDb()[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU],
+        );
     }
 
     public static function provideRegistrujDuplicity()
@@ -131,5 +136,71 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
 
         $this->assertSame($uData1, $uData2, 'prázdná úprava data nezměnila');
         $this->assertSame($uData1, $uData3, 'úprava stejnými daty data nezměnila');
+    }
+
+    public function testUpravUloziIVychoziNastaveniZobrazeniNaWebu(): void
+    {
+        $id = \Uzivatel::registruj($this->uzivatel([
+            Sql::LOGIN_UZIVATELE          => 'NulaZpet',
+            Sql::EMAIL1_UZIVATELE         => 'nula-zpet.' . uniqid('', true) . '@example.com',
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => (string) ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
+        ]));
+
+        $u = \Uzivatel::zId($id);
+        $u->uprav([
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => '0',
+        ]);
+
+        self::assertSame(
+            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+            (int) \Uzivatel::zId($id)->rawDb()[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU],
+        );
+    }
+
+    public function testJmenoNaWebuRespektujeNastaveni(): void
+    {
+        $id = \Uzivatel::registruj($this->uzivatel([
+            Sql::LOGIN_UZIVATELE    => 'Drak',
+            Sql::EMAIL1_UZIVATELE   => 'drak.' . uniqid('', true) . '@example.com',
+            Sql::JMENO_UZIVATELE    => 'Jan',
+            Sql::PRIJMENI_UZIVATELE => 'Novak',
+        ]));
+
+        $u = \Uzivatel::zId($id);
+        self::assertSame('Drak', $u->jmenoNaWebu());
+        self::assertSame(ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA, $u->zpusobZobrazeniNaWebu());
+
+        \dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI,
+        ], [
+            Sql::ID_UZIVATELE => $id,
+        ]);
+        self::assertSame('Jan Novak', \Uzivatel::zId($id)->jmenoNaWebu());
+
+        \dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
+        ], [
+            Sql::ID_UZIVATELE => $id,
+        ]);
+        self::assertSame('Jan "Drak" Novak', \Uzivatel::zId($id)->jmenoNaWebu());
+    }
+
+    public function testJmenoNaWebuBezPrezdivkyPouzijeFallbackNaCeleJmeno(): void
+    {
+        $id = \Uzivatel::registruj($this->uzivatel([
+            Sql::LOGIN_UZIVATELE    => 'bez.prezdivky.' . uniqid('', true) . '@example.com',
+            Sql::EMAIL1_UZIVATELE   => 'kontakt.' . uniqid('', true) . '@example.com',
+            Sql::JMENO_UZIVATELE    => 'Jana',
+            Sql::PRIJMENI_UZIVATELE => 'Novakova',
+        ]));
+
+        self::assertSame('Jana Novakova', \Uzivatel::zId($id)->jmenoNaWebu());
+
+        \dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
+        ], [
+            Sql::ID_UZIVATELE => $id,
+        ]);
+        self::assertSame('Jana Novakova', \Uzivatel::zId($id)->jmenoNaWebu());
     }
 }

@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Factory;
 use App\Entity\Enum\GenderEnum;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 use Zenstruck\Foundry\Persistence\Proxy;
 use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
@@ -70,8 +71,13 @@ final class UserFactory extends PersistentProxyObjectFactory
             'typDokladuTotoznosti'             => self::faker()->text(16),
             'ubytovanS'                        => self::faker()->text(255),
             'uliceACp'                         => self::faker()->text(255),
-            'zRychloregistrace'                => self::faker()->boolean(),
-            'zustatek'                         => self::faker()->randomNumber(),
+            'zpusobZobrazeniNaWebu'            => self::faker()->randomElement([
+                ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+                ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI,
+                ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
+            ]),
+            'zRychloregistrace' => self::faker()->boolean(),
+            'zustatek'          => self::faker()->randomNumber(),
         ];
     }
 

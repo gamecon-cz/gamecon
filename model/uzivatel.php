@@ -24,6 +24,7 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\PravaRoleSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
@@ -816,6 +817,19 @@ SQL,
         return trim($this->r[Sql::JMENO_UZIVATELE] . ' ' . $this->r[Sql::PRIJMENI_UZIVATELE]);
     }
 
+    /**
+     * Jméno uživatele určené pro veřejný web.
+     */
+    public function jmenoNaWebu(): string
+    {
+        return self::jmenoNaWebuZjisti($this->r);
+    }
+
+    public function zpusobZobrazeniNaWebu(): int
+    {
+        return self::zpusobZobrazeniNaWebuZjisti($this->r);
+    }
+
     /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
      *  organizátorů aktivit */
     public function jmenoNick(): ?string
@@ -883,6 +897,77 @@ SQL,
         }
 
         return $r['login_uzivatele'];
+    }
+
+    public static function jmenoNaWebuZjisti(array $r): string
+    {
+        $celeJmeno = self::celeJmenoZjisti($r);
+        $nick = self::nickZjisti($r);
+
+        return match (self::zpusobZobrazeniNaWebuZjisti($r)) {
+            ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI =>
+                $celeJmeno ?: self::fallbackJmenaNaWebu($celeJmeno, $nick, $r),
+            ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI =>
+                self::jmenoSPrezdivkouNaWebu($r, $nick) ?: self::fallbackJmenaNaWebu($celeJmeno, $nick, $r),
+            default =>
+                $nick ?: self::fallbackJmenaNaWebu($celeJmeno, $nick, $r),
+        };
+    }
+
+    private static function zpusobZobrazeniNaWebuZjisti(array $r): int
+    {
+        $zpusobZobrazeniNaWebu = array_key_exists(Sql::ZPUSOB_ZOBRAZENI_NA_WEBU, $r)
+            ? (int) $r[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU]
+            : ZpusobZobrazeniNaWebu::vychozi();
+
+        return ZpusobZobrazeniNaWebu::jePlatny($zpusobZobrazeniNaWebu)
+            ? $zpusobZobrazeniNaWebu
+            : ZpusobZobrazeniNaWebu::vychozi();
+    }
+
+    private static function jmenoSPrezdivkouNaWebu(array $r, string $nick): string
+    {
+        if ($nick === '') {
+            return '';
+        }
+
+        $jmeno = trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''));
+        $prijmeni = trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? ''));
+        $casti = array_filter([
+            $jmeno,
+            $nick !== ''
+                ? '"' . $nick . '"'
+                : '',
+            $prijmeni,
+        ], static fn (string $cast) => $cast !== '');
+
+        return implode(' ', $casti);
+    }
+
+    private static function fallbackJmenaNaWebu(string $celeJmeno, string $nick, array $r): string
+    {
+        return $celeJmeno
+            ?: ($nick !== ''
+                ? $nick
+                : trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? '')));
+    }
+
+    private static function celeJmenoZjisti(array $r): string
+    {
+        return trim(
+            trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''))
+            . ' '
+            . trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? '')),
+        );
+    }
+
+    private static function nickZjisti(array $r): string
+    {
+        $login = trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? ''));
+
+        return str_contains($login, '@')
+            ? ''
+            : $login;
     }
 
     /**
@@ -1756,6 +1841,10 @@ SQL,
             $dbTab[Sql::EMAIL1_UZIVATELE] = mb_strtolower($dbTab[Sql::EMAIL1_UZIVATELE]);
         }
 
+        if (! $u) {
+            $dbTab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= (string) ZpusobZobrazeniNaWebu::vychozi();
+        }
+
         // TODO fallback prázdná přezdívka -> mail?
 
         // validátory
@@ -1846,10 +1935,11 @@ SQL,
             Sql::TYP_DOKLADU_TOTOZNOSTI => [implode('|', self::TYPY_DOKLADU), 'vyber prosím typ dokladu totožnosti'],
             Sql::OP                     => ['[a-zA-Z0-9]{5,}', 'vyplň prosím celé číslo dokladu'],
             // Ostatní
-            Sql::LOGIN_UZIVATELE => $validaceLoginu,
-            Sql::POHLAVI         => ['^(m|f)$', 'vyber prosím pohlaví'],
-            'heslo'              => $validaceHesla,
-            'heslo_kontrola'     => $validaceHesla,
+            Sql::LOGIN_UZIVATELE          => $validaceLoginu,
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ['^(0|1|2)$', 'vyber prosím způsob zobrazení na webu'],
+            Sql::POHLAVI                  => ['^(m|f)$', 'vyber prosím pohlaví'],
+            'heslo'                       => $validaceHesla,
+            'heslo_kontrola'              => $validaceHesla,
         ];
 
         // provedení validací
@@ -2025,6 +2115,7 @@ SQL,
         $tab[Sql::ZUSTATEK] = 0;
         $tab[Sql::POHLAVI] = Pohlavi::MUZ_KOD;
         $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE] = null;
+        $tab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi();
         foreach (Sql::sloupce() as $sloupec) {
             if (! array_key_exists($sloupec, $tab)) {
                 $tab[$sloupec] = '';
@@ -2183,7 +2274,9 @@ SQL,
      */
     public function uprav(array $tab): ?int
     {
-        $tab = array_filter($tab);
+        $tab = array_filter($tab, static fn (
+            mixed $hodnota,
+        ) => $hodnota !== null && $hodnota !== '');
 
         $idNeboHlaska = self::registrujUprav($tab, $this);
         if (is_numeric($idNeboHlaska)) {

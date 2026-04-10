@@ -69,6 +69,7 @@ use Gamecon\Tests\Factory\UserFactory;
 use Gamecon\Ubytovani\Ubytovani;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Platba;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 class EntityLegacyComparisonTest extends AbstractTestDb
 {
@@ -84,30 +85,31 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Create a Symfony entity using factory
         /** @var User $symfonyUser */
         $symfonyUser = UserFactory::createOne([
-            UserEntityStructure::login                => 'test_user_' . uniqid(),
-            UserEntityStructure::email                => 'test_' . uniqid() . '@example.com',
-            UserEntityStructure::jmeno                => 'TestJmeno',
-            UserEntityStructure::prijmeni             => 'TestPrijmeni',
-            UserEntityStructure::uliceACp             => 'Test Street 123',
-            UserEntityStructure::mesto                => 'Test City',
-            UserEntityStructure::stat                 => 1,
-            UserEntityStructure::psc                  => '12345',
-            UserEntityStructure::telefon              => '+420123456789',
-            UserEntityStructure::datumNarozeni        => new \DateTime('1990-01-01'),
-            UserEntityStructure::hesloMd5             => 'test_hash',
-            UserEntityStructure::forumRazeni          => 's',
-            UserEntityStructure::random               => 'test_random',
-            UserEntityStructure::zustatek             => 100,
-            UserEntityStructure::registrovan          => new \DateTime('2023-01-01 12:00:00'),
-            UserEntityStructure::poznamka             => 'Test poznamka',
-            UserEntityStructure::pomocTyp             => 'test_typ',
-            UserEntityStructure::pomocVice            => 'Test pomoc vice',
-            UserEntityStructure::op                   => 'test_op',
-            UserEntityStructure::infopultPoznamka     => 'Test infopult',
-            UserEntityStructure::typDokladuTotoznosti => 'OP',
-            UserEntityStructure::statniObcanstvi      => 'CZ',
-            UserEntityStructure::zRychloregistrace    => false,
-            UserEntityStructure::mrtvyMail            => false,
+            UserEntityStructure::login                 => 'test_user_' . uniqid(),
+            UserEntityStructure::email                 => 'test_' . uniqid() . '@example.com',
+            UserEntityStructure::jmeno                 => 'TestJmeno',
+            UserEntityStructure::prijmeni              => 'TestPrijmeni',
+            UserEntityStructure::uliceACp              => 'Test Street 123',
+            UserEntityStructure::mesto                 => 'Test City',
+            UserEntityStructure::stat                  => 1,
+            UserEntityStructure::psc                   => '12345',
+            UserEntityStructure::telefon               => '+420123456789',
+            UserEntityStructure::datumNarozeni         => new \DateTime('1990-01-01'),
+            UserEntityStructure::hesloMd5              => 'test_hash',
+            UserEntityStructure::forumRazeni           => 's',
+            UserEntityStructure::random                => 'test_random',
+            UserEntityStructure::zustatek              => 100,
+            UserEntityStructure::registrovan           => new \DateTime('2023-01-01 12:00:00'),
+            UserEntityStructure::poznamka              => 'Test poznamka',
+            UserEntityStructure::pomocTyp              => 'test_typ',
+            UserEntityStructure::pomocVice             => 'Test pomoc vice',
+            UserEntityStructure::op                    => 'test_op',
+            UserEntityStructure::infopultPoznamka      => 'Test infopult',
+            UserEntityStructure::typDokladuTotoznosti  => 'OP',
+            UserEntityStructure::statniObcanstvi       => 'CZ',
+            UserEntityStructure::zpusobZobrazeniNaWebu => ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI,
+            UserEntityStructure::zRychloregistrace     => false,
+            UserEntityStructure::mrtvyMail             => false,
         ])->_save()->_real();
 
         $symfonyUserId = $symfonyUser->getId();
@@ -146,6 +148,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyUser->getInfopultPoznamka(), $legacyData['infopult_poznamka']);
         $this->assertEquals($symfonyUser->getTypDokladuTotoznosti(), $legacyData['typ_dokladu_totoznosti']);
         $this->assertEquals($symfonyUser->getStatniObcanstvi(), $legacyData['statni_obcanstvi']);
+        $this->assertEquals($symfonyUser->getZpusobZobrazeniNaWebu(), (int) $legacyData['zpusob_zobrazeni_na_webu']);
         $this->assertEquals($symfonyUser->isZRychloregistrace(), (bool) $legacyData['z_rychloregistrace']);
         $this->assertEquals($symfonyUser->isMrtvyMail(), (bool) $legacyData['mrtvy_mail']);
 

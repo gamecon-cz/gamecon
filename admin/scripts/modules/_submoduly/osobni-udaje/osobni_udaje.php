@@ -10,6 +10,7 @@
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 include __DIR__ . '/osobni_udaje_ovladac.php';
 
@@ -17,6 +18,7 @@ class OsobniUdajeTabulka
 {
     private static $udajeSOp = [
         Sql::LOGIN_UZIVATELE        => 'Přezdívka',
+        Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => 'Zobrazení na webu',
         Sql::JMENO_UZIVATELE        => 'Jméno',
         Sql::PRIJMENI_UZIVATELE     => 'Příjmení',
         Sql::POHLAVI                => 'Pohlaví',
@@ -34,12 +36,19 @@ class OsobniUdajeTabulka
 
     private static $udaje = [
         Sql::LOGIN_UZIVATELE    => 'Přezdívka',
+        Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => 'Zobrazení na webu',
         Sql::JMENO_UZIVATELE    => 'Jméno',
         Sql::PRIJMENI_UZIVATELE => 'Příjmení',
         Sql::POHLAVI            => 'Pohlaví',
         Sql::TELEFON_UZIVATELE  => 'Telefon',
         Sql::DATUM_NAROZENI     => 'Narozen',
         Sql::EMAIL1_UZIVATELE   => 'E-mail',
+    ];
+
+    private static array $moznostiZobrazeniNaWebu = [
+        ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA => 'Pouze přezdívka',
+        ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => 'Jméno + příjmení',
+        ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI => 'Jméno + přezdívka + příjmení',
     ];
 
     public static function osobniUdajeTabulkaZ(
@@ -81,6 +90,10 @@ class OsobniUdajeTabulka
                 $vyber            = Pohlavi::seznamProSelect();
                 $zobrazenaHodnota = $vyber[$r[Sql::POHLAVI]] ?? '';
             }
+            if ($sloupec === Sql::ZPUSOB_ZOBRAZENI_NA_WEBU) {
+                $vyber            = self::$moznostiZobrazeniNaWebu;
+                $zobrazenaHodnota = $vyber[(int) $hodnota] ?? '';
+            }
             if ($sloupec === Sql::TELEFON_UZIVATELE) {
                 $zobrazenaHodnota = $uzivatel->telefon();
             }
@@ -101,7 +114,7 @@ class OsobniUdajeTabulka
             } else {
                 $x->parse('udaje.udaj.nazevBezPopisku');
             }
-            if ($sloupec === Sql::POHLAVI) {
+            if ($sloupec === Sql::POHLAVI || $sloupec === Sql::ZPUSOB_ZOBRAZENI_NA_WEBU) {
                 foreach ($vyber as $optionValue => $optionText) {
                     $x->assign([
                         'optionValue'    => $optionValue,

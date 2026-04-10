@@ -129,7 +129,7 @@ class Registrace
 
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
-                <div>{$nazev}{$labelRequired}</div>
+                {$this->hlavickaPolozky($nazev, $labelRequired)}
                 {$predrazeneHtml}
                 <input
                     id="input_{$klic}"
@@ -153,6 +153,16 @@ class Registrace
             : '';
     }
 
+    private function hlavickaPolozky(string $nazev, string $labelRequired, string $tooltip = ''): string
+    {
+        return <<<HTML
+<div class="formular_polozkaNadpis">
+    <span class="formular_polozkaTitulek">{$nazev}{$labelRequired}</span>
+    {$tooltip}
+</div>
+HTML;
+    }
+
     private function formData(): ?array
     {
         if ($this->formData === 'undefined') {
@@ -166,8 +176,9 @@ class Registrace
                         $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
                     }
                 }
-                $this->formData = $dataUzivatele;
+                $this->formData = $dataUzivatele ?? [];
             }
+            $this->formData[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi();
         }
 
         return $this->formData;
@@ -235,13 +246,33 @@ class Registrace
 
         <div class="formular_sloupce">
             <?= $this->input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE) ?>
+            <?= $this->select(
+                nazev: 'Zobrazení na webu',
+                klic: Sql::ZPUSOB_ZOBRAZENI_NA_WEBU,
+                moznosti: [
+                    ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA => 'Pouze přezdívka',
+                    ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => 'Jméno + příjmení',
+                    ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI => 'Jméno + přezdívka + příjmení',
+                ],
+                tooltip: <<<HTML
+<div class="formular_tooltip">
+  <div class="gc_tooltip">
+    Kde se použije?
+    <div class="tooltip_obsah">
+      Tohle nastavení ovlivní jen veřejný web, například detail aktivity, medailonky vypravěčů a veřejné seznamy.
+      V administraci a interních seznamech se zobrazení jména nemění.
+    </div>
+  </div>
+</div>
+HTML
+            ) ?>
           <div style="float:left">
               <?= $this->select(
                   nazev: 'Pohlaví',
                   klic: Sql::POHLAVI,
                   moznosti: Pohlavi::seznamProSelect(),
                   tooltip: <<<HTML
-<div class="formular_tooltip" style="float: right; padding: 0">
+<div class="formular_tooltip">
   <div class="gc_tooltip">
     Proč potřebujeme znát pohlaví?
     <div class="tooltip_obsah">
@@ -344,8 +375,11 @@ HTML
         string $tooltip = '',
     ): string {
         $vybranaHodnota = $this->formData()[$klic] ?? '';
+        $maVybranouHodnotu = $vybranaHodnota !== '' && $vybranaHodnota !== null;
 
-        $moznostiHtml = '<option disabled value selected></option>';
+        $moznostiHtml = '<option disabled value ' . ($maVybranouHodnotu
+                ? ''
+                : 'selected') . '></option>';
         foreach ($moznosti as $hodnota => $popis) {
             $selected     = $vybranaHodnota == $hodnota;
             $selectedHtml = $selected
@@ -369,7 +403,7 @@ HTML
 
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
-                {$nazev}{$labelRequired}{$tooltip}
+                {$this->hlavickaPolozky($nazev, $labelRequired, $tooltip)}
                 <select name="{$this->inputName()}[{$klic}]" {$requiredHtml}>
                 {$moznostiHtml}
                 </select>

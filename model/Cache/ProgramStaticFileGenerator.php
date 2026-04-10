@@ -68,7 +68,7 @@ class ProgramStaticFileGenerator implements ResetInterface
         $konecAktivity = $activity->konec();
 
         $vypraveci = array_map(
-            fn (\Uzivatel $organizator) => $organizator->jmenoNick(),
+            fn (\Uzivatel $organizator) => $organizator->jmenoNaWebu(),
             $activity->organizatori(dataSourcesCollector: $dataSourcesCollector),
         );
 

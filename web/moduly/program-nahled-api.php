@@ -26,7 +26,7 @@ echo json_encode([
         static function (
             $o,
         ) {
-            return $o->jmenoNick();
+            return $o->jmenoNaWebu();
         },
         $a->organizatori(),
     ),
