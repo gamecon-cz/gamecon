@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'gamecon-cz/gamecon',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'd5f0f34188102174b4eb349928360b4ddbe5457a',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -350,9 +350,9 @@
             'dev_requirement' => false,
         ),
         'gamecon-cz/gamecon' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'd5f0f34188102174b4eb349928360b4ddbe5457a',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
