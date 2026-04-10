@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
+use App\Entity\ProductTag;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Shop\PodtypPredmetu;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\Tests\Db\AbstractTestDb;
 
 class ZrusSnidaneProHotelovePokojeTest extends AbstractTestDb
@@ -54,53 +53,73 @@ SQL,
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
     cena_aktualni = 90,
-    stav = $3,
+    stav = $2,
     kusu_vyrobeno = NULL,
-    typ = $4,
-    ubytovani_den = $5
+    ubytovani_den = $3
 SQL,
             [
                 0 => $nazev,
                 1 => strtoupper(str_replace(' ', '_', $nazev)) . '_' . $uniqueId,
-                2 => ROCNIK,
-                3 => StavPredmetu::VEREJNY,
-                4 => TypPredmetu::JIDLO,
-                5 => $den,
+                2 => StavPredmetu::VEREJNY,
+                3 => $den,
             ],
         );
 
-        return dbInsertId();
+        $idPredmetu = dbInsertId();
+
+        dbQuery(
+            'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
+            [
+                0 => $idPredmetu,
+                1 => 'jidlo',
+            ],
+        );
+
+        return $idPredmetu;
     }
 
-    private function vytvorPredmetUbytovani(string $nazev, int $den, ?string $podtyp = null): int
+    private function vytvorPredmetUbytovani(string $nazev, int $den, bool $hotel = false): int
     {
         $uniqueId = uniqid();
         dbQuery(<<<SQL
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
     cena_aktualni = 500,
-    stav = $3,
+    stav = $2,
     kusu_vyrobeno = 10,
-    typ = $4,
-    ubytovani_den = $5,
-    podtyp = $6
+    ubytovani_den = $3
 SQL,
             [
                 0 => $nazev,
                 1 => strtoupper(str_replace(' ', '_', $nazev)) . '_' . $uniqueId,
-                2 => ROCNIK,
-                3 => StavPredmetu::VEREJNY,
-                4 => TypPredmetu::UBYTOVANI,
-                5 => $den,
-                6 => $podtyp,
+                2 => StavPredmetu::VEREJNY,
+                3 => $den,
             ],
         );
 
-        return dbInsertId();
+        $idPredmetu = dbInsertId();
+
+        dbQuery(
+            'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
+            [
+                0 => $idPredmetu,
+                1 => 'ubytovani',
+            ],
+        );
+
+        if ($hotel) {
+            dbQuery(
+                'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
+                [
+                    0 => $idPredmetu,
+                    1 => ProductTag::HOTEL,
+                ],
+            );
+        }
+
+        return $idPredmetu;
     }
 
     private function objednejPredmet(int $idUzivatele, int $idPredmetu): void
@@ -144,7 +163,7 @@ SQL,
         $idHotel = $this->vytvorPredmetUbytovani(
             'Dvojlůžák čtvrtek',
             DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
-            PodtypPredmetu::HOTEL,
+            hotel: true,
         );
         $idSnidane = $this->vytvorPredmetJidlo('Snídaně pátek', DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
 
@@ -169,7 +188,7 @@ SQL,
         $idSpacak = $this->vytvorPredmetUbytovani(
             'Spacák čtvrtek',
             DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
-            null,
+            hotel: false,
         );
         $idSnidane = $this->vytvorPredmetJidlo('Snídaně pátek', DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
 
@@ -192,7 +211,7 @@ SQL,
         $idHotel = $this->vytvorPredmetUbytovani(
             'Dvojlůžák čtvrtek',
             DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
-            PodtypPredmetu::HOTEL,
+            hotel: true,
         );
         $idObed = $this->vytvorPredmetJidlo('Oběd pátek', DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
 
@@ -217,7 +236,7 @@ SQL,
         $idHotel = $this->vytvorPredmetUbytovani(
             'Dvojlůžák čtvrtek',
             DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
-            PodtypPredmetu::HOTEL,
+            hotel: true,
         );
         $idSnidanePatek = $this->vytvorPredmetJidlo('Snídaně pátek', DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK);
         $idSnidaneSobota = $this->vytvorPredmetJidlo('Snídaně sobota', DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA);
