@@ -7,6 +7,9 @@
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
+
 if (post('zmenitUdaj') && $uPracovni) {
     $udaje = post('udaj');
     if ($udaje['op'] ?? null) {
@@ -16,6 +19,12 @@ if (post('zmenitUdaj') && $uPracovni) {
     if (isset($udaje['kontrola'])) {
         $uPracovni->nastavZkontrolovaneUdaje($u, (bool)$udaje['kontrola']);
         unset($udaje['kontrola']);
+    }
+    if (isset($udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU])) {
+        $zpusobZobrazeniNaWebu = (int) $udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU];
+        $udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] = ZpusobZobrazeniNaWebu::jePlatny($zpusobZobrazeniNaWebu)
+            ? $zpusobZobrazeniNaWebu
+            : ZpusobZobrazeniNaWebu::vychozi();
     }
     try {
         dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);

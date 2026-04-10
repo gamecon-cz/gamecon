@@ -150,6 +150,11 @@ class UserEntityStructure
     public const statniObcanstvi = 'statniObcanstvi';
 
     /**
+     * @see User::$zpusobZobrazeniNaWebu
+     */
+    public const zpusobZobrazeniNaWebu = 'zpusobZobrazeniNaWebu';
+
+    /**
      * @see User::$zRychloregistrace
      */
     public const zRychloregistrace = 'zRychloregistrace';

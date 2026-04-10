@@ -165,6 +165,11 @@ class UserSqlStructure
     public const statni_obcanstvi = 'statni_obcanstvi';
 
     /**
+     * @see User::$zpusobZobrazeniNaWebu
+     */
+    public const zpusob_zobrazeni_na_webu = 'zpusob_zobrazeni_na_webu';
+
+    /**
      * @see User::$zRychloregistrace
      */
     public const z_rychloregistrace = 'z_rychloregistrace';

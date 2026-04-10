@@ -8,6 +8,7 @@ use App\Entity\Enum\GenderEnum;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 /**
  * Legacy @see \Gamecon\Uzivatel
@@ -110,6 +111,11 @@ class User
 
     #[ORM\Column(name: 'statni_obcanstvi', length: 64, nullable: true)]
     private ?string $statniObcanstvi = null;
+
+    #[ORM\Column(name: 'zpusob_zobrazeni_na_webu', type: Types::SMALLINT, nullable: false, options: [
+        'default' => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+    ])]
+    private int $zpusobZobrazeniNaWebu = ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA;
 
     #[ORM\Column(name: 'z_rychloregistrace', type: Types::BOOLEAN, nullable: true, options: [
         'default' => 0,
@@ -449,6 +455,18 @@ class User
     public function setStatniObcanstvi(?string $statniObcanstvi): static
     {
         $this->statniObcanstvi = $statniObcanstvi;
+
+        return $this;
+    }
+
+    public function getZpusobZobrazeniNaWebu(): int
+    {
+        return $this->zpusobZobrazeniNaWebu;
+    }
+
+    public function setZpusobZobrazeniNaWebu(int $zpusobZobrazeniNaWebu): static
+    {
+        $this->zpusobZobrazeniNaWebu = $zpusobZobrazeniNaWebu;
 
         return $this;
     }

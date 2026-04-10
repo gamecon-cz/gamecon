@@ -80,7 +80,7 @@ foreach ($skupiny as $skupina) {
 
         $vypravec = current($aktivita->organizatori());
         if ($vypravec && ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0)) {
-            $t->assign('vypravec', $vypravec->jmenoNick());
+            $t->assign('vypravec', $vypravec->jmenoNaWebu());
             $t->parse('aktivity.aktivita.termin.vypravec');
         }
 
@@ -97,12 +97,12 @@ foreach ($skupiny as $skupina) {
     $organizatori = implode(', ', array_map(static function (
         Uzivatel $organizator,
     ) {
-        $url = $organizator->url(true);
+        $jmenoNaWebu = $organizator->jmenoNaWebu();
 
-        return $url === null
+        return $organizator->url() === null
             // asi vypravěčská skupina nebo podobně
-            ? $organizator->jmenoNick()
-            : '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
+            ? $jmenoNaWebu
+            : '<a href="' . $organizator->id() . '">' . $jmenoNaWebu . '</a>';
     }, $aktivita->organizatori()));
 
     $obrazek = $aktivita->obrazek();
@@ -133,9 +133,9 @@ $this->info()->obrazek(null);
 
 if (!empty($org)) {
     /** @var Uzivatel $org */
-    $this->info()->nazev($org->jmenoNick());
+    $this->info()->nazev($org->jmenoNaWebu());
     $t->assign([
-        'jmeno' => $org->jmenoNick(),
+        'jmeno' => $org->jmenoNaWebu(),
         'popis' => $org->oSobe()
             ?: '<p><em>popisek od vypravěče nemáme</em></p>',
         'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
