@@ -149,10 +149,19 @@ if (!empty($org)) {
         [$typ->id()],
     );
 
-    $picture_path = 'soubory/systemove/linie-ikony/org_' . $typ->id() . '.jpg';
-
-    if (!is_file($picture_path)) {
-        $picture_path = "soubory/obsah/obrazky/organizatori/flant.jpg";
+    $picture_path = null;
+    foreach (['jpg', 'jpeg', 'png', 'webp', 'gif'] as $priponaObrazkuLinie) {
+        $moznaCesta = 'soubory/systemove/linie-ikony/org_' . $typ->id() . '.' . $priponaObrazkuLinie;
+        if (is_file($moznaCesta)) {
+            $picture_path = $moznaCesta;
+            break;
+        }
+    }
+    if (!$picture_path) {
+        $picture_path = 'soubory/systemove/linie-ikony/' . $typ->id() . '.png';
+        if (!is_file($picture_path)) {
+            $picture_path = 'soubory/systemove/avatary/default.png';
+        }
     }
 
     /* 'ikonaLiniePopis' => $varIkonaLiniePopis, */
@@ -173,6 +182,7 @@ if (!empty($org)) {
 
     if (!$systemoveNastaveni->jsmeNaOstre() && $u && $u->jeOrganizator()) {
         $t->assign('urlEditaceStranek', URL_ADMIN . '/web/editace-stranek');
+        $t->assign('urlEditaceHlavickyLinie', URL_ADMIN . '/web/hlavicky-linii');
         $t->assign('prikladUrlStranky', $typ->url() . '/nemas-zdani-co-je-k-mani');
         $t->parse('aktivity.strankaNavod');
     }
