@@ -1,0 +1,124 @@
+<!-- begin: hlavickyLinii -->
+
+<style>
+  .hlavicky-linii {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .hlavicky-linii th,
+  .hlavicky-linii td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+  }
+
+  .hlavicky-linii input[type="text"],
+  .hlavicky-linii input[type="email"] {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .hlavicky-linii__meta {
+    color: #555;
+    font-size: 0.9em;
+  }
+
+  .hlavicky-linii__preview {
+    display: block;
+    width: 120px;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: #f3f3f3;
+    margin-bottom: 8px;
+  }
+
+  .hlavicky-linii__form {
+    margin-bottom: 8px;
+  }
+
+  .hlavicky-linii__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+</style>
+
+<p>
+  Tady se upravuje text a obrázek v hlavičce programové linie na webu aktivit.
+  Když necháš všechna textová pole prázdná, použije se fallback. Obrázek se ukládá jako
+  <code>org_&lt;id_typu&gt;.&lt;pripona&gt;</code>, kde podporujeme JPG, PNG, WebP a GIF.
+  Pokud nový obrázek chybí, web ještě vezme starší <code>&lt;id_typu&gt;.png</code>, pokud existuje.
+</p>
+
+<table class="hlavicky-linii">
+  <thead>
+  <tr>
+    <th>Linie</th>
+    <th>Texty</th>
+    <th>Obrázek</th>
+  </tr>
+  </thead>
+  <tbody>
+  <!-- begin: radek -->
+  <tr>
+    <td>
+      <strong>{typ_1pmn}</strong><br>
+      <span class="hlavicky-linii__meta">ID {id_typu}, URL <code>{url_typu_mn}</code></span><br>
+      <a href="{verejna_url_linie}" target="_blank">otevřít veřejnou stránku</a>
+    </td>
+    <td>
+      <form method="post" class="hlavicky-linii__form">
+        <input type="hidden" name="action" value="save-line-header">
+        <input type="hidden" name="id_typu" value="{id_typu}">
+
+        <label>
+          Sekce<br>
+          <input type="text" name="sekce" value="{sekce}">
+        </label><br><br>
+
+        <label>
+          Jméno<br>
+          <input type="text" name="jmeno" value="{jmeno}">
+        </label><br><br>
+
+        <label>
+          E-mail<br>
+          <input type="email" name="email" value="{email}">
+        </label><br><br>
+
+        <button type="submit" class="tlacitko">Uložit texty</button>
+      </form>
+    </td>
+    <td>
+      <img class="hlavicky-linii__preview" src="{obrazek_url}" alt="Náhled obrázku linie {typ_1pmn}">
+      <div class="hlavicky-linii__meta">
+        Cesta: <code>{obrazek_cesta}</code><br>
+        {obrazek_stav}
+      </div>
+      <br>
+
+      <form method="post" enctype="multipart/form-data" class="hlavicky-linii__form">
+        <input type="hidden" name="action" value="upload-line-header-image">
+        <input type="hidden" name="id_typu" value="{id_typu}">
+
+        <div class="hlavicky-linii__actions">
+          <input type="file" name="obrazek" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" required>
+          <button type="submit" class="tlacitko">Nahrát obrázek</button>
+        </div>
+      </form>
+
+      <form method="post">
+        <input type="hidden" name="action" value="delete-line-header-image">
+        <input type="hidden" name="id_typu" value="{id_typu}">
+        <button type="submit" class="tlacitko">Smazat vlastní obrázek</button>
+      </form>
+    </td>
+  </tr>
+  <!-- end: radek -->
+  </tbody>
+</table>
+
+<!-- end: hlavickyLinii -->
