@@ -227,6 +227,7 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         ),
         'A' => 
         array (
+            'App\\Tests\\' => 10,
             'App\\' => 4,
             'ApiPlatform\\' => 12,
         ),
@@ -736,6 +737,10 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'BaconQrCode\\' => 
         array (
             0 => __DIR__ . '/..' . '/bacon/bacon-qr-code/src',
+        ),
+        'App\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/symfony/tests',
         ),
         'App\\' => 
         array (

@@ -20,12 +20,15 @@ class FileLockTest extends TestCase
 
     protected function tearDown(): void
     {
-        $files = glob($this->tempDir . '/locks/*');
-        if ($files) {
-            array_map('unlink', $files);
+        $locksDir = $this->tempDir . '/locks';
+        if (is_dir($locksDir)) {
+            $files = glob($locksDir . '/*');
+            if ($files) {
+                array_map('unlink', $files);
+            }
+            rmdir($locksDir);
         }
-        @rmdir($this->tempDir . '/locks');
-        @rmdir($this->tempDir);
+        rmdir($this->tempDir);
     }
 
     private function createFileLock(): FileLock

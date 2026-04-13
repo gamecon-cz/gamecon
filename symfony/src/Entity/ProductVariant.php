@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Enum\RoleMeaning;
 use App\Repository\ProductVariantRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -18,10 +25,46 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * Price and reserved_for_organizers are nullable — null means "inherit from parent Product".
  * remaining_quantity is per-variant (each size has its own stock).
+ *
+ * Two write paths are exposed:
+ * - Nested via Product: admins edit a product and all its variants as a
+ *   single form, submitting PATCH /products/{id} with the whole nested body.
+ *   Doctrine `cascade` + `orphanRemoval` handle create/update/delete.
+ * - Direct CRUD: GET/POST/PUT/PATCH/DELETE on /product_variants, useful for
+ *   future AJAX flows like inventory quick-edit that bump remainingQuantity
+ *   without round-tripping the whole parent product.
  */
 #[ORM\Entity(repositoryClass: ProductVariantRepository::class)]
 #[ORM\Table(name: 'product_variant')]
 #[ORM\UniqueConstraint(name: 'UNIQ_variant_code', columns: ['code'])]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+        new Get(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+        new Post(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+        new Put(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+        new Patch(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+        new Delete(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+    ],
+    normalizationContext: [
+        'groups' => ['variant:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['variant:write'],
+    ],
+)]
 class ProductVariant
 {
     #[ORM\Id]
@@ -34,7 +77,7 @@ class ProductVariant
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'variants')]
     #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id_predmetu', nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['variant:read'])]
+    #[Groups(['variant:read', 'variant:write'])]
     private Product $product;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]

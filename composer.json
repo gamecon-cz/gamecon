@@ -93,6 +93,7 @@
     "autoload-dev": {
         "psr-4": {
             "Gamecon\\Tests\\": "tests",
+            "App\\Tests\\": "symfony/tests",
             "Godric\\DbMigrations\\": "migrace/pomocne/db-migrations/src"
         }
     },

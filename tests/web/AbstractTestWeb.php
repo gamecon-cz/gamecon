@@ -142,9 +142,10 @@ SQL;
         do {
             $multiInfo = curl_multi_info_read($multiCurl, $remainingMessages);
             if ($multiInfo) {
-                ['result' => $resultCode] = $multiInfo;
+                ['result' => $resultCode, 'handle' => $failedHandle] = $multiInfo;
                 if ($resultCode !== CURLE_OK) {
-                    $errors[] = sprintf('Nelze číst ze serveru: %s (%d)', curl_strerror($resultCode), $resultCode);
+                    $failedUrl = curl_getinfo($failedHandle, CURLINFO_EFFECTIVE_URL);
+                    $errors[] = sprintf("Nelze číst ze serveru '%s': %s (%d)", $failedUrl, curl_strerror($resultCode), $resultCode);
                 }
             }
         } while ($multiInfo && $remainingMessages);

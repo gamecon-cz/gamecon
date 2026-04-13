@@ -1,7 +1,7 @@
 <?php
 
-use App\Entity\ProductTag;
 use Gamecon\Role\Role;
+use Gamecon\Shop\PodtypPredmetu;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -52,7 +52,7 @@ $o                        = dbQuery(<<<SQL
              poradi_dne DESC,
              poradi_jidla DESC
 SQL,
-    [0 => ProductTag::HOTEL],
+    [0 => PodtypPredmetu::HOTEL],
 );
 
 $res = [];

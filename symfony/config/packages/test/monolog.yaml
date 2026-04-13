@@ -1,0 +1,6 @@
+services:
+    logger:
+        class: App\Tests\Log\TestLogger
+        public: true
+
+    App\Tests\Log\TestLogger: '@logger'

@@ -1,0 +1,116 @@
+.produkty {
+  font-family: Arial, sans-serif;
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+
+    th, td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f4f4f4;
+      font-weight: 600;
+    }
+
+    tr:hover td {
+      background: #fafafa;
+    }
+  }
+
+  &__actions {
+    white-space: nowrap;
+  }
+
+  &__button {
+    padding: 4px 10px;
+    margin-right: 4px;
+    border: 1px solid #888;
+    background: #fff;
+    cursor: pointer;
+
+    &--primary {
+      background: #3a7;
+      color: #fff;
+      border-color: #285;
+    }
+
+    &--danger {
+      background: #c44;
+      color: #fff;
+      border-color: #922;
+    }
+  }
+
+  &__editor {
+    border: 1px solid #888;
+    background: #fff;
+    padding: 1em;
+    margin: 1em 0;
+
+    h4 {
+      margin-top: 0;
+    }
+  }
+
+  &__field {
+    display: block;
+    margin-bottom: 0.5em;
+    cursor: pointer;
+
+    > span:first-child {
+      display: inline-block;
+      min-width: 180px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="datetime-local"],
+    textarea,
+    select {
+      padding: 3px 6px;
+      min-width: 240px;
+    }
+  }
+
+  &__variants {
+    margin-top: 1em;
+    border-top: 1px dashed #888;
+    padding-top: 1em;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th, td {
+        padding: 4px 6px;
+        border-bottom: 1px solid #eee;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+      }
+    }
+  }
+
+  &__error {
+    color: #c00;
+    background: #fee;
+    border: 1px solid #c00;
+    padding: 6px 10px;
+    margin: 0.5em 0;
+  }
+
+  &__loading {
+    color: #666;
+    font-style: italic;
+  }
+}

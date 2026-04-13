@@ -131,6 +131,7 @@ return array(
     'DASPRiD\\Enum\\' => array($vendorDir . '/dasprid/enum/src'),
     'Composer\\Semver\\' => array($vendorDir . '/composer/semver/src'),
     'BaconQrCode\\' => array($vendorDir . '/bacon/bacon-qr-code/src'),
+    'App\\Tests\\' => array($baseDir . '/symfony/tests'),
     'App\\' => array($baseDir . '/symfony/src'),
     'ApiPlatform\\' => array($vendorDir . '/api-platform/core/src'),
 );

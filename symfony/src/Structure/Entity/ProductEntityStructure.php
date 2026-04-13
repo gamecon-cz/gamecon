@@ -50,6 +50,11 @@ class ProductEntityStructure
     public const accommodationDay = 'accommodationDay';
 
     /**
+     * @see Product::$breakfastIncluded
+     */
+    public const breakfastIncluded = 'breakfastIncluded';
+
+    /**
      * @see Product::$description
      */
     public const description = 'description';

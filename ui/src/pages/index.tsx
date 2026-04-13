@@ -1,6 +1,7 @@
 import { Program } from "./program";
 import { Obchod } from "./obchod";
 import { ObchodNastaveni } from "./obchodNastaveni";
+import { Předměty } from "./předměty";
 import { JídloMatice } from "./jidlo/JídloMatice";
 import { Fragment, FunctionComponent, JSX, render } from "preact";
 import { GAMECON_KONSTANTY } from "../env";
@@ -33,4 +34,5 @@ export const renderPages = () => {
   renderComponent("preact-program", Program, ProgramWrapper);
   renderComponent("preact-obchod", Obchod);
   renderComponent("preact-jidlo", JídloMatice);
+  renderComponent("preact-předměty", Předměty);
 };
