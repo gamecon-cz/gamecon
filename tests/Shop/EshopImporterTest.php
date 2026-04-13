@@ -45,6 +45,7 @@ class EshopImporterTest extends AbstractTestDb
         'ubytovani_den',
         'popis',
         'vedlejsi',
+        'snidane_v_cene',
     ];
 
     private function createXlsxSoubor(array $radky): string
@@ -64,16 +65,17 @@ class EshopImporterTest extends AbstractTestDb
     private function defaultniRadek(array $prepisVrednosti = []): array
     {
         $radek = [
-            'nazev'         => 'Testovací předmět',
-            'kod_predmetu'  => 'TEST_KOD',
-            'cena_aktualni' => '199.00',
-            'stav'          => StavPredmetu::VEREJNY,
-            'nabizet_do'    => '2025-12-31',
-            'kusu_vyrobeno' => 100,
-            'tag'           => 'predmet',
-            'ubytovani_den' => '',
-            'popis'         => 'Popis předmětu',
-            'vedlejsi'      => 0,
+            'nazev'          => 'Testovací předmět',
+            'kod_predmetu'   => 'TEST_KOD',
+            'cena_aktualni'  => '199.00',
+            'stav'           => StavPredmetu::VEREJNY,
+            'nabizet_do'     => '2025-12-31',
+            'kusu_vyrobeno'  => 100,
+            'tag'            => 'predmet',
+            'ubytovani_den'  => '',
+            'popis'          => 'Popis předmětu',
+            'vedlejsi'       => 0,
+            'snidane_v_cene' => 0,
         ];
 
         return array_merge($radek, $prepisVrednosti);

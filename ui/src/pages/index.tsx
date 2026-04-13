@@ -2,6 +2,7 @@ import { Program } from "./program";
 import { Obchod } from "./obchod";
 import { ObchodNastaveni } from "./obchodNastaveni";
 import { AktivityApp } from "./aktivity";
+import { Předměty } from "./předměty";
 import { JídloMatice } from "./jidlo/JídloMatice";
 import { FunctionComponent, render } from "preact";
 
@@ -25,4 +26,5 @@ export const renderPages = () => {
   renderComponent("preact-obchod", Obchod);
   renderComponent("preact-aktivity-modal", AktivityApp);
   renderComponent("preact-jidlo", JídloMatice);
+  renderComponent("preact-předměty", Předměty);
 };

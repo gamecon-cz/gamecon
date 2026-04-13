@@ -13,24 +13,53 @@ export type ApiProduct = {
   code: string;
   currentPrice: string;
   state: number;
+  availableUntil: string | null;
+  producedQuantity: number | null;
   accommodationDay: number | null;
+  breakfastIncluded: boolean;
+  description: string;
+  reservedForOrganizers: number | null;
   tags: ApiProductTag[];
   variants: ApiProductVariant[];
 };
 
 export type ApiProductTag = {
+  "@id"?: string;
   code: string;
   name: string;
+  description?: string | null;
 };
 
 export type ApiProductVariant = {
-  id: number;
+  "@id"?: string;
+  id?: number;
   name: string;
   code: string;
   price: string | null;
   remainingQuantity: number | null;
+  reservedForOrganizers: number | null;
   accommodationDay: number | null;
   position: number;
+};
+
+/**
+ * Write-shape payload for POST /products and PATCH /products/{id}.
+ * `id` is omitted for new rows. Tags are sent as IRI strings. Variants
+ * omitted from the array are removed via orphanRemoval.
+ */
+export type ApiProductWrite = {
+  name: string;
+  code: string;
+  currentPrice: string;
+  state: number;
+  availableUntil: string | null;
+  producedQuantity: number | null;
+  accommodationDay: number | null;
+  breakfastIncluded: boolean;
+  description: string;
+  reservedForOrganizers: number | null;
+  tags: string[]; // ProductTag IRIs
+  variants: ApiProductVariant[];
 };
 
 export type ApiCartItem = {

@@ -10,7 +10,6 @@ use Gamecon\Pravo;
 use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
-use App\Entity\ProductTag;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
@@ -263,7 +262,7 @@ WHERE shop_nakupy_snidane.id_uzivatele = $0
         ) AS dny_hotelu
     )
 SQL,
-            [0 => $ucastnik->id(), 1 => $rok, 2 => ProductTag::HOTEL],
+            [0 => $ucastnik->id(), 1 => $rok, 2 => PodtypPredmetu::HOTEL],
         );
 
         return dbAffectedOrNumRows($mysqliResult);
@@ -966,7 +965,7 @@ SQL,
             return false;
         }
         foreach ($this->ubytovanPoDnech[$den] as $detail) {
-            if ($detail['kusu_uzivatele'] > 0 && ($detail['podtyp'] ?? null) === ProductTag::HOTEL) {
+            if ($detail['kusu_uzivatele'] > 0 && ($detail['podtyp'] ?? null) === PodtypPredmetu::HOTEL) {
                 return true;
             }
         }
