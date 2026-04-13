@@ -23,7 +23,8 @@ if (post('rozebratTym')) {
     $kodTymu = (int)post('kodTymu');
     $idAkce  = (int)post('idAkce');
     if ($kodTymu > 0 && $idAkce > 0) {
-        AktivitaTym::rozebratTym($kodTymu, $idAkce);
+        AktivitaTym::najdiPodleKodu($idAkce, $kodTymu)
+            ->rozebratTym();
     }
     header('Location: ' . $_SERVER['REQUEST_URI']);
     exit;

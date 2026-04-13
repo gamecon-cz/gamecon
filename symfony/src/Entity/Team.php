@@ -45,6 +45,7 @@ class Team
     ])]
     private bool $verejny = false;
 
+    // todo(tym): tým má vždy jen jednu aktivutu
     /**
      * @var Collection<int, Activity>
      */

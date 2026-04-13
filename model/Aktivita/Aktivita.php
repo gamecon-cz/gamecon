@@ -2297,7 +2297,6 @@ SQL
         }
     }
 
-    // todo(tym): nějaká cache? (nezávisle na referenční identitě na idDeti)
     /**
      * Vrátí řetězec detí z této aktivity. řetězec musí být jasně definovaný, pokud má nějaká aktivita více dětí, pak musí být alespoň jedno z nich $idDeti aby bylo vybráno jinak funkce spadne.
      */
@@ -2413,7 +2412,8 @@ SQL
 
         if ($this->tymova()) {
             $kodTymu = $tym ? $tym->getKod() : 0;
-            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, (bool)(self::IGNOROVAT_LIMIT & $parametry));
+            // tady už ke kontrole na přihlášení došlo předtím.
+            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, false);
         }
 
         // odhlášení náhradnictví v kolidujících aktivitách
@@ -2488,6 +2488,9 @@ SQL
         }
     }
 
+    /**
+     * Zkontroluje zda se může přihlásit do týmu, pokud není tým, tak zkontroluje zda může tým založit.
+     */
     public function zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite(
         int      $parametry = 0,
         ?AktivitaTym $tym = null,
@@ -2499,7 +2502,7 @@ SQL
 
         if ($tym) {
             $tym->zkontrolujVolnouKapacitu();
-        } elseif (!AktivitaTym::pocetVolnychMistVVerejnychTymech($this->id())) {
+        } else {
             AktivitaTym::zkontrolujMuzeZalozitTym($this->id());
         }
     }
@@ -2518,7 +2521,6 @@ SQL
         }
     }
 
-    // todo(tym): existuje situace kdy mají netýmové aktivity taky děti ?
     private function zkontrolujPrihlaseniNavazujicichAktivit(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
@@ -2539,7 +2541,6 @@ SQL
 
         if ($this->tymova()) {
             // pokud je tymova, pak má tým už zajištěné místa tím že je na aktivitu zapsaný
-            // todo(tym): tohle má být parametr co říká že se neřeší kapacita aktivity ?
             $parametry |= self::IGNOROVAT_LIMIT;
         }
 

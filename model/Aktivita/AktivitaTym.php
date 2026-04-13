@@ -34,7 +34,7 @@ class AktivitaTym extends \DbObject
         return new self($team, $idAktivity);
     }
 
-    /** Najde tým podle kódu (4místný kód platný v rámci aktivity). */
+    /** Najde tým podle kódu, který účastníci používají k přihlašování. */
     public static function najdiPodleKodu(int $idAktivity, int $kodTymu): self
     {
         $team = self::teamRepository()->findByKodNaAktivite($idAktivity, $kodTymu)
@@ -44,7 +44,7 @@ class AktivitaTym extends \DbObject
     }
 
     /** Vrátí tým uživatele na aktivitě, nebo null pokud v žádném týmu není. */
-    public static function proUzivatele(int $idUzivatele, int $idAktivity): ?self
+    public static function najdiPodleUzivateleAktivity(int $idUzivatele, int $idAktivity): ?self
     {
         $idTymu = self::service()->idTymuUzivatele($idUzivatele, $idAktivity);
         if ($idTymu === null) {
@@ -99,38 +99,38 @@ class AktivitaTym extends \DbObject
 
     public function nastavVerejnost(bool $verejny): void
     {
-        self::service()->nastavVerejnostTymu($this->getKod(), $this->idAktivity, $verejny);
+        self::service()->nastavVerejnostTymu($this->getId(), $verejny);
     }
 
     public function pregenerujKod(): int
     {
-        return self::service()->pregenerujKodTymu($this->getKod(), $this->idAktivity);
+        return self::service()->pregenerujKodTymu($this->getId());
     }
 
     public function nastavKapitana(int $idNovehoKapitana): void
     {
-        self::service()->nastavKapitana($this->getKod(), $this->idAktivity, $idNovehoKapitana);
+        self::service()->nastavKapitana($this->getId(), $idNovehoKapitana);
     }
 
     public function casZalozeniMs(): ?int
     {
-        return self::service()->casZalozeniMs($this->getKod(), $this->idAktivity);
+        return self::service()->casZalozeniMs($this->getId());
     }
 
     public function limitTymu(): ?int
     {
-        return self::service()->limitTymu($this->getKod(), $this->idAktivity);
+        return self::service()->limitTymu($this->getId());
     }
 
     public function nastavLimit(int $limit): void
     {
-        self::service()->nastavLimitTymu($this->getKod(), $this->idAktivity, $limit);
+        self::service()->nastavLimitTymu($this->getId(), $limit);
     }
 
     /** @return \Uzivatel[] seřazení: kapitán první, pak ostatní podle pořadí přihlášení */
     public function clenoveTymu(): array
     {
-        return self::service()->clenoveTymu($this->getKod(), $this->idAktivity);
+        return self::service()->clenoveTymu($this->getId());
     }
 
     /**
@@ -150,8 +150,9 @@ class AktivitaTym extends \DbObject
     // ====== STATICKÉ — OPERACE NA ÚROVNI AKTIVITY ======
 
     // todo(tym): Je potřeba zajistit že před přidáním účastníka do týmu je přihlášený na všechny aktivity týmu
-    // todo(tym): dochází ke zdvojené kontrole na kapacitu
-    // todo(tym): předávat tým a ne kód týmu
+    /**
+     * Využívá kód porotože nemusí tým na aktivitě nezbytně existovat. Verze s id týmu je taky možnost.
+     */
     public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu, bool $ignorovatLimity = false): void
     {
         self::service()->prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, $ignorovatLimity);
@@ -219,9 +220,9 @@ class AktivitaTym extends \DbObject
         return self::service()->pocetVolnychMistVVerejnychTymech($idAktivity);
     }
 
-    public static function rozebratTym(int $kodTymu, int $idAktivity): void
+    public function rozebratTym(): void
     {
-        self::service()->rozebratTym($kodTymu, $idAktivity);
+        self::service()->rozebratTym($this->getId());
     }
 
     public function jeRozpracovany(): bool
@@ -259,11 +260,6 @@ class AktivitaTym extends \DbObject
     public static function casZalozeniTymuUzivatele(int $idUzivatele, int $idAktivity): ?int
     {
         return self::service()->casZalozeniTymuUzivatele($idUzivatele, $idAktivity);
-    }
-
-    public static function vratKodTymuProUzivatele(int $idUzivatele, int $idAktivity): int
-    {
-        return self::service()->vratKodTymuProUzivatele($idUzivatele, $idAktivity);
     }
 
     private static function service(): AktivitaTymService

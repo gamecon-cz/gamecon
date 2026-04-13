@@ -117,9 +117,6 @@ $uzivatelId = array_key_exists('uzivatelId', $_GET)
     ? (int)$_GET['uzivatelId']
     : $u->id();
 
-$kod = AktivitaTym::vratKodTymuProUzivatele($uzivatelId, $aktivitaId);
-$response['kod'] = $kod;
-
 // čas aktivity + příznak předpřípravy
 $aktivita = Aktivita::zId($aktivitaId);
 if ($aktivita) {
@@ -131,9 +128,11 @@ if ($aktivita) {
         : '';
 }
 
+$tym = AktivitaTym::najdiPodleUzivateleAktivity($uzivatelId, $aktivitaId);
+
 // info o týmu uživatele
-if ($kod) {
-    $tym               = AktivitaTym::najdiPodleKodu($aktivitaId, $kod);
+if ($tym) {
+    $response['kod'] = $tym->getKod();
     $response['verejny']    = $tym->isVerejny();
     $response['jeKapitan']  = $tym->jeKapitanem($uzivatelId);
     $response['casZalozeniMs'] = $tym->casZalozeniMs();
