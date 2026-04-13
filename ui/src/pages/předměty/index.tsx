@@ -1,0 +1,1 @@
+export { Předměty } from "./app";

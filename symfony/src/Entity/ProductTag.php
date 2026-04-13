@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Partials\WithTimestampsInterface;
 use App\Entity\Partials\WithTimestampsTrait;
 use App\Repository\ProductTagRepository;
@@ -51,11 +54,23 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'product_tag')]
 #[ORM\UniqueConstraint(name: 'UNIQ_name', columns: ['name'])]
 #[UniqueEntity(fields: ['name'], message: 'Tag s tímto názvem již existuje')]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+        new Get(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+    ],
+    normalizationContext: [
+        'groups' => ['product_tag:read'],
+    ],
+    paginationEnabled: false,
+)]
 class ProductTag implements WithTimestampsInterface
 {
     use WithTimestampsTrait;
-
-    public const HOTEL = 'hotel';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -71,14 +86,15 @@ class ProductTag implements WithTimestampsInterface
         pattern: '/^[a-z0-9\-]+$/',
         message: 'Kód tagu může obsahovat pouze malá písmena, číslice a pomlčky'
     )]
-    #[Groups(['product:read', 'product:list'])]
+    #[Groups(['product:read', 'product:list', 'product_tag:read'])]
     private string $code;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
-    #[Groups(['product:read', 'product:list'])]
+    #[Groups(['product:read', 'product:list', 'product_tag:read'])]
     private ?string $name;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
+    #[Groups(['product_tag:read'])]
     private ?string $description = null;
 
     /**

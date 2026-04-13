@@ -2,14 +2,24 @@
 
 /** @var \Godric\DbMigrations\Migration $this */
 
-// Ensure 'hotel' tag exists (product_tag table was created by new-eshop migration)
+// Add breakfast_included column: boolean attribute on accommodation products
+// that signals "price already includes breakfast" (hotel rooms).
+// Replaces the earlier design that modelled this as a ProductTag 'hotel' —
+// a tag would have been inconsistent with the other category tags
+// (predmet/ubytovani/tricko/jidlo/vstupne/parcon/proplaceni-bonusu), all of
+// which are mutually-exclusive categories, whereas hotel-ness is an attribute
+// that only ever coexists with the ubytovani category.
 $this->q(<<<SQL
-INSERT IGNORE INTO product_tag (code, name, description, created_at)
-VALUES ('hotel', 'Hotel', 'Hotelové ubytování (snídaně v ceně)', NOW())
+ALTER TABLE shop_predmety
+    ADD COLUMN breakfast_included TINYINT(1) NOT NULL DEFAULT 0
+        COMMENT 'True iff cena_aktualni already includes breakfast (e.g. hotel rooms)'
 SQL,
 );
 
-// Migrate podtyp='hotel' → hotel tag and drop column (if it exists)
+// Migrate legacy podtyp='hotel' rows → breakfast_included=1, then drop podtyp.
+// Guarded by column-exists check because the podtyp column was only ever
+// added by migration 2026-03-17-144555_shop-predmety-podtyp.php (ticket 1406)
+// and may be missing on branches that never had it.
 $podtypColumnExists = $this->q(<<<SQL
 SELECT COUNT(*) FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE()
@@ -20,17 +30,9 @@ SQL,
 
 if ($podtypColumnExists) {
     $this->q(<<<SQL
-INSERT INTO product_product_tag (product_id, tag_id)
-SELECT shop_predmety.id_predmetu, product_tag.id
-FROM shop_predmety
-CROSS JOIN product_tag
-WHERE shop_predmety.podtyp = 'hotel'
-  AND product_tag.code = 'hotel'
-  AND NOT EXISTS (
-      SELECT 1 FROM product_product_tag
-      WHERE product_product_tag.product_id = shop_predmety.id_predmetu
-        AND product_product_tag.tag_id = product_tag.id
-  )
+UPDATE shop_predmety
+SET breakfast_included = 1
+WHERE podtyp = 'hotel'
 SQL,
     );
 
