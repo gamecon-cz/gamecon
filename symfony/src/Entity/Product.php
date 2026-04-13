@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Repository\ProductRepository;
+use App\Validator as AppAssert;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -77,6 +78,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 ])]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'currentPrice', 'state'])]
 #[ApiFilter(RangeFilter::class, properties: ['currentPrice', 'producedQuantity'])]
+#[AppAssert\BreakfastIncludedRequiresAccommodation]
 class Product
 {
     #[ORM\Id]
@@ -128,6 +130,12 @@ class Product
     #[Groups(['product:read', 'product:write'])]
     private ?int $accommodationDay = null;
 
+    #[ORM\Column(name: 'breakfast_included', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => false,
+    ])]
+    #[Groups(['product:list', 'product:read', 'product:write'])]
+    private bool $breakfastIncluded = false;
+
     #[ORM\Column(name: 'popis', type: Types::STRING, length: 2000, nullable: false)]
     #[Assert\Length(max: 2000, maxMessage: 'Popis může mít maximálně {{ limit }} znaků')]
     #[Groups(['product:read', 'product:write'])]
@@ -159,7 +167,7 @@ class Product
     #[ORM\OrderBy([
         'position' => 'ASC',
     ])]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private Collection $variants;
 
     /**
@@ -276,6 +284,18 @@ class Product
     public function setAccommodationDay(?int $accommodationDay): self
     {
         $this->accommodationDay = $accommodationDay;
+
+        return $this;
+    }
+
+    public function isBreakfastIncluded(): bool
+    {
+        return $this->breakfastIncluded;
+    }
+
+    public function setBreakfastIncluded(bool $breakfastIncluded): self
+    {
+        $this->breakfastIncluded = $breakfastIncluded;
 
         return $this;
     }

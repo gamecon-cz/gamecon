@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
-use App\Entity\ProductTag;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\Shop\StavPredmetu;
@@ -89,18 +88,22 @@ INSERT INTO shop_predmety SET
     cena_aktualni = 500,
     stav = $2,
     kusu_vyrobeno = 10,
-    ubytovani_den = $3
+    ubytovani_den = $3,
+    breakfast_included = $4
 SQL,
             [
                 0 => $nazev,
                 1 => strtoupper(str_replace(' ', '_', $nazev)) . '_' . $uniqueId,
                 2 => StavPredmetu::VEREJNY,
                 3 => $den,
+                4 => $hotel ? 1 : 0,
             ],
         );
 
         $idPredmetu = dbInsertId();
 
+        // Category tag is always 'ubytovani' — 'hotel' is no longer a tag,
+        // it is the breakfast_included column above.
         dbQuery(
             'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
             [
@@ -108,16 +111,6 @@ SQL,
                 1 => 'ubytovani',
             ],
         );
-
-        if ($hotel) {
-            dbQuery(
-                'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
-                [
-                    0 => $idPredmetu,
-                    1 => ProductTag::HOTEL,
-                ],
-            );
-        }
 
         return $idPredmetu;
     }
