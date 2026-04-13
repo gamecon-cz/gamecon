@@ -212,16 +212,6 @@ class AktivitaTym extends \DbObject
         return self::service()->vsechnyTymy($idAktivity);
     }
 
-    /**
-     * Vrátí počet volných míst ve všech veřejných týmech na aktivitě.
-     * @return int Součet volných míst (limit - počet členů) ve všech veřejných týmech
-     */
-    // todo(tym): tým bez limitu (limit === null) se počítá jako 0 volných míst - pokud tým nemá limit, měl by se asi počítat jako neomezený
-    public static function pocetVolnychMistVVerejnychTymech(int $idAktivity): int
-    {
-        return self::service()->pocetVolnychMistVVerejnychTymech($idAktivity);
-    }
-
     public function rozebratTym(): void
     {
         self::service()->rozebratTym($this->getId());

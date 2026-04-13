@@ -223,19 +223,6 @@ class AktivitaTymService
         return $team?->isVerejny();
     }
 
-    public function pocetVolnychMistVVerejnychTymech(int $idAktivity): int
-    {
-        $tymy = $this->verejneTymy($idAktivity);
-        $volnaMista = 0;
-        foreach ($tymy as $tym) {
-            if ($tym->limit !== null) {
-                $volnaMista += max(0, $tym->limit - $tym->pocetClenu);
-            }
-        }
-
-        return $volnaMista;
-    }
-
     public function jeRozpracovany(int $idTymu): bool
     {
         $team = $this->teamRepository->find($idTymu);
