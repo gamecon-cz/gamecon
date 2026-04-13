@@ -16,7 +16,6 @@ use Gamecon\Aktivita\InfoOTymu;
 use Gamecon\Aktivita\TymVSeznamu;
 use Gamecon\Aktivita\VerejnyTym;
 
-// todo(tym): nahradit hledani kodu a používat místo toho id tymu
 class AktivitaTymService
 {
     private const HAJENI_TEAMU_HODIN = 72;
@@ -31,17 +30,19 @@ class AktivitaTymService
     ) {
     }
 
-    public function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu, bool $ignorovatLimity = false): void
+    public function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $idTymu, bool $ignorovatLimity = false): void
     {
         $this->zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
 
-        if ($kodTymu === 0) {
-            $team = $this->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity);
-        } else {
-            $team = $this->najdiTeamPodleKodu($idAktivity, $kodTymu);
-            if (! $ignorovatLimity) {
-                $this->zkontrolujVolnouKapacituVTymu((int) $team->getId());
-            }
+        $novy = $idTymu === 0;
+        $team = $novy
+            ? $this->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity)
+            : $this->teamRepository->find($idTymu)
+                ?? throw new \Chyba('Nepodařilo se najít tým')
+            ;
+
+        if (!$novy && !$ignorovatLimity) {
+            $this->zkontrolujVolnouKapacituVTymu((int) $team->getId());
         }
 
         $uzivatel = $this->userRepository->find($idUzivatele)
@@ -498,7 +499,7 @@ class AktivitaTymService
 
     public function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): Team
     {
-        if (! $ignorovatLimity) {
+        if (!$ignorovatLimity) {
             $this->zkontrolujMuzeZalozitTym($idAktivity);
         }
 

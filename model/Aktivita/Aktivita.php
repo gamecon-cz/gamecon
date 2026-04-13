@@ -2411,9 +2411,9 @@ SQL
         }
 
         if ($this->tymova()) {
-            $kodTymu = $tym ? $tym->getKod() : 0;
+            $idTymu = $tym ? $tym->getId() : 0;
             // tady už ke kontrole na přihlášení došlo předtím.
-            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, false);
+            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $idTymu, false);
         }
 
         // odhlášení náhradnictví v kolidujících aktivitách

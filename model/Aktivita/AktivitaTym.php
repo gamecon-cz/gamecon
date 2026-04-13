@@ -142,6 +142,9 @@ class AktivitaTym extends \DbObject
         return self::service()->idDalsichAktivitTymu($this->getId(), $vyjmaIdAktivity);
     }
 
+    /**
+     * Pouze hlavní aktivita je důležitá, ostatní aktivity slouží jako hint při možném výběru z více aktivit
+     */
     public function pridejNaAktivitu(int $idAktivity): void
     {
         self::service()->pridejTymNaAktivitu($this->getId(), $idAktivity);
@@ -149,13 +152,12 @@ class AktivitaTym extends \DbObject
 
     // ====== STATICKÉ — OPERACE NA ÚROVNI AKTIVITY ======
 
-    // todo(tym): Je potřeba zajistit že před přidáním účastníka do týmu je přihlášený na všechny aktivity týmu
     /**
-     * Využívá kód porotože nemusí tým na aktivitě nezbytně existovat. Verze s id týmu je taky možnost.
+     * Uživatel je v moment přihlášení, přihlášen na všechny aktivity týmu.
      */
-    public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $kodTymu, bool $ignorovatLimity = false): void
+    public static function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $idTymu, bool $ignorovatLimity = false): void
     {
-        self::service()->prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $kodTymu, $ignorovatLimity);
+        self::service()->prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $idTymu, $ignorovatLimity);
     }
 
     public static function odhlasUzivateleOdTymu(int $idUzivatele, int $idAktivity): void
