@@ -238,7 +238,7 @@ PHPDOC;
         foreach ($associationMappings as $fieldName => $mapping) {
             if (isset($mapping->joinColumns)) {
                 foreach ($mapping->joinColumns as $joinColumn) {
-                    $columnName = $joinColumn['name'];
+                    $columnName = $joinColumn->name;
                     $constants[] = <<<PHPDOC
     /**
      * @see {$shortEntityName}::\${$fieldName}
