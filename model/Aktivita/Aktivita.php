@@ -2384,6 +2384,16 @@ SQL
         $idAktivity = $this->id();
         $idUzivatele = $uzivatel->id();
 
+        // $deti se používá pro kontroly ale i pro přihlašování
+        $deti = [];
+        if (!($parametry & self::IGNOROVAT_DETI)) {
+            $idPreferovanychDeti = [];
+            if ($this->tymova() && $tym) {
+                $idPreferovanychDeti = $tym->idDalsichAktivit();
+            }
+            $deti = $this->ziskejRetezecDeti($idPreferovanychDeti);
+        }
+
         $this->zkontrolujZdaSeMuzePrihlasit(
             $uzivatel,
             $prihlasujici,
@@ -2391,18 +2401,10 @@ SQL
             $jenPritomen,
             $hlaskyVeTretiOsobe,
             $tym,
+            $deti,
         );
 
         if (!($parametry & self::IGNOROVAT_DETI)) {
-            $deti = [];
-            $idPreferovanychDeti = [];
-            if ($this->tymova() && $tym) {
-                // todo(tym): najdi se volá podruhé (poprvé v zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite) - zbytečný DB dotaz
-                // todo(tym): idDalsichAktivit -> divný název funkce
-                $idPreferovanychDeti = $tym->idDalsichAktivit();
-            }
-            $deti = $this->ziskejRetezecDeti($idPreferovanychDeti);
-
             $parametryDeti = self::IGNOROVAT_DETI | self::IGNOROVAT_KONTROLY | $parametry;
             foreach ($deti as $dite) {
                 $dite->prihlas($uzivatel, $prihlasujici, $parametryDeti);
@@ -2516,6 +2518,7 @@ SQL
         }
     }
 
+    // todo(tym): existuje situace kdy mají netýmové aktivity taky děti ?
     private function zkontrolujPrihlaseniNavazujicichAktivit(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
@@ -2523,6 +2526,7 @@ SQL
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
         ?AktivitaTym $tym = null,
+        $deti = [],
     ) {
         if ($parametry & self::IGNOROVAT_DETI) {
             return;
@@ -2538,13 +2542,6 @@ SQL
             // todo(tym): tohle má být parametr co říká že se neřeší kapacita aktivity ?
             $parametry |= self::IGNOROVAT_LIMIT;
         }
-
-        $deti = [];
-        if ($this->tymova() && $tym) {
-            $idDeti = $tym->idDalsichAktivit();
-            $deti   = $this->ziskejRetezecDeti($idDeti);
-        }
-        // todo(tym): existuje situace kdy mají netýmové aktivity taky děti ?
 
         foreach ($deti as $dite) {
             try {
@@ -2570,6 +2567,7 @@ SQL
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
         ?AktivitaTym $tym = null,
+        $deti = [],
     ): void {
         if ($parametry & self::IGNOROVAT_KONTROLY) {
             return;
@@ -2610,7 +2608,15 @@ SQL
             throw new \Chyba('Aktivita není otevřena pro přihlašování' . $duvod);
         }
 
-        $this->zkontrolujPrihlaseniNavazujicichAktivit($uzivatel,$prihlasujici,$parametry,$jenPritomen,$hlaskyVeTretiOsobe,$tym);
+        $this->zkontrolujPrihlaseniNavazujicichAktivit(
+            $uzivatel,
+            $prihlasujici,
+            $parametry,
+            $jenPritomen,
+            $hlaskyVeTretiOsobe,
+            $tym,
+            $deti
+        );
     }
 
     // todo(tym): tohle je asi nesmysl v nové tymove implementaci. Tymova kapacita teď znamená kapacita týmů
