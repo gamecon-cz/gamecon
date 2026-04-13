@@ -32,21 +32,22 @@ class EshopImporter
         $hlavickaKlice = array_map('trim', $row->toArray());
         $hlavicka      = array_flip($hlavickaKlice);
 
-        $pozadovaneSloupce = ['nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'tag', 'ubytovani_den', 'popis', 'vedlejsi'];
+        $pozadovaneSloupce = ['nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'tag', 'ubytovani_den', 'popis', 'vedlejsi', 'snidane_v_cene'];
         if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
             throw new \Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
         }
 
-        $indexNazev        = $hlavicka['nazev'];
-        $indexKodPredmetu  = $hlavicka['kod_predmetu'];
-        $indexCenaAktualni = $hlavicka['cena_aktualni'];
-        $indexStav         = $hlavicka['stav'];
-        $indexNabizetDo    = $hlavicka['nabizet_do'];
-        $indexKusuVyrobeno = $hlavicka['kusu_vyrobeno'];
-        $indexTag          = $hlavicka['tag'];
-        $indexUbytovaniDen = $hlavicka['ubytovani_den'];
-        $indexPopis        = $hlavicka['popis'];
-        $indexVedlejsi     = $hlavicka['vedlejsi'];
+        $indexNazev         = $hlavicka['nazev'];
+        $indexKodPredmetu   = $hlavicka['kod_predmetu'];
+        $indexCenaAktualni  = $hlavicka['cena_aktualni'];
+        $indexStav          = $hlavicka['stav'];
+        $indexNabizetDo     = $hlavicka['nabizet_do'];
+        $indexKusuVyrobeno  = $hlavicka['kusu_vyrobeno'];
+        $indexTag           = $hlavicka['tag'];
+        $indexUbytovaniDen  = $hlavicka['ubytovani_den'];
+        $indexPopis         = $hlavicka['popis'];
+        $indexVedlejsi      = $hlavicka['vedlejsi'];
+        $indexSnidaneVCene  = $hlavicka['snidane_v_cene'];
 
         $rowIterator->next();
 
@@ -123,6 +124,7 @@ class EshopImporter
                         $cisloNeboNull($radek[$indexUbytovaniDen]),
                         $radek[$indexPopis],
                         (int) ((string) ($radek[$indexVedlejsi] ?? 0)),
+                        (int) (bool) ($radek[$indexSnidaneVCene] ?? false),
                     ]) . ')';
             }
         }
@@ -149,6 +151,7 @@ CREATE TEMPORARY TABLE `$temporaryTable` (
     `ubytovani_den` SMALLINT DEFAULT NULL,
     `popis` VARCHAR(2000) NOT NULL DEFAULT '',
     `vedlejsi` TINYINT(1) NOT NULL DEFAULT 0,
+    `snidane_v_cene` TINYINT(1) NOT NULL DEFAULT 0,
     UNIQUE KEY (`kod_predmetu`)
 )
 SQL,
@@ -157,7 +160,7 @@ SQL,
             $sqlValues = implode(",\n", $sqlValuesArray);
 
             dbQuery(<<<SQL
-INSERT INTO `$temporaryTable` (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `ubytovani_den`, `popis`, `vedlejsi`)
+INSERT INTO `$temporaryTable` (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `ubytovani_den`, `popis`, `vedlejsi`, `snidane_v_cene`)
     VALUES
 $sqlValues
 SQL,
@@ -177,6 +180,7 @@ SET
     shop_predmety.ubytovani_den = import.ubytovani_den,
     shop_predmety.popis = import.popis,
     shop_predmety.vedlejsi = import.vedlejsi,
+    shop_predmety.breakfast_included = import.snidane_v_cene,
     shop_predmety.archived_at = NULL
 WHERE TRUE
 SQL,
@@ -185,7 +189,7 @@ SQL,
 
             // Insert new products
             $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_predmety (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `ubytovani_den`, `popis`, `vedlejsi`)
+INSERT INTO shop_predmety (`nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `ubytovani_den`, `popis`, `vedlejsi`, `breakfast_included`)
 SELECT
     import.`nazev`,
     import.`kod_predmetu`,
@@ -195,7 +199,8 @@ SELECT
     import.`kusu_vyrobeno`,
     import.`ubytovani_den`,
     import.`popis`,
-    import.`vedlejsi`
+    import.`vedlejsi`,
+    import.`snidane_v_cene`
 FROM `$temporaryTable` AS import
 LEFT JOIN shop_predmety AS uz_zname
     ON uz_zname.kod_predmetu = import.kod_predmetu

@@ -31,12 +31,7 @@ SELECT
     WHERE product_product_tag.product_id = shop_predmety.id_predmetu
       AND product_tag.code IN ('predmet','ubytovani','tricko','jidlo','vstupne','parcon','proplaceni-bonusu')
     LIMIT 1) AS typ,
-    (SELECT product_tag.code
-    FROM product_product_tag
-    JOIN product_tag ON product_product_tag.tag_id = product_tag.id
-    WHERE product_product_tag.product_id = shop_predmety.id_predmetu
-      AND product_tag.code = 'hotel'
-    LIMIT 1) AS podtyp,
+    CASE WHEN shop_predmety.breakfast_included THEN _utf8mb4'hotel' COLLATE utf8mb4_czech_ci ELSE NULL END AS podtyp,
     CASE WHEN shop_predmety.archived_at IS NULL
          THEN (SELECT CAST(hodnota AS UNSIGNED) FROM systemove_nastaveni WHERE klic = 'ROCNIK' LIMIT 1)
          ELSE YEAR(shop_predmety.archived_at)

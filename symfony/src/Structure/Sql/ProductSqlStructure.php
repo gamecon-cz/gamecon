@@ -52,6 +52,11 @@ class ProductSqlStructure
     public const ubytovani_den = 'ubytovani_den';
 
     /**
+     * @see Product::$breakfastIncluded
+     */
+    public const breakfast_included = 'breakfast_included';
+
+    /**
      * @see Product::$description
      */
     public const popis = 'popis';
