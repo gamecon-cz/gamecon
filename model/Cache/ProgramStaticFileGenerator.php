@@ -63,29 +63,25 @@ class ProgramStaticFileGenerator implements ResetInterface
                 'vypraveci'   => $vypraveci,
                 'stitkyId'    => $stitkyId,
                 'cenaZaklad'  => intval($activity->cenaZaklad()),
-                'casText'     => $zacatekAktivity
-                    ? $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00'
-                    : '',
-                'cas' => [
+                'casText'     => $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00',
+                'cas'         => [
                     'od' => $zacatekAktivity->getTimestamp() * 1000,
                     'do' => $konecAktivity->getTimestamp() * 1000,
                 ],
-                'linie'         => $activity->typ()->nazev(),
-                'vBudoucnu'     => $activity->vBudoucnu(),
-                'vdalsiVlne'    => $activity->vDalsiVlne(),
-                'probehnuta'    => $activity->probehnuta(),
-                'jeBrigadnicka' => $activity->jeBrigadnicka(),
+                'linie'           => $activity->typ()->nazev(),
+                'vBudoucnu'       => $activity->vBudoucnu(),
+                'vdalsiVlne'      => $activity->vDalsiVlne(),
+                'probehnuta'      => $activity->probehnuta(),
+                'jeBrigadnicka'   => $activity->jeBrigadnicka(),
+                'prihlasovatelna' => $activity->prihlasovatelna(),
+                'tymova'          => $activity->tymova(),
             ];
 
-            $aktivitaRes['prihlasovatelna'] = $activity->prihlasovatelna();
-            $aktivitaRes['tymova'] = $activity->tymova();
-
             $dite = $activity->detiIds();
-            if ($dite && count($dite)) {
+            if ($dite) {
                 $aktivitaRes['dite'] = $dite;
             }
 
-            $aktivitaRes = array_filter($aktivitaRes);
             $aktivityNeprihlasen[] = $aktivitaRes;
         }
 

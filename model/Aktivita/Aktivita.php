@@ -224,7 +224,7 @@ SQL
         if (!$this->zacatek()) {
             throw new \Chyba('Aktivita nemá nastavený čas');
         }
-        dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [StavAktivity::AKTIVOVANA, $this->id()]);
+        $this->zmenStav(StavAktivity::AKTIVOVANA);
         $this->refresh();
     }
 
@@ -1287,7 +1287,7 @@ SQL
         $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
         $programStaticFilesGenerator = new ProgramStaticFileGenerator($systemoveNastaveni);
         $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY, tryStartWorker: false);
-        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::POPISY);
+        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::POPISY, tryStartWorker: false);
 
         return $aktivita;
     }
@@ -1965,8 +1965,10 @@ SQL,
 
     private function touchDirtyFlag(ProgramStaticFileType $flag): void
     {
+        // tryStartWorker: false — invalidace v rámci běžných operací jen označí cache;
+        // worker se spustí příští HTTP request / cron / explicitní volání.
         (new ProgramStaticFileGenerator($this->systemoveNastaveni))
-            ->touchDirtyFlag($flag);
+            ->touchDirtyFlag($flag, tryStartWorker: false);
     }
 
     private function nestihlRychleOdhlaseniBezPokuty(
@@ -2048,7 +2050,7 @@ SQL,
         if ($this->idStavu() !== StavAktivity::PRIPRAVENA) {
             throw new \Chyba('Aktivita není v stavu "připravená"');
         }
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [StavAktivity::PUBLIKOVANA, $this->id()]);
+        $this->zmenStav(StavAktivity::PUBLIKOVANA);
     }
 
     /**
@@ -2259,18 +2261,14 @@ SQL
     /** Zpracuje formy na měnění počtu míst team. aktivit */
     protected static function plusminusZpracuj($reload = true)
     {
-        if (post(self::PN_PLUSMINUSP)) {
-            dbQueryS('UPDATE akce_seznam SET kapacita = kapacita + 1 WHERE id_akce = $1', [post(self::PN_PLUSMINUSP)]);
-            if ($reload) back();
-
+        $idAktivity = post(self::PN_PLUSMINUSP) ?: post(self::PN_PLUSMINUSM);
+        if (!$idAktivity) {
             return;
         }
-        if (post(self::PN_PLUSMINUSM)) {
-            dbQueryS('UPDATE akce_seznam SET kapacita = kapacita - 1 WHERE id_akce = $1', [post(self::PN_PLUSMINUSM)]);
-            if ($reload) back();
-
-            return;
-        }
+        $delta = post(self::PN_PLUSMINUSP) ? '+ 1' : '- 1';
+        dbQueryS("UPDATE akce_seznam SET kapacita = kapacita {$delta} WHERE id_akce = \$1", [$idAktivity]);
+        self::zId($idAktivity)->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
+        if ($reload) back();
     }
 
     /**
@@ -3215,6 +3213,7 @@ HTML
             throw new \LogicException("Neznámý stav aktivity '$novyStav'");
         }
         dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
+        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
     }
 
     /** Nastaví aktivitu jako "připravena pro aktivaci" */
@@ -4102,6 +4101,7 @@ SQL,
         $detiString = implode(',', $detiIds);
         $this->a[Sql::DITE] = $detiString;
         dbQuery('UPDATE akce_seznam SET dite = $1 WHERE id_akce = ' . $this->id(), [$detiString]);
+        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
     }
 
     /**

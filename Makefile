@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run bash phpstan ecs fix static ci tests
+.PHONY: init start-docker-foreground run cache bash phpstan ecs fix static ci tests migrations-run migrations-diff
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
@@ -19,16 +19,15 @@ run: init
 	@PORT=$$(docker compose port web 80 2>/dev/null | cut -d: -f2); \
 	echo "App runs on http://localhost:$${PORT} http://localhost:$${PORT}/admin"
 
-cache: var
-	./bin-docker/php ./bin/console cache:clear --no-optional-warmers
-
-var:
+cache:
 	docker compose run --rm --user=root --entrypoint=sh web -c 'find cache -mindepth 2 -maxdepth 2 ! -name ".htaccess" -exec rm -fr {} +'
+	docker compose run --rm --user=root --entrypoint=sh web -c 'rm -fr cache/public/program cache/private/program'
 	docker compose run --rm --user=root --entrypoint=sh web -c 'find symfony/var -mindepth 1 -maxdepth 1 ! -name ".htaccess" -exec rm -fr {} +'
 	mkdir -p symfony/var/log
 	touch symfony/var/log/test.log
 	touch symfony/var/log/dev.log
 	chmod -R 0777 symfony/var
+	./bin-docker/php ./bin/console cache:clear --no-optional-warmers
 
 bash:
 	./bin-docker/docker-bash
