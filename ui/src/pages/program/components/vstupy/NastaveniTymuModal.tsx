@@ -165,7 +165,7 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       vyberAktivit={vyberAktivit}
       onZavřít={zavřít}
       onZaložitTým={() => void sNačítáním(založitTým, true)()}
-      onPřipojitSe={(kód) => void sNačítáním(() => proveďAkciAktivity(aktivitaId, "prihlasit", kód).then(zavřít), true)()}
+      onPřipojitSe={(idTýmu, kód) => void sNačítáním(() => proveďAkciAktivity(aktivitaId, "prihlasit", idTýmu, kód).then(zavřít), true)()}
       onPřepniVerejnost={() => void sNačítáním(přepniVerejnost, true)()}
       onOdhlásit={() => nastavModalOdhlásit(aktivitaId)}
       onPregenerujKód={() => void sNačítáním(přegenerujKód, true)()}

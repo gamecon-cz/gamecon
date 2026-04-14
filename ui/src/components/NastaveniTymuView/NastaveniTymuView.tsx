@@ -20,7 +20,7 @@ type NastaveniTymuViewProps = {
   vyberAktivit?: VyberAktivitState | null;
   onZavřít: () => void;
   onZaložitTým: () => void;
-  onPřipojitSe: (kód: number) => void;
+  onPřipojitSe: (idTýmu?: number, kód?: number) => void;
   onPřepniVerejnost: () => void;
   onOdhlásit?: () => void;
   onPregenerujKód?: () => void;
@@ -35,23 +35,22 @@ type NastaveniTymuViewProps = {
 const SeznamTymu: FunctionComponent<{
   tymy: TymVSeznamu[];
   zobrazitPřipojení: boolean;
-  onPřipojitSe: (kód: number) => void;
+  onPřipojitSe: (idTýmu?: number, kód?: number) => void;
 }> = ({ tymy, zobrazitPřipojení, onPřipojitSe }) => {
   if (tymy.length === 0) return <div style={{ color: "#888" }}>Zatím žádné týmy</div>;
 
-  // todo(tym): přihlašování idčkem
   return (
     <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
       {tymy.map((tym) => {
-        const plny = tym.limit !== null && tym.pocetClenu >= tym.limit;
+        const plny = tym.limit !== null && tym.pocetClenu >= (tym.limit ?? 0);
         return (
           <li
-            key={tym.kod}
+            key={tym.id}
             style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}
           >
-            <span>{tym.nazev || `Tým ${tym.kod}`}</span>
+            <span>{tym.nazev || `Tým ${tym.id}`}</span>
             <span style={{ color: "#888" }}>
-              {tym.pocetClenu}{tym.limit !== null ? `/${tym.limit}` : ""}
+              {tym.pocetClenu}{tym.limit !== null ? `/${(tym.limit ?? "")}` : ""}
             </span>
             {tym.verejny
               ? <span style={{ color: "#4a4", fontSize: "0.85em" }}>veřejný</span>
@@ -61,7 +60,7 @@ const SeznamTymu: FunctionComponent<{
               <button
                 disabled={plny}
                 style={{ width: "unset" }}
-                onClick={() => onPřipojitSe(tym.kod)}
+                onClick={() => onPřipojitSe(tym.id)}
               >
                 {plny ? "Plný" : "Připojit se"}
               </button>
@@ -235,7 +234,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                     </label>
                     <button
                       style={{ width: "unset" }}
-                      onClick={() => onPřipojitSe(+kódPřipojeníDoTýmu)}
+                      onClick={() => onPřipojitSe(undefined, +kódPřipojeníDoTýmu)}
                     >
                       Připoj se do týmu
                     </button>

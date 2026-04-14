@@ -3100,10 +3100,13 @@ HTML
             $prihlasujici = $prihlasujici ?? $u;
             if (post('prihlasit')) {
                 $aktivita = self::zId(post('prihlasit'));
-                // todo(tym): přihlášení podle id týmu
-                $tymKod = +post("tymKod");
                 $tym = null;
-                if ($tymKod) {
+                $tymId = +post("tymId");
+                $tymKod = +post("tymKod");
+
+                if ($tymId) {
+                    $tym = AktivitaTym::najdi($tymId, $aktivita->id());
+                } elseif ($tymKod) {
                     // pokud je tymKod a kód nenáleží žádnému týmu na aktivitě, tak ihned sletí
                     $tym = AktivitaTym::najdiPodleKodu($aktivita->id(), $tymKod);
                 }

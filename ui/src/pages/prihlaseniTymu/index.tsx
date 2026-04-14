@@ -48,10 +48,10 @@ export const PrihlaseniTymuWidget: FunctionComponent = () => {
     setChyba(null);
   };
 
-  const přihlásit = async (kód?: number) => {
+  const přihlásit = async (idTýmu?: number, kód?: number) => {
     if (!aktivitaId) return;
     setChyba(null);
-    const { chyba: chybaPřihlášení } = await fetchAktivitaAkce(aktivitaId, "prihlasit", kód);
+    const { chyba: chybaPřihlášení } = await fetchAktivitaAkce(aktivitaId, "prihlasit", idTýmu, kód);
     if (chybaPřihlášení?.hláška) {
       setChyba(chybaPřihlášení.hláška);
     } else {
@@ -102,7 +102,7 @@ export const PrihlaseniTymuWidget: FunctionComponent = () => {
       chyba={chyba}
       onZavřít={zavřít}
       onZaložitTým={() => void přihlásit()}
-      onPřipojitSe={(kód) => void přihlásit(kód)}
+      onPřipojitSe={(idTýmu, kód) => void přihlásit(idTýmu, kód)}
       onPřepniVerejnost={() => void přepniVerejnost()}
       onPregenerujKód={() => void přegenerujKód()}
       onOdhlásitČlena={(id) => void odhlásitČlena(id)}
