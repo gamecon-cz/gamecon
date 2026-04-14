@@ -31,7 +31,6 @@ type NastaveniTymuViewProps = {
   onPotvrdVyber?: () => void;
 };
 
-// todo(tym): manuální předání kapitána
 const SeznamTymu: FunctionComponent<{
   tymy: TymVSeznamu[];
   zobrazitPřipojení: boolean;
@@ -94,7 +93,6 @@ const useOdpočet = (casZalozeniMs: number | undefined): number | null => {
   return zbývá;
 };
 
-// todo(tym): optimisticky update na funkce.
 export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (props) => {
   const {
     nazevAktivity,
@@ -183,7 +181,6 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
 
           {chyba && <div style={{ color: "red" }}>{chyba}</div>}
 
-          {/* //todo(tym): aktivity se budou vybírat podle kol */}
           {/* === Výběr aktivit pro nový tým === */}
           {vyberAktivit && (
             <div style={{ gap: "12px", display: "flex", flexDirection: "column", alignItems: "start" }}>

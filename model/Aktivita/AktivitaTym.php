@@ -17,21 +17,19 @@ class AktivitaTym
     public const HAJENI_TEAMU_HODIN = 72;
     public const CAS_NA_PRIPRAVENI_TYMU_MINUT = 30;
 
-    // todo(tym): idAktivity se nikde nepoužívá a nedává ani smysl když je na teamu, odstranit
     private function __construct(
         private readonly Team $team,
-        private readonly int $idAktivity,
     ) {}
 
     // ====== FACTORY ======
 
     /** Najde tým podle ID. */
-    public static function najdi(int $idTymu, int $idAktivity): self
+    public static function najdi(int $idTymu): self
     {
         $team = self::teamRepository()->find($idTymu)
             ?? throw new \Chyba('Tým ' . $idTymu . ' neexistuje');
 
-        return new self($team, $idAktivity);
+        return new self($team);
     }
 
     /** Najde tým podle kódu, který účastníci používají k přihlašování. */
@@ -40,7 +38,7 @@ class AktivitaTym
         $team = self::teamRepository()->findByKodNaAktivite($idAktivity, $kodTymu)
             ?? throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
 
-        return new self($team, $idAktivity);
+        return new self($team);
     }
 
     /** Vrátí tým uživatele na aktivitě, nebo null pokud v žádném týmu není. */
@@ -53,7 +51,7 @@ class AktivitaTym
         $team = self::teamRepository()->find($idTymu)
             ?? throw new \Chyba('Tým ' . $idTymu . ' neexistuje');
 
-        return new self($team, $idAktivity);
+        return new self($team);
     }
 
     // ====== INSTANCE GETTERY ======
@@ -182,7 +180,7 @@ class AktivitaTym
     {
         $team = self::service()->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity);
 
-        return new self($team, $idAktivity);
+        return new self($team);
     }
 
     public static function zkontrolujMuzeZalozitTym(int $idAktivity): void
@@ -214,7 +212,7 @@ class AktivitaTym
     public static function vsechnyTymyAktivity(int $idAktivity): array
     {
         return array_map(
-            fn (Team $team) => new self($team, $idAktivity),
+            fn (Team $team) => new self($team),
             self::service()->vsechnyTymyAktivity($idAktivity),
         );
     }

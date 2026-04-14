@@ -158,8 +158,6 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
 
   if (aktivita.vedu) return <></>;
 
-  // todo(tym) nějaký indikator pro to že všechny týmy nejsou ještě hotové - nějak vymyslet co napsat ? třeba aktivita možná bude mít volné místa pro tým za 12h ... (existuje takový tým který není plný takže bude eventuelně věřený)
-
   if (aktivita.obsazenost) {
     const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
 
