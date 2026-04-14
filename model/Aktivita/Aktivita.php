@@ -1471,19 +1471,10 @@ SQL
         return true;
     }
 
-    // todo(tym): revidovat kapacity jak fungují a názvosloví
-    /** Vrací celkovou kapacitu aktivity, která platí pokud aktivita není teamová */
-    public function neteamovaKapacita(): int
+    /** Vrací celkovou kapacitu aktivity (pro non-teamové aktivity) */
+    public function kapacita(): int
     {
         return (int)($this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F]);
-    }
-
-    /** Vrací celkovou kapacitu aktivity */
-    public function finalniKapacita(): ?int
-    {
-        return $this->jeTeamova()
-            ? $this->tymovaKapacita()
-            : $this->neteamovaKapacita();
     }
 
     /**
@@ -2620,7 +2611,9 @@ SQL
         );
     }
 
-    // todo(tym): tohle je asi nesmysl v nové tymove implementaci. Tymova kapacita teď znamená kapacita týmů
+    /**
+     * Maximální počet týmů na aktivitě
+     */
     private function tymovaKapacita(): ?int
     {
         if (isset($this->a[Sql::TEAM_KAPACITA])) {
