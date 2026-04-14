@@ -1,5 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { fetchAktivitaTým, VerejnyTym, ClenTymu, TymVSeznamu } from "../../../api/program";
+import { fetchAktivitaTým, ClenTymu, TymVSeznamu } from "../../../api/program";
 
 export type NastaveniTymuData = {
   nazev: string,
@@ -15,7 +15,6 @@ export type NastaveniTymuData = {
   maxKapacita?: number | null,
   clenove?: ClenTymu[],
   vsechnyTymy?: TymVSeznamu[],
-  verejneTymy?: VerejnyTym[],
 };
 
 export type VšeobecnéSlice = {
@@ -76,7 +75,6 @@ export const dotáhniNastaveníTýmuProModal = async () => {
         maxKapacita: data.maxKapacita,
         clenove: data.clenove,
         vsechnyTymy: data.vsechnyTymy,
-        verejneTymy: data.verejneTymy,
       }
     };
   }, undefined, "dotáhni nastavení týmu");

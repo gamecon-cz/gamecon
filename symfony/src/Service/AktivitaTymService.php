@@ -13,8 +13,6 @@ use App\Repository\TeamRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Aktivita\InfoOTymu;
-use Gamecon\Aktivita\TymVSeznamu;
-use Gamecon\Aktivita\VerejnyTym;
 
 class AktivitaTymService
 {
@@ -168,33 +166,6 @@ class AktivitaTymService
         return $this->teamRepository->pocetTymuNaAktivite($idAktivity) > 0;
     }
 
-    /**
-     * @return VerejnyTym[]
-     */
-    public function verejneTymy(int $idAktivity): array
-    {
-        $rows = $this->em->getConnection()->fetchAllAssociative(
-            'SELECT akce_tym.kod, akce_tym.nazev,
-                    COALESCE(akce_tym.`limit`, akce_seznam.team_max) AS team_limit,
-                    (SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE akce_tym_prihlaseni.id_tymu = akce_tym.id) AS pocet_clenu
-             FROM akce_tym
-             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = ?
-             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce
-             WHERE akce_tym.verejny = 1',
-            [$idAktivity],
-        );
-
-        return array_map(
-            fn (array $row) => new VerejnyTym(
-                kod: (int) $row['kod'],
-                nazev: $row['nazev'],
-                pocetClenu: (int) $row['pocet_clenu'],
-                limit: $row['team_limit'] !== null ? (int) $row['team_limit'] : null,
-            ),
-            $rows,
-        );
-    }
-
     public function nastavVerejnostTymu(int $idTymu, bool $verejny): void
     {
         $team = $this->teamRepository->find($idTymu);
@@ -302,33 +273,11 @@ class AktivitaTymService
     }
 
     /**
-     * @return TymVSeznamu[]
+     * @return Team[]
      */
-    public function vsechnyTymy(int $idAktivity): array
+    public function vsechnyTymyAktivity(int $idAktivity): array
     {
-        $rows = $this->em->getConnection()->fetchAllAssociative(
-            'SELECT akce_tym.kod, akce_tym.nazev, akce_tym.verejny, akce_tym.id_kapitan, akce_tym.zalozen,
-                    COALESCE(akce_tym.`limit`, akce_seznam.team_max) AS team_limit,
-                    (SELECT COUNT(*) FROM akce_tym_prihlaseni WHERE akce_tym_prihlaseni.id_tymu = akce_tym.id) AS pocet_clenu
-             FROM akce_tym
-             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id AND akce_tym_akce.id_akce = ?
-             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce
-             ORDER BY akce_tym.zalozen, akce_tym.id',
-            [$idAktivity],
-        );
-
-        return array_map(
-            fn (array $row) => new TymVSeznamu(
-                kod: (int) $row['kod'],
-                nazev: $row['nazev'],
-                pocetClenu: (int) $row['pocet_clenu'],
-                limit: $row['team_limit'] !== null ? (int) $row['team_limit'] : null,
-                verejny: (bool) (int) $row['verejny'],
-                idKapitana: (int) $row['id_kapitan'],
-                zalozen: $row['zalozen'] !== null ? new \DateTimeImmutable($row['zalozen']) : null,
-            ),
-            $rows,
-        );
+        return $this->teamRepository->findAllByAktivita($idAktivity);
     }
 
     public function rozebratTym(int $idTymu): void

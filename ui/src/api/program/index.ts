@@ -246,13 +246,6 @@ export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };
 
-export type VerejnyTym = {
-  kod: number,
-  nazev: string | null,
-  pocetClenu: number,
-  limit: number | null,
-};
-
 export type ClenTymu = {
   id: number,
   jmeno: string,
@@ -260,10 +253,10 @@ export type ClenTymu = {
 };
 
 export type TymVSeznamu = {
-  kod: number,
+  id: number,
   nazev: string | null,
   pocetClenu: number,
-  limit: number | null,
+  limit: number | null | undefined,
   verejny: boolean,
 };
 
@@ -285,7 +278,6 @@ export type AktivitaTymResponse = {
   maxKapacita?: number | null,
   clenove?: ClenTymu[],
   vsechnyTymy?: TymVSeznamu[],
-  verejneTymy?: VerejnyTym[],
 };
 
 export const fetchAktivitaTým = async (aktivitaId: number, uživatelId = 0): Promise<AktivitaTymResponse> => {

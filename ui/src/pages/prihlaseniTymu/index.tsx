@@ -36,7 +36,6 @@ export const PrihlaseniTymuWidget: FunctionComponent = () => {
         casText: response.casText,
         clenove: response.clenove,
         vsechnyTymy: response.vsechnyTymy,
-        verejneTymy: response.verejneTymy,
       }))
       .finally(() => setNačítá(false));
   }, [aktivitaId]);
@@ -64,7 +63,7 @@ export const PrihlaseniTymuWidget: FunctionComponent = () => {
     if (!data || data.verejny === undefined || !data.kod || !aktivitaId) return;
     await fetchNastavVerejnostTymu(aktivitaId, data.kod, !data.verejny);
     const response = await fetchAktivitaTým(aktivitaId);
-    setData((prev) => prev && { ...prev, verejny: response.verejny, vsechnyTymy: response.vsechnyTymy, verejneTymy: response.verejneTymy });
+    setData((prev) => prev && { ...prev, verejny: response.verejny, vsechnyTymy: response.vsechnyTymy });
   };
 
   const načtiZnovu = async () => {
@@ -79,7 +78,6 @@ export const PrihlaseniTymuWidget: FunctionComponent = () => {
       casText: response.casText,
       clenove: response.clenove,
       vsechnyTymy: response.vsechnyTymy,
-      verejneTymy: response.verejneTymy,
     });
   };
 

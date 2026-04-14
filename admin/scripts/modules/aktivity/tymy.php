@@ -44,9 +44,9 @@ $aktivity = dbQuery(<<<SQL
 while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
     $idAkce = (int)$aktivitaRow['id_akce'];
 
-    $vsechnyTymy       = AktivitaTym::vsechnyTymy($idAkce);
-    $pocetTymu         = count($vsechnyTymy);
-    $pocetClenuvCelkem = array_sum(array_map(fn($tym) => $tym->pocetClenu, $vsechnyTymy));
+    $vsechnyTymyAktivity = AktivitaTym::vsechnyTymyAktivity($idAkce);
+    $pocetTymu           = count($vsechnyTymyAktivity);
+    $pocetClenuvCelkem   = array_sum(array_map(fn($tym) => $tym->pocetClenu, $vsechnyTymyAktivity));
 
     $kapacitaTymu = $aktivitaRow['team_kapacita'] !== null
         ? $pocetTymu . '/' . $aktivitaRow['team_kapacita']
@@ -64,31 +64,31 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
         'minMaxClenu'       => $minMax,
     ]);
 
-    if ($vsechnyTymy === []) {
+    if ($vsechnyTymyAktivity === []) {
         $tpl->parse('tymy.aktivita.zadneTymy');
     } else {
-        foreach ($vsechnyTymy as $tym) {
-            $kapitan    = Uzivatel::zId($tym->idKapitana);
-            $obsazenost = $tym->pocetClenu . '/' . ($tym->limit ?? '∞');
-            $zalozen    = $tym->zalozen
-                ? (new DateTimeCz($tym->zalozen->format('Y-m-d H:i:s')))->format('j.n. H:i')
+        foreach ($vsechnyTymyAktivity as $aktivitaTym) {
+            $idKapitana = $aktivitaTym->idKapitana();
+            $kapitan    = Uzivatel::zId($idKapitana);
+            $clenove    = $aktivitaTym->clenoveTymu();
+            $obsazenost = count($clenove) . '/' . ($aktivitaTym->limitTymu() ?? '∞');
+            $zalozen    = $aktivitaTym->casZalozeniMs()
+                ? (new DateTimeCz((new \DateTime('@' . floor($aktivitaTym->casZalozeniMs() / 1000)))->format('Y-m-d H:i:s')))->format('j.n. H:i')
                 : '–';
 
             $tpl->assign([
-                'kod'        => $tym->kod,
-                'nazev'      => $tym->nazev ?: '(bez názvu)',
+                'kod'        => $aktivitaTym->getKod(),
+                'nazev'      => $aktivitaTym->getNazev() ?: '(bez názvu)',
                 'kapitan'    => $kapitan->login() . ' (' . $kapitan->krestniJmeno() . ' ' . $kapitan->prijmeni() . ')',
                 'obsazenost' => $obsazenost,
-                'verejny'    => $tym->verejny ? 'veřejný' : 'soukromý',
+                'verejny'    => $aktivitaTym->isVerejny() ? 'veřejný' : 'soukromý',
                 'zalozen'    => $zalozen,
                 'id_akce'    => $idAkce,
             ]);
 
-            $aktivitaTym = AktivitaTym::najdiPodleKodu($idAkce, $tym->kod);
-            $clenove     = $aktivitaTym->clenoveTymu();
-            $maily       = [];
+            $maily = [];
             foreach ($clenove as $clen) {
-                $jeKapitan = $clen->id() === $tym->idKapitana;
+                $jeKapitan = $clen->id() === $idKapitana;
                 $tpl->assign([
                     'nick'       => $clen->login(),
                     'jmeno'      => $clen->krestniJmeno() . ' ' . $clen->prijmeni(),

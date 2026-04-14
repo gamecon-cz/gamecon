@@ -150,13 +150,13 @@ if ($tym) {
 }
 
 // seznam všech týmů
-$vsechnyTymy       = AktivitaTym::vsechnyTymy($aktivitaId);
-$response['vsechnyTymy'] = array_map(fn(\Gamecon\Aktivita\TymVSeznamu $t) => [
-    'kod'       => $t->kod,
-    'nazev'     => $t->nazev,
-    'pocetClenu' => $t->pocetClenu,
-    'limit'     => $t->limit,
-    'verejny'   => $t->verejny,
+$vsechnyTymy       = AktivitaTym::vsechnyTymyAktivity($aktivitaId);
+$response['vsechnyTymy'] = array_map(fn(AktivitaTym $t) => [
+    'id'         => $t->getId(),
+    'nazev'      => $t->getNazev(),
+    'pocetClenu' => count($t->clenoveTymu()),
+    'limit'      => $t->limitTymu(),
+    'verejny'    => $t->isVerejny(),
 ], $vsechnyTymy);
 
 echo json_encode($response, $jsonConfig);

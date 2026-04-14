@@ -39,6 +39,7 @@ const SeznamTymu: FunctionComponent<{
 }> = ({ tymy, zobrazitPřipojení, onPřipojitSe }) => {
   if (tymy.length === 0) return <div style={{ color: "#888" }}>Zatím žádné týmy</div>;
 
+  // todo(tym): přihlašování idčkem
   return (
     <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
       {tymy.map((tym) => {

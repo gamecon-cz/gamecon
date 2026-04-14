@@ -3107,7 +3107,7 @@ HTML
             $prihlasujici = $prihlasujici ?? $u;
             if (post('prihlasit')) {
                 $aktivita = self::zId(post('prihlasit'));
-                // todo: validace
+                // todo(tym): přihlášení podle id týmu
                 $tymKod = +post("tymKod");
                 $tym = null;
                 if ($tymKod) {

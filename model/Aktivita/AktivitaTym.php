@@ -5,19 +5,19 @@ namespace Gamecon\Aktivita;
 use App\Entity\Team;
 use App\Repository\TeamRepository;
 use App\Service\AktivitaTymService;
-use Gamecon\Aktivita\SqlStruktura\AkceTymSqlStruktura;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
+ * Doménový objekt pro tým na aktivitě.
+ * Wrappuje Team entitu (Doctrine) a poskytuje business logiku přes AktivitaTymService.
  * Nastaveno v services.yaml že se dá získat AktivitaTymService
  */
-class AktivitaTym extends \DbObject
+class AktivitaTym
 {
     public const HAJENI_TEAMU_HODIN = 72;
     public const CAS_NA_PRIPRAVENI_TYMU_MINUT = 30;
 
-    protected static $tabulka = AkceTymSqlStruktura::AKCE_TYM_TABULKA;
-
+    // todo(tym): idAktivity se nikde nepoužívá a nedává ani smysl když je na teamu, odstranit
     private function __construct(
         private readonly Team $team,
         private readonly int $idAktivity,
@@ -66,6 +66,11 @@ class AktivitaTym extends \DbObject
     public function getKod(): int
     {
         return $this->team->getKod();
+    }
+
+    public function getNazev(): ?string
+    {
+        return $this->team->getNazev();
     }
 
     public function isVerejny(): bool
@@ -200,16 +205,13 @@ class AktivitaTym extends \DbObject
         return self::service()->maAktivitaTym($idAktivity);
     }
 
-    /** @return VerejnyTym[] */
-    public static function verejneTymy(int $idAktivity): array
+    /** @return self[] */
+    public static function vsechnyTymyAktivity(int $idAktivity): array
     {
-        return self::service()->verejneTymy($idAktivity);
-    }
-
-    /** @return TymVSeznamu[] */
-    public static function vsechnyTymy(int $idAktivity): array
-    {
-        return self::service()->vsechnyTymy($idAktivity);
+        return array_map(
+            fn (Team $team) => new self($team, $idAktivity),
+            self::service()->vsechnyTymyAktivity($idAktivity),
+        );
     }
 
     public function rozebratTym(): void
