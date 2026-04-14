@@ -46,7 +46,7 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
 
     $vsechnyTymyAktivity = AktivitaTym::vsechnyTymyAktivity($idAkce);
     $pocetTymu           = count($vsechnyTymyAktivity);
-    $pocetClenuvCelkem   = array_sum(array_map(fn($tym) => $tym->pocetClenu, $vsechnyTymyAktivity));
+    $pocetClenuvCelkem   = array_sum(array_map(fn($tym) => $tym->pocetClenu(), $vsechnyTymyAktivity));
 
     $kapacitaTymu = $aktivitaRow['team_kapacita'] !== null
         ? $pocetTymu . '/' . $aktivitaRow['team_kapacita']

@@ -154,7 +154,7 @@ $vsechnyTymy       = AktivitaTym::vsechnyTymyAktivity($aktivitaId);
 $response['vsechnyTymy'] = array_map(fn(AktivitaTym $t) => [
     'id'         => $t->getId(),
     'nazev'      => $t->getNazev(),
-    'pocetClenu' => count($t->clenoveTymu()),
+    'pocetClenu' => $t->pocetClenu(),
     'limit'      => $t->limitTymu(),
     'verejny'    => $t->isVerejny(),
 ], $vsechnyTymy);

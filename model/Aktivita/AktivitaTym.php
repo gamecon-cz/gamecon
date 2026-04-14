@@ -138,6 +138,11 @@ class AktivitaTym
         return self::service()->clenoveTymu($this->getId());
     }
 
+    public function pocetClenu(): int
+    {
+        return count($this->clenoveTymu());
+    }
+
     /**
      * Vrátí ID aktivit, na které je tým přihlášen, kromě zadané výjimky.
      * @return int[]
