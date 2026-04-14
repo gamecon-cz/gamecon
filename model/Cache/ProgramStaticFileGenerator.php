@@ -38,54 +38,65 @@ class ProgramStaticFileGenerator implements ResetInterface
 
         $aktivityNeprihlasen = [];
         foreach ($activities as $activity) {
-            $zacatekAktivity = $activity->zacatek();
-            $konecAktivity = $activity->konec();
-
-            if (! $zacatekAktivity || ! $konecAktivity || ! $activity->viditelnaPro(null)) {
+            if (! $activity->zacatek() || ! $activity->konec() || ! $activity->viditelnaPro(null)) {
                 continue;
             }
-
-            $vypraveci = array_map(
-                fn (
-                    \Uzivatel $organizator,
-                ) => $organizator->jmenoNick(),
-                $activity->organizatori(dataSourcesCollector: $dataSourcesCollector),
-            );
-
-            $stitkyId = $activity->tagyId();
-
-            $aktivitaRes = [
-                'id'          => $activity->id(),
-                'nazev'       => $activity->nazev(),
-                'kratkyPopis' => $activity->kratkyPopis(),
-                'popisId'     => $activity->popisId(),
-                'obrazek'     => (string) $activity->obrazek(),
-                'vypraveci'   => $vypraveci,
-                'stitkyId'    => $stitkyId,
-                'cenaZaklad'  => intval($activity->cenaZaklad()),
-                'casText'     => $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00',
-                'cas'         => [
-                    'od' => $zacatekAktivity->getTimestamp() * 1000,
-                    'do' => $konecAktivity->getTimestamp() * 1000,
-                ],
-                'linie'           => $activity->typ()->nazev(),
-                'vBudoucnu'       => $activity->vBudoucnu(),
-                'vdalsiVlne'      => $activity->vDalsiVlne(),
-                'probehnuta'      => $activity->probehnuta(),
-                'jeBrigadnicka'   => $activity->jeBrigadnicka(),
-                'prihlasovatelna' => $activity->prihlasovatelna(),
-                'tymova'          => $activity->tymova(),
-            ];
-
-            $dite = $activity->detiIds();
-            if ($dite) {
-                $aktivitaRes['dite'] = $dite;
-            }
-
-            $aktivityNeprihlasen[] = $aktivitaRes;
+            $aktivityNeprihlasen[] = self::aktivitaDoPole($activity, $dataSourcesCollector);
         }
 
         return $this->writeJsonFile('aktivity', $rok, $aktivityNeprihlasen);
+    }
+
+    /**
+     * Převede aktivitu na asociativní pole ve stejné struktuře, jakou
+     * frontend očekává v {@see \ApiAktivitaNepřihlášen} (TypeScript typu
+     * `ApiAktivitaNepřihlášen` v ui/src/api/program/index.ts).
+     *
+     * Tuto metodu MUSÍ používat každý endpoint, který skládá objekt aktivity
+     * pro veřejný program (statické JSONy i aktivitySkryte v uživatelském API),
+     * aby se struktura nemohla rozejít mezi různými cestami.
+     *
+     * Předpokládá, že $activity má naplněný zacatek() a konec().
+     *
+     * @return array<string, mixed>
+     */
+    public static function aktivitaDoPole(
+        Aktivita $activity,
+        ?DataSourcesCollector $dataSourcesCollector = null,
+    ): array {
+        $zacatekAktivity = $activity->zacatek();
+        $konecAktivity = $activity->konec();
+
+        $vypraveci = array_map(
+            fn (\Uzivatel $organizator) => $organizator->jmenoNick(),
+            $activity->organizatori(dataSourcesCollector: $dataSourcesCollector),
+        );
+
+        $aktivitaRes = [
+            'id'          => $activity->id(),
+            'nazev'       => $activity->nazev(),
+            'kratkyPopis' => $activity->kratkyPopis(),
+            'popisId'     => $activity->popisId(),
+            'obrazek'     => (string) $activity->obrazek(),
+            'vypraveci'   => $vypraveci,
+            'stitkyId'    => $activity->tagyId(),
+            'cenaZaklad'  => intval($activity->cenaZaklad()),
+            'casText'     => $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00',
+            'cas'         => [
+                'od' => $zacatekAktivity->getTimestamp() * 1000,
+                'do' => $konecAktivity->getTimestamp() * 1000,
+            ],
+            'linie'           => $activity->typ()->nazev(),
+            'vBudoucnu'       => $activity->vBudoucnu(),
+            'vdalsiVlne'      => $activity->vDalsiVlne(),
+            'probehnuta'      => $activity->probehnuta(),
+            'jeBrigadnicka'   => $activity->jeBrigadnicka(),
+            'prihlasovatelna' => $activity->prihlasovatelna(),
+            'tymova'          => $activity->tymova(),
+            'dite'            => $activity->detiIds(),
+        ];
+
+        return $aktivitaRes;
     }
 
     public function generatePopisy(int $rok): string

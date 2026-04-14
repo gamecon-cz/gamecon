@@ -4,6 +4,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Cache\ProgramStaticFileGenerator;
 
 /**
  * @var Uzivatel|null $u
@@ -49,79 +50,47 @@ if ($u) {
             'id' => $aktivita->id(),
         ];
 
+        // stavPrihlaseni — pouze pokud je uživatel nějak evidován u aktivity.
+        // Pro přihlášené/sledující posíláme stringový kód; jinak necháme klíč nevyplněný.
+        $stavPrihlasenMapa = [
+            StavPrihlaseni::PRIHLASEN                => 'prihlasen',
+            StavPrihlaseni::PRIHLASEN_A_DORAZIL      => 'prihlasenADorazil',
+            StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK   => 'dorazilJakoNahradnik',
+            StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL  => 'prihlasenAleNedorazil',
+            StavPrihlaseni::POZDE_ZRUSIL             => 'pozdeZrusil',
+            StavPrihlaseni::SLEDUJICI                => 'sledujici',
+        ];
         $stavPrihlasen = $aktivita->stavPrihlaseni($u, $dataSourcesCollector);
-        switch ($stavPrihlasen) {
-            case StavPrihlaseni::PRIHLASEN:
-                $aktivitaRes['stavPrihlaseni'] = "prihlasen";
-                break;
-            case StavPrihlaseni::PRIHLASEN_A_DORAZIL:
-                $aktivitaRes['stavPrihlaseni'] = "prihlasenADorazil";
-                break;
-            case StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK:
-                $aktivitaRes['stavPrihlaseni'] = "dorazilJakoNahradnik";
-                break;
-            case StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL:
-                $aktivitaRes['stavPrihlaseni'] = "prihlasenAleNedorazil";
-                break;
-            case StavPrihlaseni::POZDE_ZRUSIL:
-                $aktivitaRes['stavPrihlaseni'] = "pozdeZrusil";
-                break;
-            case StavPrihlaseni::SLEDUJICI:
-                $aktivitaRes['stavPrihlaseni'] = "sledujici";
-                break;
+        if (isset($stavPrihlasenMapa[$stavPrihlasen])) {
+            $aktivitaRes['stavPrihlaseni'] = $stavPrihlasenMapa[$stavPrihlasen];
         }
 
+        // slevaNasobic MUSÍ být vždy poslán, když je vypočítán — frontend
+        // rozlišuje 0 (100% sleva) od "undefined" (bez slevy). array_filter
+        // by 0 smazal.
         $aktivitaRes['slevaNasobic'] = $aktivita->soucinitelCenyAktivity($u, $dataSourcesCollector);
-        $aktivitaRes['vedu'] = $u && $aktivita->organizuje($u);
-        $aktivitaRes['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
-        $aktivitaRes['zamcenaDo'] = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
 
-        $aktivitaRes = array_filter($aktivitaRes);
+        if ($u && $aktivita->organizuje($u)) {
+            $aktivitaRes['vedu'] = true;
+        }
+        if ($aktivita->zamcenoUzivatelem($u)) {
+            $aktivitaRes['zamcenaMnou'] = true;
+        }
+        $zamcenaDo = $aktivita->tymZamcenyDo()?->getTimestamp();
+        if ($zamcenaDo !== null) {
+            $aktivitaRes['zamcenaDo'] = $zamcenaDo * 1000;
+        }
+
         $aktivityUzivatelData[] = $aktivitaRes;
 
-        // Hidden activities visible only to this user (not publicly visible)
+        // Hidden activities visible only to this user (not publicly visible).
+        // Struktura MUSÍ odpovídat ProgramStaticFileGenerator::generateActivities —
+        // frontend typuje aktivitySkryte jako ApiAktivitaNepřihlášen[] a slučuje
+        // je se statickými soubory. Proto používáme sdílený helper, aby se obě
+        // cesty nemohly rozejít.
         if (!$aktivita->viditelnaPro(null)) {
             Aktivita::organizatoriDSC($dataSourcesCollector);
-
-            $vypraveci = array_map(
-                fn(Uzivatel $organizator) => $organizator->jmenoNick(),
-                $aktivita->organizatori(dataSourcesCollector: $dataSourcesCollector),
-            );
-
-            $stitkyId = $aktivita->tagyId();
-
-            $skryta = [
-                'id' => $aktivita->id(),
-                'nazev' => $aktivita->nazev(),
-                'kratkyPopis' => $aktivita->kratkyPopis(),
-                'popisId' => $aktivita->popisId(),
-                'obrazek' => (string)$aktivita->obrazek(),
-                'vypraveci' => $vypraveci,
-                'stitkyId' => $stitkyId,
-                'cenaZaklad' => intval($aktivita->cenaZaklad()),
-                'casText' => $zacatekAktivity
-                    ? $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00'
-                    : '',
-                'cas' => [
-                    'od' => $zacatekAktivity->getTimestamp() * 1000,
-                    'do' => $konecAktivity->getTimestamp() * 1000,
-                ],
-                'linie' => $aktivita->typ()->nazev(),
-                'vBudoucnu' => $aktivita->vBudoucnu(),
-                'vdalsiVlne' => $aktivita->vDalsiVlne(),
-                'probehnuta' => $aktivita->probehnuta(),
-                'jeBrigadnicka' => $aktivita->jeBrigadnicka(),
-                'prihlasovatelna' => $aktivita->prihlasovatelna(),
-                'tymova' => $aktivita->tymova(),
-            ];
-
-            $dite = $aktivita->detiIds();
-            if ($dite && count($dite)) {
-                $skryta['dite'] = $dite;
-            }
-
-            $skryta = array_filter($skryta);
-            $aktivitySkryteData[] = $skryta;
+            $aktivitySkryteData[] = ProgramStaticFileGenerator::aktivitaDoPole($aktivita, $dataSourcesCollector);
         }
     }
 }
