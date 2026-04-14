@@ -65,21 +65,22 @@ export type ApiAktivitaNepřihlášen = {
 }
 
 /**
- * Pro jednodušší práci musí být všechny parametry optional
+ * Všechna pole jsou povinná. Backend MUSÍ vždy poslat všechna pole.
+ * Pokud hodnota sémanticky "chybí" (uživatel není přihlášen, aktivita
+ * není zamčená, …), backend pošle `null`.
  */
 export type ApiAktivitaUživatel = {
   id: number,
-  /** V jakém stavu je pokud je přihlášen */
-  stavPrihlaseni?: StavPřihlášení,
-  /** uživatelská vlastnost */
-  slevaNasobic?: number,
-  /** orgovská vlastnost */
-  mistnost?: string,
-  vedu?: boolean,
-  /** pokud je aktivita zamčená, tak do kdy */
-  zamcenaDo?: number,
-  /** aktivita zamčená přihlášeným užviatelem */
-  zamcenaMnou?: boolean,
+  /** null = uživatel není na aktivitě nijak evidován (ani přihlášen ani sleduje) */
+  stavPrihlaseni: StavPřihlášení | null,
+  /** 0 = 100% sleva (neplatí), 1 = bez slevy */
+  slevaNasobic: number,
+  /** orgovská vlastnost — null pro neorgany aktivity nebo aktivity bez hlavní lokace */
+  mistnost: string | null,
+  vedu: boolean,
+  /** null = aktivita není zamčená */
+  zamcenaDo: number | null,
+  zamcenaMnou: boolean,
   /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusí aby tam bylo */
   __TS_STRUKTURALNI_KONTROLA__: true,
 }

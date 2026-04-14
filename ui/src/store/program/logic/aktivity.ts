@@ -44,7 +44,7 @@ export const aktivitaStatusZAktivity = (
   pohlavi?: Pohlavi | undefined
 ): AktivitaStav => {
   if (
-    aktivita.stavPrihlaseni != undefined &&
+    aktivita.stavPrihlaseni !== null &&
     aktivita.stavPrihlaseni !== "sledujici"
   ) {
     return "prihlasen";
@@ -143,7 +143,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
 
   if (výběr?.typ === "můj") {
     aktivityFiltrované = aktivityFiltrované
-      .filter((aktivita) => aktivita?.stavPrihlaseni != undefined || aktivita?.vedu);
+      .filter((aktivita) => aktivita?.stavPrihlaseni !== null || aktivita?.vedu);
   } else if (výběr?.typ === "den") {
     aktivityFiltrované = aktivityFiltrované
       .filter((aktivita) =>

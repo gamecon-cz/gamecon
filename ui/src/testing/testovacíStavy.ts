@@ -87,6 +87,13 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
       kf: 0,
       ku: 1
     },
+    // ApiAktivitaUživatel — všechna povinná pole
+    stavPrihlaseni: null,
+    slevaNasobic:   1,
+    mistnost:       null,
+    vedu:           false,
+    zamcenaDo:      null,
+    zamcenaMnou:    false,
     __TS_STRUKTURALNI_KONTROLA__: true,
   };
 };

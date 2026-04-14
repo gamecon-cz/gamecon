@@ -46,42 +46,29 @@ if ($u) {
             continue;
         }
 
-        $aktivitaRes = [
-            'id' => $aktivita->id(),
+        // Všechna pole se posílají vždy — frontend typuje ApiAktivitaUživatel
+        // jako fully-required (nullable tam, kde chybějící hodnota má
+        // sémantický význam).
+        $jeOrganizator = $aktivita->organizuje($u);
+        $zamcenaDo     = $aktivita->tymZamcenyDo()?->getTimestamp();
+        $hlavniLokace  = $jeOrganizator
+            ? $aktivita->hlavniLokace()
+            : null;
+
+        $aktivityUzivatelData[] = [
+            'id'             => $aktivita->id(),
+            'stavPrihlaseni' => StavPrihlaseni::frontendKod(
+                $aktivita->stavPrihlaseni($u, $dataSourcesCollector),
+            ),
+            // slevaNasobic: 0 = 100% sleva, 1 = bez slevy. NEsmí být stripnuto.
+            'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($u, $dataSourcesCollector),
+            // mistnost je orgovská vlastnost — null pro neorgany nebo pokud
+            // aktivita nemá nastavenou hlavní lokaci.
+            'mistnost'       => $hlavniLokace !== null ? (string) $hlavniLokace : null,
+            'vedu'           => $jeOrganizator,
+            'zamcenaDo'      => $zamcenaDo !== null ? $zamcenaDo * 1000 : null,
+            'zamcenaMnou'    => $aktivita->zamcenoUzivatelem($u),
         ];
-
-        // stavPrihlaseni — pouze pokud je uživatel nějak evidován u aktivity.
-        // Pro přihlášené/sledující posíláme stringový kód; jinak necháme klíč nevyplněný.
-        $stavPrihlasenMapa = [
-            StavPrihlaseni::PRIHLASEN                => 'prihlasen',
-            StavPrihlaseni::PRIHLASEN_A_DORAZIL      => 'prihlasenADorazil',
-            StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK   => 'dorazilJakoNahradnik',
-            StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL  => 'prihlasenAleNedorazil',
-            StavPrihlaseni::POZDE_ZRUSIL             => 'pozdeZrusil',
-            StavPrihlaseni::SLEDUJICI                => 'sledujici',
-        ];
-        $stavPrihlasen = $aktivita->stavPrihlaseni($u, $dataSourcesCollector);
-        if (isset($stavPrihlasenMapa[$stavPrihlasen])) {
-            $aktivitaRes['stavPrihlaseni'] = $stavPrihlasenMapa[$stavPrihlasen];
-        }
-
-        // slevaNasobic MUSÍ být vždy poslán, když je vypočítán — frontend
-        // rozlišuje 0 (100% sleva) od "undefined" (bez slevy). array_filter
-        // by 0 smazal.
-        $aktivitaRes['slevaNasobic'] = $aktivita->soucinitelCenyAktivity($u, $dataSourcesCollector);
-
-        if ($u && $aktivita->organizuje($u)) {
-            $aktivitaRes['vedu'] = true;
-        }
-        if ($aktivita->zamcenoUzivatelem($u)) {
-            $aktivitaRes['zamcenaMnou'] = true;
-        }
-        $zamcenaDo = $aktivita->tymZamcenyDo()?->getTimestamp();
-        if ($zamcenaDo !== null) {
-            $aktivitaRes['zamcenaDo'] = $zamcenaDo * 1000;
-        }
-
-        $aktivityUzivatelData[] = $aktivitaRes;
 
         // Hidden activities visible only to this user (not publicly visible).
         // Struktura MUSÍ odpovídat ProgramStaticFileGenerator::generateActivities —

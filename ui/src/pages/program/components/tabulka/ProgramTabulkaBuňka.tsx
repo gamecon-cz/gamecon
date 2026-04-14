@@ -15,7 +15,7 @@ export const tabulkaBuňkaAktivitaTřídy = (
 ) => {
   const classes: string[] = [];
   if (
-    aktivita.stavPrihlaseni != undefined &&
+    aktivita.stavPrihlaseni !== null &&
     aktivita.stavPrihlaseni !== "sledujici"
   ) {
     classes.push("prihlasen");
@@ -87,11 +87,11 @@ export const ProgramTabulkaBuňka: FunctionComponent<
           </a>
           <Obsazenost
             obsazenost={aktivita.obsazenost}
-            prihlasovatelna={aktivita.prihlasovatelna ?? false}
-            probehnuta={aktivita.probehnuta ?? false}
+            prihlasovatelna={aktivita.prihlasovatelna}
+            probehnuta={aktivita.probehnuta}
           />
           <Přihlašovátko akitivitaId={aktivita.id} />
-          {(aktivita.mistnost || undefined) && (
+          {aktivita.mistnost !== null && (
             <div class="program_lokace">{aktivita.mistnost}</div>
           )}
           {zobrazLinii ? (

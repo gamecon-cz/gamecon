@@ -80,17 +80,14 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               dangerouslySetInnerHTML={{ __html: aktivita?.casText ?? "" }}
             ></div>
             <div class="programNahled_cena">
-              {aktivita?.slevaNasobic !== 0 &&
-              aktivita?.cenaZaklad !== 0
-                ? aktivita?.cenaZaklad != undefined
-                  ? aktivita?.cenaZaklad *
-                    (aktivita?.slevaNasobic ?? 1)
-                  : " - "
-                : "zdarma"}
+              {aktivita === undefined
+                ? " - "
+                : aktivita.slevaNasobic === 0 || aktivita.cenaZaklad === 0
+                  ? "zdarma"
+                  : aktivita.cenaZaklad * aktivita.slevaNasobic}
               <p style={{ opacity: 0.3 }}>
-                {aktivita?.slevaNasobic !== undefined &&
-                aktivita?.slevaNasobic !== 1
-                  ? `*${aktivita?.cenaZaklad === 0 ? "zdarma" : aktivita?.cenaZaklad}`
+                {aktivita !== undefined && aktivita.slevaNasobic !== 1
+                  ? `*${aktivita.cenaZaklad === 0 ? "zdarma" : aktivita.cenaZaklad}`
                   : undefined}
               </p>
             </div>

@@ -21,7 +21,8 @@ type FormTlačítkoTyp =
 type FormTlačítkoProps = {
   id: number;
   typ: FormTlačítkoTyp;
-  zamčenaDo?: number;
+  /** null = aktivita není zamčená (stejně jako undefined — interně se stačí zkontrolovat na falsy) */
+  zamčenaDo?: number | null;
 };
 
 const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
