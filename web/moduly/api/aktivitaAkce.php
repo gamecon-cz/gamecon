@@ -45,33 +45,23 @@ if ($aktivitaId) {
             'obsazenost' => $aktivita->obsazenostObj(),
         ];
 
-        $uzivatelData = ['id' => $aktivita->id()];
-        $stavPrihlasen = $aktivita->stavPrihlaseni($u);
-        switch ($stavPrihlasen) {
-            case StavPrihlaseni::PRIHLASEN:
-                $uzivatelData['stavPrihlaseni'] = "prihlasen";
-                break;
-            case StavPrihlaseni::PRIHLASEN_A_DORAZIL:
-                $uzivatelData['stavPrihlaseni'] = "prihlasenADorazil";
-                break;
-            case StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK:
-                $uzivatelData['stavPrihlaseni'] = "dorazilJakoNahradnik";
-                break;
-            case StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL:
-                $uzivatelData['stavPrihlaseni'] = "prihlasenAleNedorazil";
-                break;
-            case StavPrihlaseni::POZDE_ZRUSIL:
-                $uzivatelData['stavPrihlaseni'] = "pozdeZrusil";
-                break;
-            case StavPrihlaseni::SLEDUJICI:
-                $uzivatelData['stavPrihlaseni'] = "sledujici";
-                break;
-        }
-        $uzivatelData['slevaNasobic'] = $aktivita->soucinitelCenyAktivity($u);
-        $uzivatelData['zamcenaMnou'] = $aktivita->zamcenoUzivatelem($u);
-        $uzivatelData['zamcenaDo'] = $aktivita->tymZamcenyDo()?->getTimestamp() * 1000;
-        $uzivatelData = array_filter($uzivatelData);
-        $response['aktivitaUzivatel'] = $uzivatelData;
+        // Stejný kontrakt jako aktivityUzivatel.php: všechna pole posílaná
+        // vždy, nullable tam, kde "chybějící" má sémantický význam.
+        $jeOrganizator = $aktivita->organizuje($u);
+        $zamcenaDo     = $aktivita->tymZamcenyDo()?->getTimestamp();
+        $hlavniLokace  = $jeOrganizator
+            ? $aktivita->hlavniLokace()
+            : null;
+
+        $response['aktivitaUzivatel'] = [
+            'id'             => $aktivita->id(),
+            'stavPrihlaseni' => StavPrihlaseni::frontendKod($aktivita->stavPrihlaseni($u)),
+            'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($u),
+            'mistnost'       => $hlavniLokace !== null ? (string) $hlavniLokace : null,
+            'vedu'           => $jeOrganizator,
+            'zamcenaDo'      => $zamcenaDo !== null ? $zamcenaDo * 1000 : null,
+            'zamcenaMnou'    => $aktivita->zamcenoUzivatelem($u),
+        ];
     }
 }
 

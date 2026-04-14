@@ -177,18 +177,14 @@ export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAk
         if (response.aktivitaUzivatel) {
           const aktivita = ročníkData.aktivityPodleId[response.aktivitaUzivatel.id];
           if (aktivita) {
-            if (response.aktivitaUzivatel.stavPrihlaseni !== undefined) {
-              aktivita.stavPrihlaseni = response.aktivitaUzivatel.stavPrihlaseni;
-            }
-            if (response.aktivitaUzivatel.slevaNasobic !== undefined) {
-              aktivita.slevaNasobic = response.aktivitaUzivatel.slevaNasobic;
-            }
-            if (response.aktivitaUzivatel.zamcenaDo !== undefined) {
-              aktivita.zamcenaDo = response.aktivitaUzivatel.zamcenaDo;
-            }
-            if (response.aktivitaUzivatel.zamcenaMnou !== undefined) {
-              aktivita.zamcenaMnou = response.aktivitaUzivatel.zamcenaMnou;
-            }
+            // Backend posílá vždy všechna pole — typy jsou required,
+            // takže se rovnou přepisují bez ??-guardů.
+            aktivita.stavPrihlaseni = response.aktivitaUzivatel.stavPrihlaseni;
+            aktivita.slevaNasobic   = response.aktivitaUzivatel.slevaNasobic;
+            aktivita.mistnost       = response.aktivitaUzivatel.mistnost;
+            aktivita.vedu           = response.aktivitaUzivatel.vedu;
+            aktivita.zamcenaDo      = response.aktivitaUzivatel.zamcenaDo;
+            aktivita.zamcenaMnou    = response.aktivitaUzivatel.zamcenaMnou;
           }
         }
       }, undefined, "okamžitá aktualizace z akce");
