@@ -53,15 +53,15 @@ export type ApiAktivitaNepřihlášen = {
   casText: string,
   cas: OdDo,
   linie: string,
-  vBudoucnu?: boolean,
-  vdalsiVlne?: boolean,
-  probehnuta?: boolean,
-  jeBrigadnicka?: boolean,
-  /** idčka */
-  dite?: number[],
-  tymova?: boolean,
+  vBudoucnu: boolean,
+  vdalsiVlne: boolean,
+  probehnuta: boolean,
+  jeBrigadnicka: boolean,
+  /** idčka dětských aktivit (navazující kola); prázdné pole = bez dětí */
+  dite: number[],
+  tymova: boolean,
   /** přihlašovatelná na základě stavu (ne kapacity) */
-  prihlasovatelna?: boolean,
+  prihlasovatelna: boolean,
 }
 
 /**

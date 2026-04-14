@@ -71,7 +71,13 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
     casText: "10:00&ndash;15:00",
     cas,
     linie: "turnaje v deskovkách",
+    vBudoucnu: false,
+    vdalsiVlne: false,
     probehnuta: true,
+    jeBrigadnicka: false,
+    dite: [],
+    tymova: false,
+    prihlasovatelna: true,
     popis: "",
     vypraveci: [],
     obsazenost: {

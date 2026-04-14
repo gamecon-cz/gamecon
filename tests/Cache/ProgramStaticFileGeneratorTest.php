@@ -602,6 +602,50 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
 
     /**
      * @test
+     * Sdílený helper aktivitaDoPole musí produkovat přesně tu samou strukturu
+     * jakou generateActivities zapisuje do aktivity-{rok}-{hash}.json — jinak
+     * by se aktivitySkryte (z user-API) slučené na frontendu mohlo rozejít.
+     */
+    public function aktivitaDoPoleMaStejnouStrukturuJakoGenerateActivities(): void
+    {
+        $idAktivity = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Test shared helper',
+        ]);
+
+        $generator = $this->createGenerator();
+        $filename = $generator->generateActivities(self::ROK);
+        $zJsonu = null;
+        $data = json_decode(
+            file_get_contents($this->publicCacheDir . '/program/' . $filename),
+            true,
+        );
+        foreach ($data as $item) {
+            if ($item['id'] === $idAktivity) {
+                $zJsonu = $item;
+                break;
+            }
+        }
+        self::assertNotNull($zJsonu);
+
+        $aktivita = \Gamecon\Aktivita\Aktivita::zId(id: $idAktivity);
+        $collector = new \Gamecon\Cache\DataSourcesCollector();
+        \Gamecon\Aktivita\Aktivita::organizatoriDSC($collector);
+        $zHelperu = ProgramStaticFileGenerator::aktivitaDoPole($aktivita, $collector);
+
+        self::assertSame(
+            array_keys($zJsonu),
+            array_keys($zHelperu),
+            'aktivitaDoPole musí produkovat stejné klíče jako generateActivities.',
+        );
+        self::assertSame(
+            $zJsonu,
+            $zHelperu,
+            'aktivitaDoPole musí produkovat stejná data jako generateActivities pro tutéž aktivitu.',
+        );
+    }
+
+    /**
+     * @test
      * Deploy gate: regenerateAll() se dřívě ukončí, pokud už manifest existuje
      * (ochrana před souběžnými requesty). Na deployi je to ale problém —
      * starý manifest z předchozího releasu způsobí, že nový kód nevygeneruje
