@@ -207,7 +207,11 @@ export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAk
         const currentManifest = GAMECON_KONSTANTY.programManifest;
         if (!currentManifest || manifest.obsazenosti !== currentManifest.obsazenosti) {
           const url = `${GAMECON_KONSTANTY.URL_PROGRAM_CACHE}/${manifest.obsazenosti}`;
-          const obsazenosti: ApiAktivitaObsazenost[] = await fetch(url).then(r => r.json());
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`Nepodařilo se načíst ${manifest.obsazenosti} (HTTP ${response.status}). URL: ${url}`);
+          }
+          const obsazenosti: ApiAktivitaObsazenost[] = await response.json();
           const obsazenostiMap = buildObsazenostiMap(obsazenosti);
 
           useProgramStore.setState(s => {

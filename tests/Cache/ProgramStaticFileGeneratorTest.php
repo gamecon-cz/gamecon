@@ -148,6 +148,45 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
 
     /**
      * @test
+     * Regression: array_filter previously stripped every falsy field from
+     * aktivity.json — a cenaZaklad of 0, an empty vypraveci array, or an
+     * empty stitkyId array would be dropped, and a null/0 popisId would
+     * prevent the frontend from joining the long annotation from popisy.json.
+     */
+    public function generateAktivityKeepsAllFieldsEvenWhenFalsy(): void
+    {
+        $idAktivity = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Zdarma aktivita bez vypravěče',
+            Sql::POPIS      => 42,
+            Sql::CENA       => 0,
+        ]);
+
+        $generator = $this->createGenerator();
+        $filename = $generator->generateActivities(self::ROK);
+
+        $data = json_decode(file_get_contents($this->publicCacheDir . '/program/' . $filename), true);
+
+        $found = null;
+        foreach ($data as $item) {
+            if ($item['id'] === $idAktivity) {
+                $found = $item;
+                break;
+            }
+        }
+
+        self::assertNotNull($found, "Aktivita {$idAktivity} not found in JSON output");
+        self::assertArrayHasKey('popisId', $found, 'popisId must be present — frontend joins popisy.json through this key');
+        self::assertNotEmpty($found['popisId'], 'popisId must be non-empty for activity with real description');
+        self::assertArrayHasKey('cenaZaklad', $found, 'cenaZaklad must stay in JSON even when 0');
+        self::assertSame(0, $found['cenaZaklad']);
+        self::assertArrayHasKey('vypraveci', $found, 'vypraveci must stay in JSON even when empty');
+        self::assertSame([], $found['vypraveci']);
+        self::assertArrayHasKey('stitkyId', $found, 'stitkyId must stay in JSON even when empty');
+        self::assertSame([], $found['stitkyId']);
+    }
+
+    /**
+     * @test
      */
     public function generatePopisyCreatesJsonFile(): void
     {
@@ -559,5 +598,54 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         foreach ($manifest as $filename) {
             self::assertFileExists($programDir . '/' . $filename);
         }
+    }
+
+    /**
+     * @test
+     * Deploy gate: regenerateAll() se dřívě ukončí, pokud už manifest existuje
+     * (ochrana před souběžnými requesty). Na deployi je to ale problém —
+     * starý manifest z předchozího releasu způsobí, že nový kód nevygeneruje
+     * žádné nové JSONy.
+     *
+     * Ověřujeme, že když se před regenerateAll() smaže manifest, metoda
+     * skutečně projde a vytvoří ho znovu.
+     */
+    public function deploySmazaniManifestuVynutiRegeneraci(): void
+    {
+        $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita pro deploy regen',
+        ]);
+
+        $generator = $this->createGenerator();
+        $programDir = $this->publicCacheDir . '/program';
+        $manifestPath = $programDir . '/manifest-' . self::ROK . '.json';
+
+        // Inicializace: manifest a hashované soubory existují.
+        $generator->regenerateAll(self::ROK);
+        self::assertFileExists($manifestPath);
+        $puvodniMtime = filemtime($manifestPath);
+
+        // Sanity check: opakované volání regenerateAll() je no-op,
+        // manifest není přepsán (early-return v ProgramStaticFileGenerator::regenerateAll).
+        clearstatcache();
+        $generator->regenerateAll(self::ROK);
+        self::assertSame(
+            $puvodniMtime,
+            filemtime($manifestPath),
+            'regenerateAll() nesmí přepsat existující manifest (early-return).',
+        );
+
+        // Deploy logika: smazání manifestu před regenerateAll() VYNUTÍ plnou
+        // regeneraci. Toto je přesně to, co dělá admin/deploy/regeneruj-program-cache.php.
+        unlink($manifestPath);
+        self::assertFileDoesNotExist($manifestPath);
+
+        $generatorPoDeployi = $this->createGenerator();
+        $generatorPoDeployi->regenerateAll(self::ROK);
+
+        self::assertFileExists(
+            $manifestPath,
+            'Po smazání manifestu a volání regenerateAll() musí vzniknout nový manifest.',
+        );
     }
 }

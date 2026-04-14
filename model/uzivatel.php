@@ -7,6 +7,8 @@ use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cache\DataSourcesCollector;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Kanaly\GcMail;
@@ -1919,12 +1921,16 @@ SQL,
 
         // uložení
         if ($u) {
+            $zmenilSeJmenoNick = self::zmenilSeJmenoNebUNick($u, $dbTab);
             dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [
                 Sql::ID_UZIVATELE => $u->id(),
             ]);
             $u->otoc();
             $idUzivatele = $u->id();
             $urlUzivatele = self::vytvorUrl($u->r);
+            if ($zmenilSeJmenoNick) {
+                self::invalidujProgramCacheJeLiVypravecem($u->id());
+            }
         } else {
             dbInsert(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab);
             $idUzivatele = dbInsertId();
@@ -1939,6 +1945,55 @@ SQL,
         }
 
         return (string) $idUzivatele;
+    }
+
+    /**
+     * Vrátí, zda se změnila některá z hodnot tvořících zobrazované jméno
+     * uživatele (jmeno, prijmeni, login_uzivatele/nick) oproti stávajícímu záznamu.
+     * Jakákoli z těchto změn se může propsat do pole "vypraveci" v aktivity.json,
+     * pokud je uživatel vypravěčem.
+     */
+    private static function zmenilSeJmenoNebUNick(
+        self  $stavajici,
+        array $noveHodnoty,
+    ): bool {
+        $sledovanaPole = [
+            Sql::JMENO_UZIVATELE,
+            Sql::PRIJMENI_UZIVATELE,
+            Sql::LOGIN_UZIVATELE,
+        ];
+        foreach ($sledovanaPole as $pole) {
+            if (array_key_exists($pole, $noveHodnoty)
+                && (string) $noveHodnoty[$pole] !== (string) ($stavajici->r[$pole] ?? '')
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Pokud je uživatel organizátorem (vypravěčem) alespoň jedné aktivity v
+     * aktuálním ročníku, nastaví dirty flag pro JSON statický program, aby se
+     * při dalším běhu workeru aktivity.json přegeneroval s novým jménem.
+     * Pro neoranizátory tento nákladnější krok přeskočíme.
+     */
+    private static function invalidujProgramCacheJeLiVypravecem(int $idUzivatele): void
+    {
+        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
+        $jeVypravec         = (bool) dbOneCol(
+            'SELECT 1 FROM akce_organizatori
+                JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
+                WHERE akce_organizatori.id_uzivatele = $1 AND akce_seznam.rok = $2
+                LIMIT 1',
+            [$idUzivatele, $systemoveNastaveni->rocnik()],
+        );
+        if (!$jeVypravec) {
+            return;
+        }
+        (new ProgramStaticFileGenerator($systemoveNastaveni))
+            ->touchDirtyFlag(ProgramStaticFileType::AKTIVITY, tryStartWorker: false);
     }
 
     /**

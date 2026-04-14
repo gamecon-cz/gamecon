@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use Godric\DbMigrations\DbMigrations;
-use Godric\DbMigrations\DbMigrationsConfig;
+use Gamecon\SystemoveNastaveni\SqlMigrace;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,30 +23,15 @@ class MigrationsContinueCommand extends Command
 
         $io->title('Running Database Migrations');
 
-        // Load legacy bootstrap
+        // Load legacy bootstrap — definuje konstanty potřebné pro SqlMigrace
         require_once __DIR__ . '/../../../nastaveni/zavadec-zaklad.php';
 
-        // Create database connection for migrations (from db-migrace.php)
-        $connection = dbConnectTemporary(selectDb: false);
-
-        // Ensure database exists and is selected
-        dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_czech_ci', DB_NAME), null, $connection);
-        dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
-
-        // Create migrations config
-        $migrationsConfig = new DbMigrationsConfig(
-            connection: $connection,
-            migrationsDirectory: SQL_MIGRACE_DIR,
-            doBackups: false,
-            backupsDirectory: SQL_MIGRACE_DIR . '/zalohy',
-            useWebGui: false,
-        );
-
-        // Run migrations silently
-        $dbMigrations = new DbMigrations($migrationsConfig);
-
+        // Delegujeme na Gamecon\SystemoveNastaveni\SqlMigrace, aby byla jediná
+        // cesta pro spouštění migrací. SqlMigrace se po úspěchu také postará
+        // o označení JSON programu jako dirty (migrace typicky mění data
+        // zobrazovaná v programu a žádný listener to nezachytí).
         try {
-            $dbMigrations->run(silent: true);
+            SqlMigrace::vytvorZGlobals()->migruj(zalohuj: false);
             $io->success('All migrations have been applied successfully');
 
             return Command::SUCCESS;

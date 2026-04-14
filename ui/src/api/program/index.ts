@@ -144,7 +144,11 @@ async function fetchManifest(rok: number): Promise<ProgramManifest> {
 
 async function fetchJsonFile<T>(filename: string): Promise<T> {
   const url = `${GAMECON_KONSTANTY.URL_PROGRAM_CACHE}/${filename}`;
-  return fetch(url).then(r => r.json());
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Nepodařilo se načíst ${filename} (HTTP ${response.status}). URL: ${url}`);
+  }
+  return response.json();
 }
 
 export const fetchStaticProgramData = async (rok: number): Promise<StaticProgramData> => {
