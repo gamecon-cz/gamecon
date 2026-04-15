@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Db;
 
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -98,6 +99,8 @@ abstract class AbstractTestDb extends KernelTestCase
             // aby v dalším testu nevznikaly EntityIdentityCollisionException
             $this->getContainer()->get('doctrine')->getManager()->clear();
         }
+        Aktivita::smazCache();
+        \Uzivatel::smazCache();
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
         $systemoveNastaveni->queryCache()->clear();
         $systemoveNastaveni->db()->clearPrefetchedDataVersions();
@@ -152,6 +155,8 @@ abstract class AbstractTestDb extends KernelTestCase
         if (static::$disableStrictTransTables) {
             static::disableStrictTransTables();
         }
+        Aktivita::smazCache();
+        \Uzivatel::smazCache();
         SystemoveNastaveni::zGlobals()->queryCache()->clear();
         SystemoveNastaveni::zGlobals()->db()->clearPrefetchedDataVersions();
     }

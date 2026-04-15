@@ -2130,6 +2130,19 @@ SQL,
     }
 
     /**
+     * @return string[]|\ArrayIterator Vrátí iterátor veřejných jmen organizátorů.
+     */
+    public function orgJmenaNaWebu()
+    {
+        $jmena = new \ArrayIteratorToString();
+        foreach ($this->organizatori() as $o) {
+            $jmena[] = $o->jmenoNaWebu();
+        }
+
+        return $jmena;
+    }
+
+    /**
      * @return string[]|\ArrayIterator Vrátí iterátor loginů organizátorů
      */
     public function orgLoginy()
@@ -4336,6 +4349,14 @@ SQL,
         foreach ($aktivity as $aktivita) {
             self::$objekty['ids'][$aktivita->id()] = $aktivita;
         }
+    }
+
+    public static function smazCache(): void
+    {
+        self::$objekty = [];
+        self::$prihlaseniRawCache = [];
+        self::$prihlaseniRawArrayCache = [];
+        self::$seznamUcastnikuCache = [];
     }
 
     /**
