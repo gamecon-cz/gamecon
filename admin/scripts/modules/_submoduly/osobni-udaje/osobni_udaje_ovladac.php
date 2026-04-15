@@ -26,6 +26,7 @@ if (post('zmenitUdaj') && $uPracovni) {
             ? $zpusobZobrazeniNaWebu
             : ZpusobZobrazeniNaWebu::vychozi();
     }
+    $zmeniloSeJmenoNaWebu = Uzivatel::zmeniloSeJmenoNaWebu($uPracovni, $udaje);
     try {
         dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
     } catch (DbDuplicateEntryException $e) {
@@ -39,6 +40,9 @@ if (post('zmenitUdaj') && $uPracovni) {
     } catch (Exception $e) {
         $vyjimkovac->zaloguj($e);
         chyba('Došlo k neočekávané chybě.');
+    }
+    if ($zmeniloSeJmenoNaWebu) {
+        Uzivatel::invalidujProgramCacheJeLiVypravecem($uPracovni->id());
     }
 
     $uPracovni->otoc();

@@ -9,6 +9,7 @@ use Gamecon\SystemoveNastaveni\AnonymizovanaDatabaze;
 use Gamecon\SystemoveNastaveni\NastrojeDatabaze;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 class AnonymizovanaDatabazeTest extends AbstractTestDb
 {
@@ -61,6 +62,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             pomoc_typ = '',
             pomoc_vice = '',
             op = '',
+            zpusob_zobrazeni_na_webu = 2,
             infopult_poznamka = ''
         ");
 
@@ -177,6 +179,21 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         foreach ($anonymUsers as $anonymUser) {
             self::assertSame('', $anonymUser['jmeno_uzivatele'], 'Jméno by mělo být prázdné');
             self::assertSame('', $anonymUser['prijmeni_uzivatele'], 'Příjmení by mělo být prázdné');
+        }
+
+        $zpusobyZobrazeniResult = mysqli_query($connection, sprintf(
+            "SELECT zpusob_zobrazeni_na_webu FROM `%s`.uzivatele_hodnoty WHERE login_uzivatele != '%s' AND id_uzivatele != %d",
+            self::$anonymniDatabaze,
+            AnonymizovanaDatabaze::ADMIN_LOGIN,
+            \Uzivatel::SYSTEM,
+        ));
+        $zpusobyZobrazeni = array_column(mysqli_fetch_all($zpusobyZobrazeniResult, MYSQLI_ASSOC), 'zpusob_zobrazeni_na_webu');
+        foreach ($zpusobyZobrazeni as $zpusobZobrazeni) {
+            self::assertSame(
+                (string) ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+                $zpusobZobrazeni,
+                'Způsob zobrazení na webu by měl být po anonymizaci resetovaný na pouze přezdívku',
+            );
         }
 
         // posazen in uzivatele_role should be anonymized to fixed timestamp (except admin added after anonymization)

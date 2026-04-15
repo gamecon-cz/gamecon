@@ -12,6 +12,8 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\SystemoveNastaveni\SqlMigrace;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 /**
  * Regresní testy zajišťující, že každá cesta, kterou se mění data zobrazovaná
@@ -97,11 +99,12 @@ class ProgramCacheInvalidationTest extends AbstractTestDb
     private function vlozUzivatele(int $idUzivatele, string $nick, string $jmeno, string $prijmeni): \Uzivatel
     {
         dbInsertUpdate('uzivatele_hodnoty', [
-            'id_uzivatele'       => $idUzivatele,
-            'login_uzivatele'    => $nick,
-            'jmeno_uzivatele'    => $jmeno,
-            'prijmeni_uzivatele' => $prijmeni,
-            'email1_uzivatele'   => $nick . '@example.test',
+            UzivatelSql::ID_UZIVATELE             => $idUzivatele,
+            UzivatelSql::LOGIN_UZIVATELE          => $nick,
+            UzivatelSql::JMENO_UZIVATELE          => $jmeno,
+            UzivatelSql::PRIJMENI_UZIVATELE       => $prijmeni,
+            UzivatelSql::EMAIL1_UZIVATELE         => $nick . '@example.test',
+            UzivatelSql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
         ]);
 
         return \Uzivatel::zId($idUzivatele, true);
@@ -129,6 +132,30 @@ class ProgramCacheInvalidationTest extends AbstractTestDb
         $this->assertDirtyFlagNastaven(
             ProgramStaticFileType::AKTIVITY,
             'změna přezdívky vypravěče aktivity',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function zmenaZpusobuZobrazeniNaWebuVypraveceNastaviAktivityFlag(): void
+    {
+        $idAktivity = $this->vlozAktivitu();
+        $idVypravece = 900004;
+        $vypravec = $this->vlozUzivatele($idVypravece, 'anonymninick', 'Adam', 'Anonym');
+        dbInsertUpdate('akce_organizatori', [
+            'id_akce'      => $idAktivity,
+            'id_uzivatele' => $idVypravece,
+        ]);
+        $this->smazVsechnyDirtyFlagy();
+
+        $vypravec->uprav([
+            UzivatelSql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
+        ]);
+
+        $this->assertDirtyFlagNastaven(
+            ProgramStaticFileType::AKTIVITY,
+            'změna anonymizace vypravěče aktivity',
         );
     }
 
@@ -203,6 +230,55 @@ class ProgramCacheInvalidationTest extends AbstractTestDb
         $this->assertDirtyFlagNastaven(
             ProgramStaticFileType::OBSAZENOSTI,
             'zvýšení kapacity týmové aktivity tlačítkem +',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function legacyUlozeniAktivityNastaviVsechnyProgramFlagy(): void
+    {
+        $idAktivity = $this->vlozAktivitu([
+            Sql::URL_AKCE => 'legacy-ulozeni-' . uniqid('', true),
+        ]);
+        $this->smazVsechnyDirtyFlagy();
+
+        Aktivita::uloz(
+            data: [
+                Sql::ID_AKCE      => $idAktivity,
+                Sql::NAZEV_AKCE   => 'Legacy upravená aktivita',
+                Sql::URL_AKCE     => 'legacy-upravena-' . uniqid('', true),
+                Sql::POPIS_KRATKY => 'Upravený krátký popis',
+                Sql::ROK          => self::ROK,
+                Sql::STAV         => StavAktivity::AKTIVOVANA,
+                Sql::TYP          => TypAktivity::DESKOHERNA,
+                Sql::ZACATEK      => date('Y-m-d 10:00:00'),
+                Sql::KONEC        => date('Y-m-d 13:00:00'),
+                Sql::KAPACITA     => 7,
+                Sql::KAPACITA_F   => 0,
+                Sql::KAPACITA_M   => 0,
+                Sql::CENA         => 150,
+                Sql::TEAMOVA      => 0,
+            ],
+            markdownPopis: 'Upravený popis aktivity',
+            organizatoriIds: [],
+            lokaceIds: [],
+            hlavniLokaceId: null,
+            tagIds: [],
+            systemoveNastaveni: \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals(),
+        );
+
+        $this->assertDirtyFlagNastaven(
+            ProgramStaticFileType::AKTIVITY,
+            'uložení aktivity přes legacy editor',
+        );
+        $this->assertDirtyFlagNastaven(
+            ProgramStaticFileType::POPISY,
+            'uložení aktivity přes legacy editor',
+        );
+        $this->assertDirtyFlagNastaven(
+            ProgramStaticFileType::OBSAZENOSTI,
+            'uložení aktivity přes legacy editor',
         );
     }
 

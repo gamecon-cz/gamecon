@@ -38,6 +38,7 @@ class AnonymizovanyUzivatel
             UzivatelSql::INFOPULT_POZNAMKA                   => '',
             UzivatelSql::TYP_DOKLADU_TOTOZNOSTI              => '',
             UzivatelSql::STATNI_OBCANSTVI                    => null,
+            UzivatelSql::ZPUSOB_ZOBRAZENI_NA_WEBU            => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
         ];
     }
 

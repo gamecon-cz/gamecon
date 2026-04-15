@@ -72,7 +72,9 @@ try {
 
         logMessage("Iterace $iteration: dirty aktivity=$dirtyAktivity, popisy=$dirtyPopisy, obsazenosti=$dirtyObsazenosti, stitky=$dirtyStitky");
 
-        // Vyčistit in-memory cache aktivity z předchozí iterace (data se mohla změnit)
+        // Vyčistit cache z předchozí iterace, aby se propsaly i změny z jiných requestů,
+        // které přišly mezitím a zvedly data version tabulek.
+        $systemoveNastaveni->db()->clearPrefetchedDataVersions();
         $generator->reset();
 
         // Smazat flagy PŘED regenerací — nové změny během regenerace vytvoří nové flagy
