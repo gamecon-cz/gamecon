@@ -1090,6 +1090,7 @@ SQL
         }
 
         oznameni('Aktivita byla uložena', false);
+        (new ProgramStaticFileGenerator($aktivita->systemoveNastaveni))->tryStartWorker();
 
         return $aktivita;
     }
@@ -1288,6 +1289,7 @@ SQL
         $programStaticFilesGenerator = new ProgramStaticFileGenerator($systemoveNastaveni);
         $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY, tryStartWorker: false);
         $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::POPISY, tryStartWorker: false);
+        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI, tryStartWorker: false);
 
         return $aktivita;
     }

@@ -2011,14 +2011,14 @@ SQL,
 
         // uložení
         if ($u) {
-            $zmenilSeJmenoNick = self::zmenilSeJmenoNebUNick($u, $dbTab);
+            $zmeniloSeJmenoNaWebu = self::zmeniloSeJmenoNaWebu($u, $dbTab);
             dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [
                 Sql::ID_UZIVATELE => $u->id(),
             ]);
             $u->otoc();
             $idUzivatele = $u->id();
             $urlUzivatele = self::vytvorUrl($u->r);
-            if ($zmenilSeJmenoNick) {
+            if ($zmeniloSeJmenoNaWebu) {
                 self::invalidujProgramCacheJeLiVypravecem($u->id());
             }
         } else {
@@ -2038,12 +2038,11 @@ SQL,
     }
 
     /**
-     * Vrátí, zda se změnila některá z hodnot tvořících zobrazované jméno
-     * uživatele (jmeno, prijmeni, login_uzivatele/nick) oproti stávajícímu záznamu.
-     * Jakákoli z těchto změn se může propsat do pole "vypraveci" v aktivity.json,
-     * pokud je uživatel vypravěčem.
+     * Vrátí, zda se změnila některá z hodnot ovlivňujících jméno zobrazené na
+     * webu oproti stávajícímu záznamu. Jakákoli z těchto změn se může propsat do
+     * pole "vypraveci" v aktivity.json, pokud je uživatel vypravěčem.
      */
-    private static function zmenilSeJmenoNebUNick(
+    public static function zmeniloSeJmenoNaWebu(
         self  $stavajici,
         array $noveHodnoty,
     ): bool {
@@ -2051,6 +2050,7 @@ SQL,
             Sql::JMENO_UZIVATELE,
             Sql::PRIJMENI_UZIVATELE,
             Sql::LOGIN_UZIVATELE,
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU,
         ];
         foreach ($sledovanaPole as $pole) {
             if (array_key_exists($pole, $noveHodnoty)
@@ -2067,9 +2067,9 @@ SQL,
      * Pokud je uživatel organizátorem (vypravěčem) alespoň jedné aktivity v
      * aktuálním ročníku, nastaví dirty flag pro JSON statický program, aby se
      * při dalším běhu workeru aktivity.json přegeneroval s novým jménem.
-     * Pro neoranizátory tento nákladnější krok přeskočíme.
+     * Používá se i z cest, které obcházejí Uzivatel::uprav().
      */
-    private static function invalidujProgramCacheJeLiVypravecem(int $idUzivatele): void
+    public static function invalidujProgramCacheJeLiVypravecem(int $idUzivatele): void
     {
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
         $jeVypravec         = (bool) dbOneCol(

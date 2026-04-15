@@ -480,9 +480,9 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         // Worker deletes the new flag and regenerates
         $generator->deleteDirtyFlag(ProgramStaticFileType::AKTIVITY);
 
-        // Clear caches so the next SQL fetch picks up DB changes
-        // (the real worker keeps running within the same process but the SQL is not cached across iterations)
-        $systemoveNastaveni->queryCache()->clear();
+        // Clear prefetched table versions so the next SQL fetch picks up DB changes
+        // even when the worker stays alive in the same process.
+        $systemoveNastaveni->db()->clearPrefetchedDataVersions();
         $generator->reset();
 
         $filenameV2 = $generator->generateActivities(self::ROK);
