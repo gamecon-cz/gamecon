@@ -528,8 +528,11 @@ class Program
 HTML;
 
         // doplňkové informace (druhý řádek)
-        if ($this->nastaveni[self::DRD_PJ] && $aktivitaObjekt->typId() == TypAktivity::DRD && $aktivitaObjekt->prihlasovatelna()) {
-            echo ' (' . $aktivitaObjekt->orgJmena() . ') ';
+        if ($this->nastaveni[self::DRD_PJ] && $aktivitaObjekt->typId() == TypAktivity::DRD) {
+            $orgJmenaNaWebu = trim((string)$aktivitaObjekt->orgJmenaNaWebu());
+            if ($orgJmenaNaWebu !== '') {
+                echo ' (' . $orgJmenaNaWebu . ') ';
+            }
         }
 
         if ($aktivitaRaw['delka'] > 1) {
