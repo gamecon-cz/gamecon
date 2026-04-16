@@ -194,7 +194,7 @@ HTML;
               <?php
           } else { ?>
             <div class="formular_strankaNadpis">Registrace</div>
-            <div class="fromular_strankaPodtitul">
+            <div class="formular_strankaPodtitul">
               <div style="max-width: 250px">
                 Jsi jenom krok od toho stát se součástí naprosto boží akce!
               </div>
