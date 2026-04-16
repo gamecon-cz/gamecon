@@ -7,6 +7,7 @@ use Gamecon\Web\Info;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Pravo;
 use Gamecon\Aktivita\VlastniTypAktivity;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';
@@ -82,7 +83,17 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
 
     // položky uživatelského menu
     if ($u) {
+        $jmenoDoMenu = match ($u->zpusobZobrazeniNaWebu()) {
+            ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => $u->celeJmeno(),
+            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+            ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI => $u->nick(),
+        };
+        if ($jmenoDoMenu === '') {
+            $jmenoDoMenu = $u->jmenoNaWebu();
+        }
+
         $t->assign(['u' => $u]);
+        $t->assign(['uJmenoMenu' => $jmenoDoMenu]);
         $t->assign(["gcPrihlaska" => $u->gcPrihlasen() ? "Upravit přihlášku" : "Přihláška na GC"]);
         if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
             $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
