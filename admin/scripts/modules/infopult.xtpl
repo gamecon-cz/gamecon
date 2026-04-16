@@ -15,15 +15,43 @@
   }
 
   .qr-platby {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-    align-items: start;
+    display: block;
   }
 
   .qr-platby__uvod {
     margin: 0 0 12px;
     color: #4f5b67;
+  }
+
+  .qr-platby__prepinac {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 12px;
+  }
+
+  .qr-platby__tlacitko {
+    padding: 4px 12px;
+    border: 1px solid #c8d2dd;
+    border-radius: 999px;
+    background: #f4f7fa;
+    color: #334155;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .qr-platby__tlacitko.is-aktivni,
+  .qr-platby__tlacitko[aria-pressed="true"] {
+    background: #e0ebf7;
+    border-color: #8aa6c2;
+    color: #102a43;
+  }
+
+  .qr-platby__tlacitko:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 1px;
   }
 
   .qr-platby-sekce {
@@ -36,10 +64,15 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-width: 360px;
     padding: 12px;
     border: 1px solid #d7dde4;
     border-radius: 10px;
     background: linear-gradient(180deg, #ffffff 0%, #f7f9fb 100%);
+  }
+
+  .qr-platba-karta[hidden] {
+    display: none;
   }
 
   .qr-platba-karta__typ {
@@ -343,8 +376,19 @@
     <div class="qr-platby-sekce">
       <h3>QR platby</h3>
       <p class="qr-platby__uvod">Vyber variantu podle banky a typu převodu.</p>
+      <div class="qr-platby__prepinac" aria-label="Přepínač QR plateb">
+          <button type="button" class="qr-platby__tlacitko is-aktivni" data-qr-prepinac="cz" aria-pressed="true">
+              CZ
+          </button>
+          <button type="button" class="qr-platby__tlacitko" data-qr-prepinac="sk" aria-pressed="false">
+              SK
+          </button>
+          <button type="button" class="qr-platby__tlacitko" data-qr-prepinac="sepa" aria-pressed="false">
+              SEPA
+          </button>
+      </div>
       <div class="qr-platby">
-          <div class="qr-platba-karta">
+          <div class="qr-platba-karta" data-qr-kod="cz">
               <div>
                   <span class="qr-platba-karta__typ">CZ</span>
                   <h4>Platba (CZ)</h4>
@@ -354,7 +398,7 @@
                   <img src="{qrKodPlatbaCeska}" alt="qrPlatbaCeska">
               </div>
           </div>
-          <div class="qr-platba-karta">
+          <div class="qr-platba-karta" data-qr-kod="sk" hidden>
               <div>
                   <span class="qr-platba-karta__typ">SK</span>
                   <h4>Platba (SK)</h4>
@@ -364,7 +408,7 @@
                   <img src="{qrKodPlatbaSlovenska}" alt="qrPlatbaSlovenska">
               </div>
           </div>
-          <div class="qr-platba-karta">
+          <div class="qr-platba-karta" data-qr-kod="sepa" hidden>
               <div>
                   <span class="qr-platba-karta__typ">SEPA</span>
                   <h4>Platba (SEPA)</h4>
@@ -375,6 +419,44 @@
               </div>
           </div>
       </div>
+      <script>
+        (function () {
+          var sekceQrPlateb = document.querySelector('.qr-platby-sekce');
+          if (!sekceQrPlateb) {
+            return;
+          }
+
+          var prepinace = sekceQrPlateb.querySelectorAll('[data-qr-prepinac]');
+          var karty = sekceQrPlateb.querySelectorAll('[data-qr-kod]');
+
+          var nastavAktivniKartu = function (typQrKodu) {
+            var i;
+
+            for (i = 0; i < karty.length; i++) {
+              var karta = karty[i];
+              karta.hidden = karta.getAttribute('data-qr-kod') !== typQrKodu;
+            }
+
+            for (i = 0; i < prepinace.length; i++) {
+              var prepinac = prepinace[i];
+              var jeAktivni = prepinac.getAttribute('data-qr-prepinac') === typQrKodu;
+              prepinac.classList.toggle('is-aktivni', jeAktivni);
+              prepinac.setAttribute('aria-pressed', jeAktivni ? 'true' : 'false');
+            }
+          };
+
+          for (var i = 0; i < prepinace.length; i++) {
+            prepinace[i].addEventListener('click', function () {
+              nastavAktivniKartu(this.getAttribute('data-qr-prepinac'));
+            });
+          }
+
+          var vychoziPrepinac = sekceQrPlateb.querySelector('[data-qr-prepinac][aria-pressed="true"]');
+          if (vychoziPrepinac) {
+            nastavAktivniKartu(vychoziPrepinac.getAttribute('data-qr-prepinac'));
+          }
+        })();
+      </script>
     </div>
     <!-- end:qrKodyPlateb -->
   </div>
