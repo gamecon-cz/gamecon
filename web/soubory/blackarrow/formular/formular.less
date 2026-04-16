@@ -3,6 +3,7 @@
 .formular_stranka {
   min-height: ~'calc(100vh - 70px)';
   box-sizing: border-box;
+  overflow-x: hidden; // prevence horizontálního scrollu při přetečení tooltipů / plovoucích bloků
   padding: 60px 60px 120px ~'calc(' @levyOkraj ~'+ 60px)';
   position: relative; // kvůli nadpisu
   @media (max-width: 900px) {
