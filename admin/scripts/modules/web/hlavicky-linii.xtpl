@@ -89,7 +89,7 @@
           <input type="email" name="email" value="{email}">
         </label><br><br>
 
-        <button type="submit" class="tlacitko">Uložit texty</button>
+        <button type="submit"><i class="fa fa-save" aria-hidden="true"></i> Uložit texty</button>
       </form>
     </td>
     <td>
@@ -106,14 +106,14 @@
 
         <div class="hlavicky-linii__actions">
           <input type="file" name="obrazek" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" required>
-          <button type="submit" class="tlacitko">Nahrát obrázek</button>
+          <button type="submit"><i class="fa fa-upload" aria-hidden="true"></i> Nahrát obrázek</button>
         </div>
       </form>
 
       <form method="post">
         <input type="hidden" name="action" value="delete-line-header-image">
         <input type="hidden" name="id_typu" value="{id_typu}">
-        <button type="submit" class="tlacitko">Smazat vlastní obrázek</button>
+        <button type="submit"><i class="fa fa-trash" aria-hidden="true"></i> Smazat vlastní obrázek</button>
       </form>
     </td>
   </tr>

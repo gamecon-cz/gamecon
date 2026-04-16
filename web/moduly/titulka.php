@@ -21,27 +21,12 @@ $offsety = [120, 320, 280];
 $typy    = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
 $obrazky = ZpracovaneObrazky::linieTitulka()->seznamObrazku();
 foreach ($typy as $i => $typ) {
-    $ikona = null;
-    foreach (['jpg', 'jpeg', 'png', 'webp', 'gif'] as $priponaObrazkuLinie) {
-        $moznaIkona = 'soubory/systemove/linie-ikony/org_' . $typ->id() . '.' . $priponaObrazkuLinie;
-        if (is_file($moznaIkona)) {
-            $ikona = $moznaIkona;
-            break;
-        }
-    }
-    if (!$ikona) {
-        $ikona = 'soubory/systemove/linie-ikony/' . $typ->id() . '.png';
-        if (!is_file($ikona)) {
-            $ikona = 'soubory/systemove/avatary/default.png';
-        }
-    }
-
     $t->assign([
         'cislo'     => sprintf('%02d', $i + 1),
         'nazev'     => mb_ucfirst($typ->nazev()),
         'url'       => $typ->url(),
         'obrazek'   => $obrazky[$typ->id()]['src'] ?? '', // prevent errors, mainly for local testing
-        'ikona'     => $ikona,
+        'ikona'     => cestaObrazkuLinie($typ->id()),
         'aosOffset' => $offsety[$i % 3],
         'popis'     => $typ->popisKratky(),
     ]);
