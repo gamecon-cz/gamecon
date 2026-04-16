@@ -11,4 +11,4 @@ fi
 TAG=gameconcz/gamecon:"${PHP_VERSION}"
 
 # docker buildx create --use
-docker buildx build --platform linux/amd64,linux/arm --pull --tag "${TAG}" --push "${PROJECT_ROOT}/.docker"
+docker buildx build --network=host --platform linux/amd64 --pull --tag "${TAG}" --push "${PROJECT_ROOT}/.docker"

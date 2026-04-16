@@ -149,20 +149,7 @@ if (!empty($org)) {
         [$typ->id()],
     );
 
-    $picture_path = null;
-    foreach (['jpg', 'jpeg', 'png', 'webp', 'gif'] as $priponaObrazkuLinie) {
-        $moznaCesta = 'soubory/systemove/linie-ikony/org_' . $typ->id() . '.' . $priponaObrazkuLinie;
-        if (is_file($moznaCesta)) {
-            $picture_path = $moznaCesta;
-            break;
-        }
-    }
-    if (!$picture_path) {
-        $picture_path = 'soubory/systemove/linie-ikony/' . $typ->id() . '.png';
-        if (!is_file($picture_path)) {
-            $picture_path = 'soubory/systemove/avatary/default.png';
-        }
-    }
+    $picture_path = cestaObrazkuLinie($typ->id());
 
     /* 'ikonaLiniePopis' => $varIkonaLiniePopis, */
     $t->assign([

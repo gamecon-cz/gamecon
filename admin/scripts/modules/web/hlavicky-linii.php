@@ -10,7 +10,6 @@ use Gamecon\XTemplate\XTemplate;
  */
 
 $adresarObrazkuLinii = ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/linie-ikony';
-$fallbackObrazekUrl = URL_WEBU . '/soubory/systemove/avatary/default.png';
 $podporovanePriponyObrazkuLinii = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 $mimeNaPriponuObrazkuLinie = [
     'image/jpeg' => 'jpg',
@@ -19,31 +18,23 @@ $mimeNaPriponuObrazkuLinie = [
     'image/gif'  => 'gif',
 ];
 
-$informaceOObrazkuLinie = static function (int $idTypu) use ($adresarObrazkuLinii, $fallbackObrazekUrl, $podporovanePriponyObrazkuLinii): array {
-    foreach ($podporovanePriponyObrazkuLinii as $priponaObrazkuLinie) {
-        $vlastniObrazek = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $priponaObrazkuLinie;
-        if (is_file($vlastniObrazek) && filesize($vlastniObrazek) > 0) {
-            return [
-                'url' => URL_WEBU . '/soubory/systemove/linie-ikony/org_' . $idTypu . '.' . $priponaObrazkuLinie . '?v=' . filemtime($vlastniObrazek),
-                'cesta' => 'soubory/systemove/linie-ikony/org_' . $idTypu . '.' . $priponaObrazkuLinie,
-                'stav' => 'Používá se vlastní obrázek.',
-            ];
-        }
-    }
+$informaceOObrazkuLinie = static function (int $idTypu): array {
+    $cestaVcetneVerze = cestaObrazkuLinie($idTypu);
+    $cestaBezVerze = strtok($cestaVcetneVerze, '?');
+    $nazevSouboru = basename($cestaBezVerze);
 
-    $starsiObrazek = $adresarObrazkuLinii . '/' . $idTypu . '.png';
-    if (is_file($starsiObrazek) && filesize($starsiObrazek) > 0) {
-        return [
-            'url' => URL_WEBU . '/soubory/systemove/linie-ikony/' . $idTypu . '.png?v=' . filemtime($starsiObrazek),
-            'cesta' => 'soubory/systemove/linie-ikony/' . $idTypu . '.png',
-            'stav' => 'Používá se starší obrázek linie (*.png).',
-        ];
+    if (str_starts_with($nazevSouboru, 'org_')) {
+        $stav = 'Používá se vlastní obrázek.';
+    } elseif ($nazevSouboru === 'default.png') {
+        $stav = 'Vlastní obrázek chybí, používá se fallback.';
+    } else {
+        $stav = 'Používá se starší obrázek linie (*.png).';
     }
 
     return [
-        'url' => $fallbackObrazekUrl,
-        'cesta' => 'soubory/systemove/avatary/default.png',
-        'stav' => 'Vlastní obrázek chybí, používá se fallback.',
+        'url' => URL_WEBU . '/' . $cestaVcetneVerze,
+        'cesta' => $cestaBezVerze,
+        'stav' => $stav,
     ];
 };
 
@@ -69,10 +60,10 @@ if (post('action') === 'save-line-header') {
     }
 
     if ($sekce === '' && $jmeno === '' && $email === '') {
-        dbQuery('DELETE FROM akce_typy_hlavicky WHERE id_typu = $1', [$idTypu]);
+        dbQuery('DELETE FROM akce_typy_hlavicky WHERE id_typu = $1', [1 => $idTypu]);
         oznameni('Hlavička linie byla vymazána, použije se fallback.');
     } else {
-        dbQueryS(
+        dbQuery(
             <<<'SQL'
 INSERT INTO akce_typy_hlavicky (id_typu, sekce, jmeno, email)
 VALUES ($1, $2, $3, $4)
@@ -82,10 +73,10 @@ ON DUPLICATE KEY UPDATE
     email = VALUES(email)
 SQL,
             [
-                $idTypu,
-                $sekce !== '' ? $sekce : null,
-                $jmeno !== '' ? $jmeno : null,
-                $email !== '' ? $email : null,
+                1 => $idTypu,
+                2 => $sekce !== '' ? $sekce : null,
+                3 => $jmeno !== '' ? $jmeno : null,
+                4 => $email !== '' ? $email : null,
             ],
         );
 
@@ -104,6 +95,10 @@ if (post('action') === 'upload-line-header-image') {
         chyba('Nepodařilo se nahrát obrázek.');
     }
 
+    if (($obrazek['size'] ?? 0) > OBRAZEK_LINIE_MAX_MB * 1024 * 1024) {
+        chyba('Obrázek je příliš velký, maximum je ' . OBRAZEK_LINIE_MAX_MB . ' MB.');
+    }
+
     $informaceOObrazku = getimagesize($obrazek['tmp_name']);
     if (!$informaceOObrazku || empty($informaceOObrazku['mime'])) {
         chyba('Nahraný soubor není platný obrázek.');
@@ -118,16 +113,27 @@ if (post('action') === 'upload-line-header-image') {
         chyba('Nepodařilo se vytvořit adresář pro obrázky linií.');
     }
 
+    $cilovaCesta = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $pripona;
+    $docasnaCesta = $cilovaCesta . '.nova';
+
+    if (!move_uploaded_file($obrazek['tmp_name'], $docasnaCesta)) {
+        chyba('Nepodařilo se uložit obrázek.');
+    }
+
     foreach ($podporovanePriponyObrazkuLinii as $staraPriponaObrazkuLinie) {
         $staraCesta = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $staraPriponaObrazkuLinie;
+        if ($staraCesta === $cilovaCesta) {
+            continue;
+        }
         if (is_file($staraCesta) && !unlink($staraCesta)) {
+            unlink($docasnaCesta);
             chyba('Nepodařilo se odstranit starší variantu obrázku.');
         }
     }
 
-    $cilovaCesta = $adresarObrazkuLinii . '/org_' . $idTypu . '.' . $pripona;
-    if (!move_uploaded_file($obrazek['tmp_name'], $cilovaCesta)) {
-        chyba('Nepodařilo se uložit obrázek.');
+    if (!rename($docasnaCesta, $cilovaCesta)) {
+        unlink($docasnaCesta);
+        chyba('Nepodařilo se dokončit uložení obrázku.');
     }
 
     oznameni('Obrázek linie byl nahrán.');
@@ -146,7 +152,12 @@ if (post('action') === 'delete-line-header-image') {
         }
     }
 
-    oznameni('Vlastní obrázek linie byl smazán, použije se fallback.');
+    $legacyCesta = $adresarObrazkuLinii . '/' . $idTypu . '.png';
+    if (is_file($legacyCesta)) {
+        oznameni('Vlastní obrázek linie byl smazán, použije se starší ' . basename($legacyCesta));
+    } else {
+        oznameni('Vlastní obrázek linie byl smazán, použije se výchozí avatar.');
+    }
 }
 
 $radky = dbFetchAll(

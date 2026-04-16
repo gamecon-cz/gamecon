@@ -1,6 +1,10 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
+use Symfony\Component\Filesystem\Filesystem;
+
+$filesystem = new Filesystem();
+
 $this->q(<<<SQL
 CREATE TABLE IF NOT EXISTS akce_typy_hlavicky
 (
@@ -18,7 +22,7 @@ $legacyDir = ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/linie-ikony';
 $sourceDir = $legacyDir;
 
 if (!is_dir($legacyDir)) {
-    @mkdir($legacyDir, 0775, true);
+    $filesystem->mkdir($legacyDir, 0775);
 }
 
 if (is_dir($sourceDir)) {
@@ -62,7 +66,7 @@ SQL,
         $jpgSource = $sourceDir . '/org_' . $idTypu . '.jpg';
         $jpgTarget = $legacyDir . '/org_' . $idTypu . '.jpg';
         if (is_file($jpgSource) && (!is_file($jpgTarget) || filesize($jpgTarget) === 0)) {
-            @copy($jpgSource, $jpgTarget);
+            $filesystem->copy($jpgSource, $jpgTarget);
         }
     }
 }
@@ -110,6 +114,6 @@ if ($dndRow && $bonusRow) {
     $bonusJpg = $legacyDir . '/org_' . $bonusId . '.jpg';
     $dndJpg   = $legacyDir . '/org_' . $dndId . '.jpg';
     if (is_file($bonusJpg) && (!is_file($dndJpg) || filesize($dndJpg) === 0)) {
-        @copy($bonusJpg, $dndJpg);
+        $filesystem->copy($bonusJpg, $dndJpg);
     }
 }
