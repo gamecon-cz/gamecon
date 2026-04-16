@@ -113,9 +113,9 @@ class User
     private ?string $statniObcanstvi = null;
 
     #[ORM\Column(name: 'zpusob_zobrazeni_na_webu', type: Types::SMALLINT, nullable: false, options: [
-        'default' => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+        'default' => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
     ])]
-    private int $zpusobZobrazeniNaWebu = ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA;
+    private int $zpusobZobrazeniNaWebu = ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value;
 
     #[ORM\Column(name: 'z_rychloregistrace', type: Types::BOOLEAN, nullable: true, options: [
         'default' => 0,

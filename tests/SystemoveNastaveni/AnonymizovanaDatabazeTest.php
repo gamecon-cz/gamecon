@@ -190,7 +190,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         $zpusobyZobrazeni = array_column(mysqli_fetch_all($zpusobyZobrazeniResult, MYSQLI_ASSOC), 'zpusob_zobrazeni_na_webu');
         foreach ($zpusobyZobrazeni as $zpusobZobrazeni) {
             self::assertSame(
-                (string) ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+                (string) ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
                 $zpusobZobrazeni,
                 'Způsob zobrazení na webu by měl být po anonymizaci resetovaný na pouze přezdívku',
             );

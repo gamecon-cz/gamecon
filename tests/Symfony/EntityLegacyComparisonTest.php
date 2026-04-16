@@ -107,7 +107,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             UserEntityStructure::infopultPoznamka      => 'Test infopult',
             UserEntityStructure::typDokladuTotoznosti  => 'OP',
             UserEntityStructure::statniObcanstvi       => 'CZ',
-            UserEntityStructure::zpusobZobrazeniNaWebu => ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI,
+            UserEntityStructure::zpusobZobrazeniNaWebu => ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI->value,
             UserEntityStructure::zRychloregistrace     => false,
             UserEntityStructure::mrtvyMail             => false,
         ])->_save()->_real();
