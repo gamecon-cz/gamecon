@@ -36,11 +36,11 @@ $limit     = false;
 $a   = $u->koncovkaDlePohlavi();
 $uid = $u->id();
 $statUzivatele = $u->stat();
-$jeCeskaQrPlatba = $statUzivatele === Stat::CZ;
-$jeSlovenskaQrPlatba = $statUzivatele === Stat::SK;
-$nadpisZahranicniPlatby = $jeSlovenskaQrPlatba
-    ? 'Platba (SK)'
-    : 'Platba (SEPA)';
+$vychoziTypQrPlatby = match ($statUzivatele) {
+    Stat::CZ => 'cz',
+    Stat::SK => 'sk',
+    default => 'sepa',
+};
 
 if (!$zaplaceno) {
     $castka                        = -$u->finance()->stav();
@@ -83,11 +83,39 @@ if (!$zaplaceno) {
             margin-top: 16px;
         }
 
+        .payment-methods__switch {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .payment-methods__switch-button {
+            padding: 8px 14px;
+            border: 1px solid #E22630;
+            background-color: #E22630;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .payment-methods__switch-button.is-aktivni,
+        .payment-methods__switch-button[aria-pressed="true"] {
+            border-color: #10111A;
+            background-color: #10111A;
+        }
+
         .payment-method {
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 16px;
             background: #fafafa;
+        }
+
+        .payment-method[hidden] {
+            display: none;
         }
 
         .payment-method__title {
@@ -138,16 +166,38 @@ if (!$zaplaceno) {
 
     <?php
     $qrKodProCeskouPlatbu = $u->finance()->dejQrKodProCeskouPlatbu();
-    $qrKodProSlovenskouPlatbu = $jeSlovenskaQrPlatba
-        ? $u->finance()->dejQrKodProSlovenskouPlatbu()
-        : null;
+    $qrKodProSlovenskouPlatbu = $u->finance()->dejQrKodProSlovenskouPlatbu();
     $qrKodProSepaPlatbu = $u->finance()->dejQrKodProSepaPlatbu();
+    $jeVychoziCz = $vychoziTypQrPlatby === 'cz';
+    $jeVychoziSk = $vychoziTypQrPlatby === 'sk';
+    $jeVychoziSepa = $vychoziTypQrPlatby === 'sepa';
     ?>
 
     <?php if (!$zaplaceno): ?>
         <h2 id="placeni">Platba</h2>
-        <div class="payment-methods">
-            <section class="payment-method">
+        <div class="payment-methods" data-payment-switch="<?= $vychoziTypQrPlatby ?>">
+            <div class="payment-methods__switch" aria-label="Výběr QR platby">
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziCz ? ' is-aktivni' : '' ?>"
+                        data-payment-switch-button="cz"
+                        aria-pressed="<?= $jeVychoziCz ? 'true' : 'false' ?>">
+                    CZ
+                </button>
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziSk ? ' is-aktivni' : '' ?>"
+                        data-payment-switch-button="sk"
+                        aria-pressed="<?= $jeVychoziSk ? 'true' : 'false' ?>">
+                    SK
+                </button>
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziSepa ? ' is-aktivni' : '' ?>"
+                        data-payment-switch-button="sepa"
+                        aria-pressed="<?= $jeVychoziSepa ? 'true' : 'false' ?>">
+                    SEPA
+                </button>
+            </div>
+
+            <section class="payment-method" data-payment-card="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (CZ)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
@@ -155,7 +205,7 @@ if (!$zaplaceno) {
                         <strong>Variabilní symbol:</strong> <?= $uid ?><br>
                         <strong>Částka k zaplacení:</strong> <?= $castkaCZ ?>
                     </div>
-                    <?php if (($jeCeskaQrPlatba || $jeSlovenskaQrPlatba) && $qrKodProCeskouPlatbu !== null): ?>
+                    <?php if ($qrKodProCeskouPlatbu !== null): ?>
                         <div class="payment-method__qr">
                             <img src="<?= $qrKodProCeskouPlatbu->getDataUri() ?>" alt="qrPlatbaCz">
                         </div>
@@ -163,26 +213,24 @@ if (!$zaplaceno) {
                 </div>
             </section>
 
-            <?php if ($jeSlovenskaQrPlatba): ?>
-                <section class="payment-method" id="placeni-sepa">
-                    <h3 class="payment-method__title"><?= $nadpisZahranicniPlatby ?></h3>
-                    <div class="payment-method__content">
-                        <div class="payment-method__details">
-                            <strong>IBAN:</strong> <?= IBAN ?><br>
-                            <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                            <strong>Reference platby:</strong> VS<?= $uid ?><br>
-                            <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
-                        </div>
-                        <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
-                            <div class="payment-method__qr">
-                                <img src="<?= $qrKodProSlovenskouPlatbu->getDataUri() ?>" alt="qrPlatbaSk">
-                            </div>
-                        <?php endif; ?>
+            <section class="payment-method" data-payment-card="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
+                <h3 class="payment-method__title">Platba (SK)</h3>
+                <div class="payment-method__content">
+                    <div class="payment-method__details">
+                        <strong>IBAN:</strong> <?= IBAN ?><br>
+                        <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
+                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
+                        <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
                     </div>
-                </section>
-            <?php endif; ?>
+                    <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
+                        <div class="payment-method__qr">
+                            <img src="<?= $qrKodProSlovenskouPlatbu->getDataUri() ?>" alt="qrPlatbaSk">
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </section>
 
-            <section class="payment-method" id="placeni-epc">
+            <section class="payment-method" data-payment-card="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (SEPA)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
@@ -241,15 +289,36 @@ if (!$zaplaceno) {
             platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
             můžeš si samozřejmě kdykoli převést peníze do zásoby:
         </p>
-        <div class="payment-methods">
-            <section class="payment-method">
+        <div class="payment-methods" data-payment-switch="<?= $vychoziTypQrPlatby ?>">
+            <div class="payment-methods__switch" aria-label="Výběr QR platby">
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziCz ? ' is-aktivni' : '' ?>"
+                        data-payment-switch-button="cz"
+                        aria-pressed="<?= $jeVychoziCz ? 'true' : 'false' ?>">
+                    CZ
+                </button>
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziSk ? ' is-aktivni' : '' ?>"
+                        data-payment-switch-button="sk"
+                        aria-pressed="<?= $jeVychoziSk ? 'true' : 'false' ?>">
+                    SK
+                </button>
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziSepa ? ' is-aktivni' : '' ?>"
+                        data-payment-switch-button="sepa"
+                        aria-pressed="<?= $jeVychoziSepa ? 'true' : 'false' ?>">
+                    SEPA
+                </button>
+            </div>
+
+            <section class="payment-method" data-payment-card="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (CZ)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
                         <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
                         <strong>Variabilní symbol:</strong> <?= $uid ?><br>
                     </div>
-                    <?php if (($jeCeskaQrPlatba || $jeSlovenskaQrPlatba) && $qrKodProCeskouPlatbu !== null): ?>
+                    <?php if ($qrKodProCeskouPlatbu !== null): ?>
                         <div class="payment-method__qr">
                             <img src="<?= $qrKodProCeskouPlatbu->getDataUri() ?>" alt="qrPlatbaCz">
                         </div>
@@ -257,25 +326,23 @@ if (!$zaplaceno) {
                 </div>
             </section>
 
-            <?php if ($jeSlovenskaQrPlatba): ?>
-                <section class="payment-method" id="placeni-sepa">
-                    <h3 class="payment-method__title"><?= $nadpisZahranicniPlatby ?></h3>
-                    <div class="payment-method__content">
-                        <div class="payment-method__details">
-                            <strong>IBAN:</strong> <?= IBAN ?><br>
-                            <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                            <strong>Reference platby:</strong> VS<?= $uid ?><br>
-                        </div>
-                        <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
-                            <div class="payment-method__qr">
-                                <img src="<?= $qrKodProSlovenskouPlatbu->getDataUri() ?>" alt="qrPlatbaSk">
-                            </div>
-                        <?php endif; ?>
+            <section class="payment-method" data-payment-card="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
+                <h3 class="payment-method__title">Platba (SK)</h3>
+                <div class="payment-method__content">
+                    <div class="payment-method__details">
+                        <strong>IBAN:</strong> <?= IBAN ?><br>
+                        <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
+                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
                     </div>
-                </section>
-            <?php endif; ?>
+                    <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
+                        <div class="payment-method__qr">
+                            <img src="<?= $qrKodProSlovenskouPlatbu->getDataUri() ?>" alt="qrPlatbaSk">
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </section>
 
-            <section class="payment-method" id="placeni-epc">
+            <section class="payment-method" data-payment-card="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (SEPA)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
@@ -290,3 +357,41 @@ if (!$zaplaceno) {
             </section>
         </div>
     <?php endif; ?>
+
+    <script>
+      (function () {
+        var prepinacePlateb = document.querySelectorAll('[data-payment-switch]');
+        var i;
+
+        for (i = 0; i < prepinacePlateb.length; i++) {
+          var prepinacPlateb = prepinacePlateb[i];
+          var tlacitka = prepinacPlateb.querySelectorAll('[data-payment-switch-button]');
+          var karty = prepinacPlateb.querySelectorAll('[data-payment-card]');
+          var vychoziTyp = prepinacPlateb.getAttribute('data-payment-switch') || 'cz';
+
+          var nastavAktivniKartu = function (typQrPlatby) {
+            var j;
+
+            for (j = 0; j < karty.length; j++) {
+              var karta = karty[j];
+              karta.hidden = karta.getAttribute('data-payment-card') !== typQrPlatby;
+            }
+
+            for (j = 0; j < tlacitka.length; j++) {
+              var tlacitko = tlacitka[j];
+              var jeAktivni = tlacitko.getAttribute('data-payment-switch-button') === typQrPlatby;
+              tlacitko.classList.toggle('is-aktivni', jeAktivni);
+              tlacitko.setAttribute('aria-pressed', jeAktivni ? 'true' : 'false');
+            }
+          };
+
+          for (var j = 0; j < tlacitka.length; j++) {
+            tlacitka[j].addEventListener('click', function () {
+              nastavAktivniKartu(this.getAttribute('data-payment-switch-button'));
+            });
+          }
+
+          nastavAktivniKartu(vychoziTyp);
+        }
+      })();
+    </script>
