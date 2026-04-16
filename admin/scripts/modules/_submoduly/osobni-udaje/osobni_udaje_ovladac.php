@@ -21,10 +21,8 @@ if (post('zmenitUdaj') && $uPracovni) {
         unset($udaje['kontrola']);
     }
     if (isset($udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU])) {
-        $zpusobZobrazeniNaWebu = (int) $udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU];
-        $udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] = ZpusobZobrazeniNaWebu::jePlatny($zpusobZobrazeniNaWebu)
-            ? $zpusobZobrazeniNaWebu
-            : ZpusobZobrazeniNaWebu::vychozi();
+        $udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU]
+            = ZpusobZobrazeniNaWebu::zHodnoty($udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU])->value;
     }
     $zmeniloSeJmenoNaWebu = Uzivatel::zmeniloSeJmenoNaWebu($uPracovni, $udaje);
     $udajeBylyUlozeny = false;

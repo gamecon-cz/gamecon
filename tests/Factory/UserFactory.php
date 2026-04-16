@@ -71,11 +71,9 @@ final class UserFactory extends PersistentProxyObjectFactory
             'typDokladuTotoznosti'             => self::faker()->text(16),
             'ubytovanS'                        => self::faker()->text(255),
             'uliceACp'                         => self::faker()->text(255),
-            'zpusobZobrazeniNaWebu'            => self::faker()->randomElement([
-                ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
-                ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI,
-                ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
-            ]),
+            'zpusobZobrazeniNaWebu'            => self::faker()->randomElement(
+                ZpusobZobrazeniNaWebu::platneHodnoty(),
+            ),
             'zRychloregistrace' => self::faker()->boolean(),
             'zustatek'          => self::faker()->randomNumber(),
         ];

@@ -825,9 +825,9 @@ SQL,
         return self::jmenoNaWebuZjisti($this->r);
     }
 
-    public function zpusobZobrazeniNaWebu(): int
+    public function zpusobZobrazeniNaWebu(): ZpusobZobrazeniNaWebu
     {
-        return self::zpusobZobrazeniNaWebuZjisti($this->r);
+        return ZpusobZobrazeniNaWebu::zHodnoty($this->r[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ?? null);
     }
 
     /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
@@ -901,73 +901,28 @@ SQL,
 
     public static function jmenoNaWebuZjisti(array $r): string
     {
-        $celeJmeno = self::celeJmenoZjisti($r);
-        $nick = self::nickZjisti($r);
+        $jmeno     = trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''));
+        $prijmeni  = trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? ''));
+        $login     = trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? ''));
+        $nick      = str_contains($login, '@') ? '' : $login;
+        $celeJmeno = trim($jmeno . ' ' . $prijmeni);
 
-        return match (self::zpusobZobrazeniNaWebuZjisti($r)) {
-            ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI =>
-                $celeJmeno ?: self::fallbackJmenaNaWebu($celeJmeno, $nick, $r),
-            ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI =>
-                self::jmenoSPrezdivkouNaWebu($r, $nick) ?: self::fallbackJmenaNaWebu($celeJmeno, $nick, $r),
-            default =>
-                $nick ?: self::fallbackJmenaNaWebu($celeJmeno, $nick, $r),
+        $zpusob = ZpusobZobrazeniNaWebu::zHodnoty($r[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ?? null);
+
+        $zvolene = match ($zpusob) {
+            ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => $celeJmeno,
+            ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI => $nick === ''
+                ? ''
+                : trim(implode(' ', array_filter(
+                    [$jmeno, '„' . $nick . '"', $prijmeni],
+                    static fn (string $cast) => $cast !== '',
+                ))),
+            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA => $nick,
         };
-    }
 
-    private static function zpusobZobrazeniNaWebuZjisti(array $r): int
-    {
-        $zpusobZobrazeniNaWebu = array_key_exists(Sql::ZPUSOB_ZOBRAZENI_NA_WEBU, $r)
-            ? (int) $r[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU]
-            : ZpusobZobrazeniNaWebu::vychozi();
-
-        return ZpusobZobrazeniNaWebu::jePlatny($zpusobZobrazeniNaWebu)
-            ? $zpusobZobrazeniNaWebu
-            : ZpusobZobrazeniNaWebu::vychozi();
-    }
-
-    private static function jmenoSPrezdivkouNaWebu(array $r, string $nick): string
-    {
-        if ($nick === '') {
-            return '';
-        }
-
-        $jmeno = trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''));
-        $prijmeni = trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? ''));
-        $casti = array_filter([
-            $jmeno,
-            $nick !== ''
-                ? '"' . $nick . '"'
-                : '',
-            $prijmeni,
-        ], static fn (string $cast) => $cast !== '');
-
-        return implode(' ', $casti);
-    }
-
-    private static function fallbackJmenaNaWebu(string $celeJmeno, string $nick, array $r): string
-    {
-        return $celeJmeno
-            ?: ($nick !== ''
-                ? $nick
-                : trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? '')));
-    }
-
-    private static function celeJmenoZjisti(array $r): string
-    {
-        return trim(
-            trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''))
-            . ' '
-            . trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? '')),
-        );
-    }
-
-    private static function nickZjisti(array $r): string
-    {
-        $login = trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? ''));
-
-        return str_contains($login, '@')
-            ? ''
-            : $login;
+        return $zvolene !== ''
+            ? $zvolene
+            : ($celeJmeno ?: ($nick ?: $login));
     }
 
     /**
@@ -1842,7 +1797,7 @@ SQL,
         }
 
         if (! $u) {
-            $dbTab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= (string) ZpusobZobrazeniNaWebu::vychozi();
+            $dbTab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= (string) ZpusobZobrazeniNaWebu::vychozi()->value;
         }
 
         // TODO fallback prázdná přezdívka -> mail?
@@ -1936,7 +1891,10 @@ SQL,
             Sql::OP                     => ['[a-zA-Z0-9]{5,}', 'vyplň prosím celé číslo dokladu'],
             // Ostatní
             Sql::LOGIN_UZIVATELE          => $validaceLoginu,
-            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ['^(0|1|2)$', 'vyber prosím způsob zobrazení na webu'],
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => [
+                '^(' . implode('|', ZpusobZobrazeniNaWebu::platneHodnoty()) . ')$',
+                'vyber prosím způsob zobrazení na webu',
+            ],
             Sql::POHLAVI                  => ['^(m|f)$', 'vyber prosím pohlaví'],
             'heslo'                       => $validaceHesla,
             'heslo_kontrola'              => $validaceHesla,
@@ -2115,7 +2073,7 @@ SQL,
         $tab[Sql::ZUSTATEK] = 0;
         $tab[Sql::POHLAVI] = Pohlavi::MUZ_KOD;
         $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE] = null;
-        $tab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi();
+        $tab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi()->value;
         foreach (Sql::sloupce() as $sloupec) {
             if (! array_key_exists($sloupec, $tab)) {
                 $tab[$sloupec] = '';
@@ -2274,9 +2232,19 @@ SQL,
      */
     public function uprav(array $tab): ?int
     {
-        $tab = array_filter($tab, static fn (
-            mixed $hodnota,
-        ) => $hodnota !== null && $hodnota !== '');
+        // Ponech nulové hodnoty pouze pro sloupce, kde 0 je validní stav
+        // (např. ZPUSOB_ZOBRAZENI_NA_WEBU = 0 znamená „pouze přezdívka").
+        $zachovatNuly = [Sql::ZPUSOB_ZOBRAZENI_NA_WEBU];
+        $tab = array_filter($tab, static function (
+            $hodnota,
+            $sloupec,
+        ) use ($zachovatNuly) {
+            if (in_array($sloupec, $zachovatNuly, true)) {
+                return $hodnota !== null && $hodnota !== '';
+            }
+
+            return (bool) $hodnota;
+        }, ARRAY_FILTER_USE_BOTH);
 
         $idNeboHlaska = self::registrujUprav($tab, $this);
         if (is_numeric($idNeboHlaska)) {

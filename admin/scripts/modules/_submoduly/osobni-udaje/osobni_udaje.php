@@ -45,12 +45,6 @@ class OsobniUdajeTabulka
         Sql::EMAIL1_UZIVATELE   => 'E-mail',
     ];
 
-    private static array $moznostiZobrazeniNaWebu = [
-        ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA => 'Pouze přezdívka',
-        ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => 'Jméno + příjmení',
-        ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI => 'Jméno + přezdívka + příjmení',
-    ];
-
     public static function osobniUdajeTabulkaZ(
         Uzivatel|null $uzivatel,
         bool          $vcetneOp = true,
@@ -91,7 +85,7 @@ class OsobniUdajeTabulka
                 $zobrazenaHodnota = $vyber[$r[Sql::POHLAVI]] ?? '';
             }
             if ($sloupec === Sql::ZPUSOB_ZOBRAZENI_NA_WEBU) {
-                $vyber            = self::$moznostiZobrazeniNaWebu;
+                $vyber            = ZpusobZobrazeniNaWebu::proSelect();
                 $zobrazenaHodnota = $vyber[(int) $hodnota] ?? '';
             }
             if ($sloupec === Sql::TELEFON_UZIVATELE) {

@@ -170,15 +170,13 @@ HTML;
             if ($postData !== null) {
                 $this->formData = $postData;
             } else {
-                $dataUzivatele = $this->u?->rawDb();
-                if ($dataUzivatele !== null) {
-                    if (!empty(($dataUzivatele[Sql::OP]))) {
-                        $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
-                    }
+                $dataUzivatele = $this->u?->rawDb() ?? [];
+                if (!empty($dataUzivatele[Sql::OP])) {
+                    $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
                 }
-                $this->formData = $dataUzivatele ?? [];
+                $this->formData = $dataUzivatele;
             }
-            $this->formData[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi();
+            $this->formData[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi()->value;
         }
 
         return $this->formData;
@@ -249,11 +247,7 @@ HTML;
             <?= $this->select(
                 nazev: 'Zobrazení na webu',
                 klic: Sql::ZPUSOB_ZOBRAZENI_NA_WEBU,
-                moznosti: [
-                    ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA => 'Pouze přezdívka',
-                    ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => 'Jméno + příjmení',
-                    ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI => 'Jméno + přezdívka + příjmení',
-                ],
+                moznosti: ZpusobZobrazeniNaWebu::proSelect(),
                 tooltip: <<<HTML
 <div class="formular_tooltip">
   <div class="gc_tooltip">

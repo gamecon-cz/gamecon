@@ -104,7 +104,7 @@ class ProgramCacheInvalidationTest extends AbstractTestDb
             UzivatelSql::JMENO_UZIVATELE          => $jmeno,
             UzivatelSql::PRIJMENI_UZIVATELE       => $prijmeni,
             UzivatelSql::EMAIL1_UZIVATELE         => $nick . '@example.test',
-            UzivatelSql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+            UzivatelSql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
         ]);
 
         return \Uzivatel::zId($idUzivatele, true);
@@ -150,12 +150,48 @@ class ProgramCacheInvalidationTest extends AbstractTestDb
         $this->smazVsechnyDirtyFlagy();
 
         $vypravec->uprav([
-            UzivatelSql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
+            UzivatelSql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI->value,
         ]);
 
         $this->assertDirtyFlagNastaven(
             ProgramStaticFileType::AKTIVITY,
             'změna anonymizace vypravěče aktivity',
+        );
+    }
+
+    /**
+     * Simuluje cestu skrz admin osobní-údaje controller, který obchází
+     * Uzivatel::uprav() a volá dbUpdate + invalidujProgramCacheJeLiVypravecem přímo.
+     *
+     * @test
+     */
+    public function zmenaPresAdminControllerNastaviAktivityFlag(): void
+    {
+        $idAktivity = $this->vlozAktivitu();
+        $idVypravece = 900005;
+        $vypravec = $this->vlozUzivatele($idVypravece, 'adminovaNick', 'Adam', 'Adminović');
+        dbInsertUpdate('akce_organizatori', [
+            'id_akce'      => $idAktivity,
+            'id_uzivatele' => $idVypravece,
+        ]);
+        $this->smazVsechnyDirtyFlagy();
+
+        // simulace toho, co dělá osobni_udaje_ovladac.php
+        $noveHodnoty = [
+            UzivatelSql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::zHodnoty('2')->value,
+        ];
+        $zmenilo = \Uzivatel::zmeniloSeJmenoNaWebu($vypravec, $noveHodnoty);
+        dbUpdate(UzivatelSql::UZIVATELE_HODNOTY_TABULKA, $noveHodnoty, [
+            UzivatelSql::ID_UZIVATELE => $idVypravece,
+        ]);
+        if ($zmenilo) {
+            \Uzivatel::invalidujProgramCacheJeLiVypravecem($idVypravece);
+        }
+
+        self::assertTrue($zmenilo, 'zmeniloSeJmenoNaWebu musí vrátit true');
+        $this->assertDirtyFlagNastaven(
+            ProgramStaticFileType::AKTIVITY,
+            'admin controller: změna způsobu zobrazení vypravěče',
         );
     }
 

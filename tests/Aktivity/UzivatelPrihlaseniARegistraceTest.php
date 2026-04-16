@@ -56,7 +56,7 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         $this->assertNotNull(\Uzivatel::prihlas('a@b.c', 'a'), 'přihlášení heslem');
         $this->assertNull(\Uzivatel::prihlas('a', 'b'), 'nepřihlášení špatnými údaji');
         $this->assertSame(
-            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
             (int) \Uzivatel::zId($id)->rawDb()[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU],
         );
     }
@@ -143,7 +143,7 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         $id = \Uzivatel::registruj($this->uzivatel([
             Sql::LOGIN_UZIVATELE          => 'NulaZpet',
             Sql::EMAIL1_UZIVATELE         => 'nula-zpet.' . uniqid('', true) . '@example.com',
-            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => (string) ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => (string) ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI->value,
         ]));
 
         $u = \Uzivatel::zId($id);
@@ -152,7 +152,7 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         ]);
 
         self::assertSame(
-            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA,
+            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
             (int) \Uzivatel::zId($id)->rawDb()[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU],
         );
     }
@@ -171,18 +171,18 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         self::assertSame(ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA, $u->zpusobZobrazeniNaWebu());
 
         \dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
-            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI,
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI->value,
         ], [
             Sql::ID_UZIVATELE => $id,
         ]);
         self::assertSame('Jan Novak', \Uzivatel::zId($id)->jmenoNaWebu());
 
         \dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
-            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI->value,
         ], [
             Sql::ID_UZIVATELE => $id,
         ]);
-        self::assertSame('Jan "Drak" Novak', \Uzivatel::zId($id)->jmenoNaWebu());
+        self::assertSame('Jan „Drak" Novak', \Uzivatel::zId($id)->jmenoNaWebu());
     }
 
     public function testJmenoNaWebuBezPrezdivkyPouzijeFallbackNaCeleJmeno(): void
@@ -197,10 +197,54 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         self::assertSame('Jana Novakova', \Uzivatel::zId($id)->jmenoNaWebu());
 
         \dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, [
-            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI,
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI->value,
         ], [
             Sql::ID_UZIVATELE => $id,
         ]);
         self::assertSame('Jana Novakova', \Uzivatel::zId($id)->jmenoNaWebu());
+    }
+
+    public function testJmenoNaWebuPouzeZLoginuKdyzChybiJmenoAPrezdivkaJeMail(): void
+    {
+        $email = 'pouze-login.' . uniqid('', true) . '@example.com';
+        $id = \Uzivatel::registruj($this->uzivatel([
+            Sql::LOGIN_UZIVATELE    => $email,
+            Sql::EMAIL1_UZIVATELE   => $email,
+            Sql::JMENO_UZIVATELE    => 'Eva',
+            Sql::PRIJMENI_UZIVATELE => 'Evová',
+        ]));
+
+        // nick je prázdný (login obsahuje @), a POUZE_PREZDIVKA padá na fallback = celé jméno
+        self::assertSame('Eva Evová', \Uzivatel::zId($id)->jmenoNaWebu());
+    }
+
+    public function testRychloregistraceNastaviVychoziZpusobZobrazeniNaWebu(): void
+    {
+        $systemoveNastaveni = \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals();
+        $id = \Uzivatel::rychloregistrace($systemoveNastaveni, [
+            Sql::LOGIN_UZIVATELE => 'RR.' . uniqid('', true),
+        ]);
+
+        self::assertSame(
+            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
+            (int) \Uzivatel::zId($id)->rawDb()[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU],
+        );
+    }
+
+    public function testRegistrujeOdmitneNeplatnyZpusobZobrazeniNaWebu(): void
+    {
+        try {
+            \Uzivatel::registruj($this->uzivatel([
+                Sql::LOGIN_UZIVATELE          => 'neplatny.' . uniqid('', true),
+                Sql::EMAIL1_UZIVATELE         => 'neplatny.' . uniqid('', true) . '@example.com',
+                Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => '3',
+            ]));
+            self::fail('Mělo vyhodit výjimku kvůli neplatné hodnotě');
+        } catch (\Chyby $chyby) {
+            self::assertMatchesRegularExpression(
+                '/způsob zobrazení na webu/',
+                $chyby->klic(Sql::ZPUSOB_ZOBRAZENI_NA_WEBU),
+            );
+        }
     }
 }
