@@ -116,10 +116,11 @@ class OsobniUdajeTabulka
             }
             if ($sloupec === Sql::POHLAVI || $sloupec === Sql::ZPUSOB_ZOBRAZENI_NA_WEBU) {
                 foreach ($vyber as $optionValue => $optionText) {
+                    $jeVybranaMoznost = (string) $vstupniHodnota === (string) $optionValue;
                     $x->assign([
                         'optionValue'    => $optionValue,
                         'optionText'     => $optionText,
-                        'optionSelected' => $vstupniHodnota === $optionValue
+                        'optionSelected' => $jeVybranaMoznost
                             ? 'selected'
                             : '',
                     ]);

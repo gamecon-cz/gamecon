@@ -27,8 +27,10 @@ if (post('zmenitUdaj') && $uPracovni) {
             : ZpusobZobrazeniNaWebu::vychozi();
     }
     $zmeniloSeJmenoNaWebu = Uzivatel::zmeniloSeJmenoNaWebu($uPracovni, $udaje);
+    $udajeBylyUlozeny = false;
     try {
         dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
+        $udajeBylyUlozeny = true;
     } catch (DbDuplicateEntryException $e) {
         if ($e->key() === 'email1_uzivatele') {
             chyba('Uživatel se stejným e-mailem již existuje.');
@@ -41,7 +43,7 @@ if (post('zmenitUdaj') && $uPracovni) {
         $vyjimkovac->zaloguj($e);
         chyba('Došlo k neočekávané chybě.');
     }
-    if ($zmeniloSeJmenoNaWebu) {
+    if ($udajeBylyUlozeny && $zmeniloSeJmenoNaWebu) {
         Uzivatel::invalidujProgramCacheJeLiVypravecem($uPracovni->id());
     }
 
