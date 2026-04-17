@@ -197,3 +197,16 @@ function cestaObrazkuLinie(int $idTypu): string
     $fallbackCesta = 'soubory/systemove/avatary/default.png';
     return $fallbackCesta . '?v=' . filemtime(ADRESAR_WEBU_S_OBRAZKY . '/' . $fallbackCesta);
 }
+
+/**
+ * Vrátí cestu k ikoně linie pro homepage: pouze <id_typu>.jpg, jinak fallback.
+ */
+function cestaObrazkuLinieNaTitulce(int $idTypu): string
+{
+    $relativniCesta = 'soubory/systemove/linie-ikony/' . $idTypu . '.jpg';
+    $absolutniCesta = ADRESAR_WEBU_S_OBRAZKY . '/' . $relativniCesta;
+    if (is_file($absolutniCesta)) {
+        return $relativniCesta;
+    }
+    return 'soubory/systemove/avatary/default.png';
+}
