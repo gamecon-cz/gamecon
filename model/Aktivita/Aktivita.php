@@ -80,6 +80,7 @@ class Aktivita
     const TAGY_KLIC             = 'aEditTag'; // název proměnné; v které jdou tagy
     const LOKACE_KLIC           = 'aEditLokace'; // název proměnné; v které jdou lokace
     const HLAVNI_LOKACE_KLIC    = 'aEditHlavniLokace'; // název proměnné; v které jdou lokace
+    const POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC = 'potvrditZmenuUdajuSPrihlasenymi';
     const POST_KLIC             = 'aEditForm'; // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
     const TEAM_KLIC             = 'aTeamForm'; // název post proměnné s formulářem pro výběr teamu
     const TEAM_KLIC_KOLA        = 'aTeamFormKolo'; // název post proměnné s výběrem kol pro team
@@ -546,6 +547,7 @@ SQL
         $xtpl->assign('aEditLokace', self::LOKACE_KLIC);
         $xtpl->assign('aEditHlavniLokace', self::HLAVNI_LOKACE_KLIC);
         $xtpl->assign('aEditTag', self::TAGY_KLIC);
+        $xtpl->assign('potvrditZmenuUdajuSPrihlasenymiKlic', self::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC);
         $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
         $xtpl->assign('typBrigadnicka', TypAktivity::BRIGADNICKA);
 
@@ -556,6 +558,7 @@ SQL
             $xtpl->assign('urlObrazku', $aktivita->obrazek());
             $xtpl->assign(Sql::VYBAVENI, $aktivita->vybaveni());
         }
+        $xtpl->assign('pocetPrihlasenych', $aktivita?->pocetPrihlasenych() ?? 0);
 
         self::parseUpravyTabulkaTagy($aktivita, $editorTagu, $xtpl);
         self::parseUpravyTabulkaLokace($aktivita, $xtpl);
@@ -940,6 +943,11 @@ SQL
 
         // úprava přijatých dat
         $a = (array)$_POST[self::POST_KLIC];
+        $dataZFormulare = $a;
+        $puvodniAktivita = !empty($a[Sql::ID_AKCE])
+            ? self::zId((int)$a[Sql::ID_AKCE])
+            : null;
+        $potvrzenaZmenaUdajuSPrihlasenymi = (bool)post(self::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC);
         // v případě nezobrazení tabulky a tudíž chybějícího text. pole s url (viz šablona) se použije hidden pole s původní url
         if (empty($a[Sql::URL_AKCE]) && !empty($_POST[self::POST_KLIC . 'staraUrl'])) {
             $a[Sql::URL_AKCE] = $_POST[self::POST_KLIC . 'staraUrl'];
@@ -1013,6 +1021,15 @@ SQL
                 false,
             );
             unset($a[Sql::TEAMOVA], $a[Sql::TEAM_MIN], $a[Sql::TEAM_MAX]);
+        }
+
+        $zmeneneUdajeSPrihlasenymi = self::dejZmeneneUdajeSPrihlasenymi($puvodniAktivita, $dataZFormulare);
+        if ($zmeneneUdajeSPrihlasenymi !== [] && !$potvrzenaZmenaUdajuSPrihlasenymi) {
+            varovani(
+                self::dejTextPotvrzeniZmenyUdajuSPrihlasenymi($zmeneneUdajeSPrihlasenymi),
+                false,
+            );
+            return null;
         }
 
         $chyby = self::editorChyby($a);
@@ -1093,6 +1110,141 @@ SQL
         (new ProgramStaticFileGenerator($aktivita->systemoveNastaveni))->tryStartWorker();
 
         return $aktivita;
+    }
+
+    /**
+     * @param array<string, mixed> $dataZFormulare
+     * @return string[]
+     */
+    private static function dejZmeneneUdajeSPrihlasenymi(
+        ?Aktivita $puvodniAktivita,
+        array     $dataZFormulare,
+    ): array {
+        if (!$puvodniAktivita || $puvodniAktivita->pocetPrihlasenych() <= 0) {
+            return [];
+        }
+        $zmeneneUdaje = [];
+        if (self::zmenenDen($puvodniAktivita, $dataZFormulare)) {
+            $zmeneneUdaje[] = 'den';
+        }
+        if (self::zmenenCas($puvodniAktivita, $dataZFormulare)) {
+            $zmeneneUdaje[] = 'čas';
+        }
+        if (self::zmenenaCena($puvodniAktivita, $dataZFormulare)) {
+            $zmeneneUdaje[] = 'cenu';
+        }
+        if (self::zmenenaKapacita($puvodniAktivita, $dataZFormulare)) {
+            $zmeneneUdaje[] = 'kapacitu';
+        }
+
+        return $zmeneneUdaje;
+    }
+
+    /**
+     * @param string[] $zmeneneUdaje
+     */
+    private static function dejTextPotvrzeniZmenyUdajuSPrihlasenymi(array $zmeneneUdaje): string
+    {
+        return sprintf(
+            'Tato aktivita už má přihlášené hráče. Opravdu chcete změnit %s?',
+            implode(' / ', $zmeneneUdaje),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $dataZFormulare
+     */
+    private static function zmenenDen(
+        Aktivita $puvodniAktivita,
+        array    $dataZFormulare,
+    ): bool {
+        $puvodniDen = self::denAktivity($puvodniAktivita, true)?->format(DateTimeCz::FORMAT_DATUM_DB)
+            ?? '0';
+        $novyDen = trim((string)($dataZFormulare['den'] ?? ''));
+        if ($novyDen === '') {
+            $novyDen = '0';
+        }
+
+        return $puvodniDen !== $novyDen;
+    }
+
+    /**
+     * @param array<string, mixed> $dataZFormulare
+     */
+    private static function zmenenCas(
+        Aktivita $puvodniAktivita,
+        array    $dataZFormulare,
+    ): bool {
+        $puvodniZacatek = $puvodniAktivita->zacatek();
+        $puvodniZacatekVUpravach = '';
+        if ($puvodniZacatek) {
+            $puvodniZacatekHodina = (int)$puvodniZacatek->format('G');
+            $puvodniZacatekVUpravach = (string)($puvodniZacatekHodina === 0
+                ? 24
+                : $puvodniZacatekHodina);
+        }
+        $puvodniKonec = $puvodniAktivita->konec();
+        $puvodniKonecVUpravach = '';
+        if ($puvodniKonec) {
+            $puvodniKonecHodina = (int)(clone $puvodniKonec)->sub(new \DateInterval('PT1H'))->format('G');
+            $puvodniKonecVUpravach = (string)($puvodniKonecHodina + 1);
+        }
+        $novyZacatek = trim((string)($dataZFormulare[Sql::ZACATEK] ?? ''));
+        $novyKonec = trim((string)($dataZFormulare[Sql::KONEC] ?? ''));
+
+        return $puvodniZacatekVUpravach !== $novyZacatek || $puvodniKonecVUpravach !== $novyKonec;
+    }
+
+    /**
+     * @param array<string, mixed> $dataZFormulare
+     */
+    private static function zmenenaCena(
+        Aktivita $puvodniAktivita,
+        array    $dataZFormulare,
+    ): bool {
+        $puvodniCena = (int)$puvodniAktivita->rawDb()[Sql::CENA];
+        $novaCena = (int)($dataZFormulare[Sql::CENA] ?? 0);
+
+        return $puvodniCena !== $novaCena;
+    }
+
+    /**
+     * @param array<string, mixed> $dataZFormulare
+     */
+    private static function zmenenaKapacita(
+        Aktivita $puvodniAktivita,
+        array    $dataZFormulare,
+    ): bool {
+        $puvodniKapacity = self::normalizovanaKapacitaProPotvrzeni($puvodniAktivita->rawDb());
+        $noveKapacity = self::normalizovanaKapacitaProPotvrzeni($dataZFormulare);
+
+        return $puvodniKapacity !== $noveKapacity;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, int>
+     */
+    private static function normalizovanaKapacitaProPotvrzeni(array $data): array
+    {
+        $teamova = !empty($data[Sql::TEAMOVA]);
+        if ($teamova) {
+            return [
+                Sql::TEAMOVA => 1,
+                Sql::KAPACITA => (int)($data[Sql::TEAM_MAX] ?? $data[Sql::KAPACITA] ?? 0),
+                Sql::KAPACITA_F => 0,
+                Sql::KAPACITA_M => 0,
+                Sql::TEAM_MIN => (int)($data[Sql::TEAM_MIN] ?? 0),
+            ];
+        }
+
+        return [
+            Sql::TEAMOVA => 0,
+            Sql::KAPACITA => (int)($data[Sql::KAPACITA] ?? 0),
+            Sql::KAPACITA_F => (int)($data[Sql::KAPACITA_F] ?? 0),
+            Sql::KAPACITA_M => (int)($data[Sql::KAPACITA_M] ?? 0),
+            Sql::TEAM_MIN => 0,
+        ];
     }
 
     private static function varujBylaLiNejakaLokaceObsazena(Aktivita $aktivita): void
