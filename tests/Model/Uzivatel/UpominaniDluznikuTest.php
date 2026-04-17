@@ -8,6 +8,7 @@ use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Command\FioStazeniNovychPlateb;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Role\Role;
+use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Dto\Dluznik;
@@ -94,6 +95,7 @@ class UpominaniDluznikuTest extends AbstractTestDb
         string $prijmeni,
         float $zustatek,
         string $email,
+        int $statUzivatele = Stat::CZ_ID,
     ): string {
         $login = strtolower(str_replace(' ', '_', $jmeno . '_' . $prijmeni));
 
@@ -104,6 +106,7 @@ SET id_uzivatele = {$idUzivatele},
     jmeno_uzivatele = '{$jmeno}',
     prijmeni_uzivatele = '{$prijmeni}',
     email1_uzivatele = '{$email}',
+    stat_uzivatele = {$statUzivatele},
     zustatek = {$zustatek}
 SQL;
     }
@@ -364,6 +367,51 @@ SQL,
         self::assertSame('10', $zaznam['vysledek']);
     }
 
+    /**
+     * @test
+     */
+    public function ceskemuUzivateliSeProUpominkuPriloziJenCeskyQrKod()
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+        $dejQrKodyProUpominku = new \ReflectionMethod($upominaniDluzniku, 'dejQrKodyProUpominku');
+        $dejQrKodyProUpominku->setAccessible(true);
+
+        $uzivatel = $this->vytvorUzivateleSeStatem(Stat::CZ_ID);
+
+        $qrKody = $dejQrKodyProUpominku->invoke($upominaniDluzniku, $uzivatel);
+
+        self::assertSame(['qr-platba-cz.png'], array_keys($qrKody));
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider poskytniStatySeVsemiQrKody
+     */
+    public function slovenskemuNeboJinemuUzivateliSeProUpominkuPriloziVsechnyTriQrKody(?int $statUzivatele)
+    {
+        $upominaniDluzniku = $this->dejUpominaniDluzniku();
+        $dejQrKodyProUpominku = new \ReflectionMethod($upominaniDluzniku, 'dejQrKodyProUpominku');
+        $dejQrKodyProUpominku->setAccessible(true);
+
+        $uzivatel = $this->vytvorUzivateleSeStatem($statUzivatele);
+
+        $qrKody = $dejQrKodyProUpominku->invoke($upominaniDluzniku, $uzivatel);
+
+        self::assertSame(
+            ['qr-platba-cz.png', 'qr-platba-sk.png', 'qr-platba-sepa.png'],
+            array_keys($qrKody),
+        );
+    }
+
+    public static function poskytniStatySeVsemiQrKody(): array
+    {
+        return [
+            'slovak' => [Stat::SK_ID],
+            'jiny'   => [Stat::JINY_ID],
+        ];
+    }
+
     // ==================== Helper methods ====================
 
     private function dejUpominaniDluzniku(): UpominaniDluzniku
@@ -412,5 +460,18 @@ SQL,
         $konecGc = $systemoveNastaveni->spocitanyKonecLetosnihoGameconu();
 
         return $konecGc->modify("+{$offset}");
+    }
+
+    private function vytvorUzivateleSeStatem(?int $statUzivatele): \Uzivatel
+    {
+        dbInsert('uzivatele_hodnoty', [
+            'login_uzivatele'    => 'upominani_qr_' . time() . '_' . random_int(1000, 9999),
+            'jmeno_uzivatele'    => 'Upominani',
+            'prijmeni_uzivatele' => 'Qr',
+            'email1_uzivatele'   => 'upominani.qr.' . time() . '.' . random_int(1000, 9999) . '@test.cz',
+            'stat_uzivatele'     => $statUzivatele,
+        ]);
+
+        return \Uzivatel::zId((int) dbInsertId());
     }
 }
