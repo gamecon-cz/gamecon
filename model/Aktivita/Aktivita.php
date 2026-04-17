@@ -87,6 +87,7 @@ class Aktivita
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
     const HAJENI_TEAMU_HODIN    = 72; // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     const LIMIT_POPIS_KRATKY    = 180; // max počet znaků v krátkém popisku
+    const KROK_CASU_MINUTY      = Program::KROK_CASU_MINUTY;
     // ignore a parametry kolem přihlašovátka
     const PLUSMINUS                          = 0b0000000000001; // plus/mínus zkratky pro měnění míst v team. aktivitě
     const PLUSMINUS_KAZDY                    = 0b0000000000010; // plus/mínus zkratky pro každého
@@ -363,8 +364,11 @@ SQL
      */
     public function denCasSkutecny(): string
     {
-        if ($this->denSkutecny() && $this->konec()) {
-            return $this->denSkutecny()->format('l G') . '–' . $this->konec()->format('G');
+        if ($this->denSkutecny() && $this->zacatek() && $this->konec()) {
+            return $this->denSkutecny()->format('l') . ' '
+                . self::formatujCasHodinyAMinuty($this->zacatek())
+                . '–'
+                . self::formatujCasHodinyAMinuty($this->konec());
         }
 
         return '';
@@ -397,6 +401,74 @@ SQL
         }
 
         return null;
+    }
+
+    private static function formatujCasHodinyAMinuty(\DateTimeInterface $cas): string
+    {
+        return $cas->format('G:i');
+    }
+
+    private static function casDateTimeNaMinutyOdPulnoci(\DateTimeInterface $cas): int
+    {
+        return ((int)$cas->format('G')) * 60 + (int)$cas->format('i');
+    }
+
+    private static function formatujCasProEditor(int $minutyOdPulnoci): string
+    {
+        if ($minutyOdPulnoci === 24 * 60) {
+            return '24:00';
+        }
+        $minutyOdPulnoci = (($minutyOdPulnoci % (24 * 60)) + (24 * 60)) % (24 * 60);
+        return sprintf('%d:%02d', intdiv($minutyOdPulnoci, 60), $minutyOdPulnoci % 60);
+    }
+
+    /**
+     * @param string|int|float|null $hodnota
+     */
+    private static function casZFormulareNaMinuty(string|int|float|null $hodnota): ?int
+    {
+        if ($hodnota === null) {
+            return null;
+        }
+        if (is_int($hodnota)) {
+            $hodnota = (string)$hodnota;
+        } elseif (is_float($hodnota)) {
+            $hodnota = (string)(int)$hodnota;
+        }
+        $hodnota = trim((string)$hodnota);
+        if ($hodnota === '') {
+            return null;
+        }
+
+        if (preg_match('~^\d+$~', $hodnota)) {
+            $hodiny = (int)$hodnota;
+            $minuty = 0;
+        } elseif (preg_match('~^(?<hodiny>\d{1,2}):(?<minuty>\d{2})$~', $hodnota, $matches)) {
+            $hodiny = (int)$matches['hodiny'];
+            $minuty = (int)$matches['minuty'];
+        } else {
+            return null;
+        }
+
+        if ($minuty < 0 || $minuty >= 60 || ($minuty % self::KROK_CASU_MINUTY) !== 0) {
+            return null;
+        }
+        if ($hodiny === 24 && $minuty === 0) {
+            return 24 * 60;
+        }
+        if ($hodiny < 0 || $hodiny >= 24) {
+            return null;
+        }
+
+        return $hodiny * 60 + $minuty;
+    }
+
+    private static function jeVyplnenaHodnotaPole(array $hodnoty, string $klic): bool
+    {
+        if (!array_key_exists($klic, $hodnoty)) {
+            return false;
+        }
+        return trim((string)$hodnoty[$klic]) !== '';
     }
 
     /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
@@ -482,20 +554,38 @@ SQL
     protected static function editorChyby(array $a)
     {
         $chyby = []; // kontrola dostupnosti organizátorů v daný čas
-        if (!empty($a['den']) && !empty($a[Sql::ZACATEK]) && !empty($a[Sql::KONEC])) {
+        $vyplnenyDen = self::jeVyplnenaHodnotaPole($a, 'den');
+        $vyplnenyZacatek = self::jeVyplnenaHodnotaPole($a, Sql::ZACATEK);
+        $vyplnenyKonec = self::jeVyplnenaHodnotaPole($a, Sql::KONEC);
+        if ($vyplnenyDen && $vyplnenyZacatek && $vyplnenyKonec) {
+            $zacatekVMinutach = self::casZFormulareNaMinuty($a[Sql::ZACATEK] ?? null);
+            $konecVMinutach = self::casZFormulareNaMinuty($a[Sql::KONEC] ?? null);
+            if ($zacatekVMinutach === null || $konecVMinutach === null) {
+                $chyby[] = 'Čas aktivity musí být po 15 minutách (hh:00, hh:15, hh:30, hh:45).';
+            } else {
+                $casyProUrceniDne = $a;
+                $casyProUrceniDne[Sql::ZACATEK] = self::formatujCasProEditor($zacatekVMinutach);
+                $casyProUrceniDne[Sql::KONEC] = self::formatujCasProEditor($konecVMinutach);
+                $zacatekDne = Program::denAktivityDleZacatku($casyProUrceniDne);
+                $konecDne = Program::denAktivityDleKonce($casyProUrceniDne);
+                if (!$zacatekDne || !$konecDne) {
+                    $chyby[] = 'Neplatný začátek nebo konec aktivity.';
+                } else {
+                    $zacatek = $zacatekDne->add(new \DateInterval('PT' . $zacatekVMinutach . 'M'));
+                    $konec = $konecDne->add(new \DateInterval('PT' . $konecVMinutach . 'M'));
+                    if ($zacatek >= $konec) {
+                        $chyby[] = 'Konec aktivity musí být po jejím začátku.';
+                    }
 
-            $zacatek = (Program::denAktivityDleZacatku($a))->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
-            $konec = (Program::denAktivityDleKonce($a))->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
-            if ($zacatek >= $konec) {
-                $chyby[] = 'Konec aktivity musí být po jejím začátku.';
-            }
-            $ignorovatAktivitu = isset($a[Sql::ID_AKCE])
-                ? self::zId($a[Sql::ID_AKCE])
-                : null;
-            foreach ($a['organizatori'] ?? [] as $orgId) {
-                $org = Uzivatel::zId($orgId);
-                if ($kolizniAktivita = $org->maKoliziSJinouAktivitou($zacatek, $konec, $ignorovatAktivitu)) {
-                    $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu: ' . $kolizniAktivita->nazev();
+                    $ignorovatAktivitu = isset($a[Sql::ID_AKCE])
+                        ? self::zId($a[Sql::ID_AKCE])
+                        : null;
+                    foreach ($a['organizatori'] ?? [] as $orgId) {
+                        $org = Uzivatel::zId($orgId);
+                        if ($kolizniAktivita = $org->maKoliziSJinouAktivitou($zacatek, $konec, $ignorovatAktivitu)) {
+                            $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu: ' . $kolizniAktivita->nazev();
+                        }
+                    }
                 }
             }
         }
@@ -712,10 +802,10 @@ SQL
                 ? $aktivita->zacatek()->format('l')
                 : '',
             $aktivita->zacatek()
-                ? $aktivita->zacatek()->format('G')
+                ? self::formatujCasHodinyAMinuty($aktivita->zacatek())
                 : '',
             $aktivita->konec()
-                ? $aktivita->konec()->format('G')
+                ? self::formatujCasHodinyAMinuty($aktivita->konec())
                 : '',
         );
     }
@@ -774,38 +864,53 @@ SQL
         XTemplate $xtpl,
     ) {
         $aZacatek = $aktivita && $aktivita->zacatek()
-            ? (int)$aktivita->zacatek()->format('G')
+            ? self::casDateTimeNaMinutyOdPulnoci($aktivita->zacatek())
             : null;
         $aKonec = $aktivita && $aktivita->konec()
-            ? (int)$aktivita->konec()->sub(new \DateInterval('PT1H'))->format('G')
+            ? self::casDateTimeNaMinutyOdPulnoci($aktivita->konec()->sub(new \DateInterval('PT' . self::KROK_CASU_MINUTY . 'M')))
             : null; // kontrola přehoupnutí přes půlnoc
-        $hodinyZacatku = Program::seznamHodinZacatku();
+        $slotyZacatku = Program::seznamCasuZacatkuPoCtvrtHodinach();
 
-        array_unshift($hodinyZacatku, null);
-        foreach ($hodinyZacatku as $hodinaZacatku) {
-            $xtpl->assign('selected', $aZacatek === $hodinaZacatku
+        array_unshift($slotyZacatku, null);
+        foreach ($slotyZacatku as $slotZacatku) {
+            if ($slotZacatku !== null) {
+                $slotZacatkuVMinutachOdPulnoci = $slotZacatku % (24 * 60);
+                $zacatekHodnota = self::formatujCasProEditor(
+                    $slotZacatkuVMinutachOdPulnoci === 0 && $slotZacatku >= (24 * 60)
+                        ? 24 * 60
+                        : $slotZacatkuVMinutachOdPulnoci,
+                );
+            } else {
+                $slotZacatkuVMinutachOdPulnoci = null;
+                $zacatekHodnota = null;
+            }
+
+            $xtpl->assign('selected', $aZacatek === $slotZacatkuVMinutachOdPulnoci
                 ? 'selected'
                 : '');
-            if ($hodinaZacatku === 0) {
-                $xtpl->assign(Sql::ZACATEK, "24");
-                $xtpl->assign('zacatekSlovy', '24:00');
-            } else {
-                $xtpl->assign(Sql::ZACATEK, $hodinaZacatku);
-                $xtpl->assign('zacatekSlovy', $hodinaZacatku !== null
-                    ? ($hodinaZacatku . ':00')
-                    : '?');
-            }
+            $xtpl->assign(Sql::ZACATEK, $zacatekHodnota);
+            $xtpl->assign('zacatekSlovy', $zacatekHodnota ?? '?');
             $xtpl->parse('upravy.tabulka.zacatek');
 
-            $xtpl->assign('selected', $aKonec === $hodinaZacatku
+            $konecVMinutach = $slotZacatku !== null
+                ? $slotZacatku + self::KROK_CASU_MINUTY
+                : null;
+            $konecVMinutachOdPulnoci = $konecVMinutach !== null
+                ? $konecVMinutach % (24 * 60)
+                : null;
+            $konecHodnota = $konecVMinutach !== null
+                ? self::formatujCasProEditor(
+                    $konecVMinutachOdPulnoci === 0 && $konecVMinutach >= (24 * 60)
+                        ? 24 * 60
+                        : $konecVMinutachOdPulnoci,
+                )
+                : null;
+
+            $xtpl->assign('selected', $aKonec === $slotZacatkuVMinutachOdPulnoci
                 ? 'selected'
                 : '');
-            $xtpl->assign(Sql::KONEC, ($hodinaZacatku !== null
-                ? $hodinaZacatku + 1
-                : null));
-            $xtpl->assign('konecSlovy', $hodinaZacatku !== null
-                ? (($hodinaZacatku + 1) . ':00')
-                : '?');
+            $xtpl->assign(Sql::KONEC, $konecHodnota);
+            $xtpl->assign('konecSlovy', $konecHodnota ?? '?');
             $xtpl->parse('upravy.tabulka.konec');
         }
     }
@@ -954,25 +1059,48 @@ SQL
             }
         }
         // přepočet času
-        if (empty($a['den']) || empty($a[Sql::ZACATEK]) || empty($a[Sql::KONEC])) {
-            if (!empty($a['den']) || !empty($a[Sql::ZACATEK]) || !empty($a[Sql::KONEC])) {
+        $vyplnenyDen = self::jeVyplnenaHodnotaPole($a, 'den');
+        $vyplnenyZacatek = self::jeVyplnenaHodnotaPole($a, Sql::ZACATEK);
+        $vyplnenyKonec = self::jeVyplnenaHodnotaPole($a, Sql::KONEC);
+        if (!$vyplnenyDen || !$vyplnenyZacatek || !$vyplnenyKonec) {
+            if ($vyplnenyDen || $vyplnenyZacatek || $vyplnenyKonec) {
                 chyba('Buďto vyplň den se začátkem i koncem, nebo nic. Čas byl zrušen.', false);
             }
             $a[Sql::ZACATEK] = null;
             $a[Sql::KONEC] = null;
         } else {
-            $zacatekCas = Program::denAktivityDleZacatku($a)
-                                 ->add(new \DateInterval('PT' . $a[Sql::ZACATEK] . 'H'));
-
-            $konecCas = Program::denAktivityDleKonce($a)
-                               ->add(new \DateInterval('PT' . $a[Sql::KONEC] . 'H'));
-
-            if ($zacatekCas >= $konecCas) {
-                chyba('Konec aktivity musí být po jejím začátku. Čas byl zrušen.', false);
-                unset($a[Sql::ZACATEK], $a[Sql::KONEC]);
+            $zacatekVMinutach = self::casZFormulareNaMinuty($a[Sql::ZACATEK] ?? null);
+            $konecVMinutach = self::casZFormulareNaMinuty($a[Sql::KONEC] ?? null);
+            if ($zacatekVMinutach === null || $konecVMinutach === null) {
+                chyba('Čas aktivity musí být po 15 minutách (hh:00, hh:15, hh:30, hh:45). Čas byl zrušen.', false);
+                $a[Sql::ZACATEK] = null;
+                $a[Sql::KONEC] = null;
             } else {
-                $a[Sql::ZACATEK] = $zacatekCas->formatDb();
-                $a[Sql::KONEC] = $konecCas->formatDb();
+                $casyProUrceniDne = $a;
+                $casyProUrceniDne[Sql::ZACATEK] = self::formatujCasProEditor($zacatekVMinutach);
+                $casyProUrceniDne[Sql::KONEC] = self::formatujCasProEditor($konecVMinutach);
+                $zacatekDne = Program::denAktivityDleZacatku($casyProUrceniDne);
+                $konecDne = Program::denAktivityDleKonce($casyProUrceniDne);
+                if (!$zacatekDne || !$konecDne) {
+                    chyba('Neplatný začátek nebo konec aktivity. Čas byl zrušen.', false);
+                    $a[Sql::ZACATEK] = null;
+                    $a[Sql::KONEC] = null;
+                } else {
+                    $zacatekCas = $zacatekDne
+                        ->add(new \DateInterval('PT' . $zacatekVMinutach . 'M'));
+
+                    $konecCas = $konecDne
+                        ->add(new \DateInterval('PT' . $konecVMinutach . 'M'));
+
+                    if ($zacatekCas >= $konecCas) {
+                        chyba('Konec aktivity musí být po jejím začátku. Čas byl zrušen.', false);
+                        $a[Sql::ZACATEK] = null;
+                        $a[Sql::KONEC] = null;
+                    } else {
+                        $a[Sql::ZACATEK] = $zacatekCas->formatDb();
+                        $a[Sql::KONEC] = $konecCas->formatDb();
+                    }
+                }
             }
         }
         unset($a['den']);
@@ -4414,7 +4542,7 @@ SQL,
                 1 => StavAktivity::NOVA,
                 2 => TypAktivity::interniTypy(),
             ],
-            order: 'ORDER BY DAY(zacatek) - IF(HOUR(zacatek) >= ' . dbQv(PROGRAM_ZACATEK) . ', 0, 1), ' . dbQi($razeni) . ', DAY(zacatek), HOUR(zacatek), nazev_akce',
+            order: 'ORDER BY DAY(zacatek) - IF(HOUR(zacatek) >= ' . dbQv(PROGRAM_ZACATEK) . ', 0, 1), ' . dbQi($razeni) . ', DAY(zacatek), HOUR(zacatek), MINUTE(zacatek), SECOND(zacatek), nazev_akce',
             prednacitat: $prednacitat,
         );
 
@@ -4498,9 +4626,9 @@ SQL,
         /** @var \DateTime[][] $zacatky */
         $zacatky = [];
         foreach ($aktivity as $aktivita) {
-            $zacatekHodin = $aktivita->zacatek()->format('YmdH');
-            if (!array_key_exists($zacatekHodin, $zacatky)) {
-                $zacatky[$zacatekHodin] = $aktivita->zacatek();
+            $zacatekNaMinuty = $aktivita->zacatek()->format('YmdHi');
+            if (!array_key_exists($zacatekNaMinuty, $zacatky)) {
+                $zacatky[$zacatekNaMinuty] = $aktivita->zacatek();
             }
         }
 

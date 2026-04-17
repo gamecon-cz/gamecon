@@ -283,10 +283,33 @@
                     }
 
                     function dejDelkuAkceVHodinach() {
-                        const zacatekAkce = Number.parseInt(document.getElementById('zacatekAkce').value.trim())
-                        const konecAkce = Number.parseInt(document.getElementById('konecAkce').value.trim())
-                        if (zacatekAkce < konecAkce) {
-                            return konecAkce - zacatekAkce
+                        const parseCasNaMinuty = (cas) => {
+                            const orezanyCas = cas.trim()
+                            const jenHodiny = orezanyCas.match(/^(\d{1,2})$/)
+                            if (jenHodiny) {
+                                return Number.parseInt(jenHodiny[1], 10) * 60
+                            }
+                            const hodinyAMinuty = orezanyCas.match(/^(\d{1,2}):(\d{2})$/)
+                            if (!hodinyAMinuty) {
+                                return null
+                            }
+                            const hodiny = Number.parseInt(hodinyAMinuty[1], 10)
+                            const minuty = Number.parseInt(hodinyAMinuty[2], 10)
+                            if (Number.isNaN(hodiny) || Number.isNaN(minuty)) {
+                                return null
+                            }
+                            if (hodiny === 24 && minuty === 0) {
+                                return 24 * 60
+                            }
+                            if (hodiny < 0 || hodiny >= 24 || minuty < 0 || minuty >= 60) {
+                                return null
+                            }
+                            return hodiny * 60 + minuty
+                        }
+                        const zacatekAkce = parseCasNaMinuty(document.getElementById('zacatekAkce').value)
+                        const konecAkce = parseCasNaMinuty(document.getElementById('konecAkce').value)
+                        if (zacatekAkce !== null && konecAkce !== null && zacatekAkce < konecAkce) {
+                            return (konecAkce - zacatekAkce) / 60
                         }
                         return 0
                     }

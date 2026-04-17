@@ -34,6 +34,10 @@ class Program
 
     public const SKUPINY_LINIE     = 'linie';
     public const SKUPINY_MISTNOSTI = 'mistnosti';
+    public const KROK_CASU_MINUTY  = 15;
+
+    private const MINUT_V_HODINE = 60;
+    private const MINUT_V_DNI    = 24 * self::MINUT_V_HODINE;
 
     private ?Uzivatel       $u              = null; // aktuální uživatel v objektu
     private                 $posledniVydana = null;
@@ -183,18 +187,18 @@ class Program
 
                 if ($pocetPrihlasenychAktivit > 0) {
                     $pdf->Cell(0, 10, mb_ucfirst($den->format('l j.n.Y')), 1, 1, 'L', true);
-                    foreach (Program::seznamHodinZacatku() as $cas) {
+                    foreach (Program::seznamCasuZacatkuPoCtvrtHodinach() as $cas) {
 
                         foreach ($this->aktivityUzivatele as $key => $akt) {
 
                             if ($akt && $denId == $akt['den'] && $cas == $akt['zac']) {
-                                $start = $cas;
-                                $konec = $cas + $akt['delka'];
+                                $start = $akt['obj']->zacatek()?->format('G:i') ?? '';
+                                $konec = $akt['obj']->konec()?->format('G:i') ?? '';
 
                                 if ($this->u->prihlasenJakoSledujici($akt['obj']) ||
                                     $akt['obj']->prihlasen($this->u) || $this->u->organizuje($akt['obj'])) {
 
-                                    $pdf->Cell(30, 10, $start . ":00 - " . $konec . ":00", 1);
+                                    $pdf->Cell(30, 10, $start . " - " . $konec, 1);
                                     if ($this->u->prihlasenJakoSledujici($akt['obj'])) {
                                         $pdf->Cell(100, 10, "(n) " . $akt['obj']->nazev(), 1);
                                     } elseif ($akt['obj']->prihlasen($this->u)) {
@@ -517,7 +521,7 @@ class Program
 
         // název a url aktivity
         echo <<<HTML
-<td colspan="{$aktivitaRaw['delka']}">
+<td colspan="{$aktivitaRaw['delkaSlotu']}">
     <div class="placeholder-pro-roztazeni-radku" style="display: none">
         <!--jenom malý hack aby se název linie dobře zobrazoval i na mobilu když všechny aktivity skryjeme javascriptovým filtrem-->
     </div>
@@ -526,6 +530,7 @@ class Program
             {$aktivitaObjekt->nazev()}
         </a>
 HTML;
+        echo '<span class="program_casRozsah">' . $aktivitaObjekt->zacatek()->format('G:i') . '–' . $aktivitaObjekt->konec()->format('G:i') . '</span> ';
 
         // doplňkové informace (druhý řádek)
         if ($this->nastaveni[self::DRD_PJ] && $aktivitaObjekt->typId() == TypAktivity::DRD) {
@@ -535,7 +540,7 @@ HTML;
             }
         }
 
-        if ($aktivitaRaw['delka'] > 1) {
+        if ($aktivitaRaw['delkaSlotu'] > (self::MINUT_V_HODINE / self::KROK_CASU_MINUTY)) {
             $obsazenost = $aktivitaObjekt->obsazenost();
             if ($obsazenost) {
                 echo '<span class="program_obsazenost">' . $obsazenost . '</span>';
@@ -594,7 +599,7 @@ HTML;
         // tisk hlavičkového řádku s čísly
         echo '<tr><th></th>';
         foreach (Program::seznamHodinZacatku() as $cas) {
-            echo '<th>' . $cas . ':00</th>';
+            echo '<th colspan="' . (self::MINUT_V_HODINE / self::KROK_CASU_MINUTY) . '">' . $cas . ':00</th>';
         }
         echo '</tr>';
 
@@ -611,6 +616,8 @@ HTML;
                $denId = null,
     ): void {
         $pocetAktivit = 0;
+        $casySlotu = Program::seznamCasuZacatkuPoCtvrtHodinach();
+        $prvniSlot = reset($casySlotu);
         foreach ($this->skupiny as $typId => $typNazev) {
             if ($typNazev === 'LKD 5' && $denId == 198 && $typId == 22) {
                $foo = 1; // hack pro LKD 5, aby se nevypisovala
@@ -627,7 +634,7 @@ HTML;
                     break;
                 }
                 $skip = 0;
-                foreach (Program::seznamHodinZacatku() as $cas) {
+                foreach ($casySlotu as $cas) {
                     if ($skip > 0) {
                         $skip--;
                         continue;
@@ -635,10 +642,10 @@ HTML;
                     if (
                         $aktivitaRaw &&
                         in_array($typId, $aktivitaRaw['grps']) &&
-                        ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < PROGRAM_ZACATEK) && // pro případ že by někdo nastavil aktivitu na již dřívější začátek, tak aby to nerozbilo program. (např. 2024 brigádnické aktivity od 7:00, kdy program začínal 8:00)
+                        ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < $prvniSlot) && // pro případ že by někdo nastavil aktivitu na již dřívější začátek, tak aby to nerozbilo program. (např. 2024 brigádnické aktivity od 7:00, kdy program začínal 8:00)
                         (!$denId || $aktivitaRaw['den'] == $denId)
                     ) {
-                        $skip = $aktivitaRaw['delka'] - 1;
+                        $skip = $aktivitaRaw['delkaSlotu'] - 1;
                         $this->tiskAktivity($aktivitaRaw);
                         $indexSkupiny = array_search($typId, $aktivitaRaw['grps']);
                         unset($aktivitaRaw['grps'][$indexSkupiny]);
@@ -698,11 +705,13 @@ HTML;
             $aktivita      = $current;
             $forcedLokaceId = null;
         }
-        $zac = (int)$aktivita->zacatek()->format('G');
-        $kon = (int)$aktivita->konec()->format('G');
-        if ($kon == 0) {
-            $kon = 24;
+        $zac = self::casDateTimeNaProgramoveMinuty($aktivita->zacatek(), true);
+        $kon = self::casDateTimeNaProgramoveMinuty($aktivita->konec(), false);
+        if ($kon <= $zac) {
+            $kon += self::MINUT_V_DNI;
         }
+        $delkaVMinutach = $kon - $zac;
+        $delkaSlotu = max(1, (int)ceil($delkaVMinutach / self::KROK_CASU_MINUTY));
         switch ($this->grpf) {
             case self::SKUPINY_PODLE_TYP_ID :
             case self::SKUPINY_PODLE_TYP_PORADI :
@@ -723,7 +732,8 @@ HTML;
             'zac' => $zac,
             'kon' => $kon,
             'den' => (int)$aktivita->denProgramu()->format('z'),
-            'delka' => $aktivita->delka(),
+            'delkaMinuty' => $delkaVMinutach,
+            'delkaSlotu' => $delkaSlotu,
             'obj' => $aktivita,
         ];
         $iterator->next();
@@ -774,14 +784,16 @@ HTML;
 
         $pocetKoliziDenCas = [];
         foreach ($this->aktivityUzivatele as $key => $value) {
-            for ($cas = $value['zac']; $cas < $value['zac'] + $value['delka']; $cas++) {
-                if (isset($pocetKoliziDenCas[$denId][($cas)])) {
-                    $pocetKoliziDenCas[$denId][($cas)]++;
+            $prvniSlot = intdiv($value['zac'], self::KROK_CASU_MINUTY);
+            $posledniSlot = (int)ceil($value['kon'] / self::KROK_CASU_MINUTY);
+            for ($slot = $prvniSlot; $slot < $posledniSlot; $slot++) {
+                if (isset($pocetKoliziDenCas[$denId][($slot)])) {
+                    $pocetKoliziDenCas[$denId][($slot)]++;
                 } else {
-                    $pocetKoliziDenCas[$denId][($cas)] = 1;
+                    $pocetKoliziDenCas[$denId][($slot)] = 1;
                 }
-                if ($pocetKoliziDenCas[$denId][$cas] > $this->maxPocetAktivit [$denId]) {
-                    $this->maxPocetAktivit[$denId] = $pocetKoliziDenCas[$denId][$cas];
+                if ($pocetKoliziDenCas[$denId][$slot] > $this->maxPocetAktivit [$denId]) {
+                    $this->maxPocetAktivit[$denId] = $pocetKoliziDenCas[$denId][$slot];
                 }
             }
         }
@@ -792,7 +804,7 @@ HTML;
     private function prazdnaMistnost($nazev)
     {
         $bunky = '';
-        foreach (Program::seznamHodinZacatku() as $cas) {
+        foreach (Program::seznamCasuZacatkuPoCtvrtHodinach() as $cas) {
             $bunky .= '<td></td>';
         }
 
@@ -809,7 +821,12 @@ HTML;
             return null;
         }
 
-        return $a['zacatek'] >= PROGRAM_ZACATEK
+        $zacatekVMinutach = self::casNaMinuty($a['zacatek']);
+        if ($zacatekVMinutach === null) {
+            return null;
+        }
+
+        return $zacatekVMinutach >= self::zacatekProgramuVMinutach()
             ? new DateTimeCz($a['den'])
             : (new DateTimeCz($a['den']))->plusDen();
     }
@@ -824,9 +841,38 @@ HTML;
             return null;
         }
 
-        return $a['konec'] > PROGRAM_ZACATEK
+        $konecVMinutach = self::casNaMinuty($a['konec']);
+        if ($konecVMinutach === null) {
+            return null;
+        }
+
+        return $konecVMinutach > self::zacatekProgramuVMinutach()
             ? new DateTimeCz($a['den'])
             : (new DateTimeCz($a['den']))->plusDen();
+    }
+
+    /**
+     * Vrátí range časových slotů po 15 minutách, kdy začínají aktivity.
+     * Každá hodnota je minuta "programového dne" od 00:00.
+     * Při programu přes půlnoc mohou být hodnoty > 1440.
+     */
+    public static function seznamCasuZacatkuPoCtvrtHodinach(): array
+    {
+        static $slotyCasu = null;
+        if ($slotyCasu === null) {
+            $zacatekProgramuVMinutach = self::zacatekProgramuVMinutach();
+            $konecProgramuVMinutach = self::konecProgramuVMinutach();
+            if (self::programPresPulnoc()) {
+                $konecProgramuVMinutach += self::MINUT_V_DNI;
+            }
+            $slotyCasu = range(
+                $zacatekProgramuVMinutach,
+                $konecProgramuVMinutach - self::KROK_CASU_MINUTY,
+                self::KROK_CASU_MINUTY,
+            );
+        }
+
+        return $slotyCasu;
     }
 
     /**
@@ -837,16 +883,87 @@ HTML;
     {
         static $hodinyZacatku = null;
         if ($hodinyZacatku === null) {
-            if (PROGRAM_KONEC < PROGRAM_ZACATEK) {
-                $hodinyZacatku = [
-                    ...range(PROGRAM_ZACATEK, 24 - 1, 1),
-                    ...range(0, PROGRAM_KONEC - 1, 1),
-                ];
-            } else {
-                $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
-            }
+            $hodinyZacatku = array_values(array_unique(array_map(
+                static fn(int $slotVMinutach) => (int)floor(($slotVMinutach % self::MINUT_V_DNI) / self::MINUT_V_HODINE),
+                self::seznamCasuZacatkuPoCtvrtHodinach(),
+            )));
         }
 
         return $hodinyZacatku;
+    }
+
+    private static function programPresPulnoc(): bool
+    {
+        return PROGRAM_KONEC < PROGRAM_ZACATEK;
+    }
+
+    private static function zacatekProgramuVMinutach(): int
+    {
+        return PROGRAM_ZACATEK * self::MINUT_V_HODINE;
+    }
+
+    private static function konecProgramuVMinutach(): int
+    {
+        return PROGRAM_KONEC * self::MINUT_V_HODINE;
+    }
+
+    /**
+     * @param string|int|float|null $cas
+     */
+    private static function casNaMinuty(string|int|float|null $cas): ?int
+    {
+        if ($cas === null) {
+            return null;
+        }
+        if (is_float($cas)) {
+            $cas = (string)$cas;
+        }
+        if (is_int($cas)) {
+            return $cas <= 24
+                ? $cas * self::MINUT_V_HODINE
+                : $cas;
+        }
+        $cas = trim((string)$cas);
+        if ($cas === '') {
+            return null;
+        }
+        if (is_numeric($cas)) {
+            $casCislo = (int)$cas;
+            return $casCislo <= 24
+                ? $casCislo * self::MINUT_V_HODINE
+                : $casCislo;
+        }
+        if (!preg_match('~^(?<hodiny>\d{1,2}):(?<minuty>\d{2})$~', $cas, $matches)) {
+            return null;
+        }
+        $hodiny = (int)$matches['hodiny'];
+        $minuty = (int)$matches['minuty'];
+        if ($minuty < 0 || $minuty >= self::MINUT_V_HODINE) {
+            return null;
+        }
+        if ($hodiny === 24) {
+            return $minuty === 0
+                ? self::MINUT_V_DNI
+                : null;
+        }
+        if ($hodiny < 0 || $hodiny >= 24) {
+            return null;
+        }
+        return $hodiny * self::MINUT_V_HODINE + $minuty;
+    }
+
+    private static function casDateTimeNaProgramoveMinuty(\DateTimeInterface $dateTime, bool $jeZacatek): int
+    {
+        $minuty = ((int)$dateTime->format('G')) * self::MINUT_V_HODINE + (int)$dateTime->format('i');
+        if (!self::programPresPulnoc()) {
+            return $minuty;
+        }
+        $zacatekProgramuVMinutach = self::zacatekProgramuVMinutach();
+        if (($jeZacatek && $minuty < $zacatekProgramuVMinutach)
+            || (!$jeZacatek && $minuty <= $zacatekProgramuVMinutach)
+        ) {
+            return $minuty + self::MINUT_V_DNI;
+        }
+        return $minuty;
     }
 }

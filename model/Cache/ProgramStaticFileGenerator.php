@@ -81,7 +81,7 @@ class ProgramStaticFileGenerator implements ResetInterface
             'vypraveci'   => $vypraveci,
             'stitkyId'    => $activity->tagyId(),
             'cenaZaklad'  => intval($activity->cenaZaklad()),
-            'casText'     => $zacatekAktivity->format('G') . ':00&ndash;' . $konecAktivity->format('G') . ':00',
+            'casText'     => $zacatekAktivity->format('G:i') . '&ndash;' . $konecAktivity->format('G:i'),
             'cas'         => [
                 'od' => $zacatekAktivity->getTimestamp() * 1000,
                 'do' => $konecAktivity->getTimestamp() * 1000,

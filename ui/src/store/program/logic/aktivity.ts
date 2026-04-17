@@ -72,7 +72,8 @@ export const aktivitaStatusZAktivity = (
 };
 
 export const denAktivity = (časAktivity: Date) => {
-  return (časAktivity.getHours() +1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
+  const minutyOdPulnoci = časAktivity.getHours() * 60 + časAktivity.getMinutes();
+  return minutyOdPulnoci >= GAMECON_KONSTANTY.PROGRAM_ZACATEK * 60
     ? časAktivity
     : datumPřidejDen(časAktivity, -1);
 };
