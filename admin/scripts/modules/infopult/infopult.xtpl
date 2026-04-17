@@ -447,6 +447,12 @@
           <td>Ubytování:</td>
           <td>{ubytovani}</td>
         </tr>
+        <!-- begin:nechceUbytovaniInfo -->
+        <tr>
+          <td>Nechce ubytování:</td>
+          <td>{nechceUbytovani}</td>
+        </tr>
+        <!-- end:nechceUbytovaniInfo -->
         <tr>
           <td colspan="2">
             Zrušit jiné ubytování než neděli může pouze šéf Infa.

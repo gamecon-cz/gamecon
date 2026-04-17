@@ -5,6 +5,15 @@
         href="mailto:info@gamecon.cz">info@gamecon.cz</a>.</p>
 <!-- end:konec -->
 
+<!-- begin:nechciUbytovani -->
+<div class="shopUbytovani_nechci" style="display: {displayNechciUbytovani}">
+    <label class="formular_polozka formular_polozka-checkbox">
+        <input type="checkbox" class="shopUbytovani_nechciCheckbox" name="{postnameNechciUbytovani}" {checkedNechciUbytovani}>
+        nechci ubytování
+    </label>
+</div>
+<!-- end:nechciUbytovani -->
+
 <div class="shopUbytovani_tabulka">
 
     <div class="shopUbytovani_prvniSloupec">
@@ -49,7 +58,7 @@
     </div>
     <!-- end:den -->
 
-    <div style="clear: both"></div>
+<div style="clear: both"></div>
 
 </div>
 

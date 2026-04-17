@@ -911,8 +911,9 @@ SQL,
     public function zpracujUbytovani(
         bool $vcetneSpolubydliciho = true,
         bool $hlidatKapacituUbytovani = true,
+        bool $ulozitNechceUbytovani = false,
     ): bool {
-        return $this->ubytovani->zpracuj($vcetneSpolubydliciho, $hlidatKapacituUbytovani);
+        return $this->ubytovani->zpracuj($vcetneSpolubydliciho, $hlidatKapacituUbytovani, $ulozitNechceUbytovani);
     }
 
     /**

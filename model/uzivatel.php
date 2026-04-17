@@ -183,6 +183,15 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         return $this->r['ubytovan_s'] ?? '';
     }
 
+    public function nechceUbytovani(?bool $nechceUbytovani = null): bool
+    {
+        if ($nechceUbytovani !== null) {
+            $this->r[Sql::NECHCE_UBYTOVANI] = (int)$nechceUbytovani;
+        }
+
+        return (bool)($this->r[Sql::NECHCE_UBYTOVANI] ?? false);
+    }
+
     /**
      * Vrátí aboslutní adresu avataru včetně http. Pokud avatar neexistuje, vrací
      * default avatar. Pomocí adresy je docíleno, aby se při nezměně obrázku dalo

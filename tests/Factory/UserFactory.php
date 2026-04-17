@@ -54,6 +54,7 @@ final class UserFactory extends PersistentProxyObjectFactory
             'mesto'                            => self::faker()->text(100),
             'mrtvyMail'                        => self::faker()->boolean(),
             'nechceMaily'                      => self::faker()->dateTime(),
+            'nechceUbytovani'                  => self::faker()->boolean(),
             'op'                               => self::faker()->text(4096),
             'pohlavi'                          => self::faker()->randomElement(GenderEnum::cases()),
             'pomocTyp'                         => self::faker()->text(64),

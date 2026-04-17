@@ -34,6 +34,7 @@ include __DIR__ . '/_uzivatel_ovladac.php';
 $x = new XTemplate(__DIR__ . '/uzivatel.xtpl');
 
 $x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
+$x->assign('nechceUbytovani', '');
 if ($uPracovni) {
     $x->assign([
         'a'  => $uPracovni->koncovkaDlePohlavi(),
@@ -103,12 +104,14 @@ if (!$uPracovni) {
 if ($uPracovni) {
     $up           = $uPracovni;
     $a            = $up->koncovkaDlePohlavi();
+    $maObjednaneUbytovani = $up->shop()->ubytovani()->maObjednaneUbytovani();
     $pokoj        = Pokoj::zUzivatele($up);
     $spolubydlici = $pokoj
         ? $pokoj->ubytovani()
         : [];
     $x->assign([
         'prehled'       => Accounting::getPersonalFinance($up, showDiscounts: false)->formatForHtml(),
+        'nechceUbytovani' => $up->nechceUbytovani() ? 'ano' : 'ne',
         'slevyAktivity' => ($akt = $up->finance()->slevyNaAktivity())
             ?
             '<li>' . implode('<li>', $akt)
@@ -120,6 +123,9 @@ if ($uPracovni) {
             :
             '(žádné)',
     ]);
+    if (!$maObjednaneUbytovani) {
+        $x->parse('uzivatel.nechceUbytovaniInfo');
+    }
     $datumNarozeni = DateTimeImmutable::createFromMutable($up->datumNarozeni());
 
     $x->parse('uzivatel.slevy');

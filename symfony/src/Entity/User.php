@@ -93,6 +93,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'ubytovan_s', length: 255, nullable: true)]
     private ?string $ubytovanS = null;
 
+    #[ORM\Column(name: 'nechce_ubytovani', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => 0,
+    ])]
+    private bool $nechceUbytovani = false;
+
     #[ORM\Column(name: 'poznamka', length: 4096, nullable: false)]
     private string $poznamka = '';
 
@@ -389,6 +394,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUbytovanS(?string $ubytovanS): static
     {
         $this->ubytovanS = $ubytovanS;
+
+        return $this;
+    }
+
+    public function isNechceUbytovani(): bool
+    {
+        return $this->nechceUbytovani;
+    }
+
+    public function setNechceUbytovani(bool $nechceUbytovani): static
+    {
+        $this->nechceUbytovani = $nechceUbytovani;
 
         return $this;
     }

@@ -2,6 +2,10 @@
     var shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]');
     var shopUbytovaniNames = [];
     var zmeneneElementy = [];
+    var volbaNechciUbytovani = document.querySelector('.shopUbytovani_nechci');
+    var volbaNechciUbytovaniCheckbox = document.querySelector('input.shopUbytovani_nechciCheckbox');
+    var tabulkaUbytovani = document.querySelector('.shopUbytovani_tabulka');
+    var spolubydliciBlok = document.querySelector('.shopUbytovani_spolubydlici');
 
     // 1) Načtení ze sessionStorage (pokud tam nic není, zůstane null)
     let stored = sessionStorage.getItem('presKapacituBtn');
@@ -70,8 +74,11 @@
         return document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + inputName + '"][data-typ="' + typUbytovani + '"]');
     }
 
-    /** @param {string} inputName */
-    function vyberZadneUbytovani(inputName) {
+    /**
+     * @param {string} inputName
+     * @param {boolean} obnovitPovinnePolozky
+     */
+    function vyberZadneUbytovani(inputName, obnovitPovinnePolozky = true) {
         var zadneUbytovaniInput = ubytovaniInput(inputName, 'Žádné');
         zadneUbytovaniInput.checked = true;
         zmeneneElementy.forEach(function (predtimZmenenyElement, index) {
@@ -80,6 +87,9 @@
             }
         });
         zmeneneElementy.push(zadneUbytovaniInput);
+        if (obnovitPovinnePolozky) {
+            obnovPovinnePolozky();
+        }
     }
 
     function onShopUbytovaniClick() {
@@ -102,6 +112,42 @@
                 vyberZadneUbytovani(kliknutyInput.name);
             }
         });
+    }
+
+    /** @param {boolean} zobrazit */
+    function prepniUbytovaniTabulku(zobrazit) {
+        if (!tabulkaUbytovani) {
+            return;
+        }
+        tabulkaUbytovani.style.display = zobrazit ? '' : 'none';
+    }
+
+    /** @param {boolean} zobrazit */
+    function prepniSpolubydlici(zobrazit) {
+        if (!spolubydliciBlok) {
+            return;
+        }
+        spolubydliciBlok.style.display = zobrazit ? '' : 'none';
+    }
+
+    function onVolbaNechciUbytovaniChange() {
+        if (!volbaNechciUbytovaniCheckbox) {
+            return;
+        }
+
+        if (volbaNechciUbytovaniCheckbox.checked) {
+            zmeneneElementy = [];
+            shopUbytovaniNames.forEach(function (name) {
+                vyberZadneUbytovani(name, false);
+            });
+            obnovPovinnePolozky();
+            prepniUbytovaniTabulku(false);
+            prepniSpolubydlici(false);
+            return;
+        }
+
+        prepniUbytovaniTabulku(true);
+        prepniSpolubydlici(true);
     }
 
     function zobrazPovinnePolozky() {
@@ -137,6 +183,22 @@
         } else {
             skryjPovinnePolozky();
         }
+        prepniVolbuNechciUbytovani(!nejakeUbytovaniVybrano);
+    }
+
+    /**
+     * @param {boolean} zobrazit
+     */
+    function prepniVolbuNechciUbytovani(zobrazit) {
+        if (!volbaNechciUbytovani) {
+            return;
+        }
+        volbaNechciUbytovani.style.display = zobrazit ? 'block' : 'none';
+        if (!zobrazit && volbaNechciUbytovaniCheckbox) {
+            volbaNechciUbytovaniCheckbox.checked = false;
+            prepniUbytovaniTabulku(true);
+            prepniSpolubydlici(true);
+        }
     }
 
     shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
@@ -149,6 +211,10 @@
 
         shopUbytovaniRadio.addEventListener('click', onShopUbytovaniClick);
     });
+
+    if (volbaNechciUbytovaniCheckbox) {
+        volbaNechciUbytovaniCheckbox.addEventListener('change', onVolbaNechciUbytovaniChange);
+    }
 
     // TOGGLE funkce pro tlačítko "přes kapacitu"
     function presKapacitu() {
@@ -196,4 +262,7 @@
     }
 
     obnovPovinnePolozky();
+    var chceUbytovani = !(volbaNechciUbytovaniCheckbox && volbaNechciUbytovaniCheckbox.checked);
+    prepniUbytovaniTabulku(chceUbytovani);
+    prepniSpolubydlici(chceUbytovani);
 }

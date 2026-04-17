@@ -30,6 +30,7 @@ class AnonymizovanyUzivatel
             UzivatelSql::ZUSTATEK                            => 0,
             UzivatelSql::REGISTROVAN                         => 'NOW()',
             UzivatelSql::UBYTOVAN_S                          => '',
+            UzivatelSql::NECHCE_UBYTOVANI                    => 0,
             UzivatelSql::POZNAMKA                            => '',
             UzivatelSql::POMOC_TYP                           => '',
             UzivatelSql::POMOC_VICE                          => '',

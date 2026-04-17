@@ -28,6 +28,7 @@ class UzivateleHodnotySqlStruktura
     public const POHLAVI                             = 'pohlavi';
     public const REGISTROVAN                         = 'registrovan';
     public const UBYTOVAN_S                          = 'ubytovan_s';
+    public const NECHCE_UBYTOVANI                    = 'nechce_ubytovani';
     public const POZNAMKA                            = 'poznamka';
     public const POMOC_TYP                           = 'pomoc_typ';
     public const POMOC_VICE                          = 'pomoc_vice';
