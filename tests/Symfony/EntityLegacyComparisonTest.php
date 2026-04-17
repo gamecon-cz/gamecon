@@ -107,6 +107,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             UserEntityStructure::infopultPoznamka      => 'Test infopult',
             UserEntityStructure::typDokladuTotoznosti  => 'OP',
             UserEntityStructure::statniObcanstvi       => 'CZ',
+            UserEntityStructure::nechceUbytovani       => true,
             UserEntityStructure::zpusobZobrazeniNaWebu => ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI->value,
             UserEntityStructure::zRychloregistrace     => false,
             UserEntityStructure::mrtvyMail             => false,
@@ -148,6 +149,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyUser->getInfopultPoznamka(), $legacyData['infopult_poznamka']);
         $this->assertEquals($symfonyUser->getTypDokladuTotoznosti(), $legacyData['typ_dokladu_totoznosti']);
         $this->assertEquals($symfonyUser->getStatniObcanstvi(), $legacyData['statni_obcanstvi']);
+        $this->assertEquals($symfonyUser->isNechceUbytovani(), (bool) $legacyData['nechce_ubytovani']);
         $this->assertEquals($symfonyUser->getZpusobZobrazeniNaWebu(), (int) $legacyData['zpusob_zobrazeni_na_webu']);
         $this->assertEquals($symfonyUser->isZRychloregistrace(), (bool) $legacyData['z_rychloregistrace']);
         $this->assertEquals($symfonyUser->isMrtvyMail(), (bool) $legacyData['mrtvy_mail']);
@@ -289,6 +291,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
             UserEntityStructure::prijmeni                         => 'OptionalPrijmeni',
             UserEntityStructure::nechceMaily                      => new \DateTime('2023-06-01 10:00:00'),
             UserEntityStructure::ubytovanS                        => 'Some Person',
+            UserEntityStructure::nechceUbytovani                  => true,
             UserEntityStructure::potvrzeniZakonnehoZastupce       => new \DateTime('2023-05-01'),
             UserEntityStructure::statniObcanstvi                  => 'SK',
             UserEntityStructure::potvrzeniZakonnehoZastupceSoubor => new \DateTime('2023-05-01 10:00:00'),
@@ -311,6 +314,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         }
 
         $this->assertEquals($symfonyUser->getUbytovanS(), $legacyData['ubytovan_s']);
+        $this->assertEquals($symfonyUser->isNechceUbytovani(), (bool) $legacyData['nechce_ubytovani']);
 
         if ($symfonyUser->getPotvrzeniZakonnehoZastupce()) {
             $this->assertEquals(

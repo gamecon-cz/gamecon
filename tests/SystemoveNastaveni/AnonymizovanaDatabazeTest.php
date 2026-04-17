@@ -58,6 +58,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             pohlavi = 'm',
             registrovan = NOW(),
             ubytovan_s = '',
+            nechce_ubytovani = 1,
             poznamka = '',
             pomoc_typ = '',
             pomoc_vice = '',
@@ -170,7 +171,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
 
         // user personal data should be anonymized
         $anonymUsersResult = mysqli_query($connection, sprintf(
-            "SELECT jmeno_uzivatele, prijmeni_uzivatele, telefon_uzivatele, ulice_a_cp_uzivatele FROM `%s`.uzivatele_hodnoty WHERE login_uzivatele != '%s' AND id_uzivatele != %d",
+            "SELECT jmeno_uzivatele, prijmeni_uzivatele, telefon_uzivatele, ulice_a_cp_uzivatele, nechce_ubytovani FROM `%s`.uzivatele_hodnoty WHERE login_uzivatele != '%s' AND id_uzivatele != %d",
             self::$anonymniDatabaze,
             AnonymizovanaDatabaze::ADMIN_LOGIN,
             \Uzivatel::SYSTEM,
@@ -179,6 +180,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         foreach ($anonymUsers as $anonymUser) {
             self::assertSame('', $anonymUser['jmeno_uzivatele'], 'Jméno by mělo být prázdné');
             self::assertSame('', $anonymUser['prijmeni_uzivatele'], 'Příjmení by mělo být prázdné');
+            self::assertSame('0', $anonymUser['nechce_ubytovani'], 'Volba nechce ubytování by měla být vynulovaná');
         }
 
         $zpusobyZobrazeniResult = mysqli_query($connection, sprintf(

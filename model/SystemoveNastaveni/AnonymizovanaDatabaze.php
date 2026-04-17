@@ -149,6 +149,7 @@ INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
         pohlavi = 'm',
         registrovan = NOW(),
         ubytovan_s = '',
+        nechce_ubytovani = 0,
         poznamka = '',
         pomoc_typ = '',
         pomoc_vice= '',

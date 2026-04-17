@@ -78,6 +78,28 @@
     cursor: default;
 }
 
+@media (max-width: 375px) {
+    .shopPredmety_predmety,
+    .shopPredmety_tricko {
+        grid-template-columns: minmax(0, 1fr);
+        column-gap: 0;
+    }
+
+    .shopPredmety_predmet {
+        min-width: 0;
+    }
+
+    .shopPredmety_predmet .shop_popis {
+        min-width: 0;
+        max-width: calc(100% - 124px);
+    }
+
+    .shopPredmety_plusminus {
+        margin-left: 12px;
+        flex-shrink: 0;
+    }
+}
+
 // Další merch - collapsible section for secondary items
 details.shopPredmety_dalsiMerch,
 details.shopPredmety_dalsiMerch > article,
