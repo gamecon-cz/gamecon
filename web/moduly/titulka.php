@@ -26,7 +26,7 @@ foreach ($typy as $i => $typ) {
         'nazev'     => mb_ucfirst($typ->nazev()),
         'url'       => $typ->url(),
         'obrazek'   => $obrazky[$typ->id()]['src'] ?? '', // prevent errors, mainly for local testing
-        'ikona'     => cestaObrazkuLinie($typ->id()),
+        'ikona'     => cestaObrazkuLinieNaTitulce($typ->id()),
         'aosOffset' => $offsety[$i % 3],
         'popis'     => $typ->popisKratky(),
     ]);
