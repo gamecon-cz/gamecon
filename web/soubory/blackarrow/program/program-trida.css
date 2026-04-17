@@ -102,15 +102,15 @@ table.program {
 }
 
 .program td {
-    min-width: 100px;
-    max-width: 100px;
+    min-width: calc(100px / 4);
+    max-width: calc(100px / 4);
     padding: 0;
     } @media (max-width: 1500px) { .program td:first-child {
         min-width: 40px;
         max-width: 40px;
     }} @media (max-width: 800px) { .program td {
-        min-width: 70px;
-        max-width: 70px;
+        min-width: calc(70px / 4);
+        max-width: calc(70px / 4);
     }
 }
 
@@ -184,6 +184,11 @@ table.program {
     display: inline-block;
     background-color: inherit;
     padding-left: 16px;
+}
+
+.program_casRozsah {
+    display: inline-block;
+    margin-right: 9px;
 }
 
 .program_obsazenost::before {

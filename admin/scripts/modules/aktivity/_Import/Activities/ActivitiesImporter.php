@@ -280,34 +280,61 @@ HTML
             return PHP_INT_MAX;
         }
         try {
-            $dayTimeForSort = $this->dateTimeCz::poradiDne($activityValues[$this->exportAktivitSloupce::DEN]) * 24;
+            $dayTimeForSort = $this->dateTimeCz::poradiDne($activityValues[$this->exportAktivitSloupce::DEN]) * 24 * 60;
         } catch (\RuntimeException $runtimeException) {
             return PHP_INT_MAX; // invalid date name
         }
         if (!empty($activityValues[$this->exportAktivitSloupce::ZACATEK])) {
-            return $dayTimeForSort + $this->parseTimeToHour($activityValues[$this->exportAktivitSloupce::ZACATEK]);
+            return $dayTimeForSort + $this->parseTimeToMinutes($activityValues[$this->exportAktivitSloupce::ZACATEK]);
         }
         if (!empty($activityValues[$this->exportAktivitSloupce::KONEC])) {
-            return $dayTimeForSort + $this->parseTimeToHour($activityValues[$this->exportAktivitSloupce::KONEC]);
+            return $dayTimeForSort + $this->parseTimeToMinutes($activityValues[$this->exportAktivitSloupce::KONEC]);
         }
 
         return $dayTimeForSort;
     }
 
     /**
-     * Parse a time string like "10:00" or "14:30" to an hour integer (10, 14).
-     * Also handles numeric values (already an hour).
+     * Parse a time string like "10:00" or "14:30" to minutes from midnight.
+     * Also handles numeric values (hour or minute offset).
      */
-    private function parseTimeToHour(mixed $timeValue): int
+    private function parseTimeToMinutes(mixed $timeValue): int
     {
-        if (is_numeric($timeValue)) {
-            return (int)$timeValue;
+        if (is_int($timeValue)) {
+            return $timeValue <= 24
+                ? $timeValue * 60
+                : $timeValue;
         }
-        if (is_string($timeValue) && preg_match('/^(\d{1,2}):/', $timeValue, $matches)) {
-            return (int)$matches[1];
+        if (is_float($timeValue)) {
+            $timeValue = (string)$timeValue;
+        }
+        if (!is_string($timeValue)) {
+            return 0;
+        }
+        $timeValue = trim($timeValue);
+        if ($timeValue === '') {
+            return 0;
+        }
+        if (preg_match('/^\d+$/', $timeValue)) {
+            $numericValue = (int)$timeValue;
+
+            return $numericValue <= 24
+                ? $numericValue * 60
+                : $numericValue;
+        }
+        if (!preg_match('/^(?<hours>\d{1,2})(?::(?<minutes>\d{2}))?$/', $timeValue, $matches)) {
+            return 0;
+        }
+        $hours = (int)$matches['hours'];
+        $minutes = (int)($matches['minutes'] ?? 0);
+        if ($hours < 0 || $hours > 24 || $minutes < 0 || $minutes >= 60) {
+            return 0;
+        }
+        if ($hours === 24 && $minutes !== 0) {
+            return 0;
         }
 
-        return 0;
+        return $hours * 60 + $minutes;
     }
 
     public function __destruct()

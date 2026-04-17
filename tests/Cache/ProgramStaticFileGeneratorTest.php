@@ -114,6 +114,8 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
             Sql::POPIS        => 'Popis testovací aktivity',
             Sql::CENA         => 150,
             Sql::STAV         => StavAktivity::AKTIVOVANA,
+            Sql::ZACATEK      => date('Y-m-d 10:15:00'),
+            Sql::KONEC        => date('Y-m-d 13:45:00'),
         ]);
 
         $generator = $this->createGenerator();
@@ -140,6 +142,7 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         self::assertSame('RPG Dračí Doupě', $found['nazev']);
         self::assertSame('Krátký RPG popis', $found['kratkyPopis']);
         self::assertSame(150, $found['cenaZaklad']);
+        self::assertSame('10:15&ndash;13:45', $found['casText']);
         self::assertArrayHasKey('cas', $found);
         self::assertArrayHasKey('od', $found['cas']);
         self::assertArrayHasKey('do', $found['cas']);

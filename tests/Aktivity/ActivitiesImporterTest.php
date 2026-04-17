@@ -116,6 +116,26 @@ class ActivitiesImporterTest extends AbstractTestDb
     /**
      * @test
      */
+    public function testImportActivityWithQuarterHourStartAndEnd()
+    {
+        $mockData = $this->createMockSheetData([
+            ['', 'Deskoherna', 'Aktivita 15 minut', 'url-15-minut', 'Popis', '', '', 'Pátek', '10:15', '11:45', 'Velká místnost', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+        ]);
+
+        $importer = $this->createImporter($mockData);
+        $result = $importer->importActivities('fake-spreadsheet-id');
+
+        self::assertSame(1, $result->getImportedCount());
+
+        $aktivita = $this->fetchActivityByUrl('url-15-minut', ROCNIK);
+        self::assertNotNull($aktivita);
+        self::assertSame('10:15:00', $aktivita->zacatek()?->format('H:i:s'));
+        self::assertSame('11:45:00', $aktivita->konec()?->format('H:i:s'));
+    }
+
+    /**
+     * @test
+     */
     public function testImportActivityWithMultipleLocations()
     {
         $mockData = $this->createMockSheetData([

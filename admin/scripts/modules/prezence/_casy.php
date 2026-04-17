@@ -32,9 +32,13 @@ function _casy(&$zacatekDt, bool $pred = false) {
         }
     } elseif (new DateTime(PROGRAM_OD) <= $ted && $ted <= (new DateTime(PROGRAM_DO))->setTime(23, 59, 59)) {
         // nejspíš GC právě probíhá, čas předvolit automaticky
-        $chtenyZacatek = (clone $ted)->setTime(0, 0, 0);
-        $chtenyZacatek->zaokrouhlitNaHodinyNahoru('H'); // nejblizsi hodina
-        if ($pred) $chtenyZacatek->sub(new DateInterval('PT1H'));
+        $chtenyZacatek = clone $ted;
+        $krokVterin = Aktivita::KROK_CASU_MINUTY * 60;
+        $zaokrouhlenyTimestamp = (int)(ceil($chtenyZacatek->getTimestamp() / $krokVterin) * $krokVterin);
+        $chtenyZacatek->setTimestamp($zaokrouhlenyTimestamp);
+        if ($pred) {
+            $chtenyZacatek->sub(new DateInterval('PT' . Aktivita::KROK_CASU_MINUTY . 'M'));
+        }
         $posledniVhodnyZacatek = null;
         foreach ($zacatkyAktivit as $zacatekAktivity) {
             // zacatky aktivit jsou razeny od nejstarsich
@@ -60,9 +64,9 @@ function _casy(&$zacatekDt, bool $pred = false) {
 
     if ($zacatkyAktivit) {
         foreach ($zacatkyAktivit as $zacatek) {
-            $t->assign('cas', $zacatek->format('l') . ' ' . $zacatek->format('H') . ':00');
-            $t->assign('val', $zacatek->format('Y-m-d') . ' ' . $zacatek->format('H') . ':00');
-            $t->assign('sel', $vybrany && $vybrany->format('Y-m-d H') === $zacatek->format('Y-m-d H') ? 'selected' : '');
+            $t->assign('cas', $zacatek->format('l') . ' ' . $zacatek->format('G:i'));
+            $t->assign('val', $zacatek->format('Y-m-d H:i'));
+            $t->assign('sel', $vybrany && $vybrany->format('Y-m-d H:i') === $zacatek->format('Y-m-d H:i') ? 'selected' : '');
             $t->parse('casy.vyberCasu.cas');
         }
         $t->parse('casy.vyberCasu');

@@ -8,6 +8,15 @@ import {
 } from "./seskupování";
 import { GAMECON_KONSTANTY } from "../../../../env";
 import {
+  casDateTimeNaProgramoveMinuty,
+  KONEC_PROGRAMU_V_MINUTACH,
+  PROGRAM_CASOVE_SLOTY,
+  PROGRAM_HODINY,
+  PROGRAM_KROK_CASU_MINUTY,
+  SLOTU_ZA_HODINU,
+  ZACATEK_PROGRAMU_V_MINUTACH,
+} from "./casoveSloty";
+import {
   useAktivitaNáhled,
   useAktivityFiltrované,
   useAktivityStatus,
@@ -21,13 +30,6 @@ import { PřekrývacíNačítač } from "../Načítač";
 import { exitFullscreen, requestFullscreen } from "../../../../utils/dom";
 
 type ProgramTabulkaProps = {};
-
-const PROGRAM_ČASY =
-  GAMECON_KONSTANTY.PROGRAM_ZACATEK < GAMECON_KONSTANTY.PROGRAM_KONEC
-    ? range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, GAMECON_KONSTANTY.PROGRAM_KONEC)
-    : range(GAMECON_KONSTANTY.PROGRAM_ZACATEK, 24).concat(
-      range(0, GAMECON_KONSTANTY.PROGRAM_KONEC)
-    );
 
 const indexŘazení = (klíč: string) => {
   const index = GAMECON_KONSTANTY.PROGRAM_ŘAZENÍ_LINIE.findIndex(
@@ -62,15 +64,15 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const tabulkaHlavičkaČasy = (
     <tr>
       <th></th>
-      {PROGRAM_ČASY.map((čas) => (
-        <th>{čas}:00</th>
+      {PROGRAM_HODINY.map((čas) => (
+        <th colSpan={SLOTU_ZA_HODINU}>{čas}:00</th>
       ))}
     </tr>
   );
 
   const tabulkaŽádnéAktivity = (
     <tr>
-      <td colSpan={PROGRAM_ČASY.length + 1}>Žádné aktivity tento den</td>
+      <td colSpan={PROGRAM_CASOVE_SLOTY.length + 1}>Žádné aktivity tento den</td>
     </tr>
   );
 
@@ -89,7 +91,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
         return (
           <tr>
             {nadpisSkupiny}
-            <td></td>
+            <td colSpan={PROGRAM_CASOVE_SLOTY.length}></td>
           </tr>
         );
       }
@@ -99,23 +101,41 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
           {range(řádků).map((řádek) => {
             const klíčSkupiny = řádek === 0 ? nadpisSkupiny : <></>;
 
-            let posledníAktivitaDo = GAMECON_KONSTANTY.PROGRAM_ZACATEK;
+            let posledníAktivitaDo = ZACATEK_PROGRAMU_V_MINUTACH;
             return (
-              <tr key={nadpisSkupiny}>
+              <tr key={`${klíč}-${řádek}`}>
                 {klíčSkupiny}
                 {skupina
                   .filter((x) => x.řádek === řádek)
                   .map((x) => x.aktivita)
                   .sort((a1, a2) => a1.cas.od - a2.cas.od)
                   .map((aktivita) => {
-                    const hodinOd = new Date(aktivita.cas.od).getHours();
-                    const hodinDo = new Date(aktivita.cas.do).getHours();
-
-                    const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
+                    const časOd = casDateTimeNaProgramoveMinuty(
+                      new Date(aktivita.cas.od),
+                      true,
+                    );
+                    let časDo = casDateTimeNaProgramoveMinuty(
+                      new Date(aktivita.cas.do),
+                      false,
+                    );
+                    if (časDo <= časOd) {
+                      časDo += 24 * 60;
+                    }
+                    const časOdOřezaný = Math.max(
+                      časOd,
+                      ZACATEK_PROGRAMU_V_MINUTACH,
+                    );
+                    const časOdsazení = Math.max(
+                      0,
+                      Math.ceil(
+                        (časOdOřezaný - posledníAktivitaDo)
+                        / PROGRAM_KROK_CASU_MINUTY,
+                      ),
+                    );
                     const odsazení = časOdsazení > 0
-                        ? <td colSpan={časOdsazení}></td>
-                        : <></>;
-                    posledníAktivitaDo = hodinDo;
+                      ? <td colSpan={časOdsazení}></td>
+                      : <></>;
+                    posledníAktivitaDo = Math.max(posledníAktivitaDo, časDo);
 
                     return (
                       <>
@@ -129,7 +149,15 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                     );
                   })}
                 {
-                  <td colSpan={(GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24}></td>
+                  <td
+                    colSpan={Math.max(
+                      0,
+                      Math.ceil(
+                        (KONEC_PROGRAMU_V_MINUTACH - posledníAktivitaDo)
+                        / PROGRAM_KROK_CASU_MINUTY,
+                      ),
+                    )}
+                  ></td>
                 }
               </tr>
             );

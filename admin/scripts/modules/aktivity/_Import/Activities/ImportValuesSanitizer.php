@@ -1068,7 +1068,6 @@ HTML;
             $activityValues[ExportAktivitSloupce::DEN],
             $activityValues[ExportAktivitSloupce::ZACATEK],
             'začátek',
-            false,
         );
         if ($startDateTime->isError()) {
             return ImportStepResult::successWithErrorLikeWarnings(null, [$startDateTime->getError()]);
@@ -1189,6 +1188,25 @@ HTML;
                     "Nepodařilo se nastavit čas podle dne '%s' a času '%s'. Čas uvádí více než 59 minut a posunul by hodiny. Čas aktivity je vynechán.",
                     $dayName,
                     $hoursAndMinutes,
+                ),
+            );
+        }
+        if ($hours === 24 && $minutes !== 0) {
+            return ImportStepResult::error(
+                sprintf(
+                    "Nepodařilo se nastavit čas podle dne '%s' a času '%s'. Pokud je uvedeno 24 hodin, minuty musí být 00. Čas aktivity je vynechán.",
+                    $dayName,
+                    $hoursAndMinutes,
+                ),
+            );
+        }
+        if (($minutes % Aktivita::KROK_CASU_MINUTY) !== 0) {
+            return ImportStepResult::error(
+                sprintf(
+                    "Nepodařilo se nastavit čas podle dne '%s' a času '%s'. Minuty musí být po %d minutách (00, 15, 30, 45). Čas aktivity je vynechán.",
+                    $dayName,
+                    $hoursAndMinutes,
+                    Aktivita::KROK_CASU_MINUTY,
                 ),
             );
         }

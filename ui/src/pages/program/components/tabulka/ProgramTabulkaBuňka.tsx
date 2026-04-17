@@ -8,6 +8,7 @@ import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
+import { delkaAktivityVeSlotech } from "./casoveSloty";
 
 export const tabulkaBuňkaAktivitaTřídy = (
   aktivita: Aktivita,
@@ -66,9 +67,10 @@ export const ProgramTabulkaBuňka: FunctionComponent<
 
   if (!aktivita) return <></>;
 
-  const hodinOd = new Date(aktivita.cas.od).getHours();
-  const hodinDo = new Date(aktivita.cas.do).getHours();
-  const rozsah = (hodinDo - hodinOd + 24) % 24;
+  const rozsah = delkaAktivityVeSlotech(
+    new Date(aktivita.cas.od),
+    new Date(aktivita.cas.do),
+  );
 
   return !kompaktní ? (
     <>
@@ -85,6 +87,10 @@ export const ProgramTabulkaBuňka: FunctionComponent<
           >
             {aktivita.nazev}
           </a>
+          <span
+            class="program_casRozsah"
+            dangerouslySetInnerHTML={{ __html: aktivita.casText }}
+          />
           <Obsazenost
             obsazenost={aktivita.obsazenost}
             prihlasovatelna={aktivita.prihlasovatelna}
