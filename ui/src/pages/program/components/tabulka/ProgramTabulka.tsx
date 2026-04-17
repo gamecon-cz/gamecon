@@ -19,6 +19,7 @@ import { useEffect } from "react";
 import { nastavZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 import { PřekrývacíNačítač } from "../Načítač";
 import { exitFullscreen, requestFullscreen } from "../../../../utils/dom";
+import { pražskéHodiny } from "../../../../utils/czech-time";
 
 type ProgramTabulkaProps = {};
 
@@ -108,13 +109,13 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                   .map((x) => x.aktivita)
                   .sort((a1, a2) => a1.cas.od - a2.cas.od)
                   .map((aktivita) => {
-                    const hodinOd = new Date(aktivita.cas.od).getHours();
-                    const hodinDo = new Date(aktivita.cas.do).getHours();
+                    const hodinOd = pražskéHodiny(new Date(aktivita.cas.od));
+                    const hodinDo = pražskéHodiny(new Date(aktivita.cas.do));
 
                     const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
                     const odsazení = časOdsazení > 0
-                        ? <td colSpan={časOdsazení}></td>
-                        : <></>;
+                      ? <td colSpan={časOdsazení}></td>
+                      : <></>;
                     posledníAktivitaDo = hodinDo;
 
                     return (
