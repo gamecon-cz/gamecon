@@ -1,3 +1,5 @@
+import { pražskýDenVTýdnu, pražskýDenVMěsíci, pražskýMěsíc } from "./czech-time";
+
 /** Dny v týdnu bez diakritiky. Začíná pondeli. Pro háčky použít funkci doplňHáčkyDoDne */
 export const DNY_NÁZVY = [
   "pondeli",
@@ -39,7 +41,7 @@ export const formátujDenVTýdnu = (datum: Date | number, háčky = false) => {
     ;
   // vrací den v týdnu začínající nedělí
   //  proto potřebujeme den o jedno posunout zpět
-  const denVTýdnu = (datumObjekt.getDay() + 6) % 7;
+  const denVTýdnu = (pražskýDenVTýdnu(datumObjekt) + 6) % 7;
   const denText = DNY_NÁZVY[denVTýdnu];
   return háčky ? doplňHáčkyDoDne(denText) : denText;
 };
@@ -49,9 +51,8 @@ export const formátujDatum = (datum: Date, pouzeText = false) => {
   const denText = formátujDenVTýdnu(datum, true);
   if (pouzeText) return denText;
 
-  const den = datum.getDate();
-  // Měsíce jsou oproti dnům idexované od 0. fakt se mě neptejte proč
-  const měsíc = datum.getMonth() + 1;
+  const den = pražskýDenVMěsíci(datum);
+  const měsíc = pražskýMěsíc(datum);
 
   return `${denText} ${den}.${měsíc}.`;
 };

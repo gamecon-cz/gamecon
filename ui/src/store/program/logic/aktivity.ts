@@ -1,7 +1,8 @@
 import { ApiTag, AktivitaStav } from "../../../api/program";
 import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
-import { datumPřidejDen, volnoTypZObsazenost } from "../../../utils";
+import { volnoTypZObsazenost } from "../../../utils";
+import { pražskéHodiny, pražskýDenVTýdnu, pražskýRok } from "../../../utils/czech-time";
 // Pozor musí být defaultní import!
 import FlexSearch from "flexsearch";
 import { Aktivita } from "../slices/programDataSlice";
@@ -72,9 +73,9 @@ export const aktivitaStatusZAktivity = (
 };
 
 export const denAktivity = (časAktivity: Date) => {
-  return (časAktivity.getHours() +1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
+  return (pražskéHodiny(časAktivity) + 1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
     ? časAktivity
-    : datumPřidejDen(časAktivity, -1);
+    : new Date(časAktivity.getTime() - 24 * 60 * 60 * 1_000);
 };
 
 const ziskejIdZTextovéhoFiltru = (text: string): number | undefined => {
@@ -104,12 +105,12 @@ const flexDocument = new FlexSearch.Document<Aktivita, true>({
   }
 });
 
-const zaindexovanéIdAktivit = new Set<number>()
+const zaindexovanéIdAktivit = new Set<number>();
 const zaindexujFullText = (aktivita: Aktivita) => {
   if (zaindexovanéIdAktivit.has(aktivita.id)) return;
-  flexDocument.add(aktivita)
-  zaindexovanéIdAktivit.add(aktivita.id)
-}
+  flexDocument.add(aktivita);
+  zaindexovanéIdAktivit.add(aktivita.id);
+};
 
 
 export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníTagů: MapováníTagů) => {
@@ -138,7 +139,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
 
   if (ročník)
     aktivityFiltrované = aktivityFiltrované.filter(
-      (aktivita) => new Date(aktivita.cas.od).getFullYear() === ročník
+      (aktivita) => pražskýRok(new Date(aktivita.cas.od)) === ročník
     );
 
   if (výběr?.typ === "můj") {
@@ -147,7 +148,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
   } else if (výběr?.typ === "den") {
     aktivityFiltrované = aktivityFiltrované
       .filter((aktivita) =>
-        denAktivity(new Date(aktivita.cas.od)).getDay() === výběr.datum.getDay());
+        pražskýDenVTýdnu(denAktivity(new Date(aktivita.cas.od))) === pražskýDenVTýdnu(výběr.datum));
   }
 
   if (textovéFiltry?.some(x=>x==="*"))
