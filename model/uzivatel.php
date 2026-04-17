@@ -2278,6 +2278,11 @@ SQL,
         $jmenoNick = self::jmenoNickZjisti($uzivatelData);
         $url = slugify($jmenoNick);
 
+        // Prevence kolize uživatelského slugu s moduly webu
+        if (defined('WWW') && (is_file(WWW . '/moduly/' . $url . '.php') || is_dir(WWW . '/moduly/' . $url))) {
+            $url .= '-u';
+        }
+
         return Url::povolena($url)
             ? $url
             : null;

@@ -46,6 +46,7 @@
           <div class="menu_nazevkategorie">informace</div>
           <div class="menu_polozky">
             <a class="menu_polozka" href="prakticke-informace">Praktické informace</a>
+            <a class="menu_polozka" href="vypraveci">Vypravěči</a>
             <a class="menu_polozka" href="organizacni-vypomoc">Chci organizovat GameCon</a>
             <a class="menu_polozka" href="blog">Blog</a>
             <a class="menu_polozka" href="pro-sponzory-a-media">Pro sponzory a média</a>

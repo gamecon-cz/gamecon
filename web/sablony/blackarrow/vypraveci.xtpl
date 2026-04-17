@@ -1,0 +1,26 @@
+<!-- begin:vypraveci -->
+<div class="stranka">
+    <div class="vypraveci-hero">
+        <h1>Vypravěči</h1>
+        <p>Naši mistři příběhů, kteří pro vás připravují letošní dobrodružství.</p>
+    </div>
+
+    <div class="vypraveci-grid">
+        <!-- begin:vypravec -->
+        <a href="{medailonekUrl}" class="vypravec-karta" title="{jmeno}">
+            <div class="vypravec-obrazek">
+                <!-- begin:fotka -->
+                <img src="{fotkaUrl}" alt="Fotka {jmeno}">
+                <!-- end:fotka -->
+                <!-- begin:bezFotky -->
+                <div class="vypravec-placeholder"></div>
+                <!-- end:bezFotky -->
+            </div>
+            <div class="vypravec-info">
+                <h2>{jmeno}</h2>
+            </div>
+        </a>
+        <!-- end:vypravec -->
+    </div>
+</div>
+<!-- end:vypraveci -->

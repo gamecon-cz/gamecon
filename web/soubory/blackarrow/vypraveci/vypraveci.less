@@ -1,0 +1,66 @@
+.vypraveci-hero {
+    text-align: center;
+    margin: 40px 0;
+}
+.vypraveci-hero h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    color: #e31836;
+}
+.vypraveci-hero p {
+    font-size: 1.2em;
+    color: #fff;
+}
+.vypraveci-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 30px;
+    margin: 40px auto;
+    max-width: 1200px;
+}
+.vypravec-karta {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    color: #fff;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+.vypravec-karta:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    border-color: #e31836;
+}
+.vypravec-obrazek {
+    width: 100%;
+    aspect-ratio: 1; /* Square images */
+    background: #2a2a2a;
+    overflow: hidden;
+}
+.vypravec-obrazek img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+.vypravec-karta:hover .vypravec-obrazek img {
+    transform: scale(1.05);
+}
+.vypravec-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #2a2a2a url('/soubory/systemove/avatary/default.png') center/cover;
+    opacity: 0.5;
+}
+.vypravec-info {
+    padding: 15px;
+    text-align: center;
+}
+.vypravec-info h2 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #fff;
+}
