@@ -7,7 +7,7 @@ use Gamecon\Uzivatel\Finance;
 /** @var Uzivatel $u */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
-if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE) && !$u->jeInfopultak() && !$u->jeOrganizator())
+if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE) && !$u->maPravo(Pravo::ADMINISTRACE_INFOPULT) && !$u->jeInfopultak())
 ) {
     header('HTTP/1.1 403 Forbidden');
     echo json_encode(['error' => '403 Forbidden']);

@@ -31,13 +31,16 @@ include __DIR__ . '/_symfony.php';
 // nastavení stránky, prázdná url => přesměrování na úvod
 if (!$stranka) {
     if ($u) {
-        if ($u->jeOrganizator()) {
+        if ($u->jeOrganizator() && $u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/uzivatel.php', '.php'));
         }
         if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/infopult.php', '.php'));
         }
-        back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/moje-aktivity'));
+        if ($u->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
+            back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/moje-aktivity'));
+        }
+        back(URL_WEBU);
     }
 }
 

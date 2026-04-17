@@ -6,7 +6,7 @@ use Gamecon\Pravo;
 
 /** @var Uzivatel $u */
 
-if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE) && !$u->jeInfopultak() && !$u->jeOrganizator())
+if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE) && !$u->maPravo(Pravo::ADMINISTRACE_INFOPULT) && !$u->jeInfopultak())
 ) {
     header('HTTP/1.1 403 Forbidden');
     echo '{error: "403 Forbidden"}';

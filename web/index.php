@@ -95,7 +95,7 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
         $t->assign(['u' => $u]);
         $t->assign(['uJmenoMenu' => $jmenoDoMenu]);
         $t->assign(["gcPrihlaska" => $u->gcPrihlasen() ? "Upravit přihlášku" : "Přihláška na GC"]);
-        if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
+        if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
             $t->parse('menu.prihlasen.admin');
         } else if ($u->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
