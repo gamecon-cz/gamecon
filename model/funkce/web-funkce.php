@@ -197,3 +197,26 @@ function cestaObrazkuLinie(int $idTypu): string
     $fallbackCesta = 'soubory/systemove/avatary/default.png';
     return $fallbackCesta . '?v=' . filemtime(ADRESAR_WEBU_S_OBRAZKY . '/' . $fallbackCesta);
 }
+
+/**
+ * Vrátí cestu k ikoně linie pro homepage: hledá soubor <id_typu>.<pripona>
+ * v adresáři liniových ikon, preferuje PNG a při neexistenci použije
+ * výchozí avatar.
+ */
+function cestaObrazkuLinieNaTitulce(int $idTypu): string
+{
+    $adresar = 'soubory/systemove/linie-ikony';
+    $pripony = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
+
+    foreach ($pripony as $pripona) {
+        $relativniCesta = $adresar . '/' . $idTypu . '.' . $pripona;
+        $absolutniCesta = ADRESAR_WEBU_S_OBRAZKY . '/' . $relativniCesta;
+
+        if (is_file($absolutniCesta)) {
+            return $relativniCesta . '?v=' . filemtime($absolutniCesta);
+        }
+    }
+
+    $fallbackCesta = 'soubory/systemove/avatary/default.png';
+    return $fallbackCesta . '?v=' . filemtime(ADRESAR_WEBU_S_OBRAZKY . '/' . $fallbackCesta);
+}
