@@ -119,6 +119,7 @@ if ($uPracovni) {
         'orgA' => $u->koncovkaDlePohlavi(),
         'poznamka' => $uPracovni->poznamka(),
         'ubytovani' => $uPracovni->shop()->dejPopisUbytovani(),
+        'nechceUbytovani' => $uPracovni->nechceUbytovani() ? 'ano' : 'ne',
         'balicek' => $uPracovni->balicekHtml(),
         'prehledPredmetu' => implode("", array_map(fn(Transaction $t) => "<tr>" . "<td>" . $t->getDescription() . "</td>" .
             ($u?->maPravo(Pravo::MUZE_RUSIT_NAKUPY) ?
@@ -134,6 +135,9 @@ if ($uPracovni) {
     ]);
 
     $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
+    if (!$maObjednaneUbytovani) {
+        $x->parse('infopult.uzivatel.nechceUbytovaniInfo');
+    }
     $chybejiciUdaje = $uPracovni->chybejiciUdaje(
         Uzivatel::povinneUdajeProRegistraci($maObjednaneUbytovani),
     );

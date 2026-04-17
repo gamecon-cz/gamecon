@@ -110,6 +110,11 @@ class UserEntityStructure
     public const ubytovanS = 'ubytovanS';
 
     /**
+     * @see User::$nechceUbytovani
+     */
+    public const nechceUbytovani = 'nechceUbytovani';
+
+    /**
      * @see User::$poznamka
      */
     public const poznamka = 'poznamka';

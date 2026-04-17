@@ -115,6 +115,11 @@ class UserSqlStructure
     public const ubytovan_s = 'ubytovan_s';
 
     /**
+     * @see User::$nechceUbytovani
+     */
+    public const nechce_ubytovani = 'nechce_ubytovani';
+
+    /**
      * @see User::$poznamka
      */
     public const poznamka = 'poznamka';
