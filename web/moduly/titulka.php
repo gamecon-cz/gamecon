@@ -65,10 +65,9 @@ SQL,
 );
 
 $stovkyAktivit = dbFetchSingle(<<<SQL
-SELECT FLOOR(COUNT(*) / 10) * 10
+SELECT FLOOR(COUNT(DISTINCT IF(patri_pod IS NULL, CONCAT('A', id_akce), CONCAT('I', patri_pod))) / 10) * 10
 FROM akce_seznam
 WHERE rok = $0
-    AND patri_pod IS NULL
     AND typ NOT IN ($1)
 SQL,
     [
