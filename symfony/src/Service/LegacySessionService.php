@@ -28,6 +28,13 @@ class LegacySessionService
     {
         $user = $this->getCurrentUser();
 
-        return $user && ($user->jeOrganizator() || $user->maPravo(Pravo::ADMINISTRACE_INFOPULT));
+        if (! $user) {
+            return false;
+        }
+
+        return array_intersect(
+            range(Pravo::ADMINISTRACE_INFOPULT, Pravo::ADMINISTRACE_WEB_LOGA),
+            $user->prava(),
+        ) !== [];
     }
 }
