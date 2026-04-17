@@ -4,9 +4,19 @@ use Gamecon\Kfc\ObchodMrizkaBunka;
 use Gamecon\Kfc\ObchodMrizka;
 use Gamecon\Pravo;
 
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
+    header('Content-type: application/json');
+    header('HTTP/1.1 405 Method Not Allowed');
+    header('Allow: GET');
+    echo json_encode(['error' => '405 Method Not Allowed']);
+    exit;
+}
+
 if (empty($u)) {
+    header('Content-type: application/json');
     header('HTTP/1.1 403 Forbidden');
-    die('403 Forbidden');
+    echo json_encode(['error' => '403 Forbidden']);
+    exit;
 }
 
 /*
