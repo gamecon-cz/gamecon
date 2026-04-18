@@ -4,8 +4,6 @@
 
 use Gamecon\Aktivita\Aktivita;
 
-$u = Uzivatel::zSession();
-$this->bezStranky(true);
 $response = [];
 
 if ($_SERVER["REQUEST_METHOD"] != "POST") {

@@ -5,8 +5,6 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaTym;
 
-$u = Uzivatel::zSession();
-$this->bezStranky(true);
 $response = [];
 
 if (!$u) {

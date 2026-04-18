@@ -224,6 +224,7 @@ class Program
         $this->nastaveni[$klic]        = $hodnota;
     }
 
+    // todo(tym): odstraněný tisku programu
     /**
      * Přímý tisk programu na výstup
      */
@@ -477,6 +478,7 @@ class Program
         }
     }
 
+    // todo(tym): odstraněný tisku programu
     /**
      * Vytisknutí konkrétní aktivity (formátování atd...)
      */
@@ -572,6 +574,7 @@ HTML;
         echo '</div></td>';
     }
 
+    // todo(tym): odstraněný tisku programu
     /**
      * Vytiskne tabulku programu
      */
@@ -593,6 +596,7 @@ HTML;
         echo '</table>';
     }
 
+    // todo(tym): odstraněný tisku programu
     /**
      * Vytiskne obsah (vnitřní řádky) tabulky
      */
@@ -779,6 +783,7 @@ HTML;
         $this->program->rewind(); // vrácení iterátoru na začátek pro případ, potřeby projít aktivity znovu pro jiný den
     }
 
+    // todo(tym): odstraněný tisku programu
     private function prazdnaMistnost($nazev)
     {
         $bunky = '';

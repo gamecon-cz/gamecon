@@ -22,7 +22,6 @@ $program = new Program(
         Program::DRD_PRIHLAS  => true,
         Program::PLUS_MINUS   => true,
         Program::OSOBNI       => $osobniProgram,
-        Program::TEAM_VYBER   => true,
         Program::INTERNI      => true,
         Program::ZPETNE       => $u->maPravoNaZmenuHistorieAktivit(),
         Program::NEOTEVRENE   => $u->maPravoNaPrihlasovaniNaDosudNeotevrene(),
@@ -102,6 +101,60 @@ $chyba = Chyba::vyzvedniHtml();
     <?= $chyba ?>
     <?php $program->tisk(); ?>
 </div>
+
+<?php
+function zabalAdminSoubor(string $cestaKSouboru): string
+{
+    return $cestaKSouboru . '?version=' . md5_file(ADMIN . '/' . $cestaKSouboru);
+}
+?>
+
+<link rel="stylesheet" href="<?= zabalAdminSoubor('files/ui/style.css') ?>">
+
+<div id="preact-program">Program se načítá ...</div>
+
+<script>
+    // todo: tady je trochu redundance s programem na webu
+    window.GAMECON_KONSTANTY = {
+        BASE_PATH_API: "<?= URL_ADMIN . '/api/' ?>",
+        BASE_PATH_PAGE: "<?= URL_ADMIN . '/program-uzivatele/' ?>",
+        ROCNIK: <?= ROCNIK ?>,
+        LEGENDA: null,
+        FORCE_REDUX_DEVTOOLS: false,
+        PROGRAM_OD: <?= (new \Gamecon\Cas\DateTimeCz(PROGRAM_OD))->getTimestamp() ?>000,
+        PROGRAM_DO: <?= (new \Gamecon\Cas\DateTimeCz(PROGRAM_DO))->getTimestamp() ?>000,
+        PROGRAM_ZACATEK: <?= PROGRAM_ZACATEK ?>,
+        PROGRAM_KONEC: <?= PROGRAM_KONEC ?>,
+    }
+
+    window.gameconPřednačtení = <?php
+    $res = [];
+    if ($uPracovni) {
+        $res['prihlasen']          = true;
+        $res['pohlavi']            = $uPracovni->pohlavi();
+        $res['koncovkaDlePohlavi'] = $uPracovni->koncovkaDlePohlavi();
+        if ($uPracovni->jeOrganizator()) {
+            $res['organizator'] = true;
+        }
+        if ($uPracovni->jeBrigadnik()) {
+            $res['brigadnik'] = true;
+        }
+        $res['gcStav'] = 'nepřihlášen';
+        if ($uPracovni->gcPrihlasen()) {
+            $res['gcStav'] = 'přihlášen';
+        }
+        if ($uPracovni->gcPritomen()) {
+            $res['gcStav'] = 'přítomen';
+        }
+        if ($uPracovni->gcOdjel()) {
+            $res['gcStav'] = 'odjel';
+        }
+    }
+    echo json_encode(['přihlášenýUživatel' => $res], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    ?>
+</script>
+
+<script type="module" src="<?= zabalAdminSoubor('files/ui/bundle.js') ?>"></script>
 
 <script>
     (() => {

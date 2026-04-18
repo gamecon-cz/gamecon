@@ -2,8 +2,6 @@
 
 // TODO: udělat REST api definice
 
-$u = Uzivatel::zSession();
-
 header('Content-type: application/json');
 $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
