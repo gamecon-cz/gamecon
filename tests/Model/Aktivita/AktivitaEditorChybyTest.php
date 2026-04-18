@@ -59,4 +59,56 @@ class AktivitaEditorChybyTest extends AbstractTestDb
         });
         $this->assertEmpty($casoveChyby, 'Neměla by být chyba pro přechod přes půlnoc 22-2');
     }
+
+    public function testPopisKratkyValidniDelkaNeniChyba(): void
+    {
+        $data = self::zakladniData(13, 14);
+        $data[Sql::POPIS_KRATKY] = str_repeat('a', Aktivita::LIMIT_POPIS_KRATKY); // exactly 180 chars
+
+        $chyby = self::zavolejEditorChyby($data);
+
+        $popisChyby = array_filter($chyby, static function (string $chyba): bool {
+            return str_contains($chyba, 'Krátký popis překračuje maximální povolenou délku');
+        });
+        $this->assertEmpty($popisChyby, 'Neměla by být chyba pro popisek s délkou na hranici limitu');
+    }
+
+    public function testPopisKratkyPrekrocujeLimitJeChyba(): void
+    {
+        $data = self::zakladniData(13, 14);
+        $data[Sql::POPIS_KRATKY] = str_repeat('a', Aktivita::LIMIT_POPIS_KRATKY + 1); // 181 chars
+
+        $chyby = self::zavolejEditorChyby($data);
+
+        $this->assertNotEmpty($chyby, 'Měla by být chyba pro popisek přesahující limit');
+        $this->assertStringContainsString(
+            'Krátký popis překračuje maximální povolenou délku',
+            implode('; ', $chyby),
+        );
+    }
+
+    public function testPopisKratkyPrekrocujeLimitZpusobiChybuAPrerusiUkladani(): void
+    {
+        $data = self::zakladniData(13, 14);
+        $data[Sql::NAZEV_AKCE] = 'Aktivitka s moc dlouhym textem ' . uniqid();
+        $data[Sql::URL_AKCE] = 'aktivitka-s-moc-dlouhym-textem-' . uniqid();
+        $data[Sql::POPIS_KRATKY] = str_repeat('a', Aktivita::LIMIT_POPIS_KRATKY + 1);
+        $data[Sql::POPIS] = 'Popis';
+
+        $_POST[Aktivita::POST_KLIC] = $data;
+
+        $pocetAktivitPred = (int) dbOneCol('SELECT COUNT(*) FROM akce_seznam');
+
+        try {
+            Aktivita::editorZpracuj(false);
+            $this->fail('Očekávána exception \Chyba kvůli příliš dlouhému krátkému popisu.');
+        } catch (\Chyba $e) {
+            $this->assertStringContainsString('Krátký popis překračuje maximální povolenou délku', $e->getMessage());
+        } finally {
+            unset($_POST[Aktivita::POST_KLIC]);
+        }
+
+        $pocetAktivitPo = (int) dbOneCol('SELECT COUNT(*) FROM akce_seznam');
+        $this->assertSame($pocetAktivitPred, $pocetAktivitPo, 'Žádná nová aktivita nesměla být uložena do DB.');
+    }
 }
