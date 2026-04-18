@@ -31,6 +31,7 @@ const časyDoŘádkůBezPřekryvu = (rozsahy: OdDo[]): number[] => {
 export enum SeskupováníAktivit {
   linie = "linie",
   den = "den",
+  denALinie = "denALinie",
 }
 
 type SkupinyAktivit = { [klíč: string]: Aktivita[] };
@@ -63,9 +64,14 @@ const seskupAktivity = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktiv
   return skupinyAktivit;
 };
 
-type PředpřivenáTabulkaAktivit = { [klíč: string]: { řádek: number, aktivita: Aktivita }[] }
+export type PředpřivenáTabulkaAktivit = { [klíč: string]: { řádek: number, aktivita: Aktivita }[] }
+export type PředpřivenáTabulkaAktivitHierarchie = { [denKlíč: string]: PředpřivenáTabulkaAktivit }
 
-export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie) => {
+export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie): PředpřivenáTabulkaAktivit | PředpřivenáTabulkaAktivitHierarchie => {
+  if (seskupitPodle === SeskupováníAktivit.denALinie) {
+    return připravTabulkuAktivitDenALinie(aktivity);
+  }
+
   const seskupené = seskupAktivity(aktivity, seskupitPodle);
 
   const zpracujSkupinu = (skupina: Aktivita[]): PředpřivenáTabulkaAktivit["klíč"] =>
@@ -79,6 +85,45 @@ export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = Ses
   );
 
   return tabulka;
+};
+
+const připravTabulkuAktivitDenALinie = (aktivity: Aktivita[]): PředpřivenáTabulkaAktivitHierarchie => {
+  const aktivitySeskupDen: { [denKlíč: string]: Aktivita[] } = {};
+
+  PROGRAM_DNY_TEXT.forEach(den => {
+    aktivitySeskupDen[den] = [];
+  });
+
+  for (const aktivita of aktivity) {
+    const denKlíč = formátujDenVTýdnu(denAktivity(new Date(aktivita.cas.od)), true);
+    if (!aktivitySeskupDen[denKlíč]) aktivitySeskupDen[denKlíč] = [];
+    aktivitySeskupDen[denKlíč].push(aktivita);
+  }
+
+  const zpracujSkupinu = (skupina: Aktivita[]): PředpřivenáTabulkaAktivit["klíč"] =>
+    zip(skupina, časyDoŘádkůBezPřekryvu(skupina.map(x => x.cas))).map(([aktivita, řádek]) => ({ aktivita, řádek }));
+
+  const výsledek: PředpřivenáTabulkaAktivitHierarchie = Object.fromEntries(
+    Object.entries(aktivitySeskupDen).map(([denKlíč, aktivitySeskupDenyDen]) => {
+      const skupinyPoLiiii: { [linieKlíč: string]: Aktivita[] } = {};
+
+      for (const aktivita of aktivitySeskupDenyDen) {
+        const linieKlíč = aktivita.linie;
+        if (!skupinyPoLiiii[linieKlíč]) skupinyPoLiiii[linieKlíč] = [];
+        skupinyPoLiiii[linieKlíč].push(aktivita);
+      }
+
+      const tabulkaProDen: PředpřivenáTabulkaAktivit = Object.fromEntries(
+        Object.entries(skupinyPoLiiii).map(([linieKlíč, skupina]) =>
+          ([linieKlíč, zpracujSkupinu(skupina)])
+        )
+      );
+
+      return [denKlíč, tabulkaProDen];
+    })
+  );
+
+  return výsledek;
 };
 
 

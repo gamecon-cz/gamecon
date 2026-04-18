@@ -114,6 +114,8 @@ function zabalAdminSoubor(string $cestaKSouboru): string
 <div id="preact-program">Program se načítá ...</div>
 
 <script>
+    // todo(tym): přihlašování odhlašování atd. se má dít pro aktuálně vybraného uživatele ne pro přihlášeného orga.
+    // todo(tym): jaké všechny featury musí admin program podporovat ?
     // todo: tady je trochu redundance s programem na webu
     window.GAMECON_KONSTANTY = {
         BASE_PATH_API: "<?= URL_ADMIN . '/api/' ?>",
@@ -125,6 +127,7 @@ function zabalAdminSoubor(string $cestaKSouboru): string
         PROGRAM_DO: <?= (new \Gamecon\Cas\DateTimeCz(PROGRAM_DO))->getTimestamp() ?>000,
         PROGRAM_ZACATEK: <?= PROGRAM_ZACATEK ?>,
         PROGRAM_KONEC: <?= PROGRAM_KONEC ?>,
+        JE_ADMIN: true,
     }
 
     window.gameconPřednačtení = <?php

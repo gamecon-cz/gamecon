@@ -13,6 +13,9 @@ export type FiltrProgramTabulkaVýběr =
   | {
     typ: "den";
     datum: Date;
+  }
+  | {
+    typ: "všechny_dny";
   };
 
 export type MapováníŠtítků = {
@@ -149,6 +152,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       .filter((aktivita) =>
         denAktivity(new Date(aktivita.cas.od)).getDay() === výběr.datum.getDay());
   }
+  // Pro "všechny_dny" se nefiltruje dle dne
 
   if (textovéFiltry?.some(x=>x==="*"))
     return aktivityFiltrované;
