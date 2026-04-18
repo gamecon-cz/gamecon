@@ -319,4 +319,18 @@ class ActivitiesImporterTest extends AbstractTestDb
             systemoveNastaveni: SystemoveNastaveni::zGlobals(),
         );
     }
+
+    public function testImportActivityWithTooLongShortDescription()
+    {
+        $tooLong = str_repeat('a', Aktivita::LIMIT_POPIS_KRATKY + 1);
+        $mockData = $this->createMockSheetData([
+            ['', 'Deskoherna', 'Aktivita Invalid', 'url-invalid', $tooLong, '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+        ]);
+
+        $importer = $this->createImporter($mockData);
+        $result = $importer->importActivities('fake-spreadsheet-id');
+
+        $this->assertSame(0, $result->getImportedCount(), 'Aktivita s příliš dlouhým popiskem by neměla být importována');
+        $this->assertNotEmpty($result->getErrorMessages(), 'Import by měl vrátit chybu');
+    }
 }

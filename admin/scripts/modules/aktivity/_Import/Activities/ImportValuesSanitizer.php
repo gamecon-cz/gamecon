@@ -699,14 +699,31 @@ HTML;
         ?Aktivita $parentActivity,
     ): ImportStepResult {
         if (!empty($activityValues[ExportAktivitSloupce::KRATKA_ANOTACE])) {
-            return ImportStepResult::success($activityValues[ExportAktivitSloupce::KRATKA_ANOTACE]);
+            $kratkaAnotace = $activityValues[ExportAktivitSloupce::KRATKA_ANOTACE];
+            if (mb_strlen($kratkaAnotace) > Aktivita::LIMIT_POPIS_KRATKY) {
+                return ImportStepResult::error(sprintf(
+                    "Krátká anotace překračuje maximální povolenou délku %d znaků: '%s...'",
+                    Aktivita::LIMIT_POPIS_KRATKY,
+                    mb_substr($kratkaAnotace, 0, 50)
+                ));
+            }
+            return ImportStepResult::success($kratkaAnotace);
         }
         $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
 
-        return ImportStepResult::success($sourceActivity
+        $kratkaAnotace = $sourceActivity
             ? $sourceActivity->kratkyPopis()
-            : '',
-        );
+            : '';
+
+        if (mb_strlen($kratkaAnotace) > Aktivita::LIMIT_POPIS_KRATKY) {
+            return ImportStepResult::error(sprintf(
+                "Krátká anotace překračuje maximální povolenou délku %d znaků: '%s...'",
+                Aktivita::LIMIT_POPIS_KRATKY,
+                mb_substr($kratkaAnotace, 0, 50)
+            ));
+        }
+
+        return ImportStepResult::success($kratkaAnotace);
     }
 
     private function getValidatedInstanceId(
