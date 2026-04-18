@@ -4395,14 +4395,21 @@ SQL,
         bool                $prednacitat = false,
         ?SystemoveNastaveni $systemoveNastaveni = null,
     ): array {
+        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
+        $cacheKey = null;
         if ($zCache) {
-            $objekt = self::$objekty['razeni'][$razeni] ?? null;
+            $cacheKey = md5(serialize([
+                'razeni' => $razeni,
+                'rocnik' => $systemoveNastaveni->rocnik(),
+                'select' => $select,
+                'join' => $join,
+                'dalsiPouziteSqlTabulky' => $dalsiPouziteSqlTabulky,
+            ]));
+            $objekt = self::$objekty['razeni'][$cacheKey] ?? null;
             if ($objekt) {
                 return $objekt;
             }
         }
-
-        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
 
         $aktivity = self::zWhere(
             systemoveNastaveni: $systemoveNastaveni,
@@ -4419,7 +4426,7 @@ SQL,
         );
 
         if ($zCache) {
-            self::$objekty['razeni'][$razeni] = $aktivity;
+            self::$objekty['razeni'][$cacheKey] = $aktivity;
             foreach ($aktivity as $aktivita) {
                 self::$objekty['ids'][$aktivita->id()] ??= $aktivita;
             }
