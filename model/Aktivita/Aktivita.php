@@ -1112,11 +1112,6 @@ SQL
         return $aktivita;
     }
 
-    /**
-     * @param array<string, mixed> $dataZFormulare
-     * @return string[]
-     */
-
     private static function varujBylaLiNejakaLokaceObsazena(Aktivita $aktivita): void
     {
         $seznamLokaci = $aktivita->seznamLokaci();

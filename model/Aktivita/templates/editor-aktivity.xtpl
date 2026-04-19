@@ -63,7 +63,8 @@
                 || normalizujCeleCislo($('[name="{fields}[kapacita_m]"]').val()) !== puvodniUdaje.kapacitaM
         }
 
-        $tlacitkoUlozit.click(function () {
+        $form.on('submit', function (e) {
+            e.preventDefault()
             if (!overeni()) {
               return false
             }
@@ -95,14 +96,14 @@
                 }
             }
 
-            const odesilatko = $(this)
+            const odesilatko = $tlacitkoUlozit
             odesilatko.attr('disabled', 'disabled')
-            $.post(document.URL, $(this).closest('form').serialize() + '&{ajaxKlic}=true', function (data) {
+            $.post(document.URL, odesilatko.closest('form').serialize() + '&{ajaxKlic}=true', function (data) {
                 if (data.chyby.length > 0) {
                     alert(data.chyby.join("\n&bull;"))
                     odesilatko.removeAttr('disabled')
                 } else {
-                    odesilatko.closest('form').submit()
+                    odesilatko.closest('form').get(0).submit()
                 }
             }, "json")
             return false
