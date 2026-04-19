@@ -376,6 +376,94 @@ class FioPlatbaTest extends TestCase
                 '',
                 null,
             ],
+            'Hraniční 11-místné čistě číselné reference není VS' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 12.34,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775791',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Reference plátce',
+                        'value' => '12345678901',
+                    ],
+                ],
+                '',
+                null,
+            ],
+            'Hraniční 10-místná čistě číselná reference je VS' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 12.34,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775790',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Reference plátce',
+                        'value' => '1234567890',
+                    ],
+                ],
+                '1234567890',
+                1234567890,
+            ],
+            'Dlouhý VS v reference plátce s oddělovačem se extrahuje celý' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 12.34,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775789',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Reference plátce',
+                        'value' => 'VS:123456789012345',
+                    ],
+                ],
+                '123456789012345',
+                123456789012345,
+            ],
+            'Dlouhý VS s mezerou ve zprávě se extrahuje celý' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 12.34,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775788',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Zpráva pro příjemce',
+                        'value' => 'Platba VS 123456789012 dekuji',
+                    ],
+                ],
+                '123456789012',
+                123456789012,
+            ],
             'Sice s VS ale s nulovou částkou' => [
                 [
                     [
