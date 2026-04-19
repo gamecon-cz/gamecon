@@ -188,7 +188,7 @@ SQL,
                     false,
                     DatabazoveNastaveni::vytvorZGlobals(),
                     '',
-                    sys_get_temp_dir(),
+                    SPEC,
                     kernel: new Kernel('test', false),
                     publicCacheDir: CACHE,
                 );
