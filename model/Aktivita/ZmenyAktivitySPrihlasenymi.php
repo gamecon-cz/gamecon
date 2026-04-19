@@ -63,7 +63,7 @@ class ZmenyAktivitySPrihlasenymi
 
     private function zmenenDen(): bool
     {
-        $puvodniDen = $this->puvodniAktivita->denAktivity(true)?->format(DateTimeCz::FORMAT_DATUM_DB)
+        $puvodniDen = $this->puvodniAktivita->denProgramu()?->format(DateTimeCz::FORMAT_DATUM_DB)
             ?? '0';
         $novyDen = trim((string)($this->dataZFormulare['den'] ?? ''));
         if ($novyDen === '') {
