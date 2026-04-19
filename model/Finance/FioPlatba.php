@@ -345,7 +345,10 @@ SQL,
 
     private function nactiVsZTextu(string $text): string
     {
-        if (preg_match('~(^|/)vs/(?<vs>\d+)~i', $text, $matches)) {
+        // Volný text (zpráva pro příjemce, poznámka) může od zahraničního plátce obsahovat
+        // VS s vlastní délkou dle banky plátce; necháváme bez horní hranice.
+        // Trailing \D/$ zabrání posunutí konce čísla, pokud je za číslicemi nějaký sufix.
+        if (preg_match('~(^|/)vs/(?<vs>\d+)(?:$|\D)~i', $text, $matches)) {
             return $matches['vs'];
         }
 
@@ -362,7 +365,10 @@ SQL,
         if ($referencePlatce === '') {
             return '';
         }
-        if (preg_match('~^\d+$~', $referencePlatce) === 1) {
+        // Dedikované SEPA pole "Reference plátce" jako čisté číslo přijímáme jen tehdy,
+        // pokud odpovídá délkou našemu VS (max 10 číslic dle specifikace ČNB).
+        // Delší čistě číselné reference jsou typicky útržky IBANu nebo interní kódy plátce.
+        if (preg_match('~^\d{1,10}$~', $referencePlatce) === 1) {
             return $referencePlatce;
         }
 

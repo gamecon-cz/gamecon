@@ -260,6 +260,7 @@ if ($uPracovni) {
     $x->assign('qrKodPlatbaCeska', $uPracovni->finance()->dejQrKodProCeskouPlatbu()->getDataUri());
     $x->assign('qrKodPlatbaSlovenska', $uPracovni->finance()->dejQrKodProSlovenskouPlatbu()->getDataUri());
     $x->assign('qrKodPlatbaSepa', $uPracovni->finance()->dejQrKodProSepaPlatbu()->getDataUri());
+    $x->assign('urlQrPrepinacPlateb', URL_WEBU . '/soubory/qr-prepinac-plateb.js');
     $x->parse('infopult.uzivatel.qrKodyPlateb');
 
     if (!$systemoveNastaveni->jsmeNaOstre()) {

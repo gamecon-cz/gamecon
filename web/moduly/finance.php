@@ -175,29 +175,29 @@ if (!$zaplaceno) {
 
     <?php if (!$zaplaceno): ?>
         <h2 id="placeni">Platba</h2>
-        <div class="payment-methods" data-payment-switch="<?= $vychoziTypQrPlatby ?>">
+        <div class="payment-methods" data-qr-prepinac-plateb="<?= $vychoziTypQrPlatby ?>">
             <div class="payment-methods__switch" aria-label="Výběr QR platby">
                 <button type="button"
                         class="payment-methods__switch-button<?= $jeVychoziCz ? ' is-aktivni' : '' ?>"
-                        data-payment-switch-button="cz"
+                        data-qr-tlacitko="cz"
                         aria-pressed="<?= $jeVychoziCz ? 'true' : 'false' ?>">
                     CZ
                 </button>
                 <button type="button"
                         class="payment-methods__switch-button<?= $jeVychoziSk ? ' is-aktivni' : '' ?>"
-                        data-payment-switch-button="sk"
+                        data-qr-tlacitko="sk"
                         aria-pressed="<?= $jeVychoziSk ? 'true' : 'false' ?>">
                     SK
                 </button>
                 <button type="button"
                         class="payment-methods__switch-button<?= $jeVychoziSepa ? ' is-aktivni' : '' ?>"
-                        data-payment-switch-button="sepa"
+                        data-qr-tlacitko="sepa"
                         aria-pressed="<?= $jeVychoziSepa ? 'true' : 'false' ?>">
                     SEPA
                 </button>
             </div>
 
-            <section class="payment-method" data-payment-card="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
+            <section class="payment-method" data-qr-karta="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (CZ)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
@@ -213,7 +213,7 @@ if (!$zaplaceno) {
                 </div>
             </section>
 
-            <section class="payment-method" data-payment-card="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
+            <section class="payment-method" data-qr-karta="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (SK)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
@@ -230,7 +230,7 @@ if (!$zaplaceno) {
                 </div>
             </section>
 
-            <section class="payment-method" data-payment-card="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
+            <section class="payment-method" data-qr-karta="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (SEPA)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
@@ -289,29 +289,29 @@ if (!$zaplaceno) {
             platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
             můžeš si samozřejmě kdykoli převést peníze do zásoby:
         </p>
-        <div class="payment-methods" data-payment-switch="<?= $vychoziTypQrPlatby ?>">
+        <div class="payment-methods" data-qr-prepinac-plateb="<?= $vychoziTypQrPlatby ?>">
             <div class="payment-methods__switch" aria-label="Výběr QR platby">
                 <button type="button"
                         class="payment-methods__switch-button<?= $jeVychoziCz ? ' is-aktivni' : '' ?>"
-                        data-payment-switch-button="cz"
+                        data-qr-tlacitko="cz"
                         aria-pressed="<?= $jeVychoziCz ? 'true' : 'false' ?>">
                     CZ
                 </button>
                 <button type="button"
                         class="payment-methods__switch-button<?= $jeVychoziSk ? ' is-aktivni' : '' ?>"
-                        data-payment-switch-button="sk"
+                        data-qr-tlacitko="sk"
                         aria-pressed="<?= $jeVychoziSk ? 'true' : 'false' ?>">
                     SK
                 </button>
                 <button type="button"
                         class="payment-methods__switch-button<?= $jeVychoziSepa ? ' is-aktivni' : '' ?>"
-                        data-payment-switch-button="sepa"
+                        data-qr-tlacitko="sepa"
                         aria-pressed="<?= $jeVychoziSepa ? 'true' : 'false' ?>">
                     SEPA
                 </button>
             </div>
 
-            <section class="payment-method" data-payment-card="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
+            <section class="payment-method" data-qr-karta="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (CZ)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
@@ -326,7 +326,7 @@ if (!$zaplaceno) {
                 </div>
             </section>
 
-            <section class="payment-method" data-payment-card="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
+            <section class="payment-method" data-qr-karta="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (SK)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
@@ -342,7 +342,7 @@ if (!$zaplaceno) {
                 </div>
             </section>
 
-            <section class="payment-method" data-payment-card="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
+            <section class="payment-method" data-qr-karta="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
                 <h3 class="payment-method__title">Platba (SEPA)</h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
@@ -358,40 +358,4 @@ if (!$zaplaceno) {
         </div>
     <?php endif; ?>
 
-    <script>
-      (function () {
-        var prepinacePlateb = document.querySelectorAll('[data-payment-switch]');
-        var i;
-
-        for (i = 0; i < prepinacePlateb.length; i++) {
-          var prepinacPlateb = prepinacePlateb[i];
-          var tlacitka = prepinacPlateb.querySelectorAll('[data-payment-switch-button]');
-          var karty = prepinacPlateb.querySelectorAll('[data-payment-card]');
-          var vychoziTyp = prepinacPlateb.getAttribute('data-payment-switch') || 'cz';
-
-          var nastavAktivniKartu = function (typQrPlatby) {
-            var j;
-
-            for (j = 0; j < karty.length; j++) {
-              var karta = karty[j];
-              karta.hidden = karta.getAttribute('data-payment-card') !== typQrPlatby;
-            }
-
-            for (j = 0; j < tlacitka.length; j++) {
-              var tlacitko = tlacitka[j];
-              var jeAktivni = tlacitko.getAttribute('data-payment-switch-button') === typQrPlatby;
-              tlacitko.classList.toggle('is-aktivni', jeAktivni);
-              tlacitko.setAttribute('aria-pressed', jeAktivni ? 'true' : 'false');
-            }
-          };
-
-          for (var j = 0; j < tlacitka.length; j++) {
-            tlacitka[j].addEventListener('click', function () {
-              nastavAktivniKartu(this.getAttribute('data-payment-switch-button'));
-            });
-          }
-
-          nastavAktivniKartu(vychoziTyp);
-        }
-      })();
-    </script>
+    <script src="soubory/qr-prepinac-plateb.js"></script>
