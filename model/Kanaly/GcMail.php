@@ -73,11 +73,13 @@ class GcMail
             $mailDoSouboru = clone $mail;
             $mailDoSouboru->addBcc(...$adresatiDoSouboru);
             $cestaMailuDoSouboru = $this->cestaMailuDoSouboru();
+            $ulozenoDoSouboru    = false;
             if ($cestaMailuDoSouboru) {
-                $odeslano = $this->zalogovatDo($cestaMailuDoSouboru, $mailDoSouboru->toString()) || $odeslano;
+                $ulozenoDoSouboru = $this->zalogovatDo($cestaMailuDoSouboru, $mailDoSouboru->toString());
+                $odeslano         = $ulozenoDoSouboru || $odeslano;
             }
             $this->zalogujAuditMailu(
-                stav: 'ulozeno_do_souboru',
+                stav: $ulozenoDoSouboru ? 'ulozeno_do_souboru' : 'chyba_ulozeni_do_souboru',
                 adresati: $adresatiDoSouboru,
                 predmet: $predmet,
                 format: $format,
@@ -229,7 +231,7 @@ class GcMail
         return $this;
     }
 
-    private function zalogovatDo(string $soubor, string $obsah): bool
+    protected function zalogovatDo(string $soubor, string $obsah): bool
     {
         $adresar = dirname($soubor);
         if (
@@ -345,6 +347,8 @@ class GcMail
             return false;
         }
 
+        $this->smazStareRotovaneLogy($soubor);
+
         return true;
     }
 
@@ -366,6 +370,38 @@ class GcMail
         }
 
         return $rotovanySoubor;
+    }
+
+    private function smazStareRotovaneLogy(string $soubor): void
+    {
+        $cestaInfo = pathinfo($soubor);
+        $adresar   = $cestaInfo['dirname'] ?? '.';
+        $jmeno     = $cestaInfo['filename'] ?? basename($soubor);
+        $pripona   = isset($cestaInfo['extension']) && $cestaInfo['extension'] !== ''
+            ? '.' . $cestaInfo['extension']
+            : '';
+
+        $pattern = $adresar . '/' . $jmeno . '-*' . $pripona;
+        $soubory = glob($pattern);
+        if (!$soubory) {
+            return;
+        }
+
+        $maxStariVSekundach = 2 * 365.25 * 24 * 3600; // 2 roky
+        $ted                = time();
+
+        foreach ($soubory as $rotovanySoubor) {
+            $casModifikace = @filemtime($rotovanySoubor);
+            if ($casModifikace === false) {
+                continue;
+            }
+            if (($ted - $casModifikace) > $maxStariVSekundach) {
+                $this->provedBezPhpWarningu(
+                    static fn() => unlink($rotovanySoubor),
+                    "Nepodařilo se smazat starý rotovaný log '$rotovanySoubor'.",
+                );
+            }
+        }
     }
 
     private function provedBezPhpWarningu(callable $operace, string $zpravaPriSelhani): mixed
