@@ -36,6 +36,10 @@ class ZmenyAktivitySPrihlasenymi
 
     public function dejTextPotvrzeniZmenyUdajuSPrihlasenymi(): string
     {
+        if (!$this->puvodniAktivita) {
+            throw new \LogicException('Nelze sestavit text potvrzení bez původní aktivity');
+        }
+
         return sprintf(
             'Tato aktivita už má přihlášené hráče (%d). Opravdu chcete změnit %s?',
             $this->puvodniAktivita->pocetPrihlasenych(),
@@ -52,18 +56,18 @@ class ZmenyAktivitySPrihlasenymi
             return [];
         }
 
+        $detekce = [
+            'den'      => fn() => $this->zmenenDen(),
+            'čas'      => fn() => $this->zmenenCas(),
+            'cenu'     => fn() => $this->zmenenaCena(),
+            'kapacitu' => fn() => $this->zmenenaKapacita(),
+        ];
+
         $zmeneneUdaje = [];
-        if ($this->zmenenDen()) {
-            $zmeneneUdaje[] = 'den';
-        }
-        if ($this->zmenenCas()) {
-            $zmeneneUdaje[] = 'čas';
-        }
-        if ($this->zmenenaCena()) {
-            $zmeneneUdaje[] = 'cenu';
-        }
-        if ($this->zmenenaKapacita()) {
-            $zmeneneUdaje[] = 'kapacitu';
+        foreach (self::SLEDOVANA_POLE as $stitek => $_pole) {
+            if (isset($detekce[$stitek]) && $detekce[$stitek]()) {
+                $zmeneneUdaje[] = $stitek;
+            }
         }
 
         return $zmeneneUdaje;
