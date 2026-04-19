@@ -308,6 +308,74 @@ class FioPlatbaTest extends TestCase
                 '64208',
                 64208,
             ],
+            'Dlouhý VS ve zprávě od zahraničního plátce se extrahuje celý' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 12.34,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775794',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Zpráva pro příjemce',
+                        'value' => 'VS123456789012345',
+                    ],
+                ],
+                '123456789012345',
+                // VS se extrahuje celý; napárování na uživatele řeší jiná vrstva
+                // (takové ID v DB neexistuje, ale to není věc tohoto testu).
+                123456789012345,
+            ],
+            'VS následované suffixem se extrahuje bez suffixu' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 12.34,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775793',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Zpráva pro příjemce',
+                        'value' => '/VS/4032 za GameCon',
+                    ],
+                ],
+                '4032',
+                4032,
+            ],
+            'Příliš dlouhá čistě číselná reference plátce není VS' => [
+                [
+                    [
+                        'name'  => 'Objem',
+                        'value' => 12.34,
+                    ],
+                    [
+                        'name'  => 'ID pohybu',
+                        'value' => '9223372036854775792',
+                    ],
+                    [
+                        'name'  => 'VS',
+                        'value' => '',
+                    ],
+                    [
+                        'name'  => 'Reference plátce',
+                        'value' => '12345678901234567890',
+                    ],
+                ],
+                '',
+                null,
+            ],
             'Sice s VS ale s nulovou částkou' => [
                 [
                     [
