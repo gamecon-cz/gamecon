@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Aktivita;
 
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\Aktivita\ZmenyAktivitySPrihlasenymi;
-use PHPUnit\Framework\TestCase;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
+use Gamecon\Aktivita\ZmenyAktivitySPrihlasenymi;
 use Gamecon\Cas\DateTimeCz;
+use PHPUnit\Framework\TestCase;
 
 class ZmenyAktivitySPrihlasenymiTest extends TestCase
 {
@@ -18,7 +18,7 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         ?string $zacatek,
         ?string $konec,
         int $cena,
-        array $rawDbData = []
+        array $rawDbData = [],
     ): Aktivita {
         $aktivitaMock = $this->createMock(Aktivita::class);
 
@@ -39,13 +39,13 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
 
         $aktivitaMock->method('rawDb')
             ->willReturn(array_merge([
-                Sql::CENA => $cena,
-                Sql::TEAMOVA => 0,
-                Sql::KAPACITA => 0,
+                Sql::CENA       => $cena,
+                Sql::TEAMOVA    => 0,
+                Sql::KAPACITA   => 0,
                 Sql::KAPACITA_F => 0,
                 Sql::KAPACITA_M => 0,
-                Sql::TEAM_MAX => 0,
-                Sql::TEAM_MIN => 0,
+                Sql::TEAM_MAX   => 0,
+                Sql::TEAM_MIN   => 0,
             ], $rawDbData));
 
         return $aktivitaMock;
@@ -56,10 +56,10 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         $aktivita = $this->vytvorAktivituSMocky(0, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
 
         $dataZFormulare = [
-            'den' => '2026-07-17',
-            Sql::ZACATEK => '11',
-            Sql::KONEC => '15',
-            Sql::CENA => '200',
+            'den'         => '2026-07-17',
+            Sql::ZACATEK  => '11',
+            Sql::KONEC    => '15',
+            Sql::CENA     => '200',
             Sql::KAPACITA => 10,
         ];
 
@@ -70,16 +70,16 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
     public function testSPrihlasenymiZadneZmenyUdaju(): void
     {
         $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100, [
-            Sql::KAPACITA => 5
+            Sql::KAPACITA => 5,
         ]);
 
         $dataZFormulare = [
-            'den' => '2026-07-16',
-            Sql::ZACATEK => '10', // stejný začátek (v hodinách)
-            Sql::KONEC => '12',   // stejný konec
-            Sql::CENA => 100,
+            'den'         => '2026-07-16',
+            Sql::ZACATEK  => '10', // stejný začátek (v hodinách)
+            Sql::KONEC    => '12', // stejný konec
+            Sql::CENA     => 100,
             Sql::KAPACITA => 5,
-            Sql::TEAMOVA => 0,
+            Sql::TEAMOVA  => 0,
         ];
 
         $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
@@ -91,10 +91,10 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
 
         $dataZFormulare = [
-            'den' => '2026-07-17',
+            'den'        => '2026-07-17',
             Sql::ZACATEK => '10',
-            Sql::KONEC => '12',
-            Sql::CENA => 100,
+            Sql::KONEC   => '12',
+            Sql::CENA    => 100,
         ];
 
         $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
@@ -107,10 +107,10 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
 
         $dataZFormulare = [
-            'den' => '2026-07-16',
+            'den'        => '2026-07-16',
             Sql::ZACATEK => '9', // změna z 10 na 9
-            Sql::KONEC => '12',
-            Sql::CENA => 100,
+            Sql::KONEC   => '12',
+            Sql::CENA    => 100,
         ];
 
         $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
@@ -123,10 +123,10 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
 
         $dataZFormulare = [
-            'den' => '2026-07-16',
+            'den'        => '2026-07-16',
             Sql::ZACATEK => '10',
-            Sql::KONEC => '13', // změna z 12 na 13
-            Sql::CENA => 100,
+            Sql::KONEC   => '13', // změna z 12 na 13
+            Sql::CENA    => 100,
         ];
 
         $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
@@ -139,10 +139,10 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
 
         $dataZFormulare = [
-            'den' => '2026-07-16',
+            'den'        => '2026-07-16',
             Sql::ZACATEK => '10',
-            Sql::KONEC => '12',
-            Sql::CENA => 150, // změna ze 100 na 150
+            Sql::KONEC   => '12',
+            Sql::CENA    => 150, // změna ze 100 na 150
         ];
 
         $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
@@ -157,10 +157,10 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         ]);
 
         $dataZFormulare = [
-            'den' => '2026-07-16',
-            Sql::ZACATEK => '10',
-            Sql::KONEC => '12',
-            Sql::CENA => 100,
+            'den'         => '2026-07-16',
+            Sql::ZACATEK  => '10',
+            Sql::KONEC    => '12',
+            Sql::CENA     => 100,
             Sql::KAPACITA => 6, // změna z 5 na 6
         ];
 
@@ -172,17 +172,17 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
     public function testSPrihlasenymiZmenenaKapacitaTeamova(): void
     {
         $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100, [
-            Sql::TEAMOVA => 1,
+            Sql::TEAMOVA  => 1,
             Sql::TEAM_MAX => 5,
             Sql::TEAM_MIN => 2,
         ]);
 
         $dataZFormulare = [
-            'den' => '2026-07-16',
-            Sql::ZACATEK => '10',
-            Sql::KONEC => '12',
-            Sql::CENA => 100,
-            Sql::TEAMOVA => 1,
+            'den'         => '2026-07-16',
+            Sql::ZACATEK  => '10',
+            Sql::KONEC    => '12',
+            Sql::CENA     => 100,
+            Sql::TEAMOVA  => 1,
             Sql::TEAM_MAX => 6, // změna z 5 na 6
             Sql::TEAM_MIN => 2,
         ];
@@ -195,19 +195,19 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
     public function testTeamovaBezZmeny(): void
     {
         $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100, [
-            Sql::TEAMOVA => 1,
+            Sql::TEAMOVA  => 1,
             Sql::TEAM_MAX => 5,
             Sql::TEAM_MIN => 2,
         ]);
 
         $dataZFormulare = [
-            'den' => '2026-07-16',
-            Sql::ZACATEK => '10',
-            Sql::KONEC => '12',
-            Sql::CENA => 100,
-            Sql::TEAMOVA => 1,
-            Sql::TEAM_MAX => 5,
-            Sql::TEAM_MIN => 2,
+            'den'           => '2026-07-16',
+            Sql::ZACATEK    => '10',
+            Sql::KONEC      => '12',
+            Sql::CENA       => 100,
+            Sql::TEAMOVA    => 1,
+            Sql::TEAM_MAX   => 5,
+            Sql::TEAM_MIN   => 2,
             Sql::KAPACITA_F => 999, // změna neteamové vlastnosti u teamové hry
         ];
 
