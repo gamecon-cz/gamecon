@@ -14,8 +14,101 @@
         } else
             return true
     }
+
+    function normalizujCeleCislo(hodnota) {
+        const cislo = Number.parseInt((hodnota ?? '').toString().trim(), 10)
+        return Number.isNaN(cislo)
+            ? 0
+            : cislo
+    }
+
+    function normalizujDen(den) {
+        const trimnutyDen = (den ?? '').toString().trim()
+        return trimnutyDen !== ''
+            ? trimnutyDen
+            : '0'
+    }
+
+    $(function () {
+        const pocetPrihlasenych = Number.parseInt('{pocetPrihlasenych}', 10) || 0
+        const $tlacitkoUlozit = $('[name="{fields}Odesilatko"]')
+        const $form = $tlacitkoUlozit.closest('form')
+        const $potvrzeniZmenyUdajuSPrihlasenymi = $form.find('[name="{potvrditZmenuUdajuSPrihlasenymiKlic}"]')
+
+        const puvodniUdaje = {
+            den: normalizujDen($('#denAkce').val()),
+            zacatek: ($('#zacatekAkce').val() ?? '').toString().trim(),
+            konec: ($('#konecAkce').val() ?? '').toString().trim(),
+            cena: normalizujCeleCislo($('#cenaAktivityCelkem').val()),
+            teamova: $('#teamova').is(':checked'),
+            kapacita: normalizujCeleCislo($('[name="{fields}[kapacita]"]').val()),
+            kapacitaF: normalizujCeleCislo($('[name="{fields}[kapacita_f]"]').val()),
+            kapacitaM: normalizujCeleCislo($('[name="{fields}[kapacita_m]"]').val()),
+            teamMin: normalizujCeleCislo($('[name="{fields}[team_min]"]').val()),
+            teamMax: normalizujCeleCislo($('[name="{fields}[team_max]"]').val()),
+        }
+
+        function jeZmenenaKapacita() {
+            const teamova = $('#teamova').is(':checked')
+            if (teamova !== puvodniUdaje.teamova) {
+                return true
+            }
+            if (teamova) {
+                return normalizujCeleCislo($('[name="{fields}[team_min]"]').val()) !== puvodniUdaje.teamMin
+                    || normalizujCeleCislo($('[name="{fields}[team_max]"]').val()) !== puvodniUdaje.teamMax
+            }
+
+            return normalizujCeleCislo($('[name="{fields}[kapacita]"]').val()) !== puvodniUdaje.kapacita
+                || normalizujCeleCislo($('[name="{fields}[kapacita_f]"]').val()) !== puvodniUdaje.kapacitaF
+                || normalizujCeleCislo($('[name="{fields}[kapacita_m]"]').val()) !== puvodniUdaje.kapacitaM
+        }
+
+        $tlacitkoUlozit.click(function () {
+            if (!overeni()) {
+              return false
+            }
+            $potvrzeniZmenyUdajuSPrihlasenymi.val('0')
+            if (pocetPrihlasenych > 0) {
+                const zmeneneUdaje = []
+                if (normalizujDen($('#denAkce').val()) !== puvodniUdaje.den) {
+                    zmeneneUdaje.push('den')
+                }
+                const novyZacatek = ($('#zacatekAkce').val() ?? '').toString().trim()
+                const novyKonec = ($('#konecAkce').val() ?? '').toString().trim()
+                if (novyZacatek !== puvodniUdaje.zacatek || novyKonec !== puvodniUdaje.konec) {
+                    zmeneneUdaje.push('čas')
+                }
+                if (normalizujCeleCislo($('#cenaAktivityCelkem').val()) !== puvodniUdaje.cena) {
+                    zmeneneUdaje.push('cenu')
+                }
+                if (jeZmenenaKapacita()) {
+                    zmeneneUdaje.push('kapacitu')
+                }
+
+                if (zmeneneUdaje.length > 0) {
+                    const zprava = 'Tato aktivita už má přihlášené hráče (' + pocetPrihlasenych
+                        + '). Opravdu chcete změnit ' + zmeneneUdaje.join(' / ') + '?'
+                    if (!window.confirm(zprava)) {
+                        return false
+                    }
+                    $potvrzeniZmenyUdajuSPrihlasenymi.val('1')
+                }
+            }
+
+            const odesilatko = $(this)
+            odesilatko.attr('disabled', 'disabled')
+            $.post(document.URL, $(this).closest('form').serialize() + '&{ajaxKlic}=true', function (data) {
+                if (data.chyby.length > 0) {
+                    alert(data.chyby.join("\n&bull;"))
+                    odesilatko.removeAttr('disabled')
+                } else {
+                    odesilatko.closest('form').submit()
+                }
+            }, "json")
+            return false
+        })
+    })
 </script>
-<script src="files/editor-aktivity.js"></script>
 
 <input type="hidden" name="{fields}[id_akce]" value="{id_akce}">
 <input type="hidden" name="{fields}[patri_pod]" value="{patri_pod}">
@@ -23,7 +116,7 @@
 <input type="hidden" name="{potvrditZmenuUdajuSPrihlasenymiKlic}" value="0">
 
 <!-- begin:tabulka -->
-<table style="float:left;margin-right:20px" id="editorAktivity" data-pocet-prihlasenych="{pocetPrihlasenych}" data-klic-potvrzeni="{potvrditZmenuUdajuSPrihlasenymiKlic}">
+<table style="float:left;margin-right:20px" id="editorAktivity">
     <tr>
         <th><label for="nazevAkce" class="display-block">Název</label></th>
         <td><input id="nazevAkce" class="full" type="text" name="{fields}[nazev_akce]" value="{nazev_akce}" required></td>
