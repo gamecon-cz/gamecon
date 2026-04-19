@@ -18,26 +18,30 @@ use Gamecon\Uzivatel\Finance;
 
 class QrPlatba
 {
+    private const TYP_CZ = 'cz';
+    private const TYP_SK = 'sk';
+    private const TYP_SEPA = 'sepa';
+
     /**
      * SEPA platba
      * Jednotná oblast pro platby v eurech v rámci EU
      * https://cs.wikipedia.org/wiki/Jednotn%C3%A1_oblast_pro_platby_v_eurech
      *
-     * @param float $castkaCzk Bude zaokrouhlena na dve desetinna mista!
+     * @param float $castkaEur Bude zaokrouhlena na dve desetinna mista!
      */
     public static function dejQrProSepaPlatbu(
-        float  $castkaCzk,
+        float  $castkaEur,
         int    $variabilniSymbol,
-        float  $kurzCzkNaEur = KURZ_EURO,
-        string $iban = IBAN,
-        string $bic = BIC_SWIFT,
-        string $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON,
+        string $iban = \IBAN,
+        string $bic = \BIC_SWIFT,
+        string $jmenoPrijemcePlatby = \NAZEV_SPOLECNOSTI_GAMECON,
     ): self {
         return new static(
+            self::TYP_SEPA,
             new IBAN($iban),
             $bic,
             $variabilniSymbol,
-            $castkaCzk / $kurzCzkNaEur,
+            $castkaEur,
             'EUR',
             $jmenoPrijemcePlatby,
         );
@@ -50,13 +54,14 @@ class QrPlatba
     public static function dejQrProTuzemskouPlatbu(
         float              $castka,
         int                $variabilniSymbol,
-        string             $cisloUctu = UCET_CZ,
-        string             $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON,
+        string             $cisloUctu = \UCET_CZ,
+        string             $jmenoPrijemcePlatby = \NAZEV_SPOLECNOSTI_GAMECON,
         \DateTimeInterface $datumSplatnosti = null,
     ): self {
         [$cisloUctuBezBanky, $kodBanky] = array_map('trim', explode('/', $cisloUctu));
 
         return new static(
+            self::TYP_CZ,
             new CzechIbanAdapter($cisloUctuBezBanky, $kodBanky),
             '', // BIC není potřeba
             $variabilniSymbol,
@@ -77,10 +82,11 @@ class QrPlatba
         float              $castkaEur,
         int                $variabilniSymbol,
         string             $iban,
-        string             $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON,
+        string             $jmenoPrijemcePlatby = \NAZEV_SPOLECNOSTI_GAMECON,
         \DateTimeInterface $datumSplatnosti = null,
     ): self {
         return new static(
+            self::TYP_SK,
             new IBAN($iban),
             '', // BIC sa automaticky vyhľadá
             $variabilniSymbol,
@@ -101,6 +107,7 @@ class QrPlatba
      * @param \DateTimeInterface|null $datumSplatnosti Pouze pro tuzemské a slovenské platby, SEPA platby jsou vždy splatné do jednoho dne
      */
     private function __construct(
+        private readonly string              $typPlatby,
         private readonly IbanInterface       $iban,
         private readonly string              $bic,
         private readonly int                 $variabilniSymbol,
@@ -126,11 +133,11 @@ class QrPlatba
 
     private function getQrPayment(): ResultInterface
     {
-        if ($this->kodMeny === 'CZK') {
+        if ($this->typPlatby === self::TYP_CZ) {
             return $this->createCzechQrPayment();
         }
 
-        if ($this->kodMeny === 'EUR') {
+        if ($this->typPlatby === self::TYP_SK) {
             return $this->createSlovakQrPayment();
         }
 
@@ -167,6 +174,8 @@ class QrPlatba
             SkQrPaymentOptions::AMOUNT          => $this->castka,
             SkQrPaymentOptions::CURRENCY        => $this->kodMeny,
             SkQrPaymentOptions::PAYEE_NAME      => $this->jmenoPrijemcePlatby,
+            SkQrPaymentOptions::INTERNAL_ID     => (string)$this->variabilniSymbol,
+            SkQrPaymentOptions::COMMENT         => $this->slovenskaZpravaProPrijemce(),
         ];
 
         if ($this->datumSplatnosti instanceof \DateTimeInterface) {
@@ -195,12 +204,22 @@ class QrPlatba
                               : 0.1,/** nejmenší povolená částka, @see \SepaQr\Data::setAmount */
                           )
                           ->setCurrency($this->kodMeny)
-                          ->setRemittanceText('/VS/' . $this->variabilniSymbol);
+                          ->setRemittanceReference($this->sepaReferencePlatby());
 
         return Builder::create()
                       ->errorCorrectionLevel(new ErrorCorrectionLevelMedium())
                       ->data($sepaQrData->__toString())
                       ->build();
+    }
+
+    private function slovenskaZpravaProPrijemce(): string
+    {
+        return 'VS:' . $this->variabilniSymbol;
+    }
+
+    private function sepaReferencePlatby(): string
+    {
+        return 'VS' . $this->variabilniSymbol;
     }
 
 }

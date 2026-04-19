@@ -35,6 +35,12 @@ $limit     = false;
 
 $a   = $u->koncovkaDlePohlavi();
 $uid = $u->id();
+$statUzivatele = $u->stat();
+$vychoziTypQrPlatby = match ($statUzivatele) {
+    Stat::CZ => 'cz',
+    Stat::SK => 'sk',
+    default => 'sepa',
+};
 
 if (!$zaplaceno) {
     $castka                        = -$u->finance()->stav();
@@ -70,6 +76,79 @@ if (!$zaplaceno) {
         .tabVeci table td:last-child {
             width: 20px;
         }
+
+        .payment-methods {
+            display: grid;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        .payment-methods__switch {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .payment-methods__switch-button {
+            padding: 8px 14px;
+            border: 1px solid #E22630;
+            background-color: #E22630;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .payment-methods__switch-button.is-aktivni,
+        .payment-methods__switch-button[aria-pressed="true"] {
+            border-color: #10111A;
+            background-color: #10111A;
+        }
+
+        .payment-method {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 16px;
+            background: #fafafa;
+        }
+
+        .payment-method[hidden] {
+            display: none;
+        }
+
+        .payment-method__title {
+            margin: 0 0 12px;
+        }
+
+        .payment-method__content {
+            display: grid;
+            grid-template-columns: minmax(240px, 1fr) auto;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .payment-method__details {
+            line-height: 1.8;
+        }
+
+        .payment-method__qr {
+            text-align: center;
+        }
+
+        .payment-method__qr img {
+            display: block;
+            width: min(100%, 300px);
+            height: auto;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 760px) {
+            .payment-method__content {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
     <div style="float:left;width:250px;margin-bottom:24px; margin-right: 50px" class="tabVeci">
         <h2>Objednané věci</h2>
@@ -86,32 +165,86 @@ if (!$zaplaceno) {
     <div style="clear:both"></div>
 
     <?php
-    $qrKodProPlatbu = $u->finance()->dejQrKodProPlatbu();
+    $qrKodProCeskouPlatbu = $u->finance()->dejQrKodProCeskouPlatbu();
+    $qrKodProSlovenskouPlatbu = $u->finance()->dejQrKodProSlovenskouPlatbu();
+    $qrKodProSepaPlatbu = $u->finance()->dejQrKodProSepaPlatbu();
+    $jeVychoziCz = $vychoziTypQrPlatby === 'cz';
+    $jeVychoziSk = $vychoziTypQrPlatby === 'sk';
+    $jeVychoziSepa = $vychoziTypQrPlatby === 'sepa';
     ?>
 
     <?php if (!$zaplaceno): ?>
-        <h2 id="placeni">Platba (CZ)</h2>
-        <div>
-            <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
-            <strong>Variabilní symbol:</strong> <?= $uid ?><br>
-            <strong>Částka k zaplacení:</strong> <?= $castkaCZ ?>
+        <h2 id="placeni">Platba</h2>
+        <div class="payment-methods" data-qr-prepinac-plateb="<?= $vychoziTypQrPlatby ?>">
+            <div class="payment-methods__switch" aria-label="Výběr QR platby">
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziCz ? ' is-aktivni' : '' ?>"
+                        data-qr-tlacitko="cz"
+                        aria-pressed="<?= $jeVychoziCz ? 'true' : 'false' ?>">
+                    CZ
+                </button>
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziSk ? ' is-aktivni' : '' ?>"
+                        data-qr-tlacitko="sk"
+                        aria-pressed="<?= $jeVychoziSk ? 'true' : 'false' ?>">
+                    SK
+                </button>
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziSepa ? ' is-aktivni' : '' ?>"
+                        data-qr-tlacitko="sepa"
+                        aria-pressed="<?= $jeVychoziSepa ? 'true' : 'false' ?>">
+                    SEPA
+                </button>
+            </div>
+
+            <section class="payment-method" data-qr-karta="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
+                <h3 class="payment-method__title">Platba (CZ)</h3>
+                <div class="payment-method__content">
+                    <div class="payment-method__details">
+                        <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
+                        <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+                        <strong>Částka k zaplacení:</strong> <?= $castkaCZ ?>
+                    </div>
+                    <?php if ($qrKodProCeskouPlatbu !== null): ?>
+                        <div class="payment-method__qr">
+                            <img src="<?= $qrKodProCeskouPlatbu->getDataUri() ?>" alt="qrPlatbaCz">
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </section>
+
+            <section class="payment-method" data-qr-karta="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
+                <h3 class="payment-method__title">Platba (SK)</h3>
+                <div class="payment-method__content">
+                    <div class="payment-method__details">
+                        <strong>IBAN:</strong> <?= IBAN ?><br>
+                        <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
+                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
+                        <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
+                    </div>
+                    <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
+                        <div class="payment-method__qr">
+                            <img src="<?= $qrKodProSlovenskouPlatbu->getDataUri() ?>" alt="qrPlatbaSk">
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </section>
+
+            <section class="payment-method" data-qr-karta="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
+                <h3 class="payment-method__title">Platba (SEPA)</h3>
+                <div class="payment-method__content">
+                    <div class="payment-method__details">
+                        <strong>IBAN:</strong> <?= IBAN ?><br>
+                        <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
+                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
+                        <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
+                    </div>
+                    <div class="payment-method__qr">
+                        <img src="<?= $qrKodProSepaPlatbu->getDataUri() ?>" alt="qrPlatbaSepa">
+                    </div>
+                </div>
+            </section>
         </div>
-
-        <?php if ($qrKodProPlatbu !== null): ?>
-            <div style="text-align: center; margin-top: 16px">
-                <img src="<?= $qrKodProPlatbu->getDataUri() ?>" alt="qrPlatba">
-            </div>
-        <?php endif; ?>
-
-        <?php if ($u->stat() !== Stat::CZ): ?>
-            <h2 id="placeni-sepa">Platba (SEPA)</h2>
-            <div>
-                <strong>IBAN:</strong> <?= IBAN ?><br>
-                <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(včetně lomítek)</i><br>
-                <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
-            </div>
-        <?php endif; ?>
 
         <?php if (pred($nejpozdejiZaplatitDo)): ?>
             <p>
@@ -150,29 +283,79 @@ if (!$zaplaceno) {
             </ul>
         <?php endif; ?>
     <?php else: ?>
-        <h2 id="placeni">Platba (CZ)</h2>
+        <h2 id="placeni">Platba</h2>
         <p>
             Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
             platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
             můžeš si samozřejmě kdykoli převést peníze do zásoby:
         </p>
-        <div>
-            <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
-            <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+        <div class="payment-methods" data-qr-prepinac-plateb="<?= $vychoziTypQrPlatby ?>">
+            <div class="payment-methods__switch" aria-label="Výběr QR platby">
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziCz ? ' is-aktivni' : '' ?>"
+                        data-qr-tlacitko="cz"
+                        aria-pressed="<?= $jeVychoziCz ? 'true' : 'false' ?>">
+                    CZ
+                </button>
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziSk ? ' is-aktivni' : '' ?>"
+                        data-qr-tlacitko="sk"
+                        aria-pressed="<?= $jeVychoziSk ? 'true' : 'false' ?>">
+                    SK
+                </button>
+                <button type="button"
+                        class="payment-methods__switch-button<?= $jeVychoziSepa ? ' is-aktivni' : '' ?>"
+                        data-qr-tlacitko="sepa"
+                        aria-pressed="<?= $jeVychoziSepa ? 'true' : 'false' ?>">
+                    SEPA
+                </button>
+            </div>
+
+            <section class="payment-method" data-qr-karta="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
+                <h3 class="payment-method__title">Platba (CZ)</h3>
+                <div class="payment-method__content">
+                    <div class="payment-method__details">
+                        <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
+                        <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+                    </div>
+                    <?php if ($qrKodProCeskouPlatbu !== null): ?>
+                        <div class="payment-method__qr">
+                            <img src="<?= $qrKodProCeskouPlatbu->getDataUri() ?>" alt="qrPlatbaCz">
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </section>
+
+            <section class="payment-method" data-qr-karta="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
+                <h3 class="payment-method__title">Platba (SK)</h3>
+                <div class="payment-method__content">
+                    <div class="payment-method__details">
+                        <strong>IBAN:</strong> <?= IBAN ?><br>
+                        <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
+                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
+                    </div>
+                    <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
+                        <div class="payment-method__qr">
+                            <img src="<?= $qrKodProSlovenskouPlatbu->getDataUri() ?>" alt="qrPlatbaSk">
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </section>
+
+            <section class="payment-method" data-qr-karta="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
+                <h3 class="payment-method__title">Platba (SEPA)</h3>
+                <div class="payment-method__content">
+                    <div class="payment-method__details">
+                        <strong>IBAN:</strong> <?= IBAN ?><br>
+                        <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
+                        <strong>Reference platby:</strong> VS<?= $uid ?><br>
+                    </div>
+                    <div class="payment-method__qr">
+                        <img src="<?= $qrKodProSepaPlatbu->getDataUri() ?>" alt="qrPlatbaSepa">
+                    </div>
+                </div>
+            </section>
         </div>
-
-        <?php if ($qrKodProPlatbu !== null): ?>
-            <div style="text-align: center; margin-top: 16px">
-                <img src="<?= $qrKodProPlatbu->getDataUri() ?>" alt="qrPlatba">
-            </div>
-        <?php endif; ?>
-
-        <?php if ($u->stat() !== Stat::CZ): ?>
-            <h2 id="placeni-sepa">Platba (SEPA)</h2>
-            <div>
-                <strong>IBAN:</strong> <?= IBAN ?><br>
-                <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(včetně lomítek)</i><br>
-            </div>
-        <?php endif; ?>
     <?php endif; ?>
+
+    <script src="soubory/qr-prepinac-plateb.js"></script>

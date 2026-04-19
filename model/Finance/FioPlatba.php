@@ -255,7 +255,8 @@ SQL,
         $vs = $this->data[self::VS] ?? '';
 
         return $vs
-            ?: $this->nactiVsZTextu($this->zpravaProPrijemce());
+            ?: $this->nactiVsZTextu($this->zpravaProPrijemce())
+                ?: $this->nactiVsZReferencePlatce($this->referencePlatce());
     }
 
     public function specifickySymbol(): string
@@ -344,11 +345,34 @@ SQL,
 
     private function nactiVsZTextu(string $text): string
     {
-        if (!preg_match('~(^|/)vs/(?<vs>\d+)~i', $text, $matches)) {
-            return '';
+        // Volný text (zpráva pro příjemce, poznámka) může od zahraničního plátce obsahovat
+        // VS s vlastní délkou dle banky plátce; necháváme bez horní hranice.
+        // Trailing \D/$ zabrání posunutí konce čísla, pokud je za číslicemi nějaký sufix.
+        if (preg_match('~(^|/)vs/(?<vs>\d+)(?:$|\D)~i', $text, $matches)) {
+            return $matches['vs'];
         }
 
-        return $matches['vs'];
+        if (preg_match('~(?:^|[^[:alnum:]])vs[\s:_-]?(?<vs>\d+)(?:$|[^[:alnum:]])~i', $text, $matches)) {
+            return $matches['vs'];
+        }
+
+        return '';
+    }
+
+    private function nactiVsZReferencePlatce(?string $referencePlatce): string
+    {
+        $referencePlatce = trim((string)$referencePlatce);
+        if ($referencePlatce === '') {
+            return '';
+        }
+        // Dedikované SEPA pole "Reference plátce" jako čisté číslo přijímáme jen tehdy,
+        // pokud odpovídá délkou našemu VS (max 10 číslic dle specifikace ČNB).
+        // Delší čistě číselné reference jsou typicky útržky IBANu nebo interní kódy plátce.
+        if (preg_match('~^\d{1,10}$~', $referencePlatce) === 1) {
+            return $referencePlatce;
+        }
+
+        return $this->nactiVsZTextu($referencePlatce);
     }
 
     private function nactiIdUcastnikaZeZkrytePoznamky(): ?int

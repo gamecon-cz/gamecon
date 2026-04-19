@@ -24,10 +24,10 @@ class GcMail
         );
     }
 
-    private array  $adresati      = [];
-    private string $predmet       = '';
-    private string $prilohaSoubor = '';
-    private string $prilohaNazev  = '';
+    private array  $adresati = [];
+    private string $predmet  = '';
+    /** @var array<int, array{soubor: string, nazev: string}> */
+    private array  $prilohy  = [];
 
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
@@ -73,9 +73,12 @@ class GcMail
         $adresatiPovoleniPodleRoli = $this->adresatiPovoleniPodleRoli();
         if ($adresatiPovoleniPodleRoli) {
             $mail->addBcc(...$adresatiPovoleniPodleRoli);
-            if ($this->prilohaSoubor) {
+            foreach ($this->prilohy as $priloha) {
+                if ($priloha['soubor'] === '') {
+                    continue;
+                }
                 // do souboru přílohy dávat nebudeme
-                $mail->attachFromPath($this->prilohaSoubor, $this->prilohaNazev);
+                $mail->attachFromPath($priloha['soubor'], $priloha['nazev']);
             }
             $mailer = new Mailer($this->mailerTransport());
             $mailer->send($mail);
@@ -177,13 +180,27 @@ class GcMail
 
     public function prilohaSoubor(string $cesta): self
     {
-        $this->prilohaSoubor = $cesta;
+        $this->prilohy[] = [
+            'soubor' => $cesta,
+            'nazev'  => basename($cesta),
+        ];
         return $this;
     }
 
     public function prilohaNazev(string $nazev): self
     {
-        $this->prilohaNazev = $nazev;
+        if ($this->prilohy === []) {
+            $this->prilohy[] = [
+                'soubor' => '',
+                'nazev'  => $nazev,
+            ];
+            return $this;
+        }
+
+        $posledniPriloha = array_key_last($this->prilohy);
+        if ($posledniPriloha !== null) {
+            $this->prilohy[$posledniPriloha]['nazev'] = $nazev;
+        }
         return $this;
     }
 
