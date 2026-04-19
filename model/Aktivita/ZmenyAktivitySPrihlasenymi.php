@@ -9,6 +9,13 @@ use Gamecon\Cas\DateTimeCz;
 
 class ZmenyAktivitySPrihlasenymi
 {
+    public const SLEDOVANA_POLE = [
+        'den'      => ['den'],
+        'čas'      => [Sql::ZACATEK, Sql::KONEC],
+        'cenu'     => [Sql::CENA],
+        'kapacitu' => [Sql::TEAMOVA, Sql::TEAM_MIN, Sql::TEAM_MAX, Sql::KAPACITA, Sql::KAPACITA_F, Sql::KAPACITA_M],
+    ];
+
     /** @var string[] */
     private array $zmeneneUdaje;
 
@@ -30,7 +37,8 @@ class ZmenyAktivitySPrihlasenymi
     public function dejTextPotvrzeniZmenyUdajuSPrihlasenymi(): string
     {
         return sprintf(
-            'Tato aktivita už má přihlášené hráče. Opravdu chcete změnit %s?',
+            'Tato aktivita už má přihlášené hráče (%d). Opravdu chcete změnit %s?',
+            $this->puvodniAktivita->pocetPrihlasenych(),
             implode(' / ', $this->zmeneneUdaje),
         );
     }

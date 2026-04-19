@@ -550,6 +550,7 @@ SQL
         $xtpl->assign('potvrditZmenuUdajuSPrihlasenymiKlic', self::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC);
         $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
         $xtpl->assign('typBrigadnicka', TypAktivity::BRIGADNICKA);
+        $xtpl->assign('sledovanaPoleConfig', json_encode(ZmenyAktivitySPrihlasenymi::SLEDOVANA_POLE, JSON_UNESCAPED_UNICODE));
 
         if ($aktivita) {
             $aktivitaData = $aktivita->a; // databázový řádek
