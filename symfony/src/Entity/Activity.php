@@ -85,6 +85,16 @@ class Activity
     ])]
     private ?string $dite = null;
 
+    #[ORM\ManyToOne(targetEntity: Tournament::class, inversedBy: 'aktivity')]
+    #[ORM\JoinColumn(name: 'id_turnaje', referencedColumnName: 'id_turnaje', nullable: true, onDelete: 'SET NULL')]
+    private ?Tournament $tournament = null;
+
+    #[ORM\Column(name: 'turnaj_kolo', type: Types::SMALLINT, nullable: true, options: [
+        'unsigned' => true,
+        'comment'  => 'číslo kola v turnaji (1 = první kolo)',
+    ])]
+    private ?int $turnajKolo = null;
+
     #[ORM\Column(name: 'rok', type: Types::INTEGER, nullable: false)]
     private int $rok;
 
@@ -325,6 +335,30 @@ class Activity
     public function setDite(?string $dite): self
     {
         $this->dite = $dite;
+
+        return $this;
+    }
+
+    public function getTournament(): ?Tournament
+    {
+        return $this->tournament;
+    }
+
+    public function setTournament(?Tournament $tournament): self
+    {
+        $this->tournament = $tournament;
+
+        return $this;
+    }
+
+    public function getTurnajKolo(): ?int
+    {
+        return $this->turnajKolo;
+    }
+
+    public function setTurnajKolo(?int $turnajKolo): self
+    {
+        $this->turnajKolo = $turnajKolo;
 
         return $this;
     }

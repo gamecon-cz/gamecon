@@ -33,4 +33,6 @@ class AkceSeznamSqlStruktura
     public const VYBAVENI         = 'vybaveni';
     public const PROBEHLA_KOREKCE    = 'probehla_korekce';
     public const ID_HLAVNI_LOKACE   = 'id_hlavni_lokace';
+    public const ID_TURNAJE         = 'id_turnaje';
+    public const TURNAJ_KOLO        = 'turnaj_kolo';
 }

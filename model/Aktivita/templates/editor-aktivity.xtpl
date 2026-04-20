@@ -356,75 +356,77 @@
     </tr>
     <tr>
         <th class="hinted">
-            <span class="hint" style="margin-top: 1em">Vyber předchozí aktivity, které budou pokračovat touto aktivitou, tímto (semi)finále.</span>
+            <span class="hint" style="margin-top: 1em">Vyber existující turnaj, nebo zadej název nového. Kolo: 1 = první (úvodní) kolo.</span>
+            <label for="turnajSelect">Turnaj</label>
+        </th>
+        <td>
+            <select id="turnajSelect" name="{fields}[id_turnaje]" style="max-width:300px">
+                <option value="">— žádný —</option>
+                <option value="__novy__">+ Vytvořit nový turnaj…</option>
+                <!-- begin:turnaj -->
+                <option value="{id_turnaje}" {turnaj_selected}>{nazev_turnaje}</option>
+                <!-- end:turnaj -->
+            </select>
+            <span style="margin-left:12px">
+                <label for="turnajKolo">Kolo:</label>
+                <select id="turnajKolo" name="{fields}[turnaj_kolo]">
+                    <option value="">—</option>
+                    <option value="1" {turnaj_kolo_1}>1</option>
+                    <option value="2" {turnaj_kolo_2}>2</option>
+                    <option value="3" {turnaj_kolo_3}>3</option>
+                    <option value="4" {turnaj_kolo_4}>4</option>
+                    <option value="5" {turnaj_kolo_5}>5</option>
+                </select>
+            </span>
+        </td>
+    </tr>
+    <tr id="novyTurnajWrap" style="display:none">
+        <th><label for="novyTurnajNazev">Název nového turnaje</label></th>
+        <td><input type="text" name="{fields}[novy_turnaj_nazev]" id="novyTurnajNazev" placeholder="Název nového turnaje" class="full"></td>
+    </tr>
+    <script>
+        (function () {
+            var sel = document.getElementById('turnajSelect')
+            var wrap = document.getElementById('novyTurnajWrap')
+            var nazevInput = document.getElementById('novyTurnajNazev')
+            var predvyplneno = false
+            function updateWrap() {
+                wrap.style.display = sel.value === '__novy__' ? '' : 'none'
+                if (sel.value === '__novy__' && !predvyplneno) {
+                    nazevInput.value = document.getElementById('nazevAkce').value
+                    predvyplneno = true
+                }
+            }
+            sel.addEventListener('change', updateWrap)
+            updateWrap()
+        })()
+    </script>
+    <!-- DEPRECATED: rodiče/děti – nahrazeno turnaji; odstraň tyto bloky i veškerý PHP kód kolem parseUpravyTabulkaRodice/Deti a zpracování rodic[]/dite[] v editorZpracuj -->
+    <tr style="opacity:0.4; pointer-events:none">
+        <th class="hinted">
+            <span class="hint" style="margin-top: 1em">DEPRECATED – použij Turnaj výše.</span>
             <label for="rodice">
-                <span class="hinted">Rodiče (předcházející)</span>
+                <span class="hinted">Rodiče (předcházející) <em>[deprecated]</em></span>
             </label>
         </th>
         <td>
-            <select id="rodice" name="{fields}[rodic][]" multiple>
+            <select id="rodice" name="{fields}[rodic][]" multiple disabled>
                 <!-- begin:rodic -->
                 <option {selected} value="{id_rodice}">{nazev_rodice}</option><!-- end:rodic -->
             </select>
-            <script type="text/javascript">
-                const $rodiceMultiselect = $('#rodice')
-                document.addEventListener('DOMContentLoaded', function () {
-                    const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
-                    let rodiceMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200)
-                    if (rodiceMultiselectColumns < 1) {
-                        rodiceMultiselectColumns = 1
-                    }
-                    $rodiceMultiselect.multiselect('settings', {columns: rodiceMultiselectColumns})
-                })
-
-                $rodiceMultiselect.multiselect({
-                    columns: 2,
-                    search: true,
-                    texts: {
-                        'placeholder': 'Zadej rodiče',
-                        'search': 'Hledej rodiče',
-                        'selectedOptions': ' vybraných rodičů',
-                    },
-                    maxPlaceholderOpts: 3,
-                    selectAll: false,
-                })
-            </script>
         </td>
     </tr>
-    <tr>
+    <tr style="opacity:0.4; pointer-events:none">
         <th>
             <label for="deti">
-                <span class="hinted">Děti (navazující)<span class="hint">Vyber následující (semi)finále, která rozhodnou o vítězi této aktivity, tohoto čtvrt/semi-finále</span></span>
+                <span class="hinted">Děti (navazující) <em>[deprecated]</em><span class="hint">DEPRECATED – použij Turnaj výše.</span></span>
             </label>
         </th>
         <td>
-            <select id="deti" name="{fields}[dite][]" multiple>
+            <select id="deti" name="{fields}[dite][]" multiple disabled>
                 <!-- begin:dite -->
                 <option {selected} value="{id_ditete}">{nazev_ditete}</option><!-- end:dite -->
             </select>
-            <script type="text/javascript">
-                const $detiMultiselect = $('#deti')
-                document.addEventListener('DOMContentLoaded', function () {
-                    const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
-                    let detiMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200)
-                    if (detiMultiselectColumns < 1) {
-                        detiMultiselectColumns = 1
-                    }
-                    $detiMultiselect.multiselect('settings', {columns: detiMultiselectColumns})
-                })
-
-                $detiMultiselect.multiselect({
-                    columns: 2,
-                    search: true,
-                    texts: {
-                        'placeholder': 'Zadej dítě',
-                        'search': 'Hledej dítě',
-                        'selectedOptions': ' vybraných dětí',
-                    },
-                    maxPlaceholderOpts: 3,
-                    selectAll: false,
-                })
-            </script>
         </td>
     </tr>
 </table>

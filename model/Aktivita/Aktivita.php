@@ -38,6 +38,9 @@ use Granam\RemoveDiacritics\RemoveDiacritics;
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
 
+
+
+
 // todo: s chybami se těžko pracuje, funkce zkontroluj by měli spíš vracet string nebo objekt s detaily o chybě nebo nic pokud nedojde k chybě
 /**
  * Třída aktivity
@@ -454,6 +457,25 @@ SQL
         return $this->a[Sql::DITE];
     }
 
+    public function idTurnaje(): ?int
+    {
+        return isset($this->a[Sql::ID_TURNAJE]) && $this->a[Sql::ID_TURNAJE] !== null
+            ? (int)$this->a[Sql::ID_TURNAJE]
+            : null;
+    }
+
+    public function turnajKolo(): ?int
+    {
+        return isset($this->a[Sql::TURNAJ_KOLO]) && $this->a[Sql::TURNAJ_KOLO] !== null
+            ? (int)$this->a[Sql::TURNAJ_KOLO]
+            : null;
+    }
+
+    public function jeSoucastiTurnaje(): bool
+    {
+        return $this->idTurnaje() !== null;
+    }
+
     public function jeToDalsiKolo(): bool
     {
         return in_array($this->typId(), [TypAktivity::LKD, TypAktivity::DRD], true)
@@ -574,6 +596,7 @@ SQL
 
         self::parseUpravyTabulkaTagy($aktivita, $editorTagu, $xtpl);
         self::parseUpravyTabulkaLokace($aktivita, $xtpl);
+        self::parseUpravyTabulkaTurnaje($aktivita, $xtpl);
         self::parseUpravyTabulkaDeti(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
         self::parseUpravyTabulkaRodice(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
 
@@ -756,6 +779,37 @@ SQL
             $xtpl->assign('id_rodice', $moznyRodicId);
             $xtpl->assign('nazev_rodice', self::dejRozsirenyNazevAktivity($moznyRodic));
             $xtpl->parse('upravy.tabulka.rodic');
+        }
+    }
+
+    private static function parseUpravyTabulkaTurnaje(
+        ?Aktivita $aktivita,
+        XTemplate $xtpl,
+    ): void {
+        $aktualniTurnajId = $aktivita
+            ? dbOneCol(
+                'SELECT id_turnaje FROM akce_seznam WHERE id_akce = $0',
+                [0 => $aktivita->id()],
+            )
+            : null;
+        $aktualniKolo = $aktivita
+            ? (int)dbOneCol(
+                'SELECT turnaj_kolo FROM akce_seznam WHERE id_akce = $0',
+                [0 => $aktivita->id()],
+            )
+            : 0;
+        for ($kolo = 1; $kolo <= 5; $kolo++) {
+            $xtpl->assign('turnaj_kolo_' . $kolo, $kolo === $aktualniKolo ? 'selected' : '');
+        }
+        $turnaje = dbFetchAll(
+            'SELECT id_turnaje, nazev FROM turnaje WHERE rok = $0 ORDER BY nazev',
+            [0 => ROCNIK],
+        );
+        foreach ($turnaje as $turnaj) {
+            $xtpl->assign('id_turnaje', $turnaj['id_turnaje']);
+            $xtpl->assign('nazev_turnaje', htmlspecialchars($turnaj['nazev'], ENT_QUOTES | ENT_HTML5));
+            $xtpl->assign('turnaj_selected', (int)$turnaj['id_turnaje'] === (int)$aktualniTurnajId ? 'selected' : '');
+            $xtpl->parse('upravy.tabulka.turnaj');
         }
     }
 
@@ -996,6 +1050,33 @@ SQL
         unset($a['organizatori']);
         $popis = $a[Sql::POPIS];
         unset($a[Sql::POPIS]);
+
+        // zpracování turnaje
+        $novyTurnajNazev = trim((string)($a['novy_turnaj_nazev'] ?? ''));
+        unset($a['novy_turnaj_nazev']);
+        if (($a[Sql::ID_TURNAJE] ?? '') === '__novy__') {
+            if ($novyTurnajNazev !== '') {
+                dbQuery(
+                    'INSERT INTO turnaje (nazev, rok) VALUES ($0, $1)',
+                    [0 => $novyTurnajNazev, 1 => ROCNIK],
+                );
+                $a[Sql::ID_TURNAJE] = dbInsertId();
+            } else {
+                chyba('Zadej název nového turnaje.', false);
+                $a[Sql::ID_TURNAJE] = null;
+            }
+        } elseif (!empty($a[Sql::ID_TURNAJE])) {
+            $a[Sql::ID_TURNAJE] = (int)$a[Sql::ID_TURNAJE];
+        } else {
+            $a[Sql::ID_TURNAJE] = null;
+        }
+        if ($a[Sql::ID_TURNAJE] === null) {
+            $a[Sql::TURNAJ_KOLO] = null;
+        } elseif (isset($a[Sql::TURNAJ_KOLO]) && $a[Sql::TURNAJ_KOLO] !== '') {
+            $a[Sql::TURNAJ_KOLO] = max(1, min(5, (int)$a[Sql::TURNAJ_KOLO]));
+        } else {
+            $a[Sql::TURNAJ_KOLO] = null;
+        }
 
         $a[Sql::DITE] = !empty($a[Sql::DITE])
             ? implode(
