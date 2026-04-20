@@ -204,12 +204,15 @@ if ($uPracovni) {
         );
     }
 
-    $x->assign(
-        'nfcCipUrl',
-        URL_ADMIN
-        . '/' . basename(__FILE__, '.php')
-        . '/' . basename(__DIR__ . '/cip.php', '.php'),
-    );
+    if ($systemoveNastaveni->jsmeNaLocale()) {
+        $x->assign(
+            'nfcCipUrl',
+            URL_ADMIN
+            . '/' . basename(__FILE__, '.php')
+            . '/' . basename(__DIR__ . '/cip.php', '.php'),
+        );
+        $x->parse('infopult.uzivatel.cipLink');
+    }
 
     if ($u->jeInfopultak() && !$u->jeSefInfopultu()) {
         $zpravyProPotvrzeni = [];
