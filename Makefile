@@ -1,4 +1,4 @@
-.PHONY: init start-docker-foreground run cache bash phpstan ecs rector check-dockerignore check-vendor-matches-lock check-ui-bundles fix static deps ui-deps ci tests tests-be test-ui migrations-run migrations-diff yarn
+.PHONY: init start-docker-foreground run cache bash phpstan ecs rector check-dockerignore check-vendor-matches-lock check-ui-bundles fix static deps ui-deps ci tests tests-be test-ui symfony-lint doctrine-lint composer-lint migrations-run migrations-diff yarn
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 
