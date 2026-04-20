@@ -15,7 +15,7 @@ class AktivitaEditorZpracujTest extends AbstractTestDb
 
     protected static function getSetUpBeforeClassInitQueries(): array
     {
-        $rok = (string)ROCNIK;
+        $rok = (string) ROCNIK;
 
         return [
             <<<SQL
@@ -63,17 +63,17 @@ SQL,
     public function testEditorZpracujVyžadujePotvrzeníIProPřihlášenéNaJinéInstanci(): void
     {
         $_POST[Aktivita::POST_KLIC] = [
-            Sql::ID_AKCE => 7102,
+            Sql::ID_AKCE    => 7102,
             Sql::NAZEV_AKCE => 'Instance bez přihlášených',
-            Sql::URL_AKCE => 'instance-bez-prihlasenych-editor-test',
-            Sql::PATRI_POD => 9101,
-            Sql::POPIS => '',
-            'den' => ROCNIK . '-07-17',
-            Sql::ZACATEK => '10',
-            Sql::KONEC => '12',
-            Sql::CENA => 100,
-            Sql::TEAMOVA => 0,
-            Sql::KAPACITA => 5,
+            Sql::URL_AKCE   => 'instance-bez-prihlasenych-editor-test',
+            Sql::PATRI_POD  => 9101,
+            Sql::POPIS      => '',
+            'den'           => ROCNIK . '-07-17',
+            Sql::ZACATEK    => '10',
+            Sql::KONEC      => '12',
+            Sql::CENA       => 100,
+            Sql::TEAMOVA    => 0,
+            Sql::KAPACITA   => 5,
             Sql::KAPACITA_F => 0,
             Sql::KAPACITA_M => 0,
         ];
@@ -96,17 +96,17 @@ SQL,
     public function testEditorZpracujVyžadujePotvrzeníProHlavníAktivituSPřihlášenýmiNaInstanci(): void
     {
         $_POST[Aktivita::POST_KLIC] = [
-            Sql::ID_AKCE => 7101,
+            Sql::ID_AKCE    => 7101,
             Sql::NAZEV_AKCE => 'Hlavní aktivita',
-            Sql::URL_AKCE => 'hlavni-aktivita-editor-test',
-            Sql::PATRI_POD => 9101,
-            Sql::POPIS => '',
-            'den' => ROCNIK . '-07-17',
-            Sql::ZACATEK => '10',
-            Sql::KONEC => '12',
-            Sql::CENA => 100,
-            Sql::TEAMOVA => 0,
-            Sql::KAPACITA => 5,
+            Sql::URL_AKCE   => 'hlavni-aktivita-editor-test',
+            Sql::PATRI_POD  => 9101,
+            Sql::POPIS      => '',
+            'den'           => ROCNIK . '-07-17',
+            Sql::ZACATEK    => '10',
+            Sql::KONEC      => '12',
+            Sql::CENA       => 100,
+            Sql::TEAMOVA    => 0,
+            Sql::KAPACITA   => 5,
             Sql::KAPACITA_F => 0,
             Sql::KAPACITA_M => 0,
         ];
