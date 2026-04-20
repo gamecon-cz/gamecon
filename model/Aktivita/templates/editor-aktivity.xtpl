@@ -401,6 +401,7 @@
             updateWrap()
         })()
     </script>
+    <!-- todo(tym): odstranit deti -->
     <!-- DEPRECATED: rodiče/děti – nahrazeno turnaji; odstraň tyto bloky i veškerý PHP kód kolem parseUpravyTabulkaRodice/Deti a zpracování rodic[]/dite[] v editorZpracuj -->
     <tr style="opacity:0.4; pointer-events:none">
         <th class="hinted">

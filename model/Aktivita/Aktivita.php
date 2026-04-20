@@ -112,6 +112,7 @@ class Aktivita
     /** přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity */
     const NEOTEVRENE                         = 0b00001000_00000000;
     const UKAZAT_DETAILY_CHYBY               = 0b00010000_00000000;
+    // todo(tym): odstranit deti
     /** nepřihlašuje děti aktivity */
     const IGNOROVAT_DETI                     = 0b00100000_00000000;
     /** ignoruje kontroly přihlašování, nejčastěji protože už předtím proběhly, tak netřeba je pouštět znovu */
@@ -417,6 +418,7 @@ SQL
         return null;
     }
 
+    // todo(tym): odstranit deti
     /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
     public function deti(): array
     {
@@ -431,11 +433,13 @@ SQL
         return [];
     }
 
+    // todo(tym): odstranit deti
     public function maDite(int $idDitete): bool
     {
         return in_array($idDitete, $this->detiIds(), true);
     }
 
+    // todo(tym): odstranit deti
     /**
      * @return int[]
      */
@@ -448,6 +452,7 @@ SQL
         return $this->parseIds($this->a[Sql::DITE] ?? '');
     }
 
+    // todo(tym): odstranit deti
     public function detiDbString(): ?string
     {
         if (!$this->a[Sql::DITE]) {
@@ -597,6 +602,7 @@ SQL
         self::parseUpravyTabulkaTagy($aktivita, $editorTagu, $xtpl);
         self::parseUpravyTabulkaLokace($aktivita, $xtpl);
         self::parseUpravyTabulkaTurnaje($aktivita, $xtpl);
+        // todo(tym): odstranit deti
         self::parseUpravyTabulkaDeti(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
         self::parseUpravyTabulkaRodice(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
 
@@ -709,6 +715,7 @@ SQL
         }
     }
 
+    // todo(tym): odstranit deti
     private static function parseUpravyTabulkaDeti(
         ?Aktivita           $aktivita,
         XTemplate           $xtpl,
@@ -758,6 +765,7 @@ SQL
         );
     }
 
+    // todo(tym): odstranit deti
     private static function parseUpravyTabulkaRodice(
         ?Aktivita           $aktivita,
         XTemplate           $xtpl,
@@ -1078,6 +1086,7 @@ SQL
             $a[Sql::TURNAJ_KOLO] = null;
         }
 
+        // todo(tym): odstranit deti
         $a[Sql::DITE] = !empty($a[Sql::DITE])
             ? implode(
                 ',',
@@ -1089,6 +1098,7 @@ SQL
             )
             : null;
 
+        // todo(tym): odstranit deti
         $rodiceIds = [];
         if (!empty($a['rodic'])) {
             $rodiceIds = array_map(static function (
@@ -1163,6 +1173,7 @@ SQL
         );
         self::varujBylaLiNejakaLokaceObsazena($aktivita);
 
+        // todo(tym): odstranit deti
         if ($rodiceIds) {
             $detiIds = $aktivita->detiIds();
             $rodicIDite = [];
@@ -2006,6 +2017,7 @@ SQL
         string    $zdrojOdhlaseni,
                   $params = 0,
     ) {
+        // todo(tym): odstranit deti
         foreach ($this->deti() as $dite) {                    // odhlášení z potomků
             $dite->odhlas($u, $odhlasujici, $zdrojOdhlaseni); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
         }
@@ -2369,6 +2381,7 @@ SQL
         }
     }
 
+    // todo(tym): odstranit deti
     /**
      * Vrátí řetězec detí z této aktivity. řetězec musí být jasně definovaný, pokud má nějaká aktivita více dětí, pak musí být alespoň jedno z nich $idDeti aby bylo vybráno jinak funkce spadne.
      */
@@ -2409,6 +2422,7 @@ SQL
         return $retezec;
     }
 
+    // todo(tym): odstranit deti
     /**
      * Je řetězec dětí jednoznačný ? Každá aktivita musí mí max jedno dítě jinak je odpověď ne.
      */
@@ -2428,6 +2442,7 @@ SQL
         return true;
     }
 
+    // todo(tym): odstranit deti
     /**
      * Jestli tahle aktivita vyžaduje nejdřív vytvořit tým před přihlašováním a nebo jde vytvořit zároveň s ní.
      */
@@ -2455,6 +2470,7 @@ SQL
         $idAktivity = $this->id();
         $idUzivatele = $uzivatel->id();
 
+        // todo(tym): odstranit deti
         // $deti se používá pro kontroly ale i pro přihlašování
         $deti = [];
         if (!($parametry & self::IGNOROVAT_DETI)) {
@@ -2546,6 +2562,7 @@ SQL
         int      $parametry = 0,
         bool     $hlaskyVeTretiOsobe = false,
     ) {
+        // todo(tym): odstranit deti
         // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu se stejnými potomky
         if (!(self::IGNOROVAT_PRIHLASENI_NA_SOUROZENCE & $parametry)) {
             foreach ($this->deti() as $dite) {
@@ -2593,6 +2610,7 @@ SQL
         }
     }
 
+    // todo(tym): odstranit deti
     private function zkontrolujPrihlaseniNavazujicichAktivit(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
@@ -3353,6 +3371,7 @@ HTML
         $this->tagy = null;
     }
 
+    // todo(tym): odstranit deti
     /**
      * Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí
      *
@@ -3995,6 +4014,7 @@ SQL,
         return count($vypraveciAktivit);
     }
 
+    // todo(tym): odstranit deti
     public function pridejDite(int $idDitete)
     {
         $detiIds = $this->detiIds();
