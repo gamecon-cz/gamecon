@@ -46,15 +46,33 @@ export const casDateTimeNaProgramoveMinuty = (
   return minutyOdPulnoci;
 };
 
-export const delkaAktivityVeSlotech = (zacatek: Date, konec: Date): number => {
+export const zacatekAktivityNaSlotu = (zacatek: Date): number => {
   const zacatekVMinutach = casDateTimeNaProgramoveMinuty(zacatek, true);
+
+  return Math.floor(zacatekVMinutach / PROGRAM_KROK_CASU_MINUTY)
+    * PROGRAM_KROK_CASU_MINUTY;
+};
+
+export const konecAktivityNaSlotu = (zacatek: Date, konec: Date): number => {
+  const zacatekVMinutach = zacatekAktivityNaSlotu(zacatek);
   let konecVMinutach = casDateTimeNaProgramoveMinuty(konec, false);
   if (konecVMinutach <= zacatekVMinutach) {
     konecVMinutach += MINUT_V_DNI;
   }
 
   return Math.max(
+    zacatekVMinutach + PROGRAM_KROK_CASU_MINUTY,
+    Math.ceil(konecVMinutach / PROGRAM_KROK_CASU_MINUTY)
+    * PROGRAM_KROK_CASU_MINUTY,
+  );
+};
+
+export const delkaAktivityVeSlotech = (zacatek: Date, konec: Date): number => {
+  const zacatekVMinutach = zacatekAktivityNaSlotu(zacatek);
+  const konecVMinutach = konecAktivityNaSlotu(zacatek, konec);
+
+  return Math.max(
     1,
-    Math.ceil((konecVMinutach - zacatekVMinutach) / PROGRAM_KROK_CASU_MINUTY),
+    (konecVMinutach - zacatekVMinutach) / PROGRAM_KROK_CASU_MINUTY,
   );
 };

@@ -47,12 +47,13 @@ type TProgramTabulkaBuňkaProps = {
   aktivitaId: number;
   zobrazLinii?: boolean;
   kompaktní?: boolean;
+  jeHodinaStart?: boolean;
 };
 
 export const ProgramTabulkaBuňka: FunctionComponent<
   TProgramTabulkaBuňkaProps
 > = (props) => {
-  const { aktivitaId, zobrazLinii, kompaktní } = props;
+  const { aktivitaId, zobrazLinii, kompaktní, jeHodinaStart } = props;
 
   const aktivita = useAktivita(aktivitaId);
   const pohlavi = useUživatelPohlaví();
@@ -71,11 +72,12 @@ export const ProgramTabulkaBuňka: FunctionComponent<
     new Date(aktivita.cas.od),
     new Date(aktivita.cas.do),
   );
+  const třídaBuňky = tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi);
 
   return !kompaktní ? (
     <>
-      <td colSpan={rozsah}>
-        <div class={tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)}>
+      <td colSpan={rozsah} class={"program_bunka-aktivita" + (jeHodinaStart ? " program_bunka-hodinaStart" : "")}>
+        <div class={třídaBuňky}>
           <a
             href={generujUrl(
               produce(urlStav, (s) => {
@@ -87,15 +89,19 @@ export const ProgramTabulkaBuňka: FunctionComponent<
           >
             {aktivita.nazev}
           </a>
-          <span
-            class="program_casRozsah"
-            dangerouslySetInnerHTML={{ __html: aktivita.casText }}
-          />
-          <Obsazenost
-            obsazenost={aktivita.obsazenost}
-            prihlasovatelna={aktivita.prihlasovatelna}
-            probehnuta={aktivita.probehnuta}
-          />
+          {rozsah >= 3 && (
+            <span
+              class="program_casRozsah"
+              dangerouslySetInnerHTML={{ __html: aktivita.casText }}
+            />
+          )}
+          {rozsah >= 3 && (
+            <Obsazenost
+              obsazenost={aktivita.obsazenost}
+              prihlasovatelna={aktivita.prihlasovatelna}
+              probehnuta={aktivita.probehnuta}
+            />
+          )}
           <Přihlašovátko akitivitaId={aktivita.id} />
           {aktivita.mistnost !== null && (
             <div class="program_lokace">{aktivita.mistnost}</div>
@@ -108,8 +114,8 @@ export const ProgramTabulkaBuňka: FunctionComponent<
     </>
   ) : (
     <>
-      <td colSpan={rozsah}>
-        <div class={"kompaktni " + tabulkaBuňkaAktivitaTřídy(aktivita, pohlavi)} >
+      <td colSpan={rozsah} class={"program_bunka-aktivita" + (jeHodinaStart ? " program_bunka-hodinaStart" : "")}>
+        <div class={"kompaktni " + třídaBuňky} >
           <a
             href={generujUrl(
               produce(urlStav, (s) => {

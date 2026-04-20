@@ -530,7 +530,9 @@ class Program
             {$aktivitaObjekt->nazev()}
         </a>
 HTML;
-        echo '<span class="program_casRozsah">' . $aktivitaObjekt->zacatek()->format('G:i') . '–' . $aktivitaObjekt->konec()->format('G:i') . '</span> ';
+        if ($aktivitaRaw['delkaSlotu'] >= 3) {
+            echo '<span class="program_casRozsah">' . $aktivitaObjekt->zacatek()->format('G:i') . '–' . $aktivitaObjekt->konec()->format('G:i') . '</span> ';
+        }
 
         // doplňkové informace (druhý řádek)
         if ($this->nastaveni[self::DRD_PJ] && $aktivitaObjekt->typId() == TypAktivity::DRD) {
@@ -540,7 +542,7 @@ HTML;
             }
         }
 
-        if ($aktivitaRaw['delkaSlotu'] > (self::MINUT_V_HODINE / self::KROK_CASU_MINUTY)) {
+        if ($aktivitaRaw['delkaSlotu'] >= 3) {
             $obsazenost = $aktivitaObjekt->obsazenost();
             if ($obsazenost) {
                 echo '<span class="program_obsazenost">' . $obsazenost . '</span>';

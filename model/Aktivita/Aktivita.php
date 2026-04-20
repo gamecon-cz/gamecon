@@ -3357,6 +3357,7 @@ HTML
         }
         dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
         $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        (new ProgramStaticFileGenerator($this->systemoveNastaveni))->tryStartWorker();
     }
 
     /** Nastaví aktivitu jako "připravena pro aktivaci" */

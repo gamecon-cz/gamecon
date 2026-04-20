@@ -8,13 +8,14 @@ import {
 } from "./seskupování";
 import { GAMECON_KONSTANTY } from "../../../../env";
 import {
-  casDateTimeNaProgramoveMinuty,
+  konecAktivityNaSlotu,
   KONEC_PROGRAMU_V_MINUTACH,
   PROGRAM_CASOVE_SLOTY,
   PROGRAM_HODINY,
   PROGRAM_KROK_CASU_MINUTY,
   SLOTU_ZA_HODINU,
   ZACATEK_PROGRAMU_V_MINUTACH,
+  zacatekAktivityNaSlotu,
 } from "./casoveSloty";
 import {
   useAktivitaNáhled,
@@ -30,6 +31,28 @@ import { PřekrývacíNačítač } from "../Načítač";
 import { exitFullscreen, requestFullscreen } from "../../../../utils/dom";
 
 type ProgramTabulkaProps = {};
+
+const jeHodinaStartMinuta = (minute: number): boolean =>
+  Math.round((minute - ZACATEK_PROGRAMU_V_MINUTACH) / PROGRAM_KROK_CASU_MINUTY) % SLOTU_ZA_HODINU === 0;
+
+const generujSpacerBuňky = (odMinuty: number, doMinuty: number) => {
+  const buňky = [];
+  let pos = odMinuty;
+  while (pos < doMinuty) {
+    const jeStart = jeHodinaStartMinuta(pos);
+    const slotIndex = Math.round((pos - ZACATEK_PROGRAMU_V_MINUTACH) / PROGRAM_KROK_CASU_MINUTY);
+    const slotyDoKonceHodiny = jeStart ? SLOTU_ZA_HODINU : SLOTU_ZA_HODINU - (slotIndex % SLOTU_ZA_HODINU);
+    const konec = Math.min(pos + slotyDoKonceHodiny * PROGRAM_KROK_CASU_MINUTY, doMinuty);
+    const colSpan = Math.round((konec - pos) / PROGRAM_KROK_CASU_MINUTY);
+    if (colSpan > 0) {
+      buňky.push(
+        <td key={pos} colSpan={colSpan} class={jeStart ? "program_bunka-hodinaStart" : undefined}></td>
+      );
+    }
+    pos = konec;
+  }
+  return buňky;
+};
 
 const indexŘazení = (klíč: string) => {
   const index = GAMECON_KONSTANTY.PROGRAM_ŘAZENÍ_LINIE.findIndex(
@@ -91,7 +114,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
         return (
           <tr>
             {nadpisSkupiny}
-            <td colSpan={PROGRAM_CASOVE_SLOTY.length}></td>
+            {generujSpacerBuňky(ZACATEK_PROGRAMU_V_MINUTACH, KONEC_PROGRAMU_V_MINUTACH)}
           </tr>
         );
       }
@@ -110,31 +133,15 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                   .map((x) => x.aktivita)
                   .sort((a1, a2) => a1.cas.od - a2.cas.od)
                   .map((aktivita) => {
-                    const časOd = casDateTimeNaProgramoveMinuty(
-                      new Date(aktivita.cas.od),
-                      true,
-                    );
-                    let časDo = casDateTimeNaProgramoveMinuty(
-                      new Date(aktivita.cas.do),
-                      false,
-                    );
-                    if (časDo <= časOd) {
-                      časDo += 24 * 60;
-                    }
+                    const zacatekAktivity = new Date(aktivita.cas.od);
+                    const konecAktivity = new Date(aktivita.cas.do);
+                    const časOd = zacatekAktivityNaSlotu(zacatekAktivity);
+                    const časDo = konecAktivityNaSlotu(zacatekAktivity, konecAktivity);
                     const časOdOřezaný = Math.max(
                       časOd,
                       ZACATEK_PROGRAMU_V_MINUTACH,
                     );
-                    const časOdsazení = Math.max(
-                      0,
-                      Math.ceil(
-                        (časOdOřezaný - posledníAktivitaDo)
-                        / PROGRAM_KROK_CASU_MINUTY,
-                      ),
-                    );
-                    const odsazení = časOdsazení > 0
-                      ? <td colSpan={časOdsazení}></td>
-                      : <></>;
+                    const odsazení = generujSpacerBuňky(posledníAktivitaDo, časOdOřezaný);
                     posledníAktivitaDo = Math.max(posledníAktivitaDo, časDo);
 
                     return (
@@ -144,21 +151,12 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                           aktivitaId={aktivita.id}
                           zobrazLinii={seskupPodle === SeskupováníAktivit.den}
                           kompaktní={kompaktní}
+                          jeHodinaStart={jeHodinaStartMinuta(časOdOřezaný)}
                         />
                       </>
                     );
                   })}
-                {
-                  <td
-                    colSpan={Math.max(
-                      0,
-                      Math.ceil(
-                        (KONEC_PROGRAMU_V_MINUTACH - posledníAktivitaDo)
-                        / PROGRAM_KROK_CASU_MINUTY,
-                      ),
-                    )}
-                  ></td>
-                }
+                {generujSpacerBuňky(posledníAktivitaDo, KONEC_PROGRAMU_V_MINUTACH)}
               </tr>
             );
           })}
@@ -173,6 +171,15 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
         ? tabulkaŘádky
         : tabulkaŽádnéAktivity}
     </>
+  );
+
+  const tabulkaSloupce = (
+    <colgroup>
+      <col class="program_col-linie" />
+      {PROGRAM_CASOVE_SLOTY.map((slot) => (
+        <col key={slot} class="program_col-slot" />
+      ))}
+    </colgroup>
   );
 
   const obalRef = useRef<HTMLDivElement>(null);
@@ -225,6 +232,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
         <div class="programPosuv_obal2">
           <div class="programPosuv_obal" ref={obalRef}>
             <table class="program">
+              {tabulkaSloupce}
               <tbody>{tabulka}</tbody>
             </table>
           </div>

@@ -4,14 +4,34 @@
  */
 
 table.program {
+    --program-sirka-linie: 88px;
+    --program-mezera-za-linii: 10px;
+    --program-sirka-slotu: 25px;
+    --program-sirka-hodiny: calc(var(--program-sirka-slotu) * 4);
+    --program-mezera-radku: 10px;
+
     position: relative; /* kvůli výšce šrafovaných oddělovačů hodin */
-    border-spacing: 10px;
-    margin: -10px;
+    border-spacing: 0 var(--program-mezera-radku);
+    margin: calc(-1 * var(--program-mezera-radku)) 0;
     border-collapse: separate;
+    table-layout: fixed;
+    width: max-content;
     } @media (max-width: 800px) { table.program {
-        border-spacing: 6px;
-        margin: -6px;
+        --program-sirka-linie: 34px;
+        --program-mezera-za-linii: 6px;
+        --program-sirka-slotu: 17.5px;
+        --program-mezera-radku: 6px;
+        border-spacing: 0 var(--program-mezera-radku);
+        margin: calc(-1 * var(--program-mezera-radku)) 0;
     }
+}
+
+.program col.program_col-linie {
+    width: var(--program-sirka-linie);
+}
+
+.program col.program_col-slot {
+    width: var(--program-sirka-slotu);
 }
 
 .program tr {
@@ -25,16 +45,10 @@ table.program {
     padding: 0;
     height: 20px;
     vertical-align: bottom;
-    min-width: 100px;
 }
 
 .program th::before {
-    content: '';
-    display: block;
-    position: absolute;
-    height: calc(100% - 50px);
-    border-right: dashed 1px #0002;
-    margin: 28px 0 0 -1px;
+    display: none;
 }
 
 .program th:nth-child(1)::before {
@@ -42,17 +56,23 @@ table.program {
 }
 
 .program td[rowspan] {
+    width: var(--program-sirka-linie);
     padding: 16px;
     font-weight: bold;
     font-size: 14px;
     vertical-align: top;
     position: sticky; /* pozor, zajišťuje i pozicování .program_nazevLinie */
     left: 0;
-    padding-right: 14px;
+    padding-right: 16px;
+    border-right: var(--program-mezera-za-linii) solid #fff;
     z-index: 1; /* aby bylo nad symboly v programu */
     background-color: #FDC689;
     color: #10111A;
 }
+.program td[rowspan="2"] {
+    padding-right: clamp(8px, 1.1vw, 18px);
+}
+
 @media (max-width: 1500px) {.program td[rowspan] {
     padding: 0;
     overflow: hidden;
@@ -102,16 +122,7 @@ table.program {
 }
 
 .program td {
-    min-width: calc(100px / 4);
-    max-width: calc(100px / 4);
     padding: 0;
-    } @media (max-width: 1500px) { .program td:first-child {
-        min-width: 40px;
-        max-width: 40px;
-    }} @media (max-width: 800px) { .program td {
-        min-width: calc(70px / 4);
-        max-width: calc(70px / 4);
-    }
 }
 
 .program tbody td>div.otevrene {
@@ -124,14 +135,41 @@ table.program {
 
 .program td:not([rowspan]) > div {
     height: 72px;
-    padding: 12px 15px;
+    padding: 12px 6px;
     box-sizing: border-box;
     /* nechat přetékat kvůli týmovému formuláři v adminu */
 
     font-size: 12px;
     } @media (max-width: 800px) { .program td:not([rowspan]) > div {
-        padding: 10px;
+        padding: 8px 4px;
     }
+}
+
+.program td.program_bunka-aktivita {
+    width: auto;
+}
+
+.program td.program_bunka-aktivita > div {
+    margin-left: 2px;
+    margin-right: 2px;
+    width: calc(100% - 4px);
+}
+
+.program td.program_bunka-hodinaStart {
+    position: relative;
+    overflow: visible;
+}
+
+.program td.program_bunka-hodinaStart::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: calc(100% + var(--program-mezera-radku));
+    background: rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 2;
 }
 
 .program td > div > a {
@@ -144,32 +182,13 @@ table.program {
     max-height: 35px;
     margin-bottom: 2px;
     overflow: hidden;
-    width: -moz-fit-content;
-    width: fit-content;
+    word-break: break-word;
     } @media (max-width: 800px) { .program td > div > a {
         margin-bottom: 7px;
     }
 }
 
 .program td > div > a:hover {
-    text-decoration: underline;
-}
-
-.program td > div > form > a {
-    color: inherit;
-    text-decoration: none;
-    border-left: solid 1px #0002;
-    padding-left: 9px;
-    margin-left: 7px;
-}
-
-.program td > div > a + form > a {
-    border: 0;
-    padding: 0;
-    margin: 0;
-}
-
-.program td > div > form > a:hover {
     text-decoration: underline;
 }
 
