@@ -7,8 +7,9 @@ use Gamecon\Uzivatel\Finance;
 /** @var Uzivatel $u */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
+header('Content-Type: application/json');
+
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
-    header('Content-type: application/json');
     header('HTTP/1.1 405 Method Not Allowed');
     header('Allow: GET');
     echo json_encode(['error' => '405 Method Not Allowed']);
@@ -17,13 +18,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
 
 if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE) && !$u->maPravo(Pravo::ADMINISTRACE_INFOPULT))
 ) {
-    header('Content-type: application/json');
     header('HTTP/1.1 403 Forbidden');
     echo json_encode(['error' => '403 Forbidden']);
     exit;
 }
-
-header('Content-type: application/json');
 
 $puvodniStav = $_GET['puvodniStav'] ?? null;
 if (is_numeric($puvodniStav)) {
