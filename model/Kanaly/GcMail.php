@@ -7,6 +7,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\Email;
+use Throwable;
 
 /**
  * Třída pro sestavování mailu
@@ -20,7 +21,8 @@ class GcMail
     {
         return new static(
             SystemoveNastaveni::zGlobals(),
-            $text
+            $text,
+            MailLogger::zGlobals(),
         );
     }
 
@@ -32,6 +34,7 @@ class GcMail
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
         private string                      $text = '',
+        private readonly ?MailLogger        $mailLogger = null,
     )
     {
     }
@@ -54,9 +57,10 @@ class GcMail
      */
     public function odeslat(string $format = self::FORMAT_HTML)
     {
-        $mail = (new Email())
+        $predmet = $this->pridejPrefixPodleProstredi($this->dejPredmet());
+        $mail    = (new Email())
             ->from($this->pridejPrefixPodleProstredi("GameCon <{$this->systemoveNastaveni->kontaktniEmailGc()}>"))
-            ->subject($this->pridejPrefixPodleProstredi($this->dejPredmet()));
+            ->subject($predmet);
         $body = $this->pridejPrefixPodleProstredi($this->dejText());
         $mail->text(strip_tags($body));
         if ($format === self::FORMAT_HTML) {
@@ -69,6 +73,7 @@ class GcMail
         if ($adresatiDoSouboru) {
             $mail->addBcc(...$adresatiDoSouboru);
             $odeslano = $this->zalogovatDo(MAILY_DO_SOUBORU, $mail->toString()) || $odeslano;
+            $this->zalogujOdeslani($predmet, $format, $adresatiDoSouboru, $mail->toString());
         }
         $adresatiPovoleniPodleRoli = $this->adresatiPovoleniPodleRoli();
         if ($adresatiPovoleniPodleRoli) {
@@ -81,10 +86,42 @@ class GcMail
                 $mail->attachFromPath($priloha['soubor'], $priloha['nazev']);
             }
             $mailer = new Mailer($this->mailerTransport());
-            $mailer->send($mail);
-            $odeslano = true;
+            try {
+                $mailer->send($mail);
+                $odeslano = true;
+                $this->zalogujOdeslani($predmet, $format, $adresatiPovoleniPodleRoli, $mail->toString());
+            } catch (Throwable $chyba) {
+                $this->zalogujOdeslani($predmet, $format, $adresatiPovoleniPodleRoli, $mail->toString(), $chyba->getMessage());
+                throw $chyba;
+            }
         }
         return $odeslano;
+    }
+
+    private function zalogujOdeslani(
+        string  $predmet,
+        string  $format,
+        array   $adresati,
+        string  $telo,
+        ?string $chyba = null,
+    ): void {
+        if ($this->mailLogger === null) {
+            return;
+        }
+        $pocetPriloh = 0;
+        foreach ($this->prilohy as $priloha) {
+            if ($priloha['soubor'] !== '') {
+                $pocetPriloh++;
+            }
+        }
+        $this->mailLogger->zalogujOdeslani(
+            predmet: $predmet,
+            format: $format,
+            adresati: $adresati,
+            pocetPriloh: $pocetPriloh,
+            telo: $telo,
+            chyba: $chyba,
+        );
     }
 
     private function pridejPrefixPodleProstredi(string $text): string

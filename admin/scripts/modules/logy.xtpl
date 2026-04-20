@@ -1,0 +1,64 @@
+<!-- begin:logy -->
+
+<h1>Logy odeslaných e-mailů</h1>
+
+<form method="get" style="margin: 1em 0">
+  <label>
+    Hledat v předmětu nebo adresátech:
+    <input type="text" name="filtr" value="{filtr}">
+  </label>
+  <input type="submit" value="Filtrovat">
+  <!-- begin:zrusitFiltr --><a class="tlacitko" href="logy" title="Zrušit filtr">❌</a><!-- end:zrusitFiltr -->
+</form>
+
+<p>Celkem záznamů: {celkem}. Strana {aktualniStrana} / {pocetStran}.</p>
+
+<table class="zvyraznovana">
+  <tr>
+    <th><a href="{odkazRazeniKdy}">Kdy{indikatorKdy}</a></th>
+    <th>Předmět</th>
+    <th>Formát</th>
+    <th>Adresáti</th>
+    <th><a href="{odkazRazeniPrilohy}">Přílohy{indikatorPrilohy}</a></th>
+    <th>Chyba</th>
+    <th>Detail</th>
+  </tr>
+  <!-- begin:radek -->
+  <tr>
+    <td>{kdy}</td>
+    <td>{predmet}</td>
+    <td>{format}</td>
+    <td>{adresati}</td>
+    <td style="text-align: center">{prilohy}</td>
+    <td>{chyba}</td>
+    <td style="text-align: center"><a class="tlacitko" href="logy?id={id}" title="Zobrazit detail">🔍</a></td>
+  </tr>
+  <!-- end:radek -->
+</table>
+
+<div style="margin: 1em 0">
+  <!-- begin:predchozi --><a class="tlacitko" href="{odkazPredchozi}">« Předchozí</a><!-- end:predchozi -->
+  <!-- begin:dalsi --><a class="tlacitko" href="{odkazDalsi}">Další »</a><!-- end:dalsi -->
+</div>
+
+<!-- end:logy -->
+
+<!-- begin:detail -->
+
+<h1>Detail e-mailu</h1>
+
+<p><a class="tlacitko" href="logy">« Zpět na seznam</a></p>
+
+<table class="zvyraznovana">
+  <tr><th>Kdy</th><td>{kdy}</td></tr>
+  <tr><th>Předmět</th><td>{predmet}</td></tr>
+  <tr><th>Formát</th><td>{format}</td></tr>
+  <tr><th>Adresáti</th><td>{adresati}</td></tr>
+  <tr><th>Přílohy</th><td>{prilohy}</td></tr>
+  <tr><th>Chyba</th><td>{chyba}</td></tr>
+</table>
+
+<h2>Tělo e-mailu</h2>
+<pre style="white-space: pre-wrap; word-break: break-word; background: #f5f5f5; padding: 1em; border: 1px solid #ddd">{telo}</pre>
+
+<!-- end:detail -->
