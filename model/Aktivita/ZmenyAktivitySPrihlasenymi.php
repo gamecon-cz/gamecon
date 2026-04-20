@@ -42,7 +42,7 @@ class ZmenyAktivitySPrihlasenymi
 
         return sprintf(
             'Tato aktivita už má přihlášené hráče (%d). Opravdu chcete změnit %s?',
-            $this->puvodniAktivita->pocetPrihlasenych(),
+            $this->puvodniAktivita->pocetPrihlasenychVcetneInstanci(),
             implode(' / ', $this->zmeneneUdaje),
         );
     }
@@ -52,7 +52,7 @@ class ZmenyAktivitySPrihlasenymi
      */
     private function vypocitejZmeneneUdaje(): array
     {
-        if (!$this->puvodniAktivita || $this->puvodniAktivita->pocetPrihlasenych() <= 0) {
+        if (!$this->puvodniAktivita || $this->puvodniAktivita->pocetPrihlasenychVcetneInstanci() <= 0) {
             return [];
         }
 
