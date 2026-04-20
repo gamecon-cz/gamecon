@@ -559,7 +559,7 @@ SQL
             $xtpl->assign('urlObrazku', $aktivita->obrazek());
             $xtpl->assign(Sql::VYBAVENI, $aktivita->vybaveni());
         }
-        $xtpl->assign('pocetPrihlasenych', $aktivita?->pocetPrihlasenych() ?? 0);
+        $xtpl->assign('pocetPrihlasenych', $aktivita?->pocetPrihlasenychVcetneInstanci() ?? 0);
 
         self::parseUpravyTabulkaTagy($aktivita, $editorTagu, $xtpl);
         self::parseUpravyTabulkaLokace($aktivita, $xtpl);
@@ -2785,6 +2785,21 @@ SQL
     public function pocetPrihlasenych(): int
     {
         return count($this->prihlaseniRawArray());
+    }
+
+    /**
+     * Počet přihlášených napříč všemi instancemi sdílejícími patri_pod (nebo jen tato aktivita, pokud patri_pod nemá).
+     */
+    public function pocetPrihlasenychVcetneInstanci(): int
+    {
+        $patriPod = $this->patriPod();
+        if ($patriPod === null) {
+            return $this->pocetPrihlasenych();
+        }
+        return (int)dbOneCol(
+            'SELECT COUNT(*) FROM akce_prihlaseni JOIN akce_seznam ON akce_prihlaseni.id_akce = akce_seznam.id_akce WHERE akce_seznam.patri_pod = $1',
+            [$patriPod],
+        );
     }
 
     protected function pocetPrihlasenychMuzu(?DataSourcesCollector $dataSourcesCollector = null): int

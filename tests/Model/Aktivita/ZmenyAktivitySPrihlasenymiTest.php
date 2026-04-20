@@ -19,11 +19,14 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         ?string $konec,
         int $cena,
         array $rawDbData = [],
+        ?int $pocetPrihlasenychVcetneInstanci = null,
     ): Aktivita {
         $aktivitaMock = $this->createMock(Aktivita::class);
 
         $aktivitaMock->method('pocetPrihlasenych')
             ->willReturn($pocetPrihlasenych);
+        $aktivitaMock->method('pocetPrihlasenychVcetneInstanci')
+            ->willReturn($pocetPrihlasenychVcetneInstanci ?? $pocetPrihlasenych);
 
         $denDateTime = $den ? new DateTimeCz($den) : null;
         $aktivitaMock->method('denProgramu')
@@ -65,6 +68,31 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
 
         $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
         self::assertFalse($zmeny->maZmenySPrihlasenymi());
+    }
+
+    public function testSPrihlasenymiNaJineInstanciZmenenDen(): void
+    {
+        $aktivita = $this->vytvorAktivituSMocky(
+            0,
+            '2026-07-16',
+            '2026-07-16 10:00:00',
+            '2026-07-16 12:00:00',
+            100,
+            [],
+            2,
+        );
+
+        $dataZFormulare = [
+            'den'        => '2026-07-17',
+            Sql::ZACATEK => '10',
+            Sql::KONEC   => '12',
+            Sql::CENA    => 100,
+        ];
+
+        $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+        self::assertTrue($zmeny->maZmenySPrihlasenymi());
+        self::assertStringContainsString('den', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
+        self::assertStringContainsString('(2)', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
     }
 
     public function testSPrihlasenymiZadneZmenyUdaju(): void

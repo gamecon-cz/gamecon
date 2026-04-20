@@ -24,7 +24,7 @@
         const sledovanaPoleConfig = {sledovanaPoleConfig}
 
         function getFieldVal(name) {
-            const $el = $('[name="{fields}[' + name + ']"]')
+            const $el = $form.find('[name="{fields}[' + name + ']"]')
             if ($el.length === 0) return ''
             if ($el.is(':checkbox')) return $el.is(':checked') ? '1' : '0'
             const val = $el.val()
@@ -70,7 +70,10 @@
                 } else {
                     odesilatko.closest('form').get(0).submit()
                 }
-            }, "json")
+            }, "json").fail(function () {
+                alert('Nepodařilo se uložit aktivitu. Zkontrolujte připojení a zkuste to znovu.')
+                odesilatko.removeAttr('disabled')
+            })
             return false
         })
     })
