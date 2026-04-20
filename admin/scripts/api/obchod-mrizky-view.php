@@ -6,9 +6,10 @@ use Gamecon\Pravo;
 
 /** @var Uzivatel $u */
 
+header('Content-Type: application/json');
+
 $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
 if ($requestMethod !== 'GET' && $requestMethod !== 'POST') {
-    header('Content-type: application/json');
     header('HTTP/1.1 405 Method Not Allowed');
     header('Allow: GET, POST');
     echo json_encode(['error' => '405 Method Not Allowed']);
@@ -16,7 +17,6 @@ if ($requestMethod !== 'GET' && $requestMethod !== 'POST') {
 }
 
 if (empty($u)) {
-    header('Content-type: application/json');
     header('HTTP/1.1 403 Forbidden');
     echo json_encode(['error' => '403 Forbidden']);
     exit;
@@ -32,7 +32,6 @@ if (
     ($requestMethod === 'GET' && !$maPravoCteni)
     || ($requestMethod === 'POST' && !$maPravoZapis)
 ) {
-    header('Content-type: application/json');
     header('HTTP/1.1 403 Forbidden');
     echo json_encode(['error' => '403 Forbidden']);
     exit;
@@ -116,7 +115,8 @@ if ($requestMethod === 'POST') {
         ObchodMrizkaBunka::novy($bunkaRaw);
     }
 
-    return;
+    echo '{}';
+    exit;
 }
 
 // GET
@@ -147,5 +147,4 @@ foreach ($vsechny as &$x) {
     ];
 }
 
-header('Content-type: application/json');
 echo json_encode($res, $config);
