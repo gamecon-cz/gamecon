@@ -282,9 +282,11 @@
           <td class="clearfix">
             <div style="float: left;">
               {balicek}
+              <!-- begin:cipLink -->
               <div>
                 <a href="{nfcCipUrl}">Čip 🏷️</a>
               </div>
+              <!-- end:cipLink -->
             </div>
           </td>
         </tr>
