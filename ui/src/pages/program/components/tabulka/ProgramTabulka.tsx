@@ -1,6 +1,6 @@
 import { FunctionComponent } from "preact";
-import { useRef } from "preact/hooks";
-import { DNY_NÁZVY_S_HÁČKY, range } from "../../../../utils";
+import { useEffect, useLayoutEffect, useRef } from "preact/hooks";
+import { DNY_NÁZVY_S_HÁČKY } from "../../../../utils";
 import { ProgramPosuv } from "./ProgramPosuv";
 import {
   připravTabulkuAktivit,
@@ -9,7 +9,6 @@ import {
 import { GAMECON_KONSTANTY } from "../../../../env";
 import {
   konecAktivityNaSlotu,
-  KONEC_PROGRAMU_V_MINUTACH,
   PROGRAM_CASOVE_SLOTY,
   PROGRAM_HODINY,
   PROGRAM_KROK_CASU_MINUTY,
@@ -25,7 +24,6 @@ import {
 } from "../../../../store/program/selektory";
 import { ProgramTabulkaBuňka } from "./ProgramTabulkaBuňka";
 import { useProgramStore } from "../../../../store/program";
-import { useEffect } from "react";
 import { nastavZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 import { PřekrývacíNačítač } from "../Načítač";
 import { exitFullscreen, requestFullscreen } from "../../../../utils/dom";
@@ -35,24 +33,9 @@ type ProgramTabulkaProps = {};
 const jeHodinaStartMinuta = (minute: number): boolean =>
   Math.round((minute - ZACATEK_PROGRAMU_V_MINUTACH) / PROGRAM_KROK_CASU_MINUTY) % SLOTU_ZA_HODINU === 0;
 
-const generujSpacerBuňky = (odMinuty: number, doMinuty: number) => {
-  const buňky = [];
-  let pos = odMinuty;
-  while (pos < doMinuty) {
-    const jeStart = jeHodinaStartMinuta(pos);
-    const slotIndex = Math.round((pos - ZACATEK_PROGRAMU_V_MINUTACH) / PROGRAM_KROK_CASU_MINUTY);
-    const slotyDoKonceHodiny = jeStart ? SLOTU_ZA_HODINU : SLOTU_ZA_HODINU - (slotIndex % SLOTU_ZA_HODINU);
-    const konec = Math.min(pos + slotyDoKonceHodiny * PROGRAM_KROK_CASU_MINUTY, doMinuty);
-    const colSpan = Math.round((konec - pos) / PROGRAM_KROK_CASU_MINUTY);
-    if (colSpan > 0) {
-      buňky.push(
-        <td key={pos} colSpan={colSpan} class={jeStart ? "program_bunka-hodinaStart" : undefined}></td>
-      );
-    }
-    pos = konec;
-  }
-  return buňky;
-};
+// Grid column (1-based): column 1 = linie name, column 2+ = time slots
+const minutoNaGridSloupec = (minute: number): number =>
+  Math.round((minute - ZACATEK_PROGRAMU_V_MINUTACH) / PROGRAM_KROK_CASU_MINUTY) + 2;
 
 const indexŘazení = (klíč: string) => {
   const index = GAMECON_KONSTANTY.PROGRAM_ŘAZENÍ_LINIE.findIndex(
@@ -84,113 +67,97 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     seskupPodle
   );
 
-  const tabulkaHlavičkaČasy = (
-    <tr>
-      <th></th>
-      {PROGRAM_HODINY.map((čas) => (
-        <th colSpan={SLOTU_ZA_HODINU}>{čas}:00</th>
+  // Řádek 1: hlavička s časovými popisky
+  const tabulkaHlavička = (
+    <>
+      <div class="program_header-nazev" style={{ gridColumn: 1, gridRow: 1 }}></div>
+      {PROGRAM_HODINY.map((čas, index) => (
+        <div
+          key={čas}
+          class={"program_header-cas" + (index === 0 ? " program_bunka-hodinaStart" : "")}
+          style={{
+            gridColumn: `${2 + index * SLOTU_ZA_HODINU} / span ${SLOTU_ZA_HODINU}`,
+            gridRow: 1,
+          }}
+        >
+          {čas}:00
+        </div>
       ))}
-    </tr>
+    </>
   );
 
   const tabulkaŽádnéAktivity = (
-    <tr>
-      <td colSpan={PROGRAM_CASOVE_SLOTY.length + 1}>Žádné aktivity tento den</td>
-    </tr>
+    <div class="program_empty-row" style={{ gridColumn: `1 / -1`, gridRow: 2 }}>
+      Žádné aktivity tento den
+    </div>
   );
+
+  // Řádky začínají od 2 (řádek 1 je hlavička)
+  let currentGridRow = 2;
 
   const tabulkaŘádky = Object.entries(předpřipravenáTabulka)
     .sort((a, b) => indexŘazení(a[0]) - indexŘazení(b[0]))
     .map(([klíč, skupina]) => {
       const řádků: number = Math.max(...skupina.map((x) => x.řádek)) + 1;
+      const startRow = currentGridRow;
+      currentGridRow += Math.max(řádků, 1);
 
       const nadpisSkupiny = (
-        <td rowSpan={Math.max(řádků, 1)}>
-          <div class="program_nazevLinie">{klíč}</div>
-        </td>
+        <div
+          class="program_nazevLinie"
+          style={{
+            gridColumn: 1,
+            gridRow: `${startRow} / span ${Math.max(řádků, 1)}`,
+          }}
+        >
+          <span>{klíč}</span>
+        </div>
       );
 
       if (řádků <= 0) {
-        return (
-          <tr>
-            {nadpisSkupiny}
-            {generujSpacerBuňky(ZACATEK_PROGRAMU_V_MINUTACH, KONEC_PROGRAMU_V_MINUTACH)}
-          </tr>
-        );
+        return <>{nadpisSkupiny}</>;
       }
+
+      const aktivityBuňky = skupina
+        .sort((a, b) => a.aktivita.cas.od - b.aktivita.cas.od)
+        .map(({ aktivita, řádek }) => {
+          const zacatekAktivity = new Date(aktivita.cas.od);
+          const konecAktivity = new Date(aktivita.cas.do);
+          const časOd = zacatekAktivityNaSlotu(zacatekAktivity);
+          const časDo = konecAktivityNaSlotu(zacatekAktivity, konecAktivity);
+          const časOdOřezaný = Math.max(časOd, ZACATEK_PROGRAMU_V_MINUTACH);
+
+          return (
+            <ProgramTabulkaBuňka
+              key={`${klíč}-${řádek}-${aktivita.id}`}
+              aktivitaId={aktivita.id}
+              zobrazLinii={seskupPodle === SeskupováníAktivit.den}
+              kompaktní={kompaktní}
+              jeHodinaStart={jeHodinaStartMinuta(časOdOřezaný)}
+              gridColumnStart={minutoNaGridSloupec(časOdOřezaný)}
+              gridColumnEnd={minutoNaGridSloupec(časDo)}
+              gridRow={startRow + řádek}
+            />
+          );
+        });
 
       return (
         <>
-          {range(řádků).map((řádek) => {
-            const klíčSkupiny = řádek === 0 ? nadpisSkupiny : <></>;
-
-            let posledníAktivitaDo = ZACATEK_PROGRAMU_V_MINUTACH;
-            return (
-              <tr key={`${klíč}-${řádek}`}>
-                {klíčSkupiny}
-                {skupina
-                  .filter((x) => x.řádek === řádek)
-                  .map((x) => x.aktivita)
-                  .sort((a1, a2) => a1.cas.od - a2.cas.od)
-                  .map((aktivita) => {
-                    const zacatekAktivity = new Date(aktivita.cas.od);
-                    const konecAktivity = new Date(aktivita.cas.do);
-                    const časOd = zacatekAktivityNaSlotu(zacatekAktivity);
-                    const časDo = konecAktivityNaSlotu(zacatekAktivity, konecAktivity);
-                    const časOdOřezaný = Math.max(
-                      časOd,
-                      ZACATEK_PROGRAMU_V_MINUTACH,
-                    );
-                    const odsazení = generujSpacerBuňky(posledníAktivitaDo, časOdOřezaný);
-                    posledníAktivitaDo = Math.max(posledníAktivitaDo, časDo);
-
-                    return (
-                      <>
-                        {odsazení}
-                        <ProgramTabulkaBuňka
-                          aktivitaId={aktivita.id}
-                          zobrazLinii={seskupPodle === SeskupováníAktivit.den}
-                          kompaktní={kompaktní}
-                          jeHodinaStart={jeHodinaStartMinuta(časOdOřezaný)}
-                        />
-                      </>
-                    );
-                  })}
-                {generujSpacerBuňky(posledníAktivitaDo, KONEC_PROGRAMU_V_MINUTACH)}
-              </tr>
-            );
-          })}
+          {nadpisSkupiny}
+          {aktivityBuňky}
         </>
       );
     });
-
-  const tabulka = (
-    <>
-      {tabulkaHlavičkaČasy}
-      {aktivityFiltrované.length || seskupPodle === SeskupováníAktivit.den
-        ? tabulkaŘádky
-        : tabulkaŽádnéAktivity}
-    </>
-  );
-
-  const tabulkaSloupce = (
-    <colgroup>
-      <col class="program_col-linie" />
-      {PROGRAM_CASOVE_SLOTY.map((slot) => (
-        <col key={slot} class="program_col-slot" />
-      ))}
-    </colgroup>
-  );
 
   const obalRef = useRef<HTMLDivElement>(null);
 
   const aktivitaNáhled = useAktivitaNáhled();
 
   const zvětšeno = useProgramStore(s => s.všeobecné.zvětšeno);
+  const posledniScrollLeft = useRef(0);
 
   const programNáhledObalProgramuClass =
     "programNahled_obalProgramu"
-    + (aktivitaNáhled ? " programNahled_obalProgramu-zuzeny" : "")
     + (zvětšeno ? " programNahled_obalProgramu-zvetseny" : "")
     ;
 
@@ -220,21 +187,46 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     }
   }, [zvětšeno]);
 
+  useEffect(() => {
+    const obal = obalRef.current;
+    if (!obal) return;
+
+    const ulozScrollLeft = () => {
+      posledniScrollLeft.current = obal.scrollLeft;
+    };
+
+    ulozScrollLeft();
+    obal.addEventListener("scroll", ulozScrollLeft, { passive: true });
+    return () => obal.removeEventListener("scroll", ulozScrollLeft);
+  }, []);
+
+  useLayoutEffect(() => {
+    const obal = obalRef.current;
+    if (!obal) return;
+    obal.scrollLeft = posledniScrollLeft.current;
+  }, [aktivitaNáhled]);
+
   return (
     <>
       <div ref={obalHlavníRef} class={programNáhledObalProgramuClass}
         style={{
-          position:"relative",
-          // místo pro načítač
+          position: "relative",
           minHeight: 200,
         }}
       >
         <div class="programPosuv_obal2">
           <div class="programPosuv_obal" ref={obalRef}>
-            <table class="program">
-              {tabulkaSloupce}
-              <tbody>{tabulka}</tbody>
-            </table>
+            <div
+              class="program"
+              style={{
+                gridTemplateColumns: `calc(var(--program-odsazeni-zleva) + var(--program-sirka-linie) + var(--program-mezera-za-linii)) repeat(${PROGRAM_CASOVE_SLOTY.length}, var(--program-sirka-slotu))`,
+              }}
+            >
+              {tabulkaHlavička}
+              {aktivityFiltrované.length || seskupPodle === SeskupováníAktivit.den
+                ? tabulkaŘádky
+                : tabulkaŽádnéAktivity}
+            </div>
           </div>
           <ProgramPosuv {...{ obalRef }} />
         </div>

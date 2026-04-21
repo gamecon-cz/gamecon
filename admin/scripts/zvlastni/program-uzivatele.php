@@ -22,6 +22,7 @@ $program = new Program(
         Program::DRD_PRIHLAS  => true,
         Program::PLUS_MINUS   => true,
         Program::OSOBNI       => $osobniProgram,
+        Program::MODERNI_ADMIN_LAYOUT => true,
         Program::TEAM_VYBER   => true,
         Program::INTERNI      => true,
         Program::ZPETNE       => $u->maPravoNaZmenuHistorieAktivit(),
@@ -72,34 +73,19 @@ $chyba = Chyba::vyzvedniHtml();
 </head>
 <body>
 
-<div style="
-    text-align: left;
-    font-size: 16px;
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0; left: 0;
-    width: 350px;
-    padding: 10px;
-    color: #fff;
-    background-color: rgba(0,0,0,0.8);
-    border-bottom-right-radius: 12px;
-    z-index: 20;
-  ">
-    <input type="button" value="Zavřít"
+<div class="program_admin_panel">
+        <input type="button" value="Zavřít" class="program_admin_panel_zavrit"
            onclick="window.location = '<?= $u ? $u->mimoMojeAktivityUvodniAdminLink()['url'] : URL_ADMIN . '/uzivatel' ?>'"
-           style="
-      float: right;
-      width: 100px;
-      height: 35px;
-    ">
-    <?= $uPracovni->jmenoNick() ?><br>
-    <span id="stavUctu"><?= $uPracovni->finance()->formatovanyStav() ?></span><br>
-
-    <a href="program-uzivatele" class="program-odkaz">Program</a> |
-    <a href="program-osobni" class="program-odkaz">Program účastníka</a>
+        >
+        <div class="program_admin_panel_jmeno"><?= $uPracovni->jmenoNick() ?></div>
+        <div class="program_admin_panel_stav"><span id="stavUctu"><?= $uPracovni->finance()->formatovanyStav() ?></span></div>
+        <div class="program_admin_panel_nav">
+                <a href="program-uzivatele" class="program-odkaz">Program</a> |
+                <a href="program-osobni" class="program-odkaz">Program účastníka</a>
+        </div>
 </div>
 
-<div class="program">
+<div class="program_admin_page">
     <?= $chyba ?>
     <?php $program->tisk(); ?>
 </div>
@@ -107,7 +93,7 @@ $chyba = Chyba::vyzvedniHtml();
 <script>
     (() => {
         scrollObnov()
-        document.querySelectorAll('.program form > a').forEach(e => {
+        document.querySelectorAll('.program_admin_page form > a').forEach(e => {
             e.addEventListener('click', () => scrollUloz())
         })
 

@@ -2,7 +2,7 @@ import { useProgramStore } from ".";
 import { GAMECON_KONSTANTY } from "../../env";
 import { distinct } from "../../utils";
 import { LOCAL_STORAGE_KLÍČE } from "../localStorageKlíče";
-import { urlStavProgramTabulkaMožnostíDnyMůj } from "./logic/url";
+import { titulekZUrlStavu, urlStavProgramTabulkaMožnostíDnyMůj } from "./logic/url";
 import { načtiRok } from "./slices/programDataSlice";
 import { nastavStateZUrl, nastavUrlZState } from "./slices/urlSlice";
 import { nastavFiltryOtevřené } from "./slices/všeobecnéSlice";
@@ -15,14 +15,23 @@ const indexŘazeníLinie = (klíč: string) => {
   return index !== -1 ? index : 1000;
 };
 
+const nastavTitulekZState = () => {
+  document.title = titulekZUrlStavu(useProgramStore.getState().urlStav);
+};
+
 export const inicializujProgramStore = () => {
   // Načtu do stavu url
   nastavStateZUrl();
   // Normalizuju url podle stavu
   nastavUrlZState(true);
+  nastavTitulekZState();
 
   useProgramStore.subscribe(s => s.urlStav, () => {
     nastavUrlZState();
+  });
+
+  useProgramStore.subscribe(s => s.urlStav.výběr, () => {
+    nastavTitulekZState();
   });
 
   addEventListener("popstate", () => {

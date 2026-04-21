@@ -15,24 +15,24 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
   const aktivita = useAktivitaNáhled();
   const tagy = useTagy();
 
-  const programNáhledTextRef = useRef<HTMLDivElement>(null);
+  const programNáhledObsahRef = useRef<HTMLDivElement>(null);
 
   const obalClass =
-    "programNahled_obalNahledu" +
+    "programPreview_obalNahledu" +
     (aktivita
-      ? " programNahled_obalNahledu-viditelny programNahled_obalNahledu-maData"
+      ? " programPreview_obalNahledu-viditelny programPreview_obalNahledu-maData"
       : "");
 
   useEffect(() => {
-    programNáhledTextRef.current?.scroll?.(0, 0);
+    programNáhledObsahRef.current?.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
   }, [aktivita]);
 
   return (
     <div class={obalClass}>
-      <div class="programNahled_nahled">
-        <div class="programNahled_placeholder"></div>
+      <div class="programPreview_nahled">
+        <div class="programPreview_placeholder" onClick={skryjAktivitaNáhledId}></div>
 
-        <div class="programNahled_obsah">
+        <div class="programPreview_obsah" ref={programNáhledObsahRef}>
           <div
             class="programNahled_zaviratko"
             onClick={skryjAktivitaNáhledId}
@@ -54,7 +54,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               ))}
             </div>
           </div>
-          <div class="programNahled_text" ref={programNáhledTextRef}>
+          <div class="programNahled_text">
             <div
               class="programNahled_kratkyPopis"
               dangerouslySetInnerHTML={{ __html: aktivita?.kratkyPopis ?? "" }}

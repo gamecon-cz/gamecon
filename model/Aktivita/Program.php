@@ -31,6 +31,7 @@ class Program
     public const ZPETNE          = 'zpetne';
     public const NEOTEVRENE      = 'neotevrene';
     public const DEN             = 'den';
+    public const MODERNI_ADMIN_LAYOUT = 'moderni_admin_layout';
 
     public const SKUPINY_LINIE     = 'linie';
     public const SKUPINY_MISTNOSTI = 'mistnosti';
@@ -57,11 +58,12 @@ class Program
         self::ZPETNE          => false, // jestli smí měnit přihlášení zpětně
         self::NEOTEVRENE      => false, // jestli smí přihlašovat na aktivity které ještě jsou teprve aktivované
         self::DEN             => null,  // zobrazit jen konkrétní den
+        self::MODERNI_ADMIN_LAYOUT => false, // moderní grid layout pro admin program uživatele
     ];
     private                 $grpf; // název metody na objektu aktivita, podle které se shlukuje
     private array           $skupiny        = []; // pole skupin, do kterých se shlukuje program, ve stylu id => název
 
-    private $aktivityUzivatele = []; // aktivity uživatele
+    private array $aktivityUzivatele = []; // aktivity uživatele
     private $maxPocetAktivit   = []; // maximální počet souběžných aktivit v daném dni
 
     private const SKUPINY_PODLE_LOKACE_ID  = 'lokaceId';
@@ -84,7 +86,7 @@ class Program
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
         }
 
-        if ($this->nastaveni[self::OSOBNI]) {
+        if ($this->nastaveni[self::OSOBNI] && !$this->maModerniAdminLayout()) {
             $this->nastaveni[self::PRAZDNE] = true;
         }
     }
@@ -125,10 +127,12 @@ class Program
      */
     public function cssUrls(): array
     {
-        $soubory = [
-            __DIR__ . '/../../web/soubory/blackarrow/_spolecne/hint.css',
-            __DIR__ . '/../../web/soubory/blackarrow/program/program-trida.css',
-        ];
+        $soubory = [__DIR__ . '/../../web/soubory/blackarrow/_spolecne/hint.css'];
+        if ($this->maModerniAdminLayout()) {
+            $soubory[] = __DIR__ . '/../../web/soubory/blackarrow/program/program-admin.css';
+        } else {
+            $soubory[] = __DIR__ . '/../../web/soubory/blackarrow/program/program-trida.css';
+        }
         $cssUrls = [];
         foreach ($soubory as $soubor) {
             $verze     = md5_file($soubor);
@@ -237,6 +241,11 @@ class Program
         $this->init();
 
         $aktivita = $this->dalsiAktivita();
+        if ($this->maModerniAdminLayout()) {
+            $this->tiskModerniAdminLayout($aktivita);
+            return;
+        }
+
         if ($this->nastaveni[self::OSOBNI] || $this->nastaveni[self::DEN]) {
             $this->tiskTabulky($aktivita);
         } else {
@@ -282,6 +291,27 @@ class Program
     }
 
     /**
+     * @return DateTimeGamecon[]
+     */
+    private function dnyKVypsani(): array
+    {
+        if ($this->nastaveni[self::DEN] === null) {
+            return $this->dny();
+        }
+
+        $denIdKVypsani = (int)$this->nastaveni[self::DEN];
+        return array_values(array_filter(
+            $this->dny(),
+            static fn(DateTimeGamecon $den) => (int)$den->format('z') === $denIdKVypsani,
+        ));
+    }
+
+    private function maModerniAdminLayout(): bool
+    {
+        return !empty($this->nastaveni[self::MODERNI_ADMIN_LAYOUT]);
+    }
+
+    /**
      * Inicializuje privátní proměnné skupiny (podle kterých se shlukuje) a
      * program (iterátor aktivit)
      */
@@ -321,7 +351,7 @@ class Program
                 $this->program,
                 array_keys($this->skupiny),
             );
-        } elseif ($this->nastaveni[self::OSOBNI]) {
+        } elseif ($this->nastaveni[self::OSOBNI] && !$this->maModerniAdminLayout()) {
             $this->program = new ArrayIterator(
                 Aktivita::zProgramu(
                     razeni: '_razeni_tmp',
@@ -486,12 +516,8 @@ class Program
     /**
      * Vytisknutí konkrétní aktivity (formátování atd...)
      */
-    private function tiskAktivity(array $aktivitaRaw)
+    private function cssTridyAktivity(Aktivita $aktivitaObjekt): string
     {
-        /** @var Aktivita $aktivitaObjekt */
-        $aktivitaObjekt = $aktivitaRaw['obj'];
-
-        // určení css tříd
         $classes = [];
         if ($this->u?->prihlasen($aktivitaObjekt)) {
             $classes[] = 'prihlasen';
@@ -515,20 +541,23 @@ class Program
             $classes[] = 'otevrene';
         }
         $classes[] = 'aktivita';
-        $classes   = $classes
-            ? ' class="' . implode(' ', $classes) . '"'
-            : '';
+
+        return implode(' ', $classes);
+    }
+
+    /**
+     * Vytisknutí vnitřku konkrétní aktivity (formátování atd...)
+     */
+    private function tiskObsahAktivity(array $aktivitaRaw): void
+    {
+        /** @var Aktivita $aktivitaObjekt */
+        $aktivitaObjekt = $aktivitaRaw['obj'];
 
         // název a url aktivity
         echo <<<HTML
-<td colspan="{$aktivitaRaw['delkaSlotu']}">
-    <div class="placeholder-pro-roztazeni-radku" style="display: none">
-        <!--jenom malý hack aby se název linie dobře zobrazoval i na mobilu když všechny aktivity skryjeme javascriptovým filtrem-->
-    </div>
-    <div {$classes}>
-        <a href="{$aktivitaObjekt->url()}" target="_blank" class="programNahled_odkaz" data-program-nahled-id="{$aktivitaObjekt->id()}" title="{$aktivitaObjekt->nazev()}">
-            {$aktivitaObjekt->nazev()}
-        </a>
+<a href="{$aktivitaObjekt->url()}" target="_blank" class="programNahled_odkaz" data-program-nahled-id="{$aktivitaObjekt->id()}" title="{$aktivitaObjekt->nazev()}">
+    {$aktivitaObjekt->nazev()}
+</a>
 HTML;
         if ($aktivitaRaw['delkaSlotu'] >= 3) {
             echo '<span class="program_casRozsah">' . $aktivitaObjekt->zacatek()->format('G:i') . '–' . $aktivitaObjekt->konec()->format('G:i') . '</span> ';
@@ -586,7 +615,37 @@ HTML;
         //     }
         // }
 
+    }
+
+    /**
+     * Vytisknutí konkrétní aktivity v tabulce
+     */
+    private function tiskAktivity(array $aktivitaRaw)
+    {
+        /** @var Aktivita $aktivitaObjekt */
+        $aktivitaObjekt = $aktivitaRaw['obj'];
+        $classes = $this->cssTridyAktivity($aktivitaObjekt);
+
+        echo '<td colspan="' . $aktivitaRaw['delkaSlotu'] . '">';
+        echo '<div class="placeholder-pro-roztazeni-radku" style="display: none">';
+        echo '<!--jenom malý hack aby se název linie dobře zobrazoval i na mobilu když všechny aktivity skryjeme javascriptovým filtrem-->';
+        echo '</div>';
+        echo '<div class="' . $classes . '">';
+        $this->tiskObsahAktivity($aktivitaRaw);
         echo '</div></td>';
+    }
+
+    private function tiskAktivituGridu(array $aktivitaRaw, int $gridRow): void
+    {
+        /** @var Aktivita $aktivitaObjekt */
+        $aktivitaObjekt = $aktivitaRaw['obj'];
+        $classes = $this->cssTridyAktivity($aktivitaObjekt);
+        $gridColumnStart = $this->gridovySloupecProCas($aktivitaRaw['zac']);
+
+        echo '<div class="program_admin_aktivita" style="grid-column: ' . $gridColumnStart . ' / span ' . $aktivitaRaw['delkaSlotu'] . '; grid-row: ' . $gridRow . ';">';
+        echo '<div class="' . $classes . '">';
+        $this->tiskObsahAktivity($aktivitaRaw);
+        echo '</div></div>';
     }
 
     /**
@@ -597,17 +656,23 @@ HTML;
                $denId = null,
     ): void {
         echo '<table class="' . $this->nastaveni[self::TABLE_CSS_CLASS] . '">';
+        echo '<colgroup>';
+        echo '<col class="program_col-linie">';
+        foreach (Program::seznamCasuZacatkuPoCtvrtHodinach() as $_) {
+            echo '<col class="program_col-slot">';
+        }
+        echo '</colgroup>';
 
         // tisk hlavičkového řádku s čísly
-        echo '<tr><th></th>';
+        echo '<thead><tr><th></th>';
         foreach (Program::seznamHodinZacatku() as $cas) {
             echo '<th colspan="' . (self::MINUT_V_HODINE / self::KROK_CASU_MINUTY) . '">' . $cas . ':00</th>';
         }
-        echo '</tr>';
+        echo '</tr></thead><tbody>';
 
         $this->tiskObsahuTabulky($aktivitaRaw, $denId);
 
-        echo '</table>';
+        echo '</tbody></table>';
     }
 
     /**
@@ -679,13 +744,133 @@ HTML;
 
         if ($pocetAktivit == 0) {
             echo <<<HTML
-<tr class="linie">
-    <td colspan="100%">
+<tr class="linie program_prazdnyDen">
+    <td class="program_prazdnyStav" colspan="100%">
         Žádné aktivity tento den
     </td>
 </tr>
 HTML;
         }
+    }
+
+    private function gridovySloupecProCas(int $casVMinutach): int
+    {
+        $casySlotu = self::seznamCasuZacatkuPoCtvrtHodinach();
+        $prvniSlot = reset($casySlotu);
+        $sloupec = (int)floor(($casVMinutach - $prvniSlot) / self::KROK_CASU_MINUTY) + 2;
+
+        return max(2, $sloupec);
+    }
+
+    private function stylGriduAdminu(): string
+    {
+        return 'grid-template-columns: var(--program-sirka-linie) repeat(' . count(self::seznamCasuZacatkuPoCtvrtHodinach()) . ', var(--program-sirka-slotu));';
+    }
+
+    /**
+     * @param int|string $typId
+     * @return array<int, array<int, array>>
+     */
+    private function pripravRadkyGriduSkupiny(?array &$aktivitaRaw, int|string $typId, ?int $denId = null): array
+    {
+        $radkySkupiny = [];
+        $casySlotu = self::seznamCasuZacatkuPoCtvrtHodinach();
+        $prvniSlot = reset($casySlotu);
+
+        while ($aktivitaRaw && in_array($typId, $aktivitaRaw['grps'], true)) {
+            if ($denId !== null && $aktivitaRaw['den'] != $denId) {
+                break;
+            }
+
+            $aktivityRadku = [];
+            $skip = 0;
+            foreach ($casySlotu as $cas) {
+                if ($skip > 0) {
+                    $skip--;
+                    continue;
+                }
+
+                if (
+                    $aktivitaRaw
+                    && in_array($typId, $aktivitaRaw['grps'], true)
+                    && ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < $prvniSlot)
+                    && ($denId === null || $aktivitaRaw['den'] == $denId)
+                ) {
+                    $aktivityRadku[] = $aktivitaRaw;
+                    $skip = $aktivitaRaw['delkaSlotu'] - 1;
+                    $indexSkupiny = array_search($typId, $aktivitaRaw['grps'], true);
+                    if ($indexSkupiny !== false) {
+                        unset($aktivitaRaw['grps'][$indexSkupiny]);
+                    }
+                    if ($aktivitaRaw['grps'] === []) {
+                        $aktivitaRaw = $this->dalsiAktivita();
+                    }
+                }
+            }
+
+            $radkySkupiny[] = $aktivityRadku;
+        }
+
+        return $radkySkupiny;
+    }
+
+    private function tiskGridDne(?array &$aktivitaRaw, ?int $denId = null): void
+    {
+        $slotuZaHodinu = self::MINUT_V_HODINE / self::KROK_CASU_MINUTY;
+        $aktivitVDni = 0;
+        $gridRow = 2;
+
+        echo '<div class="program_admin_grid" style="' . $this->stylGriduAdminu() . '">';
+        echo '<div class="program_admin_header-nazev" style="grid-column: 1; grid-row: 1;"></div>';
+        foreach (self::seznamHodinZacatku() as $index => $cas) {
+            $gridColumnStart = 2 + $index * $slotuZaHodinu;
+            echo '<div class="program_admin_header-cas" style="grid-column: ' . $gridColumnStart . ' / span ' . $slotuZaHodinu . '; grid-row: 1;">' . $cas . ':00</div>';
+        }
+
+        foreach ($this->skupiny as $typId => $typNazev) {
+            if (!$this->nastaveni[self::PRAZDNE] && (!$aktivitaRaw || !in_array($typId, $aktivitaRaw['grps'], true))) {
+                continue;
+            }
+
+            $radkySkupiny = $this->pripravRadkyGriduSkupiny($aktivitaRaw, $typId, $denId);
+            $pocetRadku = count($radkySkupiny);
+            if ($pocetRadku > 0) {
+                echo '<div class="program_admin_bunka-linie" style="grid-column: 1; grid-row: ' . $gridRow . ' / span ' . $pocetRadku . ';">';
+                echo '<div class="program_nazevLinie">' . htmlspecialchars((string)$typNazev, ENT_QUOTES | ENT_HTML5) . '</div>';
+                echo '</div>';
+
+                foreach ($radkySkupiny as $offsetRadku => $aktivityRadku) {
+                    foreach ($aktivityRadku as $aktivitaVGridu) {
+                        $this->tiskAktivituGridu($aktivitaVGridu, $gridRow + $offsetRadku);
+                        $aktivitVDni++;
+                    }
+                }
+
+                $gridRow += $pocetRadku;
+            }
+        }
+
+        if ($aktivitVDni === 0) {
+            echo '<div class="program_admin_prazdnyDen program_prazdnyStav" style="grid-column: 1 / -1; grid-row: 2;">Žádné aktivity tento den</div>';
+        }
+
+        echo '</div>';
+    }
+
+    private function tiskModerniAdminLayout(?array &$aktivitaRaw): void
+    {
+        echo '<div class="program_admin">';
+        foreach ($this->dnyKVypsani() as $den) {
+            $datum = mb_ucfirst($den->format('l j.n.Y'));
+            $denId = (int)$den->format('z');
+            echo '<section class="program_admin_den">';
+            echo '<h2 class="program_admin_nadpisDne">' . $datum . '</h2>';
+            echo '<div class="program_admin_scroll">';
+            $this->tiskGridDne($aktivitaRaw, $denId);
+            echo '</div>';
+            echo '</section>';
+        }
+        echo '</div>';
     }
 
     /**
@@ -757,7 +942,7 @@ HTML;
         }
 
         // přeskočit případné speciální (neviditelné) aktivity
-        if ($aktivita->viditelnaPro($this->u, null) || $this->nastaveni[self::INTERNI]) {
+        if ($aktivita->viditelnaPro($this->u) || $this->nastaveni[self::INTERNI]) {
             return $a;
         } else {
             return $this->nactiDalsiAktivitu($iterator);
@@ -774,11 +959,11 @@ HTML;
     {
         $aktivita                       = $this->dalsiAktivita();
         $this->maxPocetAktivit [$denId] = 0;
-        $this->aktivityUzivatele        = new ArrayObject();
+        $this->aktivityUzivatele        = [];
 
         while ($aktivita) {
             if ($denId == $aktivita['den']) {
-                $this->aktivityUzivatele->append($aktivita);
+                $this->aktivityUzivatele[] = $aktivita;
             }
 
             $aktivita = $this->dalsiAktivita();

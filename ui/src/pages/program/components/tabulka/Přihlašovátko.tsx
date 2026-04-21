@@ -62,16 +62,21 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
           ? "sledovat"
           : typ === "odhlasSledujiciho"
             ? "zrušit sledování"
-            : "";
+            : "zamčeno";
+
+  const jeZamcene = typ === "zamceno";
 
   return (
     <>
-      <form method="none" style="display:inline" onSubmit={(e) => { e.preventDefault(); }}>
+      <form class={"program_akceForm program_akceForm-" + typ} method="none" style="display:inline" onSubmit={(e) => { e.preventDefault(); }}>
         <a
+          class={"program_akceTlacitko program_akceTlacitko-" + typ}
+          aria-disabled={jeZamcene}
+          tabIndex={jeZamcene ? -1 : 0}
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            if (typ === "zamceno") {
+            if (jeZamcene) {
               return;
             } else if (typ == "odhlasit") {
               nastavModalOdhlásit(id);
@@ -80,9 +85,9 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
             }
           }}
         >
-          {text}
+          <span class="program_akceTlacitko_text">{text}</span>
           {zámečekViditelný ?
-            <span class="hinted">{zámeček}<span class="hint">Kapitánovi týmu zbývá {zbýváText} na vyplnění svého týmu</span></span>
+            <span class="hinted program_akceTlacitko_zamecek">{zámeček}<span class="hint">Kapitánovi týmu zbývá {zbýváText} na vyplnění svého týmu</span></span>
             : undefined}
         </a>
       </form>

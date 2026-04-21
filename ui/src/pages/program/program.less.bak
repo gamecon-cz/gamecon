@@ -1,185 +1,175 @@
 .program {
-  --program-odsazeni-zleva: 0px;
-  --program-sirka-linie: 80px;
-  --program-mezera-za-linii: 24px;
+  --program-sirka-linie: 88px;
+  --program-mezera-za-linii: 10px;
   --program-sirka-slotu: 25px;
   --program-sirka-hodiny: calc(var(--program-sirka-slotu) * 4);
   --program-mezera-radku: 10px;
 
   position: relative;
-  display: grid;
-  grid-template-columns: calc(var(--program-odsazeni-zleva) + var(--program-sirka-linie) + var(--program-mezera-za-linii)) repeat(96, var(--program-sirka-slotu));
-  row-gap: var(--program-mezera-radku);
-
-  // Svislé čáry na začátcích hodin – jako background gridu
-  // Bílý pruh (vrstva 1) zakryje oblast časové hlavičky (výška buňky 20px + margin-top 30px + mezera-radku)
-  background-image:
-    linear-gradient(
-      to bottom,
-      #fff ~"calc(50px + var(--program-mezera-radku))",
-      transparent ~"calc(50px + var(--program-mezera-radku))"
-    ),
-    repeating-linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0.12) 0,
-      rgba(0, 0, 0, 0.12) 1px,
-      transparent 1px,
-      transparent var(--program-sirka-hodiny)
-    );
-  background-repeat: no-repeat, repeat;
-  background-position:
-    0 0,
-    ~"calc(var(--program-sirka-linie) + var(--program-mezera-za-linii))" 0;
-
+  border-spacing: 0 var(--program-mezera-radku);
   margin: ~"calc(-1 * var(--program-mezera-radku))" 0;
+  border-collapse: separate;
+  table-layout: fixed;
   width: max-content;
 
   @media (max-width: 800px) {
-    --program-odsazeni-zleva: 0px;
     --program-sirka-linie: 34px;
-    --program-mezera-za-linii: 10px;
+    --program-mezera-za-linii: 6px;
     --program-sirka-slotu: 17.5px;
     --program-mezera-radku: 6px;
-
+    border-spacing: 0 var(--program-mezera-radku);
     margin: ~"calc(-1 * var(--program-mezera-radku))" 0;
   }
 }
 
-// Hlavičková buňka hodin (grid řádek 1)
-.program_header-cas {
+.program col.program_col-linie {
+  width: var(--program-sirka-linie);
+}
+
+.program col.program_col-slot {
+  width: var(--program-sirka-slotu);
+}
+
+.program tr {
+  border: none;
+}
+
+.program th {
   font-weight: normal;
   text-align: left;
   font-size: 14px;
+  padding: 0;
   height: 20px;
-  display: flex;
-  align-items: flex-end;
-  overflow: visible;
-  padding-left: 2px;
-  margin-top: 30px;
+  vertical-align: bottom;
 }
 
-.program_header-nazev {
-  position: sticky;
-  left: 0;
-  width: 100%;
-  background-color: #fff;
-  z-index: 2;
+.program th::before {
+  display: none;
 }
 
-// Buňka s názvem linie/dne – sticky levý sloupec
-.program .program_nazevLinie {
-  // grid-column a grid-row jsou nastaveny inline přes style={{}}
-  width: 100%;
-  height: auto;
-  padding: 6px 4px;
+.program th:nth-child(1)::before {
+  display: none;
+}
+
+.program td[rowspan] {
+  width: var(--program-sirka-linie);
+  padding: 16px;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 14px;
+  vertical-align: top;
   position: sticky;
   left: 0;
-  top: auto;
-  right: auto;
+  padding-right: 16px;
   border-right: var(--program-mezera-za-linii) solid #fff;
   z-index: 1;
   background-color: #FDC689;
-  background-clip: padding-box;
   color: #10111A;
-  box-sizing: border-box;
-  overflow: hidden;
-  transform: none;
-  transform-origin: center center;
-  margin-top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  white-space: normal;
-  word-break: break-word;
-}
 
-.program .program_nazevLinie > span {
-  display: block;
-}
-
-@media (max-width: 1200px) {
-  .program .program_nazevLinie {
+  @media (max-width: 1500px) {
     padding: 0;
+    overflow: hidden;
   }
+}
 
-  .program .program_nazevLinie > span {
+.program td[rowspan="2"] {
+  padding-right: clamp(8px, 1.1vw, 18px);
+}
+
+@media (max-width: 1500px) {
+  .program_nazevLinie {
+    transform: rotate(-90deg);
+    transform-origin: bottom right;
+    height: 40px;
+    top: -40px;
+    right: 0;
+    margin-top: 0.5em;
+    overflow: hidden;
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: max-content;
-    max-width: none;
-    white-space: nowrap;
-    transform: translate(-50%, -50%) rotate(-90deg);
-    transform-origin: center center;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    text-align: right;
   }
-}
 
-// Mezera nad programem (pod filtry/dny)
-.programPosuv_obal2 {
-  margin-top: 26px;
-  position: relative;
-  left: calc(-50vw + 50%);
-  width: 100vw;
-}
-
-// V gridu rowspan neexistuje, šířka linie je fixní přes CSS proměnnou
-
-
-
-@media (max-width: 800px) {
-  .program .program_nazevLinie {
-    width: 100%;
-    height: auto;
-    font-size: 10px;
-    padding: 0;
-    top: auto;
-    right: auto;
-    transform: none;
-    transform-origin: center center;
-    margin-top: 0;
+  [rowspan="1"] .program_nazevLinie {
+    width: 63px;
     justify-content: center;
     text-align: center;
+    margin-top: 5px;
+    font-size: 80%;
   }
-  .programPosuv_obal2 {
-    margin-top: 20px;
-    left: calc(-50vw + 50%);
-    width: 100vw;
-  }
-  // Explicitní overflow-x: auto zajistí, že prohlížeč správně rozpozná
-  // programPosuv_obal jako scroll-kontejner pro position: sticky.
-  .programPosuv_obal {
-    overflow-x: auto;
-    overflow-y: hidden;
+
+  [rowspan="2"] .program_nazevLinie {
+    margin-top: 10px;
+    width: 140px;
   }
 }
 
-.program_bunka-aktivita > div {
+@media (max-width: 800px) {
+  .program_nazevLinie {
+    margin-top: 0.4em;
+    width: auto;
+  }
+
+  [rowspan="1"] .program_nazevLinie {
+    margin-top: 4px;
+    text-align: left;
+    justify-content: left;
+  }
+
+  [rowspan="2"] .program_nazevLinie {
+    margin-top: 10px;
+    width: 120px;
+  }
+}
+
+.program td {
+  padding: 0;
+}
+
+.program td > .program_nazevLinie {
+  background-color: transparent;
+}
+
+.program td:not([rowspan]) > div {
   height: 72px;
   padding: 12px 6px;
   box-sizing: border-box;
   font-size: 12px;
-  background-color: var(--program-barva-otevrene);
 
   @media (max-width: 800px) {
     padding: 8px 4px;
   }
 }
 
-.program_bunka-aktivita > div {
+.program td.program_bunka-aktivita {
+  width: auto;
+}
+
+.program td.program_bunka-aktivita > div {
   margin-left: 2px;
   margin-right: 2px;
   width: calc(100% - 4px);
 }
 
-// Čáry na začátcích hodin u aktivit jsou pokryty čarami z program_header-cas
-.program_bunka-hodinaStart {
+.program td.program_bunka-hodinaStart {
+  position: relative;
   overflow: visible;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: ~"calc(100% + var(--program-mezera-radku))";
+    background: rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 2;
+  }
 }
 
-.program_bunka-aktivita > div > a {
+.program td > div > a {
   text-decoration: none;
   font-weight: bold;
   color: inherit;
@@ -196,7 +186,7 @@
   }
 }
 
-.program_bunka-aktivita > div > a:hover {
+.program td > div > a:hover {
   text-decoration: underline;
 }
 
@@ -296,10 +286,10 @@
 
 .program_legenda {
   display: flex;
-  flex-direction: column;
   background: #fff;
   margin: -1.5vw 7.292vw 20px;
-  padding: 14px 16px 8px;
+  flex-wrap: wrap;
+  padding: 11px 1px 5px;
   box-shadow: 0px 0px 10px -3px rgba(0, 0, 0, 0.2);
 }
 
@@ -336,11 +326,6 @@
   --program-barva-nahradnik-pruhledna: #E5E89100;
   --program-barva-organizator: #7EA5FF;
   --program-barva-organizator-pruhledna: #7EA5FF00;
-  --program-barva-akce: #10111A;
-  --program-barva-akce-hover: #2A2E3C;
-  --program-barva-akce-active: #000000;
-  --program-barva-akce-disabled: #4B5160;
-  --program-barva-akce-focus: rgba(16, 17, 26, 0.18);
 }
 
 .program_legenda_typ {
@@ -397,49 +382,52 @@
 
 }
 
-.program_bunka-aktivita > div.otevrene,
+.program tbody td>div {
+  background-color: var(--program-barva-otevrene);
+}
+
+.program tbody .otevrene,
 .program_legenda_typ.otevrene::before {
   background-color: var(--program-barva-otevrene)
 }
 
-.program_bunka-aktivita > div.vDalsiVlne,
+.program tbody .vDalsiVlne,
 .program_legenda_typ.vDalsiVlne::before {
   background-color: var(--program-barva-vDalsiVlne);
 }
 
-.program_bunka-aktivita > div.vBudoucnu,
+.program tbody .vBudoucnu,
 .program_legenda_typ.vBudoucnu::before {
   background-color: var(--program-barva-vBudoucnu);
 }
 
-.program_bunka-aktivita > div.plno,
+.program tbody .plno,
 .program_legenda_typ.plno::before {
   background-color: var(--program-barva-plno);
-  opacity: 0.5;
 }
 
-.program_bunka-aktivita > div.prihlasen,
+.program tbody .prihlasen,
 .program_legenda_typ.prihlasen::before {
   background-color: var(--program-barva-prihlasen);
 }
 
-.program_bunka-aktivita > div.sledujici,
+.program tbody .sledujici,
 .program_legenda_typ.sledujici::before {
   background-color: var(--program-barva-nahradnik);
 }
 
-.program_bunka-aktivita > div.organizator,
+.program tbody .organizator,
 .program_legenda_typ.organizator::before {
   background-color: var(--program-barva-organizator);
 }
 
 
 
-.program_bunka-aktivita > .kompaktni {
+.program td:not([rowspan]) > .kompaktni {
   height: 34px;
   padding: 2px;
   display: flex;
-  align-items: center;
+  align-items: center ;
 
   > a {
     position: relative;
@@ -462,7 +450,7 @@
   --popis-doztracena-bod: 30px;
 }
 
-.program_bunka-aktivita > .kompaktni {
+.program td:not([rowspan]) > .kompaktni {
   > a::after { background: linear-gradient(to left, var(--program-barva-otevrene), var(--popis-doztracena-mezibod), var(--program-barva-otevrene-pruhledna) var(--popis-doztracena-bod)); }
   &.vDalsiVlne > a::after { background: linear-gradient(to left, var(--program-barva-vDalsiVlne), var(--popis-doztracena-mezibod), var(--program-barva-vDalsiVlne-pruhledna) var(--popis-doztracena-bod)); }
   &.vBudoucnu > a::after { background: linear-gradient(to left, var(--program-barva-vBudoucnu), var(--popis-doztracena-mezibod), var(--program-barva-vBudoucnu-pruhledna) var(--popis-doztracena-bod)); }
@@ -498,8 +486,8 @@
 }
 
 .informaceSpustime {
-  flex: 0 0 auto;
-  margin-bottom: 8px;
+  align-self: flex-start;
+  flex: 1 1 auto;
 }
 
 .informaceSpustime>p {
@@ -507,7 +495,8 @@
 }
 
 .program_legenda_inner {
-  flex: 0 0 auto;
+  align-self: flex-end;
+  flex: 0 1 auto;
 }
 
 
@@ -543,141 +532,9 @@
 }
 
 /* oprava zobrazeni odhlasit na stejnem radku */
-.program_bunka-aktivita > div > form {
-  display: inline-flex !important;
-  align-items: center;
-  vertical-align: middle;
+.program td>div>form {
+  display: inline-block !important;
   padding-right: 3px;
-}
-
-.program .program_akceForm {
-  display: inline-flex;
-  align-items: center;
-  margin: 3px 6px 0 0;
-  vertical-align: middle;
-}
-
-.program .program_akceForm-prihlasit {
-  margin-top: 0;
-}
-
-.program .program_akceTlacitko {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 28px;
-  padding: 0 12px;
-  border: 1px solid var(--program-barva-akce);
-  border-radius: 999px;
-  background-color: var(--program-barva-akce);
-  box-sizing: border-box;
-  color: #fff;
-  font-size: 11px;
-  font-weight: bold;
-  line-height: 26px;
-  text-decoration: none;
-  white-space: nowrap;
-  transition:
-    background-color 120ms ease,
-    border-color 120ms ease,
-    box-shadow 120ms ease,
-    color 120ms ease,
-    opacity 120ms ease,
-    transform 120ms ease;
-}
-
-.program .program_akceTlacitko-prihlasit {
-  justify-content: flex-start;
-  gap: 4px;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: rgba(16, 17, 26, 0.84);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-decoration: none;
-  transition:
-    color 120ms ease,
-    opacity 120ms ease,
-    text-decoration-color 120ms ease;
-}
-
-.program .program_akceTlacitko:hover {
-  background-color: var(--program-barva-akce-hover);
-  border-color: var(--program-barva-akce-hover);
-  color: #fff;
-  text-decoration: none;
-}
-
-.program .program_akceTlacitko:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--program-barva-akce-focus);
-}
-
-.program .program_akceTlacitko:active {
-  background-color: var(--program-barva-akce-active);
-  border-color: var(--program-barva-akce-active);
-  transform: translateY(1px);
-}
-
-.program .program_akceTlacitko-prihlasit:hover {
-  background: transparent;
-  border-color: transparent;
-  color: #10111A;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.14em;
-}
-
-.program .program_akceTlacitko-prihlasit:focus-visible {
-  outline: none;
-  box-shadow: none;
-  color: #10111A;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.14em;
-}
-
-.program .program_akceTlacitko-prihlasit:active {
-  background: transparent;
-  border-color: transparent;
-  color: #000;
-  opacity: 0.74;
-  transform: none;
-}
-
-.program .program_akceTlacitko[aria-disabled="true"] {
-  background-color: var(--program-barva-akce-disabled);
-  border-color: var(--program-barva-akce-disabled);
-  color: rgba(255, 255, 255, 0.86);
-  cursor: not-allowed;
-}
-
-.program .program_akceTlacitko-prihlasit[aria-disabled="true"] {
-  background: transparent;
-  border-color: transparent;
-  color: rgba(16, 17, 26, 0.44);
-}
-
-.program .program_akceTlacitko_text {
-  display: inline-block;
-}
-
-.program .program_akceTlacitko_zamecek {
-  display: inline-flex;
-  align-items: center;
-}
-
-.program .program_akceTlacitko .hint {
-  color: #fff;
-}
-
-.program .program_akceTlacitko-prihlasit .hint {
-  color: #10111A;
 }
 
 .program a.programNahled_odkaz[href*="/legendy"]~.program_osobniTyp::before {
@@ -704,19 +561,19 @@
   margin-right: 200px;
 }
 
-.program div.prihlasen,
-.program div.sledujici,
-.program div.organizator {
+.program td div.prihlasen,
+.program td div.sledujici,
+.program td div.organizator {
   position: relative;
 }
 
-.program .sledujici form a:not(.program_akceTlacitko):before {
+.program .sledujici form a:before {
   content: "zrušit sledování";
   display: inline-block;
   font-size: 12px;
 }
 
-.program .sledujici form a:not(.program_akceTlacitko) {
+.program .sledujici form a {
   display: inline-block;
   white-space: nowrap;
   width: 0;
@@ -742,7 +599,7 @@
   padding-left: 8px;
 }
 
-.program .programNahled_odkaz {
+.program td .programNahled_odkaz {
   display: block;
   width: 100%;
   text-overflow: ellipsis;
@@ -830,114 +687,6 @@
     overflow-y: auto;
     display: block;
   }
-
-  &-zuzeny {
-    margin-right: 0;
-  }
-}
-
-.programPreview_obalNahledu {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  pointer-events: none;
-  visibility: hidden;
-
-  &-viditelny {
-    pointer-events: auto;
-    visibility: visible;
-
-    .programPreview_nahled {
-      display: flex;
-      justify-content: flex-end;
-    }
-  }
-
-  &-maData {
-    .programPreview_obsah {
-      display: flex;
-    }
-
-    .programPreview_placeholder {
-      display: block;
-    }
-  }
-}
-
-.programPreview_nahled {
-  position: absolute;
-  inset: 0;
-  display: none;
-  align-items: flex-start;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  box-shadow: none;
-  float: none;
-  overflow: visible;
-}
-
-.programPreview_placeholder {
-  position: absolute;
-  inset: 0;
-  display: none;
-  background: rgba(16, 17, 26, 0.14);
-  opacity: 0;
-  transition: opacity 160ms ease;
-}
-
-.programPreview_obalNahledu-viditelny .programPreview_placeholder {
-  opacity: 1;
-}
-
-.programPreview_obsah {
-  display: none;
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  left: auto;
-  z-index: 1;
-  width: min(500px, 100vw);
-  max-width: calc(100vw - 16px);
-  min-height: auto;
-  height: auto;
-  max-height: calc(100dvh - 24px);
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  background:
-    url('../blackarrow/program-nahled/spodek.jpg') no-repeat 0 100% / 100% auto,
-    url('../blackarrow/program-nahled/flek.jpg') no-repeat 20px 20px,
-    #F6F1EA;
-  border: 0;
-  box-sizing: border-box;
-  padding-bottom: 56px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
-  transform: translateX(100%);
-  transition: transform 180ms ease;
-}
-
-.programPreview_obalNahledu-viditelny.programPreview_obalNahledu-maData .programPreview_obsah {
-  transform: translateX(0);
-}
-
-.programNahled_zaviratko {
-  z-index: 1;
-}
-
-.programNahled_text {
-  min-height: 0;
-}
-
-@media (max-width: 800px) {
-  .programPreview_obsah {
-    top: 0;
-    right: 0;
-    left: auto;
-    max-width: 100vw;
-    max-height: 100dvh;
-  }
 }
 
 .modalOdhlasit {
@@ -967,31 +716,10 @@
     line-height: 48px;
     text-align: center;
     color: #fff;
-    background-color: var(--program-barva-akce);
-    border: 1px solid var(--program-barva-akce);
+    background-color: #e22630;
+    border: none;
     cursor: pointer;
     margin-left: 8px;
-    transition:
-      background-color 120ms ease,
-      border-color 120ms ease,
-      box-shadow 120ms ease,
-      transform 120ms ease;
-  }
-
-  button:hover {
-    background-color: var(--program-barva-akce-hover);
-    border-color: var(--program-barva-akce-hover);
-  }
-
-  button:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px var(--program-barva-akce-focus);
-  }
-
-  button:active {
-    background-color: var(--program-barva-akce-active);
-    border-color: var(--program-barva-akce-active);
-    transform: translateY(1px);
   }
 
   button.zpet {

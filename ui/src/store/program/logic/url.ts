@@ -151,3 +151,11 @@ const urlZTabulkaVýběr = (výběr: ProgramTabulkaVýběr) =>
 
 export const porovnejTabulkaVýběr = (v1: ProgramTabulkaVýběr, v2: ProgramTabulkaVýběr) =>
   urlZTabulkaVýběr(v1) === urlZTabulkaVýběr(v2);
+
+export const titulekZTabulkaVýběru = (výběr: ProgramTabulkaVýběr): string =>
+  výběr.typ === "můj"
+    ? "Můj program"
+    : `Program ${formátujDenVTýdnu(výběr.datum, true)}`;
+
+export const titulekZUrlStavu = (urlStav: Pick<ProgramURLStav, "výběr">): string =>
+  titulekZTabulkaVýběru(urlStav.výběr);

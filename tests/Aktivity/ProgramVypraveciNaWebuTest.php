@@ -117,4 +117,35 @@ class ProgramVypraveciNaWebuTest extends AbstractTestDb
         self::assertStringContainsString('Testovací DrD', $output);
         self::assertStringContainsString('Michal „Eyron" Široký', $output);
     }
+
+    /**
+     * @test
+     */
+    public function osobniModerniAdminProgramJeClenenyPoDnech(): void
+    {
+        $idAktivity = $this->vlozDrdAktivitu();
+        $idVypravece = $this->registrujVypravece($idAktivity);
+        $vypravec = \Uzivatel::zId($idVypravece);
+
+        self::assertNotNull($vypravec);
+
+        $program = new Program(
+            systemoveNastaveni: $this->createSystemoveNastaveniBehemRegistrace(),
+            uzivatel: $vypravec,
+            nastaveni: [
+                Program::OSOBNI => true,
+                Program::MODERNI_ADMIN_LAYOUT => true,
+            ],
+        );
+
+        ob_start();
+        $program->tisk();
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('program_admin_nadpisDne', $output);
+        self::assertStringContainsString('program_admin_grid', $output);
+        self::assertStringContainsString('program_admin_header-cas', $output);
+        self::assertStringNotContainsString('program_admin_tabulka', $output);
+        self::assertStringContainsString('Testovací DrD', $output);
+    }
 }
