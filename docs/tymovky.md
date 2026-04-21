@@ -79,7 +79,220 @@
     - co vše by mělo jít dělat přes admin ?
       - alespoň vše co by mohl normálně dělat kapitán
       - šef infa může odemknout tým
+    - Má se zobrazovat kdo je v cizím veřejném týmu, nebo jen počet členů?
+      - asi s anonymizací v pohodě
 
   - todo
     - importy
     - reporty
+
+# TODO:
+
+## Otevřené otázky (rozhodnout před implementací)
+- [ ] Je potřeba výběr kola pro netýmové vícekolové aktivity?
+- [ ] Je úprava limitu týmu kapitánem opravdu potřeba?
+  - limit se může odstranit dodatečně zatím ničemu nevadí.
+- [ ] Co přesně má jít dělat přes admin?
+
+
+## Základní přihlašovací flow
+- [X] Kapitán může založit tým přes nastavení týmů v UI
+  - [X] API endpoint `zalozPrazdnyTym` v `aktivitaTym.php`
+  - [X] Preact UI tlačítko v `NastaveniTymuView.tsx`
+  - [X] `AktivitaTym::zalozPrazdnyTym()` — generuje 4-místný kód, nastaví kapitána
+- [ ] Přihlášení kapitána na aktivitu (s detekcí konfliktu v čase)
+  - [X] `Aktivita::prihlas()` přijímá `?AktivitaTym $tym` parametr
+  - [ ] Ošetření chyby přihlášení po založení týmu — pokud selže přihlášení, tým visí prázdný (`aktivitaTym.php:77`)
+    - [ ] Transakční ošetření: pokud `prihlas()` selže, smazat právě vytvořený tým
+    - [ ] Nebo: odložit vytvoření týmu až po úspěšném přihlášení
+  - [ ] UI feedback při konfliktu v čase (hráč má jinou aktivitu ve stejný slot)
+- [X] Všichni členové vidí kód pro pozvání dalších hráčů
+  - [X] API vrací `kod` v GET response
+  - [X] UI zobrazuje kód v `NastaveniTymuView.tsx`
+- [X] Hráč se může přihlásit do týmu zadáním kódu
+  - [X] `AktivitaTym::najdiPodleKodu()` + `prihlasUzivateleDoTymu()`
+  - [X] UI formulář pro zadání kódu v `PrihlaseniTymu`
+- [ ] Tým se automaticky smaže po 30 minutách pokud nebyl dokončen
+  - [X] `AktivitaTym::rozpracovaneTymyIds()` a `smazRozpracovaneTymy()` — logika existuje
+  - [ ] Cron job / pravidelné spouštění mazání rozpracovaných týmů (viz sekce Cron joby)
+  - [ ] Výrazné varování v UI s odpočtem zbývajícího času
+
+## Kapitánské akce
+- [X] Předání kapitána
+  - [X] `AktivitaTym::nastavKapitana()` + API `predejKapitana`
+  - [X] UI v `NastaveniTymuView.tsx`
+  - [ ] Blokování na zamčeném týmu (po implementaci zamykání)
+- [X] Vyhození (a odhlášení) hráče z týmu
+  - [X] API `odhlasClena` + `AktivitaTym::odhlasUzivateleOdTymu()`
+  - [X] UI tlačítko u každého člena
+  - [ ] Blokování na zamčeném týmu (po implementaci zamykání)
+  - [ ] Odhlášení z aktivity při vyhození z týmu (ověřit že funguje)
+- [ ] Odhlášení kapitána sám sebe
+  - [ ] Pokud je v týmu víc lidí → automatické předání kapitána (nejstarší člen)
+    - [X] `AktivitaTymService::findOldestClen()` existuje
+    - [ ] Napojení na flow odhlášení kapitána
+  - [ ] Pokud je kapitán poslední → rozpuštění týmu
+    - [X] `AktivitaTym::rozebratTym()` existuje
+    - [ ] UI flow: "Opravdu chcete opustit a rozpustit tým?"
+  - [ ] API endpoint / rozšíření existujícího endpointu
+- [X] Úprava limitu týmu (rozmezí min–max kapacity)
+  - [X] `AktivitaTym::nastavLimit()` + API `nastavLimit`
+  - [X] UI slider/input v `NastaveniTymuView.tsx`
+  - [ ] Blokování na zamčeném týmu (po implementaci zamykání)
+
+## Veřejné týmy
+- [X] Přepínání veřejnosti týmu
+  - [X] `AktivitaTym::nastavVerejnost()` + API `nastavVerejnost`
+  - [X] UI toggle v `NastaveniTymuView.tsx`
+- [X] Seznam veřejných týmů zobrazený v UI
+  - [X] API vrací `vsechnyTymy` s info o veřejných týmech
+  - [X] `AktivitaTymService::findVerejneByAktivita()` existuje
+- [ ] Přihlášení do veřejného týmu bez kódu
+  - [X] Backend logika existuje (kód není nutný pokud tým veřejný?)
+  - [ ] Ověřit UI flow — kliknutí na veřejný tým → přihlášení bez zadání kódu
+
+## Anonymizace
+- [ ] Zobrazovat pouze přezdívku přihlášených hráčů v týmu
+  - [ ] API vrací přezdívku místo plného jména pro neadmin uživatele
+  - [X] API aktuálně vrací `jmeno` — potřeba změnit na nick/přezdívku
+  - [ ] V admin panelu zobrazovat plné jméno (beze změny)
+
+## Zamykání týmu
+- [ ] DB sloupec `zamcen` (TINYINT / DATETIME) v tabulce `akce_tym`
+  - [ ] Migrace pro přidání sloupce
+  - [ ] Aktualizace Doctrine entity `Team.php`
+  - [ ] Aktualizace `AktivitaTymService.php` a `AktivitaTym.php`
+- [ ] Analýza jestli už existuje nějaké zamykání (v kódu je `HAJENI_TEAMU_HODIN = 72` ale žádný stav zamčení)
+- [ ] Backend logika zamykání
+  - [ ] Metoda `zamknout()` v `AktivitaTym` — validace min kapacity
+  - [ ] Metoda `jeZamceny()` — kontrola stavu
+  - [ ] Blokování všech editačních operací na zamčeném týmu (přihlášení, odhlášení, předání kapitána, změna limitu)
+- [ ] API endpoint pro zamčení týmu (POST akce v `aktivitaTym.php`)
+- [ ] UI tlačítko "Zamknout tým" v `NastaveniTymuView.tsx`
+  - [ ] Tlačítko disabled pokud tým nemá min kapacitu
+  - [ ] Potvrzovací dialog — zamčení je nevratné pro hráče
+- [ ] Vizuální indikátor zbývajícího času do povinného zamčení (72h odpočet)
+  - [X] `casZalozeniMs()` existuje a UI ho využívá pro odpočet
+  - [ ] Výrazná vizuální urgence (barva, ikona) když zbývá málo času
+- [ ] Zamčený tým nelze editovat (odhlašování, přihlašování, předávání kapitána)
+  - [ ] Kontrola `jeZamceny()` ve všech mutujících metodách `AktivitaTymService`
+  - [ ] API vrací chybu při pokusu o editaci zamčeného týmu
+  - [ ] UI skryje/zašedí editační prvky pro zamčený tým
+- [ ] Každý zamčený tým je automaticky nastaven jako neveřejný
+  - [ ] `zamknout()` nastaví `verejny = false`
+- [ ] Automatická akce po 72h pokud tým nezamčen
+  - [ ] DB sloupec na aktivitě: zda po 72h zveřejnit nebo smazat (`AkceSeznamSqlStruktura.php:32`)
+  - [ ] Migrace pro přidání sloupce do `akce_seznam`
+  - [ ] Cron job / pravidelná kontrola expirovaných týmů (viz sekce Cron joby)
+    - [X] `AktivitaTym::expirovaneTymyIds()` — detekce existuje
+    - [ ] Akce nad expirovanými: zveřejnění nebo smazání (podle nastavení aktivity)
+
+## Odemčení týmu
+- [ ] Backend logika odemčení
+  - [ ] Metoda `odemknout()` v `AktivitaTym` — reset `zamcen`, reset `zalozen` na `NOW()` (nový 72h limit)
+  - [ ] Oprávnění: pouze šéf infa (admin) nebo systém (odhlášení neplatiče)
+- [ ] Šéf infa může tým odemknout přes admin
+  - [ ] Tlačítko "Odemknout" v admin panelu `tymy.php` / `tymy.xtpl`
+  - [ ] Kontrola oprávnění (šéf infa)
+- [ ] Automatické odemčení při odhlášení neplatiče
+  - [ ] Hook do procesu odhlášení neplatiče — detekce že uživatel je v zamčeném týmu
+  - [ ] Odemknout tým + vyhodit neplatiče z týmu
+  - [ ] Po odemčení běží limit 72h znova (reset `zalozen`)
+
+## Cron joby / automatizace
+- [ ] Pravidelné mazání rozpracovaných týmů (starší než 30 min, 0 členů)
+  - [X] Logika `smazRozpracovaneTymy()` existuje
+  - [ ] Cron job nebo hook který ji pravidelně volá
+- [ ] Pravidelná kontrola 72h expirace nezamčených týmů
+  - [X] Logika `expirovaneTymyIds()` existuje
+  - [ ] Cron job: zveřejnit nebo smazat podle nastavení aktivity
+- [ ] Pravidelná kontrola 24h varování (48h od založení)
+  - [ ] Cron job: odeslat mail kapitánovi pokud zbývá 24h a tým není zamčen
+
+## Maily
+- [ ] Mailové šablony pro týmové události
+  - [ ] Šablona: tým byl zamčen (potvrzení všem členům)
+  - [ ] Šablona: tým byl odemčen (upozornění všem členům — akce potřebná)
+  - [ ] Šablona: zbývá 24h do povinného zamčení (upozornění kapitánovi)
+- [ ] Backend odesílání mailů
+  - [ ] Odeslání při zamčení týmu (v metodě `zamknout()`)
+  - [ ] Odeslání při odemčení týmu (v metodě `odemknout()`)
+  - [ ] Odeslání 24h připomínky z cron jobu
+    - [ ] Deduplikace — neposlat připomínku víckrát
+    - [ ] DB sloupec `pripomenuti_odeslano` nebo jiný mechanismus
+
+## Technický dluh / refaktoring
+- [ ] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)
+  - [ ] Nahradit `dite` sloupec novým turnajovým systémem (tabulka `akce_tym_akce` + kola)
+  - [ ] Odstranit metody: `deti()`, `maDite()`, `detiIds()`, `detiDbString()`, `pridejDite()`
+  - [ ] Odstranit `parseUpravyTabulkaDeti()`, `parseUpravyTabulkaRodice()`
+  - [ ] Přepsat přihlašovací logiku: `zkontrolujPrihlaseniNavazujicichAktivit()` bez dětí
+  - [ ] Přepsat odhlašovací logiku: odhlášení z potomků → odhlášení z turnaje
+  - [ ] Odstranit sloupec `dite` z DB (migrace)
+  - [ ] Aktualizovat `AkceSeznamSqlStruktura::DITE`
+- [ ] Odstranit/refaktorovat tisk programu (`Program.php` — 5 výskytů `todo(tym): odstraněný tisku programu`)
+  - [ ] Metody `tiskniTabulku()`, `tiskniObsah()`, `tiskniAktivitu()`, `prazdnaMistnost()`
+  - [ ] Nahradit novým renderovacím systémem pro program s podporou týmů
+- [ ] Přihlašovací flow přes nový způsob pro týmové aktivity (`Aktivita.php:3131`)
+  - [ ] Nahradit hardcoded HTML zámku za nový přihlašovací widget
+  - [ ] Sjednotit flow přihlášení pro týmové i netýmové aktivity
+- [ ] `PLUS_MINUS` příznak v Program — nejasné chování (`Program.php:45`)
+  - [ ] Zjistit zda se `PLUS_MINUS` ještě používá nebo je nahrazen novým UI
+  - [ ] Případně odstranit
+
+## Vícekolové aktivity / turnaje
+- [ ] Aktivita jako součást turnaje s definicí kola
+  - [X] Tabulka `akce_tym_akce` propojuje tým s více aktivitami
+  - [ ] Definice čísla kola na aktivitě (DB sloupec? nebo odvozeno z pořadí?)
+  - [ ] Validace: každý tým má v každém kole právě jednu aktivitu
+- [ ] Výběr termínů pro tým (skip pokud v žádném kole není víc možností)
+  - [X] API endpoint `potvrdVyberAktivit`
+  - [X] `jeTrebaPredpripravitTym()` detekce zda je výběr potřeba
+  - [ ] UI pro výběr termínů ve vícekolových turnajích (netestováno / nedokončeno?)
+  - [ ] UI flow: nejdřív výběr kol → pak založení týmu → pak přihlášení
+- [ ] Přihlašování na všechna kola jako jedna akce
+  - [X] API `potvrdVyberAktivit` existuje
+  - [ ] Ověřit atomicitu — pokud jedno kolo selže, rollback všech
+- [ ] Různá kapacita pro různá kola
+  - [ ] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
+  - [ ] UI zobrazuje kapacitu per kolo
+- [ ] Sledování týmové vícekolové aktivity
+  - [ ] Pošle email když se uvolní místo pro nový tým
+  - [ ] Neodhlaš ze sledování pokud hráč může ve všech kolech sledovat alespoň jednu aktivitu
+
+## Admin program
+- [ ] Přihlašování/odhlašování v admin programu pro vybraného uživatele, ne přihlášeného orga (`program-uzivatele.php:117`)
+  - [ ] Admin program posílá `id_uzivatele` vybraného uživatele do API
+  - [ ] API akceptuje admin operace jménem jiného uživatele
+- [ ] Definovat co vše admin program musí podporovat (`program-uzivatele.php:118`)
+  - [ ] Minimálně: vše co kapitán (přihlášení/odhlášení členů, předání kapitána, změna limitu, zamčení týmu)
+  - [ ] Navíc (šéf infa a další vyšší org role): odemčení týmu, přidání nad max kapacitu (ignorovatLimity), rozpuštění týmu, editace zamčeného týmu (přihlášení/odhlášení členů bez ohledu na zamčení)
+- [ ] Admin může editovat zamčený tým nebo ho alespoň odemknout
+  - [X] Admin rozebírání týmu existuje v `tymy.php`
+  - [ ] Tlačítko odemknout v admin panelu
+  - [ ] Editace zamčeného týmu (přihlašování/odhlašování členů přes admin)
+- [ ] Admin může přidat lidi nad max týmu (otázka — flag `ignorovatLimity`)
+  - [X] `zalozPrazdnyTym()` a `prihlasUzivateleDoTymu()` mají parametr `ignorovatLimity`
+  - [ ] Admin UI pro přidání člena s overridem limitu
+- [ ] Tisk programu z adminu
+  - [ ] Souvisí s refaktoringem tisku programu (`Program.php` TODO)
+
+## Prezenčky
+- [ ] Prezenčky pro týmové aktivity
+  - [ ] Zobrazení týmů a jejich členů v prezenční listině
+  - [ ] Hromadné označení celého týmu jako přítomný
+  - [ ] Individuální označení přítomnosti členů týmu
+
+## Importy & reporty
+- [ ] Importy pro týmové aktivity
+  - [ ] Rozšíření stávajícího importeru o podporu týmů (`ImporterUcastnikuNaAktivitu.php:163`)
+  - [ ] Import celých týmů (kapitán + členové + přiřazení na aktivity)
+  - [ ] Formát CSV/importu: přidat sloupec pro tým (kód nebo název)
+  - [ ] Validace importovaných dat (min/max kapacita, duplicity)
+- [ ] Reporty pro týmové aktivity
+  - [ ] Export seznamu týmů a členů (CSV/Excel)
+  - [ ] Statistiky: počet týmů, průměrná velikost, zamčené vs otevřené
+  - [ ] Report pro organizátory turnaje: přehled týmů per kolo
+
+
+
