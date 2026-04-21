@@ -368,8 +368,7 @@ SQL,
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
             'povinneUdaje'         => $this->registrace->povinneUdajeProUbytovaniHtml(
-                'Povinné údaje pro ubytování',
-                'Vzhledem k zákonným povinnostem bohužel musíme odevzdávat seznam ubytovaných s následujícími osobními údaji. Chybné vyplnění následujících polí může u infopultu vést k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních! (Případné stížnosti prosíme rovnou vašim politickým zástupcům.)',
+                'Povinné údaje pro ubytování'
             ),
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);

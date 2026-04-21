@@ -222,13 +222,11 @@ HTML;
             <div class="gc_tooltip">
               Proč potřebujeme osobní údaje?
               <div class="tooltip_obsah">
-                Vyplň prosím následující údaje o sobě. Nejsme žádný velký bratr, ale potřebujeme je,
-                abychom:<br>
+                Potřebujeme je, abychom:<br>
                 <ul>
-                  <li>Tě mohli ubytovat a splnit své další zákonné povinnosti</li>
-                  <li>maximálně urychlili tvoji registraci na místě a nemusel(a) jsi dlouho čekat ve frontě
-                  </li>
-                  <li>věděli, že jsi to ty</li>
+                  <li>Tě identifikovali při registraci na místě</li>
+                  <li>urychlili Tvé odbavení</li>
+                  <li>Tě mohli ubytovat a splnit související zákonné povinnosti</li>
                 </ul>
               </div>
             </div>
@@ -305,10 +303,9 @@ HTML
             <div class="gc_tooltip">
               Shrnutí souhlasu
               <div class="tooltip_obsah">
-                Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je předáme jen těm, komu to bude
-                kvůli vyloženě potřeba (např. vypravěčům nebo poskytovateli ubytování). Kontaktovat tě budeme v
-                rozumné míře pouze v souvislosti s GameConem.<br><br>
-                Plné právní znění najdeš <a href="legal" target="_blank">zde</a>
+                Tvé údaje předáme jen těm, komu to ze zákona či z provozní potřeby musíme doložit (např. poskytovateli ubytování či vypravěčům).<br><br>
+                Kontaktovat Tě budeme pouze v rozumné míře a v souvislosti s GameConem.<br><br>
+                Plné právní znění najdeš <a href="legal" target="_blank">zde</a>.
               </div>
             </div>
           </div>
@@ -419,7 +416,7 @@ HTML
     <div class="gc_tooltip" style="position: relative; top: -4em;">
         ℹ️
         <div class="tooltip_obsah" style="right: -247px; top: 2em;">
-            Vzhledem k zákonným povinnostem bohužel musíme odevzdávat seznam ubytovaných s následujícími osobními údaji. Chybné vyplnění následujících polí může u infopultu vést k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních! (Případné stížnosti prosíme rovnou vašim politickým zástupcům.)
+            {$tooltip}
         </div>
     </div>
 </div>
@@ -443,7 +440,21 @@ HTML;
         )}
 </div>
 
-<h2 class="formular_sekceNadpis">Adresa trvalého pobytu</h2>
+<div>
+    <h2 class="formular_sekceNadpis" style="float: left">Adresa trvalého pobytu</h2>
+
+    <div class="formular_tooltip">
+        <div class="gc_tooltip">
+            Proč potřebujeme adresu?
+            <div class="tooltip_obsah">
+                Informaci o trvalém bydlišti jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.<br><br>
+                Tím je <b>Vysoká škola báňská - Technická univerzita Ostrava, Koleje Poruba Studentská 1770/1 708 00 Ostrava-Poruba</b>.<br><br>
+                Chybné vyplnění polí může vést u infopultu k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních.
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>
 
 <div class="formular_sloupce">
     {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE)}
@@ -460,7 +471,21 @@ HTML;
         )}
 </div>
 
-<h2 class="formular_sekceNadpis">Platný doklad totožnosti</h2>
+<div>
+    <h2 class="formular_sekceNadpis" style="float: left">Platný doklad totožnosti</h2>
+
+    <div class="formular_tooltip">
+        <div class="gc_tooltip">
+            Proč potřebujeme doklad?
+            <div class="tooltip_obsah">
+                Číslo identifikačního dokladu jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.<br><br>
+                Tím je <b>Vysoká škola báňská - Technická univerzita Ostrava, Koleje Poruba Studentská 1770/1 708 00 Ostrava-Poruba</b>.<br><br>
+                Chybné vyplnění polí může vést u infopultu k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních.
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>
 
 <div class="formular_sloupce">
     {$this->select(
