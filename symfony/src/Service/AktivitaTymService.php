@@ -205,6 +205,59 @@ class AktivitaTymService
     }
 
     /**
+     * Zkontroluje, zda má tým přiřazené alespoň jednu aktivitu z každého kola turnaje.
+     * Pokud tým není na turnajové aktivitě, vrací true.
+     * Tým je vždy na aktivitách maximálně jednoho turnaje.
+     */
+    public function maPrirazeneVsechnaKolaTurnaje(int $idTymu): bool
+    {
+        $team = $this->teamRepository->find($idTymu);
+        if (! $team) {
+            throw new \Chyba('Tým nenalezen');
+        }
+
+        $aktivity = $team->getAktivity();
+        if ($aktivity->isEmpty()) {
+            throw new \Chyba('Tým nemá aktivitu');
+        }
+
+        // Zjistíme turnaj z první aktivity (tým je maximálně na jednom turnaji)
+        $turnaj = null;
+        foreach ($aktivity as $aktivita) {
+            if ($aktivita->getTournament()) {
+                $turnaj = $aktivita->getTournament();
+                break;
+            }
+        }
+
+        // Pokud tým není na žádném turnaji, vrátíme true
+        if (!$turnaj) {
+            return true;
+        }
+
+        // Zjistíme maximální číslo kola v turnaji
+        $maxKolo = (int) max(array_map(
+            fn ($a) => $a->getTurnajKolo() ?? 0,
+            $turnaj->getAktivity()->toArray(),
+        ));
+
+        // Zjistíme čísla kol, ve kterých má tým aktivitu
+        $teamKola = array_map(
+            fn ($a) => $a->getTurnajKolo(),
+            array_filter($aktivity->toArray(), fn ($a) => $a->getTurnajKolo() !== null),
+        );
+
+        // Zkontrolujeme, že tým má aktivitu v každém kole
+        for ($kolo = 1; $kolo <= $maxKolo; $kolo++) {
+            if (! in_array($kolo, $teamKola, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @return int[]
      */
     public function rozpracovaneTymyIds(?int $casNaPripraveniMinut = null): array

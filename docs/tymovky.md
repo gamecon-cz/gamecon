@@ -103,9 +103,14 @@
 - [ ] Přihlášení kapitána na aktivitu (s detekcí konfliktu v čase)
   - [X] `Aktivita::prihlas()` přijímá `?AktivitaTym $tym` parametr
   - [ ] Ošetření chyby přihlášení po založení týmu — pokud selže přihlášení, tým visí prázdný (`aktivitaTym.php:77`)
-    - [ ] Transakční ošetření: pokud `prihlas()` selže, smazat právě vytvořený tým
-    - [ ] Nebo: odložit vytvoření týmu až po úspěšném přihlášení
+    - [ ] pokud je aktivita týmová
+      - [X] nejdříve vždy založit tým
+      - [ ] automaticky přiřadit všechny aktivity týmu pokud má každé kolo pouze jednu možnou aktivitu
+      - [ ] automaticky přihlásit kapitána
+- [ ] výběr kola týmu
+- [ ] přihlášení kapitána do týmu
   - [ ] UI feedback při konfliktu v čase (hráč má jinou aktivitu ve stejný slot)
+- [ ] ošetření práce s nepřipraveným týmem
 - [X] Všichni členové vidí kód pro pozvání dalších hráčů
   - [X] API vrací `kod` v GET response
   - [X] UI zobrazuje kód v `NastaveniTymuView.tsx`
@@ -276,6 +281,9 @@
   - [ ] Admin UI pro přidání člena s overridem limitu
 - [ ] Tisk programu z adminu
   - [ ] Souvisí s refaktoringem tisku programu (`Program.php` TODO)
+
+## další
+- [ ] přidat nějaké další kontroly před zveřejňováním aktivity ? jako například že každé kolo turnaje má nějakou aktivitu až do max čísla jinak musí org přečíslovat turnaj ?
 
 ## Prezenčky
 - [ ] Prezenčky pro týmové aktivity

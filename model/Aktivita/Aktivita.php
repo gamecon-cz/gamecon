@@ -2451,8 +2451,10 @@ SQL
     }
 
     /**
-     *  Přihlásí uživatele na aktivitu. Pokud tým neexistuje a jedná se o týmovou aktivitu tak se pokusí nejdříve tým založit
-     *  Při přihlašování týmu z přípravou (výběrem aktivit) dojde nejdříve k vytvoření týmu ve kterém nikdo přihlášený není (pouze kapitán je nastaven ale ani ten není v týmu). Potom
+     *  Přihlásí uživatele na aktivitu.
+     *  Pro tymovky:
+     *  - pokud není předaný tým, pokusí se ho založit
+     *  - pokud je aktivita turnaj s více termíny v jednom kole tak přihlášení na samotné aktivity přeskočí
      *
      * @throws \Chyba
      */
@@ -2469,6 +2471,17 @@ SQL
         }
         $idAktivity = $this->id();
         $idUzivatele = $uzivatel->id();
+        $zakladaTym = $this->tymova() && $tym == null;
+
+        if ($zakladaTym) {
+            $tym = AktivitaTym::zalozPrazdnyTym($idUzivatele, $idAktivity, !!($parametry & self::IGNOROVAT_LIMIT));
+        }
+
+        if ($this->jeSoucastiTurnaje() && $tym && $tym->jeRozpracovany() && $tym->maPrirazeneVsechnaKolaTurnaje()) {
+            // todo(tym): pokus se přihlásit na kola turnaje pokud není nikde na výběr
+            // je potřeba nejdříve vybrat kola turnaje
+            return false;
+        }
 
         // todo(tym): odstranit deti
         // $deti se používá pro kontroly ale i pro přihlašování
@@ -2501,7 +2514,7 @@ SQL
         if ($this->tymova()) {
             $idTymu = $tym ? $tym->getId() : 0;
             // tady už ke kontrole na přihlášení došlo předtím.
-            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $idTymu, false);
+            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $idTymu);
         }
 
         // odhlášení náhradnictví v kolidujících aktivitách

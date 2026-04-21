@@ -227,6 +227,15 @@ class AktivitaTym
         return self::service()->jeRozpracovany($this->getId());
     }
 
+    /**
+     * Zkontroluje, zda má tým přiřazené alespoň jednu aktivitu z každého kola turnaje.
+     * Pokud tým není na turnajové aktivitě, vrací true.
+     */
+    public function maPrirazeneVsechnaKolaTurnaje(): bool
+    {
+        return self::service()->maPrirazeneVsechnaKolaTurnaje($this->getId());
+    }
+
     /** @return int[] */
     public static function rozpracovaneTymyIds(?int $casNaPripraveniMinut = null): array
     {
