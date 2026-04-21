@@ -105,8 +105,8 @@
   - [ ] Ošetření chyby přihlášení po založení týmu — pokud selže přihlášení, tým visí prázdný (`aktivitaTym.php:77`)
     - [ ] pokud je aktivita týmová
       - [X] nejdříve vždy založit tým
-      - [ ] automaticky přiřadit všechny aktivity týmu pokud má každé kolo pouze jednu možnou aktivitu
-      - [ ] automaticky přihlásit kapitána
+      - [X] automaticky přiřadit všechny aktivity týmu pokud má každé kolo pouze jednu možnou aktivitu
+      - [X] automaticky přihlásit kapitána
 - [ ] výběr kola týmu
 - [ ] přihlášení kapitána do týmu
   - [ ] UI feedback při konfliktu v čase (hráč má jinou aktivitu ve stejný slot)
@@ -284,6 +284,8 @@
 
 ## další
 - [ ] přidat nějaké další kontroly před zveřejňováním aktivity ? jako například že každé kolo turnaje má nějakou aktivitu až do max čísla jinak musí org přečíslovat turnaj ?
+- [ ] nedostatek - tým je vždy přihlášen na aktivitu ve které kapitán tým zakládal (kdyby šlo o kolo z výběrem tak tohle je jako by si vybral tenhle konrétní termín) tohle neumožňuje explicitnost výběru
+
 
 ## Prezenčky
 - [ ] Prezenčky pro týmové aktivity

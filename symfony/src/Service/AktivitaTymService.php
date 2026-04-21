@@ -488,6 +488,11 @@ class AktivitaTymService
 
     public function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): Team
     {
+        $kapitan = $this->userRepository->find($idUzivatele)
+            ?? throw new \Chyba('Uživatel nenalezen');
+        $aktivita = $this->activityRepository->find($idAktivity)
+            ?? throw new \Chyba('Aktivita nenalezena');
+
         if (!$ignorovatLimity) {
             $this->zkontrolujMuzeZalozitTym($idAktivity);
         }
@@ -499,11 +504,6 @@ class AktivitaTymService
         do {
             $kod = rand(1000, 9999);
         } while (in_array($kod, $existujiciKody, true));
-
-        $kapitan = $this->userRepository->find($idUzivatele)
-            ?? throw new \Chyba('Uživatel nenalezen');
-        $aktivita = $this->activityRepository->find($idAktivity)
-            ?? throw new \Chyba('Aktivita nenalezena');
 
         $team = new Team();
         $team->setKod($kod);

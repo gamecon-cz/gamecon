@@ -77,6 +77,7 @@ class Aktivita
     private ?array            $tagy       = null;
     private ?AktivitaPrezence $prezence   = null;
     private ?Filesystem       $filesystem = null;
+    private ?AktivitaTurnaj   $turnaj     = null;
 
     const AJAX_KLIC             = 'aEditFormTest'; // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
     const OBRAZEK_KLIC          = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
@@ -479,6 +480,23 @@ SQL
     public function jeSoucastiTurnaje(): bool
     {
         return $this->idTurnaje() !== null;
+    }
+
+    /**
+     * Vrátí AktivitaTurnaj objekt, pokud je aktivita součástí turnaje, jinak null.
+     * Lazy-loads turnaj na první požadavek.
+     */
+    public function turnaj(): ?AktivitaTurnaj
+    {
+        if (!$this->jeSoucastiTurnaje()) {
+            return null;
+        }
+
+        if ($this->turnaj === null) {
+            $this->turnaj = AktivitaTurnaj::najdiPodleId($this->idTurnaje());
+        }
+
+        return $this->turnaj;
     }
 
     public function jeToDalsiKolo(): bool
@@ -2477,10 +2495,14 @@ SQL
             $tym = AktivitaTym::zalozPrazdnyTym($idUzivatele, $idAktivity, !!($parametry & self::IGNOROVAT_LIMIT));
         }
 
-        if ($this->jeSoucastiTurnaje() && $tym && $tym->jeRozpracovany() && $tym->maPrirazeneVsechnaKolaTurnaje()) {
-            // todo(tym): pokus se přihlásit na kola turnaje pokud není nikde na výběr
-            // je potřeba nejdříve vybrat kola turnaje
-            return false;
+        if ($this->jeSoucastiTurnaje() && $tym
+            && $tym->jeRozpracovany()
+            && !$tym->maPrirazeneVsechnaKolaTurnaje()
+        ) {
+            $prirazeny = $this->turnaj()?->priradTymNaAutomatickaKola($tym) ?? false;
+            if (!$prirazeny) {
+                return false;
+            }
         }
 
         // todo(tym): odstranit deti
