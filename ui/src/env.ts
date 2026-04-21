@@ -13,14 +13,14 @@ type GameconKonstanty = {
    */
   IS_DEV_SERVER: boolean,
   /**
-   * Chrome redux devtools. Zapnout v php nastavení serveru pomocí 
+   * Chrome redux devtools. Zapnout v php nastavení serveru pomocí
 define('FORCE_REDUX_DEVTOOLS', true);
    */
   FORCE_REDUX_DEVTOOLS: boolean,
   /**
    * cesta k této stráce v rámci které se preact využívá.
    * například /web/program/
-   * preact by měl mít ve zprávě pouze část url 
+   * preact by měl mít ve zprávě pouze část url
    *   následující za touto cestou
    */
   BASE_PATH_PAGE: string,
@@ -45,6 +45,7 @@ define('FORCE_REDUX_DEVTOOLS', true);
   PROGRAM_ZACATEK: number;
   PROGRAM_KONEC: number;
   HAJENI_TEAMU_HODIN: number;
+  CAS_NA_PRIPRAVENI_TYMU_MINUT: number;
   /**
    * Jestli je program zobrazen v adminu (jiný uživatel než přihlášený)
    */
@@ -56,7 +57,7 @@ type GameconPřednačtení = {
 };
 
 declare global {
-  // interface se automaticky propojí s existujícím 
+  // interface se automaticky propojí s existujícím
   //   proto je nutné použít interface a né type
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
@@ -93,6 +94,7 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   PROGRAM_ZACATEK: 8,
   PROGRAM_KONEC: 6,
   HAJENI_TEAMU_HODIN: 72,
+  CAS_NA_PRIPRAVENI_TYMU_MINUT: 15,
   JE_ADMIN: false,
 };
 

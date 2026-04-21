@@ -3,6 +3,7 @@ import { useState, useEffect } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
 import { AktivitaKVyberu, TymVSeznamu } from "../../api/program";
+import { PripravaTymuDemo } from "../PripravaTymu/Demo";
 
 type VyberAktivitState = {
   kodTymu: number;
@@ -118,6 +119,8 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const [kódPřipojeníDoTýmu, setKódPřipojeníDoTýmu] = useState("");
   const [zkopírováno, setZkopírováno] = useState(false);
   const [potvrzení, setPotvrzení] = useState<{ text: string; akce: () => void } | null>(null);
+  // todo(tym): smazat demo
+  const [ukažDemo, setUkažDemo] = useState(false);
 
   const zkopírujKód = (kód: number) => {
     void navigator.clipboard.writeText(String(kód)).then(() => {
@@ -134,6 +137,17 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const maxKapacita = data?.maxKapacita ?? null;
   const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
   const odpočet = useOdpočet(přihlášen && !tymJePlny ? data?.casZalozeniMs : undefined);
+
+  if (ukažDemo) {
+    return (
+      <div className="modal_obal" onClick={(e) => { if (e.target === e.currentTarget) setUkažDemo(false); }}>
+        <div className="modal clearfix" style={{ maxHeight: "80vh", overflowY: "auto" }}>
+          <button class="vpravo zpet" onClick={() => setUkažDemo(false)}>Zavřít</button>
+          <PripravaTymuDemo />
+        </div>
+      </div>
+    );
+  }
 
   if (potvrzení) {
     return (
@@ -162,9 +176,12 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
             <h3 style={{ float: "left" }}>
               Nastavení týmu{nazevAktivity ? ` aktivity ${nazevAktivity}` : ""}
             </h3>
-            {přihlášen && onOdhlásit && (
-              <button class="vpravo" onClick={sPotvrzením(`Opravdu se chcete odhlásit z aktivity${nazevAktivity ? ` ${nazevAktivity}` : ""} a opustit tým?`, onOdhlásit)}>Odhlásit!</button>
-            )}
+            <div class="vpravo" style={{ display: "flex", gap: "8px" }}>
+              <button style={{ width: "unset" }} onClick={() => setUkažDemo(true)}>🧪 Demo</button>
+              {přihlášen && onOdhlásit && (
+                <button class="" onClick={sPotvrzením(`Opravdu se chcete odhlásit z aktivity${nazevAktivity ? ` ${nazevAktivity}` : ""} a opustit tým?`, onOdhlásit)}>Odhlásit!</button>
+              )}
+            </div>
           </div>
 
           {data?.casText && (

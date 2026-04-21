@@ -103,12 +103,13 @@
 - [ ] Přihlášení kapitána na aktivitu (s detekcí konfliktu v čase)
   - [X] `Aktivita::prihlas()` přijímá `?AktivitaTym $tym` parametr
   - [ ] Ošetření chyby přihlášení po založení týmu — pokud selže přihlášení, tým visí prázdný (`aktivitaTym.php:77`)
-    - [ ] pokud je aktivita týmová
+    - [X] pokud je aktivita týmová
       - [X] nejdříve vždy založit tým
       - [X] automaticky přiřadit všechny aktivity týmu pokud má každé kolo pouze jednu možnou aktivitu
       - [X] automaticky přihlásit kapitána
-- [ ] výběr kola týmu
-- [ ] přihlášení kapitána do týmu
+    - [ ] výběr kola týmu a přihlášení kapitána do týmu
+      - [ ] ui mock
+      - [ ] api
   - [ ] UI feedback při konfliktu v čase (hráč má jinou aktivitu ve stejný slot)
 - [ ] ošetření práce s nepřipraveným týmem
 - [X] Všichni členové vidí kód pro pozvání dalších hráčů
