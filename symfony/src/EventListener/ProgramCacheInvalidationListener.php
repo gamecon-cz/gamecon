@@ -12,6 +12,7 @@ use App\Entity\CategoryTag;
 use App\Entity\Tag;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
+use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PostPersistEventArgs;
 use Doctrine\ORM\Event\PostRemoveEventArgs;
 use Doctrine\ORM\Event\PostUpdateEventArgs;
@@ -35,6 +36,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 #[AsDoctrineListener(event: Events::postPersist)]
 #[AsDoctrineListener(event: Events::postUpdate)]
 #[AsDoctrineListener(event: Events::postRemove)]
+#[AsDoctrineListener(event: Events::postFlush)]
 final class ProgramCacheInvalidationListener
 {
     /**
@@ -42,6 +44,13 @@ final class ProgramCacheInvalidationListener
      * jméno (vypraveci[] v aktivity.json).
      */
     private const USER_DISPLAY_FIELDS = ['login', 'jmeno', 'prijmeni'];
+
+    /**
+     * Příznak, že v aktuálním flushi došlo ke změně, která vyžaduje
+     * spuštění workeru. Worker spouštíme až v postFlush (po commitu),
+     * aby nový proces viděl commitnutá data.
+     */
+    private bool $shouldStartWorker = false;
 
     public function postPersist(PostPersistEventArgs $args): void
     {
@@ -84,10 +93,24 @@ final class ProgramCacheInvalidationListener
 
         $generator = new ProgramStaticFileGenerator(SystemoveNastaveni::zGlobals());
         foreach ($flags as $flag) {
-            // tryStartWorker: false — worker se spustí příští HTTP request / cron;
-            // jinak bychom v rámci jednoho flush spawnovali víc procesů.
+            // tryStartWorker: false — worker nesmíme spustit uvnitř ještě
+            // necommitnuté transakce (nový proces má vlastní connection
+            // a viděl by stará data). Spouštíme ho až v postFlush.
             $generator->touchDirtyFlag($flag, tryStartWorker: false);
         }
+        $this->shouldStartWorker = true;
+    }
+
+    public function postFlush(PostFlushEventArgs $args): void
+    {
+        if (! $this->shouldStartWorker) {
+            return;
+        }
+        $this->shouldStartWorker = false;
+
+        // postFlush běží po commitu transakce, takže spuštěný worker
+        // uvidí aktuální data v DB.
+        (new ProgramStaticFileGenerator(SystemoveNastaveni::zGlobals()))->tryStartWorker();
     }
 
     /**
