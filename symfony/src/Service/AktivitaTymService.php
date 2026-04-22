@@ -183,6 +183,9 @@ class AktivitaTymService
             return;
         }
         $team->setZamceny($zamceny);
+        if ($zamceny) {
+            $team->setVerejny(false);
+        }
         $this->em->flush();
     }
 

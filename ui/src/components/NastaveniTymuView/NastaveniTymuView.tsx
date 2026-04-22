@@ -370,7 +370,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                     <button
                       style={{ width: "unset" }}
                       disabled={pocetClenu < minKapacita}
-                      onClick={sPotvrzením(`Opravdu chcete zavřít tým${data?.nazev ? ` ${data.nazev}` : ""}? Tým se poté nebude moci editovat.`, onSmazatTym)}
+                      onClick={sPotvrzením(`Opravdu chcete zavřít tým${data?.nazev ? ` ${data.nazev}` : ""}? Tým se poté nebude moci editovat. Tato akce je nevratná.`, onSmazatTym)}
                     >
                       Zamknout tým
                     </button>

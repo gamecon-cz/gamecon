@@ -132,19 +132,19 @@
   - [X] API `odhlasClena` + `AktivitaTym::odhlasUzivateleOdTymu()`
   - [X] UI tlačítko u každého člena
   - [X] Blokování na zamčeném týmu (po implementaci zamykání)
-  - [ ] Odhlášení z aktivity při vyhození z týmu (ověřit že funguje)
-- [ ] Odhlášení kapitána sám sebe
-  - [ ] Pokud je v týmu víc lidí → automatické předání kapitána (nejstarší člen)
+  - [X] Odhlášení z aktivity při vyhození z týmu (ověřit že funguje)
+- [X] Odhlášení kapitána sám sebe
+  - [X] Pokud je v týmu víc lidí → automatické předání kapitána (nejstarší člen)
     - [X] `AktivitaTymService::findOldestClen()` existuje
-    - [ ] Napojení na flow odhlášení kapitána
-  - [ ] Pokud je kapitán poslední → rozpuštění týmu
+    - [X] Napojení na flow odhlášení kapitána
+  - [X] Pokud je kapitán poslední → rozpuštění týmu
     - [X] `AktivitaTym::rozebratTym()` existuje
-    - [ ] UI flow: "Opravdu chcete opustit a rozpustit tým?"
-  - [ ] API endpoint / rozšíření existujícího endpointu
+    - [X] UI flow: "Opravdu chcete opustit a rozpustit tým?"
+  - [X] API endpoint / rozšíření existujícího endpointu
 - [X] Úprava limitu týmu (rozmezí min–max kapacity)
   - [X] `AktivitaTym::nastavLimit()` + API `nastavLimit`
   - [X] UI slider/input v `NastaveniTymuView.tsx`
-  - [ ] Blokování na zamčeném týmu (po implementaci zamykání)
+  - [X] Blokování na zamčeném týmu (po implementaci zamykání)
 
 ## Veřejné týmy
 - [X] Přepínání veřejnosti týmu
@@ -153,9 +153,9 @@
 - [X] Seznam veřejných týmů zobrazený v UI
   - [X] API vrací `vsechnyTymy` s info o veřejných týmech
   - [X] `AktivitaTymService::findVerejneByAktivita()` existuje
-- [ ] Přihlášení do veřejného týmu bez kódu
+- [X] Přihlášení do veřejného týmu bez kódu
   - [X] Backend logika existuje (kód není nutný pokud tým veřejný?)
-  - [ ] Ověřit UI flow — kliknutí na veřejný tým → přihlášení bez zadání kódu
+  - [X] Ověřit UI flow — kliknutí na veřejný tým → přihlášení bez zadání kódu
 
 ## Anonymizace
 - [ ] Zobrazovat pouze přezdívku přihlášených hráčů v týmu
@@ -168,15 +168,17 @@
   - [X] Migrace pro přidání sloupce
   - [X] Aktualizace Doctrine entity `Team.php`
   - [X] Aktualizace `AktivitaTymService.php` a `AktivitaTym.php`
-- [ ] Analýza jestli už existuje nějaké zamykání (v kódu je `HAJENI_TEAMU_HODIN = 72` ale žádný stav zamčení)
+- [X] Analýza jestli už existuje nějaké zamykání (v kódu je `HAJENI_TEAMU_HODIN = 72` ale žádný stav zamčení)
 - [X] Backend logika zamykání
   - [X] Metoda `zamknout()` v `AktivitaTym` — validace min kapacity
   - [X] Metoda `jeZamceny()` — kontrola stavu
-  - [ ] Blokování všech editačních operací na zamčeném týmu (přihlášení, odhlášení, předání kapitána, změna limitu)
-- [ ] API endpoint pro zamčení týmu (POST akce v `aktivitaTym.php`)
-- [ ] UI tlačítko "Zamknout tým" v `NastaveniTymuView.tsx`
-  - [ ] Tlačítko disabled pokud tým nemá min kapacitu
-  - [ ] Potvrzovací dialog — zamčení je nevratné pro hráče
+  - [X] Blokování všech editačních operací na zamčeném týmu (přihlášení, odhlášení, předání kapitána, změna limitu)
+    - tohle se děje na api
+- [X] API endpoint pro zamčení týmu (POST akce v `aktivitaTym.php`)
+- [X] UI tlačítko "Zamknout tým" v `NastaveniTymuView.tsx`
+  - [X] Tlačítko disabled pokud tým nemá min kapacitu
+    - [ ] info proč nejde zamknout
+  - [X] Potvrzovací dialog — zamčení je nevratné pro hráče
 - [ ] Vizuální indikátor zbývajícího času do povinného zamčení (72h odpočet)
   - [X] `casZalozeniMs()` existuje a UI ho využívá pro odpočet
   - [ ] Výrazná vizuální urgence (barva, ikona) když zbývá málo času
