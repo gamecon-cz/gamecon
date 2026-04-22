@@ -13,15 +13,8 @@ import {
 } from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
 import { useProgramStore } from "../../../../store/program";
-import { fetchNastavVerejnostTymu, fetchPregenerujKodTymu, fetchOdhlasClena, fetchZalozPrazdnyTym, fetchPotvrdVyberAktivit, fetchPredejKapitana, fetchNastavLimitTymu, AktivitaKVyberu } from "../../../../api/program";
+import { fetchNastavVerejnostTymu, fetchPregenerujKodTymu, fetchOdhlasClena, fetchZalozPrazdnyTym, fetchPotvrdVyberAktivit, fetchPredejKapitana, fetchNastavLimitTymu, fetchSmazTym } from "../../../../api/program";
 import { NastaveniTymuView } from "../../../../components/NastaveniTymuView/NastaveniTymuView";
-
-type VyberAktivitState = {
-  kodTymu: number;
-  aktivity: AktivitaKVyberu[];
-  vybrane: Set<number>;
-};
-
 
 export const registrujDotahováníNastaveníTýmu = () => {
   useProgramStore.subscribe(s => s.všeobecné.nastaveniTymu?.aktivitaId, (aktivitaId) => {
@@ -36,7 +29,6 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   const aktivita = useAktivita(aktivitaId ?? -1);
   const storeNazevAktivity = useNastaveniTymuModalNazevAktivity();
   const data = useNastaveniTymuModalData();
-  const [vyberAktivit, setVyberAktivit] = useState<VyberAktivitState | null>(null);
   const [chyba, setChyba] = useState<string | null>(null);
   const [načítáAkci, setNačítáAkci] = useState(false);
   const [bylaZměna, setBylaZměna] = useState(false);
@@ -71,7 +63,6 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       window.location.reload();
       return;
     }
-    setVyberAktivit(null);
     setChyba(null);
     nastavModalNastaveníTýmu();
   };
@@ -118,37 +109,34 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
     setChyba(null);
     if (data?.jeTrebaPredpripravit) {
       const result = await fetchZalozPrazdnyTym(aktivitaId);
-      if (!result.úspěch || !result.kodTymu) {
+      if (!result.úspěch) {
         setChyba(result.chyba?.hláška ?? "Nepodařilo se založit tým");
         return;
       }
-      setVyberAktivit({
-        kodTymu: result.kodTymu,
-        aktivity: result.aktivityKVyberu ?? [],
-        vybrane: new Set(),
-      });
+      void dotáhniNastaveníTýmuProModal();
     } else {
       void proveďAkciAktivity(aktivitaId, "prihlasit").then(zavřít);
     }
   };
 
-  const přepniVybranou = (idAktivity: number) => {
-    if (!vyberAktivit) return;
-    const vybrane = new Set(vyberAktivit.vybrane);
-    if (vybrane.has(idAktivity)) {
-      vybrane.delete(idAktivity);
-    } else {
-      vybrane.add(idAktivity);
+  const hotovoPripravaTymu = async (vybrane: Record<number, number>) => {
+    if (!data?.kod) return;
+    setChyba(null);
+    const idVybranychAktivit = Object.values(vybrane);
+    const result = await fetchPotvrdVyberAktivit(aktivitaId, data.kod, idVybranychAktivit);
+    if (!result.úspěch) {
+      setChyba(result.chyba?.hláška ?? "Nepodařilo se přihlásit tým na aktivity");
+      return;
     }
-    setVyberAktivit({ ...vyberAktivit, vybrane });
+    void dotáhniNastaveníTýmuProModal();
   };
 
-  const potvrdVyber = async () => {
-    if (!vyberAktivit) return;
+  const smazatTym = async () => {
+    if (!data?.kod) return;
     setChyba(null);
-    const result = await fetchPotvrdVyberAktivit(aktivitaId, vyberAktivit.kodTymu, [...vyberAktivit.vybrane]);
+    const result = await fetchSmazTym(aktivitaId, data.kod);
     if (!result.úspěch) {
-      setChyba(result.chyba?.hláška ?? "Nepodařilo se přihlásit tým");
+      setChyba(result.chyba?.hláška ?? "Nepodařilo se smazat tým");
       return;
     }
     zavřít();
@@ -162,7 +150,6 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       načítá={!aktivita && !data}
       načítáAkci={načítáAkci}
       chyba={chyba}
-      vyberAktivit={vyberAktivit}
       onZavřít={zavřít}
       onZaložitTým={() => void sNačítáním(založitTým, true)()}
       onPřipojitSe={(idTýmu, kód) => void sNačítáním(() => proveďAkciAktivity(aktivitaId, "prihlasit", idTýmu, kód).then(zavřít), true)()}
@@ -172,8 +159,8 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       onOdhlásitČlena={(id) => void sNačítáním(() => odhlásitČlena(id), true)()}
       onPredejKapitana={(id) => void sNačítáním(() => predejKapitana(id), true)()}
       onNastavLimit={(limit) => void sNačítáním(() => nastavLimit(limit), true)()}
-      onPřepniVybranou={přepniVybranou}
-      onPotvrdVyber={() => void sNačítáním(potvrdVyber, true)()}
+      onHotovoPripravaTymu={(vybrane) => void sNačítáním(() => hotovoPripravaTymu(vybrane), true)()}
+      onSmazatTym={() => void sNačítáním(smazatTym, true)()}
     />
   );
 };

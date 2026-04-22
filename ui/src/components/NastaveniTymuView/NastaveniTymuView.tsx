@@ -1,15 +1,9 @@
 import { FunctionComponent } from "preact";
-import { useState, useEffect } from "preact/hooks";
+import { useState, useEffect, useMemo } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
-import { AktivitaKVyberu, TymVSeznamu } from "../../api/program";
-import { PripravaTymuDemo } from "../PripravaTymu/Demo";
-
-type VyberAktivitState = {
-  kodTymu: number;
-  aktivity: AktivitaKVyberu[];
-  vybrane: Set<number>;
-};
+import { TymVSeznamu } from "../../api/program";
+import { PripravaTymu, KoloAktivity } from "../PripravaTymu";
 
 type NastaveniTymuViewProps = {
   nazevAktivity?: string;
@@ -18,7 +12,6 @@ type NastaveniTymuViewProps = {
   načítá?: boolean;
   načítáAkci?: boolean;
   chyba?: string | null;
-  vyberAktivit?: VyberAktivitState | null;
   onZavřít: () => void;
   onZaložitTým: () => void;
   onPřipojitSe: (idTýmu?: number, kód?: number) => void;
@@ -28,8 +21,8 @@ type NastaveniTymuViewProps = {
   onOdhlásitČlena?: (idČlena: number) => void;
   onPredejKapitana?: (idČlena: number) => void;
   onNastavLimit?: (limit: number) => void;
-  onPřepniVybranou?: (idAktivity: number) => void;
-  onPotvrdVyber?: () => void;
+  onHotovoPripravaTymu?: (vybrane: Record<number, number>) => void;
+  onSmazatTym?: () => void;
 };
 
 const SeznamTymu: FunctionComponent<{
@@ -102,7 +95,6 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     načítá,
     načítáAkci,
     chyba,
-    vyberAktivit,
     onZavřít,
     onZaložitTým,
     onPřipojitSe,
@@ -112,8 +104,8 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     onOdhlásitČlena,
     onPredejKapitana,
     onNastavLimit,
-    onPřepniVybranou,
-    onPotvrdVyber,
+    onHotovoPripravaTymu,
+    onSmazatTym,
   } = props;
 
   const [kódPřipojeníDoTýmu, setKódPřipojeníDoTýmu] = useState("");
@@ -121,6 +113,17 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const [potvrzení, setPotvrzení] = useState<{ text: string; akce: () => void } | null>(null);
   // todo(tym): smazat demo
   const [ukažDemo, setUkažDemo] = useState(false);
+
+  const kola = useMemo<KoloAktivity[]>(() => {
+    if (!data?.aktivityKPriprave) return [];
+    const mapa = new Map<number, KoloAktivity>();
+    for (const a of data.aktivityKPriprave) {
+      const cisloKola = a.cisloKola ?? 1;
+      if (!mapa.has(cisloKola)) mapa.set(cisloKola, { cisloKola, aktivity: [] });
+      mapa.get(cisloKola)!.aktivity.push({ id: a.id, nazev: a.nazev, cas: a.casText });
+    }
+    return [...mapa.values()].sort((a, b) => a.cisloKola - b.cisloKola);
+  }, [data?.aktivityKPriprave]);
 
   const zkopírujKód = (kód: number) => {
     void navigator.clipboard.writeText(String(kód)).then(() => {
@@ -143,7 +146,6 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
       <div className="modal_obal" onClick={(e) => { if (e.target === e.currentTarget) setUkažDemo(false); }}>
         <div className="modal clearfix" style={{ maxHeight: "80vh", overflowY: "auto" }}>
           <button class="vpravo zpet" onClick={() => setUkažDemo(false)}>Zavřít</button>
-          <PripravaTymuDemo />
         </div>
       </div>
     );
@@ -176,7 +178,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
             <h3 style={{ float: "left" }}>
               Nastavení týmu{nazevAktivity ? ` aktivity ${nazevAktivity}` : ""}
             </h3>
-            <div class="vpravo" style={{ display: "flex", gap: "8px" }}>
+            <div class="vpravo" style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
               <button style={{ width: "unset" }} onClick={() => setUkažDemo(true)}>🧪 Demo</button>
               {přihlášen && onOdhlásit && (
                 <button class="" onClick={sPotvrzením(`Opravdu se chcete odhlásit z aktivity${nazevAktivity ? ` ${nazevAktivity}` : ""} a opustit tým?`, onOdhlásit)}>Odhlásit!</button>
@@ -198,39 +200,18 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
 
           {chyba && <div style={{ color: "red" }}>{chyba}</div>}
 
-          {/* === Výběr aktivit pro nový tým === */}
-          {vyberAktivit && (
-            <div style={{ gap: "12px", display: "flex", flexDirection: "column", alignItems: "start" }}>
-              <div>Kód týmu: <strong>{vyberAktivit.kodTymu}</strong></div>
-              <div>Vyberte aktivity, na které chcete tým přihlásit:</div>
-              {vyberAktivit.aktivity.length === 0 && (
-                <div style={{ color: "#888" }}>Žádné aktivity k výběru</div>
-              )}
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {vyberAktivit.aktivity.map((a) => (
-                  <li key={a.id} style={{ padding: "4px 0" }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        checked={vyberAktivit.vybrane.has(a.id)}
-                        onChange={() => onPřepniVybranou?.(a.id)}
-                      />
-                      <span>{a.nazev}</span>
-                      {a.casText && <span style={{ color: "#888", fontSize: "0.85em" }}>{a.casText}</span>}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-              <button
-                disabled={vyberAktivit.aktivity.length > 0 && vyberAktivit.vybrane.size === 0}
-                onClick={onPotvrdVyber}
-              >
-                Přihlásit tým na vybrané aktivity
-              </button>
-            </div>
+          {/* === Příprava nového týmu (výběr kol + přihlášení kapitána) === */}
+          {!načítá && data?.jeTrebaPredpripravit && data.casZalozeniMs && (
+            <PripravaTymu
+              casZalozeniMs={data.casZalozeniMs}
+              kola={kola}
+              onHotovo={(vybrane) => onHotovoPripravaTymu?.(vybrane)}
+              onSmazat={() => onSmazatTym?.()}
+              nacita={načítáAkci}
+            />
           )}
 
-          {!načítá && !načítáAkci && !vyberAktivit && (
+          {!načítá && !načítáAkci && !data?.jeTrebaPredpripravit && (
             <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
 
               {/* === Nepřihlášený === */}

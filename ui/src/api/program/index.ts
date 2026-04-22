@@ -70,6 +70,8 @@ export type ApiAktivitaNepřihlášen = {
   casText: string,
   cas: OdDo,
   linie: string,
+  turnajId?: number;
+  cisloKola?: number;
   vBudoucnu?: boolean,
   vdalsiVlne?: boolean,
   probehnuta?: boolean,
@@ -266,6 +268,7 @@ export type AktivitaKVyberu = {
   id: number,
   nazev: string,
   casText: string,
+  cisloKola?: number,
 };
 
 export type AktivitaTymResponse = {
@@ -274,6 +277,7 @@ export type AktivitaTymResponse = {
   jeKapitan?: boolean,
   casText?: string,
   jeTrebaPredpripravit?: boolean,
+  aktivityKPriprave?: AktivitaKVyberu[],
   casZalozeniMs?: number,
   limitTymu?: number | null,
   minKapacita?: number | null,
@@ -340,6 +344,14 @@ export const fetchPredejKapitana = async (aktivitaId: number, kodTymu: number, i
   formdata.set("akce", "predejKapitana");
   formdata.set("kodTymu", kodTymu.toString(10));
   formdata.set("idNovehoKapitana", idNovehoKapitana.toString(10));
+  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
+};
+
+export const fetchSmazTym = async (aktivitaId: number, kodTymu: number): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
+  const formdata = new FormData();
+  formdata.set("akce", "smazTym");
+  formdata.set("kodTymu", kodTymu.toString(10));
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };
 
