@@ -1,5 +1,6 @@
 <?php
 
+use App\Service\AktivitaTymService;
 use Gamecon\Aktivita\Program;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
@@ -87,6 +88,7 @@ function zabalWebSoubor(string $cestaKSouboru): string
         PROGRAM_DO: <?= (new DateTimeCz(PROGRAM_DO))->getTimestamp() ?>000,
         PROGRAM_ZACATEK: <?= PROGRAM_ZACATEK ?>,
         PROGRAM_KONEC: <?= PROGRAM_KONEC ?>,
+        CAS_NA_PRIPRAVENI_TYMU_MINUT: <?= AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT ?>,
     }
 
     window.gameconPřednačtení =

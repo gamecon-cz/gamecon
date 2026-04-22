@@ -44,13 +44,10 @@ class AktivitaTym
     /** Vrátí tým uživatele na aktivitě, nebo null pokud v žádném týmu není. */
     public static function najdiPodleUzivateleAktivity(int $idUzivatele, int $idAktivity): ?self
     {
-        $idTymu = self::service()->idTymuUzivatele($idUzivatele, $idAktivity);
-        if ($idTymu === null) {
+        $team = self::service()->tymUzivateleNaAktivite($idUzivatele, $idAktivity);
+        if ($team === null) {
             return null;
         }
-        $team = self::teamRepository()->find($idTymu)
-            ?? throw new \Chyba('Tým ' . $idTymu . ' neexistuje');
-
         return new self($team);
     }
 
@@ -74,6 +71,11 @@ class AktivitaTym
     public function isVerejny(): bool
     {
         return $this->team->isVerejny();
+    }
+
+    public function jeZamceny(): bool
+    {
+        return $this->team->isZamceny();
     }
 
     public function idKapitana(): ?int
@@ -103,6 +105,23 @@ class AktivitaTym
     public function nastavVerejnost(bool $verejny): void
     {
         self::service()->nastavVerejnostTymu($this->getId(), $verejny);
+    }
+
+    public function zamkni(): void
+    {
+        self::service()->nastavZamceniTymu($this->getId(), true);
+    }
+
+    public function odemkni(): void
+    {
+        self::service()->nastavZamceniTymu($this->getId(), false);
+    }
+
+    public function zkontrolujZeNeniZamceny(): void
+    {
+        if ($this->jeZamceny()) {
+            throw new \Chyba('Tým je zamčený a nelze ho editovat');
+        }
     }
 
     public function pregenerujKod(): int
@@ -256,11 +275,6 @@ class AktivitaTym
     public static function infoOTymuUzivatele(int $idUzivatele, int $idAktivity): ?InfoOTymu
     {
         return self::service()->infoOTymuUzivatele($idUzivatele, $idAktivity);
-    }
-
-    public static function idTymuUzivatele(int $idUzivatele, int $idAktivity): ?int
-    {
-        return self::service()->idTymuUzivatele($idUzivatele, $idAktivity);
     }
 
     public static function casZalozeniTymuUzivatele(int $idUzivatele, int $idAktivity): ?int

@@ -45,6 +45,12 @@ class Team
     ])]
     private bool $verejny = false;
 
+    #[ORM\Column(name: 'zamceny', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => 0,
+        'comment' => 'zamčený tým nelze editovat',
+    ])]
+    private bool $zamceny = false;
+
     /**
      * @var Collection<int, Activity>
      */
@@ -139,6 +145,18 @@ class Team
     public function setVerejny(bool $verejny): self
     {
         $this->verejny = $verejny;
+
+        return $this;
+    }
+
+    public function isZamceny(): bool
+    {
+        return $this->zamceny;
+    }
+
+    public function setZamceny(bool $zamceny): self
+    {
+        $this->zamceny = $zamceny;
 
         return $this;
     }

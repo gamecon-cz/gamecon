@@ -433,7 +433,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 $this,
                 $odhlasujici,
                 $zdrojOdhlaseni,
-                Aktivita::NEPOSILAT_MAILY_SLEDUJICIM, /* nechceme posílat maily sledujícím, že se uvolnilo místo */
+                Aktivita::NEPOSILAT_MAILY_SLEDUJICIM | Aktivita::ODEMKNI_TYM_ODHLASENIM, /* nechceme posílat maily sledujícím, že se uvolnilo místo */
             );
         }
 

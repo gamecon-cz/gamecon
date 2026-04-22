@@ -118,6 +118,8 @@ class Aktivita
     const IGNOROVAT_DETI                     = 0b00100000_00000000;
     /** ignoruje kontroly přihlašování, nejčastěji protože už předtím proběhly, tak netřeba je pouštět znovu */
     const IGNOROVAT_KONTROLY                 = 0b01000000_00000000;
+    const ODEMKNI_TYM_ODHLASENIM             = 0b10000000_00000000;
+    const IGNOROVAT_ZAMCENI_TYMU           = 0b1_00000000_00000000;
 
     /* parametry kolem továrních metod */
     /** jen volné aktivity */
@@ -2035,13 +2037,24 @@ SQL
         string    $zdrojOdhlaseni,
                   $params = 0,
     ) {
+        $tym = $this->tymova()
+            ? AktivitaTym::najdiPodleUzivateleAktivity($u->id(), $this->id())
+            : null ;
+        if ($this->tymova() && $tym) {
+            if ($params & self::ODEMKNI_TYM_ODHLASENIM) {
+                $tym->odemkni();
+            } elseif (!($params & self::IGNOROVAT_ZAMCENI_TYMU)) {
+                $tym->zkontrolujZeNeniZamceny();
+            }
+        }
         // todo(tym): odstranit deti
         foreach ($this->deti() as $dite) {                    // odhlášení z potomků
-            $dite->odhlas($u, $odhlasujici, $zdrojOdhlaseni); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
+            $dite->odhlas($u, $odhlasujici, $zdrojOdhlaseni, $params); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
         }
         if (!$this->prihlasen($u)) {
             return; // ignorovat pokud přihlášen není tak či tak
         }
+
         // reálné odhlášení
         $idAktivity = $this->id();
         $idUzivatele = $u->id();
@@ -2062,11 +2075,9 @@ SQL,
                 [StavPrihlaseni::POZDE_ZRUSIL],
             );
         }
-        if ($this->a[Sql::TEAMOVA]) {
+        // todo(tym): odhláŠení ze všech dalších aktivit turnaje
+        if ($this->tymova()) {
             AktivitaTym::odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
-        }
-        if ($this->a[Sql::TEAMOVA] && $this->pocetPrihlasenych() === 1) { // odhlašuje se poslední hráč
-            dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$idAktivity");
         }
         // Poslání mailu lidem na watchlistu
         if ($this->volno() === "x" && !($params & self::NEPOSILAT_MAILY_SLEDUJICIM)) { // Před odhlášením byla aktivita plná
@@ -2619,15 +2630,16 @@ SQL
         int      $parametry = 0,
         ?AktivitaTym $tym = null,
     ) {
-        if (!$this->tymova()
-            || (self::IGNOROVAT_LIMIT & $parametry)) {
+        if (!$this->tymova() || !$tym) {
             return;
         }
 
-        if ($tym) {
+        if (!(self::IGNOROVAT_LIMIT & $parametry)) {
             $tym->zkontrolujVolnouKapacitu();
-        } else {
-            AktivitaTym::zkontrolujMuzeZalozitTym($this->id());
+        }
+
+        if (!(self::IGNOROVAT_ZAMCENI_TYMU)) {
+            $tym->zkontrolujZeNeniZamceny();
         }
     }
 

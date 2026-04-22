@@ -109,6 +109,7 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
         return 'rucni-aktivace';
     }
 
+    // todo(tym): tahle funkce zveřejňuje/maže
     /**
      * Hromadně odemče zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
      * Vrací počet odemčených teamů (=>uvolněných míst)

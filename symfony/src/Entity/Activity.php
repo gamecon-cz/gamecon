@@ -122,6 +122,12 @@ class Activity
     ])]
     private ?int $teamKapacita = null;
 
+    #[ORM\Column(name: 'tym_smazat_po_expiraci', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => 0,
+        'comment' => 'po expiraci rozpracovaného týmu: true = smazat, false = zveřejnit',
+    ])]
+    private bool $tymSmazatPoExpiraci = true;
+
     #[ORM\ManyToOne(targetEntity: Location::class)]
     #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
     private ?Location $mainLocation = null;
@@ -431,6 +437,18 @@ class Activity
     public function setTeamKapacita(?int $teamKapacita): self
     {
         $this->teamKapacita = $teamKapacita;
+
+        return $this;
+    }
+
+    public function isTymSmazatPoExpiraci(): bool
+    {
+        return $this->tymSmazatPoExpiraci;
+    }
+
+    public function setTymSmazatPoExpiraci(bool $tymSmazatPoExpiraci): self
+    {
+        $this->tymSmazatPoExpiraci = $tymSmazatPoExpiraci;
 
         return $this;
     }

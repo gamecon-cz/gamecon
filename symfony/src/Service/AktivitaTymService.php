@@ -17,7 +17,7 @@ use Gamecon\Aktivita\InfoOTymu;
 class AktivitaTymService
 {
     private const HAJENI_TEAMU_HODIN = 72;
-    public const CAS_NA_PRIPRAVENI_TYMU_MINUT = 30;
+    public const CAS_NA_PRIPRAVENI_TYMU_MINUT = 15;
 
     public function __construct(
         private readonly TeamRepository $teamRepository,
@@ -173,6 +173,16 @@ class AktivitaTymService
             return;
         }
         $team->setVerejny($verejny);
+        $this->em->flush();
+    }
+
+    public function nastavZamceniTymu(int $idTymu, bool $zamceny): void
+    {
+        $team = $this->teamRepository->find($idTymu);
+        if (! $team) {
+            return;
+        }
+        $team->setZamceny($zamceny);
         $this->em->flush();
     }
 
@@ -380,11 +390,11 @@ class AktivitaTymService
         $this->em->flush();
     }
 
-    public function idTymuUzivatele(int $idUzivatele, int $idAktivity): ?int
+    public function tymUzivateleNaAktivite(int $idUzivatele, int $idAktivity): ?Team
     {
         $registration = $this->teamMemberRegistrationRepository->findByUzivatelAndAktivita($idUzivatele, $idAktivity);
 
-        return $registration ? (int) $registration->getTeam()->getId() : null;
+        return $registration ? $registration->getTeam() : null;
     }
 
     public function casZalozeniTymuUzivatele(int $idUzivatele, int $idAktivity): ?int

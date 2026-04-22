@@ -1,5 +1,6 @@
 <?php
 
+use App\Service\AktivitaTymService;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\Program;
 
@@ -128,6 +129,7 @@ function zabalAdminSoubor(string $cestaKSouboru): string
         PROGRAM_ZACATEK: <?= PROGRAM_ZACATEK ?>,
         PROGRAM_KONEC: <?= PROGRAM_KONEC ?>,
         JE_ADMIN: true,
+        CAS_NA_PRIPRAVENI_TYMU_MINUT: <?= AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT ?>,
     }
 
     window.gameconPřednačtení = <?php

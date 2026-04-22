@@ -164,14 +164,14 @@
   - [ ] V admin panelu zobrazovat plné jméno (beze změny)
 
 ## Zamykání týmu
-- [ ] DB sloupec `zamcen` (TINYINT / DATETIME) v tabulce `akce_tym`
-  - [ ] Migrace pro přidání sloupce
-  - [ ] Aktualizace Doctrine entity `Team.php`
-  - [ ] Aktualizace `AktivitaTymService.php` a `AktivitaTym.php`
+- [X] DB sloupec `zamcen` (TINYINT / DATETIME) v tabulce `akce_tym`
+  - [X] Migrace pro přidání sloupce
+  - [X] Aktualizace Doctrine entity `Team.php`
+  - [X] Aktualizace `AktivitaTymService.php` a `AktivitaTym.php`
 - [ ] Analýza jestli už existuje nějaké zamykání (v kódu je `HAJENI_TEAMU_HODIN = 72` ale žádný stav zamčení)
-- [ ] Backend logika zamykání
-  - [ ] Metoda `zamknout()` v `AktivitaTym` — validace min kapacity
-  - [ ] Metoda `jeZamceny()` — kontrola stavu
+- [X] Backend logika zamykání
+  - [X] Metoda `zamknout()` v `AktivitaTym` — validace min kapacity
+  - [X] Metoda `jeZamceny()` — kontrola stavu
   - [ ] Blokování všech editačních operací na zamčeném týmu (přihlášení, odhlášení, předání kapitána, změna limitu)
 - [ ] API endpoint pro zamčení týmu (POST akce v `aktivitaTym.php`)
 - [ ] UI tlačítko "Zamknout tým" v `NastaveniTymuView.tsx`
