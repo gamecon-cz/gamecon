@@ -55,7 +55,6 @@
   }
 
   .qr-platby-sekce {
-    margin-top: 28px;
     padding-top: 18px;
     border-top: 1px solid #d7dde4;
   }
@@ -377,7 +376,10 @@
         });
       })();
     </script>
-    <!-- begin:qrKodyPlateb -->
+  </div>
+
+  <!-- begin:qrKodyPlateb -->
+  <div class="infopult-grid--item infopult-grid--item-qrplatba aBox">
     <div class="qr-platby-sekce" data-qr-prepinac-plateb="cz">
       <h3>QR platby</h3>
       <p class="qr-platby__uvod">Vyber variantu podle banky a typu převodu.</p>
@@ -426,8 +428,8 @@
       </div>
       <script src="{urlQrPrepinacPlateb}"></script>
     </div>
-    <!-- end:qrKodyPlateb -->
   </div>
+  <!-- end:qrKodyPlateb -->
 
   <div class="infopult-grid--item infopult-grid--item-ubytování aBox">
     <h3>Ubytování</h3>

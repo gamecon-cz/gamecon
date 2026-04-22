@@ -15,6 +15,7 @@
 
     // Po načtení stránky aplikuj stav (pokud byl zapnutý z předchozího načtení)
     window.addEventListener('DOMContentLoaded', () => {
+        obnovPovinnePolozky();
         if (presKapacituBtn) {
             zobrazPovinnePolozky();
             aplikujPresKapacitu();
@@ -120,6 +121,16 @@
             return;
         }
         tabulkaUbytovani.style.display = zobrazit ? '' : 'none';
+        var sekce = tabulkaUbytovani.closest('.prihlaska_sekce');
+        if (!sekce) {
+            return;
+        }
+        if (!zobrazit) {
+            var infoPruh = sekce.querySelector('.prihlaska_infoPruh');
+            sekce.style.minHeight = infoPruh ? infoPruh.offsetHeight + 'px' : '';
+        } else {
+            sekce.style.minHeight = '';
+        }
     }
 
     /** @param {boolean} zobrazit */
