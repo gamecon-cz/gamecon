@@ -127,6 +127,7 @@ if ($tym) {
     $response['verejny']    = $tym->jeVerejny();
     $response['jeKapitan']  = $tym->jeKapitanem($uzivatelId);
     $response['casZalozeniMs'] = $tym->casZalozeniMs();
+    $response['casExpiraceMs'] = $tym->casExpiraceMs();
     $response['limitTymu']  = $tym->limitTymu();
     $response['zamceny'] = $tym->jeZamceny();
     $response['jeSmazatPoExpiraci'] = $tym->jeSmazatPoExpiraci();

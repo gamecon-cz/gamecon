@@ -105,16 +105,17 @@ class TeamRepository extends ServiceEntityRepository
     }
 
     /**
-     * Vrátí týmy starší než $hodin hodin, které nejsou veřejné.
+     * Vrátí nezamčené týmy, jejichž čas expirace je v minulosti.
      *
      * @return Team[]
      */
-    public function findExpired(int $hodin): array
+    public function findExpired(): array
     {
         return $this->createQueryBuilder('team')
-            ->andWhere('team.zalozen < :expirace')
+            ->andWhere('team.expiruje IS NOT NULL')
+            ->andWhere('team.expiruje < :ted')
             ->andWhere('team.zamceny = false')
-            ->setParameter('expirace', new \DateTime("-{$hodin} hours"))
+            ->setParameter('ted', new \DateTime())
             ->getQuery()
             ->getResult();
     }

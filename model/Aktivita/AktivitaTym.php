@@ -159,6 +159,11 @@ class AktivitaTym
         return self::service()->casZalozeniMs($this->getId());
     }
 
+    public function casExpiraceMs(): ?int
+    {
+        return self::service()->casExpiraceMs($this->getId());
+    }
+
     public function limitTymu(): ?int
     {
         return self::service()->limitTymu($this->getId());
@@ -287,11 +292,11 @@ class AktivitaTym
     }
 
     /** @return self[] */
-    public static function expirovaneTymy(?int $hajeniHodin = null): array
+    public static function expirovaneTymy(): array
     {
         return array_map(
             fn (Team $team) => new self($team),
-            self::service()->expirovaneTymy($hajeniHodin),
+            self::service()->expirovaneTymy(),
         );
     }
 

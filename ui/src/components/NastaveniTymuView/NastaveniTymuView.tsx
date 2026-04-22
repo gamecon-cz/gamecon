@@ -72,17 +72,16 @@ const formatZbývá = (ms: number): string => {
   return `${h}:${m.toString().padStart(2, "0")}`;
 };
 
-const useOdpočet = (casZalozeniMs: number | undefined): number | null => {
+const useOdpočet = (casExpiraceMs: number | undefined): number | null => {
   const [zbývá, setZbývá] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!casZalozeniMs) return;
-    const zamceniMs = casZalozeniMs + GAMECON_KONSTANTY.HAJENI_TEAMU_HODIN * 3600 * 1000;
-    const update = () => setZbývá(Math.max(0, zamceniMs - Date.now()));
+    if (!casExpiraceMs) return;
+    const update = () => setZbývá(Math.max(0, casExpiraceMs - Date.now()));
     update();
     const id = setInterval(update, 60000);
     return () => clearInterval(id);
-  }, [casZalozeniMs]);
+  }, [casExpiraceMs]);
 
   return zbývá;
 };
@@ -139,7 +138,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const minKapacita = data?.minKapacita ?? 0;
   const maxKapacita = data?.maxKapacita ?? null;
   const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
-  const odpočet = useOdpočet(přihlášen && !data?.zamceny ? data?.casZalozeniMs : undefined);
+  const odpočet = useOdpočet(přihlášen && !data?.zamceny ? data?.casExpiraceMs : undefined);
 
   if (ukažDemo) {
     return (

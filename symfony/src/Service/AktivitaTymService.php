@@ -176,6 +176,9 @@ class AktivitaTymService
         $this->em->flush();
     }
 
+    /**
+     * Taky nastaví expiraci podle hajeni týmu pokud odemkne tým
+     */
     public function nastavZamceniTymu(int $idTymu, bool $zamceny): void
     {
         $team = $this->teamRepository->find($idTymu);
@@ -185,6 +188,10 @@ class AktivitaTymService
         $team->setZamceny($zamceny);
         if ($zamceny) {
             $team->setVerejny(false);
+        } else {
+            $ted = new \DateTime();
+            $expiruje = (clone $ted)->modify('+' . self::HAJENI_TEAMU_HODIN . ' hours');
+            $team->setExpiruje($expiruje);
         }
         $this->em->flush();
     }
@@ -301,13 +308,11 @@ class AktivitaTymService
     }
 
     /**
-     * @return self[]
+     * @return Team[]
      */
-    public function expirovaneTymy(?int $hajeniHodin = null): array
+    public function expirovaneTymy(): array
     {
-        $hodin = $hajeniHodin ?? self::HAJENI_TEAMU_HODIN;
-
-        return $this->teamRepository->findExpired($hodin);
+        return $this->teamRepository->findExpired();
     }
 
     /**
@@ -453,6 +458,14 @@ class AktivitaTymService
         return $team?->getZalozen() !== null ? $team->getZalozen()->getTimestamp() * 1000 : null;
     }
 
+
+    public function casExpiraceMs(int $idTymu): ?int
+    {
+        $team = $this->teamRepository->find($idTymu);
+
+        return $team?->getExpiruje() !== null ? $team->getExpiruje()->getTimestamp() * 1000 : null;
+    }
+
     public function limitTymu(int $idTymu): ?int
     {
         $team = $this->teamRepository->find($idTymu);
@@ -515,10 +528,15 @@ class AktivitaTymService
             $kod = rand(1000, 9999);
         } while (in_array($kod, $existujiciKody, true));
 
+        // Josh Radnor
+        $ted = new \DateTime();
+        $expiruje = (clone $ted)->modify('+' . self::HAJENI_TEAMU_HODIN . ' hours');
+
         $team = new Team();
         $team->setKod($kod);
         $team->setKapitan($kapitan);
-        $team->setZalozen(new \DateTime());
+        $team->setZalozen($ted);
+        $team->setExpiruje($expiruje);
         $team->addAktivita($aktivita);
 
         $this->em->persist($team);

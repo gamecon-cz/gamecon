@@ -51,6 +51,11 @@ class Team
     ])]
     private bool $zamceny = false;
 
+    #[ORM\Column(name: 'expiruje', type: Types::DATETIME_MUTABLE, nullable: true, options: [
+        'comment' => 'čas expirace nezamčeného týmu; NULL = neexpiruje explicitně',
+    ])]
+    private ?\DateTimeInterface $expiruje = null;
+
     /**
      * @var Collection<int, Activity>
      */
@@ -157,6 +162,18 @@ class Team
     public function setZamceny(bool $zamceny): self
     {
         $this->zamceny = $zamceny;
+
+        return $this;
+    }
+
+    public function getExpiruje(): ?\DateTimeInterface
+    {
+        return $this->expiruje;
+    }
+
+    public function setExpiruje(?\DateTimeInterface $expiruje): self
+    {
+        $this->expiruje = $expiruje;
 
         return $this;
     }

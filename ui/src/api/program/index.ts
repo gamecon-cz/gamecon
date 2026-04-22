@@ -279,6 +279,7 @@ export type AktivitaTymResponse = {
   jeTrebaPredpripravit?: boolean,
   aktivityKPriprave?: AktivitaKVyberu[],
   casZalozeniMs?: number,
+  casExpiraceMs?: number,
   limitTymu?: number | null,
   zamceny?: boolean,
   minKapacita?: number | null,

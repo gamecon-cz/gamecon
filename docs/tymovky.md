@@ -199,7 +199,7 @@
 
 ## Odemčení týmu
 - [ ] Backend logika odemčení
-  - [ ] Metoda `odemknout()` v `AktivitaTym` — reset `zamcen`, reset `zalozen` na `NOW()` (nový 72h limit)
+  - [X] Metoda `odemknout()` v `AktivitaTym` — reset `zamcen`, reset `zalozen` na `NOW()` (nový 72h limit)
   - [ ] Oprávnění: pouze šéf infa (admin) nebo systém (odhlášení neplatiče)
 - [ ] Šéf infa může tým odemknout přes admin
   - [ ] Tlačítko "Odemknout" v admin panelu `tymy.php` / `tymy.xtpl`
