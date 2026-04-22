@@ -97,13 +97,13 @@ foreach ($skupiny as $skupina) {
     $organizatori = implode(', ', array_map(static function (
         Uzivatel $organizator,
     ) {
-        $url         = $organizator->url(true);
-        $jmenoNaWebu = $organizator->jmenoNaWebu();
+        $maProfilovouStranku = $organizator->url() !== null;
+        $jmenoNaWebu         = $organizator->jmenoNaWebu();
 
-        return $url === null
+        return $maProfilovouStranku
+            ? '<a href="' . $organizator->id() . '">' . $jmenoNaWebu . '</a>'
             // asi vypravěčská skupina nebo podobně
-            ? $jmenoNaWebu
-            : '<a href="' . $url . '">' . $jmenoNaWebu . '</a>';
+            : $jmenoNaWebu;
     }, $aktivita->organizatori()));
 
     $obrazek = $aktivita->obrazek();
