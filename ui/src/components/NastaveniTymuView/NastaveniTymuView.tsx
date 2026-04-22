@@ -139,7 +139,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const minKapacita = data?.minKapacita ?? 0;
   const maxKapacita = data?.maxKapacita ?? null;
   const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
-  const odpočet = useOdpočet(přihlášen && !tymJePlny ? data?.casZalozeniMs : undefined);
+  const odpočet = useOdpočet(přihlášen && !data?.zamceny ? data?.casZalozeniMs : undefined);
 
   if (ukažDemo) {
     return (
@@ -197,8 +197,24 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           )}
 
           {přihlášen && odpočet !== null && odpočet > 0 && (
-            <div style={{ color: "#b80", marginBottom: "8px" }}>
-              Tým bude zveřejněn za {formatZbývá(odpočet)} h — doplňte členy nebo odeberte volná místa.
+            <div style={{
+              background: data?.jeSmazatPoExpiraci ? "#fff3f3" : "#fffbe6",
+              border: `1px solid ${data?.jeSmazatPoExpiraci ? "#c33" : "#b80"}`,
+              borderRadius: "4px",
+              padding: "8px 12px",
+              marginBottom: "8px",
+            }}>
+              {data?.jeSmazatPoExpiraci
+                ? <>
+                    Za {formatZbývá(odpočet)} h bude tým automaticky{" "}
+                    <strong style={{ color: "#c00" }}>smazán</strong>
+                    {" "}— kapitán musí tým zamknout.
+                  </>
+                : <>
+                    Za {formatZbývá(odpočet)} h bude tým automaticky zveřejněn
+                    {" "}— kapitán musí tým zamknout.
+                  </>
+              }
             </div>
           )}
 

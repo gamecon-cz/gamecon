@@ -182,19 +182,20 @@
 - [ ] Vizuální indikátor zbývajícího času do povinného zamčení (72h odpočet)
   - [X] `casZalozeniMs()` existuje a UI ho využívá pro odpočet
   - [ ] Výrazná vizuální urgence (barva, ikona) když zbývá málo času
-- [ ] Zamčený tým nelze editovat (odhlašování, přihlašování, předávání kapitána)
-  - [ ] Kontrola `jeZamceny()` ve všech mutujících metodách `AktivitaTymService`
-  - [ ] API vrací chybu při pokusu o editaci zamčeného týmu
-  - [ ] UI skryje/zašedí editační prvky pro zamčený tým
-- [ ] Každý zamčený tým je automaticky nastaven jako neveřejný
-  - [ ] `zamknout()` nastaví `verejny = false`
-- [ ] Automatická akce po 72h pokud tým nezamčen
-  - [ ] DB sloupec na aktivitě: zda po 72h zveřejnit nebo smazat (`AkceSeznamSqlStruktura.php:32`)
-  - [ ] Migrace pro přidání sloupce do `akce_seznam`
-  - [ ] Cron job / pravidelná kontrola expirovaných týmů (viz sekce Cron joby)
+- [X] Zamčený tým nelze editovat (odhlašování, přihlašování, předávání kapitána)
+  - [X] Kontrola `jeZamceny()` ve všech mutujících metodách `AktivitaTymService`
+    - kontrola je na API
+  - [X] API vrací chybu při pokusu o editaci zamčeného týmu
+  - [X] UI skryje/zašedí editační prvky pro zamčený tým
+- [X] Každý zamčený tým je automaticky nastaven jako neveřejný
+  - [X] `zamknout()` nastaví `verejny = false`
+- [X] Automatická akce po 72h pokud tým nezamčen
+  - [X] DB sloupec na aktivitě: zda po 72h zveřejnit nebo smazat (`AkceSeznamSqlStruktura.php:32`)
+  - [X] Migrace pro přidání sloupce do `akce_seznam`
+  - [X] Cron job / pravidelná kontrola expirovaných týmů (viz sekce Cron joby)
     - [X] `AktivitaTym::expirovaneTymyIds()` — detekce existuje
-    - [ ] Akce nad expirovanými: zveřejnění nebo smazání (podle nastavení aktivity)
-- [ ] kontrola na všechny akce na straně BE že není tým zamčený
+    - [X] Akce nad expirovanými: zveřejnění nebo smazání (podle nastavení aktivity)
+- [X] kontrola na všechny akce na straně BE že není tým zamčený
 
 ## Odemčení týmu
 - [ ] Backend logika odemčení
@@ -229,25 +230,6 @@
   - [ ] Odeslání 24h připomínky z cron jobu
     - [ ] Deduplikace — neposlat připomínku víckrát
     - [ ] DB sloupec `pripomenuti_odeslano` nebo jiný mechanismus
-
-## Technický dluh / refaktoring
-- [ ] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)
-  - [ ] Nahradit `dite` sloupec novým turnajovým systémem (tabulka `akce_tym_akce` + kola)
-  - [ ] Odstranit metody: `deti()`, `maDite()`, `detiIds()`, `detiDbString()`, `pridejDite()`
-  - [ ] Odstranit `parseUpravyTabulkaDeti()`, `parseUpravyTabulkaRodice()`
-  - [ ] Přepsat přihlašovací logiku: `zkontrolujPrihlaseniNavazujicichAktivit()` bez dětí
-  - [ ] Přepsat odhlašovací logiku: odhlášení z potomků → odhlášení z turnaje
-  - [ ] Odstranit sloupec `dite` z DB (migrace)
-  - [ ] Aktualizovat `AkceSeznamSqlStruktura::DITE`
-- [ ] Odstranit/refaktorovat tisk programu (`Program.php` — 5 výskytů `todo(tym): odstraněný tisku programu`)
-  - [ ] Metody `tiskniTabulku()`, `tiskniObsah()`, `tiskniAktivitu()`, `prazdnaMistnost()`
-  - [ ] Nahradit novým renderovacím systémem pro program s podporou týmů
-- [ ] Přihlašovací flow přes nový způsob pro týmové aktivity (`Aktivita.php:3131`)
-  - [ ] Nahradit hardcoded HTML zámku za nový přihlašovací widget
-  - [ ] Sjednotit flow přihlášení pro týmové i netýmové aktivity
-- [ ] `PLUS_MINUS` příznak v Program — nejasné chování (`Program.php:45`)
-  - [ ] Zjistit zda se `PLUS_MINUS` ještě používá nebo je nahrazen novým UI
-  - [ ] Případně odstranit
 
 ## Vícekolové aktivity / turnaje
 - [ ] Aktivita jako součást turnaje s definicí kola
@@ -285,6 +267,26 @@
   - [ ] Admin UI pro přidání člena s overridem limitu
 - [ ] Tisk programu z adminu
   - [ ] Souvisí s refaktoringem tisku programu (`Program.php` TODO)
+- [ ] možnost otevřít program i bez vybraného uživatele
+
+## Technický dluh / refaktoring
+- [ ] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)
+  - [ ] Nahradit `dite` sloupec novým turnajovým systémem (tabulka `akce_tym_akce` + kola)
+  - [ ] Odstranit metody: `deti()`, `maDite()`, `detiIds()`, `detiDbString()`, `pridejDite()`
+  - [ ] Odstranit `parseUpravyTabulkaDeti()`, `parseUpravyTabulkaRodice()`
+  - [ ] Přepsat přihlašovací logiku: `zkontrolujPrihlaseniNavazujicichAktivit()` bez dětí
+  - [ ] Přepsat odhlašovací logiku: odhlášení z potomků → odhlášení z turnaje
+  - [ ] Odstranit sloupec `dite` z DB (migrace)
+  - [ ] Aktualizovat `AkceSeznamSqlStruktura::DITE`
+- [ ] Odstranit/refaktorovat tisk programu (`Program.php` — 5 výskytů `todo(tym): odstraněný tisku programu`)
+  - [ ] Metody `tiskniTabulku()`, `tiskniObsah()`, `tiskniAktivitu()`, `prazdnaMistnost()`
+  - [ ] Nahradit novým renderovacím systémem pro program s podporou týmů
+- [ ] Přihlašovací flow přes nový způsob pro týmové aktivity (`Aktivita.php:3131`)
+  - [ ] Nahradit hardcoded HTML zámku za nový přihlašovací widget
+  - [ ] Sjednotit flow přihlášení pro týmové i netýmové aktivity
+- [ ] `PLUS_MINUS` příznak v Program — nejasné chování (`Program.php:45`)
+  - [ ] Zjistit zda se `PLUS_MINUS` ještě používá nebo je nahrazen novým UI
+  - [ ] Případně odstranit
 
 ## další
 - [ ] přidat nějaké další kontroly před zveřejňováním aktivity ? jako například že každé kolo turnaje má nějakou aktivitu až do max čísla jinak musí org přečíslovat turnaj ?

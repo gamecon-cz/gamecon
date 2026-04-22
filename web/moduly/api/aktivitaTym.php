@@ -129,6 +129,7 @@ if ($tym) {
     $response['casZalozeniMs'] = $tym->casZalozeniMs();
     $response['limitTymu']  = $tym->limitTymu();
     $response['zamceny'] = $tym->jeZamceny();
+    $response['jeSmazatPoExpiraci'] = $tym->jeSmazatPoExpiraci();
     $response['minKapacita'] = $aktivita?->tymMinKapacita();
     $response['maxKapacita'] = $aktivita?->tymMaxKapacita();
     $response['clenove'] = array_map(

@@ -10,6 +10,7 @@ export type NastaveniTymuData = {
   jeKapitan?: boolean,
   verejny?: boolean,
   zamceny?: boolean,
+  jeSmazatPoExpiraci?: boolean,
   casText?: string,
   casZalozeniMs?: number,
   limitTymu?: number | null,

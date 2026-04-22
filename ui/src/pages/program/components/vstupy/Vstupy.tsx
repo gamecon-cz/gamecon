@@ -74,7 +74,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
                 }}
               >
                 {možnost.typ === "můj"
-                  ? "můj program"
+                  ? (GAMECON_KONSTANTY.JE_ADMIN ? "program účastníka" : "můj program")
                   : možnost.typ === "všechny_dny" ? "všechny dny" :formátujDatum(možnost.datum, !jeLetošníRočník)}
               </a>
             );
