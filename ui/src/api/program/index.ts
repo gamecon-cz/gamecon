@@ -280,6 +280,7 @@ export type AktivitaTymResponse = {
   aktivityKPriprave?: AktivitaKVyberu[],
   casZalozeniMs?: number,
   limitTymu?: number | null,
+  zamceny?: boolean,
   minKapacita?: number | null,
   maxKapacita?: number | null,
   clenove?: ClenTymu[],
@@ -344,6 +345,14 @@ export const fetchPredejKapitana = async (aktivitaId: number, kodTymu: number, i
   formdata.set("akce", "predejKapitana");
   formdata.set("kodTymu", kodTymu.toString(10));
   formdata.set("idNovehoKapitana", idNovehoKapitana.toString(10));
+  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
+};
+
+export const fetchZamkniTym = async (aktivitaId: number, kodTymu: number): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
+  const formdata = new FormData();
+  formdata.set("akce", "zamkni");
+  formdata.set("kodTymu", kodTymu.toString(10));
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };
 

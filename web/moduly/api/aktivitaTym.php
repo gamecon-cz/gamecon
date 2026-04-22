@@ -98,6 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $tym->nastavKapitana($idNovehoKapitana);
             $response['úspěch'] = true;
+        } elseif ($akce === 'zamkni') {
+            $tym             = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
+            $tym->zkontrolujZeJeKapitan($u->id());
+            $tym->zkontrolujZeJdeZamknout();
+            $tym->zamkni();
+            $response['úspěch'] = true;
         } else {
             $response['úspěch'] = false;
             $response['chyba']  = ['hláška' => 'Neznámá akce'];
@@ -135,6 +141,7 @@ if ($tym) {
     $response['jeKapitan']  = $tym->jeKapitanem($uzivatelId);
     $response['casZalozeniMs'] = $tym->casZalozeniMs();
     $response['limitTymu']  = $tym->limitTymu();
+    $response['zamceny'] = $tym->jeZamceny();
     $response['minKapacita'] = $aktivita?->tymMinKapacita();
     $response['maxKapacita'] = $aktivita?->tymMaxKapacita();
     $response['clenove'] = array_map(

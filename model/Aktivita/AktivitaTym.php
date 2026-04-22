@@ -108,6 +108,20 @@ class AktivitaTym
         }
     }
 
+    public function zkontrolujZeJdeZamknout(): void
+    {
+        $aktivitaId = $this->idDalsichAktivit()[0];
+        $aktivita = Aktivita::zId($aktivitaId);
+        $min = $aktivita->tymMinKapacita();
+        $max = $aktivita->tymMaxKapacita();
+        $clenu = $this->pocetClenu();
+        if ($clenu < $min) {
+            throw new \Chyba('Pro zamknutí týmu chybí hráči');
+        } elseif ($clenu > $max) {
+            throw new \Chyba('Pro zamknutí má tým více hráčů než by měl mít');
+        }
+    }
+
     public function nastavVerejnost(bool $verejny): void
     {
         self::service()->nastavVerejnostTymu($this->getId(), $verejny);

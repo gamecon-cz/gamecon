@@ -181,13 +181,19 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
             <div class="vpravo" style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
               <button style={{ width: "unset" }} onClick={() => setUkažDemo(true)}>🧪 Demo</button>
               {přihlášen && onOdhlásit && (
-                <button class="" onClick={sPotvrzením(`Opravdu se chcete odhlásit z aktivity${nazevAktivity ? ` ${nazevAktivity}` : ""} a opustit tým?`, onOdhlásit)}>Odhlásit!</button>
+                <button disabled={data?.zamceny} onClick={sPotvrzením(`Opravdu se chcete odhlásit z aktivity${nazevAktivity ? ` ${nazevAktivity}` : ""} a opustit tým?`, onOdhlásit)}>Odhlásit!</button>
               )}
             </div>
           </div>
 
           {data?.casText && (
             <div style={{ color: "#666", marginBottom: "8px" }}>{data.casText}</div>
+          )}
+
+          {přihlášen && data?.zamceny && (
+            <div style={{ color: "#4a4", marginBottom: "8px", fontWeight: "bold" }}>
+              ✓ Tým je zamčený a připravený k hraní.
+            </div>
           )}
 
           {přihlášen && odpočet !== null && odpočet > 0 && (
@@ -252,7 +258,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               {přihlášen && (
                 <>
                   {/* Kód týmu — všichni přihlášení */}
-                  {data?.kod && (
+                  {!data?.zamceny && data?.kod && (
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <span style={{ fontSize: "1.3em" }}>
                         kód týmu:{" "}
@@ -274,7 +280,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                   )}
 
                   {/* Veřejnost — jen kapitán */}
-                  {jeKapitán && data?.verejny !== undefined && (
+                  {!data?.zamceny && jeKapitán && data?.verejny !== undefined && (
                     <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <input
                         type="checkbox"
@@ -304,7 +310,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                               {clen.jmeno}
                               {clen.jeKapitan && <span style={{ color: "#888", marginLeft: "4px" }}>(kapitán)</span>}
                             </span>
-                            {jeKapitán && !clen.jeKapitan && (
+                            {!data?.zamceny && jeKapitán && !clen.jeKapitan && (
                               <div style={{ display: "flex", gap: "4px" }}>
                                 {onPredejKapitana && (
                                   <button
@@ -337,7 +343,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                       </ul>
 
                       {/* Úprava limitu po jednom — jen kapitán */}
-                      {jeKapitán && onNastavLimit && data.limitTymu !== null && data.limitTymu !== undefined && (
+                      {!data?.zamceny && jeKapitán && onNastavLimit && data.limitTymu !== null && data.limitTymu !== undefined && (
                         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
                           <button
                             style={{ width: "unset", padding: "2px 10px" }}
@@ -357,6 +363,17 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                         </div>
                       )}
                     </div>
+                  )}
+
+                  {/* Zavřít tým — jen kapitán, pokud tým není zamčený a má min. počet lidí */}
+                  {!data?.zamceny && jeKapitán && onSmazatTym && (
+                    <button
+                      style={{ width: "unset" }}
+                      disabled={pocetClenu < minKapacita}
+                      onClick={sPotvrzením(`Opravdu chcete zavřít tým${data?.nazev ? ` ${data.nazev}` : ""}? Tým se poté nebude moci editovat.`, onSmazatTym)}
+                    >
+                      Zamknout tým
+                    </button>
                   )}
 
                   {/* Ostatní týmy (bez přihlašování) */}

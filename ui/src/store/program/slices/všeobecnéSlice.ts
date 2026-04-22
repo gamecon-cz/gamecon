@@ -9,6 +9,7 @@ export type NastaveniTymuData = {
   aktivityKPriprave?: AktivitaKVyberu[],
   jeKapitan?: boolean,
   verejny?: boolean,
+  zamceny?: boolean,
   casText?: string,
   casZalozeniMs?: number,
   limitTymu?: number | null,

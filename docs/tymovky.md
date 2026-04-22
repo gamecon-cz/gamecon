@@ -127,11 +127,11 @@
 - [X] Předání kapitána
   - [X] `AktivitaTym::nastavKapitana()` + API `predejKapitana`
   - [X] UI v `NastaveniTymuView.tsx`
-  - [ ] Blokování na zamčeném týmu (po implementaci zamykání)
+  - [X] Blokování na zamčeném týmu (po implementaci zamykání)
 - [X] Vyhození (a odhlášení) hráče z týmu
   - [X] API `odhlasClena` + `AktivitaTym::odhlasUzivateleOdTymu()`
   - [X] UI tlačítko u každého člena
-  - [ ] Blokování na zamčeném týmu (po implementaci zamykání)
+  - [X] Blokování na zamčeném týmu (po implementaci zamykání)
   - [ ] Odhlášení z aktivity při vyhození z týmu (ověřit že funguje)
 - [ ] Odhlášení kapitána sám sebe
   - [ ] Pokud je v týmu víc lidí → automatické předání kapitána (nejstarší člen)
@@ -192,6 +192,7 @@
   - [ ] Cron job / pravidelná kontrola expirovaných týmů (viz sekce Cron joby)
     - [X] `AktivitaTym::expirovaneTymyIds()` — detekce existuje
     - [ ] Akce nad expirovanými: zveřejnění nebo smazání (podle nastavení aktivity)
+- [ ] kontrola na všechny akce na straně BE že není tým zamčený
 
 ## Odemčení týmu
 - [ ] Backend logika odemčení
