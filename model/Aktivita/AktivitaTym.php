@@ -68,7 +68,7 @@ class AktivitaTym
         return $this->team->getNazev();
     }
 
-    public function isVerejny(): bool
+    public function jeVerejny(): bool
     {
         return $this->team->isVerejny();
     }
@@ -86,6 +86,12 @@ class AktivitaTym
     public function jeKapitanem(int $idUzivatele): bool
     {
         return $this->idKapitana() === $idUzivatele;
+    }
+
+    public function jeSmazatPoExpiraci(): bool
+    {
+        $prvniAktivita = $this->team->getAktivity()->first();
+        return $prvniAktivita ? $prvniAktivita->isTymSmazatPoExpiraci() : false;
     }
 
     // ====== INSTANCE OPERACE ======
@@ -266,10 +272,13 @@ class AktivitaTym
         return self::service()->smazRozpracovaneTymy($casNaPripraveniMinut);
     }
 
-    /** @return int[] */
-    public static function expirovaneTymyIds(?int $hajeniHodin = null): array
+    /** @return self[] */
+    public static function expirovaneTymy(?int $hajeniHodin = null): array
     {
-        return self::service()->expirovaneTymyIds($hajeniHodin);
+        return array_map(
+            fn (Team $team) => new self($team),
+            self::service()->expirovaneTymy($hajeniHodin),
+        );
     }
 
     public static function infoOTymuUzivatele(int $idUzivatele, int $idAktivity): ?InfoOTymu

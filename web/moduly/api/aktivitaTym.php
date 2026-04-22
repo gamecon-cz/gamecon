@@ -131,7 +131,7 @@ $tym = AktivitaTym::najdiPodleUzivateleAktivity($uzivatelId, $aktivitaId);
 // info o týmu uživatele
 if ($tym) {
     $response['kod'] = $tym->getKod();
-    $response['verejny']    = $tym->isVerejny();
+    $response['verejny']    = $tym->jeVerejny();
     $response['jeKapitan']  = $tym->jeKapitanem($uzivatelId);
     $response['casZalozeniMs'] = $tym->casZalozeniMs();
     $response['limitTymu']  = $tym->limitTymu();
@@ -154,7 +154,7 @@ $response['vsechnyTymy'] = array_map(fn(AktivitaTym $t) => [
     'nazev'      => $t->getNazev(),
     'pocetClenu' => $t->pocetClenu(),
     'limit'      => $t->limitTymu(),
-    'verejny'    => $t->isVerejny(),
+    'verejny'    => $t->jeVerejny(),
 ], $vsechnyTymy);
 
 echo json_encode($response, $jsonConfig);

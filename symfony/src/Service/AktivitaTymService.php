@@ -298,16 +298,13 @@ class AktivitaTymService
     }
 
     /**
-     * @return int[]
+     * @return self[]
      */
-    public function expirovaneTymyIds(?int $hajeniHodin = null): array
+    public function expirovaneTymy(?int $hajeniHodin = null): array
     {
         $hodin = $hajeniHodin ?? self::HAJENI_TEAMU_HODIN;
 
-        return array_map(
-            fn (Team $team) => (int) $team->getId(),
-            $this->teamRepository->findExpired($hodin),
-        );
+        return $this->teamRepository->findExpired($hodin);
     }
 
     /**

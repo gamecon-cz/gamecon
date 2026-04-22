@@ -81,7 +81,7 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
                 'nazev'      => $aktivitaTym->getNazev() ?: '(bez názvu)',
                 'kapitan'    => $kapitan->login() . ' (' . $kapitan->krestniJmeno() . ' ' . $kapitan->prijmeni() . ')',
                 'obsazenost' => $obsazenost,
-                'verejny'    => $aktivitaTym->isVerejny() ? 'veřejný' : 'soukromý',
+                'verejny'    => $aktivitaTym->jeVerejny() ? 'veřejný' : 'soukromý',
                 'zalozen'    => $zalozen,
                 'id_akce'    => $idAkce,
             ]);

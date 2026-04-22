@@ -109,27 +109,30 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
         return 'rucni-aktivace';
     }
 
-    // todo(tym): tahle funkce zveřejňuje/maže
     /**
-     * Hromadně odemče zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
-     * Vrací počet odemčených teamů (=>uvolněných míst)
+     * Hromadně smaže/zveřejní týmy
      */
-    public function odemciTeamoveHromadne(\Uzivatel $odemykajici): int
+    public function vyresExpirovaneTymyHromadne(\Uzivatel $organizator): int
     {
         $odemcenoTymovychAktivit = 0;
 
-        $expirovaneTymyIds = AktivitaTym::expirovaneTymyIds();
-        foreach ($expirovaneTymyIds as $idTymu) {
-            $tym = dbOneLine('SELECT id_kapitan FROM akce_tym WHERE id = $0', [$idTymu]);
-            if (!$tym) {
-                continue;
+        $expirovaneTymy = AktivitaTym::expirovaneTymy();
+
+        foreach ($expirovaneTymy as $tym) {
+            if ($tym->jeSmazatPoExpiraci()) {
+                $clenove = $tym->clenoveTymu();
+                $aktivita = Aktivita::zId($tym->idDalsichAktivit()[0]);
+                $tym->rozebratTym();
+                foreach ($clenove as $clen) {
+                    $aktivita->odhlas($clen, $organizator, 'hromadne-odemceni-teamovych');
+                }
+                $odemcenoTymovychAktivit++;
+            } else {
+                if ($tym->jeVerejny()) {
+                    $tym->nastavVerejnost(true);
+                    $odemcenoTymovychAktivit++;
+                }
             }
-            $kapitan = \Uzivatel::zId($tym['id_kapitan']);
-            $idAkci = dbOneArray('SELECT id_akce FROM akce_tym_akce WHERE id_tymu = $0', [$idTymu]);
-            foreach ($idAkci as $idAkce) {
-                Aktivita::zId($idAkce)->odhlas($kapitan, $odemykajici, 'hromadne-odemceni-teamovych');
-            }
-            $odemcenoTymovychAktivit++;
         }
 
         if ($odemcenoTymovychAktivit > 0) {
@@ -146,7 +149,7 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
 
     private function nazevAkceHromadnehoOdemceniTeamovych(): string
     {
-        return 'odemceni-tymovych';
+        return 'expirace-tymovych';
     }
 
     public function automatickaAktivaceProvedenaKdy(\DateTimeInterface $vlnaKdy = null): ?\DateTimeInterface

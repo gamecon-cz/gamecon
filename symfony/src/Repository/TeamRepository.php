@@ -113,7 +113,7 @@ class TeamRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('team')
             ->andWhere('team.zalozen < :expirace')
-            ->andWhere('team.verejny = false')
+            ->andWhere('team.zamceny = false')
             ->setParameter('expirace', new \DateTime("-{$hodin} hours"))
             ->getQuery()
             ->getResult();
