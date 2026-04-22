@@ -439,6 +439,7 @@ HTML;
             nazev: 'Státní občanství',
             typ: 'text',
             klic: Sql::STATNI_OBCANSTVI,
+            required: true,
             placeholder: 'například ČR',
         )}
 </div>
@@ -446,9 +447,9 @@ HTML;
 <h2 class="formular_sekceNadpis">Adresa trvalého pobytu</h2>
 
 <div class="formular_sloupce">
-    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE)}
-    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE)}
-    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE)}
+    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE, true)}
+    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE, true)}
+    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE, true)}
     {$this->select(
             'Země',
             Sql::STAT_UZIVATELE,
@@ -471,9 +472,8 @@ HTML;
                 Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
                 Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
             ],
-            false,
         )}
-    {$this->input('Číslo dokladu', 'text', Sql::OP)}
+    {$this->input('Číslo dokladu', 'text', Sql::OP, true)}
 </div>
 HTML;
     }
