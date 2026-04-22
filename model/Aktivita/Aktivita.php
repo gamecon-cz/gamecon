@@ -2218,12 +2218,14 @@ SQL
 
     public function popisId(): ?int
     {
-        // todo: tohle může být číslo ?
-        $popisId = $this->a[Sql::POPIS] ?? null;
-
-        return $popisId !== null
-            ? (int)$popisId
-            : null;
+        // Historicky šlo o FK do tabulky `texty`. Ta byla odstraněna 2025-11-10
+        // a `akce_seznam.popis` obsahuje přímo markdown. Jako identifikátor pro
+        // spojení `aktivity.json` <-> `popisy.json` ve frontendu používáme id
+        // aktivity — je vždy přítomné, unikátní a stabilní. (Dřívější
+        // `(int)$popis` z textu vracelo 0 pro většinu popisů, takže se všechny
+        // aktivity se stejným „popisId“ mapovaly na jeden popis — ukazovala se
+        // anotace jiné aktivity.)
+        return $this->id();
     }
 
     /**
