@@ -113,6 +113,9 @@ class Registrace
         $requiredHtml   = $required || $typ == 'date'
             ? 'required'
             : '';
+        $disabledHtml   = $this->jeUdajZamcenyPoKontrole($klic)
+            ? 'disabled'
+            : '';
         $additionalHtml = $typ === 'password'
             ? 'autocomplete="new-password"'
             // aby se nám automaticky nevkládalo heslo
@@ -139,6 +142,7 @@ class Registrace
                     value="{$predvyplneno}"
                     placeholder="$placeholder"
                     {$requiredHtml}
+                    {$disabledHtml}
                     {$additionalHtml}
                 >
                 {$chybaHtml}
@@ -168,18 +172,24 @@ HTML;
         if ($this->formData === 'undefined') {
             $postData = post(self::FORM_DATA_KEY);
             if ($postData !== null) {
-                $this->formData = $postData;
+                $this->formData = array_merge($this->dataUzivatele(), (array)$postData);
             } else {
-                $dataUzivatele = $this->u?->rawDb() ?? [];
-                if (!empty($dataUzivatele[Sql::OP])) {
-                    $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
-                }
-                $this->formData = $dataUzivatele;
+                $this->formData = $this->dataUzivatele();
             }
             $this->formData[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi()->value;
         }
 
         return $this->formData;
+    }
+
+    private function dataUzivatele(): array
+    {
+        $dataUzivatele = (array)($this->u?->rawDb() ?? []);
+        if (!empty(($dataUzivatele[Sql::OP]))) {
+            $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
+        }
+
+        return $dataUzivatele;
     }
 
     public function zobrazHtml()
@@ -389,18 +399,34 @@ HTML
         $requiredHtml = $required
             ? 'required'
             : '';
+        $disabledHtml = $this->jeUdajZamcenyPoKontrole($klic)
+            ? 'disabled'
+            : '';
 
         $labelRequired = $this->labelRequired($requiredHtml);
 
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
                 {$this->hlavickaPolozky($nazev, $labelRequired, $tooltip)}
-                <select name="{$this->inputName()}[{$klic}]" {$requiredHtml}>
+                <select name="{$this->inputName()}[{$klic}]" {$requiredHtml} {$disabledHtml}>
                 {$moznostiHtml}
                 </select>
                 {$chybaHtml}
             </label>
         HTML;
+    }
+
+    /**
+     * Vrací true, pokud je daný údaj zamčený kvůli proběhlé kontrole na infopultu.
+     * Ve webovém formuláři se takové pole renderuje jako disabled a změna přes Uzivatel::uprav se neuloží.
+     */
+    private function jeUdajZamcenyPoKontrole(string $klic): bool
+    {
+        if (!$this->u || !$this->u->maZkontrolovaneUdaje()) {
+            return false;
+        }
+
+        return in_array($klic, Uzivatel::zamceneUdajePoKontroleNaInfopultu(), true);
     }
 
     public function povinneUdajeProUbytovaniHtml(string $nadpis = '', string $tooltip = ''): string

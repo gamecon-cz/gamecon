@@ -33,7 +33,7 @@
             <!-- begin:input -->
             <td><input
                 type="text" name="udaj[{sloupec}]" value="{vstupniHodnota}" style="margin-left: -3px;"
-                id="udaj_{sloupec}"></td>
+                id="udaj_{sloupec}" {inputDisabled}></td>
             <!-- end:input -->
             <!-- begin:checkbox -->
             <td>
@@ -45,7 +45,7 @@
             <!-- end:checkbox -->
             <!-- begin:select -->
             <td>
-              <select name="udaj[{sloupec}]" style="margin-left: -3px; width: 15.3em">
+              <select name="udaj[{sloupec}]" style="margin-left: -3px; width: 15.3em" {inputDisabled}>
                 <!-- begin:option -->
                 <option value="{optionValue}" {optionSelected}>{optionText}</option>
                 <!-- end:option -->
@@ -54,7 +54,7 @@
             <!-- end:select -->
             <!-- begin:text -->
             <td colspan="2">
-              <textarea id="udaj_{sloupec}" name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{vstupniHodnota}</textarea>
+              <textarea id="udaj_{sloupec}" name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px" {inputDisabled}>{vstupniHodnota}</textarea>
             </td>
             <!-- end:text -->
           </tr>
