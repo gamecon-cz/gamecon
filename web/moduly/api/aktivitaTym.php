@@ -11,6 +11,10 @@ if (!$u) {
     return;
 }
 
+if(!isset($uPracovni)) {
+    $uPracovni = $u;
+}
+
 $jsonConfig = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 header('Content-type: application/json');
 
@@ -27,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tym = null;
         if ($kodTymu) {
             $tym = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
-            $tym->zkontrolujZeJeKapitan($u->id());
+            $tym->zkontrolujZeJeKapitan($uPracovni->id());
             $tym->zkontrolujZeNeniZamceny();
         }
         $response['úspěch'] = true;
@@ -39,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $response['novyKod'] = $tym->pregenerujKod();
         } elseif ($akce === 'odhlasClena') {
             $idClena = (int)($_POST['idClena'] ?? 0);
-            if ($idClena === $u->id()) {
+            if ($idClena === $uPracovni->id()) {
                 throw new Chyba('Kapitán nemůže odebrat sám sebe — použij tlačítko Odhlásit');
             }
             $aktivita = Aktivita::zId($aktivitaId);
@@ -47,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$aktivita || !$clen) {
                 throw new Chyba('Aktivita nebo uživatel neexistuje');
             }
-            $aktivita->odhlas($clen, $u, 'kapitán týmu');
+            $aktivita->odhlas($clen, $uPracovni, 'kapitán týmu');
         } elseif ($akce === 'zalozPrazdnyTym') {
             $aktivita = Aktivita::zId($aktivitaId);
             if (!$aktivita) {
@@ -73,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Chyba('Aktivita nenalezena');
             }
             // todo(tym): tady musí stoprocentně dojít k přihlášení uživatele jinak není úspěch a pořád hrozí smazání týmu
-            $aktivita->prihlas($u, $u, tym: $tym);
+            $aktivita->prihlas($uPracovni, $u, tym: $tym);
         } elseif ($akce === 'nastavLimit') {
             $limit = (int)($_POST['limit'] ?? 0);
             if ($limit < 1) {
@@ -85,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$idNovehoKapitana) {
                 throw new Chyba('Chybí ID nového kapitána');
             }
-            if ($idNovehoKapitana === $u->id()) {
+            if ($idNovehoKapitana === $uPracovni->id()) {
                 throw new Chyba('Nemůžeš předat kapitána sám sobě');
             }
             $tym->nastavKapitana($idNovehoKapitana);
@@ -106,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // GET: info o týmu uživatele + všechny týmy
 $uzivatelId = array_key_exists('uzivatelId', $_GET)
     ? (int)$_GET['uzivatelId']
-    : $u->id();
+    : $uPracovni->id();
 
 // čas aktivity + příznak předpřípravy
 $aktivita = Aktivita::zId($aktivitaId);

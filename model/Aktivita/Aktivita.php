@@ -113,9 +113,8 @@ class Aktivita
     /** přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity */
     const NEOTEVRENE                         = 0b00001000_00000000;
     const UKAZAT_DETAILY_CHYBY               = 0b00010000_00000000;
-    // todo(tym): odstranit deti
-    /** nepřihlašuje děti aktivity */
-    const IGNOROVAT_DETI                     = 0b00100000_00000000;
+    /** nepřihlašuje ostaní kola turnaje */
+    const IGNOROVAT_TURNAJ                   = 0b00100000_00000000;
     /** ignoruje kontroly přihlašování, nejčastěji protože už předtím proběhly, tak netřeba je pouštět znovu */
     const IGNOROVAT_KONTROLY                 = 0b01000000_00000000;
     const ODEMKNI_TYM_ODHLASENIM             = 0b10000000_00000000;
@@ -2412,47 +2411,6 @@ SQL
 
     // todo(tym): odstranit deti
     /**
-     * Vrátí řetězec detí z této aktivity. řetězec musí být jasně definovaný, pokud má nějaká aktivita více dětí, pak musí být alespoň jedno z nich $idDeti aby bylo vybráno jinak funkce spadne.
-     */
-    public function ziskejRetezecDeti(?array $idDeti): array {
-        $idDeti = $idDeti ?? [];
-
-        $retezec = [];
-        $aktualniAktivita = $this;
-
-        while (true) {
-            $detiIds = $aktualniAktivita->detiIds();
-            if (empty($detiIds)) {
-                break;
-            }
-            if (count($detiIds) === 1) {
-                $vybraneDiteId = $detiIds[0];
-            } else {
-                $vybraneDiteId = null;
-                foreach ($detiIds as $childId) {
-                    if (in_array($childId, $idDeti, true)) {
-                        $vybraneDiteId = $childId;
-                        break;
-                    }
-                }
-                if ($vybraneDiteId === null) {
-                    $id = $aktualniAktivita->id();
-                    throw new \LogicException("Aktivita ID $id má více dětí a výběr není jednoznačný. Předejte ID zvoleného dítěte v parametru idDeti.");
-                }
-            }
-            $dite = self::zId($vybraneDiteId, systemoveNastaveni: $this->systemoveNastaveni);
-            if (!$dite) {
-                throw new \LogicException("Dítě s ID $vybraneDiteId nenalezeno");
-            }
-            $retezec[] = $dite;
-            $aktualniAktivita = $dite;
-        }
-
-        return $retezec;
-    }
-
-    // todo(tym): odstranit deti
-    /**
      * Je řetězec dětí jednoznačný ? Každá aktivita musí mí max jedno dítě jinak je odpověď ne.
      */
     public function jeJednoznacnyRetezecDeti(): bool {
@@ -2516,15 +2474,10 @@ SQL
             }
         }
 
-        // todo(tym): odstranit deti
-        // $deti se používá pro kontroly ale i pro přihlašování
-        $deti = [];
-        if (!($parametry & self::IGNOROVAT_DETI)) {
-            $idPreferovanychDeti = [];
-            if ($this->tymova() && $tym) {
-                $idPreferovanychDeti = $tym->idDalsichAktivit();
-            }
-            $deti = $this->ziskejRetezecDeti($idPreferovanychDeti);
+        $dalsiAktivityTymu = [];
+        if ($tym && !($parametry & self::IGNOROVAT_TURNAJ)) {
+            $dalsiAktivityTymuIds = $tym->idDalsichAktivit($this->id());
+            $dalsiAktivityTymu = Aktivita::zids($dalsiAktivityTymuIds);
         }
 
         $this->zkontrolujZdaSeMuzePrihlasit(
@@ -2534,13 +2487,16 @@ SQL
             $jenPritomen,
             $hlaskyVeTretiOsobe,
             $tym,
-            $deti,
+            $dalsiAktivityTymu,
         );
 
-        if (!($parametry & self::IGNOROVAT_DETI)) {
-            $parametryDeti = self::IGNOROVAT_DETI | self::IGNOROVAT_KONTROLY | $parametry;
-            foreach ($deti as $dite) {
-                $dite->prihlas($uzivatel, $prihlasujici, $parametryDeti);
+        // přihlášení na zbylé aktivity turnaje
+        if (!($parametry & self::IGNOROVAT_TURNAJ)) {
+            $parametryDalsichAktivit = $parametry
+                | self::IGNOROVAT_TURNAJ | self::IGNOROVAT_KONTROLY
+                ;
+            foreach ($dalsiAktivityTymu as $aktivitaTymu) {
+                $aktivitaTymu->prihlas($uzivatel, $prihlasujici, $parametryDalsichAktivit);
             }
         }
 
@@ -2667,12 +2623,12 @@ SQL
         ?AktivitaTym $tym = null,
         $deti = [],
     ) {
-        if ($parametry & self::IGNOROVAT_DETI) {
+        if ($parametry & self::IGNOROVAT_TURNAJ) {
             return;
         }
 
         // z této aktivity kontrolujeme celý řetězec dolů
-        $parametry |= self::IGNOROVAT_DETI;
+        $parametry |= self::IGNOROVAT_TURNAJ;
         // navázané aktivity nejsou nikdy přihlašovatelné
         $parametry |= self::STAV;
 
@@ -2705,7 +2661,7 @@ SQL
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
         ?AktivitaTym $tym = null,
-        $deti = [],
+        $navazujiciAktivity = [],
     ): void {
         if ($parametry & self::IGNOROVAT_KONTROLY) {
             return;
@@ -2753,7 +2709,7 @@ SQL
             $jenPritomen,
             $hlaskyVeTretiOsobe,
             $tym,
-            $deti
+            $navazujiciAktivity
         );
     }
 

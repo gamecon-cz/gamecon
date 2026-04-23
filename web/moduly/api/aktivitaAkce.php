@@ -1,6 +1,7 @@
 <?php
 
 /** @var Uzivatel $u */
+/** @var Uzivatel|null $uPracovni */
 
 use Gamecon\Aktivita\Aktivita;
 
@@ -14,9 +15,12 @@ if (!$u) {
     return ;
 }
 
+if(!isset($uPracovni)) {
+    $uPracovni = $u;
+}
 
 try {
-    Aktivita::prihlasovatkoZpracujBezBack($u, $u);
+    Aktivita::prihlasovatkoZpracujBezBack($uPracovni, $u);
     $response["úspěch"] = true;
 } catch (Chyba $chyba) {
     $response["úspěch"] = false;

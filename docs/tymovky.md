@@ -232,10 +232,10 @@
     - [ ] DB sloupec `pripomenuti_odeslano` nebo jiný mechanismus
 
 ## Vícekolové aktivity / turnaje
-- [ ] Aktivita jako součást turnaje s definicí kola
+- [X] Aktivita jako součást turnaje s definicí kola
   - [X] Tabulka `akce_tym_akce` propojuje tým s více aktivitami
-  - [ ] Definice čísla kola na aktivitě (DB sloupec? nebo odvozeno z pořadí?)
-  - [ ] Validace: každý tým má v každém kole právě jednu aktivitu
+  - [X] Definice čísla kola na aktivitě (DB sloupec? nebo odvozeno z pořadí?)
+  - [X] Validace: každý tým má v každém kole právě jednu aktivitu
 - [ ] Výběr termínů pro tým (skip pokud v žádném kole není víc možností)
   - [X] API endpoint `potvrdVyberAktivit`
   - [X] `jeTrebaPredpripravitTym()` detekce zda je výběr potřeba
