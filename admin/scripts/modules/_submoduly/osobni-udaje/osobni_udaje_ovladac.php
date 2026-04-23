@@ -11,7 +11,7 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 if (post('zmenitUdaj') && $uPracovni) {
-    $udaje = post('udaj');
+    $udaje = (array)post('udaj');
     if ($udaje['op'] ?? null) {
         $uPracovni->cisloOp($udaje['op']);
         unset($udaje['op']);
@@ -27,8 +27,10 @@ if (post('zmenitUdaj') && $uPracovni) {
     $zmeniloSeJmenoNaWebu = Uzivatel::zmeniloSeJmenoNaWebu($uPracovni, $udaje);
     $udajeBylyUlozeny = false;
     try {
-        dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
-        $udajeBylyUlozeny = true;
+        if ($udaje !== []) {
+            dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
+            $udajeBylyUlozeny = true;
+        }
     } catch (DbDuplicateEntryException $e) {
         if ($e->key() === 'email1_uzivatele') {
             chyba('Uživatel se stejným e-mailem již existuje.');
