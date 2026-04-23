@@ -270,14 +270,14 @@
 - [ ] možnost otevřít program i bez vybraného uživatele
 
 ## Technický dluh / refaktoring
-- [ ] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)
-  - [ ] Nahradit `dite` sloupec novým turnajovým systémem (tabulka `akce_tym_akce` + kola)
-  - [ ] Odstranit metody: `deti()`, `maDite()`, `detiIds()`, `detiDbString()`, `pridejDite()`
-  - [ ] Odstranit `parseUpravyTabulkaDeti()`, `parseUpravyTabulkaRodice()`
-  - [ ] Přepsat přihlašovací logiku: `zkontrolujPrihlaseniNavazujicichAktivit()` bez dětí
-  - [ ] Přepsat odhlašovací logiku: odhlášení z potomků → odhlášení z turnaje
-  - [ ] Odstranit sloupec `dite` z DB (migrace)
-  - [ ] Aktualizovat `AkceSeznamSqlStruktura::DITE`
+- [X] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)
+  - [X] Nahradit `dite` sloupec novým turnajovým systémem (tabulka `akce_tym_akce` + kola)
+  - [X] Odstranit metody: `deti()`, `maDite()`, `detiIds()`, `detiDbString()`, `pridejDite()`
+  - [X] Odstranit `parseUpravyTabulkaDeti()`, `parseUpravyTabulkaRodice()`
+  - [X] Přepsat přihlašovací logiku: `zkontrolujPrihlaseniNavazujicichAktivit()` bez dětí
+  - [X] Přepsat odhlašovací logiku: odhlášení z potomků → odhlášení z turnaje
+  - [X] Odstranit sloupec `dite` z DB (migrace)
+  - [X] Aktualizovat `AkceSeznamSqlStruktura::DITE`
 - [ ] Odstranit/refaktorovat tisk programu (`Program.php` — 5 výskytů `todo(tym): odstraněný tisku programu`)
   - [ ] Metody `tiskniTabulku()`, `tiskniObsah()`, `tiskniAktivitu()`, `prazdnaMistnost()`
   - [ ] Nahradit novým renderovacím systémem pro program s podporou týmů
@@ -309,6 +309,12 @@
   - [ ] Export seznamu týmů a členů (CSV/Excel)
   - [ ] Statistiky: počet týmů, průměrná velikost, zamčené vs otevřené
   - [ ] Report pro organizátory turnaje: přehled týmů per kolo
-
+- [ ] Bfsr
+  - [ ] Funkce jeToDalsiKolo, jak přesně se má chovat ???
+    ```
+    return in_array($this->typId(), [TypAktivity::LKD, TypAktivity::DRD], true)
+    && empty($this->detiDbString());
+    ```
+  - [ ] co znamená když se testuje na typ LKD DND, nemělo by to bý tobecnější ten test ?
 
 

@@ -93,32 +93,32 @@ class Aktivita
     // todo: tym asi lepší commenty k parametrům by bodly :)
     /* ignore a parametry kolem přihlašovátka */
     /** plus/mínus zkratky pro měnění míst v team. aktivitě */
-    const PLUSMINUS                          = 0b00000000_00000001;
+    const PLUSMINUS                           = 0b00000000_00000001;
     /** plus/mínus zkratky pro každého */
-    const PLUSMINUS_KAZDY                    = 0b00000000_00000010;
+    const PLUSMINUS_KAZDY                     = 0b00000000_00000010;
     /** ignorování stavu */
-    const STAV                               = 0b00000000_00000100;
+    const STAV                                = 0b00000000_00000100;
     /** odhlášení bez pokut */
-    const BEZ_POKUT                          = 0b00000000_00010000;
+    const BEZ_POKUT                           = 0b00000000_00010000;
     /** možnost zpětně měnit přihlášení */
-    const ZPETNE                             = 0b00000000_00100000;
+    const ZPETNE                              = 0b00000000_00100000;
     /** přihlašovat i skryté technické a brigádnické aktivity */
-    const INTERNI                            = 0b00000000_01000000;
+    const INTERNI                             = 0b00000000_01000000;
     /** odhlášení bez mailů náhradníkům */
-    const NEPOSILAT_MAILY_SLEDUJICIM         = 0b00000000_10000000;
+    const NEPOSILAT_MAILY_SLEDUJICIM          = 0b00000000_10000000;
     /** možnost přihlásit před otevřením registrací na aktivity */
-    const DOPREDNE                           = 0b00000001_00000000;
-    const IGNOROVAT_LIMIT                    = 0b00000010_00000000;
-    const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b00000100_00000000;
+    const DOPREDNE                            = 0b00000001_00000000;
+    const IGNOROVAT_LIMIT                     = 0b00000010_00000000;
+    const IGNOROVAT_PRIHLASENI_NA_STEJNE_KOLO = 0b00000100_00000000;
     /** přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity */
-    const NEOTEVRENE                         = 0b00001000_00000000;
-    const UKAZAT_DETAILY_CHYBY               = 0b00010000_00000000;
+    const NEOTEVRENE                          = 0b00001000_00000000;
+    const UKAZAT_DETAILY_CHYBY                = 0b00010000_00000000;
     /** nepřihlašuje ostaní kola turnaje */
-    const IGNOROVAT_TURNAJ                   = 0b00100000_00000000;
+    const IGNOROVAT_TURNAJ                    = 0b00100000_00000000;
     /** ignoruje kontroly přihlašování, nejčastěji protože už předtím proběhly, tak netřeba je pouštět znovu */
-    const IGNOROVAT_KONTROLY                 = 0b01000000_00000000;
-    const ODEMKNI_TYM_ODHLASENIM             = 0b10000000_00000000;
-    const IGNOROVAT_ZAMCENI_TYMU           = 0b1_00000000_00000000;
+    const IGNOROVAT_KONTROLY                  = 0b01000000_00000000;
+    const ODEMKNI_TYM_ODHLASENIM              = 0b10000000_00000000;
+    const IGNOROVAT_ZAMCENI_TYMU            = 0b1_00000000_00000000;
 
     /* parametry kolem továrních metod */
     /** jen volné aktivity */
@@ -420,50 +420,6 @@ SQL
         return null;
     }
 
-    // todo(tym): odstranit deti
-    /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
-    public function deti(): array
-    {
-        if ($this->a[Sql::DITE]) {
-            return self::zIds(
-                ids: $this->a[Sql::DITE],
-                systemoveNastaveni: $this->systemoveNastaveni,
-                prednacitat: $this->prednacitat,
-            );
-        }
-
-        return [];
-    }
-
-    // todo(tym): odstranit deti
-    public function maDite(int $idDitete): bool
-    {
-        return in_array($idDitete, $this->detiIds(), true);
-    }
-
-    // todo(tym): odstranit deti
-    /**
-     * @return int[]
-     */
-    public function detiIds(): array
-    {
-        if (!$this->a[Sql::DITE]) {
-            return [];
-        }
-
-        return $this->parseIds($this->a[Sql::DITE] ?? '');
-    }
-
-    // todo(tym): odstranit deti
-    public function detiDbString(): ?string
-    {
-        if (!$this->a[Sql::DITE]) {
-            return null;
-        }
-
-        return $this->a[Sql::DITE];
-    }
-
     public function idTurnaje(): ?int
     {
         return isset($this->a[Sql::ID_TURNAJE]) && $this->a[Sql::ID_TURNAJE] !== null
@@ -502,8 +458,7 @@ SQL
 
     public function jeToDalsiKolo(): bool
     {
-        return in_array($this->typId(), [TypAktivity::LKD, TypAktivity::DRD], true)
-               && empty($this->detiDbString());
+        return $this->jeSoucastiTurnaje() && $this->turnajKolo() !== 1;
     }
 
     /** Počet hodin do začátku aktivity (float) */
@@ -621,9 +576,6 @@ SQL
         self::parseUpravyTabulkaTagy($aktivita, $editorTagu, $xtpl);
         self::parseUpravyTabulkaLokace($aktivita, $xtpl);
         self::parseUpravyTabulkaTurnaje($aktivita, $xtpl);
-        // todo(tym): odstranit deti
-        self::parseUpravyTabulkaDeti(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
-        self::parseUpravyTabulkaRodice(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
 
         // editace dnů + časů
         // načtení dnů
@@ -734,38 +686,6 @@ SQL
         }
     }
 
-    // todo(tym): odstranit deti
-    private static function parseUpravyTabulkaDeti(
-        ?Aktivita           $aktivita,
-        XTemplate           $xtpl,
-        ?SystemoveNastaveni $systemoveNastaveni,
-    ): void {
-        $q = dbQuery(
-            "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
-            [1 => $aktivita?->id(), 2 => ROCNIK],
-        );
-        $detiIds = $aktivita
-            ? $aktivita->detiIds()
-            : [];
-        while ($mozneDiteData = mysqli_fetch_assoc($q)) {
-            $mozneDiteId = $mozneDiteData[Sql::ID_AKCE];
-            $xtpl->assign(
-                'selected',
-                in_array($mozneDiteId, $detiIds, false)
-                    ? 'selected'
-                    : '',
-            );
-            $mozneDite = Aktivita::zId(
-                id: $mozneDiteId,
-                zCache: true,
-                systemoveNastaveni: $systemoveNastaveni,
-            );
-            $xtpl->assign('id_ditete', $mozneDiteId);
-            $xtpl->assign('nazev_ditete', self::dejRozsirenyNazevAktivity($mozneDite));
-            $xtpl->parse('upravy.tabulka.dite');
-        }
-    }
-
     private static function dejRozsirenyNazevAktivity(Aktivita $aktivita): string
     {
         return sprintf(
@@ -782,31 +702,6 @@ SQL
                 ? $aktivita->konec()->format('G')
                 : '',
         );
-    }
-
-    // todo(tym): odstranit deti
-    private static function parseUpravyTabulkaRodice(
-        ?Aktivita           $aktivita,
-        XTemplate           $xtpl,
-        ?SystemoveNastaveni $systemoveNastaveni,
-    ): void {
-        $q = dbQuery(
-            "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
-            [1 => $aktivita?->id(), 2 => ROCNIK],
-        );
-        while ($moznyRodicData = mysqli_fetch_assoc($q)) {
-            $moznyRodicId = $moznyRodicData[Sql::ID_AKCE];
-            $moznyRodic = Aktivita::zId(id: $moznyRodicId, zCache: true, systemoveNastaveni: $systemoveNastaveni);
-            $xtpl->assign(
-                'selected',
-                $aktivita && $moznyRodic->maDite($aktivita->id())
-                    ? 'selected'
-                    : '',
-            );
-            $xtpl->assign('id_rodice', $moznyRodicId);
-            $xtpl->assign('nazev_rodice', self::dejRozsirenyNazevAktivity($moznyRodic));
-            $xtpl->parse('upravy.tabulka.rodic');
-        }
     }
 
     private static function parseUpravyTabulkaTurnaje(
@@ -1079,6 +974,15 @@ SQL
         unset($a[Sql::POPIS]);
 
         // zpracování turnaje
+        if ($a[Sql::ID_TURNAJE]) {
+            if (isset($a[Sql::TURNAJ_KOLO]) && $a[Sql::TURNAJ_KOLO] !== '') {
+                $a[Sql::TURNAJ_KOLO] = (int)$a[Sql::TURNAJ_KOLO];
+            } else {
+                chyba('Zadej kolo turnaje', false);
+            }
+        } else {
+            $a[Sql::TURNAJ_KOLO] = null;
+        }
         $novyTurnajNazev = trim((string)($a['novy_turnaj_nazev'] ?? ''));
         unset($a['novy_turnaj_nazev']);
         if (($a[Sql::ID_TURNAJE] ?? '') === '__novy__') {
@@ -1096,36 +1000,6 @@ SQL
             $a[Sql::ID_TURNAJE] = (int)$a[Sql::ID_TURNAJE];
         } else {
             $a[Sql::ID_TURNAJE] = null;
-        }
-        if ($a[Sql::ID_TURNAJE] === null) {
-            $a[Sql::TURNAJ_KOLO] = null;
-        } elseif (isset($a[Sql::TURNAJ_KOLO]) && $a[Sql::TURNAJ_KOLO] !== '') {
-            $a[Sql::TURNAJ_KOLO] = max(1, min(5, (int)$a[Sql::TURNAJ_KOLO]));
-        } else {
-            $a[Sql::TURNAJ_KOLO] = null;
-        }
-
-        // todo(tym): odstranit deti
-        $a[Sql::DITE] = !empty($a[Sql::DITE])
-            ? implode(
-                ',',
-                array_map(static function (
-                    $diteId,
-                ) {
-                    return (int)$diteId;
-                }, $a[Sql::DITE]),
-            )
-            : null;
-
-        // todo(tym): odstranit deti
-        $rodiceIds = [];
-        if (!empty($a['rodic'])) {
-            $rodiceIds = array_map(static function (
-                $rodicId,
-            ) {
-                return (int)$rodicId;
-            }, $a['rodic']);
-            unset($a['rodic']);
         }
 
         if (!empty($a[Sql::TEAMOVA]) && isset($a[Sql::TEAM_MIN], $a[Sql::TEAM_MAX]) && $a[Sql::TEAM_MIN] > $a[Sql::TEAM_MAX]) {
@@ -1191,29 +1065,6 @@ SQL
             maPravoNaProvadeniKorekci: $maPravoNaProvadeniKorekci,
         );
         self::varujBylaLiNejakaLokaceObsazena($aktivita);
-
-        // todo(tym): odstranit deti
-        if ($rodiceIds) {
-            $detiIds = $aktivita->detiIds();
-            $rodicIDite = [];
-            foreach ($rodiceIds as $rodicId) {
-                $rodic = self::zId($rodicId);
-                if ($rodic) {
-                    if (in_array($rodicId, $detiIds, false)) {
-                        $rodicIDite[] = $rodic;
-                    } else {
-                        $rodic->pridejDite($aktivita->id());
-                    }
-                }
-            }
-            if ($rodicIDite) {
-                chyba(
-                    'Aktivita nemůže být "dítě" a zároveň "rodič" jedné a té samé aktivitě. Tyto nebyly nastaveny jako rodiče: '
-                    . implode(', ', array_map([__CLASS__, 'dejRozsirenyNazevAktivity'], $rodicIDite)),
-                    false,
-                );
-            }
-        }
 
         oznameni('Aktivita byla uložena', false);
 
@@ -2036,6 +1887,10 @@ SQL
         string    $zdrojOdhlaseni,
                   $params = 0,
     ) {
+        if (!$this->prihlasen($u)) {
+            return; // ignorovat pokud přihlášen není tak či tak
+        }
+
         $tym = $this->tymova()
             ? AktivitaTym::najdiPodleUzivateleAktivity($u->id(), $this->id())
             : null ;
@@ -2045,13 +1900,12 @@ SQL
             } elseif (!($params & self::IGNOROVAT_ZAMCENI_TYMU)) {
                 $tym->zkontrolujZeNeniZamceny();
             }
-        }
-        // todo(tym): odstranit deti
-        foreach ($this->deti() as $dite) {                    // odhlášení z potomků
-            $dite->odhlas($u, $odhlasujici, $zdrojOdhlaseni, $params); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
-        }
-        if (!$this->prihlasen($u)) {
-            return; // ignorovat pokud přihlášen není tak či tak
+
+            if ($tym) {
+                foreach ($tym->dalsiAktivity($this->id()) as $dalsiAktivita) {
+                    $dalsiAktivita->odhlas($u, $odhlasujici, $zdrojOdhlaseni, $params); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
+                }
+            }
         }
 
         // reálné odhlášení
@@ -2409,34 +2263,6 @@ SQL
         }
     }
 
-    // todo(tym): odstranit deti
-    /**
-     * Je řetězec dětí jednoznačný ? Každá aktivita musí mí max jedno dítě jinak je odpověď ne.
-     */
-    public function jeJednoznacnyRetezecDeti(): bool {
-        $aktualniAktivita = $this;
-
-        while ($aktualniAktivita) {
-            $deti = $aktualniAktivita->deti();
-            if (count($deti) > 1) {
-                return false;
-            } if (count($deti) === 0) {
-                return true;
-            }
-            $aktualniAktivita = $deti[0];
-        }
-
-        return true;
-    }
-
-    // todo(tym): odstranit deti
-    /**
-     * Jestli tahle aktivita vyžaduje nejdřív vytvořit tým před přihlašováním a nebo jde vytvořit zároveň s ní.
-     */
-    public function jeTrebaPredpripravitTym(): bool {
-        return !$this->jeJednoznacnyRetezecDeti();
-    }
-
     /**
      *  Přihlásí uživatele na aktivitu.
      *  Pro tymovky:
@@ -2559,22 +2385,27 @@ SQL
         }
     }
 
-    private function zkontrolujPrihlaseniNaSourozence(
+    private function zkontrolujZeNeniPrihlasenNaJinouAktivituKolaTurnaje(
         Uzivatel $uzivatel,
         int      $parametry = 0,
         bool     $hlaskyVeTretiOsobe = false,
     ) {
-        // todo(tym): odstranit deti
-        // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu se stejnými potomky
-        if (!(self::IGNOROVAT_PRIHLASENI_NA_SOUROZENCE & $parametry)) {
-            foreach ($this->deti() as $dite) {
-                foreach ($dite->rodice() as $rodic) {
-                    if ($rodic !== $this && $rodic->prihlasen($uzivatel)) {
-                        throw new \Chyba(hlaska($hlaskyVeTretiOsobe
-                            ? 'uzJePrihlasen'
-                            : 'uzJsiPrihlasen'));
-                    }
-                }
+        if (self::IGNOROVAT_PRIHLASENI_NA_STEJNE_KOLO & $parametry){
+            return;
+        }
+        if (!$this->jeSoucastiTurnaje()) {
+            return;
+        }
+        $koloTurnaje = $this->turnajKolo();
+        $aktivityIds = $this->turnaj()->idAktivitProKola()[$koloTurnaje] ?? [];
+        $aktivityIds = array_diff($aktivityIds, [$this->id()]);
+        $aktivity = self::zIds($aktivityIds);
+
+        foreach ($aktivity as $aktivita) {
+            if ($aktivita->prihlasen($uzivatel)) {
+                throw new \Chyba(hlaska($hlaskyVeTretiOsobe
+                    ? 'uzJePrihlasen'
+                    : 'uzJsiPrihlasen'));
             }
         }
     }
@@ -2613,7 +2444,6 @@ SQL
         }
     }
 
-    // todo(tym): odstranit deti
     private function zkontrolujPrihlaseniNavazujicichAktivit(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
@@ -2621,7 +2451,7 @@ SQL
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
         ?AktivitaTym $tym = null,
-        $deti = [],
+        $navazujiciAktivity = [],
     ) {
         if ($parametry & self::IGNOROVAT_TURNAJ) {
             return;
@@ -2637,9 +2467,9 @@ SQL
             $parametry |= self::IGNOROVAT_LIMIT;
         }
 
-        foreach ($deti as $dite) {
+        foreach ($navazujiciAktivity as $navazujiciAktivita) {
             try {
-                $dite->zkontrolujZdaSeMuzePrihlasit(
+                $navazujiciAktivita->zkontrolujZdaSeMuzePrihlasit(
                     $uzivatel,
                     $prihlasujici,
                     $parametry,
@@ -2679,7 +2509,7 @@ SQL
         $this->zkontrolujKolidujeSAktivitouUzivatele($uzivatel, $jenPritomen, $hlaskyVeTretiOsobe);
         $uzivatel->zkontrolujGcPrihlasen($hlaskyVeTretiOsobe);
         $this->zkontrolujKapacitu($uzivatel->pohlavi(), $parametry);
-        $this->zkontrolujPrihlaseniNaSourozence($uzivatel, $parametry, $hlaskyVeTretiOsobe);
+        $this->zkontrolujZeNeniPrihlasenNaJinouAktivituKolaTurnaje($uzivatel, $parametry, $hlaskyVeTretiOsobe);
         $this->zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite($parametry, $tym);
         $this->zkontrolujBrigadnickePrihlaseni($uzivatel, $hlaskyVeTretiOsobe);
 
@@ -3084,7 +2914,7 @@ SQL
      */
     public function prihlasovatelnaProSledujici(): bool
     {
-        return !$this->tymova() && !$this->a[Sql::DITE];
+        return !$this->tymova() && !$this->jeSoucastiTurnaje();
     }
 
     /**
@@ -3372,21 +3202,6 @@ HTML
         $this->seznamUcastniku = null;
         $this->organizatoriIds = null;
         $this->tagy = null;
-    }
-
-    // todo(tym): odstranit deti
-    /**
-     * Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí
-     *
-     * @return array<Aktivita>
-     */
-    public function rodice(): array
-    {
-        return self::zWhere(
-            systemoveNastaveni: $this->systemoveNastaveni,
-            dalsiPouziteSqlTabulky: [],
-            where1: 'WHERE a.dite rlike "(^|,)' . $this->id() . '(,|$)"',
-        );
     }
 
     /**
@@ -4015,20 +3830,6 @@ SQL,
         }
 
         return count($vypraveciAktivit);
-    }
-
-    // todo(tym): odstranit deti
-    public function pridejDite(int $idDitete)
-    {
-        $detiIds = $this->detiIds();
-        if (in_array($idDitete, $detiIds, true)) {
-            return;
-        }
-        $detiIds[] = $idDitete;
-        $detiIds = array_unique($detiIds);
-        $detiString = implode(',', $detiIds);
-        $this->a[Sql::DITE] = $detiString;
-        dbQuery('UPDATE akce_seznam SET dite = $1 WHERE id_akce = ' . $this->id(), [$detiString]);
     }
 
     /**

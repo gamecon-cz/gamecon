@@ -57,16 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$aktivita) {
                 throw new Chyba('Aktivita nenalezena');
             }
-            $tym                       = AktivitaTym::zalozPrazdnyTym($u->id(), $aktivitaId);
-            $response['kodTymu']       = $tym->getKod();
-            $response['aktivityKVyberu'] = array_values(array_map(
-                static fn(Aktivita $a) => [
-                    'id'      => $a->id(),
-                    'nazev'   => $a->nazev(),
-                    'casText' => ($a->zacatek()?->format('G:i') ?? '') . '–' . ($a->konec()?->format('G:i') ?? ''),
-                ],
-                $aktivita->deti(),
-            ));
+            $tym = AktivitaTym::zalozPrazdnyTym($u->id(), $aktivitaId);
         } elseif ($akce === 'potvrdVyberAktivit') {
             $idVybranychAktivit = array_map('intval', (array)($_POST['idVybranychAktivit'] ?? []));
             foreach ($idVybranychAktivit as $idVybraneAktivity) {
@@ -115,7 +106,7 @@ $uzivatelId = array_key_exists('uzivatelId', $_GET)
 // čas aktivity + příznak předpřípravy
 $aktivita = Aktivita::zId($aktivitaId);
 if ($aktivita) {
-    $response['jeTrebaPredpripravit'] = $aktivita->tymova() && $aktivita->jeTrebaPredpripravitTym();
+    $response['jeTrebaPredpripravit'] = $aktivita->turnaj()?->jeTrebaVybratAktivityTurnaje() ?? false;
     $zacatek           = $aktivita->zacatek();
     $konec             = $aktivita->konec();
     $response['casText'] = $zacatek && $konec

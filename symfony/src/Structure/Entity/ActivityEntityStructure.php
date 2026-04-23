@@ -65,11 +65,6 @@ class ActivityEntityStructure
     public const nedavaBonus = 'nedavaBonus';
 
     /**
-     * @see Activity::$dite
-     */
-    public const dite = 'dite';
-
-    /**
      * @see Activity::$rok
      */
     public const rok = 'rok';

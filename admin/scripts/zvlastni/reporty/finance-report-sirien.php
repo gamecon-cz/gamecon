@@ -293,9 +293,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
                      AND akce_typy.kod_typu IS NOT NULL
-                     AND (NOT (akce_typy.id_typu IN (8, 9) AND EXISTS(SELECT 1
-                                                               FROM akce_seznam child_akce
-                                                               WHERE FIND_IN_SET(akce_seznam.id_akce, child_akce.dite) != 0))) -- pouze první kole LKD a mDrD
+                     AND (NOT (akce_typy.id_typu IN (8, 9) AND akce_seznam.turnaj_kolo > 1)) -- pouze první kole LKD a mDrD
                   ) activity_data
              GROUP BY activity_data.kod
 
@@ -323,9 +321,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
                      AND akce_typy.kod_typu IS NOT NULL
-                     AND (NOT (akce_typy.id_typu IN (8, 9) AND EXISTS(SELECT 1
-                                                               FROM akce_seznam child_akce
-                                                               WHERE FIND_IN_SET(akce_seznam.id_akce, child_akce.dite) != 0))) -- pouze první kole LKD a mDrD
+                     AND (NOT (akce_typy.id_typu IN (8, 9) AND akce_seznam.turnaj_kolo > 1)) -- pouze první kole LKD a mDrD
                   ) activity_data
              GROUP BY activity_data.kod
 
@@ -356,9 +352,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
                      AND akce_typy.kod_typu IS NOT NULL
-                     AND (NOT (akce_typy.id_typu IN (8, 9) AND EXISTS(SELECT 1
-                                                               FROM akce_seznam child_akce
-                                                               WHERE FIND_IN_SET(akce_seznam.id_akce, child_akce.dite) != 0))) -- pouze první kole LKD a mDrD
+                     AND (NOT (akce_typy.id_typu IN (8, 9) AND akce_seznam.turnaj_kolo > 1)) -- pouze první kole LKD a mDrD
                   ) activity_data
              GROUP BY activity_data.kod
 
@@ -389,9 +383,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                     WHERE uzivatele_role.id_uzivatele = akce_organizatori.id_uzivatele
                                       AND uzivatele_role.id_role = 2) -- není full-org
                      AND akce_typy.kod_typu IS NOT NULL
-                     AND (NOT (akce_typy.id_typu IN (8, 9) AND EXISTS(SELECT 1
-                                                               FROM akce_seznam child_akce
-                                                               WHERE FIND_IN_SET(akce_seznam.id_akce, child_akce.dite) != 0))) -- pouze první kole LKD a mDrD
+                     AND (NOT (akce_typy.id_typu IN (8, 9) AND akce_seznam.turnaj_kolo > 1)) -- pouze první kole LKD a mDrD
                   ) activity_data
              GROUP BY activity_data.kod
 
@@ -422,9 +414,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                                 WHERE ur.id_uzivatele = akce_organizatori.id_uzivatele
                                   AND ur.id_role = 2) -- je full-org
                      AND akce_typy.kod_typu IS NOT NULL
-                     AND (NOT (akce_typy.id_typu IN (8, 9) AND EXISTS(SELECT 1
-                                                               FROM akce_seznam child_akce
-                                                               WHERE FIND_IN_SET(akce_seznam.id_akce, child_akce.dite) != 0))) -- pouze první kole LKD a mDrD
+                     AND (NOT (akce_typy.id_typu IN (8, 9) AND akce_seznam.turnaj_kolo > 1)) -- pouze první kole LKD a mDrD
                   ) activity_data
              GROUP BY activity_data.kod
 
@@ -473,9 +463,7 @@ FROM (SELECT MAX(data_rows.poradi) AS poradi, data_rows.kod, MAX(data_rows.nazev
                             JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
                    WHERE akce_seznam.rok = $rocnik
                      AND akce_typy.kod_typu IS NOT NULL
-                     AND (NOT (akce_typy.id_typu IN (8, 9) AND EXISTS(SELECT 1
-                                                               FROM akce_seznam child_akce
-                                                               WHERE FIND_IN_SET(akce_seznam.id_akce, child_akce.dite) != 0))) -- pouze první kole LKD a mDrD
+                     AND (NOT (akce_typy.id_typu IN (8, 9) AND akce_seznam.turnaj_kolo > 1)) -- pouze první kole LKD a mDrD
                   ) activity_data
              GROUP BY activity_data.kod
 

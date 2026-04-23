@@ -11,7 +11,8 @@ SQL,
 
 $this->q(<<<SQL
     ALTER TABLE `akce_seznam`
-    ADD COLUMN `tym_smazat_po_expiraci` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'po expiraci rozpracovaného týmu: 1 = smazat, 0 = zveřejnit'
+    ADD COLUMN `tym_smazat_po_expiraci` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'po expiraci rozpracovaného týmu: 1 = smazat, 0 = zveřejnit',
+    DROP COLUMN `dite`
 SQL,
 );
 

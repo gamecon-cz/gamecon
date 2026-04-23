@@ -80,11 +80,6 @@ class Activity
     #[ORM\JoinColumn(name: 'typ', referencedColumnName: 'id_typu', nullable: false, onDelete: 'RESTRICT')]
     private ActivityType $type;
 
-    #[ORM\Column(name: 'dite', type: Types::STRING, length: 64, nullable: true, options: [
-        'comment' => 'potomci oddělení čárkou',
-    ])]
-    private ?string $dite = null;
-
     #[ORM\ManyToOne(targetEntity: Tournament::class, inversedBy: 'aktivity')]
     #[ORM\JoinColumn(name: 'id_turnaje', referencedColumnName: 'id_turnaje', nullable: true, onDelete: 'SET NULL')]
     private ?Tournament $tournament = null;
@@ -329,18 +324,6 @@ class Activity
     public function setType(ActivityType $type): self
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    public function getDite(): ?string
-    {
-        return $this->dite;
-    }
-
-    public function setDite(?string $dite): self
-    {
-        $this->dite = $dite;
 
         return $this;
     }

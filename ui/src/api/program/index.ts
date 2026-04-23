@@ -71,15 +71,11 @@ export type ApiAktivitaNepřihlášen = {
   cas: OdDo,
   linie: string,
   turnajId?: number;
-  cisloKola?: number;
+  turnajKolo?: number;
   vBudoucnu?: boolean,
   vdalsiVlne?: boolean,
   probehnuta?: boolean,
   jeBrigadnicka?: boolean,
-  // todo: přida kapacita bez obsazenosti
-  // todo: změnit na boolean jestli má dítě, více nepotřebujeme prozatím
-  /** idčka */
-  dite?: number[],
   tymova?: boolean,
   /** přihlašovatelná na základě stavu (ne kapacity) */
   prihlasovatelna?: boolean,
@@ -324,7 +320,7 @@ export const fetchOdhlasClena = async (aktivitaId: number, kodTymu: number, idCl
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };
 
-export const fetchZalozPrazdnyTym = async (aktivitaId: number): Promise<{úspěch: boolean, kodTymu?: number, aktivityKVyberu?: AktivitaKVyberu[], chyba?: {hláška: string}}> => {
+export const fetchZalozPrazdnyTym = async (aktivitaId: number): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
   const formdata = new FormData();
   formdata.set("akce", "zalozPrazdnyTym");

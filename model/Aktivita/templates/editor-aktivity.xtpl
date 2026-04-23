@@ -401,35 +401,6 @@
             updateWrap()
         })()
     </script>
-    <!-- todo(tym): odstranit deti -->
-    <!-- DEPRECATED: rodiče/děti – nahrazeno turnaji; odstraň tyto bloky i veškerý PHP kód kolem parseUpravyTabulkaRodice/Deti a zpracování rodic[]/dite[] v editorZpracuj -->
-    <tr style="opacity:0.4; pointer-events:none">
-        <th class="hinted">
-            <span class="hint" style="margin-top: 1em">DEPRECATED – použij Turnaj výše.</span>
-            <label for="rodice">
-                <span class="hinted">Rodiče (předcházející) <em>[deprecated]</em></span>
-            </label>
-        </th>
-        <td>
-            <select id="rodice" name="{fields}[rodic][]" multiple disabled>
-                <!-- begin:rodic -->
-                <option {selected} value="{id_rodice}">{nazev_rodice}</option><!-- end:rodic -->
-            </select>
-        </td>
-    </tr>
-    <tr style="opacity:0.4; pointer-events:none">
-        <th>
-            <label for="deti">
-                <span class="hinted">Děti (navazující) <em>[deprecated]</em><span class="hint">DEPRECATED – použij Turnaj výše.</span></span>
-            </label>
-        </th>
-        <td>
-            <select id="deti" name="{fields}[dite][]" multiple disabled>
-                <!-- begin:dite -->
-                <option {selected} value="{id_ditete}">{nazev_ditete}</option><!-- end:dite -->
-            </select>
-        </td>
-    </tr>
 </table>
 <!-- end:tabulka -->
 

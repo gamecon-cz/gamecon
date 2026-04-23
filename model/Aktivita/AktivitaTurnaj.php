@@ -100,4 +100,16 @@ class AktivitaTurnaj
         }
         return $vsechnyPrirazeny;
     }
+
+    /**
+     * @return bool true pokud má nějaké kolo více aktivit
+     */
+    public function jeTrebaVybratAktivityTurnaje(): bool
+    {
+        return !empty(array_filter(
+            $this->idAktivitProKola(),
+            // kola co mají na výběr více aktivit
+            fn(array $idAktivitVKole) => count($idAktivitVKole) > 1,
+        ));
+    }
 }

@@ -70,11 +70,6 @@ class ActivitySqlStructure
     public const nedava_bonus = 'nedava_bonus';
 
     /**
-     * @see Activity::$dite
-     */
-    public const dite = 'dite';
-
-    /**
      * @see Activity::$rok
      */
     public const rok = 'rok';

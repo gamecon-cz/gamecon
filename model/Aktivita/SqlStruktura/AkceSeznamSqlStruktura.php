@@ -21,8 +21,6 @@ class AkceSeznamSqlStruktura
     public const BEZ_SLEVY        = 'bez_slevy';
     public const NEDAVA_BONUS     = 'nedava_bonus';
     public const TYP              = 'typ';
-    // todo(tym): odstranit deti
-    public const DITE             = 'dite';
     public const ROK              = 'rok';
     public const STAV             = 'stav';
     public const TEAMOVA          = 'teamova';

@@ -175,16 +175,13 @@ $dotahniAktivityNeprihlasen = function (DataSourcesCollector $dataSourcesCollect
             'vdalsiVlne'    => $aktivita->vDalsiVlne(),
             'probehnuta'    => $aktivita->probehnuta(),
             'jeBrigadnicka' => $aktivita->jeBrigadnicka(),
+            'turnajId'      => $aktivita->idTurnaje(),
+            'turnajKolo'    => $aktivita->turnajKolo(),
+            'prihlasovatelna' => $aktivita->prihlasovatelna(),
+            'tymova'          => $aktivita->tymova(),
         ];
 
-        $aktivitaRes['prihlasovatelna'] = $aktivita->prihlasovatelna();
-        $aktivitaRes['tymova']          = $aktivita->tymova();
-
-        $dite = $aktivita->detiIds();
-        if ($dite && count($dite)) {
-            $aktivitaRes['dite'] = $dite;
-        }
-
+        // todo: elegantní ale asi ne moc bezpečný přístup, co když posílám něco co je dafaultně true nebo posílám něco=0 vs něco=null
         $aktivitaRes = array_filter($aktivitaRes);
         $aktivityNeprihlasen[]  = $aktivitaRes;
     }

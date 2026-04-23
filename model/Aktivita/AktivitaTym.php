@@ -195,6 +195,17 @@ class AktivitaTym
     }
 
     /**
+     * Vrátí ID aktivit, na které je tým přihlášen, kromě zadané výjimky.
+     * @return Aktivita[]
+     */
+    public function dalsiAktivity(int $vyjmaIdAktivity = -1): array
+    {
+        $ids = self::service()->idDalsichAktivitTymu($this->getId(), $vyjmaIdAktivity);
+        $aktivity = Aktivita::zIds($ids);
+        return $aktivity;
+    }
+
+    /**
      * Pouze hlavní aktivita je důležitá, ostatní aktivity slouží jako hint při možném výběru z více aktivit
      */
     public function pridejNaAktivitu(int $idAktivity): void

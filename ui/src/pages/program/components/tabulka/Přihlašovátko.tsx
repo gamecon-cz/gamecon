@@ -166,8 +166,8 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
     else if (volnoTyp === "f") return <>pouze ženská místa</>;
     else if (volnoTyp === "m") return <>pouze mužská místa</>;
 
-    const prihlasovatelnaProSledujici =
-      !aktivita?.dite?.length && !aktivita?.tymova;
+    // todo(tym): nahradit kontrolu: !aktivita?.dite?.length && !aktivita?.tymova
+    const prihlasovatelnaProSledujici = !aktivita?.tymova;
     if (prihlasovatelnaProSledujici) {
       if (aktivita.stavPrihlaseni === "sledujici")
         return <FormTlačítko akitivitaId={akitivitaId} typ={"odhlasSledujiciho"} tymova={aktivita.tymova} />;

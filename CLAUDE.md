@@ -5,7 +5,7 @@ GameCon is a Czech PHP web application for managing the largest Czechoslovak non
 
 ## Technology Stack
 - **Language**: PHP 8.2+ with strict typing
-- **Database**: MariaDB 10.6 
+- **Database**: MariaDB 10.6
 - **Architecture**: Custom MVC with XTemplate templating
 - **Testing**: PHPUnit 10.0
 - **Infrastructure**: Docker-based development
@@ -128,3 +128,20 @@ dbQuery("DELETE FROM table WHERE id NOT IN ($1)", [1 => $ids]);
 - For code clarity and explicit intent
 - To avoid different SQL execution paths
 - To optimize query execution (avoiding query with NULL when you can skip it entirely)
+
+## Generated Concept Docs (`docs/generated/`)
+
+Vstupní bod pro Claude nad většími koncepty (featury, architektura, cross-cutting chování). Cíl: místo opakovaného prohledávání kódu jít nejdřív sem.
+
+**Před prací nad pojmenovaným konceptem** (aktivity, týmy, přihlášky, platby, role, instance, online prezence, import/export, …): přečti `docs/generated/README.md` (index jednořádkových popisů). Pokud existuje relevantní dokument, **začni tam** a neopakuj průzkum kódu.
+
+**Vytvoř / rozšiř dokument**, když během úkolu:
+- zjistíš netriviální pravidlo nebo záměr **nederivovatelný z kódu** (typicky z promptu uživatele)
+- narazíš na gotcha, kterou by budoucí Claude řešil znovu
+- musíš projít **víc než pár souborů**, abys pochopil koncept
+
+Formát, povinné minimum a pravidla údržby: **viz `docs/generated/README.md`**. Po vytvoření / přejmenování dokumentu aktualizuj tam index. Nevytvářej dokumenty pro drobnosti, jednorázové fixy ani věci zřejmé z kódu nebo již pokryté v `CLAUDE.md` / `docs/`.
+
+**Ochrana proti driftu:** dokumenty jsou hypotéza, ne pravda — před rozhodnutím podle dokumentu zlehka ověř klíčová tvrzení proti kódu. Při nálezu driftu prověř celý dokument, nejen dotčenou větu.
+
+
