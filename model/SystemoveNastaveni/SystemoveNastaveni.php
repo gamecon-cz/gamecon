@@ -916,7 +916,7 @@ SQL;
         return pred($this->prihlasovaniUcastnikuOd($rocnik));
     }
 
-    public function poPrihlasovaniUcastniku(int $rocnik = null): bool
+    public function jePoPrihlasovaniUcastniku(int $rocnik = null): bool
     {
         return po($this->prihlasovaniUcastnikuDo($rocnik));
     }
