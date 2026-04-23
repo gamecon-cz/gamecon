@@ -102,6 +102,7 @@ class OsobniUdajeTabulka
                 'zobrazenaHodnota' => $zobrazenaHodnota,
                 'vyber'            => $vyber,
                 'popisek'          => $popisek,
+                'inputDisabled'    => '',
             ]);
             if ($popisek) {
                 $x->parse('udaje.udaj.nazevSPopiskem');

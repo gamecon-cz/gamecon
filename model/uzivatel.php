@@ -68,6 +68,17 @@ class Uzivatel extends DbObject
     public const TYP_DOKLADU_OP = 'op';
     public const TYP_DOKLADU_PAS = 'pas';
     public const TYP_DOKLADU_JINY = 'jiny';
+    public const ZAMCENE_UDAJE_PO_KONTROLE_INFOPULTEM = [
+        Sql::TYP_DOKLADU_TOTOZNOSTI,
+        Sql::OP,
+        Sql::JMENO_UZIVATELE,
+        Sql::PRIJMENI_UZIVATELE,
+        Sql::DATUM_NAROZENI,
+        Sql::ULICE_A_CP_UZIVATELE,
+        Sql::MESTO_UZIVATELE,
+        Sql::PSC_UZIVATELE,
+        Sql::STAT_UZIVATELE,
+    ];
 
     /**
      * @var array<int, array<int, int|string>>
@@ -100,6 +111,32 @@ class Uzivatel extends DbObject
         }
 
         return $povinneUdaje;
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function zamceneUdajePoKontroleNaInfopultu(): array
+    {
+        return self::ZAMCENE_UDAJE_PO_KONTROLE_INFOPULTEM;
+    }
+
+    /**
+     * Odstraní z pole údajů sloupce zamčené po kontrole na infopultu.
+     * Používá se při cestách ukládání přes Uzivatel::uprav (např. webové nastavení účastníka).
+     * Admin cesty s přímým dbUpdate tímto omezením neprochází.
+     */
+    public function odeberZamceneUdajePoKontrole(array $udaje): array
+    {
+        if (!$this->maZkontrolovaneUdaje()) {
+            return $udaje;
+        }
+
+        foreach (self::ZAMCENE_UDAJE_PO_KONTROLE_INFOPULTEM as $sloupec) {
+            unset($udaje[$sloupec]);
+        }
+
+        return $udaje;
     }
 
     /**
@@ -2254,6 +2291,7 @@ SQL,
 
             return (bool) $hodnota;
         }, ARRAY_FILTER_USE_BOTH);
+        $tab = $this->odeberZamceneUdajePoKontrole($tab);
 
         $idNeboHlaska = self::registrujUprav($tab, $this);
         if (is_numeric($idNeboHlaska)) {
