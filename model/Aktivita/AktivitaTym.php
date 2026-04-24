@@ -41,6 +41,16 @@ class AktivitaTym
         return new self($team);
     }
 
+    /** Vrátí tým, jehož je uživatel kapitánem na aktivitě, nebo null. Kapitán nemusí být nutně členem. */
+    public static function najdiPodleKapitanaAktivity(int $idKapitana, int $idAktivity): ?self
+    {
+        $team = self::service()->tymKapitanaNaAktivite($idKapitana, $idAktivity);
+        if ($team === null) {
+            return null;
+        }
+        return new self($team);
+    }
+
     /** Vrátí tým uživatele na aktivitě, nebo null pokud v žádném týmu není. */
     public static function najdiPodleUzivateleAktivity(int $idUzivatele, int $idAktivity): ?self
     {
@@ -49,6 +59,13 @@ class AktivitaTym
             return null;
         }
         return new self($team);
+    }
+
+    public static function najdiPodleUzivateleAktivityNeboKapitana(int $idUzivatele, int $idAktivity):?self {
+        // todo: tohle by šlo spojit do jediného selectu
+        return self::najdiPodleUzivateleAktivity($idUzivatele, $idAktivity)
+            ?? self::najdiPodleKapitanaAktivity($idUzivatele, $idAktivity)
+            ;
     }
 
     // ====== INSTANCE GETTERY ======

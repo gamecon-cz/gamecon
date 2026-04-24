@@ -16,7 +16,7 @@ type NastaveniTymuViewProps = {
   onZavřít: () => void;
   onPřipojitSe: (idTýmu?: number, kód?: number) => void;
   onOdhlásit: () => void;
-  onProveďAkci: (akceTymu: AkceTymuBezKontextu) => Promise<void>
+  onProveďAkci: (akceTymu: AkceTymuBezKontextu, dotáhniIpřiNeúspěchu?: boolean) => Promise<void>
 };
 
 const SeznamTymu: FunctionComponent<{
@@ -97,19 +97,6 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const [kódPřipojeníDoTýmu, setKódPřipojeníDoTýmu] = useState("");
   const [zkopírováno, setZkopírováno] = useState(false);
   const [potvrzení, setPotvrzení] = useState<{ text: string; akce: () => void } | null>(null);
-  // todo(tym): smazat demo
-  const [ukažDemo, setUkažDemo] = useState(false);
-
-  const kola = useMemo<KoloAktivity[]>(() => {
-    if (!data?.aktivityKPriprave) return [];
-    const mapa = new Map<number, KoloAktivity>();
-    for (const a of data.aktivityKPriprave) {
-      const cisloKola = a.cisloKola ?? 1;
-      if (!mapa.has(cisloKola)) mapa.set(cisloKola, { cisloKola, aktivity: [] });
-      mapa.get(cisloKola)!.aktivity.push({ id: a.id, nazev: a.nazev, cas: a.casText });
-    }
-    return [...mapa.values()].sort((a, b) => a.cisloKola - b.cisloKola);
-  }, [data?.aktivityKPriprave]);
 
   const zkopírujKód = (kód: number) => {
     void navigator.clipboard.writeText(String(kód)).then(() => {
@@ -127,16 +114,6 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
   const odpočet = useOdpočet(přihlášen && !data?.zamceny ? data?.casExpiraceMs : undefined);
   const týmJePřipravený = pocetClenu > 0;
-
-  if (ukažDemo) {
-    return (
-      <div className="modal_obal" onClick={(e) => { if (e.target === e.currentTarget) setUkažDemo(false); }}>
-        <div className="modal clearfix" style={{ maxHeight: "80vh", overflowY: "auto" }}>
-          <button class="vpravo zpet" onClick={() => setUkažDemo(false)}>Zavřít</button>
-        </div>
-      </div>
-    );
-  }
 
   if (potvrzení) {
     return (
@@ -162,9 +139,12 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     onOdhlásit
   )
 
-  const onHotovoPripravaTymu = (vybrane: Record<number, number>) => {
-    const idVybranychAktivit = Object.values(vybrane);
-    void onProveďAkci({ typ: "potvrdVyberAktivit", idVybranychAktivit: idVybranychAktivit });
+  const onPotvrditVýběrAktivit = (idVybranychAktivit: number[]) => {
+    void onProveďAkci({ typ: "potvrdVyberAktivit", idVybranychAktivit }, true);
+  };
+
+  const onPrihlasitKapitana = () => {
+    void onProveďAkci({ typ: "prihlasKapitana" });
   }
 
   const onSmazatTym =
@@ -210,7 +190,6 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               Nastavení týmu{nazevAktivity ? ` aktivity ${nazevAktivity}` : ""}
             </h3>
             <div class="vpravo" style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-              <button style={{ width: "unset" }} onClick={() => setUkažDemo(true)}>🧪 Demo</button>
               {přihlášen && data?.zamceny && (
                 <button style={{ width: "unset" }} onClick={onOdemkniSPotvrzenim}>Odemknout</button>
               )}
@@ -260,14 +239,14 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           {!načítá && data && !týmJePřipravený && data.casZalozeniMs && (
             <PripravaTymu
               casZalozeniMs={data.casZalozeniMs}
-              kola={kola}
-              onHotovo={onHotovoPripravaTymu}
+              onVybranéAktivity={onPotvrditVýběrAktivit}
+              onPrihlasitKapitana={onPrihlasitKapitana}
               onSmazat={onSmazatTym}
               nacita={načítáAkci}
             />
           )}
 
-          {!načítá && !načítáAkci && (
+          {!načítá && týmJePřipravený && !načítáAkci && (
             <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
 
               {/* === Nepřihlášený === */}

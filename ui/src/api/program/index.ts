@@ -260,13 +260,6 @@ export type TymVSeznamu = {
   verejny: boolean,
 };
 
-export type AktivitaKVyberu = {
-  id: number,
-  nazev: string,
-  casText: string,
-  cisloKola?: number,
-};
-
 export type AktivitaTymResponse = {
   id: number,
   kod: number,
@@ -274,7 +267,6 @@ export type AktivitaTymResponse = {
   jeKapitan?: boolean,
   casText?: string,
   jeTrebaPredpripravit?: boolean,
-  aktivityKPriprave?: AktivitaKVyberu[],
   casZalozeniMs?: number,
   casExpiraceMs?: number,
   limitTymu?: number | null,
@@ -283,6 +275,7 @@ export type AktivitaTymResponse = {
   maxKapacita?: number | null,
   clenove?: ClenTymu[],
   vsechnyTymy?: TymVSeznamu[],
+  aktivityTymuId?: number[],
 };
 
 export const fetchAktivitaTým = async (aktivitaId: number, uživatelId = 0): Promise<AktivitaTymResponse> => {
@@ -302,6 +295,8 @@ export type AkceTymu =
   | {typ: "odemkni", idTymu: number}
   | {typ: "smazTym", idTymu: number}
   | {typ: "potvrdVyberAktivit", idTymu: number, aktivitaId: number, idVybranychAktivit: number[]}
+  | {typ: "prihlasKapitana", idTymu: number, aktivitaId: number}
+  ;
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 export type AkceTymuBezKontextu = DistributiveOmit<AkceTymu, "idTymu" | "aktivitaId">;

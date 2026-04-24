@@ -735,7 +735,7 @@ SQL
         }
         if ($aktualniTurnajId) {
             $kolaInfo = dbFetchAll(
-                'SELECT turnaj_kolo, zacatek, konec, id_akce, team_kapacita
+                'SELECT turnaj_kolo, zacatek, konec, id_akce, team_kapacita, stav
                  FROM akce_seznam
                  WHERE id_turnaje = $0 AND turnaj_kolo > 0
                  ORDER BY turnaj_kolo, zacatek',
@@ -753,6 +753,10 @@ SQL
                         ? '<strong>' . $koloInfo['id_akce'] . '</strong>'
                         : '<a href="' . Urls::urlAdminDetailAktivity((int)$koloInfo['id_akce']) . '">' . $koloInfo['id_akce'] . '</a>',
                     'kolo_team_kapacita' => $koloInfo['team_kapacita'] ?? '',
+                    'kolo_pripravena'    => (int)$koloInfo['stav'] !== StavAktivity::NOVA
+                        ? '✓'
+                        : '<input type="hidden" name="koloAktivitaId" value="' . (int)$koloInfo['id_akce'] . '">'
+                            . '<button type="submit" name="publikovatKolo" value="1" class="publikovat" style="padding-left:0;padding-right:0" title="Publikuj na webu">pub</button>',
                 ]);
                 $xtpl->parse('upravy.tabulka.kolaTurnaje.koloTurnaje');
             }

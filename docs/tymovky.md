@@ -347,7 +347,7 @@
   - [ ] API vrací přezdívku místo plného jména pro neadmin uživatele
   - [X] API aktuálně vrací `jmeno` — potřeba změnit na nick/přezdívku
   - [ ] V admin panelu zobrazovat plné jméno (beze změny)
-
+- [ ] oveření že uživatel nemůže být ve více týmech na jedné aktivitě
 
 ## TODO po nasazení testování
 - [ ] přidat do cronu mazani_nepripravenych_tymu

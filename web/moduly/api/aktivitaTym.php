@@ -57,7 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$aktivita) {
                 throw new Chyba('Aktivita nenalezena');
             }
-            $tym = AktivitaTym::zalozPrazdnyTym($u->id(), $aktivitaId);
+            $aktivita->prihlas($uPracovni, $u);
+        } elseif ($akce === 'prihlasKapitana') {
+            $aktivita = Aktivita::zId($aktivitaId);
+            if (!$aktivita) {
+                throw new Chyba('Aktivita nenalezena');
+            }
+            $aktivita->prihlas($uPracovni, $u, tym: $tym);
         } elseif ($akce === 'potvrdVyberAktivit') {
             $idVybranychAktivit = array_map('intval', (array)($_POST['idVybranychAktivit'] ?? []));
             foreach ($idVybranychAktivit as $idVybraneAktivity) {
@@ -119,7 +125,7 @@ if ($aktivita) {
         : '';
 }
 
-$tym = AktivitaTym::najdiPodleUzivateleAktivity($uzivatelId, $aktivitaId);
+$tym = AktivitaTym::najdiPodleUzivateleAktivityNeboKapitana($uzivatelId, $aktivitaId);
 
 // info o týmu uživatele
 if ($tym) {
@@ -142,6 +148,7 @@ if ($tym) {
         ],
         $tym->clenoveTymu(),
     );
+    $response['aktivityTymuId'] = array_map(fn(Aktivita $a) => $a->id(),$tym->dalsiAktivity());
 }
 
 // seznam všech týmů

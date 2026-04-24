@@ -7,14 +7,14 @@ import { FunctionComponent } from "preact";
 import { UpozorneniOdpocet } from "./UpozorneniOdpocet";
 
 type PrihlaseniKapitanaProps = {
-  vybranAktivity: string;
+  vybranéAktivity: string;
   onPrihlasit: () => void;
   zbyvajiciCas: string;
   nacita?: boolean;
 };
 
 export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
-  vybranAktivity,
+  vybranéAktivity,
   onPrihlasit,
   zbyvajiciCas,
   nacita,
@@ -26,12 +26,12 @@ export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
         podtexty="Přihlaste se jako kapitán nebo tým bude automaticky smazán"
       />
 
-      {vybranAktivity && (
+      {vybranéAktivity && (
         <div style={{ backgroundColor: "#f5f5f5", padding: "12px", borderRadius: "4px", fontSize: "0.9em" }}>
           <strong>Vybrané termíny:</strong>
-          <div style={{ marginTop: "8px", whiteSpace: "pre-wrap", fontFamily: "monospace", color: "#555" }}>
-            {vybranAktivity}
-          </div>
+          <div style={{ marginTop: "8px", whiteSpace: "pre-wrap", fontFamily: "monospace", color: "#555" }}
+            dangerouslySetInnerHTML={{__html: vybranéAktivity}}
+          />
         </div>
       )}
 
@@ -62,6 +62,7 @@ export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
             borderRadius: "4px",
             cursor: nacita ? "not-allowed" : "pointer",
             opacity: nacita ? 0.6 : 1,
+            marginBottom: "1em",
           }}
         >
           {nacita ? "Přihlašuji..." : "✓ Přihlásit se jako kapitán"}

@@ -73,7 +73,7 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
     nastavModalNastaveníTýmu();
   };
 
-  const proveďAkciTymu = async (akceTymu: Omit<AkceTymu, "idTymu" | "aktivitaId">) => {
+  const proveďAkciTymu = async (akceTymu: Omit<AkceTymu, "idTymu" | "aktivitaId">, dotáhniIpřiNeúspěchu= false) => {
     const akceTymuCpy = produce(akceTymu as AkceTymu, akce=>{
       if (akce.typ !== "zalozPrazdnyTym" && data?.id) {
         akce.idTymu = data.id;
@@ -82,6 +82,7 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
           && (akce.typ === "zalozPrazdnyTym"
             || akce.typ === "odhlasClena"
             || akce.typ === "potvrdVyberAktivit"
+            || akce.typ === "prihlasKapitana"
           )) {
         akce.aktivitaId = aktivita?.id;
       }
@@ -89,6 +90,9 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
     const result = await sNačítáním(async ()=> await fetchAktivitaTymAkce(akceTymuCpy))();
     if (!result.úspěch) {
       setChyba(result.chyba?.hláška);
+      if (dotáhniIpřiNeúspěchu) {
+        void dotáhniNastaveníTýmuProModal();
+      }
       return;
     }
     void dotáhniNastaveníTýmuProModal();

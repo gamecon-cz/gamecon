@@ -20,7 +20,7 @@ type VyberKolAktivityProps = {
   kola: KoloAktivity[];
   vybrane: Record<number, number>; // cisloKola -> id vybrané aktivity
   onVyber: (cisloKola: number, idAktivity: number) => void;
-  onDalsi: () => void;
+  onPotvrdit: () => void;
   zbyvajiciCas: string;
   nacita?: boolean;
 };
@@ -29,7 +29,7 @@ export const VyberKolAktivity: FunctionComponent<VyberKolAktivityProps> = ({
   kola,
   vybrane,
   onVyber,
-  onDalsi,
+  onPotvrdit,
   zbyvajiciCas,
   nacita,
 }) => {
@@ -87,9 +87,9 @@ export const VyberKolAktivity: FunctionComponent<VyberKolAktivityProps> = ({
                         disabled={nacita}
                         style={{ cursor: "pointer", width: "18px", height: "18px" }}
                       />
-                      <div style={{ fontSize: "1em", color: isSelected ? "#2d5f2e" : "#333" }}>
-                        {aktivita.cas}
-                      </div>
+                      <div style={{ fontSize: "1em", color: isSelected ? "#2d5f2e" : "#333" }}
+                        dangerouslySetInnerHTML={{ __html: aktivita.cas }}
+                      ></div>
                     </label>
                   );
                 })}
@@ -100,16 +100,16 @@ export const VyberKolAktivity: FunctionComponent<VyberKolAktivityProps> = ({
       </div>
 
       <button
-        onClick={onDalsi}
+        onClick={onPotvrdit}
         disabled={!vsechnaVybrana || nacita}
         style={{
           width: "100%",
-          padding: "12px 24px",
           fontWeight: "bold",
           fontSize: "1em",
+          marginBottom: "1em",
         }}
       >
-        {nacita ? "Zpracovávám..." : "Pokračovat →"}
+        {nacita ? "Zpracovávám..." : "Potvrdit výběr"}
       </button>
     </div>
   );

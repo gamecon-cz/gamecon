@@ -296,14 +296,15 @@ class AktivitaTymService
             $casNaPripraveniMinut ?? self::CAS_NA_PRIPRAVENI_TYMU_MINUT,
         );
 
+        if (empty($rozpracovane)) {
+            return 0;
+        }
+
         foreach ($rozpracovane as $team) {
             $this->em->remove($team);
         }
 
-        if ($rozpracovane) {
-            $this->em->flush();
-        }
-
+        $this->em->flush();
         return count($rozpracovane);
     }
 
@@ -393,6 +394,11 @@ class AktivitaTymService
         }
         $team->addAktivita($activity);
         $this->em->flush();
+    }
+
+    public function tymKapitanaNaAktivite(int $idKapitana, int $idAktivity): ?Team
+    {
+        return $this->teamRepository->findByKapitanNaAktivite($idKapitana, $idAktivity);
     }
 
     public function tymUzivateleNaAktivite(int $idUzivatele, int $idAktivity): ?Team
@@ -540,6 +546,7 @@ class AktivitaTymService
         $team->addAktivita($aktivita);
 
         $this->em->persist($team);
+        $this->em->flush();
 
         return $team;
     }

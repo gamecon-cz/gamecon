@@ -91,6 +91,19 @@ class TeamRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    public function findByKapitanNaAktivite(int $idKapitana, int $idAktivity): ?Team
+    {
+        return $this->createQueryBuilder('team')
+            ->join('team.aktivity', 'aktivita')
+            ->andWhere('aktivita.id = :idAktivity')
+            ->andWhere('team.kapitan = :idKapitana')
+            ->setParameter('idAktivity', $idAktivity)
+            ->setParameter('idKapitana', $idKapitana)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function isKapitanNaAktivite(int $idUzivatele, int $idAktivity): bool
     {
         return $this->createQueryBuilder('team')

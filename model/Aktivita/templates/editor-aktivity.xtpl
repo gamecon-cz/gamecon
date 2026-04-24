@@ -411,6 +411,7 @@
                     <th style="padding-right:1em">Čas</th>
                     <th style="padding-right:1em">Kapacita týmů</th>
                     <th>ID</th>
+                    <th style="padding-right:1em">Připravená</th>
                 </tr>
                 <!-- begin:koloTurnaje -->
                 <tr>
@@ -418,6 +419,7 @@
                     <td style="padding-right:1em">{kolo_den} {kolo_cas_od}–{kolo_cas_do}</td>
                     <td style="padding-right:1em">{kolo_team_kapacita}</td>
                     <td>{kolo_id_akce_html}</td>
+                    <td style="padding-right:1em">{kolo_pripravena}</td>
                 </tr>
                 <!-- end:koloTurnaje -->
             </table>
