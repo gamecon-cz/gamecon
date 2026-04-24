@@ -1,6 +1,7 @@
 <?php
 
 use App\Service\AktivitaTymService;
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\Program;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
@@ -34,7 +35,7 @@ if ($url->cast(1) === 'muj') {
 }
 
 $program = new Program($systemoveNastaveni, $u, $nastaveni);
-$program->zpracujPost($u);
+Aktivita::prihlasovatkoZpracuj($u, $u);
 
 $this->info()->nazev($program->titulek($url->cast(1)));
 

@@ -251,6 +251,34 @@
   - [ ] Neodhlaš ze sledování pokud hráč může ve všech kolech sledovat alespoň jednu aktivitu
 
 ## Admin program
+- [ ] dělení programu po místnostech
+- [ ] uživatel co udituje nemusí být ten samý co je editován (uPracovni vs u)
+  - tady asi není potřeba posílat celého uživatele co dělá přihlašování, jen jeho oprávnění
+- [ ] zobrazení podle místností (místo linií, levý sloupec ale pořád zobrazuje všechny dny)
+  - [ ] které jsou řazené podle lokace.poradi
+  - [ ] pokud je aktivita ve více lokacích tak se ve všech vykreslí
+  - [ ] vykreslení prázdných místností (zapnout vypnout)
+- [ ] skryt zobrazit viditelne aktivity
+- [ ] změna title Program den, Můj program, Program místnosti, Program účastník
+- [ ] css ke smazani pokud budou v preactu tak nejsou potřeba tady
+  ```
+  web/soubory/blackarrow/_spolecne/hint.css
+  web/soubory/blackarrow/program/program-trida.css
+  ```
+- [ ] tisk místnosti pro orgy <div class="program_lokace">' . $lokace . '</div>
+- [ ] parametry vykreslování
+  - ~~DRD_PJ (asi netřeba s tymovkami)~~
+  - ~~DRD_PRIHLAS (pro tymovky se org jevi jako kapitan)~~
+  - ~~PLUS_MINUS (+- je v ui kapitana)~~
+  - [X] OSOBNI - můj program/účastník
+  - [ ] INTERNI
+    - [ ] přidat někam do filtrů
+    - [ ] kdy jsou interní přihlašovatelné ??
+  - [X] SKUPINY - určuje co je vlevo - den(můj-program), linie, místnost
+  - [ ] PRAZDNE - zobrazovat prázdné skupiny
+  - [ ] ZPETNE - smí měnit přihlášení zpětně
+  - [ ] NEOTEVRENE (a DOPREDNE) -  jestli smí přihlašovat na aktivity které ještě jsou teprve aktivované
+  - [X] DEN zobrazení konkrétního dne
 - [ ] Přihlašování/odhlašování v admin programu pro vybraného uživatele, ne přihlášeného orga (`program-uzivatele.php:117`)
   - [ ] Admin program posílá `id_uzivatele` vybraného uživatele do API
   - [ ] API akceptuje admin operace jménem jiného uživatele
@@ -319,4 +347,8 @@
 
 ## TODO po nasazení testování
 - [ ] přidat do cronu mazani_nepripravenych_tymu
+- [ ] program-k-tisku využívá se ?
+- [ ] jaký význam má Uzivatel::prednactiUzivateleNaAktivitach ? je potřeba někde ? (bylo to v iterátoru aktivit)
+- [ ] co je placeholder-pro-roztazeni-radku a je potřeba ?
+- [ ] je potřeba zobrazovat jména pju ?
 

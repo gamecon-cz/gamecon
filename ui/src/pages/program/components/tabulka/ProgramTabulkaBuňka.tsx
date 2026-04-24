@@ -39,6 +39,11 @@ export const tabulkaBuňkaAktivitaTřídy = (
       classes.push("plno");
     }
   }
+  if (!classes.length) {
+    classes.push("otevrene")
+  }
+  classes.push("aktivita")
+
   return classes.join(" ");
 };
 

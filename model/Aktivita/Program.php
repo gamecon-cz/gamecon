@@ -69,8 +69,8 @@ class Program
      */
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
-        Uzivatel                            $uzivatel = null,
-        array                               $nastaveni = null,
+        ?Uzivatel                           $uzivatel = null,
+        ?array                              $nastaveni = null,
     ) {
         if ($uzivatel instanceof Uzivatel) {
             $this->u = $uzivatel;
@@ -215,15 +215,6 @@ class Program
         $pdf->Output();
     }
 
-    public function prepniProgram(
-        string $klic,
-               $hodnota,
-    ) {
-        $this->nastaveni[self::OSOBNI] = false;
-        $this->nastaveni[self::DEN]    = null;
-        $this->nastaveni[$klic]        = $hodnota;
-    }
-
     // todo(tym): odstraněný tisku programu
     /**
      * Přímý tisk programu na výstup
@@ -236,7 +227,7 @@ class Program
         if ($this->nastaveni[self::OSOBNI] || $this->nastaveni[self::DEN]) {
             $this->tiskTabulky($aktivita);
         } else {
-            foreach ($this->dny() as $den) {
+            foreach (DateTimeGamecon::dnyProgramu($this->systemoveNastaveni) as $den) {
                 $datum = mb_ucfirst($den->format('l j.n.Y'));
                 echo "<h2>$datum</h2>";
                 $this->tiskTabulky($aktivita, $den->format('z'));
@@ -244,37 +235,10 @@ class Program
         }
     }
 
-    /**
-     * Zpracuje POST data nastavená odesláním nějakého formuláře v programu.
-     * Pokud je očekávaná POST proměnná nastavena, přesměruje a ukončí skript.
-     */
-    public function zpracujPost(?Uzivatel $prihlasujici)
-    {
-        if (!$this->u) {
-            return;
-        }
-
-        Aktivita::prihlasovatkoZpracuj($this->u, $prihlasujici);
-    }
 
     ////////////////////
     // pomocné funkce //
     ////////////////////
-
-    /**
-     * @return DateTimeGamecon[]
-     */
-    private function dny(): array
-    {
-        $dny             = [];
-        $zacatekProgramu = DateTimeGamecon::zacatekProgramu($this->systemoveNastaveni->rocnik());
-        $konecProgamu    = DateTimeGamecon::konecProgramu($this->systemoveNastaveni);
-        for ($den = $zacatekProgramu; $den->pred($konecProgamu); $den->plusDen()) {
-            $dny[] = clone $den;
-        }
-
-        return $dny;
-    }
 
     /**
      * Inicializuje privátní proměnné skupiny (podle kterých se shlukuje) a
@@ -327,7 +291,7 @@ class Program
             );
             $this->grpf    = self::SKUPINY_PODLE_DEN;
 
-            foreach ($this->dny() as $den) {
+            foreach (DateTimeGamecon::dnyProgramu($this->systemoveNastaveni) as $den) {
                 $this->skupiny[$den->format('z')] = mb_ucfirst($den->format('l'));
             }
         } else {
