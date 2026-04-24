@@ -29,6 +29,7 @@ export type PřihlášenýUživatel = {
   koncovkaDlePohlavi?: string,
   gcStav?: GCStav,
   brigadnik?: boolean,
+  sefInfa?: boolean,
 }
 
 

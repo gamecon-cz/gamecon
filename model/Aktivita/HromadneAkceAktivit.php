@@ -122,9 +122,8 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
             if ($tym->jeSmazatPoExpiraci()) {
                 $clenove = $tym->clenoveTymu();
                 $aktivita = Aktivita::zId($tym->idDalsichAktivit()[0]);
-                $tym->rozebratTym();
                 foreach ($clenove as $clen) {
-                    $aktivita->odhlas($clen, $organizator, 'hromadne-odemceni-teamovych');
+                    $aktivita->odhlas($clen, $organizator, 'hromadne-odemceni-teamovych', Aktivita::ODEMKNI_TYM_ODHLASENIM);
                 }
                 $odemcenoTymovychAktivit++;
             } else {

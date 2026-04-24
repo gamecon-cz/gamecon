@@ -11,7 +11,7 @@ type UpozorneniOdpocetProps = {
 
 export const UpozorneniOdpocet: FunctionComponent<UpozorneniOdpocetProps> = ({
   zbyvajiciCas,
-  podtexty = "Zvolte si aktivity pro všechna kola a přihlaste se jako kapitán",
+  podtexty,
 }) => {
   return (
     <div
@@ -27,7 +27,7 @@ export const UpozorneniOdpocet: FunctionComponent<UpozorneniOdpocetProps> = ({
       ⚠️ Tým bude automaticky smazán za <strong>{zbyvajiciCas}</strong>
       <br />
       <span style={{ fontSize: "0.9em", fontWeight: "normal" }}>
-        {podtexty}
+        {podtexty ?? ""}
       </span>
     </div>
   );

@@ -1,6 +1,6 @@
 <?php
 
-// TODO: udělat REST api definice
+use Gamecon\Role\Role;
 
 header('Content-type: application/json');
 $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
@@ -21,6 +21,9 @@ if ($u) {
   }
   if ($u->jeBrigadnik()) {
     $res["brigadnik"] = true;
+  }
+  if ($u->maRoli(Role::SEF_INFOPULTU)) {
+    $res["sefInfa"] = true;
   }
 
   $res["gcStav"] = "nepřihlášen";

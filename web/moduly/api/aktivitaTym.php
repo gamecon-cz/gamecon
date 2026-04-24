@@ -4,6 +4,7 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaTym;
+use Gamecon\Role\Role;
 
 $response = [];
 
@@ -87,6 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($akce === 'zamkni') {
             $tym->zkontrolujZeJdeZamknout();
             $tym->zamkni();
+        } elseif ($akce === 'odemkni') {
+            if (!$u->maRoli(Role::SEF_INFOPULTU)) {
+                throw new Chyba('Nemáš oprávnění odemknout tým');
+            }
+            $tym->odemkni();
         } else {
             throw new Chyba('Neznámá akce');
         }

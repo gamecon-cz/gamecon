@@ -8,8 +8,6 @@ import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
-import { useState } from "preact/hooks";
-import { fetchAktivitaTýmKód } from "../../../../api/program";
 
 export const tabulkaBuňkaAktivitaTřídy = (
   aktivita: Aktivita,

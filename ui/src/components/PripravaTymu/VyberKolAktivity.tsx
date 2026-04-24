@@ -45,7 +45,7 @@ export const VyberKolAktivity: FunctionComponent<VyberKolAktivityProps> = ({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      <UpozorneniOdpocet zbyvajiciCas={zbyvajiciCas} />
+      <UpozorneniOdpocet zbyvajiciCas={zbyvajiciCas} podtexty="Zvolte si aktivity pro všechna kola a přihlaste se jako kapitán"/>
 
       {/* Výběr aktivit pro jednotlivá kola */}
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>

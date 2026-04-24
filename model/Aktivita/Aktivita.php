@@ -1901,9 +1901,10 @@ SQL
                 $tym->zkontrolujZeNeniZamceny();
             }
 
-            if ($tym) {
+            if ($tym && !($params | self::IGNOROVAT_TURNAJ)) {
+                $aktivityTymuParams = $params | self::IGNOROVAT_TURNAJ | self::IGNOROVAT_ZAMCENI_TYMU;
                 foreach ($tym->dalsiAktivity($this->id()) as $dalsiAktivita) {
-                    $dalsiAktivita->odhlas($u, $odhlasujici, $zdrojOdhlaseni, $params); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
+                    $dalsiAktivita->odhlas($u, $odhlasujici, $zdrojOdhlaseni, $aktivityTymuParams); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
                 }
             }
         }
@@ -1928,7 +1929,7 @@ SQL,
                 [StavPrihlaseni::POZDE_ZRUSIL],
             );
         }
-        // todo(tym): odhláŠení ze všech dalších aktivit turnaje
+
         if ($this->tymova()) {
             AktivitaTym::odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
         }

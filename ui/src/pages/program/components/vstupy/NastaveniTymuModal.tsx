@@ -5,6 +5,7 @@ import {
   useNastaveniTymuModalAktivitaId,
   useNastaveniTymuModalData,
   useNastaveniTymuModalNazevAktivity,
+  useUživatelJeSefInfa,
 } from "../../../../store/program/selektory";
 import {
   dotáhniNastaveníTýmuProModal,
@@ -13,22 +14,26 @@ import {
 } from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
 import { useProgramStore } from "../../../../store/program";
-import { fetchNastavVerejnostTymu, fetchPregenerujKodTymu, fetchOdhlasClena, fetchZalozPrazdnyTym, fetchPotvrdVyberAktivit, fetchPredejKapitana, fetchNastavLimitTymu, fetchSmazTym } from "../../../../api/program";
+import { fetchNastavVerejnostTymu, fetchPregenerujKodTymu, fetchOdhlasClena, fetchZalozPrazdnyTym, fetchPotvrdVyberAktivit, fetchPredejKapitana, fetchNastavLimitTymu, fetchSmazTym, fetchOdemkniTym } from "../../../../api/program";
 import { NastaveniTymuView } from "../../../../components/NastaveniTymuView/NastaveniTymuView";
 
+/** tohel je quick fix na dvojí registraci registrujDotahováníNastaveníTýmu */
+let registrované = false;
 export const registrujDotahováníNastaveníTýmu = () => {
+  if (registrované) return;
+  registrované = true;
   useProgramStore.subscribe(s => s.všeobecné.nastaveniTymu?.aktivitaId, (aktivitaId) => {
     if (aktivitaId)
       void dotáhniNastaveníTýmuProModal();
   });
 }
 
-
 export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   const aktivitaId = useNastaveniTymuModalAktivitaId();
   const aktivita = useAktivita(aktivitaId ?? -1);
   const storeNazevAktivity = useNastaveniTymuModalNazevAktivity();
   const data = useNastaveniTymuModalData();
+  const jeSefInfa = useUživatelJeSefInfa();
   const [chyba, setChyba] = useState<string | null>(null);
   const [načítáAkci, setNačítáAkci] = useState(false);
   const [bylaZměna, setBylaZměna] = useState(false);
@@ -131,6 +136,17 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
     void dotáhniNastaveníTýmuProModal();
   };
 
+  const odemkni = async () => {
+    if (!data?.kod) return;
+    setChyba(null);
+    const result = await fetchOdemkniTym(aktivitaId, data.kod);
+    if (!result.úspěch) {
+      setChyba(result.chyba?.hláška ?? "Nepodařilo se odemknout tým");
+      return;
+    }
+    void dotáhniNastaveníTýmuProModal();
+  };
+
   const smazatTym = async () => {
     if (!data?.kod) return;
     setChyba(null);
@@ -154,13 +170,14 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       onZaložitTým={() => void sNačítáním(založitTým, true)()}
       onPřipojitSe={(idTýmu, kód) => void sNačítáním(() => proveďAkciAktivity(aktivitaId, "prihlasit", idTýmu, kód).then(zavřít), true)()}
       onPřepniVerejnost={() => void sNačítáním(přepniVerejnost, true)()}
-      onOdhlásit={() => nastavModalOdhlásit(aktivitaId)}
+      onOdhlásit={() => void proveďAkciAktivity(aktivitaId, "odhlasit")}
       onPregenerujKód={() => void sNačítáním(přegenerujKód, true)()}
       onOdhlásitČlena={(id) => void sNačítáním(() => odhlásitČlena(id), true)()}
       onPredejKapitana={(id) => void sNačítáním(() => predejKapitana(id), true)()}
       onNastavLimit={(limit) => void sNačítáním(() => nastavLimit(limit), true)()}
       onHotovoPripravaTymu={(vybrane) => void sNačítáním(() => hotovoPripravaTymu(vybrane), true)()}
       onSmazatTym={() => void sNačítáním(smazatTym, true)()}
+      onOdemkni={jeSefInfa ? () => void sNačítáním(odemkni, true)() : undefined}
     />
   );
 };

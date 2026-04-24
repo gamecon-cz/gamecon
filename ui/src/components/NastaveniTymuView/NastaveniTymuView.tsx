@@ -23,6 +23,7 @@ type NastaveniTymuViewProps = {
   onNastavLimit?: (limit: number) => void;
   onHotovoPripravaTymu?: (vybrane: Record<number, number>) => void;
   onSmazatTym?: () => void;
+  onOdemkni?: () => void;
 };
 
 const SeznamTymu: FunctionComponent<{
@@ -105,6 +106,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     onNastavLimit,
     onHotovoPripravaTymu,
     onSmazatTym,
+    onOdemkni,
   } = props;
 
   const [kódPřipojeníDoTýmu, setKódPřipojeníDoTýmu] = useState("");
@@ -139,6 +141,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const maxKapacita = data?.maxKapacita ?? null;
   const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
   const odpočet = useOdpočet(přihlášen && !data?.zamceny ? data?.casExpiraceMs : undefined);
+  const týmJePřipravený = pocetClenu > 0;
 
   if (ukažDemo) {
     return (
@@ -179,6 +182,9 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
             </h3>
             <div class="vpravo" style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
               <button style={{ width: "unset" }} onClick={() => setUkažDemo(true)}>🧪 Demo</button>
+              {přihlášen && onOdemkni && data?.zamceny && (
+                <button style={{ width: "unset" }} onClick={sPotvrzením(`Opravdu chcete odemknout tým${data?.nazev ? ` ${data.nazev}` : ""}?`, onOdemkni)}>Odemknout</button>
+              )}
               {přihlášen && onOdhlásit && (
                 <button disabled={data?.zamceny} onClick={sPotvrzením(`Opravdu se chcete odhlásit z aktivity${nazevAktivity ? ` ${nazevAktivity}` : ""} a opustit tým?`, onOdhlásit)}>Odhlásit!</button>
               )}
@@ -222,7 +228,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           {chyba && <div style={{ color: "red" }}>{chyba}</div>}
 
           {/* === Příprava nového týmu (výběr kol + přihlášení kapitána) === */}
-          {!načítá && data?.jeTrebaPredpripravit && data.casZalozeniMs && (
+          {!načítá && data && !týmJePřipravený && data.casZalozeniMs && (
             <PripravaTymu
               casZalozeniMs={data.casZalozeniMs}
               kola={kola}
@@ -232,7 +238,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
             />
           )}
 
-          {!načítá && !načítáAkci && !data?.jeTrebaPredpripravit && (
+          {!načítá && !načítáAkci && (
             <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
 
               {/* === Nepřihlášený === */}

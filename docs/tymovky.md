@@ -198,19 +198,18 @@
 - [X] kontrola na všechny akce na straně BE že není tým zamčený
 
 ## Odemčení týmu
-- [ ] Backend logika odemčení
+- [X] Backend logika odemčení
   - [X] Metoda `odemknout()` v `AktivitaTym` — reset `zamcen`, reset `zalozen` na `NOW()` (nový 72h limit)
-  - [ ] Oprávnění: pouze šéf infa (admin) nebo systém (odhlášení neplatiče)
+  - [X] Oprávnění: pouze šéf infa (admin) nebo systém (odhlášení neplatiče)
 - [ ] Šéf infa může tým odemknout přes admin
   - [ ] Tlačítko "Odemknout" v admin panelu `tymy.php` / `tymy.xtpl`
   - [ ] Kontrola oprávnění (šéf infa)
-- [ ] Automatické odemčení při odhlášení neplatiče
-  - [ ] Hook do procesu odhlášení neplatiče — detekce že uživatel je v zamčeném týmu
-  - [ ] Odemknout tým + vyhodit neplatiče z týmu
-  - [ ] Po odemčení běží limit 72h znova (reset `zalozen`)
+- [X] Automatické odemčení při odhlášení neplatiče
+  - [X] Odemknout tým + vyhodit neplatiče z týmu
+  - [X] Po odemčení běží limit 72h znova (reset `zalozen`)
 
 ## Cron joby / automatizace
-- [ ] Pravidelné mazání rozpracovaných týmů (starší než 30 min, 0 členů)
+- [ ] Pravidelné mazání rozpracovaných týmů (starší než 15 min, 0 členů)
   - [X] Logika `smazRozpracovaneTymy()` existuje
   - [ ] Cron job nebo hook který ji pravidelně volá
 - [ ] Pravidelná kontrola 72h expirace nezamčených týmů
@@ -268,6 +267,7 @@
 - [ ] Tisk programu z adminu
   - [ ] Souvisí s refaktoringem tisku programu (`Program.php` TODO)
 - [ ] možnost otevřít program i bez vybraného uživatele
+- [ ] pokud je otevřený
 
 ## Technický dluh / refaktoring
 - [X] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)
@@ -317,4 +317,6 @@
     ```
   - [ ] co znamená když se testuje na typ LKD DND, nemělo by to bý tobecnější ten test ?
 
+## TODO po nasazení testování
+- [ ] přidat do cronu mazani_nepripravenych_tymu
 
