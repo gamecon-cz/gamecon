@@ -2,6 +2,7 @@
 
 namespace Gamecon\Aktivita;
 
+use App\Service\AktivitaTymService;
 use ArrayIterator;
 use ArrayObject;
 use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
@@ -11,6 +12,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Info;
+use Stranka;
 use tFPDF;
 use Uzivatel;
 
@@ -19,6 +21,67 @@ use Uzivatel;
  */
 class Program
 {
+
+    public function vypisPreact(?Uzivatel $uPracovni, $jeAdmin = false): void
+    {
+        $souborySlozka = ($jeAdmin ? 'files' : 'soubory');
+        $stylUrl     = $this->zabalWebSoubor($souborySlozka . '/ui/style.css', $jeAdmin);
+        $bundleUrl   = $this->zabalWebSoubor($souborySlozka . '/ui/bundle.js', $jeAdmin);
+        $konstanty   = json_encode($this->gameconKonstanty($jeAdmin));
+        $prednacteni = json_encode(
+            ['přihlášenýUživatel' => $uPracovni?->apiPrihlasenyUzivatel() ?? []],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        );
+
+        echo <<<HTML
+        <link rel="stylesheet" href="{$stylUrl}">
+        <div id="preact-program">Program se načítá ...</div>
+        <script>
+            // Konstanty předáváné do Preactu (env.ts)
+            window.GAMECON_KONSTANTY = {$konstanty}
+            window.gameconPřednačtení = {$prednacteni}
+        </script>
+        <script type="module" src="{$bundleUrl}"></script>
+        HTML;
+    }
+
+    public function gameconKonstanty($jeAdmin = false): array
+    {
+        $legendaText = Stranka::zUrl('program-legenda-text')?->html();
+        $basePathApi = ($jeAdmin ? URL_ADMIN : URL_WEBU) . '/api/';
+        $basePathPage = $jeAdmin ? URL_ADMIN . '/program-uzivatele/' : URL_WEBU . '/program/';
+
+        $konstanty = [
+            'BASE_PATH_API'                => $basePathApi,
+            'BASE_PATH_PAGE'               => $basePathPage,
+            'ROCNIK'                       => ROCNIK,
+            'LEGENDA'                      => $legendaText,
+            'FORCE_REDUX_DEVTOOLS'         => defined('FORCE_REDUX_DEVTOOLS'),
+            'PROGRAM_OD'                   => (new DateTimeCz(PROGRAM_OD))->getTimestamp() * 1000,
+            'PROGRAM_DO'                   => (new DateTimeCz(PROGRAM_DO))->getTimestamp() * 1000,
+            'PROGRAM_ZACATEK'              => PROGRAM_ZACATEK,
+            'PROGRAM_KONEC'                => PROGRAM_KONEC,
+            'CAS_NA_PRIPRAVENI_TYMU_MINUT' => AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT,
+        ];
+
+        if ($jeAdmin) {
+            $konstanty['JE_ADMIN'] = $jeAdmin;
+        }
+
+        return $konstanty;
+    }
+
+    private function zabalWebSoubor(string $cestaKSouboru, $admin = false): string
+    {
+        // todo(tym): ma tu jese byt tohle?:    URL_WEBU . '/' .
+        return $cestaKSouboru . '?version=' . md5_file(($admin ? ADMIN :  WWW) . '/' . $cestaKSouboru);
+    }
+
+    //////////// Starý program ////////////
+
+
+
+
     public const DRD_PJ          = 'drd_pj';
     public const DRD_PRIHLAS     = 'drd_prihlas';
     public const PLUS_MINUS      = 'plus_minus';

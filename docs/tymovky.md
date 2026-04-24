@@ -351,4 +351,5 @@
 - [ ] jaký význam má Uzivatel::prednactiUzivateleNaAktivitach ? je potřeba někde ? (bylo to v iterátoru aktivit)
 - [ ] co je placeholder-pro-roztazeni-radku a je potřeba ?
 - [ ] je potřeba zobrazovat jména pju ?
+- [ ] zrychlení api programu použitím dřívějšího přístupu k db
 

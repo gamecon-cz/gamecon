@@ -2831,4 +2831,39 @@ SQL;
 
         return $this->kdySeRegistrovalNaLetosniGc;
     }
+
+    /**
+     * Vrací anonymní objekt pro api
+     */
+    public function apiPrihlasenyUzivatel() {
+        $res = [];
+
+        $res["prihlasen"] = true;
+        $res["pohlavi"] = $this->pohlavi();
+        $res["koncovkaDlePohlavi"] = $this->koncovkaDlePohlavi();
+
+        if ($this->jeOrganizator()) {
+            $res["organizator"] = true;
+        }
+        if ($this->jeBrigadnik()) {
+            $res["brigadnik"] = true;
+        }
+        if ($this->maRoli(Role::SEF_INFOPULTU)) {
+            $res["sefInfa"] = true;
+        }
+
+        $res["gcStav"] = "nepřihlášen";
+
+        if ($this->gcPrihlasen()) {
+            $res["gcStav"] = "přihlášen";
+        }
+        if ($this->gcPritomen()) {
+            $res["gcStav"] = "přítomen";
+        }
+        if ($this->gcOdjel()) {
+            $res["gcStav"] = "odjel";
+        }
+
+        return $res;
+    }
 }

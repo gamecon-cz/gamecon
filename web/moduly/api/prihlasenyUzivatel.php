@@ -1,6 +1,6 @@
 <?php
 
-use Gamecon\Role\Role;
+/** @var Uzivatel $u */
 
 header('Content-type: application/json');
 $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
@@ -9,34 +9,6 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
   return;
 }
 
-$res = [];
-
-if ($u) {
-  $res["prihlasen"] = true;
-  $res["pohlavi"] = $u->pohlavi();
-  $res["koncovkaDlePohlavi"] = $u->koncovkaDlePohlavi();
-
-  if ($u->jeOrganizator()) {
-    $res["organizator"] = true;
-  }
-  if ($u->jeBrigadnik()) {
-    $res["brigadnik"] = true;
-  }
-  if ($u->maRoli(Role::SEF_INFOPULTU)) {
-    $res["sefInfa"] = true;
-  }
-
-  $res["gcStav"] = "nepřihlášen";
-
-  if ($u->gcPrihlasen()) {
-    $res["gcStav"] = "přihlášen";
-  }
-  if ($u->gcPritomen()) {
-    $res["gcStav"] = "přítomen";
-  }
-  if ($u->gcOdjel()) {
-    $res["gcStav"] = "odjel";
-  }
-}
+$res = $u?->apiPrihlasenyUzivatel() ?? [];
 
 echo json_encode($res, $config);

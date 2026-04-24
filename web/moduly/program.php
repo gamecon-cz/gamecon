@@ -9,6 +9,7 @@ use Gamecon\Pravo;
 /** @var Modul $this */
 /** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
+/** @var Uzivatel $uPracovni */
 /** @var Url $url */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
@@ -19,6 +20,7 @@ for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen())
     $dny[slugify($den->format('l'))] = clone $den;
 }
 
+// todo(tym): tohle půjde pryč
 $nastaveni       = [];
 $alternativniUrl = null;
 $title           = 'Program';
@@ -52,7 +54,6 @@ $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
     ? $zacatekPristiVlnyOd->getTimestamp() - $systemoveNastaveni->ted()->getTimestamp()
     : null;
 
-$legendaText   = Stranka::zUrl('program-legenda-text')?->html();
 $jeOrganizator = isset($u) && $u && $u->maPravoNaPoradaniAktivit();
 
 ?>
@@ -66,64 +67,6 @@ $jeOrganizator = isset($u) && $u && $u->maPravoNaPoradaniAktivit();
 </style>
 
 
-<?php
-function zabalWebSoubor(string $cestaKSouboru): string
-{
-    return $cestaKSouboru . '?version=' . md5_file(WWW . '/' . $cestaKSouboru);
-}
-
-?>
-
-<link rel="stylesheet" href="<?= zabalWebSoubor('soubory/ui/style.css') ?>">
-
-<div id="preact-program">Program se načítá ...</div>
-<script>
-    // Konstanty předáváné do Preactu (env.ts)
-    window.GAMECON_KONSTANTY = {
-        BASE_PATH_API: "<?= URL_WEBU . "/api/" ?>",
-        BASE_PATH_PAGE: "<?= URL_WEBU . "/program/" ?>",
-        ROCNIK: <?= ROCNIK ?>,
-        LEGENDA: <?= json_encode($legendaText) ?>,
-        FORCE_REDUX_DEVTOOLS: <?= defined("FORCE_REDUX_DEVTOOLS") ? "true" : "false" ?>,
-        PROGRAM_OD: <?= (new DateTimeCz(PROGRAM_OD))->getTimestamp() ?>000,
-        PROGRAM_DO: <?= (new DateTimeCz(PROGRAM_DO))->getTimestamp() ?>000,
-        PROGRAM_ZACATEK: <?= PROGRAM_ZACATEK ?>,
-        PROGRAM_KONEC: <?= PROGRAM_KONEC ?>,
-        CAS_NA_PRIPRAVENI_TYMU_MINUT: <?= AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT ?>,
-    }
-
-    window.gameconPřednačtení =
-    <?php
-    $res = [];
-    if ($u) {
-        $res["prihlasen"]          = true;
-        $res["pohlavi"]            = $u->pohlavi();
-        $res["koncovkaDlePohlavi"] = $u->koncovkaDlePohlavi();
-
-        if ($u->jeOrganizator()) {
-            $res["organizator"] = true;
-        }
-        if ($u->jeBrigadnik()) {
-            $res["brigadnik"] = true;
-        }
-
-        $res["gcStav"] = "nepřihlášen";
-
-        if ($u->gcPrihlasen()) {
-            $res["gcStav"] = "přihlášen";
-        }
-        if ($u->gcPritomen()) {
-            $res["gcStav"] = "přítomen";
-        }
-        if ($u->gcOdjel()) {
-            $res["gcStav"] = "odjel";
-        }
-    }
-    // TODO: použít jednu logiku stejně jako z API
-    echo json_encode(["přihlášenýUživatel" => $res], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    ?>
-</script>
-
-<script type="module" src="<?= zabalWebSoubor('soubory/ui/bundle.js') ?>"></script>
+<?php $program->vypisPreact($uPracovni ?? $u) ?>
 
 <div style="height: 70px"></div>
