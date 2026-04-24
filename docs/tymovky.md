@@ -260,6 +260,13 @@
   - [ ] vykreslení prázdných místností (zapnout vypnout)
 - [ ] skryt zobrazit viditelne aktivity
 - [ ] změna title Program den, Můj program, Program místnosti, Program účastník
+- [ ] autorefresh
+- [ ] možnost zobrazit program bez uživatele (i když je vybraný tak zobrazit jako by byl nepřihlášený)
+- [ ] na všech místech otevřít program s odpovídajícím nastavením
+  - [ ] proram-obecny -> nepříhlášený
+  - [ ] program-uzivatele -> vsechny dny
+  - [ ] program-osobni -> muj(ucastnik)
+  - [ ] program-po-mistnostech -> mistnosti
 - [ ] css ke smazani pokud budou v preactu tak nejsou potřeba tady
   ```
   web/soubory/blackarrow/_spolecne/hint.css
@@ -347,7 +354,7 @@
 
 ## TODO po nasazení testování
 - [ ] přidat do cronu mazani_nepripravenych_tymu
-- [ ] program-k-tisku využívá se ?
+- [ ] program-k-tisku využívá se ? https://github.com/gamecon-cz/gamecon/blob/d167f7e845424e064d040c58cf0778403dfb00ae/model/Aktivita/Program.php#L159
 - [ ] jaký význam má Uzivatel::prednactiUzivateleNaAktivitach ? je potřeba někde ? (bylo to v iterátoru aktivit)
 - [ ] co je placeholder-pro-roztazeni-radku a je potřeba ?
 - [ ] je potřeba zobrazovat jména pju ?

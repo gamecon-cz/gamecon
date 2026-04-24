@@ -1,13 +1,10 @@
 <?php
 
-use App\Service\AktivitaTymService;
-use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\Program;
-use Gamecon\Cas\DateTimeCz;
-use Gamecon\Pravo;
+use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Web\Info;
 
 /** @var Modul $this */
-/** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 /** @var Uzivatel $uPracovni */
 /** @var Url $url */
@@ -15,39 +12,36 @@ use Gamecon\Pravo;
 
 $this->blackarrowStyl(true);
 
-$dny = [];
-for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
-    $dny[slugify($den->format('l'))] = clone $den;
-}
+$uPracovni ??= $u;
 
-// todo(tym): tohle půjde pryč
-$nastaveni       = [];
-$alternativniUrl = null;
-$title           = 'Program';
 // TODO: přesunout logiku práce s URL za program/ do preactu
-if ($url->cast(1) === 'muj') {
-    $nastaveni[Program::OSOBNI] = true;
-} else if (isset($dny[$url->cast(1)])) {
-    $nastaveni[Program::DEN] = $dny[$url->cast(1)]->format('z');
-} else if (!$url->cast(1)) {
-    $nastaveni[Program::DEN] = reset($dny)->format('z');
-    $alternativniUrl         = 'program/' . slugify(reset($dny)->format('l'));
-} else {
-    throw new Nenalezeno();
+function nazevStranky(?string $slug): string {
+    global $systemoveNastaveni;
+    $dny = [];
+    foreach (DateTimeGamecon::dnyProgramu($systemoveNastaveni) as $den) {
+        $dny[slugify($den->format('l'))] = $den;
+    }
+
+    if (!$slug) {
+        return 'Program ' . reset($dny)->format('l');
+    }
+
+    if ($slug === 'muj') {
+        return 'Můj program';
+    }
+    if (isset($dny[$slug])) {
+        return 'Program ' . $dny[$slug]->format('l');
+    }
+
+    throw new \Nenalezeno();
 }
 
-$program = new Program($systemoveNastaveni, $u, $nastaveni);
-Aktivita::prihlasovatkoZpracuj($u, $u);
-
-$this->info()->nazev($program->titulek($url->cast(1)));
-
-foreach ($program->cssUrls() as $cssUrl) {
-    $this->pridejCssUrl($cssUrl);
+function titulek(?string $slug): string {
+    global $systemoveNastaveni;
+    return (new Info($systemoveNastaveni))->nazev(nazevStranky($slug))->titulek();
 }
 
-// foreach ($program->jsModulyUrls() as $jsModulUrl) {
-//     $this->pridejJsSoubor($jsModulUrl);
-// }
+$this->info()->nazev(titulek($url->cast(1)));
 
 $zacatekPristiVlnyOd       = $systemoveNastaveni->pristiVlnaKdy();
 $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
@@ -67,6 +61,6 @@ $jeOrganizator = isset($u) && $u && $u->maPravoNaPoradaniAktivit();
 </style>
 
 
-<?php $program->vypisPreact($uPracovni ?? $u) ?>
+<?php Program::vypisPreact($uPracovni ?? $u) ?>
 
 <div style="height: 70px"></div>

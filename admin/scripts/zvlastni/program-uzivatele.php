@@ -8,16 +8,11 @@ use Gamecon\Aktivita\Program;
 /** @var Uzivatel|null $uPracovni */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
-if (!$uPracovni) {
-    echo 'Není vybrán uživatel.';
-    return;
-}
+// todo(tym):
+/*
+    // tohle je přesměrování z program-osobni
+    $osobniProgram = !empty($osobniProgram);
 
-$osobniProgram = !empty($osobniProgram);
-
-$program = new Program(
-    systemoveNastaveni: $systemoveNastaveni,
-    uzivatel: $uPracovni,
     nastaveni: [
         Program::DRD_PJ       => true,
         Program::DRD_PRIHLAS  => true,
@@ -27,19 +22,13 @@ $program = new Program(
         Program::ZPETNE       => $u->maPravoNaZmenuHistorieAktivit(),
         Program::NEOTEVRENE   => $u->maPravoNaPrihlasovaniNaDosudNeotevrene(),
     ]
-);
+*/
 
-if ($uPracovni) {
-    Aktivita::prihlasovatkoZpracuj(
-        $uPracovni,
-        $u,
-        Aktivita::PLUSMINUS_KAZDY
-        | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0)
-        | Aktivita::INTERNI,
-    );
+// todo(tym): to asi nevadí že není nikdo vybrán
+if (!$uPracovni) {
+    echo 'Není vybrán uživatel.';
+    return;
 }
-
-$chyba = Chyba::vyzvedniHtml();
 
 ?>
 <!DOCTYPE html>
@@ -50,9 +39,6 @@ $chyba = Chyba::vyzvedniHtml();
     <script src="files/jquery-3.4.1.min.js"></script>
     <script src="files/jquery-ui-v1.12.1.min.js"></script>
     <base href="<?= URL_ADMIN ?>/">
-    <?php foreach ($program->cssUrls() as $cssUrl) { ?>
-        <link rel="stylesheet" href="<?= $cssUrl ?>">
-    <?php } ?>
     <link rel="stylesheet" href="files/design/hint.css">
     <style>
         body {
@@ -98,12 +84,7 @@ $chyba = Chyba::vyzvedniHtml();
     <a href="program-osobni" class="program-odkaz">Program účastníka</a>
 </div>
 
-<div class="program">
-    <?= $chyba ?>
-    <?php $program->tisk(); ?>
-</div>
-
-<?php $program->vypisPreact($uPracovni ?? $u, true); ?>
+<?php Program::vypisPreact($uPracovni ?? $u, true, "program-uzivatele"); ?>
 
 <?php profilInfo(); ?>
 
