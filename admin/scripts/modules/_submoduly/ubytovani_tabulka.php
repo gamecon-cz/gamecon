@@ -31,9 +31,13 @@ class UbytovaniTabulka
                 $obsazeno  = $shop->obsazenoMist($den, $typ);
                 $kapacita  = $shop->kapacita($den, $typ);
                 $zbyvaMist = $shop->zbyvaMist($den, $typ);
+                if ($kapacita === '∞') {
+                    $zbyvaMist = '∞';
+                }
 
                 $t->assign([
                     'idPredmetu' => $shop->mozneDny()[$den][$typ]['id_predmetu'] ?? null,
+                    'typ'        => $typ,
                     'checked'    => $checked,
                     'disabled'   => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                     && ($prodejUbytovaniUkoncen
@@ -92,4 +96,3 @@ class UbytovaniTabulka
     }
 
 }
-
