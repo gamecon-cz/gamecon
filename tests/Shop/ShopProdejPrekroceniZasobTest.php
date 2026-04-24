@@ -151,4 +151,40 @@ SQL,
 
         self::assertSame(100, $pocetNakupu);
     }
+
+    /**
+     * @test
+     */
+    public function prodejNepovoliPredmetZJinehoRocniku(): void
+    {
+        $uniqueId = uniqid();
+
+        /** @var User $user */
+        $user = UserFactory::createOne([
+            UserEntityStructure::login    => 'test_buyer_' . $uniqueId,
+            UserEntityStructure::email    => 'test.buyer.' . $uniqueId . '@example.org',
+            UserEntityStructure::jmeno    => 'Test',
+            UserEntityStructure::prijmeni => 'Buyer',
+        ])->_real();
+
+        /** @var ShopItem $shopItem */
+        $shopItem = ShopItemFactory::createOne([
+            ShopItemEntityStructure::nazev        => 'Historický předmět ' . $uniqueId,
+            ShopItemEntityStructure::kodPredmetu  => 'HISTORY_' . strtoupper($uniqueId),
+            ShopItemEntityStructure::modelRok     => ROCNIK - 1,
+            ShopItemEntityStructure::cenaAktualni => '100',
+            ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
+            ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
+            ShopItemEntityStructure::kusuVyrobeno => 10,
+            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
+        ])->_real();
+
+        $uzivatel = \Uzivatel::zIdUrcite($user->getId());
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+
+        $this->expectException(\Chyba::class);
+        $this->expectExceptionMessage('nelze ho prodávat');
+
+        $shop->prodat($shopItem->getId(), 1);
+    }
 }

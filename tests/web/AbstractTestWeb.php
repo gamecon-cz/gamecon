@@ -76,6 +76,7 @@ SQL;
     ): void {
         $multiCurl = curl_multi_init();
         $curlHandles = [];
+        $cookieFiles = [];
         $errors = [];
 
         foreach ($urls as $url) {
@@ -90,17 +91,20 @@ SQL;
                 continue;
             }
 
-            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 30); // timeout na připojení
-            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 20);        // timeout na stahování
+            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10); // timeout na připojení
+            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 30);        // celkový timeout
             curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curlHandle, CURLOPT_HEADER, true);
             curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+            // HTTP/2 občas padá na lokálním Apache při paralelním stahování v CI.
+            curl_setopt($curlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
             $this->setLocalServerCookieWithGameconTestDb($curlHandle);
             curl_setopt($curlHandle, CURLOPT_COOKIEFILE, $cookieFile);
 
             curl_multi_add_handle($multiCurl, $curlHandle);
 
             $curlHandles[$absoluteUrl] = $curlHandle;
+            $cookieFiles[$absoluteUrl] = $cookieFile;
         }
 
         self::assertCount(
@@ -139,15 +143,64 @@ SQL;
             sprintf('Chyby během stahování stránek: %s', implode(',', $errors)),
         );
 
+        $retryUrls = [];
         do {
             $multiInfo = curl_multi_info_read($multiCurl, $remainingMessages);
             if ($multiInfo) {
-                ['result' => $resultCode] = $multiInfo;
+                ['result' => $resultCode, 'handle' => $handle] = $multiInfo;
                 if ($resultCode !== CURLE_OK) {
-                    $errors[] = sprintf('Nelze číst ze serveru: %s (%d)', curl_strerror($resultCode), $resultCode);
+                    $failedUrl = array_search($handle, $curlHandles, true);
+                    if ($failedUrl !== false) {
+                        // Síťové chyby (např. CURLE_RECV_ERROR) v CI při paralelním stahování - zkusíme znovu
+                        $retryUrls[] = $failedUrl;
+                    } else {
+                        $errors[] = sprintf('Nelze číst ze serveru: %s (%d)', curl_strerror($resultCode), $resultCode);
+                    }
                 }
             }
         } while ($multiInfo && $remainingMessages);
+
+        // Opakování URL, které selhaly se síťovou chybou (běžné v CI při paralelním stahování)
+        foreach ($retryUrls as $retryUrl) {
+            $retryHandle = curl_init($retryUrl);
+            if (! $retryHandle) {
+                $errors[] = sprintf("Nelze stáhnout stránku '%s' ani po opakování: nelze otevřít curl handle", $retryUrl);
+                continue;
+            }
+            curl_setopt($retryHandle, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($retryHandle, CURLOPT_TIMEOUT, 30);
+            curl_setopt($retryHandle, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($retryHandle, CURLOPT_HEADER, true);
+            curl_setopt($retryHandle, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($retryHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+            $this->setLocalServerCookieWithGameconTestDb($retryHandle);
+            if (isset($cookieFiles[$retryUrl])) {
+                curl_setopt($retryHandle, CURLOPT_COOKIEFILE, $cookieFiles[$retryUrl]);
+            }
+            $retryContent = curl_exec($retryHandle);
+            $retryInfo = curl_getinfo($retryHandle);
+            if ($retryContent === false) {
+                $errors[] = sprintf(
+                    "Nelze stáhnout stránku '%s' ani po opakování: %s",
+                    $retryUrl,
+                    curl_error($retryHandle),
+                );
+            } elseif ($retryInfo['http_code'] >= 400 && $retryInfo['http_code'] !== 401) {
+                $errors[$retryInfo['url']] = sprintf(
+                    "nepodařilo se stáhnout stránku '%s', response code %d%s",
+                    $retryUrl,
+                    $retryInfo['http_code'],
+                    $retryInfo['http_code'] === 404 ? ' (nenalezeno)' : '',
+                );
+            } else {
+                $parts = explode("\r\n\r\n", (string) $retryContent);
+                $body = $parts[1] ?? false;
+                if (! $body) {
+                    $errors[$retryInfo['url']] = sprintf("stránka '%s' je prázdná", $retryUrl);
+                }
+            }
+            curl_close($retryHandle);
+        }
 
         foreach ($curlHandles as $url => $curlHandle) {
             $info = curl_getinfo($curlHandle);
@@ -226,6 +279,7 @@ SQL;
         curl_setopt($curlHandle, CURLOPT_COOKIEJAR, $cookieFile);
         curl_setopt($curlHandle, CURLOPT_COOKIESESSION, true); // force fresh new cookies session
         curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($curlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         $this->setLocalServerCookieWithGameconTestDb($curlHandle);
         curl_setopt($curlHandle, CURLOPT_POST, true);
         curl_setopt(
