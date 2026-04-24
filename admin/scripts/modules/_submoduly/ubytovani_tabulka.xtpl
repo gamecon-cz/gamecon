@@ -66,7 +66,7 @@
     <div class="shopUbytovani_radek">
       <label class="radio--container radio--container--square radio--container--fill">
         <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
-               data-kapacita="{kapacita}" {checked} {disabled}>
+               data-kapacita="{kapacita}" data-typ="{typ}" {checked} {disabled}>
         <div class="radio--label">
           {zbyvaMist}
         </div>
@@ -108,6 +108,7 @@
   function onShopUbytovaniChange() {
     zapamatujKapacituJakoRucneZvolenou(this)
     const zvolenaKapacita = this.dataset.kapacita
+    const zvolenyTyp = this.dataset.typ
     const zvolenaKapacitaInt = Number.parseInt(zvolenaKapacita)
     if (zvolenaKapacitaInt === 0) {
       return
@@ -122,7 +123,7 @@
       ) {
         return // v tomto dni je uzivatelem rucne vybrano Zadne ubytovani, to nechceme menit
       }
-      const ostatniStejneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"][data-kapacita="' + zvolenaKapacita + '"]')
+      const ostatniStejneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"][data-typ="' + zvolenyTyp + '"]')
       if (!ostatniStejneUbytovani.disabled) {
         ostatniStejneUbytovani.checked = true
       } else {
