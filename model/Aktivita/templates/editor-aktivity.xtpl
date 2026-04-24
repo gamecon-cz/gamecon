@@ -273,7 +273,7 @@
             <div id="teamVelikost" style="display:none">
                 min: <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">
                 max: <input type="text" style="width:25px" name="{fields}[team_max]" value="{team_max}">
-                týmů: <input type="text" style="width:25px" name="{fields}[team_kapacita]" value="{team_kapacita}">
+                týmů¹: <input type="text" style="width:25px" name="{fields}[team_kapacita]" value="{team_kapacita}">
                 <span class="hinted"><div class="hint">Minimální a maximální velikost teamu (družiny) + maximální počet týmů na aktivitě.<br/>Čísla bez omezení zanechejte prázdná.</div></span>
             </div>
             <script>
@@ -357,7 +357,7 @@
     <tr>
         <th class="hinted">
             <span class="hint" style="margin-top: 1em">Vyber existující turnaj, nebo zadej název nového. Kolo: 1 = první (úvodní) kolo.</span>
-            <label for="turnajSelect">Turnaj</label>
+            <label for="turnajSelect">Turnaj¹</label>
         </th>
         <td>
             <select id="turnajSelect" name="{fields}[id_turnaje]" style="max-width:300px">
@@ -401,6 +401,29 @@
             updateWrap()
         })()
     </script>
+    <!-- begin:kolaTurnaje -->
+    <tr>
+        <th>Kola</th>
+        <td>
+            <table>
+                <tr>
+                    <th style="padding-right:1em">#</th>
+                    <th style="padding-right:1em">Čas</th>
+                    <th style="padding-right:1em">Kapacita týmů</th>
+                    <th>ID</th>
+                </tr>
+                <!-- begin:koloTurnaje -->
+                <tr>
+                    <td style="padding-right:1em">{kolo_cislo}.</td>
+                    <td style="padding-right:1em">{kolo_den} {kolo_cas_od}–{kolo_cas_do}</td>
+                    <td style="padding-right:1em">{kolo_team_kapacita}</td>
+                    <td>{kolo_id_akce_html}</td>
+                </tr>
+                <!-- end:koloTurnaje -->
+            </table>
+        </td>
+    </tr>
+    <!-- end:kolaTurnaje -->
 </table>
 <!-- end:tabulka -->
 

@@ -733,6 +733,31 @@ SQL
             $xtpl->assign('turnaj_selected', (int)$turnaj['id_turnaje'] === (int)$aktualniTurnajId ? 'selected' : '');
             $xtpl->parse('upravy.tabulka.turnaj');
         }
+        if ($aktualniTurnajId) {
+            $kolaInfo = dbFetchAll(
+                'SELECT turnaj_kolo, zacatek, konec, id_akce, team_kapacita
+                 FROM akce_seznam
+                 WHERE id_turnaje = $0 AND turnaj_kolo > 0
+                 ORDER BY turnaj_kolo, zacatek',
+                [0 => $aktualniTurnajId],
+            );
+            foreach ($kolaInfo as $koloInfo) {
+                $zacatek = $koloInfo['zacatek'] ? new DateTimeCz($koloInfo['zacatek']) : null;
+                $konec   = $koloInfo['konec'] ? new DateTimeCz($koloInfo['konec']) : null;
+                $xtpl->assign([
+                    'kolo_cislo'        => $koloInfo['turnaj_kolo'],
+                    'kolo_den'          => $zacatek ? $zacatek->format('l') : '?',
+                    'kolo_cas_od'       => $zacatek ? $zacatek->format('G') : '?',
+                    'kolo_cas_do'       => $konec ? $konec->format('G') : '?',
+                    'kolo_id_akce_html'  => (int)$koloInfo['id_akce'] === $aktivita?->id()
+                        ? '<strong>' . $koloInfo['id_akce'] . '</strong>'
+                        : '<a href="' . Urls::urlAdminDetailAktivity((int)$koloInfo['id_akce']) . '">' . $koloInfo['id_akce'] . '</a>',
+                    'kolo_team_kapacita' => $koloInfo['team_kapacita'] ?? '',
+                ]);
+                $xtpl->parse('upravy.tabulka.kolaTurnaje.koloTurnaje');
+            }
+            $xtpl->parse('upravy.tabulka.kolaTurnaje');
+        }
     }
 
     private static function parseUpravyTabulkaDen(
@@ -1202,7 +1227,7 @@ SQL
         } elseif (!empty($data[Sql::PATRI_POD])) {
             // editace aktivity z rodiny instancí
             $doHlavni = [Sql::URL_AKCE, Sql::POPIS, Sql::VYBAVENI];    // věci, které se mají změnit jen u hlavní (main) `instance
-            $doAktualni = [Sql::ZACATEK, Sql::KONEC];       // věci, které se mají změnit jen u aktuální instance
+            $doAktualni = [Sql::ZACATEK, Sql::KONEC, Sql::ID_TURNAJE, Sql::TURNAJ_KOLO];       // věci, které se mají změnit jen u aktuální instance
             $aktivita = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
                 $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
