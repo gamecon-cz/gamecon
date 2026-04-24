@@ -15,6 +15,18 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
 class ShopUbytovani
 {
+    private const PORADI_TYPU_UBYTOVANI = [
+        'jednolůžák' => 10,
+        'dvoulůžák' => 20,
+        'trojlůžák' => 30,
+        'spacák' => 40,
+        'hotelový jednolůžák standard' => 50,
+        'hotelový dvojlůžák standard' => 60,
+        'hotelový jednolůžák deluxe (buňka)' => 70,
+        'hotelový jednolůžák deluxe' => 80,
+        'hotelový dvojlůžák deluxe' => 90,
+    ];
+
     /**
      * @param string[] $nazvyUbytovani
      * @param int $rok
@@ -198,7 +210,8 @@ SQL,
         }
 
         $nemelObjednanoDrive = (int)$predmet['kusu_uzivatele'] <= 0;
-        $kapacitaVycerpana   = $predmet['kusu_vyrobeno'] <= $predmet['kusu_prodano'];
+        $kapacitaVycerpana   = $predmet['kusu_vyrobeno'] !== null
+                               && (int)$predmet['kusu_vyrobeno'] <= (int)$predmet['kusu_prodano'];
 
         return $kapacitaVycerpana && $nemelObjednanoDrive;
     }
@@ -218,6 +231,26 @@ SQL,
         // vložit jeho zaklikané věci - note: není zabezpečeno
         $sqlValuesArray          = [];
         $idsPredmetuUbytovaniInt = [];
+
+        $idsPredmetuVstupu = array_filter(array_map('intval', $idsPredmetuUbytovani));
+        if ($idsPredmetuVstupu) {
+            $povolenaIdPredmetu = dbFetchColumn(<<<SQL
+SELECT id_predmetu
+FROM shop_predmety
+WHERE id_predmetu IN ($1)
+  AND model_rok = $2
+  AND typ = $3
+SQL,
+                [1 => $idsPredmetuVstupu, 2 => $rok, 3 => TypPredmetu::UBYTOVANI],
+            );
+            $povolenaIdPredmetu = array_flip(array_map('intval', $povolenaIdPredmetu));
+            foreach ($idsPredmetuVstupu as $idPredmetu) {
+                if (!isset($povolenaIdPredmetu[$idPredmetu])) {
+                    throw new Chyba("Položka ubytování {$idPredmetu} není dostupná pro ročník {$rok}.");
+                }
+            }
+        }
+
         foreach ($idsPredmetuUbytovani as $idPredmetuUbytovani) {
             if (!$idPredmetuUbytovani) {
                 continue;
@@ -331,7 +364,31 @@ SQL,
             $this->ubytovanPoDnech[$predmet[Sql::UBYTOVANI_DEN]][$nazev] = $predmet;
             // else z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
         }
+        $this->seradTypyUbytovani();
         $this->registrace = new Registrace($this->systemoveNastaveni, $ubytovany);
+    }
+
+    private function seradTypyUbytovani(): void
+    {
+        uksort($this->mozneTypy, [$this, 'seradTypyUbytovaniPodlePozadavku']);
+    }
+
+    private function seradTypyUbytovaniPodlePozadavku(string $a, string $b): int
+    {
+        $poradiA = $this->poradiTypuUbytovani($a);
+        $poradiB = $this->poradiTypuUbytovani($b);
+        if ($poradiA !== $poradiB) {
+            return $poradiA <=> $poradiB;
+        }
+
+        return strcmp($a, $b);
+    }
+
+    private function poradiTypuUbytovani(string $typ): int
+    {
+        $normalizovanyTyp = mb_strtolower(trim($typ));
+
+        return self::PORADI_TYPU_UBYTOVANI[$normalizovanyTyp] ?? PHP_INT_MAX;
     }
 
     /**
@@ -663,8 +720,11 @@ SQL,
     ) {
         if (!isset($this->mozneDny[$den][$typ])) return 0;
         $ub = $this->mozneDny[$den][$typ];
+        if ($ub['kusu_vyrobeno'] === null) {
+            return '∞';
+        }
 
-        return max(0, $ub['kusu_vyrobeno']);
+        return max(0, (int)$ub['kusu_vyrobeno']);
     }
 
     /** Vrátí počet obsazených míst pro daný den a typu ubytování */
@@ -672,6 +732,13 @@ SQL,
         $den,
         $typ,
     ) {
+        if (!isset($this->mozneDny[$den][$typ])) {
+            return 0;
+        }
+        if ($this->maNeomezenouKapacitu($den, $typ)) {
+            return (int)$this->mozneDny[$den][$typ]['kusu_prodano'];
+        }
+
         return $this->kapacita($den, $typ) - $this->zbyvaMist($den, $typ);
     }
 
@@ -680,6 +747,10 @@ SQL,
         $den,
         $typ,
     ): bool {
+        if ($this->maNeomezenouKapacitu($den, $typ)) {
+            return false;
+        }
+
         return $this->zbyvaMist($den, $typ) <= 0;
     }
 
@@ -759,8 +830,17 @@ SQL,
             return 0;
         }
         $ub = $this->mozneDny[$den][$typ];
+        if ($this->maNeomezenouKapacitu($den, $typ)) {
+            return PHP_INT_MAX;
+        }
 
         return (int)max(0, $ub['kusu_vyrobeno'] - $ub['kusu_prodano']);
+    }
+
+    private function maNeomezenouKapacitu(int | string $den, int | string $typ): bool
+    {
+        return isset($this->mozneDny[$den][$typ])
+               && $this->mozneDny[$den][$typ]['kusu_vyrobeno'] === null;
     }
 
     /**
