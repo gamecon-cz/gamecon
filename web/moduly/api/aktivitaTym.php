@@ -21,17 +21,16 @@ header('Content-type: application/json');
 
 $aktivitaId = array_key_exists('aktivitaId', $_GET)
     ? (int)$_GET['aktivitaId']
-    : -1;
+    : (int)($_POST['aktivitaId'] ?? -1);
 
-// todo(tym): používat ID týmu místo kódu
 // POST akce
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $akce    = $_POST['akce'] ?? '';
-        $kodTymu = (int)($_POST['kodTymu'] ?? 0);
+        $akce   = $_POST['akce'] ?? '';
+        $idTymu = (int)($_POST['idTymu'] ?? 0);
         $tym = null;
-        if ($kodTymu) {
-            $tym = AktivitaTym::najdiPodleKodu($aktivitaId, $kodTymu);
+        if ($idTymu) {
+            $tym = AktivitaTym::najdi($idTymu);
             $tym->zkontrolujZeJeKapitan($uPracovni->id());
             $tym->zkontrolujZeNeniZamceny();
         }
@@ -124,6 +123,7 @@ $tym = AktivitaTym::najdiPodleUzivateleAktivity($uzivatelId, $aktivitaId);
 
 // info o týmu uživatele
 if ($tym) {
+    $response['id']  = $tym->getId();
     $response['kod'] = $tym->getKod();
     $response['verejny']    = $tym->jeVerejny();
     $response['jeKapitan']  = $tym->jeKapitanem($uzivatelId);

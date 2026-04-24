@@ -88,29 +88,23 @@
 
 # TODO:
 
-## Otevřené otázky (rozhodnout před implementací)
-- [ ] Je potřeba výběr kola pro netýmové vícekolové aktivity?
-- [ ] Je úprava limitu týmu kapitánem opravdu potřeba?
-  - limit se může odstranit dodatečně zatím ničemu nevadí.
-- [ ] Co přesně má jít dělat přes admin?
-
 
 ## Základní přihlašovací flow
 - [X] Kapitán může založit tým přes nastavení týmů v UI
   - [X] API endpoint `zalozPrazdnyTym` v `aktivitaTym.php`
   - [X] Preact UI tlačítko v `NastaveniTymuView.tsx`
   - [X] `AktivitaTym::zalozPrazdnyTym()` — generuje 4-místný kód, nastaví kapitána
-- [ ] Přihlášení kapitána na aktivitu (s detekcí konfliktu v čase)
+- [X] Přihlášení kapitána na aktivitu
   - [X] `Aktivita::prihlas()` přijímá `?AktivitaTym $tym` parametr
-  - [ ] Ošetření chyby přihlášení po založení týmu — pokud selže přihlášení, tým visí prázdný (`aktivitaTym.php:77`)
+  - [X] Ošetření chyby přihlášení po založení týmu — pokud selže přihlášení, tým visí prázdný (`aktivitaTym.php:77`)
     - [X] pokud je aktivita týmová
       - [X] nejdříve vždy založit tým
       - [X] automaticky přiřadit všechny aktivity týmu pokud má každé kolo pouze jednu možnou aktivitu
       - [X] automaticky přihlásit kapitána
-    - [ ] výběr kola týmu a přihlášení kapitána do týmu
-      - [ ] ui mock
-      - [ ] api
-  - [ ] UI feedback při konfliktu v čase (hráč má jinou aktivitu ve stejný slot)
+    - [X] výběr kola týmu a přihlášení kapitána do týmu
+      - [X] ui mock
+      - [X] api
+    - [X] sjednocení handlingu chyb z BE
 - [ ] ošetření práce s nepřipraveným týmem
 - [X] Všichni členové vidí kód pro pozvání dalších hráčů
   - [X] API vrací `kod` v GET response
@@ -156,12 +150,6 @@
 - [X] Přihlášení do veřejného týmu bez kódu
   - [X] Backend logika existuje (kód není nutný pokud tým veřejný?)
   - [X] Ověřit UI flow — kliknutí na veřejný tým → přihlášení bez zadání kódu
-
-## Anonymizace
-- [ ] Zobrazovat pouze přezdívku přihlášených hráčů v týmu
-  - [ ] API vrací přezdívku místo plného jména pro neadmin uživatele
-  - [X] API aktuálně vrací `jmeno` — potřeba změnit na nick/přezdívku
-  - [ ] V admin panelu zobrazovat plné jméno (beze změny)
 
 ## Zamykání týmu
 - [X] DB sloupec `zamcen` (TINYINT / DATETIME) v tabulce `akce_tym`
@@ -352,6 +340,15 @@
     ```
   - [ ] co znamená když se testuje na typ LKD DND, nemělo by to bý tobecnější ten test ?
 
+## dodělky (po nasazení první verze)
+
+### Anonymizace
+- [ ] Zobrazovat pouze přezdívku přihlášených hráčů v týmu
+  - [ ] API vrací přezdívku místo plného jména pro neadmin uživatele
+  - [X] API aktuálně vrací `jmeno` — potřeba změnit na nick/přezdívku
+  - [ ] V admin panelu zobrazovat plné jméno (beze změny)
+
+
 ## TODO po nasazení testování
 - [ ] přidat do cronu mazani_nepripravenych_tymu
 - [ ] program-k-tisku využívá se ? https://github.com/gamecon-cz/gamecon/blob/d167f7e845424e064d040c58cf0778403dfb00ae/model/Aktivita/Program.php#L159
@@ -359,4 +356,9 @@
 - [ ] co je placeholder-pro-roztazeni-radku a je potřeba ?
 - [ ] je potřeba zobrazovat jména pju ?
 - [ ] zrychlení api programu použitím dřívějšího přístupu k db
+- [ ] Je potřeba výběr kola pro netýmové vícekolové aktivity?
+- [ ] Je úprava limitu týmu kapitánem opravdu potřeba?
+  - limit se může odstranit dodatečně zatím ničemu nevadí.
+- [ ] Co přesně má jít dělat přes admin?
 
+# budouci vylepšení

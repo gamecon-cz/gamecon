@@ -9,13 +9,14 @@ import {
 } from "../../../../store/program/selektory";
 import {
   dotáhniNastaveníTýmuProModal,
+  nastavChyba,
   nastavModalNastaveníTýmu,
-  nastavModalOdhlásit,
 } from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
 import { useProgramStore } from "../../../../store/program";
-import { fetchNastavVerejnostTymu, fetchPregenerujKodTymu, fetchOdhlasClena, fetchZalozPrazdnyTym, fetchPotvrdVyberAktivit, fetchPredejKapitana, fetchNastavLimitTymu, fetchSmazTym, fetchOdemkniTym } from "../../../../api/program";
+import { AkceTymu, fetchAktivitaTymAkce } from "../../../../api/program";
 import { NastaveniTymuView } from "../../../../components/NastaveniTymuView/NastaveniTymuView";
+import produce from "immer";
 
 /** tohel je quick fix na dvojí registraci registrujDotahováníNastaveníTýmu */
 let registrované = false;
@@ -33,16 +34,16 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   const aktivita = useAktivita(aktivitaId ?? -1);
   const storeNazevAktivity = useNastaveniTymuModalNazevAktivity();
   const data = useNastaveniTymuModalData();
-  const jeSefInfa = useUživatelJeSefInfa();
-  const [chyba, setChyba] = useState<string | null>(null);
   const [načítáAkci, setNačítáAkci] = useState(false);
   const [bylaZměna, setBylaZměna] = useState(false);
+  const setChyba = nastavChyba;
 
-  const sNačítáním = (fn: () => Promise<void>, jeZměna = false) => async () => {
+  const sNačítáním = <T,>(fn: () => Promise<T>, jeZměna = false) => async () => {
     setNačítáAkci(true);
     try {
-      await fn();
+      const res = await fn();
       if (jeZměna) setBylaZměna(true);
+      return res;
     } finally {
       setNačítáAkci(false);
     }
@@ -58,7 +59,7 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
     ;
 
   // Pokud aktivita není v store (stránka bez programu), odvodíme přihlášení z dat týmu
-  const přihlášen = aktivita ? přihlášenZAktivity : (data?.kod ?? 0) > 0;
+  const přihlášen = aktivita ? přihlášenZAktivity : (data?.id ?? 0) > 0;
 
   // Program page: skryj modal dokud se data nenačtou
   if (aktivita && přihlášen && !data) return <></>;
@@ -68,94 +69,29 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       window.location.reload();
       return;
     }
-    setChyba(null);
+    setChyba(undefined);
     nastavModalNastaveníTýmu();
   };
 
-  const přepniVerejnost = async () => {
-    if (!data || data.verejny === undefined || !data.kod) return;
-    await fetchNastavVerejnostTymu(aktivitaId, data.kod, !data.verejny);
-    void dotáhniNastaveníTýmuProModal();
-  };
-
-  const přegenerujKód = async () => {
-    if (!data?.kod) return;
-    await fetchPregenerujKodTymu(aktivitaId, data.kod);
-    void dotáhniNastaveníTýmuProModal();
-  };
-
-  const odhlásitČlena = async (idČlena: number) => {
-    if (!data?.kod) return;
-    await fetchOdhlasClena(aktivitaId, data.kod, idČlena);
-    void dotáhniNastaveníTýmuProModal();
-  };
-
-  const nastavLimit = async (limit: number) => {
-    if (!data?.kod) return;
-    const result = await fetchNastavLimitTymu(aktivitaId, data.kod, limit);
-    if (!result.úspěch) {
-      setChyba(result.chyba?.hláška ?? "Nepodařilo se nastavit limit");
-      return;
-    }
-    void dotáhniNastaveníTýmuProModal();
-  };
-
-  const predejKapitana = async (idNovehoKapitana: number) => {
-    if (!data?.kod) return;
-    const result = await fetchPredejKapitana(aktivitaId, data.kod, idNovehoKapitana);
-    if (!result.úspěch) {
-      setChyba(result.chyba?.hláška ?? "Nepodařilo se předat kapitána");
-      return;
-    }
-    void dotáhniNastaveníTýmuProModal();
-  };
-
-  const založitTým = async () => {
-    setChyba(null);
-    if (data?.jeTrebaPredpripravit) {
-      const result = await fetchZalozPrazdnyTym(aktivitaId);
-      if (!result.úspěch) {
-        setChyba(result.chyba?.hláška ?? "Nepodařilo se založit tým");
-        return;
+  const proveďAkciTymu = async (akceTymu: Omit<AkceTymu, "idTymu" | "aktivitaId">) => {
+    const akceTymuCpy = produce(akceTymu as AkceTymu, akce=>{
+      if (akce.typ !== "zalozPrazdnyTym" && data?.id) {
+        akce.idTymu = data.id;
       }
-      void dotáhniNastaveníTýmuProModal();
-    } else {
-      void proveďAkciAktivity(aktivitaId, "prihlasit").then(zavřít);
-    }
-  };
-
-  const hotovoPripravaTymu = async (vybrane: Record<number, number>) => {
-    if (!data?.kod) return;
-    setChyba(null);
-    const idVybranychAktivit = Object.values(vybrane);
-    const result = await fetchPotvrdVyberAktivit(aktivitaId, data.kod, idVybranychAktivit);
+      if (aktivita?.id
+          && (akce.typ === "zalozPrazdnyTym"
+            || akce.typ === "odhlasClena"
+            || akce.typ === "potvrdVyberAktivit"
+          )) {
+        akce.aktivitaId = aktivita?.id;
+      }
+    })
+    const result = await sNačítáním(async ()=> await fetchAktivitaTymAkce(akceTymuCpy))();
     if (!result.úspěch) {
-      setChyba(result.chyba?.hláška ?? "Nepodařilo se přihlásit tým na aktivity");
+      setChyba(result.chyba?.hláška);
       return;
     }
     void dotáhniNastaveníTýmuProModal();
-  };
-
-  const odemkni = async () => {
-    if (!data?.kod) return;
-    setChyba(null);
-    const result = await fetchOdemkniTym(aktivitaId, data.kod);
-    if (!result.úspěch) {
-      setChyba(result.chyba?.hláška ?? "Nepodařilo se odemknout tým");
-      return;
-    }
-    void dotáhniNastaveníTýmuProModal();
-  };
-
-  const smazatTym = async () => {
-    if (!data?.kod) return;
-    setChyba(null);
-    const result = await fetchSmazTym(aktivitaId, data.kod);
-    if (!result.úspěch) {
-      setChyba(result.chyba?.hláška ?? "Nepodařilo se smazat tým");
-      return;
-    }
-    zavřít();
   };
 
   return (
@@ -165,19 +101,10 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
       přihlášen={přihlášen}
       načítá={!aktivita && !data}
       načítáAkci={načítáAkci}
-      chyba={chyba}
       onZavřít={zavřít}
-      onZaložitTým={() => void sNačítáním(založitTým, true)()}
       onPřipojitSe={(idTýmu, kód) => void sNačítáním(() => proveďAkciAktivity(aktivitaId, "prihlasit", idTýmu, kód).then(zavřít), true)()}
-      onPřepniVerejnost={() => void sNačítáním(přepniVerejnost, true)()}
       onOdhlásit={() => void proveďAkciAktivity(aktivitaId, "odhlasit")}
-      onPregenerujKód={() => void sNačítáním(přegenerujKód, true)()}
-      onOdhlásitČlena={(id) => void sNačítáním(() => odhlásitČlena(id), true)()}
-      onPredejKapitana={(id) => void sNačítáním(() => predejKapitana(id), true)()}
-      onNastavLimit={(limit) => void sNačítáním(() => nastavLimit(limit), true)()}
-      onHotovoPripravaTymu={(vybrane) => void sNačítáním(() => hotovoPripravaTymu(vybrane), true)()}
-      onSmazatTym={() => void sNačítáním(smazatTym, true)()}
-      onOdemkni={jeSefInfa ? () => void sNačítáním(odemkni, true)() : undefined}
+      onProveďAkci={proveďAkciTymu}
     />
   );
 };

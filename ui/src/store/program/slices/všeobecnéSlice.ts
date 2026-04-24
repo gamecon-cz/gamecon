@@ -3,6 +3,7 @@ import { fetchAktivitaTým, AktivitaKVyberu, ClenTymu, TymVSeznamu } from "../..
 
 export type NastaveniTymuData = {
   nazev: string,
+  id: number,
   kod: number,
   muzeZalozitNovy: boolean,
   jeTrebaPredpripravit?: boolean,
@@ -66,6 +67,7 @@ export const dotáhniNastaveníTýmuProModal = async () => {
       aktivitaId,
       nazevAktivity: s.všeobecné.nastaveniTymu?.nazevAktivity,
       data: {
+        id: data.id,
         kod: data.kod,
         muzeZalozitNovy: true,
         nazev: "",

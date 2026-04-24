@@ -268,6 +268,7 @@ export type AktivitaKVyberu = {
 };
 
 export type AktivitaTymResponse = {
+  id: number,
   kod: number,
   verejny?: boolean,
   jeKapitan?: boolean,
@@ -285,91 +286,36 @@ export type AktivitaTymResponse = {
 };
 
 export const fetchAktivitaTým = async (aktivitaId: number, uživatelId = 0): Promise<AktivitaTymResponse> => {
-  const urlUživParam = uživatelId ? `&uzivatelId=${uživatelId}` : ""
+  const urlUživParam = uživatelId ? `&uzivatelId=${uživatelId}` : "";
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}${urlUživParam}`;
   return fetch(url, {method: "GET"}).then(async x => x.json());
 };
 
-export const fetchNastavVerejnostTymu = async (aktivitaId: number, kodTymu: number, verejny: boolean): Promise<{úspěch: boolean}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  const formdata = new FormData();
-  formdata.set("akce", "nastavVerejnost");
-  formdata.set("kodTymu", kodTymu.toString(10));
-  formdata.set("verejny", verejny ? "1" : "0");
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
-};
+export type AkceTymu =
+  | {typ: "zalozPrazdnyTym", aktivitaId: number}
+  | {typ: "nastavVerejnost", idTymu: number, verejny: boolean}
+  | {typ: "pregenerujKod", idTymu: number}
+  | {typ: "odhlasClena", idTymu: number, aktivitaId: number, idClena: number}
+  | {typ: "nastavLimit", idTymu: number, limit: number}
+  | {typ: "predejKapitana", idTymu: number, idNovehoKapitana: number}
+  | {typ: "zamkni", idTymu: number}
+  | {typ: "odemkni", idTymu: number}
+  | {typ: "smazTym", idTymu: number}
+  | {typ: "potvrdVyberAktivit", idTymu: number, aktivitaId: number, idVybranychAktivit: number[]}
 
-export const fetchPregenerujKodTymu = async (aktivitaId: number, kodTymu: number): Promise<{úspěch: boolean, novyKod?: number}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  const formdata = new FormData();
-  formdata.set("akce", "pregenerujKod");
-  formdata.set("kodTymu", kodTymu.toString(10));
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
-};
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+export type AkceTymuBezKontextu = DistributiveOmit<AkceTymu, "idTymu" | "aktivitaId">;
 
-export const fetchOdhlasClena = async (aktivitaId: number, kodTymu: number, idClena: number): Promise<{úspěch: boolean}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
+export const fetchAktivitaTymAkce = async (akce: AkceTymu): Promise<{úspěch: boolean, novyKod?: number, chyba?: {hláška: string}}> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym`;
   const formdata = new FormData();
-  formdata.set("akce", "odhlasClena");
-  formdata.set("kodTymu", kodTymu.toString(10));
-  formdata.set("idClena", idClena.toString(10));
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
-};
-
-export const fetchZalozPrazdnyTym = async (aktivitaId: number): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  const formdata = new FormData();
-  formdata.set("akce", "zalozPrazdnyTym");
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
-};
-
-export const fetchNastavLimitTymu = async (aktivitaId: number, kodTymu: number, limit: number): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  const formdata = new FormData();
-  formdata.set("akce", "nastavLimit");
-  formdata.set("kodTymu", kodTymu.toString(10));
-  formdata.set("limit", limit.toString(10));
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
-};
-
-export const fetchPredejKapitana = async (aktivitaId: number, kodTymu: number, idNovehoKapitana: number): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  const formdata = new FormData();
-  formdata.set("akce", "predejKapitana");
-  formdata.set("kodTymu", kodTymu.toString(10));
-  formdata.set("idNovehoKapitana", idNovehoKapitana.toString(10));
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
-};
-
-export const fetchZamkniTym = async (aktivitaId: number, kodTymu: number): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  const formdata = new FormData();
-  formdata.set("akce", "zamkni");
-  formdata.set("kodTymu", kodTymu.toString(10));
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
-};
-
-export const fetchOdemkniTym = async (aktivitaId: number, kodTymu: number): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  const formdata = new FormData();
-  formdata.set("akce", "odemkni");
-  formdata.set("kodTymu", kodTymu.toString(10));
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
-};
-
-export const fetchSmazTym = async (aktivitaId: number, kodTymu: number): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  const formdata = new FormData();
-  formdata.set("akce", "smazTym");
-  formdata.set("kodTymu", kodTymu.toString(10));
-  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
-};
-
-export const fetchPotvrdVyberAktivit = async (aktivitaId: number, kodTymu: number, idVybranychAktivit: number[]): Promise<{úspěch: boolean, chyba?: {hláška: string}}> => {
-  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}`;
-  const formdata = new FormData();
-  formdata.set("akce", "potvrdVyberAktivit");
-  formdata.set("kodTymu", kodTymu.toString(10));
-  idVybranychAktivit.forEach(id => formdata.append("idVybranychAktivit[]", id.toString(10)));
+  formdata.set("akce", akce.typ);
+  if ("idTymu" in akce) formdata.set("idTymu", akce.idTymu.toString(10));
+  if ("aktivitaId" in akce) formdata.set("aktivitaId", akce.aktivitaId.toString(10));
+  if (akce.typ === "nastavVerejnost") formdata.set("verejny", akce.verejny ? "1" : "0");
+  if (akce.typ === "odhlasClena") formdata.set("idClena", akce.idClena.toString(10));
+  if (akce.typ === "nastavLimit") formdata.set("limit", akce.limit.toString(10));
+  if (akce.typ === "predejKapitana") formdata.set("idNovehoKapitana", akce.idNovehoKapitana.toString(10));
+  if (akce.typ === "potvrdVyberAktivit") akce.idVybranychAktivit.forEach(id => formdata.append("idVybranychAktivit[]", id.toString(10)));
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };
