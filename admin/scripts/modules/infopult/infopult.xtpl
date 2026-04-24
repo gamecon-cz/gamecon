@@ -15,19 +15,24 @@
   }
 
   .qr-platby {
-    display: block;
+    display: flex;
+    justify-content: flex-start;
   }
 
   .qr-platby__uvod {
-    margin: 0 0 12px;
+    width: min(360px, 100%);
+    margin: 0 auto 12px;
     color: #4f5b67;
+    text-align: left;
   }
 
   .qr-platby__prepinac {
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 8px;
-    margin: 0 0 12px;
+    width: min(360px, 100%);
+    margin: 0 auto 12px;
   }
 
   .qr-platby__tlacitko {
@@ -55,19 +60,22 @@
   }
 
   .qr-platby-sekce {
-    padding-top: 18px;
-    border-top: 1px solid #d7dde4;
+    padding: 0;
+    border: 0;
   }
 
   .qr-platba-karta {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 12px;
     max-width: 360px;
+    margin: 0 auto;
     padding: 12px;
     border: 1px solid #d7dde4;
     border-radius: 10px;
     background: linear-gradient(180deg, #ffffff 0%, #f7f9fb 100%);
+    text-align: left;
   }
 
   .qr-platba-karta[hidden] {
@@ -113,6 +121,84 @@
     display: block;
     width: min(100%, 220px);
     height: auto;
+  }
+
+  .pripis-platby__akce {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .pripis-platby__akce .submit-btn {
+    float: none;
+    margin: 0;
+  }
+
+  .pripis-platby__tlacitko-qr {
+    margin-right: auto;
+  }
+
+  .infopult-modal[hidden] {
+    display: none;
+  }
+
+  .infopult-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: rgba(17, 24, 39, 0.5);
+  }
+
+  .infopult-modal__obsah {
+    width: min(430px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid #c9d3de;
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(17, 24, 39, 0.25);
+    text-align: left;
+  }
+
+  .infopult-modal__hlavicka {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .infopult-modal__hlavicka h3 {
+    width: min(360px, 100%);
+    margin: 0 auto;
+  }
+
+  .infopult-modal__zavrit {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border: 1px solid #c8d2dd;
+    border-radius: 999px;
+    background: #f4f7fa;
+    color: #334155;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  body.infopult-modal-je-otevreny {
+    overflow: hidden;
   }
 </style>
 
@@ -298,7 +384,7 @@
 
 
   <div class="infopult-grid--item infopult-grid--item-udaje aBox">
-    <h3>Osobní údaje</h3>
+    <h3>Ostatní údaje</h3>
     Pro úpravu klikni na údaj
     {udajeHtml}
     <script src="files/jquery.autosize-1.18.13.js"></script>
@@ -348,7 +434,12 @@
           <td><input type="text" value="{org}" disabled></td>
         </tr>
       </table>
-      <input type="submit" value="Připsat" class="submit-btn">
+      <div class="pripis-platby__akce">
+        <button type="button" id="otevritQrPlatby" class="submit-btn pripis-platby__tlacitko-qr">
+          QR platby
+        </button>
+        <input type="submit" value="Připsat" class="submit-btn">
+      </div>
     </form>
     <script>
       (function() {
@@ -379,56 +470,103 @@
   </div>
 
   <!-- begin:qrKodyPlateb -->
-  <div class="infopult-grid--item infopult-grid--item-qrplatba aBox">
-    <div class="qr-platby-sekce" data-qr-prepinac-plateb="cz">
-      <h3>QR platby</h3>
-      <p class="qr-platby__uvod">Vyber variantu podle banky a typu převodu.</p>
-      <div class="qr-platby__prepinac" aria-label="Přepínač QR plateb">
-          <button type="button" class="qr-platby__tlacitko is-aktivni" data-qr-tlacitko="cz" aria-pressed="true">
-              CZ
-          </button>
-          <button type="button" class="qr-platby__tlacitko" data-qr-tlacitko="sk" aria-pressed="false">
-              SK
-          </button>
-          <button type="button" class="qr-platby__tlacitko" data-qr-tlacitko="sepa" aria-pressed="false">
-              SEPA
-          </button>
+  <div id="modalQrPlatby" class="infopult-modal" role="dialog" aria-modal="true" aria-labelledby="modalQrPlatbyNadpis" hidden>
+    <div class="infopult-modal__obsah">
+      <div class="infopult-modal__hlavicka">
+        <h3 id="modalQrPlatbyNadpis">QR platby</h3>
+        <button type="button" class="infopult-modal__zavrit" aria-label="Zavřít modální okno s QR platbami" data-zavrit-qr-modal>&times;</button>
       </div>
-      <div class="qr-platby">
-          <div class="qr-platba-karta" data-qr-karta="cz">
-              <div>
-                  <span class="qr-platba-karta__typ">CZ</span>
-                  <h4>Platba (CZ)</h4>
-                  <p class="qr-platba-karta__popis">Domácí převod v CZK pro české banky.</p>
-              </div>
-              <div class="qr-platba-karta__obrazek">
-                  <img src="{qrKodPlatbaCeska}" alt="qrPlatbaCeska">
-              </div>
-          </div>
-          <div class="qr-platba-karta" data-qr-karta="sk" hidden>
-              <div>
-                  <span class="qr-platba-karta__typ">SK</span>
-                  <h4>Platba (SK)</h4>
-                  <p class="qr-platba-karta__popis">Pay by Square pro slovenské banky.</p>
-              </div>
-              <div class="qr-platba-karta__obrazek">
-                  <img src="{qrKodPlatbaSlovenska}" alt="qrPlatbaSlovenska">
-              </div>
-          </div>
-          <div class="qr-platba-karta" data-qr-karta="sepa" hidden>
-              <div>
-                  <span class="qr-platba-karta__typ">SEPA</span>
-                  <h4>Platba (SEPA)</h4>
-                  <p class="qr-platba-karta__popis">EUR převod pro zahraniční nebo SEPA platby.</p>
-              </div>
-              <div class="qr-platba-karta__obrazek">
-                  <img src="{qrKodPlatbaSepa}" alt="qrPlatbaSepa">
-              </div>
-          </div>
+      <div class="qr-platby-sekce" data-qr-prepinac-plateb="cz">
+        <p class="qr-platby__uvod">Vyber variantu podle banky a typu převodu.</p>
+        <div class="qr-platby__prepinac" aria-label="Přepínač QR plateb">
+            <button type="button" class="qr-platby__tlacitko is-aktivni" data-qr-tlacitko="cz" aria-pressed="true">
+                CZ
+            </button>
+            <button type="button" class="qr-platby__tlacitko" data-qr-tlacitko="sk" aria-pressed="false">
+                SK
+            </button>
+            <button type="button" class="qr-platby__tlacitko" data-qr-tlacitko="sepa" aria-pressed="false">
+                SEPA
+            </button>
+        </div>
+        <div class="qr-platby">
+            <div class="qr-platba-karta" data-qr-karta="cz">
+                <div>
+                    <span class="qr-platba-karta__typ">CZ</span>
+                    <h4>Platba (CZ)</h4>
+                    <p class="qr-platba-karta__popis">Domácí převod v CZK pro české banky.</p>
+                </div>
+                <div class="qr-platba-karta__obrazek">
+                    <img src="{qrKodPlatbaCeska}" alt="qrPlatbaCeska">
+                </div>
+            </div>
+            <div class="qr-platba-karta" data-qr-karta="sk" hidden>
+                <div>
+                    <span class="qr-platba-karta__typ">SK</span>
+                    <h4>Platba (SK)</h4>
+                    <p class="qr-platba-karta__popis">Pay by Square pro slovenské banky.</p>
+                </div>
+                <div class="qr-platba-karta__obrazek">
+                    <img src="{qrKodPlatbaSlovenska}" alt="qrPlatbaSlovenska">
+                </div>
+            </div>
+            <div class="qr-platba-karta" data-qr-karta="sepa" hidden>
+                <div>
+                    <span class="qr-platba-karta__typ">SEPA</span>
+                    <h4>Platba (SEPA)</h4>
+                    <p class="qr-platba-karta__popis">EUR převod pro zahraniční nebo SEPA platby.</p>
+                </div>
+                <div class="qr-platba-karta__obrazek">
+                    <img src="{qrKodPlatbaSepa}" alt="qrPlatbaSepa">
+                </div>
+            </div>
+        </div>
       </div>
-      <script src="{urlQrPrepinacPlateb}"></script>
     </div>
   </div>
+  <script src="{urlQrPrepinacPlateb}"></script>
+  <script>
+    (function () {
+      var modal = document.getElementById('modalQrPlatby');
+      var tlacitkoOtevrit = document.getElementById('otevritQrPlatby');
+      var tlacitkoZavrit = modal ? modal.querySelector('[data-zavrit-qr-modal]') : null;
+      var posledniAktivniElement = null;
+
+      if (!modal || !tlacitkoOtevrit || !tlacitkoZavrit) {
+        return;
+      }
+
+      var zavriModal = function () {
+        modal.hidden = true;
+        document.body.classList.remove('infopult-modal-je-otevreny');
+        if (posledniAktivniElement && typeof posledniAktivniElement.focus === 'function') {
+          posledniAktivniElement.focus();
+        }
+      };
+
+      var otevriModal = function () {
+        posledniAktivniElement = document.activeElement;
+        modal.hidden = false;
+        document.body.classList.add('infopult-modal-je-otevreny');
+        tlacitkoZavrit.focus();
+      };
+
+      tlacitkoOtevrit.addEventListener('click', otevriModal);
+      tlacitkoZavrit.addEventListener('click', zavriModal);
+
+      modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+          zavriModal();
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !modal.hidden) {
+          zavriModal();
+        }
+      });
+    })();
+  </script>
   <!-- end:qrKodyPlateb -->
 
   <div class="infopult-grid--item infopult-grid--item-ubytování aBox">
