@@ -393,7 +393,8 @@ SQL,
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
             'povinneUdaje'         => $this->registrace->povinneUdajeProUbytovaniHtml(
-                'Povinné údaje pro ubytování'
+                nadpis: 'Povinné údaje pro ubytování',
+                vyzadovatAdresuADoklad: true,
             ),
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);

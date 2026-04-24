@@ -246,7 +246,7 @@ HTML;
 
           <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, true, '', '', 'např. +420 789 123 456') ?>
 
-          <?= $this->povinneUdajeProUbytovaniHtml() ?>
+          <?= $this->povinneUdajeProUbytovaniHtml(vyzadovatAdresuADoklad: false) ?>
 
         <h2 class="formular_sekceNadpis">Ostatní</h2>
 
@@ -429,7 +429,11 @@ HTML
         return in_array($klic, Uzivatel::zamceneUdajePoKontroleNaInfopultu(), true);
     }
 
-    public function povinneUdajeProUbytovaniHtml(string $nadpis = '', string $tooltip = ''): string
+    public function povinneUdajeProUbytovaniHtml(
+        string $nadpis = '',
+        string $tooltip = '',
+        bool $vyzadovatAdresuADoklad = true,
+    ): string
     {
         $nadpisHtml = '';
         if ($nadpis !== '') {
@@ -484,9 +488,9 @@ HTML;
 <div class="clearfix"></div>
 
 <div class="formular_sloupce">
-    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE, true)}
-    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE, true)}
-    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE, true)}
+    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE, $vyzadovatAdresuADoklad)}
+    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE, $vyzadovatAdresuADoklad)}
+    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE, $vyzadovatAdresuADoklad)}
     {$this->select(
             'Země',
             Sql::STAT_UZIVATELE,
@@ -495,6 +499,7 @@ HTML;
                 Stat::SK_ID   => 'Slovenská republika',
                 Stat::JINY_ID => '(jiný stát)',
             ],
+            required: $vyzadovatAdresuADoklad,
         )}
 </div>
 
@@ -523,8 +528,9 @@ HTML;
                 Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
                 Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
             ],
+            required: $vyzadovatAdresuADoklad,
         )}
-    {$this->input('Číslo dokladu', 'text', Sql::OP, true)}
+    {$this->input('Číslo dokladu', 'text', Sql::OP, $vyzadovatAdresuADoklad)}
 </div>
 HTML;
     }
