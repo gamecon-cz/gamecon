@@ -410,6 +410,43 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         }
     }
 
+    public function testUdajeAdresyADokladuJsouVRegistraciNepovinne(): void
+    {
+        $registrace = new Registrace(
+            \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals(),
+            null,
+        );
+        $html = $registrace->povinneUdajeProUbytovaniHtml(vyzadovatAdresuADoklad: false);
+
+        foreach ($this->adresaADokladUdajeATypTagu() as $klic => $tag) {
+            self::assertDoesNotMatchRegularExpression(
+                $this->requiredPatternProPole($klic, $tag),
+                $html,
+                "Pole '{$klic}' v registraci nemá být required",
+            );
+        }
+    }
+
+    public function testUdajeAdresyADokladuJsouVPrihlascePovinne(): void
+    {
+        $registrace = new Registrace(
+            \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals(),
+            null,
+        );
+        $html = $registrace->povinneUdajeProUbytovaniHtml(
+            nadpis: 'Povinné údaje pro ubytování',
+            vyzadovatAdresuADoklad: true,
+        );
+
+        foreach ($this->adresaADokladUdajeATypTagu() as $klic => $tag) {
+            self::assertMatchesRegularExpression(
+                $this->requiredPatternProPole($klic, $tag),
+                $html,
+                "Pole '{$klic}' v přihlášce má být required",
+            );
+        }
+    }
+
     /**
      * @return array<string, 'input'|'select'>
      */
@@ -425,6 +462,21 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
             Sql::MESTO_UZIVATELE        => 'input',
             Sql::PSC_UZIVATELE          => 'input',
             Sql::STAT_UZIVATELE         => 'select',
+        ];
+    }
+
+    /**
+     * @return array<string, 'input'|'select'>
+     */
+    private function adresaADokladUdajeATypTagu(): array
+    {
+        return [
+            Sql::ULICE_A_CP_UZIVATELE   => 'input',
+            Sql::MESTO_UZIVATELE        => 'input',
+            Sql::PSC_UZIVATELE          => 'input',
+            Sql::STAT_UZIVATELE         => 'select',
+            Sql::TYP_DOKLADU_TOTOZNOSTI => 'select',
+            Sql::OP                     => 'input',
         ];
     }
 
@@ -461,6 +513,19 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
     {
         return sprintf(
             '~<%s[^>]*name="%s\[%s\]"[^>]*\bdisabled\b~',
+            $tag,
+            preg_quote(Registrace::FORM_DATA_KEY, '~'),
+            preg_quote($klic, '~'),
+        );
+    }
+
+    /**
+     * @param 'input'|'select' $tag
+     */
+    private function requiredPatternProPole(string $klic, string $tag): string
+    {
+        return sprintf(
+            '~<%s[^>]*name="%s\[%s\]"[^>]*\brequired\b~',
             $tag,
             preg_quote(Registrace::FORM_DATA_KEY, '~'),
             preg_quote($klic, '~'),
