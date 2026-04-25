@@ -19,7 +19,6 @@ type PripravaTymuProps = {
   casZalozeniMs: number;
   onVybranéAktivity: (vybranAktivity: number[]) => void;
   onPrihlasitKapitana: () => void;
-  onSmazat: () => void;
   nacita?: boolean;
 };
 
@@ -58,7 +57,6 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
   casZalozeniMs,
   onVybranéAktivity,
   onPrihlasitKapitana,
-  onSmazat,
   nacita,
 }) => {
   const [vybrane, setVybrane] = useState<Record<number, number>>({});
@@ -134,51 +132,23 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
 
   return (
     <div>
-      {/* Header se smazáním */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: "16px",
-          paddingBottom: "12px",
-          borderBottom: "1px solid #ddd",
-        }}
-      >
-        <button
-          onClick={onSmazat}
-          style={{
-            backgroundColor: "#f44",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
-          disabled={nacita}
-        >
-          🗑️ Smazat tým
-        </button>
-      </div>
-
-      <div>
-        {jeVýběrKol ? (
-          <VyberKolAktivity
-            kola={kola}
-            vybrane={vybrane}
-            onVyber={handleVyber}
-            onPotvrdit={onPotvrdit}
-            zbyvajiciCas={zbyvaCas}
-            nacita={nacita}
-          />
-        ) : (
-          <PrihlaseniKapitana
-            vybranéAktivity={vybraneAktivityText}
-            onPrihlasit={handlePrihlasit}
-            zbyvajiciCas={zbyvaCas}
-            nacita={nacita}
-          />
-        )}
-      </div>
+      {jeVýběrKol ? (
+        <VyberKolAktivity
+          kola={kola}
+          vybrane={vybrane}
+          onVyber={handleVyber}
+          onPotvrdit={onPotvrdit}
+          zbyvajiciCas={zbyvaCas}
+          nacita={nacita}
+        />
+      ) : (
+        <PrihlaseniKapitana
+          vybranéAktivity={vybraneAktivityText}
+          onPrihlasit={handlePrihlasit}
+          zbyvajiciCas={zbyvaCas}
+          nacita={nacita}
+        />
+      )}
     </div>
   );
 };

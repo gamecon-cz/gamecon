@@ -16,7 +16,6 @@ use Gamecon\Aktivita\Program;
     nastaveni: [
         Program::DRD_PJ       => true,
         Program::DRD_PRIHLAS  => true,
-        Program::PLUS_MINUS   => true,
         Program::OSOBNI       => $osobniProgram,
         Program::INTERNI      => true,
         Program::ZPETNE       => $u->maPravoNaZmenuHistorieAktivit(),

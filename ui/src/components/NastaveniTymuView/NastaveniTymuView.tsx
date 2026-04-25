@@ -107,11 +107,13 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
 
   const sPotvrzením = (text: string, akce: () => void) => () => setPotvrzení({ text, akce });
 
+  const jeVTymu = !!data?.id;
   const jeKapitán = přihlášen && data?.jeKapitan;
   const pocetClenu = data?.clenove?.length ?? 0;
   const minKapacita = data?.minKapacita ?? 0;
   const maxKapacita = data?.maxKapacita ?? null;
   const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
+  const minKapacitaNaplněna = pocetClenu >= minKapacita;
   const odpočet = useOdpočet(přihlášen && !data?.zamceny ? data?.casExpiraceMs : undefined);
   const týmJePřipravený = pocetClenu > 0;
 
@@ -190,6 +192,22 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               Nastavení týmu{nazevAktivity ? ` aktivity ${nazevAktivity}` : ""}
             </h3>
             <div class="vpravo" style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                {jeVTymu && !týmJePřipravený && (
+                  <button
+                    onClick={onSmazatTym}
+                    style={{
+                      backgroundColor: "#f44",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                    }}
+                    disabled={načítá || načítáAkci}
+                    >
+                      🗑️ Smazat tým
+                  </button>
+                )}
               {přihlášen && data?.zamceny && (
                 <button style={{ width: "unset" }} onClick={onOdemkniSPotvrzenim}>Odemknout</button>
               )}
@@ -221,11 +239,11 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                 ? <>
                   Za {formatZbývá(odpočet)} h bude tým automaticky{" "}
                   <strong style={{ color: "#c00" }}>smazán</strong>
-                  {" "}— kapitán musí tým zamknout.
+                  {" "}— kapitán musí tým zamknout. {minKapacitaNaplněna? "" : "Nejdříve ale musí tým naplnit alespoň min kapacitu"}
                 </>
                 : <>
                   Za {formatZbývá(odpočet)} h bude tým automaticky zveřejněn
-                  {" "}— kapitán musí tým zamknout.
+                  {" "}— kapitán musí tým zamknout. {minKapacitaNaplněna? "" : "Nejdříve ale musí tým naplnit alespoň min kapacitu"}
                 </>
               }
             </div>
@@ -241,19 +259,15 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               casZalozeniMs={data.casZalozeniMs}
               onVybranéAktivity={onPotvrditVýběrAktivit}
               onPrihlasitKapitana={onPrihlasitKapitana}
-              onSmazat={onSmazatTym}
               nacita={načítáAkci}
             />
           )}
 
-          {!načítá && týmJePřipravený && !načítáAkci && (
-            <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
-
-              {/* === Nepřihlášený === */}
-              {!přihlášen && (
+          {!načítá && !jeVTymu && !načítáAkci &&
+               (
                 <>
                   <button onClick={onZaložitTým}>Založ tým</button>
-                  <div style={{ gap: "4px", display: "flex", flexDirection: "column", alignItems: "start" }}>
+                  <div style={{ marginTop:"1em", gap: "4px", display: "flex", flexDirection: "column", alignItems: "start" }}>
                     <label>
                       kód:
                       <input
@@ -281,8 +295,11 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                     </div>
                   )}
                 </>
-              )}
+              )
+          }
 
+          {!načítá && týmJePřipravený && !načítáAkci && (
+            <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
               {/* === Přihlášený (kapitán i člen) === */}
               {přihlášen && (
                 <>

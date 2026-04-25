@@ -246,6 +246,7 @@ class AktivitaTym
     }
 
     /**
+     * Nepoužívat napřímo! Používat přes prihlas na aktvitiě.
      * Tým musí mít kapitána proto je třeba dát id uživatele
      */
     public static function zalozPrazdnyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity = false): self

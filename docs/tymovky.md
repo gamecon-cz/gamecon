@@ -105,17 +105,17 @@
       - [X] ui mock
       - [X] api
     - [X] sjednocení handlingu chyb z BE
-- [ ] ošetření práce s nepřipraveným týmem
+- [X] ošetření práce s nepřipraveným týmem
 - [X] Všichni členové vidí kód pro pozvání dalších hráčů
   - [X] API vrací `kod` v GET response
   - [X] UI zobrazuje kód v `NastaveniTymuView.tsx`
 - [X] Hráč se může přihlásit do týmu zadáním kódu
   - [X] `AktivitaTym::najdiPodleKodu()` + `prihlasUzivateleDoTymu()`
   - [X] UI formulář pro zadání kódu v `PrihlaseniTymu`
-- [ ] Tým se automaticky smaže po 30 minutách pokud nebyl dokončen
+- [X] Tým se automaticky smaže po 30 minutách pokud nebyl dokončen
   - [X] `AktivitaTym::rozpracovaneTymyIds()` a `smazRozpracovaneTymy()` — logika existuje
-  - [ ] Cron job / pravidelné spouštění mazání rozpracovaných týmů (viz sekce Cron joby)
-  - [ ] Výrazné varování v UI s odpočtem zbývajícího času
+  - [X] Cron job / pravidelné spouštění mazání rozpracovaných týmů (viz sekce Cron joby)
+  - [X] Výrazné varování v UI s odpočtem zbývajícího času
 
 ## Kapitánské akce
 - [X] Předání kapitána
@@ -165,11 +165,11 @@
 - [X] API endpoint pro zamčení týmu (POST akce v `aktivitaTym.php`)
 - [X] UI tlačítko "Zamknout tým" v `NastaveniTymuView.tsx`
   - [X] Tlačítko disabled pokud tým nemá min kapacitu
-    - [ ] info proč nejde zamknout
+    - [X] info proč nejde zamknout
   - [X] Potvrzovací dialog — zamčení je nevratné pro hráče
-- [ ] Vizuální indikátor zbývajícího času do povinného zamčení (72h odpočet)
+- [X] Vizuální indikátor zbývajícího času do povinného zamčení (72h odpočet)
   - [X] `casZalozeniMs()` existuje a UI ho využívá pro odpočet
-  - [ ] Výrazná vizuální urgence (barva, ikona) když zbývá málo času
+  - [X] Výrazná vizuální urgence (barva, ikona) když zbývá málo času
 - [X] Zamčený tým nelze editovat (odhlašování, přihlašování, předávání kapitána)
   - [X] Kontrola `jeZamceny()` ve všech mutujících metodách `AktivitaTymService`
     - kontrola je na API
@@ -205,18 +205,6 @@
   - [ ] Cron job: zveřejnit nebo smazat podle nastavení aktivity
 - [ ] Pravidelná kontrola 24h varování (48h od založení)
   - [ ] Cron job: odeslat mail kapitánovi pokud zbývá 24h a tým není zamčen
-
-## Maily
-- [ ] Mailové šablony pro týmové události
-  - [ ] Šablona: tým byl zamčen (potvrzení všem členům)
-  - [ ] Šablona: tým byl odemčen (upozornění všem členům — akce potřebná)
-  - [ ] Šablona: zbývá 24h do povinného zamčení (upozornění kapitánovi)
-- [ ] Backend odesílání mailů
-  - [ ] Odeslání při zamčení týmu (v metodě `zamknout()`)
-  - [ ] Odeslání při odemčení týmu (v metodě `odemknout()`)
-  - [ ] Odeslání 24h připomínky z cron jobu
-    - [ ] Deduplikace — neposlat připomínku víckrát
-    - [ ] DB sloupec `pripomenuti_odeslano` nebo jiný mechanismus
 
 ## Vícekolové aktivity / turnaje
 - [X] Aktivita jako součást turnaje s definicí kola
@@ -301,15 +289,25 @@
   - [X] Přepsat odhlašovací logiku: odhlášení z potomků → odhlášení z turnaje
   - [X] Odstranit sloupec `dite` z DB (migrace)
   - [X] Aktualizovat `AkceSeznamSqlStruktura::DITE`
-- [ ] Odstranit/refaktorovat tisk programu (`Program.php` — 5 výskytů `todo(tym): odstraněný tisku programu`)
-  - [ ] Metody `tiskniTabulku()`, `tiskniObsah()`, `tiskniAktivitu()`, `prazdnaMistnost()`
-  - [ ] Nahradit novým renderovacím systémem pro program s podporou týmů
+- [X] Odstranit/refaktorovat tisk programu (`Program.php` — 5 výskytů `todo(tym): odstraněný tisku programu`)
+  - [X] Metody `tiskniTabulku()`, `tiskniObsah()`, `tiskniAktivitu()`, `prazdnaMistnost()`
+  - [X] Nahradit novým renderovacím systémem pro program s podporou týmů
 - [ ] Přihlašovací flow přes nový způsob pro týmové aktivity (`Aktivita.php:3131`)
   - [ ] Nahradit hardcoded HTML zámku za nový přihlašovací widget
   - [ ] Sjednotit flow přihlášení pro týmové i netýmové aktivity
-- [ ] `PLUS_MINUS` příznak v Program — nejasné chování (`Program.php:45`)
-  - [ ] Zjistit zda se `PLUS_MINUS` ještě používá nebo je nahrazen novým UI
-  - [ ] Případně odstranit
+
+
+## Maily
+- [ ] Mailové šablony pro týmové události
+  - [ ] Šablona: tým byl zamčen (potvrzení všem členům)
+  - [ ] Šablona: tým byl odemčen (upozornění všem členům — akce potřebná)
+  - [ ] Šablona: zbývá 24h do povinného zamčení (upozornění kapitánovi)
+- [ ] Backend odesílání mailů
+  - [ ] Odeslání při zamčení týmu (v metodě `zamknout()`)
+  - [ ] Odeslání při odemčení týmu (v metodě `odemknout()`)
+  - [ ] Odeslání 24h připomínky z cron jobu
+    - [ ] Deduplikace — neposlat připomínku víckrát
+    - [ ] DB sloupec `pripomenuti_odeslano` nebo jiný mechanismus
 
 ## další
 - [ ] přidat nějaké další kontroly před zveřejňováním aktivity ? jako například že každé kolo turnaje má nějakou aktivitu až do max čísla jinak musí org přečíslovat turnaj ?
@@ -349,7 +347,10 @@
   - [ ] V admin panelu zobrazovat plné jméno (beze změny)
 - [ ] oveření že uživatel nemůže být ve více týmech na jedné aktivitě
 
-## TODO po nasazení testování
+### Admin další funkcionality
+- [ ] zobrazení turnajů
+
+### TODO po nasazení testování
 - [ ] přidat do cronu mazani_nepripravenych_tymu
 - [ ] program-k-tisku využívá se ? https://github.com/gamecon-cz/gamecon/blob/d167f7e845424e064d040c58cf0778403dfb00ae/model/Aktivita/Program.php#L159
 - [ ] jaký význam má Uzivatel::prednactiUzivateleNaAktivitach ? je potřeba někde ? (bylo to v iterátoru aktivit)

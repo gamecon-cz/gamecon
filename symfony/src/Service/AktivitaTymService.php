@@ -30,9 +30,17 @@ class AktivitaTymService
 
     public function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $idTymu, bool $ignorovatLimity = false): void
     {
-        $this->zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
-
         $novy = $idTymu === 0;
+
+        if (!$novy) {
+            $existujici = $this->teamMemberRegistrationRepository->findOneBy(['uzivatel' => $idUzivatele, 'team' => $idTymu]);
+            if ($existujici) {
+                return;
+            }
+
+            $this->zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
+        }
+
         $team = $novy
             ? $this->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity)
             : $this->teamRepository->find($idTymu)
@@ -521,6 +529,8 @@ class AktivitaTymService
             ?? throw new \Chyba('Uživatel nenalezen');
         $aktivita = $this->activityRepository->find($idAktivity)
             ?? throw new \Chyba('Aktivita nenalezena');
+
+        $this->zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
 
         if (!$ignorovatLimity) {
             $this->zkontrolujMuzeZalozitTym($idAktivity);
