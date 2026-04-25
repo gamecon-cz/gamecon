@@ -3,7 +3,7 @@
  * Liší se pro testovací server
  */
 
-import { PřihlášenýUživatel } from "./api/přihlášenýUživatel";
+import { ApiPřihlášenýUživatel } from "./api/přihlášenýUživatel";
 import { range } from "./utils";
 
 
@@ -53,7 +53,7 @@ define('FORCE_REDUX_DEVTOOLS', true);
 }
 
 type GameconPřednačtení = {
-  přihlášenýUživatel?: PřihlášenýUživatel
+  přihlášenýUživatel?: ApiPřihlášenýUživatel
 };
 
 declare global {

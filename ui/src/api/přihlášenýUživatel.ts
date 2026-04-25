@@ -22,7 +22,8 @@ type GCStav =
 
 export type Pohlavi = "m" | "l";
 
-export type PřihlášenýUživatel = {
+export type ApiPřihlášenýUživatel = {
+  id?: number,
   organizator?: boolean,
   prihlasen?: boolean,
   pohlavi?: Pohlavi,
@@ -33,7 +34,7 @@ export type PřihlášenýUživatel = {
 }
 
 
-export const fetchPřihlášenýUživatel = async (): Promise<PřihlášenýUživatel> => {
+export const fetchPřihlášenýUživatel = async (): Promise<ApiPřihlášenýUživatel> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}prihlasenyUzivatel`;
   return fetch(url, { method: "POST" }).then(async x => x.json());
 };

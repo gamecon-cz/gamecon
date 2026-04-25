@@ -37,6 +37,9 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   const [načítáAkci, setNačítáAkci] = useState(false);
   const [bylaZměna, setBylaZměna] = useState(false);
   const setChyba = nastavChyba;
+  const přihlášenýUživatel = useProgramStore(s=>s.přihlášenýUživatel);
+
+  const jeKapitán= !!data?.tym?.idKapitana && (přihlášenýUživatel?.data?.id === data?.tym?.idKapitana);
 
   const sNačítáním = <T,>(fn: () => Promise<T>, jeZměna = false) => async () => {
     setNačítáAkci(true);
@@ -51,18 +54,15 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
 
   if (!aktivitaId) return <></>;
 
-  const přihlášenZAktivity = aktivita?.stavPrihlaseni === "prihlasen"
+  const přihlášenNaAktivitě = aktivita?.stavPrihlaseni === "prihlasen"
     || aktivita?.stavPrihlaseni === "dorazilJakoNahradnik"
     || aktivita?.stavPrihlaseni === "pozdeZrusil"
     || aktivita?.stavPrihlaseni === "prihlasenADorazil"
     || aktivita?.stavPrihlaseni === "prihlasenAleNedorazil"
     ;
 
-  // Pokud aktivita není v store (stránka bez programu), odvodíme přihlášení z dat týmu
-  const přihlášen = aktivita ? přihlášenZAktivity : (data?.id ?? 0) > 0;
-
   // Program page: skryj modal dokud se data nenačtou
-  if (aktivita && přihlášen && !data) return <></>;
+  if (!aktivita || !data) return <></>;
 
   const zavřít = () => {
     if (!aktivita && bylaZměna) {
@@ -75,8 +75,8 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
 
   const proveďAkciTymu = async (akceTymu: Omit<AkceTymu, "idTymu" | "aktivitaId">, dotáhniIpřiNeúspěchu= false) => {
     const akceTymuCpy = produce(akceTymu as AkceTymu, akce=>{
-      if (akce.typ !== "zalozPrazdnyTym" && data?.id) {
-        akce.idTymu = data.id;
+      if (akce.typ !== "zalozPrazdnyTym" && data?.tym?.id) {
+        akce.idTymu = data?.tym.id;
       }
       if (aktivita?.id
           && (akce.typ === "zalozPrazdnyTym"
@@ -101,8 +101,9 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   return (
     <NastaveniTymuView
       nazevAktivity={aktivita?.nazev ?? storeNazevAktivity}
-      data={data ?? null}
-      přihlášen={přihlášen}
+      data={data}
+      přihlášenNaAktivitě={přihlášenNaAktivitě}
+      jeKapitán={jeKapitán}
       načítá={!aktivita && !data}
       načítáAkci={načítáAkci}
       onZavřít={zavřít}

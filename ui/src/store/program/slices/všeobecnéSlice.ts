@@ -1,26 +1,7 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { fetchAktivitaTým, ClenTymu, TymVSeznamu } from "../../../api/program";
+import { fetchAktivitaTým, AktivitaTymResponse } from "../../../api/program";
 
-export type NastaveniTymuData = {
-  nazev: string,
-  id: number,
-  kod: number,
-  muzeZalozitNovy: boolean,
-  jeTrebaPredpripravit?: boolean,
-  jeKapitan?: boolean,
-  verejny?: boolean,
-  zamceny?: boolean,
-  jeSmazatPoExpiraci?: boolean,
-  casText?: string,
-  casZalozeniMs?: number,
-  casExpiraceMs?: number,
-  limitTymu?: number | null,
-  minKapacita?: number | null,
-  maxKapacita?: number | null,
-  clenove?: ClenTymu[],
-  vsechnyTymy?: TymVSeznamu[],
-  aktivityTymuId?: number[],
-};
+export type NastaveniTymuData = AktivitaTymResponse;
 
 export type VšeobecnéSlice = {
   všeobecné: {
@@ -66,24 +47,7 @@ export const dotáhniNastaveníTýmuProModal = async () => {
     s.všeobecné.nastaveniTymu = {
       aktivitaId,
       nazevAktivity: s.všeobecné.nastaveniTymu?.nazevAktivity,
-      data: {
-        id: data.id,
-        kod: data.kod,
-        muzeZalozitNovy: true,
-        nazev: "",
-        jeTrebaPredpripravit: data.jeTrebaPredpripravit,
-        jeKapitan: data.jeKapitan,
-        verejny: data.verejny,
-        casText: data.casText,
-        casZalozeniMs: data.casZalozeniMs,
-        casExpiraceMs: data.casExpiraceMs,
-        limitTymu: data.limitTymu,
-        minKapacita: data.minKapacita,
-        maxKapacita: data.maxKapacita,
-        clenove: data.clenove,
-        vsechnyTymy: data.vsechnyTymy,
-        aktivityTymuId: data.aktivityTymuId,
-      }
+      data: data
     };
   }, undefined, "dotáhni nastavení týmu");
 }

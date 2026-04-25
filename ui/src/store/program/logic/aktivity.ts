@@ -74,11 +74,28 @@ export const aktivitaStatusZAktivity = (
   return "volno";
 };
 
-export const denAktivity = (časAktivity: Date) => {
-  return (časAktivity.getHours() +1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
-    ? časAktivity
-    : datumPřidejDen(časAktivity, -1);
+export const denAktivity = (časAktivity: Date | number | Aktivita): Date => {
+  let časAktivityDate: Date;
+  if (časAktivity instanceof Date) {
+    časAktivityDate = časAktivity;
+  } else if (typeof časAktivity === "number") {
+    časAktivityDate = new Date(časAktivity);
+  } else {
+    časAktivityDate = new Date(časAktivity.cas.od);
+  }
+
+  return (časAktivityDate.getHours() +1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
+    ? časAktivityDate
+    : datumPřidejDen(časAktivityDate, -1);
 };
+
+export const denČasAktivityText = (aktivita: Aktivita): string => {
+  const den = new Intl.DateTimeFormat('cs-CZ', { weekday: 'short' }).format(denAktivity(aktivita.cas.od));
+  const časOd = new Intl.DateTimeFormat('cs-CZ', { hour: '2-digit', minute: '2-digit' }).format(aktivita.cas.od);
+  const časDo = new Intl.DateTimeFormat('cs-CZ', { hour: '2-digit', minute: '2-digit' }).format(aktivita.cas.do);
+
+  return `${den} ${časOd}-${časDo}`;
+}
 
 const ziskejIdZTextovéhoFiltru = (text: string): number | undefined => {
   const idFiltrText = RegExp(/id=([0-9]*)/).exec(text)?.[1];

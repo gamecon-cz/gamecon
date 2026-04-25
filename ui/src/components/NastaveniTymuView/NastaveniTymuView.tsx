@@ -2,17 +2,21 @@ import { FunctionComponent } from "preact";
 import { useState, useEffect, useMemo } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
-import { AkceTymuBezKontextu, ClenTymu, TymVSeznamu } from "../../api/program";
+import { AkceTymuBezKontextu, ClenTymu, ApiTymVSeznamu } from "../../api/program";
 import { PripravaTymu, KoloAktivity } from "../PripravaTymu";
 import { proveďAkciAktivity } from "../../store/program/slices/programDataSlice";
+import { TymDetail } from "./TymDetail";
+import { useAktivity } from "../../store/program/selektory";
+import { denAktivity, denČasAktivityText } from "../../store/program/logic/aktivity";
 
 type NastaveniTymuViewProps = {
   nazevAktivity?: string;
-  data: NastaveniTymuData | null;
-  přihlášen: boolean;
+  data: NastaveniTymuData | undefined;
+  přihlášenNaAktivitě: boolean;
+  jeKapitán: boolean;
   načítá?: boolean;
   načítáAkci?: boolean;
-  chyba?: string | null;
+  chyba?: string | undefined;
   onZavřít: () => void;
   onPřipojitSe: (idTýmu?: number, kód?: number) => void;
   onOdhlásit: () => void;
@@ -20,71 +24,56 @@ type NastaveniTymuViewProps = {
 };
 
 const SeznamTymu: FunctionComponent<{
-  tymy: TymVSeznamu[];
+  tymy: ApiTymVSeznamu[];
   zobrazitPřipojení: boolean;
   onPřipojitSe: (idTýmu?: number, kód?: number) => void;
 }> = ({ tymy, zobrazitPřipojení, onPřipojitSe }) => {
-  if (tymy.length === 0) return <div style={{ color: "#888" }}>Zatím žádné týmy</div>;
+  if (tymy.length === 0)
+    return <div style={{ color: "#888" }}>Žádné týmy</div>;
 
   return (
-    <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
-      {tymy.map((tym) => {
-        const plny = tym.limit !== null && tym.pocetClenu >= (tym.limit ?? 0);
-        return (
-          <li
-            key={tym.id}
-            style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}
-          >
-            <span>{tym.nazev || `Tým ${tym.id}`}</span>
-            <span style={{ color: "#888" }}>
-              {tym.pocetClenu}{tym.limit !== null ? `/${(tym.limit ?? "")}` : ""}
-            </span>
-            {tym.verejny
-              ? <span style={{ color: "#4a4", fontSize: "0.85em" }}>veřejný</span>
-              : <span style={{ color: "#888", fontSize: "0.85em" }}>soukromý</span>
-            }
-            {zobrazitPřipojení && tym.verejny && (
-              <button
-                disabled={plny}
-                style={{ width: "unset" }}
-                onClick={() => onPřipojitSe(tym.id)}
-              >
-                {plny ? "Plný" : "Připojit se"}
-              </button>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <div style={{ marginTop: "8px", width: "100%" }}>
+      <strong>Všechny týmy:</strong>
+      <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
+        {tymy.map((tym) => {
+          const plny = tym.limit !== null && tym.pocetClenu >= (tym.limit ?? 0);
+          return (
+            <li
+              key={tym.id}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}
+            >
+              <span>{tym.nazev || `Tým ${tym.id}`}</span>
+              <span style={{ color: "#888" }}>
+                {tym.pocetClenu}{tym.limit !== null ? `/${(tym.limit ?? "")}` : ""}
+              </span>
+              {tym.verejny
+                ? <span style={{ color: "#4a4", fontSize: "0.85em" }}>veřejný</span>
+                : <span style={{ color: "#888", fontSize: "0.85em" }}>soukromý</span>
+              }
+              {zobrazitPřipojení && tym.verejny && (
+                <button
+                  disabled={plny}
+                  style={{ width: "unset" }}
+                  onClick={() => onPřipojitSe(tym.id)}
+                >
+                  {plny ? "Plný" : "Připojit se"}
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 };
 
-const formatZbývá = (ms: number): string => {
-  if (ms <= 0) return "0:00";
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  return `${h}:${m.toString().padStart(2, "0")}`;
-};
-
-const useOdpočet = (casExpiraceMs: number | undefined): number | null => {
-  const [zbývá, setZbývá] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!casExpiraceMs) return;
-    const update = () => setZbývá(Math.max(0, casExpiraceMs - Date.now()));
-    update();
-    const id = setInterval(update, 60000);
-    return () => clearInterval(id);
-  }, [casExpiraceMs]);
-
-  return zbývá;
-};
 
 export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (props) => {
   const {
     nazevAktivity,
     data,
-    přihlášen,
+    přihlášenNaAktivitě,
+    jeKapitán,
     načítá,
     načítáAkci,
     chyba,
@@ -93,29 +82,19 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     onOdhlásit,
     onProveďAkci,
   } = props;
+  const vsechnyAktivity = useAktivity();
 
   const [kódPřipojeníDoTýmu, setKódPřipojeníDoTýmu] = useState("");
-  const [zkopírováno, setZkopírováno] = useState(false);
   const [potvrzení, setPotvrzení] = useState<{ text: string; akce: () => void } | null>(null);
-
-  const zkopírujKód = (kód: number) => {
-    void navigator.clipboard.writeText(String(kód)).then(() => {
-      setZkopírováno(true);
-      setTimeout(() => setZkopírováno(false), 1500);
-    });
-  };
 
   const sPotvrzením = (text: string, akce: () => void) => () => setPotvrzení({ text, akce });
 
-  const jeVTymu = !!data?.id;
-  const jeKapitán = přihlášen && data?.jeKapitan;
-  const pocetClenu = data?.clenove?.length ?? 0;
-  const minKapacita = data?.minKapacita ?? 0;
-  const maxKapacita = data?.maxKapacita ?? null;
-  const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
-  const minKapacitaNaplněna = pocetClenu >= minKapacita;
-  const odpočet = useOdpočet(přihlášen && !data?.zamceny ? data?.casExpiraceMs : undefined);
+  const modalMáTým = !!data?.tym?.id;
+  const pocetClenu = data?.tym?.clenove?.length ?? 0;
   const týmJePřipravený = pocetClenu > 0;
+
+  const aktivityTymuId = data?.tym?.aktivityTymuId ?? [];
+  const aktivityTymu = aktivityTymuId.map(id=>vsechnyAktivity.find(a=>a.id===id)).filter(x=>x !== undefined);
 
   if (potvrzení) {
     return (
@@ -131,8 +110,10 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     );
   }
 
+  const týmNázev = data?.tym?.nazev ?? "";
+
   const onOdemkniSPotvrzenim = sPotvrzením(
-    `Opravdu chcete odemknout tým${data?.nazev ? ` ${data.nazev}` : ""}?`, () => {
+    `Opravdu chcete odemknout tým${týmNázev}?`, () => {
       void onProveďAkci({ typ: "odemkni" });
     });
 
@@ -154,7 +135,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
       () => void onProveďAkci({ typ: "smazTym" }))
 
   const onZamkniTym = sPotvrzením(
-    `Opravdu chcete zamknout tým${data?.nazev ? ` ${data.nazev}` : ""}? Tým se poté nebude moci editovat. Tato akce je nevratná.`,
+    `Opravdu chcete zamknout tým${týmNázev}? Tým se poté nebude moci editovat. Tato akce je nevratná.`,
     () => void onProveďAkci({ typ: "zamkni" })
   );
 
@@ -168,15 +149,23 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   )();
 
   const onOdebratČlenaSPotvrzením = (clen: ClenTymu) => sPotvrzením(
-    `Opravdu chcete odebrat hráče ${clen.jmeno} z týmu${data?.nazev ? ` ${data.nazev}` : ""}${nazevAktivity ? ` na aktivitě ${nazevAktivity}` : ""}?`,
+    `Opravdu chcete odebrat hráče ${clen.jmeno} z týmu${týmNázev}${nazevAktivity ? ` na aktivitě ${nazevAktivity}` : ""}?`,
     () => void onProveďAkci({typ: "odhlasClena", idClena: clen.id})
   )();
 
   const onZaložitTým = () => void onProveďAkci({typ:"zalozPrazdnyTym"});
 
-  const onPřepniVerejnost = () => void onProveďAkci({typ:"nastavVerejnost", verejny: !data?.verejny});
+  const onPřepniVerejnost = () => void onProveďAkci({typ:"nastavVerejnost", verejny: !data?.tym?.verejny});
 
   const onNastavLimit = (limit: number) => void onProveďAkci({typ: "nastavLimit", limit});
+
+  const seznamTýmů = data?.vsechnyTymy && data.vsechnyTymy.length > 0 && (
+    <SeznamTymu
+      tymy={data.vsechnyTymy}
+      zobrazitPřipojení={false}
+      onPřipojitSe={onPřipojitSe}
+    />
+  );
 
   return (
     <>
@@ -192,7 +181,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               Nastavení týmu{nazevAktivity ? ` aktivity ${nazevAktivity}` : ""}
             </h3>
             <div class="vpravo" style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-                {jeVTymu && !týmJePřipravený && (
+                {modalMáTým && !týmJePřipravený && (
                   <button
                     onClick={onSmazatTym}
                     style={{
@@ -208,63 +197,35 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                       🗑️ Smazat tým
                   </button>
                 )}
-              {přihlášen && data?.zamceny && (
+              {přihlášenNaAktivitě && data?.tym?.zamceny && (
                 <button style={{ width: "unset" }} onClick={onOdemkniSPotvrzenim}>Odemknout</button>
               )}
-              {přihlášen && (
-                <button disabled={data?.zamceny} onClick={onOdhlasitSPotvrzenim}>Odhlásit!</button>
+              {přihlášenNaAktivitě && (
+                <button disabled={data?.tym?.zamceny} onClick={onOdhlasitSPotvrzenim}>Odhlásit!</button>
               )}
             </div>
           </div>
 
-          {data?.casText && (
-            <div style={{ color: "#666", marginBottom: "8px" }}>{data.casText}</div>
-          )}
-
-          {přihlášen && data?.zamceny && (
-            <div style={{ color: "#4a4", marginBottom: "8px", fontWeight: "bold" }}>
-              ✓ Tým je zamčený a připravený k hraní.
-            </div>
-          )}
-
-          {přihlášen && odpočet !== null && odpočet > 0 && (
-            <div style={{
-              background: data?.jeSmazatPoExpiraci ? "#fff3f3" : "#fffbe6",
-              border: `1px solid ${data?.jeSmazatPoExpiraci ? "#c33" : "#b80"}`,
-              borderRadius: "4px",
-              padding: "8px 12px",
-              marginBottom: "8px",
-            }}>
-              {data?.jeSmazatPoExpiraci
-                ? <>
-                  Za {formatZbývá(odpočet)} h bude tým automaticky{" "}
-                  <strong style={{ color: "#c00" }}>smazán</strong>
-                  {" "}— kapitán musí tým zamknout. {minKapacitaNaplněna? "" : "Nejdříve ale musí tým naplnit alespoň min kapacitu"}
-                </>
-                : <>
-                  Za {formatZbývá(odpočet)} h bude tým automaticky zveřejněn
-                  {" "}— kapitán musí tým zamknout. {minKapacitaNaplněna? "" : "Nejdříve ale musí tým naplnit alespoň min kapacitu"}
-                </>
-              }
-            </div>
-          )}
+          {aktivityTymu.map(aktivita=>{
+            <div style={{ color: "#666", marginBottom: "8px" }}>{denČasAktivityText(aktivita)}</div>
+          })}
 
           {(načítá || načítáAkci) && <div>Načítám...</div>}
 
           {chyba && <div style={{ color: "red" }}>{chyba}</div>}
 
           {/* === Příprava nového týmu (výběr kol + přihlášení kapitána) === */}
-          {!načítá && data && !týmJePřipravený && data.casZalozeniMs && (
+          {!načítá && data && data.tym && !týmJePřipravený && (
             <PripravaTymu
-              casZalozeniMs={data.casZalozeniMs}
+              casExpiraceMs={data.tym?.casExpiraceMs}
               onVybranéAktivity={onPotvrditVýběrAktivit}
               onPrihlasitKapitana={onPrihlasitKapitana}
               nacita={načítáAkci}
             />
           )}
 
-          {!načítá && !jeVTymu && !načítáAkci &&
-               (
+          {!načítá && !modalMáTým && !načítáAkci &&
+              (
                 <>
                   <button onClick={onZaložitTým}>Založ tým</button>
                   <div style={{ marginTop:"1em", gap: "4px", display: "flex", flexDirection: "column", alignItems: "start" }}>
@@ -300,141 +261,25 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
 
           {!načítá && týmJePřipravený && !načítáAkci && (
             <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
-              {/* === Přihlášený (kapitán i člen) === */}
-              {přihlášen && (
+              {přihlášenNaAktivitě && data && (
                 <>
-                  {/* Kód týmu — všichni přihlášení */}
-                  {!data?.zamceny && data?.kod && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span style={{ fontSize: "1.3em" }}>
-                        kód týmu:{" "}
-                        <span
-                          title="Klikni pro zkopírování"
-                          style={{ cursor: "pointer", textDecoration: "underline dotted" }}
-                          onClick={() => zkopírujKód(data.kod)}
-                        >
-                          {data.kod}
-                        </span>
-                        {zkopírováno && <span style={{ color: "#4a4", marginLeft: "6px", fontSize: "0.8em" }}>zkopírováno!</span>}
-                      </span>
-                      {jeKapitán && (
-                        <button style={{ width: "unset" }} onClick={onPřegenrovatSPotvrzením}>
-                          Přegenerovat kód
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Veřejnost — jen kapitán */}
-                  {!data?.zamceny && jeKapitán && data?.verejny !== undefined && (
-                    <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <input
-                        type="checkbox"
-                        checked={data.verejny}
-                        onChange={onPřepniVerejnost}
-                      />
-                      Veřejný tým (kdokoliv se může přihlásit bez kódu)
-                    </label>
-                  )}
-
-                  {/* Seznam členů */}
-                  {data?.clenove && data.clenove.length > 0 && (
-                    <div style={{ width: "100%" }}>
-                      <strong>Členové týmu</strong>
-                      {data.limitTymu !== null && data.limitTymu !== undefined && (
-                        <span style={{ color: "#666", marginLeft: "6px" }}>
-                          ({pocetClenu}/{data.limitTymu}{data.minKapacita ? `, min. ${data.minKapacita}${maxKapacita !== null && data.limitTymu < maxKapacita ? ` max. ${maxKapacita}` : ""}` : ""})
-                        </span>
-                      )}
-                      <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
-                        {data.clenove.map((clen) => (
-                          <li
-                            key={clen.id}
-                            style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}
-                          >
-                            <span>
-                              {clen.jmeno}
-                              {clen.jeKapitan && <span style={{ color: "#888", marginLeft: "4px" }}>(kapitán)</span>}
-                            </span>
-                            {!data?.zamceny && jeKapitán && !clen.jeKapitan && (
-                              <div style={{ display: "flex", gap: "4px" }}>
-                                {(
-                                  <button
-                                    style={{ width: "unset", padding: "2px 8px" }}
-                                    onClick={()=>onPředejKapitánaSPotvrzením(clen)}
-                                  >
-                                    Předat kapitána
-                                  </button>
-                                )}
-                                <button
-                                  style={{ width: "unset", padding: "2px 8px" }}
-                                  onClick={() => onOdebratČlenaSPotvrzením(clen)}
-                                >
-                                  Odebrat
-                                </button>
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                        {data.limitTymu !== null && data.limitTymu !== undefined && Array.from({ length: data.limitTymu - pocetClenu }).map((_, i) => (
-                          <li
-                            key={`volne-${i}`}
-                            style={{ padding: "4px 0", color: "#888", fontStyle: "italic" }}
-                          >
-                            volné místo
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* Úprava limitu po jednom — jen kapitán */}
-                      {!data?.zamceny && jeKapitán && data.limitTymu !== null && data.limitTymu !== undefined && (
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
-                          <button
-                            style={{ width: "unset", padding: "2px 10px" }}
-                            disabled={data.limitTymu <= Math.max(pocetClenu, minKapacita)}
-                            onClick={() => onNastavLimit(data.limitTymu! - 1)}
-                          >
-                            −
-                          </button>
-                          <span style={{ color: "#666" }}>volná místa</span>
-                          <button
-                            style={{ width: "unset", padding: "2px 10px" }}
-                            disabled={maxKapacita !== null && data.limitTymu >= maxKapacita}
-                            onClick={() => onNastavLimit(data.limitTymu! + 1)}
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Zavřít tým — jen kapitán, pokud tým není zamčený a má min. počet lidí */}
-                  {!data?.zamceny && jeKapitán && (
-                    <button
-                      style={{ width: "unset" }}
-                      disabled={pocetClenu < minKapacita}
-                      onClick={onZamkniTym}
-                    >
-                      Zamknout tým
-                    </button>
-                  )}
-
-                  {/* Ostatní týmy (bez přihlašování) */}
-                  {data?.vsechnyTymy && data.vsechnyTymy.length > 0 && (
-                    <div style={{ marginTop: "8px", width: "100%" }}>
-                      <strong>Všechny týmy:</strong>
-                      <SeznamTymu
-                        tymy={data.vsechnyTymy}
-                        zobrazitPřipojení={false}
-                        onPřipojitSe={onPřipojitSe}
-                      />
-                    </div>
-                  )}
+                  <TymDetail
+                    data={data}
+                    přihlášenNaAktivitě={přihlášenNaAktivitě}
+                    jeKapitán={jeKapitán}
+                    onPřepniVerejnost={onPřepniVerejnost}
+                    onPřegenrovatSPotvrzením={onPřegenrovatSPotvrzením}
+                    onPředejKapitánaSPotvrzením={onPředejKapitánaSPotvrzením}
+                    onOdebratČlenaSPotvrzením={onOdebratČlenaSPotvrzením}
+                    onNastavLimit={onNastavLimit}
+                    onZamkniTym={onZamkniTym}
+                  />
                 </>
               )}
             </div>
           )}
+
+          {seznamTýmů}
 
           <button class="vpravo zpet" onClick={onZavřít}>Zavřít</button>
         </div>

@@ -252,7 +252,7 @@ export type ClenTymu = {
   jeKapitan: boolean,
 };
 
-export type TymVSeznamu = {
+export type ApiTymVSeznamu = {
   id: number,
   nazev: string | null,
   pocetClenu: number,
@@ -260,22 +260,30 @@ export type TymVSeznamu = {
   verejny: boolean,
 };
 
-export type AktivitaTymResponse = {
+export type AktivitaTymFazeRozpraovni = "vyberKola" | "prihlaseniKapitana";
+export type ApiAktivitaTym = {
   id: number,
-  kod: number,
+  idTurnajeNeboAktivity: number,
+  nazev?: string,
+  kod?: number,
   verejny?: boolean,
-  jeKapitan?: boolean,
-  casText?: string,
-  jeTrebaPredpripravit?: boolean,
-  casZalozeniMs?: number,
+  idKapitana?: number,
   casExpiraceMs?: number,
   limitTymu?: number | null,
   zamceny?: boolean,
+  smazatPoExpiraci?: boolean,
   minKapacita?: number | null,
   maxKapacita?: number | null,
   clenove?: ClenTymu[],
-  vsechnyTymy?: TymVSeznamu[],
   aktivityTymuId?: number[],
+  casSmazaniRozpracovanyMs?: number,
+  rozpracovanyFaze?: AktivitaTymFazeRozpraovni,
+}
+
+export type AktivitaTymResponse = {
+  tym?: ApiAktivitaTym;
+  vsechnyTymy?: ApiTymVSeznamu[],
+  idTurnajeNeboAktivity: number,
 };
 
 export const fetchAktivitaTým = async (aktivitaId: number, uživatelId = 0): Promise<AktivitaTymResponse> => {

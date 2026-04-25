@@ -2815,6 +2815,7 @@ SQL;
     public function apiPrihlasenyUzivatel() {
         $res = [];
 
+        $res["id"] = $this->id();
         $res["prihlasen"] = true;
         $res["pohlavi"] = $this->pohlavi();
         $res["koncovkaDlePohlavi"] = $this->koncovkaDlePohlavi();

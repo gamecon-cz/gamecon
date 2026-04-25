@@ -16,7 +16,7 @@ import { denAktivity } from "../../store/program/logic/aktivity";
 import { Aktivita } from "../../store/program/slices/programDataSlice";
 
 type PripravaTymuProps = {
-  casZalozeniMs: number;
+  casExpiraceMs: number | undefined;
   onVybranéAktivity: (vybranAktivity: number[]) => void;
   onPrihlasitKapitana: () => void;
   nacita?: boolean;
@@ -30,40 +30,41 @@ const formatZbyvaCas = (ms: number): string => {
   return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 };
 
-const useOdpočet = (casZalozeniMs: number): [string, boolean] => {
+const useOdpočet = (casExpiraceMs: number): [string, boolean] => {
   const [zbyvaCas, setZbyvaCas] = useState<string>("");
   const [vyprselo, setVyprselo] = useState(false);
 
   useEffect(() => {
-    const pripraveniMs = casZalozeniMs + (GAMECON_KONSTANTY.CAS_NA_PRIPRAVENI_TYMU_MINUT ?? 30) * 60 * 1000;
+    let interval: number | undefined = undefined;
     const update = () => {
       const nyni = Date.now();
-      const zbyva = Math.max(0, pripraveniMs - nyni);
+      const zbyva = Math.max(0, (casExpiraceMs ?? 0) - nyni);
       setZbyvaCas(formatZbyvaCas(zbyva));
       if (zbyva === 0) {
         setVyprselo(true);
+        clearInterval(interval);
       }
     };
 
     update();
-    const id = setInterval(update, 1000);
-    return () => clearInterval(id);
-  }, [casZalozeniMs]);
+    interval = setInterval(update, 1000) as any;
+    return () => clearInterval(interval);
+  }, [casExpiraceMs]);
 
   return [zbyvaCas, vyprselo];
 };
 
 export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
-  casZalozeniMs,
+  casExpiraceMs,
   onVybranéAktivity,
   onPrihlasitKapitana,
   nacita,
 }) => {
   const [vybrane, setVybrane] = useState<Record<number, number>>({});
-  const [zbyvaCas, vyprselo] = useOdpočet(casZalozeniMs);
+  const [zbyvaCas, vyprselo] = useOdpočet(casExpiraceMs ?? 0);
 
   const aktivitaId = useNastaveniTymuModalAktivitaId()!;
-  const dataTymu = useNastaveniTymuModalData()!;
+  const dataTymu = useNastaveniTymuModalData()!.tym!;
   const vsechnyAktivity = useAktivity();
   const idTurnaje = vsechnyAktivity.find(x=>x.id === aktivitaId)?.turnajId;
   if (!idTurnaje) {

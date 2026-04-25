@@ -2,6 +2,7 @@
 
 /** @var Uzivatel $u */
 
+use App\Service\AktivitaTymService;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\Role\Role;
@@ -118,29 +119,27 @@ $uzivatelId = array_key_exists('uzivatelId', $_GET)
 $aktivita = Aktivita::zId($aktivitaId);
 if ($aktivita) {
     $response['jeTrebaPredpripravit'] = $aktivita->turnaj()?->jeTrebaVybratAktivityTurnaje() ?? false;
-    $zacatek           = $aktivita->zacatek();
-    $konec             = $aktivita->konec();
-    $response['casText'] = $zacatek && $konec
-        ? $zacatek->format('G') . ':00–' . $konec->format('G') . ':00'
-        : '';
 }
 
 $tym = AktivitaTym::najdiPodleUzivateleAktivityNeboKapitana($uzivatelId, $aktivitaId);
+$idTurnajeNeboAktivity = $aktivita->idTurnaje() ? $aktivita->idTurnaje() * 10 : $aktivita->id() * 10 + 1;
 
 // info o týmu uživatele
 if ($tym) {
-    $response['id']  = $tym->getId();
-    $response['kod'] = $tym->getKod();
-    $response['verejny']    = $tym->jeVerejny();
-    $response['jeKapitan']  = $tym->jeKapitanem($uzivatelId);
-    $response['casZalozeniMs'] = $tym->casZalozeniMs();
-    $response['casExpiraceMs'] = $tym->casExpiraceMs();
-    $response['limitTymu']  = $tym->limitTymu();
-    $response['zamceny'] = $tym->jeZamceny();
-    $response['jeSmazatPoExpiraci'] = $tym->jeSmazatPoExpiraci();
-    $response['minKapacita'] = $aktivita?->tymMinKapacita();
-    $response['maxKapacita'] = $aktivita?->tymMaxKapacita();
-    $response['clenove'] = array_map(
+    $tymResponse = [];
+    $tymResponse['id']  = $tym->getId();
+    $tymResponse['idTurnajeNeboAktivity'] = $idTurnajeNeboAktivity;
+    $tymResponse['nazev'] = $tym->getNazev();
+    $tymResponse['kod'] = $tym->getKod();
+    $tymResponse['verejny']    = $tym->jeVerejny();
+    $tymResponse['idKapitana']  = $tym->idKapitana();
+    $tymResponse['casExpiraceMs'] = $tym->casExpiraceMs();
+    $tymResponse['limitTymu']  = $tym->limitTymu();
+    $tymResponse['zamceny'] = $tym->jeZamceny();
+    $tymResponse['smazatPoExpiraci'] = $tym->jeSmazatPoExpiraci();
+    $tymResponse['minKapacita'] = $aktivita?->tymMinKapacita();
+    $tymResponse['maxKapacita'] = $aktivita?->tymMaxKapacita();
+    $tymResponse['clenove'] = array_map(
         fn(\Uzivatel $clen) => [
             'id'        => $clen->id(),
             'jmeno'     => $clen->jmenoNick() ?? '?',
@@ -148,7 +147,19 @@ if ($tym) {
         ],
         $tym->clenoveTymu(),
     );
-    $response['aktivityTymuId'] = array_map(fn(Aktivita $a) => $a->id(),$tym->dalsiAktivity());
+    $tymResponse['aktivityTymuId'] = array_map(fn(Aktivita $a) => $a->id(),$tym->dalsiAktivity());
+
+    if ($tym->jeRozpracovany()) {
+        $zalozenMs = $tym->casZalozeniMs();
+        $casSmazaniRozpracovanyMs = $zalozenMs + AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT * 60_000;
+        $tymResponse['casSmazaniRozpracovanyMs'] = $casSmazaniRozpracovanyMs;
+        if (!$tym->maPrirazeneVsechnaKolaTurnaje()) {
+            $tymResponse['rozpracovanyFaze'] = "vyberKola";
+        } else {
+            $tymResponse['rozpracovanyFaze'] = "prihlaseniKapitana";
+        }
+    }
+    $response["tym"] = $tymResponse;
 }
 
 // seznam všech týmů
@@ -160,5 +171,6 @@ $response['vsechnyTymy'] = array_map(fn(AktivitaTym $t) => [
     'limit'      => $t->limitTymu(),
     'verejny'    => $t->jeVerejny(),
 ], $vsechnyTymy);
+$response['idTurnajeNeboAktivity'] = $idTurnajeNeboAktivity;
 
 echo json_encode($response, $jsonConfig);
