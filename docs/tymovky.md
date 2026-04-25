@@ -88,6 +88,58 @@
 
 # TODO:
 
+PRIO
+  - [ ] rebase
+  - [ ] Šéf infa může tým odemknout přes admi  prvotně jen když je vybraný uživatel v tom týmu
+  - [ ] Šéf infa může tým odemknout přes admi Kontrola oprávnění (šéf infa)
+  - [ ] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
+  - [ ] UI zobrazuje kapacitu per kolo
+
+## soupist zákládních testovacích scénářů, popis fungování nového systému:
+
+Turnajové
+- lineární přihlášení
+  - prerekvizity
+    - více aktivit ve stejném turnaji kde každé kolo má právě jednu aktivitu
+    - všechny aktivity jsou alespoň publikované a jedna aktivita je přihlašovatelná
+  - pro přihlášení uživatel klikne na tým v programu
+  - v ui založí vlastní tým
+  - od teď je v týmu a může ho jako kapitán editovat a sdílet kód
+- přihlášení dalšího účastníka
+  - prerekvizity
+    - existuje tým který není zamčený a má volné místo pod limitem
+    - uživatel není ještě v žádném týmu na aktivitě
+  - v rozhraní týmů u aktivity
+  - uživatel zadá kód týmu a přihlásí se
+- rozvětvené přihlášení
+  - prerekvizity
+    - stejně jako v lineární přihlášení
+    - navíc bude existovat kolo co má více aktivit k výběru
+  - v ui týmu na aktivitě
+  - založit tým
+  - místo týmu se zobrazí nejdříve výběr možných aktivit
+  - kapitán vybere aktivity pro každé kolo jednu a potvrdí výběr
+  - po potvrzení výběru se kapitán automaticky přihlásí do týmu
+- kapitán už má kativitu v čase turnaje
+  - pokud při vytváření / vyběru aktivit týmu se nemůže přihlásit na všechny aktvity
+  - zobrazí se tlačíko přihlásit kapitána kterým se může sám přihlásit
+- smazání rozpracovaného týmu
+  - kdykoliv není kapitán přihlášený nebo nejsou vybrané aktivity pro tým, tak jde tým smazat
+- akce na týmu
+  - přegenerovat kód
+    - při přegenerování se vytvoří nový kód a starý přestane fungovat
+  - snížení zvýšení limitu
+    - limit jde nastavit mezi min/max aktivity
+    - tým nemůže přihlásit dalšího hráče pokud je limit plný
+  - odebrat hráče s týmu
+  - předat kapitána
+  - zamknout tým
+    - tým jde zamknout pouze pokud má alespoň min kapacitu
+    - zamknutý tým nejde už nijak editovat
+- editace týmu z adminu
+  - po výběru uživatele z týmu by měl v adminu být tým editovatelný jako by byl ten uživatel přihlášený
+
+
 
 ## Základní přihlašovací flow
 - [X] Kapitán může založit tým přes nastavení týmů v UI
@@ -189,8 +241,8 @@
 - [X] Backend logika odemčení
   - [X] Metoda `odemknout()` v `AktivitaTym` — reset `zamcen`, reset `zalozen` na `NOW()` (nový 72h limit)
   - [X] Oprávnění: pouze šéf infa (admin) nebo systém (odhlášení neplatiče)
-- [ ] Šéf infa může tým odemknout přes admin
-  - [ ] Tlačítko "Odemknout" v admin panelu `tymy.php` / `tymy.xtpl`
+- [ ] Šéf infa může tým odemknout přes admin (zatím stačí jen s pohledu vybreného uživatele)
+  - [X] Tlačítko "Odemknout" v admin panelu `tymy.php` / `tymy.xtpl`
   - [ ] Kontrola oprávnění (šéf infa)
 - [X] Automatické odemčení při odhlášení neplatiče
   - [X] Odemknout tým + vyhodit neplatiče z týmu
@@ -200,11 +252,10 @@
 - [ ] Pravidelné mazání rozpracovaných týmů (starší než 15 min, 0 členů)
   - [X] Logika `smazRozpracovaneTymy()` existuje
   - [ ] Cron job nebo hook který ji pravidelně volá
-- [ ] Pravidelná kontrola 72h expirace nezamčených týmů
+  - [ ] Přidan do nějakého seznamu volání přímo na serveru
+- [X] Pravidelná kontrola 72h expirace nezamčených týmů
   - [X] Logika `expirovaneTymyIds()` existuje
-  - [ ] Cron job: zveřejnit nebo smazat podle nastavení aktivity
-- [ ] Pravidelná kontrola 24h varování (48h od založení)
-  - [ ] Cron job: odeslat mail kapitánovi pokud zbývá 24h a tým není zamčen
+  - [X] Cron job: zveřejnit nebo smazat podle nastavení aktivity
 
 ## Vícekolové aktivity / turnaje
 - [X] Aktivita jako součást turnaje s definicí kola
