@@ -51,7 +51,6 @@ if ($aktivitaId) {
         // Stejný kontrakt jako aktivityUzivatel.php: všechna pole posílaná
         // vždy, nullable tam, kde "chybějící" má sémantický význam.
         $jeOrganizator = $aktivita->organizuje($u);
-        $zamcenaDo     = $aktivita->tymZamcenyDo()?->getTimestamp();
         $hlavniLokace  = $jeOrganizator
             ? $aktivita->hlavniLokace()
             : null;
@@ -62,8 +61,6 @@ if ($aktivitaId) {
             'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($u),
             'mistnost'       => $hlavniLokace !== null ? (string) $hlavniLokace : null,
             'vedu'           => $jeOrganizator,
-            'zamcenaDo'      => $zamcenaDo !== null ? $zamcenaDo * 1000 : null,
-            'zamcenaMnou'    => $aktivita->zamcenoUzivatelem($u),
         ];
     }
 }

@@ -50,7 +50,6 @@ if ($u) {
         // jako fully-required (nullable tam, kde chybějící hodnota má
         // sémantický význam).
         $jeOrganizator = $aktivita->organizuje($u);
-        $zamcenaDo     = $aktivita->tymZamcenyDo()?->getTimestamp();
         $hlavniLokace  = $jeOrganizator
             ? $aktivita->hlavniLokace()
             : null;
@@ -66,8 +65,6 @@ if ($u) {
             // aktivita nemá nastavenou hlavní lokaci.
             'mistnost'       => $hlavniLokace !== null ? (string) $hlavniLokace : null,
             'vedu'           => $jeOrganizator,
-            'zamcenaDo'      => $zamcenaDo !== null ? $zamcenaDo * 1000 : null,
-            'zamcenaMnou'    => $aktivita->zamcenoUzivatelem($u),
         ];
 
         // Hidden activities visible only to this user (not publicly visible).
