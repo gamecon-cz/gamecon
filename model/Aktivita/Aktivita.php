@@ -1014,7 +1014,7 @@ SQL
         unset($a[Sql::POPIS]);
 
         // zpracování turnaje
-        if ($a[Sql::ID_TURNAJE]) {
+        if (!empty($a[Sql::ID_TURNAJE])) {
             if (isset($a[Sql::TURNAJ_KOLO]) && $a[Sql::TURNAJ_KOLO] !== '') {
                 $a[Sql::TURNAJ_KOLO] = (int)$a[Sql::TURNAJ_KOLO];
             } else {

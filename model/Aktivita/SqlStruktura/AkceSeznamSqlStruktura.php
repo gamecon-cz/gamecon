@@ -27,7 +27,7 @@ class AkceSeznamSqlStruktura
     public const TEAM_MIN         = 'team_min';
     public const TEAM_MAX         = 'team_max';
     public const TEAM_KAPACITA    = 'team_kapacita';
-    // todo(tym): bude nastavení zda po 72h bude tým rozpuštěný nebo zveřejněný
+    public const TYM_SMAZAT_PO_EXPIRACI = 'tym_smazat_po_expiraci';
     public const POPIS            = 'popis';
     public const POPIS_KRATKY     = 'popis_kratky';
     public const VYBAVENI         = 'vybaveni';
