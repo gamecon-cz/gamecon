@@ -85,7 +85,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
                 ? " - "
                 : aktivita.slevaNasobic === 0 || aktivita.cenaZaklad === 0
                   ? "zdarma"
-                  : aktivita.cenaZaklad * aktivita.slevaNasobic}
+                  : aktivita.cenaZaklad * (aktivita.slevaNasobic ?? 1)}
               <p style={{ opacity: 0.3 }}>
                 {aktivita !== undefined && aktivita.slevaNasobic !== 1
                   ? `*${aktivita.cenaZaklad === 0 ? "zdarma" : aktivita.cenaZaklad}`

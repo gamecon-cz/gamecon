@@ -16,5 +16,6 @@ export const fetchTestovacíAktivityPřihlášen = async (rok: number): Promise<
     vedu:           Math.random() < .1,
     zamcenaDo:      null,
     zamcenaMnou:    false,
-  }));
+    // todo: tady to nekompiluje
+  } as any));
 };

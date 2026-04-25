@@ -183,8 +183,6 @@ export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAk
             aktivita.slevaNasobic   = response.aktivitaUzivatel.slevaNasobic;
             aktivita.mistnost       = response.aktivitaUzivatel.mistnost;
             aktivita.vedu           = response.aktivitaUzivatel.vedu;
-            aktivita.zamcenaDo      = response.aktivitaUzivatel.zamcenaDo;
-            aktivita.zamcenaMnou    = response.aktivitaUzivatel.zamcenaMnou;
           }
         }
       }, undefined, "okamžitá aktualizace z akce");
