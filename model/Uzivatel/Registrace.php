@@ -113,6 +113,9 @@ class Registrace
         $requiredHtml   = $required || $typ == 'date'
             ? 'required'
             : '';
+        $disabledHtml   = $this->jeUdajZamcenyPoKontrole($klic)
+            ? 'disabled'
+            : '';
         $additionalHtml = $typ === 'password'
             ? 'autocomplete="new-password"'
             // aby se nám automaticky nevkládalo heslo
@@ -129,7 +132,7 @@ class Registrace
 
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
-                <div>{$nazev}{$labelRequired}</div>
+                {$this->hlavickaPolozky($nazev, $labelRequired)}
                 {$predrazeneHtml}
                 <input
                     id="input_{$klic}"
@@ -139,6 +142,7 @@ class Registrace
                     value="{$predvyplneno}"
                     placeholder="$placeholder"
                     {$requiredHtml}
+                    {$disabledHtml}
                     {$additionalHtml}
                 >
                 {$chybaHtml}
@@ -153,24 +157,39 @@ class Registrace
             : '';
     }
 
+    private function hlavickaPolozky(string $nazev, string $labelRequired, string $tooltip = ''): string
+    {
+        return <<<HTML
+<div class="formular_polozkaNadpis">
+    <span class="formular_polozkaTitulek">{$nazev}{$labelRequired}</span>
+    {$tooltip}
+</div>
+HTML;
+    }
+
     private function formData(): ?array
     {
         if ($this->formData === 'undefined') {
             $postData = post(self::FORM_DATA_KEY);
             if ($postData !== null) {
-                $this->formData = $postData;
+                $this->formData = array_merge($this->dataUzivatele(), (array)$postData);
             } else {
-                $dataUzivatele = $this->u?->rawDb();
-                if ($dataUzivatele !== null) {
-                    if (!empty(($dataUzivatele[Sql::OP]))) {
-                        $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
-                    }
-                }
-                $this->formData = $dataUzivatele;
+                $this->formData = $this->dataUzivatele();
             }
+            $this->formData[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi()->value;
         }
 
         return $this->formData;
+    }
+
+    private function dataUzivatele(): array
+    {
+        $dataUzivatele = (array)($this->u?->rawDb() ?? []);
+        if (!empty(($dataUzivatele[Sql::OP]))) {
+            $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
+        }
+
+        return $dataUzivatele;
     }
 
     public function zobrazHtml()
@@ -185,7 +204,7 @@ class Registrace
               <?php
           } else { ?>
             <div class="formular_strankaNadpis">Registrace</div>
-            <div class="fromular_strankaPodtitul">
+            <div class="formular_strankaPodtitul">
               <div style="max-width: 250px">
                 Jsi jenom krok od toho stát se součástí naprosto boží akce!
               </div>
@@ -213,13 +232,11 @@ class Registrace
             <div class="gc_tooltip">
               Proč potřebujeme osobní údaje?
               <div class="tooltip_obsah">
-                Vyplň prosím následující údaje o sobě. Nejsme žádný velký bratr, ale potřebujeme je,
-                abychom:<br>
+                Potřebujeme je, abychom:<br>
                 <ul>
-                  <li>Tě mohli ubytovat a splnit své další zákonné povinnosti</li>
-                  <li>maximálně urychlili tvoji registraci na místě a nemusel(a) jsi dlouho čekat ve frontě
-                  </li>
-                  <li>věděli, že jsi to ty</li>
+                  <li>Tě identifikovali při registraci na místě</li>
+                  <li>urychlili Tvé odbavení</li>
+                  <li>Tě mohli ubytovat a splnit související zákonné povinnosti</li>
                 </ul>
               </div>
             </div>
@@ -229,19 +246,35 @@ class Registrace
 
           <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, true, '', '', 'např. +420 789 123 456') ?>
 
-          <?= $this->povinneUdajeProUbytovaniHtml() ?>
+          <?= $this->povinneUdajeProUbytovaniHtml(vyzadovatAdresuADoklad: false) ?>
 
         <h2 class="formular_sekceNadpis">Ostatní</h2>
 
         <div class="formular_sloupce">
             <?= $this->input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE) ?>
+            <?= $this->select(
+                nazev: 'Zobrazení na webu',
+                klic: Sql::ZPUSOB_ZOBRAZENI_NA_WEBU,
+                moznosti: ZpusobZobrazeniNaWebu::proSelect(),
+                tooltip: <<<HTML
+<div class="formular_tooltip">
+  <div class="gc_tooltip">
+    Kde se použije?
+    <div class="tooltip_obsah">
+      Tohle nastavení ovlivní jen veřejný web, například detail aktivity, medailonky vypravěčů a veřejné seznamy.
+      V administraci a interních seznamech se zobrazení jména nemění.
+    </div>
+  </div>
+</div>
+HTML
+            ) ?>
           <div style="float:left">
               <?= $this->select(
                   nazev: 'Pohlaví',
                   klic: Sql::POHLAVI,
                   moznosti: Pohlavi::seznamProSelect(),
                   tooltip: <<<HTML
-<div class="formular_tooltip" style="float: right; padding: 0">
+<div class="formular_tooltip">
   <div class="gc_tooltip">
     Proč potřebujeme znát pohlaví?
     <div class="tooltip_obsah">
@@ -280,10 +313,9 @@ HTML
             <div class="gc_tooltip">
               Shrnutí souhlasu
               <div class="tooltip_obsah">
-                Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je předáme jen těm, komu to bude
-                kvůli vyloženě potřeba (např. vypravěčům nebo poskytovateli ubytování). Kontaktovat tě budeme v
-                rozumné míře pouze v souvislosti s GameConem.<br><br>
-                Plné právní znění najdeš <a href="legal" target="_blank">zde</a>
+                Tvé údaje předáme jen těm, komu to ze zákona či z provozní potřeby musíme doložit (např. poskytovateli ubytování či vypravěčům).<br><br>
+                Kontaktovat Tě budeme pouze v rozumné míře a v souvislosti s GameConem.<br><br>
+                Plné právní znění najdeš <a href="legal" target="_blank">zde</a>.
               </div>
             </div>
           </div>
@@ -344,8 +376,11 @@ HTML
         string $tooltip = '',
     ): string {
         $vybranaHodnota = $this->formData()[$klic] ?? '';
+        $maVybranouHodnotu = $vybranaHodnota !== '' && $vybranaHodnota !== null;
 
-        $moznostiHtml = '<option disabled value selected></option>';
+        $moznostiHtml = '<option disabled value ' . ($maVybranouHodnotu
+                ? ''
+                : 'selected') . '></option>';
         foreach ($moznosti as $hodnota => $popis) {
             $selected     = $vybranaHodnota == $hodnota;
             $selectedHtml = $selected
@@ -364,13 +399,16 @@ HTML
         $requiredHtml = $required
             ? 'required'
             : '';
+        $disabledHtml = $this->jeUdajZamcenyPoKontrole($klic)
+            ? 'disabled'
+            : '';
 
         $labelRequired = $this->labelRequired($requiredHtml);
 
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
-                {$nazev}{$labelRequired}{$tooltip}
-                <select name="{$this->inputName()}[{$klic}]" {$requiredHtml}>
+                {$this->hlavickaPolozky($nazev, $labelRequired, $tooltip)}
+                <select name="{$this->inputName()}[{$klic}]" {$requiredHtml} {$disabledHtml}>
                 {$moznostiHtml}
                 </select>
                 {$chybaHtml}
@@ -378,7 +416,24 @@ HTML
         HTML;
     }
 
-    public function povinneUdajeProUbytovaniHtml(string $nadpis = '', string $tooltip = ''): string
+    /**
+     * Vrací true, pokud je daný údaj zamčený kvůli proběhlé kontrole na infopultu.
+     * Ve webovém formuláři se takové pole renderuje jako disabled a změna přes Uzivatel::uprav se neuloží.
+     */
+    private function jeUdajZamcenyPoKontrole(string $klic): bool
+    {
+        if (!$this->u || !$this->u->maZkontrolovaneUdaje()) {
+            return false;
+        }
+
+        return in_array($klic, Uzivatel::zamceneUdajePoKontroleNaInfopultu(), true);
+    }
+
+    public function povinneUdajeProUbytovaniHtml(
+        string $nadpis = '',
+        string $tooltip = '',
+        bool $vyzadovatAdresuADoklad = true,
+    ): string
     {
         $nadpisHtml = '';
         if ($nadpis !== '') {
@@ -391,7 +446,7 @@ HTML
     <div class="gc_tooltip" style="position: relative; top: -4em;">
         ℹ️
         <div class="tooltip_obsah" style="right: -247px; top: 2em;">
-            Vzhledem k zákonným povinnostem bohužel musíme odevzdávat seznam ubytovaných s následujícími osobními údaji. Chybné vyplnění následujících polí může u infopultu vést k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních! (Případné stížnosti prosíme rovnou vašim politickým zástupcům.)
+            {$tooltip}
         </div>
     </div>
 </div>
@@ -411,16 +466,31 @@ HTML;
             nazev: 'Státní občanství',
             typ: 'text',
             klic: Sql::STATNI_OBCANSTVI,
+            required: true,
             placeholder: 'například ČR',
         )}
 </div>
 
-<h2 class="formular_sekceNadpis">Adresa trvalého pobytu</h2>
+<div>
+    <h2 class="formular_sekceNadpis" style="float: left">Adresa trvalého pobytu</h2>
+
+    <div class="formular_tooltip">
+        <div class="gc_tooltip">
+            Proč potřebujeme adresu?
+            <div class="tooltip_obsah">
+                Informaci o trvalém bydlišti jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.<br><br>
+                Tím je <b>Vysoká škola báňská - Technická univerzita Ostrava, Koleje Poruba Studentská 1770/1 708 00 Ostrava-Poruba</b>.<br><br>
+                Chybné vyplnění polí může vést u infopultu k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních.
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>
 
 <div class="formular_sloupce">
-    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE)}
-    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE)}
-    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE)}
+    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE, $vyzadovatAdresuADoklad)}
+    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE, $vyzadovatAdresuADoklad)}
+    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE, $vyzadovatAdresuADoklad)}
     {$this->select(
             'Země',
             Sql::STAT_UZIVATELE,
@@ -429,10 +499,25 @@ HTML;
                 Stat::SK_ID   => 'Slovenská republika',
                 Stat::JINY_ID => '(jiný stát)',
             ],
+            required: $vyzadovatAdresuADoklad,
         )}
 </div>
 
-<h2 class="formular_sekceNadpis">Platný doklad totožnosti</h2>
+<div>
+    <h2 class="formular_sekceNadpis" style="float: left">Platný doklad totožnosti</h2>
+
+    <div class="formular_tooltip">
+        <div class="gc_tooltip">
+            Proč potřebujeme doklad?
+            <div class="tooltip_obsah">
+                Číslo identifikačního dokladu jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.<br><br>
+                Tím je <b>Vysoká škola báňská - Technická univerzita Ostrava, Koleje Poruba Studentská 1770/1 708 00 Ostrava-Poruba</b>.<br><br>
+                Chybné vyplnění polí může vést u infopultu k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních.
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>
 
 <div class="formular_sloupce">
     {$this->select(
@@ -443,9 +528,9 @@ HTML;
                 Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
                 Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
             ],
-            false,
+            required: $vyzadovatAdresuADoklad,
         )}
-    {$this->input('Číslo dokladu', 'text', Sql::OP)}
+    {$this->input('Číslo dokladu', 'text', Sql::OP, $vyzadovatAdresuADoklad)}
 </div>
 HTML;
     }

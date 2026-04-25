@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\BackgroundProcess;
 
-use Gamecon\SystemoveNastaveni\ZdrojTed;
 use Symfony\Component\Clock\ClockInterface;
 
 /**
@@ -15,17 +14,18 @@ class BackgroundProcessSqlite
     private const DB_PATH = LOGY . '/tasks.db';
     private \PDO $pdo;
 
-    public function __construct(private readonly ClockInterface $clock)
-    {
+    public function __construct(
+        private readonly ClockInterface $clock,
+    ) {
         $dbPath = self::DB_PATH;
         $dbDir = dirname($dbPath);
 
         // Vytvoř adresář pokud neexistuje
-        if (!is_dir($dbDir)) {
+        if (! is_dir($dbDir)) {
             mkdir($dbDir, 0755, true);
         }
 
-        $needsInit = !file_exists($dbPath);
+        $needsInit = ! file_exists($dbPath);
 
         $this->pdo = new \PDO('sqlite:' . $dbPath);
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -83,7 +83,7 @@ class BackgroundProcessSqlite
         string $linuxBootId,
         int $pid,
         string $command,
-        ?string $metadataJson = null
+        ?string $metadataJson = null,
     ): void {
         $stmt = $this->pdo->prepare('
             INSERT OR REPLACE INTO background_process
@@ -106,6 +106,7 @@ class BackgroundProcessSqlite
         ');
         $stmt->execute([$command]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
         return $result ?: null;
     }
 
@@ -129,7 +130,7 @@ class BackgroundProcessSqlite
         int $pid,
         string $command,
         string $status,
-        ?string $errorMessage = null
+        ?string $errorMessage = null,
     ): void {
         // Najdi běžící proces
         $stmt = $this->pdo->prepare('
@@ -139,7 +140,7 @@ class BackgroundProcessSqlite
         $stmt->execute([$linuxBootId, $pid, $command]);
         $process = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$process) {
+        if (! $process) {
             // Proces už není v tabulce, možná byl odstraněn
             return;
         }
@@ -164,7 +165,7 @@ class BackgroundProcessSqlite
             $finishedAt->format('Y-m-d H:i:s'),
             $durationSeconds,
             $status,
-            $errorMessage
+            $errorMessage,
         ]);
 
         // Smaž z běžících
@@ -184,6 +185,7 @@ class BackgroundProcessSqlite
         ');
         $stmt->execute([$command]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
         return $result ?: null;
     }
 
@@ -207,7 +209,7 @@ class BackgroundProcessSqlite
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if ($result && $result['avg_duration'] !== null) {
-            return (int)round($result['avg_duration']);
+            return (int) round($result['avg_duration']);
         }
 
         return null;

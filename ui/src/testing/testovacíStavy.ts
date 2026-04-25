@@ -18,7 +18,7 @@ const resetStav = {
             aktivityPodleId: {},
           }
         },
-        štítky: [],
+        tagy: [],
       };
 
       s.přihlášenýUživatel.data = {
@@ -71,7 +71,13 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
     casText: "10:00&ndash;15:00",
     cas,
     linie: "turnaje v deskovkách",
+    vBudoucnu: false,
+    vdalsiVlne: false,
     probehnuta: true,
+    jeBrigadnicka: false,
+    dite: [],
+    tymova: false,
+    prihlasovatelna: true,
     popis: "",
     vypraveci: [],
     obsazenost: {
@@ -81,6 +87,13 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
       kf: 0,
       ku: 1
     },
+    // ApiAktivitaUživatel — všechna povinná pole
+    stavPrihlaseni: null,
+    slevaNasobic:   1,
+    mistnost:       null,
+    vedu:           false,
+    zamcenaDo:      null,
+    zamcenaMnou:    false,
     __TS_STRUKTURALNI_KONTROLA__: true,
   };
 };

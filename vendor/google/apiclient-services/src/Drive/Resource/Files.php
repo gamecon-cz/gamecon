@@ -78,14 +78,16 @@ class Files extends \Google\Service\Resource
   }
   /**
    * Creates a file. For more information, see [Create and manage
-   * files](/workspace/drive/api/guides/create-file). This method supports an
-   * upload* URI and accepts uploaded media with the following characteristics: -
-   * *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* `*` (Specify a
-   * valid MIME type, rather than the literal `*` value. The literal `*` is only
-   * used to indicate that any valid MIME type can be uploaded. For more
-   * information, see [Google Workspace and Google Drive supported MIME
-   * types](/workspace/drive/api/guides/mime-types).) For more information on
-   * uploading files, see [Upload file data](/workspace/drive/api/guides/manage-
+   * files](https://developers.google.com/workspace/drive/api/guides/create-file).
+   * This method supports an upload* URI and accepts uploaded media with the
+   * following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media
+   * MIME types:* `*` (Specify a valid MIME type, rather than the literal `*`
+   * value. The literal `*` is only used to indicate that any valid MIME type can
+   * be uploaded. For more information, see [Google Workspace and Google Drive
+   * supported MIME
+   * types](https://developers.google.com/workspace/drive/api/guides/mime-types).)
+   * For more information on uploading files, see [Upload file
+   * data](https://developers.google.com/workspace/drive/api/guides/manage-
    * uploads). Apps creating shortcuts with the `create` method must specify the
    * MIME type `application/vnd.google-apps.shortcut`. Apps should specify a file
    * extension in the `name` property when inserting files with the API. For
@@ -260,14 +262,16 @@ class Files extends \Google\Service\Resource
   }
   /**
    * Gets a file's metadata or content by ID. For more information, see [Search
-   * for files and folders](/workspace/drive/api/guides/search-files). If you
-   * provide the URL parameter `alt=media`, then the response includes the file
-   * contents in the response body. Downloading content with `alt=media` only
-   * works if the file is stored in Drive. To download Google Docs, Sheets, and
-   * Slides use
-   * [`files.export`](/workspace/drive/api/reference/rest/v3/files/export)
-   * instead. For more information, see [Download and export
-   * files](/workspace/drive/api/guides/manage-downloads). (files.get)
+   * for files and
+   * folders](https://developers.google.com/workspace/drive/api/guides/search-
+   * files). If you provide the URL parameter `alt=media`, then the response
+   * includes the file contents in the response body. Downloading content with
+   * `alt=media` only works if the file is stored in Drive. To download Google
+   * Docs, Sheets, and Slides use [`files.export`](https://developers.google.com/w
+   * orkspace/drive/api/reference/rest/v3/files/export) instead. For more
+   * information, see [Download and export
+   * files](https://developers.google.com/workspace/drive/api/guides/manage-
+   * downloads). (files.get)
    *
    * @param string $fileId The ID of the file.
    * @param array $optParams Optional parameters.
@@ -295,11 +299,12 @@ class Files extends \Google\Service\Resource
   }
   /**
    * Lists the user's files. For more information, see [Search for files and
-   * folders](/workspace/drive/api/guides/search-files). This method accepts the
-   * `q` parameter, which is a search query combining one or more search terms.
-   * This method returns *all* files by default, including trashed files. If you
-   * don't want trashed files to appear in the list, use the `trashed=false` query
-   * parameter to remove trashed files from the results. (files.listFiles)
+   * folders](https://developers.google.com/workspace/drive/api/guides/search-
+   * files). This method accepts the `q` parameter, which is a search query
+   * combining one or more search terms. This method returns *all* files by
+   * default, including trashed files. If you don't want trashed files to appear
+   * in the list, use the `trashed=false` query parameter to remove trashed files
+   * from the results. (files.listFiles)
    *
    * @param array $optParams Optional parameters.
    *
@@ -418,8 +423,9 @@ class Files extends \Google\Service\Resource
    * type, rather than the literal `*` value. The literal `*` is only used to
    * indicate that any valid MIME type can be uploaded. For more information, see
    * [Google Workspace and Google Drive supported MIME
-   * types](/workspace/drive/api/guides/mime-types).) For more information on
-   * uploading files, see [Upload file data](/workspace/drive/api/guides/manage-
+   * types](https://developers.google.com/workspace/drive/api/guides/mime-types).)
+   * For more information on uploading files, see [Upload file
+   * data](https://developers.google.com/workspace/drive/api/guides/manage-
    * uploads). (files.update)
    *
    * @param string $fileId The ID of the file.

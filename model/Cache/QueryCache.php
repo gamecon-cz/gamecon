@@ -8,9 +8,10 @@ class QueryCache
 {
     private ?\EPDO $table = null;
 
-    public function __construct(private readonly string $cacheDir)
-    {
-        if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
+    public function __construct(
+        private readonly string $cacheDir,
+    ) {
+        if (! is_dir($cacheDir) && ! @mkdir($cacheDir, 0777, true) && ! is_dir($cacheDir)) {
             throw new \RuntimeException('Cache directory can not be created: ' . var_export($cacheDir, true));
         }
     }
@@ -22,15 +23,14 @@ class QueryCache
         $this->executeQuery('DELETE FROM query_cache WHERE TRUE');
     }
 
-    /**
-     * @return array|false
-     */
     public function get(
         string $key,
-    ): false | array {
+    ): false|array {
         $stmt = $this->executeQuery(
             'SELECT "value" FROM query_cache WHERE "key" = :KEY',
-            ['KEY' => $key],
+            [
+                'KEY' => $key,
+            ],
         );
 
         $encodedValues = $stmt->fetchColumn();
@@ -44,7 +44,7 @@ class QueryCache
     public function set(
         string $key,
         string $queryHash,
-        array  $values,
+        array $values,
         ?array $dataVersions = null,
     ): void {
         $this->executeQuery(
@@ -61,13 +61,11 @@ class QueryCache
 
     private function executeQuery(
         string $query,
-        ?array  $params = null,
+        ?array $params = null,
     ): \PDOStatement {
         $stmt = $this->getTableForCache()->prepare($query);
-        if (!$stmt->execute($params)) {
-            throw new \RuntimeException(
-                'Failed to execute query: ' . var_export($stmt->errorInfo(), true),
-            );
+        if (! $stmt->execute($params)) {
+            throw new \RuntimeException('Failed to execute query: ' . var_export($stmt->errorInfo(), true));
         }
 
         return $stmt;

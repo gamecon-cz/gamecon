@@ -36,6 +36,7 @@ class Role extends \DbObject
     public const MINI_ORG             = 26;
     public const KOREKTOR             = 27;
     public const SPRAVCE_PARTNERU     = 28;
+    public const PAUZUJICI_FULL_ORG   = 29;
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC                   = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -102,6 +103,7 @@ class Role extends \DbObject
     public const VYZNAM_SEF_INFOPULTU       = 'SEF_INFOPULTU';
     public const VYZNAM_KOREKTOR            = 'KOREKTOR';
     public const VYZNAM_SPRAVCE_PARTNERU    = 'SPRAVCE_PARTNERU';
+    public const VYZNAM_PAUZUJICI_FULL_ORG  = 'PAUZUJICI_FULL_ORG';
     // TYP ROCNIKOVE
     public const VYZNAM_BRIGADNIK            = 'BRIGADNIK';
     public const VYZNAM_HERMAN               = 'HERMAN';
@@ -142,6 +144,7 @@ class Role extends \DbObject
             self::VYZNAM_ZAZEMI               => self::KATEGORIE_OMEZENA,
             self::VYZNAM_KOREKTOR             => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ZKONTROLOVANE_UDAJE  => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_PAUZUJICI_FULL_ORG   => self::KATEGORIE_OMEZENA,
 
             self::VYZNAM_HERMAN               => self::KATEGORIE_BEZNA,
             self::VYZNAM_INFOPULT             => self::KATEGORIE_BEZNA,
@@ -336,7 +339,13 @@ class Role extends \DbObject
      */
     public static function dejIdckaRoliSOrganizatory(): array
     {
-        return [self::ORGANIZATOR, self::PUL_ORG_BONUS_UBYTKO, self::PUL_ORG_BONUS_TRICKO, self::MINI_ORG];
+        return [
+            self::ORGANIZATOR,
+            self::PUL_ORG_BONUS_UBYTKO,
+            self::PUL_ORG_BONUS_TRICKO,
+            self::MINI_ORG,
+            self::PAUZUJICI_FULL_ORG,
+        ];
     }
 
     public static function nazevRolePodleId(int $idRole): string
@@ -356,6 +365,7 @@ class Role extends \DbObject
                 self::MINI_ORG                           => 'Mini-org',
                 self::KOREKTOR                           => 'Korektor',
                 self::SPRAVCE_PARTNERU                   => 'Správce partnerů',
+                self::PAUZUJICI_FULL_ORG                 => 'Pauzující Full-org',
                 //
                 self::LETOSNI_VYPRAVEC                   => 'Vypravěč',
                 self::LETOSNI_ZAZEMI                     => 'Zázemí',

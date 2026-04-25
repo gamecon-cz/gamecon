@@ -6,10 +6,34 @@ use Gamecon\Pravo;
 
 /** @var Uzivatel $u */
 
-if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE) && !$u->jeInfopultak() && !$u->jeOrganizator())
+header('Content-Type: application/json');
+
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
+if ($requestMethod !== 'GET' && $requestMethod !== 'POST') {
+    header('HTTP/1.1 405 Method Not Allowed');
+    header('Allow: GET, POST');
+    echo json_encode(['error' => '405 Method Not Allowed']);
+    exit;
+}
+
+if (empty($u)) {
+    header('HTTP/1.1 403 Forbidden');
+    echo json_encode(['error' => '403 Forbidden']);
+    exit;
+}
+
+$maPravoCteni = $u->maPravo(Pravo::ADMINISTRACE_FINANCE)
+    || $u->maPravo(Pravo::ADMINISTRACE_PENIZE)
+    || $u->maPravo(Pravo::ADMINISTRACE_INFOPULT);
+$maPravoZapis = $u->maPravo(Pravo::ADMINISTRACE_FINANCE)
+    || $u->maPravo(Pravo::ADMINISTRACE_PENIZE);
+
+if (
+    ($requestMethod === 'GET' && !$maPravoCteni)
+    || ($requestMethod === 'POST' && !$maPravoZapis)
 ) {
     header('HTTP/1.1 403 Forbidden');
-    echo '{error: "403 Forbidden"}';
+    echo json_encode(['error' => '403 Forbidden']);
     exit;
 }
 
@@ -42,7 +66,7 @@ if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Prav
 
 $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($requestMethod === 'POST') {
     // TODO: ukladání objektů musí mít správně udělaný escaping a zabezpečení
     $body = postBody();
 
@@ -91,7 +115,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ObchodMrizkaBunka::novy($bunkaRaw);
     }
 
-    return;
+    echo '{}';
+    exit;
 }
 
 // GET
@@ -122,5 +147,4 @@ foreach ($vsechny as &$x) {
     ];
 }
 
-header('Content-type: application/json');
 echo json_encode($res, $config);

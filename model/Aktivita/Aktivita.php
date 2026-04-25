@@ -21,6 +21,8 @@ use Gamecon\Aktivita\SqlStruktura\AkceSjednoceneTagySqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
 use Gamecon\Cache\DataSourcesCollector;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
@@ -50,8 +52,8 @@ class Aktivita
 
     use PrednacitaniTrait;
 
-    private static $objekty            = [];
-    private static $prihlaseniRawCache = [];
+    private static array $objekty            = [];
+    private static array $prihlaseniRawCache = [];
     /** @var array<string, array> */
     private static       $prihlaseniRawArrayCache = [];
     private static array $seznamUcastnikuCache    = [];
@@ -85,6 +87,7 @@ class Aktivita
     const TAGY_KLIC             = 'aEditTag'; // název proměnné; v které jdou tagy
     const LOKACE_KLIC           = 'aEditLokace'; // název proměnné; v které jdou lokace
     const HLAVNI_LOKACE_KLIC    = 'aEditHlavniLokace'; // název proměnné; v které jdou lokace
+    const POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC = 'potvrditZmenuUdajuSPrihlasenymi';
     const POST_KLIC             = 'aEditForm'; // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
     const PN_PLUSMINUSP         = 'cAktivitaPlusminusp'; // název post proměnné pro úpravy typu plus
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
@@ -245,7 +248,7 @@ SQL
         if (!$this->zacatek()) {
             throw new \Chyba('Aktivita nemá nastavený čas');
         }
-        dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [StavAktivity::AKTIVOVANA, $this->id()]);
+        $this->zmenStav(StavAktivity::AKTIVOVANA);
         $this->refresh();
     }
 
@@ -562,8 +565,10 @@ SQL
         $xtpl->assign('aEditLokace', self::LOKACE_KLIC);
         $xtpl->assign('aEditHlavniLokace', self::HLAVNI_LOKACE_KLIC);
         $xtpl->assign('aEditTag', self::TAGY_KLIC);
+        $xtpl->assign('potvrditZmenuUdajuSPrihlasenymiKlic', self::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC);
         $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
         $xtpl->assign('typBrigadnicka', TypAktivity::BRIGADNICKA);
+        $xtpl->assign('sledovanaPoleConfig', json_encode(ZmenyAktivitySPrihlasenymi::SLEDOVANA_POLE, JSON_UNESCAPED_UNICODE));
 
         if ($aktivita) {
             $aktivitaData = $aktivita->a; // databázový řádek
@@ -572,6 +577,7 @@ SQL
             $xtpl->assign('urlObrazku', $aktivita->obrazek());
             $xtpl->assign(Sql::VYBAVENI, $aktivita->vybaveni());
         }
+        $xtpl->assign('pocetPrihlasenych', $aktivita?->pocetPrihlasenychVcetneInstanci() ?? 0);
 
         self::parseUpravyTabulkaTagy($aktivita, $editorTagu, $xtpl);
         self::parseUpravyTabulkaLokace($aktivita, $xtpl);
@@ -960,6 +966,11 @@ SQL
 
         // úprava přijatých dat
         $a = (array)$_POST[self::POST_KLIC];
+        $dataZFormulare = $a;
+        $puvodniAktivita = !empty($a[Sql::ID_AKCE])
+            ? self::zId((int)$a[Sql::ID_AKCE])
+            : null;
+        $potvrzenaZmenaUdajuSPrihlasenymi = (bool)post(self::POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC);
         // v případě nezobrazení tabulky a tudíž chybějícího text. pole s url (viz šablona) se použije hidden pole s původní url
         if (empty($a[Sql::URL_AKCE]) && !empty($_POST[self::POST_KLIC . 'staraUrl'])) {
             $a[Sql::URL_AKCE] = $_POST[self::POST_KLIC . 'staraUrl'];
@@ -1043,6 +1054,15 @@ SQL
             unset($a[Sql::TEAMOVA], $a[Sql::TEAM_MIN], $a[Sql::TEAM_MAX]);
         }
 
+        $zmenyAktivity = new ZmenyAktivitySPrihlasenymi($puvodniAktivita, $dataZFormulare);
+        if ($zmenyAktivity->maZmenySPrihlasenymi() && !$potvrzenaZmenaUdajuSPrihlasenymi) {
+            varovani(
+                $zmenyAktivity->dejTextPotvrzeniZmenyUdajuSPrihlasenymi(),
+                false,
+            );
+            return null;
+        }
+
         $chyby = self::editorChyby($a);
         if ($chyby) {
             varovani(implode('; ', $chyby), false);
@@ -1096,6 +1116,7 @@ SQL
         self::varujBylaLiNejakaLokaceObsazena($aktivita);
 
         oznameni('Aktivita byla uložena', false);
+        (new ProgramStaticFileGenerator($aktivita->systemoveNastaveni))->tryStartWorker();
 
         return $aktivita;
     }
@@ -1158,6 +1179,7 @@ SQL
         string  $obrazekUrl = null,
         int     $odmenaZaHodinu = null,
         ?bool   $maPravoNaProvadeniKorekci = null,
+        SystemoveNastaveni $systemoveNastaveni = null,
     ): Aktivita {
         $data[Sql::BEZ_SLEVY] = (int)!empty($data[Sql::BEZ_SLEVY]);    // checkbox pro "bez_slevy"
         $data[Sql::NEDAVA_BONUS] = (int)!empty($data[Sql::NEDAVA_BONUS]); // checkbox pro "nedava_bonus"
@@ -1290,6 +1312,12 @@ SQL
         $aktivita->organizatori($organizatoriIds);
         $aktivita->popis($markdownPopis, resetujKorekci: !$nastavujeKorekci);
         $aktivita->nastavTagyPodleIds($tagIds);
+
+        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
+        $programStaticFilesGenerator = new ProgramStaticFileGenerator($systemoveNastaveni);
+        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::AKTIVITY, tryStartWorker: false);
+        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::POPISY, tryStartWorker: false);
+        $programStaticFilesGenerator->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI, tryStartWorker: false);
 
         return $aktivita;
     }
@@ -1967,6 +1995,16 @@ SQL,
             $this->poslatMailSledujicim();
         }
         $this->refresh();
+
+        $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
+    }
+
+    private function touchDirtyFlag(ProgramStaticFileType $flag): void
+    {
+        // tryStartWorker: false — invalidace v rámci běžných operací jen označí cache;
+        // worker se spustí příští HTTP request / cron / explicitní volání.
+        (new ProgramStaticFileGenerator($this->systemoveNastaveni))
+            ->touchDirtyFlag($flag, tryStartWorker: false);
     }
 
     private function nestihlRychleOdhlaseniBezPokuty(
@@ -2048,7 +2086,7 @@ SQL,
         if ($this->idStavu() !== StavAktivity::PRIPRAVENA) {
             throw new \Chyba('Aktivita není v stavu "připravená"');
         }
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [StavAktivity::PUBLIKOVANA, $this->id()]);
+        $this->zmenStav(StavAktivity::PUBLIKOVANA);
     }
 
     /**
@@ -2128,6 +2166,19 @@ SQL,
     }
 
     /**
+     * @return string[]|\ArrayIterator Vrátí iterátor veřejných jmen organizátorů.
+     */
+    public function orgJmenaNaWebu()
+    {
+        $jmena = new \ArrayIteratorToString();
+        foreach ($this->organizatori() as $o) {
+            $jmena[] = $o->jmenoNaWebu();
+        }
+
+        return $jmena;
+    }
+
+    /**
      * @return string[]|\ArrayIterator Vrátí iterátor loginů organizátorů
      */
     public function orgLoginy()
@@ -2183,12 +2234,14 @@ SQL
 
     public function popisId(): ?int
     {
-        // todo: tohle může být číslo ?
-        $popisId = $this->a[Sql::POPIS] ?? null;
-
-        return $popisId !== null
-            ? (int)$popisId
-            : null;
+        // Historicky šlo o FK do tabulky `texty`. Ta byla odstraněna 2025-11-10
+        // a `akce_seznam.popis` obsahuje přímo markdown. Jako identifikátor pro
+        // spojení `aktivity.json` <-> `popisy.json` ve frontendu používáme id
+        // aktivity — je vždy přítomné, unikátní a stabilní. (Dřívější
+        // `(int)$popis` z textu vracelo 0 pro většinu popisů, takže se všechny
+        // aktivity se stejným „popisId“ mapovaly na jeden popis — ukazovala se
+        // anotace jiné aktivity.)
+        return $this->id();
     }
 
     /**
@@ -2259,18 +2312,14 @@ SQL
     /** Zpracuje formy na měnění počtu míst team. aktivit */
     protected static function plusminusZpracuj($reload = true)
     {
-        if (post(self::PN_PLUSMINUSP)) {
-            dbQueryS('UPDATE akce_seznam SET kapacita = kapacita + 1 WHERE id_akce = $1', [post(self::PN_PLUSMINUSP)]);
-            if ($reload) back();
-
+        $idAktivity = post(self::PN_PLUSMINUSP) ?: post(self::PN_PLUSMINUSM);
+        if (!$idAktivity) {
             return;
         }
-        if (post(self::PN_PLUSMINUSM)) {
-            dbQueryS('UPDATE akce_seznam SET kapacita = kapacita - 1 WHERE id_akce = $1', [post(self::PN_PLUSMINUSM)]);
-            if ($reload) back();
-
-            return;
-        }
+        $delta = post(self::PN_PLUSMINUSP) ? '+ 1' : '- 1';
+        dbQueryS("UPDATE akce_seznam SET kapacita = kapacita {$delta} WHERE id_akce = \$1", [$idAktivity]);
+        self::zId($idAktivity)->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
+        if ($reload) back();
     }
 
     /**
@@ -2356,25 +2405,48 @@ SQL
             }
         }
 
-        if ($this->tymova()) {
-            $idTymu = $tym ? $tym->getId() : 0;
-            // tady už ke kontrole na přihlášení došlo předtím.
-            AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $idTymu);
-        }
-
         // odhlášení náhradnictví v kolidujících aktivitách
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
 
-        dbQuery(
-            'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
-            [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
-        );
+        dbBegin();
+        try {
+            // Lock the activity row to prevent race conditions on capacity check
+            dbQuery(
+                'SELECT id_akce FROM akce_seznam WHERE id_akce=$0 FOR UPDATE',
+                [$idAktivity],
+            );
 
-        $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
-        // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
-        $this->zrusPredchoziStornoPoplatek($uzivatel);
+            // Re-check capacity with fresh data inside the lock
+            $this->refresh();
+            if (!(self::IGNOROVAT_LIMIT & $parametry) && $this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()) {
+                dbCommit();
+                throw new \Chyba(hlaska('plno'));
+            }
+
+            if ($this->tymova()) {
+                $idTymu = $tym ? $tym->getId() : 0;
+                // tady už ke kontrole na přihlášení došlo předtím.
+                AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $idTymu);
+            }
+
+            dbQuery(
+                'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
+                [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
+            );
+
+            $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
+            // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
+            $this->zrusPredchoziStornoPoplatek($uzivatel);
+
+            dbCommit();
+        } catch (\Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
+        }
 
         $this->refresh();
+
+        $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
 
         return true;
     }
@@ -2778,6 +2850,21 @@ SQL
         return count($this->prihlaseniRawArray());
     }
 
+    /**
+     * Počet přihlášených napříč všemi instancemi sdílejícími patri_pod (nebo jen tato aktivita, pokud patri_pod nemá).
+     */
+    public function pocetPrihlasenychVcetneInstanci(): int
+    {
+        $patriPod = $this->patriPod();
+        if ($patriPod === null) {
+            return $this->pocetPrihlasenych();
+        }
+        return (int)dbOneCol(
+            'SELECT COUNT(*) FROM akce_prihlaseni JOIN akce_seznam ON akce_prihlaseni.id_akce = akce_seznam.id_akce WHERE akce_seznam.patri_pod = $1',
+            [$patriPod],
+        );
+    }
+
     protected function pocetPrihlasenychMuzu(?DataSourcesCollector $dataSourcesCollector = null): int
     {
         return $this->pocetPrihlasenehoPohlavi(Pohlavi::MUZ_KOD, $dataSourcesCollector);
@@ -3165,6 +3252,7 @@ HTML
             throw new \LogicException("Neznámý stav aktivity '$novyStav'");
         }
         dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
+        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
     }
 
     /** Nastaví aktivitu jako "připravena pro aktivaci" */
@@ -3292,6 +3380,10 @@ HTML
             dbRollback();
             throw $e;
         }
+
+        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        $this->touchDirtyFlag(ProgramStaticFileType::POPISY);
+        $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
 
         // invalidace aktuální instance
         $this->reset();
@@ -3751,6 +3843,8 @@ SQL,
     {
         dbQuery('INSERT INTO akce_stavy_log(id_akce, id_stav, kdy) VALUES ($0, $1, NOW())', [$this->id(), $novyStav]);
         RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this, $this->dejFilesystem());
+
+        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
     }
 
     /** Označí aktivitu jako uzavřenou, s vyplněnou prezencí */
@@ -4094,6 +4188,14 @@ SQL,
         foreach ($aktivity as $aktivita) {
             self::$objekty['ids'][$aktivita->id()] = $aktivita;
         }
+    }
+
+    public static function smazCache(): void
+    {
+        self::$objekty = [];
+        self::$prihlaseniRawCache = [];
+        self::$prihlaseniRawArrayCache = [];
+        self::$seznamUcastnikuCache = [];
     }
 
     /**

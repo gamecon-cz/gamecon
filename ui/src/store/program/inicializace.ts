@@ -4,7 +4,7 @@ import { registrujDotahováníNastaveníTýmu } from "../../pages/program/compon
 import { distinct } from "../../utils";
 import { LOCAL_STORAGE_KLÍČE } from "../localStorageKlíče";
 import { urlStavProgramTabulkaMožnostíDnyMůj } from "./logic/url";
-import { načtiRok, načtiŠtítky } from "./slices/programDataSlice";
+import { načtiRok } from "./slices/programDataSlice";
 import { nastavStateZUrl, nastavUrlZState } from "./slices/urlSlice";
 import { nastavFiltryOtevřené } from "./slices/všeobecnéSlice";
 
@@ -85,8 +85,6 @@ export const inicializujProgramStore = () => {
   //   localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM,
   //     JSON.stringify(({ aktivityPodleId: {}, štítky: data.štítky } as typeof data)));
   // });
-
-  void načtiŠtítky();
 
   const urlStav = useProgramStore.getState().urlStav;
   void načtiRok(urlStav.ročník);

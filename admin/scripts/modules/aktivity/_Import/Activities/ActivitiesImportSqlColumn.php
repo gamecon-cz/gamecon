@@ -28,7 +28,7 @@ class ActivitiesImportSqlColumn
     public const TEAM_MAX      = 'team_max'; // int null comment 'maximální velikost teamu',
     public const TEAM_KAPACITA = 'team_kapacita'; // int null comment 'max. počet týmů na aktivitě',
     public const TEAM_NAZEV    = 'team_nazev'; // varchar(255) null,
-    public const POPIS         = 'popis'; // int not null (ID from texty.id in fact),
+    public const POPIS         = 'popis'; // longtext not null — markdown, přímo text (dříve FK do odstraněné tabulky `texty`)
     public const POPIS_KRATKY  = 'popis_kratky'; // varchar(255) not null,
     public const VYBAVENI      = 'vybaveni'; // text not null,
 

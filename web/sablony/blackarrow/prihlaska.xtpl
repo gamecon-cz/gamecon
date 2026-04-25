@@ -55,6 +55,15 @@
 
     <!----------------------------------------------------------------------------->
 
+    <div class="prihlaska_skokNaPotvrzeniObal">
+        <a href="#prihlaska-potvrzeni"
+           class="formular_primarni formular_primarni-sipka prihlaska_skokNaPotvrzeni"
+           data-scroll-to-potvrzeni="1">Přejít na potvrzení</a>
+        <div class="prihlaska_skokNaPotvrzeniPopis">Potvrzení přihlášky je až na konci formuláře dole.</div>
+    </div>
+
+    <!----------------------------------------------------------------------------->
+
     <div class="prihlaska_sekce">
         <h2>Předměty</h2>
 
@@ -129,7 +138,7 @@
                     <!-- begin: ubytovaniTriPlusNoci -->
                     <li>Ubytování je možné objednat pouze v balíčku 3+ nocí.</li>
                     <!-- end: ubytovaniTriPlusNoci -->
-                    <li>Bližší informace o ubytování najdeš <a href="prakticke-informace">zde</a> v FAQ.</li>
+                    <li>Bližší informace o ubytování najdeš <a href="/prakticke-informace#ubytovani">zde</a> v FAQ.</li>
                     <!-- begin: poznamkaKUbytovaniVNedeli -->
                     <li>Ubytování Ne–Po znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00.</li>
                     <!-- end: poznamkaKUbytovaniVNedeli -->
@@ -180,7 +189,7 @@
 
     <!----------------------------------------------------------------------------->
 
-    <div class="prihlaska_sekce">
+    <div class="prihlaska_sekce prihlaska_sekce-potvrzeni" id="prihlaska-potvrzeni">
         <input type="submit" class="formular_primarni" name="prihlasitNeboUpravit" value="{ulozitNeboPrihlasit}">
         <!-- begin:odhlasit -->
         <input type="submit" class="formular_negativni" name="odhlasit" value="Odhlásit se z GameConu"
@@ -196,6 +205,24 @@
 <script src="soubory/blackarrow/_spolecne/baguetteBox.min.js"></script>
 <script>
   baguetteBox.run('.prihlaska_nahledy')
+
+  document.querySelectorAll('[data-scroll-to-potvrzeni]').forEach(function (odkazNaPotvrzeni) {
+    odkazNaPotvrzeni.addEventListener('click', function (event) {
+      var selectorCile = odkazNaPotvrzeni.getAttribute('href')
+      if (!selectorCile || selectorCile.charAt(0) !== '#') {
+        return
+      }
+      var cil = document.querySelector(selectorCile)
+      if (!cil) {
+        return
+      }
+      event.preventDefault()
+      cil.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', selectorCile)
+      }
+    })
+  })
 </script>
 
 <!-- end:prihlaska -->

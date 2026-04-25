@@ -37,15 +37,16 @@ usort($organizatori, function (
     $a,
     $b,
 ) {
-    return strcasecmp($a->nick(), $b->nick());
+    return strcasecmp($a->jmenoNaWebu(), $b->jmenoNaWebu());
 });
 
 // zobrazit
 foreach ($organizatori as $o) {
     if (!$o->fotka()) continue;
     $t->assign([
-        'pj'     => $o,
-        'tituly' => mb_ucfirst(implode(', ', $o->drdTituly())),
+        'pj'           => $o,
+        'jmenoNaWebu'  => $o->jmenoNaWebu(),
+        'tituly'       => mb_ucfirst(implode(', ', $o->drdTituly())),
     ]);
     $t->parse('drdPj.pj', 'pj');
 }

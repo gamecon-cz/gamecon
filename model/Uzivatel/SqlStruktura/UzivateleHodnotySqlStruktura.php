@@ -28,6 +28,7 @@ class UzivateleHodnotySqlStruktura
     public const POHLAVI                             = 'pohlavi';
     public const REGISTROVAN                         = 'registrovan';
     public const UBYTOVAN_S                          = 'ubytovan_s';
+    public const NECHCE_UBYTOVANI                    = 'nechce_ubytovani';
     public const POZNAMKA                            = 'poznamka';
     public const POMOC_TYP                           = 'pomoc_typ';
     public const POMOC_VICE                          = 'pomoc_vice';
@@ -37,6 +38,7 @@ class UzivateleHodnotySqlStruktura
     public const POTVRZENI_ZAKONNEHO_ZASTUPCE        = 'potvrzeni_zakonneho_zastupce';
     public const POTVRZENI_ZAKONNEHO_ZASTUPCE_SOUBOR = 'potvrzeni_zakonneho_zastupce_soubor';
     public const INFOPULT_POZNAMKA                   = 'infopult_poznamka';
+    public const ZPUSOB_ZOBRAZENI_NA_WEBU            = 'zpusob_zobrazeni_na_webu';
     public const Z_RYCHLOREGISTRACE                  = 'z_rychloregistrace';
 
     public static function sloupce(): array

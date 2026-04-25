@@ -1,7 +1,7 @@
 import { useProgramStore } from ".";
 import { Pohlavi, ApiPřihlášenýUživatel } from "../../api/přihlášenýUživatel";
 import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
-import { FiltrAktivit, filtrujAktivity, MapováníŠtítků, vytvořMapováníŠtítků } from "./logic/aktivity";
+import { FiltrAktivit, filtrujAktivity, MapováníTagů, vytvořMapováníTagů } from "./logic/aktivity";
 import { PRÁZDNÉ_POLE, distinct } from "../../utils";
 import { useMemo } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
@@ -14,11 +14,11 @@ const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   return aktivitaFiltr ?? (urlStav as FiltrAktivit);
 };
 
-const useŠtítkyMapováníKategorieŠtítků = () => {
-  const štítky = useŠtítky();
+const useMapováníTagů = () => {
+  const tagy = useTagy();
 
-  const mapování: MapováníŠtítků =
-    useMemo(() => vytvořMapováníŠtítků(štítky), [štítky]);
+  const mapování: MapováníTagů =
+    useMemo(() => vytvořMapováníTagů(tagy), [tagy]);
 
   return mapování;
 };
@@ -41,11 +41,11 @@ export const useAktivity = (ročník?: number) => {
  */
 export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): Aktivita[] => {
   const filtr = useFiltrAktivitNeboZeStavu(aktivitaFiltr);
-  const mapaŠtítků = useŠtítkyMapováníKategorieŠtítků();
+  const mapaTagů = useMapováníTagů();
 
   const aktivity = useAktivity(aktivitaFiltr?.ročník);
 
-  const aktivityFiltrované = filtrujAktivity(aktivity, filtr, mapaŠtítků);
+  const aktivityFiltrované = filtrujAktivity(aktivity, filtr, mapaTagů);
 
   return aktivityFiltrované;
 };
@@ -79,54 +79,54 @@ export const useAktivitaNáhled = (): Aktivita | undefined =>
   // , shallow
   );
 
-export const useŠtítkyPodleKategorie = () => {
-  const štítky = useŠtítky();
+export const useTagyPodleKategorie = () => {
+  const tagy = useTagy();
 
-  const štítkyPodleKategorie = useMemo(() => {
-    const všechnyKategorie = distinct(štítky.map(x => x.nazevKategorie));
+  const tagyPodleKategorie = useMemo(() => {
+    const všechnyKategorie = distinct(tagy.map(x => x.nazevKategorie));
 
     return všechnyKategorie.map(kategorie => ({
       kategorie: kategorie,
-      štítky: štítky.filter(štítek => štítek.nazevKategorie === kategorie)
+      tagy: tagy.filter(tag => tag.nazevKategorie === kategorie)
     }));
-  }, [štítky]);
+  }, [tagy]);
 
-  return štítkyPodleKategorie;
+  return tagyPodleKategorie;
 };
 
-export const useŠtítkyVybranéPodleKategorie = () => {
+export const useTagyVybranéPodleKategorie = () => {
   const urlStav = useUrlStav();
-  const vybranéŠtítkyId = urlStav.filtrTagy ?? PRÁZDNÉ_POLE;
-  const štítkyPodleKategorie = useŠtítkyPodleKategorie();
-  const vybranéŠtítkyPodleKategorie = useMemo(
+  const vybranéTagyId = urlStav.filtrTagy ?? PRÁZDNÉ_POLE;
+  const tagyPodleKategorie = useTagyPodleKategorie();
+  const vybranéTagyPodleKategorie = useMemo(
     () =>
-      štítkyPodleKategorie
-        .map(({ kategorie, štítky }) => ({
+      tagyPodleKategorie
+        .map(({ kategorie, tagy }) => ({
           kategorie,
-          štítky: štítky.filter(štítek => vybranéŠtítkyId.some(x => x === štítek.id))
+          tagy: tagy.filter(tag => vybranéTagyId.some(x => x === tag.id))
         }))
-        .filter(x => x.štítky.length)
+        .filter(x => x.tagy.length)
     ,
-    [štítkyPodleKategorie, vybranéŠtítkyId]);
+    [tagyPodleKategorie, vybranéTagyId]);
 
-  return vybranéŠtítkyPodleKategorie;
+  return vybranéTagyPodleKategorie;
 };
 
-export const useŠtítkyPočetAktivit = () => {
-  const štítky = useŠtítky();
+export const useTagyPočetAktivit = () => {
+  const tagy = useTagy();
   const aktivity = useAktivity();
-  const mapaŠtítků = useŠtítkyMapováníKategorieŠtítků();
+  const mapaTagů = useMapováníTagů();
   const filtr = useFiltrAktivitNeboZeStavu();
 
-  const štítekSPočtemAktivit = štítky.map(štítek => ({
-    štítekId: štítek.id,
+  const tagSPočtemAktivit = tagy.map(tag => ({
+    tagId: tag.id,
     počet: filtrujAktivity(aktivity, {
       ...filtr,
-      filtrTagy: (filtr.filtrTagy ?? []).concat([štítek.id]),
-    }, mapaŠtítků).length,
+      filtrTagy: (filtr.filtrTagy ?? []).concat([tag.id]),
+    }, mapaTagů).length,
   }));
 
-  return štítekSPočtemAktivit;
+  return tagSPočtemAktivit;
 };
 
 export const useUrlStav = (): ProgramURLStav => useProgramStore(s => s.urlStav);
@@ -145,5 +145,5 @@ export const useNastaveniTymuModalAktivitaId = (): number | undefined => useProg
 export const useNastaveniTymuModalNazevAktivity = (): string | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.nazevAktivity);
 export const useNastaveniTymuModalData = (): NastaveniTymuData | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.data);
 
-export const useŠtítky = () => useProgramStore((s) => s.data.štítky);
+export const useTagy = () => useProgramStore((s) => s.data.tagy);
 

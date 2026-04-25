@@ -7,6 +7,7 @@ use PhpCsFixer\Fixer\Operator\BinaryOperatorSpacesFixer;
 use PhpCsFixer\Fixer\Phpdoc\PhpdocSummaryFixer;
 use PhpCsFixer\Fixer\Whitespace\ArrayIndentationFixer;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
+use PhpCsFixer\Fixer\ClassNotation\OrderedClassElementsFixer;
 
 return ECSConfig::configure()
     ->withPaths([
@@ -14,6 +15,8 @@ return ECSConfig::configure()
         __DIR__ . '/symfony/config',
         __DIR__ . '/tests',
         __DIR__ . '/model/Accounting',
+        __DIR__ . '/model/BackgroundProcess',
+        __DIR__ . '/model/Cache',
     ])
     ->withSkip([
         __DIR__ . '/symfony/var',
@@ -37,6 +40,7 @@ return ECSConfig::configure()
     ])
     ->withRules([
         ArrayIndentationFixer::class,
+        OrderedClassElementsFixer::class,
     ])
     ->withConfiguredRule(BinaryOperatorSpacesFixer::class, [
         'operators' => [

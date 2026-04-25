@@ -16,20 +16,64 @@
     }
 
     $(function () {
-        $('[name="{fields}Odesilatko"]').click(function () {
+        const pocetPrihlasenych = Number.parseInt('{pocetPrihlasenych}', 10) || 0
+        const $tlacitkoUlozit = $('[name="{fields}Odesilatko"]')
+        const $form = $tlacitkoUlozit.closest('form')
+        const $potvrzeniZmenyUdajuSPrihlasenymi = $form.find('[name="{potvrditZmenuUdajuSPrihlasenymiKlic}"]')
+
+        const sledovanaPoleConfig = {sledovanaPoleConfig}
+
+        function getFieldVal(name) {
+            const $el = $form.find('[name="{fields}[' + name + ']"]')
+            if ($el.length === 0) return ''
+            if ($el.is(':checkbox')) return $el.is(':checked') ? '1' : '0'
+            const val = $el.val()
+            return (val ?? '').toString().trim()
+        }
+
+        const puvodniUdajeConfig = {}
+        for (const [stitek, pole] of Object.entries(sledovanaPoleConfig)) {
+            puvodniUdajeConfig[stitek] = pole.map(getFieldVal).join('|')
+        }
+
+        $form.on('submit', function (e) {
+            e.preventDefault()
             if (!overeni()) {
               return false
             }
-            odesilatko = $(this)
+            $potvrzeniZmenyUdajuSPrihlasenymi.val('0')
+            if (pocetPrihlasenych > 0) {
+                const zmeneneUdaje = []
+                for (const [stitek, pole] of Object.entries(sledovanaPoleConfig)) {
+                    const aktualni = pole.map(getFieldVal).join('|')
+                    if (aktualni !== puvodniUdajeConfig[stitek]) {
+                        zmeneneUdaje.push(stitek)
+                    }
+                }
+
+                if (zmeneneUdaje.length > 0) {
+                    const zprava = 'Tato aktivita už má přihlášené hráče (' + pocetPrihlasenych
+                        + '). Opravdu chcete změnit ' + zmeneneUdaje.join(' / ') + '?'
+                    if (!window.confirm(zprava)) {
+                        return false
+                    }
+                    $potvrzeniZmenyUdajuSPrihlasenymi.val('1')
+                }
+            }
+
+            const odesilatko = $tlacitkoUlozit
             odesilatko.attr('disabled', 'disabled')
-            $.post(document.URL, $(this).closest('form').serialize() + '&{ajaxKlic}=true', function (data) {
+            $.post(document.URL, odesilatko.closest('form').serialize() + '&{ajaxKlic}=true', function (data) {
                 if (data.chyby.length > 0) {
                     alert(data.chyby.join("\n&bull;"))
                     odesilatko.removeAttr('disabled')
                 } else {
-                    odesilatko.closest('form').submit()
+                    odesilatko.closest('form').get(0).submit()
                 }
-            }, "json")
+            }, "json").fail(function () {
+                alert('Nepodařilo se uložit aktivitu. Zkontrolujte připojení a zkuste to znovu.')
+                odesilatko.removeAttr('disabled')
+            })
             return false
         })
     })
@@ -38,6 +82,7 @@
 <input type="hidden" name="{fields}[id_akce]" value="{id_akce}">
 <input type="hidden" name="{fields}[patri_pod]" value="{patri_pod}">
 <input type="hidden" name="{fields}staraUrl" value="{url_akce}">
+<input type="hidden" name="{potvrditZmenuUdajuSPrihlasenymiKlic}" value="0">
 
 <!-- begin:tabulka -->
 <table style="float:left;margin-right:20px" id="editorAktivity">

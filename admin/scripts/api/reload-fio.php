@@ -7,7 +7,16 @@ use Gamecon\Uzivatel\Finance;
 /** @var Uzivatel $u */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
-if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE) && !$u->jeInfopultak() && !$u->jeOrganizator())
+header('Content-Type: application/json');
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
+    header('HTTP/1.1 405 Method Not Allowed');
+    header('Allow: GET');
+    echo json_encode(['error' => '405 Method Not Allowed']);
+    exit;
+}
+
+if (empty($u) || (!$u->maPravo(Pravo::ADMINISTRACE_FINANCE) && !$u->maPravo(Pravo::ADMINISTRACE_PENIZE) && !$u->maPravo(Pravo::ADMINISTRACE_INFOPULT))
 ) {
     header('HTTP/1.1 403 Forbidden');
     echo json_encode(['error' => '403 Forbidden']);

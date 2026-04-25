@@ -1,7 +1,8 @@
-import { ApiŠtítek, AktivitaStav } from "../../../api/program";
+import { ApiTag, AktivitaStav } from "../../../api/program";
 import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
-import { datumPřidejDen, volnoTypZObsazenost } from "../../../utils";
+import { volnoTypZObsazenost } from "../../../utils";
+import { pražskéHodiny, pražskýDenVTýdnu, pražskýRok } from "../../../utils/czech-time";
 // Pozor musí být defaultní import!
 import FlexSearch from "flexsearch";
 import { Aktivita } from "../slices/programDataSlice";
@@ -18,15 +19,15 @@ export type FiltrProgramTabulkaVýběr =
     typ: "všechny_dny";
   };
 
-export type MapováníŠtítků = {
-  /** Klíč je id (ApiŠtítek.id) hodnota je kategorie štítku (ApiŠtítek.nazevKategorie) */
+export type MapováníTagů = {
+  /** Klíč je id (ApiTag.id) hodnota je kategorie tagu (ApiTag.nazevKategorie) */
   idDoKategorie: {
-    [štítekId: string]: string
+    [tagId: string]: string
   },
 }
 
-export const vytvořMapováníŠtítků = (štítky: ApiŠtítek[]): MapováníŠtítků => {
-  const idDoKategorie = Object.fromEntries(štítky.map(x => [x.id, x.nazevKategorie]));
+export const vytvořMapováníTagů = (tagy: ApiTag[]): MapováníTagů => {
+  const idDoKategorie = Object.fromEntries(tagy.map(x => [x.id, x.nazevKategorie]));
   return {
     idDoKategorie,
   };
@@ -47,7 +48,7 @@ export const aktivitaStatusZAktivity = (
   pohlavi?: Pohlavi | undefined
 ): AktivitaStav => {
   if (
-    aktivita.stavPrihlaseni != undefined &&
+    aktivita.stavPrihlaseni !== null &&
     aktivita.stavPrihlaseni !== "sledujici"
   ) {
     return "prihlasen";
@@ -84,9 +85,9 @@ export const denAktivity = (časAktivity: Date | number | Aktivita): Date => {
     časAktivityDate = new Date(časAktivity.cas.od);
   }
 
-  return (časAktivityDate.getHours() +1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
+  return (pražskéHodiny(časAktivityDate) + 1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
     ? časAktivityDate
-    : datumPřidejDen(časAktivityDate, -1);
+    : new Date(časAktivityDate.getTime() - 24 * 60 * 60 * 1_000);
 };
 
 export const denČasAktivityText = (aktivita: Aktivita): string => {
@@ -124,17 +125,17 @@ const flexDocument = new FlexSearch.Document<Aktivita, true>({
   }
 });
 
-const zaindexovanéIdAktivit = new Set<number>()
+const zaindexovanéIdAktivit = new Set<number>();
 const zaindexujFullText = (aktivita: Aktivita) => {
   if (zaindexovanéIdAktivit.has(aktivita.id)) return;
-  flexDocument.add(aktivita)
-  zaindexovanéIdAktivit.add(aktivita.id)
-}
+  flexDocument.add(aktivita);
+  zaindexovanéIdAktivit.add(aktivita.id);
+};
 
 
-export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníŠtítků: MapováníŠtítků) => {
+export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníTagů: MapováníTagů) => {
   const {
-    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrŠtítkyId, ročník, výběr, filtrStavAktivit, filtrText
+    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrTagyId, ročník, výběr, filtrStavAktivit, filtrText
   } = filtr;
 
   const textovéFiltry: string[] = [];
@@ -158,16 +159,16 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
 
   if (ročník)
     aktivityFiltrované = aktivityFiltrované.filter(
-      (aktivita) => new Date(aktivita.cas.od).getFullYear() === ročník
+      (aktivita) => pražskýRok(new Date(aktivita.cas.od)) === ročník
     );
 
   if (výběr?.typ === "můj") {
     aktivityFiltrované = aktivityFiltrované
-      .filter((aktivita) => aktivita?.stavPrihlaseni != undefined || aktivita?.vedu);
+      .filter((aktivita) => aktivita?.stavPrihlaseni !== null || aktivita?.vedu);
   } else if (výběr?.typ === "den") {
     aktivityFiltrované = aktivityFiltrované
       .filter((aktivita) =>
-        denAktivity(new Date(aktivita.cas.od)).getDay() === výběr.datum.getDay());
+        pražskýDenVTýdnu(denAktivity(new Date(aktivita.cas.od))) === pražskýDenVTýdnu(výběr.datum));
   }
   // Pro "všechny_dny" se nefiltruje dle dne
 
@@ -179,25 +180,25 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       filtrLinie.some((x) => x === aktivita.linie)
     );
 
-  if (filtrŠtítkyId) {
-    const štítkyIdPodleKategorie: { [kategorie: string]: number[] } = {};
-    for (const štítekId of filtrŠtítkyId) {
-      const kategorieŠtítku = mapováníŠtítků.idDoKategorie[štítekId] ?? "";
-      if (!kategorieŠtítku) {
-        console.error(`nenalezena kategorie pro štítek id: ${štítekId}`);
+  if (filtrTagyId) {
+    const tagyIdPodleKategorie: { [kategorie: string]: number[] } = {};
+    for (const tagId of filtrTagyId) {
+      const kategorieTagu = mapováníTagů.idDoKategorie[tagId] ?? "";
+      if (!kategorieTagu) {
+        console.error(`nenalezena kategorie pro tag id: ${tagId}`);
       }
-      const kategorie = štítkyIdPodleKategorie[kategorieŠtítku] = štítkyIdPodleKategorie[kategorieŠtítku] ?? [];
-      kategorie.push(štítekId);
+      const kategorie = tagyIdPodleKategorie[kategorieTagu] = tagyIdPodleKategorie[kategorieTagu] ?? [];
+      kategorie.push(tagId);
     }
 
-    const štítkyIdPodleKategorieValues = Object.values(štítkyIdPodleKategorie);
+    const tagyIdPodleKategorieValues = Object.values(tagyIdPodleKategorie);
     aktivityFiltrované = aktivityFiltrované
       .filter((aktivita) =>
-        // aktivita splňuje podmínku alespoň jednoho štítku z každé kategorie
-        štítkyIdPodleKategorieValues.every(štítkyIdZKategorie =>
-          štítkyIdZKategorie.some(štítekIdZKategorie =>
+        // aktivita splňuje podmínku alespoň jednoho tagu z každé kategorie
+        tagyIdPodleKategorieValues.every(tagyIdZKategorie =>
+          tagyIdZKategorie.some(tagIdZKategorie =>
             (aktivita.stitkyId ?? [])
-              .some(štítekId => štítekId === štítekIdZKategorie))
+              .some(tagId => tagId === tagIdZKategorie))
         )
       );
   }

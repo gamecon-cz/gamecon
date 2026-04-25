@@ -10,6 +10,7 @@
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Uzivatel\Pohlavi;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 include __DIR__ . '/osobni_udaje_ovladac.php';
 
@@ -17,6 +18,7 @@ class OsobniUdajeTabulka
 {
     private static $udajeSOp = [
         Sql::LOGIN_UZIVATELE        => 'Přezdívka',
+        Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => 'Zobrazení na webu',
         Sql::JMENO_UZIVATELE        => 'Jméno',
         Sql::PRIJMENI_UZIVATELE     => 'Příjmení',
         Sql::POHLAVI                => 'Pohlaví',
@@ -34,6 +36,7 @@ class OsobniUdajeTabulka
 
     private static $udaje = [
         Sql::LOGIN_UZIVATELE    => 'Přezdívka',
+        Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => 'Zobrazení na webu',
         Sql::JMENO_UZIVATELE    => 'Jméno',
         Sql::PRIJMENI_UZIVATELE => 'Příjmení',
         Sql::POHLAVI            => 'Pohlaví',
@@ -81,6 +84,10 @@ class OsobniUdajeTabulka
                 $vyber            = Pohlavi::seznamProSelect();
                 $zobrazenaHodnota = $vyber[$r[Sql::POHLAVI]] ?? '';
             }
+            if ($sloupec === Sql::ZPUSOB_ZOBRAZENI_NA_WEBU) {
+                $vyber            = ZpusobZobrazeniNaWebu::proSelect();
+                $zobrazenaHodnota = $vyber[(int) $hodnota] ?? '';
+            }
             if ($sloupec === Sql::TELEFON_UZIVATELE) {
                 $zobrazenaHodnota = $uzivatel->telefon();
             }
@@ -95,18 +102,20 @@ class OsobniUdajeTabulka
                 'zobrazenaHodnota' => $zobrazenaHodnota,
                 'vyber'            => $vyber,
                 'popisek'          => $popisek,
+                'inputDisabled'    => '',
             ]);
             if ($popisek) {
                 $x->parse('udaje.udaj.nazevSPopiskem');
             } else {
                 $x->parse('udaje.udaj.nazevBezPopisku');
             }
-            if ($sloupec === Sql::POHLAVI) {
+            if ($sloupec === Sql::POHLAVI || $sloupec === Sql::ZPUSOB_ZOBRAZENI_NA_WEBU) {
                 foreach ($vyber as $optionValue => $optionText) {
+                    $jeVybranaMoznost = (string) $vstupniHodnota === (string) $optionValue;
                     $x->assign([
                         'optionValue'    => $optionValue,
                         'optionText'     => $optionText,
-                        'optionSelected' => $vstupniHodnota === $optionValue
+                        'optionSelected' => $jeVybranaMoznost
                             ? 'selected'
                             : '',
                     ]);

@@ -6,6 +6,8 @@ services:
     depends_on:
       sql.gamecon:
           condition: service_healthy
+      sql.gamecon.tests:
+          condition: service_healthy
       mailhog.gamecon:
           condition: service_started
     volumes:
@@ -30,7 +32,7 @@ services:
       - "${WEB_HTTP_HOST_MAPPING_PORT:-80}:80"
       - "${WEB_HTTPS_HOST_MAPPING_PORT:-443}:443"
 
-  sql.gamecon:
+  sql.gamecon: &mariadb-common
     image: mariadb:10.6  # should be same as on live server
     restart: "no"
     environment:
@@ -49,6 +51,14 @@ services:
     ports:
       # set PHPMYADMIN_HOST_MAPPING_PORT variable in .env file for example
       - "${SQL_HOST_MAPPING_PORT:-13306}:3306"
+
+  sql.gamecon.tests:
+    <<: *mariadb-common
+    tmpfs:
+      - /var/lib/mysql
+    ports: []
+    volumes:
+      - ./.docker/mysql:/etc/mysql/conf.d:ro
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin

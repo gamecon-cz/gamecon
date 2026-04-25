@@ -8,6 +8,7 @@ import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
+import { pražskéHodiny } from "../../../../utils/czech-time";
 
 export const tabulkaBuňkaAktivitaTřídy = (
   aktivita: Aktivita,
@@ -15,7 +16,7 @@ export const tabulkaBuňkaAktivitaTřídy = (
 ) => {
   const classes: string[] = [];
   if (
-    aktivita.stavPrihlaseni != undefined &&
+    aktivita.stavPrihlaseni !== null &&
     aktivita.stavPrihlaseni !== "sledujici"
   ) {
     classes.push("prihlasen");
@@ -71,8 +72,8 @@ export const ProgramTabulkaBuňka: FunctionComponent<
 
   if (!aktivita) return <></>;
 
-  const hodinOd = new Date(aktivita.cas.od).getHours();
-  const hodinDo = new Date(aktivita.cas.do).getHours();
+  const hodinOd = pražskéHodiny(new Date(aktivita.cas.od));
+  const hodinDo = pražskéHodiny(new Date(aktivita.cas.do));
   const rozsah = (hodinDo - hodinOd + 24) % 24;
 
   return !kompaktní ? (
@@ -98,7 +99,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             tymLimit={aktivita.tymLimit}
           />
           <Přihlašovátko akitivitaId={aktivita.id} />
-          {(aktivita.mistnost || undefined) && (
+          {aktivita.mistnost !== null && (
             <div class="program_lokace">{aktivita.mistnost}</div>
           )}
           {zobrazLinii ? (

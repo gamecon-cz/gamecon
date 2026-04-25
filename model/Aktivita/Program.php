@@ -3,7 +3,9 @@
 namespace Gamecon\Aktivita;
 
 use App\Service\AktivitaTymService;
+use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Stranka;
 use Uzivatel;
 
@@ -50,6 +52,8 @@ class Program
             'PROGRAM_ZACATEK'              => PROGRAM_ZACATEK,
             'PROGRAM_KONEC'                => PROGRAM_KONEC,
             'CAS_NA_PRIPRAVENI_TYMU_MINUT' => AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT,
+            'URL_PROGRAM_CACHE'            => URL_CACHE . '/program',
+            'programManifest'              => (new ProgramStaticFileGenerator(SystemoveNastaveni::zGlobals()))->readManifest(),
         ];
 
         if ($jeAdmin) {

@@ -428,6 +428,7 @@ UPDATE uzivatele_hodnoty
 SET zustatek={$finance->stav()} /* původní zůstatek z předchozích ročníků {$finance->zustatekZPredchozichRocniku()} */,
     poznamka='',
     ubytovan_s='',
+    nechce_ubytovani=0,
     infopult_poznamka='',
     pomoc_typ='',
     pomoc_vice='',

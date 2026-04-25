@@ -13,7 +13,7 @@
         <a class="menu_prihlasit" href="prihlaseni">přihlásit</a>
         <!-- end: neprihlasen -->
         <!-- begin: prihlasen -->
-        <div class="menu_jmeno">{u.nick} ({u.id})</div>
+        <div class="menu_jmeno">{uJmenoMenu} ({u.id})</div>
         <div class="menu_uzivatelpolozky">
           <a href="finance">Finance</a>
           <a href="registrace">Nastavení</a>

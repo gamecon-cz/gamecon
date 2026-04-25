@@ -115,6 +115,11 @@ class UserSqlStructure
     public const ubytovan_s = 'ubytovan_s';
 
     /**
+     * @see User::$nechceUbytovani
+     */
+    public const nechce_ubytovani = 'nechce_ubytovani';
+
+    /**
      * @see User::$poznamka
      */
     public const poznamka = 'poznamka';
@@ -163,6 +168,11 @@ class UserSqlStructure
      * @see User::$statniObcanstvi
      */
     public const statni_obcanstvi = 'statni_obcanstvi';
+
+    /**
+     * @see User::$zpusobZobrazeniNaWebu
+     */
+    public const zpusob_zobrazeni_na_webu = 'zpusob_zobrazeni_na_webu';
 
     /**
      * @see User::$zRychloregistrace

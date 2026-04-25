@@ -8,6 +8,7 @@ use App\Entity\Enum\GenderEnum;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 /**
  * Legacy @see \Gamecon\Uzivatel
@@ -87,6 +88,11 @@ class User
     #[ORM\Column(name: 'ubytovan_s', length: 255, nullable: true)]
     private ?string $ubytovanS = null;
 
+    #[ORM\Column(name: 'nechce_ubytovani', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => 0,
+    ])]
+    private bool $nechceUbytovani = false;
+
     #[ORM\Column(name: 'poznamka', length: 4096, nullable: false)]
     private string $poznamka = '';
 
@@ -110,6 +116,11 @@ class User
 
     #[ORM\Column(name: 'statni_obcanstvi', length: 64, nullable: true)]
     private ?string $statniObcanstvi = null;
+
+    #[ORM\Column(name: 'zpusob_zobrazeni_na_webu', type: Types::SMALLINT, nullable: false, options: [
+        'default' => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
+    ])]
+    private int $zpusobZobrazeniNaWebu = ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value;
 
     #[ORM\Column(name: 'z_rychloregistrace', type: Types::BOOLEAN, nullable: true, options: [
         'default' => 0,
@@ -357,6 +368,18 @@ class User
         return $this;
     }
 
+    public function isNechceUbytovani(): bool
+    {
+        return $this->nechceUbytovani;
+    }
+
+    public function setNechceUbytovani(bool $nechceUbytovani): static
+    {
+        $this->nechceUbytovani = $nechceUbytovani;
+
+        return $this;
+    }
+
     public function getPoznamka(): string
     {
         return $this->poznamka;
@@ -449,6 +472,18 @@ class User
     public function setStatniObcanstvi(?string $statniObcanstvi): static
     {
         $this->statniObcanstvi = $statniObcanstvi;
+
+        return $this;
+    }
+
+    public function getZpusobZobrazeniNaWebu(): int
+    {
+        return $this->zpusobZobrazeniNaWebu;
+    }
+
+    public function setZpusobZobrazeniNaWebu(int $zpusobZobrazeniNaWebu): static
+    {
+        $this->zpusobZobrazeniNaWebu = $zpusobZobrazeniNaWebu;
 
         return $this;
     }

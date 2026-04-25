@@ -21,6 +21,7 @@ class BfgrReport
     // poradi je dulezite, udava prioritu
     private const ID_ROLI_PRO_POZICI = [
         Role::ORGANIZATOR,
+        Role::PAUZUJICI_FULL_ORG,
         Role::PUL_ORG_BONUS_UBYTKO,
         Role::PUL_ORG_BONUS_TRICKO,
         Role::MINI_ORG,

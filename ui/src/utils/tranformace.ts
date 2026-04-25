@@ -1,8 +1,8 @@
-import { ApiAktivitaNepřihlášen, ApiŠtítek, Obsazenost, OdDo } from "../api/program";
+import { ApiAktivitaNepřihlášen, ApiTag, Obsazenost, OdDo } from "../api/program";
 
-export const štítkyZId = (štítkyId: number[] | undefined, štítky: ApiŠtítek[]) => {
-  return štítkyId
-    ?.map(id => štítky.find(štítek => štítek.id === id)?.nazev)
+export const tagyZId = (tagyId: number[] | undefined, tagy: ApiTag[]) => {
+  return tagyId
+    ?.map(id => tagy.find(tag => tag.id === id)?.nazev)
     ?.filter(název=> název)
     ?? [];
 };

@@ -36,5 +36,5 @@ export type ApiPřihlášenýUživatel = {
 
 export const fetchPřihlášenýUživatel = async (): Promise<ApiPřihlášenýUživatel> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}prihlasenyUzivatel`;
-  return fetch(url, { method: "POST" }).then(async x => x.json());
+  return fetch(url).then(async x => x.json());
 };

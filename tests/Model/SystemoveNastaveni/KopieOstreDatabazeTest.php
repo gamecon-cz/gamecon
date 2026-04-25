@@ -165,14 +165,15 @@ class KopieOstreDatabazeTest extends TestCase
                 private readonly string $ostraDbName,
             ) {
                 parent::__construct(
-                    ROCNIK,
-                    new DateTimeImmutableStrict(),
-                    true,
-                    false,
-                    DatabazoveNastaveni::vytvorZGlobals(),
-                    PROJECT_ROOT_DIR,
-                    SPEC,
+                    rocnik: ROCNIK,
+                    ted: new DateTimeImmutableStrict(),
+                    jsmeNaBete: true,
+                    jsmeNaLocale: false,
+                    databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+                    rootAdresarProjektu: PROJECT_ROOT_DIR,
+                    privateCacheDir: SPEC,
                     kernel: new Kernel('test', false),
+                    publicCacheDir: CACHE,
                 );
             }
 

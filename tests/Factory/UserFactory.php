@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Factory;
 use App\Entity\Enum\GenderEnum;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 use Zenstruck\Foundry\Persistence\Proxy;
 use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
@@ -53,6 +54,7 @@ final class UserFactory extends PersistentProxyObjectFactory
             'mesto'                            => self::faker()->text(100),
             'mrtvyMail'                        => self::faker()->boolean(),
             'nechceMaily'                      => self::faker()->dateTime(),
+            'nechceUbytovani'                  => self::faker()->boolean(),
             'op'                               => self::faker()->text(4096),
             'pohlavi'                          => self::faker()->randomElement(GenderEnum::cases()),
             'pomocTyp'                         => self::faker()->text(64),
@@ -70,8 +72,11 @@ final class UserFactory extends PersistentProxyObjectFactory
             'typDokladuTotoznosti'             => self::faker()->text(16),
             'ubytovanS'                        => self::faker()->text(255),
             'uliceACp'                         => self::faker()->text(255),
-            'zRychloregistrace'                => self::faker()->boolean(),
-            'zustatek'                         => self::faker()->randomNumber(),
+            'zpusobZobrazeniNaWebu'            => self::faker()->randomElement(
+                ZpusobZobrazeniNaWebu::platneHodnoty(),
+            ),
+            'zRychloregistrace' => self::faker()->boolean(),
+            'zustatek'          => self::faker()->randomNumber(),
         ];
     }
 

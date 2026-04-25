@@ -26,7 +26,7 @@ foreach ($typy as $i => $typ) {
         'nazev'     => mb_ucfirst($typ->nazev()),
         'url'       => $typ->url(),
         'obrazek'   => $obrazky[$typ->id()]['src'] ?? '', // prevent errors, mainly for local testing
-        'ikona'     => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
+        'ikona'     => cestaObrazkuLinieNaTitulce($typ->id()),
         'aosOffset' => $offsety[$i % 3],
         'popis'     => $typ->popisKratky(),
     ]);
@@ -65,10 +65,9 @@ SQL,
 );
 
 $stovkyAktivit = dbFetchSingle(<<<SQL
-SELECT FLOOR(COUNT(*) / 10) * 10
+SELECT FLOOR(COUNT(DISTINCT IF(patri_pod IS NULL, CONCAT('A', id_akce), CONCAT('I', patri_pod))) / 10) * 10
 FROM akce_seznam
 WHERE rok = $0
-    AND patri_pod IS NULL
     AND typ NOT IN ($1)
 SQL,
     [

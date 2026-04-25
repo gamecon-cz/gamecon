@@ -44,4 +44,22 @@ class StavPrihlaseni
     {
         return $stavPrihlaseni === self::SLEDUJICI;
     }
+
+    /**
+     * Vrátí řetězcový kód používaný frontendem (pole `stavPrihlaseni` v JSON
+     * odpovědích). Pro neznámé / NEPRIHLASEN vrací null — to mapuje na
+     * `stavPrihlaseni: null` v TypeScriptu (`StavPřihlášení | null`).
+     */
+    public static function frontendKod(int $stavPrihlaseni): ?string
+    {
+        return match ($stavPrihlaseni) {
+            self::PRIHLASEN               => 'prihlasen',
+            self::PRIHLASEN_A_DORAZIL     => 'prihlasenADorazil',
+            self::DORAZIL_JAKO_NAHRADNIK  => 'dorazilJakoNahradnik',
+            self::PRIHLASEN_ALE_NEDORAZIL => 'prihlasenAleNedorazil',
+            self::POZDE_ZRUSIL            => 'pozdeZrusil',
+            self::SLEDUJICI               => 'sledujici',
+            default                       => null,
+        };
+    }
 }

@@ -30,6 +30,7 @@ class AnonymizovanyUzivatel
             UzivatelSql::ZUSTATEK                            => 0,
             UzivatelSql::REGISTROVAN                         => 'NOW()',
             UzivatelSql::UBYTOVAN_S                          => '',
+            UzivatelSql::NECHCE_UBYTOVANI                    => 0,
             UzivatelSql::POZNAMKA                            => '',
             UzivatelSql::POMOC_TYP                           => '',
             UzivatelSql::POMOC_VICE                          => '',
@@ -38,6 +39,7 @@ class AnonymizovanyUzivatel
             UzivatelSql::INFOPULT_POZNAMKA                   => '',
             UzivatelSql::TYP_DOKLADU_TOTOZNOSTI              => '',
             UzivatelSql::STATNI_OBCANSTVI                    => null,
+            UzivatelSql::ZPUSOB_ZOBRAZENI_NA_WEBU            => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
         ];
     }
 

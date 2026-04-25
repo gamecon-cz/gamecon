@@ -110,6 +110,11 @@ class UserEntityStructure
     public const ubytovanS = 'ubytovanS';
 
     /**
+     * @see User::$nechceUbytovani
+     */
+    public const nechceUbytovani = 'nechceUbytovani';
+
+    /**
      * @see User::$poznamka
      */
     public const poznamka = 'poznamka';
@@ -148,6 +153,11 @@ class UserEntityStructure
      * @see User::$statniObcanstvi
      */
     public const statniObcanstvi = 'statniObcanstvi';
+
+    /**
+     * @see User::$zpusobZobrazeniNaWebu
+     */
+    public const zpusobZobrazeniNaWebu = 'zpusobZobrazeniNaWebu';
 
     /**
      * @see User::$zRychloregistrace

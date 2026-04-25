@@ -3,6 +3,7 @@ body {
   background-color: #fff;
   color: #10111A;
   overflow-y: scroll;
+  overflow-x: hidden; // prevence bočního scrollu kvůli přetékajícím globálním prvkům
   position: relative;
 }
 
@@ -77,6 +78,8 @@ hr {
 
 .gc_tooltip {
   cursor: help;
+  position: relative;
+  display: inline-block;
 }
 
 .tooltip_obsah {
@@ -84,6 +87,7 @@ hr {
   color: #10111A;
   background-color: #fff;
   text-align: left;
+  white-space: normal;
   position: absolute;
   z-index: 20;
   width: 250px;
@@ -99,11 +103,20 @@ hr {
   transition: opacity 0.3s, margin-top 0.3s, visibility 1s;
 
   right: 0;
+  max-width: 90vw;
+  box-sizing: border-box;
 
   @media (max-width: 600px) {
-    display: none;
+    position: fixed;
+    top: auto;
+    bottom: 20px;
+    left: 5vw;
+    right: 5vw;
+    width: 90vw;
+    max-width: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
   }
-  // prevence přetékání na mobilu
 }
 
 .tooltip_obsah::before {
@@ -113,19 +126,21 @@ hr {
   width: 10px;
   height: 10px;
   top: -6px;
-  left: 50px;
+  right: 20px;
   transform: rotate(45deg);
   border-top: solid 1px #e8e8e8;
   border-left: solid 1px #e8e8e8;
+  
+  @media (max-width: 600px) {
+    display: none;
+  }
 }
 
-.gc_tooltip:hover > .tooltip_obsah {
+.gc_tooltip:hover > .tooltip_obsah,
+.gc_tooltip:active > .tooltip_obsah {
   visibility: visible;
   opacity: 1;
   margin-top: 0;
-  @media (max-width: 600px) {
-    display: block;
-  }
 }
 
 .corner-ribbon {

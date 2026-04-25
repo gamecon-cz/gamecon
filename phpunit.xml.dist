@@ -2,9 +2,17 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd" bootstrap="./tests/_zavadec.php"
          stopOnFailure="false" processIsolation="false" backupGlobals="false" colors="true"
-         cacheDirectory=".phpunit.cache">
+         cacheDirectory=".phpunit.cache"
+         displayDetailsOnTestsThatTriggerDeprecations="false"
+         displayDetailsOnTestsThatTriggerErrors="false"
+         displayDetailsOnTestsThatTriggerNotices="false"
+         displayDetailsOnTestsThatTriggerWarnings="false"
+         displayDetailsOnPhpunitDeprecations="false">
     <php>
         <env name="KERNEL_CLASS" value="App\Kernel"/>
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="disabled=1"/>
+        <env name="SHELL_VERBOSITY" value="-1"/>
+        <ini name="error_reporting" value="E_ALL &amp; ~E_DEPRECATED &amp; ~E_USER_DEPRECATED"/>
     </php>
     <coverage includeUncoveredFiles="true"/>
     <extensions>
@@ -15,12 +23,13 @@
             <directory>./tests</directory>
         </testsuite>
     </testsuites>
-    <source>
+    <source restrictDeprecations="true" restrictNotices="true" restrictWarnings="true">
         <include>
             <directory>.</directory>
         </include>
         <exclude>
             <directory>./tests</directory>
+            <directory>./vendor</directory>
         </exclude>
     </source>
 </phpunit>

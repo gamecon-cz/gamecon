@@ -65,7 +65,7 @@ foreach ($skupiny as $skupina) {
     foreach ($skupina as $aktivita) {
         $vypravec = current($aktivita->organizatori());
         if ($vypravec && ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0)) {
-            $t->assign('vypravec', $vypravec->jmenoNick());
+            $t->assign('vypravec', $vypravec->jmenoNaWebu());
             $t->parse('aktivity.aktivita.termin.vypravec');
         }
 
@@ -91,12 +91,13 @@ foreach ($skupiny as $skupina) {
     $organizatori = implode(', ', array_map(static function (
         Uzivatel $organizator,
     ) {
-        $url = $organizator->url(true);
+        $maProfilovouStranku = $organizator->url() !== null;
+        $jmenoNaWebu         = $organizator->jmenoNaWebu();
 
-        return $url === null
+        return $maProfilovouStranku
+            ? '<a href="' . $organizator->id() . '">' . $jmenoNaWebu . '</a>'
             // asi vypravěčská skupina nebo podobně
-            ? $organizator->jmenoNick()
-            : '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
+            : $jmenoNaWebu;
     }, $aktivita->organizatori()));
 
     $obrazek = $aktivita->obrazek();
@@ -127,9 +128,9 @@ $this->info()->obrazek(null);
 
 if (!empty($org)) {
     /** @var Uzivatel $org */
-    $this->info()->nazev($org->jmenoNick());
+    $this->info()->nazev($org->jmenoNaWebu());
     $t->assign([
-        'jmeno' => $org->jmenoNick(),
+        'jmeno' => $org->jmenoNaWebu(),
         'popis' => $org->oSobe()
             ?: '<p><em>popisek od vypravěče nemáme</em></p>',
         'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
@@ -138,25 +139,20 @@ if (!empty($org)) {
 } elseif ($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
 
-    $descriptionFile = 'soubory/systemove/linie-ikony/' . $typ->id() . '.txt';
+    $hlavickaLinie = dbOneLine(
+        'SELECT sekce, jmeno, email FROM akce_typy_hlavicky WHERE id_typu = $1',
+        [$typ->id()],
+    );
 
-    $lines = is_file($descriptionFile)
-        ? @file($descriptionFile, FILE_IGNORE_NEW_LINES)
-        : false;
-
-    $picture_path = 'soubory/systemove/linie-ikony/org_' . $typ->id() . '.jpg';
-
-    if (!is_file($picture_path)) {
-        $picture_path = "soubory/obsah/obrazky/organizatori/flant.jpg";
-    }
+    $picture_path = cestaObrazkuLinie($typ->id());
 
     /* 'ikonaLiniePopis' => $varIkonaLiniePopis, */
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
         'ikonaLinie'      => $picture_path,
-        'ikonaLinieSekce' => $lines[0] ?? 'Sekce',
-        'ikonaLinieJmeno' => $lines[1] ?? 'Jmeno "Prezdivka" Prijmeni',
-        'ikonaLinieEmail' => $lines[2] ?? 'info@gamecon.cz',
+        'ikonaLinieSekce' => !empty($hlavickaLinie['sekce']) ? $hlavickaLinie['sekce'] : 'Sekce',
+        'ikonaLinieJmeno' => !empty($hlavickaLinie['jmeno']) ? $hlavickaLinie['jmeno'] : 'Jmeno "Prezdivka" Prijmeni',
+        'ikonaLinieEmail' => !empty($hlavickaLinie['email']) ? $hlavickaLinie['email'] : 'info@gamecon.cz',
         'specTridy'       => $typ->id() == TypAktivity::DRD
             ? 'aktivity_aktivity-drd'
             : null,
@@ -168,6 +164,7 @@ if (!empty($org)) {
 
     if (!$systemoveNastaveni->jsmeNaOstre() && $u && $u->jeOrganizator()) {
         $t->assign('urlEditaceStranek', URL_ADMIN . '/web/editace-stranek');
+        $t->assign('urlEditaceHlavickyLinie', URL_ADMIN . '/web/hlavicky-linii');
         $t->assign('prikladUrlStranky', $typ->url() . '/nemas-zdani-co-je-k-mani');
         $t->parse('aktivity.strankaNavod');
     }

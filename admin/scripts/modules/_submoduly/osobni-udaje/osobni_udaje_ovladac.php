@@ -7,8 +7,11 @@
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
+use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
+
 if (post('zmenitUdaj') && $uPracovni) {
-    $udaje = post('udaj');
+    $udaje = (array)post('udaj');
     if ($udaje['op'] ?? null) {
         $uPracovni->cisloOp($udaje['op']);
         unset($udaje['op']);
@@ -17,8 +20,17 @@ if (post('zmenitUdaj') && $uPracovni) {
         $uPracovni->nastavZkontrolovaneUdaje($u, (bool)$udaje['kontrola']);
         unset($udaje['kontrola']);
     }
+    if (isset($udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU])) {
+        $udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU]
+            = ZpusobZobrazeniNaWebu::zHodnoty($udaje[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU])->value;
+    }
+    $zmeniloSeJmenoNaWebu = Uzivatel::zmeniloSeJmenoNaWebu($uPracovni, $udaje);
+    $udajeBylyUlozeny = false;
     try {
-        dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
+        if ($udaje !== []) {
+            dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
+            $udajeBylyUlozeny = true;
+        }
     } catch (DbDuplicateEntryException $e) {
         if ($e->key() === 'email1_uzivatele') {
             chyba('Uživatel se stejným e-mailem již existuje.');
@@ -30,6 +42,9 @@ if (post('zmenitUdaj') && $uPracovni) {
     } catch (Exception $e) {
         $vyjimkovac->zaloguj($e);
         chyba('Došlo k neočekávané chybě.');
+    }
+    if ($udajeBylyUlozeny && $zmeniloSeJmenoNaWebu) {
+        Uzivatel::invalidujProgramCacheJeLiVypravecem($uPracovni->id());
     }
 
     $uPracovni->otoc();

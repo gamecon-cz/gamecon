@@ -172,3 +172,51 @@ function is_ajax(): bool
         || str_contains($_SERVER['REQUEST_URI'] ?? '', '/api/')
     );
 }
+
+/**
+ * Vrátí relativní cestu k obrázku linie (vůči kořeni webu) s příznakem
+ * proti cachování ?v=<filemtime>. Fallback: starší <id_typu>.png, poté výchozí
+ * avatar.
+ */
+function cestaObrazkuLinie(int $idTypu): string
+{
+    static $pripony = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    $adresar = 'soubory/systemove/linie-ikony';
+    foreach ($pripony as $pripona) {
+        $relativniCesta = $adresar . '/org_' . $idTypu . '.' . $pripona;
+        $absolutniCesta = ADRESAR_WEBU_S_OBRAZKY . '/' . $relativniCesta;
+        if (is_file($absolutniCesta)) {
+            return $relativniCesta . '?v=' . filemtime($absolutniCesta);
+        }
+    }
+    $legacyCesta = $adresar . '/' . $idTypu . '.png';
+    $legacyAbsolutni = ADRESAR_WEBU_S_OBRAZKY . '/' . $legacyCesta;
+    if (is_file($legacyAbsolutni)) {
+        return $legacyCesta . '?v=' . filemtime($legacyAbsolutni);
+    }
+    $fallbackCesta = 'soubory/systemove/avatary/default.png';
+    return $fallbackCesta . '?v=' . filemtime(ADRESAR_WEBU_S_OBRAZKY . '/' . $fallbackCesta);
+}
+
+/**
+ * Vrátí cestu k ikoně linie pro homepage: hledá soubor <id_typu>.<pripona>
+ * v adresáři liniových ikon, preferuje PNG a při neexistenci použije
+ * výchozí avatar.
+ */
+function cestaObrazkuLinieNaTitulce(int $idTypu): string
+{
+    $adresar = 'soubory/systemove/linie-ikony';
+    $pripony = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
+
+    foreach ($pripony as $pripona) {
+        $relativniCesta = $adresar . '/' . $idTypu . '.' . $pripona;
+        $absolutniCesta = ADRESAR_WEBU_S_OBRAZKY . '/' . $relativniCesta;
+
+        if (is_file($absolutniCesta)) {
+            return $relativniCesta . '?v=' . filemtime($absolutniCesta);
+        }
+    }
+
+    $fallbackCesta = 'soubory/systemove/avatary/default.png';
+    return $fallbackCesta . '?v=' . filemtime(ADRESAR_WEBU_S_OBRAZKY . '/' . $fallbackCesta);
+}

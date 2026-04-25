@@ -5,7 +5,7 @@
   <img class="leftPj" src="{pj.fotka}">
   <div class="rightPj">
     <div class="description">
-      <div class="name">{pj.nick}</div>
+      <div class="name">{jmenoNaWebu}</div>
       <div class="position">{tituly}</div>
     </div>
     <div class="aboutButton">

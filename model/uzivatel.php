@@ -7,6 +7,8 @@ use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cache\DataSourcesCollector;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Kanaly\GcMail;
@@ -22,6 +24,7 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\Pohlavi;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 use Gamecon\Uzivatel\SqlStruktura\PlatneRoleUzivateluSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\PravaRoleSqlStruktura;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
@@ -65,6 +68,17 @@ class Uzivatel extends DbObject
     public const TYP_DOKLADU_OP = 'op';
     public const TYP_DOKLADU_PAS = 'pas';
     public const TYP_DOKLADU_JINY = 'jiny';
+    public const ZAMCENE_UDAJE_PO_KONTROLE_INFOPULTEM = [
+        Sql::TYP_DOKLADU_TOTOZNOSTI,
+        Sql::OP,
+        Sql::JMENO_UZIVATELE,
+        Sql::PRIJMENI_UZIVATELE,
+        Sql::DATUM_NAROZENI,
+        Sql::ULICE_A_CP_UZIVATELE,
+        Sql::MESTO_UZIVATELE,
+        Sql::PSC_UZIVATELE,
+        Sql::STAT_UZIVATELE,
+    ];
 
     /**
      * @var array<int, array<int, int|string>>
@@ -97,6 +111,32 @@ class Uzivatel extends DbObject
         }
 
         return $povinneUdaje;
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function zamceneUdajePoKontroleNaInfopultu(): array
+    {
+        return self::ZAMCENE_UDAJE_PO_KONTROLE_INFOPULTEM;
+    }
+
+    /**
+     * Odstraní z pole údajů sloupce zamčené po kontrole na infopultu.
+     * Používá se při cestách ukládání přes Uzivatel::uprav (např. webové nastavení účastníka).
+     * Admin cesty s přímým dbUpdate tímto omezením neprochází.
+     */
+    public function odeberZamceneUdajePoKontrole(array $udaje): array
+    {
+        if (!$this->maZkontrolovaneUdaje()) {
+            return $udaje;
+        }
+
+        foreach (self::ZAMCENE_UDAJE_PO_KONTROLE_INFOPULTEM as $sloupec) {
+            unset($udaje[$sloupec]);
+        }
+
+        return $udaje;
     }
 
     /**
@@ -178,6 +218,15 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         }
 
         return $this->r['ubytovan_s'] ?? '';
+    }
+
+    public function nechceUbytovani(?bool $nechceUbytovani = null): bool
+    {
+        if ($nechceUbytovani !== null) {
+            $this->r[Sql::NECHCE_UBYTOVANI] = (int)$nechceUbytovani;
+        }
+
+        return (bool)($this->r[Sql::NECHCE_UBYTOVANI] ?? false);
     }
 
     /**
@@ -830,6 +879,19 @@ SQL,
         return trim($this->r[Sql::JMENO_UZIVATELE] . ' ' . $this->r[Sql::PRIJMENI_UZIVATELE]);
     }
 
+    /**
+     * Jméno uživatele určené pro veřejný web.
+     */
+    public function jmenoNaWebu(): string
+    {
+        return self::jmenoNaWebuZjisti($this->r);
+    }
+
+    public function zpusobZobrazeniNaWebu(): ZpusobZobrazeniNaWebu
+    {
+        return ZpusobZobrazeniNaWebu::zHodnoty($this->r[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ?? null);
+    }
+
     /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
      *  organizátorů aktivit */
     public function jmenoNick(): ?string
@@ -897,6 +959,32 @@ SQL,
         }
 
         return $r['login_uzivatele'];
+    }
+
+    public static function jmenoNaWebuZjisti(array $r): string
+    {
+        $jmeno     = trim((string) ($r[Sql::JMENO_UZIVATELE] ?? ''));
+        $prijmeni  = trim((string) ($r[Sql::PRIJMENI_UZIVATELE] ?? ''));
+        $login     = trim((string) ($r[Sql::LOGIN_UZIVATELE] ?? ''));
+        $nick      = str_contains($login, '@') ? '' : $login;
+        $celeJmeno = trim($jmeno . ' ' . $prijmeni);
+
+        $zpusob = ZpusobZobrazeniNaWebu::zHodnoty($r[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ?? null);
+
+        $zvolene = match ($zpusob) {
+            ZpusobZobrazeniNaWebu::JMENO_A_PRIJMENI => $celeJmeno,
+            ZpusobZobrazeniNaWebu::JMENO_S_PREZDIVKOU_A_PRIJMENI => $nick === ''
+                ? ''
+                : trim(implode(' ', array_filter(
+                    [$jmeno, '„' . $nick . '"', $prijmeni],
+                    static fn (string $cast) => $cast !== '',
+                ))),
+            ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA => $nick,
+        };
+
+        return $zvolene !== ''
+            ? $zvolene
+            : ($celeJmeno ?: ($nick ?: $login));
     }
 
     /**
@@ -1785,6 +1873,10 @@ SQL,
             $dbTab[Sql::EMAIL1_UZIVATELE] = mb_strtolower($dbTab[Sql::EMAIL1_UZIVATELE]);
         }
 
+        if (! $u) {
+            $dbTab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= (string) ZpusobZobrazeniNaWebu::vychozi()->value;
+        }
+
         // TODO fallback prázdná přezdívka -> mail?
 
         // validátory
@@ -1875,10 +1967,14 @@ SQL,
             Sql::TYP_DOKLADU_TOTOZNOSTI => [implode('|', self::TYPY_DOKLADU), 'vyber prosím typ dokladu totožnosti'],
             Sql::OP                     => ['[a-zA-Z0-9]{5,}', 'vyplň prosím celé číslo dokladu'],
             // Ostatní
-            Sql::LOGIN_UZIVATELE => $validaceLoginu,
-            Sql::POHLAVI         => ['^(m|f)$', 'vyber prosím pohlaví'],
-            'heslo'              => $validaceHesla,
-            'heslo_kontrola'     => $validaceHesla,
+            Sql::LOGIN_UZIVATELE          => $validaceLoginu,
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => [
+                '^(' . implode('|', ZpusobZobrazeniNaWebu::platneHodnoty()) . ')$',
+                'vyber prosím způsob zobrazení na webu',
+            ],
+            Sql::POHLAVI                  => ['^(m|f)$', 'vyber prosím pohlaví'],
+            'heslo'                       => $validaceHesla,
+            'heslo_kontrola'              => $validaceHesla,
         ];
 
         // provedení validací
@@ -1950,12 +2046,16 @@ SQL,
 
         // uložení
         if ($u) {
+            $zmeniloSeJmenoNaWebu = self::zmeniloSeJmenoNaWebu($u, $dbTab);
             dbUpdate(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab, [
                 Sql::ID_UZIVATELE => $u->id(),
             ]);
             $u->otoc();
             $idUzivatele = $u->id();
             $urlUzivatele = self::vytvorUrl($u->r);
+            if ($zmeniloSeJmenoNaWebu) {
+                self::invalidujProgramCacheJeLiVypravecem($u->id());
+            }
         } else {
             dbInsert(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab);
             $idUzivatele = dbInsertId();
@@ -1970,6 +2070,55 @@ SQL,
         }
 
         return (string) $idUzivatele;
+    }
+
+    /**
+     * Vrátí, zda se změnila některá z hodnot ovlivňujících jméno zobrazené na
+     * webu oproti stávajícímu záznamu. Jakákoli z těchto změn se může propsat do
+     * pole "vypraveci" v aktivity.json, pokud je uživatel vypravěčem.
+     */
+    public static function zmeniloSeJmenoNaWebu(
+        self  $stavajici,
+        array $noveHodnoty,
+    ): bool {
+        $sledovanaPole = [
+            Sql::JMENO_UZIVATELE,
+            Sql::PRIJMENI_UZIVATELE,
+            Sql::LOGIN_UZIVATELE,
+            Sql::ZPUSOB_ZOBRAZENI_NA_WEBU,
+        ];
+        foreach ($sledovanaPole as $pole) {
+            if (array_key_exists($pole, $noveHodnoty)
+                && (string) $noveHodnoty[$pole] !== (string) ($stavajici->r[$pole] ?? '')
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Pokud je uživatel organizátorem (vypravěčem) alespoň jedné aktivity v
+     * aktuálním ročníku, nastaví dirty flag pro JSON statický program, aby se
+     * při dalším běhu workeru aktivity.json přegeneroval s novým jménem.
+     * Používá se i z cest, které obcházejí Uzivatel::uprav().
+     */
+    public static function invalidujProgramCacheJeLiVypravecem(int $idUzivatele): void
+    {
+        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
+        $jeVypravec         = (bool) dbOneCol(
+            'SELECT 1 FROM akce_organizatori
+                JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
+                WHERE akce_organizatori.id_uzivatele = $1 AND akce_seznam.rok = $2
+                LIMIT 1',
+            [$idUzivatele, $systemoveNastaveni->rocnik()],
+        );
+        if (!$jeVypravec) {
+            return;
+        }
+        (new ProgramStaticFileGenerator($systemoveNastaveni))
+            ->touchDirtyFlag(ProgramStaticFileType::AKTIVITY, tryStartWorker: false);
     }
 
     /**
@@ -2001,6 +2150,7 @@ SQL,
         $tab[Sql::ZUSTATEK] = 0;
         $tab[Sql::POHLAVI] = Pohlavi::MUZ_KOD;
         $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE] = null;
+        $tab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi()->value;
         foreach (Sql::sloupce() as $sloupec) {
             if (! array_key_exists($sloupec, $tab)) {
                 $tab[$sloupec] = '';
@@ -2159,7 +2309,20 @@ SQL,
      */
     public function uprav(array $tab): ?int
     {
-        $tab = array_filter($tab);
+        // Ponech nulové hodnoty pouze pro sloupce, kde 0 je validní stav
+        // (např. ZPUSOB_ZOBRAZENI_NA_WEBU = 0 znamená „pouze přezdívka").
+        $zachovatNuly = [Sql::ZPUSOB_ZOBRAZENI_NA_WEBU];
+        $tab = array_filter($tab, static function (
+            $hodnota,
+            $sloupec,
+        ) use ($zachovatNuly) {
+            if (in_array($sloupec, $zachovatNuly, true)) {
+                return $hodnota !== null && $hodnota !== '';
+            }
+
+            return (bool) $hodnota;
+        }, ARRAY_FILTER_USE_BOTH);
+        $tab = $this->odeberZamceneUdajePoKontrole($tab);
 
         $idNeboHlaska = self::registrujUprav($tab, $this);
         if (is_numeric($idNeboHlaska)) {

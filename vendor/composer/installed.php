@@ -3,6 +3,7 @@
         'name' => 'gamecon-cz/gamecon',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
+
         'reference' => '6cae2cdd7644cdf3c3a07b32f199ded74a04c8e2',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
@@ -202,6 +203,7 @@
         'gamecon-cz/gamecon' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
+
             'reference' => '6cae2cdd7644cdf3c3a07b32f199ded74a04c8e2',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
@@ -218,9 +220,9 @@
             'dev_requirement' => false,
         ),
         'google/apiclient-services' => array(
-            'pretty_version' => 'v0.435.0',
-            'version' => '0.435.0.0',
-            'reference' => '1edf0f5f2876945c372366107b4d7a387b17a6b9',
+            'pretty_version' => 'v0.436.0',
+            'version' => '0.436.0.0',
+            'reference' => '42493f9565963a0456b1edace1eb5f1cc53f2f73',
             'type' => 'library',
             'install_path' => __DIR__ . '/../google/apiclient-services',
             'aliases' => array(),
@@ -624,9 +626,9 @@
             'dev_requirement' => false,
         ),
         'rector/rector' => array(
-            'pretty_version' => '2.4.0',
-            'version' => '2.4.0.0',
-            'reference' => 'a51dfddbf6a29ed9fbf6e8410fc90c1608df1b5d',
+            'pretty_version' => '2.4.1',
+            'version' => '2.4.1.0',
+            'reference' => '000b7050b9e4fe98db2192971e56eb0b302b3feb',
             'type' => 'library',
             'install_path' => __DIR__ . '/../rector/rector',
             'aliases' => array(),
@@ -680,7 +682,7 @@
         'roave/security-advisories' => array(
             'pretty_version' => 'dev-latest',
             'version' => 'dev-latest',
-            'reference' => 'db78064456eb735e368677828095fb7fe5aeda6f',
+            'reference' => '7c570124dcf5c6834d78348d6817f32cd6b537d7',
             'type' => 'metapackage',
             'install_path' => null,
             'aliases' => array(

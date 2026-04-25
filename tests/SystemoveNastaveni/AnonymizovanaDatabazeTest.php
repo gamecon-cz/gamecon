@@ -9,6 +9,7 @@ use Gamecon\SystemoveNastaveni\AnonymizovanaDatabaze;
 use Gamecon\SystemoveNastaveni\NastrojeDatabaze;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 class AnonymizovanaDatabazeTest extends AbstractTestDb
 {
@@ -57,10 +58,12 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             pohlavi = 'm',
             registrovan = NOW(),
             ubytovan_s = '',
+            nechce_ubytovani = 1,
             poznamka = '',
             pomoc_typ = '',
             pomoc_vice = '',
             op = '',
+            zpusob_zobrazeni_na_webu = 2,
             infopult_poznamka = ''
         ");
 
@@ -168,7 +171,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
 
         // user personal data should be anonymized
         $anonymUsersResult = mysqli_query($connection, sprintf(
-            "SELECT jmeno_uzivatele, prijmeni_uzivatele, telefon_uzivatele, ulice_a_cp_uzivatele FROM `%s`.uzivatele_hodnoty WHERE login_uzivatele != '%s' AND id_uzivatele != %d",
+            "SELECT jmeno_uzivatele, prijmeni_uzivatele, telefon_uzivatele, ulice_a_cp_uzivatele, nechce_ubytovani FROM `%s`.uzivatele_hodnoty WHERE login_uzivatele != '%s' AND id_uzivatele != %d",
             self::$anonymniDatabaze,
             AnonymizovanaDatabaze::ADMIN_LOGIN,
             \Uzivatel::SYSTEM,
@@ -177,6 +180,22 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
         foreach ($anonymUsers as $anonymUser) {
             self::assertSame('', $anonymUser['jmeno_uzivatele'], 'Jméno by mělo být prázdné');
             self::assertSame('', $anonymUser['prijmeni_uzivatele'], 'Příjmení by mělo být prázdné');
+            self::assertSame('0', $anonymUser['nechce_ubytovani'], 'Volba nechce ubytování by měla být vynulovaná');
+        }
+
+        $zpusobyZobrazeniResult = mysqli_query($connection, sprintf(
+            "SELECT zpusob_zobrazeni_na_webu FROM `%s`.uzivatele_hodnoty WHERE login_uzivatele != '%s' AND id_uzivatele != %d",
+            self::$anonymniDatabaze,
+            AnonymizovanaDatabaze::ADMIN_LOGIN,
+            \Uzivatel::SYSTEM,
+        ));
+        $zpusobyZobrazeni = array_column(mysqli_fetch_all($zpusobyZobrazeniResult, MYSQLI_ASSOC), 'zpusob_zobrazeni_na_webu');
+        foreach ($zpusobyZobrazeni as $zpusobZobrazeni) {
+            self::assertSame(
+                (string) ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
+                $zpusobZobrazeni,
+                'Způsob zobrazení na webu by měl být po anonymizaci resetovaný na pouze přezdívku',
+            );
         }
 
         // posazen in uzivatele_role should be anonymized to fixed timestamp (except admin added after anonymization)

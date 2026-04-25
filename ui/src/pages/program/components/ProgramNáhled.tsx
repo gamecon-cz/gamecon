@@ -1,11 +1,11 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import {
-  useAktivitaNáhled, useŠtítky,
+  useAktivitaNáhled, useTagy,
 } from "../../../store/program/selektory";
 import { skryjAktivitaNáhledId } from "../../../store/program/slices/urlSlice";
 import { Obsazenost } from "./tabulka/Obsazenost";
-import { štítkyZId } from "../../../utils";
+import { tagyZId } from "../../../utils";
 
 type ProgramNáhledProps = {};
 
@@ -13,7 +13,7 @@ type ProgramNáhledProps = {};
 export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) => {
   const {} = props;
   const aktivita = useAktivitaNáhled();
-  const štítky = useŠtítky();
+  const tagy = useTagy();
 
   const programNáhledTextRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +49,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               }}
             ></div>
             <div class="programNahled_stitky">
-              {štítkyZId(aktivita?.stitkyId, štítky).map((x) => (
+              {tagyZId(aktivita?.stitkyId, tagy).map((x) => (
                 <div class="programNahled_stitek">{x}</div>
               ))}
             </div>
@@ -81,17 +81,14 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               dangerouslySetInnerHTML={{ __html: aktivita?.casText ?? "" }}
             ></div>
             <div class="programNahled_cena">
-              {aktivita?.slevaNasobic !== 0 &&
-              aktivita?.cenaZaklad !== 0
-                ? aktivita?.cenaZaklad != undefined
-                  ? aktivita?.cenaZaklad *
-                    (aktivita?.slevaNasobic ?? 1)
-                  : " - "
-                : "zdarma"}
+              {aktivita === undefined
+                ? " - "
+                : aktivita.slevaNasobic === 0 || aktivita.cenaZaklad === 0
+                  ? "zdarma"
+                  : aktivita.cenaZaklad * aktivita.slevaNasobic}
               <p style={{ opacity: 0.3 }}>
-                {aktivita?.slevaNasobic !== undefined &&
-                aktivita?.slevaNasobic !== 1
-                  ? `*${aktivita?.cenaZaklad === 0 ? "zdarma" : aktivita?.cenaZaklad}`
+                {aktivita !== undefined && aktivita.slevaNasobic !== 1
+                  ? `*${aktivita.cenaZaklad === 0 ? "zdarma" : aktivita.cenaZaklad}`
                   : undefined}
               </p>
             </div>

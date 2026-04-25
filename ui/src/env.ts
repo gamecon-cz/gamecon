@@ -4,6 +4,7 @@
  */
 
 import { ApiPřihlášenýUživatel } from "./api/přihlášenýUživatel";
+import { ProgramManifest } from "./api/program";
 import { range } from "./utils";
 
 
@@ -50,6 +51,11 @@ define('FORCE_REDUX_DEVTOOLS', true);
    * Jestli je program zobrazen v adminu (jiný uživatel než přihlášený)
    */
   JE_ADMIN: boolean;
+
+  /** URL to cache/public/program directory with static JSON files */
+  URL_PROGRAM_CACHE: string;
+  /** Pre-embedded manifest from server, null if static files not yet generated */
+  programManifest: ProgramManifest | null;
 }
 
 type GameconPřednačtení = {
@@ -96,6 +102,8 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   HAJENI_TEAMU_HODIN: 72,
   CAS_NA_PRIPRAVENI_TYMU_MINUT: 15,
   JE_ADMIN: false,
+  URL_PROGRAM_CACHE: "/cache/public/program",
+  programManifest: null,
 };
 
 export const GAMECON_KONSTANTY = {

@@ -1,12 +1,16 @@
 .shopUbytovani_tabulka {
     @media (max-width: 600px) {
-        min-width: 330px;
+        min-width: 0;
+        max-width: 100%;
         margin-top: 100px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 6px;
     }
 }
 
 .shopUbytovani_radek {
-    height: 65px;
+    height: 90px;
 }
 
 .shopUbytovani_zadne {
@@ -24,20 +28,23 @@
 }
 
 .shopUbytovani_prvniSloupec {
-    width: 9em;
+    width: 175px;
     float: left;
-    overflow: hidden;
+    overflow-wrap: break-word;
+    .shop_popis {
+        font-size: 15px;
+    }
     @media (max-width: 600px) {
-        width: 100px;
+        width: 140px;
         margin-top: 3.5em;
     }
 }
 
 .shopUbytovani_sloupec {
     float: left;
-    min-width: 114px;
+    min-width: 93px;
     text-align: center;
-    @media (max-width: 600px) {
+    @media (max-width: 800px) {
         min-width: 45px;
         margin-top: 3em;
     }
@@ -89,8 +96,64 @@
     @media (max-width: 600px) {
         margin-top: 40px;
         flex-wrap: wrap;
+
+        label {
+            width: 100%;
+        }
+
+        input {
+            width: 100%;
+            max-width: 100%;
+            margin: 10px 0 0 0;
+        }
     }
 }
+
+@media (max-width: 375px) {
+    .shopUbytovani_tabulka {
+        margin-top: 72px;
+    }
+
+    .shopUbytovani_prvniSloupec {
+        width: 115px;
+    }
+
+    .shopUbytovani_sloupec {
+        min-width: 40px;
+    }
+}
+
+.shopUbytovani_nechci {
+    margin: 0 0 1.5em;
+
+    .formular_polozka {
+        margin-bottom: 0;
+    }
+
+    .formular_polozka.formular_polozka-checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+        font-size: 20px;
+        font-weight: bold;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+    }
+
+    .shopUbytovani_nechciCheckbox[type=checkbox] {
+        width: 22px;
+        height: 22px;
+        margin: 0;
+        flex: 0 0 auto;
+
+        &:checked {
+            background-size: 12px auto;
+            background-position: 5px 6px;
+        }
+    }
+}
+
 .shopUbytovani_povinne {
   margin-top: 3em;
   padding: 2em 1em;

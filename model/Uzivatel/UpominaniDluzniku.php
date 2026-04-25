@@ -8,6 +8,7 @@ use Gamecon\Command\FioStazeniNovychPlateb;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Logger\LogHomadnychAkciTrait;
+use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\Dluznik;
 use Gamecon\Uzivatel\Enum\TypUpominky;
@@ -179,19 +180,33 @@ class UpominaniDluzniku
                 ->predmet($predmet)
                 ->text($zprava);
 
-            $qrKod = $uzivatel->finance()->dejQrKodProPlatbu();
-            if ($qrKod) {
-                // Uložit QR kód do dočasného souboru
-                $qrSoubor = tempnam($this->systemoveNastaveni->cacheDir(), 'upominani_qr_') . '.png';
-                file_put_contents($qrSoubor, $qrKod->getString());
-                $gcMail->prilohaSoubor($qrSoubor)->prilohaNazev('qr-platba.png');
+            $docasneQrSoubory = [];
+            foreach ($this->dejQrKodyProUpominku($uzivatel) as $nazevPrilohy => $qrKod) {
+                if (!$qrKod) {
+                    continue;
+                }
+
+                $qrSoubor = tempnam($this->systemoveNastaveni->privateCacheDir(), 'upominani_qr_');
+                if ($qrSoubor === false) {
+                    continue;
+                }
+
+                if (file_put_contents($qrSoubor, $qrKod->getString()) === false) {
+                    @unlink($qrSoubor);
+                    continue;
+                }
+
+                $gcMail->prilohaSoubor($qrSoubor)->prilohaNazev($nazevPrilohy);
+                $docasneQrSoubory[] = $qrSoubor;
             }
 
             $gcMail->odeslat(GcMail::FORMAT_TEXT);
 
-            // Smazat dočasný QR soubor
-            if (isset($qrSoubor) && file_exists($qrSoubor)) {
-                @unlink($qrSoubor);
+            // Smazat dočasné QR soubory
+            foreach ($docasneQrSoubory as $qrSoubor) {
+                if (file_exists($qrSoubor)) {
+                    @unlink($qrSoubor);
+                }
             }
 
             $posledniGcMail = $gcMail;
@@ -269,6 +284,20 @@ Těšíme se zase za rok!
 
 PS: stále ještě případně zbývá trochu času na vyplnění zpětné vazby na GC i jednotlivé aktivity. Dotazníky najdeš tady: https://gamecon.cz/prakticke-informace#dotazniky. Jejich vyplnění je pro další zlepšování akce velmi důležité.
 TEXT,
+        };
+    }
+
+    private function dejQrKodyProUpominku(Uzivatel $uzivatel): array
+    {
+        return match ($uzivatel->stat()) {
+            Stat::CZ => [
+                'qr-platba-cz.png' => $uzivatel->finance()->dejQrKodProCeskouPlatbu(),
+            ],
+            default => [
+                'qr-platba-cz.png'   => $uzivatel->finance()->dejQrKodProCeskouPlatbu(),
+                'qr-platba-sk.png'   => $uzivatel->finance()->dejQrKodProSlovenskouPlatbu(),
+                'qr-platba-sepa.png' => $uzivatel->finance()->dejQrKodProSepaPlatbu(),
+            ],
         };
     }
 

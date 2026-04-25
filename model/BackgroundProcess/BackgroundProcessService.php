@@ -12,9 +12,13 @@ use Symfony\Component\Clock\ClockInterface;
  */
 class BackgroundProcessService
 {
-    public const COMMAND_DB_COPY      = 'database-copy';
-    public const COMMAND_BFGR_REPORT  = 'bfgr-report';
+    public const COMMAND_DB_COPY = 'database-copy';
+    public const COMMAND_BFGR_REPORT = 'bfgr-report';
     public const COMMAND_ANONYMIZE_DB = 'anonymize-db';
+    public const COMMAND_PROGRAM_STATIC_FILES = 'program-static-files';
+
+    private ?BackgroundProcessSqlite $sqlite = null;
+    private ?string $linuxBootId = null;
 
     public static function vytvorZGlobals(): self
     {
@@ -23,11 +27,9 @@ class BackgroundProcessService
         );
     }
 
-    private ?BackgroundProcessSqlite $sqlite = null;
-    private ?string                 $linuxBootId = null;
-
-    public function __construct(private readonly ClockInterface $clock)
-    {
+    public function __construct(
+        private readonly ClockInterface $clock,
+    ) {
     }
 
     /**
@@ -37,12 +39,12 @@ class BackgroundProcessService
     {
         if ($this->linuxBootId === null) {
             $bootIdFile = '/proc/sys/kernel/random/boot_id';
-            if (!file_exists($bootIdFile)) {
-                throw new \RuntimeException("Soubor '$bootIdFile' neexistuje. Tato služba funguje pouze na Linuxu.");
+            if (! file_exists($bootIdFile)) {
+                throw new \RuntimeException("Soubor '{$bootIdFile}' neexistuje. Tato služba funguje pouze na Linuxu.");
             }
             $bootId = trim(file_get_contents($bootIdFile));
-            if (!$bootId) {
-                throw new \RuntimeException("Nepodařilo se načíst boot_id ze souboru '$bootIdFile'.");
+            if (! $bootId) {
+                throw new \RuntimeException("Nepodařilo se načíst boot_id ze souboru '{$bootIdFile}'.");
             }
             $this->linuxBootId = $bootId;
         }
@@ -56,27 +58,27 @@ class BackgroundProcessService
     public function startBackgroundProcess(
         string $command,
         string $scriptPath,
-        array  $args = [],
+        array $args = [],
         ?array $params = null,
     ): int {
         // Zkontroluj, jestli už proces neběží
         if ($this->isProcessRunning($command)) {
-            throw new \RuntimeException("Proces '$command' již běží");
+            throw new \RuntimeException("Proces '{$command}' již běží");
         }
 
         // Vytvoř příkazovou řádku
         $cmdLine = 'php ' . escapeshellarg($scriptPath);
         foreach ($args as $key => $value) {
             // klíče jsou definované v kódu, hodnotu ale escapujeme
-            $cmdLine .= ' --' . $key . '=' . escapeshellarg((string)$value);
+            $cmdLine .= ' --' . $key . '=' . escapeshellarg((string) $value);
         }
         $cmdLine .= ' > /dev/null 2>&1 & echo $!';
 
         // Spusť proces a získej PID
-        $pid = (int)exec($cmdLine);
+        $pid = (int) exec($cmdLine);
 
         if ($pid <= 0) {
-            throw new \RuntimeException("Nepodařilo se spustit proces $command");
+            throw new \RuntimeException("Nepodařilo se spustit proces {$command}");
         }
 
         // Zaznamenej do databáze
@@ -95,7 +97,7 @@ class BackgroundProcessService
     {
         $process = $this->getSqlite()->findRunningProcessByCommand($command);
 
-        if (!$process) {
+        if (! $process) {
             return false;
         }
 
@@ -104,7 +106,7 @@ class BackgroundProcessService
             // Systém byl restartován, proces už neběží
             $this->getSqlite()->deleteRunningProcess(
                 $process['linux_boot_id'],
-                (int)$process['pid'],
+                (int) $process['pid'],
                 $command,
             );
 
@@ -112,8 +114,8 @@ class BackgroundProcessService
         }
 
         // Zkontroluj, jestli proces s daným PID existuje
-        $pid = (int)$process['pid'];
-        if (!$this->isPidRunning($pid)) {
+        $pid = (int) $process['pid'];
+        if (! $this->isPidRunning($pid)) {
             // Proces už neběží
             $this->getSqlite()->deleteRunningProcess($this->getLinuxBootId(), $pid, $command);
 
@@ -129,7 +131,7 @@ class BackgroundProcessService
     private function isPidRunning(int $pid): bool
     {
         // Na Linuxu: zkontroluj existenci /proc/$pid
-        if (file_exists("/proc/$pid")) {
+        if (file_exists("/proc/{$pid}")) {
             return true;
         }
 
@@ -139,6 +141,7 @@ class BackgroundProcessService
 
     /**
      * Získá informace o běžícím procesu
+     *
      * @return array{
      *     pid: int,
      *     command: string,
@@ -151,12 +154,12 @@ class BackgroundProcessService
      */
     public function getRunningProcessInfo(string $command): ?array
     {
-        if (!$this->isProcessRunning($command)) {
+        if (! $this->isProcessRunning($command)) {
             return null;
         }
 
         $process = $this->getSqlite()->findRunningProcessByCommand($command);
-        if (!$process) {
+        if (! $process) {
             return null;
         }
 
@@ -170,11 +173,11 @@ class BackgroundProcessService
 
         if ($avgDuration !== null) {
             $estimatedRemainingSeconds = max(0, $avgDuration - $elapsedSeconds);
-            $progressPercent = min(100, (int)round(($elapsedSeconds / max($avgDuration, 1)) * 100));
+            $progressPercent = min(100, (int) round(($elapsedSeconds / max($avgDuration, 1)) * 100));
         }
 
         return [
-            'pid'                         => (int)$process['pid'],
+            'pid'                         => (int) $process['pid'],
             'command'                     => $process['command'],
             'started_at'                  => $process['started_at'],
             'elapsed_seconds'             => $elapsedSeconds,
@@ -192,12 +195,14 @@ class BackgroundProcessService
      */
     public function registerShutdownHandler(string $command): void
     {
-        register_shutdown_function(function () use ($command) {
+        register_shutdown_function(function () use (
+            $command,
+        ) {
             $error = error_get_last();
-            if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+            if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
                 // Fatal error
                 $errorMessage = sprintf(
-                    "%s v %s:%d",
+                    '%s v %s:%d',
                     $error['message'],
                     $error['file'],
                     $error['line'],
@@ -214,8 +219,8 @@ class BackgroundProcessService
      * Označí proces jako dokončený (volá se při ukončení procesu)
      */
     public function markProcessCompleted(
-        string  $command,
-        bool    $success = true,
+        string $command,
+        bool $success = true,
         ?string $errorMessage = null,
     ): void {
         $pid = getmypid();
@@ -234,17 +239,20 @@ class BackgroundProcessService
 
     /**
      * Získá výsledek posledního dokončeného procesu (status + případná chybová zpráva)
+     *
      * @return array{status: string, error_message: ?string}|null
      */
     public function getLastCompletedProcessInfo(string $command): ?array
     {
         $entry = $this->getSqlite()->getLastLogEntry($command);
-        if (!$entry) {
+        if (! $entry) {
             return null;
         }
+
         return [
             'status'        => $entry['status'],
-            'error_message' => $entry['error_message'] ?: null,
+            'error_message' => $entry['error_message']
+                ?: null,
         ];
     }
 
@@ -254,7 +262,7 @@ class BackgroundProcessService
     public static function formatDuration(int $seconds): string
     {
         if ($seconds < 60) {
-            return "$seconds s";
+            return "{$seconds} s";
         }
 
         $minutes = floor($seconds / 60);
@@ -262,16 +270,15 @@ class BackgroundProcessService
 
         if ($minutes < 60) {
             return $remainingSeconds > 0
-                ? sprintf("%d min %d s", $minutes, $remainingSeconds)
-                : sprintf("%d min", $minutes);
+                ? sprintf('%d min %d s', $minutes, $remainingSeconds)
+                : sprintf('%d min', $minutes);
         }
 
         $hours = floor($minutes / 60);
         $remainingMinutes = $minutes % 60;
 
-        return sprintf("%d h %d min", $hours, $remainingMinutes);
+        return sprintf('%d h %d min', $hours, $remainingMinutes);
     }
-
 
     private function getSqlite(): BackgroundProcessSqlite
     {
@@ -281,5 +288,4 @@ class BackgroundProcessService
 
         return $this->sqlite;
     }
-
 }

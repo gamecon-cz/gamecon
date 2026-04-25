@@ -32,7 +32,7 @@ class EshopImporter
         $hlavickaKlice = array_map('trim', $row->toArray());
         $hlavicka      = array_flip($hlavickaKlice);
 
-        $pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'je_letosni_hlavni', 'ubytovani_den', 'popis', 'vedlejsi'];
+        $pozadovaneSloupce = ['model_rok', 'nazev', 'kod_predmetu', 'cena_aktualni', 'stav', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'podtyp', 'je_letosni_hlavni', 'ubytovani_den', 'popis', 'vedlejsi'];
         if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
             throw new \Chyba('Chybný formát souboru - chybí sloupce ' . implode(',', array_diff($pozadovaneSloupce, array_keys($hlavicka))));
         }
@@ -45,6 +45,7 @@ class EshopImporter
         $indexNabizetDo       = $hlavicka['nabizet_do'];
         $indexKusuVyrobeno    = $hlavicka['kusu_vyrobeno'];
         $indexTyp             = $hlavicka['typ'];
+        $indexPodtyp          = $hlavicka['podtyp'];
         $indexJeLetosniHlavni = $hlavicka['je_letosni_hlavni'];
         $indexUbytovaniDen    = $hlavicka['ubytovani_den'];
         $indexPopis           = $hlavicka['popis'];
@@ -124,6 +125,7 @@ class EshopImporter
                         $radek[$indexNabizetDo],
                         $cisloNeboNull($radek[$indexKusuVyrobeno]),
                         $cisloNeboNull($radek[$indexTyp]),
+                        $cisloNeboNull($radek[$indexPodtyp]),
                         $celeCislo($radek[$indexJeLetosniHlavni]),
                         $cisloNeboNull($radek[$indexUbytovaniDen]),
                         $radek[$indexPopis],
@@ -152,7 +154,7 @@ SQL,
             $sqlValues = implode(",\n", $sqlValuesArray);
 
             dbQuery(<<<SQL
-INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `je_letosni_hlavni`, `ubytovani_den`, `popis`, `vedlejsi`)
+INSERT INTO `$temporaryTable` (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `podtyp`, `je_letosni_hlavni`, `ubytovani_den`, `popis`, `vedlejsi`)
     VALUES
 $sqlValues
 SQL,
@@ -170,6 +172,7 @@ SET
     shop_predmety.nabizet_do = import.nabizet_do,
     shop_predmety.kusu_vyrobeno = import.kusu_vyrobeno,
     shop_predmety.typ = import.typ,
+    shop_predmety.podtyp = import.podtyp,
     shop_predmety.je_letosni_hlavni = import.je_letosni_hlavni,
     shop_predmety.ubytovani_den = import.ubytovani_den,
     shop_predmety.popis = import.popis,
@@ -180,7 +183,7 @@ SQL,
             $pocetZmenenych = dbAffectedOrNumRows($mysqliResult);
 
             $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `typ`, `je_letosni_hlavni`, `ubytovani_den`, `popis`, `vedlejsi`)
+INSERT INTO shop_predmety (`model_rok`, `nazev`, `kod_predmetu`, `cena_aktualni`, `stav`,  `nabizet_do`, `kusu_vyrobeno`, `typ`, `podtyp`, `je_letosni_hlavni`, `ubytovani_den`, `popis`, `vedlejsi`)
 SELECT import.`model_rok`,
     import.`nazev`,
     import.`kod_predmetu`,
@@ -189,6 +192,7 @@ SELECT import.`model_rok`,
     import.`nabizet_do`,
     import.`kusu_vyrobeno`,
     import.`typ`,
+    import.`podtyp`,
     import.`je_letosni_hlavni`,
     import.`ubytovani_den`,
     import.`popis`,

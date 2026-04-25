@@ -131,7 +131,7 @@ if (post('prihlasitNeboUpravit')) {
         $u->gcPrihlas($u);
     }
     $shop->zpracujPredmety();
-    $shop->zpracujUbytovani();
+    $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
     $shop->zpracujJidlo();
     $shop->zpracujVstupne();
     $pomoc->zpracuj();

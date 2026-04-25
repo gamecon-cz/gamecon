@@ -174,7 +174,7 @@ SQL,
         );
     }
 
-    private function systemoveNastaveniProStorno(int $kolikMinutJeOdhlaseniBezPokuty = self::KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY)
+    private function systemoveNastaveniProStorno(int $kolikMinutJeOdhlaseniBezPokuty = self::KOLIK_MINUT_JE_ODHLASENI_BEZ_POKUTY): SystemoveNastaveni
     {
         return new class($kolikMinutJeOdhlaseniBezPokuty, self::ted()) extends SystemoveNastaveni {
             public function __construct(
@@ -188,8 +188,9 @@ SQL,
                     false,
                     DatabazoveNastaveni::vytvorZGlobals(),
                     '',
-                    sys_get_temp_dir(),
+                    SPEC,
                     kernel: new Kernel('test', false),
+                    publicCacheDir: CACHE,
                 );
             }
 

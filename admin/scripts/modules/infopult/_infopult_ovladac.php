@@ -1,0 +1,185 @@
+<?php
+
+/**
+ * akce proveditelné z infopult záložky
+ */
+
+/**
+ * @var Uzivatel|null|void $u
+ * @var Uzivatel|null|void $uPracovni
+ * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
+ * @var \Gamecon\Shop\Shop|null $shop
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
+
+use Gamecon\Accounting;
+use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Gamecon\Pravo;
+use Gamecon\Role\Role;
+use Gamecon\Uzivatel\Finance;
+use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
+use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Vyjimkovac\Vyjimkovac;
+use Gamecon\Finance\FioPlatba;
+
+if (!empty($_POST['prijelADatMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
+    $uPracovni->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
+    back();
+}
+
+if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
+    $uPracovni->gcPrihlas($u);
+    back();
+}
+
+if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
+    $uPracovni->odhlasZGc('rucne-inpfopult', $u);
+    back();
+}
+
+if (post('gcOdjed') && $uPracovni) {
+    $uPracovni->gcOdjed($u);
+    back();
+}
+
+if (post('platba') && $uPracovni) {
+    if (!$uPracovni->gcPrihlasen()) {
+        varovani('Platba připsána uživateli, který není přihlášen na Gamecon', false);
+    }
+    try {
+        $castka             = post('platba');
+        $poznamka           = post('poznamka');
+        $idPohybu           = !$systemoveNastaveni->jsmeNaOstre()
+            ? post('idPohybu')
+            : null;
+        $provedenoKdy       = post('provedenoKdy');
+        $provedenoKdyObjekt = null;
+        try {
+            $provedenoKdyObjekt = $provedenoKdy && !$systemoveNastaveni->jsmeNaOstre()
+                ? DateTimeImmutableStrict::createFromFormat(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD, $provedenoKdy)
+                : null;
+        } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
+            chyba(sprintf("Neplatný formát data platby. Má být '%s'", DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD));
+        }
+
+        if ((float)$castka < 0 && empty(trim($poznamka))) {
+            chyba('Pro zápornou platbu je poznámka povinná');
+            back();
+        }
+
+        $uPracovni->finance()->pripis(
+            $castka,
+            $u,
+            $poznamka,
+            $idPohybu,
+            $provedenoKdyObjekt,
+        );
+        oznameni("Platba s částkou {$castka} byla připsána");
+    } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
+        if (post('idPohybu') && FioPlatba::existujePodleFioId(post('idPohybu'))) {
+            chyba(sprintf('Tato platba s Fio ID %d již existuje', post('idPohybu')), false);
+        } else {
+            chyba(
+                sprintf("Platbu se nepodařilo uložit. Duplicitní záznam: '%s'", $dbDuplicateEntryException->getMessage()),
+                false,
+            );
+        }
+    }
+    back();
+}
+
+if (($idTransakce = post(OPERATION_CANCEL_TRANSACTION)) &&
+    $u->maPravo(Pravo::MUZE_RUSIT_NAKUPY)) {
+    if (Accounting::cancelTransaction($idTransakce)) {
+        oznameni('Nákup položky zrušen');
+    }
+}
+
+if (!empty($_POST['rychloregistrace'])) {
+    try {
+        $idUzivateleZRychloregistrace = Uzivatel::rychloregistrace($systemoveNastaveni);
+    } catch (DuplicitniEmail $e) {
+        throw new Chyba('Uživatel s zadaným e-mailem už v databázi existuje');
+    } catch (DuplicitniLogin $e) {
+        throw new Chyba('Uživatel s loginem odpovídajícím zadanému e-mailu už v databázi existuje');
+    }
+    if ($idUzivateleZRychloregistrace) {
+        if ($systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) {
+            $rychloregistrovany = Uzivatel::zId($idUzivateleZRychloregistrace);
+            $rychloregistrovany->gcPrihlas($u);
+            if ($systemoveNastaveni->gcBezi()) {
+                $rychloregistrovany->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
+            }
+        }
+        oznameni("Vytořen uživatel s ID {$idUzivateleZRychloregistrace}");
+    }
+}
+
+// TODO: nevyužité, smazat nebo dodělat editaci na infompult
+if (!empty($_POST['telefon']) && $uPracovni) {
+    dbQueryS('UPDATE uzivatele_hodnoty SET telefon_uzivatele=$0 WHERE id_uzivatele=' . $uPracovni->id(), [$_POST['telefon']]);
+    $uPracovni->otoc();
+    back();
+}
+
+// TODO: mělo by být obsaženo v modelové třídě
+function updateUzivatelHodnoty(array $udaje, int $uPracovniId, Vyjimkovac $vyjimkovac): int
+{
+    try {
+        $result = dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
+        return dbAffectedOrNumRows($result);
+    } catch (Exception $e) {
+        $vyjimkovac->zaloguj($e);
+        chyba('Došlo k neočekávané chybě.');
+        return 0;
+    }
+}
+
+/* Editace v kartě Pŕehled */
+if ($uPracovni && ($udaje = (array)post('udaje'))) {
+
+
+    foreach (['potvrzeni_zakonneho_zastupce'] as $klic) {
+        if (isset($udaje[$klic])) {
+            // pokud je hodnota "" tak to znamená že nedošlo ke změně
+            if ($udaje[$klic] == "")
+                unset($udaje[$klic]);
+            else
+                $udaje[$klic] = date('Y-m-d');
+        } else {
+            $udaje[$klic] = null;
+        }
+    }
+
+    // TODO(SECURITY): nebezpečné krmit data do databáze tímhle způsobem Každý si vytvořit do html formuláře input který se pak také propíŠe do DB
+    $zmenenoZaznamu = updateUzivatelHodnoty($udaje, $uPracovni->id(), $vyjimkovac);
+
+    oznameni("Změněno $zmenenoZaznamu záznamů");
+    back();
+}
+
+if (post('zpracujUbytovani')) {
+    $shop->zpracujUbytovani(false, false);
+    oznameni('Ubytování uloženo');
+}
+
+if (post('pridelitPokoj') && $uPracovni) {
+    $pokojPost = post('pokoj');
+    Pokoj::ubytujNaCislo($uPracovni, $pokojPost);
+    oznameni('Pokoj přidělen', false);
+    try {
+        if ($_SERVER['HTTP_REFERER']) {
+            parse_str($_SERVER['QUERY_STRING'], $query_string);
+            unset($query_string['req']);
+            unset($query_string['pokoj']);
+            $query_string  = http_build_query($query_string);
+            $targetAddress = explode("?", $_SERVER['HTTP_REFERER'])[0];
+            header('Location: ' . $targetAddress . ($query_string != "" ? "?" . $query_string : ""), true, 303);
+        } else
+            back();
+    } catch (Error $e) {
+        back();
+    }
+}

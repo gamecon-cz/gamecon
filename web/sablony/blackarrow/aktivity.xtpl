@@ -31,6 +31,7 @@
             </span>
         </span>
         Stránky u aktivit můžeš editovat na <a href="{urlEditaceStranek}">{urlEditaceStranek}</a><br>
+        Šéfa linie, kontakt a obrázek můžeš editovat na <a href="{urlEditaceHlavickyLinie}">{urlEditaceHlavickyLinie}</a><br>
         Novou stránku přidej s <i>Url stranky</i> <span style="font-family: monospace">URL-aktivit/URL-nové-stránky</span>,
         například <span style="font-family: monospace">{prikladUrlStranky}</span>
     </div>

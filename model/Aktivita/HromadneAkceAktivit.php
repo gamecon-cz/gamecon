@@ -9,6 +9,9 @@ use Gamecon\Aktivita\Exceptions\NevhodnyCasProAutomatickouHromadnouAktivaci;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 
 class HromadneAkceAktivit
 {
@@ -93,6 +96,11 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
         );
         $hromadneAktivovanoAktivit = (int)dbAffectedOrNumRows($result);
         dbCommit();
+
+        if ($hromadneAktivovanoAktivit > 0) {
+            (new ProgramStaticFileGenerator($this->systemoveNastaveni))
+                ->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        }
 
         $this->zalogujHromadnouAkci(
             self::SKUPINA_AKTIVITY,
