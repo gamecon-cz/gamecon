@@ -40,6 +40,11 @@ export const tabulkaBuňkaAktivitaTřídy = (
       classes.push("plno");
     }
   }
+  if (!classes.length) {
+    classes.push("otevrene")
+  }
+  classes.push("aktivita")
+
   return classes.join(" ");
 };
 
@@ -88,8 +93,10 @@ export const ProgramTabulkaBuňka: FunctionComponent<
           </a>
           <Obsazenost
             obsazenost={aktivita.obsazenost}
-            prihlasovatelna={aktivita.prihlasovatelna}
-            probehnuta={aktivita.probehnuta}
+            prihlasovatelna={aktivita.prihlasovatelna ?? false}
+            probehnuta={aktivita.probehnuta ?? false}
+            tymPocetClenu={aktivita.tymPocetClenu}
+            tymLimit={aktivita.tymLimit}
           />
           <Přihlašovátko akitivitaId={aktivita.id} />
           {aktivita.mistnost !== null && (

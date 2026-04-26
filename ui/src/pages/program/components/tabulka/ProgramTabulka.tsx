@@ -5,6 +5,8 @@ import { ProgramPosuv } from "./ProgramPosuv";
 import {
   připravTabulkuAktivit,
   SeskupováníAktivit,
+  PředpřivenáTabulkaAktivit,
+  PředpřivenáTabulkaAktivitHierarchie,
 } from "./seskupování";
 import { GAMECON_KONSTANTY } from "../../../../env";
 import {
@@ -51,7 +53,9 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const kompaktní = useProgramStore(s => s.všeobecné.kompaktní);
 
   const seskupPodle =
-    urlStavVýběr.typ === "můj"
+    urlStavVýběr.typ === "všechny_dny"
+      ? SeskupováníAktivit.denALinie
+      : urlStavVýběr.typ === "můj"
       ? SeskupováníAktivit.den
       : SeskupováníAktivit.linie;
 
@@ -75,74 +79,84 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     </tr>
   );
 
-  const tabulkaŘádky = Object.entries(předpřipravenáTabulka)
-    .sort((a, b) => indexŘazení(a[0]) - indexŘazení(b[0]))
-    .map(([klíč, skupina]) => {
-      const řádků: number = Math.max(...skupina.map((x) => x.řádek)) + 1;
+  const vytvořŘádkyZeSeskupiny = (tabulka: PředpřivenáTabulkaAktivit, zobrazitLinii: boolean) =>
+    Object.entries(tabulka)
+      .sort((a, b) => indexŘazení(a[0]) - indexŘazení(b[0]))
+      .flatMap(([klíč, skupina]) => {
+        const řádků: number = Math.max(...skupina.map((x) => x.řádek)) + 1;
 
-      const nadpisSkupiny = (
-        <td rowSpan={Math.max(řádků, 1)}>
-          <div class="program_nazevLinie">{klíč}</div>
-        </td>
-      );
-
-      if (řádků <= 0) {
-        return (
-          <tr>
-            {nadpisSkupiny}
-            <td></td>
-          </tr>
+        const nadpisSkupiny = (
+          <td rowSpan={Math.max(řádků, 1)}>
+            <div class="program_nazevLinie">{klíč}</div>
+          </td>
         );
-      }
 
-      return (
-        <>
-          {range(řádků).map((řádek) => {
-            const klíčSkupiny = řádek === 0 ? nadpisSkupiny : <></>;
+        if (řádků <= 0) {
+          return (
+            <tr>
+              {nadpisSkupiny}
+              <td></td>
+            </tr>
+          );
+        }
 
-            let posledníAktivitaDo = GAMECON_KONSTANTY.PROGRAM_ZACATEK;
-            return (
-              <tr key={nadpisSkupiny}>
-                {klíčSkupiny}
-                {skupina
-                  .filter((x) => x.řádek === řádek)
-                  .map((x) => x.aktivita)
-                  .sort((a1, a2) => a1.cas.od - a2.cas.od)
-                  .map((aktivita) => {
-                    const hodinOd = pražskéHodiny(new Date(aktivita.cas.od));
-                    const hodinDo = pražskéHodiny(new Date(aktivita.cas.do));
+        return range(řádků).map((řádek) => {
+          const klíčSkupiny = řádek === 0 ? nadpisSkupiny : <></>;
 
-                    const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
-                    const odsazení = časOdsazení > 0
+          let posledníAktivitaDo = GAMECON_KONSTANTY.PROGRAM_ZACATEK;
+          return (
+            <tr key={`${klíč}-${řádek}`}>
+              {klíčSkupiny}
+              {skupina
+                .filter((x) => x.řádek === řádek)
+                .map((x) => x.aktivita)
+                .sort((a1, a2) => a1.cas.od - a2.cas.od)
+                .map((aktivita) => {
+                  const hodinOd = pražskéHodiny(new Date(aktivita.cas.od));
+                  const hodinDo = pražskéHodiny(new Date(aktivita.cas.do));
+
+                  const časOdsazení = (hodinOd - posledníAktivitaDo + 24) % 24;
+                  const odsazení = časOdsazení > 0
                       ? <td colSpan={časOdsazení}></td>
                       : <></>;
-                    posledníAktivitaDo = hodinDo;
+                  posledníAktivitaDo = hodinDo;
 
-                    return (
-                      <>
-                        {odsazení}
-                        <ProgramTabulkaBuňka
-                          aktivitaId={aktivita.id}
-                          zobrazLinii={seskupPodle === SeskupováníAktivit.den}
-                          kompaktní={kompaktní}
-                        />
-                      </>
-                    );
-                  })}
-                {
-                  <td colSpan={(GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24}></td>
-                }
-              </tr>
-            );
-          })}
-        </>
-      );
-    });
+                  return (
+                    <>
+                      {odsazení}
+                      <ProgramTabulkaBuňka
+                        aktivitaId={aktivita.id}
+                        zobrazLinii={zobrazitLinii}
+                        kompaktní={kompaktní}
+                      />
+                    </>
+                  );
+                })}
+              {
+                <td colSpan={(GAMECON_KONSTANTY.PROGRAM_KONEC - posledníAktivitaDo + 24) % 24}></td>
+              }
+            </tr>
+          );
+        });
+      });
+
+  const tabulkaŘádky =
+    seskupPodle === SeskupováníAktivit.denALinie
+      ? Object.entries(předpřipravenáTabulka as PředpřivenáTabulkaAktivitHierarchie)
+          .flatMap(([denKlíč, tabulkaProDen]) => [
+            <tr key={`nadpis-${denKlíč}`}>
+              <td colSpan={PROGRAM_ČASY.length + 1}>
+                <div class="program_den_nadpis">{denKlíč}</div>
+              </td>
+            </tr>,
+            ...vytvořŘádkyZeSeskupiny(tabulkaProDen, true),
+          ])
+      : vytvořŘádkyZeSeskupiny(předpřipravenáTabulka as PředpřivenáTabulkaAktivit, seskupPodle === SeskupováníAktivit.den);
 
   const tabulka = (
     <>
       {tabulkaHlavičkaČasy}
-      {aktivityFiltrované.length || seskupPodle === SeskupováníAktivit.den
+      {aktivityFiltrované.length || seskupPodle === SeskupováníAktivit.den || seskupPodle === SeskupováníAktivit.denALinie
         ? tabulkaŘádky
         : tabulkaŽádnéAktivity}
     </>

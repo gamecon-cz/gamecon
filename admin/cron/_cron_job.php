@@ -70,6 +70,12 @@ if ($job === 'promlceni') {
     return;
 }
 
+if ($job === 'mazani_nepripravenych_tymu') {
+    require __DIR__ . '/jobs/mazani_nepripravenych_tymu.php';
+
+    return;
+}
+
 if ($job !== 'aktivity_hromadne') {
     throw new \RuntimeException(sprintf("Invalid job '%s'", $job));
 }

@@ -21,20 +21,18 @@ class AkceSeznamSqlStruktura
     public const BEZ_SLEVY        = 'bez_slevy';
     public const NEDAVA_BONUS     = 'nedava_bonus';
     public const TYP              = 'typ';
-    public const DITE             = 'dite';
     public const ROK              = 'rok';
     public const STAV             = 'stav';
     public const TEAMOVA          = 'teamova';
     public const TEAM_MIN         = 'team_min';
     public const TEAM_MAX         = 'team_max';
     public const TEAM_KAPACITA    = 'team_kapacita';
-    public const TEAM_NAZEV       = 'team_nazev';
-    public const TEAM_LIMIT       = 'team_limit';
-    public const ZAMCEL           = 'zamcel';
-    public const ZAMCEL_CAS       = 'zamcel_cas';
+    public const TYM_SMAZAT_PO_EXPIRACI = 'tym_smazat_po_expiraci';
     public const POPIS            = 'popis';
     public const POPIS_KRATKY     = 'popis_kratky';
     public const VYBAVENI         = 'vybaveni';
     public const PROBEHLA_KOREKCE    = 'probehla_korekce';
     public const ID_HLAVNI_LOKACE   = 'id_hlavni_lokace';
+    public const ID_TURNAJE         = 'id_turnaje';
+    public const TURNAJ_KOLO        = 'turnaj_kolo';
 }

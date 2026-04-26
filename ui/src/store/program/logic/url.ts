@@ -10,6 +10,9 @@ export type ProgramTabulkaVýběr =
     typ: "den";
     datum: Date;
   }
+  | {
+    typ: "všechny_dny";
+  }
   ;
 
 export type ProgramURLStav = {
@@ -146,6 +149,8 @@ export const urlStavProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?: 
 const urlZTabulkaVýběr = (výběr: ProgramTabulkaVýběr) =>
   výběr.typ === "můj"
     ? "muj"
+    : výběr.typ === "všechny_dny"
+    ? "vsechny-dny"
     : formátujDenVTýdnu(výběr.datum)
   ;
 

@@ -1,7 +1,7 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
-$dbName = DB_NAME;
+$dbName = $this->getCurrentDb();
 
 // 1. Add id_hlavni_lokace column to akce_seznam (if not exists)
 $columnExists = $this->q(<<<SQL

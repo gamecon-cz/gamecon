@@ -221,47 +221,6 @@
         </td>
     </tr>
     <tr>
-        <th class="hinted">
-      <span class="hint">Univerzálně použitelná místa / místa vyhrazená pro holky / místa vyhrazená pro kluky<br/>
-          <br/>
-          Kapacita 0/0/0 znamená bez omezení
-        </span>
-            <label for="kapacitaStd" class="hinted">Kapacita</label>
-        </th>
-        <td>
-            <div id="kapacitaStd">
-                <input type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
-                <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}"> /
-                <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}">
-            </div>
-            <div id="teamVelikost">
-                <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">–<input
-                    type="text" style="width:25px" name="{fields}[team_max]" value="{team_max}">
-                <span class="hinted">(velikost teamu)<div class="hint"> Kolik je minimální až maximální velikost teamu (družiny). Místa jsou jen univerzální.</div></span>
-            </div>
-        </td>
-    </tr>
-    <tr>
-        <th>
-            <label for="cenaAktivityCelkem" class="display-block">Cena</label>
-            <label for="odmenaZaHodinu" class="display-none">Odměna za hodinu</label>
-        </th>
-        <td>
-            <input id="cenaAktivityCelkem" type="text" style="width:4em" name="{fields}[cena]" value="{cena}">
-            <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
-                   value="{odmenaZaHodinu}">
-            <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span
-                    class="hint">Musíš správně vyplnit čas od - do</span></span>
-            <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
-            <script>if ('{bez_slevy}') {
-                $('[name="{fields}[bez_slevy]"]').attr('checked', '{bez_slevy}' === '1')
-            }</script>
-            <div class="hinted" style="float:right;margin-top:2px"><label for="bezSlev">bez slev</label>
-                <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
-            </div>
-        </td>
-    </tr>
-    <tr>
         <th><label class="display-block" for="typAktivity">Typ</label></th>
         <td>
             <select name="{fields}[typ]" id="typAktivity">
@@ -346,6 +305,58 @@
         </script>
     </tr>
     <tr>
+        <th class="hinted">
+            <label for="kapacitaInput" class="hinted">Kapacita</label>
+        </th>
+        <td>
+            <div id="kapacitaStd">
+                <input id="kapacitaInput" type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
+                <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}"> /
+                <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}">
+                <span class="hinted"><div class="hint">Univerzálně / holky / kluky<br/>Kapacita 0/0/0 znamená bez omezení</div></span>
+            </div>
+            <div id="teamVelikost" style="display:none">
+                min: <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">
+                max: <input type="text" style="width:25px" name="{fields}[team_max]" value="{team_max}">
+                týmů¹: <input type="text" style="width:25px" name="{fields}[team_kapacita]" value="{team_kapacita}">
+                <span class="hinted"><div class="hint">Minimální a maximální velikost teamu (družiny) + maximální počet týmů na aktivitě.<br/>Čísla bez omezení zanechejte prázdná.</div></span>
+            </div>
+            <script>
+                // Inicializace viditelnosti kapacity (musí být POTÉ, co jsou divy v DOM)
+                $(document).ready(function() {
+                    var box = $('[name="{fields}[teamova]"]')
+                    box.change(function () {
+                        $('#teamVelikost').toggle(this.checked)
+                        $('#kapacitaStd').toggle(!this.checked)
+                    })
+                    // Počáteční nastavení
+                    $('#teamVelikost').toggle(box.is(':checked'))
+                    $('#kapacitaStd').toggle(!box.is(':checked'))
+                })
+            </script>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            <label for="cenaAktivityCelkem" class="display-block">Cena</label>
+            <label for="odmenaZaHodinu" class="display-none">Odměna za hodinu</label>
+        </th>
+        <td>
+            <input id="cenaAktivityCelkem" type="text" style="width:4em" name="{fields}[cena]" value="{cena}">
+            <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
+                   value="{odmenaZaHodinu}">
+            <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span
+                    class="hint">Musíš správně vyplnit čas od - do</span></span>
+            <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
+            <script>if ('{bez_slevy}') {
+                $('[name="{fields}[bez_slevy]"]').attr('checked', '{bez_slevy}' === '1')
+            }</script>
+            <div class="hinted" style="float:right;margin-top:2px"><label for="bezSlev">bez slev</label>
+                <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
+            </div>
+        </td>
+    </tr>
+    <tr>
         <th><label for="vyberTagu" class="display-block">Tagy</label></th>
         <td>
             <select name="{aEditTag}[]" multiple="multiple" id="vyberTagu">
@@ -390,77 +401,76 @@
     </tr>
     <tr>
         <th class="hinted">
-            <span class="hint" style="margin-top: 1em">Vyber předchozí aktivity, které budou pokračovat touto aktivitou, tímto (semi)finále.</span>
-            <label for="rodice">
-                <span class="hinted">Rodiče (předcházející)</span>
-            </label>
+            <span class="hint" style="margin-top: 1em">Vyber existující turnaj, nebo zadej název nového. Kolo: 1 = první (úvodní) kolo.</span>
+            <label for="turnajSelect">Turnaj¹</label>
         </th>
         <td>
-            <select id="rodice" name="{fields}[rodic][]" multiple>
-                <!-- begin:rodic -->
-                <option {selected} value="{id_rodice}">{nazev_rodice}</option><!-- end:rodic -->
+            <select id="turnajSelect" name="{fields}[id_turnaje]" style="max-width:300px">
+                <option value="">— žádný —</option>
+                <option value="__novy__">+ Vytvořit nový turnaj…</option>
+                <!-- begin:turnaj -->
+                <option value="{id_turnaje}" {turnaj_selected}>{nazev_turnaje}</option>
+                <!-- end:turnaj -->
             </select>
-            <script type="text/javascript">
-                const $rodiceMultiselect = $('#rodice')
-                document.addEventListener('DOMContentLoaded', function () {
-                    const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
-                    let rodiceMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200)
-                    if (rodiceMultiselectColumns < 1) {
-                        rodiceMultiselectColumns = 1
-                    }
-                    $rodiceMultiselect.multiselect('settings', {columns: rodiceMultiselectColumns})
-                })
-
-                $rodiceMultiselect.multiselect({
-                    columns: 2,
-                    search: true,
-                    texts: {
-                        'placeholder': 'Zadej rodiče',
-                        'search': 'Hledej rodiče',
-                        'selectedOptions': ' vybraných rodičů',
-                    },
-                    maxPlaceholderOpts: 3,
-                    selectAll: false,
-                })
-            </script>
+            <span style="margin-left:12px">
+                <label for="turnajKolo">Kolo:</label>
+                <select id="turnajKolo" name="{fields}[turnaj_kolo]">
+                    <option value="">—</option>
+                    <option value="1" {turnaj_kolo_1}>1</option>
+                    <option value="2" {turnaj_kolo_2}>2</option>
+                    <option value="3" {turnaj_kolo_3}>3</option>
+                    <option value="4" {turnaj_kolo_4}>4</option>
+                    <option value="5" {turnaj_kolo_5}>5</option>
+                </select>
+            </span>
         </td>
     </tr>
+    <tr id="novyTurnajWrap" style="display:none">
+        <th><label for="novyTurnajNazev">Název nového turnaje</label></th>
+        <td><input type="text" name="{fields}[novy_turnaj_nazev]" id="novyTurnajNazev" placeholder="Název nového turnaje" class="full"></td>
+    </tr>
+    <script>
+        (function () {
+            var sel = document.getElementById('turnajSelect')
+            var wrap = document.getElementById('novyTurnajWrap')
+            var nazevInput = document.getElementById('novyTurnajNazev')
+            var predvyplneno = false
+            function updateWrap() {
+                wrap.style.display = sel.value === '__novy__' ? '' : 'none'
+                if (sel.value === '__novy__' && !predvyplneno) {
+                    nazevInput.value = document.getElementById('nazevAkce').value
+                    predvyplneno = true
+                }
+            }
+            sel.addEventListener('change', updateWrap)
+            updateWrap()
+        })()
+    </script>
+    <!-- begin:kolaTurnaje -->
     <tr>
-        <th>
-            <label for="deti">
-                <span class="hinted">Děti (navazující)<span class="hint">Vyber následující (semi)finále, která rozhodnou o vítězi této aktivity, tohoto čtvrt/semi-finále</span></span>
-            </label>
-        </th>
+        <th>Kola</th>
         <td>
-            <select id="deti" name="{fields}[dite][]" multiple>
-                <!-- begin:dite -->
-                <option {selected} value="{id_ditete}">{nazev_ditete}</option><!-- end:dite -->
-            </select>
-            <script type="text/javascript">
-                const $detiMultiselect = $('#deti')
-                document.addEventListener('DOMContentLoaded', function () {
-                    const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth
-                    let detiMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200)
-                    if (detiMultiselectColumns < 1) {
-                        detiMultiselectColumns = 1
-                    }
-                    $detiMultiselect.multiselect('settings', {columns: detiMultiselectColumns})
-                })
-
-                $detiMultiselect.multiselect({
-                    columns: 2,
-                    search: true,
-                    texts: {
-                        'placeholder': 'Zadej dítě',
-                        'search': 'Hledej dítě',
-                        'selectedOptions': ' vybraných dětí',
-                    },
-                    maxPlaceholderOpts: 3,
-                    selectAll: false,
-                })
-            </script>
+            <table>
+                <tr>
+                    <th style="padding-right:1em">#</th>
+                    <th style="padding-right:1em">Čas</th>
+                    <th style="padding-right:1em">Kapacita týmů</th>
+                    <th>ID</th>
+                    <th style="padding-right:1em">Připravená</th>
+                </tr>
+                <!-- begin:koloTurnaje -->
+                <tr>
+                    <td style="padding-right:1em">{kolo_cislo}.</td>
+                    <td style="padding-right:1em">{kolo_den} {kolo_cas_od}–{kolo_cas_do}</td>
+                    <td style="padding-right:1em">{kolo_team_kapacita}</td>
+                    <td>{kolo_id_akce_html}</td>
+                    <td style="padding-right:1em">{kolo_pripravena}</td>
+                </tr>
+                <!-- end:koloTurnaje -->
+            </table>
         </td>
     </tr>
+    <!-- end:kolaTurnaje -->
 </table>
 <!-- end:tabulka -->
 

@@ -1,11 +1,12 @@
 import { useProgramStore } from ".";
-import { Pohlavi, PřihlášenýUživatel } from "../../api/přihlášenýUživatel";
+import { Pohlavi, ApiPřihlášenýUživatel } from "../../api/přihlášenýUživatel";
 import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
 import { FiltrAktivit, filtrujAktivity, MapováníTagů, vytvořMapováníTagů } from "./logic/aktivity";
 import { PRÁZDNÉ_POLE, distinct } from "../../utils";
 import { useMemo } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
 import { Aktivita } from "./slices/programDataSlice";
+import { NastaveniTymuData } from "./slices/všeobecnéSlice";
 
 const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   const urlStav = useProgramStore((s) => s.urlStav);
@@ -134,11 +135,15 @@ export const useUrlStavMožnostiDny = (): ProgramTabulkaVýběr[] => useProgramS
 export const useUrlStavMožnosti = () => useProgramStore(s => s.urlStavMožnosti);
 export const useUrlStavStavyFiltr = () => useProgramStore(s => s.urlStav.filtrStavAktivit ?? []);
 
-export const useUživatel = (): PřihlášenýUživatel => useProgramStore(s => s.přihlášenýUživatel.data);
+export const useUživatel = (): ApiPřihlášenýUživatel => useProgramStore(s => s.přihlášenýUživatel.data);
 export const useUživatelPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.přihlášenýUživatel.data?.pohlavi);
+export const useUživatelJeSefInfa = (): boolean => useProgramStore((s) => s.přihlášenýUživatel.data?.sefInfa ?? false);
 
 export const useFiltryOtevřené = (): boolean => useProgramStore(s => s.všeobecné.filtryOtevřené);
 export const useOdhlasitModalAktivitaId = (): number | undefined => useProgramStore(s => s.všeobecné.modalOdhlásitAktivitaId);
+export const useNastaveniTymuModalAktivitaId = (): number | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.aktivitaId);
+export const useNastaveniTymuModalNazevAktivity = (): string | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.nazevAktivity);
+export const useNastaveniTymuModalData = (): NastaveniTymuData | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.data);
 
 export const useTagy = () => useProgramStore((s) => s.data.tagy);
 

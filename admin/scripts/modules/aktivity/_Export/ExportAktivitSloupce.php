@@ -22,7 +22,8 @@ class ExportAktivitSloupce
     public const JE_TYMOVA = 'Je týmová'; // teamova
     public const MINIMALNI_KAPACITA_TYMU = 'Minimální kapacita týmu'; // team_min
     public const MAXIMALNI_KAPACITA_TYMU = 'Maximální kapacita týmu'; // team_max
-    public const NASLEDUJICI_SEMIFINALE = 'Následující (semi)finále'; // dite
+    // todo(tym): tady se něco dělo s děti takže se má asi nějak řešit turnaj
+    public const NASLEDUJICI_SEMIFINALE = 'Následující (semi)finále';
     public const CENA = 'Cena'; // cena
     public const BEZ_SLEV = 'Bez slev'; // bez_slevy
     public const PRIPRAVA_MISTNOSTI = 'Příprava místnosti'; // vybaveni

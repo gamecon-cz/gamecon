@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita;
 
+use Chyba;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportSqlColumn;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportSqlMappedValuesChecker;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ImportValuesDescriber;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
+use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\Aktivita\SqlStruktura\AkceLokaceSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceOrganizatoriSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura;
@@ -38,6 +40,10 @@ use Granam\RemoveDiacritics\RemoveDiacritics;
 use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
 
+
+
+
+// todo: s chybami se těžko pracuje, funkce zkontroluj by měli spíš vracet string nebo objekt s detaily o chybě nebo nic pokud nedojde k chybě
 /**
  * Třída aktivity
  */
@@ -73,6 +79,7 @@ class Aktivita
     private ?array            $tagy       = null;
     private ?AktivitaPrezence $prezence   = null;
     private ?Filesystem       $filesystem = null;
+    private ?AktivitaTurnaj   $turnaj     = null;
 
     const AJAX_KLIC             = 'aEditFormTest'; // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
     const OBRAZEK_KLIC          = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
@@ -82,29 +89,45 @@ class Aktivita
     const HLAVNI_LOKACE_KLIC    = 'aEditHlavniLokace'; // název proměnné; v které jdou lokace
     const POTVRDIT_ZMENU_UDAJU_S_PRIHLASENYMI_KLIC = 'potvrditZmenuUdajuSPrihlasenymi';
     const POST_KLIC             = 'aEditForm'; // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
-    const TEAM_KLIC             = 'aTeamForm'; // název post proměnné s formulářem pro výběr teamu
-    const TEAM_KLIC_KOLA        = 'aTeamFormKolo'; // název post proměnné s výběrem kol pro team
     const PN_PLUSMINUSP         = 'cAktivitaPlusminusp'; // název post proměnné pro úpravy typu plus
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
-    const HAJENI_TEAMU_HODIN    = 72; // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     const LIMIT_POPIS_KRATKY    = 180; // max počet znaků v krátkém popisku
-    // ignore a parametry kolem přihlašovátka
-    const PLUSMINUS                          = 0b0000000000001; // plus/mínus zkratky pro měnění míst v team. aktivitě
-    const PLUSMINUS_KAZDY                    = 0b0000000000010; // plus/mínus zkratky pro každého
-    const STAV                               = 0b0000000000100; // ignorování stavu
-    const ZAMEK                              = 0b0000000001000; // ignorování zamčení pro tým
-    const BEZ_POKUT                          = 0b0000000010000; // odhlášení bez pokut
-    const ZPETNE                             = 0b0000000100000; // možnost zpětně měnit přihlášení
-    const INTERNI                            = 0b0000001000000; // přihlašovat i skryté technické a brigádnické aktivity
-    const NEPOSILAT_MAILY_SLEDUJICIM         = 0b0000010000000; // odhlášení bez mailů náhradníkům
-    const DOPREDNE                           = 0b0000100000000; // možnost přihlásit před otevřením registrací na aktivity
-    const IGNOROVAT_LIMIT                    = 0b0001000000000;
-    const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b0010000000000;
-    const NEOTEVRENE                         = 0b0100000000000; // přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity
-    const UKAZAT_DETAILY_CHYBY               = 0b1000000000000;
-    // parametry kolem továrních metod
-    const JEN_VOLNE  = 0b00000001; // jen volné aktivity
-    const VEREJNE    = 0b00000010; // jen veřejně viditelné aktivity
+
+    // todo: tym asi lepší commenty k parametrům by bodly :)
+    /* ignore a parametry kolem přihlašovátka */
+    /** plus/mínus zkratky pro měnění míst v team. aktivitě */
+    const PLUSMINUS                           = 0b00000000_00000001;
+    /** plus/mínus zkratky pro každého */
+    const PLUSMINUS_KAZDY                     = 0b00000000_00000010;
+    /** ignorování stavu */
+    const STAV                                = 0b00000000_00000100;
+    /** odhlášení bez pokut */
+    const BEZ_POKUT                           = 0b00000000_00010000;
+    /** možnost zpětně měnit přihlášení */
+    const ZPETNE                              = 0b00000000_00100000;
+    /** přihlašovat i skryté technické a brigádnické aktivity */
+    const INTERNI                             = 0b00000000_01000000;
+    /** odhlášení bez mailů náhradníkům */
+    const NEPOSILAT_MAILY_SLEDUJICIM          = 0b00000000_10000000;
+    /** možnost přihlásit před otevřením registrací na aktivity */
+    const DOPREDNE                            = 0b00000001_00000000;
+    const IGNOROVAT_LIMIT                     = 0b00000010_00000000;
+    const IGNOROVAT_PRIHLASENI_NA_STEJNE_KOLO = 0b00000100_00000000;
+    /** přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity */
+    const NEOTEVRENE                          = 0b00001000_00000000;
+    const UKAZAT_DETAILY_CHYBY                = 0b00010000_00000000;
+    /** nepřihlašuje ostaní kola turnaje */
+    const IGNOROVAT_TURNAJ                    = 0b00100000_00000000;
+    /** ignoruje kontroly přihlašování, nejčastěji protože už předtím proběhly, tak netřeba je pouštět znovu */
+    const IGNOROVAT_KONTROLY                  = 0b01000000_00000000;
+    const ODEMKNI_TYM_ODHLASENIM              = 0b10000000_00000000;
+    const IGNOROVAT_ZAMCENI_TYMU            = 0b1_00000000_00000000;
+
+    /* parametry kolem továrních metod */
+    /** jen volné aktivity */
+    const JEN_VOLNE  = 0b00000001;
+    /** jen veřejně viditelné aktivity */
+    const VEREJNE    = 0b00000010;
     const ZAMCENE    = 0b00000100;
     const NEUZAVRENE = 0b00001000;
 
@@ -400,50 +423,45 @@ SQL
         return null;
     }
 
-    /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
-    public function deti(): array
+    public function idTurnaje(): ?int
     {
-        if ($this->a[Sql::DITE]) {
-            return self::zIds(
-                ids: $this->a[Sql::DITE],
-                systemoveNastaveni: $this->systemoveNastaveni,
-                prednacitat: $this->prednacitat,
-            );
-        }
-
-        return [];
+        return isset($this->a[Sql::ID_TURNAJE]) && $this->a[Sql::ID_TURNAJE] !== null
+            ? (int)$this->a[Sql::ID_TURNAJE]
+            : null;
     }
 
-    public function maDite(int $idDitete): bool
+    public function turnajKolo(): ?int
     {
-        return in_array($idDitete, $this->detiIds(), true);
+        return isset($this->a[Sql::TURNAJ_KOLO]) && $this->a[Sql::TURNAJ_KOLO] !== null
+            ? (int)$this->a[Sql::TURNAJ_KOLO]
+            : null;
+    }
+
+    public function jeSoucastiTurnaje(): bool
+    {
+        return $this->idTurnaje() !== null;
     }
 
     /**
-     * @return int[]
+     * Vrátí AktivitaTurnaj objekt, pokud je aktivita součástí turnaje, jinak null.
+     * Lazy-loads turnaj na první požadavek.
      */
-    public function detiIds(): array
+    public function turnaj(): ?AktivitaTurnaj
     {
-        if (!$this->a[Sql::DITE]) {
-            return [];
-        }
-
-        return $this->parseIds($this->a[Sql::DITE] ?? '');
-    }
-
-    public function detiDbString(): ?string
-    {
-        if (!$this->a[Sql::DITE]) {
+        if (!$this->jeSoucastiTurnaje()) {
             return null;
         }
 
-        return $this->a[Sql::DITE];
+        if ($this->turnaj === null) {
+            $this->turnaj = AktivitaTurnaj::najdiPodleId($this->idTurnaje());
+        }
+
+        return $this->turnaj;
     }
 
     public function jeToDalsiKolo(): bool
     {
-        return in_array($this->typId(), [TypAktivity::LKD, TypAktivity::DRD], true)
-               && empty($this->detiDbString());
+        return $this->jeSoucastiTurnaje() && $this->turnajKolo() !== 1;
     }
 
     /** Počet hodin do začátku aktivity (float) */
@@ -495,7 +513,7 @@ SQL
                 : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = Uzivatel::zId($orgId);
-                if ($kolizniAktivita = $org->maKoliziSJinouAktivitou($zacatek, $konec, $ignorovatAktivitu)) {
+                if ($kolizniAktivita = $org->maKoliziSJinouAktivitouVCase($zacatek, $konec, $ignorovatAktivitu)) {
                     $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu: ' . $kolizniAktivita->nazev();
                 }
             }
@@ -563,8 +581,7 @@ SQL
 
         self::parseUpravyTabulkaTagy($aktivita, $editorTagu, $xtpl);
         self::parseUpravyTabulkaLokace($aktivita, $xtpl);
-        self::parseUpravyTabulkaDeti(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
-        self::parseUpravyTabulkaRodice(aktivita: $aktivita, xtpl: $xtpl, systemoveNastaveni: $systemoveNastaveni);
+        self::parseUpravyTabulkaTurnaje($aktivita, $xtpl);
 
         // editace dnů + časů
         // načtení dnů
@@ -675,37 +692,6 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaDeti(
-        ?Aktivita           $aktivita,
-        XTemplate           $xtpl,
-        ?SystemoveNastaveni $systemoveNastaveni,
-    ): void {
-        $q = dbQuery(
-            "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
-            [1 => $aktivita?->id(), 2 => ROCNIK],
-        );
-        $detiIds = $aktivita
-            ? $aktivita->detiIds()
-            : [];
-        while ($mozneDiteData = mysqli_fetch_assoc($q)) {
-            $mozneDiteId = $mozneDiteData[Sql::ID_AKCE];
-            $xtpl->assign(
-                'selected',
-                in_array($mozneDiteId, $detiIds, false)
-                    ? 'selected'
-                    : '',
-            );
-            $mozneDite = Aktivita::zId(
-                id: $mozneDiteId,
-                zCache: true,
-                systemoveNastaveni: $systemoveNastaveni,
-            );
-            $xtpl->assign('id_ditete', $mozneDiteId);
-            $xtpl->assign('nazev_ditete', self::dejRozsirenyNazevAktivity($mozneDite));
-            $xtpl->parse('upravy.tabulka.dite');
-        }
-    }
-
     private static function dejRozsirenyNazevAktivity(Aktivita $aktivita): string
     {
         return sprintf(
@@ -724,27 +710,63 @@ SQL
         );
     }
 
-    private static function parseUpravyTabulkaRodice(
-        ?Aktivita           $aktivita,
-        XTemplate           $xtpl,
-        ?SystemoveNastaveni $systemoveNastaveni,
+    private static function parseUpravyTabulkaTurnaje(
+        ?Aktivita $aktivita,
+        XTemplate $xtpl,
     ): void {
-        $q = dbQuery(
-            "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
-            [1 => $aktivita?->id(), 2 => ROCNIK],
+        $aktualniTurnajId = $aktivita
+            ? dbOneCol(
+                'SELECT id_turnaje FROM akce_seznam WHERE id_akce = $0',
+                [0 => $aktivita->id()],
+            )
+            : null;
+        $aktualniKolo = $aktivita
+            ? (int)dbOneCol(
+                'SELECT turnaj_kolo FROM akce_seznam WHERE id_akce = $0',
+                [0 => $aktivita->id()],
+            )
+            : 0;
+        for ($kolo = 1; $kolo <= 5; $kolo++) {
+            $xtpl->assign('turnaj_kolo_' . $kolo, $kolo === $aktualniKolo ? 'selected' : '');
+        }
+        $turnaje = dbFetchAll(
+            'SELECT id_turnaje, nazev FROM turnaje WHERE rok = $0 ORDER BY nazev',
+            [0 => ROCNIK],
         );
-        while ($moznyRodicData = mysqli_fetch_assoc($q)) {
-            $moznyRodicId = $moznyRodicData[Sql::ID_AKCE];
-            $moznyRodic = Aktivita::zId(id: $moznyRodicId, zCache: true, systemoveNastaveni: $systemoveNastaveni);
-            $xtpl->assign(
-                'selected',
-                $aktivita && $moznyRodic->maDite($aktivita->id())
-                    ? 'selected'
-                    : '',
+        foreach ($turnaje as $turnaj) {
+            $xtpl->assign('id_turnaje', $turnaj['id_turnaje']);
+            $xtpl->assign('nazev_turnaje', htmlspecialchars($turnaj['nazev'], ENT_QUOTES | ENT_HTML5));
+            $xtpl->assign('turnaj_selected', (int)$turnaj['id_turnaje'] === (int)$aktualniTurnajId ? 'selected' : '');
+            $xtpl->parse('upravy.tabulka.turnaj');
+        }
+        if ($aktualniTurnajId) {
+            $kolaInfo = dbFetchAll(
+                'SELECT turnaj_kolo, zacatek, konec, id_akce, team_kapacita, stav
+                 FROM akce_seznam
+                 WHERE id_turnaje = $0 AND turnaj_kolo > 0
+                 ORDER BY turnaj_kolo, zacatek',
+                [0 => $aktualniTurnajId],
             );
-            $xtpl->assign('id_rodice', $moznyRodicId);
-            $xtpl->assign('nazev_rodice', self::dejRozsirenyNazevAktivity($moznyRodic));
-            $xtpl->parse('upravy.tabulka.rodic');
+            foreach ($kolaInfo as $koloInfo) {
+                $zacatek = $koloInfo['zacatek'] ? new DateTimeCz($koloInfo['zacatek']) : null;
+                $konec   = $koloInfo['konec'] ? new DateTimeCz($koloInfo['konec']) : null;
+                $xtpl->assign([
+                    'kolo_cislo'        => $koloInfo['turnaj_kolo'],
+                    'kolo_den'          => $zacatek ? $zacatek->format('l') : '?',
+                    'kolo_cas_od'       => $zacatek ? $zacatek->format('G') : '?',
+                    'kolo_cas_do'       => $konec ? $konec->format('G') : '?',
+                    'kolo_id_akce_html'  => (int)$koloInfo['id_akce'] === $aktivita?->id()
+                        ? '<strong>' . $koloInfo['id_akce'] . '</strong>'
+                        : '<a href="' . Urls::urlAdminDetailAktivity((int)$koloInfo['id_akce']) . '">' . $koloInfo['id_akce'] . '</a>',
+                    'kolo_team_kapacita' => $koloInfo['team_kapacita'] ?? '',
+                    'kolo_pripravena'    => (int)$koloInfo['stav'] !== StavAktivity::NOVA
+                        ? '✓'
+                        : '<input type="hidden" name="koloAktivitaId" value="' . (int)$koloInfo['id_akce'] . '">'
+                            . '<button type="submit" name="publikovatKolo" value="1" class="publikovat" style="padding-left:0;padding-right:0" title="Publikuj na webu">pub</button>',
+                ]);
+                $xtpl->parse('upravy.tabulka.kolaTurnaje.koloTurnaje');
+            }
+            $xtpl->parse('upravy.tabulka.kolaTurnaje');
         }
     }
 
@@ -991,25 +1013,33 @@ SQL
         $popis = $a[Sql::POPIS];
         unset($a[Sql::POPIS]);
 
-        $a[Sql::DITE] = !empty($a[Sql::DITE])
-            ? implode(
-                ',',
-                array_map(static function (
-                    $diteId,
-                ) {
-                    return (int)$diteId;
-                }, $a[Sql::DITE]),
-            )
-            : null;
-
-        $rodiceIds = [];
-        if (!empty($a['rodic'])) {
-            $rodiceIds = array_map(static function (
-                $rodicId,
-            ) {
-                return (int)$rodicId;
-            }, $a['rodic']);
-            unset($a['rodic']);
+        // zpracování turnaje
+        if (!empty($a[Sql::ID_TURNAJE])) {
+            if (isset($a[Sql::TURNAJ_KOLO]) && $a[Sql::TURNAJ_KOLO] !== '') {
+                $a[Sql::TURNAJ_KOLO] = (int)$a[Sql::TURNAJ_KOLO];
+            } else {
+                chyba('Zadej kolo turnaje', false);
+            }
+        } else {
+            $a[Sql::TURNAJ_KOLO] = null;
+        }
+        $novyTurnajNazev = trim((string)($a['novy_turnaj_nazev'] ?? ''));
+        unset($a['novy_turnaj_nazev']);
+        if (($a[Sql::ID_TURNAJE] ?? '') === '__novy__') {
+            if ($novyTurnajNazev !== '') {
+                dbQuery(
+                    'INSERT INTO turnaje (nazev, rok) VALUES ($0, $1)',
+                    [0 => $novyTurnajNazev, 1 => ROCNIK],
+                );
+                $a[Sql::ID_TURNAJE] = dbInsertId();
+            } else {
+                chyba('Zadej název nového turnaje.', false);
+                $a[Sql::ID_TURNAJE] = null;
+            }
+        } elseif (!empty($a[Sql::ID_TURNAJE])) {
+            $a[Sql::ID_TURNAJE] = (int)$a[Sql::ID_TURNAJE];
+        } else {
+            $a[Sql::ID_TURNAJE] = null;
         }
 
         if (!empty($a[Sql::TEAMOVA]) && isset($a[Sql::TEAM_MIN], $a[Sql::TEAM_MAX]) && $a[Sql::TEAM_MIN] > $a[Sql::TEAM_MAX]) {
@@ -1084,28 +1114,6 @@ SQL
             maPravoNaProvadeniKorekci: $maPravoNaProvadeniKorekci,
         );
         self::varujBylaLiNejakaLokaceObsazena($aktivita);
-
-        if ($rodiceIds) {
-            $detiIds = $aktivita->detiIds();
-            $rodicIDite = [];
-            foreach ($rodiceIds as $rodicId) {
-                $rodic = self::zId($rodicId);
-                if ($rodic) {
-                    if (in_array($rodicId, $detiIds, false)) {
-                        $rodicIDite[] = $rodic;
-                    } else {
-                        $rodic->pridejDite($aktivita->id());
-                    }
-                }
-            }
-            if ($rodicIDite) {
-                chyba(
-                    'Aktivita nemůže být "dítě" a zároveň "rodič" jedné a té samé aktivitě. Tyto nebyly nastaveny jako rodiče: '
-                    . implode(', ', array_map([__CLASS__, 'dejRozsirenyNazevAktivity'], $rodicIDite)),
-                    false,
-                );
-            }
-        }
 
         oznameni('Aktivita byla uložena', false);
         (new ProgramStaticFileGenerator($aktivita->systemoveNastaveni))->tryStartWorker();
@@ -1197,12 +1205,14 @@ SQL
         $data[Sql::TEAM_MAX] = $teamova
             ? (int)$data[Sql::TEAM_MAX]
             : null;
+        $data[Sql::TEAM_KAPACITA] = $teamova
+            ? (!empty($data[Sql::TEAM_KAPACITA]) ? (int)$data[Sql::TEAM_KAPACITA] : null)
+            : null;
 
         if ($teamova) {
             // Vedoucí týmu může ručně nastavit kapacitu nižší, dokud je větší rovna team_min. V takovém
             // případě se NESMÍ kapacita změnit při např. úpravě popisu aktivity z adminu. DB trigger
-            // trigger_check_and_apply_team_limit toto zajišťuje s pomocí sloupce team_limit
-            $data[Sql::KAPACITA] = $data[Sql::TEAM_MAX] ?? 0;
+            $data[Sql::KAPACITA] = ($data[Sql::TEAM_MAX] ?? 0) * ($data[Sql::TEAM_KAPACITA] ?? 1);
             $data[Sql::KAPACITA_F] = 0;
             $data[Sql::KAPACITA_M] = 0;
         } else {
@@ -1243,7 +1253,7 @@ SQL
         } elseif (!empty($data[Sql::PATRI_POD])) {
             // editace aktivity z rodiny instancí
             $doHlavni = [Sql::URL_AKCE, Sql::POPIS, Sql::VYBAVENI];    // věci, které se mají změnit jen u hlavní (main) `instance
-            $doAktualni = [Sql::ZACATEK, Sql::KONEC];       // věci, které se mají změnit jen u aktuální instance
+            $doAktualni = [Sql::ZACATEK, Sql::KONEC, Sql::ID_TURNAJE, Sql::TURNAJ_KOLO];       // věci, které se mají změnit jen u aktuální instance
             $aktivita = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
                 $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
@@ -1409,7 +1419,7 @@ SQL
         $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce=' . $this->id());
         //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
         //stav se vloží implicitní hodnota v DB
-        unset($akt[Sql::ID_AKCE], $akt[Sql::URL_AKCE], $akt[Sql::ZAMCEL]);
+        unset($akt[Sql::ID_AKCE], $akt[Sql::URL_AKCE]);
         $akt[Sql::STAV] = StavAktivity::NOVA;
         $akt[Sql::VYBAVENI] = '';
         if ($akt[Sql::TEAMOVA]) {
@@ -1480,18 +1490,10 @@ SQL
         return true;
     }
 
-    /** Vrací celkovou kapacitu aktivity, která platí pokud aktivita není teamová */
-    public function neteamovaKapacita(): int
+    /** Vrací celkovou kapacitu aktivity (pro non-teamové aktivity) */
+    public function kapacita(): int
     {
         return (int)($this->a[Sql::KAPACITA] + $this->a[Sql::KAPACITA_M] + $this->a[Sql::KAPACITA_F]);
-    }
-
-    /** Vrací celkovou kapacitu aktivity */
-    public function finalniKapacita(): ?int
-    {
-        return $this->jeTeamova()
-            ? $this->tymovaKapacita()
-            : $this->neteamovaKapacita();
     }
 
     /**
@@ -1719,7 +1721,7 @@ SQL
     }
 
     /**
-     * @return array<\Uzivatel>
+     * @return array<int, Uzivatel[]>
      */
     private function seznamUcastniku(?DataSourcesCollector $dataSourcesCollector = null): array
     {
@@ -1942,12 +1944,28 @@ SQL
         string    $zdrojOdhlaseni,
                   $params = 0,
     ) {
-        foreach ($this->deti() as $dite) {                    // odhlášení z potomků
-            $dite->odhlas($u, $odhlasujici, $zdrojOdhlaseni); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
-        }
         if (!$this->prihlasen($u)) {
             return; // ignorovat pokud přihlášen není tak či tak
         }
+
+        $tym = $this->tymova()
+            ? AktivitaTym::najdiPodleUzivateleAktivity($u->id(), $this->id())
+            : null ;
+        if ($this->tymova() && $tym) {
+            if ($params & self::ODEMKNI_TYM_ODHLASENIM) {
+                $tym->odemkni();
+            } elseif (!($params & self::IGNOROVAT_ZAMCENI_TYMU)) {
+                $tym->zkontrolujZeNeniZamceny();
+            }
+
+            if ($tym && !($params | self::IGNOROVAT_TURNAJ)) {
+                $aktivityTymuParams = $params | self::IGNOROVAT_TURNAJ | self::IGNOROVAT_ZAMCENI_TYMU;
+                foreach ($tym->dalsiAktivity($this->id()) as $dalsiAktivita) {
+                    $dalsiAktivita->odhlas($u, $odhlasujici, $zdrojOdhlaseni, $aktivityTymuParams); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
+                }
+            }
+        }
+
         // reálné odhlášení
         $idAktivity = $this->id();
         $idUzivatele = $u->id();
@@ -1968,11 +1986,9 @@ SQL,
                 [StavPrihlaseni::POZDE_ZRUSIL],
             );
         }
-        if ($this->a[Sql::ZAMCEL] == $idUzivatele) {
-            dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$idAktivity");
-        }
-        if ($this->a[Sql::TEAMOVA] && $this->pocetPrihlasenych() === 1) { // odhlašuje se poslední hráč
-            dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$idAktivity");
+
+        if ($this->tymova()) {
+            AktivitaTym::odhlasUzivateleOdTymu($idUzivatele, $idAktivity);
         }
         // Poslání mailu lidem na watchlistu
         if ($this->volno() === "x" && !($params & self::NEPOSILAT_MAILY_SLEDUJICIM)) { // Před odhlášením byla aktivita plná
@@ -2307,32 +2323,6 @@ SQL
     }
 
     /**
-     * @return int počet týmů přihlášených na tuto aktivitu
-     */
-    protected function pocetTeamu(): int
-    {
-        $id = $this->id();
-        $idRegex = '(^|,)' . $this->id() . '(,|$)'; // reg. výraz odpovídající id aktivity v seznamu odděleném čárkami
-
-        return (int)dbOneCol('
-      SELECT COUNT(id_akce)
-      FROM (
-        -- vybereme aktivity základního kola, z kterých se dá dostat do této aktivity (viz WHERE)
-        SELECT a.id_akce
-        FROM akce_seznam a
-        -- připojíme k každé aktivitě přihlášené účastníky
-        LEFT JOIN akce_prihlaseni prihlaseni_zaklad ON prihlaseni_zaklad.id_akce = a.id_akce
-        -- připojíme k každému účastníkovi, jestli je přihlášen i na tuto semifinálovou aktivitu
-        LEFT JOIN akce_prihlaseni prihlaseni_toto ON prihlaseni_toto.id_uzivatele = prihlaseni_zaklad.id_uzivatele AND prihlaseni_toto.id_akce = $0
-        WHERE a.dite RLIKE $1
-        GROUP BY a.id_akce
-        -- vybereme jenom aktivity, z který je víc jak 0 přihlášeno i na toto semifinále
-        HAVING COUNT(prihlaseni_toto.id_uzivatele) > 0
-      ) poddotaz
-    ', [$id, $idRegex]);
-    }
-
-    /**
      * Pošle mail potenciálním náhradníkům o volném místě na aktivitě.
      */
     private function poslatMailSledujicim(): void
@@ -2353,19 +2343,46 @@ SQL
     }
 
     /**
-     * Přihlásí uživatele na aktivitu
+     *  Přihlásí uživatele na aktivitu.
+     *  Pro tymovky:
+     *  - pokud není předaný tým, pokusí se ho založit
+     *  - pokud je aktivita turnaj s více termíny v jednom kole tak přihlášení na samotné aktivity přeskočí
      *
      * @throws \Chyba
      */
     public function prihlas(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
-                 $parametry = 0,
+        int      $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
+        ?AktivitaTym $tym = null,
     ): bool {
         if ($this->prihlasen($uzivatel)) {
             return false;
+        }
+        $idAktivity = $this->id();
+        $idUzivatele = $uzivatel->id();
+        $zakladaTym = $this->tymova() && $tym == null;
+
+        if ($zakladaTym) {
+            $tym = AktivitaTym::zalozPrazdnyTym($idUzivatele, $idAktivity, !!($parametry & self::IGNOROVAT_LIMIT));
+        }
+
+        if ($this->jeSoucastiTurnaje() && $tym
+            && $tym->jeRozpracovany()
+            && !$tym->maPrirazeneVsechnaKolaTurnaje()
+        ) {
+            $prirazeny = $this->turnaj()?->priradTymNaAutomatickaKola($tym) ?? false;
+            if (!$prirazeny) {
+                return false;
+            }
+        }
+
+        $dalsiAktivityTymu = [];
+        if ($tym && !($parametry & self::IGNOROVAT_TURNAJ)) {
+            $dalsiAktivityTymuIds = $tym->idDalsichAktivit($this->id());
+            $dalsiAktivityTymu = Aktivita::zids($dalsiAktivityTymuIds);
         }
 
         $this->zkontrolujZdaSeMuzePrihlasit(
@@ -2374,10 +2391,22 @@ SQL
             $parametry,
             $jenPritomen,
             $hlaskyVeTretiOsobe,
-        ); // odhlášení náhradnictví v kolidujících aktivitách
+            $tym,
+            $dalsiAktivityTymu,
+        );
+
+        // přihlášení na zbylé aktivity turnaje
+        if (!($parametry & self::IGNOROVAT_TURNAJ)) {
+            $parametryDalsichAktivit = $parametry
+                | self::IGNOROVAT_TURNAJ | self::IGNOROVAT_KONTROLY
+                ;
+            foreach ($dalsiAktivityTymu as $aktivitaTymu) {
+                $aktivitaTymu->prihlas($uzivatel, $prihlasujici, $parametryDalsichAktivit);
+            }
+        }
+
+        // odhlášení náhradnictví v kolidujících aktivitách
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici); // přihlášení na samu aktivitu (uložení věcí do DB)
-        $idAktivity = $this->id();
-        $idUzivatele = $uzivatel->id();
 
         dbBegin();
         try {
@@ -2394,16 +2423,17 @@ SQL
                 throw new \Chyba(hlaska('plno'));
             }
 
-            if ($this->a[Sql::TEAMOVA]
-                && $this->pocetPrihlasenych() === 0
-                && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
-            ) {
-                $this->zamknoutProTeam($uzivatel);
+            if ($this->tymova()) {
+                $idTymu = $tym ? $tym->getId() : 0;
+                // tady už ke kontrole na přihlášení došlo předtím.
+                AktivitaTym::prihlasUzivateleDoTymu($idUzivatele, $idAktivity, $idTymu);
             }
+
             dbQuery(
                 'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
                 [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
             );
+
             $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
             // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
             $this->zrusPredchoziStornoPoplatek($uzivatel);
@@ -2429,21 +2459,13 @@ SQL
         );
     }
 
-    public function zkontrolujZdaSeMuzePrihlasit(
+    private function zkontrolujKolidujeSAktivitouUzivatele(
         Uzivatel $uzivatel,
-        Uzivatel $prihlasujici,
-        int      $parametry = 0,
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
-    ): void {
-        if ($jenPritomen) {
-            if ($this->dorazilJakoCokoliv($uzivatel)) {
-                return; // na současnou aktivitu už dorazil, takže se vlastně na ní může přihlásit
-            }
-        } elseif ($this->prihlasen($uzivatel)) {
-            return;
-        }
-        if ($this->zacatek() && $this->konec() && $kolizniAktivita = $uzivatel->maKoliziSJinouAktivitou($this->zacatek(), $this->konec(), null, $jenPritomen)) {
+    ) {
+        $kolizniAktivita = $uzivatel->maKoliziSJinouAktivitou($this, null, $jenPritomen);
+        if ($kolizniAktivita) {
             throw new \Chyba(
                 ($hlaskyVeTretiOsobe
                     ? 'Uživatel ' . $uzivatel->jmenoVolitelnyNick() . ' '
@@ -2454,45 +2476,66 @@ SQL
                     : 'masKoliziAktivit') . ': ' . $kolizniAktivita->nazev(),
             );
         }
-        if (!$uzivatel->gcPrihlasen()) {
-            throw new \Chyba(
-                ($hlaskyVeTretiOsobe
-                    ? 'Uživatel ' . $uzivatel->jmenoVolitelnyNick() . ' '
-                    : ''
-                ) .
-                hlaska($hlaskyVeTretiOsobe
-                    ? 'neniPrihlasenNaGc'
-                    : 'nejsiPrihlasenNaGc'),
-            );
-        }
-        if (!(self::IGNOROVAT_LIMIT & $parametry) && $this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()) {
+    }
+
+    private function zkontrolujKapacitu(
+        string $pohlavi = "",
+        int $parametry = 0,
+    ) {
+        if (!(self::IGNOROVAT_LIMIT & $parametry) && $this->volno() !== 'u' && $this->volno() !== $pohlavi) {
             throw new \Chyba(hlaska('plno'));
         }
-        if (!(self::IGNOROVAT_PRIHLASENI_NA_SOUROZENCE & $parametry)) {
-            foreach ($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu se stejnými potomky
-                foreach ($dite->rodice() as $rodic) {
-                    if ($rodic->prihlasen($uzivatel)) {
-                        throw new \Chyba(hlaska($hlaskyVeTretiOsobe
-                            ? 'uzJePrihlasen'
-                            : 'uzJsiPrihlasen'));
-                    }
-                }
+    }
+
+    private function zkontrolujZeNeniPrihlasenNaJinouAktivituKolaTurnaje(
+        Uzivatel $uzivatel,
+        int      $parametry = 0,
+        bool     $hlaskyVeTretiOsobe = false,
+    ) {
+        if (self::IGNOROVAT_PRIHLASENI_NA_STEJNE_KOLO & $parametry){
+            return;
+        }
+        if (!$this->jeSoucastiTurnaje()) {
+            return;
+        }
+        $koloTurnaje = $this->turnajKolo();
+        $aktivityIds = $this->turnaj()->idAktivitProKola()[$koloTurnaje] ?? [];
+        $aktivityIds = array_diff($aktivityIds, [$this->id()]);
+        $aktivity = self::zIds($aktivityIds);
+
+        foreach ($aktivity as $aktivita) {
+            if ($aktivita->prihlasen($uzivatel)) {
+                throw new \Chyba(hlaska($hlaskyVeTretiOsobe
+                    ? 'uzJePrihlasen'
+                    : 'uzJsiPrihlasen'));
             }
         }
-        $teamKapacita = $this->tymovaKapacita();
-        if ($teamKapacita !== null) {
-            $jeNovyTym = false; // jestli se uživatel přihlašuje jako první z nového/dalšího týmu
-            foreach ($this->rodice() as $rodic) {
-                if ($rodic->prihlasen($uzivatel) && $rodic->pocetPrihlasenych() === 1) {
-                    $jeNovyTym = true;
-                    break;
-                }
-            }
-            if ($jeNovyTym && $this->pocetTeamu() >= $teamKapacita) {
-                throw new \Chyba('Na aktivitu ' . $this->nazev() . ': ' . $this->denCasSkutecny() . ' je už přihlášen maximální počet týmů');
-            }
+    }
+
+    /**
+     * Zkontroluje zda se může přihlásit do týmu, pokud není tým, tak zkontroluje zda může tým založit.
+     */
+    public function zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite(
+        int      $parametry = 0,
+        ?AktivitaTym $tym = null,
+    ) {
+        if (!$this->tymova() || !$tym) {
+            return;
         }
 
+        if (!(self::IGNOROVAT_LIMIT & $parametry)) {
+            $tym->zkontrolujVolnouKapacitu();
+        }
+
+        if (!(self::IGNOROVAT_ZAMCENI_TYMU)) {
+            $tym->zkontrolujZeNeniZamceny();
+        }
+    }
+
+    private function zkontrolujBrigadnickePrihlaseni(
+        Uzivatel $uzivatel,
+        bool     $hlaskyVeTretiOsobe = false,
+    ) {
         if ($this->jeBrigadnicka() && !$uzivatel->jeBrigadnik()) {
             throw new \Chyba(
                 'Na tuto aktivitu se může přihlásit pouze brigádník. '
@@ -2501,75 +2544,110 @@ SQL
                     : hlaska('nejsiBrigadnik')),
             );
         }
+    }
 
-        // potlačitelné kontroly
-        if ($this->a[Sql::ZAMCEL] && !($parametry & self::ZAMEK)) {
-            throw new \Chyba(hlaska('zamcena')); // zamčena pro tým, nikoli zamčena / uzavřena
+    private function zkontrolujPrihlaseniNavazujicichAktivit(
+        Uzivatel $uzivatel,
+        Uzivatel $prihlasujici,
+        int      $parametry = 0,
+        bool     $jenPritomen = false,
+        bool     $hlaskyVeTretiOsobe = false,
+        ?AktivitaTym $tym = null,
+        $navazujiciAktivity = [],
+    ) {
+        if ($parametry & self::IGNOROVAT_TURNAJ) {
+            return;
         }
+
+        // z této aktivity kontrolujeme celý řetězec dolů
+        $parametry |= self::IGNOROVAT_TURNAJ;
+        // navázané aktivity nejsou nikdy přihlašovatelné
+        $parametry |= self::STAV;
+
+        if ($this->tymova()) {
+            // pokud je tymova, pak má tým už zajištěné místa tím že je na aktivitu zapsaný
+            $parametry |= self::IGNOROVAT_LIMIT;
+        }
+
+        foreach ($navazujiciAktivity as $navazujiciAktivita) {
+            try {
+                $navazujiciAktivita->zkontrolujZdaSeMuzePrihlasit(
+                    $uzivatel,
+                    $prihlasujici,
+                    $parametry,
+                    $jenPritomen,
+                    $hlaskyVeTretiOsobe,
+                    $tym,
+                );
+            } catch (\Chyba $chyba) {
+                // zaobalit hlášku aby bylo jasné že se jedná o navazující aktivitu a předejít tak zmatení že se člověk nepřihlašuje na tuhle aktivitu
+                throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu s chybou: ' . $chyba->getMessage());
+            }
+        }
+    }
+
+    public function zkontrolujZdaSeMuzePrihlasit(
+        Uzivatel $uzivatel,
+        Uzivatel $prihlasujici,
+        int      $parametry = 0,
+        bool     $jenPritomen = false,
+        bool     $hlaskyVeTretiOsobe = false,
+        ?AktivitaTym $tym = null,
+        $navazujiciAktivity = [],
+    ): void {
+        if ($parametry & self::IGNOROVAT_KONTROLY) {
+            return;
+        }
+
+        if ($jenPritomen && $this->dorazilJakoCokoliv($uzivatel)) {
+            // na současnou aktivitu už dorazil, takže se vlastně na ní může přihlásit
+            return;
+        }
+
+        if (!$jenPritomen && $this->prihlasen($uzivatel)) {
+            return;
+        }
+
+        $this->zkontrolujKolidujeSAktivitouUzivatele($uzivatel, $jenPritomen, $hlaskyVeTretiOsobe);
+        $uzivatel->zkontrolujGcPrihlasen($hlaskyVeTretiOsobe);
+        $this->zkontrolujKapacitu($uzivatel->pohlavi(), $parametry);
+        $this->zkontrolujZeNeniPrihlasenNaJinouAktivituKolaTurnaje($uzivatel, $parametry, $hlaskyVeTretiOsobe);
+        $this->zkontrolujZdaSeMuzePrihlasitDoTymuNaTetoAktivite($parametry, $tym);
+        $this->zkontrolujBrigadnickePrihlaseni($uzivatel, $hlaskyVeTretiOsobe);
+
+        // todo: Dává to smysl tak tady upravovat parametry ? kdyžuž tak je upravit na začátku funkce pokud možno nebo je odvodit až jsou reálně potřeba. Očekávané chování bych předpokládal, že je takové že jsou aplikované pouze parametry které předám ale tady je upravuju.
         if ($this->probehnuta() && $this->lzeJestePridavatUcastniky($prihlasujici)) {
-            $parametry |= self::ZPETNE; // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
+            // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
+            $parametry |= self::ZPETNE;
         }
         if ($prihlasujici->maPravoNaPrihlasovaniNaDosudNeotevrene()) {
             $parametry |= self::NEOTEVRENE;
             $parametry |= self::DOPREDNE;
         }
 
-        if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
-            if ($parametry & self::STAV) {
-                // hack na ignorování stavu
-                $puvodniStav = $this->a[Sql::STAV];
-                $this->a[Sql::STAV] = StavAktivity::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
-                $prihlasovatelna = $this->prihlasovatelna($parametry);
-                $this->a[Sql::STAV] = $puvodniStav;
+        $prihlasovatelna = $this->prihlasovatelna($parametry);
+        if (!$prihlasovatelna) {
+            $duvod = '';
+            if (self::UKAZAT_DETAILY_CHYBY & $parametry) {
+                $duvod = ': ' . $this->procNeniPrihlasovatelna($parametry);
             }
-            if (!$prihlasovatelna) {
-                $duvod = '';
-                if (self::UKAZAT_DETAILY_CHYBY & $parametry) {
-                    $duvod = ': ' . $this->procNeniPrihlasovatelna($parametry);
-                }
-                throw new \Chyba('Aktivita není otevřena pro přihlašování' . $duvod);
-            }
+            throw new \Chyba('Aktivita není otevřena pro přihlašování' . $duvod);
         }
 
-        // přihlášení na navázané aktivity
-        if ($this->a[Sql::DITE]) {
-            $deti = $this->deti();
-            if (count($deti) === 1) {
-                try {
-                    reset($deti)->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
-                } catch (\Chyba $chyba) {
-                    throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu s chybou: ' . $chyba->getMessage());
-                } catch (\Throwable $throwable) {
-                    Vyjimkovac::vytvorZGlobals()->zaloguj($throwable);
-                    throw new \Chyba('Nepodařilo se přihlásit na navazující aktivitu. Interní chyba systému.');
-                }
-            } elseif ($this->pocetPrihlasenych() > 0) { // (není teamleader)
-                $prihlaseniRawArray = $this->prihlaseniRawArray();
-                reset($prihlaseniRawArray);
-                $vzorId = key($prihlaseniRawArray);
-                // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
-                $vzorUzivatele = Uzivatel::zId($vzorId);
-                if (!$vzorUzivatele) {
-                    $debu = dbFetchAll('SELECT * FROM uzivatele_hodnoty');
-                    trigger_error("Uživatel s ID '$vzorId', který je přihlášen na aktivitu '{$this->id()}' neexistuje.", E_USER_WARNING);
-                    throw new \Chyba('Nepodařilo se určit výběr dalšího kola.');
-                }
-                $uspech = false;
-                foreach ($deti as $dite) {
-                    // přihlášení na navázané aktivity podle vzoru vybraného uživatele
-                    if ($dite->prihlasen($vzorUzivatele)) {
-                        $dite->prihlas($uzivatel, $prihlasujici, self::STAV | ($parametry & self::UKAZAT_DETAILY_CHYBY));
-                        $uspech = true;
-                        break;
-                    }
-                }
-                if (!$uspech) {
-                    throw new \Exception('Nepodařilo se určit výběr dalšího kola.');
-                }
-            }
-        }
+        $this->zkontrolujPrihlaseniNavazujicichAktivit(
+            $uzivatel,
+            $prihlasujici,
+            $parametry,
+            $jenPritomen,
+            $hlaskyVeTretiOsobe,
+            $tym,
+            $navazujiciAktivity
+        );
     }
 
+    /**
+     * Maximální počet týmů na aktivitě
+     */
     private function tymovaKapacita(): ?int
     {
         if (isset($this->a[Sql::TEAM_KAPACITA])) {
@@ -2589,23 +2667,6 @@ SQL
         ) {
             throw new \Chyba('Aktivita už je uzavřena a nelze z ní odhlašovat.');
         }
-    }
-
-    /**
-     * Není zamknout jako zamknout. Tohle pouze zamkne aktivitu pro účastníky mimo tým.
-     * Pokud hledáš opravdové zamknutí, @param Uzivatel $zamykajici
-     * @return void
-     * @see zamkni
-     *
-     */
-    public function zamknoutProTeam(Uzivatel $zamykajici)
-    {
-        dbUpdate(
-            'akce_seznam',
-            ['zamcel' => $zamykajici->id(), 'zamcel_cas' => dbNow()],
-            [Sql::ID_AKCE => $this->id()],
-        );
-        $this->a[Sql::ZAMCEL] = (string)$zamykajici->id();
     }
 
     /** Jestli je uživatel  přihlášen na tuto aktivitu */
@@ -2923,6 +2984,7 @@ SQL
         $zpetne = $parametry & self::ZPETNE;
         $neotevrene = $parametry & self::NEOTEVRENE;
         $interni = $parametry & self::INTERNI;
+        $ignorovatStav = $parametry & self::STAV;
 
         if (!( // ← inverze ↓
             $this->systemoveNastaveni->probihaRegistraceAktivit()
@@ -2935,12 +2997,13 @@ SQL
                 $this->systemoveNastaveni->prihlasovaniUcastnikuDo()->formatCasStandard(),
             );
         }
-        if (!( // ← inverze ↓
-            $this->idStavu() === StavAktivity::AKTIVOVANA
-            || ($neotevrene && in_array($this->idStavu(), [StavAktivity::PRIPRAVENA, StavAktivity::PUBLIKOVANA]))
-            || ($interni && $this->idStavu() == StavAktivity::NOVA && $this->typ()->jeInterni())
-            || ($zpetne && $this->probehnuta())
-        )) {
+        if (
+            !$ignorovatStav
+            && $this->idStavu() !== StavAktivity::AKTIVOVANA
+            && !($neotevrene && in_array($this->idStavu(), [StavAktivity::PRIPRAVENA, StavAktivity::PUBLIKOVANA]))
+            && !($interni && $this->idStavu() == StavAktivity::NOVA && $this->typ()->jeInterni())
+            && !($zpetne && $this->probehnuta())
+        ) {
             return sprintf(
                 'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu "%s" (%d). Povoleno: technické %s, zpětně %s',
                 StavAktivity::dejNazev((int)$this->a[Sql::STAV]),
@@ -2968,7 +3031,7 @@ SQL
      */
     public function prihlasovatelnaProSledujici(): bool
     {
-        return !$this->tymova() && !$this->a[Sql::DITE];
+        return !$this->tymova() && !$this->jeSoucastiTurnaje();
     }
 
     /**
@@ -3013,8 +3076,9 @@ SQL
                 }
             } elseif ($u->organizuje($this)) {
                 $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ');
-            } elseif ($this->a[Sql::ZAMCEL]) {
-                $hajeniTymuHodin = self::HAJENI_TEAMU_HODIN;
+            } elseif (AktivitaTym::maAktivitaTym($this->id())) {
+                $hajeniTymuHodin = AktivitaTym::HAJENI_TEAMU_HODIN;
+                // todo(tym): tady se nedá přihlašovat pomocí nového způsobu
                 $out = <<<HTML
 <span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
 HTML
@@ -3085,8 +3149,19 @@ HTML
             $prihlasujici = $prihlasujici ?? $u;
             if (post('prihlasit')) {
                 $aktivita = self::zId(post('prihlasit'));
+                $tym = null;
+                $tymId = +post("tymId");
+                $tymKod = +post("tymKod");
+
+                if ($tymId) {
+                    $tym = AktivitaTym::najdi($tymId, $aktivita->id());
+                } elseif ($tymKod) {
+                    // pokud je tymKod a kód nenáleží žádnému týmu na aktivitě, tak ihned sletí
+                    $tym = AktivitaTym::najdiPodleKodu($aktivita->id(), $tymKod);
+                }
+
                 if ($aktivita) {
-                    $aktivita->prihlas($u, $prihlasujici, $parametry);
+                    $aktivita->prihlas($u, $prihlasujici, $parametry, tym: $tym);
                 }
 
                 return true;
@@ -3152,7 +3227,7 @@ HTML
             return;
         }
         // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
-        if ($kolizniAktivita = $u->maKoliziSJinouAktivitou($this->zacatek(), $this->konec())) {
+        if ($kolizniAktivita = $u->maKoliziSJinouAktivitouVCase($this->zacatek(), $this->konec())) {
             throw new ChybaKolizeAktivit(hlaska('masKoliziAktivit') . ': ' . $kolizniAktivita->nazev());
         }
         // Uživatel musí být přihlášen na GameCon
@@ -3164,92 +3239,6 @@ HTML
         dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI]);
         $this->dejPrezenci()->zalogujZeSePrihlasilJakoSledujici($u, $prihlasujici);
         $this->refresh();
-    }
-
-    /**
-     * Přihlásí na aktivitu vybrané uživatele jako tým vč. přihlášení na vybraná
-     * navazující kola a úpravy počtu míst v týmu.
-     * @param Uzivatel[] $uzivatele
-     * @param string $nazevTymu
-     * @param int $pocetMist požadovaný počet míst v týmu
-     * @param self[] $dalsiKola - pořadí musí odpovídat návaznosti kol
-     * @param int $parametry
-     */
-    public function prihlasTym(
-        array    $uzivatele,
-        Uzivatel $prihlasujici,
-        ?string  $nazevTymu = null,
-        ?int     $pocetMist = null,
-        ?array   $dalsiKola = [],
-                 $parametry = 0,
-    ) {
-        if (!$this->tymova()) {
-            throw new \Exception('Nelze přihlásit tým na netýmovou aktivitu.');
-        }
-        if (!$this->a[Sql::ZAMCEL]) {
-            throw new \Exception('Pro přihlášení týmu musí být aktivita zamčená.');
-        }
-        if (!$this->jsouDalsiKola($dalsiKola)) {
-            throw new \Exception('Nepovolený výběr dalších kol.');
-        }
-
-        $lidr = Uzivatel::zId($this->a[Sql::ZAMCEL]);
-        $chybnyClen = null; // nastavíme v případě, že u daného člena týmu nastala při přihlášení chyba
-
-        dbBegin();
-        try {
-            // přihlášení týmlídra na zvolená další kola (pokud jsou)
-            // nutno jít od konce, jinak vazby na potomky můžou vyvolat chyby kvůli
-            // duplicitním pokusům o přihlášení
-            foreach (array_reverse($dalsiKola) as $kolo) {
-                $kolo->prihlas($lidr, $prihlasujici, self::STAV | $parametry);
-            }
-
-            // přihlášení členů týmu
-            foreach ($uzivatele as $clen) {
-                try {
-                    $this->prihlas($clen, $prihlasujici, self::ZAMEK | ($parametry & self::UKAZAT_DETAILY_CHYBY));
-                } catch (\Exception $e) {
-                    $chybnyClen = $clen;
-                    throw $e;
-                }
-            }
-
-            // doplňující úpravy aktivity
-            dbUpdate('akce_seznam', [
-                Sql::ZAMCEL     => null,
-                Sql::ZAMCEL_CAS => null,
-                Sql::TEAM_NAZEV => $nazevTymu
-                    ?: null,
-                Sql::KAPACITA   => $pocetMist
-                    ?: dbNoChange(),
-            ], [
-                Sql::ID_AKCE => $this->id(),
-            ]);
-
-            $this->refresh();
-        } catch (\Exception $e) {
-            dbRollback();
-            if ($chybnyClen) {
-                throw new \Chyba(hlaska('chybaClenaTymu', $chybnyClen->jmenoNick(), $chybnyClen->id(), $e->getMessage()));
-            }
-            throw $e;
-        }
-        dbCommit(); // maily přihlášeným
-        $mail = GcMail::vytvorZGlobals(
-            hlaskaMail(
-                'prihlaseniTeamMail',
-                $lidr,
-                $lidr->jmenoNick(),
-                $this->nazev(),
-                $this->denCasSkutecny(),
-            ),
-        );
-        $mail->predmet('Přihláška na ' . $this->nazev());
-        foreach ($uzivatele as $clen) {
-            $mail->adresat($clen->mail());
-            $mail->odeslat();
-        }
     }
 
     public function publikuj()
@@ -3331,20 +3320,6 @@ HTML
         $this->seznamUcastniku = null;
         $this->organizatoriIds = null;
         $this->tagy = null;
-    }
-
-    /**
-     * Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí
-     *
-     * @return array<Aktivita>
-     */
-    public function rodice(): array
-    {
-        return self::zWhere(
-            systemoveNastaveni: $this->systemoveNastaveni,
-            dalsiPouziteSqlTabulky: [],
-            where1: 'WHERE a.dite rlike "(^|,)' . $this->id() . '(,|$)"',
-        );
     }
 
     /**
@@ -3476,15 +3451,6 @@ SQL,
         $this->otoc();
     }
 
-    public function tym()
-    {
-        if ($this->tymova() && $this->pocetPrihlasenych() > 0 && !$this->a[Sql::ZAMCEL]) {
-            return new \Tym($this, $this->a);
-        }
-
-        return null;
-    }
-
     public function tymMaxKapacita(): ?int
     {
         return (string)$this->a[Sql::TEAM_MAX] !== ''
@@ -3505,29 +3471,6 @@ SQL,
     public function tymova(): bool
     {
         return (bool)$this->a[Sql::TEAMOVA];
-    }
-
-    /**
-     * @return DateTimeCz|null jestli a do kdy je týmová aktivita zamčená
-     */
-    public function tymZamcenyDo(): ?\DateTimeInterface
-    {
-        if ($this->a[Sql::ZAMCEL_CAS]) {
-            $dateTime = new DateTimeCz($this->a[Sql::ZAMCEL_CAS]);
-            $dateTime->add(new \DateInterval('PT' . self::HAJENI_TEAMU_HODIN . 'H'));
-
-            return $dateTime;
-        }
-
-        return null;
-    }
-
-    /**
-     * @return DateTimeCz|null jestli je týmová aktivita zamčená tímto uživatelem
-     */
-    public function zamcenoUzivatelem(\Uzivatel $u = null): bool
-    {
-        return !!$u && $this->a[Sql::ZAMCEL] == $u->id();
     }
 
     public function typ(): TypAktivity
@@ -3729,133 +3672,6 @@ SQL,
         }
 
         return dbOneCol('SELECT vybaveni FROM akce_seznam WHERE id_akce = $1', [$this->id()]);
-    }
-
-    /**
-     * Vrátí formulář pro výběr teamu na aktivitu. Pokud není zadán uživatel,
-     * vrací nějakou false ekvivalentní hodnotu.
-     * @todo ideálně převést na nějaké statické metody týmu nebo samostatnou třídu
-     */
-    public function vyberTeamu(Uzivatel $u = null)
-    {
-        if (!$u || $this->a[Sql::ZAMCEL] != $u->id() || !$this->prihlasovatelna()) {
-            return null;
-        }
-
-        $t = new XTemplate(__DIR__ . '/templates/tym-formular.xtpl'); // obecné proměnné šablony
-        $zbyva = strtotime($this->a[Sql::ZAMCEL_CAS]) + self::HAJENI_TEAMU_HODIN * 60 * 60 - time();
-        $t->assign([
-            'zbyva'                => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
-            'postname'             => self::TEAM_KLIC,
-            'prihlasenyUzivatelId' => $u->id(),
-            'aktivitaId'           => $this->id(),
-            'cssUrlAutocomplete'   => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
-            'jsUrlAutocomplete'    => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.min.js',
-            'jsUrl'                => URL_WEBU . '/soubory/blackarrow/tym-formular/tym-formular.js',
-        ]); // výběr instancí, pokud to aktivita vyžaduje
-        if ($this->a[Sql::DITE]) {
-
-            // načtení "kol" (podle hloubky zanoření v grafu instancí)
-            $urovne[] = [$this];
-            do {
-                $dalsi = [];
-                foreach (end($urovne) as $a) {
-                    if ($a->a[Sql::DITE]) {
-                        foreach ($this->parseIds($a->a[Sql::DITE] ?? '') as $id) {
-                            $dalsi[] = $id;
-                        }
-                    }
-                }
-                if ($dalsi) {
-                    $urovne[] = self::zIds($dalsi);
-                }
-            } while ($dalsi);
-            unset($urovne[0]); // aktuální aktivitu už má přihlášenu - ignorovat
-
-            // vybírací formy dle "kol"
-            foreach ($urovne as $i => $uroven) {
-                $t->assign('postnameKolo', self::TEAM_KLIC_KOLA . '[' . $i . ']');
-                foreach ($uroven as $varianta) {
-                    $t->assign([
-                        'koloId' => $varianta->id(),
-                        'nazev'  => $varianta->nazev() . ': ' . $varianta->denCasSkutecny(),
-                    ]);
-                    $t->parse('formular.kola.uroven.varianta');
-                }
-                $t->parse('formular.kola.uroven');
-            }
-            $t->parse('formular.kola');
-
-        }
-
-        // políčka pro výběr míst
-        for ($i = 0; $i < $this->neteamovaKapacita() - 1; $i++) {
-            $t->assign('postnameMisto', self::TEAM_KLIC . '[' . $i . ']');
-            if ($i >= $this->a[Sql::TEAM_MIN] - 1) { // -1 za týmlídra
-                $t->parse('formular.misto.odebrat');
-            }
-            $t->parse('formular.misto');
-        }
-
-        // název (povinný pro DrD)
-        if ($this->a[Sql::TYP] == TypAktivity::DRD) {
-            $t->parse('formular.nazevPovinny');
-        } else {
-            $t->parse('formular.nazevVolitelny');
-        }
-
-        // výpis celého formuláře
-        $t->parse('formular');
-
-        return $t->text('formular');
-    }
-
-    /**
-     * Zpracuje data formuláře pro výběr teamu a vrátí případné chyby jako json.
-     * Ukončuje skript.
-     */
-    public static function vyberTeamuZpracuj(
-        ?Uzivatel $leader,
-        ?Uzivatel $prihlasujici,
-    ) {
-        if (!$leader || !post(self::TEAM_KLIC . 'Aktivita')) {
-            return;
-        }
-
-        $a = Aktivita::zId(post(self::TEAM_KLIC . 'Aktivita'));
-        if ($leader->id() != $a->a[Sql::ZAMCEL]) {
-            throw new \Chyba('Nejsi teamleader.');
-        }
-
-        // načtení zvolených parametrů z formuláře (spoluhráči, kola, ...)
-        $up = post(self::TEAM_KLIC) ?? [];
-        $zamceno = 0;
-        foreach ($up as $i => $uid) {
-            if ($uid == -1 || !$uid) {
-                unset($up[$i]);
-            }
-            if ($uid == -1) {
-                $zamceno++;
-            }
-        }
-        $clenove = Uzivatel::zIds($up);
-        $novaKapacita = $a->neteamovaKapacita() - $zamceno;
-        $nazev = post(self::TEAM_KLIC . 'Nazev');
-        $dalsiKola = array_values(array_map(function (
-            $id,
-        ) { // array_map kvůli nutnosti zachovat pořadí
-            return self::zId($id);
-        }, post(self::TEAM_KLIC_KOLA)
-            ?: [])); // přihlášení týmu
-        try {
-            $a->prihlasTym($clenove, $prihlasujici, $nazev, $novaKapacita, $dalsiKola);
-            $chyby = [];
-        } catch (\Chyba $ch) {
-            $chyby = [$ch->getMessage()];
-        }
-
-        echo json_encode(['chyby' => $chyby]);
-        exit();
     }
 
     /**
@@ -4138,20 +3954,6 @@ SQL,
         }
 
         return count($vypraveciAktivit);
-    }
-
-    public function pridejDite(int $idDitete)
-    {
-        $detiIds = $this->detiIds();
-        if (in_array($idDitete, $detiIds, true)) {
-            return;
-        }
-        $detiIds[] = $idDitete;
-        $detiIds = array_unique($detiIds);
-        $detiString = implode(',', $detiIds);
-        $this->a[Sql::DITE] = $detiString;
-        dbQuery('UPDATE akce_seznam SET dite = $1 WHERE id_akce = ' . $this->id(), [$detiString]);
-        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
     }
 
     /**

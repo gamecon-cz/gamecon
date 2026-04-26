@@ -148,10 +148,10 @@ const nastavStavAkce = (stav: DataApiStav) => {
 
 export const useStavAkce = () => useProgramStore(s=>s.dataStatus.akce);
 
-export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAkce) => {
+export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAkce, idTýmu?: number, kódTýmu?: number) => {
   try {
     nastavStavAkce("načítání");
-    const response = await fetchAktivitaAkce(aktivitaId, typ);
+    const response = await fetchAktivitaAkce(aktivitaId, typ, idTýmu, kódTýmu);
 
     if (response.chyba?.hláška){
       nastavStavAkce("chyba");
@@ -183,8 +183,6 @@ export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAk
             aktivita.slevaNasobic   = response.aktivitaUzivatel.slevaNasobic;
             aktivita.mistnost       = response.aktivitaUzivatel.mistnost;
             aktivita.vedu           = response.aktivitaUzivatel.vedu;
-            aktivita.zamcenaDo      = response.aktivitaUzivatel.zamcenaDo;
-            aktivita.zamcenaMnou    = response.aktivitaUzivatel.zamcenaMnou;
           }
         }
       }, undefined, "okamžitá aktualizace z akce");

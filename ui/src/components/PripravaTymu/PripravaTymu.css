@@ -1,0 +1,246 @@
+/* Výběr kol - hlavní varování */
+.priprava-tymu-varovani {
+  background-color: #fee;
+  border: 2px solid #c33;
+  padding: 12px;
+  border-radius: 4px;
+  color: #c33;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.priprava-tymu-varovani strong {
+  color: #900;
+}
+
+.priprava-tymu-varovani-popis {
+  font-size: 0.9em;
+  font-weight: normal;
+  margin-top: 4px;
+}
+
+/* Kola */
+.priprava-tymu-kolo {
+  border-left: 4px solid #ddd;
+  padding-left: 12px;
+  margin-bottom: 16px;
+}
+
+.priprava-tymu-kolo h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.05em;
+}
+
+/* Radio buttony */
+.priprava-tymu-aktivita-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  transition: background-color 0.2s;
+}
+
+.priprava-tymu-aktivita-label:hover {
+  background-color: #f9f9f9;
+}
+
+.priprava-tymu-aktivita-label.vybrana {
+  background-color: #f0f8ff;
+  border: 1px solid #b0d4ff;
+}
+
+.priprava-tymu-aktivita-label input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.priprava-tymu-aktivita-nazev {
+  font-weight: 500;
+  color: #333;
+}
+
+.priprava-tymu-aktivita-cas {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Potvrzení - zelená box */
+.priprava-tymu-potvrzeni {
+  background-color: #e8f5e9;
+  border: 2px solid #4a4;
+  padding: 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.priprava-tymu-potvrzeni-text {
+  color: #333;
+  font-size: 0.95em;
+  margin-bottom: 12px;
+}
+
+.priprava-tymu-potvrzeni button {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 1.1em;
+  font-weight: bold;
+  background-color: #4a4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.priprava-tymu-potvrzeni button:hover:not(:disabled) {
+  background-color: #5b5;
+}
+
+.priprava-tymu-potvrzeni button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Info box (kód, aktivity) */
+.priprava-tymu-info {
+  background-color: #f5f5f5;
+  padding: 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.priprava-tymu-info-radek {
+  margin-bottom: 12px;
+}
+
+.priprava-tymu-info-radek:last-child {
+  margin-bottom: 0;
+}
+
+
+.priprava-tymu-aktivity-seznam {
+  margin-top: 8px;
+  padding-left: 16px;
+  border-left: 3px solid #ddd;
+}
+
+.priprava-tymu-aktivity-seznam > div {
+  white-space: pre-wrap;
+  font-family: monospace;
+  color: #333;
+}
+
+/* Tlačítka */
+.priprava-tymu-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  padding-top: 8px;
+}
+
+.priprava-tymu-btn-smazat {
+  background-color: #f44;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  width: unset;
+}
+
+.priprava-tymu-btn-smazat:hover:not(:disabled) {
+  background-color: #d00;
+}
+
+.priprava-tymu-btn-smazat:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.priprava-tymu-btn-primary {
+  padding: 8px 24px;
+  font-weight: bold;
+  width: unset;
+}
+
+.priprava-tymu-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Overlay vypršeného času */
+.priprava-tymu-overlay-expire {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: pulse-expire 1s infinite;
+}
+
+.priprava-tymu-overlay-expire-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  color: #d00;
+}
+
+.priprava-tymu-overlay-expire-icon {
+  font-size: 2em;
+  margin-bottom: 12px;
+}
+
+.priprava-tymu-overlay-expire-title {
+  font-weight: bold;
+}
+
+.priprava-tymu-overlay-expire-popis {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 8px;
+}
+
+/* Kontejner s disablenem ui */
+.priprava-tymu-container {
+  transition: opacity 0.3s;
+}
+
+.priprava-tymu-container.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Animace */
+@keyframes pulse-expire {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .priprava-tymu-buttons {
+    flex-direction: column;
+  }
+
+  .priprava-tymu-btn-smazat,
+  .priprava-tymu-btn-primary {
+    width: 100%;
+  }
+
+  .priprava-tymu-potvrzeni button {
+    font-size: 1em;
+  }
+}
