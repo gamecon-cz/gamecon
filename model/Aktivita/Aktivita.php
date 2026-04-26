@@ -1958,7 +1958,7 @@ SQL
                 $tym->zkontrolujZeNeniZamceny();
             }
 
-            if ($tym && !($params | self::IGNOROVAT_TURNAJ)) {
+            if ($tym && !($params & self::IGNOROVAT_TURNAJ)) {
                 $aktivityTymuParams = $params | self::IGNOROVAT_TURNAJ | self::IGNOROVAT_ZAMCENI_TYMU;
                 foreach ($tym->dalsiAktivity($this->id()) as $dalsiAktivita) {
                     $dalsiAktivita->odhlas($u, $odhlasujici, $zdrojOdhlaseni, $aktivityTymuParams); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
@@ -2527,7 +2527,7 @@ SQL
             $tym->zkontrolujVolnouKapacitu();
         }
 
-        if (!(self::IGNOROVAT_ZAMCENI_TYMU)) {
+        if (!(self::IGNOROVAT_ZAMCENI_TYMU & $parametry)) {
             $tym->zkontrolujZeNeniZamceny();
         }
     }
