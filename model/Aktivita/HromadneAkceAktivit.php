@@ -118,19 +118,30 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
     }
 
     /**
-     * Odemče hromadně zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
-     * Vrací počet odemčených teamů (=>uvolněných míst)
+     * Hromadně smaže/zveřejní týmy
      */
-    public function odemciTeamoveHromadne(\Uzivatel $odemykajici): int
+    public function vyresExpirovaneTymyHromadne(\Uzivatel $organizator): int
     {
         $odemcenoTymovychAktivit = 0;
 
-        $zamcene = dbFetchAll('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . Aktivita::HAJENI_TEAMU_HODIN . ' HOUR');
-        foreach ($zamcene as [Sql::ID_AKCE => $aid, Sql::ZAMCEL => $uid]) {
-            // uvolnění zámku je součástí odhlášení, pokud je sám -> done
-            Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici, 'hromadne-odemceni-teamovych');
-            $odemcenoTymovychAktivit++;
+        $expirovaneTymy = AktivitaTym::expirovaneTymy();
+
+        foreach ($expirovaneTymy as $tym) {
+            if ($tym->jeSmazatPoExpiraci()) {
+                $clenove = $tym->clenoveTymu();
+                $aktivita = Aktivita::zId($tym->idDalsichAktivit()[0]);
+                foreach ($clenove as $clen) {
+                    $aktivita->odhlas($clen, $organizator, 'hromadne-odemceni-teamovych', Aktivita::ODEMKNI_TYM_ODHLASENIM);
+                }
+                $odemcenoTymovychAktivit++;
+            } else {
+                if ($tym->jeVerejny()) {
+                    $tym->nastavVerejnost(true);
+                    $odemcenoTymovychAktivit++;
+                }
+            }
         }
+
         if ($odemcenoTymovychAktivit > 0) {
             $this->zalogujHromadnouAkci(
                 self::SKUPINA_AKTIVITY,
@@ -145,7 +156,7 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
 
     private function nazevAkceHromadnehoOdemceniTeamovych(): string
     {
-        return 'odemceni-tymovych';
+        return 'expirace-tymovych';
     }
 
     public function automatickaAktivaceProvedenaKdy(\DateTimeInterface $vlnaKdy = null): ?\DateTimeInterface

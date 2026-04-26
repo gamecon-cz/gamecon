@@ -33,6 +33,27 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
       <div class="program_hlavicka">
         <h1>Program {urlStav.ročník}</h1>
         <div class="program_dny">
+          {GAMECON_KONSTANTY.JE_ADMIN && (
+            <a
+              href={generujUrl(
+                produce(urlStav, (s) => {
+                  s.výběr = { typ: "všechny_dny" };
+                })
+              )}
+              class={
+                "program_den" +
+                (porovnejTabulkaVýběr({ typ: "všechny_dny" }, urlStav.výběr)
+                  ? " program_den-aktivni"
+                  : "")
+              }
+              onClick={(e) => {
+                e.preventDefault();
+                nastavUrlVýběr({ typ: "všechny_dny" });
+              }}
+            >
+              všechny dny
+            </a>
+          )}
           {urlStavMožnosti.map((možnost) => {
             return (
               <a
@@ -53,8 +74,8 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
                 }}
               >
                 {možnost.typ === "můj"
-                  ? "můj program"
-                  : formátujDatum(možnost.datum, !jeLetošníRočník)}
+                  ? (GAMECON_KONSTANTY.JE_ADMIN ? "Účastník" : "můj program")
+                  : možnost.typ === "všechny_dny" ? "všechny dny" :formátujDatum(možnost.datum, !jeLetošníRočník)}
               </a>
             );
           })}

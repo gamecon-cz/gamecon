@@ -1,7 +1,7 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
-$dbName = DB_NAME;
+$dbName = $this->getCurrentDb();
 
 // Add ON UPDATE CASCADE only to foreign keys referencing uzivatele_hodnoty.id_uzivatele.
 // This is needed for data anonymization (AnonymizovanaDatabaze::exportuj),

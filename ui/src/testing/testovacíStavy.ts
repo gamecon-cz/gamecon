@@ -75,7 +75,6 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
     vdalsiVlne: false,
     probehnuta: true,
     jeBrigadnicka: false,
-    dite: [],
     tymova: false,
     prihlasovatelna: true,
     popis: "",
@@ -88,12 +87,8 @@ const createAktivita = (a: AktivitaCreateParams): Aktivita => {
       ku: 1
     },
     // ApiAktivitaUživatel — všechna povinná pole
-    stavPrihlaseni: null,
     slevaNasobic:   1,
-    mistnost:       null,
     vedu:           false,
-    zamcenaDo:      null,
-    zamcenaMnou:    false,
     __TS_STRUKTURALNI_KONTROLA__: true,
   };
 };

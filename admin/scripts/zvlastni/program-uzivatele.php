@@ -1,5 +1,6 @@
 <?php
 
+use App\Service\AktivitaTymService;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\Program;
 
@@ -7,40 +8,26 @@ use Gamecon\Aktivita\Program;
 /** @var Uzivatel|null $uPracovni */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
-if (!$uPracovni) {
-    echo 'Není vybrán uživatel.';
-    return;
-}
+// todo(tym):
+/*
+    // tohle je přesměrování z program-osobni
+    $osobniProgram = !empty($osobniProgram);
 
-$osobniProgram = !empty($osobniProgram);
-
-$program = new Program(
-    systemoveNastaveni: $systemoveNastaveni,
-    uzivatel: $uPracovni,
     nastaveni: [
         Program::DRD_PJ       => true,
         Program::DRD_PRIHLAS  => true,
-        Program::PLUS_MINUS   => true,
         Program::OSOBNI       => $osobniProgram,
-        Program::TEAM_VYBER   => true,
         Program::INTERNI      => true,
         Program::ZPETNE       => $u->maPravoNaZmenuHistorieAktivit(),
         Program::NEOTEVRENE   => $u->maPravoNaPrihlasovaniNaDosudNeotevrene(),
     ]
-);
+*/
 
-if ($uPracovni) {
-    Aktivita::prihlasovatkoZpracuj(
-        $uPracovni,
-        $u,
-        Aktivita::PLUSMINUS_KAZDY
-        | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0)
-        | Aktivita::INTERNI,
-    );
-    Aktivita::vyberTeamuZpracuj($uPracovni, $u);
+// todo(tym): to asi nevadí že není nikdo vybrán
+if (!$uPracovni) {
+    echo 'Není vybrán uživatel.';
+    return;
 }
-
-$chyba = Chyba::vyzvedniHtml();
 
 ?>
 <!DOCTYPE html>
@@ -51,9 +38,6 @@ $chyba = Chyba::vyzvedniHtml();
     <script src="files/jquery-3.4.1.min.js"></script>
     <script src="files/jquery-ui-v1.12.1.min.js"></script>
     <base href="<?= URL_ADMIN ?>/">
-    <?php foreach ($program->cssUrls() as $cssUrl) { ?>
-        <link rel="stylesheet" href="<?= $cssUrl ?>">
-    <?php } ?>
     <link rel="stylesheet" href="files/design/hint.css">
     <style>
         body {
@@ -99,34 +83,7 @@ $chyba = Chyba::vyzvedniHtml();
     <a href="program-osobni" class="program-odkaz">Program účastníka</a>
 </div>
 
-<div class="program">
-    <?= $chyba ?>
-    <?php $program->tisk(); ?>
-</div>
-
-<script>
-    (() => {
-        scrollObnov()
-        document.querySelectorAll('.program form > a').forEach(e => {
-            e.addEventListener('click', () => scrollUloz())
-        })
-
-        function scrollObnov() {
-            let top = window.localStorage.getItem('scrollUloz_top')
-            window.localStorage.removeItem('scrollUloz_top')
-            let left = window.localStorage.getItem('scrollUloz_left')
-            window.localStorage.removeItem('scrollUloz_left')
-            if (top || left) {
-                window.scrollTo({top: top, left: left})
-            }
-        }
-
-        function scrollUloz() {
-            window.localStorage.setItem('scrollUloz_top', window.scrollY)
-            window.localStorage.setItem('scrollUloz_left', window.scrollX)
-        }
-    })()
-</script>
+<?php Program::vypisPreact($uPracovni ?? $u, true, "program-uzivatele"); ?>
 
 <?php profilInfo(); ?>
 

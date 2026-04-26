@@ -1,7 +1,7 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
-$dbName = DB_NAME;
+$dbName = $this->getCurrentDb();
 
 // 1. Add .php suffix to migration_code values that have no file extension
 // (historically, .php was stripped from basenames while .sql was kept)

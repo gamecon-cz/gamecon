@@ -1,9 +1,9 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { fetchPřihlášenýUživatel, PřihlášenýUživatel } from "../../../api/přihlášenýUživatel";
+import { fetchPřihlášenýUživatel, ApiPřihlášenýUživatel } from "../../../api/přihlášenýUživatel";
 
 export type PřihlášenýUživatelSlice = {
   přihlášenýUživatel: {
-    data: PřihlášenýUživatel,
+    data: ApiPřihlášenýUživatel,
   }
 }
 

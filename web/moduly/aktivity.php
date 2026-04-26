@@ -15,13 +15,18 @@ use Gamecon\Aktivita\TypAktivity;
 $this->blackarrowStyl(true);
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
+if (!function_exists('zabalWebSoubor')) {
+    function zabalWebSoubor(string $cestaKSouboru): string
+    {
+        return $cestaKSouboru . '?version=' . md5_file(WWW . '/' . $cestaKSouboru);
+    }
+}
+
 $typ = $this->param('typ');
 
 // zpracování POST požadavků
 
 Aktivita::prihlasovatkoZpracuj($u, $u);
-Aktivita::vyberTeamuZpracuj($u, $u);
-Tym::vypisZpracuj($u);
 
 // aktivity
 
@@ -58,36 +63,25 @@ foreach ($skupiny as $skupina) {
 
     /** @var Aktivita $aktivita */
     foreach ($skupina as $aktivita) {
-        $vyberTymu = $aktivita->vyberTeamu($u);
-        if ($vyberTymu) {
-            $t->assign('vyberTymu', $vyberTymu);
-            $t->parse('aktivity.aktivita.termin.vyberTymu');
-        }
-
-        $tym = $aktivita->tym();
-        if ($tym && in_array($aktivita->typId(), [TypAktivity::DRD, TypAktivity::LKD, TypAktivity::DND])) {
-            $t->assign('tym', $tym);
-            $t->parse('aktivity.aktivita.termin.tym');
-        }
-
-        $vypisTymu = $tym && $u && $aktivita->prihlasen($u)
-            ? $tym->vypis()
-            : null;
-        if ($vypisTymu && !$vyberTymu) {
-            $t->assign('vypisTymu', $vypisTymu);
-            $t->parse('aktivity.aktivita.termin.vypisTymu');
-        }
-
         $vypravec = current($aktivita->organizatori());
         if ($vypravec && ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0)) {
             $t->assign('vypravec', $vypravec->jmenoNaWebu());
             $t->parse('aktivity.aktivita.termin.vypravec');
         }
 
+        if ($aktivita->tymova() && $u && $u->gcPrihlasen() && $aktivita->prihlasovatelna()) {
+            $aktivitaId    = (int)$aktivita->id();
+            $aktivitaNazev = addslashes($aktivita->nazev());
+            $label         = $aktivita->prihlasen($u) ? 'Nastavení týmu' : 'Přihlásit tým';
+            $prihlasit     = "<button onclick=\"window.preactMost.prihlaseniTymu.otevri({$aktivitaId}, '{$aktivitaNazev}')\">{$label}</button>";
+        } else {
+            $prihlasit = $aktivita->prihlasovatko($u);
+        }
+
         $t->assign([
             'aktivita'   => $aktivita,
             'obsazenost' => $aktivita->obsazenost() ?: '',
-            'prihlasit'  => $aktivita->prihlasovatko($u),
+            'prihlasit'  => $prihlasit,
         ]);
 
         $t->parse('aktivity.nahled.termin');
@@ -118,7 +112,7 @@ foreach ($skupiny as $skupina) {
             : null, // TODO kvalita?
         'organizatori'       => $organizatori,
         'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
-        'kapacita'           => $aktivita->neteamovaKapacita()
+        'kapacita'           => $aktivita->kapacita()
             ?: 'neomezeně',
     ]);
 
@@ -175,3 +169,15 @@ if (!empty($org)) {
         $t->parse('aktivity.strankaNavod');
     }
 }
+
+?>
+
+<link rel="stylesheet" href="<?= zabalWebSoubor('soubory/ui/style.css') ?>">
+<div id="preact-aktivity-modal"></div>
+<script>
+    window.GAMECON_KONSTANTY = {
+        BASE_PATH_API: "<?= URL_WEBU . '/api/' ?>",
+        HAJENI_TEAMU_HODIN: <?= \Gamecon\Aktivita\AktivitaTym::HAJENI_TEAMU_HODIN ?>,
+    };
+</script>
+<script type="module" src="<?= zabalWebSoubor('soubory/ui/bundle.js') ?>"></script>

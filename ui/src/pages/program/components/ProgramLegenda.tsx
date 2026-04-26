@@ -39,15 +39,8 @@ export const ProgramLegenda = () => {
     />
   );
 
-  return (
-    <div class="program_legenda">
-      <div
-        class="informaceSpustime"
-        dangerouslySetInnerHTML={{
-          __html: legendaText,
-        }}
-      ></div>
-      <div class="program_legenda_inner">
+  const vnitřek = (
+    <div class="program_legenda_inner">
         <div class="program_legenda_typ">
           Filtruj podle:
         </div>
@@ -86,7 +79,23 @@ export const ProgramLegenda = () => {
         ) : (
           <></>
         )}
-      </div>
+    </div>
+  );
+
+  // todo: tohle chce opravit jak jsou napsané styly na webu i v adminu
+  if (GAMECON_KONSTANTY.JE_ADMIN) {
+    return vnitřek;
+  }
+
+  return (
+    <div class="program_legenda">
+      <div
+        class="informaceSpustime"
+        dangerouslySetInnerHTML={{
+          __html: legendaText,
+        }}
+      ></div>
+      {vnitřek}
     </div>
   );
 };
