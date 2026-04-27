@@ -384,7 +384,7 @@
 
 
   <div class="infopult-grid--item infopult-grid--item-udaje aBox">
-    <h3>Ostatní údaje</h3>
+    <h3>Osobní údaje</h3>
     Pro úpravu klikni na údaj
     {udajeHtml}
     <script src="files/jquery.autosize-1.18.13.js"></script>
@@ -644,6 +644,18 @@
       </form>
     </div>
   </div>
+
+  <!-- begin:jidlo -->
+  <div class="infopult-grid--item infopult-grid--item-jídlo aBox">
+    <h3>Jídlo uživatele</h3>
+    Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a
+    zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
+    <form method="post" class="clearfix">
+      {jidloHtml}
+      <input type="submit" name="zpracujJidlo" value="Uložit" class="submit-btn">
+    </form>
+  </div>
+  <!-- end:jidlo -->
 
   <!-- begin:objednavky -->
   <div class="infopult-grid--item infopult-grid--item-predmety aBox">
