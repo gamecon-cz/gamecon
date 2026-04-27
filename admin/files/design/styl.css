@@ -1163,10 +1163,10 @@ Radio musí být ve tvaru:
   grid-template-areas:
   "přehled"
   "udaje"
+  "platba"
   "ubytování"
   "pokoje"
-  "platba"
-  "qrplatba"
+  "jidlo"
   "prodej"
   "predmety";
 }
@@ -1191,8 +1191,8 @@ Radio musí být ve tvaru:
   grid-area: platba;
 }
 
-.infopult-grid--item-qrplatba {
-  grid-area: qrplatba;
+.infopult-grid--item-jidlo {
+  grid-area: jidlo;
 }
 
 .infopult-grid--item-predmety {
@@ -1225,14 +1225,13 @@ Radio musí být ve tvaru:
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
   .infopult-grid--container {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     grid-template-rows: auto;
     grid-template-areas:
-      "přehled  přehled  ubytování ubytování"
-      "udaje    udaje    ubytování ubytování"
-      "udaje    udaje    pokoje    pokoje"
-      "platba   qrplatba predmety  predmety"
-      "prodej   qrplatba predmety  predmety";
+      "přehled   udaje     platba"
+      "ubytování ubytování prodej"
+      "ubytování ubytování predmety"
+      "pokoje    jidlo     predmety";
   }
 
   .infopult-grid--item {
@@ -1272,9 +1271,10 @@ Radio musí být ve tvaru:
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
     grid-template-areas:
-      "přehled   udaje     pokoje"
-      "platba    qrplatba  predmety"
-      "ubytování ubytování prodej";
+      "přehled   udaje     platba"
+      "ubytování ubytování prodej"
+      "ubytování ubytování predmety"
+      "pokoje    jidlo     predmety";
   }
 
   .infopult-grid--item-přehled {
