@@ -234,9 +234,9 @@ HTML;
               <div class="tooltip_obsah">
                 Potřebujeme je, abychom:<br>
                 <ul>
-                  <li>Tě identifikovali při registraci na místě</li>
+                  <li>tě identifikovali při registraci na místě</li>
                   <li>urychlili Tvé odbavení</li>
-                  <li>Tě mohli ubytovat a splnit související zákonné povinnosti</li>
+                  <li>tě mohli ubytovat a splnit související zákonné povinnosti</li>
                 </ul>
               </div>
             </div>
