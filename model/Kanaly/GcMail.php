@@ -16,6 +16,7 @@ class GcMail
 {
     public const FORMAT_HTML = 'html';
     public const FORMAT_TEXT = 'text';
+    private const VYCHOZI_EMAIL_ODESILATELE = 'info@gamecon.cz';
 
     public static function vytvorZGlobals(string $text = ''): static
     {
@@ -28,6 +29,7 @@ class GcMail
 
     private array  $adresati = [];
     private string $predmet  = '';
+    private ?string $odesilatel = null;
     /** @var array<int, array{soubor: string, nazev: string}> */
     private array  $prilohy  = [];
 
@@ -51,6 +53,12 @@ class GcMail
         return $this;
     }
 
+    public function odesilatel(string $odesilatel): self
+    {
+        $this->odesilatel = $odesilatel;
+        return $this;
+    }
+
     /**
      * Odešle sestavenou zprávu.
      * @return bool jestli se zprávu podařilo odeslat
@@ -58,8 +66,14 @@ class GcMail
     public function odeslat(string $format = self::FORMAT_HTML)
     {
         $predmet = $this->pridejPrefixPodleProstredi($this->dejPredmet());
+        $kontaktniEmail = trim($this->systemoveNastaveni->kontaktniEmailGc());
+        if ($kontaktniEmail === '') {
+            $kontaktniEmail = self::VYCHOZI_EMAIL_ODESILATELE;
+        }
+        $odesilatel = $this->odesilatel
+            ?: "GameCon <{$kontaktniEmail}>";
         $mail    = (new Email())
-            ->from($this->pridejPrefixPodleProstredi("GameCon <{$this->systemoveNastaveni->kontaktniEmailGc()}>"))
+            ->from($this->pridejPrefixPodleProstredi($odesilatel))
             ->subject($predmet);
         $body = $this->pridejPrefixPodleProstredi($this->dejText());
         $mail->text(strip_tags($body));

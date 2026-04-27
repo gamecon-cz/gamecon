@@ -165,6 +165,11 @@ if (post('zpracujUbytovani')) {
     oznameni('Ubytování uloženo');
 }
 
+if (post('zpracujJidlo')) {
+    $shop->zpracujJidlo();
+    oznameni('Jídlo uloženo');
+}
+
 if (post('pridelitPokoj') && $uPracovni) {
     $pokojPost = post('pokoj');
     Pokoj::ubytujNaCislo($uPracovni, $pokojPost);
