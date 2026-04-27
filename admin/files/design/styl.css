@@ -1163,11 +1163,11 @@ Radio musí být ve tvaru:
   grid-template-areas:
   "přehled"
   "udaje"
-  "ubytování"
-  "pokoje"
   "platba"
-  "qrplatba"
+  "ubytování"
   "prodej"
+  "pokoje"
+  "jidlo"
   "predmety";
 }
 
@@ -1185,6 +1185,10 @@ Radio musí být ve tvaru:
 
 .infopult-grid--item-pokoje {
   grid-area: pokoje;
+}
+
+.infopult-grid--item-jidlo {
+  grid-area: jidlo;
 }
 
 .infopult-grid--item-platba {
@@ -1225,14 +1229,13 @@ Radio musí být ve tvaru:
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
   .infopult-grid--container {
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: auto;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto minmax(80px, 1fr) minmax(120px, 1.5fr) auto;
     grid-template-areas:
-      "přehled  přehled  ubytování ubytování"
-      "udaje    udaje    ubytování ubytování"
-      "udaje    udaje    pokoje    pokoje"
-      "platba   qrplatba predmety  predmety"
-      "prodej   qrplatba predmety  predmety";
+      "přehled   udaje     platba"
+      "ubytování ubytování prodej"
+      "ubytování ubytování predmety"
+      "pokoje    jidlo     predmety";
   }
 
   .infopult-grid--item {
@@ -1242,6 +1245,20 @@ Radio musí být ve tvaru:
 
   .infopult-grid--item-predmety td:nth-child(2) {
     width: unset;
+  }
+
+  .infopult-grid--item-prodej {
+    align-self: stretch;
+    margin-top: 0;
+  }
+
+  .infopult-grid--item-prodej .submit-btn {
+    height: 100% !important;
+    min-height: 60px;
+  }
+
+  .infopult-grid--item-predmety.aBox {
+    margin-top: 6px !important;
   }
 
   .infopult-grid--item-udaje td:nth-child(2) {
@@ -1270,11 +1287,13 @@ Radio musí být ve tvaru:
 @media only screen and (min-width: 1200px) {
   .infopult-grid--container {
     grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto minmax(80px, 1fr) minmax(120px, 1.5fr) auto;
     gap: 5px;
     grid-template-areas:
-      "přehled   udaje     pokoje"
-      "platba    qrplatba  predmety"
-      "ubytování ubytování prodej";
+      "přehled   udaje     platba"
+      "ubytování ubytování prodej"
+      "ubytování ubytování predmety"
+      "pokoje    jidlo     predmety";
   }
 
   .infopult-grid--item-přehled {
