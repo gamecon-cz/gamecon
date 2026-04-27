@@ -206,6 +206,8 @@ if ($uPracovni) {
                 true,
             ),
         );
+        $x->assign('jidloHtml', $shop->jidloHtml(true));
+        $x->parse('infopult.uzivatel.jidlo');
     }
 
     if ($systemoveNastaveni->jsmeNaLocale()) {
