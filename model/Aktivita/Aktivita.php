@@ -1208,6 +1208,7 @@ SQL
         $data[Sql::TEAM_KAPACITA] = $teamova
             ? (!empty($data[Sql::TEAM_KAPACITA]) ? (int)$data[Sql::TEAM_KAPACITA] : null)
             : null;
+        $data[Sql::TYM_SMAZAT_PO_EXPIRACI] = (int)($teamova && !empty($data[Sql::TYM_SMAZAT_PO_EXPIRACI]));
 
         if ($teamova) {
             // Vedoucí týmu může ručně nastavit kapacitu nižší, dokud je větší rovna team_min. V takovém
