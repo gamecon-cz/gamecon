@@ -90,9 +90,8 @@
 
 PRIO
   - [X] rebase
-  - [ ] projít analýzy
-  - [ ] Šéf infa může tým odemknout přes admi  prvotně jen když je vybraný uživatel v tom týmu
-  - [ ] Šéf infa může tým odemknout přes admi Kontrola oprávnění (šéf infa)
+  - [X] projít analýzy
+  - [ ] přidat odemknout do týmového ui na adminu
   - [ ] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
   - [ ] UI zobrazuje kapacitu per kolo
   - [ ] název týmu

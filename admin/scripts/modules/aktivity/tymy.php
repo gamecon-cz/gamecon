@@ -30,6 +30,25 @@ if (post('rozebratTym')) {
     exit;
 }
 
+// Zpracování POST akce: zamknout/odemknout tým
+if (post('zamknoutTym') || post('odemknoutTym')) {
+    if (!$u->jeSefInfopultu()) {
+        throw new \Chyba('Nemáte oprávnění zamykat/odemykat týmy');
+    }
+    $kodTymu = (int)post('kodTymu');
+    $idAkce  = (int)post('idAkce');
+    if ($kodTymu > 0 && $idAkce > 0) {
+        $tym = AktivitaTym::najdiPodleKodu($idAkce, $kodTymu);
+        if (post('zamknoutTym')) {
+            $tym->zamkni();
+        } else {
+            $tym->odemkni();
+        }
+    }
+    header('Location: ' . $_SERVER['REQUEST_URI']);
+    exit;
+}
+
 // Všechny teamové aktivity ročníku
 $aktivity = dbQuery(<<<SQL
     SELECT id_akce, nazev_akce, team_min, team_max, team_kapacita
@@ -103,6 +122,15 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
                 $tpl->assign('maily', implode('; ', $maily));
                 $tpl->parse('tymy.aktivita.tym.clenove');
             }
+
+            $smíZamykat = $u->jeSefInfopultu();
+            $tpl->assign([
+                'zamceni_name'     => $aktivitaTym->jeZamceny() ? 'odemknoutTym' : 'zamknoutTym',
+                'zamceni_label'    => $aktivitaTym->jeZamceny() ? 'Odemknout tým' : 'Zamknout tým',
+                'zamceni_disabled' => $smíZamykat ? '' : 'disabled',
+                'zamceni_title'    => $smíZamykat ? '' : 'Zamykání/odemykání týmu může provádět pouze Šéf infopultu',
+            ]);
+            $tpl->parse('tymy.aktivita.tym.zamceniTlacitko');
 
             $tpl->parse('tymy.aktivita.tym');
         }

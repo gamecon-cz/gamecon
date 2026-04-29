@@ -51,7 +51,7 @@ class Program
             'PROGRAM_DO'                   => (new DateTimeCz(PROGRAM_DO))->getTimestamp() * 1000,
             'PROGRAM_ZACATEK'              => PROGRAM_ZACATEK,
             'PROGRAM_KONEC'                => PROGRAM_KONEC,
-            'CAS_NA_PRIPRAVENI_TYMU_MINUT' => AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT,
+            'CAS_NA_PRIPRAVENI_TYMU_MINUT' => AktivitaTym::CAS_NA_PRIPRAVENI_TYMU_MINUT,
             'URL_PROGRAM_CACHE'            => URL_CACHE . '/program',
             'programManifest'              => (new ProgramStaticFileGenerator(SystemoveNastaveni::zGlobals()))->readManifest(),
         ];

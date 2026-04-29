@@ -30,6 +30,13 @@
                 Rozebrat tým
             </button>
         </form>
+        <!-- begin:zamceniTlacitko -->
+        <form method="post" action="aktivity/tymy" class="tymy-zamceni-form">
+            <input type="hidden" name="kodTymu" value="{kod}"/>
+            <input type="hidden" name="idAkce" value="{id_akce}"/>
+            <button type="submit" name="{zamceni_name}" value="1" {zamceni_disabled} title="{zamceni_title}">{zamceni_label}</button>
+        </form>
+        <!-- end:zamceniTlacitko -->
     </h3>
     <!-- begin:clenove -->
     <table class="vypis tymy-clenove">
