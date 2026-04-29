@@ -89,11 +89,16 @@
 # TODO:
 
 PRIO
-  - [ ] rebase
+  - [X] rebase
+  - [ ] projít analýzy
   - [ ] Šéf infa může tým odemknout přes admi  prvotně jen když je vybraný uživatel v tom týmu
   - [ ] Šéf infa může tým odemknout přes admi Kontrola oprávnění (šéf infa)
   - [ ] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
   - [ ] UI zobrazuje kapacitu per kolo
+  - [ ] název týmu
+  - [ ] checkbox na smazání do amdinu
+  - [ ] zrušit rekurzi pro Aktivita::prihlas ?
+    - [ ] dělat vše v transakci
 
 ## soupist zákládních testovacích scénářů, popis fungování nového systému:
 
@@ -346,7 +351,6 @@ Turnajové
 - [ ] Přihlašovací flow přes nový způsob pro týmové aktivity (`Aktivita.php:3131`)
   - [ ] Nahradit hardcoded HTML zámku za nový přihlašovací widget
   - [ ] Sjednotit flow přihlášení pro týmové i netýmové aktivity
-
 
 ## Maily
 - [ ] Mailové šablony pro týmové události

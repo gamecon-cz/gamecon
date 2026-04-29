@@ -2342,6 +2342,7 @@ SQL
         }
     }
 
+    // todo(tym): tenhle rekurzivní konstrukt nepůsobí správně
     /**
      *  Přihlásí uživatele na aktivitu.
      *  Pro tymovky:
@@ -3154,7 +3155,7 @@ HTML
                 $tymKod = +post("tymKod");
 
                 if ($tymId) {
-                    $tym = AktivitaTym::najdi($tymId, $aktivita->id());
+                    $tym = AktivitaTym::najdi($tymId);
                 } elseif ($tymKod) {
                     // pokud je tymKod a kód nenáleží žádnému týmu na aktivitě, tak ihned sletí
                     $tym = AktivitaTym::najdiPodleKodu($aktivita->id(), $tymKod);

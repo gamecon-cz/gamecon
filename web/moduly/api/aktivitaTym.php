@@ -74,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$aktivita) {
                 throw new Chyba('Aktivita nenalezena');
             }
-            // todo(tym): tady musí stoprocentně dojít k přihlášení uživatele jinak není úspěch a pořád hrozí smazání týmu
             $aktivita->prihlas($uPracovni, $u, tym: $tym);
         } elseif ($akce === 'nastavLimit') {
             $limit = (int)($_POST['limit'] ?? 0);

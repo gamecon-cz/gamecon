@@ -135,7 +135,7 @@ Platnost současné vlny hromadné aktivace byla '%s' (%s), teď je '%s' a aktiv
                 }
                 $odemcenoTymovychAktivit++;
             } else {
-                if ($tym->jeVerejny()) {
+                if (!$tym->jeVerejny()) {
                     $tym->nastavVerejnost(true);
                     $odemcenoTymovychAktivit++;
                 }
