@@ -1,0 +1,13 @@
+# Example crontab for the `web` container. Copy to `.docker/cron/gamecon`
+# and reference it from docker-compose.example.yml (or docker-compose.override.yml).
+#
+# Format follows /etc/cron.d/ — five time fields, then the user, then the command.
+# This file must NOT be world-writable; cron silently ignores it otherwise.
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Hit the local cron endpoint hourly (mirrors the production cron-job.org schedule).
+# Replace YOUR_CRON_KEY with the value of the CRON_KEY constant from nastaveni/.
+# Output is appended to logy/cron/cron-docker.log inside the project (mounted at /var/www/html/gamecon).
+0 * * * * www-data curl -fsS "http://localhost/admin/cron.php?key=YOUR_CRON_KEY&tee=1" >> /var/www/html/gamecon/logy/cron/cron-docker.log 2>&1
