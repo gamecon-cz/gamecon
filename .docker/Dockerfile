@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y \
       sudo \
       iputils-ping \
       wget \
+      cron \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 FROM gamecon-tools-step2 AS gamecon-php-step3

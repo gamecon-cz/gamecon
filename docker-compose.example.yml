@@ -2,6 +2,15 @@
 version: "3"
 services:
 
+  web:
+    # Mount a host crontab into /.docker/cron/<name>. init-container.sh copies it to
+    # /etc/cron.d/<name> with root ownership and 644 perms (cron rejects files in
+    # /etc/cron.d that are not root-owned or are group/other-writable).
+    # Lines must include the user column, e.g.:
+    #   0 * * * * www-data curl -s "http://localhost/admin/cron.php?key=..."
+    volumes:
+      - ./.docker/cron/gamecon:/.docker/cron/gamecon:ro
+
   sql.gamecon:
     restart: always
 
