@@ -28,6 +28,7 @@ export type ProgramURLStav = {
   podleMístnosti?: boolean,
   bezÚčastníka?: boolean,
   zobrazInterni?: boolean,
+  zobrazPrázdné?: boolean,
   autoRefresh?: boolean,
 }
 
@@ -51,6 +52,7 @@ const TEXT_QUERY_KEY = "text";
 const PODLE_MÍSTNOSTI_QUERY_KEY = "podleMistnosti";
 const BEZ_ÚČASTNÍKA_QUERY_KEY = "bezUcastnika";
 const ZOBRAZ_INTERNÍ_QUERY_KEY = "interni";
+const ZOBRAZ_PRÁZDNÉ_QUERY_KEY = "zobrazPrazdne";
 const AUTO_REFRESH_QUERY_KEY = "autoRefresh";
 
 const párováníQueryDoStavu: {
@@ -66,6 +68,7 @@ const párováníQueryDoStavu: {
   { stavString: "podleMístnosti", query: PODLE_MÍSTNOSTI_QUERY_KEY },
   { stavString: "bezÚčastníka", query: BEZ_ÚČASTNÍKA_QUERY_KEY },
   { stavString: "zobrazInterni", query: ZOBRAZ_INTERNÍ_QUERY_KEY },
+  { stavString: "zobrazPrázdné", query: ZOBRAZ_PRÁZDNÉ_QUERY_KEY },
   { stavString: "autoRefresh", query: AUTO_REFRESH_QUERY_KEY },
 ];
 

@@ -15,6 +15,7 @@ import {
   přepniBezÚčastníka,
   přepniPodleMístnosti,
   přepniZobrazInterni,
+  přepniZobrazPrázdné,
 } from "../../../../store/program/slices/urlSlice";
 
 import "./ReactSelect.less";
@@ -36,7 +37,7 @@ const ROKY_OPTIONS = ROKY.concat(GAMECON_KONSTANTY.ROCNIK)
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
-  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrText, podleMístnosti, bezÚčastníka, zobrazInterni, autoRefresh } = useUrlStav();
+  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrText, podleMístnosti, bezÚčastníka, zobrazInterni, zobrazPrázdné, autoRefresh } = useUrlStav();
 
   const urlStavMožnosti = useUrlStavMožnosti();
 
@@ -99,16 +100,17 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           </div>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", flexWrap:"wrap", gap: 8 }}>
-          {GAMECON_KONSTANTY.JE_ADMIN ? (
-            <div style={{ display: "flex" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", flexWrap:"wrap-reverse", gap: 8 }}>
+          {GAMECON_KONSTANTY.JE_ADMIN && (
+            <div class="skupina" style={{ display: "flex" }}>
               <button class={"program_filtry_tlacitko" + (podleMístnosti ? " aktivni" : "")} onClick={přepniPodleMístnosti}>Podle místnosti</button>
-              <button class={"program_filtry_tlacitko" + (bezÚčastníka ? " aktivni" : "")} onClick={přepniBezÚčastníka}>Bez účastníka</button>
-              <button class={"program_filtry_tlacitko" + (zobrazInterni ? " aktivni" : "")} onClick={přepniZobrazInterni}>Zobraz interní</button>
+              <button class={"program_filtry_tlacitko" + (bezÚčastníka ? " aktivni" : "")} onClick={přepniBezÚčastníka}>Nepřihlášen</button>
+              <button class={"program_filtry_tlacitko" + (zobrazInterni ? " aktivni" : "")} onClick={přepniZobrazInterni}>Interní</button>
+              <button class={"program_filtry_tlacitko" + (zobrazPrázdné ? " aktivni" : "")} onClick={přepniZobrazPrázdné}>Prázdné</button>
               <button class={"program_filtry_tlacitko" + (autoRefresh ? " aktivni" : "")} onClick={přepniAutoRefresh}>Auto refresh</button>
             </div>
-          ) : <div />}
-          <div style={{ display: "flex" }}>
+          )}
+          <div class="skupina" style={{ display: "flex", flex:1, justifyContent:"flex-end"  }}>
             <button class={
               "program_filtry_tlacitko program_filtry_tlacitko_zvetsit" +
               (zvětšeno ? " aktivni" : "")

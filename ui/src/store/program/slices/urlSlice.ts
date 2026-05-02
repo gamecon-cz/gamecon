@@ -129,6 +129,12 @@ export const přepniZobrazInterni = () => {
   }, undefined, "přepni zobraz interní");
 };
 
+export const přepniZobrazPrázdné = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.zobrazPrázdné = !s.urlStav.zobrazPrázdné || undefined;
+  }, undefined, "přepni zobraz prázdné");
+};
+
 export const přepniAutoRefresh = () => {
   useProgramStore.setState((s) => {
     s.urlStav.autoRefresh = !s.urlStav.autoRefresh || undefined;
