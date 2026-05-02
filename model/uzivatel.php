@@ -2979,19 +2979,7 @@ SQL;
         $res = [];
 
         $res["id"] = $this->id();
-        $res["prihlasen"] = true;
         $res["pohlavi"] = $this->pohlavi();
-        $res["koncovkaDlePohlavi"] = $this->koncovkaDlePohlavi();
-
-        if ($this->jeOrganizator()) {
-            $res["organizator"] = true;
-        }
-        if ($this->jeBrigadnik()) {
-            $res["brigadnik"] = true;
-        }
-        if ($this->maRoli(Role::SEF_INFOPULTU)) {
-            $res["sefInfa"] = true;
-        }
 
         $res["gcStav"] = "nepřihlášen";
 
@@ -3003,6 +2991,22 @@ SQL;
         }
         if ($this->gcOdjel()) {
             $res["gcStav"] = "odjel";
+        }
+
+        $role = [];
+
+        if ($this->jeOrganizator()) {
+            $role["organizator"] = true;
+        }
+        if ($this->jeBrigadnik()) {
+            $role["brigadnik"] = true;
+        }
+        if ($this->maRoli(Role::SEF_INFOPULTU)) {
+            $role["sefInfa"] = true;
+        }
+
+        if (!empty($role)){
+            $res["role"] = $role;
         }
 
         return $res;

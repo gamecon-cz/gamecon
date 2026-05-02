@@ -1,11 +1,9 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { useAktivita, useUživatel } from "../../../../store/program/selektory";
+import { useAktivita, useÚčastník } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { nastavModalNastaveníTýmu, nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity, useStavAkce } from "../../../../store/program/slices/programDataSlice";
-
-const zámeček = `🔒`;
 
 type TPřihlašovátkoProps = {
   akitivitaId: number;
@@ -114,22 +112,23 @@ const NačítáníText = () => {
   return <em>Načítání {"".padEnd(teček + 1, ".")}</em>;
 }
 
+// todo(tym): tady překopat podle práv
 export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   props
 ) => {
   const { akitivitaId } = props;
 
-  const uživatel = useUživatel();
+  const účastník = useÚčastník();
   const aktivita = useAktivita(akitivitaId);
   const stavAkce = useStavAkce();
 
-  if (!uživatel.prihlasen) return <></>;
+  if (!účastník) return <></>;
 
-  if (uživatel.gcStav === "nepřihlášen") return <></>;
+  if (účastník.gcStav === "nepřihlášen") return <></>;
 
   if (!aktivita?.prihlasovatelna) return <></>;
 
-  if (aktivita?.jeBrigadnicka && !uživatel.brigadnik) return <></>;
+  if (aktivita?.jeBrigadnicka && !účastník?.role?.brigadnik) return <></>;
 
 
   if (stavAkce === "načítání") {
@@ -161,7 +160,7 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   if (aktivita.obsazenost) {
     const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
 
-    if (volnoTyp === "u" || volnoTyp === uživatel.pohlavi)
+    if (volnoTyp === "u" || volnoTyp === účastník.pohlavi)
       return <FormTlačítko akitivitaId={akitivitaId} typ={"prihlasit"} tymova={aktivita.tymova} />;
     else if (volnoTyp === "f") return <>pouze ženská místa</>;
     else if (volnoTyp === "m") return <>pouze mužská místa</>;

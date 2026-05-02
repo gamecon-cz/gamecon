@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "run-p vite \"build:watch\"",
+    "dev": "yarn build:watch",
     "start": "run-p vite \"build:watch\"",
     "build:web": "tsc && vite build",
     "build:admin": "tsc && vite build --outDir ../admin/files/ui",

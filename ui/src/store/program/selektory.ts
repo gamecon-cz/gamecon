@@ -135,9 +135,9 @@ export const useUrlStavMožnostiDny = (): ProgramTabulkaVýběr[] => useProgramS
 export const useUrlStavMožnosti = () => useProgramStore(s => s.urlStavMožnosti);
 export const useUrlStavStavyFiltr = () => useProgramStore(s => s.urlStav.filtrStavAktivit ?? []);
 
-export const useUživatel = (): ApiUživatel => useProgramStore(s => s.přihlášenýUživatel.data);
-export const useUživatelPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.přihlášenýUživatel.data?.pohlavi);
-export const useUživatelJeSefInfa = (): boolean => useProgramStore((s) => s.přihlášenýUživatel.data?.sefInfa ?? false);
+export const useÚčastník = (): ApiUživatel | undefined => useProgramStore(s => s.přihlášenýUživatel.ucastnik);
+export const useÚčastníkPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.přihlášenýUživatel.ucastnik?.pohlavi);
+export const useUživatelJeSefInfa = (): boolean => useProgramStore((s) => s.přihlášenýUživatel.ucastnik?.role?.sefInfa ?? false);
 
 export const useFiltryOtevřené = (): boolean => useProgramStore(s => s.všeobecné.filtryOtevřené);
 export const useOdhlasitModalAktivitaId = (): number | undefined => useProgramStore(s => s.všeobecné.modalOdhlásitAktivitaId);

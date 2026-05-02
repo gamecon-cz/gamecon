@@ -2,17 +2,18 @@ import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import {
   useUrlStavStavyFiltr,
-  useUživatel,
+  useÚčastník,
 } from "../../../store/program/selektory";
 import { nastavFiltrStavů } from "../../../store/program/slices/urlSlice";
 
 export const ProgramLegenda = () => {
   const legendaText = GAMECON_KONSTANTY.LEGENDA;
-  const uživatel = useUživatel();
+  const účastník = useÚčastník();
 
-  const organizator = uživatel.organizator ?? false;
-  const koncovkaDlePohlaví = uživatel.koncovkaDlePohlavi ?? "";
-  const přihlášen = uživatel.prihlasen ?? false;
+  // todo: tady se má asi používat slovo vypravěč (a možná i logika potřebuje změnit na lidi co májí právo vyprávět)
+  const organizator = účastník?.role?.organizator ?? false;
+  const koncovkaDlePohlaví = (účastník?.pohlavi === "f") ? "a" : "";
+  const jeÚčastník = účastník ?? false;
 
   const stavyFiltr = useUrlStavStavyFiltr();
 
@@ -55,7 +56,7 @@ export const ProgramLegenda = () => {
           {zaškrtávátkoPro("vBudoucnu")}
           Připravujeme
         </label>
-        {přihlášen ? (
+        {jeÚčastník ? (
           <>
             <label class="program_legenda_typ nahradnik">
               {zaškrtávátkoPro("nahradnik")}

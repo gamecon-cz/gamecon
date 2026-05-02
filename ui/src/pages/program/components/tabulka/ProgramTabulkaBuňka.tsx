@@ -2,7 +2,7 @@ import produce from "immer";
 import { FunctionComponent } from "preact";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
-import { useAktivita, useUrlStav, useUživatelPohlaví } from "../../../../store/program/selektory";
+import { useAktivita, useUrlStav, useÚčastníkPohlaví } from "../../../../store/program/selektory";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
@@ -60,7 +60,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   const { aktivitaId, zobrazLinii, kompaktní } = props;
 
   const aktivita = useAktivita(aktivitaId);
-  const pohlavi = useUživatelPohlaví();
+  const pohlavi = useÚčastníkPohlaví();
   const urlStav = useUrlStav();
 
   const onAktivitaOdkazKlik = (
