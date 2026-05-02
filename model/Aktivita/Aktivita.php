@@ -2548,6 +2548,7 @@ SQL
         }
     }
 
+    /** @param Aktivita[] $navazujiciAktivity */
     private function zkontrolujPrihlaseniNavazujicichAktivit(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
@@ -2555,7 +2556,7 @@ SQL
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
         ?AktivitaTym $tym = null,
-        $navazujiciAktivity = [],
+        ?array    $navazujiciAktivity = [],
     ) {
         if ($parametry & self::IGNOROVAT_TURNAJ) {
             return;
@@ -2588,6 +2589,7 @@ SQL
         }
     }
 
+    /** @param AktivitaTym[] $navazujiciAktivity */
     public function zkontrolujZdaSeMuzePrihlasit(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
@@ -2595,7 +2597,7 @@ SQL
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
         ?AktivitaTym $tym = null,
-        $navazujiciAktivity = [],
+        array    $navazujiciAktivity = [],
     ): void {
         if ($parametry & self::IGNOROVAT_KONTROLY) {
             return;

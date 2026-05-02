@@ -69,6 +69,7 @@ class AktivitaTurnaj
         return $aktivitaProKolo;
     }
 
+    // todo(tym): ber v potaz kapacitu aktivit
     /**
      * Přiřadí tým na zbylá kola turnaje, pokud v každém kole je jen jedna aktivita (bez výběru).
      *

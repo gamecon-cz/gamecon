@@ -91,11 +91,11 @@
 PRIO
   - [X] rebase
   - [X] projít analýzy
-  - [ ] přidat odemknout do týmového ui na adminu
+  - [X] přidat odemknout do týmového ui na adminu
   - [ ] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
   - [ ] UI zobrazuje kapacitu per kolo
   - [ ] název týmu
-  - [ ] checkbox na smazání do amdinu
+  - [X] checkbox na smazání do amdinu
   - [ ] zrušit rekurzi pro Aktivita::prihlas ?
     - [ ] dělat vše v transakci
 

@@ -65,8 +65,8 @@ class Program
 
     private static function zabalWebSoubor(string $cestaKSouboru, $admin = false): string
     {
-        // todo(tym): ma tu jese byt tohle?:    URL_WEBU . '/' .
-        return $cestaKSouboru . '?version=' . md5_file(($admin ? ADMIN :  WWW) . '/' . $cestaKSouboru);
+        $baseUrl = $admin ? URL_ADMIN : URL_WEBU;
+        return $baseUrl . '/' . $cestaKSouboru . '?version=' . md5_file(($admin ? ADMIN : WWW) . '/' . $cestaKSouboru);
     }
 
     /**
