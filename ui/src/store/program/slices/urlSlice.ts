@@ -15,7 +15,7 @@ export type ProgramUrlSlice = {
 export const createProgramUrlSlice: ProgramStateCreator<ProgramUrlSlice> = () => ({
   urlStav: URL_STATE_VÝCHOZÍ_STAV,
   urlStavMožnosti: {
-    dny: urlStavProgramTabulkaMožnostíDnyMůj(),
+    dny: urlStavProgramTabulkaMožnostíDnyMůj({ jeAdmin: GAMECON_KONSTANTY.JE_ADMIN }),
     linie: [],
     stavy: AktivitaStavyVšechny,
   }
