@@ -334,6 +334,10 @@ Turnajové
   - [ ] Souvisí s refaktoringem tisku programu (`Program.php` TODO)
 - [ ] možnost otevřít program i bez vybraného uživatele
 - [ ] pokud je otevřený
+- [ ] zobrazení podle místností
+  - [ ] pokud je ve více místnostech zobrazí se vícekrát
+  - [ ] zobrazení pro jednotlivé dny nebo všechny
+
 
 ## Technický dluh / refaktoring
 - [X] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)

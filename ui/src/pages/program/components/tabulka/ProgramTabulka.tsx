@@ -13,6 +13,7 @@ import {
   useAktivitaNáhled,
   useAktivityFiltrované,
   useAktivityStatus,
+  useUrlStav,
   useUrlVýběr,
 } from "../../../../store/program/selektory";
 import { ProgramTabulkaBuňka } from "./ProgramTabulkaBuňka";
@@ -46,6 +47,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 ) => {
   const { } = props;
 
+  const urlStav = useUrlStav();
   const urlStavVýběr = useUrlVýběr();
   const aktivityFiltrované = useAktivityFiltrované();
   const aktivityStatus = useAktivityStatus();
@@ -53,7 +55,9 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const kompaktní = useProgramStore(s => s.všeobecné.kompaktní);
 
   const seskupPodle =
-    urlStavVýběr.typ === "všechny_dny"
+    urlStav.podleMístnosti
+      ? SeskupováníAktivit.mistnost
+      : urlStavVýběr.typ === "všechny_dny"
       ? SeskupováníAktivit.denALinie
       : urlStavVýběr.typ === "můj"
       ? SeskupováníAktivit.den
@@ -141,7 +145,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
       });
 
   const tabulkaŘádky =
-    seskupPodle === SeskupováníAktivit.denALinie
+    (seskupPodle === SeskupováníAktivit.denALinie || seskupPodle === SeskupováníAktivit.mistnost)
       ? Object.entries(předpřipravenáTabulka as PředpřivenáTabulkaAktivitHierarchie)
           .flatMap(([denKlíč, tabulkaProDen]) => [
             <tr key={`nadpis-${denKlíč}`}>

@@ -54,4 +54,13 @@ class Lokace extends \DbObject
     {
         return (int)parent::id();
     }
+
+    public function apiLokace() {
+        $res = [
+            "id" => $this->id(),
+            "poradi" => $this->poradi(),
+            "nazev" => $this->rozsirenyNazev(),
+        ];
+        return $res;
+    }
 }

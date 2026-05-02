@@ -99,8 +99,8 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             tymLimit={aktivita.tymLimit}
           />
           <Přihlašovátko akitivitaId={aktivita.id} />
-          {aktivita.mistnost !== null && (
-            <div class="program_lokace">{aktivita.mistnost}</div>
+          {aktivita.mistnosti?.length && aktivita.vedu && (
+            <div class="program_lokace">{aktivita.mistnosti[0].nazev}</div>
           )}
           {zobrazLinii ? (
             <span class="program_osobniTyp">{aktivita.linie}</span>
