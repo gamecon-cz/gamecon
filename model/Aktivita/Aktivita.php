@@ -1417,6 +1417,9 @@ SQL
      */
     public function instancuj(): ?Aktivita
     {
+        $lokaceIds = $this->seznamLokaciIdcka();
+        $hlavniLokaceId = $this->idHlavniLokace();
+
         $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce=' . $this->id());
         //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
         //stav se vloží implicitní hodnota v DB
@@ -1445,6 +1448,14 @@ SQL
 
         // nastavení vlastností pomocí OO rozhraní
         $novaAktivita = self::zId($idNoveAktivity);
+        if ($novaAktivita === null) {
+            throw new \LogicException("Nepodařilo se načíst nově vytvořenou aktivitu s ID {$idNoveAktivity}");
+        }
+
+        if ($hlavniLokaceId !== null && !in_array($hlavniLokaceId, $lokaceIds, true)) {
+            $hlavniLokaceId = null;
+        }
+        $novaAktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
         $novaAktivita->nastavTagy($this->tagy());
 
         return $novaAktivita;

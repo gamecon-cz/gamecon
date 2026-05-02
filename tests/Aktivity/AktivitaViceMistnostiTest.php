@@ -137,6 +137,31 @@ SQL,
     /**
      * @test
      */
+    public function testInstancovaniKopirujeLokaceAHlavniLokaci(): void
+    {
+        $puvodniAktivita = Aktivita::zId(2002);
+        self::assertNotNull($puvodniAktivita);
+
+        $novaInstance = $puvodniAktivita->instancuj();
+
+        self::assertNotNull($novaInstance);
+        self::assertNotSame($puvodniAktivita->id(), $novaInstance->id());
+        self::assertSame($puvodniAktivita->seznamLokaciIdcka(), $novaInstance->seznamLokaciIdcka());
+        self::assertSame($puvodniAktivita->hlavniLokace()?->id(), $novaInstance->hlavniLokace()?->id());
+
+        $lokaceNoveInstance = array_map(
+            static fn (array $lokace) => (int) $lokace[JunctionSql::ID_LOKACE],
+            dbFetchAll(
+                'SELECT id_lokace FROM akce_lokace WHERE id_akce = ? ORDER BY id_lokace',
+                [$novaInstance->id()],
+            ),
+        );
+        self::assertSame([1001, 1002, 1003], $lokaceNoveInstance);
+    }
+
+    /**
+     * @test
+     */
     public function testPopisANazevLokaci()
     {
         $aktivita = Aktivita::zId(2002);
