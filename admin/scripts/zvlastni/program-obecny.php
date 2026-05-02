@@ -24,7 +24,7 @@ use Gamecon\Aktivita\Program;
 </head>
 <body>
 
-<?php Program::vypisPreact(null, true, "program-obecny"); ?>
+<?php Program::vypisPreact(true, "program-obecny"); ?>
 
 </body>
 </html>

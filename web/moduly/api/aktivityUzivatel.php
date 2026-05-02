@@ -8,6 +8,7 @@ use Gamecon\Cache\ProgramStaticFileGenerator;
 
 /**
  * @var Uzivatel|null $u
+ * @var Uzivatel|null $uPracovni
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 

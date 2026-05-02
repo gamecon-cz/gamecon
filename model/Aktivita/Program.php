@@ -12,14 +12,14 @@ use Uzivatel;
 class Program
 {
 
-    public static function vypisPreact(?Uzivatel $uPracovni, $jeAdmin = false, $pageName = "program"): void
+    public static function vypisPreact($jeAdmin = false, $pageName = "program"): void
     {
         $souborySlozka = ($jeAdmin ? 'files' : 'soubory');
         $stylUrl     = self::zabalWebSoubor($souborySlozka . '/ui/style.css', $jeAdmin);
         $bundleUrl   = self::zabalWebSoubor($souborySlozka . '/ui/bundle.js', $jeAdmin);
         $konstanty   = json_encode(self::gameconKonstanty($jeAdmin, $pageName));
         $prednacteni = json_encode(
-            ['přihlášenýUživatel' => $uPracovni?->apiPrihlasenyUzivatel() ?? []],
+            ['přihlášenýUživatel' => Uzivatel::apiPrihlasenyUzivatel()],
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
         );
 

@@ -1,5 +1,5 @@
 import { useProgramStore } from ".";
-import { Pohlavi, ApiPřihlášenýUživatel } from "../../api/přihlášenýUživatel";
+import { Pohlavi, ApiUživatel } from "../../api/přihlášenýUživatel";
 import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
 import { FiltrAktivit, filtrujAktivity, MapováníTagů, vytvořMapováníTagů } from "./logic/aktivity";
 import { PRÁZDNÉ_POLE, distinct } from "../../utils";
@@ -135,7 +135,7 @@ export const useUrlStavMožnostiDny = (): ProgramTabulkaVýběr[] => useProgramS
 export const useUrlStavMožnosti = () => useProgramStore(s => s.urlStavMožnosti);
 export const useUrlStavStavyFiltr = () => useProgramStore(s => s.urlStav.filtrStavAktivit ?? []);
 
-export const useUživatel = (): ApiPřihlášenýUživatel => useProgramStore(s => s.přihlášenýUživatel.data);
+export const useUživatel = (): ApiUživatel => useProgramStore(s => s.přihlášenýUživatel.data);
 export const useUživatelPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.přihlášenýUživatel.data?.pohlavi);
 export const useUživatelJeSefInfa = (): boolean => useProgramStore((s) => s.přihlášenýUživatel.data?.sefInfa ?? false);
 

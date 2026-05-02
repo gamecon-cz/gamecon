@@ -2975,7 +2975,7 @@ SQL;
     /**
      * Vrací anonymní objekt pro api
      */
-    public function apiPrihlasenyUzivatel() {
+    public function apiUzivatel() {
         $res = [];
 
         $res["id"] = $this->id();
@@ -3006,5 +3006,25 @@ SQL;
         }
 
         return $res;
+    }
+
+    /**
+     * Používá fetchPřihlášenýUživatel.
+     *
+     * @param bool $ucastnikJeOperator používá se když chceme ignorovat uPraconi
+     */
+    public static function apiPrihlasenyUzivatel() {
+        /** @var Uzivatel $u */
+        global $u;
+        /** @var Uzivatel $uPracovni */
+        global $uPracovni;
+
+        $operator = $u;
+        $ucastnik = $uPracovni ? $uPracovni : $u;
+
+        return [
+            "ucastnik" => $ucastnik?->apiUzivatel(),
+            "operator" => $operator?->apiUzivatel(),
+        ];
     }
 }
