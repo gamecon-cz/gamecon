@@ -11,6 +11,10 @@ import {
   nastavFiltrPřihlašovatelné,
   nastavFiltrRočník,
   nastavFiltrTextu,
+  přepniAutoRefresh,
+  přepniBezÚčastníka,
+  přepniPodleMístnosti,
+  přepniZobrazInterni,
 } from "../../../../store/program/slices/urlSlice";
 
 import "./ReactSelect.less";
@@ -32,7 +36,7 @@ const ROKY_OPTIONS = ROKY.concat(GAMECON_KONSTANTY.ROCNIK)
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
-  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrText } = useUrlStav();
+  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrText, podleMístnosti, bezÚčastníka, zobrazInterni, autoRefresh } = useUrlStav();
 
   const urlStavMožnosti = useUrlStavMožnosti();
 
@@ -95,31 +99,41 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           </div>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button class={
-            "program_filtry_tlacitko program_filtry_tlacitko_zvetsit" +
-            (zvětšeno ? " aktivni" : "")
-          } onClick={přepniZvětšeno}>zvětšit</button>
-          <button class={
-            "program_filtry_tlacitko"
-            + (odkazZkopírován ? " aktivni" : "")
-          } onClick={sdílejKlik}
-          >{odkazZkopírován ? "zkopírováno" : "sdílej"}</button>
-          <button
-            class={
-              "program_filtry_tlacitko" +
-              (filtrPřihlašovatelné ? " aktivni" : "")
-            }
-            onClick={() => {
-              nastavFiltrPřihlašovatelné(!filtrPřihlašovatelné);
-            }}
-          >
-            Přihlašovatelné
-          </button>
-          <button class={
-            "program_filtry_tlacitko"
-            + (kompaktní ? " aktivni" : "")
-          } onClick={přepniKompaktní}>Kompaktní</button>
+        <div style={{ display: "flex", justifyContent: "space-between", flexWrap:"wrap", gap: 8 }}>
+          {GAMECON_KONSTANTY.JE_ADMIN ? (
+            <div style={{ display: "flex" }}>
+              <button class={"program_filtry_tlacitko" + (podleMístnosti ? " aktivni" : "")} onClick={přepniPodleMístnosti}>Podle místnosti</button>
+              <button class={"program_filtry_tlacitko" + (bezÚčastníka ? " aktivni" : "")} onClick={přepniBezÚčastníka}>Bez účastníka</button>
+              <button class={"program_filtry_tlacitko" + (zobrazInterni ? " aktivni" : "")} onClick={přepniZobrazInterni}>Zobraz interní</button>
+              <button class={"program_filtry_tlacitko" + (autoRefresh ? " aktivni" : "")} onClick={přepniAutoRefresh}>Auto refresh</button>
+            </div>
+          ) : <div />}
+          <div style={{ display: "flex" }}>
+            <button class={
+              "program_filtry_tlacitko program_filtry_tlacitko_zvetsit" +
+              (zvětšeno ? " aktivni" : "")
+            } onClick={přepniZvětšeno}>zvětšit</button>
+            <button class={
+              "program_filtry_tlacitko"
+              + (odkazZkopírován ? " aktivni" : "")
+            } onClick={sdílejKlik}
+            >{odkazZkopírován ? "zkopírováno" : "sdílej"}</button>
+            <button
+              class={
+                "program_filtry_tlacitko" +
+                (filtrPřihlašovatelné ? " aktivni" : "")
+              }
+              onClick={() => {
+                nastavFiltrPřihlašovatelné(!filtrPřihlašovatelné);
+              }}
+            >
+              Přihlašovatelné
+            </button>
+            <button class={
+              "program_filtry_tlacitko"
+              + (kompaktní ? " aktivni" : "")
+            } onClick={přepniKompaktní}>Kompaktní</button>
+          </div>
         </div>
       </div>
     </>

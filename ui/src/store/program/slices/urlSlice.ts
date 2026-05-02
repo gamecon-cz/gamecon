@@ -110,3 +110,27 @@ export const nastavFiltrPřihlašovatelné = (přihlašovatelné: boolean) => {
     s.urlStav.filtrPřihlašovatelné = přihlašovatelné;
   }, undefined, "nastav filtr přihlašovatelné");
 };
+
+export const přepniPodleMístnosti = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.podleMístnosti = !s.urlStav.podleMístnosti || undefined;
+  }, undefined, "přepni podle místnosti");
+};
+
+export const přepniBezÚčastníka = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.bezÚčastníka = !s.urlStav.bezÚčastníka || undefined;
+  }, undefined, "přepni bez účastníka");
+};
+
+export const přepniZobrazInterni = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.zobrazInterni = !s.urlStav.zobrazInterni || undefined;
+  }, undefined, "přepni zobraz interní");
+};
+
+export const přepniAutoRefresh = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.autoRefresh = !s.urlStav.autoRefresh || undefined;
+  }, undefined, "přepni auto refresh");
+};

@@ -18,12 +18,17 @@ export type ProgramTabulkaVýběr =
 export type ProgramURLStav = {
   ročník: number,
   výběr: ProgramTabulkaVýběr,
-  filtrPřihlašovatelné: boolean,
+  filtrPřihlašovatelné?: boolean,
   aktivitaNáhledId?: number,
   filtrLinie?: string[],
   filtrTagy?: number[],
   filtrStavAktivit?: AktivitaStav[],
   filtrText?: string,
+  /** ADMIN */
+  podleMístnosti?: boolean,
+  bezÚčastníka?: boolean,
+  zobrazInterni?: boolean,
+  autoRefresh?: boolean,
 }
 
 export const URL_STATE_VÝCHOZÍ_MOŽNOST = Object.freeze({
@@ -34,7 +39,6 @@ export const URL_STATE_VÝCHOZÍ_MOŽNOST = Object.freeze({
 export const URL_STATE_VÝCHOZÍ_STAV: ProgramURLStav = Object.freeze({
   ročník: GAMECON_KONSTANTY.ROCNIK,
   výběr: URL_STATE_VÝCHOZÍ_MOŽNOST,
-  filtrPřihlašovatelné: false,
 });
 
 const NÁHLED_QUERY_KEY = "idAktivityNahled";
@@ -44,6 +48,10 @@ const PŘIHLAŠOVATELNÉ_QUERY_KEY = "pouzePrihlasovatelne";
 const ROCNIK_QUERY_KEY = "rocnik";
 const STAVY_QUERY_KEY = "stav";
 const TEXT_QUERY_KEY = "text";
+const PODLE_MÍSTNOSTI_QUERY_KEY = "podleMistnosti";
+const BEZ_ÚČASTNÍKA_QUERY_KEY = "bezUcastnika";
+const ZOBRAZ_INTERNÍ_QUERY_KEY = "interni";
+const AUTO_REFRESH_QUERY_KEY = "autoRefresh";
 
 const párováníQueryDoStavu: {
   query: string,
@@ -55,6 +63,10 @@ const párováníQueryDoStavu: {
   { stavString: "filtrTagy", query: TAGY_QUERY_KEY },
   { stavString: "filtrStavAktivit", query: STAVY_QUERY_KEY },
   { stavString: "filtrText", query: TEXT_QUERY_KEY },
+  { stavString: "podleMístnosti", query: PODLE_MÍSTNOSTI_QUERY_KEY },
+  { stavString: "bezÚčastníka", query: BEZ_ÚČASTNÍKA_QUERY_KEY },
+  { stavString: "zobrazInterni", query: ZOBRAZ_INTERNÍ_QUERY_KEY },
+  { stavString: "autoRefresh", query: AUTO_REFRESH_QUERY_KEY },
 ];
 
 const parsujUrlDoStavu = (
@@ -97,7 +109,6 @@ export const parsujUrl = (url: string) => {
   const urlStav: ProgramURLStav = {
     výběr,
     ročník: GAMECON_KONSTANTY.ROCNIK,
-    filtrPřihlašovatelné: false,
   };
 
   for (const { query, stavString } of párováníQueryDoStavu.concat(
