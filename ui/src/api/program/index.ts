@@ -97,6 +97,7 @@ export type ApiAktivitaUživatel = {
   tymLimit?: number | null,
   /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusím aby tam bylo */
   __TS_STRUKTURALNI_KONTROLA__: true,
+  interni?: boolean,
 }
 
 export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaUživatel;

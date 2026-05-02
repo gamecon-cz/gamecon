@@ -59,6 +59,8 @@ if ($ucastnik) {
             ? array_map(function (Lokace $l) { return $l->apiLokace(); }, $aktivita->seznamLokaci())
             : [];
 
+        $interni = !$aktivita->viditelnaPro(null);
+
         $aktivityUzivatelData[] = [
             'id'             => $aktivita->id(),
             'stavPrihlaseni' => StavPrihlaseni::frontendKod(
@@ -69,7 +71,8 @@ if ($ucastnik) {
             // mistnost je orgovská vlastnost — null pro neorgany nebo pokud
             // aktivita nemá nastavenou hlavní lokaci.
             'mistnosti'       => !empty($seznamLokaci) ? $seznamLokaci : null,
-            'vedu'           => $vedeAktivitu,
+            'vedu'            => $vedeAktivitu,
+            'interni'         => $interni,
         ];
 
         // Hidden activities visible only to this user (not publicly visible).
@@ -77,7 +80,7 @@ if ($ucastnik) {
         // frontend typuje aktivitySkryte jako ApiAktivitaNepřihlášen[] a slučuje
         // je se statickými soubory. Proto používáme sdílený helper, aby se obě
         // cesty nemohly rozejít.
-        if (!$aktivita->viditelnaPro(null)) {
+        if ($interni) {
             Aktivita::organizatoriDSC($dataSourcesCollector);
             $aktivitySkryteData[] = ProgramStaticFileGenerator::aktivitaDoPole($aktivita, $dataSourcesCollector);
         }
