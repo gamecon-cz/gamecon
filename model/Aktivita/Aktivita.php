@@ -3670,10 +3670,10 @@ SQL,
     ) {
         return (
             (in_array($this->a[Sql::STAV], StavAktivity::bezneViditelneStavy(), false) // podle stavu je aktivita viditelná
-             && !(TypAktivity::jeInterniDleId($this->a[Sql::TYP]) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
+             && !(TypAktivity::jeInterniDleId($this->a[Sql::TYP])) // ale skrýt technické a brigádnické proběhnuté
             )
             // todo: přidat DSC
-            || ($uzivatel && ($this->prihlasen($uzivatel) || $this->organizuje($uzivatel)))
+            || ($uzivatel && ($this->prihlasen($uzivatel) || $this->organizuje($uzivatel) || $uzivatel->jeOrganizator()))
         );
     }
 

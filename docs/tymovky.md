@@ -92,8 +92,9 @@ PRIO
   - [X] rebase
   - [X] projít analýzy
   - [X] přidat odemknout do týmového ui na adminu
-  - [ ] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
+  - [X] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
   - [ ] UI zobrazuje kapacitu per kolo
+  - [ ] termíny týmu
   - [ ] název týmu
   - [X] checkbox na smazání do amdinu
   - [ ] zrušit rekurzi pro Aktivita::prihlas ?
@@ -142,7 +143,7 @@ Turnajové
     - zamknutý tým nejde už nijak editovat
 - editace týmu z adminu
   - po výběru uživatele z týmu by měl v adminu být tým editovatelný jako by byl ten uživatel přihlášený
-
+- kontrola jaké jdou vidět aktivity v programu v různých podmínkách
 
 
 ## Základní přihlašovací flow
@@ -337,7 +338,7 @@ Turnajové
 - [ ] zobrazení podle místností
   - [ ] pokud je ve více místnostech zobrazí se vícekrát
   - [ ] zobrazení pro jednotlivé dny nebo všechny
-
+- [ ] zbytek tlačítek pro logiku
 
 ## Technický dluh / refaktoring
 - [X] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)

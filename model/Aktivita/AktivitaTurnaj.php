@@ -94,7 +94,7 @@ class AktivitaTurnaj
 
             // Pokud je v kole jen jedna aktivita, přiřadit tým
             if (count($idAktivitVKole) === 1) {
-                $tym->pridejNaAktivitu($idAktivitVKole[0]);
+                $tym->pridejNaAktivitu($idAktivitVKole[0], false);
             } else {
                 $vsechnyPrirazeny = false;
             }

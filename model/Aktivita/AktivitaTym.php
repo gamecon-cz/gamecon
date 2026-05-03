@@ -225,8 +225,11 @@ class AktivitaTym
     /**
      * Pouze hlavní aktivita je důležitá, ostatní aktivity slouží jako hint při možném výběru z více aktivit
      */
-    public function pridejNaAktivitu(int $idAktivity): void
+    public function pridejNaAktivitu(int $idAktivity, bool $kontrola = true): void
     {
+        if ($kontrola && !self::muzePridatDalsiTym($idAktivity)) {
+            throw new \Chyba('Termín aktivity už má plnou kapacitu týmů');
+        }
         self::service()->pridejTymNaAktivitu($this->getId(), $idAktivity);
     }
 
