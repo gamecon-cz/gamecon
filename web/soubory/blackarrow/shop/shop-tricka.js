@@ -1,22 +1,64 @@
 {
-    pridejVyberDalsihoTricka = function (selectNode) {
-        selectNode.addEventListener('change', function () {
-            if (this.value === '0') { // žádné tričko
-                return
-            }
-            const klon = this.cloneNode(true)
-            this.id = null // ID přebírá klon, aby na něj fungoval label
-            klon.value = 0 // vybereme "žádné tričko"
-            const puvodniNazev = this.name
-            const puvodniIndexPhpPole = Number.parseInt(puvodniNazev.match(/\[(\d+)]/)[1])
-            const novyIndexPhpPole = puvodniIndexPhpPole + 1
-            const novyNazev = puvodniNazev.replace(`[${puvodniIndexPhpPole}]`, `[${novyIndexPhpPole}]`)
-            klon.name = novyNazev
-            this.removeEventListener('change', pridejVyberDalsihoTricka)
-            pridejVyberDalsihoTricka(klon) // štafetu, kdy přibyde další výběr, přebírá nový výběr zatím bez trička
-            this.parentElement.append(klon)
-        })
+    const hodnotaZadneTricko = '0'
+    const vyberyTricek = () => Array.from(document.querySelectorAll('.shopPredmety_trickoSelect'))
+
+    function indexVyberu(selectNode) {
+        const shoda = selectNode.name.match(/\[(\d+)\]/)
+        return shoda ? Number.parseInt(shoda[1], 10) : 0
     }
-    const vyberTricek = document.getElementById('vyberTricek')
-    pridejVyberDalsihoTricka(vyberTricek)
+
+    function nastavIndexVyberu(trickoNode, index) {
+        const selectNode = trickoNode.querySelector('.shopPredmety_trickoSelect')
+        if (!selectNode) {
+            return
+        }
+
+        selectNode.name = selectNode.name.replace(/\[\d+\]/, `[${index}]`)
+        selectNode.id = `vyberTricek-${index}`
+
+        const labelNode = trickoNode.querySelector('label')
+        if (labelNode) {
+            labelNode.setAttribute('for', selectNode.id)
+        }
+    }
+
+    function jePosledniVyberTricka(selectNode) {
+        const vybery = vyberyTricek()
+        return vybery[vybery.length - 1] === selectNode
+    }
+
+    function dalsiIndexVyberuTricka() {
+        return vyberyTricek().reduce(
+            (nejvyssiIndex, selectNode) => Math.max(nejvyssiIndex, indexVyberu(selectNode)),
+            -1,
+        ) + 1
+    }
+
+    function pridejVyberDalsihoTricka(event) {
+        const selectNode = event.currentTarget
+        if (selectNode.value === hodnotaZadneTricko || !jePosledniVyberTricka(selectNode)) {
+            return
+        }
+
+        const trickoNode = selectNode.closest('.shopPredmety_tricko')
+        if (!trickoNode) {
+            return
+        }
+
+        const klon = trickoNode.cloneNode(true)
+        nastavIndexVyberu(klon, dalsiIndexVyberuTricka())
+
+        const klonSelect = klon.querySelector('.shopPredmety_trickoSelect')
+        if (!klonSelect) {
+            return
+        }
+        klonSelect.value = hodnotaZadneTricko
+        klonSelect.addEventListener('change', pridejVyberDalsihoTricka)
+
+        trickoNode.after(klon)
+    }
+
+    vyberyTricek().forEach(selectNode => {
+        selectNode.addEventListener('change', pridejVyberDalsihoTricka)
+    })
 }
