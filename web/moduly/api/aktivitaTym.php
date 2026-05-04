@@ -150,7 +150,7 @@ if ($tym) {
 
     if ($tym->jeRozpracovany()) {
         $zalozenMs = $tym->casZalozeniMs();
-        $casSmazaniRozpracovanyMs = $zalozenMs + AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT * 60_000;
+        $casSmazaniRozpracovanyMs = $zalozenMs + AktivitaTym::CAS_NA_PRIPRAVENI_TYMU_MINUT * 60_000;
         $tymResponse['casSmazaniRozpracovanyMs'] = $casSmazaniRozpracovanyMs;
         if (!$tym->maPrirazeneVsechnaKolaTurnaje()) {
             $tymResponse['rozpracovanyFaze'] = "vyberKola";

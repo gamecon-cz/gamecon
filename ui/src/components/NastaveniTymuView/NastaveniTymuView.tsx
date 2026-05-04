@@ -94,21 +94,19 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const týmJePřipravený = pocetClenu > 0;
 
   const aktivityTymuId = data?.tym?.aktivityTymuId ?? [];
-  const aktivityTymu = aktivityTymuId.map(id=>vsechnyAktivity.find(a=>a.id===id)).filter(x=>x !== undefined);
+  const aktivityTymu = aktivityTymuId.map(id => vsechnyAktivity.find(a => a.id === id)).filter(x => x !== undefined);
 
-  if (potvrzení) {
-    return (
-      <div className="modal_obal">
-        <div className="modal clearfix">
-          <p>{potvrzení.text}</p>
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-            <button style={{ width: "unset" }} onClick={() => setPotvrzení(null)}>Zrušit</button>
-            <button style={{ width: "unset" }} onClick={() => { potvrzení.akce(); setPotvrzení(null); }}>Potvrdit</button>
-          </div>
+  const modalPotvrzení = potvrzení && (
+    <div className="modal_obal">
+      <div className="modal clearfix">
+        <p>{potvrzení.text}</p>
+        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <button style={{ width: "unset" }} onClick={() => setPotvrzení(null)}>Zrušit</button>
+          <button style={{ width: "unset" }} onClick={() => { potvrzení.akce(); setPotvrzení(null); }}>Potvrdit</button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
   const týmNázev = data?.tym?.nazev ?? "";
 
@@ -140,24 +138,24 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   );
 
   const onPřegenrovatSPotvrzením = sPotvrzením("Opravdu chcete přegenerovat kód týmu? Starý kód přestane fungovat.",
-    ()=>void onProveďAkci({typ:"pregenerujKod"})
+    () => void onProveďAkci({ typ: "pregenerujKod" })
   );
 
   const onPředejKapitánaSPotvrzením = (clen: ClenTymu) => sPotvrzením(
     `Opravdu chcete předat kapitána hráči ${clen.jmeno}?`,
-    () => void onProveďAkci({typ: "predejKapitana", idNovehoKapitana: clen.id})
+    () => void onProveďAkci({ typ: "predejKapitana", idNovehoKapitana: clen.id })
   )();
 
   const onOdebratČlenaSPotvrzením = (clen: ClenTymu) => sPotvrzením(
     `Opravdu chcete odebrat hráče ${clen.jmeno} z týmu${týmNázev}${nazevAktivity ? ` na aktivitě ${nazevAktivity}` : ""}?`,
-    () => void onProveďAkci({typ: "odhlasClena", idClena: clen.id})
+    () => void onProveďAkci({ typ: "odhlasClena", idClena: clen.id })
   )();
 
-  const onZaložitTým = () => void onProveďAkci({typ:"zalozPrazdnyTym"});
+  const onZaložitTým = () => void onProveďAkci({ typ: "zalozPrazdnyTym" });
 
-  const onPřepniVerejnost = () => void onProveďAkci({typ:"nastavVerejnost", verejny: !data?.tym?.verejny});
+  const onPřepniVerejnost = () => void onProveďAkci({ typ: "nastavVerejnost", verejny: !data?.tym?.verejny });
 
-  const onNastavLimit = (limit: number) => void onProveďAkci({typ: "nastavLimit", limit});
+  const onNastavLimit = (limit: number) => void onProveďAkci({ typ: "nastavLimit", limit });
 
   const seznamTýmů = data?.vsechnyTymy && data.vsechnyTymy.length > 0 && (
     <SeznamTymu
@@ -177,26 +175,36 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
       >
         <div className="modal clearfix">
           <div className="clearfix">
-            <h3 style={{ float: "left" }}>
-              Nastavení týmu{nazevAktivity ? ` aktivity ${nazevAktivity}` : ""}
-            </h3>
+            <div style={{ float: "left" }}>
+              <h3 style={{marginBottom:"2px"}}>
+                Nastavení týmu{nazevAktivity ? ` aktivity ${nazevAktivity}` : ""}
+              </h3>
+              <div style={{marginBottom:"12px"}}>
+                {(data?.tym?.aktivityTymuId ?? [])
+                  .map(id=>vsechnyAktivity.find(x=>x.id===id))
+                  .map(x=>x?.casText)
+                  .filter(x => x)
+                  .map(cas=><div dangerouslySetInnerHTML={{__html:cas??""}} />)
+                }
+              </div>
+            </div>
             <div class="vpravo" style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-                {modalMáTým && !týmJePřipravený && (
-                  <button
-                    onClick={onSmazatTym}
-                    style={{
-                      backgroundColor: "#f44",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontWeight: "bold",
-                    }}
-                    disabled={načítá || načítáAkci}
-                    >
-                      🗑️ Smazat tým
-                  </button>
-                )}
+              {modalMáTým && !týmJePřipravený && (
+                <button
+                  onClick={onSmazatTym}
+                  style={{
+                    backgroundColor: "#f44",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                  disabled={načítá || načítáAkci}
+                >
+                  🗑️ Smazat tým
+                </button>
+              )}
               {přihlášenNaAktivitě && data?.tym?.zamceny && (
                 <button style={{ width: "unset" }} onClick={onOdemkniSPotvrzenim}>Odemknout</button>
               )}
@@ -206,7 +214,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
             </div>
           </div>
 
-          {aktivityTymu.map(aktivita=>{
+          {aktivityTymu.map(aktivita => {
             <div style={{ color: "#666", marginBottom: "8px" }}>{denČasAktivityText(aktivita)}</div>
           })}
 
@@ -217,7 +225,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           {/* === Příprava nového týmu (výběr kol + přihlášení kapitána) === */}
           {!načítá && data && data.tym && !týmJePřipravený && (
             <PripravaTymu
-              casExpiraceMs={data.tym?.casExpiraceMs}
+              casSmazaniRozpracovanyMs={data.tym?.casSmazaniRozpracovanyMs}
               onVybranéAktivity={onPotvrditVýběrAktivit}
               onPrihlasitKapitana={onPrihlasitKapitana}
               nacita={načítáAkci}
@@ -225,38 +233,38 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           )}
 
           {!načítá && !modalMáTým && !načítáAkci &&
-              (
-                <>
-                  <button onClick={onZaložitTým}>Založ tým</button>
-                  <div style={{ marginTop:"1em", gap: "4px", display: "flex", flexDirection: "column", alignItems: "start" }}>
-                    <label>
-                      kód:
-                      <input
-                        placeholder="XXXX"
-                        onChange={(x) => setKódPřipojeníDoTýmu(x.currentTarget.value)}
-                        value={kódPřipojeníDoTýmu}
-                      />
-                    </label>
-                    <button
-                      style={{ width: "unset" }}
-                      onClick={() => onPřipojitSe(undefined, +kódPřipojeníDoTýmu)}
-                    >
-                      Připoj se do týmu
-                    </button>
-                  </div>
+            (
+              <>
+                <button onClick={onZaložitTým}>Založ tým</button>
+                <div style={{ marginTop: "1em", gap: "4px", display: "flex", flexDirection: "column", alignItems: "start" }}>
+                  <label>
+                    kód:
+                    <input
+                      placeholder="XXXX"
+                      onChange={(x) => setKódPřipojeníDoTýmu(x.currentTarget.value)}
+                      value={kódPřipojeníDoTýmu}
+                    />
+                  </label>
+                  <button
+                    style={{ width: "unset" }}
+                    onClick={() => onPřipojitSe(undefined, +kódPřipojeníDoTýmu)}
+                  >
+                    Připoj se do týmu
+                  </button>
+                </div>
 
-                  {data?.vsechnyTymy && (
-                    <div style={{ marginTop: "8px", width: "100%" }}>
-                      <strong>Týmy:</strong>
-                      <SeznamTymu
-                        tymy={data.vsechnyTymy}
-                        zobrazitPřipojení={true}
-                        onPřipojitSe={onPřipojitSe}
-                      />
-                    </div>
-                  )}
-                </>
-              )
+                {data?.vsechnyTymy && (
+                  <div style={{ marginTop: "8px", width: "100%" }}>
+                    <strong>Týmy:</strong>
+                    <SeznamTymu
+                      tymy={data.vsechnyTymy}
+                      zobrazitPřipojení={true}
+                      onPřipojitSe={onPřipojitSe}
+                    />
+                  </div>
+                )}
+              </>
+            )
           }
 
           {!načítá && týmJePřipravený && !načítáAkci && (
@@ -284,6 +292,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           <button class="vpravo zpet" onClick={onZavřít}>Zavřít</button>
         </div>
       </div>
+      {modalPotvrzení}
     </>
   );
 };
