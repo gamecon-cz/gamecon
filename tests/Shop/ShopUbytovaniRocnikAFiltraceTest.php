@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Shop;
 
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Shop\PodtypPredmetu;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\Shop\StavPredmetu;
@@ -41,6 +42,8 @@ SQL,
         string $nazev,
         int $modelRok,
         ?int $kusuVyrobeno = 10,
+        int $ubytovaniDen = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+        ?string $podtyp = null,
     ): int {
         $unique = uniqid($modelRok . '_', true);
         dbQuery(<<<SQL
@@ -52,7 +55,8 @@ INSERT INTO shop_predmety SET
     stav = $3,
     kusu_vyrobeno = $4,
     typ = $5,
-    ubytovani_den = $6
+    ubytovani_den = $6,
+    podtyp = $7
 SQL,
             [
                 0 => $nazev,
@@ -61,7 +65,8 @@ SQL,
                 3 => StavPredmetu::VEREJNY,
                 4 => $kusuVyrobeno,
                 5 => TypPredmetu::UBYTOVANI,
-                6 => DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+                6 => $ubytovaniDen,
+                7 => $podtyp,
             ],
         );
 
@@ -132,6 +137,7 @@ SQL,
         $typy = [
             'Jednolůžák',
             'Dvoulůžák',
+            'Dvojlůžák',
             'Trojlůžák',
             'Spacák',
             'Hotelový jednolůžák standard',
@@ -156,6 +162,26 @@ SQL,
     /**
      * @test
      */
+    public function zobraziTooltipyProZnameTypyUbytovaniPodleNazvu(): void
+    {
+        $uzivatel = $this->vytvorUzivatele((string) uniqid());
+
+        $this->vytvorPredmetUbytovani('Dvoulůžák čtvrtek', ROCNIK, 10);
+        $this->vytvorPredmetUbytovani('Hotelový dvojlůžák deluxe čtvrtek', ROCNIK, 10);
+
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $html = $shop->ubytovani()->ubytovaniHtml(true);
+
+        self::assertStringContainsString('class="shop_popis shopUbytovani_radek gc_tooltip"', $html);
+        self::assertStringContainsString('Dvoulůžák', $html);
+        self::assertStringContainsString('buňkový typ ubytování v rámci kolejí.', $html);
+        self::assertStringContainsString('Hotelový dvojlůžák deluxe', $html);
+        self::assertStringContainsString('dvoulůžkový hotelový pokoj s vlastní koupelnou a toaletou; prostornější a komfortnější než standard, snídaně v ceně.', $html);
+    }
+
+    /**
+     * @test
+     */
     public function neuloziUbytovaniZJinehoRocniku(): void
     {
         $uzivatel = $this->vytvorUzivatele((string) uniqid());
@@ -169,6 +195,87 @@ SQL,
             $uzivatel,
             true,
             ROCNIK,
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function bezJedneNociUloziVybranyHotelovyTypProVsechnyTriNoci(): void
+    {
+        $uzivatel = $this->vytvorUzivatele((string) uniqid());
+
+        $this->vytvorPredmetUbytovani(
+            'Hotelový jednolůžák standard čtvrtek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+            PodtypPredmetu::HOTEL,
+        );
+        $this->vytvorPredmetUbytovani(
+            'Hotelový jednolůžák standard pátek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
+            PodtypPredmetu::HOTEL,
+        );
+        $this->vytvorPredmetUbytovani(
+            'Hotelový jednolůžák standard sobota',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+            PodtypPredmetu::HOTEL,
+        );
+
+        $idHotelDeluxeCtvrtek = $this->vytvorPredmetUbytovani(
+            'Hotelový jednolůžák deluxe čtvrtek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+            PodtypPredmetu::HOTEL,
+        );
+        $idHotelDeluxePatek = $this->vytvorPredmetUbytovani(
+            'Hotelový jednolůžák deluxe pátek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
+            PodtypPredmetu::HOTEL,
+        );
+        $idHotelDeluxeSobota = $this->vytvorPredmetUbytovani(
+            'Hotelový jednolůžák deluxe sobota',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+            PodtypPredmetu::HOTEL,
+        );
+
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+
+        $_POST['shopUbytovaniDny'] = [
+            1 => (string) $idHotelDeluxeCtvrtek,
+        ];
+
+        try {
+            $shop->ubytovani()->zpracuj(vcetneSpolubydliciho: false);
+        } finally {
+            unset($_POST['shopUbytovaniDny']);
+        }
+
+        $ulozenaIds = array_map('intval', dbOneArray(<<<SQL
+SELECT shop_nakupy.id_predmetu
+FROM shop_nakupy
+JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+WHERE shop_nakupy.id_uzivatele = $0
+  AND shop_nakupy.rok = $1
+  AND shop_predmety.typ = $2
+ORDER BY shop_predmety.ubytovani_den
+SQL,
+            [$uzivatel->id(), ROCNIK, TypPredmetu::UBYTOVANI],
+        ));
+
+        self::assertSame(
+            [$idHotelDeluxeCtvrtek, $idHotelDeluxePatek, $idHotelDeluxeSobota],
+            $ulozenaIds,
         );
     }
 }

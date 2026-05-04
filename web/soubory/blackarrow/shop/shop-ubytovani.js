@@ -6,6 +6,7 @@
     var volbaNechciUbytovaniCheckbox = document.querySelector('input.shopUbytovani_nechciCheckbox');
     var tabulkaUbytovani = document.querySelector('.shopUbytovani_tabulka');
     var spolubydliciBlok = document.querySelector('.shopUbytovani_spolubydlici');
+    var infoUbytovaniBlok = document.querySelector('.prihlaska_infoPruh-ubytovani');
 
     // 1) Načtení ze sessionStorage (pokud tam nic není, zůstane null)
     let stored = sessionStorage.getItem('presKapacituBtn');
@@ -141,6 +142,20 @@
         spolubydliciBlok.style.display = zobrazit ? '' : 'none';
     }
 
+    /** @param {boolean} zobrazit */
+    function prepniInfoUbytovani(zobrazit) {
+        if (!infoUbytovaniBlok) {
+            return;
+        }
+        infoUbytovaniBlok.style.display = zobrazit ? '' : 'none';
+        if (!zobrazit) {
+            var sekce = infoUbytovaniBlok.closest('.prihlaska_sekce');
+            if (sekce) {
+                sekce.style.minHeight = '';
+            }
+        }
+    }
+
     function onVolbaNechciUbytovaniChange() {
         if (!volbaNechciUbytovaniCheckbox) {
             return;
@@ -154,11 +169,13 @@
             obnovPovinnePolozky();
             prepniUbytovaniTabulku(false);
             prepniSpolubydlici(false);
+            prepniInfoUbytovani(false);
             return;
         }
 
         prepniUbytovaniTabulku(true);
         prepniSpolubydlici(true);
+        prepniInfoUbytovani(true);
     }
 
     function zobrazPovinnePolozky() {
@@ -209,6 +226,7 @@
             volbaNechciUbytovaniCheckbox.checked = false;
             prepniUbytovaniTabulku(true);
             prepniSpolubydlici(true);
+            prepniInfoUbytovani(true);
         }
     }
 
@@ -276,4 +294,5 @@
     var chceUbytovani = !(volbaNechciUbytovaniCheckbox && volbaNechciUbytovaniCheckbox.checked);
     prepniUbytovaniTabulku(chceUbytovani);
     prepniSpolubydlici(chceUbytovani);
+    prepniInfoUbytovani(chceUbytovani);
 }

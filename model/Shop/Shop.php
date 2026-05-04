@@ -604,9 +604,10 @@ SQL,
 
         foreach ($selecty as $i => $idPredmetu) {
             $t->assign([
-                'postName' => $this->klicT . '[' . $i . ']',
-                'cena'     => round((float)$this->cenaTricka()) . '&thinsp;Kč',
-                'rok'      => ROCNIK,
+                'postName'       => $this->klicT . '[' . $i . ']',
+                'idVyberTricek' => 'vyberTricek-' . $i,
+                'cena'           => round((float)$this->cenaTricka()) . '&thinsp;Kč',
+                'rok'            => ROCNIK,
             ]);
 
             // nagenerovat výběr triček
@@ -641,7 +642,8 @@ SQL,
             $t->parse('predmety.tricko');
         }
 
-        $t->assign('shopTrickaJs', URL_WEBU . '/soubory/blackarrow/shop/shop-tricka.js?v=1.0');
+        $t->assign('shopTrickaJs', URL_WEBU . '/soubory/blackarrow/shop/shop-tricka.js?version='
+            . md5_file(WWW . '/soubory/blackarrow/shop/shop-tricka.js'));
 
         $t->parse('predmety');
 
