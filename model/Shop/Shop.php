@@ -243,11 +243,11 @@ SQL,
                   LEFT JOIN shop_nakupy AS nakupy
                     ON predmety.id_predmetu = nakupy.id_predmetu
                     AND nakupy.rok = {$rocnik}
-                  WHERE predmety.stav > {$mimo} OR nakupy.rok = {$rocnik}
+                  WHERE predmety.model_rok = {$rocnik}
+                    AND (predmety.stav > {$mimo} OR nakupy.rok = {$rocnik})
                   GROUP BY predmety.id_predmetu
             ) AS seskupeno
-            -- POZOR, více aktivních ubytování ve stejný den není podporováno, "zvítězí" starší model, protože model_rok DESC a poslední záznam v následujícím foreach přepíše předchozí
-            ORDER BY typ, ubytovani_den, nazev, model_rok DESC, id_predmetu
+            ORDER BY typ, ubytovani_den, nazev, id_predmetu
             SQL,
         );
 
@@ -261,7 +261,7 @@ SQL,
                 continue; // není určeno k přímému prodeji
             }
             unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
-            if ($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) {
+            if ($typ != self::UBYTOVANI && $r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) {
                 $r['stav'] = StavPredmetu::POZASTAVENY;
             }
             $r['nabizet'] = $r['stav'] == StavPredmetu::VEREJNY; // v základu nabízet vše v stavu 1
@@ -403,21 +403,23 @@ SQL,
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!$this->systemoveNastaveni->jeProdejJidlaPozastaven()) {
             foreach (array_keys($druhy) as $druh) {
-                $jidlo = null;
-                $vec = null;
+                $jidloProCenu = null;
                 $jeSnidane = Jidlo::jeToSnidane($druh);
                 foreach (array_keys($dny) as $den) {
                     $t->assign([
                         'den'      => $den,
                         'druhAttr' => $druh,
                     ]);
-                    $jidlo = $jidla[$den][$druh] ?? null;
-                    if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
-                        $t->assign('selected', $jidlo['kusu_uzivatele'] > 0
+                    $jidloVDen = $jidla[$den][$druh] ?? null;
+                    if ($jidloVDen !== null && $jidloProCenu === null) {
+                        $jidloProCenu = $jidloVDen;
+                    }
+                    if ($jidloVDen && ($jidloVDen['nabizet'] || $jidloVDen['kusu_uzivatele'])) {
+                        $t->assign('selected', $jidloVDen['kusu_uzivatele'] > 0
                             ? 'checked'
                             : '');
-                        $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-                        if ($prodejJidlaUkoncen || ($jidlo['stav'] == self::STAV_POZASTAVENY && !$this->nastaveni['jidloBezZamku'])) {
+                        $t->assign('pnName', self::PN_JIDLO . '[' . $jidloVDen['id_predmetu'] . ']');
+                        if ($prodejJidlaUkoncen || ($jidloVDen['stav'] == self::STAV_POZASTAVENY && !$this->nastaveni['jidloBezZamku'])) {
                             $t->parse('jidlo.druh.den.locked');
                         } else {
                             if ($jeSnidane) {
@@ -429,12 +431,9 @@ SQL,
                     $t->parse('jidlo.druh.den');
                 }
                 $t->assign('druh', $druh);
-                if ($jidlo !== null) {
-                    $vec = $cenik->cena($jidlo)->finalPrice . '&thinsp;Kč';
-                }
-                $t->assign('cena', $jidlo !== null
-                    ? ($cenik->cena($jidlo)->finalPrice . '&thinsp;Kč')
-                    : $vec);
+                $t->assign('cena', $jidloProCenu !== null
+                    ? ($cenik->cena($jidloProCenu)->finalPrice . '&thinsp;Kč')
+                    : '');
                 $t->parse('jidlo.druh');
             }
             // hlavička
@@ -605,9 +604,10 @@ SQL,
 
         foreach ($selecty as $i => $idPredmetu) {
             $t->assign([
-                'postName' => $this->klicT . '[' . $i . ']',
-                'cena'     => round((float)$this->cenaTricka()) . '&thinsp;Kč',
-                'rok'      => ROCNIK,
+                'postName'       => $this->klicT . '[' . $i . ']',
+                'idVyberTricek' => 'vyberTricek-' . $i,
+                'cena'           => round((float)$this->cenaTricka()) . '&thinsp;Kč',
+                'rok'            => ROCNIK,
             ]);
 
             // nagenerovat výběr triček
@@ -642,7 +642,8 @@ SQL,
             $t->parse('predmety.tricko');
         }
 
-        $t->assign('shopTrickaJs', URL_WEBU . '/soubory/blackarrow/shop/shop-tricka.js?v=1.0');
+        $t->assign('shopTrickaJs', URL_WEBU . '/soubory/blackarrow/shop/shop-tricka.js?version='
+            . md5_file(WWW . '/soubory/blackarrow/shop/shop-tricka.js'));
 
         $t->parse('predmety');
 
@@ -833,16 +834,28 @@ SQL,
     public function zpracujPredmety()
     {
         if (isset($_POST[$this->klicP]) && isset($_POST[$this->klicT])) {
+            $povolenaIdPredmetuATricek = array_map(
+                'intval',
+                array_merge(
+                    array_column($this->predmety, 'id_predmetu'),
+                    array_column($this->tricka, 'id_predmetu'),
+                ),
+            );
             // pole s předměty, které jsou vyplněné ve formuláři
             $nove = [];
             foreach ($_POST[$this->klicP] as $idPredmetu => $pocet) {
+                $idPredmetu = (int)$idPredmetu;
+                if (!in_array($idPredmetu, $povolenaIdPredmetuATricek, true)) {
+                    continue;
+                }
                 for ($i = 0; $i < $pocet; $i++) {
-                    $nove[] = (int)$idPredmetu;
+                    $nove[] = $idPredmetu;
                 }
             }
             foreach ($_POST[$this->klicT] as $idTricka) { // připojení triček
-                if ($idTricka) { // odstranění výběrů „žádné tričko“
-                    $nove[] = (int)$idTricka;
+                $idTricka = (int)$idTricka;
+                if ($idTricka && in_array($idTricka, $povolenaIdPredmetuATricek, true)) { // odstranění výběrů „žádné tričko“
+                    $nove[] = $idTricka;
                 }
             }
             sort($nove);
@@ -1187,13 +1200,20 @@ SQL
         int  $kusu = 1,
         bool $vcetneOznamemi = false,
     ) {
-        $predmet = dbOneLine("SELECT cena_aktualni, kusu_vyrobeno, nazev FROM shop_predmety WHERE id_predmetu=$0", [0 => $idPredmetu]);
+        $predmet = dbOneLine("SELECT cena_aktualni, kusu_vyrobeno, nazev, model_rok FROM shop_predmety WHERE id_predmetu=$0", [0 => $idPredmetu]);
+        if (!$predmet) {
+            throw new \Chyba("Předmět s ID {$idPredmetu} neexistuje.");
+        }
+        $aktualniRocnik = $this->systemoveNastaveni->rocnik();
+        if ((int)$predmet['model_rok'] !== $aktualniRocnik) {
+            throw new \Chyba("Předmět '{$predmet['nazev']}' patří do ročníku {$predmet['model_rok']}, nelze ho prodávat v ročníku {$aktualniRocnik}.");
+        }
         $cenaAktualni = $predmet['cena_aktualni'];
 
         if ($predmet['kusu_vyrobeno'] !== null) {
             $prodanoKusu = (int) dbOneCol(
                 "SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1",
-                [0 => $idPredmetu, 1 => $this->systemoveNastaveni->rocnik()],
+                [0 => $idPredmetu, 1 => $aktualniRocnik],
             );
             $zbyvajiciKusu = (int) $predmet['kusu_vyrobeno'] - $prodanoKusu;
             if ($kusu > $zbyvajiciKusu) {
@@ -1204,7 +1224,7 @@ SQL
         for ($i = 1; $i <= $kusu; $i++) {
             dbQuery(<<<SQL
 INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum)
-VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$this->systemoveNastaveni->rocnik()},{$cenaAktualni},NOW())
+VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$aktualniRocnik},{$cenaAktualni},NOW())
 SQL,
             );
         }

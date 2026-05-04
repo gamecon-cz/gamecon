@@ -1,0 +1,346 @@
+<?php
+  class Shopubytovani636865Tpl {
+    public $context = array();
+    public $dependencies = array("");
+    protected $buffer = array();
+    protected $current = "";        // currently buffered block
+    
+    function ubytovani() {
+      if($this->current == "ubytovani") {
+        if(!empty($this->buffer["ubytovani"])) {
+          $out = $this->buffer["ubytovani"] . ob_get_clean();
+          $this->buffer["ubytovani"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["ubytovani"] ?? "";
+        $this->buffer["ubytovani"] = "";
+        return $out;
+      }
+    }
+
+    function parse_ubytovani() {
+      if($this->current != "ubytovani") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "ubytovani";
+      }
+      ?>
+
+<?=$this->ubytovani_konec()?>
+
+<?=$this->ubytovani_nechciUbytovani()?>
+
+<div class="shopUbytovani_tabulka">
+
+    <div class="shopUbytovani_prvniSloupec">
+        <div class="shop_den shopUbytovani_den">&nbsp;</div>
+        <?=$this->ubytovani_typ()?>
+        <div class="shopUbytovani_zadne">
+            <div class="shop_popis">Žádné</div>
+        </div>
+    </div>
+
+    <?=$this->ubytovani_den()?>
+
+<div style="clear: both"></div>
+
+</div>
+
+<div class="shopUbytovani_spolubydlici">
+    <label>
+        Na pokoji chci být s:
+        <input type="text" class="formular_input" name="<?=isset($this->context["postnameSpolubydlici"])?$this->context["postnameSpolubydlici"]:''?>" value="<?=isset($this->context["spolubydlici"])?$this->context["spolubydlici"]:''?>"
+               placeholder="jména oddělená čárkou, nebo nech prázdné">
+    </label>
+</div>
+
+<?=$this->ubytovani_ubytovaniPresKapacitu()?>
+
+<div class="shopUbytovani_povinne" style="display: none">
+    <?=isset($this->context["povinneUdaje"])?$this->context["povinneUdaje"]:''?>
+</div>
+
+<!-- shop-ubytovani.js -->
+<script type="text/javascript" src="<?=isset($this->context["shopUbytovaniJs"])?$this->context["shopUbytovaniJs"]:''?>"></script>
+
+<?php
+    }
+  
+    function ubytovani_konec() {
+      if($this->current == "ubytovani_konec") {
+        if(!empty($this->buffer["ubytovani_konec"])) {
+          $out = $this->buffer["ubytovani_konec"] . ob_get_clean();
+          $this->buffer["ubytovani_konec"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["ubytovani_konec"] ?? "";
+        $this->buffer["ubytovani_konec"] = "";
+        return $out;
+      }
+    }
+
+    function parse_ubytovani_konec() {
+      if($this->current != "ubytovani_konec") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "ubytovani_konec";
+      }
+      ?>
+<p>Možnost objednávek ubytování přes web už skončila. Zbylé postele lze zarezervovat přes e-mail <a
+        href="mailto:info@gamecon.cz">info@gamecon.cz</a>.</p>
+<?php
+    }
+  
+    function ubytovani_nechciUbytovani() {
+      if($this->current == "ubytovani_nechciUbytovani") {
+        if(!empty($this->buffer["ubytovani_nechciUbytovani"])) {
+          $out = $this->buffer["ubytovani_nechciUbytovani"] . ob_get_clean();
+          $this->buffer["ubytovani_nechciUbytovani"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["ubytovani_nechciUbytovani"] ?? "";
+        $this->buffer["ubytovani_nechciUbytovani"] = "";
+        return $out;
+      }
+    }
+
+    function parse_ubytovani_nechciUbytovani() {
+      if($this->current != "ubytovani_nechciUbytovani") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "ubytovani_nechciUbytovani";
+      }
+      ?>
+<div class="shopUbytovani_nechci" style="display: <?=isset($this->context["displayNechciUbytovani"])?$this->context["displayNechciUbytovani"]:''?>">
+    <label class="formular_polozka formular_polozka-checkbox">
+        <input type="checkbox" class="shopUbytovani_nechciCheckbox" name="<?=isset($this->context["postnameNechciUbytovani"])?$this->context["postnameNechciUbytovani"]:''?>" <?=isset($this->context["checkedNechciUbytovani"])?$this->context["checkedNechciUbytovani"]:''?>>
+        nechci ubytování
+    </label>
+</div>
+<?php
+    }
+  
+    function ubytovani_typ() {
+      if($this->current == "ubytovani_typ") {
+        if(!empty($this->buffer["ubytovani_typ"])) {
+          $out = $this->buffer["ubytovani_typ"] . ob_get_clean();
+          $this->buffer["ubytovani_typ"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["ubytovani_typ"] ?? "";
+        $this->buffer["ubytovani_typ"] = "";
+        return $out;
+      }
+    }
+
+    function parse_ubytovani_typ() {
+      if($this->current != "ubytovani_typ") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "ubytovani_typ";
+      }
+      ?>
+
+        <?=$this->ubytovani_typ_normal()?>
+
+        <?=$this->ubytovani_typ_hinted()?>
+
+        <?php
+    }
+  
+    function ubytovani_typ_normal() {
+      if($this->current == "ubytovani_typ_normal") {
+        if(!empty($this->buffer["ubytovani_typ_normal"])) {
+          $out = $this->buffer["ubytovani_typ_normal"] . ob_get_clean();
+          $this->buffer["ubytovani_typ_normal"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["ubytovani_typ_normal"] ?? "";
+        $this->buffer["ubytovani_typ_normal"] = "";
+        return $out;
+      }
+    }
+
+    function parse_ubytovani_typ_normal() {
+      if($this->current != "ubytovani_typ_normal") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "ubytovani_typ_normal";
+      }
+      ?>
+        <div class="shop_popis shopUbytovani_radek">
+            <?=isset($this->context["typ"])?$this->context["typ"]:''?>
+            <div class="shop_popisCena"><?=isset($this->context["cena"])?$this->context["cena"]:''?>&thinsp;Kč&thinsp;/&thinsp;noc</div>
+        </div>
+        <?php
+    }
+  
+    function ubytovani_typ_hinted() {
+      if($this->current == "ubytovani_typ_hinted") {
+        if(!empty($this->buffer["ubytovani_typ_hinted"])) {
+          $out = $this->buffer["ubytovani_typ_hinted"] . ob_get_clean();
+          $this->buffer["ubytovani_typ_hinted"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["ubytovani_typ_hinted"] ?? "";
+        $this->buffer["ubytovani_typ_hinted"] = "";
+        return $out;
+      }
+    }
+
+    function parse_ubytovani_typ_hinted() {
+      if($this->current != "ubytovani_typ_hinted") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "ubytovani_typ_hinted";
+      }
+      ?>
+        <div class="shop_popis shopUbytovani_radek gc_tooltip">
+            <?=isset($this->context["typ"])?$this->context["typ"]:''?> <span class="shopUbytovani_i"></span>
+            <div class="shop_popisCena"><?=isset($this->context["cena"])?$this->context["cena"]:''?>&thinsp;Kč&thinsp;/&thinsp;noc</div>
+            <div class="tooltip_obsah"><?=isset($this->context["hint"])?$this->context["hint"]:''?></div>
+        </div>
+        <?php
+    }
+  
+    function ubytovani_den() {
+      if($this->current == "ubytovani_den") {
+        if(!empty($this->buffer["ubytovani_den"])) {
+          $out = $this->buffer["ubytovani_den"] . ob_get_clean();
+          $this->buffer["ubytovani_den"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["ubytovani_den"] ?? "";
+        $this->buffer["ubytovani_den"] = "";
+        return $out;
+      }
+    }
+
+    function parse_ubytovani_den() {
+      if($this->current != "ubytovani_den") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "ubytovani_den";
+      }
+      ?>
+    <div class="shopUbytovani_sloupec">
+        <div class="shop_den shopUbytovani_den"><?=isset($this->context["den"])?$this->context["den"]:''?></div>
+        <?=$this->ubytovani_den_typ()?>
+        <div class="shopUbytovani_zadne">
+            <input type="radio" class="shopUbytovani_radio" name="<?=isset($this->context["postnameDen"])?$this->context["postnameDen"]:''?>" value="" data-kapacita="0"
+                   data-typ="Žádné" <?=isset($this->context["checked"])?$this->context["checked"]:''?> <?=isset($this->context["disabled"])?$this->context["disabled"]:''?>>
+        </div>
+    </div>
+    <?php
+    }
+  
+    function ubytovani_den_typ() {
+      if($this->current == "ubytovani_den_typ") {
+        if(!empty($this->buffer["ubytovani_den_typ"])) {
+          $out = $this->buffer["ubytovani_den_typ"] . ob_get_clean();
+          $this->buffer["ubytovani_den_typ"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["ubytovani_den_typ"] ?? "";
+        $this->buffer["ubytovani_den_typ"] = "";
+        return $out;
+      }
+    }
+
+    function parse_ubytovani_den_typ() {
+      if($this->current != "ubytovani_den_typ") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "ubytovani_den_typ";
+      }
+      ?>
+        <div class="shopUbytovani_radek">
+            <input type="radio" class="shopUbytovani_radio" name="<?=isset($this->context["postnameDen"])?$this->context["postnameDen"]:''?>" value="<?=isset($this->context["idPredmetu"])?$this->context["idPredmetu"]:''?>"
+                   data-kapacita="<?=isset($this->context["kapacita"])?$this->context["kapacita"]:''?>" data-typ="<?=isset($this->context["typ"])?$this->context["typ"]:''?>" data-podtyp="<?=isset($this->context["podtyp"])?$this->context["podtyp"]:''?>" <?=isset($this->context["checked"])?$this->context["checked"]:''?> <?=isset($this->context["disabled"])?$this->context["disabled"]:''?>>
+            <div class="shopUbytovani_kapacita"><?=isset($this->context["obsazeno"])?$this->context["obsazeno"]:''?>/<?=isset($this->context["kapacita"])?$this->context["kapacita"]:''?></div>
+        </div>
+        <?php
+    }
+  
+    function ubytovani_ubytovaniPresKapacitu() {
+      if($this->current == "ubytovani_ubytovaniPresKapacitu") {
+        if(!empty($this->buffer["ubytovani_ubytovaniPresKapacitu"])) {
+          $out = $this->buffer["ubytovani_ubytovaniPresKapacitu"] . ob_get_clean();
+          $this->buffer["ubytovani_ubytovaniPresKapacitu"] = "";
+        } else {
+          $out = ob_get_clean();
+        }
+        $this->current = "";
+        return $out;
+      } else {
+        $out = $this->buffer["ubytovani_ubytovaniPresKapacitu"] ?? "";
+        $this->buffer["ubytovani_ubytovaniPresKapacitu"] = "";
+        return $out;
+      }
+    }
+
+    function parse_ubytovani_ubytovaniPresKapacitu() {
+      if($this->current != "ubytovani_ubytovaniPresKapacitu") {
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
+        ob_start();
+        $this->current = "ubytovani_ubytovaniPresKapacitu";
+      }
+      ?>
+    <div>
+        <strong>Šéf Infopultu: </strong><input class="danger" type="button" value="přes kapacitu" onClick="presKapacitu()">
+    </div>
+<?php
+    }
+  
+  }
+  
