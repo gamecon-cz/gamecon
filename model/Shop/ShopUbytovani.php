@@ -18,13 +18,27 @@ class ShopUbytovani
     private const PORADI_TYPU_UBYTOVANI = [
         'jednolůžák' => 10,
         'dvoulůžák' => 20,
-        'trojlůžák' => 30,
-        'spacák' => 40,
-        'hotelový jednolůžák standard' => 50,
-        'hotelový dvojlůžák standard' => 60,
-        'hotelový jednolůžák deluxe (buňka)' => 70,
-        'hotelový jednolůžák deluxe' => 80,
-        'hotelový dvojlůžák deluxe' => 90,
+        'dvojlůžák' => 30,
+        'trojlůžák' => 40,
+        'spacák' => 50,
+        'hotelový jednolůžák standard' => 60,
+        'hotelový dvojlůžák standard' => 70,
+        'hotelový jednolůžák deluxe (buňka)' => 80,
+        'hotelový jednolůžák deluxe' => 90,
+        'hotelový dvojlůžák deluxe' => 100,
+    ];
+
+    private const HINTY_TYPU_UBYTOVANI = [
+        'jednolůžák' => 'buňkový typ ubytování v rámci kolejí.',
+        'dvoulůžák' => 'buňkový typ ubytování v rámci kolejí.',
+        'dvojlůžák' => 'buňkový typ ubytování v rámci kolejí.',
+        'trojlůžák' => 'buňkový typ ubytování v rámci kolejí.',
+        'hotelový dvoulůžák deluxe' => 'dvoulůžkový hotelový pokoj s vlastní koupelnou a toaletou; prostornější a komfortnější než standard, snídaně v ceně.',
+        'hotelový dvojlůžák deluxe' => 'dvoulůžkový hotelový pokoj s vlastní koupelnou a toaletou; prostornější a komfortnější než standard, snídaně v ceně.',
+        'hotelový dvojlůžák standard' => 'dvoulůžkový hotelový pokoj; koupelna a toaleta sdílené s jednolůžkovým pokojem v buňce, snídaně v ceně.',
+        'hotelový jednolůžák deluxe (buňka)' => 'jednolůžkový hotelový pokoj; prostornější a komfortnější než standard; koupelna a toaleta sdílené s dalším jednolůžkovým pokojem, snídaně v ceně.',
+        'hotelový jednolůžák deluxe' => 'jednolůžkový hotelový pokoj s vlastní koupelnou a toaletou; prostornější a komfortnější než standard, snídaně v ceně.',
+        'hotelový jednolůžák standard' => 'jednolůžkový hotelový pokoj; koupelna a toaleta sdílené s dvoulůžkovým pokojem v buňce, snídaně v ceně.',
     ];
 
     /**
@@ -391,6 +405,16 @@ SQL,
         return self::PORADI_TYPU_UBYTOVANI[$normalizovanyTyp] ?? PHP_INT_MAX;
     }
 
+    private function hintTypuUbytovani(string $typ, array $predmet): ?string
+    {
+        $hint = self::HINTY_TYPU_UBYTOVANI[mb_strtolower(trim($typ))]
+            ?? trim((string)($predmet[Sql::POPIS] ?? ''));
+
+        return $hint !== ''
+            ? $hint
+            : null;
+    }
+
     /**
      * @return string[][][]
      */
@@ -463,12 +487,14 @@ SQL,
                 continue;
             }
 
+            $hint = $this->hintTypuUbytovani($typ, $predmet);
+
             $t->assign([
                 'typ'  => $typ,
-                'hint' => $predmet[Sql::POPIS],
+                'hint' => $hint,
                 'cena' => round((float)$predmet[Sql::CENA_AKTUALNI]),
             ]);
-            $t->parse($predmet['popis']
+            $t->parse($hint
                 ? 'ubytovani.typ.hinted'
                 : 'ubytovani.typ.normal');
             $t->parse('ubytovani.typ');
@@ -611,6 +637,41 @@ SQL,
         return DateTimeCz::poradiDneVTydnuNaPrelomDnuVeZkratkach($poradiDneVTydnu, true);
     }
 
+    /**
+     * @return array<int, string>
+     */
+    private function dejIdsUbytovaniNaTriNoci(Predmet $jedenZeDnu): array
+    {
+        $vybranyTypUbytovani = trim(Shop::bezDne($jedenZeDnu->nazev()));
+        $predmetyNaTriNoci   = dbFetchAll(<<<SQL
+SELECT id_predmetu, nazev, ubytovani_den
+FROM shop_predmety
+WHERE model_rok = $0
+    AND typ = $1
+    AND ubytovani_den IN (1, 2, 3)
+ORDER BY ubytovani_den, id_predmetu
+SQL,
+            [$jedenZeDnu->modelRok(), $jedenZeDnu->typ()],
+        );
+
+        $idsPodleDne = [];
+        foreach ($predmetyNaTriNoci as $predmetNaTriNoci) {
+            if (trim(Shop::bezDne((string)$predmetNaTriNoci['nazev'])) !== $vybranyTypUbytovani) {
+                continue;
+            }
+            $idsPodleDne[(int)$predmetNaTriNoci['ubytovani_den']] = (string)$predmetNaTriNoci['id_predmetu'];
+        }
+
+        if (!isset($idsPodleDne[1], $idsPodleDne[2], $idsPodleDne[3])) {
+            throw new Chyba(sprintf(
+                'Nepodařilo se najít kompletní třínoční sadu ubytování pro typ "%s".',
+                $vybranyTypUbytovani,
+            ));
+        }
+
+        return $idsPodleDne;
+    }
+
     public function zpracuj(
         bool $vcetneSpolubydliciho = true,
         bool $hlidatKapacituUbytovani = true,
@@ -632,17 +693,11 @@ SQL,
             if (!empty($postDny[1])) {
                 $id         = $postDny[1];
                 $jedenZeDnu = Predmet::zId($id);
-                $druhUbytka = preg_split('~\s+~', $jedenZeDnu->nazev())[0];
-                $vsechnyDny = dbOneArray(<<<SQL
-                    SELECT id_predmetu FROM shop_predmety WHERE model_rok = $0 AND typ = $1 AND nazev LIKE $2
-                    AND ubytovani_den IN (1, 2, 3)
-                SQL,
-                    [$jedenZeDnu->modelRok(), $jedenZeDnu->typ(), $druhUbytka . '%'],
-                );
+                $vsechnyDny = $this->dejIdsUbytovaniNaTriNoci($jedenZeDnu);
 
-                $dny[1] = (string)$vsechnyDny[0];
-                $dny[2] = (string)$vsechnyDny[1];
-                $dny[3] = (string)$vsechnyDny[2];
+                $dny[1] = $vsechnyDny[1];
+                $dny[2] = $vsechnyDny[2];
+                $dny[3] = $vsechnyDny[3];
             }
         } else {
             $dny = $_POST[$this->pnDny];
