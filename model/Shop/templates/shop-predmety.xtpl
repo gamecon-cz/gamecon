@@ -77,10 +77,10 @@
     <!-- begin: tricko -->
     <div class="shopPredmety_tricko">
         <div class="shop_popis">
-            <label for="vyberTricek">Tričko GameCon {rok}</label>
+            <label for="{idVyberTricek}">Tričko GameCon {rok}</label>
             <div class="shop_popisCena">{cena}</div>
         </div>
-        <select id="vyberTricek" name="{postName}" class="formular_select shopPredmety_trickoSelect">
+        <select id="{idVyberTricek}" name="{postName}" class="formular_select shopPredmety_trickoSelect">
             <!-- begin: moznost -->
             <option value="{id_predmetu}" {selected}>{nazev}</option>
             <!-- end: moznost -->
