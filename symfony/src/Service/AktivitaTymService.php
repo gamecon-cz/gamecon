@@ -29,8 +29,11 @@ class AktivitaTymService
     {
         $novy = $idTymu === 0;
 
-        if (!$novy) {
-            $existujici = $this->teamMemberRegistrationRepository->findOneBy(['uzivatel' => $idUzivatele, 'team' => $idTymu]);
+        if (! $novy) {
+            $existujici = $this->teamMemberRegistrationRepository->findOneBy([
+                'uzivatel' => $idUzivatele,
+                'team'     => $idTymu,
+            ]);
             if ($existujici) {
                 return;
             }
@@ -42,9 +45,9 @@ class AktivitaTymService
             ? $this->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity, $hajeniTeamuHodin)
             : $this->teamRepository->find($idTymu)
                 ?? throw new \Chyba('Nepodařilo se najít tým')
-            ;
+        ;
 
-        if (!$novy && !$ignorovatLimity) {
+        if (! $novy && ! $ignorovatLimity) {
             $this->zkontrolujVolnouKapacituVTymu((int) $team->getId());
         }
 
@@ -256,7 +259,7 @@ class AktivitaTymService
         }
 
         // Pokud tým není na žádném turnaji, vrátíme true
-        if (!$turnaj) {
+        if (! $turnaj) {
             return true;
         }
 
@@ -273,7 +276,7 @@ class AktivitaTymService
         );
 
         // Zkontrolujeme, že tým má aktivitu v každém kole
-        for ($kolo = 1; $kolo <= $maxKolo; $kolo++) {
+        for ($kolo = 1; $kolo <= $maxKolo; ++$kolo) {
             if (! in_array($kolo, $teamKola, true)) {
                 return false;
             }
@@ -308,6 +311,7 @@ class AktivitaTymService
         }
 
         $this->em->flush();
+
         return count($rozpracovane);
     }
 
@@ -369,10 +373,11 @@ class AktivitaTymService
             throw new \Chyba('Tým nenalezen');
         }
 
-        $idAktivity = $team->getAktivity()->first()?->getId();
-        if (! $idAktivity) {
+        $prvniAktivita = $team->getAktivity()->first();
+        if (! $prvniAktivita) {
             throw new \Chyba('Tým není přiřazen k žádné aktivitě');
         }
+        $idAktivity = $prvniAktivita->getId();
 
         $existujiciKody = array_map(
             fn (Team $t) => $t->getKod(),
@@ -442,16 +447,6 @@ class AktivitaTymService
         return $team ? (int) $team->getKapitan()->getId() : null;
     }
 
-    private function najdiTeamPodleKodu(int $idAktivity, int $kodTymu): Team
-    {
-        $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
-        if (! $team) {
-            throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
-        }
-
-        return $team;
-    }
-
     private function zkontrolujZeNeniVJinemTymu(int $idUzivatele, int $idAktivity): void
     {
         $existing = $this->teamMemberRegistrationRepository->findByUzivatelAndAktivita($idUzivatele, $idAktivity);
@@ -466,7 +461,6 @@ class AktivitaTymService
 
         return $team?->getZalozen() !== null ? $team->getZalozen()->getTimestamp() * 1000 : null;
     }
-
 
     public function casExpiraceMs(int $idTymu): ?int
     {
@@ -527,7 +521,7 @@ class AktivitaTymService
 
         $this->zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
 
-        if (!$ignorovatLimity) {
+        if (! $ignorovatLimity) {
             $this->zkontrolujMuzeZalozitTym($idAktivity);
         }
 

@@ -46,6 +46,10 @@ class TournamentRepository extends ServiceEntityRepository
      */
     public function findByRok(int $rok): array
     {
-        return $this->findBy(['rok' => $rok], ['nazev' => 'ASC']);
+        return $this->findBy([
+            'rok' => $rok,
+        ], [
+            'nazev' => 'ASC',
+        ]);
     }
 }
