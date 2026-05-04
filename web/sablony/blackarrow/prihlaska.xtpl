@@ -72,9 +72,9 @@
                 <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/hra.png"
                      style="top: -40px; right: -19px">
                 <h3>GameCon merch</h3>
-                <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko ➕.
-                    U triček se ti po vyplnění jednoho nabídne položka pro výběr dalšího.<br>
-                    <b>Výběr triček a tílek jde změnit do {trickaObjednatelnaDo}, ostatních předmětů do
+                <p>Placky, kostky i trička s logem GameConu si můžeš objednat ve více kusech. Stačí kliknout na tlačítko ➕.
+                    U triček se po vyplnění jednoho automaticky zobrazí možnost přidat další.<br>
+                    <b>Výběr triček můžeš upravovat do {trickaObjednatelnaDo}, ostatní merch do
                         {predmetyBezTricekObjednatelneDo}</b></p>
             </div>
             <!-- begin: slevy -->
@@ -126,22 +126,22 @@
         <p>Pozor, oproti předchozím rokům změna: ubytování je možné objednat pouze v balíčku 3+ nocí.</p>
         <!-- end: triPlusNoci2025 -->
 
-        <div class="prihlaska_infoPruh">
+        <div class="prihlaska_infoPruh prihlaska_infoPruh-ubytovani">
             <div class="prihlaska_info">
                 <img alt="Ikona s mapou" class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/mapa.png"
                      style="top: -33px; right: -15px">
                 <h3>Informace k ubytování</h3>
                 <ul>
-                    <li>Objednat nebo změnit ubytování lze do {ubytovaniObjednatelneDo}</li>
-                    <li>Čísla ukazují počet obsazených míst / celkem.</li>
+                    <li>Objednat nebo změnit ubytování můžeš do {ubytovaniObjednatelneDo}.</li>
+                    <li>Čísla ukazují počet obsazených míst / celkovou kapacitu.</li>
                     <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
                     <!-- begin: ubytovaniTriPlusNoci -->
-                    <li>Ubytování je možné objednat pouze v balíčku 3+ nocí.</li>
                     <!-- end: ubytovaniTriPlusNoci -->
-                    <li>Bližší informace o ubytování najdeš <a href="/prakticke-informace#ubytovani">zde</a> v FAQ.</li>
                     <!-- begin: poznamkaKUbytovaniVNedeli -->
-                    <li>Ubytování Ne–Po znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00.</li>
+                    <li>Varianta „Ne–Po“ znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00.</li>
                     <!-- end: poznamkaKUbytovaniVNedeli -->
+                    <li>Hotelové pokoje mají v ceně zahrnutou snídani.</li>
+                    <li>Podrobnější informace o ubytování a typech pokojů najdeš na stránce <a href="/prakticke-informace#ubytovani">Praktické informace</a>.</li>
                 </ul>
             </div>
 
