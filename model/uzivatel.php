@@ -2975,23 +2975,11 @@ SQL;
     /**
      * Vrací anonymní objekt pro api
      */
-    public function apiPrihlasenyUzivatel() {
+    public function apiUzivatel() {
         $res = [];
 
         $res["id"] = $this->id();
-        $res["prihlasen"] = true;
         $res["pohlavi"] = $this->pohlavi();
-        $res["koncovkaDlePohlavi"] = $this->koncovkaDlePohlavi();
-
-        if ($this->jeOrganizator()) {
-            $res["organizator"] = true;
-        }
-        if ($this->jeBrigadnik()) {
-            $res["brigadnik"] = true;
-        }
-        if ($this->maRoli(Role::SEF_INFOPULTU)) {
-            $res["sefInfa"] = true;
-        }
 
         $res["gcStav"] = "nepřihlášen";
 
@@ -3005,6 +2993,42 @@ SQL;
             $res["gcStav"] = "odjel";
         }
 
+        $role = [];
+
+        if ($this->jeOrganizator()) {
+            $role["organizator"] = true;
+        }
+        if ($this->jeBrigadnik()) {
+            $role["brigadnik"] = true;
+        }
+        if ($this->maRoli(Role::SEF_INFOPULTU)) {
+            $role["sefInfa"] = true;
+        }
+
+        if (!empty($role)){
+            $res["role"] = $role;
+        }
+
         return $res;
+    }
+
+    /**
+     * Používá fetchPřihlášenýUživatel.
+     *
+     * @param bool $ucastnikJeOperator používá se když chceme ignorovat uPraconi
+     */
+    public static function apiPrihlasenyUzivatel() {
+        /** @var Uzivatel $u */
+        global $u;
+        /** @var Uzivatel $uPracovni */
+        global $uPracovni;
+
+        $operator = $u;
+        $ucastnik = $uPracovni ? $uPracovni : $u;
+
+        return [
+            "ucastnik" => $ucastnik?->apiUzivatel(),
+            "operator" => $operator?->apiUzivatel(),
+        ];
     }
 }

@@ -12,14 +12,14 @@ use Uzivatel;
 class Program
 {
 
-    public static function vypisPreact(?Uzivatel $uPracovni, $jeAdmin = false, $pageName = "program"): void
+    public static function vypisPreact($jeAdmin = false, $pageName = "program"): void
     {
         $souborySlozka = ($jeAdmin ? 'files' : 'soubory');
         $stylUrl     = self::zabalWebSoubor($souborySlozka . '/ui/style.css', $jeAdmin);
         $bundleUrl   = self::zabalWebSoubor($souborySlozka . '/ui/bundle.js', $jeAdmin);
         $konstanty   = json_encode(self::gameconKonstanty($jeAdmin, $pageName));
         $prednacteni = json_encode(
-            ['přihlášenýUživatel' => $uPracovni?->apiPrihlasenyUzivatel() ?? []],
+            ['přihlášenýUživatel' => Uzivatel::apiPrihlasenyUzivatel()],
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
         );
 
@@ -51,7 +51,7 @@ class Program
             'PROGRAM_DO'                   => (new DateTimeCz(PROGRAM_DO))->getTimestamp() * 1000,
             'PROGRAM_ZACATEK'              => PROGRAM_ZACATEK,
             'PROGRAM_KONEC'                => PROGRAM_KONEC,
-            'CAS_NA_PRIPRAVENI_TYMU_MINUT' => AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT,
+            'CAS_NA_PRIPRAVENI_TYMU_MINUT' => AktivitaTym::CAS_NA_PRIPRAVENI_TYMU_MINUT,
             'URL_PROGRAM_CACHE'            => URL_CACHE . '/program',
             'programManifest'              => (new ProgramStaticFileGenerator(SystemoveNastaveni::zGlobals()))->readManifest(),
         ];
@@ -65,8 +65,8 @@ class Program
 
     private static function zabalWebSoubor(string $cestaKSouboru, $admin = false): string
     {
-        // todo(tym): ma tu jese byt tohle?:    URL_WEBU . '/' .
-        return $cestaKSouboru . '?version=' . md5_file(($admin ? ADMIN :  WWW) . '/' . $cestaKSouboru);
+        $baseUrl = $admin ? URL_ADMIN : URL_WEBU;
+        return $baseUrl . '/' . $cestaKSouboru . '?version=' . md5_file(($admin ? ADMIN : WWW) . '/' . $cestaKSouboru);
     }
 
     /**

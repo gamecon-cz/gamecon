@@ -54,6 +54,14 @@ class TeamMemberRegistrationRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findByUzivatelAndTeam(int $idUzivatele, int $idTymu): ?TeamMemberRegistration
+    {
+        return $this->findOneBy([
+            'uzivatel' => $idUzivatele,
+            'team'     => $idTymu,
+        ]);
+    }
+
     public function pocetClenu(int $idTymu): int
     {
         return (int) $this->createQueryBuilder('reg')

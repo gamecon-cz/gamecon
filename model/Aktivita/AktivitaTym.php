@@ -15,7 +15,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 class AktivitaTym
 {
     public const HAJENI_TEAMU_HODIN = 72;
-    public const CAS_NA_PRIPRAVENI_TYMU_MINUT = 30;
+    public const CAS_NA_PRIPRAVENI_TYMU_MINUT = 15;
 
     private function __construct(
         private readonly Team $team,
@@ -146,12 +146,12 @@ class AktivitaTym
 
     public function zamkni(): void
     {
-        self::service()->nastavZamceniTymu($this->getId(), true);
+        self::service()->nastavZamceniTymu($this->getId(), true, self::HAJENI_TEAMU_HODIN);
     }
 
     public function odemkni(): void
     {
-        self::service()->nastavZamceniTymu($this->getId(), false);
+        self::service()->nastavZamceniTymu($this->getId(), false, self::HAJENI_TEAMU_HODIN);
     }
 
     public function zkontrolujZeNeniZamceny(): void
@@ -225,8 +225,11 @@ class AktivitaTym
     /**
      * Pouze hlavní aktivita je důležitá, ostatní aktivity slouží jako hint při možném výběru z více aktivit
      */
-    public function pridejNaAktivitu(int $idAktivity): void
+    public function pridejNaAktivitu(int $idAktivity, bool $kontrola = true): void
     {
+        if ($kontrola && !self::muzePridatDalsiTym($idAktivity)) {
+            throw new \Chyba('Termín aktivity už má plnou kapacitu týmů');
+        }
         self::service()->pridejTymNaAktivitu($this->getId(), $idAktivity);
     }
 
@@ -251,7 +254,7 @@ class AktivitaTym
      */
     public static function zalozPrazdnyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity = false): self
     {
-        $team = self::service()->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity);
+        $team = self::service()->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity, self::HAJENI_TEAMU_HODIN);
 
         return new self($team);
     }
@@ -312,12 +315,12 @@ class AktivitaTym
     /** @return int[] */
     public static function rozpracovaneTymyIds(?int $casNaPripraveniMinut = null): array
     {
-        return self::service()->rozpracovaneTymyIds($casNaPripraveniMinut);
+        return self::service()->rozpracovaneTymyIds($casNaPripraveniMinut ?? self::CAS_NA_PRIPRAVENI_TYMU_MINUT);
     }
 
     public static function smazRozpracovaneTymy(?int $casNaPripraveniMinut = null): int
     {
-        return self::service()->smazRozpracovaneTymy($casNaPripraveniMinut);
+        return self::service()->smazRozpracovaneTymy($casNaPripraveniMinut ?? self::CAS_NA_PRIPRAVENI_TYMU_MINUT);
     }
 
     /** @return self[] */

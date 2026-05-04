@@ -28,7 +28,7 @@ use Gamecon\Aktivita\Program;
 </head>
 <body>
 
-<?php Program::vypisPreact($uPracovni, true, "program-mistnosti"); ?>
+<?php Program::vypisPreact(true, "program-mistnosti"); ?>
 
 </body>
 </html>

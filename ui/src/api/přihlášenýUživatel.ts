@@ -20,19 +20,24 @@ type GCStav =
   | typeof GC_STAV_ODJEL
   ;
 
-export type Pohlavi = "m" | "l";
+export type Pohlavi = "m" | "f";
 
-export type ApiPřihlášenýUživatel = {
-  id?: number,
-  organizator?: boolean,
-  prihlasen?: boolean,
-  pohlavi?: Pohlavi,
-  koncovkaDlePohlavi?: string,
-  gcStav?: GCStav,
-  brigadnik?: boolean,
-  sefInfa?: boolean,
+export type ApiUživatel = {
+  id: number,
+  pohlavi: Pohlavi,
+  gcStav: GCStav,
+
+  role?: {
+    organizator?: boolean,
+    brigadnik?: boolean,
+    sefInfa?: boolean,
+  }
 }
 
+export type ApiPřihlášenýUživatel = {
+  ucastnik?: ApiUživatel;
+  operator?: ApiUživatel;
+}
 
 export const fetchPřihlášenýUživatel = async (): Promise<ApiPřihlášenýUživatel> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}prihlasenyUzivatel`;

@@ -1208,6 +1208,7 @@ SQL
         $data[Sql::TEAM_KAPACITA] = $teamova
             ? (!empty($data[Sql::TEAM_KAPACITA]) ? (int)$data[Sql::TEAM_KAPACITA] : null)
             : null;
+        $data[Sql::TYM_SMAZAT_PO_EXPIRACI] = (int)($teamova && !empty($data[Sql::TYM_SMAZAT_PO_EXPIRACI]));
 
         if ($teamova) {
             // Vedoucí týmu může ručně nastavit kapacitu nižší, dokud je větší rovna team_min. V takovém
@@ -2353,6 +2354,7 @@ SQL
         }
     }
 
+    // todo(tym): tenhle rekurzivní konstrukt nepůsobí správně
     /**
      *  Přihlásí uživatele na aktivitu.
      *  Pro tymovky:
@@ -2557,6 +2559,7 @@ SQL
         }
     }
 
+    /** @param Aktivita[] $navazujiciAktivity */
     private function zkontrolujPrihlaseniNavazujicichAktivit(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
@@ -2564,7 +2567,7 @@ SQL
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
         ?AktivitaTym $tym = null,
-        $navazujiciAktivity = [],
+        ?array    $navazujiciAktivity = [],
     ) {
         if ($parametry & self::IGNOROVAT_TURNAJ) {
             return;
@@ -2597,6 +2600,7 @@ SQL
         }
     }
 
+    /** @param AktivitaTym[] $navazujiciAktivity */
     public function zkontrolujZdaSeMuzePrihlasit(
         Uzivatel $uzivatel,
         Uzivatel $prihlasujici,
@@ -2604,7 +2608,7 @@ SQL
         bool     $jenPritomen = false,
         bool     $hlaskyVeTretiOsobe = false,
         ?AktivitaTym $tym = null,
-        $navazujiciAktivity = [],
+        array    $navazujiciAktivity = [],
     ): void {
         if ($parametry & self::IGNOROVAT_KONTROLY) {
             return;
@@ -3165,7 +3169,7 @@ HTML
                 $tymKod = +post("tymKod");
 
                 if ($tymId) {
-                    $tym = AktivitaTym::najdi($tymId, $aktivita->id());
+                    $tym = AktivitaTym::najdi($tymId);
                 } elseif ($tymKod) {
                     // pokud je tymKod a kód nenáleží žádnému týmu na aktivitě, tak ihned sletí
                     $tym = AktivitaTym::najdiPodleKodu($aktivita->id(), $tymKod);
@@ -3666,10 +3670,10 @@ SQL,
     ) {
         return (
             (in_array($this->a[Sql::STAV], StavAktivity::bezneViditelneStavy(), false) // podle stavu je aktivita viditelná
-             && !(TypAktivity::jeInterniDleId($this->a[Sql::TYP]) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
+             && !(TypAktivity::jeInterniDleId($this->a[Sql::TYP])) // ale skrýt technické a brigádnické proběhnuté
             )
             // todo: přidat DSC
-            || ($uzivatel && ($this->prihlasen($uzivatel) || $this->organizuje($uzivatel)))
+            || ($uzivatel && ($this->prihlasen($uzivatel) || $this->organizuje($uzivatel) || $uzivatel->jeOrganizator()))
         );
     }
 

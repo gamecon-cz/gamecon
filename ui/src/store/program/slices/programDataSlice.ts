@@ -181,7 +181,7 @@ export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAk
             // takže se rovnou přepisují bez ??-guardů.
             aktivita.stavPrihlaseni = response.aktivitaUzivatel.stavPrihlaseni;
             aktivita.slevaNasobic   = response.aktivitaUzivatel.slevaNasobic;
-            aktivita.mistnost       = response.aktivitaUzivatel.mistnost;
+            aktivita.mistnosti      = response.aktivitaUzivatel.mistnosti;
             aktivita.vedu           = response.aktivitaUzivatel.vedu;
           }
         }

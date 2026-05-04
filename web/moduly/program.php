@@ -61,6 +61,6 @@ $jeOrganizator = isset($u) && $u && $u->maPravoNaPoradaniAktivit();
 </style>
 
 
-<?php Program::vypisPreact($uPracovni ?? $u) ?>
+<?php Program::vypisPreact() ?>
 
 <div style="height: 70px"></div>

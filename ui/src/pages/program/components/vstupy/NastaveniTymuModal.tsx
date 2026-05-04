@@ -39,7 +39,7 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   const setChyba = nastavChyba;
   const přihlášenýUživatel = useProgramStore(s=>s.přihlášenýUživatel);
 
-  const jeKapitán= !!data?.tym?.idKapitana && (přihlášenýUživatel?.data?.id === data?.tym?.idKapitana);
+  const jeKapitán= !!data?.tym?.idKapitana && (přihlášenýUživatel?.ucastnik?.id === data?.tym?.idKapitana);
 
   const sNačítáním = <T,>(fn: () => Promise<T>, jeZměna = false) => async () => {
     setNačítáAkci(true);

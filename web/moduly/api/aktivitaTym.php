@@ -74,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$aktivita) {
                 throw new Chyba('Aktivita nenalezena');
             }
-            // todo(tym): tady musí stoprocentně dojít k přihlášení uživatele jinak není úspěch a pořád hrozí smazání týmu
             $aktivita->prihlas($uPracovni, $u, tym: $tym);
         } elseif ($akce === 'nastavLimit') {
             $limit = (int)($_POST['limit'] ?? 0);
@@ -151,7 +150,7 @@ if ($tym) {
 
     if ($tym->jeRozpracovany()) {
         $zalozenMs = $tym->casZalozeniMs();
-        $casSmazaniRozpracovanyMs = $zalozenMs + AktivitaTymService::CAS_NA_PRIPRAVENI_TYMU_MINUT * 60_000;
+        $casSmazaniRozpracovanyMs = $zalozenMs + AktivitaTym::CAS_NA_PRIPRAVENI_TYMU_MINUT * 60_000;
         $tymResponse['casSmazaniRozpracovanyMs'] = $casSmazaniRozpracovanyMs;
         if (!$tym->maPrirazeneVsechnaKolaTurnaje()) {
             $tymResponse['rozpracovanyFaze'] = "vyberKola";

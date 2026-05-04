@@ -64,6 +64,12 @@ export type ApiAktivitaNepřihlášen = {
   prihlasovatelna: boolean,
 }
 
+export type ApiLokace = {
+  id: number,
+  poradi: number,
+  nazev: string,
+};
+
 /**
  * Všechna pole jsou povinná. Backend MUSÍ vždy poslat všechna pole.
  * Pokud hodnota sémanticky "chybí" (uživatel není přihlášen, aktivita
@@ -77,7 +83,8 @@ export type ApiAktivitaUživatel = {
   slevaNasobic?: number,
   // nahradnik?: boolean,
   /** orgovská vlastnost */
-  mistnost?: string,
+  // todo: tady lepší asi posílat jen id a posílat místnosti zvlášť pro případ že chceme zobrazit prázdné řádky místnostem
+  mistnosti?: ApiLokace[],
   // todo: tohle je taky možný stav přihlášení (odebrat tady a přidat do stavPrihlaseni)
   vedu?: boolean,
   // todo(tym): členové týmu (pak není potřeba tymPocetClenu)
@@ -90,6 +97,7 @@ export type ApiAktivitaUživatel = {
   tymLimit?: number | null,
   /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusím aby tam bylo */
   __TS_STRUKTURALNI_KONTROLA__: true,
+  interni?: boolean,
 }
 
 export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaUživatel;

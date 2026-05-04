@@ -83,7 +83,7 @@ if (!$uPracovni) {
     <a href="program-osobni" class="program-odkaz">Program účastníka</a>
 </div>
 
-<?php Program::vypisPreact($uPracovni ?? $u, true, "program-uzivatele"); ?>
+<?php Program::vypisPreact(true, "program-uzivatele"); ?>
 
 <?php profilInfo(); ?>
 

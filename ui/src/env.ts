@@ -1,6 +1,5 @@
 /*
  * Konstanty předané ze serveru společně se scriptem.
- * Liší se pro testovací server
  */
 
 import { ApiPřihlášenýUživatel } from "./api/přihlášenýUživatel";
@@ -9,10 +8,6 @@ import { range } from "./utils";
 
 
 type GameconKonstanty = {
-  /**
-   * Jestli se jedná o vite dev server
-   */
-  IS_DEV_SERVER: boolean,
   /**
    * Chrome redux devtools. Zapnout v php nastavení serveru pomocí
 define('FORCE_REDUX_DEVTOOLS', true);
@@ -81,7 +76,6 @@ declare global {
 }
 
 const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
-  IS_DEV_SERVER: false,
   FORCE_REDUX_DEVTOOLS: false,
   BASE_PATH_PAGE: "http://localhost:3000/",
   BASE_PATH_API: "/api/",

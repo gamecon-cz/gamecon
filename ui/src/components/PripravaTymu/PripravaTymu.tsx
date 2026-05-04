@@ -16,7 +16,7 @@ import { denAktivity } from "../../store/program/logic/aktivity";
 import { Aktivita } from "../../store/program/slices/programDataSlice";
 
 type PripravaTymuProps = {
-  casExpiraceMs: number | undefined;
+  casSmazaniRozpracovanyMs: number | undefined;
   onVybranéAktivity: (vybranAktivity: number[]) => void;
   onPrihlasitKapitana: () => void;
   nacita?: boolean;
@@ -55,21 +55,18 @@ const useOdpočet = (casExpiraceMs: number): [string, boolean] => {
 };
 
 export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
-  casExpiraceMs,
+  casSmazaniRozpracovanyMs,
   onVybranéAktivity,
   onPrihlasitKapitana,
   nacita,
 }) => {
   const [vybrane, setVybrane] = useState<Record<number, number>>({});
-  const [zbyvaCas, vyprselo] = useOdpočet(casExpiraceMs ?? 0);
+  const [zbyvaCas, vyprselo] = useOdpočet(casSmazaniRozpracovanyMs ?? 0);
 
   const aktivitaId = useNastaveniTymuModalAktivitaId()!;
   const dataTymu = useNastaveniTymuModalData()!.tym!;
   const vsechnyAktivity = useAktivity();
   const idTurnaje = vsechnyAktivity.find(x=>x.id === aktivitaId)?.turnajId;
-  if (!idTurnaje) {
-    throw new Error("Nenalezen id turnaje");
-  }
 
   const ziskejDenCasAktivity = (a: Aktivita): string => {
     const den = denAktivity(new Date(a.cas.od))?.toLocaleDateString("cs-CZ", {
@@ -80,7 +77,7 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
   }
 
   const kola = useMemo<KoloAktivity[]>(() => {
-    const aktivityTurnaje = vsechnyAktivity.filter(x=>x.turnajId === idTurnaje);
+    const aktivityTurnaje = !idTurnaje ? [] : vsechnyAktivity.filter(x=>x.turnajId === idTurnaje);
     const mapa = new Map<number, KoloAktivity>();
     for (const a of aktivityTurnaje) {
       const cisloKola = a.turnajKolo ?? 1;

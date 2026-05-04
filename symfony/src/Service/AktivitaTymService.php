@@ -16,9 +16,6 @@ use Gamecon\Aktivita\InfoOTymu;
 
 class AktivitaTymService
 {
-    private const HAJENI_TEAMU_HODIN = 72;
-    public const CAS_NA_PRIPRAVENI_TYMU_MINUT = 15;
-
     public function __construct(
         private readonly TeamRepository $teamRepository,
         private readonly TeamMemberRegistrationRepository $teamMemberRegistrationRepository,
@@ -28,12 +25,15 @@ class AktivitaTymService
     ) {
     }
 
-    public function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $idTymu, bool $ignorovatLimity = false): void
+    public function prihlasUzivateleDoTymu(int $idUzivatele, int $idAktivity, int $idTymu, int $hajeniTeamuHodin, bool $ignorovatLimity = false): void
     {
         $novy = $idTymu === 0;
 
-        if (!$novy) {
-            $existujici = $this->teamMemberRegistrationRepository->findOneBy(['uzivatel' => $idUzivatele, 'team' => $idTymu]);
+        if (! $novy) {
+            $existujici = $this->teamMemberRegistrationRepository->findOneBy([
+                'uzivatel' => $idUzivatele,
+                'team'     => $idTymu,
+            ]);
             if ($existujici) {
                 return;
             }
@@ -42,12 +42,12 @@ class AktivitaTymService
         }
 
         $team = $novy
-            ? $this->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity)
+            ? $this->vytvorNovyTym($idUzivatele, $idAktivity, $ignorovatLimity, $hajeniTeamuHodin)
             : $this->teamRepository->find($idTymu)
                 ?? throw new \Chyba('Nepodařilo se najít tým')
-            ;
+        ;
 
-        if (!$novy && !$ignorovatLimity) {
+        if (! $novy && ! $ignorovatLimity) {
             $this->zkontrolujVolnouKapacituVTymu((int) $team->getId());
         }
 
@@ -187,7 +187,7 @@ class AktivitaTymService
     /**
      * Taky nastaví expiraci podle hajeni týmu pokud odemkne tým
      */
-    public function nastavZamceniTymu(int $idTymu, bool $zamceny): void
+    public function nastavZamceniTymu(int $idTymu, bool $zamceny, int $hajeniTeamuHodin): void
     {
         $team = $this->teamRepository->find($idTymu);
         if (! $team) {
@@ -198,7 +198,7 @@ class AktivitaTymService
             $team->setVerejny(false);
         } else {
             $ted = new \DateTime();
-            $expiruje = (clone $ted)->modify('+' . self::HAJENI_TEAMU_HODIN . ' hours');
+            $expiruje = (clone $ted)->modify('+' . $hajeniTeamuHodin . ' hours');
             $team->setExpiruje($expiruje);
         }
         $this->em->flush();
@@ -259,7 +259,7 @@ class AktivitaTymService
         }
 
         // Pokud tým není na žádném turnaji, vrátíme true
-        if (!$turnaj) {
+        if (! $turnaj) {
             return true;
         }
 
@@ -276,7 +276,7 @@ class AktivitaTymService
         );
 
         // Zkontrolujeme, že tým má aktivitu v každém kole
-        for ($kolo = 1; $kolo <= $maxKolo; $kolo++) {
+        for ($kolo = 1; $kolo <= $maxKolo; ++$kolo) {
             if (! in_array($kolo, $teamKola, true)) {
                 return false;
             }
@@ -288,20 +288,18 @@ class AktivitaTymService
     /**
      * @return int[]
      */
-    public function rozpracovaneTymyIds(?int $casNaPripraveniMinut = null): array
+    public function rozpracovaneTymyIds(int $casNaPripraveniMinut): array
     {
-        $minut = $casNaPripraveniMinut ?? self::CAS_NA_PRIPRAVENI_TYMU_MINUT;
-
         return array_map(
             fn (Team $team) => (int) $team->getId(),
-            $this->teamRepository->findRozpracovane($minut),
+            $this->teamRepository->findRozpracovane($casNaPripraveniMinut),
         );
     }
 
-    public function smazRozpracovaneTymy(?int $casNaPripraveniMinut = null): int
+    public function smazRozpracovaneTymy(int $casNaPripraveniMinut): int
     {
         $rozpracovane = $this->teamRepository->findRozpracovane(
-            $casNaPripraveniMinut ?? self::CAS_NA_PRIPRAVENI_TYMU_MINUT,
+            $casNaPripraveniMinut,
         );
 
         if (empty($rozpracovane)) {
@@ -313,6 +311,7 @@ class AktivitaTymService
         }
 
         $this->em->flush();
+
         return count($rozpracovane);
     }
 
@@ -374,10 +373,11 @@ class AktivitaTymService
             throw new \Chyba('Tým nenalezen');
         }
 
-        $idAktivity = $team->getAktivity()->first()?->getId();
-        if (! $idAktivity) {
+        $prvniAktivita = $team->getAktivity()->first();
+        if (! $prvniAktivita) {
             throw new \Chyba('Tým není přiřazen k žádné aktivitě');
         }
+        $idAktivity = $prvniAktivita->getId();
 
         $existujiciKody = array_map(
             fn (Team $t) => $t->getKod(),
@@ -447,16 +447,6 @@ class AktivitaTymService
         return $team ? (int) $team->getKapitan()->getId() : null;
     }
 
-    private function najdiTeamPodleKodu(int $idAktivity, int $kodTymu): Team
-    {
-        $team = $this->teamRepository->findByKodNaAktivite($idAktivity, $kodTymu);
-        if (! $team) {
-            throw new \Chyba('Tým s kódem ' . $kodTymu . ' na této aktivitě neexistuje');
-        }
-
-        return $team;
-    }
-
     private function zkontrolujZeNeniVJinemTymu(int $idUzivatele, int $idAktivity): void
     {
         $existing = $this->teamMemberRegistrationRepository->findByUzivatelAndAktivita($idUzivatele, $idAktivity);
@@ -471,7 +461,6 @@ class AktivitaTymService
 
         return $team?->getZalozen() !== null ? $team->getZalozen()->getTimestamp() * 1000 : null;
     }
-
 
     public function casExpiraceMs(int $idTymu): ?int
     {
@@ -523,7 +512,7 @@ class AktivitaTymService
         $this->em->flush();
     }
 
-    public function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity): Team
+    public function vytvorNovyTym(int $idUzivatele, int $idAktivity, bool $ignorovatLimity, int $hajeniTeamuHodin): Team
     {
         $kapitan = $this->userRepository->find($idUzivatele)
             ?? throw new \Chyba('Uživatel nenalezen');
@@ -532,7 +521,7 @@ class AktivitaTymService
 
         $this->zkontrolujZeNeniVJinemTymu($idUzivatele, $idAktivity);
 
-        if (!$ignorovatLimity) {
+        if (! $ignorovatLimity) {
             $this->zkontrolujMuzeZalozitTym($idAktivity);
         }
 
@@ -546,7 +535,7 @@ class AktivitaTymService
 
         // Josh Radnor
         $ted = new \DateTime();
-        $expiruje = (clone $ted)->modify('+' . self::HAJENI_TEAMU_HODIN . ' hours');
+        $expiruje = (clone $ted)->modify('+' . $hajeniTeamuHodin . ' hours');
 
         $team = new Team();
         $team->setKod($kod);

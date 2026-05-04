@@ -4,12 +4,17 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cache\DataSourcesCollector;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\Lokace;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 
 /**
  * @var Uzivatel|null $u
+ * @var Uzivatel|null $uPracovni
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
+
+$operator = $u;
+$ucastnik = $uPracovni ?? $u;
 
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
     return;
@@ -34,7 +39,7 @@ $aktivity = Aktivita::zFiltru(
 $aktivityUzivatelData = [];
 $aktivitySkryteData = [];
 
-if ($u) {
+if ($ucastnik) {
     Aktivita::stavPrihlaseniDSC($dataSourcesCollector);
     Aktivita::soucinitelCenyAktivityDSC($dataSourcesCollector);
 
@@ -49,22 +54,25 @@ if ($u) {
         // Všechna pole se posílají vždy — frontend typuje ApiAktivitaUživatel
         // jako fully-required (nullable tam, kde chybějící hodnota má
         // sémantický význam).
-        $jeOrganizator = $aktivita->organizuje($u);
-        $hlavniLokace  = $jeOrganizator
-            ? $aktivita->hlavniLokace()
-            : null;
+        $vedeAktivitu = $aktivita->organizuje($ucastnik);
+        $seznamLokaci  = $operator->jeOrganizator() || $vedeAktivitu
+            ? array_map(function (Lokace $l) { return $l->apiLokace(); }, $aktivita->seznamLokaci())
+            : [];
+
+        $interni = !$aktivita->viditelnaPro(null);
 
         $aktivityUzivatelData[] = [
             'id'             => $aktivita->id(),
             'stavPrihlaseni' => StavPrihlaseni::frontendKod(
-                $aktivita->stavPrihlaseni($u, $dataSourcesCollector),
+                $aktivita->stavPrihlaseni($ucastnik, $dataSourcesCollector),
             ),
             // slevaNasobic: 0 = 100% sleva, 1 = bez slevy. NEsmí být stripnuto.
-            'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($u, $dataSourcesCollector),
+            'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($ucastnik, $dataSourcesCollector),
             // mistnost je orgovská vlastnost — null pro neorgany nebo pokud
             // aktivita nemá nastavenou hlavní lokaci.
-            'mistnost'       => $hlavniLokace !== null ? (string) $hlavniLokace : null,
-            'vedu'           => $jeOrganizator,
+            'mistnosti'       => !empty($seznamLokaci) ? $seznamLokaci : null,
+            'vedu'            => $vedeAktivitu,
+            'interni'         => $interni,
         ];
 
         // Hidden activities visible only to this user (not publicly visible).
@@ -72,7 +80,7 @@ if ($u) {
         // frontend typuje aktivitySkryte jako ApiAktivitaNepřihlášen[] a slučuje
         // je se statickými soubory. Proto používáme sdílený helper, aby se obě
         // cesty nemohly rozejít.
-        if (!$aktivita->viditelnaPro(null)) {
+        if ($interni) {
             Aktivita::organizatoriDSC($dataSourcesCollector);
             $aktivitySkryteData[] = ProgramStaticFileGenerator::aktivitaDoPole($aktivita, $dataSourcesCollector);
         }

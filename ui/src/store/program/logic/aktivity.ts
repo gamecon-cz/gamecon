@@ -41,6 +41,7 @@ export type FiltrAktivit = Partial<{
   filtrTagy: number[],
   filtrStavAktivit: AktivitaStav[],
   filtrText: string,
+  filtrInterni: boolean,
 }>;
 
 export const aktivitaStatusZAktivity = (
@@ -135,7 +136,7 @@ const zaindexujFullText = (aktivita: Aktivita) => {
 
 export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníTagů: MapováníTagů) => {
   const {
-    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrTagyId, ročník, výběr, filtrStavAktivit, filtrText
+    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrTagyId, ročník, výběr, filtrStavAktivit, filtrText, filtrInterni
   } = filtr;
 
   const textovéFiltry: string[] = [];
@@ -213,6 +214,11 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
   if (filtrPřihlašovatelné)
     aktivityFiltrované = aktivityFiltrované.filter(
       (aktivita) => aktivita.prihlasovatelna && !aktivita.probehnuta
+    );
+
+  if (!filtrInterni)
+    aktivityFiltrované = aktivityFiltrované.filter(
+      (aktivita) => !aktivita.interni
     );
 
   // TODO: filtrovat podle všech podmínek oddělených | ne jen podle první

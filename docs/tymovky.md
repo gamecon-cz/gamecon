@@ -89,11 +89,16 @@
 # TODO:
 
 PRIO
-  - [ ] rebase
-  - [ ] Šéf infa může tým odemknout přes admi  prvotně jen když je vybraný uživatel v tom týmu
-  - [ ] Šéf infa může tým odemknout přes admi Kontrola oprávnění (šéf infa)
-  - [ ] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
+  - [X] rebase
+  - [X] projít analýzy
+  - [X] přidat odemknout do týmového ui na adminu
+  - [X] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
   - [ ] UI zobrazuje kapacitu per kolo
+  - [ ] termíny týmu
+  - [ ] název týmu
+  - [X] checkbox na smazání do amdinu
+  - [ ] zrušit rekurzi pro Aktivita::prihlas ?
+    - [ ] dělat vše v transakci
 
 ## soupist zákládních testovacích scénářů, popis fungování nového systému:
 
@@ -138,7 +143,7 @@ Turnajové
     - zamknutý tým nejde už nijak editovat
 - editace týmu z adminu
   - po výběru uživatele z týmu by měl v adminu být tým editovatelný jako by byl ten uživatel přihlášený
-
+- kontrola jaké jdou vidět aktivity v programu v různých podmínkách
 
 
 ## Základní přihlašovací flow
@@ -330,6 +335,10 @@ Turnajové
   - [ ] Souvisí s refaktoringem tisku programu (`Program.php` TODO)
 - [ ] možnost otevřít program i bez vybraného uživatele
 - [ ] pokud je otevřený
+- [ ] zobrazení podle místností
+  - [ ] pokud je ve více místnostech zobrazí se vícekrát
+  - [ ] zobrazení pro jednotlivé dny nebo všechny
+- [ ] zbytek tlačítek pro logiku
 
 ## Technický dluh / refaktoring
 - [X] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)
@@ -346,7 +355,6 @@ Turnajové
 - [ ] Přihlašovací flow přes nový způsob pro týmové aktivity (`Aktivita.php:3131`)
   - [ ] Nahradit hardcoded HTML zámku za nový přihlašovací widget
   - [ ] Sjednotit flow přihlášení pro týmové i netýmové aktivity
-
 
 ## Maily
 - [ ] Mailové šablony pro týmové události

@@ -320,6 +320,16 @@
                 max: <input type="text" style="width:25px" name="{fields}[team_max]" value="{team_max}">
                 týmů¹: <input type="text" style="width:25px" name="{fields}[team_kapacita]" value="{team_kapacita}">
                 <span class="hinted"><div class="hint">Minimální a maximální velikost teamu (družiny) + maximální počet týmů na aktivitě.<br/>Čísla bez omezení zanechejte prázdná.</div></span>
+                <br>
+                <input type="checkbox" name="{fields}[tym_smazat_po_expiraci]" value="1" id="tymSmazatPoExpiraci">
+                <script>
+                    if ('{tym_smazat_po_expiraci}' === '1') {
+                        document.getElementById('tymSmazatPoExpiraci').checked = true
+                    }
+                </script>
+                <div class="hinted" style="display:inline-block;margin-left:4px">
+                    <label for="tymSmazatPoExpiraci" class="hinted">smazat tým po expiraci<span class="hint">Pokud kapitán tým nedokompletuje včas, tým se smaže (jinak se zveřejní)</span></label>
+                </div>
             </div>
             <script>
                 // Inicializace viditelnosti kapacity (musí být POTÉ, co jsou divy v DOM)
