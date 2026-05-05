@@ -147,6 +147,8 @@ class ActivitiesExporter
                 $this->exportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU => $aktivita->tymova()
                     ? $aktivita->tymMaxKapacita() ?? '' // Maximální kapacita týmu
                     : '',
+                // todo(tym): tady se má asi řešit export turnajů taky
+                /*
                 $this->exportAktivitSloupce::NASLEDUJICI_SEMIFINALE => implode(', ', array_map( // Následující (semi)finále
                     static function (Aktivita $aktivita) {
                         // can not allow comma "," in a name as that is used on import as a values delimiter
@@ -154,6 +156,7 @@ class ActivitiesExporter
                     },
                     $aktivita->deti()
                 )),
+                */
                 $this->exportAktivitSloupce::CENA => $aktivita->cenaZaklad(), // Cena
                 $this->exportAktivitSloupce::BEZ_SLEV => $aktivita->bezSlevy() // Bez slev
                     ? 'ano'

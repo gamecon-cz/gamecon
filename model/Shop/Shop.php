@@ -1116,7 +1116,7 @@ SQL
 
         );
         foreach ($prihlaseneLarpy as $prihlasenyLarp) {
-            $prihlasenyLarp->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni);
+            $prihlasenyLarp->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni, AKtivita::ODEMKNI_TYM_ODHLASENIM);
         }
 
         return count($prihlaseneLarpy);
@@ -1135,7 +1135,7 @@ SQL
             ],
         );
         foreach ($prihlasenaRpg as $prihlaseneRpg) {
-            $prihlaseneRpg->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni);
+            $prihlaseneRpg->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni, AKtivita::ODEMKNI_TYM_ODHLASENIM);
         }
 
         return count($prihlasenaRpg);
@@ -1153,7 +1153,7 @@ SQL
             ],
         );
         foreach ($prihlaseneAktivity as $prihlasenaAktivita) {
-            $prihlasenaAktivita->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni, 0);
+            $prihlasenaAktivita->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni, AKtivita::ODEMKNI_TYM_ODHLASENIM);
         }
 
         return count($prihlaseneAktivity);

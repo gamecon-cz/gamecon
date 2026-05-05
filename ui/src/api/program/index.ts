@@ -53,16 +53,22 @@ export type ApiAktivitaNepřihlášen = {
   casText: string,
   cas: OdDo,
   linie: string,
-  vBudoucnu: boolean,
-  vdalsiVlne: boolean,
-  probehnuta: boolean,
-  jeBrigadnicka: boolean,
-  /** idčka dětských aktivit (navazující kola); prázdné pole = bez dětí */
-  dite: number[],
-  tymova: boolean,
+  turnajId?: number;
+  turnajKolo?: number;
+  vBudoucnu?: boolean,
+  vdalsiVlne?: boolean,
+  probehnuta?: boolean,
+  jeBrigadnicka?: boolean,
+  tymova?: boolean,
   /** přihlašovatelná na základě stavu (ne kapacity) */
   prihlasovatelna: boolean,
 }
+
+export type ApiLokace = {
+  id: number,
+  poradi: number,
+  nazev: string,
+};
 
 /**
  * Všechna pole jsou povinná. Backend MUSÍ vždy poslat všechna pole.
@@ -71,18 +77,27 @@ export type ApiAktivitaNepřihlášen = {
  */
 export type ApiAktivitaUživatel = {
   id: number,
-  /** null = uživatel není na aktivitě nijak evidován (ani přihlášen ani sleduje) */
-  stavPrihlaseni: StavPřihlášení | null,
-  /** 0 = 100% sleva (neplatí), 1 = bez slevy */
-  slevaNasobic: number,
-  /** orgovská vlastnost — null pro neorgany aktivity nebo aktivity bez hlavní lokace */
-  mistnost: string | null,
-  vedu: boolean,
-  /** null = aktivita není zamčená */
-  zamcenaDo: number | null,
-  zamcenaMnou: boolean,
-  /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusí aby tam bylo */
+  /** V jakém stavu je pokud je přihlášen */
+  stavPrihlaseni?: StavPřihlášení,
+  /** uživatelská vlastnost */
+  slevaNasobic?: number,
+  // nahradnik?: boolean,
+  /** orgovská vlastnost */
+  // todo: tady lepší asi posílat jen id a posílat místnosti zvlášť pro případ že chceme zobrazit prázdné řádky místnostem
+  mistnosti?: ApiLokace[],
+  // todo: tohle je taky možný stav přihlášení (odebrat tady a přidat do stavPrihlaseni)
+  vedu?: boolean,
+  // todo(tym): členové týmu (pak není potřeba tymPocetClenu)
+  // todo(tym): kapitán týmu
+  // todo(tym): název týmu
+  // todo(tym): navazujici aktivity ať se může vypsat v modalu
+  /** počet členů týmu, ve kterém je uživatel přihlášen */
+  tymPocetClenu?: number,
+  /** limit členů týmu */
+  tymLimit?: number | null,
+  /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusím aby tam bylo */
   __TS_STRUKTURALNI_KONTROLA__: true,
+  interni?: boolean,
 }
 
 export type ApiAktivita = ApiAktivitaNepřihlášen & ApiAktivitaUživatel;
@@ -208,9 +223,90 @@ type ApiAktivitaAkceResponse = {
   aktivitaUzivatel?: ApiAktivitaUživatel,
 }
 
-export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce): Promise<ApiAktivitaAkceResponse> => {
+export const fetchAktivitaAkce = async (aktivitaId: number, typ: ApiAktivitaAkce, idTýmu?: number, kódTýmu?: number): Promise<ApiAktivitaAkceResponse> => {
   const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaAkce`;
   const formdata = new FormData();
   formdata.set(typ, aktivitaId.toString(10));
+  if (idTýmu)
+    formdata.set("tymId", idTýmu.toString(10))
+  else if (kódTýmu)
+    formdata.set("tymKod", kódTýmu.toString(10))
+  return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
+};
+
+export type ClenTymu = {
+  id: number,
+  jmeno: string,
+  jeKapitan: boolean,
+};
+
+export type ApiTymVSeznamu = {
+  id: number,
+  nazev: string | null,
+  pocetClenu: number,
+  limit: number | null | undefined,
+  verejny: boolean,
+};
+
+export type AktivitaTymFazeRozpraovni = "vyberKola" | "prihlaseniKapitana";
+export type ApiAktivitaTym = {
+  id: number,
+  idTurnajeNeboAktivity: number,
+  nazev?: string,
+  kod?: number,
+  verejny?: boolean,
+  idKapitana?: number,
+  casExpiraceMs?: number,
+  limitTymu?: number | null,
+  zamceny?: boolean,
+  smazatPoExpiraci?: boolean,
+  minKapacita?: number | null,
+  maxKapacita?: number | null,
+  clenove?: ClenTymu[],
+  aktivityTymuId?: number[],
+  casSmazaniRozpracovanyMs?: number,
+  rozpracovanyFaze?: AktivitaTymFazeRozpraovni,
+}
+
+export type AktivitaTymResponse = {
+  tym?: ApiAktivitaTym;
+  vsechnyTymy?: ApiTymVSeznamu[],
+  idTurnajeNeboAktivity: number,
+};
+
+export const fetchAktivitaTým = async (aktivitaId: number, uživatelId = 0): Promise<AktivitaTymResponse> => {
+  const urlUživParam = uživatelId ? `&uzivatelId=${uživatelId}` : "";
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym?aktivitaId=${aktivitaId}${urlUživParam}`;
+  return fetch(url, {method: "GET"}).then(async x => x.json());
+};
+
+export type AkceTymu =
+  | {typ: "zalozPrazdnyTym", aktivitaId: number}
+  | {typ: "nastavVerejnost", idTymu: number, verejny: boolean}
+  | {typ: "pregenerujKod", idTymu: number}
+  | {typ: "odhlasClena", idTymu: number, aktivitaId: number, idClena: number}
+  | {typ: "nastavLimit", idTymu: number, limit: number}
+  | {typ: "predejKapitana", idTymu: number, idNovehoKapitana: number}
+  | {typ: "zamkni", idTymu: number}
+  | {typ: "odemkni", idTymu: number}
+  | {typ: "smazTym", idTymu: number}
+  | {typ: "potvrdVyberAktivit", idTymu: number, aktivitaId: number, idVybranychAktivit: number[]}
+  | {typ: "prihlasKapitana", idTymu: number, aktivitaId: number}
+  ;
+
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+export type AkceTymuBezKontextu = DistributiveOmit<AkceTymu, "idTymu" | "aktivitaId">;
+
+export const fetchAktivitaTymAkce = async (akce: AkceTymu): Promise<{úspěch: boolean, novyKod?: number, chyba?: {hláška: string}}> => {
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivitaTym`;
+  const formdata = new FormData();
+  formdata.set("akce", akce.typ);
+  if ("idTymu" in akce) formdata.set("idTymu", akce.idTymu.toString(10));
+  if ("aktivitaId" in akce) formdata.set("aktivitaId", akce.aktivitaId.toString(10));
+  if (akce.typ === "nastavVerejnost") formdata.set("verejny", akce.verejny ? "1" : "0");
+  if (akce.typ === "odhlasClena") formdata.set("idClena", akce.idClena.toString(10));
+  if (akce.typ === "nastavLimit") formdata.set("limit", akce.limit.toString(10));
+  if (akce.typ === "predejKapitana") formdata.set("idNovehoKapitana", akce.idNovehoKapitana.toString(10));
+  if (akce.typ === "potvrdVyberAktivit") akce.idVybranychAktivit.forEach(id => formdata.append("idVybranychAktivit[]", id.toString(10)));
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());
 };

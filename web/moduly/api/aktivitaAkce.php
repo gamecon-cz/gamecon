@@ -1,6 +1,7 @@
 <?php
 
 /** @var Uzivatel $u */
+/** @var Uzivatel|null $uPracovni */
 
 /** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
@@ -8,8 +9,6 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 
-$u = Uzivatel::zSession();
-$this->bezStranky(true);
 $response = [];
 
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
@@ -20,6 +19,10 @@ if (!$u) {
     return;
 }
 
+if(!isset($uPracovni)) {
+    $uPracovni = $u;
+}
+
 // Determine which activity is being acted on
 $aktivitaId = post('prihlasit')
     ?: post('odhlasit')
@@ -28,7 +31,7 @@ $aktivitaId = post('prihlasit')
                 ?: null;
 
 try {
-    Aktivita::prihlasovatkoZpracujBezBack($u, $u);
+    Aktivita::prihlasovatkoZpracujBezBack($uPracovni, $u);
     $response["úspěch"] = true;
 } catch (Chyba $chyba) {
     $response["úspěch"] = false;
@@ -48,7 +51,6 @@ if ($aktivitaId) {
         // Stejný kontrakt jako aktivityUzivatel.php: všechna pole posílaná
         // vždy, nullable tam, kde "chybějící" má sémantický význam.
         $jeOrganizator = $aktivita->organizuje($u);
-        $zamcenaDo     = $aktivita->tymZamcenyDo()?->getTimestamp();
         $hlavniLokace  = $jeOrganizator
             ? $aktivita->hlavniLokace()
             : null;
@@ -59,8 +61,6 @@ if ($aktivitaId) {
             'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($u),
             'mistnost'       => $hlavniLokace !== null ? (string) $hlavniLokace : null,
             'vedu'           => $jeOrganizator,
-            'zamcenaDo'      => $zamcenaDo !== null ? $zamcenaDo * 1000 : null,
-            'zamcenaMnou'    => $aktivita->zamcenoUzivatelem($u),
         ];
     }
 }

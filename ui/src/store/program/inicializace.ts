@@ -1,7 +1,7 @@
 import { useProgramStore } from ".";
 import { GAMECON_KONSTANTY } from "../../env";
+import { registrujDotahováníNastaveníTýmu } from "../../pages/program/components/vstupy/NastaveniTymuModal";
 import { distinct } from "../../utils";
-import { LOCAL_STORAGE_KLÍČE } from "../localStorageKlíče";
 import { urlStavProgramTabulkaMožnostíDnyMůj } from "./logic/url";
 import { načtiRok } from "./slices/programDataSlice";
 import { nastavStateZUrl, nastavUrlZState } from "./slices/urlSlice";
@@ -29,7 +29,7 @@ export const inicializujProgramStore = () => {
     nastavStateZUrl();
   });
 
-  useProgramStore.subscribe(s => !!s.přihlášenýUživatel.data.prihlasen, (přihlášen) => {
+  useProgramStore.subscribe(s => !!s.přihlášenýUživatel?.ucastnik, (přihlášen) => {
     useProgramStore.setState(s => {
       s.urlStavMožnosti.dny = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen });
     });
@@ -45,7 +45,8 @@ export const inicializujProgramStore = () => {
   const přihlášenýUživatelPřednačteno = window?.gameconPřednačtení?.přihlášenýUživatel;
   if (přihlášenýUživatelPřednačteno) {
     useProgramStore.setState(s => {
-      s.přihlášenýUživatel.data = přihlášenýUživatelPřednačteno;
+      s.přihlášenýUživatel.ucastnik = přihlášenýUživatelPřednačteno.ucastnik;
+      s.přihlášenýUživatel.operator = přihlášenýUživatelPřednačteno.operator;
     });
   }
 
@@ -107,4 +108,6 @@ export const inicializujProgramStore = () => {
   ) {
     nastavFiltryOtevřené(true);
   }
+
+  registrujDotahováníNastaveníTýmu();
 };

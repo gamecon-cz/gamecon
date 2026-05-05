@@ -178,6 +178,21 @@ class DateTimeGamecon extends DateTimeCz
         return static::konecGameconu($systemoveNastaveni->rocnik());
     }
 
+    /**
+     * @return DateTimeGamecon[]
+     */
+    public static function dnyProgramu(SystemoveNastaveni $systemoveNastaveni): array
+    {
+        $dny             = [];
+        $zacatekProgramu = DateTimeGamecon::zacatekProgramu($systemoveNastaveni->rocnik());
+        $konecProgamu    = DateTimeGamecon::konecProgramu($systemoveNastaveni);
+        for ($den = $zacatekProgramu; $den->pred($konecProgamu); $den->plusDen()) {
+            $dny[] = clone $den;
+        }
+
+        return $dny;
+    }
+
     public static function prihlasovaniUcastnikuOd(int $rocnik = ROCNIK): static
     {
         return $rocnik === (int)ROCNIK && defined('REG_GC_OD')

@@ -236,11 +236,12 @@ class ImportValuesSanitizer
         $stepsResults[]                                       = $maximalTeamCapacityResult;
         unset($maximalTeamCapacityResult);
 
+        // todo(tym): tady se řeší asi turnaje
         $childResult = $this->getValidatedChild($inputValues, $originalActivity, $parentActivity);
         if ($childResult->isError()) {
             return ImportStepResult::error($childResult->getError());
         }
-        $sanitizedValues[ActivitiesImportSqlColumn::DITE] = $childResult->getSuccess();
+        // $sanitizedValues[ActivitiesImportSqlColumn::DITE] = $childResult->getSuccess();
         $stepsResults[]                                   = $childResult;
         unset($priceResult);
 
@@ -887,11 +888,12 @@ HTML;
         ?Aktivita $originalActivity,
         ?Aktivita $parentActivity,
     ): ImportStepResult {
+        // todo(tym): opravit import tady se resi deti takže asi turnaj
         $childrenValue = $activityValues[ExportAktivitSloupce::NASLEDUJICI_SEMIFINALE] ?? null;
         if ((string)$childrenValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
             if ($sourceActivity) {
-                return ImportStepResult::success($sourceActivity->detiDbString());
+                // return ImportStepResult::success($sourceActivity->detiDbString());
             }
 
             return ImportStepResult::success(null);

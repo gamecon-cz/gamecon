@@ -70,11 +70,6 @@ class ActivitySqlStructure
     public const nedava_bonus = 'nedava_bonus';
 
     /**
-     * @see Activity::$dite
-     */
-    public const dite = 'dite';
-
-    /**
      * @see Activity::$rok
      */
     public const rok = 'rok';
@@ -100,16 +95,6 @@ class ActivitySqlStructure
     public const team_kapacita = 'team_kapacita';
 
     /**
-     * @see Activity::$teamNazev
-     */
-    public const team_nazev = 'team_nazev';
-
-    /**
-     * @see Activity::$forTeamLockedAt
-     */
-    public const zamcel_cas = 'zamcel_cas';
-
-    /**
      * @see Activity::$shortDescription
      */
     public const popis_kratky = 'popis_kratky';
@@ -118,11 +103,6 @@ class ActivitySqlStructure
      * @see Activity::$vybaveni
      */
     public const vybaveni = 'vybaveni';
-
-    /**
-     * @see Activity::$teamLimit
-     */
-    public const team_limit = 'team_limit';
 
     /**
      * @see Activity::$probehlaKorekce
@@ -148,11 +128,6 @@ class ActivitySqlStructure
      * @see Activity::$status
      */
     public const stav = 'stav';
-
-    /**
-     * @see Activity::$forTeamLockedBy
-     */
-    public const zamcel = 'zamcel';
 
     /**
      * @see Activity::$description

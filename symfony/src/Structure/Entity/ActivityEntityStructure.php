@@ -65,11 +65,6 @@ class ActivityEntityStructure
     public const nedavaBonus = 'nedavaBonus';
 
     /**
-     * @see Activity::$dite
-     */
-    public const dite = 'dite';
-
-    /**
      * @see Activity::$rok
      */
     public const rok = 'rok';
@@ -98,11 +93,6 @@ class ActivityEntityStructure
      * @see Activity::$teamNazev
      */
     public const teamNazev = 'teamNazev';
-
-    /**
-     * @see Activity::$forTeamLockedAt
-     */
-    public const forTeamLockedAt = 'forTeamLockedAt';
 
     /**
      * @see Activity::$description
@@ -148,11 +138,6 @@ class ActivityEntityStructure
      * @see Activity::$status
      */
     public const status = 'status';
-
-    /**
-     * @see Activity::$forTeamLockedBy
-     */
-    public const forTeamLockedBy = 'forTeamLockedBy';
 
     /**
      * @see Activity::$activityTags

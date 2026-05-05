@@ -2,7 +2,7 @@ import produce from "immer";
 import { FunctionComponent } from "preact";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
-import { useAktivita, useUrlStav, useUživatelPohlaví } from "../../../../store/program/selektory";
+import { useAktivita, useUrlStav, useÚčastníkPohlaví } from "../../../../store/program/selektory";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
@@ -40,6 +40,11 @@ export const tabulkaBuňkaAktivitaTřídy = (
       classes.push("plno");
     }
   }
+  if (!classes.length) {
+    classes.push("otevrene")
+  }
+  classes.push("aktivita")
+
   return classes.join(" ");
 };
 
@@ -55,7 +60,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   const { aktivitaId, zobrazLinii, kompaktní } = props;
 
   const aktivita = useAktivita(aktivitaId);
-  const pohlavi = useUživatelPohlaví();
+  const pohlavi = useÚčastníkPohlaví();
   const urlStav = useUrlStav();
 
   const onAktivitaOdkazKlik = (
@@ -88,12 +93,14 @@ export const ProgramTabulkaBuňka: FunctionComponent<
           </a>
           <Obsazenost
             obsazenost={aktivita.obsazenost}
-            prihlasovatelna={aktivita.prihlasovatelna}
-            probehnuta={aktivita.probehnuta}
+            prihlasovatelna={aktivita.prihlasovatelna ?? false}
+            probehnuta={aktivita.probehnuta ?? false}
+            tymPocetClenu={aktivita.tymPocetClenu}
+            tymLimit={aktivita.tymLimit}
           />
           <Přihlašovátko akitivitaId={aktivita.id} />
-          {aktivita.mistnost !== null && (
-            <div class="program_lokace">{aktivita.mistnost}</div>
+          {aktivita.mistnosti?.length && aktivita.vedu && (
+            <div class="program_lokace">{aktivita.mistnosti[0].nazev}</div>
           )}
           {zobrazLinii ? (
             <span class="program_osobniTyp">{aktivita.linie}</span>

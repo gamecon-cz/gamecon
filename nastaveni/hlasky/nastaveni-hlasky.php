@@ -23,7 +23,6 @@ return [
     'regOkNyniPrihlaska'   => 'Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.',
     'upravaUzivatele'      => 'Změny registračních údajů uloženy.',
     'uzPrihlasen'          => 'Na GameCon už máš platnou přihlášku, zde ji můžeš upravit.',
-    'zamcena'              => 'Aktivitu už někdo zabral',
     'nejsiBrigadnik'       => 'Nejsi brigádník',
     'neniBrigadnik'        => 'Účastník není brigádník',
     'neplatnyEmail'        => 'E-mail není platný, ověřte ho prosím',

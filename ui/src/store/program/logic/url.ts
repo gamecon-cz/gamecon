@@ -10,17 +10,26 @@ export type ProgramTabulkaVýběr =
     typ: "den";
     datum: Date;
   }
+  | {
+    typ: "všechny_dny";
+  }
   ;
 
 export type ProgramURLStav = {
   ročník: number,
   výběr: ProgramTabulkaVýběr,
-  filtrPřihlašovatelné: boolean,
+  filtrPřihlašovatelné?: boolean,
   aktivitaNáhledId?: number,
   filtrLinie?: string[],
   filtrTagy?: number[],
   filtrStavAktivit?: AktivitaStav[],
   filtrText?: string,
+  /** ADMIN */
+  podleMístnosti?: boolean,
+  bezÚčastníka?: boolean,
+  zobrazInterni?: boolean,
+  zobrazPrázdné?: boolean,
+  autoRefresh?: boolean,
 }
 
 export const URL_STATE_VÝCHOZÍ_MOŽNOST = Object.freeze({
@@ -31,7 +40,6 @@ export const URL_STATE_VÝCHOZÍ_MOŽNOST = Object.freeze({
 export const URL_STATE_VÝCHOZÍ_STAV: ProgramURLStav = Object.freeze({
   ročník: GAMECON_KONSTANTY.ROCNIK,
   výběr: URL_STATE_VÝCHOZÍ_MOŽNOST,
-  filtrPřihlašovatelné: false,
 });
 
 const NÁHLED_QUERY_KEY = "idAktivityNahled";
@@ -41,6 +49,11 @@ const PŘIHLAŠOVATELNÉ_QUERY_KEY = "pouzePrihlasovatelne";
 const ROCNIK_QUERY_KEY = "rocnik";
 const STAVY_QUERY_KEY = "stav";
 const TEXT_QUERY_KEY = "text";
+const PODLE_MÍSTNOSTI_QUERY_KEY = "podleMistnosti";
+const BEZ_ÚČASTNÍKA_QUERY_KEY = "bezUcastnika";
+const ZOBRAZ_INTERNÍ_QUERY_KEY = "interni";
+const ZOBRAZ_PRÁZDNÉ_QUERY_KEY = "zobrazPrazdne";
+const AUTO_REFRESH_QUERY_KEY = "autoRefresh";
 
 const párováníQueryDoStavu: {
   query: string,
@@ -52,6 +65,11 @@ const párováníQueryDoStavu: {
   { stavString: "filtrTagy", query: TAGY_QUERY_KEY },
   { stavString: "filtrStavAktivit", query: STAVY_QUERY_KEY },
   { stavString: "filtrText", query: TEXT_QUERY_KEY },
+  { stavString: "podleMístnosti", query: PODLE_MÍSTNOSTI_QUERY_KEY },
+  { stavString: "bezÚčastníka", query: BEZ_ÚČASTNÍKA_QUERY_KEY },
+  { stavString: "zobrazInterni", query: ZOBRAZ_INTERNÍ_QUERY_KEY },
+  { stavString: "zobrazPrázdné", query: ZOBRAZ_PRÁZDNÉ_QUERY_KEY },
+  { stavString: "autoRefresh", query: AUTO_REFRESH_QUERY_KEY },
 ];
 
 const parsujUrlDoStavu = (
@@ -86,7 +104,7 @@ export const parsujUrl = (url: string) => {
   const den = urlObj.pathname.slice(basePath.length);
 
   // TODO: co tady dělá přihlášen: true ?? nemá být náhodou z předaných konstant ?
-  const výběr = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true })
+  const výběr = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true, jeAdmin: GAMECON_KONSTANTY.JE_ADMIN })
     .find(x => urlZTabulkaVýběr(x) === den)
     ?? URL_STATE_VÝCHOZÍ_MOŽNOST;
 
@@ -94,7 +112,6 @@ export const parsujUrl = (url: string) => {
   const urlStav: ProgramURLStav = {
     výběr,
     ročník: GAMECON_KONSTANTY.ROCNIK,
-    filtrPřihlašovatelné: false,
   };
 
   for (const { query, stavString } of párováníQueryDoStavu.concat(
@@ -112,7 +129,7 @@ export const parsujUrl = (url: string) => {
 /** vytvoří url z aktuálního url-stavu nebo z předaného stavu */
 export const generujUrl = (urlStav: ProgramURLStav): string | undefined => {
   const výběr =
-    urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true }).find(x => porovnejTabulkaVýběr(x, urlStav.výběr));
+    urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true, jeAdmin: GAMECON_KONSTANTY.JE_ADMIN }).find(x => porovnejTabulkaVýběr(x, urlStav.výběr));
 
   if (!výběr) return undefined;
 
@@ -135,17 +152,22 @@ export const generujUrl = (urlStav: ProgramURLStav): string | undefined => {
   return url;
 };
 
-export const urlStavProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?: boolean, ročník?: number }): ProgramTabulkaVýběr[] =>
-  GAMECON_KONSTANTY.PROGRAM_DNY
-    .map((den) => ({
-      typ: "den",
-      datum: new Date(den),
-    } as ProgramTabulkaVýběr))
-    .concat(...((props?.přihlášen ?? false) ? [{ typ: "můj" } as ProgramTabulkaVýběr] : []));
+export const urlStavProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?: boolean, ročník?: number, jeAdmin?: boolean }): ProgramTabulkaVýběr[] =>
+  ((props?.jeAdmin ?? false) ? [{ typ: "všechny_dny" } as ProgramTabulkaVýběr] : [])
+    .concat(
+      GAMECON_KONSTANTY.PROGRAM_DNY
+        .map((den) => ({
+          typ: "den",
+          datum: new Date(den),
+        } as ProgramTabulkaVýběr))
+    )
+    .concat((props?.přihlášen ?? false) ? [{ typ: "můj" } as ProgramTabulkaVýběr] : []);
 
 const urlZTabulkaVýběr = (výběr: ProgramTabulkaVýběr) =>
   výběr.typ === "můj"
     ? "muj"
+    : výběr.typ === "všechny_dny"
+    ? "vsechny-dny"
     : formátujDenVTýdnu(výběr.datum)
   ;
 

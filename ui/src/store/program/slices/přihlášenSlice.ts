@@ -1,15 +1,18 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { fetchPřihlášenýUživatel, PřihlášenýUživatel } from "../../../api/přihlášenýUživatel";
+import { fetchPřihlášenýUživatel, ApiUživatel } from "../../../api/přihlášenýUživatel";
 
 export type PřihlášenýUživatelSlice = {
   přihlášenýUživatel: {
-    data: PřihlášenýUživatel,
+    /** účastník kterého se data zobrazují */
+    ucastnik?: ApiUživatel,
+    operator?: ApiUživatel,
   }
 }
 
 export const createPřihlášenýUživatelSlice: ProgramStateCreator<PřihlášenýUživatelSlice> = (_set, _get) => ({
   přihlášenýUživatel: {
-    data: {},
+    ucastnik: undefined,
+    operator: undefined,
   },
 });
 
@@ -17,6 +20,7 @@ export const načtiPřihlášenýUživatel = async () => {
   const přihlášenýUživatel = await fetchPřihlášenýUživatel();
 
   useProgramStore.setState(s => {
-    s.přihlášenýUživatel.data = přihlášenýUživatel;
+    s.přihlášenýUživatel.ucastnik = přihlášenýUživatel.ucastnik;
+    s.přihlášenýUživatel.operator = přihlášenýUživatel.operator;
   }, undefined, "dotažení přihlášenýUživatel");
 };

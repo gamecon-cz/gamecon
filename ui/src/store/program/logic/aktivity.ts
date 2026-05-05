@@ -14,6 +14,9 @@ export type FiltrProgramTabulkaVýběr =
   | {
     typ: "den";
     datum: Date;
+  }
+  | {
+    typ: "všechny_dny";
   };
 
 export type MapováníTagů = {
@@ -38,6 +41,7 @@ export type FiltrAktivit = Partial<{
   filtrTagy: number[],
   filtrStavAktivit: AktivitaStav[],
   filtrText: string,
+  filtrInterni: boolean,
 }>;
 
 export const aktivitaStatusZAktivity = (
@@ -72,11 +76,28 @@ export const aktivitaStatusZAktivity = (
   return "volno";
 };
 
-export const denAktivity = (časAktivity: Date) => {
-  return (pražskéHodiny(časAktivity) + 1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
-    ? časAktivity
-    : new Date(časAktivity.getTime() - 24 * 60 * 60 * 1_000);
+export const denAktivity = (časAktivity: Date | number | Aktivita): Date => {
+  let časAktivityDate: Date;
+  if (časAktivity instanceof Date) {
+    časAktivityDate = časAktivity;
+  } else if (typeof časAktivity === "number") {
+    časAktivityDate = new Date(časAktivity);
+  } else {
+    časAktivityDate = new Date(časAktivity.cas.od);
+  }
+
+  return (pražskéHodiny(časAktivityDate) + 1) >= GAMECON_KONSTANTY.PROGRAM_ZACATEK
+    ? časAktivityDate
+    : new Date(časAktivityDate.getTime() - 24 * 60 * 60 * 1_000);
 };
+
+export const denČasAktivityText = (aktivita: Aktivita): string => {
+  const den = new Intl.DateTimeFormat('cs-CZ', { weekday: 'short' }).format(denAktivity(aktivita.cas.od));
+  const časOd = new Intl.DateTimeFormat('cs-CZ', { hour: '2-digit', minute: '2-digit' }).format(aktivita.cas.od);
+  const časDo = new Intl.DateTimeFormat('cs-CZ', { hour: '2-digit', minute: '2-digit' }).format(aktivita.cas.do);
+
+  return `${den} ${časOd}-${časDo}`;
+}
 
 const ziskejIdZTextovéhoFiltru = (text: string): number | undefined => {
   const idFiltrText = RegExp(/id=([0-9]*)/).exec(text)?.[1];
@@ -115,7 +136,7 @@ const zaindexujFullText = (aktivita: Aktivita) => {
 
 export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníTagů: MapováníTagů) => {
   const {
-    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrTagyId, ročník, výběr, filtrStavAktivit, filtrText
+    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrTagyId, ročník, výběr, filtrStavAktivit, filtrText, filtrInterni
   } = filtr;
 
   const textovéFiltry: string[] = [];
@@ -150,6 +171,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       .filter((aktivita) =>
         pražskýDenVTýdnu(denAktivity(new Date(aktivita.cas.od))) === pražskýDenVTýdnu(výběr.datum));
   }
+  // Pro "všechny_dny" se nefiltruje dle dne
 
   if (textovéFiltry?.some(x=>x==="*"))
     return aktivityFiltrované;
@@ -192,6 +214,11 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
   if (filtrPřihlašovatelné)
     aktivityFiltrované = aktivityFiltrované.filter(
       (aktivita) => aktivita.prihlasovatelna && !aktivita.probehnuta
+    );
+
+  if (!filtrInterni)
+    aktivityFiltrované = aktivityFiltrované.filter(
+      (aktivita) => !aktivita.interni || !aktivita.stavPrihlaseni
     );
 
   // TODO: filtrovat podle všech podmínek oddělených | ne jen podle první

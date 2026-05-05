@@ -151,7 +151,7 @@ class OnlinePrezenceHtml
                 getCurrentUrlWithQuery(['ajax' => 1, 'omnibox' => 1, 'idAktivity' => $aktivita->id()]),
             );
             $template->assign('minutNaPosledniChvili', $this->systemoveNastaveni->prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity());
-            $template->assign('kapacita', (int)$aktivita->neteamovaKapacita());
+            $template->assign('kapacita', (int)$aktivita->kapacita());
             $template->assign('idAktivity', $aktivita->id());
             $template->assign('urlAktivity', $aktivita->url());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');

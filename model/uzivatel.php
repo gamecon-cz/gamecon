@@ -482,7 +482,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 $this,
                 $odhlasujici,
                 $zdrojOdhlaseni,
-                Aktivita::NEPOSILAT_MAILY_SLEDUJICIM, /* nechceme posílat maily sledujícím, že se uvolnilo místo */
+                Aktivita::NEPOSILAT_MAILY_SLEDUJICIM | Aktivita::ODEMKNI_TYM_ODHLASENIM, /* nechceme posílat maily sledujícím, že se uvolnilo místo */
             );
         }
 
@@ -769,6 +769,22 @@ SQL,
         self::gcPrihlasenDSC($dataSourcesCollector);
 
         return $this->maRoli(Role::PRIHLASEN_NA_LETOSNI_GC);
+    }
+
+    public function zkontrolujGcPrihlasen(
+        bool $hlaskyVeTretiOsobe = false,
+        ?DataSourcesCollector $dataSourcesCollector = null) {
+        if (!$this->gcPrihlasen($dataSourcesCollector)) {
+            throw new \Chyba(
+                ($hlaskyVeTretiOsobe
+                    ? 'Uživatel ' . $this->jmenoVolitelnyNick() . ' '
+                    : ''
+                ) .
+                hlaska($hlaskyVeTretiOsobe
+                    ? 'neniPrihlasenNaGc'
+                    : 'nejsiPrihlasenNaGc'),
+            );
+        }
     }
 
     public static function gcPrihlasenDSC(?DataSourcesCollector $dataSourcesCollector)
@@ -1189,6 +1205,21 @@ SQL,
      *                       žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
      */
     public function maKoliziSJinouAktivitou(
+        Aktivita $aktivita,
+        ?Aktivita $ignorovanaAktivita = null,
+        bool $jenPritomen = false,
+    ): ?Aktivita {
+        if (!$aktivita->zacatek() || !$aktivita->konec()) {
+            return null;
+        }
+        return $this->maKoliziSJinouAktivitouVCase($aktivita->zacatek(), $aktivita->konec(), $ignorovanaAktivita, $jenPritomen);
+    }
+
+    /**
+     * @return Aktivita|null jestli se uživatel v daném čase neúčastní / neorganizuje
+     *                       žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
+     */
+    public function maKoliziSJinouAktivitouVCase(
         DateTimeInterface $od,
         DateTimeInterface $do,
         ?Aktivita $ignorovanaAktivita = null,
@@ -2395,6 +2426,7 @@ SQL,
             : null;
     }
 
+    // todo: enum ?
     /**
      * Vrátí pohlaví ve tvaru 'm' nebo 'f'
      */
@@ -2564,29 +2596,6 @@ SQL,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): void {
         self::nactiUzivateleDSC($dataSourcesCollector);
-    }
-
-    public static function prednactiUzivateleNaAktivitach(int $rocnik)
-    {
-        static $prednacteniUzivateleNaAktivitach = [];
-        if (isset($prednacteniUzivateleNaAktivitach[$rocnik])) {
-            return;
-        }
-        $idUzivatelu = dbFetchColumn(
-            <<<SQL
-                    SELECT zdroj.id_uzivatele
-                    FROM akce_prihlaseni AS zdroj
-                    JOIN akce_seznam on zdroj.id_akce = akce_seznam.id_akce
-                    WHERE akce_seznam.rok = {$rocnik}
-                    UNION
-                    SELECT zdroj.id_uzivatele
-                    FROM akce_prihlaseni_spec AS zdroj
-                    JOIN akce_seznam on zdroj.id_akce = akce_seznam.id_akce
-                    WHERE akce_seznam.rok = {$rocnik}
-                SQL,
-        );
-        self::zIds($idUzivatelu, true);
-        $prednacteniUzivateleNaAktivitach[$rocnik] = true;
     }
 
     /**
@@ -2961,5 +2970,65 @@ SQL;
         }
 
         return $this->kdySeRegistrovalNaLetosniGc;
+    }
+
+    /**
+     * Vrací anonymní objekt pro api
+     */
+    public function apiUzivatel() {
+        $res = [];
+
+        $res["id"] = $this->id();
+        $res["pohlavi"] = $this->pohlavi();
+
+        $res["gcStav"] = "nepřihlášen";
+
+        if ($this->gcPrihlasen()) {
+            $res["gcStav"] = "přihlášen";
+        }
+        if ($this->gcPritomen()) {
+            $res["gcStav"] = "přítomen";
+        }
+        if ($this->gcOdjel()) {
+            $res["gcStav"] = "odjel";
+        }
+
+        $role = [];
+
+        if ($this->jeOrganizator()) {
+            $role["organizator"] = true;
+        }
+        if ($this->jeBrigadnik()) {
+            $role["brigadnik"] = true;
+        }
+        if ($this->maRoli(Role::SEF_INFOPULTU)) {
+            $role["sefInfa"] = true;
+        }
+
+        if (!empty($role)){
+            $res["role"] = $role;
+        }
+
+        return $res;
+    }
+
+    /**
+     * Používá fetchPřihlášenýUživatel.
+     *
+     * @param bool $ucastnikJeOperator používá se když chceme ignorovat uPraconi
+     */
+    public static function apiPrihlasenyUzivatel() {
+        /** @var Uzivatel $u */
+        global $u;
+        /** @var Uzivatel $uPracovni */
+        global $uPracovni;
+
+        $operator = $u;
+        $ucastnik = $uPracovni ? $uPracovni : $u;
+
+        return [
+            "ucastnik" => $ucastnik?->apiUzivatel(),
+            "operator" => $operator?->apiUzivatel(),
+        ];
     }
 }

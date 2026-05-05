@@ -4,23 +4,20 @@ use Gamecon\Aktivita\Program;
 
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
-$program = new Program(
-    systemoveNastaveni: $systemoveNastaveni,
+// todo(tym):
+/*
     nastaveni: [
         Program::INTERNI => true,
         Program::SKUPINY => Program::SKUPINY_MISTNOSTI,
         Program::PRAZDNE => true,
     ],
-);
-
+*/
 ?>
+
 <!DOCTYPE html>
 <html lang="cs">
 <head>
     <title>Program</title>
-    <?php foreach ($program->cssUrls() as $cssUrl) { ?>
-        <link rel="stylesheet" href="<?= $cssUrl ?>">
-    <?php } ?>
     <style>
         body {
             font-family: tahoma, sans-serif;
@@ -31,7 +28,7 @@ $program = new Program(
 </head>
 <body>
 
-<?php $program->tisk(); ?>
+<?php Program::vypisPreact(true, "program-mistnosti"); ?>
 
 </body>
 </html>

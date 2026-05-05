@@ -160,6 +160,7 @@ class ImporterUcastnikuNaAktivitu
                 assert($ucastnik instanceof \Uzivatel);
                 $aktivita = $ucastnikPlusAktivita['aktivita'];
                 assert($aktivita instanceof Aktivita);
+                // todo(tym): tym ??
                 try {
                     if ($aktivita->prihlas(
                         uzivatel: $ucastnik,
