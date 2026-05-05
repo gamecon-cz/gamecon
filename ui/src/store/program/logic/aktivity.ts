@@ -218,7 +218,7 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
 
   if (!filtrInterni)
     aktivityFiltrované = aktivityFiltrované.filter(
-      (aktivita) => !aktivita.interni
+      (aktivita) => !aktivita.interni || !aktivita.stavPrihlaseni
     );
 
   // TODO: filtrovat podle všech podmínek oddělených | ne jen podle první

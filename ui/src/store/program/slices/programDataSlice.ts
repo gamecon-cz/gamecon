@@ -107,8 +107,7 @@ export const načtiRok = async (ročník: number) => {
       s.data.tagy = staticData.tagy;
       const ročníkData = s.data.podleRočníku[ročník];
 
-      // Process publicly visible activities from static files
-      for (const aktivita of staticData.aktivity) {
+      const přidejAktivitu = (aktivita: ApiAktivitaNepřihlášen)=> {
         const popis = popisyMap.get(aktivita.popisId) ?? "";
         const obsazenost = obsazenostiMap.get(aktivita.id)
           ?? vytvořObsazenostPrázdnéSUpozorněním(aktivita.id);
@@ -121,18 +120,14 @@ export const načtiRok = async (ročník: number) => {
         } as Aktivita;
       }
 
+      // Process publicly visible activities from static files
+      for (const aktivita of staticData.aktivity) {
+        přidejAktivitu(aktivita);
+      }
+
       // Process hidden activities visible only to this user
       for (const aktivita of skryteAktivity) {
-        const popis = popisyMap.get(aktivita.popisId) ?? "";
-        const obsazenost = obsazenostiMap.get(aktivita.id)
-          ?? vytvořObsazenostPrázdnéSUpozorněním(aktivita.id);
-        const aktivitaUživatel = uzivatelMap.get(aktivita.id);
-        ročníkData.aktivityPodleId[aktivita.id] = {
-          ...aktivita,
-          ...aktivitaUživatel,
-          popis,
-          obsazenost,
-        } as Aktivita;
+        přidejAktivitu(aktivita);
       }
     }, undefined, "dotažení aktivit");
   } catch(e) {
