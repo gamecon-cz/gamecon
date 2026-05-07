@@ -357,4 +357,20 @@ SQL,
         self::assertCount(3, $transactions);
         self::assertSame(-400, $account->getTotal());
     }
+
+    /**
+     * @test
+     */
+    public function testStavFinanciPouzivaStejnyVypocetJakoFinance(): void
+    {
+        dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 123 WHERE id_uzivatele = $0', [555]);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+
+        self::assertSame(123, $account->getTotal());
+        self::assertStringContainsString(
+            '<tr><td><b>Stav financí</b></td><td><b>123</b></td></tr>',
+            $account->formatForHtml(),
+        );
+    }
 }
