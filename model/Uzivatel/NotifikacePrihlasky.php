@@ -54,7 +54,7 @@ class NotifikacePrihlasky
                 ? max(1, (int)$polozka['pocet'])
                 : 1;
             $cilovaKategorie = &$snapshot[$kategorie];
-            $this->prictiPolozku($cilovaKategorie, (string)$polozka['nazev'], $pocet);
+            $this->prictiPolozku($cilovaKategorie, $this->nazevPolozkyProSnapshot($polozka), $pocet);
             unset($cilovaKategorie);
         }
 
@@ -223,6 +223,23 @@ TEXT;
     private function ocistiNazev(string $nazev): string
     {
         return trim(html_entity_decode(strip_tags($nazev), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+
+    /**
+     * @param array<string, mixed> $polozka
+     */
+    private function nazevPolozkyProSnapshot(array $polozka): string
+    {
+        $nazev = (string)$polozka['nazev'];
+        if (
+            (int)$polozka['typ'] === TypPredmetu::VSTUPNE
+            && array_key_exists('castka', $polozka)
+            && $polozka['castka'] !== null
+        ) {
+            return sprintf('%s (%s)', $nazev, $this->formatCastka((float)$polozka['castka']));
+        }
+
+        return $nazev;
     }
 
     private function kategorieZeTypu(int $typ): ?string
@@ -466,6 +483,7 @@ TEXT;
         }
 
         (new GcMail($this->systemoveNastaveni))
+            ->odesilatel(self::ODESILATEL_MAILU)
             ->adresat($mail)
             ->predmet($predmet)
             ->text($text)

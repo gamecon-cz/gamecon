@@ -22,23 +22,26 @@ class ShopUbytovani
         'trojlůžák' => 40,
         'spacák' => 50,
         'hotelový jednolůžák standard' => 60,
+        'hotelový dvoulůžák standard' => 70,
         'hotelový dvojlůžák standard' => 70,
         'hotelový jednolůžák deluxe (buňka)' => 80,
         'hotelový jednolůžák deluxe' => 90,
+        'hotelový dvoulůžák deluxe' => 100,
         'hotelový dvojlůžák deluxe' => 100,
     ];
 
     private const HINTY_TYPU_UBYTOVANI = [
-        'jednolůžák' => 'buňkový typ ubytování v rámci kolejí.',
-        'dvoulůžák' => 'buňkový typ ubytování v rámci kolejí.',
-        'dvojlůžák' => 'buňkový typ ubytování v rámci kolejí.',
-        'trojlůžák' => 'buňkový typ ubytování v rámci kolejí.',
-        'hotelový dvoulůžák deluxe' => 'dvoulůžkový hotelový pokoj s vlastní koupelnou a toaletou; prostornější a komfortnější než standard, snídaně v ceně.',
-        'hotelový dvojlůžák deluxe' => 'dvoulůžkový hotelový pokoj s vlastní koupelnou a toaletou; prostornější a komfortnější než standard, snídaně v ceně.',
-        'hotelový dvojlůžák standard' => 'dvoulůžkový hotelový pokoj; koupelna a toaleta sdílené s jednolůžkovým pokojem v buňce, snídaně v ceně.',
-        'hotelový jednolůžák deluxe (buňka)' => 'jednolůžkový hotelový pokoj; prostornější a komfortnější než standard; koupelna a toaleta sdílené s dalším jednolůžkovým pokojem, snídaně v ceně.',
-        'hotelový jednolůžák deluxe' => 'jednolůžkový hotelový pokoj s vlastní koupelnou a toaletou; prostornější a komfortnější než standard, snídaně v ceně.',
-        'hotelový jednolůžák standard' => 'jednolůžkový hotelový pokoj; koupelna a toaleta sdílené s dvoulůžkovým pokojem v buňce, snídaně v ceně.',
+        'jednolůžák' => 'Postel na "1L" koleji.',
+        'dvoulůžák' => 'Postel na 2L koleji.',
+        'dvojlůžák' => 'Postel na 2L koleji.',
+        'trojlůžák' => 'Postel na 3L koleji.',
+        'hotelový jednolůžák standard' => 'Postel na 1L hotelu se snídaní.',
+        'hotelový dvoulůžák standard' => 'Postel na 2L hotelu se snídaní.',
+        'hotelový dvojlůžák standard' => 'Postel na 2L hotelu se snídaní.',
+        'hotelový jednolůžák deluxe (buňka)' => 'Postel na 1L hotelu deluxe se snídaní - dvojbuňka.',
+        'hotelový jednolůžák deluxe' => 'Postel na 1L hotelu deluxe se snídaní.',
+        'hotelový dvoulůžák deluxe' => 'Postel na 2L hotelu deluxe se snídaní.',
+        'hotelový dvojlůžák deluxe' => 'Postel na 2L hotelu deluxe se snídaní.',
     ];
 
     /**
@@ -402,7 +405,39 @@ SQL,
     {
         $normalizovanyTyp = mb_strtolower(trim($typ));
 
-        return self::PORADI_TYPU_UBYTOVANI[$normalizovanyTyp] ?? PHP_INT_MAX;
+        $rozpoznanyTyp = $this->rozpoznanyTypUbytovani($normalizovanyTyp);
+
+        return $rozpoznanyTyp !== null
+            ? self::PORADI_TYPU_UBYTOVANI[$rozpoznanyTyp]
+            : PHP_INT_MAX;
+    }
+
+    private function rozpoznanyTypUbytovani(string $normalizovanyTyp): ?string
+    {
+        static $znameTypy = null;
+        if ($znameTypy === null) {
+            $znameTypy = array_keys(self::PORADI_TYPU_UBYTOVANI);
+            usort(
+                $znameTypy,
+                static fn(string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a),
+            );
+        }
+
+        foreach ($znameTypy as $znamyTyp) {
+            if ($normalizovanyTyp === $znamyTyp) {
+                return $znamyTyp;
+            }
+            if (!str_starts_with($normalizovanyTyp, $znamyTyp)) {
+                continue;
+            }
+
+            $znakZaTypem = mb_substr($normalizovanyTyp, mb_strlen($znamyTyp), 1);
+            if ($znakZaTypem === ' ' || $znakZaTypem === '(') {
+                return $znamyTyp;
+            }
+        }
+
+        return null;
     }
 
     private function hintTypuUbytovani(string $typ, array $predmet): ?string

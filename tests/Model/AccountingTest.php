@@ -526,4 +526,49 @@ SQL,
 
         self::assertSame(150, $account->getTotal(), 'Stav financí musí být součet všech transakcí: -250 (aktivita) -100 (předmět) +500 (platba)');
     }
+
+    /**
+     * @test
+     */
+    public function testFormatForHtmlSeskupiStejnePolozkyDoNasobku(): void
+    {
+        $this->vlozNakup(55501, 100);
+        $this->vlozNakup(55501, 100);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)->formatForHtml();
+
+        self::assertStringContainsString('<td>předmět 2×</td><td>-200</td>', $html);
+        self::assertSame(0, substr_count($html, '<td>předmět</td><td>-100</td>'));
+    }
+
+    /**
+     * @test
+     */
+    public function testFormatForHtmlSeskupiStejneSlevyDoNasobku(): void
+    {
+        $this->pridelPravo(Pravo::UBYTOVANI_ZDARMA);
+        $this->vlozNakup(55502, 200);
+        $this->vlozNakup(55502, 200);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)->formatForHtml();
+
+        self::assertStringContainsString('<td>ubytování 2×</td><td>-400</td>', $html);
+        self::assertStringContainsString('<td>Sleva z ubytování 2×</td><td>400</td>', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function testFormatForHtmlSPozitivnimiCenamiPrevratiZnamenkaUSeskupenychPolozek(): void
+    {
+        $this->pridelPravo(Pravo::UBYTOVANI_ZDARMA);
+        $this->vlozNakup(55502, 200);
+        $this->vlozNakup(55502, 200);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)
+            ->formatForHtml(positivePrices: true);
+
+        self::assertStringContainsString('<td>ubytování 2×</td><td>400</td>', $html);
+        self::assertStringContainsString('<td>Sleva z ubytování 2×</td><td>-400</td>', $html);
+    }
 }
