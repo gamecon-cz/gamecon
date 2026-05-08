@@ -3,6 +3,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
 use Gamecon\Pravo;
+use Gamecon\Uzivatel\NotifikacePrihlasky;
 
 /**
  * @see web/sablony/blackarrow/prihlaska.xtpl
@@ -119,15 +120,28 @@ if (post('odhlasit')) {
             : 'sám';
         chyba("Během Gameconu se nemůžeš $sama odhlást. Stav se na infopultu.");
     } else {
-        $u->odhlasZGc('rucne-sam-sebe', $u);
+        $notifikacePrihlasky = new NotifikacePrihlasky($u, $systemoveNastaveni);
+        $vypisFinanciPredZrusenim = $notifikacePrihlasky->vypisFinanciZUctu(false);
+        $odhlaseno = $u->odhlasZGc('rucne-sam-sebe', $u);
+        if ($odhlaseno) {
+            $u->finance()->obnovUdaje();
+            try {
+                $notifikacePrihlasky->odesliMailOZruseniPrihlasky($vypisFinanciPredZrusenim);
+            } catch (Throwable $throwable) {
+                trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
+            }
+        }
         oznameni(hlaska('odhlaseniZGc', $u));
     }
 }
 
 if (post('prihlasitNeboUpravit')) {
-    $prihlasovani = false;
-    if (!$u->gcPrihlasen()) {
-        $prihlasovani = true;
+    $notifikacePrihlasky = new NotifikacePrihlasky($u, $systemoveNastaveni);
+    $prihlasovani = !$u->gcPrihlasen();
+    $predchoziObjednavky = $prihlasovani
+        ? []
+        : $notifikacePrihlasky->snapshotObjednavekZUctu();
+    if ($prihlasovani) {
         $u->gcPrihlas($u);
     }
     $shop->zpracujPredmety();
@@ -135,6 +149,17 @@ if (post('prihlasitNeboUpravit')) {
     $shop->zpracujJidlo();
     $shop->zpracujVstupne();
     $pomoc->zpracuj();
+    $u->finance()->obnovUdaje();
+    $aktualniObjednavky = $notifikacePrihlasky->snapshotObjednavekZUctu();
+    try {
+        if ($prihlasovani) {
+            $notifikacePrihlasky->odesliMailONovePrihlasce();
+        } elseif ($predchoziObjednavky !== $aktualniObjednavky) {
+            $notifikacePrihlasky->odesliMailOZmenePrihlasky($predchoziObjednavky, $aktualniObjednavky);
+        }
+    } catch (Throwable $throwable) {
+        trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
+    }
     if ($prihlasovani) {
         oznameni(hlaska('prihlaseniNaGc', $u));
     } else {

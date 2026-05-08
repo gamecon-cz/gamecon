@@ -9,6 +9,7 @@
  * @var Uzivatel|null|void $uPracovni
  * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
  * @var \Gamecon\Shop\Shop|null $shop
+ * @var array<string, bool> $nastaveni
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
@@ -16,6 +17,7 @@ use Gamecon\Accounting;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
+use Gamecon\Shop\Shop;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
@@ -23,6 +25,18 @@ use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Finance\FioPlatba;
+
+$nastaveni ??= [];
+
+$obnovPracovnihoUzivateleAShop = static function () use (&$uPracovni, $u, $systemoveNastaveni, $nastaveni): ?Shop {
+    $uPracovni = $uPracovni
+        ? Uzivatel::zId($uPracovni->id())
+        : null;
+
+    return $uPracovni
+        ? new Shop($uPracovni, $u, $systemoveNastaveni, $nastaveni)
+        : null;
+};
 
 if (!empty($_POST['prijelADatMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->pridejRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $u);
@@ -162,6 +176,7 @@ if ($uPracovni && ($udaje = (array)post('udaje'))) {
 
 if (post('zpracujUbytovani')) {
     $shop->zpracujUbytovani(false, false);
+    $shop = $obnovPracovnihoUzivateleAShop();
     oznameni('Ubytování uloženo');
 }
 

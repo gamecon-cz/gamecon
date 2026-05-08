@@ -33,6 +33,26 @@
     <!-- end: predmet -->
 </div>
 
+<!-- begin: trickaPozastavena -->
+<p>Možnost nákupu triček už skončila.</p>
+<!-- end: trickaPozastavena -->
+
+<div class="shopPredmety_tricka">
+    <!-- begin: tricko -->
+    <div class="shopPredmety_tricko">
+        <div class="shop_popis">
+            <label for="{idVyberTricek}">Tričko GameCon {rok}</label>
+            <div class="shop_popisCena">{cena}</div>
+        </div>
+        <select id="{idVyberTricek}" name="{postName}" class="formular_select shopPredmety_trickoSelect">
+            <!-- begin: moznost -->
+            <option value="{id_predmetu}" {selected}>{nazev}</option>
+            <!-- end: moznost -->
+        </select>
+    </div>
+    <!-- end: tricko -->
+</div>
+
 <!-- begin: dalsiMerch -->
 <details class="shopPredmety_dalsiMerch">
     <summary>Další merch</summary>
@@ -68,26 +88,6 @@
     </article>
 </details>
 <!-- end: dalsiMerch -->
-
-<!-- begin: trickaPozastavena -->
-<p>Možnost nákupu triček už skončila.</p>
-<!-- end: trickaPozastavena -->
-
-<div class="shopPredmety_tricka">
-    <!-- begin: tricko -->
-    <div class="shopPredmety_tricko">
-        <div class="shop_popis">
-            <label for="{idVyberTricek}">Tričko GameCon {rok}</label>
-            <div class="shop_popisCena">{cena}</div>
-        </div>
-        <select id="{idVyberTricek}" name="{postName}" class="formular_select shopPredmety_trickoSelect">
-            <!-- begin: moznost -->
-            <option value="{id_predmetu}" {selected}>{nazev}</option>
-            <!-- end: moznost -->
-        </select>
-    </div>
-    <!-- end: tricko -->
-</div>
 
 <script type="text/javascript" src="{shopTrickaJs}"></script>
 
