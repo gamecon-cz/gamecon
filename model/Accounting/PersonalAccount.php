@@ -74,22 +74,54 @@ readonly class PersonalAccount
 
     private function categoryToHtml(self $account, TransactionCategory $category, string $categoryName, bool $negatePrice = false): string
     {
-        $result = '<tr><td><b>' . $categoryName . '</b></td><td><b>' . ($negatePrice ? -1 : 1) * array_reduce(
-            array_filter($account->getTransactions(), fn ($a) => $a->getCategory() === $category),
-            fn ($a, $b) => $this->transactionSumReducer($a, $b),
-            0) . '</b></td></tr>';
+        $groupedSplits = $this->groupedSplitsByCategory($account, $category);
+        $categoryTotal = array_sum(array_map(
+            static fn (array $groupedSplit): int => $groupedSplit['amount'],
+            $groupedSplits,
+        ));
 
-        foreach ($account->getTransactions() as $transaction) {
-            if ($transaction->getCategory() === $category) {
-                foreach ($transaction->getSplits() as $split) {
-                    if ($split->getDescription() === $categoryName) {
-                        continue;
-                    }
-                    $result = $result . '<tr><td>' . $split->getDescription() . '</td><td>' . ($negatePrice ? -1 : 1) * $split->getAmount() . '</td></tr>';
-                }
+        $result = '<tr><td><b>' . $categoryName . '</b></td><td><b>'
+            . ($negatePrice ? -1 : 1) * $categoryTotal
+            . '</b></td></tr>';
+
+        foreach ($groupedSplits as $groupedSplit) {
+            $description = $groupedSplit['description'];
+            if ($groupedSplit['count'] > 1) {
+                $description .= ' ' . $groupedSplit['count'] . '×';
             }
+            $result = $result . '<tr><td>' . $description . '</td><td>'
+                . ($negatePrice ? -1 : 1) * $groupedSplit['amount']
+                . '</td></tr>';
         }
 
         return $result;
+    }
+
+    /**
+     * @return array<int, array{description: string, amount: int, count: int}>
+     */
+    private function groupedSplitsByCategory(self $account, TransactionCategory $category): array
+    {
+        $groupedSplits = [];
+
+        foreach ($account->getTransactions() as $transaction) {
+            if ($transaction->getCategory() !== $category) {
+                continue;
+            }
+            foreach ($transaction->getSplits() as $split) {
+                $key = $split->getDescription() . "\0" . $split->getAmount();
+                if (! isset($groupedSplits[$key])) {
+                    $groupedSplits[$key] = [
+                        'description' => $split->getDescription(),
+                        'amount'      => 0,
+                        'count'       => 0,
+                    ];
+                }
+                $groupedSplits[$key]['amount'] += $split->getAmount();
+                ++$groupedSplits[$key]['count'];
+            }
+        }
+
+        return array_values($groupedSplits);
     }
 }
