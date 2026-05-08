@@ -162,6 +162,35 @@ SQL,
     /**
      * @test
      */
+    public function seradiVariantyTypuUbytovaniPodleZakladnihoTypu(): void
+    {
+        $uzivatel = $this->vytvorUzivatele((string) uniqid());
+
+        $typy = [
+            'Jednolůžák (C)',
+            'Dvojlůžák (A)',
+            'Spacák',
+            'Hotelový dvoulůžák standard (A)',
+            'Hotelový jednolůžák deluxe (buňka) (A)',
+            'Hotelový jednolůžák deluxe (A)',
+            'Hotelový dvoulůžák deluxe (A)',
+        ];
+
+        $nahodnePoradi = $typy;
+        shuffle($nahodnePoradi);
+        foreach ($nahodnePoradi as $typ) {
+            $this->vytvorPredmetUbytovani($typ . ' čtvrtek', ROCNIK, 10);
+        }
+
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $realnePoradi = array_keys($shop->ubytovani()->mozneTypy());
+
+        self::assertSame($typy, $realnePoradi);
+    }
+
+    /**
+     * @test
+     */
     public function zobraziTooltipyProZnameTypyUbytovaniPodleNazvu(): void
     {
         $uzivatel = $this->vytvorUzivatele((string) uniqid());
@@ -174,9 +203,9 @@ SQL,
 
         self::assertStringContainsString('class="shop_popis shopUbytovani_radek gc_tooltip"', $html);
         self::assertStringContainsString('Dvoulůžák', $html);
-        self::assertStringContainsString('buňkový typ ubytování v rámci kolejí.', $html);
+        self::assertStringContainsString('Postel na 2L koleji.', $html);
         self::assertStringContainsString('Hotelový dvojlůžák deluxe', $html);
-        self::assertStringContainsString('dvoulůžkový hotelový pokoj s vlastní koupelnou a toaletou; prostornější a komfortnější než standard, snídaně v ceně.', $html);
+        self::assertStringContainsString('Postel na 2L hotelu deluxe se snídaní.', $html);
     }
 
     /**
