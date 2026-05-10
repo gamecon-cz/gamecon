@@ -162,6 +162,36 @@ SQL,
     /**
      * @test
      */
+    public function seradiPopisneNazvyUbytovaniTakAbyKolejeBylyPredHotely(): void
+    {
+        $uzivatel = $this->vytvorUzivatele((string) uniqid());
+
+        $typy = [
+            'Postel na "1L" koleji',
+            'Postel na 2L koleji',
+            'Postel na 3L koleji',
+            'Postel na 1L hotelu se snídaní',
+            'Postel na 2L hotelu se snídaní',
+            'Postel na 1L hotelu deluxe se snídaní - dvojbuňka',
+            'Postel na 1L hotelu deluxe se snídaní',
+            'Postel na 2L hotelu deluxe se snídaní',
+        ];
+
+        $nahodnePoradi = $typy;
+        shuffle($nahodnePoradi);
+        foreach ($nahodnePoradi as $typ) {
+            $this->vytvorPredmetUbytovani($typ . ' čtvrtek', ROCNIK, 10);
+        }
+
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $realnePoradi = array_keys($shop->ubytovani()->mozneTypy());
+
+        self::assertSame($typy, $realnePoradi);
+    }
+
+    /**
+     * @test
+     */
     public function seradiVariantyTypuUbytovaniPodleZakladnihoTypu(): void
     {
         $uzivatel = $this->vytvorUzivatele((string) uniqid());
