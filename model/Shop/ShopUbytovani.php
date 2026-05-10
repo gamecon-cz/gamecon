@@ -17,17 +17,26 @@ class ShopUbytovani
 {
     private const PORADI_TYPU_UBYTOVANI = [
         'jednolůžák' => 10,
+        'postel na "1l" koleji' => 10,
+        'postel na 1l koleji' => 10,
         'dvoulůžák' => 20,
+        'postel na 2l koleji' => 20,
         'dvojlůžák' => 30,
         'trojlůžák' => 40,
+        'postel na 3l koleji' => 40,
         'spacák' => 50,
         'hotelový jednolůžák standard' => 60,
+        'postel na 1l hotelu se snídaní' => 60,
         'hotelový dvoulůžák standard' => 70,
         'hotelový dvojlůžák standard' => 70,
+        'postel na 2l hotelu se snídaní' => 70,
         'hotelový jednolůžák deluxe (buňka)' => 80,
+        'postel na 1l hotelu deluxe se snídaní - dvojbuňka' => 80,
         'hotelový jednolůžák deluxe' => 90,
+        'postel na 1l hotelu deluxe se snídaní' => 90,
         'hotelový dvoulůžák deluxe' => 100,
         'hotelový dvojlůžák deluxe' => 100,
+        'postel na 2l hotelu deluxe se snídaní' => 100,
     ];
 
     private const HINTY_TYPU_UBYTOVANI = [
