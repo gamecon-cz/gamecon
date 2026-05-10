@@ -1,4 +1,95 @@
 
+# TODO:
+
+PRIO
+  - [X] rebase
+  - [X] projít analýzy
+  - [X] přidat odemknout do týmového ui na adminu
+  - [X] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
+  - [ ] UI zobrazuje kapacitu per kolo
+  - [ ] termíny týmu
+  - [ ] název týmu
+  - [X] checkbox na smazání do amdinu
+  - [ ] zrušit rekurzi pro Aktivita::prihlas ?
+    - [ ] dělat vše v transakci
+
+# Celkové stavy:
+  Stav určuje:
+    - týmy
+    - přihlášením hráčů na aktivity
+    - přihlášením týmu na aktivity
+    - přihlášením hráčů v týmu
+    - aktuální čas
+
+
+# Stavy týmu:
+  - rozpracovaný R
+    - tým má přiřazeno alespoň jedno kolo aktivity (ale nemusí mít všechna)
+      - "přiřazeno kolo" = tým→aktivita vazba existuje
+    - žádný hráč není přihlášen na žádnou aktivitu týmu
+    - žádný hráč není přihlášen v týmu
+    - není starší než 30 min. (automaticky smazán po 30 min)
+    - vždy neveřejný
+  - připravený P
+    - kapitán je přihlášen v týmu
+    - všichni členové týmu jsou přihlášeni na všechny aktivity týmu
+    - má přiřazenu právě jednu aktivitu pro každé kolo turnaje
+    - čas expirace je nastaven a je v budoucnu (nastavuje se při přechodu R→P, výchozí 72h od přechodu)
+    - může být veřejný/neveřejný
+  - zamčený Z
+    - immutable pro běžné uživatele
+    - vždy neveřejný (nastaveno automaticky při zamčení)
+    - nelze měnit členy/kapitána/limit
+    - může být odemčen pouze šéfem infa nebo systémem (odhlášení neplatiče)
+  - expirovaný E
+    - čas expirace v minulosti
+    - nejde nastavit jako neveřejný podkud je expirace zveřejnění
+  - smazaný S
+    - tým neexistuje
+    - nastane z R (30 min timeout nebo rozpuštění), z E (podle nastavení aktivity), nebo adminem
+
+## akce
+  RP: vybrání aktivit pro všechna kola + přihlášení kapitána: R → P
+    - čas expirace se nastaví na NOW + 72h
+  PZ: zamčení připraveného týmu (min kapacita naplněna): P → Z
+  EZ: zamčení expirovaného týmu (min kapacita naplněna): E → Z
+    - záměrné — umožňuje zachránit tým po expiraci před smazáním
+  ZP: odemčení zamčeného týmu (pouze šéf infa): Z → P
+    - čas expirace se resetuje na NOW + 72h
+  ZP (systém): odhlášení neplatiče ze zamčeného týmu: Z → P (nebo S pokud byl poslední člen)
+  PE: expirace nepřipraveného zamčení: P → E (vypršení času expirace)
+  P: prodloužení expirace
+
+  RS, PS, ES: poslední člen opustí tým: R/P/E -> S
+    - nebo kapitán opustí tým jako poslední člen
+  RS: smazání rozpracovaného týmu: R → S
+    - automaticky po 30 min
+  ES: smazání expirovaného týmu: E → S
+    - automaticky podle nastavení aktivity po expiraci
+    - nebo adminem
+
+# Stavy hráče v týmu
+  - je kapitán (ale ještě není v týmu)
+    - stav pouze během R fáze
+    - kapitán tým vlastní ale není přihlášen na aktivity
+    - nemůže zakládat další týmy pokud už je kapitán na aktivitě z turnaje
+  - je kapitán a je v týmu
+    - přihlášen na všechny aktivity týmu
+    - platí od P fáze
+  - je člen (v týmu, není kapitán)
+    - musí být přihlášen na všech aktivitách týmu
+      - prihlasen, prihlasenADorazil, dorazilJakoNahradnik, prihlasenAleNedorazil, pozdeZrusil
+  - není v týmu
+    - nemůže být na týmové aktivitě nijak přihlášen
+
+# nevalidní stavy a eskalace
+  - stavy hráčů
+    - hráči jsou v týmu ale nejsou přihlášeni na všechny aktivity
+  - stavy týmu
+    - tým má přihlášené lidi ale nemá přihlášeného kapitána
+    - tým má hráče ale nemá všechna kola turnaje (nebo má v jednom kole více aktivit)
+
+
   - zakládání a přihlašování týmu:
     - kapitán otevře nastavení týmů a tam klikne založit tým
     - vybere pro svůj tým termíny
@@ -85,20 +176,6 @@
   - todo
     - importy
     - reporty
-
-# TODO:
-
-PRIO
-  - [X] rebase
-  - [X] projít analýzy
-  - [X] přidat odemknout do týmového ui na adminu
-  - [X] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
-  - [ ] UI zobrazuje kapacitu per kolo
-  - [ ] termíny týmu
-  - [ ] název týmu
-  - [X] checkbox na smazání do amdinu
-  - [ ] zrušit rekurzi pro Aktivita::prihlas ?
-    - [ ] dělat vše v transakci
 
 ## soupist zákládních testovacích scénářů, popis fungování nového systému:
 
