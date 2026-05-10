@@ -1,5 +1,152 @@
 <!-- begin:tymy -->
 
+<div class="tymy-kontrola-panel">
+    <a href="aktivity/tymy?kontrolaStavuTymu=1" class="tlacitko tymy-kontrola-btn">Kontrola stavu týmů</a>
+</div>
+
+<!-- begin:kontrolaVysledky -->
+<div class="tymy-kontrola-vysledky">
+    <h2>Výsledky kontroly stavu týmů</h2>
+
+    <!-- begin:tymyBezAktivity -->
+    <section class="tymy-kontrola-sekce tymy-kontrola-sekce--chyba">
+        <h3>Týmy bez aktivity ({pocetTymyBezAktivity})</h3>
+        <table class="vypis">
+            <tr>
+                <th>ID</th>
+                <th>Název</th>
+                <th>Akce</th>
+            </tr>
+            <!-- begin:tymBezAktivity -->
+            <tr>
+                <td>{tba_id}</td>
+                <td>{tba_nazev}</td>
+                <td>
+                    <form method="post" action="aktivity/tymy" style="display:inline">
+                        <input type="hidden" name="idTymu" value="{tba_id}"/>
+                        <button type="submit" name="rozebratTym" value="1" class="danger"
+                                onclick="return confirm('Opravdu smazat tým #{tba_id} ({tba_nazev})?')">
+                            Smazat tým
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            <!-- end:tymBezAktivity -->
+        </table>
+    </section>
+    <!-- end:tymyBezAktivity -->
+
+    <!-- begin:pripraveneBezKapitana -->
+    <section class="tymy-kontrola-sekce tymy-kontrola-sekce--chyba">
+        <h3>Připravené týmy bez kapitána ({pocetPripraveneBezKapitana})</h3>
+        <!-- begin:tymBezKapitana -->
+        <div class="tymy-kontrola-tym-bezkapitana">
+            <strong>Tým #{pbk_id} – {pbk_nazev}</strong> &nbsp;|&nbsp; {pbk_aktivita}
+            <form method="post" action="aktivity/tymy" class="tymy-kontrola-automaticky-kapitan-form">
+                <input type="hidden" name="idTymu" value="{pbk_id}"/>
+                <button type="submit" name="predatKapitanaAutomaticky" value="1">Předat kapitána automaticky</button>
+            </form>
+            <table class="vypis">
+                <tr>
+                    <th>Nick</th>
+                    <th>Jméno</th>
+                    <th>Předat kapitána</th>
+                </tr>
+                <!-- begin:clenBezKapitana -->
+                <tr>
+                    <td>{cbk_nick}</td>
+                    <td>{cbk_jmeno}</td>
+                    <td>
+                        <form method="post" action="aktivity/tymy" style="display:inline">
+                            <input type="hidden" name="idTymu" value="{pbk_id}"/>
+                            <input type="hidden" name="novyKapitanId" value="{cbk_id}"/>
+                            <button type="submit" name="predatKapitana" value="1">Předat kapitána</button>
+                        </form>
+                    </td>
+                </tr>
+                <!-- end:clenBezKapitana -->
+            </table>
+        </div>
+        <!-- end:tymBezKapitana -->
+    </section>
+    <!-- end:pripraveneBezKapitana -->
+
+    <!-- begin:spatnaKolaTurnaje -->
+    <section class="tymy-kontrola-sekce tymy-kontrola-sekce--chyba">
+        <h3>Připravené týmy s chybným počtem aktivit v kole turnaje ({pocetSpatnaKola})</h3>
+        <!-- begin:tymSpatnaKola -->
+        <div class="tymy-kontrola-tym-kola">
+            <strong>Tým #{sk_id} – {sk_nazev}</strong> &nbsp;|&nbsp; {sk_aktivita}
+            <div class="tymy-kola-grid">
+                <!-- begin:koloSloupec -->
+                <div class="tymy-kola-sloupec {koloSloupec_trida}">
+                    <div class="tymy-kola-hlavicka">
+                        <span class="tymy-kola-cislo">Kolo {koloSloupec_cislo}</span>
+                        <span class="tymy-kola-cas">{koloSloupec_cas}</span>
+                    </div>
+                    <div class="tymy-kola-obsah">
+                        <!-- begin:koloAktivitaPrihlasena -->
+                        <div class="tymy-kola-aktivita-bunka tymy-kola-aktivita-bunka--prihlasena">
+                            <span class="tymy-kola-aktivita-nazev">{koloAktivita_nazev}</span>
+                            <form method="post" action="aktivity/tymy">
+                                <input type="hidden" name="idTymu" value="{sk_id}"/>
+                                <input type="hidden" name="idAktivity" value="{koloAktivita_id}"/>
+                                <button type="submit" name="odhlasitTymOdAktivity" value="1" class="tymy-kola-btn-odhlasit danger">Odhlásit</button>
+                            </form>
+                        </div>
+                        <!-- end:koloAktivitaPrihlasena -->
+                        <!-- begin:koloAktivitaNeprihlasena -->
+                        <div class="tymy-kola-aktivita-bunka tymy-kola-aktivita-bunka--neprihlasena">
+                            <span class="tymy-kola-aktivita-nazev">{koloAktivita_nazev}</span>
+                            <form method="post" action="aktivity/tymy">
+                                <input type="hidden" name="idTymu" value="{sk_id}"/>
+                                <input type="hidden" name="idAktivity" value="{koloAktivita_id}"/>
+                                <button type="submit" name="prihlasitTymNaAktivitu" value="1" class="tymy-kola-btn-prihlasit">Přihlásit</button>
+                            </form>
+                        </div>
+                        <!-- end:koloAktivitaNeprihlasena -->
+                        <!-- begin:koloPrazdne -->
+                        <div class="tymy-kola-prazdne">(žádné aktivity v kole)</div>
+                        <!-- end:koloPrazdne -->
+                    </div>
+                </div>
+                <!-- end:koloSloupec -->
+            </div>
+        </div>
+        <!-- end:tymSpatnaKola -->
+    </section>
+    <!-- end:spatnaKolaTurnaje -->
+
+    <!-- begin:hraciNeprihlaseni -->
+    <section class="tymy-kontrola-sekce tymy-kontrola-sekce--chyba">
+        <h3>Hráči v týmu nepřihlášeni na všechny aktivity turnaje ({pocetHraciNeprihlaseni})</h3>
+        <table class="vypis">
+            <tr>
+                <th>Nick</th>
+                <th>Jméno</th>
+                <th>Tým</th>
+                <th>Aktivita</th>
+                <th>Chybějící přihláška</th>
+            </tr>
+            <!-- begin:hracNeprihlaseni -->
+            <tr>
+                <td>{hn_nick}</td>
+                <td>{hn_jmeno}</td>
+                <td>#{hn_tymId} {hn_tymNazev}</td>
+                <td>{hn_aktivita}</td>
+                <td>{hn_chybiPrihlaska}</td>
+            </tr>
+            <!-- end:hracNeprihlaseni -->
+        </table>
+    </section>
+    <!-- end:hraciNeprihlaseni -->
+
+    <!-- begin:kontrolaOk -->
+    <p class="tymy-kontrola-ok">Vše v pořádku – žádné chyby nenalezeny.</p>
+    <!-- end:kontrolaOk -->
+</div>
+<!-- end:kontrolaVysledky -->
+
 <!-- begin:aktivita -->
 <h1>{nazevAktivity}</h1>
 <p>
@@ -23,8 +170,7 @@
         &nbsp;|&nbsp; <span class="tym-verejnost">{verejny}</span>
         &nbsp;|&nbsp; <span class="tym-zalozen">{zalozen}</span>
         <form method="post" action="aktivity/tymy" class="tymy-rozebrat-form">
-            <input type="hidden" name="kodTymu" value="{kod}"/>
-            <input type="hidden" name="idAkce" value="{id_akce}"/>
+            <input type="hidden" name="idTymu" value="{id}"/>
             <button type="submit" name="rozebratTym" value="1"
                     onclick="return window.confirm('Opravdu rozebrat tým #{kod} ({nazev})?')">
                 Rozebrat tým
@@ -32,8 +178,7 @@
         </form>
         <!-- begin:zamceniTlacitko -->
         <form method="post" action="aktivity/tymy" class="tymy-zamceni-form">
-            <input type="hidden" name="kodTymu" value="{kod}"/>
-            <input type="hidden" name="idAkce" value="{id_akce}"/>
+            <input type="hidden" name="idTymu" value="{id}"/>
             <button type="submit" name="{zamceni_name}" value="1" {zamceni_disabled} title="{zamceni_title}">{zamceni_label}</button>
         </form>
         <!-- end:zamceniTlacitko -->

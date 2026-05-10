@@ -16,37 +16,15 @@ use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 
+require_once __DIR__ . '/_tymy-akce.php';
+require_once __DIR__ . '/_kontrola-tymu.php';
+
+zpracujAkciTymu($u);
+
 $tpl = new XTemplate(__DIR__ . '/tymy.xtpl');
 
-// Zpracování POST akce: rozebrat tým
-if (post('rozebratTym')) {
-    $kodTymu = (int)post('kodTymu');
-    $idAkce  = (int)post('idAkce');
-    if ($kodTymu > 0 && $idAkce > 0) {
-        AktivitaTym::najdiPodleKodu($idAkce, $kodTymu)
-            ->rozebratTym();
-    }
-    header('Location: ' . $_SERVER['REQUEST_URI']);
-    exit;
-}
-
-// Zpracování POST akce: zamknout/odemknout tým
-if (post('zamknoutTym') || post('odemknoutTym')) {
-    if (!$u->jeSefInfopultu()) {
-        throw new \Chyba('Nemáte oprávnění zamykat/odemykat týmy');
-    }
-    $kodTymu = (int)post('kodTymu');
-    $idAkce  = (int)post('idAkce');
-    if ($kodTymu > 0 && $idAkce > 0) {
-        $tym = AktivitaTym::najdiPodleKodu($idAkce, $kodTymu);
-        if (post('zamknoutTym')) {
-            $tym->zamkni();
-        } else {
-            $tym->odemkni();
-        }
-    }
-    header('Location: ' . $_SERVER['REQUEST_URI']);
-    exit;
+if (get('kontrolaStavuTymu')) {
+    renderujVysledkyKontrolyTymu($tpl);
 }
 
 // Všechny teamové aktivity ročníku
@@ -96,13 +74,13 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
                 : '–';
 
             $tpl->assign([
+                'id'         => $aktivitaTym->getId(),
                 'kod'        => $aktivitaTym->getKod(),
                 'nazev'      => $aktivitaTym->getNazev() ?: '(bez názvu)',
                 'kapitan'    => $kapitan->login() . ' (' . $kapitan->krestniJmeno() . ' ' . $kapitan->prijmeni() . ')',
                 'obsazenost' => $obsazenost,
                 'verejny'    => $aktivitaTym->jeVerejny() ? 'veřejný' : 'soukromý',
                 'zalozen'    => $zalozen,
-                'id_akce'    => $idAkce,
             ]);
 
             $maily = [];

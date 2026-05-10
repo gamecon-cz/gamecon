@@ -6,6 +6,7 @@ PRIO
   - [X] projít analýzy
   - [X] přidat odemknout do týmového ui na adminu
   - [X] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
+  - [ ] detekce týmů a hráčů v nevalidních stavech v admin ui
   - [ ] UI zobrazuje kapacitu per kolo
   - [ ] termíny týmu
   - [ ] název týmu
@@ -41,7 +42,7 @@ PRIO
     - vždy neveřejný (nastaveno automaticky při zamčení)
     - nelze měnit členy/kapitána/limit
     - může být odemčen pouze šéfem infa nebo systémem (odhlášení neplatiče)
-  - expirovaný E
+  - expirovaný E (tohle je asi nezávýslý stav tak nemá smysl ho tu mít takhle. Skoro ve všech směrech je expirovaný tým to samé co připravený)
     - čas expirace v minulosti
     - nejde nastavit jako neveřejný podkud je expirace zveřejnění
   - smazaný S
@@ -89,7 +90,7 @@ PRIO
     - tým má přihlášené lidi ale nemá přihlášeného kapitána
     - tým má hráče ale nemá všechna kola turnaje (nebo má v jednom kole více aktivit)
 
-
+# základní flow
   - zakládání a přihlašování týmu:
     - kapitán otevře nastavení týmů a tam klikne založit tým
     - vybere pro svůj tým termíny
@@ -222,6 +223,24 @@ Turnajové
   - po výběru uživatele z týmu by měl v adminu být tým editovatelný jako by byl ten uživatel přihlášený
 - kontrola jaké jdou vidět aktivity v programu v různých podmínkách
 
+
+## Určení stavu týmů a detekce týmů a hráčů v nevalidních stavech v admin ui
+  - [ ] určení stavu týmu
+    - tým je připravený pokud má na sobě přihlášené hráče
+  - [ ] tlačítko kontrola stavu týmů v adminu
+    - v záložce týmy na aktivity bude tlačítko které prohledá všechny týmy a hráče týmech a zkontroluje jestli zde neexistují žádné z následujích chyb a vypíše pro každý typ chyby jaké týmy jsou v tomto chybném stavu a pokud je to možné tak nabídne řešení
+    - [ ] týmy
+      - [ ] tým nemá ani jenu aktivitu
+        - vypsat takové týmy
+        - [ ] eskalace tlačítko smazat
+      - [ ] připravené týmy
+        - [ ] nemá přihlášeného kapitána
+          - [ ] vypsat čelny s tlačítkem předat kapitána
+          - [ ] nebo tlačítko předat náhodně
+        - [ ] nemá ve všech kolech turnaje právě jednu aktivitu
+          - [ ] vypíše kola aktivit turnaje
+    - [ ] hráči
+      - [ ] hráči jsou v týmu ale nejsou přihlášeni na všechny aktivity
 
 ## Základní přihlašovací flow
 - [X] Kapitán může založit tým přes nastavení týmů v UI

@@ -16,7 +16,7 @@ export const tabulkaBuňkaAktivitaTřídy = (
 ) => {
   const classes: string[] = [];
   if (
-    aktivita.stavPrihlaseni !== null &&
+    aktivita.stavPrihlaseni &&
     aktivita.stavPrihlaseni !== "sledujici"
   ) {
     classes.push("prihlasen");
