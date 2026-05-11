@@ -114,16 +114,14 @@ class GcMail
         string  $telo,
         ?string $chyba = null,
     ): void {
-        if ($this->mailLogger === null) {
-            return;
-        }
+        $mailLogger = $this->mailLogger ?? MailLogger::zGlobals();
         $pocetPriloh = 0;
         foreach ($this->prilohy as $priloha) {
             if ($priloha['soubor'] !== '') {
                 $pocetPriloh++;
             }
         }
-        $this->mailLogger->zalogujOdeslani(
+        $mailLogger->zalogujOdeslani(
             predmet: $predmet,
             format: $format,
             adresati: $adresati,
