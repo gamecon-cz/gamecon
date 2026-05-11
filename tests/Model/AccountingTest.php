@@ -361,13 +361,34 @@ SQL,
     /**
      * @test
      */
-    public function testStavFinanciPouzivaStejnyVypocetJakoFinance(): void
+    public function testZustatekZMinulychLetJeVlastniTransakce(): void
+    {
+        dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 123 WHERE id_uzivatele = $0', [555]);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $leftover = array_values(array_filter(
+            $account->getTransactions(),
+            fn ($transaction) => $transaction->getCategory() === TransactionCategory::LEFTOVER_FROM_LAST_YEAR,
+        ));
+
+        self::assertCount(1, $leftover, 'Zůstatek z minulých let musí být reprezentován jednou transakcí');
+        self::assertSame(123, $leftover[0]->getTotalAmount());
+    }
+
+    /**
+     * @test
+     */
+    public function testStavFinanciOdpovidaSouctuTransakci(): void
     {
         dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 123 WHERE id_uzivatele = $0', [555]);
 
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
 
         self::assertSame(123, $account->getTotal());
+        self::assertStringContainsString(
+            '<tr><td><b>Zůstatek z minulých let</b></td><td><b>123</b></td></tr>',
+            $account->formatForHtml(),
+        );
         self::assertStringContainsString(
             '<tr><td><b>Stav financí</b></td><td><b>123</b></td></tr>',
             $account->formatForHtml(),

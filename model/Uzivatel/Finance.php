@@ -914,11 +914,25 @@ SQL;
                 sprintf('Započítání %s již proběhlo.', __FUNCTION__),
             );
         }
+        $zustatek = $this->zustatekZPredchozichRocniku();
         $this->logb(
             'Zůstatek z minulých let',
-            $this->zustatekZPredchozichRocniku(),
+            $zustatek,
             self::ZUSTATEK_Z_PREDCHOZICH_LET,
         );
+        if ($zustatek != 0.0) {
+            $this->logPolozkaProBfgr(
+                nazev: 'Zůstatek z minulých let',
+                pocet: 1,
+                priceAfterDiscountDto: new PriceAfterDiscountDto(
+                    finalPrice: -$zustatek,
+                    discount: 0,
+                ),
+                typ: self::ZUSTATEK_Z_PREDCHOZICH_LET,
+                kodPredmetu: '',
+                idPredmetu: '',
+            );
+        }
         $this->zapocteno[__FUNCTION__] = true;
     }
 
