@@ -324,6 +324,14 @@ class AktivitaTymService
     }
 
     /**
+     * @return Team[]
+     */
+    public function tymyBezAktivity(): array
+    {
+        return $this->teamRepository->findBezAktivity();
+    }
+
+    /**
      * Vrátí připravené týmy (mají alespoň jednoho člena) kde kapitán není přihlášen jako člen.
      *
      * @return Team[]

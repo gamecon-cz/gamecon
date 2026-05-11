@@ -134,6 +134,20 @@ class TeamRepository extends ServiceEntityRepository
     }
 
     /**
+     * Vrátí týmy bez přiřazené aktivity.
+     *
+     * @return Team[]
+     */
+    public function findBezAktivity(): array
+    {
+        return $this->createQueryBuilder('team')
+            ->leftJoin('team.aktivity', 'aktivita')
+            ->andWhere('aktivita.id IS NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Vrátí připravené týmy (mají alespoň jednoho člena) bez přihlášeného kapitána.
      * Nevalidní stav: kapitán je nastaven na týmu, ale není přihlášen jako člen.
      *

@@ -15,12 +15,14 @@
             <tr>
                 <th>ID</th>
                 <th>Název</th>
+                <th>Členů</th>
                 <th>Akce</th>
             </tr>
             <!-- begin:tymBezAktivity -->
             <tr>
                 <td>{tba_id}</td>
                 <td>{tba_nazev}</td>
+                <td>{tba_pocetClenu}</td>
                 <td>
                     <form method="post" action="aktivity/tymy" style="display:inline">
                         <input type="hidden" name="idTymu" value="{tba_id}"/>

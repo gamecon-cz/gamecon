@@ -11,10 +11,14 @@ use Gamecon\XTemplate\XTemplate;
  */
 function renderujVysledkyKontrolyTymu(XTemplate $tpl): void
 {
-    $tymyBezAktivity = [
-        ['id' => 42, 'nazev' => 'Rychlé Šelmy'],
-        ['id' => 77, 'nazev' => 'Modré Draky'],
-    ];
+    $tymyBezAktivity = array_map(
+        static fn(AktivitaTym $tym) => [
+            'id'         => $tym->getId(),
+            'nazev'      => $tym->getNazev() ?? '',
+            'pocetClenu' => $tym->pocetClenu(),
+        ],
+        AktivitaTym::tymyBezAktivity(),
+    );
 
     $pripraveneBezKapitana = array_map(
         static function (AktivitaTym $tym): array {
@@ -97,8 +101,9 @@ function renderujVysledkyKontrolyTymu(XTemplate $tpl): void
         $tpl->assign('pocetTymyBezAktivity', count($tymyBezAktivity));
         foreach ($tymyBezAktivity as $tym) {
             $tpl->assign([
-                'tba_id'    => $tym['id'],
-                'tba_nazev' => $tym['nazev'],
+                'tba_id'         => $tym['id'],
+                'tba_nazev'      => $tym['nazev'],
+                'tba_pocetClenu' => $tym['pocetClenu'],
             ]);
             $tpl->parse('tymy.kontrolaVysledky.tymyBezAktivity.tymBezAktivity');
         }

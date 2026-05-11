@@ -264,7 +264,7 @@ class AktivitaTym
         self::service()->zkontrolujMuzeZalozitTym($idAktivity);
     }
 
-    /** @return [int|null, int] [$team_kapacita, $pocetAktualnych] nebo null pokud team_kapacita není nastaven */
+    /** @return array{int|null, int}|null [$team_kapacita, $pocetAktualnych] nebo null pokud team_kapacita není nastaven */
     public static function tymAktivitaKapacity(int $idAktivity): ?array
     {
         return self::service()->tymAktivitaKapacity($idAktivity);
@@ -329,6 +329,15 @@ class AktivitaTym
         return array_map(
             fn (Team $team) => new self($team),
             self::service()->expirovaneTymy(),
+        );
+    }
+
+    /** @return self[] */
+    public static function tymyBezAktivity(): array
+    {
+        return array_map(
+            fn (Team $team) => new self($team),
+            self::service()->tymyBezAktivity(),
         );
     }
 
