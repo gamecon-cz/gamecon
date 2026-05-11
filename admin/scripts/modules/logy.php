@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\MailLogger;
 use Gamecon\XTemplate\XTemplate;
 
@@ -8,7 +9,36 @@ use Gamecon\XTemplate\XTemplate;
  * pravo: 110
  */
 
+/** @var Uzivatel $u */
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
 const POCET_NA_STRANKU = 50;
+
+if (post('odeslatTestEmail')) {
+    $predmet = trim((string) post('predmet'));
+    $zprava  = (string) post('zprava');
+    $adresat = $u->mail();
+    if ($predmet === '') {
+        chyba('Předmět testovacího e-mailu nesmí být prázdný.');
+    }
+    if ($adresat === null || $adresat === '') {
+        chyba('Přihlášený uživatel nemá e-mailovou adresu, na kterou by se dal testovací e-mail odeslat.');
+    }
+    try {
+        $odeslano = (new GcMail($systemoveNastaveni))
+            ->adresat($adresat)
+            ->predmet($predmet)
+            ->text($zprava)
+            ->odeslat(GcMail::FORMAT_TEXT);
+        if ($odeslano) {
+            oznameni("Testovací e-mail byl odeslán na adresu {$adresat}.");
+        } else {
+            chyba('Testovací e-mail se nepodařilo odeslat — žádný adresát neprošel filtrem prostředí.');
+        }
+    } catch (Throwable $throwable) {
+        chyba('Chyba při odesílání: ' . $throwable->getMessage());
+    }
+}
 
 $mailLogger = MailLogger::zGlobals();
 $idDetailu  = (int) (get('id') ?? 0);
@@ -85,6 +115,7 @@ $t->assign('odkazRazeniKdy', $odkazRazeni('kdy'));
 $t->assign('odkazRazeniPrilohy', $odkazRazeni('prilohy_count'));
 $t->assign('indikatorKdy', $indikator('kdy'));
 $t->assign('indikatorPrilohy', $indikator('prilohy_count'));
+$t->assign('emailAdminaProTest', htmlspecialchars((string) $u->mail(), ENT_QUOTES));
 
 if ($filtr !== '') {
     $t->parse('logy.zrusitFiltr');
