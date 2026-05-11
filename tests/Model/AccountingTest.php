@@ -448,6 +448,23 @@ SQL,
     /**
      * @test
      */
+    public function testZustatekZMinulychLetNenizdvojen(): void
+    {
+        dbQuery('UPDATE uzivatele_hodnoty SET zustatek = -55 WHERE id_uzivatele = $0', [555]);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $html = $account->formatForHtml();
+
+        self::assertSame(
+            1,
+            substr_count($html, 'Zůstatek z minulých let'),
+            'Zůstatek z minulých let nesmí být uveden dvakrát (souhrnný řádek i položka se stejným popiskem)',
+        );
+    }
+
+    /**
+     * @test
+     */
     public function testAktivitaJeVidetVTransakcich(): void
     {
         $this->vlozAktivitu(idAktivity: 55601, nazev: 'Kubb', cena: 250);

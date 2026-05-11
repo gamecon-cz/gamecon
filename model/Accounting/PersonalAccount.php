@@ -82,6 +82,9 @@ readonly class PersonalAccount
         foreach ($account->getTransactions() as $transaction) {
             if ($transaction->getCategory() === $category) {
                 foreach ($transaction->getSplits() as $split) {
+                    if ($split->getDescription() === $categoryName) {
+                        continue;
+                    }
                     $result = $result . '<tr><td>' . $split->getDescription() . '</td><td>' . ($negatePrice ? -1 : 1) * $split->getAmount() . '</td></tr>';
                 }
             }
