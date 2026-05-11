@@ -681,6 +681,9 @@ SQL;
                                                           ->modify('-1 day') // například 17. 7. 2023 00:00 -> 16. 7. 2023 myšleno včetně
                                                           ->formatDatumDb();
             $konecGameconuKdy            = DateTimeGamecon::spocitejKonecGameconu($this->rocnik())->formatDb();
+            $konecProdejePredmetuBezTricekKdy = DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+                                                                ->modify('-1 day') // například 10. 7. 2023 00:00 -> 9. 7. 2023 myšleno včetně
+                                                                ->formatDatumDb();
 
             $this->vychoziHodnoty = [
                 Klic::GC_BEZI_OD                                      => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())->formatDb(),
@@ -695,9 +698,8 @@ SQL;
                                                                                         ->formatDb(),
                 Klic::UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE           => $tretiHromadneOdhlasovaniKdy,
                 Klic::JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE               => $tretiHromadneOdhlasovaniKdy,
-                Klic::PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
-                                                                                        ->modify('-1 day') // například 10. 7. 2023 00:00 -> 9. 7. 2023 myšleno včetně
-                                                                                        ->formatDatumDb(),
+                Klic::MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE              => $konecProdejePredmetuBezTricekKdy,
+                Klic::PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE => $konecProdejePredmetuBezTricekKdy,
                 Klic::TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE              => $this->rocnik() === 2023
                     ? '2023-06-23'
                     : DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
@@ -819,6 +821,17 @@ SQL;
     public function prodejTricekUkoncen(): bool
     {
         return $this->prodejTricekDo() < $this->ted();
+    }
+
+    public function prodejMikinDo(): DateTimeImmutableStrict
+    {
+        return (new DateTimeImmutableStrict(MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
+    public function prodejMikinUkoncen(): bool
+    {
+        return $this->prodejMikinDo() < $this->ted();
     }
 
     public function prodejPredmetuBezTricekDo(): DateTimeImmutableStrict
