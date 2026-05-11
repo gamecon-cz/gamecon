@@ -660,13 +660,25 @@ SQL;
             if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::SLEDUJICI) {
                 continue;
             }
+            $castkaAktivity = in_array($r['typ'], TypAktivity::interniTypy())
+                ? 0.0
+                : (float)$r['cena'];
             $this->log(
                 nazev: $r['nazev'] . $poznamka,
-                castka: in_array($r['typ'], TypAktivity::interniTypy())
-                    ? 0
-                    : $r['cena'],
+                castka: $castkaAktivity,
                 kategorie: self::AKTIVITY,
                 idPolozky: null,
+            );
+            $this->logPolozkaProBfgr(
+                nazev: $r['nazev'] . $poznamka,
+                pocet: 1,
+                priceAfterDiscountDto: new PriceAfterDiscountDto(
+                    finalPrice: $castkaAktivity,
+                    discount: 0,
+                ),
+                typ: self::AKTIVITY,
+                kodPredmetu: '',
+                idPredmetu: '',
             );
         }
         $this->zapocteno[__FUNCTION__] = true;
@@ -747,7 +759,7 @@ SQL;
         $this->cenaStravy                     = 0.0;
         $this->proplacenyBonusZaVedeniAktivit = 0.0;
         $this->dobrovolneVstupnePrehled       = [];
-        $this->polozkyProBfgr                 = [];
+        $this->polozkyProBfgr                 ??= [];
 
         $o = dbQuery('
       SELECT predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok, predmety.kod_predmetu
@@ -999,6 +1011,21 @@ SQL;
                 castka: '&nbsp;',
                 kategorie: self::PRIPSANE_SLEVY,
                 idPolozky: null,
+            );
+        }
+
+        $aplikovanaSleva = $puvodniObecnaSleva - $nevyuzitaObecnaSleva;
+        if ($aplikovanaSleva > 0) {
+            $this->logPolozkaProBfgr(
+                nazev: 'Sleva',
+                pocet: 1,
+                priceAfterDiscountDto: new PriceAfterDiscountDto(
+                    finalPrice: -$aplikovanaSleva,
+                    discount: 0,
+                ),
+                typ: self::PRIPSANE_SLEVY,
+                kodPredmetu: '',
+                idPredmetu: '',
             );
         }
 
