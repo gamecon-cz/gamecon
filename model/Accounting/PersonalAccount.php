@@ -11,7 +11,6 @@ readonly class PersonalAccount
      */
     public function __construct(
         private array $transactions,
-        private int|float $total,
     ) {
     }
 
@@ -24,11 +23,11 @@ readonly class PersonalAccount
     }
 
     /**
-     * Returns authoritative account balance.
+     * Returns total monetary sum of all transactions.
      */
-    public function getTotal(): int|float
+    public function getTotal(): int
     {
-        return $this->normalizeMoney($this->total);
+        return array_sum(array_map(fn (Transaction $transaction) => $transaction->getTotalAmount(), $this->transactions));
     }
 
     /**
@@ -56,18 +55,12 @@ readonly class PersonalAccount
         $result = $result . $this->categoryToHtml($this, TransactionCategory::LEFTOVER_FROM_LAST_YEAR, 'Zůstatek z minulých let');
         $result = $result . $this->categoryToHtml($this, TransactionCategory::MANUAL_MOVEMENTS, 'Připsané platby');
 
-        $result = $result . '<tr><td><b>Stav financí</b></td><td><b>' . $this->getTotal() . '</b></td></tr>';
+        $result = $result . '<tr><td><b>Stav financí</b></td><td><b>' . array_reduce(
+            $this->getTransactions(),
+            fn ($a, $b) => $this->transactionSumReducer($a, $b),
+            0) . '</b></td></tr>';
 
         return $result . '</table>';
-    }
-
-    private function normalizeMoney(int|float $amount): int|float
-    {
-        $amount = round((float) $amount, 2);
-
-        return floor($amount) === $amount
-            ? (int) $amount
-            : $amount;
     }
 
     private function transactionSumReducer(int $carry, Transaction $item): int
