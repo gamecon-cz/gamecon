@@ -87,6 +87,9 @@ readonly class PersonalAccount
 
         foreach ($groupedSplits as $groupedSplit) {
             $description = $groupedSplit['description'];
+            if ($description === $categoryName) {
+                continue;
+            }
             if ($groupedSplit['count'] > 1) {
                 $description .= ' ' . $groupedSplit['count'] . '×';
             }
