@@ -17,8 +17,6 @@ use Uzivatel;
 
 class NotifikacePrihlasky
 {
-    private const EMAIL_ODESILATELE = 'info@gamecon.cz';
-    private const JMENO_ODESILATELE = 'GameCon';
     private const KATEGORIE_AKTIVITY  = 'Aktivity';
     private const KATEGORIE_UBYTOVANI = 'Ubytování';
     private const KATEGORIE_JIDLO     = 'Jídlo';
@@ -468,7 +466,6 @@ TEXT;
         }
 
         (new GcMail($this->systemoveNastaveni))
-            ->odesilatel(new Address(self::EMAIL_ODESILATELE, self::JMENO_ODESILATELE))
             ->adresat($mail)
             ->predmet($predmet)
             ->text($text)
