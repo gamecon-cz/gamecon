@@ -137,7 +137,11 @@ trait DateTimeCzTrait
 
     public static function createFromMysql(string $dateTime, \DateTimeZone $timeZone = null): static|false
     {
-        return static::createFromFormat('Y-m-d H:i:s', $dateTime, $timeZone);
+        try {
+            return static::createFromFormat(static::FORMAT_DB, $dateTime, $timeZone);
+        } catch (InvalidDateTimeFormat) {
+            return static::createFromFormat('!' . static::FORMAT_DATUM_DB, $dateTime, $timeZone);
+        }
     }
 
     public static function createFromFormat(string $format, string $datetime, ?\DateTimeZone $timezone = null): static|false
