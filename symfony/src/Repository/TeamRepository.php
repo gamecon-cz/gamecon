@@ -134,6 +134,23 @@ class TeamRepository extends ServiceEntityRepository
     }
 
     /**
+     * Vrátí připravené týmy (mají alespoň jednoho člena) bez přihlášeného kapitána.
+     * Nevalidní stav: kapitán je nastaven na týmu, ale není přihlášen jako člen.
+     *
+     * @return Team[]
+     */
+    public function findPripraveneBezKapitana(): array
+    {
+        return $this->createQueryBuilder('team')
+            ->join('team.clenove', 'clen')
+            ->leftJoin('team.clenove', 'kapitanRegistrace', 'WITH', 'kapitanRegistrace.uzivatel = team.kapitan')
+            ->andWhere('kapitanRegistrace.id IS NULL')
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Vrátí týmy bez členů (žádný záznam v akce_tym_prihlaseni), založené před více než $minut minutami.
      *
      * @return Team[]

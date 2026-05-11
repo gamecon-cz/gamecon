@@ -15,8 +15,7 @@ function zpracujAkciTymu(\Uzivatel $u): void
         if ($idTymu > 0) {
             AktivitaTym::najdi($idTymu)->rozebratTym();
         }
-        header('Location: ' . $_SERVER['REQUEST_URI']);
-        exit;
+        reload();
     }
 
     if (post('zamknoutTym') || post('odemknoutTym')) {
@@ -32,30 +31,28 @@ function zpracujAkciTymu(\Uzivatel $u): void
                 $tym->odemkni();
             }
         }
-        header('Location: ' . $_SERVER['REQUEST_URI']);
-        exit;
+        reload();
     }
 
     if (post('predatKapitana')) {
         $idTymu        = (int)post('idTymu');
         $novyKapitanId = (int)post('novyKapitanId');
-        // TODO: AktivitaTym::najdi($idTymu)->nastavKapitana($novyKapitanId);
-        echo json_encode([
-            'akce'          => 'predatKapitana',
-            'idTymu'        => $idTymu,
-            'novyKapitanId' => $novyKapitanId,
-        ]);
-        exit;
+        if ($idTymu > 0 && $novyKapitanId > 0) {
+            AktivitaTym::najdi($idTymu)->nastavKapitana($novyKapitanId);
+        }
+        reload();
     }
 
     if (post('predatKapitanaAutomaticky')) {
         $idTymu = (int)post('idTymu');
-        // TODO: vybrat prvního člena týmu bez kapitána a nastavit ho
-        echo json_encode([
-            'akce'   => 'predatKapitanaAutomaticky',
-            'idTymu' => $idTymu,
-        ]);
-        exit;
+        if ($idTymu > 0) {
+            $tym     = AktivitaTym::najdi($idTymu);
+            $clenove = $tym->clenoveTymu();
+            if ($clenove) {
+                $tym->nastavKapitana($clenove[0]->id());
+            }
+        }
+        reload();
     }
 
     if (post('prihlasitTymNaAktivitu')) {

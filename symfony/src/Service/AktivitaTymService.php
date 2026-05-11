@@ -324,6 +324,16 @@ class AktivitaTymService
     }
 
     /**
+     * Vrátí připravené týmy (mají alespoň jednoho člena) kde kapitán není přihlášen jako člen.
+     *
+     * @return Team[]
+     */
+    public function pripraveneTymyBezKapitana(): array
+    {
+        return $this->teamRepository->findPripraveneBezKapitana();
+    }
+
+    /**
      * @return \Uzivatel[] seřazení: kapitán první, pak ostatní podle pořadí přihlášení
      */
     public function clenoveTymu(int $idTymu): array

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -15,17 +16,27 @@ function renderujVysledkyKontrolyTymu(XTemplate $tpl): void
         ['id' => 77, 'nazev' => 'Modré Draky'],
     ];
 
-    $pripraveneBezKapitana = [
-        [
-            'id'       => 13,
-            'nazev'    => 'Tichá Voda',
-            'aktivita' => 'Deskový turnaj',
-            'clenove'  => [
-                ['id' => 101, 'nick' => 'franta', 'jmeno' => 'František Novák'],
-                ['id' => 102, 'nick' => 'pepa', 'jmeno' => 'Josef Dvořák'],
-            ],
-        ],
-    ];
+    $pripraveneBezKapitana = array_map(
+        static function (AktivitaTym $tym): array {
+            $aktivity = $tym->dalsiAktivity();
+            $aktivitaNazev = $aktivity ? reset($aktivity)->nazev() : '';
+            $clenove = array_map(
+                static fn(\Uzivatel $clen) => [
+                    'id'    => $clen->id(),
+                    'nick'  => $clen->nick(),
+                    'jmeno' => $clen->jmenoNaWebu(),
+                ],
+                $tym->clenoveTymu(),
+            );
+            return [
+                'id'       => $tym->getId(),
+                'nazev'    => $tym->getNazev() ?? '',
+                'aktivita' => $aktivitaNazev,
+                'clenove'  => $clenove,
+            ];
+        },
+        AktivitaTym::pripraveneTymyBezKapitana(),
+    );
 
     $spatnaKola = [
         [

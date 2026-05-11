@@ -332,6 +332,20 @@ class AktivitaTym
         );
     }
 
+    /**
+     * Vrátí připravené týmy (mají alespoň jednoho člena) kde kapitán není přihlášen jako člen.
+     * Jde o nevalidní stav — viz docs/tymovky.md sekce "nevalidní stavy".
+     *
+     * @return self[]
+     */
+    public static function pripraveneTymyBezKapitana(): array
+    {
+        return array_map(
+            fn (Team $team) => new self($team),
+            self::service()->pripraveneTymyBezKapitana(),
+        );
+    }
+
     public static function infoOTymuUzivatele(int $idUzivatele, int $idAktivity): ?InfoOTymu
     {
         return self::service()->infoOTymuUzivatele($idUzivatele, $idAktivity);
