@@ -17,9 +17,8 @@ class Accounting
 {
     public static function getPersonalFinance(Uzivatel $u, bool $showDiscounts): PersonalAccount
     {
-        $finance = $u->finance();
         $transactions = [];
-        foreach ($finance->dejPolozkyProBfgr() as $polozkaProBfgr) {
+        foreach ($u->finance()->dejPolozkyProBfgr() as $polozkaProBfgr) {
             $splits = [];
             if ($showDiscounts) {
                 $splits[] = new TransactionSplit(-($polozkaProBfgr->castka + $polozkaProBfgr->sleva), $polozkaProBfgr->nazev);
@@ -77,8 +76,7 @@ class Accounting
                 splits: $splits,
                 id: "#U[" . $u->id() . "]#P[" . $polozkaProBfgr->idPredmetu . "]");
         }
-        // BFGR položky nejsou kompletní účetní deník, proto finální stav bereme ze stejného výpočtu jako infopult.
-        return new PersonalAccount($transactions, $finance->stav());
+        return new PersonalAccount($transactions);
     }
 
     public static function cancelTransaction(string $transactionId): bool
