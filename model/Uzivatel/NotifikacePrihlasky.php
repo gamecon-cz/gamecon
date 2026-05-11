@@ -12,11 +12,13 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Symfony\Component\Mime\Address;
 use Uzivatel;
 
 class NotifikacePrihlasky
 {
-    private const ODESILATEL_MAILU = 'GameCon <info@gamecon.cz>';
+    private const EMAIL_ODESILATELE = 'info@gamecon.cz';
+    private const JMENO_ODESILATELE = 'GameCon';
     private const KATEGORIE_AKTIVITY  = 'Aktivity';
     private const KATEGORIE_UBYTOVANI = 'Ubytování';
     private const KATEGORIE_JIDLO     = 'Jídlo';
@@ -466,7 +468,7 @@ TEXT;
         }
 
         (new GcMail($this->systemoveNastaveni))
-            ->odesilatel(self::ODESILATEL_MAILU)
+            ->odesilatel(new Address(self::EMAIL_ODESILATELE, self::JMENO_ODESILATELE))
             ->adresat($mail)
             ->predmet($predmet)
             ->text($text)

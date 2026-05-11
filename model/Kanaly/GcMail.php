@@ -6,6 +6,7 @@ use Gamecon\Kanaly\Exceptions\ChybiEmailoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Throwable;
 
@@ -29,7 +30,7 @@ class GcMail
 
     private array  $adresati = [];
     private string $predmet  = '';
-    private ?string $odesilatel = null;
+    private ?Address $odesilatel = null;
     /** @var array<int, array{soubor: string, nazev: string}> */
     private array  $prilohy  = [];
 
@@ -53,7 +54,7 @@ class GcMail
         return $this;
     }
 
-    public function odesilatel(string $odesilatel): self
+    public function odesilatel(Address $odesilatel): self
     {
         $this->odesilatel = $odesilatel;
         return $this;
@@ -66,14 +67,8 @@ class GcMail
     public function odeslat(string $format = self::FORMAT_HTML)
     {
         $predmet = $this->pridejPrefixPodleProstredi($this->dejPredmet());
-        $kontaktniEmail = trim($this->systemoveNastaveni->kontaktniEmailGc());
-        if ($kontaktniEmail === '') {
-            $kontaktniEmail = self::VYCHOZI_EMAIL_ODESILATELE;
-        }
-        $odesilatel = $this->odesilatel
-            ?: "GameCon <{$kontaktniEmail}>";
         $mail    = (new Email())
-            ->from($this->pridejPrefixPodleProstredi($odesilatel))
+            ->from($this->odesilatelSPrefixemProstredi())
             ->subject($predmet);
         $body = $this->pridejPrefixPodleProstredi($this->dejText());
         $mail->text(strip_tags($body));
@@ -89,9 +84,9 @@ class GcMail
             $odeslano = $this->zalogovatDo(MAILY_DO_SOUBORU, $mail->toString()) || $odeslano;
             $this->zalogujOdeslani($predmet, $format, $adresatiDoSouboru, $mail->toString());
         }
-        $adresatiPovoleniPodleRoli = $this->adresatiPovoleniPodleRoli();
-        if ($adresatiPovoleniPodleRoli) {
-            $mail->addBcc(...$adresatiPovoleniPodleRoli);
+        $adresati = $this->adresatiPovoleniPodleRoli();
+        if ($adresati) {
+            $mail->addBcc(...$adresati);
             foreach ($this->prilohy as $priloha) {
                 if ($priloha['soubor'] === '') {
                     continue;
@@ -103,9 +98,9 @@ class GcMail
             try {
                 $mailer->send($mail);
                 $odeslano = true;
-                $this->zalogujOdeslani($predmet, $format, $adresatiPovoleniPodleRoli, $mail->toString());
+                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString());
             } catch (Throwable $chyba) {
-                $this->zalogujOdeslani($predmet, $format, $adresatiPovoleniPodleRoli, $mail->toString(), $chyba->getMessage());
+                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $chyba->getMessage());
                 throw $chyba;
             }
         }
@@ -138,6 +133,28 @@ class GcMail
         );
     }
 
+    private function vychoziOdesilatel(): Address
+    {
+        return new Address(self::VYCHOZI_EMAIL_ODESILATELE, 'GameCon');
+    }
+
+    private function odesilatelSPrefixemProstredi(): Address
+    {
+        $odesilatel = $this->odesilatel ?? $this->vychoziOdesilatel();
+        $prefix     = $this->systemoveNastaveni->prefixPodleProstredi();
+        if ($prefix === '') {
+            return $odesilatel;
+        }
+        $jmeno = $odesilatel->getName();
+
+        return new Address(
+            $odesilatel->getAddress(),
+            $jmeno === ''
+                ? $prefix
+                : $prefix . ' ' . $jmeno,
+        );
+    }
+
     private function pridejPrefixPodleProstredi(string $text): string
     {
         $prefix = $this->systemoveNastaveni->prefixPodleProstredi();
@@ -156,8 +173,7 @@ class GcMail
         if (!defined('MAILER_DSN')) {
             /**
              * Návod @link https://symfony.com/doc/current/mailer.html#transport-setup
-             * SMTP server @link https://client.wedos.com/webhosting/webhost-detail.html?id=16779 'Adresy služeb' dole
-             * Pro Wedos SMTP použij port 587 (TLS), protože SSL z PHP z Wedos serveru nefunguje.
+             * SMTP server: smtp.gmail.com:465
              */
             throw new ChybiEmailoveNastaveni(
                 "Pro odeslání emailu je třeba nastavit konstantu 'MAILER_DSN'"
