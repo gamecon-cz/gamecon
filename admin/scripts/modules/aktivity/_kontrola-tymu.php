@@ -5,10 +5,7 @@ declare(strict_types=1);
 use Gamecon\Aktivita\AktivitaTym;
 use Gamecon\XTemplate\XTemplate;
 
-/**
- * Provede (mock) kontrolu stavu týmů a vyrenderuje výsledky do šablony.
- * TODO: nahradit skutečnými dotazy do databáze.
- */
+/** Provede kontrolu stavu týmů a vyrenderuje výsledky do šablony. */
 function renderujVysledkyKontrolyTymu(XTemplate $tpl): void
 {
     $tymyBezAktivity = array_map(
@@ -42,57 +39,9 @@ function renderujVysledkyKontrolyTymu(XTemplate $tpl): void
         AktivitaTym::pripraveneTymyBezKapitana(),
     );
 
-    $spatnaKola = [
-        [
-            'id'       => 55,
-            'nazev'    => 'Zlaté Orly',
-            'aktivita' => 'Velký turnaj',
-            'kola'     => [
-                [
-                    'cislo'    => 1,
-                    'cas'      => 'Pátek 14:00',
-                    'aktivity' => [
-                        ['id' => 201, 'nazev' => 'Velký turnaj sk. A', 'prihlasena' => true],
-                        ['id' => 202, 'nazev' => 'Velký turnaj sk. B', 'prihlasena' => true],
-                    ],
-                ],
-                [
-                    'cislo'    => 2,
-                    'cas'      => 'Sobota 10:00',
-                    'aktivity' => [
-                        ['id' => 203, 'nazev' => 'Velký turnaj sk. C', 'prihlasena' => false],
-                        ['id' => 204, 'nazev' => 'Velký turnaj sk. D', 'prihlasena' => false],
-                    ],
-                ],
-                [
-                    'cislo'    => 3,
-                    'cas'      => 'Neděle 10:00',
-                    'aktivity' => [
-                        ['id' => 205, 'nazev' => 'Velký turnaj finále', 'prihlasena' => true],
-                    ],
-                ],
-            ],
-        ],
-    ];
-
-    $hraciNeprihlaseni = [
-        [
-            'nick'           => 'jana',
-            'jmeno'          => 'Jana Horáková',
-            'idTymu'         => 13,
-            'nazevTymu'      => 'Tichá Voda',
-            'aktivita'       => 'Deskový turnaj',
-            'chybiPrihlaska' => 'Kolo 2 – Deskový turnaj (sobota 14:00)',
-        ],
-        [
-            'nick'           => 'marek',
-            'jmeno'          => 'Marek Procházka',
-            'idTymu'         => 55,
-            'nazevTymu'      => 'Zlaté Orly',
-            'aktivita'       => 'Velký turnaj',
-            'chybiPrihlaska' => 'Kolo 3 – Velký turnaj (neděle 10:00)',
-        ],
-    ];
+    $spatnaKola          = AktivitaTym::tymySPatnymKolemTurnaje();
+    $hraciNeprihlaseni   = AktivitaTym::hraciNeprihlaseniNaAktivityTymu();
+    $hraciSPatnymTymem   = AktivitaTym::hraciSPatnymTymem();
 
     $maNejakeChyby = false;
 
@@ -185,6 +134,21 @@ function renderujVysledkyKontrolyTymu(XTemplate $tpl): void
             $tpl->parse('tymy.kontrolaVysledky.hraciNeprihlaseni.hracNeprihlaseni');
         }
         $tpl->parse('tymy.kontrolaVysledky.hraciNeprihlaseni');
+    }
+
+    if ($hraciSPatnymTymem) {
+        $maNejakeChyby = true;
+        $tpl->assign('pocetHraciSPatnymTymem', count($hraciSPatnymTymem));
+        foreach ($hraciSPatnymTymem as $hrac) {
+            $tpl->assign([
+                'hspt_nick'     => $hrac['nick'],
+                'hspt_jmeno'    => $hrac['jmeno'],
+                'hspt_aktivita' => $hrac['aktivita'],
+                'hspt_chyba'    => $hrac['chyba'],
+            ]);
+            $tpl->parse('tymy.kontrolaVysledky.hraciSPatnymTymem.hracSPatnymTymem');
+        }
+        $tpl->parse('tymy.kontrolaVysledky.hraciSPatnymTymem');
     }
 
     if (!$maNejakeChyby) {

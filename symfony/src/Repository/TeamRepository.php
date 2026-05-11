@@ -138,11 +138,15 @@ class TeamRepository extends ServiceEntityRepository
      *
      * @return Team[]
      */
-    public function findBezAktivity(): array
+    public function findBezAktivity(int $rok): array
     {
         return $this->createQueryBuilder('team')
             ->leftJoin('team.aktivity', 'aktivita')
             ->andWhere('aktivita.id IS NULL')
+            ->andWhere('team.zalozen >= :startOfYear')
+            ->andWhere('team.zalozen < :startOfNextYear')
+            ->setParameter('startOfYear', new \DateTime("$rok-01-01"))
+            ->setParameter('startOfNextYear', new \DateTime(($rok + 1) . '-01-01'))
             ->getQuery()
             ->getResult();
     }
@@ -153,12 +157,15 @@ class TeamRepository extends ServiceEntityRepository
      *
      * @return Team[]
      */
-    public function findPripraveneBezKapitana(): array
+    public function findPripraveneBezKapitana(int $rok): array
     {
         return $this->createQueryBuilder('team')
+            ->join('team.aktivity', 'aktivita')
             ->join('team.clenove', 'clen')
             ->leftJoin('team.clenove', 'kapitanRegistrace', 'WITH', 'kapitanRegistrace.uzivatel = team.kapitan')
             ->andWhere('kapitanRegistrace.id IS NULL')
+            ->andWhere('aktivita.rok = :rok')
+            ->setParameter('rok', $rok)
             ->distinct()
             ->getQuery()
             ->getResult();

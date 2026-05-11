@@ -382,7 +382,7 @@ body {
   white-space: normal;
   padding: 6px 5px 6px;
   text-align: center;
-  color: #fff;
+  color: #e8f5e9;
   border-radius: 5px;
   text-transform: capitalize;
   height: auto;
@@ -755,6 +755,13 @@ form table .orez img {
 .tymy-kontrola-btn {
   font-size: 1.05em;
   padding: 6px 16px;
+}
+
+.tlacitko.tymy-kontrola-btn--aktivni,
+.tlacitko.tymy-kontrola-btn--aktivni:hover {
+  background: #4a7c4e;
+  border-color: #a8d5aa;
+  color: #fff;
 }
 
 .tymy-kontrola-vysledky {

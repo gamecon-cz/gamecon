@@ -337,8 +337,32 @@ class AktivitaTym
     {
         return array_map(
             fn (Team $team) => new self($team),
-            self::service()->tymyBezAktivity(),
+            self::service()->tymyBezAktivity(ROCNIK),
         );
+    }
+
+    /**
+     * @return array{id: int, nazev: string, aktivita: string, kola: array}[]
+     */
+    public static function tymySPatnymKolemTurnaje(): array
+    {
+        return self::service()->tymySPatnymKolemTurnaje(ROCNIK);
+    }
+
+    /**
+     * @return array{nick: string, jmeno: string, idTymu: int, nazevTymu: string, aktivita: string, chybiPrihlaska: string}[]
+     */
+    public static function hraciNeprihlaseniNaAktivityTymu(): array
+    {
+        return self::service()->hraciNeprihlaseniNaAktivityTymu(ROCNIK);
+    }
+
+    /**
+     * @return array{nick: string, jmeno: string, aktivita: string, chyba: string}[]
+     */
+    public static function hraciSPatnymTymem(): array
+    {
+        return self::service()->hraciSPatnymTymem(ROCNIK);
     }
 
     /**
@@ -351,7 +375,7 @@ class AktivitaTym
     {
         return array_map(
             fn (Team $team) => new self($team),
-            self::service()->pripraveneTymyBezKapitana(),
+            self::service()->pripraveneTymyBezKapitana(ROCNIK),
         );
     }
 

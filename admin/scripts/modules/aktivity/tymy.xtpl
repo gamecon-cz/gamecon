@@ -1,7 +1,7 @@
 <!-- begin:tymy -->
 
 <div class="tymy-kontrola-panel">
-    <a href="aktivity/tymy?kontrolaStavuTymu=1" class="tlacitko tymy-kontrola-btn">Kontrola stavu týmů</a>
+    <a href="{kontrola_btn_href}" class="{kontrola_btn_trida}">Kontrola stavu týmů</a>
 </div>
 
 <!-- begin:kontrolaVysledky -->
@@ -142,6 +142,28 @@
         </table>
     </section>
     <!-- end:hraciNeprihlaseni -->
+
+    <!-- begin:hraciSPatnymTymem -->
+    <section class="tymy-kontrola-sekce tymy-kontrola-sekce--chyba">
+        <h3>Hráči na týmové aktivitě bez týmu nebo ve více týmech ({pocetHraciSPatnymTymem})</h3>
+        <table class="vypis">
+            <tr>
+                <th>Nick</th>
+                <th>Jméno</th>
+                <th>Aktivita</th>
+                <th>Problém</th>
+            </tr>
+            <!-- begin:hracSPatnymTymem -->
+            <tr>
+                <td>{hspt_nick}</td>
+                <td>{hspt_jmeno}</td>
+                <td>{hspt_aktivita}</td>
+                <td>{hspt_chyba}</td>
+            </tr>
+            <!-- end:hracSPatnymTymem -->
+        </table>
+    </section>
+    <!-- end:hraciSPatnymTymem -->
 
     <!-- begin:kontrolaOk -->
     <p class="tymy-kontrola-ok">Vše v pořádku – žádné chyby nenalezeny.</p>

@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Activity;
 use App\Entity\Team;
+use Gamecon\Aktivita\StavPrihlaseni;
 use App\Entity\TeamMemberRegistration;
 use App\Repository\ActivityRepository;
 use App\Repository\TeamMemberRegistrationRepository;
@@ -326,9 +327,205 @@ class AktivitaTymService
     /**
      * @return Team[]
      */
-    public function tymyBezAktivity(): array
+    public function tymyBezAktivity(int $rok): array
     {
-        return $this->teamRepository->findBezAktivity();
+        return $this->teamRepository->findBezAktivity($rok);
+    }
+
+    /**
+     * Týmy na turnajové aktivitě kde v některém kole nemají právě jednu aktivitu (0 nebo 2+).
+     * @return array{id: int, nazev: string, aktivita: string, kola: array}[]
+     */
+    public function tymySPatnymKolemTurnaje(int $rok): array
+    {
+        $conn = $this->em->getConnection();
+
+        $badTeams = $conn->fetchAllAssociative(
+            'SELECT DISTINCT akce_tym.id AS id_tymu,
+                    akce_tym.nazev AS nazev_tymu,
+                    turnaje.nazev AS nazev_turnaje,
+                    turnaje.id_turnaje
+             FROM akce_tym
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce
+             JOIN turnaje ON turnaje.id_turnaje = akce_seznam.id_turnaje
+             WHERE akce_seznam.id_turnaje IS NOT NULL
+               AND akce_seznam.rok = ?
+               AND akce_tym.id IN (
+                   SELECT tymy_inner.id
+                   FROM akce_tym AS tymy_inner
+                   JOIN akce_tym_akce AS vazby_inner ON vazby_inner.id_tymu = tymy_inner.id
+                   JOIN akce_seznam AS aktivity_inner ON aktivity_inner.id_akce = vazby_inner.id_akce
+                   WHERE aktivity_inner.id_turnaje IS NOT NULL
+                     AND aktivity_inner.rok = ?
+                   GROUP BY tymy_inner.id, aktivity_inner.id_turnaje, aktivity_inner.turnaj_kolo
+                   HAVING COUNT(*) != 1
+               )',
+            [$rok, $rok],
+        );
+
+        $result = [];
+        foreach ($badTeams as $team) {
+            $aktivityTurnaje = $conn->fetchAllAssociative(
+                'SELECT akce_seznam.id_akce,
+                        akce_seznam.nazev_akce,
+                        akce_seznam.turnaj_kolo,
+                        akce_seznam.zacatek,
+                        CASE WHEN akce_tym_akce.id_akce IS NOT NULL THEN 1 ELSE 0 END AS prihlasena
+                 FROM akce_seznam
+                 LEFT JOIN akce_tym_akce ON akce_tym_akce.id_akce = akce_seznam.id_akce
+                     AND akce_tym_akce.id_tymu = ?
+                 WHERE akce_seznam.id_turnaje = ?
+                   AND akce_seznam.rok = ?
+                 ORDER BY akce_seznam.turnaj_kolo, akce_seznam.zacatek',
+                [(int) $team['id_tymu'], (int) $team['id_turnaje'], $rok],
+            );
+
+            $kola = [];
+            foreach ($aktivityTurnaje as $aktivita) {
+                $kolo = (int) $aktivita['turnaj_kolo'];
+                if (! isset($kola[$kolo])) {
+                    $kola[$kolo] = [
+                        'cislo'    => $kolo,
+                        'cas'      => $aktivita['zacatek']
+                            ? (new \DateTime($aktivita['zacatek']))->format('j.n. H:i')
+                            : '',
+                        'aktivity' => [],
+                    ];
+                }
+                $kola[$kolo]['aktivity'][] = [
+                    'id'        => (int) $aktivita['id_akce'],
+                    'nazev'     => $aktivita['nazev_akce'],
+                    'prihlasena' => (bool) $aktivita['prihlasena'],
+                ];
+            }
+
+            $result[] = [
+                'id'       => (int) $team['id_tymu'],
+                'nazev'    => $team['nazev_tymu'] ?? '',
+                'aktivita' => $team['nazev_turnaje'],
+                'kola'     => array_values($kola),
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Hráči přihlášení v týmu kteří nejsou přihlášeni na všechny aktivity jejich týmu.
+     * @return array{nick: string, jmeno: string, idTymu: int, nazevTymu: string, aktivita: string, chybiPrihlaska: string}[]
+     */
+    public function hraciNeprihlaseniNaAktivityTymu(int $rok): array
+    {
+        $rows = $this->em->getConnection()->fetchAllAssociative(
+            'SELECT uzivatele_hodnoty.login_uzivatele AS nick,
+                    CONCAT(uzivatele_hodnoty.jmeno_uzivatele, \' \', uzivatele_hodnoty.prijmeni_uzivatele) AS jmeno,
+                    akce_tym.id AS id_tymu,
+                    akce_tym.nazev AS nazev_tymu,
+                    akce_seznam.nazev_akce,
+                    akce_seznam.zacatek,
+                    akce_seznam.turnaj_kolo
+             FROM akce_tym_prihlaseni
+             JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = akce_tym_prihlaseni.id_uzivatele
+             JOIN akce_tym ON akce_tym.id = akce_tym_prihlaseni.id_tymu
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce
+             LEFT JOIN akce_prihlaseni ON akce_prihlaseni.id_akce = akce_seznam.id_akce
+                 AND akce_prihlaseni.id_uzivatele = akce_tym_prihlaseni.id_uzivatele
+                 AND akce_prihlaseni.id_stavu_prihlaseni != ?
+             WHERE akce_prihlaseni.id IS NULL
+               AND akce_seznam.rok = ?
+             ORDER BY uzivatele_hodnoty.login_uzivatele, akce_seznam.turnaj_kolo',
+            [StavPrihlaseni::SLEDUJICI, $rok],
+        );
+
+        return array_map(static function (array $row): array {
+            $casStr = $row['zacatek']
+                ? (new \DateTime($row['zacatek']))->format('j.n. H:i')
+                : '';
+            $chybi = $row['turnaj_kolo']
+                ? 'Kolo ' . $row['turnaj_kolo'] . ' – ' . $row['nazev_akce'] . ' (' . $casStr . ')'
+                : $row['nazev_akce'] . ' (' . $casStr . ')';
+
+            return [
+                'nick'           => $row['nick'],
+                'jmeno'          => $row['jmeno'],
+                'idTymu'         => (int) $row['id_tymu'],
+                'nazevTymu'      => $row['nazev_tymu'] ?? '',
+                'aktivita'       => $row['nazev_akce'],
+                'chybiPrihlaska' => $chybi,
+            ];
+        }, $rows);
+    }
+
+    /**
+     * Hráči přihlášení na týmovou aktivitu ale nejsou v žádném týmu nebo jsou ve více týmech.
+     * @return array{nick: string, jmeno: string, aktivita: string, chyba: string}[]
+     */
+    public function hraciSPatnymTymem(int $rok): array
+    {
+        $conn = $this->em->getConnection();
+
+        $bezTymu = $conn->fetchAllAssociative(
+            'SELECT uzivatele_hodnoty.login_uzivatele AS nick,
+                    CONCAT(uzivatele_hodnoty.jmeno_uzivatele, \' \', uzivatele_hodnoty.prijmeni_uzivatele) AS jmeno,
+                    akce_seznam.nazev_akce
+             FROM akce_prihlaseni
+             JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = akce_prihlaseni.id_uzivatele
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_prihlaseni.id_akce
+             WHERE akce_seznam.teamova = 1
+               AND akce_seznam.rok = ?
+               AND akce_prihlaseni.id_stavu_prihlaseni != ?
+               AND NOT EXISTS (
+                   SELECT 1
+                   FROM akce_tym_prihlaseni
+                   JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym_prihlaseni.id_tymu
+                   WHERE akce_tym_prihlaseni.id_uzivatele = akce_prihlaseni.id_uzivatele
+                     AND akce_tym_akce.id_akce = akce_prihlaseni.id_akce
+               )
+             ORDER BY uzivatele_hodnoty.login_uzivatele',
+            [$rok, StavPrihlaseni::SLEDUJICI],
+        );
+
+        $viceTymu = $conn->fetchAllAssociative(
+            'SELECT uzivatele_hodnoty.login_uzivatele AS nick,
+                    CONCAT(uzivatele_hodnoty.jmeno_uzivatele, \' \', uzivatele_hodnoty.prijmeni_uzivatele) AS jmeno,
+                    akce_seznam.nazev_akce,
+                    GROUP_CONCAT(COALESCE(akce_tym.nazev, CONCAT(\'#\', akce_tym.id))
+                        ORDER BY akce_tym.id SEPARATOR \', \') AS nazvy_tymu
+             FROM akce_tym_prihlaseni
+             JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = akce_tym_prihlaseni.id_uzivatele
+             JOIN akce_tym ON akce_tym.id = akce_tym_prihlaseni.id_tymu
+             JOIN akce_tym_akce ON akce_tym_akce.id_tymu = akce_tym.id
+             JOIN akce_seznam ON akce_seznam.id_akce = akce_tym_akce.id_akce
+             WHERE akce_seznam.rok = ?
+             GROUP BY akce_tym_prihlaseni.id_uzivatele, akce_seznam.id_akce,
+                      uzivatele_hodnoty.login_uzivatele, uzivatele_hodnoty.jmeno_uzivatele,
+                      uzivatele_hodnoty.prijmeni_uzivatele, akce_seznam.nazev_akce
+             HAVING COUNT(DISTINCT akce_tym_prihlaseni.id_tymu) > 1
+             ORDER BY uzivatele_hodnoty.login_uzivatele',
+            [$rok],
+        );
+
+        $result = [];
+        foreach ($bezTymu as $row) {
+            $result[] = [
+                'nick'     => $row['nick'],
+                'jmeno'    => $row['jmeno'],
+                'aktivita' => $row['nazev_akce'],
+                'chyba'    => 'není v žádném týmu',
+            ];
+        }
+        foreach ($viceTymu as $row) {
+            $result[] = [
+                'nick'     => $row['nick'],
+                'jmeno'    => $row['jmeno'],
+                'aktivita' => $row['nazev_akce'],
+                'chyba'    => 've více týmech: ' . $row['nazvy_tymu'],
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -336,9 +533,9 @@ class AktivitaTymService
      *
      * @return Team[]
      */
-    public function pripraveneTymyBezKapitana(): array
+    public function pripraveneTymyBezKapitana(int $rok): array
     {
-        return $this->teamRepository->findPripraveneBezKapitana();
+        return $this->teamRepository->findPripraveneBezKapitana($rok);
     }
 
     /**

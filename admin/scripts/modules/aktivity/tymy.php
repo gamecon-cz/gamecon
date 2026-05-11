@@ -23,7 +23,14 @@ zpracujAkciTymu($u);
 
 $tpl = new XTemplate(__DIR__ . '/tymy.xtpl');
 
-if (get('kontrolaStavuTymu')) {
+$kontrolaAktivni = (bool)get('kontrolaStavuTymu');
+
+$tpl->assign([
+    'kontrola_btn_trida' => $kontrolaAktivni ? 'tlacitko tymy-kontrola-btn tymy-kontrola-btn--aktivni' : 'tlacitko tymy-kontrola-btn',
+    'kontrola_btn_href'  => $kontrolaAktivni ? 'aktivity/tymy' : 'aktivity/tymy?kontrolaStavuTymu=1',
+]);
+
+if ($kontrolaAktivni) {
     renderujVysledkyKontrolyTymu($tpl);
 }
 

@@ -86,6 +86,7 @@ PRIO
 # nevalidní stavy a eskalace
   - stavy hráčů
     - hráči jsou v týmu ale nejsou přihlášeni na všechny aktivity
+    - hráč je na týmové aktivitě ale není v týmu nebo je ve více týmech
   - stavy týmu
     - tým má přihlášené lidi ale nemá přihlášeného kapitána
     - tým má hráče ale nemá všechna kola turnaje (nebo má v jednom kole více aktivit)
