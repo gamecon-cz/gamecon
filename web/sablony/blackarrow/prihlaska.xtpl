@@ -72,9 +72,9 @@
                 <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/hra.png"
                      style="top: -40px; right: -19px">
                 <h3>GameCon merch</h3>
-                <p>Placky, kostky i trička s logem GameConu si můžeš objednat ve více kusech. Stačí kliknout na tlačítko ➕.
-                    U triček se po vyplnění jednoho automaticky zobrazí možnost přidat další.<br>
-                    <b>Výběr triček můžeš upravovat do {trickaObjednatelnaDo}, ostatní merch do
+                <p>Placky, kostky, mikiny i trička s logem GameConu si můžeš objednat ve více kusech. Stačí kliknout na tlačítko ➕.
+                    U triček a mikin se po vyplnění jednoho automaticky zobrazí možnost přidat další.<br>
+                    <b>Výběr triček můžeš upravovat do {trickaObjednatelnaDo}, mikiny do {mikinyObjednatelnaDo}, ostatní merch do
                         {predmetyBezTricekObjednatelneDo}</b></p>
             </div>
             <!-- begin: slevy -->
@@ -84,8 +84,6 @@
             <!-- end: slevy -->
         </div>
 
-        {predmety}
-
         <div class="prihlaska_nahledy">
             <!-- begin: nahled -->
             <a href="{obrazek}" class="prihlaska_nahled" title="{nazev}" style="display: {display}">
@@ -93,6 +91,8 @@
             </a>
             <!-- end: nahled -->
         </div>
+
+        {predmety}
     </div>
 
     <!----------------------------------------------------------------------------->

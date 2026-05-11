@@ -559,6 +559,19 @@ SQL,
     /**
      * @test
      */
+    public function testFormatForHtmlZahrneDobrovolneVstupneDoCelkoveCeny(): void
+    {
+        $this->vlozNakup(55505, 300);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)->formatForHtml();
+
+        self::assertStringContainsString('<td><b>Dobrovolné vstupné</b></td><td><b>-300</b></td>', $html);
+        self::assertStringContainsString('<td><b>Celková cena</b></td><td><b>300</b></td>', $html);
+    }
+
+    /**
+     * @test
+     */
     public function testFormatForHtmlSPozitivnimiCenamiPrevratiZnamenkaUSeskupenychPolozek(): void
     {
         $this->pridelPravo(Pravo::UBYTOVANI_ZDARMA);

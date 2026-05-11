@@ -19,6 +19,7 @@ class Polozka
     private ?DateTimeImmutableStrict $nabizetDo;
     private ?float                   $zbyvaKusu;
     private int                      $idTypu;
+    private ?string                  $podtyp;
     private int                      $stav;
 
     public function __construct(array $hodnoty)
@@ -38,6 +39,7 @@ class Polozka
             : null;
         $this->zbyvaKusu           = $this->vyrobenoKusu !== null ? $this->vyrobenoKusu - $this->prodanoKusu : null;
         $this->idTypu              = (int)$hodnoty['typ'];
+        $this->podtyp              = $hodnoty['podtyp'] !== null ? (string)$hodnoty['podtyp'] : null;
         $this->stav                = (int)$hodnoty['stav'];
     }
 
@@ -106,7 +108,9 @@ class Polozka
         return match ($this->idTypu()) {
             TypPredmetu::JIDLO   => $systemoveNastaveni->prodejJidlaDo(),
             TypPredmetu::TRICKO  => $systemoveNastaveni->prodejTricekDo(),
-            TypPredmetu::PREDMET => $systemoveNastaveni->prodejPredmetuBezTricekDo(),
+            TypPredmetu::PREDMET => $this->podtyp === PodtypPredmetu::MIKINA
+                ? $systemoveNastaveni->prodejMikinDo()
+                : $systemoveNastaveni->prodejPredmetuBezTricekDo(),
             default              => null,
         };
     }

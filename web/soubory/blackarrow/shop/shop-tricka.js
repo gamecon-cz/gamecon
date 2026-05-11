@@ -1,64 +1,70 @@
 {
-    const hodnotaZadneTricko = '0'
-    const vyberyTricek = () => Array.from(document.querySelectorAll('.shopPredmety_trickoSelect'))
+    const hodnotaPrazdnePolozky = '0'
+    const vsechnyOpakovaneSelecty = () => Array.from(document.querySelectorAll('.shopPredmety_opakovanySelect'))
+    const vyberySkupiny = skupina => Array.from(document.querySelectorAll(`.shopPredmety_opakovanySelect[data-opakovany-select="${skupina}"]`))
 
     function indexVyberu(selectNode) {
         const shoda = selectNode.name.match(/\[(\d+)\]/)
         return shoda ? Number.parseInt(shoda[1], 10) : 0
     }
 
-    function nastavIndexVyberu(trickoNode, index) {
-        const selectNode = trickoNode.querySelector('.shopPredmety_trickoSelect')
+    function nastavIndexVyberu(polozkaNode, index, skupina) {
+        const selectNode = polozkaNode.querySelector(`.shopPredmety_opakovanySelect[data-opakovany-select="${skupina}"]`)
         if (!selectNode) {
             return
         }
 
+        const idPrefix = polozkaNode.dataset.inputIdPrefix || 'vyberPolozky'
         selectNode.name = selectNode.name.replace(/\[\d+\]/, `[${index}]`)
-        selectNode.id = `vyberTricek-${index}`
+        selectNode.id = `${idPrefix}-${index}`
 
-        const labelNode = trickoNode.querySelector('label')
+        const labelNode = polozkaNode.querySelector('label')
         if (labelNode) {
             labelNode.setAttribute('for', selectNode.id)
         }
     }
 
-    function jePosledniVyberTricka(selectNode) {
-        const vybery = vyberyTricek()
+    function jePosledniVyberSkupiny(selectNode, skupina) {
+        const vybery = vyberySkupiny(skupina)
         return vybery[vybery.length - 1] === selectNode
     }
 
-    function dalsiIndexVyberuTricka() {
-        return vyberyTricek().reduce(
+    function dalsiIndexVyberuSkupiny(skupina) {
+        return vyberySkupiny(skupina).reduce(
             (nejvyssiIndex, selectNode) => Math.max(nejvyssiIndex, indexVyberu(selectNode)),
             -1,
         ) + 1
     }
 
-    function pridejVyberDalsihoTricka(event) {
+    function pridejVyberDalsiPolozky(event) {
         const selectNode = event.currentTarget
-        if (selectNode.value === hodnotaZadneTricko || !jePosledniVyberTricka(selectNode)) {
+        const skupina = selectNode.dataset.opakovanySelect
+        if (!skupina
+            || selectNode.value === hodnotaPrazdnePolozky
+            || !jePosledniVyberSkupiny(selectNode, skupina)
+        ) {
             return
         }
 
-        const trickoNode = selectNode.closest('.shopPredmety_tricko')
-        if (!trickoNode) {
+        const polozkaNode = selectNode.closest(`.shopPredmety_opakovanyVyber[data-opakovany-vyber="${skupina}"]`)
+        if (!polozkaNode) {
             return
         }
 
-        const klon = trickoNode.cloneNode(true)
-        nastavIndexVyberu(klon, dalsiIndexVyberuTricka())
+        const klon = polozkaNode.cloneNode(true)
+        nastavIndexVyberu(klon, dalsiIndexVyberuSkupiny(skupina), skupina)
 
-        const klonSelect = klon.querySelector('.shopPredmety_trickoSelect')
+        const klonSelect = klon.querySelector(`.shopPredmety_opakovanySelect[data-opakovany-select="${skupina}"]`)
         if (!klonSelect) {
             return
         }
-        klonSelect.value = hodnotaZadneTricko
-        klonSelect.addEventListener('change', pridejVyberDalsihoTricka)
+        klonSelect.value = hodnotaPrazdnePolozky
+        klonSelect.addEventListener('change', pridejVyberDalsiPolozky)
 
-        trickoNode.after(klon)
+        polozkaNode.after(klon)
     }
 
-    vyberyTricek().forEach(selectNode => {
-        selectNode.addEventListener('change', pridejVyberDalsihoTricka)
+    vsechnyOpakovaneSelecty().forEach(selectNode => {
+        selectNode.addEventListener('change', pridejVyberDalsiPolozky)
     })
 }

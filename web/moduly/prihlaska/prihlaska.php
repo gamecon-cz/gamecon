@@ -297,6 +297,7 @@ $t->assign([
     'jidlo'                           => prihlaskaJidloHtml($shop, $u, $systemoveNastaveni),
     'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
     'predmety'                        => $shop->predmetyHtml(),
+    'mikinyObjednatelnaDo'            => $shop->mikinyObjednatelnaDoHtml(),
     'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
     'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
     'rok'                             => ROCNIK,

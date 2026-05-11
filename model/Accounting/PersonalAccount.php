@@ -48,7 +48,8 @@ readonly class PersonalAccount
                 $a->getCategory() === TransactionCategory::ACTIVITY
                 || $a->getCategory() === TransactionCategory::FOOD
                 || $a->getCategory() === TransactionCategory::SHOP_ITEMS
-                || $a->getCategory() === TransactionCategory::ACCOMMODATION)),
+                || $a->getCategory() === TransactionCategory::ACCOMMODATION
+                || $a->getCategory() === TransactionCategory::VOLUNTARY_DONATION)),
             fn ($a, $b) => $this->transactionSumReducer($a, $b),
             0) . '</b></td></tr>';
 
