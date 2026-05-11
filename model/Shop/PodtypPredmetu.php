@@ -7,4 +7,5 @@ namespace Gamecon\Shop;
 class PodtypPredmetu
 {
     public const HOTEL = 'hotel';
+    public const MIKINA = 'mikina';
 }

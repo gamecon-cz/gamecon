@@ -4,6 +4,7 @@
 <p>Možnost nákupu předmětů už skončila.</p>
 <!-- end: predmetyPozastaveny -->
 
+<!-- begin: hlavniPredmety -->
 <div class="shopPredmety_predmety">
     <!-- begin: predmet -->
     <div class="shopPredmety_predmet">
@@ -32,19 +33,43 @@
     </div>
     <!-- end: predmet -->
 </div>
+<!-- end: hlavniPredmety -->
 
+<!-- begin: mikiny -->
+<!-- begin: mikinyPozastavene -->
+<p>Možnost nákupu mikin už skončila.</p>
+<!-- end: mikinyPozastavene -->
+
+<div class="shopPredmety_mikiny shopPredmety_opakovaneVybery">
+    <!-- begin: mikina -->
+    <div class="shopPredmety_mikina shopPredmety_opakovanyVyber" data-opakovany-vyber="{skupinaVyberu}" data-input-id-prefix="{idPrefix}">
+        <div class="shop_popis">
+            <label for="{idVyberu}">{nazevVyberu} GameCon {rok}</label>
+            <div class="shop_popisCena">{cena}</div>
+        </div>
+        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_mikinaSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}">
+            <!-- begin: moznost -->
+            <option value="{id_predmetu}" {selected}>{nazev}</option>
+            <!-- end: moznost -->
+        </select>
+    </div>
+    <!-- end: mikina -->
+</div>
+<!-- end: mikiny -->
+
+<!-- begin: tricka -->
 <!-- begin: trickaPozastavena -->
 <p>Možnost nákupu triček už skončila.</p>
 <!-- end: trickaPozastavena -->
 
-<div class="shopPredmety_tricka">
+<div class="shopPredmety_tricka shopPredmety_opakovaneVybery">
     <!-- begin: tricko -->
-    <div class="shopPredmety_tricko">
+    <div class="shopPredmety_tricko shopPredmety_opakovanyVyber" data-opakovany-vyber="{skupinaVyberu}" data-input-id-prefix="{idPrefix}">
         <div class="shop_popis">
-            <label for="{idVyberTricek}">Tričko GameCon {rok}</label>
+            <label for="{idVyberu}">{nazevVyberu} GameCon {rok}</label>
             <div class="shop_popisCena">{cena}</div>
         </div>
-        <select id="{idVyberTricek}" name="{postName}" class="formular_select shopPredmety_trickoSelect">
+        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_trickoSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}">
             <!-- begin: moznost -->
             <option value="{id_predmetu}" {selected}>{nazev}</option>
             <!-- end: moznost -->
@@ -52,6 +77,7 @@
     </div>
     <!-- end: tricko -->
 </div>
+<!-- end: tricka -->
 
 <!-- begin: dalsiMerch -->
 <details class="shopPredmety_dalsiMerch">

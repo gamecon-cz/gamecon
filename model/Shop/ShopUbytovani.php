@@ -754,7 +754,8 @@ SQL,
         self::zrusSnidaneProHotelovePokoje($this->ubytovany);
 
         if ($ulozitNechceUbytovani) {
-            $nechceUbytovani = !$this->maObjednaneUbytovani();
+            $nechceUbytovani = isset($_POST[$this->pnNechci])
+                && !$this->maObjednaneUbytovani();
             self::ulozNechceUbytovani($nechceUbytovani, $this->ubytovany);
         }
 
