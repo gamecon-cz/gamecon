@@ -19,7 +19,6 @@ class GcMailOdesilatelTest extends TestCase
         $vystup = $this->vyvolejPridejPrefix(
             odesilatel: new Address('info@gamecon.cz', 'GameCon'),
             prefix: '',
-            kontaktniEmail: 'kontakt@gamecon.cz',
         );
 
         self::assertSame('info@gamecon.cz', $vystup->getAddress());
@@ -34,7 +33,6 @@ class GcMailOdesilatelTest extends TestCase
         $vystup = $this->vyvolejPridejPrefix(
             odesilatel: new Address('info@gamecon.cz'),
             prefix: 'β',
-            kontaktniEmail: 'kontakt@gamecon.cz',
         );
 
         self::assertSame('info@gamecon.cz', $vystup->getAddress());
@@ -49,7 +47,6 @@ class GcMailOdesilatelTest extends TestCase
         $vystup = $this->vyvolejPridejPrefix(
             odesilatel: new Address('info@gamecon.cz', 'GameCon'),
             prefix: 'β',
-            kontaktniEmail: 'kontakt@gamecon.cz',
         );
 
         self::assertSame('info@gamecon.cz', $vystup->getAddress());
@@ -64,7 +61,6 @@ class GcMailOdesilatelTest extends TestCase
         $vystup = $this->vyvolejPridejPrefix(
             odesilatel: new Address('info@gamecon.cz', 'GameCon'),
             prefix: 'άλφα',
-            kontaktniEmail: 'kontakt@gamecon.cz',
         );
 
         self::assertSame('info@gamecon.cz', $vystup->getAddress());
@@ -74,27 +70,11 @@ class GcMailOdesilatelTest extends TestCase
     /**
      * @test
      */
-    public function vychoziOdesilatelPouzijeKontaktniEmailZNastaveni(): void
+    public function vychoziOdesilatelJeVzdyInfoGamecon(): void
     {
         $vystup = $this->vyvolejPridejPrefix(
             odesilatel: null,
             prefix: '',
-            kontaktniEmail: 'gamecon.fallback@seznam.cz',
-        );
-
-        self::assertSame('gamecon.fallback@seznam.cz', $vystup->getAddress());
-        self::assertSame('GameCon', $vystup->getName());
-    }
-
-    /**
-     * @test
-     */
-    public function vychoziOdesilatelPouzijeFallbackKdyzKontaktniEmailJePrazdny(): void
-    {
-        $vystup = $this->vyvolejPridejPrefix(
-            odesilatel: null,
-            prefix: '',
-            kontaktniEmail: '',
         );
 
         self::assertSame('info@gamecon.cz', $vystup->getAddress());
@@ -109,47 +89,38 @@ class GcMailOdesilatelTest extends TestCase
         $vystup = $this->vyvolejPridejPrefix(
             odesilatel: null,
             prefix: 'β',
-            kontaktniEmail: 'kontakt@gamecon.cz',
         );
 
-        self::assertSame('kontakt@gamecon.cz', $vystup->getAddress());
+        self::assertSame('info@gamecon.cz', $vystup->getAddress());
         self::assertSame('β GameCon', $vystup->getName());
     }
 
     private function vyvolejPridejPrefix(
         ?Address $odesilatel,
         string $prefix,
-        string $kontaktniEmail,
     ): Address {
-        $systemoveNastaveni = $this->fakeSystemoveNastaveni($prefix, $kontaktniEmail);
+        $systemoveNastaveni = $this->fakeSystemoveNastaveni($prefix);
         $gcMail = new GcMail($systemoveNastaveni);
         if ($odesilatel !== null) {
             $gcMail->odesilatel($odesilatel);
         }
 
         $metoda = new \ReflectionMethod(GcMail::class, 'odesilatelSPrefixemProstredi');
-        $metoda->setAccessible(true);
 
         return $metoda->invoke($gcMail);
     }
 
-    private function fakeSystemoveNastaveni(string $prefix, string $kontaktniEmail): SystemoveNastaveni
+    private function fakeSystemoveNastaveni(string $prefix): SystemoveNastaveni
     {
-        return new class($prefix, $kontaktniEmail) extends SystemoveNastaveni {
+        return new class($prefix) extends SystemoveNastaveni {
             public function __construct(
                 private readonly string $prefix,
-                private readonly string $kontaktniEmail,
             ) {
             }
 
             public function prefixPodleProstredi(): string
             {
                 return $this->prefix;
-            }
-
-            public function kontaktniEmailGc(): string
-            {
-                return $this->kontaktniEmail;
             }
         };
     }
