@@ -460,7 +460,7 @@ class AktivitaTymService
 
     /**
      * Hráči přihlášení na týmovou aktivitu ale nejsou v žádném týmu nebo jsou ve více týmech.
-     * @return array{nick: string, jmeno: string, aktivita: string, chyba: string}[]
+     * @return array{nick: string, jmeno: string, aktivita: string, chyba: string, idUzivatele: int, idAktivity: int}[]
      */
     public function hraciSPatnymTymem(int $rok): array
     {
@@ -469,7 +469,9 @@ class AktivitaTymService
         $bezTymu = $conn->fetchAllAssociative(
             'SELECT uzivatele_hodnoty.login_uzivatele AS nick,
                     CONCAT(uzivatele_hodnoty.jmeno_uzivatele, \' \', uzivatele_hodnoty.prijmeni_uzivatele) AS jmeno,
-                    akce_seznam.nazev_akce
+                    akce_seznam.nazev_akce,
+                    akce_prihlaseni.id_uzivatele,
+                    akce_prihlaseni.id_akce
              FROM akce_prihlaseni
              JOIN uzivatele_hodnoty ON uzivatele_hodnoty.id_uzivatele = akce_prihlaseni.id_uzivatele
              JOIN akce_seznam ON akce_seznam.id_akce = akce_prihlaseni.id_akce
@@ -491,6 +493,8 @@ class AktivitaTymService
             'SELECT uzivatele_hodnoty.login_uzivatele AS nick,
                     CONCAT(uzivatele_hodnoty.jmeno_uzivatele, \' \', uzivatele_hodnoty.prijmeni_uzivatele) AS jmeno,
                     akce_seznam.nazev_akce,
+                    akce_tym_prihlaseni.id_uzivatele,
+                    akce_seznam.id_akce,
                     GROUP_CONCAT(COALESCE(akce_tym.nazev, CONCAT(\'#\', akce_tym.id))
                         ORDER BY akce_tym.id SEPARATOR \', \') AS nazvy_tymu
              FROM akce_tym_prihlaseni
@@ -510,18 +514,22 @@ class AktivitaTymService
         $result = [];
         foreach ($bezTymu as $row) {
             $result[] = [
-                'nick'     => $row['nick'],
-                'jmeno'    => $row['jmeno'],
-                'aktivita' => $row['nazev_akce'],
-                'chyba'    => 'není v žádném týmu',
+                'nick'        => $row['nick'],
+                'jmeno'       => $row['jmeno'],
+                'aktivita'    => $row['nazev_akce'],
+                'chyba'       => 'není v žádném týmu',
+                'idUzivatele' => (int) $row['id_uzivatele'],
+                'idAktivity'  => (int) $row['id_akce'],
             ];
         }
         foreach ($viceTymu as $row) {
             $result[] = [
-                'nick'     => $row['nick'],
-                'jmeno'    => $row['jmeno'],
-                'aktivita' => $row['nazev_akce'],
-                'chyba'    => 've více týmech: ' . $row['nazvy_tymu'],
+                'nick'        => $row['nick'],
+                'jmeno'       => $row['jmeno'],
+                'aktivita'    => $row['nazev_akce'],
+                'chyba'       => 've více týmech: ' . $row['nazvy_tymu'],
+                'idUzivatele' => (int) $row['id_uzivatele'],
+                'idAktivity'  => (int) $row['id_akce'],
             ];
         }
 

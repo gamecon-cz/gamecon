@@ -784,6 +784,11 @@ form table .orez img {
   background: #fff8f8;
 }
 
+.tymy-kontrola-sekce--ok {
+  border-color: #6c6;
+  background: #f0fff0;
+}
+
 .tymy-kontrola-tym-bezkapitana,
 .tymy-kontrola-tym-kola {
   margin-bottom: 16px;
@@ -906,7 +911,10 @@ form table .orez img {
 .tymy-kontrola-ok {
   color: #080;
   font-weight: bold;
-  padding: 8px 0;
+  font-size: 1.2em;
+  text-align: center;
+  margin: 0;
+  padding: 4px 0;
 }
 
 .hinted {

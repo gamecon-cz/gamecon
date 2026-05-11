@@ -141,10 +141,12 @@ function renderujVysledkyKontrolyTymu(XTemplate $tpl): void
         $tpl->assign('pocetHraciSPatnymTymem', count($hraciSPatnymTymem));
         foreach ($hraciSPatnymTymem as $hrac) {
             $tpl->assign([
-                'hspt_nick'     => $hrac['nick'],
-                'hspt_jmeno'    => $hrac['jmeno'],
-                'hspt_aktivita' => $hrac['aktivita'],
-                'hspt_chyba'    => $hrac['chyba'],
+                'hspt_nick'        => $hrac['nick'],
+                'hspt_jmeno'       => $hrac['jmeno'],
+                'hspt_aktivita'    => $hrac['aktivita'],
+                'hspt_chyba'       => $hrac['chyba'],
+                'hspt_idUzivatele' => $hrac['idUzivatele'],
+                'hspt_idAktivity'  => $hrac['idAktivity'],
             ]);
             $tpl->parse('tymy.kontrolaVysledky.hraciSPatnymTymem.hracSPatnymTymem');
         }

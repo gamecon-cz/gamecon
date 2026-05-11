@@ -19,7 +19,7 @@ use Gamecon\XTemplate\XTemplate;
 require_once __DIR__ . '/_tymy-akce.php';
 require_once __DIR__ . '/_kontrola-tymu.php';
 
-zpracujAkciTymu($u);
+zpracujAkciTymu($u, $systemoveNastaveni);
 
 $tpl = new XTemplate(__DIR__ . '/tymy.xtpl');
 

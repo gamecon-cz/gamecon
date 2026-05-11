@@ -152,6 +152,7 @@
                 <th>Jméno</th>
                 <th>Aktivita</th>
                 <th>Problém</th>
+                <th>Akce</th>
             </tr>
             <!-- begin:hracSPatnymTymem -->
             <tr>
@@ -159,6 +160,15 @@
                 <td>{hspt_jmeno}</td>
                 <td>{hspt_aktivita}</td>
                 <td>{hspt_chyba}</td>
+                <td>
+                    <form method="post" action="aktivity/tymy?kontrolaStavuTymu=1">
+                        <input type="hidden" name="idUzivatele" value="{hspt_idUzivatele}"/>
+                        <input type="hidden" name="idAktivity" value="{hspt_idAktivity}"/>
+                        <button type="submit" name="odhlasitHraceZAktivity" value="1" class="danger">
+                            Odhlásit z aktivity
+                        </button>
+                    </form>
+                </td>
             </tr>
             <!-- end:hracSPatnymTymem -->
         </table>
@@ -166,7 +176,9 @@
     <!-- end:hraciSPatnymTymem -->
 
     <!-- begin:kontrolaOk -->
-    <p class="tymy-kontrola-ok">Vše v pořádku – žádné chyby nenalezeny.</p>
+    <div class="tymy-kontrola-sekce tymy-kontrola-sekce--ok">
+        <p class="tymy-kontrola-ok">Vše v pořádku – žádné chyby nenalezeny.</p>
+    </div>
     <!-- end:kontrolaOk -->
 </div>
 <!-- end:kontrolaVysledky -->

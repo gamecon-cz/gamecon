@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaTym;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * Zpracuje POST akce pro správu týmů.
  * Pokud akci zpracuje, ukončí skript (redirect nebo echo).
  */
-function zpracujAkciTymu(\Uzivatel $u): void
+function zpracujAkciTymu(\Uzivatel $u, SystemoveNastaveni $systemoveNastaveni): void
 {
     if (post('rozebratTym')) {
         $idTymu = (int)post('idTymu');
@@ -77,5 +79,18 @@ function zpracujAkciTymu(\Uzivatel $u): void
             'idAktivity' => $idAktivity,
         ]);
         exit;
+    }
+
+    if (post('odhlasitHraceZAktivity')) {
+        $idUzivatele = (int)post('idUzivatele');
+        $idAktivity  = (int)post('idAktivity');
+        if ($idUzivatele > 0 && $idAktivity > 0) {
+            $hrac     = \Uzivatel::zId($idUzivatele);
+            $aktivita = Aktivita::zId($idAktivity, systemoveNastaveni: $systemoveNastaveni);
+            if ($hrac && $aktivita) {
+                $aktivita->odhlas($hrac, $u, 'admin-tymy-kontrola', Aktivita::BEZ_POKUT);
+            }
+        }
+        reload();
     }
 }
