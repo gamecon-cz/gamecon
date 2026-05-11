@@ -17,7 +17,7 @@ class GcMail
 {
     public const FORMAT_HTML = 'html';
     public const FORMAT_TEXT = 'text';
-    private const VYCHOZI_EMAIL_ODESILATELE = 'info@gamecon.cz';
+    private const VYCHOZI_EMAIL_ODESILATELE = 'gamecon.fallback@seznam.cz';
 
     public static function vytvorZGlobals(string $text = ''): static
     {
