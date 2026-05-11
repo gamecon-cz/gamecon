@@ -87,6 +87,17 @@ SQL,
         );
     }
 
+    private function uzivatelNechceUbytovani(\Uzivatel $uzivatel): bool
+    {
+        return (bool) dbOneCol(<<<SQL
+SELECT nechce_ubytovani
+FROM uzivatele_hodnoty
+WHERE id_uzivatele = $0
+SQL,
+            [$uzivatel->id()],
+        );
+    }
+
     /**
      * @test
      */
@@ -255,6 +266,79 @@ SQL,
             true,
             ROCNIK,
         );
+    }
+
+    /**
+     * @test
+     */
+    public function volbaNechceUbytovaniSeUkladaPodleCheckboxu(): void
+    {
+        $uzivatel = $this->vytvorUzivatele((string) uniqid());
+        $this->vytvorPredmetUbytovani('Dvoulůžák čtvrtek', ROCNIK, 10);
+
+        $_POST['shopUbytovaniDny'] = [
+            1 => '',
+        ];
+        $_POST['shopUbytovaniNechci'] = 'on';
+
+        try {
+            (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))
+                ->ubytovani()
+                ->zpracuj(vcetneSpolubydliciho: false, ulozitNechceUbytovani: true);
+
+            self::assertTrue($this->uzivatelNechceUbytovani($uzivatel));
+
+            unset($_POST['shopUbytovaniNechci']);
+
+            (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))
+                ->ubytovani()
+                ->zpracuj(vcetneSpolubydliciho: false, ulozitNechceUbytovani: true);
+
+            self::assertFalse($this->uzivatelNechceUbytovani($uzivatel));
+        } finally {
+            unset($_POST['shopUbytovaniDny'], $_POST['shopUbytovaniNechci']);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function checkboxNechceUbytovaniSeIgnorujePokudJeVybraneUbytovani(): void
+    {
+        $uzivatel = $this->vytvorUzivatele((string) uniqid());
+        $idPredmetuUbytovani = $this->vytvorPredmetUbytovani(
+            'Dvoulůžák čtvrtek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+        );
+        $this->vytvorPredmetUbytovani(
+            'Dvoulůžák pátek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
+        );
+        $this->vytvorPredmetUbytovani(
+            'Dvoulůžák sobota',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+        );
+
+        $_POST['shopUbytovaniDny'] = [
+            1 => (string) $idPredmetuUbytovani,
+        ];
+        $_POST['shopUbytovaniNechci'] = 'on';
+
+        try {
+            (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))
+                ->ubytovani()
+                ->zpracuj(vcetneSpolubydliciho: false, ulozitNechceUbytovani: true);
+
+            self::assertFalse($this->uzivatelNechceUbytovani($uzivatel));
+        } finally {
+            unset($_POST['shopUbytovaniDny'], $_POST['shopUbytovaniNechci']);
+        }
     }
 
     /**
