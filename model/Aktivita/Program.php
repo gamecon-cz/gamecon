@@ -635,7 +635,7 @@ HTML;
                     if (
                         $aktivitaRaw &&
                         in_array($typId, $aktivitaRaw['grps']) &&
-                        ($cas == $aktivitaRaw['zac'] || $aktivitaRaw['zac'] < PROGRAM_ZACATEK) && // pro případ že by někdo nastavil aktivitu na již dřívější začátek, tak aby to nerozbilo program. (např. 2024 brigádnické aktivity od 7:00, kdy program začínal 8:00)
+                        self::maSeAktivitaVykreslitVCase($aktivitaRaw, $cas) &&
                         (!$denId || $aktivitaRaw['den'] == $denId)
                     ) {
                         $skip = $aktivitaRaw['delka'] - 1;
@@ -848,5 +848,21 @@ HTML;
         }
 
         return $hodinyZacatku;
+    }
+
+    private static function maSeAktivitaVykreslitVCase(array $aktivitaRaw, int $cas): bool
+    {
+        if ($cas === $aktivitaRaw['zac']) {
+            return true;
+        }
+
+        $prvniZobrazenaHodina = self::seznamHodinZacatku()[0] ?? null;
+        if ($prvniZobrazenaHodina === null || $cas !== $prvniZobrazenaHodina) {
+            return false;
+        }
+
+        // Když aktivita začíná dřív než zobrazovaný program, vykreslíme ji do první buňky.
+        return $aktivitaRaw['zac'] < PROGRAM_ZACATEK
+            && !in_array($aktivitaRaw['zac'], self::seznamHodinZacatku(), true);
     }
 }
