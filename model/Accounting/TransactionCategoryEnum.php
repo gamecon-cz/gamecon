@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Accounting;
 
-enum TransactionCategory
+enum TransactionCategoryEnum
 {
     case ACTIVITY;
     case SHOP_ITEMS;

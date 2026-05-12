@@ -12,7 +12,7 @@ readonly class Transaction
      * @param TransactionSplit[] $splits
      */
     public function __construct(
-        private TransactionCategory $category,
+        private TransactionCategoryEnum $category,
         private DateTimeGamecon $date,
         private string $description,
         private array $splits,
@@ -25,7 +25,7 @@ readonly class Transaction
         return $this->id;
     }
 
-    public function getCategory(): TransactionCategory
+    public function getCategory(): TransactionCategoryEnum
     {
         return $this->category;
     }
