@@ -10,7 +10,7 @@
  */
 
 use Gamecon\Accounting;
-use Gamecon\Accounting\TransactionCategory;
+use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Accounting\Transaction;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
@@ -129,9 +129,9 @@ if ($uPracovni) {
                 "</form></td>" :
             "<td></td>") .
             "</tr>", array_filter(Accounting::getPersonalFinance($uPracovni, showDiscounts: false)->getTransactions(),
-        fn(Transaction $t) => $t->getCategory() == TransactionCategory::SHOP_ITEMS ||
-            $t->getCategory() == TransactionCategory::FOOD ||
-            ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY) && $t->getCategory() == TransactionCategory::VOLUNTARY_DONATION))))
+        fn(Transaction $t) => $t->getCategory() == TransactionCategoryEnum::SHOP_ITEMS ||
+                              $t->getCategory() == TransactionCategoryEnum::FOOD ||
+                              ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY) && $t->getCategory() == TransactionCategoryEnum::VOLUNTARY_DONATION))))
     ]);
 
     $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
