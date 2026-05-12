@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model;
 
 use Gamecon\Accounting;
-use Gamecon\Accounting\TransactionCategory;
+use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
@@ -211,7 +211,7 @@ SQL,
         $transactions = $account->getTransactions();
 
         self::assertCount(1, $transactions);
-        self::assertSame(TransactionCategory::SHOP_ITEMS, $transactions[0]->getCategory());
+        self::assertSame(TransactionCategoryEnum::SHOP_ITEMS, $transactions[0]->getCategory());
         self::assertSame(-100, $transactions[0]->getTotalAmount());
 
         $splits = $transactions[0]->getSplits();
@@ -305,10 +305,10 @@ SQL,
 
         $categories = array_map(fn ($t) => $t->getCategory(), $transactions);
 
-        self::assertContains(TransactionCategory::SHOP_ITEMS, $categories);
-        self::assertContains(TransactionCategory::ACCOMMODATION, $categories);
-        self::assertContains(TransactionCategory::FOOD, $categories);
-        self::assertContains(TransactionCategory::VOLUNTARY_DONATION, $categories);
+        self::assertContains(TransactionCategoryEnum::SHOP_ITEMS, $categories);
+        self::assertContains(TransactionCategoryEnum::ACCOMMODATION, $categories);
+        self::assertContains(TransactionCategoryEnum::FOOD, $categories);
+        self::assertContains(TransactionCategoryEnum::VOLUNTARY_DONATION, $categories);
     }
 
     /**
@@ -333,7 +333,7 @@ SQL,
         $transactions = $account->getTransactions();
 
         self::assertCount(1, $transactions);
-        self::assertSame(TransactionCategory::MANUAL_MOVEMENTS, $transactions[0]->getCategory());
+        self::assertSame(TransactionCategoryEnum::MANUAL_MOVEMENTS, $transactions[0]->getCategory());
     }
 
     /**
@@ -363,7 +363,7 @@ SQL,
 
         $manualMovements = array_filter(
             $transactions,
-            fn ($transaction) => $transaction->getCategory() === TransactionCategory::MANUAL_MOVEMENTS,
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::MANUAL_MOVEMENTS,
         );
 
         self::assertNotEmpty($manualMovements, 'Připsaná platba musí být vidět v objednávkách a platbách');
@@ -419,7 +419,7 @@ SQL,
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
         $leftover = array_values(array_filter(
             $account->getTransactions(),
-            fn ($transaction) => $transaction->getCategory() === TransactionCategory::LEFTOVER_FROM_LAST_YEAR,
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR,
         ));
 
         self::assertCount(1, $leftover, 'Zůstatek z minulých let musí být reprezentován jednou transakcí');
@@ -473,7 +473,7 @@ SQL,
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
         $aktivity = array_values(array_filter(
             $account->getTransactions(),
-            fn ($transaction) => $transaction->getCategory() === TransactionCategory::ACTIVITY,
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::ACTIVITY,
         ));
 
         self::assertCount(1, $aktivity, 'Účast na aktivitě musí být reprezentována transakcí');
@@ -507,7 +507,7 @@ SQL,
         $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
         $manualMovements = array_values(array_filter(
             $account->getTransactions(),
-            fn ($transaction) => $transaction->getCategory() === TransactionCategory::MANUAL_MOVEMENTS,
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::MANUAL_MOVEMENTS,
         ));
 
         self::assertCount(1, $manualMovements, 'Obecná sleva musí být reprezentována transakcí v MANUAL_MOVEMENTS');
