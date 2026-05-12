@@ -579,14 +579,34 @@ class AktivitaTymService
         return $this->teamRepository->findAllByAktivita($idAktivity);
     }
 
-    public function rozebratTym(int $idTymu): void
+    public function smazat(int $idTymu): void
     {
         $team = $this->teamRepository->find($idTymu);
         if (! $team) {
             return;
         }
-        $this->em->remove($team);
-        $this->em->flush();
+
+        $this->em->wrapInTransaction(function () use ($team) {
+            $idClenu = $team->getClenove()
+                ->map(fn(TeamMemberRegistration $c) => $c->getUzivatel()->getId())
+                ->filter(fn(?int $id) => $id !== null)
+                ->toArray();
+            $idAktivit = $team->getAktivity()
+                ->map(fn(Activity $a) => $a->getId())
+                ->filter(fn(?int $id) => $id !== null)
+                ->toArray();
+
+            if ($idClenu && $idAktivit) {
+                $this->em->getConnection()->executeStatement(
+                    'DELETE FROM akce_prihlaseni WHERE id_uzivatele IN (?) AND id_akce IN (?)',
+                    [$idClenu, $idAktivit],
+                    [\Doctrine\DBAL\ArrayParameterType::INTEGER, \Doctrine\DBAL\ArrayParameterType::INTEGER],
+                );
+            }
+
+            $this->em->remove($team);
+            $this->em->flush();
+        });
     }
 
     public function pregenerujKodTymu(int $idTymu): int

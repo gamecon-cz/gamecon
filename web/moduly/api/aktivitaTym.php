@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $tym->odemkni();
         } else if ($akce === "smazTym") {
             if ($tym->jeRozpracovany()) {
-                $tym->rozebratTym();
+                $tym->smazat();
             }
         } else {
             throw new Chyba('Neznámá akce');

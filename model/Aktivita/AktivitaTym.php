@@ -293,9 +293,9 @@ class AktivitaTym
         );
     }
 
-    public function rozebratTym(): void
+    public function smazat(): void
     {
-        self::service()->rozebratTym($this->getId());
+        self::service()->smazat($this->getId());
     }
 
     public function jeRozpracovany(): bool

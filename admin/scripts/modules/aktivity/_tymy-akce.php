@@ -15,7 +15,7 @@ function zpracujAkciTymu(\Uzivatel $u, SystemoveNastaveni $systemoveNastaveni): 
     if (post('rozebratTym')) {
         $idTymu = (int)post('idTymu');
         if ($idTymu > 0) {
-            AktivitaTym::najdi($idTymu)->rozebratTym();
+            AktivitaTym::najdi($idTymu)->smazat();
         }
         reload();
     }
