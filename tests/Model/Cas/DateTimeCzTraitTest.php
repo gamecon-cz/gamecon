@@ -94,4 +94,20 @@ class DateTimeCzTraitTest extends TestCase
             $dateTimeImmutable->zaokrouhlitNaHodinyNahoru()->format('Y-m-d H:i:s'),
         );
     }
+
+    /**
+     * @test
+     */
+    public function muzuVytvoritACeskyNaformatovatMysqlDatumBezCasu(): void
+    {
+        $dateTime = new class('2023-07-19 18:17') extends \DateTime {
+            use DateTimeCzTrait;
+        };
+
+        $datumBezCasu = $dateTime::createFromMysql('2026-07-15');
+
+        self::assertInstanceOf(\DateTimeInterface::class, $datumBezCasu);
+        self::assertSame('2026-07-15 00:00:00', $datumBezCasu->format('Y-m-d H:i:s'));
+        self::assertSame('15. 7.', $dateTime::formatujProSablonu('2026-07-15', ['FORMAT_DATUM_LETOS']));
+    }
 }

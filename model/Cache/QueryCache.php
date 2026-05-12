@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Cache;
 
+use Symfony\Component\Filesystem\Filesystem;
+
 class QueryCache
 {
     private ?\EPDO $table = null;
@@ -11,9 +13,7 @@ class QueryCache
     public function __construct(
         private readonly string $cacheDir,
     ) {
-        if (! is_dir($cacheDir) && ! @mkdir($cacheDir, 0777, true) && ! is_dir($cacheDir)) {
-            throw new \RuntimeException('Cache directory can not be created: ' . var_export($cacheDir, true));
-        }
+        (new Filesystem())->mkdir($cacheDir, 0777);
     }
 
     public function clear(): void

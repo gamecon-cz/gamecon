@@ -7,7 +7,7 @@ namespace Gamecon\Uzivatel;
 use Gamecon\Accounting;
 use Gamecon\Accounting\PersonalAccount;
 use Gamecon\Accounting\Transaction;
-use Gamecon\Accounting\TransactionCategory;
+use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Shop\TypPredmetu;
@@ -16,15 +16,14 @@ use Uzivatel;
 
 class NotifikacePrihlasky
 {
-    private const ODESILATEL_MAILU = 'GameCon <info@gamecon.cz>';
-    private const KATEGORIE_AKTIVITY = 'Aktivity';
+    private const KATEGORIE_AKTIVITY  = 'Aktivity';
     private const KATEGORIE_UBYTOVANI = 'Ubytování';
-    private const KATEGORIE_JIDLO = 'Jídlo';
-    private const KATEGORIE_MERCH = 'Merch';
-    private const KATEGORIE_VSTUPNE = 'Dobrovolné vstupné';
+    private const KATEGORIE_JIDLO     = 'Jídlo';
+    private const KATEGORIE_MERCH     = 'Merch';
+    private const KATEGORIE_VSTUPNE   = 'Dobrovolné vstupné';
 
     public function __construct(
-        private readonly Uzivatel $uzivatel,
+        private readonly Uzivatel          $uzivatel,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     ) {
     }
@@ -166,27 +165,27 @@ TEXT;
         $ucet = Accounting::getPersonalFinance($this->uzivatel, showDiscounts: true);
 
         $radky = [
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::ACTIVITY, 'Aktivity', prevratitZnamenko: true),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::FOOD, 'Strava', prevratitZnamenko: true),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::SHOP_ITEMS, 'Předměty', prevratitZnamenko: true),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::ACCOMMODATION, 'Ubytování', prevratitZnamenko: true),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::VOLUNTARY_DONATION, 'Dobrovolné vstupné', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::ACTIVITY, 'Aktivity', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::FOOD, 'Strava', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::SHOP_ITEMS, 'Předměty', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::ACCOMMODATION, 'Ubytování', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::VOLUNTARY_DONATION, 'Dobrovolné vstupné', prevratitZnamenko: true),
         ];
 
         $celkovaCena = -$this->sumaKategorie($ucet, [
-            TransactionCategory::ACTIVITY,
-            TransactionCategory::FOOD,
-            TransactionCategory::SHOP_ITEMS,
-            TransactionCategory::ACCOMMODATION,
-            TransactionCategory::VOLUNTARY_DONATION,
+            TransactionCategoryEnum::ACTIVITY,
+            TransactionCategoryEnum::FOOD,
+            TransactionCategoryEnum::SHOP_ITEMS,
+            TransactionCategoryEnum::ACCOMMODATION,
+            TransactionCategoryEnum::VOLUNTARY_DONATION,
         ]);
         $radky[] = 'Celková cena: ' . $this->formatCastka((float)$celkovaCena);
         $radky[] = '';
 
         $radky = [
             ...$radky,
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::LEFTOVER_FROM_LAST_YEAR, 'Zůstatek z minulých let'),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::MANUAL_MOVEMENTS, 'Připsané platby'),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR, 'Zůstatek z minulých let'),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::MANUAL_MOVEMENTS, 'Připsané platby'),
         ];
 
         $stavFinanci = $ucet->getTotal();
@@ -355,10 +354,10 @@ TEXT;
      * @return array<string>
      */
     private function formatKategorieFinanci(
-        PersonalAccount $ucet,
-        TransactionCategory $kategorie,
-        string $nazevKategorie,
-        bool $prevratitZnamenko = false,
+        PersonalAccount         $ucet,
+        TransactionCategoryEnum $kategorie,
+        string                  $nazevKategorie,
+        bool                    $prevratitZnamenko = false,
     ): array {
         $koeficient = $prevratitZnamenko
             ? -1
@@ -388,7 +387,7 @@ TEXT;
     }
 
     /**
-     * @param array<TransactionCategory> $kategorie
+     * @param array<TransactionCategoryEnum> $kategorie
      */
     private function sumaKategorie(
         PersonalAccount $ucet,
@@ -415,7 +414,7 @@ TEXT;
             $preplatek = $this->formatCastka($stav);
             return <<<TEXT
 Na účtu máš přeplatek {$preplatek}.
-Peníze si můžeš nechat převést na další ročník, nebo si je nechat poslat zpět na účet - v tom případě se ozvi na finance@gamecon.cz.
+Peníze si můžeš nechat převést na další ročník, nebo si je nechat poslat zpět na účet – v tom případě se ozvi na finance@gamecon.cz.
 Detail svého finančního stavu najdeš v přehledu financí: {$odkazNaFinance}
 TEXT;
         }
@@ -483,7 +482,6 @@ TEXT;
         }
 
         (new GcMail($this->systemoveNastaveni))
-            ->odesilatel(self::ODESILATEL_MAILU)
             ->adresat($mail)
             ->predmet($predmet)
             ->text($text)

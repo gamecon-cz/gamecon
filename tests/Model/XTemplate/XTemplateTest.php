@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use Gamecon\XTemplate\XTemplate;
+use Symfony\Component\Filesystem\Filesystem;
 
 class XTemplateTest extends PHPUnit\Framework\TestCase
 {
     public function setUp(): void
     {
-        mkdir(__DIR__ . '/cache');
+        (new Filesystem())->mkdir(__DIR__ . '/cache', 0775);
     }
 
     protected function tearDown(): void

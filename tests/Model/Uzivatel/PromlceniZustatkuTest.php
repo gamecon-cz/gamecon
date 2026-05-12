@@ -13,6 +13,8 @@ use Gamecon\Uzivatel\Enum\TypVarovaniPromlceni;
 use Gamecon\Uzivatel\Finance;
 use Gamecon\Uzivatel\PromlceniZustatku;
 use Gamecon\Uzivatel\UzivatelKPromlceni;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 use Uzivatel;
 
 /**
@@ -671,7 +673,9 @@ SQL;
 
     private function zajistiLogyAdresar(): void
     {
-        if (! is_dir(LOGY) && ! @mkdir(LOGY, 0777, true)) {
+        try {
+            (new Filesystem())->mkdir(LOGY, 0777);
+        } catch (IOException) {
             self::markTestSkipped('Nelze vytvořit adresář pro logy: ' . LOGY);
         }
     }

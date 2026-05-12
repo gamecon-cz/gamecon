@@ -4,6 +4,7 @@ namespace Gamecon\Kanaly;
 
 use EPDO;
 use PDO;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Loguje odeslané e-maily do SQLite databáze v LOGY/maily.sqlite.
@@ -141,10 +142,7 @@ class MailLogger
         if ($this->sqlite !== null) {
             return $this->sqlite;
         }
-        $adresar = dirname($this->cestaSqlite);
-        if (!is_dir($adresar)) {
-            mkdir($adresar, 0770, true);
-        }
+        (new Filesystem())->mkdir(dirname($this->cestaSqlite), 0770);
         $sqlite = new EPDO('sqlite:' . $this->cestaSqlite);
         $sqlite->query(<<<'SQLITE3'
             CREATE TABLE IF NOT EXISTS maily(

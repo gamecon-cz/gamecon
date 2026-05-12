@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Model\Finance;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Finance\FioPlatba;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 class FioPlatbaTest extends TestCase
 {
@@ -18,9 +19,7 @@ class FioPlatbaTest extends TestCase
     public function muzemeNacistVariabilniSymbolZeZpravyNeboPoznamky(array $transaction, string $expectedVs, ?int $ocekavaneIdUcastnika)
     {
         $adresar = LOGY . '/fio';
-        if (! is_dir($adresar)) {
-            mkdir($adresar, 0777, true);
-        }
+        (new Filesystem())->mkdir($adresar, 0777);
         self::assertDirectoryExists($adresar);
 
         $pocetDniZpet = 1;
@@ -541,9 +540,7 @@ class FioPlatbaTest extends TestCase
     private function dejAnonymizovanePlatby(): array
     {
         $adresar = LOGY . '/fio';
-        if (! is_dir($adresar)) {
-            mkdir($adresar, 0777, true);
-        }
+        (new Filesystem())->mkdir($adresar, 0777);
         self::assertDirectoryExists($adresar);
 
         $pocetDniZpet = 7;

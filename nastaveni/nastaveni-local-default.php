@@ -53,7 +53,6 @@ if (!defined('CRON_KEY')) define('CRON_KEY', '123');
 if (!defined('UNIVERZALNI_HESLO')) define('UNIVERZALNI_HESLO', getenv('UNIVERZALNI_HESLO')
     ?: ''); // obejití zadávání hesla pro vývojové prostředí
 if (!defined('FIO_TOKEN')) define('FIO_TOKEN', '123456'); // přístup k api fio banky pro načítání plateb
-if (!defined('MAILY_DO_SOUBORU')) define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
 if (!defined('AUTOMATICKE_MIGRACE')) define('AUTOMATICKE_MIGRACE', true);
 if (!defined('PROFILOVACI_LISTA')) define('PROFILOVACI_LISTA', true);
 if (!defined('CACHE_SLOZKY_PRAVA')) define('CACHE_SLOZKY_PRAVA', 0777);
@@ -61,6 +60,7 @@ if (!defined('ZOBRAZIT_STACKTRACE_VYJIMKY')) define('ZOBRAZIT_STACKTRACE_VYJIMKY
 
 if (!defined('MAILER_DSN')) define('MAILER_DSN', getenv('MAILER_DSN')
     ?: '');
+if (!defined('MAILY_DO_SOUBORU')) define('MAILY_DO_SOUBORU', MAILER_DSN ? false : __DIR__ . '/../cache/private/maily.log');
 if (!defined('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB')) define('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB', false);
 if (!defined('APP_SECRET')) define('APP_SECRET', getenv('APP_SECRET')
     ?: 'someRandomStringForAppSecretThatYouShouldChange');

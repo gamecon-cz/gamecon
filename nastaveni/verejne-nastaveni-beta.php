@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Role\Role;
+
 require_once __DIR__ . '/nastaveni-beta.php';
 
 define('URL_WEBU', 'https://beta.gamecon.cz'); // absolutní url uživatelského webu
@@ -33,7 +35,7 @@ if (!defined('ROCNIK')) {
 @define('PRODEJ_JIDLA_POZASTAVEN', false);
 
 @define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
-@define('MAILY_ROLIM', [\Gamecon\Role\Role::ORGANIZATOR]);
+@define('MAILY_ROLIM', [Role::ORGANIZATOR]);
 
 @define('SUPERADMINI', [
     102 /* Sirien */,
