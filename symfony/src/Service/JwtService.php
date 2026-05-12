@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Service\Exception\JwtTokenException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use Symfony\Component\Filesystem\Filesystem;
 
 readonly class JwtService
 {
@@ -143,9 +144,7 @@ readonly class JwtService
     private function getTokenFilePath(int $userId): string
     {
         $tokenDir = $this->getTokenDirectory();
-        if (! is_dir($tokenDir)) {
-            mkdir($tokenDir, 0700, true);
-        }
+        (new Filesystem())->mkdir($tokenDir, 0700);
 
         return $tokenDir . "/jwt_{$userId}.token";
     }

@@ -8,6 +8,8 @@ use Gamecon\Login\Login;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 
 abstract class AbstractTestWeb extends AbstractTestDb
 {
@@ -233,7 +235,9 @@ SQL;
 
                 $file = LOGY . '/' . DB_NAME . '_' . parse_url($url, PHP_URL_PATH) . '.html';
                 $dir = dirname($file);
-                if (! is_dir($dir) && ! @mkdir($dir, 0755, true) && ! is_dir($dir)) {
+                try {
+                    (new Filesystem())->mkdir($dir, 0755);
+                } catch (IOException $ioException) {
                     self::fail("Nelze vytvořit adresář '{$dir}' pro výstup selhaného testu URL '{$url}'");
                 }
                 $bytes = file_put_contents(

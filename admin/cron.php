@@ -56,9 +56,7 @@ $job = get('job');
 
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
 $logfile = 'cron-' .($job ? "{$job}-" : '') . date('Y-m') . '.log';
-if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
-    throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
-}
+(new Filesystem())->mkdir($logdir);
 
 $_cronOutput = '';
 if (empty($_GET['echo'])) {

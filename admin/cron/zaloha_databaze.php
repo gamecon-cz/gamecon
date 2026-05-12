@@ -4,6 +4,8 @@ use Gamecon\Kanaly\GcMail;
 use Ifsnop\Mysqldump\Mysqldump;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\SystemoveNastaveni\NastrojeDatabaze;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 
 require_once __DIR__ . '/_cron_zavadec.php';
 
@@ -20,12 +22,14 @@ if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuD
     $chybaZalohovaniDb = null;
     if (!defined('ZALOHA_DB_SLOZKA') || !ZALOHA_DB_SLOZKA) {
         $chybaZalohovaniDb = 'Není definována konstanta s adresářem pro zálohování ZALOHA_DB_SLOZKA.';
-    } else if (!is_dir(ZALOHA_DB_SLOZKA)
-        && !@mkdir(ZALOHA_DB_SLOZKA, 0750, true)
-        && !is_dir(ZALOHA_DB_SLOZKA)
-    ) {
-        $chybaZalohovaniDb = "Nelze vytvořit adresář pro zálohování '" . ZALOHA_DB_SLOZKA . "': " . implode("\n", (array)error_get_last());
     } else {
+        try {
+            (new Filesystem())->mkdir(ZALOHA_DB_SLOZKA, 0750);
+        } catch (IOException $ioException) {
+            $chybaZalohovaniDb = "Nelze vytvořit adresář pro zálohování '" . ZALOHA_DB_SLOZKA . "': " . $ioException->getMessage();
+        }
+    }
+    if ($chybaZalohovaniDb === null) {
         try {
             $time         = date('Y-m-d_His');
             $dbBackupFile = ZALOHA_DB_SLOZKA . "/export_$time.sql.gz";
