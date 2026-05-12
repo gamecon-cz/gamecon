@@ -15,8 +15,15 @@ class Program
     public static function vypisPreact($jeAdmin = false, $pageName = "program"): void
     {
         $souborySlozka = ($jeAdmin ? 'files' : 'soubory');
-        $stylUrl     = self::zabalWebSoubor($souborySlozka . '/ui/style.css', $jeAdmin);
-        $bundleUrl   = self::zabalWebSoubor($souborySlozka . '/ui/bundle.js', $jeAdmin);
+        $stylSoubor    = $souborySlozka . '/ui/style.css';
+        $bundleSoubor  = $souborySlozka . '/ui/bundle.js';
+
+        if (self::vypisAutoRefreshPokudChybiUiSoubory([$stylSoubor, $bundleSoubor], $jeAdmin)) {
+            return;
+        }
+
+        $stylUrl     = self::zabalWebSoubor($stylSoubor, $jeAdmin);
+        $bundleUrl   = self::zabalWebSoubor($bundleSoubor, $jeAdmin);
         $konstanty   = json_encode(self::gameconKonstanty($jeAdmin, $pageName));
         $prednacteni = json_encode(
             ['přihlášenýUživatel' => Uzivatel::apiPrihlasenyUzivatel()],
@@ -67,6 +74,34 @@ class Program
     {
         $baseUrl = $admin ? URL_ADMIN : URL_WEBU;
         return $baseUrl . '/' . $cestaKSouboru . '?version=' . md5_file(($admin ? ADMIN : WWW) . '/' . $cestaKSouboru);
+    }
+
+    /**
+     * Pokud na lokále některý z UI souborů (style.css / bundle.js) zatím není zkompilovaný,
+     * vypíše hlášku s auto-refreshem a vrátí true (volající má skončit).
+     * Na betě/produkci nic nedělá.
+     */
+    private static function vypisAutoRefreshPokudChybiUiSoubory(array $relativniCesty, bool $jeAdmin): bool
+    {
+        if (!jsmeNaLocale()) {
+            return false;
+        }
+        $zakladniCesta = $jeAdmin ? ADMIN : WWW;
+        $chybejici     = [];
+        foreach ($relativniCesty as $relativniCesta) {
+            if (!file_exists($zakladniCesta . '/' . $relativniCesta)) {
+                $chybejici[] = $relativniCesta;
+            }
+        }
+        if (!$chybejici) {
+            return false;
+        }
+        $seznam = htmlspecialchars(implode(', ', $chybejici), ENT_QUOTES, 'UTF-8');
+        echo <<<HTML
+        <meta http-equiv="refresh" content="1">
+        <div id="preact-program">UI se kompiluje (chybí: {$seznam})</div>
+        HTML;
+        return true;
     }
 
     /**

@@ -98,6 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Chyba('Nemáš oprávnění odemknout tým');
             }
             $tym->odemkni();
+        } else if ($akce === "smazTym") {
+            if ($tym->jeRozpracovany()) {
+                $tym->rozebratTym();
+            }
         } else {
             throw new Chyba('Neznámá akce');
         }

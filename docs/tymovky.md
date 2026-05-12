@@ -4,7 +4,7 @@
 PRIO
   - ignorovat reporty/exporty/importy a další porty, jít čistě po logice program v adminu taky neřešit
   - [ ] trello 1
-    - [ ] Nedalo to na výběr ze dvou aktivit, rovnou to přihlásilo na první
+    - [X] Nedalo to na výběr ze dvou aktivit, rovnou to přihlásilo na první
     - [ ] Kapitán nevidí důvod proč ho to nechce přihlásit (mě by vidět že má kolizi s jinou už přihlášenou aktivitou)
     - [ ] Možná přejmenovat Kód týmu prostě na PIN ?
     - [ ] Není podpora export a import - minimum je vyřadit podporu pro teamovky z exportu a importu
@@ -12,7 +12,7 @@ PRIO
     - [ ] Nefunguje přihlášení na týmy přes menu Aktivity - týmová aktivita v tomto přehledu by taky měla umožnit přihlášení
     - [ ] Reporty zatím nejsou upravené - řešit jen nejnutnější, zeptat se na Discordu davu co potřebují nutně
     - [ ] Když má kapitán k dispozici jedinou aktivitu, na kterou se může přihlásit, tak ho to na ní přihlásí automaticky a skrytě - raději bych mu nechal přehled možných aktivit (takže tu jednu), aby viděl, co mu je vybráno
-  - [ ] trello 2 
+  - [ ] trello 2
     - [ ] Kontrola chyb nic nenašla, ale aktivovaná aktivita mizí z programu (subpage /program).
     - [ ] 1. Po přihlášení to spustí aktivitu a nabídne mi se přihlásit jako kapitán, ale tlačítko „Přihlásit se jako kapitán“ vyhodí chybovou hlášku, podle které jsem již přihlášen. (Přitom aktivita je prázdná). Po Ctrl+F5 mě to přihlásí jen na druhou aktivitu.
     - [ ] 2. Tlačítko smazat tým nefunguje v rozhraní výše nefunguje. Píše to „Neznámá akce“.
@@ -24,6 +24,9 @@ PRIO
   - [ ] termíny týmu
   - [ ] odladit UI
   - [ ] háže chybové hlášky ?
+  - [ ] počet účasníků
+  - [ ] bez poslání kódu nemá vytvářet nový tým
+  - [ ] týmový modal v /aktivita
   - [X] checkbox na smazání do amdinu
   - [ ] rebase
 
@@ -284,6 +287,7 @@ Turnajové
   - [X] `AktivitaTym::rozpracovaneTymyIds()` a `smazRozpracovaneTymy()` — logika existuje
   - [X] Cron job / pravidelné spouštění mazání rozpracovaných týmů (viz sekce Cron joby)
   - [X] Výrazné varování v UI s odpočtem zbývajícího času
+  - [ ] při kontrolách jestli je hráč v týmu kontrolovat na všechny aktivity turnaje
 
 ## Kapitánské akce
 - [X] Předání kapitána

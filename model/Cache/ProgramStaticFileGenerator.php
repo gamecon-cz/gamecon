@@ -87,6 +87,8 @@ class ProgramStaticFileGenerator implements ResetInterface
                 'do' => $konecAktivity->getTimestamp() * 1000,
             ],
             'linie'           => $activity->typ()->nazev(),
+            'turnajId'        => $activity->turnaj()?->getId(),
+            'turnajKolo'      => $activity->turnajKolo(),
             'vBudoucnu'       => $activity->vBudoucnu(),
             'vdalsiVlne'      => $activity->vDalsiVlne(),
             'probehnuta'      => $activity->probehnuta(),

@@ -84,3 +84,27 @@ services:
     ports:
           # set MAILHOG_HOST_MAPPING_PORT variable in .env file for example
       - "${MAILHOG_HOST_MAPPING_PORT:-8125}:8025"
+
+## spouštění ui devu v dockeru
+#   yarn-dev:
+#     image: node:20-alpine
+#     restart: "no"
+#     working_dir: /app/ui
+#     volumes:
+#       - .:/app:cached
+#       - yarn-dev-node-modules:/app/ui/node_modules
+#     # yarn install při startu je rychlé (volume přežívá restarty), pak yarn dev normálně
+#     command: >
+#       sh -c '
+#         apk add --no-cache inotify-tools 2>/dev/null;
+#         yarn install --frozen-lockfile;
+#         while true; do
+#           yarn dev || true;
+#           echo "[yarn-dev] Čekám na změnu souboru před restartem...";
+#           inotifywait -r -e modify,create,delete,move --exclude node_modules /app/ui/src 2>/dev/null || sleep 2;
+#           echo "[yarn-dev] Změna detekována, restartuji...";
+#         done
+#       '
+
+# volumes:
+#   yarn-dev-node-modules:

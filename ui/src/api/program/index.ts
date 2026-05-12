@@ -39,6 +39,7 @@ export type OdDo = {
 };
 
 /**
+ * ProgramStaticFileGenerator::aktivitaDoPole
  * Data nezávislé na tom jestli je uživatel přihlášený
  */
 export type ApiAktivitaNepřihlášen = {
