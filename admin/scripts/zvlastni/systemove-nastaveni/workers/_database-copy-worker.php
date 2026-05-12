@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../../../../nastaveni/zavadec.php';
 use Gamecon\BackgroundProcess\BackgroundProcessService;
 use Gamecon\SystemoveNastaveni\KopieOstreDatabaze;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Symfony\Component\Filesystem\Filesystem;
 
 // Nastavení pro dlouhotrvající proces
 ini_set('memory_limit', '512M');
@@ -72,7 +73,7 @@ try {
     // uložit ročník pro další requesty na betě
     if (isset($vynucenyRocnik)) {
         $rocnikOverrideFile = __DIR__ . '/../../../../../cache/private/rocnik_override';
-        @mkdir(dirname($rocnikOverrideFile), 0775, true);
+        (new Filesystem())->mkdir(dirname($rocnikOverrideFile), 0775);
         file_put_contents($rocnikOverrideFile, (string)$vynucenyRocnik);
     }
 

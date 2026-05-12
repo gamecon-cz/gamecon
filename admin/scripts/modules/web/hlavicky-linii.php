@@ -1,6 +1,8 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Editace šéfů linií, kontaktů a obrázků v hlavičkách aktivit
@@ -109,7 +111,9 @@ if (post('action') === 'upload-line-header-image') {
         chyba('Obrázek musí být JPG, PNG, WebP nebo GIF.');
     }
 
-    if (!is_dir($adresarObrazkuLinii) && !mkdir($adresarObrazkuLinii, 0775, true) && !is_dir($adresarObrazkuLinii)) {
+    try {
+        (new Filesystem())->mkdir($adresarObrazkuLinii, 0775);
+    } catch (IOException $e) {
         chyba('Nepodařilo se vytvořit adresář pro obrázky linií.');
     }
 

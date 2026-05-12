@@ -9,7 +9,7 @@ class XTemplateTest extends PHPUnit\Framework\TestCase
 {
     public function setUp(): void
     {
-        (new Filesystem())->mkdir(__DIR__ . '/cache');
+        (new Filesystem())->mkdir(__DIR__ . '/cache', 0775);
     }
 
     protected function tearDown(): void

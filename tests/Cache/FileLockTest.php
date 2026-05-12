@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Cache;
 use Gamecon\Cache\FileLock;
 use Gamecon\SystemoveNastaveni\ZdrojPrivateCacheDir;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 class FileLockTest extends TestCase
 {
@@ -15,7 +16,7 @@ class FileLockTest extends TestCase
     protected function setUp(): void
     {
         $this->tempDir = sys_get_temp_dir() . '/gamecon-file-lock-test-' . uniqid();
-        mkdir($this->tempDir, 0775, true);
+        (new Filesystem())->mkdir($this->tempDir, 0775);
     }
 
     protected function tearDown(): void
