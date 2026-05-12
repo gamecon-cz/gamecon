@@ -2,17 +2,30 @@
 # TODO:
 
 PRIO
-  - [X] rebase
-  - [X] projít analýzy
-  - [X] přidat odemknout do týmového ui na adminu
-  - [X] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
-  - [ ] detekce týmů a hráčů v nevalidních stavech v admin ui
-  - [ ] UI zobrazuje kapacitu per kolo
+  - ignorovat reporty/exporty/importy a další porty, jít čistě po logice program v adminu taky neřešit
+  - [ ] trello 1
+    - [ ] Nedalo to na výběr ze dvou aktivit, rovnou to přihlásilo na první
+    - [ ] Kapitán nevidí důvod proč ho to nechce přihlásit (mě by vidět že má kolizi s jinou už přihlášenou aktivitou)
+    - [ ] Možná přejmenovat Kód týmu prostě na PIN ?
+    - [ ] Není podpora export a import - minimum je vyřadit podporu pro teamovky z exportu a importu
+    - [ ] Zvýraznit chybějící členy týmu do nutného minima
+    - [ ] Nefunguje přihlášení na týmy přes menu Aktivity - týmová aktivita v tomto přehledu by taky měla umožnit přihlášení
+    - [ ] Reporty zatím nejsou upravené - řešit jen nejnutnější, zeptat se na Discordu davu co potřebují nutně
+    - [ ] Když má kapitán k dispozici jedinou aktivitu, na kterou se může přihlásit, tak ho to na ní přihlásí automaticky a skrytě - raději bych mu nechal přehled možných aktivit (takže tu jednu), aby viděl, co mu je vybráno
+  - [ ] trello 2 
+    - [ ] Kontrola chyb nic nenašla, ale aktivovaná aktivita mizí z programu (subpage /program).
+    - [ ] 1. Po přihlášení to spustí aktivitu a nabídne mi se přihlásit jako kapitán, ale tlačítko „Přihlásit se jako kapitán“ vyhodí chybovou hlášku, podle které jsem již přihlášen. (Přitom aktivita je prázdná). Po Ctrl+F5 mě to přihlásí jen na druhou aktivitu.
+    - [ ] 2. Tlačítko smazat tým nefunguje v rozhraní výše nefunguje. Píše to „Neznámá akce“.
+    - [ ] 3. Po zadání kódu týmu za někoho jiného to daného člověka nepřipojí do týmu ani po Ctr+F5.
+    - [ ] 4. Ani po zveřejnění týmu se do něj nejde připojit, F5 ani Ctrl+F5 nepomáhá.
+  - [ ] skrýt odemknout z ui na webu
+  - [ ] hezké UI
+  - [ ] názvy týmů
   - [ ] termíny týmu
-  - [ ] název týmu
+  - [ ] odladit UI
+  - [ ] háže chybové hlášky ?
   - [X] checkbox na smazání do amdinu
-  - [ ] zrušit rekurzi pro Aktivita::prihlas ?
-    - [ ] dělat vše v transakci
+  - [ ] rebase
 
 # Celkové stavy:
   Stav určuje:
@@ -242,6 +255,7 @@ Turnajové
           - [ ] vypíše kola aktivit turnaje
     - [ ] hráči
       - [ ] hráči jsou v týmu ale nejsou přihlášeni na všechny aktivity
+  - [ ] otestovat detekci inkonzistencí
 
 ## Základní přihlašovací flow
 - [X] Kapitán může založit tým přes nastavení týmů v UI
@@ -477,6 +491,7 @@ Turnajové
   - [ ] Individuální označení přítomnosti členů týmu
 
 ## Importy & reporty
+- tohle je třeba testovat na beta gameconu (na locale asi nepůjde moc rochodit)
 - [ ] Importy pro týmové aktivity
   - [ ] Rozšíření stávajícího importeru o podporu týmů (`ImporterUcastnikuNaAktivitu.php:163`)
   - [ ] Import celých týmů (kapitán + členové + přiřazení na aktivity)
