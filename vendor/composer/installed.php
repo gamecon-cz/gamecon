@@ -3,7 +3,7 @@
         'name' => 'gamecon-cz/gamecon',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '75d0606c6a9c3dcca92b434e1501f360c3e0b870',
+        'reference' => '48c22c8818cf526760a474fa9e619bb62380c01c',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -202,7 +202,7 @@
         'gamecon-cz/gamecon' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '75d0606c6a9c3dcca92b434e1501f360c3e0b870',
+            'reference' => '48c22c8818cf526760a474fa9e619bb62380c01c',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
