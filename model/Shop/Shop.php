@@ -681,16 +681,17 @@ SQL,
         $selecty = $koupenaIdPolozek;
         $selecty[] = 0;
 
-        $cena = $this->cenaOpakovaneVybiranePolozky($polozky);
-        $cenaText = $cena !== null
-            ? round($cena) . '&thinsp;Kč'
-            : '';
+        $vychoziCenaText = $this->vychoziCenaOpakovaneVybiranePolozky($polozky);
 
         foreach ($selecty as $i => $idPredmetu) {
+            $cenaVybranePolozky = $this->cenaVybraneOpakovaneVybiranePolozky($polozky, (int)$idPredmetu);
             $t->assign([
                 'postName'      => $postKey . '[' . $i . ']',
                 'idVyberu'      => $idPrefix . '-' . $i,
-                'cena'          => $cenaText,
+                'cena'          => $cenaVybranePolozky !== null
+                    ? $this->cenaOpakovaneVybiranePolozkyHtml($cenaVybranePolozky)
+                    : $vychoziCenaText,
+                'vychoziCena'   => $vychoziCenaText,
                 'rok'           => ROCNIK,
                 'nazevVyberu'   => $nazevVyberu,
                 'skupinaVyberu' => $skupinaVyberu,
@@ -699,9 +700,10 @@ SQL,
 
             if (!$polozkyZamcene || $idPredmetu === 0) {
                 $t->assign([
-                    'id_predmetu' => 0,
-                    'nazev'       => $prazdnaMoznostText,
-                    'selected'    => $idPredmetu === 0
+                    'id_predmetu'  => 0,
+                    'nazev'        => $prazdnaMoznostText,
+                    'cenaMoznosti' => '',
+                    'selected'     => $idPredmetu === 0
                         ? 'selected'
                         : '',
                 ]);
@@ -717,11 +719,12 @@ SQL,
                 }
 
                 $t->assign([
-                    'id_predmetu' => $polozka['id_predmetu'],
-                    'nazev'       => ($polozkyZamcene
+                    'id_predmetu'  => $polozka['id_predmetu'],
+                    'nazev'        => ($polozkyZamcene
                             ? '&#128274;'
                             : '') . $polozka['nazev'],
-                    'selected'    => $koupene
+                    'cenaMoznosti' => $this->cenaOpakovaneVybiranePolozkyHtml((float)$polozka[Sql::CENA_AKTUALNI]),
+                    'selected'     => $koupene
                         ? 'selected'
                         : '',
                 ]);
@@ -1123,13 +1126,45 @@ SQL,
         ShopUbytovani::zrusSnidaneProHotelovePokoje($this->zakaznik);
     }
 
-    private function cenaOpakovaneVybiranePolozky(array $polozky): ?float
+    private function cenaVybraneOpakovaneVybiranePolozky(array $polozky, int $idPredmetu): ?float
     {
-        $ceny = array_column($polozky, 'cena_aktualni');
+        if ($idPredmetu === 0) {
+            return null;
+        }
+        foreach ($polozky as $polozka) {
+            if ((int)$polozka[Sql::ID_PREDMETU] === $idPredmetu) {
+                return (float)$polozka[Sql::CENA_AKTUALNI];
+            }
+        }
 
-        return $ceny
-            ? (float)max($ceny)
-            : null;
+        return null;
+    }
+
+    private function vychoziCenaOpakovaneVybiranePolozky(array $polozky): string
+    {
+        $ceny = array_map(
+            static fn(array $polozka): int => (int)round((float)$polozka[Sql::CENA_AKTUALNI]),
+            array_filter(
+                $polozky,
+                static fn(array $polozka): bool => (bool)$polozka['nabizet'],
+            ),
+        );
+        $ceny = array_values(array_unique($ceny));
+        sort($ceny);
+
+        if (!$ceny) {
+            return '';
+        }
+        if (count($ceny) === 1) {
+            return $this->cenaOpakovaneVybiranePolozkyHtml((float)$ceny[0]);
+        }
+
+        return reset($ceny) . '-' . end($ceny) . '&thinsp;Kč';
+    }
+
+    private function cenaOpakovaneVybiranePolozkyHtml(float $cena): string
+    {
+        return round($cena) . '&thinsp;Kč';
     }
 
     /**
