@@ -6,13 +6,16 @@ namespace Gamecon\Tests\Model;
 
 use Gamecon\Accounting;
 use Gamecon\Accounting\TransactionCategoryEnum;
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Pravo;
+use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\Finance;
 
 class AccountingTest extends AbstractTestDb
 {
@@ -154,6 +157,36 @@ SQL,
         );
     }
 
+    private function vlozVedenouAktivitu(int $idAktivity, string $nazev): void
+    {
+        dbQuery(
+            <<<SQL
+            INSERT INTO akce_seznam(
+                id_akce, nazev_akce, rok, cena, typ, zacatek, konec,
+                kapacita, kapacita_f, kapacita_m,
+                bez_slevy, nedava_bonus, teamova,
+                popis, popis_kratky, vybaveni
+            )
+            VALUES($0, $1, $2, 0, $3, $4, $5, 10, 0, 0, 0, 0, 0, '', '', '')
+            SQL,
+            [
+                0 => $idAktivity,
+                1 => $nazev,
+                2 => ROCNIK,
+                3 => TypAktivity::PREDNASKA,
+                4 => ROCNIK . '-07-17 10:00:00',
+                5 => ROCNIK . '-07-17 13:00:00',
+            ],
+        );
+        dbQuery(
+            'INSERT INTO akce_organizatori(id_akce, id_uzivatele) VALUES($0, $1)',
+            [
+                0 => $idAktivity,
+                1 => 555,
+            ],
+        );
+    }
+
     private function vlozSlevu(float $castka, string $poznamka = 'Test sleva'): void
     {
         dbQuery(
@@ -182,6 +215,18 @@ SQL,
         );
         dbQuery("INSERT INTO prava_role(id_role, id_prava) VALUES ({$idRole}, {$idPrava})");
         dbQuery("INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES (555, {$idRole}, 555)");
+    }
+
+    private function prihlasNaGc(): void
+    {
+        dbQuery(
+            'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES($0, $1, $2)',
+            [
+                0 => 555,
+                1 => Role::PRIHLASEN_NA_LETOSNI_GC,
+                2 => 555,
+            ],
+        );
     }
 
     private function dejUzivatele(): \Uzivatel
@@ -512,6 +557,31 @@ SQL,
 
         self::assertCount(1, $manualMovements, 'Obecná sleva musí být reprezentována transakcí v MANUAL_MOVEMENTS');
         self::assertSame(40, $manualMovements[0]->getTotalAmount());
+    }
+
+    /**
+     * @test
+     */
+    public function testVypravecskeBonusyJsouVidetVManualMovements(): void
+    {
+        $this->prihlasNaGc();
+        $this->pridelPravo(Pravo::PORADANI_AKTIVIT);
+        $this->vlozVedenouAktivitu(55605, 'Vypravěčská aktivita');
+
+        $aktivita = Aktivita::zId(55605);
+        self::assertNotNull($aktivita);
+        $ocekavanyBonus = Finance::bonusZaAktivitu($aktivita, SystemoveNastaveni::zGlobals());
+        self::assertGreaterThan(0, $ocekavanyBonus);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $manualMovements = array_values(array_filter(
+            $account->getTransactions(),
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::MANUAL_MOVEMENTS,
+        ));
+
+        self::assertCount(1, $manualMovements, 'Vypravěčský bonus musí být reprezentován transakcí v MANUAL_MOVEMENTS');
+        self::assertSame($ocekavanyBonus, $manualMovements[0]->getTotalAmount());
+        self::assertSame($ocekavanyBonus, $account->getTotal());
     }
 
     /**

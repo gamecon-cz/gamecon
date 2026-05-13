@@ -968,6 +968,17 @@ SQL;
                 $puvodniBonusZaVedeniAktivit,
                 self::ORGSLEVA,
             );
+            $this->logPolozkaProBfgr(
+                nazev: 'Bonus za aktivity',
+                pocet: 1,
+                priceAfterDiscountDto: new PriceAfterDiscountDto(
+                    finalPrice: -$puvodniBonusZaVedeniAktivit,
+                    discount: 0,
+                ),
+                typ: self::ORGSLEVA,
+                kodPredmetu: '',
+                idPredmetu: '',
+            );
         }
 
         return $cena;
