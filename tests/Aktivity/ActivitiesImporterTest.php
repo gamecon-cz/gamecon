@@ -75,7 +75,7 @@ class ActivitiesImporterTest extends AbstractTestDb
     {
         // Mock Google Sheets with single location
         $mockData = $this->createMockSheetData([
-            ['', 'Deskoherna', 'Aktivita 1', 'url-1', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+            ['', 'Deskoherna', 'Aktivita 1', 'url-1', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
         ]);
 
         // Create importer with mocked service
@@ -119,7 +119,7 @@ class ActivitiesImporterTest extends AbstractTestDb
     public function testImportActivityWithMultipleLocations()
     {
         $mockData = $this->createMockSheetData([
-            ['', 'Deskoherna', 'Aktivita 2', 'url-2', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost; Malá místnost; Klubovna', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+            ['', 'Deskoherna', 'Aktivita 2', 'url-2', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost; Malá místnost; Klubovna', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
         ]);
 
         $importer = $this->createImporter($mockData);
@@ -154,7 +154,7 @@ class ActivitiesImporterTest extends AbstractTestDb
     public function testImportActivityWithNoLocation()
     {
         $mockData = $this->createMockSheetData([
-            ['', 'Deskoherna', 'Aktivita 3', 'url-3', 'Popis', '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+            ['', 'Deskoherna', 'Aktivita 3', 'url-3', 'Popis', '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
         ]);
 
         $importer = $this->createImporter($mockData);
@@ -182,9 +182,9 @@ class ActivitiesImporterTest extends AbstractTestDb
         // First import - create 3 activities with different location configurations
         // Use unique URLs to avoid conflicts with other tests
         $mockData = $this->createMockSheetData([
-            ['', 'Deskoherna', 'Aktivita Reimport 1', 'url-reimport-1', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
-            ['', 'Deskoherna', 'Aktivita Reimport 2', 'url-reimport-2', 'Popis', '', '', 'Pátek', '13:00', '15:00', 'Velká místnost; Malá místnost; Klubovna', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
-            ['', 'Deskoherna', 'Aktivita Reimport 3', 'url-reimport-3', 'Popis', '', '', 'Pátek', '16:00', '18:00', '', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+            ['', 'Deskoherna', 'Aktivita Reimport 1', 'url-reimport-1', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+            ['', 'Deskoherna', 'Aktivita Reimport 2', 'url-reimport-2', 'Popis', '', '', 'Pátek', '13:00', '15:00', 'Velká místnost; Malá místnost; Klubovna', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+            ['', 'Deskoherna', 'Aktivita Reimport 3', 'url-reimport-3', 'Popis', '', '', 'Pátek', '16:00', '18:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
         ]);
 
         $importer = $this->createImporter($mockData);
@@ -208,9 +208,9 @@ class ActivitiesImporterTest extends AbstractTestDb
         // Second import - with activity IDs this time (update existing)
         // Note: IDs must be strings since Google Sheets returns strings
         $mockDataUpdate = $this->createMockSheetData([
-            [(string) $aktivita1->id(), 'Deskoherna', 'Aktivita Reimport 1', 'url-reimport-1', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
-            [(string) $aktivita2->id(), 'Deskoherna', 'Aktivita Reimport 2', 'url-reimport-2', 'Popis', '', '', 'Pátek', '13:00', '15:00', 'Velká místnost; Malá místnost; Klubovna', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
-            [(string) $aktivita3->id(), 'Deskoherna', 'Aktivita Reimport 3', 'url-reimport-3', 'Popis', '', '', 'Pátek', '16:00', '18:00', '', '', '10', '', '', '', '', '', '', '0', '', '', '1', ''],
+            [(string) $aktivita1->id(), 'Deskoherna', 'Aktivita Reimport 1', 'url-reimport-1', 'Popis', '', '', 'Pátek', '10:00', '12:00', 'Velká místnost', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+            [(string) $aktivita2->id(), 'Deskoherna', 'Aktivita Reimport 2', 'url-reimport-2', 'Popis', '', '', 'Pátek', '13:00', '15:00', 'Velká místnost; Malá místnost; Klubovna', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+            [(string) $aktivita3->id(), 'Deskoherna', 'Aktivita Reimport 3', 'url-reimport-3', 'Popis', '', '', 'Pátek', '16:00', '18:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
         ]);
 
         $importer2 = $this->createImporter($mockDataUpdate);
@@ -259,7 +259,8 @@ class ActivitiesImporterTest extends AbstractTestDb
             'Je týmová',
             'Minimální kapacita týmu',
             'Maximální kapacita týmu',
-            'Následující (semi)finále',
+            'Turnaj',
+            'Kolo turnaje',
             'Cena',
             'Bez slev',
             'Příprava místnosti',
