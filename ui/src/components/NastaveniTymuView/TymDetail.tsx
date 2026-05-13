@@ -1,8 +1,17 @@
+/**
+ * Detail týmu – zobrazuje se když je tým založen a má alespoň 1 člena.
+ *
+ * Prop interface zachován 1:1 s původní implementací.
+ * Logika (editace názvu, kód, veřejnost, kapacita, zámek) je přejatá,
+ * pouze JSX a styly jsou přepsané do nového systému.
+ */
 import { FunctionComponent } from "preact";
+import { useEffect, useState } from "preact/hooks";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
 import { ApiAktivitaTym, ClenTymu } from "../../api/program";
-import { useEffect, useState } from "preact/hooks";
 import { generujNahodnyNazevTymu } from "../../utils/nazevTymu";
+import { Alert } from "./Alert";
+import { IconCopy, IconDice } from "./Ikony";
 
 type TymDetailProps = {
   data: NastaveniTymuData;
@@ -34,10 +43,9 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
   const maxKapacita = dataTymu?.maxKapacita ?? null;
   const minKapacita = dataTymu?.minKapacita ?? 0;
   const pocetClenu = dataTymu?.clenove?.length ?? 0;
+  const limit = dataTymu?.limitTymu ?? null;
 
   const minKapacitaNaplněna = pocetClenu >= minKapacita;
-  const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
-  const týmJePřipravený = pocetClenu > 0;
 
   const [zkopírováno, setZkopírováno] = useState(false);
   const zkopírujKód = (kód: number) => {
@@ -56,182 +64,202 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
   };
   const nazevEditovatelny = jeVTymu && jeKapitán && !dataTymu?.zamceny;
 
-  return (
-    <div>
-      {dataTymu?.zamceny && (
-        <div style={{ color: "#4a4", marginBottom: "8px", fontWeight: "bold" }}>
-          ✓ Tým je zamčený a připravený k hraní.
+  /* ── jednotlivé sekce ─────────────────────────────────────────── */
+
+  const status = dataTymu?.zamceny ? (
+    <Alert kind="success" icon="✓">
+      <div class="gc-tm-alert__title">Tým je zamčený a připravený k hraní</div>
+      <div class="gc-tm-alert__desc">Užijte si hru. 🎲</div>
+    </Alert>
+  ) : (
+    <OdpočetExpiraceAktivity
+      dataTym={dataTymu}
+      časExpiraceMs={časExpiraceMs}
+      minKapacitaNaplněna={minKapacitaNaplněna}
+    />
+  );
+
+  const sekceNazev = jeVTymu && (
+    <div class="gc-tm-section" style={{ marginTop: 0 }}>
+      <div class="gc-tm-section-label">
+        Název týmu <span class="gc-tm-section-label__dash" />
+      </div>
+      {nazevEditovatelny ? (
+        <div class="gc-tm-name-edit">
+          <input
+            class="gc-tm-input"
+            value={nazevDraft}
+            maxLength={255}
+            placeholder="Zadejte název týmu"
+            onInput={(e) => setNazevDraft((e.currentTarget as HTMLInputElement).value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") ulozNazev();
+              if (e.key === "Escape") setNazevDraft(nazevServer);
+            }}
+          />
+          <button
+            class="gc-tm-icon-btn"
+            title="Vygenerovat náhodný název"
+            onClick={() => setNazevDraft(generujNahodnyNazevTymu())}
+          >
+            <IconDice size={18} />
+          </button>
+          <button
+            class="gc-tm-btn"
+            disabled={nazevDraft.trim() === nazevServer}
+            onClick={ulozNazev}
+          >
+            Uložit
+          </button>
+        </div>
+      ) : (
+        <div style={{ fontWeight: 700, fontSize: 18 }}>
+          {nazevServer || <span style={{ color: "var(--ink-3)", fontStyle: "italic", fontWeight: 500 }}>bez názvu</span>}
         </div>
       )}
+    </div>
+  );
 
-      {jeVTymu && (
-        <div style={{ marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-          <span style={{ fontWeight: "bold" }}>Název týmu:</span>
-          {nazevEditovatelny ? (
-            <>
-              <input
-                style={{ width: "unset", flex: "1 1 auto", maxWidth: "320px" }}
-                value={nazevDraft}
-                maxLength={255}
-                placeholder="zadejte název týmu"
-                onInput={(e) => setNazevDraft(e.currentTarget.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") ulozNazev();
-                  if (e.key === "Escape") setNazevDraft(nazevServer);
-                }}
-              />
-              <button
-                type="button"
-                title="Vygenerovat náhodný název"
-                style={{ width: "unset", padding: "2px 8px" }}
-                onClick={() => setNazevDraft(generujNahodnyNazevTymu())}
-              >
-                🎲
-              </button>
-              <button
-                type="button"
-                style={{ width: "unset", padding: "2px 10px" }}
-                disabled={nazevDraft.trim() === nazevServer}
-                onClick={ulozNazev}
-              >
-                Uložit
-              </button>
-            </>
-          ) : (
-            <span>{nazevServer || <span style={{ color: "#888", fontStyle: "italic" }}>bez názvu</span>}</span>
-          )}
+  const sekceKod = !dataTymu?.zamceny && dataTymu?.kod && (
+    <div class="gc-tm-section">
+      <div class="gc-tm-code-box">
+        <div>
+          <div class="gc-tm-code-box__label">Kód týmu</div>
+          <div class="gc-tm-code-box__value">{dataTymu.kod}</div>
         </div>
-      )}
-
-      <OdpočetExpiraceAktivity
-        dataTym={dataTymu}
-        časExpiraceMs={časExpiraceMs}
-        minKapacitaNaplněna={minKapacitaNaplněna}
-      />
-
-      {/* Kód týmu — všichni přihlášení */}
-      {!dataTymu?.zamceny && dataTymu?.kod && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "1.3em" }}>
-            kód týmu:{" "}
-            <span
-              title="Klikni pro zkopírování"
-              style={{ cursor: "pointer", textDecoration: "underline dotted" }}
-              onClick={() => zkopírujKód(dataTymu?.kod ?? -666)}
-            >
-              {dataTymu.kod}
-            </span>
-            {zkopírováno && <span style={{ color: "#4a4", marginLeft: "6px", fontSize: "0.8em" }}>zkopírováno!</span>}
-          </span>
+        <div class="gc-tm-code-box__right">
+          <button
+            class="gc-tm-icon-btn"
+            title={zkopírováno ? "Zkopírováno!" : "Zkopírovat"}
+            onClick={() => zkopírujKód(dataTymu.kod!)}
+          >
+            {zkopírováno ? "✓" : <IconCopy size={16} />}
+          </button>
           {jeKapitán && (
-            <button style={{ width: "unset" }} onClick={onPřegenrovatSPotvrzením}>
-              Přegenerovat kód
+            <button
+              class="gc-tm-btn gc-tm-btn--ghost gc-tm-btn--sm"
+              onClick={onPřegenrovatSPotvrzením}
+            >
+              Přegenerovat
             </button>
           )}
         </div>
-      )}
+      </div>
+    </div>
+  );
 
-      {/* Veřejnost — jen kapitán */}
-      {!dataTymu?.zamceny && jeKapitán && dataTymu?.verejny !== undefined && (
-        <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <input
-            type="checkbox"
-            checked={dataTymu.verejny}
-            onChange={onPřepniVerejnost}
-          />
-          Veřejný tým (kdokoliv se může přihlásit bez kódu)
-        </label>
-      )}
+  const sekceVerejnost = !dataTymu?.zamceny && jeKapitán && dataTymu?.verejny !== undefined && (
+    <div class="gc-tm-section">
+      <div class="gc-tm-section-label">
+        Viditelnost <span class="gc-tm-section-label__dash" />
+      </div>
+      <div class="gc-tm-vis-row">
+        <div
+          class={`gc-tm-vis-pill ${!dataTymu.verejny ? "is-active" : ""}`}
+          onClick={() => dataTymu.verejny && onPřepniVerejnost()}
+        >
+          🔒 Soukromý (jen na kód)
+        </div>
+        <div
+          class={`gc-tm-vis-pill ${dataTymu.verejny ? "is-active" : ""}`}
+          onClick={() => !dataTymu.verejny && onPřepniVerejnost()}
+        >
+          🌐 Veřejný (otevřený)
+        </div>
+      </div>
+    </div>
+  );
 
-      {/* Seznam členů */}
-      {dataTymu?.clenove && dataTymu.clenove.length > 0 && (
-        <div style={{ width: "100%" }}>
-          <strong>Členové týmu</strong>
-          {dataTymu.limitTymu !== null && dataTymu.limitTymu !== undefined && (
-            <span style={{ color: "#666", marginLeft: "6px" }}>
-              ({pocetClenu}/{dataTymu.limitTymu}{dataTymu.minKapacita ? `, min. ${dataTymu.minKapacita}${maxKapacita !== null && dataTymu.limitTymu < maxKapacita ? ` max. ${maxKapacita}` : ""}` : ""})
-            </span>
-          )}
-          <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
-            {dataTymu.clenove.map((clen) => (
-              <li
-                key={clen.id}
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}
-              >
-                <span>
-                  {clen.jmeno}
-                  {clen.jeKapitan && <span style={{ color: "#888", marginLeft: "4px" }}>(kapitán)</span>}
-                </span>
-                {!dataTymu?.zamceny && jeKapitán && !clen.jeKapitan && (
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    {(
-                      <button
-                        style={{ width: "unset", padding: "2px 8px" }}
-                        onClick={()=>onPředejKapitánaSPotvrzením(clen)}
-                      >
-                        Předat kapitána
-                      </button>
-                    )}
-                    <button
-                      style={{ width: "unset", padding: "2px 8px" }}
-                      onClick={() => onOdebratČlenaSPotvrzením(clen)}
-                    >
-                      Odebrat
-                    </button>
-                  </div>
-                )}
-              </li>
-            ))}
-            {dataTymu.limitTymu !== null && dataTymu.limitTymu !== undefined && Array.from({ length: dataTymu.limitTymu - pocetClenu }).map((_, i) => {
-              const povinné = pocetClenu + i < minKapacita;
-              return (
-                <li
-                  key={`volne-${i}`}
-                  style={{ padding: "4px 0", color: povinné ? "#c00" : "#888", fontStyle: "italic" }}
-                >
-                  volné místo{povinné && " (povinné)"}
-                </li>
-              );
-            })}
-          </ul>
+  const sekceClenove = dataTymu?.clenove && dataTymu.clenove.length > 0 && (
+    <div class="gc-tm-section">
+      <div class="gc-tm-section-label">
+        Členové týmu
+        {limit !== null && (
+          <span class="gc-tm-members-count">
+            ({pocetClenu}/{limit}{minKapacita ? `, min. ${minKapacita}${maxKapacita !== null && limit < maxKapacita ? ` max. ${maxKapacita}` : ""}` : ""})
+          </span>
+        )}
+        <span class="gc-tm-section-label__dash" />
+      </div>
 
-          {/* Úprava limitu po jednom — jen kapitán */}
-          {!dataTymu?.zamceny && jeKapitán && dataTymu.limitTymu !== null && dataTymu.limitTymu !== undefined && (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+      {dataTymu.clenove.map((clen) => (
+        <div key={clen.id} class={`gc-tm-member ${clen.jeKapitan ? "gc-tm-member--captain" : ""}`}>
+          <span class="gc-tm-member__avatar">{iniciály(clen.jmeno)}</span>
+          <span class="gc-tm-member__name">{clen.jmeno}</span>
+          {clen.jeKapitan && <span class="gc-tm-member__badge">Kapitán</span>}
+          {!dataTymu?.zamceny && jeKapitán && !clen.jeKapitan && (
+            <div class="gc-tm-member__actions">
               <button
-                style={{ width: "unset", padding: "2px 10px" }}
-                disabled={dataTymu.limitTymu <= Math.max(pocetClenu, minKapacita)}
-                onClick={() => onNastavLimit(dataTymu.limitTymu! - 1)}
+                class="gc-tm-btn gc-tm-btn--ghost gc-tm-btn--sm"
+                onClick={() => onPředejKapitánaSPotvrzením(clen)}
               >
-                −
+                Předat kapitána
               </button>
-              <span style={{ color: "#666" }}>volná místa</span>
               <button
-                style={{ width: "unset", padding: "2px 10px" }}
-                disabled={maxKapacita !== null && dataTymu.limitTymu >= maxKapacita}
-                onClick={() => onNastavLimit(dataTymu.limitTymu! + 1)}
+                class="gc-tm-btn gc-tm-btn--ghost gc-tm-btn--sm"
+                onClick={() => onOdebratČlenaSPotvrzením(clen)}
               >
-                +
+                Odebrat
               </button>
             </div>
           )}
         </div>
-      )}
+      ))}
 
-      {/* Zavřít tým — jen kapitán, pokud tým není zamčený a má min. počet lidí */}
-      {!dataTymu?.zamceny && jeKapitán && (
-        <button
-          style={{ width: "unset" }}
-          disabled={pocetClenu < minKapacita}
-          onClick={onZamkniTym}
-        >
-          Zamknout tým
-        </button>
+      {limit !== null && Array.from({ length: Math.max(0, limit - pocetClenu) }).map((_, i) => {
+        const idx = pocetClenu + i;
+        const povinné = idx < minKapacita;
+        return (
+          <div key={`volne-${i}`} class={`gc-tm-member gc-tm-member--empty ${povinné ? "gc-tm-member--required" : ""}`}>
+            <span class="gc-tm-member__avatar">+</span>
+            <span class="gc-tm-member__name">volné místo{povinné && " (povinné)"}</span>
+          </div>
+        );
+      })}
+
+      {!dataTymu?.zamceny && jeKapitán && limit !== null && (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
+          <span style={{ fontSize: 12.5, color: "var(--ink-3)", fontWeight: 600 }}>Volných míst:</span>
+          <div class="gc-tm-stepper">
+            <button
+              disabled={limit <= Math.max(pocetClenu, minKapacita)}
+              onClick={() => onNastavLimit(limit - 1)}
+            >−</button>
+            <span class="gc-tm-stepper__value">{Math.max(0, limit - pocetClenu)}</span>
+            <button
+              disabled={maxKapacita !== null && limit >= maxKapacita}
+              onClick={() => onNastavLimit(limit + 1)}
+            >+</button>
+          </div>
+        </div>
       )}
+    </div>
+  );
+
+  const tlacitkoZamknout = !dataTymu?.zamceny && jeKapitán && (
+    <button
+      class="gc-tm-btn gc-tm-btn--primary gc-tm-btn--lg gc-tm-btn--full"
+      disabled={pocetClenu < minKapacita}
+      onClick={onZamkniTym}
+      style={{ marginTop: 18 }}
+    >
+      🔒 Zamknout tým a začít hrát
+    </button>
+  );
+
+  return (
+    <div>
+      {status}
+      {sekceNazev}
+      {sekceKod}
+      {sekceVerejnost}
+      {sekceClenove}
+      {tlacitkoZamknout}
     </div>
   );
 };
 
+/* ─────────────────────────────────────────────────────────────────────── */
 
 const OdpočetExpiraceAktivity: FunctionComponent<{
   dataTym: ApiAktivitaTym | undefined;
@@ -241,29 +269,21 @@ const OdpočetExpiraceAktivity: FunctionComponent<{
   const odpočet = useOdpočet(časExpiraceMs);
   if (!odpočet || odpočet <= 0) return null;
 
+  const smaže = dataTym?.smazatPoExpiraci ?? false;
+
   return (
-    <div style={{
-      background: dataTym?.smazatPoExpiraci ?? false ? "#fff3f3" : "#fffbe6",
-      border: `1px solid ${dataTym?.smazatPoExpiraci ? "#c33" : "#b80"}`,
-      borderRadius: "4px",
-      padding: "8px 12px",
-      marginBottom: "8px",
-    }}>
-      {dataTym?.smazatPoExpiraci
-        ? <>
-          Za {formatZbývá(odpočet)} h bude tým automaticky{" "}
-          <strong style={{ color: "#c00" }}>smazán</strong>
-          {" "}— kapitán musí tým zamknout. {minKapacitaNaplněna? "" : "Nejdříve ale musí tým naplnit alespoň min kapacitu"}
-        </>
-        : <>
-          Za {formatZbývá(odpočet)} h bude tým automaticky zveřejněn
-          {" "}— kapitán musí tým zamknout. {minKapacitaNaplněna? "" : "Nejdříve ale musí tým naplnit alespoň min kapacitu"}
-        </>
-      }
-    </div>
+    <Alert kind={smaže ? "danger" : "warning"} icon="⏱">
+      <div class="gc-tm-alert__title">
+        Za <span class="gc-tm-alert__count">{formatZbývá(odpočet)} h</span>{" "}
+        bude tým automaticky {smaže ? "smazán" : "zveřejněn"}
+      </div>
+      <div class="gc-tm-alert__desc">
+        Kapitán musí tým zamknout.{" "}
+        {minKapacitaNaplněna ? "" : "Nejdříve naplň minimální kapacitu."}
+      </div>
+    </Alert>
   );
 };
-
 
 const formatZbývá = (ms: number): string => {
   if (ms <= 0) return "0:00";
@@ -274,7 +294,6 @@ const formatZbývá = (ms: number): string => {
 
 const useOdpočet = (casExpiraceMs: number | undefined): number | null => {
   const [zbývá, setZbývá] = useState<number | null>(null);
-
   useEffect(() => {
     if (!casExpiraceMs) return;
     const update = () => setZbývá(Math.max(0, casExpiraceMs - Date.now()));
@@ -282,7 +301,14 @@ const useOdpočet = (casExpiraceMs: number | undefined): number | null => {
     const id = setInterval(update, 60000);
     return () => clearInterval(id);
   }, [casExpiraceMs]);
-
   return zbývá;
 };
 
+/** První písmena ze jména a příjmení/přezdívky. Vrací max 2 znaky. */
+const iniciály = (jmeno: string): string => {
+  const ocistene = jmeno.replace(/[„""]/g, "").trim();
+  const časti = ocistene.split(/\s+/).filter(Boolean);
+  if (časti.length === 0) return "?";
+  if (časti.length === 1) return časti[0].slice(0, 2).toUpperCase();
+  return (časti[0][0] + časti[časti.length - 1][0]).toUpperCase();
+};

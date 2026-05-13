@@ -1,10 +1,12 @@
 /**
  * Krok 2: Přihlášení se jako kapitán.
- * Zobrazí potvrzení vybraných termínů.
- * Po kliknutí bude tým aktivní.
+ * Zobrazí potvrzení vybraných termínů a případné konflikty.
+ *
+ * Prop interface zachován z původní verze; pouze JSX a styly přepsány.
  */
 import { FunctionComponent } from "preact";
 import { UpozorneniOdpocet } from "./UpozorneniOdpocet";
+import { Alert } from "../NastaveniTymuView/Alert";
 
 type AktivitaSPrekryvem = {
   id: number;
@@ -30,44 +32,52 @@ export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
   nacita,
 }) => {
   const máPřekryv = překrývajícíSeAktivity.length > 0;
+  const řádky = (vybranéAktivity ?? "").split("\n").map(s => s.trim()).filter(Boolean);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div>
       <UpozorneniOdpocet
         zbyvajiciCas={zbyvajiciCas}
-        podtexty="Přihlaste se jako kapitán nebo tým bude automaticky smazán"
+        podtexty="Přihlas se jako kapitán nebo bude tým automaticky smazán."
       />
 
-      {vybranéAktivity && (
-        <div style={{ backgroundColor: "#f5f5f5", padding: "12px", borderRadius: "4px", fontSize: "0.9em" }}>
-          <strong>Vybrané termíny:</strong>
-          <div style={{ marginTop: "8px", whiteSpace: "pre-wrap", fontFamily: "monospace", color: "#555" }}>
-            {vybranéAktivity}
+      {řádky.length > 0 && (
+        <div class="gc-tm-section" style={{ marginTop: 0 }}>
+          <div class="gc-tm-section-label">
+            Vybrané termíny <span class="gc-tm-section-label__dash" />
+          </div>
+          <div class="gc-tm-chosen-list">
+            {řádky.map((řádek, i) => (
+              <div key={i} class="gc-tm-chosen-row">
+                <span class="gc-tm-chosen-row__num">{i + 1}</span>
+                <span class="gc-tm-chosen-row__text">{řádek}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {máPřekryv && (
-        <div style={{ backgroundColor: "#fff3e0", border: "1px solid #e65100", padding: "12px", borderRadius: "4px", fontSize: "0.9em" }}>
-          <strong style={{ color: "#e65100" }}>Pro přihlášení jako kapitán se musíte odhlásit z těchto aktivit:</strong>
-          <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+        <div class="gc-tm-section">
+          <Alert kind="danger" icon="!">
+            <div class="gc-tm-alert__title">Konflikt termínů</div>
+            <div class="gc-tm-alert__desc">Pro přihlášení jako kapitán se musíš odhlásit z těchto aktivit:</div>
+          </Alert>
+          <div>
             {překrývajícíSeAktivity.map(a => (
-              <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "#555" }}>{a.nazev} – <span style={{ fontFamily: "monospace" }} dangerouslySetInnerHTML={{__html:a.cas}} /></span>
+              <div key={a.id} class="gc-tm-team-row" style={{ background: "var(--red-bg)", borderColor: "var(--red-2)" }}>
+                <div>
+                  <div class="gc-tm-team-row__name">{a.nazev}</div>
+                  <div
+                    style={{ fontSize: 12, color: "var(--ink-3)", fontFamily: "var(--font-mono)" }}
+                    dangerouslySetInnerHTML={{ __html: a.cas }}
+                  />
+                </div>
+                <span class="gc-tm-team-row__spacer" />
                 <button
+                  class="gc-tm-btn gc-tm-btn--danger gc-tm-btn--sm"
                   onClick={() => onOdhlasitAktivitu(a.id)}
                   disabled={nacita}
-                  style={{
-                    padding: "2px 10px",
-                    fontSize: "0.85em",
-                    backgroundColor: "#e65100",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: nacita ? "not-allowed" : "pointer",
-                    opacity: nacita ? 0.6 : 1,
-                    whiteSpace: "nowrap",
-                  }}
                 >
                   Odhlásit
                 </button>
@@ -77,40 +87,14 @@ export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
         </div>
       )}
 
-      {/* Hlavní akce - přihlášení */}
-      <div
-        style={{
-          backgroundColor: máPřekryv ? "#f5f5f5" : "#e8f5e9",
-          border: `2px solid ${máPřekryv ? "#bbb" : "#4a4"}`,
-          padding: "16px",
-          borderRadius: "4px",
-          textAlign: "center",
-        }}
+      <button
+        class={`gc-tm-btn ${máPřekryv ? "" : "gc-tm-btn--success"} gc-tm-btn--lg gc-tm-btn--full`}
+        onClick={onPrihlasit}
+        disabled={nacita || máPřekryv}
+        style={{ marginTop: 18 }}
       >
-        <div style={{ marginBottom: "12px", color: "#333", fontSize: "0.95em" }}>
-          Kliknutím níže se přihlásíte jako kapitán a tým bude připraven
-        </div>
-        <button
-          onClick={onPrihlasit}
-          disabled={nacita || máPřekryv}
-          style={{
-            width: "100%",
-            padding: "0",
-            fontSize: "1.1em",
-            fontWeight: "bold",
-            backgroundColor: máPřekryv ? "#bbb" : "#4a4",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: (nacita || máPřekryv) ? "not-allowed" : "pointer",
-            opacity: (nacita || máPřekryv) ? 0.6 : 1,
-            marginBottom: "1em",
-          }}
-        >
-          {nacita ? "Přihlašuji..." : "✓ Přihlásit se jako kapitán"}
-        </button>
-      </div>
-
+        {nacita ? "Přihlašuji…" : "✓ Přihlásit se jako kapitán"}
+      </button>
     </div>
   );
 };

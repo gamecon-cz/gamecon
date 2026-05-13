@@ -1,13 +1,31 @@
+/**
+ * Nastavení týmu modal – redesign v Gamecon vizuálním systému.
+ *
+ * Prop interface zachován 1:1 s předchozí verzí, takže parent (program/index.tsx)
+ * se nemění. Logika potvrzovacích modálů a všech akcí je převzata z původní implementace.
+ *
+ * Změny:
+ *  - Vlastní wrapper `.gc-tm-scrim > .gc-tm-modal` (původní `.modal_obal > .modal` se nahrazuje)
+ *  - Inline styly nahrazeny class names z `NastaveniTymuView.less`
+ *  - Header je vlastní komponenta s brush stroke + chip-style časy
+ *  - "Smazat tým" se přesouvá do pravé části headeru jako danger-ghost button
+ *  - "Zavřít" je v patičce, nikoli plovoucí vpravo
+ *  - "Odhlásit!" je v pravém slotu headeru když tým existuje (analogicky původnímu chování)
+ */
 import { FunctionComponent } from "preact";
-import { useState, useEffect, useMemo } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
-import { AkceTymuBezKontextu, ClenTymu, ApiTymVSeznamu } from "../../api/program";
-import { PripravaTymu, KoloAktivity } from "../PripravaTymu";
+import { AkceTymuBezKontextu, ClenTymu } from "../../api/program";
+import { PripravaTymu } from "../PripravaTymu";
 import { TymDetail } from "./TymDetail";
+import { SeznamTymu } from "./SeznamTymu";
+import { Alert } from "./Alert";
+import { IconBrushStroke, IconArrowRight } from "./Ikony";
 import { useAktivity } from "../../store/program/selektory";
-import { denAktivity, denČasAktivityText } from "../../store/program/logic/aktivity";
 import { ziskejDenCasAktivity } from "../PripravaTymu/PripravaTymu";
+
+import "./NastaveniTymuView.less";
 
 type NastaveniTymuViewProps = {
   nazevAktivity?: string;
@@ -21,53 +39,8 @@ type NastaveniTymuViewProps = {
   onPřipojitSe: (idTýmu?: number, kód?: number) => void;
   onOdhlásit: () => void;
   onOdhlasitAktivitu: (aktivitaId: number) => void;
-  onProveďAkci: (akceTymu: AkceTymuBezKontextu, dotáhniIpřiNeúspěchu?: boolean) => Promise<void>
+  onProveďAkci: (akceTymu: AkceTymuBezKontextu, dotáhniIpřiNeúspěchu?: boolean) => Promise<void>;
 };
-
-const SeznamTymu: FunctionComponent<{
-  tymy: ApiTymVSeznamu[];
-  zobrazitPřipojení: boolean;
-  onPřipojitSe: (idTýmu?: number, kód?: number) => void;
-}> = ({ tymy, zobrazitPřipojení, onPřipojitSe }) => {
-  if (tymy.length === 0)
-    return <div style={{ color: "#888" }}>Žádné týmy</div>;
-
-  return (
-    <div style={{ marginTop: "8px", width: "100%" }}>
-      <strong>Všechny týmy:</strong>
-      <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
-        {tymy.map((tym) => {
-          const plny = tym.limit !== null && tym.pocetClenu >= (tym.limit ?? 0);
-          return (
-            <li
-              key={tym.id}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}
-            >
-              <span>{tym.nazev || `Tým ${tym.id}`}</span>
-              <span style={{ color: "#888" }}>
-                {tym.pocetClenu}{tym.limit !== null ? `/${(tym.limit ?? "")}` : ""}
-              </span>
-              {tym.verejny
-                ? <span style={{ color: "#4a4", fontSize: "0.85em" }}>veřejný</span>
-                : <span style={{ color: "#888", fontSize: "0.85em" }}>soukromý</span>
-              }
-              {zobrazitPřipojení && tym.verejny && (
-                <button
-                  disabled={plny}
-                  style={{ width: "unset" }}
-                  onClick={() => onPřipojitSe(tym.id)}
-                >
-                  {plny ? "Plný" : "Připojit se"}
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-};
-
 
 export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (props) => {
   const {
@@ -84,8 +57,8 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     onOdhlasitAktivitu,
     onProveďAkci,
   } = props;
-  const vsechnyAktivity = useAktivity();
 
+  const vsechnyAktivity = useAktivity();
   const [kódPřipojeníDoTýmu, setKódPřipojeníDoTýmu] = useState("");
   const [potvrzení, setPotvrzení] = useState<{ text: string; akce: () => void } | null>(null);
 
@@ -94,68 +67,59 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const modalMáTým = !!data?.tym?.id;
   const pocetClenu = data?.tym?.clenove?.length ?? 0;
   const týmJePřipravený = pocetClenu > 0;
+  const týmNázev = data?.tym?.nazev ?? "";
 
   const aktivityTymuId = data?.tym?.aktivityTymuId ?? [];
-  const aktivityTymu = aktivityTymuId.map(id => vsechnyAktivity.find(a => a.id === id)).filter(x => x !== undefined);
+  const aktivityTymu = aktivityTymuId
+    .map(id => vsechnyAktivity.find(a => a.id === id))
+    .filter((x): x is NonNullable<typeof x> => x !== undefined);
 
-  const modalPotvrzení = potvrzení && (
-    <div className="modal_obal">
-      <div className="modal clearfix">
-        <p>{potvrzení.text}</p>
-        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-          <button style={{ width: "unset" }} onClick={() => setPotvrzení(null)}>Zrušit</button>
-          <button style={{ width: "unset" }} onClick={() => { potvrzení.akce(); setPotvrzení(null); }}>Potvrdit</button>
-        </div>
-      </div>
-    </div>
-  );
+  // časy ve formátu chip-style pro hlavičku
+  const casyChips: string[] = aktivityTymu.map(a => ziskejDenCasAktivity(a));
 
-  const týmNázev = data?.tym?.nazev ?? "";
   const můžeZaložitTým =
-    // nechame kontroly na BE pokud z nějakého důvodu nemáme kapacitu nebo tymy
-    !tymovaKapacita || !data?.vsechnyTymy?.length
-    || data.vsechnyTymy.length < tymovaKapacita
-    ;
+    !tymovaKapacita || !data?.vsechnyTymy?.length || data.vsechnyTymy.length < tymovaKapacita;
 
+  // ─── Akce ─────────────────────────────────────────────────────────────
   const onOdemkniSPotvrzenim = sPotvrzením(
-    `Opravdu chcete odemknout tým${týmNázev}?`, () => {
-      void onProveďAkci({ typ: "odemkni" });
-    });
+    `Opravdu chcete odemknout tým ${týmNázev}?`,
+    () => { void onProveďAkci({ typ: "odemkni" }); }
+  );
 
   const onOdhlasitSPotvrzenim = sPotvrzením(
     `Opravdu se chcete odhlásit z aktivity${nazevAktivity ? ` ${nazevAktivity}` : ""} a opustit tým?`,
     onOdhlásit
-  )
+  );
 
   const onPotvrditVýběrAktivit = (idVybranychAktivit: number[]) => {
     void onProveďAkci({ typ: "potvrdVyberAktivit", idVybranychAktivit }, true);
   };
 
-  const onPrihlasitKapitana = () => {
-    void onProveďAkci({ typ: "prihlasKapitana" });
-  }
+  const onPrihlasitKapitana = () => { void onProveďAkci({ typ: "prihlasKapitana" }); };
 
-  const onSmazatTym =
-    sPotvrzením(`Opravdu chcete smazat tým z aktivity ${nazevAktivity ? ` ${nazevAktivity}` : ""} ?`,
-      () => void onProveďAkci({ typ: "smazTym" }))
-
-  const onZamkniTym = sPotvrzením(
-    `Opravdu chcete zamknout tým${týmNázev}? Tým se poté nebude moci editovat. Tato akce je nevratná.`,
-    () => void onProveďAkci({ typ: "zamkni" })
+  const onSmazatTym = sPotvrzením(
+    `Opravdu chcete smazat tým z aktivity ${nazevAktivity ? ` ${nazevAktivity}` : ""} ?`,
+    () => { void onProveďAkci({ typ: "smazTym" }); }
   );
 
-  const onPřegenrovatSPotvrzením = sPotvrzením("Opravdu chcete přegenerovat kód týmu? Starý kód přestane fungovat.",
-    () => void onProveďAkci({ typ: "pregenerujKod" })
+  const onZamkniTym = sPotvrzením(
+    `Opravdu chcete zamknout tým ${týmNázev}? Tým se poté nebude moci editovat. Tato akce je nevratná.`,
+    () => { void onProveďAkci({ typ: "zamkni" }); }
+  );
+
+  const onPřegenrovatSPotvrzením = sPotvrzením(
+    "Opravdu chcete přegenerovat kód týmu? Starý kód přestane fungovat.",
+    () => { void onProveďAkci({ typ: "pregenerujKod" }); }
   );
 
   const onPředejKapitánaSPotvrzením = (clen: ClenTymu) => sPotvrzením(
     `Opravdu chcete předat kapitána hráči ${clen.jmeno}?`,
-    () => void onProveďAkci({ typ: "predejKapitana", idNovehoKapitana: clen.id })
+    () => { void onProveďAkci({ typ: "predejKapitana", idNovehoKapitana: clen.id }); }
   )();
 
   const onOdebratČlenaSPotvrzením = (clen: ClenTymu) => sPotvrzením(
-    `Opravdu chcete odebrat hráče ${clen.jmeno} z týmu${týmNázev}${nazevAktivity ? ` na aktivitě ${nazevAktivity}` : ""}?`,
-    () => void onProveďAkci({ typ: "odhlasClena", idClena: clen.id })
+    `Opravdu chcete odebrat hráče ${clen.jmeno} z týmu ${týmNázev}${nazevAktivity ? ` na aktivitě ${nazevAktivity}` : ""}?`,
+    () => { void onProveďAkci({ typ: "odhlasClena", idClena: clen.id }); }
   )();
 
   const onOdhlasitAktivituSPotvrzením = (aktivitaId: number) => {
@@ -166,115 +130,152 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     )();
   };
 
-  const onZaložitTým = () => void onProveďAkci({ typ: "zalozPrazdnyTym" });
+  const onZaložitTým = () => { void onProveďAkci({ typ: "zalozPrazdnyTym" }); };
+  const onPřepniVerejnost = () => { void onProveďAkci({ typ: "nastavVerejnost", verejny: !data?.tym?.verejny }); };
+  const onNastavLimit = (limit: number) => { void onProveďAkci({ typ: "nastavLimit", limit }); };
+  const onNastavNazev = (nazev: string) => { void onProveďAkci({ typ: "nastavNazev", nazev }); };
 
-  const onPřepniVerejnost = () => void onProveďAkci({ typ: "nastavVerejnost", verejny: !data?.tym?.verejny });
-
-  const onNastavLimit = (limit: number) => void onProveďAkci({ typ: "nastavLimit", limit });
-
-  const onNastavNazev = (nazev: string) => void onProveďAkci({ typ: "nastavNazev", nazev });
-
-  const seznamTýmů = data?.vsechnyTymy && data.vsechnyTymy.length > 0 && (
-    <SeznamTymu
-      tymy={data.vsechnyTymy}
-      zobrazitPřipojení={false}
-      onPřipojitSe={onPřipojitSe}
-    />
+  // ─── Potvrzovací modal (nested) ──────────────────────────────────────
+  const modalPotvrzení = potvrzení && (
+    <div class="gc-tm-scrim" onClick={(e) => { if (e.target === e.currentTarget) setPotvrzení(null); }}>
+      <div class="gc-tm-modal gc-tm-root" style={{ width: "min(420px, 100%)" }}>
+        <div class="gc-tm-body" style={{ padding: 24 }}>
+          <div class="gc-tm-eyebrow">Potvrzení</div>
+          <p style={{ fontSize: 15, lineHeight: 1.5, margin: "8px 0 18px" }}>{potvrzení.text}</p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button class="gc-tm-btn gc-tm-btn--ghost" onClick={() => setPotvrzení(null)}>Zrušit</button>
+            <button class="gc-tm-btn gc-tm-btn--primary"
+                    onClick={() => { potvrzení.akce(); setPotvrzení(null); }}>
+              Potvrdit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
+
+  // ─── Slot v pravé části headeru: smazat / odhlásit ──────────────────
+  const dangerSlot = (
+    <div class="gc-tm-danger-slot" style={{ display: "flex", gap: 8 }}>
+      {modalMáTým && !týmJePřipravený && (
+        <button class="gc-tm-btn gc-tm-btn--danger gc-tm-btn--sm"
+                onClick={onSmazatTym}
+                disabled={načítá || načítáAkci}>
+          🗑 Smazat tým
+        </button>
+      )}
+      {GAMECON_KONSTANTY.JE_ADMIN && data?.tym?.zamceny && (
+        <button class="gc-tm-btn gc-tm-btn--ghost gc-tm-btn--sm" onClick={onOdemkniSPotvrzenim}>
+          Odemknout
+        </button>
+      )}
+      {data?.tym && !data?.tym?.zamceny && (
+        <button class="gc-tm-btn gc-tm-btn--danger gc-tm-btn--sm"
+                onClick={onOdhlasitSPotvrzenim}
+                disabled={data?.tym?.zamceny}>
+          Odhlásit!
+        </button>
+      )}
+    </div>
+  );
+
+  const headerCasy = casyChips.length > 0 ? casyChips : (nazevAktivity ? [] : []);
 
   return (
     <>
-      <div
-        className="modal_obal"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onZavřít();
-        }}
-      >
-        <div className="modal clearfix">
-          <div className="clearfix">
-            <div style={{ float: "left" }}>
-              <h3 style={{marginBottom:"2px"}}>
-                Nastavení týmu{nazevAktivity ? ` aktivity ${nazevAktivity}` : ""}
-              </h3>
-              <div style={{marginBottom:"12px"}}>
-                {(data?.tym?.aktivityTymuId ?? [])
-                  .map(id=>vsechnyAktivity.find(x=>x.id===id)!)
-                  .filter(x => x)
-                  .map(x=> ziskejDenCasAktivity(x))
-                  .map(cas=><div style={{fontFamily:'ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace'}} dangerouslySetInnerHTML={{__html:cas??""}} />)
-                }
+      <div class="gc-tm-scrim gc-tm-root" onClick={(e) => { if (e.target === e.currentTarget) onZavřít(); }}>
+        <div class="gc-tm-modal">
+
+          {/* Header */}
+          <div class="gc-tm-header">
+            <IconBrushStroke className="gc-tm-brush" />
+            <div class="gc-tm-eyebrow">Nastavení týmu</div>
+            <h2 class="gc-tm-title">{nazevAktivity ?? "Aktivita"}</h2>
+            {headerCasy.length > 0 && (
+              <div class="gc-tm-subtitle">
+                {headerCasy.map((cas, i) => (
+                  <span key={i} class="gc-tm-timeslot" dangerouslySetInnerHTML={{ __html: cas }} />
+                ))}
               </div>
-            </div>
-            <div class="vpravo" style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-              {modalMáTým && !týmJePřipravený && (
-                <button
-                  onClick={onSmazatTym}
-                  style={{
-                    backgroundColor: "#f44",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
-                  disabled={načítá || načítáAkci}
-                >
-                  🗑️ Smazat tým
-                </button>
-              )}
-              {GAMECON_KONSTANTY.JE_ADMIN && data?.tym?.zamceny && (
-                <button style={{ width: "unset" }} onClick={onOdemkniSPotvrzenim}>Odemknout</button>
-              )}
-              {data?.tym && !data?.tym?.zamceny && (
-                <button disabled={data?.tym?.zamceny} onClick={onOdhlasitSPotvrzenim}>Odhlásit!</button>
-              )}
-            </div>
+            )}
+            <button class="gc-tm-close" onClick={onZavřít} aria-label="Zavřít">×</button>
+            {dangerSlot}
           </div>
 
-          {aktivityTymu.map(aktivita => {
-            <div style={{ color: "#666", marginBottom: "8px" }}>{denČasAktivityText(aktivita)}</div>
-          })}
+          {/* Body */}
+          <div class="gc-tm-body">
+            {(načítá || načítáAkci) && (
+              <Alert kind="warning" icon="⏳">
+                <div class="gc-tm-alert__title">Načítám…</div>
+              </Alert>
+            )}
 
-          {(načítá || načítáAkci) && <div>Načítám...</div>}
+            {chyba && (
+              <Alert kind="danger" icon="!">
+                <div class="gc-tm-alert__title">Chyba</div>
+                <div class="gc-tm-alert__desc">{chyba}</div>
+              </Alert>
+            )}
 
-          {chyba && <div style={{ color: "red" }}>{chyba}</div>}
+            {/* Příprava nového týmu (výběr kol + přihlášení kapitána) */}
+            {!načítá && data && data.tym && !týmJePřipravený && (
+              <PripravaTymu
+                casSmazaniRozpracovanyMs={data.tym?.casSmazaniRozpracovanyMs}
+                onVybranéAktivity={onPotvrditVýběrAktivit}
+                onPrihlasitKapitana={onPrihlasitKapitana}
+                onOdhlasitAktivitu={onOdhlasitAktivituSPotvrzením}
+                nacita={načítáAkci}
+              />
+            )}
 
-          {/* === Příprava nového týmu (výběr kol + přihlášení kapitána) === */}
-          {!načítá && data && data.tym && !týmJePřipravený && (
-            <PripravaTymu
-              casSmazaniRozpracovanyMs={data.tym?.casSmazaniRozpracovanyMs}
-              onVybranéAktivity={onPotvrditVýběrAktivit}
-              onPrihlasitKapitana={onPrihlasitKapitana}
-              onOdhlasitAktivitu={onOdhlasitAktivituSPotvrzením}
-              nacita={načítáAkci}
-            />
-          )}
-
-          {!načítá && !modalMáTým && !načítáAkci &&
-            (
+            {/* Empty state */}
+            {!načítá && !modalMáTým && !načítáAkci && (
               <>
-                <button disabled={!můžeZaložitTým} onClick={onZaložitTým}>Založ tým</button>
-                <div style={{ marginTop: "1em", gap: "4px", display: "flex", flexDirection: "column", alignItems: "start" }}>
-                  <label>
-                    kód:
-                    <input
-                      placeholder="XXXX"
-                      onChange={(x) => setKódPřipojeníDoTýmu(x.currentTarget.value)}
-                      value={kódPřipojeníDoTýmu}
-                    />
-                  </label>
+                <div class="gc-tm-section">
+                  <div class="gc-tm-section-label">
+                    Nový tým <span class="gc-tm-section-label__dash" />
+                  </div>
                   <button
-                    style={{ width: "unset" }}
-                    disabled={kódPřipojeníDoTýmu.length < 4}
-                    onClick={() => onPřipojitSe(undefined, +kódPřipojeníDoTýmu)}
+                    class="gc-tm-btn gc-tm-btn--primary gc-tm-btn--lg gc-tm-btn--full"
+                    disabled={!můžeZaložitTým}
+                    onClick={onZaložitTým}
                   >
-                    Připoj se do týmu
+                    ✱ Založit nový tým <IconArrowRight />
                   </button>
+                  <div style={{ fontSize: 12.5, color: "var(--ink-3)", marginTop: 8 }}>
+                    Stanete se kapitánem a po vybrání kol pozvete spoluhráče kódem.
+                  </div>
                 </div>
 
-                {data?.vsechnyTymy && (
-                  <div style={{ marginTop: "8px", width: "100%" }}>
-                    <strong>Týmy:</strong>
+                <div class="gc-tm-or">nebo</div>
+
+                <div class="gc-tm-section" style={{ marginTop: 0 }}>
+                  <div class="gc-tm-section-label">
+                    Přidat se kódem <span class="gc-tm-section-label__dash" />
+                  </div>
+                  <div class="gc-tm-code-join">
+                    <input
+                      class="gc-tm-input gc-tm-input--code"
+                      placeholder="XXXX"
+                      maxLength={4}
+                      value={kódPřipojeníDoTýmu}
+                      onInput={(x) => setKódPřipojeníDoTýmu((x.currentTarget.value || "").replace(/[^0-9]/g, "").slice(0, 4))}
+                    />
+                    <button
+                      class="gc-tm-btn gc-tm-btn--dark"
+                      disabled={kódPřipojeníDoTýmu.length < 4}
+                      onClick={() => onPřipojitSe(undefined, +kódPřipojeníDoTýmu)}
+                    >
+                      Připoj se
+                    </button>
+                  </div>
+                </div>
+
+                {data?.vsechnyTymy && data.vsechnyTymy.length > 0 && (
+                  <div class="gc-tm-section">
+                    <div class="gc-tm-section-label">
+                      Veřejné týmy <span class="gc-tm-section-label__dash" />
+                    </div>
                     <SeznamTymu
                       tymy={data.vsechnyTymy}
                       zobrazitPřipojení={true}
@@ -283,34 +284,46 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                   </div>
                 )}
               </>
-            )
-          }
+            )}
 
-          {!načítá && týmJePřipravený && !načítáAkci && (
-            <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
-              {data && (
-                <>
-                  <TymDetail
-                    data={data}
-                    jeKapitán={jeKapitán}
-                    onPřepniVerejnost={onPřepniVerejnost}
-                    onPřegenrovatSPotvrzením={onPřegenrovatSPotvrzením}
-                    onPředejKapitánaSPotvrzením={onPředejKapitánaSPotvrzením}
-                    onOdebratČlenaSPotvrzením={onOdebratČlenaSPotvrzením}
-                    onNastavLimit={onNastavLimit}
-                    onNastavNazev={onNastavNazev}
-                    onZamkniTym={onZamkniTym}
-                  />
-                </>
-              )}
-            </div>
-          )}
+            {/* Detail týmu */}
+            {!načítá && týmJePřipravený && !načítáAkci && data && (
+              <TymDetail
+                data={data}
+                jeKapitán={jeKapitán}
+                onPřepniVerejnost={onPřepniVerejnost}
+                onPřegenrovatSPotvrzením={onPřegenrovatSPotvrzením}
+                onPředejKapitánaSPotvrzením={onPředejKapitánaSPotvrzením}
+                onOdebratČlenaSPotvrzením={onOdebratČlenaSPotvrzením}
+                onNastavLimit={onNastavLimit}
+                onNastavNazev={onNastavNazev}
+                onZamkniTym={onZamkniTym}
+              />
+            )}
 
-          {seznamTýmů}
+            {/* Všechny týmy – kontextový seznam pod detailem */}
+            {data?.vsechnyTymy && data.vsechnyTymy.length > 0 && modalMáTým && (
+              <div class="gc-tm-section" style={{ marginTop: 8 }}>
+                <div class="gc-tm-section-label">
+                  Všechny týmy u aktivity <span class="gc-tm-section-label__dash" />
+                </div>
+                <SeznamTymu
+                  tymy={data.vsechnyTymy}
+                  zobrazitPřipojení={false}
+                  onPřipojitSe={onPřipojitSe}
+                />
+              </div>
+            )}
+          </div>
 
-          <button class="vpravo zpet" onClick={onZavřít}>Zavřít</button>
+          {/* Footer */}
+          <div class="gc-tm-footer">
+            <div class="gc-tm-footer__left" />
+            <button class="gc-tm-btn gc-tm-btn--ghost" onClick={onZavřít}>Zavřít</button>
+          </div>
         </div>
       </div>
+
       {modalPotvrzení}
     </>
   );

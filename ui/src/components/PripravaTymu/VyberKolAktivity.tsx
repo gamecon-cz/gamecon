@@ -2,10 +2,14 @@
  * Krok 1: Výběr termínu pro jednotlivá kola.
  * Radiobuttony - vždy jen jeden termín na kolo.
  * Pokud má kolo jen jednu možnost, je automaticky předvybrána.
+ *
+ * Prop interface zachován z původní verze; pouze JSX a styly přepsány
+ * do `gc-tm-*` systému.
  */
 import { FunctionComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import { UpozorneniOdpocet } from "./UpozorneniOdpocet";
+import { IconArrowRight } from "../NastaveniTymuView/Ikony";
 
 export type KoloAktivity = {
   cisloKola: number;
@@ -41,75 +45,58 @@ export const VyberKolAktivity: FunctionComponent<VyberKolAktivityProps> = ({
       }
     });
   }, [kola]);
+
   const vsechnaVybrana = kola.length > 0 && kola.every((k) => vybrane[k.cisloKola] !== undefined);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      <UpozorneniOdpocet zbyvajiciCas={zbyvajiciCas} podtexty="Zvolte si aktivity pro všechna kola a přihlaste se jako kapitán"/>
+    <div>
+      <UpozorneniOdpocet
+        zbyvajiciCas={zbyvajiciCas}
+        podtexty="Zvol si aktivity pro všechna kola a přihlas se jako kapitán."
+      />
 
-      {/* Výběr aktivit pro jednotlivá kola */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        {kola.map((kolo) => (
-          <div key={kolo.cisloKola}>
-            <div style={{ fontSize: "0.9em", color: "#666", marginBottom: "10px", fontWeight: "600" }}>
-              KOLO {kolo.cisloKola}
+      {kola.map((kolo) => (
+        <div class="gc-tm-round" key={kolo.cisloKola}>
+          <div class="gc-tm-round__label">KOLO {kolo.cisloKola}</div>
+
+          {kolo.aktivity.length === 0 ? (
+            <div class="gc-tm-empty-state">— žádné termíny —</div>
+          ) : (
+            <div class="gc-tm-round__options">
+              {kolo.aktivity.map((aktivita) => {
+                const isSelected = vybrane[kolo.cisloKola] === aktivita.id;
+                const jedinaMoznost = kolo.aktivity.length === 1;
+                return (
+                  <label
+                    key={aktivita.id}
+                    class={`gc-tm-round-opt ${isSelected ? "is-selected" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name={`kolo-${kolo.cisloKola}`}
+                      checked={isSelected}
+                      onChange={() => onVyber(kolo.cisloKola, aktivita.id)}
+                      disabled={nacita}
+                    />
+                    <span class="gc-tm-round-opt__dot" />
+                    <span class="gc-tm-round-opt__time" dangerouslySetInnerHTML={{ __html: aktivita.cas }} />
+                    {jedinaMoznost && <span class="gc-tm-round-opt__meta">jediný termín</span>}
+                  </label>
+                );
+              })}
             </div>
-
-            {kolo.aktivity.length === 0 ? (
-              <div style={{ color: "#888", fontStyle: "italic", padding: "8px" }}>
-                — žádné termíny —
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {kolo.aktivity.map((aktivita) => {
-                  const isSelected = vybrane[kolo.cisloKola] === aktivita.id;
-                  return (
-                    <label
-                      key={aktivita.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        cursor: "pointer",
-                        padding: "12px",
-                        borderRadius: "6px",
-                        border: isSelected ? "2px solid #4a9" : "2px solid #ddd",
-                        backgroundColor: isSelected ? "#f0fdf4" : "#fafafa",
-                        transition: "all 0.2s",
-                        fontWeight: isSelected ? "600" : "400",
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name={`kolo-${kolo.cisloKola}`}
-                        checked={isSelected}
-                        onChange={() => onVyber(kolo.cisloKola, aktivita.id)}
-                        disabled={nacita}
-                        style={{ cursor: "pointer", width: "18px", height: "18px" }}
-                      />
-                      <div style={{ fontSize: "1em", color: isSelected ? "#2d5f2e" : "#333" }}
-                        dangerouslySetInnerHTML={{ __html: aktivita.cas }}
-                      ></div>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+          )}
+        </div>
+      ))}
 
       <button
-        onClick={onPotvrdit}
+        class="gc-tm-btn gc-tm-btn--primary gc-tm-btn--lg gc-tm-btn--full"
         disabled={!vsechnaVybrana || nacita}
-        style={{
-          width: "100%",
-          fontWeight: "bold",
-          fontSize: "1em",
-          marginBottom: "1em",
-        }}
+        onClick={onPotvrdit}
+        style={{ marginTop: 18 }}
       >
-        {nacita ? "Zpracovávám..." : "Potvrdit výběr"}
+        {nacita ? "Zpracovávám…" : "Potvrdit výběr"}
+        {!nacita && <IconArrowRight />}
       </button>
     </div>
   );

@@ -21,7 +21,7 @@ PRIO
     - [X] 3. Po zadání kódu týmu za někoho jiného to daného člověka nepřipojí do týmu ani po Ctr+F5.
     - [X] 4. Ani po zveřejnění týmu se do něj nejde připojit, F5 ani Ctrl+F5 nepomáhá.
   - [X] skrýt odemknout z ui na webu
-  - [ ] hezké UI
+  - [X] hezké UI
   - [X] názvy týmů
   - [X] termíny týmu
   - [ ] odladit UI

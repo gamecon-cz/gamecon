@@ -1,8 +1,9 @@
 /**
- * Kritické červené varování s odpočtem.
- * Zobrazuje zbývající čas do smazání týmu.
+ * Upozornění s odpočtem do smazání rozpracovaného týmu.
+ * Refaktor – používá společný `Alert` komponent.
  */
 import { FunctionComponent } from "preact";
+import { Alert } from "../NastaveniTymuView/Alert";
 
 type UpozorneniOdpocetProps = {
   zbyvajiciCas: string;
@@ -14,21 +15,11 @@ export const UpozorneniOdpocet: FunctionComponent<UpozorneniOdpocetProps> = ({
   podtexty,
 }) => {
   return (
-    <div
-      style={{
-        backgroundColor: "#fee",
-        border: "2px solid #c33",
-        padding: "12px",
-        borderRadius: "4px",
-        color: "#c33",
-        fontWeight: "bold",
-      }}
-    >
-      ⚠️ Tým bude automaticky smazán za <strong>{zbyvajiciCas}</strong>
-      <br />
-      <span style={{ fontSize: "0.9em", fontWeight: "normal" }}>
-        {podtexty ?? ""}
-      </span>
-    </div>
+    <Alert kind="warning" icon="⏱">
+      <div class="gc-tm-alert__title">
+        Tým bude automaticky smazán za <span class="gc-tm-alert__count">{zbyvajiciCas}</span>
+      </div>
+      {podtexty && <div class="gc-tm-alert__desc">{podtexty}</div>}
+    </Alert>
   );
 };
