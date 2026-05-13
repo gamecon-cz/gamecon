@@ -481,10 +481,12 @@ TEXT;
             return;
         }
 
-        (new GcMail($this->systemoveNastaveni))
+        $mailProUcastnika = (new GcMail($this->systemoveNastaveni))
             ->adresat($mail)
             ->predmet($predmet)
-            ->text($text)
-            ->odeslat(GcMail::FORMAT_TEXT);
+            ->text($text);
+
+        // Odesílání notifikací přihlášky je dočasně vypnuté, obsah e-mailů zůstává připravený.
+        // $mailProUcastnika->odeslat(GcMail::FORMAT_TEXT);
     }
 }
