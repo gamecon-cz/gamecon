@@ -616,15 +616,16 @@ SQL,
                     $checked            = 'checked';
                 }
                 $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
+                $kapacita = $this->kapacita($den, $typ);
                 $t->assign([
-                    'idPredmetu' => isset($this->mozneDny[$den][$typ])
+                    'idPredmetu'    => isset($this->mozneDny[$den][$typ])
                         ? $this->mozneDny[$den][$typ]['id_predmetu']
                         : null,
-                    'podtyp'     => isset($this->mozneDny[$den][$typ])
+                    'podtyp'        => isset($this->mozneDny[$den][$typ])
                         ? ($this->mozneDny[$den][$typ][Sql::PODTYP] ?? '')
                         : '',
-                    'checked'    => $checked,
-                    'disabled'   => $this->totoUbytovaniVyrazeno(
+                    'checked'       => $checked,
+                    'disabled'      => $this->totoUbytovaniVyrazeno(
                         $checked,
                         $prodejUbytovaniUkoncen,
                         $ubytovanVeDniATypu,
@@ -633,9 +634,10 @@ SQL,
                     )
                         ? 'disabled'
                         : '',
-                    'obsazeno'   => $this->obsazenoMist($den, $typ),
-                    'kapacita'   => $this->kapacita($den, $typ),
-                    'typ'        => $typ,
+                    'obsazeno'      => $this->obsazenoMist($den, $typ),
+                    'kapacita'      => $kapacita,
+                    'kapacitaProJs' => $kapacita === '∞' ? -1 : $kapacita,
+                    'typ'           => $typ,
                 ])->parse('ubytovani.den.typ');
             }
 
