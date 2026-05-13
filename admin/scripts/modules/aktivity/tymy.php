@@ -82,7 +82,6 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
 
             $tpl->assign([
                 'id'         => $aktivitaTym->getId(),
-                'kod'        => $aktivitaTym->getKod(),
                 'nazev'      => $aktivitaTym->getNazev() ?: '(bez názvu)',
                 'kapitan'    => $kapitan->login() . ' (' . $kapitan->krestniJmeno() . ' ' . $kapitan->prijmeni() . ')',
                 'obsazenost' => $obsazenost,

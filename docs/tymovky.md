@@ -5,8 +5,8 @@ PRIO
   - ignorovat reporty/exporty/importy a další porty, jít čistě po logice program v adminu taky neřešit
   - [ ] trello 1
     - [X] Nedalo to na výběr ze dvou aktivit, rovnou to přihlásilo na první
-    - [ ] Kapitán nevidí důvod proč ho to nechce přihlásit (mě by vidět že má kolizi s jinou už přihlášenou aktivitou)
-    - [ ] Možná přejmenovat Kód týmu prostě na PIN ?
+    - [X] Kapitán nevidí důvod proč ho to nechce přihlásit (mě by vidět že má kolizi s jinou už přihlášenou aktivitou)
+    - ~~[ ] Možná přejmenovat Kód týmu prostě na PIN ?~~
     - [ ] Není podpora export a import - minimum je vyřadit podporu pro teamovky z exportu a importu
     - [ ] Zvýraznit chybějící členy týmu do nutného minima
     - [ ] Nefunguje přihlášení na týmy přes menu Aktivity - týmová aktivita v tomto přehledu by taky měla umožnit přihlášení
@@ -538,3 +538,6 @@ Turnajové
 - [ ] Co přesně má jít dělat přes admin?
 
 # budouci vylepšení
+  - [ ] program
+    - [ ] nějaký throtling pro dotahování dat
+  - [ ] nejde odebrat vypravěč z aktivity (pouze nahradit jiným)

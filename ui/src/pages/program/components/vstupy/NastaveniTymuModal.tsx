@@ -5,14 +5,13 @@ import {
   useNastaveniTymuModalAktivitaId,
   useNastaveniTymuModalData,
   useNastaveniTymuModalNazevAktivity,
-  useUživatelJeSefInfa,
 } from "../../../../store/program/selektory";
 import {
   dotáhniNastaveníTýmuProModal,
   nastavChyba,
   nastavModalNastaveníTýmu,
 } from "../../../../store/program/slices/všeobecnéSlice";
-import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
+import { načtiUzivatelskeAktualizace, proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
 import { useProgramStore } from "../../../../store/program";
 import { AkceTymu, fetchAktivitaTymAkce } from "../../../../api/program";
 import { NastaveniTymuView } from "../../../../components/NastaveniTymuView/NastaveniTymuView";
@@ -54,13 +53,6 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
 
   if (!aktivitaId) return <></>;
 
-  const přihlášenNaAktivitě = aktivita?.stavPrihlaseni === "prihlasen"
-    || aktivita?.stavPrihlaseni === "dorazilJakoNahradnik"
-    || aktivita?.stavPrihlaseni === "pozdeZrusil"
-    || aktivita?.stavPrihlaseni === "prihlasenADorazil"
-    || aktivita?.stavPrihlaseni === "prihlasenAleNedorazil"
-    ;
-
   // Program page: skryj modal dokud se data nenačtou
   if (!aktivita || !data) return <></>;
 
@@ -87,28 +79,33 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
         akce.aktivitaId = aktivita?.id;
       }
     })
-    const result = await sNačítáním(async ()=> await fetchAktivitaTymAkce(akceTymuCpy))();
-    if (!result.úspěch) {
-      setChyba(result.chyba?.hláška);
-      if (dotáhniIpřiNeúspěchu) {
-        void dotáhniNastaveníTýmuProModal();
+    await sNačítáním(async () => {
+      const result = await fetchAktivitaTymAkce(akceTymuCpy);
+      if (!result.úspěch) {
+        setChyba(result.chyba?.hláška);
       }
-      return;
-    }
-    void dotáhniNastaveníTýmuProModal();
+      await dotáhniNastaveníTýmuProModal();
+      await načtiUzivatelskeAktualizace();
+    })();
   };
 
   return (
     <NastaveniTymuView
       nazevAktivity={aktivita?.nazev ?? storeNazevAktivity}
       data={data}
-      přihlášenNaAktivitě={přihlášenNaAktivitě}
       jeKapitán={jeKapitán}
       načítá={!aktivita && !data}
       načítáAkci={načítáAkci}
       onZavřít={zavřít}
-      onPřipojitSe={(idTýmu, kód) => void sNačítáním(() => proveďAkciAktivity(aktivitaId, "prihlasit", idTýmu, kód).then(zavřít), true)()}
-      onOdhlásit={() => void proveďAkciAktivity(aktivitaId, "odhlasit")}
+      onPřipojitSe={(idTýmu, kód) => void sNačítáním(() => proveďAkciAktivity(aktivitaId, "prihlasit", idTýmu, kód).then(dotáhniNastaveníTýmuProModal), true)()}
+      onOdhlásit={() => void sNačítáním(async () => {
+        await proveďAkciAktivity(aktivitaId, "odhlasit");
+        void dotáhniNastaveníTýmuProModal();
+      })()}
+      onOdhlasitAktivitu={(odhlAktivitaId) => void sNačítáním(async () => {
+        await proveďAkciAktivity(odhlAktivitaId, "odhlasit");
+        void dotáhniNastaveníTýmuProModal();
+      })()}
       onProveďAkci={proveďAkciTymu}
     />
   );

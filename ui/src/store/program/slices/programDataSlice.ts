@@ -184,58 +184,55 @@ export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAk
     }
 
     // Delayed re-fetch to pick up regenerated static files + user data changes
-    setTimeout(async () => {
-      try {
-        const rok = GAMECON_KONSTANTY.ROCNIK;
-        const [manifest, userData] = await Promise.all([
-          fetchManifestFresh(rok),
-          fetchUserData(rok),
-        ]);
+    setTimeout(() => void načtiUzivatelskeAktualizace(), 2500);
+  } catch (e) {
+    console.error(e);
+  }
+};
 
-        // Re-fetch obsazenosti if manifest changed
-        const currentManifest = GAMECON_KONSTANTY.programManifest;
-        if (!currentManifest || manifest.obsazenosti !== currentManifest.obsazenosti) {
-          const url = `${GAMECON_KONSTANTY.URL_PROGRAM_CACHE}/${manifest.obsazenosti}`;
-          const response = await fetch(url);
-          if (!response.ok) {
-            throw new Error(`Nepodařilo se načíst ${manifest.obsazenosti} (HTTP ${response.status}). URL: ${url}`);
-          }
-          const obsazenosti: ApiAktivitaObsazenost[] = await response.json();
-          const obsazenostiMap = buildObsazenostiMap(obsazenosti);
+export const načtiUzivatelskeAktualizace = async () => {
+  try {
+    const rok = GAMECON_KONSTANTY.ROCNIK;
+    const [manifest, userData] = await Promise.all([
+      fetchManifestFresh(rok),
+      fetchUserData(rok),
+    ]);
 
-          useProgramStore.setState(s => {
-            const ročníkData = s.data.podleRočníku[rok];
-            if (!ročníkData) return;
-            for (const [id, obsazenost] of obsazenostiMap) {
-              const aktivita = ročníkData.aktivityPodleId[id];
-              if (aktivita) {
-                aktivita.obsazenost = obsazenost;
-              }
-            }
-          }, undefined, "aktualizace obsazeností ze statických souborů");
-
-          // Update stored manifest reference
-          GAMECON_KONSTANTY.programManifest = manifest;
-        }
-
-        // Apply user data updates
-        if (userData.data) {
-          const uzivatelMap = buildUzivatelMap(userData.data.aktivityUzivatel);
-          useProgramStore.setState(s => {
-            const ročníkData = s.data.podleRočníku[rok];
-            if (!ročníkData) return;
-            for (const [id, uzivatel] of uzivatelMap) {
-              const aktivita = ročníkData.aktivityPodleId[id];
-              if (aktivita) {
-                Object.assign(aktivita, uzivatel);
-              }
-            }
-          }, undefined, "aktualizace uživatelských dat po akci");
-        }
-      } catch (e) {
-        console.warn("Nepodařilo se aktualizovat data po akci:", e);
+    const currentManifest = GAMECON_KONSTANTY.programManifest;
+    if (!currentManifest || manifest.obsazenosti !== currentManifest.obsazenosti) {
+      const url = `${GAMECON_KONSTANTY.URL_PROGRAM_CACHE}/${manifest.obsazenosti}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Nepodařilo se načíst ${manifest.obsazenosti} (HTTP ${response.status}). URL: ${url}`);
       }
-    }, 2500);
+      const obsazenosti: ApiAktivitaObsazenost[] = await response.json();
+      const obsazenostiMap = buildObsazenostiMap(obsazenosti);
+      useProgramStore.setState(s => {
+        const ročníkData = s.data.podleRočníku[rok];
+        if (!ročníkData) return;
+        for (const [id, obsazenost] of obsazenostiMap) {
+          const aktivita = ročníkData.aktivityPodleId[id];
+          if (aktivita) {
+            aktivita.obsazenost = obsazenost;
+          }
+        }
+      }, undefined, "aktualizace obsazeností ze statických souborů");
+      GAMECON_KONSTANTY.programManifest = manifest;
+    }
+
+    if (userData.data) {
+      const uzivatelMap = buildUzivatelMap(userData.data.aktivityUzivatel);
+      useProgramStore.setState(s => {
+        const ročníkData = s.data.podleRočníku[rok];
+        if (!ročníkData) return;
+        for (const [id, uzivatel] of uzivatelMap) {
+          const aktivita = ročníkData.aktivityPodleId[id];
+          if (aktivita) {
+            Object.assign(aktivita, uzivatel);
+          }
+        }
+      }, undefined, "aktualizace uživatelských dat po akci týmu");
+    }
   } catch (e) {
     console.error(e);
   }

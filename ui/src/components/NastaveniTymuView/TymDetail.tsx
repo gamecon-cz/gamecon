@@ -5,7 +5,6 @@ import { useEffect, useState } from "preact/hooks";
 
 type TymDetailProps = {
   data: NastaveniTymuData;
-  přihlášenNaAktivitě: boolean;
   jeKapitán: boolean;
   onPřepniVerejnost: () => void;
   onPřegenrovatSPotvrzením: () => void;
@@ -17,7 +16,6 @@ type TymDetailProps = {
 
 export const TymDetail: FunctionComponent<TymDetailProps> = ({
   data,
-  přihlášenNaAktivitě,
   jeKapitán,
   onPřepniVerejnost,
   onPřegenrovatSPotvrzením,
@@ -50,7 +48,7 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
 
   return (
     <div>
-      {přihlášenNaAktivitě && dataTymu?.zamceny && (
+      {dataTymu?.zamceny && (
         <div style={{ color: "#4a4", marginBottom: "8px", fontWeight: "bold" }}>
           ✓ Tým je zamčený a připravený k hraní.
         </div>
@@ -60,7 +58,6 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
         dataTym={dataTymu}
         časExpiraceMs={časExpiraceMs}
         minKapacitaNaplněna={minKapacitaNaplněna}
-        přihlášenNaAktivitě={přihlášenNaAktivitě}
       />
 
       {/* Kód týmu — všichni přihlášení */}
@@ -188,10 +185,9 @@ const OdpočetExpiraceAktivity: FunctionComponent<{
   dataTym: ApiAktivitaTym | undefined;
   časExpiraceMs: number | undefined;
   minKapacitaNaplněna: boolean;
-  přihlášenNaAktivitě: boolean;
-}> = ({ dataTym, časExpiraceMs, minKapacitaNaplněna, přihlášenNaAktivitě }) => {
+}> = ({ dataTym, časExpiraceMs, minKapacitaNaplněna }) => {
   const odpočet = useOdpočet(časExpiraceMs);
-  if (!přihlášenNaAktivitě || !odpočet || odpočet <= 0) return null;
+  if (!odpočet || odpočet <= 0) return null;
 
   return (
     <div style={{

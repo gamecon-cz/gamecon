@@ -4,7 +4,6 @@ import { GAMECON_KONSTANTY } from "../../env";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
 import { AkceTymuBezKontextu, ClenTymu, ApiTymVSeznamu } from "../../api/program";
 import { PripravaTymu, KoloAktivity } from "../PripravaTymu";
-import { proveďAkciAktivity } from "../../store/program/slices/programDataSlice";
 import { TymDetail } from "./TymDetail";
 import { useAktivity } from "../../store/program/selektory";
 import { denAktivity, denČasAktivityText } from "../../store/program/logic/aktivity";
@@ -12,7 +11,6 @@ import { denAktivity, denČasAktivityText } from "../../store/program/logic/akti
 type NastaveniTymuViewProps = {
   nazevAktivity?: string;
   data: NastaveniTymuData | undefined;
-  přihlášenNaAktivitě: boolean;
   jeKapitán: boolean;
   načítá?: boolean;
   načítáAkci?: boolean;
@@ -20,6 +18,7 @@ type NastaveniTymuViewProps = {
   onZavřít: () => void;
   onPřipojitSe: (idTýmu?: number, kód?: number) => void;
   onOdhlásit: () => void;
+  onOdhlasitAktivitu: (aktivitaId: number) => void;
   onProveďAkci: (akceTymu: AkceTymuBezKontextu, dotáhniIpřiNeúspěchu?: boolean) => Promise<void>
 };
 
@@ -72,7 +71,6 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const {
     nazevAktivity,
     data,
-    přihlášenNaAktivitě,
     jeKapitán,
     načítá,
     načítáAkci,
@@ -80,6 +78,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     onZavřít,
     onPřipojitSe,
     onOdhlásit,
+    onOdhlasitAktivitu,
     onProveďAkci,
   } = props;
   const vsechnyAktivity = useAktivity();
@@ -151,11 +150,11 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     () => void onProveďAkci({ typ: "odhlasClena", idClena: clen.id })
   )();
 
-  const onOdhlasitAktivitu = (aktivitaId: number) => {
+  const onOdhlasitAktivituSPotvrzením = (aktivitaId: number) => {
     const aktivita = vsechnyAktivity.find(a => a.id === aktivitaId);
     sPotvrzením(
       `Opravdu se chcete odhlásit z aktivity${aktivita?.nazev ? ` ${aktivita.nazev}` : ""}?`,
-      () => void proveďAkciAktivity(aktivitaId, "odhlasit")
+      () => onOdhlasitAktivitu(aktivitaId)
     )();
   };
 
@@ -213,10 +212,10 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                   🗑️ Smazat tým
                 </button>
               )}
-              {přihlášenNaAktivitě && data?.tym?.zamceny && (
+              {data?.tym?.zamceny && (
                 <button style={{ width: "unset" }} onClick={onOdemkniSPotvrzenim}>Odemknout</button>
               )}
-              {přihlášenNaAktivitě && (
+              {data?.tym && (
                 <button disabled={data?.tym?.zamceny} onClick={onOdhlasitSPotvrzenim}>Odhlásit!</button>
               )}
             </div>
@@ -236,7 +235,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               casSmazaniRozpracovanyMs={data.tym?.casSmazaniRozpracovanyMs}
               onVybranéAktivity={onPotvrditVýběrAktivit}
               onPrihlasitKapitana={onPrihlasitKapitana}
-              onOdhlasitAktivitu={onOdhlasitAktivitu}
+              onOdhlasitAktivitu={onOdhlasitAktivituSPotvrzením}
               nacita={načítáAkci}
             />
           )}
@@ -278,11 +277,10 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
 
           {!načítá && týmJePřipravený && !načítáAkci && (
             <div style={{ gap: "16px", display: "flex", flexDirection: "column", alignItems: "start" }}>
-              {přihlášenNaAktivitě && data && (
+              {data && (
                 <>
                   <TymDetail
                     data={data}
-                    přihlášenNaAktivitě={přihlášenNaAktivitě}
                     jeKapitán={jeKapitán}
                     onPřepniVerejnost={onPřepniVerejnost}
                     onPřegenrovatSPotvrzením={onPřegenrovatSPotvrzením}
