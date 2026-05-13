@@ -4,7 +4,7 @@
     public $dependencies = array("");
     protected $buffer = array();
     protected $current = "";        // currently buffered block
-    
+
     function ubytovani() {
       if($this->current == "ubytovani") {
         if(!empty($this->buffer["ubytovani"])) {
@@ -71,7 +71,7 @@
 
 <?php
     }
-  
+
     function ubytovani_konec() {
       if($this->current == "ubytovani_konec") {
         if(!empty($this->buffer["ubytovani_konec"])) {
@@ -102,7 +102,7 @@
         href="mailto:info@gamecon.cz">info@gamecon.cz</a>.</p>
 <?php
     }
-  
+
     function ubytovani_nechciUbytovani() {
       if($this->current == "ubytovani_nechciUbytovani") {
         if(!empty($this->buffer["ubytovani_nechciUbytovani"])) {
@@ -137,7 +137,7 @@
 </div>
 <?php
     }
-  
+
     function ubytovani_typ() {
       if($this->current == "ubytovani_typ") {
         if(!empty($this->buffer["ubytovani_typ"])) {
@@ -171,7 +171,7 @@
 
         <?php
     }
-  
+
     function ubytovani_typ_normal() {
       if($this->current == "ubytovani_typ_normal") {
         if(!empty($this->buffer["ubytovani_typ_normal"])) {
@@ -204,7 +204,7 @@
         </div>
         <?php
     }
-  
+
     function ubytovani_typ_hinted() {
       if($this->current == "ubytovani_typ_hinted") {
         if(!empty($this->buffer["ubytovani_typ_hinted"])) {
@@ -238,7 +238,7 @@
         </div>
         <?php
     }
-  
+
     function ubytovani_den() {
       if($this->current == "ubytovani_den") {
         if(!empty($this->buffer["ubytovani_den"])) {
@@ -275,7 +275,7 @@
     </div>
     <?php
     }
-  
+
     function ubytovani_den_typ() {
       if($this->current == "ubytovani_den_typ") {
         if(!empty($this->buffer["ubytovani_den_typ"])) {
@@ -309,7 +309,7 @@
         </div>
         <?php
     }
-  
+
     function ubytovani_ubytovaniPresKapacitu() {
       if($this->current == "ubytovani_ubytovaniPresKapacitu") {
         if(!empty($this->buffer["ubytovani_ubytovaniPresKapacitu"])) {
@@ -341,6 +341,5 @@
     </div>
 <?php
     }
-  
+
   }
-  
