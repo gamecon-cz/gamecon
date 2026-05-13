@@ -136,6 +136,31 @@ class FileLockTest extends TestCase
 
     /**
      * @test
+     *
+     * Regression: dvě FileLock instance volající lock() se stejným jménem MUSÍ
+     * sahat na stejný soubor, jinak je flock(LOCK_EX) bezzubý — každá instance
+     * získá svůj vlastní zámek a v žádném pořadí se neserializují.
+     */
+    public function dveInstanceSdileliStejnyLockSoubor(): void
+    {
+        $first = $this->createFileLock();
+        $first->lock('shared');
+        $first->unlock('shared');
+
+        $second = $this->createFileLock();
+        $second->lock('shared');
+        $second->unlock('shared');
+
+        $lockFiles = glob($this->tempDir . '/locks/*shared.lock');
+        self::assertCount(
+            1,
+            $lockFiles,
+            'Dvě FileLock instance se stejným jménem musí používat tentýž lockfile, jinak flock neslouží jako mezi-procesní zámek',
+        );
+    }
+
+    /**
+     * @test
      */
     public function multipleLockNamesAreIndependent(): void
     {
