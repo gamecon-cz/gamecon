@@ -47,9 +47,9 @@
             <label for="{idVyberu}">{nazevVyberu} GameCon {rok}</label>
             <div class="shop_popisCena">{cena}</div>
         </div>
-        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_trickoSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}">
+        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_trickoSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}" data-vychozi-cena="{vychoziCena}">
             <!-- begin: moznost -->
-            <option value="{id_predmetu}" {selected}>{nazev}</option>
+            <option value="{id_predmetu}" data-cena="{cenaMoznosti}" {selected}>{nazev}</option>
             <!-- end: moznost -->
         </select>
     </div>
@@ -69,9 +69,9 @@
             <label for="{idVyberu}">{nazevVyberu} GameCon {rok}</label>
             <div class="shop_popisCena">{cena}</div>
         </div>
-        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_mikinaSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}">
+        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_mikinaSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}" data-vychozi-cena="{vychoziCena}">
             <!-- begin: moznost -->
-            <option value="{id_predmetu}" {selected}>{nazev}</option>
+            <option value="{id_predmetu}" data-cena="{cenaMoznosti}" {selected}>{nazev}</option>
             <!-- end: moznost -->
         </select>
     </div>

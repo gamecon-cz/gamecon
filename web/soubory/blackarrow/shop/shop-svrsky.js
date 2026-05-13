@@ -36,6 +36,33 @@
         ) + 1
     }
 
+    function aktualizujCenuVyberu(selectNode) {
+        const skupina = selectNode.dataset.opakovanySelect
+        if (!skupina) {
+            return
+        }
+
+        const polozkaNode = selectNode.closest(`.shopPredmety_opakovanyVyber[data-opakovany-vyber="${skupina}"]`)
+        if (!polozkaNode) {
+            return
+        }
+
+        const cenaNode = polozkaNode.querySelector('.shop_popisCena')
+        if (!cenaNode) {
+            return
+        }
+
+        const vybranaMoznost = selectNode.options[selectNode.selectedIndex]
+        cenaNode.innerHTML = vybranaMoznost && vybranaMoznost.dataset.cena
+            ? vybranaMoznost.dataset.cena
+            : (selectNode.dataset.vychoziCena || '')
+    }
+
+    function zpracujZmenuVyberu(event) {
+        aktualizujCenuVyberu(event.currentTarget)
+        pridejVyberDalsiPolozky(event)
+    }
+
     function pridejVyberDalsiPolozky(event) {
         const selectNode = event.currentTarget
         const skupina = selectNode.dataset.opakovanySelect
@@ -59,12 +86,14 @@
             return
         }
         klonSelect.value = hodnotaPrazdnePolozky
-        klonSelect.addEventListener('change', pridejVyberDalsiPolozky)
+        aktualizujCenuVyberu(klonSelect)
+        klonSelect.addEventListener('change', zpracujZmenuVyberu)
 
         polozkaNode.after(klon)
     }
 
     vsechnyOpakovaneSelecty().forEach(selectNode => {
-        selectNode.addEventListener('change', pridejVyberDalsiPolozky)
+        aktualizujCenuVyberu(selectNode)
+        selectNode.addEventListener('change', zpracujZmenuVyberu)
     })
 }
