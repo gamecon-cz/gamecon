@@ -133,14 +133,17 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
                 )}
               </li>
             ))}
-            {dataTymu.limitTymu !== null && dataTymu.limitTymu !== undefined && Array.from({ length: dataTymu.limitTymu - pocetClenu }).map((_, i) => (
-              <li
-                key={`volne-${i}`}
-                style={{ padding: "4px 0", color: "#888", fontStyle: "italic" }}
-              >
-                volné místo
-              </li>
-            ))}
+            {dataTymu.limitTymu !== null && dataTymu.limitTymu !== undefined && Array.from({ length: dataTymu.limitTymu - pocetClenu }).map((_, i) => {
+              const povinné = pocetClenu + i < minKapacita;
+              return (
+                <li
+                  key={`volne-${i}`}
+                  style={{ padding: "4px 0", color: povinné ? "#c00" : "#888", fontStyle: "italic" }}
+                >
+                  volné místo{povinné && " (povinné)"}
+                </li>
+              );
+            })}
           </ul>
 
           {/* Úprava limitu po jednom — jen kapitán */}
