@@ -1052,11 +1052,6 @@ SQL;
         ];
     }
 
-    public function kontaktniEmailGc(): string
-    {
-        return 'gamecon.fallback@seznam.cz';
-    }
-
     public function prefixPodleProstredi(): string
     {
         if ($this->jsmeNaOstre()) {
