@@ -160,7 +160,7 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   if (aktivita.obsazenost) {
     const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
 
-    if (volnoTyp === "u" || volnoTyp === účastník.pohlavi)
+    if (volnoTyp === "u" || volnoTyp === "t" || volnoTyp === účastník.pohlavi)
       return <FormTlačítko akitivitaId={akitivitaId} typ={"prihlasit"} tymova={aktivita.tymova} />;
     else if (volnoTyp === "f") return <>pouze ženská místa</>;
     else if (volnoTyp === "m") return <>pouze mužská místa</>;

@@ -26,11 +26,12 @@ PRIO
   - [X] termíny týmu
   - [ ] odladit UI
   - [X] háže chybové hlášky ?
-  - [ ] počet účasníků
+  - [X] počet účasníků
   - [X] bez poslání kódu nemá vytvářet nový tým
   - [X] týmový modal v /aktivita
   - [X] checkbox na smazání do amdinu
   - [ ] maily
+  - [ ] todo: rychlost obsazenostObj
   - [ ] rebase
 
 # Celkové stavy:
@@ -539,6 +540,8 @@ Turnajové
 - [ ] Je úprava limitu týmu kapitánem opravdu potřeba?
   - limit se může odstranit dodatečně zatím ničemu nevadí.
 - [ ] Co přesně má jít dělat přes admin?
+- [ ] aktivita se bude jevit jako plná (bude zašedlá) pokud jsou všechny týmy zamčené.
+- [ ] na týmech (i neveřejných) bude vidět že jsou zamčené v seznamu týmů
 
 # budouci vylepšení
   - [ ] program

@@ -69,7 +69,7 @@ export const aktivitaStatusZAktivity = (
 
   if (aktivita.obsazenost) {
     const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
-    if (volnoTyp !== "u" && volnoTyp !== pohlavi) {
+    if (volnoTyp !== "u" && volnoTyp !== "t" && volnoTyp !== pohlavi) {
       return "plno";
     }
   }

@@ -1,5 +1,5 @@
 import { ProgramStateCreator, useProgramStore } from "..";
-import { ApiAktivitaAkce, ApiAktivitaNepřihlášen, ApiAktivitaObsazenost, ApiAktivitaPopis, ApiAktivitaUživatel, ApiTag, fetchAktivitaAkce, fetchManifestFresh, fetchStaticProgramData, fetchUserData, Obsazenost } from "../../../api/program";
+import { ApiAktivitaAkce, ApiAktivitaNepřihlášen, ApiAktivitaObsazenost, ApiAktivitaPopis, ApiAktivitaUživatel, ApiTag, fetchAktivitaAkce, fetchManifestFresh, fetchStaticProgramData, fetchUserData, ApiObsazenost } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { nastavChyba } from "./všeobecnéSlice";
 
@@ -8,7 +8,7 @@ export type DataApiStav = "načítání" | "dotaženo" | "chyba";
 // todo: tyhle transofrmace toho co jde z api by se měli asi dít dřív
 export type Aktivita = Omit<ApiAktivitaNepřihlášen & ApiAktivitaUživatel, "popisId"> & {
   popis: string;
-  obsazenost: Obsazenost;
+  obsazenost: ApiObsazenost;
 };
 
 export type ProgramDataSlice = {
@@ -44,7 +44,7 @@ const nastavStavProRok = (rok: number, stav: DataApiStav) => {
   }, undefined, "Natavení api stavu pro rok");
 };
 
-const vytvořObsazenostPrázdnéSUpozorněním = (aktivitaId: number):Obsazenost =>{
+const vytvořObsazenostPrázdnéSUpozorněním = (aktivitaId: number):ApiObsazenost =>{
   console.warn(`pro aktivitu ${aktivitaId} nebyla nalezena obsazenost`);
   return {
     f: 0,
@@ -64,8 +64,8 @@ function buildPopisyMap(popisy: ApiAktivitaPopis[]): Map<string, string> {
   return map;
 }
 
-function buildObsazenostiMap(obsazenosti: ApiAktivitaObsazenost[]): Map<number, Obsazenost> {
-  const map = new Map<number, Obsazenost>();
+function buildObsazenostiMap(obsazenosti: ApiAktivitaObsazenost[]): Map<number, ApiObsazenost> {
+  const map = new Map<number, ApiObsazenost>();
   for (const o of obsazenosti) {
     map.set(o.idAktivity, o.obsazenost);
   }

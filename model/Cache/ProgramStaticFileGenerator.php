@@ -95,6 +95,7 @@ class ProgramStaticFileGenerator implements ResetInterface
             'jeBrigadnicka'   => $activity->jeBrigadnicka(),
             'prihlasovatelna' => $activity->prihlasovatelna(),
             'tymova'          => $activity->tymova(),
+            'tymovaKapacita'  => $activity->tymovaKapacita(),
         ];
 
         return $aktivitaRes;

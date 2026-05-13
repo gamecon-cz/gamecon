@@ -92,6 +92,7 @@ export const NastaveniTymuModal: FunctionComponent<{}> = () => {
   return (
     <NastaveniTymuView
       nazevAktivity={aktivita?.nazev ?? storeNazevAktivity}
+      tymovaKapacita={aktivita.tymovaKapacita}
       data={data}
       jeKapitán={jeKapitán}
       načítá={!aktivita && !data}

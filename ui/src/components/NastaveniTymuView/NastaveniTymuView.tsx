@@ -11,6 +11,7 @@ import { ziskejDenCasAktivity } from "../PripravaTymu/PripravaTymu";
 
 type NastaveniTymuViewProps = {
   nazevAktivity?: string;
+  tymovaKapacita?: number;
   data: NastaveniTymuData | undefined;
   jeKapitán: boolean;
   načítá?: boolean;
@@ -71,6 +72,7 @@ const SeznamTymu: FunctionComponent<{
 export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (props) => {
   const {
     nazevAktivity,
+    tymovaKapacita,
     data,
     jeKapitán,
     načítá,
@@ -109,6 +111,11 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   );
 
   const týmNázev = data?.tym?.nazev ?? "";
+  const můžeZaložitTým =
+    // nechame kontroly na BE pokud z nějakého důvodu nemáme kapacitu nebo tymy
+    !tymovaKapacita || !data?.vsechnyTymy?.length
+    || data.vsechnyTymy.length < tymovaKapacita
+    ;
 
   const onOdemkniSPotvrzenim = sPotvrzením(
     `Opravdu chcete odemknout tým${týmNázev}?`, () => {
@@ -246,7 +253,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           {!načítá && !modalMáTým && !načítáAkci &&
             (
               <>
-                <button onClick={onZaložitTým}>Založ tým</button>
+                <button disabled={!můžeZaložitTým} onClick={onZaložitTým}>Založ tým</button>
                 <div style={{ marginTop: "1em", gap: "4px", display: "flex", flexDirection: "column", alignItems: "start" }}>
                   <label>
                     kód:

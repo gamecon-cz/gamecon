@@ -25,12 +25,24 @@ export type StavPřihlášení =
   | "sledujici"
   ;
 
-export type Obsazenost = {
+/**
+ * Aktivita::obsazenostObj
+ */
+export type ApiObsazenost = {
+  /** přihlášeno mužů */
   m: number,
+  /** přihlášeno žen */
   f: number,
+  /** kapacita mužů */
   km: number,
+  /** kapacita žen */
   kf: number,
+  /** kapacita unisex */
   ku: number,
+  /** přihlášeno týmů */
+  t?: number,
+  /** kapacita týmů */
+  kt?: number,
 }
 
 export type OdDo = {
@@ -61,6 +73,7 @@ export type ApiAktivitaNepřihlášen = {
   probehnuta?: boolean,
   jeBrigadnicka?: boolean,
   tymova?: boolean,
+  tymovaKapacita?: number,
   /** přihlašovatelná na základě stavu (ne kapacity) */
   prihlasovatelna: boolean,
 }
@@ -92,8 +105,6 @@ export type ApiAktivitaUživatel = {
   // todo(tym): kapitán týmu
   // todo(tym): název týmu
   // todo(tym): navazujici aktivity ať se může vypsat v modalu
-  /** počet členů týmu, ve kterém je uživatel přihlášen */
-  tymPocetClenu?: number,
   /** limit členů týmu */
   tymLimit?: number | null,
   /** není skutečná vlastnost. tohle vynucuje že kde má byt ApiAKtivitaUživatel, tak se minimálně alespoň pokusím aby tam bylo */
@@ -111,7 +122,7 @@ export type ApiAktivitaPopis = {
 
 export type ApiAktivitaObsazenost = {
   idAktivity: number;
-  obsazenost: Obsazenost,
+  obsazenost: ApiObsazenost,
 };
 
 export type ApiTag = {

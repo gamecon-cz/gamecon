@@ -1,20 +1,18 @@
 import { FunctionComponent } from "preact";
-import { Obsazenost as ObsazenostTyp } from "../../../../api/program";
+import { ApiObsazenost as ObsazenostTyp } from "../../../../api/program";
 import { volnoTypZObsazenost } from "../../../../utils";
 
 type TObsazenostProps = {
   obsazenost: ObsazenostTyp | undefined;
   prihlasovatelna: boolean;
   probehnuta: boolean;
-  tymPocetClenu?: number;
-  tymLimit?: number | null;
 };
 
 export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
-  const { obsazenost, prihlasovatelna, probehnuta, tymPocetClenu, tymLimit } = props;
+  const { obsazenost, prihlasovatelna, probehnuta } = props;
   if (!obsazenost) return null;
 
-  const { m, f, km, kf, ku } = obsazenost;
+  const { m, f, km, kf, ku, kt, t } = obsazenost;
   const kapacitaCelkem = km + kf + ku;
   const celkem = m + f;
 
@@ -34,6 +32,9 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
   }
 
   switch (volnoTyp) {
+    case "t":
+      aktivitaObsazenost = <>{`${t ?? 0}/${kt ?? ""}`}</>;
+      break;
     case "u":
     case "x":
       aktivitaObsazenost = <>{`${celkem}/${kapacitaCelkem}`}</>;
@@ -56,25 +57,12 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
       break;
   }
 
-  if (tymPocetClenu !== undefined) {
-    const tymText = tymLimit != null
-      ? `${tymPocetClenu}/${tymLimit}`
-      : `${tymPocetClenu}`;
-    aktivitaObsazenost = (
-      <>
-        <span class="program_obsazenost_tym">{tymText}</span>
-        <span class="program_obsazenost">{aktivitaObsazenost}</span>
-        {` `}
-      </>
-    );
-  } else {
-      aktivitaObsazenost = (
-      <>
-        <span class="program_obsazenost">{aktivitaObsazenost}</span>
-        {` `}
-      </>
-    );
-  }
+  aktivitaObsazenost = (
+    <>
+      <span class={!kt ? "program_obsazenost" : "program_obsazenost_tym"}>{aktivitaObsazenost}</span>
+      {` `}
+    </>
+  );
 
   return <>{aktivitaObsazenost}</>;
 };

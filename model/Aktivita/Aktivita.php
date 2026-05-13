@@ -15,6 +15,7 @@ use Gamecon\Aktivita\SqlStruktura\AkceOrganizatoriSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSpecSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkceTymSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\AkceSjednoceneTagySqlStruktura;
@@ -1921,6 +1922,9 @@ SQL
         }
     }
 
+    /**
+     * ApiObsazenost
+     */
     public function obsazenostObj(?DataSourcesCollector $dataSourcesCollector = null)
     {
         self::obsazenostObjDSC($dataSourcesCollector);
@@ -1931,18 +1935,28 @@ SQL
         $kapacitaZeny = (int)$this->a[Sql::KAPACITA_F];
         $kapacitaUniverzalni = (int)$this->a[Sql::KAPACITA];
 
-        return [
+        $res = [
             'm'  => $prihlasenoMuzu,
             'f'  => $prihlasenoZen,
             'km' => $kapacitaMuzi,
             'kf' => $kapacitaZeny,
             'ku' => $kapacitaUniverzalni,
         ];
+
+        if ($this->tymova()) {
+            $kapacitaTymu = $this->tymovaKapacita() ?? 0;
+            $prihlasenoTymu = $this->pocetPrihlasenychTymu();
+            $res["kt"] = $kapacitaTymu;
+            $res["t"] = $prihlasenoTymu;
+        }
+
+        return $res;
     }
 
     public static function obsazenostObjDSC(?DataSourcesCollector $dataSourcesCollector)
     {
         self::prihlaseniRawDSC($dataSourcesCollector);
+        $dataSourcesCollector?->addDataSource(AkceTymSqlStruktura::AKCE_TYM_TABULKA);
     }
 
     /**
@@ -2663,7 +2677,7 @@ SQL
     /**
      * Maximální počet týmů na aktivitě
      */
-    private function tymovaKapacita(): ?int
+    public function tymovaKapacita(): ?int
     {
         if (isset($this->a[Sql::TEAM_KAPACITA])) {
             return (int)$this->a[Sql::TEAM_KAPACITA];
@@ -2878,6 +2892,11 @@ SQL
             'SELECT COUNT(*) FROM akce_prihlaseni JOIN akce_seznam ON akce_prihlaseni.id_akce = akce_seznam.id_akce WHERE akce_seznam.patri_pod = $1',
             [$patriPod],
         );
+    }
+
+    public function pocetPrihlasenychTymu(): int
+    {
+        return count(AktivitaTym::vsechnyTymyAktivity($this->id()));
     }
 
     protected function pocetPrihlasenychMuzu(?DataSourcesCollector $dataSourcesCollector = null): int

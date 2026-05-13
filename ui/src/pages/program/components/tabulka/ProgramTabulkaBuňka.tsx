@@ -35,7 +35,7 @@ export const tabulkaBuňkaAktivitaTřídy = (
 
   if (aktivita.obsazenost) {
     const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
-    if (volnoTyp !== "u" && volnoTyp !== pohlavi) {
+    if (volnoTyp !== "u" && volnoTyp !== "t" && volnoTyp !== pohlavi) {
       classes.push("plno");
     }
   }
@@ -94,8 +94,6 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             obsazenost={aktivita.obsazenost}
             prihlasovatelna={aktivita.prihlasovatelna ?? false}
             probehnuta={aktivita.probehnuta ?? false}
-            tymPocetClenu={aktivita.tymPocetClenu}
-            tymLimit={aktivita.tymLimit}
           />
           <Přihlašovátko akitivitaId={aktivita.id} />
           {aktivita.mistnosti?.length && (
