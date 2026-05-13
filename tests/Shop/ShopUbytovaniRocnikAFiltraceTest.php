@@ -425,27 +425,36 @@ SQL,
     /**
      * @test
      */
-    public function bezJedneNociVykresliSnidaneProVsechnyTriHoteloveNoci(): void
+    public function bezJedneNociVykresliSnidaneProStredecniNocATriNociOdCtvrtka(): void
     {
         $uzivatel = $this->vytvorUzivatele((string) uniqid());
-        $typHotelu = 'Hotelový jednolůžák standard snidane ' . uniqid();
+        $typHoteluStreda = 'Hotelový jednolůžák standard snidane streda ' . uniqid();
+        $typHoteluCtvrtek = 'Hotelový jednolůžák standard snidane ctvrtek ' . uniqid();
+
+        $idHotelStreda = $this->vytvorPredmetUbytovani(
+            $typHoteluStreda . ' středa',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_STREDA,
+            PodtypPredmetu::HOTEL,
+        );
 
         $idHotelCtvrtek = $this->vytvorPredmetUbytovani(
-            $typHotelu . ' čtvrtek',
+            $typHoteluCtvrtek . ' čtvrtek',
             ROCNIK,
             10,
             DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
             PodtypPredmetu::HOTEL,
         );
         $this->vytvorPredmetUbytovani(
-            $typHotelu . ' pátek',
+            $typHoteluCtvrtek . ' pátek',
             ROCNIK,
             10,
             DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
             PodtypPredmetu::HOTEL,
         );
         $this->vytvorPredmetUbytovani(
-            $typHotelu . ' sobota',
+            $typHoteluCtvrtek . ' sobota',
             ROCNIK,
             10,
             DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
@@ -457,9 +466,14 @@ SQL,
             ->ubytovaniHtml(true);
 
         preg_match(
-            '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string) $idHotelCtvrtek, '~') . '"[^>]*>~u',
+            '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string)$idHotelStreda, '~') . '"[^>]*>~u',
             $html,
-            $hotelInput,
+            $hotelStredaInput,
+        );
+        preg_match(
+            '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string)$idHotelCtvrtek, '~') . '"[^>]*>~u',
+            $html,
+            $hotelCtvrtekInput,
         );
         preg_match(
             '~<input[^>]*name="shopUbytovaniDny\[1]"[^>]*value=""[^>]*data-typ="Žádné"[^>]*>~u',
@@ -467,8 +481,10 @@ SQL,
             $zadneInput,
         );
 
-        self::assertNotEmpty($hotelInput, 'V HTML ubytování chybí input pro čtvrteční hotel.');
-        self::assertStringContainsString('data-snidane-dny="2,3,4"', $hotelInput[0]);
+        self::assertNotEmpty($hotelStredaInput, 'V HTML ubytování chybí input pro středeční hotel.');
+        self::assertStringContainsString('data-snidane-dny="1"', $hotelStredaInput[0]);
+        self::assertNotEmpty($hotelCtvrtekInput, 'V HTML ubytování chybí input pro čtvrteční hotel.');
+        self::assertStringContainsString('data-snidane-dny="2,3,4"', $hotelCtvrtekInput[0]);
         self::assertNotEmpty($zadneInput, 'V HTML ubytování chybí input pro žádné ubytování.');
         self::assertStringContainsString('data-snidane-dny="2,3,4"', $zadneInput[0]);
     }
