@@ -104,6 +104,11 @@ readonly class KopieOstreDatabaze
                 (new \MySQLImport($localConnection))->load($tempFile);
 
                 (new SqlMigrace($this->systemoveNastaveni))->migruj();
+                // Importovaná DB má jinou množinu dat než JSON program cache na betě;
+                // SqlMigrace invaliduje jen když přibyly migrace, takže invalidaci
+                // po čistém importu si musíme zařídit sami. Worker spouštíme rovnou,
+                // aby další návštěvník už dostal čerstvá data.
+                $this->systemoveNastaveni->oznacProgramCacheJakoDirty(spustWorker: true);
             } finally {
                 if (is_file($tempFile)) {
                     @unlink($tempFile);
@@ -184,6 +189,11 @@ readonly class KopieOstreDatabaze
                 (new \MySQLImport($localConnection))->load($tempFile);
 
                 (new SqlMigrace($this->systemoveNastaveni))->migruj();
+                // Importovaná DB má jinou množinu dat než JSON program cache na betě;
+                // SqlMigrace invaliduje jen když přibyly migrace, takže invalidaci
+                // po čistém importu si musíme zařídit sami. Worker spouštíme rovnou,
+                // aby další návštěvník už dostal čerstvá data.
+                $this->systemoveNastaveni->oznacProgramCacheJakoDirty(spustWorker: true);
             } finally {
                 if (is_file($tempFile)) {
                     @unlink($tempFile);

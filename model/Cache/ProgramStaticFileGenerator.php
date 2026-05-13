@@ -229,7 +229,7 @@ class ProgramStaticFileGenerator implements ResetInterface
         }
     }
 
-    private function getManifestPath(int $rok): string
+    public function getManifestPath(int $rok): string
     {
         return $this->outputDir . "/manifest-{$rok}.json";
     }

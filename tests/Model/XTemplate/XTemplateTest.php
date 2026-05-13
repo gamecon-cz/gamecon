@@ -3,18 +3,21 @@
 declare(strict_types=1);
 
 use Gamecon\XTemplate\XTemplate;
+use Symfony\Component\Filesystem\Filesystem;
 
 class XTemplateTest extends PHPUnit\Framework\TestCase
 {
     public function setUp(): void
     {
-        mkdir(__DIR__ . '/cache');
+        (new Filesystem())->mkdir(__DIR__ . '/cache');
     }
 
     protected function tearDown(): void
     {
-        exec('rm -rf ' . __DIR__ . '/cache');
-        exec('rm -f ' . __DIR__ . '/resources/*.xtpc');
+        (new Filesystem())->remove(__DIR__ . '/cache');
+        foreach (glob(__DIR__ . '/resources/*.xtpc') ?: [] as $cacheSoubor) {
+            unlink($cacheSoubor);
+        }
     }
 
     public function testOne()

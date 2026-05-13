@@ -3,6 +3,9 @@
 use Gamecon\Aktivita\Program;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Web\Info;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
+use Gamecon\Cas\DateTimeCz;
 
 /** @var Modul $this */
 /** @var Uzivatel $u */
@@ -49,6 +52,19 @@ $zacatekPristiVlnyZaSekund = $zacatekPristiVlnyOd !== null
     : null;
 
 $jeOrganizator = isset($u) && $u && $u->maPravoNaPoradaniAktivit();
+
+$programStaticFileGenerator = new ProgramStaticFileGenerator($systemoveNastaveni);
+
+// Heartbeat: pokud existuje jakýkoli dirty flag (např. po změně Nastavení nebo
+// importu DB), zkusíme spustit worker. Stránka programu je nejnavštěvovanější
+// vstup ke statickému JSONu, takže ji využíváme jako pojistku — kdyby předchozí
+// pokus o spuštění workeru selhal, příští návštěvník se postará o regeneraci.
+foreach (ProgramStaticFileType::cases() as $typProgramCache) {
+    if ($programStaticFileGenerator->hasDirtyFlag($typProgramCache)) {
+        $programStaticFileGenerator->tryStartWorker();
+        break;
+    }
+}
 
 ?>
 

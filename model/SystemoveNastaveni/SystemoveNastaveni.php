@@ -7,6 +7,8 @@ namespace Gamecon\SystemoveNastaveni;
 use Composer\Autoload\ClassLoader;
 use Gamecon\Cache\CachedDb;
 use Gamecon\Cache\DbInterface;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cache\QueryCache;
 use Gamecon\Cache\RawDb;
 use Gamecon\Cas\DateTimeCz;
@@ -312,9 +314,36 @@ SQL,
         );
         if ($zmenenoZaznamu > 0) {
             $this->aktualizujZaznamVLokalniCache($hodnotaProDb, $klic, $editujici->id());
+            // Mnoho klíčů (data registrace, vlny aktivit, ceny) ovlivňuje
+            // statický JSON program (vBudoucnu / vDalsiVlne / prihlasovatelna).
+            // Bez označení dirty flagu by frontend dál servíroval starou aktivity.json.
+            // Worker spouštíme rovnou, aby další návštěvník už dostal čerstvá data.
+            $this->oznacProgramCacheJakoDirty(spustWorker: true);
         }
 
         return $zmenenoZaznamu;
+    }
+
+    /**
+     * Označí všechny typy statického JSON programu jako dirty, aby je worker
+     * (nebo navazující deploy krok) vygeneroval znovu. Volat z míst, která
+     * obcházejí běžné invalidační cesty (přímý SQL zápis, import DB, ruční
+     * úpravy nastavení).
+     *
+     * S $spustWorker=true se rovnou spustí worker, který flagy zpracuje na
+     * pozadí; volat z míst, kde nehrozí, že worker uvidí necommitnutá data
+     * (mimo otevřenou transakci) a kde nechceme čekat až na další HTTP request,
+     * aby návštěvníci dostali čerstvý program.
+     */
+    public function oznacProgramCacheJakoDirty(bool $spustWorker = false): void
+    {
+        $generator = new ProgramStaticFileGenerator($this);
+        foreach (ProgramStaticFileType::cases() as $typ) {
+            $generator->touchDirtyFlag($typ, tryStartWorker: false);
+        }
+        if ($spustWorker) {
+            $generator->tryStartWorker();
+        }
     }
 
     private function aktualizujZaznamVLokalniCache(

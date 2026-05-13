@@ -13,12 +13,10 @@ class FileLock
      * @var array<string, resource>
      */
     private array $handles = [];
-    private string $hash;
 
     public function __construct(
         private readonly ZdrojPrivateCacheDir $zdrojPrivateCacheDir,
     ) {
-        $this->hash = uniqid('file-lock-');
     }
 
     public function __destruct()
@@ -28,12 +26,18 @@ class FileLock
         }
     }
 
+    /**
+     * Získá mezi-procesní zámek. $name MUSÍ být deterministický a bezpečný pro
+     * filesystém (alfanumerické znaky, pomlčky, podtržítka) — celé jméno se
+     * překládá 1:1 na cestu lockfile, aby všichni volající se stejným $name
+     * sahali na tentýž soubor a flock je skutečně serializoval.
+     */
     public function lock(string $name): void
     {
         $dir = $this->zdrojPrivateCacheDir->privateCacheDir() . '/locks';
         (new Filesystem())->mkdir($dir);
 
-        $lockFile = $dir . '/' . $this->hash . $name . '.lock';
+        $lockFile = $dir . '/' . $name . '.lock';
         $handle = fopen($lockFile, 'c+');
         if (! $handle || ! flock($handle, LOCK_EX)) {
             throw new \RuntimeException("Cannot acquire lock: {$name}");
