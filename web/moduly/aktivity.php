@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\Program;
 use Gamecon\Aktivita\TypAktivity;
 
 /** @var Modul $this */
@@ -174,10 +175,17 @@ if (!empty($org)) {
 
 <link rel="stylesheet" href="<?= zabalWebSoubor('soubory/ui/style.css') ?>">
 <div id="preact-aktivity-modal"></div>
+<?php
+    $konstanty   = json_encode(Program::gameconKonstanty(false, "aktivity"));
+    $prednacteni = json_encode(
+        ['přihlášenýUživatel' => Uzivatel::apiPrihlasenyUzivatel()],
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+    );
+?>
 <script>
-    window.GAMECON_KONSTANTY = {
-        BASE_PATH_API: "<?= URL_WEBU . '/api/' ?>",
-        HAJENI_TEAMU_HODIN: <?= \Gamecon\Aktivita\AktivitaTym::HAJENI_TEAMU_HODIN ?>,
-    };
+    // Konstanty předáváné do Preactu (env.ts)
+    window.GAMECON_KONSTANTY = <?= $konstanty ?>;
+    window.gameconPřednačtení = <?= $prednacteni ?>;
 </script>
+
 <script type="module" src="<?= zabalWebSoubor('soubory/ui/bundle.js') ?>"></script>

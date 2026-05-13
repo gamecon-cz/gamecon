@@ -4,17 +4,19 @@ import { NastaveniTymuModal, registrujDotahováníNastaveníTýmu } from "../pro
 import { OdhlasitAktivituModal } from "../program/components/vstupy/OdhlasitAktivituModal";
 import { nastavModalNastaveníTýmu } from "../../store/program/slices/všeobecnéSlice";
 import { načtiPřihlášenýUživatel } from "../../store/program/slices/přihlášenSlice";
-
-registrujDotahováníNastaveníTýmu();
+import { načtiRok } from "../../store/program/slices/programDataSlice";
+import { GAMECON_KONSTANTY } from "../../env";
 
 export const AktivityApp: FunctionComponent = () => {
   useEffect(() => {
+    registrujDotahováníNastaveníTýmu();
     void načtiPřihlášenýUživatel();
   }, []);
 
   useEffect(() => {
     window.preactMost.prihlaseniTymu.otevri = (aktivitaId, nazevAktivity) => {
       nastavModalNastaveníTýmu(aktivitaId, nazevAktivity);
+      void načtiRok(GAMECON_KONSTANTY.ROCNIK);
     };
     return () => {
       window.preactMost.prihlaseniTymu.otevri = undefined;

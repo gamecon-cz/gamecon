@@ -10,7 +10,7 @@ PRIO
     - [X] Není podpora export a import - minimum je vyřadit podporu pro teamovky z exportu a importu
       - [ ] potřeba dotestovat
     - [X] Zvýraznit chybějící členy týmu do nutného minima
-    - [ ] Nefunguje přihlášení na týmy přes menu Aktivity - týmová aktivita v tomto přehledu by taky měla umožnit přihlášení
+    - [X] Nefunguje přihlášení na týmy přes menu Aktivity - týmová aktivita v tomto přehledu by taky měla umožnit přihlášení
     - [ ] Reporty zatím nejsou upravené - řešit jen nejnutnější, zeptat se na Discordu davu co potřebují nutně
     - [ ] Když má kapitán k dispozici jedinou aktivitu, na kterou se může přihlásit, tak ho to na ní přihlásí automaticky a skrytě - raději bych mu nechal přehled možných aktivit (takže tu jednu), aby viděl, co mu je vybráno
   - [ ] trello 2

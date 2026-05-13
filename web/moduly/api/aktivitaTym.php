@@ -120,9 +120,11 @@ $uzivatelId = array_key_exists('uzivatelId', $_GET)
 
 // čas aktivity + příznak předpřípravy
 $aktivita = Aktivita::zId($aktivitaId);
+/*
 if ($aktivita) {
     $response['jeTrebaPredpripravit'] = $aktivita->turnaj()?->jeTrebaVybratAktivityTurnaje() ?? false;
 }
+*/
 
 $tym = AktivitaTym::najdiPodleUzivateleAktivityNeboKapitana($uzivatelId, $aktivitaId);
 $idTurnajeNeboAktivity = $aktivita->idTurnaje() ? $aktivita->idTurnaje() * 10 : $aktivita->id() * 10 + 1;
