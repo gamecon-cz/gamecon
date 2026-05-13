@@ -664,16 +664,13 @@ SQL,
 
     private function snidaneDnyProJs(int $den, bool $muzeObjednatJednuNoc): string
     {
-        $dnyUbytovani = $muzeObjednatJednuNoc
-            ? [$den]
-            : range($den, $den + 2);
+        if ($muzeObjednatJednuNoc) {
+            return (string)($den + 1);
+        }
 
-        $dnySnidani = array_map(
-            static fn(int $denUbytovani): int => $denUbytovani + 1,
-            $dnyUbytovani,
-        );
-
-        return implode(',', $dnySnidani);
+        return $den === DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK
+            ? '2,3,4'
+            : (string)($den + 1);
     }
 
     private function totoUbytovaniVyrazeno(
