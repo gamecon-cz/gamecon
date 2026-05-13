@@ -466,12 +466,12 @@ SQL,
             ->ubytovaniHtml(true);
 
         preg_match(
-            '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string)$idHotelStreda, '~') . '"[^>]*>~u',
+            '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string) $idHotelStreda, '~') . '"[^>]*>~u',
             $html,
             $hotelStredaInput,
         );
         preg_match(
-            '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string)$idHotelCtvrtek, '~') . '"[^>]*>~u',
+            '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string) $idHotelCtvrtek, '~') . '"[^>]*>~u',
             $html,
             $hotelCtvrtekInput,
         );
