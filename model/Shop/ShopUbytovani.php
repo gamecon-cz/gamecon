@@ -604,7 +604,7 @@ SQL,
             $typVzor = reset($typy);
             $t->assign([
                 'postnameDen'      => $this->pnDny . '[' . $den . ']',
-                'snidaneDnyProJs'  => $this->snidaneDnyProJs((int) $den, $muzeObjednatJednuNoc),
+                'snidaneDnyProJs'  => $this->snidaneDnyProJs((int)$den),
             ]);
             $ubytovanVeDni = false;
             foreach ($this->mozneTypy as $typ => $rozsah) {
@@ -662,9 +662,9 @@ SQL,
         }
     }
 
-    private function snidaneDnyProJs(int $den, bool $muzeObjednatJednuNoc): string
+    public function snidaneDnyProJs(int $den): string
     {
-        if ($muzeObjednatJednuNoc) {
+        if ($this->muzeObjednatJednuNoc()) {
             return (string)($den + 1);
         }
 

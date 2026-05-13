@@ -66,7 +66,8 @@
     <div class="shopUbytovani_radek">
       <label class="radio--container radio--container--square radio--container--fill">
         <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
-               data-kapacita="{kapacitaProJs}" data-typ="{typ}" {checked} {disabled}>
+              data-kapacita="{kapacitaProJs}" data-typ="{typ}" data-podtyp="{podtyp}"
+              data-snidane-dny="{snidaneDnyProJs}" {checked} {disabled}>
         <div class="radio--label">
           {zbyvaMist}
         </div>
@@ -77,7 +78,7 @@
     <div class="shopUbytovani_radek shopUbytovani_zadne">
       <label class="radio--container radio--container--square radio--container--fill">
         <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value=""
-               data-kapacita="0" {checked} {disabled}>
+              data-kapacita="0" data-typ="Žádné" data-snidane-dny="{snidaneDnyProJs}" {checked} {disabled}>
         <div class="radio--label">
         </div>
         <div class="radio--border"></div>
