@@ -31,6 +31,8 @@ class ActivitiesImportSqlColumn
     public const POPIS         = 'popis'; // longtext not null — markdown, přímo text (dříve FK do odstraněné tabulky `texty`)
     public const POPIS_KRATKY  = 'popis_kratky'; // varchar(255) not null,
     public const VYBAVENI      = 'vybaveni'; // text not null,
+    public const ID_TURNAJE    = 'id_turnaje'; // int unsigned null, FK do turnaje
+    public const TURNAJ_KOLO   = 'turnaj_kolo'; // tinyint unsigned null, číslo kola v turnaji
 
     public const VIRTUAL_IMAGE = 'image'; // není v tabulce, jenom na disku
     public const VIRTUAL_TAGS  = 'tags'; // je dostupné přes vazební tabulku akce_sjednocene_tagy
@@ -62,6 +64,8 @@ class ActivitiesImportSqlColumn
             self::POPIS,
             self::POPIS_KRATKY,
             self::VYBAVENI,
+            self::ID_TURNAJE,
+            self::TURNAJ_KOLO,
         ];
     }
 }

@@ -147,16 +147,8 @@ class ActivitiesExporter
                 $this->exportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU => $aktivita->tymova()
                     ? $aktivita->tymMaxKapacita() ?? '' // Maximální kapacita týmu
                     : '',
-                // todo(tym): tady se má asi řešit export turnajů taky
-                /*
-                $this->exportAktivitSloupce::NASLEDUJICI_SEMIFINALE => implode(', ', array_map( // Následující (semi)finále
-                    static function (Aktivita $aktivita) {
-                        // can not allow comma "," in a name as that is used on import as a values delimiter
-                        return $aktivita->id() . ' - ' . str_replace(',', ' ', $aktivita->nazev());
-                    },
-                    $aktivita->deti()
-                )),
-                */
+                $this->exportAktivitSloupce::TURNAJ => $this->nazevTurnaje($aktivita->idTurnaje()),
+                $this->exportAktivitSloupce::KOLO_TURNAJE => $aktivita->turnajKolo() ?? '',
                 $this->exportAktivitSloupce::CENA => $aktivita->cenaZaklad(), // Cena
                 $this->exportAktivitSloupce::BEZ_SLEV => $aktivita->bezSlevy() // Bez slev
                     ? 'ano'
@@ -171,6 +163,14 @@ class ActivitiesExporter
             $data[] = $this->sortActivitiesDataToMatchHeader($unsortedDataRow, $headerRow);
         }
         return $data;
+    }
+
+    private function nazevTurnaje(?int $idTurnaje): string {
+        if (!$idTurnaje) {
+            return '';
+        }
+        $nazev = dbOneLine('SELECT nazev FROM turnaje WHERE id_turnaje = $0', [$idTurnaje]);
+        return (string)$nazev;
     }
 
     private function sanitizeForGoogleApi(array &$row) {
