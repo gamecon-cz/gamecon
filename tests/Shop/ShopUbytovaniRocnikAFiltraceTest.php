@@ -421,4 +421,55 @@ SQL,
             $ulozenaIds,
         );
     }
+
+    /**
+     * @test
+     */
+    public function bezJedneNociVykresliSnidaneProVsechnyTriHoteloveNoci(): void
+    {
+        $uzivatel = $this->vytvorUzivatele((string) uniqid());
+        $typHotelu = 'Hotelový jednolůžák standard snidane ' . uniqid();
+
+        $idHotelCtvrtek = $this->vytvorPredmetUbytovani(
+            $typHotelu . ' čtvrtek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+            PodtypPredmetu::HOTEL,
+        );
+        $this->vytvorPredmetUbytovani(
+            $typHotelu . ' pátek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
+            PodtypPredmetu::HOTEL,
+        );
+        $this->vytvorPredmetUbytovani(
+            $typHotelu . ' sobota',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+            PodtypPredmetu::HOTEL,
+        );
+
+        $html = (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))
+            ->ubytovani()
+            ->ubytovaniHtml(true);
+
+        preg_match(
+            '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string) $idHotelCtvrtek, '~') . '"[^>]*>~u',
+            $html,
+            $hotelInput,
+        );
+        preg_match(
+            '~<input[^>]*name="shopUbytovaniDny\[1]"[^>]*value=""[^>]*data-typ="Žádné"[^>]*>~u',
+            $html,
+            $zadneInput,
+        );
+
+        self::assertNotEmpty($hotelInput, 'V HTML ubytování chybí input pro čtvrteční hotel.');
+        self::assertStringContainsString('data-snidane-dny="2,3,4"', $hotelInput[0]);
+        self::assertNotEmpty($zadneInput, 'V HTML ubytování chybí input pro žádné ubytování.');
+        self::assertStringContainsString('data-snidane-dny="2,3,4"', $zadneInput[0]);
+    }
 }
