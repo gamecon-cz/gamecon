@@ -41,9 +41,9 @@ export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
       {vybranéAktivity && (
         <div style={{ backgroundColor: "#f5f5f5", padding: "12px", borderRadius: "4px", fontSize: "0.9em" }}>
           <strong>Vybrané termíny:</strong>
-          <div style={{ marginTop: "8px", whiteSpace: "pre-wrap", fontFamily: "monospace", color: "#555" }}
-            dangerouslySetInnerHTML={{__html: vybranéAktivity}}
-          />
+          <div style={{ marginTop: "8px", whiteSpace: "pre-wrap", fontFamily: "monospace", color: "#555" }}>
+            {vybranéAktivity}
+          </div>
         </div>
       )}
 

@@ -81,6 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Chyba('Neplatný limit');
             }
             $tym->nastavLimit($limit);
+        } elseif ($akce === 'nastavNazev') {
+            $nazev = isset($_POST['nazev']) ? (string)$_POST['nazev'] : '';
+            $tym->nastavNazev($nazev);
         } elseif ($akce === 'predejKapitana') {
             $idNovehoKapitana = (int)($_POST['idNovehoKapitana'] ?? 0);
             if (!$idNovehoKapitana) {

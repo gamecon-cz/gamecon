@@ -15,20 +15,22 @@ PRIO
     - [ ] Když má kapitán k dispozici jedinou aktivitu, na kterou se může přihlásit, tak ho to na ní přihlásí automaticky a skrytě - raději bych mu nechal přehled možných aktivit (takže tu jednu), aby viděl, co mu je vybráno
   - [ ] trello 2
     - [ ] Kontrola chyb nic nenašla, ale aktivovaná aktivita mizí z programu (subpage /program).
-    - [ ] 1. Po přihlášení to spustí aktivitu a nabídne mi se přihlásit jako kapitán, ale tlačítko „Přihlásit se jako kapitán“ vyhodí chybovou hlášku, podle které jsem již přihlášen. (Přitom aktivita je prázdná). Po Ctrl+F5 mě to přihlásí jen na druhou aktivitu.
-    - [ ] 2. Tlačítko smazat tým nefunguje v rozhraní výše nefunguje. Píše to „Neznámá akce“.
-    - [ ] 3. Po zadání kódu týmu za někoho jiného to daného člověka nepřipojí do týmu ani po Ctr+F5.
-    - [ ] 4. Ani po zveřejnění týmu se do něj nejde připojit, F5 ani Ctrl+F5 nepomáhá.
-  - [ ] skrýt odemknout z ui na webu
+    - [X] 1. Po přihlášení to spustí aktivitu a nabídne mi se přihlásit jako kapitán, ale tlačítko „Přihlásit se jako kapitán“ vyhodí chybovou hlášku, podle které jsem již přihlášen. (Přitom aktivita je prázdná). Po Ctrl+F5 mě to přihlásí jen na druhou aktivitu.
+      - tohle je stejný problém co "Nedalo to na výběr ze dvou aktivit, rovnou to přihlásilo na první" vyřešeno předáním týmu
+    - [X] 2. Tlačítko smazat tým nefunguje v rozhraní výše nefunguje. Píše to „Neznámá akce“.
+    - [X] 3. Po zadání kódu týmu za někoho jiného to daného člověka nepřipojí do týmu ani po Ctr+F5.
+    - [X] 4. Ani po zveřejnění týmu se do něj nejde připojit, F5 ani Ctrl+F5 nepomáhá.
+  - [X] skrýt odemknout z ui na webu
   - [ ] hezké UI
-  - [ ] názvy týmů
-  - [ ] termíny týmu
+  - [X] názvy týmů
+  - [X] termíny týmu
   - [ ] odladit UI
-  - [ ] háže chybové hlášky ?
+  - [X] háže chybové hlášky ?
   - [ ] počet účasníků
-  - [ ] bez poslání kódu nemá vytvářet nový tým
-  - [ ] týmový modal v /aktivita
+  - [X] bez poslání kódu nemá vytvářet nový tým
+  - [X] týmový modal v /aktivita
   - [X] checkbox na smazání do amdinu
+  - [ ] maily
   - [ ] rebase
 
 # Celkové stavy:

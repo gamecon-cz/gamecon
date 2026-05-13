@@ -55,6 +55,18 @@ const useOdpočet = (casExpiraceMs: number): [string, boolean] => {
   return [zbyvaCas, vyprselo];
 };
 
+// todo: tohle by mělo být spíše někde v utils
+export const ziskejDenCasAktivity = (a: Aktivita): string => {
+  const časOd = new Date(a.cas.od);
+  const časDo = new Date(a.cas.do);
+  const den = denAktivity(časOd)?.toLocaleDateString("cs-CZ", {
+    weekday: "short"
+  }) ?? "";
+  const formatCas = (d: Date) => `${d.getHours().toString().padStart(2, " ")}:${d.getMinutes().toString().padStart(2, "0")}`;
+
+  return `${den} ${formatCas(časOd)}–${formatCas(časDo)}`;
+}
+
 export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
   casSmazaniRozpracovanyMs,
   onVybranéAktivity,
@@ -70,21 +82,12 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
   const vsechnyAktivity = useAktivity();
   const idTurnaje = vsechnyAktivity.find(x => x.id === aktivitaId)?.turnajId;
 
-  const ziskejDenCasAktivity = (a: Aktivita): string => {
-    const den = denAktivity(new Date(a.cas.od))?.toLocaleDateString("cs-CZ", {
-      weekday: "short"
-    }) ?? "";
-    // todo: casText by bylo lepší vůbec nepoužívat kvůli speciálním symbolům se musí pak dangerouslySetInnerHTML
-    return den + " " + a.casText;
-  }
-
   const kola = useMemo<KoloAktivity[]>(() => {
     const aktivityTurnaje = !idTurnaje ? [] : vsechnyAktivity.filter(x => x.turnajId === idTurnaje);
     const mapa = new Map<number, KoloAktivity>();
     for (const a of aktivityTurnaje) {
       const cisloKola = a.turnajKolo ?? 1;
       if (!mapa.has(cisloKola)) mapa.set(cisloKola, { cisloKola, aktivity: [] });
-
 
       mapa.get(cisloKola)!.aktivity.push({ id: a.id, nazev: a.nazev, cas: ziskejDenCasAktivity(a) });
     }

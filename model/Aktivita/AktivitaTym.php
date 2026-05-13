@@ -171,6 +171,11 @@ class AktivitaTym
         self::service()->nastavKapitana($this->getId(), $idNovehoKapitana);
     }
 
+    public function nastavNazev(?string $nazev): void
+    {
+        self::service()->nastavNazevTymu($this->getId(), $nazev);
+    }
+
     public function casZalozeniMs(): ?int
     {
         return self::service()->casZalozeniMs($this->getId());

@@ -91,6 +91,28 @@ class TeamRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @param int[] $idAktivit
+     */
+    public function existujeJinyTymSeStejnymNazvem(int $idTymu, string $nazev, array $idAktivit): bool
+    {
+        if ($idAktivit === []) {
+            return false;
+        }
+
+        return (bool) $this->createQueryBuilder('team')
+            ->select('COUNT(DISTINCT team.id)')
+            ->join('team.aktivity', 'aktivita')
+            ->andWhere('LOWER(team.nazev) = LOWER(:nazev)')
+            ->andWhere('team.id != :idTymu')
+            ->andWhere('aktivita.id IN (:idAktivit)')
+            ->setParameter('nazev', $nazev)
+            ->setParameter('idTymu', $idTymu)
+            ->setParameter('idAktivit', $idAktivit)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function findByKapitanNaAktivite(int $idKapitana, int $idAktivity): ?Team
     {
         return $this->createQueryBuilder('team')

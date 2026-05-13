@@ -7,6 +7,7 @@ import { PripravaTymu, KoloAktivity } from "../PripravaTymu";
 import { TymDetail } from "./TymDetail";
 import { useAktivity } from "../../store/program/selektory";
 import { denAktivity, denČasAktivityText } from "../../store/program/logic/aktivity";
+import { ziskejDenCasAktivity } from "../PripravaTymu/PripravaTymu";
 
 type NastaveniTymuViewProps = {
   nazevAktivity?: string;
@@ -164,6 +165,8 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
 
   const onNastavLimit = (limit: number) => void onProveďAkci({ typ: "nastavLimit", limit });
 
+  const onNastavNazev = (nazev: string) => void onProveďAkci({ typ: "nastavNazev", nazev });
+
   const seznamTýmů = data?.vsechnyTymy && data.vsechnyTymy.length > 0 && (
     <SeznamTymu
       tymy={data.vsechnyTymy}
@@ -188,10 +191,10 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               </h3>
               <div style={{marginBottom:"12px"}}>
                 {(data?.tym?.aktivityTymuId ?? [])
-                  .map(id=>vsechnyAktivity.find(x=>x.id===id))
-                  .map(x=>x?.casText)
+                  .map(id=>vsechnyAktivity.find(x=>x.id===id)!)
                   .filter(x => x)
-                  .map(cas=><div dangerouslySetInnerHTML={{__html:cas??""}} />)
+                  .map(x=> ziskejDenCasAktivity(x))
+                  .map(cas=><div style={{fontFamily:'ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace'}} dangerouslySetInnerHTML={{__html:cas??""}} />)
                 }
               </div>
             </div>
@@ -212,10 +215,10 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                   🗑️ Smazat tým
                 </button>
               )}
-              {data?.tym?.zamceny && (
+              {GAMECON_KONSTANTY.JE_ADMIN && data?.tym?.zamceny && (
                 <button style={{ width: "unset" }} onClick={onOdemkniSPotvrzenim}>Odemknout</button>
               )}
-              {data?.tym && (
+              {data?.tym && !data?.tym?.zamceny && (
                 <button disabled={data?.tym?.zamceny} onClick={onOdhlasitSPotvrzenim}>Odhlásit!</button>
               )}
             </div>
@@ -255,6 +258,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                   </label>
                   <button
                     style={{ width: "unset" }}
+                    disabled={kódPřipojeníDoTýmu.length < 4}
                     onClick={() => onPřipojitSe(undefined, +kódPřipojeníDoTýmu)}
                   >
                     Připoj se do týmu
@@ -287,6 +291,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                     onPředejKapitánaSPotvrzením={onPředejKapitánaSPotvrzením}
                     onOdebratČlenaSPotvrzením={onOdebratČlenaSPotvrzením}
                     onNastavLimit={onNastavLimit}
+                    onNastavNazev={onNastavNazev}
                     onZamkniTym={onZamkniTym}
                   />
                 </>

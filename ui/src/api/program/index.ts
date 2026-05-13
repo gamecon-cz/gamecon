@@ -287,6 +287,7 @@ export type AkceTymu =
   | {typ: "pregenerujKod", idTymu: number}
   | {typ: "odhlasClena", idTymu: number, aktivitaId: number, idClena: number}
   | {typ: "nastavLimit", idTymu: number, limit: number}
+  | {typ: "nastavNazev", idTymu: number, nazev: string}
   | {typ: "predejKapitana", idTymu: number, idNovehoKapitana: number}
   | {typ: "zamkni", idTymu: number}
   | {typ: "odemkni", idTymu: number}
@@ -307,6 +308,7 @@ export const fetchAktivitaTymAkce = async (akce: AkceTymu): Promise<{úspěch: b
   if (akce.typ === "nastavVerejnost") formdata.set("verejny", akce.verejny ? "1" : "0");
   if (akce.typ === "odhlasClena") formdata.set("idClena", akce.idClena.toString(10));
   if (akce.typ === "nastavLimit") formdata.set("limit", akce.limit.toString(10));
+  if (akce.typ === "nastavNazev") formdata.set("nazev", akce.nazev);
   if (akce.typ === "predejKapitana") formdata.set("idNovehoKapitana", akce.idNovehoKapitana.toString(10));
   if (akce.typ === "potvrdVyberAktivit") akce.idVybranychAktivit.forEach(id => formdata.append("idVybranychAktivit[]", id.toString(10)));
   return fetch(url, {method: "POST", body: formdata}).then(async x => x.json());

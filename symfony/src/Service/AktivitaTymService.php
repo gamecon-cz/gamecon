@@ -14,6 +14,7 @@ use App\Repository\TeamRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Aktivita\InfoOTymu;
+use Gamecon\Aktivita\NazevTymuGenerator;
 
 class AktivitaTymService
 {
@@ -741,6 +742,30 @@ class AktivitaTymService
         $this->em->flush();
     }
 
+    public function nastavNazevTymu(int $idTymu, ?string $nazev): void
+    {
+        $team = $this->teamRepository->find($idTymu)
+            ?? throw new \Chyba('Tým nenalezen');
+        $nazev = $nazev !== null ? trim($nazev) : null;
+        if ($nazev === '') {
+            $nazev = null;
+        }
+        if ($nazev !== null && mb_strlen($nazev) > 255) {
+            throw new \Chyba('Název týmu je příliš dlouhý (max 255 znaků)');
+        }
+        if ($nazev !== null) {
+            $idAktivit = array_map(
+                static fn ($aktivita) => (int) $aktivita->getId(),
+                $team->getAktivity()->toArray(),
+            );
+            if ($this->teamRepository->existujeJinyTymSeStejnymNazvem($idTymu, $nazev, $idAktivit)) {
+                throw new \Chyba('Tým s tímto názvem už na aktivitě existuje');
+            }
+        }
+        $team->setNazev($nazev);
+        $this->em->flush();
+    }
+
     public function nastavKapitana(int $idTymu, int $idNovehoKapitana): void
     {
         $team = $this->teamRepository->find($idTymu)
@@ -786,10 +811,22 @@ class AktivitaTymService
         $team->setZalozen($ted);
         $team->setExpiruje($expiruje);
         $team->addAktivita($aktivita);
+        $team->setNazev($this->vygenerujUnikatniNazev($idAktivity));
 
         $this->em->persist($team);
         $this->em->flush();
 
         return $team;
+    }
+
+    private function vygenerujUnikatniNazev(int $idAktivity): string
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $nazev = NazevTymuGenerator::generuj();
+            if (!$this->teamRepository->existujeJinyTymSeStejnymNazvem(-1, $nazev, [$idAktivity])) {
+                return $nazev;
+            }
+        }
+        return $nazev;
     }
 }

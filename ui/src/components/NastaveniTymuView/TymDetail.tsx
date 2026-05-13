@@ -2,6 +2,7 @@ import { FunctionComponent } from "preact";
 import { NastaveniTymuData } from "../../store/program/slices/všeobecnéSlice";
 import { ApiAktivitaTym, ClenTymu } from "../../api/program";
 import { useEffect, useState } from "preact/hooks";
+import { generujNahodnyNazevTymu } from "../../utils/nazevTymu";
 
 type TymDetailProps = {
   data: NastaveniTymuData;
@@ -11,6 +12,7 @@ type TymDetailProps = {
   onPředejKapitánaSPotvrzením: (clen: ClenTymu) => void;
   onOdebratČlenaSPotvrzením: (clen: ClenTymu) => void;
   onNastavLimit: (limit: number) => void;
+  onNastavNazev: (nazev: string) => void;
   onZamkniTym: () => void;
 };
 
@@ -22,6 +24,7 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
   onPředejKapitánaSPotvrzením,
   onOdebratČlenaSPotvrzením,
   onNastavLimit,
+  onNastavNazev,
   onZamkniTym,
 }) => {
   const dataTymu = data.tym;
@@ -36,8 +39,6 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
   const tymJePlny = minKapacita > 0 && pocetClenu >= minKapacita;
   const týmJePřipravený = pocetClenu > 0;
 
-
-
   const [zkopírováno, setZkopírováno] = useState(false);
   const zkopírujKód = (kód: number) => {
     void navigator.clipboard.writeText(String(kód)).then(() => {
@@ -46,11 +47,59 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
     });
   };
 
+  const nazevServer = dataTymu?.nazev ?? "";
+  const [nazevDraft, setNazevDraft] = useState(nazevServer);
+  useEffect(() => { setNazevDraft(nazevServer); }, [nazevServer]);
+  const ulozNazev = () => {
+    const novy = nazevDraft.trim();
+    if (novy !== nazevServer) onNastavNazev(novy);
+  };
+  const nazevEditovatelny = jeVTymu && jeKapitán && !dataTymu?.zamceny;
+
   return (
     <div>
       {dataTymu?.zamceny && (
         <div style={{ color: "#4a4", marginBottom: "8px", fontWeight: "bold" }}>
           ✓ Tým je zamčený a připravený k hraní.
+        </div>
+      )}
+
+      {jeVTymu && (
+        <div style={{ marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+          <span style={{ fontWeight: "bold" }}>Název týmu:</span>
+          {nazevEditovatelny ? (
+            <>
+              <input
+                style={{ width: "unset", flex: "1 1 auto", maxWidth: "320px" }}
+                value={nazevDraft}
+                maxLength={255}
+                placeholder="zadejte název týmu"
+                onInput={(e) => setNazevDraft(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") ulozNazev();
+                  if (e.key === "Escape") setNazevDraft(nazevServer);
+                }}
+              />
+              <button
+                type="button"
+                title="Vygenerovat náhodný název"
+                style={{ width: "unset", padding: "2px 8px" }}
+                onClick={() => setNazevDraft(generujNahodnyNazevTymu())}
+              >
+                🎲
+              </button>
+              <button
+                type="button"
+                style={{ width: "unset", padding: "2px 10px" }}
+                disabled={nazevDraft.trim() === nazevServer}
+                onClick={ulozNazev}
+              >
+                Uložit
+              </button>
+            </>
+          ) : (
+            <span>{nazevServer || <span style={{ color: "#888", fontStyle: "italic" }}>bez názvu</span>}</span>
+          )}
         </div>
       )}
 
