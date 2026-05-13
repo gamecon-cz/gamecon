@@ -602,7 +602,10 @@ SQL,
                 break;
             }
             $typVzor = reset($typy);
-            $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
+            $t->assign([
+                'postnameDen'      => $this->pnDny . '[' . $den . ']',
+                'snidaneDnyProJs'  => $this->snidaneDnyProJs((int) $den, $muzeObjednatJednuNoc),
+            ]);
             $ubytovanVeDni = false;
             foreach ($this->mozneTypy as $typ => $rozsah) {
                 if ($nemuzeSiObjednatPokoj && $typ != 'Spacák') {
@@ -657,6 +660,20 @@ SQL,
             ]);
             $t->parse('ubytovani.den');
         }
+    }
+
+    private function snidaneDnyProJs(int $den, bool $muzeObjednatJednuNoc): string
+    {
+        $dnyUbytovani = $muzeObjednatJednuNoc
+            ? [$den]
+            : range($den, $den + 2);
+
+        $dnySnidani = array_map(
+            static fn(int $denUbytovani): int => $denUbytovani + 1,
+            $dnyUbytovani,
+        );
+
+        return implode(',', $dnySnidani);
     }
 
     private function totoUbytovaniVyrazeno(
