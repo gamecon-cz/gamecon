@@ -967,12 +967,12 @@ SQL,
             // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
             $i = $j = 0;
             $odstranit = []; //čísla (kvůli nutností více delete dotazů s limitem)
-            $pridat = ''; //část sql dotazu
+            $pridat = [];
             while (!empty($nove[$i]) || !empty($stare[$j])) {
                 if (empty($stare[$j]) || (!empty($nove[$i]) && $nove[$i] < $stare[$j]))
                     // tento prvek není v staré objednávce
                     // zapíšeme si ho pro přidání a přeskočíme na další
-                    $pridat .= "\n" . '(' . $this->zakaznik->id() . ',' . $this->objednatel->id() . ',' . $nove[$i] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $nove[$i++] . '),NOW()),'; //$i se inkrementuje se po provedení druhého!
+                    $pridat[] = (int)$nove[$i++];
                 elseif (empty($nove[$i]) || $stare[$j] < $nove[$i])
                     // tento prvek ze staré objednávky není v nové objednávce
                     // zapíšeme si ho, že má být odstraněn, a skočíme na další
@@ -981,14 +981,22 @@ SQL,
                     // prvky jsou shodné, skočíme o jedna v obou seznamech a neděláme nic
                     $i++ == $j++;
             } //porovnání bez efektu
-            // odstranění předmětů, které z objednávky oproti DB zmizely
-            foreach ($odstranit as $idPredmetuProOdstraneni) {
-                $this->zrusNakupPredmetu($idPredmetuProOdstraneni, 1 /* jen jeden, necheme zlikvidovat všechny ojednávky toho předmětu */);
-            }
-            // přidání předmětů, které doposud objednané nemá
-            $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum) VALUES ' . $pridat;
-            if (substr($q, -1) != ' ') {    // hack testující, jestli se přidala nějaká část
-                dbQuery(substr($q, 0, -1)); // odstranění nadbytečné čárky z poslední přidávané části a spuštění dotazu
+            if ($odstranit || $pridat) {
+                dbBegin();
+                try {
+                    // odstranění předmětů, které z objednávky oproti DB zmizely
+                    foreach ($odstranit as $idPredmetuProOdstraneni) {
+                        $this->zrusNakupPredmetu($idPredmetuProOdstraneni, 1 /* jen jeden, necheme zlikvidovat všechny ojednávky toho předmětu */);
+                    }
+                    // přidání předmětů, které doposud objednané nemá
+                    foreach (array_count_values($pridat) as $idPredmetuProPridani => $pocet) {
+                        $this->prodat((int)$idPredmetuProPridani, $pocet, false);
+                    }
+                    dbCommit();
+                } catch (\Throwable $throwable) {
+                    dbRollback();
+                    throw $throwable;
+                }
             }
         }
     }
@@ -1299,37 +1307,44 @@ SQL
         int  $kusu = 1,
         bool $vcetneOznamemi = false,
     ) {
-        $predmet = dbOneLine("SELECT cena_aktualni, kusu_vyrobeno, nazev, model_rok FROM shop_predmety WHERE id_predmetu=$0", [0 => $idPredmetu]);
-        if (!$predmet) {
-            throw new \Chyba("Předmět s ID {$idPredmetu} neexistuje.");
-        }
-        $aktualniRocnik = $this->systemoveNastaveni->rocnik();
-        if ((int)$predmet['model_rok'] !== $aktualniRocnik) {
-            throw new \Chyba("Předmět '{$predmet['nazev']}' patří do ročníku {$predmet['model_rok']}, nelze ho prodávat v ročníku {$aktualniRocnik}.");
-        }
-        $cenaAktualni = $predmet['cena_aktualni'];
-
-        if ($predmet['kusu_vyrobeno'] !== null) {
-            $prodanoKusu = (int) dbOneCol(
-                "SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1",
-                [0 => $idPredmetu, 1 => $aktualniRocnik],
-            );
-            $zbyvajiciKusu = (int) $predmet['kusu_vyrobeno'] - $prodanoKusu;
-            if ($kusu > $zbyvajiciKusu) {
-                throw new \Chyba("Nelze prodat {$kusu} kusů '{$predmet['nazev']}', zbývá pouze {$zbyvajiciKusu} kusů.");
+        dbBegin();
+        try {
+            $predmet = dbOneLine("SELECT cena_aktualni, kusu_vyrobeno, nazev, model_rok FROM shop_predmety WHERE id_predmetu=$0 FOR UPDATE", [0 => $idPredmetu]);
+            if (!$predmet) {
+                throw new \Chyba("Předmět s ID {$idPredmetu} neexistuje.");
             }
-        }
+            $aktualniRocnik = $this->systemoveNastaveni->rocnik();
+            if ((int)$predmet['model_rok'] !== $aktualniRocnik) {
+                throw new \Chyba("Předmět '{$predmet['nazev']}' patří do ročníku {$predmet['model_rok']}, nelze ho prodávat v ročníku {$aktualniRocnik}.");
+            }
+            $cenaAktualni = $predmet['cena_aktualni'];
 
-        for ($i = 1; $i <= $kusu; $i++) {
-            dbQuery(<<<SQL
+            if ($predmet['kusu_vyrobeno'] !== null) {
+                $prodanoKusu = (int) dbOneCol(
+                    "SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1",
+                    [0 => $idPredmetu, 1 => $aktualniRocnik],
+                );
+                $zbyvajiciKusu = max(0, (int) $predmet['kusu_vyrobeno'] - $prodanoKusu);
+                if ($kusu > $zbyvajiciKusu) {
+                    throw new \Chyba("Předmět '{$predmet['nazev']}' už nejde objednat v požadovaném počtu. Zbývá dostupných kusů: {$zbyvajiciKusu}.");
+                }
+            }
+
+            for ($i = 1; $i <= $kusu; $i++) {
+                dbQuery(<<<SQL
 INSERT INTO shop_nakupy(id_uzivatele,id_objednatele,id_predmetu,rok,cena_nakupni,datum)
 VALUES ({$this->zakaznik->id()},{$this->objednatel->id()},{$idPredmetu},{$aktualniRocnik},{$cenaAktualni},NOW())
 SQL,
-            );
-        }
+                );
+            }
 
-        if ($this->zakaznik->id() === Uzivatel::SYSTEM) {
-            $this->zakaznik->finance()->pripis(((float)$cenaAktualni) * $kusu, $this->objednatel, 'anonymní prodej');
+            if ($this->zakaznik->id() === Uzivatel::SYSTEM) {
+                $this->zakaznik->finance()->pripis(((float)$cenaAktualni) * $kusu, $this->objednatel, 'anonymní prodej');
+            }
+            dbCommit();
+        } catch (\Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
         }
 
         if (!$vcetneOznamemi) {
