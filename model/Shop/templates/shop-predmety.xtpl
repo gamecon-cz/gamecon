@@ -115,7 +115,7 @@
 </details>
 <!-- end: dalsiMerch -->
 
-<script type="text/javascript" src="{shopTrickaJs}"></script>
+<script type="text/javascript" src="{shopSvrskyJs}"></script>
 
 <script>
     shopPlusminus(

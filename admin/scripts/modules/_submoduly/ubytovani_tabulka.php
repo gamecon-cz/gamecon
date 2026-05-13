@@ -31,23 +31,25 @@ class UbytovaniTabulka
                 $obsazeno  = $shop->obsazenoMist($den, $typ);
                 $kapacita  = $shop->kapacita($den, $typ);
                 $zbyvaMist = $shop->zbyvaMist($den, $typ);
-                if ($kapacita === '∞') {
+                $neomezenaKapacita = $kapacita === '∞';
+                if ($neomezenaKapacita) {
                     $zbyvaMist = '∞';
                 }
 
                 $t->assign([
-                    'idPredmetu' => $shop->mozneDny()[$den][$typ]['id_predmetu'] ?? null,
-                    'typ'        => $typ,
-                    'checked'    => $checked,
-                    'disabled'   => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
+                    'idPredmetu'    => $shop->mozneDny()[$den][$typ]['id_predmetu'] ?? null,
+                    'typ'           => $typ,
+                    'checked'       => $checked,
+                    'disabled'      => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                     && ($prodejUbytovaniUkoncen
                         || (!$ubytovanVeDniATypu && (!$shop->existujeUbytovani($den, $typ) || $shop->plno($den, $typ)))
                     )
                         ? 'disabled'
                         : '',
-                    'obsazeno'   => $obsazeno,
-                    'kapacita'   => $kapacita,
-                    'zbyvaMist'  => $zbyvaMist,
+                    'obsazeno'      => $obsazeno,
+                    'kapacita'      => $kapacita,
+                    'kapacitaProJs' => $neomezenaKapacita ? -1 : $kapacita,
+                    'zbyvaMist'     => $zbyvaMist,
                 ])->parse('ubytovani.den.typ');
             }
             // data pro názvy dnů a pro "Žádné" ubytování

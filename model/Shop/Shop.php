@@ -651,8 +651,8 @@ SQL,
             $t->parse('predmety.tricka');
         }
 
-        $t->assign('shopTrickaJs', URL_WEBU . '/soubory/blackarrow/shop/shop-tricka.js?version='
-            . md5_file(WWW . '/soubory/blackarrow/shop/shop-tricka.js'));
+        $t->assign('shopSvrskyJs', URL_WEBU . '/soubory/blackarrow/shop/shop-svrsky.js?version='
+            . md5_file(WWW . '/soubory/blackarrow/shop/shop-svrsky.js'));
 
         $t->parse('predmety');
 
