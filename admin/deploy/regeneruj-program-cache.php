@@ -39,7 +39,7 @@ $programCacheDir    = $systemoveNastaveni->publicCacheDir() . '/program';
 // Děláme to i pro předchozí dva ročníky — změna struktury JSONu (např. nová
 // položka v generateActivities) se týká i archivního programu.
 foreach (range($aktualniRocnik - 2, $aktualniRocnik) as $rok) {
-    $manifestPath = $programCacheDir . "/manifest-{$rok}.json";
+    $manifestPath = $generator->getManifestPath($rok);
     if (file_exists($manifestPath)) {
         unlink($manifestPath);
     }
