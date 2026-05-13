@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
 use App\Kernel;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Symfony\Component\Filesystem\Filesystem;
 
 class SystemoveNastaveniTest extends AbstractTestDb
 {
@@ -38,6 +41,57 @@ class SystemoveNastaveniTest extends AbstractTestDb
             $zaznamKurzuEuroPoZmene['id_uzivatele'],
             'Očekáváme ID posledního editujícícho, jako string tak jak se běžně vytáhne z databáze',
         );
+    }
+
+    /**
+     * @test
+     *
+     * Regression: změna jakékoli hodnoty v Nastavení musí označit JSON program
+     * cache jako dirty, jinak frontend dál zobrazuje stará data (např. po posunu
+     * REG_AKTIVIT_OD se aktivity tváří jako vBudoucnu/vDalsiVlne podle staré hodnoty).
+     * Reportováno v https://trello.com/c/XkQrBvbK.
+     */
+    public function ulozZmenuHodnotyOznaciJsonCacheJakoDirty()
+    {
+        $privateCacheDir = sys_get_temp_dir() . '/gamecon-test-nastaveni-cache-' . getmypid() . '-' . mt_rand();
+        $publicCacheDir = sys_get_temp_dir() . '/gamecon-test-nastaveni-public-' . getmypid() . '-' . mt_rand();
+        $filesystem = new Filesystem();
+        $filesystem->mkdir($privateCacheDir);
+        $filesystem->mkdir($publicCacheDir);
+
+        try {
+            $nastaveni = new SystemoveNastaveni(
+                ROCNIK,
+                new DateTimeImmutableStrict(),
+                false,
+                false,
+                DatabazoveNastaveni::vytvorZGlobals(),
+                PROJECT_ROOT_DIR,
+                $privateCacheDir,
+                new Kernel('test', false),
+                $publicCacheDir,
+            );
+            $generator = new ProgramStaticFileGenerator($nastaveni);
+
+            foreach (ProgramStaticFileType::cases() as $typ) {
+                self::assertFalse(
+                    $generator->hasDirtyFlag($typ),
+                    "Test předpokládá čistý stav před změnou hodnoty ({$typ->value})",
+                );
+            }
+
+            $nastaveni->ulozZmenuHodnoty('123', 'KURZ_EURO', \Uzivatel::zId(\Uzivatel::SYSTEM));
+
+            foreach (ProgramStaticFileType::cases() as $typ) {
+                self::assertTrue(
+                    $generator->hasDirtyFlag($typ),
+                    "Po ulozZmenuHodnoty musí být dirty flag pro {$typ->value} (jinak frontend zobrazí stará data)",
+                );
+            }
+        } finally {
+            $filesystem->remove($privateCacheDir);
+            $filesystem->remove($publicCacheDir);
+        }
     }
 
     /**
