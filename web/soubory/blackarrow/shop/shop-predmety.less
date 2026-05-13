@@ -23,7 +23,11 @@
 .shopPredmety_tricka + .shopPredmety_mikiny,
 .shopPredmety_tricka + .shopPredmety_dalsiMerch,
 .shopPredmety_mikiny + .shopPredmety_dalsiMerch {
-    margin-top: clamp(1.25rem, 4vw, 2rem);
+    margin-top: 2rem;
+
+    @media (max-width: 600px) {
+        margin-top: 1.5rem;
+    }
 }
 
 .shopPredmety_predmet {
