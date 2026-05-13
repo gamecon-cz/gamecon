@@ -301,7 +301,7 @@ class ProgramCacheInvalidationTest extends AbstractTestDb
             lokaceIds: [],
             hlavniLokaceId: null,
             tagIds: [],
-            systemoveNastaveni: \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals(),
+            systemoveNastaveni: SystemoveNastaveni::zGlobals(),
         );
 
         $this->assertDirtyFlagNastaven(
