@@ -76,6 +76,67 @@ SQL,
     /**
      * @test
      */
+    public function prihlasceNeprojdeNakupPresahujiciSkladovouZasobu(): void
+    {
+        $uniqueId = uniqid();
+
+        /** @var User $user */
+        $user = UserFactory::createOne([
+            UserEntityStructure::login    => 'test_buyer_' . $uniqueId,
+            UserEntityStructure::email    => 'test.buyer.' . $uniqueId . '@example.org',
+            UserEntityStructure::jmeno    => 'Test',
+            UserEntityStructure::prijmeni => 'Buyer',
+        ])->_real();
+
+        /** @var ShopItem $shopItem */
+        $shopItem = ShopItemFactory::createOne([
+            ShopItemEntityStructure::nazev        => 'Limitovaný předmět ' . $uniqueId,
+            ShopItemEntityStructure::kodPredmetu  => 'LIMIT_' . strtoupper($uniqueId),
+            ShopItemEntityStructure::modelRok     => ROCNIK,
+            ShopItemEntityStructure::cenaAktualni => '100',
+            ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
+            ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
+            ShopItemEntityStructure::kusuVyrobeno => 2,
+            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
+        ])->_real();
+
+        $uzivatel = \Uzivatel::zIdUrcite($user->getId());
+        $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
+        $chyba = null;
+
+        $puvodniPost = $_POST;
+        try {
+            $_POST = [
+                'shopP' => [
+                    $shopItem->getId() => 3,
+                ],
+            ];
+
+            $shop->zpracujPredmety();
+        } catch (\Chyba $zachycenaChyba) {
+            $chyba = $zachycenaChyba;
+        } finally {
+            $_POST = $puvodniPost;
+        }
+
+        self::assertInstanceOf(\Chyba::class, $chyba);
+        self::assertStringContainsString('Zbývá dostupných kusů: 2', $chyba->getMessage());
+
+        $pocetNakupu = (int) dbOneCol(<<<SQL
+SELECT COUNT(*) FROM shop_nakupy WHERE id_predmetu = $0 AND rok = $1
+SQL,
+            [
+                0 => $shopItem->getId(),
+                1 => ROCNIK,
+            ],
+        );
+
+        self::assertSame(0, $pocetNakupu);
+    }
+
+    /**
+     * @test
+     */
     public function prodejPovoliNakupAzDoLimituZasob(): void
     {
         $uzivatel = \Uzivatel::zIdUrcite(88801);
