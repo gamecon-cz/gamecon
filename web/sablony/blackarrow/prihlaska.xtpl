@@ -75,7 +75,7 @@
                 <p>Placky, kostky, mikiny i trička s logem GameConu si můžeš objednat ve více kusech. Stačí kliknout na tlačítko ➕.
                     U triček a mikin se po vyplnění jednoho automaticky zobrazí možnost přidat další.<br>
                     Velikosti mikin najdeš <a href="https://gamecon.cz/soubory/obsah/materialy/2026/velikosti_mikin.pdf">zde</a>.<br>
-                    <b>Výběr triček můžeš upravovat do {trickaObjednatelnaDo}, mikiny do {mikinyObjednatelnaDo}, ostatní merch do
+                    <b>Výběr mikin můžeš upravovat do {mikinyObjednatelnaDo}, ostatní merch do
                         {predmetyBezTricekObjednatelneDo}</b></p>
             </div>
             <!-- begin: slevy -->
