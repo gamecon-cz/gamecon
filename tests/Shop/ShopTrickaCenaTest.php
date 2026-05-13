@@ -91,8 +91,8 @@ SQL,
     private function vytvorTricko(
         string $nazev,
         string $kodPredmetu,
-        int    $cena,
-        int    $stav = StavPredmetu::VEREJNY,
+        int $cena,
+        int $stav = StavPredmetu::VEREJNY,
     ): int {
         dbQuery(<<<SQL
 INSERT INTO shop_predmety SET
@@ -146,7 +146,7 @@ SQL,
     public function vybranaCervenaVariantaTrickaZobraziSvojiCenu(): void
     {
         $this->pripravXTemplateCache();
-        $suffix = (string)uniqid();
+        $suffix = (string) uniqid();
         $uzivatel = $this->vytvorUzivatele($suffix);
         $uzivatel = $this->pridelPravo($uzivatel, Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
 
@@ -174,7 +174,7 @@ SQL,
     public function barevneVariantyTricekMajiVeVyberuVlastniCeny(): void
     {
         $this->pripravXTemplateCache();
-        $suffix = (string)uniqid();
+        $suffix = (string) uniqid();
         $uzivatel = $this->vytvorUzivatele($suffix);
         $uzivatel = $this->pridelPravo($uzivatel, Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
         $uzivatel = $this->pridelPravo($uzivatel, Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
