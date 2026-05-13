@@ -10,7 +10,7 @@ use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cache\ProgramStaticFileType;
-use Gamecon\SystemoveNastaveni\SqlMigrace;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
@@ -436,7 +436,7 @@ class ProgramCacheInvalidationTest extends AbstractTestDb
      */
     public function sqlMigraceOznaciVsechnyProgramCacheFlagy(): void
     {
-        SqlMigrace::vytvorZGlobals()->oznacProgramCacheJakoDirty();
+        SystemoveNastaveni::zGlobals()->oznacProgramCacheJakoDirty();
 
         foreach (ProgramStaticFileType::cases() as $typ) {
             $this->assertDirtyFlagNastaven(
