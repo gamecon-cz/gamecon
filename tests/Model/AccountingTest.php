@@ -582,6 +582,17 @@ SQL,
         self::assertCount(1, $manualMovements, 'Vypravěčský bonus musí být reprezentován transakcí v MANUAL_MOVEMENTS');
         self::assertSame($ocekavanyBonus, $manualMovements[0]->getTotalAmount());
         self::assertSame($ocekavanyBonus, $account->getTotal());
+
+        $htmlProFinance = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)
+            ->formatForHtml(positivePrices: true);
+        self::assertStringContainsString(
+            '<td><b>Připsané platby</b></td><td><b>' . $ocekavanyBonus . '</b></td>',
+            $htmlProFinance,
+        );
+        self::assertStringContainsString(
+            '<td>Bonus za aktivity</td><td>' . $ocekavanyBonus . '</td>',
+            $htmlProFinance,
+        );
     }
 
     /**
