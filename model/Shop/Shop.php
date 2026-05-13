@@ -766,10 +766,15 @@ SQL,
         $cenaText = ($cenaPoSleve !== $cena
                 ? "$cenaPoSleve$menaText/"
                 : '') . $cena . $menaText;
+        $kusuUzivatele = (int)$predmet['kusu_uzivatele'];
+        $maxKusu       = $predmet['kusu_vyrobeno'] !== null
+            ? max(0, (int)$predmet['kusu_vyrobeno'] - (int)$predmet['kusu_prodano'] + $kusuUzivatele)
+            : null;
         $t->assign([
             'nazev'          => $predmet['nazev'],
             'cena'           => $cenaText,
-            'kusu_uzivatele' => $predmet['kusu_uzivatele'],
+            'kusu_uzivatele' => $kusuUzivatele,
+            'maxKusu'        => $maxKusu ?? '',
             'postName'       => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
         ]);
 
