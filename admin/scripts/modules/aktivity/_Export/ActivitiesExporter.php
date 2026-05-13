@@ -169,7 +169,7 @@ class ActivitiesExporter
         if (!$idTurnaje) {
             return '';
         }
-        $nazev = dbOneLine('SELECT nazev FROM turnaje WHERE id_turnaje = $0', [$idTurnaje]);
+        $nazev = dbOneCol('SELECT nazev FROM turnaje WHERE id_turnaje = $0', [$idTurnaje]);
         return (string)$nazev;
     }
 
