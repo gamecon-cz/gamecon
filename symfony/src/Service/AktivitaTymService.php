@@ -335,7 +335,7 @@ class AktivitaTymService
 
     /**
      * Týmy na turnajové aktivitě kde v některém kole nemají právě jednu aktivitu (0 nebo 2+).
-     * @return array{id: int, nazev: string, aktivita: string, kola: array}[]
+     * @return array{id: int, nazev: string, aktivita: string, kola: array<int, array{cislo: int, cas: string, aktivity: array<int, array{id: int, nazev: string, prihlasena: bool}>}>}[]
      */
     public function tymySPatnymKolemTurnaje(int $rok): array
     {
