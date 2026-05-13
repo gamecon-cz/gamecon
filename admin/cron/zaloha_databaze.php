@@ -11,6 +11,11 @@ require_once __DIR__ . '/_cron_zavadec.php';
 
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
+if (!jsmeNaOstre()) {
+    logs('Záloha databáze přeskočena (nejsme na ostré).');
+    return;
+}
+
 $dnesniZalohaPattern = ZALOHA_DB_SLOZKA . '/export_' . date('Y-m-d_') . '[0-9][0-9][0-9][0-9][0-9][0-9].sql.gz';
 if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuDatabaze)) { // dnešní záloha databáze ještě neexistuje
     logs(sprintf("Zálohuji databázi '%s'...", DB_NAME));
