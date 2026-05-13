@@ -35,28 +35,6 @@
 </div>
 <!-- end: hlavniPredmety -->
 
-<!-- begin: mikiny -->
-<!-- begin: mikinyPozastavene -->
-<p>Možnost nákupu mikin už skončila.</p>
-<!-- end: mikinyPozastavene -->
-
-<div class="shopPredmety_mikiny shopPredmety_opakovaneVybery">
-    <!-- begin: mikina -->
-    <div class="shopPredmety_mikina shopPredmety_opakovanyVyber" data-opakovany-vyber="{skupinaVyberu}" data-input-id-prefix="{idPrefix}">
-        <div class="shop_popis">
-            <label for="{idVyberu}">{nazevVyberu} GameCon {rok}</label>
-            <div class="shop_popisCena">{cena}</div>
-        </div>
-        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_mikinaSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}">
-            <!-- begin: moznost -->
-            <option value="{id_predmetu}" {selected}>{nazev}</option>
-            <!-- end: moznost -->
-        </select>
-    </div>
-    <!-- end: mikina -->
-</div>
-<!-- end: mikiny -->
-
 <!-- begin: tricka -->
 <!-- begin: trickaPozastavena -->
 <p>Možnost nákupu triček už skončila.</p>
@@ -78,6 +56,28 @@
     <!-- end: tricko -->
 </div>
 <!-- end: tricka -->
+
+<!-- begin: mikiny -->
+<!-- begin: mikinyPozastavene -->
+<p>Možnost nákupu mikin už skončila.</p>
+<!-- end: mikinyPozastavene -->
+
+<div class="shopPredmety_mikiny shopPredmety_opakovaneVybery">
+    <!-- begin: mikina -->
+    <div class="shopPredmety_mikina shopPredmety_opakovanyVyber" data-opakovany-vyber="{skupinaVyberu}" data-input-id-prefix="{idPrefix}">
+        <div class="shop_popis">
+            <label for="{idVyberu}">{nazevVyberu} GameCon {rok}</label>
+            <div class="shop_popisCena">{cena}</div>
+        </div>
+        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_mikinaSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}">
+            <!-- begin: moznost -->
+            <option value="{id_predmetu}" {selected}>{nazev}</option>
+            <!-- end: moznost -->
+        </select>
+    </div>
+    <!-- end: mikina -->
+</div>
+<!-- end: mikiny -->
 
 <!-- begin: dalsiMerch -->
 <details class="shopPredmety_dalsiMerch">
