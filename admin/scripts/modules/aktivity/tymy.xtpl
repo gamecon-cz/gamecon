@@ -208,8 +208,8 @@
         <form method="post" action="aktivity/tymy" class="tymy-rozebrat-form">
             <input type="hidden" name="idTymu" value="{id}"/>
             <button type="submit" name="rozebratTym" value="1"
-                    onclick="return window.confirm('Opravdu rozebrat tým #{kod} ({nazev})?')">
-                Rozebrat tým
+                    onclick="return window.confirm('Opravdu smazat tým #{kod} ({nazev})?')">
+                Smazat tým
             </button>
         </form>
         <!-- begin:zamceniTlacitko -->

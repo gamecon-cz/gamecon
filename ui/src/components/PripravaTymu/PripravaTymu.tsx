@@ -19,6 +19,7 @@ type PripravaTymuProps = {
   casSmazaniRozpracovanyMs: number | undefined;
   onVybranéAktivity: (vybranAktivity: number[]) => void;
   onPrihlasitKapitana: () => void;
+  onOdhlasitAktivitu: (aktivitaId: number) => void;
   nacita?: boolean;
 };
 
@@ -58,6 +59,7 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
   casSmazaniRozpracovanyMs,
   onVybranéAktivity,
   onPrihlasitKapitana,
+  onOdhlasitAktivitu,
   nacita,
 }) => {
   const [vybrane, setVybrane] = useState<Record<number, number>>({});
@@ -66,7 +68,7 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
   const aktivitaId = useNastaveniTymuModalAktivitaId()!;
   const dataTymu = useNastaveniTymuModalData()!.tym!;
   const vsechnyAktivity = useAktivity();
-  const idTurnaje = vsechnyAktivity.find(x=>x.id === aktivitaId)?.turnajId;
+  const idTurnaje = vsechnyAktivity.find(x => x.id === aktivitaId)?.turnajId;
 
   const ziskejDenCasAktivity = (a: Aktivita): string => {
     const den = denAktivity(new Date(a.cas.od))?.toLocaleDateString("cs-CZ", {
@@ -77,7 +79,7 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
   }
 
   const kola = useMemo<KoloAktivity[]>(() => {
-    const aktivityTurnaje = !idTurnaje ? [] : vsechnyAktivity.filter(x=>x.turnajId === idTurnaje);
+    const aktivityTurnaje = !idTurnaje ? [] : vsechnyAktivity.filter(x => x.turnajId === idTurnaje);
     const mapa = new Map<number, KoloAktivity>();
     for (const a of aktivityTurnaje) {
       const cisloKola = a.turnajKolo ?? 1;
@@ -90,11 +92,25 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
   }, [vsechnyAktivity, aktivitaId]);
 
   const aktivityTymuId = dataTymu.aktivityTymuId ?? [];
-  const aktivityTymu = aktivityTymuId.map(id=>vsechnyAktivity.find(a=>a.id===id)).filter(x=>x !== undefined);
+  const aktivityTymu = aktivityTymuId.map(id => vsechnyAktivity.find(a => a.id === id)).filter(x => x !== undefined);
   const aktivityProVšechnyKolaVybrané = kola
-    .every(kolo=>kolo.aktivity.some(a => aktivityTymuId.includes(a.id)))
+    .every(kolo => kolo.aktivity.some(a => aktivityTymuId.includes(a.id)))
     ;
   const jeVýběrKol = !aktivityProVšechnyKolaVybrané;
+
+  const překrývajícíSeAktivity = useMemo(() =>
+    (jeVýběrKol ? [] :
+      vsechnyAktivity
+        // aktivity kapitána
+        .filter(x => x.stavPrihlaseni && x.stavPrihlaseni !== "sledujici")
+    ).filter(aktivitaTymu =>
+      aktivityTymu
+        .some(aktivitaKapitana =>
+          aktivitaTymu.cas.od < aktivitaKapitana.cas.do
+          && aktivitaTymu.cas.do > aktivitaKapitana.cas.od
+        )
+    )
+    , [vsechnyAktivity, jeVýběrKol]);
 
   // Pokud vypršel čas, označíme to
   useEffect(() => {
@@ -123,8 +139,8 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
   const vybraneAktivityText = kola
     .map((k) => {
       const aktivitaKola = aktivityTymu
-        .find(aktivita => k.aktivity.some(a=>a.id === aktivita.id))
-      return "kolo " + k.cisloKola.toString(10) + ". "+ (aktivitaKola ? ziskejDenCasAktivity(aktivitaKola) : "");
+        .find(aktivita => k.aktivity.some(a => a.id === aktivita.id))
+      return "kolo " + k.cisloKola.toString(10) + ". " + (aktivitaKola ? ziskejDenCasAktivity(aktivitaKola) : "");
     })
     .join("\n");
 
@@ -142,7 +158,9 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
       ) : (
         <PrihlaseniKapitana
           vybranéAktivity={vybraneAktivityText}
+          překrývajícíSeAktivity={překrývajícíSeAktivity.map(a => ({ id: a.id, nazev: a.nazev, cas: ziskejDenCasAktivity(a) }))}
           onPrihlasit={handlePrihlasit}
+          onOdhlasitAktivitu={onOdhlasitAktivitu}
           zbyvajiciCas={zbyvaCas}
           nacita={nacita}
         />

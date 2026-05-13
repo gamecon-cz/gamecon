@@ -151,6 +151,14 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     () => void onProveďAkci({ typ: "odhlasClena", idClena: clen.id })
   )();
 
+  const onOdhlasitAktivitu = (aktivitaId: number) => {
+    const aktivita = vsechnyAktivity.find(a => a.id === aktivitaId);
+    sPotvrzením(
+      `Opravdu se chcete odhlásit z aktivity${aktivita?.nazev ? ` ${aktivita.nazev}` : ""}?`,
+      () => void proveďAkciAktivity(aktivitaId, "odhlasit")
+    )();
+  };
+
   const onZaložitTým = () => void onProveďAkci({ typ: "zalozPrazdnyTym" });
 
   const onPřepniVerejnost = () => void onProveďAkci({ typ: "nastavVerejnost", verejny: !data?.tym?.verejny });
@@ -228,6 +236,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               casSmazaniRozpracovanyMs={data.tym?.casSmazaniRozpracovanyMs}
               onVybranéAktivity={onPotvrditVýběrAktivit}
               onPrihlasitKapitana={onPrihlasitKapitana}
+              onOdhlasitAktivitu={onOdhlasitAktivitu}
               nacita={načítáAkci}
             />
           )}

@@ -2414,7 +2414,7 @@ SQL
                 | self::IGNOROVAT_TURNAJ | self::IGNOROVAT_KONTROLY
                 ;
             foreach ($dalsiAktivityTymu as $aktivitaTymu) {
-                $aktivitaTymu->prihlas($uzivatel, $prihlasujici, $parametryDalsichAktivit);
+                $aktivitaTymu->prihlas($uzivatel, $prihlasujici, $parametryDalsichAktivit, $jenPritomen, $hlaskyVeTretiOsobe, $tym);
             }
         }
 
