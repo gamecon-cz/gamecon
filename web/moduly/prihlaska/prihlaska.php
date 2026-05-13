@@ -252,7 +252,7 @@ if (is_dir($adresarKObrazkuPredmetu)) {
             'nazev'     => $nazev,
             'display'   => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(Pravo::ADMINISTRACE_INFOPULT))
                 ? 'none'
-                : 'inherit',
+                : 'flex',
         ]);
         $t->parse('prihlaska.nahled');
     }
