@@ -144,6 +144,13 @@ hr {
   margin-top: 0;
   pointer-events: auto;
   transition: opacity 0.3s, margin-top 0.3s, visibility 0s;
+
+  // Na mobilu je tooltip přilepený na spodek obrazovky a překrývá formulář.
+  // Necháme tapy projít skrz, aby uživatel mohl ťuknout na pole pod tooltipem;
+  // tím se zároveň zruší sticky :hover a tooltip zmizí.
+  @media (max-width: 600px) {
+    pointer-events: none;
+  }
 }
 
 .corner-ribbon {
