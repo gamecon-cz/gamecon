@@ -126,7 +126,9 @@ SQL,
         // typ is a virtual column from the shop_predmety_s_typem view, derived from the product tag.
         dbQuery(
             "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'predmet'",
-            [0 => $shopItem->getId()],
+            [
+                0 => $shopItem->getId(),
+            ],
         );
 
         $uzivatel = \Uzivatel::zIdUrcite($user->getId());
@@ -234,11 +236,13 @@ SQL,
             ShopItemEntityStructure::kusuVyrobeno => 10,
             // The shop_predmety_s_typem view derives model_rok from archivedAt
             // (NULL → current ROCNIK, else YEAR(archived_at)).
-            ShopItemEntityStructure::archivedAt   => new \DateTimeImmutable((ROCNIK - 1) . '-12-31 23:59:59'),
+            ShopItemEntityStructure::archivedAt => new \DateTimeImmutable((ROCNIK - 1) . '-12-31 23:59:59'),
         ])->_save()->_real();
         dbQuery(
             "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'predmet'",
-            [0 => $shopItem->getId()],
+            [
+                0 => $shopItem->getId(),
+            ],
         );
 
         $uzivatel = \Uzivatel::zIdUrcite($user->getId());
