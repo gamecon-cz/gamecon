@@ -106,7 +106,14 @@ readonly class KopieOstreDatabaze
                 );
 
                 $this->nastrojeDatabaze->vymazVseZHlavniDatabaze($localConnection);
-                $mysqliConn = dbConnectMysqli();
+                // MySQLImport requires mysqli; build one targeting the same DB as $localConnection.
+                $mysqliConn = dbConnectMysqli(
+                    $dbServ,
+                    $dbmUser,
+                    $dbmPass,
+                    $dbPort !== null ? (int) $dbPort : null,
+                    $dbName,
+                );
                 (new \MySQLImport($mysqliConn))->load($tempFile);
                 mysqli_close($mysqliConn);
 
@@ -193,7 +200,14 @@ readonly class KopieOstreDatabaze
                 NastrojeDatabaze::removeDefiners($tempFile);
 
                 $this->nastrojeDatabaze->vymazVseZHlavniDatabaze($localConnection);
-                $mysqliConn = dbConnectMysqli();
+                // MySQLImport requires mysqli; build one targeting the same DB as $localConnection.
+                $mysqliConn = dbConnectMysqli(
+                    $dbServ,
+                    $dbmUser,
+                    $dbmPass,
+                    $dbPort !== null ? (int) $dbPort : null,
+                    $dbName,
+                );
                 (new \MySQLImport($mysqliConn))->load($tempFile);
                 mysqli_close($mysqliConn);
 
