@@ -7,7 +7,6 @@ namespace Gamecon\Tests\Shop;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\XTemplate\XTemplate;
@@ -38,26 +37,27 @@ SQL,
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
     cena_aktualni = 500,
-    stav = $3,
-    nabizet_do = $4,
+    stav = $2,
+    nabizet_do = $3,
     kusu_vyrobeno = 10,
-    typ = $5,
-    ubytovani_den = $6
+    ubytovani_den = $4
 SQL,
             [
                 0 => 'Spacák čtvrtek',
                 1 => 'SPACAK_CTVRTEK_' . $suffix,
-                2 => ROCNIK,
-                3 => StavPredmetu::VEREJNY,
-                4 => '2000-01-01 00:00:00', // historické datum, které by dřív položku zablokovalo
-                5 => TypPredmetu::UBYTOVANI,
-                6 => DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+                2 => StavPredmetu::VEREJNY,
+                3 => '2000-01-01 00:00:00', // historické datum, které by dřív položku zablokovalo
+                4 => DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
             ],
         );
+        $idPredmetu = dbInsertId();
+        dbQuery(
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'ubytovani'",
+            [0 => $idPredmetu],
+        );
 
-        return dbInsertId();
+        return $idPredmetu;
     }
 
     /**

@@ -61,26 +61,42 @@ SQL,
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
-    cena_aktualni = $3,
-    stav = $4,
-    kusu_vyrobeno = $5,
-    typ = $6,
-    podtyp = $7
+    cena_aktualni = $2,
+    stav = $3,
+    kusu_vyrobeno = $4
 SQL,
             [
                 0 => $nazev,
                 1 => $kodPredmetu,
-                2 => ROCNIK,
-                3 => $cena,
-                4 => StavPredmetu::VEREJNY,
-                5 => 10,
-                6 => $typ,
-                7 => $podtyp,
+                2 => $cena,
+                3 => StavPredmetu::VEREJNY,
+                4 => 10,
             ],
         );
+        $idPredmetu = dbInsertId();
 
-        return dbInsertId();
+        $tagCode = match ($typ) {
+            TypPredmetu::PREDMET           => 'predmet',
+            TypPredmetu::UBYTOVANI         => 'ubytovani',
+            TypPredmetu::TRICKO            => 'tricko',
+            TypPredmetu::JIDLO             => 'jidlo',
+            TypPredmetu::VSTUPNE           => 'vstupne',
+            TypPredmetu::PARCON            => 'parcon',
+            TypPredmetu::PROPLACENI_BONUSU => 'proplaceni-bonusu',
+        };
+        dbQuery(
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1",
+            [0 => $idPredmetu, 1 => $tagCode],
+        );
+
+        if ($podtyp === PodtypPredmetu::MIKINA) {
+            dbQuery(
+                "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'mikina'",
+                [0 => $idPredmetu],
+            );
+        }
+
+        return $idPredmetu;
     }
 
     private function objednejPredmet(\Uzivatel $uzivatel, int $idPredmetu): void

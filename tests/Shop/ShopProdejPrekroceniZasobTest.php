@@ -4,14 +4,40 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Shop;
 
+use App\Entity\ShopItem;
+use App\Entity\User;
+use App\Structure\Entity\ShopItemEntityStructure;
+use App\Structure\Entity\UserEntityStructure;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Tests\Factory\ShopItemFactory;
+use Gamecon\Tests\Factory\UserFactory;
 
 class ShopProdejPrekroceniZasobTest extends AbstractTestDb
 {
     protected static bool $disableStrictTransTables = true;
+
+    // Foundry persists via a separate Doctrine connection; running the test-class init queries
+    // inside an open legacy transaction blocks Doctrine's writes (innodb auto-inc lock on
+    // uzivatele_hodnoty), so we let init writes auto-commit and reset the test DB at class teardown.
+    // Per-method transaction also conflicts: writes to product_product_tag via legacy PDO get rolled back
+    // while Foundry's Doctrine-side ShopItem insert is already committed, leaving items without a typ tag.
+    protected static function keepTestClassDbChangesInTransaction(): bool
+    {
+        return false;
+    }
+
+    protected static function keepSingleTestMethodDbChangesInTransaction(): bool
+    {
+        return false;
+    }
+
+    protected static function resetDbAfterClass(): bool
+    {
+        return true;
+    }
 
     protected static array $initQueries = [
         <<<SQL
@@ -86,19 +112,22 @@ SQL,
             UserEntityStructure::email    => 'test.buyer.' . $uniqueId . '@example.org',
             UserEntityStructure::jmeno    => 'Test',
             UserEntityStructure::prijmeni => 'Buyer',
-        ])->_real();
+        ])->_save()->_real();
 
         /** @var ShopItem $shopItem */
         $shopItem = ShopItemFactory::createOne([
             ShopItemEntityStructure::nazev        => 'Limitovaný předmět ' . $uniqueId,
             ShopItemEntityStructure::kodPredmetu  => 'LIMIT_' . strtoupper($uniqueId),
-            ShopItemEntityStructure::modelRok     => ROCNIK,
             ShopItemEntityStructure::cenaAktualni => '100',
             ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
             ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
             ShopItemEntityStructure::kusuVyrobeno => 2,
-            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
-        ])->_real();
+        ])->_save()->_real();
+        // typ is a virtual column from the shop_predmety_s_typem view, derived from the product tag.
+        dbQuery(
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'predmet'",
+            [0 => $shopItem->getId()],
+        );
 
         $uzivatel = \Uzivatel::zIdUrcite($user->getId());
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
@@ -193,19 +222,24 @@ SQL,
             UserEntityStructure::email    => 'test.buyer.' . $uniqueId . '@example.org',
             UserEntityStructure::jmeno    => 'Test',
             UserEntityStructure::prijmeni => 'Buyer',
-        ])->_real();
+        ])->_save()->_real();
 
         /** @var ShopItem $shopItem */
         $shopItem = ShopItemFactory::createOne([
             ShopItemEntityStructure::nazev        => 'Historický předmět ' . $uniqueId,
             ShopItemEntityStructure::kodPredmetu  => 'HISTORY_' . strtoupper($uniqueId),
-            ShopItemEntityStructure::modelRok     => ROCNIK - 1,
             ShopItemEntityStructure::cenaAktualni => '100',
             ShopItemEntityStructure::stav         => StavPredmetu::VEREJNY,
             ShopItemEntityStructure::nabizetDo    => new \DateTime('+1 day'),
             ShopItemEntityStructure::kusuVyrobeno => 10,
-            ShopItemEntityStructure::typ          => TypPredmetu::PREDMET,
-        ])->_real();
+            // The shop_predmety_s_typem view derives model_rok from archivedAt
+            // (NULL → current ROCNIK, else YEAR(archived_at)).
+            ShopItemEntityStructure::archivedAt   => new \DateTimeImmutable((ROCNIK - 1) . '-12-31 23:59:59'),
+        ])->_save()->_real();
+        dbQuery(
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'predmet'",
+            [0 => $shopItem->getId()],
+        );
 
         $uzivatel = \Uzivatel::zIdUrcite($user->getId());
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
