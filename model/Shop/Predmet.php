@@ -13,7 +13,8 @@ use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
  */
 class Predmet extends \DbObject
 {
-    protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
+    // Read from the view so that virtual columns (model_rok, typ, podtyp, je_letosni_hlavni) are populated.
+    protected static $tabulka = Sql::SHOP_PREDMETY_S_TYPEM_TABULKA;
     protected static $pk = Sql::ID_PREDMETU;
 
     public static function jeToVstupneVcas(int $typPredmetu, string $kodPredmetu): bool

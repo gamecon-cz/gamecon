@@ -712,7 +712,7 @@ SQL,
                     'idPredmetu'    => isset($this->mozneDny[$den][$typ])
                         ? $this->mozneDny[$den][$typ]['id_predmetu']
                         : null,
-                    'podtyp'     => isset($this->mozneDny[$den][$typ])
+                    'podtyp'        => isset($this->mozneDny[$den][$typ])
                         ? ($this->mozneDny[$den][$typ]['podtyp'] ?? '')
                         : '',
                     'checked'       => $checked,
