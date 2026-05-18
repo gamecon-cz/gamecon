@@ -37,7 +37,7 @@ class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
     public function testZadneAktivity()
     {
         self::assertNull(
-            self::prihlasenyUzivatel()->maKoliziSJinouAktivitou(
+            self::prihlasenyUzivatel()->maKoliziSJinouAktivitouVCase(
                 new \DateTime('2000-01-01 00:00'),
                 new \DateTime('2000-01-01 24:00'),
             ),
@@ -53,7 +53,7 @@ class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
         ?int $aktivitaId,
         bool $nemaKolizi,
     ) {
-        $kolizniAktivita = self::$uzivatel->maKoliziSJinouAktivitou(
+        $kolizniAktivita = self::$uzivatel->maKoliziSJinouAktivitouVCase(
             new \DateTime('2000-01-01 ' . $od),
             new \DateTime('2000-01-01 ' . $do),
             $aktivitaId

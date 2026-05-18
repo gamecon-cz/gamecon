@@ -1,27 +1,22 @@
 /*
  * Konstanty předané ze serveru společně se scriptem.
- * Liší se pro testovací server
  */
 
-import { PřihlášenýUživatel } from "./api/přihlášenýUživatel";
+import { ApiPřihlášenýUživatel } from "./api/přihlášenýUživatel";
 import { ProgramManifest } from "./api/program";
 import { range } from "./utils";
 
 
 type GameconKonstanty = {
   /**
-   * Jestli se jedná o vite dev server
-   */
-  IS_DEV_SERVER: boolean,
-  /**
-   * Chrome redux devtools. Zapnout v php nastavení serveru pomocí 
+   * Chrome redux devtools. Zapnout v php nastavení serveru pomocí
 define('FORCE_REDUX_DEVTOOLS', true);
    */
   FORCE_REDUX_DEVTOOLS: boolean,
   /**
    * cesta k této stráce v rámci které se preact využívá.
    * například /web/program/
-   * preact by měl mít ve zprávě pouze část url 
+   * preact by měl mít ve zprávě pouze část url
    *   následující za touto cestou
    */
   BASE_PATH_PAGE: string,
@@ -45,6 +40,12 @@ define('FORCE_REDUX_DEVTOOLS', true);
    */
   PROGRAM_ZACATEK: number;
   PROGRAM_KONEC: number;
+  HAJENI_TEAMU_HODIN: number;
+  CAS_NA_PRIPRAVENI_TYMU_MINUT: number;
+  /**
+   * Jestli je program zobrazen v adminu (jiný uživatel než přihlášený)
+   */
+  JE_ADMIN: boolean;
 
   /** URL to cache/public/program directory with static JSON files */
   URL_PROGRAM_CACHE: string;
@@ -53,11 +54,11 @@ define('FORCE_REDUX_DEVTOOLS', true);
 }
 
 type GameconPřednačtení = {
-  přihlášenýUživatel?: PřihlášenýUživatel
+  přihlášenýUživatel?: ApiPřihlášenýUživatel
 };
 
 declare global {
-  // interface se automaticky propojí s existujícím 
+  // interface se automaticky propojí s existujícím
   //   proto je nutné použít interface a né type
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
@@ -66,13 +67,15 @@ declare global {
     preactMost: {
       obchod: {
         show?: (() => void) | undefined,
-      }
+      },
+      prihlaseniTymu: {
+        otevri?: ((aktivitaId: number, nazev?: string) => void) | undefined,
+      },
     }
   }
 }
 
 const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
-  IS_DEV_SERVER: false,
   FORCE_REDUX_DEVTOOLS: false,
   BASE_PATH_PAGE: "http://localhost:3000/",
   BASE_PATH_API: "/api/",
@@ -90,6 +93,9 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   ],
   PROGRAM_ZACATEK: 8,
   PROGRAM_KONEC: 6,
+  HAJENI_TEAMU_HODIN: 72,
+  CAS_NA_PRIPRAVENI_TYMU_MINUT: 15,
+  JE_ADMIN: false,
   URL_PROGRAM_CACHE: "/cache/public/program",
   programManifest: null,
 };
@@ -108,6 +114,8 @@ export const ROKY = range(2009, GAMECON_KONSTANTY.ROCNIK).filter(x => x !== 2020
 export const initEnv = () => {
   window.preactMost = {
     obchod: {
-    }
+    },
+    prihlaseniTymu: {
+    },
   };
 };

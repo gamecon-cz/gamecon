@@ -1,3 +1,7 @@
+@import '../../../../web/soubory/blackarrow/program-nahled/program-nahled.less';
+@import (less) '../../../../web/soubory/blackarrow/_spolecne/hint.css';
+@import (less) '../../../../web/soubory/blackarrow/program/program-trida.css';
+
 .program_hlavicka {
   background: url('../blackarrow/program/hlavicka.jpg') no-repeat;
   background-size: 100% auto;
@@ -498,7 +502,25 @@
   }
 }
 
-.modalOdhlasit {
+.program tbody td > .program_den_nadpis {
+  color: #fff;
+  background-color: #E22630;
+  font-size: 25px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 20px 30px;
+  margin: 0;
+  margin-top: 50px;
+  text-align: center;
+  display: block;
+  width: 350px;
+  margin-left: auto;
+  margin-right: auto;
+  height: auto;
+}
+
+.modal {
   &_obal {
     position: fixed;
     z-index: 21;
@@ -509,11 +531,16 @@
     overflow: auto;
     background-color: rgb(0,0,0);
     background-color: rgba(0,0,0,0.4);
-    padding-top: 40vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
   }
 
   button {
-    float: right;
+    &.vpravo {
+      float: right;
+    }
     text-transform: uppercase;
     font-size: 12px;
     font-weight: 700;
@@ -528,7 +555,10 @@
     background-color: #e22630;
     border: none;
     cursor: pointer;
-    margin-left: 8px;
+    &:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
   }
 
   button.zpet {

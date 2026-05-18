@@ -15,7 +15,7 @@ export type ProgramUrlSlice = {
 export const createProgramUrlSlice: ProgramStateCreator<ProgramUrlSlice> = () => ({
   urlStav: URL_STATE_VÝCHOZÍ_STAV,
   urlStavMožnosti: {
-    dny: urlStavProgramTabulkaMožnostíDnyMůj(),
+    dny: urlStavProgramTabulkaMožnostíDnyMůj({ jeAdmin: GAMECON_KONSTANTY.JE_ADMIN }),
     linie: [],
     stavy: AktivitaStavyVšechny,
   }
@@ -109,4 +109,34 @@ export const nastavFiltrPřihlašovatelné = (přihlašovatelné: boolean) => {
   useProgramStore.setState((s) => {
     s.urlStav.filtrPřihlašovatelné = přihlašovatelné;
   }, undefined, "nastav filtr přihlašovatelné");
+};
+
+export const přepniPodleMístnosti = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.podleMístnosti = !s.urlStav.podleMístnosti || undefined;
+  }, undefined, "přepni podle místnosti");
+};
+
+export const přepniBezÚčastníka = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.bezÚčastníka = !s.urlStav.bezÚčastníka || undefined;
+  }, undefined, "přepni bez účastníka");
+};
+
+export const přepniZobrazInterni = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.zobrazInterni = !s.urlStav.zobrazInterni || undefined;
+  }, undefined, "přepni zobraz interní");
+};
+
+export const přepniZobrazPrázdné = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.zobrazPrázdné = !s.urlStav.zobrazPrázdné || undefined;
+  }, undefined, "přepni zobraz prázdné");
+};
+
+export const přepniAutoRefresh = () => {
+  useProgramStore.setState((s) => {
+    s.urlStav.autoRefresh = !s.urlStav.autoRefresh || undefined;
+  }, undefined, "přepni auto refresh");
 };

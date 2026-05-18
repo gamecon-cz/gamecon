@@ -1,4 +1,4 @@
-import { ApiAktivitaNepřihlášen, ApiTag, Obsazenost, OdDo } from "../api/program";
+import { ApiAktivitaNepřihlášen, ApiTag, ApiObsazenost, OdDo } from "../api/program";
 
 export const tagyZId = (tagyId: number[] | undefined, tagy: ApiTag[]) => {
   return tagyId
@@ -7,11 +7,14 @@ export const tagyZId = (tagyId: number[] | undefined, tagy: ApiTag[]) => {
     ?? [];
 };
 
-export const volnoTypZObsazenost = (obsazenost: Obsazenost) => {
-  const { m, f, km, kf, ku } = obsazenost;
+export const volnoTypZObsazenost = (obsazenost: ApiObsazenost) => {
+  const { m, f, km, kf, ku, kt, t } = obsazenost;
   const c = m + f;
   const kc = ku + km + kf;
 
+  if (kt) {
+    return "t";
+  }
   if (kc <= 0) {
     return "u"; //aktivita bez omezení
   }

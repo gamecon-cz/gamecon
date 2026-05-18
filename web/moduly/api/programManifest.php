@@ -3,6 +3,8 @@
 use Gamecon\Cache\ProgramStaticFileGenerator;
 
 /**
+ * Generuje soubory do /cache/public/program
+ *
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
