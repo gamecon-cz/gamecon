@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Entity\Activity;
 use App\Entity\Team;
-use Gamecon\Aktivita\StavPrihlaseni;
 use App\Entity\TeamMemberRegistration;
 use App\Repository\ActivityRepository;
 use App\Repository\TeamMemberRegistrationRepository;
@@ -15,6 +14,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Gamecon\Aktivita\InfoOTymu;
 use Gamecon\Aktivita\NazevTymuGenerator;
+use Gamecon\Aktivita\StavPrihlaseni;
 
 class AktivitaTymService
 {
@@ -335,6 +335,7 @@ class AktivitaTymService
 
     /**
      * Týmy na turnajové aktivitě kde v některém kole nemají právě jednu aktivitu (0 nebo 2+).
+     *
      * @return array{id: int, nazev: string, aktivita: string, kola: array<int, array{cislo: int, cas: string, aktivity: array<int, array{id: int, nazev: string, prihlasena: bool}>}>}[]
      */
     public function tymySPatnymKolemTurnaje(int $rok): array
@@ -387,16 +388,16 @@ class AktivitaTymService
                 $kolo = (int) $aktivita['turnaj_kolo'];
                 if (! isset($kola[$kolo])) {
                     $kola[$kolo] = [
-                        'cislo'    => $kolo,
-                        'cas'      => $aktivita['zacatek']
+                        'cislo' => $kolo,
+                        'cas'   => $aktivita['zacatek']
                             ? (new \DateTime($aktivita['zacatek']))->format('j.n. H:i')
                             : '',
                         'aktivity' => [],
                     ];
                 }
                 $kola[$kolo]['aktivity'][] = [
-                    'id'        => (int) $aktivita['id_akce'],
-                    'nazev'     => $aktivita['nazev_akce'],
+                    'id'         => (int) $aktivita['id_akce'],
+                    'nazev'      => $aktivita['nazev_akce'],
                     'prihlasena' => (bool) $aktivita['prihlasena'],
                 ];
             }
@@ -414,6 +415,7 @@ class AktivitaTymService
 
     /**
      * Hráči přihlášení v týmu kteří nejsou přihlášeni na všechny aktivity jejich týmu.
+     *
      * @return array{nick: string, jmeno: string, idTymu: int, nazevTymu: string, aktivita: string, chybiPrihlaska: string}[]
      */
     public function hraciNeprihlaseniNaAktivityTymu(int $rok): array
@@ -461,6 +463,7 @@ class AktivitaTymService
 
     /**
      * Hráči přihlášení na týmovou aktivitu ale nejsou v žádném týmu nebo jsou ve více týmech.
+     *
      * @return array{nick: string, jmeno: string, aktivita: string, chyba: string, idUzivatele: int, idAktivity: int}[]
      */
     public function hraciSPatnymTymem(int $rok): array
@@ -589,12 +592,12 @@ class AktivitaTymService
 
         $this->em->wrapInTransaction(function () use ($team) {
             $idClenu = $team->getClenove()
-                ->map(fn(TeamMemberRegistration $c) => $c->getUzivatel()->getId())
-                ->filter(fn(?int $id) => $id !== null)
+                ->map(fn (TeamMemberRegistration $c) => $c->getUzivatel()->getId())
+                ->filter(fn (?int $id) => $id !== null)
                 ->toArray();
             $idAktivit = $team->getAktivity()
-                ->map(fn(Activity $a) => $a->getId())
-                ->filter(fn(?int $id) => $id !== null)
+                ->map(fn (Activity $a) => $a->getId())
+                ->filter(fn (?int $id) => $id !== null)
                 ->toArray();
 
             if ($idClenu && $idAktivit) {
@@ -821,12 +824,13 @@ class AktivitaTymService
 
     private function vygenerujUnikatniNazev(int $idAktivity): string
     {
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $nazev = NazevTymuGenerator::generuj();
-            if (!$this->teamRepository->existujeJinyTymSeStejnymNazvem(-1, $nazev, [$idAktivity])) {
+            if (! $this->teamRepository->existujeJinyTymSeStejnymNazvem(-1, $nazev, [$idAktivity])) {
                 return $nazev;
             }
         }
+
         return $nazev;
     }
 }

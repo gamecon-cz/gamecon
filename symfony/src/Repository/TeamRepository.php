@@ -167,7 +167,7 @@ class TeamRepository extends ServiceEntityRepository
             ->andWhere('aktivita.id IS NULL')
             ->andWhere('team.zalozen >= :startOfYear')
             ->andWhere('team.zalozen < :startOfNextYear')
-            ->setParameter('startOfYear', new \DateTime("$rok-01-01"))
+            ->setParameter('startOfYear', new \DateTime("{$rok}-01-01"))
             ->setParameter('startOfNextYear', new \DateTime(($rok + 1) . '-01-01'))
             ->getQuery()
             ->getResult();
