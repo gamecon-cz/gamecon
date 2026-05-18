@@ -8,7 +8,6 @@ use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\XTemplate\XTemplate;
@@ -98,24 +97,25 @@ SQL,
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
-    cena_aktualni = $3,
-    stav = $4,
-    kusu_vyrobeno = $5,
-    typ = $6
+    cena_aktualni = $2,
+    stav = $3,
+    kusu_vyrobeno = $4
 SQL,
             [
                 0 => $nazev,
                 1 => $kodPredmetu,
-                2 => ROCNIK,
-                3 => $cena,
-                4 => $stav,
-                5 => 10,
-                6 => TypPredmetu::TRICKO,
+                2 => $cena,
+                3 => $stav,
+                4 => 10,
             ],
         );
+        $idPredmetu = dbInsertId();
+        dbQuery(
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'tricko'",
+            [0 => $idPredmetu],
+        );
 
-        return dbInsertId();
+        return $idPredmetu;
     }
 
     private function objednejPredmet(\Uzivatel $uzivatel, int $idPredmetu): void
