@@ -18,6 +18,10 @@
     "react-select": "^5.7.0",
     "zustand": "^4.1.4"
   },
+  "resolutions": {
+    "@babel/runtime": "^7.26.10",
+    "yaml": "^1.10.3"
+  },
   "devDependencies": {
     "@preact/preset-vite": "^2.1.5",
     "@types/node": "^17.0.36",

@@ -85,14 +85,19 @@ SQL,
             TypPredmetu::PROPLACENI_BONUSU => 'proplaceni-bonusu',
         };
         dbQuery(
-            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1",
-            [0 => $idPredmetu, 1 => $tagCode],
+            'INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = $1',
+            [
+                0 => $idPredmetu,
+                1 => $tagCode,
+            ],
         );
 
         if ($podtyp === PodtypPredmetu::MIKINA) {
             dbQuery(
                 "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'mikina'",
-                [0 => $idPredmetu],
+                [
+                    0 => $idPredmetu,
+                ],
             );
         }
 
