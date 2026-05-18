@@ -18,6 +18,17 @@ use Gamecon\Web\Urls;
  * @var \Uzivatel|null $u
  */
 
+if (post('publikovatKolo')) {
+    $koloAktivita = Aktivita::zId(
+        id: post('koloAktivitaId'),
+        systemoveNastaveni: $systemoveNastaveni,
+    );
+    if ($koloAktivita) {
+        $koloAktivita->publikuj();
+    }
+    back();
+}
+
 if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
     echo Aktivita::editorChybyJson();
     exit;
