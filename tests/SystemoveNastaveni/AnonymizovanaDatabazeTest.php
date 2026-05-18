@@ -183,13 +183,13 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             self::assertSame('0', $anonymUser['nechce_ubytovani'], 'Volba nechce ubytování by měla být vynulovaná');
         }
 
-        $zpusobyZobrazeniResult = mysqli_query($connection, sprintf(
+        $zpusobyZobrazeniResult = $connection->query(sprintf(
             "SELECT zpusob_zobrazeni_na_webu FROM `%s`.uzivatele_hodnoty WHERE login_uzivatele != '%s' AND id_uzivatele != %d",
             self::$anonymniDatabaze,
             AnonymizovanaDatabaze::ADMIN_LOGIN,
             \Uzivatel::SYSTEM,
         ));
-        $zpusobyZobrazeni = array_column(mysqli_fetch_all($zpusobyZobrazeniResult, MYSQLI_ASSOC), 'zpusob_zobrazeni_na_webu');
+        $zpusobyZobrazeni = array_column($zpusobyZobrazeniResult->fetchAll(\PDO::FETCH_ASSOC), 'zpusob_zobrazeni_na_webu');
         foreach ($zpusobyZobrazeni as $zpusobZobrazeni) {
             self::assertSame(
                 (string) ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
