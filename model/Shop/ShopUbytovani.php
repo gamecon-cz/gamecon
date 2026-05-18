@@ -15,6 +15,9 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
 class ShopUbytovani
 {
+    public const CHYBA_MINIMALNE_DVE_NOCI = 'Ubytování je možné objednat minimálně na 2 noci.';
+    public const CHYBA_NAVAZUJICI_NOCI = 'Vybrané noci ubytování na sebe musí navazovat.';
+
     private const PORADI_TYPU_UBYTOVANI = [
         'jednolůžák' => 10,
         'postel na "1l" koleji' => 10,
@@ -253,15 +256,17 @@ SQL,
         Uzivatel $ucastnik,
         bool     $hlidatKapacituUbytovani = true,
         int      $rok = ROCNIK,
+        bool     $povolitJednuNoc = false,
     ): int {
         // vložit jeho zaklikané věci - note: není zabezpečeno
         $sqlValuesArray          = [];
         $idsPredmetuUbytovaniInt = [];
+        $ubytovaniDnyPodleId     = [];
 
         $idsPredmetuVstupu = array_filter(array_map('intval', $idsPredmetuUbytovani));
         if ($idsPredmetuVstupu) {
-            $povolenaIdPredmetu = dbFetchColumn(<<<SQL
-SELECT id_predmetu
+            $povolenePredmety = dbFetchAll(<<<SQL
+SELECT id_predmetu, ubytovani_den
 FROM shop_predmety
 WHERE id_predmetu IN ($1)
   AND model_rok = $2
@@ -269,13 +274,22 @@ WHERE id_predmetu IN ($1)
 SQL,
                 [1 => $idsPredmetuVstupu, 2 => $rok, 3 => TypPredmetu::UBYTOVANI],
             );
-            $povolenaIdPredmetu = array_flip(array_map('intval', $povolenaIdPredmetu));
+            $povolenaIdPredmetu = [];
+            foreach ($povolenePredmety as $povolenyPredmet) {
+                $idPredmetu = (int)$povolenyPredmet['id_predmetu'];
+                $povolenaIdPredmetu[$idPredmetu] = true;
+                $ubytovaniDnyPodleId[$idPredmetu] = (int)$povolenyPredmet['ubytovani_den'];
+            }
             foreach ($idsPredmetuVstupu as $idPredmetu) {
                 if (!isset($povolenaIdPredmetu[$idPredmetu])) {
                     throw new Chyba("Položka ubytování {$idPredmetu} není dostupná pro ročník {$rok}.");
                 }
             }
         }
+        self::validujVybraneNociUbytovani(
+            array_intersect_key($ubytovaniDnyPodleId, array_flip($idsPredmetuVstupu)),
+            $povolitJednuNoc,
+        );
 
         foreach ($idsPredmetuUbytovani as $idPredmetuUbytovani) {
             if (!$idPredmetuUbytovani) {
@@ -360,6 +374,32 @@ SQL,
         );
 
         return $pocetZmen;
+    }
+
+    /**
+     * @param int[] $vybraneDny
+     * @throws Chyba
+     */
+    private static function validujVybraneNociUbytovani(
+        array $vybraneDny,
+        bool  $povolitJednuNoc,
+    ): void {
+        $vybraneDny = array_values(array_unique(array_map('intval', $vybraneDny)));
+        sort($vybraneDny, SORT_NUMERIC);
+
+        if ($vybraneDny === []) {
+            return;
+        }
+
+        if (!$povolitJednuNoc && count($vybraneDny) < 2) {
+            throw new Chyba(self::CHYBA_MINIMALNE_DVE_NOCI);
+        }
+
+        for ($i = 1, $pocetDnu = count($vybraneDny); $i < $pocetDnu; $i++) {
+            if ($vybraneDny[$i] !== $vybraneDny[$i - 1] + 1) {
+                throw new Chyba(self::CHYBA_NAVAZUJICI_NOCI);
+            }
+        }
     }
 
     private Registrace $registrace;
@@ -521,6 +561,9 @@ SQL,
                 nadpis: 'Povinné údaje pro ubytování',
                 vyzadovatAdresuADoklad: true,
             ),
+            'minimalniPocetNoci'   => $this->muzeObjednatJednuNoc()
+                ? 1
+                : 2,
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         $nemuzeSiObjednatPokoj = $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky()
@@ -592,15 +635,10 @@ SQL,
         XTemplate $t,
         bool      $muzeEditovatUkoncenyProdej,
     ) {
-        $muzeObjednatJednuNoc   = $this->muzeObjednatJednuNoc();
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen();
         $nemuzeSiObjednatPokoj  = $this->systemoveNastaveni->jeOmezeniUbytovaniPouzeNaSpacaky()
                                   && !$this->maPravoNaPostel();
         foreach ($this->mozneDny as $den => $typy) { // typy _v daný den_
-            if (!$muzeObjednatJednuNoc && $den > 1) {
-                // uživatel nemá právo na objednání jedné noci, tak se mu to zabalilo do jednoho checkboxu
-                break;
-            }
             $typVzor = reset($typy);
             $t->assign([
                 'postnameDen'      => $this->pnDny . '[' . $den . ']',
@@ -644,9 +682,7 @@ SQL,
                 ])->parse('ubytovani.den.typ');
             }
 
-            $denText = !$muzeObjednatJednuNoc && $den == 1
-                ? "Čt–Ne (3 noci)"
-                : $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]);
+            $denText = $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]);
 
             // data pro názvy dnů a pro "Žádné" ubytování
             $t->assign([
@@ -664,13 +700,7 @@ SQL,
 
     public function snidaneDnyProJs(int $den): string
     {
-        if ($this->muzeObjednatJednuNoc()) {
-            return (string)($den + 1);
-        }
-
-        return $den === DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK
-            ? '2,3,4'
-            : (string)($den + 1);
+        return (string)($den + 1);
     }
 
     private function totoUbytovaniVyrazeno(
@@ -697,41 +727,6 @@ SQL,
         return DateTimeCz::poradiDneVTydnuNaPrelomDnuVeZkratkach($poradiDneVTydnu, true);
     }
 
-    /**
-     * @return array<int, string>
-     */
-    private function dejIdsUbytovaniNaTriNoci(Predmet $jedenZeDnu): array
-    {
-        $vybranyTypUbytovani = trim(Shop::bezDne($jedenZeDnu->nazev()));
-        $predmetyNaTriNoci   = dbFetchAll(<<<SQL
-SELECT id_predmetu, nazev, ubytovani_den
-FROM shop_predmety
-WHERE model_rok = $0
-    AND typ = $1
-    AND ubytovani_den IN (1, 2, 3)
-ORDER BY ubytovani_den, id_predmetu
-SQL,
-            [$jedenZeDnu->modelRok(), $jedenZeDnu->typ()],
-        );
-
-        $idsPodleDne = [];
-        foreach ($predmetyNaTriNoci as $predmetNaTriNoci) {
-            if (trim(Shop::bezDne((string)$predmetNaTriNoci['nazev'])) !== $vybranyTypUbytovani) {
-                continue;
-            }
-            $idsPodleDne[(int)$predmetNaTriNoci['ubytovani_den']] = (string)$predmetNaTriNoci['id_predmetu'];
-        }
-
-        if (!isset($idsPodleDne[1], $idsPodleDne[2], $idsPodleDne[3])) {
-            throw new Chyba(sprintf(
-                'Nepodařilo se najít kompletní třínoční sadu ubytování pro typ "%s".',
-                $vybranyTypUbytovani,
-            ));
-        }
-
-        return $idsPodleDne;
-    }
-
     public function zpracuj(
         bool $vcetneSpolubydliciho = true,
         bool $hlidatKapacituUbytovani = true,
@@ -741,29 +736,14 @@ SQL,
             return false;
         }
 
-        $dny = [];
+        $dny = $_POST[$this->pnDny];
 
-        if (!$this->muzeObjednatJednuNoc()) {
-            $postDny = $_POST[$this->pnDny];
-
-            if (isset($postDny[0])) {
-                $dny[0] = $postDny[0];
-            }
-
-            if (!empty($postDny[1])) {
-                $id         = $postDny[1];
-                $jedenZeDnu = Predmet::zId($id);
-                $vsechnyDny = $this->dejIdsUbytovaniNaTriNoci($jedenZeDnu);
-
-                $dny[1] = $vsechnyDny[1];
-                $dny[2] = $vsechnyDny[2];
-                $dny[3] = $vsechnyDny[3];
-            }
-        } else {
-            $dny = $_POST[$this->pnDny];
-        }
-
-        self::ulozObjednaneUbytovaniUcastnika($dny, $this->ubytovany, $hlidatKapacituUbytovani);
+        self::ulozObjednaneUbytovaniUcastnika(
+            $dny,
+            $this->ubytovany,
+            $hlidatKapacituUbytovani,
+            povolitJednuNoc: $this->muzeObjednatJednuNoc(),
+        );
 
         $this->aktualizujUbytovanPoDnech(array_filter($dny));
 
@@ -798,7 +778,8 @@ SQL,
 
     private function muzeObjednatJednuNoc(): bool
     {
-        return $this->objednatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
+        return $this->ubytovany->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)
+               || $this->objednatel->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC);
     }
 
     private function maPravoZobrazitUbytovani(int $poradiHernihoDne): bool
