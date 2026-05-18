@@ -4,9 +4,13 @@ use Gamecon\Role\Role;
 
 require_once __DIR__ . '/nastaveni-beta.php';
 
-define('URL_WEBU', 'https://beta.gamecon.cz'); // absolutní url uživatelského webu
-define('URL_ADMIN', 'https://admin.beta.gamecon.cz'); // absolutní url adminu
-define('URL_CACHE', 'https://cache.beta.gamecon.cz'); // url sdílených cachí
+// URL_WEBU / URL_ADMIN / URL_CACHE honour env-var overrides so a single
+// Docker image can serve different prod/beta/preview deployments by
+// .env file (see docs/docker-migration-plan.md §2.7). Default values
+// preserve the legacy FTP-deploy behavior unchanged.
+define('URL_WEBU', getenv('URL_WEBU') ?: 'https://beta.gamecon.cz');         // absolutní url uživatelského webu
+define('URL_ADMIN', getenv('URL_ADMIN') ?: 'https://admin.beta.gamecon.cz'); // absolutní url adminu
+define('URL_CACHE', getenv('URL_CACHE') ?: 'https://cache.beta.gamecon.cz'); // url sdílených cachí
 
 define('ANALYTICS', false);
 define('HTTPS_ONLY', true);

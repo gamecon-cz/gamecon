@@ -15,6 +15,12 @@ if (jsmeNaLocale()) {
     require_once __DIR__ . '/nastaveni-local-default.php'; // výchozí lokální nastavení
 } elseif (jsmeNaBete()) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-beta.php';
+} elseif (jsmeNaPreview()) {
+    // Per-branch preview deploys at <slug>.preview.gamecon.cz — must be
+    // checked BEFORE jsmeNaOstre() because that fallback would
+    // historically swallow any *.gamecon.cz host. (We also tightened
+    // jsmeNaOstre's regex to exclude preview hosts, but order belt+braces.)
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-preview.php';
 } elseif (jsmeNaOstre()) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
 } else {

@@ -113,4 +113,47 @@ class FunkceTest extends TestCase
             [' -  10001  ', -10001.0],
         ];
     }
+
+    /**
+     * @test
+     *
+     * @dataProvider providePreviewHostDetection
+     */
+    public function muzuRozpoznatPreviewHostiteleZPreviewSubdomeny(string $host, bool $ocekavaneJePreview): void
+    {
+        self::assertSame($ocekavaneJePreview, jeHostPreview($host));
+    }
+
+    public static function providePreviewHostDetection(): array
+    {
+        return [
+            // Preview hostnames — TRUE.
+            'preview pod slugem'                => ['foo.preview.gamecon.cz', true],
+            'preview pod čtyřčíslicovým slugem' => ['1234.preview.gamecon.cz', true],
+            'preview pod složeným slugem'       => ['feature-bar.preview.gamecon.cz', true],
+            'root preview domain bez slugu'     => ['preview.gamecon.cz', true],
+
+            // Production / beta / archive years — FALSE. The
+            // year-archive pattern is the main reason jsmeNaOstre()'s
+            // regex needs the `!jsmeNaPreview()` guard: '1234.gamecon.cz'
+            // is legitimately ostra-archive but '1234.preview.gamecon.cz'
+            // must be preview.
+            'ostra root'         => ['gamecon.cz', false],
+            'ostra admin'        => ['admin.gamecon.cz', false],
+            'ostra cache'        => ['cache.gamecon.cz', false],
+            'beta'               => ['beta.gamecon.cz', false],
+            'beta admin'         => ['admin.beta.gamecon.cz', false],
+            'archive year 2024'  => ['2024.gamecon.cz', false],
+            'archive year admin' => ['admin.2024.gamecon.cz', false],
+
+            // Adversarial — must not match. A naive
+            // `~preview[.]gamecon[.]cz$~` would falsely match these; the
+            // `(^|[.])` anchor exists exactly to reject them.
+            'xpreview neni preview'     => ['xpreview.gamecon.cz', false],
+            'sneakpreview neni preview' => ['sneakpreview.gamecon.cz', false],
+            'localhost'                 => ['localhost', false],
+            'unrelated domain'          => ['example.com', false],
+            'similar prefix'            => ['preview.example.com', false],
+        ];
+    }
 }
