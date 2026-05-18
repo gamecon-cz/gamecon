@@ -17,7 +17,7 @@ export type MyStateCreator<State, T> = StateCreator<State, ZustandMutators, [], 
 export const createMyStore = <State>(createState: MyStateCreator<State, State>) =>
   create<State>()(
     subscribeWithSelector(devtools(immer((...args) => ({ ...createState(...args) })), {
-      enabled: GAMECON_KONSTANTY.IS_DEV_SERVER || GAMECON_KONSTANTY.FORCE_REDUX_DEVTOOLS
+      enabled: GAMECON_KONSTANTY.FORCE_REDUX_DEVTOOLS
     }))
   );
 

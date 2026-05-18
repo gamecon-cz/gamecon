@@ -14,17 +14,17 @@ export const OdhlasitAktivituModal: FunctionComponent<PotvrzeniModalProps> = (pr
 
   return (
     <>
-      <div className="modalOdhlasit_obal" onClick={(e) => {
+      <div className="modal_obal" onClick={(e) => {
         if (e.target === e.currentTarget)
           nastavModalOdhlásit();
       }}>
-        <div className="modalOdhlasit clearfix">
+        <div className="modal clearfix">
           <h3>Opravdu se chceš odhlásit z aktivity {aktivita?.nazev}?</h3>
-          <button onClick={() => {
+          <button class="vpravo" style={{marginLeft:"8px"}} onClick={() => {
             nastavModalOdhlásit();
             void proveďAkciAktivity(aktivitaId, "odhlasit");
           }}>Odhlásit!</button>
-          <button class="zpet" onClick={() => { nastavModalOdhlásit(); }}>Zavřít</button>
+          <button class="vpravo zpet" onClick={() => { nastavModalOdhlásit(); }}>Zavřít</button>
         </div>
       </div>
     </>

@@ -15,12 +15,6 @@ dostali jsme žádost o vygenerování nového hesla na Gamecon.cz. Tvoje přihl
 S pozdravem Tým organizátorů GameConu',
     'odhlaseniZGc'                          => 'Odhlášení z GameConu ' . ROCNIK . ' proběhlo úspěšně',
     'prihlaseniNaGc'                        => 'Přihlášení na GameCon ' . ROCNIK . ' proběhlo úspěšně',
-    'prihlaseniTeamMail'                    =>
-        'Ahoj,
-
-v rámci GameConu tě %1 přihlásil{a} na aktivitu %2, která se koná %3. Pokud s přihlášením nepočítáš, nebo na aktivitu nemůžeš, dohodni se prosím s tím, kdo tě přihlásil, případně se odhlas na <a href="https://gamecon.cz">webu gameconu</a>.
-
-Pokud člověka, který tě přihlásil, neznáš, kontaktuj nás prosím na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>.',
     'kapacitaMaxUpo'                        => 'Z ubytovací kapacity typu %1 je naplněno %2 míst z maxima %3 míst.',
     'rychloregMail'                         =>
         'Ahoj,

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="Group_105"
+   data-name="Group 105"
+   width="19"
+   height="14"
+   viewBox="0 0 19 14"
+   version="1.1"
+   sodipodi:docname="lide.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="29.471201"
+     inkscape:cx="13.810092"
+     inkscape:cy="5.3442003"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="2552"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Group_104">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="19"
+       height="14"
+       id="page2"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <clipPath
+       id="clip-path">
+      <rect
+         id="Rectangle_213"
+         data-name="Rectangle 213"
+         width="9"
+         height="14"
+         fill="none"
+         x="0"
+         y="0" />
+    </clipPath>
+    <clipPath
+       id="clip-path-9">
+      <rect
+         id="Rectangle_213-4"
+         data-name="Rectangle 213"
+         width="9"
+         height="14"
+         fill="none"
+         x="0"
+         y="0" />
+    </clipPath>
+  </defs>
+  <g
+     id="Group_104"
+     data-name="Group 104"
+     clip-path="url(#clip-path)">
+    <path
+       id="Ellipse_27"
+       transform="translate(1.5,0.5)"
+       style="fill:none;stroke:#161615;stroke-miterlimit:10"
+       d="M 4.6105075,5.5310601 C 3.3628185,6.3249616 1.7227062,6.0912017 0.74649771,4.9803352 -0.22971077,3.8694687 -0.25076993,2.2129154 0.69688354,1.0775915 1.644537,-0.05773241 3.2781769,-0.33311043 4.5456446,0.42881683"
+       sodipodi:nodetypes="cssc" />
+    <path
+       id="Path_2661"
+       data-name="Path 2661"
+       d="M 0.5,14 V 10.133 C 0.49944742,8.1263207 2.1263207,6.4994474 4.133,6.5 h 0.734"
+       fill="none"
+       stroke="#161615"
+       stroke-miterlimit="10"
+       stroke-width="1"
+       sodipodi:nodetypes="cccc" />
+  </g>
+  <g
+     id="Group_104-2"
+     data-name="Group 104"
+     clip-path="url(#clip-path-9)"
+     transform="translate(10.015957)">
+    <path
+       id="Ellipse_27-4"
+       style="fill:none;stroke:#161615;stroke-miterlimit:10"
+       transform="translate(1.5,0.5)"
+       d="M 1.4489815,0.43205496 C 2.7123851,-0.33103077 4.3431539,-0.06176839 5.2941942,1.0669525 6.2452344,2.1956733 6.2339702,3.8484838 5.2676341,4.9641373 4.301298,6.0797909 2.6670106,6.3268012 1.4141251,5.5465665"
+       sodipodi:nodetypes="cssc" />
+    <path
+       id="Path_2661-5"
+       data-name="Path 2661"
+       d="M 4.133,6.5 H 4.867 C 6.8736793,6.4994474 8.5005526,8.1263207 8.5,10.133 V 14"
+       fill="none"
+       stroke="#161615"
+       stroke-miterlimit="10"
+       stroke-width="1"
+       sodipodi:nodetypes="cccc" />
+  </g>
+  <g
+     id="g1"
+     data-name="Group 104"
+     clip-path="url(#clip-path-9)"
+     transform="translate(5.0111023)">
+    <circle
+       id="circle1"
+       data-name="Ellipse 27"
+       cx="3"
+       cy="3"
+       r="3"
+       transform="translate(1.5,0.5)"
+       fill="none"
+       stroke="#161615"
+       stroke-miterlimit="10"
+       stroke-width="1" />
+    <path
+       id="path1"
+       data-name="Path 2661"
+       d="M 0.5,14 V 10.133 A 3.632,3.632 0 0 1 4.133,6.5 H 4.867 A 3.632,3.632 0 0 1 8.5,10.133 V 14"
+       fill="none"
+       stroke="#161615"
+       stroke-miterlimit="10"
+       stroke-width="1" />
+  </g>
+</svg>

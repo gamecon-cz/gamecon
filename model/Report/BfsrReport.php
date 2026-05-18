@@ -883,7 +883,7 @@ SQL,
                 // not the first round of an activity with rounds
                 continue;
             }
-            $capacity       = $activity->finalniKapacita();
+            $capacity       = $activity->kapacita();
             $standardLength = $this->getActivityStandardLengthCoefficient($activity->delka());
             $code           = 'Ir-Kapacita-' . $this->getActivityGroupCode($activity);
 
