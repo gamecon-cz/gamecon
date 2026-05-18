@@ -53,7 +53,9 @@ SQL,
         $idPredmetu = dbInsertId();
         dbQuery(
             "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'jidlo'",
-            [0 => $idPredmetu],
+            [
+                0 => $idPredmetu,
+            ],
         );
 
         return $idPredmetu;
