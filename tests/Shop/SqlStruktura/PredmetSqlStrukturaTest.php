@@ -19,6 +19,7 @@ class PredmetSqlStrukturaTest extends AbstractTestSqlStruktura
         return [
             PredmetSqlStruktura::MODEL_ROK,
             PredmetSqlStruktura::TYP,
+            PredmetSqlStruktura::PODTYP,
             PredmetSqlStruktura::JE_LETOSNI_HLAVNI,
         ];
     }
