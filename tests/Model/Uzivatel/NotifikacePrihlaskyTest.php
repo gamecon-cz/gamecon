@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Uzivatel;
 
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\NotifikacePrihlasky;
@@ -17,13 +16,13 @@ INSERT INTO uzivatele_hodnoty SET id_uzivatele = 777, login_uzivatele = 'TestNot
 SQL,
         [
             <<<SQL
-INSERT INTO shop_predmety SET id_predmetu = 77701, nazev = 'vstupné', model_rok = $0, kod_predmetu = CONCAT('notif_vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100, typ = $1
+INSERT INTO shop_predmety SET id_predmetu = 77701, nazev = 'vstupné', kod_predmetu = CONCAT('notif_vstupne_', $0), cena_aktualni = 300, stav = 1, nabizet_do = NOW(), kusu_vyrobeno = 100
 SQL,
             [
                 0 => ROCNIK,
-                1 => TypPredmetu::VSTUPNE,
             ],
         ],
+        "INSERT INTO product_product_tag (product_id, tag_id) SELECT 77701, id FROM product_tag WHERE code = 'vstupne'",
     ];
 
     private function vlozNakup(float $cenaNakupni): void

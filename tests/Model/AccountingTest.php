@@ -12,7 +12,6 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Finance;

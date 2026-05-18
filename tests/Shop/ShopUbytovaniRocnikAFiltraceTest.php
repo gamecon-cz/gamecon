@@ -47,31 +47,49 @@ SQL,
         ?string $podtyp = null,
     ): int {
         $unique = uniqid($modelRok . '_', true);
+        // model_rok and typ are virtual columns from the shop_predmety_s_typem view;
+        // typ comes from product_product_tag and model_rok from archived_at
+        // (NULL → current ROCNIK, else YEAR(archived_at)).
+        $archivedAt = $modelRok === ROCNIK
+            ? null
+            : sprintf('%d-12-31 23:59:59', $modelRok);
+        // podtyp='hotel' is emitted by the view when breakfast_included=1;
+        // podtyp='mikina' when the product has the 'mikina' tag (see view definition).
+        $breakfastIncluded = $podtyp === PodtypPredmetu::HOTEL ? 1 : 0;
         dbQuery(<<<SQL
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
     cena_aktualni = 500,
-    stav = $3,
-    kusu_vyrobeno = $4,
-    typ = $5,
-    ubytovani_den = $6,
-    podtyp = $7
+    stav = $2,
+    kusu_vyrobeno = $3,
+    ubytovani_den = $4,
+    archived_at = $5,
+    breakfast_included = $6
 SQL,
             [
                 0 => $nazev,
                 1 => strtoupper(str_replace(' ', '_', $nazev)) . '_' . $unique,
-                2 => $modelRok,
-                3 => StavPredmetu::VEREJNY,
-                4 => $kusuVyrobeno,
-                5 => TypPredmetu::UBYTOVANI,
-                6 => $ubytovaniDen,
-                7 => $podtyp,
+                2 => StavPredmetu::VEREJNY,
+                3 => $kusuVyrobeno,
+                4 => $ubytovaniDen,
+                5 => $archivedAt,
+                6 => $breakfastIncluded,
             ],
         );
+        $idPredmetu = dbInsertId();
+        dbQuery(
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'ubytovani'",
+            [0 => $idPredmetu],
+        );
+        if ($podtyp === PodtypPredmetu::MIKINA) {
+            dbQuery(
+                "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'mikina'",
+                [0 => $idPredmetu],
+            );
+        }
 
-        return dbInsertId();
+        return $idPredmetu;
     }
 
     private function objednejPredmet(\Uzivatel $uzivatel, int $idPredmetu): void
@@ -107,9 +125,11 @@ SQL,
         $uzivatel = $this->vytvorUzivatele((string) uniqid());
         $den = DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK;
 
+        // Production deduplicates archived nazev by appending ' (#id)' (see new-eshop migration),
+        // so historical rows must carry a different nazev than the current-year row.
         $this->vytvorPredmetUbytovani('Dvoulůžák čtvrtek', ROCNIK, 12);
-        $this->vytvorPredmetUbytovani('Dvoulůžák čtvrtek', ROCNIK - 1, 0);
-        $this->vytvorPredmetUbytovani('Spacák čtvrtek', ROCNIK - 1, 25);
+        $this->vytvorPredmetUbytovani('Dvoulůžák čtvrtek ' . (ROCNIK - 1), ROCNIK - 1, 0);
+        $this->vytvorPredmetUbytovani('Spacák čtvrtek ' . (ROCNIK - 1), ROCNIK - 1, 25);
 
         $shop = new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals());
         $ubytovani = $shop->ubytovani();
@@ -410,7 +430,7 @@ SQL,
         $ulozenaIds = array_map('intval', dbOneArray(<<<SQL
 SELECT shop_nakupy.id_predmetu
 FROM shop_nakupy
-JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+JOIN shop_predmety_s_typem AS shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
 WHERE shop_nakupy.id_uzivatele = $0
   AND shop_nakupy.rok = $1
   AND shop_predmety.typ = $2
