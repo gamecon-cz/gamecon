@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Shop;
 
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Pravo;
 use Gamecon\Shop\PodtypPredmetu;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\ShopUbytovani;
@@ -86,6 +87,61 @@ INSERT INTO shop_nakupy SET
 SQL,
             [$uzivatel->id(), $idPredmetu, ROCNIK],
         );
+    }
+
+    private function pridelPravo(\Uzivatel $uzivatel, int $idPrava): \Uzivatel
+    {
+        $unique = uniqid('', false);
+        $idRole = -random_int(100000, 999999);
+        dbQuery(<<<SQL
+INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
+VALUES ($0, $1, 'test')
+SQL,
+            [
+                0 => $idPrava,
+                1 => 'test_pravo_' . $idPrava,
+            ],
+        );
+        dbQuery(<<<SQL
+INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
+VALUES ($0, $1, $2, '', -1, 'trvala', '')
+SQL,
+            [
+                0 => $idRole,
+                1 => 'TEST_UBYTOVANI_' . $idPrava . '_' . $unique,
+                2 => 'Test role ' . $unique,
+            ],
+        );
+        dbQuery(
+            'INSERT INTO prava_role(id_role, id_prava) VALUES ($0, $1)',
+            [$idRole, $idPrava],
+        );
+        dbQuery(
+            'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0)',
+            [$uzivatel->id(), $idRole],
+        );
+
+        \Uzivatel::smazCache();
+
+        return \Uzivatel::zIdUrcite($uzivatel->id());
+    }
+
+    /**
+     * @return int[]
+     */
+    private function idsUlozenehoUbytovani(\Uzivatel $uzivatel): array
+    {
+        return array_map('intval', dbOneArray(<<<SQL
+SELECT shop_nakupy.id_predmetu
+FROM shop_nakupy
+JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+WHERE shop_nakupy.id_uzivatele = $0
+  AND shop_nakupy.rok = $1
+  AND shop_predmety.typ = $2
+ORDER BY shop_predmety.ubytovani_den
+SQL,
+            [$uzivatel->id(), ROCNIK, TypPredmetu::UBYTOVANI],
+        ));
     }
 
     private function uzivatelNechceUbytovani(\Uzivatel $uzivatel): bool
@@ -315,7 +371,7 @@ SQL,
             10,
             DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
         );
-        $this->vytvorPredmetUbytovani(
+        $idPredmetuUbytovaniPatek = $this->vytvorPredmetUbytovani(
             'Dvoulůžák pátek',
             ROCNIK,
             10,
@@ -330,6 +386,7 @@ SQL,
 
         $_POST['shopUbytovaniDny'] = [
             1 => (string) $idPredmetuUbytovani,
+            2 => (string) $idPredmetuUbytovaniPatek,
         ];
         $_POST['shopUbytovaniNechci'] = 'on';
 
@@ -347,7 +404,7 @@ SQL,
     /**
      * @test
      */
-    public function bezJedneNociUloziVybranyHotelovyTypProVsechnyTriNoci(): void
+    public function uloziVybraneDveNavazujiciNociBezDopoctuTreti(): void
     {
         $uzivatel = $this->vytvorUzivatele((string) uniqid());
 
@@ -387,7 +444,7 @@ SQL,
             DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
             PodtypPredmetu::HOTEL,
         );
-        $idHotelDeluxeSobota = $this->vytvorPredmetUbytovani(
+        $this->vytvorPredmetUbytovani(
             'Hotelový jednolůžák deluxe sobota',
             ROCNIK,
             10,
@@ -399,6 +456,7 @@ SQL,
 
         $_POST['shopUbytovaniDny'] = [
             1 => (string) $idHotelDeluxeCtvrtek,
+            2 => (string) $idHotelDeluxePatek,
         ];
 
         try {
@@ -407,20 +465,10 @@ SQL,
             unset($_POST['shopUbytovaniDny']);
         }
 
-        $ulozenaIds = array_map('intval', dbOneArray(<<<SQL
-SELECT shop_nakupy.id_predmetu
-FROM shop_nakupy
-JOIN shop_predmety ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
-WHERE shop_nakupy.id_uzivatele = $0
-  AND shop_nakupy.rok = $1
-  AND shop_predmety.typ = $2
-ORDER BY shop_predmety.ubytovani_den
-SQL,
-            [$uzivatel->id(), ROCNIK, TypPredmetu::UBYTOVANI],
-        ));
+        $ulozenaIds = $this->idsUlozenehoUbytovani($uzivatel);
 
         self::assertSame(
-            [$idHotelDeluxeCtvrtek, $idHotelDeluxePatek, $idHotelDeluxeSobota],
+            [$idHotelDeluxeCtvrtek, $idHotelDeluxePatek],
             $ulozenaIds,
         );
     }
@@ -428,7 +476,180 @@ SQL,
     /**
      * @test
      */
-    public function bezJedneNociVykresliSnidaneProStredecniNocATriNociOdCtvrtka(): void
+    public function neuloziUbytovaniPouzeNaJednuNocBezVyjimky(): void
+    {
+        $uzivatel = $this->vytvorUzivatele((string) uniqid());
+        $idPredmetuUbytovani = $this->vytvorPredmetUbytovani(
+            'Dvoulůžák čtvrtek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+        );
+
+        $_POST['shopUbytovaniDny'] = [
+            1 => (string) $idPredmetuUbytovani,
+        ];
+
+        try {
+            $this->expectException(\Chyba::class);
+            $this->expectExceptionMessage(ShopUbytovani::CHYBA_MINIMALNE_DVE_NOCI);
+
+            (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))
+                ->ubytovani()
+                ->zpracuj(vcetneSpolubydliciho: false);
+        } finally {
+            unset($_POST['shopUbytovaniDny']);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function neuloziNenavazujiciNoci(): void
+    {
+        $uzivatel = $this->vytvorUzivatele((string) uniqid());
+        $idCtvrtek = $this->vytvorPredmetUbytovani(
+            'Dvoulůžák čtvrtek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+        );
+        $idSobota = $this->vytvorPredmetUbytovani(
+            'Dvoulůžák sobota',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+        );
+
+        $_POST['shopUbytovaniDny'] = [
+            1 => (string) $idCtvrtek,
+            3 => (string) $idSobota,
+        ];
+
+        try {
+            $this->expectException(\Chyba::class);
+            $this->expectExceptionMessage(ShopUbytovani::CHYBA_NAVAZUJICI_NOCI);
+
+            (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))
+                ->ubytovani()
+                ->zpracuj(vcetneSpolubydliciho: false);
+        } finally {
+            unset($_POST['shopUbytovaniDny']);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function adminskaUpravaUbytovaniPouzivaStejnouValidaciNoci(): void
+    {
+        $ucastnik = $this->vytvorUzivatele((string) uniqid());
+        $admin = $this->vytvorUzivatele((string) uniqid());
+        $idCtvrtek = $this->vytvorPredmetUbytovani(
+            'Dvoulůžák čtvrtek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+        );
+        $idSobota = $this->vytvorPredmetUbytovani(
+            'Dvoulůžák sobota',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+        );
+
+        $_POST['shopUbytovaniDny'] = [
+            1 => (string) $idCtvrtek,
+            3 => (string) $idSobota,
+        ];
+
+        try {
+            $this->expectException(\Chyba::class);
+            $this->expectExceptionMessage(ShopUbytovani::CHYBA_NAVAZUJICI_NOCI);
+
+            (new Shop($ucastnik, $admin, SystemoveNastaveni::zGlobals()))
+                ->ubytovani()
+                ->zpracuj(vcetneSpolubydliciho: false);
+        } finally {
+            unset($_POST['shopUbytovaniDny']);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function neuloziNenavazujiciNociAniPriVyjimceNaJednuNoc(): void
+    {
+        $uzivatel = $this->pridelPravo(
+            $this->vytvorUzivatele((string) uniqid()),
+            Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
+        );
+        $idCtvrtek = $this->vytvorPredmetUbytovani(
+            'Dvoulůžák čtvrtek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+        );
+        $idSobota = $this->vytvorPredmetUbytovani(
+            'Dvoulůžák sobota',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_SOBOTA,
+        );
+
+        $_POST['shopUbytovaniDny'] = [
+            1 => (string) $idCtvrtek,
+            3 => (string) $idSobota,
+        ];
+
+        try {
+            $this->expectException(\Chyba::class);
+            $this->expectExceptionMessage(ShopUbytovani::CHYBA_NAVAZUJICI_NOCI);
+
+            (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))
+                ->ubytovani()
+                ->zpracuj(vcetneSpolubydliciho: false);
+        } finally {
+            unset($_POST['shopUbytovaniDny']);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function vyjimkaZUbytovaniNaJednuNocZustavaZachovana(): void
+    {
+        $uzivatel = $this->pridelPravo(
+            $this->vytvorUzivatele((string) uniqid()),
+            Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC,
+        );
+        $admin = $this->vytvorUzivatele((string) uniqid());
+        $idPredmetuUbytovani = $this->vytvorPredmetUbytovani(
+            'Dvoulůžák čtvrtek',
+            ROCNIK,
+            10,
+            DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
+        );
+
+        $_POST['shopUbytovaniDny'] = [
+            1 => (string) $idPredmetuUbytovani,
+        ];
+
+        try {
+            (new Shop($uzivatel, $admin, SystemoveNastaveni::zGlobals()))
+                ->ubytovani()
+                ->zpracuj(vcetneSpolubydliciho: false);
+        } finally {
+            unset($_POST['shopUbytovaniDny']);
+        }
+
+        self::assertSame([$idPredmetuUbytovani], $this->idsUlozenehoUbytovani($uzivatel));
+    }
+
+    /**
+     * @test
+     */
+    public function vykresliJednotliveNociASnidaneProHotelovePokoje(): void
     {
         $this->pripravXTemplateCache();
 
@@ -451,14 +672,14 @@ SQL,
             DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK,
             PodtypPredmetu::HOTEL,
         );
-        $this->vytvorPredmetUbytovani(
+        $idHotelPatek = $this->vytvorPredmetUbytovani(
             $typHoteluCtvrtek . ' pátek',
             ROCNIK,
             10,
             DateTimeGamecon::PORADI_HERNIHO_DNE_PATEK,
             PodtypPredmetu::HOTEL,
         );
-        $this->vytvorPredmetUbytovani(
+        $idHotelSobota = $this->vytvorPredmetUbytovani(
             $typHoteluCtvrtek . ' sobota',
             ROCNIK,
             10,
@@ -469,6 +690,9 @@ SQL,
         $html = (new Shop($uzivatel, $uzivatel, SystemoveNastaveni::zGlobals()))
             ->ubytovani()
             ->ubytovaniHtml(true);
+
+        self::assertStringContainsString('class="shopUbytovani_upozorneni"', $html);
+        self::assertStringContainsString('data-minimalni-pocet-noci="2"', $html);
 
         preg_match(
             '~<input[^>]*class="shopUbytovani_radio"[^>]*value="' . preg_quote((string) $idHotelStreda, '~') . '"[^>]*>~u',
@@ -481,6 +705,16 @@ SQL,
             $hotelCtvrtekInput,
         );
         preg_match(
+            '~<input[^>]*name="shopUbytovaniDny\[2]"[^>]*value="' . preg_quote((string) $idHotelPatek, '~') . '"[^>]*>~u',
+            $html,
+            $hotelPatekInput,
+        );
+        preg_match(
+            '~<input[^>]*name="shopUbytovaniDny\[3]"[^>]*value="' . preg_quote((string) $idHotelSobota, '~') . '"[^>]*>~u',
+            $html,
+            $hotelSobotaInput,
+        );
+        preg_match(
             '~<input[^>]*name="shopUbytovaniDny\[1]"[^>]*value=""[^>]*data-typ="Žádné"[^>]*>~u',
             $html,
             $zadneInput,
@@ -489,9 +723,11 @@ SQL,
         self::assertNotEmpty($hotelStredaInput, 'V HTML ubytování chybí input pro středeční hotel.');
         self::assertStringContainsString('data-snidane-dny="1"', $hotelStredaInput[0]);
         self::assertNotEmpty($hotelCtvrtekInput, 'V HTML ubytování chybí input pro čtvrteční hotel.');
-        self::assertStringContainsString('data-snidane-dny="2,3,4"', $hotelCtvrtekInput[0]);
+        self::assertStringContainsString('data-snidane-dny="2"', $hotelCtvrtekInput[0]);
+        self::assertNotEmpty($hotelPatekInput, 'V HTML ubytování chybí input pro páteční hotel.');
+        self::assertNotEmpty($hotelSobotaInput, 'V HTML ubytování chybí input pro sobotní hotel.');
         self::assertNotEmpty($zadneInput, 'V HTML ubytování chybí input pro žádné ubytování.');
-        self::assertStringContainsString('data-snidane-dny="2,3,4"', $zadneInput[0]);
+        self::assertStringContainsString('data-snidane-dny="2"', $zadneInput[0]);
     }
 
     /**
@@ -532,9 +768,9 @@ SQL,
 
         self::assertNotEmpty($hotelCtvrtekInput, 'V HTML adminího ubytování chybí input pro čtvrteční hotel.');
         self::assertStringContainsString('data-podtyp="hotel"', $hotelCtvrtekInput[0]);
-        self::assertStringContainsString('data-snidane-dny="2,3,4"', $hotelCtvrtekInput[0]);
+        self::assertStringContainsString('data-snidane-dny="2"', $hotelCtvrtekInput[0]);
         self::assertNotEmpty($zadneInput, 'V HTML adminího ubytování chybí input pro žádné ubytování.');
-        self::assertStringContainsString('data-snidane-dny="2,3,4"', $zadneInput[0]);
+        self::assertStringContainsString('data-snidane-dny="2"', $zadneInput[0]);
     }
 
     private function pripravXTemplateCache(): void
