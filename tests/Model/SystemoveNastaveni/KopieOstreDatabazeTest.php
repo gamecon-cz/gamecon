@@ -48,7 +48,10 @@ class KopieOstreDatabazeTest extends TestCase
             assert($testDumps !== false, 'Nepodařilo se načíst testovací SQL');
             $latestDump = __DIR__ . '/../../Db/data/' . reset($testDumps);
 
-            $mysqliSoucasna = dbConnectMysqli();
+            // MySQLImport requires a mysqli connection — build one targeting the isolated DBs.
+            $mysqliSoucasna = $this->mysqliProDocasnouDb(
+                $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze(),
+            );
             (new \MySQLImport($mysqliSoucasna))->load($latestDump);
             mysqli_close($mysqliSoucasna);
             // potřebujeme co největší rozdíl SQL migrací abychom vyzkoušeli že nějaká co není na betě a pustí se to nerozbije (stalo se)
@@ -56,7 +59,9 @@ class KopieOstreDatabazeTest extends TestCase
 
             $docasneSpojeniOstra = $this->docasneSpojeniOstra($this->systemoveNastaveni, true);
             // naplníme "jakoby ostrou" staršími daty, abychom vyzkoušeli nejen zkopírování, ale i migrace
-            $mysqliOstra = dbConnectMysqli();
+            $mysqliOstra = $this->mysqliProDocasnouDb(
+                $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze(),
+            );
             (new \MySQLImport($mysqliOstra))->load($latestDump);
             mysqli_close($mysqliOstra);
         } catch (\Throwable $throwable) {
@@ -127,6 +132,20 @@ class KopieOstreDatabazeTest extends TestCase
             $dbName,
             $systemoveNastaveni->rocnik(),
             $resetDatabaze,
+        );
+    }
+
+    /**
+     * @param array{DBM_USER:string, DBM_PASS:string, DB_NAME:string, DB_SERV:string, DB_PORT:int|string|null} $prihlasovaciUdaje
+     */
+    private function mysqliProDocasnouDb(array $prihlasovaciUdaje): \mysqli
+    {
+        return dbConnectMysqli(
+            $prihlasovaciUdaje['DB_SERV'],
+            $prihlasovaciUdaje['DBM_USER'],
+            $prihlasovaciUdaje['DBM_PASS'],
+            $prihlasovaciUdaje['DB_PORT'] !== null ? (int) $prihlasovaciUdaje['DB_PORT'] : null,
+            $prihlasovaciUdaje['DB_NAME'],
         );
     }
 
