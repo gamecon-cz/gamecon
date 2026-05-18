@@ -7,7 +7,6 @@ namespace Gamecon\Tests\Shop;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\StavPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\XTemplate\XTemplate;
@@ -38,25 +37,26 @@ SQL,
 INSERT INTO shop_predmety SET
     nazev = $0,
     kod_predmetu = $1,
-    model_rok = $2,
-    cena_aktualni = $3,
-    stav = $4,
+    cena_aktualni = $2,
+    stav = $3,
     kusu_vyrobeno = NULL,
-    typ = $5,
-    ubytovani_den = $6
+    ubytovani_den = $4
 SQL,
             [
                 0 => $nazev,
                 1 => $kodPredmetu,
-                2 => ROCNIK,
-                3 => $cena,
-                4 => StavPredmetu::VEREJNY,
-                5 => TypPredmetu::JIDLO,
-                6 => $den,
+                2 => $cena,
+                3 => StavPredmetu::VEREJNY,
+                4 => $den,
             ],
         );
+        $idPredmetu = dbInsertId();
+        dbQuery(
+            "INSERT INTO product_product_tag (product_id, tag_id) SELECT $0, id FROM product_tag WHERE code = 'jidlo'",
+            [0 => $idPredmetu],
+        );
 
-        return dbInsertId();
+        return $idPredmetu;
     }
 
     /**
