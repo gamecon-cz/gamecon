@@ -22,7 +22,7 @@ class JwtServiceTest extends TestCase
 
         // Create a temporary directory for testing
         $this->testCacheDir = SPEC . '/jwt_service_test_' . uniqid();
-        mkdir($this->testCacheDir, 0755, true);
+        (new Filesystem())->mkdir($this->testCacheDir, 0755);
 
         $this->jwtService = new JwtService(
             secret: self::TEST_SECRET,
@@ -316,9 +316,10 @@ class JwtServiceTest extends TestCase
 
         // Create a read-only directory to force write failure
         $readOnlyDir = SPEC . '/jwt_readonly_test_' . uniqid();
-        mkdir($readOnlyDir, 0755, true);
+        $filesystem = new Filesystem();
+        $filesystem->mkdir($readOnlyDir, 0755);
         $tokenDir = $readOnlyDir . '/jwt_tokens';
-        mkdir($tokenDir, 0755, true);
+        $filesystem->mkdir($tokenDir, 0755);
 
         $readOnlyService = new JwtService(
             secret: self::TEST_SECRET,

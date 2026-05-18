@@ -7,12 +7,11 @@ namespace Gamecon\Uzivatel;
 use Gamecon\Accounting;
 use Gamecon\Accounting\PersonalAccount;
 use Gamecon\Accounting\Transaction;
-use Gamecon\Accounting\TransactionCategory;
+use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Symfony\Component\Mime\Address;
 use Uzivatel;
 
 class NotifikacePrihlasky
@@ -54,7 +53,7 @@ class NotifikacePrihlasky
                 ? max(1, (int)$polozka['pocet'])
                 : 1;
             $cilovaKategorie = &$snapshot[$kategorie];
-            $this->prictiPolozku($cilovaKategorie, (string)$polozka['nazev'], $pocet);
+            $this->prictiPolozku($cilovaKategorie, $this->nazevPolozkyProSnapshot($polozka), $pocet);
             unset($cilovaKategorie);
         }
 
@@ -166,27 +165,27 @@ TEXT;
         $ucet = Accounting::getPersonalFinance($this->uzivatel, showDiscounts: true);
 
         $radky = [
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::ACTIVITY, 'Aktivity', prevratitZnamenko: true),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::FOOD, 'Strava', prevratitZnamenko: true),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::SHOP_ITEMS, 'Předměty', prevratitZnamenko: true),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::ACCOMMODATION, 'Ubytování', prevratitZnamenko: true),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::VOLUNTARY_DONATION, 'Dobrovolné vstupné', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::ACTIVITY, 'Aktivity', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::FOOD, 'Strava', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::SHOP_ITEMS, 'Předměty', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::ACCOMMODATION, 'Ubytování', prevratitZnamenko: true),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::VOLUNTARY_DONATION, 'Dobrovolné vstupné', prevratitZnamenko: true),
         ];
 
         $celkovaCena = -$this->sumaKategorie($ucet, [
-            TransactionCategory::ACTIVITY,
-            TransactionCategory::FOOD,
-            TransactionCategory::SHOP_ITEMS,
-            TransactionCategory::ACCOMMODATION,
-            TransactionCategory::VOLUNTARY_DONATION,
+            TransactionCategoryEnum::ACTIVITY,
+            TransactionCategoryEnum::FOOD,
+            TransactionCategoryEnum::SHOP_ITEMS,
+            TransactionCategoryEnum::ACCOMMODATION,
+            TransactionCategoryEnum::VOLUNTARY_DONATION,
         ]);
         $radky[] = 'Celková cena: ' . $this->formatCastka((float)$celkovaCena);
         $radky[] = '';
 
         $radky = [
             ...$radky,
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::LEFTOVER_FROM_LAST_YEAR, 'Zůstatek z minulých let'),
-            ...$this->formatKategorieFinanci($ucet, TransactionCategory::MANUAL_MOVEMENTS, 'Připsané platby'),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR, 'Zůstatek z minulých let'),
+            ...$this->formatKategorieFinanci($ucet, TransactionCategoryEnum::MANUAL_MOVEMENTS, 'Připsané platby'),
         ];
 
         $stavFinanci = $ucet->getTotal();
@@ -223,6 +222,23 @@ TEXT;
     private function ocistiNazev(string $nazev): string
     {
         return trim(html_entity_decode(strip_tags($nazev), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+
+    /**
+     * @param array<string, mixed> $polozka
+     */
+    private function nazevPolozkyProSnapshot(array $polozka): string
+    {
+        $nazev = (string)$polozka['nazev'];
+        if (
+            (int)$polozka['typ'] === TypPredmetu::VSTUPNE
+            && array_key_exists('castka', $polozka)
+            && $polozka['castka'] !== null
+        ) {
+            return sprintf('%s (%s)', $nazev, $this->formatCastka((float)$polozka['castka']));
+        }
+
+        return $nazev;
     }
 
     private function kategorieZeTypu(int $typ): ?string
@@ -338,10 +354,10 @@ TEXT;
      * @return array<string>
      */
     private function formatKategorieFinanci(
-        PersonalAccount $ucet,
-        TransactionCategory $kategorie,
-        string $nazevKategorie,
-        bool $prevratitZnamenko = false,
+        PersonalAccount         $ucet,
+        TransactionCategoryEnum $kategorie,
+        string                  $nazevKategorie,
+        bool                    $prevratitZnamenko = false,
     ): array {
         $koeficient = $prevratitZnamenko
             ? -1
@@ -371,7 +387,7 @@ TEXT;
     }
 
     /**
-     * @param array<TransactionCategory> $kategorie
+     * @param array<TransactionCategoryEnum> $kategorie
      */
     private function sumaKategorie(
         PersonalAccount $ucet,
@@ -465,10 +481,12 @@ TEXT;
             return;
         }
 
-        (new GcMail($this->systemoveNastaveni))
+        $mailProUcastnika = (new GcMail($this->systemoveNastaveni))
             ->adresat($mail)
             ->predmet($predmet)
-            ->text($text)
-            ->odeslat(GcMail::FORMAT_TEXT);
+            ->text($text);
+
+        // Odesílání notifikací přihlášky je dočasně vypnuté, obsah e-mailů zůstává připravený.
+        // $mailProUcastnika->odeslat(GcMail::FORMAT_TEXT);
     }
 }

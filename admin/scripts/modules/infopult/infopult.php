@@ -10,7 +10,7 @@
  */
 
 use Gamecon\Accounting;
-use Gamecon\Accounting\TransactionCategory;
+use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Accounting\Transaction;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
@@ -129,9 +129,9 @@ if ($uPracovni) {
                 "</form></td>" :
             "<td></td>") .
             "</tr>", array_filter(Accounting::getPersonalFinance($uPracovni, showDiscounts: false)->getTransactions(),
-        fn(Transaction $t) => $t->getCategory() == TransactionCategory::SHOP_ITEMS ||
-            $t->getCategory() == TransactionCategory::FOOD ||
-            ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY) && $t->getCategory() == TransactionCategory::VOLUNTARY_DONATION))))
+        fn(Transaction $t) => $t->getCategory() == TransactionCategoryEnum::SHOP_ITEMS ||
+                              $t->getCategory() == TransactionCategoryEnum::FOOD ||
+                              ($u->maPravo(Pravo::MUZE_RUSIT_NAKUPY) && $t->getCategory() == TransactionCategoryEnum::VOLUNTARY_DONATION))))
     ]);
 
     $maObjednaneUbytovani = $uPracovni->shop()->ubytovani()->maObjednaneUbytovani();
@@ -299,6 +299,7 @@ if ($uPracovni) {
 }
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
+$rocnik = $systemoveNastaveni->rocnik();
 $o = dbQuery(
     <<<SQL
   SELECT
@@ -307,10 +308,11 @@ $o = dbQuery(
     p.id_predmetu,
     ROUND(p.cena_aktualni) as cena
   FROM shop_predmety p
-  LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
+  LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu AND n.rok = {$rocnik})
   WHERE p.stav > 0
-  GROUP BY p.id_predmetu, model_rok
-  ORDER BY model_rok DESC, nazev
+    AND p.model_rok = {$rocnik}
+  GROUP BY p.id_predmetu
+  ORDER BY nazev
 SQL,
 );
 $moznosti = '<option value="">(vyber)</option>';

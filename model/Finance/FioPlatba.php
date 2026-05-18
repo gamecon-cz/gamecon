@@ -2,6 +2,8 @@
 
 namespace Gamecon\Finance;
 
+use Symfony\Component\Filesystem\Filesystem;
+
 /**
  * Platba načtená z fio api (bez DB reprezentace)
  */
@@ -106,9 +108,7 @@ class FioPlatba
     {
         $adresar = LOGY . '/fio';
         $soubor  = $adresar . '/' . md5($url) . '.json';
-        if (!is_dir($adresar) && (!mkdir($adresar, 0777, true) || !is_dir($adresar))) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $adresar));
-        }
+        (new Filesystem())->mkdir($adresar, 0777);
         if (!file_exists($soubor) || @filemtime($soubor) < (time() - 60)) {
             self::fetch($url, $soubor);
         }

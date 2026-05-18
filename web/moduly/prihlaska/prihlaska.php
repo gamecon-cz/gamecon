@@ -141,16 +141,23 @@ if (post('prihlasitNeboUpravit')) {
     $predchoziObjednavky = $prihlasovani
         ? []
         : $notifikacePrihlasky->snapshotObjednavekZUctu();
-    if ($prihlasovani) {
-        $u->gcPrihlas($u);
+    dbBegin();
+    try {
+        if ($prihlasovani) {
+            $u->gcPrihlas($u);
+        }
+        $shop->zpracujPredmety();
+        $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
+        $shop->zpracujJidlo();
+        $shop->zpracujVstupne();
+        $pomoc->zpracuj();
+        $u->finance()->obnovUdaje();
+        $aktualniObjednavky = $notifikacePrihlasky->snapshotObjednavekZUctu();
+        dbCommit();
+    } catch (Throwable $throwable) {
+        dbRollback();
+        throw $throwable;
     }
-    $shop->zpracujPredmety();
-    $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
-    $shop->zpracujJidlo();
-    $shop->zpracujVstupne();
-    $pomoc->zpracuj();
-    $u->finance()->obnovUdaje();
-    $aktualniObjednavky = $notifikacePrihlasky->snapshotObjednavekZUctu();
     try {
         if ($prihlasovani) {
             $notifikacePrihlasky->odesliMailONovePrihlasce();
@@ -245,7 +252,7 @@ if (is_dir($adresarKObrazkuPredmetu)) {
             'nazev'     => $nazev,
             'display'   => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(Pravo::ADMINISTRACE_INFOPULT))
                 ? 'none'
-                : 'inherit',
+                : 'flex',
         ]);
         $t->parse('prihlaska.nahled');
     }
@@ -256,6 +263,7 @@ $t->assign([
     'jidlo'                           => $shop->jidloHtml(),
     'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
     'predmety'                        => $shop->predmetyHtml(),
+    'mikinyObjednatelnaDo'            => $shop->mikinyObjednatelnaDoHtml(),
     'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
     'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
     'rok'                             => ROCNIK,

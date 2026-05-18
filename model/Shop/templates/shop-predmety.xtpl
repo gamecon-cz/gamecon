@@ -4,6 +4,7 @@
 <p>Možnost nákupu předmětů už skončila.</p>
 <!-- end: predmetyPozastaveny -->
 
+<!-- begin: hlavniPredmety -->
 <div class="shopPredmety_predmety">
     <!-- begin: predmet -->
     <div class="shopPredmety_predmet">
@@ -26,12 +27,57 @@
             <a href="#" class="shopPredmety_minus shopPredmety_minus-povoleno">-</a>
             <div class="shopPredmety_kusu">?</div>
             <a href="#" class="shopPredmety_plus shopPredmety_plus-povoleno">+</a>
-            <input type="hidden" name="{postName}" value="{kusu_uzivatele}">
+            <input type="hidden" name="{postName}" value="{kusu_uzivatele}" data-max="{maxKusu}">
         </div>
         <!-- end: nakup -->
     </div>
     <!-- end: predmet -->
 </div>
+<!-- end: hlavniPredmety -->
+
+<!-- begin: tricka -->
+<!-- begin: trickaPozastavena -->
+<p>Možnost nákupu triček už skončila.</p>
+<!-- end: trickaPozastavena -->
+
+<div class="shopPredmety_tricka shopPredmety_opakovaneVybery">
+    <!-- begin: tricko -->
+    <div class="shopPredmety_tricko shopPredmety_opakovanyVyber" data-opakovany-vyber="{skupinaVyberu}" data-input-id-prefix="{idPrefix}">
+        <div class="shop_popis">
+            <label for="{idVyberu}">{nazevVyberu} GameCon {rok}</label>
+            <div class="shop_popisCena">{cena}</div>
+        </div>
+        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_trickoSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}" data-vychozi-cena="{vychoziCena}">
+            <!-- begin: moznost -->
+            <option value="{id_predmetu}" data-cena="{cenaMoznosti}" {selected}>{nazev}</option>
+            <!-- end: moznost -->
+        </select>
+    </div>
+    <!-- end: tricko -->
+</div>
+<!-- end: tricka -->
+
+<!-- begin: mikiny -->
+<!-- begin: mikinyPozastavene -->
+<p>Možnost nákupu mikin už skončila.</p>
+<!-- end: mikinyPozastavene -->
+
+<div class="shopPredmety_mikiny shopPredmety_opakovaneVybery">
+    <!-- begin: mikina -->
+    <div class="shopPredmety_mikina shopPredmety_opakovanyVyber" data-opakovany-vyber="{skupinaVyberu}" data-input-id-prefix="{idPrefix}">
+        <div class="shop_popis">
+            <label for="{idVyberu}">{nazevVyberu} GameCon {rok}</label>
+            <div class="shop_popisCena">{cena}</div>
+        </div>
+        <select id="{idVyberu}" name="{postName}" class="formular_select shopPredmety_mikinaSelect shopPredmety_opakovanySelect" data-opakovany-select="{skupinaVyberu}" data-vychozi-cena="{vychoziCena}">
+            <!-- begin: moznost -->
+            <option value="{id_predmetu}" data-cena="{cenaMoznosti}" {selected}>{nazev}</option>
+            <!-- end: moznost -->
+        </select>
+    </div>
+    <!-- end: mikina -->
+</div>
+<!-- end: mikiny -->
 
 <!-- begin: dalsiMerch -->
 <details class="shopPredmety_dalsiMerch">
@@ -59,7 +105,7 @@
                     <a href="#" class="shopPredmety_minus shopPredmety_minus-povoleno">-</a>
                     <div class="shopPredmety_kusu">?</div>
                     <a href="#" class="shopPredmety_plus shopPredmety_plus-povoleno">+</a>
-                    <input type="hidden" name="{postName}" value="{kusu_uzivatele}">
+                    <input type="hidden" name="{postName}" value="{kusu_uzivatele}" data-max="{maxKusu}">
                 </div>
                 <!-- end: nakup -->
             </div>
@@ -69,27 +115,7 @@
 </details>
 <!-- end: dalsiMerch -->
 
-<!-- begin: trickaPozastavena -->
-<p>Možnost nákupu triček už skončila.</p>
-<!-- end: trickaPozastavena -->
-
-<div class="shopPredmety_tricka">
-    <!-- begin: tricko -->
-    <div class="shopPredmety_tricko">
-        <div class="shop_popis">
-            <label for="vyberTricek">Tričko GameCon {rok}</label>
-            <div class="shop_popisCena">{cena}</div>
-        </div>
-        <select id="vyberTricek" name="{postName}" class="formular_select shopPredmety_trickoSelect">
-            <!-- begin: moznost -->
-            <option value="{id_predmetu}" {selected}>{nazev}</option>
-            <!-- end: moznost -->
-        </select>
-    </div>
-    <!-- end: tricko -->
-</div>
-
-<script type="text/javascript" src="{shopTrickaJs}"></script>
+<script type="text/javascript" src="{shopSvrskyJs}"></script>
 
 <script>
     shopPlusminus(
@@ -98,32 +124,43 @@
     )
 
     function shopPlusminus(minusy, plusy) {
-        minusy.forEach((e) => clickZmena(e, -1))
+        minusy.forEach((tlacitkoMinus) => clickZmena(tlacitkoMinus, -1))
 
-        plusy.forEach((e) => clickZmena(e, +1))
+        plusy.forEach((tlacitkoPlus) => clickZmena(tlacitkoPlus, +1))
 
-        minusy.forEach((e) => prekresli(e.parentNode))
+        minusy.forEach((tlacitkoMinus) => prekresli(tlacitkoMinus.parentNode))
 
-        function clickZmena(e, delta) {
-            let p = e.parentNode
-            e.onclick = () => {
-                let pocet = Number(p.querySelector('input').value)
-                p.querySelector('input').value = Math.max(pocet + delta, 0)
-                prekresli(p)
+        function clickZmena(tlacitko, delta) {
+            const polozka = tlacitko.parentNode
+            tlacitko.onclick = () => {
+                const input = polozka.querySelector('input')
+                const pocet = Number(input.value)
+                const maxKusu = input.dataset.max !== '' ? Number(input.dataset.max) : Infinity
+                input.value = Math.min(Math.max(pocet + delta, 0), maxKusu)
+                prekresli(polozka)
                 return false
             }
         }
 
-        function prekresli(p) {
-            let pocet = Number(p.querySelector('input').value)
-            let minus = p.querySelector('.shopPredmety_minus')
+        function prekresli(polozka) {
+            const input = polozka.querySelector('input')
+            const pocet = Number(input.value)
+            const maxKusu = input.dataset.max !== '' ? Number(input.dataset.max) : Infinity
+            const tlacitkoMinus = polozka.querySelector('.shopPredmety_minus')
+            const tlacitkoPlus = polozka.querySelector('.shopPredmety_plus')
 
-            p.querySelector('.shopPredmety_kusu').innerHTML = pocet
+            polozka.querySelector('.shopPredmety_kusu').innerHTML = pocet
 
             if (pocet <= 0) {
-                minus.classList.add('shopPredmety_minus-neaktivni')
+                tlacitkoMinus.classList.add('shopPredmety_minus-neaktivni')
             } else {
-                minus.classList.remove('shopPredmety_minus-neaktivni')
+                tlacitkoMinus.classList.remove('shopPredmety_minus-neaktivni')
+            }
+
+            if (pocet >= maxKusu) {
+                tlacitkoPlus.classList.add('shopPredmety_plus-neaktivni')
+            } else {
+                tlacitkoPlus.classList.remove('shopPredmety_plus-neaktivni')
             }
         }
     }

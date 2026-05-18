@@ -15,6 +15,44 @@ use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
 class ShopUbytovani
 {
+    private const PORADI_TYPU_UBYTOVANI = [
+        'jednolůžák' => 10,
+        'postel na "1l" koleji' => 10,
+        'postel na 1l koleji' => 10,
+        'dvoulůžák' => 20,
+        'postel na 2l koleji' => 20,
+        'dvojlůžák' => 30,
+        'trojlůžák' => 40,
+        'postel na 3l koleji' => 40,
+        'spacák' => 50,
+        'hotelový jednolůžák standard' => 60,
+        'postel na 1l hotelu se snídaní' => 60,
+        'hotelový dvoulůžák standard' => 70,
+        'hotelový dvojlůžák standard' => 70,
+        'postel na 2l hotelu se snídaní' => 70,
+        'hotelový jednolůžák deluxe (buňka)' => 80,
+        'postel na 1l hotelu deluxe se snídaní - dvojbuňka' => 80,
+        'hotelový jednolůžák deluxe' => 90,
+        'postel na 1l hotelu deluxe se snídaní' => 90,
+        'hotelový dvoulůžák deluxe' => 100,
+        'hotelový dvojlůžák deluxe' => 100,
+        'postel na 2l hotelu deluxe se snídaní' => 100,
+    ];
+
+    private const HINTY_TYPU_UBYTOVANI = [
+        'jednolůžák' => 'Postel na "1L" koleji.',
+        'dvoulůžák' => 'Postel na 2L koleji.',
+        'dvojlůžák' => 'Postel na 2L koleji.',
+        'trojlůžák' => 'Postel na 3L koleji.',
+        'hotelový jednolůžák standard' => 'Postel na 1L hotelu se snídaní.',
+        'hotelový dvoulůžák standard' => 'Postel na 2L hotelu se snídaní.',
+        'hotelový dvojlůžák standard' => 'Postel na 2L hotelu se snídaní.',
+        'hotelový jednolůžák deluxe (buňka)' => 'Postel na 1L hotelu deluxe se snídaní - dvojbuňka.',
+        'hotelový jednolůžák deluxe' => 'Postel na 1L hotelu deluxe se snídaní.',
+        'hotelový dvoulůžák deluxe' => 'Postel na 2L hotelu deluxe se snídaní.',
+        'hotelový dvojlůžák deluxe' => 'Postel na 2L hotelu deluxe se snídaní.',
+    ];
+
     /**
      * @param string[] $nazvyUbytovani
      * @param int $rok
@@ -198,7 +236,8 @@ SQL,
         }
 
         $nemelObjednanoDrive = (int)$predmet['kusu_uzivatele'] <= 0;
-        $kapacitaVycerpana   = $predmet['kusu_vyrobeno'] <= $predmet['kusu_prodano'];
+        $kapacitaVycerpana   = $predmet['kusu_vyrobeno'] !== null
+                               && (int)$predmet['kusu_vyrobeno'] <= (int)$predmet['kusu_prodano'];
 
         return $kapacitaVycerpana && $nemelObjednanoDrive;
     }
@@ -218,6 +257,26 @@ SQL,
         // vložit jeho zaklikané věci - note: není zabezpečeno
         $sqlValuesArray          = [];
         $idsPredmetuUbytovaniInt = [];
+
+        $idsPredmetuVstupu = array_filter(array_map('intval', $idsPredmetuUbytovani));
+        if ($idsPredmetuVstupu) {
+            $povolenaIdPredmetu = dbFetchColumn(<<<SQL
+SELECT id_predmetu
+FROM shop_predmety
+WHERE id_predmetu IN ($1)
+  AND model_rok = $2
+  AND typ = $3
+SQL,
+                [1 => $idsPredmetuVstupu, 2 => $rok, 3 => TypPredmetu::UBYTOVANI],
+            );
+            $povolenaIdPredmetu = array_flip(array_map('intval', $povolenaIdPredmetu));
+            foreach ($idsPredmetuVstupu as $idPredmetu) {
+                if (!isset($povolenaIdPredmetu[$idPredmetu])) {
+                    throw new Chyba("Položka ubytování {$idPredmetu} není dostupná pro ročník {$rok}.");
+                }
+            }
+        }
+
         foreach ($idsPredmetuUbytovani as $idPredmetuUbytovani) {
             if (!$idPredmetuUbytovani) {
                 continue;
@@ -331,7 +390,73 @@ SQL,
             $this->ubytovanPoDnech[$predmet[Sql::UBYTOVANI_DEN]][$nazev] = $predmet;
             // else z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
         }
+        $this->seradTypyUbytovani();
         $this->registrace = new Registrace($this->systemoveNastaveni, $ubytovany);
+    }
+
+    private function seradTypyUbytovani(): void
+    {
+        uksort($this->mozneTypy, [$this, 'seradTypyUbytovaniPodlePozadavku']);
+    }
+
+    private function seradTypyUbytovaniPodlePozadavku(string $a, string $b): int
+    {
+        $poradiA = $this->poradiTypuUbytovani($a);
+        $poradiB = $this->poradiTypuUbytovani($b);
+        if ($poradiA !== $poradiB) {
+            return $poradiA <=> $poradiB;
+        }
+
+        return strcmp($a, $b);
+    }
+
+    private function poradiTypuUbytovani(string $typ): int
+    {
+        $normalizovanyTyp = mb_strtolower(trim($typ));
+
+        $rozpoznanyTyp = $this->rozpoznanyTypUbytovani($normalizovanyTyp);
+
+        return $rozpoznanyTyp !== null
+            ? self::PORADI_TYPU_UBYTOVANI[$rozpoznanyTyp]
+            : PHP_INT_MAX;
+    }
+
+    private function rozpoznanyTypUbytovani(string $normalizovanyTyp): ?string
+    {
+        static $znameTypy = null;
+        if ($znameTypy === null) {
+            $znameTypy = array_keys(self::PORADI_TYPU_UBYTOVANI);
+            usort(
+                $znameTypy,
+                static fn(string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a),
+            );
+        }
+
+        foreach ($znameTypy as $znamyTyp) {
+            if ($normalizovanyTyp === $znamyTyp) {
+                return $znamyTyp;
+            }
+            if (!str_starts_with($normalizovanyTyp, $znamyTyp)) {
+                continue;
+            }
+
+            $znakZaTypem = mb_substr($normalizovanyTyp, mb_strlen($znamyTyp), 1);
+            if ($znakZaTypem === ' ' || $znakZaTypem === '(') {
+                return $znamyTyp;
+            }
+        }
+
+        return null;
+    }
+
+    private function hintTypuUbytovani(string $typ, array $predmet): ?string
+    {
+        $hint = self::HINTY_TYPU_UBYTOVANI[mb_strtolower(trim($typ))]
+            ?? trim((string)($predmet[Sql::POPIS] ?? ''));
+
+        return $hint !== ''
+            ? $hint
+            : null;
     }
 
     /**
@@ -406,12 +531,14 @@ SQL,
                 continue;
             }
 
+            $hint = $this->hintTypuUbytovani($typ, $predmet);
+
             $t->assign([
                 'typ'  => $typ,
-                'hint' => $predmet[Sql::POPIS],
+                'hint' => $hint,
                 'cena' => round((float)$predmet[Sql::CENA_AKTUALNI]),
             ]);
-            $t->parse($predmet['popis']
+            $t->parse($hint
                 ? 'ubytovani.typ.hinted'
                 : 'ubytovani.typ.normal');
             $t->parse('ubytovani.typ');
@@ -475,7 +602,10 @@ SQL,
                 break;
             }
             $typVzor = reset($typy);
-            $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
+            $t->assign([
+                'postnameDen'      => $this->pnDny . '[' . $den . ']',
+                'snidaneDnyProJs'  => $this->snidaneDnyProJs((int)$den),
+            ]);
             $ubytovanVeDni = false;
             foreach ($this->mozneTypy as $typ => $rozsah) {
                 if ($nemuzeSiObjednatPokoj && $typ != 'Spacák') {
@@ -489,15 +619,16 @@ SQL,
                     $checked            = 'checked';
                 }
                 $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
+                $kapacita = $this->kapacita($den, $typ);
                 $t->assign([
-                    'idPredmetu' => isset($this->mozneDny[$den][$typ])
+                    'idPredmetu'    => isset($this->mozneDny[$den][$typ])
                         ? $this->mozneDny[$den][$typ]['id_predmetu']
                         : null,
-                    'podtyp'     => isset($this->mozneDny[$den][$typ])
+                    'podtyp'        => isset($this->mozneDny[$den][$typ])
                         ? ($this->mozneDny[$den][$typ][Sql::PODTYP] ?? '')
                         : '',
-                    'checked'    => $checked,
-                    'disabled'   => $this->totoUbytovaniVyrazeno(
+                    'checked'       => $checked,
+                    'disabled'      => $this->totoUbytovaniVyrazeno(
                         $checked,
                         $prodejUbytovaniUkoncen,
                         $ubytovanVeDniATypu,
@@ -506,9 +637,10 @@ SQL,
                     )
                         ? 'disabled'
                         : '',
-                    'obsazeno'   => $this->obsazenoMist($den, $typ),
-                    'kapacita'   => $this->kapacita($den, $typ),
-                    'typ'        => $typ,
+                    'obsazeno'      => $this->obsazenoMist($den, $typ),
+                    'kapacita'      => $kapacita,
+                    'kapacitaProJs' => $kapacita === '∞' ? -1 : $kapacita,
+                    'typ'           => $typ,
                 ])->parse('ubytovani.den.typ');
             }
 
@@ -528,6 +660,17 @@ SQL,
             ]);
             $t->parse('ubytovani.den');
         }
+    }
+
+    public function snidaneDnyProJs(int $den): string
+    {
+        if ($this->muzeObjednatJednuNoc()) {
+            return (string)($den + 1);
+        }
+
+        return $den === DateTimeGamecon::PORADI_HERNIHO_DNE_CTVRTEK
+            ? '2,3,4'
+            : (string)($den + 1);
     }
 
     private function totoUbytovaniVyrazeno(
@@ -554,6 +697,41 @@ SQL,
         return DateTimeCz::poradiDneVTydnuNaPrelomDnuVeZkratkach($poradiDneVTydnu, true);
     }
 
+    /**
+     * @return array<int, string>
+     */
+    private function dejIdsUbytovaniNaTriNoci(Predmet $jedenZeDnu): array
+    {
+        $vybranyTypUbytovani = trim(Shop::bezDne($jedenZeDnu->nazev()));
+        $predmetyNaTriNoci   = dbFetchAll(<<<SQL
+SELECT id_predmetu, nazev, ubytovani_den
+FROM shop_predmety
+WHERE model_rok = $0
+    AND typ = $1
+    AND ubytovani_den IN (1, 2, 3)
+ORDER BY ubytovani_den, id_predmetu
+SQL,
+            [$jedenZeDnu->modelRok(), $jedenZeDnu->typ()],
+        );
+
+        $idsPodleDne = [];
+        foreach ($predmetyNaTriNoci as $predmetNaTriNoci) {
+            if (trim(Shop::bezDne((string)$predmetNaTriNoci['nazev'])) !== $vybranyTypUbytovani) {
+                continue;
+            }
+            $idsPodleDne[(int)$predmetNaTriNoci['ubytovani_den']] = (string)$predmetNaTriNoci['id_predmetu'];
+        }
+
+        if (!isset($idsPodleDne[1], $idsPodleDne[2], $idsPodleDne[3])) {
+            throw new Chyba(sprintf(
+                'Nepodařilo se najít kompletní třínoční sadu ubytování pro typ "%s".',
+                $vybranyTypUbytovani,
+            ));
+        }
+
+        return $idsPodleDne;
+    }
+
     public function zpracuj(
         bool $vcetneSpolubydliciho = true,
         bool $hlidatKapacituUbytovani = true,
@@ -575,17 +753,11 @@ SQL,
             if (!empty($postDny[1])) {
                 $id         = $postDny[1];
                 $jedenZeDnu = Predmet::zId($id);
-                $druhUbytka = preg_split('~\s+~', $jedenZeDnu->nazev())[0];
-                $vsechnyDny = dbOneArray(<<<SQL
-                    SELECT id_predmetu FROM shop_predmety WHERE model_rok = $0 AND typ = $1 AND nazev LIKE $2
-                    AND ubytovani_den IN (1, 2, 3)
-                SQL,
-                    [$jedenZeDnu->modelRok(), $jedenZeDnu->typ(), $druhUbytka . '%'],
-                );
+                $vsechnyDny = $this->dejIdsUbytovaniNaTriNoci($jedenZeDnu);
 
-                $dny[1] = (string)$vsechnyDny[0];
-                $dny[2] = (string)$vsechnyDny[1];
-                $dny[3] = (string)$vsechnyDny[2];
+                $dny[1] = $vsechnyDny[1];
+                $dny[2] = $vsechnyDny[2];
+                $dny[3] = $vsechnyDny[3];
             }
         } else {
             $dny = $_POST[$this->pnDny];
@@ -598,7 +770,8 @@ SQL,
         self::zrusSnidaneProHotelovePokoje($this->ubytovany);
 
         if ($ulozitNechceUbytovani) {
-            $nechceUbytovani = !$this->maObjednaneUbytovani();
+            $nechceUbytovani = isset($_POST[$this->pnNechci])
+                && !$this->maObjednaneUbytovani();
             self::ulozNechceUbytovani($nechceUbytovani, $this->ubytovany);
         }
 
@@ -663,8 +836,11 @@ SQL,
     ) {
         if (!isset($this->mozneDny[$den][$typ])) return 0;
         $ub = $this->mozneDny[$den][$typ];
+        if ($ub['kusu_vyrobeno'] === null) {
+            return '∞';
+        }
 
-        return max(0, $ub['kusu_vyrobeno']);
+        return max(0, (int)$ub['kusu_vyrobeno']);
     }
 
     /** Vrátí počet obsazených míst pro daný den a typu ubytování */
@@ -672,6 +848,13 @@ SQL,
         $den,
         $typ,
     ) {
+        if (!isset($this->mozneDny[$den][$typ])) {
+            return 0;
+        }
+        if ($this->maNeomezenouKapacitu($den, $typ)) {
+            return (int)$this->mozneDny[$den][$typ]['kusu_prodano'];
+        }
+
         return $this->kapacita($den, $typ) - $this->zbyvaMist($den, $typ);
     }
 
@@ -680,6 +863,10 @@ SQL,
         $den,
         $typ,
     ): bool {
+        if ($this->maNeomezenouKapacitu($den, $typ)) {
+            return false;
+        }
+
         return $this->zbyvaMist($den, $typ) <= 0;
     }
 
@@ -759,8 +946,17 @@ SQL,
             return 0;
         }
         $ub = $this->mozneDny[$den][$typ];
+        if ($this->maNeomezenouKapacitu($den, $typ)) {
+            return PHP_INT_MAX;
+        }
 
         return (int)max(0, $ub['kusu_vyrobeno'] - $ub['kusu_prodano']);
+    }
+
+    private function maNeomezenouKapacitu(int | string $den, int | string $typ): bool
+    {
+        return isset($this->mozneDny[$den][$typ])
+               && $this->mozneDny[$den][$typ]['kusu_vyrobeno'] === null;
     }
 
     /**
