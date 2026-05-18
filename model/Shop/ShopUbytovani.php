@@ -262,7 +262,7 @@ SQL,
         if ($idsPredmetuVstupu) {
             $povolenaIdPredmetu = dbFetchColumn(<<<SQL
 SELECT id_predmetu
-FROM shop_predmety
+FROM shop_predmety_s_typem
 WHERE id_predmetu IN ($1)
   AND model_rok = $2
   AND typ = $3
@@ -703,9 +703,10 @@ SQL,
     private function dejIdsUbytovaniNaTriNoci(Predmet $jedenZeDnu): array
     {
         $vybranyTypUbytovani = trim(Shop::bezDne($jedenZeDnu->nazev()));
+        // model_rok and typ are virtual columns on shop_predmety_s_typem.
         $predmetyNaTriNoci   = dbFetchAll(<<<SQL
 SELECT id_predmetu, nazev, ubytovani_den
-FROM shop_predmety
+FROM shop_predmety_s_typem
 WHERE model_rok = $0
     AND typ = $1
     AND ubytovani_den IN (1, 2, 3)

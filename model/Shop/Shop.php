@@ -1350,7 +1350,17 @@ SQL
     ) {
         dbBegin();
         try {
-            $predmet = dbOneLine("SELECT cena_aktualni, kusu_vyrobeno, nazev, model_rok FROM shop_predmety WHERE id_predmetu=$0 FOR UPDATE", [0 => $idPredmetu]);
+            // Lock the base-table row first; model_rok is then read from the view (virtual column derived from archived_at).
+            $predmet = dbOneLine(
+                "SELECT cena_aktualni, kusu_vyrobeno, nazev FROM shop_predmety WHERE id_predmetu = $0 FOR UPDATE",
+                [0 => $idPredmetu],
+            );
+            if ($predmet) {
+                $predmet['model_rok'] = dbOneCol(
+                    "SELECT model_rok FROM shop_predmety_s_typem WHERE id_predmetu = $0",
+                    [0 => $idPredmetu],
+                );
+            }
             if (!$predmet) {
                 throw new \Chyba("Předmět s ID {$idPredmetu} neexistuje.");
             }
