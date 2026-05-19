@@ -300,7 +300,7 @@ class AktivitaPrezenceTest extends AbstractUzivatelTestDb
 
         // Ověříme, že zkontrolujZdaSeMuzePrihlasit nevyhodí výjimku
         // při použití flagu STAV (tak jak to dělá OnlinePrezenceAjax)
-        $ignorovat = Aktivita::IGNOROVAT_LIMIT | Aktivita::IGNOROVAT_PRIHLASENI_NA_SOUROZENCE | Aktivita::STAV;
+        $ignorovat = Aktivita::IGNOROVAT_LIMIT | Aktivita::IGNOROVAT_PRIHLASENI_NA_STEJNE_KOLO | Aktivita::STAV;
         $navazujici->zkontrolujZdaSeMuzePrihlasit(
             $this->ucastnik,
             $this->vypravec,

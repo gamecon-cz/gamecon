@@ -389,22 +389,6 @@ class ProgramCacheInvalidationTest extends AbstractTestDb
     /**
      * @test
      */
-    public function pridejDiteNastaviAktivityFlag(): void
-    {
-        $idRodice = $this->vlozAktivitu();
-        $idDitete = $this->vlozAktivitu();
-
-        Aktivita::zId($idRodice)->pridejDite($idDitete);
-
-        $this->assertDirtyFlagNastaven(
-            ProgramStaticFileType::AKTIVITY,
-            'přidání dítěte aktivity',
-        );
-    }
-
-    /**
-     * @test
-     */
     public function plusminusZpracujSnizeniKapacityNastaviObsazenostiFlag(): void
     {
         $idAktivity = $this->vlozAktivitu([

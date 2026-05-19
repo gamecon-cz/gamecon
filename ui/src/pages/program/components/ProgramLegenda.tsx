@@ -2,17 +2,18 @@ import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
 import {
   useUrlStavStavyFiltr,
-  useUživatel,
+  useÚčastník,
 } from "../../../store/program/selektory";
 import { nastavFiltrStavů } from "../../../store/program/slices/urlSlice";
 
 export const ProgramLegenda = () => {
   const legendaText = GAMECON_KONSTANTY.LEGENDA;
-  const uživatel = useUživatel();
+  const účastník = useÚčastník();
 
-  const organizator = uživatel.organizator ?? false;
-  const koncovkaDlePohlaví = uživatel.koncovkaDlePohlavi ?? "";
-  const přihlášen = uživatel.prihlasen ?? false;
+  // todo: tady se má asi používat slovo vypravěč (a možná i logika potřebuje změnit na lidi co májí právo vyprávět)
+  const organizator = účastník?.role?.organizator ?? false;
+  const koncovkaDlePohlaví = (účastník?.pohlavi === "f") ? "a" : "";
+  const jeÚčastník = účastník ?? false;
 
   const stavyFiltr = useUrlStavStavyFiltr();
 
@@ -39,15 +40,8 @@ export const ProgramLegenda = () => {
     />
   );
 
-  return (
-    <div class="program_legenda">
-      <div
-        class="informaceSpustime"
-        dangerouslySetInnerHTML={{
-          __html: legendaText,
-        }}
-      ></div>
-      <div class="program_legenda_inner">
+  const vnitřek = (
+    <div class="program_legenda_inner">
         <div class="program_legenda_typ">
           Filtruj podle:
         </div>
@@ -62,7 +56,7 @@ export const ProgramLegenda = () => {
           {zaškrtávátkoPro("vBudoucnu")}
           Připravujeme
         </label>
-        {přihlášen ? (
+        {jeÚčastník ? (
           <>
             <label class="program_legenda_typ nahradnik">
               {zaškrtávátkoPro("nahradnik")}
@@ -86,7 +80,23 @@ export const ProgramLegenda = () => {
         ) : (
           <></>
         )}
-      </div>
+    </div>
+  );
+
+  // todo: tohle chce opravit jak jsou napsané styly na webu i v adminu
+  if (GAMECON_KONSTANTY.JE_ADMIN) {
+    return vnitřek;
+  }
+
+  return (
+    <div class="program_legenda">
+      <div
+        class="informaceSpustime"
+        dangerouslySetInnerHTML={{
+          __html: legendaText,
+        }}
+      ></div>
+      {vnitřek}
     </div>
   );
 };
