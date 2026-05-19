@@ -8,6 +8,11 @@ use Gamecon\Aktivita\Program;
 /** @var Uzivatel|null $uPracovni */
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
+$osobniProgram  = !empty($osobniProgram);
+$programPageName = $osobniProgram
+    ? 'program-osobni'
+    : 'program-uzivatele';
+
 // todo(tym):
 /*
     // tohle je přesměrování z program-osobni
@@ -80,10 +85,10 @@ if (!$uPracovni) {
     <span id="stavUctu"><?= $uPracovni->finance()->formatovanyStav() ?></span><br>
 
     <a href="program-uzivatele" class="program-odkaz">Program</a> |
-    <a href="program-osobni" class="program-odkaz">Program účastníka</a>
+    <a href="program-osobni/muj" class="program-odkaz">Program účastníka</a>
 </div>
 
-<?php Program::vypisPreact(true, "program-uzivatele"); ?>
+<?php Program::vypisPreact(true, $programPageName); ?>
 
 <?php profilInfo(); ?>
 
