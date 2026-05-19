@@ -66,6 +66,7 @@ if ($ucastnik) {
             'stavPrihlaseni' => StavPrihlaseni::frontendKod(
                 $aktivita->stavPrihlaseni($ucastnik, $dataSourcesCollector),
             ),
+            'prihlasovatelna' => $aktivita->prihlasovatelnaProPrihlasujiciho($operator ?? $ucastnik),
             // slevaNasobic: 0 = 100% sleva, 1 = bez slevy. NEsmí být stripnuto.
             'slevaNasobic'   => $aktivita->soucinitelCenyAktivity($ucastnik, $dataSourcesCollector),
             // mistnost je orgovská vlastnost — null pro neorgany nebo pokud

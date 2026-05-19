@@ -93,6 +93,8 @@ export type ApiAktivitaUživatel = {
   id: number,
   /** V jakém stavu je pokud je přihlášen */
   stavPrihlaseni?: StavPřihlášení,
+  /** per-user override veřejné přihlašovatelnosti, např. pro admin operátora */
+  prihlasovatelna?: boolean,
   /** uživatelská vlastnost */
   slevaNasobic?: number,
   // nahradnik?: boolean,

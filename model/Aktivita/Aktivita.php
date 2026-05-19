@@ -3011,6 +3011,21 @@ SQL
         return $this->procNeniPrihlasovatelna($parametry) === '';
     }
 
+    public function prihlasovatelnaProPrihlasujiciho(
+        Uzivatel $prihlasujici,
+        int $parametry = 0,
+    ): bool {
+        if ($this->probehnuta() && $this->lzeJestePridavatUcastniky($prihlasujici)) {
+            $parametry |= self::ZPETNE;
+        }
+        if ($prihlasujici->maPravoNaPrihlasovaniNaDosudNeotevrene()) {
+            $parametry |= self::NEOTEVRENE;
+            $parametry |= self::DOPREDNE;
+        }
+
+        return $this->prihlasovatelna($parametry);
+    }
+
     private function procNeniPrihlasovatelna(
         int $parametry,
     ): string {
