@@ -101,10 +101,6 @@
     <div class="prihlaska_sekce">
         <h2>Ubytování</h2>
 
-        <!-- begin: triPlusNoci2025 -->
-        <p>Pozor, oproti předchozím rokům změna: ubytování je možné objednat pouze v balíčku 3+ nocí.</p>
-        <!-- end: triPlusNoci2025 -->
-
         <div class="prihlaska_infoPruh prihlaska_infoPruh-ubytovani">
             <div class="prihlaska_info">
                 <img alt="Ikona s mapou" class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/mapa.png"
@@ -114,8 +110,9 @@
                     <li>Objednat nebo změnit ubytování můžeš do {ubytovaniObjednatelneDo}.</li>
                     <li>Čísla ukazují počet obsazených míst / celkovou kapacitu.</li>
                     <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
-                    <!-- begin: ubytovaniTriPlusNoci -->
-                    <!-- end: ubytovaniTriPlusNoci -->
+                    <!-- begin: ubytovaniMinDveNoci -->
+                    <li>Ubytování je možné objednat minimálně na 2 navazující noci.</li>
+                    <!-- end: ubytovaniMinDveNoci -->
                     <!-- begin: poznamkaKUbytovaniVNedeli -->
                     <li>Varianta „Ne–Po“ znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00.</li>
                     <!-- end: poznamkaKUbytovaniVNedeli -->

@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Pravo;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\XTemplate\XTemplate;
 use OpenSpout\Reader\Common\Creator\ReaderFactory;
@@ -155,6 +156,7 @@ while ($rowIterator->valid()) {
                 $idsUbytovani,
                 $ucastnik,
                 false,
+                povolitJednuNoc: $ucastnik->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC),
             );
             if ($indexUbytovanS !== null) {
                 $zapsanoZmenVTransakci += ShopUbytovani::ulozSKymChceBytNaPokoji(
