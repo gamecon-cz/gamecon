@@ -7,8 +7,8 @@ namespace Gamecon\Tests\Model\Aktivita;
 use App\Kernel;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
-use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
+use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
@@ -234,7 +234,7 @@ SQL,
     /**
      * @test
      */
-    public function sefProgramuVidiAktivituJakoPrihlasovatelnouI_predPrvniVlnou(): void
+    public function sefProgramuVidiAktivituJakoPrihlasovatelnouIPredPrvniVlnou(): void
     {
         $ted = self::ted();
         dbUpdate(
@@ -270,8 +270,9 @@ SQL,
     private function systemoveNastaveniPredPrvniVlnou(DateTimeImmutableStrict $ted): SystemoveNastaveni
     {
         return new class($ted) extends SystemoveNastaveni {
-            public function __construct(DateTimeImmutableStrict $ted)
-            {
+            public function __construct(
+                DateTimeImmutableStrict $ted,
+            ) {
                 parent::__construct(
                     ROCNIK,
                     $ted,
