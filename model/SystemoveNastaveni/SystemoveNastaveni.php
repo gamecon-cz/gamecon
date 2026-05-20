@@ -16,6 +16,7 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\Exceptions\ChybnaHodnotaSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Sql;
@@ -39,6 +40,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
         ?Kernel                  $kernel = null,
         ?string                  $publicCacheDir = null,
         ?bool                    $jsmeNaPreview = null,
+        ?Prostredi               $prostredi = null,
     ): self {
         global $systemoveNastaveni;
 
@@ -58,11 +60,22 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
             return new Kernel(environment: $appEnv, debug: $debug);
         };
 
+        // Legacy callers may pass individual jsmeNa* booleans (overriding
+        // the host-derived detection). Materialize them into a Prostredi
+        // value if any was given, otherwise let the enum auto-detect.
+        $resolvedProstredi = $prostredi ?? match (true) {
+            $jsmeNaLocale === true                                           => Prostredi::Locale,
+            $jsmeNaBete === true                                             => Prostredi::Beta,
+            $jsmeNaPreview === true                                          => Prostredi::Preview,
+            $jsmeNaLocale === false && $jsmeNaBete === false
+                && $jsmeNaPreview === false                                  => Prostredi::Ostre,
+            default                                                          => Prostredi::detect(),
+        };
+
         $noveSystemoveNastaveni = new static(
             $rocnik,
             $ted ?? new DateTimeImmutableStrict(),
-            $jsmeNaBete ?? jsmeNaBete(),
-            $jsmeNaLocale ?? jsmeNaLocale(),
+            $resolvedProstredi,
             $databazoveNastaveni ?? DatabazoveNastaveni::vytvorZGlobals(),
             $projectRootDir
             ?? try_constant('PROJECT_ROOT_DIR')
@@ -70,7 +83,6 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
             $privateCacheDir ?? SPEC,
             $kernel ?? $createKernel(),
             $publicCacheDir ?? CACHE,
-            $jsmeNaPreview ?? jsmeNaPreview(),
         );
 
         if ($rocnik === ROCNIK) {
@@ -108,18 +120,16 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
     public function __construct(
         private readonly int                     $rocnik,
         private readonly DateTimeImmutableStrict $ted,
-        private readonly bool                    $jsmeNaBete,
-        private readonly bool                    $jsmeNaLocale,
+        private readonly Prostredi               $prostredi,
         private readonly DatabazoveNastaveni     $databazoveNastaveni,
         private readonly string                  $rootAdresarProjektu,
         private readonly string                  $privateCacheDir,
         private readonly Kernel                  $kernel,
         private readonly string                  $publicCacheDir,
-        private readonly bool                    $jsmeNaPreview = false,
     ) {
-        if ($jsmeNaLocale && $jsmeNaBete) {
-            throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
-        }
+        // The "Nemůžeme být na betě a zároveň na locale" invariant is now
+        // structural — Prostredi cases are exhaustive and exclusive — so
+        // the old check became dead.
         if (!$privateCacheDir) {
             throw new \LogicException('Private cache dir musí být nastaven');
         }
@@ -758,26 +768,29 @@ SQL;
                     ->modify($this->ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity() . ' days');
     }
 
+    public function prostredi(): Prostredi
+    {
+        return $this->prostredi;
+    }
+
     public function jsmeNaOstre(): bool
     {
-        return !$this->jsmeNaBete()
-            && !$this->jsmeNaLocale()
-            && !$this->jsmeNaPreview();
+        return $this->prostredi === Prostredi::Ostre;
     }
 
     public function jsmeNaBete(): bool
     {
-        return $this->jsmeNaBete;
+        return $this->prostredi === Prostredi::Beta;
     }
 
     public function jsmeNaPreview(): bool
     {
-        return $this->jsmeNaPreview;
+        return $this->prostredi === Prostredi::Preview;
     }
 
     public function jsmeNaLocale(): bool
     {
-        return $this->jsmeNaLocale;
+        return $this->prostredi === Prostredi::Locale;
     }
 
     public function aktivitaEditovatelnaXMinutPredJejimZacatkem(): int
@@ -1106,20 +1119,7 @@ SQL;
 
     public function prefixPodleProstredi(): string
     {
-        if ($this->jsmeNaOstre()) {
-            return '';
-        }
-        if ($this->jsmeNaBete()) {
-            return 'β';
-        }
-        if ($this->jsmeNaPreview()) {
-            return '🧐';
-        }
-        if ($this->jsmeNaLocale()) {
-            return 'άλφα';
-        }
-
-        return 'δ'; // gamu přeskočíme, je nevýrazná
+        return $this->prostredi->prefix();
     }
 
     public function kolikMinutJeOdhlaseniBezPokuty(): int
