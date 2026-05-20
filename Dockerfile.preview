@@ -1,0 +1,72 @@
+# Preview-environment image for <slug>.preview.gamecon.cz.
+#
+# Unlike .docker/Dockerfile (the dev base image that lives on Docker
+# Hub as gameconcz/gamecon:8.2 and is bind-mounted by docker-compose
+# in development), this image bakes the application source IN — no
+# bind-mount, immutable per commit.
+#
+# Built by .github/workflows/deploy-preview.yml, tagged as
+# ghcr.io/gamecon-cz/gamecon:preview-<slug>, pulled by the host's
+# deploy-preview-branch.sh.
+#
+# Base image rebuilds rarely (only when PHP extensions, system tools,
+# or Node version change in .docker/Dockerfile). The preview image
+# rebuilds on every feature branch push but mostly hits cache because
+# the heavy layers (apt + pecl + composer + yarn) come from the base.
+
+FROM gameconcz/gamecon:8.2
+
+# Switch to www-data so anything we write (composer cache, yarn build)
+# ends up owned by the runtime user, not root. The base image
+# already has APACHE_DOCUMENT_ROOT=/var/www/html/gamecon and Apache
+# configured to serve from there.
+USER root
+
+# Bring the entire application source in. Layer ordering matters for
+# cache hit rate: composer / yarn installs change less frequently than
+# PHP files, so we copy them first. But the override file is heavy and
+# the speed-up is small; for the MVP we just copy everything at once.
+COPY --chown=www-data:www-data . /var/www/html/gamecon
+
+WORKDIR /var/www/html/gamecon
+
+# Composer + UI build. The repo commits `vendor/`, so `composer
+# install --no-dev` mostly just regenerates the optimized autoloader
+# (no network round-trips). UI build (`yarn build`) compiles the
+# preact bundles into web/soubory/ui/ and admin/files/ui/.
+USER www-data
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist \
+    && cd ui && yarn install --frozen-lockfile && yarn build
+
+USER root
+
+# Strip dev junk that snuck in via COPY .. The .git directory in
+# particular is ~tens of MB and never read at runtime.
+RUN rm -rf \
+    /var/www/html/gamecon/.git \
+    /var/www/html/gamecon/.github \
+    /var/www/html/gamecon/.docker \
+    /var/www/html/gamecon/node_modules \
+    /var/www/html/gamecon/ui/node_modules \
+    /var/www/html/gamecon/tests \
+    /var/www/html/gamecon/phpunit*.* \
+    /var/www/html/gamecon/phpstan*.* \
+    /var/www/html/gamecon/ecs.php
+
+# Ensure cache/ and logy/ are writable by Apache. The base image's
+# .docker/init-container.sh handles UID matching for the bind-mount
+# case; for the baked image we don't need that dance.
+RUN mkdir -p \
+    /var/www/html/gamecon/cache/private \
+    /var/www/html/gamecon/cache/public \
+    /var/www/html/gamecon/logy \
+    && chown -R www-data:www-data \
+        /var/www/html/gamecon/cache \
+        /var/www/html/gamecon/logy
+
+EXPOSE 80
+
+# Standard Apache foreground (the base image's gamecon-run.sh does the
+# UID dance + cron setup, neither of which we need here). If we ever
+# add per-preview cron, factor that in.
+CMD ["apache2-foreground"]
