@@ -324,9 +324,8 @@ $xtpl->parse('all');
 $xtpl->out('all');
 profilInfo();
 
-if ($systemoveNastaveni->jsmeNaBete()) {
-    $xtpl->parse('all.jsmeNaBete');
-}
-if ($systemoveNastaveni->jsmeNaPreview()) {
-    $xtpl->parse('all.jsmeNaPreview');
+$ribbonLabel = $systemoveNastaveni->prostredi()->ribbonLabel();
+if ($ribbonLabel !== null) {
+    $xtpl->assign('ribbonLabel', $ribbonLabel);
+    $xtpl->parse('all.ribbon');
 }

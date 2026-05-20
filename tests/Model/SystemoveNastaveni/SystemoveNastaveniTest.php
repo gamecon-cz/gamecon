@@ -9,6 +9,7 @@ use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -112,11 +113,21 @@ class SystemoveNastaveniTest extends AbstractTestDb
         bool $jsmeNaBete = false,
         bool $jsmeNaLocale = false,
     ): SystemoveNastaveni {
+        // Translate the legacy boolean pair into the new Prostredi enum.
+        // Tests passed (false, false) for "ostre", (true, false) for "bete",
+        // (false, true) for "locale". The (true, true) combination used to
+        // throw — keep that for compatibility (Prostredi is single-valued).
+        $prostredi = match (true) {
+            $jsmeNaBete && $jsmeNaLocale => throw new \LogicException('Nemůžeme být na betě a zároveň na locale'),
+            $jsmeNaBete                  => Prostredi::Beta,
+            $jsmeNaLocale                => Prostredi::Locale,
+            default                      => Prostredi::Ostre,
+        };
+
         return new SystemoveNastaveni(
             $rocnik,
             $now,
-            $jsmeNaBete,
-            $jsmeNaLocale,
+            $prostredi,
             DatabazoveNastaveni::vytvorZGlobals(),
             PROJECT_ROOT_DIR,
             SPEC,
