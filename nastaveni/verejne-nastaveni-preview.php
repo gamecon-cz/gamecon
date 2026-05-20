@@ -1,7 +1,5 @@
 <?php
 
-use Gamecon\Role\Role;
-
 require_once __DIR__ . '/nastaveni-preview.php';
 
 // Preview environments self-identify from the request host
@@ -38,9 +36,14 @@ if (!defined('ROCNIK')) {
 
 @define('PRODEJ_JIDLA_POZASTAVEN', false);
 
-// Never send real mail from a preview. Capture to a log instead.
-@define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
-@define('MAILY_ROLIM', [Role::ORGANIZATOR]);
+// All mail flows through the shared mailpit catcher (SMTP) that the
+// host runs at MAILER_DSN=smtp://172.17.0.1:1025 — operators browse
+// caught messages at https://webmail.preview.gamecon.cz/.
+//
+// We intentionally do NOT define MAILY_DO_SOUBORU. GcMail's logic:
+// when MAILY_DO_SOUBORU is unset, the role-filter (MAILY_ROLIM) is
+// skipped and EVERY recipient gets the SMTP send. With MAILER_DSN
+// pointing at mailpit, that's safe — nothing leaves the host.
 
 @define('SUPERADMINI', [
     102 /* Sirien */,
