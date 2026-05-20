@@ -1090,8 +1090,19 @@ function jsmeNaPreview(): bool
 {
     $definedHost = getDefinedHost();
 
-    return $definedHost !== null
-        && (bool) preg_match('~[.]preview[.]gamecon[.]cz$~', $definedHost);
+    return $definedHost !== null && jeHostPreview($definedHost);
+}
+
+/**
+ * Per-branch preview deploys live at <slug>.preview.gamecon.cz, with
+ * path-based routing (/admin, /web, /cache/public) — see
+ * nastaveni/verejne-nastaveni-preview.php. The leading slug is optional,
+ * so preview.gamecon.cz itself also matches; adversarial hostnames like
+ * xpreview.gamecon.cz must NOT match — hence the `(^|[.])` anchor.
+ */
+function jeHostPreview(string $host): bool
+{
+    return preg_match('~(^|[.])preview[.]gamecon[.]cz$~', $host) === 1;
 }
 
 function jsmeNaOstre(): bool

@@ -41,6 +41,12 @@
 /nasad.log
 /.htdeployment
 
+# Generated at runtime by vytvorSouborSkrytehoNastaveniPodleEnv from env vars.
+# Contains decrypted DB creds & app secrets — must never be committed.
+/nastaveni/nastaveni-produkce.php
+/nastaveni/nastaveni-beta.php
+/nastaveni/nastaveni-preview.php
+
 /docker-compose.override.yml
 /.env
 
