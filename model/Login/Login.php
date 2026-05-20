@@ -31,7 +31,7 @@ class Login
         }
 
         $ribbonLabel = $this->systemoveNastaveni->prostredi()->ribbonLabel();
-        if ($ribbonLabel !== null) {
+        if ($ribbonLabel !== '') {
             $loginTemplate->assign('ribbonLabel', $ribbonLabel);
             $loginTemplate->parse('login.ribbon');
         }

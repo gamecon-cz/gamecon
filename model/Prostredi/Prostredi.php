@@ -17,8 +17,8 @@ namespace Gamecon\Prostredi;
  */
 enum Prostredi: string
 {
-    case Ostre   = 'ostre';
-    case Beta    = 'beta';
+    case Production = 'ostre';
+    case Beta       = 'beta';
     case Preview = 'preview';
     case Locale  = 'locale';
 
@@ -29,26 +29,25 @@ enum Prostredi: string
     public function prefix(): string
     {
         return match ($this) {
-            self::Ostre   => '',
-            self::Beta    => 'β',
-            self::Preview => '🧐',
-            self::Locale  => 'άλφα',
+            self::Production => '',
+            self::Beta       => 'β',
+            self::Preview    => '🧐',
+            self::Locale     => 'άλφα',
         };
     }
 
-    /**
-     * Longer label used in the corner-ribbon overlay. `null` for ostre
-     * means "no ribbon at all" — the homepage of the real site stays
-     * unadorned.
-     */
-    public function ribbonLabel(): ?string
+    public function label(): string
     {
         return match ($this) {
-            self::Ostre   => null,
-            self::Beta    => 'β beta',
-            self::Preview => '🧐 preview',
-            self::Locale  => 'άλφα local',
+            self::Production => '',
+            self::Beta       => 'beta',
+            self::Preview    => 'preview',
+            self::Locale     => 'local',
         };
+    }
+    public function ribbonLabel(): string
+    {
+        return $this->prefix() . ' ' . $this->label();
     }
 
     /**
@@ -63,10 +62,10 @@ enum Prostredi: string
         $base = __DIR__ . '/../../nastaveni/';
 
         return match ($this) {
-            self::Ostre   => $base . 'verejne-nastaveni-produkce.php',
-            self::Beta    => $base . 'verejne-nastaveni-beta.php',
-            self::Preview => $base . 'verejne-nastaveni-preview.php',
-            self::Locale  => null,
+            self::Production => $base . 'verejne-nastaveni-produkce.php',
+            self::Beta       => $base . 'verejne-nastaveni-beta.php',
+            self::Preview    => $base . 'verejne-nastaveni-preview.php',
+            self::Locale     => null,
         };
     }
 
@@ -93,6 +92,6 @@ enum Prostredi: string
         if (\jsmeNaPreview()) {
             return self::Preview;
         }
-        return self::Ostre;
+        return self::Production;
     }
 }
