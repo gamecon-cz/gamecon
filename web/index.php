@@ -143,6 +143,9 @@ if (!$m->bezPaticky()) {
 if ($systemoveNastaveni->jsmeNaBete()) {
     $t->parse('index.jsmeNaBete');
 }
+if ($systemoveNastaveni->jsmeNaPreview()) {
+    $t->parse('index.jsmeNaPreview');
+}
 $t->parse('index');
 $t->out('index');
 profilInfo();

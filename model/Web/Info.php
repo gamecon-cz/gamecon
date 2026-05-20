@@ -11,11 +11,13 @@ class Info
 {
     private bool $jsmeNaBete;
     private bool $jsmeNaLocale;
+    private bool $jsmeNaPreview;
 
     public function __construct(SystemoveNastaveni $systemoveNastaveni)
     {
-        $this->jsmeNaBete   = $systemoveNastaveni->jsmeNaBete();
-        $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
+        $this->jsmeNaBete    = $systemoveNastaveni->jsmeNaBete();
+        $this->jsmeNaLocale  = $systemoveNastaveni->jsmeNaLocale();
+        $this->jsmeNaPreview = $systemoveNastaveni->jsmeNaPreview();
     }
 
     private $nazev;
@@ -134,6 +136,9 @@ class Info
         }
         if ($this->jsmeNaBete) {
             return 'β';
+        }
+        if ($this->jsmeNaPreview) {
+            return '🧐';
         }
         return '';
     }

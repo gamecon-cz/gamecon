@@ -47,6 +47,9 @@
     <!-- begin: jsmeNaBete -->
     <div class="corner-ribbon">β beta</div>
     <!-- end: jsmeNaBete -->
+    <!-- begin: jsmeNaPreview -->
+    <div class="corner-ribbon">🧐 preview</div>
+    <!-- end: jsmeNaPreview -->
 </body>
 </html>
 <!-- end: index -->

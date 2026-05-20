@@ -327,3 +327,6 @@ profilInfo();
 if ($systemoveNastaveni->jsmeNaBete()) {
     $xtpl->parse('all.jsmeNaBete');
 }
+if ($systemoveNastaveni->jsmeNaPreview()) {
+    $xtpl->parse('all.jsmeNaPreview');
+}

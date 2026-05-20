@@ -33,6 +33,9 @@ class Login
         if ($this->systemoveNastaveni->jsmeNaBete()) {
             $loginTemplate->parse('login.jsmeNaBete');
         }
+        if ($this->systemoveNastaveni->jsmeNaPreview()) {
+            $loginTemplate->parse('login.jsmeNaPreview');
+        }
 
         $loginTemplate->parse('login');
         return $loginTemplate->text('login');
