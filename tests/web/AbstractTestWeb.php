@@ -65,7 +65,7 @@ SQL;
         // aby se DNS vyřešilo ještě před curl, které by jinak mohlo padnout na ještě nepřipraveném Apache
         get_headers(URL_ADMIN);
 
-        $this->testPagesAccessibility($urls, \Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO);
+        $this->testPagesAccessibility($urls, \Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO, true);
     }
 
     /**
@@ -75,6 +75,7 @@ SQL;
         array $urls,
         ?string $username = null,
         ?string $password = null,
+        bool $followRedirects = true,
     ): void {
         $multiCurl = curl_multi_init();
         $curlHandles = [];
@@ -95,7 +96,7 @@ SQL;
 
             curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10); // timeout na připojení
             curl_setopt($curlHandle, CURLOPT_TIMEOUT, 30);        // celkový timeout
-            curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, $followRedirects);
             curl_setopt($curlHandle, CURLOPT_HEADER, true);
             curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
             // HTTP/2 občas padá na lokálním Apache při paralelním stahování v CI.
@@ -144,7 +145,6 @@ SQL;
             $errors ?? [],
             sprintf('Chyby během stahování stránek: %s', implode(',', $errors)),
         );
-
         $retryUrls = [];
         do {
             $multiInfo = curl_multi_info_read($multiCurl, $remainingMessages);
@@ -171,7 +171,7 @@ SQL;
             }
             curl_setopt($retryHandle, CURLOPT_CONNECTTIMEOUT, 10);
             curl_setopt($retryHandle, CURLOPT_TIMEOUT, 30);
-            curl_setopt($retryHandle, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($retryHandle, CURLOPT_FOLLOWLOCATION, $followRedirects);
             curl_setopt($retryHandle, CURLOPT_HEADER, true);
             curl_setopt($retryHandle, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($retryHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
@@ -187,6 +187,13 @@ SQL;
                     $retryUrl,
                     curl_error($retryHandle),
                 );
+            } elseif (! $followRedirects && $this->isRedirectResponse($retryInfo['http_code'])) {
+                if (! $this->hasLocationHeader($retryContent)) {
+                    $errors[$retryUrl] = sprintf(
+                        "stránka '%s' vrací redirect bez hlavičky Location",
+                        $retryUrl,
+                    );
+                }
             } elseif ($retryInfo['http_code'] >= 400 && $retryInfo['http_code'] !== 401) {
                 $errors[$retryInfo['url']] = sprintf(
                     "nepodařilo se stáhnout stránku '%s', response code %d%s",
@@ -208,7 +215,14 @@ SQL;
             $info = curl_getinfo($curlHandle);
             $content = curl_multi_getcontent($curlHandle);
 
-            if ($info['http_code'] >= 400 && $info['http_code'] !== 401) {
+            if (! $followRedirects && $this->isRedirectResponse($info['http_code'])) {
+                if (! $this->hasLocationHeader($content)) {
+                    $errors[$url] = sprintf(
+                        "stránka '%s' vrací redirect bez hlavičky Location",
+                        $url,
+                    );
+                }
+            } elseif ($info['http_code'] >= 400 && $info['http_code'] !== 401) {
                 // Parse headers and body for diagnostic information
                 $parts = explode("\r\n\r\n", $content, 2);
                 $headers = $parts[0] ?? '';
@@ -266,6 +280,24 @@ SQL;
             $errors ?? [],
             sprintf('Chyby během stahování stránek: %s', implode('; ', $errors)),
         );
+    }
+
+    /**
+     * @param string[] $urls
+     */
+    protected function testPagesRedirect(array $urls): void
+    {
+        $this->testPagesAccessibility($urls, followRedirects: false);
+    }
+
+    private function isRedirectResponse(int $httpCode): bool
+    {
+        return $httpCode >= 300 && $httpCode < 400;
+    }
+
+    private function hasLocationHeader(string $response): bool
+    {
+        return preg_match('~^Location:\s+.+$~mi', $response) === 1;
     }
 
     protected function loginToAdmin(

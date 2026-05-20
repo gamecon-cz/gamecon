@@ -1,13 +1,13 @@
 // hlavička
 
 .aktivity_hlavickaObal {
-    background: url('../blackarrow/aktivity/hlavicka.svg') no-repeat 1.5vw 100% ~'/' 97% auto;
+    background: url('hlavicka.svg') no-repeat 1.5vw 100% ~'/' 97% auto;
     margin-bottom: 32px;
     font-size: 16px;
     line-height: 26/16;
 
     @media (max-width: 600px) {
-        background: url('../blackarrow/aktivity/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto,
+        background: url('hlavicka.svg') no-repeat 0 100% ~'/' 100% auto,
             linear-gradient(to bottom, #f6f1ea 50%, #fff 50%);
         /*overflow: hidden;*/
         padding-bottom: 4em;
@@ -139,7 +139,7 @@
 // aktivity
 
 .aktivity_aktivityObal {
-    background: url('../blackarrow/aktivity/vlny.svg') no-repeat 96vw 60px;
+    background: url('vlny.svg') no-repeat 96vw 60px;
 }
 
 .aktivity_aktivity {
@@ -149,7 +149,7 @@
     width: 1600px;
     max-width: 90%; // na toto je navázaná výška obrázků
     padding: 40px;
-    background: url('../blackarrow/aktivity/smouha.jpg') no-repeat 100% 0;
+    background: url('smouha.jpg') no-repeat 100% 0;
 
     @media (max-width: 600px) {
         column-count: 1;
@@ -282,7 +282,7 @@
 
 .aktivity_termin {
     padding-left: 21px;
-    background: url('../blackarrow/aktivity/kalendar.png') no-repeat 0 5px;
+    background: url('kalendar.png') no-repeat 0 5px;
     margin-bottom: 3px;
 }
 
@@ -396,6 +396,18 @@
     font-size: inherit !important;
 }
 
+.aktivity_nahledInfo.programNahled_obsazenost {
+    background: url('../blackarrow/program-nahled/clovek.svg') no-repeat 2px 30%;
+}
+
+.aktivity_nahledInfo.programNahled_cas {
+    background: url('../blackarrow/program-nahled/hodiny.svg') no-repeat 0 30%;
+}
+
+.aktivity_nahledInfo.programNahled_cena {
+    background: url('../blackarrow/program-nahled/dolary.svg') no-repeat 1px 2px;
+}
+
 figure {
     display: flex;
     flex-direction: column;
@@ -440,8 +452,13 @@ figure {
 .org-obrazek {
     height: 150px;
     width: 150px;
+    object-fit: cover;
 
-    mask-image: url('../blackarrow/aktivity/flek.png');
+    -webkit-mask-image: url('flek.png');
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 120% 120%;
+    -webkit-mask-position: center;
+    mask-image: url('flek.png');
     mask-repeat: no-repeat;
     mask-size: 120% 120%;
     mask-position: center;

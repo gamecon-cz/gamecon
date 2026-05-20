@@ -6,6 +6,13 @@ namespace Gamecon\Tests\web;
 
 class StrankyWebuTest extends AbstractTestWeb
 {
+    private const EXTERNI_REDIRECT_MODULY_WEBU = [
+        'discord',
+        'facebook',
+        'instagram',
+        'youtube',
+    ];
+
     /**
      * @test
      *
@@ -24,6 +31,20 @@ class StrankyWebuTest extends AbstractTestWeb
     /**
      * @test
      *
+     * @dataProvider provideWebRedirectUrls
+     *
+     * @param string[] $urls
+     */
+    public function muzuSiSeNechatPresmerovatNaKazdouExterniStrankuZWebu(...$urls)
+    {
+        get_headers(URL_WEBU);
+
+        $this->testPagesRedirect($urls);
+    }
+
+    /**
+     * @test
+     *
      * @dataProvider provideAdminUrls
      *
      * @param string[] $urls
@@ -36,7 +57,17 @@ class StrankyWebuTest extends AbstractTestWeb
     public static function provideWebUrls(): array
     {
         return [
-            'moduly webu' => self::getUrlsModuluWebu(),
+            'moduly webu' => array_values(array_diff(
+                self::getUrlsModuluWebu(),
+                self::getUrlsExternichRedirectu(),
+            )),
+        ];
+    }
+
+    public static function provideWebRedirectUrls(): array
+    {
+        return [
+            'externi redirecty z webu' => self::getUrlsExternichRedirectu(),
         ];
     }
 
@@ -67,6 +98,25 @@ class StrankyWebuTest extends AbstractTestWeb
             'info-po-gc',
         ];
         $modulyWebuBaseUrls = array_diff($modulyWebuBaseUrls, $blocklist);
+
+        return self::prefixWebBaseUrl($modulyWebuBaseUrls);
+    }
+
+    /**
+     * @return string[]
+     */
+    protected static function getUrlsExternichRedirectu(): array
+    {
+        return self::prefixWebBaseUrl(self::EXTERNI_REDIRECT_MODULY_WEBU);
+    }
+
+    /**
+     * @param string[] $modulyWebuBaseUrls
+     *
+     * @return string[]
+     */
+    private static function prefixWebBaseUrl(array $modulyWebuBaseUrls): array
+    {
         $webBaseUrl = basename(__DIR__ . '/../../web');
 
         return array_map(static function (
