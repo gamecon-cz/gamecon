@@ -1999,6 +1999,16 @@ SQL
                     $dalsiAktivita->odhlas($u, $odhlasujici, $zdrojOdhlaseni, $aktivityTymuParams); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
                 }
             }
+        } elseif ($this->jeSoucastiTurnaje() && !($params & self::IGNOROVAT_TURNAJ)) {
+            $aktivityProKolo = $this->turnaj()->idAktivitProKola();
+            unset($aktivityProKolo[$this->turnajKolo()]);
+            $dalsiAktivityIds = $aktivityProKolo
+                ? array_merge(...array_values($aktivityProKolo))
+                : [];
+            $turnajParams = $params | self::IGNOROVAT_TURNAJ;
+            foreach (Aktivita::zIds($dalsiAktivityIds) as $dalsiAktivita) {
+                $dalsiAktivita->odhlas($u, $odhlasujici, $zdrojOdhlaseni, $turnajParams);
+            }
         }
 
         // reálné odhlášení
@@ -2421,10 +2431,10 @@ SQL
             $dalsiAktivityTymu = Aktivita::zids($dalsiAktivityTymuIds);
         } elseif ($this->jeSoucastiTurnaje() && !($parametry & self::IGNOROVAT_TURNAJ)) {
             $aktivityProKolo = $this->turnaj()->idAktivitProKola();
-            $vsechnyAktivityTurnajeIds = $aktivityProKolo
+            unset($aktivityProKolo[$this->turnajKolo()]);
+            $dalsiAktivityTymuIds = $aktivityProKolo
                 ? array_merge(...array_values($aktivityProKolo))
                 : [];
-            $dalsiAktivityTymuIds = array_diff($vsechnyAktivityTurnajeIds, [$this->id()]);
             $dalsiAktivityTymu = Aktivita::zids($dalsiAktivityTymuIds);
         }
 
