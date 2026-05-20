@@ -62,15 +62,14 @@ class SystemoveNastaveniTest extends AbstractTestDb
 
         try {
             $nastaveni = new SystemoveNastaveni(
-                ROCNIK,
-                new DateTimeImmutableStrict(),
-                false,
-                false,
-                DatabazoveNastaveni::vytvorZGlobals(),
-                PROJECT_ROOT_DIR,
-                $privateCacheDir,
-                new Kernel('test', false),
-                $publicCacheDir,
+                rocnik: ROCNIK,
+                ted: new DateTimeImmutableStrict(),
+                prostredi: Prostredi::Production,
+                databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+                rootAdresarProjektu: PROJECT_ROOT_DIR,
+                privateCacheDir: $privateCacheDir,
+                kernel: new Kernel('test', false),
+                publicCacheDir: $publicCacheDir,
             );
             $generator = new ProgramStaticFileGenerator($nastaveni);
 
@@ -125,13 +124,13 @@ class SystemoveNastaveniTest extends AbstractTestDb
         };
 
         return new SystemoveNastaveni(
-            $rocnik,
-            $now,
-            $prostredi,
-            DatabazoveNastaveni::vytvorZGlobals(),
-            PROJECT_ROOT_DIR,
-            SPEC,
-            new Kernel('test', false),
+            rocnik: $rocnik,
+            ted: $now,
+            prostredi: $prostredi,
+            databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+            rootAdresarProjektu: PROJECT_ROOT_DIR,
+            privateCacheDir: SPEC,
+            kernel: new Kernel('test', false),
             publicCacheDir: CACHE,
         );
     }

@@ -13,6 +13,7 @@ use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -184,13 +185,12 @@ SQL,
                 DateTimeImmutableStrict $ted,
             ) {
                 parent::__construct(
-                    ROCNIK,
-                    $ted,
-                    false,
-                    false,
-                    DatabazoveNastaveni::vytvorZGlobals(),
-                    '',
-                    SPEC,
+                    rocnik: ROCNIK,
+                    ted: $ted,
+                    prostredi: Prostredi::Production,
+                    databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+                    rootAdresarProjektu: '',
+                    privateCacheDir: SPEC,
                     kernel: new Kernel('test', false),
                     publicCacheDir: CACHE,
                 );
@@ -274,13 +274,12 @@ SQL,
                 DateTimeImmutableStrict $ted,
             ) {
                 parent::__construct(
-                    ROCNIK,
-                    $ted,
-                    false,
-                    false,
-                    DatabazoveNastaveni::vytvorZGlobals(),
-                    '',
-                    SPEC,
+                    rocnik: ROCNIK,
+                    ted: $ted,
+                    prostredi: Prostredi::Production,
+                    databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+                    rootAdresarProjektu: '',
+                    privateCacheDir: SPEC,
                     kernel: new Kernel('test', false),
                     publicCacheDir: CACHE,
                 );

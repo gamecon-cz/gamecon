@@ -8,6 +8,7 @@ use App\Kernel;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\KopieOstreDatabaze;
 use Gamecon\SystemoveNastaveni\NastrojeDatabaze;
@@ -238,8 +239,7 @@ class KopieOstreDatabazeTest extends TestCase
                 parent::__construct(
                     rocnik: ROCNIK,
                     ted: new DateTimeImmutableStrict(),
-                    jsmeNaBete: true,
-                    jsmeNaLocale: false,
+                    prostredi: Prostredi::Beta,
                     databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
                     rootAdresarProjektu: PROJECT_ROOT_DIR,
                     privateCacheDir: $privateCacheDir,
@@ -272,8 +272,7 @@ class KopieOstreDatabazeTest extends TestCase
                 parent::__construct(
                     rocnik: ROCNIK,
                     ted: new DateTimeImmutableStrict(),
-                    jsmeNaBete: true,
-                    jsmeNaLocale: false,
+                    prostredi: Prostredi::Beta,
                     databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
                     rootAdresarProjektu: PROJECT_ROOT_DIR,
                     privateCacheDir: $privateCacheDir,
