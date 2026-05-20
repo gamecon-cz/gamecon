@@ -68,7 +68,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
             $jsmeNaBete === true                                             => Prostredi::Beta,
             $jsmeNaPreview === true                                          => Prostredi::Preview,
             $jsmeNaLocale === false && $jsmeNaBete === false
-                && $jsmeNaPreview === false                                  => Prostredi::Ostre,
+                && $jsmeNaPreview === false                                  => Prostredi::Production,
             default                                                          => Prostredi::detect(),
         };
 
@@ -775,7 +775,7 @@ SQL;
 
     public function jsmeNaOstre(): bool
     {
-        return $this->prostredi === Prostredi::Ostre;
+        return $this->prostredi === Prostredi::Production;
     }
 
     public function jsmeNaBete(): bool

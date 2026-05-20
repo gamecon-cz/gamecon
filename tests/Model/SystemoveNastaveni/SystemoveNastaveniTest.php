@@ -121,7 +121,7 @@ class SystemoveNastaveniTest extends AbstractTestDb
             $jsmeNaBete && $jsmeNaLocale => throw new \LogicException('Nemůžeme být na betě a zároveň na locale'),
             $jsmeNaBete                  => Prostredi::Beta,
             $jsmeNaLocale                => Prostredi::Locale,
-            default                      => Prostredi::Ostre,
+            default                      => Prostredi::Production,
         };
 
         return new SystemoveNastaveni(

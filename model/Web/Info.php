@@ -148,7 +148,7 @@ class Info
         $duvod = $duvod !== ''
             ? "<br>$duvod"
             : '';
-        return $this->prostredi !== Prostredi::Ostre
+        return $this->prostredi !== Prostredi::Production
             ? '<span class="hinted">🙋<span class="hint"><em>(toto se ukazuje pouze na testu)</em>' . $duvod . ' </span></span>'
             : '';
     }

@@ -141,7 +141,7 @@ if (!$m->bezPaticky()) {
 }
 
 $ribbonLabel = $systemoveNastaveni->prostredi()->ribbonLabel();
-if ($ribbonLabel !== null) {
+if ($ribbonLabel !== '') {
     $t->assign('ribbonLabel', $ribbonLabel);
     $t->parse('index.ribbon');
 }

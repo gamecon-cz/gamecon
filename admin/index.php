@@ -325,7 +325,7 @@ $xtpl->out('all');
 profilInfo();
 
 $ribbonLabel = $systemoveNastaveni->prostredi()->ribbonLabel();
-if ($ribbonLabel !== null) {
+if ($ribbonLabel !== '') {
     $xtpl->assign('ribbonLabel', $ribbonLabel);
     $xtpl->parse('all.ribbon');
 }
