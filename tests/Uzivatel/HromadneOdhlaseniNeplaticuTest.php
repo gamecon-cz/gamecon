@@ -438,11 +438,24 @@ SQL;
         ?DateTimeImmutableStrict $prvniHromadneOdhlasovani = null,
         ?DateTimeImmutableStrict $ted = null,
     ): SystemoveNastaveni {
-        return new class($nejblizsiVlnaKdy, $prvniHromadneOdhlasovani, $ted) extends SystemoveNastaveni {
+        $puvodni = SystemoveNastaveni::zGlobals();
+
+        return new class($puvodni, $nejblizsiVlnaKdy, $prvniHromadneOdhlasovani) extends SystemoveNastaveni {
             public function __construct(
+                SystemoveNastaveni $puvodni,
                 private readonly DateTimeGamecon $nejblizsiVlnaKdy,
                 private readonly ?DateTimeImmutableStrict $nejblizsiHromadneOdhlasovaniKdy,
             ) {
+                parent::__construct(
+                    rocnik: $puvodni->rocnik(),
+                    ted: $puvodni->ted(),
+                    prostredi: $puvodni->prostredi(),
+                    databazoveNastaveni: $puvodni->databazoveNastaveni(),
+                    rootAdresarProjektu: $puvodni->rootAdresarProjektu(),
+                    privateCacheDir: $puvodni->privateCacheDir(),
+                    kernel: $puvodni->kernel(),
+                    publicCacheDir: $puvodni->publicCacheDir(),
+                );
             }
 
             public function nejblizsiVlnaKdy(?\DateTimeInterface $platnostZpetneKDatu = null, bool $overovatDatumZpetne = true): DateTimeGamecon
@@ -463,16 +476,6 @@ SQL;
             public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict
             {
                 return $this->nejblizsiHromadneOdhlasovaniKdy ?? parent::prvniHromadneOdhlasovani();
-            }
-
-            public function jsmeNaBete(): bool
-            {
-                return false;
-            }
-
-            public function jsmeNaLocale(): bool
-            {
-                return false;
             }
         };
     }

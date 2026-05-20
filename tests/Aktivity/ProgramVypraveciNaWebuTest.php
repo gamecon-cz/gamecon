@@ -10,6 +10,7 @@ use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as AktivitaSql;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -25,15 +26,14 @@ class ProgramVypraveciNaWebuTest extends AbstractTestDb
     private function createSystemoveNastaveniBehemRegistrace(): SystemoveNastaveni
     {
         return new SystemoveNastaveni(
-            ROCNIK,
-            new DateTimeImmutableStrict(ROCNIK . '-07-01 12:00:00'),
-            false,
-            false,
-            DatabazoveNastaveni::vytvorZGlobals(),
-            dirname(__DIR__, 2),
-            SPEC,
-            new Kernel('test', false),
-            CACHE,
+            rocnik: ROCNIK,
+            ted: new DateTimeImmutableStrict(ROCNIK . '-07-01 12:00:00'),
+            prostredi: Prostredi::Production,
+            databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+            rootAdresarProjektu: dirname(__DIR__, 2),
+            privateCacheDir: SPEC,
+            kernel: new Kernel('test', false),
+            publicCacheDir: CACHE,
         );
     }
 

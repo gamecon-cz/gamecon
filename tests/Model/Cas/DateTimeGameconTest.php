@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Model\Cas;
 use App\Kernel;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\TestCase;
@@ -449,13 +450,12 @@ class DateTimeGameconTest extends TestCase
         int $rocnik = ROCNIK,
     ): SystemoveNastaveni {
         return new SystemoveNastaveni(
-            $rocnik,
-            $ted,
-            false,
-            false,
-            DatabazoveNastaveni::vytvorZGlobals(),
-            PROJECT_ROOT_DIR,
-            SPEC,
+            rocnik: $rocnik,
+            ted: $ted,
+            prostredi: Prostredi::Production,
+            databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+            rootAdresarProjektu: PROJECT_ROOT_DIR,
+            privateCacheDir: SPEC,
             kernel: new Kernel('test', false),
             publicCacheDir: CACHE,
         );
