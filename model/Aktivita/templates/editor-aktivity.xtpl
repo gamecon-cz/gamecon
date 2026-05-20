@@ -460,6 +460,14 @@
     <tr>
         <th>Kola</th>
         <td>
+            <!-- begin:varovaniNetymovyVyber -->
+            <div class="warning" style="margin-bottom:0.5em">
+                Tato aktivita není týmová, ale v turnaji je kolo s více aktivitami.
+                Funkcionalita výběru aktivity v rámci kola je dostupná pouze pro týmové aktivity —
+                netýmový hráč se při přihlášení přihlásí na všechny aktivity turnaje a více aktivit
+                v jednom kole způsobí kolizi.
+            </div>
+            <!-- end:varovaniNetymovyVyber -->
             <table>
                 <tr>
                     <th style="padding-right:1em">#</th>
