@@ -2,6 +2,35 @@
 @import (less) '../../../../web/soubory/blackarrow/_spolecne/hint.css';
 @import (less) '../../../../web/soubory/blackarrow/program/program-trida.css';
 
+.programNahled_obsazenost {
+  background: url('../blackarrow/program-nahled/clovek.svg') no-repeat 2px 30%;
+
+  .program_obsazenost,
+  .program_obsazenost_tym {
+    padding-left: 0;
+  }
+
+  .program_obsazenost::before,
+  .program_obsazenost .f::before,
+  .program_obsazenost .m::before,
+  .program_obsazenost_tym::before {
+    content: none;
+    display: none;
+  }
+
+  .program_obsazenost .m {
+    padding-left: 0;
+  }
+}
+
+.programNahled_cas {
+  background: url('../blackarrow/program-nahled/hodiny.svg') no-repeat 0 30%;
+}
+
+.programNahled_cena {
+  background: url('../blackarrow/program-nahled/dolary.svg') no-repeat 1px 2px;
+}
+
 .program_hlavicka {
   background: url('../blackarrow/program/hlavicka.jpg') no-repeat;
   background-size: 100% auto;
