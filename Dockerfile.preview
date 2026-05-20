@@ -70,6 +70,15 @@ RUN mkdir -p \
 COPY preview/apache-https.conf /etc/apache2/conf-available/preview-https.conf
 RUN a2enconf preview-https
 
+# Override the base image's `ENV ENV=local` (set for dev compose use).
+# With ENV=local, jsmeNaLocale() returns true and the app loads
+# nastaveni-local-default.php — which hardcodes MIGRACE_HESLO=''
+# regardless of getenv(). For previews we want the env-driven
+# nastaveni-preview.php path, which is gated on jsmeNaLocale() being
+# false. Setting ENV=preview achieves that (any non-"local" value
+# would work, but "preview" is descriptive).
+ENV ENV=preview
+
 EXPOSE 80
 
 # Standard Apache foreground (the base image's gamecon-run.sh does the
