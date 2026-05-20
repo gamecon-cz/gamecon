@@ -64,6 +64,12 @@ RUN mkdir -p \
         /var/www/html/gamecon/cache \
         /var/www/html/gamecon/logy
 
+# Apache snippet that honors X-Forwarded-Proto from the Caddy reverse
+# proxy. Without it, $_SERVER['HTTPS'] is unset in PHP and generated
+# URLs (<base href>, redirects, cookies) come out as http://.
+COPY preview/apache-https.conf /etc/apache2/conf-available/preview-https.conf
+RUN a2enconf preview-https
+
 EXPOSE 80
 
 # Standard Apache foreground (the base image's gamecon-run.sh does the
