@@ -43,6 +43,15 @@ if (in_array($job, ['mail_cfo_nesparovane_platby', 'aktivity_hromadne'])) {
     }
 }
 
+if (in_array($job, ['mazani_nepripravenych_tymu', 'aktivity_hromadne'])) {
+    require __DIR__ . '/jobs/mazani_nepripravenych_tymu.php';
+
+    if ($job === 'mazani_nepripravenych_tymu') {
+        return;
+    }
+}
+
+
 if ($job === 'materializace_roli_podle_rocniku') {
     require __DIR__ . '/jobs/materializace_roli_podle_rocniku.php';
 
@@ -66,12 +75,6 @@ if ($job === 'promlceni') {
     require __DIR__ . '/jobs/mail_promlceni_varovani_mesic.php';
     require __DIR__ . '/jobs/mail_promlceni_varovani_tyden.php';
     require __DIR__ . '/jobs/promlceni_automaticke.php';
-
-    return;
-}
-
-if ($job === 'mazani_nepripravenych_tymu') {
-    require __DIR__ . '/jobs/mazani_nepripravenych_tymu.php';
 
     return;
 }
