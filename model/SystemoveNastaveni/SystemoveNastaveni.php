@@ -38,6 +38,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
         ?string                  $privateCacheDir = null,
         ?Kernel                  $kernel = null,
         ?string                  $publicCacheDir = null,
+        ?bool                    $jsmeNaPreview = null,
     ): self {
         global $systemoveNastaveni;
 
@@ -69,6 +70,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
             $privateCacheDir ?? SPEC,
             $kernel ?? $createKernel(),
             $publicCacheDir ?? CACHE,
+            $jsmeNaPreview ?? jsmeNaPreview(),
         );
 
         if ($rocnik === ROCNIK) {
@@ -113,6 +115,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
         private readonly string                  $privateCacheDir,
         private readonly Kernel                  $kernel,
         private readonly string                  $publicCacheDir,
+        private readonly bool                    $jsmeNaPreview = false,
     ) {
         if ($jsmeNaLocale && $jsmeNaBete) {
             throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
@@ -757,12 +760,19 @@ SQL;
 
     public function jsmeNaOstre(): bool
     {
-        return !$this->jsmeNaBete() && !$this->jsmeNaLocale();
+        return !$this->jsmeNaBete()
+            && !$this->jsmeNaLocale()
+            && !$this->jsmeNaPreview();
     }
 
     public function jsmeNaBete(): bool
     {
         return $this->jsmeNaBete;
+    }
+
+    public function jsmeNaPreview(): bool
+    {
+        return $this->jsmeNaPreview;
     }
 
     public function jsmeNaLocale(): bool
@@ -1101,6 +1111,9 @@ SQL;
         }
         if ($this->jsmeNaBete()) {
             return 'β';
+        }
+        if ($this->jsmeNaPreview()) {
+            return '🧐';
         }
         if ($this->jsmeNaLocale()) {
             return 'άλφα';
