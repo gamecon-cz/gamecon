@@ -1086,6 +1086,14 @@ function jsmeNaBete(): bool
         );
 }
 
+function jsmeNaPreview(): bool
+{
+    $definedHost = getDefinedHost();
+
+    return $definedHost !== null
+        && (bool) preg_match('~[.]preview[.]gamecon[.]cz$~', $definedHost);
+}
+
 function jsmeNaOstre(): bool
 {
     $definedHost = getDefinedHost();
