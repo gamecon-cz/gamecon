@@ -202,8 +202,6 @@ $check = static fn(bool $v): string => $v ? '<span class="flag-true">✓</span>'
            style="float:right;width:100px;height:35px">
     <?= $uPracovni ? $uPracovni->jmenoNick() : '(mock uživatel)' ?><br>
     <?= $uPracovni ? '<span id="stavUctu">' . $uPracovni->finance()->formatovanyStav() . '</span><br>' : '' ?>
-    <a href="program-uzivatele" class="program-odkaz">Program</a> |
-    <a href="program-osobni"    class="program-odkaz">Program účastníka</a>
 </div>
 
 <!-- ================================================================ -->
