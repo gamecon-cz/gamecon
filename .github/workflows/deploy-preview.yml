@@ -90,9 +90,17 @@ jobs:
                     chmod 0644 ~/.ssh/known_hosts
 
             -   name: Trigger deploy on gamecon.cz
+                # The deploy script reads stdin for a GHCR token used to
+                # `docker login` before pulling the (private) preview image
+                # and `docker logout` after. We forward GITHUB_TOKEN — it
+                # already has read:packages for this repo (granted by the
+                # workflow's `permissions: packages: write`) and dies with
+                # the workflow run. Nothing persists on the host.
+                env:
+                    GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 run: |
                     image="ghcr.io/${{ github.repository_owner }}/gamecon:preview-${{ steps.slug.outputs.slug }}"
-                    ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
+                    echo "$GHCR_TOKEN" | ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
                         "/usr/local/sbin/deploy-preview-branch.sh '${{ steps.slug.outputs.slug }}' '$image'"
 
             -   name: Output preview URL
