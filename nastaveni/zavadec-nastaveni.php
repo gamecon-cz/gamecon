@@ -15,6 +15,8 @@ if (jsmeNaLocale()) {
     require_once __DIR__ . '/nastaveni-local-default.php'; // výchozí lokální nastavení
 } elseif (jsmeNaBete()) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-beta.php';
+} elseif (jsmeNaPreview()) {
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-preview.php';
 } elseif (jsmeNaOstre()) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
 } else {
