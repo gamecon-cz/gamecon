@@ -1,0 +1,28 @@
+<!-- begin: dndPj -->
+
+<!-- begin: pj -->
+<div class="pj">
+  <img class="leftPj" src="{pj.fotka}">
+  <div class="rightPj">
+    <div class="description">
+      <div class="name">{jmenoNaWebu}</div>
+      <div class="position">Dungeon Master</div>
+    </div>
+    <div class="aboutButton">
+      <a href="#" onclick="ukaz(oSobe_{pj.id}); return false">O sobě píše</a>
+    </div>
+  </div>
+</div>
+
+<div style="clear: both"></div>
+
+<div class="oSobe" id="oSobe_{pj.id}" style="display: none">{pj.oSobe}</div>
+<!-- end: pj -->
+
+<script>
+function ukaz(e) {
+  e.style.display = e.style.display == 'none' ? 'block' : 'none'
+}
+</script>
+
+<!-- end: dndPj -->

@@ -26,6 +26,7 @@ $kernel->boot();
  * @var string|null $podstranka
  */
 // Get router and check if current path matches any Symfony route
+/** @var \Symfony\Component\Routing\Router $router */
 $router = $kernel->getContainer()->get('router');
 $currentPath = '/' . ($stranka
         ?: '') . ($podstranka
