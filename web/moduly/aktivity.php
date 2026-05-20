@@ -145,7 +145,7 @@ if (!empty($org)) {
         [$typ->id()],
     );
 
-    $picture_path = cestaObrazkuLinie($typ->id());
+    $picture_path = URL_WEBU . '/' . cestaObrazkuLinie($typ->id());
 
     /* 'ikonaLiniePopis' => $varIkonaLiniePopis, */
     $t->assign([
