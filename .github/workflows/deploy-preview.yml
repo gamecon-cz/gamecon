@@ -49,8 +49,10 @@ jobs:
                     if [ -z "$slug" ]; then
                         slug="sha-${GITHUB_SHA::8}"
                     fi
+                    sha7="${GITHUB_SHA::7}"
                     echo "slug=$slug" >> "$GITHUB_OUTPUT"
-                    echo "Deploying as: $slug"
+                    echo "sha7=$sha7" >> "$GITHUB_OUTPUT"
+                    echo "Deploying as: $slug ($sha7)"
 
             -   name: Log in to GHCR
                 uses: docker/login-action@v3
@@ -63,6 +65,13 @@ jobs:
                 uses: docker/setup-buildx-action@v3
 
             -   name: Build + push preview image
+                # Two tags pushed per build:
+                #   preview-<slug>            — rolling "latest for this slug"
+                #   preview-<slug>-<sha7>     — immutable, points at exactly
+                #                                this commit's image
+                # The deploy step always references the SHA-pinned tag, so
+                # the server can never accidentally use a stale image even
+                # if a pull-fallback path runs against a cached layer.
                 uses: docker/build-push-action@v6
                 with:
                     context: .
@@ -70,6 +79,7 @@ jobs:
                     push: true
                     tags: |
                         ghcr.io/${{ github.repository_owner }}/gamecon:preview-${{ steps.slug.outputs.slug }}
+                        ghcr.io/${{ github.repository_owner }}/gamecon:preview-${{ steps.slug.outputs.slug }}-${{ steps.slug.outputs.sha7 }}
                     # Reuse layers across preview builds — composer + yarn
                     # layers in particular are slow to rebuild.
                     cache-from: type=gha,scope=preview
@@ -99,7 +109,11 @@ jobs:
                 env:
                     GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 run: |
-                    image="ghcr.io/${{ github.repository_owner }}/gamecon:preview-${{ steps.slug.outputs.slug }}"
+                    # Reference the SHA-pinned tag (not the rolling slug
+                    # tag) so the deploy is guaranteed to be this commit's
+                    # build. If the script falls back to a cached image,
+                    # it can only ever match this exact commit.
+                    image="ghcr.io/${{ github.repository_owner }}/gamecon:preview-${{ steps.slug.outputs.slug }}-${{ steps.slug.outputs.sha7 }}"
                     echo "$GHCR_TOKEN" | ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
                         "/usr/local/sbin/deploy-preview-branch.sh '${{ steps.slug.outputs.slug }}' '$image'"
 
