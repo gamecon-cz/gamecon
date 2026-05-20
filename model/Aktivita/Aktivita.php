@@ -748,6 +748,15 @@ SQL
                  ORDER BY turnaj_kolo, zacatek',
                 [0 => $aktualniTurnajId],
             );
+            $pocetAktivitVKole = [];
+            foreach ($kolaInfo as $koloInfo) {
+                $kolo = (int)$koloInfo['turnaj_kolo'];
+                $pocetAktivitVKole[$kolo] = ($pocetAktivitVKole[$kolo] ?? 0) + 1;
+            }
+            $maViceAktivitVKole = !empty(array_filter($pocetAktivitVKole, static fn(int $pocet) => $pocet > 1));
+            if ($maViceAktivitVKole && $aktivita && !$aktivita->tymova()) {
+                $xtpl->parse('upravy.tabulka.kolaTurnaje.varovaniNetymovyVyber');
+            }
             foreach ($kolaInfo as $koloInfo) {
                 $zacatek = $koloInfo['zacatek'] ? new DateTimeCz($koloInfo['zacatek']) : null;
                 $konec   = $koloInfo['konec'] ? new DateTimeCz($koloInfo['konec']) : null;
@@ -2409,6 +2418,13 @@ SQL
         $dalsiAktivityTymu = [];
         if ($tym && !($parametry & self::IGNOROVAT_TURNAJ)) {
             $dalsiAktivityTymuIds = $tym->idDalsichAktivit($this->id());
+            $dalsiAktivityTymu = Aktivita::zids($dalsiAktivityTymuIds);
+        } elseif ($this->jeSoucastiTurnaje() && !($parametry & self::IGNOROVAT_TURNAJ)) {
+            $aktivityProKolo = $this->turnaj()->idAktivitProKola();
+            $vsechnyAktivityTurnajeIds = $aktivityProKolo
+                ? array_merge(...array_values($aktivityProKolo))
+                : [];
+            $dalsiAktivityTymuIds = array_diff($vsechnyAktivityTurnajeIds, [$this->id()]);
             $dalsiAktivityTymu = Aktivita::zids($dalsiAktivityTymuIds);
         }
 
