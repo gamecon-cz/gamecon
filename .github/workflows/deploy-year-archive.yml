@@ -2,12 +2,10 @@ name: Deploy year archive
 
 # yamllint disable-line rule:truthy
 on:
-    # Manual only for now. Auto-trigger on push to archive/* branches will
-    # land once the host's ci-preview-wrapper (or its successor) is
-    # extended to allowlist deploy-year-archive.sh. Today the existing
-    # GAMECON_DEPLOY_SSH_KEY can only invoke deploy-preview-branch.sh,
-    # so the first year-archive cutovers are operator-driven from the
-    # GitHub Actions UI.
+    # Manual trigger only — year archives are deployed once per year (or
+    # on the rare backfill of an older year). Auto-trigger on push to
+    # archive/* is intentionally absent: pushing a fixup commit to an
+    # archive branch shouldn't redeploy a frozen historical site.
     workflow_dispatch:
         inputs:
             branch:
@@ -27,7 +25,7 @@ jobs:
                 with:
                     ref: ${{ github.event.inputs.branch }}
 
-            -   name: Derive year from branch name
+            -   name: Derive year from branch name + sha from checked-out HEAD
                 id: year
                 # Branch shape: archive/<4 digits> for the canonical archive
                 # branch, or archive/<4 digits>-<suffix> for test/scratch
@@ -37,6 +35,12 @@ jobs:
                 # same host-side cmd as the real branch. Anything else is
                 # rejected so we don't accidentally build an image from
                 # an unrelated branch via a workflow_dispatch typo.
+                #
+                # sha7 comes from the actual checked-out HEAD (the input
+                # branch), not from GITHUB_SHA. workflow_dispatch invoked
+                # with --ref main pins GITHUB_SHA to main's HEAD, which
+                # would tag the archive image with main's commit even
+                # though its content comes from the archive branch.
                 run: |
                     branch="${{ github.event.inputs.branch }}"
                     if [[ ! "$branch" =~ ^archive/([0-9]{4})(-[a-z0-9-]+)?$ ]]; then
@@ -48,7 +52,7 @@ jobs:
                         echo "::error::Year $year outside supported range 2011..2099" >&2
                         exit 1
                     fi
-                    sha7="${GITHUB_SHA::7}"
+                    sha7=$(git rev-parse --short=7 HEAD)
                     echo "year=$year" >> "$GITHUB_OUTPUT"
                     echo "sha7=$sha7" >> "$GITHUB_OUTPUT"
                     echo "Deploying year $year ($sha7)"
@@ -87,12 +91,40 @@ jobs:
                     cache-from: type=gha,scope=archive
                     cache-to: type=gha,scope=archive,mode=max
 
-            -   name: Output image ref
-                # The host-side cutover is operator-driven for now (see
-                # workflow note at the top). Print the exact SSH command an
-                # operator can paste to finish the deploy.
+            -   name: Set up SSH
+                # GAMECON_DEPLOY_SSH_KEY: private SSH key authorized on
+                # gamecon.cz with a forced command (ci-preview-wrapper)
+                # that allowlists deploy-preview-branch.sh AND
+                # deploy-year-archive.sh.
+                env:
+                    SSH_KEY: ${{ secrets.GAMECON_DEPLOY_SSH_KEY }}
+                    SSH_KNOWN_HOSTS: ${{ secrets.GAMECON_KNOWN_HOSTS }}
+                run: |
+                    mkdir -p ~/.ssh
+                    echo "$SSH_KEY" > ~/.ssh/id_ed25519
+                    chmod 0600 ~/.ssh/id_ed25519
+                    echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+                    chmod 0644 ~/.ssh/known_hosts
+
+            -   name: Trigger deploy on gamecon.cz
+                # The deploy script reads stdin for a GHCR token used to
+                # docker login before pulling the (private) archive image
+                # and docker logout after. GITHUB_TOKEN already has
+                # read:packages for this repo (granted by the workflow's
+                # `permissions: packages: write`) and dies with the
+                # workflow run. Nothing persists on the host.
+                #
+                # Reference the SHA-pinned tag (not the rolling year tag)
+                # so the deploy is guaranteed to be this commit's build.
+                # If the script falls back to a cached image, it can
+                # only ever match this exact commit.
+                env:
+                    GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 run: |
                     image="ghcr.io/${{ github.repository_owner }}/gamecon:archive-${{ steps.year.outputs.year }}-${{ steps.year.outputs.sha7 }}"
-                    echo "::notice::Image pushed: $image"
-                    echo "::notice::To deploy on gamecon.cz:"
-                    echo "::notice::  ssh root@gamecon.cz /usr/local/sbin/deploy-year-archive.sh ${{ steps.year.outputs.year }} '$image'"
+                    echo "$GHCR_TOKEN" | ssh -o StrictHostKeyChecking=yes root@gamecon.cz \
+                        "/usr/local/sbin/deploy-year-archive.sh '${{ steps.year.outputs.year }}' '$image'"
+
+            -   name: Output archive URL
+                run: |
+                    echo "::notice::Archive deployed at https://${{ steps.year.outputs.year }}.gamecon.cz/"
