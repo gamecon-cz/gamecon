@@ -183,17 +183,17 @@
 </div>
 <!-- end:kontrolaVysledky -->
 
-<!-- begin:aktivita -->
-<h1>{nazevAktivity}</h1>
+<!-- begin:skupina -->
+<h1>{nadpisSkupiny}</h1>
 <p>
-    Týmy: <strong>{kapacitaTymu}</strong>
+    Týmů: <strong>{pocetTymu}</strong>
     &nbsp;|&nbsp;
     Celkem přihlášeno: <strong>{pocetClenuvCelkem}</strong>
     {minMaxClenu}
 </p>
 
 <!-- begin:zadneTymy -->
-<p><em>Žádné týmy na této aktivitě.</em></p>
+<p><em>Žádné týmy.</em></p>
 <!-- end:zadneTymy -->
 
 <!-- begin:tym -->
@@ -219,6 +219,13 @@
         </form>
         <!-- end:zamceniTlacitko -->
     </h3>
+    <!-- begin:aktivityTymu -->
+    <ul class="tym-aktivity">
+        <!-- begin:aktivitaTymu -->
+        <li>{at_nazev}{at_kolo} <span class="tym-aktivita-cas">{at_zacatek}</span></li>
+        <!-- end:aktivitaTymu -->
+    </ul>
+    <!-- end:aktivityTymu -->
     <!-- begin:clenove -->
     <table class="vypis tymy-clenove">
         <tr>
@@ -234,11 +241,11 @@
         </tr>
         <!-- end:clen -->
     </table>
-    <p><a href="mailto:?subject={nazevAktivity} – tým {nazev}&amp;bcc={maily}">E-mail všem členům</a></p>
+    <p><a href="mailto:?subject={nadpisSkupiny} – tým {nazev}&amp;bcc={maily}">E-mail všem členům</a></p>
     <!-- end:clenove -->
 </div>
 <!-- end:tym -->
 
-<!-- end:aktivita -->
+<!-- end:skupina -->
 
 <!-- end:tymy -->

@@ -35,8 +35,8 @@ if ($kontrolaAktivni) {
 }
 
 // Všechny teamové aktivity ročníku
-$aktivity = dbQuery(<<<SQL
-    SELECT id_akce, nazev_akce, team_min, team_max, team_kapacita
+$aktivityRows = dbFetchAll(<<<SQL
+    SELECT id_akce, nazev_akce, team_min, team_max, team_kapacita, id_turnaje, turnaj_kolo, zacatek
     FROM akce_seznam
     WHERE rok = $0
       AND teamova = 1
@@ -45,33 +45,75 @@ $aktivity = dbQuery(<<<SQL
     [0 => ROCNIK],
 );
 
-while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
-    $idAkce = (int)$aktivitaRow['id_akce'];
+// Načti názvy turnajů
+$idsTurnaju = [];
+foreach ($aktivityRows as $r) {
+    if ($r['id_turnaje'] !== null) {
+        $idsTurnaju[(int)$r['id_turnaje']] = true;
+    }
+}
+$nazvyTurnaju = [];
+if ($idsTurnaju !== []) {
+    foreach (dbFetchAll('SELECT id_turnaje, nazev FROM turnaje WHERE id_turnaje IN ($1)', [1 => array_keys($idsTurnaju)]) as $r) {
+        $nazvyTurnaju[(int)$r['id_turnaje']] = $r['nazev'];
+    }
+}
 
-    $vsechnyTymyAktivity = AktivitaTym::vsechnyTymyAktivity($idAkce);
-    $pocetTymu           = count($vsechnyTymyAktivity);
-    $pocetClenuvCelkem   = array_sum(array_map(fn($tym) => $tym->pocetClenu(), $vsechnyTymyAktivity));
+// Skupiny: turnaje (key=t<id>) + samostatné týmové aktivity (key=a<id>)
+$skupiny = [];
+foreach ($aktivityRows as $a) {
+    $idAkce = (int)$a['id_akce'];
+    if ($a['id_turnaje'] !== null) {
+        $idTurnaje = (int)$a['id_turnaje'];
+        $key       = 't' . $idTurnaje;
+        if (!isset($skupiny[$key])) {
+            $skupiny[$key] = [
+                'nadpis'   => $nazvyTurnaju[$idTurnaje] ?? ('Turnaj #' . $idTurnaje),
+                'aktivity' => [],
+                'jeTurnaj' => true,
+            ];
+        }
+        $skupiny[$key]['aktivity'][$idAkce] = $a;
+    } else {
+        $skupiny['a' . $idAkce] = [
+            'nadpis'   => $a['nazev_akce'],
+            'aktivity' => [$idAkce => $a],
+            'jeTurnaj' => false,
+        ];
+    }
+}
 
-    $kapacitaTymu = $aktivitaRow['team_kapacita'] !== null
-        ? $pocetTymu . '/' . $aktivitaRow['team_kapacita']
-        : (string)$pocetTymu;
+foreach ($skupiny as $skupina) {
+    // Sesbírej týmy unikátně přes všechny aktivity skupiny
+    /** @var array<int, AktivitaTym> $tymy */
+    $tymy = [];
+    foreach ($skupina['aktivity'] as $idAkce => $_a) {
+        foreach (AktivitaTym::vsechnyTymyAktivity($idAkce) as $tym) {
+            $tymy[$tym->getId()] = $tym;
+        }
+    }
 
+    $pocetTymu         = count($tymy);
+    $pocetClenuvCelkem = array_sum(array_map(fn($tym) => $tym->pocetClenu(), $tymy));
+
+    // min/max členů — vezmi z první aktivity skupiny (v rámci turnaje obvykle shodné)
+    $prvni  = reset($skupina['aktivity']);
     $minMax = '';
-    if ($aktivitaRow['team_min'] !== null || $aktivitaRow['team_max'] !== null) {
-        $minMax = ' &nbsp;|&nbsp; členů na tým: ' . ($aktivitaRow['team_min'] ?? '?') . '–' . ($aktivitaRow['team_max'] ?? '∞');
+    if ($prvni['team_min'] !== null || $prvni['team_max'] !== null) {
+        $minMax = ' &nbsp;|&nbsp; členů na tým: ' . ($prvni['team_min'] ?? '?') . '–' . ($prvni['team_max'] ?? '∞');
     }
 
     $tpl->assign([
-        'nazevAktivity'     => $aktivitaRow['nazev_akce'],
-        'kapacitaTymu'      => $kapacitaTymu,
+        'nadpisSkupiny'     => $skupina['nadpis'],
+        'pocetTymu'         => $pocetTymu,
         'pocetClenuvCelkem' => $pocetClenuvCelkem,
         'minMaxClenu'       => $minMax,
     ]);
 
-    if ($vsechnyTymyAktivity === []) {
-        $tpl->parse('tymy.aktivita.zadneTymy');
+    if ($tymy === []) {
+        $tpl->parse('tymy.skupina.zadneTymy');
     } else {
-        foreach ($vsechnyTymyAktivity as $aktivitaTym) {
+        foreach ($tymy as $aktivitaTym) {
             $idKapitana = $aktivitaTym->idKapitana();
             $kapitan    = Uzivatel::zId($idKapitana);
             $clenove    = $aktivitaTym->clenoveTymu();
@@ -89,6 +131,30 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
                 'zalozen'    => $zalozen,
             ]);
 
+            // Seznam aktivit týmu v rámci této skupiny (jen u turnajů — u samostatných aktivit je redundantní)
+            if ($skupina['jeTurnaj']) {
+                $idAktivitTymu = array_intersect($aktivitaTym->idDalsichAktivit(), array_keys($skupina['aktivity']));
+                // seřaď podle pořadí v aktivitách skupiny (zacatek)
+                $serazeno = array_values(array_filter(
+                    array_keys($skupina['aktivity']),
+                    fn($id) => in_array($id, $idAktivitTymu, true),
+                ));
+                foreach ($serazeno as $idAkceTymu) {
+                    $a       = $skupina['aktivity'][$idAkceTymu];
+                    $zacatek = $a['zacatek']
+                        ? (new DateTimeCz($a['zacatek']))->format('j.n. H:i')
+                        : '';
+                    $kolo    = $a['turnaj_kolo'] !== null ? ' (kolo ' . (int)$a['turnaj_kolo'] . ')' : '';
+                    $tpl->assign([
+                        'at_nazev'   => $a['nazev_akce'],
+                        'at_kolo'    => $kolo,
+                        'at_zacatek' => $zacatek,
+                    ]);
+                    $tpl->parse('tymy.skupina.tym.aktivityTymu.aktivitaTymu');
+                }
+                $tpl->parse('tymy.skupina.tym.aktivityTymu');
+            }
+
             $maily = [];
             foreach ($clenove as $clen) {
                 $jeKapitan = $clen->id() === $idKapitana;
@@ -99,12 +165,12 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
                     'je_kapitan' => $jeKapitan ? ' (kapitán)' : '',
                     'trida'      => $jeKapitan ? ' class="kapitan"' : '',
                 ]);
-                $tpl->parse('tymy.aktivita.tym.clenove.clen');
+                $tpl->parse('tymy.skupina.tym.clenove.clen');
                 $maily[] = $clen->mail();
             }
             if ($maily) {
                 $tpl->assign('maily', implode('; ', $maily));
-                $tpl->parse('tymy.aktivita.tym.clenove');
+                $tpl->parse('tymy.skupina.tym.clenove');
             }
 
             $smíZamykat = $u->jeSefInfopultu();
@@ -114,13 +180,13 @@ while ($aktivitaRow = mysqli_fetch_assoc($aktivity)) {
                 'zamceni_disabled' => $smíZamykat ? '' : 'disabled',
                 'zamceni_title'    => $smíZamykat ? '' : 'Zamykání/odemykání týmu může provádět pouze Šéf infopultu',
             ]);
-            $tpl->parse('tymy.aktivita.tym.zamceniTlacitko');
+            $tpl->parse('tymy.skupina.tym.zamceniTlacitko');
 
-            $tpl->parse('tymy.aktivita.tym');
+            $tpl->parse('tymy.skupina.tym');
         }
     }
 
-    $tpl->parse('tymy.aktivita');
+    $tpl->parse('tymy.skupina');
 }
 
 $tpl->parse('tymy');

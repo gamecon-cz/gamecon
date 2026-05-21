@@ -291,7 +291,7 @@ Turnajové
   - [X] `AktivitaTym::rozpracovaneTymyIds()` a `smazRozpracovaneTymy()` — logika existuje
   - [X] Cron job / pravidelné spouštění mazání rozpracovaných týmů (viz sekce Cron joby)
   - [X] Výrazné varování v UI s odpočtem zbývajícího času
-  - [ ] při kontrolách jestli je hráč v týmu kontrolovat na všechny aktivity turnaje
+  - [X] při kontrolách jestli je hráč v týmu kontrolovat na všechny aktivity turnaje
 
 ## Kapitánské akce
 - [X] Předání kapitána
