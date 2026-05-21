@@ -11,7 +11,7 @@ on:
     workflow_dispatch:
         inputs:
             branch:
-                description: 'archive/YYYY branch to deploy (e.g. archive/2024)'
+                description: 'archive/YYYY or archive/YYYY-<suffix> branch (e.g. archive/2024, archive/2024-test)'
                 required: true
 
 permissions:
@@ -29,13 +29,18 @@ jobs:
 
             -   name: Derive year from branch name
                 id: year
-                # Branch shape is enforced: archive/<4 digits>. Anything else
-                # is rejected here so we don't accidentally build an image
-                # from an unrelated branch via workflow_dispatch typo.
+                # Branch shape: archive/<4 digits> for the canonical archive
+                # branch, or archive/<4 digits>-<suffix> for test/scratch
+                # variants (archive/2024-test, archive/2024-dbg, …). The
+                # year is taken from the digits; suffix is ignored, so a
+                # test branch deploys with the same image tag base and the
+                # same host-side cmd as the real branch. Anything else is
+                # rejected so we don't accidentally build an image from
+                # an unrelated branch via a workflow_dispatch typo.
                 run: |
                     branch="${{ github.event.inputs.branch }}"
-                    if [[ ! "$branch" =~ ^archive/([0-9]{4})$ ]]; then
-                        echo "::error::Branch '$branch' does not match archive/YYYY" >&2
+                    if [[ ! "$branch" =~ ^archive/([0-9]{4})(-[a-z0-9-]+)?$ ]]; then
+                        echo "::error::Branch '$branch' does not match archive/YYYY[-suffix]" >&2
                         exit 1
                     fi
                     year="${BASH_REMATCH[1]}"
