@@ -37,6 +37,21 @@ if (!defined('DBM_USER')) define('DBM_USER', getenv('DBM_USER')
 if (!defined('DBM_PASS')) define('DBM_PASS', getenv('DBM_PASS')
     ?: DB_PASS);
 
+// "Anonym" DB — DatabazoveNastaveni references these unconditionally at
+// boot. The feature is meant for staging/preview where production data
+// gets copied into an anonymized DB; for a frozen archive there's no
+// such data flow, so we point the constants at the year's own DB.
+// Anonym code paths won't actually be invoked at runtime for an archive,
+// but the constants must exist or boot fails fatally.
+if (!defined('DB_ANONYM_SERV')) define('DB_ANONYM_SERV', getenv('DB_ANONYM_SERV')
+    ?: DB_SERV);
+if (!defined('DB_ANONYM_USER')) define('DB_ANONYM_USER', getenv('DB_ANONYM_USER')
+    ?: DB_USER);
+if (!defined('DB_ANONYM_PASS')) define('DB_ANONYM_PASS', getenv('DB_ANONYM_PASS')
+    ?: DB_PASS);
+if (!defined('DB_ANONYM_NAME')) define('DB_ANONYM_NAME', getenv('DB_ANONYM_NAME')
+    ?: DB_NAME);
+
 // Production-only constants needed by the legacy code paths. Archives
 // don't accept payments, don't run cron, don't call Google APIs —
 // these stay empty/default to keep the code happy without exposing
