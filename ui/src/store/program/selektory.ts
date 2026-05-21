@@ -7,6 +7,21 @@ import { useMemo } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
 import { Aktivita } from "./slices/programDataSlice";
 import { NastaveniTymuData } from "./slices/všeobecnéSlice";
+import { ApiAktivitaUživatel } from "../../api/program";
+
+/**
+ * Sloučí veřejnou aktivitu s uživatelským překryvem.
+ * Pokud je zapnutý filtr `bezÚčastníka`, vrací aktivitu bez překryvu —
+ * program se zobrazuje, jako by žádný účastník nebyl přihlášený.
+ */
+const slučAktivitu = (
+  aktivita: Aktivita,
+  uživatel: ApiAktivitaUživatel | undefined,
+  bezÚčastníka: boolean | undefined,
+): Aktivita => {
+  if (bezÚčastníka || !uživatel) return aktivita;
+  return { ...aktivita, ...uživatel };
+};
 
 const useFiltrAktivitNeboZeStavu = (aktivitaFiltr?: FiltrAktivit) => {
   const urlStav = useProgramStore((s) => s.urlStav);
@@ -24,15 +39,21 @@ const useMapováníTagů = () => {
 };
 
 /**
- * Všechny dotažené aktivity
+ * Všechny dotažené aktivity. Uživatelský překryv se aplikuje pouze pokud
+ * není zapnutý filtr `bezÚčastníka`.
  */
 export const useAktivity = (ročník?: number) => {
   return useProgramStore((s) => {
-    if (ročník)
-      return Object.values(s.data.podleRočníku[ročník].aktivityPodleId ?? {});
-    else
-      // todo: tahle část se opakuje na více místech
-      return Object.values(s.data.podleRočníku).flatMap(x=>Object.values(x.aktivityPodleId));
+    const bezÚčastníka = s.urlStav.bezÚčastníka;
+    const mapuj = (data: { aktivityPodleId: { [id: number]: Aktivita }, aktivityUživatelPodleId: { [id: number]: ApiAktivitaUživatel } }) =>
+      Object.values(data.aktivityPodleId).map(a =>
+        slučAktivitu(a, data.aktivityUživatelPodleId[a.id], bezÚčastníka));
+    if (ročník) {
+      const data = s.data.podleRočníku[ročník];
+      return data ? mapuj(data) : [];
+    }
+    // todo: tahle část se opakuje na více místech
+    return Object.values(s.data.podleRočníku).flatMap(mapuj);
   });
 }
 
@@ -64,15 +85,16 @@ export const useAktivita = (akitivitaId: number): Aktivita | undefined =>
   useProgramStore((s) => {
     for (const ročník of Object.values(s.data.podleRočníku)) {
       const aktivita = ročník.aktivityPodleId[akitivitaId];
-      if (aktivita) return aktivita;
+      if (aktivita) return slučAktivitu(aktivita, ročník.aktivityUživatelPodleId[akitivitaId], s.urlStav.bezÚčastníka);
     }
   });
 
 export const useAktivitaNáhled = (): Aktivita | undefined =>
   useProgramStore((s) => {
+    const id = s.urlStav.aktivitaNáhledId ?? -1;
     for (const ročník of Object.values(s.data.podleRočníku)) {
-      const aktivita = ročník.aktivityPodleId[s.urlStav.aktivitaNáhledId ?? -1];
-      if (aktivita) return aktivita;
+      const aktivita = ročník.aktivityPodleId[id];
+      if (aktivita) return slučAktivitu(aktivita, ročník.aktivityUživatelPodleId[id], s.urlStav.bezÚčastníka);
     }
   }
   // todo: použít shallow ?
@@ -135,10 +157,10 @@ export const useUrlStavMožnostiDny = (): ProgramTabulkaVýběr[] => useProgramS
 export const useUrlStavMožnosti = () => useProgramStore(s => s.urlStavMožnosti);
 export const useUrlStavStavyFiltr = () => useProgramStore(s => s.urlStav.filtrStavAktivit ?? []);
 
-export const useÚčastník = (): ApiUživatel | undefined => useProgramStore(s => s.přihlášenýUživatel.ucastnik);
-export const useÚčastníkPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.přihlášenýUživatel.ucastnik?.pohlavi);
-export const useOperátor = (): ApiUživatel | undefined => useProgramStore(s => s.přihlášenýUživatel.operator);
-export const useUživatelJeSefInfa = (): boolean => useProgramStore((s) => s.přihlášenýUživatel.ucastnik?.role?.sefInfa ?? false);
+export const useÚčastník = (): ApiUživatel | undefined => useProgramStore(s => s.urlStav.bezÚčastníka ? undefined : s.přihlášenýUživatel.ucastnik);
+export const useÚčastníkPohlaví = (): Pohlavi | undefined => useProgramStore((s) => s.urlStav.bezÚčastníka ? undefined : s.přihlášenýUživatel.ucastnik?.pohlavi);
+export const useOperátor = (): ApiUživatel | undefined => useProgramStore(s => s.urlStav.bezÚčastníka ? undefined : s.přihlášenýUživatel.operator);
+export const useUživatelJeSefInfa = (): boolean => useProgramStore((s) => s.urlStav.bezÚčastníka ? false : (s.přihlášenýUživatel.ucastnik?.role?.sefInfa ?? false));
 
 export const useFiltryOtevřené = (): boolean => useProgramStore(s => s.všeobecné.filtryOtevřené);
 export const useOdhlasitModalAktivitaId = (): number | undefined => useProgramStore(s => s.všeobecné.modalOdhlásitAktivitaId);

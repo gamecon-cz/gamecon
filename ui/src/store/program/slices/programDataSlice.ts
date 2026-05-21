@@ -6,7 +6,7 @@ import { nastavChyba } from "./všeobecnéSlice";
 export type DataApiStav = "načítání" | "dotaženo" | "chyba";
 
 // todo: tyhle transofrmace toho co jde z api by se měli asi dít dřív
-export type Aktivita = Omit<ApiAktivitaNepřihlášen & ApiAktivitaUživatel, "popisId"> & {
+export type Aktivita = Omit<ApiAktivitaNepřihlášen & Partial<ApiAktivitaUživatel>, "popisId"> & {
   popis: string;
   obsazenost: ApiObsazenost;
 };
@@ -15,7 +15,10 @@ export type ProgramDataSlice = {
   data: {
     podleRočníku: {
       [ročník: number]: {
+        /** Aktivita BEZ uživatelského překryvu (veřejná data + popis + obsazenost). */
         aktivityPodleId: { [id: number]: Aktivita },
+        /** Uživatelský překryv keyed by activity id — merguje se v selektoru pokud není zapnuté `bezÚčastníka`. */
+        aktivityUživatelPodleId: { [id: number]: ApiAktivitaUživatel },
       }
     },
     tagy: ApiTag[],
@@ -103,6 +106,7 @@ export const načtiRok = async (ročník: number) => {
     useProgramStore.setState(s => {
       s.data.podleRočníku[ročník] = {
         aktivityPodleId: {},
+        aktivityUživatelPodleId: {},
       };
       s.data.tagy = staticData.tagy;
       const ročníkData = s.data.podleRočníku[ročník];
@@ -111,13 +115,15 @@ export const načtiRok = async (ročník: number) => {
         const popis = popisyMap.get(aktivita.popisId) ?? "";
         const obsazenost = obsazenostiMap.get(aktivita.id)
           ?? vytvořObsazenostPrázdnéSUpozorněním(aktivita.id);
-        const aktivitaUživatel = uzivatelMap.get(aktivita.id);
         ročníkData.aktivityPodleId[aktivita.id] = {
           ...aktivita,
-          ...aktivitaUživatel,
           popis,
           obsazenost,
         } as Aktivita;
+        const aktivitaUživatel = uzivatelMap.get(aktivita.id);
+        if (aktivitaUživatel) {
+          ročníkData.aktivityUživatelPodleId[aktivita.id] = aktivitaUživatel;
+        }
       }
 
       // Process publicly visible activities from static files
@@ -170,15 +176,7 @@ export const proveďAkciAktivity = async (aktivitaId: number, typ: ApiAktivitaAk
         }
 
         if (response.aktivitaUzivatel) {
-          const aktivita = ročníkData.aktivityPodleId[response.aktivitaUzivatel.id];
-          if (aktivita) {
-            // Backend posílá vždy všechna pole — typy jsou required,
-            // takže se rovnou přepisují bez ??-guardů.
-            aktivita.stavPrihlaseni = response.aktivitaUzivatel.stavPrihlaseni;
-            aktivita.slevaNasobic   = response.aktivitaUzivatel.slevaNasobic;
-            aktivita.mistnosti      = response.aktivitaUzivatel.mistnosti;
-            aktivita.vedu           = response.aktivitaUzivatel.vedu;
-          }
+          ročníkData.aktivityUživatelPodleId[response.aktivitaUzivatel.id] = response.aktivitaUzivatel;
         }
       }, undefined, "okamžitá aktualizace z akce");
     }
@@ -226,10 +224,7 @@ export const načtiUzivatelskeAktualizace = async () => {
         const ročníkData = s.data.podleRočníku[rok];
         if (!ročníkData) return;
         for (const [id, uzivatel] of uzivatelMap) {
-          const aktivita = ročníkData.aktivityPodleId[id];
-          if (aktivita) {
-            Object.assign(aktivita, uzivatel);
-          }
+          ročníkData.aktivityUživatelPodleId[id] = uzivatel;
         }
       }, undefined, "aktualizace uživatelských dat po akci týmu");
     }

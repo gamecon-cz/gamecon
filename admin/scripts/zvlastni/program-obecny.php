@@ -9,7 +9,6 @@ use Gamecon\Aktivita\Program;
 <html lang="cs">
 <head>
     <title>Obecný program</title>
-    <meta http-equiv="refresh" content="30">
     <style>
         body {
             font-family: tahoma, sans, sans-serif;

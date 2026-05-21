@@ -55,6 +55,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
             </a>
           )}
           {urlStavMožnosti.map((možnost) => {
+            if (možnost.typ === "můj" && urlStav.bezÚčastníka) return null;
             return (
               <a
                 href={generujUrl(

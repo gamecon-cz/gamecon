@@ -5,6 +5,7 @@
 use App\Service\AktivitaTymService;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaTym;
+use Gamecon\Pravo;
 use Gamecon\Role\Role;
 
 $response = [];
@@ -97,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $tym->zkontrolujZeJdeZamknout();
             $tym->zamkni();
         } elseif ($akce === 'odemkni') {
-            if (!$u->maRoli(Role::SEF_INFOPULTU)) {
+            if (!$u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
                 throw new Chyba('Nemáš oprávnění odemknout tým');
             }
             $tym->odemkni();

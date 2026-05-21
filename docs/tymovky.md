@@ -2,6 +2,7 @@
 # TODO:
 
 PRIO
+  - MAILY
   - ignorovat reporty/exporty/importy a další porty, jít čistě po logice program v adminu taky neřešit
   - [ ] trello 1
     - [X] Nedalo to na výběr ze dvou aktivit, rovnou to přihlásilo na první
@@ -365,18 +366,18 @@ Turnajové
 - [X] Backend logika odemčení
   - [X] Metoda `odemknout()` v `AktivitaTym` — reset `zamcen`, reset `zalozen` na `NOW()` (nový 72h limit)
   - [X] Oprávnění: pouze šéf infa (admin) nebo systém (odhlášení neplatiče)
-- [ ] Šéf infa může tým odemknout přes admin (zatím stačí jen s pohledu vybreného uživatele)
+- [X] kdokoliv s přístupem do adminu(infopult) může tým odemknout přes admin (zatím stačí jen s pohledu vybreného uživatele)
   - [X] Tlačítko "Odemknout" v admin panelu `tymy.php` / `tymy.xtpl`
-  - [ ] Kontrola oprávnění (šéf infa)
+  - [X] Kontrola oprávnění
 - [X] Automatické odemčení při odhlášení neplatiče
   - [X] Odemknout tým + vyhodit neplatiče z týmu
   - [X] Po odemčení běží limit 72h znova (reset `zalozen`)
 
 ## Cron joby / automatizace
-- [ ] Pravidelné mazání rozpracovaných týmů (starší než 15 min, 0 členů)
+- [X] Pravidelné mazání rozpracovaných týmů (starší než 15 min, 0 členů)
   - [X] Logika `smazRozpracovaneTymy()` existuje
-  - [ ] Cron job nebo hook který ji pravidelně volá
-  - [ ] Přidan do nějakého seznamu volání přímo na serveru
+  - [X] Cron job nebo hook který ji pravidelně volá
+  - [X] Přidan do nějakého seznamu volání přímo na serveru
 - [X] Pravidelná kontrola 72h expirace nezamčených týmů
   - [X] Logika `expirovaneTymyIds()` existuje
   - [X] Cron job: zveřejnit nebo smazat podle nastavení aktivity
@@ -386,24 +387,24 @@ Turnajové
   - [X] Tabulka `akce_tym_akce` propojuje tým s více aktivitami
   - [X] Definice čísla kola na aktivitě (DB sloupec? nebo odvozeno z pořadí?)
   - [X] Validace: každý tým má v každém kole právě jednu aktivitu
-- [ ] Výběr termínů pro tým (skip pokud v žádném kole není víc možností)
+- [X] Výběr termínů pro tým (skip pokud v žádném kole není víc možností)
   - [X] API endpoint `potvrdVyberAktivit`
   - [X] `jeTrebaPredpripravitTym()` detekce zda je výběr potřeba
-  - [ ] UI pro výběr termínů ve vícekolových turnajích (netestováno / nedokončeno?)
-  - [ ] UI flow: nejdřív výběr kol → pak založení týmu → pak přihlášení
-- [ ] Přihlašování na všechna kola jako jedna akce
+  - [X] UI pro výběr termínů ve vícekolových turnajích (netestováno / nedokončeno?)
+  - [X] UI flow: nejdřív výběr kol → pak založení týmu → pak přihlášení
+- [X] Přihlašování na všechna kola jako jedna akce
   - [X] API `potvrdVyberAktivit` existuje
-  - [ ] Ověřit atomicitu — pokud jedno kolo selže, rollback všech
-- [ ] Různá kapacita pro různá kola
-  - [ ] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
-  - [ ] UI zobrazuje kapacitu per kolo
+  - ~~[ ] Ověřit atomicitu — pokud jedno kolo selže, rollback všech~~ hodně idealistické, spíš není potřeba nikdy se nenarazilo na to že by to byl problém
+- [X] Různá kapacita pro různá kola
+  - [X] Každá aktivita (kolo) má vlastní `kapacita` — ověřit že se respektuje
+  - [X] UI zobrazuje kapacitu per kolo
 - [ ] Sledování týmové vícekolové aktivity
   - [ ] Pošle email když se uvolní místo pro nový tým
   - [ ] Neodhlaš ze sledování pokud hráč může ve všech kolech sledovat alespoň jednu aktivitu
 
 ## Admin program
-- [ ] dělení programu po místnostech
-- [ ] uživatel co udituje nemusí být ten samý co je editován (uPracovni vs u)
+- [X] dělení programu po místnostech
+- [X] uživatel co udituje nemusí být ten samý co je editován (uPracovni vs u)
   - tady asi není potřeba posílat celého uživatele co dělá přihlašování, jen jeho oprávnění
 - [ ] zobrazení podle místností (místo linií, levý sloupec ale pořád zobrazuje všechny dny)
   - [ ] které jsou řazené podle lokace.poradi
@@ -458,6 +459,7 @@ Turnajové
   - [ ] pokud je ve více místnostech zobrazí se vícekrát
   - [ ] zobrazení pro jednotlivé dny nebo všechny
 - [ ] zbytek tlačítek pro logiku
+- [ ] program-obecny refresh zapnout
 
 ## Technický dluh / refaktoring
 - [X] Odstranit systém "dětí" aktivit (`Aktivita.php` — ~20 výskytů `todo(tym): odstranit deti`)
