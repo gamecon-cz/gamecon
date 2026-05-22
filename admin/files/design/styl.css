@@ -251,6 +251,13 @@ body {
   padding: 15px 0 10px;
 }
 
+/* Dev uses a tile-style landing page (admin/scripts/modules/dev/dev.php)
+   as its own navigation, so the standard top submenu strip is just
+   visual noise. */
+#submenu.submenu-selected-dev {
+  display: none;
+}
+
 #submenu ul, #submenu li {
   padding: 0;
   margin: 0;
