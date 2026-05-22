@@ -1,0 +1,8 @@
+{
+    "schema_version": 1,
+    "slug": "feature-x",
+    "url": "https://feature-x.preview.gamecon.cz/",
+    "image": "ghcr.io/gamecon-cz/gamecon:preview-feature-x-def5678",
+    "sha7": "def5678",
+    "deployed_at": "2026-05-22T07:00:00+02:00"
+}
