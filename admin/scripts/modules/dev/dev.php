@@ -72,7 +72,7 @@ $datumAnonymExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
     </a>
     <a href="<?php echo URL_ADMIN; ?>/dev/stare-rocniky">
         <h3>Staré ročníky</h3>
-        <p>Seznam URL archivovaných ročníků (per-year docker kontejnery).</p>
+        <p>URL archivovaných ročníků.</p>
     </a>
     <a href="<?php echo URL_ADMIN; ?>/dev/update-zustatku">
         <h3>SQL update pro uzavření financí</h3>
