@@ -344,19 +344,23 @@ body {
   overflow: visible;
 }
 
-.adm_submenu_item_ord_1.adm_submenu_item_grp_1::before {
+/* These group labels are Aktivity-specific (the submenu_group numbers
+   1..4 map to Zadávání/Vypravěči/Účast/Administrace in that module).
+   Without the .submenu-selected-aktivity scope they bleed onto every
+   other submenu that reuses ord_1.grp_N (e.g. Dev). */
+.submenu-selected-aktivity .adm_submenu_item_ord_1.adm_submenu_item_grp_1::before {
   content: 'Zadávání';
 }
 
-.adm_submenu_item_ord_1.adm_submenu_item_grp_2::before {
+.submenu-selected-aktivity .adm_submenu_item_ord_1.adm_submenu_item_grp_2::before {
   content: 'Vypravěči';
 }
 
-.adm_submenu_item_ord_1.adm_submenu_item_grp_3::before {
+.submenu-selected-aktivity .adm_submenu_item_ord_1.adm_submenu_item_grp_3::before {
   content: 'Účast';
 }
 
-.adm_submenu_item_ord_1.adm_submenu_item_grp_4::before {
+.submenu-selected-aktivity .adm_submenu_item_ord_1.adm_submenu_item_grp_4::before {
   content: 'Administrace';
 }
 
