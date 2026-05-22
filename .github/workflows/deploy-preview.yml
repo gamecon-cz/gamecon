@@ -19,6 +19,23 @@ permissions:
     contents: read
     packages: write   # push to ghcr.io
 
+# Serialize all runs that touch the same preview slug. Without this,
+# a push-triggered `deploy` and a merge-triggered `teardown` can run
+# on parallel runners and race on the host — if teardown's SSH lands
+# after deploy's SSH, the container is correctly removed; if it lands
+# before, the deploy recreates a zombie preview that nothing will
+# clean up (the teardown workflow only fires on `pull_request: closed`,
+# which has already fired).
+#
+# Keying on head_ref (PRs) / ref_name (push, workflow_dispatch) matches
+# the slug derivation below — runs for the same branch queue, runs for
+# different branches stay parallel. `cancel-in-progress: false` so an
+# in-flight deploy completes before teardown starts, rather than being
+# killed mid-build and leaving partial state on GHCR or the host.
+concurrency:
+    group: deploy-preview-${{ github.event.pull_request.head.ref || github.event.inputs.branch || github.ref_name }}
+    cancel-in-progress: false
+
 jobs:
     # Deploy on push to a feature branch (or workflow_dispatch).
     deploy:
