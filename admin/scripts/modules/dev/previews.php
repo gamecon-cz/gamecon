@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Dev\DeploymentsReader;
+use Gamecon\Dev\UrlWithBasicAuth;
 
 /**
  * Seznam aktivních preview prostředí.
@@ -15,8 +16,24 @@ $reader = new DeploymentsReader();
 $unavailableReason = $reader->unavailableReason();
 $previews = $unavailableReason === null ? $reader->readPreviews() : [];
 $updatedAt = $unavailableReason === null ? $reader->updatedAt() : null;
+
+// Caddy před preview prostředími vyžaduje basic auth — vkládáme přihlašovací
+// údaje rovnou do odkazů (foo:bar@host), aby admin proklikl bez dialogu.
+$urlWithAuth = static fn(string $url): string => UrlWithBasicAuth::inject(
+    $url,
+    PREVIEW_BASIC_AUTH_USER,
+    PREVIEW_BASIC_AUTH_PASSWORD,
+);
+
+$mailpitUrl = $urlWithAuth('https://webmail.preview.gamecon.cz/');
 ?>
 <h2>Preview prostředí</h2>
+<p>
+    📬 Sdílený Mailpit pro všechna preview:
+    <a href="<?= htmlspecialchars($mailpitUrl) ?>" target="_blank" rel="noopener">
+        https://webmail.preview.gamecon.cz/
+    </a>
+</p>
 <p>
     Zdroj dat: <code>/var/lib/gamecon/deployments/previews/*.json</code>
     (jeden soubor = jedno běžící preview prostředí; soubory píše deploy
@@ -48,7 +65,7 @@ $updatedAt = $unavailableReason === null ? $reader->updatedAt() : null;
             <tr>
                 <td><?= htmlspecialchars($preview->slug) ?></td>
                 <td>
-                    <a href="<?= htmlspecialchars($preview->url) ?>" target="_blank" rel="noopener">
+                    <a href="<?= htmlspecialchars($urlWithAuth($preview->url)) ?>" target="_blank" rel="noopener">
                         <?= htmlspecialchars($preview->url) ?>
                     </a>
                 </td>

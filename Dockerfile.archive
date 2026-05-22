@@ -77,6 +77,20 @@ RUN a2enconf preview-https
 # `docker run -e`).
 ENV ENV=archive
 
+# Basic-auth credentials for the Caddy gate in front of preview /
+# archive environments. The admin's dev rozcestník embeds them in the
+# rendered links (foo:bar@host). Baked in here so the archive UI
+# behaves identically to ostra. GHCR repo is private; image layers are
+# not publicly readable.
+ARG PREVIEW_BASIC_AUTH_USER=""
+ARG PREVIEW_BASIC_AUTH_PASSWORD=""
+ARG ARCHIVE_BASIC_AUTH_USER=""
+ARG ARCHIVE_BASIC_AUTH_PASSWORD=""
+ENV PREVIEW_BASIC_AUTH_USER=$PREVIEW_BASIC_AUTH_USER \
+    PREVIEW_BASIC_AUTH_PASSWORD=$PREVIEW_BASIC_AUTH_PASSWORD \
+    ARCHIVE_BASIC_AUTH_USER=$ARCHIVE_BASIC_AUTH_USER \
+    ARCHIVE_BASIC_AUTH_PASSWORD=$ARCHIVE_BASIC_AUTH_PASSWORD
+
 EXPOSE 80
 
 CMD ["apache2-foreground"]

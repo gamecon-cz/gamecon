@@ -65,4 +65,11 @@ if (!defined('VAROVAT_O_ZASEKLE_SYNCHRONIZACI_PLATEB')) define('VAROVAT_O_ZASEKL
 if (!defined('APP_SECRET')) define('APP_SECRET', getenv('APP_SECRET')
     ?: 'someRandomStringForAppSecretThatYouShouldChange');
 
+// Basic-auth pro Caddy bránu před preview / archive prostředími.
+// Lokálně prázdné — odkazy se vykreslí bez vložených přihlašovacích údajů.
+if (!defined('PREVIEW_BASIC_AUTH_USER')) define('PREVIEW_BASIC_AUTH_USER', getenv('PREVIEW_BASIC_AUTH_USER') ?: '');
+if (!defined('PREVIEW_BASIC_AUTH_PASSWORD')) define('PREVIEW_BASIC_AUTH_PASSWORD', getenv('PREVIEW_BASIC_AUTH_PASSWORD') ?: '');
+if (!defined('ARCHIVE_BASIC_AUTH_USER')) define('ARCHIVE_BASIC_AUTH_USER', getenv('ARCHIVE_BASIC_AUTH_USER') ?: '');
+if (!defined('ARCHIVE_BASIC_AUTH_PASSWORD')) define('ARCHIVE_BASIC_AUTH_PASSWORD', getenv('ARCHIVE_BASIC_AUTH_PASSWORD') ?: '');
+
 error_reporting(E_ALL);

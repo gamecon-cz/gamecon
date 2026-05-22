@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Dev\DeploymentsReader;
+use Gamecon\Dev\UrlWithBasicAuth;
 
 /**
  * Seznam dockerizovaných archivních ročníků (YYYY.gamecon.cz).
@@ -20,6 +21,14 @@ $updatedAt = $unavailableReason === null ? $reader->updatedAt() : null;
 
 // Setřídit od nejnovějšího ročníku.
 usort($archives, static fn($a, $b) => $b->year <=> $a->year);
+
+// Caddy před archivními ročníky vyžaduje basic auth — vkládáme přihlašovací
+// údaje rovnou do odkazů (foo:bar@host), aby admin proklikl bez dialogu.
+$urlWithAuth = static fn(string $url): string => UrlWithBasicAuth::inject(
+    $url,
+    ARCHIVE_BASIC_AUTH_USER,
+    ARCHIVE_BASIC_AUTH_PASSWORD,
+);
 ?>
 <h2>Staré ročníky</h2>
 <p>
@@ -54,7 +63,7 @@ usort($archives, static fn($a, $b) => $b->year <=> $a->year);
             <tr>
                 <td><?= htmlspecialchars((string)$archive->year) ?></td>
                 <td>
-                    <a href="<?= htmlspecialchars($archive->url) ?>" target="_blank" rel="noopener">
+                    <a href="<?= htmlspecialchars($urlWithAuth($archive->url)) ?>" target="_blank" rel="noopener">
                         <?= htmlspecialchars($archive->url) ?>
                     </a>
                 </td>

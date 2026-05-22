@@ -28,6 +28,13 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
         $APP_DEBUG = getenv('APP_DEBUG') ? 'true' : 'false';
         $APP_SECRET = getenv('APP_SECRET');
 
+        // Basic-auth pro Caddy bránu před preview / archive prostředími.
+        // Admin rozcestník je vykresluje rovnou v odkazech (foo:bar@host).
+        $PREVIEW_BASIC_AUTH_USER = getenv('PREVIEW_BASIC_AUTH_USER');
+        $PREVIEW_BASIC_AUTH_PASSWORD = getenv('PREVIEW_BASIC_AUTH_PASSWORD');
+        $ARCHIVE_BASIC_AUTH_USER = getenv('ARCHIVE_BASIC_AUTH_USER');
+        $ARCHIVE_BASIC_AUTH_PASSWORD = getenv('ARCHIVE_BASIC_AUTH_PASSWORD');
+
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
 
@@ -66,6 +73,12 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             define('APP_ENV', '$APP_ENV');
             define('APP_DEBUG', $APP_DEBUG);
             define('APP_SECRET', '$APP_SECRET');
+
+            // Basic-auth pro Caddy bránu před preview / archive prostředími
+            define('PREVIEW_BASIC_AUTH_USER', '$PREVIEW_BASIC_AUTH_USER');
+            define('PREVIEW_BASIC_AUTH_PASSWORD', '$PREVIEW_BASIC_AUTH_PASSWORD');
+            define('ARCHIVE_BASIC_AUTH_USER', '$ARCHIVE_BASIC_AUTH_USER');
+            define('ARCHIVE_BASIC_AUTH_PASSWORD', '$ARCHIVE_BASIC_AUTH_PASSWORD');
             PHP,
         );
     }

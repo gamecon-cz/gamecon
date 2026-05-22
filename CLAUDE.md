@@ -216,4 +216,67 @@ Formát, povinné minimum a pravidla údržby: **viz `docs/generated/README.md`*
 
 **Ochrana proti driftu:** dokumenty jsou hypotéza, ne pravda — před rozhodnutím podle dokumentu zlehka ověř klíčová tvrzení proti kódu. Při nálezu driftu prověř celý dokument, nejen dotčenou větu.
 
+## Preview / Archive Environments Must Mirror Ostra
+
+Preview prostředí (`<slug>.preview.gamecon.cz`) a archivní ročníky (`NNNN.gamecon.cz`) **musí vypadat a chovat se PŘESNĚ jako ostra**. Jejich účel je dvojí:
+1. **Preview** = sandbox pro feature větev, kde tester / autor ticketu / produkťák ověří, že se feature chová stejně jako bude na ostré. Pokud se preview chová jinak, ztrácí cenu.
+2. **Archive** = zmrazený stav konkrétního ročníku, ale stále s živým adminem (rozcestník, dev nástroje, ...) — admin sám není zmrazený, mění se spolu s `main`.
+
+**Praktický důsledek pro každou novou produkční feature, která čte runtime nastavení (env var, konstantu, secret):**
+
+Když přidáváš novou feature, která na ostré čte z `getenv()` / `define()` / `secrets.*`, musíš zařídit, aby **stejná hodnota dorazila i do preview a archive image**. Jinak se feature v preview/archive bude chovat jinak než na ostré (typicky tichý fallback na prázdný string), a chyba se nezjistí dokud někdo nezahlásí "v preview to nefunguje".
+
+Plný path env var → PHP konstanta na všech třech místech:
+
+| Vrstva | Ostra | Preview | Archive |
+|--------|-------|---------|---------|
+| Workflow s `secrets.*` | `.github/workflows/deploy-ostra.yml` (a `deploy-beta.yml`) — `env:` na deploy stepu | `.github/workflows/deploy-preview.yml` — `build-args:` na `docker/build-push-action` | `.github/workflows/deploy-year-archive.yml` — `build-args:` na `docker/build-push-action` |
+| Doručení do runtime | `nasad.php` propaguje env → `vytvorSouborSkrytehoNastaveniPodleEnv()` zapeče do `nastaveni-<env>.php` při prvním bootu | `Dockerfile.preview` — `ARG NAME=""` + `ENV NAME=$NAME` (zapečené do image) | `Dockerfile.archive` — `ARG NAME=""` + `ENV NAME=$NAME` (zapečené do image) |
+| Čtení v PHP | `vytvorSouborSkrytehoNastaveniPodleEnv()` v `model/funkce/skryte-nastaveni-z-env-funkce.php` | totéž (preview i archive používají stejný `verejne-nastaveni-*.php` → stejnou generator funkci) | totéž |
+| Default pro lokální vývoj | `nastaveni/nastaveni-local-default.php` — `define(... getenv(...) ?: '')` | n/a (preview neběží lokálně) | n/a |
+
+**Checklist před commitem nové produkční feature čtoucí env var / secret:**
+
+- [ ] Přidat `getenv()` + heredoc `define()` do `model/funkce/skryte-nastaveni-z-env-funkce.php`
+- [ ] Přidat default do `nastaveni/nastaveni-local-default.php` (typicky `getenv(...) ?: ''`)
+- [ ] Přidat `secrets.*` do `.github/workflows/deploy-ostra.yml` a `deploy-beta.yml` (env: block)
+- [ ] Přidat `secrets.*` do `.github/workflows/deploy-preview.yml` (build-args:)
+- [ ] Přidat `secrets.*` do `.github/workflows/deploy-year-archive.yml` (build-args:)
+- [ ] Přidat `ARG` + `ENV` do `Dockerfile.preview`
+- [ ] Přidat `ARG` + `ENV` do `Dockerfile.archive`
+
+**Tajemství v image — bezpečnost:** GHCR repo `gamecon-cz/gamecon` je privátní, image layery nejsou veřejně čitelné. Citlivá produkční tajemství (DB hesla, FIO token, APP_SECRET) ale v preview/archive image **nemají co dělat** — preview/archive se připojují k vlastním (oddělených) DB a externím službám. Bake do image dělej **jen pro tajemství, která jsou společná napříč prostředími** (basic-auth k Caddy bráně před preview/archive — to je řízení přístupu k infrastruktuře, ne k datům).
+
+### Dvě cesty doručení env var do preview / archive
+
+Existují **dvě nezávislé cesty**, jak se env var dostane do běžícího preview / archive kontejneru:
+
+1. **Build-time bake přes Dockerfile** (tento repo) — `ARG` + `ENV` v `Dockerfile.preview` / `Dockerfile.archive`, hodnota přijde z `build-args:` v GitHub Actions workflow. Vhodné pro hodnoty **společné všem preview / všem archivům** (typicky basic-auth k bráně).
+2. **Runtime injection přes `docker run -e`** (ansible repo, `roles/preview_deployer/templates/deploy-preview-branch.sh.j2` a `roles/year_archive_deployer/files/deploy-year-archive.sh`). Vhodné pro hodnoty **per-deployment** (DB jméno odvozené ze slugu) nebo **per-prostředí, ale ne v image** (FIO token, kryptografické klíče — citlivé, nechceš je v image layerech). Preview deploy skript je Jinja template — tajemství pro `-e` se rendrují z `secrets.yaml` (SOPS) při `make deploy`; finální soubor na hostu je `0700`. Archive deploy zatím tajemství z vaultu nepotřebuje (statický `files/...sh`).
+
+**Pravidlo:** preview se musí chovat jako ostra. **Cokoli, co ostra v `deploy-ostra.yml` `env:` bloku předává a co se reálně čte v runtime kódu, musí dorazit i do preview kontejneru jednou z těch dvou cest.** Default = stejná hodnota jako ostra; výjimky dokumentuj v tabulce níže.
+
+### Audit červen 2026: konkrétní env vars předávané ostre vs. doručené do preview
+
+Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.sh` na `gamecon.cz` — soubor je deploynutý z ansible repo, role `preview_deployer`).
+
+| Env var | Cesta v preview | Hodnota v preview | Pozn. |
+|---------|-----------------|-------------------|-------|
+| `DB_SERV`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME` | `docker run -e` | per-slug (DB `gc_preview_<slug>`, user stejně, heslo = HMAC slugu) | správně |
+| `DBM_USER`, `DBM_PASS` | `docker run -e` | totožné s `DB_USER`/`DB_PASS` (preview nepotřebuje oddělený migration user) | správně |
+| `MIGRACE_HESLO` | `docker run -e` | per-slug HMAC | správně |
+| `APP_ENV`, `APP_DEBUG`, `APP_SECRET` | `docker run -e` | `prod` / prázdné / per-slug HMAC | správně |
+| `MAILER_DSN` | `docker run -e` | `smtp://172.17.0.1:1025` (sdílený Mailpit, `webmail.preview.gamecon.cz`) | **úmyslně jiné než ostra** — nechceme posílat z preview reálné maily |
+| `FIO_TOKEN` | `docker run -e` | **stejné jako ostra** | chceme testovat stahování plateb i z preview |
+| `SECRET_CRYPTO_KEY` | `docker run -e` | **stejné jako ostra** | šifruje osobní data (číslo OP) — preview musí umět rozšifrovat, co bylo zašifrováno na ostré (restored ostra dump) |
+| `DB_ANONYM_SERV/USER/PASS/NAME` | `docker run -e` | **stejné jako ostra** (sdílená anonymní DB) | beta i ostra ji sdílí (workflow používá `secrets.DB_ANONYM_*`, ne `OSTRA_DB_ANONYM_*`) |
+| `CRON_KEY` | `docker run -e` | per-slug HMAC | per-preview izolace; reálné crony nikdo zvenku nespouští, ale endpoint nesmí být `403` |
+| `SERVER_NAME` | `docker run -e` | `<slug>.preview.gamecon.cz` | konzistentní s tím, co by Apache nastavil z requestu |
+| `GOOGLE_API_CREDENTIALS` | (nevyplněno) | prázdné | úmyslné — vyřešíme později, většina toků v preview netřeba |
+| `PREVIEW_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi preview | bake je správná cesta — společná hodnota |
+| `ARCHIVE_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi archive | bake je správná cesta |
+| `FTP_*` | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |
+
+**Když přidáváš novou env-driven feature, vrať se k téhle tabulce a doplň řádek.** Pokud rozhodneš, že preview má dostat něco jiného než ostra, **napiš proč** — jinak se z toho stane skrytý drift.
+
 
