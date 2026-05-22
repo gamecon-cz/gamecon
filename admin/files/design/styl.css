@@ -188,7 +188,10 @@ body {
   padding: 20px;
   background-color: #fff;
   border-radius: 8px;
-  min-height: 480px;
+  /* Keep the white backdrop under the whole fixed sidebar (.sloupL),
+     otherwise the menu's fade-to-dark right edge meets the dark page
+     background below .main and looks like a cut-off. */
+  min-height: 80vh;
   position: relative;
   z-index: 10;
 }
