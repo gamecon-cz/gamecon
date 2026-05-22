@@ -38,22 +38,16 @@ $datumAnonymExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
         gap: 16px;
         margin-top: 16px;
     }
-    .dev-rozcestnik > a,
-    .dev-rozcestnik > form > button {
+    .dev-rozcestnik a {
         display: block;
-        width: 100%;
         padding: 16px;
         border: 1px solid #ddd;
         border-radius: 6px;
         text-decoration: none;
-        text-align: left;
         color: inherit;
         background: #fafafa;
-        font: inherit;
-        cursor: pointer;
     }
-    .dev-rozcestnik > a:hover,
-    .dev-rozcestnik > form > button:hover {
+    .dev-rozcestnik a:hover {
         background: #f0f0f0;
         border-color: #888;
     }
@@ -65,8 +59,10 @@ $datumAnonymExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
         color: #555;
         font-size: 0.9em;
     }
-    .dev-rozcestnik form {
-        margin: 0;
+    .dev-akce {
+        margin-top: 32px;
+        padding-top: 16px;
+        border-top: 1px solid #ddd;
     }
 </style>
 <div class="dev-rozcestnik">
@@ -78,24 +74,25 @@ $datumAnonymExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
         <h3>Staré ročníky</h3>
         <p>Seznam URL archivovaných ročníků (per-year docker kontejnery).</p>
     </a>
-    <form method="post">
-        <button type="submit" value="1" name="<?php echo STAHNOUT_ANONYM_DB_KLIC; ?>" class="without-safety-unlock">
-            <h3>Anonymizovaná databáze</h3>
-            <?php if ($datumAnonymExportu) { ?>
-                <p>
-                    Stáhnout dump z
-                    <?php echo htmlspecialchars(
-                        $datumAnonymExportu->format(DateTimeCz::FORMAT_DB)
-                        . ' (' . DateTimeCz::createFromInterface($datumAnonymExportu)->stari() . ')',
-                    ); ?>
-                </p>
-            <?php } else { ?>
-                <p>Dump zatím nebyl vygenerován. Generuje se automaticky jednou denně.</p>
-            <?php } ?>
-        </button>
-    </form>
     <a href="<?php echo URL_ADMIN; ?>/dev/update-zustatku">
         <h3>SQL update pro uzavření financí</h3>
         <p>Vygenerování SQL pro překlápění ročníku (uzavření financí).</p>
     </a>
+</div>
+
+<div class="dev-akce">
+    <h2>Anonymizovaná databáze</h2>
+    <?php if ($datumAnonymExportu) { ?>
+        <form method="post">
+            <button type="submit" value="1" name="<?php echo STAHNOUT_ANONYM_DB_KLIC; ?>" class="without-safety-unlock">
+                Stáhnout anonymizovanou databázi z
+                <?php echo htmlspecialchars(
+                    $datumAnonymExportu->format(DateTimeCz::FORMAT_DB)
+                    . ' (' . DateTimeCz::createFromInterface($datumAnonymExportu)->stari() . ')',
+                ); ?>
+            </button>
+        </form>
+    <?php } else { ?>
+        <p>Anonymizovaná databáze zatím nebyla vygenerována. Generuje se automaticky jednou denně.</p>
+    <?php } ?>
 </div>
