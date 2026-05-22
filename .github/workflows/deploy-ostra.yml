@@ -74,3 +74,7 @@ jobs:
                     APP_ENV: prod
                     APP_DEBUG: 0
                     APP_SECRET: ${{ secrets.OSTRA_APP_SECRET }}
+                    PREVIEW_BASIC_AUTH_USER: ${{ secrets.PREVIEW_BASIC_AUTH_USER }}
+                    PREVIEW_BASIC_AUTH_PASSWORD: ${{ secrets.PREVIEW_BASIC_AUTH_PASSWORD }}
+                    ARCHIVE_BASIC_AUTH_USER: ${{ secrets.ARCHIVE_BASIC_AUTH_USER }}
+                    ARCHIVE_BASIC_AUTH_PASSWORD: ${{ secrets.ARCHIVE_BASIC_AUTH_PASSWORD }}

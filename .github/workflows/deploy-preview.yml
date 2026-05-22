@@ -97,6 +97,15 @@ jobs:
                     tags: |
                         ghcr.io/${{ github.repository_owner }}/gamecon:preview-${{ steps.slug.outputs.slug }}
                         ghcr.io/${{ github.repository_owner }}/gamecon:preview-${{ steps.slug.outputs.slug }}-${{ steps.slug.outputs.sha7 }}
+                    # Basic-auth creds for the Caddy gate in front of preview /
+                    # archive envs. Baked into the image so the admin's dev
+                    # rozcestník in the preview renders links identically to
+                    # ostra (with foo:bar@host embedded). GHCR repo is private.
+                    build-args: |
+                        PREVIEW_BASIC_AUTH_USER=${{ secrets.PREVIEW_BASIC_AUTH_USER }}
+                        PREVIEW_BASIC_AUTH_PASSWORD=${{ secrets.PREVIEW_BASIC_AUTH_PASSWORD }}
+                        ARCHIVE_BASIC_AUTH_USER=${{ secrets.ARCHIVE_BASIC_AUTH_USER }}
+                        ARCHIVE_BASIC_AUTH_PASSWORD=${{ secrets.ARCHIVE_BASIC_AUTH_PASSWORD }}
                     # Reuse layers across preview builds — composer + yarn
                     # layers in particular are slow to rebuild.
                     cache-from: type=gha,scope=preview
