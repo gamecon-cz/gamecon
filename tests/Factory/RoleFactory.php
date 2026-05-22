@@ -43,7 +43,11 @@ final class RoleFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            RoleEntityStructure::id            => self::faker()->unique()->numberBetween(1, 5000),
+            // Stay well above seeded role_seznam rows (positive trvala
+            // ids run 2..30 today; new hand-curated roles always land
+            // near the top of that small range). 10000..999999 leaves
+            // ample headroom and unique() has 990k slots.
+            RoleEntityStructure::id            => self::faker()->unique()->numberBetween(10_000, 999_999),
             RoleEntityStructure::kodRole       => self::faker()->unique()->text(36),
             RoleEntityStructure::nazevRole     => self::faker()->unique()->text(255),
             RoleEntityStructure::popisRole     => self::faker()->text(),
