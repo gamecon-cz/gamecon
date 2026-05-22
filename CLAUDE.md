@@ -123,6 +123,44 @@ Get the custom repository via `->getRepository(SomeEntity::class)` (returns the 
 - **Hashing**: Always use the complete result of a hashing function — never truncate it (e.g. `substr(md5(...), 0, 12)`) as this increases collision risk
 - **Cache directories**: Use `SPEC` constant for private cache files and `CACHE` constant for public cache files (web-accessible)
 
+## Git Branch Naming from Trello Cards
+
+When given a Trello card URL, the branch name is exactly the slug
+that already lives in the URL after the card ID — **no extra
+`trello-` prefix**.
+
+Trello URLs look like:
+
+```
+https://trello.com/c/<short-id>/<card-id>-<slug>
+                                  └────┬─────┘
+                                       │
+                                       └─ this whole thing IS the branch name
+```
+
+Examples:
+
+| Trello URL                                                    | Branch name                |
+| ------------------------------------------------------------- | -------------------------- |
+| `https://trello.com/c/1VPhrSgW/1444-previews-list`            | `1444-previews-list`       |
+| `https://trello.com/c/abc12345/1500-fix-login-redirect-loop`  | `1500-fix-login-redirect-loop` |
+
+Create the branch from updated `origin/main`:
+
+```bash
+git fetch origin main
+git switch -c 1444-previews-list origin/main
+```
+
+**Do not** prepend `trello-`, the project initials, or anything else.
+The numeric card ID at the start is enough disambiguation and the
+slug already describes the task.
+
+This overrides the global YouTrack-style naming rule from
+`~/.claude/CLAUDE.md` — that one targets a different tracker (YouTrack
+ticket IDs like `PCA-682` aren't unique without the project prefix;
+Trello card numbers are).
+
 ## SQL Coding Style
 - **No table aliases**: Use full table names in queries whenever possible
 - **No single-letter aliases**: Avoid cryptic aliases like `t`, `n`, `a`
