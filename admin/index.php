@@ -300,6 +300,7 @@ foreach ($submenu as $url => $polozka) {
     }
 }
 $xtpl->assign('stranka', $stranka);
+$xtpl->assign('podstranka', $podstranka);
 $xtpl->assign('displaySubmenu', $allHidden ? 'none' : '');
 $xtpl->parse('all.submenu');
 
