@@ -251,10 +251,13 @@ body {
   padding: 15px 0 10px;
 }
 
-/* Dev uses a tile-style landing page (admin/scripts/modules/dev/dev.php)
-   as its own navigation, so the standard top submenu strip is just
-   visual noise. */
-#submenu.submenu-selected-dev {
+/* On the Dev landing page (admin/scripts/modules/dev/dev.php) the
+   tile-style rozcestník IS the navigation, so the standard top
+   submenu strip would just duplicate it. Sub-pages (previews,
+   stare-rocniky, update-zustatku) need the submenu — it's the only
+   way back to siblings without a re-navigate. The data-podstranka
+   attribute is empty exactly on the landing page. */
+#submenu[data-stranka="dev"][data-podstranka=""] {
   display: none;
 }
 
