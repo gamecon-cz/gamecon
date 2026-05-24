@@ -1,5 +1,7 @@
 <?php
-$souborVerejnehoNastaveni = null;
+
+use Gamecon\Prostredi\Prostredi;
+
 if (!empty($_COOKIE['unit_tests'])) {
     include __DIR__ . '/verejne-nastaveni-tests.php';
 }
@@ -8,21 +10,19 @@ if (file_exists(__DIR__ . '/nastaveni-server.php')) {
     include __DIR__ . '/nastaveni-server.php';
 }
 
-if (jsmeNaLocale()) {
-    if (file_exists(__DIR__ . '/nastaveni-local.php')) {
-        include __DIR__ . '/nastaveni-local.php'; // nepovinné lokální nastavení
-    }
-    require_once __DIR__ . '/nastaveni-local-default.php'; // výchozí lokální nastavení
-} elseif (jsmeNaBete()) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-beta.php';
-} elseif (jsmeNaOstre()) {
-    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
-} else {
-    echo 'Nepodařilo se detekovat prostředí, nelze načíst nastavení verze';
-    exit(1);
-}
+$prostredi = Prostredi::detect();
 
-if ($souborVerejnehoNastaveni) {
+if ($prostredi === Prostredi::Locale) {
+    // Locale is special: nastaveni-local.php is optional (developer
+    // override) and nastaveni-local-default.php holds env-driven defaults.
+    // Neither maps cleanly to the verejne-nastaveni-*.php pattern, so
+    // it stays as a bespoke branch.
+    if (file_exists(__DIR__ . '/nastaveni-local.php')) {
+        include __DIR__ . '/nastaveni-local.php';
+    }
+    require_once __DIR__ . '/nastaveni-local-default.php';
+} else {
+    $souborVerejnehoNastaveni = $prostredi->souborVerejnehoNastaveni();
     vytvorSouborSkrytehoNastaveniPodleEnv($souborVerejnehoNastaveni);
     require_once $souborVerejnehoNastaveni;
 }

@@ -30,8 +30,10 @@ class Login
             $loginTemplate->parse('login.chyba');
         }
 
-        if ($this->systemoveNastaveni->jsmeNaBete()) {
-            $loginTemplate->parse('login.jsmeNaBete');
+        $ribbonLabel = $this->systemoveNastaveni->prostredi()->ribbonLabel();
+        if ($ribbonLabel !== '') {
+            $loginTemplate->assign('ribbonLabel', $ribbonLabel);
+            $loginTemplate->parse('login.ribbon');
         }
 
         $loginTemplate->parse('login');

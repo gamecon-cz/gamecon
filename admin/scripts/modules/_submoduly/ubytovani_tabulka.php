@@ -3,6 +3,7 @@
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Shop\Shop;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 use Gamecon\XTemplate\XTemplate;
 
 class UbytovaniTabulka
@@ -12,12 +13,15 @@ class UbytovaniTabulka
         XTemplate          $t,
         SystemoveNastaveni $systemoveNastaveni,
         bool               $muzeEditovatUkoncenyProdej,
-    )
+    ): void
     {
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $systemoveNastaveni->prodejUbytovaniUkoncen();
         foreach ($shop->mozneDny() as $den => $typy) { // typy _v daný den_
             $typVzor = reset($typy);
-            $t->assign('postnameDen', $shop->postnameDen() . '[' . $den . ']');
+            $t->assign([
+                'postnameDen'     => $shop->postnameDen() . '[' . $den . ']',
+                'snidaneDnyProJs' => $shop->snidaneDnyProJs((int)$den),
+            ]);
             $ubytovanVeDni = false;
             foreach ($shop->mozneTypy() as $typ => $rozsah) {
                 $ubytovanVeDniATypu = false;
@@ -31,19 +35,26 @@ class UbytovaniTabulka
                 $obsazeno  = $shop->obsazenoMist($den, $typ);
                 $kapacita  = $shop->kapacita($den, $typ);
                 $zbyvaMist = $shop->zbyvaMist($den, $typ);
+                $neomezenaKapacita = $kapacita === '∞';
+                if ($neomezenaKapacita) {
+                    $zbyvaMist = '∞';
+                }
 
                 $t->assign([
-                    'idPredmetu' => $shop->mozneDny()[$den][$typ]['id_predmetu'] ?? null,
-                    'checked'    => $checked,
-                    'disabled'   => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
+                    'idPredmetu'    => $shop->mozneDny()[$den][$typ]['id_predmetu'] ?? null,
+                    'typ'           => $typ,
+                    'podtyp'        => $shop->mozneDny()[$den][$typ][Sql::PODTYP] ?? '',
+                    'checked'       => $checked,
+                    'disabled'      => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                     && ($prodejUbytovaniUkoncen
                         || (!$ubytovanVeDniATypu && (!$shop->existujeUbytovani($den, $typ) || $shop->plno($den, $typ)))
                     )
                         ? 'disabled'
                         : '',
-                    'obsazeno'   => $obsazeno,
-                    'kapacita'   => $kapacita,
-                    'zbyvaMist'  => $zbyvaMist,
+                    'obsazeno'      => $obsazeno,
+                    'kapacita'      => $kapacita,
+                    'kapacitaProJs' => $neomezenaKapacita ? -1 : $kapacita,
+                    'zbyvaMist'     => $zbyvaMist,
                 ])->parse('ubytovani.den.typ');
             }
             // data pro názvy dnů a pro "Žádné" ubytování
@@ -63,7 +74,7 @@ class UbytovaniTabulka
         ShopUbytovani      $shop,
         SystemoveNastaveni $systemoveNastaveni,
         bool               $muzeEditovatUkoncenyProdej,
-    )
+    ): string
     {
         $t = new XTemplate(__DIR__ . '/ubytovani_tabulka.xtpl');
         self::htmlDny($shop, $t, $systemoveNastaveni, $muzeEditovatUkoncenyProdej);
@@ -92,4 +103,3 @@ class UbytovaniTabulka
     }
 
 }
-

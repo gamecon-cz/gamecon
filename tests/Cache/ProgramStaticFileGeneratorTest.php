@@ -12,6 +12,7 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -62,15 +63,14 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
     private function createSystemoveNastaveni(): SystemoveNastaveni
     {
         return new SystemoveNastaveni(
-            self::ROK,
-            new DateTimeImmutableStrict(),
-            false,
-            false,
-            DatabazoveNastaveni::vytvorZGlobals(),
-            '',
-            $this->privateCacheDir,
-            new Kernel('test', false),
-            $this->publicCacheDir,
+            rocnik: self::ROK,
+            ted: new DateTimeImmutableStrict(),
+            prostredi: Prostredi::Production,
+            databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+            rootAdresarProjektu: '',
+            privateCacheDir: $this->privateCacheDir,
+            kernel: new Kernel('test', false),
+            publicCacheDir: $this->publicCacheDir,
         );
     }
 

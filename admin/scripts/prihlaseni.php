@@ -2,6 +2,7 @@
 
 use Gamecon\Login\Login;
 use Gamecon\Exceptions\UzivatelNenalezen;
+use Gamecon\Pravo;
 
 /**
  * Kód starající o přihlášení uživatele a výběr uživatele pro práci
@@ -73,9 +74,9 @@ if (post('zrusitUzivateleProPraci')) {
 
 if (post('prihlasitSeJakoUzivatel')) {
     try {
-        if ($u->jeSuperAdmin() || ($u->jeInfopultak())) {
+        if ($u->maPravo(Pravo::PREPNUTI_NA_UZIVATELE) || ($u->jeInfopultak())) {
             $potencialniUzivatel = Uzivatel::zIdUrcite(post('id'));
-            if ($u->jeSuperAdmin() || $potencialniUzivatel->jeVypravec() || $potencialniUzivatel->jePartner()) {
+            if ($u->maPravo(Pravo::PREPNUTI_NA_UZIVATELE) || $potencialniUzivatel->jeVypravec() || $potencialniUzivatel->jePartner()) {
                 $u = Uzivatel::prihlasId(post('id'));
                 back($u->jeVypravec() || $u->jePartner()
                     ? $u->mojeAktivityAdminUrl()

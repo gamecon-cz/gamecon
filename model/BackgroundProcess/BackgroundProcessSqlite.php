@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\BackgroundProcess;
 
 use Symfony\Component\Clock\ClockInterface;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * SQLite wrapper pro sledování background procesů
@@ -18,12 +19,7 @@ class BackgroundProcessSqlite
         private readonly ClockInterface $clock,
     ) {
         $dbPath = self::DB_PATH;
-        $dbDir = dirname($dbPath);
-
-        // Vytvoř adresář pokud neexistuje
-        if (! is_dir($dbDir)) {
-            mkdir($dbDir, 0755, true);
-        }
+        (new Filesystem())->mkdir(dirname($dbPath), 0755);
 
         $needsInit = ! file_exists($dbPath);
 

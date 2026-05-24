@@ -236,13 +236,16 @@ class ImportValuesSanitizer
         $stepsResults[]                                       = $maximalTeamCapacityResult;
         unset($maximalTeamCapacityResult);
 
-        $childResult = $this->getValidatedChild($inputValues, $originalActivity, $parentActivity);
-        if ($childResult->isError()) {
-            return ImportStepResult::error($childResult->getError());
+        $turnajResult = $this->getValidatedTurnaj($inputValues, $originalActivity, $parentActivity);
+        if ($turnajResult->isError()) {
+            return ImportStepResult::error($turnajResult->getError());
         }
-        $sanitizedValues[ActivitiesImportSqlColumn::DITE] = $childResult->getSuccess();
-        $stepsResults[]                                   = $childResult;
-        unset($priceResult);
+        [
+            'id_turnaje'  => $sanitizedValues[ActivitiesImportSqlColumn::ID_TURNAJE],
+            'turnaj_kolo' => $sanitizedValues[ActivitiesImportSqlColumn::TURNAJ_KOLO],
+        ] = $turnajResult->getSuccess();
+        $stepsResults[] = $turnajResult;
+        unset($turnajResult);
 
         $priceResult = $this->getValidatedPrice($inputValues, $originalActivity, $parentActivity);
         if ($priceResult->isError()) {
@@ -899,89 +902,59 @@ HTML;
         ));
     }
 
-    private function getValidatedChild(
+    /**
+     * @return ImportStepResult Success payload: ['id_turnaje' => ?int, 'turnaj_kolo' => ?int]
+     */
+    private function getValidatedTurnaj(
         array     $activityValues,
         ?Aktivita $originalActivity,
         ?Aktivita $parentActivity,
     ): ImportStepResult {
-        $childrenValue = $activityValues[ExportAktivitSloupce::NASLEDUJICI_SEMIFINALE] ?? null;
-        if ((string)$childrenValue === '') {
+        $turnajNazev = trim((string)($activityValues[ExportAktivitSloupce::TURNAJ] ?? ''));
+        $koloRaw     = trim((string)($activityValues[ExportAktivitSloupce::KOLO_TURNAJE] ?? ''));
+
+        if ($turnajNazev === '' && $koloRaw === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
-            if ($sourceActivity) {
-                return ImportStepResult::success($sourceActivity->detiDbString());
-            }
 
-            return ImportStepResult::success(null);
-        }
-        $childrenValues         = array_map('trim', explode(',', $childrenValue));
-        $childrenIds            = [];
-        $errorLikeWarnings      = [];
-        $nextSemifinalLowercase = mb_strtolower(ExportAktivitSloupce::NASLEDUJICI_SEMIFINALE);
-        foreach ($childrenValues as $childValue) {
-            if ($childValue === '') {
-                continue;
-            }
-            $childId = (int)$childValue;
-            if ($childId) {
-                if ($originalActivity && $originalActivity->id() === $childId) {
-                    $errorLikeWarnings[] = sprintf(
-                        "Aktivita '%s' nemůže použít samu sebe jako %s.",
-                        $originalActivity->nazev(),
-                        $nextSemifinalLowercase,
-                    );
-                    continue;
-                }
-                if ($parentActivity && $parentActivity->id() === $childId) {
-                    $errorLikeWarnings[] = sprintf(
-                        "Aktivita '%s' nemůže použít svého rodiče %s jako %s.",
-                        $originalActivity->nazev(),
-                        $parentActivity->nazev(),
-                        $nextSemifinalLowercase,
-                    );
-                    continue;
-                }
-                $child = Aktivita::zId($childId, true);
-                if (!$child) {
-                    $errorLikeWarnings[] = sprintf(
-                        "Neznámé ID aktivity '%d' (%s). Pro %s nebylo použito.",
-                        $childId,
-                        $childValue,
-                        $nextSemifinalLowercase,
-                    );
-                    continue;
-                }
-                if ($child->rok() !== $this->currentYear) {
-                    $errorLikeWarnings[] = sprintf(
-                        "Aktivita %s chtěná jako %s není pro letošní rok, ale byla pro %d. Aktivita nebyla pro %s použita.",
-                        $childValue,
-                        $nextSemifinalLowercase,
-                        $child->rok(),
-                        $nextSemifinalLowercase,
-                    );
-                    continue;
-                }
-                $childrenIds[] = $childId;
-            } else {
-                $children = Aktivita::zNazvuARoku($childValue, $this->currentYear);
-                if (!$children) {
-                    $errorLikeWarnings[] = sprintf(
-                        "Neznámá aktivita '%s' pro %s. Pro rok %d nebyla rozpoznána ani podle ID, ani podle názvu.",
-                        $childValue,
-                        $nextSemifinalLowercase,
-                        $this->currentYear,
-                    );
-                }
-                foreach ($children as $child) {
-                    $childrenIds[] = $child->id();
-                }
-            }
-        }
-        $childrenIdsForSql = implode(',', array_unique($childrenIds));
-        if ($errorLikeWarnings) {
-            return ImportStepResult::successWithErrorLikeWarnings($childrenIdsForSql, $errorLikeWarnings);
+            return ImportStepResult::success([
+                'id_turnaje'  => $sourceActivity ? $sourceActivity->idTurnaje() : null,
+                'turnaj_kolo' => $sourceActivity ? $sourceActivity->turnajKolo() : null,
+            ]);
         }
 
-        return ImportStepResult::success($childrenIdsForSql);
+        if ($turnajNazev === '') {
+            return ImportStepResult::error(sprintf(
+                "Je vyplněno '%s' (%s), ale chybí '%s'.",
+                ExportAktivitSloupce::KOLO_TURNAJE,
+                $koloRaw,
+                ExportAktivitSloupce::TURNAJ,
+            ));
+        }
+        if ($koloRaw === '' || !ctype_digit($koloRaw) || (int)$koloRaw < 1) {
+            return ImportStepResult::error(sprintf(
+                "Hodnota '%s' pro '%s' (turnaj '%s') není kladné celé číslo.",
+                $koloRaw,
+                ExportAktivitSloupce::KOLO_TURNAJE,
+                $turnajNazev,
+            ));
+        }
+
+        $idTurnaje = dbOneCol(
+            'SELECT id_turnaje FROM turnaje WHERE nazev = $0 AND rok = $1',
+            [$turnajNazev, $this->currentYear],
+        );
+        if (!$idTurnaje) {
+            dbQuery(
+                'INSERT INTO turnaje (nazev, rok) VALUES ($0, $1)',
+                [$turnajNazev, $this->currentYear],
+            );
+            $idTurnaje = dbInsertId();
+        }
+
+        return ImportStepResult::success([
+            'id_turnaje'  => (int)$idTurnaje,
+            'turnaj_kolo' => (int)$koloRaw,
+        ]);
     }
 
     private function getValidatedPrice(

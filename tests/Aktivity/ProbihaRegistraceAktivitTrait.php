@@ -18,8 +18,7 @@ trait ProbihaRegistraceAktivitTrait
                 parent::__construct(
                     rocnik: $original->rocnik(),
                     ted: $original->ted(),
-                    jsmeNaBete: $original->jsmeNaBete(),
-                    jsmeNaLocale: $original->jsmeNaLocale(),
+                    prostredi: $original->prostredi(),
                     databazoveNastaveni: $original->databazoveNastaveni(),
                     rootAdresarProjektu: $original->rootAdresarProjektu(),
                     privateCacheDir: $original->privateCacheDir(),

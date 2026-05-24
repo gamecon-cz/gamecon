@@ -3,6 +3,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
 use Gamecon\Pravo;
+use Gamecon\Uzivatel\NotifikacePrihlasky;
 
 /**
  * @see web/sablony/blackarrow/prihlaska.xtpl
@@ -119,22 +120,53 @@ if (post('odhlasit')) {
             : 'sám';
         chyba("Během Gameconu se nemůžeš $sama odhlást. Stav se na infopultu.");
     } else {
-        $u->odhlasZGc('rucne-sam-sebe', $u);
+        $notifikacePrihlasky = new NotifikacePrihlasky($u, $systemoveNastaveni);
+        $vypisFinanciPredZrusenim = $notifikacePrihlasky->vypisFinanciZUctu(false);
+        $odhlaseno = $u->odhlasZGc('rucne-sam-sebe', $u);
+        if ($odhlaseno) {
+            $u->finance()->obnovUdaje();
+            try {
+                $notifikacePrihlasky->odesliMailOZruseniPrihlasky($vypisFinanciPredZrusenim);
+            } catch (Throwable $throwable) {
+                trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
+            }
+        }
         oznameni(hlaska('odhlaseniZGc', $u));
     }
 }
 
 if (post('prihlasitNeboUpravit')) {
-    $prihlasovani = false;
-    if (!$u->gcPrihlasen()) {
-        $prihlasovani = true;
-        $u->gcPrihlas($u);
+    $notifikacePrihlasky = new NotifikacePrihlasky($u, $systemoveNastaveni);
+    $prihlasovani = !$u->gcPrihlasen();
+    $predchoziObjednavky = $prihlasovani
+        ? []
+        : $notifikacePrihlasky->snapshotObjednavekZUctu();
+    dbBegin();
+    try {
+        if ($prihlasovani) {
+            $u->gcPrihlas($u);
+        }
+        $shop->zpracujPredmety();
+        $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
+        $shop->zpracujJidlo();
+        $shop->zpracujVstupne();
+        $pomoc->zpracuj();
+        $u->finance()->obnovUdaje();
+        $aktualniObjednavky = $notifikacePrihlasky->snapshotObjednavekZUctu();
+        dbCommit();
+    } catch (Throwable $throwable) {
+        dbRollback();
+        throw $throwable;
     }
-    $shop->zpracujPredmety();
-    $shop->zpracujUbytovani();
-    $shop->zpracujJidlo();
-    $shop->zpracujVstupne();
-    $pomoc->zpracuj();
+    try {
+        if ($prihlasovani) {
+            $notifikacePrihlasky->odesliMailONovePrihlasce();
+        } elseif ($predchoziObjednavky !== $aktualniObjednavky) {
+            $notifikacePrihlasky->odesliMailOZmenePrihlasky($predchoziObjednavky, $aktualniObjednavky);
+        }
+    } catch (Throwable $throwable) {
+        trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
+    }
     if ($prihlasovani) {
         oznameni(hlaska('prihlaseniNaGc', $u));
     } else {
@@ -153,11 +185,8 @@ if ($slevy) {
     $t->parse('prihlaska.slevy');
 }
 
-if (!$u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)){
-    $t->parse('prihlaska.ubytovaniTriPlusNoci');
-    if ((int)date('Y') === 2025){
-       $t->parse('prihlaska.triPlusNoci2025');
-    }
+if (!$u->maPravo(Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC)) {
+    $t->parse('prihlaska.ubytovaniMinDveNoci');
 }
 
 if ($u->jeOrganizator()) {
@@ -220,7 +249,7 @@ if (is_dir($adresarKObrazkuPredmetu)) {
             'nazev'     => $nazev,
             'display'   => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(Pravo::ADMINISTRACE_INFOPULT))
                 ? 'none'
-                : 'inherit',
+                : 'flex',
         ]);
         $t->parse('prihlaska.nahled');
     }
@@ -231,6 +260,7 @@ $t->assign([
     'jidlo'                           => $shop->jidloHtml(),
     'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
     'predmety'                        => $shop->predmetyHtml(),
+    'mikinyObjednatelnaDo'            => $shop->mikinyObjednatelnaDoHtml(),
     'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
     'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
     'rok'                             => ROCNIK,

@@ -20,6 +20,7 @@ use Gamecon\Pravo;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as PredmetSql;
 use Gamecon\Shop\TypPredmetu;
+use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Dto\PolozkaProBfgr;
 use Gamecon\Uzivatel\Dto\PriceAfterDiscountDto;
@@ -659,13 +660,25 @@ SQL;
             if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::SLEDUJICI) {
                 continue;
             }
+            $castkaAktivity = in_array($r['typ'], TypAktivity::interniTypy())
+                ? 0.0
+                : (float)$r['cena'];
             $this->log(
                 nazev: $r['nazev'] . $poznamka,
-                castka: in_array($r['typ'], TypAktivity::interniTypy())
-                    ? 0
-                    : $r['cena'],
+                castka: $castkaAktivity,
                 kategorie: self::AKTIVITY,
                 idPolozky: null,
+            );
+            $this->logPolozkaProBfgr(
+                nazev: $r['nazev'] . $poznamka,
+                pocet: 1,
+                priceAfterDiscountDto: new PriceAfterDiscountDto(
+                    finalPrice: $castkaAktivity,
+                    discount: 0,
+                ),
+                typ: self::AKTIVITY,
+                kodPredmetu: '',
+                idPredmetu: '',
             );
         }
         $this->zapocteno[__FUNCTION__] = true;
@@ -746,7 +759,7 @@ SQL;
         $this->cenaStravy                     = 0.0;
         $this->proplacenyBonusZaVedeniAktivit = 0.0;
         $this->dobrovolneVstupnePrehled       = [];
-        $this->polozkyProBfgr                 = [];
+        $this->polozkyProBfgr                 ??= [];
 
         $o = dbQuery('
       SELECT predmety.id_predmetu, predmety.nazev, nakupy.cena_nakupni, predmety.typ, predmety.ubytovani_den, predmety.model_rok, predmety.kod_predmetu
@@ -913,11 +926,25 @@ SQL;
                 sprintf('Započítání %s již proběhlo.', __FUNCTION__),
             );
         }
+        $zustatek = $this->zustatekZPredchozichRocniku();
         $this->logb(
             'Zůstatek z minulých let',
-            $this->zustatekZPredchozichRocniku(),
+            $zustatek,
             self::ZUSTATEK_Z_PREDCHOZICH_LET,
         );
+        if ($zustatek != 0.0) {
+            $this->logPolozkaProBfgr(
+                nazev: 'Zůstatek z minulých let',
+                pocet: 1,
+                priceAfterDiscountDto: new PriceAfterDiscountDto(
+                    finalPrice: -$zustatek,
+                    discount: 0,
+                ),
+                typ: self::ZUSTATEK_Z_PREDCHOZICH_LET,
+                kodPredmetu: '',
+                idPredmetu: '',
+            );
+        }
         $this->zapocteno[__FUNCTION__] = true;
     }
 
@@ -940,6 +967,17 @@ SQL;
                 'Bonus za aktivity',
                 $puvodniBonusZaVedeniAktivit,
                 self::ORGSLEVA,
+            );
+            $this->logPolozkaProBfgr(
+                nazev: 'Bonus za aktivity',
+                pocet: 1,
+                priceAfterDiscountDto: new PriceAfterDiscountDto(
+                    finalPrice: -$puvodniBonusZaVedeniAktivit,
+                    discount: 0,
+                ),
+                typ: self::ORGSLEVA,
+                kodPredmetu: '',
+                idPredmetu: '',
             );
         }
 
@@ -987,6 +1025,21 @@ SQL;
             );
         }
 
+        $aplikovanaSleva = $puvodniObecnaSleva - $nevyuzitaObecnaSleva;
+        if ($aplikovanaSleva > 0) {
+            $this->logPolozkaProBfgr(
+                nazev: 'Sleva',
+                pocet: 1,
+                priceAfterDiscountDto: new PriceAfterDiscountDto(
+                    finalPrice: -$aplikovanaSleva,
+                    discount: 0,
+                ),
+                typ: self::PRIPSANE_SLEVY,
+                kodPredmetu: '',
+                idPredmetu: '',
+            );
+        }
+
         return $cena;
     }
 
@@ -1010,21 +1063,60 @@ SQL;
         return $this->kategorieNeplatice;
     }
 
-    public function dejQrKodProPlatbu(): ?ResultInterface
+    public function dejQrKodProCeskouPlatbu(): ResultInterface
     {
-        $castkaCzk = $this->stav() >= 0
-            ? 0.1
-            // nulová, respektive dobrovolná platba
-            : -$this->stav();
-
         $qrPlatba = QrPlatba::dejQrProTuzemskouPlatbu(
-            $castkaCzk,
+            $this->dejCastkuProQrPlatbuVCzk(),
             $this->u->id(),
         );
 
-        // SEPA platbu přes QR kód neumí zřejmě žádná slovenská banka, takže pro mimočeské nezobrazíme nic
+        return $qrPlatba->dejQrObrazek();
+    }
+
+    public function dejQrKodProSlovenskouPlatbu(): ResultInterface
+    {
+        $qrPlatba = QrPlatba::dejQrProSlovenskouPlatbu(
+            $this->dejCastkuProQrPlatbuVEurech(),
+            $this->u->id(),
+            IBAN,
+        );
 
         return $qrPlatba->dejQrObrazek();
+    }
+
+    public function dejQrKodProSepaPlatbu(): ResultInterface
+    {
+        $qrPlatba = QrPlatba::dejQrProSepaPlatbu(
+            $this->dejCastkuProQrPlatbuVEurech(),
+            $this->u->id(),
+        );
+
+        return $qrPlatba->dejQrObrazek();
+    }
+
+    public function dejQrKodProPlatbu(): ?ResultInterface
+    {
+        return match ($this->u->stat()) {
+            Stat::CZ => $this->dejQrKodProCeskouPlatbu(),
+            Stat::SK => $this->dejQrKodProSlovenskouPlatbu(),
+            default => null,
+        };
+    }
+
+    private function dejCastkuProQrPlatbuVCzk(): float
+    {
+        return $this->stav() >= 0
+            ? 0.1
+            // nulová, respektive dobrovolná platba
+            : -$this->stav();
+    }
+
+    private function dejCastkuProQrPlatbuVEurech(): float
+    {
+        return $this->stav() >= 0
+            ? 0.1
+            // nulová, respektive dobrovolná platba
+            : -$this->stav() / KURZ_EURO;
     }
 
     public function sumaStorna(): float

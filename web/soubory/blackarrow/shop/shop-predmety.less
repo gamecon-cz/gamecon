@@ -1,12 +1,15 @@
 .shopPredmety_predmety,
-.shopPredmety_tricko {
+.shopPredmety_tricko,
+.shopPredmety_mikina {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     column-gap: 52px;
     row-gap: 24px;
 }
 
-.shopPredmety_tricka {
+.shopPredmety_tricka,
+.shopPredmety_mikiny,
+.shopPredmety_opakovaneVybery {
     display: grid;
     row-gap: 24px;
 }
@@ -17,11 +20,22 @@
     margin-bottom: 32px;
 }
 
+.shopPredmety_tricka + .shopPredmety_mikiny,
+.shopPredmety_tricka + .shopPredmety_dalsiMerch,
+.shopPredmety_mikiny + .shopPredmety_dalsiMerch {
+    margin-top: 2rem;
+
+    @media (max-width: 600px) {
+        margin-top: 1.5rem;
+    }
+}
+
 .shopPredmety_predmet {
     display: flex;
 }
 
-.shopPredmety_trickoSelect {
+.shopPredmety_trickoSelect,
+.shopPredmety_mikinaSelect {
     margin: 0;
 }
 
@@ -76,6 +90,29 @@
     color: #DBDBDB;
     opacity: 0.5;
     cursor: default;
+}
+
+@media (max-width: 375px) {
+    .shopPredmety_predmety,
+    .shopPredmety_tricko,
+    .shopPredmety_mikina {
+        grid-template-columns: minmax(0, 1fr);
+        column-gap: 0;
+    }
+
+    .shopPredmety_predmet {
+        min-width: 0;
+    }
+
+    .shopPredmety_predmet .shop_popis {
+        min-width: 0;
+        max-width: calc(100% - 124px);
+    }
+
+    .shopPredmety_plusminus {
+        margin-left: 12px;
+        flex-shrink: 0;
+    }
 }
 
 // Další merch - collapsible section for secondary items

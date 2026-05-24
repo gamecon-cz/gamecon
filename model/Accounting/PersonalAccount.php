@@ -37,23 +37,24 @@ readonly class PersonalAccount
     {
         $result = '<table class="objednavky">';
 
-        $result = $result . $this->categoryToHtml($this, TransactionCategory::ACTIVITY, 'Aktivity', $positivePrices);
-        $result = $result . $this->categoryToHtml($this, TransactionCategory::FOOD, 'Strava', $positivePrices);
-        $result = $result . $this->categoryToHtml($this, TransactionCategory::SHOP_ITEMS, 'Předměty', $positivePrices);
-        $result = $result . $this->categoryToHtml($this, TransactionCategory::ACCOMMODATION, 'Ubytování', $positivePrices);
-        $result = $result . $this->categoryToHtml($this, TransactionCategory::VOLUNTARY_DONATION, 'Dobrovolné vstupné', $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::ACTIVITY, 'Aktivity', $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::FOOD, 'Strava', $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::SHOP_ITEMS, 'Předměty', $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::ACCOMMODATION, 'Ubytování', $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::VOLUNTARY_DONATION, 'Dobrovolné vstupné', $positivePrices);
 
         $result = $result . '<tr><td><b>Celková cena</b></td><td><b>' . -array_reduce(
             array_filter($this->getTransactions(), fn (Transaction $a) => (
-                $a->getCategory() === TransactionCategory::ACTIVITY
-                || $a->getCategory() === TransactionCategory::FOOD
-                || $a->getCategory() === TransactionCategory::SHOP_ITEMS
-                || $a->getCategory() === TransactionCategory::ACCOMMODATION)),
+                $a->getCategory() === TransactionCategoryEnum::ACTIVITY
+                || $a->getCategory() === TransactionCategoryEnum::FOOD
+                || $a->getCategory() === TransactionCategoryEnum::SHOP_ITEMS
+                || $a->getCategory() === TransactionCategoryEnum::ACCOMMODATION
+                || $a->getCategory() === TransactionCategoryEnum::VOLUNTARY_DONATION)),
             fn ($a, $b) => $this->transactionSumReducer($a, $b),
             0) . '</b></td></tr>';
 
-        $result = $result . $this->categoryToHtml($this, TransactionCategory::LEFTOVER_FROM_LAST_YEAR, 'Zůstatek z minulých let');
-        $result = $result . $this->categoryToHtml($this, TransactionCategory::MANUAL_MOVEMENTS, 'Připsané platby');
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR, 'Zůstatek z minulých let');
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::MANUAL_MOVEMENTS, 'Připsané platby');
 
         $result = $result . '<tr><td><b>Stav financí</b></td><td><b>' . array_reduce(
             $this->getTransactions(),
@@ -72,21 +73,71 @@ readonly class PersonalAccount
         return $carry;
     }
 
-    private function categoryToHtml(self $account, TransactionCategory $category, string $categoryName, bool $negatePrice = false): string
+    private function categoryToHtml(self $account, TransactionCategoryEnum $category, string $categoryName, bool $negatePrice = false): string
     {
-        $result = '<tr><td><b>' . $categoryName . '</b></td><td><b>' . ($negatePrice ? -1 : 1) * array_reduce(
-            array_filter($account->getTransactions(), fn ($a) => $a->getCategory() === $category),
-            fn ($a, $b) => $this->transactionSumReducer($a, $b),
-            0) . '</b></td></tr>';
+        $groupedSplits = $this->groupedSplitsByCategory($account, $category, $categoryName);
+        $categoryTotal = $this->totalForCategory($account, $category);
 
-        foreach ($account->getTransactions() as $transaction) {
-            if ($transaction->getCategory() === $category) {
-                foreach ($transaction->getSplits() as $split) {
-                    $result = $result . '<tr><td>' . $split->getDescription() . '</td><td>' . ($negatePrice ? -1 : 1) * $split->getAmount() . '</td></tr>';
-                }
+        $result = '<tr><td><b>' . $categoryName . '</b></td><td><b>'
+            . ($negatePrice ? -1 : 1) * $categoryTotal
+            . '</b></td></tr>';
+
+        foreach ($groupedSplits as $groupedSplit) {
+            $description = $groupedSplit['description'];
+            if ($groupedSplit['count'] > 1) {
+                $description .= ' ' . $groupedSplit['count'] . '×';
             }
+            $result = $result . '<tr><td>' . $description . '</td><td>'
+                . ($negatePrice ? -1 : 1) * $groupedSplit['amount']
+                . '</td></tr>';
         }
 
         return $result;
+    }
+
+    private function totalForCategory(self $account, TransactionCategoryEnum $category): int
+    {
+        $total = 0;
+        foreach ($account->getTransactions() as $transaction) {
+            if ($transaction->getCategory() !== $category) {
+                continue;
+            }
+            foreach ($transaction->getSplits() as $split) {
+                $total += $split->getAmount();
+            }
+        }
+
+        return $total;
+    }
+
+    /**
+     * @return array<int, array{description: string, amount: int, count: int}>
+     */
+    private function groupedSplitsByCategory(self $account, TransactionCategoryEnum $category, string $categoryName): array
+    {
+        $groupedSplits = [];
+
+        foreach ($account->getTransactions() as $transaction) {
+            if ($transaction->getCategory() !== $category) {
+                continue;
+            }
+            foreach ($transaction->getSplits() as $split) {
+                if ($split->getDescription() === $categoryName) {
+                    continue;
+                }
+                $key = $split->getDescription() . "\0" . $split->getAmount();
+                if (! isset($groupedSplits[$key])) {
+                    $groupedSplits[$key] = [
+                        'description' => $split->getDescription(),
+                        'amount'      => 0,
+                        'count'       => 0,
+                    ];
+                }
+                $groupedSplits[$key]['amount'] += $split->getAmount();
+                ++$groupedSplits[$key]['count'];
+            }
+        }
+
+        return array_values($groupedSplits);
     }
 }

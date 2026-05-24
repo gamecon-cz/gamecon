@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model;
 
 use Gamecon\Accounting;
-use Gamecon\Accounting\TransactionCategory;
+use Gamecon\Accounting\TransactionCategoryEnum;
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Pravo;
+use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\Finance;
 
 class AccountingTest extends AbstractTestDb
 {
@@ -117,6 +122,84 @@ SQL,
         );
     }
 
+    private function vlozAktivitu(
+        int $idAktivity,
+        string $nazev,
+        float $cena,
+        int $typ = TypAktivity::PREDNASKA,
+        int $stavPrihlaseni = StavPrihlaseni::PRIHLASEN_A_DORAZIL,
+    ): void {
+        dbQuery(
+            <<<SQL
+            INSERT INTO akce_seznam(
+                id_akce, nazev_akce, rok, cena, typ,
+                kapacita, kapacita_f, kapacita_m,
+                bez_slevy, nedava_bonus, teamova,
+                popis, popis_kratky, vybaveni
+            )
+            VALUES($0, $1, $2, $3, $4, 10, 0, 0, 0, 0, 0, '', '', '')
+            SQL,
+            [
+                0 => $idAktivity,
+                1 => $nazev,
+                2 => ROCNIK,
+                3 => $cena,
+                4 => $typ,
+            ],
+        );
+        dbQuery(
+            'INSERT INTO akce_prihlaseni(id_akce, id_uzivatele, id_stavu_prihlaseni) VALUES($0, $1, $2)',
+            [
+                0 => $idAktivity,
+                1 => 555,
+                2 => $stavPrihlaseni,
+            ],
+        );
+    }
+
+    private function vlozVedenouAktivitu(int $idAktivity, string $nazev): void
+    {
+        dbQuery(
+            <<<SQL
+            INSERT INTO akce_seznam(
+                id_akce, nazev_akce, rok, cena, typ, zacatek, konec,
+                kapacita, kapacita_f, kapacita_m,
+                bez_slevy, nedava_bonus, teamova,
+                popis, popis_kratky, vybaveni
+            )
+            VALUES($0, $1, $2, 0, $3, $4, $5, 10, 0, 0, 0, 0, 0, '', '', '')
+            SQL,
+            [
+                0 => $idAktivity,
+                1 => $nazev,
+                2 => ROCNIK,
+                3 => TypAktivity::PREDNASKA,
+                4 => ROCNIK . '-07-17 10:00:00',
+                5 => ROCNIK . '-07-17 13:00:00',
+            ],
+        );
+        dbQuery(
+            'INSERT INTO akce_organizatori(id_akce, id_uzivatele) VALUES($0, $1)',
+            [
+                0 => $idAktivity,
+                1 => 555,
+            ],
+        );
+    }
+
+    private function vlozSlevu(float $castka, string $poznamka = 'Test sleva'): void
+    {
+        dbQuery(
+            'INSERT INTO slevy(id_uzivatele, rok, castka, poznamka) VALUES($0, $1, $2, $3)',
+            [
+                0 => 555,
+                1 => ROCNIK,
+                2 => $castka,
+                3 => $poznamka,
+            ],
+        );
+    }
+
     private function pridelPravo(int $idPrava): void
     {
         $unique = uniqid('', true);
@@ -132,6 +215,18 @@ SQL,
         );
         dbQuery("INSERT INTO prava_role(id_role, id_prava) VALUES ({$idRole}, {$idPrava})");
         dbQuery("INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES (555, {$idRole}, 555)");
+    }
+
+    private function prihlasNaGc(): void
+    {
+        dbQuery(
+            'INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES($0, $1, $2)',
+            [
+                0 => 555,
+                1 => Role::PRIHLASEN_NA_LETOSNI_GC,
+                2 => 555,
+            ],
+        );
     }
 
     private function dejUzivatele(): \Uzivatel
@@ -161,7 +256,7 @@ SQL,
         $transactions = $account->getTransactions();
 
         self::assertCount(1, $transactions);
-        self::assertSame(TransactionCategory::SHOP_ITEMS, $transactions[0]->getCategory());
+        self::assertSame(TransactionCategoryEnum::SHOP_ITEMS, $transactions[0]->getCategory());
         self::assertSame(-100, $transactions[0]->getTotalAmount());
 
         $splits = $transactions[0]->getSplits();
@@ -255,10 +350,10 @@ SQL,
 
         $categories = array_map(fn ($t) => $t->getCategory(), $transactions);
 
-        self::assertContains(TransactionCategory::SHOP_ITEMS, $categories);
-        self::assertContains(TransactionCategory::ACCOMMODATION, $categories);
-        self::assertContains(TransactionCategory::FOOD, $categories);
-        self::assertContains(TransactionCategory::VOLUNTARY_DONATION, $categories);
+        self::assertContains(TransactionCategoryEnum::SHOP_ITEMS, $categories);
+        self::assertContains(TransactionCategoryEnum::ACCOMMODATION, $categories);
+        self::assertContains(TransactionCategoryEnum::FOOD, $categories);
+        self::assertContains(TransactionCategoryEnum::VOLUNTARY_DONATION, $categories);
     }
 
     /**
@@ -283,7 +378,7 @@ SQL,
         $transactions = $account->getTransactions();
 
         self::assertCount(1, $transactions);
-        self::assertSame(TransactionCategory::MANUAL_MOVEMENTS, $transactions[0]->getCategory());
+        self::assertSame(TransactionCategoryEnum::MANUAL_MOVEMENTS, $transactions[0]->getCategory());
     }
 
     /**
@@ -313,7 +408,7 @@ SQL,
 
         $manualMovements = array_filter(
             $transactions,
-            fn ($transaction) => $transaction->getCategory() === TransactionCategory::MANUAL_MOVEMENTS,
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::MANUAL_MOVEMENTS,
         );
 
         self::assertNotEmpty($manualMovements, 'Připsaná platba musí být vidět v objednávkách a platbách');
@@ -357,5 +452,218 @@ SQL,
 
         self::assertCount(3, $transactions);
         self::assertSame(-400, $account->getTotal());
+    }
+
+    /**
+     * @test
+     */
+    public function testZustatekZMinulychLetJeVlastniTransakce(): void
+    {
+        dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 123 WHERE id_uzivatele = $0', [555]);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $leftover = array_values(array_filter(
+            $account->getTransactions(),
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR,
+        ));
+
+        self::assertCount(1, $leftover, 'Zůstatek z minulých let musí být reprezentován jednou transakcí');
+        self::assertSame(123, $leftover[0]->getTotalAmount());
+    }
+
+    /**
+     * @test
+     */
+    public function testStavFinanciOdpovidaSouctuTransakci(): void
+    {
+        dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 123 WHERE id_uzivatele = $0', [555]);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+
+        self::assertSame(123, $account->getTotal());
+        self::assertStringContainsString(
+            '<tr><td><b>Zůstatek z minulých let</b></td><td><b>123</b></td></tr>',
+            $account->formatForHtml(),
+        );
+        self::assertStringContainsString(
+            '<tr><td><b>Stav financí</b></td><td><b>123</b></td></tr>',
+            $account->formatForHtml(),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function testZustatekZMinulychLetNenizdvojen(): void
+    {
+        dbQuery('UPDATE uzivatele_hodnoty SET zustatek = -55 WHERE id_uzivatele = $0', [555]);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $html = $account->formatForHtml();
+
+        self::assertSame(
+            1,
+            substr_count($html, 'Zůstatek z minulých let'),
+            'Zůstatek z minulých let nesmí být uveden dvakrát (souhrnný řádek i položka se stejným popiskem)',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function testAktivitaJeVidetVTransakcich(): void
+    {
+        $this->vlozAktivitu(idAktivity: 55601, nazev: 'Kubb', cena: 250);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $aktivity = array_values(array_filter(
+            $account->getTransactions(),
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::ACTIVITY,
+        ));
+
+        self::assertCount(1, $aktivity, 'Účast na aktivitě musí být reprezentována transakcí');
+        self::assertSame(-250, $aktivity[0]->getTotalAmount());
+    }
+
+    /**
+     * @test
+     */
+    public function testAktivityZobrazujiSeVHtml(): void
+    {
+        $this->vlozAktivitu(idAktivity: 55602, nazev: 'Vodní bitva', cena: 100);
+        $this->vlozAktivitu(idAktivity: 55603, nazev: 'Kubb', cena: 150);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $html = $account->formatForHtml(positivePrices: true);
+
+        self::assertStringContainsString('<tr><td><b>Aktivity</b></td><td><b>250</b></td></tr>', $html);
+        self::assertStringContainsString('<tr><td>Vodní bitva</td><td>100</td></tr>', $html);
+        self::assertStringContainsString('<tr><td>Kubb</td><td>150</td></tr>', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function testObecnaSlevaJeVidetVManualMovements(): void
+    {
+        $this->vlozNakup(55501, 100);
+        $this->vlozSlevu(40);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $manualMovements = array_values(array_filter(
+            $account->getTransactions(),
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::MANUAL_MOVEMENTS,
+        ));
+
+        self::assertCount(1, $manualMovements, 'Obecná sleva musí být reprezentována transakcí v MANUAL_MOVEMENTS');
+        self::assertSame(40, $manualMovements[0]->getTotalAmount());
+    }
+
+    /**
+     * @test
+     */
+    public function testVypravecskeBonusyJsouVidetVManualMovements(): void
+    {
+        $this->prihlasNaGc();
+        $this->pridelPravo(Pravo::PORADANI_AKTIVIT);
+        $this->vlozVedenouAktivitu(55605, 'Vypravěčská aktivita');
+
+        $aktivita = Aktivita::zId(55605);
+        self::assertNotNull($aktivita);
+        $ocekavanyBonus = Finance::bonusZaAktivitu($aktivita, SystemoveNastaveni::zGlobals());
+        self::assertGreaterThan(0, $ocekavanyBonus);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+        $manualMovements = array_values(array_filter(
+            $account->getTransactions(),
+            fn ($transaction) => $transaction->getCategory() === TransactionCategoryEnum::MANUAL_MOVEMENTS,
+        ));
+
+        self::assertCount(1, $manualMovements, 'Vypravěčský bonus musí být reprezentován transakcí v MANUAL_MOVEMENTS');
+        self::assertSame($ocekavanyBonus, $manualMovements[0]->getTotalAmount());
+        self::assertSame($ocekavanyBonus, $account->getTotal());
+
+        $htmlProFinance = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)
+            ->formatForHtml(positivePrices: true);
+        self::assertStringContainsString(
+            '<td><b>Připsané platby</b></td><td><b>' . $ocekavanyBonus . '</b></td>',
+            $htmlProFinance,
+        );
+        self::assertStringContainsString(
+            '<td>Bonus za aktivity</td><td>' . $ocekavanyBonus . '</td>',
+            $htmlProFinance,
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function testStavFinanciSouhlasiSeSouctemTransakciVcetneAktivit(): void
+    {
+        $this->vlozAktivitu(idAktivity: 55604, nazev: 'Kubb', cena: 250);
+        $this->vlozNakup(55501, 100);
+        $this->vlozPlatbu(500);
+
+        $account = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false);
+
+        self::assertSame(150, $account->getTotal(), 'Stav financí musí být součet všech transakcí: -250 (aktivita) -100 (předmět) +500 (platba)');
+    }
+
+    /**
+     * @test
+     */
+    public function testFormatForHtmlSeskupiStejnePolozkyDoNasobku(): void
+    {
+        $this->vlozNakup(55501, 100);
+        $this->vlozNakup(55501, 100);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)->formatForHtml();
+
+        self::assertStringContainsString('<td>předmět 2×</td><td>-200</td>', $html);
+        self::assertSame(0, substr_count($html, '<td>předmět</td><td>-100</td>'));
+    }
+
+    /**
+     * @test
+     */
+    public function testFormatForHtmlSeskupiStejneSlevyDoNasobku(): void
+    {
+        $this->pridelPravo(Pravo::UBYTOVANI_ZDARMA);
+        $this->vlozNakup(55502, 200);
+        $this->vlozNakup(55502, 200);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)->formatForHtml();
+
+        self::assertStringContainsString('<td>ubytování 2×</td><td>-400</td>', $html);
+        self::assertStringContainsString('<td>Sleva z ubytování 2×</td><td>400</td>', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function testFormatForHtmlZahrneDobrovolneVstupneDoCelkoveCeny(): void
+    {
+        $this->vlozNakup(55505, 300);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: false)->formatForHtml();
+
+        self::assertStringContainsString('<td><b>Dobrovolné vstupné</b></td><td><b>-300</b></td>', $html);
+        self::assertStringContainsString('<td><b>Celková cena</b></td><td><b>300</b></td>', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function testFormatForHtmlSPozitivnimiCenamiPrevratiZnamenkaUSeskupenychPolozek(): void
+    {
+        $this->pridelPravo(Pravo::UBYTOVANI_ZDARMA);
+        $this->vlozNakup(55502, 200);
+        $this->vlozNakup(55502, 200);
+
+        $html = Accounting::getPersonalFinance($this->dejUzivatele(), showDiscounts: true)
+            ->formatForHtml(positivePrices: true);
+
+        self::assertStringContainsString('<td>ubytování 2×</td><td>400</td>', $html);
+        self::assertStringContainsString('<td>Sleva z ubytování 2×</td><td>-400</td>', $html);
     }
 }

@@ -18,3 +18,14 @@ chown -R www-data:www-data /var/www
 chmod -R u+rw /home/www-data/.composer
 chmod -R u+rw /var/www/html/gamecon/cache
 chmod -R u+rw /var/www/html/gamecon/web/soubory/systemove
+
+# Install crontabs from /.docker/cron/ into /etc/cron.d/ with root:root and 644.
+# Cron silently ignores files in /etc/cron.d that are not owned by root
+# or are writable by group or other; bind-mounted files keep host ownership,
+# so we copy rather than mount directly.
+if [ -d /.docker/cron ]; then
+  for cron_src in /.docker/cron/*; do
+    [ -f "$cron_src" ] || continue
+    install -o root -g root -m 644 "$cron_src" /etc/cron.d/"$(basename "$cron_src")"
+  done
+fi

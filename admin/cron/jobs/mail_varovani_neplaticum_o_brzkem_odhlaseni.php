@@ -106,7 +106,7 @@ try {
 
                 $oddelovac
 
-                "Ahoj {$neplatic->jmenoNick()}, zaplať prosím všechny své objednávky, jinak Tě budeme muset za tři dny odhlásit z Gameconu $rocnik"
+                Ahoj {$neplatic->jmenoNick()}, zaplať prosím všechny své objednávky, jinak Tě budeme muset za tři dny odhlásit z Gameconu $rocnik
                 TEXT,
             );
         $gcMail->odeslat(GcMail::FORMAT_TEXT);

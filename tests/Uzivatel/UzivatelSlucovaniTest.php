@@ -196,6 +196,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
             'pohlavi'                             => 'm',
             'registrovan'                         => '2020-01-01 12:00:00',
             'ubytovan_s'                          => 'Někdo Jiný',
+            'nechce_ubytovani'                    => 1,
             'poznamka'                            => 'Poznámka starého uživatele',
             'pomoc_typ'                           => 'vypravec',
             'pomoc_vice'                          => 'Detaily pomoci starého',
@@ -247,6 +248,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
             'pohlavi'                             => 'm',
             'registrovan'                         => '2020-01-01 12:00:00',
             'ubytovan_s'                          => 'Někdo Jiný',
+            'nechce_ubytovani'                    => 1,
             'poznamka'                            => 'Poznámka starého uživatele',
             'pomoc_typ'                           => 'vypravec',
             'pomoc_vice'                          => 'Detaily pomoci starého',
@@ -288,6 +290,7 @@ class UzivatelSlucovaniTest extends AbstractUzivatelTestDb
         $this->assertEquals('m', $user['pohlavi']);
         $this->assertEquals('2020-01-01 12:00:00', $user['registrovan']);
         $this->assertEquals('Někdo Jiný', $user['ubytovan_s']);
+        $this->assertEquals(1, (int) $user['nechce_ubytovani']);
         $this->assertEquals('Poznámka starého uživatele', $user['poznamka']);
         $this->assertEquals('vypravec', $user['pomoc_typ']);
         $this->assertEquals('Detaily pomoci starého', $user['pomoc_vice']);

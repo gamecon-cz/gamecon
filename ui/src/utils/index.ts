@@ -3,6 +3,8 @@ export * from "./enum";
 export * from "./gamecon";
 export * from "./tranformace";
 export * from "./async";
+export * from "./czech-time";
+export * from "./nazevTymu";
 
 export const tryParseNumber = (str: string | null): number | undefined => {
   if (str == null || str === "") return;

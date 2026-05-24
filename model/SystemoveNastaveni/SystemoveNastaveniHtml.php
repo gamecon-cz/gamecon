@@ -16,8 +16,6 @@ class SystemoveNastaveniHtml
     public const ZKOPIROVAT_OSTROU_KLIC         = 'zkopirovat_ostrou';
     public const ZKOPIROVAT_ARCHIVNI_KLIC        = 'zkopirovat_archivni';
     public const ZKOPIROVAT_ZE_ZALOHY_KLIC      = 'zkopirovat_ze_zalohy';
-    public const EXPORTOVAT_ANONYMIZOVANOU_KLIC = 'exportovat_anonymizovanou';
-    public const UPDATE_ZUSTATKU_KLIC           = 'update_zustatku';
     public const ZVYRAZNI                       = 'zvyrazni';
     public const AJAX_STAV_KOPIE_KLIC           = 'stavKopieDatabazeZOstre';
 
@@ -25,8 +23,6 @@ class SystemoveNastaveniHtml
      * @var SystemoveNastaveni
      */
     private $systemoveNastaveni;
-
-    private bool $zobrazVysledekUpdateZustatku = false;
 
     public function __construct(SystemoveNastaveni $systemoveNastaveni)
     {
@@ -118,22 +114,6 @@ class SystemoveNastaveniHtml
             $template->assign('zkopirovatDatabaziZOstre', $templateZkopirovaniOstre->text('zkopirovatDatabaziZOstre'));
             $template->parse('nastaveni.beta');
         }
-
-        $templateAnonymniDatabaze = new XTemplate(__DIR__ . '/templates/export-anonymizovane-databaze.xtpl');
-        $templateAnonymniDatabaze->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
-        $templateAnonymniDatabaze->assign('exportovatAnonymizovanouKlic', self::EXPORTOVAT_ANONYMIZOVANOU_KLIC);
-        $datumExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
-        if ($datumExportu) {
-            $templateAnonymniDatabaze->assign('datumExportu', $this->formatujDatumSeStarim($datumExportu));
-            $templateAnonymniDatabaze->parse('exportAnonymizovaneDatabaze.existuje');
-        } else {
-            $templateAnonymniDatabaze->parse('exportAnonymizovaneDatabaze.neexistuje');
-        }
-        $templateAnonymniDatabaze->parse('exportAnonymizovaneDatabaze');
-        $template->assign('exportAnonymizovaneDatabaze', $templateAnonymniDatabaze->text('exportAnonymizovaneDatabaze'));
-        $template->parse('nastaveni.exportAnonymizovaneDatabaze');
-
-        $this->vypisUpdateZustatku($template);
 
         $template->parse('nastaveni');
         $template->out('nastaveni');
@@ -326,22 +306,6 @@ class SystemoveNastaveniHtml
 
             return true;
         }
-        if (!empty($pozadavky[self::EXPORTOVAT_ANONYMIZOVANOU_KLIC])) {
-            try {
-                $this->exportujAnonymizovanouDatabazi();
-                exit;
-            } catch (\RuntimeException $e) {
-                chyba($e->getMessage());
-            }
-
-            return true;
-        }
-        if (!empty($pozadavky[self::UPDATE_ZUSTATKU_KLIC])) {
-            $this->zobrazVysledekUpdateZustatku = true;
-
-            return false; // neděláme redirect, zobrazíme výsledek přímo
-        }
-
         return false;
     }
 
@@ -402,56 +366,6 @@ class SystemoveNastaveniHtml
             $zdrojovaDbName ? ['sourceDb' => $zdrojovaDbName] : [],
             ['started_by' => $requestedBy->id()],
         );
-    }
-
-    private function vypisUpdateZustatku(XTemplate $template): void
-    {
-        $templateUpdateZustatku = new XTemplate(__DIR__ . '/templates/update-zustatku.xtpl');
-        $templateUpdateZustatku->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
-        $templateUpdateZustatku->assign('updateZustatkuKlic', self::UPDATE_ZUSTATKU_KLIC);
-        $templateUpdateZustatku->assign('rocnik', ROCNIK);
-
-        if ($this->zobrazVysledekUpdateZustatku) {
-            $sqlParts = [
-                <<<SQL
--- smazat všechny místnosti, aby se mohly nahrát každý rok znovu a nehrozilo, že to někdo začne zadávat k aktivitám, když to ještě není nahrané
-DELETE FROM akce_lokace WHERE TRUE;
-DELETE FROM lokace WHERE TRUE;
-SQL,
-            ];
-            $vsechnaIds = dbOneArray('SELECT DISTINCT id_uzivatele FROM uzivatele_hodnoty');
-            foreach (array_chunk($vsechnaIds, 100) as $chunkIds) {
-                foreach (\Uzivatel::zIds($chunkIds) as $uzivatel) {
-                    $finance    = $uzivatel->finance();
-                    $sqlParts[] = <<<SQL
-UPDATE uzivatele_hodnoty
-SET zustatek={$finance->stav()} /* původní zůstatek z předchozích ročníků {$finance->zustatekZPredchozichRocniku()} */,
-    poznamka='',
-    ubytovan_s='',
-    infopult_poznamka='',
-    pomoc_typ='',
-    pomoc_vice='',
-    op=''
-WHERE id_uzivatele={$uzivatel->id()};
-SQL;
-                }
-                \Uzivatel::smazCache();
-            }
-            $templateUpdateZustatku->assign('sqlPrikazy', implode("\n", $sqlParts));
-            $templateUpdateZustatku->parse('updateZustatku.vysledek');
-        } else {
-            $templateUpdateZustatku->parse('updateZustatku.formular');
-        }
-
-        $templateUpdateZustatku->parse('updateZustatku');
-        $template->assign('updateZustatku', $templateUpdateZustatku->text('updateZustatku'));
-        $template->parse('nastaveni.updateZustatku');
-    }
-
-    private function exportujAnonymizovanouDatabazi(): void
-    {
-        $anonymizovanaDatabaze = AnonymizovanaDatabaze::vytvorZGlobals();
-        $anonymizovanaDatabaze->exportuj();
     }
 
     /**

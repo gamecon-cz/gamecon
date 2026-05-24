@@ -81,14 +81,14 @@ const useMřížka = (definice: DefiniceObchod) => {
 
   const setZpět = () => {
     let retval = true;
-    setMřížkaIdHist((x) => { 
+    setMřížkaIdHist((x) => {
       if (x.length == 1) {
         retval = false;
         return x;
       }
       const last = x[1] ?? 1;
       setId(last);
-      return x.slice(1); 
+      return x.slice(1);
     });
     return retval;
   };
@@ -122,7 +122,7 @@ type TObchodProps = {
 export const Obchod: FunctionComponent<TObchodProps> = (props) => {
   const { definice } = props;
 
-  const [visible, setVisible] = useState(GAMECON_KONSTANTY.IS_DEV_SERVER);
+  const [visible, setVisible] = useState(false);
 
   const {
     předmětyObjednávka: předměty,

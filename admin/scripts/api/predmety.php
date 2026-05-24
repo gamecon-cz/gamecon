@@ -2,11 +2,20 @@
 
 use Gamecon\Kfc\ObchodMrizkaBunka;
 use Gamecon\Kfc\ObchodMrizka;
-use Gamecon\Pravo;
+
+header('Content-Type: application/json');
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
+    header('HTTP/1.1 405 Method Not Allowed');
+    header('Allow: GET');
+    echo json_encode(['error' => '405 Method Not Allowed']);
+    exit;
+}
 
 if (empty($u)) {
     header('HTTP/1.1 403 Forbidden');
-    die('403 Forbidden');
+    echo json_encode(['error' => '403 Forbidden']);
+    exit;
 }
 
 /*
@@ -19,8 +28,8 @@ if (empty($u)) {
   }[]
 */
 
-header('Content-type: application/json');
 $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+$rocnik = (int)ROCNIK;
 
 // GET
 $vsechny = ObchodMrizka::zVsech();
@@ -35,10 +44,11 @@ $o = dbQuery('
     p.id_predmetu,
     ROUND(p.cena_aktualni) as cena
   FROM shop_predmety p
-  LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
+  LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu AND n.rok = ' . $rocnik . ')
   WHERE p.stav > 0
+    AND p.model_rok = ' . $rocnik . '
   GROUP BY p.id_predmetu
-  ORDER BY model_rok DESC, nazev');
+  ORDER BY nazev');
 
 while ($r = mysqli_fetch_assoc($o)) {
     $res[] = [

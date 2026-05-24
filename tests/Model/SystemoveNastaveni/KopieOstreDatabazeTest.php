@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
 use App\Kernel;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\KopieOstreDatabaze;
 use Gamecon\SystemoveNastaveni\NastrojeDatabaze;
@@ -13,6 +16,7 @@ use Gamecon\SystemoveNastaveni\SqlMigrace;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 class KopieOstreDatabazeTest extends TestCase
 {
@@ -21,6 +25,7 @@ class KopieOstreDatabazeTest extends TestCase
     private ?\Throwable $setUpError = null;
 
     private ?SystemoveNastaveni $systemoveNastaveni = null;
+    private ?string $izolovanyPrivateCacheDir = null;
 
     public static function setUpBeforeClass(): void
     {
@@ -32,6 +37,9 @@ class KopieOstreDatabazeTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->izolovanyPrivateCacheDir = sys_get_temp_dir() . '/gamecon-test-kopie-private-' . getmypid() . '-' . mt_rand();
+        (new Filesystem())->mkdir($this->izolovanyPrivateCacheDir);
 
         try {
             $this->systemoveNastaveni = $this->vytvorSystemoveNastaveni();
@@ -53,6 +61,15 @@ class KopieOstreDatabazeTest extends TestCase
         } catch (\Throwable $throwable) {
             $this->setUpError = $throwable;
         }
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->izolovanyPrivateCacheDir !== null) {
+            (new Filesystem())->remove($this->izolovanyPrivateCacheDir);
+        }
+
+        parent::tearDown();
     }
 
     /**
@@ -157,21 +174,108 @@ class KopieOstreDatabazeTest extends TestCase
         self::assertGreaterThan(count($tablesBefore), $tablesAfter, 'Nějaké tabulky měly přibýt migracemi');
     }
 
-    private function vytvorSystemoveNastaveni(): SystemoveNastaveni
+    /**
+     * Regression: po importu DB musí být JSON program cache označená jako dirty,
+     * jinak frontend dál servíruje stará data z aktivity.json. SqlMigrace::migruj()
+     * sama invaliduje jen když přibyly migrace, takže když ostrá databáze už má
+     * všechny migrace aplikované (běžný stav produkce), bez vlastní invalidace
+     * v KopieOstreDatabaze by k označení cache nikdy nedošlo.
+     *
+     * Reportováno v https://trello.com/c/XkQrBvbK.
+     */
+    public function testZkopirujOstrouDatabaziOznaciJsonCacheJakoDirtyIKdyzMigraceNicNeprinesly()
     {
-        return new class(self::$soucasnaDbName, self::$ostraDbName) extends SystemoveNastaveni {
+        $systemoveNastaveni = $this->vytvorSystemoveNastaveni();
+
+        // Migrujeme i ostrou DB, aby následný migruj() po importu byl skutečně
+        // no-op — to je situace, kterou tento regresní test pokrývá (produkce
+        // má zpravidla všechny migrace už aplikované).
+        (new SqlMigrace($this->ostraSystemoveNastaveni($systemoveNastaveni)))->migruj(false);
+
+        // Vynulujeme dirty flagy zbytkové po setUp (migrace na soucasna).
+        $generator = new ProgramStaticFileGenerator($systemoveNastaveni);
+        foreach (ProgramStaticFileType::cases() as $typ) {
+            $generator->deleteDirtyFlag($typ);
+            self::assertFalse(
+                $generator->hasDirtyFlag($typ),
+                "Předpoklad testu: vynulované flagy před importem ({$typ->value})",
+            );
+        }
+
+        $nastrojeDatabaze = new NastrojeDatabaze($systemoveNastaveni);
+        $kopieOstreDatabaze = new KopieOstreDatabaze($nastrojeDatabaze, $systemoveNastaveni, Vyjimkovac::vytvorZGlobals());
+        $nastaveniOstre = $systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
+        $kopieOstreDatabaze->zkopirujDatabazi($nastaveniOstre['DB_NAME']);
+
+        // Sanity: SqlMigrace::migruj() uvnitř zkopirujDatabazi nemělo co aplikovat,
+        // takže jeho vnitřní invalidace neproběhla — flagy musí pocházet z vlastní
+        // invalidace v KopieOstreDatabaze.
+        self::assertFalse(
+            (new SqlMigrace($systemoveNastaveni))->nejakeMigraceKeSpusteni(),
+            'Sanity: po importu nesmí zbýt žádné migrace ke spuštění',
+        );
+
+        foreach (ProgramStaticFileType::cases() as $typ) {
+            self::assertTrue(
+                $generator->hasDirtyFlag($typ),
+                "Po importu DB musí být dirty flag pro {$typ->value}",
+            );
+        }
+    }
+
+    /**
+     * SystemoveNastaveni nasměrované na ostrou DB — potřebujeme abychom proti ní
+     * mohli spustit SqlMigrace::migruj v rámci přípravy testu.
+     */
+    private function ostraSystemoveNastaveni(SystemoveNastaveni $produkcniNastaveni): SystemoveNastaveni
+    {
+        $ostra = $produkcniNastaveni->prihlasovaciUdajeOstreDatabaze();
+
+        return new class($ostra['DB_NAME'], $this->izolovanyPrivateCacheDir) extends SystemoveNastaveni {
             public function __construct(
-                private readonly string $soucasnaDbName,
                 private readonly string $ostraDbName,
+                string $privateCacheDir,
             ) {
                 parent::__construct(
                     rocnik: ROCNIK,
                     ted: new DateTimeImmutableStrict(),
-                    jsmeNaBete: true,
-                    jsmeNaLocale: false,
+                    prostredi: Prostredi::Beta,
                     databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
                     rootAdresarProjektu: PROJECT_ROOT_DIR,
-                    privateCacheDir: SPEC,
+                    privateCacheDir: $privateCacheDir,
+                    kernel: new Kernel('test', false),
+                    publicCacheDir: CACHE,
+                );
+            }
+
+            public function prihlasovaciUdajeSoucasneDatabaze(): array
+            {
+                return [
+                    'DBM_USER' => DBM_USER,
+                    'DBM_PASS' => DBM_PASS,
+                    'DB_NAME'  => $this->ostraDbName,
+                    'DB_SERV'  => DB_SERV,
+                    'DB_PORT'  => null,
+                ];
+            }
+        };
+    }
+
+    private function vytvorSystemoveNastaveni(): SystemoveNastaveni
+    {
+        return new class(self::$soucasnaDbName, self::$ostraDbName, $this->izolovanyPrivateCacheDir) extends SystemoveNastaveni {
+            public function __construct(
+                private readonly string $soucasnaDbName,
+                private readonly string $ostraDbName,
+                string $privateCacheDir,
+            ) {
+                parent::__construct(
+                    rocnik: ROCNIK,
+                    ted: new DateTimeImmutableStrict(),
+                    prostredi: Prostredi::Beta,
+                    databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+                    rootAdresarProjektu: PROJECT_ROOT_DIR,
+                    privateCacheDir: $privateCacheDir,
                     kernel: new Kernel('test', false),
                     publicCacheDir: CACHE,
                 );

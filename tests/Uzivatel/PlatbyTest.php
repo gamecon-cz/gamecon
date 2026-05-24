@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Uzivatel;
 
 use Gamecon\Finance\FioPlatba;
 use Gamecon\Role\Role;
+use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -121,13 +122,103 @@ class PlatbyTest extends AbstractTestDb
         );
     }
 
-    private function vytvorTestovacihoUzivatele(): int
+    /**
+     * @test
+     */
+    public function ceskemuUzivateliSeVygenerujeCeskyQrKodProPlatbu(): void
+    {
+        $userId = $this->vytvorTestovacihoUzivatele(Stat::CZ_ID);
+
+        $qrKod = \Uzivatel::zId($userId)->finance()->dejQrKodProPlatbu();
+
+        self::assertNotNull($qrKod);
+        self::assertStringStartsWith('data:image/png;base64,', $qrKod->getDataUri());
+    }
+
+    /**
+     * @test
+     */
+    public function slovenskemuUzivateliSeVygenerujeSlovenskyQrKodProPlatbu(): void
+    {
+        $userId = $this->vytvorTestovacihoUzivatele(Stat::SK_ID);
+
+        $qrKod = \Uzivatel::zId($userId)->finance()->dejQrKodProPlatbu();
+
+        self::assertNotNull($qrKod);
+        self::assertStringStartsWith('data:image/png;base64,', $qrKod->getDataUri());
+    }
+
+    /**
+     * @test
+     */
+    public function slovenskemuUzivateliSeVygenerujiObaQrKodyProPlatbu(): void
+    {
+        $userId = $this->vytvorTestovacihoUzivatele(Stat::SK_ID);
+        $finance = \Uzivatel::zId($userId)->finance();
+
+        $qrKodCesky = $finance->dejQrKodProCeskouPlatbu();
+        $qrKodSlovensky = $finance->dejQrKodProSlovenskouPlatbu();
+
+        self::assertStringStartsWith('data:image/png;base64,', $qrKodCesky->getDataUri());
+        self::assertStringStartsWith('data:image/png;base64,', $qrKodSlovensky->getDataUri());
+    }
+
+    /**
+     * @test
+     */
+    public function sepaQrKodSeVygenerujeCeskehoUzivateli(): void
+    {
+        $userId = $this->vytvorTestovacihoUzivatele(Stat::CZ_ID);
+
+        $qrKod = \Uzivatel::zId($userId)->finance()->dejQrKodProSepaPlatbu();
+
+        self::assertStringStartsWith('data:image/png;base64,', $qrKod->getDataUri());
+    }
+
+    /**
+     * @test
+     */
+    public function sepaQrKodSeVygenerujeSlovenskemuUzivateli(): void
+    {
+        $userId = $this->vytvorTestovacihoUzivatele(Stat::SK_ID);
+
+        $qrKod = \Uzivatel::zId($userId)->finance()->dejQrKodProSepaPlatbu();
+
+        self::assertStringStartsWith('data:image/png;base64,', $qrKod->getDataUri());
+    }
+
+    /**
+     * @test
+     */
+    public function infopultMuzeVygenerovatSlovenskyQrKodIProCeskehoUzivatele(): void
+    {
+        $userId = $this->vytvorTestovacihoUzivatele(Stat::CZ_ID);
+
+        $qrKod = \Uzivatel::zId($userId)->finance()->dejQrKodProSlovenskouPlatbu();
+
+        self::assertStringStartsWith('data:image/png;base64,', $qrKod->getDataUri());
+    }
+
+    /**
+     * @test
+     */
+    public function uzivateliZJinehoStatuSeQrKodProPlatbuNegeneruje(): void
+    {
+        $userId = $this->vytvorTestovacihoUzivatele(Stat::JINY_ID);
+
+        $qrKod = \Uzivatel::zId($userId)->finance()->dejQrKodProPlatbu();
+
+        self::assertNull($qrKod);
+    }
+
+    private function vytvorTestovacihoUzivatele(?int $statUzivatele = Stat::CZ_ID): int
     {
         \dbInsert('uzivatele_hodnoty', [
             'login_uzivatele'    => 'test_user_' . time() . '_' . random_int(1000, 9999),
             'jmeno_uzivatele'    => 'Test',
             'prijmeni_uzivatele' => 'User',
             'email1_uzivatele'   => 'test' . time() . '@example.com',
+            'stat_uzivatele'     => $statUzivatele,
         ]);
 
         return (int) \dbInsertId();
@@ -140,6 +231,7 @@ class PlatbyTest extends AbstractTestDb
             'jmeno_uzivatele'    => 'CFO',
             'prijmeni_uzivatele' => 'Test',
             'email1_uzivatele'   => 'cfo' . time() . '@example.com',
+            'stat_uzivatele'     => Stat::CZ_ID,
         ]);
         $cfoUserId = (int) \dbInsertId();
 

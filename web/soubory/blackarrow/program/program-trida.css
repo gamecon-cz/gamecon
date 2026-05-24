@@ -226,6 +226,23 @@ table.program {
     background: url('muz.svg');
 }
 
+.program_obsazenost_tym {
+    display: inline-block;
+    background-color: inherit;
+    padding-left: 26px;
+    padding-right: 8px;
+}
+
+.program_obsazenost_tym::before {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 19px;
+    height: 14px;
+    margin: -2px 0 0 -27px;
+    background: url('lide.svg');
+}
+
 .program_lokace {
   background-color: inherit;
   font-style: italic;

@@ -6,7 +6,9 @@ use Gamecon\Kanaly\Exceptions\ChybiEmailoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Throwable;
 
 /**
  * Třída pro sestavování mailu
@@ -15,23 +17,27 @@ class GcMail
 {
     public const FORMAT_HTML = 'html';
     public const FORMAT_TEXT = 'text';
+    private const VYCHOZI_EMAIL_ODESILATELE = 'gamecon.fallback@seznam.cz';
 
     public static function vytvorZGlobals(string $text = ''): static
     {
         return new static(
             SystemoveNastaveni::zGlobals(),
-            $text
+            $text,
+            MailLogger::zGlobals(),
         );
     }
 
-    private array  $adresati      = [];
-    private string $predmet       = '';
-    private string $prilohaSoubor = '';
-    private string $prilohaNazev  = '';
+    private array  $adresati = [];
+    private string $predmet  = '';
+    private ?Address $odesilatel = null;
+    /** @var array<int, array{soubor: string, nazev: string}> */
+    private array  $prilohy  = [];
 
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
         private string                      $text = '',
+        private readonly ?MailLogger        $mailLogger = null,
     )
     {
     }
@@ -48,15 +54,22 @@ class GcMail
         return $this;
     }
 
+    public function odesilatel(Address $odesilatel): self
+    {
+        $this->odesilatel = $odesilatel;
+        return $this;
+    }
+
     /**
      * Odešle sestavenou zprávu.
      * @return bool jestli se zprávu podařilo odeslat
      */
     public function odeslat(string $format = self::FORMAT_HTML)
     {
-        $mail = (new Email())
-            ->from($this->pridejPrefixPodleProstredi("GameCon <{$this->systemoveNastaveni->kontaktniEmailGc()}>"))
-            ->subject($this->pridejPrefixPodleProstredi($this->dejPredmet()));
+        $predmet = $this->pridejPrefixPodleProstredi($this->dejPredmet());
+        $mail    = (new Email())
+            ->from($this->odesilatelSPrefixemProstredi())
+            ->subject($predmet);
         $body = $this->pridejPrefixPodleProstredi($this->dejText());
         $mail->text(strip_tags($body));
         if ($format === self::FORMAT_HTML) {
@@ -69,19 +82,75 @@ class GcMail
         if ($adresatiDoSouboru) {
             $mail->addBcc(...$adresatiDoSouboru);
             $odeslano = $this->zalogovatDo(MAILY_DO_SOUBORU, $mail->toString()) || $odeslano;
+            $this->zalogujOdeslani($predmet, $format, $adresatiDoSouboru, $mail->toString());
         }
-        $adresatiPovoleniPodleRoli = $this->adresatiPovoleniPodleRoli();
-        if ($adresatiPovoleniPodleRoli) {
-            $mail->addBcc(...$adresatiPovoleniPodleRoli);
-            if ($this->prilohaSoubor) {
+        $adresati = $this->adresatiPovoleniPodleRoli();
+        if ($adresati) {
+            $mail->addBcc(...$adresati);
+            foreach ($this->prilohy as $priloha) {
+                if ($priloha['soubor'] === '') {
+                    continue;
+                }
                 // do souboru přílohy dávat nebudeme
-                $mail->attachFromPath($this->prilohaSoubor, $this->prilohaNazev);
+                $mail->attachFromPath($priloha['soubor'], $priloha['nazev']);
             }
             $mailer = new Mailer($this->mailerTransport());
-            $mailer->send($mail);
-            $odeslano = true;
+            try {
+                $mailer->send($mail);
+                $odeslano = true;
+                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString());
+            } catch (Throwable $chyba) {
+                $this->zalogujOdeslani($predmet, $format, $adresati, $mail->toString(), $chyba->getMessage());
+                throw $chyba;
+            }
         }
         return $odeslano;
+    }
+
+    private function zalogujOdeslani(
+        string  $predmet,
+        string  $format,
+        array   $adresati,
+        string  $telo,
+        ?string $chyba = null,
+    ): void {
+        $mailLogger = $this->mailLogger ?? MailLogger::zGlobals();
+        $pocetPriloh = 0;
+        foreach ($this->prilohy as $priloha) {
+            if ($priloha['soubor'] !== '') {
+                $pocetPriloh++;
+            }
+        }
+        $mailLogger->zalogujOdeslani(
+            predmet: $predmet,
+            format: $format,
+            adresati: $adresati,
+            pocetPriloh: $pocetPriloh,
+            telo: $telo,
+            chyba: $chyba,
+        );
+    }
+
+    private function vychoziOdesilatel(): Address
+    {
+        return new Address(self::VYCHOZI_EMAIL_ODESILATELE, 'GameCon');
+    }
+
+    private function odesilatelSPrefixemProstredi(): Address
+    {
+        $odesilatel = $this->odesilatel ?? $this->vychoziOdesilatel();
+        $prefix     = $this->systemoveNastaveni->prefixPodleProstredi();
+        if ($prefix === '') {
+            return $odesilatel;
+        }
+        $jmeno = $odesilatel->getName();
+
+        return new Address(
+            $odesilatel->getAddress(),
+            $jmeno === ''
+                ? $prefix
+                : $prefix . ' ' . $jmeno,
+        );
     }
 
     private function pridejPrefixPodleProstredi(string $text): string
@@ -102,8 +171,7 @@ class GcMail
         if (!defined('MAILER_DSN')) {
             /**
              * Návod @link https://symfony.com/doc/current/mailer.html#transport-setup
-             * SMTP server @link https://client.wedos.com/webhosting/webhost-detail.html?id=16779 'Adresy služeb' dole
-             * Pro Wedos SMTP použij port 587 (TLS), protože SSL z PHP z Wedos serveru nefunguje.
+             * SMTP server: smtp.gmail.com:465
              */
             throw new ChybiEmailoveNastaveni(
                 "Pro odeslání emailu je třeba nastavit konstantu 'MAILER_DSN'"
@@ -177,13 +245,27 @@ class GcMail
 
     public function prilohaSoubor(string $cesta): self
     {
-        $this->prilohaSoubor = $cesta;
+        $this->prilohy[] = [
+            'soubor' => $cesta,
+            'nazev'  => basename($cesta),
+        ];
         return $this;
     }
 
     public function prilohaNazev(string $nazev): self
     {
-        $this->prilohaNazev = $nazev;
+        if ($this->prilohy === []) {
+            $this->prilohy[] = [
+                'soubor' => '',
+                'nazev'  => $nazev,
+            ];
+            return $this;
+        }
+
+        $posledniPriloha = array_key_last($this->prilohy);
+        if ($posledniPriloha !== null) {
+            $this->prilohy[$posledniPriloha]['nazev'] = $nazev;
+        }
         return $this;
     }
 

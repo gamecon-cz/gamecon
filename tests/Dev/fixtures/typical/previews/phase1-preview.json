@@ -1,0 +1,8 @@
+{
+    "schema_version": 1,
+    "slug": "phase1-preview",
+    "url": "https://phase1-preview.preview.gamecon.cz/",
+    "image": "ghcr.io/gamecon-cz/gamecon:preview-phase1-preview-abc1234",
+    "sha7": "abc1234",
+    "deployed_at": "2026-05-21T21:24:05+02:00"
+}

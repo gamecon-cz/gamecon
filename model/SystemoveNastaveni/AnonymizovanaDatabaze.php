@@ -6,6 +6,7 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\AnonymizovanyUzivatel;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -149,6 +150,7 @@ INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
         pohlavi = 'm',
         registrovan = NOW(),
         ubytovan_s = '',
+        nechce_ubytovani = 0,
         poznamka = '',
         pomoc_typ = '',
         pomoc_vice= '',
@@ -249,9 +251,7 @@ SQL,
     public function exportujDoSouboru(): void
     {
         $cesta = self::cestaExportu();
-        if (!is_dir(dirname($cesta))) {
-            mkdir(dirname($cesta), 0750, true);
-        }
+        (new Filesystem())->mkdir(dirname($cesta), 0750);
         $tempSqlFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
         $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpAnonymniDatabaze([
             'skip-definer'     => true,

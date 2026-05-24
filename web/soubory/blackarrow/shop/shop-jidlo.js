@@ -2,43 +2,49 @@
     function dejSnidaneBunky(den) {
         var vsechnyBunky = document.querySelectorAll('td[data-den="' + den + '"]');
         var snidaneBunky = [];
-        vsechnyBunky.forEach(function (td) {
-            if (td.dataset.druh && td.dataset.druh.toLowerCase().indexOf('snídaně') === 0) {
-                snidaneBunky.push(td);
+        vsechnyBunky.forEach(function (bunka) {
+            if (bunka.dataset.druh && bunka.dataset.druh.toLowerCase().indexOf('snídaně') === 0) {
+                snidaneBunky.push(bunka);
             }
         });
         return snidaneBunky;
     }
 
+    function dejSnidaneDny(radio) {
+        if (radio.dataset.snidaneDny) {
+            return radio.dataset.snidaneDny.split(',').map(function (den) {
+                return den.trim();
+            }).filter(Boolean);
+        }
+
+        var match = radio.name.match(/\[(\d+)]/);
+        if (!match) {
+            return [];
+        }
+
+        return [String(Number(match[1]) + 1)];
+    }
+
     function aktualizujSnidane() {
         var shopUbytovaniRadios = document.querySelectorAll('input.shopUbytovani_radio');
-        var dnyRadios = {};
+        var spravovaneSnidaneDny = {};
+        var hoteloveSnidaneDny = {};
         shopUbytovaniRadios.forEach(function (radio) {
-            var match = radio.name.match(/\[(\d+)]/);
-            if (!match) {
-                return;
-            }
-            var den = match[1];
-            if (!dnyRadios[den]) {
-                dnyRadios[den] = [];
-            }
-            dnyRadios[den].push(radio);
-        });
-
-        Object.keys(dnyRadios).forEach(function (den) {
-            var jeHotel = false;
-            dnyRadios[den].forEach(function (radio) {
+            var snidaneDny = dejSnidaneDny(radio);
+            snidaneDny.forEach(function (den) {
+                spravovaneSnidaneDny[den] = true;
                 if (radio.checked && radio.dataset.podtyp === 'hotel') {
-                    jeHotel = true;
+                    hoteloveSnidaneDny[den] = true;
                 }
             });
+        });
 
-            // ubytování den N (noc) → snídaně den N+1 (ráno)
-            var snidaneDen = String(Number(den) + 1);
+        Object.keys(spravovaneSnidaneDny).forEach(function (snidaneDen) {
+            var jeHotel = hoteloveSnidaneDny[snidaneDen] === true;
             var bunky = dejSnidaneBunky(snidaneDen);
-            bunky.forEach(function (td) {
-                var realnyCheckbox = td.querySelector('.shopJidlo_checkbox:not(.shopJidlo_checkbox--hotel)');
-                var hotelTooltip = td.querySelector('.shopJidlo_hotelTooltip');
+            bunky.forEach(function (bunka) {
+                var realnyCheckbox = bunka.querySelector('.shopJidlo_checkbox:not(.shopJidlo_checkbox--hotel)');
+                var hotelTooltip = bunka.querySelector('.shopJidlo_hotelTooltip');
                 if (!realnyCheckbox) {
                     return;
                 }

@@ -68,6 +68,17 @@ class Uzivatel extends DbObject
     public const TYP_DOKLADU_OP = 'op';
     public const TYP_DOKLADU_PAS = 'pas';
     public const TYP_DOKLADU_JINY = 'jiny';
+    public const ZAMCENE_UDAJE_PO_KONTROLE_INFOPULTEM = [
+        Sql::TYP_DOKLADU_TOTOZNOSTI,
+        Sql::OP,
+        Sql::JMENO_UZIVATELE,
+        Sql::PRIJMENI_UZIVATELE,
+        Sql::DATUM_NAROZENI,
+        Sql::ULICE_A_CP_UZIVATELE,
+        Sql::MESTO_UZIVATELE,
+        Sql::PSC_UZIVATELE,
+        Sql::STAT_UZIVATELE,
+    ];
 
     /**
      * @var array<int, array<int, int|string>>
@@ -100,6 +111,32 @@ class Uzivatel extends DbObject
         }
 
         return $povinneUdaje;
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function zamceneUdajePoKontroleNaInfopultu(): array
+    {
+        return self::ZAMCENE_UDAJE_PO_KONTROLE_INFOPULTEM;
+    }
+
+    /**
+     * Odstraní z pole údajů sloupce zamčené po kontrole na infopultu.
+     * Používá se při cestách ukládání přes Uzivatel::uprav (např. webové nastavení účastníka).
+     * Admin cesty s přímým dbUpdate tímto omezením neprochází.
+     */
+    public function odeberZamceneUdajePoKontrole(array $udaje): array
+    {
+        if (!$this->maZkontrolovaneUdaje()) {
+            return $udaje;
+        }
+
+        foreach (self::ZAMCENE_UDAJE_PO_KONTROLE_INFOPULTEM as $sloupec) {
+            unset($udaje[$sloupec]);
+        }
+
+        return $udaje;
     }
 
     /**
@@ -181,6 +218,15 @@ SQL, [Pravo::PORADANI_AKTIVIT],
         }
 
         return $this->r['ubytovan_s'] ?? '';
+    }
+
+    public function nechceUbytovani(?bool $nechceUbytovani = null): bool
+    {
+        if ($nechceUbytovani !== null) {
+            $this->r[Sql::NECHCE_UBYTOVANI] = (int)$nechceUbytovani;
+        }
+
+        return (bool)($this->r[Sql::NECHCE_UBYTOVANI] ?? false);
     }
 
     /**
@@ -436,7 +482,7 @@ SQL, [Pravo::PORADANI_AKTIVIT],
                 $this,
                 $odhlasujici,
                 $zdrojOdhlaseni,
-                Aktivita::NEPOSILAT_MAILY_SLEDUJICIM, /* nechceme posílat maily sledujícím, že se uvolnilo místo */
+                Aktivita::NEPOSILAT_MAILY_SLEDUJICIM | Aktivita::ODEMKNI_TYM_ODHLASENIM, /* nechceme posílat maily sledujícím, že se uvolnilo místo */
             );
         }
 
@@ -723,6 +769,22 @@ SQL,
         self::gcPrihlasenDSC($dataSourcesCollector);
 
         return $this->maRoli(Role::PRIHLASEN_NA_LETOSNI_GC);
+    }
+
+    public function zkontrolujGcPrihlasen(
+        bool $hlaskyVeTretiOsobe = false,
+        ?DataSourcesCollector $dataSourcesCollector = null) {
+        if (!$this->gcPrihlasen($dataSourcesCollector)) {
+            throw new \Chyba(
+                ($hlaskyVeTretiOsobe
+                    ? 'Uživatel ' . $this->jmenoVolitelnyNick() . ' '
+                    : ''
+                ) .
+                hlaska($hlaskyVeTretiOsobe
+                    ? 'neniPrihlasenNaGc'
+                    : 'nejsiPrihlasenNaGc'),
+            );
+        }
     }
 
     public static function gcPrihlasenDSC(?DataSourcesCollector $dataSourcesCollector)
@@ -1129,20 +1191,26 @@ SQL,
         return $this->maRoli(Role::LETOSNI_HERMAN);
     }
 
-    public function jeSuperAdmin(): bool
-    {
-        if (! defined('SUPERADMINI') || ! is_array(SUPERADMINI)) {
-            return false;
+    /**
+     * @return Aktivita|null jestli se uživatel v daném čase neúčastní / neorganizuje
+     *                       žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
+     */
+    public function maKoliziSJinouAktivitou(
+        Aktivita $aktivita,
+        ?Aktivita $ignorovanaAktivita = null,
+        bool $jenPritomen = false,
+    ): ?Aktivita {
+        if (!$aktivita->zacatek() || !$aktivita->konec()) {
+            return null;
         }
-
-        return in_array($this->id(), SUPERADMINI, false);
+        return $this->maKoliziSJinouAktivitouVCase($aktivita->zacatek(), $aktivita->konec(), $ignorovanaAktivita, $jenPritomen);
     }
 
     /**
      * @return Aktivita|null jestli se uživatel v daném čase neúčastní / neorganizuje
      *                       žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
      */
-    public function maKoliziSJinouAktivitou(
+    public function maKoliziSJinouAktivitouVCase(
         DateTimeInterface $od,
         DateTimeInterface $do,
         ?Aktivita $ignorovanaAktivita = null,
@@ -2245,6 +2313,7 @@ SQL,
 
             return (bool) $hodnota;
         }, ARRAY_FILTER_USE_BOTH);
+        $tab = $this->odeberZamceneUdajePoKontrole($tab);
 
         $idNeboHlaska = self::registrujUprav($tab, $this);
         if (is_numeric($idNeboHlaska)) {
@@ -2348,6 +2417,7 @@ SQL,
             : null;
     }
 
+    // todo: enum ?
     /**
      * Vrátí pohlaví ve tvaru 'm' nebo 'f'
      */
@@ -2517,29 +2587,6 @@ SQL,
         ?DataSourcesCollector $dataSourcesCollector = null,
     ): void {
         self::nactiUzivateleDSC($dataSourcesCollector);
-    }
-
-    public static function prednactiUzivateleNaAktivitach(int $rocnik)
-    {
-        static $prednacteniUzivateleNaAktivitach = [];
-        if (isset($prednacteniUzivateleNaAktivitach[$rocnik])) {
-            return;
-        }
-        $idUzivatelu = dbFetchColumn(
-            <<<SQL
-                    SELECT zdroj.id_uzivatele
-                    FROM akce_prihlaseni AS zdroj
-                    JOIN akce_seznam on zdroj.id_akce = akce_seznam.id_akce
-                    WHERE akce_seznam.rok = {$rocnik}
-                    UNION
-                    SELECT zdroj.id_uzivatele
-                    FROM akce_prihlaseni_spec AS zdroj
-                    JOIN akce_seznam on zdroj.id_akce = akce_seznam.id_akce
-                    WHERE akce_seznam.rok = {$rocnik}
-                SQL,
-        );
-        self::zIds($idUzivatelu, true);
-        $prednacteniUzivateleNaAktivitach[$rocnik] = true;
     }
 
     /**
@@ -2914,5 +2961,65 @@ SQL;
         }
 
         return $this->kdySeRegistrovalNaLetosniGc;
+    }
+
+    /**
+     * Vrací anonymní objekt pro api
+     */
+    public function apiUzivatel() {
+        $res = [];
+
+        $res["id"] = $this->id();
+        $res["pohlavi"] = $this->pohlavi();
+
+        $res["gcStav"] = "nepřihlášen";
+
+        if ($this->gcPrihlasen()) {
+            $res["gcStav"] = "přihlášen";
+        }
+        if ($this->gcPritomen()) {
+            $res["gcStav"] = "přítomen";
+        }
+        if ($this->gcOdjel()) {
+            $res["gcStav"] = "odjel";
+        }
+
+        $role = [];
+
+        if ($this->jeOrganizator()) {
+            $role["organizator"] = true;
+        }
+        if ($this->jeBrigadnik()) {
+            $role["brigadnik"] = true;
+        }
+        if ($this->maRoli(Role::SEF_INFOPULTU)) {
+            $role["sefInfa"] = true;
+        }
+
+        if (!empty($role)){
+            $res["role"] = $role;
+        }
+
+        return $res;
+    }
+
+    /**
+     * Používá fetchPřihlášenýUživatel.
+     *
+     * @param bool $ucastnikJeOperator používá se když chceme ignorovat uPraconi
+     */
+    public static function apiPrihlasenyUzivatel() {
+        /** @var Uzivatel $u */
+        global $u;
+        /** @var Uzivatel $uPracovni */
+        global $uPracovni;
+
+        $operator = $u;
+        $ucastnik = $uPracovni ? $uPracovni : $u;
+
+        return [
+            "ucastnik" => $ucastnik?->apiUzivatel(),
+            "operator" => $operator?->apiUzivatel(),
+        ];
     }
 }

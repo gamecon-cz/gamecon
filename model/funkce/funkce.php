@@ -445,8 +445,10 @@ function pripravCache(
     if (is_dir($slozka) && !is_writable($slozka)) {
         throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
     }
-    if (!@mkdir($slozka, 0700, true) && !is_dir($slozka)) {
-        throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
+    try {
+        (new Filesystem())->mkdir($slozka, 0700);
+    } catch (\Symfony\Component\Filesystem\Exception\IOException $e) {
+        throw new Exception("Složku '$slozka' se nepodařilo vytvořit", 0, $e);
     }
     chmod($slozka, CACHE_SLOZKY_PRAVA);
 }
@@ -625,9 +627,7 @@ function hromadneStazeni(
     if ($dirToSaveTo === null) {
         $dirToSaveTo = sys_get_temp_dir() . '/' . uniqid(__FUNCTION__, true);
     }
-    if (!mkdir($dirToSaveTo, 0777, true) && !is_dir($dirToSaveTo)) {
-        throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirToSaveTo));
-    }
+    (new Filesystem())->mkdir($dirToSaveTo, 0777);
     $multiCurl = curl_multi_init();
     $curlHandles = [];
     $fileHandles = [];
@@ -1084,6 +1084,25 @@ function jsmeNaBete(): bool
             ['beta.gamecon.cz', 'admin.beta.gamecon.cz', 'cache.beta.gamecon.cz'],
             true,
         );
+}
+
+function jsmeNaPreview(): bool
+{
+    $definedHost = getDefinedHost();
+
+    return $definedHost !== null && jeHostPreview($definedHost);
+}
+
+/**
+ * Per-branch preview deploys live at <slug>.preview.gamecon.cz, with
+ * path-based routing (/admin, /web, /cache/public) — see
+ * nastaveni/verejne-nastaveni-preview.php. The leading slug is optional,
+ * so preview.gamecon.cz itself also matches; adversarial hostnames like
+ * xpreview.gamecon.cz must NOT match — hence the `(^|[.])` anchor.
+ */
+function jeHostPreview(string $host): bool
+{
+    return preg_match('~(^|[.])preview[.]gamecon[.]cz$~', $host) === 1;
 }
 
 function jsmeNaOstre(): bool

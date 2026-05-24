@@ -8,9 +8,12 @@ use App\Kernel;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
+use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
@@ -182,13 +185,12 @@ SQL,
                 DateTimeImmutableStrict $ted,
             ) {
                 parent::__construct(
-                    ROCNIK,
-                    $ted,
-                    false,
-                    false,
-                    DatabazoveNastaveni::vytvorZGlobals(),
-                    '',
-                    sys_get_temp_dir(),
+                    rocnik: ROCNIK,
+                    ted: $ted,
+                    prostredi: Prostredi::Production,
+                    databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+                    rootAdresarProjektu: '',
+                    privateCacheDir: SPEC,
                     kernel: new Kernel('test', false),
                     publicCacheDir: CACHE,
                 );
@@ -227,5 +229,76 @@ SQL,
     public function muzuZkusitZiskatAktivituPodleIdPomociNull()
     {
         self::assertSame(null, Aktivita::zId(null));
+    }
+
+    /**
+     * @test
+     */
+    public function sefProgramuVidiAktivituJakoPrihlasovatelnouIPredPrvniVlnou(): void
+    {
+        $ted = self::ted();
+        dbUpdate(
+            Sql::AKCE_SEZNAM_TABULKA,
+            [
+                Sql::ZACATEK => DateTimeGamecon::createFromInterface($ted->modify('+2 days')),
+                Sql::KONEC   => DateTimeGamecon::createFromInterface($ted->modify('+2 days +2 hours')),
+                Sql::TYP     => TypAktivity::DESKOHERNA,
+                Sql::STAV    => StavAktivity::AKTIVOVANA,
+            ],
+            [
+                Sql::ID_AKCE => 1,
+            ],
+        );
+
+        $aktivita = Aktivita::zId(
+            id: 1,
+            systemoveNastaveni: $this->systemoveNastaveniPredPrvniVlnou($ted),
+        );
+
+        $bezPrava = $this->createMock(\Uzivatel::class);
+        $bezPrava->method('maPravoNaPrihlasovaniNaDosudNeotevrene')
+            ->willReturn(false);
+
+        $sPravem = $this->createMock(\Uzivatel::class);
+        $sPravem->method('maPravoNaPrihlasovaniNaDosudNeotevrene')
+            ->willReturn(true);
+
+        self::assertFalse($aktivita->prihlasovatelnaProPrihlasujiciho($bezPrava));
+        self::assertTrue($aktivita->prihlasovatelnaProPrihlasujiciho($sPravem));
+    }
+
+    private function systemoveNastaveniPredPrvniVlnou(DateTimeImmutableStrict $ted): SystemoveNastaveni
+    {
+        return new class($ted) extends SystemoveNastaveni {
+            public function __construct(
+                DateTimeImmutableStrict $ted,
+            ) {
+                parent::__construct(
+                    rocnik: ROCNIK,
+                    ted: $ted,
+                    prostredi: Prostredi::Production,
+                    databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+                    rootAdresarProjektu: '',
+                    privateCacheDir: SPEC,
+                    kernel: new Kernel('test', false),
+                    publicCacheDir: CACHE,
+                );
+            }
+
+            public function probihaRegistraceAktivit(): bool
+            {
+                return false;
+            }
+
+            public function prvniVlnaKdy(): DateTimeGamecon
+            {
+                return DateTimeGamecon::createFromInterface($this->ted()->modify('+1 day'));
+            }
+
+            public function prihlasovaniUcastnikuDo(?int $rocnik = null): DateTimeGamecon
+            {
+                return DateTimeGamecon::createFromInterface($this->ted()->modify('+10 days'));
+            }
+        };
     }
 }

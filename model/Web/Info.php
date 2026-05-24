@@ -2,6 +2,7 @@
 
 namespace Gamecon\Web;
 
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
@@ -9,13 +10,11 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
  */
 class Info
 {
-    private bool $jsmeNaBete;
-    private bool $jsmeNaLocale;
+    private Prostredi $prostredi;
 
     public function __construct(SystemoveNastaveni $systemoveNastaveni)
     {
-        $this->jsmeNaBete   = $systemoveNastaveni->jsmeNaBete();
-        $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
+        $this->prostredi = $systemoveNastaveni->prostredi();
     }
 
     private $nazev;
@@ -129,13 +128,7 @@ class Info
 
     private function prefixPodleVyvoje(): string
     {
-        if ($this->jsmeNaLocale) {
-            return 'άλφα';
-        }
-        if ($this->jsmeNaBete) {
-            return 'β';
-        }
-        return '';
+        return $this->prostredi->prefix();
     }
 
     public function url()
@@ -155,7 +148,7 @@ class Info
         $duvod = $duvod !== ''
             ? "<br>$duvod"
             : '';
-        return $this->jsmeNaLocale || $this->jsmeNaBete
+        return $this->prostredi !== Prostredi::Production
             ? '<span class="hinted">🙋<span class="hint"><em>(toto se ukazuje pouze na testu)</em>' . $duvod . ' </span></span>'
             : '';
     }

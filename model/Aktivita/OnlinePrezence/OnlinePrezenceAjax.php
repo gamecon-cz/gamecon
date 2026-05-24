@@ -393,7 +393,7 @@ class OnlinePrezenceAjax
 
         if ($dorazil) {
             try {
-                $ignorovat = Aktivita::IGNOROVAT_LIMIT | Aktivita::IGNOROVAT_PRIHLASENI_NA_SOUROZENCE | Aktivita::STAV;
+                $ignorovat = Aktivita::IGNOROVAT_LIMIT | Aktivita::IGNOROVAT_PRIHLASENI_NA_STEJNE_KOLO | Aktivita::STAV;
                 $aktivita->zkontrolujZdaSeMuzePrihlasit(
                     $ucastnik,
                     $vypravec,

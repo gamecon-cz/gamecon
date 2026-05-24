@@ -35,7 +35,7 @@ if (!$stranka) {
             back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/uzivatel.php', '.php'));
         }
         if ($u->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
-            back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/infopult.php', '.php'));
+            back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/infopult/infopult.php', '.php'));
         }
         if ($u->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/moje-aktivity'));
@@ -193,9 +193,9 @@ if ($strankaExistuje && $uzivatelMaPristup) {
 // operátor - info & odhlašování
 $xtpl->assign('a', $u->koncovkaDlePohlavi());
 $xtpl->assign('operator', $u->jmenoNick());
-if ($u && ($u->jeSuperAdmin() || $u->jeInfopultak())) {
+if ($u && ($u->maPravo(Pravo::PREPNUTI_NA_UZIVATELE) || $u->jeInfopultak())) {
     $dataOmnibox = [];
-    if ($u->jeInfopultak() && !$u->jeSuperAdmin()) {
+    if ($u->jeInfopultak() && !$u->maPravo(Pravo::PREPNUTI_NA_UZIVATELE)) {
         $dataOmnibox['jenSRolemi'] = [Role::LETOSNI_VYPRAVEC, Role::LETOSNI_PARTNER];
     }
     $xtpl->assign('dataOmniboxJson', htmlspecialchars(json_encode($dataOmnibox, JSON_FORCE_OBJECT)));
@@ -263,6 +263,7 @@ uasort($submenu, function (
 });
 
 // výstup submenu
+$allHidden = true;
 foreach ($submenu as $url => $polozka) {
     if ($u && $u->maPravo($polozka['pravo'])) {
         $xtpl->assign('url', $url == $stranka
@@ -279,11 +280,13 @@ foreach ($submenu as $url => $polozka) {
         }
         $xtpl->assign('add_attributes', implode(' ', $addAttributes));
 
-        $display = '';
+        $displayPolozka = '';
         if (!empty($polozka['hidden'])) {
-            $display = 'none';
+            $displayPolozka = 'none';
+        } else {
+            $allHidden = false;
         }
-        $xtpl->assign('display', $display);
+        $xtpl->assign('displayPolozka', $displayPolozka);
 
         $itemBreak = '';
         if ($polozka['order'] == 1 && $polozka['group'] > 1) {
@@ -297,6 +300,7 @@ foreach ($submenu as $url => $polozka) {
     }
 }
 $xtpl->assign('stranka', $stranka);
+$xtpl->assign('displaySubmenu', $allHidden ? 'none' : '');
 $xtpl->parse('all.submenu');
 
 $protipy = [
@@ -306,7 +310,7 @@ $protipy = [
     'odhlášením uživatele z GC se nenávratně zruší všechny jeho aktivity a nákupy',
     'osobní údaje lze upravit kliknutím a přepsáním na úvodní straně',
     'používání klávesových zkratek urychlí práci',
-    '<q>Bacha, tady můžeš něco posrat, ses si jistej, že víš co děláš?"</q> -Cemi, 2022',
+    '<q>Bacha, tady můžeš něco posrat, seš si jistej, že víš co děláš?"</q> -Cemi, 2022',
 ];
 
 $info->nazev($info->nazev() ?? '', 'Administrace');
@@ -320,6 +324,8 @@ $xtpl->parse('all');
 $xtpl->out('all');
 profilInfo();
 
-if ($systemoveNastaveni->jsmeNaBete()) {
-    $xtpl->parse('all.jsmeNaBete');
+$ribbonLabel = $systemoveNastaveni->prostredi()->ribbonLabel();
+if ($ribbonLabel !== '') {
+    $xtpl->assign('ribbonLabel', $ribbonLabel);
+    $xtpl->parse('all.ribbon');
 }

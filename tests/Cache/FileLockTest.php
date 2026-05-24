@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Cache;
 use Gamecon\Cache\FileLock;
 use Gamecon\SystemoveNastaveni\ZdrojPrivateCacheDir;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 class FileLockTest extends TestCase
 {
@@ -15,7 +16,7 @@ class FileLockTest extends TestCase
     protected function setUp(): void
     {
         $this->tempDir = sys_get_temp_dir() . '/gamecon-file-lock-test-' . uniqid();
-        mkdir($this->tempDir, 0775, true);
+        (new Filesystem())->mkdir($this->tempDir, 0775);
     }
 
     protected function tearDown(): void
@@ -132,6 +133,31 @@ class FileLockTest extends TestCase
 
         fclose($handle);
         $fileLock->unlock('concurrent');
+    }
+
+    /**
+     * @test
+     *
+     * Regression: dvě FileLock instance volající lock() se stejným jménem MUSÍ
+     * sahat na stejný soubor, jinak je flock(LOCK_EX) bezzubý — každá instance
+     * získá svůj vlastní zámek a v žádném pořadí se neserializují.
+     */
+    public function dveInstanceSdileliStejnyLockSoubor(): void
+    {
+        $first = $this->createFileLock();
+        $first->lock('shared');
+        $first->unlock('shared');
+
+        $second = $this->createFileLock();
+        $second->lock('shared');
+        $second->unlock('shared');
+
+        $lockFiles = glob($this->tempDir . '/locks/*shared.lock');
+        self::assertCount(
+            1,
+            $lockFiles,
+            'Dvě FileLock instance se stejným jménem musí používat tentýž lockfile, jinak flock neslouží jako mezi-procesní zámek',
+        );
     }
 
     /**

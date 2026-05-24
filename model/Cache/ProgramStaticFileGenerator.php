@@ -87,13 +87,15 @@ class ProgramStaticFileGenerator implements ResetInterface
                 'do' => $konecAktivity->getTimestamp() * 1000,
             ],
             'linie'           => $activity->typ()->nazev(),
+            'turnajId'        => $activity->turnaj()?->getId(),
+            'turnajKolo'      => $activity->turnajKolo(),
             'vBudoucnu'       => $activity->vBudoucnu(),
             'vdalsiVlne'      => $activity->vDalsiVlne(),
             'probehnuta'      => $activity->probehnuta(),
             'jeBrigadnicka'   => $activity->jeBrigadnicka(),
             'prihlasovatelna' => $activity->prihlasovatelna(),
             'tymova'          => $activity->tymova(),
-            'dite'            => $activity->detiIds(),
+            'tymovaKapacita'  => $activity->tymovaKapacita(),
         ];
 
         return $aktivitaRes;
@@ -227,7 +229,7 @@ class ProgramStaticFileGenerator implements ResetInterface
         }
     }
 
-    private function getManifestPath(int $rok): string
+    public function getManifestPath(int $rok): string
     {
         return $this->outputDir . "/manifest-{$rok}.json";
     }

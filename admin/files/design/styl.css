@@ -188,7 +188,10 @@ body {
   padding: 20px;
   background-color: #fff;
   border-radius: 8px;
-  min-height: 480px;
+  /* Keep the white backdrop under the whole fixed sidebar (.sloupL),
+     otherwise the menu's fade-to-dark right edge meets the dark page
+     background below .main and looks like a cut-off. */
+  min-height: 80vh;
   position: relative;
   z-index: 10;
 }
@@ -246,6 +249,13 @@ body {
 
 #submenu.submenu-selected-aktivity {
   padding: 15px 0 10px;
+}
+
+/* Dev uses a tile-style landing page (admin/scripts/modules/dev/dev.php)
+   as its own navigation, so the standard top submenu strip is just
+   visual noise. */
+#submenu.submenu-selected-dev {
+  display: none;
 }
 
 #submenu ul, #submenu li {
@@ -341,19 +351,23 @@ body {
   overflow: visible;
 }
 
-.adm_submenu_item_ord_1.adm_submenu_item_grp_1::before {
+/* These group labels are Aktivity-specific (the submenu_group numbers
+   1..4 map to Zadávání/Vypravěči/Účast/Administrace in that module).
+   Without the .submenu-selected-aktivity scope they bleed onto every
+   other submenu that reuses ord_1.grp_N (e.g. Dev). */
+.submenu-selected-aktivity .adm_submenu_item_ord_1.adm_submenu_item_grp_1::before {
   content: 'Zadávání';
 }
 
-.adm_submenu_item_ord_1.adm_submenu_item_grp_2::before {
+.submenu-selected-aktivity .adm_submenu_item_ord_1.adm_submenu_item_grp_2::before {
   content: 'Vypravěči';
 }
 
-.adm_submenu_item_ord_1.adm_submenu_item_grp_3::before {
+.submenu-selected-aktivity .adm_submenu_item_ord_1.adm_submenu_item_grp_3::before {
   content: 'Účast';
 }
 
-.adm_submenu_item_ord_1.adm_submenu_item_grp_4::before {
+.submenu-selected-aktivity .adm_submenu_item_ord_1.adm_submenu_item_grp_4::before {
   content: 'Administrace';
 }
 
@@ -382,7 +396,7 @@ body {
   white-space: normal;
   padding: 6px 5px 6px;
   text-align: center;
-  color: #fff;
+  color: #e8f5e9;
   border-radius: 5px;
   text-transform: capitalize;
   height: auto;
@@ -745,6 +759,176 @@ form table .orez img {
 
 .dbForm input[type="text"] {
   min-width: 200px;
+}
+
+/* Kontrola stavu týmů */
+.tymy-kontrola-panel {
+  margin-bottom: 16px;
+}
+
+.tymy-kontrola-btn {
+  font-size: 1.05em;
+  padding: 6px 16px;
+}
+
+.tlacitko.tymy-kontrola-btn--aktivni,
+.tlacitko.tymy-kontrola-btn--aktivni:hover {
+  background: #4a7c4e;
+  border-color: #a8d5aa;
+  color: #fff;
+}
+
+.tymy-kontrola-vysledky {
+  margin-bottom: 24px;
+}
+
+.tymy-kontrola-sekce {
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.tymy-kontrola-sekce h3 {
+  margin: 0 0 10px;
+}
+
+.tymy-kontrola-sekce--chyba {
+  border-color: #e88;
+  background: #fff8f8;
+}
+
+.tymy-kontrola-sekce--ok {
+  border-color: #6c6;
+  background: #f0fff0;
+}
+
+.tymy-kontrola-tym-bezkapitana,
+.tymy-kontrola-tym-kola {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.tymy-kontrola-tym-bezkapitana:last-child,
+.tymy-kontrola-tym-kola:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.tymy-kontrola-automaticky-kapitan-form {
+  margin: 6px 0 8px;
+}
+
+/* Grid kol turnaje */
+.tymy-kola-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tymy-kola-sloupec {
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  min-width: 130px;
+  max-width: 200px;
+  flex: 1 1 130px;
+  overflow: hidden;
+}
+
+.tymy-kola-sloupec--ok {
+  border-color: #8b8;
+}
+
+.tymy-kola-sloupec--chyba {
+  border-color: #e55;
+}
+
+.tymy-kola-hlavicka {
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85em;
+  background: #f4f4f4;
+  border-bottom: 1px solid #ccc;
+}
+
+.tymy-kola-sloupec--ok .tymy-kola-hlavicka {
+  background: #e8f5e8;
+  border-color: #8b8;
+}
+
+.tymy-kola-sloupec--chyba .tymy-kola-hlavicka {
+  background: #fdeaea;
+  border-color: #e55;
+}
+
+.tymy-kola-cislo {
+  font-weight: bold;
+}
+
+.tymy-kola-cas {
+  color: #555;
+}
+
+.tymy-kola-obsah {
+  padding: 4px 6px;
+  min-height: 32px;
+}
+
+.tymy-kola-aktivita-bunka {
+  border-radius: 2px;
+  padding: 4px 6px;
+  margin-bottom: 4px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.tymy-kola-aktivita-nazev {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tymy-kola-aktivita-bunka--prihlasena {
+  background: #d4efdf;
+  border: 1px solid #27ae60;
+}
+
+.tymy-kola-aktivita-bunka--neprihlasena {
+  background: #f4f4f4;
+  border: 1px solid #ccc;
+  opacity: 0.75;
+}
+
+.tymy-kola-btn-odhlasit,
+.tymy-kola-btn-prihlasit {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  font-size: 0.85em;
+}
+
+.tymy-kola-prazdne {
+  color: #999;
+  font-style: italic;
+  font-size: 0.9em;
+  padding: 4px 2px;
+}
+
+.tymy-kontrola-ok {
+  color: #080;
+  font-weight: bold;
+  font-size: 1.2em;
+  text-align: center;
+  margin: 0;
+  padding: 4px 0;
 }
 
 .hinted {
@@ -1163,9 +1347,10 @@ Radio musí být ve tvaru:
   grid-template-areas:
   "přehled"
   "udaje"
+  "platba"
   "ubytování"
   "pokoje"
-  "platba"
+  "jidlo"
   "prodej"
   "predmety";
 }
@@ -1188,6 +1373,10 @@ Radio musí být ve tvaru:
 
 .infopult-grid--item-platba {
   grid-area: platba;
+}
+
+.infopult-grid--item-jidlo {
+  grid-area: jidlo;
 }
 
 .infopult-grid--item-predmety {
@@ -1220,14 +1409,13 @@ Radio musí být ve tvaru:
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
   .infopult-grid--container {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     grid-template-rows: auto;
     grid-template-areas:
-      "přehled přehled ubytování ubytování"
-      "udaje   udaje   ubytování ubytování"
-      "udaje   udaje   pokoje    pokoje"
-      "platba  platba  predmety    predmety"
-      "prodej  prodej  predmety  predmety";
+      "přehled   udaje     platba"
+      "ubytování ubytování prodej"
+      "ubytování ubytování predmety"
+      "pokoje    jidlo     predmety";
   }
 
   .infopult-grid--item {
@@ -1267,10 +1455,10 @@ Radio musí být ve tvaru:
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
     grid-template-areas:
-      "přehled udaje ubytování"
-      "platba pokoje predmety"
-      "platba prodej predmety"
-      "platba . predmety";
+      "přehled   udaje     platba"
+      "ubytování ubytování prodej"
+      "ubytování ubytování predmety"
+      "pokoje    jidlo     predmety";
   }
 
   .infopult-grid--item-přehled {

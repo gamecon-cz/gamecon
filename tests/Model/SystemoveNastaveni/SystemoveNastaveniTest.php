@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
 use App\Kernel;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Symfony\Component\Filesystem\Filesystem;
 
 class SystemoveNastaveniTest extends AbstractTestDb
 {
@@ -43,6 +47,56 @@ class SystemoveNastaveniTest extends AbstractTestDb
     /**
      * @test
      *
+     * Regression: změna jakékoli hodnoty v Nastavení musí označit JSON program
+     * cache jako dirty, jinak frontend dál zobrazuje stará data (např. po posunu
+     * REG_AKTIVIT_OD se aktivity tváří jako vBudoucnu/vDalsiVlne podle staré hodnoty).
+     * Reportováno v https://trello.com/c/XkQrBvbK.
+     */
+    public function ulozZmenuHodnotyOznaciJsonCacheJakoDirty()
+    {
+        $privateCacheDir = sys_get_temp_dir() . '/gamecon-test-nastaveni-cache-' . getmypid() . '-' . mt_rand();
+        $publicCacheDir = sys_get_temp_dir() . '/gamecon-test-nastaveni-public-' . getmypid() . '-' . mt_rand();
+        $filesystem = new Filesystem();
+        $filesystem->mkdir($privateCacheDir);
+        $filesystem->mkdir($publicCacheDir);
+
+        try {
+            $nastaveni = new SystemoveNastaveni(
+                rocnik: ROCNIK,
+                ted: new DateTimeImmutableStrict(),
+                prostredi: Prostredi::Production,
+                databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+                rootAdresarProjektu: PROJECT_ROOT_DIR,
+                privateCacheDir: $privateCacheDir,
+                kernel: new Kernel('test', false),
+                publicCacheDir: $publicCacheDir,
+            );
+            $generator = new ProgramStaticFileGenerator($nastaveni);
+
+            foreach (ProgramStaticFileType::cases() as $typ) {
+                self::assertFalse(
+                    $generator->hasDirtyFlag($typ),
+                    "Test předpokládá čistý stav před změnou hodnoty ({$typ->value})",
+                );
+            }
+
+            $nastaveni->ulozZmenuHodnoty('123', 'KURZ_EURO', \Uzivatel::zId(\Uzivatel::SYSTEM));
+
+            foreach (ProgramStaticFileType::cases() as $typ) {
+                self::assertTrue(
+                    $generator->hasDirtyFlag($typ),
+                    "Po ulozZmenuHodnoty musí být dirty flag pro {$typ->value} (jinak frontend zobrazí stará data)",
+                );
+            }
+        } finally {
+            $filesystem->remove($privateCacheDir);
+            $filesystem->remove($publicCacheDir);
+        }
+    }
+
+    /**
+     * @test
+     *
      * @dataProvider provideVychoziHodnota
      */
     public function vychoziHodnotaOdpovidaOcekavani(int $rok, string $klic, string $ocekavanaHodnota)
@@ -58,15 +112,25 @@ class SystemoveNastaveniTest extends AbstractTestDb
         bool $jsmeNaBete = false,
         bool $jsmeNaLocale = false,
     ): SystemoveNastaveni {
+        // Translate the legacy boolean pair into the new Prostredi enum.
+        // Tests passed (false, false) for "ostre", (true, false) for "bete",
+        // (false, true) for "locale". The (true, true) combination used to
+        // throw — keep that for compatibility (Prostredi is single-valued).
+        $prostredi = match (true) {
+            $jsmeNaBete && $jsmeNaLocale => throw new \LogicException('Nemůžeme být na betě a zároveň na locale'),
+            $jsmeNaBete                  => Prostredi::Beta,
+            $jsmeNaLocale                => Prostredi::Locale,
+            default                      => Prostredi::Production,
+        };
+
         return new SystemoveNastaveni(
-            $rocnik,
-            $now,
-            $jsmeNaBete,
-            $jsmeNaLocale,
-            DatabazoveNastaveni::vytvorZGlobals(),
-            PROJECT_ROOT_DIR,
-            SPEC,
-            new Kernel('test', false),
+            rocnik: $rocnik,
+            ted: $now,
+            prostredi: $prostredi,
+            databazoveNastaveni: DatabazoveNastaveni::vytvorZGlobals(),
+            rootAdresarProjektu: PROJECT_ROOT_DIR,
+            privateCacheDir: SPEC,
+            kernel: new Kernel('test', false),
             publicCacheDir: CACHE,
         );
     }
@@ -87,6 +151,7 @@ class SystemoveNastaveniTest extends AbstractTestDb
             '2023 TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE'              => [2023, 'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2023-06-23'],
             '2023 UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE'           => [2023, 'UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2023-07-16'],
             '2023 JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE'               => [2023, 'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2023-07-16'],
+            '2023 MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE'              => [2023, 'MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2023-07-09'],
             '2023 PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' => [2023, 'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2023-07-09'],
             '2023 TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY'               => [2023, 'TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY', 'vraceni zustatku GC ID:'],
         ];

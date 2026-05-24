@@ -4,7 +4,7 @@ namespace Gamecon;
 
 use Gamecon\Accounting\PersonalAccount;
 use Gamecon\Accounting\Transaction;
-use Gamecon\Accounting\TransactionCategory;
+use Gamecon\Accounting\TransactionCategoryEnum;
 use Gamecon\Accounting\TransactionSplit;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
@@ -28,37 +28,37 @@ class Accounting
             } else {
                 $splits[] = new TransactionSplit(-$polozkaProBfgr->castka, $polozkaProBfgr->nazev);
             }
-            /** @var TransactionCategory $category */
+            /** @var TransactionCategoryEnum $category */
             $category = null;
             switch ($polozkaProBfgr->typ) {
                 case Finance::AKTIVITY:
-                    $category = TransactionCategory::ACTIVITY;
+                    $category = TransactionCategoryEnum::ACTIVITY;
                     break;
                 case TypPredmetu::PROPLACENI_BONUSU:
                 case Finance::PRIPSANE_SLEVY:
                 case Finance::PLATBA:
                 case Finance::ORGSLEVA:
                 case Finance::BRIGADNICKA_ODMENA:
-                    $category = TransactionCategory::MANUAL_MOVEMENTS;
+                    $category = TransactionCategoryEnum::MANUAL_MOVEMENTS;
                     break;
                 case Finance::VSTUPNE:
                 case TypPredmetu::VSTUPNE:
-                    $category = TransactionCategory::VOLUNTARY_DONATION;
+                    $category = TransactionCategoryEnum::VOLUNTARY_DONATION;
                     break;
                 case TypPredmetu::TRICKO:
                 case TypPredmetu::PREDMET:
-                    $category = TransactionCategory::SHOP_ITEMS;
+                    $category = TransactionCategoryEnum::SHOP_ITEMS;
                     break;
                 case TypPredmetu::UBYTOVANI:
-                    $category = TransactionCategory::ACCOMMODATION;
+                    $category = TransactionCategoryEnum::ACCOMMODATION;
                     break;
                 case TypPredmetu::JIDLO:
-                    $category = TransactionCategory::FOOD;
+                    $category = TransactionCategoryEnum::FOOD;
                     break;
                 case TypPredmetu::PARCON:
                     throw new NeznamyTypPredmetu(sprintf('Unknown item type %s', $polozkaProBfgr->typ));
                 case Finance::ZUSTATEK_Z_PREDCHOZICH_LET:
-                    $category = TransactionCategory::LEFTOVER_FROM_LAST_YEAR;
+                    $category = TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR;
                     break;
                 case Finance::CELKOVA:
                 case Finance::VYSLEDNY:

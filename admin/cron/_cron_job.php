@@ -43,6 +43,15 @@ if (in_array($job, ['mail_cfo_nesparovane_platby', 'aktivity_hromadne'])) {
     }
 }
 
+if (in_array($job, ['mazani_nepripravenych_tymu', 'aktivity_hromadne'])) {
+    require __DIR__ . '/jobs/mazani_nepripravenych_tymu.php';
+
+    if ($job === 'mazani_nepripravenych_tymu') {
+        return;
+    }
+}
+
+
 if ($job === 'materializace_roli_podle_rocniku') {
     require __DIR__ . '/jobs/materializace_roli_podle_rocniku.php';
 

@@ -140,8 +140,10 @@ if (!$m->bezPaticky()) {
     $t->parse('index.paticka');
 }
 
-if ($systemoveNastaveni->jsmeNaBete()) {
-    $t->parse('index.jsmeNaBete');
+$ribbonLabel = $systemoveNastaveni->prostredi()->ribbonLabel();
+if ($ribbonLabel !== '') {
+    $t->assign('ribbonLabel', $ribbonLabel);
+    $t->parse('index.ribbon');
 }
 $t->parse('index');
 $t->out('index');

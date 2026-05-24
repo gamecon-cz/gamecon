@@ -22,6 +22,10 @@
 
   <div class="uzivatel-grid--item uzivatel-grid--item-ubytování aBox">
     <h3>Ubytování uživatele</h3>
+    <!-- begin:nechceUbytovaniInfo -->
+    <div><strong>Nechce ubytování:</strong> {nechceUbytovani}</div>
+    <br>
+    <!-- end:nechceUbytovaniInfo -->
     <!-- begin:ubytovani -->
     <form method="post" class="clearfix">
       {ubytovaniHtml}<br>

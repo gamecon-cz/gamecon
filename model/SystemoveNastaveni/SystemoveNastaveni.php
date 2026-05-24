@@ -7,6 +7,8 @@ namespace Gamecon\SystemoveNastaveni;
 use Composer\Autoload\ClassLoader;
 use Gamecon\Cache\CachedDb;
 use Gamecon\Cache\DbInterface;
+use Gamecon\Cache\ProgramStaticFileGenerator;
+use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cache\QueryCache;
 use Gamecon\Cache\RawDb;
 use Gamecon\Cas\DateTimeCz;
@@ -14,6 +16,7 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\Exceptions\ChybnaHodnotaSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Sql;
@@ -36,6 +39,8 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
         ?string                  $privateCacheDir = null,
         ?Kernel                  $kernel = null,
         ?string                  $publicCacheDir = null,
+        ?bool                    $jsmeNaPreview = null,
+        ?Prostredi               $prostredi = null,
     ): self {
         global $systemoveNastaveni;
 
@@ -55,11 +60,22 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
             return new Kernel(environment: $appEnv, debug: $debug);
         };
 
+        // Legacy callers may pass individual jsmeNa* booleans (overriding
+        // the host-derived detection). Materialize them into a Prostredi
+        // value if any was given, otherwise let the enum auto-detect.
+        $resolvedProstredi = $prostredi ?? match (true) {
+            $jsmeNaLocale === true                                           => Prostredi::Locale,
+            $jsmeNaBete === true                                             => Prostredi::Beta,
+            $jsmeNaPreview === true                                          => Prostredi::Preview,
+            $jsmeNaLocale === false && $jsmeNaBete === false
+                && $jsmeNaPreview === false                                  => Prostredi::Production,
+            default                                                          => Prostredi::detect(),
+        };
+
         $noveSystemoveNastaveni = new static(
             $rocnik,
             $ted ?? new DateTimeImmutableStrict(),
-            $jsmeNaBete ?? jsmeNaBete(),
-            $jsmeNaLocale ?? jsmeNaLocale(),
+            $resolvedProstredi,
             $databazoveNastaveni ?? DatabazoveNastaveni::vytvorZGlobals(),
             $projectRootDir
             ?? try_constant('PROJECT_ROOT_DIR')
@@ -104,17 +120,16 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed, Zdr
     public function __construct(
         private readonly int                     $rocnik,
         private readonly DateTimeImmutableStrict $ted,
-        private readonly bool                    $jsmeNaBete,
-        private readonly bool                    $jsmeNaLocale,
+        private readonly Prostredi               $prostredi,
         private readonly DatabazoveNastaveni     $databazoveNastaveni,
         private readonly string                  $rootAdresarProjektu,
         private readonly string                  $privateCacheDir,
         private readonly Kernel                  $kernel,
         private readonly string                  $publicCacheDir,
     ) {
-        if ($jsmeNaLocale && $jsmeNaBete) {
-            throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
-        }
+        // The "Nemůžeme být na betě a zároveň na locale" invariant is now
+        // structural — Prostredi cases are exhaustive and exclusive — so
+        // the old check became dead.
         if (!$privateCacheDir) {
             throw new \LogicException('Private cache dir musí být nastaven');
         }
@@ -312,9 +327,36 @@ SQL,
         );
         if ($zmenenoZaznamu > 0) {
             $this->aktualizujZaznamVLokalniCache($hodnotaProDb, $klic, $editujici->id());
+            // Mnoho klíčů (data registrace, vlny aktivit, ceny) ovlivňuje
+            // statický JSON program (vBudoucnu / vDalsiVlne / prihlasovatelna).
+            // Bez označení dirty flagu by frontend dál servíroval starou aktivity.json.
+            // Worker spouštíme rovnou, aby další návštěvník už dostal čerstvá data.
+            $this->oznacProgramCacheJakoDirty(spustWorker: true);
         }
 
         return $zmenenoZaznamu;
+    }
+
+    /**
+     * Označí všechny typy statického JSON programu jako dirty, aby je worker
+     * (nebo navazující deploy krok) vygeneroval znovu. Volat z míst, která
+     * obcházejí běžné invalidační cesty (přímý SQL zápis, import DB, ruční
+     * úpravy nastavení).
+     *
+     * S $spustWorker=true se rovnou spustí worker, který flagy zpracuje na
+     * pozadí; volat z míst, kde nehrozí, že worker uvidí necommitnutá data
+     * (mimo otevřenou transakci) a kde nechceme čekat až na další HTTP request,
+     * aby návštěvníci dostali čerstvý program.
+     */
+    public function oznacProgramCacheJakoDirty(bool $spustWorker = false): void
+    {
+        $generator = new ProgramStaticFileGenerator($this);
+        foreach (ProgramStaticFileType::cases() as $typ) {
+            $generator->touchDirtyFlag($typ, tryStartWorker: false);
+        }
+        if ($spustWorker) {
+            $generator->tryStartWorker();
+        }
     }
 
     private function aktualizujZaznamVLokalniCache(
@@ -652,6 +694,9 @@ SQL;
                                                           ->modify('-1 day') // například 17. 7. 2023 00:00 -> 16. 7. 2023 myšleno včetně
                                                           ->formatDatumDb();
             $konecGameconuKdy            = DateTimeGamecon::spocitejKonecGameconu($this->rocnik())->formatDb();
+            $konecProdejePredmetuBezTricekKdy = DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+                                                                ->modify('-1 day') // například 10. 7. 2023 00:00 -> 9. 7. 2023 myšleno včetně
+                                                                ->formatDatumDb();
 
             $this->vychoziHodnoty = [
                 Klic::GC_BEZI_OD                                      => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())->formatDb(),
@@ -666,9 +711,8 @@ SQL;
                                                                                         ->formatDb(),
                 Klic::UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE           => $tretiHromadneOdhlasovaniKdy,
                 Klic::JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE               => $tretiHromadneOdhlasovaniKdy,
-                Klic::PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
-                                                                                        ->modify('-1 day') // například 10. 7. 2023 00:00 -> 9. 7. 2023 myšleno včetně
-                                                                                        ->formatDatumDb(),
+                Klic::MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE              => $konecProdejePredmetuBezTricekKdy,
+                Klic::PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE => $konecProdejePredmetuBezTricekKdy,
                 Klic::TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE              => $this->rocnik() === 2023
                     ? '2023-06-23'
                     : DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
@@ -724,19 +768,29 @@ SQL;
                     ->modify($this->ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity() . ' days');
     }
 
+    public function prostredi(): Prostredi
+    {
+        return $this->prostredi;
+    }
+
     public function jsmeNaOstre(): bool
     {
-        return !$this->jsmeNaBete() && !$this->jsmeNaLocale();
+        return $this->prostredi === Prostredi::Production;
     }
 
     public function jsmeNaBete(): bool
     {
-        return $this->jsmeNaBete;
+        return $this->prostredi === Prostredi::Beta;
+    }
+
+    public function jsmeNaPreview(): bool
+    {
+        return $this->prostredi === Prostredi::Preview;
     }
 
     public function jsmeNaLocale(): bool
     {
-        return $this->jsmeNaLocale;
+        return $this->prostredi === Prostredi::Locale;
     }
 
     public function aktivitaEditovatelnaXMinutPredJejimZacatkem(): int
@@ -790,6 +844,17 @@ SQL;
     public function prodejTricekUkoncen(): bool
     {
         return $this->prodejTricekDo() < $this->ted();
+    }
+
+    public function prodejMikinDo(): DateTimeImmutableStrict
+    {
+        return (new DateTimeImmutableStrict(MIKINY_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
+    public function prodejMikinUkoncen(): bool
+    {
+        return $this->prodejMikinDo() < $this->ted();
     }
 
     public function prodejPredmetuBezTricekDo(): DateTimeImmutableStrict
@@ -1052,24 +1117,9 @@ SQL;
         ];
     }
 
-    public function kontaktniEmailGc(): string
-    {
-        return 'gamecon.fallback@seznam.cz';
-    }
-
     public function prefixPodleProstredi(): string
     {
-        if ($this->jsmeNaOstre()) {
-            return '';
-        }
-        if ($this->jsmeNaBete()) {
-            return 'β';
-        }
-        if ($this->jsmeNaLocale()) {
-            return 'άλφα';
-        }
-
-        return 'δ'; // gamu přeskočíme, je nevýrazná
+        return $this->prostredi->prefix();
     }
 
     public function kolikMinutJeOdhlaseniBezPokuty(): int

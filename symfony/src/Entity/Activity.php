@@ -80,10 +80,15 @@ class Activity
     #[ORM\JoinColumn(name: 'typ', referencedColumnName: 'id_typu', nullable: false, onDelete: 'RESTRICT')]
     private ActivityType $type;
 
-    #[ORM\Column(name: 'dite', type: Types::STRING, length: 64, nullable: true, options: [
-        'comment' => 'potomci oddělení čárkou',
+    #[ORM\ManyToOne(targetEntity: Tournament::class, inversedBy: 'aktivity')]
+    #[ORM\JoinColumn(name: 'id_turnaje', referencedColumnName: 'id_turnaje', nullable: true, onDelete: 'SET NULL')]
+    private ?Tournament $tournament = null;
+
+    #[ORM\Column(name: 'turnaj_kolo', type: Types::SMALLINT, nullable: true, options: [
+        'unsigned' => true,
+        'comment'  => 'číslo kola v turnaji (1 = první kolo)',
     ])]
-    private ?string $dite = null;
+    private ?int $turnajKolo = null;
 
     #[ORM\Column(name: 'rok', type: Types::INTEGER, nullable: false)]
     private int $rok;
@@ -108,28 +113,19 @@ class Activity
     private ?int $teamMax = null;
 
     #[ORM\Column(name: 'team_kapacita', type: Types::INTEGER, nullable: true, options: [
-        'comment' => 'max. počet týmů, pokud jde o další kolo týmové aktivity',
+        'comment' => 'max. počet týmů na aktivitě',
     ])]
     private ?int $teamKapacita = null;
 
-    #[ORM\Column(name: 'team_nazev', type: Types::STRING, length: 255, nullable: true)]
-    private ?string $teamNazev = null;
+    #[ORM\Column(name: 'tym_smazat_po_expiraci', type: Types::BOOLEAN, nullable: false, options: [
+        'default' => 0,
+        'comment' => 'po expiraci rozpracovaného týmu: true = smazat, false = zveřejnit',
+    ])]
+    private bool $tymSmazatPoExpiraci = true;
 
     #[ORM\ManyToOne(targetEntity: Location::class)]
     #[ORM\JoinColumn(name: 'id_hlavni_lokace', referencedColumnName: 'id_lokace', nullable: true, onDelete: 'SET NULL')]
     private ?Location $mainLocation = null;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'zamcel', referencedColumnName: 'id_uzivatele', nullable: true, onDelete: 'SET NULL', options: [
-        'comment'  => 'případně kdo zamčel aktivitu pro svůj team',
-        'onUpdate' => 'CASCADE',
-    ])]
-    private ?User $forTeamLockedBy = null;
-
-    #[ORM\Column(name: 'zamcel_cas', type: Types::DATETIME_MUTABLE, nullable: true, options: [
-        'comment' => 'případně kdy zamčel aktivitu',
-    ])]
-    private ?\DateTime $forTeamLockedAt = null;
 
     #[ORM\Column(name: 'popis', type: Types::TEXT, nullable: false, options: [
         'comment' => 'markdown',
@@ -141,11 +137,6 @@ class Activity
 
     #[ORM\Column(name: 'vybaveni', type: Types::TEXT, nullable: false)]
     private string $vybaveni;
-
-    #[ORM\Column(name: 'team_limit', type: Types::INTEGER, nullable: true, options: [
-        'comment' => 'uživatelem (vedoucím týmu) nastavený limit kapacity menší roven team_max, ale větší roven team_min. Prostřednictvím on update triggeru kontrolována tato vlastnost a je-li non-null, tak je tato kapacita nastavena do sloupce `kapacita`',
-    ])]
-    private ?int $teamLimit = null;
 
     #[ORM\Column(name: 'probehla_korekce', type: Types::BOOLEAN, nullable: false, options: [
         'default' => 0,
@@ -337,14 +328,26 @@ class Activity
         return $this;
     }
 
-    public function getDite(): ?string
+    public function getTournament(): ?Tournament
     {
-        return $this->dite;
+        return $this->tournament;
     }
 
-    public function setDite(?string $dite): self
+    public function setTournament(?Tournament $tournament): self
     {
-        $this->dite = $dite;
+        $this->tournament = $tournament;
+
+        return $this;
+    }
+
+    public function getTurnajKolo(): ?int
+    {
+        return $this->turnajKolo;
+    }
+
+    public function setTurnajKolo(?int $turnajKolo): self
+    {
+        $this->turnajKolo = $turnajKolo;
 
         return $this;
     }
@@ -421,38 +424,14 @@ class Activity
         return $this;
     }
 
-    public function getTeamNazev(): ?string
+    public function isTymSmazatPoExpiraci(): bool
     {
-        return $this->teamNazev;
+        return $this->tymSmazatPoExpiraci;
     }
 
-    public function setTeamNazev(?string $teamNazev): self
+    public function setTymSmazatPoExpiraci(bool $tymSmazatPoExpiraci): self
     {
-        $this->teamNazev = $teamNazev;
-
-        return $this;
-    }
-
-    public function getForTeamLockedBy(): ?User
-    {
-        return $this->forTeamLockedBy;
-    }
-
-    public function setForTeamLockedBy(?User $forTeamLockedBy): self
-    {
-        $this->forTeamLockedBy = $forTeamLockedBy;
-
-        return $this;
-    }
-
-    public function getForTeamLockedAt(): ?\DateTime
-    {
-        return $this->forTeamLockedAt;
-    }
-
-    public function setForTeamLockedAt(?\DateTime $forTeamLockedAt): self
-    {
-        $this->forTeamLockedAt = $forTeamLockedAt;
+        $this->tymSmazatPoExpiraci = $tymSmazatPoExpiraci;
 
         return $this;
     }
@@ -501,18 +480,6 @@ class Activity
     public function setVybaveni(string $vybaveni): self
     {
         $this->vybaveni = $vybaveni;
-
-        return $this;
-    }
-
-    public function getTeamLimit(): ?int
-    {
-        return $this->teamLimit;
-    }
-
-    public function setTeamLimit(?int $teamLimit): self
-    {
-        $this->teamLimit = $teamLimit;
 
         return $this;
     }

@@ -60,9 +60,9 @@
 
     </div>
 
-    <!-- begin: jsmeNaBete -->
-    <div class="corner-ribbon">β beta</div>
-    <!-- end: jsmeNaBete -->
+    <!-- begin: ribbon -->
+    <div class="corner-ribbon">{ribbonLabel}</div>
+    <!-- end: ribbon -->
 
 </main>
 

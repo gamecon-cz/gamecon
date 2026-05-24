@@ -56,9 +56,7 @@ $job = get('job');
 
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
 $logfile = 'cron-' .($job ? "{$job}-" : '') . date('Y-m') . '.log';
-if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
-    throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
-}
+(new Filesystem())->mkdir($logdir);
 
 $_cronOutput = '';
 if (empty($_GET['echo'])) {
@@ -92,11 +90,15 @@ logs('Spuštím cron script...');
 
 require __DIR__ . '/cron/fio_stazeni_novych_plateb.php';
 
-logs('Odemykám zamčené týmové aktivity...');
+logs('Expiruju týmy...');
 global $systemoveNastaveni;
 $odemcenoTymovychAktivit = (new HromadneAkceAktivit($systemoveNastaveni))
-    ->odemciTeamoveHromadne(Uzivatel::zId(Uzivatel::SYSTEM, true));
-logs("odemčeno $odemcenoTymovychAktivit týmových aktivit.");
+    ->vyresExpirovaneTymyHromadne(Uzivatel::zId(Uzivatel::SYSTEM, true));
+logs("Expirováno $odemcenoTymovychAktivit týmů.");
+
+logs('Mažu rozpracované týmy (bez účastníků)...');
+$smazanoRozpracovanychTymu = \Gamecon\Aktivita\AktivitaTym::smazRozpracovaneTymy();
+logs("smazáno $smazanoRozpracovanychTymu rozpracovaných týmů.");
 
 logs('Zamykám před veřejností už běžící, dosud nezamčené aktivity...');
 $idsZamcenmych  = Aktivita::zamkniZacinajiciDo(

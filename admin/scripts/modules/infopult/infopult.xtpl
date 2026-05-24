@@ -1,0 +1,756 @@
+<!-- begin:infopult -->
+
+<style>
+  .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec {
+    float: left;
+    width: 65px;
+  }
+
+  .shopUbytovani_radek {
+    height: 40px;
+  }
+
+  .tooltip_obsah {
+    display: none;
+  }
+
+  .qr-platby {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .qr-platby__uvod {
+    width: min(360px, 100%);
+    margin: 0 auto 12px;
+    color: #4f5b67;
+    text-align: left;
+  }
+
+  .qr-platby__prepinac {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+    width: min(360px, 100%);
+    margin: 0 auto 12px;
+  }
+
+  .qr-platby__tlacitko {
+    padding: 4px 12px;
+    border: 1px solid #c8d2dd;
+    border-radius: 999px;
+    background: #f4f7fa;
+    color: #334155;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .qr-platby__tlacitko.is-aktivni,
+  .qr-platby__tlacitko[aria-pressed="true"] {
+    background: #e0ebf7;
+    border-color: #8aa6c2;
+    color: #102a43;
+  }
+
+  .qr-platby__tlacitko:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 1px;
+  }
+
+  .qr-platby-sekce {
+    padding: 0;
+    border: 0;
+  }
+
+  .qr-platba-karta {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    max-width: 360px;
+    margin: 0 auto;
+    padding: 12px;
+    border: 1px solid #d7dde4;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7f9fb 100%);
+    text-align: left;
+  }
+
+  .qr-platba-karta[hidden] {
+    display: none;
+  }
+
+  .qr-platba-karta__typ {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #e8eef5;
+    color: #334155;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .qr-platba-karta h4 {
+    margin: 0 0 4px;
+  }
+
+  .qr-platba-karta__popis {
+    margin: 0;
+    min-height: 2.8em;
+    color: #4f5b67;
+    line-height: 1.4;
+  }
+
+  .qr-platba-karta__obrazek {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 220px;
+    padding: 12px;
+    border: 1px solid #e7ecf1;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .qr-platba-karta__obrazek img {
+    display: block;
+    width: min(100%, 220px);
+    height: auto;
+  }
+
+  .pripis-platby__akce {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .pripis-platby__akce .submit-btn {
+    float: none;
+    margin: 0;
+  }
+
+  .pripis-platby__tlacitko-qr {
+    margin-right: auto;
+  }
+
+  .infopult-modal[hidden] {
+    display: none;
+  }
+
+  .infopult-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: rgba(17, 24, 39, 0.5);
+  }
+
+  .infopult-modal__obsah {
+    width: min(430px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid #c9d3de;
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(17, 24, 39, 0.25);
+    text-align: left;
+  }
+
+  .infopult-modal__hlavicka {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 30px;
+    padding-right: 38px;
+    margin-bottom: 12px;
+  }
+
+  .infopult-modal__hlavicka h3 {
+    width: min(360px, 100%);
+    margin: 0 auto;
+  }
+
+  .infopult-modal__hlavicka h3:first-child {
+    margin-top: 0;
+    position: static;
+    padding: 0;
+    background: transparent;
+  }
+
+  .infopult-modal__zavrit {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border: 1px solid #c8d2dd;
+    border-radius: 999px;
+    background: #f4f7fa;
+    color: #334155;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  body.infopult-modal-je-otevreny {
+    overflow: hidden;
+  }
+</style>
+
+
+<h1>Infopult</h1>
+
+
+<div class="header-buttons--container-main">
+  <div class="header-buttons--container header-buttons--container-left">
+    <form method="post">
+      <input type="submit" name="gcPrihlas" value="Přihlásit" {prihlasDisabled}>
+    </form>
+
+    <form method="post">
+    <span class="hinted">
+      <input type="submit" name="prijelADatMaterialy" value="Přijel{a} a Dát materiály" {prijelADatMaterialyDisabled}>
+      <span class="hint">
+        Před odkliknutím zkontroluj že proběhlo:
+        <ul>
+          <li>Předání trička, placky, stravenek, číslo pokoje, srovnání nedoplatku</li>
+          <li>Vysvětlení last moment přihlašování.</li>
+          <li>Doplnění chybějících údajů jako je adresa, telefon…</li>
+          <li>Vyplnění čísla OP</li>
+        </ul>
+      </span>
+    </span>
+    </form>
+    <!-- begin:potvrditZmenuStavu -->
+    <script>
+      $('form').last().on('submit', function () {
+        return confirm({zpravaProPotvrzeniZmenyStavu})
+      })
+    </script>
+    <!-- end:potvrditZmenuStavu -->
+
+
+    <form method="post" onsubmit="confirm('Opravdu odjel{a}?')">
+    <span class="hinted">
+      <input type="submit" name="gcOdjed" value="Odjel{a} z GC" {gcOdjedDisabled}>
+      <span class="hint">
+        Před odkliknutím zkontroluj, že je:
+        <ul>
+          <li>Vyrovnaný nedoplatek</li>
+          <li>Vrácený klíč od pokoje</li>
+        </ul>
+      </span>
+    </span>
+    </form>
+  </div>
+
+  <!-- begin:odhlasitZGc -->
+  <div class="header-buttons--container header-buttons--container-right">
+    <form method="post">
+      <div class="hinted">
+        <input class="danger" type="submit" name="gcOdhlas" value="Odhlásit z GC" {odhlasDisabled}>
+        <div class="hint">
+          <!-- begin:prihlasenyNepritomny -->
+          <p>
+            Odhlásit lze pouze účastníka, který je přihlášen na GC, ale ještě nedorazil.
+          </p>
+          <!-- end:prihlasenyNepritomny -->
+          Odhlásit účastníka z GC může pouze správce financí.
+        </div>
+      </div>
+      <script>
+        $('[name="gcOdhlas"]').closest('form').submit(function () {
+          return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?')
+        })
+      </script>
+    </form>
+  </div>
+  <!-- end:odhlasitZGc -->
+</div>
+
+<!-- begin:neUzivatel -->
+<div class="warning" onclick="document.getElementById('omniboxUzivateleProPraci').focus()">
+  <strong class="skryt-pri-uzkem ">↖</strong>Vyberte uživatele
+  <span class="skryt-pri-uzkem">(pole vlevo nahoře)</span>
+  <span class="zobrazit-pri-uzkem">(⬆ pole nahoře)</span>
+</div>
+<!-- end:neUzivatel -->
+<!-- begin:neprihlasen -->
+<div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
+<!-- begin:registraceNaGcNeniSpustena -->
+<div class="error">
+  Registrace na GameCon není spuštěna.
+  <!-- begin:hintJakSpustitRegistrace -->
+  <div>
+    Pro spuštění registrací nastav platné datumy <a href="{urlNastaveniZacatkuRegistraci}">začátku registrací</a> a <a
+      href="{urlNastaveniKonceRegistraci}">konce registrací</a>
+    {totoSeUkazujePouzeNaTestu}
+  </div>
+  <!-- end:hintJakSpustitRegistrace -->
+</div>
+<!-- end:registraceNaGcNeniSpustena -->
+<!-- end:neprihlasen -->
+
+<div class="infopult-grid--container">
+
+  <!-- begin:uzivatel -->
+  <div class="infopult-grid--item infopult-grid--item-přehled  aBox">
+    <h3>Přehled</h3>
+    <form method="post" class="clearfix">
+      <table>
+        <tr>
+          <td style="width: 60px">Stav účtu:</td>
+          <td style="{stavStyle}" class="reload-fio">
+              <span>
+                <span class="stav-uctu">{stavUctu}</span>
+                <span style="float: right">
+                  <span class="chybaFio hinted" style="display: none"> ⚠️
+                    <span class="hint">
+                      Stahování plateb z Fio se nezdařilo. Zkus to prosím za chvíli znovu.
+                    </span>
+                  </span>
+                  <button type="button">🗘 Fio</button>
+                </span>
+              </span>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="font-size: smaller"><label for="poznamka">Poznámka:</label></td>
+          <td>
+            <textarea
+                id="poznamka"
+                rows="3"
+                type="area" name="udaje[poznamka]"
+                style="margin-left: -3px; width:100%; resize: vertical;"
+            >{poznamka}</textarea>
+          </td>
+        </tr>
+
+        <!-- begin:potvrzeni -->
+        <tr>
+          <td><label for="udaj_potvrzeni">Potvrzení:</label></td>
+          <td>
+            <input type="checkbox" name="udaje[potvrzeni_zakonneho_zastupce]"
+                   style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
+            {potvrzeniText}
+            {potvrzeniOdkaz}
+          </td>
+        </tr>
+        <!-- end:potvrzeni -->
+
+        <tr>
+          <td colspan="2" class="clearfix">
+            <button style="margin: 0" type="submit" name="kontrolaOsobnichUdajuSubmit" value="1"
+                    class="submit-btn">uložit
+            </button>
+          </td>
+        </tr>
+
+        <tr>
+          <td>Údaje:</td>
+          <td>{udajeStav}</td>
+        </tr>
+
+        <tr>
+          <td>Kontakt:</td>
+          <td>{telefon}</td>
+        </tr>
+
+        <tr>
+          <td>Balíček:</td>
+          <td class="clearfix">
+            <div style="float: left;">
+              {balicek}
+              <!-- begin:cipLink -->
+              <div>
+                <a href="{nfcCipUrl}">Čip 🏷️</a>
+              </div>
+              <!-- end:cipLink -->
+            </div>
+          </td>
+        </tr>
+      </table>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;"
+         href="program-uzivatele">Program</a>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni/muj">Program účastníka</a>
+    </form>
+  </div>
+
+
+  <div class="infopult-grid--item infopult-grid--item-udaje aBox">
+    <h3>Osobní údaje</h3>
+    Pro úpravu klikni na údaj
+    {udajeHtml}
+    <script src="files/jquery.autosize-1.18.13.js"></script>
+    <script>
+      $('textarea').last().focus(function () {
+        $(this).css('width', '98%').autosize()
+      })
+    </script>
+  </div>
+
+  <div class="infopult-grid--item infopult-grid--item-platba aBox">
+    <h3>Připsat platbu</h3>
+    <form id="pripisPlatbyForm" method="post" class="clearfix">
+      <table>
+        <tr>
+          <td>Částka:</td>
+          <td><input required type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
+        </tr>
+        <tr>
+          <td>Poznámka:<span id="poznamkaPlatbyVyzadovana" class="vyzadovane" style="display:none">*</span></td>
+          <td><input type="text" name="poznamka"></td>
+        </tr>
+        <!-- begin:idFioPohybu -->
+        <tr>
+          <td>
+            <span class="hinted">ID Fio pohybu
+              <span class="hint">Například 23798944700. Tedy ID, pod kterým má transakci Fio. <strong>Důležité, aby stejnou platbu nepřipsalo znovu automatické párování plateb</strong>.</span>
+            </span>:
+          </td>
+          <td>
+            <input type="text" name="idPohybu" autocomplete="off">
+            <span style="float: right">{htmlTotoSeUkazujePouzeNaTestu}</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Datum platby:
+          </td>
+          <td>
+            <input type="datetime-local" name="provedenoKdy" autocomplete="off">
+            <span style="float: right">{htmlTotoSeUkazujePouzeNaTestu}</span>
+          </td>
+        </tr>
+        <!-- end:idFioPohybu -->
+        <tr>
+          <td>Připsal{orgA}:</td>
+          <td><input type="text" value="{org}" disabled></td>
+        </tr>
+      </table>
+      <div class="pripis-platby__akce">
+        <button type="button" id="otevritQrPlatby" class="submit-btn pripis-platby__tlacitko-qr">
+          QR platby
+        </button>
+        <input type="submit" value="Připsat" class="submit-btn">
+      </div>
+    </form>
+    <script>
+      (function() {
+        var form = document.getElementById('pripisPlatbyForm');
+        var platbaInput = form.querySelector('[name="platba"]');
+        var poznamkaInput = form.querySelector('[name="poznamka"]');
+
+        form.addEventListener('submit', function(e) {
+          var castka = parseFloat(platbaInput.value);
+          if (castka < 0 && !poznamkaInput.value.trim()) {
+            e.preventDefault();
+            poznamkaInput.style.borderColor = 'red';
+            poznamkaInput.focus();
+            alert('Pro zápornou platbu je poznámka povinná');
+          }
+        });
+
+        var poznamkaVyzadovana = document.getElementById('poznamkaPlatbyVyzadovana');
+
+        platbaInput.addEventListener('input', function() {
+          var castka = parseFloat(platbaInput.value);
+          var jeZaporna = castka < 0;
+          poznamkaInput.required = jeZaporna;
+          poznamkaVyzadovana.style.display = jeZaporna ? '' : 'none';
+        });
+      })();
+    </script>
+
+    <!-- begin:qrKodyPlateb -->
+    <div id="modalQrPlatby" class="infopult-modal" role="dialog" aria-modal="true" aria-labelledby="modalQrPlatbyNadpis" hidden>
+      <div class="infopult-modal__obsah">
+        <div class="infopult-modal__hlavicka">
+          <h3 id="modalQrPlatbyNadpis">QR platby</h3>
+          <button type="button" class="infopult-modal__zavrit" aria-label="Zavřít modální okno s QR platbami" data-zavrit-qr-modal>&times;</button>
+        </div>
+        <div class="qr-platby-sekce" data-qr-prepinac-plateb="cz">
+          <p class="qr-platby__uvod">Vyber variantu podle banky a typu převodu.</p>
+          <div class="qr-platby__prepinac" aria-label="Přepínač QR plateb">
+              <button type="button" class="qr-platby__tlacitko is-aktivni" data-qr-tlacitko="cz" aria-pressed="true">
+                  CZ
+              </button>
+              <button type="button" class="qr-platby__tlacitko" data-qr-tlacitko="sk" aria-pressed="false">
+                  SK
+              </button>
+              <button type="button" class="qr-platby__tlacitko" data-qr-tlacitko="sepa" aria-pressed="false">
+                  SEPA
+              </button>
+          </div>
+          <div class="qr-platby">
+              <div class="qr-platba-karta" data-qr-karta="cz">
+                  <div>
+                      <span class="qr-platba-karta__typ">CZ</span>
+                      <h4>Platba (CZ)</h4>
+                      <p class="qr-platba-karta__popis">Domácí převod v CZK pro české banky.</p>
+                  </div>
+                  <div class="qr-platba-karta__obrazek">
+                      <img src="{qrKodPlatbaCeska}" alt="qrPlatbaCeska">
+                  </div>
+              </div>
+              <div class="qr-platba-karta" data-qr-karta="sk" hidden>
+                  <div>
+                      <span class="qr-platba-karta__typ">SK</span>
+                      <h4>Platba (SK)</h4>
+                      <p class="qr-platba-karta__popis">Pay by Square pro slovenské banky.</p>
+                  </div>
+                  <div class="qr-platba-karta__obrazek">
+                      <img src="{qrKodPlatbaSlovenska}" alt="qrPlatbaSlovenska">
+                  </div>
+              </div>
+              <div class="qr-platba-karta" data-qr-karta="sepa" hidden>
+                  <div>
+                      <span class="qr-platba-karta__typ">SEPA</span>
+                      <h4>Platba (SEPA)</h4>
+                      <p class="qr-platba-karta__popis">EUR převod pro zahraniční nebo SEPA platby.</p>
+                  </div>
+                  <div class="qr-platba-karta__obrazek">
+                      <img src="{qrKodPlatbaSepa}" alt="qrPlatbaSepa">
+                  </div>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="{urlQrPrepinacPlateb}"></script>
+    <script>
+      (function () {
+        var modal = document.getElementById('modalQrPlatby');
+        var tlacitkoOtevrit = document.getElementById('otevritQrPlatby');
+        var tlacitkoZavrit = modal ? modal.querySelector('[data-zavrit-qr-modal]') : null;
+        var posledniAktivniElement = null;
+
+        if (!modal || !tlacitkoOtevrit || !tlacitkoZavrit) {
+          return;
+        }
+
+        var zavriModal = function () {
+          modal.hidden = true;
+          document.body.classList.remove('infopult-modal-je-otevreny');
+          if (posledniAktivniElement && typeof posledniAktivniElement.focus === 'function') {
+            posledniAktivniElement.focus();
+          }
+        };
+
+        var otevriModal = function () {
+          posledniAktivniElement = document.activeElement;
+          modal.hidden = false;
+          document.body.classList.add('infopult-modal-je-otevreny');
+          tlacitkoZavrit.focus();
+        };
+
+        tlacitkoOtevrit.addEventListener('click', otevriModal);
+        tlacitkoZavrit.addEventListener('click', zavriModal);
+
+        modal.addEventListener('click', function (event) {
+          if (event.target === modal) {
+            zavriModal();
+          }
+        });
+
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape' && !modal.hidden) {
+            zavriModal();
+          }
+        });
+      })();
+    </script>
+    <!-- end:qrKodyPlateb -->
+  </div>
+
+  <div class="infopult-grid--item infopult-grid--item-ubytování aBox">
+    <h3>Ubytování</h3>
+    <form method="post" class="clearfix">
+      <table>
+        <tr>
+          <td>Pokoj:</td>
+          <td> {pokoj}</td>
+        </tr>
+        <tr>
+          <td>Spolubydlící:</td>
+          <td>
+            {spolubydlici}
+          </td>
+        </tr>
+        <tr>
+          <td>Ubytování:</td>
+          <td>{ubytovani}</td>
+        </tr>
+        <!-- begin:nechceUbytovaniInfo -->
+        <tr>
+          <td>Nechce ubytování:</td>
+          <td>{nechceUbytovani}</td>
+        </tr>
+        <!-- end:nechceUbytovaniInfo -->
+        <tr>
+          <td colspan="2">
+            Zrušit jiné ubytování než neděli může pouze šéf Infa.
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">{ubytovaniTabulka}</td>
+        </tr>
+      </table>
+
+      <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
+    </form>
+
+    {status}
+  </div>
+
+  <div class="infopult-grid--item infopult-grid--item-pokoje aBox">
+    <h3>Nastavení pokojů</h3>
+
+    <div>
+      Vypsat pokoj<br>
+      <form method="get" class="clearfix">
+        <table>
+          <tr>
+            <td>Pokoj:</td>
+            <td><input type="integer" value="{pokojVypis}" name="pokoj"></input></td>
+          </tr>
+          <tr>
+            <td>Ubytování:</td>
+            <td>{ubytovaniVypis}</td>
+          </tr>
+        </table>
+
+        <input type="submit" value="Vypsat" class="submit-btn">
+      </form>
+    </div>
+
+    <div>
+      Přidělit pokoj (přepíše stávající stav)<br>
+      <form method="post" class="cleafix">
+        <table>
+          <tr>
+            <td>Pokoj:</td>
+            <td><input type="integer" value="{pokojVypis}" name="pokoj"></input></td>
+          </tr>
+        </table>
+
+        <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">
+      </form>
+    </div>
+  </div>
+
+  <!-- begin:jidlo -->
+  <div class="infopult-grid--item infopult-grid--item-jidlo aBox">
+    <h3>Jídlo uživatele</h3>
+    Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a
+    zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
+    <form method="post" class="clearfix">
+      {jidloHtml}
+      <input type="submit" name="zpracujJidlo" value="Uložit" class="submit-btn">
+    </form>
+  </div>
+  <!-- end:jidlo -->
+
+  <!-- begin:objednavky -->
+  <div class="infopult-grid--item infopult-grid--item-predmety aBox">
+    <h3>
+      Objednávky
+    </h3>
+      <table class="objednavky">
+          {prehledPredmetu}
+      </table>
+    <!-- begin:odkazStravenky -->
+    <a href="{urlStravenky}" target="_blank">Tisk stravenek</a>
+    <!-- end:odkazStravenky -->
+  </div>
+  <!-- end:objednavky -->
+
+  <!-- end:uzivatel -->
+
+  <div style="width: 100%;" class="infopult-grid--item infopult-grid--item-prodej">
+    <button value="Shop" class="submit-btn" style="width: 100%; height: 60px" onclick="preactMost.obchod.show()">
+      Prodej
+    </button>
+  </div>
+</div>
+
+<!-- begin:rychloregistrace -->
+<!-- TODO: tohle není rychloregistrace tak přesunout jinam z bloku nebo přejmenovat blok -->
+<div class="aBox grid">
+  <h3>Vypsat pokoj</h3>
+  <div>
+    <form method="get">
+      <table>
+        <tr>
+          <td>Pokoj:</td>
+          <td><input type="integer" value="{pokojVypis}" name="pokoj"></input></td>
+        </tr>
+        <tr>
+          <td>Ubytování:</td>
+          <td>{ubytovaniVypis}</td>
+        </tr>
+      </table>
+      <input type="submit" value="Vypsat" class="submit-btn">
+    </form>
+  </div>
+</div>
+<br>
+
+<div class="aBox grid">
+  <h3>Rychloregistrace</h3>
+  <form method="post">
+    <input type="hidden" name="rychloregistrace" value="1">
+    <table>
+      <tbody>
+      <tr>
+        <td>
+          <input type="submit" value="Jen registrovat" class="submit-btn">
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </form>
+</div>
+<!-- end:rychloregistrace -->
+
+<!-- begin:potvrditZruseniPrace -->
+<script>
+  $('#zrusitUzivateleProPraci').submit(function () {
+    return confirm({zpravaProPotvrzeniZruseniPrace})
+  })
+</script>
+<!-- end:potvrdZruseniPrace -->
+
+
+<div style="clear: both;"></div>
+
+<script>
+  $('input[type=datetime-local]').each(function (index, element) {
+    element.type = 'text'
+    $(element).datetimepicker({
+      dateFormat: 'd. m. yy',
+      timeFormat: 'HH:mm:ss',
+      onSelect: function () {
+        const changeEvent = new Event('change')
+        element.dispatchEvent(changeEvent)
+      },
+    })
+  })
+</script>
+
+<!-- end:infopult -->

@@ -1,0 +1,195 @@
+<!-- begin:logy -->
+
+<h1>Logy odeslaných e-mailů</h1>
+
+<form method="get" style="margin: 1em 0">
+  <label>
+    Hledat v předmětu nebo adresátech:
+    <input type="text" name="filtr" value="{filtr}">
+  </label>
+  <input type="submit" value="Filtrovat">
+  <!-- begin:zrusitFiltr --><a class="tlacitko" href="logy" title="Zrušit filtr">❌</a><!-- end:zrusitFiltr -->
+</form>
+
+<p>Celkem záznamů: {celkem}. Strana {aktualniStrana} / {pocetStran}.</p>
+
+<table class="zvyraznovana">
+  <tr>
+    <th><a href="{odkazRazeniKdy}">Kdy{indikatorKdy}</a></th>
+    <th>Předmět</th>
+    <th>Formát</th>
+    <th>Adresáti</th>
+    <th><a href="{odkazRazeniPrilohy}">Přílohy{indikatorPrilohy}</a></th>
+    <th>Chyba</th>
+    <th>Detail</th>
+  </tr>
+  <!-- begin:radek -->
+  <tr>
+    <td>{kdy}</td>
+    <td>{predmet}</td>
+    <td>{format}</td>
+    <td>{adresati}</td>
+    <td style="text-align: center">{prilohy}</td>
+    <td>{chyba}</td>
+    <td style="text-align: center"><a class="tlacitko" href="logy?id={id}" title="Zobrazit detail">🔍</a></td>
+  </tr>
+  <!-- end:radek -->
+</table>
+
+<div style="margin: 1em 0">
+  <!-- begin:predchozi --><a class="tlacitko" href="{odkazPredchozi}">« Předchozí</a><!-- end:predchozi -->
+  <!-- begin:dalsi --><a class="tlacitko" href="{odkazDalsi}">Další »</a><!-- end:dalsi -->
+</div>
+
+<div style="margin: 2em 0">
+  <input type="button" id="otevritTestovaciEmail" value="Odeslat testovací email">
+</div>
+
+<div id="modalTestovaciEmail" class="logy-modal" role="dialog" aria-modal="true" aria-labelledby="modalTestovaciEmailNadpis" hidden>
+  <div class="logy-modal__obsah">
+    <div class="logy-modal__hlavicka">
+      <h3 id="modalTestovaciEmailNadpis">Odeslat testovací email</h3>
+      <button type="button" class="logy-modal__zavrit" aria-label="Zavřít" data-zavrit-test-email-modal>&times;</button>
+    </div>
+    <form method="post" action="logy">
+      <p>Testovací e-mail bude odeslán na: <strong>{emailAdminaProTest}</strong></p>
+      <p>
+        <label for="testEmailPredmet">Předmět <span aria-hidden="true">*</span></label><br>
+        <input type="text" id="testEmailPredmet" name="predmet" required style="width: 100%">
+      </p>
+      <p>
+        <label for="testEmailZprava">Zpráva</label><br>
+        <textarea id="testEmailZprava" name="zprava" rows="8" style="width: 100%"></textarea>
+      </p>
+      <p style="text-align: right">
+        <input type="button" value="Zrušit" data-zavrit-test-email-modal>
+        <input type="submit" name="odeslatTestEmail" value="Odeslat">
+      </p>
+    </form>
+  </div>
+</div>
+
+<style>
+  .logy-modal[hidden] {
+    display: none;
+  }
+
+  .logy-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1em;
+    background: rgba(17, 24, 39, 0.5);
+  }
+
+  .logy-modal__obsah {
+    width: min(560px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+    padding: 1.5em;
+    border: 1px solid #c9d3de;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(17, 24, 39, 0.25);
+  }
+
+  .logy-modal__hlavicka {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1em;
+  }
+
+  .logy-modal__hlavicka h3 {
+    margin: 0;
+  }
+
+  .logy-modal__zavrit {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #c8d2dd;
+    border-radius: 999px;
+    background: #f4f7fa;
+    color: #334155;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  body.logy-modal-je-otevreny {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  (function () {
+    var modal = document.getElementById('modalTestovaciEmail');
+    var tlacitkoOtevrit = document.getElementById('otevritTestovaciEmail');
+    var tlacitkaZavrit = modal ? modal.querySelectorAll('[data-zavrit-test-email-modal]') : [];
+    var posledniAktivniElement = null;
+
+    if (!modal || !tlacitkoOtevrit || tlacitkaZavrit.length === 0) {
+      return;
+    }
+
+    var zavriModal = function () {
+      modal.hidden = true;
+      document.body.classList.remove('logy-modal-je-otevreny');
+      if (posledniAktivniElement && typeof posledniAktivniElement.focus === 'function') {
+        posledniAktivniElement.focus();
+      }
+    };
+
+    var otevriModal = function () {
+      posledniAktivniElement = document.activeElement;
+      modal.hidden = false;
+      document.body.classList.add('logy-modal-je-otevreny');
+      var prvniInput = modal.querySelector('input[name="predmet"]');
+      if (prvniInput) {
+        prvniInput.focus();
+      }
+    };
+
+    tlacitkoOtevrit.addEventListener('click', otevriModal);
+    tlacitkaZavrit.forEach(function (tlacitko) {
+      tlacitko.addEventListener('click', zavriModal);
+    });
+
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal) {
+        zavriModal();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !modal.hidden) {
+        zavriModal();
+      }
+    });
+  })();
+</script>
+
+<!-- end:logy -->
+
+<!-- begin:detail -->
+
+<h1>Detail e-mailu</h1>
+
+<p><a class="tlacitko" href="logy">« Zpět na seznam</a></p>
+
+<table class="zvyraznovana">
+  <tr><th>Kdy</th><td>{kdy}</td></tr>
+  <tr><th>Předmět</th><td>{predmet}</td></tr>
+  <tr><th>Formát</th><td>{format}</td></tr>
+  <tr><th>Adresáti</th><td>{adresati}</td></tr>
+  <tr><th>Přílohy</th><td>{prilohy}</td></tr>
+  <tr><th>Chyba</th><td>{chyba}</td></tr>
+</table>
+
+<h2>Tělo e-mailu</h2>
+<pre style="white-space: pre-wrap; word-break: break-word; background: #f5f5f5; padding: 1em; border: 1px solid #ddd">{telo}</pre>
+
+<!-- end:detail -->

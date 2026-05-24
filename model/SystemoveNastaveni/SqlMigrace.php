@@ -2,8 +2,6 @@
 
 namespace Gamecon\SystemoveNastaveni;
 
-use Gamecon\Cache\ProgramStaticFileGenerator;
-use Gamecon\Cache\ProgramStaticFileType;
 use Godric\DbMigrations\DbMigrations;
 use Godric\DbMigrations\DbMigrationsConfig;
 use Symfony\Component\Filesystem\Filesystem;
@@ -30,23 +28,12 @@ class SqlMigrace
 
         $migrations->run(true);
 
+        // SQL migrace obcházejí jak legacy invalidace v Aktivita / Uzivatel, tak i
+        // Doctrine listener — píší přímo SQL. Po úspěšné migraci proto ručně
+        // označíme všechny typy JSON programu jako dirty, aby worker (nebo
+        // navazující deploy krok) vygeneroval čerstvá data.
         if ($melyNejake) {
-            $this->oznacProgramCacheJakoDirty();
-        }
-    }
-
-    /**
-     * SQL migrace obcházejí jak legacy invalidace v Aktivita / Uzivatel, tak i
-     * Doctrine listener — píší přímo SQL. Po úspěšné migraci proto ručně
-     * označíme všechny typy JSON programu jako dirty, aby worker (nebo
-     * navazující deploy krok) vygeneroval čerstvá data.
-     */
-    public function oznacProgramCacheJakoDirty(): void
-    {
-        $generator = new ProgramStaticFileGenerator($this->systemoveNastaveni);
-        foreach (ProgramStaticFileType::cases() as $typ) {
-            // tryStartWorker: false — worker se spustí příští HTTP request / cron.
-            $generator->touchDirtyFlag($typ, tryStartWorker: false);
+            $this->systemoveNastaveni->oznacProgramCacheJakoDirty();
         }
     }
 
