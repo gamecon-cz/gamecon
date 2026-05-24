@@ -6,7 +6,8 @@ use Gamecon\XTemplate\XTemplate;
 
 /**
  * nazev: Logy
- * pravo: 110
+ * pravo: 105
+ * submenu_group: 8
  */
 
 /** @var Uzivatel $u */
