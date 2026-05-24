@@ -9,9 +9,8 @@ use Gamecon\Dev\UrlWithBasicAuth;
  * nezobrazí — žijí na jiné infrastruktuře (Wedos, bare-metal Apache).
  *
  * nazev: Staré ročníky
- * pravo: 113
- * submenu_group: 1
- * submenu_order: 3
+ * pravo: 105
+ * submenu_group: 9
  */
 
 $reader = new DeploymentsReader();
