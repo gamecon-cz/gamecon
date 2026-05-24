@@ -98,17 +98,20 @@ class AktivitaEditorChybyTest extends AbstractTestDb
         $_POST[Aktivita::POST_KLIC] = $data;
 
         $pocetAktivitPred = (int) dbOneCol('SELECT COUNT(*) FROM akce_seznam');
+        \Chyba::vyzvedniHtml();
 
         try {
-            Aktivita::editorZpracuj(false);
-            $this->fail('Očekávána exception \Chyba kvůli příliš dlouhému krátkému popisu.');
-        } catch (\Chyba $e) {
-            $this->assertStringContainsString('Krátký popis překračuje maximální povolenou délku', $e->getMessage());
+            $ulozenaAktivita = Aktivita::editorZpracuj(false);
         } finally {
             unset($_POST[Aktivita::POST_KLIC]);
         }
 
         $pocetAktivitPo = (int) dbOneCol('SELECT COUNT(*) FROM akce_seznam');
+        $this->assertNull($ulozenaAktivita, 'Aktivita s příliš dlouhým krátkým popisem se nesmí uložit.');
+        $this->assertStringContainsString(
+            'Krátký popis překračuje maximální povolenou délku',
+            \Chyba::vyzvedniHtml(),
+        );
         $this->assertSame($pocetAktivitPred, $pocetAktivitPo, 'Žádná nová aktivita nesměla být uložena do DB.');
     }
 }
