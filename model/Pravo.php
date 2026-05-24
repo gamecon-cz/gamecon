@@ -38,6 +38,7 @@ class Pravo extends \DbObject
     public const ADMINISTRACE_PENIZE        = 111;
     public const ADMINISTRACE_WEB_LOGA      = 112;
     public const ADMINISTRACE_DEV           = 113;
+    public const PREPNUTI_NA_UZIVATELE      = 114; // Smí se v adminu přihlásit (přepnout) jako libovolný uživatel (dříve hardcoded superadmin)
 
     public const PLACKA_ZDARMA    = 1002;
     public const KOSTKA_ZDARMA    = 1003;

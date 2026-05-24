@@ -36,12 +36,3 @@ if (!defined('ROCNIK')) {
 
 @define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
 @define('MAILY_ROLIM', [Role::ORGANIZATOR]);
-
-@define('SUPERADMINI', [
-    102 /* Sirien */,
-    4032 /* Jaroslav "Kostřivec" Týc */,
-    1112 /* Lenka "Cemi" Zavadilová */,
-    4275 /* Roman "Sciator" Wehmhoner */,
-    5475 /* Michal "Gerete" Bezděk*/,
-    5222 /*Adrijaned*/
-]);
