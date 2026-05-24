@@ -1079,7 +1079,9 @@ SQL
 
         $chyby = self::editorChyby($a);
         if ($chyby) {
-            throw new \Chyba(implode('<br>', $chyby));
+            chyba(implode('<br>', $chyby), false);
+
+            return null;
         }
 
         $tagIds = [];
