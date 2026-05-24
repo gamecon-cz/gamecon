@@ -44,11 +44,3 @@ if (!defined('ROCNIK')) {
 // when MAILY_DO_SOUBORU is unset, the role-filter (MAILY_ROLIM) is
 // skipped and EVERY recipient gets the SMTP send. With MAILER_DSN
 // pointing at mailpit, that's safe — nothing leaves the host.
-
-@define('SUPERADMINI', [
-    102 /* Sirien */,
-    4032 /* Jaroslav "Kostřivec" Týc */,
-    1112 /* Lenka "Cemi" Zavadilová */,
-    4275 /* Roman "Sciator" Wehmhoner */,
-    5475 /* Michal "Gerete" Bezděk*/
-]);

@@ -193,9 +193,9 @@ if ($strankaExistuje && $uzivatelMaPristup) {
 // operátor - info & odhlašování
 $xtpl->assign('a', $u->koncovkaDlePohlavi());
 $xtpl->assign('operator', $u->jmenoNick());
-if ($u && ($u->jeSuperAdmin() || $u->jeInfopultak())) {
+if ($u && ($u->maPravo(Pravo::PREPNUTI_NA_UZIVATELE) || $u->jeInfopultak())) {
     $dataOmnibox = [];
-    if ($u->jeInfopultak() && !$u->jeSuperAdmin()) {
+    if ($u->jeInfopultak() && !$u->maPravo(Pravo::PREPNUTI_NA_UZIVATELE)) {
         $dataOmnibox['jenSRolemi'] = [Role::LETOSNI_VYPRAVEC, Role::LETOSNI_PARTNER];
     }
     $xtpl->assign('dataOmniboxJson', htmlspecialchars(json_encode($dataOmnibox, JSON_FORCE_OBJECT)));

@@ -52,6 +52,7 @@ class Role extends \DbObject
     public const LETOSNI_NEODHLASOVAT               = ROLE_NEODHLASOVAT;
     public const LETOSNI_HERMAN                     = ROLE_HERMAN;
     public const LETOSNI_BRIGADNIK                  = ROLE_BRIGADNIK;
+    public const LETOSNI_PREPINANI_UZIVATELE        = ROLE_PREPINANI_UZIVATELE; // Smí se v adminu přepnout na libovolného uživatele (jen pro letošní ročník)
     public const ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC = ROLE_ZKONTROLOVANE_UDAJE;
 
     public const ROLE_VYPRAVEC_ID_ZAKLAD             = 6;
@@ -66,6 +67,7 @@ class Role extends \DbObject
     public const ROLE_CTVRTECNI_NOC_ZDARMA_ID_ZAKLAD = 26;
     public const ROLE_PATECNI_NOC_ZDARMA_ID_ZAKLAD   = 27;
     public const ROLE_SOBOTNI_NOC_ZDARMA_ID_ZAKLAD   = 28;
+    public const ROLE_PREPINANI_UZIVATELE_ID_ZAKLAD  = 30;
 
     // ROLE ÚČASTI
     public const PRIHLASEN_NA_LETOSNI_GC = ROLE_PRIHLASEN;
@@ -117,6 +119,7 @@ class Role extends \DbObject
     public const VYZNAM_NEDELNI_NOC_ZDARMA   = 'NEDELNI_NOC_ZDARMA';
     public const VYZNAM_VYPRAVEC             = 'VYPRAVEC';
     public const VYZNAM_ZAZEMI               = 'ZAZEMI';
+    public const VYZNAM_PREPINANI_UZIVATELE  = 'PREPINANI_NA_UZIVATELE'; // odvozeno z názvu role 'Přepínání na uživatele' (viz Role::vyznamPodleKodu)
     // podtyp OVEROVACI (tyto role nelze přiřazovat přes admin stránku Práva)
     public const VYZNAM_ZKONTROLOVANE_UDAJE = 'ZKONTROLOVANE_UDAJE';
     // TYP UCAST
@@ -148,6 +151,7 @@ class Role extends \DbObject
             self::VYZNAM_ZKONTROLOVANE_UDAJE  => self::KATEGORIE_OMEZENA,
             self::VYZNAM_PAUZUJICI_FULL_ORG   => self::KATEGORIE_OMEZENA,
             self::VYZNAM_DEV                  => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_PREPINANI_UZIVATELE  => self::KATEGORIE_OMEZENA, // jen rada (člen rady) smí přidělit
 
             self::VYZNAM_HERMAN               => self::KATEGORIE_BEZNA,
             self::VYZNAM_INFOPULT             => self::KATEGORIE_BEZNA,
@@ -304,6 +308,11 @@ class Role extends \DbObject
         return self::idRocnikoveRole(self::ROLE_BRIGADNIK_ID_ZAKLAD, $rok);
     }
 
+    public static function LETOSNI_PREPINANI_UZIVATELE(int $rok = ROCNIK): int
+    {
+        return self::idRocnikoveRole(self::ROLE_PREPINANI_UZIVATELE_ID_ZAKLAD, $rok);
+    }
+
     /**
      * SQL pro brigádníka
      * YEAR(NOW()) * -100000 - 25
@@ -383,6 +392,7 @@ class Role extends \DbObject
                 self::LETOSNI_NEODHLASOVAT               => 'Neodhlašovat',
                 self::LETOSNI_HERMAN                     => 'Herman',
                 self::LETOSNI_BRIGADNIK                  => 'Brigádník',
+                self::LETOSNI_PREPINANI_UZIVATELE        => 'Přepínání na uživatele',
                 //
                 self::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC => 'Zkontrolované údaje',
                 //
@@ -496,6 +506,7 @@ class Role extends \DbObject
             self::LETOSNI_NEODHLASOVAT($rocnik),
             self::LETOSNI_HERMAN($rocnik),
             self::LETOSNI_BRIGADNIK($rocnik),
+            self::LETOSNI_PREPINANI_UZIVATELE($rocnik),
             self::ZKONTROLOVANE_UDAJE_PRO_LETOSNI_GC($rocnik),
         ];
         $vsechnyRocnikoveRole = [];

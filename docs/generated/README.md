@@ -8,7 +8,7 @@ Pravidla **kdy** konzultovat / vytvořit dokument jsou v kořenovém `CLAUDE.md`
 
 <!-- Formát: `- [nazev-souboru](nazev-souboru.md) — jedna věta o čem to je` -->
 
-_(zatím prázdné)_
+- [prepnuti-na-uzivatele](prepnuti-na-uzivatele.md) — přihlášení v adminu jako libovolný uživatel; dřív hardcoded „superadmin“, nově dočasné ročníkové právo udělované radou
 
 ## Povinné minimum dokumentu
 

@@ -1191,15 +1191,6 @@ SQL,
         return $this->maRoli(Role::LETOSNI_HERMAN);
     }
 
-    public function jeSuperAdmin(): bool
-    {
-        if (! defined('SUPERADMINI') || ! is_array(SUPERADMINI)) {
-            return false;
-        }
-
-        return in_array($this->id(), SUPERADMINI, false);
-    }
-
     /**
      * @return Aktivita|null jestli se uživatel v daném čase neúčastní / neorganizuje
      *                       žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
