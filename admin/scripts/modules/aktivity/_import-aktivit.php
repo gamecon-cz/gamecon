@@ -41,7 +41,7 @@ if (!empty($_POST['googleSheetId'])) {
         URL_ADMIN . '/prava/' . Role::LETOSNI_VYPRAVEC,
         $vyjimkovac,
         Mutex::proAktivity(),
-        URL_ADMIN . '/web/chyby',
+        URL_ADMIN . '/dev/chyby',
         $activitiesImportLogger,
         new ExportAktivitSloupce(),
         new DateTimeCz(),

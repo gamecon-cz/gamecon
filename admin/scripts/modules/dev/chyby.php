@@ -2,7 +2,9 @@
 
 /**
  * nazev: Chyby
- * pravo: 105
+ * pravo: 113
+ * submenu_group: 1
+ * submenu_order: 3
  */
 
 use Gamecon\Cas\DateTimeCz;

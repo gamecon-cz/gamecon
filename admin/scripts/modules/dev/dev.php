@@ -70,9 +70,9 @@ $datumAnonymExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
         <h3>Previews</h3>
         <p>Aktivní preview prostředí (dockerizovaná nasazení feature větví).</p>
     </a>
-    <a href="<?php echo URL_ADMIN; ?>/dev/stare-rocniky">
-        <h3>Staré ročníky</h3>
-        <p>URL archivovaných ročníků.</p>
+    <a href="<?php echo URL_ADMIN; ?>/dev/chyby">
+        <h3>Chyby</h3>
+        <p>Zachycené výjimky a chyby aplikace.</p>
     </a>
     <a href="<?php echo URL_ADMIN; ?>/dev/update-zustatku">
         <h3>SQL update pro uzavření financí</h3>
