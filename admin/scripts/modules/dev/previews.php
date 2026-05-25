@@ -37,7 +37,7 @@ $prListUrl = static fn(string $slug): string => 'https://github.com/gamecon-cz/g
 <div style="margin: 12px 0; padding: 14px 18px; border: 2px solid #2b7cb3; border-radius: 6px; background: #eaf4fb; font-size: 1.05em;">
     📬 Sdílený Mailpit pro všechna preview:
     <a href="<?= htmlspecialchars($mailpitUrl) ?>" target="_blank" rel="noopener" style="font-weight: bold;">
-        https://webmail.preview.gamecon.cz/
+        webmail.preview.gamecon.cz
     </a>
 </div>
 
@@ -62,7 +62,7 @@ $prListUrl = static fn(string $slug): string => 'https://github.com/gamecon-cz/g
             <tr>
                 <td>
                     <a href="<?= htmlspecialchars($urlWithAuth($preview->url)) ?>" target="_blank" rel="noopener">
-                        <?= htmlspecialchars($preview->url) ?>
+                        <?= htmlspecialchars(preg_replace('/^https?:\/\/|\/$/', '', $preview->url)) ?>
                     </a>
                 </td>
                 <td>
