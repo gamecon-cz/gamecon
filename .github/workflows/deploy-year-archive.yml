@@ -2,10 +2,14 @@ name: Deploy year archive
 
 # yamllint disable-line rule:truthy
 on:
-    # Manual trigger only — year archives are deployed once per year (or
-    # on the rare backfill of an older year). Auto-trigger on push to
-    # archive/* is intentionally absent: pushing a fixup commit to an
-    # archive branch shouldn't redeploy a frozen historical site.
+    # Auto-deploy on every push to an archive branch: pushing a fix to
+    # archive/YYYY redeploys that year's site so the change goes live
+    # without a manual dispatch. Branch shape is validated in the
+    # "Derive year" step (anything not archive/YYYY[-suffix] fails there).
+    push:
+        branches:
+            - 'archive/**'
+    # Manual trigger kept for backfills / redeploying a specific commit.
     workflow_dispatch:
         inputs:
             branch:
@@ -16,6 +20,14 @@ permissions:
     contents: read
     packages: write   # push to ghcr.io
 
+# Serialize deploys of the same archive branch. With push auto-deploy a
+# burst of commits could otherwise launch overlapping runs that race to
+# build + SSH-deploy the same year on the host. Newer push wins; we
+# don't cancel an in-flight run mid-deploy (let it finish cleanly).
+concurrency:
+    group: deploy-year-archive-${{ github.event.inputs.branch || github.ref_name }}
+    cancel-in-progress: false
+
 jobs:
     deploy:
         runs-on: ubuntu-24.04
@@ -23,7 +35,9 @@ jobs:
             -   name: Checkout archive branch
                 uses: actions/checkout@v4
                 with:
-                    ref: ${{ github.event.inputs.branch }}
+                    # workflow_dispatch supplies the branch as an input;
+                    # push supplies it as github.ref_name. Coalesce to one.
+                    ref: ${{ github.event.inputs.branch || github.ref_name }}
 
             -   name: Derive year from branch name + sha from checked-out HEAD
                 id: year
@@ -42,7 +56,7 @@ jobs:
                 # would tag the archive image with main's commit even
                 # though its content comes from the archive branch.
                 run: |
-                    branch="${{ github.event.inputs.branch }}"
+                    branch="${{ github.event.inputs.branch || github.ref_name }}"
                     if [[ ! "$branch" =~ ^archive/([0-9]{4})(-[a-z0-9-]+)?$ ]]; then
                         echo "::error::Branch '$branch' does not match archive/YYYY[-suffix]" >&2
                         exit 1
