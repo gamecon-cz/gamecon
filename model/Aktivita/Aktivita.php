@@ -520,6 +520,10 @@ SQL
             }
         }
 
+        if (mb_strlen($a[Sql::POPIS_KRATKY] ?? '') > self::LIMIT_POPIS_KRATKY) {
+            $chyby[] = sprintf('Krátký popis překračuje maximální povolenou délku %d znaků.', self::LIMIT_POPIS_KRATKY);
+        }
+
         // kontrola duplicit url
         if (self::urlJeObsazena($a)) {
             $chyby[] = sprintf(
@@ -1075,7 +1079,9 @@ SQL
 
         $chyby = self::editorChyby($a);
         if ($chyby) {
-            varovani(implode('; ', $chyby), false);
+            chyba(implode('<br>', $chyby), false);
+
+            return null;
         }
 
         $tagIds = [];
