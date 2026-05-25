@@ -52,7 +52,7 @@ $urlWithAuth = static fn(string $url): string => UrlWithBasicAuth::inject(
                 <td><?= htmlspecialchars((string)$archive->year) ?></td>
                 <td>
                     <a href="<?= htmlspecialchars($urlWithAuth($archive->url)) ?>" target="_blank" rel="noopener">
-                        <?= htmlspecialchars($archive->url) ?>
+                        <?= htmlspecialchars(preg_replace('/^https?:\/\/|\/$/', '', $archive->url)) ?>
                     </a>
                 </td>
                 <td>
