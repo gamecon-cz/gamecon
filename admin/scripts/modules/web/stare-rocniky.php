@@ -1,7 +1,6 @@
 <?php
 
 use Gamecon\Dev\DeploymentsReader;
-use Gamecon\Dev\UrlWithBasicAuth;
 
 /**
  * Seznam dockerizovaných archivních ročníků (YYYY.gamecon.cz).
@@ -20,13 +19,11 @@ $archives = $unavailableReason === null ? $reader->readArchives() : [];
 // Setřídit od nejnovějšího ročníku.
 usort($archives, static fn($a, $b) => $b->year <=> $a->year);
 
-// Caddy před archivními ročníky vyžaduje basic auth — vkládáme přihlašovací
-// údaje rovnou do odkazů (foo:bar@host), aby admin proklikl bez dialogu.
-$urlWithAuth = static fn(string $url): string => UrlWithBasicAuth::inject(
-    $url,
-    ARCHIVE_BASIC_AUTH_USER,
-    ARCHIVE_BASIC_AUTH_PASSWORD,
-);
+// Caddy před archivními ročníky vyžaduje basic auth. Údaje NEvkládáme do
+// odkazu jako foo:bar@host — Chrome takové přihlašovací údaje při kliknutí
+// na <a> zahazuje (anti-phishing), takže by proklik končil na 401. Odkaz
+// proto vede na čisté URL a údaje ukazujeme vedle jako kopírovatelný text;
+// prohlížeč se zeptá na heslo jen při prvním otevření a dál si ho pamatuje.
 ?>
 <h2>Staré ročníky</h2>
 
@@ -38,6 +35,12 @@ $urlWithAuth = static fn(string $url): string => UrlWithBasicAuth::inject(
 <?php elseif (count($archives) === 0): ?>
     <p><em>Žádný dockerizovaný archivní ročník zatím není nasazený.</em></p>
 <?php else: ?>
+    <p style="margin: 8px 0; color: #555;">
+        Přihlášení k bráně (zeptá se prohlížeč při prvním otevření):
+        <code style="user-select: all;"><?= htmlspecialchars(ARCHIVE_BASIC_AUTH_USER) ?></code>
+        /
+        <code style="user-select: all;"><?= htmlspecialchars(ARCHIVE_BASIC_AUTH_PASSWORD) ?></code>
+    </p>
     <table class="zvyraznovana" style="width: 100%">
         <thead>
             <tr>
@@ -51,7 +54,7 @@ $urlWithAuth = static fn(string $url): string => UrlWithBasicAuth::inject(
             <tr>
                 <td><?= htmlspecialchars((string)$archive->year) ?></td>
                 <td>
-                    <a href="<?= htmlspecialchars($urlWithAuth($archive->url)) ?>" target="_blank" rel="noopener">
+                    <a href="<?= htmlspecialchars($archive->url) ?>" target="_blank" rel="noopener">
                         <?= htmlspecialchars(preg_replace('/^https?:\/\/|\/$/', '', $archive->url)) ?>
                     </a>
                 </td>

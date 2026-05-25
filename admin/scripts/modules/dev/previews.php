@@ -1,7 +1,6 @@
 <?php
 
 use Gamecon\Dev\DeploymentsReader;
-use Gamecon\Dev\UrlWithBasicAuth;
 
 /**
  * Seznam aktivních preview prostředí.
@@ -16,15 +15,12 @@ $reader = new DeploymentsReader();
 $unavailableReason = $reader->unavailableReason();
 $previews = $unavailableReason === null ? $reader->readPreviews() : [];
 
-// Caddy před preview prostředími vyžaduje basic auth — vkládáme přihlašovací
-// údaje rovnou do odkazů (foo:bar@host), aby admin proklikl bez dialogu.
-$urlWithAuth = static fn(string $url): string => UrlWithBasicAuth::inject(
-    $url,
-    PREVIEW_BASIC_AUTH_USER,
-    PREVIEW_BASIC_AUTH_PASSWORD,
-);
-
-$mailpitUrl = $urlWithAuth('https://webmail.preview.gamecon.cz/');
+// Caddy před preview prostředími vyžaduje basic auth. Údaje NEvkládáme do
+// odkazu jako foo:bar@host — Chrome takové přihlašovací údaje při kliknutí
+// na <a> zahazuje (anti-phishing), takže by proklik končil na 401. Odkazy
+// proto vedou na čisté URL a údaje ukazujeme jako kopírovatelný text;
+// prohlížeč se zeptá na heslo jen při prvním otevření a dál si ho pamatuje.
+$mailpitUrl = 'https://webmail.preview.gamecon.cz/';
 
 // Preview slug = git branch name (viz .github/workflows/deploy-preview.yml).
 // Linkujeme do filtru PR listu — funguje pro open i closed PR a nerozbije
@@ -39,6 +35,12 @@ $prListUrl = static fn(string $slug): string => 'https://github.com/gamecon-cz/g
     <a href="<?= htmlspecialchars($mailpitUrl) ?>" target="_blank" rel="noopener" style="font-weight: bold;">
         webmail.preview.gamecon.cz
     </a>
+    <div style="margin-top: 6px; font-size: 0.85em; color: #555;">
+        Přihlášení k bráně:
+        <code style="user-select: all;"><?= htmlspecialchars(PREVIEW_BASIC_AUTH_USER) ?></code>
+        /
+        <code style="user-select: all;"><?= htmlspecialchars(PREVIEW_BASIC_AUTH_PASSWORD) ?></code>
+    </div>
 </div>
 
 <?php if ($unavailableReason !== null): ?>
@@ -61,7 +63,7 @@ $prListUrl = static fn(string $slug): string => 'https://github.com/gamecon-cz/g
         <?php foreach ($previews as $preview): ?>
             <tr>
                 <td>
-                    <a href="<?= htmlspecialchars($urlWithAuth($preview->url)) ?>" target="_blank" rel="noopener">
+                    <a href="<?= htmlspecialchars($preview->url) ?>" target="_blank" rel="noopener">
                         <?= htmlspecialchars(preg_replace('/^https?:\/\/|\/$/', '', $preview->url)) ?>
                     </a>
                 </td>
