@@ -71,3 +71,6 @@ jobs:
                     PREVIEW_BASIC_AUTH_PASSWORD: ${{ secrets.PREVIEW_BASIC_AUTH_PASSWORD }}
                     ARCHIVE_BASIC_AUTH_USER: ${{ secrets.ARCHIVE_BASIC_AUTH_USER }}
                     ARCHIVE_BASIC_AUTH_PASSWORD: ${{ secrets.ARCHIVE_BASIC_AUTH_PASSWORD }}
+                    # Gate-token signing secrets (viz deploy-ostra.yml).
+                    PREVIEW_GATE_SECRET: ${{ secrets.PREVIEW_GATE_SECRET }}
+                    ARCHIVE_GATE_SECRET: ${{ secrets.ARCHIVE_GATE_SECRET }}

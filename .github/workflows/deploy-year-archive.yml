@@ -97,15 +97,21 @@ jobs:
                     tags: |
                         ghcr.io/${{ github.repository_owner }}/gamecon:archive-${{ steps.year.outputs.year }}
                         ghcr.io/${{ github.repository_owner }}/gamecon:archive-${{ steps.year.outputs.year }}-${{ steps.year.outputs.sha7 }}
-                    # Basic-auth creds for the Caddy gate in front of preview /
-                    # archive envs. Baked into the image so the admin's dev
-                    # rozcestník in the archive renders links identically to
-                    # ostra (with foo:bar@host embedded). GHCR repo is private.
+                    # Basic-auth creds + gate-token signing secrets for the
+                    # Caddy gate in front of preview / archive envs. Baked into
+                    # the image so the admin's dev rozcestník in the archive
+                    # renders links identically to ostra (clean URL + copyable
+                    # creds, and a signed ?gate= token for one-click access).
+                    # These are access-control secrets shared across all
+                    # archives (not user data) — fine to bake. GHCR repo is
+                    # private.
                     build-args: |
                         PREVIEW_BASIC_AUTH_USER=${{ secrets.PREVIEW_BASIC_AUTH_USER }}
                         PREVIEW_BASIC_AUTH_PASSWORD=${{ secrets.PREVIEW_BASIC_AUTH_PASSWORD }}
                         ARCHIVE_BASIC_AUTH_USER=${{ secrets.ARCHIVE_BASIC_AUTH_USER }}
                         ARCHIVE_BASIC_AUTH_PASSWORD=${{ secrets.ARCHIVE_BASIC_AUTH_PASSWORD }}
+                        PREVIEW_GATE_SECRET=${{ secrets.PREVIEW_GATE_SECRET }}
+                        ARCHIVE_GATE_SECRET=${{ secrets.ARCHIVE_GATE_SECRET }}
                     # Reuse layers across archive builds. Heavy layers
                     # (apt + pecl from the base) come from the base image
                     # so the gha cache mostly helps with the COPY layer

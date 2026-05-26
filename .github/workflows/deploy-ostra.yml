@@ -78,3 +78,9 @@ jobs:
                     PREVIEW_BASIC_AUTH_PASSWORD: ${{ secrets.PREVIEW_BASIC_AUTH_PASSWORD }}
                     ARCHIVE_BASIC_AUTH_USER: ${{ secrets.ARCHIVE_BASIC_AUTH_USER }}
                     ARCHIVE_BASIC_AUTH_PASSWORD: ${{ secrets.ARCHIVE_BASIC_AUTH_PASSWORD }}
+                    # Gate-token signing secrets — admin podepisuje ?gate=
+                    # odkazy, gate-validator za bránou je ověřuje. Musí být
+                    # shodné s preview.gate.secret / year_archive.gate.secret
+                    # v ansible secrets.yaml.
+                    PREVIEW_GATE_SECRET: ${{ secrets.PREVIEW_GATE_SECRET }}
+                    ARCHIVE_GATE_SECRET: ${{ secrets.ARCHIVE_GATE_SECRET }}
