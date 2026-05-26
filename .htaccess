@@ -1,6 +1,10 @@
 RewriteEngine on
 
-RewriteCond %{HTTP_HOST} ^localhost$
+# Archive 2022: the base image's DocumentRoot is the project root and relies
+# on this rewrite into web/. The original 2022-era rule only rewrote when
+# HTTP_HOST was "localhost" (dev convenience), which made every real-host
+# request fall through to the [F] rule below → 403. Dropping the condition
+# matches the later main-line form (commit 0cd090e0e, vpsfree deploy prep).
 RewriteRule .* web/$0 [L]
 
 RewriteRule .* - [F,L]
