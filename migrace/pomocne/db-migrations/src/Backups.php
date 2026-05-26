@@ -19,13 +19,24 @@ class Backups
     }
 
     public function backupBefore(Migration $migration) {
+        $this->backup("pre-migration-{$migration->getCode()}");
+    }
+
+    /**
+     * Dump the whole database into a single gzip file named "<name>.sql.gz".
+     * The dump is created with mode 0600 — it contains the full DB, so it must
+     * not be readable by other accounts on the host.
+     */
+    public function backup(string $name): void {
         // skip empty db as workaround for MySQLDump bug
         if (empty($this->getTableNames())) {
             return;
         }
 
+        $file = "{$this->directory}/{$name}.sql.gz";
         $dump = new MySQLDump($this->db);
-        $dump->save("{$this->directory}/pre-migration-{$migration->getCode()}.sql.gz");
+        $dump->save($file);
+        chmod($file, 0600);
     }
 
     public function clearDatabase() {

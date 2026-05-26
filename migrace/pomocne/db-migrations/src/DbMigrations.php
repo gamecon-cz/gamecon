@@ -49,7 +49,18 @@ class DbMigrations
 
     private function handleEndlessMigrations(bool $hasUnappliedOneTimeMigrations): void
     {
-        foreach ($this->getEndlessMigrations($hasUnappliedOneTimeMigrations) as $migration) {
+        $endlessMigrations = $this->getEndlessMigrations($hasUnappliedOneTimeMigrations);
+        if (!$endlessMigrations) {
+            return;
+        }
+
+        // One backup before the whole endless batch — not one per endless
+        // migration (apply() skips per-migration backups for endless ones).
+        if ($this->config->doBackups()) {
+            $this->backups->backup('pre-migration-endless');
+        }
+
+        foreach ($endlessMigrations as $migration) {
             $this->apply($migration, true);
         }
     }
@@ -362,7 +373,11 @@ SQL,
         }
 
         // backup db
-        if ($this->config->doBackups()) {
+        // Endless migrations run on every deploy, so per-migration backups
+        // would pile up one dump per endless migration on every run. We back
+        // up once before the whole endless batch instead (see
+        // handleEndlessMigrations), not before each endless migration here.
+        if ($this->config->doBackups() && !$migration->isEndless()) {
             $this->backups->backupBefore($migration);
         }
 
@@ -409,13 +424,18 @@ SQL,
             }
 
             $this->handleUnappliedMigrations($silent);
-            $this->handleEndlessMigrations(true);
 
             if (!$silent) {
                 $this->webGui?->cleanupEnvironment();
             }
         }
 
+        // Endless migrations run on every deploy, even one with no new one-time
+        // migrations — so this is unconditional. It is also the only endless run
+        // in run(): the one-time branch above no longer runs them, which would
+        // otherwise execute the batch twice when one-time migrations exist.
+        // The argument only relaxes the locale 1-hour throttle (see
+        // getEndlessMigrations); on a server it has no effect.
         $this->handleEndlessMigrations($hasUnappliedOneTimeMigrations);
 
         $driver->report_mode = $oldReportMode;
