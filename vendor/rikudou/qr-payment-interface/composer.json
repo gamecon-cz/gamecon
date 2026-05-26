@@ -1,0 +1,31 @@
+{
+  "name": "rikudou/qr-payment-interface",
+  "type": "library",
+  "description": "Common interface for my qr payment libraries",
+  "keywords": [
+    "qr",
+    "payment"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Dominik Chrástecký",
+      "email": "dominik@chrastecky.cz"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Rikudou\\QrPayment\\": "src/"
+    }
+  },
+  "scripts": {
+    "fixer": "php-cs-fixer fix src --verbose"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^2.16"
+  },
+  "require": {
+    "rikudou/iban": "^1.0",
+    "php": ">=7.1"
+  }
+}
