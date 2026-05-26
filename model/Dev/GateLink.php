@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Gamecon\Dev;
@@ -39,10 +40,10 @@ final class GateLink
             return $url;
         }
 
-        $expiry      = (string)(($ted ?? time()) + self::TTL_SEKUND);
-        $podpis      = hash_hmac('sha256', $expiry, $secret, true);
-        $token       = self::base64Url($expiry) . '.' . self::base64Url($podpis);
-        $oddelovac   = str_contains($url, '?') ? '&' : '?';
+        $expiry = (string) (($ted ?? time()) + self::TTL_SEKUND);
+        $podpis = hash_hmac('sha256', $expiry, $secret, true);
+        $token = self::base64Url($expiry) . '.' . self::base64Url($podpis);
+        $oddelovac = str_contains($url, '?') ? '&' : '?';
 
         return $url . $oddelovac . 'gate=' . $token;
     }
