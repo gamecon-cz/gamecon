@@ -4,6 +4,10 @@ name: Run tests
 on:
     push:
         branches:
+            # Filtr s negacemi musí mít aspoň jeden pozitivní vzor, jinak
+            # nematchuje NIC (GitHub Actions): bez '**' se testy na push do
+            # feature větví vůbec nespouští.
+            - '**'
             # beta a main si pouští testy samy, před deployem,
             # viz deploy-beta.yml a deploy-ostra.yml
             - '!beta'
