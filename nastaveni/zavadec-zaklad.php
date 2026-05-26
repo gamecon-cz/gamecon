@@ -47,7 +47,10 @@ if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', 
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-misahojna.php';
 } elseif (str_ends_with($host, 'sciator.gamecon.cz')) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-sciator.php';
-} elseif ($host === 'admin.gamecon.cz' || $host === 'gamecon.cz') {
+} elseif ($host === 'admin.gamecon.cz' || $host === 'gamecon.cz' || $host === '2022.gamecon.cz') {
+    // Archive 2022: the whole year is served from the single host
+    // 2022.gamecon.cz (admin is a path under it, not admin.2022.gamecon.cz),
+    // so SERVER_NAME is always 2022.gamecon.cz — route it to produkce config.
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
 } else {
     echo 'Nepodařilo se detekovat prostředí, nelze načíst nastavení verze';
