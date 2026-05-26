@@ -1,0 +1,14 @@
+parameters:
+    level: 8
+
+    paths:
+        - src
+        - tests
+
+    cognitive_complexity:
+        class: 25
+        function: 8
+
+
+    ignoreErrors:
+        - '#Cognitive complexity for "Symplify\\VendorPatches\\Utils\\ParametersMerger\:\:mergeLeftToRightWithCallable\(\)" is 10, keep it under 8#'

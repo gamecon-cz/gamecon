@@ -1,0 +1,50 @@
+{
+  "name": "granam/remove-diacritics",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jaroslav Týc",
+      "homepage": "https://www.jaroslavtyc.com",
+      "role": "Original author"
+    }
+  ],
+  "type": "project",
+  "description": "Cleanse text from diacritics and special characters",
+  "keywords": [
+    "php",
+    "string",
+    "diacritics",
+    "plain",
+    "text",
+    "special",
+    "character"
+  ],
+  "homepage": "https://github.com/granam/remove-diacritics",
+  "autoload": {
+    "psr-4": {
+      "Granam\\RemoveDiacritics\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Granam\\Tests\\RemoveDiacritics\\": "tests/RemoveDiacritics",
+      "Granam\\Tests\\ExceptionsHierarchy\\": "vendor/granam/exceptions-hierarchy/tests/ExceptionsHierarchy"
+    }
+  },
+  "require": {
+    "php": ">=7.4",
+    "ext-intl": "*",
+    "ext-mbstring": "*",
+    "granam/scalar": "^5.1",
+    "granam/strict-object": ">=3.0",
+    "granam/string": "^4.1"
+  },
+  "require-dev": {
+    "granam/exceptions-hierarchy": "^5.0",
+    "mockery/mockery": ">=1.2",
+    "phpunit/phpunit": ">=9.0"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}
