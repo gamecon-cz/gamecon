@@ -37,7 +37,10 @@ if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', 
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-misahojna.php';
 } else if (str_ends_with($host, 'sciator.gamecon.cz')) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-sciator.php';
-} else if (in_array($host, ['admin.gamecon.cz', 'gamecon.cz'], true)) {
+} else if (in_array($host, ['admin.gamecon.cz', 'gamecon.cz', '2023.gamecon.cz'], true)) {
+    // Archive 2023: the whole year is served from the single host
+    // 2023.gamecon.cz (admin is a path under it, not admin.2023.gamecon.cz),
+    // so SERVER_NAME is always 2023.gamecon.cz — route it to produkce config.
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
 } else if (in_array($host, ['admin.vpsfree.gamecon.cz', 'vpsfree.gamecon.cz'], true)) {
     $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-vpsfree.php';
