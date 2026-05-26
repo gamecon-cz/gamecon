@@ -332,6 +332,7 @@ body {
 #submenu .adm_submenu_item {
   position: relative;
   padding-bottom: 10px;
+  margin-right: 10px;
 }
 
 #submenu .adm_submenu_item_grp_5 {
