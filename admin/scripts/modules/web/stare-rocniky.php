@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Dev\DeploymentsReader;
+use Gamecon\Dev\GateLink;
 
 /**
  * Seznam dockerizovaných archivních ročníků (YYYY.gamecon.cz).
@@ -19,11 +20,14 @@ $archives = $unavailableReason === null ? $reader->readArchives() : [];
 // Setřídit od nejnovějšího ročníku.
 usort($archives, static fn($a, $b) => $b->year <=> $a->year);
 
-// Caddy před archivními ročníky vyžaduje basic auth. Údaje NEvkládáme do
-// odkazu jako foo:bar@host — Chrome takové přihlašovací údaje při kliknutí
-// na <a> zahazuje (anti-phishing), takže by proklik končil na 401. Odkaz
-// proto vede na čisté URL a údaje ukazujeme vedle jako kopírovatelný text;
-// prohlížeč se zeptá na heslo jen při prvním otevření a dál si ho pamatuje.
+// Caddy před archivními ročníky vyžaduje basic auth. Odkaz vede na čistou URL
+// (vložené foo:bar@host Chrome při kliknutí zahazuje), navíc k němu připojíme
+// podepsaný ?gate= token: gate-validator za bránou ho vymění za session cookie,
+// takže proklik projde bez dialogu. Když token vyprší / secret není nastavený,
+// brána spadne na basic auth — proto vedle ukazujeme údaje jako kopírovatelný
+// text (prohlížeč se zeptá při prvním otevření). Viz GateLink + ansible
+// role gate_validator.
+$gateUrl = static fn(string $url): string => GateLink::podepis($url, ARCHIVE_GATE_SECRET);
 ?>
 <h2>Staré ročníky</h2>
 
@@ -54,7 +58,7 @@ usort($archives, static fn($a, $b) => $b->year <=> $a->year);
             <tr>
                 <td><?= htmlspecialchars((string)$archive->year) ?></td>
                 <td>
-                    <a href="<?= htmlspecialchars($archive->url) ?>" target="_blank" rel="noopener">
+                    <a href="<?= htmlspecialchars($gateUrl($archive->url)) ?>" target="_blank" rel="noopener">
                         <?= htmlspecialchars(preg_replace('/^https?:\/\/|\/$/', '', $archive->url)) ?>
                     </a>
                 </td>

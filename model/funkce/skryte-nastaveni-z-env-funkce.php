@@ -29,11 +29,20 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
         $APP_SECRET = getenv('APP_SECRET');
 
         // Basic-auth pro Caddy bránu před preview / archive prostředími.
-        // Admin rozcestník je vykresluje rovnou v odkazech (foo:bar@host).
+        // Admin rozcestník u odkazů ukazuje tyto údaje jako kopírovatelný text
+        // (prohlížeč se zeptá při prvním otevření).
         $PREVIEW_BASIC_AUTH_USER = getenv('PREVIEW_BASIC_AUTH_USER');
         $PREVIEW_BASIC_AUTH_PASSWORD = getenv('PREVIEW_BASIC_AUTH_PASSWORD');
         $ARCHIVE_BASIC_AUTH_USER = getenv('ARCHIVE_BASIC_AUTH_USER');
         $ARCHIVE_BASIC_AUTH_PASSWORD = getenv('ARCHIVE_BASIC_AUTH_PASSWORD');
+
+        // Tajemství pro podpis „gate" tokenu, kterým admin rozcestník připojí
+        // ?gate=<podpis> k odkazům na preview / archive. Musí být shodné s tím,
+        // co drží gate-validator (ansible repo, role gate_validator), aby
+        // podepsaný token prošel ověřením. Dvě oddělená tajemství = izolace
+        // preview vs. archive (dvě instance validatoru). Viz GateLink.
+        $PREVIEW_GATE_SECRET = getenv('PREVIEW_GATE_SECRET');
+        $ARCHIVE_GATE_SECRET = getenv('ARCHIVE_GATE_SECRET');
 
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
@@ -79,6 +88,10 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
             define('PREVIEW_BASIC_AUTH_PASSWORD', '$PREVIEW_BASIC_AUTH_PASSWORD');
             define('ARCHIVE_BASIC_AUTH_USER', '$ARCHIVE_BASIC_AUTH_USER');
             define('ARCHIVE_BASIC_AUTH_PASSWORD', '$ARCHIVE_BASIC_AUTH_PASSWORD');
+
+            // Tajemství pro podpis gate tokenu (one-click přístup přes bránu)
+            define('PREVIEW_GATE_SECRET', '$PREVIEW_GATE_SECRET');
+            define('ARCHIVE_GATE_SECRET', '$ARCHIVE_GATE_SECRET');
             PHP,
         );
     }

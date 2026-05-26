@@ -72,4 +72,9 @@ if (!defined('PREVIEW_BASIC_AUTH_PASSWORD')) define('PREVIEW_BASIC_AUTH_PASSWORD
 if (!defined('ARCHIVE_BASIC_AUTH_USER')) define('ARCHIVE_BASIC_AUTH_USER', getenv('ARCHIVE_BASIC_AUTH_USER') ?: '');
 if (!defined('ARCHIVE_BASIC_AUTH_PASSWORD')) define('ARCHIVE_BASIC_AUTH_PASSWORD', getenv('ARCHIVE_BASIC_AUTH_PASSWORD') ?: '');
 
+// Tajemství pro podpis gate tokenu (one-click přístup přes bránu).
+// Lokálně prázdné — GateLink pak vrátí čistou URL a proklik jde přes dialog.
+if (!defined('PREVIEW_GATE_SECRET')) define('PREVIEW_GATE_SECRET', getenv('PREVIEW_GATE_SECRET') ?: '');
+if (!defined('ARCHIVE_GATE_SECRET')) define('ARCHIVE_GATE_SECRET', getenv('ARCHIVE_GATE_SECRET') ?: '');
+
 error_reporting(E_ALL);

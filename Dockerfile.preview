@@ -79,19 +79,25 @@ RUN a2enconf preview-https
 # would work, but "preview" is descriptive).
 ENV ENV=preview
 
-# Basic-auth credentials for the Caddy gate in front of preview /
-# archive environments. The admin's dev rozcestník embeds them in the
-# rendered links (foo:bar@host). Baked in here so the preview UI
-# behaves identically to ostra — same page, same clickable links.
-# GHCR repo is private; image layers are not publicly readable.
+# Basic-auth credentials + gate-token signing secrets for the Caddy gate
+# in front of preview / archive environments. The admin's dev rozcestník
+# renders the gate login as copyable text and signs a ?gate= token onto
+# the links (one-click access via the gate-validator). Baked in here so
+# the preview UI behaves identically to ostra — same page, same links.
+# Access-control secrets shared across all previews (not user data); GHCR
+# repo is private and image layers are not publicly readable.
 ARG PREVIEW_BASIC_AUTH_USER=""
 ARG PREVIEW_BASIC_AUTH_PASSWORD=""
 ARG ARCHIVE_BASIC_AUTH_USER=""
 ARG ARCHIVE_BASIC_AUTH_PASSWORD=""
+ARG PREVIEW_GATE_SECRET=""
+ARG ARCHIVE_GATE_SECRET=""
 ENV PREVIEW_BASIC_AUTH_USER=$PREVIEW_BASIC_AUTH_USER \
     PREVIEW_BASIC_AUTH_PASSWORD=$PREVIEW_BASIC_AUTH_PASSWORD \
     ARCHIVE_BASIC_AUTH_USER=$ARCHIVE_BASIC_AUTH_USER \
-    ARCHIVE_BASIC_AUTH_PASSWORD=$ARCHIVE_BASIC_AUTH_PASSWORD
+    ARCHIVE_BASIC_AUTH_PASSWORD=$ARCHIVE_BASIC_AUTH_PASSWORD \
+    PREVIEW_GATE_SECRET=$PREVIEW_GATE_SECRET \
+    ARCHIVE_GATE_SECRET=$ARCHIVE_GATE_SECRET
 
 EXPOSE 80
 
