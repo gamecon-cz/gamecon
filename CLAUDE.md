@@ -46,6 +46,25 @@ vendor/bin/phpunit
 # http://localhost:8081 - phpMyAdmin
 ```
 
+## Production Database Names (gamecon.cz host)
+
+One MariaDB instance on the `gamecon.cz` host serves production, beta, and every per-year Docker archive. **Know which database is which before running any DDL — the names are not intuitive.**
+
+| Database | Purpose | Safe to modify? |
+|----------|---------|-----------------|
+| `d16779_gcostra` | **PRODUCTION** — the live `gamecon.cz` site reads this (config `DB_NAME='d16779_gcostra'`, app user `w16779_gcostra@localhost`). | ❌ **NEVER** drop/overwrite |
+| `d16779_anonym` | Anonymized DB (`DB_ANONYM_NAME`) used by the anonymization/staging flow. | ❌ no |
+| `d16779_beta2` | Beta instance DB. | ❌ no |
+| `gamecon` | **EMPTY placeholder (0 tables) — NOT the production DB**, despite the name. Only referenced in docs. | ⚠️ misleading; not used |
+| `gamecon_2022` … `gamecon_2025` | Frozen per-year archive DBs for the dockerized `YYYY.gamecon.cz` containers. Archive/migration work touches **only** these. | ✅ archive work only |
+| `gc_preview_<branch>` | Ephemeral per-branch preview DBs. | ✅ preview only |
+
+**Critical safety rules (a `DROP DATABASE d16779_gcostra` took production down on 2026-05-26):**
+
+1. **Never run `DROP DATABASE` / destructive DDL against any `d16779_*` name** — those are production. Confirm with a human first, even mid-script, even when a DB looks like a stray you created.
+2. **Before loading any `.sql` dump, inspect its header** (`zcat dump.sql.gz | head -15`) for embedded `CREATE DATABASE` / `USE` statements. Adminer/mysqldump dumps often embed the *original* DB name (e.g. `CREATE DATABASE d16779_gcostra`), so loading one blind will clobber whatever DB it names — not the target you intended. Strip those lines (`grep -vE '^(CREATE DATABASE|USE) '`) and load into an explicitly-selected target.
+3. **binlog is OFF** on this host — there is **no** point-in-time recovery. A DROP is final back to the last dump. Recovery dumps live in `/srv/.../ostra/backup/db/` (`pre-migration-*.sql.gz`, `export_latest.sql.gz`).
+
 ## Important Dependencies
 - `symfony/mailer` - Email notifications
 - `endroid/qr-code` - Payment QR codes
