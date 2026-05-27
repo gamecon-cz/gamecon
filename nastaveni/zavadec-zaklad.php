@@ -29,7 +29,7 @@ if(PHP_SAPI == 'cli' || $_SERVER['REMOTE_ADDR'] == '127.0.0.1' || $_SERVER['REMO
   require __DIR__ . '/nastaveni-beta.php';
 } elseif(substr($_SERVER['SERVER_NAME'], -19) == 'redesign.gamecon.cz') {
   require __DIR__ . '/nastaveni-redesign.php';
-} elseif($_SERVER['SERVER_NAME'] == 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] == 'gamecon.cz') {
+} elseif($_SERVER['SERVER_NAME'] == 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] == 'gamecon.cz' || $_SERVER['SERVER_NAME'] == '2018.gamecon.cz') {
   require __DIR__ . '/nastaveni-produkce.php';
 } else {
   die('nelze načíst nastavení verze');

@@ -1,0 +1,566 @@
+[
+    {
+        "name": "defuse/php-encryption",
+        "version": "v2.2.0",
+        "version_normalized": "2.2.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/defuse/php-encryption.git",
+            "reference": "0d4d27c368ca6798bc162469e43248c363c73495"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/defuse/php-encryption/zipball/0d4d27c368ca6798bc162469e43248c363c73495",
+            "reference": "0d4d27c368ca6798bc162469e43248c363c73495",
+            "shasum": ""
+        },
+        "require": {
+            "ext-openssl": "*",
+            "paragonie/random_compat": "~2.0",
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "nikic/php-parser": "^2.0|^3.0|^4.0",
+            "phpunit/phpunit": "^4|^5"
+        },
+        "time": "2018-04-23T19:33:40+00:00",
+        "bin": [
+            "bin/generate-defuse-key"
+        ],
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Defuse\\Crypto\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Taylor Hornby",
+                "email": "taylor@defuse.ca",
+                "homepage": "https://defuse.ca/"
+            },
+            {
+                "name": "Scott Arciszewski",
+                "email": "info@paragonie.com",
+                "homepage": "https://paragonie.com"
+            }
+        ],
+        "description": "Secure PHP Encryption Library",
+        "keywords": [
+            "aes",
+            "authenticated encryption",
+            "cipher",
+            "crypto",
+            "cryptography",
+            "encrypt",
+            "encryption",
+            "openssl",
+            "security",
+            "symmetric key cryptography"
+        ]
+    },
+    {
+        "name": "dg/ftp-deployment",
+        "version": "v2.9",
+        "version_normalized": "2.9.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/dg/ftp-deployment.git",
+            "reference": "0f7650d041a629a8a7c295f3025a532491d8cd73"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/dg/ftp-deployment/zipball/0f7650d041a629a8a7c295f3025a532491d8cd73",
+            "reference": "0f7650d041a629a8a7c295f3025a532491d8cd73",
+            "shasum": ""
+        },
+        "require": {
+            "ext-zlib": "*",
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "nette/tester": "~1.3"
+        },
+        "suggest": {
+            "ext-ftp": "to connect to ftp:// server",
+            "ext-json": "to preprocess CSS files via online service",
+            "ext-openssl": "to connect to ftps:// server and preprocess CSS files",
+            "ext-ssh2": "to connect to sftp:// server"
+        },
+        "time": "2018-04-16T12:23:47+00:00",
+        "bin": [
+            "deployment"
+        ],
+        "type": "project",
+        "installation-source": "dist",
+        "autoload": {
+            "classmap": [
+                "src/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause",
+            "GPL-2.0",
+            "GPL-3.0"
+        ],
+        "authors": [
+            {
+                "name": "David Grudl",
+                "homepage": "https://davidgrudl.com"
+            }
+        ],
+        "description": "A tool for automated deployment of web applications to an FTP server.",
+        "homepage": "https://github.com/dg/ftp-deployment",
+        "keywords": [
+            "deployment",
+            "ftp",
+            "ssh"
+        ]
+    },
+    {
+        "name": "dg/mysql-dump",
+        "version": "v1.4.0",
+        "version_normalized": "1.4.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/dg/MySQL-dump.git",
+            "reference": "8970328c9a8665e65f3855c849f5d4de94075f13"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/8970328c9a8665e65f3855c849f5d4de94075f13",
+            "reference": "8970328c9a8665e65f3855c849f5d4de94075f13",
+            "shasum": ""
+        },
+        "time": "2017-05-24T12:44:51+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "classmap": [
+                "src/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "authors": [
+            {
+                "name": "David Grudl",
+                "homepage": "http://davidgrudl.com"
+            }
+        ],
+        "description": "MySQL database dump.",
+        "homepage": "https://github.com/dg/MySQL-dump",
+        "keywords": [
+            "mysql"
+        ]
+    },
+    {
+        "name": "godric/db-backup",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/godric-cz/db-backup.git",
+            "reference": "33b5a05b7d4890f6a7ca6c4cea81841aa65b6302"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/godric-cz/db-backup/zipball/33b5a05b7d4890f6a7ca6c4cea81841aa65b6302",
+            "reference": "33b5a05b7d4890f6a7ca6c4cea81841aa65b6302",
+            "shasum": ""
+        },
+        "require": {
+            "dg/mysql-dump": "^1.4"
+        },
+        "time": "2018-09-19T20:51:29+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "Godric\\DbBackup\\": "src/"
+            }
+        },
+        "description": "Backup mysql database to FTP with pure PHP. No mysqldump on server needed.",
+        "support": {
+            "source": "https://github.com/godric-cz/db-backup/tree/master",
+            "issues": "https://github.com/godric-cz/db-backup/issues"
+        }
+    },
+    {
+        "name": "godric/db-migrations",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/godric-cz/db-migrations.git",
+            "reference": "261ab14bce070769f9a201640c0db591d511e372"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/godric-cz/db-migrations/zipball/261ab14bce070769f9a201640c0db591d511e372",
+            "reference": "261ab14bce070769f9a201640c0db591d511e372",
+            "shasum": ""
+        },
+        "require": {
+            "dg/mysql-dump": "^1.4"
+        },
+        "time": "2018-09-04T12:38:38+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "Godric\\DbMigrations\\": "src/"
+            }
+        },
+        "description": "Database migration tool with automagic and possibly without commandline.",
+        "support": {
+            "source": "https://github.com/godric-cz/db-migrations/tree/master",
+            "issues": "https://github.com/godric-cz/db-migrations/issues"
+        }
+    },
+    {
+        "name": "godric/db-test",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/godric-cz/db-test.git",
+            "reference": "7934e457b13034b04db3b9be58a92b70e2032e74"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/godric-cz/db-test/zipball/7934e457b13034b04db3b9be58a92b70e2032e74",
+            "reference": "7934e457b13034b04db3b9be58a92b70e2032e74",
+            "shasum": ""
+        },
+        "time": "2018-07-15T16:17:18+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "Godric\\DbTest\\": "src/"
+            }
+        },
+        "description": "PHPUnit database tests with transactions.",
+        "support": {
+            "source": "https://github.com/godric-cz/db-test/tree/master",
+            "issues": "https://github.com/godric-cz/db-test/issues"
+        }
+    },
+    {
+        "name": "godric/xtemplate",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/godric-cz/xtemplate.git",
+            "reference": "a00586ef557b0d1592c2f592647077cce8346176"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/godric-cz/xtemplate/zipball/a00586ef557b0d1592c2f592647077cce8346176",
+            "reference": "a00586ef557b0d1592c2f592647077cce8346176",
+            "shasum": ""
+        },
+        "time": "2016-02-28T19:55:11+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "classmap": [
+                "src/"
+            ]
+        },
+        "description": "simple templating engine",
+        "support": {
+            "source": "https://github.com/godric-cz/xtemplate/tree/master",
+            "issues": "https://github.com/godric-cz/xtemplate/issues"
+        }
+    },
+    {
+        "name": "michelf/php-markdown",
+        "version": "1.8.0",
+        "version_normalized": "1.8.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/michelf/php-markdown.git",
+            "reference": "01ab082b355bf188d907b9929cd99b2923053495"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/michelf/php-markdown/zipball/01ab082b355bf188d907b9929cd99b2923053495",
+            "reference": "01ab082b355bf188d907b9929cd99b2923053495",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "time": "2018-01-15T00:49:33+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Michelf\\": "Michelf/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "authors": [
+            {
+                "name": "Michel Fortin",
+                "email": "michel.fortin@michelf.ca",
+                "homepage": "https://michelf.ca/",
+                "role": "Developer"
+            },
+            {
+                "name": "John Gruber",
+                "homepage": "https://daringfireball.net/"
+            }
+        ],
+        "description": "PHP Markdown",
+        "homepage": "https://michelf.ca/projects/php-markdown/",
+        "keywords": [
+            "markdown"
+        ]
+    },
+    {
+        "name": "oyejorge/less.php",
+        "version": "v1.7.0.14",
+        "version_normalized": "1.7.0.14",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/oyejorge/less.php.git",
+            "reference": "42925c5a01a07d67ca7e82dfc8fb31814d557bc9"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/oyejorge/less.php/zipball/42925c5a01a07d67ca7e82dfc8fb31814d557bc9",
+            "reference": "42925c5a01a07d67ca7e82dfc8fb31814d557bc9",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.8.24"
+        },
+        "time": "2017-03-28T22:19:25+00:00",
+        "bin": [
+            "bin/lessc"
+        ],
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Less": "lib/"
+            },
+            "classmap": [
+                "lessc.inc.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "Matt Agar",
+                "homepage": "https://github.com/agar"
+            },
+            {
+                "name": "Martin Jantošovič",
+                "homepage": "https://github.com/Mordred"
+            },
+            {
+                "name": "Josh Schmidt",
+                "homepage": "https://github.com/oyejorge"
+            }
+        ],
+        "description": "PHP port of the Javascript version of LESS http://lesscss.org (Originally maintained by Josh Schmidt)",
+        "homepage": "http://lessphp.gpeasy.com",
+        "keywords": [
+            "css",
+            "less",
+            "less.js",
+            "lesscss",
+            "php",
+            "stylesheet"
+        ]
+    },
+    {
+        "name": "paragonie/random_compat",
+        "version": "v2.0.17",
+        "version_normalized": "2.0.17.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/paragonie/random_compat.git",
+            "reference": "29af24f25bab834fcbb38ad2a69fa93b867e070d"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/paragonie/random_compat/zipball/29af24f25bab834fcbb38ad2a69fa93b867e070d",
+            "reference": "29af24f25bab834fcbb38ad2a69fa93b867e070d",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.2.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.*|5.*"
+        },
+        "suggest": {
+            "ext-libsodium": "Provides a modern crypto API that can be used to generate random bytes."
+        },
+        "time": "2018-07-04T16:31:37+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "lib/random.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Paragon Initiative Enterprises",
+                "email": "security@paragonie.com",
+                "homepage": "https://paragonie.com"
+            }
+        ],
+        "description": "PHP 5.x polyfill for random_bytes() and random_int() from PHP 7",
+        "keywords": [
+            "csprng",
+            "polyfill",
+            "pseudorandom",
+            "random"
+        ]
+    },
+    {
+        "name": "roderik/pwgen-php",
+        "version": "0.1.8",
+        "version_normalized": "0.1.8.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/roderik/pwgen-php.git",
+            "reference": "19763b860eeb94b818cfc67fd6a47b697594e1da"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/roderik/pwgen-php/zipball/19763b860eeb94b818cfc67fd6a47b697594e1da",
+            "reference": "19763b860eeb94b818cfc67fd6a47b697594e1da",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.3"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^6.4"
+        },
+        "time": "2017-12-01T08:47:54+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "PWGen\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "GPL"
+        ],
+        "authors": [
+            {
+                "name": "Theodore Ts'o",
+                "email": "tytso@alum.mit.edu"
+            },
+            {
+                "name": "Superwayne",
+                "email": "superwayne@superwayne.org"
+            }
+        ],
+        "description": "pwgen-php is a simple PHP class which aims to clone the GNU pwgen functionality.",
+        "keywords": [
+            "generator",
+            "password"
+        ]
+    },
+    {
+        "name": "tracy/tracy",
+        "version": "v2.5.1",
+        "version_normalized": "2.5.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/nette/tracy.git",
+            "reference": "bea9df15a1cdbf3ec50ef3a75f5ada1ab536d679"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/nette/tracy/zipball/bea9df15a1cdbf3ec50ef3a75f5ada1ab536d679",
+            "reference": "bea9df15a1cdbf3ec50ef3a75f5ada1ab536d679",
+            "shasum": ""
+        },
+        "require": {
+            "ext-json": "*",
+            "ext-session": "*",
+            "php": ">=5.4.4"
+        },
+        "require-dev": {
+            "nette/di": "~2.3",
+            "nette/tester": "~1.7"
+        },
+        "suggest": {
+            "https://nette.org/donate": "Please support Tracy via a donation"
+        },
+        "time": "2018-07-03T11:34:33+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.5-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "classmap": [
+                "src"
+            ],
+            "files": [
+                "src/shortcuts.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "authors": [
+            {
+                "name": "David Grudl",
+                "homepage": "https://davidgrudl.com"
+            },
+            {
+                "name": "Nette Community",
+                "homepage": "https://nette.org/contributors"
+            }
+        ],
+        "description": "😎 Tracy: the addictive tool to ease debugging PHP code for cool developers. Friendly design, logging, profiler, advanced features like debugging AJAX calls or CLI support. You will love it.",
+        "homepage": "https://tracy.nette.org",
+        "keywords": [
+            "Xdebug",
+            "debug",
+            "debugger",
+            "nette",
+            "profiler"
+        ]
+    }
+]

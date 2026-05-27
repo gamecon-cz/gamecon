@@ -1,1 +1,8 @@
-Deny from all
+RewriteEngine on
+
+# Archive 2018: base image DocumentRoot is the project root → rewrite into web/.
+# The original 2018-era top-level .htaccess was "Deny from all" (Wedos vhost
+# pointed straight at web/). Use the web/ rewrite so the Docker docroot works.
+RewriteRule .* web/$0 [L]
+
+RewriteRule .* - [F,L]

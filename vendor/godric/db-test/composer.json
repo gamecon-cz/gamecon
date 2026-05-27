@@ -1,0 +1,7 @@
+{
+    "name": "godric/db-test",
+    "description": "PHPUnit database tests with transactions.",
+    "autoload": {
+        "psr-4": { "Godric\\DbTest\\": "src/" }
+    }
+}
