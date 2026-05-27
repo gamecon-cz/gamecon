@@ -1,0 +1,111 @@
+# Year-archive image for NNNN.gamecon.cz.
+#
+# Built once per archived year by .github/workflows/deploy-year-archive.yml
+# from the corresponding archive/NNNN branch. Tagged
+# ghcr.io/gamecon-cz/gamecon:archive-<year>-<sha7> and pulled by the
+# host's deploy-year-archive.sh script.
+#
+# Differs from Dockerfile.preview in two important ways:
+#   1. NO composer install / yarn build at build time. Archived branches
+#      are expected to have committed vendor/ and ui/ build artifacts
+#      already (see .htdeployment artifacts in the 2024 on-disk
+#      snapshot). Skipping these saves ~3 min of build time per year
+#      and avoids depending on whichever Composer/Node version happened
+#      to be installed in the archived branch's base image.
+#   2. NO migration / cache-refresh hooks at deploy time. Archives are
+#      read-only-ish — the DB is a frozen point in time, code is frozen
+#      at the branch tip. Nothing to migrate.
+#
+# Apache vhost is the base image's default (DocumentRoot
+# /var/www/html/gamecon, AllowOverride All via the upstream
+# docker-php.conf), same as preview. The top-level .htaccess routes
+# requests into web/, cache/private/.htaccess denies direct access,
+# admin/ and cache/public/ are reachable as subdirectories. All
+# verified in the recon log in the ansible repo
+# (docs/year-archive-phase0-recon.md).
+
+FROM gameconcz/gamecon:8.2
+
+USER root
+
+# Bake the entire archived branch's working tree in. The chown matches
+# the runtime user; matches Dockerfile.preview's approach.
+COPY --chown=www-data:www-data . /var/www/html/gamecon
+
+WORKDIR /var/www/html/gamecon
+
+# Strip dev / runtime junk that snuck in via COPY .. cache/private gets
+# rebuilt on demand, no point baking historical entries into the image.
+# .git is ~tens of MB and never read at runtime. .htdeployment is the
+# deployment ledger; archived branches won't be re-deployed via that
+# mechanism so its presence is just dead weight (~120 KB but pointless).
+RUN rm -rf \
+    /var/www/html/gamecon/.git \
+    /var/www/html/gamecon/.github \
+    /var/www/html/gamecon/.docker \
+    /var/www/html/gamecon/.htdeployment \
+    /var/www/html/gamecon/node_modules \
+    /var/www/html/gamecon/ui/node_modules \
+    /var/www/html/gamecon/tests \
+    /var/www/html/gamecon/phpunit*.* \
+    /var/www/html/gamecon/phpstan*.* \
+    /var/www/html/gamecon/cache/private
+
+# Make cache/ and logy/ writable by Apache. cache/public stays (assets
+# committed at archive time); only cache/private was stripped above
+# and we recreate it empty here so the app can write to it at runtime.
+RUN mkdir -p \
+    /var/www/html/gamecon/cache/private \
+    /var/www/html/gamecon/cache/public \
+    /var/www/html/gamecon/logy \
+    && chown -R www-data:www-data \
+        /var/www/html/gamecon/cache \
+        /var/www/html/gamecon/logy
+
+# Apache snippet honoring X-Forwarded-Proto from the upstream proxy chain
+# (HAProxy → Caddy → this container). Reused as-is from the preview
+# tier: same proxy chain, same need. Without it, $_SERVER['HTTPS'] is
+# unset in PHP and generated URLs (<base href>, redirects, cookies)
+# come out as http://.
+COPY preview/apache-https.conf /etc/apache2/conf-available/preview-https.conf
+RUN a2enconf preview-https
+
+# Cap Apache's prefork worker count to fit the 256 MiB container memory
+# limit (the deploy script's cgroup cap). Without this, the base image's
+# stock MaxRequestWorkers 150 lets a few concurrent heavy pages (/admin,
+# /prihlaseni — ~140 MiB/child) overrun the cgroup → kernel OOM-kills an
+# apache2 child → upstream Caddy sees a dropped connection → 502. The
+# config (and the full reasoning) lives in preview/archive-mpm.conf.
+COPY preview/archive-mpm.conf /etc/apache2/conf-available/archive-mpm.conf
+RUN a2enconf archive-mpm
+
+# Pick up the archive-specific verejne-nastaveni file (created on each
+# archive/NNNN branch). The base image ships ENV=local; archive
+# overrides to "archive" so zavadec-nastaveni.php takes the archive
+# path and reads DB creds from getenv() (set by the deploy script's
+# `docker run -e`).
+ENV ENV=archive
+
+# Basic-auth credentials + gate-token signing secrets for the Caddy gate
+# in front of preview / archive environments. The admin's dev rozcestník
+# renders the gate login as copyable text and signs a ?gate= token onto
+# the links (one-click access via the gate-validator). Baked in here so
+# the archive UI behaves identically to ostra. Access-control secrets
+# shared across all archives (not user data); GHCR repo is private and
+# image layers are not publicly readable.
+ARG PREVIEW_BASIC_AUTH_USER=""
+ARG PREVIEW_BASIC_AUTH_PASSWORD=""
+ARG ARCHIVE_BASIC_AUTH_USER=""
+ARG ARCHIVE_BASIC_AUTH_PASSWORD=""
+ARG PREVIEW_GATE_SECRET=""
+ARG ARCHIVE_GATE_SECRET=""
+ENV PREVIEW_BASIC_AUTH_USER=$PREVIEW_BASIC_AUTH_USER \
+    PREVIEW_BASIC_AUTH_PASSWORD=$PREVIEW_BASIC_AUTH_PASSWORD \
+    ARCHIVE_BASIC_AUTH_USER=$ARCHIVE_BASIC_AUTH_USER \
+    ARCHIVE_BASIC_AUTH_PASSWORD=$ARCHIVE_BASIC_AUTH_PASSWORD \
+    PREVIEW_GATE_SECRET=$PREVIEW_GATE_SECRET \
+    ARCHIVE_GATE_SECRET=$ARCHIVE_GATE_SECRET
+
+EXPOSE 80
+
+CMD ["apache2-foreground"]
