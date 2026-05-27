@@ -36,7 +36,10 @@ if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', 
     require __DIR__ . '/nastaveni-beta.php';
 } elseif (str_ends_with($host, 'blackarrow.gamecon.cz')) {
     require __DIR__ . '/nastaveni-blackarrow.php';
-} elseif ($_SERVER['SERVER_NAME'] === 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] === 'gamecon.cz') {
+} elseif ($_SERVER['SERVER_NAME'] === 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] === 'gamecon.cz' || $_SERVER['SERVER_NAME'] === '2021.gamecon.cz') {
+    // Archive 2021: the whole year is served from the single host
+    // 2021.gamecon.cz (admin is a path under it, not admin.2021.gamecon.cz),
+    // so SERVER_NAME is always 2021.gamecon.cz — route it to produkce config.
     require __DIR__ . '/nastaveni-produkce.php';
 } else {
     echo 'Nepodařilo se detekovat prostředí, nelze načíst nastavení verze';
