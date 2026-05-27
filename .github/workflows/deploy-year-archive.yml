@@ -79,6 +79,7 @@ jobs:
                     # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
                     # Add a row when a year's PHP era is confirmed during recon.
                     case "$year" in
+                        2019) base_image="php:7.3-apache" ;;
                         2020) base_image="php:7.3-apache" ;;
                         2021) base_image="php:7.3-apache" ;;
                         *)    base_image="gameconcz/gamecon:8.2" ;;
