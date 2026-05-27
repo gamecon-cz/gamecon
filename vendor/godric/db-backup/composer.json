@@ -1,0 +1,10 @@
+{
+    "name": "godric/db-backup",
+    "description": "Backup mysql database to FTP with pure PHP. No mysqldump on server needed.",
+    "autoload": {
+        "psr-4": { "Godric\\DbBackup\\": "src/" }
+    },
+    "require": {
+        "dg/mysql-dump": "^1.4"
+    }
+}
