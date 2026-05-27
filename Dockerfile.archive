@@ -40,6 +40,14 @@ FROM ${BASE_IMAGE}
 
 USER root
 
+# Which PHP extensions the archived year's code actually needs. Defaults to the
+# modern (7.3/8.2-era) set; very old years that need fewer (and can't apt-install
+# the lib-deps because their base OS is EOL) override it via
+# --build-arg PHP_EXTS. 2018 (PHP 5.6) needs only mysqli, which builds against
+# the bundled mysqlnd with NO apt packages — so passing PHP_EXTS="mysqli" skips
+# the whole apt step and sidesteps Debian Stretch's archived repos.
+ARG PHP_EXTS="mysqli pdo_mysql intl exif bcmath gd"
+
 # Base-agnostic environment setup. Bare official php:X-apache images lack the
 # PHP extensions, Apache modules, and gamecon DocumentRoot that the gameconcz
 # base bakes in; install/enable them here. All steps are safe no-ops when the
@@ -47,19 +55,27 @@ USER root
 # .so exists; a2enmod/sed are idempotent).
 RUN set -eux; \
     need_ext=""; \
-    for ext in mysqli pdo_mysql intl exif bcmath gd; do \
+    for ext in $PHP_EXTS; do \
         php -m | grep -qi "^${ext}$" || need_ext="$need_ext $ext"; \
     done; \
     if [ -n "$need_ext" ]; then \
-        apt-get update; \
-        apt-get install -y --no-install-recommends \
-            libicu-dev libxml2-dev libzip-dev zlib1g-dev \
-            libfreetype6-dev libjpeg62-turbo-dev libpng-dev; \
-        docker-php-ext-configure gd --with-freetype --with-jpeg \
-            || docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
-            || true; \
+        # Only the lib-backed extensions need apt; mysqli/pdo_mysql/exif/bcmath
+        # build against bundled sources. Run apt ONLY when one of those is in
+        # the to-install set, so years that need just mysqli (e.g. 2018 on the
+        # EOL Stretch base, whose apt repos are gone) never touch apt.
+        case " $need_ext " in \
+            *" gd "*|*" intl "*|*" zip "*) \
+                apt-get update; \
+                apt-get install -y --no-install-recommends \
+                    libicu-dev libxml2-dev libzip-dev zlib1g-dev \
+                    libfreetype6-dev libjpeg62-turbo-dev libpng-dev; \
+                docker-php-ext-configure gd --with-freetype --with-jpeg \
+                    || docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+                    || true; \
+                rm -rf /var/lib/apt/lists/*; \
+                ;; \
+        esac; \
         docker-php-ext-install $need_ext; \
-        rm -rf /var/lib/apt/lists/*; \
     fi; \
     a2enmod rewrite expires headers; \
     sed -ri 's!/var/www/html!/var/www/html/gamecon!g' \
