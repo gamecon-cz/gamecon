@@ -1,0 +1,7 @@
+{
+  "name": "godric/xtemplate",
+  "description": "simple templating engine",
+  "autoload": {
+    "classmap": ["src/"]
+  }
+}

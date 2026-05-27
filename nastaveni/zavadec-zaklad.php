@@ -37,7 +37,7 @@ if (PHP_SAPI == 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '
 } elseif (substr($_SERVER['SERVER_NAME'], -19) == 'redesign.gamecon.cz') {
     define('ENVIRONMENT', 'redesign');
   require __DIR__ . '/nastaveni-redesign.php';
-} elseif ($_SERVER['SERVER_NAME'] == 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] == 'gamecon.cz') {
+} elseif ($_SERVER['SERVER_NAME'] == 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] == 'gamecon.cz' || $_SERVER['SERVER_NAME'] == '2019.gamecon.cz') {
     define('ENVIRONMENT', 'produkce');
   require __DIR__ . '/nastaveni-produkce.php';
 } else {
