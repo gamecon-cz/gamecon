@@ -38,7 +38,9 @@ if (PHP_SAPI == 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '
 } elseif (substr($_SERVER['SERVER_NAME'], -19) == 'redesign.gamecon.cz') {
     define('ENVIRONMENT', 'redesign');
   require __DIR__ . '/nastaveni-redesign.php';
-} elseif ($_SERVER['SERVER_NAME'] == 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] == 'gamecon.cz') {
+} elseif ($_SERVER['SERVER_NAME'] == 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] == 'gamecon.cz' || $_SERVER['SERVER_NAME'] == '2020.gamecon.cz') {
+    // Archive 2020: served from the single host 2020.gamecon.cz (admin is a
+    // path under it), so SERVER_NAME is always 2020.gamecon.cz — route to produkce.
     define('ENVIRONMENT', 'produkce');
   require __DIR__ . '/nastaveni-produkce.php';
 } else {
