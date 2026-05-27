@@ -4,25 +4,25 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d5647ed7ea94dc13752b5b7d005cf914",
+    "content-hash": "d15f68f62b8b0d3c81da83890c0cfdec",
     "packages": [
         {
             "name": "defuse/php-encryption",
-            "version": "v2.2.0",
+            "version": "v2.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/defuse/php-encryption.git",
-                "reference": "0d4d27c368ca6798bc162469e43248c363c73495"
+                "reference": "0f407c43b953d571421e0020ba92082ed5fb7620"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/defuse/php-encryption/zipball/0d4d27c368ca6798bc162469e43248c363c73495",
-                "reference": "0d4d27c368ca6798bc162469e43248c363c73495",
+                "url": "https://api.github.com/repos/defuse/php-encryption/zipball/0f407c43b953d571421e0020ba92082ed5fb7620",
+                "reference": "0f407c43b953d571421e0020ba92082ed5fb7620",
                 "shasum": ""
             },
             "require": {
                 "ext-openssl": "*",
-                "paragonie/random_compat": "~2.0",
+                "paragonie/random_compat": ">= 2",
                 "php": ">=5.4.0"
             },
             "require-dev": {
@@ -67,21 +67,89 @@
                 "security",
                 "symmetric key cryptography"
             ],
-            "time": "2018-04-23T19:33:40+00:00"
+            "support": {
+                "issues": "https://github.com/defuse/php-encryption/issues",
+                "source": "https://github.com/defuse/php-encryption/tree/master"
+            },
+            "time": "2018-07-24T23:27:56+00:00"
         },
         {
-            "name": "dg/mysql-dump",
-            "version": "v1.4.0",
+            "name": "dg/ftp-deployment",
+            "version": "v2.9",
             "source": {
                 "type": "git",
-                "url": "https://github.com/dg/MySQL-dump.git",
-                "reference": "8970328c9a8665e65f3855c849f5d4de94075f13"
+                "url": "https://github.com/dg/ftp-deployment.git",
+                "reference": "0f7650d041a629a8a7c295f3025a532491d8cd73"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/8970328c9a8665e65f3855c849f5d4de94075f13",
-                "reference": "8970328c9a8665e65f3855c849f5d4de94075f13",
+                "url": "https://api.github.com/repos/dg/ftp-deployment/zipball/0f7650d041a629a8a7c295f3025a532491d8cd73",
+                "reference": "0f7650d041a629a8a7c295f3025a532491d8cd73",
                 "shasum": ""
+            },
+            "require": {
+                "ext-zlib": "*",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "nette/tester": "~1.3"
+            },
+            "suggest": {
+                "ext-ftp": "to connect to ftp:// server",
+                "ext-json": "to preprocess CSS files via online service",
+                "ext-openssl": "to connect to ftps:// server and preprocess CSS files",
+                "ext-ssh2": "to connect to sftp:// server"
+            },
+            "bin": [
+                "deployment"
+            ],
+            "type": "project",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause",
+                "GPL-2.0",
+                "GPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "David Grudl",
+                    "homepage": "https://davidgrudl.com"
+                }
+            ],
+            "description": "A tool for automated deployment of web applications to an FTP server.",
+            "homepage": "https://github.com/dg/ftp-deployment",
+            "keywords": [
+                "deployment",
+                "ftp",
+                "ssh"
+            ],
+            "support": {
+                "issues": "https://github.com/dg/ftp-deployment/issues",
+                "source": "https://github.com/dg/ftp-deployment/tree/v2.9"
+            },
+            "time": "2018-04-16T12:23:47+00:00"
+        },
+        {
+            "name": "dg/mysql-dump",
+            "version": "v1.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dg/MySQL-dump.git",
+                "reference": "e0e287b715b43293773a8b0edf8514f606e01780"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/e0e287b715b43293773a8b0edf8514f606e01780",
+                "reference": "e0e287b715b43293773a8b0edf8514f606e01780",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6"
             },
             "type": "library",
             "autoload": {
@@ -104,7 +172,10 @@
             "keywords": [
                 "mysql"
             ],
-            "time": "2017-05-24T12:44:51+00:00"
+            "support": {
+                "source": "https://github.com/dg/MySQL-dump/tree/master"
+            },
+            "time": "2019-09-10T21:36:25+00:00"
         },
         {
             "name": "godric/db-backup",
@@ -123,6 +194,7 @@
             "require": {
                 "dg/mysql-dump": "^1.4"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -153,6 +225,7 @@
             "require": {
                 "dg/mysql-dump": "^1.4"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -167,46 +240,20 @@
             "time": "2018-09-04T12:38:38+00:00"
         },
         {
-            "name": "godric/db-test",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/godric-cz/db-test.git",
-                "reference": "7934e457b13034b04db3b9be58a92b70e2032e74"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/godric-cz/db-test/zipball/7934e457b13034b04db3b9be58a92b70e2032e74",
-                "reference": "7934e457b13034b04db3b9be58a92b70e2032e74",
-                "shasum": ""
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Godric\\DbTest\\": "src/"
-                }
-            },
-            "description": "PHPUnit database tests with transactions.",
-            "support": {
-                "source": "https://github.com/godric-cz/db-test/tree/master",
-                "issues": "https://github.com/godric-cz/db-test/issues"
-            },
-            "time": "2018-07-15T16:17:18+00:00"
-        },
-        {
             "name": "godric/xtemplate",
             "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/godric-cz/xtemplate.git",
-                "reference": "a00586ef557b0d1592c2f592647077cce8346176"
+                "reference": "bad94b1348477cce8868c54a066cbea11938f962"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/godric-cz/xtemplate/zipball/a00586ef557b0d1592c2f592647077cce8346176",
-                "reference": "a00586ef557b0d1592c2f592647077cce8346176",
+                "url": "https://api.github.com/repos/godric-cz/xtemplate/zipball/bad94b1348477cce8868c54a066cbea11938f962",
+                "reference": "bad94b1348477cce8868c54a066cbea11938f962",
                 "shasum": ""
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "classmap": [
@@ -218,24 +265,27 @@
                 "source": "https://github.com/godric-cz/xtemplate/tree/master",
                 "issues": "https://github.com/godric-cz/xtemplate/issues"
             },
-            "time": "2016-02-28T19:55:11+00:00"
+            "time": "2020-09-28T19:28:21+00:00"
         },
         {
             "name": "michelf/php-markdown",
-            "version": "1.8.0",
+            "version": "1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/michelf/php-markdown.git",
-                "reference": "01ab082b355bf188d907b9929cd99b2923053495"
+                "reference": "c83178d49e372ca967d1a8c77ae4e051b3a3c75c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/01ab082b355bf188d907b9929cd99b2923053495",
-                "reference": "01ab082b355bf188d907b9929cd99b2923053495",
+                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/c83178d49e372ca967d1a8c77ae4e051b3a3c75c",
+                "reference": "c83178d49e372ca967d1a8c77ae4e051b3a3c75c",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">=4.3 <5.8"
             },
             "type": "library",
             "autoload": {
@@ -264,7 +314,11 @@
             "keywords": [
                 "markdown"
             ],
-            "time": "2018-01-15T00:49:33+00:00"
+            "support": {
+                "issues": "https://github.com/michelf/php-markdown/issues",
+                "source": "https://github.com/michelf/php-markdown/tree/1.9.0"
+            },
+            "time": "2019-12-02T02:32:27+00:00"
         },
         {
             "name": "oyejorge/less.php",
@@ -326,37 +380,38 @@
                 "php",
                 "stylesheet"
             ],
+            "support": {
+                "issues": "https://github.com/oyejorge/less.php/issues",
+                "source": "https://github.com/oyejorge/less.php/tree/master"
+            },
+            "abandoned": true,
             "time": "2017-03-28T22:19:25+00:00"
         },
         {
             "name": "paragonie/random_compat",
-            "version": "v2.0.17",
+            "version": "v9.99.100",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paragonie/random_compat.git",
-                "reference": "29af24f25bab834fcbb38ad2a69fa93b867e070d"
+                "reference": "996434e5492cb4c3edcb9168db6fbb1359ef965a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paragonie/random_compat/zipball/29af24f25bab834fcbb38ad2a69fa93b867e070d",
-                "reference": "29af24f25bab834fcbb38ad2a69fa93b867e070d",
+                "url": "https://api.github.com/repos/paragonie/random_compat/zipball/996434e5492cb4c3edcb9168db6fbb1359ef965a",
+                "reference": "996434e5492cb4c3edcb9168db6fbb1359ef965a",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.2.0"
+                "php": ">= 7"
             },
             "require-dev": {
-                "phpunit/phpunit": "4.*|5.*"
+                "phpunit/phpunit": "4.*|5.*",
+                "vimeo/psalm": "^1"
             },
             "suggest": {
                 "ext-libsodium": "Provides a modern crypto API that can be used to generate random bytes."
             },
             "type": "library",
-            "autoload": {
-                "files": [
-                    "lib/random.php"
-                ]
-            },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
@@ -375,7 +430,12 @@
                 "pseudorandom",
                 "random"
             ],
-            "time": "2018-07-04T16:31:37+00:00"
+            "support": {
+                "email": "info@paragonie.com",
+                "issues": "https://github.com/paragonie/random_compat/issues",
+                "source": "https://github.com/paragonie/random_compat"
+            },
+            "time": "2020-10-15T08:29:30+00:00"
         },
         {
             "name": "roderik/pwgen-php",
@@ -422,20 +482,24 @@
                 "generator",
                 "password"
             ],
+            "support": {
+                "issues": "https://github.com/roderik/pwgen-php/issues",
+                "source": "https://github.com/roderik/pwgen-php/tree/master"
+            },
             "time": "2017-12-01T08:47:54+00:00"
         },
         {
             "name": "setasign/tfpdf",
-            "version": "1.25",
+            "version": "v1.32",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Setasign/tFPDF.git",
-                "reference": "f5fa74ebca027c685de70b48ee9212ae30e9f0eb"
+                "reference": "a879b83485c263605cbf98ab2e8fdd4d37ca2707"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Setasign/tFPDF/zipball/f5fa74ebca027c685de70b48ee9212ae30e9f0eb",
-                "reference": "f5fa74ebca027c685de70b48ee9212ae30e9f0eb",
+                "url": "https://api.github.com/repos/Setasign/tFPDF/zipball/a879b83485c263605cbf98ab2e8fdd4d37ca2707",
+                "reference": "a879b83485c263605cbf98ab2e8fdd4d37ca2707",
                 "shasum": ""
             },
             "type": "library",
@@ -451,16 +515,20 @@
             ],
             "authors": [
                 {
+                    "name": "Ian Back"
+                },
+                {
+                    "name": "Tycho Veltmeijer",
+                    "email": "tfpdf@tychoveltmeijer.nl",
+                    "role": "Maintainer"
+                },
+                {
                     "name": "Olivier Plathey",
                     "email": "oliver@fpdf.org",
                     "homepage": "http://fpdf.org/"
-                },
-                {
-                    "name": "Ian Back",
-                    "email": "ian@bpm1.com"
                 }
             ],
-            "description": "This class is a modified version of FPDF that adds UTF-8 support. It is based on FPDF 1.7.",
+            "description": "This class is a modified version of FPDF that adds UTF-8 support. As of version 1.31 it is based on FPDF 1.82. Before it was based on FPDF 1.7.",
             "homepage": "http://fpdf.org/en/script/script92.php",
             "keywords": [
                 "fpdf",
@@ -468,20 +536,24 @@
                 "tfpdf",
                 "unicode"
             ],
-            "time": "2018-09-05T15:36:21+00:00"
+            "support": {
+                "issues": "https://github.com/Setasign/tFPDF/issues",
+                "source": "https://github.com/Setasign/tFPDF/tree/master"
+            },
+            "time": "2020-08-31T07:28:46+00:00"
         },
         {
             "name": "tracy/tracy",
-            "version": "v2.8.1",
+            "version": "v2.8.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nette/tracy.git",
-                "reference": "37c238d08db44f2cd6f21f7d97e5cea11d631fae"
+                "reference": "342674bbf72365e8456de9855a8cd839ca695933"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nette/tracy/zipball/37c238d08db44f2cd6f21f7d97e5cea11d631fae",
-                "reference": "37c238d08db44f2cd6f21f7d97e5cea11d631fae",
+                "url": "https://api.github.com/repos/nette/tracy/zipball/342674bbf72365e8456de9855a8cd839ca695933",
+                "reference": "342674bbf72365e8456de9855a8cd839ca695933",
                 "shasum": ""
             },
             "require": {
@@ -540,69 +612,12 @@
             ],
             "support": {
                 "issues": "https://github.com/nette/tracy/issues",
-                "source": "https://github.com/nette/tracy/tree/v2.8.1"
+                "source": "https://github.com/nette/tracy/tree/v2.8.3"
             },
-            "time": "2021-01-01T22:21:23+00:00"
+            "time": "2021-01-31T23:07:09+00:00"
         }
     ],
     "packages-dev": [
-        {
-            "name": "dg/ftp-deployment",
-            "version": "v2.9",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dg/ftp-deployment.git",
-                "reference": "0f7650d041a629a8a7c295f3025a532491d8cd73"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dg/ftp-deployment/zipball/0f7650d041a629a8a7c295f3025a532491d8cd73",
-                "reference": "0f7650d041a629a8a7c295f3025a532491d8cd73",
-                "shasum": ""
-            },
-            "require": {
-                "ext-zlib": "*",
-                "php": ">=5.4.0"
-            },
-            "require-dev": {
-                "nette/tester": "~1.3"
-            },
-            "suggest": {
-                "ext-ftp": "to connect to ftp:// server",
-                "ext-json": "to preprocess CSS files via online service",
-                "ext-openssl": "to connect to ftps:// server and preprocess CSS files",
-                "ext-ssh2": "to connect to sftp:// server"
-            },
-            "bin": [
-                "deployment"
-            ],
-            "type": "project",
-            "autoload": {
-                "classmap": [
-                    "src/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause",
-                "GPL-2.0",
-                "GPL-3.0"
-            ],
-            "authors": [
-                {
-                    "name": "David Grudl",
-                    "homepage": "https://davidgrudl.com"
-                }
-            ],
-            "description": "A tool for automated deployment of web applications to an FTP server.",
-            "homepage": "https://github.com/dg/ftp-deployment",
-            "keywords": [
-                "deployment",
-                "ftp",
-                "ssh"
-            ],
-            "time": "2018-04-16T12:23:47+00:00"
-        },
         {
             "name": "doctrine/instantiator",
             "version": "1.4.0",
@@ -3032,7 +3047,6 @@
     "stability-flags": {
         "godric/xtemplate": 20,
         "godric/db-backup": 20,
-        "godric/db-test": 20,
         "godric/db-migrations": 20,
         "roave/security-advisories": 20
     },
