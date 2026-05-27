@@ -1,1 +1,10 @@
-Deny from all
+RewriteEngine on
+
+# Archive 2020: the base image's DocumentRoot is the project root, so requests
+# must be rewritten into web/. The original 2020-era top-level .htaccess was
+# just "Deny from all" (on the old hosting the vhost DocumentRoot pointed
+# straight at web/). Under the Docker layout (DocumentRoot = project root)
+# that would 403 every request, so use the rewrite-into-web/ form.
+RewriteRule .* web/$0 [L]
+
+RewriteRule .* - [F,L]
