@@ -24,9 +24,48 @@
 # verified in the recon log in the ansible repo
 # (docs/year-archive-phase0-recon.md).
 
-FROM gameconcz/gamecon:8.2
+# Base image is parameterized so older archive years can build on a
+# period-correct PHP. Modern years (2022+) use the default
+# gameconcz/gamecon:8.2, which already ships Apache + all needed PHP
+# extensions + the gamecon DocumentRoot. Pre-2022 years whose code predates
+# PHP 8.1/8.2 deprecations (e.g. 2021, written for PHP 7.3) override it via
+# --build-arg BASE_IMAGE=php:7.3-apache (the official, publicly-pullable
+# image — no custom registry, so the archive deploy gains no new external
+# dependency). The setup block below is idempotent and base-agnostic: on the
+# gameconcz base the extensions/modules are already present (no-op); on a
+# bare php:X-apache base it installs exactly what the app needs. The workflow
+# (deploy-year-archive.yml) picks BASE_IMAGE per year via an explicit map.
+ARG BASE_IMAGE=gameconcz/gamecon:8.2
+FROM ${BASE_IMAGE}
 
 USER root
+
+# Base-agnostic environment setup. Bare official php:X-apache images lack the
+# PHP extensions, Apache modules, and gamecon DocumentRoot that the gameconcz
+# base bakes in; install/enable them here. All steps are safe no-ops when the
+# base already provides them (docker-php-ext-install is skipped per-ext if the
+# .so exists; a2enmod/sed are idempotent).
+RUN set -eux; \
+    need_ext=""; \
+    for ext in mysqli pdo_mysql intl exif bcmath gd; do \
+        php -m | grep -qi "^${ext}$" || need_ext="$need_ext $ext"; \
+    done; \
+    if [ -n "$need_ext" ]; then \
+        apt-get update; \
+        apt-get install -y --no-install-recommends \
+            libicu-dev libxml2-dev libzip-dev zlib1g-dev \
+            libfreetype6-dev libjpeg62-turbo-dev libpng-dev; \
+        docker-php-ext-configure gd --with-freetype --with-jpeg \
+            || docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+            || true; \
+        docker-php-ext-install $need_ext; \
+        rm -rf /var/lib/apt/lists/*; \
+    fi; \
+    a2enmod rewrite expires headers; \
+    sed -ri 's!/var/www/html!/var/www/html/gamecon!g' \
+        /etc/apache2/sites-available/*.conf \
+        /etc/apache2/apache2.conf \
+        /etc/apache2/conf-available/docker-php.conf 2>/dev/null || true
 
 # Bake the entire archived branch's working tree in. The chown matches
 # the runtime user; matches Dockerfile.preview's approach.

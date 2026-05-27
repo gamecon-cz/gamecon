@@ -67,9 +67,26 @@ jobs:
                         exit 1
                     fi
                     sha7=$(git rev-parse --short=7 HEAD)
+
+                    # Per-year base image map. Older years' code predates
+                    # PHP 8.1/8.2 deprecations (the app's error handler
+                    # escalates any deprecation to a fatal 500), so they must
+                    # build on a period-correct PHP. We use the official,
+                    # publicly-pullable php:<ver>-apache images directly —
+                    # Dockerfile.archive's setup block installs the needed
+                    # extensions on a bare base — so no custom base image /
+                    # registry is involved. Default (unlisted years) = the
+                    # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
+                    # Add a row when a year's PHP era is confirmed during recon.
+                    case "$year" in
+                        2021) base_image="php:7.3-apache" ;;
+                        *)    base_image="gameconcz/gamecon:8.2" ;;
+                    esac
+
                     echo "year=$year" >> "$GITHUB_OUTPUT"
                     echo "sha7=$sha7" >> "$GITHUB_OUTPUT"
-                    echo "Deploying year $year ($sha7)"
+                    echo "base_image=$base_image" >> "$GITHUB_OUTPUT"
+                    echo "Deploying year $year ($sha7) on base $base_image"
 
             -   name: Log in to GHCR
                 uses: docker/login-action@v3
@@ -106,6 +123,7 @@ jobs:
                     # archives (not user data) — fine to bake. GHCR repo is
                     # private.
                     build-args: |
+                        BASE_IMAGE=${{ steps.year.outputs.base_image }}
                         PREVIEW_BASIC_AUTH_USER=${{ secrets.PREVIEW_BASIC_AUTH_USER }}
                         PREVIEW_BASIC_AUTH_PASSWORD=${{ secrets.PREVIEW_BASIC_AUTH_PASSWORD }}
                         ARCHIVE_BASIC_AUTH_USER=${{ secrets.ARCHIVE_BASIC_AUTH_USER }}
