@@ -1,0 +1,10 @@
+{
+    "name": "godric/db-migrations",
+    "description": "Database migration tool with automagic and possibly without commandline.",
+    "autoload": {
+        "psr-4": { "Godric\\DbMigrations\\": "src/" }
+    },
+    "require": {
+        "dg/mysql-dump": "^1.4"
+    }
+}
