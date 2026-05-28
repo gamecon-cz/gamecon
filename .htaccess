@@ -1,0 +1,8 @@
+RewriteEngine on
+
+# Archive 2015 (old app/+spec/ layout): the Docker DocumentRoot is the project
+# root (/var/www/html/gamecon). The real web root for this era is app/web/, so
+# rewrite all requests into it; app/web/.htaccess then routes to index.php.
+RewriteRule .* app/web/$0 [L]
+
+RewriteRule .* - [F,L]
