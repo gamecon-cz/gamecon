@@ -109,13 +109,29 @@ RUN rm -rf \
 # Make cache/ and logy/ writable by Apache. cache/public stays (assets
 # committed at archive time); only cache/private was stripped above
 # and we recreate it empty here so the app can write to it at runtime.
+# Old-era years (≤2016, app/+spec/ layout) keep their cache under
+# spec/cache + spec/cache-priv instead — chown those too if present, so
+# the same Dockerfile serves both layouts. The mkdir of the modern paths
+# is harmless on old-era branches (just unused empty dirs).
 RUN mkdir -p \
     /var/www/html/gamecon/cache/private \
     /var/www/html/gamecon/cache/public \
     /var/www/html/gamecon/logy \
     && chown -R www-data:www-data \
         /var/www/html/gamecon/cache \
-        /var/www/html/gamecon/logy
+        /var/www/html/gamecon/logy \
+    && if [ -d /var/www/html/gamecon/spec ]; then \
+        mkdir -p \
+            /var/www/html/gamecon/spec/cache/css \
+            /var/www/html/gamecon/spec/cache/img \
+            /var/www/html/gamecon/spec/cache/js \
+            /var/www/html/gamecon/spec/cache/ttf \
+            /var/www/html/gamecon/spec/cache-priv/xtpl \
+            /var/www/html/gamecon/spec/cache-priv/db-backup \
+            /var/www/html/gamecon/spec/cache-priv/fio \
+            /var/www/html/gamecon/spec/cache-priv/logs; \
+        chown -R www-data:www-data /var/www/html/gamecon/spec/cache /var/www/html/gamecon/spec/cache-priv; \
+    fi
 
 # Apache snippet honoring X-Forwarded-Proto from the upstream proxy chain
 # (HAProxy → Caddy → this container). Reused as-is from the preview

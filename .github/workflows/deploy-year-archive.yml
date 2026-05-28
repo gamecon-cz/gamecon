@@ -79,6 +79,7 @@ jobs:
                     # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
                     # Add a row when a year's PHP era is confirmed during recon.
                     case "$year" in
+                        2015) base_image="php:5.6-apache" ;;
                         2016) base_image="php:5.6-apache" ;;
                         2017) base_image="php:5.6-apache" ;;
                         2018) base_image="php:5.6-apache" ;;
@@ -91,9 +92,12 @@ jobs:
                     # PHP extensions to install on a bare base. Defaults to the
                     # modern set; very old years that run on an EOL Debian base
                     # (whose apt repos are gone) need a trimmed list so the
-                    # Dockerfile's apt step is skipped. 2018 (PHP 5.6) needs only
-                    # mysqli, which builds with no apt packages.
+                    # Dockerfile's apt step is skipped. 2016-2018 (PHP 5.6) need
+                    # only mysqli; 2015 and older use the even-older mysql_*
+                    # extension (mysql, removed in PHP 7 but installable on 5.6).
+                    # Both build with no apt packages.
                     case "$year" in
+                        2015) php_exts="mysql" ;;
                         2016) php_exts="mysqli" ;;
                         2017) php_exts="mysqli" ;;
                         2018) php_exts="mysqli" ;;
