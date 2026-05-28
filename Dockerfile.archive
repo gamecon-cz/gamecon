@@ -121,7 +121,15 @@ RUN mkdir -p \
         /var/www/html/gamecon/cache \
         /var/www/html/gamecon/logy \
     && if [ -d /var/www/html/gamecon/spec ]; then \
-        mkdir -p /var/www/html/gamecon/spec/cache /var/www/html/gamecon/spec/cache-priv; \
+        mkdir -p \
+            /var/www/html/gamecon/spec/cache/css \
+            /var/www/html/gamecon/spec/cache/img \
+            /var/www/html/gamecon/spec/cache/js \
+            /var/www/html/gamecon/spec/cache/ttf \
+            /var/www/html/gamecon/spec/cache-priv/xtpl \
+            /var/www/html/gamecon/spec/cache-priv/db-backup \
+            /var/www/html/gamecon/spec/cache-priv/fio \
+            /var/www/html/gamecon/spec/cache-priv/logs; \
         chown -R www-data:www-data /var/www/html/gamecon/spec/cache /var/www/html/gamecon/spec/cache-priv; \
     fi
 
