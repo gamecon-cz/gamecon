@@ -2042,6 +2042,8 @@ SQL,
         $this->refresh();
 
         $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
+
+        $u->finance()->prepoctiSlevuNaJednuAktivitu();
     }
 
     private function touchDirtyFlag(ProgramStaticFileType $flag): void
@@ -2500,6 +2502,8 @@ SQL
         $this->refresh();
 
         $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
+
+        $uzivatel->finance()->prepoctiSlevuNaJednuAktivitu();
 
         return true;
     }
@@ -3709,17 +3713,6 @@ SQL,
         return (int)$this->a[Sql::KAPACITA_F];
     }
 
-    /** Jestli volno pro daného uživatele (nebo aspoň pro někoho, pokud null) */
-    public function volnoPro(Uzivatel $u = null)
-    {
-        $v = $this->volno();
-        if ($u) {
-            return $v === 'u' || $v == $u->pohlavi();
-        }
-
-        return $v !== 'x';
-    }
-
     /**
      * Jestli má uživatel aktivitu vidět (případně jestli má být vidět veřejně,
      * pokud $u == null).
@@ -3780,26 +3773,6 @@ SQL,
     public function zamcena(): bool
     {
         return $this->stav()->jeZamcena();
-    }
-
-    public function uzavrenaOd(): ?\DateTimeImmutable
-    {
-        if (!$this->uzavrena()) {
-            return null;
-        }
-        if (!$this->uzavrenaOd) {
-            $posledniZmenaAPosledniStav = $this->posledniZmenaAPosledniStav();
-            if (!$posledniZmenaAPosledniStav) {
-                return null;
-            }
-            ['id_stav' => $stavId, 'kdy' => $kdy] = $posledniZmenaAPosledniStav;
-            if ($stavId != StavAktivity::UZAVRENA) {
-                return null;
-            }
-            $this->uzavrenaOd = \DateTimeImmutable::createFromFormat(DateTimeCz::FORMAT_DB, $kdy);
-        }
-
-        return $this->uzavrenaOd;
     }
 
     private function posledniZmenaAPosledniStav(): array
@@ -4296,51 +4269,6 @@ SQL,
     }
 
     /**
-     * Vrátí pole aktivit které se letos potenciálně zobrazí v programu
-     */
-    public static function zProgramu(
-        string              $razeni,
-        ?string             $select = null,
-        ?string             $join = null,
-        array               $dalsiPouziteSqlTabulky = [],
-        bool                $zCache = false,
-        bool                $prednacitat = false,
-        ?SystemoveNastaveni $systemoveNastaveni = null,
-    ): array {
-        if ($zCache) {
-            $objekt = self::$objekty['razeni'][$razeni] ?? null;
-            if ($objekt) {
-                return $objekt;
-            }
-        }
-
-        $systemoveNastaveni ??= SystemoveNastaveni::zGlobals();
-
-        $aktivity = self::zWhere(
-            systemoveNastaveni: $systemoveNastaveni,
-            dalsiPouziteSqlTabulky: $dalsiPouziteSqlTabulky,
-            select: $select,
-            where1: "$join WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))",
-            args: [
-                0 => $systemoveNastaveni->rocnik(),
-                1 => StavAktivity::NOVA,
-                2 => TypAktivity::interniTypy(),
-            ],
-            order: 'ORDER BY DAY(zacatek) - IF(HOUR(zacatek) >= ' . dbQv(PROGRAM_ZACATEK) . ', 0, 1), ' . dbQi($razeni) . ', DAY(zacatek), HOUR(zacatek), nazev_akce',
-            prednacitat: $prednacitat,
-        );
-
-        if ($zCache) {
-            self::$objekty['razeni'][$razeni] = $aktivity;
-            foreach ($aktivity as $aktivita) {
-                self::$objekty['ids'][$aktivita->id()] ??= $aktivita;
-            }
-        }
-
-        return $aktivity;
-    }
-
-    /**
      * Vrátí aktivity z rozmezí (aktuálně s začátkem v rozmezí konkrétně)
      * @return Aktivita[]
      * @todo možno přidat flag 'celé v rozmezí'
@@ -4372,25 +4300,6 @@ SQL,
         }
 
         return $aktivity;
-    }
-
-    /**
-     * @param string $nazev
-     * @param int $rocnik
-     * @return Aktivita[]
-     */
-    public static function zNazvuARoku(
-        string              $nazev,
-        int                 $rocnik,
-        ?SystemoveNastaveni $systemoveNastaveni = null,
-    ): array {
-        return self::zFiltru(
-            systemoveNastaveni: $systemoveNastaveni ?? SystemoveNastaveni::zGlobals(),
-            filtr: [
-                FiltrAktivity::NAZEV_AKCE => $nazev,
-                FiltrAktivity::ROK        => $rocnik,
-            ],
-        );
     }
 
     /**
@@ -4549,27 +4458,6 @@ SQL
         }
 
         return static::zId($idHlavniAktivity);
-    }
-
-    /**
-     * @param Aktivita[] $aktivity
-     * @return Aktivita[]
-     */
-    public static function seradPodleTypuCiNazvu(array $aktivity): array
-    {
-        usort($aktivity, static function (
-            self $a,
-            self $b,
-        ) {
-            $c = $a->typId() - $b->typId(); // seřazní podle typu aktivity
-            if ($c != 0) {
-                return $c;
-            }
-
-            return strcmp($a->nazev(), $b->nazev()); // seřazení podle názvu aktivity
-        });
-
-        return $aktivity;
     }
 
     /**

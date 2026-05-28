@@ -379,6 +379,8 @@ SQL, [Pravo::PORADANI_AKTIVIT],
 
         $this->aktualizujPrava();
 
+        $this->finance()->prepoctiSlevuNaJednuAktivitu();
+
         return $roleNovePridana;
     }
 
@@ -1418,7 +1420,7 @@ SQL,
      */
     public function login(): string
     {
-        return $this->r['login_uzivatele'];
+        return $this->r[Sql::LOGIN_UZIVATELE];
     }
 
     /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
@@ -2181,16 +2183,6 @@ SQL,
         return $uid;
     }
 
-    private static function posledniPoradiRychloregistrace(string $prefix): int
-    {
-        return (int) dbFetchSingle(<<<SQL
-SELECT MAX(CAST(REPLACE(login_uzivatele, '{$prefix}', '') AS INT))
-FROM uzivatele_hodnoty
-WHERE z_rychloregistrace = 1
-SQL,
-        );
-    }
-
     /**
      * Smaže uživatele $u a jeho historii připojí k tomuto uživateli. Sloupečky
      * v poli $zmeny případně aktualizuje podle hodnot smazaného uživatele.
@@ -2429,16 +2421,6 @@ SQL,
     public function jeZena(): bool
     {
         return $this->pohlavi() === Pohlavi::ZENA_KOD;
-    }
-
-    public function jeMuz(): bool
-    {
-        return $this->pohlavi() === Pohlavi::MUZ_KOD;
-    }
-
-    public function prezdivka(): string
-    {
-        return (string) $this->r[Sql::LOGIN_UZIVATELE];
     }
 
     /**

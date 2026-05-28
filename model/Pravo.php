@@ -73,6 +73,7 @@ class Pravo extends \DbObject
     public const UBYTOVANI_NEDELNI_NOC_NABIZET               = 1036; // nedělní ubytování zobrazení a objednání
     public const UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC           = 1037; // Může si objednat jenom jednu noc
     public const MUZE_RUSIT_NAKUPY                           = 1038; // Může rušit nákupy uživatelů (šéf infa, financí...)
+    public const JEDNA_AKTIVITA_ZDARMA                       = 1039; // Jednu (nejdražší) aktivitu má zdarma.
 
     public static function dejIdsVsechPrav(): array
     {

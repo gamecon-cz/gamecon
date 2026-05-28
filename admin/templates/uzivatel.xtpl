@@ -23,7 +23,7 @@
 
     <div class="pravy">
         <div class="nick" style="overflow-x:hidden">
-            <h3>{uPracovni.prezdivka}</h3>
+            <h3>{uPracovni.login}</h3>
         </div>
         <div>
             {uPracovni.krestniJmeno}
