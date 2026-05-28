@@ -1,0 +1,33 @@
+<?php
+// Archive 2013 per-deployment config — committed to archive/2013.
+//
+// Oldest-era www/+sdilene/+specificke/ framework: sdilene/vse.hhp loads this
+// via require_once('../specificke/site-specific.hhp'); fwDatabase.hhp reads the
+// $DATABASE_* globals and connects with mysql_connect. Normally hand-written
+// per host with hardcoded creds; on the archive branch we read them from the
+// environment (the host's deploy-year-archive.sh passes DB_USER / DB_PASS /
+// DB_NAME / DB_SERV via docker run -e, derived from HMAC(year, secret)).
+
+error_reporting(0);
+
+// DB connection — env-driven. 2013 fw-database connects via
+// mysql_connect($DATABASE_SERVER, ...) with no port, so DB_SERV alone (the
+// docker0 bridge IP, default 172.17.0.1) reaches the host MariaDB on 3306.
+$DATABASE_USER     = getenv('DB_USER') ?: 'gamecon_2013';
+$DATABASE_PASSWORD = getenv('DB_PASS') ?: '';
+$DATABASE_NAME     = getenv('DB_NAME') ?: 'gamecon_2013';
+$DATABASE_SERVER   = getenv('DB_SERV') ?: '172.17.0.1';
+
+$NAZEV_VETVE = 'ostra'; //vyvojova, ostra
+
+define('ADMIN_WWW_CESTA', '../www');   //cesta z rootu admina do rootu uživatelské části
+define('SDILENE_WWW_CESTA', '../www'); //cesta z sdílených tříd do rootu uživatelské části
+
+// Archive 2013: the original config used the bare gamecon.cz / admin.gamecon.cz
+// (2013 was THE main site that year). Flip to the per-year archive subdomain.
+define('URL_WEBU', 'https://2013.gamecon.cz');  //absolutní url uživatelského webu
+define('URL_ADMIN', 'https://2013.gamecon.cz'); //absolutní url adminu
+
+date_default_timezone_set('Europe/Prague');
+
+?>

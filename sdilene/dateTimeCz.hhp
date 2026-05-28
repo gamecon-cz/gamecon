@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * Datum a čas s českými názvy dnů a měsíců
+ */ 
+
+class DateTimeCz extends DateTime
+{
+
+  function format($f)
+  {
+    return strtr(parent::format($f),array(
+      'Monday'    => 'pondělí',
+      'Tuesday'   => 'úterý',
+      'Wednesday' => 'středa',
+      'Thursday'  => 'čtvrtek',
+      'Friday'    => 'pátek',
+      'Saturday'  => 'sobota',
+      'Sunday'    => 'neděle'
+    ));
+  }
+          
+}
+
+?>

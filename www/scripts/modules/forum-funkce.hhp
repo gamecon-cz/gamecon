@@ -1,0 +1,387 @@
+<?php
+
+function hyperlink($text)
+{
+    // match protocol://address/path/
+    $text = ereg_replace("[a-zA-Z]+://([.]?[a-zA-Z0-9_/#-])*", "<a href=\"\\0\">\\0</a>", $text);
+
+    // match www.something
+    $text = ereg_replace("(^| )(www([.]?[a-zA-Z0-9_/#-])*)", "\\1<a href=\"http://\\2\">\\2</a>", $text);
+
+    // return $text
+    return $text;
+}
+
+
+function hyperlinky($text){
+  return parseemails(hyperlink($text));
+}
+
+
+function jmeno_uzivatele($id_uzivatele){
+global $db_jmeno,$db_spojeni;
+  $sql = "select login_uzivatele from uzivatele_hodnoty where id_uzivatele = $id_uzivatele";
+  $result = dbQuery($db_jmeno,$sql,$db_spojeni);
+  if (mysql_num_rows($result) > 0){
+    return mysql_result($result,0,0);
+  }
+  else {
+    return "(uživatel smazán)";
+  }
+}
+
+
+function minitext($text){
+  static $tbl = array("\xc3\xa1"=>"a","\xc3\xa4"=>"a","\xc4\x8d"=>"c","\xc4\x8f"=>"d","\xc3\xa9"=>"e","\xc4\x9b"=>"e","\xc3\xad"=>"i","\xc4\xbe"=>"l","\xc4\xba"=>"l","\xc5\x88"=>"n","\xc3\xb3"=>"o","\xc3\xb6"=>"o","\xc5\x91"=>"o","\xc3\xb4"=>"o","\xc5\x99"=>"r","\xc5\x95"=>"r","\xc5\xa1"=>"s","\xc5\xa5"=>"t","\xc3\xba"=>"u","\xc5\xaf"=>"u","\xc3\xbc"=>"u","\xc5\xb1"=>"u","\xc3\xbd"=>"y","\xc5\xbe"=>"z","\xc3\x81"=>"A","\xc3\x84"=>"A","\xc4\x8c"=>"C","\xc4\x8e"=>"D","\xc3\x89"=>"E","\xc4\x9a"=>"E","\xc3\x8d"=>"I","\xc4\xbd"=>"L","\xc4\xb9"=>"L","\xc5\x87"=>"N","\xc3\x93"=>"O","\xc3\x96"=>"O","\xc5\x90"=>"O","\xc3\x94"=>"O","\xc5\x98"=>"R","\xc5\x94"=>"R","\xc5\xa0"=>"S","\xc5\xa4"=>"T","\xc3\x9a"=>"U","\xc5\xae"=>"U","\xc3\x9c"=>"U","\xc5\xb0"=>"U","\xc3\x9d"=>"Y","\xc5\xbd"=>"Z"," "=>"-");
+  $text = strtolower(strtr($text, $tbl));
+  return preg_replace('/([^A-Za-z0-9-]+)/','',$text);
+}
+
+
+function moje_bb($string){
+  $bb_replace = array("[b]","[/b]","[i]","[/i]","[h1]","[/h1]","[h2]","[/h2]","[red]","[/red]","[H1]","[/H1]","[H2]","[/H2]");
+  $bb_replacements = array ('<strong>','</strong>','<em>','</em>','<h1>','</h1>','<h2>','</h2>','<span class = "cervena">','</span>','<h1>','</h1>','<h2>','</h2>');
+  return str_replace($bb_replace,$bb_replacements,$string);
+}
+
+
+function oznacit_jako_prectene(){
+global $db_jmeno,$db_spojeni;
+  $sql = "select id_podsekce from forum_podsekce";
+  $result = dbQuery($db_jmeno,$sql,$db_spojeni); 
+  while($zaznam = mysql_fetch_row($result)){
+    vlakno_precteno($zaznam[0]);
+  }
+}
+
+function oznacit_jako_prectene_vlakno($id_sekce){
+global $db_jmeno,$db_spojeni;
+  $sql = "select id_podsekce from forum_podsekce where patri = $id_sekce";
+  $result = dbQuery($db_jmeno,$sql,$db_spojeni); 
+  while($zaznam = mysql_fetch_row($result)){
+    vlakno_precteno($zaznam[0]);
+  }
+}
+
+
+function parseEmails($string) {
+    // Add <a> tags around all email addresses in $string
+    return ereg_replace("[_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,3})", "<a href=\"mailto:\\0\">\\0</a>", $string);
+}
+
+
+function strankovani_vlakna($id_podsekce,$aktualni_strana,$prispevku_ns){
+global $db_jmeno,$db_spojeni;
+  $sql = "select id_clanku from forum_clanky where patri = $id_podsekce";
+  $result = dbQuery($db_jmeno,$sql,$db_spojeni);
+  $prispevku_ve_vlakne = mysql_num_rows($result);
+  $stran_celkem = ceil($prispevku_ve_vlakne / $prispevku_ns);
+  if ($stran_celkem > 1){
+    echo "<div class = \"forum_strankovani\">- ";
+    for ($i = 1; $i <= $stran_celkem; $i++){
+      if ($i == $aktualni_strana){
+        echo "<a href = \"/forum/$_GET[url_druha]/$_GET[url_treti]/$i\"><strong> $i</strong></a> - ";
+      }
+      else {
+        echo "<a href = \"/forum/$_GET[url_druha]/$_GET[url_treti]/$i\"> $i</a> - ";
+      }
+    }
+    echo "</div>";
+  }
+}
+
+
+function update_posledni_zmeny($id_podsekce){
+global $db_jmeno,$db_spojeni;
+  $cas = time();
+  $sql = "update forum_podsekce set posledni_zmena = $cas where id_podsekce = $id_podsekce";
+  dbQuery($db_jmeno,$sql,$db_spojeni);
+}
+
+
+function vkladani_vlakna($id_sekce){
+global $db_jmeno,$db_spojeni;
+  $sql = "select id_sekce from forum_sekce where jmeno_sekce_mini like '$_GET[url_druha]'";
+  $result = dbQuery($db_jmeno,$sql,$db_spojeni);
+  $id_sekce = mysql_result($result,0,0);
+?>
+<form action = "/forum/<?echo $_GET["url_druha"];?>" method = "post" style = "display: inline;">
+  <input type = "hidden" name = "vkladam_vlakno" value = "1" />
+  <input type = "hidden" name = "id_sekce" value = "<?echo $id_sekce?>" />
+  <input type="image" src="/files/styly/styl-aktualni/tlacitka/nove_tema.gif" value="Submit" alt="Nové téma" style = "width: 88px; height: 26px; margin-right: 230px; =margin-right: 220px;" />
+</form>
+<?
+}
+
+
+function vlakno_precteno($id_podsekce){
+global $db_jmeno,$db_spojeni;
+  $sql = "select id_cteni from forum_cteno where id_podsekce = $id_podsekce and id_uzivatele = $_SESSION[id_uzivatele]";
+  $result = dbQuery($db_jmeno,$sql,$db_spojeni);
+  $cas = time(); 
+  if (mysql_num_rows($result) > 0){
+    $sql = "update forum_cteno set precteno = $cas where id_podsekce = $id_podsekce and id_uzivatele = $_SESSION[id_uzivatele]";
+    dbQuery($db_jmeno,$sql,$db_spojeni);
+  }
+  else {
+    $sql = "insert into forum_cteno (id_podsekce,id_uzivatele,precteno) values ($id_podsekce,$_SESSION[id_uzivatele],$cas)";
+    dbQuery($db_jmeno,$sql,$db_spojeni);
+  }
+}
+
+
+function vlakno_precteno_obecne ($id_podsekce){
+  global $db_jmeno,$db_spojeni;
+  $sql = "update forum_podsekce set precteno=precteno+1 where id_podsekce = $id_podsekce";
+  //echo $sql;
+  dbQuery($db_jmeno,$sql,$db_spojeni);
+}
+
+
+function vloz_prispevek($id_podsekce){
+global $db_jmeno,$db_spojeni;
+  if(post('spamcheck')!=123456) return;
+  if (!empty($_POST["obsah_prispevku"])){
+    $cas = time();
+    $vkladane = moje_bb(htmlspecialchars(strip_tags($_POST["obsah_prispevku"])));
+    $sql = "insert into forum_clanky (uzivatel,patri,obsah,datum) VALUES ($_SESSION[id_uzivatele],$id_podsekce,'$vkladane',$cas)";
+    dbQuery($db_jmeno,$sql,$db_spojeni);
+    update_posledni_zmeny($id_podsekce);
+    vlakno_precteno($id_podsekce);
+  }
+  else {
+    $chyba_zobraz .= "Příspěvek musí mít nějaký obsah<br/>";
+    if (isset($chyba_zobraz)){
+      echo "<div class = \"chyba_ramecek\">$chyba_zobraz</div>";
+      unset($chyba_zobraz);
+    }
+  }
+}
+
+
+function vloz_prispevek_anonym($id_podsekce){
+global $db_jmeno,$db_spojeni;
+  if(post('spamcheck')!=123456) return;
+  $smapfilter = false;
+  if (strlen(strstr(strtolower($_POST["obsah_prispevku"]),"viagra"))>0) {
+    $spamfilter = true;
+  }
+  if (strlen(strstr(strtolower($_POST["obsah_prispevku"]),"cialis"))>0) {
+    $spamfilter = true;
+  }
+  if (strlen(strstr(strtolower($_POST["obsah_prispevku"]),"tramadol"))>0) {
+    $spamfilter = true;
+  }
+  if (strlen(strstr(strtolower($_POST["obsah_prispevku"]),"carisoprodol"))>0) {
+    $spamfilter = true;
+  }
+  if (strlen(strstr(strtolower($_POST["obsah_prispevku"]),"[url="))>0) {
+    $spamfilter = true;
+  }
+  if (strlen(strstr(strtolower($_POST["obsah_prispevku"]),"xanax"))>0) {
+    $spamfilter = true;
+  }
+  if (strlen(strstr(strtolower($_POST["obsah_prispevku"]),"buy"))>0) {
+    $spamfilter = true;
+  }
+  if (strlen(strstr(strtolower($_POST["obsah_prispevku"]),"mp3"))>0) {
+    $spamfilter = true;
+  }
+  
+  //spambot v 2.0
+  $cas_otevreni = $_POST["cislo"];
+  $cas_nyni = time();
+  $rozdil_casu = $cas_nyni - $cas_otevreni;
+  if (($rozdil_casu<=4) || !empty($_POST["name_mandatory"])){
+    //$chyba_zobraz .= "Jsi moc velky rychlik, nebo Vidíš za roh, spambote;-)<br />";
+    $spamfilter = true;
+  }
+  
+  /*if (strlen(strstr(strtolower($_POST["obsah_prispevku"],"")))>0) {
+    $spamfilter = true;
+  }*/
+
+  if ((!empty($_POST["obsah_prispevku"])) && !$spamfilter){
+    if (!empty($_POST["jmeno"])){
+      $jmeno = $_POST["jmeno"];
+    }
+    else {
+      $jmeno = "anonym";
+    }
+    $cas = time();
+    $vkladane = moje_bb(htmlspecialchars(strip_tags($_POST["obsah_prispevku"])));
+    $sql = "insert into forum_clanky (patri,obsah,datum,jmeno_neregistrovany) VALUES ($id_podsekce,'$vkladane',$cas,'$jmeno')";
+    //echo $sql;
+    dbQuery($db_jmeno,$sql,$db_spojeni);
+    update_posledni_zmeny($id_podsekce);
+  }
+  else {
+    $chyba_zobraz .= "Příspěvek musí mít nějaký obsah<br/>";
+    if (isset($chyba_zobraz)){
+      echo "<div class = \"chyba_ramecek\">$chyba_zobraz</div>";
+      unset($chyba_zobraz);
+    }
+  }
+}
+
+
+function vloz_vlakno($id_sekce){
+global $db_jmeno,$db_spojeni;
+  if (!empty($_POST["obsah_prispevku"]) && !empty($_POST["nazev_vlakna"])){
+    $cas = time();
+    $nazev_vlakna_mini = minitext($_POST["nazev_vlakna"]);
+    $sql = "insert into forum_podsekce (jmeno_podsekce,jmeno_podsekce_mini,patri,posledni_zmena) values ('$_POST[nazev_vlakna]','$nazev_vlakna_mini',$id_sekce,$cas)";
+    dbQuery($db_jmeno,$sql,$db_spojeni);
+    $sql = "select max(id_podsekce) from forum_podsekce";
+    $result = dbQuery($db_jmeno,$sql,$db_spojeni);
+    $id_podsekce = mysql_result($result,0,0);
+    vloz_prispevek($id_podsekce);
+  }
+  else {
+    $chyba_zobraz .= "Příspěvek musí mít název a obsah<br/>";
+    if (isset($chyba_zobraz)){
+      echo "<div class = \"chyba_ramecek\">$chyba_zobraz</div>";
+      unset($chyba_zobraz);
+    }
+  }
+}
+
+
+function zobraz_prispevek($id_clanku){
+global $db_jmeno,$db_spojeni,$pocitadlo_radku,$ROOT_DIR;
+  $pocitadlo_radku++;
+  $sql = "select uzivatel,obsah,datum,jmeno_neregistrovany from forum_clanky where id_clanku = $id_clanku";
+  $result = dbQuery($db_jmeno,$sql,$db_spojeni);
+  $jmeno = mysql_result($result,0,0);
+  if (!empty($jmeno)){
+    $jmeno = jmeno_uzivatele(mysql_result($result,0,0));
+  }
+  else {
+    $jmeno = mysql_result($result,0,3)."<br /><span style = \"font-size:80%\">(neregistrovaný)</span>";
+  }
+  $id_uzivatele = mysql_result($result,0,0);
+  $sql1 = "select id_uzivatele,funkce_uzivatele from uzivatele_hodnoty where id_uzivatele = $id_uzivatele";
+  $result1 = dbQuery($db_jmeno, $sql1, $db_spojeni);
+  if (mysql_num_rows($result1)==1){
+    $avatar = mysql_result($result1,0,0);
+    $funkce = mysql_result($result1,0,1);
+  }
+  if(!is_file($ROOT_DIR.'/files/systemove/avatary/'.$avatar.'.jpg')){
+    $avatar = "default.png";
+  }
+  else {
+    $avatar = $avatar.".jpg";
+  }
+  if (ma_pravo($id_uzivatele,3)){
+    $org = "_org";
+  }
+  
+  $obsah = nl2br(mysql_result($result,0,1));
+  $datum = date("j.n.y, H:i",mysql_result($result,0,2));
+  ?>
+  <div class = "radek<?echo $pocitadlo_radku%2;echo $org;?>_prispevky">
+    <div class = "ohraniceni">
+      <div style = "width: 100px; float: left;">
+        <div class = "avatar_zobraz" style = "float: left;">
+          <img src = "/files/systemove/avatary/<?echo $avatar?>" />
+        </div>
+        <div style = "padding: 5px 0px 0px 5px; text-align: left; float: left; margin-top: 5px;">
+          <strong><?echo $jmeno?></strong><br />
+          <span class = "druhy_radek"><?echo $datum?></span>
+        </div>
+      </div>
+      <div style = "width: 370px; text-align: left; float: left;">
+        <?echo moje_bb(hyperlinky($obsah));
+        ?>
+      </div>
+      <? if (ma_pravo($_SESSION["id_uzivatele"],1)){
+            echo "<div style = \"text-align:right; width: 470px; height: 20px; float: left; padding-bottom: 5px;\"><a href = \"javascript: document.getElementById('editovat$id_clanku').submit()\">editovat</a> - <a href = \"javascript: document.getElementById('smazat$id_clanku').submit()\">smazat</a></div>";
+          ?>
+            <form action = "<? echo $_SERVER['REQUEST_URI']?>" method = "post" style = "display: inline;"" id ="smazat<?echo $id_clanku?>">
+              <input type = "hidden" name = "smazat_prispevek" value = "1" />
+              <input type = "hidden" name = "id_prispevku" value = "<?echo $id_clanku?>" />
+            </form>
+            <form action = "<? echo $_SERVER['REQUEST_URI']?>" method = "post" style = "display: inline;"" id ="editovat<?echo $id_clanku?>">
+              <input type = "hidden" name = "editovat_prispevek" value = "1" />
+              <input type = "hidden" name = "id_prispevku" value = "<?echo $id_clanku?>" />
+            </form>
+          <?
+          }
+          ?>
+    </div>
+  </div>
+  <?
+}
+
+
+function zobraz_vkladani($id_podsekce){
+?>
+<a href = "reagovat" onclick = "ukaz(0); return false;"><img src = "/files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
+<div class = "forum_reagovat" id = "objekt0" style = "display: none;">
+  <div class = "nadpis">Reagovat:</div>
+  <form action = "/forum/<?echo $_GET["url_druha"]."/".$_GET["url_treti"];?>" method = "post" name = "odeslat">
+    <input type = "hidden" name = "vkladam_prispevek" value = "1" />
+    <input type = "hidden" name = "id_podsekce" value = "<?echo $id_podsekce?>" />
+    <script>
+      document.write('<input type="hidden" name="spamcheck" value="'+(12345.6*10)+'" />');
+    </script>
+    <textarea name = "obsah_prispevku"></textarea>
+    <div class = "buttonky" style = "padding-left: 110px;">
+      <input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="Odeslat" style = "width: 88px; height: 26px; margin-right: 88px;" />
+      <a onclick="document.odeslat.reset();return false;" href="#"><img alt="Vymazat" src="/files/styly/styl-aktualni/tlacitka/vymazat.gif" style = "border: none;"></a>
+    </div>
+  </form>
+</div>
+<?
+}
+
+
+function zobraz_vkladani_anonym($id_podsekce){
+?>
+<a href = "reagovat" onclick = "ukaz(0); return false;"><img src = "/files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
+<div class = "forum_reagovat" id = "objekt0" style = "display: none;">
+  <div class = "nadpis">Reagovat (jako neregistrovaný uživatel):</div>
+  <form action = "/forum/<?echo $_GET["url_druha"]."/".$_GET["url_treti"];?>" method = "post" name = "odeslat">
+    <input type = "hidden" name = "vkladam_prispevek" value = "2" />
+    <input type = "hidden" name = "id_podsekce" value = "<?echo $id_podsekce?>" />
+    <div class = "forum_reagovat_input"><div>Jméno:</div></div><div class = "forum_reagovat_input"><input type = "text" name = "jmeno" /></div>
+    <div style = "display: none"><input type = "edit" name = "name_mandatory"  value = "" /></div>
+    <input type = "hidden" name = "cislo"  value = "<?echo time()?>" />
+    <script>
+      document.write('<input type="hidden" name="spamcheck" value="'+(12345.6*10)+'" />');
+    </script>
+    <textarea name = "obsah_prispevku"></textarea>
+    <div class = "buttonky" style = "padding-left: 110px;">
+      <input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="Odeslat" style = "width: 88px; height: 26px; margin-right: 88px;" />
+      <a onclick="document.odeslat.reset();return false;" href="#"><img alt="Vymazat" src="/files/styly/styl-aktualni/tlacitka/vymazat.gif" style = "border: none;"></a>
+    </div>
+  </form>
+</div>
+<?
+}
+
+
+function zobraz_vkladani_vlakna($id_sekce){
+?>
+
+<div class = "forum_reagovat">
+  <div class = "nadpis">Vložení nového vlákna</div>
+  <form action = "/forum/<?echo $_GET["url_druha"];?>" method = "post" name = "odeslat">
+    <input type = "hidden" name = "vkladam_vlakno" value = "2" />
+    <input type = "hidden" name = "id_sekce" value = "<?echo $id_sekce?>" />
+    <div class = "napis">Název vlákna: <input type = "text" name = "nazev_vlakna" class = "text" /></div>
+    <div class = "napis">Text prvního příspěvku:</div>
+    <script>
+      document.write('<input type="hidden" name="spamcheck" value="'+(12345.6*10)+'" />');
+    </script>
+    <textarea name = "obsah_prispevku"></textarea>
+    <div class = "buttonky" style = "padding-left: 110px;">
+      <input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="Odeslat" style = "width: 88px; height: 26px; margin-right: 88px;" />
+      <a onclick="document.odeslat.reset();return false;" href="#"><img alt="Vymazat" src="/files/styly/styl-aktualni/tlacitka/vymazat.gif" style = "border: none;"></a>
+    </div>
+  </form>
+</div>
+<?
+}
+
+?>

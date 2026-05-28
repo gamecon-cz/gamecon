@@ -1,0 +1,78 @@
+<!-- begin:aktivita -->
+<div class="aktivita">
+
+  <h1>{nazev_akce}</h1>
+  
+  <table class="hlavicka"><tr>
+    <td>
+      <div class="obalkaObrazku">
+        <div class="overlay"><div class="text">{nazev_akce}</div></div>
+        <img src="{urlObrazku}" alt="obrázek k aktivitě {nazev_akce}">
+      </div>
+    </td>
+    <td>
+      <table class="informace">
+        <!-- begin:org -->
+        <tr>
+          <td colspan="2" style="font-weight: normal; width: auto">
+            <div style="width:89px;font-weight:bold;float:left">{titul_orga}:</div>
+            <div style="float:left">{organizator}</div>
+            <div style="clear:both"></div>
+          </td>
+          <!-- <td>{titul_orga}:</td><td>{organizator}</td> -->
+        </tr>
+        <!-- end:org -->
+        <tr>
+          <td colspan="2" style="font-weight: normal; width: auto">
+            <div style="width:89px;font-weight:bold;float:left">Čas konání:</div>
+            <div style="float:left">
+            <!-- begin:instance --><span class="{tridy}">{cas} {obsazenost} {prihlasovatko}</span><br><!-- end:instance -->
+            </div>
+            <div style="clear:both"></div>
+          </td>
+        </tr>
+        <!-- begin:cena -->
+        <tr>
+          <td>
+            <span class="hinted">Cena:
+              <span class="hint">Cena je uvedena ve formátu pracující / student při včasné platbě. Je možné získat i výrazné další <b>slevy</b> podle přehledu <a href="/ceny-slevy-placeni">cen a slev</a>. Při platbě po {rozhodneDatum} bez slev je cena {zakladniCena}.</span>
+            </span>
+          </td>
+          <td>{cena}</td>
+        </tr>
+        <!-- end:cena -->
+        <!-- begin:mojeCena -->
+        <tr>
+          <td>
+            <span class="hinted">Moje cena:
+              <span class="hint">Zobrazená cena platí pro tebe při použití všech slev, které máš nastavené v <a href="/prihlaska">přihlášce</a>. Standardní cena je <b>{stdCena}</b> (pro pracujícího / studenta) a řídí se podle <a href="/ceny-slevy-placeni">cen a slev</a>.</span>
+            </span>
+          </td>
+          <td>{cena}</td>
+        </tr>
+        <!-- end:mojeCena -->
+        <!-- begin:fixniCena -->
+        <tr>
+          <td>
+            <span class="hinted">Pevná cena:
+              <span class="hint">Zobrazená cena platí pro všechny stejně a nelze na ni uplatnit slevy.</span>
+            </span>
+          </td>
+          <td>{cena}</td>
+        </tr>
+        <!-- end:fixniCena -->
+        <!-- begin:dalsiAktivityOrga -->
+        <tr><td>Další akce organizátora:</td><td>{dalsiAktivityOrga}</td></tr>
+        <!-- end:dalsiAktivityOrga -->
+      </table>
+    </td>
+  </tr></table>
+  
+  <div>
+  {popis}
+  </div>
+  
+  <!-- (ne)todo předchozí a další akce (v originále šlo o v menu abecedně předchozí a další, nikoli časově) -->
+
+</div>
+<!-- end:aktivita -->

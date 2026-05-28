@@ -1,0 +1,302 @@
+<?
+
+/**
+ * Zrychlený výpis programu
+ */
+class Program
+{
+  
+  var $u=null; //aktuální uživatel v objektu
+  var $posledniVydana=null;
+  var $dbPosledni=null;
+  var $aktFronta=array();
+  var $program;
+  var $nastaveni=array(
+    'pocty'=>true,
+    'prihlasovani'=>false,
+    'osobni'=>false,
+    'tableClass'=>'program', //todo edit
+  );
+  
+  /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */  
+  function __construct($u=null,$osobni=false)
+  {
+    if($u instanceof Uzivatel)
+    {
+      $this->u=$u;
+      $this->uid=$this->u->id();
+      $this->nastaveni['osobni']=$osobni;
+    }
+  }
+  
+  /** Zpracuje si post hodnoty z formulářů tabulky a provede přihlášení nebo
+   *  nebo odhlášení člověka a návrat na stejnou stranu. Je odolné proti neo-
+   *  právněnému (nad limit, mimo přihlašovací sezónu , ...) přihlašování 
+   *  (pokud není zapnuto force).
+   *  @deprecated */  
+  public function prihlasOdhlas($force=false)
+  {
+    throw new Exception('Deprecated ve prospěch UzivatelskaAktivita::postPrihlasOdhlas');
+    /*
+    if(!$force) 
+      Throw new Exception('Neprůrazné přihlašování neimplementováno.');
+    if(!$this->u && (post('prihlasit') || post('odhlasit')))
+      Throw new Exception('Pokus o přihlášení bez zadaného uživatele.');
+    if(post('prihlasit'))
+    {
+      $aid=array_keys(post('prihlasit'));
+      $aid=$aid[0];
+      aktivitaPrihlas($this->u->id(),$aid,$force,$force);
+      back();
+    }
+    if(post('odhlasit'))
+    {
+      $aid=array_keys(post('odhlasit'));
+      $aid=$aid[0];
+      aktivitaOdhlas($this->u->id(),$aid);
+      back();
+    }
+    */
+  }
+  
+  /** Zapíná nebo vypíná přihlašovací možnosti u políček. Forcenutná varianta
+   *  ignoruje globální nastavení přihlašování (neforcenutá varianta dává pri-
+   *  ritu globálnímu nastavení NEpřihlašovat) */     
+  public function prihlasovani($io=null,$force=false)
+  {
+    //vyřešit kolizi odpovědností vůči třídě Aktivita
+    if($io===null) return $this->nastaveni['prihlasovani'];
+    if(($io && $force && $this->u) || ($io && $GLOBALS['REGISTRACE_AKTIVNI'] && $this->u))
+      $this->nastaveni['prihlasovani']=true;
+    else
+      $this->nastaveni['prihlasovani']=false;
+  }
+  
+  /** Nastaví uživatele, vůči kterému se program sestavuje */
+  public function uzivatel($uid)
+  {
+    Throw new Exception('Nastavování id uživatele tímto způsobem koliduje s objektovým přístupem.');
+    $this->uid=$uid;
+  }
+  
+  /**
+   * Přímý tisk programu na výstup
+   */     
+  public function tisk()
+  {
+    ////////// načtení údajů z DB //////////
+    
+    //načtení programu
+    $prihlSql1=$prihlSql2='';
+    if($this->u)
+    { //přídavná část SQL dotazu pro rozlišení akcí, kde je uživatel přihlášen
+      $prihlSql1=', ap.prihlasen';
+      $prihlSql2='LEFT JOIN (
+        SELECT id_akce, 1 as prihlasen FROM akce_prihlaseni WHERE id_uzivatele='.$this->u->id().') 
+        as ap ON(a.id_akce=ap.id_akce) -- aktivni prihlaseni daneho uzivatele';
+    }
+    $q=('SELECT a.id_akce, a.nazev_akce, 
+        COUNT(p.id_uzivatele) as pocet,
+        COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="f",false)) as pocet_f, 
+        COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="m",false)) as pocet_m,
+        a.kapacita, a.kapacita_m, a.kapacita_f, a.kapacita+a.kapacita_m+a.kapacita_f as kapacita_celkova, 
+        a.den, a.zacatek, a.konec, a.lokace'.$prihlSql1.', a.organizator, a.typ, a.stav
+      FROM akce_seznam a 
+      LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce) -- pocet lidi
+      LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele=p.id_uzivatele) -- kvůli groupu dle pohlaví
+      JOIN akce_lokace l ON (a.lokace=l.id_lokace) -- poradi lokaci v programu
+      '.$prihlSql2.'
+      WHERE a.rok='.$GLOBALS['ROK_AKTUALNI'].' AND a.den>0 AND (a.stav=1 || a.stav=2 || a.stav=3 || a.stav=4)
+      AND a.zacatek>='.$GLOBALS['PROGRAM_ZACATEK'].' AND a.konec<='.$GLOBALS['PROGRAM_KONEC'].'
+      GROUP BY a.id_akce 
+      ORDER BY a.den, l.poradi, a.zacatek, a.nazev_akce'); //agregovat sem zarážku pro tisk?
+    if($this->u && $this->nastaveni['osobni']) //decimace na přihlášené aktivity
+      $q='SELECT * FROM ('.$q.') as program WHERE prihlasen=1 OR organizator='.$this->u->id();
+    $this->program=dbQuery($q);
+    
+    //načtení názvů lokací
+    $odpoved=dbQuery('SELECT id_lokace as id, nazev FROM akce_lokace ORDER BY poradi');
+    while($radek=mysql_fetch_array($odpoved))
+      $lokaceSeznam[$radek['id']]=$radek['nazev'];
+    
+    ////////// tisk samotného programu //////////
+    
+    $aktivita=$this->dalsiAktivita();
+    for($cisloDne=$GLOBALS['PROGRAM_DEN_PRVNI'];$cisloDne<=$GLOBALS['PROGRAM_DEN_POSLEDNI'];$cisloDne++)
+    {
+      echo('<h2>'.datum1($cisloDne).'</h2><table class="'.$this->nastaveni['tableClass'].'"><tr><th>Místo</th>');
+      for($cas=$GLOBALS['PROGRAM_ZACATEK'];$cas<$GLOBALS['PROGRAM_KONEC'];$cas++) //výpis hlavičkového řádku s čísly
+        echo('<th>'.$cas.'</th>');
+      $aktivit=0;
+      foreach($lokaceSeznam as $lokace => $nazevLokace)
+      {
+        if($aktivita['lokace']!=$lokace) continue; //v lokaci není aktivita, přeskočit
+        ob_start(); //výstup bufferujeme, pro případ že bude na víc řádků
+        $radku=0;
+        //ošetření proti kolidujícím aktivitám v místnosti
+        while($lokace==$aktivita['lokace'] && $cisloDne==$aktivita['den'])
+        {
+          for($cas=$GLOBALS['PROGRAM_ZACATEK'];$cas<$GLOBALS['PROGRAM_KONEC'];$cas++)
+          {
+            if($cas==$aktivita['zacatek'] && $aktivita['lokace']==$lokace) //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
+            {
+              $delka=$aktivita['konec']-$aktivita['zacatek']+1; //v DB je konec posunutý o hodinu
+              $this->tiskAktivity($aktivita);
+              $aktivita=$this->dalsiAktivita();
+              $cas+=$delka-1; //na konci cyklu jeste bude ++
+              $aktivit++;
+            }
+            else
+              echo('<td></td>');
+          }
+          echo('</tr><tr>');
+          $radku++;
+        }
+        $radky=substr(ob_get_clean(),0,-4);
+        if($aktivit>0) echo('<tr><td rowspan="'.$radku.'">'.$nazevLokace.'</td>'.$radky);    
+      }
+      if($aktivit==0)
+        echo('<tr><td colspan="17">Žádné aktivity tento den</td></tr>'); //fixme magická konstanta
+      echo('</table>');
+    }    
+  }
+  
+  
+  ////////////////////
+  // pomocné funkce //
+  ////////////////////
+    
+  /** detekce kolize dvou aktivit (jsou ve stejné místnosti v kryjícím se čase) */
+  private static function koliduje($a,$b)
+  {
+    if($a['den']==$b['den'] && $a['lokace']==$b['lokace'] && $a && $b &&
+      !($a['konec']+1<=$b['zacatek'] || $a['zacatek']>=$b['konec']+1)) //Ani A nekončí před začátkem B ani A nezačíná po konci B
+      return true;
+    else
+      return false;  
+  }
+  
+  /** Řekne, jestli jsou aktivity v stejné skupině (místnosti a dnu) */
+  private static function stejnaSkupina($a,$b)
+  {
+    return ($a['den']==$b['den'] && $a['lokace']==$b['lokace']);
+  }
+  
+  /** Vrátí následující nekolizní záznam z fronty aktivit a zruší ho, nebo 
+   *  FALSE */
+  private function popNasledujiciNekolizni(&$fronta)
+  {
+    foreach($fronta as $key=>$prvek)
+    {
+      if($prvek['zacatek']>=$this->posledniVydana['konec']+1)
+      {
+        $t=$prvek;
+        unset($fronta[$key]);
+        return $t;
+      }
+    }
+    return false;
+  }
+  
+  /** pomocná funkce pro načítání další aktivity z DB nebo z lokálního stacku
+   *  aktivit (globální proměnné se používají) */
+  private function dalsiAktivita()
+  { 
+    if(!$this->dbPosledni)
+      $this->dbPosledni=mysql_fetch_assoc($this->program);
+    
+    while($this->koliduje($this->posledniVydana,$this->dbPosledni))
+    {
+      $this->aktFronta[]=$this->dbPosledni;
+      $this->dbPosledni=mysql_fetch_assoc($this->program);
+    }
+    
+    if($this->stejnaSkupina($this->dbPosledni,$this->posledniVydana) || !$this->aktFronta)
+    {
+      $t=$this->dbPosledni;
+      $this->dbPosledni=null;
+      return $this->posledniVydana=$t;
+    }
+    else
+    {
+      if($t=$this->popNasledujiciNekolizni($this->aktFronta))
+        return $this->posledniVydana=$t;
+      else
+        return $this->posledniVydana=array_shift($this->aktFronta);
+    }
+  }
+  
+  /** Vytisknutí konkrétní aktivity (formátování atd...) */
+  private function tiskAktivity($a)
+  {
+    $delka=$a['konec']-$a['zacatek']+1; //v DB je konec posunutý o hodinu
+    $classes=array();
+    if($this->nastaveni['prihlasovani'] && $a['prihlasen'])
+       $classes[]='prihlasen';
+    if($this->nastaveni['prihlasovani'] && $a['organizator']==$this->uid)
+       $classes[]='organizator';
+    echo('<td colspan="'.$delka.'"'.
+      ( $classes?' class="'.implode(' ',$classes).'"':'' ).
+      '>'.$a['nazev_akce']);
+    $aktivita=new UzivatelskaAktivita($a,$this->u);
+    echo $aktivita->obsazenostHtml();
+    echo ' '.$aktivita->prihlasovatko(true);
+    echo('</td>');
+  }
+  
+  
+  ////////////////////////////
+  // Default CSSko programu //
+  ////////////////////////////
+  
+  public static function css()
+  {
+    ?><style>
+      table.program {
+        text-align: center;
+        border-top: none;
+        border-spacing: 0px;
+        margin: 0 3%;
+        table-layout: fixed;
+        min-width: 800px; } 
+      table.program td, table.program th {
+        width: 5%;
+        padding: 3px;
+        margin: 0px;
+        border-left: 1px solid #fff;
+        border-right: 1px solid #000;
+        border-top: 1px solid #fff;
+        border-bottom: 1px solid #000;
+        overflow: hidden;
+        vertical-align: middle;
+        text-align: center; }
+      table.program th { border-top:0; background-color: #700; }
+      table.program th:first-child { min-width: 165px; border-top-left-radius: 10px; border-left-color: #888; }
+      table.program th:last-child { border-top-right-radius: 10px; }
+      table.program tr:nth-child(odd) { background-color: #CAAE99; }
+      table.program tr { background-color: #D2C0B2; }
+      table.program tr:first-child { background-color: transparent; }
+      table.program th { color: #fff; font-weight: normal; }
+      table.program td.prihlasen { background-color: #bab2d2; }
+      table.program td.organizator { background-color: #bad2b2; }
+      table.program td a { color:#a00; text-decoration:none; }
+      table.program td form input:hover { text-decoration: underline; }
+      table.program td .f { color: #e0d; }
+      table.program td .m { color: #0ff; }
+      table.program td .neprihlasovatelna { color: #777; }
+      .chyba { position: absolute; background-color: rgba(255,255,0,0.75); 
+        color: #f00; left: 50%; margin-left: -500px; padding: 5px 10px; 
+        border-radius: 5px; font-weight: bold; }
+    </style><?php
+  }
+  
+  public static function cssRetezec()
+  {
+    ob_start();
+    self::css();
+    return ob_get_clean();
+  }
+
+}
+
+?>

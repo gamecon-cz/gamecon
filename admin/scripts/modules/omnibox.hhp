@@ -1,0 +1,80 @@
+<?php
+
+/** 
+ * Kód starající se o omnibox 
+ */
+
+$naGc='';
+$statut='';
+if($uPracovni)
+{
+  $a=$uPracovni->koncA();
+  $naGc= 
+    ($uPracovni->gcPrihlasen() ? '<img src="/files/design/ok.png"> přihlášen'.$a : '<img src="/files/design/error.png"> nepřihlášen'.$a).', '.
+    ($uPracovni->gcPritomen()  ? '<img src="/files/design/ok.png"> dorazil'.$a   : '<img src="/files/design/error.png"> nedorazil'.$a);
+  if($uPracovni->maPravo(P_TRIKO_ZDARMA))
+    $statut='<span style="color:red;font-weight:bold">Organizátor</span>';
+  else if($uPracovni->maPravo(P_ORG_AKCI))
+    $statut='<span style="color:blue;font-weight:bold">Vypravěč</span>';
+  else
+    $statut='Účastník';
+}
+
+?>
+
+
+
+
+<script>
+$(function(){
+  // klávesové zkratky
+  $.Shortcuts.add({
+    type: 'down',
+    mask: 'Alt+U',
+    handler: function() {
+      $('.omnibox').first().focus();
+    }
+  }).add({
+    type: 'down',
+    mask: 'Alt+Z',
+    handler: function() {
+      $('#zrusitPraci').submit();
+    }
+  }).add({
+    type: 'down',
+    mask: 'Alt+M',
+    handler: function() {
+      $('#materialy').submit();
+    }
+  }).start();
+  // zabránění cinkání v chrome
+  $('body').append('<a accessKey="u"></a>');
+  $('body').append('<a accessKey="z"></a>');
+  $('body').append('<a accessKey="m"></a>');
+});
+</script>
+
+
+
+<div class="hlavicka">
+  <?php if(!$uPracovni){ ?>
+    <form method="post" class="vyber">
+      <input type="text" placeholder="jméno, příjmení, login nebo id" name="retezec" class="omnibox" autocomplete="off" >
+      Uživatel nevybrán. Alt+U
+    </form>
+    <script src="/files/omnibox-temp.js"></script>
+  <?php }else{ ?>
+    <div class="uzivatel">
+      <img src="<?=$uPracovni->avatar()?>">
+      <table class="detaily">
+        <tr> <th>Uživatel:</th> <td><?=$uPracovni->jmenoNick()?></td> </tr>
+        <tr> <th>GC <?=ROK?>:</th> <td><?=$naGc?></td> </tr>
+        <tr> <th>Statut:</th> <td><?=$statut?></td> </tr>
+      </table>
+      <form method="post" id="zrusitPraci">
+        <input type="hidden" name="uzivatele_zrusit" value="2">
+        <input type="submit" value="Zrušit práci s uživatelem Alt+Z"> 
+      </form>
+    </div>
+  <?php } ?>
+</div>
