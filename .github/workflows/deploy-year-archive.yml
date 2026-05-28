@@ -79,6 +79,7 @@ jobs:
                     # gameconcz/gamecon:8.2 image baked into Dockerfile.archive.
                     # Add a row when a year's PHP era is confirmed during recon.
                     case "$year" in
+                        2012) base_image="php:5.6-apache" ;;
                         2013) base_image="php:5.6-apache" ;;
                         2014) base_image="php:5.6-apache" ;;
                         2015) base_image="php:5.6-apache" ;;
@@ -99,6 +100,7 @@ jobs:
                     # extension (mysql, removed in PHP 7 but installable on 5.6).
                     # Both build with no apt packages.
                     case "$year" in
+                        2012) php_exts="mysql" ;;
                         2013) php_exts="mysql" ;;
                         2014) php_exts="mysql" ;;
                         2015) php_exts="mysql" ;;
